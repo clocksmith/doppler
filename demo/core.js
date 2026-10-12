@@ -35,11 +35,13 @@ function $(id) {
 }
 
 function setStatus(text, busy) {
+  const status = $('status');
   const dot = $('status-dot');
   const label = $('status-text');
   dot?.classList.toggle('is-ready', !busy);
   dot?.classList.toggle('is-busy', busy);
   if (label) label.textContent = text;
+  if (status) status.hidden = busy;
 }
 
 function resolvePolicyId() {
@@ -238,6 +240,6 @@ export function loadSampleInspection(receipt) {
   setExportEnabled(true);
   setPhase('Precomputed run');
   clearTokSec();
-  setStatus('Ready', false);
+  setStatus(state.model ? 'Ready' : 'Select model', false);
   setGenerating(false);
 }

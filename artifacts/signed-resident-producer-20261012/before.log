@@ -1,0 +1,12 @@
+✔ forge-model-capsule.test.js: all tests passed
+forge-model-capsule: embedding qualification passed (synthetic reference)
+file:///Users/xyz/deco/doppler/src/tooling/model-capsule-rig.js:237
+      throw new Error(`Rig qualification report "${reportPath}" has no passed generation result.`);
+            ^
+
+Error: Rig qualification report "/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/doppler-forge-test-l9u528/fixture/reports/resident.json" has no passed generation result.
+    at loadQualificationEvidence (file:///Users/xyz/deco/doppler/src/tooling/model-capsule-rig.js:237:13)
+    at async rigModelCapsule (file:///Users/xyz/deco/doppler/src/tooling/model-capsule-rig.js:411:33)
+    at async file:///Users/xyz/deco/doppler/tests/tooling/forge-model-capsule.test.js:411:1
+
+Node.js v22.20.0

@@ -14,6 +14,8 @@ const state = Object.fromEntries(fields.flatMap((field, index) => [
   [field, new Float32Array(index + 1).fill(index + 1)],
   [`${field}GPU`, { id: field, size: 256 }],
 ]));
+state.recurrentStatePrecision = 'two-f32';
+state.recurrentStateComponents = 2;
 for (const recorder of [null, { id: 'recorder' }]) {
   for (const failAt of [-1, 0, 5]) {
     const calls = [];
@@ -28,6 +30,8 @@ for (const recorder of [null, { id: 'recorder' }]) {
       assert.equal(config.hiddenSize, index + 1, 'Use logical elements, not pooled buffer capacity');
       assert.equal(config.numTokens, 1);
       assert.equal(config.dtype, 'f32');
+      assert.deepEqual(config.storageLayout, index === 5
+        ? { precision: 'two-f32', components: 2, ordering: 'interleaved-high-low' } : null);
       assert.equal(config.layerIdx, options.layerIdx);
       assert.equal(config.probes, options.debugProbes);
       assert.equal(config.recorder, recorder);

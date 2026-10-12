@@ -1,0 +1,47 @@
+TAP version 13
+# demo-ui-controls.test: ok
+# Subtest: tests/demo/demo-ui-controls.test.js
+ok 1 - tests/demo/demo-ui-controls.test.js
+  ---
+  duration_ms: 89.691167
+  type: 'test'
+  ...
+#   ok: generateTokenIds diagnostics
+# [334.1ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (2 tokens @ 33657.6 tok/s)
+#   ok: EOS stop parity
+# [335.2ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (0 tokens @ 0.0 tok/s)
+#   ok: immediate EOS first-token parity
+# [336.9ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (4 tokens @ 61717.0 tok/s)
+#   ok: maxTokens cap parity
+# [338.6ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (2 tokens @ 19772.4 tok/s)
+#   ok: abort signal parity
+# [339.8ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (2 tokens @ 22311.7 tok/s)
+#   ok: stop sequence parity
+#   ok: stats fields
+#   ok: self-speculation burst honors configured tokens
+#   ok: cleanup on success and throw
+#   ok: double-generation guard
+# generate-token-ids-behavioral-parity.test: ok
+# [342.2ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (0 tokens @ 0.0 tok/s)
+# [342.7ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (0 tokens @ 0.0 tok/s)
+#   ok: first-token callback cancellation disposition and reuse
+# [345.7ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (0 tokens @ 0.0 tok/s)
+# [346.3ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (0 tokens @ 0.0 tok/s)
+# [346.6ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (0 tokens @ 0.0 tok/s)
+# [346.9ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (0 tokens @ 0.0 tok/s)
+#   ok: first-token public stopping classification across generation surfaces
+# Subtest: tests/inference/generate-token-ids-behavioral-parity.test.js
+ok 2 - tests/inference/generate-token-ids-behavioral-parity.test.js
+  ---
+  duration_ms: 379.644939
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 392.789191

@@ -14,8 +14,7 @@ export interface DemoCatalogEntry {
 export declare function canRemoveModelStatus(status: string | null | undefined): boolean;
 
 export declare function buildModelCardDetail(
-  entry: DemoCatalogEntry,
-  status: string | null | undefined
+  entry: DemoCatalogEntry
 ): string;
 
 export declare function setModelCallbacks(callbacks: {

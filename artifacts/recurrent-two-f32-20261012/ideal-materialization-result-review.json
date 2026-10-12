@@ -1,0 +1,39 @@
+{
+  "schema": "doppler.ideal-global-materialization-result-review/v1",
+  "reviewer": "native_participation",
+  "date": "2026-10-12",
+  "scope": "Read-only retained-result identity, summary equality and geometry/count audit; no model or GPU rerun.",
+  "qualified": false,
+  "bindings": {
+    "rawSha256": "579a41fcaf4277be4c5c1bc5228efda3c0d4016577877f23d6d0dc490cd4922f",
+    "compressedSha256": "ccd9af3c69b29f923f4ec303f7b9d9e0afa1158c0ff2d8c8747bc98aebab3012",
+    "mapSha256": "2ce504dbd9eece4b7d38f7073a7e1b7f33e7957861b1f4e5fb5abfcc9be771de",
+    "auditSha256": "b9cb1acf90dc236680156b9a1bb941deee94071e0eaa889815cb4654d8593273",
+    "evaluatorSha256": "90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7",
+    "captureSha256": "bd4ac8041baecdc734600934a4d7f6ecd2e6f101fae5fbb4d71ccd76ca28bdc5"
+  },
+  "checks": {
+    "summaryExactlyMatchesRawWithoutLogitPayloads": true,
+    "reviewedMapAndToolExact": true,
+    "reportedOriginalAndInactiveCloneApprovedVectorsExact": true,
+    "logicalStoreCountsMatchReviewedGeometry": true,
+    "steps": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "failedSteps": [
+      3,
+      7
+    ],
+    "overTolerance": 119,
+    "max": 0.001502511655989025,
+    "rms": 0.0001813569290208952
+  },
+  "conclusion": "This reviewed global-buffer-only materialization control exceeds unchanged 0.001 at two of eight request 2 prefixes despite ideal arithmetic between mapped stores and approved two-F32 recurrence. It identifies sensitivity within this control; it does not prove production error unavoidable, establish a lower bound or qualify an implementation. Actual step 7 runtime error is lower than this control, so no monotonic improvement inference follows. Approved reference authority, tolerance and production admission remain unchanged."
+}

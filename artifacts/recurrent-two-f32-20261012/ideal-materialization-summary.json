@@ -1,0 +1,216 @@
+{
+  "scope": "Ideal F64 arithmetic between explicitly mapped global tensor-buffer stores; workgroup/private F32 arithmetic and scratch stores deliberately omitted. This is not an attainable GPU oracle, lower bound, replacement reference or precision permission.",
+  "mapSha256": "2ce504dbd9eece4b7d38f7073a7e1b7f33e7957861b1f4e5fb5abfcc9be771de",
+  "evaluateSourceSha256": "50a07b99c000d8f2a1732c13e9c7bbb788f21eb62257a0b8c63dc7eab297ef97",
+  "deltaSourceSha256": "7bc0e2c94d0c428b5dbdb4f86c9710be78c65e0e27772e881df250de110b3b55",
+  "inactiveCopyApprovedVectorsExact": true,
+  "count": 8,
+  "stores": {
+    "embedding": 195584,
+    "normalization": 12329984,
+    "qkv-projection": 21123072,
+    "z-projection": 7041024,
+    "a-projection": 55008,
+    "b-projection": 55008,
+    "conv-output": 20348928,
+    "recurrent-high": 1802502144,
+    "recurrent-low": 1802502144,
+    "raw-prefill-recurrent-output": 6782976,
+    "gated-recurrent-output": 7041024,
+    "linear-output-projection": 3520512,
+    "attention-residual": 4694016,
+    "ffn-gate-projection": 15826944,
+    "ffn-up-projection": 15826944,
+    "ffn-activation": 16429056,
+    "ffn-down-projection": 4694016,
+    "ffn-residual": 4694016,
+    "q-projection": 4694016,
+    "k-projection": 586752,
+    "v-projection": 586752,
+    "rope-cos-table": 73344,
+    "rope-sin-table": 73344,
+    "rope-output": 2933760,
+    "attention-output": 2347008,
+    "gated-attention-output": 2347008,
+    "attention-output-projection": 1173504,
+    "logits": 1986560
+  },
+  "comparison": {
+    "values": 1986560,
+    "max": 0.001502511655989025,
+    "rms": 0.0001813569290208952,
+    "percentiles": {
+      "50": 0.00010841339306955078,
+      "90": 0.00029534505941937185,
+      "99": 0.0005329836035376597,
+      "99.9": 0.0007544688526819874
+    },
+    "overTolerance": 119,
+    "lastTokenMax": 0.001502511655989025
+  },
+  "caches": [
+    {
+      "layer": 3,
+      "keySha256": "e9b066d0178540bc17a49df83ab234aa898bbffa927387c0b617a35b409097bb",
+      "valueSha256": "8aa3fa8f7e25e3e8858430c709274f7f5e351aa5ef9587cbba22194f4b35f4f5"
+    },
+    {
+      "layer": 7,
+      "keySha256": "0a7becb26eddfc0da1eaa7e6efd3c818ed193c000f919fd51edd8845cac9c20d",
+      "valueSha256": "138ed461246a3e4f96d897895cc3c9763cb90b38647b32cfbaa370df42bc8cfe"
+    },
+    {
+      "layer": 11,
+      "keySha256": "0ee38849d6c4b0ee61451d333c2452404981e7fe8dfd6dcf3bc65d63b9314568",
+      "valueSha256": "6cfad9196e2d2df872612013f32c346b8a846168169f9220a9b2800f205d09b2"
+    },
+    {
+      "layer": 15,
+      "keySha256": "47eaaef58cb034571626428b2e2a0eb14909868d3d02f4ce87ae236eb02ba8bb",
+      "valueSha256": "f340232e7e48aeff35315aa8dfc0c43536c2d4984e40929c46d438fdf510359a"
+    },
+    {
+      "layer": 19,
+      "keySha256": "780158bd956002f5ffb1f032ab065b64e85b8c9b0363926acf541dec1bf112c8",
+      "valueSha256": "e9ac4fd29f7940fc6e91e447ac717a8c58f875a2a294a6a43aafe12513724a58"
+    },
+    {
+      "layer": 23,
+      "keySha256": "190511cd274378753370bec6766f522d74f8cf028caea25b39aa7c27d55a796e",
+      "valueSha256": "28a0c249b3c060444a9aa1249476e7df209fd5b136f53b188f1d3d9b4108e39f"
+    }
+  ],
+  "perPrefix": [
+    {
+      "step": 0,
+      "comparison": {
+        "values": 248320,
+        "max": 0.0005140605241127361,
+        "rms": 9.505760105758751e-05,
+        "percentiles": {
+          "50": 6.325034781973216e-05,
+          "90": 0.00015621863356161115,
+          "99": 0.00024903739041372665,
+          "99.9": 0.0003247579351145533
+        },
+        "overTolerance": 0,
+        "lastTokenMax": 0.0005140605241127361
+      }
+    },
+    {
+      "step": 1,
+      "comparison": {
+        "values": 248320,
+        "max": 0.0006912081248617863,
+        "rms": 0.00013237448859736162,
+        "percentiles": {
+          "50": 8.729538277618687e-05,
+          "90": 0.00021676116632020072,
+          "99": 0.00035165435047121993,
+          "99.9": 0.00046421777096851923
+        },
+        "overTolerance": 0,
+        "lastTokenMax": 0.0006912081248617863
+      }
+    },
+    {
+      "step": 2,
+      "comparison": {
+        "values": 248320,
+        "max": 0.0008839874924779778,
+        "rms": 0.00016684175152763625,
+        "percentiles": {
+          "50": 0.00011077895878341959,
+          "90": 0.00027399524005580214,
+          "99": 0.0004400438661511807,
+          "99.9": 0.0005723043338842222
+        },
+        "overTolerance": 0,
+        "lastTokenMax": 0.0008839874924779778
+      }
+    },
+    {
+      "step": 3,
+      "comparison": {
+        "values": 248320,
+        "max": 0.0011989681940773877,
+        "rms": 0.00023436716355610925,
+        "percentiles": {
+          "50": 0.00015456473063496512,
+          "90": 0.0003846102422969011,
+          "99": 0.0006216146166840915,
+          "99.9": 0.0008237558611306139
+        },
+        "overTolerance": 15,
+        "lastTokenMax": 0.0011989681940773877
+      }
+    },
+    {
+      "step": 4,
+      "comparison": {
+        "values": 248320,
+        "max": 0.0007239708015256419,
+        "rms": 0.00015386166966183893,
+        "percentiles": {
+          "50": 0.00010395344338387513,
+          "90": 0.00025296886278356465,
+          "99": 0.0003961143799267036,
+          "99.9": 0.0005081610645466424
+        },
+        "overTolerance": 0,
+        "lastTokenMax": 0.0007239708015256419
+      }
+    },
+    {
+      "step": 5,
+      "comparison": {
+        "values": 248320,
+        "max": 0.0009974509080570293,
+        "rms": 0.00018143113085355156,
+        "percentiles": {
+          "50": 0.00011964597572461377,
+          "90": 0.00029688047119500464,
+          "99": 0.00048572652876881505,
+          "99.9": 0.0006458928246440964
+        },
+        "overTolerance": 0,
+        "lastTokenMax": 0.0009974509080570293
+      }
+    },
+    {
+      "step": 6,
+      "comparison": {
+        "values": 248320,
+        "max": 0.000868634707290733,
+        "rms": 0.00016826002002389895,
+        "percentiles": {
+          "50": 0.00011139990905328911,
+          "90": 0.0002765547534267915,
+          "99": 0.00044337671474022663,
+          "99.9": 0.0005805926438746419
+        },
+        "overTolerance": 0,
+        "lastTokenMax": 0.000868634707290733
+      }
+    },
+    {
+      "step": 7,
+      "comparison": {
+        "values": 248320,
+        "max": 0.001502511655989025,
+        "rms": 0.0002624833185220879,
+        "percentiles": {
+          "50": 0.000172775288293181,
+          "90": 0.0004309734837834256,
+          "99": 0.0006973055370849801,
+          "99.9": 0.0009081330438582082
+        },
+        "overTolerance": 104,
+        "lastTokenMax": 0.001502511655989025
+      }
+    }
+  ],
+  "qualified": false,
+  "rawSha256": "579a41fcaf4277be4c5c1bc5228efda3c0d4016577877f23d6d0dc490cd4922f",
+  "rawBytes": 38041472
+}

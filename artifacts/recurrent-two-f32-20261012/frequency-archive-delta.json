@@ -1,0 +1,9 @@
+{
+  "files": 1918,
+  "changed": [
+    "package/src/gpu/kernels/rope_precompute.wgsl"
+  ],
+  "oldSha256": "5a8cd9b06791bfcb47b4160e3c1cc6f93576aeaaa663c2b0d644375963e14e4d",
+  "newSha256": "e80292dcab0656715a999b7b3954daaa049e7d1aaf9b460a560e9bb19b4f7aa7",
+  "scope": "Exact diagnostic package byte comparison, not qualification"
+}

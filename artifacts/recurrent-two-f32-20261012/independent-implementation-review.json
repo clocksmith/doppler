@@ -1,0 +1,72 @@
+{
+  "schema": "doppler-independent-two-f32-implementation-review-v1",
+  "date": "2026-10-12",
+  "reviewer": "native_participation",
+  "scope": "Independent source inspection and three fresh CPU regression runs. Physical operator/core results belong to numerical_runtime and are bound, not rerun by this reviewer. No exhaustive mathematical or whole-model qualification claim.",
+  "bindings": {
+    "src/gpu/kernels/codegen/includes/compensated-f32.wgsl.inc": "1e877ff56eb6ef7e108ea1ce15c13bc9a82e1603e9372c50259c675fe1420ab5",
+    "src/gpu/kernels/linear-attention-core.js": "ab4dccee4b9e68066df2b84dc9518e4197e30a9890d77d73ee22ec40b927aa9a",
+    "src/inference/pipelines/text/linear-attention.js": "65e0ad68e672cfeeab7093cd1f50a9e21022e783ba3a21a5220c6faaf901f383",
+    "src/inference/pipelines/text/linear-attention/state-layout.js": "6b0ada3867952998be9eb9e94da4392edd42b6bf7faa185bf8ceb847d1ded96a",
+    "src/inference/pipelines/text/linear-attention/plan.js": "24f80ea17c72a6c927f412e7b78fb1a6e895956f353e59fdbcc105fdae80d88d",
+    "tools/generate-linear-state-kernels.js": "afb120bc305469f4f03da4c328e0130b8abf01f4ad2e0ad57b489121b1048125",
+    "src/gpu/kernels/gated_delta_recurrent.wgsl": "d3db1d0c3988579a6cc71c7eddb8936ca2708107b2bbafb39acc52c649121911",
+    "src/gpu/kernels/gated_delta_recurrent_f16.wgsl": "b759d7954e2704bfe5efab72e1d397ba48239643f0a9f619a55455bbc18dd14c",
+    "src/gpu/kernels/gated_delta_fused_decode.wgsl": "fd811f031df1a3f291356cfb9d97af699e5b5a14656b7c2124c710e5b40800a1",
+    "src/gpu/kernels/gated_delta_fused_decode_f16.wgsl": "18c6e8963149b631e0443d9ac25c6f8902e08856e4b6f858d4bc541a953e1e37",
+    "tests/inference/linear-recurrent-layout.test.js": "fae516bdd192fabc3083acf41c6facd08a3cf513fbed67f1b47d61c68776f9ba",
+    "tests/gpu/linear-attention-allocation-cleanup.test.js": "9fcb5e54811acafabcc8d029a1739862a2ff3596a2a7132bec00b13a2b273bce",
+    "tests/inference/linear-attention-state-probes.test.js": "e35128cc31ce4629026a80b6f60d9bdc0edafb2ee12da22caefa1e6b8b9f37b0",
+    "artifacts/recurrent-two-f32-20261012/operators-mac-underflow.json": "19a793fc3b62b93a3411101d8841d1c77c5aca7767f4c5ce6d061d76deacdf79",
+    "artifacts/recurrent-two-f32-20261012/operators-amd.json": "867d0d1d78404fed843b71ccab94a6fdb77384375a8ac2d1259b44edfa406847",
+    "artifacts/recurrent-two-f32-20261012/core-mac-complete.log": "9a7b03941fbd72c884305e444ed6492fba91256fb9557f1d57993fb30422c8c8",
+    "artifacts/recurrent-two-f32-20261012/core-amd-complete.log": "6062c22075fdaa274af54136813ebe647c0893c612826101443accbfead99b17",
+    "artifacts/recurrent-two-f32-20261012/layout-allocation.log": "32b1d662dd2b79101897e45cd330d196153a3c2d83747839b42ae9862b343789",
+    "artifacts/recurrent-two-f32-20261012/mac-distribution.json": "2a221174ea87ac964b9be88b2e4a5e730d1e99652b06e616839a27a5f6dbd76c",
+    "artifacts/recurrent-two-f32-20261012/approval.json": "8a2b1712ffbb468808dbaeb16e00d5a5c76be1e77c6e14c6a1250b42bd546b89"
+  },
+  "math": {
+    "product": "24-bit integer significand multiplication reconstructs the product residual without a reassociable floating multiply/subtract identity. Reconstruction preserves nearest-even subnormal output bits. Prior generic product reviews remain separate evidence.",
+    "addition": "Bitwise equality fast paths retain a tiny addend when the rounded sum equals its peer. Signed aligned significands recover the residual of the actual supplied sum. Correction additions that flush to zero recover the integer residual; pair normalization promotes that residual into the high component.",
+    "pair": "pair_mul_scalar retains high and low multiplication residuals, combines through pair_add, and normalizes. pair_add separately recovers high-addition, low-addition and joined-tail residuals.",
+    "resolvedWitness": {
+      "input": "pair_add((0, minimum positive F32 subnormal), (0, 0)) under a backend that flushes floating subnormal operations",
+      "priorFailure": "Plain low/tail addition lost the carried component.",
+      "repair": "add_preserving_underflow and pair_normalize integer recovery; physical min-subnormal carry controls retained."
+    },
+    "contractLimit": {
+      "input": "a=(maxF32,-2^102), b=(2^103,0)",
+      "exactRepresentablePair": "(maxF32,+2^102)",
+      "intermediate": "The initial high-component sum overflows to Infinity.",
+      "disposition": "Explicitly outside finite-intermediate contract; nonfinite propagation retained, not an extended-exponent or all-finite-input guarantee."
+    },
+    "materialization": "Both state components persist through decay and update. State contraction/delta/output accumulation also use pairs; activation output subsequently materializes into the existing scalar F32 boundary. This is more than merely duplicating storage and is not exact F64 execution."
+  },
+  "state": {
+    "schema": 3,
+    "components": "Explicit f32=1 / two-f32=2; invalid precision rejected. Default f32 unchanged.",
+    "allocation": "Scalar geometry and required byte count validated as positive safe integers at the direct GPU kernel boundary. Buffer must cover geometry × components × 4.",
+    "identity": "Pipeline cache key includes input dtype and state component count; recurrent and fused pipelines receive the same override.",
+    "ownership": "Clone reads/copies full two-component state and metadata. Restore validates schema and every layer layout before releasing active target buffers. Old schema requires reset; active attempt precision changes reject. Reset releases old buffers and clears layers.",
+    "indexing": "Logical per-layer/head/k/v index is multiplied by component count only in state_load/state_store for two-component paths. The f32 branch retains original one-component direct indexing.",
+    "probes": "Existing probe reads full recurrentState.length as F32 words. Raw two-component probes are interleaved storage, not a pre-summed logical tensor; downstream diagnostic decoding must bind declared layout."
+  },
+  "checks": [
+    {
+      "command": "node tests/inference/linear-recurrent-layout.test.js",
+      "exitCode": 0,
+      "output": "linear-recurrent-layout: passed"
+    },
+    {
+      "command": "node tests/gpu/linear-attention-allocation-cleanup.test.js",
+      "exitCode": 0,
+      "output": "linear-attention-allocation-cleanup: passed"
+    },
+    {
+      "command": "node tests/inference/linear-attention-state-probes.test.js",
+      "exitCode": 0,
+      "output": "linear-attention-state-probes.test: ok"
+    }
+  ],
+  "disposition": "No additional arithmetic or state-ownership blocker established within the stated finite-intermediate domain. Diagnostic interleaved-state interpretation requires explicit layout. Mac whole-model receipt fails 17/55 prefixes: operator correctness and user approval do not qualify the model or archive. No pin change, deployment, GPU run, or runtime edit performed by this review."
+}

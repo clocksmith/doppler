@@ -247,6 +247,9 @@ export async function runProbes(stage, buffer, options) {
       dtype,
       recorder,
     });
+    if (capture && options.storageLayout) {
+      capture.storageLayout = { ...options.storageLayout };
+    }
     diagnostics.emitter.emitRecord(canonicalStage, {
       layerIdx,
       phase: options.phase ?? null,

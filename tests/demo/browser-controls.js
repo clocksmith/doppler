@@ -62,6 +62,7 @@ async function assertControlContrast(page) {
 export async function checkDemoControls(page) {
   assert.equal(await page.evaluate(() => typeof globalThis.DOPPLER?.log?.info), 'function');
   assert.equal(await page.locator('#settings-panel').isVisible(), false);
+  assert.equal(await page.locator('#status').isVisible(), false, 'Model readiness stays in setup, without repeating run progress');
   await page.locator('#settings-toggle').click();
   assert.equal(await page.locator('#settings-panel').isVisible(), true);
   assert.equal(await page.locator('#xray-toggle-all').isChecked(), false);
@@ -121,6 +122,9 @@ export async function checkDemoControls(page) {
   for (const id of ['set-trace', 'set-batch-max-tokens', 'set-readback', 'set-kv-dtype', 'set-kv-max-seq', 'set-log-level']) {
     assert.equal(await page.locator(`#${id}`).isDisabled(), true, `${id} is explicitly profile-owned`);
   }
+  assert.equal(await page.locator('#set-kv-dtype').isVisible(), false, 'Profile-owned values unfold on demand');
+  await page.locator('.profile-details > summary').click();
+  assert.equal(await page.locator('#set-kv-dtype').isVisible(), true);
   await assertControlContrast(page);
   const recordedSettings = (await exportedReport(page)).settings;
   for (const profile of ['profiles/throughput', 'profiles/verbose-trace', 'profiles/production', 'profiles/low-memory', 'profiles/trace-layers', 'profiles/default']) {
@@ -288,6 +292,11 @@ export async function checkDemoControls(page) {
   await page.click('#model-select-action');
   await page.waitForFunction(() => document.querySelector('#status-text').textContent.startsWith('Load failed:'));
   assert.equal(await page.locator('#model-select-action').isEnabled(), true);
+  await page.locator('#settings-toggle').click();
+  assert.equal(await page.locator('#status').isVisible(), false);
+  assert.equal(await page.locator('#output-phase').isVisible(), true);
+  assert.equal(await page.locator('#output-phase').textContent(), 'Load failed: Contract load failure', 'Load failures remain visible when setup is collapsed');
+  await page.locator('#settings-toggle').click();
   await page.evaluate(() => { __demoContract.failLoad = false; });
   await page.click('#model-select-action');
   await page.waitForFunction(() => document.querySelector('#model-select-action').textContent === 'Loaded');

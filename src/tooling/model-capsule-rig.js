@@ -13,6 +13,8 @@ import {
 import { runRigPipeline } from '../converter/forge-stages.js';
 import { hashTargetPlan } from '../config/target-plan.js';
 import { loadCapsuleSigningKey, writeCapsuleV2 } from './capsule-v2.js';
+import { assertResidentQualification } from '../converter/resident-qualification.js';
+import { loadCapsulePieceIndex } from './model-capsule-pieces.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
 import { buildReferenceTranscript } from './program-bundle/materialize.js';
 
@@ -39,6 +41,8 @@ export function usage() {
     '  --candidate-evaluation <path> Frozen evaluation contract, reference and raw observations',
     '  --release-manifest <path>     Required doppler.capsule-release/v1 contract',
     '  --model-dir <path>            Model artifact directory',
+    '  --piece-index <path>          Verified piece index for signed resident acquisition',
+    '  --resident-contract <path>    Frozen resident comparison reference and bounds',
     '  --out <path>                  Signed Capsule v2 output path',
     '  --signing-private-key <path>  Ed25519 private JWK',
     '  --signing-public-key <path>   Ed25519 public JWK',
@@ -96,6 +100,8 @@ export async function buildRigOptions(
     modelDir: flags['model-dir'] ?? null,
     referenceReportPath: flags['reference-report'] ?? null,
     qualificationReportPaths: flags['qualification-report'] ?? [],
+    pieceIndexPath: flags['piece-index'] ?? null,
+    residentQualificationContractPath: flags['resident-contract'] ?? null,
     conversionConfigPath: flags['conversion-config'] ?? null,
     runtimeConfigPath: flags['runtime-config'] ?? null,
     modelIRReceiptPath: flags['model-ir-receipt'] ?? null,
@@ -141,7 +147,7 @@ function hashCanonical(value) {
   return `sha256:${createHash('sha256').update(JSON.stringify(stableSortObject(value))).digest('hex')}`;
 }
 
-async function loadQualificationEvidence(reportPaths, bundle) {
+async function loadQualificationEvidence(reportPaths, bundle, residentContext) {
   if (bundle.referenceTranscript?.operation === 'scoreChoices') {
     const evidence = [];
     for (const reportPath of reportPaths || []) {
@@ -226,6 +232,12 @@ async function loadQualificationEvidence(reportPaths, bundle) {
   for (const reportPath of reportPaths || []) {
     const reportFile = await readJsonFile(reportPath, 'qualification report');
     const report = reportFile.json;
+    if (report.operation === 'residentPartition') {
+      const record = assertResidentQualification(report, residentContext);
+      const observed = await hashFile(reportFile.path);
+      evidence.push({ ...record, evidenceHash: observed.hash, sizeBytes: observed.sizeBytes, sourcePath: reportFile.path });
+      continue;
+    }
     const transcript = report.metrics?.referenceTranscript;
     const surface = transcript?.surface;
     const tokens = transcript?.tokens?.ids;
@@ -338,7 +350,7 @@ async function resolveSigner(options) {
   return { authority, privateKeyJwk, publicKeyJwk };
 }
 
-async function materializeCapsuleArtifactClosure(capsule, sourceBundle, sourceBundlePath, repoRoot, outputPath, qualificationEvidence = [], modelIREvidence = null) {
+async function materializeCapsuleArtifactClosure(capsule, sourceBundle, sourceBundlePath, repoRoot, outputPath, qualificationEvidence = [], modelIREvidence = null, pieceIndex = null, residentContract = null) {
   const outputRoot = path.dirname(path.resolve(outputPath));
   const remainingSources = sourceBundle.artifacts.map((artifact) => ({
     artifact,
@@ -354,6 +366,10 @@ async function materializeCapsuleArtifactClosure(capsule, sourceBundle, sourceBu
     sourcePath: evidence.sourcePath,
     used: false,
   })));
+  if (residentContract) remainingSources.push({ artifact: { role: 'qualification-evidence', hash: residentContract.hash, sizeBytes: residentContract.sizeBytes },
+    sourcePath: residentContract.sourcePath, used: false });
+  if (pieceIndex) remainingSources.push({ artifact: { role: 'piece-index', hash: pieceIndex.hash, sizeBytes: pieceIndex.sizeBytes },
+    sourcePath: pieceIndex.sourcePath, used: false });
   if (modelIREvidence) {
     remainingSources.push({
       artifact: {
@@ -408,10 +424,6 @@ export async function rigModelCapsule(options) {
   const manifest = await readJsonFile(manifestPath, 'manifest');
   const release = (await readJsonFile(options.releaseManifestPath, 'Capsule release contract')).json;
   const signer = await resolveSigner(options);
-  const qualificationEvidence = await loadQualificationEvidence(
-    options.qualificationReportPaths ?? [],
-    source.bundle
-  );
   let modelIR = null;
   let modelIREvidence = null;
   if (options.modelIRReceiptPath) {
@@ -439,6 +451,19 @@ export async function rigModelCapsule(options) {
       ?? identitySource.runtime?.initialExecutionIdentity
       ?? identitySource;
   }
+  const residentContractFile = options.residentQualificationContractPath
+    ? await readJsonFile(options.residentQualificationContractPath, 'resident qualification contract') : null;
+  const residentContract = residentContractFile ? { ...(await hashFile(residentContractFile.path)),
+    sourcePath: residentContractFile.path, path: 'artifacts/evidence/resident-qualification-contract.json' } : null;
+  const qualificationEvidence = await loadQualificationEvidence(options.qualificationReportPaths ?? [], source.bundle, {
+    manifest: manifest.json, manifestIdentity: source.bundle.sources.manifest.hash,
+    executionGraphHash: source.bundle.execution.graphHash, initialExecutionIdentity, contract: residentContractFile?.json ?? null,
+  });
+  const pieceIndex = await loadCapsulePieceIndex(options.pieceIndexPath ?? null, manifest.raw,
+    options.modelDir ?? path.dirname(manifestPath));
+  if (qualificationEvidence.some(row => row.operation === 'residentPartition') && !pieceIndex) {
+    throw new Error('Signed resident qualification requires a verified piece index.');
+  }
   const candidateEvaluation = options.candidateEvaluationPath == null ? null
     : await readJsonFile(options.candidateEvaluationPath, 'candidate evaluation');
   const { capsule, stages, searchReceipt } = await runRigPipeline({
@@ -450,6 +475,8 @@ export async function rigModelCapsule(options) {
     repoRoot,
     outputPath: path.resolve(options.outputPath),
     qualificationEvidence,
+    pieceIndex,
+    residentContract,
     modelIR,
     modelIREvidence,
     initialExecutionIdentity,
@@ -465,7 +492,9 @@ export async function rigModelCapsule(options) {
     repoRoot,
     options.outputPath,
     qualificationEvidence,
-    modelIREvidence
+    modelIREvidence,
+    pieceIndex,
+    residentContract
   );
   const written = await writeCapsuleV2(options.outputPath, capsule);
   return {
