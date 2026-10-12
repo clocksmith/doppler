@@ -1,0 +1,33 @@
+{
+  "scope": "Identical captured F32/Q4_K operands against an independent Float64 projection",
+  "host": "linux",
+  "fixtureSha256": "b74838afe70cdd54baf6ddcdf6cc2dc1679eba7c085fa5147b45c2dffe760868",
+  "shaderSha256": "bec219e1e025b08ae73c5882773416720d2b38a1227a80226fff4de2bd685b7f",
+  "geometry": {
+    "M": 184,
+    "N": 6144,
+    "K": 1024
+  },
+  "maximumAllowedError": 2e-06,
+  "requiredPeakErrorReduction": 2,
+  "strictMathDeveloperDiagnostic": false,
+  "browser": "146.0.7680.177",
+  "errors": [],
+  "strictMathRead": false,
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3"
+  },
+  "comparison": {
+    "maxAbsoluteError": 9.433781151813037e-07,
+    "rmsError": 3.3269891442567675e-08,
+    "worstIndex": 1112830
+  },
+  "baseline": {
+    "maxAbsoluteError": 2.8898568338320274e-06,
+    "rmsError": 1.2954988522765847e-07,
+    "worstIndex": 42917
+  },
+  "valuesSha256": "90fdae7da41990424ad6aea846fe3082a2e64c9f8883f2488ef1eb046dd7cdc4",
+  "passed": true
+}
