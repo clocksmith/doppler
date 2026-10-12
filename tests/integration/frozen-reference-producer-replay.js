@@ -335,6 +335,15 @@ try {
       // all attention histories can exceed the browser automation IPC limit.
       for (const row of operatorDiagnostics?.timeline || []) {
         let capture = row.capture;
+        if (capture?.storageComponents) {
+          const bytes = new Uint8Array(new Float32Array(capture.storageComponents).buffer);
+          let binary = '';
+          for (let offset = 0; offset < bytes.length; offset += 32768) {
+            binary += String.fromCharCode(...bytes.subarray(offset, offset + 32768));
+          }
+          const { storageComponents: _components, ...metadata } = capture;
+          capture = { ...metadata, storageEncoding: 'base64-f32le', storageDataBase64: btoa(binary) };
+        }
         if (capture?.data) {
           const values = new Float32Array(capture.data);
           const bytes = new Uint8Array(values.buffer);

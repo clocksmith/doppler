@@ -490,6 +490,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     recorder,
     operatorDiagnostics: context.operatorDiagnostics,
     dtype: attnOutput.dtype,
+    precision: attnOutput.precision, components: attnOutput.components, elementStrideBytes: attnOutput.elementStrideBytes,
   });
   if (!residualFused && residualBranchScale !== 1) {
     const rawAttnOutput = attnOutput;
@@ -500,7 +501,6 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   }
 
   // 2. Handle residual connection based on architecture
-
   let precomputedFfnInput = null;
   if (residualFused) {
     postAttn = attnOutput;
@@ -636,10 +636,10 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     recorder,
     operatorDiagnostics: context.operatorDiagnostics,
     dtype: postAttn.dtype,
+    precision: postAttn.precision, components: postAttn.components, elementStrideBytes: postAttn.elementStrideBytes,
   });
 
   // 3. Feed-forward network
-
   let outputTensor;
   const layerScalar = resolveLayerScalarValue(layerWeights?.layerScalar ?? null);
   const requestFfnLayerScalarFusion = layerScalar !== 1
@@ -766,6 +766,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     recorder,
     operatorDiagnostics: context.operatorDiagnostics,
     dtype: finalOutput.dtype,
+    precision: finalOutput.precision, components: finalOutput.components, elementStrideBytes: finalOutput.elementStrideBytes,
   });
 
   // Early-stop check for F16 NaN/Infinity bounds

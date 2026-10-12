@@ -34,6 +34,7 @@ export async function finalizeEmbeddingOutput(tensor, normalization, options) {
   }
   await runProbes(probeStage, output.buffer, {
     numTokens, hiddenSize, probes: debugProbes, recorder, operatorDiagnostics, dtype: output.dtype,
+    precision: output.precision, components: output.components, elementStrideBytes: output.elementStrideBytes,
   });
   return output;
 }
