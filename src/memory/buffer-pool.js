@@ -227,8 +227,7 @@ export class BufferPool {
       );
     }
 
-    this.#enforceBudgetBeforeAllocate(bucket, label);
-
+    // Reuse adds no allocation: preserve compatible buffers before trimming.
     // Try to get from pool
     if (this.#config.enablePooling) {
       const pooled = this.#getFromPool(bucket, usage);
@@ -253,6 +252,8 @@ export class BufferPool {
         return pooled;
       }
     }
+
+    this.#enforceBudgetBeforeAllocate(bucket, label);
 
     // Allocate new buffer
     const buffer = device.createBuffer({

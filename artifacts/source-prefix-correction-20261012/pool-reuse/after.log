@@ -1,0 +1,80 @@
+TAP version 13
+# [72.4ms][GPU] Device lost: current device lost, Reason: destroyed
+# [75.5ms][GPU] Device lost: current device lost, Reason: destroyed
+# device-buffer-pool-epoch.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.366833
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 97.938417
+[node-tests] ok: tests/gpu/device-buffer-pool-epoch.test.js
+TAP version 13
+# [71.4ms][BufferPool] Deferred destruction failed; retaining buffers: device lost
+# [71.8ms][BufferPool] Pending buffer destroy failed: injected destroy failure
+# [71.9ms][BufferPool] Pending buffer destroy failed: injected destroy failure
+# [75.4ms][BufferPool] Deferred destruction failed; retaining buffers: device lost
+# [90.8ms][BufferPool] Pending buffer destroy failed: destroy unavailable
+# buffer-pool-cleanup.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.424375
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 113.66075
+[node-tests] ok: tests/inference/buffer-pool-cleanup.test.js
+TAP version 13
+# buffer-pool-device-budget.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.435709
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 86.77725
+[node-tests] ok: tests/memory/buffer-pool-device-budget.test.js
+TAP version 13
+# device-budget.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.461834
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 33.529166
+[node-tests] ok: tests/memory/device-budget.test.js
+[node-tests] ok: 4 files
