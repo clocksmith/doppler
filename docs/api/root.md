@@ -6,7 +6,7 @@ Start with `doppler-gpu/host` when using Doppler's existing browser or Node host
 composition. It accepts a Capsule URL/path, explicit trusted signers and accepted
 TargetPlan digests, and supplies the existing device, artifact-store, and program
 ports. For Capsule objects, supply an artifact store. It does not choose trust or
-accept upgrades. See the [application example](../../README.md#doppler-run-api)
+accept upgrades. See the [application example](#host-application-example)
 and [Electron renderer](../../examples/electron-document-search/README.md).
 An exported host path is not proof that every model works on that host.
 
@@ -61,6 +61,44 @@ When using `doppler-gpu` or `doppler-gpu/runtime`, the application injects:
 No port has a behavior-changing default. Missing ports fail before Capsule
 validation. The compatibility facade's `modelLoadOptions` are prohibited on
 Capsule execution because they could rewrite signed execution policy.
+
+## Host application example
+
+This example describes the checkout API. Confirm exports and operation
+qualification in the exact package you install; npm 0.6.1 does not contain newer
+choice-scoring or partition exports.
+
+```js
+import { openCapsule } from 'doppler-gpu/host';
+import { reviewedRelease } from './reviewed-release.js';
+
+const session = await openCapsule(reviewedRelease.capsuleUrl, {
+  trustedSigners: reviewedRelease.trustedSigners,
+  acceptedTargetPlanDigests: reviewedRelease.acceptedTargetPlanDigests,
+});
+try {
+  const result = await session.rerank({
+    application: reviewedRelease.application,
+    query: 'Which API provides browser GPU compute?',
+    documents: ['WebGPU exposes GPU compute.', 'WebSocket transports messages.'],
+    options: {},
+  });
+  console.log(result, session.selectedTargetPlanDigest);
+} finally {
+  await session.close();
+}
+```
+
+`reviewedRelease` is application-owned configuration, not metadata trusted merely
+because it was downloaded. It identifies a reranker Capsule, accepted plans, trusted
+publishers, and the application/workload/oracle contract. The host entry composes
+the existing device, artifact-store, and program ports; trust and upgrades remain
+explicit. See the [Electron integration](../../examples/electron-document-search/README.md)
+and [retained evaluation](../integration/reranker-evaluation.md).
+
+Advanced applications can still inject every port through `doppler-gpu` or
+`doppler-gpu/run`. Both routes verify the same Capsule and initial execution
+identity. The host facade does not add model operations or broaden qualification.
 
 ## Minimal example
 
