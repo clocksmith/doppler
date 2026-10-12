@@ -1,0 +1,13 @@
+# First paired prefill: direct linear-normalization contract
+
+Archive 6 loads and executes the exact frozen 19-token request under the 1,420,000,000-byte device-buffer cap, but fails the approved F64 target: maximum logit error 9.384426659079764, RMS 2.010125470368477, 248234 values above 0.001. This is a rejected numerical result, not a model qualification.
+
+The first capture lacked the embedding and interpreted several outer probes as scalar storage; it is retained as an observation failure. Archive 7 repairs probe representation and serializes raw interleaved F32 bytes before JSON can discard signed zero. Its logits are byte-identical to archive 6, and observation changes no unmasked output. The approved evaluator reproduces both frozen request 0 vectors exactly before the detailed audit. Audit binding names the approved contract's immediate parent 18fe30e2 as source; the original binding retains historical ancestor edeb69dd separately.
+
+The corrected capture proves embedding is exact, input RMSNorm local error is 1.69e-14, and QKV/Z/A/B projection local errors are at most 4.97e-14. The first gross introduced error is linear core output, 3.092027778. Evaluating the same captured operands with the erroneous linear norm weights `w+1` reproduces that output within 3.51e-14. The source equation and existing scalar runtime use direct `w`; the new paired state initializer incorrectly inherited the surrounding transformer's global norm offset. Output projection and LM-head local errors remain small; they inherit the earlier corruption.
+
+Commit 1cb70cf9 fixes the initializer to preserve the direct linear norm contract and adds a failing-before regression covering scalar/paired storage, global offset enabled/disabled, and unchanged uploaded weights. No shader, reference, weights, epsilon, tolerance, or cache policy changes. The unchanged generic paired operator still supports explicitly declared offset arithmetic; this model integration must not request it.
+
+`raw-index.json` binds compressed raw receipts. `first-layer-audit.json` uses the unchanged approved evaluator 90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7 and audit tool 28b4b5c6dc2179eec2632e4d61fce56405db75dae5412d2aa51a4f9cbb414a1d. `linear-offset-attribution.json` is a diagnostic counterfactual, never an acceptance reference. Archive 8 is a standard canonical-source package for the corrected first-prefix replay; its qualification remains pending.
+
+Observed first-prefix device-buffer peak is 1,087,758,672 bytes. After queue settlement and unload, active/deferred/retained-model pool ownership is zero; 557,085,184bytes remain reusable and 320bytes outside that pool. This is not a zero-device-memory claim or proof for 1588-token concurrent requests.

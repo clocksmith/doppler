@@ -1,0 +1,31 @@
+{
+  "hypothesis": "Paired linear output norm incorrectly inherits global +1 offset; direct norm source weights required",
+  "captureSha256": "83fb7ef4e7f9bab03fbd5e5cd1f1c56276a47d4e5258f4864c2f354c67a5829e",
+  "correctDirectNorm": {
+    "values": 38912,
+    "max": 3.092027778044174,
+    "rms": 0.12275074838326204,
+    "percentiles": {
+      "50": 0.012221134977069982,
+      "90": 0.07688882812867281,
+      "99": 0.3363662987038206,
+      "99.9": 2.2079559443800023
+    },
+    "overTolerance": 33216,
+    "lastTokenMax": 2.722899455625206
+  },
+  "erroneousPlusOneNorm": {
+    "values": 38912,
+    "max": 3.5083047578154947e-14,
+    "rms": 9.53464994310349e-16,
+    "percentiles": {
+      "50": 8.478460988836645e-17,
+      "90": 7.216449660063518e-16,
+      "99": 3.1086244689504383e-15,
+      "99.9": 1.178812603086659e-14
+    },
+    "overTolerance": 0,
+    "lastTokenMax": 2.220446049250313e-14
+  },
+  "approvedEvaluatorUnchanged": true
+}
