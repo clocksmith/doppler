@@ -80,6 +80,7 @@
     "src/inference/resident-state-contract.js",
     "src/inference/sampling-rng.js",
     "src/inference/resident-output-state.js",
-    "src/inference/resident-block-contract.js"
+    "src/inference/resident-block-contract.js",
+    "src/inference/resident-target-state.js"
   ]
 }
