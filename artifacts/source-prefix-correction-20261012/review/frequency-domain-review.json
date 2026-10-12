@@ -1,0 +1,27 @@
+{
+  "candidateSha256": "217fcc8c7d5018d27f18ab529bf648ee68ed4d55857eb1bb8d57be802c948dc5",
+  "checkerSha256": "736e6d98a43268b03325a5c62b868f57bf5c580d2fb84aec8b8ada1776b9f2b4",
+  "node": "v22.20.0",
+  "logTailBound": 4.4732032285977165e-24,
+  "expTailBound": 1.3519087141234654e-19,
+  "witness": {
+    "parameters": {
+      "theta": 2,
+      "baseDimension": 256,
+      "dimension": 125,
+      "position": 16382
+    },
+    "frequency": 0.5081891574554765,
+    "angle": 8325.154777435617,
+    "high": 8325.154296875,
+    "low": 0.00048056061677925754,
+    "firstOrderCos": 0.9978390618045156,
+    "targetCos": 0.997838946587235,
+    "absoluteError": 1.1521728060515102e-7,
+    "firstOrderF32": 0.9978390336036682,
+    "targetF32": 0.9978389739990234,
+    "leadingOmittedTermMagnitude": 1.1521605858059016e-7
+  },
+  "conclusion": "The neglected phase quadratic can change F32 rounding inside the enabled domain.",
+  "limits": "Host binary64 analytic witness; no shader execution, F64 authority change, complete operator reference, or whole-model qualification."
+}
