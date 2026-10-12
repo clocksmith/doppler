@@ -410,6 +410,14 @@ function dtypeByteWidth(dtype, label) {
   throw new Error(`Rig cannot size state with unsupported dtype "${dtype}" at ${label}.`);
 }
 
+function storageComponents(precision, dtype, label) {
+  if (precision !== 'f32' && precision !== 'two-f32') throw new Error(`Rig requires explicit supported ${label} precision.`);
+  if (precision === 'two-f32' && !['f32', 'float32'].includes(dtype.toLowerCase())) {
+    throw new Error(`Rig paired ${label} precision requires F32 source storage.`);
+  }
+  return precision === 'two-f32' ? 2 : 1;
+}
+
 function resolveModelIRSpecialization(modelIR, operation) {
   if (modelIR.schema !== 'doppler.model-ir/v2') {
     return {
@@ -564,7 +572,17 @@ export function stageSpecialize(lowered) {
   }
   const requiresSubgroups = wgslModules.some((module) => module.metadata?.requiresSubgroups === true);
   const requiredWgslFeatures = [...new Set(wgslModules.flatMap(module => module.metadata?.requiredWgslFeatures ?? []))].sort();
-  const bytesPerActivation = activationDtype === 'f16' ? 2 : 4;
+  const loadPolicy = normalized.initialExecutionIdentity?.programLoadPolicy;
+  const storageSession = loadPolicy ? requireObject(loadPolicy.runtimeConfig?.inference?.session, 'observed storage session') : null;
+  const activationComponents = storageSession ? storageComponents(storageSession.intermediatePrecision, activationDtype, 'intermediate') : 1;
+  const recurrentComponents = storageSession && specialization.recurrentStateBytes > 0
+    ? storageComponents(storageSession.linearRecurrentStatePrecision, modelIR.stateSpaces.find(state => state.kind === 'recurrent').contract.dtype, 'recurrent') : 1;
+  const convolutionComponents = storageSession && specialization.convolutionalStateBytes > 0
+    ? storageComponents(storageSession.intermediatePrecision, modelIR.stateSpaces.find(state => state.kind === 'convolutional').contract.dtype, 'convolutional') : 1;
+  if (activationComponents === 2 && specialization.recurrentStateBytes > 0 && recurrentComponents !== 2) {
+    throw new Error('Rig paired intermediate precision requires paired recurrent state precision.');
+  }
+  const bytesPerActivation = dtypeByteWidth(activationDtype, 'activationDtype') * activationComponents;
   const bytesPerKv = kvDtype === 'f16' ? 2 : 4;
   const bufferSlots = [
     {
@@ -589,14 +607,14 @@ export function stageSpecialize(lowered) {
     bufferSlots.push({
       slotId: 'recurrent_state', role: 'recurrent-state', scope: 'session', owner: 'program',
       usage: ['storage', 'copy-dst'],
-      size: { op: 'constant', bytes: specialization.recurrentStateBytes },
+      size: { op: 'constant', bytes: specialization.recurrentStateBytes * recurrentComponents },
     });
   }
   if (specialization.convolutionalStateBytes > 0) {
     bufferSlots.push({
       slotId: 'convolutional_state', role: 'convolutional-state', scope: 'session', owner: 'program',
       usage: ['storage', 'copy-dst'],
-      size: { op: 'constant', bytes: specialization.convolutionalStateBytes },
+      size: { op: 'constant', bytes: specialization.convolutionalStateBytes * convolutionComponents },
     });
   }
   bufferSlots.push({

@@ -322,7 +322,7 @@ const initialExecutionIdentity = createInitialExecutionIdentityV2({
     schema: 'doppler.capsule-program-load-policy/v2',
     runtimeConfig: {
       inference: {
-        session: {}, compute: {}, generation: { disableMultiTokenDecode: false },
+        session: { intermediatePrecision: 'f32', linearRecurrentStatePrecision: 'f32' }, compute: {}, generation: { disableMultiTokenDecode: false },
       },
     },
   },

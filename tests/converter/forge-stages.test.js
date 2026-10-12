@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
-import { runForgePipeline, stageAnalyze } from '../../src/converter/forge-stages.js';
+import { runForgePipeline, stageAnalyze, stageInspect, stageNormalize, stageLower, stageSpecialize } from '../../src/converter/forge-stages.js';
 import { buildQualificationRecords } from '../../src/converter/forge-qualification.js';
 import { createInitialExecutionIdentityV2 } from '../../src/config/initial-execution-identity.js';
 import { sha256Hex } from '../../src/utils/sha256.js';
@@ -203,12 +203,12 @@ const initialExecutionIdentity = createInitialExecutionIdentityV2({
     schema: 'doppler.capsule-program-load-policy/v2',
     runtimeConfig: {
       inference: {
-        session: {}, compute: {}, generation: { disableMultiTokenDecode: false },
+        session: { intermediatePrecision: 'f32', linearRecurrentStatePrecision: 'f32' }, compute: {}, generation: { disableMultiTokenDecode: false },
       },
     },
   },
 });
-const v2Result = await runForgePipeline({
+const v2Input = {
   manifest: v2Manifest,
   manifestRaw: v2ManifestRaw,
   programBundle: v2ProgramBundle,
@@ -220,8 +220,8 @@ const v2Result = await runForgePipeline({
   modelIREvidence,
   initialExecutionIdentity,
   release,
-}, {
-  authority: TEST_CAPSULE_AUTHORITY,
+};
+const v2Result = await runForgePipeline(v2Input, {  authority: TEST_CAPSULE_AUTHORITY,
   privateKeyJwk,
   publicKeyJwk: TEST_CAPSULE_PUBLIC_KEY,
 });
@@ -237,6 +237,47 @@ assert.equal(
 );
 assert.ok(v2Result.capsule.targetPlans[0].memoryLayout.bufferSlots.some((slot) => slot.slotId === 'recurrent_state'));
 assert.ok(v2Result.capsule.targetPlans[0].memoryLayout.bufferSlots.some((slot) => slot.slotId === 'convolutional_state'));
+
+const slots = result => Object.fromEntries(result.capsule.targetPlans[0].memoryLayout.bufferSlots.map(slot => [slot.slotId, slot.size]));
+const specializePrecision = async (intermediatePrecision, linearRecurrentStatePrecision, modelIR = modelIRV2) => {
+  const identity = structuredClone(initialExecutionIdentity);
+  Object.assign(identity.programLoadPolicy.runtimeConfig.inference.session, { intermediatePrecision, linearRecurrentStatePrecision });
+  return runForgePipeline({ ...v2Input, modelIR, initialExecutionIdentity: createInitialExecutionIdentityV2(identity) },
+    { authority: TEST_CAPSULE_AUTHORITY, privateKeyJwk, publicKeyJwk: TEST_CAPSULE_PUBLIC_KEY });
+};
+const scalarSlots = slots(v2Result), pairedSlots = slots(await specializePrecision('two-f32', 'two-f32'));
+assert.equal(pairedSlots.hidden_state.terms.seqLen, scalarSlots.hidden_state.terms.seqLen * 2, 'Paired hidden storage requires eight bytes per logical F32');
+assert.equal(pairedSlots.recurrent_state.bytes, scalarSlots.recurrent_state.bytes * 2);
+assert.equal(pairedSlots.convolutional_state.bytes, scalarSlots.convolutional_state.bytes * 2);
+assert.deepEqual(pairedSlots.kv_cache, scalarSlots.kv_cache);
+assert.deepEqual(pairedSlots.logits, scalarSlots.logits);
+const stateOnly = slots(await specializePrecision('f32', 'two-f32'));
+assert.deepEqual(stateOnly.hidden_state, scalarSlots.hidden_state);
+assert.deepEqual(stateOnly.convolutional_state, scalarSlots.convolutional_state);
+assert.equal(stateOnly.recurrent_state.bytes, scalarSlots.recurrent_state.bytes * 2);
+for (const [intermediate, recurrent] of [['bad', 'f32'], ['f32', 'bad'], [undefined, 'f32'], ['f32', undefined], ['two-f32', 'f32']]) {
+  await assert.rejects(specializePrecision(intermediate, recurrent), /precision|Precision/);
+}
+
+const pairedLowered = stageLower(stageAnalyze(stageNormalize((await stageInspect(v2Input)).data)));
+pairedLowered.normalized.initialExecutionIdentity = createInitialExecutionIdentityV2({
+  ...initialExecutionIdentity,
+  programLoadPolicy: { ...initialExecutionIdentity.programLoadPolicy, runtimeConfig: {
+    ...initialExecutionIdentity.programLoadPolicy.runtimeConfig, inference: {
+      ...initialExecutionIdentity.programLoadPolicy.runtimeConfig.inference,
+      session: { intermediatePrecision: 'two-f32', linearRecurrentStatePrecision: 'two-f32' },
+    },
+  } },
+});
+for (const kind of ['recurrent', 'convolutional']) {
+  const invalid = structuredClone(pairedLowered);
+  invalid.modelIR.stateSpaces.find(state => state.kind === kind).contract.dtype = 'f16';
+  assert.throws(() => stageSpecialize(invalid), /requires F32 source storage/);
+}
+const invalidActivation = structuredClone(pairedLowered);
+invalidActivation.normalized.manifest.inference.session.compute.defaults.activationDtype = 'f16';
+assert.throws(() => stageSpecialize(invalidActivation), /requires F32 source storage/);
+assert.deepEqual(v2Input.modelIR, modelIRV2, 'Physical storage sizing must not mutate source ModelIR');
 
 // Synthetic source closure only: proves Forge preserves declared adapter policy
 // through signing, not that these fixture shader bytes implement LoRA.
@@ -389,7 +430,7 @@ const wrongKernelIdentity = createInitialExecutionIdentityV2({
     schema: 'doppler.capsule-program-load-policy/v2',
     runtimeConfig: {
       inference: {
-        session: {}, compute: {}, generation: { disableMultiTokenDecode: false },
+        session: { intermediatePrecision: 'f32', linearRecurrentStatePrecision: 'f32' }, compute: {}, generation: { disableMultiTokenDecode: false },
       },
     },
   },
