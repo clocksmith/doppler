@@ -111,7 +111,7 @@
   },
   {
    "path": "kernels/matmul.rules.json",
-   "digest": "sha256:5e8877bd12eafab5eb3e071d85dd1a27c992e427886d6108432da24cb2122b6e"
+   "digest": "sha256:d22f95f067da26e4074d6716c02251705df91c77ecfdab1c5e424ad9042a40b4"
   },
   {
    "path": "kernels/modulate.rules.json",
@@ -175,7 +175,7 @@
   },
   {
    "path": "kernels/silu.rules.json",
-   "digest": "sha256:03adb9334c1825f65e12f6af440d4837d7fe94d2772d67eb7c4e1a9abf787eaa"
+   "digest": "sha256:2d3d02dcfa061a0b4fd36a0406bcf6a512479182ea246a5c4b6315e618d74c69"
   },
   {
    "path": "kernels/softmax.rules.json",
@@ -3079,6 +3079,50 @@
      "match": {},
      "value": "prefill"
     }
+   ],
+   "pairedVariant": [
+    {
+     "match": {
+      "weightDtype": "f32",
+      "scalarOutput": false
+     },
+     "value": "paired_f32"
+    },
+    {
+     "match": {
+      "weightDtype": "f32",
+      "scalarOutput": true
+     },
+     "value": "paired_f32_scalar"
+    },
+    {
+     "match": {
+      "weightDtype": "f16",
+      "scalarOutput": false
+     },
+     "value": "paired_f16"
+    },
+    {
+     "match": {
+      "weightDtype": "f16",
+      "scalarOutput": true
+     },
+     "value": "paired_f16_scalar"
+    },
+    {
+     "match": {
+      "weightDtype": "q4k",
+      "scalarOutput": false
+     },
+     "value": "paired_q4k"
+    },
+    {
+     "match": {
+      "weightDtype": "q4k",
+      "scalarOutput": true
+     },
+     "value": "paired_q4k_scalar"
+    }
    ]
   },
   "kernels/modulate.rules.json": {
@@ -3697,6 +3741,51 @@
     {
      "match": {},
      "value": "rowsplit_bias"
+    }
+   ],
+   "pairedVariant": [
+    {
+     "match": {
+      "operation": "scale",
+      "inplace": true
+     },
+     "value": "scale_inplace"
+    },
+    {
+     "match": {
+      "operation": "add"
+     },
+     "value": "add"
+    },
+    {
+     "match": {
+      "operation": "scale"
+     },
+     "value": "scale"
+    },
+    {
+     "match": {
+      "operation": "multiply"
+     },
+     "value": "multiply"
+    },
+    {
+     "match": {
+      "operation": "silu"
+     },
+     "value": "silu"
+    },
+    {
+     "match": {
+      "operation": "sigmoid"
+     },
+     "value": "sigmoid"
+    },
+    {
+     "match": {
+      "operation": "silu_unary"
+     },
+     "value": "silu_unary"
     }
    ]
   },

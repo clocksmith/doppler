@@ -1,22 +1,131 @@
 {
   "variant": [
-    { "match": { "isF16": true }, "value": "default_f16" },
-    { "match": {}, "value": "default" }
+    {
+      "match": {
+        "isF16": true
+      },
+      "value": "default_f16"
+    },
+    {
+      "match": {},
+      "value": "default"
+    }
   ],
   "overrides": [
-    { "match": { "useRowsplit": true }, "value": { "USE_ROWSPLIT": true } },
-    { "match": { "useSplit": true }, "value": { "USE_SPLIT": true } },
-    { "match": { "hasGate": true, "useVec4": true }, "value": { "HAS_GATE": true, "USE_VEC4": true } },
-    { "match": { "hasGate": true }, "value": { "HAS_GATE": true } },
-    { "match": { "useVec4": true }, "value": { "USE_VEC4": true } },
-    { "match": {}, "value": {} }
+    {
+      "match": {
+        "useRowsplit": true
+      },
+      "value": {
+        "USE_ROWSPLIT": true
+      }
+    },
+    {
+      "match": {
+        "useSplit": true
+      },
+      "value": {
+        "USE_SPLIT": true
+      }
+    },
+    {
+      "match": {
+        "hasGate": true,
+        "useVec4": true
+      },
+      "value": {
+        "HAS_GATE": true,
+        "USE_VEC4": true
+      }
+    },
+    {
+      "match": {
+        "hasGate": true
+      },
+      "value": {
+        "HAS_GATE": true
+      }
+    },
+    {
+      "match": {
+        "useVec4": true
+      },
+      "value": {
+        "USE_VEC4": true
+      }
+    },
+    {
+      "match": {},
+      "value": {}
+    }
   ],
   "activationOp": [
-    { "match": { "activation": "gelu" }, "value": "gelu" },
-    { "match": {}, "value": "silu" }
+    {
+      "match": {
+        "activation": "gelu"
+      },
+      "value": "gelu"
+    },
+    {
+      "match": {},
+      "value": "silu"
+    }
   ],
   "swigluRowsplitBiasVariant": [
-    { "match": { "isF16": true }, "value": "rowsplit_bias_f16" },
-    { "match": {}, "value": "rowsplit_bias" }
+    {
+      "match": {
+        "isF16": true
+      },
+      "value": "rowsplit_bias_f16"
+    },
+    {
+      "match": {},
+      "value": "rowsplit_bias"
+    }
+  ],
+  "pairedVariant": [
+    {
+      "match": {
+        "operation": "scale",
+        "inplace": true
+      },
+      "value": "scale_inplace"
+    },
+    {
+      "match": {
+        "operation": "add"
+      },
+      "value": "add"
+    },
+    {
+      "match": {
+        "operation": "scale"
+      },
+      "value": "scale"
+    },
+    {
+      "match": {
+        "operation": "multiply"
+      },
+      "value": "multiply"
+    },
+    {
+      "match": {
+        "operation": "silu"
+      },
+      "value": "silu"
+    },
+    {
+      "match": {
+        "operation": "sigmoid"
+      },
+      "value": "sigmoid"
+    },
+    {
+      "match": {
+        "operation": "silu_unary"
+      },
+      "value": "silu_unary"
+    }
   ]
 }
