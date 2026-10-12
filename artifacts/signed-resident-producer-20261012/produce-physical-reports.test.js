@@ -26,6 +26,7 @@ function fixture() {
     applicationBundleHash: 'synthetic-application', requestFixtureSha256: 'requests',
     requestContractHashes: requestContractBytes.map(sha256), factorySha256: 'factory', identityHelperSha256: 'helper',
     legacyPlanId: 'legacy-plan', partitionPlan: plan,
+    browserVersions: { first: 'synthetic-browser', second: 'synthetic-browser' },
     placements: [{ partitionIndex: 0, platform: 'first' }, { partitionIndex: 1, platform: 'second' }],
     providers: { first: { adapter: { vendor: 'synthetic-first' } }, second: { adapter: { vendor: 'synthetic-second' } } } };
   const capture = { phase: 'reference', requestFixtureSha256: 'requests',
@@ -87,4 +88,30 @@ test('rejects a replacement reference or evaluator before interpreting captures'
   for (const key of ['referenceBytes', 'evaluatorBytes', 'manifestBytes', 'graphBytes', 'archiveBytes']) {
     const f = fixture(); f.input[key] = Buffer.from('changed'); assert.throws(() => producePhysicalReports(f.input));
   }
+});
+
+function directFixture() {
+  const f = fixture();
+  const delivery = { scope: 'Immutable numerical fixture delivery; not deployed application or signed admission',
+    archiveSha256: f.input.expected.archiveHash.slice(7), files: [{ path: 'synthetic-only' }] };
+  f.input.deliveryBytes = bytes(delivery); delete f.input.runBytes;
+  Object.assign(f.input.expected, { deliveryMode: 'direct-fixture', installedFiles: 1, testDeliveryHash: sha256(f.input.deliveryBytes) });
+  f.capture.testDelivery = { schema: 'reploid.numerical-test-delivery/v1', testDeliveryHash: f.input.expected.testDeliveryHash,
+    archiveSha256: delivery.archiveSha256, snapshotFiles: 1, installedFiles: 1, scope: delivery.scope, applicationQualification: false };
+  f.input.captureBytes = bytes(f.capture); return f;
+}
+test('direct fixture preserves test-delivery scope without inventing run.ok or application identity', () => {
+  const f = directFixture(), result = producePhysicalReports(f.input);
+  assert.equal(result.reports[0].provenance.testDeliveryHash, f.input.expected.testDeliveryHash);
+  assert.equal(result.reports[0].provenance.applicationBundleHash, undefined);
+});
+for (const field of ['testDeliveryHash', 'archiveSha256', 'snapshotFiles', 'installedFiles', 'applicationQualification']) {
+  test(`direct fixture rejects changed ${field}`, () => {
+    const f = directFixture(); f.capture.testDelivery[field] = field.endsWith('Files') ? 0 : 'changed';
+    f.input.captureBytes = bytes(f.capture); assert.throws(() => producePhysicalReports(f.input));
+  });
+}
+
+test('direct fixture rejects an extraneous application envelope', () => {
+  const f = directFixture(); f.input.runBytes = bytes(f.run); assert.throws(() => producePhysicalReports(f.input));
 });

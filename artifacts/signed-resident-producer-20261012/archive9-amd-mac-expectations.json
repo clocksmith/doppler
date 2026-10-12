@@ -1,0 +1,132 @@
+{
+  "schema": "doppler.physical-resident-producer-input/v1",
+  "archiveHash": "sha256:8cae56b0748a5c66add985122d8bbf72b7492e2e0828f713f1b0d7425a59a4e5",
+  "manifestHash": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+  "graphHash": "sha256:36b7799edce21590e5846909ddaeea99be05cccaf87b65264d7281b2497fb0f3",
+  "referenceHash": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+  "evaluatorHash": "sha256:90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7",
+  "proposalSha256": "138a76cff303746fe73e5307659c0aaca5a6b2c953ac44a8798c58f6ac297210",
+  "outputIndexSha256": "2c95ecd599b5007b15872c7f3b1ddc5934f5319f983375a996dab536e1021979",
+  "requestContractHashes": [
+    "sha256:ba2a4668d6affb85faf05221d6263a5b29b55d26c8f89a4f107cbacb717599a9",
+    "sha256:3cc051de10f77e945c6a62b66cccb22f0c15e55bf11196c6f71aeda4174ba5a2",
+    "sha256:8b21b154357efa8c9d1c853ffe36c5ce9d9e32e684b496db9031bc59fa6fe836"
+  ],
+  "requestFixtureSha256": "794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e",
+  "factorySha256": "7ad99bc4b2f83dab0bde118a5f2c4207ee3ab88f0d8052435bc7ac60431c21bc",
+  "identityHelperSha256": "2c25b83186104597025031a9436a53ba0d3a71c1ee170c4f4ccebdd3e4f6d689",
+  "producerHash": "sha256:5cc384afda53a87bce131836b2c03627b061e8bdada1f09fb75dd6421b7f513f",
+  "deliveryMode": "direct-fixture",
+  "testDeliveryHash": "sha256:23bf318378e5e115fc642b41ebf92d0d3eec72b4b31c2414b1f8331facab6dcc",
+  "installedFiles": 1974,
+  "partitionPlan": {
+    "schema": "doppler.layer-partition-contract/v2",
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "totalLayers": 24,
+    "hiddenSize": 1024,
+    "vocabSize": 248320,
+    "splitLayer": 12,
+    "activationDtype": "f32",
+    "activationPrecision": "two-f32",
+    "activationComponents": 2,
+    "activationElementStrideBytes": 8,
+    "partitions": [
+      {
+        "index": 0,
+        "layerRange": [
+          0,
+          11
+        ],
+        "layerCount": 12,
+        "hasEmbedding": true,
+        "hasLmHead": false,
+        "inputContract": {
+          "type": "token-ids",
+          "rank": 2,
+          "shapeDescription": "[batchSize, seqLen]",
+          "dtype": "i32"
+        },
+        "outputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 1024,
+          "dtype": "f32",
+          "precision": "two-f32",
+          "components": 2,
+          "elementStrideBytes": 8
+        }
+      },
+      {
+        "index": 1,
+        "layerRange": [
+          12,
+          23
+        ],
+        "layerCount": 12,
+        "hasEmbedding": false,
+        "hasLmHead": true,
+        "inputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 1024,
+          "dtype": "f32",
+          "precision": "two-f32",
+          "components": 2,
+          "elementStrideBytes": 8
+        },
+        "outputContract": {
+          "type": "logits",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, vocabSize]",
+          "vocabSize": 248320,
+          "dtype": "f32"
+        }
+      }
+    ]
+  },
+  "legacyPlanId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+  "providers": {
+    "mac.lan": {
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+      "platform": "MacIntel",
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "unknown",
+        "description": ""
+      }
+    },
+    "x@128.tail995236.ts.net": {
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/146.0.0.0 Safari/537.36",
+      "platform": "Linux x86_64",
+      "adapter": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "unknown",
+        "description": ""
+      }
+    }
+  },
+  "browserVersions": {
+    "mac.lan": "155.0.8059.39",
+    "x@128.tail995236.ts.net": "146.0.7680.177"
+  },
+  "preflightBinding": {
+    "providerSha256": "faa3ebe0d9236ebad79de24ee0669097db2608b324b17fbada484a0e799a306d",
+    "planSha256": "61557cef4cab706a8cc9589eca59f56bdb4525f67b2877c94d00ba05af46425d",
+    "adapterNormalization": "Exact archive9 src/gpu/device.js adapterInfo normalization uses field || unknown for vendor/architecture/device; raw preflight is retained.",
+    "notApplicationRelease": true
+  },
+  "placements": [
+    {
+      "partitionIndex": 0,
+      "platform": "x@128.tail995236.ts.net"
+    },
+    {
+      "partitionIndex": 1,
+      "platform": "mac.lan"
+    }
+  ]
+}

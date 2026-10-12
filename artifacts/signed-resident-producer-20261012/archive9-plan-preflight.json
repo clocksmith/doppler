@@ -1,0 +1,130 @@
+{
+  "scope": "Pre-execution CPU construction through exact archive9 public plan API",
+  "plan": {
+    "schema": "doppler.layer-partition-contract/v2",
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "totalLayers": 24,
+    "hiddenSize": 1024,
+    "vocabSize": 248320,
+    "splitLayer": 12,
+    "activationDtype": "f32",
+    "activationPrecision": "two-f32",
+    "activationComponents": 2,
+    "activationElementStrideBytes": 8,
+    "partitions": [
+      {
+        "index": 0,
+        "layerRange": [
+          0,
+          11
+        ],
+        "layerCount": 12,
+        "hasEmbedding": true,
+        "hasLmHead": false,
+        "inputContract": {
+          "type": "token-ids",
+          "rank": 2,
+          "shapeDescription": "[batchSize, seqLen]",
+          "dtype": "i32"
+        },
+        "outputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 1024,
+          "dtype": "f32",
+          "precision": "two-f32",
+          "components": 2,
+          "elementStrideBytes": 8
+        }
+      },
+      {
+        "index": 1,
+        "layerRange": [
+          12,
+          23
+        ],
+        "layerCount": 12,
+        "hasEmbedding": false,
+        "hasLmHead": true,
+        "inputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 1024,
+          "dtype": "f32",
+          "precision": "two-f32",
+          "components": 2,
+          "elementStrideBytes": 8
+        },
+        "outputContract": {
+          "type": "logits",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, vocabSize]",
+          "vocabSize": 248320,
+          "dtype": "f32"
+        }
+      }
+    ]
+  },
+  "planId": "sha256:60024873abb36bd210b615a736eac75e079e81a3f0bc6071cdba72ee013a4872",
+  "legacyPlan": {
+    "schema": "doppler.layer-partition-contract/v1",
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "totalLayers": 24,
+    "hiddenSize": 1024,
+    "vocabSize": 248320,
+    "splitLayer": 12,
+    "activationDtype": "f32",
+    "partitions": [
+      {
+        "index": 0,
+        "layerRange": [
+          0,
+          11
+        ],
+        "layerCount": 12,
+        "hasEmbedding": true,
+        "hasLmHead": false,
+        "inputContract": {
+          "type": "token-ids",
+          "rank": 2,
+          "shapeDescription": "[batchSize, seqLen]",
+          "dtype": "i32"
+        },
+        "outputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 1024,
+          "dtype": "f32"
+        }
+      },
+      {
+        "index": 1,
+        "layerRange": [
+          12,
+          23
+        ],
+        "layerCount": 12,
+        "hasEmbedding": false,
+        "hasLmHead": true,
+        "inputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 1024,
+          "dtype": "f32"
+        },
+        "outputContract": {
+          "type": "logits",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, vocabSize]",
+          "vocabSize": 248320,
+          "dtype": "f32"
+        }
+      }
+    ]
+  },
+  "legacyPlanId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0"
+}
