@@ -20,6 +20,16 @@ def row(name, count, value):
 
 
 class Pairing(unittest.TestCase):
+    def test_ideal_f32_can_double_round_before_half_store(self):
+        midpoint = 1.0 + 2.0 ** -11
+        values = np.array([[midpoint + 2.0 ** -26, midpoint - 2.0 ** -26, 1.0]], dtype=np.float64)
+        result = audit.cache_double_rounding(values)
+        self.assertEqual(result['count'], 1)
+        self.assertEqual(result['coordinates'][0]['index'], [0, 0])
+        self.assertEqual(result['coordinates'][0]['nearestF32'], midpoint)
+        self.assertEqual(result['coordinates'][0]['throughF32F16'], 1.0)
+        self.assertEqual(result['coordinates'][0]['directF16'], 1.0 + 2.0 ** -10)
+
     def capture(self):
         return {'observation': {'timeline': [row('embed.out', 19, 1),
             row('layer.0.layer.out', 19, 2), row('layer.0.layer.out', 19, 2),

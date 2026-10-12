@@ -1,0 +1,11 @@
+{
+  "archiveSha256": "5ebe509f51861e0a9c297eaafd0b3df172d54e11a90c2dbf7516eb5b6d527209",
+  "manifestSha256": "a12274ca0062c9a3a0499c46d439082f0c2ce0769b8e99a2774f6b021304c1a2",
+  "sourceManifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "unchangedWeights": true,
+  "tolerance": 0.001,
+  "sourceBaseline": "d1b23716",
+  "candidate": "prefill-range-norm-decode-plus-angle-product-residual",
+  "updatedRefs": [],
+  "parentArchiveSha256": "10704208fc5562f22db77dcb29a021a6ce3eb9fcb9772959ef830ee3d0ae681c"
+}
