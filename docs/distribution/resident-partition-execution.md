@@ -244,3 +244,5 @@ measurements are a subset of execution, never an additive latency bucket.
 device supports them. Absent GPU timestamps stay null. Peer waiting and transport
 remain the application's responsibility. Performance observations do not change
 precision, token selection, context limits or continuation rules.
+
+Paired operator wrappers preserve explicit Tensor representation (`precision: "two-f32"`, `components: 2`, `elementStrideBytes: 8`). Residual/scale/SiLU entry points do not infer this representation from a global session. Their paired paths reject mixed representations and unsupported clipping or row-split execution before dispatch. Full-shape scale/SiLU outputs preserve the input logical shape; an explicitly shorter prefix has shape `[count]`. Recorded failed outputs remain recorder-owned until cleanup. Operator qualification does not grant partition-plan or whole-model acceptance.

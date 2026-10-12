@@ -1,3 +1,4 @@
+import { executePairedAdd } from './paired-activation.js';
 
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, inferOutputDtype, dtypeBytes } from '../tensor.js';
@@ -120,6 +121,9 @@ function resolveResidualOutputScale(outputScale) {
 }
 
 async function _residualAdd(target, a, b, size, options = {}) {
+  if (a.precision !== undefined || b.precision !== undefined || a.components !== undefined || b.components !== undefined || a.elementStrideBytes !== undefined || b.elementStrideBytes !== undefined) {
+    return executePairedAdd(target, a, b, size, { outputBuffer: options.outputBuffer, scale: resolveResidualOutputScale(options.outputScale) });
+  }
   const recorder = target && typeof target.beginComputePass === 'function' ? target : null;
   const { useVec4 = true, outputBuffer = null } = options;
   const outputScale = resolveResidualOutputScale(options.outputScale);
@@ -163,6 +167,7 @@ async function _residualAdd(target, a, b, size, options = {}) {
 }
 
 async function _biasAdd(target, data, bias, numTokens, dim, options = {}) {
+  if (data.precision !== undefined || bias.precision !== undefined) throw new Error('[Residual] Paired bias addition requires a declared paired kernel.');
   const recorder = target && typeof target.beginComputePass === 'function' ? target : null;
   const { dataOffset = 0, biasOffset = 0 } = options;
 

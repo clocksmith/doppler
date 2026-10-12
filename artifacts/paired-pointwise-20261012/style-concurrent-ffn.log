@@ -1,0 +1,6 @@
+
+> doppler-gpu@0.6.27 source:style:check
+> node tools/check-source-style.js
+
+[source:style:check] 1 source style violation(s):
+  src/inference/pipelines/text/ffn/paired.js: [declaration-files-own-api-types] implementation JSDoc at lines 9,61

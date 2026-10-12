@@ -1,0 +1,5 @@
+
+> doppler-gpu@0.6.27 kernels:uniforms:check
+> node tools/generate-kernel-uniforms.js --check
+
+[kernels:uniforms] 376 variants, 311 WGSL modules, 136 shared layouts; checked.
