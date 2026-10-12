@@ -22,7 +22,8 @@ await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 let browser;
 try {
   browser = await chromium.launch({ channel: 'chrome', headless: true, args: ['--enable-unsafe-webgpu',
-    '--enable-features=Vulkan', '--use-angle=vulkan', '--disable-gpu-sandbox'] });
+    ...(process.platform === 'darwin' ? ['--use-angle=metal']
+      : ['--enable-features=Vulkan', '--use-angle=vulkan', '--disable-gpu-sandbox'])] });
   const page = await browser.newPage();
   await page.goto(`http://127.0.0.1:${server.address().port}`);
   const physical = await page.evaluate(async ({ fixture, sources, geometry }) => {
@@ -123,6 +124,7 @@ try {
       shape: { M: input.M, N: input.N, K: input.K, transpose: input.transpose, alpha: input.alpha, tileSize: input.tileSize, tileM: input.tileM, tileN: input.tileN } });
   }
   const receipt = { scope: 'Exact retained operands; F32 accumulation diagnostic, not model acceptance or performance claim',
+    host: process.platform, harnessSha256: hash(await readFile(new URL(import.meta.url))),
     browser: browser.version(), geometry, operandsSha256: hash(bytes), baselineSha256: hash(sources[0]), candidateSha256: hash(sources[1]), ...physical };
   await writeFile(destination, JSON.stringify(receipt, null, 2) + '\n');
   console.log(JSON.stringify({ ...receipt, results: receipt.results.map(({ outputF32, ...row }) => row) }));

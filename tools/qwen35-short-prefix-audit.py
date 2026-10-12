@@ -180,6 +180,23 @@ def run(args):
                 'baseline026': encode(actual_output.astype('<f4').tobytes()),
                 'captureSha256': ref.digest(Path(args.capture).read_bytes())}
             (directory / f'layer-{layer}-{operation}.json').write_text(json.dumps(fixture) + '\n')
+        float_cases = []
+        for layer in (0, 1):
+            for suffix in ('a', 'b'):
+                name = f'layers.{layer}.linear_attn.in_proj_{suffix}.weight'
+                operation = f'layer.{layer}.attn.linear_{suffix}_proj'
+                actual_input = gpu[f'layer.{layer}.attn.post_input_norm'][:prefill]
+                weight = weights[name]
+                assert np.array_equal(weight, weight.astype('<f2').astype(np.float64))
+                encode = lambda value: base64.b64encode(value).decode()
+                float_cases.append({'name': operation, 'M': prefill, 'N': weight.shape[0], 'K': weight.shape[1],
+                    'inputF32': encode(actual_input.astype('<f4').tobytes()),
+                    'weightF16': encode(weight.astype('<f2').tobytes()),
+                    'expectedF64': encode((actual_input @ weight.T).astype('<f8').tobytes()),
+                    'observedF32': encode(gpu[operation][:prefill].astype('<f4').tobytes())})
+        (directory / 'linear-ab-f16.json').write_text(json.dumps({
+            'schema': 'doppler.f16-projection-actual-operands/v1',
+            'captureSha256': ref.digest(Path(args.capture).read_bytes()), 'cases': float_cases}) + '\n')
     rows, storage = [], []
     replay_comparisons = []
     def compare(name, local=None):

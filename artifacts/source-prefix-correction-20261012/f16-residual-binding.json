@@ -1,0 +1,12 @@
+{
+  "archiveSha256": "941c898e0f166c279f9ea4cf1637869cbcb30fbb4ed84c9e0930a0f544b2c280",
+  "manifestSha256": "f5fd92738dad4f874f2b9dc96bb617c341dcbc9727acfa67840bbbb7a3dc5cd5",
+  "sourceManifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "parentArchiveSha256": "c596ecab6d498b3bb6e4d070e65a640713e693020e77c897271481f197875aae",
+  "shaderSha256": "d99cbd20a752bae55318e271864ade0d9ed2178c90b9294f913154e2c2aba22f",
+  "updatedRefs": [],
+  "unchangedWeights": true,
+  "tolerance": 0.001,
+  "candidate": "frequency-parent-plus-f16-tiled-residual",
+  "scope": "Diagnostic only; no canonical arithmetic or reference change"
+}
