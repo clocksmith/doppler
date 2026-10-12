@@ -1,0 +1,32 @@
+{
+  "parentArchiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+  "archiveSha256": "5f3eb80ec0d46e83039f00c340801591371c82bd8767ff8271486dd32c896132",
+  "differences": [
+    {
+      "path": "package/src/config/kernels/registry.json",
+      "before": "766a1481153ed1491f69116eba743dd326cf8dbe8a0386aa13fc8f9d34e74288",
+      "after": "28cb55ef46a2193358ef931290f68df2f2eb61a7cc3134000743d817252ad833"
+    },
+    {
+      "path": "package/src/gpu/kernels/generated/uniform-writers-2.js",
+      "before": "036327ee61e88d7448384d86986077f30e7ad935db9bd62a4394b0bd5ffef51e",
+      "after": "ada83b6eacec8cb31eda3afc796e870f26b452d251a69a4a10c809b417b43735"
+    },
+    {
+      "path": "package/src/gpu/kernels/rope-precompute.js",
+      "before": "97ab9c57fa0b79290b99b5a73e2a674ebfeb9f6669f958e1ed2c4719e7ffbe31",
+      "after": "1eb5512a30dc89dee0cb1350913807e1b1b057e2e49ab2ab99eabe63a77a615c"
+    },
+    {
+      "path": "package/src/gpu/kernels/rope_precompute.wgsl",
+      "before": "598a100d29cd723814682fd8f5680c072ef2dd2d340504a2c27de8da47a5b7f7",
+      "after": "5a8cd9b06791bfcb47b4160e3c1cc6f93576aeaaa663c2b0d644375963e14e4d"
+    },
+    {
+      "path": "package/src/inference/pipelines/text/init-rope.js",
+      "before": "34c76845bfa2e6bac061810152487b3a0d4a8ee85eeac4c57208ab11244f03f3",
+      "after": "8c89ff2ddfbf56c2ed326a089a1697afef4b0f007c90177bb88c0bc8cf4372e2"
+    }
+  ],
+  "scope": "Accepted archive source with bounded RoPE allocation patch, standard npm pack; diagnostic only, not promoted release"
+}

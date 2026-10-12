@@ -1,0 +1,13 @@
+# Standalone RoPE allocation respects session capacity
+
+Component: `doppler.runtime-source.inference.pipelines.text` and `doppler.runtime-source.gpu.kernels`. Intent preserved. Boundary effects: RoPE allocation extent is separate from declared scaling context; no numerical policy, model identity, precision or Reploid pin change.
+
+A standalone model opened with session capacity 8,192 still prepared all 262,144 declared model positions. The physical accepted-package control rejected a 134,217,728-byte table allocation under the unchanged 1,420,000,000-byte budget. The same preparation path already bounded partitions, leaving standalone execution inconsistent with its bounded KV cache.
+
+The regression first fails because standalone RoPE allocates the full table. The canonical fix passes a separate `positionCount` through preparation, cache identity, allocation, dispatch and shader bounds. `maxSeqLen` remains the declared context used by LongRoPE factor selection and magnitude. Both standalone and partition preparation cap their table extent to the explicit positive session limit. Invalid extents fail before allocation; invalid replacement retains the existing lease. MRoPE auxiliary position-axis storage/stride and supplied inverse-frequency layout remain unchanged.
+
+Focused tests cover both execution modes, bounds, lease sharing and separation, source-frequency forwarding, and unchanged LongRoPE context/factors. Physical Mac tests exercise generated, supplied and legacy signed shader frequencies. The uniform layout retains 64 bytes; former padding at byte 60 carries the explicit table extent. Generated uniform writers and kernel digests are refreshed from source. No rejected numerical experiment is present in these canonical changes.
+
+`accepted-package-binding.json` records a **diagnostic** standard npm package made from exact accepted archive `9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc`, applying only `accepted-runtime.patch` to its extracted source before ordinary `npm pack`. Every other shipped file is byte-identical; its five changed runtime files are inventoried by before/after SHA-256. Archive identity: `5f3eb80ec0d46e83039f00c340801591371c82bd8767ff8271486dd32c896132`. This isolates the allocation correction for the existing physical application controller. It is not a promoted archive or a substitute for a standard package from the canonical source.
+
+The independent F64 numerical gate, generation-quality failures and exact application release acceptance remain separate and unresolved. The parent controller owns the physical standalone answer replay; no successful answer is claimed by these CPU and operator checks.

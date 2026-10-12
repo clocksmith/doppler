@@ -83,6 +83,7 @@ try {
         .forEach((value, index) => view.setUint32(index * 4, value, true));
       [fixture.theta, 1, 1, 1, 1, 0].forEach((value, index) => view.setFloat32(16 + index * 4, value, true));
       view.setUint32(40, count, true);
+      view.setUint32(60, maxSeqLen, true);
       const gpuCos = storage(new Float32Array(count)), gpuSin = storage(new Float32Array(count));
       execute(frequencyPipeline, [uniform(bytes), storage(new Uint32Array(1)), gpuCos, gpuSin], Math.ceil(count / 256));
       const tables = { cos: await read(gpuCos), sin: await read(gpuSin) }, cases = [];

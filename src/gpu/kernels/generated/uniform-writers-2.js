@@ -224,7 +224,7 @@ export function write_rope_precompute_f32(view, values, kernel) {
   writeU32(view, 48, values["mrope_section_h"], kernel, "mrope_section_h");
   writeU32(view, 52, values["mrope_section_w"], kernel, "mrope_section_w");
   writeU32(view, 56, values["frequency_offset"], kernel, "frequency_offset");
-  view.setUint32(60, 0, true);
+  writeU32(view, 60, values["position_count"], kernel, "position_count");
 }
 
 export function write_forecast_output_f32(view, values, kernel) {

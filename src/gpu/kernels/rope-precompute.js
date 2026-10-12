@@ -115,6 +115,11 @@ export function buildRoPEPrecomputeAuxiliaryData(options, halfDim) {
 export async function runRoPEPrecompute(options) {
   const device = getDevice();
   if (!device) throw new Error('[RoPE] GPU device is required for frequency precomputation.');
+  const positionCount = options.positionCount ?? options.maxSeqLen;
+  if (!Number.isSafeInteger(options.maxSeqLen) || options.maxSeqLen < 1
+    || !Number.isSafeInteger(positionCount) || positionCount < 1 || positionCount > options.maxSeqLen) {
+    throw new Error('[RoPE] positionCount must be a positive integer within the declared maxSeqLen.');
+  }
   const halfDim = options.rotaryDim / 2;
   const scaling = buildRoPEPrecomputeAuxiliaryData(options, halfDim);
   const inverseFrequencies = validateRoPEInverseFrequencies(
@@ -127,7 +132,7 @@ export async function runRoPEPrecompute(options) {
   if (inverseFrequencies) {
     data.set(new Uint32Array(Float32Array.from(inverseFrequencies).buffer), frequencyOffset);
   }
-  const count = options.maxSeqLen * halfDim;
+  const count = positionCount * halfDim;
   const dispatchPlan = planRoPEPrecomputeDispatch(device, count);
   const ropeData = acquireBuffer(
     Math.max(4, data.byteLength),
@@ -145,6 +150,7 @@ export async function runRoPEPrecompute(options) {
       [ropeData, cos, sin],
       {
         max_seq_len: options.maxSeqLen,
+        position_count: positionCount,
         rotary_dim: options.rotaryDim,
         frequency_base_dim: options.frequencyBaseDim,
         scaling_type: scaling.code,
