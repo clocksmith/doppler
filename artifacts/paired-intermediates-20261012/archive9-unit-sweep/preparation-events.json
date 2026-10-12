@@ -1,0 +1,20 @@
+{
+  "schema": "doppler.frozen-unit-preparation-events/v1",
+  "sourceTestsStartedAfterAllIdentityChecks": true,
+  "events": [
+    {
+      "phase": "source transfer",
+      "result": "rejected incomplete exported-source SHA256 while SCP was still active",
+      "codeOrModelTestResult": false,
+      "resolution": "Waited for successful SCP completion; full source export SHA256 then matched."
+    },
+    {
+      "phase": "private Git metadata",
+      "result": "exact frozen commit absent from x128 alternate; GitHub SSH fetch rejected publickey",
+      "codeOrModelTestResult": false,
+      "retainedRemoteDirectory": "/var/tmp/doppler-archive9-unit-tgjbzyy8",
+      "resolution": "Transferred local Git bundle; fetched into private metadata only, then detached HEAD and own index at exact bddea7ef."
+    }
+  ],
+  "liveCheckoutModified": false
+}

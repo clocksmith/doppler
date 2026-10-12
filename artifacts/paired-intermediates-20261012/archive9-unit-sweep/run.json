@@ -1,0 +1,22 @@
+{
+  "schema": "doppler.frozen-unit-sweep/v1",
+  "startedAt": "2026-10-12T20:58:13.563429+00:00",
+  "pid": 751574,
+  "command": [
+    "taskset",
+    "-c",
+    "4-7",
+    "nice",
+    "-n",
+    "10",
+    "node",
+    "tools/run-node-tests.js",
+    "--suite",
+    "unit"
+  ],
+  "cwd": "/var/tmp/doppler-archive9-unit-4umv8z92/workspace/doppler",
+  "status": "completed",
+  "childPid": 751580,
+  "exitCode": 1,
+  "finishedAt": "2026-10-12T21:04:58.960483+00:00"
+}
