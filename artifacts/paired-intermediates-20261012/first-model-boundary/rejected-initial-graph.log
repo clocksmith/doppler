@@ -1,0 +1,16 @@
+producer-progress:{"phase":"resolve","percent":5,"message":"Resolving model"}
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+page.evaluate: Error: Invalid manifest:
+  - [ExecutionContract] [ExecutionV1] Expanded graph contains unknown ops: "linear_qkv_proj" at step 5 (layer), "linear_z_proj" at step 6 (layer), "linear_a_proj" at step 7 (layer), "linear_b_proj" at step 8 (layer), "linear_qkv_proj" at step 24 (layer), "linear_z_proj" at step 25 (layer), "linear_a_proj" at step 26 (layer), "linear_b_proj" at step 27 (layer). Known ops: embed, cast, input_norm, q_proj, k_proj, v_proj, rope_q, rope_k, attention, o_proj, attn_residual, post_attn_norm, gate_proj, up_proj, activation, down_proj, ffn, ffn_residual, final_norm, lm_head, lm_head_prefill, sample.
+    at parseManifest (http://127.0.0.1:42495/runtime/src/formats/rdrr/parsing.js:74:11)
+    at resolveModelSource (http://127.0.0.1:42495/runtime/src/client/runtime/model-source.js:268:37)
+    at async loadProgram (http://127.0.0.1:42495/runtime/src/client/model-host/index.js:219:22)
+    at async load (http://127.0.0.1:42495/runtime/src/client/model-host/index.js:210:13)
+    at async eval (eval at evaluate (:290:30), <anonymous>:102:16)
+    at async <anonymous>:316:30
+    at /var/tmp/doppler-paired-first-20261012/deco/doppler/tests/integration/frozen-reference-producer-replay.js:137:29
+
+Node.js v22.22.1

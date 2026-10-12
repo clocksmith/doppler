@@ -3,6 +3,7 @@ import { selectRuleValue as selectKernelRuleValue } from '../../../gpu/kernels/r
 import { trace as debugTrace } from '../../../debug/index.js';
 import { getRuntimeConfig } from '../../../config/runtime.js';
 import {
+  getKernelPathStepConfig,
   kernelPathRequiresBF16Weights,
   kernelPathRequiresF32MatmulWeights,
 } from '../../../config/kernel-path-loader.js';
@@ -52,9 +53,10 @@ function summarizeQ4KProjectionKernelKinds(kernelPath) {
       const kernel = String(step?.kernel ?? '');
       if (!kernel) continue;
       const descriptor = `${phase}.${op}:${kernel}#${String(step?.entry ?? 'main')}`;
-      if (kernel.startsWith('fused_matmul_q4')) {
+      const weightDtype = getKernelPathStepConfig('matmul', step, phase)?.weightDtype;
+      if (weightDtype === 'q4k') {
         summary.fusedProjectionKernels.push(descriptor);
-      } else if (kernel.startsWith('matmul_')) {
+      } else if (weightDtype != null) {
         summary.denseProjectionKernels.push(descriptor);
       }
     }
@@ -73,8 +75,7 @@ function collectQ4KFusedRoles(kernelPath) {
     for (const step of steps ?? []) {
       const role = Q4K_MATMUL_ROLE_OPS.get(step?.op);
       if (!role) continue;
-      const kernel = String(step?.kernel ?? '');
-      if (kernel.startsWith('fused_matmul_q4')) roles.add(role);
+      if (getKernelPathStepConfig('matmul', step)?.weightDtype === 'q4k') roles.add(role);
     }
   };
 

@@ -998,6 +998,7 @@ try {
           linearKeyHeadDim: 2,
           linearValueHeadDim: 2,
           linearConvKernelDim: 12,
+          sessionSettings: { intermediatePrecision: 'f32', linearRecurrentStatePrecision: 'f32' },
         },
       }),
       /requires a positive rmsNormEps/

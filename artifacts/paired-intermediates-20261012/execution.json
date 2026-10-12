@@ -104,7 +104,7 @@
       "digest": "sha256:c849fddd43cc81e8d1b3e60cffc54275484df53ab29dde0371d17b2048844d01",
       "precision": {
         "inputDtype": "f32",
-        "outputDtype": "f32"
+        "outputDtype": "f16"
       }
     },
     "gated_delta_conv_paired": {
