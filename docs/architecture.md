@@ -4,8 +4,8 @@
 
 These implementation views were checked against `edefc11b`. They explain the
 standalone runtime and its partition boundary; they are not new model or hardware
-qualification claims. The README contains component and lifetime diagrams;
-this guide includes call sequences, source owners and execution contracts.
+qualification claims. The README contains the graphical system overview and
+component map; this guide retains lifecycle diagrams, call sequences, and source contracts.
 
 ### Preparation, host, and execution ownership
 
@@ -81,7 +81,23 @@ bound resources. Submitted work and observed completion are distinct states.
 
 ### Resident partitions and resource lifetime
 
-[View this diagram in the README.](../README.md#resident-partitions-and-resource-lifetime)
+```mermaid
+flowchart TB
+    OPEN["Validate and open partition"] --> RES["Resident weights and reusable resources"]
+    RES --> A["Attempt A state"]
+    RES --> B["Attempt B state"]
+    A --> STEP["Serialized partition execution"]
+    B --> STEP
+    STEP --> CLOSE["Close attempt<br/>settle work and release its state"]
+    CLOSE -->|reuse weights| RES
+    RES -->|close resident| FREE["Settle attempts<br/>release owned resources"]
+    classDef contract fill:#f3edff,stroke:#7c3aed,color:#111827
+    classDef resource fill:#edf3ff,stroke:#2563eb,color:#111827
+    classDef compute fill:#fff0f3,stroke:#e11d48,color:#111827
+    class OPEN contract
+    class RES,A,B,CLOSE,FREE resource
+    class STEP compute
+```
 
 The two factory entries belong to the same package. The manifest entry is an
 explicit development/integration path, not a signed Capsule acceptance claim.
