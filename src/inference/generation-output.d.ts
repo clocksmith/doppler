@@ -15,3 +15,5 @@ export function decodeGenerationOutput(tokenizer: OutputTokenizer,
 export function decodeGenerationStream(tokens: AsyncIterable<number>, decoder: IncrementalTokenDecoder,
   options?: { signal?: AbortSignal; onToken?: (id: number, text: string) => void;
     getStopReason?: () => string | null | undefined }): AsyncGenerator<string>;
+
+export interface ReasoningDecoderControl { state: string; rawCharacters: number; rawTokens: number; finalCharacters: number; closed: boolean; hasFinalContent: boolean; }

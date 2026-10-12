@@ -3,6 +3,8 @@ export interface IncrementalTokenDecoder {
   pendingText(): string;
   finish(options?: { stopReason?: string | null }): string;
   getUsage?(): { rawCharacters: number; rawTokens: number; finalCharacters: number; state: string };
+  snapshot?(): unknown;
+  clone?(): IncrementalTokenDecoder;
 }
 export function createBundledIncrementalDecoder(options: {
   tokenForId(id: number): string | undefined;

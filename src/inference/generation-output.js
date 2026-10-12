@@ -23,18 +23,37 @@ export function createGenerationOutputDecoder(tokenizer, outputContract, stopTok
   const raw = tokenizer.createRawIncrementalDecoder?.();
   if (!raw) throw new Error('reasoningOutput requires raw incremental decoding.');
   const visible = tokenizer.createIncrementalDecoder();
-  let state = 'opening';
-  let rawCharacters = 0;
-  let rawTokens = 0;
-  let finalCharacters = 0;
-  let closed = false;
-  let hasFinalContent = false;
+  return createReasoningDecoder(contract, [...stopTokenIds], raw, visible, null);
+}
+
+/** @param {import('../config/reasoning-output.js').ReasoningOutputContract} contract
+ * @param {readonly number[]} stopTokenIds
+ * @param {import('./tokenizers/bundled/incremental-decoder.js').IncrementalTokenDecoder} raw
+ * @param {import('./tokenizers/bundled/incremental-decoder.js').IncrementalTokenDecoder} visible
+ * @param {import('./generation-output.js').ReasoningDecoderControl | null} control
+ * @returns {import('./tokenizers/bundled/incremental-decoder.js').IncrementalTokenDecoder} */
+function createReasoningDecoder(contract, stopTokenIds, raw, visible, control) {
+  let state = control?.state ?? 'opening';
+  let rawCharacters = control?.rawCharacters ?? 0;
+  let rawTokens = control?.rawTokens ?? 0;
+  let finalCharacters = control?.finalCharacters ?? 0;
+  let closed = control?.closed ?? false;
+  let hasFinalContent = control?.hasFinalContent ?? false;
+  const controls = () => ({ state, rawCharacters, rawTokens, finalCharacters, closed, hasFinalContent });
   /** @param {string} message */
   function invalid(message) {
     state = 'failed';
     throw createDopplerError(ERROR_CODES.GENERATION_OUTPUT_INVALID, message);
   }
   return {
+    snapshot() {
+      if (!raw.snapshot || !visible.snapshot) throw new Error('Decoder snapshot is unsupported.');
+      return { schema: 'doppler.reasoning-decoder-state/v1', ...controls(), raw: raw.snapshot(), visible: visible.snapshot() };
+    },
+    clone() {
+      if (!raw.clone || !visible.clone) throw new Error('Decoder clone is unsupported.');
+      return createReasoningDecoder(contract, stopTokenIds, raw.clone(), visible.clone(), controls());
+    },
     push(tokenId) {
       if (closed || state === 'failed' || state === 'stopped') invalid('Generation output is already settled.');
       rawCharacters += raw.push(tokenId).length;
