@@ -7,15 +7,31 @@ from pathlib import Path
 import sys
 import numpy as np
 
-capture_path, destination = map(Path, sys.argv[1:])
+capture_path, destination = map(Path, sys.argv[1:3])
+qk_layer = int(sys.argv[3]) if len(sys.argv) > 3 else None
 capture = json.loads(capture_path.read_bytes())
 assert capture['observation']['maximumUnmaskedDifference'] == 0
 spec = importlib.util.spec_from_file_location('audit', 'tools/qwen35-short-prefix-audit.py')
 audit = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(audit)
-gpu = audit.read_capture(capture, 184, 9)
+gpu = audit.read_capture(capture, 184, capture["observationTarget"]["step"] if qk_layer is not None else 9)
 root = Path('models/local/qwen-3-5-0-8b-q4k-ehaf16')
 manifest = json.loads((root / 'manifest.json').read_bytes())
+if qk_layer is not None:
+    entry = manifest['tensors'][f'model.language_model.layers.{qk_layer}.self_attn.k_norm.weight']
+    assert entry['dtype'] == 'F16'
+    raw = (root / manifest['shards'][entry['shard']]['filename']).read_bytes()[entry['offset']:entry['offset'] + entry['size']]
+    width = manifest['architecture']['headDim']
+    values = gpu[f'layer.{qk_layer}.attn.k_proj'].reshape(-1).tolist()
+    fixture = {'headDim': width, 'q': values, 'k': values,
+        'qWeight': base64.b64encode(raw).decode(), 'kWeight': base64.b64encode(raw).decode(),
+        'epsilon': manifest['inference']['normalization']['rmsNormEps'],
+        'constants': {'RMS_NORM_OFFSET': True, 'Q_WEIGHT_IS_F16': True, 'K_WEIGHT_IS_F16': True},
+        'captureSha256': hashlib.sha256(capture_path.read_bytes()).hexdigest(),
+        'scope': 'Captured K operands duplicated into independent Q/K rows for normalization/store control',
+        'operation': f'layer.{qk_layer}.attn.k_norm'}
+    destination.write_text(json.dumps(fixture) + '\n')
+    sys.exit(0)
 entry = manifest['tensors']['model.language_model.layers.0.input_layernorm.weight']
 assert entry['dtype'] == 'F16'
 raw = (root / manifest['shards'][entry['shard']]['filename']).read_bytes()[entry['offset']:entry['offset'] + entry['size']]

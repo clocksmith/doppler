@@ -9,11 +9,12 @@ import { createServer } from 'node:http';
 import { chromium } from 'playwright';
 import { KERNEL_TOLERANCES, compareArrays } from '../kernels/harness/tolerance.js';
 
-const [shaderPath, destination] = process.argv.slice(2);
+const [shaderPath, destination, mode, customFixture] = process.argv.slice(2);
 assert(shaderPath && destination, 'Supply a canonical shader and receipt destination');
 const source = await readFile(shaderPath, 'utf8');
-const fixtureBytes = await readFile(new URL('../fixtures/qk-normalization-regression.json', import.meta.url));
+const fixtureBytes = await readFile(customFixture ?? new URL('../fixtures/qk-normalization-regression.json', import.meta.url));
 const fixture = JSON.parse(fixtureBytes);
+if (mode === 'deferred-half') fixture.constants.DEFER_K_HALF_ROUNDING = true;
 const hash = value => createHash('sha256').update(value).digest('hex');
 const half = bits => {
   const sign = bits & 0x8000 ? -1 : 1;
@@ -127,9 +128,14 @@ try {
       }
     }
     const values = execution.results[index];
+    const nearestEven = value => { const floor = Math.floor(value), fraction = value - floor; return floor + Number(fraction > 0.5 || (fraction === 0.5 && floor % 2 === 1)); };
+    const halfRound = value => { const magnitude = Math.abs(value); if (!magnitude) return value; const spacing = 2 ** Math.max(-24, Math.floor(Math.log2(magnitude)) - 10); const rounded = nearestEven(magnitude / spacing) * spacing; return Math.sign(value) * (rounded >= 65520 ? Infinity : rounded); };
+    const kStart = row.q.length;
+    const halfMismatches = [];
+    for (let i = kStart; i < values.length; i++) if (halfRound(values[i]) !== halfRound(expected[i])) halfMismatches.push({ index: i - kStart, actual: halfRound(values[i]), expected: halfRound(expected[i]) });
     receipt.cases.push({ name: row.name, headDim: row.headDim, values,
       valuesSha256: hash(Buffer.from(Float32Array.from(values).buffer)),
-      finite: values.every(Number.isFinite), ...compareArrays(expected, values, receipt.tolerance) });
+      kHalfMismatches: halfMismatches, finite: values.every(Number.isFinite), ...compareArrays(expected, values, receipt.tolerance) });
   }
   receipt.passed = execution.errors.length === 0 && receipt.cases.every(row => row.finite && row.passed);
   console.log(JSON.stringify({ adapter: receipt.adapter, cases: receipt.cases.map(({ values, ...row }) => row) }));
