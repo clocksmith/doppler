@@ -1,0 +1,22 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: The input did not match the regular expression /Device dispatch limits exceeded or no device/. Input:
+
+'Error: [PairedAttention] Explicit mask positions, causal flag and positive scale required.'
+
+    at async file:///Users/xyz/deco/doppler/tests/gpu/paired-attention-contract.test.js:26:1 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: Error: [PairedAttention] Explicit mask positions, causal flag and positive scale required.
+      at executePairedAttention (file:///Users/xyz/deco/doppler/src/gpu/kernels/paired-attention.js:20:11)
+      at executeAttention (file:///Users/xyz/deco/doppler/src/gpu/kernels/attention/executors.js:358:12)
+      at runAttention (file:///Users/xyz/deco/doppler/src/gpu/kernels/attention.js:617:10)
+      at file:///Users/xyz/deco/doppler/tests/gpu/paired-attention-contract.test.js:26:22,
+  expected: /Device dispatch limits exceeded or no device/,
+  operator: 'rejects',
+  diff: 'simple'
+}
+
+Node.js v22.20.0
