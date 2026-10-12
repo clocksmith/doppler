@@ -1,0 +1,14 @@
+{
+  "scope": "First19-token request0 prefill only; remaining prefixes/platforms unqualified",
+  "archiveSha256": "8ea1767fb61d9009dd257c4065a6acfdbaaf80fa733145898307ed35da0e7f20",
+  "receiptSha256": "4a1a8ce78c8f389fab69aae912e1f24794332c3bfc85e64b1967c48694f65718",
+  "approvedVectorsGzipSha256": "5b2b8ade5415fff2f34a482a210ca9f0ac7b4c290d4580b050f8d1913dd1b828",
+  "evaluatorSha256": "90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7",
+  "tolerance": 0.001,
+  "maxError": 8.399647413170896e-07,
+  "rmsError": 6.40547530971946e-08,
+  "aboveTolerance": 0,
+  "values": 248320,
+  "passed": true,
+  "sharedMachine": "AMD public native/browser contributors remained resident and untouched; GPU0percent before launch; correctness only"
+}
