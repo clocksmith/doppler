@@ -1,0 +1,33 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "0,1,2,3",
+    "node",
+    "tools/run-node-tests.js",
+    "tests/config/model-support-inventory-contract.test.js",
+    "tests/config/tracked-benchmark-evidence-contract.test.js",
+    "tests/config/vendor-bench-cli-contract.test.js",
+    "tests/inference/paired-model-binding.test.js",
+    "tests/tooling/export-w8a8-projection.test.js",
+    "tests/tooling/inspect-prefill-logits-receipt.test.js",
+    "tests/tooling/qualify-sequence-capsule.test.js",
+    "tests/training/host-teacher-qualification.test.js",
+    "tests/training/student-code-experiment.test.js"
+  ],
+  "cwd": "/var/tmp/doppler-unit-1cb70cf9-du9zn2",
+  "startedAt": "2026-10-12T20:33:18.841511+00:00",
+  "exitCode": 1,
+  "gitHead": "40e7e0be2af502e0621370920558ef8b4fee0be7",
+  "files": [
+    "tests/config/model-support-inventory-contract.test.js",
+    "tests/config/tracked-benchmark-evidence-contract.test.js",
+    "tests/config/vendor-bench-cli-contract.test.js",
+    "tests/inference/paired-model-binding.test.js",
+    "tests/tooling/export-w8a8-projection.test.js",
+    "tests/tooling/inspect-prefill-logits-receipt.test.js",
+    "tests/tooling/qualify-sequence-capsule.test.js",
+    "tests/training/host-teacher-qualification.test.js",
+    "tests/training/student-code-experiment.test.js"
+  ]
+}

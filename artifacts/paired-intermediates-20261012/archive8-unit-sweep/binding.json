@@ -1,0 +1,35 @@
+{
+  "sourceCommit": "1cb70cf923822481ac170113be5a68cb4d01ab4e",
+  "snapshot": "/var/tmp/doppler-unit-1cb70cf9-du9zn2",
+  "archive": "/var/tmp/doppler-paired-first-20261012/archive-8.tgz",
+  "archiveSha256": "8ea1767fb61d9009dd257c4065a6acfdbaaf80fa733145898307ed35da0e7f20",
+  "archiveFileCount": 1956,
+  "archiveDifferences": [],
+  "snapshotPackageLockSha256": "f0221e4847513cdc5f84227431957cbdcc4f93131db2ea7dcef3ff5cba29e266",
+  "dependencyDirectory": "/home/x/deco/doppler/node_modules",
+  "installedDependencyLockSha256": "d56962e52ddc6e9b3e90d4d29a941e0d7295d6c5b8e0a2d63458e3d9451ae2b3",
+  "node": "v22.22.1",
+  "affinity": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "env": {
+    "DOPPLER_NODE_WEBGPU_MODULE": "/var/tmp/doppler-unit-1cb70cf9-du9zn2-evidence/intentionally-absent-webgpu.js",
+    "OMP_NUM_THREADS": "4",
+    "OPENBLAS_NUM_THREADS": "4",
+    "MKL_NUM_THREADS": "4"
+  },
+  "command": [
+    "taskset",
+    "-c",
+    "0,1,2,3",
+    "node",
+    "tools/run-node-tests.js",
+    "--suite",
+    "unit"
+  ],
+  "runnerFileConcurrency": 1,
+  "scope": "Complete canonical unit file sweep; optional physical cases use existing no-WebGPU skips. No GPU acceptance."
+}

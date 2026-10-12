@@ -1,0 +1,6 @@
+{
+  "attemptedAlternate": "/home/x/deco/doppler/.git/objects",
+  "exitCode": 128,
+  "error": "unable to normalize alternate object path; failed to unpack frozen tree",
+  "disposition": "Repository uses external Git metadata; resolve actual common directory without touching it"
+}

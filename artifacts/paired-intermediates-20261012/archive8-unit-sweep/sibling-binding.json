@@ -1,0 +1,15 @@
+{
+  "sourceRepository": "/home/x/deco/reploid",
+  "sourceRevision": "99ca0456d01e8f08e070ec998de8834e4b6008f7",
+  "ownedExport": "/var/tmp/reploid",
+  "files": [
+    {
+      "path": "tests/fixtures/distributed-reference-model.js",
+      "sha256": "3d40003544c93ea2982c8801ab77e2cf14c79485bf01895f4491070105b679e0"
+    },
+    {
+      "path": "tests/fixtures/distributed-reference-manifest.json.gz",
+      "sha256": "6101c21b8e709c3ccc559ce34b4ea03cb94582488f718fec25c0c2f8861a13ff"
+    }
+  ]
+}
