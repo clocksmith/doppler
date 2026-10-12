@@ -46,10 +46,10 @@ const BUDGET_OUTPUT = path.join(ROOT, 'demo', 'generated-shell-budget.json');
 const WORKER_OUTPUT = path.join(ROOT, 'demo', 'sw.js');
 const WORKER_SHELL_START = '// BEGIN GENERATED DEMO SHELL';
 const WORKER_SHELL_END = '// END GENERATED DEMO SHELL';
-// Includes the existing W8A8, verified-piece-reader, tokenizer, and output
-// modules reachable through the public host API. Keep the ceiling exact;
-// demo UI changes add no runtime modules.
-const MAX_MODULES = 717;
+// Includes W8A8, verified-piece-reader, tokenizer, output, and the recurrent
+// state-layout validator reachable through the public host API. Keep the
+// ceiling exact; demo UI changes add no runtime modules.
+const MAX_MODULES = 718;
 const MAX_TOTAL_BYTES = 10_000_000;
 const MODULE_ROOTS = [
   'demo/demo.js',
