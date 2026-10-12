@@ -31,6 +31,18 @@ class Pairing(unittest.TestCase):
         np.testing.assert_array_equal(result['layer.0.layer.out'][:, 0], [2] * 19 + [5])
         self.assertNotIn('layer.0.ffn.gate', result)
 
+    def test_longer_prefix_pairs_every_decode_step(self):
+        timeline = []
+        for step, count in enumerate([184, 1, 1, 1]):
+            timeline.extend([row('embed.out', count, step),
+                             row('layer.0.layer.out', count, step + 10)])
+        result = audit.read_capture({'observation': {'timeline': timeline}}, 184, 3)
+        np.testing.assert_array_equal(result['layer.0.layer.out'][:, 0],
+                                      [10] * 184 + [11, 12, 13])
+        del timeline[5]
+        with self.assertRaises(AssertionError):
+            audit.read_capture({'observation': {'timeline': timeline}}, 184, 3)
+
     def test_conflicting_duplicate_rejected(self):
         capture = self.capture()
         capture['observation']['timeline'][2] = row('layer.0.layer.out', 19, 9)
