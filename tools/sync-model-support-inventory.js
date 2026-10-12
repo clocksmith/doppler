@@ -1087,11 +1087,6 @@ function renderTableRow(values) {
     .replace(/$/, ' |');
 }
 
-function renderCommand(command) {
-  if (!command) return 'none';
-  return `\`${String(command).replace(/`/g, '\\`')}\``;
-}
-
 function renderMarkdown(inventory) {
   const lines = [];
   lines.push('# Model Support Inventory');
@@ -1100,7 +1095,7 @@ function renderMarkdown(inventory) {
   lines.push('');
   lines.push(`Updated at: ${inventory.updated}`);
   lines.push('');
-  lines.push('Policy: smallest artifact size first. Size tiers use catalog artifact bytes, not parameter class. Model type is an independent functional axis derived from domain, task, architecture role, and input/output contract. A preferred architecture is selected only when runtime verification, compare JSON, and summary SVG evidence exist for that lane.');
+  lines.push('Size tiers group recorded artifact bytes, not parameter classes or implementation priorities. [GOALS.md](../GOALS.md#current-priorities) owns work selection. A preferred architecture requires runtime verification, compare JSON, and summary SVG evidence for its exact lane.');
   lines.push('');
   lines.push('## Gate Order');
   lines.push('');
@@ -1117,10 +1112,10 @@ function renderMarkdown(inventory) {
   lines.push(`- Sources pending benchmark-selected architecture: ${inventory.summary.benchmarkPendingSourceCount}`);
   lines.push(`- Model type counts: ${Object.entries(inventory.summary.typeClusterCounts).map(([type, count]) => `${type}=${count}`).join(', ')}`);
   lines.push('');
-  lines.push('## Rollout Queue');
+  lines.push('## Source Support');
   lines.push('');
-  lines.push('| Tier | Type | Source checkpoint | Smallest artifact | Status | Preferred architecture | Evidence | Next action |');
-  lines.push('| --- | --- | --- | --- | --- | --- | --- | --- |');
+  lines.push('| Tier | Type | Source checkpoint | Smallest artifact | Status | Preferred architecture | Evidence |');
+  lines.push('| --- | --- | --- | --- | --- | --- | --- |');
   for (const source of inventory.sourceModels) {
     lines.push(renderTableRow([
       source.tier,
@@ -1130,33 +1125,16 @@ function renderMarkdown(inventory) {
       source.status,
       renderPreferred(source.preferredArchitecture),
       renderEvidence(source.preferredArchitecture),
-      source.nextAction,
     ]));
   }
   lines.push('');
-  lines.push('## Next Commands');
-  lines.push('');
-  lines.push('These are policy-generated command recipes, not evidence. A command becomes support evidence only after its saved artifact is committed and referenced by the claim lane.');
-  lines.push('');
-  lines.push('| Tier | Type | Source checkpoint | Next gate | Command |');
-  lines.push('| --- | --- | --- | --- | --- |');
-  for (const source of inventory.sourceModels) {
-    if (!source.nextCommand) continue;
-    lines.push(renderTableRow([
-      source.tier,
-      source.typeCluster.label,
-      source.sourceCheckpointId,
-      source.nextGate,
-      renderCommand(source.nextCommand),
-    ]));
-  }
   for (const tier of inventory.policy.supportRollout.sizeTiers.map((entry) => entry.id)) {
     const tierSources = inventory.sourceModels.filter((source) => source.tier === tier);
     if (tierSources.length === 0) continue;
     lines.push('');
     lines.push(`## ${tier[0].toUpperCase()}${tier.slice(1)} Models`);
     lines.push('');
-    lines.push('| Model ID | Type | Family | Size | Architecture | Runtime verify | HF | Compare lane | Benchmark evidence | Next gate |');
+    lines.push('| Model ID | Type | Family | Size | Architecture | Runtime verify | HF | Compare lane | Benchmark evidence | Missing acceptance |');
     lines.push('| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |');
     for (const source of tierSources) {
       for (const variant of source.variants) {
@@ -1184,15 +1162,14 @@ function renderMarkdown(inventory) {
   lines.push('');
   lines.push('These entries have checked-in conversion configs but are not catalog-supported runtime artifacts yet.');
   lines.push('');
-  lines.push('| Config | Model base ID | Family | Architecture | Next action |');
-  lines.push('| --- | --- | --- | --- | --- |');
+  lines.push('| Config | Model base ID | Family | Architecture |');
+  lines.push('| --- | --- | --- | --- |');
   for (const entry of inventory.conversionOnly) {
     lines.push(renderTableRow([
       entry.conversionConfig,
       entry.modelBaseId,
       entry.family,
       entry.architecture.label,
-      entry.nextAction,
     ]));
   }
   lines.push('');

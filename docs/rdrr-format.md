@@ -10,7 +10,7 @@ Related specs and contracts:
 - [lora-format.md](lora-format.md) for adapter manifests
 - [conversion-runtime-contract.md](conversion-runtime-contract.md) for conversion-vs-runtime ownership
 - [getting-started.md](getting-started.md) for first-run convert/verify flow
-- [distribution/rdrr-p2p-plan.md](distribution/rdrr-p2p-plan.md) for additive distributed execution planning
+- [distribution/execution-contract.md](distribution/execution-contract.md) for additive distributed execution planning
 - [distribution/collective-transport-contract.md](distribution/collective-transport-contract.md) for collective transport rules
 
 Non-RDRR note:
