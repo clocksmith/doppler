@@ -1,0 +1,202 @@
+TAP version 13
+# Subtest: emits existing report schema only after all55 independently recomputed comparisons
+ok 1 - emits existing report schema only after all55 independently recomputed comparisons
+  ---
+  duration_ms: 9.890875
+  type: 'test'
+  ...
+# Subtest: rejects failed actual logits despite passing self-report
+ok 2 - rejects failed actual logits despite passing self-report
+  ---
+  duration_ms: 0.697917
+  type: 'test'
+  ...
+# Subtest: rejects nonfinite output
+ok 3 - rejects nonfinite output
+  ---
+  duration_ms: 0.378833
+  type: 'test'
+  ...
+# Subtest: rejects truncated output
+ok 4 - rejects truncated output
+  ---
+  duration_ms: 0.49325
+  type: 'test'
+  ...
+# Subtest: rejects missing step
+ok 5 - rejects missing step
+  ---
+  duration_ms: 0.467458
+  type: 'test'
+  ...
+# Subtest: rejects missing request
+ok 6 - rejects missing request
+  ---
+  duration_ms: 0.345541
+  type: 'test'
+  ...
+# Subtest: rejects changed prompt
+ok 7 - rejects changed prompt
+  ---
+  duration_ms: 0.635917
+  type: 'test'
+  ...
+# Subtest: rejects changed continuation
+ok 8 - rejects changed continuation
+  ---
+  duration_ms: 0.470208
+  type: 'test'
+  ...
+# Subtest: rejects changed sampled token
+ok 9 - rejects changed sampled token
+  ---
+  duration_ms: 0.543667
+  type: 'test'
+  ...
+# Subtest: rejects changed sampling
+ok 10 - rejects changed sampling
+  ---
+  duration_ms: 0.679208
+  type: 'test'
+  ...
+# Subtest: rejects failed cleanup
+ok 11 - rejects failed cleanup
+  ---
+  duration_ms: 0.59375
+  type: 'test'
+  ...
+# Subtest: rejects changed allocation ceiling
+ok 12 - rejects changed allocation ceiling
+  ---
+  duration_ms: 0.795292
+  type: 'test'
+  ...
+# Subtest: rejects lost device
+ok 13 - rejects lost device
+  ---
+  duration_ms: 3.444791
+  type: 'test'
+  ...
+# Subtest: rejects missing actual identity observation
+ok 14 - rejects missing actual identity observation
+  ---
+  duration_ms: 0.703541
+  type: 'test'
+  ...
+# Subtest: rejects forged identity
+ok 15 - rejects forged identity
+  ---
+  duration_ms: 0.6495
+  type: 'test'
+  ...
+# Subtest: rejects scalar session
+ok 16 - rejects scalar session
+  ---
+  duration_ms: 0.517083
+  type: 'test'
+  ...
+# Subtest: rejects changed factory bytes
+ok 17 - rejects changed factory bytes
+  ---
+  duration_ms: 0.452083
+  type: 'test'
+  ...
+# Subtest: rejects same physical host for both partitions
+ok 18 - rejects same physical host for both partitions
+  ---
+  duration_ms: 0.496833
+  type: 'test'
+  ...
+# Subtest: rejects reversed physical placement
+ok 19 - rejects reversed physical placement
+  ---
+  duration_ms: 0.616791
+  type: 'test'
+  ...
+# Subtest: rejects changed provider
+ok 20 - rejects changed provider
+  ---
+  duration_ms: 0.534667
+  type: 'test'
+  ...
+# Subtest: rejects changed traversal
+ok 21 - rejects changed traversal
+  ---
+  duration_ms: 0.3465
+  type: 'test'
+  ...
+# Subtest: rejects failed outer controller
+ok 22 - rejects failed outer controller
+  ---
+  duration_ms: 0.211459
+  type: 'test'
+  ...
+# Subtest: rejects changed package
+ok 23 - rejects changed package
+  ---
+  duration_ms: 0.220125
+  type: 'test'
+  ...
+# Subtest: rejects changed application
+ok 24 - rejects changed application
+  ---
+  duration_ms: 0.204125
+  type: 'test'
+  ...
+# Subtest: rejects a replacement reference or evaluator before interpreting captures
+ok 25 - rejects a replacement reference or evaluator before interpreting captures
+  ---
+  duration_ms: 0.926583
+  type: 'test'
+  ...
+# Subtest: direct fixture preserves test-delivery scope without inventing run.ok or application identity
+ok 26 - direct fixture preserves test-delivery scope without inventing run.ok or application identity
+  ---
+  duration_ms: 0.463542
+  type: 'test'
+  ...
+# Subtest: direct fixture rejects changed testDeliveryHash
+ok 27 - direct fixture rejects changed testDeliveryHash
+  ---
+  duration_ms: 0.248958
+  type: 'test'
+  ...
+# Subtest: direct fixture rejects changed archiveSha256
+ok 28 - direct fixture rejects changed archiveSha256
+  ---
+  duration_ms: 0.223875
+  type: 'test'
+  ...
+# Subtest: direct fixture rejects changed snapshotFiles
+ok 29 - direct fixture rejects changed snapshotFiles
+  ---
+  duration_ms: 0.231333
+  type: 'test'
+  ...
+# Subtest: direct fixture rejects changed installedFiles
+ok 30 - direct fixture rejects changed installedFiles
+  ---
+  duration_ms: 0.253458
+  type: 'test'
+  ...
+# Subtest: direct fixture rejects changed applicationQualification
+ok 31 - direct fixture rejects changed applicationQualification
+  ---
+  duration_ms: 0.218417
+  type: 'test'
+  ...
+# Subtest: direct fixture rejects an extraneous application envelope
+ok 32 - direct fixture rejects an extraneous application envelope
+  ---
+  duration_ms: 4.37275
+  type: 'test'
+  ...
+1..32
+# tests 32
+# suites 0
+# pass 32
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 87.642291

@@ -114,3 +114,24 @@ The CPU tests are synthetic producer controls, not physical model evidence.
 been minted from future or fabricated model outcomes. Model answer quality,
 actual signed opening, selective acquisition, and release eligibility remain
 separate gates.
+
+The direct numerical fixture mode is now explicit. Its pre-run expectations use
+`deliveryMode: direct-fixture`, `testDeliveryHash`, and exact `installedFiles`.
+The CLI input supplies `delivery` (the frozen snapshot binding) instead of `run`;
+an application-controller envelope is rejected in this mode. The fixture checks
+all listed source files and every installed archive member before loading the
+model, then records that observed test-delivery identity. These are not deployed
+application bytes. Browser versions and directional host assignments are frozen
+as well as adapter descriptions. The ordinary controller mode is unchanged.
+
+Archive 9's two expected placements are frozen in
+`archive9-mac-amd-expectations.json` and `archive9-amd-mac-expectations.json`,
+before either split loads weights. The raw provider and public-plan preflights,
+complete snapshot file list, and its SHA-256 are retained alongside them. The
+observed empty adapter device identifier is normalized to `unknown` exactly as
+the bound Doppler package does; raw observations remain unchanged. There are
+2,001 test-delivery files and 1,974 installed archive files in this snapshot.
+`physical-producer-tests-direct.log` retains 32 passing CPU controls. Root's
+independent read-only review accepted the direct-mode change before execution;
+the earlier `review.json` continues to bind its earlier exact source, not these
+later bytes. Actual split results remain required.

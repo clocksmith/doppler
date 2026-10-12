@@ -1,0 +1,30 @@
+{
+  "scope": "Pre-model provider observation, no device, weights, kernels or numerical outputs",
+  "at": "2026-10-12T21:01:41.988Z",
+  "providers": {
+    "mac.lan": {
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+      "platform": "MacIntel",
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "",
+        "description": ""
+      }
+    },
+    "x@128.tail995236.ts.net": {
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/146.0.0.0 Safari/537.36",
+      "platform": "Linux x86_64",
+      "adapter": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "",
+        "description": ""
+      }
+    }
+  },
+  "browsers": {
+    "mac.lan": "155.0.8059.39",
+    "x@128.tail995236.ts.net": "146.0.7680.177"
+  }
+}

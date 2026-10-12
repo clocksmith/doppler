@@ -27,14 +27,14 @@ function vector(text, bytesPerElement, length) {
  * Raw report flags/error summaries are not trusted as numerical comparison.
  */
 export function producePhysicalReports({ expected, captureBytes, referenceBytes, manifestBytes, graphBytes,
-  runBytes, archiveBytes, evaluatorBytes, requestContractBytes, observeInitialExecutionIdentity, computeCanonicalSha256 }) {
+  runBytes, deliveryBytes, archiveBytes, evaluatorBytes, requestContractBytes, observeInitialExecutionIdentity, computeCanonicalSha256 }) {
   same(expected.schema, 'doppler.physical-resident-producer-input/v1');
   for (const [name, bytes] of Object.entries({ archive: archiveBytes, reference: referenceBytes,
     manifest: manifestBytes, graph: graphBytes, evaluator: evaluatorBytes })) {
     same(sha256(bytes), expected[`${name}Hash`], `${name} differs from frozen input`);
   }
   const manifest = parse(manifestBytes), graph = parse(graphBytes), reference = parse(referenceBytes);
-  const capture = parse(captureBytes), run = parse(runBytes);
+  const capture = parse(captureBytes), run = runBytes ? parse(runBytes) : null;
   same(manifest.inference.execution, graph, 'Candidate graph differs');
   same(reference.numericalReference.kind, 'independent-f64');
   same(reference.numericalReference.evaluatorSha256, expected.evaluatorHash.slice(7));
@@ -42,14 +42,32 @@ export function producePhysicalReports({ expected, captureBytes, referenceBytes,
   same(reference.numericalReference.outputIndexSha256, expected.outputIndexSha256);
   same(reference.numericalReference.tolerance, 0.001);
   same(reference.numericalReference.steps, 55);
-  same(run.package.integrity, 'sha512-' + createHash('sha512').update(archiveBytes).digest('base64'));
-  same(run.browserIdentity, expected.applicationBundleHash, 'Application differs');
-  same(run.referenceSha256, expected.referenceHash.slice(7));
-  same(run.referenceBinding.manifestIdentity, expected.manifestHash);
-  same(run.referenceBinding.archiveSha256, expected.archiveHash.slice(7));
-  same(run.maxGpuBufferBytes, 1420000000);
-  assert.equal(run.ok, true, 'Physical controller did not finish successfully');
-  assert(!run.failure && !capture.failure && !capture.cleanupFailure, 'Failed physical execution cannot qualify');
+  if (expected.deliveryMode === 'direct-fixture') {
+    assert.equal(runBytes, undefined, 'Direct fixture cannot claim an application-controller envelope');
+    same(sha256(deliveryBytes), expected.testDeliveryHash, 'Frozen test delivery changed');
+    const delivery = parse(deliveryBytes);
+    same(delivery.archiveSha256, expected.archiveHash.slice(7));
+    same(capture.testDelivery.schema, 'reploid.numerical-test-delivery/v1');
+    same(capture.testDelivery.testDeliveryHash, expected.testDeliveryHash);
+    same(capture.testDelivery.archiveSha256, delivery.archiveSha256);
+    same(capture.testDelivery.snapshotFiles, delivery.files.length);
+    assert(Number.isSafeInteger(expected.installedFiles) && expected.installedFiles > 0);
+    same(capture.testDelivery.installedFiles, expected.installedFiles, 'Installed archive closure was not fully observed');
+    same(capture.testDelivery.applicationQualification, false);
+    same(delivery.scope, 'Immutable numerical fixture delivery; not deployed application or signed admission');
+    same(capture.testDelivery.scope, delivery.scope);
+  } else {
+    same(expected.deliveryMode ?? 'application-controller', 'application-controller');
+    same(run.package.integrity, 'sha512-' + createHash('sha512').update(archiveBytes).digest('base64'));
+    same(run.browserIdentity, expected.applicationBundleHash, 'Application differs');
+    same(run.referenceSha256, expected.referenceHash.slice(7));
+    same(run.referenceBinding.manifestIdentity, expected.manifestHash);
+    same(run.referenceBinding.archiveSha256, expected.archiveHash.slice(7));
+    same(run.maxGpuBufferBytes, 1420000000);
+    assert.equal(run.ok, true, 'Physical controller did not finish successfully');
+    assert(!run.failure, 'Failed physical controller cannot qualify');
+  }
+  assert(!capture.failure && !capture.cleanupFailure, 'Failed physical execution cannot qualify');
   same(capture.phase, 'reference');
   same(capture.requestFixtureSha256, expected.requestFixtureSha256);
   same(capture.pairedBinding.archiveSha256, expected.archiveHash.slice(7));
@@ -108,6 +126,7 @@ export function producePhysicalReports({ expected, captureBytes, referenceBytes,
     assert(expected.providers[descriptor.platform], 'Provider was not declared before observation');
     same(descriptor.observedProvider, expected.providers[descriptor.platform], 'Provider differs');
     assert.equal(typeof descriptor.browser, 'string'); assert(descriptor.browser.length);
+    same(descriptor.browser, expected.browserVersions[descriptor.platform], 'Browser version differs from pre-run observation');
     const session = observed.resolvedRuntimeSession.runtime.session;
     same(session.intermediatePrecision, 'two-f32'); same(session.linearRecurrentStatePrecision, 'two-f32');
     const identity = observeInitialExecutionIdentity(observed.resolvedRuntimeSession);
@@ -125,8 +144,8 @@ export function producePhysicalReports({ expected, captureBytes, referenceBytes,
       partitionPlan: descriptor.plan, partitionPlanHash: descriptor.planId, partitionIndex,
       comparison: { contractHash: computeCanonicalSha256(contract), referenceHash: expected.referenceHash,
         captureHash: sha256(captureBytes), evaluatorHash: expected.evaluatorHash, tolerance: 0.001, complete: true, steps },
-      provenance: { controllerHash: sha256(runBytes), archiveHash: expected.archiveHash,
-        applicationBundleHash: expected.applicationBundleHash, provider: descriptor.observedProvider,
+      provenance: { ...(runBytes ? { controllerHash: sha256(runBytes), applicationBundleHash: expected.applicationBundleHash }
+          : { testDeliveryHash: expected.testDeliveryHash, applicationQualification: false }), archiveHash: expected.archiveHash, provider: descriptor.observedProvider,
         browserVersion: descriptor.browser, pairedProviders: capture.descriptors.map(x => x.observedProvider),
         scope: 'This resident participates in the captured cooperative pair. Neither isolated-partition accuracy, signed opening, source answer quality nor deployment is established.' } };
   });
@@ -145,7 +164,8 @@ async function main() {
   };
   const expected = parse(await readBound(config.expectations));
   same(expected.producerHash, sha256(await readFile(new URL(import.meta.url))), 'Producer differs from pre-run freeze');
-  const fields = Object.fromEntries(await Promise.all(['capture', 'reference', 'manifest', 'graph', 'run', 'archive', 'evaluator']
+  const fields = Object.fromEntries(await Promise.all(['capture', 'reference', 'manifest', 'graph', 'archive', 'evaluator',
+    expected.deliveryMode === 'direct-fixture' ? 'delivery' : 'run']
     .map(async name => [name + 'Bytes', await readBound(config[name])])));
   // Import the exact archive closure, never the live checkout or copied helper dependencies.
   const extracted = await mkdtemp(resolve(tmpdir(), 'doppler-resident-producer-'));
