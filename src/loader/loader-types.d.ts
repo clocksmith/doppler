@@ -291,6 +291,8 @@ export interface Q4KConfig {
   q4kMaterializationMode?: 'dense' | 'fused' | 'mixed';
   /** Tensor roles that must keep raw Q4K materialization because the execution graph pins a fused Q4K kernel */
   q4kFusedRoles?: string[];
+  /** Roles with only packed consumers across all selected phases and layers. */
+  q4kPackedOnlyRoles?: string[];
 }
 
 /**

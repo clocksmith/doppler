@@ -557,7 +557,9 @@ export async function loadTensorToGPU(shardData, location, name, config) {
   const dtype = location.dtype;
   const useFusedQ4K = shouldUseFusedQ4K(location, config);
   const requiresFusedQ4KRole = Array.isArray(config?.q4kFusedRoles)
-    && config.q4kFusedRoles.includes(location.role);
+    && config.q4kFusedRoles.includes(config.consumerRole ?? location.role);
+  const requiresPackedOnlyQ4KRole = Array.isArray(config?.q4kPackedOnlyRoles)
+    && config.q4kPackedOnlyRoles.includes(config.consumerRole ?? location.role);
   const caps = config?.gpuCapabilities || getKernelCapabilities();
   const platformId = getPlatformConfig()?.platform?.id ?? null;
   const q4kReferenceContext = getQ4KCpuReferenceContext(shardData, location, config);
@@ -573,6 +575,7 @@ export async function loadTensorToGPU(shardData, location, name, config) {
     w4a16FusedEligible,
     useFusedQ4K,
     requiresFusedQ4KRole,
+    requiresPackedOnlyQ4KRole,
     q4kMaterializationMode: config.q4kMaterializationMode ?? 'dense',
     q4kCpuReferenceEligible: q4kReferenceContext.eligible,
     q4kBasicBackendClass,

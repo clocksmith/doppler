@@ -1,0 +1,17 @@
+{
+  "archiveSha256": "b8310d32883a6b3f059505381cd8195d0c0e9768276e8dca854f623dbf04b150",
+  "sourceManifestSha256": "edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+  "immediateParentManifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "manifestSha256": "ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+  "graphSha256": "36b7799edce21590e5846909ddaeea99be05cccaf87b65264d7281b2497fb0f3",
+  "representation": "Explicit session intermediatePrecision=two-f32 and linearRecurrentStatePrecision=two-f32",
+  "weightsTokenizerAndSourceFactsUnchanged": true,
+  "executionGraphChanged": true,
+  "precisionAuthorization": "User-approved interleaved two-F32 intermediate and persistent state chain",
+  "publicLogits": "f32",
+  "kvStorage": "f16",
+  "numericalReference": "unchanged approved independent F64",
+  "tolerance": 0.001,
+  "qualified": false,
+  "sourceConstruction": "standard npm pack from canonical source; no archive shader substitution"
+}

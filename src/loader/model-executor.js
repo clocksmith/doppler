@@ -50,7 +50,7 @@ import { hasSourceTransform } from './tensors/source-transform.js';
 
 export { load } from './model-load.js';
 
-export async function _loadTensor(name, toGPU = true, silent = false) {
+export async function _loadTensor(name, toGPU = true, silent = false, consumerRole) {
     const location = this.tensorLocations.get(name);
     if (!location) {
       if (!silent) {
@@ -105,6 +105,8 @@ export async function _loadTensor(name, toGPU = true, silent = false) {
         useFusedQ4K: this.useFusedQ4K,
         q4kMaterializationMode: this.q4kMaterializationMode,
         q4kFusedRoles: this.q4kFusedRoles,
+        q4kPackedOnlyRoles: this.q4kPackedOnlyRoles,
+        consumerRole,
         keepF32Weights: this.keepF32Weights,
         keepBF16Weights: this.keepBF16Weights,
         q4kLayout: this.q4kLayout,
@@ -365,7 +367,7 @@ export async function _loadEmbeddings(_onProgress) {
     
     const ctx = {
       tensorLocations: this.tensorLocations,
-      loadTensor: (name, toGPU, silent) => this._loadTensor(name, toGPU, silent),
+      loadTensor: (name, toGPU, silent, consumerRole) => this._loadTensor(name, toGPU, silent, consumerRole),
       loadShardRange: (index, offset, length) => this.shardCache.loadRange(index, offset, length),
       shouldStreamLargeWeight: (name, loc, label) => this._shouldStreamLargeWeight(name, loc, label),
       resolveWeightLayout: (loc) => this._resolveWeightLayout(loc),
@@ -383,7 +385,7 @@ export async function _loadEmbeddings(_onProgress) {
       modelId: this.manifest?.modelId ?? null,
       tensorLocations: this.tensorLocations,
       gpuBuffers: this.gpuBuffers,
-      loadTensor: (name, toGPU, silent) => this._loadTensor(name, toGPU, silent),
+      loadTensor: (name, toGPU, silent, consumerRole) => this._loadTensor(name, toGPU, silent, consumerRole),
       shouldStreamLargeWeight: (name, loc, label) => this._shouldStreamLargeWeight(name, loc, label),
       loadShardRange: (index, offset, length) => this.shardCache.loadRange(index, offset, length),
       resolveWeightLayout: (loc) => this._resolveWeightLayout(loc),
@@ -403,7 +405,7 @@ export async function _loadLayer(layerIdx, _onProgress) {
     
     const ctx = {
       tensorLocations: this.tensorLocations,
-      loadTensor: (name, toGPU, silent) => this._loadTensor(name, toGPU, silent),
+      loadTensor: (name, toGPU, silent, consumerRole) => this._loadTensor(name, toGPU, silent, consumerRole),
       needsNormWeightOffset: () => this._needsNormWeightOffset(),
       gpuBuffers: this.gpuBuffers,
       keepF32Weights: this.keepF32Weights,
@@ -437,7 +439,7 @@ export async function _loadFinalWeights(_onProgress) {
     
     const ctx = {
       tensorLocations: this.tensorLocations,
-      loadTensor: (name, toGPU, silent) => this._loadTensor(name, toGPU, silent),
+      loadTensor: (name, toGPU, silent, consumerRole) => this._loadTensor(name, toGPU, silent, consumerRole),
       loadShardRange: (index, offset, length) => this.shardCache.loadRange(index, offset, length),
       needsNormWeightOffset: () => this._needsNormWeightOffset(),
       shouldStreamLargeWeight: (name, loc, label) => this._shouldStreamLargeWeight(name, loc, label),

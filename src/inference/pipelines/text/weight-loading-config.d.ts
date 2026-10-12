@@ -9,6 +9,8 @@ export interface ResolvedWeightLoadingConfig {
   keepBF16Weights: boolean;
   q4kMaterializationMode: 'dense' | 'fused' | 'mixed';
   q4kFusedRoles: string[];
+  /** Roles with only packed consumers across all selected phases and layers. */
+  q4kPackedOnlyRoles: string[];
 }
 
 export type ResolvedQ4KConfig = ResolvedWeightLoadingConfig;

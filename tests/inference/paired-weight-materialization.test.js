@@ -13,5 +13,16 @@ assert.equal(result.useFusedQ4K,true,'Declared packed operands must remain packe
 assert.equal(result.q4kMaterializationMode,'mixed');
 assert.deepEqual(result.q4kFusedRoles,['linear_qkv_proj','lm_head','q_proj']);
 assert.equal(result.keepF32Weights,false,'Sharing a shader filename does not request F32 materialization.');
+const { selectRuleValue } = await import('../../src/rules/rule-registry.js');
+assert.deepEqual(result.q4kPackedOnlyRoles, ['linear_qkv_proj', 'lm_head', 'q_proj']);
+const loaderContext = { dtype: 'Q4_K_M', q4kMaterializationMode: 'mixed',
+  useFusedQ4K: true, requiresFusedQ4KRole: true, requiresPackedOnlyQ4KRole: true };
+assert.equal(selectRuleValue('loader', 'tensorLoader', 'gpuLoaderPath', loaderContext), 'q4k_fused');
+assert.equal(selectRuleValue('loader', 'tensorLoader', 'gpuLoaderPath', {
+  ...loaderContext, requiresPackedOnlyQ4KRole: false,
+}), 'q4k_mixed', 'A role used by both packed and dense phases must keep both representations.');
+const dual = resolveWeightLoadingConfig({modelId:'dual-role',quantization:'Q4_K_M',quantizationInfo:{layout:'row'}},
+  {...path, prefill:{steps:[step('linear_qkv_proj','f16'),step('q_proj','q4k')]}}, 'execution-v1');
+assert.deepEqual(dual.q4kPackedOnlyRoles, ['lm_head', 'q_proj']);
 hooks.deregister();
 console.log('paired weight materialization: exact selected variants retain Q4 and independent F16 roles');

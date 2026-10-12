@@ -313,10 +313,10 @@ export async function loadLayer(ctx, layerIdx) {
 // ============================================================================
 
 function createTryLoad(ctx, prefixes) {
-  return async (suffixes) => {
+  return async (suffixes, consumerRole) => {
     for (const prefix of prefixes) {
       for (const suffix of suffixes) {
-        const tensor = await ctx.loadTensor(`${prefix}.${suffix}`, true, true);
+        const tensor = await ctx.loadTensor(`${prefix}.${suffix}`, true, true, consumerRole);
         const isGpuBuffer = typeof GPUBuffer !== 'undefined' && tensor instanceof GPUBuffer;
         if (tensor && (isGpuBuffer || tensor instanceof Float32Array || isWeightBuffer(tensor))) {
           return tensor;
@@ -454,14 +454,14 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
   ] = await settleWeightLoads([
     tryLoadNorm(ATTN_SUFFIXES.inputNorm),
     tryLoadNorm(ATTN_SUFFIXES.inputNormBias),
-    tryLoad(ATTN_SUFFIXES.qProj),
+    tryLoad(ATTN_SUFFIXES.qProj, 'q_proj'),
     tryLoad(ATTN_SUFFIXES.qGateProj),
     tryLoadNorm(ATTN_SUFFIXES.qProjBias),
-    tryLoad(ATTN_SUFFIXES.kProj),
+    tryLoad(ATTN_SUFFIXES.kProj, 'k_proj'),
     tryLoadNorm(ATTN_SUFFIXES.kProjBias),
-    tryLoad(ATTN_SUFFIXES.vProj),
+    tryLoad(ATTN_SUFFIXES.vProj, 'v_proj'),
     tryLoadNorm(ATTN_SUFFIXES.vProjBias),
-    tryLoad(ATTN_SUFFIXES.oProj),
+    tryLoad(ATTN_SUFFIXES.oProj, 'o_proj'),
     tryLoadNorm(ATTN_SUFFIXES.oProjBias),
     // Gemma 3: q_norm and k_norm use Gemma3RMSNorm with (1+weight) formula
     tryLoadQKNorm(ATTN_SUFFIXES.qNorm),
@@ -480,11 +480,11 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
     tryLoad(CONV_SUFFIXES.convInProj),
     tryLoad(CONV_SUFFIXES.convKernel),
     tryLoad(CONV_SUFFIXES.convOutProj),
-    tryLoad(LINEAR_ATTN_SUFFIXES.qkvProj),
-    tryLoad(LINEAR_ATTN_SUFFIXES.outProj),
-    tryLoad(LINEAR_ATTN_SUFFIXES.inProjZ),
-    tryLoad(LINEAR_ATTN_SUFFIXES.inProjA),
-    tryLoad(LINEAR_ATTN_SUFFIXES.inProjB),
+    tryLoad(LINEAR_ATTN_SUFFIXES.qkvProj, 'linear_qkv_proj'),
+    tryLoad(LINEAR_ATTN_SUFFIXES.outProj, 'o_proj'),
+    tryLoad(LINEAR_ATTN_SUFFIXES.inProjZ, 'linear_z_proj'),
+    tryLoad(LINEAR_ATTN_SUFFIXES.inProjA, 'linear_a_proj'),
+    tryLoad(LINEAR_ATTN_SUFFIXES.inProjB, 'linear_b_proj'),
     tryLoad(LINEAR_ATTN_SUFFIXES.conv1D),
     tryLoadNorm(LINEAR_ATTN_SUFFIXES.dtBias),
     tryLoadNorm(LINEAR_ATTN_SUFFIXES.aLog),
@@ -572,11 +572,11 @@ async function loadFfnWeights(ctx, weights, layerIdx, tryLoad, prefixes) {
     ffnDownBias,
   ] = await settleWeightLoads([
     tryLoad(FFN_SUFFIXES.ffnGateUp),
-    tryLoad(FFN_SUFFIXES.ffnGate),
+    tryLoad(FFN_SUFFIXES.ffnGate, 'ffn_gate'),
     tryLoad(FFN_SUFFIXES.ffnGateBias),
-    tryLoad(FFN_SUFFIXES.ffnUp),
+    tryLoad(FFN_SUFFIXES.ffnUp, 'ffn_up'),
     tryLoad(FFN_SUFFIXES.ffnUpBias),
-    tryLoad(FFN_SUFFIXES.ffnDown),
+    tryLoad(FFN_SUFFIXES.ffnDown, 'ffn_down'),
     tryLoad(FFN_SUFFIXES.ffnDownBias),
   ]);
 

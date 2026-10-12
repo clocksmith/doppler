@@ -1,0 +1,128 @@
+TAP version 13
+# paired weight materialization: exact selected variants retain Q4 and independent F16 roles
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.417708
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 122.078708
+[node-tests] ok: tests/inference/paired-weight-materialization.test.js
+TAP version 13
+# q4k-loader-kernel-path-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.887208
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 227.383958
+[node-tests] ok: tests/inference/q4k-loader-kernel-path-contract.test.js
+TAP version 13
+# layer consumer materialization: named slots carry semantic roles without rewriting artifact roles
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.469125
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 156.086
+[node-tests] ok: tests/loader/layer-consumer-materialization.test.js
+TAP version 13
+# tensor-loader-cleanup.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.37225
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 184.986042
+[node-tests] ok: tests/loader/tensor-loader-cleanup.test.js
+TAP version 13
+# tensor-loader-q4k-parity-probe-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.333834
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 34.083375
+[node-tests] ok: tests/loader/tensor-loader-q4k-parity-probe-contract.test.js
+TAP version 13
+# [160.2ms][Loader] Q4K dense materialization for "low_limit_q4k_down_proj" would require 2097152 bytes, exceeding maxStorageBufferBindingSize=1048576; retaining packed Q4K for fused matmul.
+# tensor-loader-q4k-reference-path.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.547541
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 182.277208
+[node-tests] ok: tests/loader/tensor-loader-q4k-reference-path.test.js
+TAP version 13
+# tensor-loader-weight-ownership.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.421667
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 170.4955
+[node-tests] ok: tests/loader/tensor-loader-weight-ownership.test.js
+[node-tests] ok: 7 files

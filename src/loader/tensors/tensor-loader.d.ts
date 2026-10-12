@@ -16,6 +16,8 @@ import type { TensorLocation, KernelCapabilities } from '../loader-types.js';
 import type { LoaderDebugConfigSchema } from '../../config/schema/debug.schema.js';
 
 export interface TensorLoadConfig {
+  /** Bound layer consumer slot; distinct from the immutable artifact tensor role. */
+  consumerRole?: string;
   w8a8Policy?: W8A8Policy | null;
   /** Use fused Q4K matmul kernels */
   useFusedQ4K: boolean;
@@ -23,6 +25,8 @@ export interface TensorLoadConfig {
   q4kMaterializationMode?: 'dense' | 'fused' | 'mixed';
   /** Tensor roles that require raw Q4K buffers because their graph step pins a fused Q4K kernel */
   q4kFusedRoles?: string[];
+  /** Roles with only packed consumers across all selected phases and layers. */
+  q4kPackedOnlyRoles?: string[];
   /** Debug controls for Q4K loading/dequantization */
   loaderDebug?: LoaderDebugConfigSchema | null;
   /** Keep weights as F32 (disable F16 downcasting) */

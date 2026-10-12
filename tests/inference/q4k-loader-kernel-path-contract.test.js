@@ -167,6 +167,7 @@ try {
     keepBF16Weights: false,
     q4kMaterializationMode: 'dense',
     q4kFusedRoles: [],
+    q4kPackedOnlyRoles: [],
   });
 
   assert.deepEqual(resolveWeightLoadingConfig(manifest, defaultPath, 'config', true), {
@@ -176,6 +177,7 @@ try {
     keepBF16Weights: false,
     q4kMaterializationMode: 'dense',
     q4kFusedRoles: [],
+    q4kPackedOnlyRoles: [],
   });
 
   assert.deepEqual(resolveWeightLoadingConfig(manifest, f32WeightPath, 'config', false), {
@@ -185,6 +187,7 @@ try {
     keepBF16Weights: false,
     q4kMaterializationMode: 'dense',
     q4kFusedRoles: [],
+    q4kPackedOnlyRoles: [],
   });
 
   assert.deepEqual(resolveWeightLoadingConfig(manifest, bf16WeightPath, 'execution-v1', false), {
@@ -194,6 +197,7 @@ try {
     keepBF16Weights: true,
     q4kMaterializationMode: 'dense',
     q4kFusedRoles: [],
+    q4kPackedOnlyRoles: [],
   });
 
   assert.deepEqual(resolveWeightLoadingConfig(bf16Manifest, null, 'none', false), {
@@ -203,6 +207,7 @@ try {
     keepBF16Weights: false,
     q4kMaterializationMode: 'dense',
     q4kFusedRoles: [],
+    q4kPackedOnlyRoles: [],
   });
 
   assert.deepEqual(resolveWeightLoadingConfig(manifest, fusedLmHeadPath, 'execution-v1', false), {
@@ -212,6 +217,7 @@ try {
     keepBF16Weights: false,
     q4kMaterializationMode: 'dense',
     q4kFusedRoles: ['lm_head'],
+    q4kPackedOnlyRoles: ['lm_head'],
   });
   assert.equal(
     selectRuleValue('loader', 'tensorLoader', 'gpuLoaderPath', {
@@ -233,6 +239,7 @@ try {
     keepBF16Weights: false,
     q4kMaterializationMode: 'mixed',
     q4kFusedRoles: ['q_proj'],
+    q4kPackedOnlyRoles: [],
   });
 
   assert.deepEqual(resolveWeightLoadingConfig(manifest, linearMixedPath, 'execution-v1', false), {
@@ -242,6 +249,7 @@ try {
     keepBF16Weights: false,
     q4kMaterializationMode: 'mixed',
     q4kFusedRoles: ['linear_qkv_proj'],
+    q4kPackedOnlyRoles: ['linear_qkv_proj'],
   });
 } finally {
   setDevice(null, { platformConfig: null });

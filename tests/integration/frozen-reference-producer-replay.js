@@ -130,6 +130,8 @@ try {
   receipt.browser = browser.version();
   const page = await browser.newPage();
   await page.exposeFunction('recordProducerPrefill', recordPrefill);
+  receipt.resourceSettlement = [];
+  await page.exposeFunction('recordProducerResources', row => { receipt.resourceSettlement.push(row); });
   page.on('console', event => { if (event.text().startsWith('producer-progress:')) console.log(event.text()); });
   await page.goto(`http://127.0.0.1:${server.address().port}`);
   const observedTimeline = [];
@@ -217,6 +219,7 @@ try {
     const runtime = await import('/runtime/' + partitionsEntry.replace(/^\.\//, ''));
     const { createHttpArtifactStorageContext } = await import('/runtime/src/storage/artifact-storage-context.js');
     const { getDevice } = await import('/runtime/src/gpu/device.js');
+    const { getBufferPool } = await import('/runtime/src/memory/buffer-pool.js');
     await runtime.configureDeviceMemoryBudget({ maxBytes: maxDeviceBytes });
     const source = new URL('/model/', location.href).href;
     const manifestText = await (await fetch(source + 'manifest.json')).text();
@@ -350,9 +353,14 @@ try {
           .filter(Number.isInteger), timeline: [] } };
     } finally {
       cacheObserver?.restore();
+      const snapshotResources = phase => window.recordProducerResources({ phase,
+        device: runtime.inspectDeviceMemory(), pool: getBufferPool().getStats(),
+        modelHandleAcquired: Boolean(handle), poolObservationSurface: 'installed internal diagnostic export' });
+      await snapshotResources('before-settlement');
       await getDevice().queue.onSubmittedWorkDone();
       if (handle) await handle.unload();
       await getDevice().queue.onSubmittedWorkDone();
+      await snapshotResources('after-queue-and-model-settlement');
     }
   }, { compatEntry, partitionsEntry, generation: reference.generation, prompts: reference.prompts, policy,
     fullPrefixes, prefixesOnly, expected: reference.expected, observationTarget, captureDecode, recurrentStatePrecision, intermediatePrecision, maxDeviceBytes });

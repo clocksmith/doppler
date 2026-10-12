@@ -1,6 +1,6 @@
 # Approved paired-intermediate implementation: operator checkpoint
 
-The user approved the broader paired-intermediate chain after the retained memory review. This checkpoint implements explicit interleaved high/low F32 operators; it does **not** qualify a complete model. The approved independent F64 target, 0.001 tolerance, model weights, F16 KV storage, and 1,420,000,000-byte executor ceiling remain unchanged. Full graph binding, whole-model accuracy, concurrent memory, and useful-answer qualification remain open. Model execution requesting the incomplete paired graph fails closed.
+The user approved the broader paired-intermediate chain after the retained memory review. This checkpoint implements explicit interleaved high/low F32 operators; it does **not** qualify a complete model. The approved independent F64 target, 0.001 tolerance, model weights, F16 KV storage, and 1,420,000,000-byte executor ceiling remain unchanged. The explicit graph is now bound and admitted for the supported paired operation set. Whole-model accuracy, concurrent memory, and useful-answer qualification remain open; unsupported paired graphs fail closed.
 
 ## Physical operator evidence
 
@@ -28,3 +28,16 @@ The identical convolution and gated-delta shaders pass two independent F64-equat
 Persistent convolution and recurrent layouts are now both explicit. Snapshot schema 4 preserves components through clone/restore and rejects incompatible layouts before releasing existing target state. Focused controls exercise state upload rollback, each projection failure, post-core observation failure, recorded cleanup, aliases, source epsilon packing, and allocation/dispatch failures. A reproduced pre-existing projection failure leak is repaired in the owning layer. Eight focused test files, strict implementation types, and source style passed; whole-model and paired memory qualification remain open.
 
 The selected kernel identity now includes declared override constants when deciding weight materialization and hybrid Q4 coverage. A shared shader filename cannot authorize F32, F16, and Q4 weights simultaneously. This prevents a paired execution graph from silently changing the frozen weights.
+
+## First model loading boundaries
+
+Standard archives are built with `npm pack --ignore-scripts` from canonical source, with no shader substitution. `prepare-model.js` binds the exact declared paired graph while proving unchanged weights, tokenizer, source equations and frozen non-execution manifest facts. The accepted application package remains unchanged.
+
+The retained first-model failures isolate integration defects before numerical qualification:
+
+1. The manifest operation catalog omitted four already implemented linear projection roles; explicit catalog entries and public-parser regression repair that boundary.
+2. Weight loading classified the shared paired matmul shader by filename, expanding Q4 operands. Exact registered override constants now determine weight requirements.
+3. A graph mixing original F16 A/B weights and packed Q4 projections selected global mixed materialization, unnecessarily retaining dense shadows of every Q4 weight. Explicit `q4kPackedOnlyRoles` now unions requirements across all selected phases/layers and excludes any role with a dense or unresolved consumer. Those packed-only roles bypass mixed materialization; a genuinely dual-consumer role keeps both representations.
+4. The first implementation of the third repair misplaced its selection variable. Its failure is retained, corrected, and protected by an actual `loadTensorToGPU` test proving a packed-only borrowed tensor creates no dense allocation. Rule-only tests were insufficient to catch that scope error.
+
+`first-model-boundary` retains failures, including the unchanged 1.42-billion-byte rejection. Seven focused loader/materialization test files pass, as do source types, style and architecture. Archive 5 (`f3eb9b9149337f733465788033f110532efabd85d4410f81220a0c3c86d3d538`) exposed another concrete boundary: the artifact classifies Q4 tensors as generic `matmul`/`other`, while graph policy describes their semantic consumer slots. The existing layer loader now passes the bound consumer role through its loader facade to materialization without rewriting artifact metadata. Output projection aliases share the same demand union; genuinely mixed consumers remain conservative. Layer-slot and actual loader-facade regressions exercise the complete handoff. Archive 6 (`a235ce30651a7c25113e5ee718ea3a45a6d1eaf32aa5d7a205acf7b25f2c3979`) is the next installed model control, not a qualified release. Its result is tracked separately; a successful load alone will not qualify the model.

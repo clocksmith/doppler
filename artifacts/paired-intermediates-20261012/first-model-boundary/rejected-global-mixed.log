@@ -1,0 +1,39 @@
+producer-progress:{"phase":"resolve","percent":5,"message":"Resolving model"}
+producer-progress:{"phase":"manifest","percent":15,"message":"Fetching manifest"}
+producer-progress:{"phase":"load","percent":25,"message":"Loading weights"}
+producer-progress:{"phase":"load","percent":25,"message":"Parsing manifest..."}
+producer-progress:{"phase":"load","percent":25,"message":"Loading embeddings..."}
+producer-progress:{"phase":"load","percent":80,"message":"Layer 0: 1/24 assigned layers"}
+producer-progress:{"phase":"load","percent":80,"message":"Layer 1: 2/24 assigned layers"}
+producer-progress:{"phase":"load","percent":81,"message":"Layer 2: 3/24 assigned layers"}
+producer-progress:{"phase":"load","percent":81,"message":"Layer 3: 4/24 assigned layers"}
+producer-progress:{"phase":"load","percent":81,"message":"Layer 4: 5/24 assigned layers"}
+producer-progress:{"phase":"load","percent":81,"message":"Layer 5: 6/24 assigned layers"}
+producer-progress:{"phase":"load","percent":81,"message":"Layer 6: 7/24 assigned layers"}
+producer-progress:{"phase":"load","percent":82,"message":"Layer 7: 8/24 assigned layers"}
+producer-progress:{"phase":"load","percent":82,"message":"Layer 8: 9/24 assigned layers"}
+producer-progress:{"phase":"load","percent":82,"message":"Layer 9: 10/24 assigned layers"}
+producer-progress:{"phase":"load","percent":82,"message":"Layer 10: 11/24 assigned layers"}
+producer-progress:{"phase":"load","percent":83,"message":"Layer 11: 12/24 assigned layers"}
+producer-progress:{"phase":"load","percent":83,"message":"Layer 12: 13/24 assigned layers"}
+producer-progress:{"phase":"load","percent":83,"message":"Layer 13: 14/24 assigned layers"}
+producer-progress:{"phase":"load","percent":83,"message":"Layer 14: 15/24 assigned layers"}
+producer-progress:{"phase":"load","percent":83,"message":"Layer 15: 16/24 assigned layers"}
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+page.evaluate: Error: Pipeline load phase "loadWeights" failed: GPU memory budget exceeded: dequant_output_4194304 requires 4194304 bytes; 1416347648 live, 1420000000 allowed.
+    at createPipelineLoadPhaseError (http://127.0.0.1:35247/runtime/src/inference/pipelines/text/pipeline-load-timing.js:9:19)
+    at withPipelineLoadPhase (http://127.0.0.1:35247/runtime/src/inference/pipelines/text/pipeline-load-timing.js:32:11)
+    at async timedPipelineLoadPhase (http://127.0.0.1:35247/runtime/src/inference/pipelines/text/pipeline-load-timing.js:73:12)
+    at async InferencePipeline.loadModel (http://127.0.0.1:35247/runtime/src/inference/pipelines/text/lifecycle.js:398:5)
+    at async http://127.0.0.1:35247/runtime/src/inference/pipelines/factory.js:22:7
+    at async runWithShaderSourceScope (http://127.0.0.1:35247/runtime/src/gpu/kernels/shader-source-scope.js:70:16)
+    at async createInitializedPipeline (http://127.0.0.1:35247/runtime/src/inference/pipelines/factory.js:14:3)
+    at async loadProgram (http://127.0.0.1:35247/runtime/src/client/model-host/index.js:313:18)
+    at async load (http://127.0.0.1:35247/runtime/src/client/model-host/index.js:210:13)
+    at async eval (eval at evaluate (:1:1), <anonymous>:102:16)
+    at /var/tmp/doppler-paired-first-20261012/deco/doppler/tests/integration/frozen-reference-producer-replay.js:137:29
+
+Node.js v22.22.1
