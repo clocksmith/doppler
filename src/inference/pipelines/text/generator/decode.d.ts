@@ -44,13 +44,13 @@ export declare function runDecodeLayers(
   state: PipelineState, tokenId: number, opts: GenerateOptions,
   helpers: {
     buildLayerContext(recorder: CommandRecorder | undefined, isDecode: boolean, debugLayers: unknown, plan: unknown): LayerContext;
-    debugCheckBuffer?(buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number): Promise<void>;
+    debugCheckBuffer?(buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number, representation?: import('../../../../debug/tensor.js').TensorRepresentation & { dtype: 'f16' | 'f32' | 'bf16' }): Promise<void>;
     releaseSharedAttentionState?(state: unknown, recorder: CommandRecorder | null): void;
   }
 ): Promise<{
   hiddenStates: import('../../../../gpu/tensor.js').Tensor;
   decodeHiddenBuffer: GPUBuffer;
   decodeAltBuffer: GPUBuffer;
-  debugCheckBuffer: ((buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>) | undefined;
+  debugCheckBuffer: ((buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number, representation?: import('../../../../debug/tensor.js').TensorRepresentation & { dtype: 'f16' | 'f32' | 'bf16' }) => Promise<void>) | undefined;
   context: LayerContext;
 }>;

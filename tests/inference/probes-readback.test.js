@@ -25,7 +25,7 @@ const { CommandRecorder } = await import('../../src/gpu/command-recorder.js');
 const { setDevice } = await import('../../src/gpu/device.js');
 const { configurePerfGuards } = await import('../../src/gpu/perf-guards.js');
 const { destroyBufferPool } = await import('../../src/memory/buffer-pool.js');
-const { setTrace } = await import('../../src/debug/config.js');
+const { setTrace, setGPUDevice } = await import('../../src/debug/config.js');
 const { trace } = await import('../../src/debug/trace.js');
 
 class FakeBuffer {
@@ -115,6 +115,7 @@ configurePerfGuards({
 
 const device = createFakeDevice();
 setDevice(device, { platformConfig: null });
+setGPUDevice(device);
 setTrace(['embed']);
 
 const messages = [];
@@ -329,12 +330,51 @@ try {
     recorderDiagnostics.emitter.getTimeline()[0].capture.data,
     [1.5, 2.5]
   );
+  // Storage components must not become adjacent logical values in captures.
+  const paired = new Float32Array([1, 2 ** -25, -2, -(2 ** -24)]);
+  const pairBuffer = device.createBuffer({ size: paired.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC });
+  device.queue.writeBuffer(pairBuffer, 0, paired);
+  const representation = { precision: 'two-f32', components: 2, elementStrideBytes: 8 };
+  const expected = [1 + 2 ** -25, -2 - 2 ** -24];
+  for (const recorded of [false, true]) {
+    const pairRecorder = recorded ? new CommandRecorder(device, 'paired_capture') : null;
+    const emitter = new OperatorEventEmitter({ modelHash: 'paired', runtimeConfigHash: 'runtime', executionPlanHash: 'plan' });
+    await runProbes('ffn_out', pairBuffer, { ...representation, layerIdx: 0, numTokens: 1,
+      hiddenSize: 2, dtype: 'f32', recorder: pairRecorder, operatorDiagnostics: {
+        enabled: true, captureConfig: { ...createDefaultCaptureConfig(), enabled: true, defaultLevel: 'full' }, emitter,
+      } });
+    if (pairRecorder) await pairRecorder.submitAndWait();
+    const capture = emitter.getTimeline()[0].capture;
+    assert.deepEqual(capture.data, expected);
+    assert.deepEqual(capture.storageComponents, Array.from(paired));
+    assert.equal(capture.elementStrideBytes, 8);
+    assert.match(capture.storageDigest, /^sha256:/);
+  }
+  const originalCreateBuffer = device.createBuffer;
+  const capturedBuffers = [];
+  device.createBuffer = (...args) => {
+    const created = originalCreateBuffer.apply(device, args);
+    capturedBuffers.push(created);
+    return created;
+  };
+  const abortedRecorder = new CommandRecorder(device, 'paired_capture_abort');
+  await runProbes('ffn_out', pairBuffer, { ...representation, layerIdx: 0, numTokens: 1,
+    hiddenSize: 2, dtype: 'f32', recorder: abortedRecorder, operatorDiagnostics: recorderDiagnostics });
+  assert(capturedBuffers.some((item) => !item.destroyed));
+  await abortedRecorder.abort();
+  assert(capturedBuffers.every((item) => item.destroyed), 'aborting before submission destroys retained diagnostic staging');
+  device.createBuffer = originalCreateBuffer;
+  await assert.rejects(runProbes('ffn_out', pairBuffer, { ...representation,
+    components: 1, numTokens: 1, hiddenSize: 2, dtype: 'f32' }), /Paired observation/);
+  await assert.rejects(runProbes('ffn_out', pairBuffer, { ...representation,
+    numTokens: 2, hiddenSize: 2, dtype: 'f32' }), /logical shape/);
 } finally {
   trace.embed = originalEmbed;
   trace.attn = originalAttn;
   destroyBufferPool();
   setTrace(false);
   setDevice(null);
+  setGPUDevice(null);
 }
 
 console.log('probes-readback.test: ok');

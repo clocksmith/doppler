@@ -13,7 +13,8 @@ export declare function debugCheckBuffer(
   buffer: GPUBuffer,
   label: string,
   numTokens: number,
-  expectedDim?: number
+  expectedDim?: number,
+    representation?: import('../../../../debug/tensor.js').TensorRepresentation & { dtype: 'f16' | 'f32' | 'bf16' }
 ): Promise<void>;
 
 export declare function buildLayerContext(
@@ -25,7 +26,8 @@ export declare function buildLayerContext(
     buffer: GPUBuffer,
     label: string,
     numTokens: number,
-    expectedDim?: number
+    expectedDim?: number,
+    representation?: import('../../../../debug/tensor.js').TensorRepresentation & { dtype: 'f16' | 'f32' | 'bf16' }
   ) => Promise<void>,
   executionPlan?: ExecutionSessionPlan | StaticExecutionPlan | null
 ): LayerContext;

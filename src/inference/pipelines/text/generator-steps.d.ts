@@ -138,7 +138,7 @@ export declare function decodeStep(
     buildLayerContext: (recorder: unknown, isDecode: boolean, debugLayers: unknown, executionPlan?: unknown) => unknown;
     getLogitsWeights: () => unknown;
     getLogitsConfig: () => unknown;
-    debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>;
+    debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number, representation?: import('../../../debug/tensor.js').TensorRepresentation & { dtype: 'f16' | 'f32' | 'bf16' }) => Promise<void>;
   }
 ): Promise<number>;
 
@@ -150,7 +150,7 @@ export declare function decodeStepLogits(
     buildLayerContext: (recorder: unknown, isDecode: boolean, debugLayers: unknown, executionPlan?: unknown) => unknown;
     getLogitsWeights: () => unknown;
     getLogitsConfig: () => unknown;
-    debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>;
+    debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number, representation?: import('../../../debug/tensor.js').TensorRepresentation & { dtype: 'f16' | 'f32' | 'bf16' }) => Promise<void>;
   }
 ): Promise<{
   logits: Float32Array;
@@ -168,7 +168,7 @@ export declare function advanceWithToken(
     buildLayerContext: (recorder: unknown, isDecode: boolean, debugLayers: unknown, executionPlan?: unknown) => unknown;
     getLogitsWeights: () => unknown;
     getLogitsConfig: () => unknown;
-    debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>;
+    debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number, representation?: import('../../../debug/tensor.js').TensorRepresentation & { dtype: 'f16' | 'f32' | 'bf16' }) => Promise<void>;
   }
 ): Promise<void>;
 

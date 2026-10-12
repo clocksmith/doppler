@@ -22,6 +22,9 @@ export function runProbes(
     recorder?: CommandRecorder | null;
     operatorDiagnostics?: Record<string, unknown> | null;
     storageLayout?: { precision: 'f32' | 'two-f32'; components: 1 | 2; ordering: 'interleaved-high-low' } | null;
+    precision?: 'two-f32';
+    components?: 2;
+    elementStrideBytes?: 8;
     dtype?: 'f16' | 'f32';
     phase?: string | null;
     tokenIndex?: number | null;

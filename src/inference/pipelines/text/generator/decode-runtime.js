@@ -916,8 +916,8 @@ export async function _decodeStep(currentIds, opts) {
       return this._decodeNextTokenViaLogits(currentIds, opts);
     }
     const debugCheckBuffer = this._state.debug
-      ? (buffer, label, numTokens, expectedDim) =>
-        debugCheckBufferHelper(this._state, buffer, label, numTokens, expectedDim)
+      ? (buffer, label, numTokens, expectedDim, representation) =>
+        debugCheckBufferHelper(this._state, buffer, label, numTokens, expectedDim, representation)
       : undefined;
     const sampling = opts.temperature === 0 ? opts : {
       ...opts, seed: samplingSeedForToken(opts.seed, currentIds.length - opts.promptTokenCount),
@@ -948,8 +948,8 @@ export async function advanceWithToken(tokenId, options = {}) {
 
     const opts = this._resolveStepOptions(options);
     const debugCheckBuffer = this._state.debug
-      ? (buffer, label, numTokens, expectedDim) =>
-        debugCheckBufferHelper(this._state, buffer, label, numTokens, expectedDim)
+      ? (buffer, label, numTokens, expectedDim, representation) =>
+        debugCheckBufferHelper(this._state, buffer, label, numTokens, expectedDim, representation)
       : undefined;
 
     this._assertTokenIdInRange(tokenId, 'advanceWithToken');
@@ -967,8 +967,8 @@ export async function advanceWithTokenAndEmbedding(tokenId, options = {}) {
     const opts = this._resolveStepOptions(options);
     const embeddingMode = resolveAdvanceEmbeddingMode(this._state, options);
     const debugCheckBuffer = this._state.debug
-      ? (buffer, label, numTokens, expectedDim) =>
-        debugCheckBufferHelper(this._state, buffer, label, numTokens, expectedDim)
+      ? (buffer, label, numTokens, expectedDim, representation) =>
+        debugCheckBufferHelper(this._state, buffer, label, numTokens, expectedDim, representation)
       : undefined;
 
     this._assertTokenIdInRange(tokenId, 'advanceWithTokenAndEmbedding');
@@ -983,8 +983,8 @@ export async function advanceWithTokenAndEmbedding(tokenId, options = {}) {
 
 export async function _generateNTokensGPU(startToken, N, currentIds, opts) {
     const debugCheckBuffer = this._state.debug
-      ? (buffer, label, numTokens, expectedDim) =>
-        debugCheckBufferHelper(this._state, buffer, label, numTokens, expectedDim)
+      ? (buffer, label, numTokens, expectedDim, representation) =>
+        debugCheckBufferHelper(this._state, buffer, label, numTokens, expectedDim, representation)
       : undefined;
     return generateNTokensGPU(this._state, startToken, N, currentIds, opts, this._getDecodeHelpers(debugCheckBuffer));
   }

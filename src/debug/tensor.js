@@ -24,7 +24,25 @@ function f16ToF32(h) {
   return (sign ? -1 : 1) * Math.pow(2, exp - 15) * (1 + mant / 1024);
 }
 
-function decodeSnapshotData(data, dtype) {
+export function snapshotElementBytes(dtype, options = {}) {
+  const { precision, components, elementStrideBytes } = options;
+  if (precision !== undefined || components !== undefined || elementStrideBytes !== undefined) {
+    if (dtype !== 'f32' || precision !== 'two-f32' || components !== 2 || elementStrideBytes !== 8) {
+      throw new Error('Paired observation requires f32, two-f32, two components and an eight-byte stride.');
+    }
+    return 8;
+  }
+  return dtype === 'f16' ? 2 : 4;
+}
+
+export function decodeSnapshotData(data, dtype, options = {}) {
+  if (snapshotElementBytes(dtype, options) === 8) {
+    if (data.byteLength % 8 !== 0) throw new Error('Paired observation requires complete high/low elements.');
+    const src = new Float32Array(data);
+    const decoded = new Float64Array(src.length / 2);
+    for (let i = 0; i < decoded.length; i++) decoded[i] = src[i * 2] + src[i * 2 + 1];
+    return decoded;
+  }
   if (dtype === 'f16') {
     const src = new Uint16Array(data);
     const decoded = new Float32Array(src.length);
@@ -224,8 +242,11 @@ export async function snapshotTensor(buffer, shape, dtype = 'f32', options = {})
     ) {
       throw new Error('GPU device not initialized');
     }
-    const elementSize = dtype === 'f16' ? 2 : 4;
+    const elementSize = snapshotElementBytes(dtype, options);
     const numElements = (shape ?? []).reduce((a, b) => a * b, 1);
+    if (elementSize === 8 && numElements * elementSize > buffer.size) {
+      throw new Error('Paired snapshot buffer is smaller than its declared logical shape.');
+    }
     const readSize = numElements > 0
       ? Math.min(buffer.size, numElements * elementSize)
       : buffer.size;
@@ -234,15 +255,25 @@ export async function snapshotTensor(buffer, shape, dtype = 'f32', options = {})
       size: readSize,
       usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
     });
-    const encoder = gpuDevice.createCommandEncoder();
-    encoder.copyBufferToBuffer(buffer, 0, staging, 0, readSize);
-    gpuDevice.queue.submit([encoder.finish()]);
-    await staging.mapAsync(GPUMapMode.READ);
-    const data = staging.getMappedRange().slice(0);
-    staging.unmap();
-    staging.destroy();
-    const arr = decodeSnapshotData(data, dtype);
-    return snapshotFromArray(arr, shape ?? [arr.length], dtype, options);
+    let mapped = false;
+    try {
+      const encoder = gpuDevice.createCommandEncoder();
+      encoder.copyBufferToBuffer(buffer, 0, staging, 0, readSize);
+      gpuDevice.queue.submit([encoder.finish()]);
+      await staging.mapAsync(GPUMapMode.READ);
+      mapped = true;
+      const data = staging.getMappedRange().slice(0);
+      const arr = decodeSnapshotData(data, dtype, options);
+      const snapshot = snapshotFromArray(arr, shape ?? [arr.length], dtype, options);
+      if (options.precision === 'two-f32') {
+        snapshot.storageDigest = `sha256:${sha256BytesHex(new Uint8Array(data))}`;
+        if (options.includeData === true) snapshot.storageComponents = Array.from(new Float32Array(data));
+      }
+      return snapshot;
+    } finally {
+      if (mapped) staging.unmap();
+      staging.destroy();
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     return {
@@ -286,6 +317,7 @@ export function snapshotFromArray(arr, shape, dtype = 'f32', options = {}) {
     error: null,
     shape,
     dtype,
+    ...(options.precision === 'two-f32' ? { precision: options.precision, components: 2, elementStrideBytes: 8 } : {}),
     stats: {
       min: stats.min,
       max: stats.max,

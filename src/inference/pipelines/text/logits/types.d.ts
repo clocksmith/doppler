@@ -28,6 +28,10 @@ export interface LogitsConfig {
   largeWeights?: LargeWeightConfigSchema;
   /** Dtype for hidden state activations */
   activationDtype?: 'f16' | 'f32';
+  /** Explicit interleaved high/low storage from the active execution plan. */
+  activationPrecision?: 'two-f32';
+  activationComponents?: 2;
+  activationElementStrideBytes?: 8;
   /** Explicit kernel-path context for variant selection. */
   kernelPath?: KernelPathSchema | null;
   /** Execution-v1 fail-fast policies for dtype transitions. */

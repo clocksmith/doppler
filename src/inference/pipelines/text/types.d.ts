@@ -102,7 +102,7 @@ export interface LayerContext {
   /** Layers to debug (null = none, undefined/empty = layer 0 only for backward compat) */
   debugLayers?: number[] | null;
   /** Optional GPU buffer readback helper for debug checks */
-  debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>;
+  debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number, representation?: import('../../../debug/tensor.js').TensorRepresentation & { dtype: 'f16' | 'f32' | 'bf16' }) => Promise<void>;
   /** Gemma 4 per-layer input buffer for the active decoder layer. */
   perLayerInputBuffer?: GPUBuffer | null;
   /** Resolved session policy for Gemma 4 per-layer input materialization/caching. */
