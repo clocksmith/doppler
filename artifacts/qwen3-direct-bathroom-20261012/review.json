@@ -1,0 +1,171 @@
+{
+  "schema": "doppler.direct-bathroom-manual-review/v1",
+  "status": "completed and rejected",
+  "completeSuite": true,
+  "qualified": false,
+  "grading": "Final answer only; every unchanged criterion required. Correct statements do not cancel contradictions or unsupported citations.",
+  "results": [
+    {
+      "id": "fresh-bathroom-comparison",
+      "seed": 17,
+      "completionPassed": true,
+      "generatedTokens": 2016,
+      "promptTokens": 482,
+      "chargedTokens": 2498,
+      "answerSha256": "cb5c008b10a0e89ec38a3a9bb89566ac9229c459cc3ddb2c70433917dc9fa868",
+      "passed": false,
+      "criteria": [
+        {
+          "index": 0,
+          "passed": false,
+          "evidence": "Correct listed base prices/subtotal, but all $1600/$900/$1650 headrooms missing. Summary says Birch and Quarry include electrical work, contradicting Birch exclusion."
+        },
+        {
+          "index": 1,
+          "passed": false,
+          "evidence": "Retains permit and deposit conditions but claims September12 +21days = October12, rather than October3."
+        },
+        {
+          "index": 2,
+          "passed": false,
+          "evidence": "Recognizes Linden plumbing conflict but invents Birch plumbing-versus-electrical and Quarry allowance-versus-extra-charge conflicts. Does not ask concrete clarification questions."
+        },
+        {
+          "index": 3,
+          "passed": false,
+          "evidence": "Attributes Birch electrical exclusion to D1:P3 and Quarry additional electrical charge to D2:P3; both are schedule/deposit passages. Price/schedule statements omit supporting exact passage citations."
+        },
+        {
+          "index": 4,
+          "passed": true,
+          "evidence": "Deposits correctly2100,2730,3160; not added as extra charges."
+        }
+      ]
+    },
+    {
+      "id": "fresh-bathroom-correction",
+      "seed": 17,
+      "completionPassed": true,
+      "generatedTokens": 1924,
+      "promptTokens": 597,
+      "chargedTokens": 2521,
+      "answerSha256": "7e88bc9d81759d990b5cd3fe53af50c54c65454e73c3a47fda235e314f3690da",
+      "passed": false,
+      "criteria": [
+        {
+          "index": 0,
+          "passed": false,
+          "evidence": "Corrects Linden8350/Quarry9100 and quotes Birch8400, but all1600/900/1650 headrooms missing; invents Birch450disposalfee; does not retain all tax/plumbing exclusions."
+        },
+        {
+          "index": 1,
+          "passed": false,
+          "evidence": "Quotes original schedule clauses but does not derive Linden completion intoOctober/pastSeptember25; final recommendation selectsLinden despite missed deadline."
+        },
+        {
+          "index": 2,
+          "passed": false,
+          "evidence": "Misses actual Linden plumbing contradiction and invents Birch D1:P2-versus-D1:P3 plumbing conflict. Treats different scope between unrelated quotes as internal conflicts."
+        },
+        {
+          "index": 3,
+          "passed": false,
+          "evidence": "D1:P3 does not exclude plumbing. Birch450fee has no supporting source. Quoted source text around corrected prices is preserved but does not support invented conclusions."
+        },
+        {
+          "index": 4,
+          "passed": true,
+          "evidence": "No derived deposit amount stated; no incorrect extra deposit charge added."
+        },
+        {
+          "index": 5,
+          "passed": false,
+          "evidence": "Corrects some prices/inclusions but not Linden latecompletion/plumbing/all-in scope, and again recommendsLinden as clear/cost-effective."
+        }
+      ]
+    },
+    {
+      "id": "fresh-bathroom-comparison",
+      "seed": 53,
+      "completionPassed": true,
+      "generatedTokens": 2199,
+      "promptTokens": 482,
+      "chargedTokens": 2681,
+      "answerSha256": "b1c93a96c1bc91dc8a02ed57091380ee3b9d52866337da3cd978e45e1c0d44a1",
+      "passed": false,
+      "criteria": [
+        {
+          "index": 0,
+          "passed": false,
+          "evidence": "Adds deposits to all three quoted prices, falsely producing 10500/11830/11510 and declaring all over budget. Required 1600/900/1650 headrooms absent. Invents a 1500 electrical cost in recommendation."
+        },
+        {
+          "index": 1,
+          "passed": false,
+          "evidence": "Retains permit/deposit conditions but calculates September 12 plus three weeks as September 25; also says every quote has a three-week timeline. Invents Birch and Linden deposit due dates."
+        },
+        {
+          "index": 2,
+          "passed": false,
+          "evidence": "Treats Linden plumbing as excluded, missing its contradictory inclusion clause. Labels differences between companies as conflicts and recommends Linden without preserving the actual plumbing/deadline uncertainty."
+        },
+        {
+          "index": 3,
+          "passed": false,
+          "evidence": "Some schedule citations are correct; cited passages do not support invented totals, September 25 completion, invented deposit deadlines or 1500 electrical cost. Ranges do not repair contradictory conclusions."
+        },
+        {
+          "index": 4,
+          "passed": false,
+          "evidence": "Correct individual deposit calculations 2100/2730/3160 are explicitly added as extra charges, violating the unchanged criterion."
+        }
+      ]
+    },
+    {
+      "id": "fresh-bathroom-correction",
+      "seed": 53,
+      "completionPassed": true,
+      "generatedTokens": 2629,
+      "promptTokens": 597,
+      "chargedTokens": 3226,
+      "answerSha256": "7e9765523d8ca48dba64fb8cee8347cb807ac020b0ff8a86b8bc83802df289b6",
+      "passed": false,
+      "criteria": [
+        {
+          "index": 0,
+          "passed": false,
+          "evidence": "Correct 8400/9100/8350 stated prices, but all 1600/900/1650 headrooms missing. Linden tax exclusion omitted and contradictory plumbing scope resolved as excluded rather than uncertain."
+        },
+        {
+          "index": 1,
+          "passed": false,
+          "evidence": "September 12 plus three weeks is incorrectly September 25 rather than October 3. September 20 is called five days after September 25. Recommends Linden as meeting deadline."
+        },
+        {
+          "index": 2,
+          "passed": false,
+          "evidence": "Quotes Linden plumbing contradiction but declares plumbing excluded; invents Linden permit approval by September 25, rather than asking to clarify the actual conflict and deadline."
+        },
+        {
+          "index": 3,
+          "passed": false,
+          "evidence": "D3:P3 citation cannot support September 25 completion; D2:P3 cannot support after-September-25 claim. Invented Linden permit requirement has no citation."
+        },
+        {
+          "index": 4,
+          "passed": true,
+          "evidence": "Correct deposits 3160/2100/2730 are not added as extra charges."
+        },
+        {
+          "index": 5,
+          "passed": false,
+          "evidence": "Corrects some subtotal/deposit facts, but repeats false deadline assurance, does not correct prior electrical allowance addition explicitly, and still recommends Linden as timely."
+        }
+      ]
+    }
+  ],
+  "acceptedPairs": 0,
+  "completedPairs": 4,
+  "resultBindingSha256": "1885549098f1a502825f01f7f12743d02e44ed7b60f3502a3b63a3dc989856b6",
+  "disposition": "Removing the structured system instruction did not qualify either complete document comparison or retained-history correction for either predeclared seed. No source, converted or runtime promotion."
+}

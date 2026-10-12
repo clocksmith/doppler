@@ -1,0 +1,43 @@
+{
+  "schema": "doppler.direct-thinking-source-run/v1",
+  "frozenRevision": "7b23ed0e",
+  "command": [
+    "taskset",
+    "-c",
+    "4-7",
+    "nice",
+    "-n",
+    "10",
+    "python3",
+    "-u",
+    "/var/tmp/qwen3-direct-bathroom-20261012/run.py",
+    "--doppler",
+    "/var/tmp/doppler-archive9-unit-4umv8z92/workspace/doppler",
+    "--source",
+    "/var/tmp/doppler-qwen3-17b-source-20261011",
+    "--out",
+    "/var/tmp/qwen3-direct-bathroom-20261012/results/source.json"
+  ],
+  "startedAtUtc": "2026-10-12T21:12:26.168504+00:00",
+  "status": "completed",
+  "wrapperPid": 931497,
+  "gpu": false,
+  "cpuAffinity": [
+    4,
+    5,
+    6,
+    7
+  ],
+  "nice": 10,
+  "threads": 4,
+  "outputDirectory": "/var/tmp/qwen3-direct-bathroom-20261012/results",
+  "environment": {
+    "PYTHONPATH": "/tmp/doppler-reference-deps",
+    "OPENBLAS_NUM_THREADS": "4",
+    "OMP_NUM_THREADS": "4",
+    "MKL_NUM_THREADS": "4"
+  },
+  "sourcePid": 931504,
+  "exitCode": 0,
+  "finishedAtUtc": "2026-10-12T23:14:26.952611+00:00"
+}

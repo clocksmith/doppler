@@ -1,0 +1,82 @@
+{
+  "schema": "doppler.direct-bathroom-retained-result/v1",
+  "qualified": false,
+  "freezeSha256": "a630d13193c812d52827f8cd5681bfdacf0b12db40c3e634d7ffd868fedddde2",
+  "files": {
+    "source.json.gz": {
+      "sha256": "08b7974fb04549e905d8d7249341f9c39920562fdb584ee90f7fae3c6eb76889",
+      "bytes": 27201,
+      "uncompressedSha256": "9e4dd9c751ac0a6c70d9b346d14951052f030fe59d008e69010a0319c7b2736a",
+      "uncompressedBytes": 171963
+    },
+    "run.log.gz": {
+      "sha256": "5d9c9684271a441aff85926493a17a0d8bbe13eda8d2918f2d8651a51fadb685",
+      "bytes": 6871,
+      "uncompressedSha256": "f7d5a71a8832ea77faf4644f3ee9f0387daed721c69447149ddba35163395b37",
+      "uncompressedBytes": 35549
+    },
+    "run-binding.json": {
+      "sha256": "8913bb8c34afc7609125eb799b9fac90e7f7b7901e020ceeea8d17539cec76b2",
+      "bytes": 1010
+    },
+    "executing-host-identity.json": {
+      "sha256": "91e228e2ae8225f1ceec92d29db4ae2c38891bdd4649f63faf6bb5d6cbb04e1f",
+      "bytes": 296
+    },
+    "source.json.disposition.json": {
+      "sha256": "fd223bc20cac03b18aa392b4d939fe62364fee28bb5376c1751af0dd1fd2bdbc",
+      "bytes": 323
+    }
+  },
+  "rows": [
+    {
+      "id": "fresh-bathroom-comparison",
+      "seed": 17,
+      "promptTokens": 482,
+      "generatedTokens": 2016,
+      "chargedTokens": 2498,
+      "rawDecodedUtf16Characters": 7485,
+      "stopReason": "eos",
+      "withinBudgets": true,
+      "completionPassed": true,
+      "answerSha256": "cb5c008b10a0e89ec38a3a9bb89566ac9229c459cc3ddb2c70433917dc9fa868"
+    },
+    {
+      "id": "fresh-bathroom-correction",
+      "seed": 17,
+      "promptTokens": 597,
+      "generatedTokens": 1924,
+      "chargedTokens": 2521,
+      "rawDecodedUtf16Characters": 7185,
+      "stopReason": "eos",
+      "withinBudgets": true,
+      "completionPassed": true,
+      "answerSha256": "7e88bc9d81759d990b5cd3fe53af50c54c65454e73c3a47fda235e314f3690da"
+    },
+    {
+      "id": "fresh-bathroom-comparison",
+      "seed": 53,
+      "promptTokens": 482,
+      "generatedTokens": 2199,
+      "chargedTokens": 2681,
+      "rawDecodedUtf16Characters": 7603,
+      "stopReason": "eos",
+      "withinBudgets": true,
+      "completionPassed": true,
+      "answerSha256": "b1c93a96c1bc91dc8a02ed57091380ee3b9d52866337da3cd978e45e1c0d44a1"
+    },
+    {
+      "id": "fresh-bathroom-correction",
+      "seed": 53,
+      "promptTokens": 597,
+      "generatedTokens": 2629,
+      "chargedTokens": 3226,
+      "rawDecodedUtf16Characters": 9756,
+      "stopReason": "eos",
+      "withinBudgets": true,
+      "completionPassed": true,
+      "answerSha256": "7e9765523d8ca48dba64fb8cee8347cb807ac020b0ff8a86b8bc83802df289b6"
+    }
+  ],
+  "semanticReview": "Separate unchanged full factual review required; completion does not grant quality acceptance."
+}
