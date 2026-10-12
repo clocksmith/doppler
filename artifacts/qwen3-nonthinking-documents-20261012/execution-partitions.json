@@ -1,0 +1,37 @@
+{
+  "schema": "doppler.source-seed-partitions/v1",
+  "parentSuiteSha256": "6f097c4b36282267b778734fe28fb99b949bd58f56e300fb5c2e3626e954b8ca",
+  "partitions": [
+    {
+      "path": "artifacts/qwen3-nonthinking-documents-20261012/suite-seed-17.json",
+      "sha256": "2703fed20faddb9ff5b19f61c0576df72120047dd3e5f802c89a293256fc786d",
+      "seed": 17,
+      "cases": [
+        "superseded-invoice",
+        "conditional-dispatch",
+        "deadline-duration",
+        "retained-subtotal-correction",
+        "contractor-comparison",
+        "contractor-retained-correction"
+      ]
+    },
+    {
+      "path": "artifacts/qwen3-nonthinking-documents-20261012/suite-seed-53.json",
+      "sha256": "a41e0d6b7685457affb3e2da1949a7b3c60042873ca261d499c1fffc84f155e1",
+      "seed": 53,
+      "cases": [
+        "superseded-invoice",
+        "conditional-dispatch",
+        "deadline-duration",
+        "retained-subtotal-correction",
+        "contractor-comparison",
+        "contractor-retained-correction"
+      ]
+    }
+  ],
+  "invariant": "Each child differs from the frozen parent only by its singleton seeds array. All messages, criteria, generation settings and source identities are identical. Independent per-case RNG and cache reset in the existing evaluator. Union is exactly twelve unique task/seed pairs.",
+  "threadsPerProcess": 4,
+  "performanceClaim": false,
+  "coordination": "Numerical owner confirmed no CPU/RAM conflict. Before scheduling, x128 reported65,585,082,368 available bytes; citation process usesapproximately8GB RSS and exits before either child starts.",
+  "launch": "Remote supervisor /tmp/run-nonthinking-pairs.py waits for owned citation PID1673603 to exit and verifies all12 prior rows settled before launching children. Session33106 observes it. No GPU used; no timing claims."
+}
