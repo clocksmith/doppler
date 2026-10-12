@@ -28,5 +28,124 @@
     "invalidRequest": "DOPPLER_GENERATION_INVALID_REQUEST",
     "aborted": "DOPPLER_GENERATION_ABORTED",
     "deadline": "DOPPLER_GENERATION_DEADLINE"
+  },
+  "canonical": {
+    "metadataLimits": {
+      "maxBytes": 65536,
+      "maxDepth": 16,
+      "maxNodes": 8192
+    },
+    "maxProposalTokens": 4,
+    "policy": {
+      "schema": {
+        "type": "string",
+        "enum": [
+          "doppler.generation-policy/v3"
+        ]
+      },
+      "sampler": {
+        "type": "string",
+        "enum": [
+          "philox4x32-10/cpu-categorical-v1"
+        ]
+      },
+      "seedHex64": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{16}$"
+      },
+      "selectionArithmeticId": {
+        "type": "hash"
+      },
+      "temperature": {
+        "type": "number",
+        "minimum": 0
+      },
+      "topK": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "topP": {
+        "type": "number",
+        "exclusiveMinimum": 0,
+        "maximum": 1
+      },
+      "repetitionPenalty": {
+        "type": "number",
+        "exclusiveMinimum": 0
+      },
+      "repetitionPenaltyWindow": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "presencePenalty": {
+        "type": "number",
+        "minimum": 0
+      },
+      "presencePenaltyWindow": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "suppressTokenIds": {
+        "type": "tokens"
+      },
+      "padTokenId": {
+        "type": "token",
+        "nullable": true
+      },
+      "eosTokenIds": {
+        "type": "tokens"
+      },
+      "stopTokenIds": {
+        "type": "tokens"
+      },
+      "toolTokenIds": {
+        "type": "tokens"
+      },
+      "stopSequences": {
+        "type": "array",
+        "items": "string",
+        "maxItems": 16,
+        "maxItemLength": 256,
+        "nonemptyItems": true
+      },
+      "toolBoundaryPolicy": {
+        "type": "string",
+        "enum": [
+          "stop",
+          "reject"
+        ]
+      },
+      "maxGeneratedTokens": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "materializedInputCapacity": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "totalAcceptedTokenLimit": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "maxRawOutputUtf16": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "maxVisibleOutputUtf16": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "decoderContract": {
+        "type": "hash"
+      }
+    },
+    "stopReasons": [
+      "eos-token",
+      "stop-token",
+      "tool-boundary",
+      "stop-sequence",
+      "max-tokens",
+      "context-limit"
+    ]
   }
 }
