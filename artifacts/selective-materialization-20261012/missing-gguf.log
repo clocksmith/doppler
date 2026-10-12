@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/var/tmp/doppler-selective-materialization-20261012/qwen35-short-prefix-audit.py", line 811, in <module>
+    run(args)
+    ~~~^^^^^^
+  File "/var/tmp/doppler-selective-materialization-20261012/qwen35-short-prefix-audit.py", line 351, in run
+    spec.loader.exec_module(ref)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "/var/tmp/doppler-selective-materialization-20261012/qwen35-f64-reference.py", line 17, in <module>
+    from gguf import GGMLQuantizationType, dequantize
+ModuleNotFoundError: No module named 'gguf'
