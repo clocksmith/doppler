@@ -1,0 +1,27 @@
+{
+  "control-capture.json": {
+    "bytes": 421142580,
+    "sha256": "fdc51da20f15c4022f0f6a6b442530394ee5c17e718eacccb3192d676c9c9ef5",
+    "gzipSha256": "a98a533209715251b6ccfe98b247d932365b35ae84bb8444725dddef77c11f2e"
+  },
+  "control-audit.json": {
+    "bytes": 31004160,
+    "sha256": "822a9c75c498f9192322ae745e46e7d6373e52c7a88938adc599b3c9b52222bf",
+    "gzipSha256": "15a9b186259e56f9d1d0b62e5520ef7d12c392f1c9bc09e37ff423b97792a889"
+  },
+  "compensated-projection.json": {
+    "bytes": 22283841,
+    "sha256": "d6cfc4be852a4a647f90b02c586e7253bd7a738dad4b293b4397aa0584da8c5f",
+    "gzipSha256": "94dc92f41ab287144a33e6e4874f2d721198233230d535cf5e9a3fdeebf10e7d"
+  },
+  "compensated-tree-projection.json": {
+    "bytes": 22281308,
+    "sha256": "4b614571af420b6bab210b660e40d608a79a774de54a6731225ddbe0916be9f5",
+    "gzipSha256": "0bf6ebeef736748b402b46f0ad3047540281539ac4e83f4bc9b8b93edf6a2980"
+  },
+  "observed-compensated-tree-projection.json": {
+    "bytes": 260803762,
+    "sha256": "eac392b85af8bc91f6b4e163bc2bc70cc72123cf7b60661ca0aa3b3d76ad7084",
+    "gzipSha256": "e6626cb26ac353424e6de4b7ab2af5e653d3712855a5f1f53a0839ec10bf4e50"
+  }
+}

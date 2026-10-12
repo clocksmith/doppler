@@ -7,6 +7,7 @@ import { chromium } from 'playwright';
 
 const [fixturePath, shaderPath, destination] = process.argv.slice(2);
 const observeAccumulation = process.env.DOPPLER_Q4_OBSERVE_ACCUMULATION === '1';
+const strictMath = process.env.DOPPLER_Q4_STRICT_MATH === '1';
 assert(fixturePath && shaderPath && destination, 'Supply captured fixture, declared shader and receipt');
 const fixtureBytes = await readFile(fixturePath);
 const fixture = JSON.parse(fixtureBytes), source = await readFile(shaderPath, 'utf8');
@@ -18,18 +19,20 @@ assert.equal(expected.length, fixture.M * fixture.N * 8);
 const receipt = { scope: 'Identical captured F32/Q4_K operands against an independent Float64 projection',
   host: process.platform, fixtureSha256: hash(fixtureBytes), shaderSha256: hash(source),
   geometry: { M: fixture.M, N: fixture.N, K: fixture.K },
-  maximumAllowedError: 2e-6, requiredPeakErrorReduction: 2 };
+  maximumAllowedError: 2e-6, requiredPeakErrorReduction: 2,
+  strictMathDeveloperDiagnostic: strictMath };
 const server = createServer((_request, response) => response.end('<!doctype html>'));
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 let browser;
 try {
   browser = await chromium.launch({ channel: 'chrome', headless: true, args: ['--enable-unsafe-webgpu',
+    ...(strictMath ? ['--enable-webgpu-developer-features'] : []),
     ...(process.platform === 'darwin' ? ['--use-angle=metal']
       : ['--enable-features=Vulkan', '--use-angle=vulkan', '--disable-gpu-sandbox'])] });
   receipt.browser = browser.version();
   const page = await browser.newPage();
   await page.goto(`http://127.0.0.1:${server.address().port}`);
-  const result = await page.evaluate(async ({ source, fixture, observeAccumulation }) => {
+  const result = await page.evaluate(async ({ source, fixture, observeAccumulation, strictMath }) => {
     const adapter = await navigator.gpu.requestAdapter();
     if (!adapter?.features.has('shader-f16')) throw new Error('Physical shader-f16 adapter required');
     const device = await adapter.requestDevice({ requiredFeatures: ['shader-f16'] });
@@ -43,7 +46,13 @@ try {
     const decode = text => Uint8Array.from(atob(text), char => char.charCodeAt(0));
     let staging, observedStaging;
     try {
-      const module = device.createShaderModule({ code: source });
+      let strictMathRead = false;
+      const descriptor = { code: source };
+      if (strictMath) Object.defineProperty(descriptor, 'strictMath', {
+        get() { strictMathRead = true; return true; },
+      });
+      const module = device.createShaderModule(descriptor);
+      if (strictMath && !strictMathRead) throw new Error('Browser ignored requested developer strictMath');
       const messages = (await module.getCompilationInfo()).messages.filter(item => item.type === 'error');
       if (messages.length) throw new Error(messages.map(item => item.message).join('\n'));
       const pipeline = await device.createComputePipelineAsync({ layout: 'auto', compute: {
@@ -76,7 +85,7 @@ try {
         await observedStaging.mapAsync(GPUMapMode.READ);
         accumulation = Array.from(new Float32Array(observedStaging.getMappedRange().slice(0)));
       }
-      return { values: Array.from(new Float32Array(staging.getMappedRange().slice(0))), accumulation, errors,
+      return { values: Array.from(new Float32Array(staging.getMappedRange().slice(0))), accumulation, errors, strictMathRead,
         adapter: { vendor: adapter.info.vendor, architecture: adapter.info.architecture } };
     } finally {
       if (staging?.mapState === 'mapped') staging.unmap();
@@ -84,7 +93,7 @@ try {
       await device.queue.onSubmittedWorkDone();
       for (const resource of owned) resource.destroy(); device.destroy();
     }
-  }, { source, fixture, observeAccumulation });
+  }, { source, fixture, observeAccumulation, strictMath });
   Object.assign(receipt, result);
   const compare = values => {
     let maximum = 0, squares = 0, worstIndex = null;

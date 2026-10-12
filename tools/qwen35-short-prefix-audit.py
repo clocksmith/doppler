@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Observe the approved evaluator without editing it; audit request 0, step 1.
+"""Observe the approved evaluator without editing it; audit a frozen request prefix.
 
 CPU diagnostic only. Captured GPU operands enter local operation comparisons
 after independent evaluation, never the authoritative reference state.
@@ -29,7 +29,7 @@ def error(actual, expected):
             'lastTokenMax': float(difference[-1].max())}
 
 
-def read_capture(capture):
+def read_capture(capture, prefill=19, decode_steps=1):
     """Pair by actual generation step and operation; reject conflicting duplicates."""
     groups, step = {}, -1
     for row in capture['observation']['timeline']:
@@ -38,23 +38,25 @@ def read_capture(capture):
         item = row.get('capture')
         if not item or item.get('level') != 'full':
             continue
-        assert item['encoding'] == 'base64-f32le' and step in (0, 1)
+        assert item['encoding'] == 'base64-f32le' and 0 <= step <= decode_steps
         value = np.frombuffer(base64.b64decode(item['dataBase64']), dtype='<f4')
         value = value.reshape(item['shape']).astype(np.float64)
         key = (row['opId'], step)
         if key in groups:
             assert np.array_equal(groups[key], value), key
         groups[key] = value
+    assert step == decode_steps, 'Incomplete captured generation history'
     result = {}
     for name in sorted({name for name, _ in groups}):
         # Fused decode does not expose the prefill-only FFN gate/up tensors.
         # Required paired operations are accessed explicitly by the audit below.
-        if (name, 0) not in groups or (name, 1) not in groups:
+        if any((name, index) not in groups for index in range(decode_steps + 1)):
             assert name in ('layer.0.ffn.gate', 'layer.0.ffn.up'), name
             continue
-        first, second = groups[name, 0], groups[name, 1]
-        assert first.shape[0] == 19 and second.shape[0] == 1, name
-        result[name] = np.concatenate([first, second])
+        parts = [groups[name, index] for index in range(decode_steps + 1)]
+        assert parts[0].shape[0] == prefill, name
+        assert all(part.shape[0] == 1 for part in parts[1:]), name
+        result[name] = np.concatenate(parts)
     return result
 
 
@@ -64,7 +66,15 @@ def run(args):
     ref = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(ref)
     assert ref.digest(source.read_bytes()) == EVALUATOR_SHA256
-    contract = ref.read_json('artifacts/whole-model-f64-complete-20261011/request-0-contract.json')
+    contract = ref.read_json(args.contract)
+    request_index = contract['requestIndex']
+    prefill = contract['prefixLengths'][0]
+    capture = ref.read_json(args.capture)
+    target = capture['observationTarget']
+    assert target['index'] == request_index and target['physicalCache'] is True
+    steps = target['step'] + 1
+    assert 0 < steps <= len(contract['prefixLengths'])
+    observed_tokens = prefill + steps - 1
     for name in ('manifest', 'sourceConfig', 'pieceIndex'):
         item = contract['inputs'][name]
         assert ref.digest(Path(item['path']).read_bytes()) == item['sha256'], name
@@ -108,16 +118,32 @@ def run(args):
             lambda row: print(json.dumps(row), flush=True), observe_cache)
     finally:
         sys.settrace(None)
-    approved = ref.read_json(args.approved)
-    assert approved['toolSha256'] == EVALUATOR_SHA256
+    approved_paths = [args.approved] if args.approved else [
+        row['path'] for row in ref.read_json(args.approved_index)['shards']
+        if row['index'] == request_index]
+    approved_rows = []
+    for path in approved_paths:
+        approved = ref.read_json(path)
+        assert approved['toolSha256'] == EVALUATOR_SHA256
+        assert approved['contractSha256'] == ref.digest(Path(args.contract).read_bytes())
+        approved_rows.extend(approved['results'])
+    assert [row['step'] for row in approved_rows] == contract['steps']
     expected = np.stack([np.frombuffer(base64.b64decode(row['logitsF64']), dtype='<f8')
-                         for row in approved['results']])
+                         for row in approved_rows])
     assert np.array_equal(logits, expected), 'Observation must exactly reproduce approved vectors'
-    capture = ref.read_json(args.capture)
-    assert capture['observationTarget'] == {'index': 0, 'step': 1, 'physicalCache': True}
+    for name in independent:
+        independent[name] = independent[name][:steps if name == 'final_norm.out' else observed_tokens]
+    logits = logits[:steps]
     assert capture['observation']['maximumUnmaskedDifference'] == 0
-    assert capture['manifestIdentity'] == 'sha256:' + contract['inputs']['manifest']['sha256']
-    gpu = read_capture(capture)
+    manifest_identity = contract['inputs']['manifest']['sha256']
+    if args.binding:
+        binding = ref.read_json(args.binding)
+        assert binding['sourceManifestSha256'] == manifest_identity
+        assert capture['archiveSha256'] == binding['archiveSha256']
+        manifest_identity = binding['manifestSha256']
+    assert capture['manifestIdentity'] == 'sha256:' + manifest_identity
+    assert capture['declaredShaderMismatches'] == []
+    gpu = read_capture(capture, prefill, steps - 1)
     if args.fixture_directory:
         directory = Path(args.fixture_directory)
         directory.mkdir(parents=True, exist_ok=True)
@@ -131,11 +157,11 @@ def run(args):
             spans = entry.get('spans') or [{'shardIndex': entry['shard'], 'offset': entry['offset'], 'size': entry['size']}]
             raw = b''.join((manifest_path.parent / manifest['shards'][s['shardIndex']]['filename']).read_bytes()
                           [s['offset']:s['offset'] + s['size']] for s in spans)
-            actual_input = gpu[f'layer.{layer}.attn.post_input_norm'][:19]
-            actual_output = gpu[f'layer.{layer}.attn.{operation}'][:19]
+            actual_input = gpu[f'layer.{layer}.attn.post_input_norm'][:prefill]
+            actual_output = gpu[f'layer.{layer}.attn.{operation}'][:prefill]
             input_bytes = actual_input.astype('<f4').tobytes()
             encode = lambda value: base64.b64encode(value).decode()
-            fixture = {'M': 19, 'N': entry['shape'][0], 'K': entry['shape'][1],
+            fixture = {'M': prefill, 'N': entry['shape'][0], 'K': entry['shape'][1],
                 'operation': f'layer.{layer}.attn.{operation}', 'input': encode(input_bytes),
                 'inputSha256': ref.digest(input_bytes), 'weights': encode(raw), 'weightsSha256': ref.digest(raw),
                 'oracleFloat64': encode((actual_input @ weights[name].T).astype('<f8').tobytes()),
@@ -213,31 +239,37 @@ def run(args):
             compare(prefix + 'core_out', ref.causal_attention(query, key, value))
             compare(prefix + 'out')
         compare(f'layer.{layer}.layer.out')
-    gpu_norm = gpu['final_norm.out'][np.array(contract['prefixLengths']) - 1]
+    gpu_norm = gpu['final_norm.out'][np.array(contract['prefixLengths'][:steps]) - 1]
     rows.append({'operation': 'final_norm.out', 'total': error(gpu_norm, independent['final_norm.out']),
-                 'local': error(gpu_norm, ref.rms_norm(gpu['layer.23.layer.out'][[18, 19]],
+                 'local': error(gpu_norm, ref.rms_norm(gpu['layer.23.layer.out'][np.array(contract['prefixLengths'][:steps]) - 1],
                                                      weights['norm.weight'], config['rms_norm_eps']))})
     actual_logits = np.stack([np.frombuffer(base64.b64decode(row['logits']), dtype='<f4').astype(np.float64)
                               for row in capture['results']])
     local_logits = gpu_norm @ weights['lm_head.weight'].T
+    worst_vocabulary = int(np.argmax(np.abs(actual_logits[-1] - logits[-1])))
     report = {'schema': 'doppler.short-prefix-f64-audit/v1', 'qualified': False,
         'scope': 'Independent-state total error versus same-GPU-operands local error; diagnostic only',
         'evaluatorSha256': EVALUATOR_SHA256, 'auditSha256': ref.digest(Path(__file__).read_bytes()),
         'captureSha256': ref.digest(Path(args.capture).read_bytes()),
-        'approvedVectorsSha256': ref.digest(Path(args.approved).read_bytes()),
+        'approvedVectors': [{'path': path, 'sha256': ref.digest(Path(path).read_bytes())} for path in approved_paths],
         'approvedVectorsExact': True, 'shards': identities, 'cacheIdentities': caches,
         'operations': rows, 'storage': storage, 'logits': {
             'total': error(actual_logits, logits), 'local': error(actual_logits, local_logits),
-            'inherited': error(local_logits, logits), 'firstFailure': {
-                'index': 0, 'step': 1, 'vocabulary': 9072, 'gpu': float(actual_logits[1, 9072]),
-                'f64': float(logits[1, 9072]), 'localF64': float(local_logits[1, 9072])}}}
+            'inherited': error(local_logits, logits), 'selectedPrefixWorst': {
+                'index': request_index, 'step': steps - 1, 'vocabulary': worst_vocabulary,
+                'gpu': float(actual_logits[-1, worst_vocabulary]),
+                'f64': float(logits[-1, worst_vocabulary]),
+                'localF64': float(local_logits[-1, worst_vocabulary])}}}
     Path(args.out).write_text(json.dumps(report, indent=2) + '\n')
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--capture', required=True)
-    parser.add_argument('--approved', required=True)
+    parser.add_argument('--approved')
+    parser.add_argument('--approved-index', default='artifacts/whole-model-f64-complete-20261011/independent-output-index.json')
+    parser.add_argument('--contract', default='artifacts/whole-model-f64-complete-20261011/request-0-contract.json')
+    parser.add_argument('--binding', help='Exact archive/source manifest binding when the runtime shader identities changed')
     parser.add_argument('--out', required=True)
     parser.add_argument('--fixture-directory', help='Export captured prefill projections for the existing physical replay')
     run(parser.parse_args())
