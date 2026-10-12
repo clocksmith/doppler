@@ -1,0 +1,153 @@
+diff --git a/src/inference/browser-harness/text-evidence.js b/src/inference/browser-harness/text-evidence.js
+index 93c10dc9..8a88747c 100644
+--- a/src/inference/browser-harness/text-evidence.js
++++ b/src/inference/browser-harness/text-evidence.js
+@@ -293,7 +293,8 @@ export async function captureKvCacheByteProof(pipeline, enabled) {
+   }
+   const layers = [];
+   for (let layerIdx = 0; layerIdx < kvCache.layers.length; layerIdx += 1) {
+-    layers.push(await digestKvLayerBytes(kvCache.layers[layerIdx], layerIdx, kvCache));
++    const modelLayerIdx = kvCache.layerIndices?.[layerIdx] ?? layerIdx;
++    layers.push(await digestKvLayerBytes(kvCache.layers[layerIdx], modelLayerIdx, kvCache));
+   }
+   const canonicalBytes = new TextEncoder().encode(JSON.stringify({
+     mode: 'sha256-layer-kv-bytes',
+diff --git a/src/inference/kv-cache/base.d.ts b/src/inference/kv-cache/base.d.ts
+index e286443f..a85d34ec 100644
+--- a/src/inference/kv-cache/base.d.ts
++++ b/src/inference/kv-cache/base.d.ts
+@@ -26,6 +26,8 @@ import {
+ 
+ export class KVCache {
+   readonly numLayers: number;
++  /** Original model indices when storage is compacted or partition scoped. */
++  readonly layerIndices?: readonly number[];
+   readonly numHeads: number;
+   readonly headDim: number;
+   readonly maxSeqLen: number;
+diff --git a/src/inference/kv-cache/layer-range.d.ts b/src/inference/kv-cache/layer-range.d.ts
+index b43cf191..3ff02292 100644
+--- a/src/inference/kv-cache/layer-range.d.ts
++++ b/src/inference/kv-cache/layer-range.d.ts
+@@ -2,3 +2,6 @@ import type { KVCache } from './base.js';
+ export function resolveKVCacheLayerCount(numLayers: number, layerRange: readonly number[] | null): number;
+ /** Consume a cache whose allocated layers are local; expose original model indices. */
+ export function scopeKVCacheLayerRange<T extends KVCache>(cache: T, firstLayer: number): T;
++
++/** Allocate only selected layers while preserving their original model indices. */
++export function scopeKVCacheLayerIndices<T extends KVCache>(cache: T, layerIndices: readonly number[]): T;
+diff --git a/src/inference/kv-cache/layer-range.js b/src/inference/kv-cache/layer-range.js
+index b65217b9..791a9be3 100644
+--- a/src/inference/kv-cache/layer-range.js
++++ b/src/inference/kv-cache/layer-range.js
+@@ -22,11 +22,37 @@ export function scopeKVCacheLayerRange(cache, firstLayer) {
+   }
+   const lastLayer = firstLayer + cache.numLayers - 1;
+   if (!Number.isSafeInteger(lastLayer) || lastLayer < firstLayer) throw new Error('Resident KV range is invalid.');
++  const indices = Array.from({ length: cache.numLayers }, (_, index) => firstLayer + index);
++  return scopeIndices(cache, indices, layer =>
++    `Layer ${layer} is outside resident KV range [${firstLayer}, ${lastLayer}].`);
++}
++
++/** @type {import('./layer-range.js').scopeKVCacheLayerIndices} */
++export function scopeKVCacheLayerIndices(cache, layerIndices) {
++  if (!Array.isArray(layerIndices) || layerIndices.length !== cache.numLayers
++    || layerIndices.some((layer, index) => !Number.isSafeInteger(layer) || layer < 0
++      || (index > 0 && layer <= layerIndices[index - 1]))) {
++    throw new Error('KV cache layer indices must match allocations in ascending model order.');
++  }
++  return scopeIndices(cache, [...layerIndices], layer => `Layer ${layer} has no allocated KV cache.`);
++}
++
++/**
++ * @template {import('./base.js').KVCache} T
++ * @param {T} cache
++ * @param {readonly number[]} indices
++ * @param {(layer: unknown) => string} describeMissing
++ * @returns {T}
++ */
++function scopeIndices(cache, indices, describeMissing) {
++  const modelIndices = Object.freeze([...indices]);
++  const localIndices = new Map(indices.map((layer, index) => [layer, index]));
+   const methods = new Map();
+   // Bind to the allocation owner so internal method calls keep local indices.
+   // The view preserves cache subclass identity (including sliding-window masks).
+   return new Proxy(cache, {
+     get(target, key) {
++      if (key === 'layerIndices') return modelIndices;
+       const value = Reflect.get(target, key, target);
+       if (typeof value !== 'function' || key === 'constructor') return value;
+       if (!methods.has(key)) {
+@@ -34,12 +60,11 @@ export function scopeKVCacheLayerRange(cache, firstLayer) {
+         methods.set(key, (/** @type {unknown[]} */ ...args) => {
+           if (position !== null) {
+             const layer = args[position];
+-            if (typeof layer !== 'number' || !Number.isSafeInteger(layer) || layer < firstLayer || layer > lastLayer) {
+-              throw new RangeError(`Layer ${layer} is outside resident KV range [${firstLayer}, ${lastLayer}].`);
+-            }
+-            args[position] = layer - firstLayer;
++            if (typeof layer !== 'number' || !localIndices.has(layer)) throw new RangeError(describeMissing(layer));
++            args[position] = localIndices.get(layer);
+           }
+-          return value.apply(target, args);
++          const result = value.apply(target, args);
++          return key === 'clone' ? scopeIndices(result, indices, describeMissing) : result;
+         });
+       }
+       return methods.get(key);
+diff --git a/src/inference/pipelines/text/init.js b/src/inference/pipelines/text/init.js
+index cbfe1fcd..e6d7978f 100644
+--- a/src/inference/pipelines/text/init.js
++++ b/src/inference/pipelines/text/init.js
+@@ -1,5 +1,5 @@
+ import { getDevice, getDeviceLimits, getKernelCapabilities } from '../../../gpu/device.js';
+-import { scopeKVCacheLayerRange, resolveKVCacheLayerCount } from '../../kv-cache/layer-range.js';
++import { scopeKVCacheLayerRange, scopeKVCacheLayerIndices, resolveKVCacheLayerCount } from '../../kv-cache/layer-range.js';
+ import {
+   KVCache,
+   SlidingWindowKVCache,
+@@ -28,6 +28,7 @@ import {
+ 
+ // Extracted standalone modules
+ import { initRoPEFrequencies, isGPURoPEBuffers } from './init-rope.js';
++import { hasLinearAttentionLayers } from './linear-attention.js';
+ import {
+   applyChatTemplate,
+   applyGemmaChatTemplate,
+@@ -333,7 +334,7 @@ function assertQuantizedKVKernelSupport(modelConfig, cacheLayout, cacheMaxSeqLen
+ // ============================================================================
+ 
+ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig, layerRange = null) {
+-  const allocatedLayerCount = resolveKVCacheLayerCount(modelConfig.numLayers, layerRange);
++  let allocatedLayerCount = resolveKVCacheLayerCount(modelConfig.numLayers, layerRange);
+   if (modelConfig?.decodeStrategy === 'replay_prefill') {
+     throw new Error(
+       'Live KV cache creation is not supported for models that require replay-prefill decode. ' +
+@@ -345,6 +346,19 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig,
+   if (layerRange !== null && requiresMixedGeometryKVCache) {
+     throw new Error('Resident partition KV cache does not support mixed geometry or shared KV layers.');
+   }
++  // Linear attention owns recurrent state, not per-token attention keys/values.
++  // Keep mixed geometry/shared-KV ownership unchanged; its source-layer mapping
++  // is a separate cache contract.
++  let allocatedLayerIndices = null;
++  if (!requiresMixedGeometryKVCache && hasLinearAttentionLayers(modelConfig.layerTypes)) {
++    if (modelConfig.layerTypes.length !== modelConfig.numLayers) {
++      throw new Error('Hybrid KV allocation requires explicit types for every model layer.');
++    }
++    const firstLayer = layerRange === null ? 0 : layerRange[0];
++    allocatedLayerIndices = Array.from({ length: allocatedLayerCount }, (_, index) => firstLayer + index)
++      .filter(layer => !hasLinearAttentionLayers([modelConfig.layerTypes[layer]]));
++    allocatedLayerCount = allocatedLayerIndices.length;
++  }
+   const contiguousKVPolicy = resolveContiguousKVPolicy(modelConfig);
+   const forceContiguousKVCache = contiguousKVPolicy.forceContiguousKVCache;
+   const modelMaxSeqLen = modelConfig.maxSeqLen;
+@@ -599,6 +613,7 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig,
+     log.debug('Pipeline', `KV cache: type=${kvCache?.constructor?.name || 'unknown'}, kvDtype=${kvCache.kvDtype}, layout=${kvCache.layout}, maxSeqLen=${kvCache.maxSeqLen}, windowSize=${isSliding ? kvCache.windowSize : null}`);
+   }
+ 
++  if (allocatedLayerIndices !== null) return scopeKVCacheLayerIndices(kvCache, allocatedLayerIndices);
+   return layerRange === null ? kvCache : scopeKVCacheLayerRange(kvCache, layerRange[0]);
+ }
+ 
