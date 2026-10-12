@@ -11,9 +11,11 @@ assert.equal(canRemoveModelStatus('loaded'), true);
 assert.equal(canRemoveModelStatus('available'), false);
 
 assert.equal(
-  buildModelCardDetail({ modelId: 'model-a' }, 'stored'),
-  'Downloaded · model-a'
+  buildModelCardDetail({ modelId: 'model-a', label: 'Model A' }),
+  'model-a'
 );
+assert.equal(buildModelCardDetail({ modelId: 'model-a' }), '');
+assert.equal(buildModelCardDetail({ modelId: 'model-a', label: 'model-a' }), '');
 
 const catalog = [
   { modelId: 'model-a' },
