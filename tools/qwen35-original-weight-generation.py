@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Offline original-weight control for an already captured Qwen3.5 generation.
+"""Offline original-weight control for Qwen3.5 generation.
 
 Only weights and their original tying differ from the deployed-weight control.
 Prompt IDs, greedy policy, repetition penalty, F32 source equations and F16 KV
-storage remain fixed. This is attribution evidence, never runtime qualification.
+storage remain fixed. An explicitly frozen ordered-message suite instead uses
+the original official tokenizer template. This is attribution evidence, never
+runtime qualification.
 """
 import argparse
 import hashlib
@@ -27,6 +29,13 @@ def source_tensor_name(name):
     return name.replace('model.language_model.', 'model.', 1)
 
 
+def validate_source_identity(receipt, revision, manifest):
+    assert receipt['repository'] in {'Qwen/Qwen3.5-0.8B', 'Qwen/Qwen3.5-2B'}
+    assert receipt['revision'] == revision and len(revision) == 40
+    assert all(character in '0123456789abcdef' for character in revision)
+    assert manifest['artifactIdentity']['sourceCheckpointId'] == receipt['repository']
+
+
 def run(args):
     import torch
     from safetensors import safe_open
@@ -39,27 +48,30 @@ def run(args):
     torch.set_num_threads(args.threads)
     root = Path(args.source)
     receipt = reference.read_json(root / 'download-receipt.json')
-    assert receipt['repository'] == 'Qwen/Qwen3.5-2B'
-    assert receipt['revision'] == args.revision and len(args.revision) == 40
+    deployed = Path(args.deployed)
+    manifest = reference.read_json(deployed / 'manifest.json')
+    validate_source_identity(receipt, args.revision, manifest)
     for entry in receipt['files']:
         filename = root / entry['path']
         assert filename.parent == root and filename.stat().st_size == entry['sizeBytes']
         assert file_sha256(filename) == entry['sha256'], entry['path']
         assert f'/resolve/{args.revision}/' in entry['url']
 
-    control = reference.read_json(args.control)
-    deployed = Path(args.deployed)
-    manifest = reference.read_json(deployed / 'manifest.json')
+    control = reference.read_json(args.control if args.control else args.suite)
     assert control['modelIdentity'] == 'sha256:' + file_sha256(deployed / 'manifest.json')
-    assert manifest['artifactIdentity']['sourceCheckpointId'] == receipt['repository']
     assert manifest['inference']['session']['compute']['defaults']['activationDtype'] == 'f32'
     assert manifest['inference']['session']['kvcache']['kvDtype'] == 'f16'
     original_tokenizer = Tokenizer.from_file(str(root / 'tokenizer.json'))
     deployed_tokenizer = Tokenizer.from_file(str(deployed / 'tokenizer.json'))
     assert original_tokenizer.get_vocab() == deployed_tokenizer.get_vocab()
-    prompt_ids = control['result']['tokenIds']
-    prompt = deployed_tokenizer.decode(prompt_ids, skip_special_tokens=False)
-    assert original_tokenizer.encode(prompt, add_special_tokens=False).ids == prompt_ids
+    if args.control:
+        prompt_ids = control['result']['tokenIds']
+        prompt = deployed_tokenizer.decode(prompt_ids, skip_special_tokens=False)
+        assert original_tokenizer.encode(prompt, add_special_tokens=False).ids == prompt_ids
+    else:
+        assert control['modelId'] == receipt['repository']
+        assert control['sourceRevision'] == receipt['revision']
+        assert control['generation']['suppressTokenIds'] == []
     source = reference.read_json(root / 'config.json')['text_config']
     assert source['hidden_size'] == manifest['architecture']['hiddenSize']
     assert source['layer_types'] == manifest['inference']['layerPattern']['layerTypes']
@@ -108,16 +120,30 @@ def run(args):
                       'weights': sorted(source_dtypes), 'originalTiedHead': True},
         'threads': args.threads,
     }
-    replay = SimpleNamespace(generation_control=args.control, model=args.deployed, out=args.out)
-    report = reference.replay_generation(model, config, manifest, replay, report)
-    report['schema'] = 'doppler.original-weight-generation-diagnostic/v1'
+    if args.control:
+        replay = SimpleNamespace(generation_control=args.control, model=args.deployed, out=args.out)
+        report = reference.replay_generation(model, config, manifest, replay, report)
+        report['schema'] = 'doppler.original-weight-generation-diagnostic/v1'
+    else:
+        from transformers import AutoTokenizer
+        from lib.source_task_quality import evaluate_tasks
+        source_tokenizer = AutoTokenizer.from_pretrained(root, local_files_only=True)
+        report.update({'schema': 'doppler.original-weight-task-diagnostic/v1',
+                       'scope': 'Original weights and official ordered-message template; not runtime qualification',
+                       'suiteSha256': file_sha256(args.suite),
+                       'evaluatorSha256': file_sha256(Path(__file__).parent / 'lib/source_task_quality.py'),
+                       'settings': control['generation'], 'results': []})
+        evaluate_tasks(model, config, original_tokenizer, source_tokenizer, control, report, Path(args.out))
     Path(args.out).write_text(json.dumps(report, indent=2) + '\n')
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    for field in ['source', 'revision', 'deployed', 'control', 'out']:
+    for field in ['source', 'revision', 'deployed', 'out']:
         parser.add_argument('--' + field, required=True)
+    source_input = parser.add_mutually_exclusive_group(required=True)
+    source_input.add_argument('--control', help='Replay exact captured prompt IDs')
+    source_input.add_argument('--suite', help='Evaluate frozen ordered messages with the official source template')
     parser.add_argument('--threads', type=int, required=True)
     arguments = parser.parse_args()
     assert arguments.threads > 0
