@@ -1,0 +1,9 @@
+[198.7ms][Pipeline] 1L/16H/1heads (16dim), kernelPath=none
+[199.1ms][Pipeline] Execution plan: active=test-plan, dtype=f32, kernelPath=none
+[199.4ms][Pipeline] 1L/16H/1heads (16dim), kernelPath=none
+[199.4ms][Pipeline] Execution plan: active=test-plan, dtype=f32, kernelPath=none
+[199.5ms][Pipeline] 1L/16H/1heads (16dim), kernelPath=none
+[199.5ms][Pipeline] Execution plan: active=test-plan, dtype=f32, kernelPath=none
+[199.5ms][Pipeline] 1L/16H/1heads (16dim), kernelPath=none
+[199.6ms][Pipeline] Execution plan: active=test-plan, dtype=f32, kernelPath=none
+partition-load-session-order.test: scalar/paired admission and pre-weight mismatch rejection passed
