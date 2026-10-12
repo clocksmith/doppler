@@ -507,6 +507,7 @@ function mergeSession(
     useLinearAttentionABProjectionFusion: overlay(`${prefix}.useLinearAttentionABProjectionFusion`, manifestSession.useLinearAttentionABProjectionFusion, runtimeSession.useLinearAttentionABProjectionFusion, sources),
     useLinearAttentionQKVZProjectionFusion: overlay(`${prefix}.useLinearAttentionQKVZProjectionFusion`, manifestSession.useLinearAttentionQKVZProjectionFusion, runtimeSession.useLinearAttentionQKVZProjectionFusion, sources),
     useLinearAttentionFusedDecodeCore: overlay(`${prefix}.useLinearAttentionFusedDecodeCore`, manifestSession.useLinearAttentionFusedDecodeCore, runtimeSession.useLinearAttentionFusedDecodeCore, sources),
+    intermediatePrecision: overlay(`${prefix}.intermediatePrecision`, manifestSession.intermediatePrecision, runtimeSession.intermediatePrecision, sources),
     linearRecurrentStatePrecision: overlay(`${prefix}.linearRecurrentStatePrecision`, manifestSession.linearRecurrentStatePrecision, runtimeSession.linearRecurrentStatePrecision, sources),
     useWideTileResidualFusion: overlay(`${prefix}.useWideTileResidualFusion`, manifestSession.useWideTileResidualFusion, runtimeSession.useWideTileResidualFusion, sources),
     useFusedRmsnormWideTile: overlay(`${prefix}.useFusedRmsnormWideTile`, manifestSession.useFusedRmsnormWideTile, runtimeSession.useFusedRmsnormWideTile, sources),

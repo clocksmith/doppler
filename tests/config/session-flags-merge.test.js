@@ -215,3 +215,12 @@ for (const [manifestPrecision, overridePrecision, expected] of [
   assert.equal(merged.inference.session.linearRecurrentStatePrecision, expected);
   assert.equal(merged._sources.get('inference.session.linearRecurrentStatePrecision'), overridePrecision ? 'runtime' : 'manifest');
 }
+
+for (const [manifestPrecision, overridePrecision, expected] of [
+  ['two-f32', undefined, 'two-f32'], ['two-f32', 'f32', 'f32'], ['f32', 'two-f32', 'two-f32'],
+]) {
+  const merged = mergeConfig(buildManifest({ intermediatePrecision: manifestPrecision }),
+    overridePrecision ? { session: { intermediatePrecision: overridePrecision } } : {});
+  assert.equal(merged.inference.session.intermediatePrecision, expected);
+  assert.equal(merged._sources.get('inference.session.intermediatePrecision'), overridePrecision ? 'runtime' : 'manifest');
+}

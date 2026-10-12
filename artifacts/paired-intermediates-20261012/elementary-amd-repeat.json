@@ -1,0 +1,32 @@
+{
+  "schema": "doppler-paired-elementary-physical-v1",
+  "shaderSha256": "f92a43ea3a2b2155b2047943b5733aa61394be97fffb8cc0c4f49d7dc0083f44",
+  "inputSha256": "b7837f74305db61df154c30258ec42d2e6b7977be9b9837e4c77081a82b92f43",
+  "count": 2057,
+  "seed": 624901,
+  "acceptance": {
+    "normalizedAbsoluteError": 2e-12
+  },
+  "scope": "Independent Number/F64 elementary references over frozen inputs; not model qualification. Direct half exhaustive control is separate.",
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3"
+  },
+  "browser": "146.0.7680.177",
+  "errors": [],
+  "failures": [],
+  "maxError": 4.5474518248211915e-13,
+  "maxByOperation": {
+    "exp": 5.263414321904113e-14,
+    "log": 2.674506329245978e-15,
+    "sqrt": 3.163727699588429e-15,
+    "div": 1.4988010832439613e-15,
+    "sigmoid": 3.219646771412954e-15,
+    "silu": 4.1203708126579416e-15,
+    "softplus": 3.066757601652579e-15,
+    "multiply": 3.0707366763518982e-15,
+    "sin": 4.5474518248211915e-13,
+    "cos": 4.5401182813264995e-13
+  },
+  "passed": true
+}

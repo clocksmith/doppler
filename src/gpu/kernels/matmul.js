@@ -1,3 +1,4 @@
+import { executePairedMatmul } from './paired-matmul.js';
 import { createKernelBindingEntries } from './kernel-bindings.js';
 import { getDevice, getKernelCapabilities } from '../device.js';
 import { getKernelConfig } from './kernel-configs.js';
@@ -214,6 +215,22 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
 
   const phase = resolveMatmulPhase(M, options.phaseOverride ?? null);
   const pathVariant = getKernelPathMatmulVariant(options.role, phase, options.layerIdx, options.kernelPath);
+  if (A.precision === 'two-f32') {
+    if (options.outputDtype !== 'f32') throw new Error('[Matmul] Paired activation projections require explicit F32 component dtype.');
+    const declared = pathVariant ? getKernelConfig('matmul', pathVariant) : null;
+    if (declared && declared.variantMetadata?.inputPrecision !== 'two-f32') {
+      throw new Error('[Matmul] Paired input disagrees with the declared scalar kernel.');
+    }
+    const outputPrecision = options.outputPrecision ?? 'two-f32';
+    if (declared && declared.variantMetadata?.outputPrecision !== outputPrecision) {
+      throw new Error('[Matmul] Requested output precision disagrees with the declared paired kernel.');
+    }
+    const resolvedWeight = resolveWeightBufferMaterialization(B, declared?.weightDtype ?? getWeightDtype(B));
+    return executePairedMatmul(recorder, A, resolvedWeight, M, N, K, options);
+  }
+  if (pathVariant && getKernelConfig('matmul', pathVariant).variantMetadata?.inputPrecision === 'two-f32') {
+    throw new Error('[Matmul] Declared paired kernel requires explicit paired Tensor metadata.');
+  }
   if (getWeightDtype(B) === 'w8a8' || (pathVariant && getKernelConfig('matmul', pathVariant).weightDtype === 'w8a8')) {
     const bound = { ...options, variant: pathVariant };
     return recorder ? recordW8A8Matmul(recorder, A, B, M, N, K, bound) : runW8A8Matmul(A, B, M, N, K, bound);

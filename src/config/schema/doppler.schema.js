@@ -169,6 +169,7 @@ export const DEFAULT_RUNTIME_CONFIG = {
       // one workgroup, eliminating the conv_out intermediate dispatch.
       useLinearAttentionFusedDecodeCore: false,
       linearRecurrentStatePrecision: 'f32',
+      intermediatePrecision: 'f32',
       // Opt into the single-pass flash attention prefill kernel adapted from
       // ORT's flash_attention.wgsl.template. 64 threads = 64 queries per WG;
       // private Q/O tiles, shared K/V tiles, online softmax, no reduce pass.

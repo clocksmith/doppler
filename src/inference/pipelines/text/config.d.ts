@@ -127,6 +127,7 @@ export interface ParsedSessionSettings {
   useLinearAttentionQKVZProjectionFusion: boolean | null;
   useLinearAttentionFusedDecodeCore: boolean | null;
   linearRecurrentStatePrecision: 'f32' | 'two-f32' | null;
+  intermediatePrecision: 'f32' | 'two-f32' | null;
   useWideTileResidualFusion: boolean | null;
   useFusedRmsnormWideTile: boolean | null;
   useFusedQKVSplitQKNorm: boolean | null;

@@ -19,6 +19,8 @@ import type { ExecutionV1PoliciesSchema } from '../../config/schema/execution-v1
 /** Matmul kernel options */
 export interface MatmulOptions extends OutputBufferOptions, OutputDtypeOptions, Vec4Options {
   alpha?: number;
+  /** Paired intermediate output, or scalar F32 at an explicitly declared public logits boundary. */
+  outputPrecision?: 'f32' | 'two-f32';
   /** Optional matmul role for kernel path overrides (e.g., 'q_proj', 'ffn_gate', 'lm_head') */
   role?: string;
   /** Layer index for kernel path layer overrides */

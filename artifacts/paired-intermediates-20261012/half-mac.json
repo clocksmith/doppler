@@ -1,0 +1,19 @@
+{
+  "schema": "doppler-direct-paired-half-physical-v1",
+  "shaderSha256": "949cd5aa39edde4a9e5f2f8313f0a3531455e0900238d591ff686b0770a866a6",
+  "inputSha256": "154f4dbe9eb6e811076023781d1267de584c05b5a7832bee722a2bed8fd64274",
+  "count": 571392,
+  "seed": 624901,
+  "acceptance": {
+    "exactBinary16Bits": true
+  },
+  "scope": "Every finite half midpoint through overflow, both signs, nearest three F32 highs and quarter-ULP residual signs; independent enumerated half-distance/tie reference.",
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  },
+  "browser": "155.0.8059.39",
+  "errors": [],
+  "failures": [],
+  "passed": true
+}

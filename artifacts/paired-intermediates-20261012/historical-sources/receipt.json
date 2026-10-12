@@ -1,0 +1,8 @@
+{
+  "schema": "doppler-historical-source-retention-v1",
+  "originalPath": "src/gpu/kernels/shared/compensated-f32.wgsl",
+  "introducedBy": "8b6b8311d6f008266cf5dfa400493663285e059e",
+  "retainedPath": "artifacts/paired-intermediates-20261012/historical-sources/compensated-f32.wgsl.inc",
+  "sha256": "1e877ff56eb6ef7e108ea1ce15c13bc9a82e1603e9372c50259c675fe1420ab5",
+  "reason": "Unreferenced historical copy had no kernel entrypoint or registry entry. Canonical live codegen input is src/gpu/kernels/codegen/includes/compensated-f32.wgsl.inc; this move preserves exact historical bytes while removing unregistered shipped source."
+}

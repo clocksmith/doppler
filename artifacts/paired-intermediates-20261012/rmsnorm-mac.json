@@ -1,0 +1,53 @@
+{
+  "schema": "doppler-paired-rmsnorm-physical-v1",
+  "shaderSha256": "fa40d4862756e731df7ba7a03af5874c214dcaa1b518a9c6a87b3e344dfa540a",
+  "fixtureSha256": "8015c16cc463d911faeb3c84c1a250abceca61ca906740e35230507b4665c741",
+  "seed": 624901,
+  "tolerance": 2e-12,
+  "scope": "Independent Number/F64 RMS equation, source epsilon, weight offset and pre/post residual. No whole-model acceptance.",
+  "cases": [
+    {
+      "hidden": 128,
+      "pre": false,
+      "maxError": 4.218847493575595e-15,
+      "failures": 0
+    },
+    {
+      "hidden": 128,
+      "pre": true,
+      "maxError": 3.964198076217183e-15,
+      "failures": 0
+    },
+    {
+      "hidden": 256,
+      "pre": false,
+      "maxError": 2.7755575615628914e-15,
+      "failures": 0
+    },
+    {
+      "hidden": 256,
+      "pre": true,
+      "maxError": 4.864568791693823e-15,
+      "failures": 0
+    },
+    {
+      "hidden": 1024,
+      "pre": false,
+      "maxError": 3.822664896139278e-15,
+      "failures": 0
+    },
+    {
+      "hidden": 1024,
+      "pre": true,
+      "maxError": 5.808523622347618e-15,
+      "failures": 0
+    }
+  ],
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  },
+  "browser": "155.0.8059.39",
+  "errors": [],
+  "passed": true
+}
