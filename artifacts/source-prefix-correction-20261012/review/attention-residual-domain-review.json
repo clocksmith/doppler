@@ -1,0 +1,61 @@
+{
+  "schema": "doppler-attention-residual-domain-review-v1",
+  "checkerSha256": "f1bf4dd354d3de63e1d721577ef74d2c64ac916236b716b969d7dea04e9f2eda",
+  "helperSha256": "a056cdd5a773d12d624a974d4c48bf57f9504bf4713496e44c5dfcf374fe9fc5",
+  "capturePath": "/home/x/deco/doppler/reports/local/source-prefix-correction-20261012/rope-frequency-decode7-capture.json",
+  "captureSha256": "4d377a97fd0f1d4aa3f9a4e92900a35fa3b8b33bca0846e72c1e9e85dc731d18",
+  "qBytesSha256": "4b881c241ef035c44792f4696e7ec4cd985628bdcd64fbad141041aee0d9e8ee",
+  "kBytesSha256": "98dd87bbc3d8b83a9fb65425c6eab3ff674e0d431dbb69e6a934b80ee00a8131",
+  "layer": 15,
+  "phase": "prefill",
+  "queries": 184,
+  "heads": 8,
+  "kvHeads": 2,
+  "headDim": 256,
+  "qRange": {
+    "count": 376832,
+    "nonfinite": 0,
+    "zero": 0,
+    "subnormal": 0,
+    "minimum": 0.0000016944375147431856,
+    "maximum": 14.120552062988281,
+    "minimumQuantumPower": -43
+  },
+  "kRange": {
+    "count": 94208,
+    "nonfinite": 0,
+    "zero": 0,
+    "subnormal": 5,
+    "minimum": 0.000016450881958007812,
+    "maximum": 17.15625,
+    "minimumQuantumPower": -24
+  },
+  "productQuantumPower": -67,
+  "partialMagnitudeBound": 124034.92932128906,
+  "finiteNormalLattice": true,
+  "counterexamples": [
+    {
+      "a": "0x00800000",
+      "b": "0x807fffff",
+      "suppliedSum": "0x00000000",
+      "expectedResidual": "0x00000001",
+      "translatedHelperResidual": "0x00000000",
+      "condition": "Finite cancellation whose exact subnormal sum was flushed to signed zero. Not an observed GPU result."
+    },
+    {
+      "a": "0x80800000",
+      "b": "0x007fffff",
+      "suppliedSum": "0x80000000",
+      "expectedResidual": "0x80000001",
+      "translatedHelperResidual": "0x80000000",
+      "condition": "Finite cancellation whose exact subnormal sum was flushed to signed zero. Not an observed GPU result."
+    }
+  ],
+  "scope": "Captured Q/F16 K lattice and magnitude bound plus CPU helper counterexample. No new WGSL candidate, no GPU execution, no causal or whole-model accuracy qualification.",
+  "conditions": [
+    "Captured F16 K is promoted exactly to F32; nonzero products and finite nearest-even accumulation residuals remain multiples of the stated binary quantum.",
+    "The bound covers this captured score dot-product domain, not arbitrary application Q/K or actual backend reassociation/rounding modes.",
+    "A generic helper claim must cover FTZ/cancellation or enforce a valid domain and retain baseline behavior outside it.",
+    "Product recovery alone does not make correction accumulation, score scaling, exponential, softmax, or P*V accumulation exact."
+  ]
+}
