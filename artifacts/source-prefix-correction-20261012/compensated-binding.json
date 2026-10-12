@@ -1,0 +1,10 @@
+{
+  "archiveSha256": "0db1a8c9cdb847e08de824cc72cabd4af523cb15a40a42e654648619d5e8668c",
+  "manifestSha256": "118a758100a931c2d2384b4c3502dde564e17f60d772fca4a67eb762e0666e43",
+  "sourceManifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "unchangedWeights": true,
+  "tolerance": 0.001,
+  "sourceBaseline": "d1b23716",
+  "candidate": "compensated-sum-product-q4",
+  "updatedRefs": 1
+}
