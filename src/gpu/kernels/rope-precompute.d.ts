@@ -4,6 +4,8 @@ export interface RoPEPrecomputeOptions {
   frequencyBaseDim: number;
   inverseFrequencies?: number[] | null;
   maxSeqLen: number;
+  /** Allocation/dispatch extent; maxSeqLen retains the declared scaling context. */
+  positionCount?: number;
   ropeScale: number;
   scalingType?: 'linear' | 'yarn' | 'longrope' | null;
   scaling?: Record<string, any> | null;

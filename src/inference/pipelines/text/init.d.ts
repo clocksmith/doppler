@@ -122,6 +122,8 @@ export interface RoPEConfig {
   ropeFrequencyBaseDim?: number | null;
   ropeLocalFrequencyBaseDim?: number | null;
   maxSeqLen: number;
+  /** Table extent within maxSeqLen; does not change LongRoPE scaling. */
+  positionCount?: number;
   ropeTheta: number;
   ropeLocalTheta?: number | null;
   mropeInterleaved?: boolean;

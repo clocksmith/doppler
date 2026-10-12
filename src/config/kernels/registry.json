@@ -21477,10 +21477,9 @@
       "offset": 56
      },
      {
-      "name": "_pad2",
+      "name": "position_count",
       "type": "u32",
-      "offset": 60,
-      "padding": true
+      "offset": 60
      }
     ]
    },

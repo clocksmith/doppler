@@ -17,7 +17,7 @@ struct Uniforms {
     mrope_section_h: u32,
     mrope_section_w: u32,
     frequency_offset: u32,
-    _pad2: u32,
+    position_count: u32,
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -166,7 +166,7 @@ fn sincos_refined(angle: f32) -> vec2<f32> {
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let half_dim = u.rotary_dim / 2u;
     let index = gid.y * u.dispatch_stride + gid.x;
-    let count = u.max_seq_len * half_dim;
+    let count = u.position_count * half_dim;
     if (index >= count) {
         return;
     }

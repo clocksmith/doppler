@@ -18,13 +18,15 @@ async function computeRoPEFreqsForTheta(
   ropeScale,
   ropeScalingType,
   ropeScaling,
-  inverseFrequencies
+  inverseFrequencies,
+  positionCount
 ) {
   return runRoPEPrecompute({
     theta,
     rotaryDim,
     frequencyBaseDim,
     maxSeqLen,
+    positionCount,
     ropeScale,
     scalingType: ropeScalingType,
     scaling: ropeScaling,
@@ -102,6 +104,7 @@ function buildRoPECacheKey(config) {
     ropeFrequencyBaseDim: config.ropeFrequencyBaseDim ?? null,
     ropeLocalFrequencyBaseDim: config.ropeLocalFrequencyBaseDim ?? null,
     maxSeqLen: config.maxSeqLen,
+    positionCount: config.positionCount ?? config.maxSeqLen,
     ropeTheta: config.ropeTheta,
     ropeLocalTheta: config.ropeLocalTheta ?? null,
     mropeInterleaved: config.mropeInterleaved === true,
@@ -171,6 +174,7 @@ export async function initRoPEFrequencies(config, useGPU) {
     ropeFrequencyBaseDim,
     ropeLocalFrequencyBaseDim,
     maxSeqLen,
+    positionCount = maxSeqLen,
     ropeTheta,
     ropeLocalTheta,
     mropeInterleaved,
@@ -258,7 +262,8 @@ export async function initRoPEFrequencies(config, useGPU) {
     ropeScale,
     ropeScalingType,
     ropeScaling,
-    ropeInverseFrequencies
+    ropeInverseFrequencies,
+    positionCount
   );
 
   // Compute local (sliding_attention) frequencies if different from global.
@@ -285,7 +290,8 @@ export async function initRoPEFrequencies(config, useGPU) {
       resolvedLocalScale,
       resolvedLocalScalingType,
       resolvedLocalScaling,
-      null
+      null,
+      positionCount
       );
     } catch (error) {
       releaseRoPEBuffers(globalFreqs);
@@ -315,7 +321,7 @@ export async function initRoPEFrequencies(config, useGPU) {
 
   log.debug(
     'Pipeline',
-    `RoPE frequencies initialized (GPU): ${maxSeqLen} positions, dim=${halfDim}, headDim=${headDim}, rotaryDim=${resolvedRotaryDim}, ` +
+    `RoPE frequencies initialized (GPU): ${positionCount} positions, scalingContext=${maxSeqLen}, dim=${halfDim}, headDim=${headDim}, rotaryDim=${resolvedRotaryDim}, ` +
     `theta=${ropeTheta}${hasDistinctLocalTheta ? `, localTheta=${resolvedLocalTheta}` : ''}, ` +
     `${hasDistinctLocalDim ? `localRotaryDim=${resolvedLocalRotaryDim}, ` : ''}` +
     `scaling=${ropeScalingType ?? 'none'}:${ropeScale}${hasDistinctLocalScaling ? `, localScaling=${resolvedLocalScalingType ?? 'none'}:${resolvedLocalScale}` : ''}, ` +
@@ -341,17 +347,14 @@ export function isGPURoPEBuffers(buffers) {
 
 export async function _initRoPE() {
     const config = (this.modelConfig);
-    let maxSeqLen = config.maxSeqLen;
-    if (this.modelPartition) {
-      // Resident attempts reject positions beyond their declared session
-      // capacity. Preparing the model's entire context wastes resident memory
-      // without making any additional position executable by this partition.
-      const sessionMaxSeqLen = this.runtimeConfig.inference.session.kvcache.maxSeqLen;
-      if (!Number.isSafeInteger(sessionMaxSeqLen) || sessionMaxSeqLen < 1) {
-        throw new Error('Resident partition RoPE requires a positive session maxSeqLen.');
-      }
-      maxSeqLen = Math.min(maxSeqLen, sessionMaxSeqLen);
+    const maxSeqLen = config.maxSeqLen;
+    const sessionMaxSeqLen = this.runtimeConfig.inference.session.kvcache.maxSeqLen;
+    if (!Number.isSafeInteger(sessionMaxSeqLen) || sessionMaxSeqLen < 1) {
+      throw new Error('RoPE requires a positive session maxSeqLen.');
     }
+    // Bound storage by the executable session, independently of the model
+    // context that selects LongRoPE factors and magnitude.
+    const positionCount = Math.min(maxSeqLen, sessionMaxSeqLen);
     const ropeBuffers = await initRoPEFrequencies({
       headDim: config.globalHeadDim ?? config.headDim,
       localHeadDim: config.headDim,
@@ -361,6 +364,7 @@ export async function _initRoPE() {
       ropeFrequencyBaseDim: config.ropeFrequencyBaseDim,
       ropeLocalFrequencyBaseDim: config.ropeLocalFrequencyBaseDim,
       maxSeqLen,
+      positionCount,
       ropeTheta: config.ropeTheta,
       ropeLocalTheta: config.ropeLocalTheta,
       mropeInterleaved: config.mropeInterleaved,

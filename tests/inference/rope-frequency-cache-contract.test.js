@@ -47,8 +47,9 @@ function createFakeDevice() {
         return Promise.resolve();
       },
       submit() {},
-      writeBuffer() {
+      writeBuffer(buffer, offset, data) {
         writeBufferCount += 1;
+        buffer.written = new Uint8Array(ArrayBuffer.isView(data) ? data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) : data.slice(0));
       },
     },
     features: new Set(),
@@ -164,13 +165,44 @@ const ropeConfig = {
   const sourceConfig = { ...ropeConfig, ropeInverseFrequencies: sourceFrequencies };
   const source = await initRoPEFrequencies(sourceConfig, true);
   assert.notEqual(source.cos, first.cos, 'Different source frequencies must not reuse a generated table.');
-  const state = { useGPU: true, modelConfig: { ...sourceConfig,
+  const state = { useGPU: true,
+    runtimeConfig: { inference: { session: { kvcache: { maxSeqLen: 8 } } } },
+    modelConfig: { ...sourceConfig,
     globalHeadDim: ropeConfig.headDim, headDim: ropeConfig.localHeadDim,
     ropeRotaryDim: ropeConfig.rotaryDim } };
   await _initRoPE.call(state);
   assert.equal(state.ropeFreqsCos, source.cos, 'Pipeline load must forward source frequencies.');
   const changed = await initRoPEFrequencies({ ...sourceConfig, ropeInverseFrequencies: Array(32).fill(0.25) }, true);
   assert.notEqual(changed.cos, source.cos, 'Source-frequency bytes belong to the cache identity.');
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice();
+  resetRuntimeState(device);
+  const config = { ...ropeConfig, maxSeqLen: 8192, positionCount: 8,
+    ropeScalingType: 'longrope', ropeLocalScalingType: 'longrope',
+    ropeScaling: { original_max_position_embeddings: 64,
+      short_factor: Array(32).fill(1), long_factor: Array(32).fill(2) } };
+  config.ropeLocalScaling = config.ropeScaling;
+  const frequencies = await initRoPEFrequencies(config, true);
+  const uniform = device.createdBuffers.find(buffer => (buffer.usage & GPUBufferUsage.UNIFORM) && buffer.written);
+  const words = new Uint32Array(uniform.written.buffer);
+  assert.equal(words[0], 8192, 'LongRoPE magnitude keeps the declared model context.');
+  assert.equal(words[15], 8, 'Only session positions are allocated and dispatched.');
+  const factors = device.createdBuffers.find(buffer => buffer.written?.byteLength === 32 * 4);
+  assert.ok(new Float32Array(factors.written.buffer).every(value => value === 2),
+    'Short allocation must not select short-context factors.');
+  for (const positionCount of [0, -1, 0.5, 8193]) {
+    await assert.rejects(() => initRoPEFrequencies({ ...config, positionCount }, true), /positionCount/);
+  }
+  const wider = await initRoPEFrequencies({ ...config, positionCount: 16 }, true);
+  assert.notEqual(wider.cos, frequencies.cos, 'Allocation extent belongs to lease identity.');
+  const otherContext = await initRoPEFrequencies({ ...config, maxSeqLen: 64 }, true);
+  assert.notEqual(otherContext.cos, frequencies.cos, 'Scaling context remains in lease identity.');
+  releaseRoPEFrequencies(frequencies);
+  releaseRoPEFrequencies(wider);
+  releaseRoPEFrequencies(otherContext);
   resetRuntimeState();
 }
 
@@ -222,17 +254,18 @@ const ropeConfig = {
   resetRuntimeState();
 }
 
-{
+for (const modelPartition of [null, { index: 0 }]) {
   const device = createFakeDevice();
   resetRuntimeState(device);
-  const state = { useGPU: true, modelPartition: { index: 0 },
+  const state = { useGPU: true, modelPartition,
     runtimeConfig: { inference: { session: { kvcache: { maxSeqLen: 8 } } } },
     modelConfig: { ...ropeConfig, maxSeqLen: 8192, globalHeadDim: ropeConfig.headDim,
       headDim: ropeConfig.localHeadDim, ropeRotaryDim: ropeConfig.rotaryDim } };
   await _initRoPE.call(state);
-  const bounded = await initRoPEFrequencies(ropeConfig, true);
+  const bounded = await initRoPEFrequencies({ ...ropeConfig, maxSeqLen: 8192, positionCount: 8 }, true);
   assert.equal(state.ropeFreqsCos, bounded.cos,
-    'Resident tables cover the accepted session, not the full model context.');
+    'Standalone and partition tables cover the session while retaining the model scaling context.');
+  assert.ok(state.ropeFreqsCos.size <= 8 * (ropeConfig.rotaryDim / 2) * 4);
   assert.equal(state.modelConfig.maxSeqLen, 8192, 'Model contract remains unchanged.');
   const existing = state.ropeFrequencyLease;
   for (const maxSeqLen of [undefined, null, 0, -1, 1.5]) {
