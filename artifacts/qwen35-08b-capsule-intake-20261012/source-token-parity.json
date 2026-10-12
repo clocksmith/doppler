@@ -1,0 +1,55 @@
+{
+  "schema": "doppler.source-token-parity/v1",
+  "status": "passed",
+  "sourceModel": "Qwen/Qwen3.5-0.8B",
+  "sourceRevision": "2fc06364715b967f1860aea9cf38778875588b17",
+  "prompt": {
+    "passed": true,
+    "tokenIds": [
+      248045,
+      846,
+      198,
+      20206,
+      440,
+      1132,
+      279,
+      3299,
+      21251,
+      13,
+      248046,
+      198,
+      248045,
+      74455,
+      198,
+      248068,
+      271,
+      248069,
+      271
+    ],
+    "count": 19,
+    "mode": "Exact captured IDs; independently round-tripped through deployed tokenizer"
+  },
+  "generation": {
+    "passed": true,
+    "sourceTokens": [
+      9419,
+      248046
+    ],
+    "runtimeTokens": [
+      9419,
+      248046
+    ],
+    "sourceStop": "eos",
+    "scope": "Frozen first19-token request only; not document quality or full-model numerical qualification"
+  },
+  "provenance": {
+    "controlSha256": "d819c04e88fd7507c560f70ee7731ee183ed72793e1007a75d2b38658eeafce0",
+    "resultSha256": "b62fab0b64d300cbfa1c51fd233a8c73377cf5872da7d831c5d992eb7aa9d74a",
+    "physicalCaptureSha256": "203989ea71e32688258fad9ac67d1ef9b2c78ba6ae273c127b1b68157ce1218e",
+    "archiveSha256": "102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7",
+    "cpuAffinity": "0-3",
+    "threads": 4,
+    "commandEnvironment": "PYTHONPATH=/tmp/doppler-reference-deps; /usr/bin/python3; taskset -c 0-3; nice -n 10",
+    "dependencyFailure": "First invocation lacked retained blake3 module path; failed before inference. No model/control changes or dependency installation."
+  }
+}
