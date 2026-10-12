@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Capture pairing checks; no model or physical qualification."""
 import base64
+import copy
 import importlib.util
 from pathlib import Path
 import unittest
@@ -20,6 +21,24 @@ def row(name, count, value):
 
 
 class Pairing(unittest.TestCase):
+    def test_runtime_comparison_rejects_different_forced_history(self):
+        binding = {'archiveSha256': 'archive', 'manifestSha256': 'manifest'}
+        contract = {'requestIndex': 0, 'steps': [0, 1], 'prefixLengths': [2, 3], 'inputIds': [10, 11, 12]}
+        history = {'modelIdentity': 'frozen', 'expected': [{'steps': [{'tokenId': 12}, {'tokenId': 13}]}]}
+        runtime = {'archiveSha256': 'archive', 'manifestIdentity': 'sha256:manifest',
+            'referenceSha256': 'history', 'frozenManifestIdentity': 'frozen', 'fullPrefixes': True,
+            'physicalExecutionCompleted': True, 'declaredShaderMismatches': [],
+            'results': [{'index': 0, 'step': step, 'inputIds': [10, 11]} for step in [0, 1]]}
+        self.assertEqual(len(audit.validate_runtime_context(runtime, binding, contract, history, 'history')), 2)
+        for key, value in [('referenceSha256', 'other'), ('manifestIdentity', 'other'), ('fullPrefixes', False)]:
+            wrong = {**runtime, key: value}
+            with self.assertRaises(AssertionError):
+                audit.validate_runtime_context(wrong, binding, contract, history, 'history')
+        wrong = copy.deepcopy(history)
+        wrong['expected'][0]['steps'][0]['tokenId'] = 99
+        with self.assertRaises(AssertionError):
+            audit.validate_runtime_context(runtime, binding, contract, wrong, 'history')
+
     def test_equal_maxima_do_not_imply_same_error_source(self):
         expected = np.zeros((1, 4))
         actual = np.array([[.002, -.002, 0., 0.]])
