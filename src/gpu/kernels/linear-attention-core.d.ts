@@ -21,6 +21,8 @@ export interface LinearAttentionCoreLayerState {
   normWeightGPU: GPUBuffer;
   convStateGPU: GPUBuffer;
   recurrentStateGPU: GPUBuffer;
+  recurrentStatePrecision: 'f32' | 'two-f32';
+  recurrentStateComponents: 1 | 2;
 }
 
 export interface RunLinearAttentionCoreGPUOptions {

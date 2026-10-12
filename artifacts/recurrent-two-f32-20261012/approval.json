@@ -1,0 +1,16 @@
+{
+  "schema": "doppler-recurrent-two-f32-approval-v1",
+  "date": "2026-10-12",
+  "approval": "Yes\u2014implement and qualify the bounded proposal",
+  "proposal": "../source-prefix-correction-20261012/inactive-recurrent-state-precision-proposal.json",
+  "proposalSha256": "74f027966ce5debcbf8d7b352432ea6f90ea765f359f92c7935de65fb2deb1a6",
+  "exception": "Persistent recurrent state may use explicitly declared compensated two-F32 components.",
+  "unchanged": [
+    "approved independent F64 target",
+    "0.001 tolerance",
+    "deployed weights and tokenizer",
+    "F16 KV storage",
+    "1420000000 allocated bytes per executor"
+  ],
+  "qualification": "Approval permits implementation; it does not qualify a package or model."
+}

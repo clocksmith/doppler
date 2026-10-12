@@ -1,0 +1,25 @@
+{
+  "scope": "Retained raw implementation observations, not independent references",
+  "records": [
+    {
+      "path": "reports/local/recurrent-two-f32-20261012/doppler-gpu-0.6.27.tgz",
+      "bytes": 3366250,
+      "sha256": "d0d53e8f6d72ef7de63433d5935b2e89a717d3b4d6e8d890bd19add499e5e85e"
+    },
+    {
+      "path": "reports/local/recurrent-two-f32-20261012/mac-full55.json",
+      "bytes": 78577665,
+      "sha256": "ae630c0fc70d57cc8af5442665a56e9ab7ca163dfc3274f27e4771f8401281af"
+    },
+    {
+      "path": "reports/local/recurrent-two-f32-20261012/mac-f32-control.json",
+      "bytes": 78577728,
+      "sha256": "38b13afae35bde2cc3df2051c107201c5e281f036c62740c516b8da3a92c461a"
+    },
+    {
+      "path": "reports/local/recurrent-two-f32-20261012/mac-decode7-fixed-capture.json.gz",
+      "bytes": 333471593,
+      "sha256": "dc3569de9d345da88572ceac678baf7657c1c03dd64c8f1e2fe0c1ed313bd61e"
+    }
+  ]
+}

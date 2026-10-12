@@ -85,6 +85,7 @@ export const DEFAULT_EXECUTION_V1_SESSION = {
   useLinearAttentionABProjectionFusion: false,
   useLinearAttentionQKVZProjectionFusion: false,
   useLinearAttentionFusedDecodeCore: false,
+  linearRecurrentStatePrecision: 'f32',
   useWideTileResidualFusion: false,
   useFusedRmsnormWideTile: false,
   useFusedQKVSplitQKNorm: false,

@@ -71,7 +71,7 @@ function createBindGroupLayouts(device) {
   );
 }
 
-async function createPipelines(device, inputDtype) {
+async function createPipelines(device, inputDtype, stateComponents) {
   createBindGroupLayouts(device);
   const variant = inputDtype === 'f16' ? 'f16' : 'f32';
   const suffix = variant === 'f16' ? '_f16' : '';
@@ -100,6 +100,7 @@ async function createPipelines(device, inputDtype) {
       entryPoint: 'main',
       constants: {
         WORKGROUP_SIZE: HEAD_WORKGROUP_SIZE,
+        RECURRENT_STATE_COMPONENTS: stateComponents,
       },
     },
   });
@@ -115,6 +116,7 @@ async function createPipelines(device, inputDtype) {
       entryPoint: 'main',
       constants: {
         WORKGROUP_SIZE: HEAD_WORKGROUP_SIZE,
+        RECURRENT_STATE_COMPONENTS: stateComponents,
       },
     },
   });
@@ -126,7 +128,7 @@ function normalizeInputDtype(dtype) {
   return selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype });
 }
 
-async function ensurePipelines(device, inputDtype) {
+async function ensurePipelines(device, inputDtype, stateComponents) {
   const epoch = getShaderScopeCacheKey();
   if (epoch !== cachedEpoch) {
       pipelineCache.clear();
@@ -135,9 +137,10 @@ async function ensurePipelines(device, inputDtype) {
       fusedDecodeBindGroupLayout = null;
       cachedEpoch = epoch;
   }
-  const variant = normalizeInputDtype(inputDtype);
+  const dtype = normalizeInputDtype(inputDtype);
+  const variant = `${dtype}:${stateComponents}`;
   if (!pipelineCache.has(variant)) {
-    pipelineCache.set(variant, createPipelines(device, variant));
+    pipelineCache.set(variant, createPipelines(device, dtype, stateComponents));
     cachedEpoch = epoch;
   }
   try {
@@ -246,7 +249,20 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
     throw new Error(`linear_attention core requires matching qkv/b dtypes; got ${qkvTensor?.dtype} and ${bTensor?.dtype}.`);
   }
 
-  const pipelines = await ensurePipelines(device, inputDtype);
+  const precision = layerState.recurrentStatePrecision;
+  if (precision !== 'f32' && precision !== 'two-f32') {
+    throw new Error('linear_attention core requires an explicit recurrent state precision.');
+  }
+  const stateComponents = selectRuleValue('kernels', 'linearAttention', 'stateComponents', { precision });
+  const stateBytes = layerState.numVHeads * layerState.headKDim * layerState.headVDim * stateComponents * 4;
+  if (![layerState.numVHeads, layerState.headKDim, layerState.headVDim].every(value => Number.isSafeInteger(value) && value > 0)
+      || !Number.isSafeInteger(stateBytes) || stateBytes <= 0
+      || layerState.recurrentStateComponents !== stateComponents
+      || !Number.isSafeInteger(layerState.recurrentStateGPU.size)
+      || layerState.recurrentStateGPU.size < stateBytes) {
+    throw new Error('linear_attention recurrent state binding does not match declared storage layout.');
+  }
+  const pipelines = await ensurePipelines(device, inputDtype, stateComponents);
   if (!pipelines) {
     throw new Error(`linear_attention core failed to resolve pipelines for dtype "${inputDtype}".`);
   }

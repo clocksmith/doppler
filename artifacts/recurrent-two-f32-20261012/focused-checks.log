@@ -1,0 +1,91 @@
+TAP version 13
+# session-flags-merge.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.349416
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 40.915459
+[node-tests] ok: tests/config/session-flags-merge.test.js
+TAP version 13
+# linear-attention-allocation-cleanup: passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.500042
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 128.239209
+[node-tests] ok: tests/gpu/linear-attention-allocation-cleanup.test.js
+TAP version 13
+# linear-attention-state-probes.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.493
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 37.421083
+[node-tests] ok: tests/inference/linear-attention-state-probes.test.js
+TAP version 13
+# linear-recurrent-layout: passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.489459
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 174.224334
+[node-tests] ok: tests/inference/linear-recurrent-layout.test.js
+TAP version 13
+# Physical cache observer: queued snapshot isolation, mapping-failure cleanup and geometry rejection passed (mock GPU).
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.390583
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 36.4295
+[node-tests] ok: tests/integration/physical-kv-cache-observer.test.js
+[node-tests] ok: 5 files

@@ -638,6 +638,7 @@ inference/pipelines/text/layer.d.ts
 inference/pipelines/text/lifecycle.d.ts
 inference/pipelines/text/linear-attention-ab-fusion.d.ts
 inference/pipelines/text/linear-attention/plan.d.ts
+inference/pipelines/text/linear-attention/state-layout.d.ts
 inference/pipelines/text/load-errors.d.ts
 inference/pipelines/text/logits/gpu-executor.d.ts
 inference/pipelines/text/logits/output-transform.d.ts

@@ -1,0 +1,26 @@
+{
+  "scope": "Retained raw implementation observations, not independent references",
+  "machine": "x@128",
+  "records": [
+    {
+      "path": "reports/local/two-f32-candidate-20261012/amd-full55.json",
+      "bytes": 78577836,
+      "sha256": "ed0a752ca10e0b4e0ec7b415cccd43fbe87a8ec617c42c99d2072f3c733ddd4c"
+    },
+    {
+      "path": "reports/local/two-f32-candidate-20261012/amd-f32-control.json",
+      "bytes": 78578321,
+      "sha256": "8feb8d981820789f911b868a583986cb782cc11e922817efda2d93da764fd256"
+    },
+    {
+      "path": "reports/local/two-f32-candidate-20261012/amd-decode4-fixed-capture.json",
+      "bytes": 432792687,
+      "sha256": "aeb905a22459570fb51322e4b9e91dc4b603f236bcfd6507e005dd1a9c271b3c"
+    },
+    {
+      "path": "reports/local/two-f32-candidate-20261012/mac-decode7-fixed-capture.json.gz",
+      "bytes": 333471593,
+      "sha256": "dc3569de9d345da88572ceac678baf7657c1c03dd64c8f1e2fe0c1ed313bd61e"
+    }
+  ]
+}

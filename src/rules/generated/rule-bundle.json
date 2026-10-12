@@ -103,7 +103,7 @@
   },
   {
    "path": "kernels/linear-attention.rules.json",
-   "digest": "sha256:fa13daf4856f2feb0175779aaf921da6870bda64143c6f4d728d3a72d4bfc544"
+   "digest": "sha256:0f7fb417357e303c9e9ee7f0730c1cc7d738958bc0c4309fda8b5093d6e98fea"
   },
   {
    "path": "kernels/lm-head-argmax.rules.json",
@@ -2590,6 +2590,20 @@
     {
      "match": {},
      "value": "default"
+    }
+   ],
+   "stateComponents": [
+    {
+     "match": {
+      "precision": "f32"
+     },
+     "value": 1
+    },
+    {
+     "match": {
+      "precision": "two-f32"
+     },
+     "value": 2
     }
    ]
   },
