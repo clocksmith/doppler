@@ -1,6 +1,11 @@
 import { GENERATION_CONTRACT, GenerationError, resolveGenerationOptions, validateGenerationInput } from '../../config/generation-contract.js';
 import { sampleCapsuleLogits, stoppingReason } from '../../inference/generation-step.js';
 import { samplingSeedForToken } from '../../inference/token-sampling.js';
+import { canonicalGenerationIdentity } from '../../config/canonical-generation-policy.js';
+import { contractAssert as assert, exactRecord } from '../../config/canonical-contract-codec.js';
+import { admitResidentPrompt } from '../../inference/resident-state-contract.js';
+import { createResidentOutputState } from '../../inference/resident-output-state.js';
+import { createResidentTargetState } from '../../inference/resident-target-state.js';
 export { sampleCapsuleLogits } from '../../inference/generation-step.js';
 
 export const requireGenerationOptions = resolveGenerationOptions;
@@ -10,10 +15,70 @@ export function createSessionController(commandExecutor, resourceBinder, program
     throw new Error('createSessionController requires commandExecutor, resourceBinder, and program.');
   }
   let closed = false;
+  let active = false;
 
   return {
+    // This is the ordinary numerical path. It never creates speculative state
+    // or publishes a transition; advancing the iterator is the caller's barrier.
+    async *generateCanonicalTransitions(targetPlan, request) {
+      if (closed) throw new Error('Capsule runtime session is closed.');
+      if (active) throw new Error('Capsule generation is already active.');
+      const { signal, modules, ...wire } = request;
+      exactRecord(wire, ['schema', 'promptTokens', 'policy', 'executionIdentity']);
+      assert(wire.schema === 'doppler.canonical-generation-request/v1', 'Unsupported canonical generation request.');
+      signal?.throwIfAborted();
+      assert(targetPlan.tokenSelection === undefined, 'Canonical CPU sampling cannot use a GPU token-selection plan.');
+      const { vocabSize, maxSeqLen } = program.getGenerationGeometry();
+      const { policy, generationId } = canonicalGenerationIdentity(wire.policy, wire.executionIdentity, vocabSize);
+      assert(policy.materializedInputCapacity <= maxSeqLen, 'Canonical capacity exceeds model geometry.');
+      const admitted = admitResidentPrompt(wire.promptTokens, policy, vocabSize, generationId);
+      if (!('kind' in admitted)) { yield admitted; return; }
+      const promptTokens = [...admitted.tokenIds];
+      const options = { maxSeqLen: policy.materializedInputCapacity, maxTokens: policy.maxGeneratedTokens,
+        temperature: policy.temperature, topK: policy.topK, topP: policy.topP,
+        repetitionPenalty: policy.repetitionPenalty, repetitionPenaltyWindow: policy.repetitionPenaltyWindow,
+        presencePenalty: policy.presencePenalty, stopSequences: [...policy.stopSequences], useChatTemplate: false };
+      const target = createResidentTargetState(promptTokens, policy, vocabSize, generationId,
+        createResidentOutputState(program.createRawIncrementalDecoder(), program.createIncrementalDecoder(), policy, vocabSize));
+      let stepResult = null;
+      active = true;
+      try {
+        program.reset();
+        resourceBinder.bindSlots(targetPlan.memoryLayout,
+          { seqLen: promptTokens.length, maxSeqLen: policy.materializedInputCapacity, batchSize: 1 });
+        resourceBinder.writeSlot('input_tokens', Uint32Array.from(promptTokens));
+        let phase = await commandExecutor.executePhase('prefill', targetPlan.phases.prefill, {
+          signal, modules, context: { prompt: '', promptTokens, generationOptions: options },
+        });
+        stepResult = phase.results.at(-1);
+        while (true) {
+          signal?.throwIfAborted();
+          resourceBinder.assertDeviceAvailable();
+          const parent = target.getCursor();
+          const result = parent ? target.advance(parent.cursorId, stepResult?.logits) : target.bootstrap(stepResult?.logits);
+          program.releaseStepResult(stepResult); stepResult = null;
+          yield result;
+          if (closed) throw new Error('Capsule runtime session is closed.');
+          signal?.throwIfAborted();
+          if (result.successor.terminal) return;
+          phase = await commandExecutor.executePhase('decode', targetPlan.phases.decode, {
+            signal, modules, context: { contextTokens: [...target.getHistory(), result.successor.pendingTokenId],
+              generationOptions: options },
+          });
+          stepResult = phase.results.at(-1);
+        }
+      } finally {
+        try { program.releaseStepResult(stepResult); }
+        finally {
+          try { resourceBinder.releaseTransient(); }
+          finally { active = false; }
+        }
+      }
+    },
+
     async *generateTokens(targetPlan, request = {}, { incremental = false } = {}) {
       if (closed) throw new Error('Capsule runtime session is closed.');
+      if (active) throw new Error('Capsule generation is already active.');
       const { prompt, promptTokens: inputTokens, signal, modules, ...requestedSampling } = request;
       const input = Object.fromEntries(Object.entries({ prompt, promptTokens: inputTokens }).filter(([, value]) => value !== undefined));
       validateGenerationInput(input);
@@ -33,6 +98,7 @@ export function createSessionController(commandExecutor, resourceBinder, program
       let stopTail = '';
       const tokenContract = program.getTokenContract();
       let stepResult = null;
+      active = true;
       try {
         program.reset();
         resourceBinder.bindSlots(targetPlan.memoryLayout, dimensions);
@@ -77,12 +143,16 @@ export function createSessionController(commandExecutor, resourceBinder, program
         }
       } finally {
         try { program.releaseStepResult(stepResult); }
-        finally { resourceBinder.releaseTransient(); }
+        finally {
+          try { resourceBinder.releaseTransient(); }
+          finally { active = false; }
+        }
       }
     },
 
     async close() {
       if (closed) return;
+      if (active) throw new Error('Finish or cancel active generation before closing its runtime session.');
       closed = true;
       const errors = [];
       try { resourceBinder.releaseAll(); } catch (error) { errors.push(error); }

@@ -14,6 +14,8 @@ export interface CapsuleProgramAdapter {
   getInitialExecutionIdentity(): InitialExecutionIdentity;
   tokenize(prompt: unknown, options?: Record<string, unknown>): number[];
   createIncrementalDecoder(): import('../../inference/tokenizers/bundled/incremental-decoder.js').IncrementalTokenDecoder;
+  createRawIncrementalDecoder(): import('../../inference/tokenizers/bundled/incremental-decoder.js').IncrementalTokenDecoder;
+  getGenerationGeometry(): Readonly<{ vocabSize: number; maxSeqLen: number }>;
   decodeTokens(tokenIds: number[]): string;
   getTokenContract(): import('../../inference/generation-step.js').GenerationTokenContract;
   reset(): void;

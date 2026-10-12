@@ -72,6 +72,14 @@ export function createCapsuleProgramAdapter(modelHandle, capsule, targetPlan, re
       return modelHandle.advanced.createIncrementalDecoder();
     },
 
+    createRawIncrementalDecoder() {
+      return modelHandle.advanced.createRawIncrementalDecoder();
+    },
+
+    getGenerationGeometry() {
+      return modelHandle.advanced.getGenerationGeometry();
+    },
+
     decodeTokens(tokenIds) {
       return modelHandle.advanced.decodeTokenIds(tokenIds);
     },
