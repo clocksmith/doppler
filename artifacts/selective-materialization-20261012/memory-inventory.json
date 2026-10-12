@@ -1,0 +1,557 @@
+{
+  "schema": "doppler.inactive-paired-intermediate-memory-inventory/v1",
+  "status": "calculation-only-not-implemented",
+  "sourceRevision": "031460598c5adfd48e6cfac5170f8c1fa4c1f1b7",
+  "proposalSha256": "9b39e72599ed2f839c72ddfdc0bcc6474a4723b876fc45bbe6bbce84210054e3",
+  "model": {
+    "manifestSha256": "418e19965c86c9d4117d09c9f536041c720b03a40be8485f9c4d4d2865f9f474",
+    "architecture": {
+      "numLayers": 24,
+      "hiddenSize": 1024,
+      "intermediateSize": 3584,
+      "numAttentionHeads": 8,
+      "numKeyValueHeads": 2,
+      "headDim": 256,
+      "vocabSize": 248320,
+      "maxSeqLen": 262144,
+      "linearNumKeyHeads": 16,
+      "linearNumValueHeads": 16,
+      "linearKeyHeadDim": 128,
+      "linearValueHeadDim": 128,
+      "linearConvKernelDim": 4,
+      "hiddenSizePerLayerInput": null,
+      "vocabSizePerLayerInput": null,
+      "globalHeadDim": null,
+      "numKvSharedLayers": null,
+      "linearNormMode": "shared"
+    },
+    "layerTypes": {
+      "type": "custom",
+      "globalPattern": null,
+      "period": null,
+      "offset": null,
+      "layerTypes": [
+        "linear_attention",
+        "linear_attention",
+        "linear_attention",
+        "full_attention",
+        "linear_attention",
+        "linear_attention",
+        "linear_attention",
+        "full_attention",
+        "linear_attention",
+        "linear_attention",
+        "linear_attention",
+        "full_attention",
+        "linear_attention",
+        "linear_attention",
+        "linear_attention",
+        "full_attention",
+        "linear_attention",
+        "linear_attention",
+        "linear_attention",
+        "full_attention",
+        "linear_attention",
+        "linear_attention",
+        "linear_attention",
+        "full_attention"
+      ],
+      "residualBranchScale": 1
+    },
+    "rope": {
+      "ropeTheta": 10000000,
+      "ropeLocalTheta": null,
+      "mropeInterleaved": true,
+      "mropeSection": [
+        11,
+        11,
+        10
+      ],
+      "partialRotaryFactor": 0.25,
+      "ropeLocalPartialRotaryFactor": null,
+      "ropeFrequencyBaseDim": null,
+      "ropeLocalFrequencyBaseDim": null,
+      "ropeScalingType": null,
+      "ropeScalingFactor": 1,
+      "ropeLocalScalingType": null,
+      "ropeLocalScalingFactor": 1,
+      "yarnBetaFast": null,
+      "yarnBetaSlow": null,
+      "yarnOriginalMaxPos": null,
+      "ropeLocalYarnBetaFast": null,
+      "ropeLocalYarnBetaSlow": null,
+      "ropeLocalYarnOriginalMaxPos": null,
+      "longropeShortFactor": null,
+      "longropeLongFactor": null,
+      "longropeOriginalMaxPos": null
+    }
+  },
+  "contract": {
+    "budget": 1420000000,
+    "promptTokens": 1588,
+    "maxOutputTokens": 4096,
+    "sessionPositions": 8192,
+    "prefillTokensPerChunk": 256,
+    "prefillLayersPerSubmission": 1,
+    "decodeTokensPerSubmission": 1,
+    "decodeLayersPerSubmission": 12,
+    "linearLayersPerPartition": 9,
+    "fullLayersPerPartition": 3,
+    "attempts": 2,
+    "lowComponentBytes": 4,
+    "layoutAssumption": "Prospective separate F32 residual sidecar for each listed unique global tensor allocation. Existing high buffers retained; not an implemented ABI. Mandatory pool bucket rounding included.",
+    "pool": {
+      "alignment": 256,
+      "minBucket": 256,
+      "largeThreshold": 65536,
+      "largeStep": 65536,
+      "maxPerBucket": 8,
+      "maxPooledBuffers": 64
+    }
+  },
+  "rows": [
+    {
+      "id": "incoming-hidden",
+      "shape": [
+        "tokens",
+        1024
+      ],
+      "phase": "both",
+      "layer": "all",
+      "scope": "submission",
+      "notes": "Conservative separate carry/input low; first embedding may omit this zero residual."
+    },
+    {
+      "id": "input-normalization",
+      "shape": [
+        "tokens",
+        1024
+      ],
+      "phase": "both",
+      "layer": "all",
+      "scope": "submission",
+      "notes": ""
+    },
+    {
+      "id": "attention-output-projection",
+      "shape": [
+        "tokens",
+        1024
+      ],
+      "phase": "both",
+      "layer": "all",
+      "scope": "submission",
+      "notes": ""
+    },
+    {
+      "id": "post-attention-normalization",
+      "shape": [
+        "tokens",
+        1024
+      ],
+      "phase": "both",
+      "layer": "all",
+      "scope": "submission",
+      "notes": "PRE_RESIDUAL forks normalization and residual output; both retained."
+    },
+    {
+      "id": "post-attention-residual",
+      "shape": [
+        "tokens",
+        1024
+      ],
+      "phase": "both",
+      "layer": "all",
+      "scope": "submission",
+      "notes": ""
+    },
+    {
+      "id": "ffn-gate",
+      "shape": [
+        "tokens",
+        3584
+      ],
+      "phase": "prefill",
+      "layer": "all",
+      "scope": "submission",
+      "notes": "Separate prefill projection; absent in fused decode."
+    },
+    {
+      "id": "ffn-up",
+      "shape": [
+        "tokens",
+        3584
+      ],
+      "phase": "prefill",
+      "layer": "all",
+      "scope": "submission",
+      "notes": "Separate prefill projection; absent in fused decode."
+    },
+    {
+      "id": "ffn-activated-product",
+      "shape": [
+        "tokens",
+        3584
+      ],
+      "phase": "both",
+      "layer": "all",
+      "scope": "submission",
+      "notes": ""
+    },
+    {
+      "id": "ffn-down",
+      "shape": [
+        "tokens",
+        1024
+      ],
+      "phase": "both",
+      "layer": "all",
+      "scope": "submission",
+      "notes": ""
+    },
+    {
+      "id": "layer-residual-output",
+      "shape": [
+        "tokens",
+        1024
+      ],
+      "phase": "both",
+      "layer": "all",
+      "scope": "submission",
+      "notes": ""
+    },
+    {
+      "id": "linear-qkv",
+      "shape": [
+        "tokens",
+        6144
+      ],
+      "phase": "both",
+      "layer": "linear",
+      "scope": "submission",
+      "notes": "Packed QKV; no separately allocated Q/K/V lows."
+    },
+    {
+      "id": "linear-z",
+      "shape": [
+        "tokens",
+        2048
+      ],
+      "phase": "both",
+      "layer": "linear",
+      "scope": "submission",
+      "notes": "Retained dispatch used separate QKV and Z. Future packed QKVZ must alias rather than add another copy."
+    },
+    {
+      "id": "linear-a",
+      "shape": [
+        "tokens",
+        16
+      ],
+      "phase": "both",
+      "layer": "linear",
+      "scope": "submission",
+      "notes": ""
+    },
+    {
+      "id": "linear-b",
+      "shape": [
+        "tokens",
+        16
+      ],
+      "phase": "both",
+      "layer": "linear",
+      "scope": "submission",
+      "notes": "Separate conservative A/B buffers; packed AB may reduce allocation count."
+    },
+    {
+      "id": "linear-convolution-output",
+      "shape": [
+        "tokens",
+        6144
+      ],
+      "phase": "prefill",
+      "layer": "linear",
+      "scope": "submission",
+      "notes": "No global conv_out in fused decode."
+    },
+    {
+      "id": "linear-readout-and-gated-output",
+      "shape": [
+        "tokens",
+        2048
+      ],
+      "phase": "both",
+      "layer": "linear",
+      "scope": "submission",
+      "notes": "Prefill overwrites the same output: raw readout is NOT another allocation."
+    },
+    {
+      "id": "full-query-gate-projection",
+      "shape": [
+        "tokens",
+        4096
+      ],
+      "phase": "both",
+      "layer": "full",
+      "scope": "submission",
+      "notes": ""
+    },
+    {
+      "id": "full-split-query",
+      "shape": [
+        "tokens",
+        2048
+      ],
+      "phase": "both",
+      "layer": "full",
+      "scope": "submission",
+      "notes": ""
+    },
+    {
+      "id": "full-split-gate",
+      "shape": [
+        "tokens",
+        2048
+      ],
+      "phase": "both",
+      "layer": "full",
+      "scope": "submission",
+      "notes": ""
+    },
+    {
+      "id": "full-key-projection",
+      "shape": [
+        "tokens",
+        512
+      ],
+      "phase": "both",
+      "layer": "full",
+      "scope": "submission",
+      "notes": ""
+    },
+    {
+      "id": "full-value-projection",
+      "shape": [
+        "tokens",
+        512
+      ],
+      "phase": "both",
+      "layer": "full",
+      "scope": "submission",
+      "notes": ""
+    },
+    {
+      "id": "full-query-normalization-and-rope",
+      "shape": [
+        "tokens",
+        2048
+      ],
+      "phase": "both",
+      "layer": "full",
+      "scope": "submission",
+      "notes": "RoPE updates Q in place; no extra rotated-Q allocation."
+    },
+    {
+      "id": "full-key-normalization-and-rope",
+      "shape": [
+        "tokens",
+        512
+      ],
+      "phase": "both",
+      "layer": "full",
+      "scope": "submission",
+      "notes": "RoPE updates K in place; direct paired-to-F16 store needs no new global F32 collapse buffer."
+    },
+    {
+      "id": "full-attention-output",
+      "shape": [
+        "tokens",
+        2048
+      ],
+      "phase": "both",
+      "layer": "full",
+      "scope": "submission",
+      "notes": "Selected online/head256 paths do not allocate a global T×T score matrix."
+    },
+    {
+      "id": "full-gated-attention-output",
+      "shape": [
+        "tokens",
+        2048
+      ],
+      "phase": "both",
+      "layer": "full",
+      "scope": "submission",
+      "notes": ""
+    }
+  ],
+  "excluded": [
+    {
+      "id": "recurrent-state",
+      "reason": "Already approved interleaved two-F32 state; counted separately versus historical F32 controls, not new broad proposal."
+    },
+    {
+      "id": "weights-and-embedding",
+      "reason": "Weight bytes unchanged; exact decoded embedding needs no nonzero residual. Incoming carry row conservatively retains room."
+    },
+    {
+      "id": "kv-cache",
+      "reason": "F16 storage unchanged. Pair-to-F16 nearest-even conversion must write directly without intermediate single-F32 collapse; register/workgroup cost is not a GPUBuffer allocation."
+    },
+    {
+      "id": "public-logits",
+      "reason": "Public logits remain F32; final normalization/last hidden lows charged separately."
+    },
+    {
+      "id": "attention-score-matrix",
+      "reason": "Selected attention kernels use workgroup/private online reduction; no T×T global matrix."
+    }
+  ],
+  "persistent": {
+    "convHistoryShape": [
+      6144,
+      4
+    ],
+    "stateShape": [
+      16,
+      128,
+      128
+    ],
+    "ropeLowShapes": [
+      [
+        8192,
+        32
+      ],
+      [
+        8192,
+        32
+      ]
+    ],
+    "epsilon": {
+      "logicalResidualBytes": 4,
+      "proposedPaddedUniformBytes": 16,
+      "conservativePooledAllocationBytes": 256,
+      "scope": "one per linear-layer submission; two prefill dispatches share the same params resource. Existing padding may make incremental actual bytes zero; this calculation does not assume that optimization."
+    }
+  },
+  "sources": [
+    {
+      "path": "src/inference/pipelines/text/partition-execution.js",
+      "sha256": "97f9dd83b7efde643fb3abd27d9459acd659429a1d241110a1e0d8c1d793983b"
+    },
+    {
+      "path": "src/inference/pipelines/text/partition-attempt.js",
+      "sha256": "162964b79b7bbe78391ce845c293a26dda301b594cde06b4c8ea80b6cc65fc03"
+    },
+    {
+      "path": "src/inference/pipelines/text/resident-partition.js",
+      "sha256": "da1221ce7f524ac67b7297eecb7189ddc5e149345290d1c5fbcfa3d15f92593b"
+    },
+    {
+      "path": "src/inference/pipelines/text/init-rope.js",
+      "sha256": "32ab58d42a6e1c2a56f4ba200ab4b89173f5515deb594fce19bdde5d81970fb4"
+    },
+    {
+      "path": "src/inference/pipelines/text/linear-attention.js",
+      "sha256": "4c747eb431fae60191fe05e60e13b5c7e2faad4abdf7866d1472f56510fdfb22"
+    },
+    {
+      "path": "src/inference/pipelines/text/linear-attention/plan.js",
+      "sha256": "24f80ea17c72a6c927f412e7b78fb1a6e895956f353e59fdbcc105fdae80d88d"
+    },
+    {
+      "path": "src/gpu/kernels/linear-attention-core.js",
+      "sha256": "ab4dccee4b9e68066df2b84dc9518e4197e30a9890d77d73ee22ec40b927aa9a"
+    },
+    {
+      "path": "src/gpu/kernels/rope-qk.js",
+      "sha256": "84dbcbb330baa0d3b8cb694fc8df6b43fd39eb157cd8692bef4051c7d6ab43c4"
+    },
+    {
+      "path": "src/gpu/kernels/rope-precompute.js",
+      "sha256": "1eb5512a30dc89dee0cb1350913807e1b1b057e2e49ab2ab99eabe63a77a615c"
+    },
+    {
+      "path": "src/gpu/kernels/rmsnorm-qk.js",
+      "sha256": "04fe784531b62daac4ec022eb2c26c991afff083d476e43793e62e246c9b5b52"
+    },
+    {
+      "path": "src/inference/pipelines/text/attention/projections.js",
+      "sha256": "a0c6173db6b262f7b23685b30294216805f7e702f290b632b89405722323ef0e"
+    },
+    {
+      "path": "src/inference/pipelines/text/ffn/dense.js",
+      "sha256": "966bc6b88a10c7aa73f343003bf9905d6879b77cc7cfcdacab363b0aae437877"
+    },
+    {
+      "path": "src/gpu/kernels/attention/executors.js",
+      "sha256": "f8a090a4c83016cafb58e683acd3886464ddc3c2bc3d1a96ce9f502dd6c949f5"
+    },
+    {
+      "path": "src/memory/buffer-pool.js",
+      "sha256": "123087a2363cbbece266b714534642c12e9097715509dbb84a1a8e41622e6a83"
+    },
+    {
+      "path": "src/config/schema/buffer-pool.schema.js",
+      "sha256": "cc0e809d95df3ff0528a0c166fbe0f41ad5c5d3917d5a5374b2a53371d7baebb"
+    },
+    {
+      "path": "src/gpu/command-recorder.js",
+      "sha256": "03b56ff86c71008cc8fd2f0cd306b6e2f151e8a57150340d668da89b3ef06fd3"
+    },
+    {
+      "path": "artifacts/recurrent-two-f32-20261012/ideal-materialization-map.json",
+      "sha256": "2ce504dbd9eece4b7d38f7073a7e1b7f33e7957861b1f4e5fb5abfcc9be771de"
+    },
+    {
+      "path": "artifacts/recurrent-two-f32-20261012/ideal-materialization-dispatch-binding.json",
+      "sha256": "f424c8f4cf06a6e1663a32d29cc275ca20d0121a77777f8a68d624ed1d2ca6ca"
+    }
+  ],
+  "observed": {
+    "source": "https://github.com/clocksmith/reploid/blob/main/artifacts/allocation-memory-20261012/summary.json",
+    "sourceSha256": "a876d592e19b1fb459d10924effaa73703bd3d3b4b1fa81dc4e941cf1ff9b976",
+    "archiveSha256": "7449618b1e3cf2b96ec18a2f30aa14ddf56c787ce9b871e535df7a9b107b367a",
+    "scope": "Historical sequential/repeated attempts and reverse cancellation; F32 state and intermediates. Not concurrent two-attempt proof or proposed-precision measurements.",
+    "hosts": [
+      {
+        "phase": "repetition",
+        "host": "mac",
+        "partitionIndex": 0,
+        "weightBytes": 650989568,
+        "peakBytes": 809459080
+      },
+      {
+        "phase": "repetition",
+        "host": "linux",
+        "partitionIndex": 1,
+        "weightBytes": 285497344,
+        "peakBytes": 446967976
+      },
+      {
+        "phase": "cancellation",
+        "host": "mac",
+        "partitionIndex": 1,
+        "weightBytes": 285497344,
+        "peakBytes": 395753096
+      },
+      {
+        "phase": "cancellation",
+        "host": "linux",
+        "partitionIndex": 0,
+        "weightBytes": 650989568,
+        "peakBytes": 761521208
+      }
+    ]
+  },
+  "unknowns": [
+    "New kernels may require additional global workspaces; those are not part of this mapped-sidecar calculation and must be individually added before allocation.",
+    "Additional paired precision in private/workgroup storage can change compiler spills/physical residency, not exposed as GPUBuffer budget bytes.",
+    "Two pending attempts can overlap resources; conservatively charge two scratch sets rather than assume serialization.",
+    "Pool-released buffers and deferred destruction remain charged. Calculated idle-pool bound assumes only the inventoried sidecar size classes; deferred destruction has no independent finite bound without a settlement/admission rule.",
+    "Historical peaks cannot be added to calculated deltas to establish an actual concurrent peak.",
+    "Partition tensor ABI and maxActivationBytes must explicitly carry both components; otherwise the contributor boundary destroys the residual. No new transport architecture is needed but existing interface changes and matching qualifiers are required.",
+    "Source epsilon residual and direct paired-to-F16 rounding require independent arithmetic controls; memory arithmetic proves no numerical accuracy."
+  ]
+}
