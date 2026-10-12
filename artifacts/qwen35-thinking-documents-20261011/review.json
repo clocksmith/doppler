@@ -1,0 +1,51 @@
+{
+  "schema": "doppler.source-document-review/v1",
+  "caseId": "fresh-bathroom-comparison",
+  "qualified": false,
+  "disposition": "rejected",
+  "resultSha256": "43b5f5cbe39290c4f28c11d4d079d5756672ebb519413f8b05579496a72cfee8",
+  "suiteSha256": "bedb6724c8c71d4f8c7083bb1a2122be5f3959c2b10710dd626f6fb1dbc33fd9",
+  "generatedTokens": 4096,
+  "inputTokens": 486,
+  "outputUtf16Units": 14208,
+  "stopReason": "max-tokens",
+  "naturalCompletion": false,
+  "thinkingBoundaryCount": 1,
+  "findings": [
+    {
+      "criterion": "completion",
+      "pass": false,
+      "observation": "Answer stops in the Linden timeline before questions or a completed comparison."
+    },
+    {
+      "criterion": "inclusions and exclusions",
+      "pass": false,
+      "observation": "Final table lists Birch plumbing as excluded although D1:P2 includes it. Quarry included electrical allowance appears in Exclusions. Linden plumbing is treated as excluded without preserving the conflicting clause."
+    },
+    {
+      "criterion": "citations",
+      "pass": false,
+      "observation": "Cost table and exclusion claims lack exact supporting passage IDs; schedule section supplies D1:P3 and D2:P3."
+    },
+    {
+      "criterion": "limits",
+      "pass": true,
+      "observation": "4096 generated tokens, 4582 total tokens, 14208 UTF-16 units; reaching the token ceiling does not satisfy natural completion."
+    }
+  ],
+  "remainingCases": [
+    {
+      "id": "fresh-bathroom-correction",
+      "status": "not-run"
+    },
+    {
+      "id": "contractor-comparison",
+      "status": "not-run"
+    },
+    {
+      "id": "contractor-retained-correction",
+      "status": "not-run"
+    }
+  ],
+  "comparisonNote": "Empty GPU comparator: firstTokenDivergence is inapplicable. Source counting success does not qualify these documents. No converted/runtime or distribution qualification."
+}

@@ -1,0 +1,87 @@
+[
+  {
+    "path": "package/src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-af16.json",
+    "before": "0bdb4d0384c8664d13c7fb3a5c6309f326a0b364ae9de3def29729839e10b9cc",
+    "after": "d0b6a90b4913055d01982256623bd79669049f5229c1805b250278942b1b6344"
+  },
+  {
+    "path": "package/src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-af32.json",
+    "before": "669768e13e6b337263442bcdbfe5cfa7fbd3256951c135e224d59acb582e36d9",
+    "after": "e0005f406a4013e0a3e4786cf521a80d91cb5a9951ae1409712ea802b6f13a37"
+  },
+  {
+    "path": "package/src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16.json",
+    "before": "2c8f6f236b6580675e2db7861bd75af5455780635664f0151e660c1a3f4260e6",
+    "after": "b8e46eb112163892fd946f182a984f01a2c6d9983caa57739364d72d08d6b41e"
+  },
+  {
+    "path": "package/src/config/conversion/gemma4/gemma-4-31b-it-text-q4k-ehf16-af16.json",
+    "before": "f06128bf6bab129c1edc6d3a019e5cfbea6783704b870026540d89a24ff533a8",
+    "after": "a74b95a2627c761d60312eec0c661954c9c8280f2673d84302ce0ab0b88d85f2"
+  },
+  {
+    "path": "package/src/config/conversion/gemma4/gemma-4-31b-it-text-q4k-ehf16-af32.json",
+    "before": "6830de4a3ff941344594c816f8999899b038bb36f7bc911c059ad8992cbee994",
+    "after": "0fd3190103b0d55f4e03ed7f784fb9a5ab0a6875e77f22ac42d08178d3309b9d"
+  },
+  {
+    "path": "package/src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple.json",
+    "before": "b28a07b866899c07c6b762183478515ea8d6bcf10daa8ba8e3a016036af75ed9",
+    "after": "7e8879406f33da4c22aba67142ef20a404af8a54bac9a8a0fadea672ff752a81"
+  },
+  {
+    "path": "package/src/config/conversion/qwen3/qwen-3-4b-instruct-2507-q4k-ehf16-af32.json",
+    "before": "d0a1dda95c385236cd193bcb1ab1e19d0cf01b0579f4b029c885975c80e73c90",
+    "after": "add1a038b6ab5d3dce4e104c5efc87103d0dfb4696a7f84abdfb9c20fb643ca7"
+  },
+  {
+    "path": "package/src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
+    "before": "ca3a81b4b8a35c0d9581f7c5d3e9aeea0b1956e206e39957841fee358db6defc",
+    "after": "b682fb97b18c547ccc8f81482fd8f781b870e771d7aad50bba52f3bad8a2c4be"
+  },
+  {
+    "path": "package/src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json",
+    "before": "d2364b50d07e0dfe1366dcf5af2ee3c5420473c680f45ef362190717755ed3da",
+    "after": "7b0c7ba02b6c0efd8817d6c933b1b87db704383141960f2e96020f72fd2cd207"
+  },
+  {
+    "path": "package/src/config/conversion/qwen3/qwen-3-5-9b-q4k-ehaf16.json",
+    "before": "e657033fb23c221026f7fdc9065e0cd6e4c53fc8321d0c5502a9e31425cd2ff9",
+    "after": "5a54d8503f3414f6cfd0204b610b503cddb03d8689a0a8b0ddccc3a523488262"
+  },
+  {
+    "path": "package/src/config/conversion/qwen3/qwen-3-6-27b-q4k-eaf16.json",
+    "before": "b4ebc656f80c6e752f9d795245fc346e3cf6066b2dcfbeeb5cde272d3fe497dd",
+    "after": "601fcc7c1806a1673ca2ae54bbc470223b7a1fea465431aa2c9b581647abcd00"
+  },
+  {
+    "path": "package/src/config/conversion/qwen3/qwen-3-6-27b-q4k-ehaf16.json",
+    "before": "3c1f4eb403994c314e4868a778ed6c694142ae8ebdd138048b0a5b095997a81a",
+    "after": "e127c8fbc12defd0864c77702aa2af9776c145454b78c2a36347f1a671c26528"
+  },
+  {
+    "path": "package/src/config/conversion/qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32.json",
+    "before": "e54e51ed8e438bdf3268b11c90a200a34049de38aedddc67f1abe8bf81650c61",
+    "after": "fe43cfffc46ef586846822a9945e1a7f9e9b59cd48ebadc66147b9e2f8ae4494"
+  },
+  {
+    "path": "package/src/config/conversion/qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32.json",
+    "before": "2b30ce247aec5360c77b06b1acf9340d40d4c41c8ca09eebd3a40cfdd6b75428",
+    "after": "b78358ef2a504c255081f85ba2f3999064a4114ae4f4be250879cf599979de76"
+  },
+  {
+    "path": "package/src/config/conversion/qwen3/qwen3.8-27b-text-f16-af32.json",
+    "before": "671cef3168f3e61e1ce6fe8a287e5afe44d7a754892346e9eb635a2694b9624f",
+    "after": "2f5b90fb5b59a84aad5b4f92df74f827049b04e14aeab4676f09ec1091898fff"
+  },
+  {
+    "path": "package/src/config/conversion/qwen3/qwen3.8-27b-text-q4k-ehaf16.json",
+    "before": "def35860a456d06693acb7cc78936cd91fa519df97439f625761838ec33f234c",
+    "after": "78ffc924b6b2aa9aff6cb1dfd9e4f28283aae1e33e12f62275c3cad6db294612"
+  },
+  {
+    "path": "package/src/gpu/kernels/fused_matmul_q4_widetile.wgsl",
+    "before": "d38300e9c30877e2aec62c5064ac8688cedd454146204d6cc1652a083ba0811c",
+    "after": "92e6ef688be6b81c1b256c452e57e2c243c2f3543db3991585af4994b8693e39"
+  }
+]
