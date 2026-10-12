@@ -1,0 +1,244 @@
+diff --git a/src/config/kernels/registry.json b/src/config/kernels/registry.json
+index 0c6b71b1..6f8fc4f0 100644
+--- a/src/config/kernels/registry.json
++++ b/src/config/kernels/registry.json
+@@ -21477,10 +21477,9 @@
+       "offset": 56
+      },
+      {
+-      "name": "_pad2",
++      "name": "position_count",
+       "type": "u32",
+-      "offset": 60,
+-      "padding": true
++      "offset": 60
+      }
+     ]
+    },
+diff --git a/src/gpu/kernels/generated/uniform-writers-2.js b/src/gpu/kernels/generated/uniform-writers-2.js
+index 4e22237c..cfc7e743 100644
+--- a/src/gpu/kernels/generated/uniform-writers-2.js
++++ b/src/gpu/kernels/generated/uniform-writers-2.js
+@@ -224,7 +224,7 @@ export function write_rope_precompute_f32(view, values, kernel) {
+   writeU32(view, 48, values["mrope_section_h"], kernel, "mrope_section_h");
+   writeU32(view, 52, values["mrope_section_w"], kernel, "mrope_section_w");
+   writeU32(view, 56, values["frequency_offset"], kernel, "frequency_offset");
+-  view.setUint32(60, 0, true);
++  writeU32(view, 60, values["position_count"], kernel, "position_count");
+ }
+ 
+ export function write_forecast_output_f32(view, values, kernel) {
+diff --git a/src/gpu/kernels/rope-precompute.js b/src/gpu/kernels/rope-precompute.js
+index db7fb918..fbf962c2 100644
+--- a/src/gpu/kernels/rope-precompute.js
++++ b/src/gpu/kernels/rope-precompute.js
+@@ -115,6 +115,11 @@ export function buildRoPEPrecomputeAuxiliaryData(options, halfDim) {
+ export async function runRoPEPrecompute(options) {
+   const device = getDevice();
+   if (!device) throw new Error('[RoPE] GPU device is required for frequency precomputation.');
++  const positionCount = options.positionCount ?? options.maxSeqLen;
++  if (!Number.isSafeInteger(options.maxSeqLen) || options.maxSeqLen < 1
++    || !Number.isSafeInteger(positionCount) || positionCount < 1 || positionCount > options.maxSeqLen) {
++    throw new Error('[RoPE] positionCount must be a positive integer within the declared maxSeqLen.');
++  }
+   const halfDim = options.rotaryDim / 2;
+   const scaling = buildRoPEPrecomputeAuxiliaryData(options, halfDim);
+   const inverseFrequencies = validateRoPEInverseFrequencies(
+@@ -127,7 +132,7 @@ export async function runRoPEPrecompute(options) {
+   if (inverseFrequencies) {
+     data.set(new Uint32Array(Float32Array.from(inverseFrequencies).buffer), frequencyOffset);
+   }
+-  const count = options.maxSeqLen * halfDim;
++  const count = positionCount * halfDim;
+   const dispatchPlan = planRoPEPrecomputeDispatch(device, count);
+   const ropeData = acquireBuffer(
+     Math.max(4, data.byteLength),
+@@ -145,6 +150,7 @@ export async function runRoPEPrecompute(options) {
+       [ropeData, cos, sin],
+       {
+         max_seq_len: options.maxSeqLen,
++        position_count: positionCount,
+         rotary_dim: options.rotaryDim,
+         frequency_base_dim: options.frequencyBaseDim,
+         scaling_type: scaling.code,
+diff --git a/src/gpu/kernels/rope_precompute.wgsl b/src/gpu/kernels/rope_precompute.wgsl
+index 34bd8b77..11bf2854 100644
+--- a/src/gpu/kernels/rope_precompute.wgsl
++++ b/src/gpu/kernels/rope_precompute.wgsl
+@@ -17,7 +17,7 @@ struct Uniforms {
+     mrope_section_h: u32,
+     mrope_section_w: u32,
+     frequency_offset: u32,
+-    _pad2: u32,
++    position_count: u32,
+ }
+ 
+ @group(0) @binding(0) var<uniform> u: Uniforms;
+@@ -166,7 +166,7 @@ fn sincos_refined(angle: f32) -> vec2<f32> {
+ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+     let half_dim = u.rotary_dim / 2u;
+     let index = gid.y * u.dispatch_stride + gid.x;
+-    let count = u.max_seq_len * half_dim;
++    let count = u.position_count * half_dim;
+     if (index >= count) {
+         return;
+     }
+diff --git a/src/inference/pipelines/text/init-rope.js b/src/inference/pipelines/text/init-rope.js
+index f3ef8bad..460f396a 100644
+--- a/src/inference/pipelines/text/init-rope.js
++++ b/src/inference/pipelines/text/init-rope.js
+@@ -18,13 +18,15 @@ async function computeRoPEFreqsForTheta(
+   ropeScale,
+   ropeScalingType,
+   ropeScaling,
+-  inverseFrequencies
++  inverseFrequencies,
++  positionCount
+ ) {
+   return runRoPEPrecompute({
+     theta,
+     rotaryDim,
+     frequencyBaseDim,
+     maxSeqLen,
++    positionCount,
+     ropeScale,
+     scalingType: ropeScalingType,
+     scaling: ropeScaling,
+@@ -102,6 +104,7 @@ function buildRoPECacheKey(config) {
+     ropeFrequencyBaseDim: config.ropeFrequencyBaseDim ?? null,
+     ropeLocalFrequencyBaseDim: config.ropeLocalFrequencyBaseDim ?? null,
+     maxSeqLen: config.maxSeqLen,
++    positionCount: config.positionCount ?? config.maxSeqLen,
+     ropeTheta: config.ropeTheta,
+     ropeLocalTheta: config.ropeLocalTheta ?? null,
+     mropeInterleaved: config.mropeInterleaved === true,
+@@ -171,6 +174,7 @@ export async function initRoPEFrequencies(config, useGPU) {
+     ropeFrequencyBaseDim,
+     ropeLocalFrequencyBaseDim,
+     maxSeqLen,
++    positionCount = maxSeqLen,
+     ropeTheta,
+     ropeLocalTheta,
+     mropeInterleaved,
+@@ -258,7 +262,8 @@ export async function initRoPEFrequencies(config, useGPU) {
+     ropeScale,
+     ropeScalingType,
+     ropeScaling,
+-    ropeInverseFrequencies
++    ropeInverseFrequencies,
++    positionCount
+   );
+ 
+   // Compute local (sliding_attention) frequencies if different from global.
+@@ -285,7 +290,8 @@ export async function initRoPEFrequencies(config, useGPU) {
+       resolvedLocalScale,
+       resolvedLocalScalingType,
+       resolvedLocalScaling,
+-      null
++      null,
++      positionCount
+       );
+     } catch (error) {
+       releaseRoPEBuffers(globalFreqs);
+@@ -315,7 +321,7 @@ export async function initRoPEFrequencies(config, useGPU) {
+ 
+   log.debug(
+     'Pipeline',
+-    `RoPE frequencies initialized (GPU): ${maxSeqLen} positions, dim=${halfDim}, headDim=${headDim}, rotaryDim=${resolvedRotaryDim}, ` +
++    `RoPE frequencies initialized (GPU): ${positionCount} positions, scalingContext=${maxSeqLen}, dim=${halfDim}, headDim=${headDim}, rotaryDim=${resolvedRotaryDim}, ` +
+     `theta=${ropeTheta}${hasDistinctLocalTheta ? `, localTheta=${resolvedLocalTheta}` : ''}, ` +
+     `${hasDistinctLocalDim ? `localRotaryDim=${resolvedLocalRotaryDim}, ` : ''}` +
+     `scaling=${ropeScalingType ?? 'none'}:${ropeScale}${hasDistinctLocalScaling ? `, localScaling=${resolvedLocalScalingType ?? 'none'}:${resolvedLocalScale}` : ''}, ` +
+@@ -341,17 +347,14 @@ export function isGPURoPEBuffers(buffers) {
+ 
+ export async function _initRoPE() {
+     const config = (this.modelConfig);
+-    let maxSeqLen = config.maxSeqLen;
+-    if (this.modelPartition) {
+-      // Resident attempts reject positions beyond their declared session
+-      // capacity. Preparing the model's entire context wastes resident memory
+-      // without making any additional position executable by this partition.
+-      const sessionMaxSeqLen = this.runtimeConfig.inference.session.kvcache.maxSeqLen;
+-      if (!Number.isSafeInteger(sessionMaxSeqLen) || sessionMaxSeqLen < 1) {
+-        throw new Error('Resident partition RoPE requires a positive session maxSeqLen.');
+-      }
+-      maxSeqLen = Math.min(maxSeqLen, sessionMaxSeqLen);
++    const maxSeqLen = config.maxSeqLen;
++    const sessionMaxSeqLen = this.runtimeConfig.inference.session.kvcache.maxSeqLen;
++    if (!Number.isSafeInteger(sessionMaxSeqLen) || sessionMaxSeqLen < 1) {
++      throw new Error('RoPE requires a positive session maxSeqLen.');
+     }
++    // Bound storage by the executable session, independently of the model
++    // context that selects LongRoPE factors and magnitude.
++    const positionCount = Math.min(maxSeqLen, sessionMaxSeqLen);
+     const ropeBuffers = await initRoPEFrequencies({
+       headDim: config.globalHeadDim ?? config.headDim,
+       localHeadDim: config.headDim,
+@@ -361,6 +364,7 @@ export async function _initRoPE() {
+       ropeFrequencyBaseDim: config.ropeFrequencyBaseDim,
+       ropeLocalFrequencyBaseDim: config.ropeLocalFrequencyBaseDim,
+       maxSeqLen,
++      positionCount,
+       ropeTheta: config.ropeTheta,
+       ropeLocalTheta: config.ropeLocalTheta,
+       mropeInterleaved: config.mropeInterleaved,
+diff --git a/src/inference/pipelines/text/init-rope.js b/src/inference/pipelines/text/init-rope.js
+index 460f396a..25b445cd 100644
+--- a/src/inference/pipelines/text/init-rope.js
++++ b/src/inference/pipelines/text/init-rope.js
+@@ -1,3 +1,4 @@
++import { isSlidingLayerType } from './attention/dispatch-params.js';
+ import { getDevice } from '../../../gpu/device.js';
+ import { isBufferActive, releaseBuffer } from '../../../memory/buffer-pool.js';
+ import { isGpuBufferInstance } from '../../../gpu/weight-buffer.js';
+@@ -96,6 +97,7 @@ function hasLiveCachedGpuRopeBuffers(buffers) {
+ 
+ function buildRoPECacheKey(config) {
+   return JSON.stringify({
++    localTablesRequired: !Array.isArray(config.layerTypes) || config.layerTypes.some(isSlidingLayerType),
+     headDim: config.headDim,
+     localHeadDim: config.localHeadDim ?? null,
+     rotaryDim: config.rotaryDim ?? null,
+@@ -280,7 +282,10 @@ export async function initRoPEFrequencies(config, useGPU) {
+     resolvedLocalScale,
+     resolvedLocalScaling
+   );
+-  if (hasDistinctLocalTheta || hasDistinctLocalScaling || hasDistinctLocalDim) {
++  // Both layer execution paths select local tables only for declared local layers.
++  // Direct preparation callers without a schedule retain their explicit dual-table request.
++  const localTablesRequired = !Array.isArray(config.layerTypes) || config.layerTypes.some(isSlidingLayerType);
++  if (localTablesRequired && (hasDistinctLocalTheta || hasDistinctLocalScaling || hasDistinctLocalDim)) {
+     try {
+       localFreqs = await computeRoPEFreqsForTheta(
+       resolvedLocalTheta,
+@@ -356,6 +361,7 @@ export async function _initRoPE() {
+     // context that selects LongRoPE factors and magnitude.
+     const positionCount = Math.min(maxSeqLen, sessionMaxSeqLen);
+     const ropeBuffers = await initRoPEFrequencies({
++      layerTypes: config.layerTypes,
+       headDim: config.globalHeadDim ?? config.headDim,
+       localHeadDim: config.headDim,
+       rotaryDim: config.ropeRotaryDim,
+diff --git a/src/memory/buffer-pool.js b/src/memory/buffer-pool.js
+index 2d99d2a6..19893740 100644
+--- a/src/memory/buffer-pool.js
++++ b/src/memory/buffer-pool.js
+@@ -227,8 +227,7 @@ export class BufferPool {
+       );
+     }
+ 
+-    this.#enforceBudgetBeforeAllocate(bucket, label);
+-
++    // Reuse adds no allocation: preserve compatible buffers before trimming.
+     // Try to get from pool
+     if (this.#config.enablePooling) {
+       const pooled = this.#getFromPool(bucket, usage);
+@@ -254,6 +253,8 @@ export class BufferPool {
+       }
+     }
+ 
++    this.#enforceBudgetBeforeAllocate(bucket, label);
++
+     // Allocate new buffer
+     const buffer = device.createBuffer({
+       label: `${label}_${bucket}`,
