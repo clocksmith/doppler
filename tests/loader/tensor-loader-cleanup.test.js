@@ -17,12 +17,14 @@ const { setDevice } = await import('../../src/gpu/device.js');
 const { destroyBufferPool, getBufferPool } = await import('../../src/memory/buffer-pool.js');
 const {
   loadQ4KFused,
+  loadTensorToGPU,
   loadQ6K,
   loadBF16,
   loadFloat,
 } = await import('../../src/loader/tensors/tensor-loader.js');
 const { loadEmbeddings } = await import('../../src/loader/embedding-loader.js');
 const { loadFinalWeights } = await import('../../src/loader/final-weights-loader.js');
+const { DopplerLoader } = await import('../../src/loader/doppler-loader.js');
 const { getWeightDtype } = await import('../../src/gpu/weight-buffer.js');
 
 class FakeBuffer {
@@ -131,6 +133,34 @@ async function flushDeferredDestroy() {
 
 function assertPoolClean() {
   assert.equal(getBufferPool().getStats().activeBuffers, 0);
+}
+
+{
+  const device = createFakeDevice({ features: ['shader-f16', 'subgroups'] });
+  resetRuntimeState(device);
+  const location = { dtype: 'Q4_K_M', size: 144, shape: [1, 256], role: 'matmul' };
+  const borrowed = new FakeBuffer({ size: 144, usage: GPUBufferUsage.STORAGE });
+  const result = await loadTensorToGPU(borrowed, location, 'packed_only_q_proj', {
+    useFusedQ4K: true, q4kLayout: 'row', keepF32Weights: false,
+    q4kMaterializationMode: 'mixed', q4kFusedRoles: ['q_proj'], q4kPackedOnlyRoles: ['q_proj'],
+    consumerRole: 'q_proj',
+  });
+  assert.equal(location.role, 'matmul', 'Consumer binding never rewrites artifact classification.');
+  assert.equal(getWeightDtype(result.data), 'q4k');
+  assert.equal(result.data.buffer, borrowed);
+  assert.equal(device.createdBuffers.length, 0, 'Packed-only dispatch must allocate no dense shadow.');
+  assertPoolClean();
+  const loader = new DopplerLoader();
+  loader.setQ4KConfig({useFusedQ4K:true, q4kLayout:'row', keepF32Weights:false,
+    q4kMaterializationMode:'mixed', q4kFusedRoles:['q_proj'], q4kPackedOnlyRoles:['q_proj']});
+  loader.tensorLocations.set('generic-q4', location);
+  loader._loadingConfig = {allowF32UpcastNonMatmul:true};
+  loader.gpuCapabilities = {hasF16:true, hasSubgroups:true};
+  loader._shouldStreamUploadToGPU = () => false;
+  loader._assembleShardData = async () => borrowed;
+  const throughLoader = await loader._loadTensor('generic-q4', true, false, 'q_proj');
+  assert.equal(throughLoader.buffer, borrowed, 'Loader facade must retain the consumer-slot binding.');
+  assert.equal(device.createdBuffers.length, 0);
 }
 
 const PIPELINE_FAILURE = /shader-f16|createShaderModule|createComputePipeline|createComputePipelineAsync/;

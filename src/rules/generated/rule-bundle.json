@@ -215,7 +215,7 @@
   },
   {
    "path": "loader/tensor-loader.rules.json",
-   "digest": "sha256:4916a3f8dc5d1cda79522a46508c9b498901071a3fddaf067f6fe5ae62b17c31"
+   "digest": "sha256:187d404290f711cea57a8546b6feb5c74b99c00a12b3e5a9df4a4e1c44c5f830"
   },
   {
    "path": "loader/weights.rules.json",
@@ -4017,6 +4017,18 @@
       },
       "q4kDenseExceedsBindingLimit": true,
       "q4kLimitFallbackEligible": true
+     },
+     "value": "q4k_fused"
+    },
+    {
+     "match": {
+      "dtype": {
+       "in": [
+        "Q4_K_M",
+        "Q4_K"
+       ]
+      },
+      "requiresPackedOnlyQ4KRole": true
      },
      "value": "q4k_fused"
     },

@@ -1,0 +1,38 @@
+TAP version 13
+# tensor-loader-q4k-parity-probe-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.417292
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 36.508291
+[node-tests] ok: tests/loader/tensor-loader-q4k-parity-probe-contract.test.js
+TAP version 13
+# [163.8ms][Loader] Q4K dense materialization for "low_limit_q4k_down_proj" would require 2097152 bytes, exceeding maxStorageBufferBindingSize=1048576; retaining packed Q4K for fused matmul.
+# tensor-loader-q4k-reference-path.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.456083
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 186.076334
+[node-tests] ok: tests/loader/tensor-loader-q4k-reference-path.test.js
+[node-tests] ok: 2 files

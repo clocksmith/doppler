@@ -17,7 +17,8 @@ import type { TensorLocation, LayerWeights } from './loader-types.js';
 export type TensorLoader = (
   name: string,
   toGPU?: boolean,
-  silent?: boolean
+  silent?: boolean,
+  consumerRole?: string
 ) => Promise<GPUBuffer | WeightBuffer | Float32Array | Uint8Array | null>;
 
 /**

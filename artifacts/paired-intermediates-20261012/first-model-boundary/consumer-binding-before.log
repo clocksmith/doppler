@@ -1,0 +1,20 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: self_attn.q_proj
++ actual - expected
+
++ undefined
+- 'q_proj'
+
+    at file:///Users/xyz/deco/doppler/tests/loader/layer-consumer-materialization.test.js:20:13 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: 'q_proj',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.20.0

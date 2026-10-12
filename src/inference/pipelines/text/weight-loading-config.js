@@ -33,7 +33,7 @@ const Q4K_MATMUL_ROLE_OPS = new Map([
   ['linear_z_proj', 'linear_z_proj'],
   ['linear_a_proj', 'linear_a_proj'],
   ['linear_b_proj', 'linear_b_proj'],
-  ['linear_out_proj', 'linear_out_proj'],
+  ['linear_out_proj', 'o_proj'],
   ['lm_head', 'lm_head'],
 ]);
 
@@ -67,22 +67,24 @@ function summarizeQ4KProjectionKernelKinds(kernelPath) {
   return summary;
 }
 
-function collectQ4KFusedRoles(kernelPath) {
+function collectQ4KRoles(kernelPath) {
   const roles = new Set();
-  if (!kernelPath || typeof kernelPath !== 'object') return [];
+  const denseRoles = new Set();
+  if (!kernelPath || typeof kernelPath !== 'object') return { fused: [], packedOnly: [] };
 
   const appendSteps = (steps) => {
     for (const step of steps ?? []) {
       const role = Q4K_MATMUL_ROLE_OPS.get(step?.op);
       if (!role) continue;
       if (getKernelPathStepConfig('matmul', step)?.weightDtype === 'q4k') roles.add(role);
+      else denseRoles.add(role);
     }
   };
 
   appendSteps(kernelPath.decode?.steps);
   appendSteps(kernelPath.prefill?.steps);
   appendSteps(kernelPath.postLayer);
-  return [...roles].sort();
+  return { fused: [...roles].sort(), packedOnly: [...roles].filter(role => !denseRoles.has(role)).sort() };
 }
 
 function resolveQ4KProjectionMaterializationMode(manifest, kernelPath, kernelPathSource) {
@@ -128,7 +130,9 @@ export function resolveWeightLoadingConfig(
   const hasSubgroups = caps != null && caps.hasSubgroups === true;
   const q4kLayout = manifest?.quantizationInfo?.layout ?? null;
   const isQ4KModel = manifest?.quantization === 'Q4_K_M';
-  const q4kFusedRoles = isQ4KModel ? collectQ4KFusedRoles(kernelPath) : [];
+  const roleDemand = isQ4KModel ? collectQ4KRoles(kernelPath) : { fused: [], packedOnly: [] };
+  const q4kFusedRoles = roleDemand.fused;
+  const q4kPackedOnlyRoles = roleDemand.packedOnly;
   if (isQ4KModel && q4kLayout == null) {
     throw new Error(
       `Manifest "${manifest?.modelId ?? 'unknown'}" is missing quantizationInfo.layout for Q4_K_M. Re-convert the model.`
@@ -189,6 +193,7 @@ export function resolveWeightLoadingConfig(
     keepBF16Weights,
     q4kMaterializationMode,
     q4kFusedRoles,
+    q4kPackedOnlyRoles,
   };
 }
 

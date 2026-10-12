@@ -167,19 +167,16 @@ export class DopplerLoader {
   _loadAuxiliaryFile = null;
 
   // Fused Q4_K matmul: skip dequantization for matmul weights, use fused kernel
-  
   useFusedQ4K = false;
 
   // Q4K layout: 'col' = dequant fallback, 'row' = fused kernel (optimal)
-  
   q4kLayout = null;
-  
   keepF32Weights = false;
   keepBF16Weights = false;
 
   q4kMaterializationMode = 'dense';
   q4kFusedRoles = [];
-
+  q4kPackedOnlyRoles = [];
   // Internal tracking
   
   _normOffsetLogged = false;
@@ -236,6 +233,9 @@ export class DopplerLoader {
     this.keepF32Weights = config.keepF32Weights;
     this.keepBF16Weights = config.keepBF16Weights === true;
     this.q4kMaterializationMode = config.q4kMaterializationMode ?? 'dense';
+    this.q4kPackedOnlyRoles = Array.isArray(config.q4kPackedOnlyRoles)
+      ? [...new Set(config.q4kPackedOnlyRoles.map((role) => String(role)).filter(Boolean))].sort()
+      : [];
     this.q4kFusedRoles = Array.isArray(config.q4kFusedRoles)
       ? [...new Set(config.q4kFusedRoles.map((role) => String(role)).filter(Boolean))].sort()
       : [];
@@ -516,8 +516,8 @@ export class DopplerLoader {
   }
 
   
-  async _loadTensor(name, toGPU = true, silent = false) {
-    return _loadTensorImpl.call(this, name, toGPU, silent);
+  async _loadTensor(name, toGPU = true, silent = false, consumerRole) {
+    return _loadTensorImpl.call(this, name, toGPU, silent, consumerRole);
   }
 
   _isFunctionalDescriptorLocation(location) {

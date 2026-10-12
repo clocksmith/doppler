@@ -107,6 +107,8 @@ export declare class DopplerLoader {
   keepBF16Weights: boolean;
   q4kMaterializationMode: 'dense' | 'fused' | 'mixed';
   q4kFusedRoles: string[];
+  /** Roles with only packed consumers across all selected phases and layers. */
+  q4kPackedOnlyRoles: string[];
 
   constructor(loadingConfig?: LoadingConfigSchema);
 

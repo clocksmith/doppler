@@ -1,0 +1,24 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
++ undefined
+- [
+-   'linear_qkv_proj',
+-   'lm_head',
+-   'q_proj'
+- ]
+
+    at file:///Users/xyz/deco/doppler/tests/inference/paired-weight-materialization.test.js:17:8 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: [ 'linear_qkv_proj', 'lm_head', 'q_proj' ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.20.0
