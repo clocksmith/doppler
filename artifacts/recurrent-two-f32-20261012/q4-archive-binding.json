@@ -1,0 +1,8 @@
+{
+  "qualified": false,
+  "parentArchiveSha256": "d0d53e8f6d72ef7de63433d5935b2e89a717d3b4d6e8d890bd19add499e5e85e",
+  "archiveSha256": "91b7c94d858f6fa44bb4b5208f5e48b0a95fb51f79806a802cf15f7b975e92bd",
+  "shaderSha256": "5f54bbf28895cc3e489e3da43c7add98538fd6a6269dc2a5cdcde48843a569cb",
+  "onlyRuntimeFileChanged": "src/gpu/kernels/fused_matmul_q4_widetile.wgsl",
+  "scope": "Single prefill reduction experiment; unchanged two-F32 recurrent state, other operators and output storage"
+}

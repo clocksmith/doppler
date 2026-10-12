@@ -1,0 +1,91 @@
+{
+  "scope": "Only prefill layer0 independent same-input QKV replaced, real GPU downstream; not qualification",
+  "qualified": false,
+  "copyControlExact": true,
+  "parentSha256": "ed0a752ca10e0b4e0ec7b415cccd43fbe87a8ec617c42c99d2072f3c733ddd4c",
+  "controlSha256": "9ff7984a20b0fac39e2b399471b1fb7ec7f117fa404357778716175e5771f133",
+  "interventionSha256": "a0dcd988e6be65e6fa0e8eee7c7f38a0f1f2748d2ea3d2582a93d18292295403",
+  "approvalSha256": "065a6f065e551995743d183151b500a68761b15f612497b7933551f6c4ae2fb5",
+  "rows": [
+    {
+      "step": 0,
+      "parent": {
+        "maximum": 0.0006517189646721988,
+        "rms": 0.00010257341165658032,
+        "overTolerance": 0,
+        "worstVocabulary": 477
+      },
+      "correctedLocalPrefillQKV": {
+        "maximum": 0.0005606430674554019,
+        "rms": 0.00008432917802885662,
+        "overTolerance": 0,
+        "worstVocabulary": 477
+      },
+      "changedLogits": 248135
+    },
+    {
+      "step": 1,
+      "parent": {
+        "maximum": 0.0008925186205088753,
+        "rms": 0.00019707805083184706,
+        "overTolerance": 0,
+        "worstVocabulary": 95839
+      },
+      "correctedLocalPrefillQKV": {
+        "maximum": 0.0006531416242108179,
+        "rms": 0.00011923291943510704,
+        "overTolerance": 0,
+        "worstVocabulary": 225552
+      },
+      "changedLogits": 248130
+    },
+    {
+      "step": 2,
+      "parent": {
+        "maximum": 0.0008589303181216756,
+        "rms": 0.00017044696755626787,
+        "overTolerance": 0,
+        "worstVocabulary": 25238
+      },
+      "correctedLocalPrefillQKV": {
+        "maximum": 0.0006388401449797243,
+        "rms": 0.00011526332421503038,
+        "overTolerance": 0,
+        "worstVocabulary": 318
+      },
+      "changedLogits": 248221
+    },
+    {
+      "step": 3,
+      "parent": {
+        "maximum": 0.0009625174522620572,
+        "rms": 0.000198146729313595,
+        "overTolerance": 0,
+        "worstVocabulary": 174265
+      },
+      "correctedLocalPrefillQKV": {
+        "maximum": 0.0012293719954871163,
+        "rms": 0.0001893733710684334,
+        "overTolerance": 7,
+        "worstVocabulary": 15137
+      },
+      "changedLogits": 248229
+    },
+    {
+      "step": 4,
+      "parent": {
+        "maximum": 0.0010082142882374967,
+        "rms": 0.00016848430919002002,
+        "overTolerance": 1,
+        "worstVocabulary": 22
+      },
+      "correctedLocalPrefillQKV": {
+        "maximum": 0.0007832490633370437,
+        "rms": 0.00016017370250587172,
+        "overTolerance": 0,
+        "worstVocabulary": 4568
+      },
+      "changedLogits": 248217
+    }
+  ]
+}

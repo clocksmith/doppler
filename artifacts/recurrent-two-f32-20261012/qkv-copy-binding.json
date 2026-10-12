@@ -1,0 +1,13 @@
+{
+  "archiveSha256": "a471d88e28a70d2820757e79548390a86c453a03a21fe456b8e6edee5e304263",
+  "parentArchiveSha256": "d0d53e8f6d72ef7de63433d5935b2e89a717d3b4d6e8d890bd19add499e5e85e",
+  "manifestSha256": "cfca7eceadf1cc64b08ab014a7c3035d8f7fb7acc9cc1cb7177795d9d248093d",
+  "sourceManifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "fixtureSha256": "0af1555b7aa8e29f2f53357c41fe9fc9ea62085265a30fbcaf20d0e372c9b69f",
+  "captureSha256": "aeb905a22459570fb51322e4b9e91dc4b603f236bcfd6507e005dd1a9c271b3c",
+  "injectedOutputSha256": "03305a5c76db1051f460bfa63d40f3eb73f0e936481ea92baa2cb21014eb90f3",
+  "mode": "captured-control",
+  "unchangedWeights": true,
+  "tolerance": 0.001,
+  "scope": "Only layer0 prefill QKV overwritten; actual downstream GPU, never qualification"
+}
