@@ -1,0 +1,366 @@
+TAP version 13
+# Subtest: emits existing report schema only after all55 independently recomputed comparisons
+not ok 1 - emits existing report schema only after all55 independently recomputed comparisons
+  ---
+  duration_ms: 8.879667
+  type: 'test'
+  location: '/Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js:52:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + 'sha256:eafa5ac509c607e81ea57cb05106041983c57108f9b96c69195d566fd4a094c9'
+    - 'sha256:946ab0985d4dce7f02b43d2f5fe92e9c34f05a3fce3c5e6b2ebaae9c5f413811'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'sha256:946ab0985d4dce7f02b43d2f5fe92e9c34f05a3fce3c5e6b2ebaae9c5f413811'
+  actual: 'sha256:eafa5ac509c607e81ea57cb05106041983c57108f9b96c69195d566fd4a094c9'
+  operator: 'deepStrictEqual'
+  stack: |-
+    same (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:13:52)
+    file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:169:5
+    Array.map (<anonymous>)
+    producePhysicalReports (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:117:39)
+    TestContext.<anonymous> (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js:53:33)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: rejects failed actual logits despite passing self-report
+ok 2 - rejects failed actual logits despite passing self-report
+  ---
+  duration_ms: 0.7855
+  type: 'test'
+  ...
+# Subtest: rejects nonfinite output
+ok 3 - rejects nonfinite output
+  ---
+  duration_ms: 0.401334
+  type: 'test'
+  ...
+# Subtest: rejects truncated output
+ok 4 - rejects truncated output
+  ---
+  duration_ms: 0.4115
+  type: 'test'
+  ...
+# Subtest: rejects missing step
+ok 5 - rejects missing step
+  ---
+  duration_ms: 0.411875
+  type: 'test'
+  ...
+# Subtest: rejects missing request
+ok 6 - rejects missing request
+  ---
+  duration_ms: 0.3795
+  type: 'test'
+  ...
+# Subtest: rejects changed prompt
+ok 7 - rejects changed prompt
+  ---
+  duration_ms: 0.65175
+  type: 'test'
+  ...
+# Subtest: rejects changed continuation
+ok 8 - rejects changed continuation
+  ---
+  duration_ms: 0.430292
+  type: 'test'
+  ...
+# Subtest: rejects changed sampled token
+ok 9 - rejects changed sampled token
+  ---
+  duration_ms: 0.585375
+  type: 'test'
+  ...
+# Subtest: rejects changed sampling
+ok 10 - rejects changed sampling
+  ---
+  duration_ms: 0.63125
+  type: 'test'
+  ...
+# Subtest: rejects failed cleanup
+ok 11 - rejects failed cleanup
+  ---
+  duration_ms: 0.619208
+  type: 'test'
+  ...
+# Subtest: rejects changed allocation ceiling
+ok 12 - rejects changed allocation ceiling
+  ---
+  duration_ms: 0.631458
+  type: 'test'
+  ...
+# Subtest: rejects lost device
+ok 13 - rejects lost device
+  ---
+  duration_ms: 0.512334
+  type: 'test'
+  ...
+# Subtest: rejects missing actual identity observation
+ok 14 - rejects missing actual identity observation
+  ---
+  duration_ms: 0.557625
+  type: 'test'
+  ...
+# Subtest: rejects changed observed graph with copied identity
+ok 15 - rejects changed observed graph with copied identity
+  ---
+  duration_ms: 0.49225
+  type: 'test'
+  ...
+# Subtest: rejects missing observed graph
+ok 16 - rejects missing observed graph
+  ---
+  duration_ms: 0.766917
+  type: 'test'
+  ...
+# Subtest: rejects forged identity
+ok 17 - rejects forged identity
+  ---
+  duration_ms: 0.682416
+  type: 'test'
+  ...
+# Subtest: rejects scalar session
+ok 18 - rejects scalar session
+  ---
+  duration_ms: 0.5185
+  type: 'test'
+  ...
+# Subtest: rejects changed factory bytes
+ok 19 - rejects changed factory bytes
+  ---
+  duration_ms: 0.487
+  type: 'test'
+  ...
+# Subtest: rejects same physical host for both partitions
+ok 20 - rejects same physical host for both partitions
+  ---
+  duration_ms: 0.655916
+  type: 'test'
+  ...
+# Subtest: rejects reversed physical placement
+ok 21 - rejects reversed physical placement
+  ---
+  duration_ms: 0.357542
+  type: 'test'
+  ...
+# Subtest: rejects changed provider
+ok 22 - rejects changed provider
+  ---
+  duration_ms: 0.543542
+  type: 'test'
+  ...
+# Subtest: rejects changed traversal
+ok 23 - rejects changed traversal
+  ---
+  duration_ms: 0.348417
+  type: 'test'
+  ...
+# Subtest: rejects failed outer controller
+ok 24 - rejects failed outer controller
+  ---
+  duration_ms: 0.218833
+  type: 'test'
+  ...
+# Subtest: rejects changed package
+ok 25 - rejects changed package
+  ---
+  duration_ms: 0.227959
+  type: 'test'
+  ...
+# Subtest: rejects changed application
+ok 26 - rejects changed application
+  ---
+  duration_ms: 0.208583
+  type: 'test'
+  ...
+# Subtest: rejects a replacement reference or evaluator before interpreting captures
+ok 27 - rejects a replacement reference or evaluator before interpreting captures
+  ---
+  duration_ms: 0.882291
+  type: 'test'
+  ...
+# Subtest: direct fixture preserves test-delivery scope without inventing run.ok or application identity
+not ok 28 - direct fixture preserves test-delivery scope without inventing run.ok or application identity
+  ---
+  duration_ms: 0.407208
+  type: 'test'
+  location: '/Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js:107:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + 'sha256:eafa5ac509c607e81ea57cb05106041983c57108f9b96c69195d566fd4a094c9'
+    - 'sha256:946ab0985d4dce7f02b43d2f5fe92e9c34f05a3fce3c5e6b2ebaae9c5f413811'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'sha256:946ab0985d4dce7f02b43d2f5fe92e9c34f05a3fce3c5e6b2ebaae9c5f413811'
+  actual: 'sha256:eafa5ac509c607e81ea57cb05106041983c57108f9b96c69195d566fd4a094c9'
+  operator: 'deepStrictEqual'
+  stack: |-
+    same (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:13:52)
+    file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:169:5
+    Array.map (<anonymous>)
+    producePhysicalReports (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:117:39)
+    TestContext.<anonymous> (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js:108:39)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+  ...
+# Subtest: direct fixture rejects changed testDeliveryHash
+ok 29 - direct fixture rejects changed testDeliveryHash
+  ---
+  duration_ms: 0.238542
+  type: 'test'
+  ...
+# Subtest: direct fixture rejects changed archiveSha256
+ok 30 - direct fixture rejects changed archiveSha256
+  ---
+  duration_ms: 0.218959
+  type: 'test'
+  ...
+# Subtest: direct fixture rejects changed snapshotFiles
+ok 31 - direct fixture rejects changed snapshotFiles
+  ---
+  duration_ms: 0.229916
+  type: 'test'
+  ...
+# Subtest: direct fixture rejects changed installedFiles
+ok 32 - direct fixture rejects changed installedFiles
+  ---
+  duration_ms: 0.211833
+  type: 'test'
+  ...
+# Subtest: direct fixture rejects changed applicationQualification
+ok 33 - direct fixture rejects changed applicationQualification
+  ---
+  duration_ms: 0.369667
+  type: 'test'
+  ...
+# Subtest: direct fixture rejects an extraneous application envelope
+ok 34 - direct fixture rejects an extraneous application envelope
+  ---
+  duration_ms: 4.250208
+  type: 'test'
+  ...
+# Subtest: native surface requires its independently declared installed host and mapped library observations
+not ok 35 - native surface requires its independently declared installed host and mapped library observations
+  ---
+  duration_ms: 0.578875
+  type: 'test'
+  location: '/Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js:137:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + 'sha256:eafa5ac509c607e81ea57cb05106041983c57108f9b96c69195d566fd4a094c9'
+    - 'sha256:946ab0985d4dce7f02b43d2f5fe92e9c34f05a3fce3c5e6b2ebaae9c5f413811'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'sha256:946ab0985d4dce7f02b43d2f5fe92e9c34f05a3fce3c5e6b2ebaae9c5f413811'
+  actual: 'sha256:eafa5ac509c607e81ea57cb05106041983c57108f9b96c69195d566fd4a094c9'
+  operator: 'deepStrictEqual'
+  stack: |-
+    same (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:13:52)
+    file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:169:5
+    Array.map (<anonymous>)
+    producePhysicalReports (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:117:39)
+    TestContext.<anonymous> (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js:138:44)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+  ...
+# Subtest: rejects undeclared native surface
+ok 36 - rejects undeclared native surface
+  ---
+  duration_ms: 0.454834
+  type: 'test'
+  ...
+# Subtest: rejects missing native binary
+ok 37 - rejects missing native binary
+  ---
+  duration_ms: 0.630958
+  type: 'test'
+  ...
+# Subtest: rejects changed native binary
+ok 38 - rejects changed native binary
+  ---
+  duration_ms: 0.702542
+  type: 'test'
+  ...
+# Subtest: rejects different native installation
+ok 39 - rejects different native installation
+  ---
+  duration_ms: 0.581625
+  type: 'test'
+  ...
+# Subtest: rejects wrong installed archive
+ok 40 - rejects wrong installed archive
+  ---
+  duration_ms: 0.45325
+  type: 'test'
+  ...
+# Subtest: rejects failed native cleanup
+ok 41 - rejects failed native cleanup
+  ---
+  duration_ms: 0.437416
+  type: 'test'
+  ...
+# Subtest: rejects missing native cleanup
+ok 42 - rejects missing native cleanup
+  ---
+  duration_ms: 0.463042
+  type: 'test'
+  ...
+# Subtest: rejects different native fixture delivery
+ok 43 - rejects different native fixture delivery
+  ---
+  duration_ms: 0.456875
+  type: 'test'
+  ...
+# Subtest: rejects other native process cleanup
+ok 44 - rejects other native process cleanup
+  ---
+  duration_ms: 0.5375
+  type: 'test'
+  ...
+# Subtest: rejects missing observed native PID
+ok 45 - rejects missing observed native PID
+  ---
+  duration_ms: 0.397708
+  type: 'test'
+  ...
+# Subtest: rejects second native participant
+ok 46 - rejects second native participant
+  ---
+  duration_ms: 0.345416
+  type: 'test'
+  ...
+# Subtest: rejects different Node
+ok 47 - rejects different Node
+  ---
+  duration_ms: 0.358042
+  type: 'test'
+  ...
+1..47
+# tests 47
+# suites 0
+# pass 44
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 82.001833

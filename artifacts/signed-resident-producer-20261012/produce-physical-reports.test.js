@@ -2,14 +2,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { producePhysicalReports, sha256 } from './produce-physical-reports.js';
+import { producePhysicalReports, sha256, validateProducerBinding } from './produce-physical-reports.js';
+import { stableSortObject } from '../../src/formats/stable-sort-object.js';
 import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
 const bytes = value => Buffer.from(JSON.stringify(value));
 const vector = (values, width) => { const b = Buffer.alloc(values.length * width);
   values.forEach((value, i) => width === 8 ? b.writeDoubleLE(value, i * width) : b.writeFloatLE(value, i * width)); return b.toString('base64'); };
 function fixture() {
-  const graph = { kernels: { synthetic: true } }, plan = { modelId: 'synthetic', splitLayer: 1 };
-  const identity = { executionGraphHash: computeCanonicalSha256(graph), synthetic: true };
+  const graph = { kernels: { synthetic: true, Z: true, a: true } }, plan = { modelId: 'synthetic', splitLayer: 1 };
+  const identity = { executionGraphHash: sha256(bytes(stableSortObject(graph))), synthetic: true };
   const manifest = { modelId: 'synthetic', architecture: { vocabSize: 2 }, inference: { execution: graph } };
   const generation = { maxTokens: 51, temperature: 0 };
   const evaluatorBytes = Buffer.from('synthetic independent evaluator'), archiveBytes = Buffer.from('synthetic archive');
@@ -38,9 +39,9 @@ function fixture() {
       descriptor: { index }, plan, legacyPlanId: 'legacy-plan', planId: computeCanonicalSha256(plan),
       openingObservation: { partitionIndex: index, modelIdentity: expected.manifestHash, planId: computeCanonicalSha256(plan),
         sources: { factory: { sha256: 'factory' }, identity: { sha256: 'helper' } },
-        initialExecutionIdentity: identity, resolvedRuntimeSession: { runtime: { session: { intermediatePrecision: 'two-f32', linearRecurrentStatePrecision: 'two-f32' } } } } })),
-    residentSettlement: [0, 1].map(() => ({ snapshot: { pool: { resources: { retainedModel: { count: 0 }, active: { count: 0 }, deferredCleanup: { count: 0 } } },
-      device: { categories: { weights: 0 }, maxBytes: 1420000000, peakBytes: 100, lost: false }, gpuValidationErrors: [] } })) };
+        initialExecutionIdentity: identity, resolvedRuntimeSession: { manifestInference: { execution: graph }, runtime: { session: { intermediatePrecision: 'two-f32', linearRecurrentStatePrecision: 'two-f32' } } } } })),
+    residentSettlement: [0, 1].map(() => ({ barriers: 1, snapshot: { pool: { resources: { retainedModel: { count: 0 }, active: { count: 0 }, deferredCleanup: { count: 0 } } },
+      device: { categories: { weights: 0 }, maxBytes: 1420000000, peakBytes: 100 }, gpuValidationErrors: [], deviceEvents: [], observationErrors: [] } })) };
   const run = { ok: true, package: { integrity: 'sha512-' + createHash('sha512').update(archiveBytes).digest('base64') },
     browserIdentity: 'synthetic-application', referenceSha256: expected.referenceHash.slice(7), maxGpuBufferBytes: 1420000000,
     referenceBinding: { manifestIdentity: expected.manifestHash, archiveSha256: expected.archiveHash.slice(7) } };
@@ -50,6 +51,7 @@ function fixture() {
 }
 test('emits existing report schema only after all55 independently recomputed comparisons', () => {
   const f = fixture(), result = producePhysicalReports(f.input);
+  assert.notEqual(f.input.observeInitialExecutionIdentity().executionGraphHash, computeCanonicalSha256(f.graph));
   assert.equal(result.contract.comparedSteps, 55);
   assert.deepEqual(result.reports.map(row => row.partitionIndex), [0, 1]);
   assert(result.reports.every(row => row.comparison.steps.length === 55 && row.comparison.steps.every(step => step.maxAbsoluteError === 0)));
@@ -67,8 +69,13 @@ const mutations = {
   'changed sampling': f => { f.capture.runs[0].generation = { temperature: 1 }; },
   'failed cleanup': f => { f.capture.residentSettlement[0].snapshot.pool.resources.active.count = 1; },
   'changed allocation ceiling': f => { f.capture.residentSettlement[0].snapshot.device.maxBytes++; },
-  'lost device': f => { f.capture.residentSettlement[1].snapshot.device.lost = true; },
+  'lost device': f => { f.capture.residentSettlement[1].snapshot.deviceEvents.push({ type: 'device-lost', reason: 'unknown' }); },
+  'missing device observation': f => { delete f.capture.residentSettlement[0].snapshot.deviceEvents; },
+  'failed memory observation': f => { f.capture.residentSettlement[0].snapshot.observationErrors.push({ operation: 'device' }); },
+  'unconfirmed queue settlement': f => { f.capture.residentSettlement[0].barriers = 0; },
   'missing actual identity observation': f => { delete f.capture.descriptors[0].openingObservation; },
+  'changed observed graph with copied identity': f => { f.capture.descriptors[0].openingObservation.resolvedRuntimeSession.manifestInference.execution = { kernels: { other: true } }; },
+  'missing observed graph': f => { delete f.capture.descriptors[0].openingObservation.resolvedRuntimeSession.manifestInference; },
   'forged identity': f => { f.capture.descriptors[0].openingObservation.initialExecutionIdentity = {}; },
   'scalar session': f => { f.capture.descriptors[0].openingObservation.resolvedRuntimeSession.runtime.session.intermediatePrecision = 'f32'; },
   'changed factory bytes': f => { f.capture.descriptors[0].openingObservation.sources.factory.sha256 = 'other'; },
@@ -152,4 +159,20 @@ for (const [name, mutate] of Object.entries({
 })) test(`rejects ${name}`, () => {
   const f = nativeFixture(); mutate(f); f.input.captureBytes = bytes(f.capture);
   assert.throws(() => producePhysicalReports(f.input));
+});
+
+
+test('post-run correction binding retains exact pre-run and actual capture/reference authority', () => {
+  const expected = { producerHash: 'old', referenceHash: 'reference' };
+  const correction = { schema: 'doppler.resident-report-validator-correction/v1',
+    correction: 'execution-graph-hash-domain-and-observed-device-schema', reviewStatus: 'approved',
+    originalExpectationsHash: 'expectations', originalProducerHash: 'old', correctedProducerHash: 'new',
+    captureHash: 'capture', referenceHash: 'reference' };
+  assert.doesNotThrow(() => validateProducerBinding(expected, 'expectations', 'new', 'capture', correction));
+  assert.throws(() => validateProducerBinding(expected, 'expectations', 'new', 'capture'));
+  for (const key of Object.keys(correction)) {
+    assert.throws(() => validateProducerBinding(expected, 'expectations', 'new', 'capture', { ...correction, [key]: 'changed' }));
+  }
+  assert.doesNotThrow(() => validateProducerBinding(expected, 'expectations', 'old', 'capture'));
+  assert.throws(() => validateProducerBinding(expected, 'expectations', 'old', 'capture', correction));
 });

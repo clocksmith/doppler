@@ -1,0 +1,11 @@
+# Final 0.6.28 browser split qualification
+
+The same ordinary archive `102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7` completed all 55 frozen prefixes in both physical placements: Mac input/AMD output and AMD input/Mac output. Each direction's independently recomputed maximum absolute error is **0.0000009520044947919359**, below the approved **0.001**. The 19-, 21- and 184-token requests completed 2, 2 and 51 observed prefixes respectively, reached EOS, and retained the frozen output tokens and text.
+
+The gzip files preserve complete raw captures, including every vocabulary vector. `summary.json` binds uncompressed hashes, actual providers, observed initial identities, memory and settlement. Each `direction-*-qualification` directory contains the genuine reports, their numerical contract and exact input configuration. The complete per-prefix maximum and RMS error distribution is in each report's `comparison.steps`.
+
+The original pre-run expectations and reference were not rewritten. Two report-validator schema mistakes were repaired after execution, independently reviewed, and explicitly bound in report provenance. See [the correction record](../../../signed-resident-producer-20261012/graph-hash-domain-correction/README.md). Both conversions pass the resident-qualification validator imported from the exact installed archive.
+
+Device-buffer peaks were 765,059,392/398,923,984 bytes for direction 0 and 398,727,376/765,059,392 for direction 1 (Mac/AMD order). All are below 1,420,000,000. After resident close and confirmed queue settlement, retained model, active and deferred cleanup counts are zero; reusable pooled buffers remain charged. No device events, observation failures or GPU validation errors were recorded.
+
+Scope: two actual browser providers executing complementary partitions through the existing direct numerical fixture, using verified local model pieces and forwarded activation tensors. This does **not** establish signed Capsule opening, peer acquisition, full application operation, task quality, concurrency, long-prompt lifecycle or responsive cold startup. Public contributors and shared browser contexts were not restarted. This is correctness evidence on a shared machine, not a timing benchmark.
