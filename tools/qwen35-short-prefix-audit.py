@@ -7,6 +7,7 @@ after independent evaluation, never the authoritative reference state.
 import argparse
 import base64
 import gzip
+import hashlib
 import importlib.util
 import inspect
 import json
@@ -166,22 +167,67 @@ def validate_runtime_context(runtime, binding, contract, history, history_hash):
     return rows
 
 
+def decode_capture_values(item):
+    """Observe stored pairs without rounding them through the logical F32 view."""
+    assert item['encoding'] == 'base64-f32le'
+    shape = item['shape']
+    assert isinstance(shape, list) and shape and all(type(n) is int and n > 0 for n in shape)
+    logical_bytes = base64.b64decode(item['dataBase64'], validate=True)
+    logical = np.frombuffer(logical_bytes, dtype='<f4').reshape(shape)
+    if item.get('precision') != 'two-f32':
+        assert item.get('components', 1) == 1 and 'storageComponents' not in item
+        assert 'storageDataBase64' not in item
+        assert np.isfinite(logical).all()
+        return logical.astype(np.float64)
+    assert item['dtype'] == 'f32' and item['components'] == 2 and item['elementStrideBytes'] == 8
+    if 'storageDataBase64' in item:
+        assert item['storageEncoding'] == 'base64-f32le'
+        raw = base64.b64decode(item['storageDataBase64'], validate=True)
+    else:
+        # Legacy JSON numbers are usable only when they reproduce the exact raw
+        # digest; signed-zero loss must fail rather than be guessed back in.
+        components = np.asarray(item['storageComponents'], dtype=np.float64)
+        assert components.ndim == 1 and np.isfinite(components).all()
+        stored = components.astype('<f4')
+        assert np.array_equal(stored.astype(np.float64), components)
+        raw = stored.tobytes()
+    assert len(raw) == logical.size * 8
+    assert item['storageDigest'] == 'sha256:' + hashlib.sha256(raw).hexdigest(), 'Paired storage digest mismatch'
+    pairs = np.frombuffer(raw, dtype='<f4').reshape(-1, 2).astype(np.float64)
+    assert np.isfinite(pairs).all()
+    values = (pairs[:, 0] + pairs[:, 1]).reshape(shape)
+    assert np.isfinite(values).all()
+    assert np.array_equal(values.astype('<f4'), logical), 'Logical capture differs from stored pairs'
+    return values
+
+
+def selected_audit_layers(layers, layer_count):
+    """Select detailed comparisons only; independent evaluation stays complete."""
+    if layers is None:
+        return list(range(layer_count))
+    assert isinstance(layers, list) and layers and len(set(layers)) == len(layers)
+    assert all(type(layer) is int and 0 <= layer < layer_count for layer in layers)
+    return sorted(layers)
+
+
 def read_capture(capture, prefill=19, decode_steps=1):
     """Pair by actual generation step and operation; reject conflicting duplicates."""
-    groups, step = {}, -1
+    groups, representations, step = {}, {}, -1
     for row in capture['observation']['timeline']:
         if row['opId'] == 'embed.out':
             step += 1
         item = row.get('capture')
         if not item or item.get('level') != 'full':
             continue
-        assert item['encoding'] == 'base64-f32le' and 0 <= step <= decode_steps
-        value = np.frombuffer(base64.b64decode(item['dataBase64']), dtype='<f4')
-        value = value.reshape(item['shape']).astype(np.float64)
+        assert 0 <= step <= decode_steps
+        value = decode_capture_values(item)
         key = (row['opId'], step)
+        representation = (item.get('precision'), item.get('storageDigest'))
         if key in groups:
             assert np.array_equal(groups[key], value), key
+            assert representations[key] == representation, key
         groups[key] = value
+        representations[key] = representation
     assert step == decode_steps, 'Incomplete captured generation history'
     result = {}
     for name in sorted({name for name, _ in groups}):
@@ -389,6 +435,7 @@ def run(args):
         item = contract['inputs'][name]
         assert ref.digest(Path(item['path']).read_bytes()) == item['sha256'], name
     config = ref.read_json(contract['inputs']['sourceConfig']['path'])['text_config']
+    audit_layers = selected_audit_layers(args.layers, len(config['layer_types']))
     manifest_path = Path(contract['inputs']['manifest']['path'])
     weights, identities = ref.load_weights(manifest_path.parent, ref.read_json(manifest_path),
                                           ref.read_json(contract['inputs']['pieceIndex']['path']))
@@ -461,6 +508,9 @@ def run(args):
     assert capture['declaredShaderMismatches'] == []
     gpu = read_capture(capture, prefill, steps - 1)
     if args.fixture_directory:
+        assert not any(row.get('capture', {}).get('precision') == 'two-f32'
+                       for row in capture['observation']['timeline']), \
+            'Scalar fixture export cannot discard paired input residuals'
         directory = Path(args.fixture_directory)
         directory.mkdir(parents=True, exist_ok=True)
         manifest = ref.read_json(manifest_path)
@@ -531,6 +581,9 @@ def run(args):
         rows.append(row)
     compare('embed.out')
     for layer, kind in enumerate(config['layer_types']):
+        if layer not in audit_layers:
+            compare(f'layer.{layer}.layer.out')
+            continue
         prefix = f'layer.{layer}.attn.'
         w = lambda name: weights[f'layers.{layer}.' + name]
         before = gpu['embed.out' if layer == 0 else f'layer.{layer - 1}.layer.out']
@@ -649,7 +702,7 @@ def run(args):
         'captureSha256': ref.digest(Path(args.capture).read_bytes()),
         'approvedVectors': [{'path': path, 'sha256': ref.digest(Path(path).read_bytes())} for path in approved_paths],
         'approvedVectorsExact': True, 'shards': identities, 'cacheIdentities': caches,
-        'operations': rows, 'storage': storage, 'logits': {
+        'detailedLayers': audit_layers, 'operations': rows, 'storage': storage, 'logits': {
             'total': error(actual_logits, logits), 'local': error(actual_logits, local_logits),
             'inherited': error(local_logits, logits), 'selectedPrefixWorst': {
                 'index': request_index, 'step': steps - 1, 'vocabulary': worst_vocabulary,
@@ -813,6 +866,8 @@ if __name__ == '__main__':
     parser.add_argument('--contract', default='artifacts/whole-model-f64-complete-20261011/request-0-contract.json')
     parser.add_argument('--binding', help='Exact archive/source manifest binding when the runtime shader identities changed')
     parser.add_argument('--out', required=True)
+    parser.add_argument('--layers', type=int, nargs='+',
+                        help='Detailed operation layers; all layer outputs and the complete approved evaluation remain checked')
     parser.add_argument('--recurrent-materialization-control', action='store_true')
     parser.add_argument('--recurrent-storage-precision', choices=['f32', 'two-f32'], default='f32',
                         help='Independent diagnostic storage only; never changes runtime precision')
