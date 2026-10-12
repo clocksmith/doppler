@@ -1,0 +1,50 @@
+{
+  "scope": "Identical captured F32/Q4_K operands against an independent Float64 projection",
+  "host": "linux",
+  "fixtureSha256": "c93e03b3ca58fb7be8df9439cae35babfdb936a835face6f75a6189d9f7f75d2",
+  "shaderSha256": "9c4d919d5ad5eadd225f34938c47b9c604e8a1fa05ec73c5eccfb882395bd935",
+  "geometry": {
+    "M": 1,
+    "N": 6144,
+    "K": 1024
+  },
+  "execution": {
+    "entryPoint": "main_gemv",
+    "constants": {
+      "COLS_PER_WG": 64,
+      "THREADS_PER_COL_GEMV": 4
+    },
+    "workgroups": [
+      96,
+      1,
+      1
+    ],
+    "features": [
+      "subgroups"
+    ]
+  },
+  "maximumAllowedError": 2e-06,
+  "requiredPeakErrorReduction": 2,
+  "strictMathDeveloperDiagnostic": false,
+  "browser": "146.0.7680.177",
+  "errors": [],
+  "strictMathRead": false,
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3"
+  },
+  "comparison": {
+    "maxAbsoluteError": 4.091640811054731e-06,
+    "rmsError": 2.8942014621543664e-07,
+    "worstIndex": 650
+  },
+  "baseline": {
+    "maxAbsoluteError": 4.091640811054731e-06,
+    "rmsError": 2.8942014621543664e-07,
+    "worstIndex": 650
+  },
+  "valuesSha256": "e32808c109b45dd13ed8829e437d496b6bc9c0f01f5ea20495c8568ddf26ba03",
+  "passed": false,
+  "failure": "The expression evaluated to a falsy value:\n\n  assert(receipt.comparison.maxAbsoluteError <= receipt.maximumAllowedError)\n",
+  "rawSha256": "3aeeef042de2cc5e67d69f7b8fe0150e5812842ebbcca231e6794f16f4688598"
+}

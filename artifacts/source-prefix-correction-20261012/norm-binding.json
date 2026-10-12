@@ -1,0 +1,11 @@
+{
+  "archiveSha256": "5c5af9de819b200d3a6e6a799e84b7506ac96993688f2b2ed99aa09ea8690a18",
+  "manifestSha256": "35f16e44e43f6c098b6cd87ebf959c18bcdbde1d9deab5bca5ec01e47bb14312",
+  "sourceManifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "unchangedWeights": true,
+  "tolerance": 0.001,
+  "sourceBaseline": "d1b23716",
+  "candidate": "prefill-integer-residual-and-compensated-rmsnorm",
+  "updatedRefs": 2,
+  "parentArchiveSha256": "a0154f891b9db2c975c5bc5f40b6c7d849ec5457b780fa98cf1e8c5d2ff4002a"
+}

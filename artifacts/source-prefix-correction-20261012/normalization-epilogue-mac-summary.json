@@ -1,0 +1,38 @@
+{
+  "scope": "Captured main RMSNorm; independent accuracy only",
+  "host": "darwin",
+  "fixtureSha256": "2ac22e748faeb204949c963f323b35b67ea498b901ecf9ae4cb2a21615e8706c",
+  "shaderSha256": "721eee8d12ae0d80868570d8739e7af33cd3769f81313569405ef97c8b1a5d2a",
+  "pipeline": {
+    "entry": "main",
+    "constants": {
+      "RMS_NORM_OFFSET": 1,
+      "WEIGHT_IS_F16": 1,
+      "PRE_RESIDUAL": 0,
+      "OUTPUT_PRENORM": 0
+    },
+    "selections": 500,
+    "shaderSha256": "a1986477198de29aa97205475bdc5bf3c79039917dd26ba16c9d9e6e687e0f4f"
+  },
+  "epsilon": 1e-06,
+  "rows": 193,
+  "width": 1024,
+  "browser": "155.0.8059.39",
+  "errors": [],
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  },
+  "comparison": {
+    "maximum": 61.00684994277457,
+    "rms": 1.527449959944036
+  },
+  "baseline": {
+    "maximum": 5.032750927114193e-07,
+    "rms": 5.5467758933151204e-08
+  },
+  "valuesSha256": "4627ef7fa43746216f831c9efef6484176a76467c04fb11e30e1dc5b880b85d6",
+  "matchesCaptured": false,
+  "executed": true,
+  "rawSha256": "09fc13cbf7f40c29ca05d9127c3fa23e5527cc58636b1850ea327c8ace58199b"
+}

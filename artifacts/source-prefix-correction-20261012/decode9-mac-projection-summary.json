@@ -1,0 +1,50 @@
+{
+  "scope": "Identical captured F32/Q4_K operands against an independent Float64 projection",
+  "host": "darwin",
+  "fixtureSha256": "c93e03b3ca58fb7be8df9439cae35babfdb936a835face6f75a6189d9f7f75d2",
+  "shaderSha256": "e24a87e8df5c8ba270deb7d6724e12b9ec465237c8592ec33e9afaa1ce1babda",
+  "geometry": {
+    "M": 1,
+    "N": 6144,
+    "K": 1024
+  },
+  "execution": {
+    "entryPoint": "main_gemv",
+    "constants": {
+      "COLS_PER_WG": 64,
+      "THREADS_PER_COL_GEMV": 4
+    },
+    "workgroups": [
+      96,
+      1,
+      1
+    ],
+    "features": [
+      "subgroups"
+    ]
+  },
+  "maximumAllowedError": 2e-06,
+  "requiredPeakErrorReduction": 2,
+  "strictMathDeveloperDiagnostic": false,
+  "browser": "155.0.8059.39",
+  "accumulation": null,
+  "errors": [],
+  "strictMathRead": false,
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  },
+  "comparison": {
+    "maxAbsoluteError": 8.927977503958573e-07,
+    "rmsError": 5.179313122271846e-08,
+    "worstIndex": 1778
+  },
+  "baseline": {
+    "maxAbsoluteError": 4.091640811054731e-06,
+    "rmsError": 2.8942014621543664e-07,
+    "worstIndex": 650
+  },
+  "valuesSha256": "169212f1d86e9ac40621fb04399b2eeb093c323c59bc9ae857c6e71f5df05de8",
+  "passed": true,
+  "rawSha256": "ed9003f01795e0676324946dc90b7cfcfa8f8e830359d27a55057f5063175fa7"
+}
