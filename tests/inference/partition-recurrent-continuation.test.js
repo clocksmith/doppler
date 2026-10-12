@@ -8,6 +8,7 @@ const state = { manifest, useGPU: true, modelPartition: { plan, index: 1 }, curr
   modelConfig: { useMoE: false, numKvSharedLayers: 0, hiddenSizePerLayerInput: null,
     decodeStrategy: 'incremental', causalAttention: true,
     layerTypes: ['linear_attention', 'full_attention', 'linear_attention', 'full_attention'] },
+  resolvedRuntimeSession: { runtime: { session: { intermediatePrecision: 'f32' } } },
   runtimeConfig: { inference: { session: { usePostFfnNextInputRMSNormPairFusion: false } } },
   executionPlanState: { primaryPlan: { activationDtype: 'f32', finitenessGuardEnabled: false } },
   linearAttentionRuntime: { layers: new Map() } };

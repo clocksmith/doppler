@@ -23,6 +23,7 @@ export interface EmbedConfig {
   indexOffset?: number;
   transpose?: boolean;
   activationDtype?: 'f16' | 'f32';
+  intermediatePrecision?: 'f32' | 'two-f32';
   embeddingDtype?: 'f16' | 'f32' | 'litert_int4';
   embeddingStorageEncoding?: WeightStorageEncoding | null;
   executionPolicies?: ExecutionV1PoliciesSchema | null;

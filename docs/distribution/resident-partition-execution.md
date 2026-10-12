@@ -42,6 +42,26 @@ decoded delta, completion reason, continuation, and observations. Final stopping
 flushes the incremental decoder. A failed attempt is retired; restart it from
 its prompt rather than inventing a missing recurrent prefix.
 
+Paired intermediate execution has a distinct boundary identity. A version-two
+layer plan declares `activationPrecision: 'two-f32'`, `activationComponents: 2`,
+and `activationElementStrideBytes: 8`, with `activationDtype: 'f32'`. Its tensor
+contracts and version-two activation frames declare `precision: 'two-f32'`,
+`components: 2`, and `elementStrideBytes: 8`. Shape remains logical
+`[batchSize, seqLen, hiddenSize]`; the contiguous payload stores each high F32
+word immediately followed by its low F32 word. No JavaScript tensor conversion
+occurs. The immutable resolved session must explicitly select matching
+`intermediatePrecision`; the bound execution plan must independently declare
+matching paired precision, component count, and stride. A requested session alone
+cannot enable paired execution with scalar kernels. Signed plan digests, byte allowances, and program-load
+identities therefore distinguish this path. Public logits remain F32.
+
+Existing version-one F32/F16 plan hashes and frames are unchanged. A paired frame
+cannot be downgraded to version one or accepted with missing/mismatched precision,
+component count, stride, or byte length. Partition chunking preserves all words;
+its input/output allowance counts eight bytes per logical paired element.
+These contract and ownership checks do not qualify the new arithmetic, a model,
+a signed artifact, or either physical distributed placement.
+
 Closing an attempt settles pending work before releasing its state while retaining
 resident weights. Session close settles attempts and closes the owned program.
 Submitted GPU commands are not interrupted by cancellation; a cancelled operation

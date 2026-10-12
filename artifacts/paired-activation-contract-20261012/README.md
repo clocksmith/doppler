@@ -1,0 +1,11 @@
+# Explicit paired activation boundary
+
+Component: `doppler.runtime-source.inference.pipelines.text`. Intent: expanded by the user-approved paired intermediate experiment; legacy scalar contracts preserved. Boundary effects: public partition plan/frame representation and resident byte/lifetime validation; numerical kernels remain a separate owner and qualification.
+
+`before.log` retains the failing new contract regression: asking for paired precision still produced a version-one scalar plan. Version-two plans and frames now explicitly bind two interleaved F32 words per logical element. Logical shape remains `[batch, tokens, hidden]`; precision, component count, stride, complete byte length, and plan identity are checked. Version-one plan hash compatibility is frozen in the test. Public `getPartitionActivationContract` and `validateActivationFrameForPlan` let consumers preserve the provider's representation without duplicating its geometry policy.
+
+Requesting paired session precision is insufficient: resident execution also requires matching paired metadata on the bound execution plan. Current scalar execution plans fail closed for paired allocations. This commit exposes contracts and safe byte orchestration, not qualified paired kernels. The embedding option and bound-plan metadata declarations are preparatory ports for the numerical owner. No archive, model, signed placement, physical GPU, or application-pin acceptance follows from these tests.
+
+`focused-after.log`: ten CPU test files passed, covering byte-preserving paired frame roundtrip (including minimum subnormal and signed-zero low words), malformed formats, wrong plan/hidden size, full-byte allowances, prefill token/layer chunking, carry/readback, cancellation, resource cleanup, loading, and resident admission. Mocked GPU ports prove orchestration only. Types, architecture and source-style logs pass.
+
+`synthetic-frame.json` is a source-hash-bound application test fixture: paired and legacy plans, their hashes, expected provider contracts, a 16,384-byte paired payload, exact byte hash, and malformed mutations. It is synthetic and cannot be used as numerical qualification evidence. Reploid's accepted archive remains unchanged.

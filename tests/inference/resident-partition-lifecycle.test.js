@@ -22,6 +22,7 @@ async function sessionWith(tokenize) {
     modelConfig: { useMoE: false, numKvSharedLayers: 0, hiddenSizePerLayerInput: null,
       decodeStrategy: 'incremental', causalAttention: true },
     executionPlanState: { primaryPlan: { activationDtype: 'f32', finitenessGuardEnabled: false } },
+    resolvedRuntimeSession: { runtime: { session: { intermediatePrecision: 'f32' } } },
     runtimeConfig: { inference: { session: { usePostFfnNextInputRMSNormPairFusion: false } } },
     gpuContext: null, dopplerLoader: { gpuBuffers: [] } };
   scopePipelineShaders(pipeline);
