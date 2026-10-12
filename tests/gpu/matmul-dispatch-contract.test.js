@@ -22,6 +22,17 @@ for (const [variant, config] of Object.entries(KERNEL_CONFIGS.matmul)) {
   assert.throws(() => calculateMatmulDispatch(variant, false, false, false, 19, 517, missing), /dispatchGeometry/);
 }
 
+// Paired reductions cover one output per group, including second-axis overflow.
+for (const variant of ['paired_f32', 'paired_f16', 'paired_q4k']) {
+  const config = KERNEL_CONFIGS.matmul[variant];
+  for (const [M, N] of [[1, 1], [19, 517], [2, 65535], [65535, 65535]]) {
+    const width = Math.min(M * N, 65535);
+    assert.deepEqual(calculateMatmulDispatch(variant, false, false, false, M, N, config).workgroups,
+      [width, Math.ceil(M * N / width), 1]);
+  }
+  assert.throws(() => calculateMatmulDispatch(variant, false, false, false, 65536, 65536, config), /workgroup limits/);
+}
+
 // === validateMatmulDimensions: positive dimensions ===
 {
   assert.doesNotThrow(() => validateMatmulDimensions('test', 1, 2048, 1024));
