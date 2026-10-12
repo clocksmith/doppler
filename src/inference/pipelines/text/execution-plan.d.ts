@@ -78,6 +78,7 @@ export interface ExecutionSessionPlan {
 }
 
 export interface ExecutionPlanCompileOptions {
+  manifest?: import('./config.js').Manifest | null;
   runtimeConfig: RuntimeConfigSchema;
   resolvedKernelPath: KernelPathSchema | null;
   kernelPathSource?: KernelPathSource | 'none';

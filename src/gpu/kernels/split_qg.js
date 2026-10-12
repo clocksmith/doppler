@@ -1,3 +1,4 @@
+import { executePairedSplitQG } from './paired-split.js';
 
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
@@ -6,6 +7,9 @@ import { unifiedKernelWrapper } from './kernel-execution.js';
 import { selectRuleValue } from './rule-registry.js';
 
 async function _splitQG(target, qgTensor, options) {
+  if (qgTensor.precision !== undefined || qgTensor.components !== undefined || qgTensor.elementStrideBytes !== undefined) {
+    return executePairedSplitQG(target, qgTensor, options);
+  }
   const { numTokens, numHeads, headDim, qTensor = null, gTensor = null } = options;
   const ownsQ = qTensor == null;
   const ownsG = gTensor == null;

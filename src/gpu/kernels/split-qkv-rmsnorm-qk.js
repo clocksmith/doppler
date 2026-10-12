@@ -37,7 +37,7 @@ function assertQKVSizes(options) {
 }
 
 export function canUseSplitQKVRMSNormQK(qkvTensor, options = {}) {
-  if (!qkvTensor || qkvTensor.dtype !== 'f32') {
+  if (!qkvTensor || qkvTensor.dtype !== 'f32' || qkvTensor.precision !== undefined || qkvTensor.components !== undefined || qkvTensor.elementStrideBytes !== undefined) {
     return false;
   }
   if (options.skipKNorm === true || options.allowUnitQKNorm === true) {

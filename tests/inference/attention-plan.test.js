@@ -248,3 +248,16 @@ test('characterization matrix covers phase, dtype, capability, KV, fusion, LoRA,
 
   assert.equal(planIds.size, cases.length);
 });
+
+test('paired intermediates select separate residual/gate paths and exclude scalar flash epilogues', () => {
+  const input=createPlanInput();
+  input.geometry.headDim=256;
+  input.outputGate={enabled:true,tensorDtype:'f32',tensorElementCount:2048,kernelPathSupportsFusion:true};
+  input.session={...input.session,intermediatePrecision:'two-f32',attentionDecodeOnline:{useOutputGateFusion:true},useWideTileResidualFusion:true,retainQ4KMaterialization:true,useWideTileQ4KDecode:true,useFlashPrefillAttention:true,useOrtFlashPrefillAttention:true};
+  const plan=resolveAttentionPlan(input);
+  assert.equal(plan.outputGate.mode,'sigmoid-post-attention');
+  assert.equal(plan.outputProjection.residualMode,'separate');
+  const prefill=resolveAttentionPlan({...input,phase:'prefill',geometry:{...input.geometry,numTokens:4}});
+  assert.equal(prefill.attention.flashPrefill,false);
+  assert.equal(prefill.attention.ortFlashPrefill,false);
+});

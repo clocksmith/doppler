@@ -33,6 +33,9 @@ export interface DecodeBufferConfig {
   enablePingPong?: boolean;
   /** Activation dtype for hidden buffers - 'f16' uses 2 bytes, 'f32' uses 4 bytes (default) */
   activationDtype?: 'f16' | 'f32';
+  activationPrecision?: 'two-f32';
+  activationComponents?: 2;
+  activationElementStrideBytes?: 8;
 }
 
 /**
@@ -92,7 +95,7 @@ export declare class DecodeBufferManager {
   hasBuffers(): boolean;
 
   /**
-   * Get buffer sizes for debugging.
+   * Get actual padded allocation sizes for debugging.
    */
   getStats(): { hiddenBytes: number; intermediateBytes: number; totalBytes: number; activationDtype: 'f16' | 'f32' } | null;
 

@@ -5,6 +5,7 @@ import {
   resolveRangeAwareSelectiveWideningConfig,
 } from './finiteness-policy.js';
 import { log } from '../../../debug/index.js';
+import { validatePairedExecution } from './paired-execution.js';
 
 const PRIMARY_EXECUTION_PLAN_ID = 'primary';
 const FINITENESS_FALLBACK_EXECUTION_PLAN_ID = 'finiteness_fallback';
@@ -219,12 +220,8 @@ export function compileExecutionPlanState(options) {
     );
   }
   const sessionConfig = inferenceConfig.session ?? {};
-  if (sessionConfig.intermediatePrecision === 'two-f32') {
-    throw new Error(
-      '[ExecutionPlan] two-f32 intermediate execution requires a complete bound paired graph; ' +
-      'standalone operators do not qualify a model execution plan.'
-    );
-  }
+  const representation = sessionConfig.intermediatePrecision === 'two-f32'
+    ? validatePairedExecution(resolvedKernelPath, sessionConfig, manifest) : {};
   const decodeLoopConfig = sessionConfig.decodeLoop;
   if (!decodeLoopConfig || typeof decodeLoopConfig !== 'object') {
     throw new Error('[ExecutionPlan] runtimeConfig.inference.session.decodeLoop is required.');
@@ -251,7 +248,7 @@ export function compileExecutionPlanState(options) {
     ),
   };
 
-  const primaryPlan = createStaticExecutionPlan({
+  const primaryPlan = { ...createStaticExecutionPlan({
     id: PRIMARY_EXECUTION_PLAN_ID,
     source: 'configured',
     kernelPath: resolvedKernelPath,
@@ -261,7 +258,7 @@ export function compileExecutionPlanState(options) {
     deferredRoundingWindowTokens,
     generationConfig,
     batchingConfig,
-  });
+  }), ...representation };
   const primaryUsesF16ActivationExecution = primaryPlan.activationDtype === 'f16'
     || kernelPathUsesF16ActivationExecution(resolvedKernelPath);
 

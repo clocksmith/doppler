@@ -1,8 +1,8 @@
+import { executePairedAttention } from '../paired-attention.js';
 import { getDevice, getDeviceEpoch, getDeviceLimits, getKernelCapabilities } from '../../device.js';
 import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { createTensor } from '../../tensor.js';
 import { KernelBase } from '../kernel-base.js';
-import { TILE_SIZES } from '../constants.js';
 import { getKernelThresholds, padToQ4KBlock } from '../../../config/schema/index.js';
 import { createUniformBufferWithView } from '../uniform-utils.js';
 import { getKernelConfig, getKernelValidator } from '../kernel-configs.js';
@@ -11,10 +11,6 @@ import { hasRequiredFeatures } from '../feature-check.js';
 import { dispatchIndirect, recordDispatchIndirect } from '../dispatch.js';
 import { releaseUniformBuffer } from '../../uniform-cache.js';
 import { log, trace } from '../../../debug/index.js';
-import { getKernelPathAttentionVariant, getKernelPathStrict } from '../../../config/kernel-path-loader.js';
-import { selectRuleValue as selectKernelRuleValue } from '../rule-registry.js';
-import { selectRuleValue as selectSharedRuleValue } from '../../../rules/rule-registry.js';
-import { logKernelSelectionOnce } from '../../kernel-selection-log.js';
 import { getRuntimeConfig } from '../../../config/runtime.js';
 import { getRequiredVariantMaxKVLen, resolveAttentionPlan } from './plan.js';
 
@@ -358,6 +354,9 @@ export async function executeAttention(
   headDim,
   options = {}
 ) {
+  if (Q.precision !== undefined || Q.components !== undefined || Q.elementStrideBytes !== undefined) {
+    return executePairedAttention(recorder, Q, K, V, mask, numHeads, headDim, options);
+  }
   const execution = resolveAttentionExecution(recorder);
   const {
     seqLen = 1,

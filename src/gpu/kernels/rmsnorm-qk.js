@@ -1,3 +1,4 @@
+import { executePairedRMSNorm } from './paired-rmsnorm.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { padToQ4KBlock } from '../../config/schema/index.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
@@ -58,6 +59,26 @@ async function rmsNormQK(target, qTensor, kTensor, qWeight, kWeight, eps, option
 
   const qRows = numTokens * numHeads;
   const kRows = numTokens * numKVHeads;
+  const hasPairMetadata = tensor => tensor.precision !== undefined || tensor.components !== undefined || tensor.elementStrideBytes !== undefined;
+  if (hasPairMetadata(qTensor) || hasPairMetadata(kTensor)) {
+    for (const tensor of [qTensor, kTensor]) {
+      if (tensor.dtype !== 'f32' || tensor.precision !== 'two-f32' || tensor.components !== 2 || tensor.elementStrideBytes !== 8) {
+        throw new Error('RMSNorm QK requires matching explicit interleaved two-F32 tensors.');
+      }
+    }
+    let q = null;
+    try {
+      q = await executePairedRMSNorm(target, qTensor, qWeight, eps, { batchSize: qRows, hiddenSize: headDim, rmsNormWeightOffset });
+      const k = await executePairedRMSNorm(target, kTensor, kWeight, eps, { batchSize: kRows, hiddenSize: headDim, rmsNormWeightOffset });
+      return { q, k };
+    } catch (error) {
+      if (q) {
+        if (target) target.trackTemporaryBuffer(q.buffer); else releaseBuffer(q.buffer);
+      }
+      throw error;
+    }
+  }
+
   const bytesPerElement = dtypeBytes(qTensor.dtype);
   assertBufferCapacity(qTensor.buffer, qRows * headDim * bytesPerElement, 'Q input');
   assertBufferCapacity(kTensor.buffer, kRows * headDim * bytesPerElement, 'K input');

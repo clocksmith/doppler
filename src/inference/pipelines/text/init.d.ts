@@ -114,6 +114,7 @@ export interface PipelineContexts {
  * RoPE configuration.
  */
 export interface RoPEConfig {
+  intermediatePrecision?: 'f32' | 'two-f32';
   /** Declared schedule; absent direct callers retain explicitly configured local tables. */
   layerTypes?: string[] | null;
   headDim: number;

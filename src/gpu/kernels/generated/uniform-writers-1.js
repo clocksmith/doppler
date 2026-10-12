@@ -2,6 +2,17 @@
 // Do not edit; npm run kernels:uniforms:sync.
 import { writeU32, writeI32, writeF32 } from '../uniform-encoding.js';
 
+export function write_soft_embedding_logits_norm_stats(view, values, kernel) {
+  writeU32(view, 0, values["canvas_length"], kernel, "canvas_length");
+  writeU32(view, 4, values["hidden_size"], kernel, "hidden_size");
+  writeU32(view, 8, values["vocab_size"], kernel, "vocab_size");
+  writeU32(view, 12, values["row_start"], kernel, "row_start");
+  writeU32(view, 16, values["row_count"], kernel, "row_count");
+  writeF32(view, 20, values["temperature"], kernel, "temperature");
+  view.setUint32(24, 0, true);
+  view.setUint32(28, 0, true);
+}
+
 export function write_diffusion_gemma_sampling_entropy_stats(view, values, kernel) {
   writeU32(view, 0, values["vocab_size"], kernel, "vocab_size");
   writeU32(view, 4, values["canvas_length"], kernel, "canvas_length");
@@ -587,17 +598,6 @@ export function write_groupnorm_stats_stats(view, values, kernel) {
   writeU32(view, 12, values["num_groups"], kernel, "num_groups");
   writeF32(view, 16, values["eps"], kernel, "eps");
   view.setUint32(20, 0, true);
-  view.setUint32(24, 0, true);
-  view.setUint32(28, 0, true);
-}
-
-export function write_upsample2d_default(view, values, kernel) {
-  writeU32(view, 0, values["channels"], kernel, "channels");
-  writeU32(view, 4, values["in_height"], kernel, "in_height");
-  writeU32(view, 8, values["in_width"], kernel, "in_width");
-  writeU32(view, 12, values["out_height"], kernel, "out_height");
-  writeU32(view, 16, values["out_width"], kernel, "out_width");
-  writeU32(view, 20, values["scale"], kernel, "scale");
   view.setUint32(24, 0, true);
   view.setUint32(28, 0, true);
 }

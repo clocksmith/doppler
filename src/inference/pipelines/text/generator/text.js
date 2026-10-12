@@ -96,7 +96,7 @@ import {
   hasGpuSplitPerLayerInputEmbeddings,
   hasRangeBackedPerLayerInputEmbeddings,
 } from '../per-layer-inputs.js';
-import { createTensor } from '../../../../gpu/tensor.js';
+import { createTensor, tensorElementBytes } from '../../../../gpu/tensor.js';
 import { getQKNormOnesBuffer } from '../attention/types.js';
 import {
   getWeightBuffer as getPipelineWeightBuffer,
@@ -276,13 +276,13 @@ export function normalizeSelectedLogitTokenIds(value, vocabSize, label) {
   return tokenIds;
 }
 
-export async function traceActivationHealth(label, buffer, dtype, elementCount) {
+export async function traceActivationHealth(label, buffer, dtype, elementCount, representation = undefined) {
   if (!isTraceEnabled('logits') || !isGpuBufferInstance(buffer)) {
     return;
   }
-  const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype });
+  const bytesPerElement = tensorElementBytes(dtype, representation);
   const data = await readBuffer(buffer, elementCount * bytesPerElement);
-  trace.logits(label, getLogitsHealth(decodeReadback(data, dtype)));
+  trace.logits(label, getLogitsHealth(decodeReadback(data, dtype, representation)));
 }
 
 export function ownsBorrowedWeightBuffer(weight) {

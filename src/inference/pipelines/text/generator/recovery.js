@@ -206,6 +206,9 @@ export function _beginFinitenessFallback(opts, reasonLabel, rollbackSeqLen = und
       hiddenSize: this._state.modelConfig.hiddenSize,
       intermediateSize: this._state.modelConfig.maxIntermediateSize,
       activationDtype: fallbackPlan.activationDtype,
+      activationPrecision: fallbackPlan.activationPrecision,
+      activationComponents: fallbackPlan.activationComponents,
+      activationElementStrideBytes: fallbackPlan.activationElementStrideBytes,
       enablePingPong: true,
     });
 
@@ -261,6 +264,9 @@ export function _endFinitenessFallback(opts, original) {
       hiddenSize: this._state.modelConfig.hiddenSize,
       intermediateSize: this._state.modelConfig.maxIntermediateSize,
       activationDtype: nextActivationDtype,
+      activationPrecision: restoredPlan.activationPrecision,
+      activationComponents: restoredPlan.activationComponents,
+      activationElementStrideBytes: restoredPlan.activationElementStrideBytes,
       enablePingPong: true,
     });
   }

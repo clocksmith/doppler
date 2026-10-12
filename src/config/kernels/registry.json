@@ -9606,6 +9606,117 @@
        }
       ]
      }
+    },
+    "paired": {
+     "wgsl": "attention_paired.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": ["shader-f16"],
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "inputPrecision": "two-f32",
+      "outputPrecision": "two-f32",
+      "kvDtype": "f16"
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "queries",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "keys",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "values",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 4,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 48,
+      "fields": [
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "kv_len",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "kv_start",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "scale_hi",
+        "type": "f32",
+        "offset": 32
+       },
+       {
+        "name": "scale_lo",
+        "type": "f32",
+        "offset": 36
+       },
+       {
+        "name": "causal",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "_pad",
+        "type": "u32",
+        "offset": 44,
+        "padding": true
+       }
+      ]
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
     }
    }
   },
@@ -12533,6 +12644,18 @@
      "entryPoint": "main",
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["rope-qk.rules.json#variant"],
+      "wgslOnDisk": true
+     }
+    },
+    "paired": {
+     "wgsl": "rope_qk_paired.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
      "reachability": {
       "status": "model-selectable",
       "inlineConfigs": [],
@@ -16330,6 +16453,18 @@
       "ruleChains": ["split-qkv.rules.json#variant"],
       "wgslOnDisk": true
      }
+    },
+    "paired": {
+     "wgsl": "split_qkv_paired.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["split-qkv.rules.json#variant"],
+      "wgslOnDisk": true
+     }
     }
    }
   },
@@ -16822,6 +16957,18 @@
      "entryPoint": "main",
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
+     "reachability": {
+      "status": "selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["split-qg.rules.json#variant"],
+      "wgslOnDisk": true
+     }
+    },
+    "paired": {
+     "wgsl": "split_qg_paired.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
      "reachability": {
       "status": "selectable",
       "inlineConfigs": [],
@@ -20134,6 +20281,159 @@
       "ruleChains": [],
       "wgslOnDisk": true
      }
+    },
+    "paired": {
+     "wgsl": "gated_delta_conv_paired.wgsl",
+     "entryPoint": "main",
+     "workgroup": [64,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "wgslName": "u",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "qkv",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weight",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "state",
+       "type": "storage"
+      },
+      {
+       "index": 4,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "variantMetadata": {
+      "inputPrecision": "two-f32",
+      "outputPrecision": "two-f32",
+      "activationComponents": 2,
+      "activationElementStrideBytes": 8
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 80,
+      "fields": [
+       {
+        "name": "num_tokens",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "conv_dim",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "conv_kernel_size",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "num_v_heads",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "num_k_heads",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "head_k_dim",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "head_v_dim",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "q_size",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "k_size",
+        "type": "u32",
+        "offset": 32
+       },
+       {
+        "name": "value_dim",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "q_rep",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "norm_mode",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "rms_eps_hi",
+        "type": "f32",
+        "offset": 48
+       },
+       {
+        "name": "rms_eps_lo",
+        "type": "f32",
+        "offset": 52
+       },
+       {
+        "name": "qk_eps_hi",
+        "type": "f32",
+        "offset": 56
+       },
+       {
+        "name": "qk_eps_lo",
+        "type": "f32",
+        "offset": 60
+       },
+       {
+        "name": "packed_flags",
+        "type": "u32",
+        "offset": 64
+       },
+       {
+        "name": "b_offset",
+        "type": "u32",
+        "offset": 68
+       },
+       {
+        "name": "norm_weight_offset",
+        "type": "u32",
+        "offset": 72
+       },
+       {
+        "name": "_pad",
+        "type": "u32",
+        "offset": 76,
+        "padding": true
+       }
+      ]
+     }
     }
    }
   },
@@ -20301,6 +20601,184 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
+     }
+    },
+    "paired": {
+     "wgsl": "gated_delta_recurrent_paired.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "wgslName": "u",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "conv",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "z",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "a",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 4,
+       "name": "b",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 5,
+       "name": "dt_bias",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 6,
+       "name": "a_log",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 7,
+       "name": "norm_weight",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 8,
+       "name": "state",
+       "type": "storage"
+      },
+      {
+       "index": 9,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "variantMetadata": {
+      "inputPrecision": "two-f32",
+      "outputPrecision": "two-f32",
+      "activationComponents": 2,
+      "activationElementStrideBytes": 8
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 80,
+      "fields": [
+       {
+        "name": "num_tokens",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "conv_dim",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "conv_kernel_size",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "num_v_heads",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "num_k_heads",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "head_k_dim",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "head_v_dim",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "q_size",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "k_size",
+        "type": "u32",
+        "offset": 32
+       },
+       {
+        "name": "value_dim",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "q_rep",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "norm_mode",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "rms_eps_hi",
+        "type": "f32",
+        "offset": 48
+       },
+       {
+        "name": "rms_eps_lo",
+        "type": "f32",
+        "offset": 52
+       },
+       {
+        "name": "qk_eps_hi",
+        "type": "f32",
+        "offset": 56
+       },
+       {
+        "name": "qk_eps_lo",
+        "type": "f32",
+        "offset": 60
+       },
+       {
+        "name": "packed_flags",
+        "type": "u32",
+        "offset": 64
+       },
+       {
+        "name": "b_offset",
+        "type": "u32",
+        "offset": 68
+       },
+       {
+        "name": "norm_weight_offset",
+        "type": "u32",
+        "offset": 72
+       },
+       {
+        "name": "_pad",
+        "type": "u32",
+        "offset": 76,
+        "padding": true
+       }
+      ]
      }
     }
    }
@@ -22205,6 +22683,108 @@
       ],
       "ruleChains": [],
       "wgslOnDisk": true
+     }
+    },
+    "paired": {
+     "wgsl": "rope_precompute_paired.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "inverse_frequencies",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "cos_table",
+       "type": "storage"
+      },
+      {
+       "index": 3,
+       "name": "sin_table",
+       "type": "storage"
+      }
+     ],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 48,
+      "fields": [
+       {
+        "name": "position_count",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "rotary_dim",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "frequency_base_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "dispatch_stride",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "theta_hi",
+        "type": "f32",
+        "offset": 16
+       },
+       {
+        "name": "theta_lo",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "scale_hi",
+        "type": "f32",
+        "offset": 24
+       },
+       {
+        "name": "scale_lo",
+        "type": "f32",
+        "offset": 28
+       },
+       {
+        "name": "inverse_supplied",
+        "type": "u32",
+        "offset": 32
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 36,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 40,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 44,
+        "padding": true
+       }
+      ]
      }
     }
    }

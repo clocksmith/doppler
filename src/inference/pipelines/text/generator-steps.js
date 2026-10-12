@@ -1,3 +1,4 @@
+import { getActivationRepresentation } from './generator/activation-storage.js';
 import { getDevice, setTrackSubmits } from '../../../gpu/device.js';
 import { releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
 import { recordArgmax, recordGPUSample, isGPUSamplingAvailable } from '../../../gpu/kernels/sample.js';
@@ -289,6 +290,7 @@ export async function advanceWithTokenAndEmbedding(state, tokenId, opts, helpers
     const extracted = await extractEmbeddingFromHiddenGPU({
       hiddenBuffer: hiddenStates,
       activationDtype,
+      representation: getActivationRepresentation(state, opts.executionPlan),
       numTokens: 1,
       hiddenSize: config.hiddenSize,
       embeddingMode,
@@ -568,6 +570,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     const embedDtype = getWeightDtype(embedBufferRaw);
     const embedMetadata = getWeightMetadata(embedBufferRaw);
     const activationDtype = getEffectiveActivationDtype(state, opts);
+    const representation = getActivationRepresentation(state, opts.executionPlan);
 
     // Preserve order and duplicates so the window can advance within the batch.
     const repetitionPenalty = opts.repetitionPenalty ?? samplingDefaults.repetitionPenalty;
@@ -619,6 +622,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
         debugProbes,
         operatorDiagnostics: state.operatorDiagnostics,
         activationDtype,
+        intermediatePrecision: representation.precision,
         embeddingDtype,
         embeddingStorageEncoding: embedMetadata?.storageEncoding ?? null,
         executionPolicies: state.executionV1State?.policies ?? null,

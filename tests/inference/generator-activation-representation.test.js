@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import { getActivationRepresentation } from '../../src/inference/pipelines/text/generator/activation-storage.js';
+import { tensorElementBytes } from '../../src/gpu/tensor.js';
+import { extractEmbeddingFromHiddenGPU } from '../../src/inference/pipelines/text/embedding-extraction.js';
+const paired = { activationDtype: 'f32', activationPrecision: 'two-f32', activationComponents: 2, activationElementStrideBytes: 8 };
+const scalar = { activationDtype: 'f32' };
+const state = { executionPlanState: { activePlanId: 'primary', primaryPlan: paired, fallbackPlan: scalar } };
+assert.equal(tensorElementBytes('f32', getActivationRepresentation(state)), 8);
+assert.equal(tensorElementBytes('f32', getActivationRepresentation(state, scalar)), 4, 'explicit session wins over ambient plan');
+state.executionPlanState.activePlanId = 'finiteness_fallback';
+assert.equal(tensorElementBytes('f32', getActivationRepresentation(state)), 4, 'fallback changes storage');
+assert.equal(tensorElementBytes('f32', getActivationRepresentation(state, paired)), 8);
+assert.equal(tensorElementBytes('f16', getActivationRepresentation({})), 2, 'legacy scalar path');
+assert.throws(() => getActivationRepresentation({}, { ...paired, activationElementStrideBytes: 4 }), /eight-byte stride/);
+assert.throws(() => getActivationRepresentation({}, { ...paired, activationDtype: 'f16' }), /eight-byte stride/);
+await assert.rejects(extractEmbeddingFromHiddenGPU({ representation: getActivationRepresentation({}, paired) }), /does not support paired/);
+console.log('generator activation plan precedence, malformed storage and unsupported extraction passed');

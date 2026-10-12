@@ -134,6 +134,7 @@ export interface KernelUniformValues {
   "attention/decode_paged_f16": Parameters<typeof writers0.write_attention_decode_online_f16>[1];
   "attention/decode_paged_f16kv": Parameters<typeof writers0.write_attention_decode_online_f16>[1];
   "attention/decode_subgroup": Parameters<typeof writers0.write_attention_decode_subgroup>[1];
+  "attention/paired": Parameters<typeof writers0.write_attention_paired>[1];
   "attention_tiered/decode_tiered_f16": Parameters<typeof writers0.write_attention_tiered_decode_tiered_f16>[1];
   "attention_tiered/decode_tiered_f16kv": Parameters<typeof writers0.write_attention_tiered_decode_tiered_f16>[1];
   "attention_tiered_quant/decode_tiered_int8_f16kv": Parameters<typeof writers0.write_attention_tiered_quant_decode_tiered_int8_f16kv>[1];
@@ -178,8 +179,8 @@ export interface KernelUniformValues {
   "softmax/small_subgroup": Parameters<typeof writers0.write_softmax_default>[1];
   "softmax/subgroup": Parameters<typeof writers0.write_softmax_default>[1];
   "soft_embedding/split_f16": Parameters<typeof writers0.write_soft_embedding_split_f16>[1];
-  "soft_embedding/logits_norm_stats": Parameters<typeof writers0.write_soft_embedding_logits_norm_stats>[1];
-  "soft_embedding/logits_probability_chunk": Parameters<typeof writers0.write_soft_embedding_logits_norm_stats>[1];
+  "soft_embedding/logits_norm_stats": Parameters<typeof writers1.write_soft_embedding_logits_norm_stats>[1];
+  "soft_embedding/logits_probability_chunk": Parameters<typeof writers1.write_soft_embedding_logits_norm_stats>[1];
   "diffusion_gemma_sampling/entropy_stats": Parameters<typeof writers1.write_diffusion_gemma_sampling_entropy_stats>[1];
   "rope/default": Parameters<typeof writers1.write_rope_default>[1];
   "rope/default_f16": Parameters<typeof writers1.write_rope_default>[1];
@@ -193,6 +194,7 @@ export interface KernelUniformValues {
   "rope/yarn_f16": Parameters<typeof writers1.write_rope_default>[1];
   "rope_qk/default": Parameters<typeof writers1.write_rope_qk_default>[1];
   "rope_qk/default_f16": Parameters<typeof writers1.write_rope_qk_default>[1];
+  "rope_qk/paired": Parameters<typeof writers1.write_rope_qk_default>[1];
   "silu/default": Parameters<typeof writers1.write_silu_default>[1];
   "silu/default_f16": Parameters<typeof writers1.write_silu_default>[1];
   "gelu/gelu": Parameters<typeof writers1.write_gelu_gelu>[1];
@@ -272,11 +274,13 @@ export interface KernelUniformValues {
   "vision_spatial_merge/default": Parameters<typeof writers1.write_vision_spatial_merge_default>[1];
   "split_qkv/default": Parameters<typeof writers1.write_split_qkv_default>[1];
   "split_qkv/f16": Parameters<typeof writers1.write_split_qkv_default>[1];
+  "split_qkv/paired": Parameters<typeof writers1.write_split_qkv_default>[1];
   "split_qkv_rmsnorm_qk/default": Parameters<typeof writers1.write_split_qkv_rmsnorm_qk_default>[1];
   "split_qkv_rmsnorm_rope_qk/default": Parameters<typeof writers1.write_split_qkv_rmsnorm_rope_qk_default>[1];
   "split_qkv_rmsnorm_rope_qk_f16kv_cache/default": Parameters<typeof writers1.write_split_qkv_rmsnorm_rope_qk_f16kv_cache_default>[1];
   "split_qg/default": Parameters<typeof writers1.write_split_qg_default>[1];
   "split_qg/f16": Parameters<typeof writers1.write_split_qg_default>[1];
+  "split_qg/paired": Parameters<typeof writers1.write_split_qg_default>[1];
   "rep_penalty/default": Parameters<typeof writers1.write_rep_penalty_default>[1];
   "rep_penalty/default_f16": Parameters<typeof writers1.write_rep_penalty_default>[1];
   "sample/argmax": Parameters<typeof writers1.write_sample_argmax>[1];
@@ -322,8 +326,8 @@ export interface KernelUniformValues {
   "groupnorm_stats/stats_f16": Parameters<typeof writers1.write_groupnorm_stats_stats>[1];
   "groupnorm_apply/apply": Parameters<typeof writers1.write_groupnorm_stats_stats>[1];
   "groupnorm_apply/apply_f16": Parameters<typeof writers1.write_groupnorm_stats_stats>[1];
-  "upsample2d/default": Parameters<typeof writers1.write_upsample2d_default>[1];
-  "upsample2d/default_f16": Parameters<typeof writers1.write_upsample2d_default>[1];
+  "upsample2d/default": Parameters<typeof writers2.write_upsample2d_default>[1];
+  "upsample2d/default_f16": Parameters<typeof writers2.write_upsample2d_default>[1];
   "modulate/default": Parameters<typeof writers2.write_modulate_default>[1];
   "modulate/f16": Parameters<typeof writers2.write_modulate_default>[1];
   "pixel_shuffle/default": Parameters<typeof writers2.write_pixel_shuffle_default>[1];
@@ -331,13 +335,15 @@ export interface KernelUniformValues {
   "cross_entropy_backward/default": Parameters<typeof writers2.write_cross_entropy_backward_default>[1];
   "adam/default": Parameters<typeof writers2.write_adam_default>[1];
   "bias_add_backward/default": Parameters<typeof writers2.write_bias_add_backward_default>[1];
-  "upsample2d_backward/default": Parameters<typeof writers1.write_upsample2d_default>[1];
+  "upsample2d_backward/default": Parameters<typeof writers2.write_upsample2d_default>[1];
   "pixel_shuffle_backward/default": Parameters<typeof writers2.write_pixel_shuffle_default>[1];
   "groupnorm_backward/default": Parameters<typeof writers1.write_groupnorm_stats_stats>[1];
   "gated_delta_conv/default": Parameters<typeof writers2.write_gated_delta_conv_default>[1];
   "gated_delta_conv/default_f16": Parameters<typeof writers2.write_gated_delta_conv_default>[1];
+  "gated_delta_conv/paired": Parameters<typeof writers2.write_gated_delta_conv_paired>[1];
   "gated_delta_recurrent/default": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_recurrent/default_f16": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
+  "gated_delta_recurrent/paired": Parameters<typeof writers2.write_gated_delta_conv_paired>[1];
   "gated_delta_fused_decode/default": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_fused_decode/default_f16": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "linear_attention_summary/default": Parameters<typeof writers2.write_linear_attention_summary_default>[1];
@@ -372,6 +378,7 @@ export interface KernelUniformValues {
   "logit_scatter/f32": Parameters<typeof writers2.write_logit_scatter_f32>[1];
   "logit_scatter/f16": Parameters<typeof writers2.write_logit_scatter_f32>[1];
   "rope_precompute/f32": Parameters<typeof writers2.write_rope_precompute_f32>[1];
+  "rope_precompute/paired": Parameters<typeof writers2.write_rope_precompute_paired>[1];
   "forecast_output/f32": Parameters<typeof writers2.write_forecast_output_f32>[1];
   "logit_suppress/f32": Parameters<typeof writers2.write_logit_suppress_f32>[1];
   "paired_pointwise/add": Parameters<typeof writers2.write_paired_pointwise_add>[1];

@@ -14,6 +14,7 @@ import type { ExecutionV1PoliciesSchema } from '../../config/schema/execution-v1
 
 /** RoPE kernel options */
 export interface RoPEOptions extends OutputBufferOptions {
+  frequencyPrecision?: 'f32' | 'two-f32';
   numHeads?: number;
   headDim?: number;
   rotaryDim?: number;

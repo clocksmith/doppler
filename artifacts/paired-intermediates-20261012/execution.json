@@ -1,0 +1,455 @@
+{
+  "inlineKernelPath": true,
+  "kernels": {
+    "norm": {
+      "kernel": "rmsnorm_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:a8bec47c5fe039c2edc14e81130ed2bdb73cf881d17b9d8e10631bfcd578a45a",
+      "precision": {
+        "inputDtype": "f32",
+        "outputDtype": "f32"
+      }
+    },
+    "projection_q4": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:363adb64cd748859dca995dbade0307d4cb94f9e4a016da73b4269b20e73c4dd",
+      "constants": {
+        "WEIGHT_F16": false,
+        "WEIGHT_Q4K": true,
+        "SCALAR_OUTPUT": false
+      },
+      "precision": {
+        "inputDtype": "f32",
+        "outputDtype": "f32"
+      }
+    },
+    "projection_f16": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:363adb64cd748859dca995dbade0307d4cb94f9e4a016da73b4269b20e73c4dd",
+      "constants": {
+        "WEIGHT_F16": true,
+        "WEIGHT_Q4K": false,
+        "SCALAR_OUTPUT": false
+      },
+      "precision": {
+        "inputDtype": "f32",
+        "outputDtype": "f32"
+      }
+    },
+    "head": {
+      "kernel": "matmul_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:363adb64cd748859dca995dbade0307d4cb94f9e4a016da73b4269b20e73c4dd",
+      "constants": {
+        "WEIGHT_F16": false,
+        "WEIGHT_Q4K": true,
+        "SCALAR_OUTPUT": true
+      },
+      "precision": {
+        "inputDtype": "f32",
+        "outputDtype": "f32"
+      }
+    },
+    "rope": {
+      "kernel": "rope_qk_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:213775d6b504fa804d0448fa1e5df99bc2cd3485f526787ac5a6c8a91a8213e8",
+      "precision": {
+        "inputDtype": "f32",
+        "outputDtype": "f32"
+      }
+    },
+    "attention": {
+      "kernel": "attention_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:a9d868890ae9e6a382bb5b72f4cff3f7fa5744b00c08e0c1fdbd05a29bb1e359",
+      "precision": {
+        "inputDtype": "f32",
+        "outputDtype": "f32",
+        "kvDtype": "f16"
+      }
+    },
+    "add": {
+      "kernel": "paired_add.wgsl",
+      "entry": "main",
+      "digest": "sha256:d9e716daf50ebbef2a7cc27908006ccc7e32b9f6707c7a3c926a0020e50512c6",
+      "precision": {
+        "inputDtype": "f32",
+        "outputDtype": "f32"
+      }
+    },
+    "silu": {
+      "kernel": "paired_silu.wgsl",
+      "entry": "main",
+      "digest": "sha256:10978a52877b0eb3c0cf90d70688d826b62ea82ae2ba53af08e0eb9cf1772d9d",
+      "precision": {
+        "inputDtype": "f32",
+        "outputDtype": "f32"
+      }
+    },
+    "cast_f32_to_two_f32": {
+      "kernel": "cast_f32_to_two_f32.wgsl",
+      "entry": "main",
+      "digest": "sha256:4f79cf40e2b469745c53f11f12f5791b8429a6ada4d055c5bd6e418033860945",
+      "precision": {
+        "inputDtype": "f32",
+        "outputDtype": "f32"
+      }
+    },
+    "cast_two_f32_to_f16": {
+      "kernel": "cast_two_f32_to_f16.wgsl",
+      "entry": "main",
+      "digest": "sha256:c849fddd43cc81e8d1b3e60cffc54275484df53ab29dde0371d17b2048844d01",
+      "precision": {
+        "inputDtype": "f32",
+        "outputDtype": "f32"
+      }
+    },
+    "gated_delta_conv_paired": {
+      "kernel": "gated_delta_conv_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:a27cd78d245a89eedb83e895927fcf76e4e1593526a4248b391f925b2a87f51d",
+      "precision": {
+        "inputDtype": "f32",
+        "outputDtype": "f32"
+      }
+    },
+    "gated_delta_recurrent_paired": {
+      "kernel": "gated_delta_recurrent_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:98e1496eaf328f8ece43b1e962953954dd11cae2bd1281824204420d5a186105",
+      "precision": {
+        "inputDtype": "f32",
+        "outputDtype": "f32"
+      }
+    },
+    "split_qg_paired": {
+      "kernel": "split_qg_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:15c4da5cf5022bea697ca972bbb96425e1b3a843c5bc7bb73f89641f4057da37",
+      "precision": {
+        "inputDtype": "f32",
+        "outputDtype": "f32"
+      }
+    },
+    "split_qkv_paired": {
+      "kernel": "split_qkv_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:af59d08a7cebd56cb531bfd5746fb2ecafdf041b4aa75e25ed4690d9126c65c4",
+      "precision": {
+        "inputDtype": "f32",
+        "outputDtype": "f32"
+      }
+    },
+    "rope_precompute_paired": {
+      "kernel": "rope_precompute_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:1540bf2fc882479166d888fdbd03d9ed8581ede920e0709e3545e71f71e4b5da",
+      "precision": {
+        "inputDtype": "f32",
+        "outputDtype": "f32"
+      }
+    },
+    "paired_pointwise_add": {
+      "kernel": "paired_add.wgsl",
+      "entry": "main",
+      "digest": "sha256:d9e716daf50ebbef2a7cc27908006ccc7e32b9f6707c7a3c926a0020e50512c6",
+      "precision": {
+        "inputDtype": "f32",
+        "outputDtype": "f32"
+      }
+    },
+    "paired_pointwise_scale": {
+      "kernel": "paired_scale.wgsl",
+      "entry": "main",
+      "digest": "sha256:e0d97734222d5803ca3ec0927789f62356597e9f224d5034162a78092e7e8448",
+      "precision": {
+        "inputDtype": "f32",
+        "outputDtype": "f32"
+      }
+    },
+    "paired_pointwise_multiply": {
+      "kernel": "paired_multiply.wgsl",
+      "entry": "main",
+      "digest": "sha256:108aaf9fae560587873a55ee944613fabce7955c1c0895f04dd6c252e31ee3b3",
+      "precision": {
+        "inputDtype": "f32",
+        "outputDtype": "f32"
+      }
+    },
+    "paired_pointwise_silu": {
+      "kernel": "paired_silu.wgsl",
+      "entry": "main",
+      "digest": "sha256:10978a52877b0eb3c0cf90d70688d826b62ea82ae2ba53af08e0eb9cf1772d9d",
+      "precision": {
+        "inputDtype": "f32",
+        "outputDtype": "f32"
+      }
+    },
+    "paired_pointwise_sigmoid": {
+      "kernel": "paired_sigmoid.wgsl",
+      "entry": "main",
+      "digest": "sha256:d429d88a2e53547740f0d9a994cd4fa1959c52714de1c8afd9cc7471dd674d50",
+      "precision": {
+        "inputDtype": "f32",
+        "outputDtype": "f32"
+      }
+    },
+    "paired_pointwise_scale_inplace": {
+      "kernel": "paired_scale_inplace.wgsl",
+      "entry": "main",
+      "digest": "sha256:440dd8442306b90a6de6b613cf18d032c0d6283f5c2882a90e4573f2418cce64",
+      "precision": {
+        "inputDtype": "f32",
+        "outputDtype": "f32"
+      }
+    },
+    "paired_pointwise_silu_unary": {
+      "kernel": "paired_silu_unary.wgsl",
+      "entry": "main",
+      "digest": "sha256:7029c8a2b8bb0880baacfd22649e972626da907cf006e36eebb552fb8f7373b0",
+      "precision": {
+        "inputDtype": "f32",
+        "outputDtype": "f32"
+      }
+    },
+    "embed": {
+      "kernel": "gather_f16.wgsl",
+      "entry": "main",
+      "digest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9"
+    },
+    "sample": {
+      "kernel": "sample.wgsl",
+      "entry": "sample_single_pass",
+      "digest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef"
+    }
+  },
+  "mechanismKernels": [
+    "cast_f32_to_two_f32",
+    "cast_two_f32_to_f16",
+    "gated_delta_conv_paired",
+    "gated_delta_recurrent_paired",
+    "split_qg_paired",
+    "split_qkv_paired",
+    "rope_precompute_paired",
+    "paired_pointwise_add",
+    "paired_pointwise_scale",
+    "paired_pointwise_multiply",
+    "paired_pointwise_silu",
+    "paired_pointwise_sigmoid",
+    "paired_pointwise_scale_inplace",
+    "paired_pointwise_silu_unary"
+  ],
+  "preLayer": [
+    [
+      "embed",
+      "embed",
+      "embed_tokens"
+    ]
+  ],
+  "decode": [
+    [
+      "input_norm",
+      "norm"
+    ],
+    [
+      "q_proj",
+      "projection_q4",
+      "layer.{L}.self_attn.q_proj"
+    ],
+    [
+      "k_proj",
+      "projection_q4",
+      "layer.{L}.self_attn.k_proj"
+    ],
+    [
+      "v_proj",
+      "projection_q4",
+      "layer.{L}.self_attn.v_proj"
+    ],
+    [
+      "linear_qkv_proj",
+      "projection_q4",
+      "layer.{L}.linear_attn.in_proj_qkv"
+    ],
+    [
+      "linear_z_proj",
+      "projection_q4",
+      "layer.{L}.linear_attn.in_proj_z"
+    ],
+    [
+      "linear_a_proj",
+      "projection_f16",
+      "layer.{L}.linear_attn.in_proj_a"
+    ],
+    [
+      "linear_b_proj",
+      "projection_f16",
+      "layer.{L}.linear_attn.in_proj_b"
+    ],
+    [
+      "rope_q",
+      "rope"
+    ],
+    [
+      "rope_k",
+      "rope"
+    ],
+    [
+      "attention",
+      "attention"
+    ],
+    [
+      "o_proj",
+      "projection_q4",
+      "layer.{L}.self_attn.o_proj"
+    ],
+    [
+      "attn_residual",
+      "add"
+    ],
+    [
+      "post_attn_norm",
+      "norm"
+    ],
+    [
+      "gate_proj",
+      "projection_q4",
+      "layer.{L}.mlp.gate_proj"
+    ],
+    [
+      "up_proj",
+      "projection_q4",
+      "layer.{L}.mlp.up_proj"
+    ],
+    [
+      "activation",
+      "silu"
+    ],
+    [
+      "down_proj",
+      "projection_q4",
+      "layer.{L}.mlp.down_proj"
+    ],
+    [
+      "ffn_residual",
+      "add"
+    ]
+  ],
+  "prefill": [
+    [
+      "input_norm",
+      "norm"
+    ],
+    [
+      "q_proj",
+      "projection_q4",
+      "layer.{L}.self_attn.q_proj"
+    ],
+    [
+      "k_proj",
+      "projection_q4",
+      "layer.{L}.self_attn.k_proj"
+    ],
+    [
+      "v_proj",
+      "projection_q4",
+      "layer.{L}.self_attn.v_proj"
+    ],
+    [
+      "linear_qkv_proj",
+      "projection_q4",
+      "layer.{L}.linear_attn.in_proj_qkv"
+    ],
+    [
+      "linear_z_proj",
+      "projection_q4",
+      "layer.{L}.linear_attn.in_proj_z"
+    ],
+    [
+      "linear_a_proj",
+      "projection_f16",
+      "layer.{L}.linear_attn.in_proj_a"
+    ],
+    [
+      "linear_b_proj",
+      "projection_f16",
+      "layer.{L}.linear_attn.in_proj_b"
+    ],
+    [
+      "rope_q",
+      "rope"
+    ],
+    [
+      "rope_k",
+      "rope"
+    ],
+    [
+      "attention",
+      "attention"
+    ],
+    [
+      "o_proj",
+      "projection_q4",
+      "layer.{L}.self_attn.o_proj"
+    ],
+    [
+      "attn_residual",
+      "add"
+    ],
+    [
+      "post_attn_norm",
+      "norm"
+    ],
+    [
+      "gate_proj",
+      "projection_q4",
+      "layer.{L}.mlp.gate_proj"
+    ],
+    [
+      "up_proj",
+      "projection_q4",
+      "layer.{L}.mlp.up_proj"
+    ],
+    [
+      "activation",
+      "silu"
+    ],
+    [
+      "down_proj",
+      "projection_q4",
+      "layer.{L}.mlp.down_proj"
+    ],
+    [
+      "ffn_residual",
+      "add"
+    ]
+  ],
+  "postLayer": [
+    [
+      "final_norm",
+      "norm"
+    ],
+    [
+      "lm_head",
+      "head",
+      "lm_head"
+    ],
+    [
+      "lm_head_prefill",
+      "head",
+      "lm_head"
+    ],
+    [
+      "sample",
+      "sample"
+    ]
+  ],
+  "policies": {
+    "unsupportedPrecision": "error",
+    "dtypeTransition": "require_cast_step",
+    "unresolvedKernel": "error"
+  }
+}

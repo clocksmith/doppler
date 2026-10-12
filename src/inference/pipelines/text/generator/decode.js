@@ -1,3 +1,5 @@
+import { tensorElementBytes } from '../../../../gpu/tensor.js';
+import { getActivationRepresentation } from './activation-storage.js';
 import { getDevice, setTrackSubmits } from '../../../../gpu/device.js';
 import { releaseBuffer, readBuffer } from '../../../../memory/buffer-pool.js';
 import { recordArgmax, recordGPUSample, isGPUSamplingAvailable } from '../../../../gpu/kernels/sample.js';
@@ -251,6 +253,7 @@ export async function runDecodeLayers(state, tokenId, opts, helpers) {
     : getWeightDtype(embedBufferRaw);
   const embedMetadata = getWeightMetadata(embedBufferRaw);
   const activationDtype = getEffectiveActivationDtype(state, opts);
+  const representation = getActivationRepresentation(state, opts.executionPlan);
 
   const embedTensor = await embed([tokenId], embedBuffer, {
     hiddenSize: config.hiddenSize,
@@ -262,6 +265,7 @@ export async function runDecodeLayers(state, tokenId, opts, helpers) {
     debugProbes: state.runtimeConfig.shared.debug.probes,
     operatorDiagnostics: state.operatorDiagnostics,
     activationDtype,
+    intermediatePrecision: representation.precision,
     embeddingDtype: selectRuleValue('inference', 'dtype', 'embeddingDtype', { dtype: embedDtype }),
     embeddingStorageEncoding: embedMetadata?.storageEncoding ?? null,
     executionPolicies: state.executionV1State?.policies ?? null,
@@ -421,7 +425,8 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     : getWeightDtype(embedBufferRaw);
   const embedMetadata = getWeightMetadata(embedBufferRaw);
   const activationDtype = getEffectiveActivationDtype(state, opts);
-  const activationBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
+  const representation = getActivationRepresentation(state, opts.executionPlan);
+  const activationBytes = tensorElementBytes(activationDtype, representation);
 
   const embedTensor = await embed([lastToken], embedBuffer, {
     hiddenSize: config.hiddenSize,
@@ -434,6 +439,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     debugProbes: state.runtimeConfig.shared.debug.probes,
     operatorDiagnostics: state.operatorDiagnostics,
     activationDtype,
+    intermediatePrecision: representation.precision,
     embeddingDtype: selectRuleValue('inference', 'dtype', 'embeddingDtype', { dtype: embedDtype }),
     embeddingStorageEncoding: embedMetadata?.storageEncoding ?? null,
     executionPolicies: state.executionV1State?.policies ?? null,
@@ -457,7 +463,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
   if (opts.debug && state.decodeStepCount === 1) {
     const validSize = config.hiddenSize * activationBytes;
     const embedData = await readBuffer(hiddenStates, validSize);
-    const embedArr = decodeReadback(embedData, activationDtype);
+    const embedArr = decodeReadback(embedData, activationDtype, representation);
     const sample = embedArr.slice(0, 5);
     const maxAbs = Math.max(...embedArr.map(Math.abs));
     const nonZero = embedArr.filter(x => Math.abs(x) > 1e-10).length;
@@ -470,9 +476,8 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     resetSubmitStats();
   }
 
-  const hasGPUCache = context.kvCache?.hasGPUCache?.() ?? false;
   if (opts.debug && state.decodeStepCount === 1) {
-    log.debug('Decode', `KV cache check: hasGPUCache=${hasGPUCache}, currentSeqLen=${context.currentSeqLen}`);
+    log.debug('Decode', `KV cache check: hasGPUCache=${context.kvCache?.hasGPUCache?.() ?? false}, currentSeqLen=${context.currentSeqLen}`);
   }
 
   try {
@@ -763,7 +768,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     if (debugDevice) {
       if (allowReadback('pipeline.decode.debug-hidden')) {
         const debugReadbackSize = state.runtimeConfig.shared.debug.pipeline.readbackSampleSize;
-        const sampleSize = Math.min(debugReadbackSize, hiddenStates.size);
+        const sampleSize = Math.floor(Math.min(debugReadbackSize, hiddenStates.size) / activationBytes) * activationBytes;
         const staging = debugDevice.createBuffer({
           size: sampleSize,
           usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
@@ -771,7 +776,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
         const enc = debugDevice.createCommandEncoder();
         enc.copyBufferToBuffer(hiddenStates, 0, staging, 0, sampleSize);
         debugDevice.queue.submit([enc.finish()]);
-        const data = new Float32Array(await readMappedBufferCopy(staging));
+        const data = decodeReadback(await readMappedBufferCopy(staging), activationDtype, representation);
         const nanCount = Array.from(data).filter(x => !Number.isFinite(x)).length;
         const nonZero = Array.from(data).filter(x => Number.isFinite(x) && x !== 0).slice(0, 5);
         log.debug('Decode', `[1] HIDDEN_AFTER_LAYERS: nan=${nanCount}/${data.length}, nonZero=${nonZero.length}, sample=[${nonZero.map(x => x.toFixed(4)).join(', ')}]`);

@@ -12,6 +12,9 @@ import { assertImplicitDtypeTransitionAllowed } from '../../config/dtype-transit
 const getRopeDefaults = () => getKernelThresholds().rope;
 
 async function _rope(target, input, freqsCos, freqsSin, seqLen, options = {}) {
+  if (input.precision !== undefined || input.components !== undefined || input.elementStrideBytes !== undefined) {
+    throw new Error('[RoPE] Paired input requires the declared paired Q/K path.');
+  }
   const ropeDefaults = getRopeDefaults();
   const {
     numHeads = 1,

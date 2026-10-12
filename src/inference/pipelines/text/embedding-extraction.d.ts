@@ -3,6 +3,7 @@ import type { WeightBuffer } from '../../../gpu/weight-buffer.js';
 export interface EmbeddingExtractionOptions {
   hiddenBuffer: GPUBuffer;
   activationDtype: 'f16' | 'f32';
+  representation?: import('../../../gpu/tensor.js').TensorRepresentation;
   numTokens: number;
   hiddenSize: number;
   embeddingMode: 'last' | 'mean';

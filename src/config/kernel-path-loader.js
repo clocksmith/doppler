@@ -373,6 +373,14 @@ function findKernelVariant(
   return variant;
 }
 
+// Resolve exact declared shader, entry and overrides through the active registry.
+export function getKernelPathStepConfig(operation, step, phase = null) {
+  if (!step || typeof step.kernel !== 'string') return null;
+  const variant = findKernelVariant(operation, step.kernel, step.entry, phase, step.constants);
+  const config = variant == null ? null : getKernelConfigs()[operation]?.[variant];
+  return config?.entryPoint === (step.entry ?? DEFAULT_ENTRY) ? config : null;
+}
+
 export function getKernelPathMatmulVariant(
   role,
   phase,

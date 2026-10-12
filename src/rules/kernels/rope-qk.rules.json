@@ -1,6 +1,20 @@
 {
   "variant": [
-    { "match": { "useF16": true }, "value": "default_f16" },
-    { "match": {}, "value": "default" }
+    {
+      "match": {
+        "precision": "two-f32"
+      },
+      "value": "paired"
+    },
+    {
+      "match": {
+        "useF16": true
+      },
+      "value": "default_f16"
+    },
+    {
+      "match": {},
+      "value": "default"
+    }
   ]
 }
