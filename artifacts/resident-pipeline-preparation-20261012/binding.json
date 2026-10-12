@@ -1,0 +1,17 @@
+{
+  "scope": "Resident preparation of declared paired convolution and recurrent pipelines only; no full-program warmup or physical correction qualification",
+  "demonstratedArchiveSha256": "102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7",
+  "privateCacheContractSha256": "8b7267926380ec589fc7ee1d8ea41031355fe1c6fb391dd422eb8f3b0a3befff",
+  "semantics": "Same registry operations, variants, shader source scope, constants and device cache as execution. No inference dispatch, sampling, numerical or timeout change.",
+  "files": {
+    "src/gpu/kernels/paired-linear-attention.js": "cf405a43e600e2aa4e814688f69db0899b8f4fa5054a57272b6ce4f96188c07c",
+    "src/gpu/kernels/paired-linear-attention.d.ts": "3dbe2aa72c25a02558a644a77d2676ee20254dbdf65287d037f94b40739537a4",
+    "src/inference/pipelines/text/resident-partition.js": "4fede2efddd3c2fe743e8725f05baa00b153282aeca6f003789c2270e9e8d2b7",
+    "src/inference/pipelines/text/resident-partition.d.ts": "c1dd2225cd56a45fc17f8df7b3d9bdb3310fc6dd456ccfe5e66ec9cd67748ce3",
+    "src/client/resident-partitions.js": "19bbe50e8f8246d883e96de1c9ac8b6c6e0c7c84b6be3441e141ccdd1f9261d1",
+    "src/client/model-host/index.js": "120fff741b67b65a56d5a916b287c68854a9b09e8436bb562fa72da8880176f2",
+    "tests/inference/resident-kernel-preparation.test.js": "e428a99912b1e310681634c0a50491aacef3b3d0fc9773d2ac1b44b5c9fe405f",
+    "tests/gpu/paired-linear-preparation.test.js": "34a21b316399fd60a4178e140148830baa03c69f770dfe215139d1aab254a25e",
+    "tests/client/resident-preparation-cleanup.test.js": "5a5f19ba1608a27f48dc53a40c03a755a61ea74981b738834ea3f2989dfefdd0"
+  }
+}

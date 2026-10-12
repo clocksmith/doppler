@@ -11,16 +11,24 @@ import { createPartitionAttempt } from './partition-attempt.js';
 import { assertResidentPartitionIdentity } from './resident-partition-contract.js';
 import { hashLayerPartitionPlan, resolveActivationTensorLayout, validateActivationTensorShape } from './layer-partition-contract.js';
 import { markDeviceWeights, getDeviceMemorySnapshot } from '../../../memory/device-budget.js';
+import { preparePairedLinearAttentionPipelines } from '../../../gpu/kernels/paired-linear-attention.js';
 
 /** @type {import('./resident-partition.js').createResidentPartitionSession} */
-export async function createResidentPartitionSession(pipeline, allocation, tokens, closeProgram) {
-  const descriptor = await runPipelineOperation(pipeline, owner => {
+export async function createResidentPartitionSession(pipeline, allocation, tokens, closeProgram, signal) {
+  const descriptor = await runPipelineOperation(pipeline, async owner => {
+    signal?.throwIfAborted();
     if (owner.gpuContext?.device) markDeviceWeights(owner.gpuContext.device, owner.dopplerLoader?.gpuBuffers ?? []);
     assertPartitionExecutionSupported(owner, allocation.plan);
     if (owner.modelPartition?.index !== allocation.index
       || hashLayerPartitionPlan(owner.modelPartition.plan) !== allocation.planId) {
       throw new Error('Loaded pipeline partition differs from its accepted allocation.');
     }
+    const [firstLayer, lastLayer] = allocation.plan.partitions[allocation.index].layerRange;
+    if (allocation.plan.activationPrecision === 'two-f32'
+      && owner.modelConfig?.layerTypes?.slice(firstLayer, lastLayer + 1).includes('linear_attention')) {
+      await preparePairedLinearAttentionPipelines(owner.gpuContext?.device, signal);
+    }
+    signal?.throwIfAborted();
     // Resident execution creates one cache per attempt. The opening pipeline's
     // empty cache is never used by those attempts and must not reserve a second
     // copy of the participant's entire context allocation.

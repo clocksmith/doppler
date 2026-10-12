@@ -439,7 +439,7 @@ export function createDopplerRuntimeService({
             assertCapsuleLoadActive(programOptions.signal);
             const program = createCapsuleProgramAdapter(modelHandle, capsule, targetPlan, programRegistries);
             if (allocation) {
-              const resident = await createResidentPartitionSession(pipeline, allocation, program, () => modelHandle.unload());
+              const resident = await createResidentPartitionSession(pipeline, allocation, program, () => modelHandle.unload(), programOptions.signal);
               program.residentPartition = resident;
               program.close = () => resident.close();
               program.executePhase = async () => { throw new Error('A resident partition cannot execute an unsplit program phase.'); };

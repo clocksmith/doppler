@@ -2,9 +2,22 @@ import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { getDevice } from '../device.js';
 import { unifiedKernelWrapper } from './kernel-execution.js';
+import { getPipelineFast } from './pipeline-cache.js';
 
 /** @type {Readonly<import('../tensor.js').TensorRepresentation>} */
 const REPRESENTATION = Object.freeze({ precision: 'two-f32', components: 2, elementStrideBytes: 8 });
+const CONV_CONSTANTS = Object.freeze({ WORKGROUP_SIZE: 64 });
+const RECURRENT_CONSTANTS = Object.freeze({ WORKGROUP_SIZE: 128 });
+
+/** @type {typeof import('./paired-linear-attention.js').preparePairedLinearAttentionPipelines} */
+export async function preparePairedLinearAttentionPipelines(device, signal) {
+  signal?.throwIfAborted();
+  if (!device) throw new Error('[PairedLinear] Pipeline preparation requires the owning GPU device.');
+  await getPipelineFast('gated_delta_conv', 'paired', null, CONV_CONSTANTS, device);
+  signal?.throwIfAborted();
+  await getPipelineFast('gated_delta_recurrent', 'paired', null, RECURRENT_CONSTANTS, device);
+  signal?.throwIfAborted();
+}
 
 /** @param {import('../tensor.js').Tensor} tensor @param {number} count */
 function assertPair(tensor, count) {
@@ -75,10 +88,10 @@ export async function executePairedLinearAttention(qkv, z, a, b, state, options)
     conv = acquireBuffer(numTokens * state.convDim * 8, undefined, 'paired_linear_conv');
     output = acquireBuffer(numTokens * state.valueDim * 8, undefined, 'paired_linear_output');
     await unifiedKernelWrapper('gated_delta_conv', recorder, 'paired', [qkv, state.convWeightGPU, state.convStateGPU, conv], uniform,
-      [Math.ceil(state.convDim / 64), 1, 1], { WORKGROUP_SIZE: 64 });
+      [Math.ceil(state.convDim / 64), 1, 1], CONV_CONSTANTS);
     await unifiedKernelWrapper('gated_delta_recurrent', recorder, 'paired',
       [conv, z, a, b, state.dtBiasGPU, state.aLogGPU, state.normWeightGPU, state.recurrentStateGPU, output], uniform,
-      [state.numVHeads, 1, 1], { WORKGROUP_SIZE: 128 });
+      [state.numVHeads, 1, 1], RECURRENT_CONSTANTS);
     return createTensor(output, 'f32', [numTokens, state.valueDim], 'paired_linear_output', REPRESENTATION);
   } catch (error) { if (output) release(output); throw error; }
   finally { if (conv) release(conv); }

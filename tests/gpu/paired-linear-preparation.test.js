@@ -1,0 +1,41 @@
+import assert from 'node:assert/strict';
+import { registerHooks } from 'node:module';
+const target = new URL('../../src/gpu/kernels/paired-linear-attention.js', import.meta.url).href;
+const calls = [];
+let resolvePipeline, rejectPipeline;
+globalThis.pairedPreparation = (...args) => { calls.push(args); return new Promise((resolve, reject) => { resolvePipeline = resolve; rejectPipeline = reject; }); };
+const hooks = registerHooks({ resolve(specifier, context, next) {
+  if (context.parentURL === target && specifier === './pipeline-cache.js') return { shortCircuit: true,
+    url: 'data:text/javascript,export const getPipelineFast=(...args)=>globalThis.pairedPreparation(...args)' };
+  return next(specifier, context);
+} });
+const { preparePairedLinearAttentionPipelines } = await import(target);
+const device = {};
+async function flush() { for (let i = 0; i < 6; i++) await Promise.resolve(); }
+try {
+  await assert.rejects(preparePairedLinearAttentionPipelines(undefined), /owning GPU device/);
+  const aborted = new AbortController(); aborted.abort(Error('cancelled before opening'));
+  await assert.rejects(preparePairedLinearAttentionPipelines(device, aborted.signal), /cancelled before/);
+  assert.equal(calls.length, 0);
+  const successful = preparePairedLinearAttentionPipelines(device); await flush();
+  assert.deepEqual(calls[0], ['gated_delta_conv', 'paired', null, { WORKGROUP_SIZE: 64 }, device]);
+  resolvePipeline(); await flush();
+  assert.deepEqual(calls[1], ['gated_delta_recurrent', 'paired', null, { WORKGROUP_SIZE: 128 }, device]);
+  resolvePipeline(); await successful;
+  for (const stage of [0, 1]) {
+    const count = calls.length, controller = new AbortController(); let settled = false;
+    const opening = preparePairedLinearAttentionPipelines(device, controller.signal);
+    opening.then(() => { settled = true; }, () => { settled = true; });
+    if (stage === 1) { resolvePipeline(); await flush(); }
+    controller.abort(Error('cancelled while compiling')); await flush();
+    assert.equal(settled, false, 'a pending provider task stays owned until it settles');
+    resolvePipeline(); await assert.rejects(opening, /cancelled while compiling/);
+    assert.equal(calls.length, count + stage + 1, 'abort must not start another pipeline');
+  }
+  const rejected = preparePairedLinearAttentionPipelines(device);
+  rejectPipeline(Error('provider compile failure')); await assert.rejects(rejected, /provider compile failure/);
+  // A failure does not clear another owner cache or permanently cache a rejected preparation at this boundary.
+  const nextDevice = {}; const retry = preparePairedLinearAttentionPipelines(nextDevice);
+  assert.equal(calls.at(-1)[4], nextDevice); resolvePipeline(); await flush(); resolvePipeline(); await retry;
+} finally { hooks.deregister(); delete globalThis.pairedPreparation; }
+console.log('paired pipeline preparation: exact variants/constants/device, rejection and cancellation settlement passed');
