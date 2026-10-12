@@ -1,0 +1,21 @@
+{
+  "schema": "doppler.citation-policy-freeze/v1",
+  "createdAtUtc": "2026-10-12T02:54:22.234556+00:00",
+  "suiteSha256": "eb4f0668bf5fb3e5a75a8e453c1c015e8c57ff995969bd46fcbc5ad1ddad1e82",
+  "instructionSha256": "f773af3a5252035d3d73af6b7923964f7bbf4b98b5b378e064c773900c9979a9",
+  "caseCount": 6,
+  "seedCount": 2,
+  "status": "frozen-before-execution",
+  "onlyPolicyDelta": "Add system instruction specifying per-claim citation coverage in the final answer.",
+  "baselineSuites": [
+    {
+      "path": "artifacts/qwen3-short-documents-20261012/suite.json",
+      "sha256": "395f4d9c8a84d500345b9b5158656d730bb42aecd5a5cebf2e61f77adff8a1bf"
+    },
+    {
+      "path": "artifacts/contractor-source-quality-20261011/suite.json",
+      "sha256": "ea50e4e539660ff3fc7c697e209a28ffb4a55b7abbee2ed67f9615c90186e39e"
+    }
+  ],
+  "modelPromotion": false
+}
