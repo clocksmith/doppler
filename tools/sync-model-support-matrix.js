@@ -1333,12 +1333,6 @@ function summarizeTypeInterface(models) {
   return `${[...inputs].sort().join(' + ')} → ${[...outputs].sort().join(' + ')}`;
 }
 
-function summarizeModelIds(models, limit = 3) {
-  const ids = models.map((model) => normalizeModelId(model?.modelId));
-  if (ids.length <= limit) return ids.join('<br>');
-  return `${ids.slice(0, limit).join('<br>')}<br>+${ids.length - limit} more`;
-}
-
 function renderModelTypeClusters(lines, typeClusters) {
   lines.push('## Model Type Clusters');
   lines.push('');
@@ -1359,31 +1353,15 @@ function renderModelTypeClusters(lines, typeClusters) {
 }
 
 function renderReadmeModelTypeBlock(typeClusters) {
-  const lines = [
+  return [
     README_MODEL_TYPES_START,
     '',
-    '## Supported RDRR model types',
+    '**Model catalog:** ' + typeClusters.map((cluster) => cluster.label.toLowerCase()).join(', ') + '.',
+    'The [support matrix](docs/model-support-matrix.md) separates catalog entries',
+    'from verified execution and links the lifecycle evidence for each model.',
     '',
-    'Doppler classifies artifacts by what they consume and produce. This is',
-    'separate from lineage (`family`), runtime implementation (`modelType`), and',
-    'artifact-size tier.',
-    '',
-    '| Type | Input → output | Runtime-verified / cataloged | Representative lanes |',
-    '| --- | --- | --- | --- |',
-  ];
-  for (const cluster of typeClusters) {
-    const verified = cluster.models.filter(isVerifiedCatalogModel);
-    lines.push(`| ${cluster.label} | ${summarizeTypeInterface(cluster.models)} | ${verified.length} / ${cluster.models.length} | ${summarizeModelIds(cluster.models)} |`);
-  }
-  lines.push('');
-  lines.push('The [full model-support matrix](https://github.com/clocksmith/doppler/blob/main/docs/model-support-matrix.md)');
-  lines.push('lists every lane and its lifecycle evidence. Classification says what an');
-  lines.push('artifact is shaped to do; only lifecycle receipts establish what is');
-  lines.push('verified, and a runtime pass does not by itself qualify every declared input');
-  lines.push('modality.');
-  lines.push('');
-  lines.push(README_MODEL_TYPES_END);
-  return lines.join('\n');
+    README_MODEL_TYPES_END,
+  ].join('\n');
 }
 
 function replaceReadmeModelTypeBlock(readme, block) {
