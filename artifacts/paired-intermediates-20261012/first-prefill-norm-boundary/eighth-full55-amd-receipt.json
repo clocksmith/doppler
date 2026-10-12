@@ -1,0 +1,115 @@
+{
+  "archiveSha256": "8ea1767fb61d9009dd257c4065a6acfdbaaf80fa733145898307ed35da0e7f20",
+  "sourceCommit": "1cb70cf9",
+  "rawSha256": "46e629dc37d70c0accca18282431ed49256d599668c1afbf96ea8c1a7fd3caa2",
+  "gzipSha256": "7d92d1d6e80a1d06e1760cffb4c6e7fb15399157476bf0d7f5803f5247a3dbe2",
+  "rawBytes": 79803921,
+  "gzipBytes": 56730129,
+  "processExitCode": 0,
+  "uniquePrefixes": 55,
+  "totalOutputsIncludingReuse": 57,
+  "resourceSettlement": [
+    {
+      "phase": "before-settlement",
+      "device": {
+        "scope": "device-gpu-buffers",
+        "maxBytes": 1420000000,
+        "liveBytes": 1034737168,
+        "peakBytes": 1132260560,
+        "allocations": 26060,
+        "rejected": 0,
+        "categories": {
+          "weights": 0,
+          "attention": 50331648,
+          "recurrent": 41287680,
+          "other": 943117840
+        }
+      },
+      "pool": {
+        "allocations": 24401,
+        "reuses": 289,
+        "totalBytesAllocated": 3383897856,
+        "peakBytesAllocated": 1031074560,
+        "currentBytesAllocated": 984346624,
+        "totalBytesRequested": 3280859648,
+        "peakBytesRequested": 1027191552,
+        "currentBytesRequested": 978579456,
+        "resources": {
+          "retainedModel": {
+            "bytes": 936486912,
+            "count": 345
+          },
+          "active": {
+            "bytes": 45762560,
+            "count": 110
+          },
+          "reusable": {
+            "bytes": 2097152,
+            "count": 2
+          },
+          "deferredCleanup": {
+            "bytes": 0,
+            "count": 0
+          }
+        },
+        "activeBuffers": 455,
+        "pooledBuffers": 2,
+        "budgetMaxBytes": 900000000,
+        "budgetUtilization": 1.0937184711111112,
+        "hitRate": "1.2%"
+      }
+    },
+    {
+      "phase": "after-queue-and-model-settlement",
+      "device": {
+        "scope": "device-gpu-buffers",
+        "maxBytes": 1420000000,
+        "liveBytes": 560294400,
+        "peakBytes": 1132260560,
+        "allocations": 26060,
+        "rejected": 0,
+        "categories": {
+          "weights": 0,
+          "attention": 0,
+          "recurrent": 0,
+          "other": 560294400
+        }
+      },
+      "pool": {
+        "allocations": 24401,
+        "reuses": 289,
+        "totalBytesAllocated": 3383897856,
+        "peakBytesAllocated": 1031074560,
+        "currentBytesAllocated": 560288768,
+        "totalBytesRequested": 3280859648,
+        "peakBytesRequested": 1027191552,
+        "currentBytesRequested": 0,
+        "resources": {
+          "retainedModel": {
+            "bytes": 0,
+            "count": 0
+          },
+          "active": {
+            "bytes": 0,
+            "count": 0
+          },
+          "reusable": {
+            "bytes": 560288768,
+            "count": 64
+          },
+          "deferredCleanup": {
+            "bytes": 0,
+            "count": 0
+          }
+        },
+        "activeBuffers": 0,
+        "pooledBuffers": 64,
+        "budgetMaxBytes": 900000000,
+        "budgetUtilization": 0.6225430755555555,
+        "hitRate": "1.2%"
+      }
+    }
+  ],
+  "sharedMachine": "Public native/browser residents untouched; GPU0percent before launch; correctness only; no claim of performance isolation",
+  "qualifiedScope": "Single AMD physical provider, exact full model archive and approved55prefix history; independent per-prefix numerical and resident reuse pass only"
+}
