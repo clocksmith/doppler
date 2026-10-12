@@ -1,0 +1,55 @@
+{
+  "schema": "doppler.source-quality-run-binding/v1",
+  "host": "x@128.tail995236.ts.net",
+  "toolSha256": "439da1f2097967dbe07cb0235eeffe83612f51b102b234ffb2a78b5f09e63a25",
+  "evaluatorSha256": "37586f498f393570e499859deb0bcaba520e86bb85a03365c176a4981079127f",
+  "scope": "Independent CPU source quality only; single repetition penalty change; no production qualification.",
+  "runs": [
+    {
+      "lane": "neutral-bathroom",
+      "pid": 3809419,
+      "command": [
+        "python3",
+        "-u",
+        "tools/qwen35-original-weight-generation.py",
+        "--source",
+        "/var/tmp/doppler-qwen35-2b-source-20261011",
+        "--revision",
+        "15852e8c16360a2fea060d615a32b45270f8a8fc",
+        "--deployed",
+        "/home/x/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
+        "--suite",
+        "/home/x/deco/doppler/reports/local/qwen35-2b-nonthinking-documents-20261012/fixtures/neutral-bathroom.json",
+        "--out",
+        "/home/x/deco/doppler/reports/local/qwen35-2b-nonthinking-documents-20261012/neutral-bathroom.json",
+        "--threads",
+        "4"
+      ],
+      "suiteSha256": "0f65c4b8a1a16edad1c80319c4c7889fce3b6832a7ac4d319158c6c74a560ac2",
+      "status": "running"
+    },
+    {
+      "lane": "neutral-contractor",
+      "pid": 3809420,
+      "command": [
+        "python3",
+        "-u",
+        "tools/qwen35-original-weight-generation.py",
+        "--source",
+        "/var/tmp/doppler-qwen35-2b-source-20261011",
+        "--revision",
+        "15852e8c16360a2fea060d615a32b45270f8a8fc",
+        "--deployed",
+        "/home/x/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
+        "--suite",
+        "/home/x/deco/doppler/reports/local/qwen35-2b-nonthinking-documents-20261012/fixtures/neutral-contractor.json",
+        "--out",
+        "/home/x/deco/doppler/reports/local/qwen35-2b-nonthinking-documents-20261012/neutral-contractor.json",
+        "--threads",
+        "4"
+      ],
+      "suiteSha256": "2593af3b61e1438ad7dea008b2143a6d6b3978683bba8f4f9e5348583a769e41",
+      "status": "running"
+    }
+  ]
+}
