@@ -26,6 +26,8 @@ import {
 
 export class KVCache {
   readonly numLayers: number;
+  /** Original model indices when storage is compacted or partition scoped. */
+  readonly layerIndices?: readonly number[];
   readonly numHeads: number;
   readonly headDim: number;
   readonly maxSeqLen: number;

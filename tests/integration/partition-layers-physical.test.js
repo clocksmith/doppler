@@ -12,6 +12,7 @@ import { assertPartitionExecutionSupported, executePartitionLayers } from '../..
 import { readBuffer, releaseBuffer, isBufferActive } from '../../src/memory/buffer-pool.js';
 import { destroyDevice, getDevice, getKernelCapabilities } from '../../src/gpu/device.js';
 import { releaseNodeWebGPU } from '../../src/tooling/node-webgpu.js';
+import { hasLinearAttentionLayers } from '../../src/inference/pipelines/text/linear-attention.js';
 
 const modelDirectory = process.env.DOPPLER_PARTITION_MODEL_DIR;
 if (!modelDirectory) {
@@ -54,8 +55,10 @@ if (!modelDirectory) {
     report.gpuWeightAllocationBytes = pipelines.map(p => [...p.dopplerLoader.gpuBuffers]
       .reduce((bytes, buffer) => bytes + buffer.size, 0));
     report.weightLayers = pipelines.map(p => [...p.weights.keys()].filter(k => /^layer_\d+$/.test(String(k))));
-    assert.equal(a.kvCache.numLayers, plan.splitLayer);
-    assert.equal(b.kvCache.numLayers, plan.totalLayers - plan.splitLayer);
+    const expectedKvLayers = (start, end) => Array.from({ length: end - start }, (_, index) => start + index)
+      .filter(layer => !hasLinearAttentionLayers([reference.modelConfig.layerTypes?.[layer]]));
+    assert.equal(a.kvCache.numLayers, expectedKvLayers(0, plan.splitLayer).length);
+    assert.equal(b.kvCache.numLayers, expectedKvLayers(plan.splitLayer, plan.totalLayers).length);
     for (let step = 0; step < 3; step++) {
       const expected = step === 0
         ? await reference.prefillWithLogits(prompt, { inputIds, useChatTemplate: false })
