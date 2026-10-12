@@ -1,0 +1,10 @@
+{
+  "qualified": false,
+  "parentArchiveSha256": "91b7c94d858f6fa44bb4b5208f5e48b0a95fb51f79806a802cf15f7b975e92bd",
+  "archiveSha256": "7be8358b4e47c6faf0aa24679922d698ad0b653991679cb0a0e105e55c58bdeb",
+  "shaderSha256": "e80292dcab0656715a999b7b3954daaa049e7d1aaf9b460a560e9bb19b4f7aa7",
+  "reusedCandidateSha256": "217fcc8c7d5018d27f18ab529bf648ee68ed4d55857eb1bb8d57be802c948dc5",
+  "onlyRuntimeFileChanged": "src/gpu/kernels/rope_precompute.wgsl",
+  "declaredIntervention": "Retained compensated frequency calculation; only later position_count ABI propagated",
+  "scope": "First eight fixed prefixes, theta10000000, unscaled, existing independently checked positions0–255. Wider-range caveat remains."
+}
