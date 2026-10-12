@@ -1,0 +1,47 @@
+{
+  "status": "running",
+  "children": [
+    {
+      "seed": 17,
+      "pid": 2399317,
+      "command": [
+        "python3",
+        "-u",
+        "tools/source-model-task-quality.py",
+        "--source",
+        "/var/tmp/doppler-qwen3-17b-source-20261011",
+        "--suite",
+        "/home/x/deco/doppler/reports/local/qwen3-nonthinking-documents-20261012/suites/suite-seed-17.json",
+        "--out",
+        "/home/x/deco/doppler/reports/local/qwen3-nonthinking-documents-20261012/source-seed-17.json",
+        "--threads",
+        "4"
+      ],
+      "suiteSha256": "2703fed20faddb9ff5b19f61c0576df72120047dd3e5f802c89a293256fc786d"
+    },
+    {
+      "seed": 53,
+      "pid": 2399318,
+      "command": [
+        "python3",
+        "-u",
+        "tools/source-model-task-quality.py",
+        "--source",
+        "/var/tmp/doppler-qwen3-17b-source-20261011",
+        "--suite",
+        "/home/x/deco/doppler/reports/local/qwen3-nonthinking-documents-20261012/suites/suite-seed-53.json",
+        "--out",
+        "/home/x/deco/doppler/reports/local/qwen3-nonthinking-documents-20261012/source-seed-53.json",
+        "--threads",
+        "4"
+      ],
+      "suiteSha256": "a41e0d6b7685457affb3e2da1949a7b3c60042873ca261d499c1fffc84f155e1"
+    }
+  ],
+  "host": "x@128.tail995236.ts.net",
+  "threadsPerProcess": 4,
+  "surface": "CPU source equations only",
+  "parentSuiteSha256": "6f097c4b36282267b778734fe28fb99b949bd58f56e300fb5c2e3626e954b8ca",
+  "performanceClaim": false,
+  "priorCitationProcessExitCode": 0
+}
