@@ -1,0 +1,33 @@
+{
+  "schema": "doppler.physical-report-producer-independent-review/v1",
+  "reviewer": "document_quality",
+  "scope": "Read-only source audit and synthetic CPU controls; no physical capture results inspected.",
+  "files": {
+    "produce-physical-reports.js": "a544f505c5c5a40f5c440a0d27109ff0c24498ad3c61e452dfdfe12f39ed4567",
+    "produce-physical-reports.test.js": "9789c4324f000998426c769a42a7dc3e14bd9c001740d789b11ae8baf30c5693"
+  },
+  "tests": {
+    "command": "node --test artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js",
+    "passed": 25,
+    "failed": 0
+  },
+  "independentMutations": [
+    {
+      "change": "Second descriptor uses first declared platform and provider while retaining partitionIndex1",
+      "before": "Accepted before exact expected.placements check",
+      "after": "Rejected: Physical placement differs from the pre-run declaration"
+    },
+    {
+      "change": "Last vocabulary logit at final request2 step50 changed from -0.5 to -0.502",
+      "after": "Rejected: Independent comparison failed at request 2, step 50: 0.001999974250793457"
+    }
+  ],
+  "findings": {
+    "helperClosure": "CLI extracts exact bound archive and imports canonical hash, execution identity and admission helper with their archive dependency closure; factory/helper hashes independently checked.",
+    "reference": "Complete F32 observed versus independent F64 vectors recomputed, finite/full vocabulary and all55 ordered prefix checks enforced at0.001. Raw passing flags are ignored.",
+    "identity": "Report preserves CDP-observed actual resolved session and derived identity; canonical adapter adds no custom registry identity. Custom registry scope is not qualified.",
+    "remainingEvidence": "Actual approved-reference/archive/provider/application pre-run freeze remains to be checked before physical outputs. CPU controls are not physical qualification."
+  },
+  "physicalQualification": false,
+  "productionChanges": false
+}

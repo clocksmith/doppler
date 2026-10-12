@@ -1,0 +1,160 @@
+TAP version 13
+# Subtest: emits existing report schema only after all55 independently recomputed comparisons
+ok 1 - emits existing report schema only after all55 independently recomputed comparisons
+  ---
+  duration_ms: 10.509
+  type: 'test'
+  ...
+# Subtest: rejects failed actual logits despite passing self-report
+ok 2 - rejects failed actual logits despite passing self-report
+  ---
+  duration_ms: 0.814125
+  type: 'test'
+  ...
+# Subtest: rejects nonfinite output
+ok 3 - rejects nonfinite output
+  ---
+  duration_ms: 0.43
+  type: 'test'
+  ...
+# Subtest: rejects truncated output
+ok 4 - rejects truncated output
+  ---
+  duration_ms: 0.564417
+  type: 'test'
+  ...
+# Subtest: rejects missing step
+ok 5 - rejects missing step
+  ---
+  duration_ms: 0.535334
+  type: 'test'
+  ...
+# Subtest: rejects missing request
+ok 6 - rejects missing request
+  ---
+  duration_ms: 0.399958
+  type: 'test'
+  ...
+# Subtest: rejects changed prompt
+ok 7 - rejects changed prompt
+  ---
+  duration_ms: 0.771208
+  type: 'test'
+  ...
+# Subtest: rejects changed continuation
+ok 8 - rejects changed continuation
+  ---
+  duration_ms: 0.596333
+  type: 'test'
+  ...
+# Subtest: rejects changed sampled token
+ok 9 - rejects changed sampled token
+  ---
+  duration_ms: 0.632042
+  type: 'test'
+  ...
+# Subtest: rejects changed sampling
+ok 10 - rejects changed sampling
+  ---
+  duration_ms: 0.808208
+  type: 'test'
+  ...
+# Subtest: rejects failed cleanup
+ok 11 - rejects failed cleanup
+  ---
+  duration_ms: 0.708125
+  type: 'test'
+  ...
+# Subtest: rejects changed allocation ceiling
+ok 12 - rejects changed allocation ceiling
+  ---
+  duration_ms: 0.829958
+  type: 'test'
+  ...
+# Subtest: rejects lost device
+ok 13 - rejects lost device
+  ---
+  duration_ms: 3.689375
+  type: 'test'
+  ...
+# Subtest: rejects missing actual identity observation
+ok 14 - rejects missing actual identity observation
+  ---
+  duration_ms: 0.540958
+  type: 'test'
+  ...
+# Subtest: rejects forged identity
+ok 15 - rejects forged identity
+  ---
+  duration_ms: 0.835167
+  type: 'test'
+  ...
+# Subtest: rejects scalar session
+ok 16 - rejects scalar session
+  ---
+  duration_ms: 0.531084
+  type: 'test'
+  ...
+# Subtest: rejects changed factory bytes
+ok 17 - rejects changed factory bytes
+  ---
+  duration_ms: 0.44925
+  type: 'test'
+  ...
+# Subtest: rejects same physical host for both partitions
+ok 18 - rejects same physical host for both partitions
+  ---
+  duration_ms: 0.483625
+  type: 'test'
+  ...
+# Subtest: rejects reversed physical placement
+ok 19 - rejects reversed physical placement
+  ---
+  duration_ms: 0.419291
+  type: 'test'
+  ...
+# Subtest: rejects changed provider
+ok 20 - rejects changed provider
+  ---
+  duration_ms: 0.746833
+  type: 'test'
+  ...
+# Subtest: rejects changed traversal
+ok 21 - rejects changed traversal
+  ---
+  duration_ms: 0.387917
+  type: 'test'
+  ...
+# Subtest: rejects failed outer controller
+ok 22 - rejects failed outer controller
+  ---
+  duration_ms: 0.238583
+  type: 'test'
+  ...
+# Subtest: rejects changed package
+ok 23 - rejects changed package
+  ---
+  duration_ms: 0.250541
+  type: 'test'
+  ...
+# Subtest: rejects changed application
+ok 24 - rejects changed application
+  ---
+  duration_ms: 0.227292
+  type: 'test'
+  ...
+# Subtest: rejects a replacement reference or evaluator before interpreting captures
+ok 25 - rejects a replacement reference or evaluator before interpreting captures
+  ---
+  duration_ms: 1.161084
+  type: 'test'
+  ...
+1..25
+# tests 25
+# suites 0
+# pass 25
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 70.515917

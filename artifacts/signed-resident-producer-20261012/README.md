@@ -60,3 +60,57 @@ catalog needs Capsule, executable identity, accepted target digests, source-file
 closure and release/admission policy. Rig model paths use `artifacts/model/`;
 host custody adapters must resolve those against manifest-relative piece paths.
 No production catalog, accepted runtime pin, release authority or deployment changed.
+
+## Physical report production (prepared, not executed)
+
+`produce-physical-reports.js` converts retained cooperative split captures into
+this existing report schema. It independently decodes every actual F32 logit and
+compares it with the approved F64 vector for all 55 ordered prefixes. It rejects
+changed tokens, generation policy, missing vectors, nonfinite values, failed
+cleanup, changed budgets, and a host assignment different from the predeclared
+two-machine placement. Raw `matches` and error summaries do not grant a pass.
+
+Before running the physical controller, retain a separate expectations JSON and
+its SHA-256. `physical-producer-preparation.json` binds the already frozen
+reference and archive-8 inputs and lists the missing setup fields. It is
+intentionally not executable: the observed application bundle, exact partition
+plan, provider descriptors, directional placements, and final producer SHA must
+be frozen before reading the split outcomes. Archive 8's first resident opening
+subsequently exposed a lifecycle initialization failure; a corrected standard
+archive requires a new preparation binding and numerical evidence. Do not reuse
+archive-8 identities for those changed bytes.
+
+After a successful physical run, create a controller-input JSON with
+`expectations`, `capture`, `reference`, `manifest`, `graph`, `run`, `archive`, and
+`evaluator`, each `{ "path": "/absolute/retained/file", "hash": "sha256:..." }`,
+and `requestContracts`, an ordered array of three such bindings. Then run:
+
+```
+node artifacts/signed-resident-producer-20261012/produce-physical-reports.js \
+  /ABS/physical-report-inputs.json /ABS/NEW_REPORT_DIRECTORY
+```
+
+The expectations file contains the fields in `fixedExpectations` plus the listed
+pre-run fields. `producerHash` binds the reviewed producer itself. The tool
+extracts the hash-bound standard archive into its own temporary directory,
+imports identity, canonical-hash, and existing Rig-admission helpers from that
+exact package closure, verifies observer factory/helper hashes, and removes the
+temporary directory. It neither imports live runtime code nor overwrites prior
+reports. A passing conversion emits `contract.json`, `partition-0.json`, and
+`partition-1.json`; this command does not sign or deploy anything.
+
+The source-bound CDP observer captures the actual resolved session at resident
+opening. Each report preserves that observed identity. In archive 8's canonical
+registry path, signed execution adds no registry extension; the exact source
+trace is `archive8-signed-identity-review.json`. Custom registries are a different
+identity and are not covered. Different provider identities must not be edited
+into agreement: existing Rig admission requires every attached report to match
+the selected initial identity. Signed opening must still observe and compare its
+actual program identity through ordinary admission, retain any rejection and
+settlement, and execute the applicable physical journey.
+
+The CPU tests are synthetic producer controls, not physical model evidence.
+`physical-producer-tests.log` retains the focused result. No resident report has
+been minted from future or fabricated model outcomes. Model answer quality,
+actual signed opening, selective acquisition, and release eligibility remain
+separate gates.
