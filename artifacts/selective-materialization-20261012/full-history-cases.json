@@ -1,0 +1,66 @@
+[
+  {
+    "id": "remove-normalization-and-attention-input",
+    "suppress": [
+      {
+        "operations": [
+          "normalization",
+          "q-projection",
+          "k-projection",
+          "v-projection"
+        ],
+        "layers": null,
+        "phases": null
+      }
+    ]
+  },
+  {
+    "id": "remove-normalization-and-ffn",
+    "suppress": [
+      {
+        "operations": [
+          "normalization",
+          "ffn-gate-projection",
+          "ffn-up-projection",
+          "ffn-down-projection"
+        ],
+        "layers": null,
+        "phases": null
+      }
+    ]
+  },
+  {
+    "id": "remove-normalization-and-projections-all-layers",
+    "suppress": [
+      {
+        "operations": [
+          "normalization",
+          "qkv-projection",
+          "z-projection",
+          "a-projection",
+          "b-projection",
+          "q-projection",
+          "k-projection",
+          "v-projection",
+          "linear-output-projection",
+          "attention-output-projection",
+          "ffn-gate-projection",
+          "ffn-up-projection",
+          "ffn-down-projection"
+        ],
+        "layers": null,
+        "phases": null
+      }
+    ]
+  },
+  {
+    "id": "remove-all-nonstate-f32-stores",
+    "suppress": [
+      {
+        "operations": null,
+        "layers": null,
+        "phases": null
+      }
+    ]
+  }
+]

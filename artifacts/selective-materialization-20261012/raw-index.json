@@ -1,0 +1,61 @@
+{
+  "scope": "CPU diagnostic only; full failing and passing vectors retained, no production precision change",
+  "python": "3.14.4",
+  "numpy": "2.4.4",
+  "records": [
+    {
+      "machine": "x@128",
+      "path": "/home/x/deco/doppler/reports/local/selective-materialization-20261012/result.json",
+      "bytes": 165270248,
+      "sha256": "2bbc5cf5307b7a12dc6277b60ffdb76a06a2227490571c6e6ecf8f1d44d27fd4"
+    },
+    {
+      "machine": "x@128",
+      "path": "/home/x/deco/doppler/reports/local/selective-materialization-20261012/prefix-result.json",
+      "bytes": 122873255,
+      "sha256": "8a7c7734f4fddf1f6c0fb4912cdf414f552c19e526f04fe4ab3163245b6b4123"
+    },
+    {
+      "machine": "x@128",
+      "path": "/home/x/deco/doppler/reports/local/selective-materialization-20261012/group-result.json",
+      "bytes": 271284179,
+      "sha256": "ccaa47f84abd5b0269ffee25b8a19b816790ce0c3b008c1f0a4b35f3d51adf28"
+    },
+    {
+      "machine": "x@128",
+      "path": "/home/x/deco/doppler/reports/local/selective-materialization-20261012/chain-result.json",
+      "bytes": 186473993,
+      "sha256": "0cb333f24665543da9d8bbee8de6dd81818d68ec5d7ceee7850c92d980bb0dd9"
+    },
+    {
+      "machine": "x@128",
+      "path": "/home/x/deco/doppler/reports/local/selective-materialization-20261012/projection-result.json",
+      "bytes": 186465331,
+      "sha256": "1d38cdb72e180a0e0ccb951bb1de0205da3c39e138d42515e75bac0c09154fd2"
+    },
+    {
+      "machine": "x@128",
+      "path": "/home/x/deco/doppler/reports/local/selective-materialization-20261012/full-history-result.json",
+      "bytes": 692465164,
+      "sha256": "706d9c7bde073bcb52fe2866beb33f977ac977a23f18d50c82ff83f8b7c38442"
+    },
+    {
+      "machine": "x@128",
+      "path": "/home/x/deco/doppler/reports/local/selective-materialization-20261012/scalar-result.json",
+      "bytes": 692496307,
+      "sha256": "616cc4e0f7082d07d3a4ef05dd7f1124b1c25fbf726c2842be5ef94a1c849309"
+    },
+    {
+      "machine": "x@128",
+      "path": "/home/x/deco/doppler/reports/local/selective-materialization-20261012/interaction-result.json",
+      "bytes": 962698862,
+      "sha256": "684613aba691a1369f87b97a315f0664a7307f25be7e9e7b9501dc2737ca326b"
+    },
+    {
+      "machine": "x@128",
+      "path": "/home/x/deco/doppler/reports/local/selective-materialization-20261012/cache-coordinate-result.json",
+      "bytes": 422244038,
+      "sha256": "16a96ec8bd7782a364dadadc3c4bd6240d3d78ca42e6f5258d587d596a522ee6"
+    }
+  ]
+}

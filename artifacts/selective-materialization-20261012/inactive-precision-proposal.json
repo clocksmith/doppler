@@ -1,0 +1,63 @@
+{
+  "schema": "doppler.inactive-intermediate-precision-proposal/v1",
+  "status": "inactive-requires-explicit-approval",
+  "reason": "Selective F32-store interventions interact. On the retained 51-prefix request, ideal arithmetic with F32 nonstate stores fails 24/51; suppressing those stores plus preserving source recurrent RMS epsilon passes 51/51 at maximum 5.39239763952537e-11. This is diagnostic feasibility, not a GPU implementation guarantee.",
+  "evidence": "cache-coordinate-result-summary.json",
+  "scope": {
+    "candidate": "one explicit opt-in two-F32 intermediate representation in the existing Qwen3.5 execution path",
+    "include": [
+      "normalization outputs",
+      "linear and full-attention projections",
+      "convolution/readout/gating outputs",
+      "attention intermediates",
+      "FFN intermediates",
+      "residual streams",
+      "rotary tables and rotated Q/K",
+      "source recurrent RMS epsilon as high and residual low components"
+    ],
+    "exclude": [
+      "weight precision or bytes",
+      "tokenizer",
+      "F16 KV storage",
+      "public logits representation",
+      "reference replacement",
+      "tolerance change",
+      "new scheduling or transport"
+    ],
+    "rules": [
+      "Preserve both components across each affected producer/consumer; do not attach a zero residual to an already rounded result.",
+      "Round paired K/V directly to nearest-even F16 without a preceding destructive single-F32 collapse.",
+      "Keep embedding from exactly representable decoded weights and final public logits F32 unless independent evidence establishes another required boundary.",
+      "Use the existing declared execution graph and package interfaces; no captured tensors or CPU runtime fallback."
+    ]
+  },
+  "unchanged": {
+    "referenceEvaluatorSha256": "90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7",
+    "absoluteTolerance": 0.001,
+    "allocatedBytesPerExecutor": 1420000000,
+    "acceptedReploidPin": "unchanged until applicable exact-package gates pass"
+  },
+  "memory": {
+    "additionalBytes": "must be calculated from each declared live buffer and charged before allocation; not yet measured",
+    "limitAction": "reject before exceeding the existing ceiling",
+    "requiredChecks": [
+      "prefill and decode peak",
+      "simultaneous attempts",
+      "allocation rejection",
+      "cancellation and settled reuse"
+    ]
+  },
+  "acceptance": [
+    "Independent high/low arithmetic and nearest-even F16 controls, including midpoint values and subnormals",
+    "One standard installed archive with all 55 prefixes on both GPUs and both placements",
+    "Real signed selectively acquired resident opening and rejected-opening cleanup",
+    "Simultaneous long requests and repeated 1588-token prompts under unchanged allocation ceiling",
+    "Separate answer quality and application acceptance; no automatic promotion"
+  ],
+  "limitations": [
+    "F64 diagnostic arithmetic does not prove WGSL high/low nonlinear accuracy.",
+    "The 51-prefix extrapolation is not a physical dispatch qualification.",
+    "This broad storage intervention is sufficient in the control, not proven minimal.",
+    "Performance and additional memory are unmeasured; no release or speed claim."
+  ]
+}

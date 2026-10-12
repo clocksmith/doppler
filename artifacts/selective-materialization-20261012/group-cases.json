@@ -1,0 +1,408 @@
+[
+  {
+    "id": "remove-stores-through-layer4",
+    "suppress": [
+      {
+        "operations": null,
+        "layers": [
+          "input",
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "phases": null
+      }
+    ]
+  },
+  {
+    "id": "remove-stores-through-layer5",
+    "suppress": [
+      {
+        "operations": null,
+        "layers": [
+          "input",
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "phases": null
+      }
+    ]
+  },
+  {
+    "id": "remove-stores-through-layer6",
+    "suppress": [
+      {
+        "operations": null,
+        "layers": [
+          "input",
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "phases": null
+      }
+    ]
+  },
+  {
+    "id": "restore-normalization-through-layer7",
+    "suppress": [
+      {
+        "operations": [
+          "a-projection",
+          "attention-output",
+          "attention-output-projection",
+          "attention-residual",
+          "b-projection",
+          "conv-output",
+          "embedding",
+          "ffn-activation",
+          "ffn-down-projection",
+          "ffn-gate-projection",
+          "ffn-residual",
+          "ffn-up-projection",
+          "gated-attention-output",
+          "gated-recurrent-output",
+          "k-projection",
+          "linear-output-projection",
+          "logits",
+          "q-projection",
+          "qkv-projection",
+          "raw-prefill-recurrent-output",
+          "rope-cos-table",
+          "rope-output",
+          "rope-sin-table",
+          "v-projection",
+          "z-projection"
+        ],
+        "layers": [
+          "input",
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "phases": null
+      }
+    ]
+  },
+  {
+    "id": "restore-linear-projections-through-layer7",
+    "suppress": [
+      {
+        "operations": [
+          "attention-output",
+          "attention-output-projection",
+          "attention-residual",
+          "conv-output",
+          "embedding",
+          "ffn-activation",
+          "ffn-down-projection",
+          "ffn-gate-projection",
+          "ffn-residual",
+          "ffn-up-projection",
+          "gated-attention-output",
+          "gated-recurrent-output",
+          "k-projection",
+          "linear-output-projection",
+          "logits",
+          "normalization",
+          "q-projection",
+          "raw-prefill-recurrent-output",
+          "rope-cos-table",
+          "rope-output",
+          "rope-sin-table",
+          "v-projection"
+        ],
+        "layers": [
+          "input",
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "phases": null
+      }
+    ]
+  },
+  {
+    "id": "restore-attention-projections-through-layer7",
+    "suppress": [
+      {
+        "operations": [
+          "a-projection",
+          "attention-output",
+          "attention-output-projection",
+          "attention-residual",
+          "b-projection",
+          "conv-output",
+          "embedding",
+          "ffn-activation",
+          "ffn-down-projection",
+          "ffn-gate-projection",
+          "ffn-residual",
+          "ffn-up-projection",
+          "gated-attention-output",
+          "gated-recurrent-output",
+          "linear-output-projection",
+          "logits",
+          "normalization",
+          "qkv-projection",
+          "raw-prefill-recurrent-output",
+          "rope-cos-table",
+          "rope-output",
+          "rope-sin-table",
+          "z-projection"
+        ],
+        "layers": [
+          "input",
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "phases": null
+      }
+    ]
+  },
+  {
+    "id": "restore-linear-outputs-through-layer7",
+    "suppress": [
+      {
+        "operations": [
+          "a-projection",
+          "attention-output",
+          "attention-output-projection",
+          "attention-residual",
+          "b-projection",
+          "embedding",
+          "ffn-activation",
+          "ffn-down-projection",
+          "ffn-gate-projection",
+          "ffn-residual",
+          "ffn-up-projection",
+          "gated-attention-output",
+          "k-projection",
+          "logits",
+          "normalization",
+          "q-projection",
+          "qkv-projection",
+          "rope-cos-table",
+          "rope-output",
+          "rope-sin-table",
+          "v-projection",
+          "z-projection"
+        ],
+        "layers": [
+          "input",
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "phases": null
+      }
+    ]
+  },
+  {
+    "id": "restore-attention-outputs-through-layer7",
+    "suppress": [
+      {
+        "operations": [
+          "a-projection",
+          "attention-residual",
+          "b-projection",
+          "conv-output",
+          "embedding",
+          "ffn-activation",
+          "ffn-down-projection",
+          "ffn-gate-projection",
+          "ffn-residual",
+          "ffn-up-projection",
+          "gated-recurrent-output",
+          "k-projection",
+          "linear-output-projection",
+          "logits",
+          "normalization",
+          "q-projection",
+          "qkv-projection",
+          "raw-prefill-recurrent-output",
+          "rope-cos-table",
+          "rope-output",
+          "rope-sin-table",
+          "v-projection",
+          "z-projection"
+        ],
+        "layers": [
+          "input",
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "phases": null
+      }
+    ]
+  },
+  {
+    "id": "restore-residuals-through-layer7",
+    "suppress": [
+      {
+        "operations": [
+          "a-projection",
+          "attention-output",
+          "attention-output-projection",
+          "b-projection",
+          "conv-output",
+          "embedding",
+          "ffn-activation",
+          "ffn-down-projection",
+          "ffn-gate-projection",
+          "ffn-up-projection",
+          "gated-attention-output",
+          "gated-recurrent-output",
+          "k-projection",
+          "linear-output-projection",
+          "logits",
+          "normalization",
+          "q-projection",
+          "qkv-projection",
+          "raw-prefill-recurrent-output",
+          "rope-cos-table",
+          "rope-output",
+          "rope-sin-table",
+          "v-projection",
+          "z-projection"
+        ],
+        "layers": [
+          "input",
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "phases": null
+      }
+    ]
+  },
+  {
+    "id": "restore-ffn-through-layer7",
+    "suppress": [
+      {
+        "operations": [
+          "a-projection",
+          "attention-output",
+          "attention-output-projection",
+          "attention-residual",
+          "b-projection",
+          "conv-output",
+          "embedding",
+          "ffn-residual",
+          "gated-attention-output",
+          "gated-recurrent-output",
+          "k-projection",
+          "linear-output-projection",
+          "logits",
+          "normalization",
+          "q-projection",
+          "qkv-projection",
+          "raw-prefill-recurrent-output",
+          "rope-cos-table",
+          "rope-output",
+          "rope-sin-table",
+          "v-projection",
+          "z-projection"
+        ],
+        "layers": [
+          "input",
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "phases": null
+      }
+    ]
+  },
+  {
+    "id": "restore-rotation-through-layer7",
+    "suppress": [
+      {
+        "operations": [
+          "a-projection",
+          "attention-output",
+          "attention-output-projection",
+          "attention-residual",
+          "b-projection",
+          "conv-output",
+          "embedding",
+          "ffn-activation",
+          "ffn-down-projection",
+          "ffn-gate-projection",
+          "ffn-residual",
+          "ffn-up-projection",
+          "gated-attention-output",
+          "gated-recurrent-output",
+          "k-projection",
+          "linear-output-projection",
+          "logits",
+          "normalization",
+          "q-projection",
+          "qkv-projection",
+          "raw-prefill-recurrent-output",
+          "v-projection",
+          "z-projection"
+        ],
+        "layers": [
+          "input",
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "phases": null
+      }
+    ]
+  }
+]

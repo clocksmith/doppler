@@ -1,0 +1,117 @@
+[
+  {
+    "id": "retain-recurrent-rms-epsilon-only",
+    "suppress": [],
+    "uniformF64": [
+      "recurrent-rms-epsilon"
+    ]
+  },
+  {
+    "id": "remove-normalization-and-projections-all-layers-and-retain-recurrent-rms-epsilon",
+    "suppress": [
+      {
+        "operations": [
+          "normalization",
+          "qkv-projection",
+          "z-projection",
+          "a-projection",
+          "b-projection",
+          "q-projection",
+          "k-projection",
+          "v-projection",
+          "linear-output-projection",
+          "attention-output-projection",
+          "ffn-gate-projection",
+          "ffn-up-projection",
+          "ffn-down-projection"
+        ],
+        "layers": null,
+        "phases": null
+      }
+    ],
+    "uniformF64": [
+      "recurrent-rms-epsilon"
+    ]
+  },
+  {
+    "id": "remove-normalization-and-attention-input-and-retain-recurrent-rms-epsilon",
+    "suppress": [
+      {
+        "operations": [
+          "normalization",
+          "q-projection",
+          "k-projection",
+          "v-projection"
+        ],
+        "layers": null,
+        "phases": null
+      }
+    ],
+    "uniformF64": [
+      "recurrent-rms-epsilon"
+    ]
+  },
+  {
+    "id": "remove-normalization-and-ffn-and-retain-recurrent-rms-epsilon",
+    "suppress": [
+      {
+        "operations": [
+          "normalization",
+          "ffn-gate-projection",
+          "ffn-up-projection",
+          "ffn-down-projection"
+        ],
+        "layers": null,
+        "phases": null
+      }
+    ],
+    "uniformF64": [
+      "recurrent-rms-epsilon"
+    ]
+  },
+  {
+    "id": "remove-stores-through-layer6-and-retain-recurrent-rms-epsilon",
+    "suppress": [
+      {
+        "operations": null,
+        "layers": [
+          "input",
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "phases": null
+      }
+    ],
+    "uniformF64": [
+      "recurrent-rms-epsilon"
+    ]
+  },
+  {
+    "id": "remove-stores-through-layer7-and-retain-recurrent-rms-epsilon",
+    "suppress": [
+      {
+        "operations": null,
+        "layers": [
+          "input",
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "phases": null
+      }
+    ],
+    "uniformF64": [
+      "recurrent-rms-epsilon"
+    ]
+  }
+]

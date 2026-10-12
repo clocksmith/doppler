@@ -1,0 +1,122 @@
+[
+  {
+    "id": "remove-normalization-and-linear-input",
+    "suppress": [
+      {
+        "operations": [
+          "normalization",
+          "qkv-projection",
+          "z-projection",
+          "a-projection",
+          "b-projection"
+        ],
+        "layers": null,
+        "phases": null
+      }
+    ]
+  },
+  {
+    "id": "remove-normalization-and-attention-input",
+    "suppress": [
+      {
+        "operations": [
+          "normalization",
+          "q-projection",
+          "k-projection",
+          "v-projection"
+        ],
+        "layers": null,
+        "phases": null
+      }
+    ]
+  },
+  {
+    "id": "remove-normalization-and-output",
+    "suppress": [
+      {
+        "operations": [
+          "normalization",
+          "linear-output-projection",
+          "attention-output-projection"
+        ],
+        "layers": null,
+        "phases": null
+      }
+    ]
+  },
+  {
+    "id": "remove-normalization-and-ffn",
+    "suppress": [
+      {
+        "operations": [
+          "normalization",
+          "ffn-gate-projection",
+          "ffn-up-projection",
+          "ffn-down-projection"
+        ],
+        "layers": null,
+        "phases": null
+      }
+    ]
+  },
+  {
+    "id": "remove-normalization-and-linear-input-and-attention-input",
+    "suppress": [
+      {
+        "operations": [
+          "normalization",
+          "qkv-projection",
+          "z-projection",
+          "a-projection",
+          "b-projection",
+          "q-projection",
+          "k-projection",
+          "v-projection"
+        ],
+        "layers": null,
+        "phases": null
+      }
+    ]
+  },
+  {
+    "id": "remove-normalization-and-linear-input-and-output-and-ffn",
+    "suppress": [
+      {
+        "operations": [
+          "normalization",
+          "qkv-projection",
+          "z-projection",
+          "a-projection",
+          "b-projection",
+          "linear-output-projection",
+          "attention-output-projection",
+          "ffn-gate-projection",
+          "ffn-up-projection",
+          "ffn-down-projection"
+        ],
+        "layers": null,
+        "phases": null
+      }
+    ]
+  },
+  {
+    "id": "remove-normalization-and-attention-input-and-output-and-ffn",
+    "suppress": [
+      {
+        "operations": [
+          "normalization",
+          "q-projection",
+          "k-projection",
+          "v-projection",
+          "linear-output-projection",
+          "attention-output-projection",
+          "ffn-gate-projection",
+          "ffn-up-projection",
+          "ffn-down-projection"
+        ],
+        "layers": null,
+        "phases": null
+      }
+    ]
+  }
+]
