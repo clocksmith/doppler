@@ -1,4 +1,7 @@
 import type { ResolvedGenerationOptions, GenerationStoppingReason } from '../config/generation-contract.js';
+import type { CanonicalGenerationPolicy } from '../config/generation-contract.js';
+export function sampleCanonicalGenerationStep(sourceLogits: Iterable<number> & ArrayLike<number>, contextTokens: readonly number[],
+  policy: CanonicalGenerationPolicy, acceptedGeneratedTokenCount: number): number;
 export interface GenerationTokenContract {
   reasoningOutput?: import('../config/reasoning-output.js').ReasoningOutputContract;
   padTokenId?: number | null;

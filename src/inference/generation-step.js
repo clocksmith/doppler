@@ -1,4 +1,9 @@
-import { applyRepetitionPenalty, applyPresencePenalty, sample } from './token-sampling.js';
+import { applyRepetitionPenalty, applyPresencePenalty, sample, sampleCanonicalLogits } from './token-sampling.js';
+
+/** @type {import('./generation-step.js').sampleCanonicalGenerationStep} */
+export function sampleCanonicalGenerationStep(sourceLogits, contextTokens, policy, acceptedGeneratedTokenCount) {
+  return sampleCanonicalLogits(sourceLogits, contextTokens, policy, acceptedGeneratedTokenCount, 0);
+}
 
 /** @type {import('./generation-step.js').sampleCapsuleLogits} */
 export function sampleCapsuleLogits(sourceLogits, contextTokens, options, tokenContract = {}) {
@@ -19,4 +24,3 @@ export function stoppingReason(tokenId, generatedCount, options, tokenContract, 
   }
   return generatedCount >= options.maxTokens ? 'max-tokens' : null;
 }
-
