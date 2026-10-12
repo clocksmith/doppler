@@ -29,6 +29,18 @@ def error(actual, expected):
             'lastTokenMax': float(difference[-1].max())}
 
 
+def cache_double_rounding(values):
+    """Diagnostic only: ideal F32 materialization before the unchanged F16 store."""
+    direct = values.astype(np.float16).astype(np.float64)
+    rounded = values.astype(np.float32).astype(np.float64)
+    staged = rounded.astype(np.float16).astype(np.float64)
+    coordinates = np.argwhere(direct != staged)
+    return {'count': len(coordinates), 'values': int(values.size), 'coordinates': [
+        {'index': list(map(int, c)), 'f64': float(values[tuple(c)]),
+         'nearestF32': float(rounded[tuple(c)]), 'directF16': float(direct[tuple(c)]),
+         'throughF32F16': float(staged[tuple(c)])} for c in coordinates]}
+
+
 def read_capture(capture, prefill=19, decode_steps=1):
     """Pair by actual generation step and operation; reject conflicting duplicates."""
     groups, step = {}, -1
@@ -223,6 +235,7 @@ def run(args):
                 lh = ref.half_cache(local)
                 coordinates = np.argwhere(ah != bh)
                 storage.append({'operation': prefix + name, 'before': error(a, b), 'after': error(ah, bh),
+                    'idealF32DoubleRounding': cache_double_rounding(b),
                     'producerLocalBefore': error(a, local), 'producerInheritedBefore': error(local, b),
                     'producerIntroducedStoredDifferences': int(np.count_nonzero((ah != bh) & (lh == bh))),
                     'inheritedStoredDifferencesRemaining': int(np.count_nonzero((ah != bh) & (lh != bh))),
@@ -260,6 +273,30 @@ def run(args):
                 'gpu': float(actual_logits[-1, worst_vocabulary]),
                 'f64': float(logits[-1, worst_vocabulary]),
                 'localF64': float(local_logits[-1, worst_vocabulary])}}}
+    if args.cache_materialization_control:
+        # Counterfactual diagnostic, not an acceptance reference. All other
+        # equations stay F64; only the mandatory producer F32 store is inserted.
+        original_half_cache = ref.half_cache
+        try:
+            cache_call = 0
+            def staged_half_cache(value):
+                nonlocal cache_call
+                kind = 'key' if cache_call % 2 == 0 else 'value'
+                cache_call += 1
+                selected = args.cache_materialization_kind in ('both', kind)
+                return original_half_cache(value.astype(np.float32).astype(np.float64) if selected else value)
+            ref.half_cache = staged_half_cache
+            staged_logits, _ = ref.evaluate(contract['inputIds'], weights, config,
+                np.array(contract['prefixLengths']) - 1)
+        finally:
+            ref.half_cache = original_half_cache
+        per_step = np.max(np.abs(staged_logits - expected), axis=1)
+        report['cacheMaterializationControl'] = {
+            'scope': 'F64 equations with F32 producer materialization before F16 cache; diagnostic only',
+            'referenceUnchanged': True, 'materializedKind': args.cache_materialization_kind,
+            'comparison': error(staged_logits, expected),
+            'prefixesOverTolerance': int(np.count_nonzero(per_step > 0.001)),
+            'perPrefixMaximum': list(map(float, per_step))}
     Path(args.out).write_text(json.dumps(report, indent=2) + '\n')
 
 
@@ -271,5 +308,7 @@ if __name__ == '__main__':
     parser.add_argument('--contract', default='artifacts/whole-model-f64-complete-20261011/request-0-contract.json')
     parser.add_argument('--binding', help='Exact archive/source manifest binding when the runtime shader identities changed')
     parser.add_argument('--out', required=True)
+    parser.add_argument('--cache-materialization-control', action='store_true')
+    parser.add_argument('--cache-materialization-kind', choices=['both', 'key', 'value'], default='both')
     parser.add_argument('--fixture-directory', help='Export captured prefill projections for the existing physical replay')
     run(parser.parse_args())
