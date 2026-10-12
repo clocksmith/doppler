@@ -1,0 +1,17 @@
+{
+  "baseSource": "5c2b31888f3d98d7cb5fc9284b47df4cb0c18a9d",
+  "readinessCommit": "0ac64fa2b78944b2530daa29ae7716882eb08d04",
+  "patchSha256": "a1a3dc13f5726f80b6222709f4886f12ea439b5905974aa98de91e401862e308",
+  "runtimeFiles": {
+    "src/client/model-host/index.js": "120fff741b67b65a56d5a916b287c68854a9b09e8436bb562fa72da8880176f2",
+    "src/client/resident-partitions.js": "19bbe50e8f8246d883e96de1c9ac8b6c6e0c7c84b6be3441e141ccdd1f9261d1",
+    "src/gpu/kernels/paired-linear-attention.js": "cf405a43e600e2aa4e814688f69db0899b8f4fa5054a57272b6ce4f96188c07c",
+    "src/gpu/kernels/paired-linear-attention.d.ts": "3dbe2aa72c25a02558a644a77d2676ee20254dbdf65287d037f94b40739537a4",
+    "src/inference/pipelines/text/resident-partition.js": "4fede2efddd3c2fe743e8725f05baa00b153282aeca6f003789c2270e9e8d2b7",
+    "src/inference/pipelines/text/resident-partition.d.ts": "c1dd2225cd56a45fc17f8df7b3d9bdb3310fc6dd456ccfe5e66ec9cd67748ce3",
+    "src/client/runtime/capsule-piece-reader.js": "e062b813b6bb91cd93e8930c2ea1426954621ccde244fea272388abf24b756d2"
+  },
+  "policy": "Frozen5c2b3188 plus six readiness source files and one signed piece reader; exclude all concurrent RD changes. Diagnostic0.6.28 only; accepted102fd archive unchanged.",
+  "signedReaderCommit": "257b9ee2e1d874a8753497c2cbdfbc460e5b8c82",
+  "signedReaderPatchSha256": "6a6bb755fc2812d912416673ee1e37c4644e709434363b710acdae2204645d25"
+}

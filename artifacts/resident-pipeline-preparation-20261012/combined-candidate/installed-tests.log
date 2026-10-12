@@ -1,0 +1,74 @@
+COMMAND node tests/runtime/resident-piece-blake3.test.js
+resident-piece-blake3: SHA256/BLAKE3 selective integrity and five metadata rejections passed
+EXIT 0
+COMMAND node tests/runtime/resident-piece-acquisition.test.js
+node:internal/modules/esm/resolve:274
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/private/var/tmp/doppler-resident-preparation-candidate-20261012/consumer/node_modules/doppler-gpu/src/utils/sha256.js' imported from /private/var/tmp/doppler-resident-preparation-candidate-20261012/consumer/node_modules/doppler-gpu/tests/helpers/capsule-v2-fixture.js
+    at finalizeResolution (node:internal/modules/esm/resolve:274:11)
+    at moduleResolve (node:internal/modules/esm/resolve:859:10)
+    at defaultResolve (node:internal/modules/esm/resolve:983:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:708:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:183:49) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///private/var/tmp/doppler-resident-preparation-candidate-20261012/consumer/node_modules/doppler-gpu/src/utils/sha256.js'
+}
+
+Node.js v22.20.0
+EXIT 1
+COMMAND node tests/client/resident-preparation-cleanup.test.js
+manifest and signed factories: aborted preparation settles before owned unload
+EXIT 0
+COMMAND node tests/gpu/paired-linear-preparation.test.js
+paired pipeline preparation: exact variants/constants/device, rejection and cancellation settlement passed
+EXIT 0
+COMMAND node tests/inference/resident-kernel-preparation.test.js
+resident preparation: readiness, rejection, abort settlement and assigned-layer scope passed
+EXIT 0
+COMMAND node tests/runtime/paired-resident-opening.test.js
+node:internal/modules/esm/resolve:274
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/private/var/tmp/doppler-resident-preparation-candidate-20261012/consumer/node_modules/doppler-gpu/src/utils/sha256.js' imported from /private/var/tmp/doppler-resident-preparation-candidate-20261012/consumer/node_modules/doppler-gpu/tests/helpers/capsule-v2-fixture.js
+    at finalizeResolution (node:internal/modules/esm/resolve:274:11)
+    at moduleResolve (node:internal/modules/esm/resolve:859:10)
+    at defaultResolve (node:internal/modules/esm/resolve:983:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:708:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:183:49) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///private/var/tmp/doppler-resident-preparation-candidate-20261012/consumer/node_modules/doppler-gpu/src/utils/sha256.js'
+}
+
+Node.js v22.20.0
+EXIT 1
+COMMAND node tests/inference/resident-partition-lifecycle.test.js
+EXIT 0
+COMMAND node tests/runtime/resident-partition-opening.test.js
+node:internal/modules/esm/resolve:274
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/private/var/tmp/doppler-resident-preparation-candidate-20261012/consumer/node_modules/doppler-gpu/src/utils/sha256.js' imported from /private/var/tmp/doppler-resident-preparation-candidate-20261012/consumer/node_modules/doppler-gpu/tests/helpers/capsule-v2-fixture.js
+    at finalizeResolution (node:internal/modules/esm/resolve:274:11)
+    at moduleResolve (node:internal/modules/esm/resolve:859:10)
+    at defaultResolve (node:internal/modules/esm/resolve:983:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:708:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:183:49) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///private/var/tmp/doppler-resident-preparation-candidate-20261012/consumer/node_modules/doppler-gpu/src/utils/sha256.js'
+}
+
+Node.js v22.20.0
+EXIT 1
+COMMAND node tests/gpu/paired-linear-ownership.test.js
+paired linear: explicit layouts, epsilons, aliases, limits, allocation and both dispatch rollback passed
+EXIT 0

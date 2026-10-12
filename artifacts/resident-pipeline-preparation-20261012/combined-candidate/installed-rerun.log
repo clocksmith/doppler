@@ -1,0 +1,9 @@
+COMMAND node tests/runtime/resident-piece-acquisition.test.js
+resident-piece-acquisition: signed selective opening, honest receipts, gates, corruption and cleanup passed
+public resident factory preserves signed selective acquisition
+EXIT 0
+COMMAND node tests/runtime/paired-resident-opening.test.js
+synthetic signed paired opening preserves both partition policies and rejects scalar/stride substitution
+EXIT 0
+COMMAND node tests/runtime/resident-partition-opening.test.js
+EXIT 0

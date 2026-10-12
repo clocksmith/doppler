@@ -1,0 +1,7 @@
+{
+  "verifiedFiles": 1976,
+  "archive": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "consumer": "/var/tmp/doppler-resident-preparation-candidate-20261012/consumer",
+  "optionalProvidersInstalled": false,
+  "extraFiles": "Frozen source tests copied into installed package for source-relative regression imports; every shipped member reverified unchanged."
+}

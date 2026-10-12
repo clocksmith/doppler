@@ -1,0 +1,42 @@
+{
+  "node": "v22.20.0",
+  "gpuRun": false,
+  "results": [
+    {
+      "file": "tests/runtime/resident-piece-blake3.test.js",
+      "exitCode": 0
+    },
+    {
+      "file": "tests/runtime/resident-piece-acquisition.test.js",
+      "exitCode": 1
+    },
+    {
+      "file": "tests/client/resident-preparation-cleanup.test.js",
+      "exitCode": 0
+    },
+    {
+      "file": "tests/gpu/paired-linear-preparation.test.js",
+      "exitCode": 0
+    },
+    {
+      "file": "tests/inference/resident-kernel-preparation.test.js",
+      "exitCode": 0
+    },
+    {
+      "file": "tests/runtime/paired-resident-opening.test.js",
+      "exitCode": 1
+    },
+    {
+      "file": "tests/inference/resident-partition-lifecycle.test.js",
+      "exitCode": 0
+    },
+    {
+      "file": "tests/runtime/resident-partition-opening.test.js",
+      "exitCode": 1
+    },
+    {
+      "file": "tests/gpu/paired-linear-ownership.test.js",
+      "exitCode": 0
+    }
+  ]
+}

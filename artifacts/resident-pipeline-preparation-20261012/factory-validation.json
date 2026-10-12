@@ -1,0 +1,18 @@
+{
+  "before": [
+    {
+      "owner": "manifest",
+      "baseSource": "5c2b3188",
+      "exitCode": 1,
+      "expectedFailure": "manifest factory must forward opening cancellation"
+    },
+    {
+      "owner": "signed",
+      "baseSource": "5c2b3188",
+      "exitCode": 1,
+      "expectedFailure": "signed factory must forward opening cancellation"
+    }
+  ],
+  "afterExitCode": 0,
+  "sourceRestored": true
+}

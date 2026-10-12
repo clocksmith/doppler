@@ -1,0 +1,18 @@
+{
+  "scope": "Readiness-only preliminary diagnostic; final freeze waits for separate signed-reader correction",
+  "archiveSha256": "4486285bd582d5c0a1b38835b22a9a8fad64b4b0c20b3510d298d0be058d2d77",
+  "baseArchiveSha256": "102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7",
+  "changedShippedFiles": [
+    "package/src/client/model-host/index.js",
+    "package/src/client/resident-partitions.js",
+    "package/src/gpu/kernels/paired-linear-attention.js",
+    "package/src/inference/pipelines/text/resident-partition.js"
+  ],
+  "shippedFiles": 1976,
+  "unshippedDeclarationChanges": [
+    "src/gpu/kernels/paired-linear-attention.d.ts",
+    "src/inference/pipelines/text/resident-partition.d.ts"
+  ],
+  "allOtherShippedBytesIdentical": true,
+  "initialComparisonFailure": "Expected all six source edits as archive changes; original package excludes two internal declaration files. Corrected expected set is intersection with original archive members; no archive bytes changed to pass."
+}

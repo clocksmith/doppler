@@ -1,0 +1,14 @@
+[
+  {
+    "file": "tests/runtime/resident-piece-acquisition.test.js",
+    "exitCode": 0
+  },
+  {
+    "file": "tests/runtime/paired-resident-opening.test.js",
+    "exitCode": 0
+  },
+  {
+    "file": "tests/runtime/resident-partition-opening.test.js",
+    "exitCode": 0
+  }
+]
