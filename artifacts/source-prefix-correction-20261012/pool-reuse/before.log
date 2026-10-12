@@ -1,0 +1,12 @@
+file:///Users/xyz/deco/doppler/src/memory/device-budget.js:24
+      throw Object.assign(new Error(`GPU memory budget exceeded: ${descriptor.label || 'unlabeled'} requires ${size} bytes; `
+                          ^
+
+Error: GPU memory budget exceeded: reuse-without-allocation_256 requires 256 bytes; 512 live, 512 allowed.
+    at device.createBuffer (file:///Users/xyz/deco/doppler/src/memory/device-budget.js:24:27)
+    at BufferPool.acquire (file:///Users/xyz/deco/doppler/src/memory/buffer-pool.js:258:27)
+    at file:///Users/xyz/deco/doppler/tests/memory/buffer-pool-device-budget.test.js:32:23 {
+  code: 'RESOURCE_EXHAUSTED'
+}
+
+Node.js v22.20.0
