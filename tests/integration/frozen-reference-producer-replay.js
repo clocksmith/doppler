@@ -120,7 +120,7 @@ try {
   await page.exposeFunction('recordProducerObservation', row => { observedTimeline.push(row); });
   const result = await page.evaluate(async ({ compatEntry, partitionsEntry, generation, prompts, policy, fullPrefixes, prefixesOnly, expected, observationTarget, captureDecode }) => {
     // Observe selected native pipelines without rewriting shader arithmetic.
-    const moduleSources = new WeakMap(), pipelines = new WeakMap(), normalizationDispatch = [], projectionDispatch = [], quantizedDispatch = [], passPipelines = new WeakMap();
+    const moduleSources = new WeakMap(), pipelines = new WeakMap(), normalizationDispatch = [], qkNormalizationDispatch = [], projectionDispatch = [], quantizedDispatch = [], passPipelines = new WeakMap();
     let dispatchOrdinal = 0;
     const createModule = GPUDevice.prototype.createShaderModule;
     GPUDevice.prototype.createShaderModule = function (descriptor) {
@@ -133,6 +133,11 @@ try {
         const record = { entry: descriptor.compute.entryPoint, constants: descriptor.compute.constants,
           source, selections: 0 };
         normalizationDispatch.push(record); pipelines.set(pipeline, record);
+      }
+      if (source?.includes('q_rows: u32,') && source.includes('q_input: array<f32>')) {
+        const record = { entry: descriptor.compute.entryPoint, constants: descriptor.compute.constants,
+          source, selections: 0 };
+        qkNormalizationDispatch.push(record); pipelines.set(pipeline, record);
       }
       if (source?.includes('Register-Tiled Matrix Multiplication Kernel - f16 weights, f32 activations')) {
         const record = { entry: descriptor.compute.entryPoint, constants: descriptor.compute.constants,
@@ -212,7 +217,7 @@ try {
           }
         }
       }
-      if (prefixesOnly || (fullPrefixes && !captureDecode)) return { runtimeVersion: DOPPLER_VERSION, rows, observation: null, normalizationDispatch, projectionDispatch, quantizedDispatch };
+      if (prefixesOnly || (fullPrefixes && !captureDecode)) return { runtimeVersion: DOPPLER_VERSION, rows, observation: null, normalizationDispatch, qkNormalizationDispatch, projectionDispatch, quantizedDispatch };
       // Observe the same first prefix after reset; quantify instrumentation effects.
       await handle.resetGenerationState();
       let observedLogits = null; const observedSteps = [];
@@ -275,7 +280,7 @@ try {
         }
         await window.recordProducerObservation({ ...row, capture });
       }
-      return { runtimeVersion: DOPPLER_VERSION, rows, normalizationDispatch, projectionDispatch, quantizedDispatch, observation: { logits: observedLogits, observedSteps, target: observationTarget,
+      return { runtimeVersion: DOPPLER_VERSION, rows, normalizationDispatch, qkNormalizationDispatch, projectionDispatch, quantizedDispatch, observation: { logits: observedLogits, observedSteps, target: observationTarget,
         physicalCache: cacheObserver ? physicalRows.flatMap(value => value.rows) : null,
         samplingExcludedTokenIds: [handle.advanced.getSpecialTokens().pad, ...executionOptions.suppressTokenIds]
           .filter(Number.isInteger), timeline: [] } };
@@ -289,6 +294,8 @@ try {
   receipt.physicalExecutionCompleted = true;
   receipt.runtimeVersion = result.runtimeVersion;
   receipt.normalizationDispatch = result.normalizationDispatch.map(({ source, ...record }) => ({
+    ...record, shaderSha256: hash(source) }));
+  receipt.qkNormalizationDispatch = result.qkNormalizationDispatch.map(({ source, ...record }) => ({
     ...record, shaderSha256: hash(source) }));
   receipt.projectionDispatch = result.projectionDispatch.map(({ source, ...record }) => ({
     ...record, shaderSha256: hash(source) }));

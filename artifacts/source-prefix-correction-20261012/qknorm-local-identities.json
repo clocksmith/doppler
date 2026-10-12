@@ -1,0 +1,27 @@
+[
+  {
+    "path": "qknorm-long-fixture.json.gz",
+    "uncompressedSha256": "11ee108276744dfc4e8c099ce9459b70c61fb1ca5b92f47b21552af2e89459f9",
+    "uncompressedBytes": 4520979
+  },
+  {
+    "path": "qknorm-long-control-amd.json.gz",
+    "uncompressedSha256": "58078181a173c5137aaa1c91a8f479c7f34f6a1328baeb8f24c2ee9cac2d3a01",
+    "uncompressedBytes": 4460354
+  },
+  {
+    "path": "qknorm-long-control-mac.json.gz",
+    "uncompressedSha256": "cdc485019fc1bf1f222af3eeab517a7db2b3eaa3ca75f117d7c11a03a392db4d",
+    "uncompressedBytes": 4460357
+  },
+  {
+    "path": "qknorm-long-deferred-amd.json.gz",
+    "uncompressedSha256": "e341ac76a1fe51e375bcc797a3e65bf386ba5feb39f5cdd1d437a56f6e0c60b6",
+    "uncompressedBytes": 4460308
+  },
+  {
+    "path": "qknorm-long-deferred-mac.json.gz",
+    "uncompressedSha256": "6fa7612d3be3ea0b78f269f44b4e74449a6d0a9ac4cfd321f35ce8bf9ca11d2c",
+    "uncompressedBytes": 4460311
+  }
+]
