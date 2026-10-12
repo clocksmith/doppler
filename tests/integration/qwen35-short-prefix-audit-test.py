@@ -20,6 +20,20 @@ def row(name, count, value):
 
 
 class Pairing(unittest.TestCase):
+    def test_equal_maxima_do_not_imply_same_error_source(self):
+        expected = np.zeros((1, 4))
+        actual = np.array([[.002, -.002, 0., 0.]])
+        opposite = -actual
+        result = audit.compare_error_sources(actual, opposite, expected)
+        self.assertEqual(result['tailOverlap'], 2)
+        self.assertEqual(result['sameSignTailOverlap'], 0)
+        self.assertAlmostEqual(result['signedErrorCorrelation'], -1.)
+        self.assertAlmostEqual(result['actualAgainstControlled']['max'], .004)
+        disjoint = np.array([[0., 0., .002, -.002]])
+        result = audit.compare_error_sources(actual, disjoint, expected)
+        self.assertEqual(result['tailOverlap'], 0)
+        self.assertAlmostEqual(result['signedErrorCosine'], 0.)
+
     def test_ideal_f32_can_double_round_before_half_store(self):
         midpoint = 1.0 + 2.0 ** -11
         values = np.array([[midpoint + 2.0 ** -26, midpoint - 2.0 ** -26, 1.0]], dtype=np.float64)

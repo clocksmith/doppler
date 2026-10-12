@@ -6,7 +6,9 @@ after independent evaluation, never the authoritative reference state.
 """
 import argparse
 import base64
+import gzip
 import importlib.util
+import inspect
 import json
 import sys
 from pathlib import Path
@@ -39,6 +41,29 @@ def cache_double_rounding(values):
         {'index': list(map(int, c)), 'f64': float(values[tuple(c)]),
          'nearestF32': float(rounded[tuple(c)]), 'directF16': float(direct[tuple(c)]),
          'throughF32F16': float(staged[tuple(c)])} for c in coordinates]}
+
+
+def compare_error_sources(actual, controlled, expected):
+    """Compare signed errors, not merely similar maxima; diagnostic only."""
+    assert actual.shape == controlled.shape == expected.shape
+    left, right = actual - expected, controlled - expected
+    a, b = left.reshape(-1), right.reshape(-1)
+    actual_tail, control_tail = np.abs(left) > .001, np.abs(right) > .001
+    overlap = actual_tail & control_tail
+    denominator = float(np.linalg.norm(a) * np.linalg.norm(b))
+    correlation = float(np.corrcoef(a, b)[0, 1]) if np.std(a) and np.std(b) else None
+    return {'actualAgainstControlled': error(actual, controlled),
+        'signedErrorCosine': float(np.dot(a, b) / denominator) if denominator else None,
+        'signedErrorCorrelation': correlation,
+        'actualTail': int(actual_tail.sum()), 'controlTail': int(control_tail.sum()),
+        'tailOverlap': int(overlap.sum()),
+        'sameSignTailOverlap': int(np.count_nonzero(overlap & (np.signbit(left) == np.signbit(right)))),
+        'perPrefix': [{'step': step, 'actualWorstVocabulary': int(np.argmax(np.abs(left[step]))),
+            'controlWorstVocabulary': int(np.argmax(np.abs(right[step]))),
+            'actualErrorAtActualWorst': float(left[step, np.argmax(np.abs(left[step]))]),
+            'controlErrorAtActualWorst': float(right[step, np.argmax(np.abs(left[step]))]),
+            'actualAgainstControlled': error(actual[step:step + 1], controlled[step:step + 1])}
+            for step in range(len(actual))]}
 
 
 def read_capture(capture, prefill=19, decode_steps=1):
@@ -197,6 +222,22 @@ def run(args):
         (directory / 'linear-ab-f16.json').write_text(json.dumps({
             'schema': 'doppler.f16-projection-actual-operands/v1',
             'captureSha256': ref.digest(Path(args.capture).read_bytes()), 'cases': float_cases}) + '\n')
+        layer = 15
+        prefix = f'layer.{layer}.attn.'
+        nh, nk, width = config['num_attention_heads'], config['num_key_value_heads'], config['head_dim']
+        query = gpu[prefix + 'q_rope'][:prefill].reshape(-1, nh, width)
+        key = ref.half_cache(gpu[prefix + 'k_rope'][:prefill].reshape(-1, nk, width))
+        value = ref.half_cache(gpu[prefix + 'v_proj'][:prefill].reshape(-1, nk, width))
+        expected = ref.causal_attention(query, key, value)
+        attention_fixture = {'scope': 'Same captured operands; independent local attention counterfactual only',
+            'captureSha256': ref.digest(Path(args.capture).read_bytes()), 'evaluatorSha256': EVALUATOR_SHA256,
+            'layer': layer, 'headDim': width, 'numHeads': nh, 'numKVHeads': nk, 'seqLen': prefill,
+            'startPos': 0, 'isCausal': True, 'scale': width ** -0.5,
+            'q': query.reshape(-1).tolist(), 'k': key.reshape(-1).tolist(), 'v': value.reshape(-1).tolist(),
+            'float64Expected': expected.reshape(-1).tolist(),
+            'observedF32': gpu[prefix + 'core_out'][:prefill].reshape(-1).tolist()}
+        (directory / 'attention-layer15.json.gz').write_bytes(gzip.compress(
+            json.dumps(attention_fixture).encode(), mtime=0))
     rows, storage = [], []
     replay_comparisons = []
     def compare(name, local=None):
@@ -362,6 +403,44 @@ def run(args):
             'comparison': error(staged_logits, expected),
             'prefixesOverTolerance': int(np.count_nonzero(per_step > 0.001)),
             'perPrefixMaximum': list(map(float, per_step))}
+    if args.recurrent_materialization_control:
+        # Diagnostic lower-level storage intervention. The authoritative source
+        # and independently evolved reference above remain unchanged.
+        original_delta = ref.delta_history
+        original_source = inspect.getsource(original_delta)
+        boundary = '        state += key[:, :, None] * delta[:, None, :]'
+        assert original_source.count(boundary) == 1
+        controlled_source = original_source.replace(boundary, boundary +
+            '\n        state = state.astype(np.float32).astype(np.float64)')
+        namespace = dict(ref.__dict__)
+        exec(compile(controlled_source, '<diagnostic-f32-recurrent-storage>', 'exec'), namespace)
+        try:
+            ref.delta_history = namespace['delta_history']
+            staged_logits, _ = ref.evaluate(contract['inputIds'], weights, config,
+                np.array(contract['prefixLengths']) - 1)
+        finally:
+            ref.delta_history = original_delta
+        per_step = np.max(np.abs(staged_logits - expected), axis=1)
+        report['recurrentMaterializationControl'] = {
+            'scope': 'F64 equations with nearest-F32 recurrent-state storage after each update; diagnostic only',
+            'referenceUnchanged': True, 'controlledSourceSha256': ref.digest(controlled_source.encode()),
+            'comparison': error(staged_logits, expected),
+            'prefixesOverTolerance': int(np.count_nonzero(per_step > 0.001)),
+            'perPrefixMaximum': list(map(float, per_step))}
+        if args.recurrent_runtime:
+            runtime = ref.read_json(args.recurrent_runtime)
+            binding = ref.read_json(args.binding)
+            assert runtime['archiveSha256'] == binding['archiveSha256']
+            assert runtime['physicalExecutionCompleted'] and not runtime['declaredShaderMismatches']
+            runtime_rows = [row for row in runtime['results'] if row['index'] == request_index]
+            assert [row['step'] for row in runtime_rows] == contract['steps']
+            assert all(row['inputIds'] == contract['inputIds'][:prefill] for row in runtime_rows)
+            actual = np.stack([np.frombuffer(base64.b64decode(row['logits']), dtype='<f4').astype(np.float64)
+                               for row in runtime_rows])
+            report['recurrentMaterializationControl']['runtimeComparison'] = {
+                'path': args.recurrent_runtime, 'sha256': ref.digest(Path(args.recurrent_runtime).read_bytes()),
+                'archiveSha256': runtime['archiveSha256'],
+                **compare_error_sources(actual, staged_logits, expected)}
     Path(args.out).write_text(json.dumps(report, indent=2) + '\n')
 
 
@@ -373,6 +452,8 @@ if __name__ == '__main__':
     parser.add_argument('--contract', default='artifacts/whole-model-f64-complete-20261011/request-0-contract.json')
     parser.add_argument('--binding', help='Exact archive/source manifest binding when the runtime shader identities changed')
     parser.add_argument('--out', required=True)
+    parser.add_argument('--recurrent-materialization-control', action='store_true')
+    parser.add_argument('--recurrent-runtime', help='Same-archive full-prefix output for signed-error attribution')
     parser.add_argument('--cache-materialization-control', action='store_true')
     parser.add_argument('--cache-materialization-kind', choices=['both', 'key', 'value'], default='both')
     parser.add_argument('--fixture-directory', help='Export captured prefill projections for the existing physical replay')
