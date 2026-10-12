@@ -1,0 +1,16 @@
+{"prepared":0,"bytes":653140240}
+{"prepared":1,"bytes":287648016}
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+page.evaluate: AbortError: Failed to execute 'mapAsync' on 'GPUBuffer': Buffer was destroyed before mapping was resolved.
+    at buffer.destroy (http://127.0.0.1:28940/vendor/doppler/0.6.27/src/memory/device-budget.js:39:7)
+    at #destroyPendingBuffers (http://127.0.0.1:28940/vendor/doppler/0.6.27/src/memory/buffer-pool.js:322:16)
+    at #scheduleDestruction (http://127.0.0.1:28940/vendor/doppler/0.6.27/src/memory/buffer-pool.js:392:34)
+    at #deferDestroy (http://127.0.0.1:28940/vendor/doppler/0.6.27/src/memory/buffer-pool.js:374:30)
+    at BufferPool.destroy (http://127.0.0.1:28940/vendor/doppler/0.6.27/src/memory/buffer-pool.js:679:25)
+    at http://127.0.0.1:28940/vendor/doppler/0.6.27/src/memory/buffer-pool.js:168:35
+    at /private/var/tmp/reploid-paired-reset-diagnostic-20261012/tests/fixtures/browser-partition-memory-completion.js:171:31
+
+Node.js v22.20.0
