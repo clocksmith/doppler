@@ -1,0 +1,13 @@
+
+> doppler-gpu@0.6.27 package:smoke
+> node tools/check-packed-package.js
+
+[kernels:conversion-digests:check] registered kernel digests match in 49 configuration files
+package import smoke passed (32 exports + browser condition)
+package program bundle smoke passed (synthetic export, host closure, corruption rejection)
+Installed standalone Node provider smoke passed (synthetic; Doe absent).
+package training API smoke passed
+installed public imports preserve minimal runtime authority
+Error: Installed runtime closure differs from checked receipt.
+    at runPartitionApiSmoke (file:///Users/xyz/deco/doppler/tools/check-packed-package.js:378:67)
+    at async main (file:///Users/xyz/deco/doppler/tools/check-packed-package.js:529:5)

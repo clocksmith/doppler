@@ -1,0 +1,105 @@
+
+> doppler-gpu@0.6.27 package:smoke
+> node tools/check-packed-package.js
+
+[kernels:conversion-digests:check] registered kernel digests match in 49 configuration files
+package import smoke passed (32 exports + browser condition)
+package program bundle smoke passed (synthetic export, host closure, corruption rejection)
+Installed standalone Node provider smoke passed (synthetic; Doe absent).
+package training API smoke passed
+installed public imports preserve minimal runtime authority
+resident-piece-acquisition: signed selective opening, honest receipts, gates, corruption and cleanup passed
+public resident factory preserves signed selective acquisition
+installed minimal runtime closure and explicit partition entry checks passed
+package CLI smoke passed (doppler)
+package CLI smoke passed (doppler-gpu)
+package CLI smoke passed (doppler-serve)
+installed Electron Capsule contract passed (synthetic device/program, no repository imports)
+Installed Capsule HTTP/direct parity passed (synthetic).
+Installed Capsule embedding smoke passed (synthetic; no physical qualification).
+Installed Capsule generation passed (injected logits; no physical qualification).
+Installed browser-conditioned host stream exports passed.
+{"passed":true,"consumer":"standalone","runtimeVersion":"0.6.27","phases":6,"releases":6,"physicalExecution":false}
+TAP version 13
+# Subtest: scoped session exposes explicit capabilities and stable results
+ok 1 - scoped session exposes explicit capabilities and stable results
+  ---
+  duration_ms: 0.803
+  type: 'test'
+  ...
+# Subtest: stream emits semantic events instead of return-dependent unions
+ok 2 - stream emits semantic events instead of return-dependent unions
+  ---
+  duration_ms: 0.401292
+  type: 'test'
+  ...
+# Subtest: scoped completion preserves declared stopping reasons and raw token counts
+ok 3 - scoped completion preserves declared stopping reasons and raw token counts
+  ---
+  duration_ms: 0.490667
+  type: 'test'
+  ...
+# Subtest: scoped stream never invents completion on failure or early consumer return
+ok 4 - scoped stream never invents completion on failure or early consumer return
+  ---
+  duration_ms: 0.339708
+  type: 'test'
+  ...
+# Subtest: scoped completion rejects invalid reasons or counters instead of inferring EOS
+ok 5 - scoped completion rejects invalid reasons or counters instead of inferring EOS
+  ---
+  duration_ms: 0.221458
+  type: 'test'
+  ...
+# Subtest: specialized models reject generation and streaming capabilities
+ok 6 - specialized models reject generation and streaming capabilities
+  ---
+  duration_ms: 0.828625
+  type: 'test'
+  ...
+# Subtest: unsupported observation policies fail closed on a generation session
+ok 7 - unsupported observation policies fail closed on a generation session
+  ---
+  duration_ms: 0.228709
+  type: 'test'
+  ...
+# Subtest: close is idempotent and blocks later work
+ok 8 - close is idempotent and blocks later work
+  ---
+  duration_ms: 0.3055
+  type: 'test'
+  ...
+# Subtest: concurrent close and disposal wait for the same unload
+ok 9 - concurrent close and disposal wait for the same unload
+  ---
+  duration_ms: 0.378625
+  type: 'test'
+  ...
+# Subtest: every close caller observes the original unload failure without retrying cleanup
+ok 10 - every close caller observes the original unload failure without retrying cleanup
+  ---
+  duration_ms: 0.444625
+  type: 'test'
+  ...
+# Subtest: guided and deep inspection disclose non-representative execution
+ok 11 - guided and deep inspection disclose non-representative execution
+  ---
+  duration_ms: 0.16875
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 11.008375
+[222.8ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[224.0ms][Tokenizer] Loaded HuggingFace 259 tokens (bpe), 3 special patterns, 0 merges
+generation-output.test: ok (synthetic decoding and control, no model qualification)
+resident-reasoning-output.test: raw limits, truncation, cancellation, failure and reuse passed (GPU stubbed)
+installed generation implementation controls passed (synthetic, no model qualification)
+package type smoke passed (32 public export declarations)
+packed package smoke passed (1917 files, 3358490 bytes packed, 13204422 bytes unpacked)
