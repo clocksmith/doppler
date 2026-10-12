@@ -1,0 +1,1520 @@
+{
+  "schema": "doppler.resident-partition-qualification/v1",
+  "operation": "residentPartition",
+  "status": "passed",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "manifestIdentity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+  "surface": "browser-webgpu",
+  "executionGraphHash": "sha256:1be75c19e08b6c9fe3fb94af624c070bdc940e7d32582c704d56b2775a387596",
+  "initialExecutionIdentity": {
+    "schema": "doppler.initial-execution-identity/v2",
+    "executionGraphHash": "sha256:1be75c19e08b6c9fe3fb94af624c070bdc940e7d32582c704d56b2775a387596",
+    "resolvedGraphHash": "sha256:ed5b748e057146ad4e9df8dccf27da55c1cdc16bae3f30a8b1c5b267ef1f2f5c",
+    "kernelClosure": [
+      {
+        "moduleId": "add",
+        "file": "paired_add.wgsl",
+        "entry": "main",
+        "digest": "sha256:d9e716daf50ebbef2a7cc27908006ccc7e32b9f6707c7a3c926a0020e50512c6"
+      },
+      {
+        "moduleId": "attention",
+        "file": "attention_paired.wgsl",
+        "entry": "main",
+        "digest": "sha256:a9d868890ae9e6a382bb5b72f4cff3f7fa5744b00c08e0c1fdbd05a29bb1e359"
+      },
+      {
+        "moduleId": "cast_f32_to_two_f32",
+        "file": "cast_f32_to_two_f32.wgsl",
+        "entry": "main",
+        "digest": "sha256:4f79cf40e2b469745c53f11f12f5791b8429a6ada4d055c5bd6e418033860945"
+      },
+      {
+        "moduleId": "cast_two_f32_to_f16",
+        "file": "cast_two_f32_to_f16.wgsl",
+        "entry": "main",
+        "digest": "sha256:c849fddd43cc81e8d1b3e60cffc54275484df53ab29dde0371d17b2048844d01"
+      },
+      {
+        "moduleId": "embed",
+        "file": "gather_f16.wgsl",
+        "entry": "main",
+        "digest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9"
+      },
+      {
+        "moduleId": "gated_delta_conv_paired",
+        "file": "gated_delta_conv_paired.wgsl",
+        "entry": "main",
+        "digest": "sha256:a27cd78d245a89eedb83e895927fcf76e4e1593526a4248b391f925b2a87f51d"
+      },
+      {
+        "moduleId": "gated_delta_recurrent_paired",
+        "file": "gated_delta_recurrent_paired.wgsl",
+        "entry": "main",
+        "digest": "sha256:98e1496eaf328f8ece43b1e962953954dd11cae2bd1281824204420d5a186105"
+      },
+      {
+        "moduleId": "head",
+        "file": "matmul_paired.wgsl",
+        "entry": "main",
+        "digest": "sha256:363adb64cd748859dca995dbade0307d4cb94f9e4a016da73b4269b20e73c4dd"
+      },
+      {
+        "moduleId": "norm",
+        "file": "rmsnorm_paired.wgsl",
+        "entry": "main",
+        "digest": "sha256:a8bec47c5fe039c2edc14e81130ed2bdb73cf881d17b9d8e10631bfcd578a45a"
+      },
+      {
+        "moduleId": "paired_pointwise_add",
+        "file": "paired_add.wgsl",
+        "entry": "main",
+        "digest": "sha256:d9e716daf50ebbef2a7cc27908006ccc7e32b9f6707c7a3c926a0020e50512c6"
+      },
+      {
+        "moduleId": "paired_pointwise_multiply",
+        "file": "paired_multiply.wgsl",
+        "entry": "main",
+        "digest": "sha256:108aaf9fae560587873a55ee944613fabce7955c1c0895f04dd6c252e31ee3b3"
+      },
+      {
+        "moduleId": "paired_pointwise_scale",
+        "file": "paired_scale.wgsl",
+        "entry": "main",
+        "digest": "sha256:e0d97734222d5803ca3ec0927789f62356597e9f224d5034162a78092e7e8448"
+      },
+      {
+        "moduleId": "paired_pointwise_scale_inplace",
+        "file": "paired_scale_inplace.wgsl",
+        "entry": "main",
+        "digest": "sha256:440dd8442306b90a6de6b613cf18d032c0d6283f5c2882a90e4573f2418cce64"
+      },
+      {
+        "moduleId": "paired_pointwise_sigmoid",
+        "file": "paired_sigmoid.wgsl",
+        "entry": "main",
+        "digest": "sha256:d429d88a2e53547740f0d9a994cd4fa1959c52714de1c8afd9cc7471dd674d50"
+      },
+      {
+        "moduleId": "paired_pointwise_silu",
+        "file": "paired_silu.wgsl",
+        "entry": "main",
+        "digest": "sha256:10978a52877b0eb3c0cf90d70688d826b62ea82ae2ba53af08e0eb9cf1772d9d"
+      },
+      {
+        "moduleId": "paired_pointwise_silu_unary",
+        "file": "paired_silu_unary.wgsl",
+        "entry": "main",
+        "digest": "sha256:7029c8a2b8bb0880baacfd22649e972626da907cf006e36eebb552fb8f7373b0"
+      },
+      {
+        "moduleId": "projection_f16",
+        "file": "matmul_paired.wgsl",
+        "entry": "main",
+        "digest": "sha256:363adb64cd748859dca995dbade0307d4cb94f9e4a016da73b4269b20e73c4dd"
+      },
+      {
+        "moduleId": "projection_q4",
+        "file": "matmul_paired.wgsl",
+        "entry": "main",
+        "digest": "sha256:363adb64cd748859dca995dbade0307d4cb94f9e4a016da73b4269b20e73c4dd"
+      },
+      {
+        "moduleId": "rope",
+        "file": "rope_qk_paired.wgsl",
+        "entry": "main",
+        "digest": "sha256:213775d6b504fa804d0448fa1e5df99bc2cd3485f526787ac5a6c8a91a8213e8"
+      },
+      {
+        "moduleId": "rope_precompute_paired",
+        "file": "rope_precompute_paired.wgsl",
+        "entry": "main",
+        "digest": "sha256:1540bf2fc882479166d888fdbd03d9ed8581ede920e0709e3545e71f71e4b5da"
+      },
+      {
+        "moduleId": "sample",
+        "file": "sample.wgsl",
+        "entry": "sample_single_pass",
+        "digest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef"
+      },
+      {
+        "moduleId": "silu",
+        "file": "paired_silu.wgsl",
+        "entry": "main",
+        "digest": "sha256:10978a52877b0eb3c0cf90d70688d826b62ea82ae2ba53af08e0eb9cf1772d9d"
+      },
+      {
+        "moduleId": "split_qg_paired",
+        "file": "split_qg_paired.wgsl",
+        "entry": "main",
+        "digest": "sha256:15c4da5cf5022bea697ca972bbb96425e1b3a843c5bc7bb73f89641f4057da37"
+      },
+      {
+        "moduleId": "split_qkv_paired",
+        "file": "split_qkv_paired.wgsl",
+        "entry": "main",
+        "digest": "sha256:af59d08a7cebd56cb531bfd5746fb2ecafdf041b4aa75e25ed4690d9126c65c4"
+      }
+    ],
+    "kernelClosureHash": "sha256:2c6ed15ad592ed57215884cb6ea334d08f7efd34a4d819279b78a12e7384bd1b",
+    "dtypeLane": {
+      "activation": "f32",
+      "output": "f32",
+      "kv": "f16",
+      "math": "f32",
+      "accumulation": "f32"
+    },
+    "fusionSet": [],
+    "fusionSetHash": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "kvLayout": {
+      "maxSeqLen": 4096,
+      "kvDtype": "f16",
+      "layout": "contiguous",
+      "pageSize": 256,
+      "tiering": {
+        "mode": "off",
+        "hotWindow": 1024,
+        "coldPageSize": 256,
+        "coldDtype": "f16",
+        "compression": {
+          "mode": "none",
+          "blockSize": 1,
+          "bitWidth": 4,
+          "prodMode": false
+        },
+        "gating": {
+          "mode": "auto",
+          "minAluBwRatio": 0
+        }
+      },
+      "quantization": {
+        "mode": "none",
+        "bitWidth": 4,
+        "prodMode": false
+      }
+    },
+    "kvLayoutHash": "sha256:066d960ae8d1e52fe2af7d0d2dd0599c2597518db861916369026e1026c677fb",
+    "memoryPolicy": {
+      "kvcache": {
+        "maxSeqLen": 4096,
+        "kvDtype": "f16",
+        "layout": "contiguous",
+        "pageSize": 256,
+        "tiering": {
+          "mode": "off",
+          "hotWindow": 1024,
+          "coldPageSize": 256,
+          "coldDtype": "f16",
+          "compression": {
+            "mode": "none",
+            "blockSize": 1,
+            "bitWidth": 4,
+            "prodMode": false
+          },
+          "gating": {
+            "mode": "auto",
+            "minAluBwRatio": 0
+          }
+        },
+        "quantization": {
+          "mode": "none",
+          "bitWidth": 4,
+          "prodMode": false
+        }
+      },
+      "perLayerInputs": {
+        "materialization": "auto",
+        "rowCache": {
+          "mode": "lru",
+          "maxRows": 256,
+          "maxBytes": 134217728,
+          "decodedDtype": "f32"
+        },
+        "prefetch": {
+          "mode": "next_token",
+          "rowsAhead": 1
+        },
+        "gpuUpload": {
+          "mode": "per_step_slices",
+          "stagingRows": 2
+        },
+        "hotCache": {
+          "mode": "prepared_tokens",
+          "maxTokens": 1024,
+          "maxBytes": 134217728,
+          "outputDtype": "f32"
+        }
+      },
+      "largeWeights": null
+    },
+    "memoryPolicyHash": "sha256:0c3bf801696156ddae1b8907d6b65acb0806d43c79b99adba8f58cad5aad78f9",
+    "executionPlanDigest": "sha256:552a9fef71cab69fbe92b58a6d6ba5347efc4c530790c413b3780a2b7dbc78da",
+    "runtimeEngine": {
+      "resolvedRuntimeSessionId": "sha256:eea461296c3f1a849f71e867921637c960f371b81d3b26c9a9d326efbce27612",
+      "resolvedRuntimeSchema": "doppler.resolved-runtime-session/v1",
+      "kernelPath": {
+        "id": "qwen-3-5-0-8b-q4k-ehaf16-execution-inline",
+        "source": "execution-v1",
+        "hash": "sha256:52d4a4f60223f2cd13563a16dbd1074a0186a6a9d42fe80caed771ce73dc646f",
+        "definition": {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16-execution-inline",
+          "name": "Execution inline kernel path",
+          "description": "Generated from manifest.inference.execution",
+          "activationDtype": "f32",
+          "kvDtype": "f16",
+          "decode": {
+            "steps": [
+              {
+                "op": "input_norm",
+                "kernel": "rmsnorm_paired.wgsl",
+                "entry": "main",
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "q_proj",
+                "kernel": "matmul_paired.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.q_proj",
+                "constants": {
+                  "WEIGHT_F16": false,
+                  "WEIGHT_Q4K": true,
+                  "SCALAR_OUTPUT": false
+                },
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "k_proj",
+                "kernel": "matmul_paired.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.k_proj",
+                "constants": {
+                  "WEIGHT_F16": false,
+                  "WEIGHT_Q4K": true,
+                  "SCALAR_OUTPUT": false
+                },
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "v_proj",
+                "kernel": "matmul_paired.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.v_proj",
+                "constants": {
+                  "WEIGHT_F16": false,
+                  "WEIGHT_Q4K": true,
+                  "SCALAR_OUTPUT": false
+                },
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "linear_qkv_proj",
+                "kernel": "matmul_paired.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.linear_attn.in_proj_qkv",
+                "constants": {
+                  "WEIGHT_F16": false,
+                  "WEIGHT_Q4K": true,
+                  "SCALAR_OUTPUT": false
+                },
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "linear_z_proj",
+                "kernel": "matmul_paired.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.linear_attn.in_proj_z",
+                "constants": {
+                  "WEIGHT_F16": false,
+                  "WEIGHT_Q4K": true,
+                  "SCALAR_OUTPUT": false
+                },
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "linear_a_proj",
+                "kernel": "matmul_paired.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.linear_attn.in_proj_a",
+                "constants": {
+                  "WEIGHT_F16": true,
+                  "WEIGHT_Q4K": false,
+                  "SCALAR_OUTPUT": false
+                },
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "linear_b_proj",
+                "kernel": "matmul_paired.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.linear_attn.in_proj_b",
+                "constants": {
+                  "WEIGHT_F16": true,
+                  "WEIGHT_Q4K": false,
+                  "SCALAR_OUTPUT": false
+                },
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "rope_q",
+                "kernel": "rope_qk_paired.wgsl",
+                "entry": "main",
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "rope_k",
+                "kernel": "rope_qk_paired.wgsl",
+                "entry": "main",
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "attention",
+                "kernel": "attention_paired.wgsl",
+                "entry": "main",
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32",
+                  "kvDtype": "f16"
+                }
+              },
+              {
+                "op": "o_proj",
+                "kernel": "matmul_paired.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.o_proj",
+                "constants": {
+                  "WEIGHT_F16": false,
+                  "WEIGHT_Q4K": true,
+                  "SCALAR_OUTPUT": false
+                },
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "attn_residual",
+                "kernel": "paired_add.wgsl",
+                "entry": "main",
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "post_attn_norm",
+                "kernel": "rmsnorm_paired.wgsl",
+                "entry": "main",
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "gate_proj",
+                "kernel": "matmul_paired.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.gate_proj",
+                "constants": {
+                  "WEIGHT_F16": false,
+                  "WEIGHT_Q4K": true,
+                  "SCALAR_OUTPUT": false
+                },
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "up_proj",
+                "kernel": "matmul_paired.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.up_proj",
+                "constants": {
+                  "WEIGHT_F16": false,
+                  "WEIGHT_Q4K": true,
+                  "SCALAR_OUTPUT": false
+                },
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "activation",
+                "kernel": "paired_silu.wgsl",
+                "entry": "main",
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "down_proj",
+                "kernel": "matmul_paired.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.down_proj",
+                "constants": {
+                  "WEIGHT_F16": false,
+                  "WEIGHT_Q4K": true,
+                  "SCALAR_OUTPUT": false
+                },
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "ffn_residual",
+                "kernel": "paired_add.wgsl",
+                "entry": "main",
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              }
+            ]
+          },
+          "prefill": {
+            "steps": [
+              {
+                "op": "input_norm",
+                "kernel": "rmsnorm_paired.wgsl",
+                "entry": "main",
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "q_proj",
+                "kernel": "matmul_paired.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.q_proj",
+                "constants": {
+                  "WEIGHT_F16": false,
+                  "WEIGHT_Q4K": true,
+                  "SCALAR_OUTPUT": false
+                },
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "k_proj",
+                "kernel": "matmul_paired.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.k_proj",
+                "constants": {
+                  "WEIGHT_F16": false,
+                  "WEIGHT_Q4K": true,
+                  "SCALAR_OUTPUT": false
+                },
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "v_proj",
+                "kernel": "matmul_paired.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.v_proj",
+                "constants": {
+                  "WEIGHT_F16": false,
+                  "WEIGHT_Q4K": true,
+                  "SCALAR_OUTPUT": false
+                },
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "linear_qkv_proj",
+                "kernel": "matmul_paired.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.linear_attn.in_proj_qkv",
+                "constants": {
+                  "WEIGHT_F16": false,
+                  "WEIGHT_Q4K": true,
+                  "SCALAR_OUTPUT": false
+                },
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "linear_z_proj",
+                "kernel": "matmul_paired.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.linear_attn.in_proj_z",
+                "constants": {
+                  "WEIGHT_F16": false,
+                  "WEIGHT_Q4K": true,
+                  "SCALAR_OUTPUT": false
+                },
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "linear_a_proj",
+                "kernel": "matmul_paired.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.linear_attn.in_proj_a",
+                "constants": {
+                  "WEIGHT_F16": true,
+                  "WEIGHT_Q4K": false,
+                  "SCALAR_OUTPUT": false
+                },
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "linear_b_proj",
+                "kernel": "matmul_paired.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.linear_attn.in_proj_b",
+                "constants": {
+                  "WEIGHT_F16": true,
+                  "WEIGHT_Q4K": false,
+                  "SCALAR_OUTPUT": false
+                },
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "rope_q",
+                "kernel": "rope_qk_paired.wgsl",
+                "entry": "main",
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "rope_k",
+                "kernel": "rope_qk_paired.wgsl",
+                "entry": "main",
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "attention",
+                "kernel": "attention_paired.wgsl",
+                "entry": "main",
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32",
+                  "kvDtype": "f16"
+                }
+              },
+              {
+                "op": "o_proj",
+                "kernel": "matmul_paired.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.self_attn.o_proj",
+                "constants": {
+                  "WEIGHT_F16": false,
+                  "WEIGHT_Q4K": true,
+                  "SCALAR_OUTPUT": false
+                },
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "attn_residual",
+                "kernel": "paired_add.wgsl",
+                "entry": "main",
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "post_attn_norm",
+                "kernel": "rmsnorm_paired.wgsl",
+                "entry": "main",
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "gate_proj",
+                "kernel": "matmul_paired.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.gate_proj",
+                "constants": {
+                  "WEIGHT_F16": false,
+                  "WEIGHT_Q4K": true,
+                  "SCALAR_OUTPUT": false
+                },
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "up_proj",
+                "kernel": "matmul_paired.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.up_proj",
+                "constants": {
+                  "WEIGHT_F16": false,
+                  "WEIGHT_Q4K": true,
+                  "SCALAR_OUTPUT": false
+                },
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "activation",
+                "kernel": "paired_silu.wgsl",
+                "entry": "main",
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "down_proj",
+                "kernel": "matmul_paired.wgsl",
+                "entry": "main",
+                "weights": "layer.{L}.mlp.down_proj",
+                "constants": {
+                  "WEIGHT_F16": false,
+                  "WEIGHT_Q4K": true,
+                  "SCALAR_OUTPUT": false
+                },
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              {
+                "op": "ffn_residual",
+                "kernel": "paired_add.wgsl",
+                "entry": "main",
+                "precision": {
+                  "inputDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              }
+            ]
+          },
+          "preLayer": [
+            {
+              "op": "embed",
+              "kernel": "gather_f16.wgsl",
+              "entry": "main",
+              "weights": "embed_tokens"
+            }
+          ],
+          "postLayer": [
+            {
+              "op": "final_norm",
+              "kernel": "rmsnorm_paired.wgsl",
+              "entry": "main",
+              "precision": {
+                "inputDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            {
+              "op": "lm_head",
+              "kernel": "matmul_paired.wgsl",
+              "entry": "main",
+              "weights": "lm_head",
+              "constants": {
+                "WEIGHT_F16": false,
+                "WEIGHT_Q4K": true,
+                "SCALAR_OUTPUT": true
+              },
+              "precision": {
+                "inputDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            {
+              "op": "lm_head_prefill",
+              "kernel": "matmul_paired.wgsl",
+              "entry": "main",
+              "weights": "lm_head",
+              "constants": {
+                "WEIGHT_F16": false,
+                "WEIGHT_Q4K": true,
+                "SCALAR_OUTPUT": true
+              },
+              "precision": {
+                "inputDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            {
+              "op": "sample",
+              "kernel": "sample.wgsl",
+              "entry": "sample_single_pass"
+            }
+          ]
+        }
+      },
+      "capabilityPolicy": {
+        "kind": "default-noop",
+        "dtypeEffect": "none",
+        "reason": "GPU supports all required features.",
+        "evidence": []
+      },
+      "laneIntegrity": {
+        "declared": {
+          "activationDtype": "f32",
+          "mathDtype": "f32",
+          "accumDtype": "f32",
+          "kvDtype": "f16"
+        },
+        "executed": {
+          "activationDtype": "f32",
+          "mathDtype": "f32",
+          "accumDtype": "f32",
+          "kvDtype": "f16"
+        },
+        "status": "matches",
+        "transforms": [],
+        "policy": {
+          "kind": "default-noop",
+          "dtypeEffect": "none",
+          "reason": "GPU supports all required features.",
+          "evidence": []
+        }
+      }
+    },
+    "runtimeEngineDigest": "sha256:f41a3b8357010509bb08004f4c9cd669ab1c413440692136f7d769fdc52ece75",
+    "programLoadPolicy": {
+      "schema": "doppler.capsule-program-load-policy/v2",
+      "runtimeConfig": {
+        "inference": {
+          "session": {
+            "kvcache": {
+              "maxSeqLen": 4096,
+              "kvDtype": "f16",
+              "layout": "contiguous",
+              "pageSize": 256,
+              "tiering": {
+                "mode": "off",
+                "hotWindow": 1024,
+                "coldPageSize": 256,
+                "coldDtype": "f16",
+                "compression": {
+                  "mode": "none",
+                  "blockSize": 1,
+                  "bitWidth": 4,
+                  "prodMode": false
+                },
+                "gating": {
+                  "mode": "auto",
+                  "minAluBwRatio": 0
+                }
+              },
+              "quantization": {
+                "mode": "none",
+                "bitWidth": 4,
+                "prodMode": false
+              }
+            },
+            "speculation": {
+              "mode": "self",
+              "tokens": 1,
+              "verify": "greedy",
+              "threshold": null,
+              "rollbackOnReject": true
+            },
+            "prefillChunkSubmitMode": "async",
+            "prefillChunkLayers": 1,
+            "prefillTokenChunkSize": 256,
+            "skipEmbeddingKVCacheWrites": false,
+            "useFlashPrefillAttention": false,
+            "useFusedGateUpGelu": false,
+            "useLargeBatchF16F32FusedGateUp": false,
+            "useTiledQ4KPrefill": false,
+            "retainQ4KMaterialization": false,
+            "useWideTileQ4KPrefill": false,
+            "useWideTileQ4KDecode": false,
+            "useSandwichRMSNormPairFusion": false,
+            "usePostFfnNextInputRMSNormPairFusion": false,
+            "usePostAttnNormFusedGateUp": false,
+            "fusedFfnQ4K": null,
+            "lmHeadArgmaxQ4K": null,
+            "attentionDecodeOnline": null,
+            "useLinearAttentionABProjectionFusion": false,
+            "useLinearAttentionQKVZProjectionFusion": false,
+            "useLinearAttentionFusedDecodeCore": false,
+            "linearRecurrentStatePrecision": "two-f32",
+            "intermediatePrecision": "two-f32",
+            "useOrtFlashPrefillAttention": false,
+            "useWideTileResidualFusion": false,
+            "useFusedRmsnormWideTile": false,
+            "useFusedQKVSplitQKNorm": false,
+            "useFusedQKVSplitQKNormRoPE": false,
+            "useGreedyLmHeadArgmaxFusion": false,
+            "compute": {
+              "defaults": {
+                "activationDtype": "f32",
+                "mathDtype": "f32",
+                "accumDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            "decodeLoop": {
+              "batchSize": 4,
+              "stopCheckMode": "batch",
+              "readbackInterval": 8,
+              "readbackMode": "sequential",
+              "submitLatencyThresholdMs": null,
+              "ringTokens": 1,
+              "ringStop": 1,
+              "ringStaging": 1,
+              "disableCommandBatching": false
+            },
+            "perLayerInputs": {
+              "materialization": "auto",
+              "rowCache": {
+                "mode": "lru",
+                "maxRows": 256,
+                "maxBytes": 134217728,
+                "decodedDtype": "f32"
+              },
+              "prefetch": {
+                "mode": "next_token",
+                "rowsAhead": 1
+              },
+              "gpuUpload": {
+                "mode": "per_step_slices",
+                "stagingRows": 2
+              },
+              "hotCache": {
+                "mode": "prepared_tokens",
+                "maxTokens": 1024,
+                "maxBytes": 134217728,
+                "outputDtype": "f32"
+              }
+            }
+          },
+          "compute": {
+            "activationDtype": "f32"
+          },
+          "generation": {
+            "disableMultiTokenDecode": false
+          }
+        }
+      }
+    },
+    "programLoadPolicyHash": "sha256:f52f07a32f3793a9bc12048b52b40fa143283c9efc1f3419301250f8f25ede40",
+    "digest": "sha256:ae5b43bc95d2d545eca1ca7315d7e0fb892abe2bc73c3abd3f2671cda38b1f20"
+  },
+  "partitionPlan": {
+    "schema": "doppler.layer-partition-contract/v2",
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "totalLayers": 24,
+    "hiddenSize": 1024,
+    "vocabSize": 248320,
+    "splitLayer": 12,
+    "activationDtype": "f32",
+    "activationPrecision": "two-f32",
+    "activationComponents": 2,
+    "activationElementStrideBytes": 8,
+    "partitions": [
+      {
+        "index": 0,
+        "layerRange": [
+          0,
+          11
+        ],
+        "layerCount": 12,
+        "hasEmbedding": true,
+        "hasLmHead": false,
+        "inputContract": {
+          "type": "token-ids",
+          "rank": 2,
+          "shapeDescription": "[batchSize, seqLen]",
+          "dtype": "i32"
+        },
+        "outputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 1024,
+          "dtype": "f32",
+          "precision": "two-f32",
+          "components": 2,
+          "elementStrideBytes": 8
+        }
+      },
+      {
+        "index": 1,
+        "layerRange": [
+          12,
+          23
+        ],
+        "layerCount": 12,
+        "hasEmbedding": false,
+        "hasLmHead": true,
+        "inputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 1024,
+          "dtype": "f32",
+          "precision": "two-f32",
+          "components": 2,
+          "elementStrideBytes": 8
+        },
+        "outputContract": {
+          "type": "logits",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, vocabSize]",
+          "vocabSize": 248320,
+          "dtype": "f32"
+        }
+      }
+    ]
+  },
+  "partitionPlanHash": "sha256:60024873abb36bd210b615a736eac75e079e81a3f0bc6071cdba72ee013a4872",
+  "partitionIndex": 1,
+  "comparison": {
+    "contractHash": "sha256:2d1df5d4509cc8d6f16f2c8bb9e35c6858a572314d62c551568de987e1f7d7a1",
+    "referenceHash": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+    "captureHash": "sha256:391a22c2dd1850712ff691239e4091c449aed1ea37a82a0458c4562807c4b013",
+    "evaluatorHash": "sha256:90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7",
+    "tolerance": 0.001,
+    "complete": true,
+    "steps": [
+      {
+        "index": 0,
+        "request": 0,
+        "step": 0,
+        "maxAbsoluteError": 8.399647413170896e-7,
+        "maxIndex": 38493,
+        "rmsError": 6.405475309719644e-8
+      },
+      {
+        "index": 1,
+        "request": 0,
+        "step": 1,
+        "maxAbsoluteError": 6.15752007604442e-7,
+        "maxIndex": 11,
+        "rmsError": 7.987956970869859e-8
+      },
+      {
+        "index": 2,
+        "request": 1,
+        "step": 0,
+        "maxAbsoluteError": 7.122407730264513e-7,
+        "maxIndex": 32897,
+        "rmsError": 5.485219673019956e-8
+      },
+      {
+        "index": 3,
+        "request": 1,
+        "step": 1,
+        "maxAbsoluteError": 8.902515347131157e-7,
+        "maxIndex": 318,
+        "rmsError": 6.850822688030776e-8
+      },
+      {
+        "index": 4,
+        "request": 2,
+        "step": 0,
+        "maxAbsoluteError": 9.465929977636733e-7,
+        "maxIndex": 1919,
+        "rmsError": 6.019490292076223e-8
+      },
+      {
+        "index": 5,
+        "request": 2,
+        "step": 1,
+        "maxAbsoluteError": 9.511217982094422e-7,
+        "maxIndex": 13,
+        "rmsError": 9.73667388165106e-8
+      },
+      {
+        "index": 6,
+        "request": 2,
+        "step": 2,
+        "maxAbsoluteError": 8.68015469279726e-7,
+        "maxIndex": 40,
+        "rmsError": 6.054720780076648e-8
+      },
+      {
+        "index": 7,
+        "request": 2,
+        "step": 3,
+        "maxAbsoluteError": 7.162583912645459e-7,
+        "maxIndex": 13,
+        "rmsError": 7.367167620631888e-8
+      },
+      {
+        "index": 8,
+        "request": 2,
+        "step": 4,
+        "maxAbsoluteError": 8.71407298319582e-7,
+        "maxIndex": 17,
+        "rmsError": 5.8544857992455756e-8
+      },
+      {
+        "index": 9,
+        "request": 2,
+        "step": 5,
+        "maxAbsoluteError": 5.736278545498408e-7,
+        "maxIndex": 198,
+        "rmsError": 8.64426032269814e-8
+      },
+      {
+        "index": 10,
+        "request": 2,
+        "step": 6,
+        "maxAbsoluteError": 7.928766692089084e-7,
+        "maxIndex": 1076,
+        "rmsError": 6.022514773433249e-8
+      },
+      {
+        "index": 11,
+        "request": 2,
+        "step": 7,
+        "maxAbsoluteError": 7.735741682779462e-7,
+        "maxIndex": 271,
+        "rmsError": 8.59447351559458e-8
+      },
+      {
+        "index": 12,
+        "request": 2,
+        "step": 8,
+        "maxAbsoluteError": 8.880480919515321e-7,
+        "maxIndex": 1076,
+        "rmsError": 6.098231846986343e-8
+      },
+      {
+        "index": 13,
+        "request": 2,
+        "step": 9,
+        "maxAbsoluteError": 7.18186271342347e-7,
+        "maxIndex": 220,
+        "rmsError": 8.387423307086513e-8
+      },
+      {
+        "index": 14,
+        "request": 2,
+        "step": 10,
+        "maxAbsoluteError": 6.088153909900029e-7,
+        "maxIndex": 1076,
+        "rmsError": 5.8642854710991996e-8
+      },
+      {
+        "index": 15,
+        "request": 2,
+        "step": 11,
+        "maxAbsoluteError": 8.808601243970315e-7,
+        "maxIndex": 271,
+        "rmsError": 8.227791111535343e-8
+      },
+      {
+        "index": 16,
+        "request": 2,
+        "step": 12,
+        "maxAbsoluteError": 7.976590090663649e-7,
+        "maxIndex": 22,
+        "rmsError": 5.856198694382997e-8
+      },
+      {
+        "index": 17,
+        "request": 2,
+        "step": 13,
+        "maxAbsoluteError": 9.029354934853018e-7,
+        "maxIndex": 198,
+        "rmsError": 8.60246836416326e-8
+      },
+      {
+        "index": 18,
+        "request": 2,
+        "step": 14,
+        "maxAbsoluteError": 8.974647514037315e-7,
+        "maxIndex": 220,
+        "rmsError": 6.104886677963349e-8
+      },
+      {
+        "index": 19,
+        "request": 2,
+        "step": 15,
+        "maxAbsoluteError": 6.479467806741468e-7,
+        "maxIndex": 248046,
+        "rmsError": 8.511135630586579e-8
+      },
+      {
+        "index": 20,
+        "request": 2,
+        "step": 16,
+        "maxAbsoluteError": 9.431464889075869e-7,
+        "maxIndex": 248069,
+        "rmsError": 6.131036152197461e-8
+      },
+      {
+        "index": 21,
+        "request": 2,
+        "step": 17,
+        "maxAbsoluteError": 6.020213518809214e-7,
+        "maxIndex": 248046,
+        "rmsError": 8.736609467367806e-8
+      },
+      {
+        "index": 22,
+        "request": 2,
+        "step": 18,
+        "maxAbsoluteError": 4.76104393243304e-7,
+        "maxIndex": 27733,
+        "rmsError": 6.289478630894358e-8
+      },
+      {
+        "index": 23,
+        "request": 2,
+        "step": 19,
+        "maxAbsoluteError": 6.868741131427214e-7,
+        "maxIndex": 220,
+        "rmsError": 8.987509010108484e-8
+      },
+      {
+        "index": 24,
+        "request": 2,
+        "step": 20,
+        "maxAbsoluteError": 8.416379735365354e-7,
+        "maxIndex": 271,
+        "rmsError": 7.747312046434972e-8
+      },
+      {
+        "index": 25,
+        "request": 2,
+        "step": 21,
+        "maxAbsoluteError": 4.7671555236661334e-7,
+        "maxIndex": 4277,
+        "rmsError": 5.615810826561016e-8
+      },
+      {
+        "index": 26,
+        "request": 2,
+        "step": 22,
+        "maxAbsoluteError": 7.527730794265608e-7,
+        "maxIndex": 16,
+        "rmsError": 9.610472162336457e-8
+      },
+      {
+        "index": 27,
+        "request": 2,
+        "step": 23,
+        "maxAbsoluteError": 5.66631417342478e-7,
+        "maxIndex": 271,
+        "rmsError": 8.302483331689665e-8
+      },
+      {
+        "index": 28,
+        "request": 2,
+        "step": 24,
+        "maxAbsoluteError": 5.008885572976851e-7,
+        "maxIndex": 220,
+        "rmsError": 6.2433200811231e-8
+      },
+      {
+        "index": 29,
+        "request": 2,
+        "step": 25,
+        "maxAbsoluteError": 7.055716224613207e-7,
+        "maxIndex": 15,
+        "rmsError": 8.7219057777027e-8
+      },
+      {
+        "index": 30,
+        "request": 2,
+        "step": 26,
+        "maxAbsoluteError": 4.758145006888981e-7,
+        "maxIndex": 478,
+        "rmsError": 8.82885518104617e-8
+      },
+      {
+        "index": 31,
+        "request": 2,
+        "step": 27,
+        "maxAbsoluteError": 7.735567919553432e-7,
+        "maxIndex": 1076,
+        "rmsError": 6.041767338010182e-8
+      },
+      {
+        "index": 32,
+        "request": 2,
+        "step": 28,
+        "maxAbsoluteError": 7.37632763758711e-7,
+        "maxIndex": 16,
+        "rmsError": 9.277157177353009e-8
+      },
+      {
+        "index": 33,
+        "request": 2,
+        "step": 29,
+        "maxAbsoluteError": 7.353005955224035e-7,
+        "maxIndex": 271,
+        "rmsError": 8.524587107616016e-8
+      },
+      {
+        "index": 34,
+        "request": 2,
+        "step": 30,
+        "maxAbsoluteError": 4.943657643252664e-7,
+        "maxIndex": 16,
+        "rmsError": 6.072917131502325e-8
+      },
+      {
+        "index": 35,
+        "request": 2,
+        "step": 31,
+        "maxAbsoluteError": 8.45685566019938e-7,
+        "maxIndex": 198,
+        "rmsError": 8.87105794400398e-8
+      },
+      {
+        "index": 36,
+        "request": 2,
+        "step": 32,
+        "maxAbsoluteError": 5.022872180404647e-7,
+        "maxIndex": 271,
+        "rmsError": 8.315093374672769e-8
+      },
+      {
+        "index": 37,
+        "request": 2,
+        "step": 33,
+        "maxAbsoluteError": 4.989301132241053e-7,
+        "maxIndex": 16,
+        "rmsError": 6.043191965423989e-8
+      },
+      {
+        "index": 38,
+        "request": 2,
+        "step": 34,
+        "maxAbsoluteError": 8.834450042627395e-7,
+        "maxIndex": 21,
+        "rmsError": 8.877147011315577e-8
+      },
+      {
+        "index": 39,
+        "request": 2,
+        "step": 35,
+        "maxAbsoluteError": 7.852569972044421e-7,
+        "maxIndex": 271,
+        "rmsError": 8.436050692161596e-8
+      },
+      {
+        "index": 40,
+        "request": 2,
+        "step": 36,
+        "maxAbsoluteError": 4.765196788270032e-7,
+        "maxIndex": 16077,
+        "rmsError": 5.933843710140282e-8
+      },
+      {
+        "index": 41,
+        "request": 2,
+        "step": 37,
+        "maxAbsoluteError": 9.196834902525097e-7,
+        "maxIndex": 20,
+        "rmsError": 8.670970953247559e-8
+      },
+      {
+        "index": 42,
+        "request": 2,
+        "step": 38,
+        "maxAbsoluteError": 7.017729615199642e-7,
+        "maxIndex": 198,
+        "rmsError": 7.949665217618557e-8
+      },
+      {
+        "index": 43,
+        "request": 2,
+        "step": 39,
+        "maxAbsoluteError": 4.763602685642354e-7,
+        "maxIndex": 32228,
+        "rmsError": 5.82533172492434e-8
+      },
+      {
+        "index": 44,
+        "request": 2,
+        "step": 40,
+        "maxAbsoluteError": 6.057156873851e-7,
+        "maxIndex": 23,
+        "rmsError": 8.587388678312888e-8
+      },
+      {
+        "index": 45,
+        "request": 2,
+        "step": 41,
+        "maxAbsoluteError": 6.90009414938686e-7,
+        "maxIndex": 198,
+        "rmsError": 8.469077774503541e-8
+      },
+      {
+        "index": 46,
+        "request": 2,
+        "step": 42,
+        "maxAbsoluteError": 6.659978630807473e-7,
+        "maxIndex": 16,
+        "rmsError": 5.998342546520382e-8
+      },
+      {
+        "index": 47,
+        "request": 2,
+        "step": 43,
+        "maxAbsoluteError": 8.981626429260814e-7,
+        "maxIndex": 220,
+        "rmsError": 8.770564341231307e-8
+      },
+      {
+        "index": 48,
+        "request": 2,
+        "step": 44,
+        "maxAbsoluteError": 8.844390428919269e-7,
+        "maxIndex": 198,
+        "rmsError": 7.879200587177397e-8
+      },
+      {
+        "index": 49,
+        "request": 2,
+        "step": 45,
+        "maxAbsoluteError": 8.330828507041588e-7,
+        "maxIndex": 16,
+        "rmsError": 6.12704690914786e-8
+      },
+      {
+        "index": 50,
+        "request": 2,
+        "step": 46,
+        "maxAbsoluteError": 8.883623330291357e-7,
+        "maxIndex": 198,
+        "rmsError": 8.504286609734516e-8
+      },
+      {
+        "index": 51,
+        "request": 2,
+        "step": 47,
+        "maxAbsoluteError": 6.82579010202744e-7,
+        "maxIndex": 271,
+        "rmsError": 7.921957174446653e-8
+      },
+      {
+        "index": 52,
+        "request": 2,
+        "step": 48,
+        "maxAbsoluteError": 4.766864023508788e-7,
+        "maxIndex": 57,
+        "rmsError": 6.086120195626765e-8
+      },
+      {
+        "index": 53,
+        "request": 2,
+        "step": 49,
+        "maxAbsoluteError": 9.520044947919359e-7,
+        "maxIndex": 198,
+        "rmsError": 7.927750928727031e-8
+      },
+      {
+        "index": 54,
+        "request": 2,
+        "step": 50,
+        "maxAbsoluteError": 9.168414152327387e-7,
+        "maxIndex": 198,
+        "rmsError": 6.46253293826296e-8
+      }
+    ]
+  },
+  "provenance": {
+    "testDeliveryHash": "sha256:e4954c74bf5339fe2d4a86e41db541a1166eff48bf4354358914db334d0b2fc7",
+    "applicationQualification": false,
+    "archiveHash": "sha256:102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7",
+    "provider": {
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+      "platform": "MacIntel",
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "unknown",
+        "description": ""
+      }
+    },
+    "browserVersion": "155.0.8059.39",
+    "pairedProviders": [
+      {
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+        "platform": "MacIntel",
+        "adapter": {
+          "vendor": "apple",
+          "architecture": "metal-3",
+          "device": "unknown",
+          "description": ""
+        }
+      },
+      {
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/146.0.0.0 Safari/537.36",
+        "platform": "Linux x86_64",
+        "adapter": {
+          "vendor": "amd",
+          "architecture": "rdna-3",
+          "device": "unknown",
+          "description": ""
+        }
+      }
+    ],
+    "scope": "This resident participates in the captured cooperative pair. Neither isolated-partition accuracy, signed opening, source answer quality nor deployment is established.",
+    "producerHash": "sha256:d9855a94b1f4e5a30f67bfd85ab866f0f6a016f78a89be660f3a0addddc0e7c4",
+    "preRunProducerHash": "sha256:33242f055d221d38f384fdc68ebdcb8dae3d34601a2fd53a5d5d597ef37454b1",
+    "preRunExpectationsHash": "sha256:adabd074f1a4fcc7d06ec6c385e8bab5bea2442c1571831e45969316472bcf75",
+    "validatorCorrectionHash": "sha256:6b2852878754b04b7cfef308d2eaa667d87827968c23484be6f9908d2f0d5792",
+    "qualificationReview": "post-run-validator-correction"
+  }
+}

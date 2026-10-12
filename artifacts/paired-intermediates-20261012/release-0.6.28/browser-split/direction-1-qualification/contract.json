@@ -1,0 +1,7 @@
+{
+  "schema": "doppler.resident-qualification-contract/v1",
+  "referenceHash": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+  "evaluatorHash": "sha256:90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7",
+  "tolerance": 0.001,
+  "comparedSteps": 55
+}

@@ -1,0 +1,298 @@
+TAP version 13
+# Subtest: emits existing report schema only after all55 independently recomputed comparisons
+ok 1 - emits existing report schema only after all55 independently recomputed comparisons
+  ---
+  duration_ms: 9.128667
+  type: 'test'
+  ...
+# Subtest: rejects failed actual logits despite passing self-report
+ok 2 - rejects failed actual logits despite passing self-report
+  ---
+  duration_ms: 0.756375
+  type: 'test'
+  ...
+# Subtest: rejects nonfinite output
+ok 3 - rejects nonfinite output
+  ---
+  duration_ms: 0.453
+  type: 'test'
+  ...
+# Subtest: rejects truncated output
+ok 4 - rejects truncated output
+  ---
+  duration_ms: 0.491625
+  type: 'test'
+  ...
+# Subtest: rejects missing step
+ok 5 - rejects missing step
+  ---
+  duration_ms: 0.4555
+  type: 'test'
+  ...
+# Subtest: rejects missing request
+ok 6 - rejects missing request
+  ---
+  duration_ms: 0.340916
+  type: 'test'
+  ...
+# Subtest: rejects changed prompt
+ok 7 - rejects changed prompt
+  ---
+  duration_ms: 0.790375
+  type: 'test'
+  ...
+# Subtest: rejects changed continuation
+ok 8 - rejects changed continuation
+  ---
+  duration_ms: 0.51275
+  type: 'test'
+  ...
+# Subtest: rejects changed sampled token
+ok 9 - rejects changed sampled token
+  ---
+  duration_ms: 0.5685
+  type: 'test'
+  ...
+# Subtest: rejects changed sampling
+ok 10 - rejects changed sampling
+  ---
+  duration_ms: 0.710583
+  type: 'test'
+  ...
+# Subtest: rejects failed cleanup
+ok 11 - rejects failed cleanup
+  ---
+  duration_ms: 0.575167
+  type: 'test'
+  ...
+# Subtest: rejects changed allocation ceiling
+ok 12 - rejects changed allocation ceiling
+  ---
+  duration_ms: 0.685709
+  type: 'test'
+  ...
+# Subtest: rejects lost device
+ok 13 - rejects lost device
+  ---
+  duration_ms: 3.282417
+  type: 'test'
+  ...
+# Subtest: rejects missing actual identity observation
+ok 14 - rejects missing actual identity observation
+  ---
+  duration_ms: 0.622833
+  type: 'test'
+  ...
+# Subtest: rejects changed observed graph with copied identity
+ok 15 - rejects changed observed graph with copied identity
+  ---
+  duration_ms: 0.803792
+  type: 'test'
+  ...
+# Subtest: rejects missing observed graph
+ok 16 - rejects missing observed graph
+  ---
+  duration_ms: 0.518209
+  type: 'test'
+  ...
+# Subtest: rejects forged identity
+ok 17 - rejects forged identity
+  ---
+  duration_ms: 0.55825
+  type: 'test'
+  ...
+# Subtest: rejects scalar session
+ok 18 - rejects scalar session
+  ---
+  duration_ms: 0.707333
+  type: 'test'
+  ...
+# Subtest: rejects changed factory bytes
+ok 19 - rejects changed factory bytes
+  ---
+  duration_ms: 0.454291
+  type: 'test'
+  ...
+# Subtest: rejects same physical host for both partitions
+ok 20 - rejects same physical host for both partitions
+  ---
+  duration_ms: 0.375458
+  type: 'test'
+  ...
+# Subtest: rejects reversed physical placement
+ok 21 - rejects reversed physical placement
+  ---
+  duration_ms: 0.313667
+  type: 'test'
+  ...
+# Subtest: rejects changed provider
+ok 22 - rejects changed provider
+  ---
+  duration_ms: 0.394459
+  type: 'test'
+  ...
+# Subtest: rejects changed traversal
+ok 23 - rejects changed traversal
+  ---
+  duration_ms: 0.32925
+  type: 'test'
+  ...
+# Subtest: rejects failed outer controller
+ok 24 - rejects failed outer controller
+  ---
+  duration_ms: 0.214167
+  type: 'test'
+  ...
+# Subtest: rejects changed package
+ok 25 - rejects changed package
+  ---
+  duration_ms: 0.340042
+  type: 'test'
+  ...
+# Subtest: rejects changed application
+ok 26 - rejects changed application
+  ---
+  duration_ms: 0.207625
+  type: 'test'
+  ...
+# Subtest: rejects a replacement reference or evaluator before interpreting captures
+ok 27 - rejects a replacement reference or evaluator before interpreting captures
+  ---
+  duration_ms: 0.707583
+  type: 'test'
+  ...
+# Subtest: direct fixture preserves test-delivery scope without inventing run.ok or application identity
+ok 28 - direct fixture preserves test-delivery scope without inventing run.ok or application identity
+  ---
+  duration_ms: 0.4155
+  type: 'test'
+  ...
+# Subtest: direct fixture rejects changed testDeliveryHash
+ok 29 - direct fixture rejects changed testDeliveryHash
+  ---
+  duration_ms: 0.239583
+  type: 'test'
+  ...
+# Subtest: direct fixture rejects changed archiveSha256
+ok 30 - direct fixture rejects changed archiveSha256
+  ---
+  duration_ms: 0.2635
+  type: 'test'
+  ...
+# Subtest: direct fixture rejects changed snapshotFiles
+ok 31 - direct fixture rejects changed snapshotFiles
+  ---
+  duration_ms: 0.337125
+  type: 'test'
+  ...
+# Subtest: direct fixture rejects changed installedFiles
+ok 32 - direct fixture rejects changed installedFiles
+  ---
+  duration_ms: 0.212209
+  type: 'test'
+  ...
+# Subtest: direct fixture rejects changed applicationQualification
+ok 33 - direct fixture rejects changed applicationQualification
+  ---
+  duration_ms: 0.208
+  type: 'test'
+  ...
+# Subtest: direct fixture rejects an extraneous application envelope
+ok 34 - direct fixture rejects an extraneous application envelope
+  ---
+  duration_ms: 4.204042
+  type: 'test'
+  ...
+# Subtest: native surface requires its independently declared installed host and mapped library observations
+ok 35 - native surface requires its independently declared installed host and mapped library observations
+  ---
+  duration_ms: 0.714041
+  type: 'test'
+  ...
+# Subtest: rejects undeclared native surface
+ok 36 - rejects undeclared native surface
+  ---
+  duration_ms: 0.481167
+  type: 'test'
+  ...
+# Subtest: rejects missing native binary
+ok 37 - rejects missing native binary
+  ---
+  duration_ms: 0.61625
+  type: 'test'
+  ...
+# Subtest: rejects changed native binary
+ok 38 - rejects changed native binary
+  ---
+  duration_ms: 0.460709
+  type: 'test'
+  ...
+# Subtest: rejects different native installation
+ok 39 - rejects different native installation
+  ---
+  duration_ms: 0.4665
+  type: 'test'
+  ...
+# Subtest: rejects wrong installed archive
+ok 40 - rejects wrong installed archive
+  ---
+  duration_ms: 0.532542
+  type: 'test'
+  ...
+# Subtest: rejects failed native cleanup
+ok 41 - rejects failed native cleanup
+  ---
+  duration_ms: 0.45725
+  type: 'test'
+  ...
+# Subtest: rejects missing native cleanup
+ok 42 - rejects missing native cleanup
+  ---
+  duration_ms: 0.458167
+  type: 'test'
+  ...
+# Subtest: rejects different native fixture delivery
+ok 43 - rejects different native fixture delivery
+  ---
+  duration_ms: 0.530709
+  type: 'test'
+  ...
+# Subtest: rejects other native process cleanup
+ok 44 - rejects other native process cleanup
+  ---
+  duration_ms: 0.393958
+  type: 'test'
+  ...
+# Subtest: rejects missing observed native PID
+ok 45 - rejects missing observed native PID
+  ---
+  duration_ms: 0.364334
+  type: 'test'
+  ...
+# Subtest: rejects second native participant
+ok 46 - rejects second native participant
+  ---
+  duration_ms: 0.331916
+  type: 'test'
+  ...
+# Subtest: rejects different Node
+ok 47 - rejects different Node
+  ---
+  duration_ms: 0.368708
+  type: 'test'
+  ...
+# Subtest: post-run correction binding retains exact pre-run and actual capture/reference authority
+ok 48 - post-run correction binding retains exact pre-run and actual capture/reference authority
+  ---
+  duration_ms: 0.292584
+  type: 'test'
+  ...
+1..48
+# tests 48
+# suites 0
+# pass 48
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 82.121

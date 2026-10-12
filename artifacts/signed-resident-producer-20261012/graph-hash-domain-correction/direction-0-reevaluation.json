@@ -1,0 +1,15 @@
+{
+  "schema": "doppler.resident-report-validator-correction/v1",
+  "correction": "execution-graph-hash-domain",
+  "reviewStatus": "approved",
+  "reviewer": "/root",
+  "reviewReason": "Root independently reviewed exact diff: compare observed resolved graph deeply with frozen graph and retain exact archive identity recomputation; do not compare stable-key identity hashing with canonical artifact hashing.",
+  "originalExpectationsHash": "sha256:44b74e71a71b2d37c380321033ab153446b367efcdd4225b4624f40aa5bb0073",
+  "originalProducerHash": "sha256:33242f055d221d38f384fdc68ebdcb8dae3d34601a2fd53a5d5d597ef37454b1",
+  "correctedProducerHash": "sha256:a58e3bcd2d849efbb5789c902fb270977e6c1ffd5a60f71856e59349082dd8c5",
+  "captureHash": "sha256:203989ea71e32688258fad9ac67d1ef9b2c78ba6ae273c127b1b68157ce1218e",
+  "referenceHash": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+  "scope": "Post-run validator reevaluation only; original pre-run expectations, numerical outputs, reference, tolerance and archive remain unchanged.",
+  "observedIdentityGraphHash": "sha256:1be75c19e08b6c9fe3fb94af624c070bdc940e7d32582c704d56b2775a387596",
+  "artifactCanonicalGraphHash": "sha256:ae98737d0a894848eaffd3a87c6cae412bedddb949a8117062631455a8311e14"
+}

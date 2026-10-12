@@ -166,12 +166,17 @@ export function producePhysicalReports({ expected, captureBytes, referenceBytes,
     same(session.intermediatePrecision, 'two-f32'); same(session.linearRecurrentStatePrecision, 'two-f32');
     const identity = observeInitialExecutionIdentity(observed.resolvedRuntimeSession);
     same(identity, observed.initialExecutionIdentity, 'Recorded execution identity differs from actual resolved session');
-    same(identity.executionGraphHash, computeCanonicalSha256(graph));
+    same(observed.resolvedRuntimeSession.manifestInference?.execution, graph,
+      'Observed execution graph differs from frozen candidate graph');
     const settlement = capture.residentSettlement[slot]; assert(!settlement.error);
     const { snapshot } = settlement;
     for (const owner of ['retainedModel', 'active', 'deferredCleanup']) same(snapshot.pool.resources[owner].count, 0, 'Ownership did not settle');
     same(snapshot.device.categories.weights, 0); same(snapshot.device.maxBytes, 1420000000);
-    assert(snapshot.device.peakBytes <= 1420000000 && snapshot.device.lost === false);
+    assert(Number.isSafeInteger(snapshot.device.peakBytes) && snapshot.device.peakBytes >= 0
+      && snapshot.device.peakBytes <= 1420000000);
+    assert(Number.isSafeInteger(settlement.barriers) && settlement.barriers > 0, 'Queue settlement was not confirmed');
+    same(snapshot.deviceEvents, [], 'Device event was observed');
+    same(snapshot.observationErrors, [], 'Memory observation failed');
     same(snapshot.gpuValidationErrors, []);
     return { schema: 'doppler.resident-partition-qualification/v1', operation: 'residentPartition', status: 'passed',
       modelId: manifest.modelId, manifestIdentity: expected.manifestHash, surface,
@@ -190,6 +195,23 @@ export function producePhysicalReports({ expected, captureBytes, referenceBytes,
   return { contract, reports };
 }
 
+/** Explicit post-run validator correction; never edits the pre-run expectations. */
+export function validateProducerBinding(expected, expectationsHash, producerHash, captureHash, correction = null) {
+  if (expected.producerHash === producerHash) {
+    same(correction, null, 'Unexpected validator correction for unchanged producer');
+    return;
+  }
+  assert(correction, 'Producer differs from pre-run freeze; reviewed correction binding required');
+  same(correction.schema, 'doppler.resident-report-validator-correction/v1');
+  same(correction.correction, 'execution-graph-hash-domain-and-observed-device-schema');
+  same(correction.reviewStatus, 'approved');
+  same(correction.originalExpectationsHash, expectationsHash);
+  same(correction.originalProducerHash, expected.producerHash);
+  same(correction.correctedProducerHash, producerHash);
+  same(correction.captureHash, captureHash);
+  same(correction.referenceHash, expected.referenceHash);
+}
+
 async function main() {
   const [configPath, outputDirectory] = process.argv.slice(2);
   assert(configPath && outputDirectory, 'Usage: node produce-physical-reports.js CONFIG.json NEW_OUTPUT_DIRECTORY');
@@ -199,7 +221,10 @@ async function main() {
     const bytes = await readFile(binding.path); same(sha256(bytes), binding.hash, 'Retained file changed'); return bytes;
   };
   const expected = parse(await readBound(config.expectations));
-  same(expected.producerHash, sha256(await readFile(new URL(import.meta.url))), 'Producer differs from pre-run freeze');
+  const producerHash = sha256(await readFile(new URL(import.meta.url)));
+  const correctionBytes = config.producerReevaluation ? await readBound(config.producerReevaluation) : null;
+  validateProducerBinding(expected, config.expectations.hash, producerHash, config.capture.hash,
+    correctionBytes ? parse(correctionBytes) : null);
   const fields = Object.fromEntries(await Promise.all(['capture', 'reference', 'manifest', 'graph', 'archive', 'evaluator',
     expected.deliveryMode === 'direct-fixture' ? 'delivery' : 'run']
     .map(async name => [name + 'Bytes', await readBound(config[name])])));
@@ -233,7 +258,11 @@ async function main() {
     await mkdir(outputDirectory); // Existing evidence is never overwritten.
     await writeFile(resolve(outputDirectory, 'contract.json'), JSON.stringify(result.contract, null, 2) + '\n', { flag: 'wx' });
     for (const report of result.reports) {
-      report.provenance.producerHash = sha256(await readFile(new URL(import.meta.url)));
+      report.provenance.producerHash = producerHash;
+      if (correctionBytes) Object.assign(report.provenance, {
+        preRunProducerHash: expected.producerHash, preRunExpectationsHash: config.expectations.hash,
+        validatorCorrectionHash: sha256(correctionBytes), qualificationReview: 'post-run-validator-correction',
+      });
       await writeFile(resolve(outputDirectory, `partition-${report.partitionIndex}.json`), JSON.stringify(report, null, 2) + '\n', { flag: 'wx' });
     }
   } finally {

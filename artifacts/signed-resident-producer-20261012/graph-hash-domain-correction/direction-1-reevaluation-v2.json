@@ -1,0 +1,16 @@
+{
+  "schema": "doppler.resident-report-validator-correction/v1",
+  "correction": "execution-graph-hash-domain-and-observed-device-schema",
+  "reviewStatus": "approved",
+  "reviewer": "/root",
+  "reviewReason": "Root independently reviewed exact diff: compare observed resolved graph deeply with frozen graph and retain exact archive identity recomputation; do not compare stable-key identity hashing with canonical artifact hashing. Root additionally reviewed actual snapshot schema: empty deviceEvents and observationErrors, confirmed positive queue barriers, safe nonnegative peak within unchanged ceiling; nonexistent device.lost removed.",
+  "originalExpectationsHash": "sha256:adabd074f1a4fcc7d06ec6c385e8bab5bea2442c1571831e45969316472bcf75",
+  "originalProducerHash": "sha256:33242f055d221d38f384fdc68ebdcb8dae3d34601a2fd53a5d5d597ef37454b1",
+  "correctedProducerHash": "sha256:d9855a94b1f4e5a30f67bfd85ab866f0f6a016f78a89be660f3a0addddc0e7c4",
+  "captureHash": "sha256:391a22c2dd1850712ff691239e4091c449aed1ea37a82a0458c4562807c4b013",
+  "referenceHash": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+  "scope": "Post-run validator reevaluation only; original pre-run expectations, numerical outputs, reference, tolerance and archive remain unchanged.",
+  "observedIdentityGraphHash": "sha256:1be75c19e08b6c9fe3fb94af624c070bdc940e7d32582c704d56b2775a387596",
+  "artifactCanonicalGraphHash": "sha256:ae98737d0a894848eaffd3a87c6cae412bedddb949a8117062631455a8311e14",
+  "supersedesHashOnlyCorrection": "sha256:f41ad948e9013ed677973febae05fbafec3da83d2747ba34a5bb6e049c62fad2"
+}

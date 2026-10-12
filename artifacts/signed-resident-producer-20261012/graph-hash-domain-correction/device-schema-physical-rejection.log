@@ -1,0 +1,22 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+  assert(snapshot.device.peakBytes <= 1420000000 && snapshot.device.lost === false)
+
+    at file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/graph-hash-domain-correction/producer-hash-only.js:175:5
+    at Array.map (<anonymous>)
+    at producePhysicalReports (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/graph-hash-domain-correction/producer-hash-only.js:117:39)
+    at main (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/graph-hash-domain-correction/producer-hash-only.js:244:20)
+    at async file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/graph-hash-domain-correction/producer-hash-only.js:268:90 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v22.20.0

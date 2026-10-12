@@ -1,0 +1,383 @@
+TAP version 13
+# Subtest: emits existing report schema only after all55 independently recomputed comparisons
+not ok 1 - emits existing report schema only after all55 independently recomputed comparisons
+  ---
+  duration_ms: 11.314458
+  type: 'test'
+  location: '/Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js:52:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert(snapshot.device.peakBytes <= 1420000000 && snapshot.device.lost === false)
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:175:5
+    Array.map (<anonymous>)
+    producePhysicalReports (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:117:39)
+    TestContext.<anonymous> (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js:53:33)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: rejects failed actual logits despite passing self-report
+ok 2 - rejects failed actual logits despite passing self-report
+  ---
+  duration_ms: 0.709583
+  type: 'test'
+  ...
+# Subtest: rejects nonfinite output
+ok 3 - rejects nonfinite output
+  ---
+  duration_ms: 0.443542
+  type: 'test'
+  ...
+# Subtest: rejects truncated output
+ok 4 - rejects truncated output
+  ---
+  duration_ms: 0.482458
+  type: 'test'
+  ...
+# Subtest: rejects missing step
+ok 5 - rejects missing step
+  ---
+  duration_ms: 0.489083
+  type: 'test'
+  ...
+# Subtest: rejects missing request
+ok 6 - rejects missing request
+  ---
+  duration_ms: 0.488209
+  type: 'test'
+  ...
+# Subtest: rejects changed prompt
+ok 7 - rejects changed prompt
+  ---
+  duration_ms: 0.439375
+  type: 'test'
+  ...
+# Subtest: rejects changed continuation
+ok 8 - rejects changed continuation
+  ---
+  duration_ms: 0.481333
+  type: 'test'
+  ...
+# Subtest: rejects changed sampled token
+ok 9 - rejects changed sampled token
+  ---
+  duration_ms: 0.610917
+  type: 'test'
+  ...
+# Subtest: rejects changed sampling
+ok 10 - rejects changed sampling
+  ---
+  duration_ms: 0.648584
+  type: 'test'
+  ...
+# Subtest: rejects failed cleanup
+ok 11 - rejects failed cleanup
+  ---
+  duration_ms: 0.779375
+  type: 'test'
+  ...
+# Subtest: rejects changed allocation ceiling
+ok 12 - rejects changed allocation ceiling
+  ---
+  duration_ms: 0.613958
+  type: 'test'
+  ...
+# Subtest: rejects lost device
+ok 13 - rejects lost device
+  ---
+  duration_ms: 0.487583
+  type: 'test'
+  ...
+# Subtest: rejects missing device observation
+ok 14 - rejects missing device observation
+  ---
+  duration_ms: 0.554042
+  type: 'test'
+  ...
+# Subtest: rejects failed memory observation
+ok 15 - rejects failed memory observation
+  ---
+  duration_ms: 0.734833
+  type: 'test'
+  ...
+# Subtest: rejects unconfirmed queue settlement
+ok 16 - rejects unconfirmed queue settlement
+  ---
+  duration_ms: 0.54225
+  type: 'test'
+  ...
+# Subtest: rejects missing actual identity observation
+ok 17 - rejects missing actual identity observation
+  ---
+  duration_ms: 0.578292
+  type: 'test'
+  ...
+# Subtest: rejects changed observed graph with copied identity
+ok 18 - rejects changed observed graph with copied identity
+  ---
+  duration_ms: 0.795875
+  type: 'test'
+  ...
+# Subtest: rejects missing observed graph
+ok 19 - rejects missing observed graph
+  ---
+  duration_ms: 0.666167
+  type: 'test'
+  ...
+# Subtest: rejects forged identity
+ok 20 - rejects forged identity
+  ---
+  duration_ms: 0.486041
+  type: 'test'
+  ...
+# Subtest: rejects scalar session
+ok 21 - rejects scalar session
+  ---
+  duration_ms: 0.424416
+  type: 'test'
+  ...
+# Subtest: rejects changed factory bytes
+ok 22 - rejects changed factory bytes
+  ---
+  duration_ms: 0.373459
+  type: 'test'
+  ...
+# Subtest: rejects same physical host for both partitions
+ok 23 - rejects same physical host for both partitions
+  ---
+  duration_ms: 0.338125
+  type: 'test'
+  ...
+# Subtest: rejects reversed physical placement
+ok 24 - rejects reversed physical placement
+  ---
+  duration_ms: 0.453708
+  type: 'test'
+  ...
+# Subtest: rejects changed provider
+ok 25 - rejects changed provider
+  ---
+  duration_ms: 0.387209
+  type: 'test'
+  ...
+# Subtest: rejects changed traversal
+ok 26 - rejects changed traversal
+  ---
+  duration_ms: 0.350875
+  type: 'test'
+  ...
+# Subtest: rejects failed outer controller
+ok 27 - rejects failed outer controller
+  ---
+  duration_ms: 0.224458
+  type: 'test'
+  ...
+# Subtest: rejects changed package
+ok 28 - rejects changed package
+  ---
+  duration_ms: 0.2575
+  type: 'test'
+  ...
+# Subtest: rejects changed application
+ok 29 - rejects changed application
+  ---
+  duration_ms: 0.228333
+  type: 'test'
+  ...
+# Subtest: rejects a replacement reference or evaluator before interpreting captures
+ok 30 - rejects a replacement reference or evaluator before interpreting captures
+  ---
+  duration_ms: 0.916959
+  type: 'test'
+  ...
+# Subtest: direct fixture preserves test-delivery scope without inventing run.ok or application identity
+not ok 31 - direct fixture preserves test-delivery scope without inventing run.ok or application identity
+  ---
+  duration_ms: 0.471
+  type: 'test'
+  location: '/Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js:110:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert(snapshot.device.peakBytes <= 1420000000 && snapshot.device.lost === false)
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:175:5
+    Array.map (<anonymous>)
+    producePhysicalReports (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:117:39)
+    TestContext.<anonymous> (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js:111:39)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: direct fixture rejects changed testDeliveryHash
+ok 32 - direct fixture rejects changed testDeliveryHash
+  ---
+  duration_ms: 0.256209
+  type: 'test'
+  ...
+# Subtest: direct fixture rejects changed archiveSha256
+ok 33 - direct fixture rejects changed archiveSha256
+  ---
+  duration_ms: 0.225292
+  type: 'test'
+  ...
+# Subtest: direct fixture rejects changed snapshotFiles
+ok 34 - direct fixture rejects changed snapshotFiles
+  ---
+  duration_ms: 0.22525
+  type: 'test'
+  ...
+# Subtest: direct fixture rejects changed installedFiles
+ok 35 - direct fixture rejects changed installedFiles
+  ---
+  duration_ms: 0.216917
+  type: 'test'
+  ...
+# Subtest: direct fixture rejects changed applicationQualification
+ok 36 - direct fixture rejects changed applicationQualification
+  ---
+  duration_ms: 0.23025
+  type: 'test'
+  ...
+# Subtest: direct fixture rejects an extraneous application envelope
+ok 37 - direct fixture rejects an extraneous application envelope
+  ---
+  duration_ms: 4.618417
+  type: 'test'
+  ...
+# Subtest: native surface requires its independently declared installed host and mapped library observations
+not ok 38 - native surface requires its independently declared installed host and mapped library observations
+  ---
+  duration_ms: 0.6005
+  type: 'test'
+  location: '/Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js:140:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert(snapshot.device.peakBytes <= 1420000000 && snapshot.device.lost === false)
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:175:5
+    Array.map (<anonymous>)
+    producePhysicalReports (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:117:39)
+    TestContext.<anonymous> (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js:141:44)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: rejects undeclared native surface
+ok 39 - rejects undeclared native surface
+  ---
+  duration_ms: 0.423084
+  type: 'test'
+  ...
+# Subtest: rejects missing native binary
+ok 40 - rejects missing native binary
+  ---
+  duration_ms: 0.527791
+  type: 'test'
+  ...
+# Subtest: rejects changed native binary
+ok 41 - rejects changed native binary
+  ---
+  duration_ms: 0.456375
+  type: 'test'
+  ...
+# Subtest: rejects different native installation
+ok 42 - rejects different native installation
+  ---
+  duration_ms: 0.526
+  type: 'test'
+  ...
+# Subtest: rejects wrong installed archive
+ok 43 - rejects wrong installed archive
+  ---
+  duration_ms: 0.409125
+  type: 'test'
+  ...
+# Subtest: rejects failed native cleanup
+ok 44 - rejects failed native cleanup
+  ---
+  duration_ms: 0.410584
+  type: 'test'
+  ...
+# Subtest: rejects missing native cleanup
+ok 45 - rejects missing native cleanup
+  ---
+  duration_ms: 0.374333
+  type: 'test'
+  ...
+# Subtest: rejects different native fixture delivery
+ok 46 - rejects different native fixture delivery
+  ---
+  duration_ms: 0.397416
+  type: 'test'
+  ...
+# Subtest: rejects other native process cleanup
+ok 47 - rejects other native process cleanup
+  ---
+  duration_ms: 0.384667
+  type: 'test'
+  ...
+# Subtest: rejects missing observed native PID
+ok 48 - rejects missing observed native PID
+  ---
+  duration_ms: 0.560416
+  type: 'test'
+  ...
+# Subtest: rejects second native participant
+ok 49 - rejects second native participant
+  ---
+  duration_ms: 0.324042
+  type: 'test'
+  ...
+# Subtest: rejects different Node
+ok 50 - rejects different Node
+  ---
+  duration_ms: 0.34375
+  type: 'test'
+  ...
+# Subtest: post-run correction binding retains exact pre-run and actual capture/reference authority
+ok 51 - post-run correction binding retains exact pre-run and actual capture/reference authority
+  ---
+  duration_ms: 0.27525
+  type: 'test'
+  ...
+1..51
+# tests 51
+# suites 0
+# pass 48
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 84.233833
