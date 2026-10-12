@@ -464,6 +464,21 @@ export function createModelHandle(pipeline, resolved) {
         return createGenerationOutputDecoder(pipeline.tokenizer, pipeline.modelConfig?.reasoningOutput,
           outputStopTokens(pipeline));
       },
+      createRawIncrementalDecoder() {
+        if (typeof pipeline.tokenizer?.createRawIncrementalDecoder !== 'function') {
+          throw new Error('Canonical generation requires raw incremental decoding.');
+        }
+        return pipeline.tokenizer.createRawIncrementalDecoder();
+      },
+      getGenerationGeometry() {
+        const { vocabSize, maxSeqLen } = pipeline.modelConfig;
+        const preparedCapacity = pipeline.kvCache?.maxSeqLen;
+        if (!Number.isSafeInteger(vocabSize) || vocabSize < 1 || !Number.isSafeInteger(maxSeqLen) || maxSeqLen < 1
+          || !Number.isSafeInteger(preparedCapacity) || preparedCapacity < 1) {
+          throw new Error('Canonical generation requires declared vocabulary and context geometry.');
+        }
+        return Object.freeze({ vocabSize, maxSeqLen: Math.min(maxSeqLen, preparedCapacity) });
+      },
       decodeTokenIds(tokenIds) {
         if (!Array.isArray(tokenIds)) {
           throw new Error('Doppler advanced.decodeTokenIds requires an array.');

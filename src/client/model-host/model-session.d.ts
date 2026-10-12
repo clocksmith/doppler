@@ -245,6 +245,8 @@ export interface DopplerModelHandle {
   tokenizePrompt(prompt: unknown, options?: { useChatTemplate?: boolean }): number[];
     /** Stateful visible-output decoder; optional raw usage includes hidden reasoning. */
     createIncrementalDecoder(): import('../../inference/tokenizers/bundled/incremental-decoder.js').IncrementalTokenDecoder;
+    createRawIncrementalDecoder(): import('../../inference/tokenizers/bundled/incremental-decoder.js').IncrementalTokenDecoder;
+    getGenerationGeometry(): Readonly<{ vocabSize: number; maxSeqLen: number }>;
     /** Decodes a possibly incomplete generated prefix under the model output contract. */
     decodeTokenIds(tokenIds: number[]): string;
     getSpecialTokens(): Record<string, number | undefined>;
