@@ -341,7 +341,6 @@ export async function loadModel(manifest) {
       fallbackKernelPath: this.executionV1State?.fallbackKernelPath ?? null,
     });
     const activeExecutionPlan = resolveActiveExecutionPlan(this);
-    if (this.modelPartition) assertPartitionExecutionSupported(this, this.modelPartition.plan);
     log.info(
       'Pipeline',
       `Execution plan: active=${activeExecutionPlan.id}, dtype=${activeExecutionPlan.activationDtype}, ` +
@@ -370,6 +369,7 @@ export async function loadModel(manifest) {
       executionV1State: this.executionV1State,
       executionPlanState: this.executionPlanState,
     });
+    if (this.modelPartition) assertPartitionExecutionSupported(this, this.modelPartition.plan);
 
     // Initialize MoE router if needed
     if (this.modelConfig.useMoE) {
