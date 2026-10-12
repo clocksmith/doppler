@@ -5,7 +5,7 @@
     {
       "id": "fresh-bathroom-correction",
       "pid": 128842,
-      "status": "running",
+      "status": "completed",
       "controlSha256": "14ce081b031d76a3cb2157c93b3de6c4bd6d360cf7c0fbe731000dff749c0a2f",
       "command": [
         "python3",
@@ -23,7 +23,59 @@
         "/var/tmp/doppler-repetition-source-20261011/document-fresh-bathroom-correction-result.json",
         "--threads",
         "8"
-      ]
+      ],
+      "exitCode": 0,
+      "resultSha256": "cac8a74b820e16dd117974b42b1ed20de63f902b4bab1fbc344bb2b2223a2151"
+    },
+    {
+      "id": "contractor-comparison",
+      "pid": 363561,
+      "status": "completed",
+      "controlSha256": "16bb5eff0c5d9d2f505eb634d6e8caa3544774d8bd2c07ffbb70d178a7f1fde6",
+      "command": [
+        "python3",
+        "-u",
+        "tools/qwen35-original-weight-generation.py",
+        "--source",
+        "/var/tmp/doppler-qwen35-2b-source-20261011",
+        "--revision",
+        "15852e8c16360a2fea060d615a32b45270f8a8fc",
+        "--deployed",
+        "/home/x/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
+        "--control",
+        "/var/tmp/doppler-repetition-source-20261011/document-contractor-comparison.json",
+        "--out",
+        "/var/tmp/doppler-repetition-source-20261011/document-contractor-comparison-result.json",
+        "--threads",
+        "8"
+      ],
+      "exitCode": 0,
+      "resultSha256": "1f9ae9044e7eea840f8404e19850269a4d6f4d0c1d5ff02fdd2f609ef34cfff0"
+    },
+    {
+      "id": "contractor-retained-correction",
+      "pid": 590435,
+      "status": "completed",
+      "controlSha256": "72e45b8b8f3213cbe9f5ce946ac8b4117e77c412c9fab2a505f621eb1b88b66c",
+      "command": [
+        "python3",
+        "-u",
+        "tools/qwen35-original-weight-generation.py",
+        "--source",
+        "/var/tmp/doppler-qwen35-2b-source-20261011",
+        "--revision",
+        "15852e8c16360a2fea060d615a32b45270f8a8fc",
+        "--deployed",
+        "/home/x/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
+        "--control",
+        "/var/tmp/doppler-repetition-source-20261011/document-contractor-retained-correction.json",
+        "--out",
+        "/var/tmp/doppler-repetition-source-20261011/document-contractor-retained-correction-result.json",
+        "--threads",
+        "8"
+      ],
+      "exitCode": 0,
+      "resultSha256": "906c1e6396820026e3c4681dd3eb2461ce1138e785a32b62364e75ef8593c85a"
     }
   ],
   "purpose": "Complete the other three frozen cases; the first case remains rejected"
