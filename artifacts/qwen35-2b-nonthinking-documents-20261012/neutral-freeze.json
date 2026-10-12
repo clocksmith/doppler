@@ -1,0 +1,66 @@
+{
+  "schema": "doppler.source-quality-single-policy-ablation/v1",
+  "frozenBeforeExecution": true,
+  "parentSuiteSha256": "fa0b776e1d80de4033c0317cc0daccc604d22d03a88642f03e59797a04c81a2d",
+  "behavioralChange": {
+    "repetitionPenalty": {
+      "from": 1.1,
+      "to": 1.0
+    }
+  },
+  "mechanism": "Both evaluators initialize history with prompt IDs, apply one sign-sensitive penalty per distinct token ID over the full history at window0, and append generated tokens. Thus citations, quantities and terms appearing in source passages are penalized along with previous answer tokens.1.0 makes this operation a no-op. Whether removing it improves full answers remains unproven.",
+  "guidance": {
+    "repository": "Qwen/Qwen3.5-0.8B",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "path": "README.md",
+    "sha256": "87a163af54f32fa608a0f8d3ac67945c53dd2b4a7c96740b3d7fdc28e8458864",
+    "sourceUrl": "https://huggingface.co/Qwen/Qwen3.5-0.8B/blob/2fc06364715b967f1860aea9cf38778875588b17/README.md",
+    "observedRecommendation": "repetition_penalty=1.0 in each listed thinking/nonthinking mode",
+    "scope": "Retained official family guidance on the0.8B model card, not a new2B quality claim. Other suggested sampling parameters are not changed in this ablation."
+  },
+  "scopeBindings": [
+    {
+      "path": "tools/lib/source_task_quality.py",
+      "sha256": "37586f498f393570e499859deb0bcaba520e86bb85a03365c176a4981079127f"
+    },
+    {
+      "path": "src/inference/token-sampling.js",
+      "sha256": "d10c13067f28af83bddc11f161c5a1eb2f8634056055bad44b5cab2058ace5f8"
+    },
+    {
+      "path": "src/inference/generation-step.js",
+      "sha256": "69a3b0de11687c65b08faa0ed5c3ec6aed534de814b571e9aaff05fb2955626a"
+    },
+    {
+      "path": "src/client/runtime/session-controller.js",
+      "sha256": "c8b39994e3b025b472911270f224bf70833494692f31c5e9249232acee28acc6"
+    },
+    {
+      "path": "src/inference/pipelines/text/resident-partition.js",
+      "sha256": "da1221ce7f524ac67b7297eecb7189ddc5e149345290d1c5fbcfa3d15f92593b"
+    }
+  ],
+  "files": [
+    {
+      "path": "neutral-suite.json",
+      "sha256": "d8d53f02879fccc42cae16af6012b2b9faed614227ef7d4bf75611adaf3f729c"
+    },
+    {
+      "path": "neutral-bathroom.json",
+      "sha256": "0f65c4b8a1a16edad1c80319c4c7889fce3b6832a7ac4d319158c6c74a560ac2"
+    },
+    {
+      "path": "neutral-contractor.json",
+      "sha256": "2593af3b61e1438ad7dea008b2143a6d6b3978683bba8f4f9e5348583a769e41"
+    }
+  ],
+  "unchanged": [
+    "Source weights and revision",
+    "Official nonthinking template and ordered messages",
+    "Factual/citation criteria",
+    "Greedy selection, empty suppression, whole-history window0 and presence penalty0",
+    "4096 generated /8192 total tokens /16000 UTF-16 units",
+    "Independent F32 equations and F16 KV storage"
+  ],
+  "promotion": "All four existing cases must pass before fresh held-out and actual closed-loop follow-up tests. Converted weights and application execution require separate acceptance."
+}

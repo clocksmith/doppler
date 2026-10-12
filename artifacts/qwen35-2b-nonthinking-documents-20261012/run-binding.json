@@ -1,0 +1,55 @@
+{
+  "schema": "doppler.source-quality-run-binding/v1",
+  "host": "x@128.tail995236.ts.net",
+  "toolSha256": "439da1f2097967dbe07cb0235eeffe83612f51b102b234ffb2a78b5f09e63a25",
+  "evaluatorSha256": "37586f498f393570e499859deb0bcaba520e86bb85a03365c176a4981079127f",
+  "scope": "Independent CPU source quality only; no GPU timing or production qualification.",
+  "runs": [
+    {
+      "lane": "bathroom",
+      "pid": 3600717,
+      "command": [
+        "python3",
+        "-u",
+        "tools/qwen35-original-weight-generation.py",
+        "--source",
+        "/var/tmp/doppler-qwen35-2b-source-20261011",
+        "--revision",
+        "15852e8c16360a2fea060d615a32b45270f8a8fc",
+        "--deployed",
+        "/home/x/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
+        "--suite",
+        "/home/x/deco/doppler/reports/local/qwen35-2b-nonthinking-documents-20261012/fixtures/bathroom.json",
+        "--out",
+        "/home/x/deco/doppler/reports/local/qwen35-2b-nonthinking-documents-20261012/bathroom.json",
+        "--threads",
+        "4"
+      ],
+      "suiteSha256": "434b7370fa4ad3553fc279889ba15ae831a49c1a85aab81388b488ba5273b13d",
+      "status": "running"
+    },
+    {
+      "lane": "contractor",
+      "pid": 3600718,
+      "command": [
+        "python3",
+        "-u",
+        "tools/qwen35-original-weight-generation.py",
+        "--source",
+        "/var/tmp/doppler-qwen35-2b-source-20261011",
+        "--revision",
+        "15852e8c16360a2fea060d615a32b45270f8a8fc",
+        "--deployed",
+        "/home/x/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
+        "--suite",
+        "/home/x/deco/doppler/reports/local/qwen35-2b-nonthinking-documents-20261012/fixtures/contractor.json",
+        "--out",
+        "/home/x/deco/doppler/reports/local/qwen35-2b-nonthinking-documents-20261012/contractor.json",
+        "--threads",
+        "4"
+      ],
+      "suiteSha256": "c1a383b8af5afb7a3224fde8c22c35aa82b8ae06c308673b54a886da93fa001f",
+      "status": "running"
+    }
+  ]
+}
