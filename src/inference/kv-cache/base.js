@@ -187,7 +187,7 @@ export class KVCache {
           pageTableGPU = device.createBuffer({
             label: `kv_cache_page_table_layer_${l}`,
             size: pageTableBytes,
-            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
           });
           device.queue.writeBuffer(pageTableGPU, 0, pageTable);
 
@@ -773,7 +773,7 @@ export class KVCache {
           pageTableGPU = device.createBuffer({
             label: `kv_cache_page_table_layer_${l}`,
             size: pageTableBytes,
-            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
           });
           device.queue.writeBuffer(pageTableGPU, 0, layer.pageTable);
 
