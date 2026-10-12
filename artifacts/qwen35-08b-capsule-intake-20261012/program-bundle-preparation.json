@@ -1,0 +1,16 @@
+{
+  "schema": "doppler.capsule-input-preparation/v1",
+  "scope": "Prepared program closure and verified pieces only; no Capsule signed or opened",
+  "sourceRuntime": "5c2b31888f3d98d7cb5fc9284b47df4cb0c18a9d",
+  "runtimeArchiveSha256": "102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7",
+  "programBundlePath": "/var/tmp/qwen35-capsule-0.6.28-20261012/artifacts/program-bundle.json",
+  "programBundleSha256": "0e1c827ba6273bed78cbca844ff7848154c7ed88f5e14898e774c48bf9b46199",
+  "artifacts": 46,
+  "verifiedPieceIndexSha256": "5417f9423b37fd49f492932ad07d61ed979aaaf3fe9c365fb4b4623da9b47849",
+  "files": 19,
+  "pieces": 537,
+  "maxPieceBytes": 16777216,
+  "preparationRoot": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input",
+  "localOnly": true,
+  "publicPinChanged": false
+}
