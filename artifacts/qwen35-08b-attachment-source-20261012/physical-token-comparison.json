@@ -1,0 +1,29 @@
+{
+  "schema": "doppler.attachment-physical-token-comparison/v1",
+  "sourceReceiptRepository": "reploid",
+  "sourceReceiptPath": "../reploid/artifacts/attachment-standalone-20261012/allocation-v3-session-policy-result.json",
+  "sourceReceiptSha256": "b5f0d017a4272a3a0a1067ba17c7d47d1deb6009268321ceceba43a4d4ba984d",
+  "runtimeArchiveSha256": "7449618b1e3cf2b96ec18a2f30aa14ddf56c787ce9b871e535df7a9b107b367a",
+  "parentArchiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+  "scope": "Physical unsplit allocation-only diagnostic, separate from production numerical qualification. Exact token comparison against CPU deployedweights/source controls.",
+  "cases": [
+    {
+      "id": "attached-three",
+      "officialOriginalAndRuntimeInputIdsEqual": true,
+      "deployedCpuAndRuntimeInputIdsEqual": true,
+      "deployedCpuAndRuntimeOutputIdsEqual": true,
+      "deployedCpuAndRuntimeOutputTextEqual": true,
+      "inputTokenCount": 127,
+      "outputTokenCount": 22
+    },
+    {
+      "id": "attached-four-followup",
+      "officialOriginalAndRuntimeInputIdsEqual": true,
+      "deployedCpuAndRuntimeInputIdsEqual": true,
+      "deployedCpuAndRuntimeOutputIdsEqual": true,
+      "deployedCpuAndRuntimeOutputTextEqual": true,
+      "inputTokenCount": 166,
+      "outputTokenCount": 22
+    }
+  ]
+}
