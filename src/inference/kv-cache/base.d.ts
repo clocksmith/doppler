@@ -155,6 +155,7 @@ export class KVCache {
    * Clone the cache (for speculative decoding rollback)
    */
   clone(): KVCache;
+  copyFrom(source: KVCache): Promise<void>;
 
   /**
    * Truncate cache to a specific length (for rollback)

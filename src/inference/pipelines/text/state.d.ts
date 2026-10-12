@@ -46,6 +46,7 @@ export class PipelineState {
   tokenizer: Tokenizer | null;
   kvCache: KVCache | SlidingWindowKVCache | TieredKVCache | BasisDecomposedPagedCache | MixedGeometryKVCache | null;
   linearAttentionRuntime: LinearAttentionRuntime | null;
+  convLayerStates: Map<number, Record<string, unknown>>;
   moeRouter: MoERouter | null;
   speculativeDecoder: SpeculativeDecoder | null;
   decodeBuffers: DecodeBufferManager | null;

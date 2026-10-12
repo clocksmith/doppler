@@ -2,7 +2,9 @@ import { PipelineState } from './state.js';
 import { createKVCache } from './init.js';
 import { assertPartitionExecutionSupported } from './partition-execution.js';
 import { resolveLayerPartition } from './layer-partition-contract.js';
-import { createLinearAttentionRuntime, resetLinearAttentionRuntime } from './linear-attention.js';
+import { createLinearAttentionRuntime, resetLinearAttentionRuntime, cloneLinearAttentionRuntime } from './linear-attention.js';
+import { KVCache } from '../../kv-cache/base.js';
+import { MixedGeometryKVCache } from '../../kv-cache/mixed-geometry.js';
 
 /** @type {import('./partition-attempt.js').createPartitionAttempt} */
 export function createPartitionAttempt(owner, maxSeqLen) {
@@ -52,4 +54,39 @@ export function createPartitionAttempt(owner, maxSeqLen) {
     resetLinearAttentionRuntime(state.linearAttentionRuntime);
     state.isLoaded = false;
   } };
+}
+
+/** Caller pins the settled parent and reserves the complete child before entry.
+ * @type {import('./partition-attempt.js').clonePartitionAttempt} */
+export async function clonePartitionAttempt(parent, signal) {
+  signal.throwIfAborted();
+  const source = parent.state;
+  if (!source.isLoaded || !(source.kvCache instanceof KVCache || source.kvCache instanceof MixedGeometryKVCache)
+    || source.convLayerStates.size > 0 || source.speculativeDecoder || source.decodeRing || source.decodeBuffers) {
+    throw new Error('Partition state geometry does not support composite cloning.');
+  }
+  await source.gpuContext?.device?.queue.onSubmittedWorkDone();
+  signal.throwIfAborted();
+  const child = createPartitionAttempt(source, source.kvCache.maxSeqLen);
+  try {
+    if (source.kvCache instanceof KVCache && child.state.kvCache instanceof KVCache) {
+      await child.state.kvCache.copyFrom(source.kvCache);
+    } else if (source.kvCache instanceof MixedGeometryKVCache && child.state.kvCache instanceof MixedGeometryKVCache) {
+      await child.state.kvCache.copyFrom(source.kvCache);
+    } else throw new Error('Missing matching child KV owner.');
+    signal.throwIfAborted();
+    child.state.linearAttentionRuntime = await cloneLinearAttentionRuntime(source.linearAttentionRuntime);
+    child.state.currentSeqLen = source.currentSeqLen;
+    child.state.decodeStepCount = source.decodeStepCount;
+    child.state.currentTokenIds = source.currentTokenIds ? [...source.currentTokenIds] : null;
+    await source.gpuContext?.device?.queue.onSubmittedWorkDone();
+    signal.throwIfAborted();
+    return child;
+  } catch (error) {
+    // If queue completion is unknown, do not claim release. The enclosing
+    // resident must retain the failed owner and interrupt its attempt.
+    try { await source.gpuContext?.device?.queue.onSubmittedWorkDone(); child.close(); }
+    catch (settlement) { throw Object.assign(new AggregateError([error, settlement], 'Composite clone settlement failed.'), { unsettledAttempt: child }); }
+    throw error;
+  }
 }

@@ -176,6 +176,23 @@ const runtimeKV = {
   assert.ok(cloned instanceof MixedGeometryKVCache);
   assert.equal(cloned.getGPUBuffers(0)?.seqLen, 512);
   assert.equal(cloned.getGPUBuffers(4)?.seqLen, 4);
+  // Exercise the actual owner on a simulated byte-addressable queue. This is
+  // copy/restoration contract evidence, not physical GPU qualification.
+  const scratch = createKVCache(modelConfig, true, false, runtimeKV);
+  await scratch.copyFrom(ringCache);
+  assert.equal(scratch.currentSeqLen, 600);
+  assert.equal(scratch.totalTokensSeen, ringCache.totalTokensSeen);
+  for (let layer = 0; layer < ringCache.layers.length; layer++) {
+    for (const key of ['keysGPU', 'valuesGPU']) {
+      assert.notEqual(scratch.layers[layer][key], ringCache.layers[layer][key]);
+      assert.deepEqual(new Uint8Array(scratch.layers[layer][key]._arrayBuffer), new Uint8Array(ringCache.layers[layer][key]._arrayBuffer));
+    }
+  }
+  new Uint8Array(scratch.layers[0].keysGPU._arrayBuffer).fill(42);
+  await scratch.copyFrom(ringCache);
+  assert.deepEqual(new Uint8Array(scratch.layers[0].keysGPU._arrayBuffer), new Uint8Array(ringCache.layers[0].keysGPU._arrayBuffer));
+  await assert.rejects(scratch.copyFrom(scratch), /ownership/);
+  scratch.destroy();
 }
 
 {

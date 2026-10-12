@@ -512,6 +512,34 @@ export class KVCache {
   }
 
   
+  async copyFrom(source) {
+    if (!this.useGPU || !source.useGPU || this.constructor !== source.constructor
+      || this.numLayers !== source.numLayers || this.maxSeqLen !== source.maxSeqLen
+      || this.kvDtype !== source.kvDtype || this.layout !== source.layout
+      || this.kvSize !== source.kvSize || this.pageSize !== source.pageSize
+      || this.windowSize !== source.windowSize) throw new Error('KV copy requires identical GPU cache geometry.');
+    const device = getDevice();
+    if (!device) throw new Error('KV copy requires an initialized device.');
+    const encoder = device.createCommandEncoder({ label: 'resident_kv_copy' });
+    for (let i = 0; i < this.numLayers; i++) {
+      for (const field of ['keysGPU', 'valuesGPU', 'pageTableGPU']) {
+        const src = source.layers[i][field], dst = this.layers[i][field];
+        if (!src && !dst) continue;
+        if (!src || !dst || src.size !== dst.size || src === dst) throw new Error('KV copy buffer geometry or ownership mismatch.');
+        encoder.copyBufferToBuffer(src, 0, dst, 0, src.size);
+      }
+    }
+    device.queue.submit([encoder.finish()]);
+    await device.queue.onSubmittedWorkDone();
+    this.currentSeqLen = source.currentSeqLen;
+    this.totalTokensSeen = source.totalTokensSeen;
+    for (let i = 0; i < this.numLayers; i++) {
+      this.layers[i].seqLen = source.layers[i].seqLen;
+      if (source.layers[i].pageTable) this.layers[i].pageTable.set(source.layers[i].pageTable);
+      if (source.layers[i].allocatedPages !== undefined) this.layers[i].allocatedPages = source.layers[i].allocatedPages;
+    }
+  }
+
   clone() {
     if (this.layout === 'paged') {
       const cloned = new KVCache({

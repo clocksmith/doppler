@@ -87,6 +87,7 @@ export declare class MixedGeometryKVCache {
   hasGPUCache(): boolean;
   clear(): void;
   clone(): MixedGeometryKVCache;
+  copyFrom(source: MixedGeometryKVCache): Promise<void>;
   truncate(length: number): void;
   getMemoryStats(): MemoryStats;
   setGPUContext(gpuContext: GPUContext): void;

@@ -452,6 +452,30 @@ export class MixedGeometryKVCache {
     }
   }
 
+  async copyFrom(source) {
+    if (!(source instanceof MixedGeometryKVCache) || this.kvDtype !== source.kvDtype
+      || this.maxSeqLen !== source.maxSeqLen || JSON.stringify(this.layerSpecs) !== JSON.stringify(source.layerSpecs)) {
+      throw new Error('Mixed KV copy requires identical geometry.');
+    }
+    const device = getDevice();
+    if (!device || this.gpuContext.device !== source.gpuContext.device || device !== this.gpuContext.device) {
+      throw new Error('Mixed KV copy requires the same live device.');
+    }
+    const encoder = device.createCommandEncoder({ label: 'resident_mixed_kv_copy' });
+    for (let i = 0; i < this.numLayers; i++) {
+      for (const field of ['keysGPU', 'valuesGPU']) {
+        const src = source.layers[i][field], dst = this.layers[i][field];
+        if (!src || !dst || src.size !== dst.size || src === dst) throw new Error('Mixed KV copy ownership mismatch.');
+        encoder.copyBufferToBuffer(src, 0, dst, 0, src.size);
+      }
+    }
+    device.queue.submit([encoder.finish()]);
+    await device.queue.onSubmittedWorkDone();
+    this.currentSeqLen = source.currentSeqLen;
+    this.totalTokensSeen = source.totalTokensSeen;
+    for (let i = 0; i < this.numLayers; i++) this.layers[i].seqLen = source.layers[i].seqLen;
+  }
+
   clone() {
     const cloned = new MixedGeometryKVCache(this._config);
     cloned.currentSeqLen = this.currentSeqLen;
