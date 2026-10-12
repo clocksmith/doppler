@@ -1,0 +1,37 @@
+{
+  "archiveSha256": "8cae56b0748a5c66add985122d8bbf72b7492e2e0828f713f1b0d7425a59a4e5",
+  "testDelivery": {
+    "schema": "reploid.numerical-test-delivery/v1",
+    "testDeliveryHash": "sha256:23bf318378e5e115fc642b41ebf92d0d3eec72b4b31c2414b1f8331facab6dcc",
+    "archiveSha256": "8cae56b0748a5c66add985122d8bbf72b7492e2e0828f713f1b0d7425a59a4e5",
+    "snapshotFiles": 2001,
+    "installedFiles": 1974,
+    "scope": "Immutable numerical fixture delivery; not deployed application or signed admission",
+    "applicationQualification": false
+  },
+  "rawSha256": "0793d98414d7bc6a78249ddd72fc7e824370d0f9591423ee3483a347f4e2ef65",
+  "failure": {
+    "message": "page.evaluate: Error: BufferPool requires a live GPU device.\n    at getBufferPool (http://127.0.0.1:28940/vendor/doppler/0.6.27/src/memory/buffer-pool.js:762:46)\n    at globalThis.memorySnapshot (eval at evaluate (:290:30), <anonymous>:27:15)\n    at eval (eval at evaluate (:290:30), <anonymous>:1:7)\n    at UtilityScript.evaluate (<anonymous>:292:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+  },
+  "cleanupFailure": {
+    "message": "Resident cleanup observation failed"
+  },
+  "requests": [
+    {
+      "inputTokens": 19,
+      "steps": 2,
+      "error": null
+    },
+    {
+      "inputTokens": 21,
+      "steps": 2,
+      "error": null
+    },
+    {
+      "inputTokens": 184,
+      "steps": 0,
+      "error": "page.evaluate: AbortError: Failed to execute 'mapAsync' on 'GPUBuffer': Buffer was destroyed before mapping was resolved.\n    at buffer.destroy (http://127.0.0.1:28940/vendor/doppler/0.6.27/src/memory/device-budget.js:39:7)\n    at #destroyPendingBuffers (http://127.0.0.1:28940/vendor/doppler/0.6.27/src/memory/buffer-pool.js:322:16)\n    at #scheduleDestruction (http://127.0.0.1:28940/vendor/doppler/0.6.27/src/memory/buffer-pool.js:392:34)\n    at #deferDestroy (http://127.0.0.1:28940/vendor/doppler/0.6.27/src/memory/buffer-pool.js:374:30)\n    at BufferPool.destroy (http://127.0.0.1:28940/vendor/doppler/0.6.27/src/memory/buffer-pool.js:679:25)\n    at http://127.0.0.1:28940/vendor/doppler/0.6.27/src/memory/buffer-pool.js:168:35"
+    }
+  ],
+  "disposition": "Failed physical split; not numerical qualification. Third request hit AMD graphics ring timeout/reset; previous four steps alone do not qualify55."
+}
