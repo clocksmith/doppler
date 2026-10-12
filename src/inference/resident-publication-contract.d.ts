@@ -1,6 +1,14 @@
 import type { CanonicalGenerationPolicy, CanonicalStopReason } from '../config/generation-contract.js';
 import type { ResidentAttemptIdentity } from './resident-block-contract.js';
 import type { ResidentCursor } from './resident-state-contract.js';
+import type { AdmissionOnlyResult } from './resident-state-contract.js';
+export interface AdmissionPublication {
+  schema: 'doppler.admission-publication/v1'; publicationDigest: string; attemptId: string;
+  coordinatorEpoch: string; attemptDigest: string; sequence: 0; expectedRevision: null;
+  previousPublicationDigest: string | null; result: Readonly<AdmissionOnlyResult>;
+}
+export function validateAdmissionPublication(input: unknown, attempt: ResidentAttemptIdentity,
+  policy: CanonicalGenerationPolicy, vocabSize: number): Readonly<AdmissionPublication>;
 export interface StageCommitAcknowledgment {
   schema: 'doppler.stage-commit/v1'; stageId: string; attemptDigest: string; sequence: number;
   baseCursorId: string | null; decisionId: string; successorCursorId: string;
