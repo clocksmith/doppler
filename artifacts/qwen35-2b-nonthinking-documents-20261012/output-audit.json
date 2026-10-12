@@ -1,0 +1,66 @@
+{
+  "schema": "doppler.source-quality-output-audit/v1",
+  "sameSourceAndPrecision": true,
+  "rows": [
+    {
+      "lane": "bathroom",
+      "id": "fresh-bathroom-comparison",
+      "reportSha256": "df7b6d42551fd76f8b0bd0297ebf8787d2c870f73da42ee9ac6f1f5994df728b",
+      "suiteSha256": "434b7370fa4ad3553fc279889ba15ae831a49c1a85aab81388b488ba5273b13d",
+      "exactOrderedMessages": true,
+      "exactOfficialTemplate": true,
+      "exactInputTokens": true,
+      "criteriaUnchanged": true,
+      "generatedTokens": 1439,
+      "totalTokens": 1927,
+      "rawUtf16Units": 5425,
+      "stopReason": "eos",
+      "withinBudgets": true
+    },
+    {
+      "lane": "bathroom",
+      "id": "fresh-bathroom-correction",
+      "reportSha256": "df7b6d42551fd76f8b0bd0297ebf8787d2c870f73da42ee9ac6f1f5994df728b",
+      "suiteSha256": "434b7370fa4ad3553fc279889ba15ae831a49c1a85aab81388b488ba5273b13d",
+      "exactOrderedMessages": true,
+      "exactOfficialTemplate": true,
+      "exactInputTokens": true,
+      "criteriaUnchanged": true,
+      "generatedTokens": 1275,
+      "totalTokens": 1878,
+      "rawUtf16Units": 4472,
+      "stopReason": "eos",
+      "withinBudgets": true
+    },
+    {
+      "lane": "contractor",
+      "id": "contractor-comparison",
+      "reportSha256": "0b134a1690875297403bd269a08406a4cea84b529dd3c0b42c19c33df6b82d65",
+      "suiteSha256": "c1a383b8af5afb7a3224fde8c22c35aa82b8ae06c308673b54a886da93fa001f",
+      "exactOrderedMessages": true,
+      "exactOfficialTemplate": true,
+      "exactInputTokens": true,
+      "criteriaUnchanged": true,
+      "generatedTokens": 1456,
+      "totalTokens": 1950,
+      "rawUtf16Units": 6124,
+      "stopReason": "eos",
+      "withinBudgets": true
+    },
+    {
+      "lane": "contractor",
+      "id": "contractor-retained-correction",
+      "reportSha256": "0b134a1690875297403bd269a08406a4cea84b529dd3c0b42c19c33df6b82d65",
+      "suiteSha256": "c1a383b8af5afb7a3224fde8c22c35aa82b8ae06c308673b54a886da93fa001f",
+      "exactOrderedMessages": true,
+      "exactOfficialTemplate": true,
+      "exactInputTokens": true,
+      "criteriaUnchanged": true,
+      "generatedTokens": 1359,
+      "totalTokens": 2947,
+      "rawUtf16Units": 5471,
+      "stopReason": "eos",
+      "withinBudgets": true
+    }
+  ]
+}

@@ -1,0 +1,172 @@
+{
+  "schema": "doppler.original-source-document-review/v1",
+  "qualified": false,
+  "completedCases": 4,
+  "passedCases": 0,
+  "configuration": "Original2B, official nonthinking template, greedy, repetition1.1, F32 equations/F16 KV.",
+  "conclusion": "Disabling thinking prevents the observed token-budget exhaustion but does not produce useful document answers. All four naturally finish within budgets and all four fail factual/citation requirements. No converted or production configuration is promoted.",
+  "cases": [
+    {
+      "id": "fresh-bathroom-comparison",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "Correct subtotals appear, but required budget remainders are absent and Quarry is wrongly called700 over the10000 budget."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "Calls September20 too late for September25; turns Birch estimate into guarantee; does not apply Linden duration past deadline."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Notes plumbing contradiction but treats exclusion as stated scope; recommends Birch without permit and all-cost confirmation."
+        },
+        {
+          "criterionIndex": 3,
+          "pass": false,
+          "observation": "Missing supporting passage citations for claims; attributes plumbing ambiguity to disposal pricing."
+        },
+        {
+          "criterionIndex": 4,
+          "pass": true,
+          "observation": "Deposit values2100,2730 and3160 are correct."
+        }
+      ]
+    },
+    {
+      "id": "fresh-bathroom-correction",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "Final table repeats wrong9600 Quarry total,7900 Linden all-in price and Birch disposal/plumbing exclusions."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "September12 plus21 days incorrectly becomes September23; denies explicit Birch permit condition."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Table resolves Linden plumbing as included without authority; does not correct the contradiction."
+        },
+        {
+          "criterionIndex": 3,
+          "pass": false,
+          "observation": "Passage references do not support the contradictory final claims."
+        },
+        {
+          "criterionIndex": 4,
+          "pass": true,
+          "observation": "Optional Linden deposit3160 uses installation7900."
+        },
+        {
+          "criterionIndex": 5,
+          "pass": false,
+          "observation": "Repeats retained wrong exclusions and allowance addition after initially describing corrections."
+        }
+      ]
+    },
+    {
+      "id": "contractor-comparison",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "Harbor plumbing exclusion is conflated with the electrical800 threshold; Cedar plumbing exclusion chosen by assumption."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "Cedar10550 is correct, but no required budget remainders and10800 is called lower than10550."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Calls May20 a guaranteed end date; three weeks becomes May27, producing an incorrect June1 recommendation."
+        },
+        {
+          "criterionIndex": 3,
+          "pass": false,
+          "observation": "Explicitly says Page2 overrides Page1 and assumes no plumbing."
+        },
+        {
+          "criterionIndex": 4,
+          "pass": false,
+          "observation": "Some valid citations occur, but schedule and scope claims remain unsupported or contradictory."
+        },
+        {
+          "criterionIndex": 5,
+          "pass": false,
+          "observation": "Recommends Cedar on a false completion date and resolved plumbing clause."
+        },
+        {
+          "criterionIndex": 6,
+          "pass": true,
+          "observation": "No optional deposit dollar arithmetic."
+        }
+      ]
+    },
+    {
+      "id": "contractor-retained-correction",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "Invents plumbing unless approved for Harbor and selects all-plumbing exclusion for Cedar in table."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "Does not calculate10550 or required budget remainders."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Claims none meet June1 unless starting later than May20; does not apply the actual conditions correctly."
+        },
+        {
+          "criterionIndex": 3,
+          "pass": false,
+          "observation": "Identifies conflict but misattributes its included clause toD3:P1 and contradicts it in table."
+        },
+        {
+          "criterionIndex": 4,
+          "pass": false,
+          "observation": "D3:P1 plumbing citation is false; invented prior claims are presented as source-supported corrections."
+        },
+        {
+          "criterionIndex": 5,
+          "pass": false,
+          "observation": "Asks about ambiguous old cabinets while failing to address actual complete costs and deadline feasibility."
+        },
+        {
+          "criterionIndex": 6,
+          "pass": false,
+          "observation": "Corrects Cedar additional removal but misses the complete retained Maple/Harbor removal reversal and invents unlimited-electrical claim."
+        },
+        {
+          "criterionIndex": 7,
+          "pass": true,
+          "observation": "No optional deposit dollar arithmetic."
+        }
+      ]
+    }
+  ]
+}
