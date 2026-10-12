@@ -1,0 +1,33 @@
+{
+  "schema": "doppler.native-producer-independent-review/v1",
+  "reviewer": "document_quality",
+  "scope": "Read-only native report extension and actual inspector/controller observation chain; synthetic CPU controls only, no native physical outcomes read.",
+  "files": {
+    "artifacts/signed-resident-producer-20261012/produce-physical-reports.js": "33242f055d221d38f384fdc68ebdcb8dae3d34601a2fd53a5d5d597ef37454b1",
+    "artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js": "7d33ab3686ad81791f97b44b215cb76986c6127e9eee7e17c63a14dff3578641",
+    "../reploid/tests/fixtures/browser-partition-memory-completion.js": "9e0e9ee381faf17661c3de043ba7216fc75ca85ddbc52957e6e6e8a317f482f6",
+    "../reploid/tests/fixtures/native-partition-endpoint.js": "0e23638ccc95650da3ea0523f9cd8a4baf86a12c32232fcc5e9171ebe681d919",
+    "../reploid/tests/fixtures/native-partition-process.js": "1fd0797a5d80aaf893b8b08e4813e1e4c4b41fca0f6431441ae92c778c4182ac"
+  },
+  "cpuControls": {
+    "passed": 45,
+    "failed": 0,
+    "command": "node --test artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js"
+  },
+  "reproducedGap": {
+    "mutation": "Change only nativeHostSettlement.pid123 to999999",
+    "before": "Accepted as passed native report",
+    "repair": "Observed endpoint process.pid now retained as descriptor.nativePid and must equal settlement.pid; missingPID and second native descriptor reject.",
+    "after": "45 controls include exact mismatch/missingPID/second-native negative cases."
+  },
+  "reviewedBindings": [
+    "Explicit Node/browser surfaces and per-partition physical host coverage",
+    "Node version, native application/test delivery and exact archive closure",
+    "Provider module/package/JS hashes and actual process mapped native library identities",
+    "Actual resolved-session identity preserved; no fabricated signed identity",
+    "Existing full55/all-logit independentF64 comparison and0.001 unchanged",
+    "Provider release bound to same observed native process"
+  ],
+  "remainingEvidence": "Retain concrete pre-run native provider/library/application/host identities, then collect and verify physical evidence; this review grants no physical or release qualification.",
+  "physicalQualification": false
+}
