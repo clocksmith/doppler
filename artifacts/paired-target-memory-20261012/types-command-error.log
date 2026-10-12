@@ -1,0 +1,9 @@
+npm error Missing script: "source:types:check"
+npm error
+npm error Did you mean one of these?
+npm error   npm run source:style:sync # run the "source:style:sync" package script
+npm error   npm run source:style:check # run the "source:style:check" package script
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: /Users/xyz/.npm-user-cache/_logs/2026-10-12T22_28_59_948Z-debug-0.log
