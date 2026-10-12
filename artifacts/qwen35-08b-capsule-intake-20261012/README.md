@@ -15,11 +15,11 @@ geometry fields and a schedule containing `linear_attention`; callers must
 supply the existing explicit ModelIR v2 path. No model-name detection or
 runtime fallback was added.
 
-`guard-before.log` records the missing exception; `guard-after.log` passes the
-new cases and existing stage tests. `incomplete-test-setup.log` is an earlier
+`guard-before.log.gz` records the missing exception; `guard-after.log.gz` passes the
+new cases and existing stage tests. `incomplete-test-setup.log.gz` is an earlier
 invalid test setup which lacked normalized source artifacts; it is not the
-reproducing evidence. `rig-regression.log`, `style.log`, `architecture.log` and
-`types.log` retain the subsequent checks.
+reproducing evidence. `rig-regression.log.gz`, `style.log.gz`, `architecture.log.gz` and
+`types.log.gz` retain the subsequent checks.
 
 ## Source intake
 
