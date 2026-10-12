@@ -1,0 +1,518 @@
+[
+  {
+    "path": "rope-frequency-amd.json",
+    "rawSha256": "fad620253fe8a959c99dc3482ff5c5da51953ec607981bd9daddb63b4f8e4d4c",
+    "rawBytes": 4502698,
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3"
+    },
+    "parameters": {
+      "theta": 10000000,
+      "rotaryDim": 64,
+      "frequencyBaseDim": 64,
+      "scale": 1,
+      "positions": 256
+    },
+    "shaderSha256": "217fcc8c7d5018d27f18ab529bf648ee68ed4d55857eb1bb8d57be802c948dc5",
+    "harnessSha256": "af57d97b1e17ce38d5340de8542561e4a5dc1fd76504ec692cc85009983d0b02",
+    "maxima": {
+      "logarithm": {
+        "absoluteError": 2.530091016694769e-07,
+        "error": -2.530091016694769e-07,
+        "index": 0
+      },
+      "powerLocal": {
+        "absoluteError": 4.76837158203125e-07,
+        "error": -4.76837158203125e-07,
+        "index": 18
+      },
+      "frequencyLocal": {
+        "absoluteError": 1.83252292784708e-08,
+        "error": -1.83252292784708e-08,
+        "index": 2
+      },
+      "frequencyTotal": {
+        "absoluteError": 1.2550705585923083e-08,
+        "error": -1.2550705585923083e-08,
+        "index": 2
+      },
+      "angleLocal": {
+        "absoluteError": 7.569789886474609e-06,
+        "error": -7.569789886474609e-06,
+        "index": 8097
+      },
+      "angleTotal": {
+        "absoluteError": 8.580833565474677e-06,
+        "error": -8.580833565474677e-06,
+        "index": 8097
+      },
+      "cosLocal": {
+        "absoluteError": 8.43793089311956e-06,
+        "error": 8.43793089311956e-06,
+        "index": 7905
+      },
+      "sinLocal": {
+        "absoluteError": 7.907472253071424e-06,
+        "error": 7.907472253071424e-06,
+        "index": 7329
+      },
+      "cosTotal": {
+        "absoluteError": 7.871257845515345e-08,
+        "error": -7.871257845515345e-08,
+        "index": 6369
+      },
+      "sinTotal": {
+        "absoluteError": 7.853185113315675e-08,
+        "error": 7.853185113315675e-08,
+        "index": 4648
+      }
+    },
+    "observationMismatches": 0,
+    "errors": []
+  },
+  {
+    "path": "rope-frequency-mac.json",
+    "rawSha256": "b9c7ec6af9f619657c0b53a58a7fe08a2fdf0b8b5d73050c3ced9f16230627fe",
+    "rawBytes": 4502910,
+    "adapter": {
+      "vendor": "apple",
+      "architecture": "metal-3"
+    },
+    "parameters": {
+      "theta": 10000000,
+      "rotaryDim": 64,
+      "frequencyBaseDim": 64,
+      "scale": 1,
+      "positions": 256
+    },
+    "shaderSha256": "217fcc8c7d5018d27f18ab529bf648ee68ed4d55857eb1bb8d57be802c948dc5",
+    "harnessSha256": "d5bdacbdb51551933b87ab833fe357972ea7ea074fb91e7e4216c8ddeaa333e9",
+    "maxima": {
+      "logarithm": {
+        "absoluteError": 2.530091016694769e-07,
+        "error": -2.530091016694769e-07,
+        "index": 0
+      },
+      "powerLocal": {
+        "absoluteError": 4.76837158203125e-07,
+        "error": -4.76837158203125e-07,
+        "index": 18
+      },
+      "frequencyLocal": {
+        "absoluteError": 1.83252292784708e-08,
+        "error": -1.83252292784708e-08,
+        "index": 2
+      },
+      "frequencyTotal": {
+        "absoluteError": 1.2550705585923083e-08,
+        "error": -1.2550705585923083e-08,
+        "index": 2
+      },
+      "angleLocal": {
+        "absoluteError": 7.569789886474609e-06,
+        "error": -7.569789886474609e-06,
+        "index": 8097
+      },
+      "angleTotal": {
+        "absoluteError": 8.580833565474677e-06,
+        "error": -8.580833565474677e-06,
+        "index": 8097
+      },
+      "cosLocal": {
+        "absoluteError": 8.43793089311956e-06,
+        "error": 8.43793089311956e-06,
+        "index": 7905
+      },
+      "sinLocal": {
+        "absoluteError": 7.907472253071424e-06,
+        "error": 7.907472253071424e-06,
+        "index": 7329
+      },
+      "cosTotal": {
+        "absoluteError": 7.871257845515345e-08,
+        "error": -7.871257845515345e-08,
+        "index": 6369
+      },
+      "sinTotal": {
+        "absoluteError": 7.853185113315675e-08,
+        "error": 7.853185113315675e-08,
+        "index": 4648
+      }
+    },
+    "observationMismatches": 0,
+    "errors": []
+  },
+  {
+    "path": "rope-frequency-boundary-unit-amd.json",
+    "rawSha256": "769271109a3682175359e058376b93b1b8c53cb69a23685b5a7dbe75f383be08",
+    "rawBytes": 3089625,
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3"
+    },
+    "parameters": {
+      "theta": 1,
+      "rotaryDim": 64,
+      "frequencyBaseDim": 64,
+      "scale": 1,
+      "positions": 257
+    },
+    "shaderSha256": "217fcc8c7d5018d27f18ab529bf648ee68ed4d55857eb1bb8d57be802c948dc5",
+    "harnessSha256": "80a6cbaeef376ec76d35ac31b6e3785204331d44b04fb7c28496498334c2a088",
+    "maxima": {
+      "logarithm": {
+        "absoluteError": 0,
+        "error": 0,
+        "index": 0
+      },
+      "powerLocal": {
+        "absoluteError": 0,
+        "error": 0,
+        "index": 0
+      },
+      "frequencyLocal": {
+        "absoluteError": 0,
+        "error": 0,
+        "index": 0
+      },
+      "frequencyTotal": {
+        "absoluteError": 0,
+        "error": 0,
+        "index": 0
+      },
+      "angleLocal": {
+        "absoluteError": 0,
+        "error": 0,
+        "index": 0
+      },
+      "angleTotal": {
+        "absoluteError": 0,
+        "error": 0,
+        "index": 0
+      },
+      "cosLocal": {
+        "absoluteError": 6.704318689099154e-08,
+        "error": 6.704318689099154e-08,
+        "index": 7616
+      },
+      "sinLocal": {
+        "absoluteError": 4.98486518729635e-08,
+        "error": -4.98486518729635e-08,
+        "index": 832
+      },
+      "cosTotal": {
+        "absoluteError": 6.704318689099154e-08,
+        "error": 6.704318689099154e-08,
+        "index": 7616
+      },
+      "sinTotal": {
+        "absoluteError": 4.98486518729635e-08,
+        "error": -4.98486518729635e-08,
+        "index": 832
+      }
+    },
+    "observationMismatches": 0,
+    "errors": []
+  },
+  {
+    "path": "rope-frequency-boundary-minimum-normal-log-amd.json",
+    "rawSha256": "d250eb19380bc3e83f5b0d6b2f53e57a7aeb044a839da3d3b5e202cdc9e9a714",
+    "rawBytes": 8876719,
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3"
+    },
+    "parameters": {
+      "theta": 1.0000001192092896,
+      "rotaryDim": 128,
+      "frequencyBaseDim": 128,
+      "scale": 1,
+      "positions": 257
+    },
+    "shaderSha256": "217fcc8c7d5018d27f18ab529bf648ee68ed4d55857eb1bb8d57be802c948dc5",
+    "harnessSha256": "80a6cbaeef376ec76d35ac31b6e3785204331d44b04fb7c28496498334c2a088",
+    "maxima": {
+      "logarithm": {
+        "absoluteError": 7.1054267885007404e-15,
+        "error": 7.1054267885007404e-15,
+        "index": 0
+      },
+      "powerLocal": {
+        "absoluteError": 0,
+        "error": 0,
+        "index": 0
+      },
+      "frequencyLocal": {
+        "absoluteError": 2.9802321943606103e-08,
+        "error": 2.9802321943606103e-08,
+        "index": 16
+      },
+      "frequencyTotal": {
+        "absoluteError": 2.9802320167249263e-08,
+        "error": 2.9802320167249263e-08,
+        "index": 16
+      },
+      "angleLocal": {
+        "absoluteError": 7.62939453125e-06,
+        "error": -7.62939453125e-06,
+        "index": 12337
+      },
+      "angleTotal": {
+        "absoluteError": 1.299381440844627e-05,
+        "error": -1.299381440844627e-05,
+        "index": 12337
+      },
+      "cosLocal": {
+        "absoluteError": 1.2626558383660447e-05,
+        "error": 1.2626558383660447e-05,
+        "index": 12401
+      },
+      "sinLocal": {
+        "absoluteError": 1.2421810093810048e-05,
+        "error": 1.2421810093810048e-05,
+        "index": 12529
+      },
+      "cosTotal": {
+        "absoluteError": 9.233150100040888e-08,
+        "error": 9.233150100040888e-08,
+        "index": 15243
+      },
+      "sinTotal": {
+        "absoluteError": 7.908985755200604e-08,
+        "error": 7.908985755200604e-08,
+        "index": 15287
+      }
+    },
+    "observationMismatches": 0,
+    "errors": []
+  },
+  {
+    "path": "rope-frequency-boundary-wide-geometry-amd.json",
+    "rawSha256": "5c8e99e1c39dd5f563a6d46846464b72f22fc743c7de30c57bc7e6d1bb1356c8",
+    "rawBytes": 18438499,
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3"
+    },
+    "parameters": {
+      "theta": 10000,
+      "rotaryDim": 256,
+      "frequencyBaseDim": 256,
+      "scale": 1,
+      "positions": 257
+    },
+    "shaderSha256": "217fcc8c7d5018d27f18ab529bf648ee68ed4d55857eb1bb8d57be802c948dc5",
+    "harnessSha256": "80a6cbaeef376ec76d35ac31b6e3785204331d44b04fb7c28496498334c2a088",
+    "maxima": {
+      "logarithm": {
+        "absoluteError": 1.2790174608312554e-07,
+        "error": 1.2790174608312554e-07,
+        "index": 0
+      },
+      "powerLocal": {
+        "absoluteError": 4.470348358154297e-07,
+        "error": 4.470348358154297e-07,
+        "index": 114
+      },
+      "frequencyLocal": {
+        "absoluteError": 2.8149546693612137e-08,
+        "error": -2.8149546693612137e-08,
+        "index": 2
+      },
+      "frequencyTotal": {
+        "absoluteError": 2.988014591309707e-08,
+        "error": -2.988014591309707e-08,
+        "index": 2
+      },
+      "angleLocal": {
+        "absoluteError": 7.62939453125e-06,
+        "error": 7.62939453125e-06,
+        "index": 18433
+      },
+      "angleTotal": {
+        "absoluteError": 1.5069862143946011e-05,
+        "error": -1.5069862143946011e-05,
+        "index": 32386
+      },
+      "cosLocal": {
+        "absoluteError": 1.3913888703531718e-05,
+        "error": -1.3913888703531718e-05,
+        "index": 30850
+      },
+      "sinLocal": {
+        "absoluteError": 1.4136128858699415e-05,
+        "error": 1.4136128858699415e-05,
+        "index": 31618
+      },
+      "cosTotal": {
+        "absoluteError": 8.730759870623217e-08,
+        "error": -8.730759870623217e-08,
+        "index": 25911
+      },
+      "sinTotal": {
+        "absoluteError": 8.759327985163878e-08,
+        "error": 8.759327985163878e-08,
+        "index": 22810
+      }
+    },
+    "observationMismatches": 0,
+    "errors": []
+  },
+  {
+    "path": "rope-frequency-boundary-large-theta-amd.json",
+    "rawSha256": "fcd9318c62897caf0add5e6e8146143f8cf170589be1e2af78d4cea9c488c856",
+    "rawBytes": 4207334,
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3"
+    },
+    "parameters": {
+      "theta": 1.0000000150474662e+30,
+      "rotaryDim": 64,
+      "frequencyBaseDim": 64,
+      "scale": 1,
+      "positions": 257
+    },
+    "shaderSha256": "217fcc8c7d5018d27f18ab529bf648ee68ed4d55857eb1bb8d57be802c948dc5",
+    "harnessSha256": "80a6cbaeef376ec76d35ac31b6e3785204331d44b04fb7c28496498334c2a088",
+    "maxima": {
+      "logarithm": {
+        "absoluteError": 9.458673844164878e-09,
+        "error": -9.458673844164878e-09,
+        "index": 0
+      },
+      "powerLocal": {
+        "absoluteError": 2.6226043701171875e-06,
+        "error": 2.6226043701171875e-06,
+        "index": 31
+      },
+      "frequencyLocal": {
+        "absoluteError": 3.1987432702607066e-09,
+        "error": -3.1987432702607066e-09,
+        "index": 1
+      },
+      "frequencyTotal": {
+        "absoluteError": 3.1646097964355135e-09,
+        "error": -3.1646097964355135e-09,
+        "index": 1
+      },
+      "angleLocal": {
+        "absoluteError": 9.462237358093262e-07,
+        "error": 9.462237358093262e-07,
+        "index": 8097
+      },
+      "angleTotal": {
+        "absoluteError": 1.444560819408025e-06,
+        "error": -1.444560819408025e-06,
+        "index": 8129
+      },
+      "cosLocal": {
+        "absoluteError": 6.704318689099154e-08,
+        "error": 6.704318689099154e-08,
+        "index": 7616
+      },
+      "sinLocal": {
+        "absoluteError": 5.175968176285295e-08,
+        "error": 5.175968176285295e-08,
+        "index": 1986
+      },
+      "cosTotal": {
+        "absoluteError": 7.749457953121208e-08,
+        "error": 7.749457953121208e-08,
+        "index": 6050
+      },
+      "sinTotal": {
+        "absoluteError": 7.231321530465351e-08,
+        "error": 7.231321530465351e-08,
+        "index": 2433
+      }
+    },
+    "observationMismatches": 6274,
+    "errors": []
+  },
+  {
+    "path": "rope-frequency-boundary-long-mac.json",
+    "rawSha256": "6edcd374bcbe373ce38e0738a3b4fa0ba3ac6b52b91c598e53fe670ef46e254f",
+    "rawBytes": 291839838,
+    "adapter": {
+      "vendor": "apple",
+      "architecture": "metal-3"
+    },
+    "parameters": {
+      "theta": 10000000,
+      "rotaryDim": 64,
+      "frequencyBaseDim": 64,
+      "scale": 1,
+      "positions": 16385
+    },
+    "shaderSha256": "217fcc8c7d5018d27f18ab529bf648ee68ed4d55857eb1bb8d57be802c948dc5",
+    "harnessSha256": "80a6cbaeef376ec76d35ac31b6e3785204331d44b04fb7c28496498334c2a088",
+    "maxima": {
+      "logarithm": {
+        "absoluteError": 2.530091016694769e-07,
+        "error": -2.530091016694769e-07,
+        "index": 0
+      },
+      "powerLocal": {
+        "absoluteError": 4.76837158203125e-07,
+        "error": -4.76837158203125e-07,
+        "index": 18
+      },
+      "frequencyLocal": {
+        "absoluteError": 1.83252292784708e-08,
+        "error": -1.83252292784708e-08,
+        "index": 2
+      },
+      "frequencyTotal": {
+        "absoluteError": 1.2550705585923083e-08,
+        "error": -1.2550705585923083e-08,
+        "index": 2
+      },
+      "angleLocal": {
+        "absoluteError": 0.0004881620407104492,
+        "error": -0.0004881620407104492,
+        "index": 466753
+      },
+      "angleTotal": {
+        "absoluteError": 0.0005515971570275724,
+        "error": -0.0005515971570275724,
+        "index": 517985
+      },
+      "cosLocal": {
+        "absoluteError": 0.0005443488950462802,
+        "error": -0.0005443488950462802,
+        "index": 518465
+      },
+      "sinLocal": {
+        "absoluteError": 0.0005404157737727983,
+        "error": -0.0005404157737727983,
+        "index": 492929
+      },
+      "cosTotal": {
+        "absoluteError": 6.376408155928104e-07,
+        "error": 6.376408155928104e-07,
+        "index": 523712
+      },
+      "sinTotal": {
+        "absoluteError": 6.35807555382506e-07,
+        "error": 6.35807555382506e-07,
+        "index": 523168
+      }
+    },
+    "observationMismatches": 42,
+    "errors": []
+  },
+  {
+    "path": "rope-frequency-actual-table-mac.json",
+    "rawSha256": "b3cb07bbef5a41f2582b877babf315e499b44c0b3209dda9ea38b26b15ca6606",
+    "rawBytes": 1501512,
+    "adapter": null,
+    "parameters": null,
+    "shaderSha256": null,
+    "harnessSha256": null,
+    "maxima": null,
+    "observationMismatches": null,
+    "errors": null
+  }
+]

@@ -181,6 +181,7 @@ def run(args):
                 'captureSha256': ref.digest(Path(args.capture).read_bytes())}
             (directory / f'layer-{layer}-{operation}.json').write_text(json.dumps(fixture) + '\n')
     rows, storage = [], []
+    replay_comparisons = []
     def compare(name, local=None):
         actual = gpu[name]
         row = {'operation': name}
@@ -217,6 +218,51 @@ def run(args):
             key = ref.rms_norm(gpu[prefix + 'k_proj'].reshape(-1, nk, width),
                                w('self_attn.k_norm.weight'), config['rms_norm_eps'])
             compare(prefix + 'k_norm', key)
+            if args.normalization_replay and layer == 3:
+                fixture = ref.read_json(args.normalization_fixture)
+                assert fixture['captureSha256'] == ref.digest(Path(args.capture).read_bytes())
+                assert fixture['operation'] == prefix + 'k_norm'
+                assert fixture['headDim'] == width
+                assert np.array_equal(np.frombuffer(base64.b64decode(fixture['kWeight']), dtype='<f2').astype(np.float64),
+                                      w('self_attn.k_norm.weight'))
+                assert np.float32(fixture['epsilon']) == np.float32(config['rms_norm_eps'])
+                assert np.array_equal(np.asarray(fixture['k']).reshape(key.shape),
+                                      gpu[prefix + 'k_proj'].reshape(key.shape))
+                actual_norm = gpu[prefix + 'k_norm']
+                ideal_norm = independent[prefix + 'k_norm']
+                local_norm = key.reshape(actual_norm.shape)
+                for replay_path in args.normalization_replay:
+                    replay = ref.read_json(replay_path)
+                    assert replay['fixtureSha256'] == ref.digest(Path(args.normalization_fixture).read_bytes())
+                    assert replay['passed'] and not replay['errors']
+                    values = np.asarray(replay['cases'][0]['values'], dtype=np.float64)
+                    assert len(values) == 2 * actual_norm.size
+                    candidate = values[actual_norm.size:].reshape(actual_norm.shape)
+                    controls = {'captured': actual_norm, 'candidate': candidate,
+                                'sameInputF64': local_norm}
+                    result = {'replaySha256': ref.digest(Path(replay_path).read_bytes()),
+                              'shaderSha256': replay['shaderSha256'],
+                              'local': error(candidate, local_norm),
+                              'total': error(candidate, ideal_norm), 'stored': {}}
+                    rotary = config['rope_parameters']
+                    for scope in ('nonrotary', 'allWithIdealRoPE'):
+                        start = int(width * rotary['partial_rotary_factor'])
+                        transform = (lambda value: value.reshape(-1, nk, width)[:, :, start:]) if scope == 'nonrotary' else (
+                            lambda value: ref.text_rope(value.reshape(-1, nk, width),
+                                rotary['rope_theta'], start))
+                        target_half = ref.half_cache(transform(ideal_norm))
+                        variants = {name: ref.half_cache(transform(value)) for name, value in controls.items()}
+                        old, new, local_half = (variants[name] for name in ('captured', 'candidate', 'sameInputF64'))
+                        result['stored'][scope] = {
+                            'scope': 'Same captured inputs; unchanged independent target; no downstream state replay',
+                            'capturedDifferences': int(np.count_nonzero(old != target_half)),
+                            'candidateDifferences': int(np.count_nonzero(new != target_half)),
+                            'sameInputF64Differences': int(np.count_nonzero(local_half != target_half)),
+                            'corrected': int(np.count_nonzero((old != target_half) & (new == target_half))),
+                            'newDifferences': int(np.count_nonzero((old == target_half) & (new != target_half))),
+                            'removedCancellationOfInheritedError': int(np.count_nonzero(
+                                (old == target_half) & (new != target_half) & (local_half != target_half)))}
+                    replay_comparisons.append(result)
             rope = config['rope_parameters']
             compare(prefix + 'k_rope', ref.text_rope(gpu[prefix + 'k_norm'].reshape(-1, nk, width),
                 rope['rope_theta'], int(width * rope['partial_rotary_factor'])))
@@ -273,6 +319,8 @@ def run(args):
                 'gpu': float(actual_logits[-1, worst_vocabulary]),
                 'f64': float(logits[-1, worst_vocabulary]),
                 'localF64': float(local_logits[-1, worst_vocabulary])}}}
+    if replay_comparisons:
+        report['normalizationReplay'] = replay_comparisons
     if args.cache_materialization_control:
         # Counterfactual diagnostic, not an acceptance reference. All other
         # equations stay F64; only the mandatory producer F32 store is inserted.
@@ -311,4 +359,6 @@ if __name__ == '__main__':
     parser.add_argument('--cache-materialization-control', action='store_true')
     parser.add_argument('--cache-materialization-kind', choices=['both', 'key', 'value'], default='both')
     parser.add_argument('--fixture-directory', help='Export captured prefill projections for the existing physical replay')
+    parser.add_argument('--normalization-fixture', help='Exact captured layer-3 fixture for local K comparisons')
+    parser.add_argument('--normalization-replay', action='append', help='Physical same-input Q/K receipt; diagnostic only')
     run(parser.parse_args())

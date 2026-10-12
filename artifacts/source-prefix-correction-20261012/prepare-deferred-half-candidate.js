@@ -17,6 +17,7 @@ await replace('src/inference/pipelines/text/attention/interpreter.js',
       kHalfRoundingStart: !skipKVCacheWrites && !retainSharedKvBuffers
         && !valueAliasesKey && !diffusionGemmaDecoder
         && state.kvCache?.kvDtype === 'f16' && qTensor.dtype === 'f32'
+        && state.kvCache.hasGPUCache?.() === true
         && config.queryKeyNormAxis === 'head'
         && (config.ropeFrequencyBaseDim ?? config.ropeRotaryDim) === config.ropeRotaryDim
         ? (disableRoPE ? 0 : config.ropeRotaryDim) : null,`);
