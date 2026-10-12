@@ -32,6 +32,8 @@ export interface LinearLayerRuntimeState {
   normWeight: Float32Array;
   convState: Float32Array;
   recurrentState: Float32Array;
+  recurrentStatePrecision: 'f32' | 'two-f32';
+  recurrentStateComponents: 1 | 2;
   convWeightGPU?: GPUBuffer | null;
   dtBiasGPU?: GPUBuffer | null;
   aLogGPU?: GPUBuffer | null;
@@ -50,6 +52,7 @@ export interface RunLinearAttentionLayerOptions {
   numTokens: number;
   hiddenSize: number;
   config: {
+    sessionSettings?: { linearRecurrentStatePrecision?: 'f32' | 'two-f32' | null } | null;
     linearNumKeyHeads: number | null;
     linearNumValueHeads: number | null;
     linearKeyHeadDim: number | null;

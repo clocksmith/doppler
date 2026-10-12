@@ -1,0 +1,11 @@
+{
+  "archiveSha256": "d0d53e8f6d72ef7de63433d5935b2e89a717d3b4d6e8d890bd19add499e5e85e",
+  "sourceManifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "manifestSha256": "cfca7eceadf1cc64b08ab014a7c3035d8f7fb7acc9cc1cb7177795d9d248093d",
+  "representation": "inference.session.linearRecurrentStatePrecision=two-f32 (explicit runtime override)",
+  "precisionScope": "persistent recurrent state and its compensation only; activation/output F32 and KV F16 unchanged",
+  "modelPieceBytesUnchanged": true,
+  "reference": "approved F64",
+  "tolerance": 0.001,
+  "immediateParentManifestSha256": "a12274ca0062c9a3a0499c46d439082f0c2ce0769b8e99a2774f6b021304c1a2"
+}

@@ -53,3 +53,14 @@ try {
 } finally { observer.restore(); }
 assert.equal(Cache.prototype.getGPUBuffers, original);
 console.log('Physical cache observer: queued snapshot isolation, mapping-failure cleanup and geometry rejection passed (mock GPU).');
+
+rejectMap = false;
+const mapped = observePhysicalKVCache({ KVCache: Cache, getDevice: () => device, layers: [3], allocationLayerIndices: [3] });
+try {
+  const cache = new Cache(); cache.numLayers = 1;
+  cache.getGPUBuffers(0);
+  const rows = await mapped.capture(0, 2);
+  assert.equal(rows[0].layer, 3); assert.equal(rows[0].allocationLayer, 0);
+  cache.numLayers = 2;
+  assert.throws(() => cache.getGPUBuffers(0), /allocation mapping/);
+} finally { mapped.restore(); }

@@ -26,6 +26,8 @@ if (observationTarget.opIds !== undefined) {
 const captureDecode = Boolean(process.argv[6]);
 const physicalCache = observationTarget.physicalCache === true;
 const fullPrefixes = process.env.DOPPLER_FORENSIC_FULL_PREFIXES === '1';
+const recurrentStatePrecision = process.env.DOPPLER_RECURRENT_STATE_PRECISION ?? 'f32';
+assert(['f32', 'two-f32'].includes(recurrentStatePrecision));
 assert(archivePath && modelDirectory && destination, 'Supply retained archive, unchanged model directory and receipt');
 assert(['frozen', 'current'].includes(manifestMode), 'Manifest mode must be frozen or current');
 assert(['darwin', 'linux'].includes(process.platform));
@@ -52,7 +54,7 @@ const receipt = { scope: 'Retained archive forensic fixed-prefix replay; produci
   host: process.platform, producerSha256: hash(await readFile(new URL(import.meta.url))), archiveSha256: hash(await readFile(archivePath)),
   referenceSha256: hash(referenceBytes), manifestIdentity: 'sha256:' + hash(manifestBytes), results: [],
   frozenManifestIdentity: reference.modelIdentity, manifestMode, changedKernelPins,
-  servedShaders: {}, modelDirectory: resolve(modelDirectory), fullPrefixes, prefixesOnly, observationTarget };
+  recurrentStatePrecision, servedShaders: {}, modelDirectory: resolve(modelDirectory), fullPrefixes, prefixesOnly, observationTarget };
 const cacheObserverSource = await readFile(new URL('../helpers/physical-kv-cache-observer.js', import.meta.url));
 if (physicalCache) receipt.cacheObserverSha256 = hash(cacheObserverSource);
 async function recordPrefill(row) {
@@ -123,7 +125,7 @@ try {
   await page.goto(`http://127.0.0.1:${server.address().port}`);
   const observedTimeline = [];
   await page.exposeFunction('recordProducerObservation', row => { observedTimeline.push(row); });
-  const result = await page.evaluate(async ({ compatEntry, partitionsEntry, generation, prompts, policy, fullPrefixes, prefixesOnly, expected, observationTarget, captureDecode }) => {
+  const result = await page.evaluate(async ({ compatEntry, partitionsEntry, generation, prompts, policy, fullPrefixes, prefixesOnly, expected, observationTarget, captureDecode, recurrentStatePrecision }) => {
     const ropeBindings = [], uniformWrites = new WeakMap();
     if (observationTarget.ropeTable === true) {
       const writeBuffer = GPUQueue.prototype.writeBuffer;
@@ -213,12 +215,22 @@ try {
     const manifestHash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',
       new TextEncoder().encode(manifestText))), b => b.toString(16).padStart(2, '0')).join('');
     const rows = [];
+    const physicalCache = observationTarget.physicalCache === true;
     let handle;
+      let cacheObserver = null;
+      if (physicalCache) {
+        const { KVCache } = await import('/runtime/src/inference/kv-cache/base.js');
+        const { observePhysicalKVCache } = await import('/diagnostic/physical-kv-cache-observer.js');
+        const layers = manifest.inference.layerPattern.layerTypes.flatMap((type, layer) => type === 'full_attention' ? [layer] : []);
+        cacheObserver = observePhysicalKVCache({ KVCache, getDevice, layers,
+          allocationLayerIndices: observationTarget.sparseAttentionCache === true ? layers : null });
+      }
     try {
       handle = await load({ manifest, manifestText, manifestHash, baseUrl: source,
         storage: createHttpArtifactStorageContext(source, manifest, { verifyHashes: true }) }, {
         onProgress: progress => console.log('producer-progress:' + JSON.stringify(progress)),
         runtimeConfig: { shared: { bufferPool: policy.bufferPool }, inference: { session: {
+          linearRecurrentStatePrecision: recurrentStatePrecision,
           kvcache: { maxSeqLen: generation.maxSeqLen }, prefillChunkLayers: policy.prefillChunkLayers,
           prefillTokenChunkSize: policy.prefillTokenChunkSize } } } });
       if (observationTarget.ropeTable === true) {
@@ -245,7 +257,6 @@ try {
           normalizationDispatch, qkNormalizationDispatch, projectionDispatch, quantizedDispatch };
       }
       const { maxSeqLen: _contextLength, ...executionOptions } = generation;
-      const physicalCache = observationTarget.physicalCache === true;
       for (const index of physicalCache || prefixesOnly ? [observationTarget.index] : [...prompts.keys(), 0]) {
         const messages = prompts[index];
         await handle.resetGenerationState();
@@ -271,14 +282,7 @@ try {
       // Observe the same first prefix after reset; quantify instrumentation effects.
       await handle.resetGenerationState();
       let observedLogits = null; const observedSteps = [];
-      let cacheObserver = null;
       const cacheReadbacks = [];
-      if (physicalCache) {
-        const { KVCache } = await import('/runtime/src/inference/kv-cache/base.js');
-        const { observePhysicalKVCache } = await import('/diagnostic/physical-kv-cache-observer.js');
-        const layers = manifest.inference.layerPattern.layerTypes.flatMap((type, layer) => type === 'full_attention' ? [layer] : []);
-        cacheObserver = observePhysicalKVCache({ KVCache, getDevice, layers });
-      }
       const targetOpIds = observationTarget.opIds ?? ['embed.out', 'final_norm.pre', 'final_norm.out',
         ...manifest.inference.layerPattern.layerTypes.flatMap((type, layer) =>
           type === 'linear_attention'
@@ -335,12 +339,13 @@ try {
         samplingExcludedTokenIds: [handle.advanced.getSpecialTokens().pad, ...executionOptions.suppressTokenIds]
           .filter(Number.isInteger), timeline: [] } };
     } finally {
+      cacheObserver?.restore();
       await getDevice().queue.onSubmittedWorkDone();
       if (handle) await handle.unload();
       await getDevice().queue.onSubmittedWorkDone();
     }
   }, { compatEntry, partitionsEntry, generation: reference.generation, prompts: reference.prompts, policy,
-    fullPrefixes, prefixesOnly, expected: reference.expected, observationTarget, captureDecode });
+    fullPrefixes, prefixesOnly, expected: reference.expected, observationTarget, captureDecode, recurrentStatePrecision });
   receipt.physicalExecutionCompleted = true;
   receipt.runtimeVersion = result.runtimeVersion;
   receipt.normalizationDispatch = result.normalizationDispatch.map(({ source, ...record }) => ({

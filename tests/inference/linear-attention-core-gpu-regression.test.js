@@ -32,7 +32,9 @@ function assertArraysClose(actual, expected, tolerance, label) {
 
 function buildReferenceOutput({ qkv, z, a, b, layerState, numTokens, qkL2NormEps }) {
   const convState = new Float32Array(layerState.convState);
-  const recurrentState = new Float32Array(layerState.recurrentState);
+  const recurrentState = layerState.recurrentStatePrecision === 'two-f32'
+    ? new Float64Array(layerState.recurrentState)
+    : new Float32Array(layerState.recurrentState);
   const convOut = new Float32Array(numTokens * layerState.convDim);
   const output = new Float32Array(numTokens * layerState.valueDim);
 
@@ -191,7 +193,7 @@ const layerState = {
 
 const smallFixture = { qkv, z, a, b, layerState, numTokens };
 
-async function runCase(inputDtype, fixture = smallFixture) {
+async function runCase(inputDtype, fixture = smallFixture, statePrecision = 'f32') {
   const { qkv, z, a, b, layerState, numTokens } = fixture;
   const qkvInput = inputDtype === 'f16' ? createF16View(qkv) : null;
   const zInput = inputDtype === 'f16' ? createF16View(z) : null;
@@ -202,18 +204,22 @@ async function runCase(inputDtype, fixture = smallFixture) {
     z: zInput?.rounded ?? z,
     a: aInput?.rounded ?? a,
     b: bInput?.rounded ?? b,
-    layerState,
+    layerState: { ...layerState, recurrentStatePrecision: statePrecision },
     numTokens,
     qkL2NormEps,
   });
   const gpuLayerState = {
     ...layerState,
+    recurrentStatePrecision: statePrecision,
+    recurrentStateComponents: statePrecision === 'two-f32' ? 2 : 1,
     convWeightGPU: createGpuBuffer(layerState.convWeight, `linear_conv_weight_${inputDtype}`),
     dtBiasGPU: createGpuBuffer(layerState.dtBias, `linear_dt_bias_${inputDtype}`),
     aLogGPU: createGpuBuffer(layerState.aLog, `linear_a_log_${inputDtype}`),
     normWeightGPU: createGpuBuffer(layerState.normWeight, `linear_norm_weight_${inputDtype}`),
     convStateGPU: createGpuBuffer(layerState.convState, `linear_conv_state_${inputDtype}`),
-    recurrentStateGPU: createGpuBuffer(layerState.recurrentState, `linear_recurrent_state_${inputDtype}`),
+    recurrentStateGPU: createGpuBuffer(statePrecision === 'two-f32'
+      ? Float32Array.from({ length: layerState.recurrentState.length * 2 }, (_, i) => i % 2 ? 0 : layerState.recurrentState[i / 2])
+      : layerState.recurrentState, `linear_recurrent_state_${inputDtype}`),
   };
   const qkvBuffer = createGpuBuffer(qkvInput?.encoded ?? qkv, `linear_qkv_${inputDtype}`);
   const zBuffer = createGpuBuffer(zInput?.encoded ?? z, `linear_z_${inputDtype}`);
@@ -232,9 +238,13 @@ async function runCase(inputDtype, fixture = smallFixture) {
     );
 
     const gpuOutput = new Float32Array(await readBuffer(outputTensor.buffer, reference.output.byteLength));
-    const gpuState = new Float32Array(
-      await readBuffer(gpuLayerState.recurrentStateGPU, reference.recurrentState.byteLength)
+    const rawState = new Float32Array(
+      await readBuffer(gpuLayerState.recurrentStateGPU, layerState.recurrentState.length * gpuLayerState.recurrentStateComponents * 4)
     );
+    const gpuState = statePrecision === 'two-f32'
+      ? Float64Array.from({ length: layerState.recurrentState.length }, (_, i) => rawState[i * 2] + rawState[i * 2 + 1])
+      : rawState;
+    if (statePrecision === 'two-f32') assert(rawState.some((v, i) => i % 2 && v !== 0), 'correction components survive storage');
     const tolerance = inputDtype === 'f16' ? 7e-4 : 1e-5;
     assertArraysClose(gpuOutput, reference.output, tolerance, `${inputDtype} output`);
     assertArraysClose(gpuState, reference.recurrentState, tolerance, `${inputDtype} recurrent_state`);
@@ -284,6 +294,8 @@ const recurrentFixture = {
 };
 await runCase('f32', recurrentFixture);
 await runCase('f16', recurrentFixture);
+await runCase('f32', recurrentFixture, 'two-f32');
+await runCase('f16', recurrentFixture, 'two-f32');
 
 
 const fusedDecodeQkv = new Float32Array([
@@ -318,7 +330,7 @@ const fusedDecodeLayerState = {
   recurrentState: new Float32Array(8),
 };
 
-async function runFusedDecodeCase(inputDtype) {
+async function runFusedDecodeCase(inputDtype, statePrecision = 'f32') {
   const fusedDecodeAB = new Float32Array([...fusedDecodeA, ...fusedDecodeB]);
   const qkvInput = inputDtype === 'f16' ? createF16View(fusedDecodeQkv) : null;
   const zInput = inputDtype === 'f16' ? createF16View(fusedDecodeZ) : null;
@@ -328,18 +340,22 @@ async function runFusedDecodeCase(inputDtype) {
     z: zInput?.rounded ?? fusedDecodeZ,
     a: abInput ? abInput.rounded.slice(0, fusedDecodeA.length) : fusedDecodeA,
     b: abInput ? abInput.rounded.slice(fusedDecodeA.length) : fusedDecodeB,
-    layerState: fusedDecodeLayerState,
+    layerState: { ...fusedDecodeLayerState, recurrentStatePrecision: statePrecision },
     numTokens: 1,
     qkL2NormEps,
   });
   const gpuLayerState = {
     ...fusedDecodeLayerState,
+    recurrentStatePrecision: statePrecision,
+    recurrentStateComponents: statePrecision === 'two-f32' ? 2 : 1,
     convWeightGPU: createGpuBuffer(fusedDecodeLayerState.convWeight, `linear_fused_conv_weight_${inputDtype}`),
     dtBiasGPU: createGpuBuffer(fusedDecodeLayerState.dtBias, `linear_fused_dt_bias_${inputDtype}`),
     aLogGPU: createGpuBuffer(fusedDecodeLayerState.aLog, `linear_fused_a_log_${inputDtype}`),
     normWeightGPU: createGpuBuffer(fusedDecodeLayerState.normWeight, `linear_fused_norm_weight_${inputDtype}`),
     convStateGPU: createGpuBuffer(fusedDecodeLayerState.convState, `linear_fused_conv_state_${inputDtype}`),
-    recurrentStateGPU: createGpuBuffer(fusedDecodeLayerState.recurrentState, `linear_fused_recurrent_state_${inputDtype}`),
+    recurrentStateGPU: createGpuBuffer(statePrecision === 'two-f32'
+      ? Float32Array.from({ length: fusedDecodeLayerState.recurrentState.length * 2 }, (_, i) => i % 2 ? 0 : fusedDecodeLayerState.recurrentState[i / 2])
+      : fusedDecodeLayerState.recurrentState, `linear_fused_recurrent_state_${inputDtype}`),
   };
   const qkvBuffer = createGpuBuffer(qkvInput?.encoded ?? fusedDecodeQkv, `linear_fused_qkv_${inputDtype}`);
   const zBuffer = createGpuBuffer(zInput?.encoded ?? fusedDecodeZ, `linear_fused_z_${inputDtype}`);
@@ -370,9 +386,11 @@ async function runFusedDecodeCase(inputDtype) {
     );
 
     const gpuOutput = new Float32Array(await readBuffer(outputTensor.buffer, reference.output.byteLength));
-    const gpuState = new Float32Array(
-      await readBuffer(gpuLayerState.recurrentStateGPU, reference.recurrentState.byteLength)
-    );
+    const rawState = new Float32Array(await readBuffer(gpuLayerState.recurrentStateGPU,
+      fusedDecodeLayerState.recurrentState.length * gpuLayerState.recurrentStateComponents * 4));
+    const gpuState = statePrecision === 'two-f32'
+      ? Float64Array.from({ length: fusedDecodeLayerState.recurrentState.length }, (_, i) => rawState[i * 2] + rawState[i * 2 + 1]) : rawState;
+    if (statePrecision === 'two-f32') assert(rawState.some((v, i) => i % 2 && v !== 0));
     const tolerance = inputDtype === 'f16' ? 7e-4 : 1e-5;
     assertArraysClose(gpuOutput, reference.output, tolerance, `${inputDtype} fused output`);
     assertArraysClose(gpuState, reference.recurrentState, tolerance, `${inputDtype} fused recurrent_state`);
@@ -400,7 +418,7 @@ async function runFusedDecodeCase(inputDtype) {
 await runFusedDecodeCase('f32');
 await runFusedDecodeCase('f16');
 
-async function runFusedDecodePackedQkvzCase(inputDtype) {
+async function runFusedDecodePackedQkvzCase(inputDtype, statePrecision = 'f32') {
   const fusedDecodeQkvz = new Float32Array([...fusedDecodeQkv, ...fusedDecodeZ]);
   const fusedDecodeAB = new Float32Array([...fusedDecodeA, ...fusedDecodeB]);
   const qkvzInput = inputDtype === 'f16' ? createF16View(fusedDecodeQkvz) : null;
@@ -411,18 +429,22 @@ async function runFusedDecodePackedQkvzCase(inputDtype) {
     z: qkvzReference.slice(fusedDecodeLayerState.convDim),
     a: abInput ? abInput.rounded.slice(0, fusedDecodeA.length) : fusedDecodeA,
     b: abInput ? abInput.rounded.slice(fusedDecodeA.length) : fusedDecodeB,
-    layerState: fusedDecodeLayerState,
+    layerState: { ...fusedDecodeLayerState, recurrentStatePrecision: statePrecision },
     numTokens: 1,
     qkL2NormEps,
   });
   const gpuLayerState = {
     ...fusedDecodeLayerState,
+    recurrentStatePrecision: statePrecision,
+    recurrentStateComponents: statePrecision === 'two-f32' ? 2 : 1,
     convWeightGPU: createGpuBuffer(fusedDecodeLayerState.convWeight, `linear_fused_qkvz_conv_weight_${inputDtype}`),
     dtBiasGPU: createGpuBuffer(fusedDecodeLayerState.dtBias, `linear_fused_qkvz_dt_bias_${inputDtype}`),
     aLogGPU: createGpuBuffer(fusedDecodeLayerState.aLog, `linear_fused_qkvz_a_log_${inputDtype}`),
     normWeightGPU: createGpuBuffer(fusedDecodeLayerState.normWeight, `linear_fused_qkvz_norm_weight_${inputDtype}`),
     convStateGPU: createGpuBuffer(fusedDecodeLayerState.convState, `linear_fused_qkvz_conv_state_${inputDtype}`),
-    recurrentStateGPU: createGpuBuffer(fusedDecodeLayerState.recurrentState, `linear_fused_qkvz_recurrent_state_${inputDtype}`),
+    recurrentStateGPU: createGpuBuffer(statePrecision === 'two-f32'
+      ? Float32Array.from({ length: fusedDecodeLayerState.recurrentState.length * 2 }, (_, i) => i % 2 ? 0 : fusedDecodeLayerState.recurrentState[i / 2])
+      : fusedDecodeLayerState.recurrentState, `linear_fused_qkvz_recurrent_state_${inputDtype}`),
   };
   const qkvzBuffer = createGpuBuffer(qkvzInput?.encoded ?? fusedDecodeQkvz, `linear_fused_qkvz_${inputDtype}`);
   const abBuffer = createGpuBuffer(abInput?.encoded ?? fusedDecodeAB, `linear_fused_qkvz_ab_${inputDtype}`);
@@ -461,9 +483,11 @@ async function runFusedDecodePackedQkvzCase(inputDtype) {
     assert.equal(stats.opLabelCounts.linear_attention_recurrent ?? 0, 0, `${inputDtype} packed QKVZ must not use split recurrent`);
 
     const gpuOutput = new Float32Array(await readBuffer(outputTensor.buffer, reference.output.byteLength));
-    const gpuState = new Float32Array(
-      await readBuffer(gpuLayerState.recurrentStateGPU, reference.recurrentState.byteLength)
-    );
+    const rawState = new Float32Array(await readBuffer(gpuLayerState.recurrentStateGPU,
+      fusedDecodeLayerState.recurrentState.length * gpuLayerState.recurrentStateComponents * 4));
+    const gpuState = statePrecision === 'two-f32'
+      ? Float64Array.from({ length: fusedDecodeLayerState.recurrentState.length }, (_, i) => rawState[i * 2] + rawState[i * 2 + 1]) : rawState;
+    if (statePrecision === 'two-f32') assert(rawState.some((v, i) => i % 2 && v !== 0));
     const tolerance = inputDtype === 'f16' ? 7e-4 : 1e-5;
     assertArraysClose(gpuOutput, reference.output, tolerance, `${inputDtype} packed QKVZ fused output`);
     assertArraysClose(gpuState, reference.recurrentState, tolerance, `${inputDtype} packed QKVZ fused recurrent_state`);
@@ -492,6 +516,10 @@ async function runFusedDecodePackedQkvzCase(inputDtype) {
 
 await runFusedDecodePackedQkvzCase('f32');
 await runFusedDecodePackedQkvzCase('f16');
+for (const dtype of ['f32', 'f16']) {
+  await runFusedDecodeCase(dtype, 'two-f32');
+  await runFusedDecodePackedQkvzCase(dtype, 'two-f32');
+}
 
 destroyDevice();
 console.log('linear-attention-core-gpu-regression.test: ok');

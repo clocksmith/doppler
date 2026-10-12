@@ -226,6 +226,7 @@ export interface ExecutionV1SessionSchema {
   useLinearAttentionQKVZProjectionFusion: boolean;
   /** Opt into linear-attention decode core fusion. Requires qRep=1 and head dims fitting one workgroup. */
   useLinearAttentionFusedDecodeCore: boolean;
+  linearRecurrentStatePrecision: 'f32' | 'two-f32';
   /** Opt into WideTile Q4_K matmul + residual epilogue fusion. */
   useWideTileResidualFusion: boolean;
   /** Opt into RMSNorm + WideTile Q4_K matmul prologue fusion. */

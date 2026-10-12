@@ -1,4 +1,3 @@
-import { getBufferDtype, isGpuBufferInstance, isWeightBuffer } from '../../../gpu/weight-buffer.js';
 import {
   recordMatmul,
   recordRMSNorm,
@@ -9,29 +8,28 @@ import {
   recordCastF32ToF16,
   recordCastF16ToF32,
 } from '../../../gpu/kernel-selector.js';
-import { readBuffer, releaseBuffer, uploadData, acquireBuffer } from '../../../memory/buffer-pool.js';
+import { readBuffer, releaseBuffer, uploadData } from '../../../memory/buffer-pool.js';
 import { log } from '../../../debug/index.js';
-import { decodeReadback, f16ToF32 } from './debug-utils/index.js';
+import { decodeReadback } from './debug-utils/index.js';
 import { runLinearAttentionCoreGPU } from '../../../gpu/kernels/linear-attention-core.js';
 import {
   resolveLinearAttentionABProjection,
   resolveLinearAttentionQKVZProjection,
 } from './linear-attention-ab-fusion.js';
 import { runProbes } from './probes.js';
-import { QK_K, Q4K_BLOCK_BYTES } from '../../../config/schema/index.js';
-import { dequantizeQ4KM } from '../../../converter/quantizer.js';
-import { getKernelPathMatmulPrecision } from '../../../config/kernel-path-loader.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { assertImplicitDtypeTransitionAllowed } from './dtype-contract.js';
-import { applyLoRA } from './lora-apply.js';
 import { getLoRAModule } from './lora.js';
 import { applyProjectionLoRA, createLayerRuntimeState, ensureLayerRuntimeGpuBuffers, inferLinearNormModeFromWeight, isGpuBuffer, normalizeLinearNormMode, projectLinearTensor, releaseOrTrackBuffer, releaseResolvedWeightBuffer, resolveMatmulStepDtype, toPositiveInt } from './linear-attention/plan.js';
 export { applyLinearNormWeightOffset } from './linear-attention/plan.js';
 
-const LINEAR_RUNTIME_SCHEMA_VERSION = 2;
+import { assertRecurrentStateLayout, resolveRecurrentStateLayout } from './linear-attention/state-layout.js';
+
+const LINEAR_RUNTIME_SCHEMA_VERSION = 3;
 const QK_L2NORM_EPS = 1e-6;
 
 function cloneLayerRuntimeState(layerState) {
+  assertRecurrentStateLayout(layerState);
   return {
     layerIdx: layerState.layerIdx,
     seqLen: layerState.seqLen,
@@ -56,6 +54,8 @@ function cloneLayerRuntimeState(layerState) {
     normWeight: layerState.normWeight.slice(),
     convState: layerState.convState.slice(),
     recurrentState: layerState.recurrentState.slice(),
+    recurrentStatePrecision: layerState.recurrentStatePrecision,
+    recurrentStateComponents: layerState.recurrentStateComponents,
   };
 }
 
@@ -69,7 +69,9 @@ function cloneLayerMap(layers) {
 
 function ensureRuntime(runtime) {
   if (runtime && typeof runtime === 'object' && runtime.layers instanceof Map) {
-    runtime.schemaVersion = LINEAR_RUNTIME_SCHEMA_VERSION;
+    if (runtime.schemaVersion !== LINEAR_RUNTIME_SCHEMA_VERSION) {
+      throw new Error('Linear runtime schema version mismatch; reset before reuse.');
+    }
     return runtime;
   }
   return createLinearAttentionRuntime();
@@ -152,6 +154,11 @@ async function observeLinearAttentionState(layerState, options) {
       recorder: options.recorder,
       operatorDiagnostics: options.operatorDiagnostics,
       dtype: 'f32',
+      storageLayout: field === 'recurrentState' ? {
+        precision: layerState.recurrentStatePrecision,
+        components: layerState.recurrentStateComponents,
+        ordering: 'interleaved-high-low',
+      } : null,
     });
   }
 }
@@ -232,6 +239,12 @@ function isLayerRuntimeCompatible(layerState, projectionLayout, requestedNormMod
 async function getLayerRuntimeState(runtime, layerIdx, layerWeights, config, currentSeqLen, projectionLayout) {
   const requestedNormMode = normalizeLinearNormMode(config.linearNormMode);
   let layerState = runtime.layers.get(layerIdx) ?? null;
+  if (layerState) {
+    assertRecurrentStateLayout(layerState);
+    if (layerState.recurrentStatePrecision !== resolveRecurrentStateLayout(config.sessionSettings).precision) {
+      throw new Error('Cannot change recurrent state precision during an active attempt.');
+    }
+  }
   if (!isLayerRuntimeCompatible(layerState, projectionLayout, requestedNormMode)) {
     if (layerState) {
       releaseLayerRuntimeGpuBuffers(layerState);
@@ -345,6 +358,16 @@ export async function cloneLinearAttentionRuntime(runtime) {
 
 export function restoreLinearAttentionRuntime(runtime, snapshot) {
   const target = ensureRuntime(runtime);
+  if (snapshot) {
+    if (snapshot.schemaVersion !== LINEAR_RUNTIME_SCHEMA_VERSION) {
+      throw new Error('Linear snapshot schema version mismatch.');
+    }
+    const states = snapshot.layers instanceof Map ? snapshot.layers.values() : snapshot.layers;
+    if (!states || typeof states[Symbol.iterator] !== 'function') {
+      throw new Error('Linear snapshot requires a layer collection.');
+    }
+    for (const state of states) assertRecurrentStateLayout(state);
+  }
   releaseRuntimeLayerBuffers(target);
   target.schemaVersion = LINEAR_RUNTIME_SCHEMA_VERSION;
   target.layers = new Map();

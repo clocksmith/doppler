@@ -6,6 +6,7 @@ installNodeFileFetchShim();
 const { PipelineGenerator } = await import('../../src/inference/pipelines/text/generator.js');
 const { createDopplerConfig } = await import('../../src/config/schema/index.js');
 const { compileExecutionPlanState } = await import('../../src/inference/pipelines/text/execution-plan.js');
+const { createLinearAttentionRuntime } = await import('../../src/inference/pipelines/text/linear-attention.js');
 
 // =============================================================================
 // Behavioral parity test: generateTokenIds() vs generate()
@@ -86,7 +87,7 @@ function createMinimalState(overrides = {}) {
   return {
     tokenizer: createFakeTokenizer(),
     kvCache: null,
-    linearAttentionRuntime: { schemaVersion: 1, layers: new Map() },
+    linearAttentionRuntime: createLinearAttentionRuntime(),
     convLayerStates: new Map(),
     moeRouter: null,
     speculativeDecoder: null,
