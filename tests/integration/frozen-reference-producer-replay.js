@@ -11,6 +11,7 @@ import { gunzipSync } from 'node:zlib';
 import { chromium } from 'playwright';
 import { compareReferenceModel } from '../../../reploid/tests/fixtures/distributed-reference-model.js';
 import { validatePrefixOnlyTarget } from '../helpers/frozen-prefix-scope.js';
+import { bindPairedModel } from '../helpers/paired-model-binding.js';
 import { finishFrozenPrefixReplay } from '../helpers/frozen-prefix-receipt.js';
 
 const [archivePath, modelDirectory, destination, manifestMode = 'frozen'] = process.argv.slice(2);
@@ -28,6 +29,12 @@ const physicalCache = observationTarget.physicalCache === true;
 const fullPrefixes = process.env.DOPPLER_FORENSIC_FULL_PREFIXES === '1';
 const recurrentStatePrecision = process.env.DOPPLER_RECURRENT_STATE_PRECISION ?? 'f32';
 assert(['f32', 'two-f32'].includes(recurrentStatePrecision));
+const intermediatePrecision = process.env.DOPPLER_INTERMEDIATE_PRECISION ?? 'f32';
+assert(['f32', 'two-f32'].includes(intermediatePrecision));
+const pairedGraphBytes = intermediatePrecision === 'two-f32'
+  ? await readFile(process.env.DOPPLER_PAIRED_EXECUTION_GRAPH) : null;
+const maxDeviceBytes = Number(process.env.DOPPLER_REPLAY_DEVICE_BYTES ?? 6000000000);
+assert(Number.isSafeInteger(maxDeviceBytes) && maxDeviceBytes > 0);
 assert(archivePath && modelDirectory && destination, 'Supply retained archive, unchanged model directory and receipt');
 assert(['frozen', 'current'].includes(manifestMode), 'Manifest mode must be frozen or current');
 assert(['darwin', 'linux'].includes(process.platform));
@@ -47,14 +54,16 @@ assert.equal('sha256:' + hash(frozenManifestBytes), reference.modelIdentity);
 const manifestBytes = manifestMode === 'current'
   ? await readFile(resolve(modelDirectory, 'manifest.json')) : frozenManifestBytes;
 const manifest = JSON.parse(manifestBytes);
-const changedKernelPins = compareReferenceModel(manifest, JSON.parse(frozenManifestBytes));
+const changedKernelPins = pairedGraphBytes
+  ? bindPairedModel(manifest, JSON.parse(frozenManifestBytes), JSON.parse(pairedGraphBytes))
+  : compareReferenceModel(manifest, JSON.parse(frozenManifestBytes));
 const policy = JSON.parse(await readFile(new URL('../../../reploid/self/config/partition-policy.json', import.meta.url)));
 const directory = await mkdtemp(join(tmpdir(), 'doppler-reference-producer-'));
 const receipt = { scope: 'Retained archive forensic fixed-prefix replay; producing ownership is unproven, no reference replacement or release acceptance',
   host: process.platform, producerSha256: hash(await readFile(new URL(import.meta.url))), archiveSha256: hash(await readFile(archivePath)),
   referenceSha256: hash(referenceBytes), manifestIdentity: 'sha256:' + hash(manifestBytes), results: [],
   frozenManifestIdentity: reference.modelIdentity, manifestMode, changedKernelPins,
-  recurrentStatePrecision, servedShaders: {}, modelDirectory: resolve(modelDirectory), fullPrefixes, prefixesOnly, observationTarget };
+  recurrentStatePrecision, intermediatePrecision, maxDeviceBytes, pairedGraphSha256: pairedGraphBytes ? hash(pairedGraphBytes) : null, servedShaders: {}, modelDirectory: resolve(modelDirectory), fullPrefixes, prefixesOnly, observationTarget };
 const cacheObserverSource = await readFile(new URL('../helpers/physical-kv-cache-observer.js', import.meta.url));
 if (physicalCache) receipt.cacheObserverSha256 = hash(cacheObserverSource);
 async function recordPrefill(row) {
@@ -125,7 +134,7 @@ try {
   await page.goto(`http://127.0.0.1:${server.address().port}`);
   const observedTimeline = [];
   await page.exposeFunction('recordProducerObservation', row => { observedTimeline.push(row); });
-  const result = await page.evaluate(async ({ compatEntry, partitionsEntry, generation, prompts, policy, fullPrefixes, prefixesOnly, expected, observationTarget, captureDecode, recurrentStatePrecision }) => {
+  const result = await page.evaluate(async ({ compatEntry, partitionsEntry, generation, prompts, policy, fullPrefixes, prefixesOnly, expected, observationTarget, captureDecode, recurrentStatePrecision, intermediatePrecision, maxDeviceBytes }) => {
     const ropeBindings = [], uniformWrites = new WeakMap();
     if (observationTarget.ropeTable === true) {
       const writeBuffer = GPUQueue.prototype.writeBuffer;
@@ -208,7 +217,7 @@ try {
     const runtime = await import('/runtime/' + partitionsEntry.replace(/^\.\//, ''));
     const { createHttpArtifactStorageContext } = await import('/runtime/src/storage/artifact-storage-context.js');
     const { getDevice } = await import('/runtime/src/gpu/device.js');
-    await runtime.configureDeviceMemoryBudget({ maxBytes: 6000000000 });
+    await runtime.configureDeviceMemoryBudget({ maxBytes: maxDeviceBytes });
     const source = new URL('/model/', location.href).href;
     const manifestText = await (await fetch(source + 'manifest.json')).text();
     const manifest = JSON.parse(manifestText);
@@ -230,7 +239,7 @@ try {
         storage: createHttpArtifactStorageContext(source, manifest, { verifyHashes: true }) }, {
         onProgress: progress => console.log('producer-progress:' + JSON.stringify(progress)),
         runtimeConfig: { shared: { bufferPool: policy.bufferPool }, inference: { session: {
-          linearRecurrentStatePrecision: recurrentStatePrecision,
+          linearRecurrentStatePrecision: recurrentStatePrecision, intermediatePrecision,
           kvcache: { maxSeqLen: generation.maxSeqLen }, prefillChunkLayers: policy.prefillChunkLayers,
           prefillTokenChunkSize: policy.prefillTokenChunkSize } } } });
       if (observationTarget.ropeTable === true) {
@@ -268,6 +277,7 @@ try {
             resolvedRuntimeSession: typeof handle.advanced.getResolvedRuntimeSession === 'function'
               ? handle.advanced.getResolvedRuntimeSession() : null });
           await globalThis.recordProducerPrefill(rows.at(-1));
+          console.log('producer-progress:' + JSON.stringify({ request: index, step, prefixComplete: true }));
         };
         const value = await handle.advanced.prefillWithLogits(messages, { ...executionOptions, inputIds });
         try { await record(value, 0); } finally { value.cache?.destroy(); }
@@ -345,7 +355,7 @@ try {
       await getDevice().queue.onSubmittedWorkDone();
     }
   }, { compatEntry, partitionsEntry, generation: reference.generation, prompts: reference.prompts, policy,
-    fullPrefixes, prefixesOnly, expected: reference.expected, observationTarget, captureDecode, recurrentStatePrecision });
+    fullPrefixes, prefixesOnly, expected: reference.expected, observationTarget, captureDecode, recurrentStatePrecision, intermediatePrecision, maxDeviceBytes });
   receipt.physicalExecutionCompleted = true;
   receipt.runtimeVersion = result.runtimeVersion;
   receipt.normalizationDispatch = result.normalizationDispatch.map(({ source, ...record }) => ({

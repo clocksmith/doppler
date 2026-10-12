@@ -17,6 +17,26 @@
       "description": "Pre-attention RMS norm.",
       "kernelFamily": ["rmsnorm"]
     },
+    "linear_qkv_proj": {
+      "section": ["prefill", "decode"],
+      "description": "Declared convolutional recurrent Q/K/V projection.",
+      "kernelFamily": ["tiled", "gemv", "matmul_q4k"]
+    },
+    "linear_z_proj": {
+      "section": ["prefill", "decode"],
+      "description": "Declared recurrent output-gate projection.",
+      "kernelFamily": ["tiled", "gemv", "matmul_q4k"]
+    },
+    "linear_a_proj": {
+      "section": ["prefill", "decode"],
+      "description": "Declared recurrent decay projection with its own weight encoding.",
+      "kernelFamily": ["tiled", "gemv", "matmul_q4k"]
+    },
+    "linear_b_proj": {
+      "section": ["prefill", "decode"],
+      "description": "Declared recurrent update-gate projection with its own weight encoding.",
+      "kernelFamily": ["tiled", "gemv", "matmul_q4k"]
+    },
     "q_proj": {
       "section": ["prefill", "decode"],
       "description": "Query projection. Tiled matmul in prefill, GEMV in decode.",
