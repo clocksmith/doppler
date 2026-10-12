@@ -1,0 +1,38 @@
+[
+  {
+    "path": "doppler/tests/integration/frozen-reference-producer-replay.js",
+    "sha256": "594c8151fc6b44cc3645931932700060fef5bca01276aba7db335e56320bf13c"
+  },
+  {
+    "path": "doppler/tests/helpers/frozen-prefix-scope.js",
+    "sha256": "195cded97b78c81e6e8bb47738623b1ea0d2cf28b8c814a71c7175fb30a8310a"
+  },
+  {
+    "path": "doppler/tests/helpers/frozen-prefix-receipt.js",
+    "sha256": "221908589d2af9330a9ff8bf5cd12b9e5201f6c7f93d81c0db448a8a951ca628"
+  },
+  {
+    "path": "doppler/tests/helpers/paired-model-binding.js",
+    "sha256": "3e076cd4424ea348d508f78856d3abfaaf09e6497fbd927f004add85eb4d02e9"
+  },
+  {
+    "path": "doppler/tests/helpers/physical-kv-cache-observer.js",
+    "sha256": "5bd67ec6593f321eca3b927b988e8c3dd3735b0eea86e1f4bab913d63023572f"
+  },
+  {
+    "path": "reploid/tests/fixtures/distributed-reference-model.js",
+    "sha256": "3d40003544c93ea2982c8801ab77e2cf14c79485bf01895f4491070105b679e0"
+  },
+  {
+    "path": "reploid/tests/fixtures/distributed-reference.json.gz",
+    "sha256": "f1a2d9a0c153ff96de3cd556bb4e4f133c35ffd7c03553b8969d0878c287e8f7"
+  },
+  {
+    "path": "reploid/tests/fixtures/distributed-reference-manifest.json.gz",
+    "sha256": "6101c21b8e709c3ccc559ce34b4ea03cb94582488f718fec25c0c2f8861a13ff"
+  },
+  {
+    "path": "reploid/self/config/partition-policy.json",
+    "sha256": "5a6f974f34b1cba00aff269857c3fe53728782317477bede684a0e11f2b6a235"
+  }
+]
