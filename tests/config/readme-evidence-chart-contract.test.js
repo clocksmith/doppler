@@ -30,8 +30,12 @@ assert.match(svg, /tok\/s/);
 assert.match(svg, /embedding\/s/);
 assert.match(svg, /rerank\/s/);
 assert.doesNotMatch(svg, /ms\/token|ms\/embedding|ms\/rerank|LOWER IS FASTER/);
-assert.match(readme, /higher steady-state inference throughput/);
-assert.match(readme, /higher is faster/);
+// The README points to scoped evidence; it need not repeat a performance claim
+// from the retained chart or embed the chart itself.
+for (const target of ['docs/model-competition-scoreboard.md', 'docs/model-support-matrix.md']) {
+  assert.ok(readme.includes(`](${target})`), `README must link its evidence owner: ${target}`);
+  assert.ok((await readFile(target, 'utf8')).trim(), `Evidence owner must exist: ${target}`);
+}
 assert.doesNotMatch(readme, /lower decode ms\/token|latency distributions/);
 
 console.log('readme-evidence-chart-contract.test: ok');
