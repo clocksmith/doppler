@@ -1,0 +1,6 @@
+matmul-dispatch-contract.test: ok
+[235.6ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+[236.2ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=paged, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+[236.5ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+[236.7ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=contiguous, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+runtime-contract-regressions.test: ok
