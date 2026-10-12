@@ -64,6 +64,11 @@ const receipt = { scope: 'Retained archive forensic fixed-prefix replay; produci
   referenceSha256: hash(referenceBytes), manifestIdentity: 'sha256:' + hash(manifestBytes), results: [],
   frozenManifestIdentity: reference.modelIdentity, manifestMode, changedKernelPins,
   recurrentStatePrecision, intermediatePrecision, maxDeviceBytes, pairedGraphSha256: pairedGraphBytes ? hash(pairedGraphBytes) : null, servedShaders: {}, modelDirectory: resolve(modelDirectory), fullPrefixes, prefixesOnly, observationTarget };
+const settlementSource = await readFile(new URL('../helpers/frozen-prefix-resources.js', import.meta.url));
+receipt.settlementHelperSha256 = hash(settlementSource);
+const browserChannel = process.env.DOPPLER_FORENSIC_BROWSER_CHANNEL ?? 'chrome';
+assert(['chrome', 'chromium'].includes(browserChannel));
+receipt.browserChannel = browserChannel;
 const cacheObserverSource = await readFile(new URL('../helpers/physical-kv-cache-observer.js', import.meta.url));
 if (physicalCache) receipt.cacheObserverSha256 = hash(cacheObserverSource);
 async function recordPrefill(row) {
@@ -107,6 +112,9 @@ try {
     try {
       const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
       if (pathname === '/') { response.setHeader('Content-Type', 'text/html'); response.end('<!doctype html>'); return; }
+      if (pathname === '/diagnostic/frozen-prefix-resources.js') {
+        response.setHeader('Content-Type', 'text/javascript'); response.end(settlementSource); return;
+      }
       if (pathname === '/diagnostic/physical-kv-cache-observer.js') {
         response.setHeader('Content-Type', 'text/javascript'); response.end(cacheObserverSource); return;
       }
@@ -124,12 +132,16 @@ try {
     } catch (error) { response.writeHead(404); response.end(error.message); }
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-  browser = await chromium.launch({ channel: 'chrome', headless: true, args: ['--enable-unsafe-webgpu',
+  browser = await chromium.launch({ ...(browserChannel === 'chrome' ? { channel: 'chrome' } : {}),
+    dumpio: process.env.DOPPLER_FORENSIC_BROWSER_LOGS === '1', headless: true, args: ['--enable-unsafe-webgpu',
     ...(process.platform === 'darwin' ? ['--use-angle=metal']
       : ['--enable-features=Vulkan', '--use-angle=vulkan', '--disable-gpu-sandbox'])] });
   receipt.browser = browser.version();
   const page = await browser.newPage();
   await page.exposeFunction('recordProducerPrefill', recordPrefill);
+  receipt.deviceEvents = [];
+  await page.exposeFunction('recordProducerDeviceEvent', row => { receipt.deviceEvents.push(row); });
+  await page.exposeFunction('recordProducerAdapter', info => { receipt.observedAdapter = info; });
   receipt.resourceSettlement = [];
   await page.exposeFunction('recordProducerResources', row => { receipt.resourceSettlement.push(row); });
   page.on('console', event => { if (event.text().startsWith('producer-progress:')) console.log(event.text()); });
@@ -218,9 +230,12 @@ try {
     const { load, DOPPLER_VERSION } = await import('/runtime/' + compatEntry.replace(/^\.\//, ''));
     const runtime = await import('/runtime/' + partitionsEntry.replace(/^\.\//, ''));
     const { createHttpArtifactStorageContext } = await import('/runtime/src/storage/artifact-storage-context.js');
-    const { getDevice } = await import('/runtime/src/gpu/device.js');
+    const { getDevice, getKernelCapabilities } = await import('/runtime/src/gpu/device.js');
+    const { settleFrozenPrefixResources } = await import('/diagnostic/frozen-prefix-resources.js');
     const { getBufferPool } = await import('/runtime/src/memory/buffer-pool.js');
     await runtime.configureDeviceMemoryBudget({ maxBytes: maxDeviceBytes });
+    await globalThis.recordProducerAdapter({ ...getKernelCapabilities().adapterInfo, userAgent: navigator.userAgent });
+    getDevice().lost.then(info => globalThis.recordProducerDeviceEvent({ phase: 'device-lost', reason: info.reason, message: info.message }));
     const source = new URL('/model/', location.href).href;
     const manifestText = await (await fetch(source + 'manifest.json')).text();
     const manifest = JSON.parse(manifestText);
@@ -237,6 +252,7 @@ try {
         cacheObserver = observePhysicalKVCache({ KVCache, getDevice, layers,
           allocationLayerIndices: observationTarget.sparseAttentionCache === true ? layers : null });
       }
+    let primaryFailure = null;
     try {
       handle = await load({ manifest, manifestText, manifestHash, baseUrl: source,
         storage: createHttpArtifactStorageContext(source, manifest, { verifyHashes: true }) }, {
@@ -360,16 +376,24 @@ try {
         physicalCache: cacheObserver ? physicalRows.flatMap(value => value.rows) : null,
         samplingExcludedTokenIds: [handle.advanced.getSpecialTokens().pad, ...executionOptions.suppressTokenIds]
           .filter(Number.isInteger), timeline: [] } };
+    } catch (error) {
+      primaryFailure = error;
+      await globalThis.recordProducerDeviceEvent({ phase: 'primary-failure', name: error.name, message: error.message });
+      throw error;
     } finally {
-      cacheObserver?.restore();
       const snapshotResources = phase => window.recordProducerResources({ phase,
         device: runtime.inspectDeviceMemory(), pool: getBufferPool().getStats(),
         modelHandleAcquired: Boolean(handle), poolObservationSurface: 'installed internal diagnostic export' });
-      await snapshotResources('before-settlement');
-      await getDevice().queue.onSubmittedWorkDone();
-      if (handle) await handle.unload();
-      await getDevice().queue.onSubmittedWorkDone();
-      await snapshotResources('after-queue-and-model-settlement');
+      await settleFrozenPrefixResources({ primaryFailure,
+        recordFailure: row => globalThis.recordProducerDeviceEvent({ ...row, kind: 'cleanup-failure' }),
+        steps: [
+          ['restore-observer', () => cacheObserver?.restore()],
+          ['before-settlement', () => snapshotResources('before-settlement')],
+          ['queue-before-unload', () => getDevice().queue.onSubmittedWorkDone()],
+          ['unload', () => handle?.unload()],
+          ['queue-after-unload', () => getDevice().queue.onSubmittedWorkDone()],
+          ['after-settlement', () => snapshotResources('after-queue-and-model-settlement')],
+        ] });
     }
   }, { compatEntry, partitionsEntry, generation: reference.generation, prompts: reference.prompts, policy,
     fullPrefixes, prefixesOnly, expected: reference.expected, observationTarget, captureDecode, recurrentStatePrecision, intermediatePrecision, maxDeviceBytes });
