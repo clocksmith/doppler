@@ -1,0 +1,109 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.8ms
+[1453.2ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[1453.5ms][Config] Using manifest-first config (source of truth)
+[1457.3ms][Pipeline] Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+[1457.5ms][Pipeline] Vision capable: imageTokenId=248056
+[1458.6ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (15 decode steps, 11 kernels, source=execution-v1)
+[1458.9ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[1459.3ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[1677.7ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[1986.5ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges
+[1986.9ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[1988.2ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=128, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=128
+[1988.8ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[2020.4ms][ShardCache] Custom shard loader configured
+[2020.8ms][Loader] Initializing...
+[2049.9ms][HeapManager] Allocated segment 0: 1024MB
+[2050.1ms][HeapManager] Segmented heap: 1GB per segment
+[2050.1ms][HeapManager] Initialized with strategy: SEGMENTED
+[2050.2ms][Loader] Initialized (f16, subgroups)
+[2050.7ms][Loader] Loading: qwen-3-5-0-8b-q4k-ehaf16
+[2052.2ms][Loader] [0.0s] Memory (start): | RSS=245.12 MB (heap=57.31 MB/91.43 MB, external=1.01 GB, arrayBuffers=1.01 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[2053.4ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[2232.1ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,1024], isWeightBuffer=true
+[2232.6ms][Loader] Layers: 0-23
+[2443.2ms][Loader] Layers: 24 complete (0.21s)
+[2502.1ms][Loader] Complete: 890.16 MB in 0.43s (2.01 GB/s)
+[2503.2ms][Loader] [0.5s] Memory (complete): | RSS=285.11 MB (heap=64.91 MB/98.68 MB, external=1.02 GB, arrayBuffers=1.01 GB) | GPU=893.10 MB (345 active, 0 pooled, peak=893.10 MB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=345
+[2514.9ms][Pipeline] Model loaded successfully (1067ms)
+[2519.3ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[2519.5ms][Config] Using manifest-first config (source of truth)
+[2520.3ms][Pipeline] Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+[2520.3ms][Pipeline] Vision capable: imageTokenId=248056
+[2520.4ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (15 decode steps, 11 kernels, source=execution-v1)
+[2520.5ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[2520.5ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[2520.5ms][Tokenizer] Bundled tokenizer cache hit: tokenizer.json
+[2520.6ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[2521.2ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=128, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=128
+[2521.4ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[2546.5ms][ShardCache] Custom shard loader configured
+[2546.8ms][Loader] Initializing...
+[2550.2ms][Loader] Initialized (f16, subgroups)
+[2550.5ms][Loader] Loading: qwen-3-5-0-8b-q4k-ehaf16
+[2550.9ms][Loader] [0.0s] Memory (start): | RSS=301.90 MB (heap=85.82 MB/112.74 MB, external=2.02 GB, arrayBuffers=2.01 GB) | GPU=893.14 MB (347 active, 1 pooled, peak=893.14 MB) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[2551.2ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[2751.0ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,1024], isWeightBuffer=true
+[2751.3ms][Loader] Layers: 0-11
+[2854.0ms][Loader] Layers: 12 complete (0.10s)
+[2854.2ms][Loader] Complete: 619.38 MB in 0.30s (2.00 GB/s)
+[2854.9ms][Loader] [0.3s] Memory (complete): | RSS=284.48 MB (heap=62.59 MB/99.18 MB, external=1.02 GB, arrayBuffers=1.02 GB) | GPU=1.48 GB (519 active, 0 pooled, peak=1.48 GB) | ShardCache=0 B (0 shards) | Layers=12, GPUBuffers=172
+[2856.0ms][Pipeline] Model loaded successfully (338ms)
+[2859.2ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[2859.3ms][Config] Using manifest-first config (source of truth)
+[2860.2ms][Pipeline] Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+[2860.2ms][Pipeline] Vision capable: imageTokenId=248056
+[2860.3ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (15 decode steps, 11 kernels, source=execution-v1)
+[2860.3ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[2860.4ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[2860.4ms][Tokenizer] Bundled tokenizer cache hit: tokenizer.json
+[2860.5ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[2860.7ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=128, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=128
+[2860.8ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[2897.4ms][ShardCache] Custom shard loader configured
+[2897.5ms][Loader] Initializing...
+[2900.8ms][Loader] Initialized (f16, subgroups)
+[2901.0ms][Loader] Loading: qwen-3-5-0-8b-q4k-ehaf16
+[2905.2ms][Loader] [0.0s] Memory (start): | RSS=284.93 MB (heap=66.61 MB/99.18 MB, external=1.01 GB, arrayBuffers=1.01 GB) | GPU=1.48 GB (519 active, 0 pooled, peak=1.48 GB) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[2905.8ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[2907.2ms][Loader] Layers: 12-23
+[3017.0ms][Loader] Layers: 12 complete (0.11s)
+[3061.4ms][Loader] Complete: 270.78 MB in 0.15s (1.71 GB/s)
+[3062.4ms][Loader] [0.2s] Memory (complete): | RSS=297.18 MB (heap=61.85 MB/99.93 MB, external=1.04 GB, arrayBuffers=1.04 GB) | GPU=1.74 GB (692 active, 0 pooled, peak=1.74 GB) | ShardCache=0 B (0 shards) | Layers=12, GPUBuffers=173
+[3063.1ms][Pipeline] Model loaded successfully (205ms)
+[3102.2ms][KernelSelect] matmul variant=q4_fused_widetile reason=path_override
+[3110.2ms][KernelSelect] matmul variant=f16w_f32a reason=default
+[3196.3ms][KernelSelect] attention variant=prefill_head256_f16kv reason=path_override:tiled_small
+[3324.2ms][KernelSelect] matmul variant=q4_fused_batched_multicol_shared reason=path_override
+{"step":0,"tokenId":279,"splitTokenId":279,"activationBytes":24576,"comparison":{"schema":"doppler.partition-comparison-contract/v1","matches":true,"maxDiff":0,"mse":0,"cosineSimilarity":1,"tolerance":0.0001,"minCosineSimilarity":0.9999,"length":248320}}
+[3522.6ms][KernelSelect] matmul variant=q4_fused_gemv reason=path_override
+[3531.2ms][KernelSelect] matmul variant=gemv_subgroup reason=gemv
+[3551.4ms][KernelSelect] attention variant=decode_online_f16kv reason=path_override:subgroup
+{"step":1,"tokenId":1067,"splitTokenId":1067,"activationBytes":4096,"comparison":{"schema":"doppler.partition-comparison-contract/v1","matches":true,"maxDiff":0,"mse":0,"cosineSimilarity":1,"tolerance":0.0001,"minCosineSimilarity":0.9999,"length":248320}}
+{"step":2,"tokenId":314,"splitTokenId":314,"activationBytes":4096,"comparison":{"schema":"doppler.partition-comparison-contract/v1","matches":true,"maxDiff":0,"mse":0,"cosineSimilarity":0.9999999999999999,"tolerance":0.0001,"minCosineSimilarity":0.9999,"length":248320}}
+[3864.3ms][ExpertCache] Cache cleared
+[3865.2ms][Pipeline] Unloaded
+[3867.1ms][ExpertCache] Cache cleared
+[3867.6ms][Pipeline] Unloaded
+[3869.8ms][ExpertCache] Cache cleared
+[3871.7ms][Pipeline] Unloaded
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+4 !== 1
+
+    at file:///var/tmp/doppler-allocation-v3-partition-controls/tests/integration/partition-layers-physical.test.js:171:12 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 4,
+  expected: 1,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.1
