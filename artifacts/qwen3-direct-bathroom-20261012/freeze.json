@@ -1,0 +1,45 @@
+{
+  "schema": "doppler.direct-bathroom-freeze/v1",
+  "createdAtUtc": "2026-10-12T21:11:36.426010+00:00",
+  "status": "frozen-before-generation",
+  "files": {
+    "README.md": "46e2a7c3c4d0571b2c905d4c7484dfa3e2b6d70c958e0308ed41c942bdc44902",
+    "guard_test.py": "fa40873e5865e8e56c2ddc60a01712abb8c4b6b04036c1e452c1ed55c610aee2",
+    "preflight.json": "8b72027660ab966cbd7cb7d731d37f5663869711c5e1f4371d87bdae9b51315c",
+    "preflight.py": "b1791541498c3b39df27a551b56cd1bad2f85f65f77acbfff7ae5351c48d10a3",
+    "run.py": "84ae07429434c9c98fb1ddf6cf7b599297aee865e78fdbe7233edc66c9c0b887",
+    "suite.json": "3351dffe878c5fa4bc655b2a67c76999a60b1bd1c8d969e26bdf400d437083b2"
+  },
+  "reusedSources": {
+    "tools/source-model-task-quality.py": "3e1dd96f7e338a48a0c778e7d9b2b20f0c9c2982ff9a59194d03774ed42da483",
+    "tools/lib/source_task_quality.py": "37586f498f393570e499859deb0bcaba520e86bb85a03365c176a4981079127f",
+    "artifacts/contractor-structured-quality-20261011/suite.json": "89e7d22581b14edf1b5575c303526340deeff6efc00abfaababa977d548bab6a",
+    "artifacts/qwen3-17b-application-policy-20261011/recommended-thinking-suite.json": "0cf151811add3f9a61e931a1d3a24b1a3d6e64a878b2ee4ba617cf7f558b0b1f"
+  },
+  "sourceIdentity": {
+    "download-receipt.json": "eaf732de3eb6a2d4c754b3959269c2ef6aab0014e3becda960e08dd78b148c8a",
+    "tokenizer_config.json": "d5d09f07b48c3086c508b30d1c9114bd1189145b74e982a265350c923acd8101",
+    "tokenizer.json": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4",
+    "generation_config.json": "2325da0f15bb848e018c5ae071b7943332e9f871d6b60e2ed22ca97d4cb993d2"
+  },
+  "officialTemplateSha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
+  "modelId": "Qwen/Qwen3-1.7B",
+  "revision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+  "pairs": 4,
+  "seeds": [
+    17,
+    53
+  ],
+  "budgets": {
+    "generatedTokens": 4096,
+    "totalTokens": 8192,
+    "rawUtf16": 16000
+  },
+  "preflightPromptTokens": [
+    482,
+    597
+  ],
+  "delta": "Remove only added structured system instruction; exact first two parent histories/criteria and official thinking generation retained.",
+  "stopPolicy": "Stop at first completed structural/budget rejection after retaining its report. Continue all predeclared pairs through factual failures; no seed selection.",
+  "qualified": false
+}
