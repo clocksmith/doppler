@@ -1,0 +1,45 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: The input did not match the regular expression /paired Q/. Input:
+
+'Error: Device not initialized. Call initDevice() first. deviceState={"localDevice":false,"sharedDevice":false,"localCapabilities":false,"sharedCapabilities":false,"localPlatformInitialized":false,"sharedPlatformInitialized":false,"deviceEpoch":0,"sharedDeviceEpoch":0,"lastDeviceLoss":null}'
+
+    at async file:///Users/xyz/deco/doppler/tests/gpu/paired-attention-contract.test.js:20:75 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: Error: Device not initialized. Call initDevice() first. deviceState={"localDevice":false,"sharedDevice":false,"localCapabilities":false,"sharedCapabilities":false,"localPlatformInitialized":false,"sharedPlatformInitialized":false,"deviceEpoch":0,"sharedDeviceEpoch":0,"lastDeviceLoss":null}
+      at getKernelCapabilities (file:///Users/xyz/deco/doppler/src/gpu/device.js:687:11)
+      at executeAttention (file:///Users/xyz/deco/doppler/src/gpu/kernels/attention/executors.js:472:16)
+      at runAttention (file:///Users/xyz/deco/doppler/src/gpu/kernels/attention.js:617:10)
+      at file:///Users/xyz/deco/doppler/tests/gpu/paired-attention-contract.test.js:20:96,
+  expected: /paired Q/,
+  operator: 'rejects',
+  diff: 'simple'
+}
+
+Node.js v22.20.0
+paired split strict representation, geometry and alias guards passed
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: The input did not match the regular expression /paired Q/. Input:
+
+'Error: Device not initialized. Call initDevice() first. deviceState={"localDevice":false,"sharedDevice":false,"localCapabilities":false,"sharedCapabilities":false,"localPlatformInitialized":false,"sharedPlatformInitialized":false,"deviceEpoch":0,"sharedDeviceEpoch":0,"lastDeviceLoss":null}'
+
+    at async file:///Users/xyz/deco/doppler/tests/gpu/paired-attention-contract.test.js:20:75 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: Error: Device not initialized. Call initDevice() first. deviceState={"localDevice":false,"sharedDevice":false,"localCapabilities":false,"sharedCapabilities":false,"localPlatformInitialized":false,"sharedPlatformInitialized":false,"deviceEpoch":0,"sharedDeviceEpoch":0,"lastDeviceLoss":null}
+      at getKernelCapabilities (file:///Users/xyz/deco/doppler/src/gpu/device.js:687:11)
+      at executeAttention (file:///Users/xyz/deco/doppler/src/gpu/kernels/attention/executors.js:472:16)
+      at runAttention (file:///Users/xyz/deco/doppler/src/gpu/kernels/attention.js:617:10)
+      at file:///Users/xyz/deco/doppler/tests/gpu/paired-attention-contract.test.js:20:96,
+  expected: /paired Q/,
+  operator: 'rejects',
+  diff: 'simple'
+}
+
+Node.js v22.20.0

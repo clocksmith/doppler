@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: immediate and recorded modes consume the identical semantic plan
+ok 1 - immediate and recorded modes consume the identical semantic plan
+  ---
+  duration_ms: 1.421292
+  type: 'test'
+  ...
+# Subtest: changing one semantic decision changes the plan identity
+ok 2 - changing one semantic decision changes the plan identity
+  ---
+  duration_ms: 0.249625
+  type: 'test'
+  ...
+# Subtest: query scaling and NoPE are immutable plan identity
+ok 3 - query scaling and NoPE are immutable plan identity
+  ---
+  duration_ms: 0.391209
+  type: 'test'
+  ...
+# Subtest: semantic plans are deeply immutable and JSON-safe
+ok 4 - semantic plans are deeply immutable and JSON-safe
+  ---
+  duration_ms: 0.199834
+  type: 'test'
+  ...
+# Subtest: characterization matrix covers phase, dtype, capability, KV, fusion, LoRA, gate, and failure contracts
+ok 5 - characterization matrix covers phase, dtype, capability, KV, fusion, LoRA, gate, and failure contracts
+  ---
+  duration_ms: 2.772417
+  type: 'test'
+  ...
+# Subtest: paired intermediates select separate residual/gate paths and exclude scalar flash epilogues
+ok 6 - paired intermediates select separate residual/gate paths and exclude scalar flash epilogues
+  ---
+  duration_ms: 0.289083
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 66.694709
