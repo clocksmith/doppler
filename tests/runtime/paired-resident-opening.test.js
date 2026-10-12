@@ -20,7 +20,7 @@ const identityFor = precision => createInitialExecutionIdentityV2({
   memoryPolicy: { kvcache: { layout: 'contiguous', kvDtype: 'f16' } }, executionPlanDigest: digest('5'),
   runtimeEngine: { resolvedRuntimeSchema: 'doppler.resolved-runtime-session/v1' },
   programLoadPolicy: { schema: 'doppler.capsule-program-load-policy/v2', runtimeConfig: { inference: {
-    session: { intermediatePrecision: precision, activationDtype: 'f32', linearAttentionStatePrecision: 'two-f32' },
+    session: { intermediatePrecision: precision, activationDtype: 'f32', linearRecurrentStatePrecision: 'two-f32' },
     compute: { outputDtype: 'f32' }, generation: { disableMultiTokenDecode: true },
   } } },
 });
@@ -40,6 +40,7 @@ const runtime = createDopplerRun({
   async programFactory({ targetPlan, options }) {
     loadedPolicy = resolveCapsuleProgramLoadOptions(targetPlan).runtimeConfig;
     assert.equal(loadedPolicy.inference.session.intermediatePrecision, 'two-f32');
+    assert.equal(loadedPolicy.inference.session.linearRecurrentStatePrecision, 'two-f32');
     const allocation = options.residentPartition;
     assert.equal(allocation.plan.schema, 'doppler.layer-partition-contract/v2');
     assert.equal(allocation.plan.activationPrecision, 'two-f32');
