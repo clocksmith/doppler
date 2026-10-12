@@ -1,10 +1,12 @@
 // Offline evidence conversion only. Never executes a model or changes a reference.
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { readFile, mkdir, writeFile } from 'node:fs/promises';
+import { readFile, mkdir, writeFile, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
-import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
 
 export const sha256 = bytes => 'sha256:' + createHash('sha256').update(bytes).digest('hex');
 const parse = bytes => JSON.parse(bytes);
@@ -25,7 +27,7 @@ function vector(text, bytesPerElement, length) {
  * Raw report flags/error summaries are not trusted as numerical comparison.
  */
 export function producePhysicalReports({ expected, captureBytes, referenceBytes, manifestBytes, graphBytes,
-  runBytes, archiveBytes, evaluatorBytes, requestContractBytes, observeInitialExecutionIdentity }) {
+  runBytes, archiveBytes, evaluatorBytes, requestContractBytes, observeInitialExecutionIdentity, computeCanonicalSha256 }) {
   same(expected.schema, 'doppler.physical-resident-producer-input/v1');
   for (const [name, bytes] of Object.entries({ archive: archiveBytes, reference: referenceBytes,
     manifest: manifestBytes, graph: graphBytes, evaluator: evaluatorBytes })) {
@@ -53,6 +55,7 @@ export function producePhysicalReports({ expected, captureBytes, referenceBytes,
   same(capture.pairedBinding.archiveSha256, expected.archiveHash.slice(7));
   same(capture.pairedBinding.manifestIdentity, expected.manifestHash);
   same(capture.pairedBinding.graphSha256, expected.graphHash.slice(7));
+  same(reference.planId, expected.legacyPlanId, 'Frozen legacy traversal differs');
   same(capture.runs.length, reference.expected.length, 'Missing or extra request');
   same(requestContractBytes.length, reference.expected.length);
   same(expected.requestContractHashes.length, reference.expected.length);
@@ -87,11 +90,17 @@ export function producePhysicalReports({ expected, captureBytes, referenceBytes,
   }
   same(steps.length, 55, 'All 55 ordered prefixes required');
   same(capture.descriptors.length, 2); same(capture.residentSettlement.length, 2);
+  same(expected.placements.map(row => row.partitionIndex).sort(), [0, 1]);
+  same(new Set(expected.placements.map(row => row.platform)).size, 2, 'Two distinct predeclared physical hosts required');
   const contract = { schema: 'doppler.resident-qualification-contract/v1', referenceHash: expected.referenceHash,
     evaluatorHash: expected.evaluatorHash, tolerance: 0.001, comparedSteps: 55 };
   const reports = capture.descriptors.map((descriptor, slot) => {
     const observed = descriptor.openingObservation, partitionIndex = descriptor.descriptor.index;
     assert([0, 1].includes(partitionIndex));
+    same(descriptor.platform, expected.placements.find(row => row.partitionIndex === partitionIndex).platform,
+      'Physical placement differs from the pre-run declaration');
+    same(descriptor.plan, expected.partitionPlan, 'Declared paired traversal differs');
+    same(descriptor.legacyPlanId, expected.legacyPlanId);
     same(observed.partitionIndex, partitionIndex); same(observed.modelIdentity, expected.manifestHash);
     same(observed.planId, descriptor.planId); same(descriptor.planId, computeCanonicalSha256(descriptor.plan));
     same(observed.sources.factory.sha256, expected.factorySha256);
@@ -134,18 +143,45 @@ async function main() {
     assert(binding?.path && /^sha256:[a-f0-9]{64}$/.test(binding.hash), 'Exact retained file binding required');
     const bytes = await readFile(binding.path); same(sha256(bytes), binding.hash, 'Retained file changed'); return bytes;
   };
+  const expected = parse(await readBound(config.expectations));
+  same(expected.producerHash, sha256(await readFile(new URL(import.meta.url))), 'Producer differs from pre-run freeze');
   const fields = Object.fromEntries(await Promise.all(['capture', 'reference', 'manifest', 'graph', 'run', 'archive', 'evaluator']
     .map(async name => [name + 'Bytes', await readBound(config[name])])));
-  const helperBytes = await readBound(config.identityHelper);
-  same(sha256(helperBytes).slice(7), config.expected.identityHelperSha256);
-  const { observeInitialExecutionIdentity } = await import(pathToFileURL(resolve(config.identityHelper.path)));
-  const result = producePhysicalReports({ ...fields, expected: config.expected,
-    requestContractBytes: await Promise.all(config.requestContracts.map(readBound)), observeInitialExecutionIdentity });
-  await mkdir(outputDirectory); // Existing evidence is never overwritten.
-  await writeFile(resolve(outputDirectory, 'contract.json'), JSON.stringify(result.contract, null, 2) + '\n', { flag: 'wx' });
-  for (const report of result.reports) {
-    report.provenance.producerHash = sha256(await readFile(new URL(import.meta.url)));
-    await writeFile(resolve(outputDirectory, `partition-${report.partitionIndex}.json`), JSON.stringify(report, null, 2) + '\n', { flag: 'wx' });
+  // Import the exact archive closure, never the live checkout or copied helper dependencies.
+  const extracted = await mkdtemp(resolve(tmpdir(), 'doppler-resident-producer-'));
+  try {
+    const archivePath = resolve(extracted, 'bound-package.tgz');
+    await writeFile(archivePath, fields.archiveBytes, { flag: 'wx' });
+    const execute = promisify(execFile);
+    const { stdout: listing } = await execute('tar', ['-tzf', archivePath]);
+    assert(listing.trim().split('\n').every(path => path.startsWith('package/')
+      && !path.split('/').includes('..')), 'Archive contains an unexpected member path');
+    await execute('tar', ['-xzf', archivePath, '-C', extracted]);
+    const helperPath = resolve(extracted, 'package/src/config/initial-execution-identity.js');
+    same(sha256(await readFile(helperPath)).slice(7), expected.identityHelperSha256);
+    same(sha256(await readFile(resolve(extracted, 'package/src/client/resident-partitions.js'))).slice(7),
+      expected.factorySha256);
+    const { observeInitialExecutionIdentity } = await import(pathToFileURL(helperPath));
+    const { computeCanonicalSha256 } = await import(pathToFileURL(
+      resolve(extracted, 'package/src/formats/canonical-hash.js')));
+    const result = producePhysicalReports({ ...fields, expected,
+      requestContractBytes: await Promise.all(config.requestContracts.map(readBound)),
+      observeInitialExecutionIdentity, computeCanonicalSha256 });
+    const { assertResidentQualification } = await import(pathToFileURL(
+      resolve(extracted, 'package/src/converter/resident-qualification.js')));
+    for (const report of result.reports) assertResidentQualification(report, {
+      manifest: parse(fields.manifestBytes), manifestIdentity: expected.manifestHash,
+      executionGraphHash: report.executionGraphHash, initialExecutionIdentity: report.initialExecutionIdentity,
+      contract: result.contract,
+    });
+    await mkdir(outputDirectory); // Existing evidence is never overwritten.
+    await writeFile(resolve(outputDirectory, 'contract.json'), JSON.stringify(result.contract, null, 2) + '\n', { flag: 'wx' });
+    for (const report of result.reports) {
+      report.provenance.producerHash = sha256(await readFile(new URL(import.meta.url)));
+      await writeFile(resolve(outputDirectory, `partition-${report.partitionIndex}.json`), JSON.stringify(report, null, 2) + '\n', { flag: 'wx' });
+    }
+  } finally {
+    await rm(extracted, { recursive: true, force: true });
   }
 }
 if (process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url) await main();

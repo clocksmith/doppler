@@ -1,0 +1,40 @@
+{
+  "schema": "doppler.signed-resident-identity-source-review/v1",
+  "archiveSha256": "8ea1767fb61d9009dd257c4065a6acfdbaaf80fa733145898307ed35da0e7f20",
+  "sourceFiles": {
+    "src/client/model-host/index.js": "916ac598ce9147ce48574110cb50d4062add84196d5b37b2d88250115083b21c",
+    "src/config/execution-registry-contract.js": "827355fce2bee1e6268f83bde05db00058537af27bc5260e5a05b57151d11a82",
+    "src/client/runtime/capsule-program-adapter.js": "917d988f0ba4a64896554353f01810a227097cc927ecd8a086bd6b66253335b3",
+    "src/client/resident-partitions.js": "7ad99bc4b2f83dab0bde118a5f2c4207ee3ab88f0d8052435bc7ac60431c21bc",
+    "src/config/initial-execution-identity.js": "2c25b83186104597025031a9436a53ba0d3a71c1ee170c4f4ccebdd3e4f6d689",
+    "src/formats/canonical-hash.js": "0034c8318465e897c78d01f2a15025ce86464e05799d4b1162327618251a9fda",
+    "src/converter/resident-qualification.js": "250c41533ba16e50dc603c926dcfac10eb3572fc49f090dc5752a7f000bce0dc"
+  },
+  "findings": [
+    {
+      "path": "src/client/model-host/index.js",
+      "expression": "extendedRegistries = registries.isCanonical ? null : registries",
+      "meaning": "Canonical package registries add no extension port."
+    },
+    {
+      "path": "src/config/execution-registry-contract.js",
+      "expression": "if (registries == null) return null",
+      "meaning": "Composition retains the no-extension identity."
+    },
+    {
+      "path": "src/client/runtime/capsule-program-adapter.js",
+      "expression": "return registries ? createInitialExecutionIdentityV2({...identity,runtimeEngine:{...identity.runtimeEngine,registries:registries.identity}}) : identity",
+      "meaning": "Canonical signed adapter returns actual observed identity unchanged; an extension requires different independently observed identity."
+    }
+  ],
+  "notEstablished": [
+    "No physical signed program was opened by this review.",
+    "Different providers may resolve different identities; each report retains its own observed identity.",
+    "Rig requires each supplied report to match its selected initial identity; do not normalize identities across providers or add registry fields to a report."
+  ],
+  "nextObservation": [
+    "Retain complete resolvedRuntimeSession and actual initialExecutionIdentity at resident opening for each partition.",
+    "Before signed execution compare selected TargetPlan initial identity to actual program.getInitialExecutionIdentity through existing admission.",
+    "If mismatched, preserve rejected opening and cleanup; diagnose changed fields before any new qualification."
+  ]
+}
