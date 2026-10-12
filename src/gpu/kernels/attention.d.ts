@@ -24,13 +24,13 @@ export interface AttentionOptions extends OutputBufferOptions {
   bidirectionalSpanStart?: number;
   bidirectionalSpanLength?: number;
   startPos?: number;
-  slidingWindow?: number;
+  slidingWindow?: number | null;
   /** Layer index for kernel path layer overrides */
   layerIdx?: number;
   /** Explicit kernel path context for variant selection (avoids global path state). */
   kernelPath?: KernelPathSchema | null;
   /** Gemma 2 attention softcapping: score = tanh(score / softcap) * softcap. 0 = disabled. */
-  attnSoftcap?: number;
+  attnSoftcap?: number | null;
   /** Optional GPU buffer containing KV length (u32). When provided, kernel reads KV length from buffer. */
   kvLenBuffer?: GPUBuffer | null;
   /** Optional KV start offset for windowed attention (absolute position). */
@@ -61,8 +61,8 @@ export interface TieredAttentionOptions extends OutputBufferOptions {
   scale?: number;
   causal?: boolean;
   startPos?: number;
-  attnSoftcap?: number;
-  slidingWindow?: number;
+  attnSoftcap?: number | null;
+  slidingWindow?: number | null;
   hotWindow?: number;
   hotStart?: number;
   coldPageTable?: GPUBuffer | null;
@@ -79,8 +79,8 @@ export interface TieredQuantAttentionOptions extends OutputBufferOptions {
   scale?: number;
   causal?: boolean;
   startPos?: number;
-  attnSoftcap?: number;
-  slidingWindow?: number;
+  attnSoftcap?: number | null;
+  slidingWindow?: number | null;
   hotWindow?: number;
   hotStart?: number;
   packedStride?: number;
@@ -94,8 +94,8 @@ export interface BDPAAttentionOptions extends OutputBufferOptions {
   scale?: number;
   causal?: boolean;
   startPos?: number;
-  attnSoftcap?: number;
-  slidingWindow?: number;
+  attnSoftcap?: number | null;
+  slidingWindow?: number | null;
   ropeCos?: GPUBuffer | null;
   ropeSin?: GPUBuffer | null;
 }

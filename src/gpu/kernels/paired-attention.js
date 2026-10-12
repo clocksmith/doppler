@@ -7,8 +7,13 @@ import { getKernelPathAttentionVariant } from '../../config/kernel-path-loader.j
 const PAIR = Object.freeze({ precision: 'two-f32', components: 2, elementStrideBytes: 8 });
 /** @type {typeof import('./paired-attention.js').executePairedAttention} */
 export async function executePairedAttention(recorder, Q, K, V, mask, numHeads, headDim, options) {
-  const { seqLen, kvLen, numKVHeads, scale, causal, startPos, kvStart = 0, slidingWindow = 0,
-    attnSoftcap = 0, outputBuffer = null } = options;
+  const { seqLen, kvLen, numKVHeads, scale, causal, startPos, kvStart = 0, slidingWindow: declaredSlidingWindow,
+    attnSoftcap, outputBuffer = null } = options;
+  if (declaredSlidingWindow === undefined || attnSoftcap === undefined) {
+    throw new Error('[PairedAttention] Explicit disabled or enabled window and softcap policy required.');
+  }
+  // The model contract uses null to explicitly disable the sliding window.
+  const slidingWindow = declaredSlidingWindow === null ? 0 : declaredSlidingWindow;
   if (seqLen === undefined || kvLen === undefined || numKVHeads === undefined || startPos === undefined || scale === undefined) {
     throw new Error('[PairedAttention] Explicit geometry, position and scale required.');
   }
@@ -19,7 +24,7 @@ export async function executePairedAttention(recorder, Q, K, V, mask, numHeads, 
     || typeof causal !== 'boolean' || !Number.isFinite(scale) || !Number.isFinite(Math.fround(scale)) || scale <= 0) {
     throw new Error('[PairedAttention] Explicit mask positions, causal flag and positive scale required.');
   }
-  if (mask != null || attnSoftcap !== 0 || (options.bidirectionalSpanLength ?? 0) !== 0
+  if (mask != null || (attnSoftcap !== null && attnSoftcap !== 0) || (options.bidirectionalSpanLength ?? 0) !== 0
     || (options.kvLayout != null && options.kvLayout !== 'contiguous') || options.kvPageTable != null
     || options.kvLenBuffer != null || options.indirectBuffer != null || options.outputGate != null
     || options.useFlashPrefill === true || options.useOrtFlashPrefill === true) {

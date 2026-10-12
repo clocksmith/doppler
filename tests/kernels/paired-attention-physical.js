@@ -110,7 +110,7 @@ try {
         const half=x=>{if(x===0)return 0;const sign=x<0?0x8000:0,abs=Math.abs(x),e=Math.floor(Math.log2(abs));return sign|((e+15)<<10)|Math.round((abs/2**e-1)*1024);};
         const halfTensor=(values,label)=>{const bytes=new Uint16Array(Math.ceil(values.length/2)*2);bytes.set(values.map(half));return createTensor(make(bytes.byteLength,bytes),'f16',[kv,kvheads*dim],label);};
         const K=halfTensor(kvals,'K'),V=halfTensor(vvals,'V'),scale=1/Math.sqrt(dim),supplied=borrowed?make(tokens*heads*dim*8):null;
-        const options={seqLen:tokens,kvLen:kv,numKVHeads:kvheads,scale,causal:true,startPos:start,kvStart,slidingWindow:window,kvLayout:'contiguous',outputBuffer:supplied};
+        const options={seqLen:tokens,kvLen:kv,numKVHeads:kvheads,scale,causal:true,startPos:start,kvStart,slidingWindow:window,attnSoftcap:0,kvLayout:'contiguous',outputBuffer:supplied};
         const result=await run(recorded,'paired_attention',()=>runAttention(q.tensor,K,V,null,heads,dim,options),r=>recordAttention(r,q.tensor,K,V,null,heads,dim,options));if(!borrowed)pooled.add(result.buffer);
         const expected=[];
         for(let t=0;t<tokens;t++)for(let h=0;h<heads;h++){

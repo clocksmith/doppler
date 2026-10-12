@@ -16,12 +16,14 @@ const precompute={theta:1e7,ropeScale:1,rotaryDim:64,frequencyBaseDim:64,maxSeqL
 for(const scalingType of ['yarn','longrope','unknown'])await assert.rejects(runRoPEPrecompute({...precompute,scalingType}),/ordinary or linear/);
 await assert.rejects(runRoPEPrecompute({...precompute,positionPlan:{}}),/ordinary or linear/);
 await assert.rejects(runRoPEPrecompute({...precompute,positionCount:8193}),/geometry/);
-const attention={seqLen:2,kvLen:2,numKVHeads:1,scale:1/Math.sqrt(8),causal:true,startPos:0};
+const attention={seqLen:2,kvLen:2,numKVHeads:1,scale:1/Math.sqrt(8),causal:true,startPos:0,slidingWindow:0,attnSoftcap:0};
 for(const change of [{components:1},{elementStrideBytes:4},{dtype:'f16'}])await assert.rejects(runAttention({...pair,...change},K,K,null,2,8,attention),/paired Q/);
 for(const change of [{kvLayout:'paged'},{attnSoftcap:1},{outputGate:pair},{kvLenBuffer:{}},{indirectBuffer:{}},{useFlashPrefill:true}])await assert.rejects(runAttention(pair,K,K,null,2,8,{...attention,...change}),/Declared contiguous/);
 await assert.rejects(runAttention(pair,{...K,precision:'two-f32'},K,null,2,8,attention),/Ordinary F16/);
 await assert.rejects(runAttention(pair,K,K,null,2,8,{...attention,outputBuffer:pair.buffer}),/distinct/);
 await assert.rejects(runAttention(pair,K,K,null,2,8,{...attention,seqLen:undefined}),/Explicit geometry/);
+// The full interpreter declares null for disabled model window/softcap.
+await assert.rejects(runAttention(pair,K,K,null,2,8,{...attention,slidingWindow:null,attnSoftcap:null}),/Device dispatch limits exceeded or no device/);
 console.log('paired attention and RoPE reject malformed representations, unsupported policies and scalar fused kernels before allocation');
 const { assertPairedAttentionExecution } = await import('../../src/inference/pipelines/text/attention/paired-contract.js');
 const config={activationDtype:'f32',normalizationType:'rmsnorm'},state={kvCache:{hasGPUCache:()=>true,kvDtype:'f16',layout:'contiguous'}},session={intermediatePrecision:'two-f32'};
@@ -31,3 +33,5 @@ assert.throws(()=>assertPairedAttentionExecution(pair,config,{...state,skipKVCac
 assert.throws(()=>assertPairedAttentionExecution(pair,config,state,session,{qProjBias:{}}),/paired bias/);
 assert.throws(()=>assertPairedAttentionExecution(pair,{...config,activationDtype:'f16'},state,session,{}),/F32 component storage/);
 assert.throws(()=>assertPairedAttentionExecution(pair,{...config,precomputedInputNorm:{dtype:'f32'}},state,session,{}),/Precomputed normalization/);
+
+for(const key of ['slidingWindow','attnSoftcap']) await assert.rejects(runAttention(pair,K,K,null,2,8,{...attention,[key]:undefined}),/Explicit disabled or enabled window and softcap policy required/);
