@@ -1,0 +1,51 @@
+{
+  "schema": "doppler.source-parity-control/v1",
+  "scope": "Original source weights on frozen first request, not a new numerical reference or document qualification",
+  "modelIdentity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+  "input": {
+    "generation": {
+      "maxTokens": 1024,
+      "maxSeqLen": 4096,
+      "temperature": 0,
+      "topP": 1,
+      "topK": 1,
+      "repetitionPenalty": 1,
+      "repetitionPenaltyWindow": 0,
+      "presencePenalty": 0,
+      "useChatTemplate": true,
+      "suppressTokenIds": [],
+      "stopSequences": []
+    }
+  },
+  "result": {
+    "tokenIds": [
+      248045,
+      846,
+      198,
+      20206,
+      440,
+      1132,
+      279,
+      3299,
+      21251,
+      13,
+      248046,
+      198,
+      248045,
+      74455,
+      198,
+      248068,
+      271,
+      248069,
+      271
+    ],
+    "evidence": {
+      "tokenIds": [
+        9419,
+        248046
+      ]
+    }
+  },
+  "captureSha256": "203989ea71e32688258fad9ac67d1ef9b2c78ba6ae273c127b1b68157ce1218e",
+  "archiveSha256": "102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7"
+}
