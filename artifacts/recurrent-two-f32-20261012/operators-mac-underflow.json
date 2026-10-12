@@ -1,0 +1,21 @@
+{
+  "schema": "doppler-compensated-state-physical-v1",
+  "shaderSha256": "1e877ff56eb6ef7e108ea1ce15c13bc9a82e1603e9372c50259c675fe1420ab5",
+  "inputSha256": "e9d911dbdddd1acaab48b8b75bfc0ec7f3c5860c3e17ab93ff17e6fc5138f6f3",
+  "count": 20014,
+  "seed": 624901,
+  "acceptance": {
+    "productAndSumResidual": "exact binary32 bits (signed zero equivalent)",
+    "pairNormalizedAbsoluteError": 2e-13
+  },
+  "scope": "Finite normal recurrent-scale pair operators; cancellation and min-normal edge controls. Not whole-model acceptance.",
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  },
+  "browser": "155.0.8059.39",
+  "errors": [],
+  "failures": [],
+  "maxPairError": 1.598038382529471e-14,
+  "passed": true
+}

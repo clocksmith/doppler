@@ -1,6 +1,6 @@
 // Test-only readback of the allocations returned to attention. No model state
 // is substituted. Copies are submitted synchronously before the next step.
-export function observePhysicalKVCache({ KVCache, getDevice, layers }) {
+export function observePhysicalKVCache({ KVCache, getDevice, layers, allocationLayerIndices = null }) {
   const original = KVCache.prototype.getGPUBuffers;
   const latest = new Map(), identities = new WeakMap();
   let nextId = 1;
@@ -11,10 +11,14 @@ export function observePhysicalKVCache({ KVCache, getDevice, layers }) {
   const reads = [];
   KVCache.prototype.getGPUBuffers = function (layer) {
     const result = original.call(this, layer);
-    if (layers.includes(layer) && result) {
-      const row = { layer, seqLen: result.seqLen, keysId: identity(result.keysGPU), valuesId: identity(result.valuesGPU) };
+    if (allocationLayerIndices && allocationLayerIndices.length !== this.numLayers) {
+      throw new Error('Physical cache allocation mapping does not match actual cache.');
+    }
+    const modelLayer = allocationLayerIndices ? allocationLayerIndices[layer] : layer;
+    if (layers.includes(modelLayer) && result) {
+      const row = { layer: modelLayer, allocationLayer: layer, seqLen: result.seqLen, keysId: identity(result.keysGPU), valuesId: identity(result.valuesGPU) };
       reads.push(row);
-      latest.set(layer, { cache: this, buffers: result, read: row });
+      latest.set(modelLayer, { cache: this, buffers: result, read: row });
     }
     return result;
   };
@@ -29,7 +33,7 @@ export function observePhysicalKVCache({ KVCache, getDevice, layers }) {
           if (!observed) throw new Error(`Physical cache was not read at layer ${layer}`);
           const { cache, buffers, read } = observed;
           if (cache.layout !== 'contiguous' || cache.kvDtype !== 'f16'
-            || buffers.seqLen !== expectedSeqLen || cache.layers[layer].seqLen !== expectedSeqLen) {
+            || buffers.seqLen !== expectedSeqLen || cache.layers[read.allocationLayer].seqLen !== expectedSeqLen) {
             throw new Error(`Unexpected physical cache geometry at layer ${layer}`);
           }
           const bytes = expectedSeqLen * cache.numHeads * cache.headDim * 2;

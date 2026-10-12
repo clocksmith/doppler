@@ -3,6 +3,7 @@
 import { spawnSync } from 'node:child_process';
 
 const checks = [
+  { name: 'compensated-state-helpers', command: ['node', 'tools/generate-linear-state-kernels.js', '--check'] },
   {
     name: 'uniform-interfaces',
     command: ['node', 'tools/generate-kernel-uniforms.js', '--check'],

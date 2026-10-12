@@ -206,3 +206,12 @@ function buildManifest(sessionOverrides = {}, largeWeightsOverrides = undefined)
 }
 
 console.log('session-flags-merge.test: ok');
+
+for (const [manifestPrecision, overridePrecision, expected] of [
+  ['two-f32', undefined, 'two-f32'], ['two-f32', 'f32', 'f32'], ['f32', 'two-f32', 'two-f32'],
+]) {
+  const merged = mergeConfig(buildManifest({ linearRecurrentStatePrecision: manifestPrecision }),
+    overridePrecision ? { session: { linearRecurrentStatePrecision: overridePrecision } } : {});
+  assert.equal(merged.inference.session.linearRecurrentStatePrecision, expected);
+  assert.equal(merged._sources.get('inference.session.linearRecurrentStatePrecision'), overridePrecision ? 'runtime' : 'manifest');
+}

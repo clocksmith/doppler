@@ -1,6 +1,28 @@
 {
   "variant": [
-    { "match": { "isF16": true }, "value": "default_f16" },
-    { "match": {}, "value": "default" }
+    {
+      "match": {
+        "isF16": true
+      },
+      "value": "default_f16"
+    },
+    {
+      "match": {},
+      "value": "default"
+    }
+  ],
+  "stateComponents": [
+    {
+      "match": {
+        "precision": "f32"
+      },
+      "value": 1
+    },
+    {
+      "match": {
+        "precision": "two-f32"
+      },
+      "value": 2
+    }
   ]
 }

@@ -3,7 +3,7 @@ import { registerHooks } from 'node:module';
 
 // Real wrapper, injected allocation failures. No claim of GPU numerical parity.
 const target = new URL('../../src/gpu/kernels/linear-attention-core.js', import.meta.url).href;
-globalThis.GPUBuffer = class {};
+globalThis.GPUBuffer = class { size = 8; };
 globalThis.GPUShaderStage = { COMPUTE: 4 };
 const active = new Set();
 let failure;
@@ -43,6 +43,15 @@ try {
   for (const key of ['convWeightGPU', 'dtBiasGPU', 'aLogGPU', 'normWeightGPU', 'convStateGPU', 'recurrentStateGPU']) {
     state[key] = new GPUBuffer();
   }
+  for (const invalid of [NaN, Infinity, 0, -1, 0.1, 0.5]) {
+    const invalidState = { ...state, numVHeads: invalid, recurrentStatePrecision: 'two-f32', recurrentStateComponents: 2 };
+    await assert.rejects(() => runLinearAttentionCoreGPU(tensor, tensor, tensor, tensor, invalidState,
+      { numTokens: 1 }), /storage layout/);
+    assert.equal(active.size, 0, 'invalid geometry cannot allocate output');
+  }
+  for (const precision of ['f32', 'two-f32']) {
+  state.recurrentStatePrecision = precision;
+  state.recurrentStateComponents = precision === 'f32' ? 1 : 2;
   for (fused of [false, true]) {
     for (const recorded of [false, true]) {
       for (failure of fused ? ['uniform'] : ['convolution', 'uniform']) {
@@ -53,6 +62,7 @@ try {
         assert.equal(active.size, 0, `${failure}, fused=${fused}, recorded=${recorded}: no retained output`);
       }
     }
+  }
   }
 } finally { hooks.deregister(); delete globalThis.linearAllocationProbe; }
 console.log('linear-attention-allocation-cleanup: passed');

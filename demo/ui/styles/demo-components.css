@@ -414,3 +414,18 @@
   #app #input-area { grid-template-columns: minmax(0, 1fr); }
   #app #input-area .input-actions { justify-self: end; }
 }
+
+/* Setup owns model readiness; the conversation owns run progress. */
+#app .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+#app .model-picker-heading > div:has(.sr-only) { display: contents; }
+#app #model-select-status:empty { display: none; }
+#app .profile-details > .settings-grid { margin-top: var(--demo-space-2); }
+#app .profile-details > .checkbox-label { margin-top: var(--demo-space-2); }

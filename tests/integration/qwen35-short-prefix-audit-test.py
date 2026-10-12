@@ -3,7 +3,11 @@
 import base64
 import copy
 import importlib.util
+import hashlib
+import json
 from pathlib import Path
+import tempfile
+from types import SimpleNamespace
 import unittest
 
 import numpy as np
@@ -21,6 +25,25 @@ def row(name, count, value):
 
 
 class Pairing(unittest.TestCase):
+    def test_ideal_materialization_rejects_wrong_archive_and_capture(self):
+        digest = lambda value: hashlib.sha256(value).hexdigest()
+        with tempfile.TemporaryDirectory() as directory:
+            dispatch_path = Path(directory) / 'dispatch.json'
+            dispatch_path.write_text(json.dumps({'archiveSha256': 'archive', 'captureSha256': 'capture'}))
+            policy = {'reviewStatus': 'reviewed', 'evaluatorSha256': audit.EVALUATOR_SHA256,
+                'parentArchiveSha256': 'archive', 'dispatchBinding': {
+                    'path': str(dispatch_path), 'sha256': digest(dispatch_path.read_bytes())}}
+            map_path = Path(directory) / 'map.json'
+            map_path.write_text(json.dumps(policy))
+            for archive, capture in [('wrong', 'capture'), ('archive', 'wrong')]:
+                with self.assertRaises(AssertionError):
+                    audit.ideal_global_materialization(SimpleNamespace(digest=digest),
+                        None, None, None, None, map_path, archive, capture)
+            dispatch_path.write_text('{}')
+            with self.assertRaises(AssertionError):
+                audit.ideal_global_materialization(SimpleNamespace(digest=digest),
+                    None, None, None, None, map_path, 'archive', 'capture')
+
     def test_runtime_comparison_rejects_different_forced_history(self):
         binding = {'archiveSha256': 'archive', 'manifestSha256': 'manifest'}
         contract = {'requestIndex': 0, 'steps': [0, 1], 'prefixLengths': [2, 3], 'inputIds': [10, 11, 12]}
