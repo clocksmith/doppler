@@ -1,0 +1,342 @@
+{
+  "scope": "Physical F16 cache storage and subsequent read identity; not independent model qualification",
+  "passed": true,
+  "comparisons": [
+    {
+      "step": 0,
+      "layer": 3,
+      "cache": "k",
+      "shape": [
+        19,
+        2,
+        256
+      ],
+      "values": 9728,
+      "differentBits": 0,
+      "firstMismatch": null,
+      "maxAbs": 0.0
+    },
+    {
+      "step": 0,
+      "layer": 3,
+      "cache": "v",
+      "shape": [
+        19,
+        2,
+        256
+      ],
+      "values": 9728,
+      "differentBits": 0,
+      "firstMismatch": null,
+      "maxAbs": 0.0
+    },
+    {
+      "step": 0,
+      "layer": 7,
+      "cache": "k",
+      "shape": [
+        19,
+        2,
+        256
+      ],
+      "values": 9728,
+      "differentBits": 0,
+      "firstMismatch": null,
+      "maxAbs": 0.0
+    },
+    {
+      "step": 0,
+      "layer": 7,
+      "cache": "v",
+      "shape": [
+        19,
+        2,
+        256
+      ],
+      "values": 9728,
+      "differentBits": 0,
+      "firstMismatch": null,
+      "maxAbs": 0.0
+    },
+    {
+      "step": 0,
+      "layer": 11,
+      "cache": "k",
+      "shape": [
+        19,
+        2,
+        256
+      ],
+      "values": 9728,
+      "differentBits": 0,
+      "firstMismatch": null,
+      "maxAbs": 0.0
+    },
+    {
+      "step": 0,
+      "layer": 11,
+      "cache": "v",
+      "shape": [
+        19,
+        2,
+        256
+      ],
+      "values": 9728,
+      "differentBits": 0,
+      "firstMismatch": null,
+      "maxAbs": 0.0
+    },
+    {
+      "step": 0,
+      "layer": 15,
+      "cache": "k",
+      "shape": [
+        19,
+        2,
+        256
+      ],
+      "values": 9728,
+      "differentBits": 0,
+      "firstMismatch": null,
+      "maxAbs": 0.0
+    },
+    {
+      "step": 0,
+      "layer": 15,
+      "cache": "v",
+      "shape": [
+        19,
+        2,
+        256
+      ],
+      "values": 9728,
+      "differentBits": 0,
+      "firstMismatch": null,
+      "maxAbs": 0.0
+    },
+    {
+      "step": 0,
+      "layer": 19,
+      "cache": "k",
+      "shape": [
+        19,
+        2,
+        256
+      ],
+      "values": 9728,
+      "differentBits": 0,
+      "firstMismatch": null,
+      "maxAbs": 0.0
+    },
+    {
+      "step": 0,
+      "layer": 19,
+      "cache": "v",
+      "shape": [
+        19,
+        2,
+        256
+      ],
+      "values": 9728,
+      "differentBits": 0,
+      "firstMismatch": null,
+      "maxAbs": 0.0
+    },
+    {
+      "step": 0,
+      "layer": 23,
+      "cache": "k",
+      "shape": [
+        19,
+        2,
+        256
+      ],
+      "values": 9728,
+      "differentBits": 0,
+      "firstMismatch": null,
+      "maxAbs": 0.0
+    },
+    {
+      "step": 0,
+      "layer": 23,
+      "cache": "v",
+      "shape": [
+        19,
+        2,
+        256
+      ],
+      "values": 9728,
+      "differentBits": 0,
+      "firstMismatch": null,
+      "maxAbs": 0.0
+    },
+    {
+      "step": 1,
+      "layer": 3,
+      "cache": "k",
+      "shape": [
+        20,
+        2,
+        256
+      ],
+      "values": 10240,
+      "differentBits": 0,
+      "firstMismatch": null,
+      "maxAbs": 0.0
+    },
+    {
+      "step": 1,
+      "layer": 3,
+      "cache": "v",
+      "shape": [
+        20,
+        2,
+        256
+      ],
+      "values": 10240,
+      "differentBits": 0,
+      "firstMismatch": null,
+      "maxAbs": 0.0
+    },
+    {
+      "step": 1,
+      "layer": 7,
+      "cache": "k",
+      "shape": [
+        20,
+        2,
+        256
+      ],
+      "values": 10240,
+      "differentBits": 0,
+      "firstMismatch": null,
+      "maxAbs": 0.0
+    },
+    {
+      "step": 1,
+      "layer": 7,
+      "cache": "v",
+      "shape": [
+        20,
+        2,
+        256
+      ],
+      "values": 10240,
+      "differentBits": 0,
+      "firstMismatch": null,
+      "maxAbs": 0.0
+    },
+    {
+      "step": 1,
+      "layer": 11,
+      "cache": "k",
+      "shape": [
+        20,
+        2,
+        256
+      ],
+      "values": 10240,
+      "differentBits": 0,
+      "firstMismatch": null,
+      "maxAbs": 0.0
+    },
+    {
+      "step": 1,
+      "layer": 11,
+      "cache": "v",
+      "shape": [
+        20,
+        2,
+        256
+      ],
+      "values": 10240,
+      "differentBits": 0,
+      "firstMismatch": null,
+      "maxAbs": 0.0
+    },
+    {
+      "step": 1,
+      "layer": 15,
+      "cache": "k",
+      "shape": [
+        20,
+        2,
+        256
+      ],
+      "values": 10240,
+      "differentBits": 0,
+      "firstMismatch": null,
+      "maxAbs": 0.0
+    },
+    {
+      "step": 1,
+      "layer": 15,
+      "cache": "v",
+      "shape": [
+        20,
+        2,
+        256
+      ],
+      "values": 10240,
+      "differentBits": 0,
+      "firstMismatch": null,
+      "maxAbs": 0.0
+    },
+    {
+      "step": 1,
+      "layer": 19,
+      "cache": "k",
+      "shape": [
+        20,
+        2,
+        256
+      ],
+      "values": 10240,
+      "differentBits": 0,
+      "firstMismatch": null,
+      "maxAbs": 0.0
+    },
+    {
+      "step": 1,
+      "layer": 19,
+      "cache": "v",
+      "shape": [
+        20,
+        2,
+        256
+      ],
+      "values": 10240,
+      "differentBits": 0,
+      "firstMismatch": null,
+      "maxAbs": 0.0
+    },
+    {
+      "step": 1,
+      "layer": 23,
+      "cache": "k",
+      "shape": [
+        20,
+        2,
+        256
+      ],
+      "values": 10240,
+      "differentBits": 0,
+      "firstMismatch": null,
+      "maxAbs": 0.0
+    },
+    {
+      "step": 1,
+      "layer": 23,
+      "cache": "v",
+      "shape": [
+        20,
+        2,
+        256
+      ],
+      "values": 10240,
+      "differentBits": 0,
+      "firstMismatch": null,
+      "maxAbs": 0.0
+    }
+  ]
+}
