@@ -25,6 +25,70 @@ def row(name, count, value):
 
 
 class Pairing(unittest.TestCase):
+    def test_scalar_intervention_is_explicit_and_separate_from_tensor_stores(self):
+        epsilon = 1e-6
+        selection = audit.StoreIntervention([], 24, 3, [2, 3, 4], ['rms-epsilon'])
+        self.assertEqual(selection.uniform(epsilon, 'rms-epsilon'), epsilon)
+        self.assertNotEqual(selection.uniform(epsilon, 'recurrent-rms-epsilon'), epsilon)
+        self.assertEqual(selection.uniform(epsilon, 'recurrent-l2-epsilon'), float(np.float32(epsilon)))
+        np.testing.assert_array_equal(selection.round(np.array([1 + 2 ** -30]), 'normalization'), [1.])
+        self.assertEqual(selection.receipt()['uniformCalls'], {'rms-epsilon': 1})
+        with self.assertRaises(AssertionError):
+            audit.StoreIntervention([], 24, 3, [2], ['unknown'])
+        with self.assertRaises(AssertionError):
+            audit.StoreIntervention([], 24, 3, [2], ['rms-epsilon']).receipt()
+
+    def test_intervention_is_scoped_to_layer_operation_and_token_phase(self):
+        value = np.full((5, 2), 1.0 + 2 ** -30)
+        rounded = value.astype(np.float32).astype(np.float64)
+        selection = audit.StoreIntervention([{'operations': ['q-projection'],
+            'layers': [3], 'phases': ['decode']}], 24, 3, [2, 3, 4])
+        selection.set_context(layer=2)
+        np.testing.assert_array_equal(selection.round(value, 'q-projection'), rounded)
+        selection.set_context(layer=3)
+        np.testing.assert_array_equal(selection.round(value, 'k-projection'), rounded)
+        expected = rounded.copy()
+        expected[3:] = value[3:]
+        np.testing.assert_array_equal(selection.round(value, 'q-projection'), expected)
+        self.assertEqual(selection.receipt()['selectedElements'], [4])
+
+    def test_intervention_handles_output_positions_and_scalar_recurrence(self):
+        value = np.full((3, 2), 1.0 + 2 ** -30)
+        selection = audit.StoreIntervention([{'operations': None,
+            'layers': None, 'phases': ['decode']}], 24, 3, [2, 3, 4])
+        selection.set_context(layer='output')
+        expected = value.copy()
+        expected[0] = 1.0
+        np.testing.assert_array_equal(selection.round(value, 'logits'), expected)
+        selection.set_context(layer=0, token=2)
+        np.testing.assert_array_equal(selection.round(value, 'gated-recurrent-output'), np.ones_like(value))
+        selection.set_context(token=3)
+        np.testing.assert_array_equal(selection.round(value, 'gated-recurrent-output'), value)
+        np.testing.assert_array_equal(selection.round(value, 'recurrent-high'), np.ones_like(value))
+        np.testing.assert_array_equal(selection.round(value, 'recurrent-low'), np.ones_like(value))
+
+    def test_intervention_rejects_mistyped_or_unobserved_selectors(self):
+        row = {'operations': ['k-projection'], 'layers': [3], 'phases': ['prefill']}
+        for key, invalid in [('operations', ['unknown']), ('operations', ['recurrent-high']),
+                             ('layers', [24]), ('layers', [True]), ('phases', []),
+                             ('phases', ['decode', 'decode']), ('phases', ['prompt'])]:
+            with self.assertRaises(AssertionError):
+                audit.StoreIntervention([{**row, key: invalid}], 24, 3, [2, 3, 4])
+        selection = audit.StoreIntervention([row], 24, 3, [2, 3, 4])
+        with self.assertRaises(AssertionError):
+            selection.receipt()
+
+    def test_empty_intervention_preserves_stores_and_overlaps_count_union(self):
+        value = np.full((5, 2), 1.0 + 2 ** -30)
+        selection = audit.StoreIntervention([], 24, 3, [2, 3, 4])
+        np.testing.assert_array_equal(selection.round(value, 'embedding'), np.ones_like(value))
+        self.assertEqual(selection.receipt()['selectedElements'], [])
+        row = {'operations': ['embedding'], 'layers': None, 'phases': None}
+        selection = audit.StoreIntervention([row, {**row, 'phases': ['decode']}], 24, 3, [2, 3, 4])
+        np.testing.assert_array_equal(selection.round(value, 'embedding'), value)
+        self.assertEqual(selection.receipt()['selectedElements'], [10, 4])
+        self.assertEqual(selection.receipt()['suppressedStores'], {'input:embedding': 10})
+
     def test_ideal_materialization_rejects_wrong_archive_and_capture(self):
         digest = lambda value: hashlib.sha256(value).hexdigest()
         with tempfile.TemporaryDirectory() as directory:
@@ -43,6 +107,23 @@ class Pairing(unittest.TestCase):
             with self.assertRaises(AssertionError):
                 audit.ideal_global_materialization(SimpleNamespace(digest=digest),
                     None, None, None, None, map_path, 'archive', 'capture')
+
+    def test_materialization_history_cannot_exceed_frozen_contract(self):
+        digest = lambda value: hashlib.sha256(value).hexdigest()
+        with tempfile.TemporaryDirectory() as directory:
+            dispatch_path = Path(directory) / 'dispatch.json'
+            dispatch_path.write_text(json.dumps({'archiveSha256': 'archive', 'captureSha256': 'capture'}))
+            policy = {'reviewStatus': 'reviewed', 'evaluatorSha256': audit.EVALUATOR_SHA256,
+                'parentArchiveSha256': 'archive', 'dispatchBinding': {
+                    'path': str(dispatch_path), 'sha256': digest(dispatch_path.read_bytes())},
+                'request': {'index': 2, 'prefillTokens': 184, 'lastDecodeStep': 7}}
+            map_path = Path(directory) / 'map.json'
+            map_path.write_text(json.dumps(policy))
+            contract = {'requestIndex': 2, 'prefixLengths': list(range(184, 235))}
+            for count in [0, -1, 52, True, 8.5]:
+                with self.assertRaises(AssertionError):
+                    audit.ideal_global_materialization(SimpleNamespace(digest=digest),
+                        None, None, contract, None, map_path, 'archive', 'capture', prefix_count=count)
 
     def test_runtime_comparison_rejects_different_forced_history(self):
         binding = {'archiveSha256': 'archive', 'manifestSha256': 'manifest'}

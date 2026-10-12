@@ -1,0 +1,57 @@
+[
+  {
+    "id": "remove-all-nonstate-stores-and-retain-rms-epsilon",
+    "suppress": [
+      {
+        "operations": null,
+        "layers": null,
+        "phases": null
+      }
+    ],
+    "uniformF64": [
+      "rms-epsilon"
+    ]
+  },
+  {
+    "id": "remove-all-nonstate-stores-and-retain-recurrent-rms-epsilon",
+    "suppress": [
+      {
+        "operations": null,
+        "layers": null,
+        "phases": null
+      }
+    ],
+    "uniformF64": [
+      "recurrent-rms-epsilon"
+    ]
+  },
+  {
+    "id": "remove-all-nonstate-stores-and-retain-recurrent-l2-epsilon",
+    "suppress": [
+      {
+        "operations": null,
+        "layers": null,
+        "phases": null
+      }
+    ],
+    "uniformF64": [
+      "recurrent-l2-epsilon"
+    ]
+  },
+  {
+    "id": "remove-all-nonstate-stores-and-retain-rms-epsilon-and-recurrent-rms-epsilon-and-recurrent-l2-epsilon-and-rope-theta",
+    "suppress": [
+      {
+        "operations": null,
+        "layers": null,
+        "phases": null
+      }
+    ],
+    "uniformF64": [
+      "rms-epsilon",
+      "recurrent-rms-epsilon",
+      "recurrent-l2-epsilon",
+      "rope-theta"
+    ]
+  }
+]

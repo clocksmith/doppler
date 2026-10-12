@@ -1,0 +1,4449 @@
+{
+  "schema": "doppler.short-prefix-f64-audit/v1",
+  "qualified": false,
+  "evaluatorSha256": "90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7",
+  "auditSha256": "35c0957cb5e8830f7b0b73a3964e032fff24ce049e8e796c96e429c34d400fb2",
+  "captureSha256": "bd4ac8041baecdc734600934a4d7f6ecd2e6f101fae5fbb4d71ccd76ca28bdc5",
+  "approvedVectorsExact": true,
+  "approvedVectors": [
+    {
+      "path": "reports/local/whole-model-f64-complete-20261011/independent-vectors/request-2-steps-0-9.json.gz",
+      "sha256": "f73c8c4385ee9cfaa9448ae4c6473400f6c02aa2955ac6d8197cf428e575868d"
+    },
+    {
+      "path": "reports/local/whole-model-f64-complete-20261011/independent-vectors/request-2-steps-10-19.json.gz",
+      "sha256": "ce90033538f298d017baa6ce6887fc0351cb0d3fdd66691459931d10238c0f37"
+    },
+    {
+      "path": "reports/local/whole-model-f64-complete-20261011/independent-vectors/request-2-steps-20-29.json.gz",
+      "sha256": "5f254b9f23a305a95cac415f6486db9ac621d9695f11c47fdfbb44f3254719c4"
+    },
+    {
+      "path": "reports/local/whole-model-f64-complete-20261011/independent-vectors/request-2-steps-30-39.json.gz",
+      "sha256": "a031b4145a168e06400e75ae1d8c61b904d9dc29217bc684cbf757cac4524179"
+    },
+    {
+      "path": "reports/local/whole-model-f64-complete-20261011/independent-vectors/request-2-steps-40-49.json.gz",
+      "sha256": "a8001a1e771053f7169d725a2b7636a1d817982ecd74f17af087d8ab57abf590"
+    },
+    {
+      "path": "reports/local/whole-model-f64-complete-20261011/independent-vectors/request-2-steps-50-50.json.gz",
+      "sha256": "c45a9c46a1a5d7152e9bb75e070c414743ac32d4fdfaaf8c3ca2c97bd4556d53"
+    }
+  ],
+  "idealGlobalMaterializationControl": {
+    "scope": "Ideal F64 arithmetic between explicitly mapped global tensor-buffer stores; workgroup/private F32 arithmetic and scratch stores deliberately omitted. This is not an attainable GPU oracle, lower bound, replacement reference or precision permission.",
+    "mapSha256": "2ce504dbd9eece4b7d38f7073a7e1b7f33e7957861b1f4e5fb5abfcc9be771de",
+    "mappedPrefixCount": 8,
+    "extrapolatesBeyondCapturedPrefixes": true,
+    "evaluateSourceSha256": "47d88c9d220ff52eee9d833e397853d495268bfbb05788baa63752dcc17cc990",
+    "deltaSourceSha256": "4847453843ed6e5ae0b496e264b58395c035d19d7fa4fe2a045f7a96686b04ed",
+    "inactiveCopyApprovedVectorsExact": true,
+    "count": 51,
+    "stores": {
+      "embedding": 239616,
+      "normalization": 15148032,
+      "qkv-projection": 25878528,
+      "z-projection": 8626176,
+      "a-projection": 67392,
+      "b-projection": 67392,
+      "conv-output": 20348928,
+      "recurrent-high": 2208301056,
+      "recurrent-low": 2208301056,
+      "raw-prefill-recurrent-output": 6782976,
+      "gated-recurrent-output": 8626176,
+      "linear-output-projection": 4313088,
+      "attention-residual": 5750784,
+      "ffn-gate-projection": 15826944,
+      "ffn-up-projection": 15826944,
+      "ffn-activation": 20127744,
+      "ffn-down-projection": 5750784,
+      "ffn-residual": 5750784,
+      "q-projection": 5750784,
+      "k-projection": 718848,
+      "v-projection": 718848,
+      "rope-cos-table": 89856,
+      "rope-sin-table": 89856,
+      "rope-output": 3594240,
+      "attention-output": 2875392,
+      "gated-attention-output": 2875392,
+      "attention-output-projection": 1437696,
+      "logits": 12664320
+    },
+    "comparison": {
+      "values": 12664320,
+      "max": 0.003091770104518332,
+      "rms": 0.00021497613021016616,
+      "percentiles": {
+        "50": 0.00012056539237681463,
+        "90": 0.0003395257830238585,
+        "99": 0.0006800971205800995,
+        "99.9": 0.001074691105930806
+      },
+      "overTolerance": 19398,
+      "lastTokenMax": 0.000948098802752817
+    },
+    "caches": [
+      {
+        "layer": 3,
+        "keySha256": "907176facf8eb2e00a51a13be8d58d412a534dfd2d2649f8c4cdafa781d230ba",
+        "valueSha256": "1b7d2fe84003a8d476378b2edb6e42a79bed6551e0ced15e4895b7b8987f4b1e"
+      },
+      {
+        "layer": 7,
+        "keySha256": "eaf91c57171136591f0cc19a8545f10cd07705321a521d12c6ee7972e2a0f3e4",
+        "valueSha256": "f98d8355640428a3a6b318ac670996be51a91406729c7313763a74c0c5b8be3b"
+      },
+      {
+        "layer": 11,
+        "keySha256": "aeaaa1fffd61c5b065f90f2feae3f6a0993f1618d70bf697a0a74e8ec6275064",
+        "valueSha256": "e98d2def5ccbcedb03d8980c25d8e38f18a209671579e20b7c589fce6b13e5f1"
+      },
+      {
+        "layer": 15,
+        "keySha256": "5b4c42f2358d8705e05df951522513ddf83984a61ec43d1e10beae52e1824fae",
+        "valueSha256": "4f950a9498c4de36d1df543492b68459b26705f85a081dcef55dac2f9978c08c"
+      },
+      {
+        "layer": 19,
+        "keySha256": "b0f75a49c460f3d31825978cce7cff1143c64eef102956c7b0f815de5909c285",
+        "valueSha256": "d0da08dbcf864bfb8e7f6be0c0a18b4e614b822b5df6984928f04d30c2f4aa76"
+      },
+      {
+        "layer": 23,
+        "keySha256": "6b873ab6468de8434cc2f662057ef39bc977f72c10a2ecbc3b0771d3310672c7",
+        "valueSha256": "d603778d9d5e74ad1b5b03ab56175ec652efc2604ab1f25ef9004ceed96ca729"
+      }
+    ],
+    "perPrefix": [
+      {
+        "step": 0,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0005140605241127361,
+          "rms": 9.505760105758751e-05,
+          "percentiles": {
+            "50": 6.325034781973216e-05,
+            "90": 0.00015621863356161115,
+            "99": 0.00024903739041372665,
+            "99.9": 0.0003247579351145533
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 0.0005140605241127361
+        },
+        "logitsF64Sha256": "bcdec9596a8ffabe805fc0ab78fe90c28ec21e380bae02159a022d02a0b65a67"
+      },
+      {
+        "step": 1,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0006912081248617863,
+          "rms": 0.00013237448859736162,
+          "percentiles": {
+            "50": 8.729538277618687e-05,
+            "90": 0.00021676116632020072,
+            "99": 0.00035165435047121993,
+            "99.9": 0.00046421777096851923
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 0.0006912081248617863
+        },
+        "logitsF64Sha256": "411a983085c162113a698fe803e1630c60bb616387136cfa1ccc20134f05c969"
+      },
+      {
+        "step": 2,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0008839874924779778,
+          "rms": 0.00016684175152763625,
+          "percentiles": {
+            "50": 0.00011077895878341959,
+            "90": 0.00027399524005580214,
+            "99": 0.0004400438661511807,
+            "99.9": 0.0005723043338842222
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 0.0008839874924779778
+        },
+        "logitsF64Sha256": "86852898681dd1725cf88160b2e8e6a62d92d09c142afab1b89430c6c4e7ddbe"
+      },
+      {
+        "step": 3,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0011989681940773877,
+          "rms": 0.00023436716355610925,
+          "percentiles": {
+            "50": 0.00015456473063496512,
+            "90": 0.0003846102422969011,
+            "99": 0.0006216146166840915,
+            "99.9": 0.0008237558611306139
+          },
+          "overTolerance": 15,
+          "lastTokenMax": 0.0011989681940773877
+        },
+        "logitsF64Sha256": "b3d077b7cdbce0fac4c4b49e19c3f1bd03c6113ed1b53c3b8548fda1091a51b5"
+      },
+      {
+        "step": 4,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0007239708015256419,
+          "rms": 0.00015386166966183893,
+          "percentiles": {
+            "50": 0.00010395344338387513,
+            "90": 0.00025296886278356465,
+            "99": 0.0003961143799267036,
+            "99.9": 0.0005081610645466424
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 0.0007239708015256419
+        },
+        "logitsF64Sha256": "bb45fa812d9d144c74e07396423049f4d20f3b9ff2f38bee8c5c605b2fa23a27"
+      },
+      {
+        "step": 5,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0009974509080570293,
+          "rms": 0.00018143113085355156,
+          "percentiles": {
+            "50": 0.00011964597572461377,
+            "90": 0.00029688047119500464,
+            "99": 0.00048572652876881505,
+            "99.9": 0.0006458928246440964
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 0.0009974509080570293
+        },
+        "logitsF64Sha256": "b6732bf36056a62a04b955561d3305ab5a1ee4be2b73de7ef0c135611f1c7aa5"
+      },
+      {
+        "step": 6,
+        "comparison": {
+          "values": 248320,
+          "max": 0.000868634707290733,
+          "rms": 0.00016826002002389895,
+          "percentiles": {
+            "50": 0.00011139990905328911,
+            "90": 0.0002765547534267915,
+            "99": 0.00044337671474022663,
+            "99.9": 0.0005805926438746419
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 0.000868634707290733
+        },
+        "logitsF64Sha256": "d831ffe7b0d6935b58801074b65e229d3a9798ba244826881a72599a1fcd2b15"
+      },
+      {
+        "step": 7,
+        "comparison": {
+          "values": 248320,
+          "max": 0.001502511655989025,
+          "rms": 0.0002624833185220879,
+          "percentiles": {
+            "50": 0.000172775288293181,
+            "90": 0.0004309734837834256,
+            "99": 0.0006973055370849801,
+            "99.9": 0.0009081330438582082
+          },
+          "overTolerance": 104,
+          "lastTokenMax": 0.001502511655989025
+        },
+        "logitsF64Sha256": "389e2e4953b4555949a5244b3e7ceb873af6ecc0499d7aeecb8cc3ab25084337"
+      },
+      {
+        "step": 8,
+        "comparison": {
+          "values": 248320,
+          "max": 0.001452759639690715,
+          "rms": 0.00030426413169125675,
+          "percentiles": {
+            "50": 0.0002026277814690669,
+            "90": 0.0004994726600323629,
+            "99": 0.0008017864502233206,
+            "99.9": 0.0010363280015737717
+          },
+          "overTolerance": 367,
+          "lastTokenMax": 0.001452759639690715
+        },
+        "logitsF64Sha256": "d7be0f3acea98236ee4f53971f5c84c361bb59dce5ccb2dd24d5eec68bb032c9"
+      },
+      {
+        "step": 9,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0011622935036541548,
+          "rms": 0.0001883830514568953,
+          "percentiles": {
+            "50": 0.0001260668359666095,
+            "90": 0.00030955299414487937,
+            "99": 0.0004930628640804646,
+            "99.9": 0.000643474081264344
+          },
+          "overTolerance": 1,
+          "lastTokenMax": 0.0011622935036541548
+        },
+        "logitsF64Sha256": "db468bb179cb2f7c24e46330ae31f5e35d4b997d49457a3bb6e03eea838a1645"
+      },
+      {
+        "step": 10,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0012420556383228032,
+          "rms": 0.0002172160876354593,
+          "percentiles": {
+            "50": 0.0001427548088978603,
+            "90": 0.00035680710362633874,
+            "99": 0.0005776796014838492,
+            "99.9": 0.0007660287077019849
+          },
+          "overTolerance": 9,
+          "lastTokenMax": 0.0012420556383228032
+        },
+        "logitsF64Sha256": "27a8a3f5d96477277e9aab9f6e1385d11bc34894935d884033adae61c136b164"
+      },
+      {
+        "step": 11,
+        "comparison": {
+          "values": 248320,
+          "max": 0.001473012542599239,
+          "rms": 0.00024801089585903133,
+          "percentiles": {
+            "50": 0.00016360942554549673,
+            "90": 0.0004069871669481696,
+            "99": 0.0006579118259192505,
+            "99.9": 0.0008540291555453695
+          },
+          "overTolerance": 45,
+          "lastTokenMax": 0.001473012542599239
+        },
+        "logitsF64Sha256": "be81498927382fe4cf7770d216de14da7d91bb142a2db010ab2f2af3dae3a0e0"
+      },
+      {
+        "step": 12,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0018680193149616109,
+          "rms": 0.0003578015880009516,
+          "percentiles": {
+            "50": 0.00023649953675297652,
+            "90": 0.0005867004399503717,
+            "99": 0.0009473737309296259,
+            "99.9": 0.0012290347301570474
+          },
+          "overTolerance": 1669,
+          "lastTokenMax": 0.0018680193149616109
+        },
+        "logitsF64Sha256": "de00dc46042f98c0725e2cdfd1e4df937a79c02da7e6b4d0d9139194ba2c832d"
+      },
+      {
+        "step": 13,
+        "comparison": {
+          "values": 248320,
+          "max": 0.001210925876064195,
+          "rms": 0.000224544004719221,
+          "percentiles": {
+            "50": 0.00014984842032816914,
+            "90": 0.00036899739135980435,
+            "99": 0.0005893375292918379,
+            "99.9": 0.0007612777311474028
+          },
+          "overTolerance": 7,
+          "lastTokenMax": 0.001210925876064195
+        },
+        "logitsF64Sha256": "18d2f75a259864663084ddf4821f6bee04440ee5cf45607ef9cb8da70dfe644e"
+      },
+      {
+        "step": 14,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0013718531177193682,
+          "rms": 0.00027634041677560315,
+          "percentiles": {
+            "50": 0.0001821863532051604,
+            "90": 0.00045386010558756684,
+            "99": 0.0007322971486265472,
+            "99.9": 0.0009426862696276755
+          },
+          "overTolerance": 128,
+          "lastTokenMax": 0.0013718531177193682
+        },
+        "logitsF64Sha256": "e38361779273e84e80fe0ce50f0b115db6859ab8465f030a667d5fd78ab3d58e"
+      },
+      {
+        "step": 15,
+        "comparison": {
+          "values": 248320,
+          "max": 0.001065529812441568,
+          "rms": 0.0002304829563067606,
+          "percentiles": {
+            "50": 0.0001603947855710608,
+            "90": 0.00037644212365264276,
+            "99": 0.0005772109423893767,
+            "99.9": 0.00073323333974722
+          },
+          "overTolerance": 2,
+          "lastTokenMax": 0.001065529812441568
+        },
+        "logitsF64Sha256": "3a055cfaa11782ad4347230adcd4df82fb3dba6a7b1bcce3d8381f5d38df1966"
+      },
+      {
+        "step": 16,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0014212861173779068,
+          "rms": 0.0002895569645848004,
+          "percentiles": {
+            "50": 0.00019134196975145734,
+            "90": 0.0004758402693308073,
+            "99": 0.0007664991131200324,
+            "99.9": 0.0009948251555143704
+          },
+          "overTolerance": 237,
+          "lastTokenMax": 0.0014212861173779068
+        },
+        "logitsF64Sha256": "8ae52210656bd2b555f0dbd5aeda5795bc236d88039b68e5ac5e8dbbfbba69b5"
+      },
+      {
+        "step": 17,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0012500490908884387,
+          "rms": 0.00024247363519324132,
+          "percentiles": {
+            "50": 0.0001616943066007348,
+            "90": 0.00039834082908756245,
+            "99": 0.0006337763522626183,
+            "99.9": 0.0008231051136540439
+          },
+          "overTolerance": 31,
+          "lastTokenMax": 0.0012500490908884387
+        },
+        "logitsF64Sha256": "391742f80fdc3db7f8bb6eef1f6d9b3e805135ae291812c7034483e2d6febc9d"
+      },
+      {
+        "step": 18,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0010554783414882252,
+          "rms": 0.00021531135047869656,
+          "percentiles": {
+            "50": 0.00014158815200326913,
+            "90": 0.0003543222715582162,
+            "99": 0.000570315431836228,
+            "99.9": 0.0007345622921195045
+          },
+          "overTolerance": 4,
+          "lastTokenMax": 0.0010554783414882252
+        },
+        "logitsF64Sha256": "34d51c2515d6fe3b0090c370b8c008cbfe06f71b95d510c0e90a6aa76d2264ca"
+      },
+      {
+        "step": 19,
+        "comparison": {
+          "values": 248320,
+          "max": 0.000707476087699499,
+          "rms": 0.00012694202648604952,
+          "percentiles": {
+            "50": 8.376588098824023e-05,
+            "90": 0.00020851506686110356,
+            "99": 0.0003356415529967105,
+            "99.9": 0.00043599003704557205
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 0.000707476087699499
+        },
+        "logitsF64Sha256": "8e3265e71c48504e0d2ff9e4ab995d107f2b094413ff22b21015d75342b461b5"
+      },
+      {
+        "step": 20,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0008508742496959876,
+          "rms": 0.00014963468856469465,
+          "percentiles": {
+            "50": 9.761729483459547e-05,
+            "90": 0.0002453752814648436,
+            "99": 0.0004018808158797659,
+            "99.9": 0.0005357430476114976
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 0.0008508742496959876
+        },
+        "logitsF64Sha256": "50381f21f026546a513b5acf726f7e15f961e7c42a5c5cdabb549a87e5cf5a0f"
+      },
+      {
+        "step": 21,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0009708591278165812,
+          "rms": 0.0001775360257623588,
+          "percentiles": {
+            "50": 0.00011783771825812916,
+            "90": 0.0002909197475696068,
+            "99": 0.00046669940288331487,
+            "99.9": 0.0006131089390994975
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 0.0009708591278165812
+        },
+        "logitsF64Sha256": "6930ddee0d36c877f408f8310bd30a9172f885f4cfe522170537887c8cd60bfe"
+      },
+      {
+        "step": 22,
+        "comparison": {
+          "values": 248320,
+          "max": 0.001106903111249835,
+          "rms": 0.00018975443659035427,
+          "percentiles": {
+            "50": 0.00013474776953925627,
+            "90": 0.00030835391404762105,
+            "99": 0.00046980862896141447,
+            "99.9": 0.000596432497495249
+          },
+          "overTolerance": 2,
+          "lastTokenMax": 0.001106903111249835
+        },
+        "logitsF64Sha256": "819393d0473ef124aef3b3bbe779d64427b65695e4e856e909c2c2127d4dfb21"
+      },
+      {
+        "step": 23,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0007054007511055893,
+          "rms": 0.000137984389775474,
+          "percentiles": {
+            "50": 9.18425112383936e-05,
+            "90": 0.00022647139774100155,
+            "99": 0.00036110844003165663,
+            "99.9": 0.00047095556131332693
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 0.0007054007511055893
+        },
+        "logitsF64Sha256": "693fac1cfffdb06e68214fb2a5c29bfaabe1e5a80f7c94b1aeadce809de99943"
+      },
+      {
+        "step": 24,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0008712272655828635,
+          "rms": 0.0001603983707794271,
+          "percentiles": {
+            "50": 0.0001065786355921583,
+            "90": 0.00026321261077038026,
+            "99": 0.00042263427658989375,
+            "99.9": 0.0005557095190577637
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 0.0008712272655828635
+        },
+        "logitsF64Sha256": "9abee5163d198445532d51b113b3588aff0064448437a442573e8be1fa49812d"
+      },
+      {
+        "step": 25,
+        "comparison": {
+          "values": 248320,
+          "max": 0.000528228561934796,
+          "rms": 0.00010355503758285959,
+          "percentiles": {
+            "50": 6.85171794192474e-05,
+            "90": 0.0001697632342352318,
+            "99": 0.0002742489038991103,
+            "99.9": 0.00036637573571106764
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 0.000528228561934796
+        },
+        "logitsF64Sha256": "f9fd31a41d63f765c1ebcbb6953de9dedb15e2e0071aeb25bcb61a3ce24f8bf0"
+      },
+      {
+        "step": 26,
+        "comparison": {
+          "values": 248320,
+          "max": 0.000696224727354533,
+          "rms": 0.00013808764596493804,
+          "percentiles": {
+            "50": 9.188575701607471e-05,
+            "90": 0.0002276453380272603,
+            "99": 0.0003609237695979406,
+            "99.9": 0.0004647620194435639
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 0.000696224727354533
+        },
+        "logitsF64Sha256": "ad169a731467206853f1a09147775cd6b83339287652b3fb28c3c61a07b53fee"
+      },
+      {
+        "step": 27,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0016546731320907782,
+          "rms": 0.0002861744027450159,
+          "percentiles": {
+            "50": 0.0001890830667852228,
+            "90": 0.00047020063181200115,
+            "99": 0.0007559530302997385,
+            "99.9": 0.0009932245943023524
+          },
+          "overTolerance": 228,
+          "lastTokenMax": 0.0016546731320907782
+        },
+        "logitsF64Sha256": "7b649f2d32caa07539b99ede852ef0b5806d2ef1be6123c75e0ba29a5af94919"
+      },
+      {
+        "step": 28,
+        "comparison": {
+          "values": 248320,
+          "max": 0.003091770104518332,
+          "rms": 0.00046108759482600496,
+          "percentiles": {
+            "50": 0.0003006264464299191,
+            "90": 0.0007545318604668339,
+            "99": 0.001237203054552667,
+            "99.9": 0.0016870086722782552
+          },
+          "overTolerance": 8151,
+          "lastTokenMax": 0.003091770104518332
+        },
+        "logitsF64Sha256": "5ae3bbe101cc90df3f3e043092a3bfc5f61ed2693bdd58d4538032f334c3f548"
+      },
+      {
+        "step": 29,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0012626625821159365,
+          "rms": 0.00024201661289433208,
+          "percentiles": {
+            "50": 0.0001586667910974393,
+            "90": 0.000397302077075401,
+            "99": 0.0006473549944848345,
+            "99.9": 0.0008557819128025885
+          },
+          "overTolerance": 40,
+          "lastTokenMax": 0.0012626625821159365
+        },
+        "logitsF64Sha256": "f5f3bbae2c033683a9d0793af17133b04af1b8527563c1da8329d5b9eb4ced3c"
+      },
+      {
+        "step": 30,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0012325403335822216,
+          "rms": 0.0002536688602322746,
+          "percentiles": {
+            "50": 0.00016816150252474404,
+            "90": 0.00041732103394562795,
+            "99": 0.0006686515220325627,
+            "99.9": 0.0008656416362538494
+          },
+          "overTolerance": 36,
+          "lastTokenMax": 0.0012325403335822216
+        },
+        "logitsF64Sha256": "11098f4257df585aa9fcb44e3ffbd741b538488239b7982db955f9505686870e"
+      },
+      {
+        "step": 31,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0028465191429827286,
+          "rms": 0.0004544450565108056,
+          "percentiles": {
+            "50": 0.000296216664744664,
+            "90": 0.000745228653495278,
+            "99": 0.0012181663061852019,
+            "99.9": 0.0016556698545184172
+          },
+          "overTolerance": 7529,
+          "lastTokenMax": 0.0028465191429827286
+        },
+        "logitsF64Sha256": "6811a26df1ebd78c85b82e5c9174acdbcd86efc375b8f18483719d08303f0208"
+      },
+      {
+        "step": 32,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0009174594536105474,
+          "rms": 0.00015088612180110908,
+          "percentiles": {
+            "50": 9.768050736558287e-05,
+            "90": 0.0002459343662703617,
+            "99": 0.00041189186497518886,
+            "99.9": 0.0005918832809889619
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 0.0009174594536105474
+        },
+        "logitsF64Sha256": "802b218300cb469d8c848dbcb01108f9dc14943e725ef1f7dfc169b6ee91bcf2"
+      },
+      {
+        "step": 33,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0009475133820693316,
+          "rms": 0.00018601297432879697,
+          "percentiles": {
+            "50": 0.00012317339841966257,
+            "90": 0.00030597233098679234,
+            "99": 0.0004911636097612715,
+            "99.9": 0.0006306526860187997
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 0.0009475133820693316
+        },
+        "logitsF64Sha256": "6affdeb5eb62eedbb2ab78e0ad3ad1323cade866c608a09bb0c7a306263960d1"
+      },
+      {
+        "step": 34,
+        "comparison": {
+          "values": 248320,
+          "max": 0.002067231983522433,
+          "rms": 0.000315276627353644,
+          "percentiles": {
+            "50": 0.0002050554116743708,
+            "90": 0.0005164570454147201,
+            "99": 0.0008490003502240711,
+            "99.9": 0.00115342101523877
+          },
+          "overTolerance": 774,
+          "lastTokenMax": 0.002067231983522433
+        },
+        "logitsF64Sha256": "dcf06a37ac580248d3f5fc3168d1265e9b2111b5cda5109353404eb1ecbdbbfe"
+      },
+      {
+        "step": 35,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0007082245029312872,
+          "rms": 0.0001373172227698965,
+          "percentiles": {
+            "50": 9.15363258648938e-05,
+            "90": 0.00022520029196329008,
+            "99": 0.0003615626802163474,
+            "99.9": 0.0004771567383769282
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 0.0007082245029312872
+        },
+        "logitsF64Sha256": "09584eaf3d5640f449eb42cb339345d8d199b415b280726428a64b705e12bd8e"
+      },
+      {
+        "step": 36,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0007144248839590084,
+          "rms": 0.00014780992973948158,
+          "percentiles": {
+            "50": 9.757062812743023e-05,
+            "90": 0.00024338728972524983,
+            "99": 0.00039026059045867975,
+            "99.9": 0.0005097589532775739
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 0.0007144248839590084
+        },
+        "logitsF64Sha256": "82c1ea5e5394b1a263d1d5eb5423a0f770efbc1fbc0ab5261d6b9e0b07d40a1b"
+      },
+      {
+        "step": 37,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0010959037295226182,
+          "rms": 0.00018226473092370984,
+          "percentiles": {
+            "50": 0.00011946526388384449,
+            "90": 0.00029855107746601384,
+            "99": 0.000487771630855156,
+            "99.9": 0.0006661295322298371
+          },
+          "overTolerance": 4,
+          "lastTokenMax": 0.0010959037295226182
+        },
+        "logitsF64Sha256": "d5bf0899dc53feeb57bc6a9769ecd2e207f73456e8c586b82bc95c1bcf5950d4"
+      },
+      {
+        "step": 38,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0006372570049808512,
+          "rms": 0.000122756100898881,
+          "percentiles": {
+            "50": 8.07166859255748e-05,
+            "90": 0.00020109098918696944,
+            "99": 0.0003277538218963871,
+            "99.9": 0.00043164215080346454
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 0.0006372570049808512
+        },
+        "logitsF64Sha256": "f10a9065c9f66294c9888b26ab17b9b06e3c02dc4621ebded9d39d02e17d9d3f"
+      },
+      {
+        "step": 39,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0008466177232377969,
+          "rms": 0.00017297301615181712,
+          "percentiles": {
+            "50": 0.00011598799971807017,
+            "90": 0.0002846722378265332,
+            "99": 0.00044828102332769234,
+            "99.9": 0.0005740115448442137
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 0.0008466177232377969
+        },
+        "logitsF64Sha256": "c58aadbd3661a50a841de0d382462e82836c8c803514afb7ec88ddae69457c18"
+      },
+      {
+        "step": 40,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0012158861187256953,
+          "rms": 0.0001734482121966406,
+          "percentiles": {
+            "50": 0.00011458405680420114,
+            "90": 0.0002829692155352337,
+            "99": 0.00045983610125769123,
+            "99.9": 0.0006453781655125085
+          },
+          "overTolerance": 4,
+          "lastTokenMax": 0.0012158861187256953
+        },
+        "logitsF64Sha256": "3f4cb57a10a4a069259f2a308ce8e6a4ca4d7eb4a2e877bcf839e50512469839"
+      },
+      {
+        "step": 41,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0007908096043323098,
+          "rms": 0.00013730349859251585,
+          "percentiles": {
+            "50": 8.9393330321208e-05,
+            "90": 0.00022347543877647704,
+            "99": 0.0003733942345441132,
+            "99.9": 0.0005197691448921765
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 0.0007908096043323098
+        },
+        "logitsF64Sha256": "4594b89322a1102bdc5be6edbf7d64f75c063bd284518cd853190c05f8bebc9e"
+      },
+      {
+        "step": 42,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0006005674868525546,
+          "rms": 0.00012365787489709547,
+          "percentiles": {
+            "50": 8.227564209994931e-05,
+            "90": 0.00020319245589299763,
+            "99": 0.0003244520100919378,
+            "99.9": 0.00042128335044409036
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 0.0006005674868525546
+        },
+        "logitsF64Sha256": "675cd469a2be1cfb48d65c4672ff35af4950c8ed8e22df5c16c85848745f1bab"
+      },
+      {
+        "step": 43,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0006997930146557252,
+          "rms": 0.00015047292478440364,
+          "percentiles": {
+            "50": 0.0001006397325669095,
+            "90": 0.0002471777024495303,
+            "99": 0.0003923031667679843,
+            "99.9": 0.0005076888424013361
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 0.0006997930146557252
+        },
+        "logitsF64Sha256": "435cec283902535ac6625b32c828d5952b95d0f3628a21875a7a56097e20ef56"
+      },
+      {
+        "step": 44,
+        "comparison": {
+          "values": 248320,
+          "max": 0.000723745105816409,
+          "rms": 0.00015320474461848405,
+          "percentiles": {
+            "50": 0.00010173240304778286,
+            "90": 0.00025234053945220045,
+            "99": 0.0004019732051291202,
+            "99.9": 0.0005281685427951815
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 0.000723745105816409
+        },
+        "logitsF64Sha256": "3b1f1ccab01c157b0fa1b84507b33694ba2a7ea749c1036a19e3bb8404e9da24"
+      },
+      {
+        "step": 45,
+        "comparison": {
+          "values": 248320,
+          "max": 0.000818319825589775,
+          "rms": 0.00016543701956597264,
+          "percentiles": {
+            "50": 0.00011201280810269054,
+            "90": 0.000271726009631168,
+            "99": 0.0004251659320259858,
+            "99.9": 0.0005437831688276245
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 0.000818319825589775
+        },
+        "logitsF64Sha256": "d822f074fdc862ffcca39153b3f7158d09cece34a51784da1e3ee586931593a8"
+      },
+      {
+        "step": 46,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0005932188258759297,
+          "rms": 0.00012877619941346148,
+          "percentiles": {
+            "50": 8.541958263597049e-05,
+            "90": 0.00021186848491692168,
+            "99": 0.0003384068916641647,
+            "99.9": 0.00043898435447225527
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 0.0005932188258759297
+        },
+        "logitsF64Sha256": "d3789e619f210eaf6d3289f4b9312a147a6207ccf4d8d0edf9bf44fb64bf6fdf"
+      },
+      {
+        "step": 47,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0010243192743215612,
+          "rms": 0.00015392777371541175,
+          "percentiles": {
+            "50": 0.0001012254232918286,
+            "90": 0.0002525631079453139,
+            "99": 0.00040906060742043057,
+            "99.9": 0.0005443950020556098
+          },
+          "overTolerance": 1,
+          "lastTokenMax": 0.0010243192743215612
+        },
+        "logitsF64Sha256": "434969361031917a56beecca7fcb0fca683bbb8bd23c1e221d6ab87e90ede6e1"
+      },
+      {
+        "step": 48,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0011282289783167698,
+          "rms": 0.00022688832206966837,
+          "percentiles": {
+            "50": 0.00015032322440799994,
+            "90": 0.0003731882912783924,
+            "99": 0.0005971334214822676,
+            "99.9": 0.0007764783661593236
+          },
+          "overTolerance": 10,
+          "lastTokenMax": 0.0011282289783167698
+        },
+        "logitsF64Sha256": "a7773b15de495d87601cd0b96089777db951a15549fe5fe88aeb1cd509641ce7"
+      },
+      {
+        "step": 49,
+        "comparison": {
+          "values": 248320,
+          "max": 0.0005235729472055084,
+          "rms": 0.00010674073832963652,
+          "percentiles": {
+            "50": 7.122285958249819e-05,
+            "90": 0.0001756052384092932,
+            "99": 0.0002777007941753817,
+            "99.9": 0.00036330111590175473
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 0.0005235729472055084
+        },
+        "logitsF64Sha256": "c3f563f1b85a97eb63a1f46fffce99698893d7a98be91ada422826957dbb98da"
+      },
+      {
+        "step": 50,
+        "comparison": {
+          "values": 248320,
+          "max": 0.000948098802752817,
+          "rms": 0.00019768770164522355,
+          "percentiles": {
+            "50": 0.0001414238422801084,
+            "90": 0.0003203010746080093,
+            "99": 0.0004856212125645776,
+            "99.9": 0.0006251940091553755
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 0.000948098802752817
+        },
+        "logitsF64Sha256": "42166192bfe720b61d8b9e48e9daa7944660375424a84d6b9e8c67cb1f33cb56"
+      }
+    ],
+    "interventions": [
+      {
+        "id": "all-stores-removed-f32-parameters",
+        "selectors": [
+          {
+            "operations": null,
+            "layers": null,
+            "phases": null
+          }
+        ],
+        "selectedElements": [
+          189947520
+        ],
+        "suppressedStores": {
+          "input:embedding": 239616,
+          "0:normalization": 479232,
+          "0:qkv-projection": 1437696,
+          "0:z-projection": 479232,
+          "0:a-projection": 3744,
+          "0:b-projection": 3744,
+          "0:conv-output": 1130496,
+          "0:raw-prefill-recurrent-output": 376832,
+          "0:gated-recurrent-output": 479232,
+          "0:linear-output-projection": 239616,
+          "0:attention-residual": 239616,
+          "0:ffn-gate-projection": 659456,
+          "0:ffn-up-projection": 659456,
+          "0:ffn-activation": 838656,
+          "0:ffn-down-projection": 239616,
+          "0:ffn-residual": 239616,
+          "1:normalization": 479232,
+          "1:qkv-projection": 1437696,
+          "1:z-projection": 479232,
+          "1:a-projection": 3744,
+          "1:b-projection": 3744,
+          "1:conv-output": 1130496,
+          "1:raw-prefill-recurrent-output": 376832,
+          "1:gated-recurrent-output": 479232,
+          "1:linear-output-projection": 239616,
+          "1:attention-residual": 239616,
+          "1:ffn-gate-projection": 659456,
+          "1:ffn-up-projection": 659456,
+          "1:ffn-activation": 838656,
+          "1:ffn-down-projection": 239616,
+          "1:ffn-residual": 239616,
+          "2:normalization": 479232,
+          "2:qkv-projection": 1437696,
+          "2:z-projection": 479232,
+          "2:a-projection": 3744,
+          "2:b-projection": 3744,
+          "2:conv-output": 1130496,
+          "2:raw-prefill-recurrent-output": 376832,
+          "2:gated-recurrent-output": 479232,
+          "2:linear-output-projection": 239616,
+          "2:attention-residual": 239616,
+          "2:ffn-gate-projection": 659456,
+          "2:ffn-up-projection": 659456,
+          "2:ffn-activation": 838656,
+          "2:ffn-down-projection": 239616,
+          "2:ffn-residual": 239616,
+          "3:normalization": 1078272,
+          "3:q-projection": 958464,
+          "3:k-projection": 119808,
+          "3:v-projection": 119808,
+          "3:rope-cos-table": 14976,
+          "3:rope-sin-table": 14976,
+          "3:rope-output": 599040,
+          "3:attention-output": 479232,
+          "3:gated-attention-output": 479232,
+          "3:attention-output-projection": 239616,
+          "3:attention-residual": 239616,
+          "3:ffn-gate-projection": 659456,
+          "3:ffn-up-projection": 659456,
+          "3:ffn-activation": 838656,
+          "3:ffn-down-projection": 239616,
+          "3:ffn-residual": 239616,
+          "4:normalization": 479232,
+          "4:qkv-projection": 1437696,
+          "4:z-projection": 479232,
+          "4:a-projection": 3744,
+          "4:b-projection": 3744,
+          "4:conv-output": 1130496,
+          "4:raw-prefill-recurrent-output": 376832,
+          "4:gated-recurrent-output": 479232,
+          "4:linear-output-projection": 239616,
+          "4:attention-residual": 239616,
+          "4:ffn-gate-projection": 659456,
+          "4:ffn-up-projection": 659456,
+          "4:ffn-activation": 838656,
+          "4:ffn-down-projection": 239616,
+          "4:ffn-residual": 239616,
+          "5:normalization": 479232,
+          "5:qkv-projection": 1437696,
+          "5:z-projection": 479232,
+          "5:a-projection": 3744,
+          "5:b-projection": 3744,
+          "5:conv-output": 1130496,
+          "5:raw-prefill-recurrent-output": 376832,
+          "5:gated-recurrent-output": 479232,
+          "5:linear-output-projection": 239616,
+          "5:attention-residual": 239616,
+          "5:ffn-gate-projection": 659456,
+          "5:ffn-up-projection": 659456,
+          "5:ffn-activation": 838656,
+          "5:ffn-down-projection": 239616,
+          "5:ffn-residual": 239616,
+          "6:normalization": 479232,
+          "6:qkv-projection": 1437696,
+          "6:z-projection": 479232,
+          "6:a-projection": 3744,
+          "6:b-projection": 3744,
+          "6:conv-output": 1130496,
+          "6:raw-prefill-recurrent-output": 376832,
+          "6:gated-recurrent-output": 479232,
+          "6:linear-output-projection": 239616,
+          "6:attention-residual": 239616,
+          "6:ffn-gate-projection": 659456,
+          "6:ffn-up-projection": 659456,
+          "6:ffn-activation": 838656,
+          "6:ffn-down-projection": 239616,
+          "6:ffn-residual": 239616,
+          "7:normalization": 1078272,
+          "7:q-projection": 958464,
+          "7:k-projection": 119808,
+          "7:v-projection": 119808,
+          "7:rope-cos-table": 14976,
+          "7:rope-sin-table": 14976,
+          "7:rope-output": 599040,
+          "7:attention-output": 479232,
+          "7:gated-attention-output": 479232,
+          "7:attention-output-projection": 239616,
+          "7:attention-residual": 239616,
+          "7:ffn-gate-projection": 659456,
+          "7:ffn-up-projection": 659456,
+          "7:ffn-activation": 838656,
+          "7:ffn-down-projection": 239616,
+          "7:ffn-residual": 239616,
+          "8:normalization": 479232,
+          "8:qkv-projection": 1437696,
+          "8:z-projection": 479232,
+          "8:a-projection": 3744,
+          "8:b-projection": 3744,
+          "8:conv-output": 1130496,
+          "8:raw-prefill-recurrent-output": 376832,
+          "8:gated-recurrent-output": 479232,
+          "8:linear-output-projection": 239616,
+          "8:attention-residual": 239616,
+          "8:ffn-gate-projection": 659456,
+          "8:ffn-up-projection": 659456,
+          "8:ffn-activation": 838656,
+          "8:ffn-down-projection": 239616,
+          "8:ffn-residual": 239616,
+          "9:normalization": 479232,
+          "9:qkv-projection": 1437696,
+          "9:z-projection": 479232,
+          "9:a-projection": 3744,
+          "9:b-projection": 3744,
+          "9:conv-output": 1130496,
+          "9:raw-prefill-recurrent-output": 376832,
+          "9:gated-recurrent-output": 479232,
+          "9:linear-output-projection": 239616,
+          "9:attention-residual": 239616,
+          "9:ffn-gate-projection": 659456,
+          "9:ffn-up-projection": 659456,
+          "9:ffn-activation": 838656,
+          "9:ffn-down-projection": 239616,
+          "9:ffn-residual": 239616,
+          "10:normalization": 479232,
+          "10:qkv-projection": 1437696,
+          "10:z-projection": 479232,
+          "10:a-projection": 3744,
+          "10:b-projection": 3744,
+          "10:conv-output": 1130496,
+          "10:raw-prefill-recurrent-output": 376832,
+          "10:gated-recurrent-output": 479232,
+          "10:linear-output-projection": 239616,
+          "10:attention-residual": 239616,
+          "10:ffn-gate-projection": 659456,
+          "10:ffn-up-projection": 659456,
+          "10:ffn-activation": 838656,
+          "10:ffn-down-projection": 239616,
+          "10:ffn-residual": 239616,
+          "11:normalization": 1078272,
+          "11:q-projection": 958464,
+          "11:k-projection": 119808,
+          "11:v-projection": 119808,
+          "11:rope-cos-table": 14976,
+          "11:rope-sin-table": 14976,
+          "11:rope-output": 599040,
+          "11:attention-output": 479232,
+          "11:gated-attention-output": 479232,
+          "11:attention-output-projection": 239616,
+          "11:attention-residual": 239616,
+          "11:ffn-gate-projection": 659456,
+          "11:ffn-up-projection": 659456,
+          "11:ffn-activation": 838656,
+          "11:ffn-down-projection": 239616,
+          "11:ffn-residual": 239616,
+          "12:normalization": 479232,
+          "12:qkv-projection": 1437696,
+          "12:z-projection": 479232,
+          "12:a-projection": 3744,
+          "12:b-projection": 3744,
+          "12:conv-output": 1130496,
+          "12:raw-prefill-recurrent-output": 376832,
+          "12:gated-recurrent-output": 479232,
+          "12:linear-output-projection": 239616,
+          "12:attention-residual": 239616,
+          "12:ffn-gate-projection": 659456,
+          "12:ffn-up-projection": 659456,
+          "12:ffn-activation": 838656,
+          "12:ffn-down-projection": 239616,
+          "12:ffn-residual": 239616,
+          "13:normalization": 479232,
+          "13:qkv-projection": 1437696,
+          "13:z-projection": 479232,
+          "13:a-projection": 3744,
+          "13:b-projection": 3744,
+          "13:conv-output": 1130496,
+          "13:raw-prefill-recurrent-output": 376832,
+          "13:gated-recurrent-output": 479232,
+          "13:linear-output-projection": 239616,
+          "13:attention-residual": 239616,
+          "13:ffn-gate-projection": 659456,
+          "13:ffn-up-projection": 659456,
+          "13:ffn-activation": 838656,
+          "13:ffn-down-projection": 239616,
+          "13:ffn-residual": 239616,
+          "14:normalization": 479232,
+          "14:qkv-projection": 1437696,
+          "14:z-projection": 479232,
+          "14:a-projection": 3744,
+          "14:b-projection": 3744,
+          "14:conv-output": 1130496,
+          "14:raw-prefill-recurrent-output": 376832,
+          "14:gated-recurrent-output": 479232,
+          "14:linear-output-projection": 239616,
+          "14:attention-residual": 239616,
+          "14:ffn-gate-projection": 659456,
+          "14:ffn-up-projection": 659456,
+          "14:ffn-activation": 838656,
+          "14:ffn-down-projection": 239616,
+          "14:ffn-residual": 239616,
+          "15:normalization": 1078272,
+          "15:q-projection": 958464,
+          "15:k-projection": 119808,
+          "15:v-projection": 119808,
+          "15:rope-cos-table": 14976,
+          "15:rope-sin-table": 14976,
+          "15:rope-output": 599040,
+          "15:attention-output": 479232,
+          "15:gated-attention-output": 479232,
+          "15:attention-output-projection": 239616,
+          "15:attention-residual": 239616,
+          "15:ffn-gate-projection": 659456,
+          "15:ffn-up-projection": 659456,
+          "15:ffn-activation": 838656,
+          "15:ffn-down-projection": 239616,
+          "15:ffn-residual": 239616,
+          "16:normalization": 479232,
+          "16:qkv-projection": 1437696,
+          "16:z-projection": 479232,
+          "16:a-projection": 3744,
+          "16:b-projection": 3744,
+          "16:conv-output": 1130496,
+          "16:raw-prefill-recurrent-output": 376832,
+          "16:gated-recurrent-output": 479232,
+          "16:linear-output-projection": 239616,
+          "16:attention-residual": 239616,
+          "16:ffn-gate-projection": 659456,
+          "16:ffn-up-projection": 659456,
+          "16:ffn-activation": 838656,
+          "16:ffn-down-projection": 239616,
+          "16:ffn-residual": 239616,
+          "17:normalization": 479232,
+          "17:qkv-projection": 1437696,
+          "17:z-projection": 479232,
+          "17:a-projection": 3744,
+          "17:b-projection": 3744,
+          "17:conv-output": 1130496,
+          "17:raw-prefill-recurrent-output": 376832,
+          "17:gated-recurrent-output": 479232,
+          "17:linear-output-projection": 239616,
+          "17:attention-residual": 239616,
+          "17:ffn-gate-projection": 659456,
+          "17:ffn-up-projection": 659456,
+          "17:ffn-activation": 838656,
+          "17:ffn-down-projection": 239616,
+          "17:ffn-residual": 239616,
+          "18:normalization": 479232,
+          "18:qkv-projection": 1437696,
+          "18:z-projection": 479232,
+          "18:a-projection": 3744,
+          "18:b-projection": 3744,
+          "18:conv-output": 1130496,
+          "18:raw-prefill-recurrent-output": 376832,
+          "18:gated-recurrent-output": 479232,
+          "18:linear-output-projection": 239616,
+          "18:attention-residual": 239616,
+          "18:ffn-gate-projection": 659456,
+          "18:ffn-up-projection": 659456,
+          "18:ffn-activation": 838656,
+          "18:ffn-down-projection": 239616,
+          "18:ffn-residual": 239616,
+          "19:normalization": 1078272,
+          "19:q-projection": 958464,
+          "19:k-projection": 119808,
+          "19:v-projection": 119808,
+          "19:rope-cos-table": 14976,
+          "19:rope-sin-table": 14976,
+          "19:rope-output": 599040,
+          "19:attention-output": 479232,
+          "19:gated-attention-output": 479232,
+          "19:attention-output-projection": 239616,
+          "19:attention-residual": 239616,
+          "19:ffn-gate-projection": 659456,
+          "19:ffn-up-projection": 659456,
+          "19:ffn-activation": 838656,
+          "19:ffn-down-projection": 239616,
+          "19:ffn-residual": 239616,
+          "20:normalization": 479232,
+          "20:qkv-projection": 1437696,
+          "20:z-projection": 479232,
+          "20:a-projection": 3744,
+          "20:b-projection": 3744,
+          "20:conv-output": 1130496,
+          "20:raw-prefill-recurrent-output": 376832,
+          "20:gated-recurrent-output": 479232,
+          "20:linear-output-projection": 239616,
+          "20:attention-residual": 239616,
+          "20:ffn-gate-projection": 659456,
+          "20:ffn-up-projection": 659456,
+          "20:ffn-activation": 838656,
+          "20:ffn-down-projection": 239616,
+          "20:ffn-residual": 239616,
+          "21:normalization": 479232,
+          "21:qkv-projection": 1437696,
+          "21:z-projection": 479232,
+          "21:a-projection": 3744,
+          "21:b-projection": 3744,
+          "21:conv-output": 1130496,
+          "21:raw-prefill-recurrent-output": 376832,
+          "21:gated-recurrent-output": 479232,
+          "21:linear-output-projection": 239616,
+          "21:attention-residual": 239616,
+          "21:ffn-gate-projection": 659456,
+          "21:ffn-up-projection": 659456,
+          "21:ffn-activation": 838656,
+          "21:ffn-down-projection": 239616,
+          "21:ffn-residual": 239616,
+          "22:normalization": 479232,
+          "22:qkv-projection": 1437696,
+          "22:z-projection": 479232,
+          "22:a-projection": 3744,
+          "22:b-projection": 3744,
+          "22:conv-output": 1130496,
+          "22:raw-prefill-recurrent-output": 376832,
+          "22:gated-recurrent-output": 479232,
+          "22:linear-output-projection": 239616,
+          "22:attention-residual": 239616,
+          "22:ffn-gate-projection": 659456,
+          "22:ffn-up-projection": 659456,
+          "22:ffn-activation": 838656,
+          "22:ffn-down-projection": 239616,
+          "22:ffn-residual": 239616,
+          "23:normalization": 1078272,
+          "23:q-projection": 958464,
+          "23:k-projection": 119808,
+          "23:v-projection": 119808,
+          "23:rope-cos-table": 14976,
+          "23:rope-sin-table": 14976,
+          "23:rope-output": 599040,
+          "23:attention-output": 479232,
+          "23:gated-attention-output": 479232,
+          "23:attention-output-projection": 239616,
+          "23:attention-residual": 239616,
+          "23:ffn-gate-projection": 659456,
+          "23:ffn-up-projection": 659456,
+          "23:ffn-activation": 838656,
+          "23:ffn-down-projection": 239616,
+          "23:ffn-residual": 239616,
+          "output:normalization": 52224,
+          "output:logits": 12664320
+        },
+        "uniformF64": [],
+        "uniformCalls": {},
+        "comparison": {
+          "values": 12664320,
+          "max": 0.0013944843927151673,
+          "rms": 8.003914874204647e-05,
+          "percentiles": {
+            "50": 4.5614300537732966e-05,
+            "90": 0.00012906146603088863,
+            "99": 0.00024485550828551897,
+            "99.9": 0.0003583104158627513
+          },
+          "overTolerance": 28,
+          "lastTokenMax": 0.0005388233111123242
+        },
+        "againstMappedBaseline": {
+          "values": 12664320,
+          "max": 0.003032381506391957,
+          "rms": 0.0002122046718197492,
+          "percentiles": {
+            "50": 0.00011803408442379038,
+            "90": 0.00033540066065997884,
+            "99": 0.0006747323018024587,
+            "99.9": 0.001059849769735652
+          },
+          "overTolerance": 18029,
+          "lastTokenMax": 0.0009478705336047888
+        },
+        "caches": [
+          {
+            "layer": 3,
+            "keySha256": "a2940f69f5386b2c559b0b46813db766603d69df786c7815220c71ee6fa2cfa6",
+            "valueSha256": "fb8a8874651d0a721bbc00d6df8b732477eebbc0fc0724d71655133f98c02f60"
+          },
+          {
+            "layer": 7,
+            "keySha256": "e67db1e5cd308e7029103233d2e901df9d9299adbbf1d9ebeb6a36d3432b73eb",
+            "valueSha256": "d03c36cccf23c58d596a96b0eda554b50ba32c40f38c901a4e68357fffcc84fb"
+          },
+          {
+            "layer": 11,
+            "keySha256": "a9e416abccad1e2c0bbd1dc32fa3ca32d605adc90fa6b5a0e57fc9d764c6446a",
+            "valueSha256": "67126963b90e1091aba904b33393d1128f583c8e2756496f97360c71cad189eb"
+          },
+          {
+            "layer": 15,
+            "keySha256": "4b5751b387501b39113df2f72f210718ebb41656a95df8a7b8d5e8b50f7d8ef8",
+            "valueSha256": "6b0f6ca93f2f677b5e6affe65a3075d4c8b0c96f7c6fc59da7bc1a1898bfc345"
+          },
+          {
+            "layer": 19,
+            "keySha256": "5404f5261a3d8e1d2b417ad6a1febfcbd91c4400f570c512811fa37effd8529d",
+            "valueSha256": "83452d9bc175ea3d9538950156b06f7012c1822f7f5eed688c8c9dbe418148e9"
+          },
+          {
+            "layer": 23,
+            "keySha256": "bcdaa399d13cec9f4b5c07a6e86dedae93362b980829b17b3ae595ce1e155b02",
+            "valueSha256": "91769db0da0f14a3c9b8e195195ebf4fe485378e5cdda223c41038651670a43c"
+          }
+        ],
+        "cacheBitChanges": [
+          {
+            "layer": 3,
+            "kind": "key",
+            "againstMappedBaseline": 102,
+            "againstApproved": 2,
+            "firstChangedAgainstApproved": [
+              {
+                "index": [
+                  84,
+                  1,
+                  165
+                ],
+                "expectedBits": 35159,
+                "actualBits": 35160
+              },
+              {
+                "index": [
+                  233,
+                  0,
+                  51
+                ],
+                "expectedBits": 47964,
+                "actualBits": 47963
+              }
+            ]
+          },
+          {
+            "layer": 3,
+            "kind": "value",
+            "againstMappedBaseline": 97,
+            "againstApproved": 1,
+            "firstChangedAgainstApproved": [
+              {
+                "index": [
+                  189,
+                  1,
+                  116
+                ],
+                "expectedBits": 2014,
+                "actualBits": 2015
+              }
+            ]
+          },
+          {
+            "layer": 7,
+            "kind": "key",
+            "againstMappedBaseline": 2008,
+            "againstApproved": 3,
+            "firstChangedAgainstApproved": [
+              {
+                "index": [
+                  41,
+                  1,
+                  125
+                ],
+                "expectedBits": 48208,
+                "actualBits": 48209
+              },
+              {
+                "index": [
+                  61,
+                  1,
+                  170
+                ],
+                "expectedBits": 14662,
+                "actualBits": 14663
+              },
+              {
+                "index": [
+                  71,
+                  0,
+                  139
+                ],
+                "expectedBits": 41536,
+                "actualBits": 41537
+              }
+            ]
+          },
+          {
+            "layer": 7,
+            "kind": "value",
+            "againstMappedBaseline": 2214,
+            "againstApproved": 1,
+            "firstChangedAgainstApproved": [
+              {
+                "index": [
+                  36,
+                  1,
+                  137
+                ],
+                "expectedBits": 46030,
+                "actualBits": 46031
+              }
+            ]
+          },
+          {
+            "layer": 11,
+            "kind": "key",
+            "againstMappedBaseline": 6656,
+            "againstApproved": 354,
+            "firstChangedAgainstApproved": [
+              {
+                "index": [
+                  38,
+                  1,
+                  142
+                ],
+                "expectedBits": 43127,
+                "actualBits": 43128
+              },
+              {
+                "index": [
+                  39,
+                  1,
+                  229
+                ],
+                "expectedBits": 5029,
+                "actualBits": 5030
+              },
+              {
+                "index": [
+                  40,
+                  1,
+                  250
+                ],
+                "expectedBits": 42566,
+                "actualBits": 42567
+              },
+              {
+                "index": [
+                  41,
+                  0,
+                  28
+                ],
+                "expectedBits": 8931,
+                "actualBits": 8932
+              },
+              {
+                "index": [
+                  41,
+                  0,
+                  242
+                ],
+                "expectedBits": 12832,
+                "actualBits": 12831
+              },
+              {
+                "index": [
+                  41,
+                  1,
+                  5
+                ],
+                "expectedBits": 40192,
+                "actualBits": 40191
+              },
+              {
+                "index": [
+                  41,
+                  1,
+                  106
+                ],
+                "expectedBits": 41780,
+                "actualBits": 41779
+              },
+              {
+                "index": [
+                  41,
+                  1,
+                  135
+                ],
+                "expectedBits": 47740,
+                "actualBits": 47739
+              }
+            ]
+          },
+          {
+            "layer": 11,
+            "kind": "value",
+            "againstMappedBaseline": 7684,
+            "againstApproved": 231,
+            "firstChangedAgainstApproved": [
+              {
+                "index": [
+                  36,
+                  1,
+                  59
+                ],
+                "expectedBits": 1237,
+                "actualBits": 1236
+              },
+              {
+                "index": [
+                  40,
+                  0,
+                  161
+                ],
+                "expectedBits": 36483,
+                "actualBits": 36484
+              },
+              {
+                "index": [
+                  40,
+                  1,
+                  1
+                ],
+                "expectedBits": 32951,
+                "actualBits": 32948
+              },
+              {
+                "index": [
+                  41,
+                  0,
+                  23
+                ],
+                "expectedBits": 39659,
+                "actualBits": 39658
+              },
+              {
+                "index": [
+                  41,
+                  0,
+                  101
+                ],
+                "expectedBits": 6806,
+                "actualBits": 6805
+              },
+              {
+                "index": [
+                  41,
+                  0,
+                  153
+                ],
+                "expectedBits": 11034,
+                "actualBits": 11035
+              },
+              {
+                "index": [
+                  41,
+                  0,
+                  230
+                ],
+                "expectedBits": 9119,
+                "actualBits": 9120
+              },
+              {
+                "index": [
+                  41,
+                  1,
+                  12
+                ],
+                "expectedBits": 38831,
+                "actualBits": 38830
+              }
+            ]
+          },
+          {
+            "layer": 15,
+            "kind": "key",
+            "againstMappedBaseline": 7658,
+            "againstApproved": 813,
+            "firstChangedAgainstApproved": [
+              {
+                "index": [
+                  36,
+                  1,
+                  201
+                ],
+                "expectedBits": 4672,
+                "actualBits": 4673
+              },
+              {
+                "index": [
+                  41,
+                  0,
+                  151
+                ],
+                "expectedBits": 14460,
+                "actualBits": 14461
+              },
+              {
+                "index": [
+                  41,
+                  1,
+                  16
+                ],
+                "expectedBits": 43077,
+                "actualBits": 43076
+              },
+              {
+                "index": [
+                  42,
+                  0,
+                  168
+                ],
+                "expectedBits": 5849,
+                "actualBits": 5848
+              },
+              {
+                "index": [
+                  42,
+                  1,
+                  166
+                ],
+                "expectedBits": 14619,
+                "actualBits": 14620
+              },
+              {
+                "index": [
+                  42,
+                  1,
+                  199
+                ],
+                "expectedBits": 42420,
+                "actualBits": 42421
+              },
+              {
+                "index": [
+                  43,
+                  0,
+                  162
+                ],
+                "expectedBits": 5655,
+                "actualBits": 5654
+              },
+              {
+                "index": [
+                  43,
+                  1,
+                  116
+                ],
+                "expectedBits": 11567,
+                "actualBits": 11566
+              }
+            ]
+          },
+          {
+            "layer": 15,
+            "kind": "value",
+            "againstMappedBaseline": 7812,
+            "againstApproved": 652,
+            "firstChangedAgainstApproved": [
+              {
+                "index": [
+                  11,
+                  0,
+                  131
+                ],
+                "expectedBits": 36416,
+                "actualBits": 36415
+              },
+              {
+                "index": [
+                  41,
+                  0,
+                  72
+                ],
+                "expectedBits": 5437,
+                "actualBits": 5436
+              },
+              {
+                "index": [
+                  41,
+                  0,
+                  254
+                ],
+                "expectedBits": 10089,
+                "actualBits": 10090
+              },
+              {
+                "index": [
+                  41,
+                  1,
+                  174
+                ],
+                "expectedBits": 12662,
+                "actualBits": 12661
+              },
+              {
+                "index": [
+                  44,
+                  1,
+                  54
+                ],
+                "expectedBits": 1996,
+                "actualBits": 1994
+              },
+              {
+                "index": [
+                  45,
+                  0,
+                  212
+                ],
+                "expectedBits": 38044,
+                "actualBits": 38043
+              },
+              {
+                "index": [
+                  45,
+                  1,
+                  126
+                ],
+                "expectedBits": 40539,
+                "actualBits": 40538
+              },
+              {
+                "index": [
+                  46,
+                  0,
+                  9
+                ],
+                "expectedBits": 3276,
+                "actualBits": 3274
+              }
+            ]
+          },
+          {
+            "layer": 19,
+            "kind": "key",
+            "againstMappedBaseline": 7673,
+            "againstApproved": 1679,
+            "firstChangedAgainstApproved": [
+              {
+                "index": [
+                  37,
+                  1,
+                  107
+                ],
+                "expectedBits": 36217,
+                "actualBits": 36218
+              },
+              {
+                "index": [
+                  41,
+                  0,
+                  54
+                ],
+                "expectedBits": 6669,
+                "actualBits": 6670
+              },
+              {
+                "index": [
+                  41,
+                  0,
+                  131
+                ],
+                "expectedBits": 5138,
+                "actualBits": 5137
+              },
+              {
+                "index": [
+                  41,
+                  1,
+                  245
+                ],
+                "expectedBits": 42719,
+                "actualBits": 42718
+              },
+              {
+                "index": [
+                  44,
+                  1,
+                  182
+                ],
+                "expectedBits": 46440,
+                "actualBits": 46441
+              },
+              {
+                "index": [
+                  46,
+                  0,
+                  163
+                ],
+                "expectedBits": 44615,
+                "actualBits": 44616
+              },
+              {
+                "index": [
+                  46,
+                  0,
+                  235
+                ],
+                "expectedBits": 44207,
+                "actualBits": 44206
+              },
+              {
+                "index": [
+                  47,
+                  0,
+                  169
+                ],
+                "expectedBits": 6392,
+                "actualBits": 6391
+              }
+            ]
+          },
+          {
+            "layer": 19,
+            "kind": "value",
+            "againstMappedBaseline": 8285,
+            "againstApproved": 1602,
+            "firstChangedAgainstApproved": [
+              {
+                "index": [
+                  41,
+                  1,
+                  188
+                ],
+                "expectedBits": 14887,
+                "actualBits": 14888
+              },
+              {
+                "index": [
+                  42,
+                  0,
+                  71
+                ],
+                "expectedBits": 10984,
+                "actualBits": 10983
+              },
+              {
+                "index": [
+                  43,
+                  0,
+                  66
+                ],
+                "expectedBits": 815,
+                "actualBits": 814
+              },
+              {
+                "index": [
+                  46,
+                  0,
+                  111
+                ],
+                "expectedBits": 46458,
+                "actualBits": 46459
+              },
+              {
+                "index": [
+                  46,
+                  0,
+                  195
+                ],
+                "expectedBits": 11552,
+                "actualBits": 11553
+              },
+              {
+                "index": [
+                  46,
+                  0,
+                  208
+                ],
+                "expectedBits": 7031,
+                "actualBits": 7032
+              },
+              {
+                "index": [
+                  48,
+                  0,
+                  91
+                ],
+                "expectedBits": 42998,
+                "actualBits": 42997
+              },
+              {
+                "index": [
+                  48,
+                  1,
+                  43
+                ],
+                "expectedBits": 39496,
+                "actualBits": 39497
+              }
+            ]
+          },
+          {
+            "layer": 23,
+            "kind": "key",
+            "againstMappedBaseline": 8038,
+            "againstApproved": 2400,
+            "firstChangedAgainstApproved": [
+              {
+                "index": [
+                  42,
+                  0,
+                  151
+                ],
+                "expectedBits": 2273,
+                "actualBits": 2272
+              },
+              {
+                "index": [
+                  42,
+                  1,
+                  106
+                ],
+                "expectedBits": 41563,
+                "actualBits": 41564
+              },
+              {
+                "index": [
+                  45,
+                  0,
+                  254
+                ],
+                "expectedBits": 45543,
+                "actualBits": 45544
+              },
+              {
+                "index": [
+                  45,
+                  1,
+                  63
+                ],
+                "expectedBits": 11052,
+                "actualBits": 11053
+              },
+              {
+                "index": [
+                  45,
+                  1,
+                  192
+                ],
+                "expectedBits": 43944,
+                "actualBits": 43943
+              },
+              {
+                "index": [
+                  47,
+                  0,
+                  77
+                ],
+                "expectedBits": 11735,
+                "actualBits": 11736
+              },
+              {
+                "index": [
+                  47,
+                  1,
+                  184
+                ],
+                "expectedBits": 44958,
+                "actualBits": 44959
+              },
+              {
+                "index": [
+                  48,
+                  1,
+                  104
+                ],
+                "expectedBits": 7315,
+                "actualBits": 7314
+              }
+            ]
+          },
+          {
+            "layer": 23,
+            "kind": "value",
+            "againstMappedBaseline": 6691,
+            "againstApproved": 2043,
+            "firstChangedAgainstApproved": [
+              {
+                "index": [
+                  43,
+                  1,
+                  58
+                ],
+                "expectedBits": 40825,
+                "actualBits": 40824
+              },
+              {
+                "index": [
+                  44,
+                  0,
+                  59
+                ],
+                "expectedBits": 36586,
+                "actualBits": 36585
+              },
+              {
+                "index": [
+                  44,
+                  1,
+                  208
+                ],
+                "expectedBits": 45948,
+                "actualBits": 45947
+              },
+              {
+                "index": [
+                  46,
+                  0,
+                  144
+                ],
+                "expectedBits": 12542,
+                "actualBits": 12541
+              },
+              {
+                "index": [
+                  46,
+                  1,
+                  152
+                ],
+                "expectedBits": 7933,
+                "actualBits": 7932
+              },
+              {
+                "index": [
+                  48,
+                  1,
+                  78
+                ],
+                "expectedBits": 10819,
+                "actualBits": 10820
+              },
+              {
+                "index": [
+                  49,
+                  0,
+                  189
+                ],
+                "expectedBits": 35174,
+                "actualBits": 35176
+              },
+              {
+                "index": [
+                  50,
+                  0,
+                  16
+                ],
+                "expectedBits": 4989,
+                "actualBits": 4988
+              }
+            ]
+          }
+        ],
+        "perPrefix": [
+          {
+            "step": 0,
+            "comparison": {
+              "values": 248320,
+              "max": 0.00015816292099035678,
+              "rms": 2.4621575040497766e-05,
+              "percentiles": {
+                "50": 1.6314190947663842e-05,
+                "90": 4.0116892933939056e-05,
+                "99": 6.519976930005721e-05,
+                "99.9": 9.15826557593905e-05
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.00015816292099035678
+            },
+            "logitsF64Sha256": "e3132d86f4090f9a6729e60296741c9a86ad3432133630712efe8eadb5aa744c"
+          },
+          {
+            "step": 1,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0003332529956729946,
+              "rms": 6.559264784627386e-05,
+              "percentiles": {
+                "50": 4.303611833711418e-05,
+                "90": 0.00010793544075502482,
+                "99": 0.0001739490773674235,
+                "99.9": 0.00022602671439022465
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0003332529956729946
+            },
+            "logitsF64Sha256": "df98a93e4e9c4c392d8762353791768e5c530832d9b0a0a83d3223c9b7454f14"
+          },
+          {
+            "step": 2,
+            "comparison": {
+              "values": 248320,
+              "max": 0.00040182268662469767,
+              "rms": 5.559419306984117e-05,
+              "percentiles": {
+                "50": 3.627725636723422e-05,
+                "90": 9.013321880461112e-05,
+                "99": 0.00014875943387063323,
+                "99.9": 0.00023295638008867184
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.00040182268662469767
+            },
+            "logitsF64Sha256": "025380e2d0883017f5d9f265992bf613b865444adbc15a859c96ffb5a95cb961"
+          },
+          {
+            "step": 3,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0006597404880168689,
+              "rms": 0.00010310998193133631,
+              "percentiles": {
+                "50": 6.980115630461636e-05,
+                "90": 0.0001675915328831046,
+                "99": 0.000267614984432396,
+                "99.9": 0.00037507158350035924
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0006597404880168689
+            },
+            "logitsF64Sha256": "cd75597bfe32999b93ddefb5e620fee5c5a472679d9f8a09f3102cdb09408c34"
+          },
+          {
+            "step": 4,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0006103669389005972,
+              "rms": 0.00011119005417334812,
+              "percentiles": {
+                "50": 7.361359955759816e-05,
+                "90": 0.00018277540544924255,
+                "99": 0.00029402375579672395,
+                "99.9": 0.0003825065804541589
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0006103669389005972
+            },
+            "logitsF64Sha256": "d5a57cadb3a528ce71bf0225ae8004ce9388ea110c60bde0140b666c0462717b"
+          },
+          {
+            "step": 5,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0005639023566335055,
+              "rms": 9.474375626630229e-05,
+              "percentiles": {
+                "50": 6.405509477791504e-05,
+                "90": 0.00015559230766095669,
+                "99": 0.0002447467173555373,
+                "99.9": 0.00032075363827343276
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0005639023566335055
+            },
+            "logitsF64Sha256": "31453363afd1fb197841841372f96ddd515350038eaf89f386cb024a4b32e0c4"
+          },
+          {
+            "step": 6,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0005505955847002753,
+              "rms": 9.36751095345989e-05,
+              "percentiles": {
+                "50": 6.235568417672921e-05,
+                "90": 0.0001536627875651009,
+                "99": 0.00024641376163045956,
+                "99.9": 0.0003213086083166271
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0005505955847002753
+            },
+            "logitsF64Sha256": "7031ee65c841dbf84765b8d3a7cc0dd268bc910191674f92491f705f1f137d66"
+          },
+          {
+            "step": 7,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0004335053340218664,
+              "rms": 6.804499917646252e-05,
+              "percentiles": {
+                "50": 4.509983490741387e-05,
+                "90": 0.00011177223072743465,
+                "99": 0.00017993669035211822,
+                "99.9": 0.0002368992087999543
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0004335053340218664
+            },
+            "logitsF64Sha256": "eaac30f05f77f21a4bbf9f00398f9e04efc9cc1366005a395480a4e612c4e661"
+          },
+          {
+            "step": 8,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0004063806305669715,
+              "rms": 8.089680046355864e-05,
+              "percentiles": {
+                "50": 5.714884839397305e-05,
+                "90": 0.00013195098405458517,
+                "99": 0.00020028910050370213,
+                "99.9": 0.0002517195551634626
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0004063806305669715
+            },
+            "logitsF64Sha256": "b28be69dabcd7c6f659e46223e9782184f2d03b3102a235748984e7e855ea463"
+          },
+          {
+            "step": 9,
+            "comparison": {
+              "values": 248320,
+              "max": 0.00045017174960015893,
+              "rms": 6.229158883043919e-05,
+              "percentiles": {
+                "50": 4.05635046747399e-05,
+                "90": 0.000102337075872061,
+                "99": 0.00016665470165616258,
+                "99.9": 0.0002222125998963259
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.00045017174960015893
+            },
+            "logitsF64Sha256": "9d5bdfe3c0d07705231c51673db218fb322775027fcf7db89dea4c7c83fcc3b0"
+          },
+          {
+            "step": 10,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0004019104150128072,
+              "rms": 5.8617217777639744e-05,
+              "percentiles": {
+                "50": 3.9561885074757e-05,
+                "90": 9.62539666042761e-05,
+                "99": 0.00015121580280879506,
+                "99.9": 0.00019542115948826587
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0004019104150128072
+            },
+            "logitsF64Sha256": "4fc8e819afbc3369833e154aacdb63b0427d7fa4fef310093d5353023d635d5d"
+          },
+          {
+            "step": 11,
+            "comparison": {
+              "values": 248320,
+              "max": 0.00026697834397015896,
+              "rms": 4.02575096466886e-05,
+              "percentiles": {
+                "50": 2.628268934123934e-05,
+                "90": 6.560852005603746e-05,
+                "99": 0.00010834176520616355,
+                "99.9": 0.00015209894943138803
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.00026697834397015896
+            },
+            "logitsF64Sha256": "27589086b416e89c94b9a08ed0e7e261fee08a1e839990f765bce478fcc5dbac"
+          },
+          {
+            "step": 12,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0003143610760343307,
+              "rms": 5.252547080713998e-05,
+              "percentiles": {
+                "50": 3.487271712954154e-05,
+                "90": 8.62756900338102e-05,
+                "99": 0.00013771982443828266,
+                "99.9": 0.00018238732619513744
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0003143610760343307
+            },
+            "logitsF64Sha256": "9874e20c5ec6807000928437f38e363392624cc918162645af4110ee9ca80b95"
+          },
+          {
+            "step": 13,
+            "comparison": {
+              "values": 248320,
+              "max": 0.00032334535679545695,
+              "rms": 4.861362702569618e-05,
+              "percentiles": {
+                "50": 3.3112453972083955e-05,
+                "90": 7.908632341404599e-05,
+                "99": 0.00012523316794359912,
+                "99.9": 0.00017178740710227774
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.00032334535679545695
+            },
+            "logitsF64Sha256": "a9a520843b348e50a84704b9206fda808dc2a6da17d8393a1fd4d6a9a717798d"
+          },
+          {
+            "step": 14,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0003227068574194192,
+              "rms": 4.7739764810746626e-05,
+              "percentiles": {
+                "50": 3.115467770165026e-05,
+                "90": 7.827563311788577e-05,
+                "99": 0.0001279619091113093,
+                "99.9": 0.0001719393740075796
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0003227068574194192
+            },
+            "logitsF64Sha256": "6324107b12e701f278e7b7c6c1d78549e4adf27f191f1d2b8879e2cbc8e9896b"
+          },
+          {
+            "step": 15,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0002362499820511843,
+              "rms": 5.331043479217691e-05,
+              "percentiles": {
+                "50": 3.9007748219965777e-05,
+                "90": 8.590969429467243e-05,
+                "99": 0.00013016616329434961,
+                "99.9": 0.0001673175718398168
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0002362499820511843
+            },
+            "logitsF64Sha256": "2fcfb27107986b73ba64d6dcc304a9e979f17ae19a7efe1b9603a2f553700bb2"
+          },
+          {
+            "step": 16,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0004578775084755904,
+              "rms": 6.059216147269461e-05,
+              "percentiles": {
+                "50": 4.132545437529611e-05,
+                "90": 9.888671149120843e-05,
+                "99": 0.00015491041851364517,
+                "99.9": 0.0002091643204862753
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0004578775084755904
+            },
+            "logitsF64Sha256": "864323017ebb78bb94c7718b2d2b3126bca8d1d877c2d1d0150f61771f02c948"
+          },
+          {
+            "step": 17,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0007836289552480835,
+              "rms": 0.0001252810666790913,
+              "percentiles": {
+                "50": 8.400918731932272e-05,
+                "90": 0.00020529459722951063,
+                "99": 0.0003265614536319372,
+                "99.9": 0.0004310323899651715
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0007836289552480835
+            },
+            "logitsF64Sha256": "277953bf4df5959a7359e012ecb799e94152df85f8242ba0e8f960e8ac11996f"
+          },
+          {
+            "step": 18,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0006432416661859008,
+              "rms": 0.00011764151615539648,
+              "percentiles": {
+                "50": 7.814893597912764e-05,
+                "90": 0.00019350838993519305,
+                "99": 0.0003088597997789177,
+                "99.9": 0.000401503891066878
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0006432416661859008
+            },
+            "logitsF64Sha256": "993c6b62af5348f88c13e8c3aa2ca0036f0b78dadee14916b4c773f9c2d8ed92"
+          },
+          {
+            "step": 19,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0013944843927151673,
+              "rms": 0.00013846774841481634,
+              "percentiles": {
+                "50": 8.595579708700618e-05,
+                "90": 0.00021733025768402026,
+                "99": 0.00039726173732403493,
+                "99.9": 0.0007272354067387588
+              },
+              "overTolerance": 28,
+              "lastTokenMax": 0.0013944843927151673
+            },
+            "logitsF64Sha256": "ada50ddaa2d7f5c43601d7448a6f2c30889ca85470a1dc3e028d37c0c7fc1187"
+          },
+          {
+            "step": 20,
+            "comparison": {
+              "values": 248320,
+              "max": 0.000546102134626858,
+              "rms": 0.00010199135919890506,
+              "percentiles": {
+                "50": 6.711457085556427e-05,
+                "90": 0.00016759682226421548,
+                "99": 0.00027078568056305486,
+                "99.9": 0.0003595355561645679
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.000546102134626858
+            },
+            "logitsF64Sha256": "717db99035712acbf2a267d5df2bbdd05cf1a77f43c0a4ac74d4ac747277907b"
+          },
+          {
+            "step": 21,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0006317416117003205,
+              "rms": 0.0001079159392943925,
+              "percentiles": {
+                "50": 6.917961439317777e-05,
+                "90": 0.00017561726727619576,
+                "99": 0.0003010228740170273,
+                "99.9": 0.0004163479075608346
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0006317416117003205
+            },
+            "logitsF64Sha256": "1e8959d8544cc6e6c8d07f837236aa15d2fb7b6032733cd72d1028079304c458"
+          },
+          {
+            "step": 22,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0005081283149976912,
+              "rms": 8.59446664402195e-05,
+              "percentiles": {
+                "50": 5.702193980305914e-05,
+                "90": 0.00014129435548455583,
+                "99": 0.0002261750421787667,
+                "99.9": 0.0002944251471180736
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0005081283149976912
+            },
+            "logitsF64Sha256": "9731340c3363d17b8ccc7d5c2d9f4f7b604654d093b1d56e372e240688e12df6"
+          },
+          {
+            "step": 23,
+            "comparison": {
+              "values": 248320,
+              "max": 0.00030013037285936406,
+              "rms": 5.6680550272177006e-05,
+              "percentiles": {
+                "50": 3.714304647700617e-05,
+                "90": 9.275230902963116e-05,
+                "99": 0.00015277208828119227,
+                "99.9": 0.0002023322182154743
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.00030013037285936406
+            },
+            "logitsF64Sha256": "58103ca0a38dc521c703a665c76dafb07df029959fbef09ed68bc748848273dc"
+          },
+          {
+            "step": 24,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0004859825255394412,
+              "rms": 7.589688325853804e-05,
+              "percentiles": {
+                "50": 4.851354565449384e-05,
+                "90": 0.0001227475435687353,
+                "99": 0.00021218027085134593,
+                "99.9": 0.00030538980060386303
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0004859825255394412
+            },
+            "logitsF64Sha256": "44d17d8f3eb440126a9f17e86a0c23b78e94d50af798c17cf5365fde6cb4dc43"
+          },
+          {
+            "step": 25,
+            "comparison": {
+              "values": 248320,
+              "max": 0.00032787262299294184,
+              "rms": 4.962137212073944e-05,
+              "percentiles": {
+                "50": 3.337523899679673e-05,
+                "90": 8.152093788984515e-05,
+                "99": 0.00012857519076249878,
+                "99.9": 0.00016630624859287615
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.00032787262299294184
+            },
+            "logitsF64Sha256": "c786d476012c2beb707fcdfea1dd01ef61b8c27cf800e14a6238b015c6261707"
+          },
+          {
+            "step": 26,
+            "comparison": {
+              "values": 248320,
+              "max": 0.000287405940666563,
+              "rms": 5.285322102629822e-05,
+              "percentiles": {
+                "50": 3.453840780887063e-05,
+                "90": 8.640423518855301e-05,
+                "99": 0.00014208449404505606,
+                "99.9": 0.00019507097052941095
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.000287405940666563
+            },
+            "logitsF64Sha256": "2476888499878c8fe1e8b39bddc292256b62d46decbf9adebd290f3698589c48"
+          },
+          {
+            "step": 27,
+            "comparison": {
+              "values": 248320,
+              "max": 0.000306659045591573,
+              "rms": 6.0938672092635037e-05,
+              "percentiles": {
+                "50": 4.0175076923998354e-05,
+                "90": 0.00010009150260255062,
+                "99": 0.0001616252594994272,
+                "99.9": 0.00021270437524394413
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.000306659045591573
+            },
+            "logitsF64Sha256": "23665ac50702cd1ed6ab951120314d7a6dec0dcfc00fe9697d9f7d8bddde374b"
+          },
+          {
+            "step": 28,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0002651034789984408,
+              "rms": 3.6373640618870084e-05,
+              "percentiles": {
+                "50": 2.3478283971867242e-05,
+                "90": 5.938401440293007e-05,
+                "99": 9.928631229037197e-05,
+                "99.9": 0.00013772428281388699
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0002651034789984408
+            },
+            "logitsF64Sha256": "e29d1e7e98446408485e67c6fe41bcc304e339190d375d9aa18676d0ce7f373a"
+          },
+          {
+            "step": 29,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0002260340588742249,
+              "rms": 4.660022879028875e-05,
+              "percentiles": {
+                "50": 3.105059417707334e-05,
+                "90": 7.656807032696555e-05,
+                "99": 0.00012219764631695714,
+                "99.9": 0.0001575827603909685
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0002260340588742249
+            },
+            "logitsF64Sha256": "08b4d4fdc5b26403a628395993c1d911e0df3791e0acebe25f41e19ba902e32a"
+          },
+          {
+            "step": 30,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0003546147081557871,
+              "rms": 7.220968664578218e-05,
+              "percentiles": {
+                "50": 4.851137771066938e-05,
+                "90": 0.00011885550757138042,
+                "99": 0.00018660205921718683,
+                "99.9": 0.00024106301172789493
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0003546147081557871
+            },
+            "logitsF64Sha256": "355a130c2bade31ad474fab97a171f92384ab436b7c1cb82427c5d76276379ee"
+          },
+          {
+            "step": 31,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0004485186325027257,
+              "rms": 5.055323539644912e-05,
+              "percentiles": {
+                "50": 3.322783839421195e-05,
+                "90": 8.270781773453973e-05,
+                "99": 0.00013404230875197043,
+                "99.9": 0.00018403730041820373
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0004485186325027257
+            },
+            "logitsF64Sha256": "a4a6a623673720494e103f222878b6fd07319d7b48b494f53d894437fdf15ee5"
+          },
+          {
+            "step": 32,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0003790387218883251,
+              "rms": 6.692449153433221e-05,
+              "percentiles": {
+                "50": 4.402617530352426e-05,
+                "90": 0.0001097531421873077,
+                "99": 0.000178557523902485,
+                "99.9": 0.0002385295952647552
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0003790387218883251
+            },
+            "logitsF64Sha256": "db0a88963d43e2fd8661bdcc648cb3f9cd5eece9c96c60c5a0ecc7f34925d1be"
+          },
+          {
+            "step": 33,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0007393335520517741,
+              "rms": 0.00014686760946016055,
+              "percentiles": {
+                "50": 0.00010117856176417028,
+                "90": 0.0002406658374798143,
+                "99": 0.00037284787025748656,
+                "99.9": 0.00047866017629550803
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0007393335520517741
+            },
+            "logitsF64Sha256": "2d9d64f7930349d893f5bc753943a9b60ade38554398aa232438a03d05732bc5"
+          },
+          {
+            "step": 34,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0005896657766939484,
+              "rms": 0.00011636752894382006,
+              "percentiles": {
+                "50": 7.769644363686545e-05,
+                "90": 0.00019110391135630512,
+                "99": 0.0003041834620077877,
+                "99.9": 0.0003997681516069021
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0005896657766939484
+            },
+            "logitsF64Sha256": "954cf431c511e808a01fab16b2132d92f5efb2e46c1a80b54a7dded1576c0dfc"
+          },
+          {
+            "step": 35,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0003249686078587999,
+              "rms": 6.134105535753807e-05,
+              "percentiles": {
+                "50": 4.0717473914320124e-05,
+                "90": 0.0001009442520564008,
+                "99": 0.0001611603748628809,
+                "99.9": 0.00021168076483037788
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0003249686078587999
+            },
+            "logitsF64Sha256": "6777233d098308404f22cb13ea85ebb82c04cd63818756259543b2cf3adaf409"
+          },
+          {
+            "step": 36,
+            "comparison": {
+              "values": 248320,
+              "max": 0.00041793604997542033,
+              "rms": 8.826573708660687e-05,
+              "percentiles": {
+                "50": 5.8944982936209867e-05,
+                "90": 0.00014525182094300427,
+                "99": 0.0002296741370853672,
+                "99.9": 0.0002986214373403845
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.00041793604997542033
+            },
+            "logitsF64Sha256": "32b4b948560bc9086554aeba8a4b88b2add6fc1f2d653c2072273d3a99b9beaf"
+          },
+          {
+            "step": 37,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0004937632881514276,
+              "rms": 0.00010018504866761566,
+              "percentiles": {
+                "50": 6.576796059243328e-05,
+                "90": 0.00016479414390295767,
+                "99": 0.0002656668798840966,
+                "99.9": 0.000349950842370063
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0004937632881514276
+            },
+            "logitsF64Sha256": "58b3d8d427e13106544667595fbf7b332cda9a1c425043fe6fe74186d7dc02f5"
+          },
+          {
+            "step": 38,
+            "comparison": {
+              "values": 248320,
+              "max": 0.00039725909273169435,
+              "rms": 6.694506266810828e-05,
+              "percentiles": {
+                "50": 4.398937710026196e-05,
+                "90": 0.00010963222078088642,
+                "99": 0.00017825878863666044,
+                "99.9": 0.00023960309186287678
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.00039725909273169435
+            },
+            "logitsF64Sha256": "7a2bfad81e6bc5ac13f4dbe9c381ea7ba75a032563f23f3e2e585a6d3cf6ad14"
+          },
+          {
+            "step": 39,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0005306593842411278,
+              "rms": 0.00010396596071093147,
+              "percentiles": {
+                "50": 6.925663767376466e-05,
+                "90": 0.00017115081564769152,
+                "99": 0.00027198491844738766,
+                "99.9": 0.0003481299488004052
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0005306593842411278
+            },
+            "logitsF64Sha256": "10a8be362b0cd18d6d5ebc93610c2ebeccab62ade631b840d346c69ddcde027a"
+          },
+          {
+            "step": 40,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0003762820680677237,
+              "rms": 6.663534298769008e-05,
+              "percentiles": {
+                "50": 4.3776021541375165e-05,
+                "90": 0.00010954657584316685,
+                "99": 0.0001773572475669516,
+                "99.9": 0.0002339328449783198
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0003762820680677237
+            },
+            "logitsF64Sha256": "eef37af3952f0b0e2a00456af9e663f7a4f55f1a75784177e008ad4055577a4b"
+          },
+          {
+            "step": 41,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0003117244605785885,
+              "rms": 5.8726550347500834e-05,
+              "percentiles": {
+                "50": 3.8808793869749e-05,
+                "90": 9.638147147308374e-05,
+                "99": 0.00015482904978927792,
+                "99.9": 0.00020059375808812016
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0003117244605785885
+            },
+            "logitsF64Sha256": "c55620f38e89f13fb871c0be6cc9ea7285b3393be7db2cb14325ee6327f87cfe"
+          },
+          {
+            "step": 42,
+            "comparison": {
+              "values": 248320,
+              "max": 0.00032150907996975064,
+              "rms": 6.558001770996763e-05,
+              "percentiles": {
+                "50": 4.4040266769629355e-05,
+                "90": 0.00010778899836889621,
+                "99": 0.00016988587827670762,
+                "99.9": 0.00022019098481653265
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.00032150907996975064
+            },
+            "logitsF64Sha256": "c2995dcd239b9ae0bf94edb8c88095e0cf709e300c470d759ea6e0df7bea2cf5"
+          },
+          {
+            "step": 43,
+            "comparison": {
+              "values": 248320,
+              "max": 0.00036002935625312205,
+              "rms": 6.689177760889643e-05,
+              "percentiles": {
+                "50": 4.40740264325834e-05,
+                "90": 0.00011009679039188924,
+                "99": 0.00017647934165309297,
+                "99.9": 0.00023204531271191453
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.00036002935625312205
+            },
+            "logitsF64Sha256": "31dcca63379979c0f8f98e974007213c5b7edbcc902508b72dda90b6ed66d68e"
+          },
+          {
+            "step": 44,
+            "comparison": {
+              "values": 248320,
+              "max": 0.00026181490608934155,
+              "rms": 5.50587968154834e-05,
+              "percentiles": {
+                "50": 3.644083468823389e-05,
+                "90": 9.05942790473402e-05,
+                "99": 0.00014458647954663446,
+                "99.9": 0.00018834950698810954
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.00026181490608934155
+            },
+            "logitsF64Sha256": "b55689b104fc5ef15bfd1e867c43d118b05412faea2bbdd75cb4d457a0c031f6"
+          },
+          {
+            "step": 45,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0003022104825962657,
+              "rms": 5.770569401273927e-05,
+              "percentiles": {
+                "50": 3.8541349737353237e-05,
+                "90": 9.467072870115168e-05,
+                "99": 0.00015065981516606487,
+                "99.9": 0.00019759554903335828
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0003022104825962657
+            },
+            "logitsF64Sha256": "5cd79230b392cf6d5666c6399d3e6d6eda515a7e40d337fe68684f0d099f138f"
+          },
+          {
+            "step": 46,
+            "comparison": {
+              "values": 248320,
+              "max": 0.00039951355516798515,
+              "rms": 5.94092550065078e-05,
+              "percentiles": {
+                "50": 3.8959414311201535e-05,
+                "90": 9.761229744995604e-05,
+                "99": 0.00015785513094505264,
+                "99.9": 0.00020977226640435224
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.00039951355516798515
+            },
+            "logitsF64Sha256": "efc3aad40a05cdd6b278c2240f11c326186128b7d86f64ed28cc056b5fd3b59a"
+          },
+          {
+            "step": 47,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0005535889569951991,
+              "rms": 0.00010892676800089956,
+              "percentiles": {
+                "50": 7.435893789309311e-05,
+                "90": 0.00017835165342829922,
+                "99": 0.00027825363847375326,
+                "99.9": 0.00036226738655540747
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0005535889569951991
+            },
+            "logitsF64Sha256": "a67f6653924604d1eb86a11bd8642550a57770882dff1524583251350504c32e"
+          },
+          {
+            "step": 48,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0005372396810034985,
+              "rms": 0.00010506970644252224,
+              "percentiles": {
+                "50": 7.191290617325485e-05,
+                "90": 0.00017244732386714203,
+                "99": 0.0002671990018010772,
+                "99.9": 0.00033766781988355703
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0005372396810034985
+            },
+            "logitsF64Sha256": "886304be0d9a4f923d6dcfb60e2708d1da871e1d9fe6db51a924c029afc09ba1"
+          },
+          {
+            "step": 49,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0003082253965800419,
+              "rms": 6.005654744050765e-05,
+              "percentiles": {
+                "50": 3.9768795486727626e-05,
+                "90": 9.871986609812921e-05,
+                "99": 0.00015883193240701307,
+                "99.9": 0.00020694459451152484
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0003082253965800419
+            },
+            "logitsF64Sha256": "ccc67299f07b3e0a1ff66ea5994c351a5f46487e1a91986690e4f3743a285c45"
+          },
+          {
+            "step": 50,
+            "comparison": {
+              "values": 248320,
+              "max": 0.0005388233111123242,
+              "rms": 8.402449926657325e-05,
+              "percentiles": {
+                "50": 5.581775671470446e-05,
+                "90": 0.0001376507656652981,
+                "99": 0.00022085339570356618,
+                "99.9": 0.00029368709472366624
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 0.0005388233111123242
+            },
+            "logitsF64Sha256": "9c3f6683cca017e0cc1db1c59f0c8fff5adab88750b4954d91169e214c223316"
+          }
+        ]
+      },
+      {
+        "id": "all-stores-removed-source-recurrent-rms-epsilon",
+        "selectors": [
+          {
+            "operations": null,
+            "layers": null,
+            "phases": null
+          }
+        ],
+        "selectedElements": [
+          189947520
+        ],
+        "suppressedStores": {
+          "input:embedding": 239616,
+          "0:normalization": 479232,
+          "0:qkv-projection": 1437696,
+          "0:z-projection": 479232,
+          "0:a-projection": 3744,
+          "0:b-projection": 3744,
+          "0:conv-output": 1130496,
+          "0:raw-prefill-recurrent-output": 376832,
+          "0:gated-recurrent-output": 479232,
+          "0:linear-output-projection": 239616,
+          "0:attention-residual": 239616,
+          "0:ffn-gate-projection": 659456,
+          "0:ffn-up-projection": 659456,
+          "0:ffn-activation": 838656,
+          "0:ffn-down-projection": 239616,
+          "0:ffn-residual": 239616,
+          "1:normalization": 479232,
+          "1:qkv-projection": 1437696,
+          "1:z-projection": 479232,
+          "1:a-projection": 3744,
+          "1:b-projection": 3744,
+          "1:conv-output": 1130496,
+          "1:raw-prefill-recurrent-output": 376832,
+          "1:gated-recurrent-output": 479232,
+          "1:linear-output-projection": 239616,
+          "1:attention-residual": 239616,
+          "1:ffn-gate-projection": 659456,
+          "1:ffn-up-projection": 659456,
+          "1:ffn-activation": 838656,
+          "1:ffn-down-projection": 239616,
+          "1:ffn-residual": 239616,
+          "2:normalization": 479232,
+          "2:qkv-projection": 1437696,
+          "2:z-projection": 479232,
+          "2:a-projection": 3744,
+          "2:b-projection": 3744,
+          "2:conv-output": 1130496,
+          "2:raw-prefill-recurrent-output": 376832,
+          "2:gated-recurrent-output": 479232,
+          "2:linear-output-projection": 239616,
+          "2:attention-residual": 239616,
+          "2:ffn-gate-projection": 659456,
+          "2:ffn-up-projection": 659456,
+          "2:ffn-activation": 838656,
+          "2:ffn-down-projection": 239616,
+          "2:ffn-residual": 239616,
+          "3:normalization": 1078272,
+          "3:q-projection": 958464,
+          "3:k-projection": 119808,
+          "3:v-projection": 119808,
+          "3:rope-cos-table": 14976,
+          "3:rope-sin-table": 14976,
+          "3:rope-output": 599040,
+          "3:attention-output": 479232,
+          "3:gated-attention-output": 479232,
+          "3:attention-output-projection": 239616,
+          "3:attention-residual": 239616,
+          "3:ffn-gate-projection": 659456,
+          "3:ffn-up-projection": 659456,
+          "3:ffn-activation": 838656,
+          "3:ffn-down-projection": 239616,
+          "3:ffn-residual": 239616,
+          "4:normalization": 479232,
+          "4:qkv-projection": 1437696,
+          "4:z-projection": 479232,
+          "4:a-projection": 3744,
+          "4:b-projection": 3744,
+          "4:conv-output": 1130496,
+          "4:raw-prefill-recurrent-output": 376832,
+          "4:gated-recurrent-output": 479232,
+          "4:linear-output-projection": 239616,
+          "4:attention-residual": 239616,
+          "4:ffn-gate-projection": 659456,
+          "4:ffn-up-projection": 659456,
+          "4:ffn-activation": 838656,
+          "4:ffn-down-projection": 239616,
+          "4:ffn-residual": 239616,
+          "5:normalization": 479232,
+          "5:qkv-projection": 1437696,
+          "5:z-projection": 479232,
+          "5:a-projection": 3744,
+          "5:b-projection": 3744,
+          "5:conv-output": 1130496,
+          "5:raw-prefill-recurrent-output": 376832,
+          "5:gated-recurrent-output": 479232,
+          "5:linear-output-projection": 239616,
+          "5:attention-residual": 239616,
+          "5:ffn-gate-projection": 659456,
+          "5:ffn-up-projection": 659456,
+          "5:ffn-activation": 838656,
+          "5:ffn-down-projection": 239616,
+          "5:ffn-residual": 239616,
+          "6:normalization": 479232,
+          "6:qkv-projection": 1437696,
+          "6:z-projection": 479232,
+          "6:a-projection": 3744,
+          "6:b-projection": 3744,
+          "6:conv-output": 1130496,
+          "6:raw-prefill-recurrent-output": 376832,
+          "6:gated-recurrent-output": 479232,
+          "6:linear-output-projection": 239616,
+          "6:attention-residual": 239616,
+          "6:ffn-gate-projection": 659456,
+          "6:ffn-up-projection": 659456,
+          "6:ffn-activation": 838656,
+          "6:ffn-down-projection": 239616,
+          "6:ffn-residual": 239616,
+          "7:normalization": 1078272,
+          "7:q-projection": 958464,
+          "7:k-projection": 119808,
+          "7:v-projection": 119808,
+          "7:rope-cos-table": 14976,
+          "7:rope-sin-table": 14976,
+          "7:rope-output": 599040,
+          "7:attention-output": 479232,
+          "7:gated-attention-output": 479232,
+          "7:attention-output-projection": 239616,
+          "7:attention-residual": 239616,
+          "7:ffn-gate-projection": 659456,
+          "7:ffn-up-projection": 659456,
+          "7:ffn-activation": 838656,
+          "7:ffn-down-projection": 239616,
+          "7:ffn-residual": 239616,
+          "8:normalization": 479232,
+          "8:qkv-projection": 1437696,
+          "8:z-projection": 479232,
+          "8:a-projection": 3744,
+          "8:b-projection": 3744,
+          "8:conv-output": 1130496,
+          "8:raw-prefill-recurrent-output": 376832,
+          "8:gated-recurrent-output": 479232,
+          "8:linear-output-projection": 239616,
+          "8:attention-residual": 239616,
+          "8:ffn-gate-projection": 659456,
+          "8:ffn-up-projection": 659456,
+          "8:ffn-activation": 838656,
+          "8:ffn-down-projection": 239616,
+          "8:ffn-residual": 239616,
+          "9:normalization": 479232,
+          "9:qkv-projection": 1437696,
+          "9:z-projection": 479232,
+          "9:a-projection": 3744,
+          "9:b-projection": 3744,
+          "9:conv-output": 1130496,
+          "9:raw-prefill-recurrent-output": 376832,
+          "9:gated-recurrent-output": 479232,
+          "9:linear-output-projection": 239616,
+          "9:attention-residual": 239616,
+          "9:ffn-gate-projection": 659456,
+          "9:ffn-up-projection": 659456,
+          "9:ffn-activation": 838656,
+          "9:ffn-down-projection": 239616,
+          "9:ffn-residual": 239616,
+          "10:normalization": 479232,
+          "10:qkv-projection": 1437696,
+          "10:z-projection": 479232,
+          "10:a-projection": 3744,
+          "10:b-projection": 3744,
+          "10:conv-output": 1130496,
+          "10:raw-prefill-recurrent-output": 376832,
+          "10:gated-recurrent-output": 479232,
+          "10:linear-output-projection": 239616,
+          "10:attention-residual": 239616,
+          "10:ffn-gate-projection": 659456,
+          "10:ffn-up-projection": 659456,
+          "10:ffn-activation": 838656,
+          "10:ffn-down-projection": 239616,
+          "10:ffn-residual": 239616,
+          "11:normalization": 1078272,
+          "11:q-projection": 958464,
+          "11:k-projection": 119808,
+          "11:v-projection": 119808,
+          "11:rope-cos-table": 14976,
+          "11:rope-sin-table": 14976,
+          "11:rope-output": 599040,
+          "11:attention-output": 479232,
+          "11:gated-attention-output": 479232,
+          "11:attention-output-projection": 239616,
+          "11:attention-residual": 239616,
+          "11:ffn-gate-projection": 659456,
+          "11:ffn-up-projection": 659456,
+          "11:ffn-activation": 838656,
+          "11:ffn-down-projection": 239616,
+          "11:ffn-residual": 239616,
+          "12:normalization": 479232,
+          "12:qkv-projection": 1437696,
+          "12:z-projection": 479232,
+          "12:a-projection": 3744,
+          "12:b-projection": 3744,
+          "12:conv-output": 1130496,
+          "12:raw-prefill-recurrent-output": 376832,
+          "12:gated-recurrent-output": 479232,
+          "12:linear-output-projection": 239616,
+          "12:attention-residual": 239616,
+          "12:ffn-gate-projection": 659456,
+          "12:ffn-up-projection": 659456,
+          "12:ffn-activation": 838656,
+          "12:ffn-down-projection": 239616,
+          "12:ffn-residual": 239616,
+          "13:normalization": 479232,
+          "13:qkv-projection": 1437696,
+          "13:z-projection": 479232,
+          "13:a-projection": 3744,
+          "13:b-projection": 3744,
+          "13:conv-output": 1130496,
+          "13:raw-prefill-recurrent-output": 376832,
+          "13:gated-recurrent-output": 479232,
+          "13:linear-output-projection": 239616,
+          "13:attention-residual": 239616,
+          "13:ffn-gate-projection": 659456,
+          "13:ffn-up-projection": 659456,
+          "13:ffn-activation": 838656,
+          "13:ffn-down-projection": 239616,
+          "13:ffn-residual": 239616,
+          "14:normalization": 479232,
+          "14:qkv-projection": 1437696,
+          "14:z-projection": 479232,
+          "14:a-projection": 3744,
+          "14:b-projection": 3744,
+          "14:conv-output": 1130496,
+          "14:raw-prefill-recurrent-output": 376832,
+          "14:gated-recurrent-output": 479232,
+          "14:linear-output-projection": 239616,
+          "14:attention-residual": 239616,
+          "14:ffn-gate-projection": 659456,
+          "14:ffn-up-projection": 659456,
+          "14:ffn-activation": 838656,
+          "14:ffn-down-projection": 239616,
+          "14:ffn-residual": 239616,
+          "15:normalization": 1078272,
+          "15:q-projection": 958464,
+          "15:k-projection": 119808,
+          "15:v-projection": 119808,
+          "15:rope-cos-table": 14976,
+          "15:rope-sin-table": 14976,
+          "15:rope-output": 599040,
+          "15:attention-output": 479232,
+          "15:gated-attention-output": 479232,
+          "15:attention-output-projection": 239616,
+          "15:attention-residual": 239616,
+          "15:ffn-gate-projection": 659456,
+          "15:ffn-up-projection": 659456,
+          "15:ffn-activation": 838656,
+          "15:ffn-down-projection": 239616,
+          "15:ffn-residual": 239616,
+          "16:normalization": 479232,
+          "16:qkv-projection": 1437696,
+          "16:z-projection": 479232,
+          "16:a-projection": 3744,
+          "16:b-projection": 3744,
+          "16:conv-output": 1130496,
+          "16:raw-prefill-recurrent-output": 376832,
+          "16:gated-recurrent-output": 479232,
+          "16:linear-output-projection": 239616,
+          "16:attention-residual": 239616,
+          "16:ffn-gate-projection": 659456,
+          "16:ffn-up-projection": 659456,
+          "16:ffn-activation": 838656,
+          "16:ffn-down-projection": 239616,
+          "16:ffn-residual": 239616,
+          "17:normalization": 479232,
+          "17:qkv-projection": 1437696,
+          "17:z-projection": 479232,
+          "17:a-projection": 3744,
+          "17:b-projection": 3744,
+          "17:conv-output": 1130496,
+          "17:raw-prefill-recurrent-output": 376832,
+          "17:gated-recurrent-output": 479232,
+          "17:linear-output-projection": 239616,
+          "17:attention-residual": 239616,
+          "17:ffn-gate-projection": 659456,
+          "17:ffn-up-projection": 659456,
+          "17:ffn-activation": 838656,
+          "17:ffn-down-projection": 239616,
+          "17:ffn-residual": 239616,
+          "18:normalization": 479232,
+          "18:qkv-projection": 1437696,
+          "18:z-projection": 479232,
+          "18:a-projection": 3744,
+          "18:b-projection": 3744,
+          "18:conv-output": 1130496,
+          "18:raw-prefill-recurrent-output": 376832,
+          "18:gated-recurrent-output": 479232,
+          "18:linear-output-projection": 239616,
+          "18:attention-residual": 239616,
+          "18:ffn-gate-projection": 659456,
+          "18:ffn-up-projection": 659456,
+          "18:ffn-activation": 838656,
+          "18:ffn-down-projection": 239616,
+          "18:ffn-residual": 239616,
+          "19:normalization": 1078272,
+          "19:q-projection": 958464,
+          "19:k-projection": 119808,
+          "19:v-projection": 119808,
+          "19:rope-cos-table": 14976,
+          "19:rope-sin-table": 14976,
+          "19:rope-output": 599040,
+          "19:attention-output": 479232,
+          "19:gated-attention-output": 479232,
+          "19:attention-output-projection": 239616,
+          "19:attention-residual": 239616,
+          "19:ffn-gate-projection": 659456,
+          "19:ffn-up-projection": 659456,
+          "19:ffn-activation": 838656,
+          "19:ffn-down-projection": 239616,
+          "19:ffn-residual": 239616,
+          "20:normalization": 479232,
+          "20:qkv-projection": 1437696,
+          "20:z-projection": 479232,
+          "20:a-projection": 3744,
+          "20:b-projection": 3744,
+          "20:conv-output": 1130496,
+          "20:raw-prefill-recurrent-output": 376832,
+          "20:gated-recurrent-output": 479232,
+          "20:linear-output-projection": 239616,
+          "20:attention-residual": 239616,
+          "20:ffn-gate-projection": 659456,
+          "20:ffn-up-projection": 659456,
+          "20:ffn-activation": 838656,
+          "20:ffn-down-projection": 239616,
+          "20:ffn-residual": 239616,
+          "21:normalization": 479232,
+          "21:qkv-projection": 1437696,
+          "21:z-projection": 479232,
+          "21:a-projection": 3744,
+          "21:b-projection": 3744,
+          "21:conv-output": 1130496,
+          "21:raw-prefill-recurrent-output": 376832,
+          "21:gated-recurrent-output": 479232,
+          "21:linear-output-projection": 239616,
+          "21:attention-residual": 239616,
+          "21:ffn-gate-projection": 659456,
+          "21:ffn-up-projection": 659456,
+          "21:ffn-activation": 838656,
+          "21:ffn-down-projection": 239616,
+          "21:ffn-residual": 239616,
+          "22:normalization": 479232,
+          "22:qkv-projection": 1437696,
+          "22:z-projection": 479232,
+          "22:a-projection": 3744,
+          "22:b-projection": 3744,
+          "22:conv-output": 1130496,
+          "22:raw-prefill-recurrent-output": 376832,
+          "22:gated-recurrent-output": 479232,
+          "22:linear-output-projection": 239616,
+          "22:attention-residual": 239616,
+          "22:ffn-gate-projection": 659456,
+          "22:ffn-up-projection": 659456,
+          "22:ffn-activation": 838656,
+          "22:ffn-down-projection": 239616,
+          "22:ffn-residual": 239616,
+          "23:normalization": 1078272,
+          "23:q-projection": 958464,
+          "23:k-projection": 119808,
+          "23:v-projection": 119808,
+          "23:rope-cos-table": 14976,
+          "23:rope-sin-table": 14976,
+          "23:rope-output": 599040,
+          "23:attention-output": 479232,
+          "23:gated-attention-output": 479232,
+          "23:attention-output-projection": 239616,
+          "23:attention-residual": 239616,
+          "23:ffn-gate-projection": 659456,
+          "23:ffn-up-projection": 659456,
+          "23:ffn-activation": 838656,
+          "23:ffn-down-projection": 239616,
+          "23:ffn-residual": 239616,
+          "output:normalization": 52224,
+          "output:logits": 12664320
+        },
+        "uniformF64": [
+          "recurrent-rms-epsilon"
+        ],
+        "uniformCalls": {
+          "recurrent-rms-epsilon": 4212
+        },
+        "comparison": {
+          "values": 12664320,
+          "max": 5.39239763952537e-11,
+          "rms": 6.3857576611865235e-12,
+          "percentiles": {
+            "50": 3.810285420513537e-12,
+            "90": 1.0263789818054647e-11,
+            "99": 1.919420178353448e-11,
+            "99.9": 2.8090348047627273e-11
+          },
+          "overTolerance": 0,
+          "lastTokenMax": 2.7682967029818428e-11
+        },
+        "againstMappedBaseline": {
+          "values": 12664320,
+          "max": 0.0030917700899886214,
+          "rms": 0.00021497613036439882,
+          "percentiles": {
+            "50": 0.00012056538272103845,
+            "90": 0.0003395257851942279,
+            "99": 0.0006800971177987333,
+            "99.9": 0.0010746911067594912
+          },
+          "overTolerance": 19398,
+          "lastTokenMax": 0.0009480987963401688
+        },
+        "caches": [
+          {
+            "layer": 3,
+            "keySha256": "15db78165e546aa799f369858bb786234e7cb24a103191793593ec8cec57de19",
+            "valueSha256": "f571ec0bc4109446dd89cd8774eb4e7151d6ff742d01dc631484a55362c4d6e3"
+          },
+          {
+            "layer": 7,
+            "keySha256": "861a221b8e4fa461874d87aaa692ad50731ae7d59df16162c123f3096ce5abb7",
+            "valueSha256": "d6fe3b3253bb856cc2ec3278f3a091191aaf2bbba0a6550e8919407aa84348ce"
+          },
+          {
+            "layer": 11,
+            "keySha256": "c2f14f50b334a039b5e841b993ec8c0ad244e645feef489b300b430d4d179b48",
+            "valueSha256": "10c65a11a60c8da96fe69cfee8a487e923bfd9cd1258b5e62b93b19b4d34503b"
+          },
+          {
+            "layer": 15,
+            "keySha256": "5c9a59cfdb4316c35f7a9d61ea48c05522d5e7e3c456cafe892938d211febc50",
+            "valueSha256": "7d1ae7856eec9af444405e259a09535a3f7dabaf3abd2928b12c44406f9ef040"
+          },
+          {
+            "layer": 19,
+            "keySha256": "5e5f1c281f1b3700b39623bb1aa06bcc035f2ba5ae99857138d140a613f60066",
+            "valueSha256": "c1994bcdbee5184efdadf1aa5e2a9d1f2be8396633db0b001bbd44ab85132ddd"
+          },
+          {
+            "layer": 23,
+            "keySha256": "6a52bedee74dce61275ba39519d8cdedf0d355265bd35a809226fb99f3a3ef4a",
+            "valueSha256": "f347812779527175fdb3046f9a44dad141bb6f101c2aec2a31a5f654463de748"
+          }
+        ],
+        "cacheBitChanges": [
+          {
+            "layer": 3,
+            "kind": "key",
+            "againstMappedBaseline": 103,
+            "againstApproved": 0,
+            "firstChangedAgainstApproved": []
+          },
+          {
+            "layer": 3,
+            "kind": "value",
+            "againstMappedBaseline": 96,
+            "againstApproved": 0,
+            "firstChangedAgainstApproved": []
+          },
+          {
+            "layer": 7,
+            "kind": "key",
+            "againstMappedBaseline": 2007,
+            "againstApproved": 0,
+            "firstChangedAgainstApproved": []
+          },
+          {
+            "layer": 7,
+            "kind": "value",
+            "againstMappedBaseline": 2213,
+            "againstApproved": 0,
+            "firstChangedAgainstApproved": []
+          },
+          {
+            "layer": 11,
+            "kind": "key",
+            "againstMappedBaseline": 6657,
+            "againstApproved": 0,
+            "firstChangedAgainstApproved": []
+          },
+          {
+            "layer": 11,
+            "kind": "value",
+            "againstMappedBaseline": 7677,
+            "againstApproved": 0,
+            "firstChangedAgainstApproved": []
+          },
+          {
+            "layer": 15,
+            "kind": "key",
+            "againstMappedBaseline": 7580,
+            "againstApproved": 0,
+            "firstChangedAgainstApproved": []
+          },
+          {
+            "layer": 15,
+            "kind": "value",
+            "againstMappedBaseline": 7822,
+            "againstApproved": 0,
+            "firstChangedAgainstApproved": []
+          },
+          {
+            "layer": 19,
+            "kind": "key",
+            "againstMappedBaseline": 7692,
+            "againstApproved": 0,
+            "firstChangedAgainstApproved": []
+          },
+          {
+            "layer": 19,
+            "kind": "value",
+            "againstMappedBaseline": 8298,
+            "againstApproved": 0,
+            "firstChangedAgainstApproved": []
+          },
+          {
+            "layer": 23,
+            "kind": "key",
+            "againstMappedBaseline": 8239,
+            "againstApproved": 0,
+            "firstChangedAgainstApproved": []
+          },
+          {
+            "layer": 23,
+            "kind": "value",
+            "againstMappedBaseline": 6803,
+            "againstApproved": 0,
+            "firstChangedAgainstApproved": []
+          }
+        ],
+        "perPrefix": [
+          {
+            "step": 0,
+            "comparison": {
+              "values": 248320,
+              "max": 4.243361217959318e-11,
+              "rms": 8.305815096989624e-12,
+              "percentiles": {
+                "50": 5.5355720007810305e-12,
+                "90": 1.3664869236151846e-11,
+                "99": 2.167673485153898e-11,
+                "99.9": 2.8185372702439397e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 4.243361217959318e-11
+            },
+            "logitsF64Sha256": "66a19204db11a075415ffcdd5edd2eaea9d0c347795dd73890cb742b46175dca"
+          },
+          {
+            "step": 1,
+            "comparison": {
+              "values": 248320,
+              "max": 2.5790480862042386e-11,
+              "rms": 5.365583385308879e-12,
+              "percentiles": {
+                "50": 3.536615444943436e-12,
+                "90": 8.80899797550683e-12,
+                "99": 1.4208042520280626e-11,
+                "99.9": 1.870055998942664e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 2.5790480862042386e-11
+            },
+            "logitsF64Sha256": "3ae4f52fca9359e04703d88a2ed83738d0b4e8df272f20367b7818fabda70d34"
+          },
+          {
+            "step": 2,
+            "comparison": {
+              "values": 248320,
+              "max": 4.593836422372988e-11,
+              "rms": 8.20640181372558e-12,
+              "percentiles": {
+                "50": 5.4630189261217765e-12,
+                "90": 1.3517231778337194e-11,
+                "99": 2.1391692861527644e-11,
+                "99.9": 2.7698509263985804e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 4.593836422372988e-11
+            },
+            "logitsF64Sha256": "95ef944ad4fb68bb5ea523d036b4c5491709697a468cda2417e77662e679a394"
+          },
+          {
+            "step": 3,
+            "comparison": {
+              "values": 248320,
+              "max": 3.367350842609085e-11,
+              "rms": 7.065559907351667e-12,
+              "percentiles": {
+                "50": 4.8965276278067904e-12,
+                "90": 1.156141848923653e-11,
+                "99": 1.7793260198573074e-11,
+                "99.9": 2.2421834167119355e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 3.367350842609085e-11
+            },
+            "logitsF64Sha256": "18462f66853ed5874cfedd43b42fadf2db3a89dfef6f4f5636faa246dacc9d32"
+          },
+          {
+            "step": 4,
+            "comparison": {
+              "values": 248320,
+              "max": 1.978062158514149e-11,
+              "rms": 3.642575758126647e-12,
+              "percentiles": {
+                "50": 2.4060753389676393e-12,
+                "90": 5.995226537436339e-12,
+                "99": 9.569149916899277e-12,
+                "99.9": 1.2513248881518487e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 1.978062158514149e-11
+            },
+            "logitsF64Sha256": "9c4d00b3f49315818f07550a3b8929f8427c94eeaa21069d0c8d6a0589f64e0f"
+          },
+          {
+            "step": 5,
+            "comparison": {
+              "values": 248320,
+              "max": 2.6791013851834578e-11,
+              "rms": 4.234755760943385e-12,
+              "percentiles": {
+                "50": 2.873701276939755e-12,
+                "90": 6.905587213168474e-12,
+                "99": 1.0961369589779223e-11,
+                "99.9": 1.461000653790752e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 2.6791013851834578e-11
+            },
+            "logitsF64Sha256": "af51976f98a1d22678289ca4ef4c3b4aeebc132779274bf7fff6ffeb963c478c"
+          },
+          {
+            "step": 6,
+            "comparison": {
+              "values": 248320,
+              "max": 2.572042578918854e-11,
+              "rms": 5.609006595495501e-12,
+              "percentiles": {
+                "50": 4.069189429856124e-12,
+                "90": 9.07451891407618e-12,
+                "99": 1.3707754931147063e-11,
+                "99.9": 1.7390855172605536e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 2.572042578918854e-11
+            },
+            "logitsF64Sha256": "4f7c57a41964ba38b1df8d8594d2a2f880a3e15ea340f9f0dd0c29c3dc73695d"
+          },
+          {
+            "step": 7,
+            "comparison": {
+              "values": 248320,
+              "max": 2.580957669806594e-11,
+              "rms": 4.364782990423302e-12,
+              "percentiles": {
+                "50": 2.8964053377933396e-12,
+                "90": 7.146477853936519e-12,
+                "99": 1.1513150433017926e-11,
+                "99.9": 1.559388218552764e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 2.580957669806594e-11
+            },
+            "logitsF64Sha256": "773850ff1bca7fec2e629637f8e4ddfc1a35f959d22781dffccb38a6a3565591"
+          },
+          {
+            "step": 8,
+            "comparison": {
+              "values": 248320,
+              "max": 2.5292656857800466e-11,
+              "rms": 5.17968618342252e-12,
+              "percentiles": {
+                "50": 3.4576785878925875e-12,
+                "90": 8.496792158751989e-12,
+                "99": 1.3539529497563762e-11,
+                "99.9": 1.761713352976845e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 2.5292656857800466e-11
+            },
+            "logitsF64Sha256": "acd5fe5c61b9969d056c86469a8f50f05a083c9cc0085b20be81be98c54cd2bb"
+          },
+          {
+            "step": 9,
+            "comparison": {
+              "values": 248320,
+              "max": 2.645128560629928e-11,
+              "rms": 4.210062784625719e-12,
+              "percentiles": {
+                "50": 2.7924329515371937e-12,
+                "90": 6.893152715292672e-12,
+                "99": 1.1159961843532074e-11,
+                "99.9": 1.492232382105396e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 2.645128560629928e-11
+            },
+            "logitsF64Sha256": "7ebf465344688da462ec6f7dff98c5ee1a517d86281cd21cf373c39abbb911da"
+          },
+          {
+            "step": 10,
+            "comparison": {
+              "values": 248320,
+              "max": 2.5271784664937513e-11,
+              "rms": 4.920504551238362e-12,
+              "percentiles": {
+                "50": 3.2246844083871906e-12,
+                "90": 8.08331179769084e-12,
+                "99": 1.3131189469106629e-11,
+                "99.9": 1.7265267659993927e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 2.5271784664937513e-11
+            },
+            "logitsF64Sha256": "75ca346ab377a6a6db9b999f9ff0660e96193ac01a3562121748c86b6322142e"
+          },
+          {
+            "step": 11,
+            "comparison": {
+              "values": 248320,
+              "max": 2.296829393344524e-11,
+              "rms": 4.43402140124525e-12,
+              "percentiles": {
+                "50": 2.986944025451521e-12,
+                "90": 7.285949621405052e-12,
+                "99": 1.1421805723443865e-11,
+                "99.9": 1.4883215326833037e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 2.296829393344524e-11
+            },
+            "logitsF64Sha256": "a40ad8ee41fe37d3cf65e4bf6bf9c38fcdf2df9f9686c298fd4eace15decc7c4"
+          },
+          {
+            "step": 12,
+            "comparison": {
+              "values": 248320,
+              "max": 2.4927615527303715e-11,
+              "rms": 5.4035230834766215e-12,
+              "percentiles": {
+                "50": 3.623101818561736e-12,
+                "90": 8.875294943422319e-12,
+                "99": 1.4071728227094125e-11,
+                "99.9": 1.8078201602378583e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 2.4927615527303715e-11
+            },
+            "logitsF64Sha256": "37b80f8b578fb04dd8a424f9f00f46440020a656880dc891677b1d8e3135255e"
+          },
+          {
+            "step": 13,
+            "comparison": {
+              "values": 248320,
+              "max": 2.11836104213603e-11,
+              "rms": 4.50659207527503e-12,
+              "percentiles": {
+                "50": 3.0477842472009797e-12,
+                "90": 7.395417611633093e-12,
+                "99": 1.1562222290706358e-11,
+                "99.9": 1.5047840307147525e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 2.11836104213603e-11
+            },
+            "logitsF64Sha256": "a6eafc21cb8c1e34c23be79eacc87ae345028bd357e875f33d74cc04b55d6d8f"
+          },
+          {
+            "step": 14,
+            "comparison": {
+              "values": 248320,
+              "max": 3.028333139809547e-11,
+              "rms": 5.6564004624707044e-12,
+              "percentiles": {
+                "50": 3.65374397404139e-12,
+                "90": 9.27373733361492e-12,
+                "99": 1.5337699998951845e-11,
+                "99.9": 2.025211220946237e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 3.028333139809547e-11
+            },
+            "logitsF64Sha256": "62405fe5c13beef47bbbfaa41ce7ee84c9d28cf67a17da91f77dfc426548fa87"
+          },
+          {
+            "step": 15,
+            "comparison": {
+              "values": 248320,
+              "max": 2.318900627074072e-11,
+              "rms": 5.490238010630243e-12,
+              "percentiles": {
+                "50": 3.815614491031738e-12,
+                "90": 8.993694677883468e-12,
+                "99": 1.3756646932705506e-11,
+                "99.9": 1.7343291247584962e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 2.318900627074072e-11
+            },
+            "logitsF64Sha256": "92258872d821361a862c120d1b5d764fe185f3c00794f8ebacf144917faeaf27"
+          },
+          {
+            "step": 16,
+            "comparison": {
+              "values": 248320,
+              "max": 2.8637758830996063e-11,
+              "rms": 5.746507493905556e-12,
+              "percentiles": {
+                "50": 3.785416424761934e-12,
+                "90": 9.440892512202481e-12,
+                "99": 1.5295944510995695e-11,
+                "99.9": 1.9892968161628173e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 2.8637758830996063e-11
+            },
+            "logitsF64Sha256": "e7cc22057dac24bff939c1e1f6e77323e4901b97edc08414732242b86a6eb28b"
+          },
+          {
+            "step": 17,
+            "comparison": {
+              "values": 248320,
+              "max": 2.646227681424307e-11,
+              "rms": 4.592109334797046e-12,
+              "percentiles": {
+                "50": 3.0180302701410255e-12,
+                "90": 7.528200285378261e-12,
+                "99": 1.2223656531418212e-11,
+                "99.9": 1.6598109553456557e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 2.646227681424307e-11
+            },
+            "logitsF64Sha256": "cdb6a21688d356643598b688644987cefb5fdcf997fadfb58d39c53aed255528"
+          },
+          {
+            "step": 18,
+            "comparison": {
+              "values": 248320,
+              "max": 2.4308333124167802e-11,
+              "rms": 4.32011109135266e-12,
+              "percentiles": {
+                "50": 2.8332891588433995e-12,
+                "90": 7.085143582941102e-12,
+                "99": 1.1500134178277222e-11,
+                "99.9": 1.520100489926826e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 2.4308333124167802e-11
+            },
+            "logitsF64Sha256": "6b13d4cb2daf6d732d4302ae14684db5fccf767d0610df13edfd1ed48f88a15b"
+          },
+          {
+            "step": 19,
+            "comparison": {
+              "values": 248320,
+              "max": 1.5828338639778394e-11,
+              "rms": 3.2685938980190952e-12,
+              "percentiles": {
+                "50": 2.203931481759014e-12,
+                "90": 5.360156762890256e-12,
+                "99": 8.437874843281178e-12,
+                "99.9": 1.1033742586264235e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 1.5828338639778394e-11
+            },
+            "logitsF64Sha256": "72d4eab5a527ffad5d06690a98fcf79bffa741a263c3cfb96364db66aac2fb16"
+          },
+          {
+            "step": 20,
+            "comparison": {
+              "values": 248320,
+              "max": 2.1335821998036408e-11,
+              "rms": 4.247496638433255e-12,
+              "percentiles": {
+                "50": 2.823519196226698e-12,
+                "90": 6.994849144348336e-12,
+                "99": 1.1141183531293562e-11,
+                "99.9": 1.45073115187522e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 2.1335821998036408e-11
+            },
+            "logitsF64Sha256": "17d5bd01ff8e78010cd24e9acad9ba219e245b163d5dec8d01e922aede416057"
+          },
+          {
+            "step": 21,
+            "comparison": {
+              "values": 248320,
+              "max": 3.622879773956811e-11,
+              "rms": 6.631819972580542e-12,
+              "percentiles": {
+                "50": 4.353850613370014e-12,
+                "90": 1.087046008763082e-11,
+                "99": 1.7616892389327175e-11,
+                "99.9": 2.334683779636757e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 3.622879773956811e-11
+            },
+            "logitsF64Sha256": "b2b4a01b64e9cb71bebb2c7b5c7b1cb3f90b7d9494c7060889164cf881710689"
+          },
+          {
+            "step": 22,
+            "comparison": {
+              "values": 248320,
+              "max": 2.4740209880746988e-11,
+              "rms": 5.019676432000034e-12,
+              "percentiles": {
+                "50": 3.4171554474937693e-12,
+                "90": 8.233413950620161e-12,
+                "99": 1.2839782570495115e-11,
+                "99.9": 1.6734557961584334e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 2.4740209880746988e-11
+            },
+            "logitsF64Sha256": "d0629ca30c7eed24e94a2d0481d06665c349a33c65607a82192172fa6fc02210"
+          },
+          {
+            "step": 23,
+            "comparison": {
+              "values": 248320,
+              "max": 2.6688873333569063e-11,
+              "rms": 5.3047787759405064e-12,
+              "percentiles": {
+                "50": 3.502975687297294e-12,
+                "90": 8.690825836765725e-12,
+                "99": 1.4065193454371183e-11,
+                "99.9": 1.8645458732535767e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 2.6688873333569063e-11
+            },
+            "logitsF64Sha256": "d3b8e252afdf69262a4064f1a3b43fb27d5bde6d4fbf1ee9cce507dd18bcbd17"
+          },
+          {
+            "step": 24,
+            "comparison": {
+              "values": 248320,
+              "max": 3.696598582791921e-11,
+              "rms": 7.917761903671229e-12,
+              "percentiles": {
+                "50": 5.236699962551938e-12,
+                "90": 1.297628671181883e-11,
+                "99": 2.0962787061762356e-11,
+                "99.9": 2.7424231940909045e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 3.696598582791921e-11
+            },
+            "logitsF64Sha256": "d7280718f09e8b795295ec328f6977e18a71f6c7cec60d04b602004122833e8c"
+          },
+          {
+            "step": 25,
+            "comparison": {
+              "values": 248320,
+              "max": 2.5989876917265065e-11,
+              "rms": 4.276984646639723e-12,
+              "percentiles": {
+                "50": 2.815525590449397e-12,
+                "90": 7.009082203524032e-12,
+                "99": 1.1342937700220543e-11,
+                "99.9": 1.5220583016173818e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 2.5989876917265065e-11
+            },
+            "logitsF64Sha256": "cb32c9e60af145b51e28e82f0611ba7152ab3d8bd1ba25d23c66e88adcbbe317"
+          },
+          {
+            "step": 26,
+            "comparison": {
+              "values": 248320,
+              "max": 3.666755787889997e-11,
+              "rms": 6.607089140928088e-12,
+              "percentiles": {
+                "50": 4.593658786689048e-12,
+                "90": 1.0746070699951815e-11,
+                "99": 1.6768471056138874e-11,
+                "99.9": 2.2195562721095367e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 3.666755787889997e-11
+            },
+            "logitsF64Sha256": "2d3e9a951710ef9e41cdb208901f54b9a2c7269137f87250d238920b43dd220c"
+          },
+          {
+            "step": 27,
+            "comparison": {
+              "values": 248320,
+              "max": 3.590550079479726e-11,
+              "rms": 7.117310710984808e-12,
+              "percentiles": {
+                "50": 4.65688598794145e-12,
+                "90": 1.1675993505377846e-11,
+                "99": 1.9056671796136014e-11,
+                "99.9": 2.5267792580497358e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 3.590550079479726e-11
+            },
+            "logitsF64Sha256": "34d42eecc1123f02d64c9ddc2cb58b5a3d6ce5bfc9084e6bd693eee3eec98c98"
+          },
+          {
+            "step": 28,
+            "comparison": {
+              "values": 248320,
+              "max": 2.298161660974074e-11,
+              "rms": 4.376842567972241e-12,
+              "percentiles": {
+                "50": 2.9168889525976738e-12,
+                "90": 7.180034344855812e-12,
+                "99": 1.1466743110588594e-11,
+                "99.9": 1.485419831581682e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 2.298161660974074e-11
+            },
+            "logitsF64Sha256": "d0ee4952979036acc5127d8f2049114f822dd6e94637a8786bfeded5a7b9bf60"
+          },
+          {
+            "step": 29,
+            "comparison": {
+              "values": 248320,
+              "max": 3.384137414741417e-11,
+              "rms": 7.329075223169844e-12,
+              "percentiles": {
+                "50": 5.436373573530773e-12,
+                "90": 1.1766632113108247e-11,
+                "99": 1.7617907133171684e-11,
+                "99.9": 2.2412087297141422e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 3.384137414741417e-11
+            },
+            "logitsF64Sha256": "2cfc4e815d261628e7bf20811e408d509be0444f738075380cee1392fe8f3035"
+          },
+          {
+            "step": 30,
+            "comparison": {
+              "values": 248320,
+              "max": 3.334355014317225e-11,
+              "rms": 6.168712913865572e-12,
+              "percentiles": {
+                "50": 4.030997757809018e-12,
+                "90": 1.0134115768778429e-11,
+                "99": 1.6460907081849994e-11,
+                "99.9": 2.1717319276249038e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 3.334355014317225e-11
+            },
+            "logitsF64Sha256": "25a4c8a29f3ed842aaa482aaa9bde2121fd6fe78193c394202af90874df580d2"
+          },
+          {
+            "step": 31,
+            "comparison": {
+              "values": 248320,
+              "max": 1.9664270212160773e-11,
+              "rms": 4.0646199278341805e-12,
+              "percentiles": {
+                "50": 2.7036151095671812e-12,
+                "90": 6.685441089615552e-12,
+                "99": 1.0642069447897028e-11,
+                "99.9": 1.3766284778782593e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 1.9664270212160773e-11
+            },
+            "logitsF64Sha256": "7fd59c5bdee45811f8ee36708ea9d220a9c464fee0658b9ea9bad324e5c9f1c7"
+          },
+          {
+            "step": 32,
+            "comparison": {
+              "values": 248320,
+              "max": 3.416289473534562e-11,
+              "rms": 7.529759859580817e-12,
+              "percentiles": {
+                "50": 5.7627236316193375e-12,
+                "90": 1.1945555655756834e-11,
+                "99": 1.7699101628743107e-11,
+                "99.9": 2.2863452242561126e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 3.416289473534562e-11
+            },
+            "logitsF64Sha256": "414acd68f015e9b2e22cda399369b538bbf232eec426ba0755bbdc298c114788"
+          },
+          {
+            "step": 33,
+            "comparison": {
+              "values": 248320,
+              "max": 3.673505943879718e-11,
+              "rms": 7.327240740780916e-12,
+              "percentiles": {
+                "50": 4.6695980415734084e-12,
+                "90": 1.199331745027621e-11,
+                "99": 2.024831191604903e-11,
+                "99.9": 2.7273882041712177e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 3.673505943879718e-11
+            },
+            "logitsF64Sha256": "e47fd84340ccc71cf44b5488b88fa1332db3bf2ca9b9f63bd75292c428719db8"
+          },
+          {
+            "step": 34,
+            "comparison": {
+              "values": 248320,
+              "max": 2.2115642650533118e-11,
+              "rms": 4.023892987212952e-12,
+              "percentiles": {
+                "50": 2.7036151095671812e-12,
+                "90": 6.607620006704452e-12,
+                "99": 1.044901998259462e-11,
+                "99.9": 1.3586509028940319e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 2.2115642650533118e-11
+            },
+            "logitsF64Sha256": "c219e096b6a413918a43330f51a0c61854d8a68547a35d5610c7eb35c93b6f00"
+          },
+          {
+            "step": 35,
+            "comparison": {
+              "values": 248320,
+              "max": 3.4991121111715984e-11,
+              "rms": 6.293560933509435e-12,
+              "percentiles": {
+                "50": 4.505729123138735e-12,
+                "90": 1.014566208823453e-11,
+                "99": 1.5618617510426702e-11,
+                "99.9": 2.168460111473573e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 3.4991121111715984e-11
+            },
+            "logitsF64Sha256": "b8407e2feb0f1ec2f6b3a800caf9bdcb94dd5ab4f78d29ce52e51fccee227e33"
+          },
+          {
+            "step": 36,
+            "comparison": {
+              "values": 248320,
+              "max": 3.824940364438589e-11,
+              "rms": 7.426690047032943e-12,
+              "percentiles": {
+                "50": 4.817701793058404e-12,
+                "90": 1.2202705512720514e-11,
+                "99": 2.0147354895527768e-11,
+                "99.9": 2.643517582612283e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 3.824940364438589e-11
+            },
+            "logitsF64Sha256": "f38f20dacc5dad30ebbcc3c9ed3b1ac2f1de732d45a871dff1239a4406cc06e8"
+          },
+          {
+            "step": 37,
+            "comparison": {
+              "values": 248320,
+              "max": 2.212896532682862e-11,
+              "rms": 4.087045503953766e-12,
+              "percentiles": {
+                "50": 2.7187141427020833e-12,
+                "90": 6.725087153824917e-12,
+                "99": 1.0687450924251607e-11,
+                "99.9": 1.3797587516961675e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 2.212896532682862e-11
+            },
+            "logitsF64Sha256": "33a6642284fe84023932c075f41bcfbe1bb990039c42eeff5a9762fd238e1926"
+          },
+          {
+            "step": 38,
+            "comparison": {
+              "values": 248320,
+              "max": 3.389333258496663e-11,
+              "rms": 5.521249437141092e-12,
+              "percentiles": {
+                "50": 3.8098968424549184e-12,
+                "90": 9.005041157195138e-12,
+                "99": 1.4042820239978935e-11,
+                "99.9": 1.876431143799155e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 3.389333258496663e-11
+            },
+            "logitsF64Sha256": "6728e0c846157688080f157d7a5a219b64a80850bbdce2b4572580deded20b9c"
+          },
+          {
+            "step": 39,
+            "comparison": {
+              "values": 248320,
+              "max": 3.6832314975754343e-11,
+              "rms": 7.583309785840334e-12,
+              "percentiles": {
+                "50": 4.985789558986653e-12,
+                "90": 1.2462031406812457e-11,
+                "99": 2.0218451357578715e-11,
+                "99.9": 2.6499579863781786e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 3.6832314975754343e-11
+            },
+            "logitsF64Sha256": "5d11703d31b1f7dfdcf22f361279e8402bfbdb8243833d1bfec5fbce262f7cca"
+          },
+          {
+            "step": 40,
+            "comparison": {
+              "values": 248320,
+              "max": 2.195421622275262e-11,
+              "rms": 4.189480860228659e-12,
+              "percentiles": {
+                "50": 2.7746693831431912e-12,
+                "90": 6.873190905309913e-12,
+                "99": 1.1022305290708798e-11,
+                "99.9": 1.46433012382382e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 2.195421622275262e-11
+            },
+            "logitsF64Sha256": "d3752f6d474a101de278d5aedbcf26cde00882e5805285f3619aa2d226aa6135"
+          },
+          {
+            "step": 41,
+            "comparison": {
+              "values": 248320,
+              "max": 3.527134140313137e-11,
+              "rms": 7.247607396387669e-12,
+              "percentiles": {
+                "50": 5.061950858475939e-12,
+                "90": 1.177724584522366e-11,
+                "99": 1.8297041937120892e-11,
+                "99.9": 2.4244672269803214e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 3.527134140313137e-11
+            },
+            "logitsF64Sha256": "38c6676365f31d0c1f3c9bd43640db910aeed1bf8982e65be83abda117ad6c1d"
+          },
+          {
+            "step": 42,
+            "comparison": {
+              "values": 248320,
+              "max": 4.960276633880767e-11,
+              "rms": 1.1969057526527187e-11,
+              "percentiles": {
+                "50": 8.626210856732541e-12,
+                "90": 1.944291394551101e-11,
+                "99": 2.9078264240922632e-11,
+                "99.9": 3.632617162630233e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 4.960276633880767e-11
+            },
+            "logitsF64Sha256": "334fd6bd2ec0f21ba755beab8e84e8128b5142d6f77cd76f5e5464af6a7301e9"
+          },
+          {
+            "step": 43,
+            "comparison": {
+              "values": 248320,
+              "max": 3.4495517553523314e-11,
+              "rms": 6.4350143849270205e-12,
+              "percentiles": {
+                "50": 4.319211655001709e-12,
+                "90": 1.0549461304520947e-11,
+                "99": 1.6730976604151237e-11,
+                "99.9": 2.1887097467754338e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 3.4495517553523314e-11
+            },
+            "logitsF64Sha256": "27b941334ff5f661c1904bf6dc75784c8bba15c6707b6dbab545b19272a56cd2"
+          },
+          {
+            "step": 44,
+            "comparison": {
+              "values": 248320,
+              "max": 5.0738080403789354e-11,
+              "rms": 1.0282614739005872e-11,
+              "percentiles": {
+                "50": 7.428724302371847e-12,
+                "90": 1.6597434537857228e-11,
+                "99": 2.5191854158279624e-11,
+                "99.9": 3.303668760779117e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 5.0738080403789354e-11
+            },
+            "logitsF64Sha256": "f76d7a73b0743cd57b97cc975ed404edb108485f3e64e5ea56bd4fecfa51bf61"
+          },
+          {
+            "step": 45,
+            "comparison": {
+              "values": 248320,
+              "max": 5.39239763952537e-11,
+              "rms": 1.3815502365682859e-11,
+              "percentiles": {
+                "50": 1.0583756093751617e-11,
+                "90": 2.2051493964170278e-11,
+                "99": 3.200100517908311e-11,
+                "99.9": 3.9448842414913376e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 5.39239763952537e-11
+            },
+            "logitsF64Sha256": "e67f474050b826a5c2dbfc0e24eef279306e1b7aa90a03c668e8c1ae0362f7e6"
+          },
+          {
+            "step": 46,
+            "comparison": {
+              "values": 248320,
+              "max": 3.645794777185074e-11,
+              "rms": 6.788686002952913e-12,
+              "percentiles": {
+                "50": 4.6539577747140015e-12,
+                "90": 1.1127587740134007e-11,
+                "99": 1.7146003228329928e-11,
+                "99.9": 2.1928711291253015e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 3.645794777185074e-11
+            },
+            "logitsF64Sha256": "9e220e4ed6ad3e7152771ba6078557b0fc5a5e38f400acd893cd6d532ec30484"
+          },
+          {
+            "step": 47,
+            "comparison": {
+              "values": 248320,
+              "max": 3.530686853991938e-11,
+              "rms": 6.964054994997121e-12,
+              "percentiles": {
+                "50": 4.7983839124299266e-12,
+                "90": 1.1334533311924136e-11,
+                "99": 1.7887575864961032e-11,
+                "99.9": 2.412658761663532e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 3.530686853991938e-11
+            },
+            "logitsF64Sha256": "cecd45b6b122247e2336981a6671c0cf619bebf011dba76facb1c8f9d824ff03"
+          },
+          {
+            "step": 48,
+            "comparison": {
+              "values": 248320,
+              "max": 3.951544647051719e-11,
+              "rms": 7.895878220295718e-12,
+              "percentiles": {
+                "50": 5.305089700868848e-12,
+                "90": 1.2969181284461229e-11,
+                "99": 2.0422864510649674e-11,
+                "99.9": 2.6300576161376073e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 3.951544647051719e-11
+            },
+            "logitsF64Sha256": "37e7c317d92bced4549cc2e283a9c6e6a0cd484e6b9c57bd1e8d4d9e9f863341"
+          },
+          {
+            "step": 49,
+            "comparison": {
+              "values": 248320,
+              "max": 1.992717102439201e-11,
+              "rms": 4.196535555210562e-12,
+              "percentiles": {
+                "50": 2.7915447731174936e-12,
+                "90": 6.901168525530467e-12,
+                "99": 1.1018403967000263e-11,
+                "99.9": 1.4194313502359058e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 1.992717102439201e-11
+            },
+            "logitsF64Sha256": "f80793bfed254a47bf80886ae6bebca072c863cd30ce5ee7586a6d7c08a54949"
+          },
+          {
+            "step": 50,
+            "comparison": {
+              "values": 248320,
+              "max": 2.7682967029818428e-11,
+              "rms": 5.418873901322957e-12,
+              "percentiles": {
+                "50": 3.6048941609578833e-12,
+                "90": 8.911615889672935e-12,
+                "99": 1.4178795915142927e-11,
+                "99.9": 1.827845041990648e-11
+              },
+              "overTolerance": 0,
+              "lastTokenMax": 2.7682967029818428e-11
+            },
+            "logitsF64Sha256": "062e157886045c337bb688794100e001329d5ff27ba7eeb36de7f63c8b000baf"
+          }
+        ]
+      }
+    ]
+  },
+  "raw": {
+    "machine": "x@128",
+    "path": "/home/x/deco/doppler/reports/local/selective-materialization-20261012/cache-coordinate-result.json",
+    "bytes": 422244038,
+    "sha256": "16a96ec8bd7782a364dadadc3c4bd6240d3d78ca42e6f5258d587d596a522ee6"
+  }
+}

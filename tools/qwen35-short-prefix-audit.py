@@ -19,6 +19,89 @@ import numpy as np
 EVALUATOR_SHA256 = '90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7'
 
 
+class StoreIntervention:
+    """Remove selected diagnostic F32 stores; never change state or KV storage."""
+    operations = frozenset(('embedding', 'normalization', 'qkv-projection', 'z-projection',
+        'a-projection', 'b-projection', 'conv-output', 'raw-prefill-recurrent-output',
+        'gated-recurrent-output', 'linear-output-projection', 'q-projection', 'k-projection',
+        'v-projection', 'rope-cos-table', 'rope-sin-table', 'rope-output', 'attention-output',
+        'gated-attention-output', 'attention-output-projection', 'attention-residual',
+        'ffn-gate-projection', 'ffn-up-projection', 'ffn-activation', 'ffn-down-projection',
+        'ffn-residual', 'logits'))
+
+    uniforms = frozenset(('rms-epsilon', 'recurrent-rms-epsilon', 'recurrent-l2-epsilon', 'rope-theta'))
+
+    def __init__(self, selectors, layer_count, prefill, positions, uniform_f64=()):
+        assert isinstance(selectors, list)
+        assert set(uniform_f64) <= self.uniforms and len(set(uniform_f64)) == len(uniform_f64)
+        self.uniform_f64 = uniform_f64
+        self.uniform_hits = {name: 0 for name in uniform_f64}
+        self.selectors = selectors
+        self.prefill, self.positions = prefill, np.asarray(positions)
+        self.layer, self.token = 'input', None
+        self.hits = [0] * len(selectors)
+        self.suppressed = {}
+        for row in selectors:
+            assert set(row) == {'operations', 'layers', 'phases'}, row
+            for key in ('operations', 'layers', 'phases'):
+                values = row[key]
+                assert values is None or (isinstance(values, list) and values
+                    and len(set(values)) == len(values)), (key, values)
+            assert row['operations'] is None or set(row['operations']) <= self.operations, row
+            assert row['layers'] is None or all(
+                (type(layer) is int and 0 <= layer < layer_count) or layer in ('input', 'output')
+                for layer in row['layers']), row
+            assert row['phases'] is None or set(row['phases']) <= {'prefill', 'decode'}, row
+
+    def set_context(self, layer=None, token=None):
+        if layer is not None:
+            self.layer = layer
+        self.token = token
+
+    def round(self, value, label):
+        rounded = np.asarray(value).astype(np.float32).astype(np.float64)
+        # The approved state exception and mandatory F16 cache are never ablated.
+        if label not in self.operations or not self.selectors:
+            return rounded
+        positions = np.asarray([self.token]) if self.token is not None else (
+            self.positions if self.layer == 'output' else np.arange(len(value)))
+        mask = np.zeros(len(positions), dtype=bool)
+        for index, row in enumerate(self.selectors):
+            if row['operations'] is not None and label not in row['operations']:
+                continue
+            if row['layers'] is not None and self.layer not in row['layers']:
+                continue
+            selected = np.ones(len(positions), dtype=bool)
+            if row['phases'] == ['prefill']:
+                selected = positions < self.prefill
+            elif row['phases'] == ['decode']:
+                selected = positions >= self.prefill
+            elements = int(np.size(value) * np.count_nonzero(selected) // len(positions))
+            self.hits[index] += elements
+            mask |= selected
+        if mask.any():
+            elements = int(np.size(value) * np.count_nonzero(mask) // len(positions))
+            key = f'{self.layer}:{label}'
+            self.suppressed[key] = self.suppressed.get(key, 0) + elements
+            if self.token is not None:
+                return value
+            rounded[mask] = np.asarray(value)[mask]
+        return rounded
+
+    def receipt(self):
+        assert all(self.hits), 'Every requested selector must affect an observed store'
+        assert all(self.uniform_hits.values()), 'Every requested scalar parameter must be observed'
+        return {'selectors': self.selectors, 'selectedElements': self.hits,
+                'suppressedStores': self.suppressed, 'uniformF64': self.uniform_f64,
+                'uniformCalls': self.uniform_hits}
+
+    def uniform(self, value, label):
+        if label in self.uniform_f64:
+            self.uniform_hits[label] += 1
+            return value
+        return float(np.float32(value))
+
+
 def error(actual, expected):
     assert actual.shape == expected.shape, (actual.shape, expected.shape)
     assert np.isfinite(actual).all() and np.isfinite(expected).all()
@@ -115,7 +198,7 @@ def read_capture(capture, prefill=19, decode_steps=1):
 
 
 def ideal_global_materialization(ref, weights, config, contract, expected, map_path,
-                                 archive_sha256, capture_sha256):
+                                 archive_sha256, capture_sha256, interventions=None, prefix_count=None):
     """Diagnostic copies only; ideal arithmetic between reviewed global stores."""
     policy_bytes = Path(map_path).read_bytes()
     policy = json.loads(policy_bytes)
@@ -129,15 +212,19 @@ def ideal_global_materialization(ref, weights, config, contract, expected, map_p
     assert dispatch['captureSha256'] == capture_sha256
     assert policy['request'] == {'index': 2, 'prefillTokens': 184, 'lastDecodeStep': 7}
     assert contract['requestIndex'] == 2 and contract['prefixLengths'][0] == 184
-    prefill, count = 184, 8
+    prefill, mapped_count = 184, 8
+    count = mapped_count if prefix_count is None else prefix_count
+    assert type(count) is int and 1 <= count <= len(contract['prefixLengths'])
     enabled = False
     counts = {}
+    selection = StoreIntervention([], len(config['layer_types']), prefill,
+                                  np.array(contract['prefixLengths'][:count]) - 1)
 
     def materialize(value, label):
         if not enabled:
             return value
         counts[label] = counts.get(label, 0) + int(np.size(value))
-        return np.asarray(value).astype(np.float32).astype(np.float64)
+        return selection.round(value, label)
 
     def pair_store(value):
         if not enabled:
@@ -154,13 +241,16 @@ def ideal_global_materialization(ref, weights, config, contract, expected, map_p
         return result
 
     def normalization(value, weight, epsilon, offset=True):
-        epsilon = float(np.float32(epsilon)) if enabled else epsilon
+        epsilon = uniform(epsilon, 'rms-epsilon')
         return materialize(ref.rms_norm(value, weight, epsilon, offset), 'normalization')
+
+    def uniform(value, label):
+        return selection.uniform(value, label) if enabled else value
 
     def rotation(value, theta, dimension):
         if not enabled:
             return ref.text_rope(value, theta, dimension)
-        frequencies = float(np.float32(theta)) ** (-np.arange(0, dimension, 2, dtype=np.float64) / dimension)
+        frequencies = uniform(theta, 'rope-theta') ** (-np.arange(0, dimension, 2, dtype=np.float64) / dimension)
         angle = np.arange(len(value), dtype=np.float64)[:, None, None] * frequencies[None, None, :]
         cosine = materialize(np.cos(angle), 'rope-cos-table')
         sine = materialize(np.sin(angle), 'rope-sin-table')
@@ -170,6 +260,9 @@ def ideal_global_materialization(ref, weights, config, contract, expected, map_p
 
     delta_source = inspect.getsource(ref.delta_history)
     delta_changes = [
+        ('    for index, projected in enumerate(qkv):',
+         '    for index, projected in enumerate(qkv):\n        set_context(token=index)'),
+        ('    return np.stack(outputs)', '    set_context()\n    return np.stack(outputs)'),
         ('        mixed *= sigmoid(mixed)',
          "        mixed *= sigmoid(mixed)\n        if index < prefill: mixed = materialize(mixed, 'conv-output')"),
         ('        state *= decay[:, None, None]',
@@ -179,19 +272,26 @@ def ideal_global_materialization(ref, weights, config, contract, expected, map_p
         ('        output = np.sum(state * query[:, :, None], axis=1)',
          "        output = np.sum(state * query[:, :, None], axis=1)\n        output_unrounded = output\n        if index < prefill: output = materialize(output, 'raw-prefill-recurrent-output')"),
         ("        output = rms_norm(output, norm_weight, config['rms_norm_eps'], offset=False)",
-         "        output = output / np.sqrt(np.mean(output_unrounded * output_unrounded, axis=-1, keepdims=True) + (float(np.float32(config['rms_norm_eps'])) if enabled_flag() else config['rms_norm_eps'])) * norm_weight"),
+         "        output = output / np.sqrt(np.mean(output_unrounded * output_unrounded, axis=-1, keepdims=True) + uniform(config['rms_norm_eps'], 'recurrent-rms-epsilon')) * norm_weight"),
         ('        outputs.append((output * gate * sigmoid(gate)).reshape(-1))',
          "        outputs.append(materialize(output * gate * sigmoid(gate), 'gated-recurrent-output').reshape(-1))"),
-        (' + 1e-6)', ' + (float(np.float32(1e-6)) if enabled_flag() else 1e-6))'),
+        (' + 1e-6)', " + uniform(1e-6, 'recurrent-l2-epsilon'))"),
     ]
     for before, after in delta_changes:
         assert delta_source.count(before) == (2 if before == ' + 1e-6)' else 1), before
         delta_source = delta_source.replace(before, after)
     delta_namespace = dict(ref.__dict__, materialize=materialize, pair_store=pair_store,
-                           prefill=prefill, enabled_flag=lambda: enabled)
+                           prefill=prefill, uniform=uniform,
+                           set_context=lambda **kw: selection.set_context(**kw))
     exec(compile(delta_source, '<ideal-global-state-diagnostic>', 'exec'), delta_namespace)
     source = inspect.getsource(ref.evaluate)
     changes = [
+        ("    x = weights['embed_tokens.weight'][token_ids].copy()",
+         "    set_context(layer='input')\n    x = weights['embed_tokens.weight'][token_ids].copy()"),
+        ("    for index, kind in enumerate(config['layer_types']):",
+         "    for index, kind in enumerate(config['layer_types']):\n        set_context(layer=index)"),
+        ("    normalized = rms_norm(x[positions], weights['norm.weight'], epsilon)",
+         "    set_context(layer='output')\n    normalized = rms_norm(x[positions], weights['norm.weight'], epsilon)"),
         ("weights['embed_tokens.weight'][token_ids].copy()", "materialize(weights['embed_tokens.weight'][token_ids].copy(), 'embedding')"),
         ("normalized @ local('in_proj_qkv.weight').T", "materialize(normalized @ local('in_proj_qkv.weight').T, 'qkv-projection')"),
         ("normalized @ local('in_proj_z.weight').T", "materialize(normalized @ local('in_proj_z.weight').T, 'z-projection')"),
@@ -216,20 +316,58 @@ def ideal_global_materialization(ref, weights, config, contract, expected, map_p
         source = source.replace(before, after)
     namespace = dict(ref.__dict__, materialize=materialize, prefill_store=prefill_store,
                      rms_norm=normalization, text_rope=rotation,
+                     set_context=lambda **kw: selection.set_context(**kw),
                      delta_history=delta_namespace['delta_history'])
     exec(compile(source, '<ideal-global-buffer-diagnostic>', 'exec'), namespace)
     evaluate = namespace['evaluate']
-    baseline, _ = evaluate(contract['inputIds'], weights, config, np.array(contract['prefixLengths']) - 1)
+    cache_bits = {}
+    def observe_cache(layer, values):
+        for kind, name in [('key', 'k_rope'), ('value', 'v_proj')]:
+            cache_bits[layer, kind] = values[name][:prefill + count - 1].astype('<f2').view('<u2').copy()
+    baseline, _ = evaluate(contract['inputIds'], weights, config,
+                          np.array(contract['prefixLengths']) - 1, observe_cache=observe_cache)
     assert np.array_equal(baseline, expected), 'Inactive diagnostic copy must reproduce every approved vector'
+    approved_cache_bits = dict(cache_bits)
     enabled = True
     logits, caches = evaluate(contract['inputIds'][:prefill + count - 1], weights, config,
-                             np.array(contract['prefixLengths'][:count]) - 1)
-    return {'scope': policy['scope'], 'mapSha256': ref.digest(policy_bytes),
+                             np.array(contract['prefixLengths'][:count]) - 1, observe_cache=observe_cache)
+    baseline_cache_bits = dict(cache_bits)
+    result = {'scope': policy['scope'], 'mapSha256': ref.digest(policy_bytes),
+        'mappedPrefixCount': mapped_count, 'extrapolatesBeyondCapturedPrefixes': count > mapped_count,
         'evaluateSourceSha256': ref.digest(source.encode()), 'deltaSourceSha256': ref.digest(delta_source.encode()),
         'inactiveCopyApprovedVectorsExact': True, 'count': count, 'stores': counts,
         'comparison': error(logits, expected[:count]), 'caches': caches,
         'perPrefix': [{'step': i, 'comparison': error(logits[i:i + 1], expected[i:i + 1]),
             'logitsF64': base64.b64encode(logits[i].astype('<f8').tobytes()).decode()} for i in range(count)]}
+    if interventions is not None:
+        assert isinstance(interventions, list) and interventions
+        assert len({case['id'] for case in interventions}) == len(interventions)
+        result['interventions'] = []
+        for case in interventions:
+            assert {'id', 'suppress'} <= set(case) <= {'id', 'suppress', 'uniformF64'}
+            assert isinstance(case['id'], str) and case['id']
+            selection = StoreIntervention(case['suppress'], len(config['layer_types']), prefill,
+                                         np.array(contract['prefixLengths'][:count]) - 1,
+                                         case.get('uniformF64', ()))
+            counts = {}
+            trial, trial_caches = evaluate(contract['inputIds'][:prefill + count - 1], weights, config,
+                np.array(contract['prefixLengths'][:count]) - 1, observe_cache=observe_cache)
+            record = {'id': case['id'], **selection.receipt(), 'comparison': error(trial, expected[:count]),
+                'againstMappedBaseline': error(trial, logits), 'caches': trial_caches,
+                'cacheBitChanges': [{'layer': layer, 'kind': kind,
+                    'againstMappedBaseline': int(np.count_nonzero(bits != baseline_cache_bits[layer, kind])),
+                    'againstApproved': int(np.count_nonzero(bits != approved_cache_bits[layer, kind])),
+                    'firstChangedAgainstApproved': [{'index': list(map(int, coordinate)),
+                        'expectedBits': int(approved_cache_bits[layer, kind][tuple(coordinate)]),
+                        'actualBits': int(bits[tuple(coordinate)])}
+                        for coordinate in np.argwhere(bits != approved_cache_bits[layer, kind])[:8]]}
+                    for (layer, kind), bits in cache_bits.items()],
+                'perPrefix': [{'step': i, 'comparison': error(trial[i:i + 1], expected[i:i + 1]),
+                    'logitsF64': base64.b64encode(trial[i].astype('<f8').tobytes()).decode()}
+                    for i in range(count)]}
+            result['interventions'].append(record)
+            print(json.dumps({'intervention': case['id'], 'comparison': record['comparison']}), flush=True)
+    return result
 
 
 def run(args):
@@ -523,7 +661,9 @@ def run(args):
     if args.ideal_materialization_map:
         report['idealGlobalMaterializationControl'] = ideal_global_materialization(
             ref, weights, config, contract, expected, args.ideal_materialization_map,
-            capture['archiveSha256'], ref.digest(Path(args.capture).read_bytes()))
+            capture['archiveSha256'], ref.digest(Path(args.capture).read_bytes()),
+            ref.read_json(args.materialization_interventions) if args.materialization_interventions else None,
+            args.materialization_prefix_count)
     if args.cache_materialization_control:
         # Counterfactual diagnostic, not an acceptance reference. All other
         # equations stay F64; only the mandatory producer F32 store is inserted.
@@ -682,11 +822,17 @@ if __name__ == '__main__':
                         help='Diagnostic only: replace K/V cache with independently evolved approved values')
     parser.add_argument('--cache-materialization-control', action='store_true')
     parser.add_argument('--ideal-materialization-map', help='Reviewed global-buffer materialization diagnostic map')
+    parser.add_argument('--materialization-interventions',
+                        help='JSON diagnostic cases suppressing selected F32 stores by operation, layer and phase')
+    parser.add_argument('--materialization-prefix-count', type=int,
+                        help='Diagnostic history length; beyond eight extrapolates the map, not physical qualification')
     parser.add_argument('--cache-materialization-kind', choices=['both', 'key', 'value'], default='both')
     parser.add_argument('--fixture-directory', help='Export captured prefill projections for the existing physical replay')
     parser.add_argument('--normalization-fixture', help='Exact captured layer-3 fixture for local K comparisons')
     parser.add_argument('--normalization-replay', action='append', help='Physical same-input Q/K receipt; diagnostic only')
     args = parser.parse_args()
+    if (args.materialization_interventions or args.materialization_prefix_count is not None) and not args.ideal_materialization_map:
+        parser.error('Materialization interventions/count require --ideal-materialization-map')
     if (args.recurrent_runtime or args.recurrent_attribution_step is not None
         or args.recurrent_approved_cache_control or args.recurrent_storage_precision != 'f32'):
         if not args.recurrent_materialization_control:

@@ -1,0 +1,25 @@
+[
+  {
+    "id": "all-stores-removed-f32-parameters",
+    "suppress": [
+      {
+        "operations": null,
+        "layers": null,
+        "phases": null
+      }
+    ]
+  },
+  {
+    "id": "all-stores-removed-source-recurrent-rms-epsilon",
+    "suppress": [
+      {
+        "operations": null,
+        "layers": null,
+        "phases": null
+      }
+    ],
+    "uniformF64": [
+      "recurrent-rms-epsilon"
+    ]
+  }
+]
