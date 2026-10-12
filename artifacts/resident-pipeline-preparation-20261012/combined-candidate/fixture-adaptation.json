@@ -1,0 +1,8 @@
+{
+  "scope": "Copied test fixture only; installed packaged runtime unchanged",
+  "file": "node_modules/doppler-gpu/tests/helpers/capsule-v2-fixture.js",
+  "beforeSha256": "3f3a0723459b7aac18cb0e7c6c37a65a301ecbc6da3dbab580f18f7c3438c5b5",
+  "afterSha256": "4c2860f1801811afb0f0d41fe1975500a51e0fb7d1d01a64ef3191d25590f308",
+  "change": "Import the same sha256BytesHex implementation directly from shipped src/formats/sha256.js; unshipped src/utils/sha256.js is an exact re-export.",
+  "failuresRetained": "installed-tests.log"
+}

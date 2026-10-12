@@ -1,0 +1,8 @@
+{
+  "name": "resident-preparation-diagnostic-consumer",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "doppler-gpu": "file:/var/tmp/doppler-resident-preparation-candidate-20261012/combined-package/doppler-gpu-0.6.28.tgz"
+  }
+}

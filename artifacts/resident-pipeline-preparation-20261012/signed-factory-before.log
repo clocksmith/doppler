@@ -1,0 +1,15 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: signed factory must forward opening cancellation
+    at file:///private/var/tmp/doppler-resident-preparation-candidate-20261012/source/tests/client/resident-preparation-cleanup.test.js:65:5 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v22.20.0
