@@ -1,0 +1,43 @@
+{
+  "schema": "doppler.source-quality-freeze/v1",
+  "frozenBeforeExecution": true,
+  "parent": {
+    "path": "artifacts/qwen35-thinking-documents-20261011/suite.json",
+    "sha256": "bedb6724c8c71d4f8c7083bb1a2122be5f3959c2b10710dd626f6fb1dbc33fd9"
+  },
+  "behavioralChange": {
+    "enableThinking": {
+      "from": true,
+      "to": false
+    }
+  },
+  "unchanged": [
+    "source revision and original weights",
+    "ordered messages and exact criteria",
+    "greedy policy and repetition penalty1.1",
+    "4096 generated /8192 total /16000 UTF-16 budgets",
+    "F32 independent equations and F16 KV storage"
+  ],
+  "structuralChanges": [
+    "Remove instruction:null because absence means no system instruction in the shared evaluator; no text is added.",
+    "Bind existing manifest identity and existing EOS IDs explicitly.",
+    "Two disjoint two-case batches; each complete ordered conversation stays in one process."
+  ],
+  "sourceTokenizerConfigSha256": "49e2b6e395f959f077f1e992b338919c0d4a9732fc6e613995e06557f843500c",
+  "sourceReceiptSha256": "5559f14229097852dfe77c97b9d3a9707c7bcfede392c108b1995495c1fcb922",
+  "evaluatorSha256": "37586f498f393570e499859deb0bcaba520e86bb85a03365c176a4981079127f",
+  "files": [
+    {
+      "path": "suite.json",
+      "sha256": "fa0b776e1d80de4033c0317cc0daccc604d22d03a88642f03e59797a04c81a2d"
+    },
+    {
+      "path": "bathroom.json",
+      "sha256": "434b7370fa4ad3553fc279889ba15ae831a49c1a85aab81388b488ba5273b13d"
+    },
+    {
+      "path": "contractor.json",
+      "sha256": "c1a383b8af5afb7a3224fde8c22c35aa82b8ae06c308673b54a886da93fa001f"
+    }
+  ]
+}

@@ -9,3 +9,12 @@ Each lane contains the two exact retained ticket conversations, two existing con
 The existing independent deployed-weight loader verifies pieces and reconstructs the same Q4/F16 tensors. The existing ordered task evaluator handles templates, generation, and pending manual review. Both lanes use greedy decoding, repetition1.1,4096 generated/8192 total tokens, and16000 rawUTF16 units. Every answer must meet factual/citation criteria; any isolated improvement remains diagnostic until the complete required application profile qualifies. All 14 cases completed with natural EOS inside the frozen budgets. The output audit verifies exact weights, precision, inputs, official templates, and token IDs. Question-only relocation improves the requested short factual conclusions from 2/5 to 5/5, but all short cases omit required citation markers or supporting passages, and all four contractor answers fail factual criteria. Zero answers meet their complete contracts. No format is promoted.
 
 The existing citation policy still precedes JSON in that candidate. A separately frozen follow-up moves the entire existing question and policy block after the unchanged evidence. Its three fresh holdout cases cover invoice payment, conditional shipment, and per-order delivery arithmetic; they have not been used to select another policy. The prior failures remain unchanged. Independent rubric review precedes execution.
+
+
+## Whole question-and-policy relocation
+
+The independently reviewed [freeze](policy-block-freeze.json) moved the complete existing question and citation policy after unchanged evidence, with three fresh held-out cases. All13 executions completed naturally within the frozen budgets; the [audit](policy-block-output-audit.json) confirms exact ordered inputs, official templates, and identical weights/precision.
+
+The [criterion-by-criterion review](policy-block-review.json) rejects all10 candidate cases and all3 baseline holdouts. Moving the entire block regressed the three-ticket answer and known subtotal, did not fix contractor arithmetic or attribution, and still omitted required exact citation markers. Both formats failed the new quantity-plus-delivery problem. The invoice subtraction and conditional-promise conclusions were correct, but that does not qualify their full contracts.
+
+No production input formatting changed. This ends the bounded0.8B layout investigation; no further wording variants are selected from these outputs.
