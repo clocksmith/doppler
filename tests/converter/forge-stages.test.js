@@ -107,6 +107,18 @@ assert.equal(result.capsule.schema, 'doppler.capsule/v2');
 assert.equal(result.capsule.signature.authority, TEST_CAPSULE_AUTHORITY);
 assert.equal(result.capsule.modelIR.hiddenSize, 4);
 assert.equal(result.capsule.targetPlans.length, 1, 'Forge must not invent unsupported target variants');
+const topologySource = { manifest, artifacts: result.capsule.artifacts, manifestHash: hash(manifestRaw) };
+assert.equal(stageAnalyze(topologySource).modelIR.schema, 'doppler.model-ir/v1');
+for (const linearField of ['linearNumKeyHeads', 'linearNumValueHeads', 'linearKeyHeadDim',
+  'linearValueHeadDim', 'linearConvKernelDim']) {
+  assert.throws(() => stageAnalyze({ ...topologySource, manifest: { ...manifest,
+    architecture: { ...manifest.architecture, [linearField]: 4 } } }),
+  /ModelIR v1 cannot represent source topology/, `Reject unrepresented ${linearField} before lowering`);
+}
+assert.throws(() => stageAnalyze({ ...topologySource, manifest: { ...manifest, inference: { ...manifest.inference,
+  layerPattern: { type: 'custom', layerTypes: ['linear_attention', 'full_attention'] } } } }),
+/ModelIR v1 cannot represent source topology/, 'Custom recurrent schedules require explicit ModelIR v2 state');
+
 assert.equal(Object.hasOwn(result.capsule.targetPlans[0].capabilityPredicate, 'requiredWgslFeatures'), false);
 const languageBundle = structuredClone(programBundle);
 languageBundle.wgslModules[0].metadata.requiredWgslFeatures = ['subgroup_id'];
