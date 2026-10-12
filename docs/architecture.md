@@ -469,7 +469,7 @@ DOPPLER may trade some kernel-level peak performance for runtime composability a
 | LoRA hot-swap | Adapters are loaded/activated at runtime via adapter and hotswap surfaces |
 | Multi-model orchestration | Runtime exposes explicit multi-model primitives and policy-layer hooks |
 
-Non-core aspiration and roadmap items are tracked in private wrapper docs.
+Current priorities belong to [GOALS.md](../GOALS.md#current-priorities). Optional experiment contracts and retained evidence are indexed under [historical campaigns](INDEX.md#historical-and-experimental-campaigns).
 
 ---
 

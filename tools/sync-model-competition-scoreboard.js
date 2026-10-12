@@ -986,11 +986,6 @@ function evidenceSummary(evidence) {
   return entries.length > 0 ? entries.join('<br>') : 'none';
 }
 
-function commandSummary(command) {
-  if (!command) return 'none';
-  return `\`${String(command).replace(/`/g, '\\`')}\``;
-}
-
 function renderGenerationRows(lines, rows) {
   lines.push('## Generation Competition Rows');
   lines.push('');
@@ -1082,32 +1077,6 @@ function renderGapRows(lines, rows) {
   lines.push('');
 }
 
-function renderNextCommands(lines, rows) {
-  const commandRows = [];
-  const seen = new Set();
-  for (const row of rows) {
-    if (!hasText(row.nextCommand)) continue;
-    const key = [row.modelId, row.nextGate || row.claimStatus, row.nextCommand].join('\0');
-    if (seen.has(key)) continue;
-    seen.add(key);
-    commandRows.push(row);
-  }
-  lines.push('## Next Commands');
-  lines.push('');
-  lines.push('These commands are gates, not evidence. A row becomes evidence only after its saved artifact is committed and referenced by the catalog, release matrix, or support inventory.');
-  lines.push('');
-  lines.push('| Model | Gate | Command |');
-  lines.push('| --- | --- | --- |');
-  for (const row of commandRows) {
-    lines.push(renderTableRow([
-      row.modelId,
-      row.nextGate || row.claimStatus,
-      commandSummary(row.nextCommand),
-    ]));
-  }
-  lines.push('');
-}
-
 function renderMarkdown(scoreboard) {
   const generationRows = scoreboard.rows.filter((row) => row.workloadMode === 'generation' && row.metrics);
   const embeddingRows = scoreboard.rows.filter((row) => row.workloadMode === 'embedding' && row.metrics);
@@ -1117,7 +1086,7 @@ function renderMarkdown(scoreboard) {
   lines.push('# Model Competition Scoreboard');
   lines.push('');
   lines.push('Generated from the catalog, support inventory, release matrix, embedding/rerank compare configs, and saved compare receipts.');
-  lines.push('This file is an evidence ledger: it records what is verified, what is on Hugging Face according to catalog metadata, where Doppler has comparable performance receipts, and which gates remain.');
+  lines.push('This is an evidence ledger, not an implementation queue. It records scoped verification, publication metadata, comparable measurements, and missing acceptance. [GOALS.md](../GOALS.md#current-priorities) owns work selection.');
   lines.push('');
   lines.push(`Updated at: ${scoreboard.updatedAt || 'unknown'}`);
   lines.push('');
@@ -1150,7 +1119,6 @@ function renderMarkdown(scoreboard) {
   renderEmbeddingRows(lines, embeddingRows);
   renderRerankRows(lines, rerankRows);
   renderGapRows(lines, gapRows);
-  renderNextCommands(lines, scoreboard.rows);
   lines.push('## Source Files');
   lines.push('');
   for (const source of scoreboard.sources) {

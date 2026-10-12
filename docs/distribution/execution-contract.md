@@ -1,4 +1,4 @@
-# RDRR P2P Execution Plan
+# Distributed RDRR execution contract
 
 Additive distributed execution contract for canonical RDRR artifacts.
 
@@ -40,9 +40,9 @@ Replay claim:
 
 Without `transcriptRoot`, only the declared determinism class is reproducible.
 
-## Phase structure
+## Contract requirements
 
-### Phase 0: integrity + addressability
+### Integrity and addressability
 
 Additive to canonical RDRR:
 - `manifest.integrityExtensions`
@@ -57,7 +57,7 @@ Current implementation boundary:
 Promotion gate:
 - solo load must remain byte-identical to pre-Phase-0 artifacts
 
-### Phase 1: exact distributed execution
+### Exact distributed execution
 
 Ship `distributed.json` with one exact plan.
 
@@ -73,7 +73,7 @@ Promotion gate:
 - distributed logits vs solo logits
 - every collective step must be `algorithm-exact` or stricter
 
-### Phase 2: topology-adaptive plan selection
+### Topology-adaptive selection
 
 One artifact, multiple named plans.
 
@@ -88,7 +88,7 @@ Non-goal:
 Promotion gate:
 - every shipped plan passes parity against the canonical exact plan
 
-### Phase 3: exact MoE expert distribution
+### Expert identity
 
 MoE distribution changes expert placement, not expert choice.
 
@@ -100,7 +100,7 @@ Rules:
 Promotion gate:
 - MoE distributed vs solo parity
 
-### Phase 4: robustness
+### Recovery
 
 Peer churn and Byzantine behavior are handled explicitly.
 
@@ -112,7 +112,7 @@ Rules:
 Promotion gate:
 - induced peer drop / Byzantine vector tests complete correctly or fail closed
 
-### Phase 5: speed lanes
+### Performance and exactness
 
 Optimization-only phase:
 - activation compression

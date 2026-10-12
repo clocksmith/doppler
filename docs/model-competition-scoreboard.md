@@ -1,7 +1,7 @@
 # Model Competition Scoreboard
 
 Generated from the catalog, support inventory, release matrix, embedding/rerank compare configs, and saved compare receipts.
-This file is an evidence ledger: it records what is verified, what is on Hugging Face according to catalog metadata, where Doppler has comparable performance receipts, and which gates remain.
+This is an evidence ledger, not an implementation queue. It records scoped verification, publication metadata, comparable measurements, and missing acceptance. [GOALS.md](../GOALS.md#current-priorities) owns work selection.
 
 Updated at: 2026-09-07T18:11:16.222Z
 
@@ -103,32 +103,6 @@ Updated at: 2026-09-07T18:11:16.222Z
 | qwen3-8-27b-text-f16-af32 | text | missing | browser:missing<br>node:verified<br>bun:missing | transformersjs | verified-no-compare<br>hf-publish | hf-publish<br>compare-profile | reports/model-ir-v2/qwen3.8-27b.node-webgpu-qualification.json |
 | translategemma-4b-1b-enes-q4k-ehf16-af32 | translate | clocksmith/rdrr@1e2c047357f07dfe45a8effc2fa915acd73999ee<br>models/translategemma-4b-1b-enes-q4k-ehf16-af32 | browser:verified<br>node:verified<br>bun:missing | transformersjs | capability-only<br>benchmark-lane-capability-only | benchmark-lane-capability-only | benchmarks/vendors/results/translategemma-nativekd2/hosted-browser/translategemma-4b-1b-enes-q4k-ehf16-af32_20260711T115839.json |
 | translategemma-4b-it-q4k-ehf16-af32 | generation | clocksmith/rdrr@6fc46049882e961a57d1690ba1ffde21677d001a<br>models/translategemma-4b-it-q4k-ehf16-af32 | browser:verified<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/translategemma-text-4b-it-ONNX<br>onnx/q4f16 | candidate<br>compare-result | chromium-webgpu<br>p064-d064-t0-k1<br>p256-d128-t0-k1<br>p512-d128-t0-k1<br>parity<br>throughput<br>chromium-webgpu:p064-d064-t0-k1<br>chromium-webgpu:p256-d128-t0-k1<br>chromium-webgpu:p512-d128-t0-k1 | reports/release-claims/translategemma-4b-it-q4k-ehf16-af32/2026-03-22T14-48-13.935Z.json |
-
-## Next Commands
-
-These commands are gates, not evidence. A row becomes evidence only after its saved artifact is committed and referenced by the catalog, release matrix, or support inventory.
-
-| Model | Gate | Command |
-| --- | --- | --- |
-| diffusiongemma-26b-a4b-it-q4k-ehf16-af16 | runtime-verify | `node tools/run-registry-verify.js diffusiongemma-26b-a4b-it-q4k-ehf16-af16 --surface auto` |
-| gemma-3-1b-it-q4k-ehf16-af32 | compare-result | `node tools/compare-engines.js --model-id gemma-3-1b-it-q4k-ehf16-af32 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
-| gemma-3-270m-it-f16-af32 | hf-publish | `node tools/publish-hf-registry-model.js --model-id gemma-3-270m-it-f16-af32 --dry-run --bootstrap` |
-| gemma-3-270m-it-q4k-ehf16-af32 | summary-svg | `node tools/compare-engines.js --model-id gemma-3-270m-it-q4k-ehf16-af32 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
-| gemma-4-12b-it-text-q4k-ehf16-af16 | hf-publish | `node tools/publish-hf-registry-model.js --model-id gemma-4-12b-it-text-q4k-ehf16-af16 --dry-run --bootstrap` |
-| gemma-4-12b-it-text-q4k-ehf16-af32 | hf-publish | `node tools/publish-hf-registry-model.js --model-id gemma-4-12b-it-text-q4k-ehf16-af32 --dry-run --bootstrap` |
-| gemma-4-12b-it-text-w4a16-ct-ehf16-af16 | hf-publish | `node tools/publish-hf-registry-model.js --model-id gemma-4-12b-it-text-w4a16-ct-ehf16-af16 --dry-run --bootstrap` |
-| gemma-4-31b-it-text-q4k-ehf16-af16 | hf-publish | `node tools/publish-hf-registry-model.js --model-id gemma-4-31b-it-text-q4k-ehf16-af16 --dry-run --bootstrap` |
-| gemma-4-31b-it-text-q4k-ehf16-af32 | hf-publish | `node tools/publish-hf-registry-model.js --model-id gemma-4-31b-it-text-q4k-ehf16-af32 --dry-run --bootstrap` |
-| gemma-4-e2b-it-q4k-ehf16-af16-int4ple | claim-lane | `node tools/compare-engines.js --model-id gemma-4-e2b-it-q4k-ehf16-af16-int4ple --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
-| gemma-4-e2b-it-q4k-ehf16-af32 | compare-result | `node tools/compare-engines.js --model-id gemma-4-e2b-it-q4k-ehf16-af32 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
-| gemma-4-e2b-it-q4k-ehf16-af32-int4ple | summary-svg | `node tools/compare-engines.js --model-id gemma-4-e2b-it-q4k-ehf16-af32-int4ple --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
-| minicpm4-0-5b-f16-af32 | runtime-verify | `node tools/run-registry-verify.js minicpm4-0-5b-f16-af32 --surface auto` |
-| muse-glimmer-30b-text-bf16-af32 | runtime-verify | `node tools/run-registry-verify.js muse-glimmer-30b-text-bf16-af32 --surface auto` |
-| muse-glimmer-30b-text-f16-af32 | runtime-verify | `node tools/run-registry-verify.js muse-glimmer-30b-text-f16-af32 --surface auto` |
-| qwen-3-5-0-8b-q4k-ehaf16 | summary-svg | `node tools/compare-engines.js --model-id qwen-3-5-0-8b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
-| qwen-3-5-2b-q4k-ehaf16 | summary-svg | `node tools/compare-engines.js --model-id qwen-3-5-2b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
-| qwen3-8-27b-text-f16-af32 | hf-publish | `node tools/publish-hf-registry-model.js --model-id qwen3-8-27b-text-f16-af32 --dry-run --bootstrap` |
-| translategemma-4b-it-q4k-ehf16-af32 | compare-result | `node tools/compare-engines.js --model-id translategemma-4b-it-q4k-ehf16-af32 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json` |
 
 ## Source Files
 

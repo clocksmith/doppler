@@ -53,7 +53,6 @@ Primary documentation index.
 - [Incremental Capsule streams](capsule-streaming.md) — migration and receipt transport.
 - [Revocation](revocation.md) — explicit trust and release-history boundaries.
 - [Optional release operations](model-release-platform.md) — retained commercial hypotheses and release contracts.
-- [Optional adoption plan](executable-model-adoption-plan.md) — independent integration proof, not another active queue.
 - [LoRA format](lora-format.md), [experimental tooling](api/tooling-experimental.md), [diffusion](api/diffusion.md), and [energy](api/energy.md) — separately scoped capabilities.
 - [Generated exports](api/reference/exports.md) — machine-derived inventory.
 
@@ -94,7 +93,6 @@ Primary documentation index.
 - [WGSL Writer v1 Zero-Shot Diagnostic Freeze](status/wgsl-writer-v1-diagnostic-freeze-2026-07-14.md) - one matched visible-mechanics submission each for Qwen 9B base and V13 seed-29 initialization, with no selection authority.
 - [WGSL Writer v1 Zero-Shot Diagnostic Result](status/wgsl-writer-v1-diagnostic-result-2026-07-14.md) - both frozen initializations score 0/3 response, compile, and semantic pass; no current writer capability or repair-to-writer transfer is established.
 - [WGSL Writer v2 Result](status/wgsl-writer-v2-result-2026-07-14.md) - Qwen 3.5 9B seed 47 is selected, three-seed semantic confirmation passes at 95.83% mean, and the selected LoRA has exact Transformers-to-Doppler completion parity; external promotion and general writing remain blocked.
-- [WGSL Writer V3 Plan](wgsl-writer-v3-plan.md) - sequenced plan for an executable compute/render shader package, Chromium reference qualification, semantic evaluation, matched training, exact browser-artifact promotion, and a gated product surface.
 - [WGSL Writer v3 Mechanics Freeze](status/wgsl-writer-v3-mechanics-freeze-2026-07-16.md) - Freezes an executable compute/render/multi-pass package contract and family-disjoint general-authoring plan; browser execution, reference oracles, corpus materialization, training, and every capability claim remain blocked.
 - [WGSL Writer v3 Reference Qualification](status/wgsl-writer-v3-reference-qualification-2026-07-18.md) - Qualifies the four frozen compute/render/multi-pass reference packages with deterministic replay, semantic oracles, cleanup evidence, and an identity-bound AMD/Vulkan Chromium receipt; corpus, training, and capability claims remain blocked.
 - [WGSL Writer v3 Campaign Reconciliation](status/wgsl-writer-v3-campaign-reconciliation-2026-07-19.md) - Preserves the original frozen gate, classifies later policies as development evidence, and requires a prospective family-disjoint materialization transition.
