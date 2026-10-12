@@ -1,6 +1,6 @@
 // Forensic replay of a retained archive, not qualification or a new reference.
 import assert from 'node:assert/strict';
-import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises';
+import { readFile, mkdtemp } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { createServer } from 'node:http';
 import { execFile } from 'node:child_process';
@@ -11,6 +11,7 @@ import { gunzipSync } from 'node:zlib';
 import { chromium } from 'playwright';
 import { compareReferenceModel } from '../../../reploid/tests/fixtures/distributed-reference-model.js';
 import { validatePrefixOnlyTarget } from '../helpers/frozen-prefix-scope.js';
+import { finishFrozenPrefixReplay } from '../helpers/frozen-prefix-receipt.js';
 
 const [archivePath, modelDirectory, destination, manifestMode = 'frozen'] = process.argv.slice(2);
 const observationTarget = process.argv[6] ? JSON.parse(await readFile(process.argv[6], 'utf8')) : { index: 0, step: 0 };
@@ -342,7 +343,5 @@ try {
     comparisons: receipt.results.map(({ index, inputIds, maxDifference, matches }) => ({ index, inputTokens: inputIds.length, maxDifference, matches })) }));
 } catch (error) { receipt.executionCompleted = false; receipt.failure = error.message; throw error; }
 finally {
-  await writeFile(destination, JSON.stringify(receipt)); await browser?.close();
-  if (server) { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); }
-  await rm(directory, { recursive: true, force: true });
+  await finishFrozenPrefixReplay({ destination, receipt, browser, server, directory });
 }
