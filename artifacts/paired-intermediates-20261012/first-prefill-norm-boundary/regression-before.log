@@ -1,0 +1,18 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: surrounding RMSNorm offset must not alter linear output normalization
+
+true !== false
+
+    at file:///Users/xyz/deco/doppler/tests/inference/paired-linear-norm-contract.test.js:29:14 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: true,
+  expected: false,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.20.0
