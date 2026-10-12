@@ -1,0 +1,38 @@
+{
+  "scope": "Captured main RMSNorm; independent accuracy only",
+  "host": "linux",
+  "fixtureSha256": "2ac22e748faeb204949c963f323b35b67ea498b901ecf9ae4cb2a21615e8706c",
+  "shaderSha256": "87a94af88ac4f6de092608104dd04f15b021fb2440ea676970d98d029b04c1f9",
+  "pipeline": {
+    "entry": "main",
+    "constants": {
+      "RMS_NORM_OFFSET": 1,
+      "WEIGHT_IS_F16": 1,
+      "PRE_RESIDUAL": 0,
+      "OUTPUT_PRENORM": 0
+    },
+    "selections": 500,
+    "shaderSha256": "a1986477198de29aa97205475bdc5bf3c79039917dd26ba16c9d9e6e687e0f4f"
+  },
+  "epsilon": 1e-06,
+  "rows": 193,
+  "width": 1024,
+  "browser": "146.0.7680.177",
+  "errors": [],
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3"
+  },
+  "comparison": {
+    "maximum": 2.369589955364404e-07,
+    "rms": 3.115516500506618e-08
+  },
+  "baseline": {
+    "maximum": 5.032750927114193e-07,
+    "rms": 5.5467758933151204e-08
+  },
+  "valuesSha256": "7d2188134a5b85804e14a917c8ce39f5598898202a3da39ef5b34853641b9d34",
+  "matchesCaptured": false,
+  "executed": true,
+  "rawSha256": "80e54023175f2d6816682de3e3875e1eb6965496795ffb4e038ee6218a6c166e"
+}
