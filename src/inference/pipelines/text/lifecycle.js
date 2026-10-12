@@ -334,6 +334,7 @@ export async function loadModel(manifest) {
         this.runtimeConfig.inference, partition?.layerRange ?? null);
     }
     this.executionPlanState = compileExecutionPlanState({
+      manifest,
       runtimeConfig: this.runtimeConfig,
       resolvedKernelPath: this.resolvedKernelPath,
       kernelPathSource: this.kernelPathSource,

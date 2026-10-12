@@ -1,0 +1,1 @@
+paired attention and RoPE reject malformed representations, unsupported policies and scalar fused kernels before allocation

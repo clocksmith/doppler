@@ -1,0 +1,15 @@
+node:internal/fs/promises:636
+  return new FileHandle(await PromisePrototypeThen(
+                        ^
+
+Error: ENOENT: no such file or directory, open '/home/x/deco/doppler/src/gpu/kernels/paired-rmsnorm.js'
+    at async open (node:internal/fs/promises:636:25)
+    at async readFile (node:internal/fs/promises:1235:14)
+    at async file:///home/x/deco/doppler/tests/kernels/paired-attention-physical.js:16:55 {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/home/x/deco/doppler/src/gpu/kernels/paired-rmsnorm.js'
+}
+
+Node.js v22.22.1

@@ -1,0 +1,23 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: The input did not match the regular expression /Explicit interleaved two-F32/. Input:
+
+'Error: BufferPool requires a live GPU device.'
+
+    at async file:///Users/xyz/deco/doppler/tests/gpu/paired-split-contract.test.js:5:1 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: Error: BufferPool requires a live GPU device.
+      at getBufferPool (file:///Users/xyz/deco/doppler/src/memory/buffer-pool.js:762:46)
+      at acquireBuffer (file:///Users/xyz/deco/doppler/src/memory/buffer-pool.js:792:3)
+      at _splitQG (file:///Users/xyz/deco/doppler/src/gpu/kernels/split_qg.js:18:38)
+      at runSplitQG (file:///Users/xyz/deco/doppler/src/gpu/kernels/split_qg.js:41:10)
+      at file:///Users/xyz/deco/doppler/tests/gpu/paired-split-contract.test.js:5:22,
+  expected: /Explicit interleaved two-F32/,
+  operator: 'rejects',
+  diff: 'simple'
+}
+
+Node.js v22.20.0
