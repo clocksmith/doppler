@@ -1,0 +1,90 @@
+{
+  "schema": "doppler-independent-product-residual-cpu-review-v1",
+  "candidateSha256": "a056cdd5a773d12d624a974d4c48bf57f9504bf4713496e44c5dfcf374fe9fc5",
+  "checkerSha256": "0346cfd5849271277999e0acebc17e69b342b6116bb5c67fdfe9f2208e610c29",
+  "runtime": "v22.20.0",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "seed": 624901,
+  "prng": "xorshift32 (13,17,5)",
+  "samples": 500000,
+  "cases": 931639,
+  "limbChecks": 931639,
+  "lanes": {
+    "midpoint-sign": 8,
+    "reported-boundary-sign": 16,
+    "nearest": 433459,
+    "other-adjacent": 433459,
+    "synthetic-ftz": 64697
+  },
+  "excludedNonfiniteOperands": 3885,
+  "excludedOverflow": 62656,
+  "midpointCases": [
+    {
+      "a": "0x3f800001",
+      "b": "0x3fc00000",
+      "p": "0x3fc00002",
+      "actual": "0xb3800000",
+      "expected": "0xb3800000",
+      "equal": true
+    },
+    {
+      "a": "0x3f800001",
+      "b": "0xbfc00000",
+      "p": "0xbfc00002",
+      "actual": "0x33800000",
+      "expected": "0x33800000",
+      "equal": true
+    },
+    {
+      "a": "0xbf800001",
+      "b": "0x3fc00000",
+      "p": "0xbfc00002",
+      "actual": "0x33800000",
+      "expected": "0x33800000",
+      "equal": true
+    },
+    {
+      "a": "0xbf800001",
+      "b": "0xbfc00000",
+      "p": "0x3fc00002",
+      "actual": "0xb3800000",
+      "expected": "0xb3800000",
+      "equal": true
+    },
+    {
+      "a": "0x3f800003",
+      "b": "0x3fc00000",
+      "p": "0x3fc00004",
+      "actual": "0x33800000",
+      "expected": "0x33800000",
+      "equal": true
+    },
+    {
+      "a": "0x3f800003",
+      "b": "0xbfc00000",
+      "p": "0xbfc00004",
+      "actual": "0xb3800000",
+      "expected": "0xb3800000",
+      "equal": true
+    },
+    {
+      "a": "0xbf800003",
+      "b": "0x3fc00000",
+      "p": "0xbfc00004",
+      "actual": "0xb3800000",
+      "expected": "0xb3800000",
+      "equal": true
+    },
+    {
+      "a": "0xbf800003",
+      "b": "0xbfc00000",
+      "p": "0x3fc00004",
+      "actual": "0x33800000",
+      "expected": "0x33800000",
+      "equal": true
+    }
+  ],
+  "failures": [],
+  "scope": "CPU translation and exact dyadic reference; no shader execution, GPU-product observations, full-model accuracy, performance or promotion claim"
+}
