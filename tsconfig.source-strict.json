@@ -16,6 +16,8 @@
   },
   "include": [],
   "files": [
+    "src/converter/resident-qualification.js",
+    "src/tooling/model-capsule-pieces.js",
     "src/config/schema/w8a8.schema.js",
     "src/converter/w8a8-quantizer.js",
     "src/formats/rdrr/w8a8-storage.js",

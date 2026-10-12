@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { sha256Hex } from '../formats/sha256.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
 import { assertSequenceReferenceTranscript } from '../config/sequence-reference.js';
@@ -178,4 +179,61 @@ export function buildQualificationRecords(lowered) {
     records.push(record);
   }
   return records;
+}
+
+export function normalizeQualificationEvidence(evidence) {
+  if (!isObject(evidence)) throw new Error('Rig requires qualification evidence as an object.');
+  const requireString = (value, label) => {
+    if (typeof value !== 'string' || !value.trim()) throw new Error(`Rig requires ${label}.`);
+    return value.trim();
+  };
+  const requirePositiveInteger = (value, label) => {
+    if (!Number.isInteger(value) || value < 1) throw new Error(`Rig requires ${label} as a positive integer.`);
+    return value;
+  };
+  if (![undefined, 'generate', 'rerank', 'encodeSequence', 'embed', 'scoreChoices', 'residentPartition'].includes(evidence.operation)) {
+    throw new Error(`Rig does not support qualification operation "${evidence.operation}".`);
+  }
+  const surface = requireString(evidence.surface, 'qualificationEvidence.surface');
+  const evidenceHash = requireString(evidence.evidenceHash, 'qualificationEvidence.evidenceHash');
+  const sourcePath = path.resolve(requireString(evidence.sourcePath, 'qualificationEvidence.sourcePath'));
+  const sizeBytes = requirePositiveInteger(evidence.sizeBytes, 'qualificationEvidence.sizeBytes');
+  if (evidence.operation === 'residentPartition' && (!/^sha256:[a-f0-9]{64}$/.test(evidence.partitionPlanHash)
+    || ![0, 1].includes(evidence.partitionIndex))) throw new Error('Rig resident qualification requires a partition plan and index.');
+  const counts = evidence.operation === 'residentPartition'
+    ? { operation: 'residentPartition', partitionPlanHash: evidence.partitionPlanHash, partitionIndex: evidence.partitionIndex,
+      comparedSteps: requirePositiveInteger(evidence.comparedSteps, 'qualificationEvidence.comparedSteps') }
+    : evidence.operation === 'rerank'
+    ? { operation: 'rerank', rerankedDocuments: requirePositiveInteger(evidence.rerankedDocuments, 'qualificationEvidence.rerankedDocuments') }
+    : evidence.operation === 'encodeSequence'
+    ? { operation: 'encodeSequence', encodedSequences: requirePositiveInteger(evidence.encodedSequences, 'qualificationEvidence.encodedSequences') }
+    : evidence.operation === 'embed'
+    ? { operation: 'embed', embeddedTexts: requirePositiveInteger(evidence.embeddedTexts, 'qualificationEvidence.embeddedTexts') }
+    : evidence.operation === 'scoreChoices'
+    ? { operation: 'scoreChoices', scoredChoices: requirePositiveInteger(evidence.scoredChoices, 'qualificationEvidence.scoredChoices') }
+    : { generatedTokens: requirePositiveInteger(evidence.generatedTokens, 'qualificationEvidence.generatedTokens') };
+  const transcriptHash = requireString(evidence.transcriptHash, 'qualificationEvidence.transcriptHash');
+  if (evidence.status !== 'passed') throw new Error('Rig only packages passed qualification evidence.');
+  const capsulePath = path.join(
+    'artifacts',
+    'evidence',
+    `qualification-${surface.replace(/[^a-zA-Z0-9._-]+/g, '-')}-${evidenceHash.slice('sha256:'.length, 'sha256:'.length + 12)}.json`
+  ).split(path.sep).join('/');
+  const artifact = {
+    artifactId: `qualification-evidence:${path.basename(capsulePath)}:${evidenceHash.slice(7, 19)}`,
+    role: 'qualification-evidence',
+    path: capsulePath,
+    hash: evidenceHash,
+    sizeBytes,
+    sourcePath,
+  };
+  return {
+    surface,
+    status: 'passed',
+    evidenceArtifactId: artifact.artifactId,
+    evidenceHash,
+    transcriptHash,
+    ...counts,
+    artifact,
+  };
 }

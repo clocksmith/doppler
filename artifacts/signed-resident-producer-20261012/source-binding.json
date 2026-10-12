@@ -1,0 +1,12 @@
+{
+  "schema": "doppler-signed-resident-producer-source-v1",
+  "physicalQualification": false,
+  "files": {
+    "src/converter/resident-qualification.js": "250c41533ba16e50dc603c926dcfac10eb3572fc49f090dc5752a7f000bce0dc",
+    "src/converter/forge-qualification.js": "d6d0b2092cea49c3bff3904cca83917f9d83aa6a64618b84726399ce30bc2626",
+    "src/converter/forge-stages.js": "2c436969393aa54f6a9735c1a4ae54587968c6da756b1c2959633f7371623bc2",
+    "src/tooling/model-capsule-rig.js": "6a8f45e0f70ee02174841de58fe8c5c0d9c187e5cd0b4fd394254bf7fcf42981",
+    "src/tooling/model-capsule-pieces.js": "ec274b91840c8e2f2d790ca3978f99ec864d7637db0414f5f5b090f1aaac332f",
+    "tests/tooling/forge-model-capsule.test.js": "5e322b3a878750493798325407125c629223951f4919ff3b874b5d602bd617ad"
+  }
+}
