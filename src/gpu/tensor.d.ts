@@ -7,12 +7,18 @@
  */
 
 export type TensorDtype = 'f16' | 'f32';
+export interface TensorRepresentation {
+  readonly precision?: 'two-f32';
+  readonly components?: 2;
+  readonly elementStrideBytes?: 8;
+}
+
 
 /**
  * A tensor with explicit dtype and shape.
  * Use this instead of raw GPUBuffer for dtype-sensitive operations.
  */
-export interface Tensor {
+export interface Tensor extends TensorRepresentation {
   readonly buffer: GPUBuffer;
   readonly dtype: TensorDtype;
   readonly shape: readonly number[];
@@ -26,8 +32,9 @@ export interface Tensor {
 export function createTensor(
   buffer: GPUBuffer,
   dtype: TensorDtype,
-  shape: number[],
-  label?: string
+  shape: readonly number[],
+  label?: string,
+  representation?: TensorRepresentation
 ): Tensor;
 
 /**
@@ -38,7 +45,9 @@ export function dtypeBytes(dtype: TensorDtype): number;
 /**
  * Compute total byte size for a tensor.
  */
-export function tensorBytes(shape: readonly number[], dtype: TensorDtype): number;
+export function tensorBytes(shape: readonly number[], dtype: TensorDtype, representation?: TensorRepresentation): number;
+/** Bytes per logical element; metadata must be explicit and internally consistent. */
+export function tensorElementBytes(dtype: TensorDtype, representation?: TensorRepresentation): number;
 
 /**
  * Determine output dtype for a binary operation.
