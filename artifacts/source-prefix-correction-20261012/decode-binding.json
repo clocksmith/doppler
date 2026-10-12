@@ -1,0 +1,11 @@
+{
+  "archiveSha256": "869e6a0566dcebac71d0f175bc73116a0d2c79c4a70be4c944c584384d4423b4",
+  "manifestSha256": "66301591ef2accadda4b40c6cdeb082201bba42472f09ac18185194487821c4c",
+  "sourceManifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "unchangedWeights": true,
+  "tolerance": 0.001,
+  "sourceBaseline": "d1b23716",
+  "candidate": "prefill-and-decode-integer-residual-q4",
+  "updatedRefs": 4,
+  "parentArchiveSha256": "a0154f891b9db2c975c5bc5f40b6c7d849ec5457b780fa98cf1e8c5d2ff4002a"
+}

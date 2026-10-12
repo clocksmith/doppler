@@ -11,6 +11,9 @@ const strictMath = process.env.DOPPLER_Q4_STRICT_MATH === '1';
 assert(fixturePath && shaderPath && destination, 'Supply captured fixture, declared shader and receipt');
 const fixtureBytes = await readFile(fixturePath);
 const fixture = JSON.parse(fixtureBytes), source = await readFile(shaderPath, 'utf8');
+const execution = fixture.execution ?? { entryPoint: 'main', constants: { TILE_M: 4, TILE_N: 256 },
+  workgroups: [Math.ceil(fixture.N / 256), Math.ceil(fixture.M / 4), 1], features: ['shader-f16'] };
+assert(execution.entryPoint && execution.constants && execution.workgroups.length === 3);
 const hash = value => createHash('sha256').update(value).digest('hex');
 assert.equal(hash(Buffer.from(fixture.input, 'base64')), fixture.inputSha256);
 assert.equal(hash(Buffer.from(fixture.weights, 'base64')), fixture.weightsSha256);
@@ -19,6 +22,7 @@ assert.equal(expected.length, fixture.M * fixture.N * 8);
 const receipt = { scope: 'Identical captured F32/Q4_K operands against an independent Float64 projection',
   host: process.platform, fixtureSha256: hash(fixtureBytes), shaderSha256: hash(source),
   geometry: { M: fixture.M, N: fixture.N, K: fixture.K },
+  execution,
   maximumAllowedError: 2e-6, requiredPeakErrorReduction: 2,
   strictMathDeveloperDiagnostic: strictMath };
 const server = createServer((_request, response) => response.end('<!doctype html>'));
@@ -32,10 +36,12 @@ try {
   receipt.browser = browser.version();
   const page = await browser.newPage();
   await page.goto(`http://127.0.0.1:${server.address().port}`);
-  const result = await page.evaluate(async ({ source, fixture, observeAccumulation, strictMath }) => {
+  const result = await page.evaluate(async ({ source, fixture, execution, observeAccumulation, strictMath }) => {
     const adapter = await navigator.gpu.requestAdapter();
-    if (!adapter?.features.has('shader-f16')) throw new Error('Physical shader-f16 adapter required');
-    const device = await adapter.requestDevice({ requiredFeatures: ['shader-f16'] });
+    if (!adapter || execution.features.some(feature => !adapter.features.has(feature))) {
+      throw new Error('Physical adapter lacks captured execution features');
+    }
+    const device = await adapter.requestDevice({ requiredFeatures: execution.features });
     const errors = [], owned = [];
     device.addEventListener('uncapturederror', event => errors.push(event.error.message));
     const buffer = (size, usage, data) => {
@@ -56,7 +62,7 @@ try {
       const messages = (await module.getCompilationInfo()).messages.filter(item => item.type === 'error');
       if (messages.length) throw new Error(messages.map(item => item.message).join('\n'));
       const pipeline = await device.createComputePipelineAsync({ layout: 'auto', compute: {
-        module, entryPoint: 'main', constants: { TILE_M: 4, TILE_N: 256 } } });
+        module, entryPoint: execution.entryPoint, constants: execution.constants } });
       const uniform = new ArrayBuffer(32), view = new DataView(uniform);
       [fixture.M, fixture.N, fixture.K].forEach((value, index) => view.setUint32(index * 4, value, true));
       view.setFloat32(12, 1, true); view.setUint32(16, fixture.K / 256, true);
@@ -73,7 +79,7 @@ try {
       staging = buffer(output.size, GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST);
       const encoder = device.createCommandEncoder(), pass = encoder.beginComputePass();
       pass.setPipeline(pipeline); pass.setBindGroup(0, group);
-      pass.dispatchWorkgroups(Math.ceil(fixture.N / 256), Math.ceil(fixture.M / 4)); pass.end();
+      pass.dispatchWorkgroups(...execution.workgroups); pass.end();
       encoder.copyBufferToBuffer(output, 0, staging, 0, output.size);
       if (observed) {
         observedStaging = buffer(observed.size, GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST);
@@ -93,7 +99,7 @@ try {
       await device.queue.onSubmittedWorkDone();
       for (const resource of owned) resource.destroy(); device.destroy();
     }
-  }, { source, fixture, observeAccumulation, strictMath });
+  }, { source, fixture, execution, observeAccumulation, strictMath });
   Object.assign(receipt, result);
   const compare = values => {
     let maximum = 0, squares = 0, worstIndex = null;

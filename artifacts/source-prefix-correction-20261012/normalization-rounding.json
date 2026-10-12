@@ -1,0 +1,33 @@
+{
+  "scope": "Captured-input arithmetic decomposition; no new acceptance reference",
+  "incorrectScaleRows": 35,
+  "rows": 193,
+  "values": 197632,
+  "variants": {
+    "actual": {
+      "maximum": 5.032750927114193e-07,
+      "rms": 5.5467758933150535e-08,
+      "sameGPU": 197632
+    },
+    "roundedOracle": {
+      "maximum": 2.369589955364404e-07,
+      "rms": 3.115516429492562e-08,
+      "sameGPU": 126090
+    },
+    "roundedScaleAndTwoMultiplies": {
+      "maximum": 5.032750927114193e-07,
+      "rms": 5.275644352767497e-08,
+      "sameGPU": 170449
+    },
+    "roundedMeanScaleAndTwoMultiplies": {
+      "maximum": 5.032750927114193e-07,
+      "rms": 5.53030325134047e-08,
+      "sameGPU": 196903
+    },
+    "productionTreeNearestScale": {
+      "maximum": 5.032750927114193e-07,
+      "rms": 5.5467758933150535e-08,
+      "sameGPU": 197632
+    }
+  }
+}

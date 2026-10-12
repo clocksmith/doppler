@@ -1,0 +1,32 @@
+{"layer": 0, "kind": "linear_attention", "hiddenSha256": "f7fef5e54a61ea9cfa8c874035e104db897aaaf2a2b50212ac200bbd9f8fbf3f", "maxAbsHidden": 1.0176759410386886}
+{"layer": 1, "kind": "linear_attention", "hiddenSha256": "ec55ed0768a95cf18bacc43affc045da8164bc56b9c9ff63b0aed1137a755f63", "maxAbsHidden": 1.015577011570719}
+{"layer": 2, "kind": "linear_attention", "hiddenSha256": "1bb03097649f4580f6b4cb8bf2b767690f270d65528da30e9ab3a6dab0ad3f61", "maxAbsHidden": 1.5463753147678743}
+{"layer": 3, "kind": "full_attention", "hiddenSha256": "e9ff3e01a6b7124c415e7bdc59829a51370bcf5ed216f3cabb436a05c058d64a", "maxAbsHidden": 1.2718396680825723}
+{"layer": 4, "kind": "linear_attention", "hiddenSha256": "a72d49c7cd62eca55bb738a04c383a4b534402bacc8d00dacded44bb87bb1bd0", "maxAbsHidden": 1.1903345595221897}
+{"layer": 5, "kind": "linear_attention", "hiddenSha256": "d6a98ad65ef02f50d9322401fa9ffdc70a9a368962fbe96ab392a33c0ff46b6f", "maxAbsHidden": 1.1444938801810312}
+{"layer": 6, "kind": "linear_attention", "hiddenSha256": "e85b7d03e890ac9a0f8841e0a06c140329b575a33e90548d6db76c22ab7f249e", "maxAbsHidden": 4.110688285521715}
+{"layer": 7, "kind": "full_attention", "hiddenSha256": "936823cfb5e276661ab28b356651d4f8edb899c8479d8f4e9e0526ad849274c3", "maxAbsHidden": 2.1517986477491866}
+{"layer": 8, "kind": "linear_attention", "hiddenSha256": "7e296af237c0e737c60a3eba9df425af23ecde357eb41a0552c61b0343d0cee0", "maxAbsHidden": 2.1368031755014694}
+{"layer": 9, "kind": "linear_attention", "hiddenSha256": "caf20b784c8771955b72d7c1a5efeb71ff830cc761fd3158ce39614e12b8827c", "maxAbsHidden": 2.090675965124382}
+{"layer": 10, "kind": "linear_attention", "hiddenSha256": "b64b6fde152a3c59520e35e34773faa8b01e8cbc7881bc74bea12da84c52c043", "maxAbsHidden": 2.269357457120473}
+{"layer": 11, "kind": "full_attention", "hiddenSha256": "c056c6300768f35588078b614c586237b1ab34caa274459507682365080cad1a", "maxAbsHidden": 1.2099117835962159}
+{"layer": 12, "kind": "linear_attention", "hiddenSha256": "67e7e9e717d88490570153ddec01dfe26899907f9064932364683b92c0315b0f", "maxAbsHidden": 1.287969881424112}
+{"layer": 13, "kind": "linear_attention", "hiddenSha256": "cbe8dbed16a0432f0789dd6b2893edc5dd7cfe06170c63a7171477648de60ed6", "maxAbsHidden": 1.4647953273136616}
+{"layer": 14, "kind": "linear_attention", "hiddenSha256": "0fb5a8831a306e389421a9039875a16f38dfe4351875e0ea80c6c6272608ad05", "maxAbsHidden": 4.558409177471571}
+{"layer": 15, "kind": "full_attention", "hiddenSha256": "84a52fc62e3a023217fa72b3bd27a4ac3b09ce8477cfa9fb1da356fc5723c5ed", "maxAbsHidden": 2.073567462749062}
+{"layer": 16, "kind": "linear_attention", "hiddenSha256": "f81da07ee3be6d35efdef0f82cffc84cf5891e218c82f4af6b605c04c73e62b9", "maxAbsHidden": 2.435109438850358}
+{"layer": 17, "kind": "linear_attention", "hiddenSha256": "4fb5e5686ff1daaa1aa4b569ee83b3d5dd799811bb1dc30e5f751a00d57d59ca", "maxAbsHidden": 3.0401711722690994}
+{"layer": 18, "kind": "linear_attention", "hiddenSha256": "9902c016eca58168e69ea97e0cc8d11ba6ccc85156df0ddd22c80a09363adacd", "maxAbsHidden": 4.844962456973452}
+{"layer": 19, "kind": "full_attention", "hiddenSha256": "50c71f4532423fe22d1cf4d00c7515eeca9c39ce719bff318ada8712945f9111", "maxAbsHidden": 5.087202533493935}
+{"layer": 20, "kind": "linear_attention", "hiddenSha256": "5738e9a927abf70dcd0337b39501c12f04e3892ecad4791f8e5aa009ac5c2b6b", "maxAbsHidden": 5.156443227181326}
+{"layer": 21, "kind": "linear_attention", "hiddenSha256": "32fe6d17cf317fe3f2a078b999b79edf1c9ec4a0d1d925cbec6594b6c6e63a04", "maxAbsHidden": 5.979240574715643}
+{"layer": 22, "kind": "linear_attention", "hiddenSha256": "dfe0e92025732288ab7dd7fb7af40a9f6539f3a7a58fb2d31977f5147b2a72f7", "maxAbsHidden": 5.515903162286964}
+{"layer": 23, "kind": "full_attention", "hiddenSha256": "de020b0e4746982aebaecdd6105829da0858843cbe2aae0f4d6064e441d60a65", "maxAbsHidden": 7.908705590155192}
+Traceback (most recent call last):
+  File "/Users/xyz/deco/doppler/tools/qwen35-short-prefix-audit.py", line 275, in <module>
+    run(parser.parse_args())
+    ~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/xyz/deco/doppler/tools/qwen35-short-prefix-audit.py", line 133, in run
+    assert np.array_equal(logits, expected), 'Observation must exactly reproduce approved vectors'
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+AssertionError: Observation must exactly reproduce approved vectors
