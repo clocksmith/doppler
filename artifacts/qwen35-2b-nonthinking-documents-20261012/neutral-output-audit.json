@@ -1,0 +1,72 @@
+{
+  "schema": "doppler.source-quality-output-audit/v1",
+  "sameSourceAndPrecision": true,
+  "rows": [
+    {
+      "lane": "neutral-bathroom",
+      "id": "fresh-bathroom-comparison",
+      "reportSha256": "c23efd0bc083d71171e0a178bfec84347775a8b3ffbac5fd1ee37a9d786e6bb0",
+      "suiteSha256": "0f65c4b8a1a16edad1c80319c4c7889fce3b6832a7ac4d319158c6c74a560ac2",
+      "exactOrderedMessages": true,
+      "exactOfficialTemplate": true,
+      "exactInputTokens": true,
+      "criteriaUnchanged": true,
+      "generatedTokens": 1380,
+      "totalTokens": 1868,
+      "rawUtf16Units": 5368,
+      "stopReason": "eos",
+      "withinBudgets": true
+    },
+    {
+      "lane": "neutral-bathroom",
+      "id": "fresh-bathroom-correction",
+      "reportSha256": "c23efd0bc083d71171e0a178bfec84347775a8b3ffbac5fd1ee37a9d786e6bb0",
+      "suiteSha256": "0f65c4b8a1a16edad1c80319c4c7889fce3b6832a7ac4d319158c6c74a560ac2",
+      "exactOrderedMessages": true,
+      "exactOfficialTemplate": true,
+      "exactInputTokens": true,
+      "criteriaUnchanged": true,
+      "generatedTokens": 1544,
+      "totalTokens": 2147,
+      "rawUtf16Units": 5053,
+      "stopReason": "eos",
+      "withinBudgets": true
+    },
+    {
+      "lane": "neutral-contractor",
+      "id": "contractor-comparison",
+      "reportSha256": "e99744c857348e4e62ae49e0b28e8485cfc1663407ec81a746e4897129137a6f",
+      "suiteSha256": "2593af3b61e1438ad7dea008b2143a6d6b3978683bba8f4f9e5348583a769e41",
+      "exactOrderedMessages": true,
+      "exactOfficialTemplate": true,
+      "exactInputTokens": true,
+      "criteriaUnchanged": true,
+      "generatedTokens": 1114,
+      "totalTokens": 1608,
+      "rawUtf16Units": 4196,
+      "stopReason": "eos",
+      "withinBudgets": true
+    },
+    {
+      "lane": "neutral-contractor",
+      "id": "contractor-retained-correction",
+      "reportSha256": "e99744c857348e4e62ae49e0b28e8485cfc1663407ec81a746e4897129137a6f",
+      "suiteSha256": "2593af3b61e1438ad7dea008b2143a6d6b3978683bba8f4f9e5348583a769e41",
+      "exactOrderedMessages": true,
+      "exactOfficialTemplate": true,
+      "exactInputTokens": true,
+      "criteriaUnchanged": true,
+      "generatedTokens": 1896,
+      "totalTokens": 3484,
+      "rawUtf16Units": 6670,
+      "stopReason": "eos",
+      "withinBudgets": true
+    }
+  ],
+  "pairedControl": {
+    "sameOriginalWeightsAndPrecision": true,
+    "sameOrderedMessagesAndInputTokens": true,
+    "sameRawPrefillTop10LogitsBeforeSampling": true,
+    "changedSamplingField": "repetitionPenalty1.1 ->1.0"
+  }
+}

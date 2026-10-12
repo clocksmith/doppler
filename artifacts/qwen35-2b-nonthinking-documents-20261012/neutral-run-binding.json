@@ -26,7 +26,8 @@
         "4"
       ],
       "suiteSha256": "0f65c4b8a1a16edad1c80319c4c7889fce3b6832a7ac4d319158c6c74a560ac2",
-      "status": "running"
+      "status": "completed",
+      "exitCode": 0
     },
     {
       "lane": "neutral-contractor",
@@ -49,7 +50,8 @@
         "4"
       ],
       "suiteSha256": "2593af3b61e1438ad7dea008b2143a6d6b3978683bba8f4f9e5348583a769e41",
-      "status": "running"
+      "status": "completed",
+      "exitCode": 0
     }
   ]
 }
