@@ -1,0 +1,2616 @@
+{
+  "scope": "One original184-token request; failure localization, not55-prefix acceptance",
+  "archiveSha256": "8cae56b0748a5c66add985122d8bbf72b7492e2e0828f713f1b0d7425a59a4e5",
+  "testDelivery": {
+    "schema": "reploid.numerical-test-delivery/v1",
+    "testDeliveryHash": "sha256:4d1bad6ae2cb54b6c1f201552c823732547bf52e6714ff80f9a2ef4dd954e573",
+    "archiveSha256": "8cae56b0748a5c66add985122d8bbf72b7492e2e0828f713f1b0d7425a59a4e5",
+    "snapshotFiles": 2004,
+    "installedFiles": 1974,
+    "scope": "Immutable numerical fixture delivery; not deployed application or signed admission",
+    "applicationQualification": false
+  },
+  "rawCaptureSha256": "dd197e71ec2d8fc1e8f8de6201a4aec886319ad00e0bbb343d438706b53bffcd",
+  "rawCaptureBytes": 6241156,
+  "inputTokens": 184,
+  "completedSteps": 0,
+  "failure": {
+    "message": "page.evaluate: AbortError: Failed to execute 'mapAsync' on 'GPUBuffer': Buffer was destroyed before mapping was resolved.\n    at buffer.destroy (http://127.0.0.1:28940/vendor/doppler/0.6.27/src/memory/device-budget.js:39:7)\n    at #destroyPendingBuffers (http://127.0.0.1:28940/vendor/doppler/0.6.27/src/memory/buffer-pool.js:322:16)\n    at #scheduleDestruction (http://127.0.0.1:28940/vendor/doppler/0.6.27/src/memory/buffer-pool.js:392:34)\n    at #deferDestroy (http://127.0.0.1:28940/vendor/doppler/0.6.27/src/memory/buffer-pool.js:374:30)\n    at BufferPool.destroy (http://127.0.0.1:28940/vendor/doppler/0.6.27/src/memory/buffer-pool.js:679:25)\n    at http://127.0.0.1:28940/vendor/doppler/0.6.27/src/memory/buffer-pool.js:168:35"
+  },
+  "hosts": [
+    {
+      "index": 0,
+      "deviceEvents": [],
+      "observationErrors": [],
+      "lastSubmissions": [
+        {
+          "index": 46,
+          "at": "2026-10-12T21:21:37.995Z",
+          "commandBuffers": [
+            {
+              "label": "resident_partition_layers",
+              "commands": [
+                {
+                  "pipeline": {
+                    "label": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=0|POST_RESIDUAL=0|PRE_RESIDUAL=0|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 1,
+                      "WEIGHT_OFFSET": 1,
+                      "PRE_RESIDUAL": 0,
+                      "POST_RESIDUAL": 0,
+                      "OUTPUT_PRENORM": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "rmsnorm_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "rmsnorm_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "model.language_model.layers.10.input_layernorm.weight_2048",
+                        "bufferBytes": 2048,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "rmsnorm_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 4,
+                        "bufferLabel": "rmsnorm_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 5,
+                        "bufferLabel": "rmsnorm_paired_prenorm_placeholder_256",
+                        "bufferBytes": 256,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    184,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 0,
+                      "WEIGHT_Q4K": 1,
+                      "TRANSPOSE_B": 1,
+                      "SCALAR_OUTPUT": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "matmul_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "rmsnorm_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "q4k_model.language_model.layers.10.linear_attn.in_proj_qkv.weight_3538944",
+                        "bufferBytes": 3538944,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "matmul_paired_output_9043968",
+                        "bufferBytes": 9043968,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    65535,
+                    18,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 0,
+                      "WEIGHT_Q4K": 1,
+                      "TRANSPOSE_B": 1,
+                      "SCALAR_OUTPUT": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "matmul_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "rmsnorm_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "raw_model.language_model.layers.10.linear_attn.in_proj_z.weight_1179648",
+                        "bufferBytes": 1179648,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "paired_linear_output_3014656",
+                        "bufferBytes": 3014656,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    65535,
+                    6,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "matmul_paired_f16_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=1|WEIGHT_Q4K=0|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 1,
+                      "WEIGHT_Q4K": 0,
+                      "TRANSPOSE_B": 1,
+                      "SCALAR_OUTPUT": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "matmul_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "rmsnorm_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "model.language_model.layers.10.linear_attn.in_proj_a.weight_32768",
+                        "bufferBytes": 32768,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "matmul_paired_output_32768",
+                        "bufferBytes": 32768,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    2944,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "matmul_paired_f16_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=1|WEIGHT_Q4K=0|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 1,
+                      "WEIGHT_Q4K": 0,
+                      "TRANSPOSE_B": 1,
+                      "SCALAR_OUTPUT": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "matmul_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "rmsnorm_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "model.language_model.layers.10.linear_attn.in_proj_b.weight_32768",
+                        "bufferBytes": 32768,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "matmul_paired_output_32768",
+                        "bufferBytes": 32768,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    2944,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "gated_delta_conv_uniforms_cached",
+                        "bufferBytes": 80,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "matmul_paired_output_9043968",
+                        "bufferBytes": 9043968,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "L10.linear_conv_weight_131072",
+                        "bufferBytes": 131072,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "L10.linear_conv_state_196608",
+                        "bufferBytes": 196608,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 4,
+                        "bufferLabel": "paired_linear_conv_9043968",
+                        "bufferBytes": 9043968,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    96,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "gated_delta_recurrent_paired_pipeline_WORKGROUP_SIZE=128",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 128
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "gated_delta_conv_uniforms_cached",
+                        "bufferBytes": 80,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "paired_linear_conv_9043968",
+                        "bufferBytes": 9043968,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "paired_linear_output_3014656",
+                        "bufferBytes": 3014656,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "matmul_paired_output_32768",
+                        "bufferBytes": 32768,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 4,
+                        "bufferLabel": "matmul_paired_output_32768",
+                        "bufferBytes": 32768,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 5,
+                        "bufferLabel": "rmsnorm_paired_prenorm_placeholder_256",
+                        "bufferBytes": 256,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 6,
+                        "bufferLabel": "L10.linear_a_log_256",
+                        "bufferBytes": 256,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 7,
+                        "bufferLabel": "L10.linear_norm_weight_512",
+                        "bufferBytes": 512,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 8,
+                        "bufferLabel": "L10.linear_recurrent_state_2097152",
+                        "bufferBytes": 2097152,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 9,
+                        "bufferLabel": "paired_pointwise_3014656",
+                        "bufferBytes": 3014656,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    16,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 0,
+                      "WEIGHT_Q4K": 1,
+                      "TRANSPOSE_B": 1,
+                      "SCALAR_OUTPUT": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "matmul_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "paired_pointwise_3014656",
+                        "bufferBytes": 3014656,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "q4k_model.language_model.layers.10.linear_attn.out_proj.weight_1179648",
+                        "bufferBytes": 1179648,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "resident_partition_carry_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    65535,
+                    3,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=1|POST_RESIDUAL=0|PRE_RESIDUAL=1|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 1,
+                      "WEIGHT_OFFSET": 1,
+                      "PRE_RESIDUAL": 1,
+                      "POST_RESIDUAL": 0,
+                      "OUTPUT_PRENORM": 1
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "rmsnorm_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "resident_partition_carry_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "model.language_model.layers.10.post_attention_layernorm.weight_2048",
+                        "bufferBytes": 2048,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "matmul_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 4,
+                        "bufferLabel": "rmsnorm_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 5,
+                        "bufferLabel": "matmul_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    184,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 0,
+                      "WEIGHT_Q4K": 1,
+                      "TRANSPOSE_B": 1,
+                      "SCALAR_OUTPUT": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "matmul_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "matmul_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "q4k_model.language_model.layers.10.mlp.gate_proj.weight_2097152",
+                        "bufferBytes": 2097152,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "matmul_paired_output_5308416",
+                        "bufferBytes": 5308416,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    65535,
+                    11,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 0,
+                      "WEIGHT_Q4K": 1,
+                      "TRANSPOSE_B": 1,
+                      "SCALAR_OUTPUT": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "matmul_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "matmul_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "q4k_model.language_model.layers.10.mlp.up_proj.weight_2097152",
+                        "bufferBytes": 2097152,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "matmul_paired_output_5308416",
+                        "bufferBytes": 5308416,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    65535,
+                    11,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "paired_pointwise_silu_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+                    "entryPoint": "main",
+                    "constants": {
+                      "HAS_GATE": 1,
+                      "INPUT_USE_IDENTITY": 1
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "paired_pointwise_uniforms_cached",
+                        "bufferBytes": 16,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "matmul_paired_output_5308416",
+                        "bufferBytes": 5308416,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "matmul_paired_output_5308416",
+                        "bufferBytes": 5308416,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "paired_pointwise_5308416",
+                        "bufferBytes": 5308416,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    2576,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 0,
+                      "WEIGHT_Q4K": 1,
+                      "TRANSPOSE_B": 1,
+                      "SCALAR_OUTPUT": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "matmul_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "paired_pointwise_5308416",
+                        "bufferBytes": 5308416,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "q4k_model.language_model.layers.10.mlp.down_proj.weight_2097152",
+                        "bufferBytes": 2097152,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "cast_f32_to_two_f32_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    65535,
+                    3,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "paired_pointwise_add_pipeline",
+                    "entryPoint": "main",
+                    "constants": {}
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "paired_pointwise_uniforms_cached",
+                        "bufferBytes": 16,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "cast_f32_to_two_f32_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "matmul_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "fused_prenorm_sum_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    736,
+                    1,
+                    1
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 47,
+          "at": "2026-10-12T21:21:44.289Z",
+          "commandBuffers": [
+            {
+              "label": "resident_partition_layers",
+              "commands": [
+                {
+                  "pipeline": {
+                    "label": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=0|POST_RESIDUAL=0|PRE_RESIDUAL=0|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 1,
+                      "WEIGHT_OFFSET": 1,
+                      "PRE_RESIDUAL": 0,
+                      "POST_RESIDUAL": 0,
+                      "OUTPUT_PRENORM": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "rmsnorm_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "paired_pointwise_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "model.language_model.layers.11.input_layernorm.weight_2048",
+                        "bufferBytes": 2048,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "fused_prenorm_sum_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 4,
+                        "bufferLabel": "paired_pointwise_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 5,
+                        "bufferLabel": "rmsnorm_paired_prenorm_placeholder_256",
+                        "bufferBytes": 256,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    184,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 0,
+                      "WEIGHT_Q4K": 1,
+                      "TRANSPOSE_B": 1,
+                      "SCALAR_OUTPUT": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "matmul_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "fused_prenorm_sum_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "q4k_model.language_model.layers.11.self_attn.q_proj.weight_2359296",
+                        "bufferBytes": 2359296,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "matmul_paired_output_6029312",
+                        "bufferBytes": 6029312,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    65535,
+                    12,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "split_qg_paired_pipeline",
+                    "entryPoint": "main",
+                    "constants": {}
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "split_qg_uniforms_cached",
+                        "bufferBytes": 16,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "matmul_paired_output_6029312",
+                        "bufferBytes": 6029312,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "paired_pointwise_3014656",
+                        "bufferBytes": 3014656,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "paired_linear_output_3014656",
+                        "bufferBytes": 3014656,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    1472,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 0,
+                      "WEIGHT_Q4K": 1,
+                      "TRANSPOSE_B": 1,
+                      "SCALAR_OUTPUT": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "matmul_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "fused_prenorm_sum_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "q4k_model.language_model.layers.11.self_attn.k_proj.weight_327680",
+                        "bufferBytes": 327680,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "rmsnorm_paired_output_786432",
+                        "bufferBytes": 786432,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    65535,
+                    2,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 0,
+                      "WEIGHT_Q4K": 1,
+                      "TRANSPOSE_B": 1,
+                      "SCALAR_OUTPUT": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "matmul_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "fused_prenorm_sum_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "q4k_model.language_model.layers.11.self_attn.v_proj.weight_327680",
+                        "bufferBytes": 327680,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "gather_output_786432",
+                        "bufferBytes": 786432,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    65535,
+                    2,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=0|POST_RESIDUAL=0|PRE_RESIDUAL=0|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 1,
+                      "WEIGHT_OFFSET": 1,
+                      "PRE_RESIDUAL": 0,
+                      "POST_RESIDUAL": 0,
+                      "OUTPUT_PRENORM": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "rmsnorm_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "paired_pointwise_3014656",
+                        "bufferBytes": 3014656,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "model.language_model.layers.11.self_attn.q_norm.weight_512",
+                        "bufferBytes": 512,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "rmsnorm_paired_output_3014656",
+                        "bufferBytes": 3014656,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 4,
+                        "bufferLabel": "paired_pointwise_3014656",
+                        "bufferBytes": 3014656,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 5,
+                        "bufferLabel": "rmsnorm_paired_prenorm_placeholder_256",
+                        "bufferBytes": 256,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    1472,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=0|POST_RESIDUAL=0|PRE_RESIDUAL=0|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 1,
+                      "WEIGHT_OFFSET": 1,
+                      "PRE_RESIDUAL": 0,
+                      "POST_RESIDUAL": 0,
+                      "OUTPUT_PRENORM": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "rmsnorm_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "rmsnorm_paired_output_786432",
+                        "bufferBytes": 786432,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "model.language_model.layers.11.self_attn.k_norm.weight_512",
+                        "bufferBytes": 512,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "matmul_paired_output_786432",
+                        "bufferBytes": 786432,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 4,
+                        "bufferLabel": "rmsnorm_paired_output_786432",
+                        "bufferBytes": 786432,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 5,
+                        "bufferLabel": "rmsnorm_paired_prenorm_placeholder_256",
+                        "bufferBytes": 256,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    368,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "rope_qk_paired_pipeline",
+                    "entryPoint": "main",
+                    "constants": {}
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "rope_qk_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "rmsnorm_paired_output_3014656",
+                        "bufferBytes": 3014656,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "matmul_paired_output_786432",
+                        "bufferBytes": 786432,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "paired_rope_cos_1048576",
+                        "bufferBytes": 1048576,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 4,
+                        "bufferLabel": "paired_rope_sin_1048576",
+                        "bufferBytes": 1048576,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    230,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "cast_two_f32_to_f16_pipeline",
+                    "entryPoint": "main",
+                    "constants": {}
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "cast_uniforms_cached",
+                        "bufferBytes": 16,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "matmul_paired_output_786432",
+                        "bufferBytes": 786432,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "cast_two_f32_to_f16_196608",
+                        "bufferBytes": 196608,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    184,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "cast_two_f32_to_f16_pipeline",
+                    "entryPoint": "main",
+                    "constants": {}
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "cast_uniforms_cached",
+                        "bufferBytes": 16,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "gather_output_786432",
+                        "bufferBytes": 786432,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "cast_two_f32_to_f16_196608",
+                        "bufferBytes": 196608,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    184,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "attention_paired_pipeline",
+                    "entryPoint": "main",
+                    "constants": {}
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "attention_uniforms_cached",
+                        "bufferBytes": 48,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "rmsnorm_paired_output_3014656",
+                        "bufferBytes": 3014656,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "kv_cache_keys_layer_2",
+                        "bufferBytes": 1236992,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "kv_cache_values_layer_2",
+                        "bufferBytes": 1236992,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 4,
+                        "bufferLabel": "paired_attention_output_3014656",
+                        "bufferBytes": 3014656,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    8,
+                    184,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "paired_pointwise_sigmoid_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+                    "entryPoint": "main",
+                    "constants": {
+                      "HAS_GATE": 1,
+                      "INPUT_USE_IDENTITY": 1
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "paired_pointwise_uniforms_cached",
+                        "bufferBytes": 16,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "paired_attention_output_3014656",
+                        "bufferBytes": 3014656,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "paired_linear_output_3014656",
+                        "bufferBytes": 3014656,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "matmul_paired_output_3014656",
+                        "bufferBytes": 3014656,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    1472,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 0,
+                      "WEIGHT_Q4K": 1,
+                      "TRANSPOSE_B": 1,
+                      "SCALAR_OUTPUT": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "matmul_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "matmul_paired_output_3014656",
+                        "bufferBytes": 3014656,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "q4k_model.language_model.layers.11.self_attn.o_proj.weight_1179648",
+                        "bufferBytes": 1179648,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "rmsnorm_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    65535,
+                    3,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=1|POST_RESIDUAL=0|PRE_RESIDUAL=1|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 1,
+                      "WEIGHT_OFFSET": 1,
+                      "PRE_RESIDUAL": 1,
+                      "POST_RESIDUAL": 0,
+                      "OUTPUT_PRENORM": 1
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "rmsnorm_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "rmsnorm_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "model.language_model.layers.11.post_attention_layernorm.weight_2048",
+                        "bufferBytes": 2048,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "matmul_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 4,
+                        "bufferLabel": "paired_pointwise_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 5,
+                        "bufferLabel": "cast_f32_to_two_f32_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    184,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 0,
+                      "WEIGHT_Q4K": 1,
+                      "TRANSPOSE_B": 1,
+                      "SCALAR_OUTPUT": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "matmul_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "matmul_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "q4k_model.language_model.layers.11.mlp.gate_proj.weight_2097152",
+                        "bufferBytes": 2097152,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "paired_pointwise_5308416",
+                        "bufferBytes": 5308416,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    65535,
+                    11,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 0,
+                      "WEIGHT_Q4K": 1,
+                      "TRANSPOSE_B": 1,
+                      "SCALAR_OUTPUT": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "matmul_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "matmul_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "q4k_model.language_model.layers.11.mlp.up_proj.weight_2097152",
+                        "bufferBytes": 2097152,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "matmul_paired_output_5308416",
+                        "bufferBytes": 5308416,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    65535,
+                    11,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "paired_pointwise_silu_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+                    "entryPoint": "main",
+                    "constants": {
+                      "HAS_GATE": 1,
+                      "INPUT_USE_IDENTITY": 1
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "paired_pointwise_uniforms_cached",
+                        "bufferBytes": 16,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "matmul_paired_output_5308416",
+                        "bufferBytes": 5308416,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "paired_pointwise_5308416",
+                        "bufferBytes": 5308416,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "matmul_paired_output_5308416",
+                        "bufferBytes": 5308416,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    2576,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 0,
+                      "WEIGHT_Q4K": 1,
+                      "TRANSPOSE_B": 1,
+                      "SCALAR_OUTPUT": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "matmul_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "matmul_paired_output_5308416",
+                        "bufferBytes": 5308416,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "q4k_model.language_model.layers.11.mlp.down_proj.weight_2097152",
+                        "bufferBytes": 2097152,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "resident_partition_carry_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    65535,
+                    3,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "paired_pointwise_add_pipeline",
+                    "entryPoint": "main",
+                    "constants": {}
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "paired_pointwise_uniforms_cached",
+                        "bufferBytes": 16,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "resident_partition_carry_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "cast_f32_to_two_f32_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "matmul_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    736,
+                    1,
+                    1
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 48,
+          "at": "2026-10-12T21:21:50.107Z",
+          "commandBuffers": [
+            {
+              "label": "readback_encoder",
+              "commands": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "deviceEvents": [
+        {
+          "at": "2026-10-12T21:21:53.793Z",
+          "type": "device-lost",
+          "reason": "unknown",
+          "message": "vkQueueSubmit failed with VK_ERROR_DEVICE_LOST\n    at CheckVkSuccessImpl (../../third_party/dawn/src/dawn/native/vulkan/VulkanError.cpp:104)\n"
+        }
+      ],
+      "observationErrors": [
+        {
+          "operation": "pool",
+          "message": "BufferPool requires a live GPU device."
+        },
+        {
+          "operation": "activeLabels",
+          "message": "BufferPool requires a live GPU device."
+        }
+      ],
+      "lastSubmissions": [
+        {
+          "index": 3,
+          "at": "2026-10-12T21:21:50.833Z",
+          "commandBuffers": [
+            {
+              "label": "readback_encoder",
+              "commands": []
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "at": "2026-10-12T21:21:50.983Z",
+          "commandBuffers": [
+            {
+              "label": "resident_partition_layers",
+              "commands": [
+                {
+                  "pipeline": {
+                    "label": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=0|POST_RESIDUAL=0|PRE_RESIDUAL=0|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 1,
+                      "WEIGHT_OFFSET": 1,
+                      "PRE_RESIDUAL": 0,
+                      "POST_RESIDUAL": 0,
+                      "OUTPUT_PRENORM": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "rmsnorm_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "resident_partition_input_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "model.language_model.layers.12.input_layernorm.weight_2048",
+                        "bufferBytes": 2048,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "rmsnorm_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 4,
+                        "bufferLabel": "resident_partition_input_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 5,
+                        "bufferLabel": "rmsnorm_paired_prenorm_placeholder_256",
+                        "bufferBytes": 256,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    184,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 0,
+                      "WEIGHT_Q4K": 1,
+                      "TRANSPOSE_B": 1,
+                      "SCALAR_OUTPUT": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "matmul_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "rmsnorm_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "q4k_model.language_model.layers.12.linear_attn.in_proj_qkv.weight_3538944",
+                        "bufferBytes": 3538944,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "matmul_paired_output_9043968",
+                        "bufferBytes": 9043968,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    65535,
+                    18,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 0,
+                      "WEIGHT_Q4K": 1,
+                      "TRANSPOSE_B": 1,
+                      "SCALAR_OUTPUT": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "matmul_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "rmsnorm_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "q4k_model.language_model.layers.12.linear_attn.in_proj_z.weight_1179648",
+                        "bufferBytes": 1179648,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "matmul_paired_output_3014656",
+                        "bufferBytes": 3014656,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    65535,
+                    6,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "matmul_paired_f16_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=1|WEIGHT_Q4K=0|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 1,
+                      "WEIGHT_Q4K": 0,
+                      "TRANSPOSE_B": 1,
+                      "SCALAR_OUTPUT": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "matmul_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "rmsnorm_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "model.language_model.layers.12.linear_attn.in_proj_a.weight_32768",
+                        "bufferBytes": 32768,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "matmul_paired_output_32768",
+                        "bufferBytes": 32768,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    2944,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "matmul_paired_f16_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=1|WEIGHT_Q4K=0|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 1,
+                      "WEIGHT_Q4K": 0,
+                      "TRANSPOSE_B": 1,
+                      "SCALAR_OUTPUT": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "matmul_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "rmsnorm_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "model.language_model.layers.12.linear_attn.in_proj_b.weight_32768",
+                        "bufferBytes": 32768,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "matmul_paired_output_32768",
+                        "bufferBytes": 32768,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    2944,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "gated_delta_conv_uniforms_cached",
+                        "bufferBytes": 80,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "matmul_paired_output_9043968",
+                        "bufferBytes": 9043968,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "L12.linear_conv_weight_131072",
+                        "bufferBytes": 131072,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "L12.linear_conv_state_196608",
+                        "bufferBytes": 196608,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 4,
+                        "bufferLabel": "paired_linear_conv_9043968",
+                        "bufferBytes": 9043968,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    96,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "gated_delta_recurrent_paired_pipeline_WORKGROUP_SIZE=128",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 128
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "gated_delta_conv_uniforms_cached",
+                        "bufferBytes": 80,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "paired_linear_conv_9043968",
+                        "bufferBytes": 9043968,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "matmul_paired_output_3014656",
+                        "bufferBytes": 3014656,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "matmul_paired_output_32768",
+                        "bufferBytes": 32768,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 4,
+                        "bufferLabel": "matmul_paired_output_32768",
+                        "bufferBytes": 32768,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 5,
+                        "bufferLabel": "paired_rope_source_256",
+                        "bufferBytes": 256,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 6,
+                        "bufferLabel": "L12.linear_a_log_256",
+                        "bufferBytes": 256,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 7,
+                        "bufferLabel": "L12.linear_norm_weight_512",
+                        "bufferBytes": 512,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 8,
+                        "bufferLabel": "L12.linear_recurrent_state_2097152",
+                        "bufferBytes": 2097152,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 9,
+                        "bufferLabel": "paired_linear_output_3014656",
+                        "bufferBytes": 3014656,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    16,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 0,
+                      "WEIGHT_Q4K": 1,
+                      "TRANSPOSE_B": 1,
+                      "SCALAR_OUTPUT": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "matmul_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "paired_linear_output_3014656",
+                        "bufferBytes": 3014656,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "q4k_model.language_model.layers.12.linear_attn.out_proj.weight_1179648",
+                        "bufferBytes": 1179648,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "matmul_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    65535,
+                    3,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=1|POST_RESIDUAL=0|PRE_RESIDUAL=1|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 1,
+                      "WEIGHT_OFFSET": 1,
+                      "PRE_RESIDUAL": 1,
+                      "POST_RESIDUAL": 0,
+                      "OUTPUT_PRENORM": 1
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "rmsnorm_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "matmul_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "model.language_model.layers.12.post_attention_layernorm.weight_2048",
+                        "bufferBytes": 2048,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "rmsnorm_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 4,
+                        "bufferLabel": "resident_partition_input_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 5,
+                        "bufferLabel": "fused_prenorm_sum_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    184,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 0,
+                      "WEIGHT_Q4K": 1,
+                      "TRANSPOSE_B": 1,
+                      "SCALAR_OUTPUT": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "matmul_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "rmsnorm_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "q4k_model.language_model.layers.12.mlp.gate_proj.weight_2097152",
+                        "bufferBytes": 2097152,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "matmul_paired_output_5308416",
+                        "bufferBytes": 5308416,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    65535,
+                    11,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 0,
+                      "WEIGHT_Q4K": 1,
+                      "TRANSPOSE_B": 1,
+                      "SCALAR_OUTPUT": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "matmul_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "rmsnorm_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "q4k_model.language_model.layers.12.mlp.up_proj.weight_2097152",
+                        "bufferBytes": 2097152,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "matmul_paired_output_5308416",
+                        "bufferBytes": 5308416,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    65535,
+                    11,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "paired_pointwise_silu_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+                    "entryPoint": "main",
+                    "constants": {
+                      "HAS_GATE": 1,
+                      "INPUT_USE_IDENTITY": 1
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "paired_pointwise_uniforms_cached",
+                        "bufferBytes": 16,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "matmul_paired_output_5308416",
+                        "bufferBytes": 5308416,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "matmul_paired_output_5308416",
+                        "bufferBytes": 5308416,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "paired_pointwise_5308416",
+                        "bufferBytes": 5308416,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    2576,
+                    1,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+                    "entryPoint": "main",
+                    "constants": {
+                      "WORKGROUP_SIZE": 64,
+                      "WEIGHT_F16": 0,
+                      "WEIGHT_Q4K": 1,
+                      "TRANSPOSE_B": 1,
+                      "SCALAR_OUTPUT": 0
+                    }
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "matmul_uniforms_cached",
+                        "bufferBytes": 32,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "paired_pointwise_5308416",
+                        "bufferBytes": 5308416,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "q4k_model.language_model.layers.12.mlp.down_proj.weight_2097152",
+                        "bufferBytes": 2097152,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "matmul_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    65535,
+                    3,
+                    1
+                  ]
+                },
+                {
+                  "pipeline": {
+                    "label": "paired_pointwise_add_pipeline",
+                    "entryPoint": "main",
+                    "constants": {}
+                  },
+                  "bindings": {
+                    "0": [
+                      {
+                        "binding": 0,
+                        "bufferLabel": "paired_pointwise_uniforms_cached",
+                        "bufferBytes": 16,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 1,
+                        "bufferLabel": "matmul_paired_output_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 2,
+                        "bufferLabel": "fused_prenorm_sum_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      },
+                      {
+                        "binding": 3,
+                        "bufferLabel": "paired_pointwise_1507328",
+                        "bufferBytes": 1507328,
+                        "offset": null,
+                        "size": null
+                      }
+                    ]
+                  },
+                  "workgroups": [
+                    736,
+                    1,
+                    1
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 5,
+          "at": "2026-10-12T21:21:53.793Z",
+          "commandBuffers": [
+            {
+              "label": "readback_encoder",
+              "commands": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "ownership": {
+    "controllerPid": 69536,
+    "controllerExit": 1,
+    "amdBrowserLauncherPid": 1017285,
+    "amdGpuProcessPid": 1017420,
+    "launcherSigtermThenNaturalExit": true,
+    "publicProcessesTouched": false,
+    "amdSettlement": "unknown after device loss"
+  }
+}
