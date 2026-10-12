@@ -1,0 +1,20 @@
+{
+  "status": "process-completed",
+  "cases": [
+    {
+      "id": "attached-three",
+      "pid": 3260011,
+      "command": [
+        "python3",
+        "-u",
+        "/tmp/tied-head-control.py",
+        "--policy",
+        "/tmp/tied-head-attached-three-policy.json",
+        "--out",
+        "reports/local/qwen35-08b-attachment-source-20261012/tied-head-attached-three.json"
+      ],
+      "policySha256": "dde6c20e5b380cad74670c0127add8f64b4461c3523a796cbfeab0a300513342",
+      "exitCode": 1
+    }
+  ]
+}

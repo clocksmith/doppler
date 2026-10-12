@@ -1,0 +1,43 @@
+{
+  "schema": "doppler.tied-head-sensitivity-review/v1",
+  "qualified": false,
+  "conclusion": "Tied existing F16 embedding head improves only secondquantity; not sufficient to repair firstanswer or citations. No promotion or productionprecision change.",
+  "cases": [
+    {
+      "id": "attached-three",
+      "output": "Based on the provided text, a single ticket costs **$12**. The source explicitly states: \"Tickets cost $12 each. There are no additional fees.\"",
+      "factualAmountPassed": false,
+      "citationPassed": false,
+      "qualified": false,
+      "intervention": {
+        "policySha256": "43b29c4a211261eeb123dd76a6b42da602c00b4acb25676f42b04c4d35863147",
+        "toolSha256": "9fb0529e58440d2b0da5c62fc269b8d1ef505dac77172892776a4aa49a263274",
+        "kind": "reuse verified deployed F16 embedding as tied output head",
+        "deployedEmbeddingUnchangedSha256": "92ceed9bf2860403aa7aa2ed2570b3d6dfa7b0a5932e5a91ee58be12ce870c27",
+        "deployedEmbeddingSourceMismatchCount": 54169,
+        "deployedEmbeddingSourceMaximumError": 5.9371814131736755e-08,
+        "displacedQ4HeadMaximumError": 0.01038670539855957,
+        "displacedQ4HeadRootMeanSquaredError": 0.001608519545308231,
+        "activeRuntimeOrModelChanged": false
+      }
+    },
+    {
+      "id": "attached-four-followup",
+      "output": "Based on the provided text: Tickets cost **$12** each. There are no additional fees.\n\nTherefore, four tickets would cost **$48**.",
+      "factualAmountPassed": true,
+      "citationPassed": false,
+      "qualified": false,
+      "intervention": {
+        "policySha256": "475f2b4bb3b06a504c439472ba3f7b117859fcb91785fe1aae5f4ed8e3bb3b19",
+        "toolSha256": "9fb0529e58440d2b0da5c62fc269b8d1ef505dac77172892776a4aa49a263274",
+        "kind": "reuse verified deployed F16 embedding as tied output head",
+        "deployedEmbeddingUnchangedSha256": "92ceed9bf2860403aa7aa2ed2570b3d6dfa7b0a5932e5a91ee58be12ce870c27",
+        "deployedEmbeddingSourceMismatchCount": 54169,
+        "deployedEmbeddingSourceMaximumError": 5.9371814131736755e-08,
+        "displacedQ4HeadMaximumError": 0.01038670539855957,
+        "displacedQ4HeadRootMeanSquaredError": 0.001608519545308231,
+        "activeRuntimeOrModelChanged": false
+      }
+    }
+  ]
+}

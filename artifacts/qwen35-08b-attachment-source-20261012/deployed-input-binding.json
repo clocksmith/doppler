@@ -1,0 +1,5 @@
+{
+  "manifestIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "scope": "Input identity binding only; no GPU observations or logits.",
+  "sourceReportSha256": "89a63b7781cf33398bb9ed2a2e9bb67f9dc3f14043678cf94cf96b4f6a49573e"
+}

@@ -1,0 +1,11 @@
+[transformers] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+Traceback (most recent call last):
+  File "/tmp/tied-head-control.py", line 64, in <module>
+    reference.run(SimpleNamespace(**options))
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/x/deco/doppler/tools/qwen35-deployed-reference.py", line 802, in run
+    return replay_generation(model, config, manifest, args, report)
+  File "/tmp/tied-head-control.py", line 42, in tied_replay
+    assert torch.equal(embedding[start:end], expected), 'Deployed embedding differs from original; do not conflate interventions.'
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Deployed embedding differs from original; do not conflate interventions.

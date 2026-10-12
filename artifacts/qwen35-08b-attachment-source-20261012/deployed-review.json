@@ -1,0 +1,29 @@
+{
+  "schema": "doppler.actual-attachment-deployed-cpu-review/v1",
+  "qualified": false,
+  "cases": [
+    {
+      "id": "attached-three",
+      "outputText": "Based on the provided text: Tickets cost **$12** each. There are no additional fees.",
+      "generatedTokens": 22,
+      "inputTokens": 127,
+      "stopReason": "eos",
+      "exactPhysicalAnswerMatch": true,
+      "factualAmountPassed": false,
+      "citationPassed": false,
+      "reportSha256": "4aac6229ca77d08fdb1153c22c2a966adb50726a985da502b16f951a276b06b3"
+    },
+    {
+      "id": "attached-four-followup",
+      "outputText": "Based on the provided text: Tickets cost **$12** each. There are no additional fees.",
+      "generatedTokens": 22,
+      "inputTokens": 166,
+      "stopReason": "eos",
+      "exactPhysicalAnswerMatch": true,
+      "factualAmountPassed": false,
+      "citationPassed": false,
+      "reportSha256": "24d765c53738a69a689ad5a73991492f5f524fa0cabfbb2ce31c30cbbc7e6553"
+    }
+  ],
+  "conclusion": "Exact deployed Q4 weights with independent source equations reproduce both distributed failures. Original weights produce correct36/48 under samepolicy/input. The failure exists in deployed representation; this does not establish which tensor transformation causes it."
+}
