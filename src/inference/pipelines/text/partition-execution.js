@@ -1,5 +1,5 @@
 import { createCommandRecorder } from '../../../gpu/command-recorder.js';
-import { acquireBuffer, releaseBuffer, readBuffer, uploadData } from '../../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer, discardBuffer, readBuffer, uploadData } from '../../../memory/buffer-pool.js';
 import { getWeightDtype, getWeightMetadata, isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { embed } from './embed.js';
@@ -10,7 +10,7 @@ import { releaseSharedAttentionState } from './generator/attention-lifecycle.js'
 import { computeLogits } from './logits/index.js';
 import { getLogitsWeights, getLogitsConfig } from './generator/logits-config.js';
 import { resolveLayerPartition, validateActivationTensorShape } from './layer-partition-contract.js';
-import { resolvePrefillTokenChunkSize } from './generator/prefill-policy.js';
+import { resolvePrefillTokenChunkSize, shouldDisablePrefillCommandBatching } from './generator/prefill-policy.js';
 
 /** @type {import('./partition-execution.js').assertPartitionExecutionSupported} */
 export function assertPartitionExecutionSupported(state, plan) {
@@ -156,9 +156,13 @@ async function executePartitionChunk(state, input, signal, prefill, finalChunk) 
     hasGpuSplitPerLayerInputs: false,
     numTokens,
   });
+  const recordLayers = !prefill || !shouldDisablePrefillCommandBatching({ runtimeConfig: state.runtimeConfig,
+    modelConfig: state.modelConfig, kvCache: state.kvCache }, {}, null);
   const createRecorder = () => createCommandRecorder('resident_partition_layers', {
     profile: state.runtimeConfig.shared.debug.profiler.enabled,
   });
+  // Immediate kernels still share a boundary recorder for carry copies and
+  // completion-owned cleanup. It never batches their model dispatches.
   let recorder = createRecorder();
   const timing = createPartitionTiming();
   const encodeStarted = performance.now();
@@ -166,16 +170,30 @@ async function executePartitionChunk(state, input, signal, prefill, finalChunk) 
   /** @type {GPUBuffer | null} */
   let hidden = null;
   let output = null;
+  let primaryFailure = null;
+  /** @type {Set<GPUBuffer>} */
+  const directBuffers = new Set();
+  /** @type {{ trackTemporaryBuffer(buffer: GPUBuffer): void }} */
+  const boundaryOwner = { trackTemporaryBuffer(buffer) {
+    if (recordLayers) recorder.trackTemporaryBuffer(buffer);
+    else directBuffers.add(buffer);
+  } };
+  /** @param {boolean} discard */
+  const releaseDirectBuffers = (discard) => {
+    for (const buffer of directBuffers) (discard ? discardBuffer : releaseBuffer)(buffer);
+    directBuffers.clear();
+  };
   const submit = async () => {
     const started = performance.now();
     await recorder.submitAndWait();
     timing.submitWaitMs += performance.now() - started;
+    if (!recordLayers) releaseDirectBuffers(false);
     const kernels = await recorder.resolveProfileTimings();
-    if (kernels) timing.gpuKernelsMs = (timing.gpuKernelsMs ?? 0)
+    if (kernels && recordLayers) timing.gpuKernelsMs = (timing.gpuKernelsMs ?? 0)
       + Object.values(kernels).reduce((sum, ms) => sum + ms, 0);
   };
   try {
-    context = buildLayerContext(state, recorder, !prefill, null, undefined, executionPlan);
+    context = buildLayerContext(state, recordLayers ? recorder : undefined, !prefill, null, undefined, executionPlan);
     context.currentTokenIds = input.tokenIds ?? null;
     if (partition.hasEmbedding) {
       const weight = state.weights.get('embed');
@@ -188,7 +206,7 @@ async function executePartitionChunk(state, input, signal, prefill, finalChunk) 
         hiddenSize: config.hiddenSize, vocabSize: config.vocabSize,
         scaleEmbeddings: config.scaleEmbeddings, embeddingScale: config.embeddingScale,
         embeddingNormalization: config.embeddingNormalization,
-        transpose: state.embeddingTranspose, recorder, activationDtype: dtype,
+        transpose: state.embeddingTranspose, recorder: recordLayers ? recorder : undefined, activationDtype: dtype,
         intermediatePrecision: /** @type {'f32' | 'two-f32'} */ (state.resolvedRuntimeSession?.runtime.session.intermediatePrecision),
         embeddingDtype: selectRuleValue('inference', 'dtype', 'embeddingDtype', { dtype: embeddingDtype }),
         embeddingStorageEncoding: getWeightMetadata(weight)?.storageEncoding ?? null,
@@ -210,7 +228,7 @@ async function executePartitionChunk(state, input, signal, prefill, finalChunk) 
       const next = await processLayer(layer, previous, numTokens, prefill, context);
       if (!isGpuBufferInstance(next)) throw new Error('Resident partition layers must return GPU buffers.');
       hidden = next;
-      if (previous !== hidden) recorder.trackTemporaryBuffer(previous);
+      if (previous !== hidden) boundaryOwner.trackTemporaryBuffer(previous);
       if (prefill && layer < partition.layerRange[1]
         && (layer - partition.layerRange[0] + 1) % chunkLayers === 0) {
         // Preserve only the boundary tensor while the completed chunk releases
@@ -219,12 +237,12 @@ async function executePartitionChunk(state, input, signal, prefill, finalChunk) 
         try {
           recorder.getEncoder().copyBufferToBuffer(hidden, 0, carry, 0, byteLength);
         } catch (error) { releaseBuffer(carry); throw error; }
-        recorder.trackTemporaryBuffer(hidden);
+        boundaryOwner.trackTemporaryBuffer(hidden);
         hidden = carry;
         await submit();
         signal.throwIfAborted();
         recorder = createRecorder();
-        context.recorder = recorder;
+        context.recorder = recordLayers ? recorder : undefined;
       }
     }
     signal.throwIfAborted();
@@ -232,9 +250,9 @@ async function executePartitionChunk(state, input, signal, prefill, finalChunk) 
     // declared boundary bytes past recorder cleanup; no borrowed GPU pointer escapes.
     output = acquireBuffer(byteLength, undefined, 'resident_partition_output');
     recorder.getEncoder().copyBufferToBuffer(hidden, 0, output, 0, byteLength);
-    recorder.trackTemporaryBuffer(hidden);
+    boundaryOwner.trackTemporaryBuffer(hidden);
     hidden = null;
-    releaseSharedAttentionState(context.sharedAttentionState, recorder);
+    releaseSharedAttentionState(context.sharedAttentionState, boundaryOwner);
     timing.encodeMs = performance.now() - encodeStarted - timing.submitWaitMs;
     await submit();
     signal.throwIfAborted();
@@ -255,16 +273,32 @@ async function executePartitionChunk(state, input, signal, prefill, finalChunk) 
       timing.logitsMs = performance.now() - logitsStarted;
       return { logits, timing };
     } catch (error) {
-      releaseBuffer(logits.logitsBuffer);
+      if (recordLayers) releaseBuffer(logits.logitsBuffer);
+      else boundaryOwner.trackTemporaryBuffer(logits.logitsBuffer);
       throw error;
     }
+  } catch (error) {
+    primaryFailure = error;
+    throw error;
   } finally {
-    if (context) releaseSharedAttentionState(context.sharedAttentionState, recorder);
+    let completionFailure = null;
+    if (!recordLayers) {
+      // Direct kernels submit outside the carry recorder. A failed layer may
+      // leave work in flight even when that recorder has never submitted.
+      try { await recorder.device.queue.onSubmittedWorkDone(); }
+      catch (error) { completionFailure = error; }
+    }
+    if (context) releaseSharedAttentionState(context.sharedAttentionState, boundaryOwner);
     if (hidden) {
-      if (recorder.getStats().submitted) releaseBuffer(hidden);
-      else recorder.trackTemporaryBuffer(hidden);
+      if (recordLayers && recorder.getStats().submitted) releaseBuffer(hidden);
+      else boundaryOwner.trackTemporaryBuffer(hidden);
     }
     await recorder.abort();
-    if (output) releaseBuffer(output);
+    releaseDirectBuffers(completionFailure !== null);
+    if (output) (completionFailure ? discardBuffer : releaseBuffer)(output);
+    if (completionFailure) throw new AggregateError(
+      primaryFailure ? [primaryFailure, completionFailure] : [completionFailure],
+      'Resident direct execution failed to confirm submitted-work completion.'
+    );
   }
 }
