@@ -1,0 +1,7 @@
+{
+  "at": "2026-10-13T18:58:04.271973+00:00",
+  "action": "SIGTERM owned reduced-shader provider",
+  "pid": 923613,
+  "reason": "Reduced shader still crosses 6 GiB memory.high and incurs reclaim pressure; reject this decomposition without waiting for global pressure",
+  "cmdline": "/usr/bin/node /var/tmp/reploid-recurrent-memory-20261013/raw-probe.js /var/tmp/doppler-gate-phases-control-20261013/reploid /var/tmp/reploid-recurrent-memory-20261013/recurrent-raw.wgsl /var/tmp/reploid-recurrent-memory-20261013/raw-events.jsonl "
+}

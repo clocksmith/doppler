@@ -1,0 +1,18 @@
+{"phase":"limits-and-inputs-verified","at":"2026-10-13T18:59:45.322Z","pid":926395,"rss":68943872,"cgroup":"/user.slice/user-1000.slice/user@1000.service/app.slice/reploid-recurrent-phases-20261013.scope","manifest":{"schema":"doppler.recurrent-phases-compile/v1","scope":"Four recurrent compiler phases only; no numerical dispatch","unit":"reploid-recurrent-phases-20261013.scope","memoryHighBytes":6442450944,"memoryMaxBytes":8589934592,"memorySwapMaxBytes":0,"deadlineSeconds":300,"shaders":[{"file":"recurrent-qk.wgsl","sha256":"1ab3992cd7765318c33a0c41054b9114e7d5a4a2310999cdeb364293f375cade"},{"file":"recurrent-state.wgsl","sha256":"adffb6fe35ced19a64b2fb4411da248e86c83ab14ae423818e02cb03fd8fc40b"},{"file":"recurrent-norm.wgsl","sha256":"7c02751b01856fc2dc838c583b509672286d0ed0ac6b73e4125c3eef3975fe51"},{"file":"recurrent-gate.wgsl","sha256":"5633fa928d8c81b46d05d3c245ef340f072c37f3bcd6055e73f880826b916af7"}]}}
+{"phase":"host-open","at":"2026-10-13T18:59:45.378Z","pid":926395,"rss":68878336}
+{"phase":"adapter","at":"2026-10-13T18:59:45.395Z","pid":926395,"rss":128516096,"vendor":"intel","architecture":"gen-12lp","device":"intel-r-uhd-graphics-tgl-gt2-","description":"Intel open-source Mesa driver: Mesa 24.2.8-1ubuntu1~24.04.1"}
+{"phase":"shader-module-start","at":"2026-10-13T18:59:45.543Z","pid":926395,"rss":162762752,"file":"recurrent-qk.wgsl","sha256":"1ab3992cd7765318c33a0c41054b9114e7d5a4a2310999cdeb364293f375cade"}
+{"phase":"shader-module-complete","at":"2026-10-13T18:59:45.547Z","pid":926395,"rss":166563840,"errors":[]}
+{"phase":"pipeline-start","at":"2026-10-13T18:59:45.547Z","pid":926395,"rss":166563840,"file":"recurrent-qk.wgsl"}
+{"phase":"pipeline-complete","at":"2026-10-13T19:01:09.208Z","pid":926395,"rss":2178285568,"file":"recurrent-qk.wgsl"}
+{"phase":"shader-module-start","at":"2026-10-13T19:01:09.209Z","pid":926395,"rss":2178285568,"file":"recurrent-state.wgsl","sha256":"adffb6fe35ced19a64b2fb4411da248e86c83ab14ae423818e02cb03fd8fc40b"}
+{"phase":"shader-module-complete","at":"2026-10-13T19:01:09.215Z","pid":926395,"rss":2178285568,"errors":[]}
+{"phase":"pipeline-start","at":"2026-10-13T19:01:09.215Z","pid":926395,"rss":2178285568,"file":"recurrent-state.wgsl"}
+{"phase":"pipeline-complete","at":"2026-10-13T19:01:31.573Z","pid":926395,"rss":3060830208,"file":"recurrent-state.wgsl"}
+{"phase":"shader-module-start","at":"2026-10-13T19:01:31.574Z","pid":926395,"rss":3060830208,"file":"recurrent-norm.wgsl","sha256":"7c02751b01856fc2dc838c583b509672286d0ed0ac6b73e4125c3eef3975fe51"}
+{"phase":"shader-module-complete","at":"2026-10-13T19:01:31.579Z","pid":926395,"rss":3060830208,"errors":[]}
+{"phase":"pipeline-start","at":"2026-10-13T19:01:31.579Z","pid":926395,"rss":3060830208,"file":"recurrent-norm.wgsl"}
+{"phase":"pipeline-complete","at":"2026-10-13T19:02:53.905Z","pid":926395,"rss":5089009664,"file":"recurrent-norm.wgsl"}
+{"phase":"shader-module-start","at":"2026-10-13T19:02:53.906Z","pid":926395,"rss":5089009664,"file":"recurrent-gate.wgsl","sha256":"5633fa928d8c81b46d05d3c245ef340f072c37f3bcd6055e73f880826b916af7"}
+{"phase":"shader-module-complete","at":"2026-10-13T19:02:53.911Z","pid":926395,"rss":5089009664,"errors":[]}
+{"phase":"pipeline-start","at":"2026-10-13T19:02:53.911Z","pid":926395,"rss":5089009664,"file":"recurrent-gate.wgsl"}

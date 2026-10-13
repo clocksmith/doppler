@@ -1,0 +1,3 @@
+{"at":"2026-10-13T19:13:18.049Z","phase":"provider-started","providerPid":936582,"supervisorPid":936575,"cgroup":"/user.slice/user-1000.slice/user@1000.service/app.slice/reploid-gate-readback-20261013.scope"}
+{"at":"2026-10-13T19:13:19.051Z","phase":"memory","memory.current":"196370432","memory.peak":"235356160","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0"}
+{"at":"2026-10-13T19:13:19.880Z","phase":"provider-exit","code":1,"signal":null,"memory.current":"9621504","memory.peak":"239603712","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0","cleanup":"Read provider events; exit alone does not establish GPU settlement."}

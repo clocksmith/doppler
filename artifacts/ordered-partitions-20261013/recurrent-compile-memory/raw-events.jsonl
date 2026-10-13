@@ -1,0 +1,6 @@
+{"phase":"limits-and-inputs-verified","at":"2026-10-13T18:55:38.464Z","pid":923613,"rss":69062656,"cgroup":"/user.slice/user-1000.slice/user@1000.service/app.slice/reploid-recurrent-raw-20261013.scope","shaderSha256":"d6c44e033a8f36bbbb10528f1af79fc6de22d433fc4398167603ba79c2bd472d"}
+{"phase":"host-open","at":"2026-10-13T18:55:38.529Z","pid":923613,"rss":69091328}
+{"phase":"adapter","at":"2026-10-13T18:55:38.559Z","pid":923613,"rss":128860160,"vendor":"intel","architecture":"gen-12lp","device":"intel-r-uhd-graphics-tgl-gt2-","description":"Intel open-source Mesa driver: Mesa 24.2.8-1ubuntu1~24.04.1"}
+{"phase":"shader-module-start","at":"2026-10-13T18:55:38.722Z","pid":923613,"rss":160313344}
+{"phase":"shader-module-complete","at":"2026-10-13T18:55:38.727Z","pid":923613,"rss":164638720,"errors":[]}
+{"phase":"pipeline-start","at":"2026-10-13T18:55:38.727Z","pid":923613,"rss":164638720}
