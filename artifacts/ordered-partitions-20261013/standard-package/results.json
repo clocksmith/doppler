@@ -1,0 +1,21 @@
+{
+  "schema": "doppler.ordered-installed-candidate/v1",
+  "sourceCommit": "45c2285cd25c008db0de7df391e0c750c89b4366",
+  "archive": "/var/tmp/doppler-ordered-candidate-20261013/package/doppler-gpu-0.6.28.tgz",
+  "archiveHash": "sha256:5e0d60bc433d332187d422721fd7afcaec780c202e3082adcab389b47fd27fc5",
+  "npmIntegrity": "sha512-LtG88/tHsuJ5WjNnEaXpIVxCzZZj9PukXobqMjMU3MjRsxgK6GT79Hu/LzZ+/okSn06NF/cSDyeDHGLxe2W0vA==",
+  "packageVersion": "0.6.28",
+  "packedFiles": 1976,
+  "allPackedFilesMatchSourceAndInstalled": true,
+  "inventoryHash": "sha256:4fd289dfa158daaca0c547d1bf3e4a332c232fd212253110d9721e957dc41fc9",
+  "originalResidentTestHash": "sha256:bb1931e26d36245419fe4ff1da2af3648575573033ce40d10fdc7a4adba2c56b",
+  "adaptedResidentTestHash": "sha256:deb0d57a5e640666155f00f19dcf015611a0d93c26f7f255f53a9f2477e772ba",
+  "gpuOpened": false,
+  "scope": "Installed public contract checks and real resident control flow with numerical execution, private GPU cache construction and readback injected; no physical qualification",
+  "logs": {
+    "install.log": "\nadded 7 packages in 2s\n",
+    "installed-public.log": "Installed public ordered plans, exact activation bits, factory and generation contracts passed; no GPU opened\n",
+    "installed-resident.log": "ordered resident execution passed: real stage dispatch admission, final-only sampling, private attempts and cancellation; numerical work injected\n",
+    "installed-resident-path-failure.log": "file:///private/var/tmp/doppler-ordered-candidate-20261013/consumer/node_modules/doppler-gpu/src/inference/pipelines/text/partition-execution.js:20\n  if (!state.useGPU || !config) throw new Error('Resident partition execution requires a loaded WebGPU model.');\n                                      ^\n\nError: Resident partition execution requires a loaded WebGPU model.\n    at assertPartitionExecutionSupported (file:///private/var/tmp/doppler-ordered-candidate-20261013/consumer/node_modules/doppler-gpu/src/inference/pipelines/text/partition-execution.js:20:39)\n    at file:///private/var/tmp/doppler-ordered-candidate-20261013/consumer/node_modules/doppler-gpu/src/inference/pipelines/text/resident-partition.js:30:5\n    at file:///private/var/tmp/doppler-ordered-candidate-20261013/consumer/node_modules/doppler-gpu/src/inference/pipelines/shader-scoped-pipeline.js:77:47\n    at file:///private/var/tmp/doppler-ordered-candidate-20261013/consumer/node_modules/doppler-gpu/src/inference/pipelines/shader-scoped-pipeline.js:86:14\n    at invoke (file:///private/var/tmp/doppler-ordered-candidate-20261013/consumer/node_modules/doppler-gpu/src/inference/pipelines/shader-scoped-pipeline.js:163:22)\n    at file:///private/var/tmp/doppler-ordered-candidate-20261013/consumer/node_modules/doppler-gpu/src/inference/pipelines/shader-scoped-pipeline.js:84:62\n    at runWithShaderSourceScope (file:///private/var/tmp/doppler-ordered-candidate-20261013/consumer/node_modules/doppler-gpu/src/gpu/kernels/shader-source-scope.js:70:22)\n    at async runOperation (file:///private/var/tmp/doppler-ordered-candidate-20261013/consumer/node_modules/doppler-gpu/src/inference/pipelines/shader-scoped-pipeline.js:84:12)\n    at async createResidentPartitionSession (file:///private/var/tmp/doppler-ordered-candidate-20261013/consumer/node_modules/doppler-gpu/src/inference/pipelines/text/resident-partition.js:27:22)\n    at async setup (file:///private/var/tmp/doppler-ordered-candidate-20261013/installed-resident-path-before.js:70:21)\n\nNode.js v22.20.0\n"
+  }
+}

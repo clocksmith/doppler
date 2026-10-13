@@ -292,7 +292,10 @@ export function producePhysicalReports({ expected, captureBytes, referenceBytes,
     }
     const { snapshot } = settlement;
     for (const owner of ['retainedModel', 'active', 'deferredCleanup']) same(snapshot.pool.resources[owner].count, 0, 'Ownership did not settle');
-    same(snapshot.device.categories.weights, 0); same(snapshot.device.maxBytes, 1420000000);
+    if (ordered) {
+      for (const owner of ['retainedModel', 'active', 'deferredCleanup']) same(snapshot.pool.resources[owner].bytes, 0, 'Retained ownership bytes did not settle');
+    } else same(snapshot.device.categories.weights, 0);
+    same(snapshot.device.maxBytes, 1420000000);
     assert(Number.isSafeInteger(snapshot.device.peakBytes) && snapshot.device.peakBytes >= 0
       && snapshot.device.peakBytes <= 1420000000);
     assert(Number.isSafeInteger(settlement.barriers) && settlement.barriers > 0, 'Queue settlement was not confirmed');
