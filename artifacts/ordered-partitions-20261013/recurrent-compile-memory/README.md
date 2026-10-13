@@ -40,4 +40,45 @@ reproduce or explain the original 26,728,260 KiB anonymous-RSS OOM by itself.
 probe is separate from that immutable launch identity. Public native PID 297260
 and browser controller PID 299769 remained present after the isolated crash.
 
-Numerical qualification, ordinary chat, and release acceptance remain open.
+## Operator repair and physical result
+
+Source `1d1145ad` separates recurrent computation into Q/K normalization,
+state update, output normalization and gating. It also removes duplicated
+sigmoid division callsites without changing branch operands. These nine total
+pipelines compile within the bounded native operator run, but `operator/`
+retains its numerical failure. Its old harness exited zero despite `passed:
+false`; the receipt is authoritative. Follow-up controls return failure status.
+
+`gate-readback/` locates the first invalid values at log-decay preparation.
+`log-boundary/` captures valid exponential outputs and logarithm inputs followed
+by invalid logarithm outputs. `log-series/` and `log-alone/` then evaluate the
+unchanged logarithm on those exact inputs successfully, with maximum absolute
+error 1.17e-15. This establishes a compilation-composition dependency on this
+provider, not the driver's internal cause.
+
+Source `f2b5a2ef` retains four gate phases while moving the softplus exponential
+into the scale phase's second workgroup row. Both rows share one exponential
+callsite. An additional eight bytes per token/head retain the exact logarithm
+input; the full allocation is admitted before dispatch and remains owned until
+settlement. The next phase performs logarithm and the original scale operation.
+Neither elementary arithmetic nor the reference changes.
+
+[`gate-separated/result.json`](gate-separated/result.json) passes both original
+packed/unpacked fixtures, all convolution, gate, recurrent-state and output
+comparisons at the unchanged 2e-11 operator tolerance. All nine retained shader
+hashes match the source repair. Maximum error is 3.11e-15; tracked GPU allocation
+peaks at 634,976 bytes, including diagnostic snapshots. The cgroup peak is
+2,348,400,640 bytes of host memory with no limit/OOM events. Submitted work,
+host close, device destruction and provider exit are observed. Public native
+297260 and browser controller 299769 remained present. No weights were loaded.
+Existing provider caches were retained, so these timings do not qualify cold
+startup or performance. Earlier failed runs remain separate evidence.
+
+[`operator-repair.json`](operator-repair.json) binds the source, fixtures,
+receipt hashes, checks and remaining gates. Four focused CPU suites, kernel
+generation/registry/digests, source types, style and architecture checks pass.
+Component: `doppler.runtime-source.gpu.kernels`; intent preserved. Boundary
+effects: gate scratch allocation/bindings and pinned shader identities.
+
+Exact installed-runtime qualification, all-55 full-model numerical placements,
+signed N-stage ordinary chat, concurrent lifecycle and release remain open.

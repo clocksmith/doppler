@@ -1,0 +1,15 @@
+{
+  "schema": "doppler.recurrent-phases-compile/v1",
+  "scope": "Evaluate unchanged paired logarithm alone on captured GPU operands",
+  "unit": "reploid-log-alone-20261013.scope",
+  "memoryHighBytes": 6442450944,
+  "memoryMaxBytes": 8589934592,
+  "memorySwapMaxBytes": 0,
+  "deadlineSeconds": 300,
+  "shaders": [
+    {
+      "file": "probe.wgsl",
+      "sha256": "bb16599da79e0ecf362664aa3d628bde12a87e3ee547ca684ff5ae33b49b521d"
+    }
+  ]
+}
