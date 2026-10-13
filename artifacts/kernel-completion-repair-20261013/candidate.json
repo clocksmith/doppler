@@ -1,0 +1,21 @@
+{
+  "schema": "doppler.kernel-completion-candidate/v1",
+  "sourceCommit": "a5f3ca4c5de29bd018402e571f4b2c432ebfc0a5",
+  "archiveSha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+  "archiveBytes": 3466537,
+  "packageVersion": "0.6.28",
+  "packageFiles": 1984,
+  "baselineArchiveSha256": "9264d265a90c7c0b046adf46135965b2032d2d9f6e5e60d6a8149d10f0988ec4",
+  "changedMembers": [
+    "package/src/config/kernel-registry-contract.d.ts",
+    "package/src/config/kernel-registry-contract.js",
+    "package/src/config/kernels/registry.json",
+    "package/src/config/schema/kernel-registry.schema.d.ts",
+    "package/src/config/schema/kernel-registry.schema.js",
+    "package/src/gpu/kernels/kernel-execution.js"
+  ],
+  "installedQualification": false,
+  "promotion": false,
+  "archivePath": "doppler-gpu-0.6.28.tgz",
+  "installedSinglePrefixEvidence": "installed-prefix-comparison.json"
+}

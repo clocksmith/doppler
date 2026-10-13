@@ -1,0 +1,26 @@
+{
+  "schema": "doppler.projection-outlier-exact-analysis/v1",
+  "sourceSha256": "287104770b4feee285dfc3b6f5c70b842e959454ee91f5f4350fc0de0913a702",
+  "scope": "Exact rational analysis of retained synthetic operands; original diagnostic and approved full-model references unchanged",
+  "originalDiagnosticPassed": false,
+  "originalTolerance": 2e-12,
+  "results": [
+    {
+      "dtype": "q4k",
+      "row": 6,
+      "column": 2480,
+      "K": 1024,
+      "exactNumerator": "-50447725059697106125724013957197262579",
+      "exactDenominator": "42535295865117307932921825928971026432",
+      "actualPair": [
+        -1.1860203742980957,
+        5.790521129256376e-08
+      ],
+      "sequentialF64": -1.1860203163902983,
+      "gpuRelativeError": 2.265145748959937e-12,
+      "sequentialF64RelativeError": 8.461521518870827e-14,
+      "originalDiagnosticRelativeError": 2.180530533771044e-12,
+      "withinOriginalThresholdAgainstExactArithmetic": false
+    }
+  ]
+}
