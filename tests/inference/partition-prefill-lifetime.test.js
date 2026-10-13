@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
+import { dispatch, beginImmediateDispatchProfile } from '../../src/gpu/kernels/dispatch.js';
 
 // Inject GPU ports only: exercise real partition orchestration and configured
 // chunk boundaries. This is lifetime evidence, not numerical GPU evidence.
@@ -15,14 +16,17 @@ globalThis.partitionLifetime = {
   release(buffer) { assert(probe.live.delete(buffer), 'owned buffer released exactly once'); },
   recorder() {
     if (probe.fail === 'recorder' && probe.submissions > 0) throw Error('recorder failed');
-    const owned = new Set(); let submitted = false;
+    const owned = new Set(); let submitted = false; let dispatches = 0;
     return {
-      device: { queue: { async onSubmittedWorkDone() {
+      device: probe.device ??= { queue: { async onSubmittedWorkDone() {
         probe.queueBarriers = (probe.queueBarriers ?? 0) + 1;
         if (probe.fail === 'queue' || probe.fail === 'logits-cancel-queue') throw Error('queue failed');
       } } },
       trackTemporaryBuffer(buffer) { assert(!submitted); owned.add(buffer); },
-      getStats: () => ({ submitted }),
+      isProfilingEnabled: () => probe.fail !== 'timestamp',
+      recordDispatch() { dispatches++; },
+      submitPartial() { probe.kernelSubmissions = (probe.kernelSubmissions ?? 0) + 1; },
+      getStats: () => ({ submitted, dispatches: [] }),
       getEncoder: () => ({ copyBufferToBuffer(source, sourceOffset, destination, destinationOffset, size) {
         if (probe.fail === 'copy') throw Error('copy failed');
         destination.bytes.set(source.bytes.subarray(sourceOffset, sourceOffset + size), destinationOffset);
@@ -34,13 +38,14 @@ globalThis.partitionLifetime = {
         if (probe.fail === 'submit') throw Error('submit failed');
         if (probe.fail === 'cancel' || (probe.fail === 'later-cancel' && probe.submissions === 4)) probe.controller.abort();
       },
-      resolveProfileTimings: async () => null,
+      resolveProfileTimings: async options => options?.requireComplete ? { paired: dispatches * 2 } : null,
       async abort() { for (const buffer of owned) globalThis.partitionLifetime.release(buffer); owned.clear(); },
     };
   },
   layer(layer, previous, tokens, prefill, context) {
     assert(probe.live.has(previous), 'carried activation remains owned');
     assert.equal(Boolean(context.recorder), expectRecordedLayers, 'resident layers honor ordinary prefill batching policy');
+    if (probe.profile) dispatch(probe.device, { label: 'paired' }, {}, 1, 'paired');
     if (layer === 0 && probe.chunks) probe.chunks.push({ tokens, prefill, position: context.currentSeqLen });
     if (probe.fail === 'layer' && layer === 4) throw Error('layer failed');
     if (probe.fail === 'later-layer' && context.currentSeqLen === 3 && layer === 4) throw Error('later-layer failed');
@@ -104,6 +109,22 @@ try {
   // submits operators directly. The resident path must consume that same policy.
   state.runtimeConfig.inference.session.prefillTokenChunkSize = 256;
   expectRecordedLayers = false;
+  state.runtimeConfig.shared.debug.profiler.enabled = true;
+  for (const fail of [null, 'layer', 'timestamp']) {
+    probe = { live: new Set(), peak: 0, submissions: 0, fail, profile: true, controller: new AbortController() };
+    const operation = executePartitionLayers(state, { numTokens: 2, activationBytes: new ArrayBuffer(32) }, probe.controller.signal);
+    if (fail) await assert.rejects(operation, fail === 'timestamp' ? /timestamp/ : /layer failed/);
+    else {
+      const result = await operation;
+      assert.equal(result.timing.gpuKernelsMs, 24, 'immediate timing aggregates all12 kernels');
+      assert.equal(probe.kernelSubmissions, 12);
+      assert.equal(probe.submissions, 3, 'existing layer boundaries preserved');
+    }
+    assert.equal(probe.live.size, 0);
+    const release = beginImmediateDispatchProfile(probe.device, () => ({ device: probe.device, isProfilingEnabled: () => true }));
+    release();
+  }
+  state.runtimeConfig.shared.debug.profiler.enabled = false;
   for (const fail of [null, 'layer', 'submit', 'copy', 'recorder', 'cancel', 'queue']) {
     probe = { live: new Set(), peak: 0, submissions: 0, fail, controller: new AbortController() };
     const operation = executePartitionLayers(state, { numTokens: 2, activationBytes: new ArrayBuffer(32) }, probe.controller.signal);

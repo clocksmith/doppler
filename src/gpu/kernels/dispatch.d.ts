@@ -9,6 +9,14 @@
 
 import type { CommandRecorder } from '../command-recorder.js';
 
+/** Diagnostic-only device lease. Caller must own all dispatches on this device;
+ * concurrent leases reject. Each immediate kernel still submits separately.
+ * Release before allowing another executor to use the device. */
+export declare function beginImmediateDispatchProfile(
+  device: GPUDevice,
+  getRecorder: () => CommandRecorder
+): () => void;
+
 /**
  * Dispatch a single compute pass and submit immediately
  * Use for standalone kernels that don't participate in batching

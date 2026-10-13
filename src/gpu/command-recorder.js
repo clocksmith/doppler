@@ -11,69 +11,37 @@ let didLogQueryClamp = false;
 let didLogQueryFallback = false;
 
 export class CommandRecorder {
-  
   device;
-  
   label;
-  
   #encoder;
-
   #tempBuffers;
-
   // Pooled buffers to release (not destroy) after submit
-
   #pooledBuffers;
-
   #tempBufferSet;
-
   #pooledBufferSet;
-
   #cleanupPromise = null;
-
   #deferredCleanup = null;
-
   #completionTasks;
-
   #completionFailure = null;
-
   #submitted;
-
   #submissionCount = 0;
-
   #opCount;
-
   #opLabelCounts;
-
   #dispatchRecords;
-
   #recordDispatches;
-
   #aggregateDispatches;
-
   #dispatchRecordIndex;
-
   #recordLabels;
-
   #computePassCount;
-
   #activeComputePass = null;
-
   // Profiling state
-  
   #profilingEnabled;
-  
   #querySet = null;
-  
   #queryBuffer = null;
-  
   #readbackBuffer = null;
-  
   #profileEntries = [];
-  
   #nextQueryIndex = 0;
-  
   #queryCapacity = 0;
-
   #submitLatencyMs = null;
   #uniformCache = null;
 
@@ -627,7 +595,15 @@ export class CommandRecorder {
   }
 
   abort() {
-    if (this.#submitted) return this.#cleanupPromise;
+    if (this.#submitted) {
+      if (!this.#querySet) return this.#cleanupPromise;
+      // A queue failure can prevent timing resolution after submit. Query
+      // resources remain owned until completion or device-loss notification.
+      this.#cleanupPromise = Promise.allSettled([
+        this.#cleanupPromise, this.device.queue.onSubmittedWorkDone(),
+      ]).then(() => this.#destroyProfilingResources());
+      return this.#cleanupPromise;
+    }
 
     this.closeActiveComputePass();
 
@@ -637,8 +613,9 @@ export class CommandRecorder {
     return this.#cleanupPromise;
   }
 
-  async resolveProfileTimings() {
+  async resolveProfileTimings(options = {}) {
     if (!this.#profilingEnabled || !this.#querySet || !this.#queryBuffer || !this.#readbackBuffer) {
+      if (options.requireComplete) throw new Error('[CommandRecorder] Complete timestamp profiling is unavailable.');
       return null;
     }
 
@@ -660,6 +637,9 @@ export class CommandRecorder {
     try {
       await this.device.queue.onSubmittedWorkDone();
       await this.completeDeferredCleanup();
+      if (options.requireComplete && this.#profileEntries.length !== this.#computePassCount) {
+        throw new Error('[CommandRecorder] Timestamp query capacity did not cover every compute pass.');
+      }
 
       const maxIndex = Math.max(...this.#profileEntries.map(e => e.endQueryIndex)) + 1;
       const resolveEncoder = this.device.createCommandEncoder({ label: 'profile_resolve' });
@@ -668,6 +648,7 @@ export class CommandRecorder {
       this.device.queue.submit([resolveEncoder.finish()]);
 
       if (!allowReadback('CommandRecorder.resolveProfileTimings')) {
+        if (options.requireComplete) throw new Error('[CommandRecorder] Timestamp readback is disabled.');
         return null;
       }
 
@@ -681,7 +662,10 @@ export class CommandRecorder {
         const endNs = timestamps[entry.endQueryIndex];
         const durationMs = Number(endNs - startNs) / 1_000_000;
 
-        if (durationMs < 0 || durationMs > 60000) {
+        if (options.requireComplete && durationMs < 0) {
+          throw new Error('[CommandRecorder] GPU timestamp order is invalid.');
+        }
+        if (!options.requireComplete && (durationMs < 0 || durationMs > 60000)) {
           continue;
         }
 

@@ -3,6 +3,27 @@
 
 import { getDevice, getLastDeviceLossInfo } from '../device.js';
 
+// Explicit diagnostic leases require exclusive dispatch ownership of a device.
+// They observe immediate submissions without batching or changing uniforms.
+const immediateProfiles = new WeakMap();
+
+function requireProfileRecorder(device, getRecorder) {
+  const recorder = getRecorder();
+  if (recorder?.device !== device) throw new Error('Immediate profile recorder device mismatch.');
+  if (!recorder.isProfilingEnabled()) throw new Error('Immediate profiling requires working timestamp queries.');
+  return recorder;
+}
+
+export function beginImmediateDispatchProfile(device, getRecorder) {
+  if (immediateProfiles.has(device)) throw new Error('Immediate profiling device is already leased.');
+  requireProfileRecorder(device, getRecorder);
+  const lease = { getRecorder };
+  immediateProfiles.set(device, lease);
+  return () => {
+    if (immediateProfiles.get(device) === lease) immediateProfiles.delete(device);
+  };
+}
+
 function requireDispatchDevice(device, label) {
   if (device) return device;
   const loss = getLastDeviceLossInfo();
@@ -50,6 +71,13 @@ export function dispatch(
 ) {
   requireDispatchDevice(device, label);
   const [x, y, z] = assertWorkgroupLimits(device, workgroups, label);
+  const profile = immediateProfiles.get(device);
+  if (profile) {
+    const recorder = requireProfileRecorder(device, profile.getRecorder);
+    recorder.recordDispatch(pipeline, bindGroup, [x, y, z], `${label}:${pipeline.label} [${x},${y},${z}]`);
+    recorder.submitPartial();
+    return;
+  }
   const encoder = device.createCommandEncoder({ label: `${label}_encoder` });
   const pass = encoder.beginComputePass({ label: `${label}_pass` });
   pass.setPipeline(pipeline);
@@ -109,6 +137,13 @@ export function dispatchIndirect(
   label = 'compute'
 ) {
   requireDispatchDevice(device, label);
+  const profile = immediateProfiles.get(device);
+  if (profile) {
+    const recorder = requireProfileRecorder(device, profile.getRecorder);
+    recorder.recordDispatchIndirect(pipeline, bindGroup, indirectBuffer, indirectOffset, `${label}:${pipeline.label} [indirect]`);
+    recorder.submitPartial();
+    return;
+  }
   const encoder = device.createCommandEncoder({ label: `${label}_encoder` });
   const pass = encoder.beginComputePass({ label: `${label}_pass` });
   pass.setPipeline(pipeline);

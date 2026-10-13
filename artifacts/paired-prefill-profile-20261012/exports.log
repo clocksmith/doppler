@@ -1,0 +1,5 @@
+
+> doppler-gpu@0.6.28 exports:parity:check
+> node tools/check-exports-parity.js
+
+[exports-parity:check] 1115 JavaScript modules have declarations; paired named exports agree
