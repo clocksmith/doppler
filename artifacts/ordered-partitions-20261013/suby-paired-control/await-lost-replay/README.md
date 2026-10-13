@@ -1,0 +1,3 @@
+The four installed paired-cast controls passed on Suby Intel with the exact5e candidate. The owned device loss promise resolved before provider globals were restored; the process exited0 naturally. Total device cleanup shared one10s deadline, within the unchanged300s operation bound.
+
+This invokes package-local wrappers and the diagnostic harness, not production createNativeGpuHost. Public native297260 and browser299769 remained present. Earlier crash/core and observation-only replay remain intact. The native GPUDeviceLostInfo serialized to an empty object, so only observed promise resolution/order is claimed. Provider file hashes match the retained before identity. No arithmetic, model, public cache, ledger or pin changed.

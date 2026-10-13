@@ -1,0 +1,51 @@
+{
+  "startedAt": "2026-10-13T15:41:26.787Z",
+  "controllerPid": 779681,
+  "before": [
+    " 297260       1 Rsl     13:37:26 node server/native-participant.js --contribute --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory /home/clocksmith/.local/share/reploid/public-native/weights --cache-directory /home/clocksmith/.local/share/reploid/public-native/cache --identity-file /home/clocksmith/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo.id --signaling-url wss://reploid-swarm.reploid.workers.dev/swarm",
+    " 299769       1 Ssl     13:34:11 node scripts/run-mesh-contributor.js --url https://replo.id/ --profile /home/clocksmith/.local/share/reploid/public-compute --model qwen-3-5-0-8b-q4k-ehaf16 --contribute compute --browser chromium"
+  ],
+  "stdout": "",
+  "stderr": "Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 1000000 to 16 to fit dynamic offset allocation limit.\nWarning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 1000000 to 16 to fit dynamic offset allocation limit.\n",
+  "signals": [],
+  "sourceSha256": "b6c0a7f6a190d10513627aa0bec45993218519aeea2a046289dbca6d0b3fe8d1",
+  "reservation": {
+    "schema": "doppler.suby-paired-cast-reservation/v1",
+    "id": "root-suby-paired-cast-owned-lost-barrier-20261013",
+    "authorizedBy": "Root authorized one replay with exact owned-device lost barrier, total cleanup 10s; Suby only",
+    "frozenAt": "2026-10-13T15:41:19.481353+00:00",
+    "runtimeArchiveSha256": "5e0d60bc433d332187d422721fd7afcaec780c202e3082adcab389b47fd27fc5",
+    "scope": "Installed wrapper and harness lifetime compatibility only; not production host physical qualification or model qualification",
+    "operationDeadlineMs": 300000,
+    "cleanupDeadlineMs": 10000,
+    "externalTotalProcessDeadlineMs": 310000,
+    "poolBudgetBytes": 16777216,
+    "explicitOwnedStorageBufferBytes": 272,
+    "cases": 4,
+    "sources": {
+      "control.js": "b6c0a7f6a190d10513627aa0bec45993218519aeea2a046289dbca6d0b3fe8d1",
+      "controller.js": "108af1b0400b4f5b33e4298fe1a1a4d2f1dd45d7cb94464ae4ea1090675e9d48"
+    },
+    "runtimeClosure": {
+      "src/gpu/kernels/paired-cast.js": "25f17884af6919b1707f7f55e90631d780229039c011f87ee670a22b8fd71878",
+      "src/gpu/kernels/cast_f32_to_two_f32.wgsl": "059179f0bb62747bda43dec235fb1f873d22cd068bda37bf478b944e02297ebc",
+      "src/gpu/kernels/cast_two_f32_to_f16.wgsl": "e13bbba70e0c7b9363b5ecf0d38e1f665dff7791d73283f4a6037879a2d33983",
+      "src/gpu/tensor.js": "732b00eacd2a946ee1bf3521795d7722ca0379d24a278ee5c47c9e98bf030a5c",
+      "src/gpu/command-recorder.js": "986c3f11679ef3617e3931124575b6b52e97a7de1e806f8c771aeeec891a4010",
+      "src/config/kernels/registry.json": "78660305b92d9c1158222221beda5fec8f08d3e0d911b156681de92e849037e5",
+      "tests/kernels/paired-cast-physical.js": "8f87d19bb6f8273d0ec92ed455da9711f8bf68e163da5b64f8db2466438b795f"
+    },
+    "parentControlHash": "e16eb8b3eea8dca8d2d897bc1ecdc8498fd8262c97003c829b8fa598a83366c3"
+  },
+  "pid": 779692,
+  "exit": {
+    "code": 0,
+    "signal": null,
+    "at": "2026-10-13T15:41:27.837Z"
+  },
+  "after": [
+    " 297260       1 Rsl     13:37:27 node server/native-participant.js --contribute --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory /home/clocksmith/.local/share/reploid/public-native/weights --cache-directory /home/clocksmith/.local/share/reploid/public-native/cache --identity-file /home/clocksmith/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo.id --signaling-url wss://reploid-swarm.reploid.workers.dev/swarm",
+    " 299769       1 Ssl     13:34:13 node scripts/run-mesh-contributor.js --url https://replo.id/ --profile /home/clocksmith/.local/share/reploid/public-compute --model qwen-3-5-0-8b-q4k-ehaf16 --contribute compute --browser chromium"
+  ],
+  "naturalExit": true
+}
