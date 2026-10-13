@@ -509,6 +509,7 @@ inference/browser-harness/text-input.d.ts
 inference/browser-harness/timing-diagnostics.d.ts
 inference/choice-scoring.d.ts
 inference/generation-output.d.ts
+inference/kv-cache/copy-state.d.ts
 inference/kv-cache/layer-range.d.ts
 inference/kv-cache/update.d.ts
 inference/network-evolution.js
@@ -678,6 +679,8 @@ inference/pipelines/text/ops.d.ts
 inference/pipelines/text/paired-execution.d.ts
 inference/pipelines/text/partition-attempt.d.ts
 inference/pipelines/text/partition-execution.d.ts
+inference/pipelines/text/partition-replay.d.ts
+inference/pipelines/text/partition-replay.js
 inference/pipelines/text/per-layer-inputs.d.ts
 inference/pipelines/text/per-layer/materialize.d.ts
 inference/pipelines/text/per-layer/plan.d.ts
@@ -705,6 +708,7 @@ inference/pipelines/vision/patch-embed.d.ts
 inference/pipelines/vision/spatial-merge.d.ts
 inference/pipelines/vision/weight-loading.d.ts
 inference/rerank.d.ts
+inference/sampling-rng.d.ts
 inference/token-sampling.d.ts
 inference/tokenizers/base.d.ts
 inference/tokenizers/behavior-flags.d.ts
