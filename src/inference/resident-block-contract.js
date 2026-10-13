@@ -45,13 +45,37 @@ export function validateResidentAttemptIdentity(input) {
   return immutableRecord(value);
 }
 
+const activationKeys = ['schema', 'attemptDigest', 'sequence', 'baseCursorId', 'proposalId', 'sourceStageId',
+  'destinationStageId', 'rows', 'tokenContextDigest', 'layout', 'payloadBytes', 'payloadDigest'];
+
 /** @type {import('./resident-block-contract.js').validateBlockActivation} */
 export function validateBlockActivation(input, bytes, limits) {
-  const frame = /** @type {import('./resident-block-contract.js').BlockActivation} */ (exactRecord(input,
-    ['schema', 'attemptDigest', 'sequence', 'baseCursorId', 'proposalId', 'sourceStageId', 'destinationStageId',
-      'rows', 'tokenContextDigest', 'layout', 'payloadBytes', 'payloadDigest']));
+  const frame = /** @type {import('./resident-block-contract.js').BlockActivation} */ (exactRecord(input, activationKeys));
   assert(frame.schema === 'doppler.block-activation/v2', 'Unsupported activation frame.');
-  for (const key of /** @type {const} */ (['attemptDigest', 'baseCursorId', 'proposalId', 'sourceStageId', 'destinationStageId', 'tokenContextDigest', 'payloadDigest'])) hash(frame[key], key);
+  hash(frame.baseCursorId, 'base cursor'); hash(frame.proposalId, 'proposal');
+  const admittedBytes = validateActivationBytes(frame, bytes, limits);
+  return Object.freeze({ frame: immutableRecord(frame), bytes: admittedBytes });
+}
+
+/** Ordinary bootstrap has no prior cursor and never invents a speculative proposal.
+ * @type {import('./resident-block-contract.js').validateOrdinaryActivation} */
+export function validateOrdinaryActivation(input, bytes, limits) {
+  const frame = /** @type {import('./resident-block-contract.js').OrdinaryActivation} */ (exactRecord(input, activationKeys));
+  assert(frame.schema === 'doppler.ordinary-activation/v1' && frame.proposalId === null, 'Unsupported ordinary activation frame.');
+  if (frame.sequence === 0) {
+    assert(frame.baseCursorId === null && frame.rows?.start === 0, 'Ordinary bootstrap must start at row zero without a cursor.');
+  } else {
+    hash(frame.baseCursorId, 'base cursor');
+    assert(frame.rows?.start > 0 && frame.rows.end - frame.rows.start === 1, 'Ordinary decode consumes one absolute row.');
+  }
+  const admittedBytes = validateActivationBytes(frame, bytes, limits);
+  return Object.freeze({ frame: immutableRecord(frame), bytes: admittedBytes });
+}
+
+/** @param {import('./resident-block-contract.js').BlockActivation | import('./resident-block-contract.js').OrdinaryActivation} frame
+ * @param {Uint8Array} bytes @param {{ maxRows: number, maxBytes: number }} limits */
+function validateActivationBytes(frame, bytes, limits) {
+  for (const key of /** @type {const} */ (['attemptDigest', 'sourceStageId', 'destinationStageId', 'tokenContextDigest', 'payloadDigest'])) hash(frame[key], key);
   assert(frame.sourceStageId !== frame.destinationStageId, 'Activation source and destination must differ.');
   count(frame.sequence, 'sequence');
   exactRecord(frame.rows, ['start', 'end']);
@@ -71,7 +95,7 @@ export function validateBlockActivation(input, bytes, limits) {
   count(expected, 'activation byte product', limits.maxBytes);
   assert(bytes instanceof Uint8Array && bytes.byteLength === expected && frame.payloadBytes === expected, 'Activation length mismatch.');
   assert(`sha256:${sha256BytesHex(bytes)}` === frame.payloadDigest, 'Activation payload digest mismatch.');
-  return Object.freeze({ frame: immutableRecord(frame), bytes: bytes.slice() });
+  return bytes.slice();
 }
 
 /** @type {import('./resident-block-contract.js').residentAttemptDigest} */
