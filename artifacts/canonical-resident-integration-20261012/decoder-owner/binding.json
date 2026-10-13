@@ -1,0 +1,9 @@
+{
+  "scope": "CPU correction to input-stage logical cursor ownership",
+  "supersedesBehavior": "533affca input-stage decoder replication",
+  "files": {
+    "src/inference/resident-target-state.js": "d979dfec53db2512406c28efe637bbfd5ca279c9380d02b5e820fd6358f2feba",
+    "src/inference/pipelines/text/resident-partition.js": "4ccb18634ddb666fd06b4a687ea7d08a170472900f3ab16d4522bf1ce3c1d75a",
+    "tests/inference/resident-canonical-execution.test.js": "fcce433bc98e62d1ad2ce7483ebcacf6950221f5ed250ba7d65a0a92ecbf2690"
+  }
+}

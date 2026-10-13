@@ -14,9 +14,6 @@ export interface ResidentTargetState {
   getHistory(): readonly number[];
   bootstrap(logits: Float32Array): Readonly<ResidentTargetTransition>;
   advance(expectedCursorId: string, logits: Float32Array): Readonly<ResidentTargetTransition>;
-  /** Input stage validates a selected target transition after its own numerical
-   * step settles. This installs control state only, never samples or authenticates. */
-  acceptTransition(expectedCursorId: string | null, transition: ResidentTargetTransition): Readonly<ResidentTargetTransition>;
   /** Local control-state clone. The resident must separately clone numerical state. */
   clone(): ResidentTargetState;
   /** Mutates this scratch control state only; never call on a published parent. */
@@ -25,3 +22,11 @@ export interface ResidentTargetState {
 }
 export function createResidentTargetState(prompt: readonly number[], policy: CanonicalGenerationPolicy,
   vocabSize: number, generationId: string, output: ResidentOutputState): ResidentTargetState;
+
+/** Logical input-stage mirror. Target authentication remains a host requirement. */
+export interface ResidentCursorMirror {
+  getCursor(): Readonly<ResidentCursor> | null;
+  acceptTransition(expectedCursorId: string | null, transition: ResidentTargetTransition): Readonly<ResidentTargetTransition>;
+}
+export function createResidentCursorMirror(prompt: readonly number[], policy: CanonicalGenerationPolicy,
+  vocabSize: number, generationId: string): ResidentCursorMirror;

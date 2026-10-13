@@ -10,7 +10,7 @@ import { assertPartitionExecutionSupported, executePartitionLayers } from './par
 import { createPartitionAttempt } from './partition-attempt.js';
 import { assertResidentPartitionIdentity, resolveResidentCanonicalGeneration } from './resident-partition-contract.js';
 import { admitResidentPrompt } from '../../resident-state-contract.js';
-import { createResidentTargetState } from '../../resident-target-state.js';
+import { createResidentTargetState, createResidentCursorMirror } from '../../resident-target-state.js';
 import { createResidentOutputState } from '../../resident-output-state.js';
 import { hashLayerPartitionPlan, resolveActivationTensorLayout, validateActivationTensorShape } from './layer-partition-contract.js';
 import { markDeviceWeights, getDeviceMemorySnapshot } from '../../../memory/device-budget.js';
@@ -19,7 +19,7 @@ import { preparePairedLinearAttentionPipelines } from '../../../gpu/kernels/pair
 /** @type {import('./resident-partition.js').createResidentPartitionSession} */
 export async function createResidentPartitionSession(pipeline, allocation, tokens, closeProgram, signal) {
   const canonical = resolveResidentCanonicalGeneration(allocation);
-  if (canonical && typeof tokens.createRawIncrementalDecoder !== 'function') {
+  if (canonical && allocation.index === 1 && typeof tokens.createRawIncrementalDecoder !== 'function') {
     throw new Error('Canonical resident requires a raw incremental decoder.');
   }
   const descriptor = await runPipelineOperation(pipeline, async owner => {
@@ -67,7 +67,7 @@ export async function createResidentPartitionSession(pipeline, allocation, token
       attempt = { binding, identity: structuredClone(identity), nonce: crypto.randomUUID(), step: 0, position: 0,
         retired: false, done: false, controller: new AbortController(), pending: null, settlement: null,
         execution: null, generationDigest: null, contextTokens: [], text: '', decoder: null,
-        canonicalState: null, canonicalPrompt: null, canonicalAwaiting: false };
+        canonicalState: null, canonicalMirror: null, canonicalPrompt: null, canonicalAwaiting: false };
       attempts.set(identity.attemptId, attempt);
     }
     return attempt;
@@ -110,9 +110,9 @@ export async function createResidentPartitionSession(pipeline, allocation, token
       throw new Error('Resident attempt is retired, busy or out of order.');
     }
     if (canonicalMode) {
-      const parent = attempt.canonicalState?.getCursor();
+      const parent = (attempt.canonicalState ?? attempt.canonicalMirror)?.getCursor();
       const expectedIds = parent ? [parent.pendingTokenId] : attempt.canonicalPrompt;
-      if (!canonical || !attempt.canonicalState || attempt.canonicalAwaiting
+      if (!canonical || !(attempt.canonicalState || attempt.canonicalMirror) || attempt.canonicalAwaiting
         || request.generationId !== canonical.generationId || request.baseCursorId !== (parent?.cursorId ?? null)
         || JSON.stringify(inputIds) !== JSON.stringify(expectedIds)) {
         throw new Error('Canonical step has a stale cursor, changed generation, input or pending commit.');
@@ -253,7 +253,7 @@ export async function createResidentPartitionSession(pipeline, allocation, token
       await attempt.pending?.catch(() => {});
       attempt.execution?.close(); attempt.execution = null;
       attempt.decoder = null; attempt.contextTokens = []; attempt.text = '';
-      attempt.canonicalState = null; attempt.canonicalPrompt = null; attempt.canonicalAwaiting = false;
+      attempt.canonicalState = null; attempt.canonicalMirror = null; attempt.canonicalPrompt = null; attempt.canonicalAwaiting = false;
     })();
     return attempt.settlement;
   }
@@ -275,10 +275,15 @@ export async function createResidentPartitionSession(pipeline, allocation, token
       if (!('kind' in admitted)) { attempt.done = true; return admitted; }
       attempt.canonicalPrompt = [...admitted.tokenIds];
       try {
-        if (!tokens.createRawIncrementalDecoder) throw new Error('Canonical raw decoder is unavailable.');
-        attempt.canonicalState = createResidentTargetState(admitted.tokenIds, canonical.policy, allocation.plan.vocabSize,
-          canonical.generationId, createResidentOutputState(tokens.createRawIncrementalDecoder(),
-            tokens.createIncrementalDecoder(), canonical.policy, allocation.plan.vocabSize));
+        if (allocation.index === 0) {
+          attempt.canonicalMirror = createResidentCursorMirror(admitted.tokenIds, canonical.policy,
+            allocation.plan.vocabSize, canonical.generationId);
+        } else {
+          if (!tokens.createRawIncrementalDecoder) throw new Error('Canonical raw decoder is unavailable.');
+          attempt.canonicalState = createResidentTargetState(admitted.tokenIds, canonical.policy, allocation.plan.vocabSize,
+            canonical.generationId, createResidentOutputState(tokens.createRawIncrementalDecoder(),
+              tokens.createIncrementalDecoder(), canonical.policy, allocation.plan.vocabSize));
+        }
       } catch (error) { attempt.retired = true; throw error; }
       return admitted;
     },
@@ -298,11 +303,11 @@ export async function createResidentPartitionSession(pipeline, allocation, token
       assertOpen(); request.signal.throwIfAborted();
       if (!canonical || allocation.index !== 0) throw new Error('Only canonical partition A accepts target transitions.');
       const attempt = attemptFor(request.identity);
-      if (attempt.retired || attempt.done || attempt.pending || !attempt.canonicalAwaiting || !attempt.canonicalState) {
+      if (attempt.retired || attempt.done || attempt.pending || !attempt.canonicalAwaiting || !attempt.canonicalMirror) {
         throw new Error('Canonical input stage has no settled numerical step awaiting commit.');
       }
       try {
-        const transition = attempt.canonicalState.acceptTransition(request.baseCursorId, request.transition);
+        const transition = attempt.canonicalMirror.acceptTransition(request.baseCursorId, request.transition);
         attempt.canonicalAwaiting = false; attempt.done = transition.successor.terminal;
         return transition;
       } catch (error) { attempt.retired = true; throw error; }
