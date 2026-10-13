@@ -1,0 +1,105 @@
+{
+  "schema": "doppler.paired-preparation-attribution-proposal/v1",
+  "status": "cpu-prepared-not-launched",
+  "runtimeArchiveSha256": "5e0d60bc433d332187d422721fd7afcaec780c202e3082adcab389b47fd27fc5",
+  "nativeArchiveSha256": "d73081423fb00bfc64ecc56e8faf502048d86279c526189cf88a8382a6039cb6",
+  "sourceCommit": "45c2285c",
+  "priorEvidence": {
+    "repository": "reploid",
+    "commit": "95b4826c",
+    "path": "artifacts/ordered-three-stage-physical-20261013/disposition.json"
+  },
+  "observations": {
+    "ropePipelineMilliseconds": 260375,
+    "deadlinePending": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+    "stageDeadlineMilliseconds": 300000,
+    "cleanupDeadlineMilliseconds": 10000,
+    "numericalPrefixesExecuted": 0,
+    "submissionCoverage": "Queue observer begins after resident opening; empty submissions do not establish zero GPU execution during preparation."
+  },
+  "hypothesis": "Reachable paired transcendental functions materially increase pipeline preparation relative to basic paired multiplication, rather than the shared helper source text alone.",
+  "existingOwnerControl": {
+    "owner": "src/gpu/kernels/pipeline-cache.js#getPipelineFast",
+    "operation": "paired_pointwise",
+    "variants": [
+      "scale",
+      "silu_unary"
+    ],
+    "entryPoint": "main",
+    "workgroup": [
+      256,
+      1,
+      1
+    ],
+    "bindings": [
+      {
+        "index": 0,
+        "name": "uniforms",
+        "type": "uniform"
+      },
+      {
+        "index": 1,
+        "name": "a",
+        "type": "read-only-storage"
+      },
+      {
+        "index": 3,
+        "name": "output",
+        "type": "storage"
+      }
+    ],
+    "constants": null,
+    "execution": "Compile only; no bind groups, buffers, dispatch, readback or model opening.",
+    "host": "Exact installed d730 createNativeGpuHost; preserve owned-device lost barrier and existing 10s close bound.",
+    "operationDeadlineMilliseconds": 300000,
+    "cleanupDeadlineMilliseconds": 10000,
+    "launchRequires": "Fresh root-reserved Suby window and live ownership/provider verification.",
+    "interpretation": "Completed scale with delayed unary SiLU would implicate reachable transcendental preparation, not prove a particular optimizer pass. Similar outcomes would not isolate the hypothesis. No cache reset or isolated timing claim."
+  },
+  "sourceFacts": {
+    "commonHelpersByteIdentical": true,
+    "scaleReachability": "pair_mul",
+    "siluReachability": "pair_silu -> pair_sigmoid -> pair_exp / pair_div",
+    "ropeReachability": "pair_log / pair_exp / pair_sin_cos",
+    "convolutionReachability": "pair_silu -> pair_sigmoid -> pair_exp / pair_div",
+    "limitation": "Static WGSL does not prove backend inlining, loop unrolling, compiler IR size, or arithmetic defect."
+  },
+  "files": [
+    {
+      "path": "src/gpu/kernels/paired_scale.wgsl",
+      "sha256": "69f66c399e02354b86a15731f43a7fc7847f8a251325e3b240f0ea8fb0d24611",
+      "commonSha256": "6e42aa093cecc869b92203bf7768b55839064bc1d1b5e132dcb108e62fd7b698",
+      "commonBytes": 11714
+    },
+    {
+      "path": "src/gpu/kernels/paired_silu_unary.wgsl",
+      "sha256": "f3d92ae3a9e45373b6d95a0c59b9cc83d9faed825544af62805d8a1318c84e3a",
+      "commonSha256": "6e42aa093cecc869b92203bf7768b55839064bc1d1b5e132dcb108e62fd7b698",
+      "commonBytes": 11714
+    },
+    {
+      "path": "src/gpu/kernels/rope_precompute_paired.wgsl",
+      "sha256": "3342e61b52a62286e4e6b3edb60899b06556608dbc5030771a2b9db50e640523",
+      "commonSha256": "6e42aa093cecc869b92203bf7768b55839064bc1d1b5e132dcb108e62fd7b698",
+      "commonBytes": 11714
+    },
+    {
+      "path": "src/gpu/kernels/gated_delta_conv_paired.wgsl",
+      "sha256": "0fb5aa93ce12af034089dc673170a4e59ee8f132b000ce946fcb98cfa80acaf9",
+      "commonSha256": "6e42aa093cecc869b92203bf7768b55839064bc1d1b5e132dcb108e62fd7b698",
+      "commonBytes": 11714
+    }
+  ],
+  "validation": {
+    "installedBytesMatch": true,
+    "commonHelpersIdentical": true,
+    "bindingsAndWorkgroupsMatch": true,
+    "gpuOpened": false
+  },
+  "changes": {
+    "runtime": [],
+    "shaders": [],
+    "model": [],
+    "reference": []
+  }
+}
