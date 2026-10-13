@@ -1,0 +1,33 @@
+{
+  "schema": "doppler.suby-owned-device-lifetime-control/v1",
+  "runtimeArchiveSha256": "5e0d60bc433d332187d422721fd7afcaec780c202e3082adcab389b47fd27fc5",
+  "passed": true,
+  "pid": 779692,
+  "naturalExit": {
+    "code": 0,
+    "signal": null,
+    "at": "2026-10-13T15:41:27.837Z"
+  },
+  "scope": "Installed package-local wrappers and harness lifetime only; production createNativeGpuHost not invoked",
+  "providerFilesMatchRetainedBeforeIdentity": true,
+  "providerReasonRecorded": false,
+  "deviceLostNote": "Native info JSON serialized as {}; promise resolution and release order are recorded, not a reason string",
+  "publicCoTenantsPresentBeforeAfter": [
+    297260,
+    299769
+  ],
+  "limits": {
+    "operationMs": 300000,
+    "totalCleanupMs": 10000,
+    "externalProcessMs": 310000
+  },
+  "interpretation": "Single bounded positive replay; earlier SIGSEGV/core and observation-only positive replay retained. No claim probabilistic race eliminated or model/N-stage qualification.",
+  "files": {
+    "control.js": "b6c0a7f6a190d10513627aa0bec45993218519aeea2a046289dbca6d0b3fe8d1",
+    "result.json": "86a6cc489709673e8ded7e64834b67cb3bacccb58ee8ab6ae7296de6e55d82b2",
+    "controller.js": "108af1b0400b4f5b33e4298fe1a1a4d2f1dd45d7cb94464ae4ea1090675e9d48",
+    "provider-after.json": "1ebd6b43ca1820c79371bf4790888fd5e61169c1a36b51e11637d4de5e6640bf",
+    "reservation.json": "52672e63a9322018b1ac90ff38f3bd44bb526bf3f3d7b137020c388298c36e7c",
+    "process.json": "a659ab435266e030eade7bfdc019e8a035029054a3f5e43d0b50d0a99eeea75b"
+  }
+}
