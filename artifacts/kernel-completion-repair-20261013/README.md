@@ -48,9 +48,12 @@ The [retained outlier](projection-outlier-result.json) has exact operand vectors
 [Exact rational comparison](projection-outlier-analysis.json) disproves the
 hypothesis that sequential binary64 reference accumulation explains the failure:
 the GPU relative error is `2.265145748959937e-12`, exceeding the original synthetic
-`2e-12` limit. The reference error is `8.461521518870827e-14`. This small paired
-arithmetic residual is distinct from the long-prefill timeout; its cause remains
-unresolved. No threshold was weakened and no failed control is counted as passed.
+`2e-12` limit. The reference error is `8.461521518870827e-14`. The [CPU reduction simulation](projection-outlier-simulation.json) reproduces
+the physical output pair bit for bit using rounded F32 operations and exact
+residuals. Accumulation/reduction rounding is sufficient to explain this retained
+outlier; it does not require a GPU-specific arithmetic defect. This is one dot
+product, not general arithmetic qualification, and its original threshold still
+fails. The runtime arithmetic is unchanged. No threshold was weakened and no failed control is counted as passed.
 
 Next acceptance: complete the required 55-prefix physical campaign for this exact
 archive, resolve the projection diagnostic, then installed signed conversation,
