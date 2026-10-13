@@ -1,0 +1,33 @@
+{
+  "schema": "doppler.functional-diagnostic-reservation/v1",
+  "at": "2026-10-13T23:09:45.277281+00:00",
+  "authority": "root, continuing user-authorized ordinary runtime repair",
+  "host": "Suby",
+  "scope": "Await each immediate kernel and record completion timing on original184token outputstage input",
+  "runtimeArchiveSha256": "9264d265a90c7c0b046adf46135965b2032d2d9f6e5e60d6a8149d10f0988ec4",
+  "publicProcessesObservedPresent": [
+    297260,
+    299769
+  ],
+  "otherScopes": "Public Chromium and tmux; no prior qualification scopes active",
+  "caches": "retained",
+  "performanceQualification": false,
+  "maxGpuBufferBytes": 1420000000,
+  "maxDiagnosticSnapshotBytes": 33554432,
+  "stageDeadlineMs": 300000,
+  "cleanupDeadlineMs": 10000,
+  "hostMemoryHighBytes": 10737418240,
+  "hostMemoryMaxBytes": 12884901888,
+  "supervisorDeadlineMs": 900000,
+  "oldUnknownSettlement": "Preserved, not inferred released by this fresh attempt",
+  "inputsSha256": "d4103ac6abcab03612e22f73bac23d2924a9a12d4f07bd4133a46acbdb142d5a",
+  "capturePolicySha256": "655f2c46f1943a36b170dfa794feb369fca2aa0eaa29a0e605b27ce720e97754",
+  "hypothesis": "Cumulative queued kernels trigger fence expiry; per-kernel completion prevents corruption without arithmetic changes",
+  "diagnosticSources": {
+    "settled-kernels-controller.js": "db4ef294e85ca94752b72653ec5f9835619d1cf705ff5992b176f6a7f53e7ed8",
+    "settled-kernels-observer.js": "6e79e161638c8af146704eb613fa6dd098f0e19c1075b1a6b31692091568c136"
+  },
+  "observation": "Canonical direct readback; await input capture completion at export. Failed recorded-only observation retained separately.",
+  "qualification": false,
+  "powerMeasurement": "Read availability at preflight; unavailable channels must remain explicitly unavailable"
+}

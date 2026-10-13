@@ -109,3 +109,32 @@ bind submission/completion boundaries in the installed failing operation and
 compare bounded settlement while preserving every arithmetic operation. Retain
 the Q4K outlier for independent accumulation analysis rather than weakening its
 threshold or claiming operator acceptance.
+
+## Per-kernel completion control
+
+`settled-kernels-observer.js` explicitly live-edits the installed asynchronous
+executor in memory to await each immediate kernel's completion. The original
+and changed script hashes are retained; the original is restored before close.
+Disk/archive bytes and shaders stay unchanged, but execution scheduling changes:
+this is a diagnostic treatment, **not exact-package qualification**.
+
+The original 184-token output-stage case returns token 16. Against the retained
+independent F64 logits in `observation.json.gz`, all 248,320 outputs pass the
+unchanged 0.001 threshold; maximum absolute difference is
+9.465929977636733e-7. Both layer-16 output snapshots and the next layer's input
+have identical storage digests. All 141 immediate kernel completions are
+retained. The slowest observed wait is a paired RMS normalization at 12.598 s;
+projection waits reach 5.205 s. No new kernel fence timeout was observed.
+
+Preparation takes 10.651 s; the observed execution takes 183.544 s. Attempt,
+resident and provider close pass independently. Peak allocated GPU buffers are
+330,004,304 bytes against the unchanged 1,420,000,000 limit. Host memory samples
+are separate. RAPL energy is unreadable by the diagnostic account; power is
+unavailable, not zero. Model loading uses loopback storage and does not measure
+live-peer transfer or community economics.
+
+This treatment supports bounding accumulated immediate work through completion
+before returning to the next kernel. It does not prove a particular Mesa/Dawn
+internal batching mechanism. The production repair declares paired-variant
+completion in the immutable kernel registry and needs a newly packaged installed
+run, the complete prefix campaign and application/lifecycle acceptance.
