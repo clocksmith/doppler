@@ -1,0 +1,33 @@
+{
+  "schema": "doppler.functional-diagnostic-reservation/v1",
+  "at": "2026-10-13T21:21:24.264315+00:00",
+  "authority": "root, continuing user-authorized ordinary runtime repair",
+  "host": "Suby",
+  "scope": "Fresh output-stage original long prefix; canonical layer-17 intermediate snapshots to distinguish all-zero output from earlier arithmetic divergence",
+  "runtimeArchiveSha256": "9264d265a90c7c0b046adf46135965b2032d2d9f6e5e60d6a8149d10f0988ec4",
+  "publicProcessesObservedPresent": [
+    297260,
+    299769
+  ],
+  "otherScopes": "Public Chromium and tmux; no prior qualification scopes active",
+  "caches": "retained",
+  "performanceQualification": false,
+  "maxGpuBufferBytes": 1420000000,
+  "maxDiagnosticSnapshotBytes": 33554432,
+  "stageDeadlineMs": 300000,
+  "cleanupDeadlineMs": 10000,
+  "hostMemoryHighBytes": 10737418240,
+  "hostMemoryMaxBytes": 12884901888,
+  "supervisorDeadlineMs": 900000,
+  "oldUnknownSettlement": "Preserved, not inferred released by this fresh attempt",
+  "inputsSha256": "d4103ac6abcab03612e22f73bac23d2924a9a12d4f07bd4133a46acbdb142d5a",
+  "capturePolicySha256": "69afce9514fb67ef2a413edd99dbf334ac103679c7631eecce550eb32676ef10",
+  "hypothesis": "Layer 17 first loses values at a later dispatch or buffer boundary; earlier per-operation captures would falsify that attribution if already wrong.",
+  "scopeInvocation": "53991e149a984bf7a90ee54165b1e825",
+  "providerPid": 1023131,
+  "diagnosticSources": {
+    "layer17-observer.js": "91dc0a14881a2da7cf1e4424644543ae500e2594741f69e26fcc34079610cf64",
+    "layer17-controller.js": "74a2bc9d09fa8a48b016cf6a2719df6b62c8e7703dd53fe395afd4726a054292",
+    "reference-layer17.py": "c7be9ebfbac98c24d7208092bbae0eeb4635e3c2eb6a6b7e64a15b99e2a802c0"
+  }
+}

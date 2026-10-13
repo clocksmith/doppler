@@ -45,7 +45,15 @@
       "receipt": "canonical-layer-capture.json.gz",
       "reason": "Expected nine records; seventeen observed because step and final layer probes share canonical names. Captures and error retained. Layer 16 matches F64, layer 17 first diverges. Fresh resident differs from original campaign and emitted token 1.",
       "residentAndProviderCleanupPassed": true
+    },
+    {
+      "scopeInvocation": "53991e149a984bf7a90ee54165b1e825",
+      "providerPid": 1023131,
+      "status": "completed-layer17-attribution",
+      "receipt": "layer17-result.json.gz",
+      "reason": "Original input in fresh resident; norm17 begins diverging at row32. Canonical export, attempt close, resident close and provider close passed. Numerical acceptance did not pass.",
+      "residentAndProviderCleanupPassed": true
     }
   ],
-  "updatedAt": "2026-10-13T21:19:43.316369+00:00"
+  "updatedAt": "2026-10-13T21:27:03.270641+00:00"
 }
