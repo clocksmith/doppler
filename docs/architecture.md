@@ -140,7 +140,7 @@ from `src/config/support-tiers/subsystems.json`; see
 
 See also: [INDEX.md](INDEX.md)
 
-The mainline product/technical goals are defined in [goals.md](goals.md):
+The mainline product/technical goals are defined in [GOALS.md](../GOALS.md):
 
 1. earn standalone executable-model adoption through useful local execution and
    a subsequent model release independently retained by an application;
@@ -401,7 +401,7 @@ the supported Windows/macOS fleet.
 | **JavaScript Orchestration** | Pure JS dispatches GPU work, handles sampling | Browser embedding through exposed WebGPU; Node may require a native provider |
 
 These principles are not independent product claims. Public claims require the
-support matrices and benchmark receipts named in [goals.md](goals.md).
+support matrices and benchmark receipts named in [GOALS.md](../GOALS.md).
 
 ## Execution Planes
 

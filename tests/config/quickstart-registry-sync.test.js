@@ -47,7 +47,7 @@ assert.deepEqual(
       adapterIds: [],
       adapterDigests: [],
     },
-    evidencePaths: ['docs/goals.md'],
+    evidencePaths: ['GOALS.md'],
   });
   assert.equal(
     buildQuickstartRegistryPayload(catalog, revoked).models.some((entry) => entry.modelId === modelId),

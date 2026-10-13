@@ -3,7 +3,7 @@
 `runCapability()` intentionally opens a session for one operation and closes it
 afterward. For repeated queries with models and a document index kept resident,
 use the existing [document-search application](../document-search/README.md).
-Its [copy-and-run product increment](../../docs/goals.md#next-product-increment-copy-and-run-local-search)
+Its [copy-and-run product increment](../../GOALS.md#next-product-increment-copy-and-run-local-search)
 is the next priority; this example remains one-shot and must not become a second
 search engine.
 

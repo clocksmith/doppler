@@ -421,7 +421,7 @@
       "gate": "The validated contract and goal matrix name Doppler Production Release, Doppler Release Operations, the Electron ICP, and the customer-controlled activation boundary.",
       "completionState": "implemented",
       "evidencePaths": [
-        "docs/goals.md",
+        "GOALS.md",
         "docs/model-release-platform.md",
         "tools/policies/model-release-platform.json"
       ],
@@ -520,7 +520,7 @@
       "gate": "One paid external customer relies on Doppler eligibility for a production release and the subsequent upgrade.",
       "completionState": "external-evidence-required",
       "evidencePaths": [
-        "docs/goals.md",
+        "GOALS.md",
         "docs/model-release-platform.md"
       ],
       "blockerCode": "paid-doppler-production-release-missing"
@@ -531,7 +531,7 @@
       "gate": "Two additional unrelated customers repeat the production release path; the researched prospect register is pipeline evidence only.",
       "completionState": "external-evidence-required",
       "evidencePaths": [
-        "docs/goals.md",
+        "GOALS.md",
         "docs/model-release-platform.md",
         "docs/electron-design-partner-program.md",
         "tools/policies/electron-design-partner-prospects.json"

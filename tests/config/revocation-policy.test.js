@@ -60,7 +60,7 @@ function registry() {
           ...EMPTY_TARGETS,
           modelIds: ['replacement-model'],
         },
-        evidencePaths: ['docs/goals.md'],
+        evidencePaths: ['GOALS.md'],
       },
     ],
   };

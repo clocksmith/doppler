@@ -36,7 +36,7 @@ Invoke qualified models while preserving execution identity.
 ## Acceptance
 
 - Client contract, provider, and root-facade tests pass.
-- [Local-search progress acceptance](../../docs/goals.md#next-product-increment-copy-and-run-local-search) requires corruption, reuse, cancellation, and responsive-task tests; requirements are not completion claims.
+- [Local-search progress acceptance](../../GOALS.md#next-product-increment-copy-and-run-local-search) requires corruption, reuse, cancellation, and responsive-task tests; requirements are not completion claims.
 - Evidence: [client tests](../../tests/client).
 
 ## Non-goals

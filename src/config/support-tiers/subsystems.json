@@ -162,7 +162,7 @@
       "packageExport": null,
       "command": null,
       "docs": [
-        "docs/goals.md",
+        "GOALS.md",
         "docs/bun-product-qualification.md",
         "docs/release-matrix.md",
         "docs/status/bun-product-support-candidate-audit-2026-08-15.json"
