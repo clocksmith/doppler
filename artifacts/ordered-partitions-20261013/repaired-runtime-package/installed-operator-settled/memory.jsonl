@@ -1,0 +1,4 @@
+{"at":"2026-10-13T19:39:48.143Z","phase":"provider-started","providerPid":957195,"supervisorPid":957188,"cgroup":"/user.slice/user-1000.slice/user@1000.service/app.slice/reploid-installed-operator-settled-20261013.scope"}
+{"at":"2026-10-13T19:39:49.148Z","phase":"memory","memory.current":"197857280","memory.peak":"197857280","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0"}
+{"at":"2026-10-13T19:39:50.149Z","phase":"memory","memory.current":"209580032","memory.peak":"244862976","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0"}
+{"at":"2026-10-13T19:39:50.215Z","phase":"provider-exit","code":0,"signal":null,"memory.current":"9478144","memory.peak":"244862976","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0","cleanup":"Read provider events; exit alone does not establish GPU settlement."}
