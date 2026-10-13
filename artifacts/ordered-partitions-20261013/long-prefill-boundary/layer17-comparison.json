@@ -1,0 +1,141 @@
+{
+  "scope": "Attribution only; unchanged numerical acceptance reference",
+  "captureSha256": "7068f5e523262effcd18a32fe57bc140d478647687a726f2a0f3a9a5006b9cc9",
+  "reference": {
+    "scope": "Offline attribution only; independent layer-16 input, original evaluator equations and weights",
+    "sha256": "eae9daf36248feeda02e9a43d70c40ef748f08c1ae01c398e19f648230c9bc8a",
+    "localVsRetainedMaxAbsoluteError": 3.1086244689504383e-15,
+    "localNumpyVersion": "2.2.3",
+    "operatorDiagnosticTolerance": 2e-11,
+    "shards": [
+      "shard_00000.bin",
+      "shard_00009.bin"
+    ],
+    "referenceInputSha256": "4b701333ba9031dc03f0cee5650fa18839c2a274e31fa093d029ef62a90276ae"
+  },
+  "observedCases": [
+    {
+      "request": 2,
+      "step": 0,
+      "tokenId": 0,
+      "stopReason": null,
+      "matchesOriginalBytes": false
+    }
+  ],
+  "records": [
+    {
+      "stage": "attn.post_input_norm",
+      "ordinal": 0,
+      "shape": [
+        184,
+        1024
+      ],
+      "maxAbsoluteError": 4.027006774164246,
+      "maxIndex": [
+        175,
+        997
+      ],
+      "zeroRows": 0,
+      "firstDivergentRow": 32,
+      "storageDigest": "sha256:b7d28bbf4a0b20f98e4ca25596488db708e2dcbf2c27dbe2e609dfb3d3db564b"
+    },
+    {
+      "stage": "attn.linear_core_out",
+      "ordinal": 1,
+      "shape": [
+        184,
+        2048
+      ],
+      "maxAbsoluteError": 2.915327329849398,
+      "maxIndex": [
+        166,
+        68
+      ],
+      "zeroRows": 0,
+      "firstDivergentRow": 0,
+      "storageDigest": "sha256:a3588d751fccc065cf2f13a3440654354907f66bc87dfd24b06b015fb2cc4619"
+    },
+    {
+      "stage": "attn.out",
+      "ordinal": 2,
+      "shape": [
+        184,
+        1024
+      ],
+      "maxAbsoluteError": 0.707483831630402,
+      "maxIndex": [
+        6,
+        0
+      ],
+      "zeroRows": 182,
+      "firstDivergentRow": 0,
+      "storageDigest": "sha256:22ae2d5c26f5e8f7da79e29554ebcbf3f144ce3f81645d07f123850303baef59"
+    },
+    {
+      "stage": "attn.post_attn",
+      "ordinal": 3,
+      "shape": [
+        184,
+        1024
+      ],
+      "maxAbsoluteError": 3.0806239163380362,
+      "maxIndex": [
+        162,
+        0
+      ],
+      "zeroRows": 182,
+      "firstDivergentRow": 0,
+      "storageDigest": "sha256:22ae2d5c26f5e8f7da79e29554ebcbf3f144ce3f81645d07f123850303baef59"
+    },
+    {
+      "stage": "ffn.out",
+      "ordinal": 4,
+      "shape": [
+        184,
+        1024
+      ],
+      "maxAbsoluteError": 0.3332104676030438,
+      "maxIndex": [
+        175,
+        0
+      ],
+      "zeroRows": 0,
+      "firstDivergentRow": 0,
+      "storageDigest": "sha256:1f1a7f17c6137193073a1184bbd8d11436940c209d3caa41b2efba33bc40170f"
+    },
+    {
+      "stage": "layer.out",
+      "ordinal": 5,
+      "shape": [
+        184,
+        1024
+      ],
+      "maxAbsoluteError": 3.040171172269102,
+      "maxIndex": [
+        162,
+        0
+      ],
+      "zeroRows": 182,
+      "firstDivergentRow": 0,
+      "storageDigest": "sha256:001eb7ed7e6a9bdcfa9aea3ea62bf84c00b972deb58bf442a833a908427c9cca"
+    },
+    {
+      "stage": "layer.out",
+      "ordinal": 6,
+      "shape": [
+        184,
+        1024
+      ],
+      "maxAbsoluteError": 3.040171172269102,
+      "maxIndex": [
+        162,
+        0
+      ],
+      "zeroRows": 182,
+      "firstDivergentRow": 0,
+      "storageDigest": "sha256:001eb7ed7e6a9bdcfa9aea3ea62bf84c00b972deb58bf442a833a908427c9cca"
+    }
+  ],
+  "failure": null,
+  "cleanupFailure": null
+}

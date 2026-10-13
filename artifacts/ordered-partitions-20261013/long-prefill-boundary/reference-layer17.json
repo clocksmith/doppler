@@ -1,0 +1,12 @@
+{
+  "scope": "Offline attribution only; independent layer-16 input, original evaluator equations and weights",
+  "sha256": "eae9daf36248feeda02e9a43d70c40ef748f08c1ae01c398e19f648230c9bc8a",
+  "localVsRetainedMaxAbsoluteError": 3.1086244689504383e-15,
+  "localNumpyVersion": "2.2.3",
+  "operatorDiagnosticTolerance": 2e-11,
+  "shards": [
+    "shard_00000.bin",
+    "shard_00009.bin"
+  ],
+  "referenceInputSha256": "4b701333ba9031dc03f0cee5650fa18839c2a274e31fa093d029ef62a90276ae"
+}

@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "defaultLevel": "none",
+  "targetLevel": "full",
+  "targetOpIds": [
+    "layer.17.attn.post_input_norm",
+    "layer.17.attn.linear_core_out",
+    "layer.17.attn.out",
+    "layer.17.attn.post_attn",
+    "layer.17.ffn.normed",
+    "layer.17.ffn.out",
+    "layer.17.layer.out"
+  ]
+}
