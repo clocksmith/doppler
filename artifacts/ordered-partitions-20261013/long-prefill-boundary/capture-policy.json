@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "defaultLevel": "none",
+  "targetLevel": "full",
+  "targetOpIds": [
+    "layer.16.attn.post_input_norm",
+    "layer.16.layer.out",
+    "layer.17.layer.out",
+    "layer.18.layer.out",
+    "layer.19.layer.out",
+    "layer.20.layer.out",
+    "layer.21.layer.out",
+    "layer.22.layer.out",
+    "layer.23.layer.out"
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "scope": "Unchanged independent evaluator layer snapshots for the original 184-token prefix; diagnostic, not new reference",
+  "file": "independent-layers.npz",
+  "sha256": "4b701333ba9031dc03f0cee5650fa18839c2a274e31fa093d029ef62a90276ae",
+  "layers": [
+    {
+      "layer": 16,
+      "shape": [
+        184,
+        1024
+      ],
+      "f64Sha256": "9cabf5e55f3fc838a18642cb6936e87729674335f8d7088dc1525073bea65195"
+    },
+    {
+      "layer": 17,
+      "shape": [
+        184,
+        1024
+      ],
+      "f64Sha256": "a9bec8792a9d5a74918506b311e57e3934cd81702ab0dc45b7166755783baf31"
+    },
+    {
+      "layer": 18,
+      "shape": [
+        184,
+        1024
+      ],
+      "f64Sha256": "9d0e3cc719bcd39daefd1454b20f3b011232faa0873aca40e7d212e7189d6a64"
+    },
+    {
+      "layer": 19,
+      "shape": [
+        184,
+        1024
+      ],
+      "f64Sha256": "0cb58fd42624f305ae207659c8c87ea648070cdf78185daa0d826439499f93f6"
+    },
+    {
+      "layer": 20,
+      "shape": [
+        184,
+        1024
+      ],
+      "f64Sha256": "8771048846e26a4c769eceeac554144ca671fa719a01dea5c3481249063349ca"
+    },
+    {
+      "layer": 21,
+      "shape": [
+        184,
+        1024
+      ],
+      "f64Sha256": "01a4305b7db03a460a4fe125bd74d5a828900cfe00dbc295fd5478c9e3b1c915"
+    },
+    {
+      "layer": 22,
+      "shape": [
+        184,
+        1024
+      ],
+      "f64Sha256": "84a3a833a165b356be61791fd608a57478b1ce666567d19a1bd73cab574e378f"
+    },
+    {
+      "layer": 23,
+      "shape": [
+        184,
+        1024
+      ],
+      "f64Sha256": "aa375c9b92805cda83bdc06d84539cb7329a60ff20531d73cf9af36558b4f3af"
+    }
+  ],
+  "cpuScopeInvocation": "f13e22346ff9431cbd629237bfa9e761",
+  "exitCode": 0
+}

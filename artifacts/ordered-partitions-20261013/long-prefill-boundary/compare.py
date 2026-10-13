@@ -33,6 +33,9 @@ def progress(row):
     assert frame.f_code is reference.evaluate.__code__
     if row['layer'] in (7, 15):
         boundaries[row['layer']] = frame.f_locals['x'].copy()
+    if row['layer'] >= 16:
+        np.save(output.parent / ('independent-layer-' + str(row['layer']) + '.npy'),
+                frame.f_locals['x'])
     print(json.dumps(row), flush=True)
 
 logits, caches = reference.evaluate(tokens, weights, config['text_config'],

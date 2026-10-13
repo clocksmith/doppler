@@ -1,0 +1,51 @@
+{
+  "attempts": [
+    {
+      "scopeInvocation": "139243f5cabf473f9d7e4fe1edf99fe7",
+      "status": "failed-before-provider-open",
+      "reason": "Diagnostic launcher supplied a nonexistent fixture path; corrected to the verified cold-reference fixture. No model or GPU execution."
+    },
+    {
+      "scopeInvocation": "b274b780ea83401d8d4748646ac202fb",
+      "providerPid": 1007056,
+      "status": "diagnostic-close-deadline",
+      "receipt": "diagnostic-close-timeout.json.gz",
+      "twoShortLogitsByteIdentical": true,
+      "residentAndProviderCleanupPassed": true,
+      "next": "Detach opening observer before layer observation; record and resume unexpected debugger pauses. Original timeout stays retained."
+    },
+    {
+      "scopeInvocation": "f8b6d26a1ee14a5ab7af615c9cf1ef63",
+      "providerPid": 1008254,
+      "status": "rejected-observation-before-completion",
+      "receipt": "pre-completion-probe.json.gz",
+      "reason": "Copies taken before recorded work completed; retained snapshot values do not attribute the model failure.",
+      "residentAndProviderCleanupPassed": true
+    },
+    {
+      "scopeInvocation": "a323c5c104104f50a6a7224344dbc818",
+      "providerPid": 1013714,
+      "status": "diagnostic-close-deadline",
+      "receipt": "post-barrier-control-close-timeout.json.gz",
+      "reason": "Four short prefixes passed; second request close exceeded admitted 10-second deadline. Outer resident and provider close completed.",
+      "residentAndProviderCleanupPassed": true
+    },
+    {
+      "scopeInvocation": "86d5890a49aa4c75beb988e96a1e3b27",
+      "providerPid": 1017806,
+      "status": "rejected-observation-unavailable-closure",
+      "receipt": "unavailable-closure-probe.json.gz",
+      "reason": "Fresh original long-prefix input returned token zero; hook captured no tensors. This changed reuse control and invalid hook cannot identify a faulty kernel.",
+      "residentAndProviderCleanupPassed": true
+    },
+    {
+      "scopeInvocation": "ac78cd2bc65f4283a3e94f7e2f557af8",
+      "providerPid": 1021020,
+      "status": "captured-with-cardinality-assertion-failure",
+      "receipt": "canonical-layer-capture.json.gz",
+      "reason": "Expected nine records; seventeen observed because step and final layer probes share canonical names. Captures and error retained. Layer 16 matches F64, layer 17 first diverges. Fresh resident differs from original campaign and emitted token 1.",
+      "residentAndProviderCleanupPassed": true
+    }
+  ],
+  "updatedAt": "2026-10-13T21:19:43.316369+00:00"
+}
