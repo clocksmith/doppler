@@ -1,0 +1,76 @@
+{
+  "scope": "Symbolic scalar operands and evaluation order, not GPU numerical proof",
+  "before": {
+    "result": "v3",
+    "events": [
+      {
+        "name": "div",
+        "args": [
+          "squares",
+          "size"
+        ],
+        "value": "v0"
+      },
+      {
+        "name": "add",
+        "args": [
+          "v0",
+          "eps"
+        ],
+        "value": "v1"
+      },
+      {
+        "name": "sqrt",
+        "args": [
+          "v1"
+        ],
+        "value": "v2"
+      },
+      {
+        "name": "div",
+        "args": [
+          "one",
+          "v2"
+        ],
+        "value": "v3"
+      }
+    ]
+  },
+  "after": {
+    "result": "v3",
+    "events": [
+      {
+        "name": "div",
+        "args": [
+          "squares",
+          "size"
+        ],
+        "value": "v0"
+      },
+      {
+        "name": "add",
+        "args": [
+          "v0",
+          "eps"
+        ],
+        "value": "v1"
+      },
+      {
+        "name": "sqrt",
+        "args": [
+          "v1"
+        ],
+        "value": "v2"
+      },
+      {
+        "name": "div",
+        "args": [
+          "one",
+          "v2"
+        ],
+        "value": "v3"
+      }
+    ]
+  },
+  "passed": true
+}

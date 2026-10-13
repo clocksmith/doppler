@@ -301,7 +301,7 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "rmsnorm_f16.wgsl#rmsnorm_small_f16": "726cdb23b8ed9d7d8a497451f32c2b1e0798f9da743900a94ceab6de39c643b2",
   "rmsnorm_pair.wgsl#main": "be7297d0bc75aee156f7ec3914f75e377f6a8dc4a7e6d5d63225dba02bd478b9",
   "rmsnorm_pair.wgsl#main_subgroup": "59d95e91dce23350f9cb06a29223f3697a98002c6985d3fc224b61cab143ed98",
-  "rmsnorm_paired.wgsl#main": "27de680444c4a6b005f0f085f16bd87aa2b369f8d9976b3f3b6e2ba18cf83276",
+  "rmsnorm_paired.wgsl#main": "c0268aa06ac8962379dd811f5d256b0aceaa8300542e80619e3c088d683af61e",
   "rmsnorm_qk_f16.wgsl#main": "8d41c2219d8afa6fa649e806e41259a46b3c20cd6e4e8cf62ee982e7c07d5efe",
   "rmsnorm_qk.wgsl#main": "a9b02d353836934e2c560852fd16730d76231495d22b4219680d5f4048fc02d8",
   "rmsnorm_serial.wgsl#main": "8d384c0285e5f91802f6c5e980aa5a93f62a2d3cb3da75774715c27d0f143593",

@@ -1,0 +1,8 @@
+{
+  "scopeInvocation": "26da622f5b364c53a7747e7c772e69f4",
+  "error": "MODULE_NOT_FOUND: supervisor.js",
+  "cause": "Started scope before the outstanding SCP completed",
+  "gpuOpened": false,
+  "exitCode": 1,
+  "correction": "Waited for transfer completion; verify files before corrected launch"
+}

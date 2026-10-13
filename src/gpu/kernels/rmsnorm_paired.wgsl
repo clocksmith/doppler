@@ -300,9 +300,18 @@ fn main(@builtin(workgroup_id) group: vec3<u32>, @builtin(local_invocation_id) l
         if (local.x < stride) { squares[local.x] = pair_add(squares[local.x], squares[local.x + stride]); }
         workgroupBarrier();
     }
-    let mean = pair_div(squares[0], vec2<f32>(f32(u.size), 0.0));
-    let denominator = pair_sqrt(pair_add(mean, vec2<f32>(u.eps_hi, u.eps_lo)));
-    let inverse = pair_div(vec2<f32>(1.0, 0.0), denominator);
+    var numerator = squares[0];
+    var divisor = vec2<f32>(f32(u.size), 0.0);
+    var inverse = vec2<f32>(0.0);
+    // Mean and reciprocal retain their original operands and order while
+    // sharing a division callsite outside the paired square-root refinement.
+    for (var stage = 0u; stage < 2u; stage++) {
+        let quotient = pair_div(numerator, divisor);
+        if (stage == 0u) {
+            divisor = pair_sqrt(pair_add(quotient, vec2<f32>(u.eps_hi, u.eps_lo)));
+            numerator = vec2<f32>(1.0, 0.0);
+        } else { inverse = quotient; }
+    }
     for (var i = local.x; i < u.size; i += WORKGROUP_SIZE) {
         var value = pair_mul(pair_mul(norm_input(base + i), inverse), norm_weight(i));
         value = pair_mul(value, vec2<f32>(u.scale_hi, u.scale_lo));
