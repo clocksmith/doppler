@@ -1,3 +1,4 @@
+import { assertOrderedResidentQualificationSet } from '../config/ordered-resident-qualification.js';
 import { createHash } from 'node:crypto';
 import fs from 'node:fs/promises';
 import { createReadStream } from 'node:fs';
@@ -276,6 +277,7 @@ async function loadQualificationEvidence(reportPaths, bundle, residentContext) {
       generatedTokens: tokens.length,
     });
   }
+  assertOrderedResidentQualificationSet(evidence);
   return evidence;
 }
 

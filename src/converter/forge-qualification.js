@@ -1,3 +1,4 @@
+import { assertOrderedResidentRecord } from '../config/ordered-resident-qualification.js';
 import path from 'node:path';
 import { sha256Hex } from '../formats/sha256.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
@@ -199,7 +200,8 @@ export function normalizeQualificationEvidence(evidence) {
   const sourcePath = path.resolve(requireString(evidence.sourcePath, 'qualificationEvidence.sourcePath'));
   const sizeBytes = requirePositiveInteger(evidence.sizeBytes, 'qualificationEvidence.sizeBytes');
   if (evidence.operation === 'residentPartition' && (!/^sha256:[a-f0-9]{64}$/.test(evidence.partitionPlanHash)
-    || ![0, 1].includes(evidence.partitionIndex))) throw new Error('Rig resident qualification requires a partition plan and index.');
+    || (evidence.orderedContract === undefined && ![0, 1].includes(evidence.partitionIndex)))) throw new Error('Rig resident qualification requires a partition plan and index.');
+  if (evidence.orderedContract !== undefined) assertOrderedResidentRecord(evidence);
   const counts = evidence.operation === 'residentPartition'
     ? { operation: 'residentPartition', partitionPlanHash: evidence.partitionPlanHash, partitionIndex: evidence.partitionIndex,
       comparedSteps: requirePositiveInteger(evidence.comparedSteps, 'qualificationEvidence.comparedSteps') }
@@ -234,6 +236,7 @@ export function normalizeQualificationEvidence(evidence) {
     evidenceHash,
     transcriptHash,
     ...counts,
+    ...(evidence.orderedContract === undefined ? {} : { orderedContract: evidence.orderedContract, providerIdentityHash: evidence.providerIdentityHash }),
     artifact,
   };
 }

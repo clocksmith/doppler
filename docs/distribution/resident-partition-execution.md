@@ -323,3 +323,26 @@ current-execution/release checks around canonical methods. These contracts have
 CPU tests with simulated numerical ports; they do not establish physical
 canonical execution, authenticated stage acknowledgments or durable conversation
 publication. Those must be composed and qualified separately on exact bytes.
+
+### Ordered signed qualification
+
+An ordered plan requires `doppler.resident-partition-qualification/v2` reports
+and a frozen `doppler.resident-qualification-contract/v2`. The contract contains
+the exact v3 `partitionPlan`, its hash, manifest and graph identities, independent
+reference/evaluator identities, tolerance/step count, and ordered
+`stages: [{index, surface, providerIdentityHash}]`. Each report retains its observed
+`providerIdentity`; its canonical digest must match that stage's frozen provider.
+The existing report validator checks the complete plan against the manifest,
+including ranges and activation layout, before comparing report bindings.
+
+Rig retains the contract as `orderedContract` and the provider digest in each
+TargetPlan qualification record. Signing and TargetPlan validation require every
+stage exactly once for each contract. Runtime resident admission requires the
+exact plan and manifest; legacy v1 reports cannot authorize an ordered plan.
+Existing two-stage report bytes and independently scoped qualification remain
+unchanged. This structural admission does not independently evaluate logits or
+qualify unobserved hardware. The retained two-stage physical producer is still
+v1 and cannot manufacture N-stage evidence from its old captures. N-stage
+physical capture, genuine report production, and signed host integration remain
+separate acceptance work. Canonical speculative execution remains unsupported
+for ordered resident plans.

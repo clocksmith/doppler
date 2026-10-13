@@ -1,4 +1,4 @@
-
+import { assertOrderedResidentQualificationSet } from '../config/ordered-resident-qualification.js';
 import path from 'node:path';
 import { createModelIR, hashModelIR, validateModelIR } from '../config/model-ir.js';
 import {
@@ -25,7 +25,6 @@ import { assertPairedExecutionMechanismClosure } from '../config/execution-regis
 import { evaluateForgeCandidates } from './forge-candidate-evaluation.js';
 
 export const RIG_PIPELINE_VERSION = '2.0.0';
-
 function isObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
@@ -206,6 +205,7 @@ export function stageNormalize(inspected) {
   }
   const artifacts = bundle.artifacts.map((artifact) => normalizeCapsuleArtifact(artifact, input));
   const qualificationEvidence = input.qualificationEvidence.map(normalizeQualificationEvidence);
+  assertOrderedResidentQualificationSet(qualificationEvidence);
   artifacts.push(...qualificationEvidence.map((evidence) => evidence.artifact));
   if (input.residentContract) {
     const contract = input.residentContract;
