@@ -24,7 +24,13 @@ export async function preparePairedLinearAttentionPipelines(device, signal) {
   signal?.throwIfAborted();
   await getPipelineFast('qwen_linear_attention_prepare', 'paired_decay', null, GATE_CONSTANTS, device);
   signal?.throwIfAborted();
-  await getPipelineFast('gated_delta_recurrent', 'paired', null, RECURRENT_CONSTANTS, device);
+  await getPipelineFast('gated_delta_recurrent', 'paired_qk', null, RECURRENT_CONSTANTS, device);
+  signal?.throwIfAborted();
+  await getPipelineFast('gated_delta_recurrent', 'paired_state', null, RECURRENT_CONSTANTS, device);
+  signal?.throwIfAborted();
+  await getPipelineFast('gated_delta_recurrent', 'paired_norm', null, RECURRENT_CONSTANTS, device);
+  signal?.throwIfAborted();
+  await getPipelineFast('gated_delta_recurrent', 'paired_gate', null, RECURRENT_CONSTANTS, device);
   signal?.throwIfAborted();
 }
 
@@ -77,6 +83,7 @@ export async function executePairedLinearAttention(qkv, z, a, b, state, options)
   if (!device || device.limits.maxStorageBuffersPerShaderStage < 9) throw new Error('[PairedLinear] Nine storage bindings per stage are required.');
   if (Math.ceil(numTokens * state.numVHeads / 64) > device.limits.maxComputeWorkgroupsPerDimension
     || Math.ceil(state.convDim / 64) > device.limits.maxComputeWorkgroupsPerDimension
+    || Math.ceil(numTokens * state.valueDim / 128) > device.limits.maxComputeWorkgroupsPerDimension
     || state.numVHeads > device.limits.maxComputeWorkgroupsPerDimension
     || numTokens * Math.max(state.convDim, state.valueDim) * 8 > 0xffffffff) {
     throw new Error('[PairedLinear] Geometry exceeds dispatch or binding limits.');
@@ -117,9 +124,16 @@ export async function executePairedLinearAttention(qkv, z, a, b, state, options)
     await unifiedKernelWrapper('qwen_linear_attention_prepare', recorder, 'paired_decay',
       [gates], uniform,
       [Math.ceil(numTokens * state.numVHeads / 64), 1, 1], GATE_CONSTANTS);
-    await unifiedKernelWrapper('gated_delta_recurrent', recorder, 'paired',
-      [conv, z, gates, state.normWeightGPU, state.recurrentStateGPU, output], uniform,
+    await unifiedKernelWrapper('gated_delta_recurrent', recorder, 'paired_qk',
+      [conv], uniform, [state.numKHeads, 1, 1], RECURRENT_CONSTANTS);
+    await unifiedKernelWrapper('gated_delta_recurrent', recorder, 'paired_state',
+      [conv, gates, state.recurrentStateGPU, output], uniform,
       [state.numVHeads, 1, 1], RECURRENT_CONSTANTS);
+    await unifiedKernelWrapper('gated_delta_recurrent', recorder, 'paired_norm',
+      [state.normWeightGPU, output], uniform,
+      [state.numVHeads, 1, 1], RECURRENT_CONSTANTS);
+    await unifiedKernelWrapper('gated_delta_recurrent', recorder, 'paired_gate',
+      [z, output], uniform, [Math.ceil(numTokens * state.valueDim / 128), 1, 1], RECURRENT_CONSTANTS);
     return createTensor(output, 'f32', [numTokens, state.valueDim], 'paired_linear_output', REPRESENTATION);
   } catch (error) { if (output) release(output); throw error; }
   finally { if (gates) release(gates); if (conv) release(conv); }

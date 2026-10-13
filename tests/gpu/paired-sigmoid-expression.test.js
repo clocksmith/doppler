@@ -56,7 +56,9 @@ for (let i = 0; i < 4096; i++) {
 }
 assert.equal((current.match(/pair_exp\(/g) ?? []).length, 1,
   'Sigmoid must have one static exponential callsite to avoid duplicate compiler expansion.');
-console.log(`paired sigmoid preserved ${comparisons} branch expression traces; one exponential callsite`);
+assert.equal((current.match(/pair_div\(/g) ?? []).length, 1,
+  'Sigmoid must share its division callsite without changing branch operands.');
+console.log(`paired sigmoid preserved ${comparisons} branch expression traces; one exponential/division callsite`);
 
 const previousSoftplus = `
     let one = vec2<f32>(1.0, 0.0);

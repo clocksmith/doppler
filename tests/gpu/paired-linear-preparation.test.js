@@ -23,7 +23,10 @@ try {
     ['qwen_linear_attention_prepare', 'paired_decay_scale', 64],
     ['qwen_linear_attention_prepare', 'paired_log_decay', 64],
     ['qwen_linear_attention_prepare', 'paired_decay', 64],
-    ['gated_delta_recurrent', 'paired', 128],
+    ['gated_delta_recurrent', 'paired_qk', 128],
+    ['gated_delta_recurrent', 'paired_state', 128],
+    ['gated_delta_recurrent', 'paired_norm', 128],
+    ['gated_delta_recurrent', 'paired_gate', 128],
   ];
   const successful = preparePairedLinearAttentionPipelines(device); await flush();
   for (const [i, [operation, variant, width]] of stages.entries()) {

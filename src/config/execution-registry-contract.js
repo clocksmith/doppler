@@ -84,6 +84,8 @@ export function assertPairedExecutionMechanismClosure(graph) {
     ['qwen_linear_attention_prepare', 'paired_decay_scale'],
     ['qwen_linear_attention_prepare', 'paired_log_decay'],
     ['qwen_linear_attention_prepare', 'paired_decay'],
+    ['gated_delta_recurrent', 'paired_qk'], ['gated_delta_recurrent', 'paired_state'],
+    ['gated_delta_recurrent', 'paired_norm'], ['gated_delta_recurrent', 'paired_gate'],
     ['split_qg', 'paired'], ['split_qkv', 'paired'], ['rope_precompute', 'paired'],
     ['paired_pointwise', 'sigmoid'], ['paired_pointwise', 'scale'],
     ['logit_finalize', 'f32'],

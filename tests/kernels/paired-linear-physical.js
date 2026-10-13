@@ -7,7 +7,7 @@ import { chromium } from 'playwright';
 const destination = process.argv[2];
 if (!destination) throw new Error('Provide receipt destination.');
 await mkdir(dirname(destination), { recursive: true });
-const sources = await Promise.all(['gated_delta_conv_paired', 'qwen_linear_attention_prepare_paired', 'qwen_linear_attention_scale_paired', 'qwen_linear_attention_log_decay_paired', 'qwen_linear_attention_decay_paired', 'gated_delta_recurrent_paired'].map(name =>
+const sources = await Promise.all(['gated_delta_conv_paired', 'qwen_linear_attention_prepare_paired', 'qwen_linear_attention_scale_paired', 'qwen_linear_attention_log_decay_paired', 'qwen_linear_attention_decay_paired', 'gated_delta_qk_paired', 'gated_delta_state_paired', 'gated_delta_norm_paired', 'gated_delta_gate_paired'].map(name =>
   readFile(new URL(`../../src/gpu/kernels/${name}.wgsl`, import.meta.url), 'utf8')));
 const hash = value => createHash('sha256').update(value).digest('hex');
 let seed = 624901;
@@ -94,13 +94,16 @@ try {
           const cw = storage(f.weight), cs = storage(f.convState), state = storage(f.state), dt = storage(f.bias), log = storage(f.log), norm = storage(f.norm);
           const conv = storage(new Array(f.tokens * f.convDim * 2).fill(0)), output = storage(new Array(f.tokens * f.valueDim * 2).fill(0));
           const gates = storage(new Array(f.tokens * f.nv * 4).fill(0));
-          const bindings = [[uniform, qkv, cw, cs, conv], [uniform, b, gates], [uniform, log, gates], [uniform, a, dt, gates], [uniform, gates], [uniform, conv, z, gates, norm, state, output]];
+          const bindings = [[uniform, qkv, cw, cs, conv], [uniform, b, gates], [uniform, log, gates], [uniform, a, dt, gates], [uniform, gates], [uniform, conv], [uniform, conv, gates, state, output], [uniform, norm, output], [uniform, z, output]];
+          const dispatches = [Math.ceil(f.convDim / 64), ...Array(4).fill(Math.ceil(f.tokens * f.nv / 64)), f.nk, f.nv, f.nv, Math.ceil(f.tokens * f.valueDim / 128)];
+          const convSnapshot = alloc(conv.size, GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC);
           const encoder = device.createCommandEncoder();
           for (let i = 0; i < pipelines.length; i++) {
             const group = device.createBindGroup({ layout: pipelines[i].getBindGroupLayout(0), entries: bindings[i].map((buffer, binding) => ({ binding, resource: { buffer } })) });
-            const pass = encoder.beginComputePass(); pass.setPipeline(pipelines[i]); pass.setBindGroup(0, group); pass.dispatchWorkgroups(i === 0 ? Math.ceil(f.convDim / 64) : i < pipelines.length - 1 ? Math.ceil(f.tokens * f.nv / 64) : f.nv); pass.end();
+            const pass = encoder.beginComputePass(); pass.setPipeline(pipelines[i]); pass.setBindGroup(0, group); pass.dispatchWorkgroups(dispatches[i]); pass.end();
+            if (i === 0) encoder.copyBufferToBuffer(conv, 0, convSnapshot, 0, conv.size);
           }
-          const readbacks = [conv, cs, state, output, gates].map(buffer => { const b = alloc(buffer.size, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ); encoder.copyBufferToBuffer(buffer, 0, b, 0, buffer.size); return b; });
+          const readbacks = [convSnapshot, cs, state, output, gates].map(buffer => { const b = alloc(buffer.size, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ); encoder.copyBufferToBuffer(buffer, 0, b, 0, buffer.size); return b; });
           device.queue.submit([encoder.finish()]);
           const values = [];
           for (const buffer of readbacks) { await buffer.mapAsync(GPUMapMode.READ); mapped.push(buffer); values.push(Array.from(new Float32Array(buffer.getMappedRange().slice(0)))); }
