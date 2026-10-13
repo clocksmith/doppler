@@ -1,0 +1,152 @@
+{
+  "schema": "reploid.ordered-qualification-capture/v1",
+  "launchReady": false,
+  "expectations": {
+    "path": "/var/tmp/reploid-gate-three-stage-20261013/expectations.json",
+    "hash": null
+  },
+  "root": "/var/tmp/reploid-gate-three-stage-20261013",
+  "runtimeDirectory": "/var/tmp/reploid-gate-three-stage-20261013/vendor/doppler/0.6.28",
+  "packageVersion": "0.6.28",
+  "model": {
+    "id": "qwen-3-5-0-8b-q4k-ehaf16",
+    "name": "Qwen 3.5 0.8B",
+    "identity": "sha256:18e14f41ab9bca4504c0866e3e1e57097bf5da99a0646ae301b64dd86239b5b2",
+    "source": {
+      "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16/",
+      "files": [
+        {
+          "path": "manifest.json",
+          "role": "model-manifest",
+          "sizeBytes": 214138,
+          "hashAlgorithm": "sha256",
+          "hash": "edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9"
+        },
+        {
+          "path": "tokenizer.json",
+          "role": "tokenizer",
+          "sizeBytes": 9088480,
+          "hashAlgorithm": "sha256",
+          "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4"
+        },
+        {
+          "path": "qwen-0-8b-pieces.json",
+          "role": "model-piece-index",
+          "sizeBytes": 34259,
+          "hashAlgorithm": "sha256",
+          "hash": "02e7f90a322ed4c395e0d33f49ceae9f190f5a9dca7e9ca6f58f75c12b03ad94",
+          "url": "/config/model-pieces/qwen-0-8b-pieces.json"
+        }
+      ]
+    },
+    "provider": "doppler",
+    "contextLength": 262144,
+    "quantization": "q4k",
+    "size": "Q4K",
+    "adapters": [],
+    "packageName": "doppler-gpu",
+    "packageVersion": "0.6.28",
+    "generation": {
+      "maxTokens": 1024,
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1,
+      "stopSequences": [],
+      "useChatTemplate": true,
+      "repetitionPenalty": 1,
+      "repetitionPenaltyWindow": 0,
+      "maxSeqLen": 4096
+    }
+  },
+  "outputPath": "/var/tmp/reploid-gate-three-stage-20261013/output/reference.json",
+  "gpuReservation": {
+    "approved": false,
+    "id": null,
+    "observedAt": null,
+    "sharedMachineNotes": "Public co-tenants remain; controller and provider observations still required"
+  },
+  "executors": [
+    {
+      "executorId": "mac-stage-0",
+      "kind": "browser-cdp",
+      "endpoint": null,
+      "baseUrl": null,
+      "runtimeBaseUrl": null,
+      "modelSource": null,
+      "preflight": {
+        "path": "/var/tmp/reploid-gate-three-stage-20261013/mac-preflight.json",
+        "hash": null
+      }
+    },
+    {
+      "executorId": "amd-stage-1",
+      "kind": "native-inspector",
+      "endpoint": null,
+      "baseUrl": null,
+      "runtimeBaseUrl": null,
+      "modelSource": null,
+      "preflight": {
+        "path": "/var/tmp/reploid-gate-three-stage-20261013/amd-preflight.json",
+        "hash": null
+      }
+    },
+    {
+      "executorId": "suby-stage-2",
+      "kind": "native-inspector",
+      "endpoint": null,
+      "baseUrl": null,
+      "runtimeBaseUrl": null,
+      "modelSource": null,
+      "preflight": {
+        "path": "/var/tmp/reploid-gate-three-stage-20261013/suby-preflight.json",
+        "hash": null
+      }
+    }
+  ],
+  "reference": {
+    "path": "/var/tmp/reploid-gate-three-stage-20261013/approved-reference.json",
+    "hash": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6"
+  },
+  "manifest": {
+    "path": "/var/tmp/reploid-gate-three-stage-20261013/manifest.json",
+    "hash": "sha256:18e14f41ab9bca4504c0866e3e1e57097bf5da99a0646ae301b64dd86239b5b2"
+  },
+  "graph": {
+    "path": "/var/tmp/reploid-gate-three-stage-20261013/execution.json",
+    "hash": "sha256:a0b6f75060c9ec618cefafddadb8e278e6c5e1b4d7cfa4572a8f3df56e3db0c6"
+  },
+  "archive": {
+    "path": "/var/tmp/reploid-gate-three-stage-20261013/archive.tgz",
+    "hash": "sha256:1cb2a5b8b7ebcefd6269b6a065fea0347c6471fe0c044479c78ef5b9f0c096eb"
+  },
+  "policy": {
+    "path": "/var/tmp/reploid-gate-three-stage-20261013/self/config/partition-policy.json",
+    "hash": "sha256:5a6f974f34b1cba00aff269857c3fe53728782317477bede684a0e11f2b6a235"
+  },
+  "pairedBinding": {
+    "path": "/var/tmp/reploid-gate-three-stage-20261013/paired-binding.json",
+    "hash": "sha256:3a555f1a4d97edb0ecf25b2f60d4a191aee2bcb81c695eb5ee208894488f8ef9"
+  },
+  "requests": {
+    "path": "/var/tmp/reploid-gate-three-stage-20261013/original-requests.json",
+    "hash": "sha256:794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e"
+  },
+  "delivery": {
+    "path": "/var/tmp/reploid-gate-three-stage-20261013/snapshot-binding.json",
+    "hash": "sha256:6f69ef692a5916f1736ca356625df0bd81267a8b2e5ea6edf725e96e53220d2d"
+  },
+  "requestContracts": [
+    {
+      "path": "/var/tmp/reploid-gate-three-stage-20261013/request-0-contract.json",
+      "hash": "sha256:ba2a4668d6affb85faf05221d6263a5b29b55d26c8f89a4f107cbacb717599a9"
+    },
+    {
+      "path": "/var/tmp/reploid-gate-three-stage-20261013/request-1-contract.json",
+      "hash": "sha256:3cc051de10f77e945c6a62b66cccb22f0c15e55bf11196c6f71aeda4174ba5a2"
+    },
+    {
+      "path": "/var/tmp/reploid-gate-three-stage-20261013/request-2-contract.json",
+      "hash": "sha256:8b21b154357efa8c9d1c853ffe36c5ce9d9e32e684b496db9031bc59fa6fe836"
+    }
+  ]
+}

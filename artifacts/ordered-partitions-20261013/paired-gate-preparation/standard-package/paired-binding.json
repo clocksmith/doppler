@@ -1,0 +1,18 @@
+{
+  "archiveSha256": "1cb2a5b8b7ebcefd6269b6a065fea0347c6471fe0c044479c78ef5b9f0c096eb",
+  "sourceManifestSha256": "edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+  "immediateParentManifestSha256": "a32c76ee98c14366ee945314b4e9e583d505f9d214ad4e4417c04cd89b9340af",
+  "manifestSha256": "18e14f41ab9bca4504c0866e3e1e57097bf5da99a0646ae301b64dd86239b5b2",
+  "graphSha256": "a0b6f75060c9ec618cefafddadb8e278e6c5e1b4d7cfa4572a8f3df56e3db0c6",
+  "representation": "Explicit session intermediatePrecision=two-f32 and linearRecurrentStatePrecision=two-f32",
+  "weightsTokenizerAndSourceFactsUnchanged": true,
+  "executionGraphChanged": true,
+  "precisionAuthorization": "User-approved interleaved two-F32 intermediate and persistent state chain",
+  "publicLogits": "f32",
+  "kvStorage": "f16",
+  "numericalReference": "unchanged approved independent F64",
+  "tolerance": 0.001,
+  "qualified": false,
+  "sourceConstruction": "Ordinary npm pack from clean committed33bd652a; paired beta/decay preparation mechanism declared and shader digests synchronized.",
+  "closureCorrection": "New qwen_linear_attention_prepare/paired_gates mechanism is required before runtime admission; no signature/report reuse."
+}
