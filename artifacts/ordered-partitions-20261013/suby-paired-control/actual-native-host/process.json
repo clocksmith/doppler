@@ -1,0 +1,53 @@
+{
+  "startedAt": "2026-10-13T15:46:23.452Z",
+  "controllerPid": 784212,
+  "before": [
+    " 297260       1 Rsl     13:42:23 node server/native-participant.js --contribute --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory /home/clocksmith/.local/share/reploid/public-native/weights --cache-directory /home/clocksmith/.local/share/reploid/public-native/cache --identity-file /home/clocksmith/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo.id --signaling-url wss://reploid-swarm.reploid.workers.dev/swarm",
+    " 299769       1 Ssl     13:39:08 node scripts/run-mesh-contributor.js --url https://replo.id/ --profile /home/clocksmith/.local/share/reploid/public-compute --model qwen-3-5-0-8b-q4k-ehaf16 --contribute compute --browser chromium"
+  ],
+  "stdout": "",
+  "stderr": "Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 1000000 to 16 to fit dynamic offset allocation limit.\nWarning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 1000000 to 16 to fit dynamic offset allocation limit.\n[851.8ms][GPU] Device lost: device was destroyed, Reason: destroyed\n",
+  "signals": [],
+  "sourceSha256": "4c589be58c8eb903da8e2e67ce82867d2cb9d88e7063c19bc2975c98d721dea3",
+  "reservation": {
+    "schema": "doppler.suby-paired-cast-reservation/v1",
+    "id": "root-suby-actual-native-host-20261013",
+    "authorizedBy": "Root actual installed createNativeGpuHost open/four casts/close, Suby only",
+    "frozenAt": "2026-10-13T15:46:07.666072+00:00",
+    "runtimeArchiveSha256": "5e0d60bc433d332187d422721fd7afcaec780c202e3082adcab389b47fd27fc5",
+    "scope": "Actual installed native host lifecycle; package-local wrappers; no model, full N-stage or signed qualification",
+    "operationDeadlineMs": 300000,
+    "cleanupDeadlineMs": 10000,
+    "externalTotalProcessDeadlineMs": 310000,
+    "poolBudgetBytes": 16777216,
+    "explicitOwnedStorageBufferBytes": 272,
+    "cases": 4,
+    "sources": {
+      "control.js": "4c589be58c8eb903da8e2e67ce82867d2cb9d88e7063c19bc2975c98d721dea3",
+      "controller.js": "53d8df68c77494424d2b959c7ba6a05c5ee1153f8f8e49107795285929f5a821"
+    },
+    "runtimeClosure": {
+      "src/gpu/kernels/paired-cast.js": "25f17884af6919b1707f7f55e90631d780229039c011f87ee670a22b8fd71878",
+      "src/gpu/kernels/cast_f32_to_two_f32.wgsl": "059179f0bb62747bda43dec235fb1f873d22cd068bda37bf478b944e02297ebc",
+      "src/gpu/kernels/cast_two_f32_to_f16.wgsl": "e13bbba70e0c7b9363b5ecf0d38e1f665dff7791d73283f4a6037879a2d33983",
+      "src/gpu/tensor.js": "732b00eacd2a946ee1bf3521795d7722ca0379d24a278ee5c47c9e98bf030a5c",
+      "src/gpu/command-recorder.js": "986c3f11679ef3617e3931124575b6b52e97a7de1e806f8c771aeeec891a4010",
+      "src/config/kernels/registry.json": "78660305b92d9c1158222221beda5fec8f08d3e0d911b156681de92e849037e5",
+      "tests/kernels/paired-cast-physical.js": "8f87d19bb6f8273d0ec92ed455da9711f8bf68e163da5b64f8db2466438b795f"
+    },
+    "parentControlHash": "b6c0a7f6a190d10513627aa0bec45993218519aeea2a046289dbca6d0b3fe8d1",
+    "nativeArchiveSha256": "d73081423fb00bfc64ecc56e8faf502048d86279c526189cf88a8382a6039cb6",
+    "nativeSourceCommit": "d29cdec863665105973879870d3e2d747c45f636"
+  },
+  "pid": 784223,
+  "exit": {
+    "code": 0,
+    "signal": null,
+    "at": "2026-10-13T15:46:24.412Z"
+  },
+  "after": [
+    " 297260       1 Rsl     13:42:24 node server/native-participant.js --contribute --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory /home/clocksmith/.local/share/reploid/public-native/weights --cache-directory /home/clocksmith/.local/share/reploid/public-native/cache --identity-file /home/clocksmith/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo.id --signaling-url wss://reploid-swarm.reploid.workers.dev/swarm",
+    " 299769       1 Ssl     13:39:09 node scripts/run-mesh-contributor.js --url https://replo.id/ --profile /home/clocksmith/.local/share/reploid/public-compute --model qwen-3-5-0-8b-q4k-ehaf16 --contribute compute --browser chromium"
+  ],
+  "naturalExit": true
+}

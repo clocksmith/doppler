@@ -1,0 +1,23 @@
+{
+  "observedAt": "2026-10-13T15:46:22.285608+00:00",
+  "providerPath": "/var/tmp/reploid-ordered-native-d29cdec8-20261013/reploid/node_modules/webgpu",
+  "providerFiles": {
+    "index.js": {
+      "sha256": "18a44f1e81cd3697156e7ddd3456e9f0d346a0afabb76588379b5b2f6dca50b4",
+      "bytes": 503
+    },
+    "package.json": {
+      "sha256": "808ca40c7fdacd112c4b1935dde1fbbbf4279ae11dbbae5ef5cd50b1c639222a",
+      "bytes": 959
+    },
+    "README.md": {
+      "sha256": "9feae40e146fd7e9fee881b84e4bd6a08b37ec9355317a66e4102dbe5bab83c7",
+      "bytes": 6668
+    },
+    "dist/linux-x64.dawn.node": {
+      "sha256": "fbfe599055b469963e4c9bfc900a702843db962dcaba0799b3c81ae33fa43db1",
+      "bytes": 18617336
+    }
+  },
+  "processes": "    PID    PPID STAT     ELAPSED COMMAND\n 297260       1 Rsl     13:42:22 node server/native-participant.js --contribute --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory /home/clocksmith/.local/share/reploid/public-native/weights --cache-directory /home/clocksmith/.local/share/reploid/public-native/cache --identity-file /home/clocksmith/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo.id --signaling-url wss://reploid-swarm.reploid.workers.dev/swarm\n 299769       1 Ssl     13:39:07 node scripts/run-mesh-contributor.js --url https://replo.id/ --profile /home/clocksmith/.local/share/reploid/public-compute --model qwen-3-5-0-8b-q4k-ehaf16 --contribute compute --browser chromium\n"
+}
