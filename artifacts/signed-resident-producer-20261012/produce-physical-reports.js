@@ -22,13 +22,82 @@ function vector(text, bytesPerElement, length) {
   return values;
 }
 
+/** Ordered capture checks bind actual stage execution, not descriptive stage inventory. */
+function orderedStageExecutions({ expected, capture, manifest, reference, computeCanonicalSha256, hashPartitionGeneration }) {
+  const plan = expected.partitionPlan, count = plan.stageCount;
+  same(expected.logicalStageCount, count);
+  same(expected.maxGpuBufferBytes, 1420000000);
+  same(expected.deadlines, { stageMs: 300000, cleanupMs: 10000, observationMs: 2000 });
+  same(capture.deadlines, expected.deadlines);
+  same(expected.placements.map(row => row.partitionIndex), Array.from({ length: count }, (_, index) => index));
+  same(new Set(expected.placements.map(row => row.executorId)).size, count, 'Distinct declared executor contexts required');
+  for (const placement of expected.placements) {
+    for (const key of ['executorId', 'platform', 'participantId', 'transportId', 'residentId', 'executionId']) {
+      assert.equal(typeof placement[key], 'string'); assert(placement[key].length, `Missing stage ${key}`);
+    }
+  }
+  same(expected.physicalHostCount, new Set(expected.placements.map(row => row.platform)).size,
+    'Physical host count must be separate from logical stage count');
+  assert(Number.isSafeInteger(expected.physicalHostCount) && expected.physicalHostCount > 0);
+  same(new Set(capture.descriptors.map(row => `${row.platform}:${row.executorIdentity?.pid}:${row.executorIdentity?.contextId}`)).size, count, 'Stage contexts must be distinct');
+  same(capture.logicalStageCount, count); same(capture.physicalHostCount, expected.physicalHostCount);
+  const generationDigest = hashPartitionGeneration(reference.generation), attempts = new Set();
+  for (const run of capture.runs) {
+    const identity = run.identity;
+    same(identity.schema, 'doppler.resident-partition-attempt/v2');
+    same(identity.modelId, manifest.modelId); same(identity.modelIdentity, expected.manifestHash);
+    same(identity.planId, expected.orderedContract.partitionPlanHash);
+    same(identity.requesterId, expected.requesterId); same(identity.placementGeneration, expected.placementGeneration);
+    assert(typeof identity.threadId === 'string' && identity.threadId.length);
+    assert(typeof identity.attemptId === 'string' && identity.attemptId.length && !attempts.has(identity.attemptId));
+    attempts.add(identity.attemptId);
+    same(identity.stages, expected.placements.map(({ partitionIndex: index, participantId, transportId, residentId, executionId }) =>
+      ({ index, participantId, transportId, residentId, executionId })));
+    let position = 0;
+    for (const observed of run.numerical) {
+      same(observed.stageExecutions.length, count, 'Every stage execution must be observed for every prefix');
+      let prior = null;
+      for (const [index, execution] of observed.stageExecutions.entries()) {
+        const placement = expected.placements[index], descriptor = capture.descriptors[index];
+        same(execution.partitionIndex, index); same(execution.executorId, placement.executorId);
+        same(execution.method, 'executeStage'); same(execution.completed, true);
+        assert(Number.isFinite(execution.elapsedMs) && execution.elapsedMs >= 0 && execution.elapsedMs <= expected.deadlines.stageMs, 'Stage deadline not met');
+        same(execution.identity, identity); same(execution.step, observed.step);
+        same(execution.tokenPosition, position); same(execution.inputTokenCount, observed.inputTokenIds.length);
+        same(execution.inputTokenIds, observed.inputTokenIds); same(execution.generationDigest, generationDigest);
+        same(execution.initialExecutionIdentityHash, computeCanonicalSha256(descriptor.openingObservation.initialExecutionIdentity));
+        same(execution.initialExecutionIdentityHash, placement.executionId, 'Stage execution does not use the declared prepared identity');
+        same(execution.activationInput, prior, 'Activation boundary changed between ordered stages');
+        if (index + 1 < count) {
+          const activation = execution.activationOutput;
+          same(activation.shape, [1, observed.inputTokenIds.length, plan.hiddenSize]);
+          same(activation.dtype, plan.activationDtype); same(activation.precision, plan.activationPrecision);
+          same(activation.components, plan.activationComponents); same(activation.elementStrideBytes, plan.activationElementStrideBytes);
+          same(activation.step, observed.step); same(activation.seqOffset, position);
+          const raw = Buffer.from(activation.data, 'base64'); same(raw.toString('base64'), activation.data);
+          same(raw.length, observed.inputTokenIds.length * plan.hiddenSize * plan.activationElementStrideBytes);
+          same(activation.byteLength, raw.length); same(activation.storageHash, sha256(raw));
+          same(execution.logitsHash, null, 'Nonfinal stages cannot claim sampling output');
+          prior = activation;
+        } else {
+          same(execution.activationOutput, null);
+          same(execution.logitsHash, sha256(Buffer.from(observed.logits, 'base64')));
+        }
+      }
+      position += observed.inputTokenIds.length;
+    }
+  }
+}
+
 /** Frozen expectations and independently assembled F64 bytes precede captures.
  * Identity derivation is supplied by the exact installed archive's existing helper.
  * Raw report flags/error summaries are not trusted as numerical comparison.
  */
 export function producePhysicalReports({ expected, captureBytes, referenceBytes, manifestBytes, graphBytes,
-  runBytes, deliveryBytes, archiveBytes, evaluatorBytes, requestContractBytes, observeInitialExecutionIdentity, computeCanonicalSha256 }) {
-  same(expected.schema, 'doppler.physical-resident-producer-input/v1');
+  runBytes, deliveryBytes, archiveBytes, evaluatorBytes, requestContractBytes, observeInitialExecutionIdentity, computeCanonicalSha256, assertOrderedResidentContract,
+  validateOrderedLayerPartitionPlan, hashPartitionGeneration }) {
+  const ordered = expected.schema === 'doppler.physical-resident-producer-input/v2';
+  assert(ordered || expected.schema === 'doppler.physical-resident-producer-input/v1', 'Unsupported producer input');
   for (const [name, bytes] of Object.entries({ archive: archiveBytes, reference: referenceBytes,
     manifest: manifestBytes, graph: graphBytes, evaluator: evaluatorBytes })) {
     same(sha256(bytes), expected[`${name}Hash`], `${name} differs from frozen input`);
@@ -74,6 +143,17 @@ export function producePhysicalReports({ expected, captureBytes, referenceBytes,
   same(capture.pairedBinding.manifestIdentity, expected.manifestHash);
   same(capture.pairedBinding.graphSha256, expected.graphHash.slice(7));
   same(reference.planId, expected.legacyPlanId, 'Frozen legacy traversal differs');
+  if (ordered) {
+    assert.equal(typeof assertOrderedResidentContract, 'function', 'Exact archive ordered validator required');
+    assertOrderedResidentContract(expected.orderedContract);
+    validateOrderedLayerPartitionPlan(manifest, expected.partitionPlan);
+    same(expected.orderedContract.partitionPlan, expected.partitionPlan);
+    same(expected.orderedContract.manifestIdentity, expected.manifestHash);
+    same(expected.orderedContract.referenceHash, expected.referenceHash);
+    same(expected.orderedContract.evaluatorHash, expected.evaluatorHash);
+    same(expected.orderedContract.comparedSteps, 55); same(expected.orderedContract.tolerance, 0.001);
+    orderedStageExecutions({ expected, capture, manifest, reference, computeCanonicalSha256, hashPartitionGeneration });
+  }
   same(capture.runs.length, reference.expected.length, 'Missing or extra request');
   same(requestContractBytes.length, reference.expected.length);
   same(expected.requestContractHashes.length, reference.expected.length);
@@ -107,16 +187,36 @@ export function producePhysicalReports({ expected, captureBytes, referenceBytes,
     }
   }
   same(steps.length, 55, 'All 55 ordered prefixes required');
-  same(capture.descriptors.length, 2); same(capture.residentSettlement.length, 2);
-  same(expected.placements.map(row => row.partitionIndex).sort(), [0, 1]);
-  same(new Set(expected.placements.map(row => row.platform)).size, 2, 'Two distinct predeclared physical hosts required');
-  const contract = { schema: 'doppler.resident-qualification-contract/v1', referenceHash: expected.referenceHash,
+  const stageCount = ordered ? expected.partitionPlan.stageCount : 2;
+  same(capture.descriptors.length, stageCount); same(capture.residentSettlement.length, stageCount);
+  if (!ordered) {
+    same(expected.placements.map(row => row.partitionIndex).sort(), [0, 1]);
+    same(new Set(expected.placements.map(row => row.platform)).size, 2, 'Two distinct predeclared physical hosts required');
+  }
+  const contract = ordered ? expected.orderedContract : { schema: 'doppler.resident-qualification-contract/v1', referenceHash: expected.referenceHash,
     evaluatorHash: expected.evaluatorHash, tolerance: 0.001, comparedSteps: 55 };
   const nativeDescriptors = capture.descriptors.filter(row => row.surface === 'node-webgpu');
-  assert(nativeDescriptors.length <= 1, 'This fixture supports one native and one browser participant');
+  if (!ordered) assert(nativeDescriptors.length <= 1, 'This fixture supports one native and one browser participant');
   const reports = capture.descriptors.map((descriptor, slot) => {
     const observed = descriptor.openingObservation, partitionIndex = descriptor.descriptor.index;
-    assert([0, 1].includes(partitionIndex));
+    assert(Number.isSafeInteger(partitionIndex) && partitionIndex >= 0 && partitionIndex < stageCount);
+    if (ordered) {
+      same(partitionIndex, slot); same(descriptor.executorId, expected.placements[slot].executorId);
+      same(descriptor.descriptor.schema, 'doppler.resident-partition/v2');
+      same(descriptor.descriptor.stageCount, stageCount); same(descriptor.descriptor.ready, true);
+      same(descriptor.descriptor.modelId, manifest.modelId); same(descriptor.descriptor.modelIdentity, expected.manifestHash);
+      same(descriptor.descriptor.planId, expected.orderedContract.partitionPlanHash);
+      same(descriptor.descriptor.generationDigest, hashPartitionGeneration(reference.generation));
+      same(descriptor.descriptor.layerRange, expected.partitionPlan.partitions[slot].layerRange);
+      assert(Number.isSafeInteger(descriptor.executorIdentity?.pid) && descriptor.executorIdentity.pid > 0);
+      assert(typeof descriptor.executorIdentity.contextId === 'string' && descriptor.executorIdentity.contextId.length);
+      same(capture.executorSettlements.length, stageCount);
+      const closed = capture.executorSettlements[slot];
+      same(closed.partitionIndex, partitionIndex); same(closed.executorId, descriptor.executorId);
+      same(closed.executorIdentity, descriptor.executorIdentity); same(closed.contextClosed, true);
+      assert(!closed.error, 'Executor context did not close');
+    }
+    const providerKey = ordered ? descriptor.executorId : descriptor.platform;
     same(descriptor.platform, expected.placements.find(row => row.partitionIndex === partitionIndex).platform,
       'Physical placement differs from the pre-run declaration');
     same(descriptor.plan, expected.partitionPlan, 'Declared paired traversal differs');
@@ -125,14 +225,22 @@ export function producePhysicalReports({ expected, captureBytes, referenceBytes,
     same(observed.planId, descriptor.planId); same(descriptor.planId, computeCanonicalSha256(descriptor.plan));
     same(observed.sources.factory.sha256, expected.factorySha256);
     same(observed.sources.identity.sha256, expected.identityHelperSha256);
-    assert(expected.providers[descriptor.platform], 'Provider was not declared before observation');
-    same(descriptor.observedProvider, expected.providers[descriptor.platform], 'Provider differs');
-    const surface = expected.surfaces?.[descriptor.platform] ?? 'browser-webgpu';
+    assert(expected.providers[providerKey], 'Provider was not declared before observation');
+    same(descriptor.observedProvider, expected.providers[providerKey], 'Provider differs');
+    if (ordered) assert(expected.surfaces?.[providerKey], 'Ordered executor surface must be explicit');
+    const surface = expected.surfaces?.[providerKey] ?? 'browser-webgpu';
     assert(['browser-webgpu', 'node-webgpu'].includes(surface), 'Unknown declared provider surface');
     // Old browser captures predate the explicit surface field. No native fallback.
     same(descriptor.surface ?? 'browser-webgpu', surface, 'Provider surface differs');
+    if (ordered) {
+      same(contract.stages[partitionIndex].surface, surface);
+      same(contract.stages[partitionIndex].providerIdentityHash, computeCanonicalSha256(descriptor.observedProvider));
+      same(descriptor.executableIdentity, expected.executables[providerKey], 'Executor executable changed');
+      assert.match(descriptor.executableIdentity.sha256, /^[a-f0-9]{64}$/);
+      assert(Number.isSafeInteger(descriptor.executableIdentity.sizeBytes) && descriptor.executableIdentity.sizeBytes > 0);
+    }
     if (surface === 'node-webgpu') {
-      const native = expected.nativeHosts?.[descriptor.platform];
+      const native = expected.nativeHosts?.[providerKey];
       assert(native, 'Native host must be frozen before execution');
       same(descriptor.node, native.node, 'Node version differs');
       same(descriptor.nativeHost?.schema, 'reploid.native-partition-fixture/v1');
@@ -152,15 +260,21 @@ export function producePhysicalReports({ expected, captureBytes, referenceBytes,
         assert.match(library.sha256, /^[a-f0-9]{64}$/);
         assert(Number.isSafeInteger(library.bytes) && library.bytes > 0);
       }
+      if (ordered) same(descriptor.nativePid, descriptor.executorIdentity.pid, 'Native executor process identity differs');
       assert(Number.isSafeInteger(descriptor.nativePid) && descriptor.nativePid > 0, 'Observed native process identity is missing');
-      same(capture.nativeHostSettlement?.pid, descriptor.nativePid, 'Cleanup belongs to another native process');
-      same(capture.nativeHostSettlement.closed, true);
-      same(capture.nativeHostSettlement.providerOpened, true);
-      same(capture.nativeHostSettlement.ownedProviderReleased, true);
-      assert(!capture.nativeHostSettlement.error, 'Native provider cleanup failed');
+      const nativeSettlement = ordered ? capture.nativeHostSettlements?.find(row => row.executorId === descriptor.executorId) : capture.nativeHostSettlement;
+      if (ordered) {
+        same(capture.nativeHostSettlements.length, nativeDescriptors.length);
+        same(new Set(capture.nativeHostSettlements.map(row => row.executorId)).size, nativeDescriptors.length);
+      }
+      same(nativeSettlement?.pid, descriptor.nativePid, 'Cleanup belongs to another native process');
+      same(nativeSettlement.closed, true);
+      same(nativeSettlement.providerOpened, true);
+      same(nativeSettlement.ownedProviderReleased, true);
+      assert(!nativeSettlement.error, 'Native provider cleanup failed');
     } else {
       assert.equal(typeof descriptor.browser, 'string'); assert(descriptor.browser.length);
-      same(descriptor.browser, expected.browserVersions[descriptor.platform], 'Browser version differs from pre-run observation');
+      same(descriptor.browser, expected.browserVersions[providerKey], 'Browser version differs from pre-run observation');
     }
     const session = observed.resolvedRuntimeSession.runtime.session;
     same(session.intermediatePrecision, 'two-f32'); same(session.linearRecurrentStatePrecision, 'two-f32');
@@ -168,7 +282,14 @@ export function producePhysicalReports({ expected, captureBytes, referenceBytes,
     same(identity, observed.initialExecutionIdentity, 'Recorded execution identity differs from actual resolved session');
     same(observed.resolvedRuntimeSession.manifestInference?.execution, graph,
       'Observed execution graph differs from frozen candidate graph');
+    if (ordered) same(identity.executionGraphHash, contract.executionGraphHash);
     const settlement = capture.residentSettlement[slot]; assert(!settlement.error);
+    if (ordered) {
+      same(settlement.partitionIndex, partitionIndex); same(settlement.executorId, descriptor.executorId);
+      same(settlement.initialExecutionIdentityHash, computeCanonicalSha256(identity));
+      same(settlement.residentClosed, true); same(settlement.attemptsClosed, capture.runs.length);
+      assert(Number.isFinite(settlement.elapsedMs) && settlement.elapsedMs >= 0 && settlement.elapsedMs <= expected.deadlines.cleanupMs, 'Cleanup deadline not met');
+    }
     const { snapshot } = settlement;
     for (const owner of ['retainedModel', 'active', 'deferredCleanup']) same(snapshot.pool.resources[owner].count, 0, 'Ownership did not settle');
     same(snapshot.device.categories.weights, 0); same(snapshot.device.maxBytes, 1420000000);
@@ -178,9 +299,10 @@ export function producePhysicalReports({ expected, captureBytes, referenceBytes,
     same(snapshot.deviceEvents, [], 'Device event was observed');
     same(snapshot.observationErrors, [], 'Memory observation failed');
     same(snapshot.gpuValidationErrors, []);
-    return { schema: 'doppler.resident-partition-qualification/v1', operation: 'residentPartition', status: 'passed',
+    return { schema: ordered ? 'doppler.resident-partition-qualification/v2' : 'doppler.resident-partition-qualification/v1', operation: 'residentPartition', status: 'passed',
       modelId: manifest.modelId, manifestIdentity: expected.manifestHash, surface,
       executionGraphHash: identity.executionGraphHash, initialExecutionIdentity: identity,
+      ...(ordered ? { providerIdentity: descriptor.observedProvider } : {}),
       partitionPlan: descriptor.plan, partitionPlanHash: descriptor.planId, partitionIndex,
       comparison: { contractHash: computeCanonicalSha256(contract), referenceHash: expected.referenceHash,
         captureHash: sha256(captureBytes), evaluatorHash: expected.evaluatorHash, tolerance: 0.001, complete: true, steps },
@@ -188,10 +310,11 @@ export function producePhysicalReports({ expected, captureBytes, referenceBytes,
           : { testDeliveryHash: expected.testDeliveryHash, applicationQualification: false }), archiveHash: expected.archiveHash, provider: descriptor.observedProvider,
         ...(surface === 'node-webgpu' ? { nodeVersion: descriptor.node, nativeDeliverySha256: descriptor.nativeHost.nativeDeliverySha256, nativeProvider: descriptor.nativeProvider }
           : { browserVersion: descriptor.browser }), pairedProviders: capture.descriptors.map(x => x.observedProvider),
-        scope: 'This resident participates in the captured cooperative pair. Neither isolated-partition accuracy, signed opening, source answer quality nor deployment is established.' } };
+        ...(ordered ? { logicalStageCount: stageCount, physicalHostCount: expected.physicalHostCount, executorId: descriptor.executorId, executableIdentity: descriptor.executableIdentity } : {}),
+        scope: ordered ? 'This resident participates in the captured ordered route. Logical stages and physical hosts are distinct; signed opening, authenticated transport, standalone accuracy and deployment are not established.' : 'This resident participates in the captured cooperative pair. Neither isolated-partition accuracy, signed opening, source answer quality nor deployment is established.' } };
   });
-  same(reports.map(row => row.partitionIndex).sort(), [0, 1]);
-  same(reports[0].partitionPlan, reports[1].partitionPlan, 'Pair used different plans');
+  same(reports.map(row => row.partitionIndex).sort((a, b) => a - b), Array.from({ length: stageCount }, (_, index) => index));
+  for (const report of reports) same(report.partitionPlan, reports[0].partitionPlan, 'Route used different plans');
   return { contract, reports };
 }
 
@@ -245,7 +368,13 @@ async function main() {
     const { observeInitialExecutionIdentity } = await import(pathToFileURL(helperPath));
     const { computeCanonicalSha256 } = await import(pathToFileURL(
       resolve(extracted, 'package/src/formats/canonical-hash.js')));
-    const result = producePhysicalReports({ ...fields, expected,
+    const orderedPorts = {};
+    if (expected.schema === 'doppler.physical-resident-producer-input/v2') {
+      Object.assign(orderedPorts, await import(pathToFileURL(resolve(extracted, 'package/src/config/ordered-resident-qualification.js'))));
+      Object.assign(orderedPorts, await import(pathToFileURL(resolve(extracted, 'package/src/config/layer-partition-plan.js'))));
+      Object.assign(orderedPorts, await import(pathToFileURL(resolve(extracted, 'package/src/inference/pipelines/text/resident-partition-contract.js'))));
+    }
+    const result = producePhysicalReports({ ...fields, expected, ...orderedPorts,
       requestContractBytes: await Promise.all(config.requestContracts.map(readBound)),
       observeInitialExecutionIdentity, computeCanonicalSha256 });
     const { assertResidentQualification } = await import(pathToFileURL(
@@ -255,6 +384,9 @@ async function main() {
       executionGraphHash: report.executionGraphHash, initialExecutionIdentity: report.initialExecutionIdentity,
       contract: result.contract,
     });
+    if (orderedPorts.assertOrderedResidentQualificationSet) orderedPorts.assertOrderedResidentQualificationSet(result.reports.map(report => ({
+      ...report, orderedContract: result.contract, providerIdentityHash: computeCanonicalSha256(report.providerIdentity), comparedSteps: report.comparison.steps.length,
+    })));
     await mkdir(outputDirectory); // Existing evidence is never overwritten.
     await writeFile(resolve(outputDirectory, 'contract.json'), JSON.stringify(result.contract, null, 2) + '\n', { flag: 'wx' });
     for (const report of result.reports) {

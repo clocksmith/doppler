@@ -1,0 +1,15 @@
+{
+  "schema": "doppler.ordered-physical-producer-cpu-check/v1",
+  "testCount": 85,
+  "passCount": 85,
+  "gpuRuns": 0,
+  "physicalReportsProduced": 0,
+  "launchReady": false,
+  "files": {
+    "artifacts/signed-resident-producer-20261012/produce-physical-reports.js": "sha256:e44ba85555d247a619da5fc5b5063926b9ffe802f385073b592e288bbba4335e",
+    "artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js": "sha256:564f2e8fad8b1cf192357cb8949bcc21a111c92a8e6fc15274b6b72282cb5d02",
+    "artifacts/signed-resident-producer-20261012/ordered-v2/producer-before.js": "sha256:d9855a94b1f4e5a30f67bfd85ab866f0f6a016f78a89be660f3a0addddc0e7c4",
+    "artifacts/ordered-partitions-20261013/freeze-three-stage-workload.js": "sha256:846f561cab32ab1d6ab30a5ab37bd90396ec733b9454c8f3e4c51454048f6578",
+    "artifacts/ordered-partitions-20261013/three-stage-qualification-workload.json": "sha256:2192e94d9b3fabadca175038e0c142c6619520fac5806784153afe5d30f46731"
+  }
+}
