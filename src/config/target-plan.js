@@ -1,3 +1,5 @@
+import { assertOrderedResidentQualificationSet, assertOrderedResidentRecord } from './ordered-resident-qualification.js';
+import { computeCanonicalSha256 } from '../formats/canonical-hash.js';
 import { validateCapsuleAdapterExecution } from './capsule-adapter-policy.js';
 import { validateCapsuleTokenSelection } from './capsule-token-selection.js';
 
@@ -255,13 +257,21 @@ export function validateTargetPlan(plan) {
         }
       } else if (record.operation === 'residentPartition') {
         if (!isV2 || !SHA256_PATTERN.test(record.partitionPlanHash ?? '')
-          || ![0, 1].includes(record.partitionIndex)
+          || (record.orderedContract === undefined && ![0, 1].includes(record.partitionIndex))
           || !Number.isInteger(record.comparedSteps) || record.comparedSteps < 1
           || !SHA256_PATTERN.test(record.transcriptHash ?? '')
           || record.generatedTokens !== undefined || record.encodedSequences !== undefined
           || record.rerankedDocuments !== undefined || record.forecastCases !== undefined
           || record.embeddedTexts !== undefined) {
           errors.push(`qualification[${index}] requires a v2 resident partition plan digest, index, comparedSteps and transcriptHash without other operation counts.`);
+        }
+        if (record.orderedContract !== undefined) {
+          try {
+            const contract = assertOrderedResidentRecord(record);
+            if (contract.partitionPlan.modelId !== plan.modelId || contract.executionGraphHash !== plan.executionGraphHash) {
+              errors.push(`qualification[${index}] ordered model or graph mismatch.`);
+            }
+          } catch (error) { errors.push(`qualification[${index}]: ${error.message}`); }
         }
       } else if (record.operation !== undefined && record.operation !== 'generate') {
         errors.push(`qualification[${index}].operation is unsupported.`);
@@ -274,6 +284,8 @@ export function validateTargetPlan(plan) {
     }
   }
 
+  try { assertOrderedResidentQualificationSet(plan.qualification || []); }
+  catch (error) { errors.push(error.message); }
   if (isV2) {
     const identityValidation = validateInitialExecutionIdentity(plan.initialExecutionIdentity);
     if (!identityValidation.ok) {
@@ -390,10 +402,15 @@ export function assertQualifiedTargetOperation(plan, surface, operation) {
 }
 
 export function assertQualifiedResidentPartition(plan, surface, allocation) {
+  assertOrderedResidentQualificationSet(plan.qualification || []);
   if (plan.schema !== TARGET_PLAN_V2_SCHEMA_ID || !plan.qualification?.some(record => (
     record.status === 'passed' && record.surface === surface
     && record.operation === 'residentPartition'
     && record.partitionPlanHash === allocation.planId && record.partitionIndex === allocation.index
+    && (record.orderedContract === undefined
+      ? allocation.plan?.schema !== 'doppler.layer-partition-contract/v3'
+      : allocation.plan !== undefined && allocation.model?.identity === record.orderedContract.manifestIdentity
+        && computeCanonicalSha256(allocation.plan) === computeCanonicalSha256(record.orderedContract.partitionPlan))
   ))) {
     throw new Error(`TargetPlan "${plan.targetId}" has no signed resident partition qualification for group ${allocation.index} on surface "${surface}".`);
   }

@@ -1,0 +1,64 @@
+{
+  "schema": "doppler.ordered-signed-contract-checkpoint/v1",
+  "scope": "CPU structural validation and synthetic Rig signing only",
+  "passed": true,
+  "physicalQualification": false,
+  "kernelChanges": false,
+  "publicPinChanged": false,
+  "planSchema": "doppler.layer-partition-contract/v3",
+  "reportSchema": "doppler.resident-partition-qualification/v2",
+  "contractSchema": "doppler.resident-qualification-contract/v2",
+  "testedStageCounts": [
+    2,
+    3,
+    4,
+    7
+  ],
+  "testedLayouts": [
+    "f32",
+    "two-f32"
+  ],
+  "negativeControls": [
+    "missing or duplicate stages",
+    "out-of-range/fractional/negative index",
+    "range/layout/role mutation",
+    "model/manifest/graph mutation",
+    "provider/surface mismatch",
+    "reference contract mismatch",
+    "failed comparison",
+    "legacy report cannot authorize ordered plan"
+  ],
+  "commands": [
+    "node tests/converter/ordered-resident-qualification.test.js",
+    "node tests/tooling/forge-model-capsule.test.js",
+    "node tests/config/target-plan.test.js",
+    "node tests/inference/ordered-layer-partition-contract.test.js",
+    "node tests/inference/ordered-resident-execution.test.js",
+    "node tests/inference/layer-partition-contract.test.js",
+    "node tests/inference/paired-partition-contract.test.js",
+    "node tests/runtime/resident-partition-opening.test.js",
+    "node tests/runtime/paired-resident-opening.test.js",
+    "npm run typecheck:source",
+    "npm run source:style:check",
+    "npm run source:architecture:check",
+    "npm run exports:parity:check",
+    "npm run catscan:check"
+  ],
+  "limits": [
+    "Retained physical producer and evidence remain v1/two-stage.",
+    "No N-stage numerical reports minted or signed hardware acceptance claimed.",
+    "Authenticated stage transport and real N-stage capture/producer remain integration gates.",
+    "Canonical speculative execution remains rejected for ordered resident plans."
+  ],
+  "files": {
+    "src/config/layer-partition-plan.js": "f35be4cd7432690f0107b5a2e3256c0280e0b03203c8ef791c099a2ea83e2a1c",
+    "src/config/ordered-resident-qualification.js": "480f142d51ab52e9cfea5f86f0bbcbc7baac4476cd69ad59ee741c9ea63168bf",
+    "src/config/target-plan.js": "3016ab3ea0fe535b5325c6e44fd8568d4eb98581c8cf8800abfeda99db1e3d2b",
+    "src/converter/resident-qualification.js": "1f8a5f0100e96017eb6cba496255490896230155d9b98543057d046493a5b1b7",
+    "src/converter/forge-qualification.js": "627831fbc73dc837b9a2fa6dfbf33dd25d09cb832ccb51e8b0a59682ed2b3910",
+    "src/converter/forge-stages.js": "f844e87b7cf000e0680b2ee7fe5209ad3da8c2c499ce570c277030eaf8a60ffd",
+    "src/tooling/model-capsule-rig.js": "634f39956f29ec9df23264f87b282a495406f615dd4f0e11cb2fcc77174391d1",
+    "tests/converter/ordered-resident-qualification.test.js": "dbbdb1ebcdab2e491221a9e6bef572b711d4c6a14fd4faca6d602ebc078b0a2f",
+    "tests/tooling/forge-model-capsule.test.js": "fecd16a8008c435803ef31e627814e733c21afaa973d32a916f5fb605bd6d839"
+  }
+}

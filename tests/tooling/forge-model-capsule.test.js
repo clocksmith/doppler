@@ -448,3 +448,33 @@ const badPieces = structuredClone(pieceIndex); badPieces.files[0].pieces[0].iden
 await fs.writeFile(indexPath, JSON.stringify(badPieces));
 await assert.rejects(forgeModelCapsule(residentOptions), /integrity|piece/i);
 console.log('forge-model-capsule: signed resident producer passed (synthetic evidence only)');
+
+// Ordered report v2 passes through the real Rig signing path; these receipts are synthetic.
+await fs.writeFile(indexPath, JSON.stringify(pieceIndex));
+const orderedPlan = partitionContract.createOrderedLayerPartitionPlan({ modelId: physicalManifest.modelId,
+  ...physicalManifest.architecture, splitLayers: [1], activationDtype: 'f32' });
+const orderedProviders = [{ adapter: 'synthetic-browser' }, { adapter: 'synthetic-node' }];
+const orderedContract = { ...residentContract, schema: 'doppler.resident-qualification-contract/v2',
+  manifestIdentity: manifestHash, executionGraphHash: residentReport.executionGraphHash,
+  partitionPlan: orderedPlan, partitionPlanHash: partitionContract.hashLayerPartitionPlan(orderedPlan),
+  stages: orderedProviders.map((provider, index) => ({ index, surface: index ? 'node-webgpu' : 'browser-webgpu',
+    providerIdentityHash: computeCanonicalSha256(provider) })) };
+await fs.writeFile(residentContractPath, JSON.stringify(orderedContract));
+const orderedPaths = [];
+for (const stage of orderedContract.stages) {
+  const report = { ...residentReport, schema: 'doppler.resident-partition-qualification/v2', partitionPlan: orderedPlan,
+    partitionPlanHash: orderedContract.partitionPlanHash, partitionIndex: stage.index, surface: stage.surface,
+    providerIdentity: orderedProviders[stage.index], comparison: { ...residentReport.comparison,
+      contractHash: computeCanonicalSha256(orderedContract) } };
+  const reportPath = path.join(reportDir, `ordered-${stage.index}.json`);
+  await fs.writeFile(reportPath, JSON.stringify(report)); orderedPaths.push(reportPath);
+}
+await forgeModelCapsule({ ...residentOptions, qualificationReportPaths: orderedPaths });
+const orderedCapsule = JSON.parse(await fs.readFile(residentOptions.outputPath, 'utf8'));
+const orderedRecords = orderedCapsule.targetPlans[0].qualification.filter(row => row.operation === 'residentPartition');
+assert.deepEqual(orderedRecords.map(row => row.partitionIndex), [0, 1]);
+assert.deepEqual(orderedRecords[0].orderedContract, orderedContract);
+assert.equal(orderedRecords[1].providerIdentityHash, orderedContract.stages[1].providerIdentityHash);
+await assert.rejects(forgeModelCapsule({ ...residentOptions, qualificationReportPaths: orderedPaths.slice(0, 1) }), /missing ordered stage/);
+await assert.rejects(forgeModelCapsule({ ...residentOptions, qualificationReportPaths: [...orderedPaths, orderedPaths[0]] }), /duplicate stage/);
+console.log('forge-model-capsule: ordered report binding and complete-set signing passed (synthetic evidence only)');

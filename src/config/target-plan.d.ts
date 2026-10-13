@@ -74,7 +74,9 @@ export interface TargetPlanV2 extends Omit<TargetPlanV1, 'schema' | 'schemaVersi
     surface: string; status: 'passed'; operation: 'residentPartition';
     evidenceArtifactId: string; evidenceHash: `sha256:${string}`;
     transcriptHash: `sha256:${string}`; partitionPlanHash: `sha256:${string}`;
-    partitionIndex: 0 | 1; comparedSteps: number;
+    partitionIndex: number; comparedSteps: number;
+    orderedContract?: import('./ordered-resident-qualification.js').OrderedResidentQualificationContract;
+    providerIdentityHash?: string;
   }>;
 }
 
@@ -109,7 +111,7 @@ export declare function validateTargetPlan(plan: unknown): { ok: boolean; errors
 export declare function hashTargetPlan(plan: unknown): `sha256:${string}`;
 export declare function assertQualifiedTargetOperation(plan: TargetPlan, surface: string, operation: string): void;
 export declare function assertQualifiedResidentPartition(plan: TargetPlan, surface: string,
-  allocation: { planId: string; index: number }): void;
+  allocation: { planId: string; index: number; model?: { identity: string }; plan?: import('./layer-partition-plan.js').AnyLayerPartitionPlan }): void;
 export declare function matchesDeviceCapability(targetPlan: TargetPlan, deviceProfile: Record<string, unknown>): boolean;
 export declare function selectQualifiedTargetPlan(
   targetPlans: TargetPlan[],

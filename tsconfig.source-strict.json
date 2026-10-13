@@ -16,6 +16,8 @@
   },
   "include": [],
   "files": [
+    "src/config/layer-partition-plan.js",
+    "src/config/ordered-resident-qualification.js",
     "src/inference/pipelines/text/generator/activation-storage.js",
     "src/inference/pipelines/text/generator/decode-components.js",
     "src/gpu/kernels/paired-matmul.js",
