@@ -101,3 +101,38 @@ for (const change of [{ schema: 'doppler.resident-recovery/v2' }, { inputReplay:
   await rejectOpening(/recovery capabilities are unsupported/);
 }
 resident.getRecoveryCapabilities = capabilities;
+
+// Explicit canonical allocation must survive the signed facade, rather than
+// silently returning a legacy-only resident under canonical caller policy.
+const { readFileSync } = await import('node:fs');
+const { canonicalGenerationIdentity } = await import('../../src/config/canonical-generation-policy.js');
+const { createResidentPartitionFactory } = await import('../../src/client/resident-partitions.js');
+const policy = JSON.parse(readFileSync(new URL('../fixtures/canonical-generation-policy.json', import.meta.url)));
+const canonicalGeneration = { policy, executionIdentity: digest('c') };
+const generation = canonicalGenerationIdentity(policy, canonicalGeneration.executionIdentity, 100);
+let forwarded;
+const factory = createResidentPartitionFactory({ capsuleOptions: {}, openCapsule: async (_source, options) => {
+  forwarded = options.residentPartition; return { residentPartition: resident, close: async () => {} };
+} });
+await factory.openResidentPartition({ ...assigned, model: { ...assigned.model, capsule: {}, generation: assigned.generation },
+  canonicalGeneration, signal: new AbortController().signal });
+assert.deepEqual(forwarded.canonicalGeneration, canonicalGeneration, 'Signed factory must retain explicit canonical policy');
+assigned.canonicalGeneration = canonicalGeneration;
+assigned.plan.vocabSize = 100;
+await rejectOpening(/canonical.*methods|Canonical.*methods/);
+const calls = [];
+resident.getCanonicalGeneration = () => generation;
+for (const method of ['admitCanonicalPrompt', 'executeCanonicalGroup0', 'executeCanonicalGroup1', 'commitCanonicalTransition']) {
+  resident[method] = async request => { calls.push({ method, request }); return { observed: method }; };
+}
+resident.getDescriptor = () => ({ ...descriptor(), canonicalGenerationId: generation.generationId });
+const canonicalSession = await authorized.openCapsule(signed.capsule, { residentPartition: assigned });
+assert.deepEqual(canonicalSession.residentPartition.getCanonicalGeneration(), generation);
+for (const method of ['admitCanonicalPrompt', 'executeCanonicalGroup0', 'executeCanonicalGroup1', 'commitCanonicalTransition']) {
+  assert.deepEqual(await canonicalSession.residentPartition[method]({ signal: new AbortController().signal, input: method }), { observed: method });
+}
+assert.equal(calls.length, 4);
+await canonicalSession.close();
+await assert.rejects(canonicalSession.residentPartition.executeCanonicalGroup0({ signal: new AbortController().signal }), /closed/);
+resident.getCanonicalGeneration = () => ({ ...generation, generationId: digest('d') });
+await rejectOpening(/canonical.*allocation|Canonical.*allocation/);

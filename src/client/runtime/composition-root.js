@@ -1,6 +1,7 @@
 import { resolveExecutionRegistries, assertExecutionRegistriesAccepted } from '../../config/execution-registry-contract.js';
 import { hashTargetPlan, assertQualifiedTargetOperation, assertQualifiedResidentPartition, normalizeTargetPlanSelectionPolicy } from '../../config/target-plan.js';
 import { GENERATION_CONTRACT } from '../../config/generation-contract.js';
+import { canonicalGenerationIdentity } from '../../config/canonical-generation-policy.js';
 import { getRequiredWgslFeatures, assertWgslFeaturesSupported } from '../../config/wgsl-language-contract.js';
 import { assertInitialExecutionIdentity } from '../../config/initial-execution-identity.js';
 import { freezeCapsuleV2, verifyCapsuleV2Artifacts } from '../../config/capsule-v2.js';
@@ -360,6 +361,17 @@ export function createDopplerRun(ports) {
           if (!resident || requiredMethods.some(method => typeof resident[method] !== 'function')) {
             throw new Error('Loaded resident is missing required partition methods.');
           }
+          const canonical = residentAllocation.canonicalGeneration === undefined ? null
+            : canonicalGenerationIdentity(residentAllocation.canonicalGeneration.policy,
+              residentAllocation.canonicalGeneration.executionIdentity, residentAllocation.plan.vocabSize);
+          const canonicalMethods = ['getCanonicalGeneration', 'admitCanonicalPrompt', 'executeCanonicalGroup0',
+            'executeCanonicalGroup1', 'commitCanonicalTransition'];
+          if (canonical && canonicalMethods.some(method => typeof resident[method] !== 'function')) {
+            throw new Error('Loaded canonical resident is missing required methods.');
+          }
+          if (canonical && computeCanonicalSha256(resident.getCanonicalGeneration()) !== computeCanonicalSha256(canonical)) {
+            throw new Error('Loaded canonical generation differs from its verified allocation.');
+          }
           const recovery = resident.getRecoveryCapabilities();
           if (recovery?.schema !== 'doppler.resident-recovery/v1'
             || ['inputReplay', 'checkpointExport', 'checkpointImport'].some(key => recovery[key] !== false)) {
@@ -372,11 +384,13 @@ export function createDopplerRun(ports) {
             || descriptor.modelId !== capsule.modelId || descriptor.modelIdentity !== manifestArtifact.hash
             || descriptor.planId !== residentAllocation.planId || descriptor.index !== residentAllocation.index
             || JSON.stringify(descriptor.layerRange) !== JSON.stringify(residentAllocation.plan.partitions[residentAllocation.index].layerRange)
-            || descriptor.generationDigest !== computeCanonicalSha256(residentAllocation.generation)) {
+            || descriptor.generationDigest !== computeCanonicalSha256(residentAllocation.generation)
+            || (descriptor.canonicalGenerationId ?? null) !== (canonical?.generationId ?? null)) {
             throw new Error('Loaded resident descriptor differs from its verified Capsule allocation.');
           }
           const invokeResident = async (method, request) => {
             if (closed) throw new Error('Capsule runtime session is closed.');
+            if (canonicalMethods.includes(method) && !canonical) throw new Error('Canonical resident execution was not allocated.');
             releaseAuthorization.assertAssignment(residentAllocation);
             const { signal, ...data } = request;
             const snapshot = { ...structuredClone(data), signal };
@@ -387,9 +401,14 @@ export function createDopplerRun(ports) {
           session.residentPartition = Object.freeze({
             getDescriptor: () => ({ ...resident.getDescriptor(), ready: !closed && resident.getDescriptor().ready }),
             getRecoveryCapabilities: () => recoveryCapabilities,
+            getCanonicalGeneration: () => canonical,
             tokenize: request => invokeResident('tokenize', request),
             executeGroup0: request => invokeResident('executeGroup0', request),
             executeGroup1: request => invokeResident('executeGroup1', request),
+            admitCanonicalPrompt: request => invokeResident('admitCanonicalPrompt', request),
+            executeCanonicalGroup0: request => invokeResident('executeCanonicalGroup0', request),
+            executeCanonicalGroup1: request => invokeResident('executeCanonicalGroup1', request),
+            commitCanonicalTransition: request => invokeResident('commitCanonicalTransition', request),
             closeAttempt: request => resident.closeAttempt(structuredClone(request)),
             close: () => session.close(),
           });

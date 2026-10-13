@@ -19,11 +19,12 @@ export function createResidentPartitionFactory({ openCapsule, capsuleOptions }) 
   const hostOptions = { ...capsuleOptions };
   return Object.freeze({
     /** @param {import('./resident-partitions.js').ResidentPartitionOpenOptions} options */
-    async openResidentPartition({ model, plan, planId, index, participantId, limits, signal }) {
+    async openResidentPartition({ model, plan, planId, index, participantId, limits, signal, canonicalGeneration }) {
     signal.throwIfAborted();
     if (!model.capsule || !model.generation) throw new Error('Resident model requires a Capsule source and explicit generation settings.');
     const allocation = structuredClone({ model: { id: model.id, identity: model.identity }, plan, planId,
-      index, participantId, limits, generation: model.generation });
+      index, participantId, limits, generation: model.generation,
+      ...(canonicalGeneration === undefined ? {} : { canonicalGeneration }) });
     const session = await openCapsule(structuredClone(model.capsule), { ...hostOptions, signal, residentPartition: allocation });
     try {
       signal.throwIfAborted();

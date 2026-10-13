@@ -14,4 +14,6 @@ export type { ResidentPartitionAllocation, ResidentPartitionDescriptor, Resident
   ResidentPartitionLimits, ResidentPartitionSession, ResidentPartitionStep, ResidentRecoveryCapabilities,
   ResidentPartitionTokenizationRequest, ResidentPartitionTokenizationResult,
   ResidentPartitionARequest, ResidentPartitionAResult, ResidentPartitionBRequest,
-  ResidentPartitionBResult, ResidentPartitionMetrics, PartitionTiming } from './inference/pipelines/text/resident-partition-contract.js';
+  ResidentPartitionBResult, ResidentPartitionMetrics, PartitionTiming,
+  ResidentCanonicalARequest, ResidentCanonicalBRequest, ResidentCanonicalBResult,
+  ResidentCanonicalGeneration } from './inference/pipelines/text/resident-partition-contract.js';
