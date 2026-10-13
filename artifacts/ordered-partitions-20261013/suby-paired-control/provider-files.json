@@ -1,0 +1,18 @@
+{
+  "index.js": {
+    "sha256": "18a44f1e81cd3697156e7ddd3456e9f0d346a0afabb76588379b5b2f6dca50b4",
+    "bytes": 503
+  },
+  "package.json": {
+    "sha256": "808ca40c7fdacd112c4b1935dde1fbbbf4279ae11dbbae5ef5cd50b1c639222a",
+    "bytes": 959
+  },
+  "README.md": {
+    "sha256": "9feae40e146fd7e9fee881b84e4bd6a08b37ec9355317a66e4102dbe5bab83c7",
+    "bytes": 6668
+  },
+  "dist/linux-x64.dawn.node": {
+    "sha256": "fbfe599055b469963e4c9bfc900a702843db962dcaba0799b3c81ae33fa43db1",
+    "bytes": 18617336
+  }
+}

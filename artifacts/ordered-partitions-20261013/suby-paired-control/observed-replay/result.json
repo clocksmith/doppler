@@ -1,0 +1,457 @@
+{
+  "schema": "doppler.suby-paired-cast-control/v1",
+  "pid": 765849,
+  "startedAt": "2026-10-13T15:20:17.246Z",
+  "operationDeadlineMs": 300000,
+  "cleanupDeadlineMs": 10000,
+  "poolBudgetBytes": 16777216,
+  "cases": 4,
+  "scope": "Installed package-local wrapper compatibility; not public package API or model qualification",
+  "events": [
+    {
+      "phase": "adapter-start",
+      "at": "2026-10-13T15:20:17.638Z"
+    },
+    {
+      "phase": "adapter-complete",
+      "at": "2026-10-13T15:20:17.666Z"
+    },
+    {
+      "phase": "device-start",
+      "at": "2026-10-13T15:20:17.666Z"
+    },
+    {
+      "phase": "device-complete",
+      "at": "2026-10-13T15:20:17.677Z"
+    },
+    {
+      "operation": "expand",
+      "recorded": false,
+      "phase": "dispatch-start",
+      "at": "2026-10-13T15:20:17.682Z"
+    },
+    {
+      "phase": "wrapper-complete",
+      "recorded": false,
+      "at": "2026-10-13T15:20:17.692Z"
+    },
+    {
+      "phase": "readback-start",
+      "recorded": false,
+      "at": "2026-10-13T15:20:17.692Z"
+    },
+    {
+      "phase": "readback-complete",
+      "recorded": false,
+      "actual": [
+        0,
+        0,
+        2147483648,
+        0,
+        1,
+        0,
+        2147483649,
+        0,
+        1065353216,
+        0,
+        2139095039,
+        0,
+        1065357312,
+        0
+      ],
+      "at": "2026-10-13T15:20:17.694Z"
+    },
+    {
+      "phase": "case-assertions-passed",
+      "recorded": false,
+      "at": "2026-10-13T15:20:17.695Z"
+    },
+    {
+      "operation": "expand",
+      "recorded": true,
+      "phase": "dispatch-start",
+      "at": "2026-10-13T15:20:17.695Z"
+    },
+    {
+      "phase": "wrapper-complete",
+      "recorded": true,
+      "at": "2026-10-13T15:20:17.699Z"
+    },
+    {
+      "phase": "submit-start",
+      "at": "2026-10-13T15:20:17.699Z"
+    },
+    {
+      "phase": "submit-complete",
+      "at": "2026-10-13T15:20:17.701Z"
+    },
+    {
+      "phase": "readback-start",
+      "recorded": true,
+      "at": "2026-10-13T15:20:17.701Z"
+    },
+    {
+      "phase": "readback-complete",
+      "recorded": true,
+      "actual": [
+        0,
+        0,
+        2147483648,
+        0,
+        1,
+        0,
+        2147483649,
+        0,
+        1065353216,
+        0,
+        2139095039,
+        0,
+        1065357312,
+        0
+      ],
+      "at": "2026-10-13T15:20:17.702Z"
+    },
+    {
+      "phase": "case-assertions-passed",
+      "recorded": true,
+      "at": "2026-10-13T15:20:17.702Z"
+    },
+    {
+      "phase": "abort-start",
+      "at": "2026-10-13T15:20:17.702Z"
+    },
+    {
+      "phase": "abort-complete",
+      "at": "2026-10-13T15:20:17.702Z"
+    },
+    {
+      "operation": "half",
+      "recorded": false,
+      "phase": "dispatch-start",
+      "at": "2026-10-13T15:20:17.703Z"
+    },
+    {
+      "phase": "wrapper-complete",
+      "recorded": false,
+      "at": "2026-10-13T15:20:17.709Z"
+    },
+    {
+      "phase": "readback-start",
+      "recorded": false,
+      "at": "2026-10-13T15:20:17.709Z"
+    },
+    {
+      "phase": "readback-complete",
+      "recorded": false,
+      "actual": [
+        15361,
+        15360,
+        48128,
+        48129,
+        32768,
+        0
+      ],
+      "at": "2026-10-13T15:20:17.710Z"
+    },
+    {
+      "phase": "case-assertions-passed",
+      "recorded": false,
+      "at": "2026-10-13T15:20:17.710Z"
+    },
+    {
+      "operation": "half",
+      "recorded": true,
+      "phase": "dispatch-start",
+      "at": "2026-10-13T15:20:17.710Z"
+    },
+    {
+      "phase": "wrapper-complete",
+      "recorded": true,
+      "at": "2026-10-13T15:20:17.711Z"
+    },
+    {
+      "phase": "submit-start",
+      "at": "2026-10-13T15:20:17.711Z"
+    },
+    {
+      "phase": "submit-complete",
+      "at": "2026-10-13T15:20:17.711Z"
+    },
+    {
+      "phase": "readback-start",
+      "recorded": true,
+      "at": "2026-10-13T15:20:17.712Z"
+    },
+    {
+      "phase": "readback-complete",
+      "recorded": true,
+      "actual": [
+        15361,
+        15360,
+        48128,
+        48129,
+        32768,
+        0
+      ],
+      "at": "2026-10-13T15:20:17.712Z"
+    },
+    {
+      "phase": "case-assertions-passed",
+      "recorded": true,
+      "at": "2026-10-13T15:20:17.712Z"
+    },
+    {
+      "phase": "abort-start",
+      "at": "2026-10-13T15:20:17.712Z"
+    },
+    {
+      "phase": "abort-complete",
+      "at": "2026-10-13T15:20:17.712Z"
+    },
+    {
+      "phase": "queue-settlement-start",
+      "at": "2026-10-13T15:20:17.713Z"
+    },
+    {
+      "phase": "queue-settlement-complete",
+      "at": "2026-10-13T15:20:17.713Z"
+    },
+    {
+      "phase": "device-finally-entered",
+      "at": "2026-10-13T15:20:17.713Z"
+    },
+    {
+      "phase": "queue-settlement-start",
+      "at": "2026-10-13T15:20:17.713Z"
+    },
+    {
+      "phase": "queue-settlement-complete",
+      "at": "2026-10-13T15:20:17.713Z"
+    },
+    {
+      "phase": "owned-buffer-destroy-start",
+      "at": "2026-10-13T15:20:17.713Z"
+    },
+    {
+      "phase": "owned-buffer-destroy-complete",
+      "at": "2026-10-13T15:20:17.714Z"
+    },
+    {
+      "phase": "pool-destroy-start",
+      "at": "2026-10-13T15:20:17.714Z"
+    },
+    {
+      "phase": "pool-destroy-complete",
+      "at": "2026-10-13T15:20:17.714Z"
+    },
+    {
+      "phase": "device-destroy-start",
+      "at": "2026-10-13T15:20:17.714Z"
+    },
+    {
+      "phase": "device-destroy-complete",
+      "at": "2026-10-13T15:20:17.716Z"
+    },
+    {
+      "phase": "provider-finally-entered",
+      "at": "2026-10-13T15:20:17.717Z"
+    },
+    {
+      "phase": "provider-globals-restored",
+      "at": "2026-10-13T15:20:17.717Z"
+    },
+    {
+      "phase": "forced-gc-start",
+      "at": "2026-10-13T15:20:17.717Z"
+    },
+    {
+      "phase": "forced-gc-complete",
+      "at": "2026-10-13T15:20:17.724Z"
+    }
+  ],
+  "installedFilesVerified": 1976,
+  "sourceHash": "e16eb8b3eea8dca8d2d897bc1ecdc8498fd8262c97003c829b8fa598a83366c3",
+  "completedRows": [
+    {
+      "operation": "expand",
+      "recorded": false,
+      "borrowed": true,
+      "actual": [
+        0,
+        0,
+        2147483648,
+        0,
+        1,
+        0,
+        2147483649,
+        0,
+        1065353216,
+        0,
+        2139095039,
+        0,
+        1065357312,
+        0
+      ]
+    },
+    {
+      "operation": "expand",
+      "recorded": true,
+      "borrowed": true,
+      "actual": [
+        0,
+        0,
+        2147483648,
+        0,
+        1,
+        0,
+        2147483649,
+        0,
+        1065353216,
+        0,
+        2139095039,
+        0,
+        1065357312,
+        0
+      ]
+    },
+    {
+      "operation": "half",
+      "recorded": false,
+      "borrowed": true,
+      "actual": [
+        15361,
+        15360,
+        48128,
+        48129,
+        32768,
+        0
+      ]
+    },
+    {
+      "operation": "half",
+      "recorded": true,
+      "borrowed": true,
+      "actual": [
+        15361,
+        15360,
+        48128,
+        48129,
+        32768,
+        0
+      ]
+    }
+  ],
+  "result": {
+    "rows": [
+      {
+        "operation": "expand",
+        "recorded": false,
+        "borrowed": true,
+        "actual": [
+          0,
+          0,
+          2147483648,
+          0,
+          1,
+          0,
+          2147483649,
+          0,
+          1065353216,
+          0,
+          2139095039,
+          0,
+          1065357312,
+          0
+        ]
+      },
+      {
+        "operation": "expand",
+        "recorded": true,
+        "borrowed": true,
+        "actual": [
+          0,
+          0,
+          2147483648,
+          0,
+          1,
+          0,
+          2147483649,
+          0,
+          1065353216,
+          0,
+          2139095039,
+          0,
+          1065357312,
+          0
+        ]
+      },
+      {
+        "operation": "half",
+        "recorded": false,
+        "borrowed": true,
+        "actual": [
+          15361,
+          15360,
+          48128,
+          48129,
+          32768,
+          0
+        ]
+      },
+      {
+        "operation": "half",
+        "recorded": true,
+        "borrowed": true,
+        "actual": [
+          15361,
+          15360,
+          48128,
+          48129,
+          32768,
+          0
+        ]
+      }
+    ],
+    "errors": [],
+    "stats": {
+      "allocations": 1,
+      "reuses": 3,
+      "totalBytesAllocated": 256,
+      "peakBytesAllocated": 256,
+      "currentBytesAllocated": 256,
+      "totalBytesRequested": 256,
+      "peakBytesRequested": 256,
+      "currentBytesRequested": 0,
+      "resources": {
+        "retainedModel": {
+          "bytes": 0,
+          "count": 0
+        },
+        "active": {
+          "bytes": 0,
+          "count": 0
+        },
+        "reusable": {
+          "bytes": 256,
+          "count": 1
+        },
+        "deferredCleanup": {
+          "bytes": 0,
+          "count": 0
+        }
+      },
+      "activeBuffers": 0,
+      "pooledBuffers": 1,
+      "budgetMaxBytes": 16777216,
+      "budgetUtilization": 0.0000152587890625,
+      "hitRate": "75.0%"
+    },
+    "adapter": {
+      "vendor": "intel",
+      "architecture": "gen-12lp"
+    },
+    "settled": true
+  },
+  "passed": true,
+  "finishedAt": "2026-10-13T15:20:17.725Z"
+}
