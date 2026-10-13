@@ -1,0 +1,74 @@
+{
+  "ok": true,
+  "forgeVersion": "2.0.0",
+  "outputPath": "../../../../var/tmp/qwen35-capsule-0fad-20261012/capsule.json",
+  "absoluteOutputPath": "/var/tmp/qwen35-capsule-0fad-20261012/capsule.json",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v2-ac52a5584cb7ee58",
+  "semanticRoot": "sha256:ac52a5584cb7ee58cd7bd73373d123061c6739692343fe84eeb2847145fc843d",
+  "envelopeHash": "sha256:38e7ffb5446d2835f9ab7885bd5236a2751c4c23b4d431dce2981a05bf806a56",
+  "schema": "doppler.capsule/v2",
+  "schemaVersion": 2,
+  "createdAtUtc": "2026-10-13T01:18:32.150Z",
+  "sourceBundleId": "qwen-3-5-0-8b-q4k-ehaf16-1be75c19e08b",
+  "programBundlePath": "/var/tmp/qwen35-capsule-0fad-20261012/artifacts/program-bundle.json",
+  "executionGraphHash": "sha256:1be75c19e08b6c9fe3fb94af624c070bdc940e7d32582c704d56b2775a387596",
+  "artifactCount": 54,
+  "wgslModuleCount": 24,
+  "targetPlanDigests": [
+    "sha256:135d5bb488c484bd646e46465699158a988762378c0dc14a1acbba33b00caca2"
+  ],
+  "stages": [
+    {
+      "stage": "inspect",
+      "ok": true
+    },
+    {
+      "stage": "normalize",
+      "ok": true
+    },
+    {
+      "stage": "analyze",
+      "ok": true
+    },
+    {
+      "stage": "lower",
+      "ok": true
+    },
+    {
+      "stage": "specialize",
+      "ok": true
+    },
+    {
+      "stage": "search",
+      "ok": true
+    },
+    {
+      "stage": "verify",
+      "ok": true
+    },
+    {
+      "stage": "qualify",
+      "ok": true
+    },
+    {
+      "stage": "package",
+      "ok": true
+    },
+    {
+      "stage": "sign",
+      "ok": true
+    }
+  ],
+  "searchReceipt": {
+    "candidateTargetPlanHashes": [
+      "sha256:135d5bb488c484bd646e46465699158a988762378c0dc14a1acbba33b00caca2"
+    ],
+    "selectedTargetPlanHashes": [
+      "sha256:135d5bb488c484bd646e46465699158a988762378c0dc14a1acbba33b00caca2"
+    ],
+    "policy": "closed-program-source-plan",
+    "evaluationReceipt": null
+  },
+  "candidateEvaluation": null
+}
