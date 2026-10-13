@@ -1,0 +1,7 @@
+{
+  "phase": "CPU model hardlink preparation",
+  "error": "ENOENT /var/tmp/doppler-ordered-provider-20261013/model/shard_00000.bin on Mac",
+  "correction": "Use existing verified previous sigmoid model directory on each host; independently hash every shard/tokenizer before hardlink",
+  "gpuOpened": false,
+  "partialDirectoryRetained": "/var/tmp/doppler-gate-model-20261013-before-missing-source"
+}
