@@ -1,4 +1,4 @@
-import { contractAssert as assert, immutableRecord, metadataDigest } from '../config/canonical-contract-codec.js';
+import { contractAssert as assert, immutableRecord, metadataDigest, exactRecord, scalarString, hash } from '../config/canonical-contract-codec.js';
 import { validateCanonicalGenerationPolicy } from '../config/canonical-generation-policy.js';
 import { sampleCanonicalGenerationStep } from './generation-step.js';
 import { admitResidentPrompt, bootstrapResidentCursor, admitResidentBlock, decideResidentBlock,
@@ -82,30 +82,6 @@ function createTarget(history, cursor, policy, vocabSize, generationId, output) 
         return result;
       } catch (error) { failed = true; throw error; }
     },
-    acceptTransition(expectedCursorId, transition) {
-      live();
-      assert((cursor?.cursorId ?? null) === expectedCursorId, 'Target cursor mismatch.');
-      try {
-        assert(transition?.acceptedTokenIds?.length === 1, 'Ordinary transition accepts exactly one target token.');
-        const token = transition.acceptedTokenIds[0];
-        const decoded = output.accept(token);
-        let decision;
-        /** @type {number[]} */
-        let inputs = [];
-        if (cursor) {
-          inputs = [...admitResidentBlock(cursor, [], policy, vocabSize)];
-          decision = decideResidentBlock(cursor, history, [], [token], [decoded.textStop], policy, vocabSize);
-        } else {
-          decision = { acceptedTokenIds: [token], acceptedProposalCount: 0, materializeInputCount: 0, tokenRange: { start: 0, end: 1 },
-            successor: bootstrapResidentCursor(history, token, policy, vocabSize, generationId, decoded.textStop) };
-        }
-        const accepted = install(decision, decoded.delta);
-        assert(metadataDigest('doppler.resident-target-transition/v1', accepted)
-          === metadataDigest('doppler.resident-target-transition/v1', transition), 'Target transition differs from accepted token/decoder state.');
-        history.push(...inputs);
-        return accepted;
-      } catch (error) { failed = true; throw error; }
-    },
     clone() {
       live();
       assert(cursor !== null, 'Only a settled target cursor can be cloned.');
@@ -134,5 +110,43 @@ function createTarget(history, cursor, policy, vocabSize, generationId, output) 
         return immutableRecord({ ...result, decision: { ...decision, successor: result.successor } });
       } catch (error) { failed = true; throw error; }
     },
+  };
+}
+
+/** Input stage mirrors target decisions without sampling or decoding. The host
+ * must authenticate the target commitment before calling this control owner.
+ * @type {import('./resident-target-state.js').createResidentCursorMirror} */
+export function createResidentCursorMirror(prompt, policy, vocabSize, generationId) {
+  policy = validateCanonicalGenerationPolicy(policy, vocabSize);
+  const admission = admitResidentPrompt(prompt, policy, vocabSize, generationId);
+  assert('kind' in admission, 'Admission-only result cannot allocate cursor state.');
+  const history = [...admission.tokenIds];
+  /** @type {Readonly<import('./resident-state-contract.js').ResidentCursor> | null} */
+  let cursor = null;
+  let failed = false;
+  return {
+    getCursor() { assert(!failed, 'Cursor mirror is interrupted.'); return cursor; },
+    acceptTransition(expectedCursorId, transition) {
+      assert(!failed && (cursor?.cursorId ?? null) === expectedCursorId, 'Cursor mirror parent mismatch.');
+      try {
+        exactRecord(transition, ['acceptedTokenIds', 'tokenRange', 'successor', 'delta', 'outputDigest']);
+        assert(transition.acceptedTokenIds?.length === 1, 'Ordinary transition accepts exactly one target token.');
+        scalarString(transition.delta); hash(transition.outputDigest, 'target output');
+        assert(transition.delta.length <= policy.maxVisibleOutputUtf16, 'Target delta exceeds output allowance.');
+        const token = transition.acceptedTokenIds[0];
+        const textStop = transition.successor.stopReason === 'stop-sequence';
+        const inputs = cursor ? [...admitResidentBlock(cursor, [], policy, vocabSize)] : [];
+        const decision = cursor
+          ? decideResidentBlock(cursor, history, [], [token], [textStop], policy, vocabSize)
+          : { acceptedTokenIds: [token], tokenRange: { start: 0, end: 1 },
+            successor: bootstrapResidentCursor(history, token, policy, vocabSize, generationId, textStop) };
+        const accepted = immutableRecord({ acceptedTokenIds: decision.acceptedTokenIds, tokenRange: decision.tokenRange,
+          successor: decision.successor, delta: transition.delta, outputDigest: transition.outputDigest });
+        assert(metadataDigest('doppler.resident-target-transition/v1', accepted)
+          === metadataDigest('doppler.resident-target-transition/v1', transition), 'Target transition differs from logical successor.');
+        history.push(...inputs); cursor = accepted.successor;
+        return accepted;
+      } catch (error) { failed = true; throw error; }
+    }
   };
 }

@@ -3,7 +3,7 @@ import { registerHooks } from 'node:module';
 import { readFileSync } from 'node:fs';
 import { resolveGenerationOptions } from '../../src/config/generation-contract.js';
 import { canonicalGenerationIdentity } from '../../src/config/canonical-generation-policy.js';
-import { createResidentTargetState } from '../../src/inference/resident-target-state.js';
+import { createResidentTargetState, createResidentCursorMirror } from '../../src/inference/resident-target-state.js';
 import { createResidentOutputState } from '../../src/inference/resident-output-state.js';
 import { createBundledIncrementalDecoder } from '../../src/inference/tokenizers/bundled/incremental-decoder.js';
 import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
@@ -51,10 +51,22 @@ async function open(index, selectedPolicy = policy, enabled = true) {
     limits: { maxAttempts: 8, maxConcurrentAttempts: 2, maxTokens: 3, maxPromptTokens: 8, maxActivationBytes: 128, maxOutputCharacters: 128 },
     ...(enabled ? { canonicalGeneration: { policy: selectedPolicy, executionIdentity } } : {}) };
   const pipeline = { modelPartition: { plan, index }, gpuContext: null, modelConfig: {}, dopplerLoader: { gpuBuffers: [] } };
-  return createResidentPartitionSession(pipeline, allocation, { tokenize: () => [1,2], createIncrementalDecoder: decoder,
-    createRawIncrementalDecoder: decoder, getTokenContract() { throw Error('Legacy sampling must not run'); } }, async () => {});
+  const ownedDecoder = () => { assert.equal(index, 1, 'Only partition B creates mutable output decoders'); return decoder(); };
+  return createResidentPartitionSession(pipeline, allocation, { tokenize: () => [1,2], createIncrementalDecoder: ownedDecoder,
+    createRawIncrementalDecoder: ownedDecoder, getTokenContract() { throw Error('Legacy sampling must not run'); } }, async () => {});
 }
 try {
+  for (const selectedPolicy of [{ ...policy, stopSequences: ['3'] }, { ...policy, eosTokenIds: [3] },
+    { ...policy, materializedInputCapacity: 2 }]) {
+    const generationId = canonicalGenerationIdentity(selectedPolicy, executionIdentity, 100).generationId;
+    const targetState = createResidentTargetState([1,2], selectedPolicy, 100, generationId,
+      createResidentOutputState(decoder(), decoder(), selectedPolicy, 100));
+    const mirror = createResidentCursorMirror([1,2], selectedPolicy, 100, generationId);
+    const transition = targetState.bootstrap(rows[0]);
+    assert.deepEqual(mirror.acceptTransition(null, transition), transition);
+    assert.deepEqual(mirror.getCursor(), transition.successor);
+    assert(transition.successor.terminal);
+  }
   const a = await open(0), b = await open(1), binding = identity('ordinary');
   assert.equal(typeof a.admitCanonicalPrompt, 'function', 'Resident must expose actual canonical admission');
   const prompt = [1, 2], generation = canonicalGenerationIdentity(policy, executionIdentity, 100);
@@ -132,7 +144,7 @@ try {
     transition: first.transition, signal }), /no settled numerical step/);
   await changedDecision.executeCanonicalGroup0(aRequest);
   await assert.rejects(changedDecision.commitCanonicalTransition({ identity: guardedIdentity, baseCursorId: null,
-    transition: { ...first.transition, delta: 'forged' }, signal }), /differs/);
+    transition: { ...first.transition, acceptedTokenIds: [4] }, signal }), /differs/);
   await assert.rejects(changedDecision.commitCanonicalTransition({ identity: guardedIdentity, baseCursorId: null,
     transition: first.transition, signal }), /no settled numerical step/);
   await changedDecision.close();

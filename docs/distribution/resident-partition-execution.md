@@ -264,8 +264,9 @@ has no cursor, model dispatch, or attempt cache. Executing attempts use
 `generationId`, `baseCursorId`, existing continuation, input count and position.
 The final stage delegates sampling, accepted decoding and cursor advancement to
 the existing canonical target-state owner. The input stage cannot execute its
-next step until `commitCanonicalTransition()` validates the exact selected token,
-decoder output and successor against its own settled input and accepted history.
+next step until `commitCanonicalTransition()` validates the selected token and logical successor against its own settled input
+and accepted history. Only B creates or advances output decoders. A preserves the
+target delta/output digest; the host must authenticate B’s commitment before this call.
 That call runs no model work and does not manufacture transport authentication.
 An altered decision interrupts the already-mutated attempt; it cannot be retried
 as an unmodified parent.

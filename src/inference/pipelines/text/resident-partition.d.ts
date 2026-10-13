@@ -10,6 +10,7 @@ export interface ResidentAttempt {
   execution: PartitionAttempt | null; generationDigest: string | null;
   contextTokens: number[]; text: string; decoder: IncrementalTokenDecoder | null;
   canonicalState: import('../../resident-target-state.js').ResidentTargetState | null;
+  canonicalMirror: import('../../resident-target-state.js').ResidentCursorMirror | null;
   canonicalPrompt: number[] | null; canonicalAwaiting: boolean;
 }
 /** Takes ownership of the loaded pipeline through the supplied close port. */
