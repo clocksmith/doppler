@@ -70,6 +70,7 @@ const session = await authorized.openCapsule(signed.capsule, { residentPartition
 assert.equal(session.residentPartition.getDescriptor().planId, assigned.planId);
 assert.deepEqual(session.residentPartition.getRecoveryCapabilities(), resident.getRecoveryCapabilities());
 assert(Object.isFrozen(session.residentPartition.getRecoveryCapabilities()));
+await assert.rejects(session.residentPartition.executeStage({ signal: new AbortController().signal }), /v3 layer plan/);
 await session.close();
 assert.equal(closedPrograms, 1);
 assert.equal(session.residentPartition.getDescriptor().ready, false);

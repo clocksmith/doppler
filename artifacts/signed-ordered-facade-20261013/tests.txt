@@ -1,0 +1,156 @@
+TAP version 13
+# manifest and signed factories: aborted preparation settles before owned unload
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.261625
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 133.855584
+[node-tests] ok: tests/client/resident-preparation-cleanup.test.js
+TAP version 13
+# ordered signed qualification: synthetic 2/3/4/7-stage bindings, complete sets, model/layout/provider mutations passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.485084
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 223.273917
+[node-tests] ok: tests/converter/ordered-resident-qualification.test.js
+TAP version 13
+# Subtest: signed ordered 2-stage facade admits every exact stage and exposes executeStage
+ok 1 - signed ordered 2-stage facade admits every exact stage and exposes executeStage
+  ---
+  duration_ms: 25.991333
+  type: 'test'
+  ...
+# Subtest: signed ordered 3-stage facade admits every exact stage and exposes executeStage
+ok 2 - signed ordered 3-stage facade admits every exact stage and exposes executeStage
+  ---
+  duration_ms: 21.30375
+  type: 'test'
+  ...
+# Subtest: signed ordered 7-stage facade admits every exact stage and exposes executeStage
+ok 3 - signed ordered 7-stage facade admits every exact stage and exposes executeStage
+  ---
+  duration_ms: 113.835042
+  type: 'test'
+  ...
+# Subtest: ordered opening rejects incompatible descriptors and missing executor after acquisition and closes each program
+ok 4 - ordered opening rejects incompatible descriptors and missing executor after acquisition and closes each program
+  ---
+  duration_ms: 53.639084
+  type: 'test'
+  ...
+# Subtest: cancellation after program acquisition and invalid descriptor cleanup failure retain their actual cause
+ok 5 - cancellation after program acquisition and invalid descriptor cleanup failure retain their actual cause
+  ---
+  duration_ms: 13.910584
+  type: 'test'
+  ...
+# Subtest: ordered execution snapshots caller data, forwards cancellation and rejects changed execution identity before publication
+ok 6 - ordered execution snapshots caller data, forwards cancellation and rejects changed execution identity before publication
+  ---
+  duration_ms: 9.191584
+  type: 'test'
+  ...
+# Subtest: ordered plan mutation rejects before program acquisition
+ok 7 - ordered plan mutation rejects before program acquisition
+  ---
+  duration_ms: 8.027417
+  type: 'test'
+  ...
+# Subtest: ordered cancellation remains the original signal and attempt cleanup remains callable
+ok 8 - ordered cancellation remains the original signal and attempt cleanup remains callable
+  ---
+  duration_ms: 9.053666
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 9 - test module initialization completed
+  ---
+  duration_ms: 0.082084
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 369.729292
+[node-tests] ok: tests/runtime/ordered-resident-opening.test.js
+TAP version 13
+# synthetic signed paired opening preserves both partition policies and rejects scalar/stride substitution
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.3485
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 260.868666
+[node-tests] ok: tests/runtime/paired-resident-opening.test.js
+TAP version 13
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.269667
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 156.626708
+[node-tests] ok: tests/runtime/resident-partition-opening.test.js
+TAP version 13
+# resident-piece-acquisition: signed selective opening, honest receipts, gates, corruption and cleanup passed
+# public resident factory preserves signed selective acquisition
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.376791
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 176.627958
+[node-tests] ok: tests/runtime/resident-piece-acquisition.test.js
+[node-tests] ok: 6 files

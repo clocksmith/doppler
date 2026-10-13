@@ -1,0 +1,10 @@
+{
+  "schema": "doppler.signed-ordered-facade-source/v1",
+  "baseRevision": "1ac8dcf19e67fb06effa408f21256d2f6e5e141a",
+  "scope": "CPU signed public-opener contracts with synthetic program; no physical qualification",
+  "files": {
+    "src/client/runtime/composition-root.js": "3f222cc432ca76475e3c3ccf8aef80440d53e23496d5d488a60ad3c1f17273c3",
+    "tests/runtime/ordered-resident-opening.test.js": "3ee260ca28900faa4cfeebb751063a7436045038ddc2b2bf07ce7f523fc550a3",
+    "tests/runtime/resident-partition-opening.test.js": "dd97b1da2633e2d0f5182a87f6c6be21d54cb6e3b44e3e5281a208bbb7776b58"
+  }
+}
