@@ -941,6 +941,16 @@
       },
       {
        "index": 2,
+       "name": "a",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "dt_bias",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 4,
        "name": "gates",
        "type": "storage"
       }

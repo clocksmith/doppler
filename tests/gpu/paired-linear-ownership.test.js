@@ -40,17 +40,23 @@ try {
     }
     pairedLinearControl.failure = null;
     const countBeforeLimit = calls.length;
-    limits.maxStorageBufferBindingSize = 31;
+    limits.maxStorageBufferBindingSize = 47;
     await assert.rejects(run(), /Prepared gate buffer/);
     assert.equal(calls.length, countBeforeLimit); assert.equal(live.size, 0);
     limits.maxStorageBufferBindingSize = 2 ** 28;
+    limits.maxComputeWorkgroupsPerDimension = 1;
+    await assert.rejects(run(), /dispatch or binding limits/);
+    assert.equal(calls.length, countBeforeLimit); assert.equal(live.size, 0);
+    limits.maxComputeWorkgroupsPerDimension = 65535;
     const result = await run(); assert.equal(result.precision, 'two-f32'); assert.deepEqual(result.shape, [2, 2]);
     assert.equal(held.size, recorded ? 2 : 0, 'conv and gate owners remain with recorder until settlement');
     assert.deepEqual(calls.slice(-4).map(call => call[2]), ['paired_qk', 'paired_state', 'paired_norm', 'paired_gate']);
     assert.deepEqual(calls.slice(-8, -4).map(call => call[2]), ['paired_beta', 'paired_decay_scale', 'paired_log_decay', 'paired_decay']);
     const preparedGate = calls.at(-5)[3].at(-1);
     for (const call of calls.slice(-8, -4)) assert.equal(call[3].at(-1), preparedGate);
-    assert.equal(preparedGate.size, 32);
+    assert.equal(preparedGate.size, 48, 'admit the retained logarithm input as well as beta/decay');
+    assert.deepEqual(calls.at(-7)[3], [state.aLogGPU, a, state.dtBiasGPU, preparedGate]);
+    assert.deepEqual(calls.at(-7)[5], [1, 2, 1], 'both exponential rows must execute before logarithm');
     assert.equal(calls.at(-3)[3][1], preparedGate, 'state update consumes exact paired gate buffer');
     assert.equal(calls.at(-4)[3][0], calls.at(-3)[3][0], 'state consumes normalized owned convolution storage');
     assert.equal(calls.at(-3)[3].at(-1), result.buffer);

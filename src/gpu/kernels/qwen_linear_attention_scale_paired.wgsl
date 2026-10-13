@@ -9,7 +9,9 @@ struct Uniforms {
 }
 @group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> a_log: array<f32>;
-@group(0) @binding(2) var<storage, read_write> gates: array<vec2<f32>>;
+@group(0) @binding(2) var<storage, read> a: array<vec2<f32>>;
+@group(0) @binding(3) var<storage, read> dt_bias: array<f32>;
+@group(0) @binding(4) var<storage, read_write> gates: array<vec2<f32>>;
 // BEGIN GENERATED PAIRED ARITHMETIC
 // Compensated recurrent-state arithmetic; finite operands and intermediate sums/products.
 // Overflow propagates nonfinite values; this is not an extended-exponent format.
@@ -258,10 +260,17 @@ fn pair_sin_cos(a: vec2<f32>) -> vec4<f32> {
     return vec4<f32>(sine, cosine);
 }
 // END GENERATED PAIRED ARITHMETIC
+// Two workgroup rows share one exponential callsite. The second stores the
+// exact logarithm input after the beta/scale prefix, keeping both components.
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let ab_index = gid.x;
-  if (ab_index >= u.num_tokens * u.num_v_heads) { return; }
+  let count = u.num_tokens * u.num_v_heads;
+  if (ab_index >= count || gid.y >= 2u) { return; }
   let head = ab_index % u.num_v_heads;
-  gates[ab_index * 2u + 1u] = pair_exp(vec2<f32>(a_log[head], 0.0));
+  let softplus_input = pair_add(a[ab_index], vec2<f32>(dt_bias[head], 0.0));
+  let argument = select(softplus_input, -softplus_input, softplus_input.x > 0.0);
+  let exponential = pair_exp(select(vec2<f32>(a_log[head], 0.0), argument, gid.y == 1u));
+  if (gid.y == 0u) { gates[ab_index * 2u + 1u] = exponential; }
+  else { gates[count * 2u + ab_index] = pair_add(vec2<f32>(1.0, 0.0), exponential); }
 }

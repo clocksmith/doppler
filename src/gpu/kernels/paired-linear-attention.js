@@ -81,14 +81,17 @@ export async function executePairedLinearAttention(qkv, z, a, b, state, options)
   }
   const device = recorder?.device ?? getDevice();
   if (!device || device.limits.maxStorageBuffersPerShaderStage < 9) throw new Error('[PairedLinear] Nine storage bindings per stage are required.');
-  if (Math.ceil(numTokens * state.numVHeads / 64) > device.limits.maxComputeWorkgroupsPerDimension
+  if (device.limits.maxComputeWorkgroupsPerDimension < 2
+    || Math.ceil(numTokens * state.numVHeads / 64) > device.limits.maxComputeWorkgroupsPerDimension
     || Math.ceil(state.convDim / 64) > device.limits.maxComputeWorkgroupsPerDimension
     || Math.ceil(numTokens * state.valueDim / 128) > device.limits.maxComputeWorkgroupsPerDimension
     || state.numVHeads > device.limits.maxComputeWorkgroupsPerDimension
     || numTokens * Math.max(state.convDim, state.valueDim) * 8 > 0xffffffff) {
     throw new Error('[PairedLinear] Geometry exceeds dispatch or binding limits.');
   }
-  const gateBytes = numTokens * state.numVHeads * 16;
+  // Beta/decay prefix plus one paired logarithm input per token/head. Keeping
+  // exp and log in separate gate phases bounds their native compilation.
+  const gateBytes = numTokens * state.numVHeads * 24;
   if (!Number.isSafeInteger(gateBytes) || gateBytes > 0xffffffff
     || gateBytes > device.limits.maxStorageBufferBindingSize || gateBytes > device.limits.maxBufferSize) {
     throw new Error('[PairedLinear] Prepared gate buffer exceeds storage or allocation limits.');
@@ -116,8 +119,8 @@ export async function executePairedLinearAttention(qkv, z, a, b, state, options)
       [b, gates], uniform,
       [Math.ceil(numTokens * state.numVHeads / 64), 1, 1], GATE_CONSTANTS);
     await unifiedKernelWrapper('qwen_linear_attention_prepare', recorder, 'paired_decay_scale',
-      [state.aLogGPU, gates], uniform,
-      [Math.ceil(numTokens * state.numVHeads / 64), 1, 1], GATE_CONSTANTS);
+      [state.aLogGPU, a, state.dtBiasGPU, gates], uniform,
+      [Math.ceil(numTokens * state.numVHeads / 64), 2, 1], GATE_CONSTANTS);
     await unifiedKernelWrapper('qwen_linear_attention_prepare', recorder, 'paired_log_decay',
       [a, state.dtBiasGPU, gates], uniform,
       [Math.ceil(numTokens * state.numVHeads / 64), 1, 1], GATE_CONSTANTS);
