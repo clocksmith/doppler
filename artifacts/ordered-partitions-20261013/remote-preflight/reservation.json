@@ -1,0 +1,18 @@
+{
+  "schema": "doppler.ordered-provider-reservation/v1",
+  "id": "root-suby-tiny-allocation-20261013",
+  "authorizedBy": "root task: bounded Suby native provider adapter/features/limits plus tiny allocation/settlement; no model or MacGPU",
+  "frozenAt": "2026-10-13T15:04:06.235126+00:00",
+  "host": "clocksmith@suby.tail995236.ts.net",
+  "publicNativePid": 297260,
+  "publicBrowserControllerPid": 299769,
+  "coTenancy": "Existing public contributor processes remain running; no exclusive performance claim",
+  "operationDeadlineMs": 45000,
+  "processDeadlineMs": 60000,
+  "explicitBufferBytes": 8192,
+  "runtimeArchiveSha256": "5e0d60bc433d332187d422721fd7afcaec780c202e3082adcab389b47fd27fc5",
+  "sources": {
+    "provider.js": "b20c708f33ca465621800d3321f9e44558dfa19fb82fc6d6b72b3f51ade92eab",
+    "verify.js": "35d59e40d763c30e9d0d688d568a4d13c4c9949445f36fd9eebf97c205bd2c9b"
+  }
+}

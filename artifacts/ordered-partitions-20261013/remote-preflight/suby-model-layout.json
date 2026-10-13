@@ -1,0 +1,6 @@
+{
+  "modelDirectory": "/var/tmp/doppler-ordered-provider-20261013/model",
+  "manifest": "isolated exact copied manifest",
+  "weightsAndTokenizer": "regular hardlinks to verified isolated fixture; no public cache",
+  "files": 20
+}
