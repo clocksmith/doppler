@@ -26,6 +26,32 @@ These failures are not erased or counted as passes; this repair does not enable
 those unsupported sampling configurations. Baseline tests use the local Apple
 GPU and do not qualify the Intel model path.
 
-Next acceptance: freeze and install the new archive, rerun the original prefix
-without debugger treatment, then the complete required prefix and installed
-conversation/lifecycle campaigns. The accepted public package remains unchanged.
+## Installed candidate
+
+Archive `2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8`
+is retained with its [identity](candidate.json) and [isolated installation receipt](installed-candidate.json).
+Only the six policy/executor members listed in the identity differ from `9264d265…`;
+WGSL, model, references and tolerances are unchanged. The archive is not promoted.
+
+The [original 184-token output-stage prefix](installed-prefix-comparison.json)
+passes on Intel/native without scheduling or tensor debugger modification:
+248,320 logits, maximum absolute error `9.465929977636733e-7` at `0.001`, selected
+token 16 as expected. All 1,984 installed files were verified. Attempt, resident,
+context and provider close pass; peak tracked GPU allocation is 330,004,304 bytes.
+The retained supervisor receipt records normal provider exit; no new Intel fence
+timeout appeared. Power was unavailable; loopback model supply does not measure
+peer transfer. This is one prefix, not the full 55-prefix or application gate.
+
+## Projection diagnostic remains failed
+
+The [retained outlier](projection-outlier-result.json) has exact operand vectors.
+[Exact rational comparison](projection-outlier-analysis.json) disproves the
+hypothesis that sequential binary64 reference accumulation explains the failure:
+the GPU relative error is `2.265145748959937e-12`, exceeding the original synthetic
+`2e-12` limit. The reference error is `8.461521518870827e-14`. This small paired
+arithmetic residual is distinct from the long-prefill timeout; its cause remains
+unresolved. No threshold was weakened and no failed control is counted as passed.
+
+Next acceptance: complete the required 55-prefix physical campaign for this exact
+archive, resolve the projection diagnostic, then installed signed conversation,
+storage and concurrency/lifecycle gates. The accepted public package is unchanged.

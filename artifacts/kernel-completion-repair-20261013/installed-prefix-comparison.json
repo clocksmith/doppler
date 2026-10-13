@@ -1,0 +1,77 @@
+{
+  "schema": "doppler.installed-prefix-comparison/v1",
+  "scope": "One original output-stage prefix on Intel/native; not complete55, all placements or application qualification",
+  "archiveSha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+  "installedFiles": 1984,
+  "resultSha256": "ee81bd749a1d292626d2c8a0864fbced92077d011f21dae6b621fed2a4595993",
+  "referenceObservationSha256": "260469b51eb89d1532a9f58f98d43a0b26a821b964559bb529b39c991ec61744",
+  "logits": 248320,
+  "maxAbsoluteError": 9.465929977636733e-07,
+  "tolerance": 0.001,
+  "failures": 0,
+  "actualToken": 16,
+  "expectedToken": 16,
+  "operations": [
+    {
+      "label": "load-only-stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-13T23:27:47.164Z",
+      "finishedAt": "2026-10-13T23:27:56.913Z",
+      "elapsedMs": 9749.0
+    },
+    {
+      "label": "installed-original-long-prefill",
+      "status": "completed",
+      "startedAt": "2026-10-13T23:27:57.682Z",
+      "finishedAt": "2026-10-13T23:30:58.418Z",
+      "elapsedMs": 180736.0
+    },
+    {
+      "label": "close-installed-prefix-attempt",
+      "status": "completed",
+      "startedAt": "2026-10-13T23:30:58.448Z",
+      "finishedAt": "2026-10-13T23:30:58.482Z",
+      "elapsedMs": 34.0
+    },
+    {
+      "label": "close-load-only-stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-13T23:30:58.492Z",
+      "finishedAt": "2026-10-13T23:30:58.585Z",
+      "elapsedMs": 93.0
+    },
+    {
+      "label": "close-context",
+      "status": "completed",
+      "startedAt": "2026-10-13T23:30:58.597Z",
+      "finishedAt": "2026-10-13T23:30:58.607Z",
+      "elapsedMs": 10.0
+    },
+    {
+      "label": "close-provider",
+      "status": "completed",
+      "startedAt": "2026-10-13T23:30:58.616Z",
+      "finishedAt": "2026-10-13T23:30:58.759Z",
+      "elapsedMs": 143.0
+    }
+  ],
+  "lifecycleErrors": {},
+  "providerSettlement": {
+    "closed": true,
+    "providerOpened": true,
+    "ownedProviderReleased": true
+  },
+  "peakAllocatedGpuBytes": 330004304,
+  "gpuLimitBytes": 1420000000,
+  "power": {
+    "available": false,
+    "reason": "RAPL energy_uj unreadable by diagnostic account"
+  },
+  "transfer": {
+    "scope": "Loopback model server, not live peer acquisition",
+    "measured": false
+  },
+  "passed": true,
+  "completeQualification": false,
+  "promotion": false
+}

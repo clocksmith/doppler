@@ -1,0 +1,19 @@
+{
+  "schema": "doppler.candidate-extraction-install/v1",
+  "method": "Verified archive extraction; original application/native provider files retained",
+  "parentNativeDeliverySha256": "38e4fa9e29cb5d9aec713da8ecee270bdb082e6382e4117364e8e0ff140805a6",
+  "runtimeArchiveSha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+  "startupConfig": {
+    "applicationDirectory": "/var/tmp/reploid-completion-candidate-20261013/installed/reploid",
+    "nativeDeliverySha256": "04a5cf0c4da08c88c52fa51ed6ad9f9cbc9b6c09c008eecb7cf9afee1016110e",
+    "providerModule": "webgpu",
+    "testDelivery": {
+      "root": "/var/tmp/reploid-completion-candidate-20261013",
+      "bindingPath": "/var/tmp/reploid-completion-candidate-20261013/snapshot-binding.json",
+      "bindingSha256": "3f6d98a0dbf9f83a11e87f28b6483291618c9073756604b5e6e3c609736ecdf6",
+      "archivePath": "/var/tmp/reploid-completion-candidate-20261013/archive.tgz"
+    }
+  },
+  "signedApplicationQualified": false,
+  "publicPackageChanged": false
+}
