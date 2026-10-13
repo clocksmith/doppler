@@ -19,6 +19,7 @@ globalThis.GPUMapMode = {
 };
 
 const { CommandRecorder } = await import('../../src/gpu/command-recorder.js');
+const { beginImmediateDispatchProfile, dispatch } = await import('../../src/gpu/kernels/dispatch.js');
 const { FEATURES, setDevice } = await import('../../src/gpu/device.js');
 const { configurePerfGuards } = await import('../../src/gpu/perf-guards.js');
 const { resetUniformCache } = await import('../../src/gpu/uniform-cache.js');
@@ -137,6 +138,7 @@ function createFakeDevice(options = {}) {
         beginComputePass(descriptor = {}) {
           const passRecord = {
             label: descriptor.label ?? null,
+            timestampWrites: descriptor.timestampWrites,
             ended: false,
             dispatches: [],
           };
@@ -174,6 +176,49 @@ function createFakeDevice(options = {}) {
 
 async function flushMicrotasks() {
   await new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+for (const failure of [null, 'queue', 'map', 'capacity']) {
+  setRuntimeConfig({ shared: { debug: { profiler: { maxQueries: failure === 'capacity' ? 2 : 8, defaultQueryLimit: 8 } } } });
+  const device = createFakeDevice({ features: [FEATURES.TIMESTAMP_QUERY],
+    rejectSubmitted: failure === 'queue', rejectMapRead: failure === 'map' });
+  setDevice(device, { platformConfig: null });
+  const submissions = [];
+  device.queue.submit = commands => submissions.push(commands);
+  const recorder = new CommandRecorder(device, 'immediate_profile', { profile: true });
+  const release = beginImmediateDispatchProfile(device, () => recorder);
+  try {
+    dispatch(device, { label: 'paired' }, {}, [7, 2, 1]);
+    dispatch(device, { label: 'paired' }, {}, [9, 1, 1]);
+    assert.equal(submissions.length, 2, 'each original immediate kernel submits once');
+    assert.equal(device.getSubmittedWorkDoneCount(), 0, 'no added per-kernel host barrier');
+    assert(device.computePasses[0].timestampWrites);
+    if (failure !== 'capacity') assert(device.computePasses[1].timestampWrites);
+    const complete = async () => {
+      await recorder.submitAndWait();
+      return recorder.resolveProfileTimings({ requireComplete: true });
+    };
+    if (failure) await assert.rejects(complete(), failure === 'queue' ? /device lost/ : failure === 'map' ? /map failed/ : /capacity/);
+    else assert.deepEqual(await complete(), { 'compute:paired [7,2,1]': 0, 'compute:paired [9,1,1]': 0 });
+  } finally { release(); await recorder.abort(); }
+  assert(device.createdQuerySets.every(query => query.destroyed), `${failure}: query resources settle`);
+  assert(device.createdBuffers.every(buffer => buffer.destroyed), `${failure}: query/readback buffers settle`);
+  setDevice(null);
+}
+resetRuntimeConfig();
+
+{
+  setRuntimeConfig({ shared: { debug: { profiler: { maxQueries: 8, defaultQueryLimit: 8 } } } });
+  const device = createFakeDevice({ features: [FEATURES.TIMESTAMP_QUERY] });
+  setDevice(device, { platformConfig: null });
+  const recorder = new CommandRecorder(device, 'long_gpu_pass', { profile: true });
+  recorder.recordDispatch({}, {}, [1, 1, 1], 'long');
+  device.createdBuffers[1].getMappedRange = () => BigUint64Array.from([0n, 61_000_000_000n]).buffer;
+  recorder.submit();
+  assert.deepEqual(await recorder.resolveProfileTimings({ requireComplete: true }), { long: 61000 },
+    'strict observation must not silently drop a valid long GPU duration');
+  await recorder.abort();
+  setDevice(null); resetRuntimeConfig();
 }
 
 {

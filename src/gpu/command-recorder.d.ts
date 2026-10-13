@@ -187,7 +187,11 @@ export declare class CommandRecorder {
    * Labels with multiple invocations are aggregated (e.g., 'matmul' across all layers).
    *
    */
-  resolveProfileTimings(): Promise<ProfileTimings | null>;
+  resolveProfileTimings(options?: {
+    /** Reject absent, incomplete, invalid, or unavailable timestamp evidence.
+     * Valid durations above 60 seconds remain observable in this mode. */
+    requireComplete?: boolean;
+  }): Promise<ProfileTimings | null>;
 
   /**
    * Get a formatted profiling report.

@@ -1,4 +1,6 @@
 import { createCommandRecorder } from '../../../gpu/command-recorder.js';
+import { beginImmediateDispatchProfile } from '../../../gpu/kernels/dispatch.js';
+import { log } from '../../../debug/index.js';
 import { acquireBuffer, releaseBuffer, discardBuffer, readBuffer, uploadData } from '../../../memory/buffer-pool.js';
 import { getWeightDtype, getWeightMetadata, isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
@@ -171,6 +173,9 @@ async function executePartitionChunk(state, input, signal, prefill, finalChunk) 
   let hidden = null;
   let output = null;
   let primaryFailure = null;
+  /** @type {(() => void) | null} */
+  let releaseProfile = null;
+  let boundaryStarted = performance.now();
   /** @type {Set<GPUBuffer>} */
   const directBuffers = new Set();
   /** @type {{ trackTemporaryBuffer(buffer: GPUBuffer): void }} */
@@ -183,16 +188,25 @@ async function executePartitionChunk(state, input, signal, prefill, finalChunk) 
     for (const buffer of directBuffers) (discard ? discardBuffer : releaseBuffer)(buffer);
     directBuffers.clear();
   };
-  const submit = async () => {
+  /** @param {number} layer */
+  const submit = async (layer) => {
     const started = performance.now();
     await recorder.submitAndWait();
-    timing.submitWaitMs += performance.now() - started;
+    const submitWaitMs = performance.now() - started;
+    timing.submitWaitMs += submitWaitMs;
     if (!recordLayers) releaseDirectBuffers(false);
-    const kernels = await recorder.resolveProfileTimings();
-    if (kernels && recordLayers) timing.gpuKernelsMs = (timing.gpuKernelsMs ?? 0)
+    const kernels = await recorder.resolveProfileTimings({ requireComplete: releaseProfile !== null });
+    if (kernels) timing.gpuKernelsMs = (timing.gpuKernelsMs ?? 0)
       + Object.values(kernels).reduce((sum, ms) => sum + ms, 0);
+    if (releaseProfile) log.warn('Profile', JSON.stringify({ scope: 'resident-immediate',
+      layerEnd: layer, numTokens, position: state.currentSeqLen, encodeWallMs: started - boundaryStarted,
+      submitWaitMs, kernels, dispatches: recorder.getStats().dispatches }));
+    boundaryStarted = performance.now();
   };
   try {
+    if (!recordLayers && state.runtimeConfig.shared.debug.profiler.enabled) {
+      releaseProfile = beginImmediateDispatchProfile(recorder.device, () => recorder);
+    }
     context = buildLayerContext(state, recordLayers ? recorder : undefined, !prefill, null, undefined, executionPlan);
     context.currentTokenIds = input.tokenIds ?? null;
     if (partition.hasEmbedding) {
@@ -239,7 +253,7 @@ async function executePartitionChunk(state, input, signal, prefill, finalChunk) 
         } catch (error) { releaseBuffer(carry); throw error; }
         boundaryOwner.trackTemporaryBuffer(hidden);
         hidden = carry;
-        await submit();
+        await submit(layer);
         signal.throwIfAborted();
         recorder = createRecorder();
         context.recorder = recordLayers ? recorder : undefined;
@@ -254,7 +268,9 @@ async function executePartitionChunk(state, input, signal, prefill, finalChunk) 
     hidden = null;
     releaseSharedAttentionState(context.sharedAttentionState, boundaryOwner);
     timing.encodeMs = performance.now() - encodeStarted - timing.submitWaitMs;
-    await submit();
+    await submit(partition.layerRange[1]);
+    releaseProfile?.();
+    releaseProfile = null;
     signal.throwIfAborted();
     if (!partition.hasLmHead) {
       const readbackStarted = performance.now();
@@ -281,6 +297,7 @@ async function executePartitionChunk(state, input, signal, prefill, finalChunk) 
     primaryFailure = error;
     throw error;
   } finally {
+    releaseProfile?.();
     let completionFailure = null;
     if (!recordLayers) {
       // Direct kernels submit outside the carry recorder. A failed layer may

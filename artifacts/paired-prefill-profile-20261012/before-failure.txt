@@ -1,0 +1,2 @@
+Before implementation: node tests/gpu/immediate-dispatch-profile.test.js exited1: SyntaxError: The requested module '../../src/gpu/kernels/dispatch.js' does not provide an export named 'beginImmediateDispatchProfile'.
+This is a missing-observation API control, not physical performance evidence.

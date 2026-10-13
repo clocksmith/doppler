@@ -4400,6 +4400,7 @@
         "tests/gpu/dispatch-device-loss-context.test.js",
         "tests/gpu/energy-cleanup.test.js",
         "tests/gpu/gather-contract.test.js",
+        "tests/gpu/immediate-dispatch-profile.test.js",
         "tests/gpu/kernel-binding-contract.test.js",
         "tests/gpu/kernel-contract-regressions.test.js",
         "tests/gpu/kernel-language-selection.test.js",
@@ -4647,6 +4648,7 @@
         "tests/inference/refactor-receipt.test.js",
         "tests/inference/rerank-scoring-details.test.js",
         "tests/inference/resident-block-contract.test.js",
+        "tests/inference/resident-canonical-execution.test.js",
         "tests/inference/resident-kernel-preparation.test.js",
         "tests/inference/resident-output-state.test.js",
         "tests/inference/resident-partition-lifecycle.test.js",
@@ -5010,6 +5012,7 @@
         "tests/runtime/plan-bind-execute.test.js",
         "tests/runtime/resident-partition-opening.test.js",
         "tests/runtime/resident-piece-acquisition.test.js",
+        "tests/runtime/resident-piece-blake3.test.js",
         "tests/runtime/target-selector.test.js",
         "tests/storage/artifact-storage-context.test.js",
         "tests/storage/blake3.test.js",
@@ -6729,7 +6732,7 @@
     {
       "file": "tests/inference/partition-prefill-lifetime.test.js",
       "kind": "dynamic",
-      "line": 84,
+      "line": 89,
       "expression": "import(target)"
     },
     {
@@ -6767,6 +6770,12 @@
       "kind": "asset",
       "line": 64,
       "expression": "new URL(relativePath, import.meta.url)"
+    },
+    {
+      "file": "tests/inference/resident-canonical-execution.test.js",
+      "kind": "dynamic",
+      "line": 35,
+      "expression": "import(target)"
     },
     {
       "file": "tests/inference/resident-kernel-preparation.test.js",
