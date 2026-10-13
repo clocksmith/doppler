@@ -156,7 +156,7 @@ export interface LoadOptions {
   verifyHashes: boolean;
   /** Materialize only these decoder layers and their declared endpoint weights.
    * Artifact verification can still read shared shards outside this allocation. */
-  partition?: { plan: import('../inference/pipelines/text/layer-partition-contract.js').LayerPartitionPlan; index: 0 | 1 } | null;
+  partition?: { plan: import('../inference/pipelines/text/layer-partition-contract.js').AnyLayerPartitionPlan; index: number } | null;
 }
 
 export type LoaderLoadTimingPhase =

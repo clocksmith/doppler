@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import { load } from '../../src/loader/model-executor.js';
-import { createLayerPartitionPlan, resolveLayerPartition } from '../../src/inference/pipelines/text/layer-partition-contract.js';
+import { createLayerPartitionPlan, createOrderedLayerPartitionPlan, resolveLayerPartition } from '../../src/inference/pipelines/text/layer-partition-contract.js';
 import { createRDRRManifestFixture } from '../helpers/rdrr-manifest-fixture.js';
 
 // Exercise the production load coordinator with observed materialization ports.
 // This does not claim GPU execution or selective artifact acquisition.
-function fixture({ tied = false, failLayer = null, head = null } = {}) {
+function fixture({ tied = false, failLayer = null, head = null, numLayers = 4 } = {}) {
   const manifest = createRDRRManifestFixture();
-  manifest.architecture.numLayers = 4;
+  manifest.architecture.numLayers = numLayers;
   manifest.inference.output.tieWordEmbeddings = tied;
   const calls = [];
   const progress = [];
@@ -45,7 +45,7 @@ function fixture({ tied = false, failLayer = null, head = null } = {}) {
     },
   };
   const plan = createLayerPartitionPlan({ modelId: manifest.modelId,
-    numLayers: 4, hiddenSize: 4, vocabSize: 8, splitLayer: 2 });
+    numLayers, hiddenSize: 4, vocabSize: 8, splitLayer: 2 });
   const execute = partition => load.call(loader, manifest.modelId, {
     verifyHashes: true, partition, onProgress: event => progress.push(event),
   });
@@ -129,3 +129,19 @@ for (const mutate of [
 }
 
 console.log('layer-partition-loading.test: passed (materialization coordination only)');
+
+// Ordered geometry drives the same materialization owner: middle stages do not
+// load embedding/head, even when source endpoints tie their weights.
+for (const cuts of [[14], [3, 19], [1, 8, 24], [1, 3, 8, 14, 18, 27]]) {
+  for (let index = 0; index <= cuts.length; index++) {
+    const f = fixture({ tied: true, numLayers: 28 });
+    const plan = createOrderedLayerPartitionPlan({ modelId: f.manifest.modelId, numLayers: 28,
+      hiddenSize: 4, vocabSize: 8, splitLayers: cuts });
+    await f.execute({ plan, index });
+    const stage = plan.partitions[index], first = stage.layerRange[0], last = stage.layerRange[1];
+    const layers = Array.from({ length: last - first + 1 }, (_, n) => first + n);
+    assert.deepEqual(f.calls, [...(stage.hasEmbedding || stage.hasLmHead ? ['embed'] : []),
+      ...layers, ...(stage.hasLmHead ? ['head'] : [])]);
+    assert.deepEqual([...f.loader.layers.keys()], layers);
+  }
+}

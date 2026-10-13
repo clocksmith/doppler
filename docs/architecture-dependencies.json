@@ -4605,6 +4605,8 @@
         "tests/inference/node-file-shard-storage-context.test.js",
         "tests/inference/operator-diagnostics-forwarding-contract.test.js",
         "tests/inference/operator-diffing.test.js",
+        "tests/inference/ordered-layer-partition-contract.test.js",
+        "tests/inference/ordered-resident-execution.test.js",
         "tests/inference/ordinary-activation-contract.test.js",
         "tests/inference/paired-cache-cast-cleanup.test.js",
         "tests/inference/paired-embedding-probe.test.js",
@@ -6670,6 +6672,12 @@
       "kind": "asset",
       "line": 5,
       "expression": "new URL(`../../${relativePath}`, import.meta.url)"
+    },
+    {
+      "file": "tests/inference/ordered-resident-execution.test.js",
+      "kind": "dynamic",
+      "line": 41,
+      "expression": "import(target)"
     },
     {
       "file": "tests/inference/paired-embedding-probe.test.js",

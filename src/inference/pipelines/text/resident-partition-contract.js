@@ -1,4 +1,4 @@
-import { resolveLayerPartition, hashLayerPartitionPlan } from './layer-partition-contract.js';
+import { resolveLayerPartition, hashLayerPartitionPlan, ORDERED_LAYER_PARTITION_SCHEMA } from './layer-partition-contract.js';
 import { resolveGenerationOptions } from '../../../config/generation-contract.js';
 import { computeCanonicalSha256 } from '../../../formats/canonical-hash.js';
 import { freezeCapsuleV2 } from '../../../config/capsule-v2.js';
@@ -8,13 +8,20 @@ import { exactRecord } from '../../../config/canonical-contract-codec.js';
 const IDENTITY_FIELDS = ['modelId', 'modelIdentity', 'planId', 'threadId', 'attemptId', 'participantA', 'participantB'];
 const LIMIT_FIELDS = ['maxTokens', 'maxPromptTokens', 'maxActivationBytes', 'maxOutputCharacters', 'maxAttempts', 'maxConcurrentAttempts'];
 
+/** Public generation binding used by resident admission and stage callers.
+ * @type {import('./resident-partition-contract.js').hashPartitionGeneration} */
+export function hashPartitionGeneration(generation) {
+  return /** @type {`sha256:${string}`} */ (computeCanonicalSha256(resolveGenerationOptions(generation)));
+}
+
 /** @type {import('./resident-partition-contract.js').resolveResidentPartitionAllocation} */
 export function resolveResidentPartitionAllocation(manifest, manifestHash, input) {
   if (!input || !input.model || input.model.id !== manifest.modelId || input.model.identity !== manifestHash) {
     throw new Error('Resident partition model identity must match the verified Capsule manifest.');
   }
   const allocation = structuredClone(input);
-  if (![0, 1].includes(allocation.index) || !allocation.participantId
+  if (!Number.isSafeInteger(allocation.index) || allocation.index < 0
+    || allocation.index >= allocation.plan?.partitions?.length || !allocation.participantId
     || hashLayerPartitionPlan(allocation.plan) !== allocation.planId) {
     throw new Error('Resident partition requires an exact plan digest, index and participant identity.');
   }
@@ -32,6 +39,9 @@ export function resolveResidentPartitionAllocation(manifest, manifestHash, input
 /** @type {import('./resident-partition-contract.js').resolveResidentCanonicalGeneration} */
 export function resolveResidentCanonicalGeneration(allocation) {
   if (allocation.canonicalGeneration === undefined) return null;
+  if (allocation.plan.schema === ORDERED_LAYER_PARTITION_SCHEMA) {
+    throw new Error('Ordered resident canonical target transitions are not implemented.');
+  }
   const value = exactRecord(allocation.canonicalGeneration, ['policy', 'executionIdentity']);
   const resolved = canonicalGenerationIdentity(value.policy, value.executionIdentity, allocation.plan.vocabSize);
   if (resolved.policy.maxGeneratedTokens > allocation.limits.maxTokens
@@ -45,6 +55,29 @@ export function resolveResidentCanonicalGeneration(allocation) {
 
 /** @type {import('./resident-partition-contract.js').assertResidentPartitionIdentity} */
 export function assertResidentPartitionIdentity(identity, allocation) {
+  if (allocation.plan.schema === ORDERED_LAYER_PARTITION_SCHEMA) {
+    const ordered = /** @type {import('./resident-partition-contract.js').ResidentOrderedPartitionIdentity} */ (identity);
+    exactRecord(ordered, ['schema', 'modelId', 'modelIdentity', 'planId', 'threadId', 'attemptId',
+      'requesterId', 'placementGeneration', 'stages']);
+    if (ordered.schema !== 'doppler.resident-partition-attempt/v2'
+      || ['modelId', 'modelIdentity', 'planId', 'threadId', 'attemptId', 'requesterId'].some(key =>
+        typeof Reflect.get(ordered, key) !== 'string' || !Reflect.get(ordered, key))
+      || ordered.modelId !== allocation.model.id || ordered.modelIdentity !== allocation.model.identity
+      || ordered.planId !== allocation.planId || !Number.isSafeInteger(ordered.placementGeneration)
+      || ordered.placementGeneration < 0 || !Array.isArray(ordered.stages)
+      || ordered.stages.length !== allocation.plan.stageCount) throw new Error('Ordered resident attempt identity mismatch.');
+    for (let index = 0; index < ordered.stages.length; index++) {
+      const stage = exactRecord(ordered.stages[index], ['index', 'participantId', 'transportId', 'residentId', 'executionId']);
+      if (stage.index !== index || ['participantId', 'transportId', 'residentId', 'executionId'].some(key =>
+        typeof stage[key] !== 'string' || !stage[key])) throw new Error('Ordered resident route stage mismatch.');
+    }
+    if (ordered.stages[allocation.index].participantId !== allocation.participantId
+      || new Set(ordered.stages.map(stage => JSON.stringify([stage.participantId, stage.residentId]))).size !== ordered.stages.length) {
+      throw new Error('Ordered resident route assignment mismatch.');
+    }
+    return computeCanonicalSha256(ordered);
+  }
+  if ('schema' in identity) throw new Error('Ordered resident identity requires an ordered plan.');
   if (!identity || IDENTITY_FIELDS.some(key => typeof identity[/** @type {keyof typeof identity} */ (key)] !== 'string'
     || !identity[/** @type {keyof typeof identity} */ (key)])
     || identity.modelId !== allocation.model.id || identity.modelIdentity !== allocation.model.identity

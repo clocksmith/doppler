@@ -1,4 +1,4 @@
-import type { ActivationLayout, LayerPartitionPlan } from './layer-partition-contract.js';
+import type { ActivationLayout, AnyLayerPartitionPlan } from './layer-partition-contract.js';
 import type { GenerationOptions, ResolvedGenerationOptions, CanonicalGenerationPolicy } from '../../../config/generation-contract.js';
 import type { ResidentTargetTransition } from '../../resident-target-state.js';
 import type { AdmissionOnlyResult } from '../../resident-state-contract.js';
@@ -14,7 +14,7 @@ export interface ResidentPartitionLimits {
 }
 export interface ResidentPartitionAllocation {
   model: { id: string; identity: string };
-  plan: LayerPartitionPlan; planId: string; index: 0 | 1; participantId: string;
+  plan: AnyLayerPartitionPlan; planId: string; index: number; participantId: string;
   limits: ResidentPartitionLimits; generation: GenerationOptions;
   /** Explicit opt-in; never inferred from a legacy generation object. */
   canonicalGeneration?: { policy: CanonicalGenerationPolicy; executionIdentity: string };
@@ -24,9 +24,18 @@ export interface ResidentPartitionIdentity {
   attemptId: string; participantA: string; participantB: string;
   requesterId?: string; placementGeneration?: number;
 }
+/** Route metadata binds attempt continuity; the host separately authenticates grants and transport. */
+export interface ResidentOrderedPartitionIdentity {
+  schema: 'doppler.resident-partition-attempt/v2';
+  modelId: string; modelIdentity: string; planId: string; threadId: string; attemptId: string;
+  requesterId: string; placementGeneration: number;
+  stages: readonly { index: number; participantId: string; transportId: string; residentId: string; executionId: string }[];
+}
+export type ResidentExecutionIdentity = ResidentPartitionIdentity | ResidentOrderedPartitionIdentity;
 export interface ResidentPartitionDescriptor {
-  schema: 'doppler.resident-partition/v1'; ready: boolean;
-  modelId: string; modelIdentity: string; planId: string; index: 0 | 1;
+  schema: 'doppler.resident-partition/v1' | 'doppler.resident-partition/v2'; ready: boolean;
+  stageCount?: number;
+  modelId: string; modelIdentity: string; planId: string; index: number;
   layerRange: readonly number[]; residentWeightBytes: number;
   generationDigest: string;
   canonicalGenerationId?: string;
@@ -38,14 +47,14 @@ export interface ResidentRecoveryCapabilities {
   readonly checkpointImport: boolean;
 }
 export interface ResidentPartitionTokenizationRequest {
-  messages: unknown; identity: ResidentPartitionIdentity; signal: AbortSignal;
+  messages: unknown; identity: ResidentExecutionIdentity; signal: AbortSignal;
 }
 export interface ResidentPartitionTokenizationResult {
   modelIdentity: string; tokenIds: number[];
   generation: Readonly<ResolvedGenerationOptions>;
 }
 export interface ResidentPartitionStep {
-  identity: ResidentPartitionIdentity; step: number; tokenPosition: number; inputTokenCount: number;
+  identity: ResidentExecutionIdentity; step: number; tokenPosition: number; inputTokenCount: number;
   maxTokens: number; generation: GenerationOptions; continuation: unknown; signal: AbortSignal;
   generationId?: string; baseCursorId?: string | null;
 }
@@ -67,7 +76,7 @@ export interface ResidentPartitionMetrics extends PartitionTiming {
     'maxBytes' | 'liveBytes' | 'peakBytes' | 'categories'> | null;
 }
 export interface ResidentPartitionBResult {
-  identity: ResidentPartitionIdentity; step: number; tokenPosition: number;
+  identity: ResidentExecutionIdentity; step: number; tokenPosition: number;
   tokenId: number; delta: string; done: boolean; stopReason: string | null;
   continuation: unknown; logits: Float32Array; metrics: ResidentPartitionMetrics;
 }
@@ -81,22 +90,31 @@ export interface ResidentCanonicalBResult extends ResidentPartitionBResult { tra
 export interface ResidentCanonicalGeneration {
   readonly policy: Readonly<CanonicalGenerationPolicy>; readonly executionIdentity: string; readonly generationId: string;
 }
+export interface ResidentStageRequest extends Omit<ResidentPartitionStep, 'identity'> {
+  identity: ResidentOrderedPartitionIdentity; partitionIndex: number; inputTokenIds: number[];
+  generationDigest: string; activation?: ResidentPartitionBRequest['activation'];
+}
+export type ResidentStageResult = (ResidentPartitionAResult | ResidentPartitionBResult) & {
+  identity: ResidentOrderedPartitionIdentity; partitionIndex: number; step: number; tokenPosition: number;
+};
 export interface ResidentPartitionSession {
   getDescriptor(): ResidentPartitionDescriptor;
   /** Live continuation is not portable recovery. This implementation reports all flags false. */
   getRecoveryCapabilities(): ResidentRecoveryCapabilities;
   getCanonicalGeneration(): ResidentCanonicalGeneration | null;
-  admitCanonicalPrompt(request: { identity: ResidentPartitionIdentity; tokenIds: number[]; generationId: string; signal: AbortSignal }):
+  admitCanonicalPrompt(request: { identity: ResidentExecutionIdentity; tokenIds: number[]; generationId: string; signal: AbortSignal }):
     Promise<Readonly<AdmissionOnlyResult> | Readonly<{ kind: 'prefill'; tokenIds: readonly number[]; generationId: string }>>;
   executeCanonicalGroup0(request: ResidentCanonicalARequest): Promise<ResidentPartitionAResult>;
   executeCanonicalGroup1(request: ResidentCanonicalBRequest): Promise<ResidentCanonicalBResult>;
   /** Settled numerical input-stage commit; not an authenticated transport acknowledgment. */
-  commitCanonicalTransition(request: { identity: ResidentPartitionIdentity; baseCursorId: string | null;
+  commitCanonicalTransition(request: { identity: ResidentExecutionIdentity; baseCursorId: string | null;
     transition: ResidentTargetTransition; signal: AbortSignal }): Promise<Readonly<ResidentTargetTransition>>;
   tokenize(request: ResidentPartitionTokenizationRequest): Promise<ResidentPartitionTokenizationResult>;
+  /** Ordered v3 plan only. Entry embeds, intermediate returns activation, final alone samples. */
+  executeStage(request: ResidentStageRequest): Promise<ResidentStageResult>;
   executeGroup0(request: ResidentPartitionARequest): Promise<ResidentPartitionAResult>;
   executeGroup1(request: ResidentPartitionBRequest): Promise<ResidentPartitionBResult>;
-  closeAttempt(request: { identity: ResidentPartitionIdentity }): Promise<void>;
+  closeAttempt(request: { identity: ResidentExecutionIdentity }): Promise<void>;
   close(): Promise<void>;
 }
 export interface ResidentPartitionTokenPorts {
@@ -107,6 +125,8 @@ export interface ResidentPartitionTokenPorts {
 }
 export function resolveResidentPartitionAllocation(manifest: { modelId?: unknown; architecture?: unknown },
   manifestHash: string, allocation: ResidentPartitionAllocation): ResidentPartitionAllocation;
-export function assertResidentPartitionIdentity(identity: ResidentPartitionIdentity,
+export function assertResidentPartitionIdentity(identity: ResidentExecutionIdentity,
   allocation: ResidentPartitionAllocation): string;
 export function resolveResidentCanonicalGeneration(allocation: ResidentPartitionAllocation): ResidentCanonicalGeneration | null;
+
+export function hashPartitionGeneration(generation: GenerationOptions): `sha256:${string}`;

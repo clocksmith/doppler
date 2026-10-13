@@ -39,7 +39,8 @@ for (const [stages, splits] of [[2, [14]], [3, [3, 19]], [4, [1, 8, 24]], [7, [1
       assert.throws(() => contract.hashLayerPartitionPlan(bad));
     }
     assert.throws(() => contract.validateOrderedLayerPartitionPlan({ ...manifest, modelId: 'other' }, plan));
-    assert.throws(() => contract.resolveLayerPartition(manifest, { plan, index: 0 }), /allocation/);
+    for (let index = 0; index < stages; index++) assert.deepEqual(contract.resolveLayerPartition(manifest, { plan, index }), plan.partitions[index]);
+    for (const index of [-1, stages, 1.5, NaN]) assert.throws(() => contract.resolveLayerPartition(manifest, { plan, index }), /allocation/);
   }
 }
 for (const splitLayers of [[], [0], [28], [4, 4], [14, 3], [1.5], [NaN], [Infinity], null, '14']) {

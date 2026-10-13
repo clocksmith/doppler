@@ -102,11 +102,34 @@ v3 before hashing it. Existing v1/v2 constructors, hashes and activation frame
 schemas remain unchanged. Plans contain model geometry, not participant IDs,
 replica selection, transport authority, or a throughput claim.
 
-This initial metadata extension does not by itself enable N-stage resident
-execution: the legacy resident methods and signed qualification still admit
-only their two-stage contracts. CPU contract tests cover 2, 3, 4 and 7 stages;
-physical provider, signed opening, concurrency and recovery acceptance require
-separate exact-plan evidence.
+The pinned-manifest resident lane accepts validated v3 allocations and exposes
+`executeStage(request)`. Entry consumes `inputTokenIds`; intermediate/final
+stages also consume a decoded `activation` tensor. Requests bind `partitionIndex`,
+`step`, `tokenPosition`, `inputTokenCount`, `generation`, `generationDigest`,
+`maxTokens`, `continuation`, and `signal`. Use the public
+`hashPartitionGeneration(generation)` to compute the exact canonical resolved
+generation digest; application fingerprints are not interchangeable with it.
+
+The library-owned `doppler.resident-partition-attempt/v2` identity binds model,
+plan, thread, attempt, requester, placement generation and ordered stage rows
+`{ index, participantId, transportId, residentId, executionId }`. These fields
+bind continuity; applications separately authenticate transport and grants.
+The host maps its route identity explicitly at this boundary. Descriptors use
+`doppler.resident-partition/v2` and include `stageCount`. Nonfinal calls return
+activation bytes and a private continuation; only the final stage samples and
+decodes. Results echo identity/index/step/position. Attempt state and cancellation
+remain private. Legacy `executeGroup0/1` reject ordered allocations.
+
+The existing numerical layer/cache owners are reused. CPU tests cover actual
+admission, resident sequencing/sampling/decoding and loader selection for 2, 3,
+4 and 7 stages; numerical layers/readback are injected in those CPU controls.
+They do not prove physical GPU or remote transport operation. Signed TargetPlan
+qualification still restricts resident indices to 0/1; N-stage signed opening
+needs a versioned qualification extension and genuine exact-plan evidence.
+Canonical target/cursor commits and speculative proposals reject v3 allocations
+until their ordered commit contract is implemented. Replica scheduling, throughput,
+physical concurrency, recovery and all provider combinations remain separate
+acceptance boundaries.
 
 ## Signed selective acquisition
 
