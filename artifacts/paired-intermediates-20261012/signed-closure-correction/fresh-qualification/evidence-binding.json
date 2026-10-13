@@ -1,0 +1,61 @@
+{
+  "schema": "doppler.native-resident-qualification-evidence/v1",
+  "archiveSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "producer": {
+    "path": "artifacts/signed-resident-producer-20261012/produce-physical-reports.js",
+    "sha256": "d9855a94b1f4e5a30f67bfd85ab866f0f6a016f78a89be660f3a0addddc0e7c4"
+  },
+  "reploidSummarySha256": "079cc9fab23313d7a955e1e94dabfaf2c2d991d470f4b4eeb824d5f0eab522c0",
+  "records": [
+    {
+      "direction": 0,
+      "producerExitCode": 0,
+      "configSha256": "8485647aa917561e6f509431b7f39231a0322f9892f80289e8a7d57eeece0edb",
+      "rawCaptureSha256": "sha256:83c316d4cfc494bd704e9f7d0526d471f782d3d9d288321beb613a5fe9b61eff",
+      "retainedCapture": {
+        "repository": "reploid",
+        "commit": "982b7aee",
+        "path": "artifacts/signed-closure-qualification-20261013/results/native-direction-0.json.gz",
+        "sha256": "fbc7058e074cfafa311ea87fa343a5ec4d4b89a155b69a951bbe24c7679331c6"
+      },
+      "expectationsSha256": "f48b8408a85d9900c3229f5b7ef10466e7bb1d1ba39a7766bb651afbfb67364d",
+      "reports": [
+        {
+          "path": "direction-0/partition-0.json",
+          "sha256": "e9493673be20f4062c818c3ba540589c9b8bcc3cc506fb8bb24fe1adaf37136d"
+        },
+        {
+          "path": "direction-0/partition-1.json",
+          "sha256": "9c7c794662f067b1b82df9347ddeb9a9a8fc9af0e6814fff259cdaca85fb7bf4"
+        }
+      ],
+      "comparedSteps": 55,
+      "maxAbsoluteError": 9.520044947919359e-07
+    },
+    {
+      "direction": 1,
+      "producerExitCode": 0,
+      "configSha256": "467a1c97c416790ce6aaf78beed7b72f8971ff2bfca628e240178904a091d5ea",
+      "rawCaptureSha256": "sha256:f912134b03f2d57b22ce5f7947d7ec85d250d8bd5754938cf3990bd11fd84563",
+      "retainedCapture": {
+        "repository": "reploid",
+        "commit": "982b7aee",
+        "path": "artifacts/signed-closure-qualification-20261013/results/native-direction-1.json.gz",
+        "sha256": "cec12166bcbe3afc1e9803b6da22ad64c85c46687e196a33de5a9f782024685a"
+      },
+      "expectationsSha256": "d5ed4f40988d997cd08d59c7c2fdf56dea05517ec220be96a50d0934592aa7e0",
+      "reports": [
+        {
+          "path": "direction-1/partition-0.json",
+          "sha256": "d752614bcd7331edc20c1775f5816e53a8fbc3c4fd33173efe70b840110e76cc"
+        },
+        {
+          "path": "direction-1/partition-1.json",
+          "sha256": "dfc78b5808e70137cf70053e61064557f66200d3eb84cc3bd9faf90bdb140fae"
+        }
+      ],
+      "comparedSteps": 55,
+      "maxAbsoluteError": 9.520044947919359e-07
+    }
+  ]
+}
