@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 import { createTensor } from '../../src/gpu/tensor.js';
 const target = new URL('../../src/gpu/kernels/paired-linear-attention.js', import.meta.url).href;
-const live = new Set(), calls = [], limits = { maxStorageBuffersPerShaderStage: 9, maxComputeWorkgroupsPerDimension: 65535 };
+const live = new Set(), calls = [], limits = { maxStorageBuffersPerShaderStage: 9, maxComputeWorkgroupsPerDimension: 65535, maxStorageBufferBindingSize: 2 ** 28, maxBufferSize: 2 ** 28 };
 globalThis.pairedLinearControl = {
   failure: null,
   acquire(size, _usage, label) { if (this.failure === label) throw Error('injected allocation'); const b = { size }; live.add(b); return b; },
@@ -35,11 +35,21 @@ try {
     const settle = () => { for (const b of held) pairedLinearControl.release(b); held.clear(); };
     const run = (overrides = {}, options = {}) => executePairedLinearAttention(qkv, z, a, b, { ...state, ...overrides },
       { numTokens: 2, outputDtype: 'f32', qkL2NormEps: 1e-6, recorder, ...options });
-    for (const failure of ['paired_linear_conv', 'paired_linear_output', 'gated_delta_conv', 'gated_delta_recurrent']) {
+    for (const failure of ['paired_linear_conv', 'paired_linear_gates', 'paired_linear_output', 'gated_delta_conv', 'qwen_linear_attention_prepare', 'gated_delta_recurrent']) {
       pairedLinearControl.failure = failure; await assert.rejects(run(), /injected/); settle(); assert.equal(live.size, 0);
     }
     pairedLinearControl.failure = null;
+    const countBeforeLimit = calls.length;
+    limits.maxStorageBufferBindingSize = 31;
+    await assert.rejects(run(), /Prepared gate buffer/);
+    assert.equal(calls.length, countBeforeLimit); assert.equal(live.size, 0);
+    limits.maxStorageBufferBindingSize = 2 ** 28;
     const result = await run(); assert.equal(result.precision, 'two-f32'); assert.deepEqual(result.shape, [2, 2]);
+    assert.equal(held.size, recorded ? 2 : 0, 'conv and gate owners remain with recorder until settlement');
+    assert.equal(calls.at(-2)[0], 'qwen_linear_attention_prepare');
+    const preparedGate = calls.at(-2)[3].at(-1);
+    assert.equal(preparedGate.size, 32);
+    assert.equal(calls.at(-1)[3][2], preparedGate, 'state update consumes exact paired gate buffer');
     const u = calls.at(-1)[4]; assert.equal(u.rms_eps_hi + u.rms_eps_lo, 1e-6); assert.equal(u.norm_weight_offset, 1);
     pairedLinearControl.release(result.buffer); settle(); assert.equal(live.size, 0);
     for (const override of [{ headKDim: 129 }, { convStatePrecision: 'f32' }, { convStateComponents: 1 },

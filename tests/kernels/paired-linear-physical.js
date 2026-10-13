@@ -7,7 +7,7 @@ import { chromium } from 'playwright';
 const destination = process.argv[2];
 if (!destination) throw new Error('Provide receipt destination.');
 await mkdir(dirname(destination), { recursive: true });
-const sources = await Promise.all(['gated_delta_conv_paired', 'gated_delta_recurrent_paired'].map(name =>
+const sources = await Promise.all(['gated_delta_conv_paired', 'qwen_linear_attention_prepare_paired', 'gated_delta_recurrent_paired'].map(name =>
   readFile(new URL(`../../src/gpu/kernels/${name}.wgsl`, import.meta.url), 'utf8')));
 const hash = value => createHash('sha256').update(value).digest('hex');
 let seed = 624901;
@@ -93,13 +93,14 @@ try {
           const qkv = storage(f.qkv), z = f.packed ? qkv : storage(f.z), a = storage(f.packed ? [...f.a, ...f.b] : f.a), b = f.packed ? a : storage(f.b);
           const cw = storage(f.weight), cs = storage(f.convState), state = storage(f.state), dt = storage(f.bias), log = storage(f.log), norm = storage(f.norm);
           const conv = storage(new Array(f.tokens * f.convDim * 2).fill(0)), output = storage(new Array(f.tokens * f.valueDim * 2).fill(0));
-          const bindings = [[uniform, qkv, cw, cs, conv], [uniform, conv, z, a, b, dt, log, norm, state, output]];
+          const gates = storage(new Array(f.tokens * f.nv * 4).fill(0));
+          const bindings = [[uniform, qkv, cw, cs, conv], [uniform, a, b, dt, log, gates], [uniform, conv, z, gates, norm, state, output]];
           const encoder = device.createCommandEncoder();
-          for (let i = 0; i < 2; i++) {
+          for (let i = 0; i < 3; i++) {
             const group = device.createBindGroup({ layout: pipelines[i].getBindGroupLayout(0), entries: bindings[i].map((buffer, binding) => ({ binding, resource: { buffer } })) });
-            const pass = encoder.beginComputePass(); pass.setPipeline(pipelines[i]); pass.setBindGroup(0, group); pass.dispatchWorkgroups(i === 0 ? Math.ceil(f.convDim / 64) : f.nv); pass.end();
+            const pass = encoder.beginComputePass(); pass.setPipeline(pipelines[i]); pass.setBindGroup(0, group); pass.dispatchWorkgroups(i === 0 ? Math.ceil(f.convDim / 64) : i === 1 ? Math.ceil(f.tokens * f.nv / 64) : f.nv); pass.end();
           }
-          const readbacks = [conv, cs, state, output].map(buffer => { const b = alloc(buffer.size, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ); encoder.copyBufferToBuffer(buffer, 0, b, 0, buffer.size); return b; });
+          const readbacks = [conv, cs, state, output, gates].map(buffer => { const b = alloc(buffer.size, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ); encoder.copyBufferToBuffer(buffer, 0, b, 0, buffer.size); return b; });
           device.queue.submit([encoder.finish()]);
           const values = [];
           for (const buffer of readbacks) { await buffer.mapAsync(GPUMapMode.READ); mapped.push(buffer); values.push(Array.from(new Float32Array(buffer.getMappedRange().slice(0)))); }
@@ -112,7 +113,13 @@ try {
   receipt.adapter = physical.adapter; receipt.browser = browser.version(); receipt.errors = physical.errors; receipt.storageBindingLimit = physical.storageBindingLimit;
   for (let c = 0; c < cases.length; c++) {
     const expected = reference(cases[c]), rows = {};
-    for (const [i, name] of ['conv', 'convState', 'state', 'output'].entries()) {
+    const f = cases[c];
+    expected.gates = Array.from({ length: f.tokens * f.nv }, (_, index) => {
+      const b = f.b[index * 2] + f.b[index * 2 + 1];
+      const a = f.a[index * 2] + f.a[index * 2 + 1];
+      return [1 / (1 + Math.exp(-b)), Math.exp(-Math.exp(f.log[index % f.nv]) * Math.log1p(Math.exp(a + f.bias[index % f.nv])))];
+    }).flat();
+    for (const [i, name] of ['conv', 'convState', 'state', 'output', 'gates'].entries()) {
       let maxError = 0, failures = 0; const actual = physical.results[c][i];
       for (let j = 0; j < expected[name].length; j++) {
         const error = Math.abs(actual[j * 2] + actual[j * 2 + 1] - expected[name][j]) / Math.max(1, Math.abs(expected[name][j]));

@@ -12,13 +12,10 @@ struct Uniforms {
 
 @group(0) @binding(1) var<storage, read> conv: array<vec2<f32>>;
 @group(0) @binding(2) var<storage, read> z: array<vec2<f32>>;
-@group(0) @binding(3) var<storage, read> a: array<vec2<f32>>;
-@group(0) @binding(4) var<storage, read> b: array<vec2<f32>>;
-@group(0) @binding(5) var<storage, read> dt_bias: array<f32>;
-@group(0) @binding(6) var<storage, read> a_log: array<f32>;
-@group(0) @binding(7) var<storage, read> norm_weight: array<f32>;
-@group(0) @binding(8) var<storage, read_write> state: array<vec2<f32>>;
-@group(0) @binding(9) var<storage, read_write> output: array<vec2<f32>>;
+@group(0) @binding(3) var<storage, read> gates: array<vec2<f32>>;
+@group(0) @binding(4) var<storage, read> norm_weight: array<f32>;
+@group(0) @binding(5) var<storage, read_write> state: array<vec2<f32>>;
+@group(0) @binding(6) var<storage, read_write> output: array<vec2<f32>>;
 var<workgroup> shared_q: array<vec2<f32>, 128>;
 var<workgroup> shared_k: array<vec2<f32>, 128>;
 var<workgroup> reduction: array<vec2<f32>, 128>;
@@ -304,10 +301,8 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>, @builtin(local_invocation_id) lid
     shared_q[lane] = pair_mul(qv, q_scale); shared_k[lane] = pair_mul(kv, k_scale);
     if (lane == 0u) {
       let ab_index = token * u.num_v_heads + head;
-      let b_index = ab_index + select(0u, u.b_offset, (u.packed_flags & 1u) != 0u);
-      beta = pair_sigmoid(b[b_index]);
-      let log_decay = -pair_mul(pair_exp(vec2<f32>(a_log[head], 0.0)), pair_softplus(pair_add(a[ab_index], vec2<f32>(dt_bias[head], 0.0))));
-      decay = pair_exp(log_decay);
+      beta = gates[ab_index * 2u];
+      decay = gates[ab_index * 2u + 1u];
     }
     workgroupBarrier();
     var raw = vec2<f32>(0.0);

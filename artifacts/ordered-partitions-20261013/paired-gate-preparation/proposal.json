@@ -1,0 +1,80 @@
+{
+  "schema": "doppler.paired-gate-decomposition-review/v1",
+  "status": "CPU-reviewed-candidate-awaiting-physical",
+  "component": "doppler.runtime-source.gpu.kernels",
+  "intent": "preserved",
+  "hypothesis": "Separating independent beta/decay nonlinear expressions from recurrent state update reduces compiler expansion; not established until bounded physical pipeline/operator control.",
+  "observedFailure": {
+    "sourceCommit": "a1535f66",
+    "evidenceCommit": "dc566b37",
+    "boundary": "recurrent createComputePipelineAsync pending through300s",
+    "numericalCases": 0,
+    "cleanup": "unconfirmed before bounded supervisor SIGTERM"
+  },
+  "representation": {
+    "shape": "[T,numVHeads,2 gates,2 F32 components]",
+    "order": [
+      "beta_hi",
+      "beta_lo",
+      "decay_hi",
+      "decay_lo"
+    ],
+    "logicalGateBytes": "T * numVHeads * 16",
+    "noScalarReconstruction": true,
+    "epsilonChanges": false,
+    "zGateChanges": false,
+    "newDispatchesPerLinearLayer": 1,
+    "newUniformLogicalBytes": 80
+  },
+  "model": {
+    "numVHeads": 16,
+    "layersPerPartition": 8,
+    "linearLayersPerPartition": 6,
+    "budgetPerExecutor": 1420000000
+  },
+  "observedPolicy": {
+    "path": "/Users/xyz/deco/reploid/artifacts/sigmoid-three-stage-physical-20261013/mac-load-preflight.json",
+    "sha256": "cd8bd39a8f55bdef5fbdeb9f5c4260489d1a5259cefa669a7b24e6736dcdf7f5",
+    "prefillTokenChunkSize": 256,
+    "prefillChunkLayers": 1,
+    "decodeBatchSize": 4
+  },
+  "allocator": {
+    "source": "DEFAULT_BUFFER_POOL_CONFIG; CPU actual BufferPool allocation controls",
+    "alignmentBytes": 256,
+    "minimumBytes": 256,
+    "largeThresholdBytes": 65536,
+    "largeStepBytes": 65536,
+    "extraUniformConservativeBytes": 256,
+    "physicalPoolConfigurationVerified": false
+  },
+  "bounds": {
+    "observedPolicyPrefillMaxTokensPerDispatch": 256,
+    "gateAndUniformPerActiveLayer": 65792,
+    "twoAttemptsActivePrefillBytes": 131584,
+    "twoAttemptsDecodeSixRetainedLayersBytes": 6144,
+    "conservativeTwoAttemptsSixLayersAt256Bytes": 789504,
+    "conservativeTwoAttemptsSixLayersUnchunked1588Bytes": 5508096,
+    "additionalRetainedReusablePossible": true,
+    "retainedReusableAccounting": "Reusable buffers remain in device liveBytes. Conservative selected-profile cap from schema: at most64 pooled gate buffers plus12 simultaneously recorded active gate buffers, each<=65536B, plus independently overcounted64pooled+12active uniforms of256B:5,000,192B. Pool limits shared with other buffers, so this overcounts rather than undercounts new allocations; actual bound requires frozen pool policy."
+  },
+  "lifetime": [
+    "Recorded mode tracks gate buffer with recorder through completion; abort/discard keeps pending owners charged and unavailable until confirmed.",
+    "Immediate mode uses existing queue-ordered pooled temporary release after the last dependent dispatch, identical ownership path as conv; retained/reusable allocation remains counted.",
+    "Selected prefill chunk policy runs immediate kernels and submits at each layer; decode records all six linear layers within each8layer partition until final boundary.",
+    "The two-attempt bound counts both owners, including cancelled but unsettled storage. Existing1.42B device budget remains authoritative; no allocation exemption.",
+    "Reusable pooled buckets may remain allocated after settlement. These incremental calculations are not a new whole-runtime peak or proof that all workloads fit."
+  ],
+  "files": {
+    "src/gpu/kernels/paired-linear-attention.js": "6895001b27a9b49d59b0efcf193c88529fe55cef3816d515856625c452de379f",
+    "src/gpu/kernels/qwen_linear_attention_prepare_paired.wgsl": "ad1af903862dc140b09f310b91083d92b23748fe80ac2927c876cde5efe3e3d5",
+    "src/gpu/kernels/gated_delta_recurrent_paired.wgsl": "d057940ff5f1f181c5deaa7e0eb329c599e1889ba3a7aa35b73405002189a186",
+    "src/config/kernels/registry.json": "183590adbd83e85e68eb25e32668132101e38f3ec60d6a2d3e713ef7d9da2d89",
+    "src/config/execution-registry-contract.js": "1d89e87d4fe2bab2ce7e46e34a72c64447fabecf4b7de23601aa1fa17d6f2aa7",
+    "src/inference/pipelines/text/partition-execution.js": "c85ea320650e25d2a0649aabfda70e2f7ce985a6a73434aef35dc6125cd5c0f9",
+    "src/gpu/command-recorder.js": "986c3f11679ef3617e3931124575b6b52e97a7de1e806f8c771aeeec891a4010",
+    "src/memory/buffer-pool.js": "123087a2363cbbece266b714534642c12e9097715509dbb84a1a8e41622e6a83",
+    "src/config/schema/buffer-pool.schema.js": "cc0e809d95df3ff0528a0c166fbe0f41ad5c5d3917d5a5374b2a53371d7baebb",
+    "tests/gpu/paired-gate-memory.test.js": "7608e6866389f8ee0199ed947e2922ca6cb609d31e4bf9647ff691e16794040d"
+  }
+}
