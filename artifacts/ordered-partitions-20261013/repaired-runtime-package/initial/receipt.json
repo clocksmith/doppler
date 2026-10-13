@@ -1,0 +1,25 @@
+{
+  "evidenceClass": "installed-package-test",
+  "passed": false,
+  "physicalExecution": false,
+  "externalAdoption": false,
+  "nodeVersion": "v22.20.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "npmVersion": "10.9.3",
+  "zlibVersion": "1.3.1-470d3a2",
+  "startedAtUtc": "2026-10-13T19:31:36.343Z",
+  "package": {
+    "filename": "doppler-gpu-0.6.28.tgz",
+    "version": "0.6.28",
+    "integrity": "sha512-AatuFB7SKWdvUxlZ12slsE71KbXYMchUyT2b/Gj0zTPoHpzMqukUO35GJDJE+24T3J+/f1QY4kUd8PLTybU9xw==",
+    "sizeBytes": 3465835,
+    "source": "local-npm-pack",
+    "sha256": "5032a459d256ba6a0028803a370ca97ea74cf93859f73682620a6548caf463e4"
+  },
+  "failure": {
+    "message": "Installed runtime closure differs from checked receipt.",
+    "stack": "Error: Installed runtime closure differs from checked receipt.\n    at runPartitionApiSmoke (file:///Users/xyz/deco/doppler/tools/check-packed-package.js:378:67)\n    at async main (file:///Users/xyz/deco/doppler/tools/check-packed-package.js:529:5)"
+  },
+  "completedAtUtc": "2026-10-13T19:31:42.941Z"
+}

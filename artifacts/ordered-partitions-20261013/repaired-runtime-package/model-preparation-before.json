@@ -1,0 +1,7 @@
+{
+  "passed": false,
+  "gpuOpened": false,
+  "root": "/var/tmp/reploid-repaired-three-stage-20261013",
+  "failure": "ERR_MODULE_NOT_FOUND for src/config/kernels/kernel-ref-digests.js: generated developer digest index is intentionally not shipped",
+  "correction": "Compute the same declared WGSL-plus-entry hash from exact installed shader bytes; do not expand the runtime package to carry development metadata"
+}

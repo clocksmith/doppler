@@ -1,0 +1,6 @@
+{
+  "pid": 954960,
+  "reason": "Control cleanup assertion prevented host.close; numerical cases complete, ownership unsettled; stop only verified owned diagnostic provider",
+  "signal": "SIGTERM",
+  "normalGpuSettlement": false
+}
