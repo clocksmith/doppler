@@ -1,0 +1,28 @@
+{
+  "schema": "doppler.projection-outlier-cpu-simulation/v1",
+  "sourceSha256": "287104770b4feee285dfc3b6f5c70b842e959454ee91f5f4350fc0de0913a702",
+  "hypothesis": "Two-component rounding reproduces the retained physical outlier",
+  "scope": "One retained synthetic dot product; not general shader or model qualification",
+  "originalTolerance": 2e-12,
+  "results": [
+    {
+      "row": 6,
+      "column": 2480,
+      "simulatedPair": [
+        -1.1860203742980957,
+        5.790521129256376e-08
+      ],
+      "retainedGpuPair": [
+        -1.1860203742980957,
+        5.790521129256376e-08
+      ],
+      "bitsMatch": true,
+      "summedLaneAbsoluteError": 1.5745367961640364e-12,
+      "reducedDotAbsoluteError": 2.444951647470159e-12,
+      "relativeErrorAfterAlpha": 2.265145748959937e-12,
+      "originalThresholdPassed": false
+    }
+  ],
+  "runtimeChanged": false,
+  "approvedReferenceChanged": false
+}
