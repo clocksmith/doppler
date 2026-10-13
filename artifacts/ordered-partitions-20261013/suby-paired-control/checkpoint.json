@@ -1,0 +1,26 @@
+{
+  "schema": "doppler.suby-paired-cast-evidence/v1",
+  "runtimeArchiveSha256": "5e0d60bc433d332187d422721fd7afcaec780c202e3082adcab389b47fd27fc5",
+  "initialPid": 762771,
+  "initialExit": "SIGSEGV",
+  "replayPid": 765849,
+  "replayPassedCases": 4,
+  "replayNaturalExitCode": 0,
+  "raceFixed": false,
+  "gpuProcessesRemaining": false,
+  "files": {
+    "control.js": "7b4d57827ead1c94031018b26243f3645496760b989ad429c0ba0359d6f98ce6",
+    "result-incomplete.json": "25c6ba9f6cdd2f0c377eff358ee651ce0e7ee8ae99c07bc84fac47fbed0f67b5",
+    "provider-files.json": "5783ce6d93e9040905af06439f269005eed87de0c8cc83aab40e12f1934077f5",
+    "controller.js": "108af1b0400b4f5b33e4298fe1a1a4d2f1dd45d7cb94464ae4ea1090675e9d48",
+    "README.md": "b9197ba86b9ce747416efc4c2d1bd5ac3cc0195451c9a07b92630cf8c6ceb23f",
+    "reservation.json": "c0265be759b60ddd5ea39c18f899780e5d2453545188e58b161e5875b38b48cb",
+    "process.json": "171a4a36f8096f515edc4211b1e3eec4d8e67155a17b02ec2264f87871f121f2",
+    "core-inspection.json": "0819030d13ad3466de52f7793edd74bb4b4a9ce455822a97e94770a24e64a045",
+    "observed-replay/control.js": "e16eb8b3eea8dca8d2d897bc1ecdc8498fd8262c97003c829b8fa598a83366c3",
+    "observed-replay/result.json": "fe65ceb665ec67e1229f6864414a505121dd44a9243e37bacbd6e0ff6c00e85e",
+    "observed-replay/controller.js": "108af1b0400b4f5b33e4298fe1a1a4d2f1dd45d7cb94464ae4ea1090675e9d48",
+    "observed-replay/reservation.json": "203910421040194875b1a3f1099e173349b6af27f96e8597401e958352f8f768",
+    "observed-replay/process.json": "b774913bfbdf214ae0d8c1a24e9054de8d33753ae00e3a9aa7c1f5c809c55482"
+  }
+}

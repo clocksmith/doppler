@@ -1,0 +1,38 @@
+{
+  "schema": "doppler.suby-paired-cast-control/v1",
+  "pid": 762771,
+  "startedAt": "2026-10-13T15:17:00.236Z",
+  "operationDeadlineMs": 300000,
+  "cleanupDeadlineMs": 10000,
+  "poolBudgetBytes": 16777216,
+  "cases": 4,
+  "scope": "Installed package-local wrapper compatibility; not public package API or model qualification",
+  "events": [
+    {
+      "operation": "expand",
+      "recorded": false,
+      "phase": "dispatch-start",
+      "at": "2026-10-13T15:17:00.835Z"
+    },
+    {
+      "operation": "expand",
+      "recorded": true,
+      "phase": "dispatch-start",
+      "at": "2026-10-13T15:17:00.863Z"
+    },
+    {
+      "operation": "half",
+      "recorded": false,
+      "phase": "dispatch-start",
+      "at": "2026-10-13T15:17:00.868Z"
+    },
+    {
+      "operation": "half",
+      "recorded": true,
+      "phase": "dispatch-start",
+      "at": "2026-10-13T15:17:00.890Z"
+    }
+  ],
+  "installedFilesVerified": 1976,
+  "sourceHash": "7b4d57827ead1c94031018b26243f3645496760b989ad429c0ba0359d6f98ce6"
+}
