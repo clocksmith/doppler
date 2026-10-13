@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync, appendFileSync } from 'node:fs';
+import { readFileSync, appendFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
@@ -8,6 +8,9 @@ const hash = value => createHash('sha256').update(value).digest('hex');
 const mark = (phase, fields = {}) => appendFileSync(log, JSON.stringify({ phase,
   at: new Date().toISOString(), pid: process.pid, rss: process.memoryUsage().rss, ...fields }) + '\n');
 const cg = readFileSync('/proc/self/cgroup', 'utf8').trim().split(':').at(-1);
+// A scope inherits the SSH session's render group; its memory controller is owned by this user.
+assert.ok(cg.endsWith('/reploid-recurrent-isolated-20261013.scope'));
+writeFileSync('/sys/fs/cgroup' + cg + '/memory.oom.group', '1');
 for (const [key, expected] of Object.entries({ 'memory.high': '6442450944',
   'memory.max': '8589934592', 'memory.swap.max': '0', 'memory.oom.group': '1' })) {
   assert.equal(readFileSync('/sys/fs/cgroup' + cg + '/' + key, 'utf8').trim(), expected);
