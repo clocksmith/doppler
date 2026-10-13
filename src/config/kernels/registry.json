@@ -13697,6 +13697,14 @@
    },
    "variants": {
     "bf16": {
+     "variantMetadata": {
+      "pairedMechanismKernels": [
+       {
+        "operation": "gather",
+        "variant": "bf16"
+       }
+      ]
+     },
      "wgsl": "gather_bf16.wgsl",
      "entryPoint": "main",
      "workgroup": [256,1,1],
@@ -13764,6 +13772,18 @@
      }
     },
     "default": {
+     "variantMetadata": {
+      "pairedMechanismKernels": [
+       {
+        "operation": "gather",
+        "variant": "default"
+       },
+       {
+        "operation": "gather",
+        "variant": "vec4"
+       }
+      ]
+     },
      "wgsl": "gather.wgsl",
      "entryPoint": "main",
      "workgroup": [256,1,1],
@@ -13845,6 +13865,18 @@
      }
     },
     "vec4": {
+     "variantMetadata": {
+      "pairedMechanismKernels": [
+       {
+        "operation": "gather",
+        "variant": "default"
+       },
+       {
+        "operation": "gather",
+        "variant": "vec4"
+       }
+      ]
+     },
      "wgsl": "gather_vec4.wgsl",
      "entryPoint": "gather_vec4",
      "workgroup": [64,1,1],
@@ -13858,6 +13890,22 @@
      }
     },
     "f16": {
+     "variantMetadata": {
+      "pairedMechanismKernels": [
+       {
+        "operation": "gather",
+        "variant": "f16"
+       },
+       {
+        "operation": "gather",
+        "variant": "f16_vec4"
+       },
+       {
+        "operation": "gather_split8",
+        "variant": "f16_vec4_f32_out"
+       }
+      ]
+     },
      "wgsl": "gather_f16.wgsl",
      "entryPoint": "main",
      "workgroup": [256,1,1],
@@ -13950,6 +13998,22 @@
      }
     },
     "f16_vec4": {
+     "variantMetadata": {
+      "pairedMechanismKernels": [
+       {
+        "operation": "gather",
+        "variant": "f16"
+       },
+       {
+        "operation": "gather",
+        "variant": "f16_vec4"
+       },
+       {
+        "operation": "gather_split8",
+        "variant": "f16_vec4_f32_out"
+       }
+      ]
+     },
      "wgsl": "gather_f16_vec4.wgsl",
      "entryPoint": "gather_vec4",
      "workgroup": [64,1,1],
@@ -14109,6 +14173,12 @@
      "requires": [],
      "outputDtype": "f32",
      "variantMetadata": {
+      "pairedMechanismKernels": [
+       {
+        "operation": "gather",
+        "variant": "litert_int4_vec4_f32_out"
+       }
+      ],
       "outputBinding": 4
      },
      "description": "LiteRT signed INT4 affine embeddings -> F32 output",

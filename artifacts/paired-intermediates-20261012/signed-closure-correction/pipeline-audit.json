@@ -1,0 +1,101 @@
+{
+  "scope": "CPU extraction from unchanged retained prior0fad two-placement full55 receipts; no new GPU run or qualification.",
+  "missingFromPrior": [
+    "gather_f16_vec4.wgsl#gather_vec4",
+    "logit_finalize_f32.wgsl#main"
+  ],
+  "observedPipelines": [
+    {
+      "file": "rope_precompute_paired.wgsl",
+      "entry": "main",
+      "operation": "rope_precompute",
+      "variant": "paired"
+    },
+    {
+      "file": "gated_delta_conv_paired.wgsl",
+      "entry": "main",
+      "operation": "gated_delta_conv",
+      "variant": "paired"
+    },
+    {
+      "file": "gated_delta_recurrent_paired.wgsl",
+      "entry": "main",
+      "operation": "gated_delta_recurrent",
+      "variant": "paired"
+    },
+    {
+      "file": "gather_f16_vec4.wgsl",
+      "entry": "gather_vec4",
+      "operation": "gather",
+      "variant": "f16_vec4"
+    },
+    {
+      "file": "cast_f32_to_two_f32.wgsl",
+      "entry": "main",
+      "operation": "cast",
+      "variant": "f32_to_two_f32"
+    },
+    {
+      "file": "rmsnorm_paired.wgsl",
+      "entry": "main",
+      "operation": "rmsnorm",
+      "variant": "paired"
+    },
+    {
+      "file": "matmul_paired.wgsl",
+      "entry": "main",
+      "operation": "matmul",
+      "variant": "paired_f16"
+    },
+    {
+      "file": "paired_silu.wgsl",
+      "entry": "main",
+      "operation": "paired_pointwise",
+      "variant": "silu"
+    },
+    {
+      "file": "paired_add.wgsl",
+      "entry": "main",
+      "operation": "paired_pointwise",
+      "variant": "add"
+    },
+    {
+      "file": "split_qg_paired.wgsl",
+      "entry": "main",
+      "operation": "split_qg",
+      "variant": "paired"
+    },
+    {
+      "file": "rope_qk_paired.wgsl",
+      "entry": "main",
+      "operation": "rope_qk",
+      "variant": "paired"
+    },
+    {
+      "file": "cast_two_f32_to_f16.wgsl",
+      "entry": "main",
+      "operation": "cast",
+      "variant": "two_f32_to_f16"
+    },
+    {
+      "file": "attention_paired.wgsl",
+      "entry": "main",
+      "operation": "attention",
+      "variant": "paired"
+    },
+    {
+      "file": "paired_sigmoid.wgsl",
+      "entry": "main",
+      "operation": "paired_pointwise",
+      "variant": "sigmoid"
+    },
+    {
+      "file": "logit_finalize_f32.wgsl",
+      "entry": "main",
+      "operation": "logit_finalize",
+      "variant": "f32"
+    }
+  ],
+  "declaredFallback": "gather_split8_f16_vec4_f32_out.wgsl F16→F32 is additionally declared for existing split embedding dispatch; scalar gather remains reachable. Neither fallback is claimed observed in these receipts.",
+  "inputSha256": "2072ead8f43d6b400f5df2d4bd60b03d6ce1656fe3ae99cfda297511efd3b5e7"
+}

@@ -1,4 +1,5 @@
 export interface VariantMetadata {
+  pairedMechanismKernels?: readonly { operation: string; variant: string }[];
   mechanismKernels?: readonly { operation: string; variant: string }[];
   colsPerWg?: number;
   tileM?: number;

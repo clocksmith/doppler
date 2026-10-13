@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { createDopplerConfig } from '../../src/config/schema/index.js';
 import { compileExecutionV1 } from '../../src/inference/pipelines/text/execution-v1.js';
 import { compileExecutionPlanState, resolveExecutionSessionPlan } from '../../src/inference/pipelines/text/execution-plan.js';
-const execution = JSON.parse(readFileSync(new URL('../../artifacts/paired-intermediates-20261012/execution.json', import.meta.url)));
+const execution = JSON.parse(readFileSync(new URL('../../artifacts/paired-intermediates-20261012/signed-closure-correction/execution.json', import.meta.url)));
 const runtimeConfig = createDopplerConfig().runtime;
 Object.assign(runtimeConfig.inference.session, { intermediatePrecision: 'two-f32', linearRecurrentStatePrecision: 'two-f32' });
 runtimeConfig.inference.compute.activationDtype = 'f32';
@@ -24,6 +24,9 @@ assert.equal(plan.primaryPlan.activationPrecision, 'two-f32');
 assert.equal(resolveExecutionSessionPlan(plan).activationElementStrideBytes, 8);
 assert.equal(resolveExecutionSessionPlan(plan).activationComponents, 2);
 for (const alter of [
+  m => { m.inference.execution.mechanismKernels = m.inference.execution.mechanismKernels.filter(k => k !== 'gather_f16_vec4'); },
+  m => { m.inference.execution.mechanismKernels = m.inference.execution.mechanismKernels.filter(k => k !== 'gather_split8_f16_vec4_f32_out'); },
+  m => { m.inference.execution.mechanismKernels = m.inference.execution.mechanismKernels.filter(k => k !== 'logit_finalize_f32'); },
   m => { m.inference.execution.kernels.projection_q4.constants.SCALAR_OUTPUT = true; },
   m => { m.inference.execution.kernels.head.constants.SCALAR_OUTPUT = false; },
   m => { m.inference.execution.mechanismKernels = m.inference.execution.mechanismKernels.filter(k => k !== 'cast_two_f32_to_f16'); },

@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import { runForgePipeline, stageAnalyze, stageInspect, stageNormalize, stageLower, stageSpecialize } from '../../src/converter/forge-stages.js';
@@ -239,11 +240,17 @@ assert.ok(v2Result.capsule.targetPlans[0].memoryLayout.bufferSlots.some((slot) =
 assert.ok(v2Result.capsule.targetPlans[0].memoryLayout.bufferSlots.some((slot) => slot.slotId === 'convolutional_state'));
 
 const slots = result => Object.fromEntries(result.capsule.targetPlans[0].memoryLayout.bufferSlots.map(slot => [slot.slotId, slot.size]));
+const pairedExecution = JSON.parse(readFileSync(new URL('../../artifacts/paired-intermediates-20261012/signed-closure-correction/execution.json', import.meta.url)));
 const specializePrecision = async (intermediatePrecision, linearRecurrentStatePrecision, modelIR = modelIRV2) => {
   const identity = structuredClone(initialExecutionIdentity);
   Object.assign(identity.programLoadPolicy.runtimeConfig.inference.session, { intermediatePrecision, linearRecurrentStatePrecision });
-  return runForgePipeline({ ...v2Input, modelIR, initialExecutionIdentity: createInitialExecutionIdentityV2(identity) },
-    { authority: TEST_CAPSULE_AUTHORITY, privateKeyJwk, publicKeyJwk: TEST_CAPSULE_PUBLIC_KEY });
+  // This is a static slot-sizing control, not qualification/signing of a
+  // synthetic scalar bundle as a paired program.
+  const lowered = stageLower(stageAnalyze(stageNormalize((await stageInspect(v2Input)).data)));
+  lowered.modelIR = modelIR;
+  lowered.normalized.manifest.inference.execution = structuredClone(pairedExecution);
+  lowered.normalized.initialExecutionIdentity = createInitialExecutionIdentityV2(identity);
+  return { capsule: { targetPlans: stageSpecialize(lowered).targetPlans } };
 };
 const scalarSlots = slots(v2Result), pairedSlots = slots(await specializePrecision('two-f32', 'two-f32'));
 assert.equal(pairedSlots.hidden_state.terms.seqLen, scalarSlots.hidden_state.terms.seqLen * 2, 'Paired hidden storage requires eight bytes per logical F32');
@@ -269,6 +276,12 @@ pairedLowered.normalized.initialExecutionIdentity = createInitialExecutionIdenti
     },
   } },
 });
+pairedLowered.normalized.manifest.inference.execution = structuredClone(pairedExecution);
+for (const missing of ['gather_f16_vec4', 'gather_split8_f16_vec4_f32_out', 'logit_finalize_f32']) {
+  const invalid = structuredClone(pairedLowered);
+  invalid.normalized.manifest.inference.execution.mechanismKernels = invalid.normalized.manifest.inference.execution.mechanismKernels.filter(key => key !== missing);
+  assert.throws(() => stageSpecialize(invalid), /Missing pinned mechanism/);
+}
 for (const kind of ['recurrent', 'convolutional']) {
   const invalid = structuredClone(pairedLowered);
   invalid.modelIR.stateSpaces.find(state => state.kind === kind).contract.dtype = 'f16';

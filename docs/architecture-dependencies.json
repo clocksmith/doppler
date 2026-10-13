@@ -4605,6 +4605,7 @@
         "tests/inference/node-file-shard-storage-context.test.js",
         "tests/inference/operator-diagnostics-forwarding-contract.test.js",
         "tests/inference/operator-diffing.test.js",
+        "tests/inference/ordinary-activation-contract.test.js",
         "tests/inference/paired-cache-cast-cleanup.test.js",
         "tests/inference/paired-embedding-probe.test.js",
         "tests/inference/paired-execution-plan.test.js",
@@ -5086,6 +5087,7 @@
         "tests/tooling/product-readiness-report.test.js",
         "tests/tooling/production-release.test.js",
         "tests/tooling/program-bundle-exporter.test.js",
+        "tests/tooling/program-bundle-paired-closure.test.js",
         "tests/tooling/program-bundle-parity.test.js",
         "tests/tooling/program-bundle-reference-preflight.test.js",
         "tests/tooling/program-bundle-source-identity.test.js",
@@ -6926,6 +6928,18 @@
       "kind": "dynamic",
       "line": 43,
       "expression": "import(pathToFileURL(path.join(root, 'src/gpu/kernels/generated/uniform-writers.js')).href)"
+    },
+    {
+      "file": "tests/tooling/program-bundle-paired-closure.test.js",
+      "kind": "asset",
+      "line": 8,
+      "expression": "new URL(path, import.meta.url)"
+    },
+    {
+      "file": "tests/tooling/program-bundle-paired-closure.test.js",
+      "kind": "asset",
+      "line": 19,
+      "expression": "new URL(`../../src/gpu/kernels/${filename}`, import.meta.url)"
     },
     {
       "file": "tools/benchmark-artifact-hashing.js",

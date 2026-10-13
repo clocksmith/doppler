@@ -61,3 +61,39 @@ export function assertExecutionMechanismClosure(graph, steps) {
     }
   }
 }
+
+/** The paired pipeline's wrapper-owned kernels are declared before either Run
+ * admission or Rig signing. Gather retains scalar, vector and declared split
+ * paths; this validates source reachability without selecting a runtime path.
+ * @param {import('./schema/execution-v1.schema.js').ExecutionV1GraphSchema} graph */
+export function assertPairedExecutionMechanismClosure(graph) {
+  if (!graph || !graph.kernels) throw new Error('[PairedExecution] An explicit execution graph is required.');
+  const configs = getKernelConfigs();
+  const embeds = (graph.preLayer ?? []).filter(step => step[0] === 'embed');
+  const embedding = embeds.length === 1 ? graph.kernels[embeds[0][1]] : null;
+  const gather = Object.values(configs.gather).find(config => embedding
+    && config.shaderFile === embedding.kernel && config.entryPoint === embedding.entry);
+  const gatherMechanisms = gather?.variantMetadata?.pairedMechanismKernels;
+  if (!Array.isArray(gatherMechanisms) || !gatherMechanisms.length) {
+    throw new Error('[PairedExecution] A declared F32-output embedding gather closure is required.');
+  }
+  const required = [
+    ['cast', 'f32_to_two_f32'], ['cast', 'two_f32_to_f16'],
+    ['gated_delta_conv', 'paired'], ['gated_delta_recurrent', 'paired'],
+    ['split_qg', 'paired'], ['split_qkv', 'paired'], ['rope_precompute', 'paired'],
+    ['paired_pointwise', 'sigmoid'], ['paired_pointwise', 'scale'],
+    ['logit_finalize', 'f32'],
+    ...gatherMechanisms.map(dependency => [dependency.operation, dependency.variant]),
+  ];
+  const declarations = (graph.mechanismKernels ?? []).map(key => graph.kernels[key]);
+  // The embedding's semantic declaration itself is already reachable.
+  if (embedding) declarations.push(embedding);
+  for (const [operation, variant] of required) {
+    const expected = getKernelConfig(operation, variant);
+    if (!declarations.some(decl => decl?.kernel === expected.shaderFile && decl.entry === expected.entryPoint
+      && typeof decl.digest === 'string' && /^sha256:[a-f0-9]{64}$/.test(decl.digest)
+      && computeCanonicalSha256(decl.constants ?? {}) === computeCanonicalSha256(expected.wgslOverrides ?? {}))) {
+      throw new Error(`[PairedExecution] Missing pinned mechanism ${operation}/${variant} with exact specialization constants.`);
+    }
+  }
+}

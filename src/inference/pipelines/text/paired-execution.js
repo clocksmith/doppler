@@ -1,5 +1,5 @@
 import { getLayerSteps, getKernelPathStepConfig } from '../../../config/kernel-path-loader.js';
-import { getKernelConfigs } from '../../../config/kernel-registry-contract.js';
+import { assertPairedExecutionMechanismClosure } from '../../../config/execution-registry-contract.js';
 
 /**
  * @param {import('../../../config/schema/kernel-path.schema.js').KernelStepSchema[]} steps
@@ -41,21 +41,7 @@ export function validatePairedExecution(path, session, manifest) {
   }
   const graph = manifest.inference.execution;
   if (!graph) throw new Error('[PairedExecution] An explicit execution graph is required.');
-  const mechanisms = (graph.mechanismKernels ?? []).map(key => graph.kernels[key]);
-  const registry = getKernelConfigs();
-  const requiredMechanisms = [
-    ['cast', 'f32_to_two_f32'], ['cast', 'two_f32_to_f16'],
-    ['gated_delta_conv', 'paired'], ['gated_delta_recurrent', 'paired'],
-    ['split_qg', 'paired'], ['split_qkv', 'paired'], ['rope_precompute', 'paired'],
-    ['paired_pointwise', 'sigmoid'], ['paired_pointwise', 'scale'],
-  ];
-  for (const [operation, variant] of requiredMechanisms) {
-    const expected = registry[operation]?.[variant];
-    if (!expected || !mechanisms.some(step => step && getKernelPathStepConfig(operation, step)?.variant === variant
-      && typeof step.digest === 'string' && /^sha256:[a-f0-9]{64}$/.test(step.digest))) {
-      throw new Error(`[PairedExecution] Missing pinned mechanism ${operation}/${variant}.`);
-    }
-  }
+  assertPairedExecutionMechanismClosure(graph);
   for (let layer = 0; layer < count; layer++) for (const phase of /** @type {const} */ (['prefill', 'decode'])) {
     const steps = getLayerSteps(path, layer, phase);
     for (const role of ['input_norm', 'post_attn_norm']) requireStep(steps, role, 'rmsnorm', 'paired');
