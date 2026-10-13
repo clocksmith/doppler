@@ -1,0 +1,37 @@
+{
+  "scope": "Offline first long-prefill stage-boundary attribution; no acceptance reference replacement or GPU execution",
+  "hypothesis": "The 184-row prefill already diverges by stage zero. Compare retained layers 7 and 15 against the unchanged F64 evaluator; a matching layer 7 falsifies stage-zero attribution.",
+  "observedAt": "2026-10-13T20:44:38.499313+00:00",
+  "archiveSha256": "9264d265a90c7c0b046adf46135965b2032d2d9f6e5e60d6a8149d10f0988ec4",
+  "files": {
+    "tokens": {
+      "path": "/var/tmp/doppler-long-prefill-boundary-20261013/tokens.json",
+      "sha256": "6db044b680edeedfaaa3386696c56c87b190459eb0b1c255aeff8fe909f8cb14"
+    },
+    "observation": {
+      "path": "/var/tmp/doppler-long-prefill-boundary-20261013/observation.json",
+      "sha256": "260469b51eb89d1532a9f58f98d43a0b26a821b964559bb529b39c991ec61744"
+    },
+    "manifest": {
+      "path": "/var/tmp/doppler-cold-compile-model-20261013/manifest.json",
+      "sha256": "6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934"
+    },
+    "sourceConfig": {
+      "path": "/home/x/deco/doppler/artifacts/source-model-reference-20261010/source-config.json",
+      "sha256": "b90b86f35c8e6925ef74ee04d0e758f0a845c83a42089ad82bbaa948de9b4204"
+    },
+    "pieceIndex": {
+      "path": "/home/x/deco/reploid/self/config/model-pieces/qwen-0-8b-pieces.json",
+      "sha256": "18adb1f08f4e694d357a27f7a5d67ea57a7d50c5e82aa7fda099084b445974b7"
+    }
+  },
+  "modelRoot": "/var/tmp/doppler-cold-compile-model-20261013",
+  "host": "AMD CPU",
+  "limits": {
+    "cpuThreads": 2,
+    "memoryHighBytes": 21474836480,
+    "memoryMaxBytes": 25769803776,
+    "timeoutSeconds": 300
+  },
+  "captureHash": "799032807b3feb64d1ebeecdff2edba7a9361358570eafbfc1528855c5e3889b"
+}
