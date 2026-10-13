@@ -1,0 +1,101 @@
+{
+  "schema": "doppler.dispatch-lifetime-comparison/v1",
+  "scope": "Diagnostic attribution, not numerical acceptance",
+  "runs": [
+    {
+      "run": "dispatch-lifetime",
+      "captureSha256": "675209857f65d7304bde7768f3d0bfa9adcba3d873fe97c97c6f77ca4f34c625",
+      "sameOutputBuffer": true,
+      "firstDigest": "sha256:4f505026bc104488ba52af31e2a2bafdd057f31db11718b215f9b7519bda9457",
+      "secondDigest": "sha256:b52be2f774ce20f197232dc2956ee24360995ef61ad39757eabe4a6e6c23c5b4",
+      "outputChanged": true,
+      "nextLayerInputMatchesSecond": true,
+      "eventsBetweenCaptures": [
+        {
+          "event": "createBuffer",
+          "buffer": {
+            "id": 63,
+            "label": "debug_snapshot_staging",
+            "size": 1507328,
+            "usage": 9
+          },
+          "layer": 16
+        },
+        {
+          "event": "submit",
+          "commands": [
+            ""
+          ],
+          "layer": 16
+        },
+        {
+          "event": "destroyBuffer",
+          "buffer": {
+            "id": 63,
+            "label": "debug_snapshot_staging",
+            "size": 1507328,
+            "usage": 9
+          },
+          "layer": 16
+        }
+      ],
+      "retainedUniformCount": 0,
+      "tokenId": 0,
+      "failure": null,
+      "cleanupFailure": null,
+      "providerSettlement": {
+        "closed": true,
+        "providerOpened": true,
+        "ownedProviderReleased": true
+      }
+    },
+    {
+      "run": "uniform-retention",
+      "captureSha256": "4bf698cdc4a4789cc1e790c2251364f06fd3b2169eccfcaadada88d32ee8309d",
+      "sameOutputBuffer": true,
+      "firstDigest": "sha256:8160e3cb165bfd36e6e1b8d6b2ba1f49b052651c850d2a725b7d3171c186d0b3",
+      "secondDigest": "sha256:b52be2f774ce20f197232dc2956ee24360995ef61ad39757eabe4a6e6c23c5b4",
+      "outputChanged": true,
+      "nextLayerInputMatchesSecond": true,
+      "eventsBetweenCaptures": [
+        {
+          "event": "createBuffer",
+          "buffer": {
+            "id": 63,
+            "label": "debug_snapshot_staging",
+            "size": 1507328,
+            "usage": 9
+          },
+          "layer": 16
+        },
+        {
+          "event": "submit",
+          "commands": [
+            ""
+          ],
+          "layer": 16
+        },
+        {
+          "event": "destroyBuffer",
+          "buffer": {
+            "id": 63,
+            "label": "debug_snapshot_staging",
+            "size": 1507328,
+            "usage": 9
+          },
+          "layer": 16
+        }
+      ],
+      "retainedUniformCount": 141,
+      "tokenId": 0,
+      "failure": null,
+      "cleanupFailure": null,
+      "providerSettlement": {
+        "closed": true,
+        "providerOpened": true,
+        "ownedProviderReleased": true
+      }
+    }
+  ],
+  "conclusion": "Uniform retention did not prevent corruption. Captures differ with only staging allocation, readback submission and staging destruction between them."
+}
