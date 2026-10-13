@@ -1,0 +1,80 @@
+{
+  "schema": "doppler.settled-kernel-comparison/v1",
+  "scope": "Per-kernel completion scheduling treatment, not installed archive qualification",
+  "referenceObservationSha256": "260469b51eb89d1532a9f58f98d43a0b26a821b964559bb529b39c991ec61744",
+  "logits": 248320,
+  "maxAbsoluteError": 9.465929977636733e-07,
+  "tolerance": 0.001,
+  "failures": 0,
+  "finite": true,
+  "tokenId": 16,
+  "independentGreedyToken": 16,
+  "repeatedLayer16BytesEqual": true,
+  "layer17InputEqualsLayer16Output": true,
+  "kernelCount": 141,
+  "cleanup": {
+    "failure": null,
+    "cleanupFailure": null,
+    "providerError": null,
+    "providerSettlement": {
+      "closed": true,
+      "providerOpened": true,
+      "ownedProviderReleased": true
+    }
+  },
+  "power": {
+    "available": false,
+    "reason": "RAPL energy_uj unreadable by diagnostic account"
+  },
+  "numericalPassed": true,
+  "operations": [
+    {
+      "label": "load-only-stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-13T23:10:13.125Z",
+      "finishedAt": "2026-10-13T23:10:23.776Z"
+    },
+    {
+      "label": "canonical-observed-long-prefill",
+      "status": "completed",
+      "startedAt": "2026-10-13T23:10:27.517Z",
+      "finishedAt": "2026-10-13T23:13:31.061Z"
+    },
+    {
+      "label": "canonical-snapshot-export",
+      "status": "completed",
+      "startedAt": "2026-10-13T23:13:31.088Z",
+      "finishedAt": "2026-10-13T23:13:31.371Z"
+    },
+    {
+      "label": "close-canonical-diagnostic-attempt",
+      "status": "completed",
+      "startedAt": "2026-10-13T23:13:31.409Z",
+      "finishedAt": "2026-10-13T23:13:31.772Z"
+    },
+    {
+      "label": "close-load-only-stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-13T23:13:32.568Z",
+      "finishedAt": "2026-10-13T23:13:32.687Z"
+    },
+    {
+      "label": "close-context",
+      "status": "completed",
+      "startedAt": "2026-10-13T23:13:32.707Z",
+      "finishedAt": "2026-10-13T23:13:32.735Z"
+    },
+    {
+      "label": "close-provider",
+      "status": "completed",
+      "startedAt": "2026-10-13T23:13:32.755Z",
+      "finishedAt": "2026-10-13T23:13:32.920Z"
+    }
+  ],
+  "allocatedGpuPeakBytes": 330004304,
+  "allocatedGpuLimitBytes": 1420000000,
+  "transferMeasurement": {
+    "available": false,
+    "scope": "Preparation used loopback model server; no peer transfer measurement in this control"
+  }
+}
