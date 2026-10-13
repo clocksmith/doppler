@@ -47,3 +47,39 @@ Preparation, observed execution, export, attempt/resident/provider close passed;
 `readback-control.js` opens the same installed native Vulkan provider and verified 1,984-file runtime, uploads the original 1,507,328 activation bytes without model dispatch, and uses the canonical snapshot API eight times. `readback-bound-result.json` records all eight storage digests equal to the original, queue settlement and host close. This falsifies corruption caused by isolated copying/readback/staging retirement; it does not rule out an interaction with model dispatch or allocation retirement. The next discriminator is a minimal paired compute result captured repeatedly with and without intervening temporary-buffer retirement, under the same provider.
 
 The first launcher lacked its remote input and never opened a provider. The next omitted the debug module's required device binding and rejected snapshot acquisition; `readback-unbound-control.js` and `readback-unbound-result.json` retain that setup failure. The corrected observer binds the same owned device and clears it on close. These controls do not modify the archive, model arithmetic, reference, or release acceptance.
+
+## Dispatch lifetime and driver fence attribution
+
+The paired-retirement, paired-wrapper, paired-chain and paired-gc controls each
+pass with eight identical canonical snapshots and confirmed provider close.
+They cover temporary-buffer retirement, installed wrapper uniform retirement,
+64 queued paired additions with pool reuse, and forced JavaScript collection.
+They do not reproduce the full model's failure.
+
+`dispatch-lifetime-comparison.json` binds both layer-16 snapshots to the same
+output buffer. The intervening events are staging allocation, readback
+submission and staging destruction, with no observed output release or compute
+submission. The separate uniform-retention treatment holds 141 uniforms until
+operation completion; corruption persists. Both full-stage runs return token
+zero and fail numerical acceptance despite successful host closure.
+
+`dispatch-lifetime-kernel.txt` records i915 fence-expiration timeouts for the
+exact owned provider PIDs 1099138 and 1102755 during those two runs. WebGPU did
+not report a validation error. These kernel failures supersede an attribution
+based solely on changing snapshots: the observations do not prove a standalone
+readback or lifetime defect. Do not repeat the unchanged full-stage workload.
+Compressed result/capture receipts and host-memory samples preserve both runs.
+
+`linear-phase-control.js` uses the original installed nine paired linear shaders
+at 16 tokens, 16 key/value heads and 128-dimensional heads. Each phase is
+submitted and settled independently, an explicit diagnostic scheduling change.
+Independent F64 equations pass for convolution, convolution state, recurrent
+state, gates and output under the existing 2e-11 operator threshold. Recurrent
+state takes approximately 298 ms in this control. This is operator evidence,
+not the 184-token model case or the unchanged 0.001 release gate.
+
+The next discriminator is bounded projection dispatch timing versus cumulative
+queued work. The eight-row matmul diagnostic uses independently constructed
+F32/Q4K weights, the installed shader and independent F64 dot products. Its
+reservation caps host memory at 2 GiB and execution at 180 seconds. Preparation,
+execution, numerical comparison and settlement must be reported separately.

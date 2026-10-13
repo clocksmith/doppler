@@ -1,0 +1,114 @@
+{
+  "schema": "doppler.paired-linear-phase-control/v1",
+  "verifiedRuntime": {
+    "schema": "reploid.numerical-test-delivery/v1",
+    "testDeliveryHash": "sha256:804b41566f8e16e83425736c217f4416aae4c86bad9c56ae315194ff2b7bbf5d",
+    "archiveSha256": "9264d265a90c7c0b046adf46135965b2032d2d9f6e5e60d6a8149d10f0988ec4",
+    "snapshotFiles": 2583,
+    "installedFiles": 1984,
+    "scope": "Immutable numerical fixture delivery; not deployed application or signed admission",
+    "applicationQualification": false
+  },
+  "fixtureSha256": "80e6cd07ecdc834667fbbc8364205123a62bffa9c290ee3f486e447bd3d04ba9",
+  "seed": 624901,
+  "tolerance": 2e-11,
+  "scope": "16-token synthetic operator geometry; each phase settled separately; not full-model or unchanged scheduling qualification",
+  "shaderSha256": [
+    "8c42f6e7309576313b00fbbd9981ba7551925ff6fee526081c2d393e02e8513d",
+    "269fdb694f6e206b6ea77582b29e4b98051f34dbad822a40e22032597fbfbe33",
+    "9340014c13ba79ae7d2bebe4ea14f1935e5cb4a9d0df08a3b2cc063b32271e2f",
+    "39c3a1fa41c039c555e3cb7d04648e9d96d3f464bed512e54117a91182478ec4",
+    "93af9d61d9ca7e4ddc2d8a6a0152763e7b6d8dc90397543ea33142c99c43744c",
+    "20623d93648c0216dfc4d122bf8637594d3b5d858f32d023cd9b015e92fea6ae",
+    "36dc4fe9f21e1daedbd0df276a8b139d7119dd9a3129ce8c8c5cc0717ae12fd7",
+    "f8b06edca9b891aa6759567f0e134a76e6abfae7f9f53464ea767ae9244a9aaa",
+    "240cda5577bc57edd48185717ee6a92106053b5c9a6bf48ed691381bae1c816f"
+  ],
+  "cases": [
+    {
+      "packed": false,
+      "rows": {
+        "conv": {
+          "count": 98304,
+          "maxError": 1.1934897514720433e-15,
+          "failures": 0
+        },
+        "convState": {
+          "count": 24576,
+          "maxError": 0,
+          "failures": 0
+        },
+        "state": {
+          "count": 262144,
+          "maxError": 2.3418766925686896e-16,
+          "failures": 0
+        },
+        "output": {
+          "count": 32768,
+          "maxError": 1.186550857568136e-15,
+          "failures": 0
+        },
+        "gates": {
+          "count": 512,
+          "maxError": 3.885780586188048e-15,
+          "failures": 0
+        }
+      }
+    }
+  ],
+  "closed": true,
+  "adapter": {
+    "vendor": "intel",
+    "architecture": "gen-12lp"
+  },
+  "phaseTimings": [
+    {
+      "phase": "gated_delta_conv_paired",
+      "tokens": 16,
+      "milliseconds": 82.97827200000029
+    },
+    {
+      "phase": "qwen_linear_attention_prepare_paired",
+      "tokens": 16,
+      "milliseconds": 2.576383999999962
+    },
+    {
+      "phase": "qwen_linear_attention_scale_paired",
+      "tokens": 16,
+      "milliseconds": 2.1049010000001545
+    },
+    {
+      "phase": "qwen_linear_attention_log_decay_paired",
+      "tokens": 16,
+      "milliseconds": 2.401785000000018
+    },
+    {
+      "phase": "qwen_linear_attention_decay_paired",
+      "tokens": 16,
+      "milliseconds": 2.1112309999998615
+    },
+    {
+      "phase": "gated_delta_qk_paired",
+      "tokens": 16,
+      "milliseconds": 13.79870099999971
+    },
+    {
+      "phase": "gated_delta_state_paired",
+      "tokens": 16,
+      "milliseconds": 298.13176099999964
+    },
+    {
+      "phase": "gated_delta_norm_paired",
+      "tokens": 16,
+      "milliseconds": 5.157145000000128
+    },
+    {
+      "phase": "gated_delta_gate_paired",
+      "tokens": 16,
+      "milliseconds": 14.91841199999999
+    }
+  ],
+  "errors": [],
+  "storageBindingLimit": 16,
+  "passed": true
+}
