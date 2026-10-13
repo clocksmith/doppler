@@ -1,6 +1,7 @@
 /** Partition metadata helpers; these do not execute or qualify distributed inference. */
 export declare const LAYER_PARTITION_SCHEMA: 'doppler.layer-partition-contract/v1';
 export declare const ACTIVATION_TENSOR_SCHEMA: 'doppler.activation-tensor/v1';
+export declare const ORDERED_LAYER_PARTITION_SCHEMA: 'doppler.layer-partition-contract/v3';
 export declare const PAIRED_LAYER_PARTITION_SCHEMA: 'doppler.layer-partition-contract/v2';
 export declare const PAIRED_ACTIVATION_TENSOR_SCHEMA: 'doppler.activation-tensor/v2';
 export declare const PARTITION_COMPARISON_SCHEMA: 'doppler.partition-comparison-contract/v1';
@@ -46,8 +47,24 @@ export declare function createLayerPartitionPlan(options: {
   modelId: string; numLayers: number; hiddenSize: number; vocabSize: number;
   splitLayer?: number | null; activationDtype?: ActivationDtype; activationPrecision?: ActivationPrecision;
 }): LayerPartitionPlan;
+/** Explicit ordered layer cuts. This metadata contract does not itself enable resident execution. */
+export interface OrderedLayerPartitionPlan extends Omit<LayerPartitionPlan, 'schema' | 'splitLayer'> {
+  readonly schema: typeof ORDERED_LAYER_PARTITION_SCHEMA;
+  readonly stageCount: number;
+  readonly splitLayers: readonly number[];
+  readonly activationPrecision: ActivationPrecision;
+  readonly activationComponents: number;
+  readonly activationElementStrideBytes: number;
+}
+export declare function createOrderedLayerPartitionPlan(options: {
+  modelId: string; numLayers: number; hiddenSize: number; vocabSize: number;
+  splitLayers: readonly number[]; activationDtype?: ActivationDtype; activationPrecision?: ActivationPrecision;
+}): OrderedLayerPartitionPlan;
+export declare function validateOrderedLayerPartitionPlan(manifest: {
+  modelId?: unknown; architecture?: unknown;
+}, plan: OrderedLayerPartitionPlan): OrderedLayerPartitionPlan;
 /** The digest expected by signed resident allocations and TargetPlan qualification. */
-export declare function hashLayerPartitionPlan(plan: LayerPartitionPlan): `sha256:${string}`;
+export declare function hashLayerPartitionPlan(plan: LayerPartitionPlan | OrderedLayerPartitionPlan): `sha256:${string}`;
 export declare function resolveLayerPartition(manifest: {
   modelId?: unknown; architecture?: unknown;
 }, allocation: { plan: LayerPartitionPlan; index: 0 | 1 } | null | undefined): Readonly<LayerPartition> | null;
@@ -73,11 +90,11 @@ export declare function deserializeActivationFrame(frame: ActivationFrame): Acti
   shape: number[]; dtype: ActivationDtype; seqOffset: number; step: number;
   tensorData: Float32Array | Uint16Array; metadata: Readonly<Record<string, unknown>>;
 };
-export declare function getPartitionActivationContract(plan: LayerPartitionPlan): Readonly<Required<ActivationLayout> & {
+export declare function getPartitionActivationContract(plan: LayerPartitionPlan | OrderedLayerPartitionPlan): Readonly<Required<ActivationLayout> & {
   schema: typeof ACTIVATION_TENSOR_SCHEMA | typeof PAIRED_ACTIVATION_TENSOR_SCHEMA;
   dtype: ActivationDtype; hiddenSize: number;
 }>;
-export declare function validateActivationFrameForPlan(frame: ActivationFrame, plan: LayerPartitionPlan): ReturnType<typeof deserializeActivationFrame>;
+export declare function validateActivationFrameForPlan(frame: ActivationFrame, plan: LayerPartitionPlan | OrderedLayerPartitionPlan): ReturnType<typeof deserializeActivationFrame>;
 export interface PartitionContinuation {
   readonly partitionIndex: number;
   readonly layerRange: readonly number[];

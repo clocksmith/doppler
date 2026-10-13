@@ -1,0 +1,20 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: The ordered plan constructor must be public.
++ actual - expected
+
++ 'undefined'
+- 'function'
+
+    at file:///Users/xyz/deco/doppler/tests/inference/ordered-layer-partition-contract.test.js:5:8 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 'undefined',
+  expected: 'function',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.20.0

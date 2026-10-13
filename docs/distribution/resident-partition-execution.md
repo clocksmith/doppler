@@ -85,6 +85,29 @@ group. The Capsule root checks this record before constructing a program; the
 model host supplies the pure manifest-bound allocation validator through a
 port, keeping the root independent of the inference executor.
 
+## Ordered N-stage plan contract
+
+`createOrderedLayerPartitionPlan({ modelId, numLayers, hiddenSize, vocabSize,
+splitLayers, activationDtype, activationPrecision })` creates the opt-in
+`doppler.layer-partition-contract/v3` geometry contract. `splitLayers` explicitly
+lists strictly increasing interior layer boundaries. `stageCount` and ordered
+`partitions` cover every original layer exactly once. Only the first stage owns
+embedding and only the last owns the LM head; intermediate stages consume and
+produce the same activation layout. Scalar and paired layouts remain distinct.
+
+`validateOrderedLayerPartitionPlan(manifest, plan)` reconstructs the complete
+canonical shape against the model and rejects gaps, overlaps, reordered stages,
+changed roles/layouts and unknown fields. `hashLayerPartitionPlan()` validates
+v3 before hashing it. Existing v1/v2 constructors, hashes and activation frame
+schemas remain unchanged. Plans contain model geometry, not participant IDs,
+replica selection, transport authority, or a throughput claim.
+
+This initial metadata extension does not by itself enable N-stage resident
+execution: the legacy resident methods and signed qualification still admit
+only their two-stage contracts. CPU contract tests cover 2, 3, 4 and 7 stages;
+physical provider, signed opening, concurrency and recovery acceptance require
+separate exact-plan evidence.
+
 ## Signed selective acquisition
 
 An explicitly prepared Capsule may set `program.pieceIndexArtifactId` to an
