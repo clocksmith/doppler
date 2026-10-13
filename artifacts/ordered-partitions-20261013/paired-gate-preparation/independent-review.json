@@ -1,0 +1,24 @@
+{
+  "schema": "doppler.independent-source-review/v1",
+  "reviewer": "/root/document_quality",
+  "recordedAt": "2026-10-13T17:19:50.735549+00:00",
+  "sourceCommit": "33bd652a",
+  "conclusion": "No blocker found in expression order, gate vec2 addressing, packed B offset, producer/consumer bindings or owned cleanup.",
+  "verification": [
+    "paired-gate-preparation.test.js",
+    "paired-gate-memory.test.js",
+    "actual diagnostic lifetime CPU controls"
+  ],
+  "scope": "Supports bounded physical experiment only; no numerical or compilation qualification.",
+  "notes": [
+    "Original physical fixture/reference block is unchanged; added F64 gate checks are supplementary.",
+    "The5000192byte retained-storage upper count is an incremental conservative calculation, not whole-model peak."
+  ],
+  "hashes": {
+    "src/gpu/kernels/paired-linear-attention.js": "6895001b27a9b49d59b0efcf193c88529fe55cef3816d515856625c452de379f",
+    "src/gpu/kernels/qwen_linear_attention_prepare_paired.wgsl": "ad1af903862dc140b09f310b91083d92b23748fe80ac2927c876cde5efe3e3d5",
+    "src/gpu/kernels/gated_delta_recurrent_paired.wgsl": "d057940ff5f1f181c5deaa7e0eb329c599e1889ba3a7aa35b73405002189a186",
+    "artifacts/ordered-partitions-20261013/paired-gate-preparation/linear-control.js": "9648665800647689550ea3a0f5f1778287347dbc058fefcc399aad5672d929fa",
+    "artifacts/ordered-partitions-20261013/paired-gate-preparation/proposal.json": "4f4523dd0e5473dc0caa9b5956633e7f41d5e8439de2e4c2f63ffd2010828995"
+  }
+}
