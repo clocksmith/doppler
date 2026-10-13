@@ -1,0 +1,57 @@
+{
+  "schema": "doppler.attention-single-exp-probe/v1",
+  "proposal": {
+    "schema": "doppler.attention-compile-probe/v1",
+    "hypothesis": "Two reachable paired exponential callsites inflate Intel compiler memory; one ordered callsite preserves alpha then key weights and sum order while reducing expansion.",
+    "falsifier": "Candidate fails compile/close in 300/10 seconds under 6/8 GiB scope, or original independent attention fixtures exceed unchanged 2e-11.",
+    "sourceBefore": "b64c6c6435094a8cb145585438b80abcac15cfac5c2db741debe07623a31cbbe",
+    "candidate": "b2d8466784eb5462cc4bc0ad54bca808d3ba3d74a03cb7d2f2ed616dcc599daa",
+    "runtimeArchive": "5032a459d256ba6a0028803a370ca97ea74cf93859f73682620a6548caf463e4",
+    "fixtureSource": "61d2cf07f17248f45c7ce90b3bc30419856d96951e9f346dce072b9997468b57",
+    "admission": {
+      "observedAt": "2026-10-13T20:12:10.176316+00:00",
+      "scope": "Isolated Suby operator, no model or public processes",
+      "oldSubyGpuOwnership": "Prior attempt normal settlement unknown; no claim its allocations were released",
+      "maxGpuBufferBytes": 1420000000,
+      "memoryHighBytes": 6442450944,
+      "memoryMaxBytes": 8589934592,
+      "swapBytes": 0,
+      "operationMs": 300000,
+      "cleanupMs": 10000,
+      "processDeadlineMs": 310000
+    },
+    "deployment": false
+  },
+  "pid": 980772,
+  "events": [
+    {
+      "phase": "host-open",
+      "at": "2026-10-13T20:13:33.225Z"
+    },
+    {
+      "phase": "device-lost",
+      "at": "2026-10-13T20:13:33.880Z",
+      "reason": "destroyed",
+      "message": "device was destroyed"
+    },
+    {
+      "phase": "finished",
+      "at": "2026-10-13T20:13:33.881Z",
+      "passed": false
+    }
+  ],
+  "rows": [],
+  "tolerance": 2e-11,
+  "peakGpuBufferBytes": 0,
+  "adapter": {
+    "vendor": "intel",
+    "architecture": "gen-12lp",
+    "description": "Intel open-source Mesa driver: Mesa 24.2.8-1ubuntu1~24.04.1"
+  },
+  "errors": [
+    "Error while parsing WGSL: :326:21 error: 'active' is a reserved keyword\n                var active = has_value != 0u;\n                    ^^^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"\"\"]).\n"
+  ],
+  "error": "AssertionError [ERR_ASSERTION]: [{}]\n\n1 !== 0\n\n    at file:///var/tmp/reploid-recurrent-memory-20261013/attention-repair/control.js:32:150\n    at async bounded (file:///var/tmp/reploid-recurrent-memory-20261013/attention-repair/control.js:18:62)\n    at async file:///var/tmp/reploid-recurrent-memory-20261013/attention-repair/control.js:60:2",
+  "hostClosed": true,
+  "passed": false
+}

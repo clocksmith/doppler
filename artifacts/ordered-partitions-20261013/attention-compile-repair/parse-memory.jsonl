@@ -1,0 +1,2 @@
+{"at":"2026-10-13T20:13:33.123Z","phase":"provider-started","providerPid":980772,"supervisorPid":980765,"cgroup":"/user.slice/user-1000.slice/user@1000.service/app.slice/reploid-attention-repair-20261013.scope"}
+{"at":"2026-10-13T20:13:33.903Z","phase":"provider-exit","code":1,"signal":null,"memory.current":"25063424","memory.peak":"137715712","memory.events":"low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0","cleanup":"Read provider events; exit alone does not establish GPU settlement."}
