@@ -1,0 +1,1097 @@
+{
+  "root": "/var/tmp/reploid-cold-compile-three-stage-20261013",
+  "delivery": {
+    "schema": "reploid.numerical-test-delivery/v1",
+    "testDeliveryHash": "sha256:804b41566f8e16e83425736c217f4416aae4c86bad9c56ae315194ff2b7bbf5d",
+    "archiveSha256": "9264d265a90c7c0b046adf46135965b2032d2d9f6e5e60d6a8149d10f0988ec4",
+    "snapshotFiles": 2583,
+    "installedFiles": 1984,
+    "scope": "Immutable numerical fixture delivery; not deployed application or signed admission",
+    "applicationQualification": false
+  },
+  "facts": {
+    "bindingSha256": "7703cfac8e75924dd8a1dc2167a8f6480d69e55d407e0f2cb93ea0da09a57b46",
+    "archiveSha256": "9264d265a90c7c0b046adf46135965b2032d2d9f6e5e60d6a8149d10f0988ec4",
+    "manifestIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+    "graphSha256": "8e33eb44bdf90e96eb6c3072796107cb0f28e28f6c59ab76a0d2055dc009fcbb",
+    "frozenModelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+    "weightsTokenizerAndSourceFactsUnchanged": true,
+    "executionGraphChanged": true,
+    "scope": "Test-only paired execution binding; not qualification or adoption",
+    "activation": {
+      "activationPrecision": "two-f32",
+      "activationComponents": 2,
+      "activationElementStrideBytes": 8
+    },
+    "session": {
+      "intermediatePrecision": "two-f32",
+      "linearRecurrentStatePrecision": "two-f32"
+    }
+  },
+  "plans": [
+    {
+      "count": 2,
+      "hash": "sha256:e01263c533c7f84fb6229c119fbc53c2b40bb1ee3d378ad0d7f76d55a42f2308",
+      "plan": {
+        "schema": "doppler.layer-partition-contract/v3",
+        "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+        "totalLayers": 24,
+        "hiddenSize": 1024,
+        "vocabSize": 248320,
+        "stageCount": 2,
+        "splitLayers": [
+          12
+        ],
+        "activationDtype": "f32",
+        "activationPrecision": "two-f32",
+        "activationComponents": 2,
+        "activationElementStrideBytes": 8,
+        "partitions": [
+          {
+            "index": 0,
+            "layerRange": [
+              0,
+              11
+            ],
+            "layerCount": 12,
+            "hasEmbedding": true,
+            "hasLmHead": false,
+            "inputContract": {
+              "type": "token-ids",
+              "rank": 2,
+              "shapeDescription": "[batchSize, seqLen]",
+              "dtype": "i32"
+            },
+            "outputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          },
+          {
+            "index": 1,
+            "layerRange": [
+              12,
+              23
+            ],
+            "layerCount": 12,
+            "hasEmbedding": false,
+            "hasLmHead": true,
+            "inputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            },
+            "outputContract": {
+              "type": "logits",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, vocabSize]",
+              "vocabSize": 248320,
+              "dtype": "f32"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "count": 3,
+      "hash": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+      "plan": {
+        "schema": "doppler.layer-partition-contract/v3",
+        "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+        "totalLayers": 24,
+        "hiddenSize": 1024,
+        "vocabSize": 248320,
+        "stageCount": 3,
+        "splitLayers": [
+          8,
+          16
+        ],
+        "activationDtype": "f32",
+        "activationPrecision": "two-f32",
+        "activationComponents": 2,
+        "activationElementStrideBytes": 8,
+        "partitions": [
+          {
+            "index": 0,
+            "layerRange": [
+              0,
+              7
+            ],
+            "layerCount": 8,
+            "hasEmbedding": true,
+            "hasLmHead": false,
+            "inputContract": {
+              "type": "token-ids",
+              "rank": 2,
+              "shapeDescription": "[batchSize, seqLen]",
+              "dtype": "i32"
+            },
+            "outputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          },
+          {
+            "index": 1,
+            "layerRange": [
+              8,
+              15
+            ],
+            "layerCount": 8,
+            "hasEmbedding": false,
+            "hasLmHead": false,
+            "inputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            },
+            "outputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          },
+          {
+            "index": 2,
+            "layerRange": [
+              16,
+              23
+            ],
+            "layerCount": 8,
+            "hasEmbedding": false,
+            "hasLmHead": true,
+            "inputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            },
+            "outputContract": {
+              "type": "logits",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, vocabSize]",
+              "vocabSize": 248320,
+              "dtype": "f32"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "count": 4,
+      "hash": "sha256:5eb9451ab7d25d84b3ca86b6d9590a8b12601bfd871a2c16a75b133284d4dead",
+      "plan": {
+        "schema": "doppler.layer-partition-contract/v3",
+        "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+        "totalLayers": 24,
+        "hiddenSize": 1024,
+        "vocabSize": 248320,
+        "stageCount": 4,
+        "splitLayers": [
+          6,
+          12,
+          18
+        ],
+        "activationDtype": "f32",
+        "activationPrecision": "two-f32",
+        "activationComponents": 2,
+        "activationElementStrideBytes": 8,
+        "partitions": [
+          {
+            "index": 0,
+            "layerRange": [
+              0,
+              5
+            ],
+            "layerCount": 6,
+            "hasEmbedding": true,
+            "hasLmHead": false,
+            "inputContract": {
+              "type": "token-ids",
+              "rank": 2,
+              "shapeDescription": "[batchSize, seqLen]",
+              "dtype": "i32"
+            },
+            "outputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          },
+          {
+            "index": 1,
+            "layerRange": [
+              6,
+              11
+            ],
+            "layerCount": 6,
+            "hasEmbedding": false,
+            "hasLmHead": false,
+            "inputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            },
+            "outputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          },
+          {
+            "index": 2,
+            "layerRange": [
+              12,
+              17
+            ],
+            "layerCount": 6,
+            "hasEmbedding": false,
+            "hasLmHead": false,
+            "inputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            },
+            "outputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          },
+          {
+            "index": 3,
+            "layerRange": [
+              18,
+              23
+            ],
+            "layerCount": 6,
+            "hasEmbedding": false,
+            "hasLmHead": true,
+            "inputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            },
+            "outputContract": {
+              "type": "logits",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, vocabSize]",
+              "vocabSize": 248320,
+              "dtype": "f32"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "count": 5,
+      "hash": "sha256:7a52282379fd4e9a7a3d2f1be7cd3ce686f56ceb6d183d5407517d9b3b453e7f",
+      "plan": {
+        "schema": "doppler.layer-partition-contract/v3",
+        "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+        "totalLayers": 24,
+        "hiddenSize": 1024,
+        "vocabSize": 248320,
+        "stageCount": 5,
+        "splitLayers": [
+          4,
+          9,
+          14,
+          19
+        ],
+        "activationDtype": "f32",
+        "activationPrecision": "two-f32",
+        "activationComponents": 2,
+        "activationElementStrideBytes": 8,
+        "partitions": [
+          {
+            "index": 0,
+            "layerRange": [
+              0,
+              3
+            ],
+            "layerCount": 4,
+            "hasEmbedding": true,
+            "hasLmHead": false,
+            "inputContract": {
+              "type": "token-ids",
+              "rank": 2,
+              "shapeDescription": "[batchSize, seqLen]",
+              "dtype": "i32"
+            },
+            "outputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          },
+          {
+            "index": 1,
+            "layerRange": [
+              4,
+              8
+            ],
+            "layerCount": 5,
+            "hasEmbedding": false,
+            "hasLmHead": false,
+            "inputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            },
+            "outputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          },
+          {
+            "index": 2,
+            "layerRange": [
+              9,
+              13
+            ],
+            "layerCount": 5,
+            "hasEmbedding": false,
+            "hasLmHead": false,
+            "inputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            },
+            "outputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          },
+          {
+            "index": 3,
+            "layerRange": [
+              14,
+              18
+            ],
+            "layerCount": 5,
+            "hasEmbedding": false,
+            "hasLmHead": false,
+            "inputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            },
+            "outputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          },
+          {
+            "index": 4,
+            "layerRange": [
+              19,
+              23
+            ],
+            "layerCount": 5,
+            "hasEmbedding": false,
+            "hasLmHead": true,
+            "inputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            },
+            "outputContract": {
+              "type": "logits",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, vocabSize]",
+              "vocabSize": 248320,
+              "dtype": "f32"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "count": 6,
+      "hash": "sha256:8f111ce530ce72ce91c52c254c246a4ccc6157925daca7267531bfba54edf5a2",
+      "plan": {
+        "schema": "doppler.layer-partition-contract/v3",
+        "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+        "totalLayers": 24,
+        "hiddenSize": 1024,
+        "vocabSize": 248320,
+        "stageCount": 6,
+        "splitLayers": [
+          4,
+          8,
+          12,
+          16,
+          20
+        ],
+        "activationDtype": "f32",
+        "activationPrecision": "two-f32",
+        "activationComponents": 2,
+        "activationElementStrideBytes": 8,
+        "partitions": [
+          {
+            "index": 0,
+            "layerRange": [
+              0,
+              3
+            ],
+            "layerCount": 4,
+            "hasEmbedding": true,
+            "hasLmHead": false,
+            "inputContract": {
+              "type": "token-ids",
+              "rank": 2,
+              "shapeDescription": "[batchSize, seqLen]",
+              "dtype": "i32"
+            },
+            "outputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          },
+          {
+            "index": 1,
+            "layerRange": [
+              4,
+              7
+            ],
+            "layerCount": 4,
+            "hasEmbedding": false,
+            "hasLmHead": false,
+            "inputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            },
+            "outputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          },
+          {
+            "index": 2,
+            "layerRange": [
+              8,
+              11
+            ],
+            "layerCount": 4,
+            "hasEmbedding": false,
+            "hasLmHead": false,
+            "inputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            },
+            "outputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          },
+          {
+            "index": 3,
+            "layerRange": [
+              12,
+              15
+            ],
+            "layerCount": 4,
+            "hasEmbedding": false,
+            "hasLmHead": false,
+            "inputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            },
+            "outputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          },
+          {
+            "index": 4,
+            "layerRange": [
+              16,
+              19
+            ],
+            "layerCount": 4,
+            "hasEmbedding": false,
+            "hasLmHead": false,
+            "inputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            },
+            "outputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          },
+          {
+            "index": 5,
+            "layerRange": [
+              20,
+              23
+            ],
+            "layerCount": 4,
+            "hasEmbedding": false,
+            "hasLmHead": true,
+            "inputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            },
+            "outputContract": {
+              "type": "logits",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, vocabSize]",
+              "vocabSize": 248320,
+              "dtype": "f32"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "count": 7,
+      "hash": "sha256:37f5a2836a74e769d97eea57b8c011c1016052183e05c7a931f7eeeda616d649",
+      "plan": {
+        "schema": "doppler.layer-partition-contract/v3",
+        "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+        "totalLayers": 24,
+        "hiddenSize": 1024,
+        "vocabSize": 248320,
+        "stageCount": 7,
+        "splitLayers": [
+          3,
+          6,
+          10,
+          13,
+          17,
+          20
+        ],
+        "activationDtype": "f32",
+        "activationPrecision": "two-f32",
+        "activationComponents": 2,
+        "activationElementStrideBytes": 8,
+        "partitions": [
+          {
+            "index": 0,
+            "layerRange": [
+              0,
+              2
+            ],
+            "layerCount": 3,
+            "hasEmbedding": true,
+            "hasLmHead": false,
+            "inputContract": {
+              "type": "token-ids",
+              "rank": 2,
+              "shapeDescription": "[batchSize, seqLen]",
+              "dtype": "i32"
+            },
+            "outputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          },
+          {
+            "index": 1,
+            "layerRange": [
+              3,
+              5
+            ],
+            "layerCount": 3,
+            "hasEmbedding": false,
+            "hasLmHead": false,
+            "inputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            },
+            "outputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          },
+          {
+            "index": 2,
+            "layerRange": [
+              6,
+              9
+            ],
+            "layerCount": 4,
+            "hasEmbedding": false,
+            "hasLmHead": false,
+            "inputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            },
+            "outputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          },
+          {
+            "index": 3,
+            "layerRange": [
+              10,
+              12
+            ],
+            "layerCount": 3,
+            "hasEmbedding": false,
+            "hasLmHead": false,
+            "inputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            },
+            "outputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          },
+          {
+            "index": 4,
+            "layerRange": [
+              13,
+              16
+            ],
+            "layerCount": 4,
+            "hasEmbedding": false,
+            "hasLmHead": false,
+            "inputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            },
+            "outputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          },
+          {
+            "index": 5,
+            "layerRange": [
+              17,
+              19
+            ],
+            "layerCount": 3,
+            "hasEmbedding": false,
+            "hasLmHead": false,
+            "inputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            },
+            "outputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          },
+          {
+            "index": 6,
+            "layerRange": [
+              20,
+              23
+            ],
+            "layerCount": 4,
+            "hasEmbedding": false,
+            "hasLmHead": true,
+            "inputContract": {
+              "type": "activation-tensor",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+              "hiddenSize": 1024,
+              "dtype": "f32",
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            },
+            "outputContract": {
+              "type": "logits",
+              "rank": 3,
+              "shapeDescription": "[batchSize, seqLen, vocabSize]",
+              "vocabSize": 248320,
+              "dtype": "f32"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "config": {
+    "schema": "reploid.ordered-qualification-capture/v1",
+    "launchReady": false,
+    "expectations": {
+      "path": "/var/tmp/reploid-cold-compile-three-stage-20261013/expectations.json",
+      "hash": null
+    },
+    "root": "/var/tmp/reploid-cold-compile-three-stage-20261013",
+    "runtimeDirectory": "/var/tmp/reploid-cold-compile-three-stage-20261013/vendor/doppler/0.6.28",
+    "packageVersion": "0.6.28",
+    "model": {
+      "id": "qwen-3-5-0-8b-q4k-ehaf16",
+      "name": "Qwen 3.5 0.8B",
+      "identity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+      "source": {
+        "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16/",
+        "files": [
+          {
+            "path": "manifest.json",
+            "role": "model-manifest",
+            "sizeBytes": 214138,
+            "hashAlgorithm": "sha256",
+            "hash": "edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9"
+          },
+          {
+            "path": "tokenizer.json",
+            "role": "tokenizer",
+            "sizeBytes": 9088480,
+            "hashAlgorithm": "sha256",
+            "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4"
+          },
+          {
+            "path": "qwen-0-8b-pieces.json",
+            "role": "model-piece-index",
+            "sizeBytes": 34259,
+            "hashAlgorithm": "sha256",
+            "hash": "02e7f90a322ed4c395e0d33f49ceae9f190f5a9dca7e9ca6f58f75c12b03ad94",
+            "url": "/config/model-pieces/qwen-0-8b-pieces.json"
+          }
+        ]
+      },
+      "provider": "doppler",
+      "contextLength": 262144,
+      "quantization": "q4k",
+      "size": "Q4K",
+      "adapters": [],
+      "packageName": "doppler-gpu",
+      "packageVersion": "0.6.28",
+      "generation": {
+        "maxTokens": 1024,
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1,
+        "stopSequences": [],
+        "useChatTemplate": true,
+        "repetitionPenalty": 1,
+        "repetitionPenaltyWindow": 0,
+        "maxSeqLen": 4096
+      }
+    },
+    "outputPath": "/var/tmp/reploid-cold-compile-three-stage-20261013/output/reference.json",
+    "gpuReservation": {
+      "approved": false,
+      "id": null,
+      "observedAt": null,
+      "sharedMachineNotes": "Public co-tenants remain; controller and provider observations still required"
+    },
+    "executors": [
+      {
+        "executorId": "mac-stage-0",
+        "kind": "browser-cdp",
+        "endpoint": null,
+        "baseUrl": null,
+        "runtimeBaseUrl": null,
+        "modelSource": null,
+        "preflight": {
+          "path": "/var/tmp/reploid-cold-compile-three-stage-20261013/mac-preflight.json",
+          "hash": null
+        }
+      },
+      {
+        "executorId": "amd-stage-1",
+        "kind": "native-inspector",
+        "endpoint": null,
+        "baseUrl": null,
+        "runtimeBaseUrl": null,
+        "modelSource": null,
+        "preflight": {
+          "path": "/var/tmp/reploid-cold-compile-three-stage-20261013/amd-preflight.json",
+          "hash": null
+        }
+      },
+      {
+        "executorId": "suby-stage-2",
+        "kind": "native-inspector",
+        "endpoint": null,
+        "baseUrl": null,
+        "runtimeBaseUrl": null,
+        "modelSource": null,
+        "preflight": {
+          "path": "/var/tmp/reploid-cold-compile-three-stage-20261013/suby-preflight.json",
+          "hash": null
+        }
+      }
+    ],
+    "reference": {
+      "path": "/var/tmp/reploid-cold-compile-three-stage-20261013/approved-reference.json",
+      "hash": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6"
+    },
+    "manifest": {
+      "path": "/var/tmp/reploid-cold-compile-three-stage-20261013/manifest.json",
+      "hash": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934"
+    },
+    "graph": {
+      "path": "/var/tmp/reploid-cold-compile-three-stage-20261013/execution.json",
+      "hash": "sha256:8e33eb44bdf90e96eb6c3072796107cb0f28e28f6c59ab76a0d2055dc009fcbb"
+    },
+    "archive": {
+      "path": "/var/tmp/reploid-cold-compile-three-stage-20261013/archive.tgz",
+      "hash": "sha256:9264d265a90c7c0b046adf46135965b2032d2d9f6e5e60d6a8149d10f0988ec4"
+    },
+    "policy": {
+      "path": "/var/tmp/reploid-cold-compile-three-stage-20261013/self/config/partition-policy.json",
+      "hash": "sha256:5a6f974f34b1cba00aff269857c3fe53728782317477bede684a0e11f2b6a235"
+    },
+    "pairedBinding": {
+      "path": "/var/tmp/reploid-cold-compile-three-stage-20261013/paired-binding.json",
+      "hash": "sha256:7703cfac8e75924dd8a1dc2167a8f6480d69e55d407e0f2cb93ea0da09a57b46"
+    },
+    "requests": {
+      "path": "/var/tmp/reploid-cold-compile-three-stage-20261013/original-requests.json",
+      "hash": "sha256:794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e"
+    },
+    "delivery": {
+      "path": "/var/tmp/reploid-cold-compile-three-stage-20261013/snapshot-binding.json",
+      "hash": "sha256:804b41566f8e16e83425736c217f4416aae4c86bad9c56ae315194ff2b7bbf5d"
+    },
+    "requestContracts": [
+      {
+        "path": "/var/tmp/reploid-cold-compile-three-stage-20261013/request-0-contract.json",
+        "hash": "sha256:ba2a4668d6affb85faf05221d6263a5b29b55d26c8f89a4f107cbacb717599a9"
+      },
+      {
+        "path": "/var/tmp/reploid-cold-compile-three-stage-20261013/request-1-contract.json",
+        "hash": "sha256:3cc051de10f77e945c6a62b66cccb22f0c15e55bf11196c6f71aeda4174ba5a2"
+      },
+      {
+        "path": "/var/tmp/reploid-cold-compile-three-stage-20261013/request-2-contract.json",
+        "hash": "sha256:8b21b154357efa8c9d1c853ffe36c5ce9d9e32e684b496db9031bc59fa6fe836"
+      }
+    ]
+  },
+  "gpuOpened": false,
+  "launchReady": false,
+  "next": "Fresh host reservation, installed endpoint/provider observations and initial execution identities before physical capture"
+}
