@@ -348,6 +348,10 @@ export interface KernelUniformValues {
   "gated_delta_recurrent/default": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_recurrent/default_f16": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_recurrent/paired": Parameters<typeof writers0.write_qwen_linear_attention_prepare_paired_beta>[1];
+  "gated_delta_recurrent/paired_qk": Parameters<typeof writers0.write_qwen_linear_attention_prepare_paired_beta>[1];
+  "gated_delta_recurrent/paired_state": Parameters<typeof writers0.write_qwen_linear_attention_prepare_paired_beta>[1];
+  "gated_delta_recurrent/paired_norm": Parameters<typeof writers0.write_qwen_linear_attention_prepare_paired_beta>[1];
+  "gated_delta_recurrent/paired_gate": Parameters<typeof writers0.write_qwen_linear_attention_prepare_paired_beta>[1];
   "gated_delta_fused_decode/default": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_fused_decode/default_f16": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "linear_attention_summary/default": Parameters<typeof writers2.write_linear_attention_summary_default>[1];

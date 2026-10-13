@@ -10,6 +10,7 @@ for (const [variant, shader] of [
   ['paired_decay_scale', 'qwen_linear_attention_scale_paired'],
   ['paired_log_decay', 'qwen_linear_attention_log_decay_paired'],
   ['paired_decay', 'qwen_linear_attention_decay_paired'],
+  ...['qk', 'state', 'norm', 'gate'].map(phase => [`paired_${phase}`, `gated_delta_${phase}_paired`]),
 ]) {
   execution.kernels[variant] = { kernel: `${shader}.wgsl`, entry: 'main', constants: {},
     digest: `sha256:${KERNEL_REF_CONTENT_DIGESTS[`${shader}.wgsl#main`]}` };
@@ -36,6 +37,7 @@ assert.equal(plan.primaryPlan.activationPrecision, 'two-f32');
 assert.equal(resolveExecutionSessionPlan(plan).activationElementStrideBytes, 8);
 assert.equal(resolveExecutionSessionPlan(plan).activationComponents, 2);
 for (const alter of [
+  ...['qk', 'state', 'norm', 'gate'].map(phase => m => { m.inference.execution.mechanismKernels = m.inference.execution.mechanismKernels.filter(k => k !== `paired_${phase}`); }),
   m => { m.inference.execution.mechanismKernels = m.inference.execution.mechanismKernels.filter(k => k !== 'paired_beta'); },
   m => { m.inference.execution.mechanismKernels = m.inference.execution.mechanismKernels.filter(k => k !== 'gather_f16_vec4'); },
   m => { m.inference.execution.mechanismKernels = m.inference.execution.mechanismKernels.filter(k => k !== 'gather_split8_f16_vec4_f32_out'); },

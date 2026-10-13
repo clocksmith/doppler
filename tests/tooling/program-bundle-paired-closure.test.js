@@ -13,8 +13,9 @@ const graph = await read('../../artifacts/paired-intermediates-20261012/signed-c
 assert.throws(() => assertPairedExecutionMechanismClosure(original), /Missing pinned mechanism/);
 assert.throws(() => assertPairedExecutionMechanismClosure(graph), /qwen_linear_attention_prepare\/paired_beta/);
 const gateVariants = ['paired_beta', 'paired_decay_scale', 'paired_log_decay', 'paired_decay'];
-for (const variant of gateVariants) {
-  const gate = getKernelConfig('qwen_linear_attention_prepare', variant);
+const recurrentVariants = ['paired_qk', 'paired_state', 'paired_norm', 'paired_gate'];
+const configs = new Map([...gateVariants.map(v => [v, getKernelConfig('qwen_linear_attention_prepare', v)]), ...recurrentVariants.map(v => [v, getKernelConfig('gated_delta_recurrent', v)])]);
+for (const [variant, gate] of configs) {
   const gateSource = await readFile(new URL(`../../src/gpu/kernels/${gate.shaderFile}`, import.meta.url), 'utf8');
   graph.kernels[variant] = { kernel: gate.shaderFile, entry: gate.entryPoint, constants: gate.wgslOverrides ?? {},
     digest: `sha256:${createHash('sha256').update(gateSource.replace(/\r\n/g, '\n') + '\n@@entry:' + gate.entryPoint).digest('hex')}` };
@@ -29,12 +30,12 @@ const bundle = await buildWgslClosure(graph, expandExecutionV1(graph), { repoRoo
 const sources = new Map(bundle.modules.map(module => [module.file,
   bundle.packageFiles.find(file => file.path === module.sourcePath).contents]));
 const scope = createShaderSourceScope(sources);
-for (const filename of ['gather_f16.wgsl', 'gather_f16_vec4.wgsl', 'gather_split8_f16_vec4_f32_out.wgsl', 'logit_finalize_f32.wgsl', ...gateVariants.map(variant => getKernelConfig('qwen_linear_attention_prepare', variant).shaderFile)]) {
+for (const filename of ['gather_f16.wgsl', 'gather_f16_vec4.wgsl', 'gather_split8_f16_vec4_f32_out.wgsl', 'logit_finalize_f32.wgsl', ...[...configs.values()].map(config => config.shaderFile)]) {
   const source = await runWithShaderSourceScope(scope, () => loadShaderSource(filename));
   assert.equal(source, await readFile(new URL(`../../src/gpu/kernels/${filename}`, import.meta.url), 'utf8'));
 }
 await assert.rejects(runWithShaderSourceScope(scope, () => loadShaderSource('gather_f16_out.wgsl')), /outside the verified Capsule source closure/);
-for (const key of ['gather_f16_vec4', 'gather_split8_f16_vec4_f32_out', 'logit_finalize_f32', ...gateVariants]) {
+for (const key of ['gather_f16_vec4', 'gather_split8_f16_vec4_f32_out', 'logit_finalize_f32', ...configs.keys()]) {
   const changed = structuredClone(graph); changed.mechanismKernels = changed.mechanismKernels.filter(id => id !== key);
   assert.throws(() => assertPairedExecutionMechanismClosure(changed), /Missing pinned mechanism/, 'Unreferenced kernel cannot authorize source');
   const changedEntry = structuredClone(graph); changedEntry.kernels[key].entry = 'not-the-selected-entry';
