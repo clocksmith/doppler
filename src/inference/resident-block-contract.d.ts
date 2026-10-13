@@ -26,3 +26,10 @@ export function validateResidentAttemptIdentity(input: unknown): Readonly<Reside
 export function residentAttemptDigest(input: ResidentAttemptIdentity): string;
 export function validateBlockActivation(input: unknown, bytes: Uint8Array,
   limits: { maxRows: number; maxBytes: number }): Readonly<{ frame: Readonly<BlockActivation>; bytes: Uint8Array }>;
+
+/** Explicit ordinary k=0 transport; no hypothetical proposal or prepare phase. */
+export interface OrdinaryActivation extends Omit<BlockActivation, 'schema' | 'baseCursorId' | 'proposalId'> {
+  schema: 'doppler.ordinary-activation/v1'; baseCursorId: string | null; proposalId: null;
+}
+export function validateOrdinaryActivation(input: unknown, bytes: Uint8Array,
+  limits: { maxRows: number; maxBytes: number }): Readonly<{ frame: Readonly<OrdinaryActivation>; bytes: Uint8Array }>;
