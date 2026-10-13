@@ -1,0 +1,46 @@
+{
+  "schema": "doppler.compile-control-reservation/v1",
+  "id": "root-suby-sigmoid-factoring-20261013",
+  "frozenAt": "2026-10-13T16:21:53.756Z",
+  "authorizedBy": "Root single sigmoid factoring compile and independent operator Suby window",
+  "runtimeArchiveSha256": "5e0d60bc433d332187d422721fd7afcaec780c202e3082adcab389b47fd27fc5",
+  "nativeArchiveSha256": "d73081423fb00bfc64ecc56e8faf502048d86279c526189cf88a8382a6039cb6",
+  "nativeDescriptorSha256": "1b04241f1ad12defebc2f4e038d7a47b5b07843b6076a38d64ee4ec7b4ab9cd4",
+  "operationDeadlineMs": 300000,
+  "cleanupDeadlineMs": 10000,
+  "externalTotalProcessDeadlineMs": 310000,
+  "variants": [
+    "scale",
+    "silu_unary"
+  ],
+  "scope": "Modified-source diagnostic over frozen5e, actuald730 host; not original5e package qualification. Compile plus immediate/recorded unary SiLU independent F64 controls.",
+  "coTenants": [
+    297260,
+    299769
+  ],
+  "cachePolicy": "Existing provider caches untouched; no cold-cache or isolated timing claim",
+  "sources": {
+    "control.js": "5f7a2d0a2e048a51a55e0bdb65b533b5d62a19c51621180a887425510d68d752",
+    "controller.js": "f67a6419c9e317ccccc045fa0bf5466174c6b618ffd5aa4dacb0c03a5f3ce0a8"
+  },
+  "runtimeClosure": {
+    "src/config/kernels/kernel-ref-digests.js": "62cc73f204ae80f25c1100b0b8c129b8959bec7c7f5ad57b033a058dff471558",
+    "src/gpu/kernels/attention_paired.wgsl": "8f53c5bb239b6ba078f25dd5feda2784707fdb8ef63104dd1f9fd70dc795227f",
+    "src/gpu/kernels/codegen/includes/paired-elementary.wgsl.inc": "b2d6fded475d20e3728488b9a42cdd3432b32411992e44a9d9d29040c95cc853",
+    "src/gpu/kernels/gated_delta_conv_paired.wgsl": "e6408b50c3ee3b8bfa9d217c26df801c8dc6d0dd5e5a74964d7fc139809416e4",
+    "src/gpu/kernels/gated_delta_recurrent_paired.wgsl": "65aa000eec21d0ee28392656f392c0ec80b2325f1ccdcfe26a272f032405debc",
+    "src/gpu/kernels/matmul_paired.wgsl": "17154a43a51f35ba07696515501835bf1da74e42ec1e6438ad9eebec150b9a29",
+    "src/gpu/kernels/paired_add.wgsl": "3e02fb446bdbf062ceca65f62dc37f2f6c946aec54f05d1dd7fbee7d78892b00",
+    "src/gpu/kernels/paired_multiply.wgsl": "577897320a3960454d4ff1d462f2973ed507ac734693a4cdaf8d41f5838b1208",
+    "src/gpu/kernels/paired_scale.wgsl": "63dbef953c6469d5270adaa9ce05f89f52393c6f015eca224b3750488c8fd8a8",
+    "src/gpu/kernels/paired_scale_inplace.wgsl": "91a3d8eb21b6d8d2c5a89ef71a56c6e2fa06de6e69b690f77551bbf3af6f56c0",
+    "src/gpu/kernels/paired_sigmoid.wgsl": "c9c0ebfa4ffa29fb0c96113b69f888f9a56d46056e77b35a7250e92672716277",
+    "src/gpu/kernels/paired_silu.wgsl": "5330c14a32e3dc1a190c961bbeea98fb55c9400b656f685f32cbf34ac65929fc",
+    "src/gpu/kernels/paired_silu_unary.wgsl": "8cb3b267a4e6a38cd97934987f803f8fbbd386342ddf554a10840d9a6999fd21",
+    "src/gpu/kernels/rmsnorm_paired.wgsl": "ad2b6155b657f4da412321b110b6be217567b8f81d2cd24706517d9d5c6d95bb",
+    "src/gpu/kernels/rope_precompute_paired.wgsl": "b3b19f9c3238f3200bfb15bfa5e8a191b88a67a56b24802008d4851a897afa86",
+    "src/gpu/kernels/rope_qk_paired.wgsl": "6893969af1b938fe1a75746e1a5e4386c324b98581e8d58a228cc21a89e04e77"
+  },
+  "candidateSourceCommit": "e9de1568",
+  "runtimeConstruction": "Separate copy of verified d730 installed application with only listed canonical source files over its5e runtime; original archive and application files unchanged. Not a normal packaged candidate."
+}

@@ -1,0 +1,412 @@
+{
+  "schema": "doppler.paired-sigmoid-factoring-diagnostic/v1",
+  "pid": 815133,
+  "startedAt": "2026-10-13T16:22:35.374Z",
+  "reservation": {
+    "schema": "doppler.compile-control-reservation/v1",
+    "id": "root-suby-sigmoid-factoring-20261013",
+    "frozenAt": "2026-10-13T16:21:53.756Z",
+    "authorizedBy": "Root single sigmoid factoring compile and independent operator Suby window",
+    "runtimeArchiveSha256": "5e0d60bc433d332187d422721fd7afcaec780c202e3082adcab389b47fd27fc5",
+    "nativeArchiveSha256": "d73081423fb00bfc64ecc56e8faf502048d86279c526189cf88a8382a6039cb6",
+    "nativeDescriptorSha256": "1b04241f1ad12defebc2f4e038d7a47b5b07843b6076a38d64ee4ec7b4ab9cd4",
+    "operationDeadlineMs": 300000,
+    "cleanupDeadlineMs": 10000,
+    "externalTotalProcessDeadlineMs": 310000,
+    "variants": [
+      "scale",
+      "silu_unary"
+    ],
+    "scope": "Modified-source diagnostic over frozen5e, actuald730 host; not original5e package qualification. Compile plus immediate/recorded unary SiLU independent F64 controls.",
+    "coTenants": [
+      297260,
+      299769
+    ],
+    "cachePolicy": "Existing provider caches untouched; no cold-cache or isolated timing claim",
+    "sources": {
+      "control.js": "5f7a2d0a2e048a51a55e0bdb65b533b5d62a19c51621180a887425510d68d752",
+      "controller.js": "f67a6419c9e317ccccc045fa0bf5466174c6b618ffd5aa4dacb0c03a5f3ce0a8"
+    },
+    "runtimeClosure": {
+      "src/config/kernels/kernel-ref-digests.js": "62cc73f204ae80f25c1100b0b8c129b8959bec7c7f5ad57b033a058dff471558",
+      "src/gpu/kernels/attention_paired.wgsl": "8f53c5bb239b6ba078f25dd5feda2784707fdb8ef63104dd1f9fd70dc795227f",
+      "src/gpu/kernels/codegen/includes/paired-elementary.wgsl.inc": "b2d6fded475d20e3728488b9a42cdd3432b32411992e44a9d9d29040c95cc853",
+      "src/gpu/kernels/gated_delta_conv_paired.wgsl": "e6408b50c3ee3b8bfa9d217c26df801c8dc6d0dd5e5a74964d7fc139809416e4",
+      "src/gpu/kernels/gated_delta_recurrent_paired.wgsl": "65aa000eec21d0ee28392656f392c0ec80b2325f1ccdcfe26a272f032405debc",
+      "src/gpu/kernels/matmul_paired.wgsl": "17154a43a51f35ba07696515501835bf1da74e42ec1e6438ad9eebec150b9a29",
+      "src/gpu/kernels/paired_add.wgsl": "3e02fb446bdbf062ceca65f62dc37f2f6c946aec54f05d1dd7fbee7d78892b00",
+      "src/gpu/kernels/paired_multiply.wgsl": "577897320a3960454d4ff1d462f2973ed507ac734693a4cdaf8d41f5838b1208",
+      "src/gpu/kernels/paired_scale.wgsl": "63dbef953c6469d5270adaa9ce05f89f52393c6f015eca224b3750488c8fd8a8",
+      "src/gpu/kernels/paired_scale_inplace.wgsl": "91a3d8eb21b6d8d2c5a89ef71a56c6e2fa06de6e69b690f77551bbf3af6f56c0",
+      "src/gpu/kernels/paired_sigmoid.wgsl": "c9c0ebfa4ffa29fb0c96113b69f888f9a56d46056e77b35a7250e92672716277",
+      "src/gpu/kernels/paired_silu.wgsl": "5330c14a32e3dc1a190c961bbeea98fb55c9400b656f685f32cbf34ac65929fc",
+      "src/gpu/kernels/paired_silu_unary.wgsl": "8cb3b267a4e6a38cd97934987f803f8fbbd386342ddf554a10840d9a6999fd21",
+      "src/gpu/kernels/rmsnorm_paired.wgsl": "ad2b6155b657f4da412321b110b6be217567b8f81d2cd24706517d9d5c6d95bb",
+      "src/gpu/kernels/rope_precompute_paired.wgsl": "b3b19f9c3238f3200bfb15bfa5e8a191b88a67a56b24802008d4851a897afa86",
+      "src/gpu/kernels/rope_qk_paired.wgsl": "6893969af1b938fe1a75746e1a5e4386c324b98581e8d58a228cc21a89e04e77"
+    },
+    "candidateSourceCommit": "e9de1568",
+    "runtimeConstruction": "Separate copy of verified d730 installed application with only listed canonical source files over its5e runtime; original archive and application files unchanged. Not a normal packaged candidate."
+  },
+  "events": [
+    {
+      "phase": "host-open-start",
+      "at": "2026-10-13T16:22:35.429Z"
+    },
+    {
+      "phase": "host-open-complete",
+      "at": "2026-10-13T16:22:35.431Z"
+    },
+    {
+      "phase": "variant-start",
+      "variant": "scale",
+      "at": "2026-10-13T16:22:36.286Z"
+    },
+    {
+      "phase": "shader-module-start",
+      "label": "paired_pointwise_scale",
+      "sha256": "63dbef953c6469d5270adaa9ce05f89f52393c6f015eca224b3750488c8fd8a8",
+      "at": "2026-10-13T16:22:36.288Z"
+    },
+    {
+      "phase": "shader-module-complete",
+      "label": "paired_pointwise_scale",
+      "at": "2026-10-13T16:22:36.299Z"
+    },
+    {
+      "phase": "compilation-info-start",
+      "label": "paired_pointwise_scale",
+      "at": "2026-10-13T16:22:36.300Z"
+    },
+    {
+      "phase": "compilation-info-complete",
+      "label": "paired_pointwise_scale",
+      "messages": [],
+      "at": "2026-10-13T16:22:36.300Z"
+    },
+    {
+      "phase": "pipeline-start",
+      "label": "paired_pointwise_scale_pipeline",
+      "entryPoint": "main",
+      "at": "2026-10-13T16:22:36.300Z"
+    },
+    {
+      "phase": "pipeline-complete",
+      "label": "paired_pointwise_scale_pipeline",
+      "at": "2026-10-13T16:22:36.306Z"
+    },
+    {
+      "phase": "variant-complete",
+      "variant": "scale",
+      "at": "2026-10-13T16:22:36.306Z"
+    },
+    {
+      "phase": "variant-start",
+      "variant": "silu_unary",
+      "at": "2026-10-13T16:22:36.306Z"
+    },
+    {
+      "phase": "shader-module-start",
+      "label": "paired_pointwise_silu_unary",
+      "sha256": "8cb3b267a4e6a38cd97934987f803f8fbbd386342ddf554a10840d9a6999fd21",
+      "at": "2026-10-13T16:22:36.307Z"
+    },
+    {
+      "phase": "shader-module-complete",
+      "label": "paired_pointwise_silu_unary",
+      "at": "2026-10-13T16:22:36.312Z"
+    },
+    {
+      "phase": "compilation-info-start",
+      "label": "paired_pointwise_silu_unary",
+      "at": "2026-10-13T16:22:36.312Z"
+    },
+    {
+      "phase": "compilation-info-complete",
+      "label": "paired_pointwise_silu_unary",
+      "messages": [],
+      "at": "2026-10-13T16:22:36.312Z"
+    },
+    {
+      "phase": "pipeline-start",
+      "label": "paired_pointwise_silu_unary_pipeline",
+      "entryPoint": "main",
+      "at": "2026-10-13T16:22:36.312Z"
+    },
+    {
+      "phase": "pipeline-complete",
+      "label": "paired_pointwise_silu_unary_pipeline",
+      "at": "2026-10-13T16:23:17.795Z"
+    },
+    {
+      "phase": "variant-complete",
+      "variant": "silu_unary",
+      "at": "2026-10-13T16:23:17.795Z"
+    },
+    {
+      "phase": "operator-start",
+      "recorded": false,
+      "at": "2026-10-13T16:23:17.806Z"
+    },
+    {
+      "phase": "operator-complete",
+      "recorded": false,
+      "maxError": 1.2212453270876722e-15,
+      "at": "2026-10-13T16:23:17.824Z"
+    },
+    {
+      "phase": "operator-start",
+      "recorded": true,
+      "at": "2026-10-13T16:23:17.824Z"
+    },
+    {
+      "phase": "operator-complete",
+      "recorded": true,
+      "maxError": 1.2212453270876722e-15,
+      "at": "2026-10-13T16:23:17.833Z"
+    },
+    {
+      "phase": "host-close-start",
+      "at": "2026-10-13T16:23:17.834Z"
+    },
+    {
+      "phase": "device-lost",
+      "at": "2026-10-13T16:23:17.843Z"
+    },
+    {
+      "phase": "host-close-complete",
+      "at": "2026-10-13T16:23:17.844Z"
+    }
+  ],
+  "allocations": 6,
+  "dispatches": 4,
+  "adapter": {
+    "vendor": "intel",
+    "architecture": "gen-12lp",
+    "device": "intel-r-uhd-graphics-tgl-gt2-",
+    "description": "Intel open-source Mesa driver: Mesa 24.2.8-1ubuntu1~24.04.1",
+    "isFallbackAdapter": false
+  },
+  "node": "v22.21.0",
+  "features": [
+    "texture-component-swizzle",
+    "primitive-index",
+    "texture-formats-tier2",
+    "texture-formats-tier1",
+    "subgroups",
+    "dual-source-blending",
+    "clip-distances",
+    "float32-blendable",
+    "float32-filterable",
+    "core-features-and-limits",
+    "depth-clip-control",
+    "depth32float-stencil8",
+    "texture-compression-bc",
+    "texture-compression-bc-sliced-3d",
+    "texture-compression-etc2",
+    "texture-compression-astc",
+    "texture-compression-astc-sliced-3d",
+    "timestamp-query",
+    "indirect-first-instance",
+    "shader-f16",
+    "rg11b10ufloat-renderable",
+    "bgra8unorm-storage"
+  ],
+  "mappedProviderFiles": [
+    {
+      "path": "/usr/lib/x86_64-linux-gnu/libvulkan_nouveau.so",
+      "sha256": "195cc42b17dc46782a60b8fb6b966cb53d9a2a3565ec0e343f06b9000898ba7c"
+    },
+    {
+      "path": "/usr/lib/x86_64-linux-gnu/libvulkan_radeon.so",
+      "sha256": "8695e5e711383fa70ff2447bccd97ef3f6aad194305982cd73efd6e2e295344b"
+    },
+    {
+      "path": "/usr/lib/x86_64-linux-gnu/libvulkan_intel.so",
+      "sha256": "d32d5d41b25a8cbde112101ccd19d648403c8cf79c116c29cdef3c17dba26050"
+    },
+    {
+      "path": "/usr/lib/x86_64-linux-gnu/libLLVM.so.19.1",
+      "sha256": "7e016cffd3eb077fa338b8ec08a7ab500e43c7460223d4b1f5c6b1bf10274b24"
+    },
+    {
+      "path": "/usr/lib/x86_64-linux-gnu/libvulkan_intel_hasvk.so",
+      "sha256": "298f637acc5c62c538df8a42ac2e151d1b59bfc56a376c0928aee70cea9a9f92"
+    },
+    {
+      "path": "/usr/lib/x86_64-linux-gnu/libvulkan_virtio.so",
+      "sha256": "6cd3b2071193485fd412b07df7632d5572ef159954991f7ed9f84648daca7341"
+    },
+    {
+      "path": "/usr/lib/x86_64-linux-gnu/libvulkan_lvp.so",
+      "sha256": "c5a76c07c264176aec984f9091f93df0e0e3af1a78046243c2d6c6be4b0d43ee"
+    },
+    {
+      "path": "/var/tmp/doppler-suby-sigmoid-factoring-20261013/reploid/node_modules/webgpu/dist/linux-x64.dawn.node",
+      "sha256": "fbfe599055b469963e4c9bfc900a702843db962dcaba0799b3c81ae33fa43db1"
+    },
+    {
+      "path": "/usr/lib/x86_64-linux-gnu/libvulkan.so.1.3.275",
+      "sha256": "e833b010f814b72c6aca0300c8b5f19b6106ffa06c24ddc95a293970c7d6058e"
+    }
+  ],
+  "errors": [],
+  "compileOnly": {
+    "allocations": 0,
+    "dispatches": 0
+  },
+  "inputWords": [
+    3296329728,
+    813694976,
+    3268411392,
+    2961178624,
+    3256877056,
+    813694976,
+    3246391296,
+    2961178624,
+    3212836864,
+    813694976,
+    3187671040,
+    2961178624,
+    2147483649,
+    0,
+    2147483648,
+    0,
+    0,
+    0,
+    1,
+    0,
+    1040187392,
+    813694976,
+    1065353216,
+    2961178624,
+    1098907648,
+    813694976,
+    1109393408,
+    2961178624,
+    1120927744,
+    813694976,
+    1148846080,
+    2961178624
+  ],
+  "tolerance": 6e-12,
+  "rows": [
+    {
+      "recorded": false,
+      "maxError": 1.2212453270876722e-15,
+      "outputWords": [
+        2147483648,
+        0,
+        2147483648,
+        0,
+        2772691895,
+        401057576,
+        3052514012,
+        2813999698,
+        3196695217,
+        842783898,
+        3178235219,
+        2963285280,
+        2147483648,
+        0,
+        2147483648,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1032322390,
+        829418863,
+        1060841128,
+        2997490098,
+        1098907646,
+        870797887,
+        1109393408,
+        2961178626,
+        1120927744,
+        813694976,
+        1148846080,
+        2961178624
+      ]
+    },
+    {
+      "recorded": true,
+      "maxError": 1.2212453270876722e-15,
+      "outputWords": [
+        2147483648,
+        0,
+        2147483648,
+        0,
+        2772691895,
+        401057576,
+        3052514012,
+        2813999698,
+        3196695217,
+        842783898,
+        3178235219,
+        2963285280,
+        2147483648,
+        0,
+        2147483648,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1032322390,
+        829418863,
+        1060841128,
+        2997490098,
+        1098907646,
+        870797887,
+        1109393408,
+        2961178626,
+        1120927744,
+        813694976,
+        1148846080,
+        2961178624
+      ]
+    }
+  ],
+  "poolStats": {
+    "allocations": 1,
+    "reuses": 1,
+    "totalBytesAllocated": 256,
+    "peakBytesAllocated": 256,
+    "currentBytesAllocated": 256,
+    "totalBytesRequested": 256,
+    "peakBytesRequested": 256,
+    "currentBytesRequested": 0,
+    "resources": {
+      "retainedModel": {
+        "bytes": 0,
+        "count": 0
+      },
+      "active": {
+        "bytes": 0,
+        "count": 0
+      },
+      "reusable": {
+        "bytes": 256,
+        "count": 1
+      },
+      "deferredCleanup": {
+        "bytes": 0,
+        "count": 0
+      }
+    },
+    "activeBuffers": 0,
+    "pooledBuffers": 1,
+    "budgetMaxBytes": 0,
+    "budgetUtilization": 0,
+    "hitRate": "50.0%"
+  },
+  "operationsPassed": true,
+  "deviceLost": {
+    "reason": "destroyed",
+    "message": "device was destroyed"
+  },
+  "hostClosed": true,
+  "passed": true,
+  "finishedAt": "2026-10-13T16:23:17.844Z"
+}

@@ -1,0 +1,75 @@
+{
+  "sourceCommit": "e9de1568",
+  "construction": "ordinary npm pack from clean git archive export of committed source",
+  "archiveSha256": "c643cd25b0d7a868c0e14e4d758983c78380456d923ed2b4a7b4f8b30065c705",
+  "archiveBytes": 3454889,
+  "memberCount": 1976,
+  "allMembersMatchSourceAndInstalledConsumer": true,
+  "parentArchiveSha256": "5e0d60bc433d332187d422721fd7afcaec780c202e3082adcab389b47fd27fc5",
+  "changedMembers": {
+    "README.md": {
+      "before": "506891081497e52bee0038e136be84bfa5fb05fe1a6e5b2c50ab3790057811f3",
+      "after": "058d649968857bbdb171aecc59996d4fdc0bca1febae563bc0c271ea987ca97f"
+    },
+    "src/gpu/kernels/attention_paired.wgsl": {
+      "before": "50f2bd098df6182bfb544a110c3ceaa9cb72a4d456dfd501fcd44a774dc15ac6",
+      "after": "8f53c5bb239b6ba078f25dd5feda2784707fdb8ef63104dd1f9fd70dc795227f"
+    },
+    "src/gpu/kernels/gated_delta_conv_paired.wgsl": {
+      "before": "0fb5aa93ce12af034089dc673170a4e59ee8f132b000ce946fcb98cfa80acaf9",
+      "after": "e6408b50c3ee3b8bfa9d217c26df801c8dc6d0dd5e5a74964d7fc139809416e4"
+    },
+    "src/gpu/kernels/gated_delta_recurrent_paired.wgsl": {
+      "before": "985a8ac0462d80782f6e2dceffa30295e2d95e884b567a7099a0fafd945a89e6",
+      "after": "65aa000eec21d0ee28392656f392c0ec80b2325f1ccdcfe26a272f032405debc"
+    },
+    "src/gpu/kernels/matmul_paired.wgsl": {
+      "before": "11560959ed63bda0dac6937a486dc1544bfed457142fccfb168da7782e10f6ca",
+      "after": "17154a43a51f35ba07696515501835bf1da74e42ec1e6438ad9eebec150b9a29"
+    },
+    "src/gpu/kernels/paired_add.wgsl": {
+      "before": "cab798dccf5c099019eadf4b974ee4fe1f141c6a90552930ea014a84c8aac2b5",
+      "after": "3e02fb446bdbf062ceca65f62dc37f2f6c946aec54f05d1dd7fbee7d78892b00"
+    },
+    "src/gpu/kernels/paired_multiply.wgsl": {
+      "before": "26171de864b83ea9018b20293b444c7d37be772a1ad0b35f1828f87480f8f800",
+      "after": "577897320a3960454d4ff1d462f2973ed507ac734693a4cdaf8d41f5838b1208"
+    },
+    "src/gpu/kernels/paired_scale_inplace.wgsl": {
+      "before": "b63975f606f17c45f058fb97ab01836c1686147205d87ff2bc6dab11ef5d4f64",
+      "after": "91a3d8eb21b6d8d2c5a89ef71a56c6e2fa06de6e69b690f77551bbf3af6f56c0"
+    },
+    "src/gpu/kernels/paired_scale.wgsl": {
+      "before": "69f66c399e02354b86a15731f43a7fc7847f8a251325e3b240f0ea8fb0d24611",
+      "after": "63dbef953c6469d5270adaa9ce05f89f52393c6f015eca224b3750488c8fd8a8"
+    },
+    "src/gpu/kernels/paired_sigmoid.wgsl": {
+      "before": "2f068268f289c52f40a51207288c290ab6b69573dfaef700351f73ed7b6d3adf",
+      "after": "c9c0ebfa4ffa29fb0c96113b69f888f9a56d46056e77b35a7250e92672716277"
+    },
+    "src/gpu/kernels/paired_silu_unary.wgsl": {
+      "before": "f3d92ae3a9e45373b6d95a0c59b9cc83d9faed825544af62805d8a1318c84e3a",
+      "after": "8cb3b267a4e6a38cd97934987f803f8fbbd386342ddf554a10840d9a6999fd21"
+    },
+    "src/gpu/kernels/paired_silu.wgsl": {
+      "before": "e8d2711799d307451b8792f700900efa74f63a88c663210ffbecffcd48d427bf",
+      "after": "5330c14a32e3dc1a190c961bbeea98fb55c9400b656f685f32cbf34ac65929fc"
+    },
+    "src/gpu/kernels/rmsnorm_paired.wgsl": {
+      "before": "fa40d4862756e731df7ba7a03af5874c214dcaa1b518a9c6a87b3e344dfa540a",
+      "after": "ad2b6155b657f4da412321b110b6be217567b8f81d2cd24706517d9d5c6d95bb"
+    },
+    "src/gpu/kernels/rope_precompute_paired.wgsl": {
+      "before": "3342e61b52a62286e4e6b3edb60899b06556608dbc5030771a2b9db50e640523",
+      "after": "b3b19f9c3238f3200bfb15bfa5e8a191b88a67a56b24802008d4851a897afa86"
+    },
+    "src/gpu/kernels/rope_qk_paired.wgsl": {
+      "before": "6e665fc250cdc22dd271b9bbc65b6ce2594da2aff4c22987ca20f80b130857b0",
+      "after": "6893969af1b938fe1a75746e1a5e4386c324b98581e8d58a228cc21a89e04e77"
+    }
+  },
+  "nonShaderChanges": {
+    "README.md": "Committed architecture image alt text only; no executable behavior"
+  },
+  "qualification": "candidate only; no inherited full-model or signed report qualification"
+}

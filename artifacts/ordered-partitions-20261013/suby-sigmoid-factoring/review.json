@@ -1,0 +1,34 @@
+{
+  "schema": "doppler.sigmoid-factoring-control-review/v1",
+  "sourceCommit": "e9de1568",
+  "baselinePipelineMilliseconds": {
+    "paired_pointwise_scale_pipeline": 1054,
+    "paired_pointwise_silu_unary_pipeline": 95564
+  },
+  "candidatePipelineMilliseconds": {
+    "paired_pointwise_scale_pipeline": 6,
+    "paired_pointwise_silu_unary_pipeline": 41483
+  },
+  "resultSha256": "afcc5b47ce8b6521dc3b4138650e730278963003fbd381298cc89a86f85e38f3",
+  "processSha256": "ef1ba6da7991e0ca6e033db34defde803219d5baae176b1a47cb0b6e618b3721",
+  "compilePhase": {
+    "allocations": 0,
+    "dispatches": 0
+  },
+  "operatorCases": 2,
+  "independentMaxError": 1.2212453270876722e-15,
+  "operatorTolerance": 6e-12,
+  "immediateRecordedWordsIdentical": true,
+  "hostClosed": true,
+  "deviceLost": {
+    "reason": "destroyed",
+    "message": "device was destroyed"
+  },
+  "exit": {
+    "code": 0,
+    "signal": null,
+    "at": "2026-10-13T16:23:18.002Z"
+  },
+  "scope": "Source-overlay diagnostic over5e; exactd730 host. Co-tenants/caches uncontrolled. No numerical/model/three-stage report qualification transferred.",
+  "limitation": "Factoring reduces static exp callsites and observed unarySiLU preparation in this comparison, but does not establish all model preparation meets300s. RoPE, convolution and recurrent readiness remain to qualify."
+}
