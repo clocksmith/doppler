@@ -1,0 +1,71 @@
+{
+  "sourceCommit": "a1535f66",
+  "construction": "ordinary npm pack from completed clean git archive export",
+  "archiveSha256": "ac98e93355c8561e8d93b82fd7c0ec348a3b447d49f9c161dd128c1b3076fd1e",
+  "archiveBytes": 3455245,
+  "memberCount": 1976,
+  "allMembersMatchSource": true,
+  "parentArchiveSha256": "c643cd25b0d7a868c0e14e4d758983c78380456d923ed2b4a7b4f8b30065c705",
+  "changedMembers": {
+    "src/gpu/kernels/attention_paired.wgsl": {
+      "before": "8f53c5bb239b6ba078f25dd5feda2784707fdb8ef63104dd1f9fd70dc795227f",
+      "after": "dab32d174cd2d58a725ff2927a18103e1607871938eb1b7630020fb3d67488d0"
+    },
+    "src/gpu/kernels/gated_delta_conv_paired.wgsl": {
+      "before": "e6408b50c3ee3b8bfa9d217c26df801c8dc6d0dd5e5a74964d7fc139809416e4",
+      "after": "41ff5b6d7a42ac0d0c607aed951e6434dce433fc2bef07eab2df8a8e7aed0a22"
+    },
+    "src/gpu/kernels/gated_delta_recurrent_paired.wgsl": {
+      "before": "65aa000eec21d0ee28392656f392c0ec80b2325f1ccdcfe26a272f032405debc",
+      "after": "6b6d8b9416bb98ede7e83d00d6be63fd1c0517d6f992f944e7a5c478535c3726"
+    },
+    "src/gpu/kernels/matmul_paired.wgsl": {
+      "before": "17154a43a51f35ba07696515501835bf1da74e42ec1e6438ad9eebec150b9a29",
+      "after": "0e56b07bec39e0638b68a62ecff3471f68ff76f280bf5dd79a557039d30baacb"
+    },
+    "src/gpu/kernels/paired_add.wgsl": {
+      "before": "3e02fb446bdbf062ceca65f62dc37f2f6c946aec54f05d1dd7fbee7d78892b00",
+      "after": "b536e5080abc41e2b94629d2b4720667d982b6d9dde8da25208905e407cd57f8"
+    },
+    "src/gpu/kernels/paired_multiply.wgsl": {
+      "before": "577897320a3960454d4ff1d462f2973ed507ac734693a4cdaf8d41f5838b1208",
+      "after": "270e514736a93d322a4bc8138c7bf9662d323829d93f9a992970cd94757dc7e4"
+    },
+    "src/gpu/kernels/paired_scale_inplace.wgsl": {
+      "before": "91a3d8eb21b6d8d2c5a89ef71a56c6e2fa06de6e69b690f77551bbf3af6f56c0",
+      "after": "8426d942e93c39d50f39656cb2381c88580351257bfd103abb49016ebbb33fed"
+    },
+    "src/gpu/kernels/paired_scale.wgsl": {
+      "before": "63dbef953c6469d5270adaa9ce05f89f52393c6f015eca224b3750488c8fd8a8",
+      "after": "47e969a1cdea43b0638e8e6d97e8cb3b57bd58d94ce8a6380389001d8b982650"
+    },
+    "src/gpu/kernels/paired_sigmoid.wgsl": {
+      "before": "c9c0ebfa4ffa29fb0c96113b69f888f9a56d46056e77b35a7250e92672716277",
+      "after": "c46c9fc631bfc94c498732ef8be8e4d8c01e5e3d8d43898e58ee14efbbeadacd"
+    },
+    "src/gpu/kernels/paired_silu_unary.wgsl": {
+      "before": "8cb3b267a4e6a38cd97934987f803f8fbbd386342ddf554a10840d9a6999fd21",
+      "after": "32fc30224f068072f3968150d18aefa253261a84637ec8500182855e4c7ade3f"
+    },
+    "src/gpu/kernels/paired_silu.wgsl": {
+      "before": "5330c14a32e3dc1a190c961bbeea98fb55c9400b656f685f32cbf34ac65929fc",
+      "after": "0c20936c1cbddfc48b347eb70a45527c77a092b24d72e0001837984914ff8c9b"
+    },
+    "src/gpu/kernels/rmsnorm_paired.wgsl": {
+      "before": "ad2b6155b657f4da412321b110b6be217567b8f81d2cd24706517d9d5c6d95bb",
+      "after": "9971b4db0cb8c96ad15a8ebce397e00b8a292c4ccc3579fdec231e7260245133"
+    },
+    "src/gpu/kernels/rope_precompute_paired.wgsl": {
+      "before": "b3b19f9c3238f3200bfb15bfa5e8a191b88a67a56b24802008d4851a897afa86",
+      "after": "adb6a786471d59695cec32ad6eb894388db1c26cee8feaec56b02411cbc488e8"
+    },
+    "src/gpu/kernels/rope_qk_paired.wgsl": {
+      "before": "6893969af1b938fe1a75746e1a5e4386c324b98581e8d58a228cc21a89e04e77",
+      "after": "57952a429b004bd515906e593eb30efa0cb4ebfad73d75b648d547a372fe8782"
+    }
+  },
+  "unacceptedSetup": "Initial pack began before source export completion was observed; retained separately and repacked after confirmed export completion",
+  "qualified": false,
+  "installedConsumerFileCount": 1976,
+  "allMembersMatchSourceAndInstalledConsumer": true
+}

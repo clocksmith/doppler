@@ -1,0 +1,72 @@
+{
+  "schema": "doppler-independent-softplus-review/v1",
+  "reviewer": "document_quality",
+  "sourceRevision": "a1535f66ab3cbbe0cbf13d9f881af0065222c8bc",
+  "files": {
+    "src/gpu/kernels/codegen/includes/paired-elementary.wgsl.inc": "d8d24d08a8d3ec88c51baaa985b38e483aa8976f16287f05cc0a1b64c8c1cae2",
+    "tests/gpu/paired-sigmoid-expression.test.js": "a516758a5401c3fe56f69ed7e4122dcee3c6efa21d6c0f01d36c4e1fd193e6ca",
+    "src/gpu/kernels/attention_paired.wgsl": "dab32d174cd2d58a725ff2927a18103e1607871938eb1b7630020fb3d67488d0",
+    "src/gpu/kernels/gated_delta_conv_paired.wgsl": "41ff5b6d7a42ac0d0c607aed951e6434dce433fc2bef07eab2df8a8e7aed0a22",
+    "src/gpu/kernels/gated_delta_recurrent_paired.wgsl": "6b6d8b9416bb98ede7e83d00d6be63fd1c0517d6f992f944e7a5c478535c3726",
+    "src/gpu/kernels/matmul_paired.wgsl": "0e56b07bec39e0638b68a62ecff3471f68ff76f280bf5dd79a557039d30baacb",
+    "src/gpu/kernels/paired_add.wgsl": "b536e5080abc41e2b94629d2b4720667d982b6d9dde8da25208905e407cd57f8",
+    "src/gpu/kernels/paired_multiply.wgsl": "270e514736a93d322a4bc8138c7bf9662d323829d93f9a992970cd94757dc7e4",
+    "src/gpu/kernels/paired_scale.wgsl": "47e969a1cdea43b0638e8e6d97e8cb3b57bd58d94ce8a6380389001d8b982650",
+    "src/gpu/kernels/paired_scale_inplace.wgsl": "8426d942e93c39d50f39656cb2381c88580351257bfd103abb49016ebbb33fed",
+    "src/gpu/kernels/paired_sigmoid.wgsl": "c46c9fc631bfc94c498732ef8be8e4d8c01e5e3d8d43898e58ee14efbbeadacd",
+    "src/gpu/kernels/paired_silu.wgsl": "0c20936c1cbddfc48b347eb70a45527c77a092b24d72e0001837984914ff8c9b",
+    "src/gpu/kernels/paired_silu_unary.wgsl": "32fc30224f068072f3968150d18aefa253261a84637ec8500182855e4c7ade3f",
+    "src/gpu/kernels/rmsnorm_paired.wgsl": "9971b4db0cb8c96ad15a8ebce397e00b8a292c4ccc3579fdec231e7260245133",
+    "src/gpu/kernels/rope_precompute_paired.wgsl": "adb6a786471d59695cec32ad6eb894388db1c26cee8feaec56b02411cbc488e8",
+    "src/gpu/kernels/rope_qk_paired.wgsl": "57952a429b004bd515906e593eb30efa0cb4ebfad73d75b648d547a372fe8782"
+  },
+  "scope": "Read-only source and CPU expression-trace review; no physical execution or compilation-performance claim.",
+  "sourceDisposition": "No source-level blocker found",
+  "findings": [
+    "Strict a.x > 0 unchanged: both signed zeros and NaN use nonpositive branch.",
+    "Whole-pair select preserves exact branch input, including low component sign.",
+    "Dependency order exp(selected), add(one, exponential), log remains unchanged.",
+    "Only positive branch adds original a to logarithm; operand order unchanged.",
+    "No arithmetic helper dependency or precision policy changed.",
+    "NaN/infinity cases establish branch trace only, outside declared finite normalized arithmetic domain."
+  ],
+  "checks": [
+    {
+      "command": "node tests/gpu/paired-sigmoid-expression.test.js",
+      "exitCode": 0,
+      "softplusTraces": 4265,
+      "sigmoidTraces": 4265
+    },
+    {
+      "command": "node tools/generate-paired-intermediate-kernels.js --check",
+      "exitCode": 0
+    }
+  ],
+  "recommendedPhysicalControls": [
+    "Existing independent F64 elementary and paired-linear equations against exact generated shader bytes",
+    "Actual recurrent cold compilation and continuation, separately from source trace and model qualification"
+  ],
+  "adapterReview": {
+    "path": "artifacts/ordered-partitions-20261013/paired-softplus-factoring/linear-control.js",
+    "initialSha256": "452aefdfc0df8569b4513b43434291d690493989259673dc83d39d37e4e0968a",
+    "status": "repaired-no-read-only-blocker-found",
+    "issue": "Promise.race timeout does not stop underlying operation: late pipeline/device resolution can continue GPU work or overwrite failed receipt; late unregistered requestDevice can escape host.close ownership.",
+    "required": "Abort/terminal guards, explicit late-device settlement/unknown ownership, and monotonic failed disposition.",
+    "finalSha256": "aac5a3ae077ae867e6fa020aeaac793d6dbfd794972ec1c46e3e48e361b4ef5b",
+    "lifetimeTestSha256": "1ee75b0f46cf0244f84b48e17b54a2cab707cc0b2a616031b74f6cffa6a4cc0b",
+    "originalFixtureSha256": "86e56aff9ea95b3ae407c39ee803322898a87264afb35a3af67e4249700c7f78",
+    "fixtureAndReferenceBlockIdentical": true,
+    "repairs": [
+      "Guard after asynchronous acquisition/compilation/readback boundaries and before dispatch.",
+      "Acquire runtime registration module before device acquisition; register acquired device before abort guard.",
+      "Wait for operation settlement before actual host close; bound combined cleanup and retain unknown on timeout.",
+      "Final pass requires settled operation, closed host, and no operation/cleanup error."
+    ],
+    "cpuControls": {
+      "command": "node artifacts/ordered-partitions-20261013/paired-softplus-factoring/lifetime-control.test.js",
+      "exitCode": 0,
+      "scope": "Actual orchestration with deferred numerical body and shortened timers; success, late cancellation, unknown cleanup. Not real device acquisition or physical release proof."
+    },
+    "observationFollowup": "Reviewed added actual adapter getters and mapped shared-object hashes after device registration; virtual mappings explicitly distinguished. Observation only; file/hash failure flows through owned host cleanup."
+  }
+}
