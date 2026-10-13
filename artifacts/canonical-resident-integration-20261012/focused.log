@@ -1,0 +1,29 @@
+RUN tests/inference/resident-canonical-execution.test.js
+resident canonical execution: actual transition, two-stage state, empty admission and legacy isolation passed
+EXIT 0
+RUN tests/inference/resident-partition-lifecycle.test.js
+EXIT 0
+RUN tests/inference/resident-target-state.test.js
+resident-target-state: ordinary/block sampling parity, isolated decoder branches, pending terminals and interruption passed
+EXIT 0
+RUN tests/inference/resident-state-contract.test.js
+resident-state-contract: bounded encoding, policy admission, cursor and all replay positions passed
+EXIT 0
+RUN tests/inference/resident-output-state.test.js
+resident-output-state: clone isolation, partial UTF-8, stop withholding and hard output guards passed
+EXIT 0
+RUN tests/inference/resident-publication-contract.test.js
+publication contracts: exact one/two-stage commits, admission-only results, epochs, decisions and contiguous ranges passed
+EXIT 0
+RUN tests/runtime/canonical-ordinary-generation.test.js
+canonical ordinary: semantic draws, C/L and empty admission, scratch-free execution, stops, barriers and cancellation passed
+EXIT 0
+RUN tests/runtime/resident-partition-opening.test.js
+EXIT 0
+RUN tests/runtime/paired-resident-opening.test.js
+synthetic signed paired opening preserves both partition policies and rejects scalar/stride substitution
+EXIT 0
+RUN tests/runtime/resident-piece-acquisition.test.js
+resident-piece-acquisition: signed selective opening, honest receipts, gates, corruption and cleanup passed
+public resident factory preserves signed selective acquisition
+EXIT 0

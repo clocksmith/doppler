@@ -15,6 +15,7 @@ const rows = [3, 4, 5].map(id => { const row = new Float32Array(100).fill(-Infin
 globalThis.canonicalResidentFixture = {
   execute: async (state, input) => {
     dispatches++;
+    await globalThis.canonicalResidentFixture.pause?.();
     return state.index === 0 ? { activationBytes: new ArrayBuffer(input.numTokens * 16), timing: {} }
       : { logits: { logitsBuffer: rows[state.decodeStepCount], vocabSize: 100 }, timing: {} };
   },
@@ -72,6 +73,10 @@ try {
     const second = await b.executeCanonicalGroup1({ ...common, inputTokenIds: ids, activation, continuation: cb });
     const expected = step ? independent.advance(previous.successor.cursorId, rows[step]) : independent.bootstrap(rows[step]);
     assert.deepEqual(second.transition, expected, 'resident result must be the real canonical transition');
+    assert.deepEqual(second.transition.acceptedTokenIds, [3 + step]);
+    assert.equal(second.transition.successor.materializedTokenCount, 2 + step);
+    assert.equal(second.transition.successor.acceptedGeneratedTokenCount, 1 + step);
+    assert.equal(second.transition.successor.pendingTokenId, 3 + step);
     assert(!('acknowledgments' in second), 'runtime must not invent host authentication');
     assert.deepEqual(await a.commitCanonicalTransition({ identity: binding, baseCursorId, transition: second.transition, signal }), expected);
     previous = second.transition; ca = first.continuation; cb = second.continuation;
@@ -90,5 +95,60 @@ try {
   const legacy = await open(0, policy, false);
   await assert.rejects(legacy.admitCanonicalPrompt({ identity: identity('legacy'), tokenIds: [1,2], generationId: generation.generationId, signal }), /canonical|Canonical/);
   await legacy.close();
+  const guarded = await open(1), guardedIdentity = identity('guarded');
+  await assert.rejects(guarded.admitCanonicalPrompt({ identity: guardedIdentity, tokenIds: [1,2],
+    generationId: 'sha256:'+'c'.repeat(64), signal }), /allocation mismatch/);
+  await guarded.admitCanonicalPrompt({ identity: guardedIdentity, tokenIds: [1,2], generationId: generation.generationId, signal });
+  const common = { identity: guardedIdentity, step: 0, tokenPosition: 0, inputTokenCount: 2,
+    inputTokenIds: [1,2], continuation: null, generationId: generation.generationId, baseCursorId: null, signal,
+    activation: { shape: [1,2,4], dtype: 'f32', seqOffset: 0, step: 0, tensorData: new Float32Array(8) } };
+  for (const changed of [{ generationId: 'sha256:'+'c'.repeat(64) }, { baseCursorId: 'sha256:'+'d'.repeat(64) }, { inputTokenIds: [2,1] }]) {
+    const before = dispatches;
+    await assert.rejects(guarded.executeCanonicalGroup1({ ...common, ...changed }), /stale cursor|changed generation/);
+    assert.equal(dispatches, before, 'changed admission/cursor/input rejects before dispatch');
+  }
+  await assert.rejects(guarded.executeGroup1({ ...common, generation: {}, maxTokens: 3 }), /mode/);
+  const first = await guarded.executeCanonicalGroup1(common);
+  assert.deepEqual(first.transition, createResidentTargetState([1,2], policy, 100, generation.generationId,
+    createResidentOutputState(decoder(), decoder(), policy, 100)).bootstrap(rows[0]));
+  await guarded.close();
+  for (const selectedPolicy of [{ ...policy, materializedInputCapacity: 2 }, { ...policy, totalAcceptedTokenLimit: 3 }]) {
+    const terminal = await open(1, selectedPolicy);
+    const generationId = canonicalGenerationIdentity(selectedPolicy, executionIdentity, 100).generationId;
+    await terminal.admitCanonicalPrompt({ identity: guardedIdentity, tokenIds: [1,2], generationId, signal });
+    const result = await terminal.executeCanonicalGroup1({ ...common, generationId });
+    assert.equal(result.transition.successor.stopReason, 'context-limit');
+    const before = dispatches;
+    await assert.rejects(terminal.executeCanonicalGroup1({ ...common, generationId, step: 1, tokenPosition: 2,
+      inputTokenCount: 1, inputTokenIds: [3], continuation: result.continuation,
+      baseCursorId: result.transition.successor.cursorId }), /retired|order/);
+    assert.equal(dispatches, before);
+    await terminal.close();
+  }
+  const changedDecision = await open(0);
+  await changedDecision.admitCanonicalPrompt({ identity: guardedIdentity, tokenIds: [1,2], generationId: generation.generationId, signal });
+  const aRequest = { ...common, tokenIds: [1,2] }; delete aRequest.activation; delete aRequest.inputTokenIds;
+  await assert.rejects(changedDecision.commitCanonicalTransition({ identity: guardedIdentity, baseCursorId: null,
+    transition: first.transition, signal }), /no settled numerical step/);
+  await changedDecision.executeCanonicalGroup0(aRequest);
+  await assert.rejects(changedDecision.commitCanonicalTransition({ identity: guardedIdentity, baseCursorId: null,
+    transition: { ...first.transition, delta: 'forged' }, signal }), /differs/);
+  await assert.rejects(changedDecision.commitCanonicalTransition({ identity: guardedIdentity, baseCursorId: null,
+    transition: first.transition, signal }), /no settled numerical step/);
+  await changedDecision.close();
+  const cancelled = await open(0), abort = new AbortController();
+  await cancelled.admitCanonicalPrompt({ identity: guardedIdentity, tokenIds: [1,2], generationId: generation.generationId, signal });
+  const entered = Promise.withResolvers(), release = Promise.withResolvers();
+  globalThis.canonicalResidentFixture.pause = () => { entered.resolve(); return release.promise; };
+  const pending = cancelled.executeCanonicalGroup0({ ...aRequest, signal: abort.signal });
+  await entered.promise; const priorCloses = closes;
+  const settlement = cancelled.closeAttempt({ identity: guardedIdentity });
+  await Promise.resolve(); assert.equal(closes, priorCloses, 'submitted state stays owned until execution settles');
+  release.resolve(); await assert.rejects(pending, /closed|abort/i); await settlement;
+  assert.equal(closes, priorCloses + 1);
+  delete globalThis.canonicalResidentFixture.pause;
+  await cancelled.close();
+  for (const bad of [{ ...policy, maxGeneratedTokens: 4 }, { ...policy, materializedInputCapacity: 9 },
+    { ...policy, maxRawOutputUtf16: 129 }]) await assert.rejects(open(0, bad), /exceeds/);
 } finally { hooks.deregister(); delete globalThis.canonicalResidentFixture; }
 console.log('resident canonical execution: actual transition, two-stage state, empty admission and legacy isolation passed');

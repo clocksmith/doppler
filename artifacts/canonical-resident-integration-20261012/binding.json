@@ -1,0 +1,22 @@
+{
+  "scope": "CPU source integration; not physical numerical or authenticated publication qualification",
+  "initialSourceCheckpoint": "e0359df3",
+  "immutablePhysicalArchive": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "files": {
+    "src/inference/pipelines/text/resident-partition.js": "80e0614f6f7d61cfb2cf3358f2f532ae4235db0fedd10f8ff26f4e33321795f1",
+    "src/inference/pipelines/text/resident-partition-contract.js": "48a401db551e85eddac3a0fcef06b520f6ad38093fdf9939eb2e3d48b8b4955b",
+    "src/inference/resident-target-state.js": "9d070586b4f2c9c8ba85dabc09d0796bce8cb2aab3773afb1d6a8fe40b1f8c4b",
+    "src/client/resident-partitions.js": "e7f8b83c5358ec065f7a4e8ed7116f3de248eb7c7de1d1bc853159a1c8c7263a",
+    "src/client/runtime/composition-root.js": "c85ee69e8c8c7409a07cf8f6d3f3d19d3922ba5d21c3cfa1d5d1abf15be73ed3",
+    "src/partitions.d.ts": "c8db5fb4bc5c850e789f74fc25dd9bcbdc9ce2804cb7da0a369f2b5241f84c6c",
+    "tests/inference/resident-canonical-execution.test.js": "bc1ce31aea75c6503699e67efa6ad23fb1b0bf88722eff8fd16afa7ff7c46d14",
+    "tests/runtime/resident-partition-opening.test.js": "679a02c06e50c13e969349ebe1f58d50d76e98bff5fe0ede6d0421895b527957"
+  },
+  "focusedFiles": 10,
+  "limitations": [
+    "Numerical execution/readback ports injected in resident orchestration test; actual target transition, sampler, decoder and cursor owners run.",
+    "Signed fixture is synthetic; authentication of distributed stage commitments remains next host boundary.",
+    "Caller executionIdentity is admitted allocation data, not independently attested provider identity.",
+    "No pin, archive or deployment change."
+  ]
+}

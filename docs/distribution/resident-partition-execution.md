@@ -246,3 +246,33 @@ remain the application's responsibility. Performance observations do not change
 precision, token selection, context limits or continuation rules.
 
 Paired operator wrappers preserve explicit Tensor representation (`precision: "two-f32"`, `components: 2`, `elementStrideBytes: 8`). Residual/scale/SiLU entry points do not infer this representation from a global session. Their paired paths reject mixed representations and unsupported clipping or row-split execution before dispatch. Full-shape scale/SiLU outputs preserve the input logical shape; an explicitly shorter prefix has shape `[count]`. Recorded failed outputs remain recorder-owned until cleanup. Operator qualification does not grant partition-plan or whole-model acceptance.
+
+## Explicit canonical ordinary transitions
+
+A source resident can opt in with allocation `canonicalGeneration: { policy,
+executionIdentity }`. The policy is the existing `doppler.generation-policy/v3`
+contract; its generation identity binds both fields. Omission preserves legacy
+execution. `getCanonicalGeneration()` returns the resolved immutable policy or
+null, and the descriptor carries `canonicalGenerationId` only for the explicit
+allocation. Mode mismatches reject before dispatch. Execution identity here is
+an admitted caller binding, not independently authenticated device evidence.
+
+`admitCanonicalPrompt()` validates the effective token IDs and generation ID on
+each stage. Its admission-only result for zero output or a full accepted context
+has no cursor, model dispatch, or attempt cache. Executing attempts use
+`executeCanonicalGroup0()` / `executeCanonicalGroup1()` with an exact
+`generationId`, `baseCursorId`, existing continuation, input count and position.
+The final stage delegates sampling, accepted decoding and cursor advancement to
+the existing canonical target-state owner. The input stage cannot execute its
+next step until `commitCanonicalTransition()` validates the exact selected token,
+decoder output and successor against its own settled input and accepted history.
+That call runs no model work and does not manufacture transport authentication.
+An altered decision interrupts the already-mutated attempt; it cannot be retried
+as an unmodified parent.
+
+Both signed and manifest factories preserve this opt-in. The signed facade checks
+its returned capability, generation identity and descriptor, and retains the same
+current-execution/release checks around canonical methods. These contracts have
+CPU tests with simulated numerical ports; they do not establish physical
+canonical execution, authenticated stage acknowledgments or durable conversation
+publication. Those must be composed and qualified separately on exact bytes.
