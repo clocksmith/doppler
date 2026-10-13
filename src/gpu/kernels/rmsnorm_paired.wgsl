@@ -225,8 +225,10 @@ fn pair_log(a: vec2<f32>) -> vec2<f32> {
 }
 fn pair_sigmoid(a: vec2<f32>) -> vec2<f32> {
     let one = vec2<f32>(1.0, 0.0);
-    if (a.x >= 0.0) { return pair_div(one, pair_add(one, pair_exp(-a))); }
-    let exponential = pair_exp(a);
+    let nonnegative = a.x >= 0.0;
+    // Keep one exponential callsite while preserving each branch's exact input.
+    let exponential = pair_exp(select(a, -a, nonnegative));
+    if (nonnegative) { return pair_div(one, pair_add(one, exponential)); }
     return pair_div(exponential, pair_add(one, exponential));
 }
 fn pair_silu(a: vec2<f32>) -> vec2<f32> {

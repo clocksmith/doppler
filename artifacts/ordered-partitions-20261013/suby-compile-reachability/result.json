@@ -1,0 +1,226 @@
+{
+  "schema": "doppler.paired-compile-reachability/v1",
+  "pid": 807677,
+  "startedAt": "2026-10-13T16:15:40.222Z",
+  "reservation": {
+    "schema": "doppler.compile-control-reservation/v1",
+    "id": "root-suby-paired-compilation-20261013",
+    "frozenAt": "2026-10-13T16:15:16.795Z",
+    "authorizedBy": "Root NEW_TASK compile-only functional window for proposal6aaf98d5",
+    "runtimeArchiveSha256": "5e0d60bc433d332187d422721fd7afcaec780c202e3082adcab389b47fd27fc5",
+    "nativeArchiveSha256": "d73081423fb00bfc64ecc56e8faf502048d86279c526189cf88a8382a6039cb6",
+    "nativeDescriptorSha256": "1b04241f1ad12defebc2f4e038d7a47b5b07843b6076a38d64ee4ec7b4ab9cd4",
+    "operationDeadlineMs": 300000,
+    "cleanupDeadlineMs": 10000,
+    "externalTotalProcessDeadlineMs": 310000,
+    "variants": [
+      "scale",
+      "silu_unary"
+    ],
+    "scope": "Only Suby installed existing paired pipeline compilation; no buffers/dispatch/model, no numerical or speed qualification",
+    "coTenants": [
+      297260,
+      299769
+    ],
+    "cachePolicy": "Existing provider caches untouched; no cold-cache or isolated timing claim",
+    "sources": {
+      "control.js": "0b283b88105b06584d83199d497fd365524282306ef606e00746230aa6886180",
+      "controller.js": "53d8df68c77494424d2b959c7ba6a05c5ee1153f8f8e49107795285929f5a821"
+    },
+    "runtimeClosure": {
+      "src/gpu/kernels/pipeline-cache.js": "496e3c8ebe883489b6df48d63e53b88d258f6e0fc6a98a1851ae366680a227c1",
+      "src/gpu/kernels/paired_scale.wgsl": "69f66c399e02354b86a15731f43a7fc7847f8a251325e3b240f0ea8fb0d24611",
+      "src/gpu/kernels/paired_silu_unary.wgsl": "f3d92ae3a9e45373b6d95a0c59b9cc83d9faed825544af62805d8a1318c84e3a",
+      "src/config/kernels/registry.json": "78660305b92d9c1158222221beda5fec8f08d3e0d911b156681de92e849037e5"
+    }
+  },
+  "events": [
+    {
+      "phase": "host-open-start",
+      "at": "2026-10-13T16:15:40.319Z"
+    },
+    {
+      "phase": "host-open-complete",
+      "at": "2026-10-13T16:15:40.324Z"
+    },
+    {
+      "phase": "variant-start",
+      "variant": "scale",
+      "at": "2026-10-13T16:15:41.778Z"
+    },
+    {
+      "phase": "shader-module-start",
+      "label": "paired_pointwise_scale",
+      "sha256": "69f66c399e02354b86a15731f43a7fc7847f8a251325e3b240f0ea8fb0d24611",
+      "at": "2026-10-13T16:15:41.781Z"
+    },
+    {
+      "phase": "shader-module-complete",
+      "label": "paired_pointwise_scale",
+      "at": "2026-10-13T16:15:41.792Z"
+    },
+    {
+      "phase": "compilation-info-start",
+      "label": "paired_pointwise_scale",
+      "at": "2026-10-13T16:15:41.792Z"
+    },
+    {
+      "phase": "compilation-info-complete",
+      "label": "paired_pointwise_scale",
+      "messages": [],
+      "at": "2026-10-13T16:15:41.793Z"
+    },
+    {
+      "phase": "pipeline-start",
+      "label": "paired_pointwise_scale_pipeline",
+      "entryPoint": "main",
+      "at": "2026-10-13T16:15:41.793Z"
+    },
+    {
+      "phase": "pipeline-complete",
+      "label": "paired_pointwise_scale_pipeline",
+      "at": "2026-10-13T16:15:42.847Z"
+    },
+    {
+      "phase": "variant-complete",
+      "variant": "scale",
+      "at": "2026-10-13T16:15:42.847Z"
+    },
+    {
+      "phase": "variant-start",
+      "variant": "silu_unary",
+      "at": "2026-10-13T16:15:42.854Z"
+    },
+    {
+      "phase": "shader-module-start",
+      "label": "paired_pointwise_silu_unary",
+      "sha256": "f3d92ae3a9e45373b6d95a0c59b9cc83d9faed825544af62805d8a1318c84e3a",
+      "at": "2026-10-13T16:15:42.867Z"
+    },
+    {
+      "phase": "shader-module-complete",
+      "label": "paired_pointwise_silu_unary",
+      "at": "2026-10-13T16:15:42.872Z"
+    },
+    {
+      "phase": "compilation-info-start",
+      "label": "paired_pointwise_silu_unary",
+      "at": "2026-10-13T16:15:42.873Z"
+    },
+    {
+      "phase": "compilation-info-complete",
+      "label": "paired_pointwise_silu_unary",
+      "messages": [],
+      "at": "2026-10-13T16:15:42.873Z"
+    },
+    {
+      "phase": "pipeline-start",
+      "label": "paired_pointwise_silu_unary_pipeline",
+      "entryPoint": "main",
+      "at": "2026-10-13T16:15:42.873Z"
+    },
+    {
+      "phase": "pipeline-complete",
+      "label": "paired_pointwise_silu_unary_pipeline",
+      "at": "2026-10-13T16:17:18.437Z"
+    },
+    {
+      "phase": "variant-complete",
+      "variant": "silu_unary",
+      "at": "2026-10-13T16:17:18.437Z"
+    },
+    {
+      "phase": "host-close-start",
+      "at": "2026-10-13T16:17:18.438Z"
+    },
+    {
+      "phase": "device-lost",
+      "at": "2026-10-13T16:17:18.448Z"
+    },
+    {
+      "phase": "host-close-complete",
+      "at": "2026-10-13T16:17:18.449Z"
+    }
+  ],
+  "allocations": 0,
+  "dispatches": 0,
+  "adapter": {
+    "vendor": "intel",
+    "architecture": "gen-12lp",
+    "device": "intel-r-uhd-graphics-tgl-gt2-",
+    "description": "Intel open-source Mesa driver: Mesa 24.2.8-1ubuntu1~24.04.1",
+    "isFallbackAdapter": false
+  },
+  "node": "v22.21.0",
+  "features": [
+    "texture-component-swizzle",
+    "primitive-index",
+    "texture-formats-tier2",
+    "texture-formats-tier1",
+    "subgroups",
+    "dual-source-blending",
+    "clip-distances",
+    "float32-blendable",
+    "float32-filterable",
+    "core-features-and-limits",
+    "depth-clip-control",
+    "depth32float-stencil8",
+    "texture-compression-bc",
+    "texture-compression-bc-sliced-3d",
+    "texture-compression-etc2",
+    "texture-compression-astc",
+    "texture-compression-astc-sliced-3d",
+    "timestamp-query",
+    "indirect-first-instance",
+    "shader-f16",
+    "rg11b10ufloat-renderable",
+    "bgra8unorm-storage"
+  ],
+  "mappedProviderFiles": [
+    {
+      "path": "/usr/lib/x86_64-linux-gnu/libvulkan_nouveau.so",
+      "sha256": "195cc42b17dc46782a60b8fb6b966cb53d9a2a3565ec0e343f06b9000898ba7c"
+    },
+    {
+      "path": "/usr/lib/x86_64-linux-gnu/libvulkan_radeon.so",
+      "sha256": "8695e5e711383fa70ff2447bccd97ef3f6aad194305982cd73efd6e2e295344b"
+    },
+    {
+      "path": "/usr/lib/x86_64-linux-gnu/libvulkan_intel.so",
+      "sha256": "d32d5d41b25a8cbde112101ccd19d648403c8cf79c116c29cdef3c17dba26050"
+    },
+    {
+      "path": "/usr/lib/x86_64-linux-gnu/libLLVM.so.19.1",
+      "sha256": "7e016cffd3eb077fa338b8ec08a7ab500e43c7460223d4b1f5c6b1bf10274b24"
+    },
+    {
+      "path": "/usr/lib/x86_64-linux-gnu/libvulkan_lvp.so",
+      "sha256": "c5a76c07c264176aec984f9091f93df0e0e3af1a78046243c2d6c6be4b0d43ee"
+    },
+    {
+      "path": "/usr/lib/x86_64-linux-gnu/libvulkan_intel_hasvk.so",
+      "sha256": "298f637acc5c62c538df8a42ac2e151d1b59bfc56a376c0928aee70cea9a9f92"
+    },
+    {
+      "path": "/usr/lib/x86_64-linux-gnu/libvulkan_virtio.so",
+      "sha256": "6cd3b2071193485fd412b07df7632d5572ef159954991f7ed9f84648daca7341"
+    },
+    {
+      "path": "/var/tmp/reploid-ordered-native-d29cdec8-20261013/reploid/node_modules/webgpu/dist/linux-x64.dawn.node",
+      "sha256": "fbfe599055b469963e4c9bfc900a702843db962dcaba0799b3c81ae33fa43db1"
+    },
+    {
+      "path": "/usr/lib/x86_64-linux-gnu/libvulkan.so.1.3.275",
+      "sha256": "e833b010f814b72c6aca0300c8b5f19b6106ffa06c24ddc95a293970c7d6058e"
+    }
+  ],
+  "errors": [],
+  "operationsPassed": true,
+  "deviceLost": {
+    "reason": "destroyed",
+    "message": "device was destroyed"
+  },
+  "hostClosed": true,
+  "passed": true,
+  "finishedAt": "2026-10-13T16:17:18.450Z"
+}
