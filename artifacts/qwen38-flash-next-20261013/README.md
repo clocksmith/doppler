@@ -32,3 +32,16 @@ installed distributed acceptance. Retained upstream LICENSE is part of the
 source contract; service/license suitability remains an unresolved release
 condition. These fixtures permit parallel source preparation while ordinary
 runtime repair continues, without making Flash-Next a dependency for chat.
+
+
+`prepare-expert-reference.py` additionally retains actual 512-expert/top-10
+router geometry and a small eager expert scatter/combine fixture. No learned
+weights are acquired; accelerated expert decorators are explicitly bypassed to
+select the upstream eager body. The small expert equations match the independent
+scalar calculation within 2.87e-10. The router's F32 result exceeds the initial
+strict fixture bounds: maximum logit difference 6.08e-6 versus 2e-6, and score
+difference 6.13e-7 versus 2e-7. `expert-reference-fixtures.json` remains failed,
+and the command exits 1. These are retained synthetic reference observations;
+they neither establish a Doppler defect nor qualify Flash-Next. Independent
+analysis of accumulation/rounding remains required; no model acceptance
+threshold was changed.
