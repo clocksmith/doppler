@@ -83,3 +83,29 @@ queued work. The eight-row matmul diagnostic uses independently constructed
 F32/Q4K weights, the installed shader and independent F64 dot products. Its
 reservation caps host memory at 2 GiB and execution at 180 seconds. Preparation,
 execution, numerical comparison and settlement must be reported separately.
+
+## Bounded projection observations
+
+`matmul-dispatch-rejected.json` retains a 180-second diagnostic timeout. The
+fixture's enormous JSON serialization hit the 1-GiB host-memory throttle
+(`mem_cgroup_handle_over_high`); no operator result was emitted. It is not
+matrix-multiplication failure evidence. Binary fixture hashing in the next
+probe reduces peak RSS. `matmul-bounded-result.json` separately retains native
+provider rejection of Boolean pipeline override descriptors, with provider
+close confirmed. Browser fixture assumptions are not native compatibility.
+
+`matmul-native-control.js` supplies numeric native overrides without changing
+the installed shader. Its 8×6144×1024 F32 case passes all independent F64 dots;
+Q4K has one of 49,152 values above the unchanged 2e-12 operator threshold
+(maximum 2.180530533771044e-12). Overall receipt is **failed**, not rounded to a
+pass. The full-model 0.001 requirement is unchanged and was not tested here.
+
+Observed submit-through-readback durations are 245.36 ms for F32 and 231.88 ms
+for Q4K. Provider close passes, peak RSS is 583,624 KiB, total elapsed 6.37 s,
+exit status 1. No full-stage rerun occurred. Small individually settled
+projections do not establish duration or correctness at 184 rows, and do not
+exclude cumulative queued work as the fence-timeout trigger. Next diagnostic:
+bind submission/completion boundaries in the installed failing operation and
+compare bounded settlement while preserving every arithmetic operation. Retain
+the Q4K outlier for independent accumulation analysis rather than weakening its
+threshold or claiming operator acceptance.

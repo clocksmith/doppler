@@ -1,0 +1,22 @@
+{
+  "schema": "doppler.functional-diagnostic-reservation/v1",
+  "at": "2026-10-13T22:59:23.616620+00:00",
+  "authority": "root, user-authorized ordinary runtime repair",
+  "host": "clocksmith@suby.tail995236.ts.net",
+  "scope": "Eight-row F32/Q4K paired matmul, width6144 reduction1024",
+  "hypothesis": "Paired projection dispatch duration scales enough to explain driver fence timeout",
+  "runtimeArchiveSha256": "9264d265a90c7c0b046adf46135965b2032d2d9f6e5e60d6a8149d10f0988ec4",
+  "publicProcessesPreserved": [
+    297260,
+    299769
+  ],
+  "livePreflight": "No diagnostic or qualification scope running; public native and Chromium contributors remain running",
+  "maxGpuBufferBytes": 1420000000,
+  "diagnosticAllocationBoundBytes": 67108864,
+  "hostMemoryHighBytes": 1073741824,
+  "hostMemoryMaxBytes": 2147483648,
+  "deadlineSeconds": 180,
+  "scopeUnit": "doppler-matmul-dispatch-20261013",
+  "sourceSha256": "9eca69c3871206069b1cc75b6f77d8585ab6f828d8ef97d9cbc439684a2f0bf2",
+  "qualification": false
+}
