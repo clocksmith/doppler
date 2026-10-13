@@ -82,6 +82,30 @@ function createTarget(history, cursor, policy, vocabSize, generationId, output) 
         return result;
       } catch (error) { failed = true; throw error; }
     },
+    acceptTransition(expectedCursorId, transition) {
+      live();
+      assert((cursor?.cursorId ?? null) === expectedCursorId, 'Target cursor mismatch.');
+      try {
+        assert(transition?.acceptedTokenIds?.length === 1, 'Ordinary transition accepts exactly one target token.');
+        const token = transition.acceptedTokenIds[0];
+        const decoded = output.accept(token);
+        let decision;
+        /** @type {number[]} */
+        let inputs = [];
+        if (cursor) {
+          inputs = [...admitResidentBlock(cursor, [], policy, vocabSize)];
+          decision = decideResidentBlock(cursor, history, [], [token], [decoded.textStop], policy, vocabSize);
+        } else {
+          decision = { acceptedTokenIds: [token], acceptedProposalCount: 0, materializeInputCount: 0, tokenRange: { start: 0, end: 1 },
+            successor: bootstrapResidentCursor(history, token, policy, vocabSize, generationId, decoded.textStop) };
+        }
+        const accepted = install(decision, decoded.delta);
+        assert(metadataDigest('doppler.resident-target-transition/v1', accepted)
+          === metadataDigest('doppler.resident-target-transition/v1', transition), 'Target transition differs from accepted token/decoder state.');
+        history.push(...inputs);
+        return accepted;
+      } catch (error) { failed = true; throw error; }
+    },
     clone() {
       live();
       assert(cursor !== null, 'Only a settled target cursor can be cloned.');

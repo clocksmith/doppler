@@ -2,6 +2,8 @@ import { resolveLayerPartition, hashLayerPartitionPlan } from './layer-partition
 import { resolveGenerationOptions } from '../../../config/generation-contract.js';
 import { computeCanonicalSha256 } from '../../../formats/canonical-hash.js';
 import { freezeCapsuleV2 } from '../../../config/capsule-v2.js';
+import { canonicalGenerationIdentity } from '../../../config/canonical-generation-policy.js';
+import { exactRecord } from '../../../config/canonical-contract-codec.js';
 
 const IDENTITY_FIELDS = ['modelId', 'modelIdentity', 'planId', 'threadId', 'attemptId', 'participantA', 'participantB'];
 const LIMIT_FIELDS = ['maxTokens', 'maxPromptTokens', 'maxActivationBytes', 'maxOutputCharacters', 'maxAttempts', 'maxConcurrentAttempts'];
@@ -23,7 +25,22 @@ export function resolveResidentPartitionAllocation(manifest, manifestHash, input
   }
   allocation.generation = resolveGenerationOptions(allocation.generation);
   if (allocation.generation.maxTokens > allocation.limits.maxTokens) throw new Error('Generation exceeds the resident output allocation.');
+  resolveResidentCanonicalGeneration(allocation);
   return freezeCapsuleV2(allocation);
+}
+
+/** @type {import('./resident-partition-contract.js').resolveResidentCanonicalGeneration} */
+export function resolveResidentCanonicalGeneration(allocation) {
+  if (allocation.canonicalGeneration === undefined) return null;
+  const value = exactRecord(allocation.canonicalGeneration, ['policy', 'executionIdentity']);
+  const resolved = canonicalGenerationIdentity(value.policy, value.executionIdentity, allocation.plan.vocabSize);
+  if (resolved.policy.maxGeneratedTokens > allocation.limits.maxTokens
+    || resolved.policy.materializedInputCapacity > allocation.generation.maxSeqLen
+    || resolved.policy.maxRawOutputUtf16 > allocation.limits.maxOutputCharacters
+    || resolved.policy.maxVisibleOutputUtf16 > allocation.limits.maxOutputCharacters) {
+    throw new Error('Canonical generation exceeds the resident allocation.');
+  }
+  return resolved;
 }
 
 /** @type {import('./resident-partition-contract.js').assertResidentPartitionIdentity} */

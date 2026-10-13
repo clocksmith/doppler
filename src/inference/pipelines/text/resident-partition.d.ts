@@ -9,6 +9,8 @@ export interface ResidentAttempt {
   controller: AbortController; pending: Promise<unknown> | null; settlement: Promise<void> | null;
   execution: PartitionAttempt | null; generationDigest: string | null;
   contextTokens: number[]; text: string; decoder: IncrementalTokenDecoder | null;
+  canonicalState: import('../../resident-target-state.js').ResidentTargetState | null;
+  canonicalPrompt: number[] | null; canonicalAwaiting: boolean;
 }
 /** Takes ownership of the loaded pipeline through the supplied close port. */
 export function createResidentPartitionSession(pipeline: PartitionExecutionState,
