@@ -53,7 +53,23 @@
       "receipt": "layer17-result.json.gz",
       "reason": "Original input in fresh resident; norm17 begins diverging at row32. Canonical export, attempt close, resident close and provider close passed. Numerical acceptance did not pass.",
       "residentAndProviderCleanupPassed": true
+    },
+    {
+      "scopeInvocation": "aa85f6a151414952bb47ee9d0ab8bc12",
+      "providerPid": 1024570,
+      "status": "observer-rejected-immediate-mode",
+      "receipt": "input17-recorded-guard-result.json.gz",
+      "reason": "Runtime uses declared immediate prefill. Recorded-only observer guard rejected capture; arithmetic and execution policy unchanged. Outer resident/provider close passed.",
+      "residentAndProviderCleanupPassed": true
+    },
+    {
+      "scopeInvocation": "82cf27847a174af6a8222e2e9c5f9fca",
+      "providerPid": 1025554,
+      "status": "completed-input-boundary-capture",
+      "receipt": "input17-result.json.gz",
+      "reason": "Declared immediate prefill. Layer17 input matches second layer16 output byte-for-byte; two layer16 output captures differ. Earlier fixed layer17 attribution is not established. Buffer identities and readback ownership require the next discriminator.",
+      "residentAndProviderCleanupPassed": true
     }
   ],
-  "updatedAt": "2026-10-13T21:27:03.270641+00:00"
+  "updatedAt": "2026-10-13T21:40:38.482544+00:00"
 }
