@@ -1,0 +1,18 @@
+{
+  "archiveSha256": "c643cd25b0d7a868c0e14e4d758983c78380456d923ed2b4a7b4f8b30065c705",
+  "sourceManifestSha256": "edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+  "immediateParentManifestSha256": "709894a75b4200c111fb7dbb6c9435c8fd69710949ea8ba486cf93f38582fdd3",
+  "manifestSha256": "a32c76ee98c14366ee945314b4e9e583d505f9d214ad4e4417c04cd89b9340af",
+  "graphSha256": "bdc6f2957afe28b2e084ed890745d6410d9375be75552e457ded043beb91eabd",
+  "representation": "Explicit session intermediatePrecision=two-f32 and linearRecurrentStatePrecision=two-f32",
+  "weightsTokenizerAndSourceFactsUnchanged": true,
+  "executionGraphChanged": true,
+  "precisionAuthorization": "User-approved interleaved two-F32 intermediate and persistent state chain",
+  "publicLogits": "f32",
+  "kvStorage": "f16",
+  "numericalReference": "unchanged approved independent F64",
+  "tolerance": 0.001,
+  "qualified": false,
+  "sourceConstruction": "Ordinary npm pack from clean committed e9de1568; sigmoid callsite factoring only; existing graph digest synchronization updates declared shader references.",
+  "closureCorrection": "5093283c: declarations only; existing 0fad runtime and shader bytes unchanged"
+}

@@ -1,0 +1,18 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Sigmoid must have one static exponential callsite to avoid duplicate compiler expansion.
+
+2 !== 1
+
+    at file:///Users/xyz/deco/doppler/tests/gpu/paired-sigmoid-expression.test.js:57:8 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 2,
+  expected: 1,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.20.0
