@@ -20,6 +20,7 @@ export interface KernelConfig {
   readonly variant: string;
   readonly shaderFile: string;
   readonly entryPoint: string;
+  readonly immediateCompletion: 'submitted' | 'settled';
   readonly workgroupSize: readonly [number, number, number];
   readonly requires: readonly string[];
   readonly requiredWgslFeatures: readonly string[];

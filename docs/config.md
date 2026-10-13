@@ -89,6 +89,22 @@ Multimodal encoder behavior is config-owned, not runtime-inferred.
 If a multimodal manifest is missing those fields, the runtime must fail fast and
 the converter/config must be fixed instead of patching around the artifact.
 
+## Immediate kernel completion
+
+Kernel registry variants may declare `immediateCompletion: "settled"`. The
+immediate executor then awaits GPU completion before returning, retaining its
+uniforms through success or rejection. Abort observed during submission is
+reported after settlement. `"submitted"` preserves the submission-only return
+boundary; legacy variants that omit the field resolve to that value in the
+registry schema. Other values, including null, reject during registry creation.
+This field participates in immutable registry/execution identity.
+
+Paired numerical variants explicitly settle immediate dispatches to bound
+accumulated queued work. Recorded execution retains its recorder-owned
+submission and settlement lifecycle. The policy changes neither shader math
+nor reference tolerances; changed packages require their own physical
+qualification. A single oversized dispatch still requires its own bound.
+
 ## Kernel path contract
 
 Kernel paths are explicit execution plans materialized as inline objects from

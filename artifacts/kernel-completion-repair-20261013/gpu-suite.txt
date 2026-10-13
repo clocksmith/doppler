@@ -1,0 +1,549 @@
+TAP version 13
+# [GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 1.0ms
+# {"test":"activation-executor-lifecycle","passed":true,"adapter":{"vendor":"apple","architecture":"metal-3","device":"apple-m3","description":"Metal driver on macOS Version 26.6.2 (Build 25G83)"},"scope":"operator parity and ownership; not model qualification"}
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.676541
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 546.653417
+[node-tests] ok: tests/kernels/activation-executor-lifecycle.test.js
+TAP version 13
+# [GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.9ms
+# [230.8ms][KernelSelect] attention variant=prefill_head512_f16kv reason=path_override:tiled_small
+# attention-head512-workgroups.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.669583
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 318.771917
+[node-tests] ok: tests/kernels/attention-head512-workgroups.test.js
+TAP version 13
+# attention-streaming-head-dim-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.785667
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 62.322167
+[node-tests] ok: tests/kernels/attention-streaming-head-dim-contract.test.js
+TAP version 13
+# buffer-utils-readback.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.678584
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 64.269209
+[node-tests] ok: tests/kernels/buffer-utils-readback.test.js
+TAP version 13
+# [GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 1.5ms
+# capsule-command-executor-physical.test.js: physical WebGPU dispatch/readback passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.703833
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 209.153292
+[node-tests] ok: tests/kernels/capsule-command-executor-physical.test.js
+TAP version 13
+# [GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.9ms
+# node:internal/test_runner/harness:99
+#       throw err;
+#       ^
+# AssertionError [ERR_ASSERTION]: {"size":5,"history":[0,0,4,2],"options":{"temperature":0.001,"topK":0,"topP":0.8,"repetitionPenalty":2,"presencePenalty":0.5,"suppressTokenIds":[3,3,6]}}
+# 0 !== 4
+#     at compare (file:///Users/xyz/deco/doppler/tests/kernels/capsule-token-selection-physical.test.js:37:12)
+#     at async file:///Users/xyz/deco/doppler/tests/kernels/capsule-token-selection-physical.test.js:48:11 {
+#   generatedMessage: false,
+#   code: 'ERR_ASSERTION',
+#   actual: 0,
+#   expected: 4,
+#   operator: 'strictEqual',
+#   diff: 'simple'
+# }
+# Node.js v22.20.0
+# Subtest: /Users/xyz/deco/doppler/tests/kernels/capsule-token-selection-physical.test.js
+not ok 1 - /Users/xyz/deco/doppler/tests/kernels/capsule-token-selection-physical.test.js
+  ---
+  duration_ms: 516.411875
+  type: 'test'
+  location: '/Users/xyz/deco/doppler/tests/kernels/capsule-token-selection-physical.test.js:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 7
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 522.598375
+[node-tests] fail: tests/kernels/capsule-token-selection-physical.test.js
+TAP version 13
+# [GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.7ms
+# fused-ffn-q4k-parity: vendor=apple arch=metal-3
+# fused-ffn-q4k-parity:
+#   shape M=1 K=1536 N=6144 numBlocksPerRow=6
+#   max_abs_diff=5.215e-8 nan_count=0 inf_count=0 first_diff_idx=-1
+#   actual[0..6]=-0.01957,-0.00348,-0.00121,-0.00629,-0.00099,-0.00003
+#   expected[0..6]=-0.01957,-0.00348,-0.00121,-0.00629,-0.00099,-0.00003
+#   gate_buffer_modified_bytes=0 (of 256 probed)
+# fused-ffn-q4k-parity.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.791875
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1201.773209
+[node-tests] ok: tests/kernels/fused-ffn-q4k-parity.test.js
+TAP version 13
+# [GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.8ms
+# fused-matmul-q4-widetile-f16a-parity:
+#   shape M=4 K=1536 N=6144 TILE_M=4 TILE_N=256
+#   max_abs_diff=7.787e-3 max_rel_diff=1.569e+0
+#   nan_count=0 inf_count=0 first_nan_idx=-1 first_diff_idx=-1
+#   actual[0..6]=0.3442,0.0625,-0.4805,0.2520,-0.0667,0.1544
+#   expected[0..6]=0.3438,0.0625,-0.4808,0.2519,-0.0668,0.1559
+# fused-matmul-q4-widetile-f16a-parity.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.3705
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 940.632292
+[node-tests] ok: tests/kernels/fused-matmul-q4-widetile-f16a-parity.test.js
+TAP version 13
+# [GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.8ms
+# [14041.2ms][KernelSelect] matmul variant=q4_fused_multicol_f16a reason=q4k_fused
+# gemma4-route-expert-parity: gate_up_max_abs_diff=0.000e+0 gate_up_max_index=-1
+# gemma4-route-expert-parity: activated_max_abs_diff=0.000e+0 activated_max_index=-1
+# gemma4-route-expert-parity: down_max_abs_diff=0.000e+0 down_max_index=-1
+# gemma4-route-expert-parity: max_abs_diff=0.000e+0 max_index=-1
+# gemma4-route-expert-parity.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.759875
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 14488.906667
+[node-tests] ok: tests/kernels/gemma4-route-expert-parity.test.js
+TAP version 13
+# [GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.7ms
+# gemma4-route-scatter-parity: max_abs_diff=0.000e+0 max_index=-1
+# gemma4-route-scatter-parity.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.610292
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 293.27375
+[node-tests] ok: tests/kernels/gemma4-route-scatter-parity.test.js
+TAP version 13
+# gptoss_moe_selection.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.9155
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 86.263584
+[node-tests] ok: tests/kernels/gptoss_moe_selection.test.js
+TAP version 13
+# [GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.8ms
+# {"test":"kernel-uniform-echo-physical","passed":true,"layouts":139,"fields":1094,"requestsPerLayout":2,"reusedGpuBuffers":true,"guideExamples":1,"adapter":{"vendor":"apple","architecture":"metal-3","device":"apple-m3","description":"Metal driver on macOS Version 26.6.2 (Build 25G83)"},"evidence":"Generated writers through original uniform structs on physical WebGPU; interface verification, not numerical model qualification."}
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.036209
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1742.073542
+[node-tests] ok: tests/kernels/kernel-uniform-echo-physical.test.js
+TAP version 13
+# recurrent-reference: scalar equations, state, packed layouts, sustained recurrence and capture pairing passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.987916
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 90.62475
+[node-tests] ok: tests/kernels/recurrent-reference.test.js
+TAP version 13
+# [GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.7ms
+# [397.5ms][KernelSelect] matmul variant=f32 reason=default
+# [401.4ms][KernelSelect] matmul variant=gemv_subgroup reason=gemv
+# [407.0ms][KernelSelect] matmul variant=f16w_f32a reason=default
+# {"test":"registry-wrapper-physical","passed":true,"cases":17,"adapter":{"vendor":"apple","architecture":"metal-3","device":"apple-m3","description":"Metal driver on macOS Version 26.6.2 (Build 25G83)"},"evidence":"Actual wrapper dispatch and CPU-reference operator parity; not model qualification or cross-hardware coverage."}
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.585958
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 441.166958
+[node-tests] ok: tests/kernels/registry-wrapper-physical.test.js
+TAP version 13
+# rope-partial-rotation-kernel-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.557583
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 52.977417
+[node-tests] ok: tests/kernels/rope-partial-rotation-kernel-contract.test.js
+TAP version 13
+# rope-partial-rotation-reference.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.588167
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 53.570208
+[node-tests] ok: tests/kernels/rope-partial-rotation-reference.test.js
+TAP version 13
+# [GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.7ms
+# node:internal/test_runner/harness:99
+#       throw err;
+#       ^
+# AssertionError [ERR_ASSERTION]: {"vocabSize":4,"logitsDtype":"f32","topK":0,"topP":0.75,"seed":7,"adapter":"immediate"}
+# 0 !== 1
+#     at file:///Users/xyz/deco/doppler/tests/kernels/sampling-distribution-physical.test.js:34:22 {
+#   generatedMessage: false,
+#   code: 'ERR_ASSERTION',
+#   actual: 0,
+#   expected: 1,
+#   operator: 'strictEqual',
+#   diff: 'simple'
+# }
+# Node.js v22.20.0
+# Subtest: /Users/xyz/deco/doppler/tests/kernels/sampling-distribution-physical.test.js
+not ok 1 - /Users/xyz/deco/doppler/tests/kernels/sampling-distribution-physical.test.js
+  ---
+  duration_ms: 248.356916
+  type: 'test'
+  location: '/Users/xyz/deco/doppler/tests/kernels/sampling-distribution-physical.test.js:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 7
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 253.682958
+[node-tests] fail: tests/kernels/sampling-distribution-physical.test.js
+TAP version 13
+# [GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 23.3ms
+# {"schema":"doppler.sampling-nonfinite-diagnostic/v1","adapter":{"vendor":"apple","architecture":"metal-3","device":"apple-m3","description":"Metal driver on macOS Version 26.6.2 (Build 25G83)"},"rows":[{"size":5,"inputPrefixBits":[2143289344,2139095040,4286578688,1073741824,1073741824],"temperature":0,"expected":4,"actual":4},{"size":5,"inputPrefixBits":[2143289344,2139095040,4286578688,1073741824,1073741824],"temperature":1,"expected":4,"actual":4},{"size":5,"inputPrefixBits":[4286578688,4286578688,4286578688,4286578688,4286578688],"temperature":0,"expected":"no-finite-candidate","actual":"no-finite-candidate"},{"size":5,"inputPrefixBits":[4286578688,4286578688,4286578688,4286578688,4286578688],"temperature":1,"expected":"no-finite-candidate","actual":"no-finite-candidate"},{"size":5,"inputPrefixBits":[4286578687,4286578687,4286578688,2143289344,2139095040],"temperature":0,"expected":0,"actual":0},{"size":5,"inputPrefixBits":[4286578687,4286578687,4286578688,2143289344,2139095040],"temperature":1,"expected":1,"actual":1},{"size":131075,"inputPrefixBits":[2143289344,2139095040,4286578688,1073741824,1073741824],"temperature":0,"expected":4,"actual":4},{"size":131075,"inputPrefixBits":[2143289344,2139095040,4286578688,1073741824,1073741824],"temperature":1,"expected":4,"actual":4},{"size":131075,"inputPrefixBits":[4286578688,4286578688,4286578688,4286578688,4286578688],"temperature":0,"expected":"no-finite-candidate","actual":"no-finite-candidate"},{"size":131075,"inputPrefixBits":[4286578688,4286578688,4286578688,4286578688,4286578688],"temperature":1,"expected":"no-finite-candidate","actual":"no-finite-candidate"},{"size":131075,"inputPrefixBits":[4286578687,4286578687,4286578688,2143289344,2139095040],"temperature":0,"expected":0,"actual":0},{"size":131075,"inputPrefixBits":[4286578687,4286578687,4286578688,2143289344,2139095040],"temperature":1,"expected":1,"actual":1}]}
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.663208
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 322.703875
+[node-tests] ok: tests/kernels/sampling-nonfinite-physical.test.js
+TAP version 13
+# [GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.6ms
+# {"test":"sampling-penalties-physical","cases":96,"adapter":{"vendor":"apple","architecture":"metal-3","device":"apple-m3","description":"Metal driver on macOS Version 26.6.2 (Build 25G83)"},"evidence":"operator parity only; not application or model qualification"}
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.735959
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 592.49475
+[node-tests] ok: tests/kernels/sampling-penalties-physical.test.js
+TAP version 13
+# [GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.8ms
+# soft-embedding-split-f16-parity: max_abs_diff=2.980e-8
+# [419.5ms][KernelSelect] matmul variant=f16w_f32a reason=default
+# soft-embedding-logits-f16-parity: max_abs_diff=6.706e-8
+# soft-embedding-split-f16-parity.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.726666
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 472.51375
+[node-tests] ok: tests/kernels/soft-embedding-split-f16-parity.test.js
+TAP version 13
+# split_qkv_dispatch-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.708125
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 212.931833
+[node-tests] ok: tests/kernels/split_qkv_dispatch-contract.test.js
+TAP version 13
+# split_qkv_variant_parity.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.778
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 180.320125
+[node-tests] ok: tests/kernels/split_qkv_variant_parity.test.js
+TAP version 13
+# {"test":"subgroup-portability-browser","browserVersion":"155.0.8059.40","passed":true,"rmsCases":60,"attentionCases":54,"adapter":{"vendor":"apple","architecture":"metal-3","device":"0x0000","description":"Apple M3"},"languageFeatures":["packed_4x8_integer_dot_product","subgroup_uniformity","immediate_address_space","subgroup_id","linear_indexing","readonly_and_readwrite_storage_textures","swizzle_assignment","unrestricted_pointer_parameters","buffer_view","texture_and_sampler_let","pointer_composite_access","texture_formats_tier1","uniform_buffer_standard_layout"],"evidence":"Physical browser operator parity, original and instrumented data-index permutations; no model qualification."}
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.96125
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2413.708209
+[node-tests] ok: tests/kernels/subgroup-portability-browser.test.js
+TAP version 13
+# [GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.7ms
+# {"test":"subgroup-portability-physical","passed":true,"rmsCases":60,"attentionCases":54,"adapter":{"vendor":"apple","architecture":"metal-3","device":"apple-m3","description":"Metal driver on macOS Version 26.6.2 (Build 25G83)"},"languageFeatures":["swizzle_assignment","texel_buffers","linear_indexing","pointer_composite_access","immediate_address_space","unrestricted_pointer_parameters","texture_and_sampler_let","uniform_buffer_standard_layout","fragment_depth","texture_formats_tier1","subgroup_id","packed_4x8_integer_dot_product","filtering_parameters","buffer_view","chromium_print","readonly_and_readwrite_storage_textures","subgroup_uniformity","sized_binding_array"],"evidence":"Local Node WebGPU operator parity, original and instrumented data-index permutations; no model qualification or other-hardware claim."}
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.6775
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1024.786791
+[node-tests] ok: tests/kernels/subgroup-portability-physical.test.js
+TAP version 13
+# vision_spatial_merge_dispatch-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.670166
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 213.005958
+[node-tests] ok: tests/kernels/vision_spatial_merge_dispatch-contract.test.js
+TAP version 13
+# Independent W8A8 rational quantization, I32, rescale and invalid-input controls passed.
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.716666
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 125.080209
+[node-tests] ok: tests/kernels/w8a8-reference.test.js
+[node-tests] failed 2/26

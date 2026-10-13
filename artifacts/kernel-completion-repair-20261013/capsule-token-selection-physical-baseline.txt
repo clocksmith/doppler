@@ -1,0 +1,21 @@
+{"scope":"Pre-repair executor, same sampling test and shader bytes; not model qualification","sourceCommit":"d777f2a5","file":"tests/kernels/capsule-token-selection-physical.test.js","executorSha256":"b19b01c476c3cdd4c664e4e3eeeb38aab50f4eb1383270d8b844701d1fce5865"}
+[GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 1.6ms
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: {"size":5,"history":[0,0,4,2],"options":{"temperature":0.001,"topK":0,"topP":0.8,"repetitionPenalty":2,"presencePenalty":0.5,"suppressTokenIds":[3,3,6]}}
+
+0 !== 4
+
+    at compare (file:///Users/xyz/deco/doppler/tests/kernels/capsule-token-selection-physical.test.js:37:12)
+    at async file:///Users/xyz/deco/doppler/tests/kernels/capsule-token-selection-physical.test.js:48:11 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 0,
+  expected: 4,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.20.0
