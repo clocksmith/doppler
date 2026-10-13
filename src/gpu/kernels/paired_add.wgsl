@@ -219,8 +219,11 @@ fn pair_silu(a: vec2<f32>) -> vec2<f32> {
 }
 fn pair_softplus(a: vec2<f32>) -> vec2<f32> {
     let one = vec2<f32>(1.0, 0.0);
-    if (a.x > 0.0) { return pair_add(a, pair_log(pair_add(one, pair_exp(-a)))); }
-    return pair_log(pair_add(one, pair_exp(a)));
+    let positive = a.x > 0.0;
+    // Preserve the branch input and final addition without duplicating exp/log.
+    let logarithm = pair_log(pair_add(one, pair_exp(select(a, -a, positive))));
+    if (positive) { return pair_add(a, logarithm); }
+    return logarithm;
 }
 fn pair_sin_cos(a: vec2<f32>) -> vec4<f32> {
     let half_pi = vec2<f32>(1.57079637050628662109375, -4.37113900018624283e-8);

@@ -1,0 +1,19 @@
+paired sigmoid preserved 4265 branch expression traces; one exponential callsite
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Softplus must have one static exp callsite to avoid duplicate compiler expansion.
+
+2 !== 1
+
+    at file:///Users/xyz/deco/doppler/tests/gpu/paired-sigmoid-expression.test.js:81:10 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 2,
+  expected: 1,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.20.0
