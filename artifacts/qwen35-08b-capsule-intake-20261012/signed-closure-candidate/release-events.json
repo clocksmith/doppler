@@ -1,0 +1,112 @@
+[
+  {
+    "capsule": {
+      "schema": "doppler.capsule/v3",
+      "semanticRoot": "sha256:7391e1f4f7579af308808d371119c7e42b40acc1b00df5f42325d41d4febd083",
+      "envelopeDigest": "sha256:1a1b1c4bb093fb8046d5ab193ddfd5433ed0926ff30732414814c3eed0d1ac23"
+    },
+    "sequence": 1,
+    "previousEventDigest": null,
+    "issuedAtUtc": "2026-10-13T13:40:56.063Z",
+    "expiresAtUtc": "2026-10-14T13:40:56.063Z",
+    "action": "eligible",
+    "release": {
+      "application": {
+        "applicationId": "reploid-resident-qualification",
+        "applicationRevision": "sha256:e9f3b8f266382d0aa36980fea657004a286fb66ff58e7d8e56e14d6acb4a6a3a",
+        "applicationRevisionDigest": "sha256:e9f3b8f266382d0aa36980fea657004a286fb66ff58e7d8e56e14d6acb4a6a3a",
+        "oracle": {
+          "digest": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+          "id": "approved-independent-f64"
+        },
+        "workload": {
+          "digest": "sha256:794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e",
+          "id": "frozen-three-request-fifty-five-prefixes"
+        }
+      },
+      "exclusions": {
+        "known": [
+          {
+            "code": "application-gate-failed",
+            "evidenceDigest": "sha256:f10a88fef5f8a7125d1a5ac5d2261b0cd5e845eae60832369c0293ce68f71005",
+            "reason": "Direct browser/Node resident numerical comparison passed; this corrected signed opening and demanding concurrency remain unqualified. Local qualification only.",
+            "scope": "public-chat-release"
+          },
+          {
+            "code": "unsupported-device",
+            "evidenceDigest": "sha256:f10a88fef5f8a7125d1a5ac5d2261b0cd5e845eae60832369c0293ce68f71005",
+            "reason": "Evidence covers the recorded Mac browser and AMD Node provider in both partition roles. Other providers, browser AMD on these exact bytes and Suby are not qualified by these reports.",
+            "scope": "unobserved-gpu-provider-tuples"
+          },
+          {
+            "code": "application-gate-failed",
+            "evidenceDigest": "sha256:f10a88fef5f8a7125d1a5ac5d2261b0cd5e845eae60832369c0293ce68f71005",
+            "reason": "Prior same-runtime cold AMD Node recurrent pipeline preparation took 743.124 seconds and exceeded the 300-second responsiveness bound; current shared-cache qualification does not establish cold startup responsiveness.",
+            "scope": "cold-start-responsiveness"
+          }
+        ],
+        "rejectionTypes": [
+          "acceptance-failed",
+          "application-gate-failed",
+          "artifact-invalid",
+          "evidence-expired",
+          "migration-required",
+          "revoked",
+          "unsupported-device"
+        ]
+      },
+      "lifecycle": {
+        "failedUpgrade": {
+          "preservePrevious": true,
+          "previousCapsuleId": null,
+          "previousSemanticRoot": null
+        },
+        "migration": null,
+        "releaseVersion": "0.6.28",
+        "supersedes": null
+      },
+      "revocation": {
+        "authorityId": "reploid-paired-qualification-20261012",
+        "failClosedAfterExpiry": true,
+        "offlineExpirySeconds": 86400,
+        "policyDigest": "sha256:3ff0fdad48e10bd5fb7bc6a5b6b27a439991cba44094d062278d79009dfc95b9"
+      },
+      "schema": "doppler.capsule-release/v1",
+      "source": {
+        "license": {
+          "name": "Apache License 2.0",
+          "sourceUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "spdxId": "Apache-2.0",
+          "textDigest": "sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        "provenanceDigest": "sha256:55ef3a95c0433e7217486db2c8303c5e76c9d22fba5397de94a469762bc8451a",
+        "repository": "Qwen/Qwen3.5-0.8B",
+        "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+        "revisionDigest": "sha256:f5a57c56e7984f26bbff2b4c10ef7bef4478f8a9401cc712a3e3188af34d05ce"
+      },
+      "stateSnapshot": {
+        "format": "declared-state-identity-only",
+        "identityDigest": "sha256:54c235c3767687c879fa1f1ef30260875b3a21c7bd171a863f292cc0feac7771",
+        "portableAcrossTargetIds": [
+          "webgpu-f32-f16-portable"
+        ],
+        "schema": "doppler.capsule-state-snapshot/v1"
+      }
+    },
+    "migratedFrom": {
+      "schema": "doppler.capsule/v2",
+      "semanticRoot": "sha256:d2580a47db63b985bcdde233a2e75d86c4128a0ccb56d5cba89b652edb40c3a0",
+      "envelopeDigest": "sha256:f4c0d112bd9f009360022b365030d7cc67dc11f8c43541253097de584988397c"
+    },
+    "nextSigner": null,
+    "schema": "doppler.capsule-release-event/v1",
+    "digest": "sha256:ffc0db2cc9a4e9ded36758a16ac453120657aff050d60c9c68d5d574ee092595",
+    "signature": {
+      "authority": "reploid-paired-qualification-20261012",
+      "algorithm": "Ed25519",
+      "publicKeyDigest": "sha256:cddc8e43da370860a974cf759b19726bf5e7f9c5d7c0a2a84abb6c9d34ab2d53",
+      "signatureHex": "d41558d3b26ad920852612831693bf37cee328181b67e202804c76e02041c6b1de34a964ade45c5db20efca8a33e5cf370fc7f2da00f891e52931186851f3d00",
+      "signedDigest": "sha256:ffc0db2cc9a4e9ded36758a16ac453120657aff050d60c9c68d5d574ee092595"
+    }
+  }
+]

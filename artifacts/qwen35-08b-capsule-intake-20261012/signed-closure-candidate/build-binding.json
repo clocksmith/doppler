@@ -1,0 +1,42 @@
+{
+  "builderRevision": "4ca8239674ba0aab89e522607443aec324184f0c",
+  "builderSha256": "1c2bcd05b45ec1b7504519dbae7c6f27f1ab1ac96cebcb6642de4ea04a4ead6c",
+  "archiveSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "sourceRoot": "/var/tmp/doppler-resident-preparation-candidate-20261012/source",
+  "runtime": "/var/tmp/doppler-resident-preparation-candidate-20261012/consumer/node_modules/doppler-gpu",
+  "previousCandidatePreserved": true,
+  "qualificationReports": [
+    {
+      "path": "/Users/xyz/deco/doppler/artifacts/paired-intermediates-20261012/signed-closure-correction/fresh-qualification/direction-0/partition-0.json",
+      "sha256": "e9493673be20f4062c818c3ba540589c9b8bcc3cc506fb8bb24fe1adaf37136d"
+    },
+    {
+      "path": "/Users/xyz/deco/doppler/artifacts/paired-intermediates-20261012/signed-closure-correction/fresh-qualification/direction-0/partition-1.json",
+      "sha256": "9c7c794662f067b1b82df9347ddeb9a9a8fc9af0e6814fff259cdaca85fb7bf4"
+    },
+    {
+      "path": "/Users/xyz/deco/doppler/artifacts/paired-intermediates-20261012/signed-closure-correction/fresh-qualification/direction-1/partition-0.json",
+      "sha256": "d752614bcd7331edc20c1775f5816e53a8fbc3c4fd33173efe70b840110e76cc"
+    },
+    {
+      "path": "/Users/xyz/deco/doppler/artifacts/paired-intermediates-20261012/signed-closure-correction/fresh-qualification/direction-1/partition-1.json",
+      "sha256": "dfc78b5808e70137cf70053e61064557f66200d3eb84cc3bd9faf90bdb140fae"
+    }
+  ],
+  "contractSha256": "baab7b442031607d8cf3ade4b4bd37eb6ee8995034f8c5e38f2730284ac2357c",
+  "modelIRReceiptSha256": "074ad8ac8e847fa960ccf3e06e9d24243348e892f7a7cc78d5879a3662090a77",
+  "manifestSha256": "709894a75b4200c111fb7dbb6c9435c8fd69710949ea8ba486cf93f38582fdd3",
+  "pieceIndexSha256": "e964efdd3818c0841dfdd3972f571d2391b49a7acafe302120b7567f8167e8a5",
+  "programBundleSha256": "9c7500c6e72bc8a0f65f4deb91f8613640aab3d1c06fff9ce45332b99dbb8017",
+  "identity": {
+    "schema": "doppler.capsule/v3",
+    "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v3-7391e1f4f7579af308808d371119c7e42b40acc1b00df5f42325d41d4febd083",
+    "semanticRoot": "sha256:7391e1f4f7579af308808d371119c7e42b40acc1b00df5f42325d41d4febd083",
+    "envelopeDigest": "sha256:1a1b1c4bb093fb8046d5ab193ddfd5433ed0926ff30732414814c3eed0d1ac23",
+    "artifactClosureDigest": "sha256:974d166e3d7a04aec52cc89f46eb31fa25511cb8df2cb3a8f45c25e064e21fe1"
+  },
+  "issuedAtUtc": "2026-10-13T13:40:56.063Z",
+  "expiresAtUtc": "2026-10-14T13:40:56.063Z",
+  "artifactCount": 57,
+  "scope": "Isolated fresh release history; previous candidate/history preserved. No production or physical acceptance."
+}
