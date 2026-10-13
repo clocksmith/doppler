@@ -14,3 +14,7 @@ export declare function assertExecutionMechanismClosure(
   graph: import('./schema/execution-v1.schema.js').ExecutionV1GraphSchema,
   steps: import('./schema/execution-v1.schema.js').ExecutionV1ExpandedStepSchema[]
 ): void;
+
+export declare function assertPairedExecutionMechanismClosure(
+  graph: import('./schema/execution-v1.schema.js').ExecutionV1GraphSchema
+): void;

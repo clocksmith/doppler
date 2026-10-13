@@ -1,0 +1,781 @@
+{
+  "scope": "CPU extraction from unchanged retained prior0fad two-placement full55 receipts; no new GPU run or qualification.",
+  "rows": [
+    {
+      "direction": 0,
+      "participantIndex": 0,
+      "rawPath": "/var/tmp/reploid-readiness-numerical-output-20261012/native-direction-0.json",
+      "rawSha256": "8e0611c8a71bfebc862a1451a77cbec5ca4d260991468c7484162ecac191a174",
+      "eventCount": 88,
+      "pending": [],
+      "completeOperationIds": true,
+      "pipelines": [
+        {
+          "id": 2,
+          "operation": "createComputePipelineAsync",
+          "label": "rope_precompute_paired_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:02:07.161Z",
+          "status": "completed"
+        },
+        {
+          "id": 5,
+          "operation": "createComputePipelineAsync",
+          "label": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64
+          },
+          "at": "2026-10-12T23:02:07.172Z",
+          "status": "completed"
+        },
+        {
+          "id": 8,
+          "operation": "createComputePipelineAsync",
+          "label": "gated_delta_recurrent_paired_pipeline_WORKGROUP_SIZE=128",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 128
+          },
+          "at": "2026-10-12T23:02:07.177Z",
+          "status": "completed"
+        },
+        {
+          "id": 11,
+          "operation": "createComputePipelineAsync",
+          "label": "gather_f16_vec4_pipeline",
+          "entryPoint": "gather_vec4",
+          "constants": {},
+          "at": "2026-10-12T23:15:42.714Z",
+          "status": "completed"
+        },
+        {
+          "id": 14,
+          "operation": "createComputePipelineAsync",
+          "label": "cast_f32_to_two_f32_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:15:42.718Z",
+          "status": "completed"
+        },
+        {
+          "id": 17,
+          "operation": "createComputePipelineAsync",
+          "label": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=0|POST_RESIDUAL=0|PRE_RESIDUAL=0|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64,
+            "WEIGHT_F16": 1,
+            "WEIGHT_OFFSET": 1,
+            "PRE_RESIDUAL": 0,
+            "POST_RESIDUAL": 0,
+            "OUTPUT_PRENORM": 0
+          },
+          "at": "2026-10-12T23:15:42.738Z",
+          "status": "completed"
+        },
+        {
+          "id": 20,
+          "operation": "createComputePipelineAsync",
+          "label": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64,
+            "WEIGHT_F16": 0,
+            "WEIGHT_Q4K": 1,
+            "TRANSPOSE_B": 1,
+            "SCALAR_OUTPUT": 0
+          },
+          "at": "2026-10-12T23:15:42.745Z",
+          "status": "completed"
+        },
+        {
+          "id": 21,
+          "operation": "createComputePipelineAsync",
+          "label": "matmul_paired_f16_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=1|WEIGHT_Q4K=0|WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64,
+            "WEIGHT_F16": 1,
+            "WEIGHT_Q4K": 0,
+            "TRANSPOSE_B": 1,
+            "SCALAR_OUTPUT": 0
+          },
+          "at": "2026-10-12T23:15:42.748Z",
+          "status": "completed"
+        },
+        {
+          "id": 22,
+          "operation": "createComputePipelineAsync",
+          "label": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=1|POST_RESIDUAL=0|PRE_RESIDUAL=1|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64,
+            "WEIGHT_F16": 1,
+            "WEIGHT_OFFSET": 1,
+            "PRE_RESIDUAL": 1,
+            "POST_RESIDUAL": 0,
+            "OUTPUT_PRENORM": 1
+          },
+          "at": "2026-10-12T23:15:42.752Z",
+          "status": "completed"
+        },
+        {
+          "id": 25,
+          "operation": "createComputePipelineAsync",
+          "label": "paired_pointwise_silu_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+          "entryPoint": "main",
+          "constants": {
+            "HAS_GATE": 1,
+            "INPUT_USE_IDENTITY": 1
+          },
+          "at": "2026-10-12T23:15:42.758Z",
+          "status": "completed"
+        },
+        {
+          "id": 28,
+          "operation": "createComputePipelineAsync",
+          "label": "paired_pointwise_add_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:15:42.762Z",
+          "status": "completed"
+        },
+        {
+          "id": 31,
+          "operation": "createComputePipelineAsync",
+          "label": "split_qg_paired_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:15:44.736Z",
+          "status": "completed"
+        },
+        {
+          "id": 34,
+          "operation": "createComputePipelineAsync",
+          "label": "rope_qk_paired_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:15:44.742Z",
+          "status": "completed"
+        },
+        {
+          "id": 37,
+          "operation": "createComputePipelineAsync",
+          "label": "cast_two_f32_to_f16_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:15:44.744Z",
+          "status": "completed"
+        },
+        {
+          "id": 40,
+          "operation": "createComputePipelineAsync",
+          "label": "attention_paired_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:15:44.750Z",
+          "status": "completed"
+        },
+        {
+          "id": 43,
+          "operation": "createComputePipelineAsync",
+          "label": "paired_pointwise_sigmoid_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+          "entryPoint": "main",
+          "constants": {
+            "HAS_GATE": 1,
+            "INPUT_USE_IDENTITY": 1
+          },
+          "at": "2026-10-12T23:15:44.754Z",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "direction": 0,
+      "participantIndex": 1,
+      "rawPath": "/var/tmp/reploid-readiness-numerical-output-20261012/native-direction-0.json",
+      "rawSha256": "8e0611c8a71bfebc862a1451a77cbec5ca4d260991468c7484162ecac191a174",
+      "eventCount": 84,
+      "pending": [],
+      "completeOperationIds": true,
+      "pipelines": [
+        {
+          "id": 2,
+          "operation": "createComputePipelineAsync",
+          "label": "rope_precompute_paired_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:03:05.504Z",
+          "status": "completed"
+        },
+        {
+          "id": 5,
+          "operation": "createComputePipelineAsync",
+          "label": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64
+          },
+          "at": "2026-10-12T23:03:18.703Z",
+          "status": "completed"
+        },
+        {
+          "id": 8,
+          "operation": "createComputePipelineAsync",
+          "label": "gated_delta_recurrent_paired_pipeline_WORKGROUP_SIZE=128",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 128
+          },
+          "at": "2026-10-12T23:15:41.832Z",
+          "status": "completed"
+        },
+        {
+          "id": 11,
+          "operation": "createComputePipelineAsync",
+          "label": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=0|POST_RESIDUAL=0|PRE_RESIDUAL=0|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64,
+            "WEIGHT_F16": 1,
+            "WEIGHT_OFFSET": 1,
+            "PRE_RESIDUAL": 0,
+            "POST_RESIDUAL": 0,
+            "OUTPUT_PRENORM": 0
+          },
+          "at": "2026-10-12T23:15:58.997Z",
+          "status": "completed"
+        },
+        {
+          "id": 14,
+          "operation": "createComputePipelineAsync",
+          "label": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64,
+            "WEIGHT_F16": 0,
+            "WEIGHT_Q4K": 1,
+            "TRANSPOSE_B": 1,
+            "SCALAR_OUTPUT": 0
+          },
+          "at": "2026-10-12T23:15:59.281Z",
+          "status": "completed"
+        },
+        {
+          "id": 15,
+          "operation": "createComputePipelineAsync",
+          "label": "matmul_paired_f16_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=1|WEIGHT_Q4K=0|WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64,
+            "WEIGHT_F16": 1,
+            "WEIGHT_Q4K": 0,
+            "TRANSPOSE_B": 1,
+            "SCALAR_OUTPUT": 0
+          },
+          "at": "2026-10-12T23:15:59.659Z",
+          "status": "completed"
+        },
+        {
+          "id": 16,
+          "operation": "createComputePipelineAsync",
+          "label": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=1|POST_RESIDUAL=0|PRE_RESIDUAL=1|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64,
+            "WEIGHT_F16": 1,
+            "WEIGHT_OFFSET": 1,
+            "PRE_RESIDUAL": 1,
+            "POST_RESIDUAL": 0,
+            "OUTPUT_PRENORM": 1
+          },
+          "at": "2026-10-12T23:16:09.117Z",
+          "status": "completed"
+        },
+        {
+          "id": 19,
+          "operation": "createComputePipelineAsync",
+          "label": "paired_pointwise_silu_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+          "entryPoint": "main",
+          "constants": {
+            "HAS_GATE": 1,
+            "INPUT_USE_IDENTITY": 1
+          },
+          "at": "2026-10-12T23:16:21.156Z",
+          "status": "completed"
+        },
+        {
+          "id": 22,
+          "operation": "createComputePipelineAsync",
+          "label": "paired_pointwise_add_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:16:21.341Z",
+          "status": "completed"
+        },
+        {
+          "id": 25,
+          "operation": "createComputePipelineAsync",
+          "label": "split_qg_paired_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:16:21.952Z",
+          "status": "completed"
+        },
+        {
+          "id": 28,
+          "operation": "createComputePipelineAsync",
+          "label": "rope_qk_paired_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:16:25.662Z",
+          "status": "completed"
+        },
+        {
+          "id": 31,
+          "operation": "createComputePipelineAsync",
+          "label": "cast_two_f32_to_f16_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:16:25.668Z",
+          "status": "completed"
+        },
+        {
+          "id": 34,
+          "operation": "createComputePipelineAsync",
+          "label": "attention_paired_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:16:38.678Z",
+          "status": "completed"
+        },
+        {
+          "id": 37,
+          "operation": "createComputePipelineAsync",
+          "label": "paired_pointwise_sigmoid_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+          "entryPoint": "main",
+          "constants": {
+            "HAS_GATE": 1,
+            "INPUT_USE_IDENTITY": 1
+          },
+          "at": "2026-10-12T23:16:48.676Z",
+          "status": "completed"
+        },
+        {
+          "id": 38,
+          "operation": "createComputePipelineAsync",
+          "label": "matmul_paired_q4k_scalar_pipeline_SCALAR_OUTPUT=1|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64,
+            "WEIGHT_F16": 0,
+            "WEIGHT_Q4K": 1,
+            "TRANSPOSE_B": 1,
+            "SCALAR_OUTPUT": 1
+          },
+          "at": "2026-10-12T23:16:51.049Z",
+          "status": "completed"
+        },
+        {
+          "id": 41,
+          "operation": "createComputePipelineAsync",
+          "label": "logit_finalize_f32_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:16:51.055Z",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "direction": 1,
+      "participantIndex": 0,
+      "rawPath": "/var/tmp/reploid-readiness-numerical-output-20261012/native-direction-1.json",
+      "rawSha256": "44a8f6e1db4ea66749761f1bab136717cb7dd0665d7df4490e1d33c48e8f84f6",
+      "eventCount": 84,
+      "pending": [],
+      "completeOperationIds": true,
+      "pipelines": [
+        {
+          "id": 2,
+          "operation": "createComputePipelineAsync",
+          "label": "rope_precompute_paired_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:21:52.908Z",
+          "status": "completed"
+        },
+        {
+          "id": 5,
+          "operation": "createComputePipelineAsync",
+          "label": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64
+          },
+          "at": "2026-10-12T23:21:52.918Z",
+          "status": "completed"
+        },
+        {
+          "id": 8,
+          "operation": "createComputePipelineAsync",
+          "label": "gated_delta_recurrent_paired_pipeline_WORKGROUP_SIZE=128",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 128
+          },
+          "at": "2026-10-12T23:21:52.923Z",
+          "status": "completed"
+        },
+        {
+          "id": 11,
+          "operation": "createComputePipelineAsync",
+          "label": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=0|POST_RESIDUAL=0|PRE_RESIDUAL=0|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64,
+            "WEIGHT_F16": 1,
+            "WEIGHT_OFFSET": 1,
+            "PRE_RESIDUAL": 0,
+            "POST_RESIDUAL": 0,
+            "OUTPUT_PRENORM": 0
+          },
+          "at": "2026-10-12T23:22:02.215Z",
+          "status": "completed"
+        },
+        {
+          "id": 14,
+          "operation": "createComputePipelineAsync",
+          "label": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64,
+            "WEIGHT_F16": 0,
+            "WEIGHT_Q4K": 1,
+            "TRANSPOSE_B": 1,
+            "SCALAR_OUTPUT": 0
+          },
+          "at": "2026-10-12T23:22:02.222Z",
+          "status": "completed"
+        },
+        {
+          "id": 15,
+          "operation": "createComputePipelineAsync",
+          "label": "matmul_paired_f16_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=1|WEIGHT_Q4K=0|WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64,
+            "WEIGHT_F16": 1,
+            "WEIGHT_Q4K": 0,
+            "TRANSPOSE_B": 1,
+            "SCALAR_OUTPUT": 0
+          },
+          "at": "2026-10-12T23:22:02.225Z",
+          "status": "completed"
+        },
+        {
+          "id": 16,
+          "operation": "createComputePipelineAsync",
+          "label": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=1|POST_RESIDUAL=0|PRE_RESIDUAL=1|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64,
+            "WEIGHT_F16": 1,
+            "WEIGHT_OFFSET": 1,
+            "PRE_RESIDUAL": 1,
+            "POST_RESIDUAL": 0,
+            "OUTPUT_PRENORM": 1
+          },
+          "at": "2026-10-12T23:22:02.228Z",
+          "status": "completed"
+        },
+        {
+          "id": 19,
+          "operation": "createComputePipelineAsync",
+          "label": "paired_pointwise_silu_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+          "entryPoint": "main",
+          "constants": {
+            "HAS_GATE": 1,
+            "INPUT_USE_IDENTITY": 1
+          },
+          "at": "2026-10-12T23:22:02.235Z",
+          "status": "completed"
+        },
+        {
+          "id": 22,
+          "operation": "createComputePipelineAsync",
+          "label": "paired_pointwise_add_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:22:02.239Z",
+          "status": "completed"
+        },
+        {
+          "id": 25,
+          "operation": "createComputePipelineAsync",
+          "label": "split_qg_paired_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:22:04.216Z",
+          "status": "completed"
+        },
+        {
+          "id": 28,
+          "operation": "createComputePipelineAsync",
+          "label": "rope_qk_paired_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:22:04.230Z",
+          "status": "completed"
+        },
+        {
+          "id": 31,
+          "operation": "createComputePipelineAsync",
+          "label": "cast_two_f32_to_f16_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:22:04.234Z",
+          "status": "completed"
+        },
+        {
+          "id": 34,
+          "operation": "createComputePipelineAsync",
+          "label": "attention_paired_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:22:04.244Z",
+          "status": "completed"
+        },
+        {
+          "id": 37,
+          "operation": "createComputePipelineAsync",
+          "label": "paired_pointwise_sigmoid_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+          "entryPoint": "main",
+          "constants": {
+            "HAS_GATE": 1,
+            "INPUT_USE_IDENTITY": 1
+          },
+          "at": "2026-10-12T23:22:04.250Z",
+          "status": "completed"
+        },
+        {
+          "id": 38,
+          "operation": "createComputePipelineAsync",
+          "label": "matmul_paired_q4k_scalar_pipeline_SCALAR_OUTPUT=1|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64,
+            "WEIGHT_F16": 0,
+            "WEIGHT_Q4K": 1,
+            "TRANSPOSE_B": 1,
+            "SCALAR_OUTPUT": 1
+          },
+          "at": "2026-10-12T23:22:09.494Z",
+          "status": "completed"
+        },
+        {
+          "id": 41,
+          "operation": "createComputePipelineAsync",
+          "label": "logit_finalize_f32_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:22:09.498Z",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "direction": 1,
+      "participantIndex": 1,
+      "rawPath": "/var/tmp/reploid-readiness-numerical-output-20261012/native-direction-1.json",
+      "rawSha256": "44a8f6e1db4ea66749761f1bab136717cb7dd0665d7df4490e1d33c48e8f84f6",
+      "eventCount": 88,
+      "pending": [],
+      "completeOperationIds": true,
+      "pipelines": [
+        {
+          "id": 2,
+          "operation": "createComputePipelineAsync",
+          "label": "rope_precompute_paired_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:21:58.102Z",
+          "status": "completed"
+        },
+        {
+          "id": 5,
+          "operation": "createComputePipelineAsync",
+          "label": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64
+          },
+          "at": "2026-10-12T23:21:58.230Z",
+          "status": "completed"
+        },
+        {
+          "id": 8,
+          "operation": "createComputePipelineAsync",
+          "label": "gated_delta_recurrent_paired_pipeline_WORKGROUP_SIZE=128",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 128
+          },
+          "at": "2026-10-12T23:21:58.248Z",
+          "status": "completed"
+        },
+        {
+          "id": 11,
+          "operation": "createComputePipelineAsync",
+          "label": "gather_f16_vec4_pipeline",
+          "entryPoint": "gather_vec4",
+          "constants": {},
+          "at": "2026-10-12T23:21:58.793Z",
+          "status": "completed"
+        },
+        {
+          "id": 14,
+          "operation": "createComputePipelineAsync",
+          "label": "cast_f32_to_two_f32_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:21:58.804Z",
+          "status": "completed"
+        },
+        {
+          "id": 17,
+          "operation": "createComputePipelineAsync",
+          "label": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=0|POST_RESIDUAL=0|PRE_RESIDUAL=0|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64,
+            "WEIGHT_F16": 1,
+            "WEIGHT_OFFSET": 1,
+            "PRE_RESIDUAL": 0,
+            "POST_RESIDUAL": 0,
+            "OUTPUT_PRENORM": 0
+          },
+          "at": "2026-10-12T23:21:58.821Z",
+          "status": "completed"
+        },
+        {
+          "id": 20,
+          "operation": "createComputePipelineAsync",
+          "label": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64,
+            "WEIGHT_F16": 0,
+            "WEIGHT_Q4K": 1,
+            "TRANSPOSE_B": 1,
+            "SCALAR_OUTPUT": 0
+          },
+          "at": "2026-10-12T23:21:58.830Z",
+          "status": "completed"
+        },
+        {
+          "id": 21,
+          "operation": "createComputePipelineAsync",
+          "label": "matmul_paired_f16_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=1|WEIGHT_Q4K=0|WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64,
+            "WEIGHT_F16": 1,
+            "WEIGHT_Q4K": 0,
+            "TRANSPOSE_B": 1,
+            "SCALAR_OUTPUT": 0
+          },
+          "at": "2026-10-12T23:21:58.837Z",
+          "status": "completed"
+        },
+        {
+          "id": 22,
+          "operation": "createComputePipelineAsync",
+          "label": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=1|POST_RESIDUAL=0|PRE_RESIDUAL=1|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64,
+            "WEIGHT_F16": 1,
+            "WEIGHT_OFFSET": 1,
+            "PRE_RESIDUAL": 1,
+            "POST_RESIDUAL": 0,
+            "OUTPUT_PRENORM": 1
+          },
+          "at": "2026-10-12T23:21:58.847Z",
+          "status": "completed"
+        },
+        {
+          "id": 25,
+          "operation": "createComputePipelineAsync",
+          "label": "paired_pointwise_silu_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+          "entryPoint": "main",
+          "constants": {
+            "HAS_GATE": 1,
+            "INPUT_USE_IDENTITY": 1
+          },
+          "at": "2026-10-12T23:21:58.858Z",
+          "status": "completed"
+        },
+        {
+          "id": 28,
+          "operation": "createComputePipelineAsync",
+          "label": "paired_pointwise_add_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:21:58.865Z",
+          "status": "completed"
+        },
+        {
+          "id": 31,
+          "operation": "createComputePipelineAsync",
+          "label": "split_qg_paired_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:21:59.844Z",
+          "status": "completed"
+        },
+        {
+          "id": 34,
+          "operation": "createComputePipelineAsync",
+          "label": "rope_qk_paired_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:21:59.853Z",
+          "status": "completed"
+        },
+        {
+          "id": 37,
+          "operation": "createComputePipelineAsync",
+          "label": "cast_two_f32_to_f16_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:21:59.855Z",
+          "status": "completed"
+        },
+        {
+          "id": 40,
+          "operation": "createComputePipelineAsync",
+          "label": "attention_paired_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-12T23:21:59.867Z",
+          "status": "completed"
+        },
+        {
+          "id": 43,
+          "operation": "createComputePipelineAsync",
+          "label": "paired_pointwise_sigmoid_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+          "entryPoint": "main",
+          "constants": {
+            "HAS_GATE": 1,
+            "INPUT_USE_IDENTITY": 1
+          },
+          "at": "2026-10-12T23:21:59.875Z",
+          "status": "completed"
+        }
+      ]
+    }
+  ]
+}

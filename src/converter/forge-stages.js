@@ -21,6 +21,7 @@ import { sha256Hex } from '../formats/sha256.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
 import { buildQualificationRecords, promoteQualifiedModelIRV2, normalizeQualificationEvidence } from './forge-qualification.js';
 import { resolveCapsuleEmbeddingContract } from '../config/embedding-contract.js';
+import { assertPairedExecutionMechanismClosure } from '../config/execution-registry-contract.js';
 import { evaluateForgeCandidates } from './forge-candidate-evaluation.js';
 
 export const RIG_PIPELINE_VERSION = '2.0.0';
@@ -409,7 +410,6 @@ function dtypeByteWidth(dtype, label) {
   if (normalized === 'f32' || normalized === 'float32') return 4;
   throw new Error(`Rig cannot size state with unsupported dtype "${dtype}" at ${label}.`);
 }
-
 function storageComponents(precision, dtype, label) {
   if (precision !== 'f32' && precision !== 'two-f32') throw new Error(`Rig requires explicit supported ${label} precision.`);
   if (precision === 'two-f32' && !['f32', 'float32'].includes(dtype.toLowerCase())) {
@@ -581,6 +581,9 @@ export function stageSpecialize(lowered) {
     ? storageComponents(storageSession.intermediatePrecision, modelIR.stateSpaces.find(state => state.kind === 'convolutional').contract.dtype, 'convolutional') : 1;
   if (activationComponents === 2 && specialization.recurrentStateBytes > 0 && recurrentComponents !== 2) {
     throw new Error('Rig paired intermediate precision requires paired recurrent state precision.');
+  }
+  if (storageSession?.intermediatePrecision === 'two-f32') {
+    assertPairedExecutionMechanismClosure(manifest.inference.execution);
   }
   const bytesPerActivation = dtypeByteWidth(activationDtype, 'activationDtype') * activationComponents;
   const bytesPerKv = kvDtype === 'f16' ? 2 : 4;
