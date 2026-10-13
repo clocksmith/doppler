@@ -1,0 +1,5 @@
+{
+  "scope": "Scalar call operands, ordering and zero masking; no GPU numerical or compiler proof",
+  "checked": 32,
+  "passed": true
+}

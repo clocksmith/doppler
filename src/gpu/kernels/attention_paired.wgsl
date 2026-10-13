@@ -319,14 +319,24 @@ fn main(@builtin(local_invocation_index) lane: u32, @builtin(workgroup_id) group
                     any_value = 1u;
                 }
             }
-            alpha = vec2<f32>(0.0);
-            if (has_value != 0u) { alpha = pair_exp(pair_add(maximum, -next_max)); }
-            var sum = pair_mul(denominator, alpha);
-            for (var k = 0u; k < 4u; k++) {
-                weights[k] = vec2<f32>(0.0);
-                if (visible(base + k, query_position)) {
-                    weights[k] = pair_exp(pair_add(dots[k * 64u], -next_max));
-                    sum = pair_add(sum, weights[k]);
+            var sum = vec2<f32>(0.0);
+            // Visit the old maximum first, then keys in their original order.
+            // One exponential callsite keeps the paired expansion bounded.
+            for (var slot = 0u; slot < 5u; slot++) {
+                var enabled = has_value != 0u;
+                var score = maximum;
+                if (slot > 0u) {
+                    enabled = visible(base + slot - 1u, query_position);
+                    if (enabled) { score = dots[(slot - 1u) * 64u]; }
+                }
+                var exponential = vec2<f32>(0.0);
+                if (enabled) { exponential = pair_exp(pair_add(score, -next_max)); }
+                if (slot == 0u) {
+                    alpha = exponential;
+                    sum = pair_mul(denominator, alpha);
+                } else {
+                    weights[slot - 1u] = exponential;
+                    if (enabled) { sum = pair_add(sum, exponential); }
                 }
             }
             maximum = next_max; denominator = sum; has_value = any_value;

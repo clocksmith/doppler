@@ -1,0 +1,23 @@
+{
+  "schema": "doppler.attention-compile-probe/v1",
+  "hypothesis": "Two reachable paired exponential callsites inflate Intel compiler memory; one ordered callsite preserves alpha then key weights and sum order while reducing expansion.",
+  "falsifier": "Candidate fails compile/close in 300/10 seconds under 6/8 GiB scope, or original independent attention fixtures exceed unchanged 2e-11.",
+  "sourceBefore": "b64c6c6435094a8cb145585438b80abcac15cfac5c2db741debe07623a31cbbe",
+  "candidate": "78d22e268b2d8d5681e46c4bcd196b78777bde00eeeb06639180db86b44e7358",
+  "runtimeArchive": "5032a459d256ba6a0028803a370ca97ea74cf93859f73682620a6548caf463e4",
+  "fixtureSource": "61d2cf07f17248f45c7ce90b3bc30419856d96951e9f346dce072b9997468b57",
+  "admission": {
+    "observedAt": "2026-10-13T20:12:10.176316+00:00",
+    "scope": "Isolated Suby operator, no model or public processes",
+    "oldSubyGpuOwnership": "Prior attempt normal settlement unknown; no claim its allocations were released",
+    "maxGpuBufferBytes": 1420000000,
+    "memoryHighBytes": 6442450944,
+    "memoryMaxBytes": 8589934592,
+    "swapBytes": 0,
+    "operationMs": 300000,
+    "cleanupMs": 10000,
+    "processDeadlineMs": 310000
+  },
+  "deployment": false,
+  "diagnosticCorrection": "Reserved identifier active renamed enabled after validation failure; no dispatch occurred."
+}

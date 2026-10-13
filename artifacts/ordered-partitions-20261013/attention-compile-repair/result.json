@@ -1,0 +1,148 @@
+{
+  "schema": "doppler.attention-single-exp-probe/v1",
+  "proposal": {
+    "schema": "doppler.attention-compile-probe/v1",
+    "hypothesis": "Two reachable paired exponential callsites inflate Intel compiler memory; one ordered callsite preserves alpha then key weights and sum order while reducing expansion.",
+    "falsifier": "Candidate fails compile/close in 300/10 seconds under 6/8 GiB scope, or original independent attention fixtures exceed unchanged 2e-11.",
+    "sourceBefore": "b64c6c6435094a8cb145585438b80abcac15cfac5c2db741debe07623a31cbbe",
+    "candidate": "78d22e268b2d8d5681e46c4bcd196b78777bde00eeeb06639180db86b44e7358",
+    "runtimeArchive": "5032a459d256ba6a0028803a370ca97ea74cf93859f73682620a6548caf463e4",
+    "fixtureSource": "61d2cf07f17248f45c7ce90b3bc30419856d96951e9f346dce072b9997468b57",
+    "admission": {
+      "observedAt": "2026-10-13T20:12:10.176316+00:00",
+      "scope": "Isolated Suby operator, no model or public processes",
+      "oldSubyGpuOwnership": "Prior attempt normal settlement unknown; no claim its allocations were released",
+      "maxGpuBufferBytes": 1420000000,
+      "memoryHighBytes": 6442450944,
+      "memoryMaxBytes": 8589934592,
+      "swapBytes": 0,
+      "operationMs": 300000,
+      "cleanupMs": 10000,
+      "processDeadlineMs": 310000
+    },
+    "deployment": false,
+    "diagnosticCorrection": "Reserved identifier active renamed enabled after validation failure; no dispatch occurred."
+  },
+  "pid": 981452,
+  "events": [
+    {
+      "phase": "host-open",
+      "at": "2026-10-13T20:13:58.436Z"
+    },
+    {
+      "phase": "pipeline-start",
+      "at": "2026-10-13T20:13:58.680Z"
+    },
+    {
+      "phase": "pipeline-complete",
+      "at": "2026-10-13T20:15:28.402Z"
+    },
+    {
+      "phase": "case-complete",
+      "at": "2026-10-13T20:15:28.429Z",
+      "config": {
+        "tokens": 3,
+        "kv": 7,
+        "heads": 4,
+        "kvheads": 2,
+        "dim": 8,
+        "start": 4,
+        "window": 0
+      },
+      "maxError": 1.0824674490095276e-15
+    },
+    {
+      "phase": "case-complete",
+      "at": "2026-10-13T20:15:28.437Z",
+      "config": {
+        "tokens": 1,
+        "kv": 9,
+        "heads": 2,
+        "kvheads": 1,
+        "dim": 256,
+        "start": 8,
+        "window": 3
+      },
+      "maxError": 5.828670879282072e-16
+    },
+    {
+      "phase": "case-complete",
+      "at": "2026-10-13T20:15:28.438Z",
+      "config": {
+        "tokens": 1,
+        "kv": 3,
+        "heads": 2,
+        "kvheads": 1,
+        "dim": 8,
+        "start": 0,
+        "kvStart": 4,
+        "window": 0
+      },
+      "maxError": 0
+    },
+    {
+      "phase": "device-lost",
+      "at": "2026-10-13T20:15:29.089Z",
+      "reason": "destroyed",
+      "message": "device was destroyed"
+    },
+    {
+      "phase": "finished",
+      "at": "2026-10-13T20:15:29.090Z",
+      "passed": true
+    }
+  ],
+  "rows": [
+    {
+      "config": {
+        "tokens": 3,
+        "kv": 7,
+        "heads": 4,
+        "kvheads": 2,
+        "dim": 8,
+        "start": 4,
+        "window": 0
+      },
+      "maxError": 1.0824674490095276e-15,
+      "passed": true
+    },
+    {
+      "config": {
+        "tokens": 1,
+        "kv": 9,
+        "heads": 2,
+        "kvheads": 1,
+        "dim": 256,
+        "start": 8,
+        "window": 3
+      },
+      "maxError": 5.828670879282072e-16,
+      "passed": true
+    },
+    {
+      "config": {
+        "tokens": 1,
+        "kv": 3,
+        "heads": 2,
+        "kvheads": 1,
+        "dim": 8,
+        "start": 0,
+        "kvStart": 4,
+        "window": 0
+      },
+      "maxError": 0,
+      "passed": true
+    }
+  ],
+  "tolerance": 2e-11,
+  "peakGpuBufferBytes": 21552,
+  "adapter": {
+    "vendor": "intel",
+    "architecture": "gen-12lp",
+    "description": "Intel open-source Mesa driver: Mesa 24.2.8-1ubuntu1~24.04.1"
+  },
+  "errors": [],
+  "operationSettled": true,
+  "hostClosed": true,
+  "passed": true
+}
