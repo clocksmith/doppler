@@ -1,0 +1,22 @@
+{
+  "schema": "doppler.recurrent-compile-memory/v1",
+  "controller": "root Codex on Mac; user instruction to finish runtime repair",
+  "host": "Suby Intel Vulkan",
+  "scope": "One isolated recurrent pipeline compile, no model weights or dispatch",
+  "sourceCommit": "e582a325",
+  "coTenants": {
+    "publicNative": 297260,
+    "publicBrowserController": 299769,
+    "preserve": true,
+    "exclusivePerformanceClaim": false
+  },
+  "memoryHighBytes": 6442450944,
+  "memoryMaxBytes": 8589934592,
+  "memorySwapMaxBytes": 0,
+  "processRuntimeMaxSeconds": 300,
+  "stopTimeoutSeconds": 10,
+  "gpuAllocationCapBytes": 1420000000,
+  "probeSha256": "3dce98393452510967514819e31ff0bd73462b193e3f45f61a82586188ef4123",
+  "initialPreflight": "MemoryOOMGroup property rejected before process launch; OOMPolicy=kill read back memory.oom.group=1 and all memory limits exactly",
+  "approvedAt": "2026-10-13T18:42:14.975725+00:00"
+}
