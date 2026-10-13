@@ -1,0 +1,41 @@
+{
+  "startedAt": "2026-10-13T15:04:40.078Z",
+  "controllerPid": 754212,
+  "before": [
+    " 297260       1 Rsl     13:00:39 node server/native-participant.js --contribute --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory /home/clocksmith/.local/share/reploid/public-native/weights --cache-directory /home/clocksmith/.local/share/reploid/public-native/cache --identity-file /home/clocksmith/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo.id --signaling-url wss://reploid-swarm.reploid.workers.dev/swarm",
+    " 299769       1 Ssl     12:57:25 node scripts/run-mesh-contributor.js --url https://replo.id/ --profile /home/clocksmith/.local/share/reploid/public-compute --model qwen-3-5-0-8b-q4k-ehaf16 --contribute compute --browser chromium"
+  ],
+  "stdout": "",
+  "stderr": "Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 1000000 to 16 to fit dynamic offset allocation limit.\nWarning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 1000000 to 16 to fit dynamic offset allocation limit.\n",
+  "signals": [],
+  "sourceSha256": "b20c708f33ca465621800d3321f9e44558dfa19fb82fc6d6b72b3f51ade92eab",
+  "reservation": {
+    "schema": "doppler.ordered-provider-reservation/v1",
+    "id": "root-suby-tiny-allocation-20261013",
+    "authorizedBy": "root task: bounded Suby native provider adapter/features/limits plus tiny allocation/settlement; no model or MacGPU",
+    "frozenAt": "2026-10-13T15:04:06.235126+00:00",
+    "host": "clocksmith@suby.tail995236.ts.net",
+    "publicNativePid": 297260,
+    "publicBrowserControllerPid": 299769,
+    "coTenancy": "Existing public contributor processes remain running; no exclusive performance claim",
+    "operationDeadlineMs": 45000,
+    "processDeadlineMs": 60000,
+    "explicitBufferBytes": 8192,
+    "runtimeArchiveSha256": "5e0d60bc433d332187d422721fd7afcaec780c202e3082adcab389b47fd27fc5",
+    "sources": {
+      "provider.js": "b20c708f33ca465621800d3321f9e44558dfa19fb82fc6d6b72b3f51ade92eab",
+      "verify.js": "35d59e40d763c30e9d0d688d568a4d13c4c9949445f36fd9eebf97c205bd2c9b"
+    }
+  },
+  "pid": 754223,
+  "exit": {
+    "code": 0,
+    "signal": null,
+    "at": "2026-10-13T15:04:41.453Z"
+  },
+  "after": [
+    " 297260       1 Rsl     13:00:41 node server/native-participant.js --contribute --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory /home/clocksmith/.local/share/reploid/public-native/weights --cache-directory /home/clocksmith/.local/share/reploid/public-native/cache --identity-file /home/clocksmith/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo.id --signaling-url wss://reploid-swarm.reploid.workers.dev/swarm",
+    " 299769       1 Ssl     12:57:26 node scripts/run-mesh-contributor.js --url https://replo.id/ --profile /home/clocksmith/.local/share/reploid/public-compute --model qwen-3-5-0-8b-q4k-ehaf16 --contribute compute --browser chromium"
+  ],
+  "naturalExit": true
+}

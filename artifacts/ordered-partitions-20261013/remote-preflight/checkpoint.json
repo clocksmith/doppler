@@ -1,0 +1,44 @@
+{
+  "schema": "doppler.ordered-remote-preflight-checkpoint/v1",
+  "archiveSha256": "5e0d60bc433d332187d422721fd7afcaec780c202e3082adcab389b47fd27fc5",
+  "remoteDirectory": "/var/tmp/doppler-ordered-provider-20261013",
+  "hosts": [
+    "x@128.tail995236.ts.net",
+    "clocksmith@suby.tail995236.ts.net"
+  ],
+  "installedFilesEach": 1976,
+  "verifiedModelShardsEach": 18,
+  "tokenizerEach": {
+    "source": "/var/tmp/reploid-closure-model-20261013/tokenizer.json",
+    "size": 9088480,
+    "sha256": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4"
+  },
+  "installedPublicContractChecksEach": "2/3/4/7-stage plans, activation bit preservation, invalid stride rejection, factory export and generation digest passed",
+  "subyOwnedPid": 754223,
+  "naturalExit": true,
+  "queueSettled": true,
+  "readbackPassed": true,
+  "deviceDestroyed": true,
+  "gpuExplicitBytes": 8192,
+  "shaderDispatches": 0,
+  "modelLoads": 0,
+  "publicContributorsUntouched": true,
+  "numericalQualification": false,
+  "fullModelCompatibility": "not established",
+  "sources": {
+    "provider.js": "b20c708f33ca465621800d3321f9e44558dfa19fb82fc6d6b72b3f51ade92eab",
+    "controller.js": "ea7420e6abe883802f775f3e93504f9adae4841797b85252c402c2522150b0c0",
+    "verify.js": "35d59e40d763c30e9d0d688d568a4d13c4c9949445f36fd9eebf97c205bd2c9b"
+  },
+  "receipts": {
+    "tokenizer-expected.json": "aa93e270966e28e6e8fcc57d8653612984aeef008850805f3e3b2490297e9be5",
+    "suby-installation.json": "92ab4271aac8ff091e2d215f1e17f38e2e607c541ddf7fb6f234310c7de19914",
+    "suby-process.json": "b84992f8484f3820eaabdb7628cbeca9b0546fbf5ff42fd0fad844b3a5773227",
+    "amd-installation.json": "a74fef0c1a43ced3b3b12c4f1d01f51a41f0a4039796e663bda448d77f143993",
+    "reservation.json": "5d691e8cd2e5739170cdc590d1dd59823250c02fbc376be4981ef208a276b45a",
+    "suby-provider.json": "2a0ea38144ed1ad15a19e56d5c353599190008d08ec0e25cd5ba1536f26b6777",
+    "amd-model-layout.json": "75c74354900a7dc9a7db58a2190508b4288143abc4055a5d1c875e9bce026f21",
+    "suby-model-layout.json": "75c74354900a7dc9a7db58a2190508b4288143abc4055a5d1c875e9bce026f21"
+  },
+  "preparedModelDirectoryEach": "/var/tmp/doppler-ordered-provider-20261013/model"
+}
