@@ -1,0 +1,27 @@
+{
+  "schema": "doppler.recurrent-phases-compile/v1",
+  "scope": "Four recurrent compiler phases only; no numerical dispatch",
+  "unit": "reploid-recurrent-phases-20261013.scope",
+  "memoryHighBytes": 6442450944,
+  "memoryMaxBytes": 8589934592,
+  "memorySwapMaxBytes": 0,
+  "deadlineSeconds": 300,
+  "shaders": [
+    {
+      "file": "recurrent-qk.wgsl",
+      "sha256": "1ab3992cd7765318c33a0c41054b9114e7d5a4a2310999cdeb364293f375cade"
+    },
+    {
+      "file": "recurrent-state.wgsl",
+      "sha256": "adffb6fe35ced19a64b2fb4411da248e86c83ab14ae423818e02cb03fd8fc40b"
+    },
+    {
+      "file": "recurrent-norm.wgsl",
+      "sha256": "7c02751b01856fc2dc838c583b509672286d0ed0ac6b73e4125c3eef3975fe51"
+    },
+    {
+      "file": "recurrent-gate.wgsl",
+      "sha256": "5633fa928d8c81b46d05d3c245ef340f072c37f3bcd6055e73f880826b916af7"
+    }
+  ]
+}

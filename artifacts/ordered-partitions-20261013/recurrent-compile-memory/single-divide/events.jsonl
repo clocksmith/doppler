@@ -1,0 +1,10 @@
+{"phase":"limits-and-inputs-verified","at":"2026-10-13T19:07:13.845Z","pid":931876,"rss":69038080,"cgroup":"/user.slice/user-1000.slice/user@1000.service/app.slice/reploid-single-divide-20261013.scope","manifest":{"schema":"doppler.recurrent-phases-compile/v1","scope":"Gating compiler control with one sigmoid division callsite; no dispatch","unit":"reploid-single-divide-20261013.scope","memoryHighBytes":6442450944,"memoryMaxBytes":8589934592,"memorySwapMaxBytes":0,"deadlineSeconds":300,"shaders":[{"file":"gated_delta_gate_paired.wgsl","sha256":"240cda5577bc57edd48185717ee6a92106053b5c9a6bf48ed691381bae1c816f"}]}}
+{"phase":"host-open","at":"2026-10-13T19:07:13.887Z","pid":931876,"rss":69234688}
+{"phase":"adapter","at":"2026-10-13T19:07:13.903Z","pid":931876,"rss":129003520,"vendor":"intel","architecture":"gen-12lp","device":"intel-r-uhd-graphics-tgl-gt2-","description":"Intel open-source Mesa driver: Mesa 24.2.8-1ubuntu1~24.04.1"}
+{"phase":"shader-module-start","at":"2026-10-13T19:07:14.008Z","pid":931876,"rss":160538624,"file":"gated_delta_gate_paired.wgsl","sha256":"240cda5577bc57edd48185717ee6a92106053b5c9a6bf48ed691381bae1c816f"}
+{"phase":"shader-module-complete","at":"2026-10-13T19:07:14.011Z","pid":931876,"rss":164339712,"errors":[]}
+{"phase":"pipeline-start","at":"2026-10-13T19:07:14.011Z","pid":931876,"rss":164339712,"file":"gated_delta_gate_paired.wgsl"}
+{"phase":"pipeline-complete","at":"2026-10-13T19:07:44.179Z","pid":931876,"rss":1454137344,"file":"gated_delta_gate_paired.wgsl"}
+{"phase":"host-close-start","at":"2026-10-13T19:07:44.179Z","pid":931876,"rss":1454137344}
+{"phase":"device-lost","at":"2026-10-13T19:07:44.937Z","pid":931876,"rss":1484152832,"reason":"destroyed","message":"device was destroyed"}
+{"phase":"host-close-complete","at":"2026-10-13T19:07:44.938Z","pid":931876,"rss":1484152832}

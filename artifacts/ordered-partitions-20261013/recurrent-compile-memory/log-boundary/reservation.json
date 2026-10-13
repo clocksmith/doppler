@@ -1,0 +1,15 @@
+{
+  "schema": "doppler.recurrent-phases-compile/v1",
+  "scope": "Exact original A/bias operands and captured scale, internal softplus boundary readback",
+  "unit": "reploid-log-boundary-20261013.scope",
+  "memoryHighBytes": 6442450944,
+  "memoryMaxBytes": 8589934592,
+  "memorySwapMaxBytes": 0,
+  "deadlineSeconds": 300,
+  "shaders": [
+    {
+      "file": "probe.wgsl",
+      "sha256": "892210c7a867709ca715cdad54973a0cedfabb79d724ce72deda3de4a7937b9b"
+    }
+  ]
+}

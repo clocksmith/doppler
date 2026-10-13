@@ -1,0 +1,15 @@
+{
+  "schema": "doppler.recurrent-phases-compile/v1",
+  "scope": "Gating compiler control with one sigmoid division callsite; no dispatch",
+  "unit": "reploid-single-divide-20261013.scope",
+  "memoryHighBytes": 6442450944,
+  "memoryMaxBytes": 8589934592,
+  "memorySwapMaxBytes": 0,
+  "deadlineSeconds": 300,
+  "shaders": [
+    {
+      "file": "gated_delta_gate_paired.wgsl",
+      "sha256": "240cda5577bc57edd48185717ee6a92106053b5c9a6bf48ed691381bae1c816f"
+    }
+  ]
+}

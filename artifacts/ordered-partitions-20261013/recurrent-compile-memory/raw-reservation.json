@@ -1,0 +1,12 @@
+{
+  "schema": "doppler.recurrent-compile-memory/v1",
+  "scope": "Compiler-only recurrent raw-output decomposition; no weights or dispatch; not numerical qualification",
+  "unit": "reploid-recurrent-raw-20261013.scope",
+  "memoryHighBytes": 6442450944,
+  "memoryMaxBytes": 8589934592,
+  "memorySwapMaxBytes": 0,
+  "deadlineSeconds": 300,
+  "shaderSha256": "d6c44e033a8f36bbbb10528f1af79fc6de22d433fc4398167603ba79c2bd472d",
+  "probeSha256": "52a949f790ced4127adac5e111ddff935d848dcb9600b21d844c857e9fbcb8eb",
+  "hypothesis": "Removing output normalization and SiLU from the recurrent shader prevents the observed Intel compiler crash; if compilation still fails this decomposition is insufficient."
+}

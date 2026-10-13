@@ -1,0 +1,45 @@
+{
+  "schema": "doppler.recurrent-compile-decomposition/v1",
+  "rawOnly": {
+    "passed": false,
+    "stop": {
+      "at": "2026-10-13T18:58:04.271973+00:00",
+      "action": "SIGTERM owned reduced-shader provider",
+      "pid": 923613,
+      "reason": "Reduced shader still crosses 6 GiB memory.high and incurs reclaim pressure; reject this decomposition without waiting for global pressure",
+      "cmdline": "/usr/bin/node /var/tmp/reploid-recurrent-memory-20261013/raw-probe.js /var/tmp/doppler-gate-phases-control-20261013/reploid /var/tmp/reploid-recurrent-memory-20261013/recurrent-raw.wgsl /var/tmp/reploid-recurrent-memory-20261013/raw-events.jsonl "
+    },
+    "lastObservation": {
+      "at": "2026-10-13T18:58:04.635Z",
+      "phase": "provider-exit",
+      "code": null,
+      "signal": "SIGTERM",
+      "memory.current": "12304384",
+      "memory.peak": "6578241536",
+      "memory.events": "low 0\nhigh 88792\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "cleanup": "Read provider events; exit alone does not establish GPU settlement."
+    }
+  },
+  "fourPhases": {
+    "passed": false,
+    "compiled": [
+      "recurrent-qk.wgsl",
+      "recurrent-state.wgsl",
+      "recurrent-norm.wgsl"
+    ],
+    "notCompleted": "recurrent-gate.wgsl",
+    "lastObservation": {
+      "at": "2026-10-13T19:04:35.533Z",
+      "phase": "provider-exit",
+      "code": null,
+      "signal": "SIGTERM",
+      "memory.current": "11403264",
+      "memory.peak": "6575853568",
+      "memory.events": "low 0\nhigh 84047\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "cleanup": "Read provider events; exit alone does not establish GPU settlement."
+    },
+    "normalGpuSettlement": false
+  },
+  "publicRuntimeChanged": false,
+  "noNumericalDispatch": true
+}
