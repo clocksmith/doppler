@@ -1,6 +1,7 @@
 import { resolveExecutionRegistries, assertExecutionRegistriesAccepted } from '../../config/execution-registry-contract.js';
 import { hashTargetPlan, assertQualifiedTargetOperation, assertQualifiedResidentPartition, normalizeTargetPlanSelectionPolicy } from '../../config/target-plan.js';
 import { GENERATION_CONTRACT } from '../../config/generation-contract.js';
+import { ORDERED_LAYER_PARTITION_SCHEMA } from '../../config/layer-partition-plan.js';
 import { canonicalGenerationIdentity } from '../../config/canonical-generation-policy.js';
 import { getRequiredWgslFeatures, assertWgslFeaturesSupported } from '../../config/wgsl-language-contract.js';
 import { assertInitialExecutionIdentity } from '../../config/initial-execution-identity.js';
@@ -356,8 +357,9 @@ export function createDopplerRun(ports) {
         };
         if (residentAllocation) {
           const resident = program.residentPartition;
-          const requiredMethods = ['getDescriptor', 'getRecoveryCapabilities', 'tokenize',
-            'executeGroup0', 'executeGroup1', 'closeAttempt', 'close'];
+          const ordered = residentAllocation.plan.schema === ORDERED_LAYER_PARTITION_SCHEMA;
+          const requiredMethods = ['getDescriptor', 'getRecoveryCapabilities', 'tokenize', 'closeAttempt', 'close',
+            ...(ordered ? ['executeStage'] : ['executeGroup0', 'executeGroup1'])];
           if (!resident || requiredMethods.some(method => typeof resident[method] !== 'function')) {
             throw new Error('Loaded resident is missing required partition methods.');
           }
@@ -380,7 +382,8 @@ export function createDopplerRun(ports) {
           const recoveryCapabilities = Object.freeze({ schema: recovery.schema, inputReplay: false,
             checkpointExport: false, checkpointImport: false });
           const descriptor = resident.getDescriptor();
-          if (descriptor?.schema !== 'doppler.resident-partition/v1' || descriptor.ready !== true
+          if (descriptor?.schema !== (ordered ? 'doppler.resident-partition/v2' : 'doppler.resident-partition/v1')
+            || (ordered && descriptor.stageCount !== residentAllocation.plan.stageCount) || descriptor.ready !== true
             || descriptor.modelId !== capsule.modelId || descriptor.modelIdentity !== manifestArtifact.hash
             || descriptor.planId !== residentAllocation.planId || descriptor.index !== residentAllocation.index
             || JSON.stringify(descriptor.layerRange) !== JSON.stringify(residentAllocation.plan.partitions[residentAllocation.index].layerRange)
@@ -391,6 +394,8 @@ export function createDopplerRun(ports) {
           const invokeResident = async (method, request) => {
             if (closed) throw new Error('Capsule runtime session is closed.');
             if (canonicalMethods.includes(method) && !canonical) throw new Error('Canonical resident execution was not allocated.');
+            if (ordered && ['executeGroup0', 'executeGroup1'].includes(method)) throw new Error('Legacy groups cannot execute an ordered allocation.');
+            if (!ordered && method === 'executeStage') throw new Error('Ordered stage execution requires a v3 layer plan.');
             releaseAuthorization.assertAssignment(residentAllocation);
             const { signal, ...data } = request;
             const snapshot = { ...structuredClone(data), signal };
@@ -403,6 +408,7 @@ export function createDopplerRun(ports) {
             getRecoveryCapabilities: () => recoveryCapabilities,
             getCanonicalGeneration: () => canonical,
             tokenize: request => invokeResident('tokenize', request),
+            executeStage: request => invokeResident('executeStage', request),
             executeGroup0: request => invokeResident('executeGroup0', request),
             executeGroup1: request => invokeResident('executeGroup1', request),
             admitCanonicalPrompt: request => invokeResident('admitCanonicalPrompt', request),
