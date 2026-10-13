@@ -37,3 +37,13 @@ Preparation, observed execution, export, attempt/resident/provider close passed;
 ## Buffer identity control
 
 `ownership-result.json.gz` and `ownership-captures.json.gz` retain invocation `210b4c33cf3b4871b8432e74673af6c2`. The two layer-16 captures bind the same GPUBuffer and reproduce distinct snapshots. The layer-plan slot breakpoints produced no events: this execution uses the standard layer/FFN path. The previous description of the interval as slot cleanup was an unproven assumption; the actual interval crosses standard FFN cleanup. `ownership-comparison.json` records this limitation rather than claiming the output was released. Preparation, observed execution, attempt/resident/provider closure passed; provider exited zero, host peak 1,288,044,544 bytes, no OOM.
+
+## Standard FFN cleanup control
+
+`ffn-ownership-result.json.gz` and `ffn-ownership-captures.json.gz` retain invocation `c890c271ce974d3eabfea1617cfc32ec`. Canonical snapshots still change across standard FFN cleanup. Its returned output is buffer 1; cleanup releases distinct buffers 2, 3, 5 and 4. No release of output 1 occurs between its two captures. `ffn-ownership-comparison.json` therefore falsifies premature output release in this control. Later releases/reacquisitions belong to subsequent work and do not prove an earlier use-after-free. Readback/provider behavior versus earlier model dispatch remains unresolved. Attempt/resident/provider close passed; provider exit zero, host peak 1,282,273,280 bytes, no OOM.
+
+## Isolated immutable readback
+
+`readback-control.js` opens the same installed native Vulkan provider and verified 1,984-file runtime, uploads the original 1,507,328 activation bytes without model dispatch, and uses the canonical snapshot API eight times. `readback-bound-result.json` records all eight storage digests equal to the original, queue settlement and host close. This falsifies corruption caused by isolated copying/readback/staging retirement; it does not rule out an interaction with model dispatch or allocation retirement. The next discriminator is a minimal paired compute result captured repeatedly with and without intervening temporary-buffer retirement, under the same provider.
+
+The first launcher lacked its remote input and never opened a provider. The next omitted the debug module's required device binding and rejected snapshot acquisition; `readback-unbound-control.js` and `readback-unbound-result.json` retain that setup failure. The corrected observer binds the same owned device and clears it on close. These controls do not modify the archive, model arithmetic, reference, or release acceptance.
