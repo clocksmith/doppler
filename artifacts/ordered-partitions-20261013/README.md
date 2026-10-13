@@ -1,0 +1,5 @@
+Component: Doppler text pipeline partition contracts. Intent: preserved, extended to explicit ordered geometry by user direction.
+
+The first restriction was the two-group plan constructor and resolver; resident identity, A/B execution methods and signed TargetPlan qualification remain separate two-stage restrictions. The v3 plan extension validates 2/3/4/7 contiguous stages with scalar F32, F16 and paired F32 activation contracts. It rejects malformed cuts, stage order/coverage/roles/layouts, unexpected fields and a different model. Fixed legacy v1/v2 digests remain unchanged.
+
+CPU validation: ordered-layer-partition-contract, layer-partition-contract and paired-partition-contract tests; source types/style/architecture and exports parity. The before failure is retained. No GPU, kernel, public pin, speculative decoding or arbitrary-topology qualification is implied. The next dependent delta is a generic resident stage port; application transport/admission and genuine physical evidence remain required.
