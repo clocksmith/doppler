@@ -1,0 +1,507 @@
+{
+  "archiveSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "runtime": "/var/tmp/doppler-resident-preparation-candidate-20261012/consumer/node_modules/doppler-gpu",
+  "identity": {
+    "schema": "doppler.capsule/v3",
+    "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v3-7391e1f4f7579af308808d371119c7e42b40acc1b00df5f42325d41d4febd083",
+    "semanticRoot": "sha256:7391e1f4f7579af308808d371119c7e42b40acc1b00df5f42325d41d4febd083",
+    "envelopeDigest": "sha256:1a1b1c4bb093fb8046d5ab193ddfd5433ed0926ff30732414814c3eed0d1ac23",
+    "artifactClosureDigest": "sha256:974d166e3d7a04aec52cc89f46eb31fa25511cb8df2cb3a8f45c25e064e21fe1"
+  },
+  "artifactReceipts": [
+    {
+      "artifactId": "host-source:text-generation-d7abaa224ec64128.js:d7abaa224ec6",
+      "hash": "sha256:d7abaa224ec64128fb195e238b5ce3b0fabfc00b46406e5d4a0195ff1a03da15",
+      "sizeBytes": 1096
+    },
+    {
+      "artifactId": "manifest:manifest.json:709894a75b42",
+      "hash": "sha256:709894a75b4200c111fb7dbb6c9435c8fd69710949ea8ba486cf93f38582fdd3",
+      "sizeBytes": 220135
+    },
+    {
+      "artifactId": "reference-report:generation-report.json:549d256e6839",
+      "hash": "sha256:549d256e6839c2530e6cd9676bc9a6b81e531f3f1ff1b0443b59b5e5180a344b",
+      "sizeBytes": 5329
+    },
+    {
+      "artifactId": "tokenizer:tokenizer.json:8fc3b6de02de",
+      "hash": "sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+      "sizeBytes": 9088480
+    },
+    {
+      "artifactId": "weight-shard:shard_00000.bin:96d19964c144",
+      "hash": "sha256:96d19964c1444a98030586ba141b7b0c891fab95c52fb2c4429618a3ea711d1f",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00001.bin:c6dbd495c644",
+      "hash": "sha256:c6dbd495c64493cc0964d49f26a2b7f18319da95d6122c4f7a2d09d6a5d9459e",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00002.bin:8afc35b2a6dc",
+      "hash": "sha256:8afc35b2a6dc0f6bbf5de2cea79f8f53f199cec03a66d8cf5a117b724ba00dec",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00003.bin:735461c98192",
+      "hash": "sha256:735461c9819224e8c3faf8cfd7f2069dab97ed824556184990f795a32c305b29",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00004.bin:3cbdeb4e0c25",
+      "hash": "sha256:3cbdeb4e0c2505038e4313c91580511f5175d9108ab05652f69040452b282f69",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00005.bin:e34e6f23816d",
+      "hash": "sha256:e34e6f23816d5cdaf1e16dfbf0d3f537d18fe673764d680d64245c84bfbf21b4",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00006.bin:70b3d422749e",
+      "hash": "sha256:70b3d422749e585719659b9e7627901d6aa1759851e717aec2abd8a96aab9313",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00007.bin:e564556babdf",
+      "hash": "sha256:e564556babdfbb1baffab20a3778a434a0632047ff9347d203a19a9c818a89d4",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00008.bin:82cd4797be5a",
+      "hash": "sha256:82cd4797be5ab68f782ed7aae634ee38e472f4c4187c9b835df649e7aa79da55",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00009.bin:294432c344a6",
+      "hash": "sha256:294432c344a641b36daca64e82f00c727c74fa131804e1430796b4c3b139ad7b",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00010.bin:1290c563dc82",
+      "hash": "sha256:1290c563dc8242a983122e16397c75fd3d700acbcec9d96ee94d5eb2f63c795e",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00011.bin:4f9be8b80afc",
+      "hash": "sha256:4f9be8b80afcb3b6780a6e450fe9b57827ceb227e197dcdb9343b8d3adab0387",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00012.bin:93daf25bb1b1",
+      "hash": "sha256:93daf25bb1b1d4155b95f4b3969891220f66a66f71b00fe63a7f092967a7b668",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00013.bin:a9926de9af0b",
+      "hash": "sha256:a9926de9af0b1bb05ac2b2a6b9bad1645b9a3fc3f740105b97e064959b12e690",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00014.bin:b338167c0c6a",
+      "hash": "sha256:b338167c0c6a7bb0c967c73b0730d212f1ad718a899a8db50fef8b332eed66a8",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00015.bin:8bc98ed89194",
+      "hash": "sha256:8bc98ed891947db766df770d7c52eb2afd6c8c3a827981ddae7e52d2caeae455",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00016.bin:914114c15d53",
+      "hash": "sha256:914114c15d53702fedcd5bcbb153a4120b13fb45883ff76dabf9052fa8c9d266",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00017.bin:d8fb99646d52",
+      "hash": "sha256:d8fb99646d5213b1b2609899a7d86cfb8a6b8d02b9aa934f1fade2a3f8f54c78",
+      "sizeBytes": 5198016
+    },
+    {
+      "artifactId": "wgsl-source:add-cab798dccf5c0990.wgsl:cab798dccf5c",
+      "hash": "sha256:cab798dccf5c099019eadf4b974ee4fe1f141c6a90552930ea014a84c8aac2b5",
+      "sizeBytes": 12530
+    },
+    {
+      "artifactId": "wgsl-source:attention-50f2bd098df6182b.wgsl:50f2bd098df6",
+      "hash": "sha256:50f2bd098df6182bfb544a110c3ceaa9cb72a4d456dfd501fcd44a774dc15ac6",
+      "sizeBytes": 15954
+    },
+    {
+      "artifactId": "wgsl-source:cast_f32_to_two_f32-059179f0bb62747b.wgsl:059179f0bb62",
+      "hash": "sha256:059179f0bb62747bda43dec235fb1f873d22cd068bda37bf478b944e02297ebc",
+      "sizeBytes": 622
+    },
+    {
+      "artifactId": "wgsl-source:cast_two_f32_to_f16-e13bbba70e0c7b93.wgsl:e13bbba70e0c",
+      "hash": "sha256:e13bbba70e0c7b9363b5ecf0d38e1f665dff7791d73283f4a6037879a2d33983",
+      "sizeBytes": 2428
+    },
+    {
+      "artifactId": "wgsl-source:embed-838e3c69451d02fe.wgsl:838e3c69451d",
+      "hash": "sha256:838e3c69451d02fee30839fd30621d28d8a0f5861c862a568ca4de72870b0b15",
+      "sizeBytes": 2538
+    },
+    {
+      "artifactId": "wgsl-source:gated_delta_conv_paired-0fb5aa93ce12af03.wgsl:0fb5aa93ce12",
+      "hash": "sha256:0fb5aa93ce12af034089dc673170a4e59ee8f132b000ce946fcb98cfa80acaf9",
+      "sizeBytes": 13359
+    },
+    {
+      "artifactId": "wgsl-source:gated_delta_recurrent_paired-985a8ac0462d8078.wgsl:985a8ac0462d",
+      "hash": "sha256:985a8ac0462d80782f6e2dceffa30295e2d95e884b567a7099a0fafd945a89e6",
+      "sizeBytes": 16655
+    },
+    {
+      "artifactId": "wgsl-source:gather_f16_vec4-a500eb8ca2a1ff7d.wgsl:a500eb8ca2a1",
+      "hash": "sha256:a500eb8ca2a1ff7d6f19344a4d3ec0c9619ca15455f029aa601921d1917971f3",
+      "sizeBytes": 2810
+    },
+    {
+      "artifactId": "wgsl-source:gather_split8_f16_vec4_f32_out-57d5326f08951af3.wgsl:57d5326f0895",
+      "hash": "sha256:57d5326f08951af3389f266fb4ca6f50fc501eb3d6bdb1187fb7f2f3b10b51db",
+      "sizeBytes": 6176
+    },
+    {
+      "artifactId": "wgsl-source:head-11560959ed63bda0.wgsl:11560959ed63",
+      "hash": "sha256:11560959ed63bda0dac6937a486dc1544bfed457142fccfb168da7782e10f6ca",
+      "sizeBytes": 14870
+    },
+    {
+      "artifactId": "wgsl-source:logit_finalize_f32-b20df676b5813f25.wgsl:b20df676b581",
+      "hash": "sha256:b20df676b5813f258a5e32eb11cb34ce4e5c2aafc7e4b1e469c07bb861e7522f",
+      "sizeBytes": 1139
+    },
+    {
+      "artifactId": "wgsl-source:norm-fa40d4862756e731.wgsl:fa40d4862756",
+      "hash": "sha256:fa40d4862756e731df7ba7a03af5874c214dcaa1b518a9c6a87b3e344dfa540a",
+      "sizeBytes": 14515
+    },
+    {
+      "artifactId": "wgsl-source:paired_pointwise_add-cab798dccf5c0990.wgsl:cab798dccf5c",
+      "hash": "sha256:cab798dccf5c099019eadf4b974ee4fe1f141c6a90552930ea014a84c8aac2b5",
+      "sizeBytes": 12530
+    },
+    {
+      "artifactId": "wgsl-source:paired_pointwise_multiply-26171de864b83ea9.wgsl:26171de864b8",
+      "hash": "sha256:26171de864b83ea9018b20293b444c7d37be772a1ad0b35f1828f87480f8f800",
+      "sizeBytes": 12485
+    },
+    {
+      "artifactId": "wgsl-source:paired_pointwise_scale_inplace-b63975f606f17c45.wgsl:b63975f606f1",
+      "hash": "sha256:b63975f606f17c45f058fb97ab01836c1686147205d87ff2bc6dab11ef5d4f64",
+      "sizeBytes": 12394
+    },
+    {
+      "artifactId": "wgsl-source:paired_pointwise_scale-69f66c399e02354b.wgsl:69f66c399e02",
+      "hash": "sha256:69f66c399e02354b86a15731f43a7fc7847f8a251325e3b240f0ea8fb0d24611",
+      "sizeBytes": 12452
+    },
+    {
+      "artifactId": "wgsl-source:paired_pointwise_sigmoid-2f068268f289c52f.wgsl:2f068268f289",
+      "hash": "sha256:2f068268f289c52f40a51207288c290ab6b69573dfaef700351f73ed7b6d3adf",
+      "sizeBytes": 12694
+    },
+    {
+      "artifactId": "wgsl-source:paired_pointwise_silu_unary-f3d92ae3a9e45373.wgsl:f3d92ae3a9e4",
+      "hash": "sha256:f3d92ae3a9e45373b6d95a0c59b9cc83d9faed825544af62805d8a1318c84e3a",
+      "sizeBytes": 12418
+    },
+    {
+      "artifactId": "wgsl-source:paired_pointwise_silu-e8d2711799d30745.wgsl:e8d2711799d3",
+      "hash": "sha256:e8d2711799d307451b8792f700900efa74f63a88c663210ffbecffcd48d427bf",
+      "sizeBytes": 12691
+    },
+    {
+      "artifactId": "wgsl-source:projection_f16-11560959ed63bda0.wgsl:11560959ed63",
+      "hash": "sha256:11560959ed63bda0dac6937a486dc1544bfed457142fccfb168da7782e10f6ca",
+      "sizeBytes": 14870
+    },
+    {
+      "artifactId": "wgsl-source:projection_q4-11560959ed63bda0.wgsl:11560959ed63",
+      "hash": "sha256:11560959ed63bda0dac6937a486dc1544bfed457142fccfb168da7782e10f6ca",
+      "sizeBytes": 14870
+    },
+    {
+      "artifactId": "wgsl-source:rope_precompute_paired-3342e61b52a62286.wgsl:3342e61b52a6",
+      "hash": "sha256:3342e61b52a62286e4e6b3edb60899b06556608dbc5030771a2b9db50e640523",
+      "sizeBytes": 13181
+    },
+    {
+      "artifactId": "wgsl-source:rope-6e665fc250cdc22d.wgsl:6e665fc250cd",
+      "hash": "sha256:6e665fc250cdc22dd271b9bbc65b6ce2594da2aff4c22987ca20f80b130857b0",
+      "sizeBytes": 15224
+    },
+    {
+      "artifactId": "wgsl-source:sample-634764ad77570805.wgsl:634764ad7757",
+      "hash": "sha256:634764ad775708050071fc9113a5ecf5efd1c0da99b6e15ccd9f0c4116b65366",
+      "sizeBytes": 12654
+    },
+    {
+      "artifactId": "wgsl-source:silu-e8d2711799d30745.wgsl:e8d2711799d3",
+      "hash": "sha256:e8d2711799d307451b8792f700900efa74f63a88c663210ffbecffcd48d427bf",
+      "sizeBytes": 12691
+    },
+    {
+      "artifactId": "wgsl-source:split_qg_paired-e5c945262f0badc9.wgsl:e5c945262f0b",
+      "hash": "sha256:e5c945262f0badc9ae0ce4fdce4f9ac007a1a244dc49f5692d0a4b52490c765f",
+      "sizeBytes": 2172
+    },
+    {
+      "artifactId": "wgsl-source:split_qkv_paired-8b1e90e4e34643b5.wgsl:8b1e90e4e346",
+      "hash": "sha256:8b1e90e4e34643b523f331e82ae6cc90f4c37e7404a9cb8e1993dbd841e5c733",
+      "sizeBytes": 2158
+    },
+    {
+      "artifactId": "qualification-evidence:qualification-browser-webgpu-e9493673be20.json:e9493673be20",
+      "hash": "sha256:e9493673be20f4062c818c3ba540589c9b8bcc3cc506fb8bb24fe1adaf37136d",
+      "sizeBytes": 46711
+    },
+    {
+      "artifactId": "qualification-evidence:qualification-node-webgpu-9c7c794662f0.json:9c7c794662f0",
+      "hash": "sha256:9c7c794662f067b1b82df9347ddeb9a9a8fc9af0e6814fff259cdaca85fb7bf4",
+      "sizeBytes": 57954
+    },
+    {
+      "artifactId": "qualification-evidence:qualification-node-webgpu-d752614bcd73.json:d752614bcd73",
+      "hash": "sha256:d752614bcd7331edc20c1775f5816e53a8fbc3c4fd33173efe70b840110e76cc",
+      "sizeBytes": 57954
+    },
+    {
+      "artifactId": "qualification-evidence:qualification-browser-webgpu-dfc78b5808e7.json:dfc78b5808e7",
+      "hash": "sha256:dfc78b5808e70137cf70053e61064557f66200d3eb84cc3bd9faf90bdb140fae",
+      "sizeBytes": 46711
+    },
+    {
+      "artifactId": "qualification-evidence:resident-qualification-contract.json:baab7b442031",
+      "hash": "sha256:baab7b442031607d8cf3ade4b4bd37eb6ee8995034f8c5e38f2730284ac2357c",
+      "sizeBytes": 294
+    },
+    {
+      "artifactId": "piece-index:pieces.json:e964efdd3818",
+      "hash": "sha256:e964efdd3818c0841dfdd3972f571d2391b49a7acafe302120b7567f8167e8a5",
+      "sizeBytes": 94223
+    },
+    {
+      "artifactId": "source-truth-evidence:model-ir-074ad8ac8e84.json:074ad8ac8e84",
+      "hash": "sha256:074ad8ac8e847fa960ccf3e06e9d24243348e892f7a7cc78d5879a3662090a77",
+      "sizeBytes": 63809
+    },
+    {
+      "artifactId": "program-bundle:program-bundle.json:9c7500c6e72b",
+      "hash": "sha256:9c7500c6e72bc8a0f65f4deb91f8613640aab3d1c06fff9ce45332b99dbb8017",
+      "sizeBytes": 144180
+    }
+  ],
+  "lifecycle": {
+    "release": {
+      "application": {
+        "applicationId": "reploid-resident-qualification",
+        "applicationRevision": "sha256:e9f3b8f266382d0aa36980fea657004a286fb66ff58e7d8e56e14d6acb4a6a3a",
+        "applicationRevisionDigest": "sha256:e9f3b8f266382d0aa36980fea657004a286fb66ff58e7d8e56e14d6acb4a6a3a",
+        "oracle": {
+          "digest": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+          "id": "approved-independent-f64"
+        },
+        "workload": {
+          "digest": "sha256:794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e",
+          "id": "frozen-three-request-fifty-five-prefixes"
+        }
+      },
+      "exclusions": {
+        "known": [
+          {
+            "code": "application-gate-failed",
+            "evidenceDigest": "sha256:f10a88fef5f8a7125d1a5ac5d2261b0cd5e845eae60832369c0293ce68f71005",
+            "reason": "Direct browser/Node resident numerical comparison passed; this corrected signed opening and demanding concurrency remain unqualified. Local qualification only.",
+            "scope": "public-chat-release"
+          },
+          {
+            "code": "unsupported-device",
+            "evidenceDigest": "sha256:f10a88fef5f8a7125d1a5ac5d2261b0cd5e845eae60832369c0293ce68f71005",
+            "reason": "Evidence covers the recorded Mac browser and AMD Node provider in both partition roles. Other providers, browser AMD on these exact bytes and Suby are not qualified by these reports.",
+            "scope": "unobserved-gpu-provider-tuples"
+          },
+          {
+            "code": "application-gate-failed",
+            "evidenceDigest": "sha256:f10a88fef5f8a7125d1a5ac5d2261b0cd5e845eae60832369c0293ce68f71005",
+            "reason": "Prior same-runtime cold AMD Node recurrent pipeline preparation took 743.124 seconds and exceeded the 300-second responsiveness bound; current shared-cache qualification does not establish cold startup responsiveness.",
+            "scope": "cold-start-responsiveness"
+          }
+        ],
+        "rejectionTypes": [
+          "acceptance-failed",
+          "application-gate-failed",
+          "artifact-invalid",
+          "evidence-expired",
+          "migration-required",
+          "revoked",
+          "unsupported-device"
+        ]
+      },
+      "lifecycle": {
+        "failedUpgrade": {
+          "preservePrevious": true,
+          "previousCapsuleId": null,
+          "previousSemanticRoot": null
+        },
+        "migration": null,
+        "releaseVersion": "0.6.28",
+        "supersedes": null
+      },
+      "revocation": {
+        "authorityId": "reploid-paired-qualification-20261012",
+        "failClosedAfterExpiry": true,
+        "offlineExpirySeconds": 86400,
+        "policyDigest": "sha256:3ff0fdad48e10bd5fb7bc6a5b6b27a439991cba44094d062278d79009dfc95b9"
+      },
+      "schema": "doppler.capsule-release/v1",
+      "source": {
+        "license": {
+          "name": "Apache License 2.0",
+          "sourceUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "spdxId": "Apache-2.0",
+          "textDigest": "sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        "provenanceDigest": "sha256:55ef3a95c0433e7217486db2c8303c5e76c9d22fba5397de94a469762bc8451a",
+        "repository": "Qwen/Qwen3.5-0.8B",
+        "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+        "revisionDigest": "sha256:f5a57c56e7984f26bbff2b4c10ef7bef4478f8a9401cc712a3e3188af34d05ce"
+      },
+      "stateSnapshot": {
+        "format": "declared-state-identity-only",
+        "identityDigest": "sha256:54c235c3767687c879fa1f1ef30260875b3a21c7bd171a863f292cc0feac7771",
+        "portableAcrossTargetIds": [
+          "webgpu-f32-f16-portable"
+        ],
+        "schema": "doppler.capsule-state-snapshot/v1"
+      }
+    },
+    "event": {
+      "capsule": {
+        "schema": "doppler.capsule/v3",
+        "semanticRoot": "sha256:7391e1f4f7579af308808d371119c7e42b40acc1b00df5f42325d41d4febd083",
+        "envelopeDigest": "sha256:1a1b1c4bb093fb8046d5ab193ddfd5433ed0926ff30732414814c3eed0d1ac23"
+      },
+      "sequence": 1,
+      "previousEventDigest": null,
+      "issuedAtUtc": "2026-10-13T13:40:56.063Z",
+      "expiresAtUtc": "2026-10-14T13:40:56.063Z",
+      "action": "eligible",
+      "release": {
+        "application": {
+          "applicationId": "reploid-resident-qualification",
+          "applicationRevision": "sha256:e9f3b8f266382d0aa36980fea657004a286fb66ff58e7d8e56e14d6acb4a6a3a",
+          "applicationRevisionDigest": "sha256:e9f3b8f266382d0aa36980fea657004a286fb66ff58e7d8e56e14d6acb4a6a3a",
+          "oracle": {
+            "digest": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+            "id": "approved-independent-f64"
+          },
+          "workload": {
+            "digest": "sha256:794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e",
+            "id": "frozen-three-request-fifty-five-prefixes"
+          }
+        },
+        "exclusions": {
+          "known": [
+            {
+              "code": "application-gate-failed",
+              "evidenceDigest": "sha256:f10a88fef5f8a7125d1a5ac5d2261b0cd5e845eae60832369c0293ce68f71005",
+              "reason": "Direct browser/Node resident numerical comparison passed; this corrected signed opening and demanding concurrency remain unqualified. Local qualification only.",
+              "scope": "public-chat-release"
+            },
+            {
+              "code": "unsupported-device",
+              "evidenceDigest": "sha256:f10a88fef5f8a7125d1a5ac5d2261b0cd5e845eae60832369c0293ce68f71005",
+              "reason": "Evidence covers the recorded Mac browser and AMD Node provider in both partition roles. Other providers, browser AMD on these exact bytes and Suby are not qualified by these reports.",
+              "scope": "unobserved-gpu-provider-tuples"
+            },
+            {
+              "code": "application-gate-failed",
+              "evidenceDigest": "sha256:f10a88fef5f8a7125d1a5ac5d2261b0cd5e845eae60832369c0293ce68f71005",
+              "reason": "Prior same-runtime cold AMD Node recurrent pipeline preparation took 743.124 seconds and exceeded the 300-second responsiveness bound; current shared-cache qualification does not establish cold startup responsiveness.",
+              "scope": "cold-start-responsiveness"
+            }
+          ],
+          "rejectionTypes": [
+            "acceptance-failed",
+            "application-gate-failed",
+            "artifact-invalid",
+            "evidence-expired",
+            "migration-required",
+            "revoked",
+            "unsupported-device"
+          ]
+        },
+        "lifecycle": {
+          "failedUpgrade": {
+            "preservePrevious": true,
+            "previousCapsuleId": null,
+            "previousSemanticRoot": null
+          },
+          "migration": null,
+          "releaseVersion": "0.6.28",
+          "supersedes": null
+        },
+        "revocation": {
+          "authorityId": "reploid-paired-qualification-20261012",
+          "failClosedAfterExpiry": true,
+          "offlineExpirySeconds": 86400,
+          "policyDigest": "sha256:3ff0fdad48e10bd5fb7bc6a5b6b27a439991cba44094d062278d79009dfc95b9"
+        },
+        "schema": "doppler.capsule-release/v1",
+        "source": {
+          "license": {
+            "name": "Apache License 2.0",
+            "sourceUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+            "spdxId": "Apache-2.0",
+            "textDigest": "sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+          },
+          "provenanceDigest": "sha256:55ef3a95c0433e7217486db2c8303c5e76c9d22fba5397de94a469762bc8451a",
+          "repository": "Qwen/Qwen3.5-0.8B",
+          "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+          "revisionDigest": "sha256:f5a57c56e7984f26bbff2b4c10ef7bef4478f8a9401cc712a3e3188af34d05ce"
+        },
+        "stateSnapshot": {
+          "format": "declared-state-identity-only",
+          "identityDigest": "sha256:54c235c3767687c879fa1f1ef30260875b3a21c7bd171a863f292cc0feac7771",
+          "portableAcrossTargetIds": [
+            "webgpu-f32-f16-portable"
+          ],
+          "schema": "doppler.capsule-state-snapshot/v1"
+        }
+      },
+      "migratedFrom": {
+        "schema": "doppler.capsule/v2",
+        "semanticRoot": "sha256:d2580a47db63b985bcdde233a2e75d86c4128a0ccb56d5cba89b652edb40c3a0",
+        "envelopeDigest": "sha256:f4c0d112bd9f009360022b365030d7cc67dc11f8c43541253097de584988397c"
+      },
+      "nextSigner": null,
+      "schema": "doppler.capsule-release-event/v1",
+      "digest": "sha256:ffc0db2cc9a4e9ded36758a16ac453120657aff050d60c9c68d5d574ee092595",
+      "signature": {
+        "authority": "reploid-paired-qualification-20261012",
+        "algorithm": "Ed25519",
+        "publicKeyDigest": "sha256:cddc8e43da370860a974cf759b19726bf5e7f9c5d7c0a2a84abb6c9d34ab2d53",
+        "signatureHex": "d41558d3b26ad920852612831693bf37cee328181b67e202804c76e02041c6b1de34a964ade45c5db20efca8a33e5cf370fc7f2da00f891e52931186851f3d00",
+        "signedDigest": "sha256:ffc0db2cc9a4e9ded36758a16ac453120657aff050d60c9c68d5d574ee092595"
+      }
+    },
+    "checkpoint": {
+      "sequence": 1,
+      "digest": "sha256:ffc0db2cc9a4e9ded36758a16ac453120657aff050d60c9c68d5d574ee092595"
+    },
+    "authorization": {
+      "mode": "managed",
+      "verifiedAtUtc": "2026-10-13T13:40:56.063Z",
+      "eventExpired": false,
+      "unseenRevocations": "unknown",
+      "retainedLocalUse": null
+    },
+    "nextPublicKeyDigest": "sha256:cddc8e43da370860a974cf759b19726bf5e7f9c5d7c0a2a84abb6c9d34ab2d53"
+  },
+  "physicalOpening": false,
+  "publicPromotion": false
+}

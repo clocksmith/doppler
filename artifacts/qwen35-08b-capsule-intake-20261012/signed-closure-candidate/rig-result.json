@@ -1,0 +1,74 @@
+{
+  "ok": true,
+  "forgeVersion": "2.0.0",
+  "outputPath": "../../../../var/tmp/qwen35-capsule-closure-20261013/capsule.json",
+  "absoluteOutputPath": "/var/tmp/qwen35-capsule-closure-20261013/capsule.json",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v2-d2580a47db63b985",
+  "semanticRoot": "sha256:d2580a47db63b985bcdde233a2e75d86c4128a0ccb56d5cba89b652edb40c3a0",
+  "envelopeHash": "sha256:f4c0d112bd9f009360022b365030d7cc67dc11f8c43541253097de584988397c",
+  "schema": "doppler.capsule/v2",
+  "schemaVersion": 2,
+  "createdAtUtc": "2026-10-13T13:40:23.938Z",
+  "sourceBundleId": "qwen-3-5-0-8b-q4k-ehaf16-793904ae88ab",
+  "programBundlePath": "/var/tmp/qwen35-capsule-closure-20261013/artifacts/program-bundle.json",
+  "executionGraphHash": "sha256:793904ae88ab5ed427052ae34651e8be2a4477c41d0f6c2fda3fd26e371fd1d8",
+  "artifactCount": 57,
+  "wgslModuleCount": 27,
+  "targetPlanDigests": [
+    "sha256:a10e2e6a3c614ddb42330ae22d0e9993015c503d44d53880359cab523ab87f27"
+  ],
+  "stages": [
+    {
+      "stage": "inspect",
+      "ok": true
+    },
+    {
+      "stage": "normalize",
+      "ok": true
+    },
+    {
+      "stage": "analyze",
+      "ok": true
+    },
+    {
+      "stage": "lower",
+      "ok": true
+    },
+    {
+      "stage": "specialize",
+      "ok": true
+    },
+    {
+      "stage": "search",
+      "ok": true
+    },
+    {
+      "stage": "verify",
+      "ok": true
+    },
+    {
+      "stage": "qualify",
+      "ok": true
+    },
+    {
+      "stage": "package",
+      "ok": true
+    },
+    {
+      "stage": "sign",
+      "ok": true
+    }
+  ],
+  "searchReceipt": {
+    "candidateTargetPlanHashes": [
+      "sha256:a10e2e6a3c614ddb42330ae22d0e9993015c503d44d53880359cab523ab87f27"
+    ],
+    "selectedTargetPlanHashes": [
+      "sha256:a10e2e6a3c614ddb42330ae22d0e9993015c503d44d53880359cab523ab87f27"
+    ],
+    "policy": "closed-program-source-plan",
+    "evaluationReceipt": null
+  },
+  "candidateEvaluation": null
+}
