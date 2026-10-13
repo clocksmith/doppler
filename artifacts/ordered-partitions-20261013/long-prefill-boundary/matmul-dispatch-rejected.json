@@ -1,0 +1,15 @@
+{
+  "schema": "doppler.rejected-diagnostic/v1",
+  "probe": "matmul-dispatch-control.js",
+  "exitCode": 124,
+  "deadlineSeconds": 180,
+  "elapsedSeconds": 180.14,
+  "maximumResidentKiB": 1130084,
+  "lastObservedProcessState": "D: mem_cgroup_handle_over_high",
+  "scopeMemoryHighBytes": 1073741824,
+  "scopeMemoryMaxBytes": 2147483648,
+  "numericalResult": null,
+  "cleanupConfirmed": false,
+  "interpretation": "Host fixture preparation hit MemoryHigh throttling; no emitted operator measurement. Does not attribute runtime failure to matmul.",
+  "nextTreatment": "Bound fixture representation and hash raw arrays rather than serializing enormous fixture JSON."
+}

@@ -1,0 +1,54 @@
+{
+  "schema": "doppler.paired-matmul-dispatch-control/v1",
+  "verifiedRuntime": {
+    "schema": "reploid.numerical-test-delivery/v1",
+    "testDeliveryHash": "sha256:804b41566f8e16e83425736c217f4416aae4c86bad9c56ae315194ff2b7bbf5d",
+    "archiveSha256": "9264d265a90c7c0b046adf46135965b2032d2d9f6e5e60d6a8149d10f0988ec4",
+    "snapshotFiles": 2583,
+    "installedFiles": 1984,
+    "scope": "Immutable numerical fixture delivery; not deployed application or signed admission",
+    "applicationQualification": false
+  },
+  "shaderSha256": "2d56380990eb5c66a8272ca8f9ff3903bd55f018f6d9de079cc32ae5759aafb7",
+  "fixtureSha256": "d3397917088ba563f90afdaf16fc20ad37b7716a6501c37089b77ea87b1ce40e",
+  "seed": 624901,
+  "tolerance": 2e-12,
+  "scope": "Eight synthetic rows at original projection width; raw installed shader, independent F64 dots; not model qualification",
+  "cases": [
+    {
+      "dtype": "f32",
+      "scalar": false,
+      "maxError": 1.609823385706477e-13,
+      "failures": 0
+    },
+    {
+      "dtype": "q4k",
+      "scalar": false,
+      "maxError": 2.180530533771044e-12,
+      "failures": 1
+    }
+  ],
+  "closed": true,
+  "adapter": {
+    "vendor": "intel",
+    "architecture": "gen-12lp"
+  },
+  "errors": [],
+  "timings": [
+    {
+      "dtype": "f32",
+      "M": 8,
+      "N": 6144,
+      "K": 1024,
+      "milliseconds": 245.3625060000004
+    },
+    {
+      "dtype": "q4k",
+      "M": 8,
+      "N": 6144,
+      "K": 1024,
+      "milliseconds": 231.87794699999995
+    }
+  ],
+  "passed": false
+}
