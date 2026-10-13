@@ -1,0 +1,53 @@
+{
+  "reploidCommit": "49b64dcbc680a583a225b5d2fd1c4b5760b3aedb",
+  "root": "/var/tmp/reploid-ordered-three-stage-20261013",
+  "files": {
+    "tests/fixtures/browser-partition-memory-completion.js": "e50c9c9615ff28ea7282ff5ae074d35009d9cdc7eb3609641702cc390c7711fe",
+    "tests/fixtures/ordered-partition-reference.js": "699bf8052686dd019d0ce418d4d3a9e004d4daaa4bf4039e4296b19b3d5a2dfd",
+    "tests/fixtures/distributed-reference-contract.json": "2ce7856c8565a71753af2bf558f34dcfa3a624aa9bef2b9e697f353bf62fdbf8",
+    "tests/fixtures/independent-numerical-reference.js": "802373324301a60cce7bf76645238d80768c211bca40ae9676ab54604ed44b5c",
+    "tests/fixtures/partition-memory-settlement.js": "c3b819a9aa8b7c5c5c4dbd82a3a11bdb9777700806f9795ce4fd39650cd2f185",
+    "tests/fixtures/concurrent-partition-memory.js": "196199cee08ebb6f6ca1269794d060f0567ff46394966e5ca89c66c10be5ca79",
+    "tests/fixtures/native-partition-endpoint.js": "0e23638ccc95650da3ea0523f9cd8a4baf86a12c32232fcc5e9171ebe681d919",
+    "tests/fixtures/resident-opening-observer.js": "67100632f58c6596ed8149fb286573e0fc356b94f0da9779622a3161e67231b4",
+    "tests/fixtures/numerical-test-delivery.js": "eb6531431666fc7a022a8ebaf48f87e4ef7d3578b22b5e872a441f976ef683db",
+    "tests/fixtures/paired-partition-binding.js": "e0b7c8bfb112178a21cad5b305342870d01dc37c2e0777e0ddea60ee74bb1b01",
+    "tests/fixtures/distributed-reference-model.js": "3d40003544c93ea2982c8801ab77e2cf14c79485bf01895f4491070105b679e0",
+    "tests/fixtures/prepare-partition-memory.js": "a413ccd8200e72c75b90a382268f8354a57fa9ab98073f10891dc1a1611b05d7",
+    "tests/fixtures/physical-webgpu-browser.js": "a65b4a0ea9de414fe149d1ec0b70c018d72f98c412b0244744d511139163e0d7",
+    "tests/fixtures/partition-attempt-cleanup.js": "a48b8179114e9c33cde0dd01d588bb7b0ad1c5e0434735880a8f1e1a5afb4557",
+    "tests/fixtures/partition-diagnostic-selection.js": "b881943127dc2ce45b48eeb562d572bd2cc5a33d05d48c13be0e45ad527bb88f",
+    "tests/fixtures/distributed-reference-manifest.json.gz": "6101c21b8e709c3ccc559ce34b4ea03cb94582488f718fec25c0c2f8861a13ff",
+    "tests/fixtures/numerical-model-server.js": "db013ad06ae8fa8c055c25a8f2b26318f61d95daebaa5e4fed34b96d7a29cc5c"
+  },
+  "externalImports": [
+    "../../../doppler/tests/fixtures/attention-cache-observer.js",
+    "/config/doppler-local-models.js",
+    "node:assert/strict",
+    "node:child_process",
+    "node:crypto",
+    "node:events",
+    "node:fs/promises",
+    "node:os",
+    "node:path",
+    "node:url",
+    "node:util",
+    "node:zlib",
+    "playwright",
+    "ws"
+  ],
+  "scope": "Static fixture closure plus ordered branch; optional legacy external capture branch is not selected; runtime dynamic imports bound to all1976 archive members",
+  "retainedPreparationFailures": [
+    "First scanner treated optional external legacy capture import as local; corrected inventory lists unselected external explicitly.",
+    "Original request file was sought under an incorrect name; retained frozen distributed-memory-requests.json used instead."
+  ],
+  "parser": "Acorn actual ImportDeclaration/ImportExpression nodes; dynamic URL imports bound separately",
+  "dynamicLocalAssets": [
+    "tests/fixtures/distributed-reference-manifest.json.gz"
+  ],
+  "dependencies": {
+    "playwright": "1.58.0",
+    "playwright-core": "1.58.0",
+    "ws": "8.21.0"
+  }
+}
