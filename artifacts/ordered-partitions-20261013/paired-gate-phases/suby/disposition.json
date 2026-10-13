@@ -1,0 +1,120 @@
+{
+  "schema": "doppler.paired-gate-phases-physical-disposition/v1",
+  "component": "doppler.runtime-source.gpu.kernels",
+  "intent": "preserved",
+  "sourceCommit": "eac99b97",
+  "reviewCommit": "480a2a4c",
+  "scope": "Independent F64 convolution and gated-delta equations, initial state, source epsilon, paired persistent state, QKV/Z and A/B packing. No model qualification.",
+  "passed": false,
+  "phases": [
+    {
+      "name": "convolution",
+      "index": 0,
+      "start": "2026-10-13T18:02:19.924Z",
+      "end": "2026-10-13T18:02:19.939Z",
+      "completed": true,
+      "elapsedMs": 15
+    },
+    {
+      "name": "beta",
+      "index": 1,
+      "start": "2026-10-13T18:02:19.944Z",
+      "end": "2026-10-13T18:02:54.817Z",
+      "completed": true,
+      "elapsedMs": 34873
+    },
+    {
+      "name": "decay-scale",
+      "index": 2,
+      "start": "2026-10-13T18:02:54.824Z",
+      "end": "2026-10-13T18:03:03.163Z",
+      "completed": true,
+      "elapsedMs": 8339
+    },
+    {
+      "name": "log-decay",
+      "index": 3,
+      "start": "2026-10-13T18:03:03.167Z",
+      "end": "2026-10-13T18:04:31.025Z",
+      "completed": true,
+      "elapsedMs": 87858
+    },
+    {
+      "name": "decay",
+      "index": 4,
+      "start": "2026-10-13T18:04:31.032Z",
+      "end": "2026-10-13T18:04:39.338Z",
+      "completed": true,
+      "elapsedMs": 8306
+    },
+    {
+      "name": "recurrent",
+      "index": 5,
+      "start": "2026-10-13T18:04:39.347Z",
+      "end": null,
+      "completed": false,
+      "elapsedMs": null
+    }
+  ],
+  "numericalCasesCompleted": 0,
+  "numericalQualification": false,
+  "operationDeadlineMs": 300000,
+  "cleanupDeadlineMs": 10000,
+  "supervisorDeadlineMs": 310000,
+  "operationTimeoutObservedAt": "2026-10-13T18:07:19.120Z",
+  "operationError": "Error: Operation exceeded 300000ms; ownership unknown\n    at Timeout._onTimeout (file:///var/tmp/doppler-gate-phases-control-20261013/linear-control.js:164:128)\n    at listOnTimeout (node:internal/timers:588:17)\n    at process.processTimers (node:internal/timers:523:7)",
+  "hostClosedObserved": false,
+  "operationSettledObserved": false,
+  "deviceLostObserved": false,
+  "gpuOwnership": "unknown after failed cleanup; process absence does not prove GPU settlement",
+  "process": {
+    "pid": 879623,
+    "controllerPid": 879612,
+    "exit": {
+      "code": null,
+      "signal": "SIGKILL",
+      "at": "2026-10-13T18:08:01.064Z"
+    },
+    "naturalExit": false,
+    "supervisorSignals": [
+      {
+        "signal": "SIGTERM",
+        "at": "2026-10-13T18:07:59.052Z",
+        "reason": "310-second total process bound"
+      }
+    ],
+    "supervisorTermElapsedMs": 340281,
+    "cause": "Kernel global OOM killed owned879623; exact journal retained. Supervisor also sent SIGTERM, but no supervisor SIGKILL was recorded.",
+    "kernelAnonRssKiB": 26728260,
+    "ownedProcessesAbsentAt": "2026-10-13T18:08:23Z"
+  },
+  "bounds": "Configured deadlines unchanged. Operation timeout fired at300s; host pressure delayed supervisor TERM to340.281s. This does not satisfy a hard310s wall bound.",
+  "publicContributors": {
+    "pids": [
+      297260,
+      299769
+    ],
+    "observedPresentAfter": true,
+    "restarted": false,
+    "healthInference": false
+  },
+  "interference": "Public contributors and unrelated processes remained on shared Suby. No performance isolation or cache-cold claim. SSH briefly unreachable near OOM.",
+  "identity": {
+    "baseRuntimeArchiveSha256": "1cb2a5b8b7ebcefd6269b6a065fea0347c6471fe0c044479c78ef5b9f0c096eb",
+    "nativeArchiveSha256": "2a1f836bf29622d66c01cebd1fc71311b60f5c44f50530d6b67772ee39a0a590",
+    "nativeDescriptorSha256": "301766bbbad9d7d12f64a6bf8bd18d41d7949b5e7fe8f9ccb09debefc5b58806",
+    "runtimeOverlayMembers": 1980,
+    "controlSha256": "0135bcbcbfe614a9b1379f8e04a74c59ec30d43989ab48da3a82819a57865cbd",
+    "referenceAndFixtureBlockSha256": "24950da8da8f61230a4fcc04a02389f1149c20a06ee68d9138b3e87080583a63"
+  },
+  "remainingGate": "Unchanged recurrent pipeline compilation on Intel remains unresolved; no original operator outputs, ordinary candidate archive, three-host load acceptance or55-prefix qualification for four-phase source. Future investigation must address compiler host memory/lifetime before rerun; no deadline/precision/reference changes.",
+  "windDown": "No further run/package/model launched. Owned child/controller absent; no owned servers/tunnels created by this operator control.",
+  "rawFiles": {
+    "final-inventory.txt": "a01b0d82300cbe306edfff329af5c17a01dbaecc1f15a37005a1927ff9b19d6b",
+    "kernel-outcome.txt": "6d7f3ae86f40d771ab3a416525d8dc76d08fa8fce3ed07cdcbc011000a9e37a5",
+    "preflight-inventory.txt": "05d7f81f3dd32ab681bfaa5e7107bef7eac373f9e79ec196e2173aa83b11cd30",
+    "process.json": "15cf7f9a8088de5e189aeade17940dd0fd61f418cf7b3ea62c4549abc40e7058",
+    "reservation.json": "34012bf5bbc807f48974a0f2ecc815c5f379b44bcd1391975a2dbc5757b1acaf",
+    "result.json": "d8f81842ea67d7bff6c98a72dfea310e005fc15f834464db305628bd902b6923"
+  }
+}
