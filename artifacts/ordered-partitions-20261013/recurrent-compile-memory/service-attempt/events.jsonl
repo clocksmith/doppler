@@ -1,0 +1,5 @@
+{"phase":"limits-and-inputs-verified","at":"2026-10-13T18:42:34.580Z","pid":914139,"rss":67764224,"cgroup":"/user.slice/user-1000.slice/user@1000.service/app.slice/reploid-recurrent-memory-20261013.service","shaderSha256":"d057940ff5f1f181c5deaa7e0eb329c599e1889ba3a7aa35b73405002189a186"}
+{"phase":"host-open","at":"2026-10-13T18:42:34.670Z","pid":914139,"rss":68046848}
+{"phase":"error","at":"2026-10-13T18:42:34.833Z","pid":914139,"rss":126504960,"message":"AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(adapter && !adapter.info.isFallbackAdapter)\n\n    at file:///var/tmp/reploid-recurrent-memory-20261013/probe.js:25:10"}
+{"phase":"host-close-start","at":"2026-10-13T18:42:34.833Z","pid":914139,"rss":126504960}
+{"phase":"host-close-complete","at":"2026-10-13T18:42:35.709Z","pid":914139,"rss":207618048}
