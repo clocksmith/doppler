@@ -1,0 +1,64 @@
+{
+  "scope": "Same-buffer identity confirmed; slot-plan trace did not execute, standard layer/FFN path requires attribution",
+  "captureSha256": "2b67563c6e6315c4a7fc082171687eb4061e0d5fdf3089f46b15d34c71953ce7",
+  "sameLayer16Buffer": true,
+  "layer16SnapshotsDiffer": true,
+  "layer17InputMatchesSecondLayer16": true,
+  "ownershipEvents": [
+    {
+      "event": "layer-output-probe",
+      "layer": 16,
+      "buffer": {
+        "id": 1,
+        "label": "paired_pointwise_1507328",
+        "size": 1507328,
+        "usage": 140
+      },
+      "recorder": false,
+      "count": 13
+    },
+    {
+      "event": "layer-output-probe",
+      "layer": 16,
+      "buffer": {
+        "id": 1,
+        "label": "paired_pointwise_1507328",
+        "size": 1507328,
+        "usage": 140
+      },
+      "recorder": false,
+      "count": 14
+    },
+    {
+      "event": "layer-output-probe",
+      "layer": 17,
+      "buffer": {
+        "id": 2,
+        "label": "rmsnorm_paired_output_1507328",
+        "size": 1507328,
+        "usage": 140
+      },
+      "recorder": false,
+      "count": 29
+    },
+    {
+      "event": "layer-output-probe",
+      "layer": 17,
+      "buffer": {
+        "id": 2,
+        "label": "rmsnorm_paired_output_1507328",
+        "size": 1507328,
+        "usage": 140
+      },
+      "recorder": false,
+      "count": 30
+    }
+  ],
+  "failure": null,
+  "cleanupFailure": null,
+  "providerSettlement": {
+    "closed": true,
+    "providerOpened": true,
+    "ownedProviderReleased": true
+  }
+}

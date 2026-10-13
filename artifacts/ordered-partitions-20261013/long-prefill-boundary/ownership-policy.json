@@ -1,0 +1,10 @@
+{
+  "enabled": true,
+  "defaultLevel": "none",
+  "targetLevel": "full",
+  "targetOpIds": [
+    "layer.16.layer.out",
+    "layer.17.attn.input",
+    "layer.17.attn.post_input_norm"
+  ]
+}

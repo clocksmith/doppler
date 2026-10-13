@@ -69,7 +69,15 @@
       "receipt": "input17-result.json.gz",
       "reason": "Declared immediate prefill. Layer17 input matches second layer16 output byte-for-byte; two layer16 output captures differ. Earlier fixed layer17 attribution is not established. Buffer identities and readback ownership require the next discriminator.",
       "residentAndProviderCleanupPassed": true
+    },
+    {
+      "scopeInvocation": "210b4c33cf3b4871b8432e74673af6c2",
+      "providerPid": 1031741,
+      "status": "same-buffer-confirmed-slot-path-not-executed",
+      "receipt": "ownership-result.json.gz",
+      "reason": "Layer16 snapshots bind one GPUBuffer and differ. No slot-plan trace events: actual execution uses standard layer/FFN path. Preparation and observation complete; standard FFN cleanup ownership remains unresolved.",
+      "residentAndProviderCleanupPassed": true
     }
   ],
-  "updatedAt": "2026-10-13T21:40:38.482544+00:00"
+  "updatedAt": "2026-10-13T21:45:41.611785+00:00"
 }
