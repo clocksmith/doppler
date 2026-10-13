@@ -1,12 +1,12 @@
 import type { PipelineState } from './state.js';
-import type { LayerPartitionPlan } from './layer-partition-contract.js';
+import type { AnyLayerPartitionPlan } from './layer-partition-contract.js';
 import type { GpuLogitsResult } from './generator/token-selection.js';
 import type { PartitionTiming } from './resident-partition-contract.js';
 export type PartitionExecutionState = PipelineState & {
   visionCapable?: boolean; audioCapable?: boolean; operatorDiagnostics?: unknown;
-  modelPartition?: { plan: LayerPartitionPlan; index: 0 | 1 } | null;
+  modelPartition?: { plan: AnyLayerPartitionPlan; index: number } | null;
 };
-export function assertPartitionExecutionSupported(state: PartitionExecutionState, plan: LayerPartitionPlan): void;
+export function assertPartitionExecutionSupported(state: PartitionExecutionState, plan: AnyLayerPartitionPlan): void;
 export type ExecutePartitionChunk = (state: PartitionExecutionState,
   input: { numTokens: number; tokenIds?: number[]; activationBytes?: ArrayBuffer | ArrayBufferView },
   signal: AbortSignal, prefill: boolean, finalChunk: boolean) => Promise<{

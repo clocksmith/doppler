@@ -1,7 +1,7 @@
 import type { RoPEConfig } from './init.js';
 import type { ParsedModelConfig } from './config.js';
 import type { RuntimeConfigSchema } from '../../../config/schema/index.js';
-import type { LayerPartitionPlan } from './layer-partition-contract.js';
+import type { AnyLayerPartitionPlan } from './layer-partition-contract.js';
 
 export interface GPURoPEBuffers {
   cos: GPUBuffer;
@@ -15,7 +15,7 @@ export function releaseRoPEFrequencies(lease: GPURoPEBuffers | null | undefined)
 export function isGPURoPEBuffers(buffers: unknown): buffers is GPURoPEBuffers;
 export function _initRoPE(this: {
   modelConfig: ParsedModelConfig;
-  modelPartition?: { plan: LayerPartitionPlan; index: 0 | 1 } | null;
+  modelPartition?: { plan: AnyLayerPartitionPlan; index: number } | null;
   runtimeConfig?: RuntimeConfigSchema;
   useGPU: boolean;
   ropeFrequencyLease: GPURoPEBuffers | null;

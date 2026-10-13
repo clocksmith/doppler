@@ -1,3 +1,4 @@
+export { hashPartitionGeneration } from './inference/pipelines/text/resident-partition-contract.js';
 export * from './inference/pipelines/text/layer-partition-contract.js';
 export * from './inference/resident-state-contract.js';
 export * from './inference/resident-block-contract.js';
@@ -16,4 +17,5 @@ export type { ResidentPartitionAllocation, ResidentPartitionDescriptor, Resident
   ResidentPartitionARequest, ResidentPartitionAResult, ResidentPartitionBRequest,
   ResidentPartitionBResult, ResidentPartitionMetrics, PartitionTiming,
   ResidentCanonicalARequest, ResidentCanonicalBRequest, ResidentCanonicalBResult,
-  ResidentCanonicalGeneration } from './inference/pipelines/text/resident-partition-contract.js';
+  ResidentCanonicalGeneration, ResidentOrderedPartitionIdentity, ResidentExecutionIdentity,
+  ResidentStageRequest, ResidentStageResult } from './inference/pipelines/text/resident-partition-contract.js';

@@ -56,6 +56,7 @@ export interface OrderedLayerPartitionPlan extends Omit<LayerPartitionPlan, 'sch
   readonly activationComponents: number;
   readonly activationElementStrideBytes: number;
 }
+export type AnyLayerPartitionPlan = LayerPartitionPlan | OrderedLayerPartitionPlan;
 export declare function createOrderedLayerPartitionPlan(options: {
   modelId: string; numLayers: number; hiddenSize: number; vocabSize: number;
   splitLayers: readonly number[]; activationDtype?: ActivationDtype; activationPrecision?: ActivationPrecision;
@@ -67,7 +68,7 @@ export declare function validateOrderedLayerPartitionPlan(manifest: {
 export declare function hashLayerPartitionPlan(plan: LayerPartitionPlan | OrderedLayerPartitionPlan): `sha256:${string}`;
 export declare function resolveLayerPartition(manifest: {
   modelId?: unknown; architecture?: unknown;
-}, allocation: { plan: LayerPartitionPlan; index: 0 | 1 } | null | undefined): Readonly<LayerPartition> | null;
+}, allocation: { plan: AnyLayerPartitionPlan; index: number } | null | undefined): Readonly<LayerPartition> | null;
 export declare function validateActivationTensorShape(options: ActivationLayout & {
   shape: readonly number[]; dtype: ActivationDtype | 'i32';
   byteLength?: number | null; hiddenSize?: number | null;

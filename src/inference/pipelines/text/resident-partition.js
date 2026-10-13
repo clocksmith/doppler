@@ -8,16 +8,18 @@ import { sampleCapsuleLogits, stoppingReason } from '../../generation-step.js';
 import { samplingSeedForToken } from '../../token-sampling.js';
 import { assertPartitionExecutionSupported, executePartitionLayers } from './partition-execution.js';
 import { createPartitionAttempt } from './partition-attempt.js';
-import { assertResidentPartitionIdentity, resolveResidentCanonicalGeneration } from './resident-partition-contract.js';
+import { hashPartitionGeneration, assertResidentPartitionIdentity, resolveResidentCanonicalGeneration } from './resident-partition-contract.js';
 import { admitResidentPrompt } from '../../resident-state-contract.js';
 import { createResidentTargetState, createResidentCursorMirror } from '../../resident-target-state.js';
 import { createResidentOutputState } from '../../resident-output-state.js';
-import { hashLayerPartitionPlan, resolveActivationTensorLayout, validateActivationTensorShape } from './layer-partition-contract.js';
+import { ORDERED_LAYER_PARTITION_SCHEMA, hashLayerPartitionPlan, resolveActivationTensorLayout, validateActivationTensorShape } from './layer-partition-contract.js';
 import { markDeviceWeights, getDeviceMemorySnapshot } from '../../../memory/device-budget.js';
 import { preparePairedLinearAttentionPipelines } from '../../../gpu/kernels/paired-linear-attention.js';
 
 /** @type {import('./resident-partition.js').createResidentPartitionSession} */
 export async function createResidentPartitionSession(pipeline, allocation, tokens, closeProgram, signal) {
+  const ordered = allocation.plan.schema === ORDERED_LAYER_PARTITION_SCHEMA;
+  const partition = allocation.plan.partitions[allocation.index];
   const canonical = resolveResidentCanonicalGeneration(allocation);
   if (canonical && allocation.index === 1 && typeof tokens.createRawIncrementalDecoder !== 'function') {
     throw new Error('Canonical resident requires a raw incremental decoder.');
@@ -41,7 +43,9 @@ export async function createResidentPartitionSession(pipeline, allocation, token
     // copy of the participant's entire context allocation.
     owner.kvCache?.destroy();
     owner.kvCache = null;
-    return { schema: /** @type {const} */ ('doppler.resident-partition/v1'), ready: true,
+    return { schema: ordered ? /** @type {const} */ ('doppler.resident-partition/v2')
+      : /** @type {const} */ ('doppler.resident-partition/v1'), ready: true,
+      ...(ordered ? { stageCount: allocation.plan.partitions.length } : {}),
       modelId: allocation.model.id, modelIdentity: allocation.model.identity, planId: allocation.planId,
       index: allocation.index, layerRange: [...allocation.plan.partitions[allocation.index].layerRange],
       residentWeightBytes: [...(owner.dopplerLoader?.gpuBuffers ?? [])].reduce((bytes, buffer) => bytes + buffer.size, 0),
@@ -57,7 +61,7 @@ export async function createResidentPartitionSession(pipeline, allocation, token
   function assertOpen() {
     if (closed || isDeviceLost(pipeline.gpuContext?.device)) throw new Error('Resident partition is closed or its device was lost.');
   }
-  /** @param {import('./resident-partition-contract.js').ResidentPartitionIdentity} identity */
+  /** @param {import('./resident-partition-contract.js').ResidentExecutionIdentity} identity */
   function attemptFor(identity) {
     const binding = assertResidentPartitionIdentity(identity, allocation);
     let attempt = attempts.get(identity.attemptId);
@@ -171,6 +175,7 @@ export async function createResidentPartitionSession(pipeline, allocation, token
           memory: memory && { maxBytes: memory.maxBytes, liveBytes: memory.liveBytes,
             peakBytes: memory.peakBytes, categories: memory.categories } };
         if ('activationBytes' in result && result.activationBytes) {
+          if (ordered && partition.hasLmHead) throw new Error('Final ordered stage must produce logits.');
           if (canonicalMode) attempt.canonicalAwaiting = true;
           if (result.activationBytes.byteLength > allocation.limits.maxActivationBytes) throw new Error('Resident activation exceeds its byte allocation.');
           return { activationTensor: { shape: [1, request.inputTokenCount, allocation.plan.hiddenSize],
@@ -179,7 +184,8 @@ export async function createResidentPartitionSession(pipeline, allocation, token
               components: allocation.plan.activationComponents, elementStrideBytes: allocation.plan.activationElementStrideBytes } : {}), data: result.activationBytes, step: request.step,
             seqOffset: request.tokenPosition }, continuation: next, metrics };
         }
-        if (!result.logits) throw new Error('Resident B did not produce logits.');
+        if (!partition.hasLmHead && ordered) throw new Error('Only the final ordered stage may produce logits.');
+        if (!result.logits) throw new Error('Resident final stage did not produce logits.');
         let logits;
         const readbackStarted = performance.now();
         try { logits = new Float32Array(await readBuffer(result.logits.logitsBuffer, result.logits.vocabSize * Float32Array.BYTES_PER_ELEMENT)); }
@@ -342,12 +348,40 @@ export async function createResidentPartitionSession(pipeline, allocation, token
       } catch (error) { attempt.retired = true; throw error; }
       finally { attempt.pending = null; }
     },
+    async executeStage(request) {
+      if (!ordered) throw new Error('Ordered stage execution requires a v3 layer plan.');
+      if (request.partitionIndex !== allocation.index
+        || (partition.hasEmbedding ? request.activation !== undefined : request.activation === undefined)) {
+        throw new Error('Ordered stage index or input role mismatch.');
+      }
+      const { signal: stageSignal, ...input } = request;
+      stageSignal.throwIfAborted();
+      const snapshot = structuredClone(input);
+      if (hashPartitionGeneration(snapshot.generation) !== snapshot.generationDigest) {
+        throw new Error('Ordered stage generation digest mismatch.');
+      }
+      const layout = resolveActivationTensorLayout({ dtype: allocation.plan.activationDtype,
+        precision: allocation.plan.activationPrecision, components: allocation.plan.activationComponents,
+        elementStrideBytes: allocation.plan.activationElementStrideBytes });
+      const { expectedBytes } = validateActivationTensorShape({ ...layout, dtype: allocation.plan.activationDtype,
+        shape: [1, snapshot.inputTokenCount, allocation.plan.hiddenSize] });
+      if (expectedBytes > allocation.limits.maxActivationBytes) throw new Error('Resident activation exceeds its byte allocation.');
+      const stepInput = { identity: snapshot.identity, step: snapshot.step, tokenPosition: snapshot.tokenPosition,
+        inputTokenCount: snapshot.inputTokenCount, maxTokens: snapshot.maxTokens,
+        generation: snapshot.generation, continuation: snapshot.continuation, signal: stageSignal };
+      const result = partition.hasEmbedding
+        ? await execute({ ...stepInput, tokenIds: snapshot.inputTokenIds })
+        : await execute({ ...stepInput, inputTokenIds: snapshot.inputTokenIds,
+          activation: /** @type {import('./resident-partition-contract.js').ResidentPartitionBRequest['activation']} */ (snapshot.activation) });
+      return { ...result, identity: snapshot.identity, partitionIndex: allocation.index,
+        step: snapshot.step, tokenPosition: snapshot.tokenPosition };
+    },
     async executeGroup0(request) {
-      if (allocation.index !== 0) throw new Error('Partition B cannot execute group A.');
+      if (ordered || allocation.index !== 0) throw new Error('Legacy group A execution requires a two-stage input partition.');
       return /** @type {import('./resident-partition-contract.js').ResidentPartitionAResult} */ (await execute(request));
     },
     async executeGroup1(request) {
-      if (allocation.index !== 1) throw new Error('Partition A cannot execute group B.');
+      if (ordered || allocation.index !== 1) throw new Error('Legacy group B execution requires a two-stage output partition.');
       return /** @type {import('./resident-partition-contract.js').ResidentPartitionBResult} */ (await execute(request));
     },
     closeAttempt,

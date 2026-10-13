@@ -1,10 +1,10 @@
 import type { PartitionExecutionState } from './partition-execution.js';
 import type { PartitionAttempt } from './partition-attempt.js';
-import type { ResidentPartitionAllocation, ResidentPartitionIdentity, ResidentPartitionSession,
+import type { ResidentPartitionAllocation, ResidentExecutionIdentity, ResidentPartitionSession,
   ResidentPartitionTokenPorts } from './resident-partition-contract.js';
 import type { IncrementalTokenDecoder } from '../../tokenizers/bundled/incremental-decoder.js';
 export interface ResidentAttempt {
-  binding: string; identity: ResidentPartitionIdentity; nonce: string;
+  binding: string; identity: ResidentExecutionIdentity; nonce: string;
   step: number; position: number; retired: boolean; done: boolean;
   controller: AbortController; pending: Promise<unknown> | null; settlement: Promise<void> | null;
   execution: PartitionAttempt | null; generationDigest: string | null;

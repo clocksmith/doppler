@@ -196,6 +196,13 @@ export function hashLayerPartitionPlan(plan) {
 export function resolveLayerPartition(manifest, allocation) {
   if (allocation == null) return null;
   const { plan, index } = allocation;
+  if (plan?.schema === ORDERED_LAYER_PARTITION_SCHEMA) {
+    const canonical = validateOrderedLayerPartitionPlan(manifest, plan);
+    if (!Number.isSafeInteger(index) || index < 0 || index >= canonical.stageCount) {
+      throw new Error('Ordered partition allocation index is outside the declared stages.');
+    }
+    return canonical.partitions[index];
+  }
   if (!plan || ![LAYER_PARTITION_SCHEMA, PAIRED_LAYER_PARTITION_SCHEMA].includes(plan.schema) || ![0, 1].includes(index)) {
     throw new Error('Partition allocation requires a Doppler plan and group index.');
   }
