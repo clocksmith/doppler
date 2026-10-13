@@ -1,0 +1,33 @@
+{
+  "schema": "doppler.paired-softplus-control-disposition/v1",
+  "status": "failed",
+  "sourceCommit": "a1535f66",
+  "scope": "AMD installed paired-linear operator diagnostic with generated shader overlay; no model qualification",
+  "operationLimitMs": 300000,
+  "cleanupLimitMs": 10000,
+  "firstUncompletedBoundary": "gated_delta_recurrent_paired createComputePipelineAsync",
+  "operationTimedOut": true,
+  "numericalCasesCompleted": 0,
+  "cleanupConfirmed": false,
+  "ownershipAtTermination": "unknown",
+  "ownedPid": 1104058,
+  "termination": "supervisor SIGTERM after frozen 310-second total process bound; process absence separately observed",
+  "publicProcessesPreserved": [
+    4103868,
+    4121371
+  ],
+  "claims": [
+    "No arithmetic failure established: numerical cases were not reached.",
+    "Process termination does not establish successful GPU cleanup.",
+    "Co-tenancy and uncontrolled caches prevent isolated performance claims."
+  ],
+  "files": {
+    "amd-result.json": "1a3cc0aac7913c806a90475a582c51b18c75b73004604a0ab6e023dba32af710",
+    "amd-process.json": "56dc45aa7187055fcdce2df5e96468ce7c64d8876e777929f845c3ab4eb7e1d5",
+    "amd-before.txt": "83dd91d91537e01c73f5218f8e86d9b8ec4531b04eea0772cebbaa471bce5fb1",
+    "amd-after.txt": "7106417ddfc83b7a8c84d69cc24020c5e7a6c04915bc2e910763e59f29b04513",
+    "reservation.json": "544f3550c474022af125982bc15cc9e4d8d3fae3051998bcd001476bfaef6add",
+    "linear-control.js": "aac5a3ae077ae867e6fa020aeaac793d6dbfd794972ec1c46e3e48e361b4ef5b",
+    "controller.js": "dc48126af4d7c0444d8f23deb3706ae43cfef58c1adc26215496076276171658"
+  }
+}
