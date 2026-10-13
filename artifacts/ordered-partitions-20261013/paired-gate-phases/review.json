@@ -1,0 +1,53 @@
+{
+  "reviewer": "document_quality independent subagent",
+  "sourceCommit": "eac99b97",
+  "scope": "CPU source/adapter review; physical gate not run by reviewer",
+  "files": {
+    "src/gpu/kernels/paired-linear-attention.js": "c70410c276f4262f544388bbedfe58f19e73e897d89fb3b2994f967d6d196d7b",
+    "src/gpu/kernels/qwen_linear_attention_prepare_paired.wgsl": "64016f23829b11bffc9fafc91f9ba789cb352dd3b29534045be9edafdcbf332c",
+    "src/gpu/kernels/qwen_linear_attention_scale_paired.wgsl": "f47b3bab9bfd63d87bbb68a81f8441ce90634541ec4cae9869331cfc4ea8bed2",
+    "src/gpu/kernels/qwen_linear_attention_log_decay_paired.wgsl": "70d601b4ce81097737c9d138a5f98d70626513cb72438ba02bb90d99de1d9085",
+    "src/gpu/kernels/qwen_linear_attention_decay_paired.wgsl": "7c60b62151251c77d610adff32fe96388b487058173ca0ae9b840b27ac0fdc08",
+    "src/gpu/kernels/gated_delta_recurrent_paired.wgsl": "d057940ff5f1f181c5deaa7e0eb329c599e1889ba3a7aa35b73405002189a186",
+    "src/config/kernels/registry.json": "f2230059d861bc1cd49eaf5c394362ca47821ca328ba0996af8ea31c847e9486",
+    "src/config/execution-registry-contract.js": "30785ebade278fb3685abde8b839536683a00bdfa93412989e8a1405480656d7",
+    "tests/gpu/paired-gate-phases.test.js": "9ba2f8211a747dc3d49480ad9be01aed11ecd70fff21ae7be6621037c4cad8df",
+    "tests/gpu/paired-gate-memory.test.js": "8dae854c80d0da897e41154472a440b6446975450474cbc1f2da2098ff4a7021",
+    "tests/gpu/paired-linear-ownership.test.js": "df87b6ec8016bac0c362a99921445ad701ea91321889da80a0ef9bfd66b154be",
+    "tests/gpu/paired-linear-preparation.test.js": "1f44f4388fa680d7ed666e6df3589d975834956e451cee8f5aa3a2ade87f1ed3",
+    "tests/kernels/paired-linear-physical.js": "6cb7635644abe698fec710fe9667f8b1c6855531ce697c5b80ed808613a26cfc",
+    "artifacts/ordered-partitions-20261013/paired-gate-phases/proposal.json": "ef73f3ebad79f0e300f5b257a8622d597ebaacd6a280cabdc42c383be96418d5",
+    "artifacts/ordered-partitions-20261013/paired-gate-phases/linear-control.js": "0135bcbcbfe614a9b1379f8e04a74c59ec30d43989ab48da3a82819a57865cbd",
+    "artifacts/ordered-partitions-20261013/paired-gate-phases/lifetime-control.test.js": "1ee75b0f46cf0244f84b48e17b54a2cab707cc0b2a616031b74f6cffa6a4cc0b",
+    "artifacts/ordered-partitions-20261013/paired-gate-phases/controller.js": "d2be1b35267c926868c9ca91135d40c2fce854418c732b94ac70729bfd7b2d93"
+  },
+  "findings": [
+    "Per-lane original beta, exp(a_log), softplus/add/mul, exp(log_decay) operation trees and operand order are preserved. Both components use vec2 storage; no scalar reduction introduced.",
+    "Each phase bounds token-head invocation and reads/writes its own 2*i or 2*i+1 slot. Packed B offset remains conditional on bit zero. Ordered dispatches reuse one gate buffer without cross-lane dependency.",
+    "Exact paired helper blocks and recurrent source remain unchanged. This preserves helper branch choices for signed zero/nonfinite inputs, without expanding their documented finite-domain guarantee.",
+    "Immediate and recorded dispatch failures retain existing owner cleanup. All six prepare waits check cancellation, and recorded buffers remain recorder-owned pending settlement.",
+    "Gate-byte calculation unchanged; four separately allocated uniforms add three rounded256-byte owners per layer versus combined gate. 5,009,408B bound is conservative for declared256-token chunks and retained pool scenario, not whole-model peak or arbitrary1588-token single dispatch.",
+    "Adapter diff is limited to six shader files and ordered binding/dispatch sequence. Original F64 fixture/reference block is byte-identical to33bd652a and current browser fixture; lifetime/300s+10s protocol unchanged."
+  ],
+  "checks": {
+    "proposalHashesVerified": 13,
+    "fixtureReferenceSha256": "24950da8da8f61230a4fcc04a02389f1149c20a06ee68d9138b3e87080583a63",
+    "symbolicBodyCases": 30,
+    "nodeFilesPassed": [
+      "tests/gpu/paired-gate-phases.test.js",
+      "tests/gpu/paired-gate-memory.test.js",
+      "tests/gpu/paired-linear-ownership.test.js",
+      "tests/gpu/paired-linear-preparation.test.js",
+      "tests/gpu/paired-gate-preparation.test.js",
+      "tests/inference/paired-execution-plan.test.js",
+      "tests/tooling/program-bundle-paired-closure.test.js"
+    ],
+    "diagnosticLifetime": "actual orchestration success, late cancellation and unknown cleanup CPU controls pass"
+  },
+  "reviewProbeCorrection": "An initial ad-hoc block comparison used absent const-browser delimiter and falsely compared dispatch code; corrected with verified let-seed/const-receipt boundaries, exact reference equal.",
+  "blockingFindings": [],
+  "limitations": [
+    "No shader compilation or physical numerics rerun by reviewer.",
+    "Physical operator acceptance and exact archive/model55-prefix qualification remain pending."
+  ]
+}
