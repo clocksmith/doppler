@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-13T17:19:00.878707+00:00",
+  "verifiedRuntimeFiles": 1977,
+  "verifiedNativeFiles": 108,
+  "processes": [
+    "4103868       1 Rsl     15:15:23 node server/native-participant.js --contribute --share-files --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory /home/x/.local/share/reploid/public-native/weights --cache-directory /home/x/.local/share/reploid/public-native/cache-budget-20261012 --identity-file /home/x/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo.id --signaling-url wss://reploid-swarm.reploid.workers.dev/swarm",
+    "4121371       1 Ssl     15:13:47 node scripts/run-mesh-contributor.js --url https://replo.id/ --model qwen-3-5-0-8b-q4k-ehaf16 --profile /home/x/.local/share/reploid/public-compute --contribute compute"
+  ],
+  "gpuBusyPercent": [
+    "0"
+  ],
+  "performanceIsolation": false
+}
