@@ -77,7 +77,32 @@
       "receipt": "ownership-result.json.gz",
       "reason": "Layer16 snapshots bind one GPUBuffer and differ. No slot-plan trace events: actual execution uses standard layer/FFN path. Preparation and observation complete; standard FFN cleanup ownership remains unresolved.",
       "residentAndProviderCleanupPassed": true
+    },
+    {
+      "scopeInvocation": "c890c271ce974d3eabfea1617cfc32ec",
+      "providerPid": 1034482,
+      "status": "premature-ffn-output-release-falsified",
+      "receipt": "ffn-ownership-result.json.gz",
+      "reason": "Four different buffers released during FFN cleanup; output remains owned but snapshot bytes change. Native readback/provider versus model execution still unresolved.",
+      "residentAndProviderCleanupPassed": true
+    },
+    {
+      "scopeInvocation": "9f2e04526c054a2e8b91fea5f44c3e1a",
+      "status": "missing-control-input-before-provider-open",
+      "reason": "Original input was not present at the remote path. Copied and verified before retry; no GPU work."
+    },
+    {
+      "scopeInvocation": "5276f34f9d8c4980873bad2c0a13b0c6",
+      "status": "unbound-diagnostic-device",
+      "receipt": "readback-unbound-result.json",
+      "reason": "Standalone control omitted the canonical debug device binding. Snapshot rejected before readback; owned host closed."
+    },
+    {
+      "scopeInvocation": "0c09dd8cacb44a0abc67d439610d0dce",
+      "status": "immutable-readback-control-passed",
+      "receipt": "readback-bound-result.json",
+      "reason": "Eight snapshots retain exact original storage digest. Isolated copy/readback and staging retirement pass; model execution failure remains unresolved. Queue and owned host settled."
     }
   ],
-  "updatedAt": "2026-10-13T21:45:41.611785+00:00"
+  "updatedAt": "2026-10-13T21:53:45.474115+00:00"
 }

@@ -1,0 +1,24 @@
+{
+  "at": "2026-10-13T21:51:06.764684+00:00",
+  "authority": "root, continuing user-authorized runtime repair",
+  "host": "Suby",
+  "scope": "Eight direct canonical snapshots of original immutable activation bytes; no model computation",
+  "publicProcessesPreserved": [
+    297260,
+    299769
+  ],
+  "hypothesis": "Copy/readback/staging retirement changes an immutable source buffer; eight identical digests disprove this isolated control",
+  "maxSourceAndStagingBytes": 3014656,
+  "deadlineSeconds": 90,
+  "memoryHighBytes": 1073741824,
+  "memoryMaxBytes": 2147483648,
+  "swapMaxBytes": 0,
+  "acceptance": "Diagnostic only; no runtime substitution or numerical gate change",
+  "attemptScopes": [
+    "9f2e04526c054a2e8b91fea5f44c3e1a",
+    "5276f34f9d8c4980873bad2c0a13b0c6",
+    "0c09dd8cacb44a0abc67d439610d0dce"
+  ],
+  "originalDiagnosticSourceSha256": "ac86ed99b6014d5e81c8c07d43b65058f1aa75c0106f881e51ca91d66948dc22",
+  "completedDiagnosticSourceSha256": "7a314c799f055a44341bb171d2bb9d96f527391cbeccfafbbfbbd37dcba7fa8a"
+}

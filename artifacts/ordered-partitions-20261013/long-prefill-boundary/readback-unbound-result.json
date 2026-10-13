@@ -1,0 +1,24 @@
+{
+  "schema": "doppler.immutable-buffer-readback-control/v1",
+  "hypothesis": "Readback and staging retirement change an otherwise immutable source buffer",
+  "scope": "Native Vulkan copy/readback only; no model, numerical qualification or provider substitution",
+  "inputSha256": "d4103ac6abcab03612e22f73bac23d2924a9a12d4f07bd4133a46acbdb142d5a",
+  "storageHash": "sha256:c329665e26f52ba76fe84db411fe85a8f121dfb39ee839907db190f38af51b9d",
+  "verifiedRuntime": {
+    "schema": "reploid.numerical-test-delivery/v1",
+    "testDeliveryHash": "sha256:804b41566f8e16e83425736c217f4416aae4c86bad9c56ae315194ff2b7bbf5d",
+    "archiveSha256": "9264d265a90c7c0b046adf46135965b2032d2d9f6e5e60d6a8149d10f0988ec4",
+    "snapshotFiles": 2583,
+    "installedFiles": 1984,
+    "scope": "Immutable numerical fixture delivery; not deployed application or signed admission",
+    "applicationQualification": false
+  },
+  "providerEntrySha256": "18a44f1e81cd3697156e7ddd3456e9f0d346a0afabb76588379b5b2f6dca50b4",
+  "observations": [],
+  "closed": true,
+  "device": {
+    "vendor": "intel",
+    "description": "Intel open-source Mesa driver: Mesa 24.2.8-1ubuntu1~24.04.1"
+  },
+  "failure": "AssertionError [ERR_ASSERTION]: GPU device not initialized\n    at file:///var/tmp/doppler-long-prefill-boundary-20261013/readback-control.js:51:5"
+}

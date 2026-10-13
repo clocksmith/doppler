@@ -1,0 +1,136 @@
+{
+  "scope": "Standard FFN output not released between divergent captures; premature output retirement falsified in this control",
+  "captureSha256": "bcaba13c0e1091f9708db202b895705bea94959a5fc34c30e83d566999ff083a",
+  "returnedOutputId": 1,
+  "releasedBufferIdsDuringCleanup": [
+    2,
+    3,
+    5,
+    4
+  ],
+  "boundaryEvents": [
+    {
+      "event": "layer-output-probe",
+      "layer": 16,
+      "buffer": {
+        "id": 1,
+        "label": "paired_pointwise_1507328",
+        "size": 1507328,
+        "usage": 140
+      },
+      "recorder": false,
+      "count": 13
+    },
+    {
+      "event": "ffn-before-cleanup",
+      "layer": 16,
+      "ffnResidualFused": false,
+      "residualInputOwned": false,
+      "output": {
+        "id": 1,
+        "label": "paired_pointwise_1507328",
+        "size": 1507328,
+        "usage": 140
+      },
+      "normed": {
+        "id": 2,
+        "label": "rmsnorm_paired_output_1507328",
+        "size": 1507328,
+        "usage": 140
+      },
+      "postAttn": {
+        "id": 3,
+        "label": "matmul_paired_output_1507328",
+        "size": 1507328,
+        "usage": 140
+      },
+      "ffnOutput": {
+        "id": 4,
+        "label": "matmul_paired_output_1507328",
+        "size": 1507328,
+        "usage": 140
+      },
+      "residualInput": {
+        "id": 4,
+        "label": "matmul_paired_output_1507328",
+        "size": 1507328,
+        "usage": 140
+      },
+      "prenorm": {
+        "id": 5,
+        "label": "rmsnorm_paired_output_1507328",
+        "size": 1507328,
+        "usage": 140
+      }
+    },
+    {
+      "event": "pool-release",
+      "layer": 16,
+      "buffer": {
+        "id": 2,
+        "label": "rmsnorm_paired_output_1507328",
+        "size": 1507328,
+        "usage": 140
+      }
+    },
+    {
+      "event": "pool-release",
+      "layer": 16,
+      "buffer": {
+        "id": 3,
+        "label": "matmul_paired_output_1507328",
+        "size": 1507328,
+        "usage": 140
+      }
+    },
+    {
+      "event": "pool-release",
+      "layer": 16,
+      "buffer": {
+        "id": 5,
+        "label": "rmsnorm_paired_output_1507328",
+        "size": 1507328,
+        "usage": 140
+      }
+    },
+    {
+      "event": "pool-release",
+      "layer": 16,
+      "buffer": {
+        "id": 4,
+        "label": "matmul_paired_output_1507328",
+        "size": 1507328,
+        "usage": 140
+      }
+    },
+    {
+      "event": "ffn-after-cleanup",
+      "layer": 16,
+      "output": {
+        "id": 1,
+        "label": "paired_pointwise_1507328",
+        "size": 1507328,
+        "usage": 140
+      }
+    },
+    {
+      "event": "layer-output-probe",
+      "layer": 16,
+      "buffer": {
+        "id": 1,
+        "label": "paired_pointwise_1507328",
+        "size": 1507328,
+        "usage": 140
+      },
+      "recorder": false,
+      "count": 14
+    }
+  ],
+  "failure": null,
+  "cleanupFailure": null,
+  "providerSettlement": {
+    "closed": true,
+    "providerOpened": true,
+    "ownedProviderReleased": true
+  }
+}
