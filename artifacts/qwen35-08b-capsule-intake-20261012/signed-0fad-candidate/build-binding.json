@@ -1,0 +1,42 @@
+{
+  "builderRevision": "e0359df33f2cad4b45760da5446ffec25b9ea89d",
+  "builderSha256": "a93c7b6b97a3263c6e2c23b7fa1549566813b543ea909c0d827def3d1db30c46",
+  "archiveSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "sourceRoot": "/var/tmp/doppler-resident-preparation-candidate-20261012/source",
+  "runtime": "/var/tmp/doppler-resident-preparation-candidate-20261012/consumer/node_modules/doppler-gpu",
+  "previousCandidatePreserved": true,
+  "qualificationReports": [
+    {
+      "path": "/Users/xyz/deco/doppler/artifacts/resident-pipeline-preparation-20261012/native-qualification/direction-0/partition-0.json",
+      "sha256": "e16597824bda94ec8a1720698a65ce0859b7ed97f543a92aa5b06b4b8121b35c"
+    },
+    {
+      "path": "/Users/xyz/deco/doppler/artifacts/resident-pipeline-preparation-20261012/native-qualification/direction-0/partition-1.json",
+      "sha256": "4b8bcf0b8e53d0377d80cee24314e364661ac64e733908e152f5acbdc39e2326"
+    },
+    {
+      "path": "/Users/xyz/deco/doppler/artifacts/resident-pipeline-preparation-20261012/native-qualification/direction-1/partition-0.json",
+      "sha256": "57d3e39a127f94c2dd24c95e811b033028835848214f837e5d1d246a6e30f0fe"
+    },
+    {
+      "path": "/Users/xyz/deco/doppler/artifacts/resident-pipeline-preparation-20261012/native-qualification/direction-1/partition-1.json",
+      "sha256": "f474c738f63e5d10354c35809b7547a7bb7c17594e84997c057a7f0c5fd629d4"
+    }
+  ],
+  "contractSha256": "baab7b442031607d8cf3ade4b4bd37eb6ee8995034f8c5e38f2730284ac2357c",
+  "modelIRReceiptSha256": "074ad8ac8e847fa960ccf3e06e9d24243348e892f7a7cc78d5879a3662090a77",
+  "manifestSha256": "ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+  "pieceIndexSha256": "5417f9423b37fd49f492932ad07d61ed979aaaf3fe9c365fb4b4623da9b47849",
+  "programBundleSha256": "c339eac86b49de6c2779efb9755cc767203a29ce27fbed478b52cf52ee0039cb",
+  "identity": {
+    "schema": "doppler.capsule/v3",
+    "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v3-73da7f55117f895e9d17a1dd811e411c6e4631596f70941042559c3d0a344142",
+    "semanticRoot": "sha256:73da7f55117f895e9d17a1dd811e411c6e4631596f70941042559c3d0a344142",
+    "envelopeDigest": "sha256:bd250a2162196f5988c806dcda48a79f14724bd8d373744d4ab9582c613ecafd",
+    "artifactClosureDigest": "sha256:5cfd494efb8f08ec60cc8ccd67c3bbe9da02d18247cbddc04a47200a88a35b09"
+  },
+  "issuedAtUtc": "2026-10-13T01:18:58.518Z",
+  "expiresAtUtc": "2026-10-14T01:18:58.518Z",
+  "artifactCount": 54,
+  "scope": "Isolated fresh release history; previous candidate/history preserved. No production or physical acceptance."
+}

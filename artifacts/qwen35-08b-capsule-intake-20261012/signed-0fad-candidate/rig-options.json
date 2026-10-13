@@ -1,0 +1,21 @@
+{
+  "repoRoot": "/var/tmp/qwen35-capsule-0fad-20261012/source",
+  "programBundlePath": "/var/tmp/qwen35-capsule-0fad-20261012/artifacts/program-bundle.json",
+  "manifestPath": "/var/tmp/qwen35-capsule-0fad-20261012/source/capsule-input/model/manifest.json",
+  "modelDir": "/var/tmp/qwen35-capsule-0fad-20261012/source/capsule-input/model",
+  "modelIRReceiptPath": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/model-ir-receipt.json",
+  "initialExecutionIdentityPath": "/var/tmp/qwen35-capsule-0fad-20261012/initial-identity.json",
+  "qualificationReportPaths": [
+    "/Users/xyz/deco/doppler/artifacts/resident-pipeline-preparation-20261012/native-qualification/direction-0/partition-0.json",
+    "/Users/xyz/deco/doppler/artifacts/resident-pipeline-preparation-20261012/native-qualification/direction-0/partition-1.json",
+    "/Users/xyz/deco/doppler/artifacts/resident-pipeline-preparation-20261012/native-qualification/direction-1/partition-0.json",
+    "/Users/xyz/deco/doppler/artifacts/resident-pipeline-preparation-20261012/native-qualification/direction-1/partition-1.json"
+  ],
+  "residentQualificationContractPath": "/Users/xyz/deco/doppler/artifacts/resident-pipeline-preparation-20261012/native-qualification/direction-0/contract.json",
+  "pieceIndexPath": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/pieces.json",
+  "releaseManifestPath": "/var/tmp/qwen35-capsule-0fad-20261012/release.json",
+  "signingPrivateKeyPath": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/signing-private.jwk.json",
+  "signingPublicKeyPath": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/signing-public.jwk.json",
+  "signingAuthority": "reploid-paired-qualification-20261012",
+  "outputPath": "/var/tmp/qwen35-capsule-0fad-20261012/capsule.json"
+}
