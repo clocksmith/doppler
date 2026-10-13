@@ -73,6 +73,8 @@ comparison pass. The CLI then runs the exact archive's existing report and
 complete-set validators before writing new files exclusively.
 
 Validation: `node --test artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js`
-passed 85 CPU controls, including legacy cases, 2/3/4/7 logical stages, 3 stages
+passed 86 CPU controls, including legacy cases, 2/3/4/7 logical stages, 3 stages
 on 2 hosts, two independently settled native providers, and negative identity,
 activation, deadline, descriptor and cleanup mutations. No GPU launched.
+
+Ordered settlement requires zero retained-model, active and deferred owner counts and bytes. Allocated reusable buffers and their weight-category attribution remain reported; reusable storage is not an unsettled owner. The retained v1 report check is unchanged.

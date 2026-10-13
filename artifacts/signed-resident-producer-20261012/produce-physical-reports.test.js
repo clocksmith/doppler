@@ -196,6 +196,7 @@ function orderedFixture(count = 3, hostCount = count) {
   const prototype = f.capture.descriptors[0], identityHash = computeCanonicalSha256(prototype.openingObservation.initialExecutionIdentity);
   f.capture.descriptors = []; f.capture.residentSettlement = []; f.capture.executorSettlements = [];
   const settlement = directFixture().capture.residentSettlement[0];
+  for (const owner of ['retainedModel', 'active', 'deferredCleanup']) settlement.snapshot.pool.resources[owner].bytes = 0;
   for (let index = 0; index < count; index++) {
     const executorId = `executor-${index}`, platform = `host-${index % hostCount}`;
     expected.placements.push({ partitionIndex: index, executorId, platform, participantId: executorId,
@@ -312,4 +313,13 @@ for (const [name, mutate] of Object.entries({
 })) test(`ordered rejects ${name}`, () => {
   const f = orderedNativeFixture(); mutate(f); f.input.captureBytes = bytes(f.capture);
   assert.throws(() => producePhysicalReports(f.input));
+});
+
+test('ordered cleanup preserves reusable allocation categories while requiring empty live ownership', () => {
+  const f = orderedFixture();
+  f.capture.residentSettlement[0].snapshot.device.categories.weights = 256;
+  f.capture.residentSettlement[0].snapshot.pool.resources.reusable = { count: 1, bytes: 256 };
+  f.input.captureBytes = bytes(f.capture); assert.equal(producePhysicalReports(f.input).reports.length, 3);
+  f.capture.residentSettlement[0].snapshot.pool.resources.active.bytes = 4;
+  f.input.captureBytes = bytes(f.capture); assert.throws(() => producePhysicalReports(f.input));
 });

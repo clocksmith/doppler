@@ -193,7 +193,7 @@
   ],
   "hostScope": "Three physical hosts require three independently observed hosts; a colocated route must declare its actual lower host count.",
   "minimumRuntimeSource": "77af06b9",
-  "producerHash": "sha256:e44ba85555d247a619da5fc5b5063926b9ffe802f385073b592e288bbba4335e",
+  "producerHash": "sha256:714cc204e61c6289f1e937bcf1b75e693bd5bf2ddf1529e1a9e3368e896b3c99",
   "pendingBeforeLaunch": [
     "Ordinary immutable N-stage runtime archive; 0fad lacks executeStage and cannot run this plan.",
     "Ordered-reference capture branch using actual executeStage and complete boundary/lifecycle observations.",
