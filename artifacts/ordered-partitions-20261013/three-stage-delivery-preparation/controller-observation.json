@@ -1,0 +1,53 @@
+{
+  "Mac": {
+    "observedAt": "2026-10-13T15:28:56.769396+00:00",
+    "rows": [],
+    "scope": "Read-only selected process signatures; absence is not exclusive GPU availability"
+  },
+  "AMD": {
+    "observedAt": "2026-10-13T15:28:57.204190+00:00",
+    "rows": [
+      {
+        "pid": 4103868,
+        "ppid": 1,
+        "elapsed": "13:25:19",
+        "executable": "node",
+        "ownership": "known public contributor",
+        "script": "server/native-participant.js"
+      },
+      {
+        "pid": 4121371,
+        "ppid": 1,
+        "elapsed": "13:23:43",
+        "executable": "node",
+        "ownership": "known public contributor",
+        "script": "scripts/run-mesh-contributor.js",
+        "profile": "/home/x/.local/share/reploid/public-compute"
+      }
+    ],
+    "scope": "Read-only selected process signatures; absence is not exclusive GPU availability"
+  },
+  "Suby": {
+    "observedAt": "2026-10-13T15:28:57.687005+00:00",
+    "rows": [
+      {
+        "pid": 297260,
+        "ppid": 1,
+        "elapsed": "13:24:57",
+        "executable": "node",
+        "ownership": "known public contributor",
+        "script": "server/native-participant.js"
+      },
+      {
+        "pid": 299769,
+        "ppid": 1,
+        "elapsed": "13:21:42",
+        "executable": "node",
+        "ownership": "known public contributor",
+        "script": "scripts/run-mesh-contributor.js",
+        "profile": "/home/clocksmith/.local/share/reploid/public-compute"
+      }
+    ],
+    "scope": "Read-only selected process signatures; absence is not exclusive GPU availability"
+  }
+}

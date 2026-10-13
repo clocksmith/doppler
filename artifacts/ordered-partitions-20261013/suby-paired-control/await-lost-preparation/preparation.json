@@ -1,0 +1,7 @@
+{
+  "status": "CPU/static preparation only; no replay authorized or launched",
+  "parentSourceHash": "e16eb8b3eea8dca8d2d897bc1ecdc8498fd8262c97003c829b8fa598a83366c3",
+  "sourceHash": "38854881c26c0767ea93692f730f73d823a8051494d9c7ad3c3f88cad7b77a6e",
+  "delta": "Capture exact owned device.lost before destroy, await within existing10s before provider restoration; retain provider/unknown ownership if barrier fails",
+  "runtimeArchiveUnchanged": "5e0d60bc433d332187d422721fd7afcaec780c202e3082adcab389b47fd27fc5"
+}
