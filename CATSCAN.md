@@ -41,7 +41,7 @@ Make local AI an ordinary JavaScript dependency. Advance generation and search i
 
 - `npm run check:green` passes from a clean checkout.
 - Evidence: [goal completion matrix](src/config/goal-completion-matrix.json).
-- Meet [clean-environment search acceptance](docs/goals.md#next-product-increment-copy-and-run-local-search); reference apps are not independent adoption or promotion.
+- Meet [clean-environment search acceptance](GOALS.md#next-product-increment-copy-and-run-local-search); reference apps are not independent adoption or promotion.
 
 ## Non-goals
 

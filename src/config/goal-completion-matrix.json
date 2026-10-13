@@ -10,7 +10,7 @@
       "status": "partial",
       "claimAllowed": false,
       "evidencePaths": [
-        "docs/goals.md",
+        "GOALS.md",
         "tools/policies/model-release-platform.json"
       ],
       "blockers": [
@@ -31,7 +31,7 @@
           "packageExport": null,
           "smokeCommand": null,
           "evidencePaths": [
-            "docs/goals.md",
+            "GOALS.md",
             "tools/policies/model-release-platform.json"
           ],
           "blockers": [
@@ -49,7 +49,7 @@
           "packageExport": null,
           "smokeCommand": null,
           "evidencePaths": [
-            "docs/goals.md",
+            "GOALS.md",
             "tools/policies/model-release-platform.json"
           ],
           "blockers": [
@@ -67,7 +67,7 @@
           "packageExport": null,
           "smokeCommand": null,
           "evidencePaths": [
-            "docs/goals.md",
+            "GOALS.md",
             "tools/policies/model-release-platform.json"
           ],
           "blockers": [
@@ -85,7 +85,7 @@
           "packageExport": null,
           "smokeCommand": null,
           "evidencePaths": [
-            "docs/goals.md",
+            "GOALS.md",
             "tools/policies/model-release-platform.json"
           ],
           "blockers": [
@@ -100,7 +100,7 @@
       "status": "partial",
       "claimAllowed": false,
       "evidencePaths": [
-        "docs/goals.md",
+        "GOALS.md",
         "docs/model-release-platform.md",
         "tools/policies/model-release-platform.json"
       ],
@@ -124,7 +124,7 @@
           "packageExport": null,
           "smokeCommand": null,
           "evidencePaths": [
-            "docs/goals.md",
+            "GOALS.md",
             "tools/policies/model-release-platform.json",
             "artifacts/document-search-maintenance-2026-09-26/README.md",
             "artifacts/document-search-minilm-embedding-2026-09-26/README.md"
@@ -144,7 +144,7 @@
           "packageExport": null,
           "smokeCommand": "npm run model-release:check",
           "evidencePaths": [
-            "docs/goals.md",
+            "GOALS.md",
             "docs/model-release-platform.md",
             "tools/policies/model-release-platform.json",
             "src/config/schema/model-release-platform.schema.json",
@@ -231,7 +231,7 @@
           "packageExport": null,
           "smokeCommand": "npm run product:integrations:check",
           "evidencePaths": [
-            "docs/goals.md",
+            "GOALS.md",
             "docs/product-integration-qualification.md",
             "tools/policies/product-integration-qualification.json",
             "tools/check-product-integration-qualification.js",
@@ -299,7 +299,7 @@
           "smokeCommand": null,
           "evidencePaths": [
             "docs/model-release-platform.md",
-            "docs/goals.md",
+            "GOALS.md",
             "tools/policies/model-release-platform.json",
             "src/config/schema/model-release-platform.schema.json",
             "tools/check-model-release-platform.js",
@@ -326,7 +326,7 @@
           "packageExport": null,
           "smokeCommand": null,
           "evidencePaths": [
-            "docs/goals.md",
+            "GOALS.md",
             "docs/model-release-platform.md",
             "tools/policies/model-release-platform.json",
             "docs/electron-design-partner-program.md",
@@ -350,7 +350,7 @@
       "claimAllowed": false,
       "evidencePaths": [
         "README.md",
-        "docs/goals.md",
+        "GOALS.md",
         "docs/model-support-matrix.md",
         "docs/rdrr-format.md"
       ],
@@ -411,7 +411,7 @@
           "packageExport": ".",
           "smokeCommand": "npm run runtime:identity:check",
           "evidencePaths": [
-            "docs/goals.md",
+            "GOALS.md",
             "docs/api/root.md",
             "src/client/runtime/model-session.js",
             "src/client/runtime/resolution-policy.js",
@@ -474,7 +474,7 @@
             "tools/record-provider-conformance.js",
             "tools/lib/provider-conformance-evidence.js",
             "tests/config/provider-conformance.test.js",
-            "docs/goals.md"
+            "GOALS.md"
           ],
           "blockers": [
             "provider-conformance-receipts-missing"
@@ -620,7 +620,7 @@
           "packageExport": null,
           "smokeCommand": "npm run product:portfolio:check",
           "evidencePaths": [
-            "docs/goals.md",
+            "GOALS.md",
             "docs/model-support-matrix.md",
             "docs/release-matrix.md",
             "models/catalog.json",
@@ -692,7 +692,7 @@
       "claimAllowed": false,
       "evidencePaths": [
         "README.md",
-        "docs/goals.md",
+        "GOALS.md",
         "docs/release-matrix.md",
         "docs/benchmark-methodology.md"
       ],
@@ -968,7 +968,7 @@
             "src/tooling/program-bundle-parity.js",
             "tests/config/provider-conformance.test.js",
             "tests/tooling/record-provider-conformance.test.js",
-            "docs/goals.md"
+            "GOALS.md"
           ],
           "blockers": [
             "provider-conformance-receipts-missing"
@@ -1041,7 +1041,7 @@
       "description": "Real signed ESM-2 Capsule executes locally and through explicit complete-job delegation",
       "exitCriteria": "Retain actual signed ESM-2 Capsule, weights, public openCapsule/encodeSequence, frozen sequence corpus and oracle-valid assignment-bound outputs on declared physical browsers. Private inputs remain local; redistribution and delegation are separately authorized.",
       "evidencePaths": [
-        "docs/goals.md",
+        "GOALS.md",
         "tools/policies/model-release-platform.json"
       ]
     },
@@ -1054,7 +1054,7 @@
       "description": "Independent machines reconstruct the exact Capsule without origins and recover participant loss",
       "exitCriteria": "A fresh receiver reconstructs the complete Capsule from authorized peers on independent machines with origin and mirrors disabled; reject corruption, recover supplier loss, retain controller provenance and all transfer costs.",
       "evidencePaths": [
-        "docs/goals.md",
+        "GOALS.md",
         "tools/policies/model-release-platform.json"
       ]
     },
@@ -1067,7 +1067,7 @@
       "description": "Admitted history improves held-out assignments against frozen scheduling controls",
       "exitCriteria": "Within the same Capsule and assignment lineage, history predates held-out jobs and beats both no-history and competent reliability schedulers on a predeclared meaningful outcome with uncertainty, identical oracle and resource budget, unchanged correctness, all-attempt costs, and revocation/staleness/duplicate/insufficient-history negatives.",
       "evidencePaths": [
-        "docs/goals.md",
+        "GOALS.md",
         "tools/policies/model-release-platform.json"
       ]
     },
@@ -1080,7 +1080,7 @@
       "description": "Independent participants voluntarily repeat useful execution; free adoption counts",
       "exitCriteria": "Independent requesters and operators voluntarily return for oracle-valid useful results through forkable protocols and exportable evidence. Record operator control and consent. No payment, Electron customer, Doe improvement, or agent-proposed Capsule improvement is required.",
       "evidencePaths": [
-        "docs/goals.md",
+        "GOALS.md",
         "tools/policies/model-release-platform.json"
       ]
     },
@@ -1093,7 +1093,7 @@
       "description": "External executable-model adoption and measured lower-effort repeat release remain unproved.",
       "exitCriteria": "Retain unrelated maintainer acceptance, frozen application-owned outcome improvement with parity-qualified incumbent comparison, maintainer-operated devices, a rejected candidate and recovery, continued use, and a second model revision with measured lower release effort. Free adoption qualifies. Payment, Doe, Poolday, and Reploid are not prerequisites, and neither payment nor peer delivery satisfies this gate.",
       "evidencePaths": [
-        "docs/goals.md",
+        "GOALS.md",
         "tools/policies/model-release-platform.json",
         "artifacts/document-search-maintenance-2026-09-26/README.md",
         "artifacts/document-search-minilm-embedding-2026-09-26/README.md"
@@ -1156,7 +1156,7 @@
       "completionClass": "hardware",
       "statusCommand": "npm run provider:conformance:check",
       "description": "The broader provider portfolio remains unqualified. The next bounded experiment is the unchanged installed search application on Doe and the supported provider; no complete shared comparison or Doe advantage is claimed. Doe remains optional and does not gate unrelated maintenance releases.",
-      "exitCriteria": "Retain the frozen shared search comparison specified in docs/goals.md: identical application, model/program bytes, inputs, quality gates, hardware scope, and timing boundaries; opening, complete queries, allocation peaks, cancellation, cleanup and recovery; minimal reproductions for failed boundaries. An unsupported result closes diagnosis, not provider qualification. Promote only exact evidenced provider/workload tuples and paired suites through the existing conformance path; broader portfolio support remains separate. No customer or payment is required to run or publish this bounded experiment.",
+      "exitCriteria": "Retain the frozen shared search comparison specified in GOALS.md: identical application, model/program bytes, inputs, quality gates, hardware scope, and timing boundaries; opening, complete queries, allocation peaks, cancellation, cleanup and recovery; minimal reproductions for failed boundaries. An unsupported result closes diagnosis, not provider qualification. Promote only exact evidenced provider/workload tuples and paired suites through the existing conformance path; broader portfolio support remains separate. No customer or payment is required to run or publish this bounded experiment.",
       "evidencePaths": [
         "docs/provider-conformance.md",
         "tools/policies/provider-conformance.json",
@@ -1169,7 +1169,7 @@
         "src/config/schema/provider-conformance-provider-promotion.schema.json",
         "src/config/schema/provider-conformance-suite-promotion.schema.json",
         "tests/tooling/record-provider-conformance.test.js",
-        "docs/goals.md"
+        "GOALS.md"
       ]
     },
     {
@@ -1228,7 +1228,7 @@
       "exitCriteria": "Retain an authorized paid external agreement, pinned Electron application and model intake, signed Capsule, declared Windows and macOS fleet receipts, known exclusions, a retained rejected candidate, customer-controlled activation and rollback evidence, and proof that the subsequent upgrade also relied on Doppler eligibility; then promote the commercial assessment through human review.",
       "evidencePaths": [
         "docs/model-release-platform.md",
-        "docs/goals.md",
+        "GOALS.md",
         "tools/policies/model-release-platform.json",
         "src/config/schema/model-release-platform.schema.json",
         "tools/policies/product-integration-qualification.json",
@@ -1279,7 +1279,7 @@
       "description": "The first external release has not been repeated by two additional unrelated Electron customers.",
       "exitCriteria": "After the first paid release and subsequent upgrade are retained, complete the same delegated-eligibility path with two unrelated customers, each with its own application, model revision, supported fleet, rejection or failure evidence, rollback target, and customer-controlled activation authority.",
       "evidencePaths": [
-        "docs/goals.md",
+        "GOALS.md",
         "docs/model-release-platform.md",
         "tools/policies/model-release-platform.json",
         "tools/check-model-release-platform.js",

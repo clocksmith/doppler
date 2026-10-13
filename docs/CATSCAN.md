@@ -19,7 +19,7 @@ Preserve navigable human contracts without competing with machine-readable statu
 
 ## Contracts
 
-- Input: [Doppler goals](goals.md), source contracts, policy registries, and retained evidence.
+- Input: [Doppler goals](../GOALS.md), source contracts, policy registries, and retained evidence.
 - Output: [Documentation index](INDEX.md), specifications, guides, and generated human-readable views.
 
 ## Invariants

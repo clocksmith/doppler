@@ -6,7 +6,7 @@ indexing, cosine candidate retrieval, and candidate-to-document mapping. Documen
 parsing and index policy stay outside the inference runtime.
 
 This is the canonical implementation for Doppler's
-[next product increment](../../docs/goals.md#next-product-increment-copy-and-run-local-search):
+[next product increment](../../GOALS.md#next-product-increment-copy-and-run-local-search):
 a complete copy-and-run local-search application. That contract requires reusable
 sessions and indexes, application-owned cancellation/disposal, complete pinned
 setup, honest progress, and clean-environment physical acceptance. The [engineering build](ENGINEERING.md) is retained for reproduction; installed application evidence and limitations are recorded below. Do not create a second search engine in the

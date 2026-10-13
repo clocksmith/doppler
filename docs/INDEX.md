@@ -9,7 +9,7 @@ Primary documentation index.
 - [Compatibility API](api/compat.md) — explicit published manifest-loading path.
 - [Performance and sizing](performance-sizing.md) — measured limits and prerequisites.
 - [Product priorities](../GOALS.md#current-priorities) — durable goals and ownership.
-- [Product contracts](goals.md) — technical requirements and retained campaign evidence.
+- [Product acceptance](../GOALS.md#product-acceptance-and-evidence) — technical requirements and retained campaign evidence.
 
 ## Supported operations and evidence
 

@@ -63,7 +63,7 @@ function revocations(includeMatch = false) {
         artifactVariantIds: [ARTIFACT_ID],
       },
       replacements: emptyTargets(),
-      evidencePaths: ['docs/goals.md'],
+      evidencePaths: ['GOALS.md'],
     });
   }
   return registry;
