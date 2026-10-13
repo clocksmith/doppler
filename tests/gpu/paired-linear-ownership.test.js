@@ -7,7 +7,7 @@ globalThis.pairedLinearControl = {
   failure: null,
   acquire(size, _usage, label) { if (this.failure === label) throw Error('injected allocation'); const b = { size }; live.add(b); return b; },
   release(b) { assert(live.delete(b), 'one release per acquired buffer'); },
-  dispatch(...args) { if (this.failure === args[0]) throw Error('injected dispatch'); calls.push(args); },
+  dispatch(...args) { if (this.failure === args[0] || this.failure === args[2]) throw Error('injected dispatch'); calls.push(args); },
   device: { limits },
 };
 const modules = {
@@ -35,7 +35,7 @@ try {
     const settle = () => { for (const b of held) pairedLinearControl.release(b); held.clear(); };
     const run = (overrides = {}, options = {}) => executePairedLinearAttention(qkv, z, a, b, { ...state, ...overrides },
       { numTokens: 2, outputDtype: 'f32', qkL2NormEps: 1e-6, recorder, ...options });
-    for (const failure of ['paired_linear_conv', 'paired_linear_gates', 'paired_linear_output', 'gated_delta_conv', 'qwen_linear_attention_prepare', 'gated_delta_recurrent']) {
+    for (const failure of ['paired_linear_conv', 'paired_linear_gates', 'paired_linear_output', 'gated_delta_conv', 'paired_beta', 'paired_decay_scale', 'paired_log_decay', 'paired_decay', 'gated_delta_recurrent']) {
       pairedLinearControl.failure = failure; await assert.rejects(run(), /injected/); settle(); assert.equal(live.size, 0);
     }
     pairedLinearControl.failure = null;
@@ -47,7 +47,9 @@ try {
     const result = await run(); assert.equal(result.precision, 'two-f32'); assert.deepEqual(result.shape, [2, 2]);
     assert.equal(held.size, recorded ? 2 : 0, 'conv and gate owners remain with recorder until settlement');
     assert.equal(calls.at(-2)[0], 'qwen_linear_attention_prepare');
+    assert.deepEqual(calls.slice(-5, -1).map(call => call[2]), ['paired_beta', 'paired_decay_scale', 'paired_log_decay', 'paired_decay']);
     const preparedGate = calls.at(-2)[3].at(-1);
+    for (const call of calls.slice(-5, -1)) assert.equal(call[3].at(-1), preparedGate);
     assert.equal(preparedGate.size, 32);
     assert.equal(calls.at(-1)[3][2], preparedGate, 'state update consumes exact paired gate buffer');
     const u = calls.at(-1)[4]; assert.equal(u.rms_eps_hi + u.rms_eps_lo, 1e-6); assert.equal(u.norm_weight_offset, 1);

@@ -1,0 +1,88 @@
+{
+  "schema": "doppler.paired-gate-phases-proposal/v1",
+  "component": "doppler.runtime-source.gpu.kernels",
+  "intent": "preserved",
+  "status": "CPU candidate; physical validation pending",
+  "parentSourceCommit": "33bd652a",
+  "failureEvidence": {
+    "repository": "reploid",
+    "commit": "aae0149e",
+    "path": "artifacts/gate-three-stage-physical-20261013/suby-load-preflight.json",
+    "boundary": "qwen_linear_attention_prepare_paired_gates createComputePipelineAsync pending through total300s",
+    "processTermination": "SIGTERM of owned862617; absence does not prove GPU settlement"
+  },
+  "hypothesis": "Four nonlinear exp callsites in one gate pipeline expand compiler work. Separate phase programs each contain one reachable exp callsite; log_decay also contains pair_log. This is a hypothesis until bounded physical validation.",
+  "phaseOrder": [
+    {
+      "variant": "paired_beta",
+      "reads": "b[i+packedOffset]",
+      "writes": "gates[2*i] = sigmoid(b)"
+    },
+    {
+      "variant": "paired_decay_scale",
+      "reads": "a_log[head]",
+      "writes": "gates[2*i+1] = exp(vec2(a_log,0))"
+    },
+    {
+      "variant": "paired_log_decay",
+      "reads": "gates[2*i+1],a[i],dt_bias[head]",
+      "writes": "gates[2*i+1] = -mul(scale,softplus(add(a,vec2(dt_bias,0))))"
+    },
+    {
+      "variant": "paired_decay",
+      "reads": "gates[2*i+1]",
+      "writes": "gates[2*i+1] = exp(log_decay)"
+    }
+  ],
+  "preserved": {
+    "gateLogicalBytesPerToken": 256,
+    "noAdditionalTensorBuffer": true,
+    "bothF32Components": true,
+    "originalPairHelpersUnchanged": true,
+    "originalOperandOrder": true,
+    "originalF64FixtureBlockSha256": "24950da8da8f61230a4fcc04a02389f1149c20a06ee68d9138b3e87080583a63",
+    "referenceAndFixtureByteIdentical": true,
+    "recurrentShaderByteIdentical": true,
+    "modelThreshold": 0.001,
+    "executorBudgetBytes": 1420000000,
+    "operationDeadlineMs": 300000,
+    "cleanupDeadlineMs": 10000
+  },
+  "aliasProof": "i is unique global invocation token-major/head-minor; each phase writes only2*i or2*i+1, phase3/4 read only their own2*i+1. Sequential compute dispatches supply storage visibility; no cross-lane read or state/output overlap. Packed B offset retained.",
+  "lifetime": "Existing gate owner retained through final recurrent consumer. Allfour immediate/recorded dispatch failures join existing finally ownership; recorded pending abort remains charged. Each additional dispatch uses existing uniform owner.",
+  "incrementalInventory": {
+    "poolPolicy": "previous frozen session and DEFAULT_BUFFER_POOL_CONFIG, not new observed hardware peak",
+    "logicalGateBytes": "T *16heads *2gates *2components *4bytes",
+    "uniformLogicalBytesPerPhase": 80,
+    "uniformConservativeRoundedBytesPerPhase": 256,
+    "phases": 4,
+    "addedUniformBytesPerLayerVersusCombined": 768,
+    "twoAttemptsSixRetainedLayersAddedBytes": 9216,
+    "twoActive256TokenAttemptsGateAndUniformBytes": 133120,
+    "twoAttemptsSixLayersAt256Bytes": 798720,
+    "conservativeGateAndUniformLivePlusReusableBytes": 5009408,
+    "formula": "(64pooled+12active)*65536 gate + (64pooled+48active)*256 uniform",
+    "wholeModelPeakClaim": false
+  },
+  "requiredNextEvidence": [
+    "Exact shader/generated closure validation",
+    "Independent F64 operator controls with original fixtures and full components",
+    "Actual installed samecandidate3hostpreparation then55prefixes",
+    "Fresh source/archive/graph/TargetPlan/Capsule identities; historicalpassesnottransferred"
+  ],
+  "files": {
+    "src/gpu/kernels/paired-linear-attention.js": "c70410c276f4262f544388bbedfe58f19e73e897d89fb3b2994f967d6d196d7b",
+    "src/gpu/kernels/qwen_linear_attention_prepare_paired.wgsl": "64016f23829b11bffc9fafc91f9ba789cb352dd3b29534045be9edafdcbf332c",
+    "src/gpu/kernels/qwen_linear_attention_scale_paired.wgsl": "f47b3bab9bfd63d87bbb68a81f8441ce90634541ec4cae9869331cfc4ea8bed2",
+    "src/gpu/kernels/qwen_linear_attention_log_decay_paired.wgsl": "70d601b4ce81097737c9d138a5f98d70626513cb72438ba02bb90d99de1d9085",
+    "src/gpu/kernels/qwen_linear_attention_decay_paired.wgsl": "7c60b62151251c77d610adff32fe96388b487058173ca0ae9b840b27ac0fdc08",
+    "src/gpu/kernels/gated_delta_recurrent_paired.wgsl": "d057940ff5f1f181c5deaa7e0eb329c599e1889ba3a7aa35b73405002189a186",
+    "src/config/kernels/registry.json": "f2230059d861bc1cd49eaf5c394362ca47821ca328ba0996af8ea31c847e9486",
+    "src/config/execution-registry-contract.js": "30785ebade278fb3685abde8b839536683a00bdfa93412989e8a1405480656d7",
+    "tests/gpu/paired-gate-phases.test.js": "9ba2f8211a747dc3d49480ad9be01aed11ecd70fff21ae7be6621037c4cad8df",
+    "tests/gpu/paired-gate-memory.test.js": "8dae854c80d0da897e41154472a440b6446975450474cbc1f2da2098ff4a7021",
+    "tests/gpu/paired-linear-ownership.test.js": "df87b6ec8016bac0c362a99921445ad701ea91321889da80a0ef9bfd66b154be",
+    "tests/gpu/paired-linear-preparation.test.js": "1f44f4388fa680d7ed666e6df3589d975834956e451cee8f5aa3a2ade87f1ed3",
+    "tests/kernels/paired-linear-physical.js": "6cb7635644abe698fec710fe9667f8b1c6855531ce697c5b80ed808613a26cfc"
+  }
+}

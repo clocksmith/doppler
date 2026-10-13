@@ -34,7 +34,22 @@ export function write_sigmoid_gated_backward_default(view, values, kernel) {
   writeU32(view, 12, values["_pad2"], kernel, "_pad2");
 }
 
-export function write_qwen_linear_attention_prepare_paired_gates(view, values, kernel) {
+export function write_qwen_linear_attention_prepare_default(view, values, kernel) {
+  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
+  writeU32(view, 4, values["num_key_heads"], kernel, "num_key_heads");
+  writeU32(view, 8, values["num_value_heads"], kernel, "num_value_heads");
+  writeU32(view, 12, values["key_dim"], kernel, "key_dim");
+  writeU32(view, 16, values["value_dim"], kernel, "value_dim");
+  writeU32(view, 20, values["conv_size"], kernel, "conv_size");
+  writeU32(view, 24, values["query_size"], kernel, "query_size");
+  writeU32(view, 28, values["key_size"], kernel, "key_size");
+  writeU32(view, 32, values["value_size"], kernel, "value_size");
+  writeU32(view, 36, values["repeat_factor"], kernel, "repeat_factor");
+  writeF32(view, 40, values["eps"], kernel, "eps");
+  writeU32(view, 44, values["_pad0"], kernel, "_pad0");
+}
+
+export function write_qwen_linear_attention_prepare_paired_beta(view, values, kernel) {
   writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
   writeU32(view, 4, values["conv_dim"], kernel, "conv_dim");
   writeU32(view, 8, values["conv_kernel_size"], kernel, "conv_kernel_size");
@@ -55,21 +70,6 @@ export function write_qwen_linear_attention_prepare_paired_gates(view, values, k
   writeU32(view, 68, values["b_offset"], kernel, "b_offset");
   writeU32(view, 72, values["norm_weight_offset"], kernel, "norm_weight_offset");
   view.setUint32(76, 0, true);
-}
-
-export function write_qwen_linear_attention_prepare_default(view, values, kernel) {
-  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
-  writeU32(view, 4, values["num_key_heads"], kernel, "num_key_heads");
-  writeU32(view, 8, values["num_value_heads"], kernel, "num_value_heads");
-  writeU32(view, 12, values["key_dim"], kernel, "key_dim");
-  writeU32(view, 16, values["value_dim"], kernel, "value_dim");
-  writeU32(view, 20, values["conv_size"], kernel, "conv_size");
-  writeU32(view, 24, values["query_size"], kernel, "query_size");
-  writeU32(view, 28, values["key_size"], kernel, "key_size");
-  writeU32(view, 32, values["value_size"], kernel, "value_size");
-  writeU32(view, 36, values["repeat_factor"], kernel, "repeat_factor");
-  writeF32(view, 40, values["eps"], kernel, "eps");
-  writeU32(view, 44, values["_pad0"], kernel, "_pad0");
 }
 
 export function write_gated_rmsnorm_default(view, values, kernel) {

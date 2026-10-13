@@ -14,8 +14,11 @@ export interface KernelUniformValues {
   "qwen_gqa_softmax_backward_scores/default": Parameters<typeof writers0.write_qwen_gqa_softmax_recompute_default>[1];
   "qwen_gqa_attention_backward/default": Parameters<typeof writers0.write_qwen_gqa_softmax_recompute_default>[1];
   "sigmoid_gated_backward/default": Parameters<typeof writers0.write_sigmoid_gated_backward_default>[1];
-  "qwen_linear_attention_prepare/paired_gates": Parameters<typeof writers0.write_qwen_linear_attention_prepare_paired_gates>[1];
   "qwen_linear_attention_prepare/default": Parameters<typeof writers0.write_qwen_linear_attention_prepare_default>[1];
+  "qwen_linear_attention_prepare/paired_beta": Parameters<typeof writers0.write_qwen_linear_attention_prepare_paired_beta>[1];
+  "qwen_linear_attention_prepare/paired_decay_scale": Parameters<typeof writers0.write_qwen_linear_attention_prepare_paired_beta>[1];
+  "qwen_linear_attention_prepare/paired_log_decay": Parameters<typeof writers0.write_qwen_linear_attention_prepare_paired_beta>[1];
+  "qwen_linear_attention_prepare/paired_decay": Parameters<typeof writers0.write_qwen_linear_attention_prepare_paired_beta>[1];
   "qwen_linear_attention_prepare_backward/default": Parameters<typeof writers0.write_qwen_linear_attention_prepare_default>[1];
   "gated_rmsnorm/default": Parameters<typeof writers0.write_gated_rmsnorm_default>[1];
   "causal_conv1d_silu/default": Parameters<typeof writers0.write_causal_conv1d_silu_default>[1];
@@ -341,10 +344,10 @@ export interface KernelUniformValues {
   "groupnorm_backward/default": Parameters<typeof writers2.write_groupnorm_stats_stats>[1];
   "gated_delta_conv/default": Parameters<typeof writers2.write_gated_delta_conv_default>[1];
   "gated_delta_conv/default_f16": Parameters<typeof writers2.write_gated_delta_conv_default>[1];
-  "gated_delta_conv/paired": Parameters<typeof writers0.write_qwen_linear_attention_prepare_paired_gates>[1];
+  "gated_delta_conv/paired": Parameters<typeof writers0.write_qwen_linear_attention_prepare_paired_beta>[1];
   "gated_delta_recurrent/default": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_recurrent/default_f16": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
-  "gated_delta_recurrent/paired": Parameters<typeof writers0.write_qwen_linear_attention_prepare_paired_gates>[1];
+  "gated_delta_recurrent/paired": Parameters<typeof writers0.write_qwen_linear_attention_prepare_paired_beta>[1];
   "gated_delta_fused_decode/default": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_fused_decode/default_f16": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "linear_attention_summary/default": Parameters<typeof writers2.write_linear_attention_summary_default>[1];

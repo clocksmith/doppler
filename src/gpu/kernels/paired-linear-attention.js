@@ -16,7 +16,13 @@ export async function preparePairedLinearAttentionPipelines(device, signal) {
   if (!device) throw new Error('[PairedLinear] Pipeline preparation requires the owning GPU device.');
   await getPipelineFast('gated_delta_conv', 'paired', null, CONV_CONSTANTS, device);
   signal?.throwIfAborted();
-  await getPipelineFast('qwen_linear_attention_prepare', 'paired_gates', null, GATE_CONSTANTS, device);
+  await getPipelineFast('qwen_linear_attention_prepare', 'paired_beta', null, GATE_CONSTANTS, device);
+  signal?.throwIfAborted();
+  await getPipelineFast('qwen_linear_attention_prepare', 'paired_decay_scale', null, GATE_CONSTANTS, device);
+  signal?.throwIfAborted();
+  await getPipelineFast('qwen_linear_attention_prepare', 'paired_log_decay', null, GATE_CONSTANTS, device);
+  signal?.throwIfAborted();
+  await getPipelineFast('qwen_linear_attention_prepare', 'paired_decay', null, GATE_CONSTANTS, device);
   signal?.throwIfAborted();
   await getPipelineFast('gated_delta_recurrent', 'paired', null, RECURRENT_CONSTANTS, device);
   signal?.throwIfAborted();
@@ -99,8 +105,17 @@ export async function executePairedLinearAttention(qkv, z, a, b, state, options)
     output = acquireBuffer(numTokens * state.valueDim * 8, undefined, 'paired_linear_output');
     await unifiedKernelWrapper('gated_delta_conv', recorder, 'paired', [qkv, state.convWeightGPU, state.convStateGPU, conv], uniform,
       [Math.ceil(state.convDim / 64), 1, 1], CONV_CONSTANTS);
-    await unifiedKernelWrapper('qwen_linear_attention_prepare', recorder, 'paired_gates',
-      [a, b, state.dtBiasGPU, state.aLogGPU, gates], uniform,
+    await unifiedKernelWrapper('qwen_linear_attention_prepare', recorder, 'paired_beta',
+      [b, gates], uniform,
+      [Math.ceil(numTokens * state.numVHeads / 64), 1, 1], GATE_CONSTANTS);
+    await unifiedKernelWrapper('qwen_linear_attention_prepare', recorder, 'paired_decay_scale',
+      [state.aLogGPU, gates], uniform,
+      [Math.ceil(numTokens * state.numVHeads / 64), 1, 1], GATE_CONSTANTS);
+    await unifiedKernelWrapper('qwen_linear_attention_prepare', recorder, 'paired_log_decay',
+      [a, state.dtBiasGPU, gates], uniform,
+      [Math.ceil(numTokens * state.numVHeads / 64), 1, 1], GATE_CONSTANTS);
+    await unifiedKernelWrapper('qwen_linear_attention_prepare', recorder, 'paired_decay',
+      [gates], uniform,
       [Math.ceil(numTokens * state.numVHeads / 64), 1, 1], GATE_CONSTANTS);
     await unifiedKernelWrapper('gated_delta_recurrent', recorder, 'paired',
       [conv, z, gates, state.normWeightGPU, state.recurrentStateGPU, output], uniform,

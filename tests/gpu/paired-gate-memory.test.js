@@ -14,11 +14,11 @@ for (const [tokens, expected] of [[1, 256], [184, 65536], [256, 65536], [52, 163
   for (let attempt = 0; attempt < 2; attempt++) for (let layer = 0; layer < 6; layer++) {
     const gates = pool.acquire(tokens * 16 * 16, BufferUsage.STORAGE, 'paired_linear_gates');
     assert.equal(gates.size, expected); owned.push(gates);
-    owned.push(pool.acquire(80, BufferUsage.UNIFORM, 'gate_uniform'));
+    for (let phase = 0; phase < 4; phase++) owned.push(pool.acquire(80, BufferUsage.UNIFORM, 'gate_uniform'));
   }
-  const bound = 12 * (expected + 256);
+  const bound = 12 * (expected + 4 * 256);
   assert.equal(getDeviceMemorySnapshot(device).liveBytes, bound);
-  rows.push({ tokens, logicalGateBytes: tokens * 256, poolGateBytes: expected, extraUniformBytes: 256, twoAttemptsSixLayersBytes: bound });
+  rows.push({ tokens, logicalGateBytes: tokens * 256, poolGateBytes: expected, extraUniformBytes: 1024, twoAttemptsSixLayersBytes: bound });
   for (const buffer of owned) pool.release(buffer);
   pool.destroy(); await pool.settleDeferredDestruction();
   assert.equal(getDeviceMemorySnapshot(device).liveBytes, 0);
