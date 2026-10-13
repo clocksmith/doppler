@@ -1,0 +1,21 @@
+{
+  "hypothesis": "Sharing the mean/reciprocal division callsite lowers paired RMSNorm compiler expansion without reordering arithmetic.",
+  "falsifier": "Candidate misses the fixed compile/cleanup deadlines or original six F64 fixtures at unchanged 2e-12.",
+  "before": "3c93742dff3201b80b528cd4c06499f7d10ac6629ea47b9006a9555df667a16b",
+  "candidate": "0402e449b9ff69a5b1a60ad617ea1156f2083d2b80aa4880ceb364c09a8b1239",
+  "physicalRunStarted": false,
+  "productionEdited": false,
+  "admission": {
+    "observedAt": "2026-10-13T20:17:01.374480+00:00",
+    "scope": "Isolated Suby operator, no model or public processes",
+    "oldSubyGpuOwnership": "Prior attempt normal settlement unknown; no claim its allocations were released",
+    "maxGpuBufferBytes": 1420000000,
+    "memoryHighBytes": 6442450944,
+    "memoryMaxBytes": 8589934592,
+    "swapBytes": 0,
+    "operationMs": 300000,
+    "cleanupMs": 10000,
+    "processDeadlineMs": 310000
+  },
+  "sourceFixtureSha256": "42869a3b6acbd3fdcdeacea6eed7d4f5438ce56a0c9fb06c74a87bc528f33227"
+}
