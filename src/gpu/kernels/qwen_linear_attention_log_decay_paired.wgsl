@@ -265,6 +265,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   if (ab_index >= u.num_tokens * u.num_v_heads) { return; }
   let head = ab_index % u.num_v_heads;
   let scale = gates[ab_index * 2u + 1u];
-  let log_decay = -pair_mul(scale, pair_softplus(pair_add(a[ab_index], vec2<f32>(dt_bias[head], 0.0))));
+  let input = pair_add(a[ab_index], vec2<f32>(dt_bias[head], 0.0));
+  var softplus = pair_log(gates[u.num_tokens * u.num_v_heads * 2u + ab_index]);
+  if (input.x > 0.0) { softplus = pair_add(input, softplus); }
+  let log_decay = -pair_mul(scale, softplus);
   gates[ab_index * 2u + 1u] = log_decay;
 }

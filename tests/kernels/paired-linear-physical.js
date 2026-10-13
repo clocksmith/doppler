@@ -93,14 +93,14 @@ try {
           const qkv = storage(f.qkv), z = f.packed ? qkv : storage(f.z), a = storage(f.packed ? [...f.a, ...f.b] : f.a), b = f.packed ? a : storage(f.b);
           const cw = storage(f.weight), cs = storage(f.convState), state = storage(f.state), dt = storage(f.bias), log = storage(f.log), norm = storage(f.norm);
           const conv = storage(new Array(f.tokens * f.convDim * 2).fill(0)), output = storage(new Array(f.tokens * f.valueDim * 2).fill(0));
-          const gates = storage(new Array(f.tokens * f.nv * 4).fill(0));
-          const bindings = [[uniform, qkv, cw, cs, conv], [uniform, b, gates], [uniform, log, gates], [uniform, a, dt, gates], [uniform, gates], [uniform, conv], [uniform, conv, gates, state, output], [uniform, norm, output], [uniform, z, output]];
+          const gates = storage(new Array(f.tokens * f.nv * 6).fill(0));
+          const bindings = [[uniform, qkv, cw, cs, conv], [uniform, b, gates], [uniform, log, a, dt, gates], [uniform, a, dt, gates], [uniform, gates], [uniform, conv], [uniform, conv, gates, state, output], [uniform, norm, output], [uniform, z, output]];
           const dispatches = [Math.ceil(f.convDim / 64), ...Array(4).fill(Math.ceil(f.tokens * f.nv / 64)), f.nk, f.nv, f.nv, Math.ceil(f.tokens * f.valueDim / 128)];
           const convSnapshot = alloc(conv.size, GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC);
           const encoder = device.createCommandEncoder();
           for (let i = 0; i < pipelines.length; i++) {
             const group = device.createBindGroup({ layout: pipelines[i].getBindGroupLayout(0), entries: bindings[i].map((buffer, binding) => ({ binding, resource: { buffer } })) });
-            const pass = encoder.beginComputePass(); pass.setPipeline(pipelines[i]); pass.setBindGroup(0, group); pass.dispatchWorkgroups(dispatches[i]); pass.end();
+            const pass = encoder.beginComputePass(); pass.setPipeline(pipelines[i]); pass.setBindGroup(0, group); pass.dispatchWorkgroups(dispatches[i], i === 2 ? 2 : 1); pass.end();
             if (i === 0) encoder.copyBufferToBuffer(conv, 0, convSnapshot, 0, conv.size);
           }
           const readbacks = [convSnapshot, cs, state, output, gates].map(buffer => { const b = alloc(buffer.size, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ); encoder.copyBufferToBuffer(buffer, 0, b, 0, buffer.size); return b; });
