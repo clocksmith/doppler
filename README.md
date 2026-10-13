@@ -29,7 +29,7 @@ have separate release requirements; do not assume they exist in npm 0.6.1.
 
 ### Preparation, host, and execution ownership
 
-![Ten components trace Rig preparation, signed Capsules, application trust, verified artifacts, Run opening, session operations, resident resources, and declared GPU execution.](assets/readme/technical-architecture.svg)
+![Purple session boundaries distinguish signed Capsule opening, persistent model resources, and successive operations through a model program, binder, and executor. The application and WebGPU provider remain external.](assets/readme/technical-architecture.svg)
 
 Rig prepares signed Capsules with declared TargetPlans. Run verifies artifacts
 and selects an accepted plan; session operations reuse resident resources through
