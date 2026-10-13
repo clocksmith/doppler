@@ -1,0 +1,15 @@
+{
+  "schema": "doppler.recurrent-phases-compile/v1",
+  "scope": "Capture original logarithm reduction and every series iteration from exact GPU operands",
+  "unit": "reploid-log-series-20261013.scope",
+  "memoryHighBytes": 6442450944,
+  "memoryMaxBytes": 8589934592,
+  "memorySwapMaxBytes": 0,
+  "deadlineSeconds": 300,
+  "shaders": [
+    {
+      "file": "probe.wgsl",
+      "sha256": "036f68814cc5b9e132ef7303022a4d91e81ee645dbce37360f5c0cb61d9f5539"
+    }
+  ]
+}

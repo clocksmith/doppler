@@ -1,0 +1,11 @@
+{"phase":"limits-and-inputs-verified","at":"2026-10-13T19:23:31.807Z","pid":944714,"rss":69181440,"cgroup":"/user.slice/user-1000.slice/user@1000.service/app.slice/reploid-log-alone-20261013.scope","manifest":{"schema":"doppler.recurrent-phases-compile/v1","scope":"Evaluate unchanged paired logarithm alone on captured GPU operands","unit":"reploid-log-alone-20261013.scope","memoryHighBytes":6442450944,"memoryMaxBytes":8589934592,"memorySwapMaxBytes":0,"deadlineSeconds":300,"shaders":[{"file":"probe.wgsl","sha256":"bb16599da79e0ecf362664aa3d628bde12a87e3ee547ca684ff5ae33b49b521d"}]}}
+{"phase":"host-open","at":"2026-10-13T19:23:31.877Z","pid":944714,"rss":69226496}
+{"phase":"adapter","at":"2026-10-13T19:23:31.906Z","pid":944714,"rss":130961408,"vendor":"intel","architecture":"gen-12lp","device":"intel-r-uhd-graphics-tgl-gt2-","description":"Intel open-source Mesa driver: Mesa 24.2.8-1ubuntu1~24.04.1"}
+{"phase":"shader-module-start","at":"2026-10-13T19:23:32.110Z","pid":944714,"rss":162938880,"file":"probe.wgsl","sha256":"bb16599da79e0ecf362664aa3d628bde12a87e3ee547ca684ff5ae33b49b521d"}
+{"phase":"shader-module-complete","at":"2026-10-13T19:23:32.116Z","pid":944714,"rss":166346752,"errors":[]}
+{"phase":"pipeline-start","at":"2026-10-13T19:23:32.116Z","pid":944714,"rss":166346752,"file":"probe.wgsl"}
+{"phase":"pipeline-complete","at":"2026-10-13T19:24:02.562Z","pid":944714,"rss":1277296640,"file":"probe.wgsl"}
+{"phase":"readback","at":"2026-10-13T19:24:02.580Z","pid":944714,"rss":1277558784,"count":12,"values":[0.466919481754303,-7.647080302319864e-9,0.4200120270252228,3.8106935384973895e-9,0.44330719113349915,-7.402199297956713e-9,0.429942786693573,-3.1643860864960516e-9,0.5781609416007996,1.4729085506814954e-8,0.5322762131690979,-1.4317533825192186e-8,0.6539925336837769,-1.1613532358012435e-9,0.5012097358703613,1.877240762837573e-8,0.6465303301811218,2.6221962379224806e-9,0.6320886015892029,-8.332012413347911e-9,0.611304521560669,9.483447804825573e-9,0.49794960021972656,7.22079551707111e-9]}
+{"phase":"host-close-start","at":"2026-10-13T19:24:02.580Z","pid":944714,"rss":1277558784}
+{"phase":"device-lost","at":"2026-10-13T19:24:03.233Z","pid":944714,"rss":1300680704,"reason":"destroyed","message":"device was destroyed"}
+{"phase":"host-close-complete","at":"2026-10-13T19:24:03.234Z","pid":944714,"rss":1300680704}
