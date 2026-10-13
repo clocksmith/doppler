@@ -17,14 +17,21 @@ try {
   const aborted = new AbortController(); aborted.abort(Error('cancelled before opening'));
   await assert.rejects(preparePairedLinearAttentionPipelines(device, aborted.signal), /cancelled before/);
   assert.equal(calls.length, 0);
+  const stages = [
+    ['gated_delta_conv', 'paired', 64],
+    ['qwen_linear_attention_prepare', 'paired_beta', 64],
+    ['qwen_linear_attention_prepare', 'paired_decay_scale', 64],
+    ['qwen_linear_attention_prepare', 'paired_log_decay', 64],
+    ['qwen_linear_attention_prepare', 'paired_decay', 64],
+    ['gated_delta_recurrent', 'paired', 128],
+  ];
   const successful = preparePairedLinearAttentionPipelines(device); await flush();
-  assert.deepEqual(calls[0], ['gated_delta_conv', 'paired', null, { WORKGROUP_SIZE: 64 }, device]);
-  resolvePipeline(); await flush();
-  assert.deepEqual(calls[1], ['qwen_linear_attention_prepare', 'paired_gates', null, { WORKGROUP_SIZE: 64 }, device]);
-  resolvePipeline(); await flush();
-  assert.deepEqual(calls[2], ['gated_delta_recurrent', 'paired', null, { WORKGROUP_SIZE: 128 }, device]);
-  resolvePipeline(); await successful;
-  for (const stage of [0, 1, 2]) {
+  for (const [i, [operation, variant, width]] of stages.entries()) {
+    assert.deepEqual(calls[i], [operation, variant, null, { WORKGROUP_SIZE: width }, device]);
+    resolvePipeline(); await flush();
+  }
+  await successful;
+  for (const stage of stages.keys()) {
     const count = calls.length, controller = new AbortController(); let settled = false;
     const opening = preparePairedLinearAttentionPipelines(device, controller.signal);
     opening.then(() => { settled = true; }, () => { settled = true; });
@@ -38,6 +45,6 @@ try {
   rejectPipeline(Error('provider compile failure')); await assert.rejects(rejected, /provider compile failure/);
   // A failure does not clear another owner cache or permanently cache a rejected preparation at this boundary.
   const nextDevice = {}; const retry = preparePairedLinearAttentionPipelines(nextDevice);
-  assert.equal(calls.at(-1)[4], nextDevice); resolvePipeline(); await flush(); resolvePipeline(); await flush(); resolvePipeline(); await retry;
+  assert.equal(calls.at(-1)[4], nextDevice); for (const _stage of stages) { resolvePipeline(); await flush(); } await retry;
 } finally { hooks.deregister(); delete globalThis.pairedPreparation; }
 console.log('paired pipeline preparation: exact variants/constants/device, rejection and cancellation settlement passed');

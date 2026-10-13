@@ -1,5 +1,4 @@
-// Independent beta/decay preparation, preserving both F32 components.
-// The arithmetic expressions and operand order match the recurrent owner.
+// Ordered paired gate phase: paired_beta. Both F32 components stay intact.
 override WORKGROUP_SIZE: u32 = 64u;
 struct Uniforms {
   num_tokens: u32, conv_dim: u32, conv_kernel_size: u32, num_v_heads: u32,
@@ -9,11 +8,8 @@ struct Uniforms {
   packed_flags: u32, b_offset: u32, norm_weight_offset: u32, _pad: u32,
 }
 @group(0) @binding(0) var<uniform> u: Uniforms;
-@group(0) @binding(1) var<storage, read> a: array<vec2<f32>>;
-@group(0) @binding(2) var<storage, read> b: array<vec2<f32>>;
-@group(0) @binding(3) var<storage, read> dt_bias: array<f32>;
-@group(0) @binding(4) var<storage, read> a_log: array<f32>;
-@group(0) @binding(5) var<storage, read_write> gates: array<vec2<f32>>;
+@group(0) @binding(1) var<storage, read> b: array<vec2<f32>>;
+@group(0) @binding(2) var<storage, read_write> gates: array<vec2<f32>>;
 // BEGIN GENERATED PAIRED ARITHMETIC
 // Compensated recurrent-state arithmetic; finite operands and intermediate sums/products.
 // Overflow propagates nonfinite values; this is not an extended-exponent format.
@@ -267,11 +263,6 @@ fn pair_sin_cos(a: vec2<f32>) -> vec4<f32> {
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let ab_index = gid.x;
   if (ab_index >= u.num_tokens * u.num_v_heads) { return; }
-  let head = ab_index % u.num_v_heads;
   let b_index = ab_index + select(0u, u.b_offset, (u.packed_flags & 1u) != 0u);
-  let beta = pair_sigmoid(b[b_index]);
-  let log_decay = -pair_mul(pair_exp(vec2<f32>(a_log[head], 0.0)), pair_softplus(pair_add(a[ab_index], vec2<f32>(dt_bias[head], 0.0))));
-  let decay = pair_exp(log_decay);
-  gates[ab_index * 2u] = beta;
-  gates[ab_index * 2u + 1u] = decay;
+  gates[ab_index * 2u] = pair_sigmoid(b[b_index]);
 }
