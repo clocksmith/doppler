@@ -1,5 +1,7 @@
 import type { ActivationLayout, LayerPartitionPlan } from './layer-partition-contract.js';
-import type { GenerationOptions, ResolvedGenerationOptions } from '../../../config/generation-contract.js';
+import type { GenerationOptions, ResolvedGenerationOptions, CanonicalGenerationPolicy } from '../../../config/generation-contract.js';
+import type { ResidentTargetTransition } from '../../resident-target-state.js';
+import type { AdmissionOnlyResult } from '../../resident-state-contract.js';
 import type { IncrementalTokenDecoder } from '../../tokenizers/bundled/incremental-decoder.js';
 import type { GenerationTokenContract } from '../../generation-step.js';
 export interface PartitionTiming {
@@ -14,6 +16,8 @@ export interface ResidentPartitionAllocation {
   model: { id: string; identity: string };
   plan: LayerPartitionPlan; planId: string; index: 0 | 1; participantId: string;
   limits: ResidentPartitionLimits; generation: GenerationOptions;
+  /** Explicit opt-in; never inferred from a legacy generation object. */
+  canonicalGeneration?: { policy: CanonicalGenerationPolicy; executionIdentity: string };
 }
 export interface ResidentPartitionIdentity {
   modelId: string; modelIdentity: string; planId: string; threadId: string;
@@ -25,6 +29,7 @@ export interface ResidentPartitionDescriptor {
   modelId: string; modelIdentity: string; planId: string; index: 0 | 1;
   layerRange: readonly number[]; residentWeightBytes: number;
   generationDigest: string;
+  canonicalGenerationId?: string;
 }
 export interface ResidentRecoveryCapabilities {
   readonly schema: 'doppler.resident-recovery/v1';
@@ -42,6 +47,7 @@ export interface ResidentPartitionTokenizationResult {
 export interface ResidentPartitionStep {
   identity: ResidentPartitionIdentity; step: number; tokenPosition: number; inputTokenCount: number;
   maxTokens: number; generation: GenerationOptions; continuation: unknown; signal: AbortSignal;
+  generationId?: string; baseCursorId?: string | null;
 }
 export interface ResidentPartitionARequest extends ResidentPartitionStep { tokenIds: number[]; }
 export interface ResidentPartitionBRequest extends ResidentPartitionStep {
@@ -65,10 +71,28 @@ export interface ResidentPartitionBResult {
   tokenId: number; delta: string; done: boolean; stopReason: string | null;
   continuation: unknown; logits: Float32Array; metrics: ResidentPartitionMetrics;
 }
+export type ResidentCanonicalARequest = Omit<ResidentPartitionARequest, 'generation' | 'maxTokens'> & {
+  generationId: string; baseCursorId: string | null;
+};
+export type ResidentCanonicalBRequest = Omit<ResidentPartitionBRequest, 'generation' | 'maxTokens'> & {
+  generationId: string; baseCursorId: string | null;
+};
+export interface ResidentCanonicalBResult extends ResidentPartitionBResult { transition: Readonly<ResidentTargetTransition>; }
+export interface ResidentCanonicalGeneration {
+  readonly policy: Readonly<CanonicalGenerationPolicy>; readonly executionIdentity: string; readonly generationId: string;
+}
 export interface ResidentPartitionSession {
   getDescriptor(): ResidentPartitionDescriptor;
   /** Live continuation is not portable recovery. This implementation reports all flags false. */
   getRecoveryCapabilities(): ResidentRecoveryCapabilities;
+  getCanonicalGeneration(): ResidentCanonicalGeneration | null;
+  admitCanonicalPrompt(request: { identity: ResidentPartitionIdentity; tokenIds: number[]; generationId: string; signal: AbortSignal }):
+    Promise<Readonly<AdmissionOnlyResult> | Readonly<{ kind: 'prefill'; tokenIds: readonly number[]; generationId: string }>>;
+  executeCanonicalGroup0(request: ResidentCanonicalARequest): Promise<ResidentPartitionAResult>;
+  executeCanonicalGroup1(request: ResidentCanonicalBRequest): Promise<ResidentCanonicalBResult>;
+  /** Settled numerical input-stage commit; not an authenticated transport acknowledgment. */
+  commitCanonicalTransition(request: { identity: ResidentPartitionIdentity; baseCursorId: string | null;
+    transition: ResidentTargetTransition; signal: AbortSignal }): Promise<Readonly<ResidentTargetTransition>>;
   tokenize(request: ResidentPartitionTokenizationRequest): Promise<ResidentPartitionTokenizationResult>;
   executeGroup0(request: ResidentPartitionARequest): Promise<ResidentPartitionAResult>;
   executeGroup1(request: ResidentPartitionBRequest): Promise<ResidentPartitionBResult>;
@@ -78,9 +102,11 @@ export interface ResidentPartitionSession {
 export interface ResidentPartitionTokenPorts {
   tokenize(prompt: unknown, options: { useChatTemplate: boolean }): number[] | Promise<number[]>;
   createIncrementalDecoder(): IncrementalTokenDecoder;
+  createRawIncrementalDecoder?(): IncrementalTokenDecoder;
   getTokenContract(): GenerationTokenContract;
 }
 export function resolveResidentPartitionAllocation(manifest: { modelId?: unknown; architecture?: unknown },
   manifestHash: string, allocation: ResidentPartitionAllocation): ResidentPartitionAllocation;
 export function assertResidentPartitionIdentity(identity: ResidentPartitionIdentity,
   allocation: ResidentPartitionAllocation): string;
+export function resolveResidentCanonicalGeneration(allocation: ResidentPartitionAllocation): ResidentCanonicalGeneration | null;

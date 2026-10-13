@@ -8,13 +8,20 @@ import { sampleCapsuleLogits, stoppingReason } from '../../generation-step.js';
 import { samplingSeedForToken } from '../../token-sampling.js';
 import { assertPartitionExecutionSupported, executePartitionLayers } from './partition-execution.js';
 import { createPartitionAttempt } from './partition-attempt.js';
-import { assertResidentPartitionIdentity } from './resident-partition-contract.js';
+import { assertResidentPartitionIdentity, resolveResidentCanonicalGeneration } from './resident-partition-contract.js';
+import { admitResidentPrompt } from '../../resident-state-contract.js';
+import { createResidentTargetState } from '../../resident-target-state.js';
+import { createResidentOutputState } from '../../resident-output-state.js';
 import { hashLayerPartitionPlan, resolveActivationTensorLayout, validateActivationTensorShape } from './layer-partition-contract.js';
 import { markDeviceWeights, getDeviceMemorySnapshot } from '../../../memory/device-budget.js';
 import { preparePairedLinearAttentionPipelines } from '../../../gpu/kernels/paired-linear-attention.js';
 
 /** @type {import('./resident-partition.js').createResidentPartitionSession} */
 export async function createResidentPartitionSession(pipeline, allocation, tokens, closeProgram, signal) {
+  const canonical = resolveResidentCanonicalGeneration(allocation);
+  if (canonical && typeof tokens.createRawIncrementalDecoder !== 'function') {
+    throw new Error('Canonical resident requires a raw incremental decoder.');
+  }
   const descriptor = await runPipelineOperation(pipeline, async owner => {
     signal?.throwIfAborted();
     if (owner.gpuContext?.device) markDeviceWeights(owner.gpuContext.device, owner.dopplerLoader?.gpuBuffers ?? []);
@@ -38,7 +45,8 @@ export async function createResidentPartitionSession(pipeline, allocation, token
       modelId: allocation.model.id, modelIdentity: allocation.model.identity, planId: allocation.planId,
       index: allocation.index, layerRange: [...allocation.plan.partitions[allocation.index].layerRange],
       residentWeightBytes: [...(owner.dopplerLoader?.gpuBuffers ?? [])].reduce((bytes, buffer) => bytes + buffer.size, 0),
-      generationDigest: computeCanonicalSha256(allocation.generation) };
+      generationDigest: computeCanonicalSha256(allocation.generation),
+      ...(canonical ? { canonicalGenerationId: canonical.generationId } : {}) };
   });
   /** @type {Map<string, import('./resident-partition.js').ResidentAttempt>} */
   const attempts = new Map();
@@ -58,7 +66,8 @@ export async function createResidentPartitionSession(pipeline, allocation, token
       if (attempts.size >= allocation.limits.maxAttempts) throw new Error('Resident attempt budget exhausted.');
       attempt = { binding, identity: structuredClone(identity), nonce: crypto.randomUUID(), step: 0, position: 0,
         retired: false, done: false, controller: new AbortController(), pending: null, settlement: null,
-        execution: null, generationDigest: null, contextTokens: [], text: '', decoder: null };
+        execution: null, generationDigest: null, contextTokens: [], text: '', decoder: null,
+        canonicalState: null, canonicalPrompt: null, canonicalAwaiting: false };
       attempts.set(identity.attemptId, attempt);
     }
     return attempt;
@@ -68,9 +77,11 @@ export async function createResidentPartitionSession(pipeline, allocation, token
     if (!Array.isArray(tokenIds) || tokenIds.length !== count || tokenIds.some(id => !Number.isSafeInteger(id)
       || id < 0 || id >= allocation.plan.vocabSize)) throw new Error('Resident input token context is invalid.');
   }
-  /** @param {import('./resident-partition-contract.js').ResidentPartitionARequest | import('./resident-partition-contract.js').ResidentPartitionBRequest} input */
-  async function execute(input) {
+  /** @param {import('./resident-partition-contract.js').ResidentPartitionARequest | import('./resident-partition-contract.js').ResidentPartitionBRequest} input
+   * @param {boolean} canonicalMode */
+  async function execute(input, canonicalMode = false) {
     assertOpen(); input.signal.throwIfAborted();
+    if (Boolean(canonical) !== canonicalMode) throw new Error('Resident canonical execution mode differs from its allocation.');
     const { signal, ...data } = input;
     if (!Number.isSafeInteger(data.inputTokenCount) || data.inputTokenCount < 1
       || data.inputTokenCount > (data.step === 0 ? allocation.limits.maxPromptTokens : 1)) {
@@ -89,14 +100,23 @@ export async function createResidentPartitionSession(pipeline, allocation, token
     }
     const request = structuredClone(data);
     const generation = resolveGenerationOptions(request.generation);
-    if (generation.maxTokens !== request.maxTokens || request.maxTokens > allocation.generation.maxTokens
-      || computeCanonicalSha256({ ...generation, maxTokens: allocation.generation.maxTokens }) !== descriptor.generationDigest) {
+    if (!canonicalMode && (generation.maxTokens !== request.maxTokens || request.maxTokens > allocation.generation.maxTokens
+      || computeCanonicalSha256({ ...generation, maxTokens: allocation.generation.maxTokens }) !== descriptor.generationDigest)) {
       throw new Error('Resident generation settings differ from the accepted program.');
     }
     const attempt = attemptFor(request.identity);
     if (attempt.retired || attempt.done || attempt.pending || request.step !== attempt.step
       || request.tokenPosition !== attempt.position || request.step >= request.maxTokens) {
       throw new Error('Resident attempt is retired, busy or out of order.');
+    }
+    if (canonicalMode) {
+      const parent = attempt.canonicalState?.getCursor();
+      const expectedIds = parent ? [parent.pendingTokenId] : attempt.canonicalPrompt;
+      if (!canonical || !attempt.canonicalState || attempt.canonicalAwaiting
+        || request.generationId !== canonical.generationId || request.baseCursorId !== (parent?.cursorId ?? null)
+        || JSON.stringify(inputIds) !== JSON.stringify(expectedIds)) {
+        throw new Error('Canonical step has a stale cursor, changed generation, input or pending commit.');
+      }
     }
     const continuation = request.step === 0 ? null : { nonce: attempt.nonce, step: attempt.step, position: attempt.position };
     if (computeCanonicalSha256(request.continuation) !== computeCanonicalSha256(continuation)) {
@@ -105,7 +125,7 @@ export async function createResidentPartitionSession(pipeline, allocation, token
     const generationDigest = computeCanonicalSha256(generation);
     if (attempt.generationDigest && attempt.generationDigest !== generationDigest) throw new Error('Resident attempt generation settings changed.');
     attempt.generationDigest = generationDigest;
-    if (request.step === 0 && request.inputTokenCount + request.maxTokens > generation.maxSeqLen) {
+    if (!canonicalMode && request.step === 0 && request.inputTokenCount + request.maxTokens > generation.maxSeqLen) {
       throw new Error('Resident maxSeqLen must cover prompt and generated tokens.');
     }
     if (!attempt.execution && [...attempts.values()].filter(item => item.execution || item.pending).length >= allocation.limits.maxConcurrentAttempts) {
@@ -134,7 +154,8 @@ export async function createResidentPartitionSession(pipeline, allocation, token
             throw new Error('Resident activation identity or shape mismatch.');
           }
         }
-        attempt.execution ??= createPartitionAttempt(owner, request.inputTokenCount + request.maxTokens);
+        attempt.execution ??= createPartitionAttempt(owner, canonicalMode && canonical ? canonical.policy.materializedInputCapacity
+          : request.inputTokenCount + request.maxTokens);
         const state = attempt.execution.state;
         const executionStarted = performance.now();
         const result = await executePartitionLayers(state, { numTokens: request.inputTokenCount,
@@ -150,6 +171,7 @@ export async function createResidentPartitionSession(pipeline, allocation, token
           memory: memory && { maxBytes: memory.maxBytes, liveBytes: memory.liveBytes,
             peakBytes: memory.peakBytes, categories: memory.categories } };
         if ('activationBytes' in result && result.activationBytes) {
+          if (canonicalMode) attempt.canonicalAwaiting = true;
           if (result.activationBytes.byteLength > allocation.limits.maxActivationBytes) throw new Error('Resident activation exceeds its byte allocation.');
           return { activationTensor: { shape: [1, request.inputTokenCount, allocation.plan.hiddenSize],
             dtype: allocation.plan.activationDtype,
@@ -164,6 +186,18 @@ export async function createResidentPartitionSession(pipeline, allocation, token
         finally { releaseBuffer(result.logits.logitsBuffer); }
         metrics.logitsReadbackMs = performance.now() - readbackStarted;
         combined.throwIfAborted();
+        if (canonicalMode) {
+          const target = attempt.canonicalState;
+          if (!target) throw new Error('Canonical target state is unavailable.');
+          const parent = target.getCursor();
+          const samplingStarted = performance.now();
+          const transition = parent ? target.advance(parent.cursorId, logits) : target.bootstrap(logits);
+          attempt.done = transition.successor.terminal;
+          metrics.samplingMs = performance.now() - samplingStarted;
+          return { identity: request.identity, step: request.step, tokenPosition: request.tokenPosition,
+            tokenId: transition.acceptedTokenIds[0], delta: transition.delta, done: attempt.done,
+            stopReason: transition.successor.stopReason, continuation: next, logits, metrics, transition };
+        }
         if (request.step === 0) attempt.contextTokens.push(...ids);
         else if (ids.length !== 1 || ids[0] !== attempt.contextTokens.at(-1)) throw new Error('Resident continuation token differs from the selected token.');
         const samplingStarted = performance.now();
@@ -219,6 +253,7 @@ export async function createResidentPartitionSession(pipeline, allocation, token
       await attempt.pending?.catch(() => {});
       attempt.execution?.close(); attempt.execution = null;
       attempt.decoder = null; attempt.contextTokens = []; attempt.text = '';
+      attempt.canonicalState = null; attempt.canonicalPrompt = null; attempt.canonicalAwaiting = false;
     })();
     return attempt.settlement;
   }
@@ -226,6 +261,52 @@ export async function createResidentPartitionSession(pipeline, allocation, token
     getDescriptor: () => ({ ...structuredClone(descriptor), ready: !closed && !isDeviceLost(pipeline.gpuContext?.device) }),
     getRecoveryCapabilities: () => Object.freeze({ schema: /** @type {const} */ ('doppler.resident-recovery/v1'),
       inputReplay: false, checkpointExport: false, checkpointImport: false }),
+    getCanonicalGeneration: () => canonical,
+    async admitCanonicalPrompt(request) {
+      assertOpen(); request.signal.throwIfAborted();
+      if (!canonical || request.generationId !== canonical.generationId) throw new Error('Canonical generation allocation mismatch.');
+      checkTokens(request.tokenIds, request.tokenIds.length);
+      if (request.tokenIds.length > allocation.limits.maxPromptTokens) throw new Error('Resident prompt exceeds its token allocation.');
+      const admitted = admitResidentPrompt(request.tokenIds, canonical.policy, allocation.plan.vocabSize, canonical.generationId);
+      const attempt = attemptFor(request.identity);
+      if (attempt.retired || attempt.done || attempt.pending || attempt.step !== 0 || attempt.canonicalPrompt) {
+        throw new Error('Canonical admission is already used, busy or retired.');
+      }
+      if (!('kind' in admitted)) { attempt.done = true; return admitted; }
+      attempt.canonicalPrompt = [...admitted.tokenIds];
+      try {
+        if (!tokens.createRawIncrementalDecoder) throw new Error('Canonical raw decoder is unavailable.');
+        attempt.canonicalState = createResidentTargetState(admitted.tokenIds, canonical.policy, allocation.plan.vocabSize,
+          canonical.generationId, createResidentOutputState(tokens.createRawIncrementalDecoder(),
+            tokens.createIncrementalDecoder(), canonical.policy, allocation.plan.vocabSize));
+      } catch (error) { attempt.retired = true; throw error; }
+      return admitted;
+    },
+    async executeCanonicalGroup0(request) {
+      if (!canonical || allocation.index !== 0) throw new Error('Canonical partition A execution is unavailable.');
+      return /** @type {import('./resident-partition-contract.js').ResidentPartitionAResult} */ (await execute({ ...request,
+        generation: { ...allocation.generation, maxTokens: canonical.policy.maxGeneratedTokens,
+          maxSeqLen: canonical.policy.materializedInputCapacity }, maxTokens: canonical.policy.maxGeneratedTokens }, true));
+    },
+    async executeCanonicalGroup1(request) {
+      if (!canonical || allocation.index !== 1) throw new Error('Canonical partition B execution is unavailable.');
+      return /** @type {import('./resident-partition-contract.js').ResidentCanonicalBResult} */ (await execute({ ...request,
+        generation: { ...allocation.generation, maxTokens: canonical.policy.maxGeneratedTokens,
+          maxSeqLen: canonical.policy.materializedInputCapacity }, maxTokens: canonical.policy.maxGeneratedTokens }, true));
+    },
+    async commitCanonicalTransition(request) {
+      assertOpen(); request.signal.throwIfAborted();
+      if (!canonical || allocation.index !== 0) throw new Error('Only canonical partition A accepts target transitions.');
+      const attempt = attemptFor(request.identity);
+      if (attempt.retired || attempt.done || attempt.pending || !attempt.canonicalAwaiting || !attempt.canonicalState) {
+        throw new Error('Canonical input stage has no settled numerical step awaiting commit.');
+      }
+      try {
+        const transition = attempt.canonicalState.acceptTransition(request.baseCursorId, request.transition);
+        attempt.canonicalAwaiting = false; attempt.done = transition.successor.terminal;
+        return transition;
+      } catch (error) { attempt.retired = true; throw error; }
+    },
     async tokenize(request) {
       assertOpen(); request.signal.throwIfAborted();
       if (allocation.index !== 0) throw new Error('Only partition A tokenizes input.');

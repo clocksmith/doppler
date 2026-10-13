@@ -76,6 +76,7 @@ export function createManifestResidentPartitionFactory({ manifest, manifestIdent
         const tokens = {
           tokenize: (prompt, options) => opened.advanced.tokenizePrompt(prompt, options),
           createIncrementalDecoder: () => opened.advanced.createIncrementalDecoder(),
+          createRawIncrementalDecoder: () => opened.advanced.createRawIncrementalDecoder(),
           getTokenContract: () => {
             const special = opened.advanced.getSpecialTokens();
             return { padTokenId: Number.isInteger(special.pad) ? special.pad : null,
