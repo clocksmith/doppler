@@ -1,0 +1,3 @@
+    PID    PPID STAT     ELAPSED COMMAND
+4103868       1 Rsl     15:20:31 node server/native-participant.js --contribute --share-files --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory /home/x/.local/share/reploid/public-native/weights --cache-directory /home/x/.local/share/reploid/public-native/cache-budget-20261012 --identity-file /home/x/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo.id --signaling-url wss://reploid-swarm.reploid.workers.dev/swarm
+4121371       1 Ssl     15:18:56 node scripts/run-mesh-contributor.js --url https://replo.id/ --model qwen-3-5-0-8b-q4k-ehaf16 --profile /home/x/.local/share/reploid/public-compute --contribute compute
