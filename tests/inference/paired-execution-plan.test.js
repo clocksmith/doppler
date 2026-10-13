@@ -1,9 +1,13 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { KERNEL_REF_CONTENT_DIGESTS } from '../../src/config/kernels/kernel-ref-digests.js';
 import { createDopplerConfig } from '../../src/config/schema/index.js';
 import { compileExecutionV1 } from '../../src/inference/pipelines/text/execution-v1.js';
 import { compileExecutionPlanState, resolveExecutionSessionPlan } from '../../src/inference/pipelines/text/execution-plan.js';
 const execution = JSON.parse(readFileSync(new URL('../../artifacts/paired-intermediates-20261012/signed-closure-correction/execution.json', import.meta.url)));
+execution.kernels.paired_gates = { kernel: 'qwen_linear_attention_prepare_paired.wgsl', entry: 'main', constants: {},
+  digest: `sha256:${KERNEL_REF_CONTENT_DIGESTS['qwen_linear_attention_prepare_paired.wgsl#main']}` };
+execution.mechanismKernels.push('paired_gates');
 const runtimeConfig = createDopplerConfig().runtime;
 Object.assign(runtimeConfig.inference.session, { intermediatePrecision: 'two-f32', linearRecurrentStatePrecision: 'two-f32' });
 runtimeConfig.inference.compute.activationDtype = 'f32';
@@ -24,6 +28,7 @@ assert.equal(plan.primaryPlan.activationPrecision, 'two-f32');
 assert.equal(resolveExecutionSessionPlan(plan).activationElementStrideBytes, 8);
 assert.equal(resolveExecutionSessionPlan(plan).activationComponents, 2);
 for (const alter of [
+  m => { m.inference.execution.mechanismKernels = m.inference.execution.mechanismKernels.filter(k => k !== 'paired_gates'); },
   m => { m.inference.execution.mechanismKernels = m.inference.execution.mechanismKernels.filter(k => k !== 'gather_f16_vec4'); },
   m => { m.inference.execution.mechanismKernels = m.inference.execution.mechanismKernels.filter(k => k !== 'gather_split8_f16_vec4_f32_out'); },
   m => { m.inference.execution.mechanismKernels = m.inference.execution.mechanismKernels.filter(k => k !== 'logit_finalize_f32'); },

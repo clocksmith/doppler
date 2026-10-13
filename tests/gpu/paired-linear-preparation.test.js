@@ -20,13 +20,15 @@ try {
   const successful = preparePairedLinearAttentionPipelines(device); await flush();
   assert.deepEqual(calls[0], ['gated_delta_conv', 'paired', null, { WORKGROUP_SIZE: 64 }, device]);
   resolvePipeline(); await flush();
-  assert.deepEqual(calls[1], ['gated_delta_recurrent', 'paired', null, { WORKGROUP_SIZE: 128 }, device]);
+  assert.deepEqual(calls[1], ['qwen_linear_attention_prepare', 'paired_gates', null, { WORKGROUP_SIZE: 64 }, device]);
+  resolvePipeline(); await flush();
+  assert.deepEqual(calls[2], ['gated_delta_recurrent', 'paired', null, { WORKGROUP_SIZE: 128 }, device]);
   resolvePipeline(); await successful;
-  for (const stage of [0, 1]) {
+  for (const stage of [0, 1, 2]) {
     const count = calls.length, controller = new AbortController(); let settled = false;
     const opening = preparePairedLinearAttentionPipelines(device, controller.signal);
     opening.then(() => { settled = true; }, () => { settled = true; });
-    if (stage === 1) { resolvePipeline(); await flush(); }
+    for (let i = 0; i < stage; i++) { resolvePipeline(); await flush(); }
     controller.abort(Error('cancelled while compiling')); await flush();
     assert.equal(settled, false, 'a pending provider task stays owned until it settles');
     resolvePipeline(); await assert.rejects(opening, /cancelled while compiling/);
@@ -36,6 +38,6 @@ try {
   rejectPipeline(Error('provider compile failure')); await assert.rejects(rejected, /provider compile failure/);
   // A failure does not clear another owner cache or permanently cache a rejected preparation at this boundary.
   const nextDevice = {}; const retry = preparePairedLinearAttentionPipelines(nextDevice);
-  assert.equal(calls.at(-1)[4], nextDevice); resolvePipeline(); await flush(); resolvePipeline(); await retry;
+  assert.equal(calls.at(-1)[4], nextDevice); resolvePipeline(); await flush(); resolvePipeline(); await flush(); resolvePipeline(); await retry;
 } finally { hooks.deregister(); delete globalThis.pairedPreparation; }
 console.log('paired pipeline preparation: exact variants/constants/device, rejection and cancellation settlement passed');

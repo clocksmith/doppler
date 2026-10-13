@@ -2,6 +2,35 @@
 // Do not edit; npm run kernels:uniforms:sync.
 import { writeU32, writeI32, writeF32 } from '../uniform-encoding.js';
 
+export function write_fused_matmul_rmsnorm_small(view, values, kernel) {
+  writeU32(view, 0, values["N"], kernel, "N");
+  writeU32(view, 4, values["K"], kernel, "K");
+  writeF32(view, 8, values["eps"], kernel, "eps");
+  writeU32(view, 12, values["has_residual"], kernel, "has_residual");
+  writeU32(view, 16, values["transpose_b"], kernel, "transpose_b");
+  view.setUint32(20, 0, true);
+  view.setUint32(24, 0, true);
+  view.setUint32(28, 0, true);
+}
+
+export function write_softmax_default(view, values, kernel) {
+  writeU32(view, 0, values["inner_size"], kernel, "inner_size");
+  writeU32(view, 4, values["outer_size"], kernel, "outer_size");
+  writeF32(view, 8, values["temperature"], kernel, "temperature");
+  view.setUint32(12, 0, true);
+}
+
+export function write_soft_embedding_split_f16(view, values, kernel) {
+  writeU32(view, 0, values["canvas_length"], kernel, "canvas_length");
+  writeU32(view, 4, values["hidden_size"], kernel, "hidden_size");
+  writeU32(view, 8, values["vocab_size"], kernel, "vocab_size");
+  writeU32(view, 12, values["row_start"], kernel, "row_start");
+  writeU32(view, 16, values["row_count"], kernel, "row_count");
+  writeU32(view, 20, values["output_mode"], kernel, "output_mode");
+  view.setUint32(24, 0, true);
+  view.setUint32(28, 0, true);
+}
+
 export function write_soft_embedding_logits_norm_stats(view, values, kernel) {
   writeU32(view, 0, values["canvas_length"], kernel, "canvas_length");
   writeU32(view, 4, values["hidden_size"], kernel, "hidden_size");
@@ -571,33 +600,4 @@ export function write_depthwise_conv2d_default(view, values, kernel) {
   view.setUint32(36, 0, true);
   view.setUint32(40, 0, true);
   view.setUint32(44, 0, true);
-}
-
-export function write_depthwise_conv1d_depthwise_conv1d(view, values, kernel) {
-  writeU32(view, 0, values["channels"], kernel, "channels");
-  writeU32(view, 4, values["length"], kernel, "length");
-  writeU32(view, 8, values["kernel_size"], kernel, "kernel_size");
-  view.setUint32(12, 0, true);
-}
-
-export function write_grouped_pointwise_conv2d_default(view, values, kernel) {
-  writeU32(view, 0, values["in_channels"], kernel, "in_channels");
-  writeU32(view, 4, values["out_channels"], kernel, "out_channels");
-  writeU32(view, 8, values["height"], kernel, "height");
-  writeU32(view, 12, values["width"], kernel, "width");
-  writeU32(view, 16, values["groups"], kernel, "groups");
-  view.setUint32(20, 0, true);
-  view.setUint32(24, 0, true);
-  view.setUint32(28, 0, true);
-}
-
-export function write_groupnorm_stats_stats(view, values, kernel) {
-  writeU32(view, 0, values["channels"], kernel, "channels");
-  writeU32(view, 4, values["height"], kernel, "height");
-  writeU32(view, 8, values["width"], kernel, "width");
-  writeU32(view, 12, values["num_groups"], kernel, "num_groups");
-  writeF32(view, 16, values["eps"], kernel, "eps");
-  view.setUint32(20, 0, true);
-  view.setUint32(24, 0, true);
-  view.setUint32(28, 0, true);
 }

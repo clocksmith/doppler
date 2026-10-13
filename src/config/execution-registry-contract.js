@@ -80,6 +80,7 @@ export function assertPairedExecutionMechanismClosure(graph) {
   const required = [
     ['cast', 'f32_to_two_f32'], ['cast', 'two_f32_to_f16'],
     ['gated_delta_conv', 'paired'], ['gated_delta_recurrent', 'paired'],
+    ['qwen_linear_attention_prepare', 'paired_gates'],
     ['split_qg', 'paired'], ['split_qkv', 'paired'], ['rope_precompute', 'paired'],
     ['paired_pointwise', 'sigmoid'], ['paired_pointwise', 'scale'],
     ['logit_finalize', 'f32'],

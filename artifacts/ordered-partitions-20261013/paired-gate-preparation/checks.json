@@ -1,0 +1,92 @@
+[
+  {
+    "command": [
+      "node",
+      "tests/gpu/paired-gate-preparation.test.js"
+    ],
+    "exitCode": 0,
+    "stdout": "paired gate preparation: original expression order, complete component storage and registry ABI pass\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "node",
+      "tests/gpu/paired-gate-memory.test.js"
+    ],
+    "exitCode": 0,
+    "stdout": "{\n  \"scope\": \"Calculated incremental buffer bounds using actual pool allocator; no hardware peak claim\",\n  \"rows\": [\n    {\n      \"tokens\": 1,\n      \"logicalGateBytes\": 256,\n      \"poolGateBytes\": 256,\n      \"extraUniformBytes\": 256,\n      \"twoAttemptsSixLayersBytes\": 6144\n    },\n    {\n      \"tokens\": 184,\n      \"logicalGateBytes\": 47104,\n      \"poolGateBytes\": 65536,\n      \"extraUniformBytes\": 256,\n      \"twoAttemptsSixLayersBytes\": 789504\n    },\n    {\n      \"tokens\": 256,\n      \"logicalGateBytes\": 65536,\n      \"poolGateBytes\": 65536,\n      \"extraUniformBytes\": 256,\n      \"twoAttemptsSixLayersBytes\": 789504\n    },\n    {\n      \"tokens\": 52,\n      \"logicalGateBytes\": 13312,\n      \"poolGateBytes\": 16384,\n      \"extraUniformBytes\": 256,\n      \"twoAttemptsSixLayersBytes\": 199680\n    },\n    {\n      \"tokens\": 1588,\n      \"logicalGateBytes\": 406528,\n      \"poolGateBytes\": 458752,\n      \"extraUniformBytes\": 256,\n      \"twoAttemptsSixLayersBytes\": 5508096\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "node",
+      "tests/gpu/paired-linear-preparation.test.js"
+    ],
+    "exitCode": 0,
+    "stdout": "paired pipeline preparation: exact variants/constants/device, rejection and cancellation settlement passed\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "node",
+      "tests/gpu/paired-linear-ownership.test.js"
+    ],
+    "exitCode": 0,
+    "stdout": "paired linear: explicit layouts, epsilons, aliases, limits, allocation and both dispatch rollback passed\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "node",
+      "tests/inference/paired-execution-plan.test.js"
+    ],
+    "exitCode": 0,
+    "stdout": "paired execution plan: complete graph admission, exact variants, helper closure, scalar logits and session metadata pass\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "node",
+      "tests/inference/paired-resident-admission.test.js"
+    ],
+    "exitCode": 0,
+    "stdout": "paired resident malformed input and full paired byte allowance rejected before attempt resource creation\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "node",
+      "tests/inference/paired-linear-projection-cleanup.test.js"
+    ],
+    "exitCode": 0,
+    "stdout": "paired linear layer: normalization, each projection, core observation and output failure cleanup passed\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "node",
+      "tests/inference/paired-linear-norm-contract.test.js"
+    ],
+    "exitCode": 0,
+    "stdout": "scalar and paired linear normalization preserve direct source weights independently of surrounding norm offset\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "node",
+      "tests/tooling/program-bundle-paired-closure.test.js"
+    ],
+    "exitCode": 0,
+    "stdout": "paired program bundle closure: actual source bytes, scalar/vector/split gather, final logits and strict undeclared rejection pass\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "node",
+      "artifacts/ordered-partitions-20261013/paired-gate-preparation/lifetime-control.test.js"
+    ],
+    "exitCode": 0,
+    "stdout": "actual diagnostic orchestration: success, late-operation cancellation, and unknown cleanup pass\n",
+    "stderr": ""
+  }
+]

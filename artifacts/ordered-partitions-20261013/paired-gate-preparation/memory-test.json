@@ -1,0 +1,40 @@
+{
+  "scope": "Calculated incremental buffer bounds using actual pool allocator; no hardware peak claim",
+  "rows": [
+    {
+      "tokens": 1,
+      "logicalGateBytes": 256,
+      "poolGateBytes": 256,
+      "extraUniformBytes": 256,
+      "twoAttemptsSixLayersBytes": 6144
+    },
+    {
+      "tokens": 184,
+      "logicalGateBytes": 47104,
+      "poolGateBytes": 65536,
+      "extraUniformBytes": 256,
+      "twoAttemptsSixLayersBytes": 789504
+    },
+    {
+      "tokens": 256,
+      "logicalGateBytes": 65536,
+      "poolGateBytes": 65536,
+      "extraUniformBytes": 256,
+      "twoAttemptsSixLayersBytes": 789504
+    },
+    {
+      "tokens": 52,
+      "logicalGateBytes": 13312,
+      "poolGateBytes": 16384,
+      "extraUniformBytes": 256,
+      "twoAttemptsSixLayersBytes": 199680
+    },
+    {
+      "tokens": 1588,
+      "logicalGateBytes": 406528,
+      "poolGateBytes": 458752,
+      "extraUniformBytes": 256,
+      "twoAttemptsSixLayersBytes": 5508096
+    }
+  ]
+}

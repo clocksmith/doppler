@@ -7,6 +7,7 @@ import { getPipelineFast } from './pipeline-cache.js';
 /** @type {Readonly<import('../tensor.js').TensorRepresentation>} */
 const REPRESENTATION = Object.freeze({ precision: 'two-f32', components: 2, elementStrideBytes: 8 });
 const CONV_CONSTANTS = Object.freeze({ WORKGROUP_SIZE: 64 });
+const GATE_CONSTANTS = Object.freeze({ WORKGROUP_SIZE: 64 });
 const RECURRENT_CONSTANTS = Object.freeze({ WORKGROUP_SIZE: 128 });
 
 /** @type {typeof import('./paired-linear-attention.js').preparePairedLinearAttentionPipelines} */
@@ -14,6 +15,8 @@ export async function preparePairedLinearAttentionPipelines(device, signal) {
   signal?.throwIfAborted();
   if (!device) throw new Error('[PairedLinear] Pipeline preparation requires the owning GPU device.');
   await getPipelineFast('gated_delta_conv', 'paired', null, CONV_CONSTANTS, device);
+  signal?.throwIfAborted();
+  await getPipelineFast('qwen_linear_attention_prepare', 'paired_gates', null, GATE_CONSTANTS, device);
   signal?.throwIfAborted();
   await getPipelineFast('gated_delta_recurrent', 'paired', null, RECURRENT_CONSTANTS, device);
   signal?.throwIfAborted();
@@ -66,10 +69,16 @@ export async function executePairedLinearAttention(qkv, z, a, b, state, options)
   }
   const device = recorder?.device ?? getDevice();
   if (!device || device.limits.maxStorageBuffersPerShaderStage < 9) throw new Error('[PairedLinear] Nine storage bindings per stage are required.');
-  if (Math.ceil(state.convDim / 64) > device.limits.maxComputeWorkgroupsPerDimension
+  if (Math.ceil(numTokens * state.numVHeads / 64) > device.limits.maxComputeWorkgroupsPerDimension
+    || Math.ceil(state.convDim / 64) > device.limits.maxComputeWorkgroupsPerDimension
     || state.numVHeads > device.limits.maxComputeWorkgroupsPerDimension
     || numTokens * Math.max(state.convDim, state.valueDim) * 8 > 0xffffffff) {
     throw new Error('[PairedLinear] Geometry exceeds dispatch or binding limits.');
+  }
+  const gateBytes = numTokens * state.numVHeads * 16;
+  if (!Number.isSafeInteger(gateBytes) || gateBytes > 0xffffffff
+    || gateBytes > device.limits.maxStorageBufferBindingSize || gateBytes > device.limits.maxBufferSize) {
+    throw new Error('[PairedLinear] Prepared gate buffer exceeds storage or allocation limits.');
   }
   const reads = [qkv.buffer, z.buffer, a.buffer, b.buffer, state.convWeightGPU, state.dtBiasGPU, state.aLogGPU, state.normWeightGPU];
   if (state.convStateGPU === state.recurrentStateGPU || reads.includes(state.convStateGPU) || reads.includes(state.recurrentStateGPU)) {
@@ -81,18 +90,22 @@ export async function executePairedLinearAttention(qkv, z, a, b, state, options)
     norm_mode: Number(state.normMode === 'per_head'), rms_eps_hi: Math.fround(eps), rms_eps_lo: eps - Math.fround(eps),
     qk_eps_hi: Math.fround(qeps), qk_eps_lo: qeps - Math.fround(qeps), packed_flags: Number(abPacked) | (Number(qkvzPacked) << 1),
     b_offset: bOffset, norm_weight_offset: Number(state.normWeightOffset) };
-  let conv = null, output = null;
+  let conv = null, gates = null, output = null;
   /** @param {GPUBuffer} buffer */
   const release = buffer => { if (recorder) recorder.trackTemporaryBuffer(buffer); else releaseBuffer(buffer); };
   try {
     conv = acquireBuffer(numTokens * state.convDim * 8, undefined, 'paired_linear_conv');
+    gates = acquireBuffer(gateBytes, undefined, 'paired_linear_gates');
     output = acquireBuffer(numTokens * state.valueDim * 8, undefined, 'paired_linear_output');
     await unifiedKernelWrapper('gated_delta_conv', recorder, 'paired', [qkv, state.convWeightGPU, state.convStateGPU, conv], uniform,
       [Math.ceil(state.convDim / 64), 1, 1], CONV_CONSTANTS);
+    await unifiedKernelWrapper('qwen_linear_attention_prepare', recorder, 'paired_gates',
+      [a, b, state.dtBiasGPU, state.aLogGPU, gates], uniform,
+      [Math.ceil(numTokens * state.numVHeads / 64), 1, 1], GATE_CONSTANTS);
     await unifiedKernelWrapper('gated_delta_recurrent', recorder, 'paired',
-      [conv, z, a, b, state.dtBiasGPU, state.aLogGPU, state.normWeightGPU, state.recurrentStateGPU, output], uniform,
+      [conv, z, gates, state.normWeightGPU, state.recurrentStateGPU, output], uniform,
       [state.numVHeads, 1, 1], RECURRENT_CONSTANTS);
     return createTensor(output, 'f32', [numTokens, state.valueDim], 'paired_linear_output', REPRESENTATION);
   } catch (error) { if (output) release(output); throw error; }
-  finally { if (conv) release(conv); }
+  finally { if (gates) release(gates); if (conv) release(conv); }
 }
