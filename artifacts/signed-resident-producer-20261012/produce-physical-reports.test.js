@@ -176,3 +176,140 @@ test('post-run correction binding retains exact pre-run and actual capture/refer
   assert.doesNotThrow(() => validateProducerBinding(expected, 'expectations', 'old', 'capture'));
   assert.throws(() => validateProducerBinding(expected, 'expectations', 'old', 'capture', correction));
 });
+
+import { createOrderedLayerPartitionPlan, hashLayerPartitionPlan, validateOrderedLayerPartitionPlan } from '../../src/config/layer-partition-plan.js';
+import { assertOrderedResidentContract } from '../../src/config/ordered-resident-qualification.js';
+import { hashPartitionGeneration } from '../../src/partitions.js';
+function orderedFixture(count = 3, hostCount = count) {
+  const f = directFixture(), expected = f.input.expected;
+  Object.assign(f.manifest.architecture, { numLayers: 24, hiddenSize: 4 });
+  f.input.manifestBytes = bytes(f.manifest); expected.manifestHash = sha256(f.input.manifestBytes);
+  const plan = createOrderedLayerPartitionPlan({ modelId: f.manifest.modelId, numLayers: 24, hiddenSize: 4, vocabSize: 2,
+    splitLayers: Array.from({ length: count - 1 }, (_, i) => Math.floor(24 * (i + 1) / count)), activationPrecision: 'two-f32' });
+  const generation = { maxTokens: 51, maxSeqLen: 64, temperature: 0, topK: 1, topP: 1,
+    repetitionPenalty: 1, repetitionPenaltyWindow: 0, useChatTemplate: false };
+  f.reference.generation = generation; f.input.referenceBytes = bytes(f.reference); expected.referenceHash = sha256(f.input.referenceBytes);
+  Object.assign(expected, { schema: 'doppler.physical-resident-producer-input/v2', partitionPlan: plan,
+    logicalStageCount: count, physicalHostCount: hostCount, maxGpuBufferBytes: 1420000000,
+    deadlines: { stageMs: 300000, cleanupMs: 10000, observationMs: 2000 }, requesterId: 'synthetic-requester', placementGeneration: 1,
+    placements: [], providers: {}, surfaces: {}, browserVersions: {}, executables: {} });
+  const prototype = f.capture.descriptors[0], identityHash = computeCanonicalSha256(prototype.openingObservation.initialExecutionIdentity);
+  f.capture.descriptors = []; f.capture.residentSettlement = []; f.capture.executorSettlements = [];
+  const settlement = directFixture().capture.residentSettlement[0];
+  for (let index = 0; index < count; index++) {
+    const executorId = `executor-${index}`, platform = `host-${index % hostCount}`;
+    expected.placements.push({ partitionIndex: index, executorId, platform, participantId: executorId,
+      transportId: `controller:${executorId}`, residentId: `resident-${index}`, executionId: identityHash });
+    expected.providers[executorId] = { adapter: { vendor: `synthetic-${platform}` } };
+    expected.surfaces[executorId] = 'browser-webgpu'; expected.browserVersions[executorId] = 'synthetic-browser';
+    expected.executables[executorId] = { sha256: 'b'.repeat(64), sizeBytes: 100 };
+    const descriptor = structuredClone(prototype);
+    Object.assign(descriptor, { executorId, platform, observedProvider: expected.providers[executorId], plan, planId: hashLayerPartitionPlan(plan),
+      executableIdentity: expected.executables[executorId], executorIdentity: { pid: 1000 + index, contextId: `context-${index}` },
+      descriptor: { index, schema: 'doppler.resident-partition/v2', stageCount: count, ready: true, modelId: f.manifest.modelId,
+        modelIdentity: expected.manifestHash, planId: hashLayerPartitionPlan(plan), generationDigest: hashPartitionGeneration(generation), layerRange: plan.partitions[index].layerRange } });
+    Object.assign(descriptor.openingObservation, { partitionIndex: index, modelIdentity: expected.manifestHash, planId: descriptor.planId });
+    f.capture.descriptors.push(descriptor);
+    f.capture.residentSettlement.push({ ...structuredClone(settlement), partitionIndex: index, executorId,
+      initialExecutionIdentityHash: identityHash, residentClosed: true, attemptsClosed: 3, elapsedMs: 1 });
+    f.capture.executorSettlements.push({ partitionIndex: index, executorId, executorIdentity: descriptor.executorIdentity, contextClosed: true });
+  }
+  expected.orderedContract = { schema: 'doppler.resident-qualification-contract/v2', manifestIdentity: expected.manifestHash,
+    executionGraphHash: prototype.openingObservation.initialExecutionIdentity.executionGraphHash,
+    partitionPlan: plan, partitionPlanHash: hashLayerPartitionPlan(plan), referenceHash: expected.referenceHash,
+    evaluatorHash: expected.evaluatorHash, tolerance: 0.001, comparedSteps: 55,
+    stages: expected.placements.map(({ executorId }, index) => ({ index, surface: expected.surfaces[executorId], providerIdentityHash: computeCanonicalSha256(expected.providers[executorId]) })) };
+  f.capture.deadlines = expected.deadlines; f.capture.logicalStageCount = count; f.capture.physicalHostCount = hostCount;
+  f.capture.pairedBinding.manifestIdentity = expected.manifestHash;
+  for (const run of f.capture.runs) {
+    run.generation = generation;
+    run.identity = { schema: 'doppler.resident-partition-attempt/v2', modelId: f.manifest.modelId, modelIdentity: expected.manifestHash,
+      planId: hashLayerPartitionPlan(plan), requesterId: expected.requesterId, placementGeneration: expected.placementGeneration,
+      threadId: `thread-${run.attempt}`, attemptId: `attempt-${run.attempt}`,
+      stages: expected.placements.map(({ partitionIndex: index, participantId, transportId, residentId, executionId }) => ({ index, participantId, transportId, residentId, executionId })) };
+    let position = 0;
+    for (const observed of run.numerical) {
+      let prior = null;
+      observed.stageExecutions = expected.placements.map((placement, index) => {
+        const raw = Buffer.alloc(observed.inputTokenIds.length * plan.hiddenSize * 8);
+        const output = index + 1 < count ? { shape: [1, observed.inputTokenIds.length, plan.hiddenSize], dtype: 'f32', precision: 'two-f32',
+          components: 2, elementStrideBytes: 8, step: observed.step, seqOffset: position, data: raw.toString('base64'), byteLength: raw.length, storageHash: sha256(raw) } : null;
+        const result = { partitionIndex: index, executorId: placement.executorId, method: 'executeStage', completed: true, elapsedMs: 1,
+          identity: run.identity, step: observed.step, tokenPosition: position, inputTokenCount: observed.inputTokenIds.length,
+          inputTokenIds: observed.inputTokenIds, generationDigest: hashPartitionGeneration(generation), initialExecutionIdentityHash: identityHash,
+          activationInput: prior, activationOutput: output, logitsHash: output ? null : sha256(Buffer.from(observed.logits, 'base64')) };
+        prior = output; return result;
+      });
+      position += observed.inputTokenIds.length;
+    }
+  }
+  Object.assign(f.input, { captureBytes: bytes(f.capture), assertOrderedResidentContract, validateOrderedLayerPartitionPlan, hashPartitionGeneration });
+  return f;
+}
+for (const [count, hosts] of [[2, 2], [3, 3], [3, 2], [4, 3], [7, 3]]) test(`ordered synthetic ${count} stages/${hosts} hosts bind all prefixes and exact stage lifecycles`, () => {
+  const f = orderedFixture(count, hosts), result = producePhysicalReports(f.input);
+  assert.equal(result.reports.length, count);
+  assert.equal(result.contract.schema, 'doppler.resident-qualification-contract/v2');
+  assert(result.reports.every(r => r.schema === 'doppler.resident-partition-qualification/v2' && r.comparison.steps.length === 55));
+  assert.equal(result.reports[0].provenance.physicalHostCount, hosts);
+  assert.equal(result.reports[0].provenance.logicalStageCount, count);
+});
+for (const [name, mutate] of Object.entries({
+  'exceeded stage deadline': f => f.capture.runs[0].numerical[0].stageExecutions[0].elapsedMs = 300001,
+  'exceeded cleanup deadline': f => f.capture.residentSettlement[0].elapsedMs = 10001,
+  'absent stage execution': f => f.capture.runs[0].numerical[0].stageExecutions.pop(),
+  'reordered stage execution': f => f.capture.runs[0].numerical[0].stageExecutions.reverse(),
+  'copied wrong prefix': f => f.capture.runs[0].numerical[0].stageExecutions[1].step++,
+  'wrong generation': f => f.capture.runs[0].numerical[0].stageExecutions[1].generationDigest = 'wrong',
+  'wrong input token': f => f.capture.runs[0].numerical[0].stageExecutions[1].inputTokenIds = [9],
+  'wrong input activation': f => f.capture.runs[0].numerical[0].stageExecutions[1].activationInput.data = 'AA==',
+  'scalar activation reinterpretation': f => f.capture.runs[0].numerical[0].stageExecutions[0].activationOutput.components = 1,
+  'extra nonfinal logits': f => f.capture.runs[0].numerical[0].stageExecutions[0].logitsHash = sha256('wrong'),
+  'wrong final output binding': f => f.capture.runs[0].numerical[0].stageExecutions[2].logitsHash = sha256('wrong'),
+  'unexecuted middle stage': f => f.capture.runs[0].numerical[0].stageExecutions[1].completed = false,
+  'wrong actual opening identity': f => f.capture.runs[0].numerical[0].stageExecutions[1].initialExecutionIdentityHash = sha256('wrong'),
+  'wrong process cleanup': f => f.capture.executorSettlements[0].executorIdentity = { pid: 999, contextId: 'wrong' },
+  'wrong descriptor generation': f => f.capture.descriptors[1].descriptor.generationDigest = 'wrong',
+  'duplicate actual executor context': f => { f.capture.descriptors[1].platform = f.capture.descriptors[0].platform; f.capture.descriptors[1].executorIdentity = f.capture.descriptors[0].executorIdentity; },
+  'unclosed context': f => f.capture.executorSettlements[1].contextClosed = false,
+  'wrong resident cleanup': f => f.capture.residentSettlement[1].executorId = 'other',
+  'unclosed attempt': f => f.capture.residentSettlement[1].attemptsClosed = 2,
+  'changed browser binary': f => f.capture.descriptors[0].executableIdentity = { sha256: 'c'.repeat(64), sizeBytes: 100 },
+  'mislabelled physical count': f => f.capture.physicalHostCount = 2,
+  'missing stage descriptor': f => f.capture.descriptors.pop(),
+  'changed middle layer range': f => f.capture.descriptors[1].descriptor.layerRange = [9, 15],
+  'v1 capture without ordered traces': f => { for (const run of f.capture.runs) for (const step of run.numerical) delete step.stageExecutions; },
+})) test(`ordered rejects ${name}`, () => {
+  const f = orderedFixture(); mutate(f); f.input.captureBytes = bytes(f.capture);
+  assert.throws(() => producePhysicalReports(f.input));
+});
+function orderedNativeFixture() {
+  const f = orderedFixture(), template = nativeFixture();
+  f.input.expected.nativeHosts = {};
+  f.capture.nativeHostSettlements = [];
+  for (const index of [0, 1]) {
+    const d = f.capture.descriptors[index], key = d.executorId, frozen = structuredClone(template.input.expected.nativeHosts.first);
+    const original = template.capture.descriptors[0];
+    Object.assign(d, { surface: 'node-webgpu', nativePid: d.executorIdentity.pid,
+      node: original.node, nativeProvider: structuredClone(original.nativeProvider), nativeHost: structuredClone(original.nativeHost) });
+    d.nativeHost.testDelivery.archiveSha256 = f.input.expected.archiveHash.slice(7);
+    delete d.browser;
+    f.input.expected.surfaces[key] = 'node-webgpu'; f.input.expected.nativeHosts[key] = frozen;
+    f.input.expected.orderedContract.stages[index].surface = 'node-webgpu';
+    f.capture.nativeHostSettlements.push({ executorId: key, pid: d.nativePid, closed: true, providerOpened: true, ownedProviderReleased: true });
+  }
+  f.input.captureBytes = bytes(f.capture); return f;
+}
+test('ordered mixed route binds two native process/provider settlements independently', () => {
+  const f = orderedNativeFixture();
+  assert.deepEqual(producePhysicalReports(f.input).reports.map(r => r.surface), ['node-webgpu', 'node-webgpu', 'browser-webgpu']);
+});
+for (const [name, mutate] of Object.entries({
+  'missing second native release': f => f.capture.nativeHostSettlements.pop(),
+  'borrowed process release': f => f.capture.nativeHostSettlements[1].pid = f.capture.nativeHostSettlements[0].pid,
+  'native/context pid disagreement': f => f.capture.descriptors[0].nativePid++,
+  'duplicate native settlement': f => f.capture.nativeHostSettlements[1] = f.capture.nativeHostSettlements[0],
+})) test(`ordered rejects ${name}`, () => {
+  const f = orderedNativeFixture(); mutate(f); f.input.captureBytes = bytes(f.capture);
+  assert.throws(() => producePhysicalReports(f.input));
+});
