@@ -45,3 +45,12 @@ and the command exits 1. These are retained synthetic reference observations;
 they neither establish a Doppler defect nor qualify Flash-Next. Independent
 analysis of accumulation/rounding remains required; no model acceptance
 threshold was changed.
+
+`prepare-ngram-incremental-reference.py` checks all 128 chunk partitions of the
+same eight-token sequence against the independent integer addresses, including
+EOS boundaries and short initial chunks. Two histories interleaved on one
+operator also match separate full-input address calculations. The original
+upstream n-gram body runs unchanged; embedding lookup and token-history ports
+are explicit test spies. `ngram-incremental-reference.json` passes. This does
+not qualify upstream Cache internals, learned embeddings, Doppler state, or
+portable checkpoint behavior; the router bounds failure above remains open.

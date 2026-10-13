@@ -1,0 +1,38 @@
+{
+  "schema": "doppler.qwen38-ngram-incremental-reference/v1",
+  "checkpoint": "de4b8e4d43b917e7706784d8bb445c9af86a3540",
+  "upstream": "e0eb2810ac1b2caf6d082f247d8d37162ecf67a0",
+  "torch": "2.9.1",
+  "surface": "CPU",
+  "scope": "Unchanged upstream address computation; embedding lookup and cache ports are test spies",
+  "tokens": [
+    17,
+    42,
+    248044,
+    101,
+    102,
+    103,
+    248044,
+    248319
+  ],
+  "otherTokens": [
+    73,
+    248044,
+    89,
+    90,
+    91,
+    248044,
+    93,
+    94
+  ],
+  "contextTokens": 2,
+  "chunkPartitionsChecked": 128,
+  "allChunkPartitionsMatchIndependentAddresses": true,
+  "interleavedHistoriesMatch": true,
+  "independentMutableHistory": true,
+  "expectedAddressesSha256": "e28201da84a39070e7575fe30e2906b0b925d722028eb91b9b69937fdefc58a7",
+  "passed": true,
+  "upstreamCacheQualified": false,
+  "learnedEmbeddingQualified": false,
+  "dopplerQualified": false
+}
