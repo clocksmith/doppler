@@ -1,0 +1,115 @@
+{
+  "schema": "doppler.paired-gate-operator-result/v1",
+  "passed": true,
+  "sourceCommit": "33bd652a",
+  "scope": "AMD actual installed native-host shader operator diagnostic; not ordinary archive, public wrapper or whole-model qualification",
+  "cases": [
+    {
+      "packed": false,
+      "rows": {
+        "conv": {
+          "count": 1536,
+          "maxError": 4.579669976578771e-16,
+          "failures": 0
+        },
+        "convState": {
+          "count": 2048,
+          "maxError": 0,
+          "failures": 0
+        },
+        "state": {
+          "count": 32768,
+          "maxError": 1.4224732503009818e-16,
+          "failures": 0
+        },
+        "output": {
+          "count": 768,
+          "maxError": 3.7470027081099033e-16,
+          "failures": 0
+        },
+        "gates": {
+          "count": 12,
+          "maxError": 3.1086244689504383e-15,
+          "failures": 0
+        }
+      }
+    },
+    {
+      "packed": true,
+      "rows": {
+        "conv": {
+          "count": 1536,
+          "maxError": 4.996003610813204e-16,
+          "failures": 0
+        },
+        "convState": {
+          "count": 2048,
+          "maxError": 0,
+          "failures": 0
+        },
+        "state": {
+          "count": 32768,
+          "maxError": 6.245004513516506e-17,
+          "failures": 0
+        },
+        "output": {
+          "count": 768,
+          "maxError": 8.534839501805891e-16,
+          "failures": 0
+        },
+        "gates": {
+          "count": 12,
+          "maxError": 2.1094237467877974e-15,
+          "failures": 0
+        }
+      }
+    }
+  ],
+  "maxNormalizedF64Error": 3.1086244689504383e-15,
+  "tolerance": 2e-11,
+  "pipelineObservations": {
+    "0": {
+      "startedAt": "2026-10-13T17:19:12.884Z",
+      "completedAt": "2026-10-13T17:19:12.890Z",
+      "milliseconds": 6.0
+    },
+    "1": {
+      "startedAt": "2026-10-13T17:19:12.892Z",
+      "completedAt": "2026-10-13T17:20:03.918Z",
+      "milliseconds": 51026.0
+    },
+    "2": {
+      "startedAt": "2026-10-13T17:20:03.922Z",
+      "completedAt": "2026-10-13T17:23:28.706Z",
+      "milliseconds": 204784.0
+    }
+  },
+  "ownership": {
+    "pid": 1318667,
+    "operationSettled": true,
+    "hostClosed": true,
+    "deviceLostReason": "destroyed",
+    "exit": {
+      "code": 0,
+      "signal": null,
+      "at": "2026-10-13T17:23:29.229Z"
+    },
+    "naturalExit": true,
+    "absenceVerified": "amd-after.txt"
+  },
+  "limits": {
+    "operationMs": 300000,
+    "cleanupMs": 10000,
+    "supervisorMs": 310000
+  },
+  "coTenancy": "Public native4103868 and browser4121371 remained running; cache state uncontrolled, no isolated speed or causal speedup claim.",
+  "nextGate": "Ordinary candidate package and declared mechanism graph; physical installed-wrapper/model preparation and55prefixes on exact candidate identities remain unqualified.",
+  "files": {
+    "amd-result.json": "3b800698aa899e842a4f9f664d03f6ff3a4817b9ec314c97ca68c66eb5ec1335",
+    "amd-process.json": "d9784e1b7b3695d88e6d324cdbd1933cfd95fdb49c7c8b119c5a13bda6d39adb",
+    "amd-before.json": "aeae3970ab1f09ca4bc39de11976f8af327340a0a1d617e0f0ef0809d23b90bf",
+    "amd-after.txt": "4210cbcde8a377507e1afd4457202dafa2d488a72fb72adf4375312e9649c8de",
+    "reservation.json": "5a2c2204d83e5f4fc5a8e8bb8c8da89bcd6abd0f1d219ac223703664a4e6a219",
+    "linear-control.js": "9648665800647689550ea3a0f5f1778287347dbc058fefcc399aad5672d929fa"
+  }
+}
