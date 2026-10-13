@@ -128,7 +128,7 @@ claims remain excluded.
 This file owns Doppler's mission, priorities, and product acceptance requirements.
 The technical owners below define their detailed contracts. The current joint
 Doppler–Reploid integration uses Reploid's
-[implementation checklist](https://github.com/clocksmith/reploid/blob/main/TODO.md);
+[implementation roadmap](https://github.com/clocksmith/reploid/blob/main/ROADMAP.md);
 it does not replace Doppler's independent product goals.
 
 ### Standalone adoption acceptance
