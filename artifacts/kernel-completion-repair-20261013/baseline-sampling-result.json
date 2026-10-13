@@ -1,0 +1,14 @@
+[
+  {
+    "test": "capsule-token-selection-physical",
+    "startedAt": "2026-10-13T23:21:16.547240+00:00",
+    "exitCode": 1,
+    "scope": "Original executor control on local Apple GPU; numerical test, not model qualification"
+  },
+  {
+    "test": "sampling-distribution-physical",
+    "startedAt": "2026-10-13T23:21:16.855381+00:00",
+    "exitCode": 1,
+    "scope": "Original executor control on local Apple GPU; numerical test, not model qualification"
+  }
+]

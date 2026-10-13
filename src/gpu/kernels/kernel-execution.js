@@ -132,7 +132,16 @@ export async function unifiedKernelWrapper(
     throw error;
   }
 
-  if (!recorder && uniformBuffer) {
+  if (!recorder && config.immediateCompletion === 'settled') {
+    // Expensive immediate kernels must not accumulate into an unbounded queue.
+    // This boundary preserves arithmetic and keeps uniforms alive until settlement.
+    try {
+      await device.queue.onSubmittedWorkDone();
+    } finally {
+      uniformBuffer?.destroy();
+    }
+    signal?.throwIfAborted();
+  } else if (!recorder && uniformBuffer) {
     device.queue.onSubmittedWorkDone()
       .then(() => {
         uniformBuffer.destroy();

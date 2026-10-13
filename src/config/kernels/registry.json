@@ -780,6 +780,7 @@
     },
     "paired_beta": {
      "wgsl": "qwen_linear_attention_prepare_paired.wgsl",
+     "immediateCompletion": "settled",
      "entryPoint": "main",
      "workgroup": [64,1,1],
      "requires": [],
@@ -923,6 +924,7 @@
     },
     "paired_decay_scale": {
      "wgsl": "qwen_linear_attention_scale_paired.wgsl",
+     "immediateCompletion": "settled",
      "entryPoint": "main",
      "workgroup": [64,1,1],
      "requires": [],
@@ -1076,6 +1078,7 @@
     },
     "paired_log_decay": {
      "wgsl": "qwen_linear_attention_log_decay_paired.wgsl",
+     "immediateCompletion": "settled",
      "entryPoint": "main",
      "workgroup": [64,1,1],
      "requires": [],
@@ -1224,6 +1227,7 @@
     },
     "paired_decay": {
      "wgsl": "qwen_linear_attention_decay_paired.wgsl",
+     "immediateCompletion": "settled",
      "entryPoint": "main",
      "workgroup": [64,1,1],
      "requires": [],
@@ -5843,6 +5847,7 @@
     },
     "paired_f32": {
      "wgsl": "matmul_paired.wgsl",
+     "immediateCompletion": "settled",
      "entryPoint": "main",
      "workgroup": [64,1,1],
      "requires": [],
@@ -5939,6 +5944,7 @@
     },
     "paired_f16": {
      "wgsl": "matmul_paired.wgsl",
+     "immediateCompletion": "settled",
      "entryPoint": "main",
      "workgroup": [64,1,1],
      "requires": [],
@@ -6035,6 +6041,7 @@
     },
     "paired_q4k": {
      "wgsl": "matmul_paired.wgsl",
+     "immediateCompletion": "settled",
      "entryPoint": "main",
      "workgroup": [64,1,1],
      "requires": [],
@@ -6131,6 +6138,7 @@
     },
     "paired_f32_scalar": {
      "wgsl": "matmul_paired.wgsl",
+     "immediateCompletion": "settled",
      "entryPoint": "main",
      "workgroup": [64,1,1],
      "requires": [],
@@ -6228,6 +6236,7 @@
     },
     "paired_f16_scalar": {
      "wgsl": "matmul_paired.wgsl",
+     "immediateCompletion": "settled",
      "entryPoint": "main",
      "workgroup": [64,1,1],
      "requires": [],
@@ -6325,6 +6334,7 @@
     },
     "paired_q4k_scalar": {
      "wgsl": "matmul_paired.wgsl",
+     "immediateCompletion": "settled",
      "entryPoint": "main",
      "workgroup": [64,1,1],
      "requires": [],
@@ -10191,6 +10201,7 @@
     },
     "paired": {
      "wgsl": "attention_paired.wgsl",
+     "immediateCompletion": "settled",
      "entryPoint": "main",
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
@@ -11731,6 +11742,7 @@
     },
     "paired": {
      "wgsl": "rmsnorm_paired.wgsl",
+     "immediateCompletion": "settled",
      "entryPoint": "main",
      "workgroup": [64,1,1],
      "requires": [],
@@ -16475,6 +16487,7 @@
     },
     "f32_to_two_f32": {
      "wgsl": "cast_f32_to_two_f32.wgsl",
+     "immediateCompletion": "settled",
      "entryPoint": "main",
      "workgroup": [256,1,1],
      "requires": [],
@@ -16491,6 +16504,7 @@
     },
     "two_f32_to_f16": {
      "wgsl": "cast_two_f32_to_f16.wgsl",
+     "immediateCompletion": "settled",
      "entryPoint": "main",
      "workgroup": [256,1,1],
      "requires": [],
@@ -20936,6 +20950,7 @@
     },
     "paired": {
      "wgsl": "gated_delta_conv_paired.wgsl",
+     "immediateCompletion": "settled",
      "entryPoint": "main",
      "workgroup": [64,1,1],
      "requires": [],
@@ -21257,6 +21272,7 @@
     },
     "paired": {
      "wgsl": "gated_delta_recurrent_paired.wgsl",
+     "immediateCompletion": "settled",
      "entryPoint": "main",
      "workgroup": [128,1,1],
      "requires": [],
@@ -21454,6 +21470,7 @@
     },
     "paired_qk": {
      "wgsl": "gated_delta_qk_paired.wgsl",
+     "immediateCompletion": "settled",
      "entryPoint": "main",
      "workgroup": [128,1,1],
      "requires": [],
@@ -21592,6 +21609,7 @@
     },
     "paired_state": {
      "wgsl": "gated_delta_state_paired.wgsl",
+     "immediateCompletion": "settled",
      "entryPoint": "main",
      "workgroup": [128,1,1],
      "requires": [],
@@ -21745,6 +21763,7 @@
     },
     "paired_norm": {
      "wgsl": "gated_delta_norm_paired.wgsl",
+     "immediateCompletion": "settled",
      "entryPoint": "main",
      "workgroup": [128,1,1],
      "requires": [],
@@ -21888,6 +21907,7 @@
     },
     "paired_gate": {
      "wgsl": "gated_delta_gate_paired.wgsl",
+     "immediateCompletion": "settled",
      "entryPoint": "main",
      "workgroup": [128,1,1],
      "requires": [],
@@ -24462,6 +24482,7 @@
    "variants": {
     "add": {
      "wgsl": "paired_add.wgsl",
+     "immediateCompletion": "settled",
      "entryPoint": "main",
      "workgroup": [256,1,1],
      "requires": [],
@@ -24474,6 +24495,7 @@
     },
     "scale": {
      "wgsl": "paired_scale.wgsl",
+     "immediateCompletion": "settled",
      "entryPoint": "main",
      "workgroup": [256,1,1],
      "requires": [],
@@ -24503,6 +24525,7 @@
     },
     "multiply": {
      "wgsl": "paired_multiply.wgsl",
+     "immediateCompletion": "settled",
      "entryPoint": "main",
      "workgroup": [256,1,1],
      "requires": [],
@@ -24515,6 +24538,7 @@
     },
     "silu": {
      "wgsl": "paired_silu.wgsl",
+     "immediateCompletion": "settled",
      "entryPoint": "main",
      "workgroup": [256,1,1],
      "requires": [],
@@ -24527,6 +24551,7 @@
     },
     "sigmoid": {
      "wgsl": "paired_sigmoid.wgsl",
+     "immediateCompletion": "settled",
      "entryPoint": "main",
      "workgroup": [256,1,1],
      "requires": [],
@@ -24539,6 +24564,7 @@
     },
     "scale_inplace": {
      "wgsl": "paired_scale_inplace.wgsl",
+     "immediateCompletion": "settled",
      "entryPoint": "main",
      "workgroup": [256,1,1],
      "requires": [],
@@ -24563,6 +24589,7 @@
     },
     "silu_unary": {
      "wgsl": "paired_silu_unary.wgsl",
+     "immediateCompletion": "settled",
      "entryPoint": "main",
      "workgroup": [256,1,1],
      "requires": [],

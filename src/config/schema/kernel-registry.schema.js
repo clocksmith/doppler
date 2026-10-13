@@ -32,11 +32,18 @@ export function resolveKernelConfig(
   if (variantSchema.bindings !== undefined && variantSchema.bindingsOverride !== undefined) {
     throw new Error(`Kernel "${operation}/${variant}" cannot declare both bindings and bindingsOverride.`);
   }
+  // Omitted on legacy registries: submission, not GPU completion, ends the call.
+  const immediateCompletion = variantSchema.immediateCompletion === undefined
+    ? 'submitted' : variantSchema.immediateCompletion;
+  if (immediateCompletion !== 'submitted' && immediateCompletion !== 'settled') {
+    throw new Error(`Kernel "${operation}/${variant}" has invalid immediateCompletion.`);
+  }
   return {
     operation,
     variant,
     wgsl: variantSchema.wgsl,
     entryPoint: variantSchema.entryPoint,
+    immediateCompletion,
     workgroup: variantSchema.workgroup,
     requires: variantSchema.requires ?? [],
     requiredWgslFeatures: variantSchema.requiredWgslFeatures ?? [],

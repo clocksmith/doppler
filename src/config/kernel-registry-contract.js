@@ -45,6 +45,7 @@ export function createKernelRegistry({ extensions = {}, validators = {} } = {}) 
             variant,
             shaderFile: resolved.wgsl,
             entryPoint: resolved.entryPoint,
+            immediateCompletion: resolved.immediateCompletion,
             workgroupSize: resolved.workgroup,
             requires: resolved.requires,
             requiredWgslFeatures: resolved.requiredWgslFeatures,

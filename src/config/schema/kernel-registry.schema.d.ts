@@ -88,6 +88,9 @@ export interface KernelVariantSchema {
   /** Entry point function name in the shader */
   entryPoint: string;
 
+  /** Immediate adapter return boundary. Omission preserves legacy submission semantics. */
+  immediateCompletion?: 'submitted' | 'settled';
+
   /** Workgroup size [x, y, z] */
   workgroup: [number, number, number];
 
@@ -188,6 +191,7 @@ export interface ResolvedKernelConfig {
 
   /** Variant-specific metadata for dispatch planning */
   variantMetadata: import('../kernel-registry-contract.js').VariantMetadata | null;
+  immediateCompletion: 'submitted' | 'settled';
 }
 
 /**
