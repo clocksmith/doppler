@@ -1,0 +1,386 @@
+Tue Oct 13 18:01:51 UTC 2026
+    PID    PPID STAT     ELAPSED COMMAND
+      1       0 Ss   73-02:38:31 /sbin/init splash
+      2       0 S    73-02:38:31 [kthreadd]
+      3       2 S    73-02:38:31 [pool_workqueue_release]
+      4       2 I<   73-02:38:31 [kworker/R-rcu_g]
+      5       2 I<   73-02:38:31 [kworker/R-rcu_p]
+      6       2 I<   73-02:38:31 [kworker/R-slub_]
+      7       2 I<   73-02:38:31 [kworker/R-netns]
+      9       2 I<   73-02:38:31 [kworker/0:0H-events_highpri]
+     12       2 I<   73-02:38:31 [kworker/R-mm_pe]
+     13       2 I    73-02:38:31 [rcu_tasks_kthread]
+     14       2 I    73-02:38:31 [rcu_tasks_rude_kthread]
+     15       2 I    73-02:38:31 [rcu_tasks_trace_kthread]
+     16       2 S    73-02:38:31 [ksoftirqd/0]
+     17       2 I    73-02:38:31 [rcu_preempt]
+     18       2 S    73-02:38:31 [migration/0]
+     19       2 S    73-02:38:31 [idle_inject/0]
+     20       2 S    73-02:38:31 [cpuhp/0]
+     21       2 S    73-02:38:31 [cpuhp/1]
+     22       2 S    73-02:38:31 [idle_inject/1]
+     23       2 S    73-02:38:31 [migration/1]
+     24       2 S    73-02:38:31 [ksoftirqd/1]
+     26       2 I<   73-02:38:31 [kworker/1:0H-events_highpri]
+     27       2 S    73-02:38:31 [cpuhp/2]
+     28       2 S    73-02:38:31 [idle_inject/2]
+     29       2 S    73-02:38:31 [migration/2]
+     30       2 S    73-02:38:31 [ksoftirqd/2]
+     32       2 I<   73-02:38:31 [kworker/2:0H-events_highpri]
+     33       2 S    73-02:38:31 [cpuhp/3]
+     34       2 S    73-02:38:31 [idle_inject/3]
+     35       2 S    73-02:38:31 [migration/3]
+     36       2 S    73-02:38:31 [ksoftirqd/3]
+     38       2 I<   73-02:38:31 [kworker/3:0H-events_highpri]
+     39       2 S    73-02:38:31 [kdevtmpfs]
+     40       2 I<   73-02:38:31 [kworker/R-inet_]
+     41       2 S    73-02:38:31 [kauditd]
+     43       2 S    73-02:38:31 [khungtaskd]
+     45       2 S    73-02:38:31 [oom_reaper]
+     47       2 I<   73-02:38:31 [kworker/R-write]
+     48       2 S    73-02:38:31 [kcompactd0]
+     49       2 SN   73-02:38:31 [ksmd]
+     50       2 SN   73-02:38:31 [khugepaged]
+     51       2 I<   73-02:38:31 [kworker/R-kinte]
+     52       2 I<   73-02:38:31 [kworker/R-kbloc]
+     53       2 I<   73-02:38:31 [kworker/R-blkcg]
+     55       2 S    73-02:38:31 [irq/9-acpi]
+     58       2 I<   73-02:38:31 [kworker/R-tpm_d]
+     59       2 I<   73-02:38:31 [kworker/R-ata_s]
+     60       2 I<   73-02:38:31 [kworker/R-md]
+     61       2 I<   73-02:38:31 [kworker/R-md_bi]
+     62       2 I<   73-02:38:31 [kworker/R-edac-]
+     63       2 I<   73-02:38:31 [kworker/R-devfr]
+     64       2 S    73-02:38:31 [watchdogd]
+     65       2 I<   73-02:38:31 [kworker/3:1H-kblockd]
+     66       2 S    73-02:38:31 [kswapd0]
+     67       2 S    73-02:38:31 [ecryptfs-kthread]
+     68       2 I<   73-02:38:31 [kworker/R-kthro]
+     69       2 S    73-02:38:31 [irq/125-pciehp]
+     70       2 S    73-02:38:31 [irq/126-pciehp]
+     71       2 I<   73-02:38:31 [kworker/R-acpi_]
+     72       2 S    73-02:38:31 [hwrng]
+     73       2 I<   73-02:38:31 [kworker/R-mld]
+     74       2 I<   73-02:38:31 [kworker/R-ipv6_]
+     81       2 I<   73-02:38:31 [kworker/R-kstrp]
+     96       2 I<   73-02:38:31 [kworker/R-charg]
+    120       2 I<   73-02:38:31 [kworker/2:1H-kblockd]
+    130       2 I<   73-02:38:31 [kworker/0:1H-kblockd]
+    151       2 I<   73-02:38:31 [kworker/1:1H-kblockd]
+    153       2 I<   73-02:38:31 [kworker/R-nvme-]
+    154       2 I<   73-02:38:31 [kworker/R-nvme-]
+    155       2 I<   73-02:38:31 [kworker/R-nvme-]
+    156       2 I<   73-02:38:31 [kworker/R-nvme-]
+    251       1 S    73-02:38:29 /usr/sbin/plymouthd --mode=boot --attach-to-session --pid-file=/run/plymouth/pid
+    275       2 S    73-02:38:28 [jbd2/nvme0n1p2-8]
+    276       2 I<   73-02:38:28 [kworker/R-ext4-]
+    338       1 S<s  73-02:38:27 /usr/lib/systemd/systemd-journald
+    366       2 I<   73-02:38:27 [kworker/R-rpcio]
+    368       2 I<   73-02:38:27 [kworker/R-xprti]
+    446       1 Ss   73-02:38:27 /usr/lib/systemd/systemd-udevd
+    492       2 S    73-02:38:27 [psimon]
+    600       2 S    73-02:38:27 [irq/199-mei_me]
+    604       2 I<   73-02:38:27 [kworker/R-cfg80]
+    621       2 I<   73-02:38:27 [kworker/R-crypt]
+    622       2 S    73-02:38:27 [irq/200-iwlwifi:default_queue]
+    623       2 S    73-02:38:27 [irq/201-iwlwifi:queue_1]
+    624       2 S    73-02:38:27 [irq/202-iwlwifi:queue_2]
+    625       2 S    73-02:38:27 [irq/203-iwlwifi:queue_3]
+    626       2 S    73-02:38:27 [irq/204-iwlwifi:queue_4]
+    627       2 S    73-02:38:27 [irq/205-iwlwifi:exception]
+    691       2 I<   73-02:38:26 [kworker/R-ttm]
+    692       2 S    73-02:38:26 [card0-crtc0]
+    693       2 S    73-02:38:26 [card0-crtc1]
+    694       2 S    73-02:38:26 [card0-crtc2]
+    695       2 S    73-02:38:26 [card0-crtc3]
+   1147       1 Ss   73-02:38:26 /sbin/rpcbind -f -w
+   1148       1 Ss   73-02:38:26 /usr/lib/systemd/systemd-oomd
+   1149       1 Ss   73-02:38:26 /usr/lib/systemd/systemd-resolved
+   1150       1 Ssl  73-02:38:26 /usr/lib/systemd/systemd-timesyncd
+   1157       1 Ss   73-02:38:26 /usr/sbin/blkmapd
+   1159       1 Ss   73-02:38:26 /usr/sbin/nfsdcld
+   1166       1 Ssl  73-02:38:26 /usr/libexec/accounts-daemon
+   1169       1 Ss   73-02:38:26 avahi-daemon: running [suby.local]
+   1170       1 Ss   73-02:38:26 /usr/libexec/bluetooth/bluetoothd
+   1171       1 Ss   73-02:38:26 /usr/sbin/cron -f -P
+   1172       1 Ss   73-02:38:26 @dbus-daemon --system --address=systemd: --nofork --nopidfile --systemd-activation --syslog-only
+   1176       1 Ss   73-02:38:26 /usr/sbin/fsidd
+   1177       1 Ssl  73-02:38:26 /usr/libexec/gnome-remote-desktop-daemon --system
+   1188       1 Ssl  73-02:38:26 /usr/lib/polkit-1/polkitd --no-debug
+   1194       1 Ssl  73-02:38:26 /usr/libexec/power-profiles-daemon
+   1207       1 Ssl  73-02:38:26 /usr/libexec/switcheroo-control
+   1208       1 Ss   73-02:38:26 /usr/lib/systemd/systemd-logind
+   1211       1 Ssl  73-02:38:26 /usr/sbin/thermald --systemd --dbus-enable --adaptive
+   1213       1 Ssl  73-02:38:26 /usr/libexec/udisks2/udisksd
+   1230    1169 S    73-02:38:26 avahi-daemon: chroot helper
+   1231       1 Ssl  73-02:38:26 /usr/sbin/NetworkManager --no-daemon
+   1232       1 Ss   73-02:38:26 /usr/sbin/wpa_supplicant -u -s -O DIR=/run/wpa_supplicant GROUP=netdev
+   1283       1 Ssl  73-02:38:25 /usr/sbin/rsyslogd -n -iNONE
+   1347       1 Ssl  73-02:38:25 /usr/sbin/ModemManager
+   1353       1 Ssl  73-02:38:25 /usr/libexec/boltd
+   1487       1 Ssl  73-02:38:24 /usr/bin/containerd
+   1491       1 Ss   73-02:38:24 sshd: /usr/sbin/sshd -D [listener] 0 of 10-100 startups
+   1494       1 Ss   73-02:38:24 /usr/bin/plymouth --wait
+   1502       1 Ssl  73-02:38:24 /usr/libexec/colord
+   1523       1 Ssl  73-02:38:24 /usr/sbin/gdm3
+   1541    1523 Sl   73-02:38:24 gdm-session-worker [pam/gdm-launch-environment]
+   1564       1 Ss   73-02:38:24 /usr/lib/systemd/systemd --user
+   1569    1564 S    73-02:38:24 (sd-pam)
+   1648    1564 Ss   73-02:38:24 /usr/bin/appimagelauncherd
+   1649    1564 S<sl 73-02:38:24 /usr/bin/pipewire
+   1650    1564 Ssl  73-02:38:24 /usr/bin/pipewire -c filter-chain.conf
+   1653    1541 Ssl+ 73-02:38:24 /usr/libexec/gdm-wayland-session dbus-run-session -- gnome-session --autostart /usr/share/gdm/greeter/autostart
+   1654    1564 S<sl 73-02:38:24 /usr/bin/wireplumber
+   1657    1564 S<sl 73-02:38:24 /usr/bin/pipewire-pulse
+   1663    1564 Ss   73-02:38:24 /usr/bin/dbus-daemon --session --address=systemd: --nofork --nopidfile --systemd-activation --syslog-only
+   1666    1653 S+   73-02:38:24 dbus-run-session -- gnome-session --autostart /usr/share/gdm/greeter/autostart
+   1667    1666 S+   73-02:38:24 dbus-daemon --nofork --print-address 4 --session
+   1672       1 SNsl 73-02:38:24 /usr/libexec/rtkit-daemon
+   1682    1666 Sl+  73-02:38:24 /usr/libexec/gnome-session-binary --autostart /usr/share/gdm/greeter/autostart
+   1721    1564 Ssl  73-02:38:24 /usr/libexec/xdg-document-portal
+   1731    1564 Ssl  73-02:38:24 /usr/libexec/xdg-permission-store
+   1737    1682 Sl+  73-02:38:24 /usr/bin/gnome-shell
+   1739    1721 Ss   73-02:38:24 fusermount3 -o rw,nosuid,nodev,fsname=portal,auto_unmount,subtype=portal -- /run/user/128/doc
+   1797       2 S<   73-02:38:24 [krfcommd]
+   1872       1 Sl+  73-02:38:23 /usr/libexec/at-spi-bus-launcher
+   1884    1872 S+   73-02:38:23 /usr/bin/dbus-daemon --config-file=/usr/share/defaults/at-spi2/accessibility.conf --nofork --print-address 11 --address=unix:path=/run/user/128/at-spi/bus
+   1896    1737 Sl+  73-02:38:23 /usr/bin/Xwayland :1024 -rootless -noreset -accessx -core -auth /run/user/128/.mutter-Xwaylandauth.2QFET3 -listenfd 4 -listenfd 5 -displayfd 6 -initfd 7 -byteswappedclients
+   1917       1 Sl+  73-02:38:23 /usr/libexec/at-spi2-registryd --use-gnome-session
+   1974       1 Sl+  73-02:38:23 /usr/libexec/xdg-permission-store
+   1983       1 Sl+  73-02:38:23 /usr/bin/gjs -m /usr/share/gnome-shell/org.gnome.Shell.Notifications
+   1990       1 Ssl  73-02:38:23 /usr/libexec/upowerd
+   1991    1682 Sl+  73-02:38:23 /usr/libexec/gsd-sharing
+   1994    1682 Sl+  73-02:38:23 /usr/libexec/gsd-wacom
+   1996    1682 Sl+  73-02:38:23 /usr/libexec/gsd-color
+   2013    1682 Sl+  73-02:38:23 /usr/libexec/gsd-keyboard
+   2019    1682 Sl+  73-02:38:23 /usr/libexec/gsd-print-notifications
+   2023    1682 Sl+  73-02:38:23 /usr/libexec/gsd-rfkill
+   2034    1682 Sl+  73-02:38:23 /usr/libexec/gsd-smartcard
+   2046    1682 Sl+  73-02:38:23 /usr/libexec/gsd-datetime
+   2063    1682 Sl+  73-02:38:23 /usr/libexec/gsd-media-keys
+   2070    1682 Sl+  73-02:38:23 /usr/libexec/gsd-screensaver-proxy
+   2076    1682 Sl+  73-02:38:23 /usr/libexec/gsd-sound
+   2082    1682 Sl+  73-02:38:23 /usr/libexec/gsd-a11y-settings
+   2091    1682 Sl+  73-02:38:23 /usr/libexec/gsd-housekeeping
+   2104    1682 Sl+  73-02:38:23 /usr/libexec/gsd-power
+   2198    1737 Sl+  73-02:38:22 /usr/libexec/mutter-x11-frames
+   2199    1737 Sl   73-02:38:22 ibus-daemon --panel disable -r --xim
+   2218    2199 Sl   73-02:38:22 /usr/libexec/ibus-dconf
+   2221       1 Sl   73-02:38:22 /usr/libexec/ibus-x11 --kill-daemon
+   2229       1 Sl+  73-02:38:22 /usr/libexec/ibus-portal
+   2250    2199 Sl   73-02:38:22 /usr/libexec/ibus-engine-simple
+   2255       1 Sl+  73-02:38:22 /usr/bin/gjs -m /usr/share/gnome-shell/org.gnome.ScreenSaver
+   2280       1 Sl+  73-02:38:21 /usr/libexec/gsd-printer
+   2400       1 Ssl  73-02:38:19 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
+   2405       1 Ss   73-02:38:19 /usr/sbin/rpc.idmapd
+   2406       1 Ss   73-02:38:19 /usr/sbin/kerneloops --test
+   2409       1 Ss   73-02:38:19 /usr/sbin/rpc.statd
+   2411       1 Ss   73-02:38:19 /usr/sbin/rpc.mountd
+   2413       1 Ss   73-02:38:19 /usr/sbin/kerneloops
+   2429       2 I    73-02:38:19 [lockd]
+   2435       2 I    73-02:38:18 [nfsd]
+   2436       2 I    73-02:38:18 [nfsd]
+   2437       2 I    73-02:38:18 [nfsd]
+   2438       2 I    73-02:38:18 [nfsd]
+   2439       2 I    73-02:38:18 [nfsd]
+   2440       2 I    73-02:38:18 [nfsd]
+   2441       2 I    73-02:38:18 [nfsd]
+   2442       2 I    73-02:38:18 [nfsd]
+   3132       2 I<   73-02:05:06 [kworker/R-tls-s]
+   3442       1 Ssl  73-01:48:12 /usr/libexec/fwupd/fwupd
+   3613       1 Ss   73-00:27:30 /usr/lib/systemd/systemd --user
+   3617    3613 S    73-00:27:30 (sd-pam)
+   3631    3613 Ss   73-00:27:30 /usr/bin/appimagelauncherd
+   3632    3613 Ssl  73-00:27:30 /usr/bin/pipewire
+   3633    3613 Ssl  73-00:27:30 /usr/bin/pipewire -c filter-chain.conf
+   3635    3613 Ssl  73-00:27:30 /snap/snapd-desktop-integration/391/usr/bin/user-session-helper /snap/snapd-desktop-integration/391/usr/bin/snapd-desktop-integration
+   3639    3613 Ssl  73-00:27:30 /usr/bin/wireplumber
+   3643    3613 Ssl  73-00:27:30 /usr/bin/pipewire-pulse
+   3665    3613 Ss   73-00:27:30 /usr/bin/dbus-daemon --session --address=systemd: --nofork --nopidfile --systemd-activation --syslog-only
+   3806    3613 Ssl  73-00:27:29 /usr/libexec/xdg-document-portal
+   3810    3613 Ssl  73-00:27:29 /usr/libexec/xdg-permission-store
+   3821    3806 Ss   73-00:27:29 fusermount3 -o rw,nosuid,nodev,fsname=portal,auto_unmount,subtype=portal -- /run/user/1000/doc
+   4199       1 Ss   73-00:27:29 ssh-agent -s
+  10476       1 Ss   73-00:19:04 ssh-agent -s
+  53836       1 Ss   49-13:47:43 ssh-agent -s
+  63861       1 Ss   43-02:44:02 ssh-agent -s
+  64297       1 Ss   43-02:43:35 ssh-agent -s
+  87902    3613 Ssl  72-19:03:23 /usr/libexec/at-spi-bus-launcher
+  92219       1 Ss   43-01:56:36 ssh-agent -s
+  92601       1 Ss   43-01:56:15 ssh-agent -s
+  96931    3613 Sl   72-18:48:20 /usr/bin/gnome-keyring-daemon --start --foreground --components=secrets
+  96932    3613 SLsl 72-18:48:20 /usr/bin/gnome-keyring-daemon --foreground --components=pkcs11,secrets --control-directory=/run/user/1000/keyring
+ 102750       1 Ss   43-00:31:42 ssh-agent -s
+ 103155       1 Ss   43-00:31:13 ssh-agent -s
+ 116764       1 Ss   42-21:20:13 ssh-agent -s
+ 117612       1 Ss   42-21:19:41 ssh-agent -s
+ 139144       1 Ss   42-05:08:06 ssh-agent -s
+ 139718       1 Ss   42-05:07:30 ssh-agent -s
+ 162863       1 Ss   42-03:26:43 ssh-agent -s
+ 174956       1 Ss   42-02:15:07 ssh-agent -s
+ 175487       1 Ss   42-02:14:17 ssh-agent -s
+ 177664       1 Ss   59-03:00:53 ssh-agent -s
+ 178839       1 Ss   59-02:57:40 ssh-agent -s
+ 214599       1 Ss   41-22:15:53 ssh-agent -s
+ 215109       1 Ss   41-22:15:44 ssh-agent -s
+ 262222       1 Ss   59-00:52:00 ssh-agent -s
+ 263014       1 Ss   59-00:51:46 ssh-agent -s
+ 297260       1 Rsl     15:57:51 node server/native-participant.js --contribute --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory /home/clocksmith/.local/share/reploid/public-native/weights --cache-directory /home/clocksmith/.local/share/reploid/public-native/cache --identity-file /home/clocksmith/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo.id --signaling-url wss://reploid-swarm.reploid.workers.dev/swarm
+ 299769       1 Ssl     15:54:36 node scripts/run-mesh-contributor.js --url https://replo.id/ --profile /home/clocksmith/.local/share/reploid/public-compute --model qwen-3-5-0-8b-q4k-ehaf16 --contribute compute --browser chromium
+ 299780  299769 Ssl     15:54:36 /home/clocksmith/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate,RenderDocument,OptimizationHints --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --enable-unsafe-webgpu --enable-features=Vulkan --use-angle=vulkan --disable-gpu-sandbox --user-data-dir=/home/clocksmith/.local/share/reploid/public-compute --remote-debugging-pipe --noerrdialogs --ozone-platform=headless --ozone-override-screen-size=800,600 about:blank
+ 299782       1 Sl      15:54:36 /home/clocksmith/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome_crashpad_handler --monitor-self --monitor-self-annotation=ptype=crashpad-handler --database=/home/clocksmith/.config/google-chrome-for-testing/Crash Reports --annotation=lsb-release=Ubuntu 24.04.3 LTS --annotation=plat=Linux --annotation=prod=Chrome_Linux --annotation=ver=145.0.7632.6 --initial-client-fd=7 --shared-client-connection
+ 299784       1 S       15:54:36 /home/clocksmith/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome_crashpad_handler --no-periodic-tasks --monitor-self-annotation=ptype=crashpad-handler --database=/home/clocksmith/.config/google-chrome-for-testing/Crash Reports --annotation=lsb-release=Ubuntu 24.04.3 LTS --annotation=plat=Linux --annotation=prod=Chrome_Linux --annotation=ver=145.0.7632.6 --initial-client-fd=4 --shared-client-connection
+ 299787  299780 S       15:54:36 /home/clocksmith/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome --type=zygote --no-zygote-sandbox --no-sandbox --headless --crashpad-handler-pid=299782 --enable-crash-reporter=, --noerrdialogs --user-data-dir=/home/clocksmith/.local/share/reploid/public-compute --change-stack-guard-on-fork=enable --no-first-run --ozone-platform=headless --ozone-override-screen-size=800,600 --use-angle=swiftshader-webgl
+ 299788  299780 S       15:54:36 /home/clocksmith/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome --type=zygote --no-sandbox --headless --crashpad-handler-pid=299782 --enable-crash-reporter=, --noerrdialogs --user-data-dir=/home/clocksmith/.local/share/reploid/public-compute --change-stack-guard-on-fork=enable --no-first-run --ozone-platform=headless --ozone-override-screen-size=800,600 --use-angle=swiftshader-webgl
+ 299808  299780 Sl      15:54:36 /home/clocksmith/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome --type=gpu-process --disable-gpu-sandbox --no-sandbox --disable-dev-shm-usage --disable-breakpad --headless --ozone-platform=headless --use-angle=vulkan --enable-unsafe-swiftshader --crashpad-handler-pid=299782 --enable-crash-reporter=, --noerrdialogs --user-data-dir=/home/clocksmith/.local/share/reploid/public-compute --change-stack-guard-on-fork=enable --gpu-preferences=UAAAAAAAAAAgAAAEAAAAAAAAAAAAAGAAAgAAAAIAAAAAAAAAAAAAAAYAAAAAAAAAAAAAAAAAAAAYAAAAAAAAABgAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAgAAAAAAAAA --shared-files --field-trial-handle=3,i,1014176486827538,13327655234069324181,262144 --enable-features=Vulkan --disable-features=AutoDeElevate,AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,OptimizationHints,PaintHolding,RenderDocument,ThirdPartyStoragePartitioning,Translate --variations-seed-version --trace-process-track-uuid=3190708988185955192 --no-first-run --ozone-platform=headless --ozone-override-screen-size=800,600
+ 299809  299780 Sl      15:54:36 /home/clocksmith/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome --type=utility --utility-sub-type=network.mojom.NetworkService --lang=en-US --service-sandbox-type=none --no-sandbox --disable-dev-shm-usage --use-angle=vulkan --mute-audio --crashpad-handler-pid=299782 --enable-crash-reporter=, --noerrdialogs --user-data-dir=/home/clocksmith/.local/share/reploid/public-compute --change-stack-guard-on-fork=enable --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,1014176486827538,13327655234069324181,262144 --enable-features=Vulkan --disable-features=AutoDeElevate,AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,OptimizationHints,PaintHolding,RenderDocument,ThirdPartyStoragePartitioning,Translate --variations-seed-version --trace-process-track-uuid=3190708989122997041
+ 299811  299788 Sl      15:54:36 /home/clocksmith/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome --type=utility --utility-sub-type=storage.mojom.StorageService --lang=en-US --service-sandbox-type=utility --no-sandbox --disable-dev-shm-usage --use-angle=vulkan --mute-audio --crashpad-handler-pid=299782 --enable-crash-reporter=, --noerrdialogs --user-data-dir=/home/clocksmith/.local/share/reploid/public-compute --change-stack-guard-on-fork=enable --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,1014176486827538,13327655234069324181,262144 --enable-features=Vulkan --disable-features=AutoDeElevate,AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,OptimizationHints,PaintHolding,RenderDocument,ThirdPartyStoragePartit
+ 299848  299788 Sl      15:54:36 /home/clocksmith/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome --type=renderer --crashpad-handler-pid=299782 --enable-crash-reporter=, --noerrdialogs --user-data-dir=/home/clocksmith/.local/share/reploid/public-compute --change-stack-guard-on-fork=enable --no-sandbox --disable-dev-shm-usage --disable-back-forward-cache --disable-background-timer-throttling --disable-breakpad --enable-automation --enable-unsafe-webgpu --force-color-profile=srgb --remote-debugging-pipe --allow-pre-commit-input --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --ozone-platform=headless --lang=en-US --num-raster-threads=2 --enable-main-frame-before-activation --renderer-client-id=6 --time-ticks-at-unix-epoch=-1785597799815052 --launch-time-ticks=6259435911206 --shared-files=v8_context_snapshot_data:1
+ 299850  299788 Sl      15:54:36 /home/clocksmith/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome --type=renderer --crashpad-handler-pid=299782 --enable-crash-reporter=, --noerrdialogs --user-data-dir=/home/clocksmith/.local/share/reploid/public-compute --change-stack-guard-on-fork=enable --no-sandbox --disable-dev-shm-usage --disable-back-forward-cache --disable-background-timer-throttling --disable-breakpad --enable-automation --enable-unsafe-webgpu --force-color-profile=srgb --remote-debugging-pipe --allow-pre-commit-input --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --ozone-platform=headless --lang=en-US --num-raster-threads=2 --enable-main-frame-before-activation --renderer-client-id=5 --time-ticks-at-unix-epoch=-1785597799815052 --launch-time-ticks=6259435915471 --shared-files=v8_context_snapshot_data:1
+ 363748       1 Ss      14:01:51 /usr/sbin/cupsd -l
+ 363752  363748 S       14:01:51 /usr/lib/cups/notifier/dbus dbus://
+ 363753       1 Ssl     14:01:51 /usr/sbin/cups-browsed
+ 428932       1 Ss   49-03:52:09 ssh-agent -s
+ 430194       1 Ss   49-03:51:51 ssh-agent -s
+ 611065       1 Ss   40-03:19:39 ssh-agent -s
+ 611473       1 Ss   40-03:19:16 ssh-agent -s
+ 691636       2 S       04:32:34 [psimon]
+ 715004       1 Ss   70-18:02:55 ssh-agent -s
+ 745761       2 I       03:09:28 [kworker/u8:0-flush-259:0]
+ 804736       2 I       01:49:39 [kworker/1:3-events]
+ 815482       2 I       01:38:50 [kworker/2:1-events]
+ 817903       1 Ss   39-05:16:41 ssh-agent -s
+ 818532       1 Ss   70-03:11:27 ssh-agent -s
+ 819033       1 Ss   39-05:16:19 ssh-agent -s
+ 836599       2 I       01:06:40 [kworker/3:1-events]
+ 848036 2284893 S          47:25 sleep 3600
+ 856634       2 I          32:52 [kworker/u8:4-events_power_efficient]
+ 856635       2 I          32:52 [kworker/u8:5-events_unbound]
+ 862847       2 I          24:39 [kworker/1:1-events]
+ 864361       2 I          21:43 [kworker/0:0-events]
+ 865422       2 I<         19:37 [kworker/u9:0-rb_allocator]
+ 866049       2 I          18:23 [kworker/u8:2-events_power_efficient]
+ 869485       1 Ss   39-02:01:29 ssh-agent -s
+ 870156       1 Ss   39-02:01:09 ssh-agent -s
+ 872000       2 I          09:26 [kworker/3:0-i915-unordered]
+ 872907       2 I<         07:53 [kworker/u9:1-rb_allocator]
+ 873991       2 I          06:30 [kworker/2:0-cgroup_destroy]
+ 874276       2 I          06:12 [kworker/0:2-events]
+ 875865       2 I          04:08 [kworker/3:2-events]
+ 876244       2 I          03:34 [kworker/1:0]
+ 876956       2 I<         02:26 [kworker/u9:2-rb_allocator]
+ 877398       2 I          01:48 [kworker/u8:1-events_unbound]
+ 878411       2 I          00:22 [kworker/2:2-events]
+ 878648       2 I          00:10 [kworker/0:1]
+ 878775    1491 Ss         00:00 sshd: clocksmith [priv]
+ 878860  878775 S          00:00 sshd: clocksmith@notty
+ 878861  878860 Ss         00:00 bash -c date -u; ps -eo pid,ppid,stat,etime,args; ss -ltnp
+ 878866  878861 R          00:00 ps -eo pid,ppid,stat,etime,args
+ 913626       1 Ss   38-21:51:27 ssh-agent -s
+ 914083       1 Ss   38-21:51:14 ssh-agent -s
+1077892       1 Ss   57-23:40:58 ssh-agent -s
+1077949       1 Ss   57-23:40:14 tmux new-session -s 1
+1077950 1077949 Ss   57-23:40:14 -bash
+1078451       1 Ss   57-23:39:58 ssh-agent -s
+1095999       1 Ss   57-16:04:44 ssh-agent -s
+1096742       1 Ss   57-16:04:26 ssh-agent -s
+1131364       1 Ss   57-04:03:55 ssh-agent -s
+1131750       1 Ss   57-04:03:47 ssh-agent -s
+1156870       1 Ss   38-04:57:41 ssh-agent -s
+1160285       1 Ss   38-04:46:03 ssh-agent -s
+1163213    1564 Ssl  68-00:25:53 /usr/bin/gnome-keyring-daemon --foreground --components=pkcs11,secrets --control-directory=/run/user/128/keyring
+1163292       1 Ssl  68-00:25:53 /usr/sbin/tailscaled --state=/var/lib/tailscale/tailscaled.state --socket=/run/tailscale/tailscaled.sock --port=41641
+1185909       1 Ss   56-06:08:08 ssh-agent -s
+1186740       1 Ss   56-06:07:50 ssh-agent -s
+1202981       1 Ss   56-04:38:21 ssh-agent -s
+1209539       1 Ss   56-04:22:47 ssh-agent -s
+1480668       1 Ss   66-00:05:50 ssh-agent -s
+1481292       1 Ss   66-00:04:57 ssh-agent -s
+1575843       1 Ssl  13-13:07:51 /snap/snapd/current/usr/lib/snapd/snapd
+1655383       1 Ssl  47-08:38:02 /snap/canonical-livepatch/414/canonical-livepatchd
+1735173       1 Ss   65-15:53:14 ssh-agent -s
+1737454 1077950 Sl+   8-21:54:35 node /home/clocksmith/.nvm/versions/node/v22.23.2/bin/codex
+1737461 1737454 Sl+   8-21:54:35 /home/clocksmith/.nvm/versions/node/v22.23.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-x64/vendor/x86_64-unknown-linux-musl/bin/codex
+1737575 1737461 Ssl   8-21:54:34 /home/clocksmith/.codex/packages/app-server-daemon/releases/0.162.1-x86_64-unknown-linux-musl/bin/codex app-server daemon pid-update-loop
+1770351       1 Ss   53-11:51:00 ssh-agent -s
+1965835    3613 Ss   37-16:21:40 /usr/bin/ssh-agent -D -a /run/user/1000/deco-ssh-agent/agent.sock -t 48h
+2012084       1 Ss   52-07:37:57 ssh-agent -s
+2108000       1 Ss   51-15:10:41 ssh-agent -s
+2125630    3613 Ssl   8-03:54:21 /home/clocksmith/deco/zero/venv/bin/python scripts/zero_supervisor.py
+2140854    3613 Ssl  65-04:15:38 /usr/libexec/gvfsd
+2140860    3613 Sl   65-04:15:38 /usr/libexec/gvfsd-fuse /run/user/1000/gvfs -f
+2140862    3613 Ssl  65-04:15:38 /usr/libexec/gvfsd-metadata
+2284627       1 Ss    7-12:47:28 /bin/sh /snap/cups/1262/scripts/run-cupsd
+2284635       1 Ss    7-12:47:28 /bin/sh /snap/cups/1262/scripts/run-cups-browsed
+2284888 2284627 S     7-12:47:28 cupsd -f -s /var/snap/cups/common/etc/cups/cups-files.conf -c /var/snap/cups/common/etc/cups/cupsd.conf
+2284889 2284627 Sl    7-12:47:28 cups-proxyd /var/snap/cups/common/run/cups.sock /run/cups/cups.sock -l --logdir /var/snap/cups/1262/var/log
+2284893 2284635 S     7-12:47:27 /bin/sh /snap/cups/1262/scripts/run-cups-browsed
+2371771       1 Ss   46-03:09:57 ssh-agent -s
+2372176       1 Ss   46-03:09:35 ssh-agent -s
+3219702 1737575 Ssl   3-21:33:16 /home/clocksmith/.codex/packages/app-server-daemon/releases/0.162.1-x86_64-unknown-linux-musl/bin/codex app-server --listen unix:// --analytics-default-enabled --managed-daemon
+3252836 3219702 Sl    3-17:50:03 /home/clocksmith/.codex/packages/app-server-daemon/releases/0.162.1-x86_64-unknown-linux-musl/bin/codex-code-mode-host
+3487640       1 Ss   44-17:32:44 ssh-agent -s
+3488190       1 Ss   44-17:32:08 ssh-agent -s
+3505948       1 Ss   64-03:04:19 ssh-agent -s
+3506437       1 Ss   64-03:04:02 ssh-agent -s
+3589955 1077949 Ss    2-17:11:38 -bash
+3590110 3589955 Sl+   2-17:11:31 node /home/clocksmith/.nvm/versions/node/v22.23.2/bin/codex
+3590117 3590110 Sl+   2-17:11:31 /home/clocksmith/.nvm/versions/node/v22.23.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-x64/vendor/x86_64-unknown-linux-musl/bin/codex
+3591489 3590117 Sl    2-17:10:20 /home/clocksmith/.nvm/versions/node/v22.23.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-x64/vendor/x86_64-unknown-linux-musl/bin/codex-code-mode-host
+3621098    1491 Ss    2-15:31:04 sshd: clocksmith [priv]
+3621223 3621098 S     2-15:31:04 sshd: clocksmith@pts/0
+3621224 3621223 Ss+   2-15:31:03 -bash
+3621497 3621224 S+    2-15:31:03 bash /home/clocksmith/.local/bin/ssh-session-menu
+3621520 3621497 S+    2-15:30:59 tmux attach-session -t 1
+3621526    1491 Ss    2-15:30:51 sshd: clocksmith [priv]
+3621610 3621526 S     2-15:30:51 sshd: clocksmith@pts/2
+3621611 3621610 Ss+   2-15:30:51 -bash
+3621884 3621611 S+    2-15:30:50 bash /home/clocksmith/.local/bin/ssh-session-menu
+3621899 3621884 S+    2-15:30:48 tmux attach-session -t 2
+3663183       1 Ss   63-06:23:00 ssh-agent -s
+3664114       1 Ss   63-06:22:28 ssh-agent -s
+3718954       1 Ss   50-02:35:55 ssh-agent -s
+3719517       1 Ss   50-02:35:40 ssh-agent -s
+3989443       1 Sl    1-06:14:03 npm exec tsx scripts/reploid-cli.ts start
+3989455 3989443 S     1-06:14:03 sh -c tsx scripts/reploid-cli.ts start
+3989456 3989455 Sl    1-06:14:03 node /home/clocksmith/deco/reploid/node_modules/.bin/tsx scripts/reploid-cli.ts start
+3989481 3989456 Sl    1-06:14:03 /home/clocksmith/.nvm/versions/node/v22.23.2/bin/node --require /home/clocksmith/deco/reploid/node_modules/tsx/dist/preflight.cjs --import file:///home/clocksmith/deco/reploid/node_modules/tsx/dist/loader.mjs scripts/reploid-cli.ts start
+3989493 3989481 Sl    1-06:14:03 /home/clocksmith/deco/reploid/node_modules/tsx/node_modules/@esbuild/linux-x64/bin/esbuild --service=0.27.7 --ping
+3989507 3989481 Sl    1-06:14:03 node server/proxy.js
+4032776 2125630 Rsl   1-03:16:54 /home/clocksmith/deco/zero/venv/bin/python main.py
+4150119       1 Ss   49-16:23:51 ssh-agent -s
+4150696       1 Ss   49-16:22:19 ssh-agent -s
+4168338       1 Ss   43-19:26:50 ssh-agent -s
+4169241       1 Ss   43-18:54:08 ssh-agent -s
+State  Recv-Q Send-Q                            Local Address:Port  Peer Address:PortProcess                              
+LISTEN 0      4096                                    0.0.0.0:55321      0.0.0.0:*                                        
+LISTEN 0      4096                                    0.0.0.0:39355      0.0.0.0:*                                        
+LISTEN 0      5                                     127.0.0.1:60837      0.0.0.0:*    users:(("node",pid=297260,fd=138))  
+LISTEN 0      128                                   127.0.0.1:43625      0.0.0.0:*    users:(("codex",pid=1737461,fd=36)) 
+LISTEN 0      2048                                    0.0.0.0:3000       0.0.0.0:*    users:(("python",pid=2125630,fd=8)) 
+LISTEN 1      2048                                    0.0.0.0:3001       0.0.0.0:*    users:(("python",pid=4032776,fd=13))
+LISTEN 0      64                                      0.0.0.0:2049       0.0.0.0:*                                        
+LISTEN 0      4096                                    0.0.0.0:51547      0.0.0.0:*                                        
+LISTEN 0      5                                 192.168.86.54:50985      0.0.0.0:*    users:(("node",pid=297260,fd=122))  
+LISTEN 0      4096                                    0.0.0.0:111        0.0.0.0:*                                        
+LISTEN 0      4096                                    0.0.0.0:22         0.0.0.0:*                                        
+LISTEN 0      4096                                 127.0.0.54:53         0.0.0.0:*                                        
+LISTEN 0      4096                                  127.0.0.1:631        0.0.0.0:*                                        
+LISTEN 0      4096                             100.117.180.33:34891      0.0.0.0:*                                        
+LISTEN 0      4096                                    0.0.0.0:44689      0.0.0.0:*                                        
+LISTEN 0      4096                              127.0.0.53%lo:53         0.0.0.0:*                                        
+LISTEN 0      64                                      0.0.0.0:41875      0.0.0.0:*                                        
+LISTEN 0      5                                100.117.180.33:56333      0.0.0.0:*    users:(("node",pid=297260,fd=118))  
+LISTEN 0      5      [fd35:f347:6823:9900:dff:b3a7:6508:c83d]:59265         [::]:*    users:(("node",pid=297260,fd=114))  
+LISTEN 0      4096                                       [::]:40487         [::]:*                                        
+LISTEN 0      4096                                       [::]:54995         [::]:*                                        
+LISTEN 0      64                                         [::]:2049          [::]:*                                        
+LISTEN 0      4096                                       [::]:36523         [::]:*                                        
+LISTEN 0      4096                                      [::1]:631           [::]:*                                        
+LISTEN 0      4096                [fd7a:115c:a1e0::3001:b498]:50159         [::]:*                                        
+LISTEN 0      64                                         [::]:36049         [::]:*                                        
+LISTEN 0      4096                                       [::]:33307         [::]:*                                        
+LISTEN 0      4096                                       [::]:111           [::]:*                                        
+LISTEN 0      4096                                       [::]:22            [::]:*                                        
+LISTEN 0      5                   [fd7a:115c:a1e0::3001:b498]:34849         [::]:*    users:(("node",pid=297260,fd=110))  
+LISTEN 0      5                                         [::1]:41357         [::]:*    users:(("node",pid=297260,fd=126))  
