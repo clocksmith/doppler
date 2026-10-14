@@ -1,0 +1,88 @@
+{
+  "schema": "doppler-paired-linear-physical-v1",
+  "shaderSha256": [
+    "8c42f6e7309576313b00fbbd9981ba7551925ff6fee526081c2d393e02e8513d",
+    "269fdb694f6e206b6ea77582b29e4b98051f34dbad822a40e22032597fbfbe33",
+    "9340014c13ba79ae7d2bebe4ea14f1935e5cb4a9d0df08a3b2cc063b32271e2f",
+    "39c3a1fa41c039c555e3cb7d04648e9d96d3f464bed512e54117a91182478ec4",
+    "93af9d61d9ca7e4ddc2d8a6a0152763e7b6d8dc90397543ea33142c99c43744c",
+    "20623d93648c0216dfc4d122bf8637594d3b5d858f32d023cd9b015e92fea6ae",
+    "36dc4fe9f21e1daedbd0df276a8b139d7119dd9a3129ce8c8c5cc0717ae12fd7",
+    "f8b06edca9b891aa6759567f0e134a76e6abfae7f9f53464ea767ae9244a9aaa",
+    "240cda5577bc57edd48185717ee6a92106053b5c9a6bf48ed691381bae1c816f"
+  ],
+  "fixtureSha256": "da5fd98a93245a53911d6c6a685749fd79e958dafcc4612a23fe0c068bbdcce5",
+  "seed": 624901,
+  "tolerance": 2e-11,
+  "scope": "Independent F64 convolution and gated-delta equations, initial state, source epsilon, paired persistent state, QKV/Z and A/B packing. No model qualification.",
+  "cases": [
+    {
+      "packed": false,
+      "rows": {
+        "conv": {
+          "count": 1536,
+          "maxError": 4.579669976578771e-16,
+          "failures": 0
+        },
+        "convState": {
+          "count": 2048,
+          "maxError": 0,
+          "failures": 0
+        },
+        "state": {
+          "count": 32768,
+          "maxError": 1.4224732503009818e-16,
+          "failures": 0
+        },
+        "output": {
+          "count": 768,
+          "maxError": 3.7470027081099033e-16,
+          "failures": 0
+        },
+        "gates": {
+          "count": 12,
+          "maxError": 3.1086244689504383e-15,
+          "failures": 0
+        }
+      }
+    },
+    {
+      "packed": true,
+      "rows": {
+        "conv": {
+          "count": 1536,
+          "maxError": 4.996003610813204e-16,
+          "failures": 0
+        },
+        "convState": {
+          "count": 2048,
+          "maxError": 0,
+          "failures": 0
+        },
+        "state": {
+          "count": 32768,
+          "maxError": 6.245004513516506e-17,
+          "failures": 0
+        },
+        "output": {
+          "count": 768,
+          "maxError": 9.020562075079397e-16,
+          "failures": 0
+        },
+        "gates": {
+          "count": 12,
+          "maxError": 2.1094237467877974e-15,
+          "failures": 0
+        }
+      }
+    }
+  ],
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  },
+  "browser": "155.0.8059.40",
+  "errors": [],
+  "storageBindingLimit": 9,
+  "passed": true
+}
