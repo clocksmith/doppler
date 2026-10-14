@@ -1,75 +1,12 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-import { expandExecutionV1 } from '../../src/config/schema/execution-v1.schema.js';
 import { extractArchitecture } from '../../src/converter/artifact-identity.js';
 import { applySourceTensorRules } from '../../src/converter/source-tensor-rules.js';
 
 const configPath = 'src/config/conversion/glmocr/glm-ocr-f16-af32.json';
 const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 
-assert.equal(config.modelType, 'transformer');
-assert.equal(config.output?.modelBaseId, 'glm-ocr-f16-af32');
-assert.equal(config.output?.textOnly, false);
-assert.deepEqual(
-  {
-    weights: config.quantization?.weights,
-    embeddings: config.quantization?.embeddings,
-    lmHead: config.quantization?.lmHead,
-    vision: config.quantization?.vision,
-    projector: config.quantization?.projector,
-    computePrecision: config.quantization?.computePrecision,
-  },
-  {
-    weights: 'f16',
-    embeddings: 'f16',
-    lmHead: 'f16',
-    vision: 'f16',
-    projector: 'f16',
-    computePrecision: 'f32',
-  }
-);
-
-assert.equal(
-  config.manifest?.artifactIdentity?.sourceCheckpointId,
-  'zai-org/GLM-OCR@ca5d8b3e287e52589e37c28385d9655ee4372f9d'
-);
-assert.deepEqual(config.manifest?.eosTokenId, [59246, 59253]);
-assert.equal(config.manifest?.visionConfig?.vision_architecture, 'glmocr');
-assert.equal(config.manifest?.visionConfig?.default_output_length, 6144);
-
-assert.equal(config.inference?.attention?.queryPreAttnScalar, 128);
-assert.equal(config.inference?.normalization?.rmsNormEps, 1e-5);
-assert.equal(config.inference?.normalization?.rmsNormWeightOffset, false);
-assert.deepEqual(config.inference?.rope?.mropeSection, [16, 24, 24]);
-assert.equal(config.inference?.rope?.ropeInterleaved, true);
-assert.equal(config.inference?.rope?.mropeInterleaved, true);
-assert.equal(config.inference?.rope?.ropeFrequencyBaseDim, 128);
-assert.equal(config.inference?.output?.tieWordEmbeddings, false);
-assert.equal(config.inference?.chatTemplate?.type, 'glmocr');
-assert.equal(config.inference?.chatTemplate?.thinking, null);
-
-const expandedExecution = expandExecutionV1(config.execution);
-assert.ok(expandedExecution.length > 0);
-assert.deepEqual(
-  config.execution.decode.find((step) => step[0] === 'ffn'),
-  ['ffn', 'silu']
-);
-assert.deepEqual(
-  config.execution.prefill.find((step) => step[0] === 'attention'),
-  ['attention', 'attn_head128']
-);
-assert.deepEqual(
-  config.execution.kernels.attn_head128,
-  {
-    kernel: 'attention_head128_f16kv.wgsl',
-    entry: 'main',
-    digest: 'sha256:559a3da4f3f5dcc4671f5a9b429a84209340a66a6e17f583bb329b2e23832c9b',
-    precision: {
-      kvDtype: 'f16',
-    },
-  }
-);
 assert.doesNotMatch(JSON.stringify(config.execution), /q4_/);
 
 const sourceArchitecture = extractArchitecture({

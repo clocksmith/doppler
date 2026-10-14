@@ -191,8 +191,6 @@ Schema and contract:
   - `tests/config/runtime-large-weights-defaults-contract.test.js`
     (default + override merge)
   - `tests/loader/should-stream-large-weight-overrides.test.js` (behavior)
-  - `tests/config/gemma4-e2b-runtime-profiles-contract.test.js`
-    (conversion config and local manifest lock the override in)
 
 Memory cost: ~768 MB extra GPU. Gemma 4 E2B currently uses ~5.15 GB on M3,
 so the M3 budget fits.

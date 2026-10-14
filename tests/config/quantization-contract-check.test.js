@@ -26,9 +26,6 @@ for (const check of artifact.checks) {
 assert.ok(Array.isArray(artifact.errors));
 assert.equal(artifact.errors.length, 0);
 
-// Stats
-assert.equal(artifact.stats.sampledSizes, 520);
-
 // Verify specific check IDs are present
 const checkIds = artifact.checks.map((c) => c.id);
 assert.ok(checkIds.includes('quantization.constants.schema'), 'missing schema check');

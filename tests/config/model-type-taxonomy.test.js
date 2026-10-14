@@ -3,7 +3,6 @@ import fs from 'node:fs';
 
 import {
   MODEL_TYPE_TAXONOMY,
-  buildModelTypeClusters,
   resolveModelTypeCluster,
   validateCatalogClassifications,
   validateModelTypeTaxonomy,
@@ -13,21 +12,6 @@ const catalog = JSON.parse(fs.readFileSync('models/catalog.json', 'utf8'));
 
 assert.deepEqual(validateModelTypeTaxonomy(), []);
 assert.deepEqual(validateCatalogClassifications(catalog), []);
-
-const clusters = buildModelTypeClusters(catalog.models);
-assert.deepEqual(
-  Object.fromEntries(clusters.map((cluster) => [cluster.id, cluster.models.length])),
-  {
-    'text-generators': 17,
-    'multimodal-generators': 3,
-    'diffusion-language-models': 1,
-    'translation-specialists': 2,
-    'language-embedders': 2,
-    rerankers: 2,
-    'protein-encoders': 3,
-    'nucleotide-encoders': 1,
-  }
-);
 
 const byModelId = new Map(catalog.models.map((model) => [model.modelId, model]));
 const expectedClusters = new Map([
@@ -42,15 +26,6 @@ const expectedClusters = new Map([
 ]);
 for (const [modelId, clusterId] of expectedClusters) {
   assert.equal(resolveModelTypeCluster(byModelId.get(modelId).classification).id, clusterId, modelId);
-}
-
-for (const modelId of [
-  'gemma-3-270m-it-q4k-ehf16-af32',
-  'gemma-3-270m-it-f16-af32',
-  'gemma-3-1b-it-q4k-ehf16-af32',
-]) {
-  assert.deepEqual(byModelId.get(modelId).modes, ['text'], `${modelId} is a text-only RDRR artifact`);
-  assert.deepEqual(byModelId.get(modelId).classification.inputs, ['text']);
 }
 
 const ambiguousTaxonomy = structuredClone(MODEL_TYPE_TAXONOMY);

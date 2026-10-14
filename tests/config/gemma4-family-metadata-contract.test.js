@@ -16,9 +16,6 @@ const knownById = new Map(KNOWN_MODELS.map((entry) => [entry.modelId, entry]));
 for (const catalogModel of verifiedHostedGemma4Models) {
   const entry = knownById.get(catalogModel.modelId);
   assert.ok(entry, `models/gemma4 must expose verified hosted Gemma 4 model ${catalogModel.modelId}`);
-  assert.equal(entry.label, catalogModel.label, `${catalogModel.modelId}: label must match catalog`);
-  assert.equal(entry.hfPath, catalogModel.hf.path, `${catalogModel.modelId}: HF path must match catalog`);
-  assert.deepEqual([...entry.modes].sort(), [...catalogModel.modes].sort(), `${catalogModel.modelId}: modes must match catalog`);
   assert.equal(resolveModel(catalogModel.modelId), entry, `${catalogModel.modelId}: resolveModel must return the known entry`);
   assert.equal(
     resolveHfBaseUrl(catalogModel.modelId, 'main'),

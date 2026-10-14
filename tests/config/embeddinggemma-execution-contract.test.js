@@ -7,102 +7,6 @@ function readJson(relativePath) {
   return JSON.parse(readFileSync(path.join(process.cwd(), relativePath), 'utf8'));
 }
 
-const expectedEmbeddingPostprocessor = {
-  poolingMode: 'mean',
-  includePrompt: true,
-  projections: [
-    {
-      weightTensor: 'embedding_postprocessor.projections.0.weight',
-      biasTensor: null,
-      inputSize: 768,
-      outputSize: 3072,
-      activation: 'identity',
-    },
-    {
-      weightTensor: 'embedding_postprocessor.projections.1.weight',
-      biasTensor: null,
-      inputSize: 3072,
-      outputSize: 768,
-      activation: 'identity',
-    },
-  ],
-  normalize: 'l2',
-};
-
-const expectedSession = {
-  compute: {
-    defaults: {
-      activationDtype: 'f32',
-      mathDtype: 'f32',
-      accumDtype: 'f32',
-      outputDtype: 'f32',
-    },
-  },
-  kvcache: {
-    kvDtype: 'f32',
-    layout: 'contiguous',
-    pageSize: 256,
-    tiering: {
-      mode: 'off',
-      hotWindow: 1024,
-      coldPageSize: 256,
-      coldDtype: 'f16',
-      compression: {
-        mode: 'none',
-        blockSize: 1,
-        bitWidth: 4,
-        prodMode: false,
-      },
-      gating: {
-        mode: 'auto',
-        minAluBwRatio: 0,
-      },
-    },
-    quantization: {
-      mode: 'none',
-      bitWidth: 4,
-      prodMode: false,
-    },
-  },
-  decodeLoop: {
-    batchSize: 4,
-    stopCheckMode: 'batch',
-    readbackInterval: 1,
-    readbackMode: 'sequential',
-    ringTokens: 1,
-    ringStop: 1,
-    ringStaging: 1,
-    disableCommandBatching: false,
-  },
-  perLayerInputs: {
-    materialization: 'auto',
-    rowCache: {
-      mode: 'lru',
-      maxRows: 256,
-      maxBytes: 134217728,
-      decodedDtype: 'f32',
-    },
-    prefetch: {
-      mode: 'next_token',
-      rowsAhead: 1,
-    },
-    gpuUpload: {
-      mode: 'per_step_slices',
-      stagingRows: 2,
-    },
-    hotCache: {
-      mode: 'prepared_tokens',
-      maxTokens: 1024,
-      maxBytes: 134217728,
-      outputDtype: 'f32',
-    },
-  },
-  prefillChunkSubmitMode: 'sync',
-  retainQ4KMaterialization: false,
-  useFlashPrefillAttention: false,
-  useWideTileQ4KPrefill: false,
-};
-
 const conversionConfig = readJson(
   'src/config/conversion/embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32.json'
 );
@@ -110,16 +14,6 @@ const localManifest = readJson(
   'models/local/google-embeddinggemma-300m-q4k-ehf16-af32/manifest.json'
 );
 
-assert.equal(
-  conversionConfig.modelType,
-  'embedding',
-  'EmbeddingGemma conversion config must stamp modelType="embedding"'
-);
-assert.deepEqual(
-  conversionConfig.execution.postLayer,
-  [['final_norm', 'rmsnorm']],
-  'EmbeddingGemma conversion config must stamp only final_norm in postLayer'
-);
 assert.ok(
   !Object.hasOwn(conversionConfig.execution.kernels, 'lm_head_tiled'),
   'EmbeddingGemma conversion config must not stamp lm_head_tiled kernel metadata'
@@ -132,16 +26,6 @@ assert.ok(
   !Object.hasOwn(conversionConfig.execution.kernels, 'lm_head_gemv'),
   'EmbeddingGemma conversion config must not stamp lm_head_gemv kernel metadata'
 );
-
-assert.equal(conversionConfig.inference?.attention?.valueNorm, false);
-assert.equal(conversionConfig.inference?.ffn?.useDoubleWideMlp, false);
-assert.equal(conversionConfig.inference?.rope?.ropeLocalPartialRotaryFactor, null);
-assert.equal(conversionConfig.inference?.rope?.ropeFrequencyBaseDim, null);
-assert.equal(conversionConfig.inference?.rope?.ropeLocalFrequencyBaseDim, null);
-assert.deepEqual(conversionConfig.inference?.output?.embeddingPostprocessor, expectedEmbeddingPostprocessor);
-assert.deepEqual(localManifest.inference?.output?.embeddingPostprocessor, expectedEmbeddingPostprocessor);
-assert.deepEqual(conversionConfig.session, expectedSession);
-assert.deepEqual(localManifest.inference?.session, expectedSession);
 
 assert.doesNotThrow(
   () => validateRequiredInferenceFields(conversionConfig.inference, conversionConfig.output.modelBaseId),

@@ -7,6 +7,8 @@ import {
   setTrainingConfig,
 } from '../../src/config/training-defaults.js';
 
+const baseline = JSON.parse(JSON.stringify(createTrainingConfig()));
+
 {
   const config = createTrainingConfig();
   config.training.lora.targetModules.push('unit_test_target');
@@ -14,8 +16,11 @@ import {
   config.training.ul.noiseSchedule.steps = 999;
 
   const freshConfig = createTrainingConfig();
-  assert.equal(freshConfig.training.telemetry.alerts.thresholds.maxStepTimeMs, null);
-  assert.equal(freshConfig.training.ul.noiseSchedule.steps, 64);
+  assert.equal(
+    freshConfig.training.telemetry.alerts.thresholds.maxStepTimeMs,
+    baseline.training.telemetry.alerts.thresholds.maxStepTimeMs
+  );
+  assert.equal(freshConfig.training.ul.noiseSchedule.steps, baseline.training.ul.noiseSchedule.steps);
   assert.equal(freshConfig.training.lora.targetModules.includes('unit_test_target'), false);
 }
 
@@ -33,7 +38,10 @@ import {
 
   const resetConfig = resetTrainingConfig();
   assert.equal(getTrainingConfig(), resetConfig);
-  assert.equal(resetConfig.training.optimizer.scheduler.totalSteps, 10000);
+  assert.equal(
+    resetConfig.training.optimizer.scheduler.totalSteps,
+    baseline.training.optimizer.scheduler.totalSteps
+  );
 }
 
 console.log('training-defaults-isolation.test: ok');

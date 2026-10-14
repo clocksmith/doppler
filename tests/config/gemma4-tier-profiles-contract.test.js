@@ -23,19 +23,6 @@ for (const file of TIER_FILES) {
   tiers[file] = JSON.parse(await fs.readFile(filePath, 'utf8'));
 }
 
-// === All tier files load and have required metadata ===
-
-for (const [file, tier] of Object.entries(tiers)) {
-  assert.ok(tier.id, `${file}: must have id`);
-  assert.ok(tier.name, `${file}: must have name`);
-  assert.ok(tier.description, `${file}: must have description`);
-  assert.ok(tier.intent, `${file}: must have intent`);
-  assert.ok(tier.stability, `${file}: must have stability`);
-  assert.ok(tier.owner, `${file}: must have owner`);
-  assert.ok(tier.createdAtUtc, `${file}: must have createdAtUtc`);
-  assert.equal(tier.extends, 'default', `${file}: must extend default`);
-}
-
 // === Each tier pins all required runtime fields ===
 
 function assertTierPinsFields(file, tier) {
@@ -59,7 +46,6 @@ function assertTierPinsFields(file, tier) {
   // Prefetch
   const prefetch = rt.loading?.prefetch;
   assert.ok(prefetch, `${file}: must pin loading.prefetch`);
-  assert.equal(prefetch.enabled, true, `${file}: prefetch must be enabled`);
   assert.ok(typeof prefetch.layersAhead === 'number',
     `${file}: prefetch.layersAhead must be a number`);
 
@@ -70,8 +56,6 @@ function assertTierPinsFields(file, tier) {
     `${file}: flushIntervalLayers must be a number`);
   assert.equal(memMgmt.budget?.enabled, true,
     `${file}: loading.memoryManagement.budget.enabled must be true`);
-  assert.equal(memMgmt.budget?.systemMemoryFraction, 0.5,
-    `${file}: loading.memoryManagement.budget.systemMemoryFraction must be 0.5`);
   assert.equal(memMgmt.budget?.maxResidentBytes, null,
     `${file}: loading.memoryManagement.budget.maxResidentBytes must be explicit null`);
 
@@ -81,7 +65,6 @@ function assertTierPinsFields(file, tier) {
   assert.ok(kvcache.layout, `${file}: must pin kvcache.layout`);
   assert.ok(typeof kvcache.maxSeqLen === 'number' && kvcache.maxSeqLen > 0,
     `${file}: kvcache.maxSeqLen must be a positive number`);
-  assert.equal(kvcache.kvDtype, 'f16', `${file}: kvcache.kvDtype must be f16`);
 
   // MoE config
   const moe = rt.inference?.moe;

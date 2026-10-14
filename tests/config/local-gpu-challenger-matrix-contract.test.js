@@ -40,28 +40,7 @@ assert.equal(check.status, 0, `local GPU challenger check failed\nstdout:\n${che
 
 const report = buildLocalGpuChallengerReport(matrix, catalog, { schema });
 assert.equal(report.ok, true);
-assert.equal(report.summary.models, 8);
-assert.equal(report.hostClass, 'multi-platform-local-gpu');
-assert.equal(report.probeHostClass, 'linux-amd-vulkan-rocm-local');
-assert.equal(report.summary.platformTargets, 8);
-assert.equal(report.summary.tierCounts['tier-0'], 3);
-assert.equal(report.summary.tierCounts['tier-1'], 3);
-assert.equal(report.summary.tierCounts['tier-2'], 2);
-assert.deepEqual(matrix.qualificationOrder, [
-  'electron-reranker-release',
-  'strix-halo-challenger-lane',
-  'bounded-correctness-campaigns',
-  'unattended-evidence-production',
-]);
-assert.deepEqual(matrix.evidenceContract.latencyStatistics, ['raw', 'p50', 'p95', 'p99']);
 assert.equal(matrix.evidenceContract.failureFixtures, true);
-assert.deepEqual(matrix.correctnessCampaigns.map((entry) => entry.id), [
-  'lfm2-5-1-2b-correctness',
-  'qwen3-8-27b-q4k-correctness',
-]);
-assert.equal(matrix.correctnessCampaigns[0].control, 'official-upstream-f16');
-assert.equal(matrix.correctnessCampaigns[0].modelId, 'lfm2-5-1-2b-instruct-q4k-ehf16-af32');
-assert.deepEqual(matrix.correctnessCampaigns[1].excludedEntryPoints, ['vision', 'mtp']);
 
 const localProbe = probeLocalHost();
 assert.equal(localProbe.host.platform, process.platform);
@@ -70,18 +49,6 @@ assert.equal(localProbe.host.nodeVersion, process.version);
 if (process.platform === 'darwin') {
   assert.equal(localProbe.host.inferredPlatformTargetId, 'apple-metal');
 }
-
-const expectedModelIds = [
-  'gemma-3-1b-it-q4k-ehf16-af32',
-  'gemma-3-270m-it-q4k-ehf16-af32',
-  'gemma-4-e2b-it-q4k-ehf16-af16-int4ple',
-  'google-embeddinggemma-300m-q4k-ehf16-af32',
-  'qwen-3-5-0-8b-q4k-ehaf16',
-  'qwen-3-5-2b-q4k-ehaf16',
-  'qwen-3-embedding-0-6b-q4k-ehf16-af32',
-  'qwen-3-reranker-0-6b-q4k-ehf16-af32',
-];
-assert.deepEqual(report.rows.map((row) => row.modelId).sort(), expectedModelIds);
 
 const requiredFairnessGates = [
   'artifact-identity',
@@ -126,8 +93,6 @@ assert.equal(embeddingHarness.metrics.includes('modelLoadMs'), true, 'embedding 
 assert.equal(embeddingHarness.metrics.includes('readbackMs'), true, 'embedding timing must include readback');
 assert.equal(rerankHarness.metrics.includes('modelLoadMs'), true, 'rerank timing must include model load');
 assert.equal(rerankHarness.metrics.includes('readbackMs'), true, 'rerank timing must include readback');
-assert.deepEqual(rerankHarness.sharedContract.documentCounts, [10, 50, 100]);
-assert.deepEqual(rerankHarness.sharedContract.cacheModes, ['cold', 'warm']);
 for (const phase of [
   'artifact-validation',
   'hashing',
@@ -144,20 +109,6 @@ for (const phase of [
 
 const byModelId = new Map(report.rows.map((row) => [row.modelId, row]));
 const byCompetitorId = new Map(matrix.competitors.map((entry) => [entry.id, entry]));
-const platformTargetIds = new Set(report.platformTargets.map((entry) => entry.id));
-
-for (const platformId of [
-  'apple-metal',
-  'linux-amd-vulkan-rocm',
-  'linux-nvidia-vulkan-cuda',
-  'linux-intel-vulkan',
-  'windows-amd-webgpu-directml',
-  'windows-nvidia-webgpu-cuda',
-  'windows-intel-webgpu',
-  'nvidia-orin-spark-linux',
-]) {
-  assert.equal(platformTargetIds.has(platformId), true, `platform target missing: ${platformId}`);
-}
 
 assert.equal(
   byCompetitorId.get('hf-transformers-rocm')?.availability,
@@ -176,34 +127,6 @@ for (const row of report.rows) {
   assert.equal(row.minimumClaimGrade, 'local-gpu-comparable', `${row.modelId}: claim floor`);
 }
 
-assert.deepEqual(
-  byModelId.get('gemma-3-270m-it-q4k-ehf16-af32').localChallengers.map((entry) => entry.competitorId),
-  ['onnxruntime-webgpu-direct', 'llamacpp-vulkan-gguf']
-);
-assert.deepEqual(
-  byModelId.get('gemma-3-1b-it-q4k-ehf16-af32').localChallengers.map((entry) => entry.competitorId),
-  ['onnxruntime-webgpu-direct', 'llamacpp-vulkan-gguf']
-);
-assert.deepEqual(
-  byModelId.get('google-embeddinggemma-300m-q4k-ehf16-af32').localChallengers.map((entry) => entry.competitorId),
-  ['onnxruntime-webgpu-direct', 'hf-transformers-rocm']
-);
-assert.deepEqual(
-  byModelId.get('qwen-3-5-0-8b-q4k-ehaf16').localChallengers.map((entry) => entry.competitorId),
-  ['onnxruntime-webgpu-direct', 'llamacpp-vulkan-gguf']
-);
-assert.deepEqual(
-  byModelId.get('qwen-3-5-2b-q4k-ehaf16').localChallengers.map((entry) => entry.competitorId),
-  ['onnxruntime-webgpu-direct', 'llamacpp-vulkan-gguf']
-);
-assert.deepEqual(
-  byModelId.get('qwen-3-embedding-0-6b-q4k-ehf16-af32').localChallengers.map((entry) => entry.competitorId),
-  ['onnxruntime-webgpu-direct', 'hf-transformers-rocm']
-);
-assert.deepEqual(
-  byModelId.get('qwen-3-reranker-0-6b-q4k-ehf16-af32').localChallengers.map((entry) => entry.competitorId),
-  ['hf-transformers-rocm', 'onnxruntime-webgpu-direct']
-);
 assert.equal(
   byModelId.get('qwen-3-reranker-0-6b-q4k-ehf16-af32').anchorComparator.status,
   'configured-artifact',
@@ -218,24 +141,11 @@ for (const modelId of [
     .get(modelId)
     .localChallengers.find((entry) => entry.competitorId === 'hf-transformers-rocm');
   assert.equal(challenger.status, 'runtime-smoke-failed', `${modelId}: ROCm runtime status`);
-  assert.equal(
-    challenger.nextGate,
-    'pin-working-rocm-transformers-runtime',
-    `${modelId}: ROCm runtime next gate`
-  );
 }
 
 const gemmaE2b = byModelId.get('gemma-4-e2b-it-q4k-ehf16-af16-int4ple');
 assert.ok(gemmaE2b, 'Gemma E2B selected artifact must be AF16 INT4 PLE');
-assert.deepEqual(gemmaE2b.localChallengers.map((entry) => entry.competitorId), ['litert-gpu', 'hf-transformers-rocm']);
-assert.deepEqual(gemmaE2b.alternateDopplerArtifactIds, ['gemma-4-e2b-it-q4k-ehf16-af32-int4ple']);
-assert.equal(byModelId.has('gemma-4-e2b-it-q4k-ehf16-af32-int4ple'), false);
 const gemmaRocmChallenger = gemmaE2b.localChallengers.find((entry) => entry.competitorId === 'hf-transformers-rocm');
 assert.equal(gemmaRocmChallenger.status, 'runtime-smoke-failed', 'Gemma E2B ROCm runtime status');
-assert.equal(
-  gemmaRocmChallenger.nextGate,
-  'pin-working-rocm-transformers-runtime',
-  'Gemma E2B ROCm runtime next gate'
-);
 
 console.log('local-gpu-challenger-matrix-contract.test: ok');

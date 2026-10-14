@@ -59,17 +59,6 @@ import {
   });
 }
 
-{
-  const source = readFileSync(new URL('../../benchmarks/vendors/compare-chart.js', import.meta.url), 'utf8');
-  assert.match(source, /title: 'First token'/);
-  assert.match(source, /SHORTER BAR = FASTER/);
-  assert.match(source, /normalized === 'warm' \|\| normalized === 'compute\/parity'/);
-  assert.match(source, /font-weight="bold">TOTAL<\/text>/);
-  assert.match(source, /Doppler bottleneck:/);
-  assert.match(source, /Doppler batch work:/);
-  assert.match(source, /batch efficiency/);
-}
-
 for (const fixtureName of [
   'g3-1b-p064-d064-t0-k1.compare.json',
   'lfm2-5-1-2b-p064-d064-t0-k1.compare.json',

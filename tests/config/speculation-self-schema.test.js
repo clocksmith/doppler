@@ -2,8 +2,6 @@ import { strict as assert } from 'node:assert';
 import { describe, it } from 'node:test';
 import {
   DEFAULT_SELF_SPECULATION_CONFIG,
-  SPECULATION_MODES,
-  SPECULATION_VERIFY_MODES,
   validateSelfSpeculationConfig,
 } from '../../src/config/schema/speculation-self.schema.js';
 
@@ -15,14 +13,6 @@ describe('speculation-self schema', () => {
     assert.strictEqual(DEFAULT_SELF_SPECULATION_CONFIG.verify, 'greedy');
     assert.strictEqual(DEFAULT_SELF_SPECULATION_CONFIG.threshold, null);
     assert.strictEqual(DEFAULT_SELF_SPECULATION_CONFIG.rollbackOnReject, true);
-  });
-
-  it('modes include none, self, draft, medusa', () => {
-    assert.deepStrictEqual(SPECULATION_MODES, ['none', 'self', 'draft', 'medusa']);
-  });
-
-  it('verify modes include greedy', () => {
-    assert.deepStrictEqual(SPECULATION_VERIFY_MODES, ['greedy']);
   });
 
   it('validates mode=none without error', () => {

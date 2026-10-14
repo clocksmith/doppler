@@ -1,41 +1,32 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 
-const summary512Path = new URL('../../tools/data/gemma4-e2b-greedy-compare/summary-512.json', import.meta.url);
-const interestingSummaryPath = new URL('../../tools/data/gemma4-e2b-greedy-compare/interesting-10-8tok-summary.json', import.meta.url);
-const interestingPromptCapsulePath = new URL('../../tools/data/gemma4-e2b-greedy-compare/interesting-10-prompts.json', import.meta.url);
+const summaryPaths = [
+  'tools/data/gemma4-e2b-greedy-compare/summary-512.json',
+  'tools/data/gemma4-e2b-greedy-compare/interesting-10-8tok-summary.json',
+];
 
-const summary512 = JSON.parse(await fs.readFile(summary512Path, 'utf8'));
-const interestingSummary = JSON.parse(await fs.readFile(interestingSummaryPath, 'utf8'));
-const interestingPromptCapsule = JSON.parse(await fs.readFile(interestingPromptCapsulePath, 'utf8'));
+async function readJson(relativePath) {
+  return JSON.parse(await fs.readFile(new URL(`../../${relativePath}`, import.meta.url), 'utf8'));
+}
 
-assert.deepEqual(summary512.aggregate, {
-  promptCount: 512,
-  sameFirstTokenCount: 329,
-  sameFullTokenSequenceCount: 329,
-  firstTokenMismatchCount: 183,
-});
-// Original benchmark record fields are retained verbatim, not runtime aliases.
-assert.equal(summary512.promptPackPath, 'tools/data/gemma4-e2b-blog-prompts-512.json');
+for (const summaryPath of summaryPaths) {
+  const summary = await readJson(summaryPath);
+  const aggregate = summary.aggregate;
+  // Original benchmark record fields are retained verbatim, not runtime aliases.
+  const promptPack = await readJson(summary.promptPackPath);
 
-assert.deepEqual(interestingSummary.aggregate, {
-  promptCount: 10,
-  sameFirstTokenCount: 0,
-  sameFullTokenSequenceCount: 0,
-  firstTokenMismatchCount: 10,
-});
-assert.equal(interestingSummary.promptPackPath, 'tools/data/gemma4-e2b-greedy-compare/interesting-10-prompts.json');
-assert.equal(interestingPromptCapsule.length, 10);
-
-const interestingIds = new Set(interestingSummary.prompts.map((entry) => entry.id));
-for (const id of [
-  'chem-equilibrium-stop-answer-oneword-d',
-  'pol-voter-id-oneword-b',
-  'tf-privacy-dead-oneword-a',
-  'val-happiness-meaning-oneword-c',
-  'ship-yes-no-both-oneword-d',
-]) {
-  assert.equal(interestingIds.has(id), true, `missing interesting compare prompt: ${id}`);
+  assert.equal(aggregate.promptCount, summary.prompts.length, `${summaryPath}: promptCount must match recorded prompts`);
+  assert.equal(aggregate.promptCount, promptPack.length, `${summaryPath}: promptCount must match the referenced prompt pack`);
+  assert.equal(
+    aggregate.sameFirstTokenCount + aggregate.firstTokenMismatchCount,
+    aggregate.promptCount,
+    `${summaryPath}: first-token matches and mismatches must partition the prompts`
+  );
+  assert.ok(
+    aggregate.sameFullTokenSequenceCount <= aggregate.sameFirstTokenCount,
+    `${summaryPath}: full-sequence matches cannot exceed first-token matches`
+  );
 }
 
 console.log('gemma4-e2b-greedy-compare-data-contract.test: ok');

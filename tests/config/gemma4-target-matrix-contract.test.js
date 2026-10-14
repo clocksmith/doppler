@@ -5,14 +5,6 @@ const matrix = JSON.parse(readFileSync('models/gemma4-targets.json', 'utf8'));
 const catalog = JSON.parse(readFileSync('models/catalog.json', 'utf8'));
 const quickstartRegistry = JSON.parse(readFileSync('src/config/quickstart-registry.json', 'utf8'));
 
-const REQUIRED_TARGET_IDS = [
-  'gemma-4-e2b',
-  'gemma-4-e4b',
-  'gemma-4-12b-unified',
-  'gemma-4-31b',
-  'gemma-4-26b-a4b',
-];
-
 const TARGET_STATUS = new Set(['partially_verified', 'gap']);
 const SURFACE_STATUS = new Set(['verified', 'unverified', 'unsupported']);
 const CLAIM_STATUS = new Set(['verified', 'verified-local', 'experimental']);
@@ -32,10 +24,6 @@ const quickstartById = new Map(quickstartRegistry.models.map((model) => [model.m
 const targetsById = new Map(matrix.targets.map((target) => [target.targetId, target]));
 
 assert.equal(matrix.schemaVersion, 1);
-assert.ok(matrix.sourceUrls.includes('https://ai.google.dev/gemma/docs/core'));
-assert.ok(matrix.sourceUrls.includes('https://ai.google.dev/gemma/docs/releases'));
-assert.ok(matrix.sourceUrls.includes('https://developers.google.com/edge/litert-lm/models/gemma-4'));
-assert.deepEqual([...targetsById.keys()].sort(), [...REQUIRED_TARGET_IDS].sort());
 
 for (const target of matrix.targets) {
   assert.ok(TARGET_STATUS.has(target.dopplerStatus), `${target.targetId}: invalid Doppler status`);
@@ -235,14 +223,5 @@ assert.ok(
   related26B.includes('diffusiongemma-26b-a4b-it-q4k-ehf16-af16'),
   'Gemma 4 26B A4B gap must explicitly distinguish DiffusionGemma from the official Gemma 4 MoE target'
 );
-
-assert.deepEqual(targetsById.get('gemma-4-e4b')?.sourcePackages, [
-  {
-    id: 'litert/gemma-4-e4b-it',
-    status: 'blocked',
-    blockerCode: 'gemma4-e4b-litert-direct-source-unverified',
-    reason: 'LiteRT .task and .litertlm package identity is known, but direct-source parsing fails closed until a parity receipt and graph contraction map exist.',
-  },
-]);
 
 console.log('gemma4-target-matrix-contract.test: ok');

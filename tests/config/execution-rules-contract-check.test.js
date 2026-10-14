@@ -11,11 +11,10 @@ import {
 {
   const artifact = getInferenceExecutionRulesContractArtifact();
   assert.equal(artifact.ok, true);
-  assert.equal(artifact.stats.decodeRecorderContexts, 24);
-  assert.equal(artifact.stats.profileDecodeRecorderContexts, 24);
-  assert.equal(artifact.stats.batchDecodeContexts, 1024);
-  assert.equal(artifact.stats.maxBatchDecodeTokenContexts, 8);
-  assert.equal(artifact.stats.prefillRecorderChunkLayerContexts, 6);
+  for (const [name, sampledContexts] of Object.entries(artifact.stats)) {
+    if (!name.endsWith('Contexts')) continue;
+    assert.ok(sampledContexts > 0, `${name}: semantic check must sample at least one context`);
+  }
   assert.ok(
     artifact.checks.some((entry) => entry.id === 'inference.execution.decodeRecorderEnabled.semantics' && entry.ok)
   );

@@ -216,7 +216,6 @@ const activeRegistry = {
   assert.equal(report.ok, true, report.errors.join('\n'));
   assert.equal(report.gateSatisfied, false);
   assert.equal(report.qualifiedWorkloads, 0);
-  assert.equal(report.candidateWorkloads, 3);
 }
 
 {

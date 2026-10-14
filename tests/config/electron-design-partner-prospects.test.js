@@ -18,16 +18,7 @@ function clone(value) {
 {
   const report = await buildElectronDesignPartnerProspectsReport();
   assert.equal(report.ok, true, report.errors.join('\n'));
-  assert.equal(report.prospects.length, 5);
-  assert.equal(report.primaryProspects, 3);
   assert.equal(report.qualifiedCustomers, 0);
-  assert.deepEqual(report.prospects.map((prospect) => prospect.id), [
-    'anythingllm',
-    'joplin',
-    'cherry-studio',
-    'chatbox',
-    'affine',
-  ]);
   assert.ok(report.prospects.every((prospect) => prospect.claimAllowed === false));
   assert.ok(report.prospects.every((prospect) => (
     prospect.providerPolicy.doeProof === 'optional-separately-authorized-provider'

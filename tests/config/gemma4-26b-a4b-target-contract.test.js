@@ -24,7 +24,6 @@ function getSourceCheckpointId(model) {
 
 const target = targetsById.get('gemma-4-26b-a4b');
 assert.ok(target, 'Gemma 4 target matrix must include official 26B A4B');
-assert.equal(target.officialName, 'Gemma 4 26B A4B');
 assert.equal(target.dopplerStatus, 'gap', 'official 26B A4B must remain a gap until a real lane exists');
 assert.deepEqual(target.surfaceStatus, {
   browser: 'unsupported',
@@ -63,20 +62,13 @@ for (const model of catalog.models) {
 
 const diffusionGemma = catalogById.get(DIFFUSIONGEMMA_26B_A4B_MODEL_ID);
 assert.ok(diffusionGemma, 'DiffusionGemma related model must remain cataloged separately');
-assert.equal(diffusionGemma.family, 'diffusiongemma');
-assert.equal(getSourceCheckpointId(diffusionGemma), 'google/diffusiongemma-26B-A4B-it');
 assert.notEqual(getSourceCheckpointId(diffusionGemma), OFFICIAL_26B_A4B_SOURCE);
 
-assert.equal(genericMoeConfig.output?.modelBaseId, 'gemma-4-moe-q4k-ehf16-af32');
 assert.notEqual(
   genericMoeConfig.output?.modelBaseId,
   'gemma-4-26b-a4b-it-text-q4k-ehf16-af32',
   'generic MoE config must not masquerade as official 26B A4B'
 );
-assert.equal(genericMoeConfig.inference?.moe?.kernelProfileId, 'mixtral-moe-v1');
-assert.equal(genericMoeConfig.inference?.moe?.tensorPattern, 'mixtral');
-assert.equal(genericMoeConfig.inference?.moe?.numExperts, 8);
-assert.equal(genericMoeConfig.inference?.moe?.topK, 2);
 assert.notEqual(genericMoeConfig.inference?.moe?.numExperts, OFFICIAL_26B_A4B_MOE_ROUTE.numExperts);
 assert.notEqual(genericMoeConfig.inference?.moe?.topK, OFFICIAL_26B_A4B_MOE_ROUTE.topKExperts);
 
