@@ -186,8 +186,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // First-token completion classification adds 324 bytes across two existing modules.
   // Evidence: artifacts/w8a8-package-20261011/completion-package-inventory.json.gz.
   // The 74 entries of artifacts/package-budget-20261014/inventory-delta.json:
-  // measured 13,996,039 unpacked bytes.
-  maxUnpackedSize: 13_996_039,
+  // measured 13,996,039 unpacked bytes. The shipped browser kernel suite's
+  // shader-f16 gate and declared F32 state add 217 bytes (c628f98f).
+  maxUnpackedSize: 13_996_256,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
