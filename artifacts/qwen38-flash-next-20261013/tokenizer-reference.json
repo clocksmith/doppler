@@ -1,0 +1,554 @@
+{
+  "schema": "doppler.qwen38-tokenizer-check/v1",
+  "checkpoint": "de4b8e4d43b917e7706784d8bb445c9af86a3540",
+  "surface": "CPU",
+  "scope": "Pinned tokenizer files; tokenizers runtime against an independent byte-level BPE; no model weights or Doppler execution",
+  "libraries": {
+    "tokenizers": "0.22.2",
+    "regex": "2026.2.28",
+    "jinja2": "3.1.6"
+  },
+  "files": {
+    "tokenizer.json": {
+      "url": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next/resolve/de4b8e4d43b917e7706784d8bb445c9af86a3540/tokenizer.json",
+      "bytes": 12809320,
+      "sha256": "0997f410c57a1f4e53b09e4be8f4a172d90edd9564368fb0847030937229b9f3",
+      "matchesUpstreamDeclared": true
+    },
+    "tokenizer_config.json": {
+      "url": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next/resolve/de4b8e4d43b917e7706784d8bb445c9af86a3540/tokenizer_config.json",
+      "bytes": 17928,
+      "sha256": "b11349aafa7cdc6a320767cf7ceb29ed82f7eda5d65e8e0819e76f0ce947bf27",
+      "matchesUpstreamDeclared": true
+    }
+  },
+  "structure": {
+    "model": "BPE",
+    "baseVocabulary": 248044,
+    "merges": 247587,
+    "addedTokens": 33,
+    "addedIdRange": [
+      248044,
+      248076
+    ],
+    "configVocabularySize": 248320,
+    "unusedEmbeddingRows": 243,
+    "normalizer": "NFC",
+    "preTokenizer": "regex Split (Isolated) then ByteLevel without prefix space",
+    "embeddedChatTemplateEqualsJinjaFile": true
+  },
+  "specialTokens": {
+    "config.eos_token_id": 248044,
+    "config.bos_token_id": 248044,
+    "generation_config.eos_token_id": [
+      248046,
+      248044
+    ],
+    "generation_config.pad_token_id": 248044,
+    "tokenizer_config.eos_token": [
+      "<|im_end|>",
+      248046
+    ],
+    "tokenizer_config.pad_token": [
+      "<|endoftext|>",
+      248044
+    ],
+    "tokenizer_config.bos_token": null,
+    "tokenizer_config.add_bos_token": false
+  },
+  "eosNote": "config.json eos/bos is 248044 <|endoftext|> (the n-gram EOS boundary); generation stops on [248046 <|im_end|>, 248044]; tokenizer_config eos_token is <|im_end|>; no BOS is added.",
+  "eos": {
+    "endoftext": [
+      248044
+    ],
+    "imEnd": [
+      248046
+    ],
+    "decodeSkipSpecial": "ab"
+  },
+  "cases": [
+    {
+      "text": "Hello, world!",
+      "ids": [
+        9419,
+        11,
+        1814,
+        0
+      ],
+      "idsSha256": "baf8bd54f077c4f637dd8098314084532c9d45f5f7faa6f7840e8dbf31b9da05",
+      "independentIdsEqual": true,
+      "decoded": "Hello, world!",
+      "roundTrip": true,
+      "independentDecodeEqual": true,
+      "nfcChangedInput": false,
+      "specialTokens": {}
+    },
+    {
+      "text": "Don't stop: it'S fine, they'LL see.",
+      "ids": [
+        7751,
+        914,
+        2842,
+        25,
+        424,
+        12887,
+        6699,
+        11,
+        781,
+        6,
+        3950,
+        1436,
+        13
+      ],
+      "idsSha256": "a4a611dc2810c93462bd840e59a96cd2432416e708cb42356c949f0e14b7dc65",
+      "independentIdsEqual": true,
+      "decoded": "Don't stop: it'S fine, they'LL see.",
+      "roundTrip": true,
+      "independentDecodeEqual": true,
+      "nfcChangedInput": false,
+      "specialTokens": {}
+    },
+    {
+      "text": "Numbers 1234567890 and 3.14159",
+      "ids": [
+        26359,
+        220,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        15,
+        321,
+        220,
+        18,
+        13,
+        16,
+        19,
+        16,
+        20,
+        24
+      ],
+      "idsSha256": "d42a27fad9c22379b47bd58385ea067681e1d81e6097b82ad9289434b63fb81f",
+      "independentIdsEqual": true,
+      "decoded": "Numbers 1234567890 and 3.14159",
+      "roundTrip": true,
+      "independentDecodeEqual": true,
+      "nfcChangedInput": false,
+      "specialTokens": {}
+    },
+    {
+      "text": "  leading spaces\tand tabs\n\n\nnewlines  \n",
+      "ids": [
+        220,
+        6187,
+        12258,
+        50711,
+        21700,
+        1358,
+        902,
+        7718,
+        2228
+      ],
+      "idsSha256": "7d00c075cd96e544b20fa198453f7e5f63ab6401176051c19152620ea246dfc9",
+      "independentIdsEqual": true,
+      "decoded": "  leading spaces\tand tabs\n\n\nnewlines  \n",
+      "roundTrip": true,
+      "independentDecodeEqual": true,
+      "nfcChangedInput": false,
+      "specialTokens": {}
+    },
+    {
+      "text": "中文分词测试，标点符号。",
+      "ids": [
+        99986,
+        95880,
+        96919,
+        99449,
+        3709,
+        141111,
+        109706,
+        1710
+      ],
+      "idsSha256": "0dde8a66c1f1f384253b203b84878252d08a9d88520aca0ea985f20e543af09c",
+      "independentIdsEqual": true,
+      "decoded": "中文分词测试，标点符号。",
+      "roundTrip": true,
+      "independentDecodeEqual": true,
+      "nfcChangedInput": false,
+      "specialTokens": {}
+    },
+    {
+      "text": "Ünïcödé façade naïve",
+      "ids": [
+        50724,
+        77,
+        245787,
+        2862,
+        164497,
+        218894,
+        91603,
+        571
+      ],
+      "idsSha256": "a2cb8049542adf776384cafa6f66d3c8c6564c2b703870941ba0aaa64e7ae9e5",
+      "independentIdsEqual": true,
+      "decoded": "Ünïcödé façade naïve",
+      "roundTrip": true,
+      "independentDecodeEqual": true,
+      "nfcChangedInput": false,
+      "specialTokens": {}
+    },
+    {
+      "text": "é combining acute",
+      "ids": [
+        933,
+        33041,
+        28810
+      ],
+      "idsSha256": "77b4ae9c7343388df031b7e03ffa8d8efc715b2a384507b2adf4fb93ff368a58",
+      "independentIdsEqual": true,
+      "decoded": "é combining acute",
+      "roundTrip": true,
+      "independentDecodeEqual": true,
+      "nfcChangedInput": true,
+      "specialTokens": {}
+    },
+    {
+      "text": "emoji 🦊 👩🏽‍💻 ✓",
+      "ids": [
+        36280,
+        10838,
+        99,
+        232,
+        59720,
+        102,
+        9008,
+        237,
+        121,
+        373,
+        235,
+        88995,
+        119,
+        50615
+      ],
+      "idsSha256": "4b3fc46809804342f0f830131449ed2076b20b80413f204d95689cbedba2c5f8",
+      "independentIdsEqual": true,
+      "decoded": "emoji 🦊 👩🏽‍💻 ✓",
+      "roundTrip": true,
+      "independentDecodeEqual": true,
+      "nfcChangedInput": false,
+      "specialTokens": {}
+    },
+    {
+      "text": "def f(x):\n    return x**2  # comment",
+      "ids": [
+        727,
+        281,
+        2007,
+        1590,
+        198,
+        262,
+        460,
+        830,
+        332,
+        17,
+        220,
+        653,
+        3847
+      ],
+      "idsSha256": "8b70e2908244b5da03752cb76124d07f3acbb68f08f36751adec443179b5a710",
+      "independentIdsEqual": true,
+      "decoded": "def f(x):\n    return x**2  # comment",
+      "roundTrip": true,
+      "independentDecodeEqual": true,
+      "nfcChangedInput": false,
+      "specialTokens": {}
+    },
+    {
+      "text": "<|endoftext|>",
+      "ids": [
+        248044
+      ],
+      "idsSha256": "8b54f985343b17a70a2a1d7f307de628e4904a5c20651f1663493f963574defe",
+      "independentIdsEqual": true,
+      "decoded": "<|endoftext|>",
+      "roundTrip": true,
+      "independentDecodeEqual": true,
+      "nfcChangedInput": false,
+      "specialTokens": {
+        "<|endoftext|>": 1
+      }
+    },
+    {
+      "text": "<|im_start|>user\nhi<|im_end|>\n",
+      "ids": [
+        248045,
+        846,
+        198,
+        5834,
+        248046,
+        198
+      ],
+      "idsSha256": "f78eeec67aea1c528eba8c2cfbaa12b0a2da37f0103ad90984f49e5d1112df8b",
+      "independentIdsEqual": true,
+      "decoded": "<|im_start|>user\nhi<|im_end|>\n",
+      "roundTrip": true,
+      "independentDecodeEqual": true,
+      "nfcChangedInput": false,
+      "specialTokens": {
+        "<|im_start|>": 1,
+        "<|im_end|>": 1
+      }
+    },
+    {
+      "text": "<think>\nreasoning\n</think>\n\nanswer",
+      "ids": [
+        248068,
+        198,
+        19290,
+        286,
+        198,
+        248069,
+        271,
+        8944
+      ],
+      "idsSha256": "572c5f2e2e762f1474312229bbd8ebc25cc72d485bf6716d1fb8d4cd4c2f433c",
+      "independentIdsEqual": true,
+      "decoded": "<think>\nreasoning\n</think>\n\nanswer",
+      "roundTrip": true,
+      "independentDecodeEqual": true,
+      "nfcChangedInput": false,
+      "specialTokens": {
+        "<think>": 1,
+        "</think>": 1
+      }
+    },
+    {
+      "text": "text<|endoftext|>more<|im_end|>",
+      "ids": [
+        1272,
+        248044,
+        6183,
+        248046
+      ],
+      "idsSha256": "eaa8893b695937e1d499e279d8e0da82ce7d6d03baca2904dbb421afc8f00765",
+      "independentIdsEqual": true,
+      "decoded": "text<|endoftext|>more<|im_end|>",
+      "roundTrip": true,
+      "independentDecodeEqual": true,
+      "nfcChangedInput": false,
+      "specialTokens": {
+        "<|endoftext|>": 1,
+        "<|im_end|>": 1
+      }
+    }
+  ],
+  "chatTemplate": {
+    "renderer": "jinja2 3.1.6 ImmutableSandboxedEnvironment with trim_blocks, lstrip_blocks, loopcontrols and raise_exception; parity with the transformers renderer is not established",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are concise."
+      },
+      {
+        "role": "user",
+        "content": "What is 2+2?"
+      },
+      {
+        "role": "assistant",
+        "content": "Four."
+      },
+      {
+        "role": "user",
+        "content": "Thanks!"
+      }
+    ],
+    "rendered": {
+      "thinkingDefault": "<|im_start|>system\nReasoning effort is set to xhigh. Please think carefully through the task, validate key assumptions, consider plausible alternatives, and prioritize correctness, consistency, and clarity in the final answer.\n\nYou are concise.<|im_end|>\n<|im_start|>user\nWhat is 2+2?<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\nFour.<|im_end|>\n<|im_start|>user\nThanks!<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "thinkingDisabled": "<|im_start|>system\nYou are concise.<|im_end|>\n<|im_start|>user\nWhat is 2+2?<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\nFour.<|im_end|>\n<|im_start|>user\nThanks!<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n"
+    },
+    "results": {
+      "thinkingDefault": {
+        "text": "<|im_start|>system\nReasoning effort is set to xhigh. Please think carefully through the task, validate key assumptions, consider plausible alternatives, and prioritize correctness, consistency, and clarity in the final answer.\n\nYou are concise.<|im_end|>\n<|im_start|>user\nWhat is 2+2?<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\nFour.<|im_end|>\n<|im_start|>user\nThanks!<|im_end|>\n<|im_start|>assistant\n<think>\n",
+        "ids": [
+          248045,
+          8678,
+          198,
+          24342,
+          286,
+          4879,
+          369,
+          716,
+          310,
+          830,
+          11553,
+          13,
+          5044,
+          1683,
+          15060,
+          1472,
+          279,
+          3274,
+          11,
+          9307,
+          1328,
+          30800,
+          11,
+          2814,
+          47675,
+          25605,
+          11,
+          321,
+          60445,
+          55404,
+          11,
+          27224,
+          11,
+          321,
+          30246,
+          303,
+          279,
+          1534,
+          4087,
+          13,
+          271,
+          2523,
+          513,
+          61446,
+          13,
+          248046,
+          198,
+          248045,
+          846,
+          198,
+          3710,
+          369,
+          220,
+          17,
+          10,
+          17,
+          30,
+          248046,
+          198,
+          248045,
+          74455,
+          198,
+          248068,
+          271,
+          248069,
+          271,
+          26108,
+          13,
+          248046,
+          198,
+          248045,
+          846,
+          198,
+          12295,
+          0,
+          248046,
+          198,
+          248045,
+          74455,
+          198,
+          248068,
+          198
+        ],
+        "idsSha256": "294ac401884abc1a7a74bfa674ad466a368db3dd04bada8397264782f5a7d926",
+        "independentIdsEqual": true,
+        "decoded": "<|im_start|>system\nReasoning effort is set to xhigh. Please think carefully through the task, validate key assumptions, consider plausible alternatives, and prioritize correctness, consistency, and clarity in the final answer.\n\nYou are concise.<|im_end|>\n<|im_start|>user\nWhat is 2+2?<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\nFour.<|im_end|>\n<|im_start|>user\nThanks!<|im_end|>\n<|im_start|>assistant\n<think>\n",
+        "roundTrip": true,
+        "independentDecodeEqual": true,
+        "nfcChangedInput": false,
+        "specialTokens": {
+          "<|im_start|>": 5,
+          "<|im_end|>": 4,
+          "<think>": 2,
+          "</think>": 1
+        }
+      },
+      "thinkingDisabled": {
+        "text": "<|im_start|>system\nYou are concise.<|im_end|>\n<|im_start|>user\nWhat is 2+2?<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\nFour.<|im_end|>\n<|im_start|>user\nThanks!<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+        "ids": [
+          248045,
+          8678,
+          198,
+          2523,
+          513,
+          61446,
+          13,
+          248046,
+          198,
+          248045,
+          846,
+          198,
+          3710,
+          369,
+          220,
+          17,
+          10,
+          17,
+          30,
+          248046,
+          198,
+          248045,
+          74455,
+          198,
+          248068,
+          271,
+          248069,
+          271,
+          26108,
+          13,
+          248046,
+          198,
+          248045,
+          846,
+          198,
+          12295,
+          0,
+          248046,
+          198,
+          248045,
+          74455,
+          198,
+          248068,
+          271,
+          248069,
+          271
+        ],
+        "idsSha256": "c485629db1fda35a44c8f8e997cc008b8333e9d76448fb0b3ef71e4ad1fc5e81",
+        "independentIdsEqual": true,
+        "decoded": "<|im_start|>system\nYou are concise.<|im_end|>\n<|im_start|>user\nWhat is 2+2?<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\nFour.<|im_end|>\n<|im_start|>user\nThanks!<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+        "roundTrip": true,
+        "independentDecodeEqual": true,
+        "nfcChangedInput": false,
+        "specialTokens": {
+          "<|im_start|>": 5,
+          "<|im_end|>": 4,
+          "<think>": 2,
+          "</think>": 2
+        }
+      }
+    },
+    "note": "thinking defaults on: the template injects the xhigh reasoning-effort instruction into the system turn, renders prior assistant turns with an empty think block, and opens the generation prompt with <think>"
+  },
+  "checks": {
+    "identityMatchesUpstreamDeclared": true,
+    "independentEncodeEqual": true,
+    "independentDecodeEqual": true,
+    "roundTripAfterNfc": true,
+    "singleIdSpecialTokens": true
+  },
+  "notEstablished": [
+    "Learned embedding rows or model quality",
+    "Doppler tokenizer implementation parity",
+    "Tool-call, vision and audio template branches",
+    "Inputs outside these fixed strings"
+  ],
+  "passed": true
+}
