@@ -139,6 +139,7 @@ export const UNIFORM_WRITERS = Object.freeze({
   "attention/decode_paged_f16kv": { size: 60, write: writers0.write_attention_decode_online_f16 },
   "attention/decode_subgroup": { size: 60, write: writers0.write_attention_decode_subgroup },
   "attention/paired": { size: 48, write: writers0.write_attention_paired },
+  "attention/paired_tiled": { size: 48, write: writers0.write_attention_paired },
   "attention_tiered/decode_tiered_f16": { size: 68, write: writers0.write_attention_tiered_decode_tiered_f16 },
   "attention_tiered/decode_tiered_f16kv": { size: 68, write: writers0.write_attention_tiered_decode_tiered_f16 },
   "attention_tiered_quant/decode_tiered_int8_f16kv": { size: 60, write: writers0.write_attention_tiered_quant_decode_tiered_int8_f16kv },

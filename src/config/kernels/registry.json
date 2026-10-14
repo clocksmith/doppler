@@ -10310,6 +10310,122 @@
       "ruleChains": [],
       "wgslOnDisk": true
      }
+    },
+    "paired_tiled": {
+     "wgsl": "attention_paired_tiled.wgsl",
+     "immediateCompletion": "settled",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256,
+      "DOT_LANES": 4
+     },
+     "requires": ["shader-f16"],
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "inputPrecision": "two-f32",
+      "outputPrecision": "two-f32",
+      "kvDtype": "f16"
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "queries",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "keys",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "values",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 4,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 48,
+      "fields": [
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "kv_len",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "kv_start",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "scale_hi",
+        "type": "f32",
+        "offset": 32
+       },
+       {
+        "name": "scale_lo",
+        "type": "f32",
+        "offset": 36
+       },
+       {
+        "name": "causal",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "_pad",
+        "type": "u32",
+        "offset": 44,
+        "padding": true
+       }
+      ]
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
     }
    }
   },

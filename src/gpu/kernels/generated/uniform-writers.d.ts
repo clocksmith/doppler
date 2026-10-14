@@ -139,6 +139,7 @@ export interface KernelUniformValues {
   "attention/decode_paged_f16kv": Parameters<typeof writers0.write_attention_decode_online_f16>[1];
   "attention/decode_subgroup": Parameters<typeof writers0.write_attention_decode_subgroup>[1];
   "attention/paired": Parameters<typeof writers0.write_attention_paired>[1];
+  "attention/paired_tiled": Parameters<typeof writers0.write_attention_paired>[1];
   "attention_tiered/decode_tiered_f16": Parameters<typeof writers0.write_attention_tiered_decode_tiered_f16>[1];
   "attention_tiered/decode_tiered_f16kv": Parameters<typeof writers0.write_attention_tiered_decode_tiered_f16>[1];
   "attention_tiered_quant/decode_tiered_int8_f16kv": Parameters<typeof writers0.write_attention_tiered_quant_decode_tiered_int8_f16kv>[1];
