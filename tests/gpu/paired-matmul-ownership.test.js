@@ -40,6 +40,16 @@ try {
     }
     await assert.rejects(executePairedMatmul(recorder, { ...input, precision: undefined }, weight, 1, 3, 256, { outputDtype: 'f32' }), /Interleaved/);
     await assert.rejects(executePairedMatmul(recorder, input, weight, NaN, 3, 256, { outputDtype: 'f32' }), /geometry/);
+    // A declared program that replaces the ruled one runs with the same constants; others fail closed.
+    for (const [outputPrecision, programVariant] of [['two-f32', 'paired_f32_compensated'], ['f32', 'paired_f32_scalar_compensated'], ['two-f32', 'paired_f32']]) {
+      const result = await run({ outputPrecision, programVariant });
+      assert.equal(calls.at(-1)[2], programVariant); assert.equal(calls.at(-1)[6].WORKGROUP_SIZE, 64);
+      pairedMatmulControl.release(result.buffer); settle();
+    }
+    for (const [outputPrecision, programVariant] of [['two-f32', 'paired_q4k_compensated'], ['two-f32', 'paired_f32_scalar_compensated'], ['f32', 'paired_f32_compensated']]) {
+      const count = calls.length; await assert.rejects(run({ outputPrecision, programVariant }), /does not replace/);
+      assert.equal(calls.length, count); assert.equal(live.size, 0);
+    }
   }
 } finally { hooks.deregister(); delete globalThis.pairedMatmulControl; }
-console.log('paired matmul: explicit representation/output, source alpha, invalid geometry and immediate/recorded ownership passed');
+console.log('paired matmul: explicit representation/output, source alpha, invalid geometry, declared replacement programs and immediate/recorded ownership passed');

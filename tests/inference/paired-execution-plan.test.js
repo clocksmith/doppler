@@ -91,4 +91,11 @@ assert.deepEqual(resolveDeclaredMechanismReplacements(replaced.inference.executi
 const respecialized = structuredClone(replaced);
 respecialized.inference.execution.kernels.paired_state_sliced.constants = { WORKGROUP_SIZE: 128, K_SLICES: 16 };
 assert.deepEqual(resolveDeclaredMechanismReplacements(respecialized.inference.execution), { 'gated_delta_recurrent/paired_qk': 'paired_qk_parallel' });
-console.log('paired execution plan: complete graph admission, exact variants, helper closure, scalar logits, tiled attention, sliced RMSNorm and declared state and Q/K replacement selection and session metadata pass');
+// Compensated matmul programs are admitted for vector projections and the scalar-output head.
+const compensated = structuredClone(manifest);
+for (const key of ['projection_q4', 'projection_f16', 'head']) {
+  compensated.inference.execution.kernels[key] = { ...compensated.inference.execution.kernels[key], kernel: 'matmul_paired_compensated.wgsl',
+    digest: `sha256:${KERNEL_REF_CONTENT_DIGESTS['matmul_paired_compensated.wgsl#main']}` };
+}
+assert.equal(compile(compensated).primaryPlan.activationPrecision, 'two-f32');
+console.log('paired execution plan: complete graph admission, exact variants, helper closure, scalar logits, tiled attention, sliced RMSNorm, compensated matmul and declared state and Q/K replacement selection and session metadata pass');

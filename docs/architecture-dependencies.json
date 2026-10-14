@@ -5755,7 +5755,6 @@
         "src/gpu/kernels/matmul-dispatch.js",
         "src/gpu/kernels/matmul-selection.js",
         "src/gpu/kernels/matmul.js",
-        "src/gpu/kernels/matmul_paired.wgsl",
         "src/gpu/kernels/modulate.js",
         "src/gpu/kernels/moe.js",
         "src/gpu/kernels/paired-activation.js",
@@ -6345,7 +6344,6 @@
     "src/gpu/kernels/gated_delta_fused_decode.wgsl",
     "src/gpu/kernels/gated_delta_recurrent.wgsl",
     "src/gpu/kernels/gated_delta_recurrent_paired.wgsl",
-    "src/gpu/kernels/matmul_paired.wgsl",
     "src/gpu/kernels/qwen_linear_attention_prepare_paired.wgsl",
     "src/gpu/kernels/rmsnorm_paired.wgsl",
     "src/gpu/kernels/rmsnorm_paired_sliced.wgsl",
@@ -6988,6 +6986,12 @@
       "kind": "asset",
       "line": 21,
       "expression": "new URL(`../../src/gpu/kernels/${name}.wgsl`, import.meta.url)"
+    },
+    {
+      "file": "tests/kernels/paired-matmul-physical.js",
+      "kind": "asset",
+      "line": 14,
+      "expression": "new URL(`../../src/gpu/kernels/${program}.wgsl`, import.meta.url)"
     },
     {
       "file": "tests/kernels/recurrent-reference.test.js",
