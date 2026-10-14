@@ -20,8 +20,10 @@ the machine-readable inventory. Named checks remain independently runnable.
 
 Both Node runners use the `suites` in
 [`tools/policies/test-coverage-policy.json`](../tools/policies/test-coverage-policy.json):
-`unit` discovers every test directory except `tests/kernels`, `gpu` selects that
-directory, and `all` discovers the complete tree. These are selection groups,
+`unit` discovers every test directory except `tests/kernels` and the files listed
+in the `unit-webgpu` and `unit-browser` suites, which run separately through
+`npm run test:unit:webgpu` and `npm run test:unit:browser`. `gpu` selects
+`tests/kernels`, and `all` discovers the complete tree. These are selection groups,
 not hardware evidence classes. Hardware-conditional tests report their own skips.
 Coverage-specific exclusions and thresholds remain separate policy fields.
 
