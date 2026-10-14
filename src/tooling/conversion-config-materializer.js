@@ -1,6 +1,7 @@
 import path from 'node:path';
 
 import { createConverterConfig } from '../config/schema/index.js';
+import { resolveLinearNormGateActivation } from '../config/schema/manifest.schema.js';
 import { resolveConversionPlan } from '../converter/conversion-plan.js';
 import { normalizeQuantTag } from '../converter/quantization-info.js';
 
@@ -52,6 +53,12 @@ function buildRefreshRawConfig(manifest) {
   return baseConfig;
 }
 
+function resolveManifestLinearNormGateActivation(manifest) {
+  const normalization = manifest?.inference?.normalization;
+  if (!normalization || typeof normalization !== 'object' || Array.isArray(normalization)) return null;
+  return resolveLinearNormGateActivation(normalization, 'manifest.inference.normalization');
+}
+
 function extractTensorEntriesFromManifest(manifest) {
   if (!(manifest?.tensors && typeof manifest.tensors === 'object' && !Array.isArray(manifest.tensors))) {
     return [];
@@ -80,6 +87,8 @@ export function resolveMaterializedManifestFromConversionConfig(conversionConfig
     architectureHint: resolveArchitectureHint(manifest?.architecture),
     architectureConfig: architecture,
     headDim: resolveHeadDim(architecture),
+    // The refreshed manifest already states its gate (absent = the schema's legacy silu).
+    establishedLinearNormGateActivation: resolveManifestLinearNormGateActivation(manifest),
   });
   return {
     modelId: manifest?.modelId ?? converterConfig?.output?.modelBaseId ?? 'unknown',

@@ -1,3 +1,4 @@
+import type { LinearNormGateActivation } from '../config/schema/inference.schema.js';
 import type { ConverterConfigSchema } from '../config/schema/converter.schema.js';
 import type { MoEConfigSchema } from '../config/schema/manifest.schema.js';
 
@@ -12,6 +13,8 @@ export interface ResolveConversionPlanOptions {
   tensorNames?: string[] | null;
   converterConfig: ConverterConfigSchema;
   sourceQuantization?: string | null;
+  /** Activation an existing manifest already declares; set only when refreshing that manifest. */
+  establishedLinearNormGateActivation?: LinearNormGateActivation | null;
   modelKind?: 'transformer' | 'diffusion';
   architectureHint?: string | null;
   architecture?: string | null;

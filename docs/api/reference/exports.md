@@ -159,6 +159,8 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Implementation: [src/config/generation-contract.js](../../../src/config/generation-contract.js)
 - Notes: No manual classification recorded for this export path.
 - Exported symbols:
+  - `CanonicalGenerationPolicy`
+  - `CanonicalStopReason`
   - `GenerationCompletion`
   - `GenerationInput`
   - `GenerationOptions`
@@ -822,12 +824,22 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Notes: No manual classification recorded for this export path.
 - Exported symbols:
   - `*`
+  - `CanonicalGenerationPolicy`
+  - `CanonicalStopReason`
   - `configureDeviceMemoryBudget`
   - `createManifestResidentPartitionFactory`
   - `createResidentPartitionFactory`
   - `createVerifiedPieceStorage`
+  - `hashPartitionGeneration`
   - `inspectDeviceMemory`
+  - `metadataDigest`
   - `PartitionTiming`
+  - `ResidentCanonicalARequest`
+  - `ResidentCanonicalBRequest`
+  - `ResidentCanonicalBResult`
+  - `ResidentCanonicalGeneration`
+  - `ResidentExecutionIdentity`
+  - `ResidentOrderedPartitionIdentity`
   - `ResidentPartitionAllocation`
   - `ResidentPartitionARequest`
   - `ResidentPartitionAResult`
@@ -844,4 +856,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `ResidentPartitionTokenizationRequest`
   - `ResidentPartitionTokenizationResult`
   - `ResidentRecoveryCapabilities`
+  - `ResidentStageRequest`
+  - `ResidentStageResult`
+  - `tokenDigest`
   - `VerifiedPiece`

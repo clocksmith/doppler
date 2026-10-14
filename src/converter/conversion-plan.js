@@ -168,7 +168,7 @@ function resolveConversionPlanV1(options) {
 
   const modelId = converterConfig?.output?.modelBaseId ?? rawConfig?.model_id ?? 'unknown';
   validateV1InferenceFields(inference, modelId);
-  assertConvertedLinearNormGateActivation(inference, rawConfig, modelId);
+  assertConvertedLinearNormGateActivation(inference, rawConfig, modelId, options?.establishedLinearNormGateActivation ?? null);
 
   const sourceQuantization = (
     options?.sourceQuantization
