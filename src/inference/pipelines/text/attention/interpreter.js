@@ -33,7 +33,7 @@ import {
   resolveAttentionQKNormState,
 } from './projections.js';
 import { prepareAttentionProjectionInput } from './output-projection.js';
-import { runProbes } from '../probes.js';
+import { runProbes, tensorProbeOptions } from '../probes.js';
 import { shouldDebugLayer } from './types.js';
 import {
   getKernelPathMatmulPrecision,
@@ -218,7 +218,7 @@ export async function interpretAttentionWithRecorder(
     await runProbes('post_input_norm', normed.buffer, {
       layerIdx, numTokens, hiddenSize,
       probes: state.debugProbes, recorder,
-      operatorDiagnostics: state.operatorDiagnostics, dtype: normed.dtype,
+      operatorDiagnostics: state.operatorDiagnostics, ...tensorProbeOptions(normed),
     });
   } else if (canFuseInputNormProjRec) {
     fusedNormWeightRec = getNormWeightBuffer(layerWeights.inputNorm, 'input_norm');
@@ -265,7 +265,7 @@ export async function interpretAttentionWithRecorder(
     await runProbes('post_input_norm', normed.buffer, {
       layerIdx, numTokens, hiddenSize,
       probes: state.debugProbes, recorder,
-      operatorDiagnostics: state.operatorDiagnostics, dtype: normed.dtype,
+      operatorDiagnostics: state.operatorDiagnostics, ...tensorProbeOptions(normed),
     });
   }
   const debugLayers = debugFlags.debugLayers;
@@ -418,21 +418,21 @@ export async function interpretAttentionWithRecorder(
     await runProbes('q_proj', qTensor.buffer, {
       layerIdx, numTokens, hiddenSize: numHeads * headDim,
       probes: state.debugProbes, recorder,
-      operatorDiagnostics: state.operatorDiagnostics, dtype: qTensor.dtype,
+      operatorDiagnostics: state.operatorDiagnostics, ...tensorProbeOptions(qTensor),
     });
   }
   if (kTensor) {
     await runProbes('k_proj', kTensor.buffer, {
       layerIdx, numTokens, hiddenSize: numKVHeads * headDim,
       probes: state.debugProbes, recorder,
-      operatorDiagnostics: state.operatorDiagnostics, dtype: kTensor.dtype,
+      operatorDiagnostics: state.operatorDiagnostics, ...tensorProbeOptions(kTensor),
     });
   }
   if (vTensor) {
     await runProbes('v_proj', vTensor.buffer, {
       layerIdx, numTokens, hiddenSize: numKVHeads * headDim,
       probes: state.debugProbes, recorder,
-      operatorDiagnostics: state.operatorDiagnostics, dtype: vTensor.dtype,
+      operatorDiagnostics: state.operatorDiagnostics, ...tensorProbeOptions(vTensor),
     });
   }
   if (qTensor && shouldTraceRecordedHealth(layerIdx, debugFlags)) {
@@ -485,13 +485,13 @@ export async function interpretAttentionWithRecorder(
     await runProbes('q_norm', qTensor.buffer, {
       layerIdx, numTokens, hiddenSize: numHeads * headDim,
       probes: state.debugProbes, recorder,
-      operatorDiagnostics: state.operatorDiagnostics, dtype: qTensor.dtype,
+      operatorDiagnostics: state.operatorDiagnostics, ...tensorProbeOptions(qTensor),
     });
     if (kTensor) {
       await runProbes('k_norm', kTensor.buffer, {
         layerIdx, numTokens, hiddenSize: numKVHeads * headDim,
         probes: state.debugProbes, recorder,
-        operatorDiagnostics: state.operatorDiagnostics, dtype: kTensor.dtype,
+        operatorDiagnostics: state.operatorDiagnostics, ...tensorProbeOptions(kTensor),
       });
     }
     if (shouldTraceRecordedHealth(layerIdx, debugFlags)) {
@@ -518,7 +518,7 @@ export async function interpretAttentionWithRecorder(
     observe: (scaled) => runProbes('q_scale', scaled.buffer, {
       layerIdx, numTokens, hiddenSize: numHeads * headDim,
       probes: state.debugProbes, recorder,
-      operatorDiagnostics: state.operatorDiagnostics, dtype: scaled.dtype,
+      operatorDiagnostics: state.operatorDiagnostics, ...tensorProbeOptions(scaled),
     }),
   });
   if (!kvCacheWriteFused && config.valueNorm === true && !reusesSharedKV) {
@@ -539,7 +539,7 @@ export async function interpretAttentionWithRecorder(
     await runProbes('v_norm', vTensor.buffer, {
       layerIdx, numTokens, hiddenSize: numKVHeads * headDim,
       probes: state.debugProbes, recorder,
-      operatorDiagnostics: state.operatorDiagnostics, dtype: vTensor.dtype,
+      operatorDiagnostics: state.operatorDiagnostics, ...tensorProbeOptions(vTensor),
     });
   }
   if (normed !== attentionInput) {

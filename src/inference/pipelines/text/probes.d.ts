@@ -9,6 +9,21 @@ import type { ProbeConfigSchema, ProbeStage } from '../../../config/schema/index
 import type { CommandRecorder } from '../../../gpu/command-recorder.js';
 
 /**
+ * Probe options carrying a tensor's dtype and declared storage representation.
+ */
+export function tensorProbeOptions(tensor: {
+  dtype: 'f16' | 'f32';
+  precision?: 'two-f32';
+  components?: 2;
+  elementStrideBytes?: 8;
+}): {
+  dtype: 'f16' | 'f32';
+  precision?: 'two-f32';
+  components?: 2;
+  elementStrideBytes?: 8;
+};
+
+/**
  * Run configured probes for a specific stage.
  */
 export function runProbes(

@@ -36,7 +36,7 @@ import {
   resolveAttentionQKNormState,
 } from '../projections.js';
 import { prepareAttentionProjectionInput } from '../output-projection.js';
-import { runProbes } from '../../probes.js';
+import { runProbes, tensorProbeOptions } from '../../probes.js';
 import { shouldDebugLayer } from '../types.js';
 import {
   getKernelPathMatmulPrecision,
@@ -368,7 +368,7 @@ export async function runRecordedAttentionCore(options) {
     probes: state.debugProbes,
     recorder,
     operatorDiagnostics: state.operatorDiagnostics,
-    dtype: attnOutput.dtype,
+    ...tensorProbeOptions(attnOutput),
   });
   if (shouldTraceRecordedHealth(layerIdx, debugFlags)) {
     enqueueRecordedTensorHealth(

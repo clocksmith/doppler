@@ -1,4 +1,4 @@
-import { runProbes } from '../probes.js';
+import { runProbes, tensorProbeOptions } from '../probes.js';
 
 export async function observeAttentionRoPE(options) {
   const {
@@ -24,7 +24,7 @@ export async function observeAttentionRoPE(options) {
     probes: state.debugProbes,
     recorder,
     operatorDiagnostics: state.operatorDiagnostics,
-    dtype: qTensor.dtype,
+    ...tensorProbeOptions(qTensor),
   });
   if (kTensor) {
     await runProbes('k_rope', kTensor.buffer, {
@@ -34,7 +34,7 @@ export async function observeAttentionRoPE(options) {
       probes: state.debugProbes,
       recorder,
       operatorDiagnostics: state.operatorDiagnostics,
-      dtype: kTensor.dtype,
+      ...tensorProbeOptions(kTensor),
     });
   }
 }
