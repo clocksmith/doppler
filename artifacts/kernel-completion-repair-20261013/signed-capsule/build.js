@@ -49,7 +49,7 @@ const generation=await read(previous+'/generation-report.json');
 generation.scope='Observed first19-token request in the three-stage Mac browser / AMD Node / Intel Node route; exact independent source-token parity only';
 generation.surface='node';generation.output=run.text;
 // Hosts are named by alias; the inherited report carried a private machine address.
-generation.deviceInfo=[{index:0,host:'mac.lan'},{index:1,host:'amd-host'},{index:2,host:'intel-host'}];
+generation.deviceInfo=[{index:0,host:'mac-host'},{index:1,host:'amd-host'},{index:2,host:'intel-host'}];
 generation.metrics.generationConfig={...run.generation,seed:null};
 generation.provenance.rawGenerationConfig=run.generation;
 generation.provenance.seedNormalization='Captured greedy request omits seed; transcript schema represents unspecified seed as explicit null.';
@@ -72,7 +72,10 @@ for(const row of rows){assert.equal(row.provenance.archiveHash,'sha256:'+archive
 assert.deepEqual(new Set(rows.map(row=>row.surface+':'+row.partitionIndex)),new Set(['browser-webgpu:0','node-webgpu:1','node-webgpu:2']));
 await write('initial-identity.json',initial);
 const oldPolicy=await read(previous+'/release-policy.json');
-const policy={...oldPolicy,runtimeArchiveSha256:archiveHash,scope:'Local signed browser/Node opening qualification only; no public eligibility or application promotion'};
+const manifestIdentity='sha256:'+await hash(modelDir+'/manifest.json');
+assert.equal(manifestIdentity,'sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934');
+// The inherited policy named an older manifest; bind this candidate's model identity.
+const policy={...oldPolicy,modelIdentity:manifestIdentity,runtimeArchiveSha256:archiveHash,scope:'Local signed browser/Node opening qualification only; no public eligibility or application promotion'};
 await write('release-policy.json',policy);
 const release=await read(previous+'/release.json');
 release.application.applicationRevision='sha256:3f6d98a0dbf9f83a11e87f28b6483291618c9073756604b5e6e3c609736ecdf6';
@@ -108,10 +111,22 @@ const migration=await migrateCapsuleV2(await read(output+'/capsule.json'),{trust
 await write('capsule-v3.json',migration.capsule);
 const identity=getCapsuleIdentity(migration.capsule);const now=new Date().toISOString();
 const expires=new Date(Date.parse(now)+policy.offlineExpirySeconds*1000).toISOString();
-const event=await signCapsuleReleaseEvent({capsule:{schema:identity.schema,semanticRoot:identity.semanticRoot,envelopeDigest:identity.envelopeDigest},sequence:1,previousEventDigest:null,issuedAtUtc:now,expiresAtUtc:expires,action:'eligible',release:migration.release,migratedFrom:migration.migratedFrom,nextSigner:null},signer);
-await write('release-events.json',[event]);
-const verification=await verifyCapsule(migration.capsule,{trustedSigners,releaseTrustedSigners:trustedSigners,releaseEvents:[event],releasePolicy:{now,minimumSequence:1,checkpoint:{sequence:0,digest:null}},artifactStore:{readArtifact:artifact=>fs.readFile(output+'/'+artifact.path)}});
+// Continue the authority's existing release history. Checkpoints are keyed by authority and application,
+// and a host that accepted the earlier release holds sequence 1; a second sequence-1 history would be a fork.
+const priorHistory=await read('/var/tmp/qwen35-capsule-0fad-20261012/release-events.json');
+assert.equal(priorHistory.length,1);const prior=priorHistory[0];
+assert.equal(prior.sequence,1);assert.equal(prior.signature.authority,signer.authority);
+assert.equal(prior.digest,'sha256:d47ddb8d6f45b23230fbf2cf1731122ccc6160c51a968e616ff6cf366bf8c9d2');
+const event=await signCapsuleReleaseEvent({capsule:{schema:identity.schema,semanticRoot:identity.semanticRoot,envelopeDigest:identity.envelopeDigest},sequence:2,previousEventDigest:prior.digest,issuedAtUtc:now,expiresAtUtc:expires,action:'eligible',release:migration.release,migratedFrom:migration.migratedFrom,nextSigner:null},signer);
+const history=[prior,event];
+await write('release-events.json',history);
+const open=checkpoint=>verifyCapsule(migration.capsule,{trustedSigners,releaseTrustedSigners:trustedSigners,releaseEvents:history,releasePolicy:{now,minimumSequence:2,checkpoint},artifactStore:{readArtifact:artifact=>fs.readFile(output+'/'+artifact.path)}});
+// A host that accepted the earlier release, and a host with no history, must both admit this one.
+const verification=await open({sequence:1,digest:prior.digest});
+const fresh=await open({sequence:0,digest:null});
+assert.deepEqual(fresh.lifecycle.checkpoint,verification.lifecycle.checkpoint);
+assert.equal(verification.lifecycle.checkpoint.sequence,2);
 await write('exact-runtime-verification.json',{archiveSha256:archiveHash,runtime,identity,artifactReceipts:verification.artifactReceipts,lifecycle:verification.lifecycle,physicalOpening:false,publicPromotion:false});
 for(const name of ['source/capsule-input/generation-report.json','artifacts/program-bundle.json','capsule.json','capsule-v3.json'])assert(!/[a-z0-9-]+\.ts\.net/i.test(await fs.readFile(output+'/'+name,'utf8')),'Private machine address in '+name);
-await write('build-binding.json',{builderRevision:execFileSync('git',['rev-parse','HEAD'],{cwd:repo,encoding:'utf8'}).trim(),builderSha256:await hash(import.meta.filename),archiveSha256:archiveHash,sourceRevision,sourceRoot:output+'/source',runtime,previousCandidatePreserved:true,qualificationReports:await Promise.all(paths.map(async p=>({path:p,sha256:await hash(p)}))),contractSha256:await hash(rigOptions.residentQualificationContractPath),modelIRReceiptSha256:await hash(rigOptions.modelIRReceiptPath),manifestSha256:await hash(rigOptions.manifestPath),pieceIndexSha256:await hash(rigOptions.pieceIndexPath),programBundleSha256:await hash(programOptions.outputPath),identity,issuedAtUtc:now,expiresAtUtc:expires,artifactCount:verification.artifactReceipts.length,scope:'Isolated fresh release history for a new Capsule; previous candidates and histories preserved. No production or physical acceptance.'});
+await write('build-binding.json',{builderRevision:execFileSync('git',['rev-parse','HEAD'],{cwd:repo,encoding:'utf8'}).trim(),builderSha256:await hash(import.meta.filename),archiveSha256:archiveHash,sourceRevision,sourceRoot:output+'/source',runtime,previousCandidatePreserved:true,qualificationReports:await Promise.all(paths.map(async p=>({path:p,sha256:await hash(p)}))),contractSha256:await hash(rigOptions.residentQualificationContractPath),modelIRReceiptSha256:await hash(rigOptions.modelIRReceiptPath),manifestSha256:await hash(rigOptions.manifestPath),pieceIndexSha256:await hash(rigOptions.pieceIndexPath),programBundleSha256:await hash(programOptions.outputPath),identity,issuedAtUtc:now,expiresAtUtc:expires,artifactCount:verification.artifactReceipts.length,releaseHistory:{sequence:2,previousEventDigest:prior.digest,continues:'qwen35-capsule-0fad-20261012 release event'},scope:'Release history continues the authority and application history at sequence 2; previous candidates preserved. No production or physical acceptance.'});
 console.log(JSON.stringify({output,identity,artifacts:verification.artifactReceipts.length,expiresAtUtc:expires,physicalOpening:false}));

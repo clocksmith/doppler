@@ -15,11 +15,11 @@
       "sizeBytes": 222286
     },
     {
-      "artifactId": "reference-report:generation-report.json:729c2f36c150",
-      "hash": "sha256:729c2f36c15076f4934348c32ea8900df8f6bf5f488c3563c5209fac60674da9",
+      "artifactId": "reference-report:generation-report.json:c70dfd870428",
+      "hash": "sha256:c70dfd8704286e3bfee643089bd54fa39607552681a1cf786f3ca5b68f62620f",
       "path": "artifacts/evidence/generation-report.json",
       "role": "reference-report",
-      "sizeBytes": 5381
+      "sizeBytes": 5382
     },
     {
       "artifactId": "tokenizer:tokenizer.json:8fc3b6de02de",
@@ -442,15 +442,15 @@
       "sizeBytes": 63809
     },
     {
-      "artifactId": "program-bundle:program-bundle.json:580f06db90b9",
-      "hash": "sha256:580f06db90b917a9d815337f7d04d5c71d59e478bb0947393e0b2d33cc1917ef",
+      "artifactId": "program-bundle:program-bundle.json:241ffd5decc9",
+      "hash": "sha256:241ffd5decc9eb828841173415cd632f482118d0f68aafa410f9e3aa88f92db4",
       "path": "artifacts/program-bundle.json",
       "role": "program-bundle",
-      "sizeBytes": 159419
+      "sizeBytes": 159420
     }
   ],
-  "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v2-82e0871ad5e9cc82",
-  "createdAtUtc": "2026-10-14T01:56:35.680Z",
+  "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v2-e90af66faf52404f",
+  "createdAtUtc": "2026-10-14T02:14:06.662Z",
   "modelIR": {
     "blockClasses": [
       {
@@ -5175,8 +5175,8 @@
     "manifestArtifactId": "manifest:manifest.json:6b2cb026e6cd",
     "modelIREvidenceArtifactId": "source-truth-evidence:model-ir-074ad8ac8e84.json:074ad8ac8e84",
     "pieceIndexArtifactId": "piece-index:pieces.json:e64afdf50d99",
-    "programBundleArtifactId": "program-bundle:program-bundle.json:580f06db90b9",
-    "programBundleHash": "sha256:580f06db90b917a9d815337f7d04d5c71d59e478bb0947393e0b2d33cc1917ef",
+    "programBundleArtifactId": "program-bundle:program-bundle.json:241ffd5decc9",
+    "programBundleHash": "sha256:241ffd5decc9eb828841173415cd632f482118d0f68aafa410f9e3aa88f92db4",
     "referenceTranscript": {
       "executionGraphHash": "sha256:9e28445d798247290e44150f244b87e5ee1f8d97754baf3ed434bf95440549cf",
       "generationConfig": {
@@ -5229,7 +5229,7 @@
       },
       "schema": "doppler.reference-transcript/v1",
       "source": {
-        "hash": "sha256:729c2f36c15076f4934348c32ea8900df8f6bf5f488c3563c5209fac60674da9",
+        "hash": "sha256:c70dfd8704286e3bfee643089bd54fa39607552681a1cf786f3ca5b68f62620f",
         "kind": "browser-report",
         "path": "capsule-input/generation-report.json"
       },
@@ -5412,7 +5412,7 @@
       "authorityId": "reploid-paired-qualification-20261012",
       "failClosedAfterExpiry": true,
       "offlineExpirySeconds": 86400,
-      "policyDigest": "sha256:264bae94adf893f2e3d6602830d1b850e549e90e497f0704f914f04c45dec89c"
+      "policyDigest": "sha256:c0692294e2ba6643ce3e13b875525e0b39d8d378703d2c12e9697f4eef8c26a6"
     },
     "schema": "doppler.capsule-release/v1",
     "source": {
@@ -5438,13 +5438,13 @@
   },
   "schema": "doppler.capsule/v2",
   "schemaVersion": 2,
-  "semanticRoot": "sha256:82e0871ad5e9cc8207f3b27679644d0494118d9421ca0c414377e357633e103b",
+  "semanticRoot": "sha256:e90af66faf52404f5927ae26982546f6cd403f460b1f2dd815e33e0e967f5bd9",
   "signature": {
     "algorithm": "Ed25519",
     "authority": "reploid-paired-qualification-20261012",
     "publicKeyDigest": "sha256:cddc8e43da370860a974cf759b19726bf5e7f9c5d7c0a2a84abb6c9d34ab2d53",
-    "signatureHex": "e84524e6d410aac581754ad3d757cccf3bbed70bd6c419f9ae29dfcef55a7532af0d75e2fc737b1ec7a5abda22a1c8811e8c85256e24df1373950179bcd41209",
-    "signedDigest": "sha256:82e0871ad5e9cc8207f3b27679644d0494118d9421ca0c414377e357633e103b"
+    "signatureHex": "1f33e0bb2335809e2ba29c34a485dee4cd4b5759df995015d7c4eb5e7e699df008ef3c5317052a13f0b42deb2c974f3172acd124342f92422379b76c4d86c206",
+    "signedDigest": "sha256:e90af66faf52404f5927ae26982546f6cd403f460b1f2dd815e33e0e967f5bd9"
   },
   "targetPlans": [
     {
@@ -6823,15 +6823,15 @@
           }
         ]
       },
-      "programBundleHash": "sha256:580f06db90b917a9d815337f7d04d5c71d59e478bb0947393e0b2d33cc1917ef",
+      "programBundleHash": "sha256:241ffd5decc9eb828841173415cd632f482118d0f68aafa410f9e3aa88f92db4",
       "qualification": [
         {
-          "evidenceArtifactId": "reference-report:generation-report.json:729c2f36c150",
-          "evidenceHash": "sha256:729c2f36c15076f4934348c32ea8900df8f6bf5f488c3563c5209fac60674da9",
+          "evidenceArtifactId": "reference-report:generation-report.json:c70dfd870428",
+          "evidenceHash": "sha256:c70dfd8704286e3bfee643089bd54fa39607552681a1cf786f3ca5b68f62620f",
           "generatedTokens": 2,
           "status": "passed",
           "surface": "node-webgpu",
-          "transcriptHash": "sha256:0bc4ff47ff733930c80c65fd56e3d1f82083d2ad451ab50ce664d2df37f87793"
+          "transcriptHash": "sha256:fc7c3d892ca357fa476dc49964f2a39bbe68e9f821fd5f14516f48fe090cdbb6"
         },
         {
           "comparedSteps": 55,
