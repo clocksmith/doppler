@@ -34,7 +34,7 @@ try {
     const held = new Set(), recorder = recorded ? { device: { limits }, trackTemporaryBuffer: b => held.add(b) } : null;
     const settle = () => { for (const b of held) pairedLinearControl.release(b); held.clear(); };
     const run = (overrides = {}, options = {}) => executePairedLinearAttention(qkv, z, a, b, { ...state, ...overrides },
-      { numTokens: 2, outputDtype: 'f32', qkL2NormEps: 1e-6, recorder, ...options });
+      { numTokens: 2, outputDtype: 'f32', qkL2NormEps: 1e-6, recorder, normGateActivation: 'silu', ...options });
     for (const failure of ['paired_linear_conv', 'paired_linear_gates', 'paired_linear_output', 'gated_delta_conv', 'paired_beta', 'paired_decay_scale', 'paired_log_decay', 'paired_decay', 'paired_qk', 'paired_state', 'paired_norm', 'paired_gate']) {
       pairedLinearControl.failure = failure; await assert.rejects(run(), /injected/); settle(); assert.equal(live.size, 0);
     }
@@ -69,6 +69,14 @@ try {
       const count = calls.length; await assert.rejects(run(override)); assert.equal(calls.length, count); assert.equal(live.size, 0);
     }
     await assert.rejects(run({}, { qkL2NormEps: undefined }), /epsilons/);
+    // The gate phase follows the declared norm-gate activation; absence fails before allocation or dispatch.
+    for (const normGateActivation of [undefined, 'swish']) {
+      const count = calls.length; await assert.rejects(run({}, { normGateActivation }), /norm-gate activation/);
+      assert.equal(calls.length, count); assert.equal(live.size, 0);
+    }
+    const sigmoid = await run({}, { normGateActivation: 'sigmoid' });
+    assert.deepEqual(calls.slice(-4).map(call => call[2]), ['paired_qk', 'paired_state', 'paired_norm', 'paired_gate_sigmoid']);
+    pairedLinearControl.release(sigmoid.buffer); settle(); assert.equal(live.size, 0);
     limits.maxStorageBuffersPerShaderStage = 8; await assert.rejects(run(), /Nine storage/); limits.maxStorageBuffersPerShaderStage = 9;
   }
 } finally { hooks.deregister(); delete globalThis.pairedLinearControl; }

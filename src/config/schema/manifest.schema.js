@@ -1,6 +1,7 @@
 import { MB } from './units.schema.js';
 import {
   assertSupportedManifestInference,
+  LINEAR_NORM_GATE_ACTIVATIONS,
   validateRequiredInferenceFields,
 } from '../manifest-inference-validation.js';
 
@@ -85,8 +86,11 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     causal: true,  // Causal mask enabled by default (decoder-style attention)
     attentionBias: false,
     attentionOutputGate: false,
-    // null = sigmoid (historical default); 'swish'/'silu' = SiLU.
-    // Read from HF `output_gate_type` at conversion time.
+    // Recorded full-attention output-gate type. The runtime does not read it:
+    // the full-attention output gate is sigmoid (attention/plan.js). Qwen
+    // configs' HF `output_gate_type` describes the linear-attention gated
+    // RMSNorm instead; that meaning lives in
+    // normalization.linearNormGateActivation, never here.
     outputGateType: null,
   },
   normalization: {
@@ -103,6 +107,12 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     // Exact optional tensor for the final LayerNorm bias. Per-layer norm bias
     // tensors use canonical *.bias names and are loaded with their layer.
     finalNormBiasTensor: null,
+    // Activation applied to z by the linear-attention gated RMSNorm:
+    // 'silu' | 'sigmoid'. This default is the single home of the legacy
+    // meaning: manifests and Capsules converted before the field existed came
+    // from Qwen3.5-family sources, whose Qwen3_5RMSNormGated hardcodes silu.
+    // Converters author it explicitly (qwen4_exp maps output_gate_type).
+    linearNormGateActivation: 'silu',
   },
   ffn: {
     activation: 'silu',
@@ -219,6 +229,27 @@ export function hasInferenceConfig(
   manifest
 ) {
   return manifest.inference != null;
+}
+
+export { LINEAR_NORM_GATE_ACTIVATIONS };
+
+// Only an absent field takes the schema default; null or an unknown spelling
+// is a malformed manifest, never a request for the legacy meaning.
+export function resolveLinearNormGateActivation(normalization, label = 'inference.normalization') {
+  if (!normalization || typeof normalization !== 'object' || Array.isArray(normalization)) {
+    throw new Error(`${label} must be an object to resolve linearNormGateActivation.`);
+  }
+  const declared = normalization.linearNormGateActivation;
+  if (declared === undefined) {
+    return DEFAULT_MANIFEST_INFERENCE.normalization.linearNormGateActivation;
+  }
+  if (!LINEAR_NORM_GATE_ACTIVATIONS.includes(declared)) {
+    throw new Error(
+      `${label}.linearNormGateActivation must be one of ${LINEAR_NORM_GATE_ACTIVATIONS.join(', ')}; ` +
+      `got ${JSON.stringify(declared)}.`
+    );
+  }
+  return declared;
 }
 
 // Returns true when the model supports embedding workloads. Dedicated

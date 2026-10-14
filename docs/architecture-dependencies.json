@@ -358,6 +358,7 @@
         "src/gpu/kernels/fused_ffn.js",
         "src/gpu/kernels/fused_matmul_residual.js",
         "src/gpu/kernels/fused_matmul_rmsnorm.js",
+        "src/gpu/kernels/gated-delta-norm-gate.js",
         "src/gpu/kernels/gated-short-conv.js",
         "src/gpu/kernels/gated_rmsnorm.js",
         "src/gpu/kernels/gather.js",
@@ -1316,6 +1317,7 @@
         "src/converter/forge-qualification.js",
         "src/converter/forge-stages.js",
         "src/converter/lineage-lowering-forge.js",
+        "src/converter/linear-norm-gate.js",
         "src/converter/manifest-builder.js",
         "src/converter/manifest-conversion-postflight.js",
         "src/converter/manifest-conversion-preflight.js",
@@ -1514,6 +1516,7 @@
         "src/gpu/kernels/fused_ffn.js",
         "src/gpu/kernels/fused_matmul_residual.js",
         "src/gpu/kernels/fused_matmul_rmsnorm.js",
+        "src/gpu/kernels/gated-delta-norm-gate.js",
         "src/gpu/kernels/gated-short-conv.js",
         "src/gpu/kernels/gated_rmsnorm.js",
         "src/gpu/kernels/gather.js",
@@ -2335,6 +2338,7 @@
         "src/converter/execution-graph/dtype.js",
         "src/converter/execution-graph/fusion.js",
         "src/converter/execution-graph/validation.js",
+        "src/converter/linear-norm-gate.js",
         "src/converter/manifest-builder.js",
         "src/converter/parsers/diffusion.js",
         "src/converter/parsers/gguf.js",
@@ -2592,6 +2596,7 @@
         "src/gpu/kernels/fused_ffn.js",
         "src/gpu/kernels/fused_matmul_residual.js",
         "src/gpu/kernels/fused_matmul_rmsnorm.js",
+        "src/gpu/kernels/gated-delta-norm-gate.js",
         "src/gpu/kernels/gated-short-conv.js",
         "src/gpu/kernels/gated_rmsnorm.js",
         "src/gpu/kernels/gather.js",
@@ -3268,6 +3273,7 @@
         "src/converter/forge-candidate-evaluation.js",
         "src/converter/forge-qualification.js",
         "src/converter/forge-stages.js",
+        "src/converter/linear-norm-gate.js",
         "src/converter/manifest-builder.js",
         "src/converter/parsers/diffusion.js",
         "src/converter/parsers/gguf.js",
@@ -3474,6 +3480,7 @@
         "src/gpu/kernels/fused_ffn.js",
         "src/gpu/kernels/fused_matmul_residual.js",
         "src/gpu/kernels/fused_matmul_rmsnorm.js",
+        "src/gpu/kernels/gated-delta-norm-gate.js",
         "src/gpu/kernels/gated-short-conv.js",
         "src/gpu/kernels/gated_rmsnorm.js",
         "src/gpu/kernels/gather.js",
@@ -4199,6 +4206,7 @@
         "tests/config/lean-execution-contract-config-sweep.test.js",
         "tests/config/lean-execution-contract-sweep.test.js",
         "tests/config/lfm2-local-manifest-contract.test.js",
+        "tests/config/linear-norm-gate-activation.test.js",
         "tests/config/load-json.test.js",
         "tests/config/local-gemma-tokenizer-vocab-contract.test.js",
         "tests/config/local-gpu-challenger-matrix-contract.test.js",
@@ -4317,6 +4325,7 @@
         "tests/converter/gguf-parser.test.js",
         "tests/converter/layer-pattern-every-n.test.js",
         "tests/converter/lineage-lowering-forge.test.js",
+        "tests/converter/linear-norm-gate.test.js",
         "tests/converter/manifest-conversion-postflight.test.js",
         "tests/converter/manifest-conversion-preflight.test.js",
         "tests/converter/ordered-resident-qualification.test.js",
@@ -4872,6 +4881,7 @@
         "tests/kernels/compensated-state-physical.js",
         "tests/kernels/fused-ffn-q4k-parity.test.js",
         "tests/kernels/fused-matmul-q4-widetile-f16a-parity.test.js",
+        "tests/kernels/gated-delta-norm-gate.test.js",
         "tests/kernels/gemma4-route-expert-parity.test.js",
         "tests/kernels/gemma4-route-scatter-parity.test.js",
         "tests/kernels/gptoss_moe_selection.test.js",
@@ -5310,6 +5320,7 @@
         "src/config/conversion/diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16.json",
         "src/config/conversion/esm/esm2-t12-35m-ur50d-f32-af32.json",
         "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
+        "src/config/conversion/qwen3/qwen3.8-27b-text-f16-af32.json",
         "src/config/diagnostics/drift-policies.json",
         "src/config/dtype-transition-contract.js",
         "src/config/embedding-contract.js",
@@ -5439,6 +5450,7 @@
         "src/converter/forge-qualification.js",
         "src/converter/forge-stages.js",
         "src/converter/lineage-lowering-forge.js",
+        "src/converter/linear-norm-gate.js",
         "src/converter/manifest-builder.js",
         "src/converter/manifest-conversion-postflight.js",
         "src/converter/manifest-conversion-preflight.js",
@@ -5698,6 +5710,7 @@
         "src/gpu/kernels/fused_ffn.js",
         "src/gpu/kernels/fused_matmul_residual.js",
         "src/gpu/kernels/fused_matmul_rmsnorm.js",
+        "src/gpu/kernels/gated-delta-norm-gate.js",
         "src/gpu/kernels/gated-short-conv.js",
         "src/gpu/kernels/gated_delta_fused_decode.wgsl",
         "src/gpu/kernels/gated_delta_recurrent.wgsl",
@@ -6298,6 +6311,7 @@
     "src/config/conversion/diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16.json",
     "src/config/conversion/esm/esm2-t12-35m-ur50d-f32-af32.json",
     "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
+    "src/config/conversion/qwen3/qwen3.8-27b-text-f16-af32.json",
     "src/config/quickstart-registry.json",
     "src/config/revocation-registry.json",
     "src/config/runtime/profiles/gemma4-31b-f16-activations-probe.json",
@@ -6457,6 +6471,12 @@
       "kind": "asset",
       "line": 11,
       "expression": "new URL(`../../src/gpu/kernels/${config.shaderFile}`, import.meta.url)"
+    },
+    {
+      "file": "tests/converter/linear-norm-gate.test.js",
+      "kind": "asset",
+      "line": 12,
+      "expression": "new URL(path, import.meta.url)"
     },
     {
       "file": "tests/converter/semantic-manifest-lowering.test.js",
@@ -6915,6 +6935,12 @@
       "expression": "import(\n    `../../src/gpu/kernels/shader-cache.js?kernel-base-test=${Date.now()}`\n  )"
     },
     {
+      "file": "tests/kernels/gated-delta-norm-gate.test.js",
+      "kind": "asset",
+      "line": 15,
+      "expression": "new URL(`../../src/gpu/kernels/${name}`, import.meta.url)"
+    },
+    {
       "file": "tests/kernels/kernel-uniform-echo-physical.test.js",
       "kind": "asset",
       "line": 69,
@@ -6929,8 +6955,14 @@
     {
       "file": "tests/kernels/paired-linear-physical.js",
       "kind": "asset",
-      "line": 11,
+      "line": 16,
       "expression": "new URL(`../../src/gpu/kernels/${name}.wgsl`, import.meta.url)"
+    },
+    {
+      "file": "tests/kernels/recurrent-reference.test.js",
+      "kind": "asset",
+      "line": 111,
+      "expression": "new URL(`../../${SIGMOID_NORM_GATE_REFERENCE.receipt}`, import.meta.url)"
     },
     {
       "file": "tests/kernels/rmsnorm-dispatch-reuse.js",
@@ -6947,25 +6979,31 @@
     {
       "file": "tests/tooling/program-bundle-paired-closure.test.js",
       "kind": "asset",
-      "line": 10,
+      "line": 11,
       "expression": "new URL(path, import.meta.url)"
     },
     {
       "file": "tests/tooling/program-bundle-paired-closure.test.js",
       "kind": "asset",
-      "line": 19,
+      "line": 24,
       "expression": "new URL(`../../src/gpu/kernels/${gate.shaderFile}`, import.meta.url)"
     },
     {
       "file": "tests/tooling/program-bundle-paired-closure.test.js",
       "kind": "asset",
-      "line": 26,
+      "line": 37,
+      "expression": "new URL(`../../src/gpu/kernels/${gate.shaderFile}`, import.meta.url)"
+    },
+    {
+      "file": "tests/tooling/program-bundle-paired-closure.test.js",
+      "kind": "asset",
+      "line": 54,
       "expression": "new URL(`../../src/gpu/kernels/${declaration.kernel}`, import.meta.url)"
     },
     {
       "file": "tests/tooling/program-bundle-paired-closure.test.js",
       "kind": "asset",
-      "line": 35,
+      "line": 63,
       "expression": "new URL(`../../src/gpu/kernels/${filename}`, import.meta.url)"
     },
     {

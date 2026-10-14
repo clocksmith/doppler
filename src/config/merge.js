@@ -1,4 +1,4 @@
-import { DEFAULT_MANIFEST_INFERENCE } from './schema/manifest.schema.js';
+import { DEFAULT_MANIFEST_INFERENCE, resolveLinearNormGateActivation } from './schema/manifest.schema.js';
 import { chooseDefined, chooseDefinedWithSource } from './merge/value-selection.js';
 import { log } from '../debug/index.js';
 import { validateReasoningOutput } from './reasoning-output.js';
@@ -116,7 +116,19 @@ function mergeNormalization(
   sources
 ) {
   const prefix = 'inference.normalization';
+  if (runtime?.linearNormGateActivation !== undefined) {
+    throw new Error(
+      'inference.normalization.linearNormGateActivation is source-owned; re-convert the model to change it.'
+    );
+  }
   return {
+    // Absent in pre-field manifests; resolves to the schema default (silu).
+    linearNormGateActivation: overlay(
+      `${prefix}.linearNormGateActivation`,
+      resolveLinearNormGateActivation(manifest, prefix),
+      undefined,
+      sources
+    ),
     type: overlay(
       `${prefix}.type`,
       manifest.type,

@@ -21250,10 +21250,13 @@
      "workgroup": [128,1,1],
      "requires": [],
      "outputDtype": "f32",
+     "variantMetadata": {
+      "normGateActivation": "silu"
+     },
      "reachability": {
       "status": "pinned",
       "inlineConfigs": ["qwen3/qwen3.8-27b-text-f16-af32","qwen3/qwen3.8-27b-text-q4k-ehaf16"],
-      "ruleChains": [],
+      "ruleChains": ["gated-delta-recurrent.rules.json#scalarVariant"],
       "wgslOnDisk": true
      }
     },
@@ -21263,10 +21266,45 @@
      "workgroup": [128,1,1],
      "requires": ["shader-f16"],
      "outputDtype": "f32",
+     "variantMetadata": {
+      "normGateActivation": "silu"
+     },
      "reachability": {
-      "status": "unused",
+      "status": "model-selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["gated-delta-recurrent.rules.json#scalarVariant"],
+      "wgslOnDisk": true
+     }
+    },
+    "sigmoid_gate": {
+     "wgsl": "gated_delta_recurrent_sigmoid_gate.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "normGateActivation": "sigmoid"
+     },
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["gated-delta-recurrent.rules.json#scalarVariant"],
+      "wgslOnDisk": true
+     }
+    },
+    "sigmoid_gate_f16": {
+     "wgsl": "gated_delta_recurrent_sigmoid_gate_f16.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": ["shader-f16"],
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "normGateActivation": "sigmoid"
+     },
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["gated-delta-recurrent.rules.json#scalarVariant"],
       "wgslOnDisk": true
      }
     },
@@ -21353,12 +21391,13 @@
         "operation": "gated_delta_recurrent",
         "variant": "paired_gate"
        }
-      ]
+      ],
+      "normGateActivation": "silu"
      },
      "reachability": {
-      "status": "unused",
+      "status": "model-selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["gated-delta-recurrent.rules.json#pairedClosureAnchorVariant"],
       "wgslOnDisk": true
      },
      "uniformsOverride": {
@@ -21934,12 +21973,158 @@
       "inputPrecision": "two-f32",
       "outputPrecision": "two-f32",
       "activationComponents": 2,
-      "activationElementStrideBytes": 8
+      "activationElementStrideBytes": 8,
+      "normGateActivation": "silu"
      },
      "reachability": {
-      "status": "unused",
+      "status": "model-selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["gated-delta-recurrent.rules.json#pairedGateVariant"],
+      "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 80,
+      "fields": [
+       {
+        "name": "num_tokens",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "conv_dim",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "conv_kernel_size",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "num_v_heads",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "num_k_heads",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "head_k_dim",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "head_v_dim",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "q_size",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "k_size",
+        "type": "u32",
+        "offset": 32
+       },
+       {
+        "name": "value_dim",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "q_rep",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "norm_mode",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "rms_eps_hi",
+        "type": "f32",
+        "offset": 48
+       },
+       {
+        "name": "rms_eps_lo",
+        "type": "f32",
+        "offset": 52
+       },
+       {
+        "name": "qk_eps_hi",
+        "type": "f32",
+        "offset": 56
+       },
+       {
+        "name": "qk_eps_lo",
+        "type": "f32",
+        "offset": 60
+       },
+       {
+        "name": "packed_flags",
+        "type": "u32",
+        "offset": 64
+       },
+       {
+        "name": "b_offset",
+        "type": "u32",
+        "offset": 68
+       },
+       {
+        "name": "norm_weight_offset",
+        "type": "u32",
+        "offset": 72
+       },
+       {
+        "name": "_pad",
+        "type": "u32",
+        "offset": 76,
+        "padding": true
+       }
+      ]
+     }
+    },
+    "paired_gate_sigmoid": {
+     "wgsl": "gated_delta_gate_sigmoid_paired.wgsl",
+     "immediateCompletion": "settled",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "wgslName": "u",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "z",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "variantMetadata": {
+      "inputPrecision": "two-f32",
+      "outputPrecision": "two-f32",
+      "activationComponents": 2,
+      "activationElementStrideBytes": 8,
+      "normGateActivation": "sigmoid"
+     },
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["gated-delta-recurrent.rules.json#pairedGateVariant"],
       "wgslOnDisk": true
      },
      "uniformsOverride": {
@@ -22202,10 +22387,13 @@
      "workgroup": [128,1,1],
      "requires": [],
      "outputDtype": "f32",
+     "variantMetadata": {
+      "normGateActivation": "silu"
+     },
      "reachability": {
       "status": "pinned",
       "inlineConfigs": ["qwen3/qwen3.8-27b-text-f16-af32","qwen3/qwen3.8-27b-text-q4k-ehaf16"],
-      "ruleChains": [],
+      "ruleChains": ["gated-delta-fused-decode.rules.json#scalarVariant"],
       "wgslOnDisk": true
      }
     },
@@ -22215,10 +22403,45 @@
      "workgroup": [128,1,1],
      "requires": ["shader-f16"],
      "outputDtype": "f32",
+     "variantMetadata": {
+      "normGateActivation": "silu"
+     },
      "reachability": {
-      "status": "unused",
+      "status": "model-selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["gated-delta-fused-decode.rules.json#scalarVariant"],
+      "wgslOnDisk": true
+     }
+    },
+    "sigmoid_gate": {
+     "wgsl": "gated_delta_fused_decode_sigmoid_gate.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "normGateActivation": "sigmoid"
+     },
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["gated-delta-fused-decode.rules.json#scalarVariant"],
+      "wgslOnDisk": true
+     }
+    },
+    "sigmoid_gate_f16": {
+     "wgsl": "gated_delta_fused_decode_sigmoid_gate_f16.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": ["shader-f16"],
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "normGateActivation": "sigmoid"
+     },
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["gated-delta-fused-decode.rules.json#scalarVariant"],
       "wgslOnDisk": true
      }
     }

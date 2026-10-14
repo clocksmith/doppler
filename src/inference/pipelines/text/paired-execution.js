@@ -1,5 +1,32 @@
 import { getLayerSteps, getKernelPathStepConfig } from '../../../config/kernel-path-loader.js';
-import { assertPairedExecutionMechanismClosure } from '../../../config/execution-registry-contract.js';
+import {
+  assertLinearNormGateClosure,
+  assertPairedExecutionMechanismClosure,
+} from '../../../config/execution-registry-contract.js';
+import { resolveLinearNormGateActivation } from '../../../config/schema/manifest.schema.js';
+import { selectRuleValue } from '../../../rules/rule-registry.js';
+
+/**
+ * Paired closure for the manifest's declared norm-gate activation. Used by Run
+ * admission and Rig signing; pre-field manifests resolve to the silu closure.
+ * @type {typeof import('./paired-execution.js').assertPairedLinearMechanismClosure}
+ */
+export function assertPairedLinearMechanismClosure(manifestInference) {
+  const graph = manifestInference?.execution;
+  if (!graph) throw new Error('[PairedExecution] An explicit execution graph is required.');
+  const normGateActivation = resolveLinearNormGateActivation(manifestInference.normalization,
+    'manifest.inference.normalization');
+  assertLinearNormGateClosure(graph, normGateActivation);
+  const context = { normGateActivation };
+  /** @type {string | null} */
+  const anchor = selectRuleValue('kernels', 'gatedDeltaRecurrent', 'pairedClosureAnchorVariant', context);
+  /** @type {string} */
+  const gate = selectRuleValue('kernels', 'gatedDeltaRecurrent', 'pairedGateVariant', context);
+  /** @type {Array<readonly [string, string]>} */
+  const mechanisms = anchor === null ? [] : [['gated_delta_recurrent', anchor]];
+  mechanisms.push(['gated_delta_recurrent', gate]);
+  assertPairedExecutionMechanismClosure(graph, mechanisms);
+}
 
 /**
  * @param {import('../../../config/schema/kernel-path.schema.js').KernelStepSchema[]} steps
@@ -39,9 +66,7 @@ export function validatePairedExecution(path, session, manifest) {
     || types.some(type => type !== 'linear_attention' && type !== 'full_attention')) {
     throw new Error('[PairedExecution] Explicit complete linear/full-attention layer geometry is required.');
   }
-  const graph = manifest.inference.execution;
-  if (!graph) throw new Error('[PairedExecution] An explicit execution graph is required.');
-  assertPairedExecutionMechanismClosure(graph);
+  assertPairedLinearMechanismClosure(manifest.inference);
   for (let layer = 0; layer < count; layer++) for (const phase of /** @type {const} */ (['prefill', 'decode'])) {
     const steps = getLayerSteps(path, layer, phase);
     for (const role of ['input_norm', 'post_attn_norm']) requireStep(steps, role, 'rmsnorm', 'paired');

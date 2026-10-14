@@ -22,6 +22,8 @@
     "src/inference/pipelines/text/generator/decode-components.js",
     "src/gpu/kernels/paired-matmul.js",
     "src/gpu/kernels/paired-linear-attention.js",
+    "src/gpu/kernels/gated-delta-norm-gate.js",
+    "src/converter/linear-norm-gate.js",
     "src/gpu/kernels/paired-cast.js",
     "src/gpu/kernels/paired-rmsnorm.js",
     "src/converter/resident-qualification.js",

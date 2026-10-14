@@ -11,7 +11,7 @@ import type { W8A8Policy } from './w8a8.schema.js';
 import type { ManifestRoPESchema } from './manifest-rope.schema.js';
 export type { ManifestRoPESchema } from './manifest-rope.schema.js';
 import type { KernelPathRef } from './kernel-path.schema.js';
-import type { LayerPipelineSchema, LayerType, LinearNormMode } from './inference.schema.js';
+import type { LayerPipelineSchema, LayerType, LinearNormGateActivation, LinearNormMode } from './inference.schema.js';
 import type { EnergyModelConfigSchema } from './energy.schema.js';
 import type {
   ExecutionV1GraphSchema,
@@ -308,6 +308,13 @@ export interface ManifestNormalizationSchema {
   postFeedforwardNorm: boolean;
   /** Exact final LayerNorm bias tensor; null for RMSNorm or bias-free LayerNorm. */
   finalNormBiasTensor: string | null;
+  /**
+   * Activation applied to z by the linear-attention gated RMSNorm. Source-owned:
+   * runtime overrides are rejected. Manifests converted before this field
+   * existed omit it; merge resolves the omission to the schema default `silu`
+   * (see resolveLinearNormGateActivation), never to another value.
+   */
+  linearNormGateActivation?: LinearNormGateActivation;
 }
 
 /**
@@ -810,3 +817,17 @@ export declare function modelSupportsTranscription(
 export declare function modelSupportsVision(
   manifest: Partial<ManifestSchema> | null | undefined
 ): boolean;
+
+/** Supported linear-attention gated-RMSNorm activations, in canonical spelling. */
+export declare const LINEAR_NORM_GATE_ACTIVATIONS: readonly LinearNormGateActivation[];
+
+/**
+ * Resolve the declared linear-attention norm-gate activation of a manifest
+ * normalization section. An absent field resolves to the schema default
+ * (`silu`, the meaning of every manifest converted before the field existed);
+ * any other value, including null, must be a supported activation or throws.
+ */
+export declare function resolveLinearNormGateActivation(
+  normalization: Partial<ManifestNormalizationSchema>,
+  label?: string
+): LinearNormGateActivation;

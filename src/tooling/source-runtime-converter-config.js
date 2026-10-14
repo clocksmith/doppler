@@ -5,6 +5,11 @@ import {
   DEFAULT_MANIFEST_INFERENCE,
 } from '../config/schema/index.js';
 import { buildRoPEConfig } from '../converter/rope-config.js';
+import {
+  normalizeSourceModelFamily,
+  resolveSourceLinearNormGateActivation,
+  sourceDeclaresLinearAttention,
+} from '../converter/linear-norm-gate.js';
 import { cloneJsonValue } from '../formats/clone-json.js';
 
 const ZERO_DIGEST = 'sha256:' + '0'.repeat(64);
@@ -103,7 +108,26 @@ function applyFamilyDefaults(inference, rawConfig) {
   return family;
 }
 
-function applyExplicitAttentionConfig(inference, rawConfig) {
+// Authors normalization.linearNormGateActivation from source semantics and
+// returns it, or null for a family without linear attention. A family that
+// declares linear-attention layers but has no known mapping fails instead of
+// inheriting the schema default.
+function applyLinearNormGateConfig(inference, rawConfig) {
+  const activation = resolveSourceLinearNormGateActivation(rawConfig);
+  if (activation !== null) {
+    inference.normalization.linearNormGateActivation = activation;
+    return activation;
+  }
+  if (sourceDeclaresLinearAttention(rawConfig)) {
+    throw new Error(
+      `Source model_type "${normalizeSourceModelFamily(rawConfig)}" declares linear-attention layers, ` +
+      'but Doppler has no linear norm-gate activation mapping for it. Use an explicit conversion config.'
+    );
+  }
+  return null;
+}
+
+function applyExplicitAttentionConfig(inference, rawConfig, outputGateTypeIsNormGate) {
   const attentionBias = asOptionalBoolean(readRawConfigField(rawConfig, 'attention_bias'));
   if (attentionBias != null) {
     inference.attention.attentionBias = attentionBias;
@@ -124,13 +148,15 @@ function applyExplicitAttentionConfig(inference, rawConfig) {
     inference.attention.valueNorm = valueNorm;
   }
 
-  // HF `output_gate_type` selects the activation applied to the
-  // attention-output gate when `attention.attentionOutputGate=true`.
-  // Qwen 3.5 leaves the field unset (defaulting to sigmoid in
-  // Doppler's runSiLU dispatch); Qwen 3.6 explicitly sets
-  // "swish" (== silu).
+  // HF `output_gate_type` is not the full-attention output gate in the Qwen
+  // hybrid families: qwen4_exp applies it to the linear-attention gated
+  // RMSNorm, and qwen3_5 (Qwen 3.5/3.6/3.8, which write "swish") hardcodes a
+  // silu norm gate and never reads it. For those families it is resolved into
+  // normalization.linearNormGateActivation and not recorded here. The
+  // full-attention output gate is always sigmoid (attention/plan.js); the
+  // runtime does not read attention.outputGateType for any family.
   const outputGateTypeRaw = readRawConfigField(rawConfig, 'output_gate_type');
-  if (typeof outputGateTypeRaw === 'string' && outputGateTypeRaw.trim()) {
+  if (!outputGateTypeIsNormGate && typeof outputGateTypeRaw === 'string' && outputGateTypeRaw.trim()) {
     inference.attention.outputGateType = outputGateTypeRaw.trim().toLowerCase();
   }
 
@@ -239,7 +265,8 @@ export function createSourceRuntimeInference(rawConfig = null) {
     inference.output.scaleEmbeddings = scaleEmbeddings;
   }
 
-  applyExplicitAttentionConfig(inference, rawConfig);
+  const linearNormGateActivation = applyLinearNormGateConfig(inference, rawConfig);
+  applyExplicitAttentionConfig(inference, rawConfig, linearNormGateActivation !== null);
   applyExplicitFfnConfig(inference, rawConfig);
   applyLayerPatternConfig(inference, rawConfig);
 

@@ -15,6 +15,7 @@ import {
 import { recordDispatch } from './dispatch.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
 import { assertImplicitDtypeTransitionAllowed } from '../../config/dtype-transition-contract.js';
+import { requireNormGateActivation, resolveGatedDeltaNormGateKernel } from './gated-delta-norm-gate.js';
 
 const CONV_WORKGROUP_SIZE = WORKGROUP_SIZES.DEFAULT;
 const HEAD_WORKGROUP_SIZE = 128;
@@ -72,14 +73,23 @@ function createBindGroupLayouts(device) {
   );
 }
 
-async function createPipelines(device, inputDtype, stateComponents) {
+async function createPipelines(device, inputDtype, stateComponents, normGateActivation) {
   createBindGroupLayouts(device);
   const variant = inputDtype === 'f16' ? 'f16' : 'f32';
   const suffix = variant === 'f16' ? '_f16' : '';
+  // The gate-applying kernels come from their rule maps and must declare the
+  // model's norm-gate activation; silu resolves to the original shader files.
+  const gateContext = { inputDtype: variant, normGateActivation };
+  const recurrentConfig = resolveGatedDeltaNormGateKernel(
+    'gated_delta_recurrent', 'gatedDeltaRecurrent', 'scalarVariant', gateContext
+  );
+  const fusedDecodeConfig = resolveGatedDeltaNormGateKernel(
+    'gated_delta_fused_decode', 'gatedDeltaFusedDecode', 'scalarVariant', gateContext
+  );
   const [convModule, recurrentModule, fusedDecodeModule] = await Promise.all([
     getShaderModule(device, `gated_delta_conv${suffix}.wgsl`, `gated_delta_conv_${variant}`),
-    getShaderModule(device, `gated_delta_recurrent${suffix}.wgsl`, `gated_delta_recurrent_${variant}`),
-    getShaderModule(device, `gated_delta_fused_decode${suffix}.wgsl`, `gated_delta_fused_decode_${variant}`),
+    getShaderModule(device, recurrentConfig.shaderFile, `gated_delta_recurrent_${variant}`),
+    getShaderModule(device, fusedDecodeConfig.shaderFile, `gated_delta_fused_decode_${variant}`),
   ]);
 
   const convPipeline = device.createComputePipeline({
@@ -129,7 +139,7 @@ function normalizeInputDtype(dtype) {
   return selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype });
 }
 
-async function ensurePipelines(device, inputDtype, stateComponents) {
+async function ensurePipelines(device, inputDtype, stateComponents, normGateActivation) {
   const epoch = getShaderScopeCacheKey();
   if (epoch !== cachedEpoch) {
       pipelineCache.clear();
@@ -139,9 +149,9 @@ async function ensurePipelines(device, inputDtype, stateComponents) {
       cachedEpoch = epoch;
   }
   const dtype = normalizeInputDtype(inputDtype);
-  const variant = `${dtype}:${stateComponents}`;
+  const variant = `${dtype}:${stateComponents}:${normGateActivation}`;
   if (!pipelineCache.has(variant)) {
-    pipelineCache.set(variant, createPipelines(device, dtype, stateComponents));
+    pipelineCache.set(variant, createPipelines(device, dtype, stateComponents, normGateActivation));
     cachedEpoch = epoch;
   }
   try {
@@ -239,6 +249,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
   if (layerState.normMode !== 'shared' && layerState.normMode !== 'per_head') {
     throw new Error(`linear_attention requires supported normMode, got ${layerState.normMode}.`);
   }
+  const normGateActivation = requireNormGateActivation(options.normGateActivation, 'linear_attention core');
 
   const inputDtype = normalizeInputDtype(qkvTensor?.dtype);
   if (normalizeInputDtype(zTensor?.dtype) !== inputDtype) {
@@ -264,7 +275,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
       || layerState.recurrentStateGPU.size < stateBytes) {
     throw new Error('linear_attention recurrent state binding does not match declared storage layout.');
   }
-  const pipelines = await ensurePipelines(device, inputDtype, stateComponents);
+  const pipelines = await ensurePipelines(device, inputDtype, stateComponents, normGateActivation);
   if (!pipelines) {
     throw new Error(`linear_attention core failed to resolve pipelines for dtype "${inputDtype}".`);
   }

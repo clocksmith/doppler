@@ -18,6 +18,7 @@ import type {
   ArchitectureSchema,
   LinearNormMode,
 } from '../../../config/schema/index.js';
+import type { LinearNormGateActivation } from '../../../config/schema/inference.schema.js';
 import type { MergedConfig, RuntimeInferenceOverrides } from '../../../config/merge.js';
 import type { ExecutionV1PerLayerInputsSessionSchema } from '../../../config/schema/execution-v1.schema.js';
 import type { RuntimeModelContract } from '../../runtime-model.js';
@@ -224,6 +225,8 @@ export interface ParsedModelConfig {
   linearValueHeadDim: number | null;
   linearConvKernelDim: number | null;
   linearNormMode: LinearNormMode | null;
+  /** Linear-attention gated-RMSNorm activation; merge resolves pre-field manifests to `silu`. */
+  linearNormGateActivation: LinearNormGateActivation;
   attentionBias: boolean;
   causalAttention: boolean;
   finalLogitSoftcapping: number | null;
@@ -235,6 +238,11 @@ export interface ParsedModelConfig {
   queryKeyNormWeightLayers: number[] | null;
   valueNorm: boolean;
   attentionOutputGate: boolean;
+  /**
+   * Full-attention output-gate field as authored. The runtime does not consume
+   * it: the full-attention gate is sigmoid (attention/plan.js). It is not the
+   * linear-attention norm gate; see linearNormGateActivation.
+   */
   outputGateType: 'sigmoid' | 'swish' | 'silu' | null;
   queryPreAttnScalar: number;
   queryScale: number;

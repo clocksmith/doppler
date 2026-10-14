@@ -168,6 +168,43 @@ older signed shaders without that specialization to remain executable. Their
 sealed WGSL is not replaced during opening. The physical GPU regression retains
 the exact pre-change shader as its compatibility input.
 
+## Linear-attention norm gate
+
+`inference.normalization.linearNormGateActivation` (`silu` | `sigmoid`) is the
+activation that a gated-delta layer's gated RMSNorm applies to `z`:
+`norm(x) * w * act(z)`. The field is source-owned, so runtime and call-time
+overrides are rejected. Manifests and Capsules converted before the field
+existed omit it. Merge resolves the omission to the schema default `silu` in
+`src/config/schema/manifest.schema.js` and in no other place; their converted
+bytes and pinned kernels are unchanged.
+
+Source semantics come from the upstream family, not from `output_gate_type`
+alone:
+
+- `qwen3_5` / `qwen3_5_text` hardcode silu (`Qwen3_5RMSNormGated`). A
+  contradicting `output_gate_type` fails conversion.
+- `qwen4_exp` / `qwen4_exp_text` apply `output_gate_type or hidden_act`, which
+  must be `sigmoid` or `silu` (Flash-Next: `sigmoid`).
+
+Conversion fails when an authored value disagrees with the source, when a
+non-silu source omits the field, or when an unknown family with
+linear-attention layers omits it. In both families the HF `output_gate_type`
+is not the full-attention output gate, which is always sigmoid. The
+`attention.outputGateType` values already recorded in checked-in configs are
+not read at runtime.
+
+Run selects the gate kernels through `kernels.gatedDeltaRecurrent` and
+`kernels.gatedDeltaFusedDecode` rules. Silu keeps the original pinned shaders.
+Sigmoid selects the `*_sigmoid_gate` kernels and `gated_delta_gate_sigmoid_paired`,
+which differ from their silu sources only in the gate call. Every
+gate-applying registry variant declares `variantMetadata.normGateActivation`.
+Dispatch fails when the selected kernel's declared activation disagrees with
+the model's. Execution-plan compile, paired admission and Rig signing fail
+when the execution graph declares a kernel whose registry activation differs
+from the manifest's. A sigmoid paired closure declares
+`gated_delta_recurrent/paired_gate_sigmoid` instead of the silu gate and the
+silu monolithic anchor.
+
 ## Explicit affine LayerNorm in layer plans
 
 A layer plan may declare `op: "layernorm"` with `weight` selecting `input`,

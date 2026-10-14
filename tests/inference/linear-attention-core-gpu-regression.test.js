@@ -13,6 +13,13 @@ function silu(x) {
   return x / (1 + Math.exp(-x));
 }
 
+// Gated RMSNorm gate: Qwen3.5 silu(z); qwen4_exp output_gate_type="sigmoid" sigmoid(z).
+function normGate(z, normGateActivation) {
+  if (normGateActivation === 'silu') return silu(z);
+  if (normGateActivation === 'sigmoid') return 1 / (1 + Math.exp(-z));
+  throw new Error(`Unsupported norm-gate activation ${normGateActivation}`);
+}
+
 function softplus(x) {
   if (x > 20) return x;
   if (x < -20) return Math.exp(x);
@@ -30,7 +37,7 @@ function assertArraysClose(actual, expected, tolerance, label) {
   }
 }
 
-function buildReferenceOutput({ qkv, z, a, b, layerState, numTokens, qkL2NormEps }) {
+function buildReferenceOutput({ qkv, z, a, b, layerState, numTokens, qkL2NormEps, normGateActivation }) {
   const convState = new Float32Array(layerState.convState);
   const recurrentState = layerState.recurrentStatePrecision === 'two-f32'
     ? new Float64Array(layerState.recurrentState)
@@ -117,7 +124,7 @@ function buildReferenceOutput({ qkv, z, a, b, layerState, numTokens, qkL2NormEps
 
       const invRms = 1 / Math.sqrt(meanSq / layerState.headVDim + layerState.rmsNormEps);
       for (let vd = 0; vd < layerState.headVDim; vd += 1) {
-        const gate = silu(z[zRowBase + vd]);
+        const gate = normGate(z[zRowBase + vd], normGateActivation);
         const normIndex = layerState.normMode === 'per_head'
           ? head * layerState.headVDim + vd
           : vd;
@@ -193,7 +200,7 @@ const layerState = {
 
 const smallFixture = { qkv, z, a, b, layerState, numTokens };
 
-async function runCase(inputDtype, fixture = smallFixture, statePrecision = 'f32') {
+async function runCase(inputDtype, fixture = smallFixture, statePrecision = 'f32', normGateActivation = 'silu') {
   const { qkv, z, a, b, layerState, numTokens } = fixture;
   const qkvInput = inputDtype === 'f16' ? createF16View(qkv) : null;
   const zInput = inputDtype === 'f16' ? createF16View(z) : null;
@@ -207,6 +214,7 @@ async function runCase(inputDtype, fixture = smallFixture, statePrecision = 'f32
     layerState: { ...layerState, recurrentStatePrecision: statePrecision },
     numTokens,
     qkL2NormEps,
+    normGateActivation,
   });
   const gpuLayerState = {
     ...layerState,
@@ -234,7 +242,7 @@ async function runCase(inputDtype, fixture = smallFixture, statePrecision = 'f32
       createTensor(aBuffer, inputDtype, [numTokens, layerState.numVHeads], `linear_a_${inputDtype}`),
       createTensor(bBuffer, inputDtype, [numTokens, layerState.numVHeads], `linear_b_${inputDtype}`),
       gpuLayerState,
-      { numTokens, qkL2NormEps, outputDtype: 'f32' }
+      { numTokens, qkL2NormEps, outputDtype: 'f32', normGateActivation }
     );
 
     const gpuOutput = new Float32Array(await readBuffer(outputTensor.buffer, reference.output.byteLength));
@@ -246,8 +254,8 @@ async function runCase(inputDtype, fixture = smallFixture, statePrecision = 'f32
       : rawState;
     if (statePrecision === 'two-f32') assert(rawState.some((v, i) => i % 2 && v !== 0), 'correction components survive storage');
     const tolerance = inputDtype === 'f16' ? 7e-4 : 1e-5;
-    assertArraysClose(gpuOutput, reference.output, tolerance, `${inputDtype} output`);
-    assertArraysClose(gpuState, reference.recurrentState, tolerance, `${inputDtype} recurrent_state`);
+    assertArraysClose(gpuOutput, reference.output, tolerance, `${inputDtype} ${normGateActivation} output`);
+    assertArraysClose(gpuState, reference.recurrentState, tolerance, `${inputDtype} ${normGateActivation} recurrent_state`);
   } finally {
     if (outputTensor?.buffer) {
       releaseBuffer(outputTensor.buffer);
@@ -330,7 +338,7 @@ const fusedDecodeLayerState = {
   recurrentState: new Float32Array(8),
 };
 
-async function runFusedDecodeCase(inputDtype, statePrecision = 'f32') {
+async function runFusedDecodeCase(inputDtype, statePrecision = 'f32', normGateActivation = 'silu') {
   const fusedDecodeAB = new Float32Array([...fusedDecodeA, ...fusedDecodeB]);
   const qkvInput = inputDtype === 'f16' ? createF16View(fusedDecodeQkv) : null;
   const zInput = inputDtype === 'f16' ? createF16View(fusedDecodeZ) : null;
@@ -343,6 +351,7 @@ async function runFusedDecodeCase(inputDtype, statePrecision = 'f32') {
     layerState: { ...fusedDecodeLayerState, recurrentStatePrecision: statePrecision },
     numTokens: 1,
     qkL2NormEps,
+    normGateActivation,
   });
   const gpuLayerState = {
     ...fusedDecodeLayerState,
@@ -380,6 +389,7 @@ async function runFusedDecodeCase(inputDtype, statePrecision = 'f32') {
         numTokens: 1,
         qkL2NormEps,
         outputDtype: 'f32',
+        normGateActivation,
         abPacked: true,
         bProjOffsetElements: fusedDecodeLayerState.numVHeads,
       }
@@ -392,7 +402,7 @@ async function runFusedDecodeCase(inputDtype, statePrecision = 'f32') {
       ? Float64Array.from({ length: fusedDecodeLayerState.recurrentState.length }, (_, i) => rawState[i * 2] + rawState[i * 2 + 1]) : rawState;
     if (statePrecision === 'two-f32') assert(rawState.some((v, i) => i % 2 && v !== 0));
     const tolerance = inputDtype === 'f16' ? 7e-4 : 1e-5;
-    assertArraysClose(gpuOutput, reference.output, tolerance, `${inputDtype} fused output`);
+    assertArraysClose(gpuOutput, reference.output, tolerance, `${inputDtype} ${normGateActivation} fused output`);
     assertArraysClose(gpuState, reference.recurrentState, tolerance, `${inputDtype} fused recurrent_state`);
   } finally {
     resetRuntimeConfig();
@@ -418,7 +428,7 @@ async function runFusedDecodeCase(inputDtype, statePrecision = 'f32') {
 await runFusedDecodeCase('f32');
 await runFusedDecodeCase('f16');
 
-async function runFusedDecodePackedQkvzCase(inputDtype, statePrecision = 'f32') {
+async function runFusedDecodePackedQkvzCase(inputDtype, statePrecision = 'f32', normGateActivation = 'silu') {
   const fusedDecodeQkvz = new Float32Array([...fusedDecodeQkv, ...fusedDecodeZ]);
   const fusedDecodeAB = new Float32Array([...fusedDecodeA, ...fusedDecodeB]);
   const qkvzInput = inputDtype === 'f16' ? createF16View(fusedDecodeQkvz) : null;
@@ -432,6 +442,7 @@ async function runFusedDecodePackedQkvzCase(inputDtype, statePrecision = 'f32') 
     layerState: { ...fusedDecodeLayerState, recurrentStatePrecision: statePrecision },
     numTokens: 1,
     qkL2NormEps,
+    normGateActivation,
   });
   const gpuLayerState = {
     ...fusedDecodeLayerState,
@@ -469,6 +480,7 @@ async function runFusedDecodePackedQkvzCase(inputDtype, statePrecision = 'f32') 
         numTokens: 1,
         qkL2NormEps,
         outputDtype: 'f32',
+        normGateActivation,
         recorder,
         abPacked: true,
         qkvzPacked: true,
@@ -489,7 +501,7 @@ async function runFusedDecodePackedQkvzCase(inputDtype, statePrecision = 'f32') 
       ? Float64Array.from({ length: fusedDecodeLayerState.recurrentState.length }, (_, i) => rawState[i * 2] + rawState[i * 2 + 1]) : rawState;
     if (statePrecision === 'two-f32') assert(rawState.some((v, i) => i % 2 && v !== 0));
     const tolerance = inputDtype === 'f16' ? 7e-4 : 1e-5;
-    assertArraysClose(gpuOutput, reference.output, tolerance, `${inputDtype} packed QKVZ fused output`);
+    assertArraysClose(gpuOutput, reference.output, tolerance, `${inputDtype} ${normGateActivation} packed QKVZ fused output`);
     assertArraysClose(gpuState, reference.recurrentState, tolerance, `${inputDtype} packed QKVZ fused recurrent_state`);
   } finally {
     resetRuntimeConfig();
@@ -519,6 +531,18 @@ await runFusedDecodePackedQkvzCase('f16');
 for (const dtype of ['f32', 'f16']) {
   await runFusedDecodeCase(dtype, 'two-f32');
   await runFusedDecodePackedQkvzCase(dtype, 'two-f32');
+}
+
+// Sigmoid norm gate (qwen4_exp / Qwen3.8 Flash-Next): the derived
+// *_sigmoid_gate kernels against the same independent reference with sigmoid(z).
+// The fixtures include negative z, where sigmoid and silu gates differ in sign.
+for (const dtype of ['f32', 'f16']) {
+  for (const statePrecision of ['f32', 'two-f32']) {
+    await runCase(dtype, smallFixture, statePrecision, 'sigmoid');
+    await runCase(dtype, recurrentFixture, statePrecision, 'sigmoid');
+    await runFusedDecodeCase(dtype, statePrecision, 'sigmoid');
+    await runFusedDecodePackedQkvzCase(dtype, statePrecision, 'sigmoid');
+  }
 }
 
 destroyDevice();

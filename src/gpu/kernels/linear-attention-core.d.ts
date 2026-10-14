@@ -1,6 +1,7 @@
 import type { Tensor } from '../tensor.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import type { ExecutionV1PoliciesSchema } from '../../config/schema/execution-v1.schema.js';
+import type { LinearNormGateActivation } from '../../config/schema/inference.schema.js';
 
 export interface LinearAttentionCoreLayerState {
   convDim: number;
@@ -30,6 +31,8 @@ export interface LinearAttentionCoreLayerState {
 
 export interface RunLinearAttentionCoreGPUOptions {
   numTokens: number;
+  /** Resolved model-config gated-RMSNorm activation; selects and guards the gate kernel. */
+  normGateActivation: LinearNormGateActivation;
   layerIdx?: number;
   qkL2NormEps?: number;
   recorder?: CommandRecorder | null;

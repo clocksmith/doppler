@@ -21,7 +21,7 @@ import { sha256Hex } from '../formats/sha256.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
 import { buildQualificationRecords, promoteQualifiedModelIRV2, normalizeQualificationEvidence } from './forge-qualification.js';
 import { resolveCapsuleEmbeddingContract } from '../config/embedding-contract.js';
-import { assertPairedExecutionMechanismClosure } from '../config/execution-registry-contract.js';
+import { assertPairedLinearMechanismClosure } from '../inference/pipelines/text/paired-execution.js';
 import { evaluateForgeCandidates } from './forge-candidate-evaluation.js';
 
 export const RIG_PIPELINE_VERSION = '2.0.0';
@@ -583,7 +583,7 @@ export function stageSpecialize(lowered) {
     throw new Error('Rig paired intermediate precision requires paired recurrent state precision.');
   }
   if (storageSession?.intermediatePrecision === 'two-f32') {
-    assertPairedExecutionMechanismClosure(manifest.inference.execution);
+    assertPairedLinearMechanismClosure(manifest.inference);
   }
   const bytesPerActivation = dtypeByteWidth(activationDtype, 'activationDtype') * activationComponents;
   const bytesPerKv = kvDtype === 'f16' ? 2 : 4;

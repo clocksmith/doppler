@@ -396,6 +396,7 @@ export async function runKernelSuite(harness) {
                   phase === 'prefill' ? tensor('a', p.numVHeads) : ab,
                   phase === 'prefill' ? tensor('b', p.numVHeads) : ab, layerState,
                   { recorder, numTokens: count, layerIdx: 0, qkL2NormEps: p.qkL2NormEps, outputDtype: 'f32',
+                    normGateActivation: 'silu', // captured Qwen3.5 lane
                     abPacked: phase === 'decode', qkvzPacked: false,
                     bProjOffsetElements: phase === 'decode' ? p.numVHeads : 0 });
                 if (recorder) await recorder.submitAndWait();

@@ -202,6 +202,7 @@ converter/index.d.ts
 converter/index.js
 converter/lineage-lowering-forge.d.ts
 converter/lineage-lowering-forge.js
+converter/linear-norm-gate.d.ts
 converter/manifest-builder.d.ts
 converter/manifest-conversion-postflight.d.ts
 converter/manifest-conversion-postflight.js
@@ -446,6 +447,7 @@ gpu/kernels/constants.d.ts
 gpu/kernels/dispatch.d.ts
 gpu/kernels/embedding-pool.d.ts
 gpu/kernels/fused-gate-up-gelu.d.ts
+gpu/kernels/gated-delta-norm-gate.d.ts
 gpu/kernels/gated-short-conv.d.ts
 gpu/kernels/generated/uniform-writers-0.d.ts
 gpu/kernels/generated/uniform-writers-1.d.ts
@@ -759,6 +761,8 @@ rules/kernels/energy.rules.json
 rules/kernels/fused-ffn.rules.json
 rules/kernels/fused-matmul-residual.rules.json
 rules/kernels/fused-matmul-rmsnorm.rules.json
+rules/kernels/gated-delta-fused-decode.rules.json
+rules/kernels/gated-delta-recurrent.rules.json
 rules/kernels/gather.rules.json
 rules/kernels/gelu.rules.json
 rules/kernels/grouped-pointwise-conv2d.rules.json

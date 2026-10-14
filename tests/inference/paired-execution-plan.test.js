@@ -24,7 +24,8 @@ runtimeConfig.inference.generation.maxTokens = 8;
 runtimeConfig.inference.session.decodeLoop = { batchSize: 1, stopCheckMode: 'per-token', readbackInterval: 1, readbackMode: 'sequential', ringTokens: 1, ringStop: 1, ringStaging: 1, disableCommandBatching: false }; 
 runtimeConfig.inference.session.kvcache.kvDtype = 'f16';
 runtimeConfig.inference.session.kvcache.layout = 'contiguous';
-const manifest = { architecture: { numLayers: 2 }, inference: { schema: 'doppler.execution/v1',
+// normalization without linearNormGateActivation: a pre-field (silu) Qwen3.5 manifest.
+const manifest = { architecture: { numLayers: 2 }, inference: { schema: 'doppler.execution/v1', normalization: {},
   layerPattern: { type: 'custom', layerTypes: ['linear_attention', 'full_attention'] },
   session: { ...runtimeConfig.inference.session, compute: { defaults: { activationDtype: 'f32', mathDtype: 'f32', accumDtype: 'f32', outputDtype: 'f32' } } }, execution } };
 const compile = (target = manifest) => {
@@ -48,5 +49,8 @@ for (const alter of [
   m => { m.inference.execution.decode = m.inference.execution.decode.filter(s => s[0] !== 'linear_b_proj'); },
   m => { m.inference.execution.kernels.norm.kernel = 'rmsnorm.wgsl'; },
   m => { m.inference.layerPattern.layerTypes = ['linear_attention']; },
-]) { const changed = structuredClone(manifest); alter(changed); assert.throws(() => compile(changed), /PairedExecution|Execution/); }
+  // A sigmoid manifest cannot be admitted with the silu gate and anchor declared.
+  m => { m.inference.normalization.linearNormGateActivation = 'sigmoid'; },
+  m => { delete m.inference.normalization; },
+]) { const changed = structuredClone(manifest); alter(changed); assert.throws(() => compile(changed), /PairedExecution|Execution|NormGate|normalization must be an object/); }
 console.log('paired execution plan: complete graph admission, exact variants, helper closure, scalar logits and session metadata pass');

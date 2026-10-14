@@ -6,6 +6,8 @@ import {
 } from './finiteness-policy.js';
 import { log } from '../../../debug/index.js';
 import { validatePairedExecution } from './paired-execution.js';
+import { assertLinearNormGateClosure } from '../../../config/execution-registry-contract.js';
+import { resolveLinearNormGateActivation } from '../../../config/schema/manifest.schema.js';
 
 const PRIMARY_EXECUTION_PLAN_ID = 'primary';
 const FINITENESS_FALLBACK_EXECUTION_PLAN_ID = 'finiteness_fallback';
@@ -208,6 +210,11 @@ export function compileExecutionPlanState(options) {
 
   if (!runtimeConfig?.inference) {
     throw new Error('[ExecutionPlan] runtimeConfig.inference is required.');
+  }
+  // Every lane: a declared gated-delta kernel must apply the manifest's norm gate.
+  if (manifest?.inference?.execution) {
+    assertLinearNormGateClosure(manifest.inference.execution, resolveLinearNormGateActivation(
+      manifest.inference.normalization, 'manifest.inference.normalization'));
   }
 
   const inferenceConfig = runtimeConfig.inference;
