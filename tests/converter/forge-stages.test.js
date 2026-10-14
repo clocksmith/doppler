@@ -240,7 +240,7 @@ assert.ok(v2Result.capsule.targetPlans[0].memoryLayout.bufferSlots.some((slot) =
 assert.ok(v2Result.capsule.targetPlans[0].memoryLayout.bufferSlots.some((slot) => slot.slotId === 'convolutional_state'));
 
 const slots = result => Object.fromEntries(result.capsule.targetPlans[0].memoryLayout.bufferSlots.map(slot => [slot.slotId, slot.size]));
-const pairedExecution = JSON.parse(readFileSync(new URL('../../artifacts/paired-intermediates-20261012/signed-closure-correction/execution.json', import.meta.url)));
+const pairedExecution = JSON.parse(readFileSync(new URL('../../artifacts/chunked-prefill-capsule-20261014/source-execution.json', import.meta.url)));
 const specializePrecision = async (intermediatePrecision, linearRecurrentStatePrecision, modelIR = modelIRV2) => {
   const identity = structuredClone(initialExecutionIdentity);
   Object.assign(identity.programLoadPolicy.runtimeConfig.inference.session, { intermediatePrecision, linearRecurrentStatePrecision });
