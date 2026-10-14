@@ -256,6 +256,10 @@ for (const [count, hosts] of [[2, 2], [3, 3], [3, 2], [4, 3], [7, 3]]) test(`ord
   assert.equal(result.reports[0].provenance.logicalStageCount, count);
 });
 for (const [name, mutate] of Object.entries({
+  'graph-file digest used as execution-identity digest': f => {
+    assert.notEqual(f.input.expected.graphHash, f.input.expected.orderedContract.executionGraphHash);
+    f.input.expected.orderedContract.executionGraphHash = f.input.expected.graphHash;
+  },
   'exceeded stage deadline': f => f.capture.runs[0].numerical[0].stageExecutions[0].elapsedMs = 300001,
   'exceeded cleanup deadline': f => f.capture.residentSettlement[0].elapsedMs = 10001,
   'absent stage execution': f => f.capture.runs[0].numerical[0].stageExecutions.pop(),
