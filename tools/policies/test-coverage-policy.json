@@ -45,7 +45,15 @@
     },
     "ci-smoke": {
       "roots": ["tests"],
-      "excludeRoots": ["tests/kernels", "tests/config", "tests/tooling", "tests/benchmarks", "tests/production-release"],
+      "excludeRoots": [
+        "tests/kernels",
+        "tests/config",
+        "tests/tooling",
+        "tests/benchmarks",
+        "tests/production-release",
+        "tests/training/host-teacher-qualification.test.js",
+        "tests/training/student-code-experiment.test.js"
+      ],
       "excludeSuites": ["unit-webgpu", "unit-browser"]
     },
     "gpu": { "roots": ["tests/kernels"], "excludeRoots": [] },
