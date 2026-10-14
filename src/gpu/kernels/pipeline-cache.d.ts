@@ -45,6 +45,25 @@ export declare function getPipelineBindGroupLayout(
 // Pipeline Creation
 // ============================================================================
 
+/** One compute pipeline a kernel wrapper requests: registry entry plus caller constants. */
+export interface KernelPipelineRequest {
+  readonly operation: string;
+  readonly variant: string;
+  readonly constants: Readonly<Record<string, number | boolean>> | null;
+}
+
+/** The compiled program a request selects, after registry overrides and boolean normalization. */
+export interface KernelPipelineIdentity {
+  operation: string;
+  variant: string;
+  shaderFile: string;
+  entryPoint: string;
+  constants: Record<string, number> | null;
+}
+
+/** Resolve the shader, entry point and constants that createPipeline would compile for a request. */
+export declare function resolvePipelineIdentity(request: KernelPipelineRequest): KernelPipelineIdentity;
+
 /**
  * Synchronously get a cached pipeline, or null if not cached.
  * Use this for fast path when you know the pipeline should be warm.

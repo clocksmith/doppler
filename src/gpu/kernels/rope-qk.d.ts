@@ -1,6 +1,7 @@
 import type { Tensor } from '../tensor.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import type { RoPEOptions } from './rope.js';
+import type { KernelPipelineRequest } from './pipeline-cache.js';
 
 export interface RoPEQKOptions extends Omit<RoPEOptions, 'numHeads'> {
   numQHeads: number;
@@ -14,6 +15,12 @@ export interface RoPEQKResult {
   q: Tensor;
   k: Tensor;
 }
+
+/** The joint Q/K RoPE program for a component dtype and precision; positions and lengths are uniforms. */
+export function resolveRoPEQKPipeline(
+  dtype: 'f16' | 'f32',
+  precision: 'two-f32' | undefined
+): KernelPipelineRequest;
 
 export function canUseRoPEQK(
   qTensor: Tensor | null | undefined,

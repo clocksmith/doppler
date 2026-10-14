@@ -29,6 +29,13 @@ function validateOutputs(input, outputs, widths, rows) {
     buffers.add(output.buffer);
   });
 }
+const SPLIT_OPERATIONS = Object.freeze({ qg: Object.freeze({ operation: 'split_qg', rule: 'splitQg' }),
+  qkv: Object.freeze({ operation: 'split_qkv', rule: 'splitQkv' }) });
+/** @type {typeof import('./paired-split.js').resolvePairedSplitPipeline} */
+export function resolvePairedSplitPipeline(split) {
+  const { operation, rule } = SPLIT_OPERATIONS[split];
+  return { operation, variant: selectRuleValue(rule, 'variant', { precision: PAIR.precision, outputDtype: 'f32' }), constants: null };
+}
 /** @type {typeof import('./paired-split.js').executePairedSplitQG} */
 export async function executePairedSplitQG(target, input, options) {
   const { numTokens, numHeads, headDim, qTensor = null, gTensor = null } = options;
@@ -39,10 +46,10 @@ export async function executePairedSplitQG(target, input, options) {
   const bytes = numTokens * width * 8;
   return withKernelOutput(target, qTensor?.buffer ?? null, bytes, 'paired_split_q', async q =>
     withKernelOutput(target, gTensor?.buffer ?? null, bytes, 'paired_split_gate', async g => {
-      const variant = selectRuleValue('splitQg', 'variant', { precision: input.precision, outputDtype: input.dtype });
-      await unifiedKernelWrapper('split_qg', target, variant, [input, q, g], {
+      const pipeline = resolvePairedSplitPipeline('qg');
+      await unifiedKernelWrapper(pipeline.operation, target, pipeline.variant, [input, q, g], {
         num_tokens: numTokens, num_heads: numHeads, head_dim: headDim,
-      }, planSplitQKVDispatch(numTokens * width));
+      }, planSplitQKVDispatch(numTokens * width), pipeline.constants);
       return { Q: qTensor ?? createTensor(q, 'f32', [numTokens, width], 'Q', PAIR),
         G: gTensor ?? createTensor(g, 'f32', [numTokens, width], 'Q_gate', PAIR) };
     }));
@@ -56,10 +63,10 @@ export async function executePairedSplitQKV(target, input, options) {
   return withKernelOutput(target, qTensor?.buffer ?? null, numTokens * qSize * 8, 'paired_split_q', async q =>
     withKernelOutput(target, kTensor?.buffer ?? null, numTokens * kSize * 8, 'paired_split_k', async k =>
       withKernelOutput(target, vTensor?.buffer ?? null, numTokens * vSize * 8, 'paired_split_v', async v => {
-        const variant = selectRuleValue('splitQkv', 'variant', { precision: input.precision, outputDtype: input.dtype });
-        await unifiedKernelWrapper('split_qkv', target, variant, [input, q, k, v], {
+        const pipeline = resolvePairedSplitPipeline('qkv');
+        await unifiedKernelWrapper(pipeline.operation, target, pipeline.variant, [input, q, k, v], {
           numTokens, qSize, kSize, vSize,
-        }, planSplitQKVDispatch(numTokens * (qSize + kSize + vSize)));
+        }, planSplitQKVDispatch(numTokens * (qSize + kSize + vSize)), pipeline.constants);
         return { Q: qTensor ?? createTensor(q, 'f32', [numTokens, qSize], 'Q', PAIR),
           K: kTensor ?? createTensor(k, 'f32', [numTokens, kSize], 'K', PAIR),
           V: vTensor ?? createTensor(v, 'f32', [numTokens, vSize], 'V', PAIR) };

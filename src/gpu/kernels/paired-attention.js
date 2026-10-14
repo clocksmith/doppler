@@ -5,6 +5,10 @@ import { getKernelPathAttentionVariant } from '../../config/kernel-path-loader.j
 
 /** @type {Readonly<import('../tensor.js').TensorRepresentation>} */
 const PAIR = Object.freeze({ precision: 'two-f32', components: 2, elementStrideBytes: 8 });
+/** @type {typeof import('./paired-attention.js').resolvePairedAttentionPipeline} */
+export function resolvePairedAttentionPipeline() {
+  return { operation: 'attention', variant: 'paired', constants: null };
+}
 /** @type {typeof import('./paired-attention.js').executePairedAttention} */
 export async function executePairedAttention(recorder, Q, K, V, mask, numHeads, headDim, options) {
   const { seqLen, kvLen, numKVHeads, scale, causal, startPos, kvStart = 0, slidingWindow: declaredSlidingWindow,
@@ -58,11 +62,12 @@ export async function executePairedAttention(recorder, Q, K, V, mask, numHeads, 
     throw new Error('[PairedAttention] Device dispatch limits exceeded or no device.');
   }
   return withKernelOutput(recorder, outputBuffer, bytes, 'paired_attention_output', async output => {
-    await unifiedKernelWrapper('attention', recorder, 'paired', [Q, K, V, output], {
+    const pipeline = resolvePairedAttentionPipeline();
+    await unifiedKernelWrapper(pipeline.operation, recorder, pipeline.variant, [Q, K, V, output], {
       seq_len: seqLen, kv_len: kvLen, num_heads: numHeads, num_kv_heads: numKVHeads,
       head_dim: headDim, start_pos: startPos, kv_start: kvStart, sliding_window: slidingWindow,
       scale_hi: Math.fround(scale), scale_lo: Math.fround(scale - Math.fround(scale)), causal: causal ? 1 : 0,
-    }, [numHeads, seqLen, 1]);
+    }, [numHeads, seqLen, 1], pipeline.constants);
     return createTensor(output, 'f32', [seqLen, numHeads, headDim], 'paired_attention_output', PAIR);
   });
 }

@@ -1,0 +1,230 @@
+// Real loader, resident opening and partition execution on a recording device
+// that compiles nothing. This compares the pipelines prepared before readiness
+// with the pipelines execution binds; it is not GPU arithmetic evidence.
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { gunzipSync } from 'node:zlib';
+
+globalThis.GPUBufferUsage ??= { MAP_READ: 1, MAP_WRITE: 2, COPY_SRC: 4, COPY_DST: 8, INDEX: 16, VERTEX: 32,
+  UNIFORM: 64, STORAGE: 128, INDIRECT: 256, QUERY_RESOLVE: 512 };
+globalThis.GPUMapMode ??= { READ: 1, WRITE: 2 };
+globalThis.GPUShaderStage ??= { VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 };
+Object.defineProperty(globalThis.navigator, 'gpu', { configurable: true, value: {
+  wgslLanguageFeatures: new Set(['readonly_and_readwrite_storage_textures', 'packed_4x8_integer_dot_product',
+    'unrestricted_pointer_parameters', 'pointer_composite_access']),
+  async requestAdapter() { return null; } } });
+
+const { setDevice } = await import('../../src/gpu/device.js');
+const { createPipeline } = await import('../../src/inference/pipelines/text.js');
+const { createArtifactStorageContext } = await import('../../src/storage/artifact-storage-context.js');
+const { createOrderedLayerPartitionPlan, hashLayerPartitionPlan } = await import('../../src/inference/pipelines/text/layer-partition-contract.js');
+const { resolveResidentPartitionAllocation } = await import('../../src/inference/pipelines/text/resident-partition-contract.js');
+const { createResidentPartitionSession } = await import('../../src/inference/pipelines/text/resident-partition.js');
+const { resolveResidentPipelineProgram, prepareResidentPartitionPipelines } = await import('../../src/inference/pipelines/text/resident-pipeline-preparation.js');
+const { runPipelineOperation } = await import('../../src/inference/pipelines/shader-scoped-pipeline.js');
+const { createPartitionAttempt } = await import('../../src/inference/pipelines/text/partition-attempt.js');
+const { executePartitionLayers } = await import('../../src/inference/pipelines/text/partition-execution.js');
+const { releaseBuffer } = await import('../../src/memory/buffer-pool.js');
+const { getShaderModuleIdentity, getShaderSourceIdentity } = await import('../../src/gpu/kernels/shader-cache.js');
+const { canonicalizeJson } = await import('../../src/formats/canonical-hash.js');
+const { resolveGenerationOptions } = await import('../../src/config/generation-contract.js');
+
+class FakeBuffer {
+  constructor(size, usage, label) { Object.assign(this, { size, usage, label, mapState: 'unmapped' }); }
+  async mapAsync() { this.mapState = 'mapped'; }
+  getMappedRange(offset = 0, size = this.size - offset) { return new ArrayBuffer(size); }
+  unmap() { this.mapState = 'unmapped'; }
+  destroy() { this.destroyed = true; }
+}
+function createRecordingDevice() {
+  const record = { created: [], used: [], pending: [], hold: false, fail: null };
+  const pipeline = descriptor => ({ label: descriptor.label, module: descriptor.compute.module,
+    entryPoint: descriptor.compute.entryPoint, constants: descriptor.compute.constants ?? null, getBindGroupLayout: () => ({}) });
+  const pass = { setPipeline(p) { record.used.push(p); }, setBindGroup() {}, dispatchWorkgroups() {},
+    dispatchWorkgroupsIndirect() {}, end() {}, pushDebugGroup() {}, popDebugGroup() {}, insertDebugMarker() {} };
+  const device = {
+    label: 'recording', features: new Set(['shader-f16', 'subgroups']), lost: new Promise(() => {}),
+    limits: { maxBufferSize: 2 ** 31, maxStorageBufferBindingSize: 2 ** 30, maxComputeWorkgroupsPerDimension: 65535,
+      maxStorageBuffersPerShaderStage: 10, maxComputeInvocationsPerWorkgroup: 256, maxComputeWorkgroupSizeX: 256,
+      maxComputeWorkgroupSizeY: 256, maxComputeWorkgroupSizeZ: 64, maxComputeWorkgroupStorageSize: 32768,
+      maxUniformBufferBindingSize: 65536, minStorageBufferOffsetAlignment: 256, minUniformBufferOffsetAlignment: 256,
+      maxBindGroups: 4, maxBindingsPerBindGroup: 1000, maxDynamicStorageBuffersPerPipelineLayout: 4,
+      maxDynamicUniformBuffersPerPipelineLayout: 8, maxUniformBuffersPerShaderStage: 12 },
+    queue: { submit() {}, writeBuffer() {}, async onSubmittedWorkDone() {} },
+    createBuffer: ({ size, usage, label }) => new FakeBuffer(size, usage, label),
+    createShaderModule: ({ code, label }) => ({ label, code, async getCompilationInfo() { return { messages: [] }; } }),
+    async createComputePipelineAsync(descriptor) {
+      record.created.push(descriptor.label);
+      if (record.fail?.(descriptor)) throw new Error(`provider rejected ${descriptor.label}`);
+      if (record.hold) await new Promise(resolve => record.pending.push(resolve));
+      return pipeline(descriptor);
+    },
+    createComputePipeline(descriptor) { record.created.push(descriptor.label); return pipeline(descriptor); },
+    createBindGroupLayout: d => ({ label: d.label }), createPipelineLayout: d => ({ label: d.label }),
+    createBindGroup: d => ({ label: d.label }), createQuerySet: d => ({ ...d, destroy() {} }),
+    createCommandEncoder: () => ({ beginComputePass: () => pass, copyBufferToBuffer() {}, clearBuffer() {},
+      resolveQuerySet() {}, writeTimestamp() {}, pushDebugGroup() {}, popDebugGroup() {}, finish: () => ({}) }),
+    addEventListener() {}, removeEventListener() {}, pushErrorScope() {}, async popErrorScope() { return null; }, destroy() {},
+  };
+  setDevice(device, { platformConfig: null });
+  return record;
+}
+
+// The frozen Qwen3.5 0.8B manifest with the deployed paired program (prefill
+// chunked at 16 tokens). Layers 0, 1 (linear) and 3 (full) become a 3-layer model
+// with real per-layer geometry and encodings; zero bytes stand in for weights.
+const baseline = JSON.parse(gunzipSync(readFileSync(new URL('../fixtures/qwen35-frozen-reference-manifest.json.gz', import.meta.url))));
+const graph = JSON.parse(readFileSync(new URL('../../artifacts/chunked-prefill-capsule-20261014/source-execution.json', import.meta.url)));
+const SOURCE_LAYERS = [0, 1, 3], VOCAB = 512;
+const manifest = structuredClone(baseline);
+manifest.inference.execution = graph;
+manifest.architecture = { ...manifest.architecture, numLayers: SOURCE_LAYERS.length, vocabSize: VOCAB };
+manifest.inference.layerPattern.layerTypes = SOURCE_LAYERS.map(layer => baseline.inference.layerPattern.layerTypes[layer]);
+assert.deepEqual(manifest.inference.layerPattern.layerTypes, ['linear_attention', 'linear_attention', 'full_attention']);
+manifest.tensors = {};
+let cursor = 0;
+for (const [name, entry] of Object.entries(baseline.tensors)) {
+  const match = /layers\.(\d+)\./.exec(name);
+  const layer = match ? SOURCE_LAYERS.indexOf(Number(match[1])) : null;
+  if (layer === -1) continue;
+  const tensor = structuredClone(entry);
+  delete tensor.spans;
+  if (tensor.role === 'embedding' || tensor.role === 'lm_head') {
+    tensor.size = VOCAB * entry.size / entry.shape[0];
+    tensor.shape = [VOCAB, entry.shape[1]];
+  }
+  if (match) tensor.group = `layer.${layer}`;
+  Object.assign(tensor, { shard: 0, offset: cursor });
+  cursor += tensor.size;
+  manifest.tensors[match ? name.replace(`layers.${match[1]}.`, `layers.${layer}.`) : name] = tensor;
+}
+manifest.shards = [{ index: 0, filename: 'shard_00000.bin', size: cursor, offset: 0, hash: '0'.repeat(64) }];
+manifest.totalSize = cursor;
+manifest.tokenizer = { ...manifest.tokenizer, vocabSize: VOCAB };
+const tokenizerJson = JSON.stringify({ version: '1.0', model: { type: 'BPE', merges: [],
+  vocab: Object.fromEntries(Array.from({ length: VOCAB }, (_, id) => [`t${id}`, id])) }, added_tokens: [] });
+const storage = () => createArtifactStorageContext({ manifest,
+  readRange: async (_path, _offset, length) => new ArrayBuffer(length), readText: async () => tokenizerJson,
+  readBinary: async () => new TextEncoder().encode(tokenizerJson).buffer });
+const runtimeConfig = { inference: { compute: { activationDtype: 'f32' }, session: {
+  intermediatePrecision: 'two-f32', linearRecurrentStatePrecision: 'two-f32', prefillTokenChunkSize: 16,
+  prefillChunkLayers: 1, kvcache: { maxSeqLen: 32, kvDtype: 'f16', layout: 'contiguous' },
+  compute: { defaults: { activationDtype: 'f32', mathDtype: 'f32', accumDtype: 'f32', outputDtype: 'f32' } } } } };
+const plan = createOrderedLayerPartitionPlan({ modelId: manifest.modelId, numLayers: 3, hiddenSize: manifest.architecture.hiddenSize,
+  vocabSize: VOCAB, splitLayers: [1, 2], activationPrecision: 'two-f32' });
+const model = { id: manifest.modelId, identity: 'sha256:' + 'a'.repeat(64) };
+const generation = resolveGenerationOptions({ maxTokens: 2, maxSeqLen: 32, temperature: 0, topK: 1, topP: 1,
+  repetitionPenalty: 1, repetitionPenaltyWindow: 0, useChatTemplate: false });
+const limits = { maxTokens: 2, maxPromptTokens: 17, maxActivationBytes: 1 << 20, maxOutputCharacters: 64,
+  maxAttempts: 4, maxConcurrentAttempts: 1 };
+async function load(index) {
+  const pipeline = await createPipeline(manifest, { runtimeConfig, storage: storage(), partition: { plan, index } });
+  const allocation = resolveResidentPartitionAllocation(manifest, model.identity, { model, plan,
+    planId: hashLayerPartitionPlan(plan), index, participantId: `stage-${index}`, limits, generation });
+  return { pipeline, allocation };
+}
+const compiled = (module, entryPoint, constants) => `${module}#${entryPoint} ${canonicalizeJson(constants ?? {})}`;
+const boundIdentity = p => compiled(getShaderModuleIdentity(p.module), p.entryPoint, p.constants);
+const preparedIdentity = e => compiled(getShaderSourceIdentity(e.shaderFile), e.entryPoint, e.constants);
+const rolesOf = preparation => new Set(preparation.pipelines.flatMap(entry => entry.roles));
+async function settle(condition = () => false) {
+  for (let i = 0; i < 400 && !condition(); i++) await new Promise(resolve => setImmediate(resolve));
+}
+
+// 1. Every pipeline execution binds was created before readiness, and nothing else was.
+{
+  const record = createRecordingDevice();
+  const signal = new AbortController().signal;
+  for (let index = 0; index < plan.stageCount; index++) {
+    const { pipeline, allocation } = await load(index);
+    const resident = await createResidentPartitionSession(pipeline, allocation, {}, () => pipeline.unload(), signal);
+    try {
+      const preparation = resident.getDescriptor().pipelinePreparation;
+      assert.equal(preparation.schema, 'doppler.resident-pipeline-preparation/v1');
+      assert.equal(preparation.complete, true);
+      assert.deepEqual(preparation.lazy, []);
+      assert.equal(preparation.count, preparation.pipelines.length);
+      assert(preparation.durationMs >= 0);
+      const declared = new Set(Object.values(graph.kernels).map(kernel => kernel.kernel));
+      for (const entry of preparation.pipelines) assert(declared.has(entry.shaderFile), `${entry.key} is outside the declared program`);
+      const createdAtReady = record.created.length, usedFrom = record.used.length;
+      await runPipelineOperation(pipeline, async owner => {
+        // 17 tokens prefill as chunks of 16 and 1; a 1-token prompt is a single chunk.
+        for (const prompt of [17, 1]) {
+          const attempt = createPartitionAttempt(owner, 32);
+          try {
+            for (const tokens of [prompt, 1, 1]) {
+              const result = await executePartitionLayers(attempt.state, index === 0
+                ? { numTokens: tokens, tokenIds: Array.from({ length: tokens }, (_, id) => id + 1) }
+                : { numTokens: tokens, activationBytes: new ArrayBuffer(tokens * manifest.architecture.hiddenSize * 8) }, signal);
+              if (result.logits) releaseBuffer(result.logits.logitsBuffer);
+              attempt.state.currentSeqLen += tokens;
+            }
+          } finally { attempt.close(); }
+        }
+        const unsupported = resolveResidentPipelineProgram(Object.create(owner, { layerPipelinePlan: { value: { steps: [] } } }), allocation);
+        assert.deepEqual(unsupported.pipelines, []);
+        assert.equal(unsupported.lazy[0].scope, 'stage', 'an undeclared program shape is reported lazy, never partially prepared');
+        assert.match(unsupported.lazy[0].reason, /layer pipeline plan/);
+      });
+      assert.equal(record.created.length, createdAtReady, `stage ${index} created pipelines after readiness`);
+      const bound = new Set(record.used.slice(usedFrom).map(boundIdentity));
+      const prepared = new Set(preparation.pipelines.map(preparedIdentity));
+      assert.deepEqual([...bound].filter(key => !prepared.has(key)), [], `stage ${index} bound unprepared pipelines`);
+      assert.deepEqual([...prepared].filter(key => !bound.has(key)), [], `stage ${index} prepared unused pipelines`);
+      const roles = rolesOf(preparation);
+      assert.equal(roles.has('embed'), index === 0);
+      assert.equal(roles.has('logits_finalize'), index === plan.stageCount - 1);
+      assert.equal(roles.has('attention'), index === 2);
+      assert.equal(roles.has('linear_attention'), index < 2, 'recurrent pipelines belong only to stages with linear layers');
+    } finally { await resident.close(); }
+  }
+}
+
+// 2. Scalar programs report their pipelines as lazy instead of skipping them silently.
+{
+  const scalar = await prepareResidentPartitionPipelines({ gpuContext: null },
+    { plan: { activationPrecision: 'f32', partitions: [] }, index: 0 });
+  assert.equal(scalar.complete, false);
+  assert.equal(scalar.count, 0);
+  assert.equal(scalar.lazy[0].scope, 'program');
+}
+
+// 3. Abort during preparation waits for the started creation and starts no other.
+{
+  const record = createRecordingDevice();
+  const { pipeline, allocation } = await load(1);
+  try {
+    record.hold = true;
+    const controller = new AbortController();
+    let settled = false;
+    const opening = createResidentPartitionSession(pipeline, allocation, {}, async () => {}, controller.signal);
+    opening.then(() => { settled = true; }, () => { settled = true; });
+    await settle(() => record.pending.length === 1);
+    assert.equal(record.pending.length, 1, 'preparation started a provider creation');
+    const started = record.created.length;
+    controller.abort(new Error('cancel preparation'));
+    await settle();
+    assert.equal(settled, false, 'abort must wait for the started provider creation to settle');
+    record.pending.shift()();
+    await assert.rejects(opening, /cancel preparation/);
+    assert.equal(record.created.length, started, 'no pipeline creation starts after abort');
+  } finally { record.hold = false; await pipeline.unload(); }
+}
+
+// 4. A failed creation fails readiness and names the pipeline.
+{
+  const record = createRecordingDevice();
+  const { pipeline, allocation } = await load(2);
+  try {
+    record.fail = descriptor => descriptor.label.startsWith('attention_paired');
+    await assert.rejects(createResidentPartitionSession(pipeline, allocation, {}, async () => {}), error => {
+      assert.match(error.message, /Resident stage 2 could not create GPU pipeline attention\/paired/);
+      assert.match(error.message, /attention_paired\.wgsl#main/);
+      assert.match(error.message, /not advertised ready/);
+      assert.match(error.cause.message, /provider rejected attention_paired/);
+      return true;
+    });
+  } finally { await pipeline.unload(); }
+}
+console.log('resident pipeline preparation: prepared set equals execution-bound set per stage, chunked prefill and decode; abort settles; failure names the pipeline');

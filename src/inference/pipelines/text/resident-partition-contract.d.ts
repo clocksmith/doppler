@@ -4,6 +4,7 @@ import type { ResidentTargetTransition } from '../../resident-target-state.js';
 import type { AdmissionOnlyResult } from '../../resident-state-contract.js';
 import type { IncrementalTokenDecoder } from '../../tokenizers/bundled/incremental-decoder.js';
 import type { GenerationTokenContract } from '../../generation-step.js';
+import type { KernelPipelineIdentity } from '../../../gpu/kernels/pipeline-cache.js';
 export interface PartitionTiming {
   inputUploadMs: number; encodeMs: number; submitWaitMs: number; activationReadbackMs: number;
   logitsMs: number; gpuKernelsMs: number | null;
@@ -32,6 +33,22 @@ export interface ResidentOrderedPartitionIdentity {
   stages: readonly { index: number; participantId: string; transportId: string; residentId: string; executionId: string }[];
 }
 export type ResidentExecutionIdentity = ResidentPartitionIdentity | ResidentOrderedPartitionIdentity;
+/** A part of a stage program whose pipelines are not enumerated and are still created on first use. */
+export interface ResidentLazyPipelineScope {
+  scope: 'program' | 'stage';
+  reason: string;
+}
+/** Opening receipt: every enumerated pipeline was created on the stage device before it reported ready. */
+export interface ResidentPipelinePreparation {
+  schema: 'doppler.resident-pipeline-preparation/v1';
+  /** True when no part of the stage program remains lazy. */
+  complete: boolean;
+  count: number;
+  durationMs: number;
+  /** Compiled programs in creation order; `key` is `shaderFile#entryPoint` plus canonical constants. */
+  pipelines: Array<KernelPipelineIdentity & { key: string; roles: string[] }>;
+  lazy: ResidentLazyPipelineScope[];
+}
 export interface ResidentPartitionDescriptor {
   schema: 'doppler.resident-partition/v1' | 'doppler.resident-partition/v2'; ready: boolean;
   stageCount?: number;
@@ -39,6 +56,8 @@ export interface ResidentPartitionDescriptor {
   layerRange: readonly number[]; residentWeightBytes: number;
   generationDigest: string;
   canonicalGenerationId?: string;
+  /** Pipelines created before readiness; absent from residents that predate opening preparation. */
+  pipelinePreparation?: ResidentPipelinePreparation;
 }
 export interface ResidentRecoveryCapabilities {
   readonly schema: 'doppler.resident-recovery/v1';

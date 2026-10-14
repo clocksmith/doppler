@@ -14,7 +14,7 @@ import { createResidentTargetState, createResidentCursorMirror } from '../../res
 import { createResidentOutputState } from '../../resident-output-state.js';
 import { ORDERED_LAYER_PARTITION_SCHEMA, hashLayerPartitionPlan, resolveActivationTensorLayout, validateActivationTensorShape } from './layer-partition-contract.js';
 import { markDeviceWeights, getDeviceMemorySnapshot } from '../../../memory/device-budget.js';
-import { preparePairedLinearAttentionPipelines } from '../../../gpu/kernels/paired-linear-attention.js';
+import { prepareResidentPartitionPipelines } from './resident-pipeline-preparation.js';
 
 /** @type {import('./resident-partition.js').createResidentPartitionSession} */
 export async function createResidentPartitionSession(pipeline, allocation, tokens, closeProgram, signal) {
@@ -32,12 +32,9 @@ export async function createResidentPartitionSession(pipeline, allocation, token
       || hashLayerPartitionPlan(owner.modelPartition.plan) !== allocation.planId) {
       throw new Error('Loaded pipeline partition differs from its accepted allocation.');
     }
-    const [firstLayer, lastLayer] = allocation.plan.partitions[allocation.index].layerRange;
-    if (allocation.plan.activationPrecision === 'two-f32'
-      && owner.modelConfig?.layerTypes?.slice(firstLayer, lastLayer + 1).includes('linear_attention')) {
-      await preparePairedLinearAttentionPipelines(owner.gpuContext?.device, signal,
-        owner.modelConfig.linearNormGateActivation);
-    }
+    // Every pipeline the stage can request is created before readiness, so a
+    // provider compile failure or crash happens at opening, not mid-answer.
+    const pipelinePreparation = await prepareResidentPartitionPipelines(owner, allocation, signal);
     signal?.throwIfAborted();
     // Resident execution creates one cache per attempt. The opening pipeline's
     // empty cache is never used by those attempts and must not reserve a second
@@ -51,7 +48,7 @@ export async function createResidentPartitionSession(pipeline, allocation, token
       index: allocation.index, layerRange: [...allocation.plan.partitions[allocation.index].layerRange],
       residentWeightBytes: [...(owner.dopplerLoader?.gpuBuffers ?? [])].reduce((bytes, buffer) => bytes + buffer.size, 0),
       generationDigest: computeCanonicalSha256(allocation.generation),
-      ...(canonical ? { canonicalGenerationId: canonical.generationId } : {}) };
+      ...(canonical ? { canonicalGenerationId: canonical.generationId } : {}), pipelinePreparation };
   });
   /** @type {Map<string, import('./resident-partition.js').ResidentAttempt>} */
   const attempts = new Map();

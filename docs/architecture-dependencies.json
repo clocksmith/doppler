@@ -609,6 +609,7 @@
         "src/inference/pipelines/text/probes.js",
         "src/inference/pipelines/text/resident-partition-contract.js",
         "src/inference/pipelines/text/resident-partition.js",
+        "src/inference/pipelines/text/resident-pipeline-preparation.js",
         "src/inference/pipelines/text/resolved-runtime-session.js",
         "src/inference/pipelines/text/sampling-config.js",
         "src/inference/pipelines/text/sampling.js",
@@ -1792,6 +1793,7 @@
         "src/inference/pipelines/text/probes.js",
         "src/inference/pipelines/text/resident-partition-contract.js",
         "src/inference/pipelines/text/resident-partition.js",
+        "src/inference/pipelines/text/resident-pipeline-preparation.js",
         "src/inference/pipelines/text/resolved-runtime-session.js",
         "src/inference/pipelines/text/sampling-config.js",
         "src/inference/pipelines/text/sampling.js",
@@ -3782,6 +3784,7 @@
         "src/inference/pipelines/text/probes.js",
         "src/inference/pipelines/text/resident-partition-contract.js",
         "src/inference/pipelines/text/resident-partition.js",
+        "src/inference/pipelines/text/resident-pipeline-preparation.js",
         "src/inference/pipelines/text/resolved-runtime-session.js",
         "src/inference/pipelines/text/sampling-config.js",
         "src/inference/pipelines/text/sampling.js",
@@ -4659,6 +4662,7 @@
         "tests/inference/resident-kernel-preparation.test.js",
         "tests/inference/resident-output-state.test.js",
         "tests/inference/resident-partition-lifecycle.test.js",
+        "tests/inference/resident-pipeline-preparation.test.js",
         "tests/inference/resident-publication-contract.test.js",
         "tests/inference/resident-reasoning-output.test.js",
         "tests/inference/resident-state-contract.test.js",
@@ -6032,6 +6036,7 @@
         "src/inference/pipelines/text/probes.js",
         "src/inference/pipelines/text/resident-partition-contract.js",
         "src/inference/pipelines/text/resident-partition.js",
+        "src/inference/pipelines/text/resident-pipeline-preparation.js",
         "src/inference/pipelines/text/resolved-runtime-session.js",
         "src/inference/pipelines/text/sampling-config.js",
         "src/inference/pipelines/text/sampling.js",
@@ -6703,7 +6708,7 @@
     {
       "file": "tests/inference/ordered-resident-execution.test.js",
       "kind": "dynamic",
-      "line": 41,
+      "line": 43,
       "expression": "import(target)"
     },
     {
@@ -6817,7 +6822,7 @@
     {
       "file": "tests/inference/resident-kernel-preparation.test.js",
       "kind": "dynamic",
-      "line": 15,
+      "line": 18,
       "expression": "import(target)"
     },
     {

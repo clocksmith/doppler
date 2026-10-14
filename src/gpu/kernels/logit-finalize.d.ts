@@ -1,4 +1,5 @@
 import type { Tensor } from '../tensor.js';
+import type { KernelPipelineRequest } from './pipeline-cache.js';
 import type { WeightBuffer } from '../weight-buffer.js';
 import type { CommandRecorder } from '../command-recorder.js';
 
@@ -21,3 +22,6 @@ export declare function recordFinalizeLogitsTensor(
   input: Tensor,
   options: FinalizeLogitsTensorOptions
 ): Promise<Tensor>;
+
+/** Bias, scale and softcap are uniforms; only the input dtype selects the program. */
+export declare function resolveLogitFinalizePipeline(inputDtype: 'f16' | 'f32'): KernelPipelineRequest;

@@ -215,6 +215,17 @@ function assertWorkgroupPowerOfTwo(operation, variant, workgroupSize, constants)
   }
 }
 
+// The compiled program a request selects: registry overrides and boolean
+// constants resolve exactly as createPipeline resolves them.
+export function resolvePipelineIdentity(request) {
+  const { operation, variant, constants } = request;
+  const config = getKernelConfig(operation, variant);
+  return {
+    operation, variant, shaderFile: config.shaderFile, entryPoint: config.entryPoint,
+    constants: normalizePipelineConstants(resolveConstants(operation, variant, constants)),
+  };
+}
+
 export function getCachedPipeline(
   operation,
   variant,

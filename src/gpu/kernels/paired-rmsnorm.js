@@ -14,6 +14,15 @@ function assertPair(input, bytes, label) {
   }
 }
 
+/** @type {typeof import('./paired-rmsnorm.js').resolvePairedRMSNormPipeline} */
+export function resolvePairedRMSNormPipeline(weightDtype, fusion) {
+  if (weightDtype !== 'f32' && weightDtype !== 'f16') throw new Error('[PairedRMSNorm] Explicit F32 or F16 weights required.');
+  return { operation: 'rmsnorm', variant: 'paired', constants: {
+    WORKGROUP_SIZE: 64, WEIGHT_F16: weightDtype === 'f16', WEIGHT_OFFSET: fusion.rmsNormWeightOffset === true,
+    PRE_RESIDUAL: fusion.preResidual, POST_RESIDUAL: fusion.residual, OUTPUT_PRENORM: fusion.outputPrenorm,
+  } };
+}
+
 /** @type {typeof import('./paired-rmsnorm.js').executePairedRMSNorm} */
 export async function executePairedRMSNorm(recorder, input, weight, eps, options) {
   const { batchSize, hiddenSize, preResidual = null, residual = null,
@@ -34,11 +43,12 @@ export async function executePairedRMSNorm(recorder, input, weight, eps, options
   const residualInput = preResidual ?? residual;
   if (residualInput) assertPair(residualInput, bytes, 'Residual');
   const weightDtype = getWeightDtype(weight), weightBuffer = getBuffer(weight);
-  if (weightDtype !== 'f32' && weightDtype !== 'f16') throw new Error('[PairedRMSNorm] Explicit F32 or F16 weights required.');
+  const prenormProvided = residualSumOutput && 'buffer' in residualSumOutput ? residualSumOutput.buffer : residualSumOutput;
+  const pipeline = resolvePairedRMSNormPipeline(weightDtype, { rmsNormWeightOffset: options.rmsNormWeightOffset === true,
+    preResidual: preResidual != null, residual: residual != null, outputPrenorm: prenormProvided != null });
   if (!weightBuffer || !('size' in weightBuffer) || weightBuffer.size < hiddenSize * (weightDtype === 'f16' ? 2 : 4)) {
     throw new Error('[PairedRMSNorm] Weight buffer is undersized.');
   }
-  const prenormProvided = residualSumOutput && 'buffer' in residualSumOutput ? residualSumOutput.buffer : residualSumOutput;
   for (const supplied of [outputBuffer, prenormProvided]) {
     if (supplied && (supplied.size < bytes || supplied === input.buffer || supplied === residualInput?.buffer)) {
       throw new Error('[PairedRMSNorm] Output must be distinct from inputs and adequately sized.');
@@ -50,15 +60,12 @@ export async function executePairedRMSNorm(recorder, input, weight, eps, options
     output = outputBuffer ?? acquireBuffer(bytes, undefined, 'rmsnorm_paired_output');
     prenorm = prenormProvided ?? acquireBuffer(8, undefined, 'rmsnorm_paired_prenorm_placeholder');
     const tokenStride = Math.min(batchSize, recorder?.device?.limits?.maxComputeWorkgroupsPerDimension ?? 65535);
-    await unifiedKernelWrapper('rmsnorm', recorder, 'paired',
+    await unifiedKernelWrapper(pipeline.operation, recorder, pipeline.variant,
       [input, weightBuffer, output, residualInput ?? input, prenorm], {
         size: hiddenSize, num_tokens: batchSize,
         eps_hi: Math.fround(eps), eps_lo: Math.fround(eps - Math.fround(eps)),
         token_stride: tokenStride, scale_hi: Math.fround(scale), scale_lo: Math.fround(scale - Math.fround(scale)),
-      }, [tokenStride, Math.ceil(batchSize / tokenStride), 1], {
-        WORKGROUP_SIZE: 64, WEIGHT_F16: weightDtype === 'f16', WEIGHT_OFFSET: options.rmsNormWeightOffset === true,
-        PRE_RESIDUAL: preResidual != null, POST_RESIDUAL: residual != null, OUTPUT_PRENORM: prenormProvided != null,
-      });
+      }, [tokenStride, Math.ceil(batchSize / tokenStride), 1], pipeline.constants);
     return createTensor(output, 'f32', [batchSize, hiddenSize], 'rmsnorm_paired', REPRESENTATION);
   } catch (error) {
     if (output && !outputBuffer) {

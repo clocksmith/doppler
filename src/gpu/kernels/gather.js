@@ -26,6 +26,49 @@ function selectGatherVariant(
   );
 }
 
+// Variant and constants depend on embedding encoding, output dtype and hidden
+// slicing only; the token count never selects a different program.
+function resolveGatherFlags({ embeddingDtype, outputDtype, hiddenSize, inputHiddenSize, hiddenOffset, useVec4: requested }) {
+  const usesHiddenSlice = inputHiddenSize !== hiddenSize || hiddenOffset !== 0;
+  const requestedVec4 = usesHiddenSlice ? false : requested;
+  const wantsVec4 = requestedVec4 ?? true;
+  const useBF16Input = embeddingDtype === 'bf16';
+  // The packed-BF16 kernel consumes one logical element per invocation.
+  // Do not pair it with the vec4 dispatch divisor until a BF16 vec4 entry
+  // point is explicitly registered.
+  return { usesHiddenSlice, requestedVec4, useBF16Input, useLiteRTInt4Input: embeddingDtype === 'litert_int4',
+    useF16Input: embeddingDtype === 'f16', useF16Output: outputDtype === 'f16',
+    useVec4: !useBF16Input && wantsVec4 && hiddenSize % 4 === 0 };
+}
+
+function selectGatherPipeline(flags, storageEncoding) {
+  const variant = selectGatherVariant(flags.useF16Input, flags.useBF16Input, flags.useF16Output, flags.useVec4,
+    flags.useLiteRTInt4Input);
+  const constants = flags.useLiteRTInt4Input
+    ? { STORAGE_OFFSET_BINARY: resolveLiteRTInt4StorageEncoding(storageEncoding) === 'offset_binary' ? 1 : 0 }
+    : null;
+  return { operation: 'gather', variant, constants };
+}
+
+export function resolveGatherPipeline(options) {
+  return selectGatherPipeline(resolveGatherFlags(options), options.storageEncoding);
+}
+
+// An explicit section count wins over the manifest-stamped split variant.
+function resolveSplitGatherConfig(splitEmbedding, outputDtype, splitGatherSectionCount) {
+  return selectSplitGatherConfig(splitEmbedding, outputDtype,
+    splitGatherSectionCount ?? splitEmbedding?.metadata?.splitGatherSectionCount ?? null);
+}
+
+export function resolveSplitGatherPipeline(splitEmbedding, outputDtype, splitGatherSectionCount) {
+  const config = resolveSplitGatherConfig(splitEmbedding, outputDtype, splitGatherSectionCount);
+  const variant = config.variants[outputDtype];
+  if (!variant) {
+    throw new Error(`[Gather] ${config.label} does not support outputDtype=${outputDtype}.`);
+  }
+  return { operation: config.op, variant, constants: null };
+}
+
 function resolveLiteRTInt4StorageEncoding(storageEncoding) {
   const normalized = String(storageEncoding ?? '').toLowerCase();
   if (normalized !== 'signed' && normalized !== 'offset_binary') {
@@ -155,15 +198,8 @@ async function _gatherSplit(
   if (outputDtype == null) {
     throw new Error('[Gather] outputDtype is required.');
   }
-  const config = selectSplitGatherConfig(
-    splitEmbedding,
-    outputDtype,
-    splitGatherSectionCount ?? splitEmbedding?.metadata?.splitGatherSectionCount ?? null
-  );
-  const variant = config.variants[outputDtype];
-  if (!variant) {
-    throw new Error(`[Gather] ${config.label} does not support outputDtype=${outputDtype}.`);
-  }
+  const config = resolveSplitGatherConfig(splitEmbedding, outputDtype, splitGatherSectionCount);
+  const pipeline = resolveSplitGatherPipeline(splitEmbedding, outputDtype, splitGatherSectionCount);
   const sections = normalizeSplitGatherSections(splitEmbedding, config.sectionCount, config.label);
   const logicalRows = sections.reduce((sum, section) => sum + section.rowCount, 0);
   if (logicalRows < vocabSize) {
@@ -221,16 +257,17 @@ async function _gatherSplit(
 
   try {
     await unifiedKernelWrapper(
-      config.op,
+      pipeline.operation,
       target,
-      variant,
+      pipeline.variant,
       [
         indices,
         ...sections.map((section) => section.buffer),
         output,
       ],
       uniforms,
-      workgroups
+      workgroups,
+      pipeline.constants
     );
     return createTensor(output, actualDtype, [numTokens, hiddenSize], `${config.label}_output`);
   } catch (error) {
@@ -289,9 +326,9 @@ async function _gather(
     throw new Error('[Gather] packed BF16 embeddings require outputDtype=f32.');
   }
 
-  const usesHiddenSlice = inputHiddenSize !== hiddenSize || hiddenOffset !== 0;
-  const requestedVec4 = usesHiddenSlice ? false : options.useVec4;
-  const wantsVec4 = requestedVec4 ?? true;
+  const flags = resolveGatherFlags({ embeddingDtype, outputDtype, hiddenSize, inputHiddenSize, hiddenOffset,
+    useVec4: options.useVec4 });
+  const { usesHiddenSlice, requestedVec4, useF16Input, useF16Output, useVec4 } = flags;
   if (requestedVec4 === true && hiddenSize % 4 !== 0) {
     throw new Error('[Gather] useVec4=true requires hiddenSize to be divisible by 4.');
   }
@@ -302,13 +339,6 @@ async function _gather(
     throw new Error('[Gather] hiddenOffset must select a valid hidden slice inside inputHiddenSize.');
   }
 
-  const useF16Input = embeddingDtype === 'f16';
-  const useBF16Input = embeddingDtype === 'bf16';
-  const useF16Output = outputDtype === 'f16';
-  // The packed-BF16 kernel consumes one logical element per invocation.
-  // Do not pair it with the vec4 dispatch divisor until a BF16 vec4 entry
-  // point is explicitly registered.
-  const useVec4 = !useBF16Input && wantsVec4 && hiddenSize % 4 === 0;
   if (useLiteRTInt4Input) {
     resolveLiteRTInt4StorageEncoding(storageEncoding);
     if (outputDtype !== 'f16' && outputDtype !== 'f32') {
@@ -333,17 +363,8 @@ async function _gather(
     `useF16Input=${useF16Input}, useF16Output=${useF16Output}`
   );
 
-  const variant = selectGatherVariant(
-    useF16Input,
-    useBF16Input,
-    useF16Output,
-    useVec4,
-    useLiteRTInt4Input
-  );
-  trace.embed(`Gather variant: ${variant}`);
-  const constants = useLiteRTInt4Input
-    ? { STORAGE_OFFSET_BINARY: resolveLiteRTInt4StorageEncoding(storageEncoding) === 'offset_binary' ? 1 : 0 }
-    : null;
+  const pipeline = selectGatherPipeline(flags, storageEncoding);
+  trace.embed(`Gather variant: ${pipeline.variant}`);
 
   // Pad hiddenSize to Q4K alignment for downstream fused Q4K matmul kernels
   // that read 256-element blocks. Extra padding elements stay zero.
@@ -374,13 +395,13 @@ async function _gather(
 
   try {
     await unifiedKernelWrapper(
-      'gather',
+      pipeline.operation,
       target,
-      variant,
+      pipeline.variant,
       [indices, embeddings, output],
       uniforms,
       workgroups,
-      constants
+      pipeline.constants
     );
     return createTensor(output, actualDtype, [numTokens, hiddenSize], 'gather_output');
   } catch (error) {

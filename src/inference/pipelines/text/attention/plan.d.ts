@@ -1,4 +1,6 @@
 export const ATTENTION_PLAN_SCHEMA: 'doppler.attention-plan/v1';
+/** Activation applied to an enabled attention output gate before it multiplies the attention output. */
+export const ATTENTION_OUTPUT_GATE_ACTIVATION: 'sigmoid';
 
 export interface SemanticAttentionPlan {
   readonly schema: typeof ATTENTION_PLAN_SCHEMA;

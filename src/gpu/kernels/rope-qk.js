@@ -55,6 +55,10 @@ function selectRoPEQKVariant(dtype, precision) {
   return selectRuleValue('ropeQk', 'variant', { useF16: dtype === 'f16', precision });
 }
 
+export function resolveRoPEQKPipeline(dtype, precision) {
+  return { operation: 'rope_qk', variant: selectRoPEQKVariant(dtype, precision), constants: null };
+}
+
 export function canUseRoPEQK(qTensor, kTensor, options = {}) {
   if (options.reusesSharedKV === true) {
     return false;
@@ -117,14 +121,14 @@ async function _ropeQK(target, qTensor, kTensor, freqsCos, freqsSin, seqLen, opt
   assertBufferCapacity(bufferOf(freqsCos), freqElementCount * (paired ? 8 : 4), 'cos frequencies');
   assertBufferCapacity(bufferOf(freqsSin), freqElementCount * (paired ? 8 : 4), 'sin frequencies');
 
-  const variant = selectRoPEQKVariant(qTensor.dtype, qTensor.precision);
+  const pipeline = resolveRoPEQKPipeline(qTensor.dtype, qTensor.precision);
   const totalPairs = seqLen * (numQHeads + numKVHeads) * halfDim;
   const workgroups = paired ? planSplitQKVDispatch(totalPairs) : Math.ceil(totalPairs / WORKGROUP_SIZES.DEFAULT);
 
   await unifiedKernelWrapper(
-    'rope_qk',
+    pipeline.operation,
     target,
-    variant,
+    pipeline.variant,
     [qTensor, kTensor, freqsCos, freqsSin],
     {
       seq_len: seqLen,
@@ -137,7 +141,7 @@ async function _ropeQK(target, qTensor, kTensor, freqsCos, freqsSin, seqLen, opt
       pair_span_dim: pairSpanDim,
     },
     workgroups,
-    null,
+    pipeline.constants,
     null,
     'rope_qk'
   );
