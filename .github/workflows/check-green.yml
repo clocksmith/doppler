@@ -44,10 +44,6 @@ jobs:
       - name: Sync package source closure
         run: npm run package:closure:sync
 
-      - name: Run CI contract tests
-        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
-        run: npm run test:ci
-
       - name: Check kernel registries
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run kernels:check
@@ -55,6 +51,14 @@ jobs:
       - name: Run repository acceptance checks
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         run: npm run check:green
+
+      - name: Run Node WebGPU unit tests
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run test:unit:webgpu
+
+      - name: Run browser unit tests
+        if: ${{ !cancelled() && steps.chromium.outcome == 'success' }}
+        run: npm run test:unit:browser
 
       - name: Run browser WebGPU kernel contract
         if: ${{ !cancelled() && steps.chromium.outcome == 'success' }}

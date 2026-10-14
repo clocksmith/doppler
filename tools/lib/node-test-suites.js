@@ -11,7 +11,12 @@ export function resolveTestFiles(suiteName, directories = [], { includePending =
   }
   const suite = suites[suiteName];
   const roots = directories.length ? directories : suite.roots;
-  const excluded = directories.length ? [] : suite.excludeRoots.map((dir) => resolve(root, dir));
+  // excludeSuites keeps an opt-in suite's file list in one place instead of repeating it in excludeRoots.
+  const excludedSuiteRoots = (suite.excludeSuites ?? []).flatMap((name) => {
+    if (!Object.hasOwn(suites, name)) throw new Error(`Suite "${suiteName}" excludes unknown suite "${name}"`);
+    return suites[name].roots;
+  });
+  const excluded = directories.length ? [] : [...suite.excludeRoots, ...excludedSuiteRoots].map((dir) => resolve(root, dir));
   const files = new Set();
   function collect(file, explicit = false) {
     if (excluded.some((dir) => file === dir || file.startsWith(`${dir}${sep}`))) return;
