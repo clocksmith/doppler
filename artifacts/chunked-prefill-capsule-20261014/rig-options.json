@@ -1,0 +1,20 @@
+{
+  "repoRoot": "/var/tmp/qwen35-capsule-chunk16-20261014-b/source",
+  "programBundlePath": "/var/tmp/qwen35-capsule-chunk16-20261014-b/artifacts/program-bundle.json",
+  "manifestPath": "/var/tmp/qwen35-capsule-chunk16-20261014-b/source/capsule-input/model/manifest.json",
+  "modelDir": "/var/tmp/qwen35-capsule-chunk16-20261014-b/source/capsule-input/model",
+  "modelIRReceiptPath": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/model-ir-receipt.json",
+  "initialExecutionIdentityPath": "/var/tmp/qwen35-capsule-chunk16-20261014-b/initial-identity.json",
+  "qualificationReportPaths": [
+    "/Users/xyz/deco/reploid/artifacts/completion-qualification-3-20261014/b/reports/partition-0.json",
+    "/Users/xyz/deco/reploid/artifacts/completion-qualification-3-20261014/b/reports/partition-1.json",
+    "/Users/xyz/deco/reploid/artifacts/completion-qualification-3-20261014/b/reports/partition-2.json"
+  ],
+  "residentQualificationContractPath": "/Users/xyz/deco/reploid/artifacts/completion-qualification-3-20261014/b/reports/contract.json",
+  "pieceIndexPath": "/var/tmp/qwen35-capsule-chunk16-20261014-b/pieces.json",
+  "releaseManifestPath": "/var/tmp/qwen35-capsule-chunk16-20261014-b/release.json",
+  "signingPrivateKeyPath": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/signing-private.jwk.json",
+  "signingPublicKeyPath": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/signing-public.jwk.json",
+  "signingAuthority": "reploid-paired-qualification-20261012",
+  "outputPath": "/var/tmp/qwen35-capsule-chunk16-20261014-b/capsule.json"
+}

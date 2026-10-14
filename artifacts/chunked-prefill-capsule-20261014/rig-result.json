@@ -1,0 +1,74 @@
+{
+  "ok": true,
+  "forgeVersion": "2.0.0",
+  "outputPath": "../../../../var/tmp/qwen35-capsule-chunk16-20261014-b/capsule.json",
+  "absoluteOutputPath": "/var/tmp/qwen35-capsule-chunk16-20261014-b/capsule.json",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v2-3c8c47e0d9943994",
+  "semanticRoot": "sha256:3c8c47e0d9943994655e795e495054e37153bf5eda018c3428c16e0a3eca8795",
+  "envelopeHash": "sha256:e3c81fb75a673f4d4769a38e8d801ad8ff9764808c61d6eaa1a72d2854c42665",
+  "schema": "doppler.capsule/v2",
+  "schemaVersion": 2,
+  "createdAtUtc": "2026-10-14T13:20:43.910Z",
+  "sourceBundleId": "qwen-3-5-0-8b-q4k-ehaf16-9e28445d7982",
+  "programBundlePath": "/var/tmp/qwen35-capsule-chunk16-20261014-b/artifacts/program-bundle.json",
+  "executionGraphHash": "sha256:9e28445d798247290e44150f244b87e5ee1f8d97754baf3ed434bf95440549cf",
+  "artifactCount": 64,
+  "wgslModuleCount": 35,
+  "targetPlanDigests": [
+    "sha256:290f4b91f3cebe641fd730b82cb619bd52e72c4b3e7822eab1a54d9279473f9c"
+  ],
+  "stages": [
+    {
+      "stage": "inspect",
+      "ok": true
+    },
+    {
+      "stage": "normalize",
+      "ok": true
+    },
+    {
+      "stage": "analyze",
+      "ok": true
+    },
+    {
+      "stage": "lower",
+      "ok": true
+    },
+    {
+      "stage": "specialize",
+      "ok": true
+    },
+    {
+      "stage": "search",
+      "ok": true
+    },
+    {
+      "stage": "verify",
+      "ok": true
+    },
+    {
+      "stage": "qualify",
+      "ok": true
+    },
+    {
+      "stage": "package",
+      "ok": true
+    },
+    {
+      "stage": "sign",
+      "ok": true
+    }
+  ],
+  "searchReceipt": {
+    "candidateTargetPlanHashes": [
+      "sha256:290f4b91f3cebe641fd730b82cb619bd52e72c4b3e7822eab1a54d9279473f9c"
+    ],
+    "selectedTargetPlanHashes": [
+      "sha256:290f4b91f3cebe641fd730b82cb619bd52e72c4b3e7822eab1a54d9279473f9c"
+    ],
+    "policy": "closed-program-source-plan",
+    "evaluationReceipt": null
+  },
+  "candidateEvaluation": null
+}
