@@ -1,0 +1,61 @@
+{
+  "schema": "doppler.capsule-release-renewal/v1",
+  "capsule": {
+    "schema": "doppler.capsule/v3",
+    "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v3-171132d428ce64eaf706c637ee22fea0103f50a21e39e9899cac5d91b5f94234",
+    "semanticRoot": "sha256:171132d428ce64eaf706c637ee22fea0103f50a21e39e9899cac5d91b5f94234",
+    "envelopeDigest": "sha256:3b4a3e3d308be8fd5e9d0c9fe2cae7a6d06398d2a859b3f00b130225a017bd95",
+    "artifactClosureDigest": "sha256:404c6ee4d4cb6412caafe203e9087f35b4ed8279814bab722d24b15c3f62a78c"
+  },
+  "runtimeArchive": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+  "authority": "reploid-paired-qualification-20261012",
+  "scope": "Local signed browser/Node opening qualification only; no public eligibility or application promotion",
+  "previous": {
+    "sequence": 4,
+    "digest": "sha256:7f62c19a88165fded22d857860da729cb82f02a69f30e6f48765f35f1195ee45",
+    "expiresAtUtc": "2026-10-15T13:21:16.819Z"
+  },
+  "renewed": {
+    "sequence": 5,
+    "digest": "sha256:70f24c979f6b08c25827de341f5b08ab441b1c30fdca6bcec019a596c3ed71d2",
+    "issuedAtUtc": "2026-10-14T16:14:00.836Z",
+    "expiresAtUtc": "2026-10-15T16:14:00.836Z"
+  },
+  "verifiedFromCheckpoints": [
+    {
+      "from": {
+        "sequence": 4,
+        "digest": "sha256:7f62c19a88165fded22d857860da729cb82f02a69f30e6f48765f35f1195ee45"
+      },
+      "to": {
+        "sequence": 5,
+        "digest": "sha256:70f24c979f6b08c25827de341f5b08ab441b1c30fdca6bcec019a596c3ed71d2"
+      },
+      "artifacts": 64
+    },
+    {
+      "from": {
+        "sequence": 3,
+        "digest": "sha256:74ab985fb86baa7fe0c283bd9dabfb536b4a077e7942e9419eeca661500dea6a"
+      },
+      "to": {
+        "sequence": 5,
+        "digest": "sha256:70f24c979f6b08c25827de341f5b08ab441b1c30fdca6bcec019a596c3ed71d2"
+      },
+      "artifacts": 64
+    },
+    {
+      "from": {
+        "sequence": 0,
+        "digest": null
+      },
+      "to": {
+        "sequence": 5,
+        "digest": "sha256:70f24c979f6b08c25827de341f5b08ab441b1c30fdca6bcec019a596c3ed71d2"
+      },
+      "artifacts": 64
+    }
+  ],
+  "verifiedAt": "2026-10-14T16:14:00.836Z",
+  "publicPromotion": false
+}
