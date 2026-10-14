@@ -1,0 +1,389 @@
+{
+  "schema": "doppler.package-inventory-delta/v1",
+  "baseline": {
+    "commit": "e79513e3",
+    "maxEntryCount": 1917,
+    "maxPackedSize": 3369256,
+    "maxUnpackedSize": 13214327
+  },
+  "measured": {
+    "toolchain": "Node 22.20.0 / npm 10.9.3",
+    "command": "npm pack --dry-run --json",
+    "entryCount": 1991,
+    "packedSize": 3474000,
+    "unpackedSize": 13996039
+  },
+  "addedFiles": [
+    {
+      "path": "src/config/canonical-contract-codec.d.ts",
+      "size": 738,
+      "addedIn": "71d373ed"
+    },
+    {
+      "path": "src/config/canonical-contract-codec.js",
+      "size": 7146,
+      "addedIn": "71d373ed"
+    },
+    {
+      "path": "src/config/canonical-generation-policy.d.ts",
+      "size": 703,
+      "addedIn": "71d373ed"
+    },
+    {
+      "path": "src/config/canonical-generation-policy.js",
+      "size": 3834,
+      "addedIn": "71d373ed"
+    },
+    {
+      "path": "src/config/layer-partition-plan.d.ts",
+      "size": 4153,
+      "addedIn": "77af06b9"
+    },
+    {
+      "path": "src/config/layer-partition-plan.js",
+      "size": 12648,
+      "addedIn": "77af06b9"
+    },
+    {
+      "path": "src/config/ordered-resident-qualification.d.ts",
+      "size": 1153,
+      "addedIn": "77af06b9"
+    },
+    {
+      "path": "src/config/ordered-resident-qualification.js",
+      "size": 4041,
+      "addedIn": "77af06b9"
+    },
+    {
+      "path": "src/converter/linear-norm-gate.js",
+      "size": 5719,
+      "addedIn": "7809060a"
+    },
+    {
+      "path": "src/converter/resident-qualification.js",
+      "size": 5049,
+      "addedIn": "92df53c4"
+    },
+    {
+      "path": "src/gpu/kernels/attention_paired.wgsl",
+      "size": 16670,
+      "addedIn": "f76d2681"
+    },
+    {
+      "path": "src/gpu/kernels/cast_f32_to_two_f32.wgsl",
+      "size": 622,
+      "addedIn": "810fbcbe"
+    },
+    {
+      "path": "src/gpu/kernels/cast_two_f32_to_f16.wgsl",
+      "size": 2428,
+      "addedIn": "810fbcbe"
+    },
+    {
+      "path": "src/gpu/kernels/gated-delta-norm-gate.js",
+      "size": 2140,
+      "addedIn": "7809060a"
+    },
+    {
+      "path": "src/gpu/kernels/gated_delta_conv_paired.wgsl",
+      "size": 13586,
+      "addedIn": "5fa676c1"
+    },
+    {
+      "path": "src/gpu/kernels/gated_delta_fused_decode_sigmoid_gate.wgsl",
+      "size": 19734,
+      "addedIn": "7809060a"
+    },
+    {
+      "path": "src/gpu/kernels/gated_delta_fused_decode_sigmoid_gate_f16.wgsl",
+      "size": 19751,
+      "addedIn": "7809060a"
+    },
+    {
+      "path": "src/gpu/kernels/gated_delta_gate_paired.wgsl",
+      "size": 13107,
+      "addedIn": "1d1145ad"
+    },
+    {
+      "path": "src/gpu/kernels/gated_delta_gate_sigmoid_paired.wgsl",
+      "size": 13322,
+      "addedIn": "7809060a"
+    },
+    {
+      "path": "src/gpu/kernels/gated_delta_norm_paired.wgsl",
+      "size": 13964,
+      "addedIn": "1d1145ad"
+    },
+    {
+      "path": "src/gpu/kernels/gated_delta_qk_paired.wgsl",
+      "size": 14097,
+      "addedIn": "1d1145ad"
+    },
+    {
+      "path": "src/gpu/kernels/gated_delta_recurrent_paired.wgsl",
+      "size": 16479,
+      "addedIn": "5fa676c1"
+    },
+    {
+      "path": "src/gpu/kernels/gated_delta_recurrent_sigmoid_gate.wgsl",
+      "size": 20118,
+      "addedIn": "7809060a"
+    },
+    {
+      "path": "src/gpu/kernels/gated_delta_recurrent_sigmoid_gate_f16.wgsl",
+      "size": 20135,
+      "addedIn": "7809060a"
+    },
+    {
+      "path": "src/gpu/kernels/gated_delta_state_paired.wgsl",
+      "size": 14724,
+      "addedIn": "1d1145ad"
+    },
+    {
+      "path": "src/gpu/kernels/matmul_paired.wgsl",
+      "size": 15097,
+      "addedIn": "810fbcbe"
+    },
+    {
+      "path": "src/gpu/kernels/paired-activation.d.ts",
+      "size": 1016,
+      "addedIn": "becbd4f6"
+    },
+    {
+      "path": "src/gpu/kernels/paired-activation.js",
+      "size": 5504,
+      "addedIn": "becbd4f6"
+    },
+    {
+      "path": "src/gpu/kernels/paired-attention.js",
+      "size": 5002,
+      "addedIn": "f76d2681"
+    },
+    {
+      "path": "src/gpu/kernels/paired-cast.d.ts",
+      "size": 804,
+      "addedIn": "810fbcbe"
+    },
+    {
+      "path": "src/gpu/kernels/paired-cast.js",
+      "size": 3803,
+      "addedIn": "810fbcbe"
+    },
+    {
+      "path": "src/gpu/kernels/paired-linear-attention.js",
+      "size": 10999,
+      "addedIn": "5fa676c1"
+    },
+    {
+      "path": "src/gpu/kernels/paired-matmul.js",
+      "size": 4684,
+      "addedIn": "810fbcbe"
+    },
+    {
+      "path": "src/gpu/kernels/paired-rmsnorm.js",
+      "size": 4666,
+      "addedIn": "810fbcbe"
+    },
+    {
+      "path": "src/gpu/kernels/paired-rope.js",
+      "size": 3183,
+      "addedIn": "f76d2681"
+    },
+    {
+      "path": "src/gpu/kernels/paired-split.js",
+      "size": 4251,
+      "addedIn": "f76d2681"
+    },
+    {
+      "path": "src/gpu/kernels/paired_add.wgsl",
+      "size": 12757,
+      "addedIn": "becbd4f6"
+    },
+    {
+      "path": "src/gpu/kernels/paired_multiply.wgsl",
+      "size": 12712,
+      "addedIn": "becbd4f6"
+    },
+    {
+      "path": "src/gpu/kernels/paired_scale.wgsl",
+      "size": 12679,
+      "addedIn": "becbd4f6"
+    },
+    {
+      "path": "src/gpu/kernels/paired_scale_inplace.wgsl",
+      "size": 12621,
+      "addedIn": "becbd4f6"
+    },
+    {
+      "path": "src/gpu/kernels/paired_sigmoid.wgsl",
+      "size": 12921,
+      "addedIn": "becbd4f6"
+    },
+    {
+      "path": "src/gpu/kernels/paired_silu.wgsl",
+      "size": 12918,
+      "addedIn": "becbd4f6"
+    },
+    {
+      "path": "src/gpu/kernels/paired_silu_unary.wgsl",
+      "size": 12645,
+      "addedIn": "becbd4f6"
+    },
+    {
+      "path": "src/gpu/kernels/qwen_linear_attention_decay_paired.wgsl",
+      "size": 12893,
+      "addedIn": "eac99b97"
+    },
+    {
+      "path": "src/gpu/kernels/qwen_linear_attention_log_decay_paired.wgsl",
+      "size": 13303,
+      "addedIn": "eac99b97"
+    },
+    {
+      "path": "src/gpu/kernels/qwen_linear_attention_prepare_paired.wgsl",
+      "size": 12989,
+      "addedIn": "33bd652a"
+    },
+    {
+      "path": "src/gpu/kernels/qwen_linear_attention_scale_paired.wgsl",
+      "size": 13616,
+      "addedIn": "eac99b97"
+    },
+    {
+      "path": "src/gpu/kernels/rmsnorm_paired.wgsl",
+      "size": 15101,
+      "addedIn": "810fbcbe"
+    },
+    {
+      "path": "src/gpu/kernels/rope-dispatch.js",
+      "size": 1040,
+      "addedIn": "f76d2681"
+    },
+    {
+      "path": "src/gpu/kernels/rope_precompute_paired.wgsl",
+      "size": 13408,
+      "addedIn": "f76d2681"
+    },
+    {
+      "path": "src/gpu/kernels/rope_qk_paired.wgsl",
+      "size": 15451,
+      "addedIn": "f76d2681"
+    },
+    {
+      "path": "src/gpu/kernels/split-dispatch.js",
+      "size": 726,
+      "addedIn": "f76d2681"
+    },
+    {
+      "path": "src/gpu/kernels/split_qg_paired.wgsl",
+      "size": 2172,
+      "addedIn": "f76d2681"
+    },
+    {
+      "path": "src/gpu/kernels/split_qkv_paired.wgsl",
+      "size": 2158,
+      "addedIn": "f76d2681"
+    },
+    {
+      "path": "src/inference/kv-cache/copy-state.js",
+      "size": 2352,
+      "addedIn": "b2342bd3"
+    },
+    {
+      "path": "src/inference/pipelines/text/attention/cache-cast.js",
+      "size": 844,
+      "addedIn": "f76d2681"
+    },
+    {
+      "path": "src/inference/pipelines/text/attention/paired-contract.js",
+      "size": 2296,
+      "addedIn": "f76d2681"
+    },
+    {
+      "path": "src/inference/pipelines/text/ffn/paired.js",
+      "size": 8046,
+      "addedIn": "7eb47eae"
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/activation-storage.js",
+      "size": 740,
+      "addedIn": "f76d2681"
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/decode-components.js",
+      "size": 1302,
+      "addedIn": "f52cfe93"
+    },
+    {
+      "path": "src/inference/pipelines/text/linear-attention/state-layout.js",
+      "size": 2410,
+      "addedIn": "8b6b8311"
+    },
+    {
+      "path": "src/inference/pipelines/text/paired-execution.js",
+      "size": 5462,
+      "addedIn": "f76d2681"
+    },
+    {
+      "path": "src/inference/resident-block-contract.d.ts",
+      "size": 2310,
+      "addedIn": "ad81ccf3"
+    },
+    {
+      "path": "src/inference/resident-block-contract.js",
+      "size": 7342,
+      "addedIn": "ad81ccf3"
+    },
+    {
+      "path": "src/inference/resident-output-state.d.ts",
+      "size": 762,
+      "addedIn": "15bbb3ce"
+    },
+    {
+      "path": "src/inference/resident-output-state.js",
+      "size": 4202,
+      "addedIn": "15bbb3ce"
+    },
+    {
+      "path": "src/inference/resident-publication-contract.d.ts",
+      "size": 2413,
+      "addedIn": "a8ec8778"
+    },
+    {
+      "path": "src/inference/resident-publication-contract.js",
+      "size": 7727,
+      "addedIn": "a8ec8778"
+    },
+    {
+      "path": "src/inference/resident-state-contract.d.ts",
+      "size": 2219,
+      "addedIn": "71d373ed"
+    },
+    {
+      "path": "src/inference/resident-state-contract.js",
+      "size": 9854,
+      "addedIn": "71d373ed"
+    },
+    {
+      "path": "src/inference/resident-target-state.d.ts",
+      "size": 1822,
+      "addedIn": "a1c9eede"
+    },
+    {
+      "path": "src/inference/resident-target-state.js",
+      "size": 9020,
+      "addedIn": "a1c9eede"
+    },
+    {
+      "path": "src/inference/sampling-rng.js",
+      "size": 1879,
+      "addedIn": "2f2bcbf3"
+    },
+    {
+      "path": "src/tooling/model-capsule-pieces.js",
+      "size": 2825,
+      "addedIn": "92df53c4"
+    }
+  ],
+  "note": "Every added entry is under src/: paired-execution kernels and wrappers, generation and resident contracts, and the linear-attention norm-gate kernels (7809060a). No model weights, tools, tests or artifacts are shipped."
+}

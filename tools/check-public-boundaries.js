@@ -64,7 +64,10 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Public embedding batch semantics adds its previously internal declaration.
   // W8A8 source and intervening lifecycle fixes; independent oracle stays unshipped.
   // Exact delta: artifacts/w8a8-package-20261011/inventory-delta.json.
-  maxEntryCount: 1917,
+  // Paired execution, generation/resident contracts and sigmoid norm-gate kernels
+  // add 74 src/ entries (31 WGSL, 43 JS/declarations); measured 1991 on npm 10.9.3.
+  // Exact delta: artifacts/package-budget-20261014/inventory-delta.json.
+  maxEntryCount: 1991,
   // add14e4b: npm 9.2.0 produces 2,104,958 bytes; CI Node 22.23.2/npm 10.9.8
   // produces 2,107,073. Keep the measured cross-toolchain compression allowance.
   // Evidence: reports/capsule-baseline/20260907-release/remote-package-budget-failure.log.
@@ -132,7 +135,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Resident contract 0.6.27: measured archive plus the existing npm allowance.
   // Evidence: artifacts/partition-contracts-20261010/npm-pack.json.
   // Measured npm 9 payload plus the same 2,158-byte compression allowance.
-  maxPackedSize: 3_369_256,
+  // The 74 entries of artifacts/package-budget-20261014/inventory-delta.json:
+  // measured 3,474,000 packed on Node 22.20.0/npm 10.9.3, plus that allowance.
+  maxPackedSize: 3_476_158,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -180,7 +185,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Submitted-prefill failure settlement adds 817 bytes in one existing module.
   // First-token completion classification adds 324 bytes across two existing modules.
   // Evidence: artifacts/w8a8-package-20261011/completion-package-inventory.json.gz.
-  maxUnpackedSize: 13_214_327,
+  // The 74 entries of artifacts/package-budget-20261014/inventory-delta.json:
+  // measured 13,996,039 unpacked bytes.
+  maxUnpackedSize: 13_996_039,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
