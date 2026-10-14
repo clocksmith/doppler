@@ -91,7 +91,7 @@ This covers the risk surface (layout × attention mode, layout × batch size) wi
 
 | Tier | Runs when | What |
 | --- | --- | --- |
-| PR-fast | every PR | Layer 1 + Layer 4 structural (`npm run test:ci`) |
+| PR-fast | every PR | Layer 1 + Layer 4 structural (`Default Green Chain` workflow: `npm run kernels:check`, `npm run check:green` including `test:unit`, `npm run test:unit:webgpu`, `npm run test:unit:browser`, `npm run test:gpu:browser`, `npm run test:demo:contract`) |
 | PR-GPU | manual dispatch | Layer 2 (`Manual Runtime Validation` workflow) |
 | Verify | model change | Layer 3 (`npm run verify:model`) |
 | Nightly | scheduled | Layer 5 + broader profile sweeps |

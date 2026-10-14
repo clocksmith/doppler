@@ -28,7 +28,7 @@ npm run agents:verify
 
 ## Default CI contract
 
-`npm run ci:check` is the deterministic contract used by GitHub Actions. It combines a small explicit CPU smoke set, static kernel registry and digest validation, and the green chain below.
+`npm run ci:check` runs `kernels:check` (kernel codegen, registry, and digest checks) and then `check:green`, the green chain below. The `Default Green Chain` GitHub Actions workflow (`.github/workflows/check-green.yml`) runs those two as separate steps, followed by `test:unit:webgpu`, `test:unit:browser`, `test:gpu:browser`, and `test:demo:contract`.
 
 `npm run check:green` runs the read-only repository gates and Node tests. Use
 `npm run` or `npm pkg get scripts` to discover the current commands rather than
