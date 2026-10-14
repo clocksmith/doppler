@@ -206,6 +206,13 @@ function formatProbeStats(stats, firstNonFiniteIndex = -1) {
 }
 
 
+// A probe decodes a tensor by its declared storage, not by its component dtype alone:
+// a two-F32 tensor has F32 components but eight-byte logical elements.
+export function tensorProbeOptions(tensor) {
+  return { dtype: tensor.dtype, precision: tensor.precision, components: tensor.components,
+    elementStrideBytes: tensor.elementStrideBytes };
+}
+
 export async function runProbes(stage, buffer, options) {
   const { layerIdx, numTokens, hiddenSize, probes, recorder, dtype = 'f32' } = options;
   if (!buffer) return;
