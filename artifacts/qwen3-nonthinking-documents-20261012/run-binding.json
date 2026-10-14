@@ -38,7 +38,7 @@
       "suiteSha256": "a41e0d6b7685457affb3e2da1949a7b3c60042873ca261d499c1fffc84f155e1"
     }
   ],
-  "host": "x@128.tail995236.ts.net",
+  "host": "amd-host",
   "threadsPerProcess": 4,
   "surface": "CPU source equations only",
   "parentSuiteSha256": "6f097c4b36282267b778734fe28fb99b949bd58f56e300fb5c2e3626e954b8ca",

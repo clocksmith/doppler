@@ -154,9 +154,9 @@
   "remainingProvisioning": {
     "f16Control": {
       "status": "blocked_on_exact_transfer",
-      "sourceHost": "x@128.tail995236.ts.net",
+      "sourceHost": "amd-host",
       "sourcePath": "/home/x/rdrr/qwen-3-5-9b-f16-af32",
-      "lastAttempt": "ssh -o BatchMode=yes -o ConnectTimeout=5 x@128.tail995236.ts.net pwd",
+      "lastAttempt": "ssh -o BatchMode=yes -o ConnectTimeout=5 amd-host pwd",
       "lastError": "Permission denied (publickey,password)."
     },
     "v11GrpoAdapter": {

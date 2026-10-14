@@ -1,6 +1,6 @@
 {
   "schema": "doppler.source-quality-run-binding/v1",
-  "host": "x@128.tail995236.ts.net",
+  "host": "amd-host",
   "runDirectory": "/var/tmp/doppler-repetition-source-20261011",
   "ownedPid": 3882811,
   "command": "PYTHONPATH=/tmp/doppler-reference-deps OPENBLAS_NUM_THREADS=8 OMP_NUM_THREADS=8 python3 -u tools/qwen35-original-weight-generation.py --source /var/tmp/doppler-qwen35-2b-source-20261011 --revision 15852e8c16360a2fea060d615a32b45270f8a8fc --deployed /home/x/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16 --control document-fresh-bathroom-comparison.json --out document-fresh-bathroom-comparison-result.json --threads 8",

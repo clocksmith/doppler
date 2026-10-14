@@ -39,7 +39,7 @@ On the short capture’s first-layer QKV operands, local maximum errors were bas
 - `*-distribution.json`: all 55 prefixes and complete vocabulary error distributions.
 - `*-binding.json`, `*-archive-differences.json`, `summary.json`: exact archive/model/source identities and raw receipt locations/hashes.
 - `rejected-*.wgsl`, `*-projection.json.gz`, logs: failed candidates and observations. The initial audit failure on prefill-only FFN captures is retained separately.
-- Raw 54 MiB replay receipts and the three standard archives are retained under `reports/local/short-prefix-f64-20261012/` on **both** the Mac and `x@128.tail995236.ts.net:/home/x/deco/doppler/`. `summary.json` records compressed and uncompressed hashes. They are not duplicated into Git history.
+- Raw 54 MiB replay receipts and the three standard archives are retained under `reports/local/short-prefix-f64-20261012/` on **both** the Mac and `amd-host:/home/x/deco/doppler/`. `summary.json` records compressed and uncompressed hashes. They are not duplicated into Git history.
 
 Run from Doppler with NumPy/gguf available:
 

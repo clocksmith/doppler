@@ -14,7 +14,7 @@
       "sha256": "89e7d22581b14edf1b5575c303526340deeff6efc00abfaababa977d548bab6a"
     }
   ],
-  "host": "x@128.tail995236.ts.net",
+  "host": "amd-host",
   "runDirectory": "/var/tmp/doppler-structured-source-20261011",
   "command": "PYTHONPATH=/tmp/doppler-reference-deps OPENBLAS_NUM_THREADS=4 OMP_NUM_THREADS=4 python3 -u tools/source-model-task-quality.py --source /var/tmp/doppler-qwen3-17b-source-20261011 --suite artifacts/contractor-structured-quality-20261011/suite.json --out result.json --threads 4",
   "scope": "One general system instruction candidate, all sampling settings and budgets unchanged; CPU only, not package acceptance"

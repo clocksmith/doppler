@@ -3,8 +3,8 @@
   "archiveSha256": "5e0d60bc433d332187d422721fd7afcaec780c202e3082adcab389b47fd27fc5",
   "remoteDirectory": "/var/tmp/doppler-ordered-provider-20261013",
   "hosts": [
-    "x@128.tail995236.ts.net",
-    "clocksmith@suby.tail995236.ts.net"
+    "amd-host",
+    "intel-host"
   ],
   "installedFilesEach": 1976,
   "verifiedModelShardsEach": 18,
