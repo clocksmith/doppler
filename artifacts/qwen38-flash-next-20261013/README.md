@@ -200,8 +200,12 @@ physical GPU (Apple metal-3) on 2026-10-14; receipts are in
   `tests/inference/linear-attention-core-gpu-regression.test.js` passes its
   scalar recurrent and fused-decode sigmoid cases (Node/WebGPU), and
   `tests/kernels/paired-linear-physical.js` passes the paired path with
-  sigmoid and, unchanged, with silu (Chrome 155, tolerance 2e-11). Other GPUs
-  (Vulkan on AMD and Intel) are not yet run; CI has no WebGPU adapter.
+  sigmoid and, unchanged, with silu (Chrome 155, tolerance 2e-11). On
+  `amd-host` (AMD RDNA3, Vulkan) both commands also pass: the Node test through
+  the final-9 Dawn module, and the paired physical test with sigmoid and silu in
+  Chrome 146 ([`gpu-verification-20261014/amd-host/`](gpu-verification-20261014/amd-host/);
+  amdgpu error count unchanged). Intel Vulkan is not yet run; CI has no WebGPU
+  adapter.
 - Rule-based kernel selection and registry `normGateActivation` metadata fail
   closed when a kernel's gate activation differs from the manifest's.
 
@@ -280,8 +284,8 @@ The CPU expert execution reference is now in place at full geometry (MoE block a
    `linearNormGateActivation: "sigmoid"`; conversion rejects omission or silu.
    No Flash-Next conversion config or RDRR artifact exists yet.
 3. GPU verification of the sigmoid gated-delta kernels against the CPU
-   reference beyond Apple metal-3 (done 2026-10-14, see above): run the same
-   two commands on Vulkan GPUs. Neither establishes Flash-Next numerics on
+   reference on Intel Vulkan (Apple metal-3 and AMD RDNA3 Vulkan done
+   2026-10-14, see above). Neither establishes Flash-Next numerics on
    learned weights.
 4. License suitability: the checkpoint files are under the Qwen Community
    License 1.0 and the nine Transformers files under Apache-2.0
