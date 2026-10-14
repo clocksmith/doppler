@@ -1,0 +1,367 @@
+{
+  "schema": "doppler.qwen38-linear-attention-reference/v1",
+  "checkpoint": "de4b8e4d43b917e7706784d8bb445c9af86a3540",
+  "upstream": "e0eb2810ac1b2caf6d082f247d8d37162ecf67a0",
+  "torch": "2.11.0",
+  "surface": "CPU",
+  "environment": {
+    "machine": "arm64",
+    "blas": "accelerate",
+    "float32MatmulPrecision": "highest",
+    "threads": 2
+  },
+  "scope": "Unchanged upstream Qwen4ExpTextGatedDeltaNet, conv and gated-delta torch bodies, gated RMSNorm and the pinned LinearAttentionLayer cache at the pinned text geometry with synthetic F32 weights; no checkpoint weights or Doppler execution",
+  "sourceNodes": {
+    "modeling_qwen4_exp.py": [
+      "Qwen4ExpTextRMSNormGated",
+      "apply_mask_to_padding_states",
+      "causal_conv1d_update",
+      "causal_conv1d_fn",
+      "l2norm",
+      "torch_chunk_gated_delta_rule",
+      "torch_recurrent_gated_delta_rule",
+      "Qwen4ExpTextGatedDeltaNet"
+    ],
+    "cache_utils.py": [
+      "LinearAttentionCacheLayerMixin",
+      "LinearAttentionLayer",
+      "Cache.update_conv_state",
+      "Cache.update_recurrent_state",
+      "Cache.has_previous_state"
+    ],
+    "activations.py": [
+      "SiLUActivation"
+    ]
+  },
+  "testPorts": [
+    "CachePort holds pinned LinearAttentionLayer objects and the three unchanged Cache methods",
+    "stage spies record inputs and outputs and return the upstream results unchanged",
+    "fla and causal_conv1d kernels are CUDA/Triton and not installed; the export-only forward-substitution branch is not run"
+  ],
+  "geometry": {
+    "layer": 0,
+    "linearLayers": 36,
+    "hiddenSize": 2560,
+    "keyHeads": 16,
+    "valueHeads": 48,
+    "keyHeadDim": 128,
+    "valueHeadDim": 128,
+    "convDim": 10240,
+    "convKernel": 4,
+    "chunkSize": 64,
+    "normGate": "sigmoid",
+    "tokens": 150
+  },
+  "recipe": {
+    "values": "splitmix64(index + stream<<40) >> 40, minus 2^23, times 2^(exponent-23); exact F32",
+    "weights": [
+      {
+        "name": "A_log",
+        "shape": [
+          48
+        ],
+        "recipe": "log(0.01 * 1600^(h/47))",
+        "sha256": "29ae0a5942511572c4cc8b8020de844048aca5268fe51a374906b74e9d8684c1"
+      },
+      {
+        "name": "conv1d.weight",
+        "shape": [
+          10240,
+          1,
+          4
+        ],
+        "recipe": "dyadic(stream 2, exponent -1)",
+        "sha256": "ceb2ff03987552489575fc319467185ea04360a06e181149460d409605906b42"
+      },
+      {
+        "name": "dt_bias",
+        "shape": [
+          48
+        ],
+        "recipe": "1 + dyadic(stream 3, exponent -3)",
+        "sha256": "f8bd684384f3f1590371501afa3faeda9ce72fed647f91f7d948ea89594e7495"
+      },
+      {
+        "name": "in_proj_a.weight",
+        "shape": [
+          48,
+          2560
+        ],
+        "recipe": "dyadic(stream 4, exponent -5)",
+        "sha256": "f6c540493521675d2d47bb9c17955995a9fe9a919c5cc929f1126ab074b9ab9c"
+      },
+      {
+        "name": "in_proj_b.weight",
+        "shape": [
+          48,
+          2560
+        ],
+        "recipe": "dyadic(stream 5, exponent -5)",
+        "sha256": "8c00ee091d172d09a44dcebd676f145337387957565dd88234d46195452d8033"
+      },
+      {
+        "name": "in_proj_qkv.weight",
+        "shape": [
+          10240,
+          2560
+        ],
+        "recipe": "dyadic(stream 6, exponent -5)",
+        "sha256": "58f876a655435b8faf0e3a1ba2aa21a986918740be158a4960cde2deef267e0b"
+      },
+      {
+        "name": "in_proj_z.weight",
+        "shape": [
+          6144,
+          2560
+        ],
+        "recipe": "dyadic(stream 7, exponent -5)",
+        "sha256": "3239da95fdacf73f1bdbf6359138712091878d9644a56ba18043f08315776f04"
+      },
+      {
+        "name": "norm.weight",
+        "shape": [
+          128
+        ],
+        "recipe": "1 + dyadic(stream 8, exponent -3)",
+        "sha256": "e8582051f54342bdf1bada523077eeefb9ae0cd652ef8ca9a135317e4c790696"
+      },
+      {
+        "name": "out_proj.weight",
+        "shape": [
+          2560,
+          6144
+        ],
+        "recipe": "dyadic(stream 9, exponent -6)",
+        "sha256": "dbdefc89633836900099686f76193a2cf26d74ae2081cd0acf0e86513fb9697c"
+      }
+    ],
+    "hidden": {
+      "stream": 4096,
+      "exponent": 1,
+      "sha256": "9043d1ebd8a6b31e4b423cdf1aa37b573f8603bb5d2bdd236cbc05912dc29b1e"
+    }
+  },
+  "paths": {
+    "fullSequence": {
+      "calls": 1,
+      "spans": [
+        [
+          0,
+          150
+        ]
+      ],
+      "outputSha256": "0ae5eee45b45195e8f2bc3a36fac818eb9b84d50bc1a2a324422978e1a4f44b9"
+    },
+    "chunkedPrefillThenDecode": {
+      "calls": 32,
+      "spans": [
+        [
+          0,
+          70
+        ],
+        [
+          70,
+          120
+        ],
+        [
+          120,
+          121
+        ],
+        "..."
+      ],
+      "outputSha256": "b1a4bf76c32d07f3c684c61eae9255ef3c119cdd1af1df6f017a4f8a93e36392"
+    },
+    "shortPrefillThenDecode": {
+      "calls": 148,
+      "spans": [
+        [
+          0,
+          3
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          4,
+          5
+        ],
+        "..."
+      ],
+      "outputSha256": "a53eff9b9906fc1ab9b59c751452723edd884103a82fdc5e19391a29bb9cb948"
+    }
+  },
+  "derivation": [
+    "Projections: gamma_n |W||x| (n = 2560 in, 6144 out). Depthwise conv: gamma_4 sum|w||x| over the 4 taps, then silu (x / (1 + exp(-x)), Lipschitz 1.0999, relative rounding). PyTorch CPU kernels: exp within 4u, log1p within 4u, sqrt correctly rounded, rsqrt = reciprocal(sqrt).",
+    "Gates: beta = 1/(1 + exp(-b)); g = -exp(A_log) * softplus(fl(a + dt_bias)), softplus = log1p(exp(x)) for x <= 20 and x above 20, Lipschitz 1.",
+    "l2norm: x * rsqrt(sum x^2 + 1e-6) within (1+eps_rsqrt)(1+u); queries also scale by fl(128^-0.5) (chunk) or divide by fl(sqrt 128) (recurrent).",
+    "Chunk path, per head and 64-token chunk: every operation carries |da||b| + |a||db| + |da||db| + u|computed|, matmuls gamma_n, exp e^x(e^dx(1+4u) - 1), cumsum gamma_t; the unit lower solve uses (T + F)x = b, |F| <= gamma_64|T|, giving |dx| <= (I - G)^-1 |T^-1|(|db| + (|dT| + gamma(|T|+|dT|))|x|).",
+    "State error E is tracked normwise: E_next = M E + local with the exact transition M = D I - K'^T W (chunk) or d(I - beta k k^T) (token); ||M||_2 is evaluated, local terms are componentwise with |S~| <= |S| + ||E||_F.",
+    "Outputs: per head and chunk (or token), ||o~ - o||_F <= ||local||_F + ||Q' - Intra W||_2 ||E||_F.",
+    "Gated RMSNorm: weight * x * rsqrt(mean x^2 + 1e-6) * sigmoid(z) within the composed relative rounding.",
+    "Every rounding adds 2^-126 for underflow; every bound is scaled by 1 + 2^-28 to cover the float64 truth."
+  ],
+  "constants": {
+    "u": 5.960464477539063e-08,
+    "epsL2": 4.023365271388357e-06,
+    "epsQueryChunk": 4.1000844970273675e-06,
+    "epsQueryRecurrent": 4.100084497249412e-06,
+    "epsNorm": 4.500204515034412e-06,
+    "epsSigmoid": 3.5762798944460883e-07,
+    "lSilu": 1.0999,
+    "cExp": 4,
+    "cLog1p": 4
+  },
+  "stageMaxRatio": {
+    "in_proj_qkv": 0.0023028763578977316,
+    "in_proj_z": 0.002236252803722552,
+    "in_proj_b": 0.0013067950288949972,
+    "in_proj_a": 0.0010559253489008352,
+    "conv": 0.3907483334993269,
+    "beta": 0.3158156814333636,
+    "g": 0.2579121895563808,
+    "coreOutput": 0.005658732881185815,
+    "coreState": 0.08092379320885776,
+    "norm": 0.07087640432010718,
+    "out_proj": 0.0011320932379012712
+  },
+  "semantics": {
+    "convStateIsLastFourRawColumns": true,
+    "continuationConvInputIsStatePlusNew": true,
+    "initialStateIsPreviousFinalState": true,
+    "chunkAlgebraMatchesRecurrence": 1.1614360965950617e-15
+  },
+  "endToEndObservation": {
+    "note": "float64 pipeline from hidden states; observation only, the bounds are stage-wise",
+    "paths": {
+      "fullSequence": {
+        "maxAbsError": 5.510448728651696e-06,
+        "maxRelativeError": 3.4757866843351716e-06
+      },
+      "chunkedPrefillThenDecode": {
+        "maxAbsError": 5.748867307753258e-06,
+        "maxRelativeError": 3.6261722814700332e-06,
+        "finalStateRelativeError": 6.016199435494845e-07
+      },
+      "shortPrefillThenDecode": {
+        "maxAbsError": 3.2236465564994266e-06,
+        "maxRelativeError": 2.033356687963454e-06,
+        "finalStateRelativeError": 2.7736654545517223e-07
+      }
+    },
+    "maxCrossPathDifference": {
+      "fullSequence|chunkedPrefillThenDecode": 4.708766937255859e-06,
+      "fullSequence|shortPrefillThenDecode": 5.602836608886719e-06
+    }
+  },
+  "alternativeSemantics": {
+    "norm-gate-silu": {
+      "blocksBeyondTwiceBound": 2764794,
+      "distinguished": true
+    },
+    "norm-weight-one-plus": {
+      "blocksBeyondTwiceBound": 2764800,
+      "distinguished": true
+    },
+    "no-qk-l2norm": {
+      "blocksBeyondTwiceBound": 8832,
+      "distinguished": true
+    },
+    "heads-tiled-not-interleaved": {
+      "blocksBeyondTwiceBound": 8096,
+      "distinguished": true
+    },
+    "beta-ignored": {
+      "blocksBeyondTwiceBound": 8831,
+      "distinguished": true
+    },
+    "decay-ignored": {
+      "blocksBeyondTwiceBound": 8830,
+      "distinguished": true
+    }
+  },
+  "qwen35Comparison": {
+    "GatedDeltaNet": {
+      "identical": false,
+      "changedLines": [
+        "-@use_kernel_forward_from_hub('GatedDeltaNet')",
+        "-",
+        "-        self.norm = RMSNormGated(self.head_v_dim, eps=self.layer_norm_epsilon)",
+        "+        self.norm = RMSNormGated(",
+        "+            self.head_v_dim, eps=self.layer_norm_epsilon, activation=config.output_gate_type or config.hidden_act",
+        "+        )"
+      ]
+    },
+    "RMSNormGated": {
+      "identical": false,
+      "changedLines": [
+        "-    def __init__(self, hidden_size: int, eps: float = 1e-6, **kwargs) -> None:",
+        "+    def __init__(self, hidden_size: int, eps: float = 1e-6, activation: str = \"silu\") -> None:",
+        "-        self.activation = \"silu\"",
+        "+        self.activation = activation"
+      ]
+    },
+    "apply_mask_to_padding_states": {
+      "identical": true,
+      "changedLines": []
+    },
+    "causal_conv1d_fn": {
+      "identical": true,
+      "changedLines": []
+    },
+    "causal_conv1d_update": {
+      "identical": true,
+      "changedLines": []
+    },
+    "l2norm": {
+      "identical": true,
+      "changedLines": []
+    },
+    "torch_chunk_gated_delta_rule": {
+      "identical": true,
+      "changedLines": []
+    },
+    "torch_recurrent_gated_delta_rule": {
+      "identical": true,
+      "changedLines": []
+    }
+  },
+  "malformedRejected": {
+    "hiddenWidth2559": {
+      "rejected": true,
+      "error": "RuntimeError"
+    },
+    "cacheLayerNotLinearAttention": {
+      "rejected": true,
+      "error": "ValueError"
+    }
+  },
+  "notEstablished": [
+    "Learned weights, bfloat16 checkpoint dtype and the A_log/dt_bias distribution",
+    "FLA chunk and fused recurrent kernels and causal_conv1d CUDA kernels (GPU only)",
+    "Padding masks (apply_mask_to_padding_states) and record_past/crop rollback",
+    "The export-only forward-substitution solve",
+    "Doppler gated-delta kernels"
+  ],
+  "checks": {
+    "in_proj_qkvWithinDerivedBound": true,
+    "in_proj_zWithinDerivedBound": true,
+    "in_proj_bWithinDerivedBound": true,
+    "in_proj_aWithinDerivedBound": true,
+    "convWithinDerivedBound": true,
+    "betaWithinDerivedBound": true,
+    "gWithinDerivedBound": true,
+    "coreOutputWithinDerivedBound": true,
+    "coreStateWithinDerivedBound": true,
+    "normWithinDerivedBound": true,
+    "out_projWithinDerivedBound": true,
+    "convStateIsLastFourRawColumns": true,
+    "continuationConvInputIsStatePlusNew": true,
+    "initialStateIsPreviousFinalState": true,
+    "chunkAlgebraMatchesRecurrence": true,
+    "malformedInputsRejected": true,
+    "alternativeSemanticsDistinguished": true
+  },
+  "passed": true,
+  "modelQualified": false
+}
