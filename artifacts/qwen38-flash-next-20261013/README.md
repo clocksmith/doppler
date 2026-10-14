@@ -8,8 +8,11 @@ preparation only; no runtime implementation, model acquisition or promotion.
 implementation at `e0eb2810ac1b2caf6d082f247d8d37162ecf67a0`. Every retained
 source file has its exact URL, length and SHA256. The binding's `executed:false`
 describes initial source acquisition; execution receipts are the JSON files below.
-The 2026-10-14 amendment adds `tokenizer.json` and the pinned
-`modeling_rope_utils.py` (for the `dynamic_rope_update` decorator).
+The 2026-10-14 amendments add `tokenizer.json`, `modeling_rope_utils.py` (the
+`dynamic_rope_update` decorator), the expert implementations
+(`integrations_moe.py`), kernel and accelerate decorators, `activations.py`,
+`cache_utils.py` (linear-attention cache) and `modeling_qwen3_5.py` (comparison
+only), all at the pinned Transformers revision.
 
 No checkpoint weight was downloaded. Every script runs on CPU from the Doppler
 root, validates all source hashes first, and extracts unchanged upstream
@@ -23,6 +26,8 @@ definitions through Python AST. Run each with `python3 -I <script>`.
 | `ngram-incremental-reference.json` | `prepare-ngram-incremental-reference.py` | pass (torch 2.9.1 run) |
 | `expert-reference-fixtures.json` | `prepare-expert-reference.py` | pass (torch 2.11.0, Accelerate, arm64) |
 | `sparse-attention-reference.json` | `prepare-sparse-attention-reference.py` | pass (torch 2.11.0, Accelerate, arm64) |
+| `moe-block-reference.json` | `prepare-moe-block-reference.py` | pass (torch 2.11.0, Accelerate, arm64) |
+| `linear-attention-reference.json` | `prepare-linear-attention-reference.py` | pass (torch 2.11.0, Accelerate, arm64) |
 | `tokenizer-reference.json` | `check-tokenizer.py` | pass (tokenizers 0.22.2) |
 
 No retained fixture fails. None of them qualifies Flash-Next or establishes a
@@ -63,8 +68,121 @@ tolerance (`routerErrorAnalysis` holds the derivation):
 
 The initial 2e-6 / 2e-7 router tolerances were not derived and are superseded
 by these elementwise bounds. No model acceptance threshold changed. The small
-eager expert body still matches independent scalar equations within 2.86e-10;
-its 2e-7 tolerance is an initial fixture tolerance, not a derived bound.
+eager expert body (hidden 8, 4 experts, sentinel slot) matches independent scalar
+equations within 2.86e-10. Its underived 2e-7 tolerance is replaced by the
+derived elementwise bound of the MoE block below, 3.0e-9 to 9.9e-9 here (tighter
+than 2e-7); the observation is 3.0% of it.
+
+### MoE block at full geometry
+
+`prepare-moe-block-reference.py` runs the unchanged `SparseMoeBlock`: router over
+512 experts with top-10 renormalization, 640-wide SiLU experts, the 640-wide
+shared expert and its sigmoid gate, and scatter/combine. The eager body runs
+through the pinned `use_experts_implementation` dispatcher, which also runs the
+pinned `batched_mm` and `grouped_mm` implementations. A test port generates
+synthetic expert e on access, because the dense F32 expert tensors would take
+10 GB; `grouped_mm` needs one dense tensor, so it runs on the 56 experts hit,
+with a monotonic id remap, through torch's CPU `grouped_mm` kernel. Eight tokens
+include a near-duplicate and an exact duplicate; 22 experts serve more than one
+token.
+
+The output bound uses the router-style derivation: gamma_n|W||x| projections,
+silu and sigmoid as executed by PyTorch's CPU kernels (Lipschitz constants plus
+relative rounding), product rounding, gamma_9 for the 10-way combine, and float64
+truth covered by a 1 + 2^-28 scale. The bound is order-independent, so it covers
+all three implementations:
+
+| Output | Max observed / bound |
+| --- | --- |
+| eager experts | 6.5e-6 |
+| batched_mm | 1.4e-6 (1.07e-6 from eager) |
+| grouped_mm | 6.5e-6 (1.2e-7 from eager) |
+| shared expert | 2.6e-5 |
+| block output | 9.8e-6 (observed 2.7e-6, bound up to 0.30) |
+| router logits | 9.1e-4 |
+
+These worst-case bounds are about 1e5 times the observed error, because random
+signs make |W||x| much larger than |Wx| and the first projection's bound passes
+through the second. They bound rounding rigorously but are not regression
+tolerances. To keep the fixture discriminating, five alternative semantics are
+checked to exceed twice the bound somewhere: silu shared gate, no shared gate,
+swapped gate/up halves, routing weights ignored, and top-k without
+renormalization (the thinnest margins are 1.75x and 1.86x). An expert id beyond the sentinel
+and a 2559-wide input reject; the sentinel slot contributes nothing. One token's
+10th/11th router logits are too close to prove selection stable; the experts
+stage uses the captured routing as its input. Not established: learned routing,
+bfloat16 (eager `index_add_` accumulates in the output dtype), CUDA
+deepgemm/sonicmoe/grouped_mm, expert parallelism.
+
+### Linear attention (gated delta, 36 of 48 layers)
+
+`prepare-linear-attention-reference.py` runs the unchanged
+`Qwen4ExpTextGatedDeltaNet` at the pinned geometry. That is 16 key and 48 value
+heads (grouped with `repeat_interleave`), dimension 128, a 10240-channel
+kernel-4 causal conv, the sigmoid-gated RMSNorm and 64-token chunks. Synthetic
+A_log spans the init range, so per-token decay runs from 0.987 to about 1e-9. The
+pinned `LinearAttentionLayer` cache and the unchanged `Cache` methods carry state
+over three paths on 150 tokens:
+
+- full sequence;
+- prefill 70 + 50 tokens, then 30 single-token decodes;
+- a 3-token prefill (the left-padded conv-state branch), then 147 decodes.
+
+Every stage is checked against float64 truth from that call's captured inputs
+with a derived bound:
+
+| Stage | Max observed / bound |
+| --- | --- |
+| in_proj qkv / z / b / a, out_proj | 2.3e-3 or less |
+| causal conv + silu | 0.39 |
+| beta = sigmoid(b) | 0.32 |
+| g = -exp(A_log) softplus(a + dt_bias) | 0.26 |
+| delta-rule outputs (chunk and recurrent) | 5.7e-3 |
+| final recurrent state | 0.081 |
+| sigmoid-gated RMSNorm | 0.071 |
+
+The chunk bound follows the executed UT-transform algebra: cumulative decay,
+pairwise decays, the unit lower triangular solves (backward error gamma_64|T|),
+then a normwise scan whose state error is propagated through the exact chunk
+transition D I - K'^T W. The recurrent bound uses the token transition
+d(I - beta k k^T). The float64 chunk algebra matches the independent
+token-by-token recurrence within 1.2e-15 relative.
+
+Semantics established exactly:
+
+- The conv state is the last 4 raw pre-conv qkv columns, zero-left-padded after a
+  short prefill.
+- A continuation prefill convolves that state followed by the new columns.
+- Each call's initial recurrent state is the previous call's final state.
+
+End to end, all three paths are within 3.6e-6 relative of the float64 pipeline
+and within 5.6e-6 of each other. Final states are within 6.0e-7 relative.
+
+Six alternative semantics are each distinguished by more than twice a stage
+bound: silu norm gate, (1 + w) norm weight, no q/k l2norm, tiled instead of
+interleaved heads, beta ignored, decay ignored. A 2559-wide input and a
+non-linear cache layer reject.
+
+Not established:
+
+- learned weights and bfloat16;
+- the FLA chunk and fused-recurrent kernels and the causal_conv1d CUDA kernels
+  (GPU only);
+- padding masks and `record_past`/`crop` rollback;
+- the export-only forward-substitution solve.
+
+Compared with pinned Qwen3.5 at the same revision, `l2norm`, both delta-rule
+bodies, both conv functions and the padding helper are identical. The only
+semantic difference is the gated RMSNorm activation: Qwen3.5 hardcodes silu,
+while qwen4_exp uses `output_gate_type` (Flash-Next: `sigmoid`). Qwen3.5 also has
+a layer-level hub-kernel decorator. Read from Doppler source at `a40f02a1`
+(not executed): the gated-delta kernels hardcode a silu norm gate
+(`src/gpu/kernels/gated_delta_recurrent.wgsl:470`,
+`gated_delta_fused_decode.wgsl:477`, and their `_f16` variants). Doppler's
+`outputGateType` manifest field describes the full-attention output gate,
+whereas upstream `output_gate_type` selects only this linear-attention norm gate.
+Head grouping (`head / q_rep`), the softplus threshold of 20 and the
+kernel-length conv state match upstream.
 
 ### Sparse attention and QSA indexer
 
@@ -125,21 +243,24 @@ Transformers template renderer and Doppler's tokenizer is not established.
 
 ## Remaining work, in order
 
-1. Expert execution path: full 512-expert/top-10 geometry with 640-wide
-   experts, shared-expert sigmoid gate composition (`SparseMoeBlock`),
-   accelerated expert implementations against the eager body, and a derived
-   expert-output bound.
-2. Learned-checkpoint comparison: an independent reference on learned weights
-   for selected layers, including bfloat16 indexer selection, ties and near ties.
-3. Conversion: RDRR conversion and conversion-quality controls.
-4. License suitability: Qwen Community License 1.0 requires a separate license
+The CPU expert execution reference is now in place at full geometry (MoE block above).
+
+1. Learned-checkpoint comparison: an independent reference on learned weights
+   for selected layers, in the checkpoint's bfloat16 dtype, covering indexer
+   selection (ties, near ties), routing and gated-delta decay ranges.
+2. Conversion: RDRR conversion and conversion-quality controls, including the
+   linear-attention norm-gate activation (sigmoid for Flash-Next).
+3. License suitability: Qwen Community License 1.0 requires a separate license
    for commercial Model-as-a-Service or AI Work Assistant use; suitability for
    the intended service is unresolved.
-5. Physical qualification on coordinated GPU time: hardware, memory-tier
+4. Physical qualification on coordinated GPU time: hardware, memory-tier
    placement (upstream notes a ~95 GiB n-gram embedding), concurrent state,
    admitted budgets and installed distributed acceptance under the existing
-   full-model gate.
+   full-model gate. GPU-only upstream implementations (FLA, causal_conv1d,
+   CUDA grouped_mm, deepgemm, sonicmoe) can be compared to the eager references
+   only there.
 
-No fixture yet covers the linear-attention (GatedDeltaNet, 36 of 48 layers),
-PLE convolution, MTP or vision paths. These fixtures allow source preparation to
+No fixture yet covers the PLE layer (convolution with the n-gram embedding),
+decoder-layer composition (hyper-connection mixing around attention and MoE),
+the MTP layer or the vision tower. These fixtures allow source preparation to
 proceed during runtime repair without making Flash-Next a dependency for chat.
