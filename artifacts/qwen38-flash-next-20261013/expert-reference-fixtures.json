@@ -407,8 +407,10 @@
       "passed": true
     },
     "expertOutput": {
-      "tolerance": 2e-07,
-      "basis": "initial fixture tolerance, not derived",
+      "bound": "derived elementwise: gamma_8 and gamma_6 projections, silu, products, gamma_1 combine",
+      "maxRatio": 0.030365060634937307,
+      "minBound": 2.9961810483148038e-09,
+      "maxBound": 9.886951445923377e-09,
       "passed": true
     }
   },
@@ -416,6 +418,10 @@
     "logits": 2e-06,
     "scores": 2e-07,
     "reason": "chosen without derivation; below the error that legitimate F32 summation orders produce at these magnitudes"
+  },
+  "supersededExpertTolerance": {
+    "output": 2e-07,
+    "reason": "chosen without derivation; replaced by the elementwise bound in checks.expertOutput"
   },
   "modelAcceptanceThresholdsChanged": false,
   "passed": true,

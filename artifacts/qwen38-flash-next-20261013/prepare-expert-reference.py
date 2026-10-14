@@ -184,7 +184,40 @@ for row in range(3):
             result[col]+=float(scores[row,slot])*math.fsum(a*b for a,b in zip(middle,w))
     expected.append(result)
 expert_error=max(abs(float(output[r,c])-expected[r][c]) for r in range(3) for c in range(8))
-expert_passed = expert_error <= 2e-7
+# Derived elementwise bound, same derivation as prepare-moe-block-reference.py: gamma_n linear
+# bounds, silu = x / (1 + exp(-x)) with Lipschitz 1.0999 and relative rounding, product and
+# combine roundings; float64 truth covered by scaling with 1 + 2^-28; 2^-126 per rounding.
+TINY_E = 2.0 ** -126
+EPS_SILU = (1 + U) / (1 - ((1 + C_EXP * U) * (1 + U) - 1)) - 1
+def product_bound(a, da, b, db):
+    return da * np.abs(b) + np.abs(a) * db + da * db + U * (np.abs(a) + da) * (np.abs(b) + db) + TINY_E
+expert_bound = np.zeros((3, 8)); expert_abs = np.zeros((3, 8))
+x_small = hidden.double().numpy()
+for row in range(3):
+    used = 0
+    for slot in range(2):
+        expert = int(selected_ids[row, slot])
+        if expert == small['num_experts']:
+            continue
+        used += 1
+        gu = experts.gate_up_proj[expert].detach().double().numpy()
+        dn = experts.down_proj[expert].detach().double().numpy()
+        g = gu @ x_small[row]
+        dg = gamma(8) * (np.abs(gu) @ np.abs(x_small[row])) + 8 * TINY_E
+        gate, up, dgate, dup = g[:6], g[6:], dg[:6], dg[6:]
+        a = gate / (1 + np.exp(-gate))
+        da = 1.0999 * dgate + EPS_SILU * (np.abs(a) + 1.0999 * dgate) + TINY_E
+        h, dh = a * up, product_bound(a, da, up, dup)
+        y = dn @ h
+        dy = np.abs(dn) @ dh + gamma(6) * (np.abs(dn) @ (np.abs(h) + dh)) + 6 * TINY_E
+        w = float(scores[row, slot])
+        dyw = abs(w) * dy + U * abs(w) * (np.abs(y) + dy) + TINY_E
+        expert_bound[row] += dyw
+        expert_abs[row] += abs(w) * np.abs(y) + dyw
+    expert_bound[row] += gamma(max(used - 1, 0)) * expert_abs[row] + TINY_E * used
+expert_bound *= 1 + 2.0 ** -28
+expert_diff = np.abs(output.double().numpy() - np.array(expected))
+expert_passed = bool((expert_diff <= expert_bound).all())
 report={'schema':'doppler.qwen38-expert-reference/v2','checkpoint':binding['revision'],
         'upstream':binding['referenceImplementation']['revision'],'torch':torch.__version__,
         'environment':{'machine':platform.machine(),'blas':blas.group(1) if blas else None,
@@ -225,8 +258,11 @@ report={'schema':'doppler.qwen38-expert-reference/v2','checkpoint':binding['revi
                   'routerSelection':{'bound':'proven top-k stability margin > 0','passed':selection_passed},
                   'routerScores':{'bound':'elementwise s_i*expm1(N_i+D) plus truth allowance','passed':score_passed},
                   'routerScoreArithmetic':{'bound':'same with beta = 0 against softmax of computed logits','passed':arithmetic_passed},
-                  'expertOutput':{'tolerance':2e-7,'basis':'initial fixture tolerance, not derived','passed':expert_passed}},
+                  'expertOutput':{'bound':'derived elementwise: gamma_8 and gamma_6 projections, silu, products, gamma_1 combine',
+                                  'maxRatio':float((expert_diff / expert_bound).max()),'minBound':float(expert_bound.min()),
+                                  'maxBound':float(expert_bound.max()),'passed':expert_passed}},
         'supersededRouterTolerances':{'logits':2e-6,'scores':2e-7,'reason':'chosen without derivation; below the error that legitimate F32 summation orders produce at these magnitudes'},
+        'supersededExpertTolerance':{'output':2e-7,'reason':'chosen without derivation; replaced by the elementwise bound in checks.expertOutput'},
         'modelAcceptanceThresholdsChanged':False}
 report['passed'] = all(check['passed'] for check in report['checks'].values())
 report['modelQualified'] = False
