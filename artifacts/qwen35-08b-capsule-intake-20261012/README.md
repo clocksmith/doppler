@@ -31,7 +31,7 @@ as source root. Its intake digest is
 - Original checkpoint: `Qwen/Qwen3.5-0.8B`, revision
   `2fc06364715b967f1860aea9cf38778875588b17`.
 - Original config bytes match the previously retained verified download receipt.
-- The original safetensors file was rehashed on x@128 and matched that receipt.
+- The original safetensors file was rehashed on amd-host and matched that receipt.
   `source/header-binding.json` binds its exact initial header bytes, retained as
   `source/header.bin`. The JSON header summary is explanatory; intake reads and
   parses the pinned original binary header.
@@ -75,7 +75,7 @@ the frozen physical result without consuming runtime logits or cache state.
 The evaluator's broader `qualified: false` remains unchanged: this is one short
 source-token control, not document quality or whole-model qualification.
 
-Execution used CPU cores 0–3 on x@128, four threads, and the retained Python
+Execution used CPU cores 0–3 on amd-host, four threads, and the retained Python
 environment. The first invocation failed before inference because the existing
 `blake3` dependency directory was absent from `PYTHONPATH`; its log is preserved.
 Adding `/tmp/doppler-reference-deps` to the environment allowed the unchanged

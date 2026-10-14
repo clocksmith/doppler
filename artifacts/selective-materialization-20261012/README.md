@@ -12,7 +12,7 @@ request-2 vectors exactly with the inactive diagnostic copy.
 
 ## Results
 
-CPU runs on x@128 used four BLAS threads and low scheduling priority. No GPU
+CPU runs on amd-host used four BLAS threads and low scheduling priority. No GPU
 participant was stopped. The eight-prefix baseline reproduces the previous
 mapped vectors, store counts and cache identities exactly. All later default
 51-prefix baselines also reproduce each other exactly.
@@ -53,11 +53,11 @@ precision work. Signed physical opening and release qualification remain open.
 The `*-cases.json` files specify each intervention; `cases.json` is the initial
 batch. Matching `*-summary.json` files preserve metrics, selectors, selected
 element counts, cache differences and individual vector hashes. Full vectors
-and original logs remain on x@128 at the exact paths and hashes in
+and original logs remain on amd-host at the exact paths and hashes in
 [raw-index.json](raw-index.json). Earlier executed tool versions are retained as
 compressed source beside this receipt; later runs use the committed tool.
 
-From the Doppler checkout on x@128, use the existing reference dependency path:
+From the Doppler checkout on amd-host, use the existing reference dependency path:
 
 ```sh
 PYTHONPATH=dist/decision-acceptance/reference-dependencies \
