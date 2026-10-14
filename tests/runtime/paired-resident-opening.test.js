@@ -59,7 +59,7 @@ const runtime = createDopplerRun({
 const allocation = index => ({ model: { id: manifest.modelId, identity: fixture.capsule.artifacts.find(x => x.artifactId === 'manifest').hash },
   plan, planId: hashLayerPartitionPlan(plan), index, participantId: index ? 'B' : 'A',
   generation: { maxTokens: 1, maxSeqLen: 8, temperature: 0, topK: 1, topP: 1, repetitionPenalty: 1, repetitionPenaltyWindow: 0, useChatTemplate: false },
-  limits: { maxTokens: 1, maxPromptTokens: 4, maxActivationBytes: 64, maxOutputCharacters: 100, maxAttempts: 2, maxConcurrentAttempts: 1 } });
+  limits: { maxTokens: 1, maxPromptTokens: 4, maxActivationBytes: 64, maxOutputCharacters: 100, maxAttempts: 2, maxConcurrentAttempts: 1, maxPreparationMs: 60000 } });
 for (const index of [0, 1]) {
   const session = await runtime.openCapsule(fixture.capsule, { residentPartition: allocation(index) });
   assert.equal(session.residentPartition.getDescriptor().index, index);

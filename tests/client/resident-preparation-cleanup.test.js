@@ -10,8 +10,8 @@ globalThis.residentFactoryControl = {
   allocation: { model: { id: 'synthetic' }, plan: {}, index: 0 },
   handle: { advanced: {}, async unload() { residentFactoryControl.unloads++; } },
   source: { modelId: 'synthetic', manifest: { modelId: 'synthetic', architecture: {} } },
-  open(_pipeline, _allocation, _tokens, _close, signal) {
-    this.signal = signal;
+  open(_pipeline, _allocation, _tokens, _close, signal, onLoadProgress) {
+    this.signal = signal; this.onLoadProgress = onLoadProgress;
     return new Promise(resolve => { finish = resolve; }).then(() => { signal.throwIfAborted(); return {}; });
   },
 };
@@ -52,17 +52,19 @@ try {
   const { createDopplerRuntimeService } = await import(signedTarget);
   for (const kind of ['manifest', 'signed']) {
     const controller = new AbortController(); const before = residentFactoryControl.unloads;
-    residentFactoryControl.signal = null;
+    residentFactoryControl.signal = null; residentFactoryControl.onLoadProgress = null;
+    const onLoadProgress = () => {};
     const factory = kind === 'manifest' ? createManifestResidentPartitionFactory({
-      manifest: residentFactoryControl.manifest, manifestIdentity:`sha256:${'a'.repeat(64)}`, runtimeConfig:{},
+      manifest: residentFactoryControl.manifest, manifestIdentity:`sha256:${'a'.repeat(64)}`, runtimeConfig:{}, onLoadProgress,
       createStorage:async()=>({close:async()=>{residentFactoryControl.storageCloses++;}}),
     }) : createDopplerRuntimeService({ ensureWebGPUAvailable:async()=>{}, resolveCapsuleInput:async()=>({capsule:{},artifactStore:{}}) });
     const opening = kind === 'manifest'
       ? factory.openResidentPartition({signal:controller.signal,model:{generation:{}}})
-      : factory.openCapsule('synthetic',{signal:controller.signal});
+      : factory.openCapsule('synthetic',{signal:controller.signal, onLoadProgress});
     let settled = false; opening.then(()=>{settled=true;},()=>{settled=true;}); await flush();
     assert.equal(settled,false,`${kind} factory must wait for resident preparation`);
     assert(residentFactoryControl.signal,`${kind} factory must forward opening cancellation`);
+    assert.equal(residentFactoryControl.onLoadProgress, onLoadProgress, `${kind} factory must forward preparation progress`);
     controller.abort(Error(`${kind} cancelled`)); await flush();
     assert.equal(residentFactoryControl.unloads,before,'no disposal while provider preparation is pending');
     finish(); await assert.rejects(opening,new RegExp(`${kind} cancelled`));

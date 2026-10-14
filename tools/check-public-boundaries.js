@@ -142,7 +142,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // measured 3,474,000 packed on Node 22.20.0/npm 10.9.3, plus that allowance.
   // Resident stage pipeline preparation (one module plus pipeline resolvers in
   // 23 shipped files): measured 3,481,792 on Node 22.20.0/npm 10.9.3, plus that allowance.
-  maxPackedSize: 3_483_950,
+  // Its progress, declared bound and cancel ownership change nine shipped files, no new
+  // entries: measured 3,483,596 on Node 22.20.0/npm 10.9.3, plus that allowance.
+  maxPackedSize: 3_485_754,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -195,8 +197,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // shader-f16 gate and declared F32 state add 217 bytes (c628f98f).
   // The package.json test:smoke script (a7263035) added 67 bytes without a
   // budget update (13,996,323 at HEAD). Resident stage pipeline preparation adds
-  // 26,027: measured 14,022,350 on Node 22.20.0/npm 10.9.3.
-  maxUnpackedSize: 14_022_350,
+  // 26,027: measured 14,022,350 on Node 22.20.0/npm 10.9.3. Its progress, declared
+  // bound and cancel ownership add 5,865: measured 14,028,215 on the same toolchain.
+  maxUnpackedSize: 14_028_215,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

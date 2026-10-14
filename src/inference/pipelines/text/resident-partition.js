@@ -17,7 +17,7 @@ import { markDeviceWeights, getDeviceMemorySnapshot } from '../../../memory/devi
 import { prepareResidentPartitionPipelines } from './resident-pipeline-preparation.js';
 
 /** @type {import('./resident-partition.js').createResidentPartitionSession} */
-export async function createResidentPartitionSession(pipeline, allocation, tokens, closeProgram, signal) {
+export async function createResidentPartitionSession(pipeline, allocation, tokens, closeProgram, signal, onLoadProgress) {
   const ordered = allocation.plan.schema === ORDERED_LAYER_PARTITION_SCHEMA;
   const partition = allocation.plan.partitions[allocation.index];
   const canonical = resolveResidentCanonicalGeneration(allocation);
@@ -34,7 +34,7 @@ export async function createResidentPartitionSession(pipeline, allocation, token
     }
     // Every pipeline the stage can request is created before readiness, so a
     // provider compile failure or crash happens at opening, not mid-answer.
-    const pipelinePreparation = await prepareResidentPartitionPipelines(owner, allocation, signal);
+    const pipelinePreparation = await prepareResidentPartitionPipelines(owner, allocation, signal, onLoadProgress);
     signal?.throwIfAborted();
     // Resident execution creates one cache per attempt. The opening pipeline's
     // empty cache is never used by those attempts and must not reserve a second

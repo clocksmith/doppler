@@ -23,4 +23,6 @@ export function createManifestResidentPartitionFactory(options: {
   manifest: import('../formats/rdrr/index.js').RDRRManifest; manifestIdentity: string;
   runtimeConfig: object;
   createStorage: (input: Omit<ResidentPartitionOpenOptions, 'model'> & {model: {id:string;identity:string;generation:GenerationOptions}}) => Promise<ReturnType<typeof import('../storage/artifact-storage-context.js').createArtifactStorageContext>>;
+  /** Pipeline preparation progress for every opening of this factory; signed openings use Capsule `onLoadProgress`. */
+  onLoadProgress?: ((progress: import('../inference/pipelines/text/resident-partition-contract.js').ResidentPipelinePreparationProgress) => void) | null;
 }): { openResidentPartition(options: Omit<ResidentPartitionOpenOptions, 'model'> & {model:{id:string;identity:string;generation:GenerationOptions}}): Promise<ResidentPartitionSession> };
