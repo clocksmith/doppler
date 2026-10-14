@@ -1,6 +1,6 @@
 {
   "schema": "doppler.source-policy-run-binding/v1",
-  "host": "x@128.tail995236.ts.net",
+  "host": "amd-host",
   "ownedPid": 1673603,
   "threads": 4,
   "surface": "CPU source equations only",

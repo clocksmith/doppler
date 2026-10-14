@@ -98,7 +98,7 @@
         "description": ""
       }
     },
-    "x@128.tail995236.ts.net": {
+    "amd-host": {
       "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/146.0.0.0 Safari/537.36",
       "platform": "Linux x86_64",
       "adapter": {
@@ -111,7 +111,7 @@
   },
   "browserVersions": {
     "mac.lan": "155.0.8059.39",
-    "x@128.tail995236.ts.net": "146.0.7680.177"
+    "amd-host": "146.0.7680.177"
   },
   "preflightBinding": {
     "providerSha256": "faa3ebe0d9236ebad79de24ee0669097db2608b324b17fbada484a0e799a306d",
@@ -122,7 +122,7 @@
   "placements": [
     {
       "partitionIndex": 0,
-      "platform": "x@128.tail995236.ts.net"
+      "platform": "amd-host"
     },
     {
       "partitionIndex": 1,

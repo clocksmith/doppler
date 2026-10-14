@@ -4553,7 +4553,7 @@
   },
   {
     "partitionIndex": 0,
-    "platform": "x@128.tail995236.ts.net",
+    "platform": "amd-host",
     "openingObservation": {
       "resolvedRuntimeSession": {
         "schema": "doppler.resolved-runtime-session/v1",

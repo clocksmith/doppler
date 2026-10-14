@@ -1,0 +1,419 @@
+{
+  "schema": "address-redaction-manifest/v1",
+  "aliases": [
+    "amd-host",
+    "intel-host",
+    "mac-host",
+    "other-host",
+    "tailnet.invalid",
+    "tailnet-redacted"
+  ],
+  "note": "Redacted copies are derived files. Hash bindings elsewhere in this repository refer to the original bytes.",
+  "files": [
+    {
+      "path": "artifacts/contractor-structured-quality-20261011/run-binding.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:2a3dcc1954eacfa046775adc6b0b7cf72552b8c7f55b2c58acdc2dc2ba15ba0e",
+      "redactedSha256": "sha256:4b939d15de283f9986e8f8ea24c073721dc03de29fbe8a87a8789267203455e6",
+      "originalBytes": 1068,
+      "redactedBytes": 1053
+    },
+    {
+      "path": "artifacts/kernel-completion-repair-20261013/projection-outlier-reservation.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:b72ed8fb314c482f8022163c24f37fefb121d112dc5959721459f5e18ca66e35",
+      "redactedSha256": "sha256:a372b1be3354aee7e6ce7dfa50a8e318753b37d2267e921197190398419e4ea6",
+      "originalBytes": 1216,
+      "redactedBytes": 1193
+    },
+    {
+      "path": "artifacts/ordered-partitions-20261013/long-prefill-boundary/linear-phase-reservation.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:af841e5cbc5f802a62d18f2047cd0c95aa4186ea411eb7c61dedf4c1062ff0e5",
+      "redactedSha256": "sha256:f67ee980a83d33558ba30cb7e496a7cef940af5d0db1751927e0c14aa7a739b9",
+      "originalBytes": 1056,
+      "redactedBytes": 1033
+    },
+    {
+      "path": "artifacts/ordered-partitions-20261013/long-prefill-boundary/matmul-bounded-reservation.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:c2785a263283a1f5006e5bf41362038190b2244feefbce3eddc455d4a6125dc1",
+      "redactedSha256": "sha256:7547768f65f7454e6856c1f28cae6f63d475bc505981eb3dbba8521e8cb89fc0",
+      "originalBytes": 1143,
+      "redactedBytes": 1120
+    },
+    {
+      "path": "artifacts/ordered-partitions-20261013/long-prefill-boundary/matmul-dispatch-reservation.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:e697cbdab0349fa68cda50305b081cde637894b252dda68b6968d1436a91ebbd",
+      "redactedSha256": "sha256:550d7109c8edc1024b69d3212e1f951b1881fb98a8664fbe53ada49fcc72aa9c",
+      "originalBytes": 1010,
+      "redactedBytes": 987
+    },
+    {
+      "path": "artifacts/ordered-partitions-20261013/long-prefill-boundary/matmul-native-reservation.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:0a72b99074892342883d6dcada4278c6152a4db1db461c65e6615294facb2ab2",
+      "redactedSha256": "sha256:1338ffc1088bbba296ecba3bcc7945403cddc90706f51ae913e6837449764dd3",
+      "originalBytes": 1122,
+      "redactedBytes": 1099
+    },
+    {
+      "path": "artifacts/ordered-partitions-20261013/long-prefill-boundary/paired-chain-reservation.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:8bd89e265c57700ff7fbb79b03002b79ec0f33e8279eb50baa56fe76b68d5dc3",
+      "redactedSha256": "sha256:28220f223b66a4d599d96b7affa34d4bef4a3a73b35d64df6529b11cebd68bf3",
+      "originalBytes": 1042,
+      "redactedBytes": 1019
+    },
+    {
+      "path": "artifacts/ordered-partitions-20261013/long-prefill-boundary/paired-gc-reservation.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:90ace883268e75eb63d26fe129375deba8848abb1d9824ca667f79f593c7fe4c",
+      "redactedSha256": "sha256:80893697ec4e6aa193625d4af2be8fac87be46c8303988945457c5548d5a1c78",
+      "originalBytes": 1038,
+      "redactedBytes": 1015
+    },
+    {
+      "path": "artifacts/ordered-partitions-20261013/long-prefill-boundary/paired-retirement-reservation.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:14f56472233d1606bc2769e4a3d9312a75fc044d63e754cedb2065994c89cf06",
+      "redactedSha256": "sha256:cc378fffd018cc0f21ff533dee128601552687dc50425e6656ee7a0438b8a668",
+      "originalBytes": 1067,
+      "redactedBytes": 1044
+    },
+    {
+      "path": "artifacts/ordered-partitions-20261013/long-prefill-boundary/paired-wrapper-reservation.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:2a8c723e1ead5374b56e3a4071bea1f7d2cfd8d3bcc8d671705035f7f8e1852f",
+      "redactedSha256": "sha256:9ca330072700d49c305dab7747b502b76547a1e22907a880d5c3abead24beb32",
+      "originalBytes": 1053,
+      "redactedBytes": 1030
+    },
+    {
+      "path": "artifacts/ordered-partitions-20261013/remote-preflight/checkpoint.json",
+      "kind": "text",
+      "replacements": 2,
+      "originalSha256": "sha256:ceae56f86fd2a0652f68ed44b5dda09a9158ac94e2ed7d62601ac9cbf674329a",
+      "redactedSha256": "sha256:2a915ec71db070d3eb3d00d32b01e2a4d5d7552682b273d7274f8102fb4903a3",
+      "originalBytes": 2204,
+      "redactedBytes": 2166
+    },
+    {
+      "path": "artifacts/ordered-partitions-20261013/remote-preflight/reservation.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:5d691e8cd2e5739170cdc590d1dd59823250c02fbc376be4981ef208a276b45a",
+      "redactedSha256": "sha256:ab523db6cd23c837f91cb7bcce0ba1cc77169c4547d5c81fa4b4883c6fa91d32",
+      "originalBytes": 888,
+      "redactedBytes": 865
+    },
+    {
+      "path": "artifacts/ordered-partitions-20261013/remote-preflight/suby-process.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:b84992f8484f3820eaabdb7628cbeca9b0546fbf5ff42fd0fad844b3a5773227",
+      "redactedSha256": "sha256:4996805358531d9fde873069c853293a652b33a900b5d102b51cca64dd1ee05e",
+      "originalBytes": 3059,
+      "redactedBytes": 3036
+    },
+    {
+      "path": "artifacts/paired-intermediates-20261012/archive9-split-reset/diagnostic/capture.json.gz",
+      "kind": "gzip",
+      "replacements": 2,
+      "originalSha256": "sha256:623c5acd4a4fa649d0807a2c02710b17a0ee6e75f862ef663f5400211d1fed75",
+      "redactedSha256": "sha256:28677c30fac2d1450f0eeb565a3fcb9d1cacaae8032a4030815468976cc11111",
+      "originalBytes": 284613,
+      "redactedBytes": 284585
+    },
+    {
+      "path": "artifacts/paired-intermediates-20261012/archive9-split-reset/diagnostic/run-reference.sh",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:acab74681fa8697e679c55e0953349fcbd434aa83fe22aff8750e889bac48f2d",
+      "redactedSha256": "sha256:4caefcf4c10902753efb84d7622db683cd71d0797273cad740b8304f443c1556",
+      "originalBytes": 1308,
+      "redactedBytes": 1293
+    },
+    {
+      "path": "artifacts/paired-intermediates-20261012/archive9-split-reset/failed-mac-amd.json.gz",
+      "kind": "gzip",
+      "replacements": 2,
+      "originalSha256": "sha256:abfff23217c579dd05814abf63b3952d6034a6458145383e2b4844c521d52114",
+      "redactedSha256": "sha256:ff3a56b193d5f5ca86970b1be10205d704fc75b5de4ed01b354efa6b7bd161ff",
+      "originalBytes": 4609466,
+      "redactedBytes": 4609444
+    },
+    {
+      "path": "artifacts/paired-intermediates-20261012/release-0.6.28/browser-split/direction-0-opening-observations.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:1e9ac0894cfd216c05a680700cfcc644671efbde38cc75545349c5c0420807d2",
+      "redactedSha256": "sha256:72886d25b6a8e55eb9ea4cee5306a69a6305bb6202959afa4886bf8e32535c8f",
+      "originalBytes": 328701,
+      "redactedBytes": 328686
+    },
+    {
+      "path": "artifacts/paired-intermediates-20261012/release-0.6.28/browser-split/direction-0.json.gz",
+      "kind": "gzip",
+      "replacements": 2,
+      "originalSha256": "sha256:7869f26e5b976262d063a5b74fb0c0d6c3dea51bef6bb4f03ab194958b472724",
+      "redactedSha256": "sha256:8ae1d2ed3d7fe54f5a1aeb12baa1ba3aad265d8595d27c9c936e6467b34766a7",
+      "originalBytes": 59770527,
+      "redactedBytes": 59770531
+    },
+    {
+      "path": "artifacts/paired-intermediates-20261012/release-0.6.28/browser-split/direction-1-opening-observations.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:83a5e59db8e26de72758bf4526bf3a9a5ee5559524e10e952a06a8c09cb65b56",
+      "redactedSha256": "sha256:6a7e642c2fe57bbe31bab70eaa57a98a8a98b8443449f41caf3b6d024420dca1",
+      "originalBytes": 328701,
+      "redactedBytes": 328686
+    },
+    {
+      "path": "artifacts/paired-intermediates-20261012/release-0.6.28/browser-split/direction-1.json.gz",
+      "kind": "gzip",
+      "replacements": 2,
+      "originalSha256": "sha256:f51f00fda89afff6f6363beb8bc2ca057bee6888631bb2a8dc3a2d2a4d10be44",
+      "redactedSha256": "sha256:6aed2111d6ddbc4351022b82524bb92826cc0b3a7938d9ccc5ae8ad865b37bc1",
+      "originalBytes": 60293316,
+      "redactedBytes": 59783134
+    },
+    {
+      "path": "artifacts/paired-intermediates-20261012/release-0.6.28/browser-split/summary.json",
+      "kind": "text",
+      "replacements": 2,
+      "originalSha256": "sha256:424f07fa25fa7218935f69bef3084221868fd1181b6fe642fa81090001dad558",
+      "redactedSha256": "sha256:65010adfc4125341c01b3566c5f4459f661417a7b4e2e6b8ae7ab4e49ab39739",
+      "originalBytes": 154195,
+      "redactedBytes": 154165
+    },
+    {
+      "path": "artifacts/paired-intermediates-20261012/resident-load-order/archive8-split-failure.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:e72b399f26e70119570e96c4cb5e48b95c2f579d63d926c9978b4bab9641dfca",
+      "redactedSha256": "sha256:939d10964e0ef43d4c8102cdcef9136e37bcf358091d40066e5bfb380fdcb9d0",
+      "originalBytes": 3699,
+      "redactedBytes": 3684
+    },
+    {
+      "path": "artifacts/paired-intermediates-20261012/resident-submission-policy/archive10-request2-split.json.gz",
+      "kind": "gzip",
+      "replacements": 2,
+      "originalSha256": "sha256:13dbde447b6442fc16691773283184ec8059c708ce9506bb0094970bc46e7145",
+      "redactedSha256": "sha256:17ddc2ac8fb4f176d044cc9585aa9298646a060123e26b91f6e508724d091c72",
+      "originalBytes": 52191216,
+      "redactedBytes": 52191204
+    },
+    {
+      "path": "artifacts/paired-intermediates-20261012/resident-submission-policy/archive10-run-reference.sh",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:925c08b58f3ee2af720f5805c257d4214dcb46bcc0942697ba948b7a01a414e5",
+      "redactedSha256": "sha256:a291b297bf14d280c7f441f16f7e109f188f077fc24203ef9c2869b415481669",
+      "originalBytes": 1308,
+      "redactedBytes": 1293
+    },
+    {
+      "path": "artifacts/qwen3-citation-policy-20261012/run-binding.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:25e9022a89b4bd376ea4bdbdd21d1e3793bcec94875683e42d5769a8e3a5c069",
+      "redactedSha256": "sha256:5dc2efc0fbf958ce31f5dbdacf04536fd53752d0d4c812b63c84386c80cb7285",
+      "originalBytes": 988,
+      "redactedBytes": 973
+    },
+    {
+      "path": "artifacts/qwen3-nonthinking-documents-20261012/run-binding.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:cbf2f4b1dcea8eda2be3b54214522cc54f3edc415c2fab4a923d4105bb62a760",
+      "redactedSha256": "sha256:178b8c0fc4263c19f2aa73ba009f59ed85251e8ecc403e2b0d3dc2a287924841",
+      "originalBytes": 1605,
+      "redactedBytes": 1590
+    },
+    {
+      "path": "artifacts/qwen3-short-documents-20261012/run-binding.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:6cfed417aa669fae52b8edfc7d5b4ac265db916386107b27c0f0f9171832c728",
+      "redactedSha256": "sha256:2c030fbd1c31c0955d63b2d43534e4e68fd5ce1e0e930a047cc65b941b701867",
+      "originalBytes": 733,
+      "redactedBytes": 718
+    },
+    {
+      "path": "artifacts/qwen35-08b-capsule-intake-20261012/generation-report-before-schema.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:128b3f4121cf573a918f74d63a1a73d0f0a3e26b33ac8d0dbe1a8084a8fbe262",
+      "redactedSha256": "sha256:76b4182b94eb23dfbec6ccbbcd5a4dcf85f1d591391d1df739aee51adf4e4269",
+      "originalBytes": 4460,
+      "redactedBytes": 4445
+    },
+    {
+      "path": "artifacts/qwen35-08b-capsule-intake-20261012/generation-report.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:7f07b9286c06555fc8da452d4e48945319da091bce29e3c1b96f9235b9e1054b",
+      "redactedSha256": "sha256:be7f4b1c8f2f0e51d476ac3ada55c715406697dcb985b0610f007d2b6e8316f9",
+      "originalBytes": 4883,
+      "redactedBytes": 4868
+    },
+    {
+      "path": "artifacts/qwen35-08b-capsule-intake-20261012/signed-closure-candidate/generation-report.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:549d256e6839c2530e6cd9676bc9a6b81e531f3f1ff1b0443b59b5e5180a344b",
+      "redactedSha256": "sha256:4ad2be7670e4a5d163bc4d9b702f6f78d08f5d74e7199e882261182ad8b1cd72",
+      "originalBytes": 5329,
+      "redactedBytes": 5314
+    },
+    {
+      "path": "artifacts/qwen35-08b-capsule-intake-20261012/signed-closure-candidate/program-bundle.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:9c7500c6e72bc8a0f65f4deb91f8613640aab3d1c06fff9ce45332b99dbb8017",
+      "redactedSha256": "sha256:1e5e73b084d626571367ab8a64923a21c34b16c188b49121e2867904a1b3f9ab",
+      "originalBytes": 144180,
+      "redactedBytes": 144165
+    },
+    {
+      "path": "artifacts/qwen35-2b-nonthinking-documents-20261012/neutral-run-binding.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:9dbcf28072dfe7f6b873bb2c0da3ed6d49374331f2780a69453b7610a4bb60e2",
+      "redactedSha256": "sha256:b02e034cf21b575d0c8738a45b00ce60670a056360f34973580103478d949b31",
+      "originalBytes": 2114,
+      "redactedBytes": 2099
+    },
+    {
+      "path": "artifacts/qwen35-2b-nonthinking-documents-20261012/run-binding.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:a1de97c777bf71ee2d67904b4f9a8ae7f77ac09269737d308c3292cf4ddf1c46",
+      "redactedSha256": "sha256:7a8298adae15c9afb7db2151d3b7f58995d0e08d66a284503fe093f4dbc25e7f",
+      "originalBytes": 2046,
+      "redactedBytes": 2031
+    },
+    {
+      "path": "artifacts/qwen35-thinking-documents-20261011/README.md",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:31d9a620362423be422a0f0371d81c9117a4b8497d7d95d66280eae75a17099b",
+      "redactedSha256": "sha256:cbad9ce52e721cb001cda5265cae5509618b72aa25ae0b5fef0aa27c673c0843",
+      "originalBytes": 2693,
+      "redactedBytes": 2678
+    },
+    {
+      "path": "artifacts/qwen35-thinking-documents-20261011/run-binding.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:b5f28b25feac9991815f329f1aee07b15efaa6099a56184a4346f12fe8fbcd03",
+      "redactedSha256": "sha256:07b9e82104de99d147abd0f7d67af9d223c3d07c206a4d14759e806c6c1a02ff",
+      "originalBytes": 1394,
+      "redactedBytes": 1379
+    },
+    {
+      "path": "artifacts/rope-session-extent-20261012/hybrid-kv-physical/receipt.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:ce27cd015da38ae2e60ee4a7aa1423a06d00d1da8aafa4f1188896bde7fe7d8c",
+      "redactedSha256": "sha256:dbaeaa5e847343abf74dec6290b5880e7e7d0b3511ba4c8437e90bd908cba79f",
+      "originalBytes": 19317,
+      "redactedBytes": 19302
+    },
+    {
+      "path": "artifacts/short-prefix-f64-20261012/README.md",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:18f75efb12d1197f1d28cbcf3ed9395eea54154ac5ab7de1c2f8dc13aa115b4a",
+      "redactedSha256": "sha256:2b91bfcc2d0fd228886d56db5ce023f1be823e30d2374b7406e942423e5e1024",
+      "originalBytes": 6767,
+      "redactedBytes": 6752
+    },
+    {
+      "path": "artifacts/short-prefix-f64-20261012/summary.json",
+      "kind": "text",
+      "replacements": 3,
+      "originalSha256": "sha256:2cbf1296fd418ae0316cf4ca92f0b49bdf1d97466c506c74ae64655dd5640f90",
+      "redactedSha256": "sha256:96fbda1e80e74c5e15262e9352a2de62c2b9528cac973618636350d086400842",
+      "originalBytes": 3015,
+      "redactedBytes": 2970
+    },
+    {
+      "path": "artifacts/signed-resident-producer-20261012/archive9-amd-mac-expectations.json",
+      "kind": "text",
+      "replacements": 3,
+      "originalSha256": "sha256:9ff9e46e013696825f078deffda468823b2909cfe46fd48ca61ffbd8fd168714",
+      "redactedSha256": "sha256:8c15d2ecc6a44351fe86cc112afe30dc1600b6eb0c0c4b714ecec8f6d0476344",
+      "originalBytes": 4747,
+      "redactedBytes": 4702
+    },
+    {
+      "path": "artifacts/signed-resident-producer-20261012/archive9-mac-amd-expectations.json",
+      "kind": "text",
+      "replacements": 3,
+      "originalSha256": "sha256:bac98170792e3249b1a214c72975f7195a4a6f6a721e768f27a315096efac0dc",
+      "redactedSha256": "sha256:344289dde96db18ae77e5990208853277a41fe083e6320df50cf55e09858b2ab",
+      "originalBytes": 4747,
+      "redactedBytes": 4702
+    },
+    {
+      "path": "artifacts/signed-resident-producer-20261012/archive9-provider-preflight.json",
+      "kind": "text",
+      "replacements": 2,
+      "originalSha256": "sha256:faa3ebe0d9236ebad79de24ee0669097db2608b324b17fbada484a0e799a306d",
+      "redactedSha256": "sha256:02ff4849920e960aace88e778f78dcdd35eaae071b5214ba59079d1f6c66e0d5",
+      "originalBytes": 935,
+      "redactedBytes": 905
+    },
+    {
+      "path": "artifacts/signed-resident-producer-20261012/standard-0.6.28-amd-mac-expectations.json",
+      "kind": "text",
+      "replacements": 3,
+      "originalSha256": "sha256:adabd074f1a4fcc7d06ec6c385e8bab5bea2442c1571831e45969316472bcf75",
+      "redactedSha256": "sha256:8365a7928a2949f1d6dda8988bcd753a846090635d968944d884facaf835c1e1",
+      "originalBytes": 4747,
+      "redactedBytes": 4702
+    },
+    {
+      "path": "artifacts/signed-resident-producer-20261012/standard-0.6.28-mac-amd-expectations.json",
+      "kind": "text",
+      "replacements": 3,
+      "originalSha256": "sha256:44b74e71a71b2d37c380321033ab153446b367efcdd4225b4624f40aa5bb0073",
+      "redactedSha256": "sha256:482f75702f5bb2cecaf6acaffa93f18f584ca4fde7c54c979bb6ffd46d1a56aa",
+      "originalBytes": 4747,
+      "redactedBytes": 4702
+    },
+    {
+      "path": "artifacts/source-prefix-correction-20261012/README.md",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:9551933e3125fbbb572e100d324a5cc8d16c7ba5f4cead68c3145baad1a5dfeb",
+      "redactedSha256": "sha256:e8ed52e7e39795b3bd9bd5d30d1920ef4a2152b476ec9a3eec2649786d64d105",
+      "originalBytes": 34447,
+      "redactedBytes": 34432
+    },
+    {
+      "path": "docs/status/qwen35-9b-metal-provisioning-2026-07-12.json",
+      "kind": "text",
+      "replacements": 2,
+      "originalSha256": "sha256:d245a2b1984b235740a5b9b6605220a895dc96732c3fd4a40bc863b0e795ddc1",
+      "redactedSha256": "sha256:cabe3897295f22fd99261c68ac9072001821b54b3653585357e7380480ecd7ad",
+      "originalBytes": 9715,
+      "redactedBytes": 9685
+    }
+  ]
+}

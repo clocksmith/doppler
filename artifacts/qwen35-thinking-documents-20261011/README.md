@@ -1,6 +1,6 @@
 # Original 2B thinking document control: rejected
 
-All four frozen ordered-message cases completed on `x@128.tail995236.ts.net`. **None qualifies.** The source processes have exited; no GPU execution occurred.
+All four frozen ordered-message cases completed on `amd-host`. **None qualifies.** The source processes have exited; no GPU execution occurred.
 
 | Case | Generated tokens | Stop | Result |
 |---|---:|---|---|

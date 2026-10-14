@@ -1,6 +1,6 @@
 {
   "schema": "doppler.source-quality-run-binding/v1",
-  "host": "x@128.tail995236.ts.net",
+  "host": "amd-host",
   "toolSha256": "439da1f2097967dbe07cb0235eeffe83612f51b102b234ffb2a78b5f09e63a25",
   "evaluatorSha256": "37586f498f393570e499859deb0bcaba520e86bb85a03365c176a4981079127f",
   "scope": "Independent CPU source quality only; single repetition penalty change; no production qualification.",

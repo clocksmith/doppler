@@ -12,7 +12,7 @@
         "description": ""
       }
     },
-    "x@128.tail995236.ts.net": {
+    "amd-host": {
       "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/146.0.0.0 Safari/537.36",
       "platform": "Linux x86_64",
       "adapter": {
@@ -25,6 +25,6 @@
   },
   "browsers": {
     "mac.lan": "155.0.8059.39",
-    "x@128.tail995236.ts.net": "146.0.7680.177"
+    "amd-host": "146.0.7680.177"
   }
 }

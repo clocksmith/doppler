@@ -1,7 +1,7 @@
 {
   "archiveSha256": "7449618b1e3cf2b96ec18a2f30aa14ddf56c787ce9b871e535df7a9b107b367a",
   "parentArchiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
-  "host": "x@128.tail995236.ts.net",
+  "host": "amd-host",
   "node": "v22.22.1",
   "provider": "webgpu@0.4.0; backend=vulkan",
   "consumer": "/var/tmp/doppler-allocation-v3-partition-controls",

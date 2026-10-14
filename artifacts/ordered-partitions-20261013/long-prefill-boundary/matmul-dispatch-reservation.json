@@ -2,7 +2,7 @@
   "schema": "doppler.functional-diagnostic-reservation/v1",
   "at": "2026-10-13T22:59:23.616620+00:00",
   "authority": "root, user-authorized ordinary runtime repair",
-  "host": "clocksmith@suby.tail995236.ts.net",
+  "host": "intel-host",
   "scope": "Eight-row F32/Q4K paired matmul, width6144 reduction1024",
   "hypothesis": "Paired projection dispatch duration scales enough to explain driver fence timeout",
   "runtimeArchiveSha256": "9264d265a90c7c0b046adf46135965b2032d2d9f6e5e60d6a8149d10f0988ec4",

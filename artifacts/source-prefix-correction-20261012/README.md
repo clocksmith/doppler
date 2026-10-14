@@ -21,7 +21,7 @@ Frexp/ldexp, per-invocation atomic materialization, and the consumed developer-o
 - `control-audit.json.gz`: independently evolved and actual-input comparisons.
 - `executed-audit.py.gz`: exact source used for that receipt; its SHA matches the report. The current tool adds incomplete-history rejection and clearer selected-prefix labeling.
 - `observed-products-projection.json.gz`, `residual-differences.json.gz`: captured intermediate values and comparison to specified F32 evaluation.
-- `raw-identities.json`: complete raw capture/audit/projection identities. Raw large receipts remain in `reports/local/source-prefix-correction-20261012/` on `x@128.tail995236.ts.net:/home/x/deco/doppler`; the initial capture and compensation controls are also retained in the Mac's same relative directory.
+- `raw-identities.json`: complete raw capture/audit/projection identities. Raw large receipts remain in `reports/local/source-prefix-correction-20261012/` on `amd-host:/home/x/deco/doppler`; the initial capture and compensation controls are also retained in the Mac's same relative directory.
 - Six capture-pairing/error tests pass (`tests.log`). The projection harness rejects ignored developer `strictMath`; actual consumption is recorded and never claimed as a production fix.
 
 ```sh

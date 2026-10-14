@@ -3,7 +3,7 @@
   "id": "root-suby-tiny-allocation-20261013",
   "authorizedBy": "root task: bounded Suby native provider adapter/features/limits plus tiny allocation/settlement; no model or MacGPU",
   "frozenAt": "2026-10-13T15:04:06.235126+00:00",
-  "host": "clocksmith@suby.tail995236.ts.net",
+  "host": "intel-host",
   "publicNativePid": 297260,
   "publicBrowserControllerPid": 299769,
   "coTenancy": "Existing public contributor processes remain running; no exclusive performance claim",
