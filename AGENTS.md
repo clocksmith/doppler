@@ -360,6 +360,26 @@ Canonical path: `skills/` (see `skills/README.md`).
 
 See `docs/config.md` for kernel overrides and runtime modes.
 
+## Development verification
+
+- During development, choose checks for the changed behavior: syntax/type checks,
+  existing focused tests, or a local visual check. A command list is not a requirement
+  to run every suite before each commit, push, or ordinary application deployment.
+- Do not automatically run full repository suites, broad browser/device matrices,
+  GPU/model campaigns, benchmarks, or full release qualification. Run them when
+  explicitly requested or when a named correctness question cannot be answered by
+  focused checks; state that reason before starting.
+- Once relevant checks pass, continue. Repeat or broaden verification only after
+  another relevant change, a failure, or a concrete unresolved concern.
+- For documentation-only edits, inspect the diff and changed links. Do not run
+  application, GPU, browser, or benchmark suites for prose changes.
+- For ordinary deployments, build the changed artifact where needed and check the
+  affected route after deployment. Deployment alone does not require a new release
+  qualification campaign.
+- Keep existing acceptance thresholds and release-qualification requirements.
+  Report exactly what was checked; focused development checks do not establish
+  numerical qualification, performance, multi-device support, or full acceptance.
+
 ## No speculative engineering timelines
 
 - Do not predict how long a coding, software-engineering, product-implementation, refactor, migration, launch, or similar work item will take. Avoid speculative delivery statements such as "1-2 weeks", "four months", or "a quick fix".
