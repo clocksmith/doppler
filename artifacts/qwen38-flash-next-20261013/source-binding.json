@@ -18,6 +18,12 @@
       "sha256": "e70c136c1b78ddc1fb0905bac8e733a4dc448d4f852a5dd75143fffc70be550e"
     },
     {
+      "path": "tokenizer.json",
+      "url": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next/resolve/de4b8e4d43b917e7706784d8bb445c9af86a3540/tokenizer.json",
+      "bytes": 12809320,
+      "sha256": "0997f410c57a1f4e53b09e4be8f4a172d90edd9564368fb0847030937229b9f3"
+    },
+    {
       "path": "tokenizer_config.json",
       "url": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next/resolve/de4b8e4d43b917e7706784d8bb445c9af86a3540/tokenizer_config.json",
       "bytes": 17928,
@@ -57,8 +63,22 @@
         "url": "https://raw.githubusercontent.com/huggingface/transformers/e0eb2810ac1b2caf6d082f247d8d37162ecf67a0/src/transformers/models/qwen4_exp/configuration_qwen4_exp.py",
         "bytes": 16195,
         "sha256": "ac0950ab34516d26fe4f6b28cffe0649d763449effe44e42b5913463806f7e0b"
+      },
+      {
+        "path": "modeling_rope_utils.py",
+        "url": "https://raw.githubusercontent.com/huggingface/transformers/e0eb2810ac1b2caf6d082f247d8d37162ecf67a0/src/transformers/modeling_rope_utils.py",
+        "bytes": 62715,
+        "sha256": "6a0727073e080e163d0287e15fc1acb90035e9a9df9cb19a13b632a40abfac24"
       }
     ],
     "executed": false
+  },
+  "amended": {
+    "at": "2026-10-14",
+    "added": [
+      "tokenizer.json",
+      "modeling_rope_utils.py"
+    ],
+    "note": "tokenizer.json sha256 and length equal the Hugging Face X-Linked-ETag and X-Linked-Size at the pinned revision; modeling_rope_utils.py supplies the pinned dynamic_rope_update decorator"
   }
 }
