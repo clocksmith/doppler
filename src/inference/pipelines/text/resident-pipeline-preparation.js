@@ -149,7 +149,7 @@ function enumeratePairedStage(owner, allocation, requests) {
         ['linear_a_proj', 'linearInProjA'], ['linear_b_proj', 'linearInProjB']]) {
         projection(role, weights[field], layerIdx);
       }
-      for (const request of listPairedLinearAttentionPipelines(config.linearNormGateActivation)) {
+      for (const request of listPairedLinearAttentionPipelines(config.linearNormGateActivation, config.pairedMechanismReplacements)) {
         requests.add('linear_attention', request);
       }
       projection('linear_out_proj', weights.oProj, layerIdx);

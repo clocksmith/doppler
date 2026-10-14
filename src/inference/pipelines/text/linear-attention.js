@@ -654,6 +654,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
         outputDtype: outProjInputDtype,
         layerIdx,
         normGateActivation: config.linearNormGateActivation,
+        mechanismReplacements: config.pairedMechanismReplacements,
         qkL2NormEps: QK_L2NORM_EPS,
         recorder,
         executionPolicies,

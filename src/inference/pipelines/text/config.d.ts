@@ -227,6 +227,11 @@ export interface ParsedModelConfig {
   linearNormMode: LinearNormMode | null;
   /** Linear-attention gated-RMSNorm activation; merge resolves pre-field manifests to `silu`. */
   linearNormGateActivation: LinearNormGateActivation;
+  /**
+   * `operation/variant` of a mechanism to the replacement program the manifest's
+   * mechanismKernels declare (registry `variantMetadata.replacesMechanism`); empty when none.
+   */
+  pairedMechanismReplacements: Readonly<Record<string, string>>;
   attentionBias: boolean;
   causalAttention: boolean;
   finalLogitSoftcapping: number | null;

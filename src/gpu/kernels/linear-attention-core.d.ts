@@ -33,6 +33,11 @@ export interface RunLinearAttentionCoreGPUOptions {
   numTokens: number;
   /** Resolved model-config gated-RMSNorm activation; selects and guards the gate kernel. */
   normGateActivation: LinearNormGateActivation;
+  /**
+   * Paired execution: model-config `pairedMechanismReplacements`, the declared replacement
+   * programs by `operation/variant`. Required for two-F32 inputs; ignored otherwise.
+   */
+  mechanismReplacements?: Readonly<Record<string, string>>;
   layerIdx?: number;
   qkL2NormEps?: number;
   recorder?: CommandRecorder | null;

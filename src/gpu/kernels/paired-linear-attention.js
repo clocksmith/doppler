@@ -4,6 +4,7 @@ import { getDevice } from '../device.js';
 import { unifiedKernelWrapper } from './kernel-execution.js';
 import { getPipelineFast } from './pipeline-cache.js';
 import { resolveGatedDeltaNormGateKernel } from './gated-delta-norm-gate.js';
+import { getKernelConfig } from './kernel-configs.js';
 
 /** @type {Readonly<import('../tensor.js').TensorRepresentation>} */
 const REPRESENTATION = Object.freeze({ precision: 'two-f32', components: 2, elementStrideBytes: 8 });
@@ -19,9 +20,13 @@ function resolvePairedGateVariant(normGateActivation) {
 }
 
 /** @type {typeof import('./paired-linear-attention.js').listPairedLinearAttentionPipelines} */
-export function listPairedLinearAttentionPipelines(normGateActivation) {
+export function listPairedLinearAttentionPipelines(normGateActivation, replacements) {
   const gateVariant = resolvePairedGateVariant(normGateActivation);
-  return [
+  if (!replacements || typeof replacements !== 'object') {
+    throw new Error('[PairedLinear] The resolved mechanism replacements of the declared closure are required.');
+  }
+  /** @type {import('./pipeline-cache.js').KernelPipelineRequest[]} */
+  const phases = [
     { operation: 'gated_delta_conv', variant: 'paired', constants: CONV_CONSTANTS },
     { operation: 'qwen_linear_attention_prepare', variant: 'paired_beta', constants: GATE_CONSTANTS },
     { operation: 'qwen_linear_attention_prepare', variant: 'paired_decay_scale', constants: GATE_CONSTANTS },
@@ -32,13 +37,39 @@ export function listPairedLinearAttentionPipelines(normGateActivation) {
     { operation: 'gated_delta_recurrent', variant: 'paired_norm', constants: RECURRENT_CONSTANTS },
     { operation: 'gated_delta_recurrent', variant: gateVariant, constants: RECURRENT_CONSTANTS },
   ];
+  // A replacement program carries its specialization constants as registry overrides.
+  return phases.map(phase => {
+    const replacement = replacements[`${phase.operation}/${phase.variant}`];
+    return replacement === undefined ? phase : { operation: phase.operation, variant: replacement, constants: null };
+  });
+}
+
+/**
+ * Workgroup grid of the state phase. Programs declaring `headColumnBlocks` split each value
+ * head into blocks of WORKGROUP_SIZE / K_SLICES columns and hold at most
+ * K_SLICES * stateRowsPerLane state rows per column; the others run one workgroup per head.
+ * @param {import('./pipeline-cache.js').KernelPipelineRequest} phase
+ * @param {import('./linear-attention-core.js').LinearAttentionCoreLayerState} state
+ * @returns {[number, number, number]}
+ */
+function resolveStateWorkgroups(phase, state) {
+  const config = getKernelConfig(phase.operation, phase.variant);
+  const geometry = config.variantMetadata?.dispatchGeometry;
+  if (geometry === undefined) return [state.numVHeads, 1, 1];
+  const lanes = Number(config.wgslOverrides?.WORKGROUP_SIZE), slices = Number(config.wgslOverrides?.K_SLICES);
+  const rowsPerLane = Number(config.variantMetadata?.stateRowsPerLane);
+  if (geometry !== 'headColumnBlocks' || !Number.isSafeInteger(lanes) || !Number.isSafeInteger(slices)
+    || slices <= 0 || lanes % slices !== 0 || !Number.isSafeInteger(rowsPerLane) || state.headKDim > slices * rowsPerLane) {
+    throw new Error(`[PairedLinear] ${phase.operation}/${phase.variant} cannot hold this state geometry.`);
+  }
+  return [state.numVHeads, Math.ceil(state.headVDim / (lanes / slices)), 1];
 }
 
 /** @type {typeof import('./paired-linear-attention.js').preparePairedLinearAttentionPipelines} */
-export async function preparePairedLinearAttentionPipelines(device, signal, normGateActivation) {
+export async function preparePairedLinearAttentionPipelines(device, signal, normGateActivation, replacements) {
   signal?.throwIfAborted();
   if (!device) throw new Error('[PairedLinear] Pipeline preparation requires the owning GPU device.');
-  for (const { operation, variant, constants } of listPairedLinearAttentionPipelines(normGateActivation)) {
+  for (const { operation, variant, constants } of listPairedLinearAttentionPipelines(normGateActivation, replacements)) {
     await getPipelineFast(operation, variant, null, constants, device);
     signal?.throwIfAborted();
   }
@@ -70,7 +101,7 @@ export async function executePairedLinearAttention(qkv, z, a, b, state, options)
   if (state.normMode !== 'shared' && state.normMode !== 'per_head') throw new Error('[PairedLinear] Explicit norm mode required.');
   if (typeof state.normWeightOffset !== 'boolean') throw new Error('[PairedLinear] Explicit norm weight offset required.');
   const [convPhase, betaPhase, decayScalePhase, logDecayPhase, decayPhase, qkPhase, statePhase, normPhase, gatePhase] =
-    listPairedLinearAttentionPipelines(options.normGateActivation);
+    listPairedLinearAttentionPipelines(options.normGateActivation, /** @type {Readonly<Record<string, string>>} */ (options.mechanismReplacements));
   /** @param {import('./pipeline-cache.js').KernelPipelineRequest} phase
    * @param {Array<GPUBuffer | import('../tensor.js').Tensor>} bindings @param {number[]} workgroups
    * @param {Record<string, number>} uniform */
@@ -106,6 +137,8 @@ export async function executePairedLinearAttention(qkv, z, a, b, state, options)
     || numTokens * Math.max(state.convDim, state.valueDim) * 8 > 0xffffffff) {
     throw new Error('[PairedLinear] Geometry exceeds dispatch or binding limits.');
   }
+  const stateWorkgroups = resolveStateWorkgroups(statePhase, state);
+  if (stateWorkgroups[1] > device.limits.maxComputeWorkgroupsPerDimension) throw new Error('[PairedLinear] Geometry exceeds dispatch or binding limits.');
   // Beta/decay prefix plus one paired logarithm input per token/head. Keeping
   // exp and log in separate gate phases bounds their native compilation.
   const gateBytes = numTokens * state.numVHeads * 24;
@@ -138,7 +171,7 @@ export async function executePairedLinearAttention(qkv, z, a, b, state, options)
     await dispatch(logDecayPhase, [a, state.dtBiasGPU, gates], uniform, [Math.ceil(numTokens * state.numVHeads / 64), 1, 1]);
     await dispatch(decayPhase, [gates], uniform, [Math.ceil(numTokens * state.numVHeads / 64), 1, 1]);
     await dispatch(qkPhase, [conv], uniform, [state.numKHeads, 1, 1]);
-    await dispatch(statePhase, [conv, gates, state.recurrentStateGPU, output], uniform, [state.numVHeads, 1, 1]);
+    await dispatch(statePhase, [conv, gates, state.recurrentStateGPU, output], uniform, stateWorkgroups);
     await dispatch(normPhase, [state.normWeightGPU, output], uniform, [state.numVHeads, 1, 1]);
     await dispatch(gatePhase, [z, output], uniform, [Math.ceil(numTokens * state.valueDim / 128), 1, 1]);
     return createTensor(output, 'f32', [numTokens, state.valueDim], 'paired_linear_output', REPRESENTATION);

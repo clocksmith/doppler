@@ -11,8 +11,13 @@ if (!destination) throw new Error('Provide receipt destination.');
 const normGateActivation = process.argv[3] ?? 'silu';
 if (normGateActivation !== 'silu' && normGateActivation !== 'sigmoid') throw new Error('Norm gate must be silu or sigmoid.');
 const gateShader = normGateActivation === 'silu' ? 'gated_delta_gate_paired' : 'gated_delta_gate_sigmoid_paired';
+// Optional state program: paired_state (default) or its declared replacement paired_state_sliced,
+// which runs one workgroup per value head and block of 16 value columns.
+const stateProgram = process.argv[4] ?? 'paired_state';
+if (stateProgram !== 'paired_state' && stateProgram !== 'paired_state_sliced') throw new Error('State program must be paired_state or paired_state_sliced.');
+const stateShader = stateProgram === 'paired_state' ? 'gated_delta_state_paired' : 'gated_delta_state_paired_sliced';
 await mkdir(dirname(destination), { recursive: true });
-const sources = await Promise.all(['gated_delta_conv_paired', 'qwen_linear_attention_prepare_paired', 'qwen_linear_attention_scale_paired', 'qwen_linear_attention_log_decay_paired', 'qwen_linear_attention_decay_paired', 'gated_delta_qk_paired', 'gated_delta_state_paired', 'gated_delta_norm_paired', gateShader].map(name =>
+const sources = await Promise.all(['gated_delta_conv_paired', 'qwen_linear_attention_prepare_paired', 'qwen_linear_attention_scale_paired', 'qwen_linear_attention_log_decay_paired', 'qwen_linear_attention_decay_paired', 'gated_delta_qk_paired', stateShader, 'gated_delta_norm_paired', gateShader].map(name =>
   readFile(new URL(`../../src/gpu/kernels/${name}.wgsl`, import.meta.url), 'utf8')));
 const hash = value => createHash('sha256').update(value).digest('hex');
 let seed = 624901;
@@ -67,14 +72,14 @@ function reference(f) {
 }
 const receipt = { schema: 'doppler-paired-linear-physical-v1', shaderSha256: sources.map(hash), fixtureSha256: hash(JSON.stringify(cases)), seed: 624901,
   tolerance: 2e-11, scope: 'Independent F64 convolution and gated-delta equations, initial state, source epsilon, paired persistent state, QKV/Z and A/B packing. No model qualification.', cases: [],
-  ...(normGateActivation === 'silu' ? {} : { normGateActivation }) };
+  ...(normGateActivation === 'silu' ? {} : { normGateActivation }), ...(stateProgram === 'paired_state' ? {} : { stateProgram }) };
 const server = createServer((_req, res) => res.end('<!doctype html>'));
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 let browser;
 try {
   browser = await chromium.launch({ channel: 'chrome', headless: true, args: ['--enable-unsafe-webgpu', ...(process.platform === 'darwin' ? ['--use-angle=metal'] : ['--enable-features=Vulkan', '--use-angle=vulkan', '--disable-gpu-sandbox'])] });
   const page = await browser.newPage(); await page.goto(`http://127.0.0.1:${server.address().port}`);
-  const physical = await page.evaluate(async ({ sources, cases }) => {
+  const physical = await page.evaluate(async ({ sources, cases, slicedState }) => {
     const adapter = await navigator.gpu.requestAdapter();
     if (!adapter || adapter.info.isFallbackAdapter || adapter.limits.maxStorageBuffersPerShaderStage < 9) throw new Error('Physical adapter with nine storage bindings required.');
     const device = await adapter.requestDevice({ requiredLimits: { maxStorageBuffersPerShaderStage: 9 } });
@@ -106,7 +111,7 @@ try {
           const encoder = device.createCommandEncoder();
           for (let i = 0; i < pipelines.length; i++) {
             const group = device.createBindGroup({ layout: pipelines[i].getBindGroupLayout(0), entries: bindings[i].map((buffer, binding) => ({ binding, resource: { buffer } })) });
-            const pass = encoder.beginComputePass(); pass.setPipeline(pipelines[i]); pass.setBindGroup(0, group); pass.dispatchWorkgroups(dispatches[i], i === 2 ? 2 : 1); pass.end();
+            const pass = encoder.beginComputePass(); pass.setPipeline(pipelines[i]); pass.setBindGroup(0, group); pass.dispatchWorkgroups(dispatches[i], i === 2 ? 2 : i === 6 && slicedState ? Math.ceil(f.vd / 16) : 1); pass.end();
             if (i === 0) encoder.copyBufferToBuffer(conv, 0, convSnapshot, 0, conv.size);
           }
           const readbacks = [convSnapshot, cs, state, output, gates].map(buffer => { const b = alloc(buffer.size, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ); encoder.copyBufferToBuffer(buffer, 0, b, 0, buffer.size); return b; });
@@ -118,7 +123,7 @@ try {
       }
       return { results, errors, adapter: { vendor: adapter.info.vendor, architecture: adapter.info.architecture }, storageBindingLimit: device.limits.maxStorageBuffersPerShaderStage };
     } finally { await device.queue.onSubmittedWorkDone(); device.destroy(); }
-  }, { sources, cases });
+  }, { sources, cases, slicedState: stateProgram === 'paired_state_sliced' });
   receipt.adapter = physical.adapter; receipt.browser = browser.version(); receipt.errors = physical.errors; receipt.storageBindingLimit = physical.storageBindingLimit;
   for (let c = 0; c < cases.length; c++) {
     const expected = reference(cases[c]), rows = {};

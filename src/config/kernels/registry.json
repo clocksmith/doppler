@@ -21861,6 +21861,152 @@
       ]
      }
     },
+    "paired_qk_parallel": {
+     "wgsl": "gated_delta_qk_paired_parallel.wgsl",
+     "immediateCompletion": "settled",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256
+     },
+     "requires": [],
+     "outputDtype": "f32",
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "wgslName": "u",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "conv",
+       "type": "storage"
+      }
+     ],
+     "variantMetadata": {
+      "inputPrecision": "two-f32",
+      "outputPrecision": "two-f32",
+      "activationComponents": 2,
+      "activationElementStrideBytes": 8,
+      "replacesMechanism": {
+       "operation": "gated_delta_recurrent",
+       "variant": "paired_qk"
+      }
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 80,
+      "fields": [
+       {
+        "name": "num_tokens",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "conv_dim",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "conv_kernel_size",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "num_v_heads",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "num_k_heads",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "head_k_dim",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "head_v_dim",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "q_size",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "k_size",
+        "type": "u32",
+        "offset": 32
+       },
+       {
+        "name": "value_dim",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "q_rep",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "norm_mode",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "rms_eps_hi",
+        "type": "f32",
+        "offset": 48
+       },
+       {
+        "name": "rms_eps_lo",
+        "type": "f32",
+        "offset": 52
+       },
+       {
+        "name": "qk_eps_hi",
+        "type": "f32",
+        "offset": 56
+       },
+       {
+        "name": "qk_eps_lo",
+        "type": "f32",
+        "offset": 60
+       },
+       {
+        "name": "packed_flags",
+        "type": "u32",
+        "offset": 64
+       },
+       {
+        "name": "b_offset",
+        "type": "u32",
+        "offset": 68
+       },
+       {
+        "name": "norm_weight_offset",
+        "type": "u32",
+        "offset": 72
+       },
+       {
+        "name": "_pad",
+        "type": "u32",
+        "offset": 76,
+        "padding": true
+       }
+      ]
+     }
+    },
     "paired_state": {
      "wgsl": "gated_delta_state_paired.wgsl",
      "immediateCompletion": "settled",
@@ -21901,6 +22047,170 @@
       "outputPrecision": "two-f32",
       "activationComponents": 2,
       "activationElementStrideBytes": 8
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 80,
+      "fields": [
+       {
+        "name": "num_tokens",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "conv_dim",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "conv_kernel_size",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "num_v_heads",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "num_k_heads",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "head_k_dim",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "head_v_dim",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "q_size",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "k_size",
+        "type": "u32",
+        "offset": 32
+       },
+       {
+        "name": "value_dim",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "q_rep",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "norm_mode",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "rms_eps_hi",
+        "type": "f32",
+        "offset": 48
+       },
+       {
+        "name": "rms_eps_lo",
+        "type": "f32",
+        "offset": 52
+       },
+       {
+        "name": "qk_eps_hi",
+        "type": "f32",
+        "offset": 56
+       },
+       {
+        "name": "qk_eps_lo",
+        "type": "f32",
+        "offset": 60
+       },
+       {
+        "name": "packed_flags",
+        "type": "u32",
+        "offset": 64
+       },
+       {
+        "name": "b_offset",
+        "type": "u32",
+        "offset": 68
+       },
+       {
+        "name": "norm_weight_offset",
+        "type": "u32",
+        "offset": 72
+       },
+       {
+        "name": "_pad",
+        "type": "u32",
+        "offset": 76,
+        "padding": true
+       }
+      ]
+     }
+    },
+    "paired_state_sliced": {
+     "wgsl": "gated_delta_state_paired_sliced.wgsl",
+     "immediateCompletion": "settled",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256,
+      "K_SLICES": 16
+     },
+     "requires": [],
+     "outputDtype": "f32",
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "wgslName": "u",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "conv",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "gates",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "state",
+       "type": "storage"
+      },
+      {
+       "index": 4,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "variantMetadata": {
+      "inputPrecision": "two-f32",
+      "outputPrecision": "two-f32",
+      "activationComponents": 2,
+      "activationElementStrideBytes": 8,
+      "replacesMechanism": {
+       "operation": "gated_delta_recurrent",
+       "variant": "paired_state"
+      },
+      "dispatchGeometry": "headColumnBlocks",
+      "stateRowsPerLane": 8
      },
      "reachability": {
       "status": "unused",
