@@ -283,9 +283,18 @@ The CPU expert execution reference is now in place at full geometry (MoE block a
    reference beyond Apple metal-3 (done 2026-10-14, see above): run the same
    two commands on Vulkan GPUs. Neither establishes Flash-Next numerics on
    learned weights.
-4. License suitability: Qwen Community License 1.0 requires a separate license
-   for commercial Model-as-a-Service or AI Work Assistant use; suitability for
-   the intended service is unresolved.
+4. License suitability: the checkpoint files are under the Qwen Community
+   License 1.0 and the nine Transformers files under Apache-2.0
+   ([source/LICENSES.md](source/LICENSES.md)). Qwen's clause 2: "If the
+   licensee or any of its affiliates conducts a Model as a Service or AI Work
+   Assistant business, the licensee shall obtain a separate license from Qwen
+   before Using the Software or its derivative works for any commercial
+   purpose." The trigger is the operator's business, not hosting alone, and
+   once triggered it covers any commercial purpose. Clause 1 requires the
+   notice in all copies, and requires the model name to be shown prominently
+   above 100,000,000 monthly active users or US$ 20,000,000 monthly revenue.
+   Whether the intended service is such a business is unresolved; it needs
+   Qwen's determination or a separate license before any commercial release.
 5. Physical qualification on coordinated GPU time: hardware, memory-tier
    placement (upstream notes a ~95 GiB n-gram embedding), concurrent state,
    admitted budgets and installed distributed acceptance under the existing
