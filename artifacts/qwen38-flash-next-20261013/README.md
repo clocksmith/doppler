@@ -183,8 +183,9 @@ a layer-level hub-kernel decorator. Read from Doppler source at `a40f02a1`
 Head grouping (`head / q_rep`), the softplus threshold of 20 and the
 kernel-length conv state match upstream.
 
-Doppler source now declares the gate explicitly. These kernels and checks are
-static only and have not been run on a GPU:
+Doppler source now declares the gate explicitly. The kernels below ran on one
+physical GPU (Apple metal-3) on 2026-10-14; receipts are in
+[`gpu-verification-20261014/`](gpu-verification-20261014/):
 
 - The manifest field `inference.normalization.linearNormGateActivation` takes
   `silu` or `sigmoid`. An absent field resolves to the schema default `silu`,
@@ -195,8 +196,12 @@ static only and have not been run on a GPU:
 - Five generated sigmoid kernels differ from their unchanged silu sources only
   in the gate call: `gated_delta_recurrent_sigmoid_gate{,_f16}.wgsl`,
   `gated_delta_fused_decode_sigmoid_gate{,_f16}.wgsl` and
-  `gated_delta_gate_sigmoid_paired.wgsl`. These kernels are not yet
-  GPU-verified.
+  `gated_delta_gate_sigmoid_paired.wgsl`. On Apple metal-3,
+  `tests/inference/linear-attention-core-gpu-regression.test.js` passes its
+  scalar recurrent and fused-decode sigmoid cases (Node/WebGPU), and
+  `tests/kernels/paired-linear-physical.js` passes the paired path with
+  sigmoid and, unchanged, with silu (Chrome 155, tolerance 2e-11). Other GPUs
+  (Vulkan on AMD and Intel) are not yet run; CI has no WebGPU adapter.
 - Rule-based kernel selection and registry `normGateActivation` metadata fail
   closed when a kernel's gate activation differs from the manifest's.
 
@@ -275,15 +280,9 @@ The CPU expert execution reference is now in place at full geometry (MoE block a
    `linearNormGateActivation: "sigmoid"`; conversion rejects omission or silu.
    No Flash-Next conversion config or RDRR artifact exists yet.
 3. GPU verification of the sigmoid gated-delta kernels against the CPU
-   reference. These cases are written but have not been run:
-   - Node/WebGPU: `node tests/inference/linear-attention-core-gpu-regression.test.js`
-     covers the scalar recurrent and fused-decode cases, f32/f16 inputs and
-     f32/two-f32 state.
-   - Physical browser WebGPU:
-     `node tests/kernels/paired-linear-physical.js <receipt.json> sigmoid`
-     covers the paired path.
-
-   Neither establishes Flash-Next numerics on learned weights.
+   reference beyond Apple metal-3 (done 2026-10-14, see above): run the same
+   two commands on Vulkan GPUs. Neither establishes Flash-Next numerics on
+   learned weights.
 4. License suitability: Qwen Community License 1.0 requires a separate license
    for commercial Model-as-a-Service or AI Work Assistant use; suitability for
    the intended service is unresolved.
