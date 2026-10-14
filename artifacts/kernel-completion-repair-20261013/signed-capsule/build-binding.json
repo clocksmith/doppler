@@ -1,0 +1,39 @@
+{
+  "builderRevision": "8a0adac0179826ef9323eac6605f74ce1fad8c5c",
+  "builderSha256": "12a7ad9b39615aed9817f8b016d1ab3945f38d44db54418106cb919e7f910dc1",
+  "archiveSha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+  "sourceRevision": "a5f3ca4c5de29bd018402e571f4b2c432ebfc0a5",
+  "sourceRoot": "/var/tmp/qwen35-capsule-completion-20261013-b/source",
+  "runtime": "/var/tmp/reploid-completion-candidate-20261013/vendor/doppler/0.6.28",
+  "previousCandidatePreserved": true,
+  "qualificationReports": [
+    {
+      "path": "/Users/xyz/deco/reploid/artifacts/completion-qualification-2-20261013/reports/partition-0.json",
+      "sha256": "d70789b8cd8cbefb59c529b1329515b9a94d0874c755908203f814bb8b935d2d"
+    },
+    {
+      "path": "/Users/xyz/deco/reploid/artifacts/completion-qualification-2-20261013/reports/partition-1.json",
+      "sha256": "a824db8febc94159a8812a089876770ff45395b06272fa1832ca9af09bdba3e4"
+    },
+    {
+      "path": "/Users/xyz/deco/reploid/artifacts/completion-qualification-2-20261013/reports/partition-2.json",
+      "sha256": "ced77381c7c81e8b611fe5805087d2c6e13d4841414449301eb7e0f60404edd1"
+    }
+  ],
+  "contractSha256": "604da82c3efc876cfa4d33ec8d491d5a7bf3c0885975fc36786dd5898ce1db4a",
+  "modelIRReceiptSha256": "074ad8ac8e847fa960ccf3e06e9d24243348e892f7a7cc78d5879a3662090a77",
+  "manifestSha256": "6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+  "pieceIndexSha256": "e64afdf50d990992a8f7e8989693281b22bd7f695655669323f99ade2d0397bb",
+  "programBundleSha256": "580f06db90b917a9d815337f7d04d5c71d59e478bb0947393e0b2d33cc1917ef",
+  "identity": {
+    "schema": "doppler.capsule/v3",
+    "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v3-3c778665644a24d541c3d4494f5652ecc0d9952511b7beb4db9f3f364d20eca2",
+    "semanticRoot": "sha256:3c778665644a24d541c3d4494f5652ecc0d9952511b7beb4db9f3f364d20eca2",
+    "envelopeDigest": "sha256:712a845b9ed4bbc7ead21e82b033b7f20322a34bbd1e2e5bf45483d6d5ad7cf9",
+    "artifactClosureDigest": "sha256:d76272d53842bec741226918c8fb72ddf2aa41d5d2dd7490fbdaf7025fd6c669"
+  },
+  "issuedAtUtc": "2026-10-14T01:57:06.582Z",
+  "expiresAtUtc": "2026-10-15T01:57:06.582Z",
+  "artifactCount": 64,
+  "scope": "Isolated fresh release history for a new Capsule; previous candidates and histories preserved. No production or physical acceptance."
+}

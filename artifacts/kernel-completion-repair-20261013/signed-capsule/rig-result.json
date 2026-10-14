@@ -1,0 +1,74 @@
+{
+  "ok": true,
+  "forgeVersion": "2.0.0",
+  "outputPath": "../../../../var/tmp/qwen35-capsule-completion-20261013-b/capsule.json",
+  "absoluteOutputPath": "/var/tmp/qwen35-capsule-completion-20261013-b/capsule.json",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v2-82e0871ad5e9cc82",
+  "semanticRoot": "sha256:82e0871ad5e9cc8207f3b27679644d0494118d9421ca0c414377e357633e103b",
+  "envelopeHash": "sha256:1639cb541e5addcba5288883ff7d66613e561566d64deac9a8ec9605b688e895",
+  "schema": "doppler.capsule/v2",
+  "schemaVersion": 2,
+  "createdAtUtc": "2026-10-14T01:56:35.680Z",
+  "sourceBundleId": "qwen-3-5-0-8b-q4k-ehaf16-9e28445d7982",
+  "programBundlePath": "/var/tmp/qwen35-capsule-completion-20261013-b/artifacts/program-bundle.json",
+  "executionGraphHash": "sha256:9e28445d798247290e44150f244b87e5ee1f8d97754baf3ed434bf95440549cf",
+  "artifactCount": 64,
+  "wgslModuleCount": 35,
+  "targetPlanDigests": [
+    "sha256:750ed2c03d4447c1081dbd6500117b6d748a473bbea3db26aaa1493e29ccc655"
+  ],
+  "stages": [
+    {
+      "stage": "inspect",
+      "ok": true
+    },
+    {
+      "stage": "normalize",
+      "ok": true
+    },
+    {
+      "stage": "analyze",
+      "ok": true
+    },
+    {
+      "stage": "lower",
+      "ok": true
+    },
+    {
+      "stage": "specialize",
+      "ok": true
+    },
+    {
+      "stage": "search",
+      "ok": true
+    },
+    {
+      "stage": "verify",
+      "ok": true
+    },
+    {
+      "stage": "qualify",
+      "ok": true
+    },
+    {
+      "stage": "package",
+      "ok": true
+    },
+    {
+      "stage": "sign",
+      "ok": true
+    }
+  ],
+  "searchReceipt": {
+    "candidateTargetPlanHashes": [
+      "sha256:750ed2c03d4447c1081dbd6500117b6d748a473bbea3db26aaa1493e29ccc655"
+    ],
+    "selectedTargetPlanHashes": [
+      "sha256:750ed2c03d4447c1081dbd6500117b6d748a473bbea3db26aaa1493e29ccc655"
+    ],
+    "policy": "closed-program-source-plan",
+    "evaluationReceipt": null
+  },
+  "candidateEvaluation": null
+}
