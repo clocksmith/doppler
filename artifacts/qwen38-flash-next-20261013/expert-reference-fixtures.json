@@ -1,8 +1,15 @@
 {
-  "schema": "doppler.qwen38-expert-reference/v1",
+  "schema": "doppler.qwen38-expert-reference/v2",
   "checkpoint": "de4b8e4d43b917e7706784d8bb445c9af86a3540",
   "upstream": "e0eb2810ac1b2caf6d082f247d8d37162ecf67a0",
-  "torch": "2.9.1",
+  "torch": "2.11.0",
+  "environment": {
+    "machine": "arm64",
+    "blas": "accelerate",
+    "cpuCapability": "DEFAULT",
+    "float32MatmulPrecision": "highest",
+    "threads": 2
+  },
   "surface": "CPU",
   "scope": "Synthetic router and eager expert body; no learned weights or Doppler execution",
   "routing": {
@@ -83,6 +90,127 @@
     },
     "maxLogitError": 6.079673767089844e-06,
     "maxScoreError": 6.120129491804516e-07
+  },
+  "routerErrorAnalysis": {
+    "derivation": [
+      "Upstream order: logits = F.linear(x, W); p = softmax(logits, dtype=float32, dim=-1) over all 512 experts; v, idx = topk(p, 10); v /= v.sum(-1, keepdim=True); v.to(float32). Sigmoid is not used by this router; it gates only the shared expert.",
+      "Logits: |fl(x.w_e) - x.w_e| <= gamma_n * sum_i |x_i w_ei|, n = 2560, gamma_n = n*u/(1-n*u), u = 2^-24, for any summation order with or without FMA (Higham, Accuracy and Stability, eq. 3.5). Requires float32 matmul precision \"highest\".",
+      "Softmax (PyTorch _vec_softmax_lastdim for float): m = max (exact); E_j = exp(fl(l_j - m)) with fl(l_j - m) = (l_j - m)(1+a), |a| <= u, and exp relative error <= C_EXP*u; Z = sum E_j and R = fl(1/Z) are common to the row; p_j = fl(E_j * R), one rounding.",
+      "Renormalization cancels the common Z and R exactly: v_i = E_i(1+r_i)(1+d_i) / sum_S E_j(1+r_j)(1+t_j), |t_j| <= gamma_{k-1} for the 10-term sum in any order, |d_i| <= u for the final division. In exact arithmetic v_i = exp(l_i)/sum_S exp(l_j), so the exact reference is softmax over the retained exact logits.",
+      "With beta_j the logit bound and L(t) = -log(1-t): |log(v_i/s_i)| <= N_i + D, N_i = beta_i + u|l_i - m| + L(C_EXP u) + 2 L(u), D = max_S(beta_j + u|l_j - m|) + L(C_EXP u) + L(u) + L(gamma_{k-1}); hence |v_i - s_i| <= s_i * expm1(N_i + D).",
+      "Selection is provably the exact top-k when min_S(l_j - beta_j - u|l_j - m|) - max_notS(l_k + beta_k + u|l_k - m|) - 2 L(C_EXP u) - 2 L(u) > 0.",
+      "Each bound is multiplied by (1 + 2^-40) for its own float64 evaluation and allows 16 * 2^-53 relative error in the float64 truth."
+    ],
+    "constants": {
+      "u": 5.960464477539063e-08,
+      "n": 2560,
+      "gammaN": 0.00015261117724262125,
+      "cExp": 4,
+      "k": 10,
+      "gammaKMinus1": 5.36442090748478e-07
+    },
+    "softmaxSource": {
+      "file": "aten/src/ATen/native/cpu/SoftMaxKernel.cpp",
+      "lines": "60-91",
+      "url": "https://raw.githubusercontent.com/pytorch/pytorch/70d99e998b4955e0049d13a98d77ae1b14db1f45/aten/src/ATen/native/cpu/SoftMaxKernel.cpp",
+      "sha256": "8a49d0f097857b201af82c01c0d3da5edbc12fec9eb3bd8c496638069f67dcef",
+      "note": "commit is the COMMIT_SHA of the executed torch 2.11.0 build; exp is Vectorized<float>::exp, Sleef_expf4_u10 under AT_BUILD_ARM_VEC256_WITH_SLEEF"
+    },
+    "logits": {
+      "maxObserved": 6.079673767089844e-06,
+      "at": {
+        "row": 0,
+        "expert": 510
+      },
+      "boundAtMaxObserved": 0.0001664902014663455,
+      "absSumAtMaxObserved": 1.090943694114685,
+      "maxBound": 0.0001668160139936769,
+      "maxRatio": 0.036516706169754956
+    },
+    "exactness": {
+      "predictedExactLogits": 980,
+      "mayRoundLogits": 44,
+      "mayRoundExperts": [
+        468,
+        470,
+        472,
+        474,
+        476,
+        478,
+        480,
+        482,
+        484,
+        486,
+        488,
+        490,
+        492,
+        494,
+        496,
+        498,
+        500,
+        502,
+        504,
+        506,
+        508,
+        510
+      ],
+      "nonzeroErrorLogits": 44,
+      "nonzeroErrorsAllInMayRoundSet": true
+    },
+    "selection": [
+      {
+        "row": 0,
+        "exactGapTenthEleventh": 0.0021349191665649414,
+        "provenMargin": 0.0018068791126129025,
+        "provenStable": true
+      },
+      {
+        "row": 1,
+        "exactGapTenthEleventh": 0.0021349191665649414,
+        "provenMargin": 0.0021274786392120396,
+        "provenStable": true
+      }
+    ],
+    "scores": [
+      {
+        "row": 0,
+        "maxObserved": 6.120129491804516e-07,
+        "boundAtMaxObserved": 3.349674983517149e-05,
+        "minBound": 3.2876805483581915e-05,
+        "maxRatio": 0.01827081589085517
+      },
+      {
+        "row": 1,
+        "maxObserved": 5.215408424574797e-09,
+        "boundAtMaxObserved": 7.329609540700433e-07,
+        "minBound": 4.823213441957884e-07,
+        "maxRatio": 0.00862813905401512
+      }
+    ],
+    "scoreArithmeticOnly": {
+      "note": "scores against exact renormalized softmax of the computed F32 logits; isolates softmax/topk/renormalization rounding",
+      "rows": [
+        {
+          "row": 0,
+          "maxObserved": 1.0598982733145412e-08,
+          "boundAtMaxObserved": 1.1925845816560165e-07,
+          "maxRatio": 0.08887405468908312
+        },
+        {
+          "row": 1,
+          "maxObserved": 5.215408424574797e-09,
+          "boundAtMaxObserved": 1.1853445936935981e-07,
+          "maxRatio": 0.04399909066378158
+        }
+      ]
+    },
+    "orderDiagnostic": {
+      "note": "numpy F32 sums of the same exact products; legitimate orders, not upstream execution",
+      "sequentialMax": 6.079673767089844e-06,
+      "pairwiseMax": 0.0,
+      "executedEqualsSequentialBitwise": true
+    },
+    "conclusion": "Observed F32 router error is within the derived bound; the initial 2e-6/2e-7 router tolerances were not derived and are superseded by the elementwise bounds above."
   },
   "experts": {
     "geometry": {
@@ -259,18 +387,37 @@
   ],
   "checks": {
     "routerLogits": {
-      "tolerance": 2e-06,
-      "passed": false
+      "bound": "elementwise gamma_2560*sum|x_i w_ei| plus truth allowance",
+      "passed": true
+    },
+    "routerLogitExactness": {
+      "bound": "bitwise equality where exactness is proven",
+      "passed": true
+    },
+    "routerSelection": {
+      "bound": "proven top-k stability margin > 0",
+      "passed": true
     },
     "routerScores": {
-      "tolerance": 2e-07,
-      "passed": false
+      "bound": "elementwise s_i*expm1(N_i+D) plus truth allowance",
+      "passed": true
+    },
+    "routerScoreArithmetic": {
+      "bound": "same with beta = 0 against softmax of computed logits",
+      "passed": true
     },
     "expertOutput": {
       "tolerance": 2e-07,
+      "basis": "initial fixture tolerance, not derived",
       "passed": true
     }
   },
-  "passed": false,
+  "supersededRouterTolerances": {
+    "logits": 2e-06,
+    "scores": 2e-07,
+    "reason": "chosen without derivation; below the error that legitimate F32 summation orders produce at these magnitudes"
+  },
+  "modelAcceptanceThresholdsChanged": false,
+  "passed": true,
   "modelQualified": false
 }
