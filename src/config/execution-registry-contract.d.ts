@@ -15,6 +15,15 @@ export declare function assertExecutionMechanismClosure(
   steps: import('./schema/execution-v1.schema.js').ExecutionV1ExpandedStepSchema[]
 ): void;
 
+/**
+ * Map of `operation/variant` to the declared replacement program: a registry variant whose
+ * `variantMetadata.replacesMechanism` names that mechanism and whose shader, entry and
+ * specialization constants the graph's mechanismKernels declare. Empty without a graph.
+ */
+export declare function resolveDeclaredMechanismReplacements(
+  graph: import('./schema/execution-v1.schema.js').ExecutionV1GraphSchema | null | undefined
+): Readonly<Record<string, string>>;
+
 /** Throw when a declared kernel's registry norm-gate activation differs from the manifest's. */
 export declare function assertLinearNormGateClosure(
   graph: import('./schema/execution-v1.schema.js').ExecutionV1GraphSchema,

@@ -24,6 +24,7 @@
     "src/gpu/kernels/paired-linear-attention.js",
     "src/gpu/kernels/gated-delta-norm-gate.js",
     "src/converter/linear-norm-gate.js",
+    "src/inference/pipelines/text/config-components.js",
     "src/gpu/kernels/paired-cast.js",
     "src/gpu/kernels/paired-rmsnorm.js",
     "src/converter/resident-qualification.js",

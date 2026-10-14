@@ -501,6 +501,7 @@
         "src/inference/pipelines/text/attention/run.js",
         "src/inference/pipelines/text/attention/types.js",
         "src/inference/pipelines/text/chat-format.js",
+        "src/inference/pipelines/text/config-components.js",
         "src/inference/pipelines/text/config.js",
         "src/inference/pipelines/text/config/normalization.js",
         "src/inference/pipelines/text/config/validation.js",
@@ -1685,6 +1686,7 @@
         "src/inference/pipelines/text/attention/run.js",
         "src/inference/pipelines/text/attention/types.js",
         "src/inference/pipelines/text/chat-format.js",
+        "src/inference/pipelines/text/config-components.js",
         "src/inference/pipelines/text/config.js",
         "src/inference/pipelines/text/config/normalization.js",
         "src/inference/pipelines/text/config/validation.js",
@@ -2763,6 +2765,7 @@
         "src/inference/pipelines/text/attention/run.js",
         "src/inference/pipelines/text/attention/types.js",
         "src/inference/pipelines/text/chat-format.js",
+        "src/inference/pipelines/text/config-components.js",
         "src/inference/pipelines/text/config.js",
         "src/inference/pipelines/text/config/normalization.js",
         "src/inference/pipelines/text/config/validation.js",
@@ -3676,6 +3679,7 @@
         "src/inference/pipelines/text/attention/run.js",
         "src/inference/pipelines/text/attention/types.js",
         "src/inference/pipelines/text/chat-format.js",
+        "src/inference/pipelines/text/config-components.js",
         "src/inference/pipelines/text/config.js",
         "src/inference/pipelines/text/config/normalization.js",
         "src/inference/pipelines/text/config/validation.js",
@@ -5918,6 +5922,7 @@
         "src/inference/pipelines/text/bdpa-steamroller.js",
         "src/inference/pipelines/text/buffer-types.js",
         "src/inference/pipelines/text/chat-format.js",
+        "src/inference/pipelines/text/config-components.js",
         "src/inference/pipelines/text/config.js",
         "src/inference/pipelines/text/config/normalization.js",
         "src/inference/pipelines/text/config/validation.js",
@@ -6981,7 +6986,7 @@
     {
       "file": "tests/kernels/paired-linear-physical.js",
       "kind": "asset",
-      "line": 16,
+      "line": 21,
       "expression": "new URL(`../../src/gpu/kernels/${name}.wgsl`, import.meta.url)"
     },
     {

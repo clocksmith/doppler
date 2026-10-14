@@ -3,6 +3,7 @@ import { log } from '../../../debug/index.js';
 import { mergeConfig, dumpConfigSources } from '../../../config/merge.js';
 import { validateModelOverrides } from '../../../config/param-validator.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
+import { resolveLinearAttentionConfig } from './config-components.js';
 import { appendHeterogeneousAttentionValidation, resolveHeterogeneousAttentionContract } from './attention/heterogeneous-contract.js';
 import { resolvePostNormContract } from './normalization-contract.js';
 import { resolveEmbeddingNormalization } from './embedding-contract.js';
@@ -276,24 +277,6 @@ function parseCustomLayerTypes(layerTypes, numLayers, modelId) {
     }
     return normalized;
   });
-}
-
-function parseLinearNormMode(value, sharedFlag = null, modelId = 'unknown') {
-  if (typeof value === 'string') {
-    const normalized = value.trim().toLowerCase();
-    if (normalized === 'shared') return 'shared';
-    if (normalized === 'per_head' || normalized === 'per-head' || normalized === 'perhead') {
-      return 'per_head';
-    }
-    throw new Error(
-      `Manifest "${modelId}" has unsupported linear_norm_mode="${value}". ` +
-      'Supported values: "shared", "per_head".'
-    );
-  }
-  if (typeof sharedFlag === 'boolean') {
-    return sharedFlag ? 'shared' : 'per_head';
-  }
-  return null;
 }
 
 function toParsedConfigFromMerged(merged, manifest) {
@@ -651,16 +634,7 @@ function toParsedConfigFromMerged(merged, manifest) {
       ?? config.num_global_kv_heads
   ) ?? deriveGlobalKVHeadsFromManifest();
 
-  const linearNumKeyHeads = parsePositiveInt(arch.linearNumKeyHeads ?? config.linear_num_key_heads);
-  const linearNumValueHeads = parsePositiveInt(arch.linearNumValueHeads ?? config.linear_num_value_heads);
-  const linearKeyHeadDim = parsePositiveInt(arch.linearKeyHeadDim ?? config.linear_key_head_dim);
-  const linearValueHeadDim = parsePositiveInt(arch.linearValueHeadDim ?? config.linear_value_head_dim);
-  const linearConvKernelDim = parsePositiveInt(arch.linearConvKernelDim ?? config.linear_conv_kernel_dim);
-  const linearNormMode = parseLinearNormMode(
-    arch.linearNormMode ?? config.linear_norm_mode,
-    config.linear_norm_shared,
-    merged.modelId
-  );
+  const linearAttention = resolveLinearAttentionConfig(arch, config, inf, manifest, merged.modelId);
   const hasMixedAttentionGeometry = archGlobalHeadDim != null && archGlobalHeadDim !== archHeadDim;
   const hasSharedKvLayers = archNumKvSharedLayers > 0;
   const hasExplicitLayerTypes = Array.isArray(layerTypes) && layerTypes.length === arch.numLayers;
@@ -745,13 +719,7 @@ function toParsedConfigFromMerged(merged, manifest) {
     swigluLimit: inf.ffn.swigluLimit,
     stopTokenIds,
     layerTypes,
-    linearNumKeyHeads,
-    linearNumValueHeads,
-    linearKeyHeadDim,
-    linearValueHeadDim,
-    linearConvKernelDim,
-    linearNormMode,
-    linearNormGateActivation: inf.normalization.linearNormGateActivation,
+    ...linearAttention,
     attentionBias: inf.attention.attentionBias,
     causalAttention,
     finalLogitSoftcapping: inf.output.finalLogitSoftcapping,

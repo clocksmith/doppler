@@ -4,10 +4,12 @@ import type { LinearNormGateActivation } from '../../config/schema/inference.sch
 import type { KernelPipelineRequest } from './pipeline-cache.js';
 /**
  * The nine pipelines executePairedLinearAttention dispatches, in dispatch order.
- * The gate phase follows the model's norm-gate activation; no member depends on token count.
+ * The gate phase follows the model's norm-gate activation; a phase whose `operation/variant`
+ * has a declared replacement program dispatches that program. No member depends on token count.
  */
 export declare function listPairedLinearAttentionPipelines(
-  normGateActivation: LinearNormGateActivation
+  normGateActivation: LinearNormGateActivation,
+  replacements: Readonly<Record<string, string>>
 ): KernelPipelineRequest[];
 /**
  * Compile the same provider-scoped pipelines used by paired recurrent execution,
@@ -17,6 +19,7 @@ export declare function listPairedLinearAttentionPipelines(
 export declare function preparePairedLinearAttentionPipelines(
   device: GPUDevice | undefined,
   signal: AbortSignal | undefined,
-  normGateActivation: LinearNormGateActivation
+  normGateActivation: LinearNormGateActivation,
+  replacements: Readonly<Record<string, string>>
 ): Promise<void>;
 export declare function executePairedLinearAttention(qkv: Tensor, z: Tensor, a: Tensor, b: Tensor, state: LinearAttentionCoreLayerState, options: RunLinearAttentionCoreGPUOptions): Promise<Tensor>;

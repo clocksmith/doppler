@@ -34,7 +34,7 @@ try {
     const held = new Set(), recorder = recorded ? { device: { limits }, trackTemporaryBuffer: b => held.add(b) } : null;
     const settle = () => { for (const b of held) pairedLinearControl.release(b); held.clear(); };
     const run = (overrides = {}, options = {}) => executePairedLinearAttention(qkv, z, a, b, { ...state, ...overrides },
-      { numTokens: 2, outputDtype: 'f32', qkL2NormEps: 1e-6, recorder, normGateActivation: 'silu', ...options });
+      { numTokens: 2, outputDtype: 'f32', qkL2NormEps: 1e-6, recorder, normGateActivation: 'silu', mechanismReplacements: {}, ...options });
     for (const failure of ['paired_linear_conv', 'paired_linear_gates', 'paired_linear_output', 'gated_delta_conv', 'paired_beta', 'paired_decay_scale', 'paired_log_decay', 'paired_decay', 'paired_qk', 'paired_state', 'paired_norm', 'paired_gate']) {
       pairedLinearControl.failure = failure; await assert.rejects(run(), /injected/); settle(); assert.equal(live.size, 0);
     }
@@ -77,7 +77,17 @@ try {
     const sigmoid = await run({}, { normGateActivation: 'sigmoid' });
     assert.deepEqual(calls.slice(-4).map(call => call[2]), ['paired_qk', 'paired_state', 'paired_norm', 'paired_gate_sigmoid']);
     pairedLinearControl.release(sigmoid.buffer); settle(); assert.equal(live.size, 0);
+    // A declared replacement runs in the mechanism's place with its column-block grid; absence fails closed.
+    const replaced = await run({}, { mechanismReplacements: { 'gated_delta_recurrent/paired_state': 'paired_state_sliced',
+      'gated_delta_recurrent/paired_qk': 'paired_qk_parallel' } });
+    assert.deepEqual(calls.slice(-4).map(call => call[2]), ['paired_qk_parallel', 'paired_state_sliced', 'paired_norm', 'paired_gate']);
+    assert.deepEqual(calls.at(-4)[5], [1, 1, 1]);
+    assert.deepEqual(calls.at(-3)[5], [1, 1, 1]);
+    assert.equal(calls.at(-3)[6], null, 'replacement constants come from registry overrides');
+    pairedLinearControl.release(replaced.buffer); settle(); assert.equal(live.size, 0);
+    const count = calls.length; await assert.rejects(run({}, { mechanismReplacements: undefined }), /mechanism replacements/);
+    assert.equal(calls.length, count); assert.equal(live.size, 0);
     limits.maxStorageBuffersPerShaderStage = 8; await assert.rejects(run(), /Nine storage/); limits.maxStorageBuffersPerShaderStage = 9;
   }
 } finally { hooks.deregister(); delete globalThis.pairedLinearControl; }
-console.log('paired linear: explicit layouts, epsilons, aliases, limits, allocation and both dispatch rollback passed');
+console.log('paired linear: explicit layouts, epsilons, aliases, limits, allocation, declared replacement programs and both dispatch rollback passed');

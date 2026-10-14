@@ -5,6 +5,7 @@ import { createDopplerConfig } from '../../src/config/schema/index.js';
 import { compileExecutionV1 } from '../../src/inference/pipelines/text/execution-v1.js';
 import { compileExecutionPlanState, resolveExecutionSessionPlan } from '../../src/inference/pipelines/text/execution-plan.js';
 import { resolvePairedAttentionPipeline, resolvePairedAttentionVariant } from '../../src/gpu/kernels/paired-attention.js';
+import { resolveDeclaredMechanismReplacements } from '../../src/config/execution-registry-contract.js';
 const execution = JSON.parse(readFileSync(new URL('../../artifacts/paired-intermediates-20261012/signed-closure-correction/execution.json', import.meta.url)));
 for (const [variant, shader] of [
   ['paired_beta', 'qwen_linear_attention_prepare_paired'],
@@ -75,4 +76,19 @@ const sliced = structuredClone(manifest);
 sliced.inference.execution.kernels.norm = { ...sliced.inference.execution.kernels.norm, kernel: 'rmsnorm_paired_sliced.wgsl',
   constants: { WORKGROUP_SIZE: 256 }, digest: `sha256:${KERNEL_REF_CONTENT_DIGESTS['rmsnorm_paired_sliced.wgsl#main']}` };
 assert.equal(compile(sliced).primaryPlan.activationPrecision, 'two-f32');
-console.log('paired execution plan: complete graph admission, exact variants, helper closure, scalar logits, tiled attention and sliced RMSNorm selection and session metadata pass');
+// A declared replacement program joins the closure and is selected in the mechanism's place.
+assert.deepEqual(resolveDeclaredMechanismReplacements(manifest.inference.execution), {});
+const replaced = structuredClone(manifest);
+replaced.inference.execution.kernels.paired_state_sliced = { kernel: 'gated_delta_state_paired_sliced.wgsl', entry: 'main',
+  constants: { WORKGROUP_SIZE: 256, K_SLICES: 16 }, digest: `sha256:${KERNEL_REF_CONTENT_DIGESTS['gated_delta_state_paired_sliced.wgsl#main']}` };
+replaced.inference.execution.kernels.paired_qk_parallel = { kernel: 'gated_delta_qk_paired_parallel.wgsl', entry: 'main',
+  constants: { WORKGROUP_SIZE: 256 }, digest: `sha256:${KERNEL_REF_CONTENT_DIGESTS['gated_delta_qk_paired_parallel.wgsl#main']}` };
+replaced.inference.execution.mechanismKernels.push('paired_state_sliced', 'paired_qk_parallel');
+assert.equal(compile(replaced).primaryPlan.activationPrecision, 'two-f32');
+assert.deepEqual(resolveDeclaredMechanismReplacements(replaced.inference.execution), {
+  'gated_delta_recurrent/paired_state': 'paired_state_sliced', 'gated_delta_recurrent/paired_qk': 'paired_qk_parallel' });
+// Other specialization constants do not declare the replacement.
+const respecialized = structuredClone(replaced);
+respecialized.inference.execution.kernels.paired_state_sliced.constants = { WORKGROUP_SIZE: 128, K_SLICES: 16 };
+assert.deepEqual(resolveDeclaredMechanismReplacements(respecialized.inference.execution), { 'gated_delta_recurrent/paired_qk': 'paired_qk_parallel' });
+console.log('paired execution plan: complete graph admission, exact variants, helper closure, scalar logits, tiled attention, sliced RMSNorm and declared state and Q/K replacement selection and session metadata pass');

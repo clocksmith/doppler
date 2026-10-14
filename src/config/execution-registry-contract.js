@@ -62,6 +62,41 @@ export function assertExecutionMechanismClosure(graph, steps) {
   }
 }
 
+/** Mechanism programs a declared closure substitutes for a base mechanism. A registry variant
+ * whose variantMetadata.replacesMechanism names an {operation, variant} of the same operation and
+ * binding layout runs in that mechanism's place exactly when the graph's mechanismKernels declare
+ * it with its shader, entry and specialization constants. Two declared replacements of one
+ * mechanism fail closed.
+ * @param {import('./schema/execution-v1.schema.js').ExecutionV1GraphSchema | null | undefined} graph */
+export function resolveDeclaredMechanismReplacements(graph) {
+  /** @type {Record<string, string>} */
+  const replacements = {};
+  if (!graph?.kernels) return Object.freeze(replacements);
+  const declarations = (graph.mechanismKernels ?? []).map(key => graph.kernels[key]);
+  const configs = Object.values(getKernelConfigs()).flatMap(variants => Object.values(variants));
+  for (const config of configs) {
+    const declared = config.variantMetadata?.replacesMechanism;
+    if (declared === undefined) continue;
+    const base = /** @type {{ operation?: unknown, variant?: unknown } | null} */ (declared);
+    const original = base && base.operation === config.operation && typeof base.variant === 'string'
+      ? getKernelConfig(config.operation, base.variant) : null;
+    const layout = (/** @type {import('./kernel-registry-contract.js').KernelConfig} */ entry) =>
+      JSON.stringify(entry.bindings.map(binding => [binding.index, binding.name, binding.type]));
+    if (!original || layout(original) !== layout(config)) {
+      throw new Error(`Kernel ${config.operation}/${config.variant} declares an invalid mechanism replacement.`);
+    }
+    const constantsHash = computeCanonicalSha256(config.wgslOverrides ?? {});
+    if (!declarations.some(decl => decl?.kernel === config.shaderFile && decl.entry === config.entryPoint
+      && computeCanonicalSha256(decl.constants ?? {}) === constantsHash)) continue;
+    const key = `${config.operation}/${String(base?.variant)}`;
+    if (replacements[key] !== undefined) {
+      throw new Error(`[PairedExecution] mechanismKernels declare both ${replacements[key]} and ${config.variant} in place of ${key}.`);
+    }
+    replacements[key] = config.variant;
+  }
+  return Object.freeze(replacements);
+}
+
 /** Lane-mismatch guard: every kernel the graph declares whose registry entry
  * applies a gated-RMSNorm gate must declare the manifest's activation.
  * @param {import('./schema/execution-v1.schema.js').ExecutionV1GraphSchema} graph
