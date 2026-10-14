@@ -45,6 +45,18 @@ try {
     assert.equal(uniforms.eps_lo, Math.fround(1e-6 - Math.fround(1e-6)));
     assert.equal(output.precision, 'two-f32'); assert.equal(output.buffer.size, 8192);
     pairedNormControl.release(output.buffer); settle();
+    // Unpinned calls dispatch the shipped program, one 64-lane workgroup per token.
+    pairedNormControl.release((await run()).buffer); settle();
+    assert.deepEqual([calls.at(-1)[2], calls.at(-1)[5], calls.at(-1)[6].WORKGROUP_SIZE], ['paired', [1, 1, 1], 64]);
+    // A declared sliced program adds one workgroup per 256-element output slice; its width is a registry override.
+    const declare = kernel => ({ activationDtype: 'f32', prefill: { steps: [{ op: 'input_norm', kernel, entry: 'main' }] },
+      decode: { steps: [{ op: 'input_norm', kernel, entry: 'main' }] } });
+    const pinned = { role: 'input_norm', section: 'layer', phase: 'decode', layerIdx: 0 };
+    pairedNormControl.release((await run({ ...pinned, kernelPath: declare('rmsnorm_paired_sliced.wgsl') })).buffer); settle();
+    assert.deepEqual([calls.at(-1)[2], calls.at(-1)[5], calls.at(-1)[6].WORKGROUP_SIZE], ['paired_sliced', [1, 1, 4], undefined]);
+    const before = calls.length;
+    await assert.rejects(run({ ...pinned, kernelPath: declare('rmsnorm.wgsl') }), /RMSNorm/);
+    assert.equal(calls.length, before); assert.equal(live.size, 0);
     for (const options of [{ batchSize: NaN }, { hiddenSize: 0 }, { outputBuffer: input.buffer },
       { outputBuffer: { size: 4096 } }, { residualSumOutput: { size: 8192 } },
       { preResidual: input, residual: input }, { residual: { ...input, precision: undefined } }]) {
@@ -53,4 +65,4 @@ try {
     }
   }
 } finally { hooks.deregister(); delete globalThis.pairedNormControl; }
-console.log('paired RMSNorm: source epsilon, immediate/recorded ownership, allocation/dispatch failure and geometry rejection passed');
+console.log('paired RMSNorm: source epsilon, immediate/recorded ownership, allocation/dispatch failure, declared sliced program geometry and geometry rejection passed');

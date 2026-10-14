@@ -165,6 +165,7 @@ export interface KernelUniformValues {
   "rmsnorm/default_f16": Parameters<typeof writers0.write_rmsnorm_default>[1];
   "rmsnorm/small_f16": Parameters<typeof writers0.write_rmsnorm_default>[1];
   "rmsnorm/paired": Parameters<typeof writers0.write_rmsnorm_paired>[1];
+  "rmsnorm/paired_sliced": Parameters<typeof writers0.write_rmsnorm_paired>[1];
   "rmsnorm_pair/default": Parameters<typeof writers0.write_rmsnorm_pair_default>[1];
   "rmsnorm_pair/subgroup": Parameters<typeof writers0.write_rmsnorm_pair_default>[1];
   "residual_rmsnorm_pair/subgroup": Parameters<typeof writers0.write_residual_rmsnorm_pair_subgroup>[1];

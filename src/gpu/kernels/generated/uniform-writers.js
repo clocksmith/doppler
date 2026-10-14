@@ -165,6 +165,7 @@ export const UNIFORM_WRITERS = Object.freeze({
   "rmsnorm/default_f16": { size: 32, write: writers0.write_rmsnorm_default },
   "rmsnorm/small_f16": { size: 32, write: writers0.write_rmsnorm_default },
   "rmsnorm/paired": { size: 32, write: writers0.write_rmsnorm_paired },
+  "rmsnorm/paired_sliced": { size: 32, write: writers0.write_rmsnorm_paired },
   "rmsnorm_pair/default": { size: 32, write: writers0.write_rmsnorm_pair_default },
   "rmsnorm_pair/subgroup": { size: 32, write: writers0.write_rmsnorm_pair_default },
   "residual_rmsnorm_pair/subgroup": { size: 32, write: writers0.write_residual_rmsnorm_pair_subgroup },

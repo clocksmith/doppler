@@ -70,4 +70,9 @@ assert.throws(() => resolvePairedAttentionPipeline('decode_subgroup'), /not a de
 const scalarAttention = structuredClone(manifest);
 scalarAttention.inference.execution.kernels.attention.kernel = 'attention_head256_f16kv.wgsl';
 assert.throws(() => compile(scalarAttention), /attention is not bound to the declared paired attention implementation/);
-console.log('paired execution plan: complete graph admission, exact variants, helper closure, scalar logits, tiled attention selection and session metadata pass');
+// The sliced paired RMSNorm program is admitted for every declared norm role.
+const sliced = structuredClone(manifest);
+sliced.inference.execution.kernels.norm = { ...sliced.inference.execution.kernels.norm, kernel: 'rmsnorm_paired_sliced.wgsl',
+  constants: { WORKGROUP_SIZE: 256 }, digest: `sha256:${KERNEL_REF_CONTENT_DIGESTS['rmsnorm_paired_sliced.wgsl#main']}` };
+assert.equal(compile(sliced).primaryPlan.activationPrecision, 'two-f32');
+console.log('paired execution plan: complete graph admission, exact variants, helper closure, scalar logits, tiled attention and sliced RMSNorm selection and session metadata pass');

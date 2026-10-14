@@ -42,7 +42,7 @@ function requireStep(steps, role, operation, variant, outputPrecision = 'two-f32
   const config = getKernelPathStepConfig(operation, step);
   const metadata = config?.variantMetadata;
   if (!config || (variant != null && config.variant !== variant)
-    || ((operation === 'matmul' || operation === 'attention') && (metadata?.inputPrecision !== 'two-f32'
+    || ((operation === 'matmul' || operation === 'attention' || operation === 'rmsnorm') && (metadata?.inputPrecision !== 'two-f32'
       || metadata?.outputPrecision !== outputPrecision))
     || (operation === 'attention' && metadata?.kvDtype !== 'f16')) {
     throw new Error(`[PairedExecution] ${role} is not bound to the declared paired ${operation} implementation.`);
@@ -71,7 +71,8 @@ export function validatePairedExecution(path, session, manifest) {
   assertPairedLinearMechanismClosure(manifest.inference);
   for (let layer = 0; layer < count; layer++) for (const phase of /** @type {const} */ (['prefill', 'decode'])) {
     const steps = getLayerSteps(path, layer, phase);
-    for (const role of ['input_norm', 'post_attn_norm']) requireStep(steps, role, 'rmsnorm', 'paired');
+    // Any registry RMSNorm program declaring paired input and output.
+    for (const role of ['input_norm', 'post_attn_norm']) requireStep(steps, role, 'rmsnorm', null);
     for (const role of ['gate_proj', 'up_proj', 'down_proj', 'o_proj']) requireStep(steps, role, 'matmul', null);
     requireStep(steps, 'activation', 'paired_pointwise', 'silu');
     for (const role of ['attn_residual', 'ffn_residual']) requireStep(steps, role, 'paired_pointwise', 'add');
@@ -90,7 +91,7 @@ export function validatePairedExecution(path, session, manifest) {
     }
   }
   const post = path.postLayer ?? [];
-  requireStep(post, 'final_norm', 'rmsnorm', 'paired');
+  requireStep(post, 'final_norm', 'rmsnorm', null);
   for (const role of ['lm_head', 'lm_head_prefill']) requireStep(post, role, 'matmul', null, 'f32');
   return { activationPrecision: 'two-f32', activationComponents: 2, activationElementStrideBytes: 8 };
 }

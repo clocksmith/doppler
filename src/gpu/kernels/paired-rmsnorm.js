@@ -2,6 +2,7 @@ import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { getBuffer, getWeightDtype } from '../weight-buffer.js';
 import { unifiedKernelWrapper } from './kernel-execution.js';
+import { getKernelConfig } from './kernel-configs.js';
 
 /** @type {Readonly<import('../tensor.js').TensorRepresentation>} */
 const REPRESENTATION = Object.freeze({ precision: 'two-f32', components: 2, elementStrideBytes: 8 });
@@ -14,13 +15,40 @@ function assertPair(input, bytes, label) {
   }
 }
 
+/** Program used when no execution path pins one (Q/K head normalization and direct calls). */
+const UNPINNED_PAIRED_RMSNORM_VARIANT = 'paired';
+
+/**
+ * Registry declaration of a paired RMSNorm program. `tokenSlices` programs dispatch one workgroup
+ * per token and output slice of the declared workgroup width; the others one workgroup per token.
+ * @param {string} variant
+ */
+function resolvePairedRMSNormProgram(variant) {
+  const config = typeof variant === 'string' ? getKernelConfig('rmsnorm', variant) : null;
+  const metadata = config?.variantMetadata;
+  const geometry = metadata?.dispatchGeometry;
+  if (!config || metadata?.inputPrecision !== 'two-f32' || metadata.outputPrecision !== 'two-f32'
+    || (geometry !== undefined && geometry !== 'tokenSlices')) {
+    throw new Error(`[PairedRMSNorm] rmsnorm/${String(variant)} is not a declared paired RMSNorm program.`);
+  }
+  return { sliced: geometry === 'tokenSlices', sliceWidth: config.workgroupSize[0] };
+}
+
+/** @type {typeof import('./paired-rmsnorm.js').resolvePairedRMSNormVariant} */
+export function resolvePairedRMSNormVariant(declaredVariant) {
+  const variant = declaredVariant ?? UNPINNED_PAIRED_RMSNORM_VARIANT;
+  resolvePairedRMSNormProgram(variant);
+  return variant;
+}
+
 /** @type {typeof import('./paired-rmsnorm.js').resolvePairedRMSNormPipeline} */
-export function resolvePairedRMSNormPipeline(weightDtype, fusion) {
+export function resolvePairedRMSNormPipeline(weightDtype, fusion, variant) {
   if (weightDtype !== 'f32' && weightDtype !== 'f16') throw new Error('[PairedRMSNorm] Explicit F32 or F16 weights required.');
-  return { operation: 'rmsnorm', variant: 'paired', constants: {
-    WORKGROUP_SIZE: 64, WEIGHT_F16: weightDtype === 'f16', WEIGHT_OFFSET: fusion.rmsNormWeightOffset === true,
-    PRE_RESIDUAL: fusion.preResidual, POST_RESIDUAL: fusion.residual, OUTPUT_PRENORM: fusion.outputPrenorm,
-  } };
+  const flags = { WEIGHT_F16: weightDtype === 'f16', WEIGHT_OFFSET: fusion.rmsNormWeightOffset === true,
+    PRE_RESIDUAL: fusion.preResidual, POST_RESIDUAL: fusion.residual, OUTPUT_PRENORM: fusion.outputPrenorm };
+  // Sliced programs declare their workgroup width in registry wgslOverrides.
+  if (resolvePairedRMSNormProgram(variant).sliced) return { operation: 'rmsnorm', variant, constants: flags };
+  return { operation: 'rmsnorm', variant, constants: { WORKGROUP_SIZE: 64, ...flags } };
 }
 
 /** @type {typeof import('./paired-rmsnorm.js').executePairedRMSNorm} */
@@ -44,8 +72,9 @@ export async function executePairedRMSNorm(recorder, input, weight, eps, options
   if (residualInput) assertPair(residualInput, bytes, 'Residual');
   const weightDtype = getWeightDtype(weight), weightBuffer = getBuffer(weight);
   const prenormProvided = residualSumOutput && 'buffer' in residualSumOutput ? residualSumOutput.buffer : residualSumOutput;
+  const program = resolvePairedRMSNormProgram(options.variant);
   const pipeline = resolvePairedRMSNormPipeline(weightDtype, { rmsNormWeightOffset: options.rmsNormWeightOffset === true,
-    preResidual: preResidual != null, residual: residual != null, outputPrenorm: prenormProvided != null });
+    preResidual: preResidual != null, residual: residual != null, outputPrenorm: prenormProvided != null }, options.variant);
   if (!weightBuffer || !('size' in weightBuffer) || weightBuffer.size < hiddenSize * (weightDtype === 'f16' ? 2 : 4)) {
     throw new Error('[PairedRMSNorm] Weight buffer is undersized.');
   }
@@ -60,12 +89,13 @@ export async function executePairedRMSNorm(recorder, input, weight, eps, options
     output = outputBuffer ?? acquireBuffer(bytes, undefined, 'rmsnorm_paired_output');
     prenorm = prenormProvided ?? acquireBuffer(8, undefined, 'rmsnorm_paired_prenorm_placeholder');
     const tokenStride = Math.min(batchSize, recorder?.device?.limits?.maxComputeWorkgroupsPerDimension ?? 65535);
+    const slices = program.sliced ? Math.ceil(hiddenSize / program.sliceWidth) : 1;
     await unifiedKernelWrapper(pipeline.operation, recorder, pipeline.variant,
       [input, weightBuffer, output, residualInput ?? input, prenorm], {
         size: hiddenSize, num_tokens: batchSize,
         eps_hi: Math.fround(eps), eps_lo: Math.fround(eps - Math.fround(eps)),
         token_stride: tokenStride, scale_hi: Math.fround(scale), scale_lo: Math.fround(scale - Math.fround(scale)),
-      }, [tokenStride, Math.ceil(batchSize / tokenStride), 1], pipeline.constants);
+      }, [tokenStride, Math.ceil(batchSize / tokenStride), slices], pipeline.constants);
     return createTensor(output, 'f32', [batchSize, hiddenSize], 'rmsnorm_paired', REPRESENTATION);
   } catch (error) {
     if (output && !outputBuffer) {
