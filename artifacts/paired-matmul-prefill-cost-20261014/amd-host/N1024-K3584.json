@@ -1,0 +1,91 @@
+{
+  "schema": "scratch.paired-matmul-bench/v1",
+  "surface": "node-dawn",
+  "N": 1024,
+  "K": 3584,
+  "tokens": [
+    1,
+    4,
+    16
+  ],
+  "runs": [
+    {
+      "variant": "shipped",
+      "M": 1,
+      "medianMs": 0.9970479999999924,
+      "minMs": 0.9294000000000011,
+      "maxMs": 1.2980149999999924,
+      "errorsSoFar": 0
+    },
+    {
+      "variant": "shipped",
+      "M": 4,
+      "medianMs": 3.7506429999999966,
+      "minMs": 3.5071140000000014,
+      "maxMs": 4.47295299999999,
+      "errorsSoFar": 0
+    },
+    {
+      "variant": "shipped",
+      "M": 16,
+      "medianMs": 14.786333999999982,
+      "minMs": 14.612426000000028,
+      "maxMs": 14.96939900000001,
+      "errorsSoFar": 0
+    },
+    {
+      "variant": "plain-f32",
+      "M": 1,
+      "medianMs": 0.10680099999999015,
+      "minMs": 0.1012100000000089,
+      "maxMs": 0.2932220000000143,
+      "errorsSoFar": 0
+    },
+    {
+      "variant": "plain-f32",
+      "M": 4,
+      "medianMs": 0.19426599999999894,
+      "minMs": 0.1644290000000126,
+      "maxMs": 0.22094599999999787,
+      "errorsSoFar": 0
+    },
+    {
+      "variant": "plain-f32",
+      "M": 16,
+      "medianMs": 0.5761249999999905,
+      "minMs": 0.4960539999999867,
+      "maxMs": 1.7867849999999805,
+      "errorsSoFar": 0
+    },
+    {
+      "variant": "paired-no-weight",
+      "M": 1,
+      "medianMs": 0.8807480000000396,
+      "minMs": 0.8590379999999982,
+      "maxMs": 0.8829330000000368,
+      "errorsSoFar": 0
+    },
+    {
+      "variant": "paired-no-weight",
+      "M": 4,
+      "medianMs": 3.86744299999998,
+      "minMs": 3.291507999999965,
+      "maxMs": 11.035530999999992,
+      "errorsSoFar": 0
+    },
+    {
+      "variant": "paired-no-weight",
+      "M": 16,
+      "medianMs": 13.751215000000002,
+      "minMs": 13.475484999999992,
+      "maxMs": 16.01049899999998,
+      "errorsSoFar": 0
+    }
+  ],
+  "errors": [],
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "description": "radv: Mesa 26.0.3-1ubuntu1"
+  }
+}

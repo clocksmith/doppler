@@ -1,0 +1,91 @@
+{
+  "schema": "scratch.paired-matmul-bench/v1",
+  "surface": "node-dawn",
+  "N": 3584,
+  "K": 1024,
+  "tokens": [
+    1,
+    4,
+    16
+  ],
+  "runs": [
+    {
+      "variant": "shipped",
+      "M": 1,
+      "medianMs": 19.434397999999987,
+      "minMs": 19.42764699999998,
+      "maxMs": 19.511527,
+      "errorsSoFar": 0
+    },
+    {
+      "variant": "shipped",
+      "M": 4,
+      "medianMs": 75.03022699999997,
+      "minMs": 72.84712400000006,
+      "maxMs": 85.019363,
+      "errorsSoFar": 0
+    },
+    {
+      "variant": "shipped",
+      "M": 16,
+      "medianMs": 301.31500300000016,
+      "minMs": 293.529591,
+      "maxMs": 303.06244300000003,
+      "errorsSoFar": 0
+    },
+    {
+      "variant": "plain-f32",
+      "M": 1,
+      "medianMs": 1.0847720000001573,
+      "minMs": 0.9582660000000942,
+      "maxMs": 2.825673999999708,
+      "errorsSoFar": 0
+    },
+    {
+      "variant": "plain-f32",
+      "M": 4,
+      "medianMs": 3.5893099999998412,
+      "minMs": 3.579878000000008,
+      "maxMs": 3.6868210000002364,
+      "errorsSoFar": 0
+    },
+    {
+      "variant": "plain-f32",
+      "M": 16,
+      "medianMs": 14.184024000000136,
+      "minMs": 13.717024999999921,
+      "maxMs": 14.212211999999909,
+      "errorsSoFar": 0
+    },
+    {
+      "variant": "paired-no-weight",
+      "M": 1,
+      "medianMs": 18.05364400000053,
+      "minMs": 17.984300999999505,
+      "maxMs": 18.34977600000002,
+      "errorsSoFar": 0
+    },
+    {
+      "variant": "paired-no-weight",
+      "M": 4,
+      "medianMs": 70.91219499999988,
+      "minMs": 70.72021700000005,
+      "maxMs": 75.34239100000013,
+      "errorsSoFar": 0
+    },
+    {
+      "variant": "paired-no-weight",
+      "M": 16,
+      "medianMs": 277.25417599999946,
+      "minMs": 254.4157409999998,
+      "maxMs": 282.64980599999944,
+      "errorsSoFar": 0
+    }
+  ],
+  "errors": [],
+  "adapter": {
+    "vendor": "intel",
+    "architecture": "gen-12lp",
+    "description": "Intel open-source Mesa driver: Mesa 24.2.8-1ubuntu1~24.04.1"
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "schema": "scratch.paired-matmul-bench/v1",
+  "surface": "node-dawn",
+  "N": 1024,
+  "K": 3584,
+  "tokens": [
+    1,
+    4,
+    16
+  ],
+  "runs": [
+    {
+      "variant": "shipped",
+      "M": 1,
+      "medianMs": 17.175566000000003,
+      "minMs": 16.540660000000003,
+      "maxMs": 26.98873899999998,
+      "errorsSoFar": 0
+    },
+    {
+      "variant": "shipped",
+      "M": 4,
+      "medianMs": 63.91144099999997,
+      "minMs": 63.83632600000004,
+      "maxMs": 65.89719600000001,
+      "errorsSoFar": 0
+    },
+    {
+      "variant": "shipped",
+      "M": 16,
+      "medianMs": 275.3438699999997,
+      "minMs": 273.3063159999997,
+      "maxMs": 279.67918299999997,
+      "errorsSoFar": 0
+    },
+    {
+      "variant": "plain-f32",
+      "M": 1,
+      "medianMs": 0.8067040000000816,
+      "minMs": 0.8017279999999118,
+      "maxMs": 0.8691380000000208,
+      "errorsSoFar": 0
+    },
+    {
+      "variant": "plain-f32",
+      "M": 4,
+      "medianMs": 3.008875999999873,
+      "minMs": 2.9637469999997847,
+      "maxMs": 3.043028999999933,
+      "errorsSoFar": 0
+    },
+    {
+      "variant": "plain-f32",
+      "M": 16,
+      "medianMs": 11.777767999999924,
+      "minMs": 11.486581999999999,
+      "maxMs": 12.031822999999804,
+      "errorsSoFar": 0
+    },
+    {
+      "variant": "paired-no-weight",
+      "M": 1,
+      "medianMs": 15.956093999999666,
+      "minMs": 15.867385000000013,
+      "maxMs": 15.96642699999984,
+      "errorsSoFar": 0
+    },
+    {
+      "variant": "paired-no-weight",
+      "M": 4,
+      "medianMs": 62.17610000000013,
+      "minMs": 62.09694500000023,
+      "maxMs": 62.89696300000014,
+      "errorsSoFar": 0
+    },
+    {
+      "variant": "paired-no-weight",
+      "M": 16,
+      "medianMs": 243.9022729999997,
+      "minMs": 240.84898800000065,
+      "maxMs": 246.51713800000016,
+      "errorsSoFar": 0
+    }
+  ],
+  "errors": [],
+  "adapter": {
+    "vendor": "intel",
+    "architecture": "gen-12lp",
+    "description": "Intel open-source Mesa driver: Mesa 24.2.8-1ubuntu1~24.04.1"
+  }
+}
