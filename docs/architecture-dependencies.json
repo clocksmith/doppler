@@ -6864,6 +6864,24 @@
     },
     {
       "file": "tests/integration/frozen-reference-producer-replay.js",
+      "kind": "outside-repository",
+      "line": 12,
+      "expression": "../../../reploid/tests/fixtures/distributed-reference-model.js"
+    },
+    {
+      "file": "tests/integration/frozen-reference-producer-replay.js",
+      "kind": "outside-repository",
+      "line": 42,
+      "expression": "../../../reploid/tests/fixtures/"
+    },
+    {
+      "file": "tests/integration/frozen-reference-producer-replay.js",
+      "kind": "outside-repository",
+      "line": 60,
+      "expression": "../../../reploid/self/config/partition-policy.json"
+    },
+    {
+      "file": "tests/integration/frozen-reference-producer-replay.js",
       "kind": "dynamic",
       "line": 230,
       "expression": "import('/runtime/' + compatEntry.replace(/^\\.\\//, ''))"
