@@ -1,0 +1,8 @@
+{
+  "repoRoot": "/var/tmp/qwen35-capsule-chunk16-20261014-b/source",
+  "modelDir": "/var/tmp/qwen35-capsule-chunk16-20261014-b/source/capsule-input/model",
+  "manifestPath": "/var/tmp/qwen35-capsule-chunk16-20261014-b/source/capsule-input/model/manifest.json",
+  "referenceReportPath": "/var/tmp/qwen35-capsule-chunk16-20261014-b/source/capsule-input/generation-report.json",
+  "outputPath": "/var/tmp/qwen35-capsule-chunk16-20261014-b/artifacts/program-bundle.json",
+  "createdAtUtc": "2026-10-14T13:20:43.910Z"
+}

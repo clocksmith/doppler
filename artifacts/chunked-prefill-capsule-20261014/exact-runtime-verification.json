@@ -1,0 +1,546 @@
+{
+  "archiveSha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+  "runtime": "/var/tmp/reploid-completion-candidate-20261013/vendor/doppler/0.6.28",
+  "identity": {
+    "schema": "doppler.capsule/v3",
+    "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v3-171132d428ce64eaf706c637ee22fea0103f50a21e39e9899cac5d91b5f94234",
+    "semanticRoot": "sha256:171132d428ce64eaf706c637ee22fea0103f50a21e39e9899cac5d91b5f94234",
+    "envelopeDigest": "sha256:3b4a3e3d308be8fd5e9d0c9fe2cae7a6d06398d2a859b3f00b130225a017bd95",
+    "artifactClosureDigest": "sha256:404c6ee4d4cb6412caafe203e9087f35b4ed8279814bab722d24b15c3f62a78c"
+  },
+  "artifactReceipts": [
+    {
+      "artifactId": "host-source:text-generation-d7abaa224ec64128.js:d7abaa224ec6",
+      "hash": "sha256:d7abaa224ec64128fb195e238b5ce3b0fabfc00b46406e5d4a0195ff1a03da15",
+      "sizeBytes": 1096
+    },
+    {
+      "artifactId": "manifest:manifest.json:6b2cb026e6cd",
+      "hash": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+      "sizeBytes": 222286
+    },
+    {
+      "artifactId": "reference-report:generation-report.json:867581be78af",
+      "hash": "sha256:867581be78af996acf299b94432fae7bd50c9a895a4b7925abde50436f4be081",
+      "sizeBytes": 5406
+    },
+    {
+      "artifactId": "tokenizer:tokenizer.json:8fc3b6de02de",
+      "hash": "sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+      "sizeBytes": 9088480
+    },
+    {
+      "artifactId": "weight-shard:shard_00000.bin:96d19964c144",
+      "hash": "sha256:96d19964c1444a98030586ba141b7b0c891fab95c52fb2c4429618a3ea711d1f",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00001.bin:c6dbd495c644",
+      "hash": "sha256:c6dbd495c64493cc0964d49f26a2b7f18319da95d6122c4f7a2d09d6a5d9459e",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00002.bin:8afc35b2a6dc",
+      "hash": "sha256:8afc35b2a6dc0f6bbf5de2cea79f8f53f199cec03a66d8cf5a117b724ba00dec",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00003.bin:735461c98192",
+      "hash": "sha256:735461c9819224e8c3faf8cfd7f2069dab97ed824556184990f795a32c305b29",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00004.bin:3cbdeb4e0c25",
+      "hash": "sha256:3cbdeb4e0c2505038e4313c91580511f5175d9108ab05652f69040452b282f69",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00005.bin:e34e6f23816d",
+      "hash": "sha256:e34e6f23816d5cdaf1e16dfbf0d3f537d18fe673764d680d64245c84bfbf21b4",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00006.bin:70b3d422749e",
+      "hash": "sha256:70b3d422749e585719659b9e7627901d6aa1759851e717aec2abd8a96aab9313",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00007.bin:e564556babdf",
+      "hash": "sha256:e564556babdfbb1baffab20a3778a434a0632047ff9347d203a19a9c818a89d4",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00008.bin:82cd4797be5a",
+      "hash": "sha256:82cd4797be5ab68f782ed7aae634ee38e472f4c4187c9b835df649e7aa79da55",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00009.bin:294432c344a6",
+      "hash": "sha256:294432c344a641b36daca64e82f00c727c74fa131804e1430796b4c3b139ad7b",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00010.bin:1290c563dc82",
+      "hash": "sha256:1290c563dc8242a983122e16397c75fd3d700acbcec9d96ee94d5eb2f63c795e",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00011.bin:4f9be8b80afc",
+      "hash": "sha256:4f9be8b80afcb3b6780a6e450fe9b57827ceb227e197dcdb9343b8d3adab0387",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00012.bin:93daf25bb1b1",
+      "hash": "sha256:93daf25bb1b1d4155b95f4b3969891220f66a66f71b00fe63a7f092967a7b668",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00013.bin:a9926de9af0b",
+      "hash": "sha256:a9926de9af0b1bb05ac2b2a6b9bad1645b9a3fc3f740105b97e064959b12e690",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00014.bin:b338167c0c6a",
+      "hash": "sha256:b338167c0c6a7bb0c967c73b0730d212f1ad718a899a8db50fef8b332eed66a8",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00015.bin:8bc98ed89194",
+      "hash": "sha256:8bc98ed891947db766df770d7c52eb2afd6c8c3a827981ddae7e52d2caeae455",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00016.bin:914114c15d53",
+      "hash": "sha256:914114c15d53702fedcd5bcbb153a4120b13fb45883ff76dabf9052fa8c9d266",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00017.bin:d8fb99646d52",
+      "hash": "sha256:d8fb99646d5213b1b2609899a7d86cfb8a6b8d02b9aa934f1fade2a3f8f54c78",
+      "sizeBytes": 5198016
+    },
+    {
+      "artifactId": "wgsl-source:add-4404ea6b1516f7ff.wgsl:4404ea6b1516",
+      "hash": "sha256:4404ea6b1516f7ff2e619d50133faefddd20c6298c4987f7e29ac4fcdb3a61d2",
+      "sizeBytes": 12757
+    },
+    {
+      "artifactId": "wgsl-source:attention-78d22e268b2d8d56.wgsl:78d22e268b2d",
+      "hash": "sha256:78d22e268b2d8d5681e46c4bcd196b78777bde00eeeb06639180db86b44e7358",
+      "sizeBytes": 16670
+    },
+    {
+      "artifactId": "wgsl-source:cast_f32_to_two_f32-059179f0bb62747b.wgsl:059179f0bb62",
+      "hash": "sha256:059179f0bb62747bda43dec235fb1f873d22cd068bda37bf478b944e02297ebc",
+      "sizeBytes": 622
+    },
+    {
+      "artifactId": "wgsl-source:cast_two_f32_to_f16-e13bbba70e0c7b93.wgsl:e13bbba70e0c",
+      "hash": "sha256:e13bbba70e0c7b9363b5ecf0d38e1f665dff7791d73283f4a6037879a2d33983",
+      "sizeBytes": 2428
+    },
+    {
+      "artifactId": "wgsl-source:embed-838e3c69451d02fe.wgsl:838e3c69451d",
+      "hash": "sha256:838e3c69451d02fee30839fd30621d28d8a0f5861c862a568ca4de72870b0b15",
+      "sizeBytes": 2538
+    },
+    {
+      "artifactId": "wgsl-source:gated_delta_conv_paired-8c42f6e730957631.wgsl:8c42f6e73095",
+      "hash": "sha256:8c42f6e7309576313b00fbbd9981ba7551925ff6fee526081c2d393e02e8513d",
+      "sizeBytes": 13586
+    },
+    {
+      "artifactId": "wgsl-source:gated_delta_recurrent_paired-c7bd9b2d678deec4.wgsl:c7bd9b2d678d",
+      "hash": "sha256:c7bd9b2d678deec41dee6822d85cb9e3629b0d8d6f95c85874bcfb44caf8651f",
+      "sizeBytes": 16479
+    },
+    {
+      "artifactId": "wgsl-source:gather_f16_vec4-a500eb8ca2a1ff7d.wgsl:a500eb8ca2a1",
+      "hash": "sha256:a500eb8ca2a1ff7d6f19344a4d3ec0c9619ca15455f029aa601921d1917971f3",
+      "sizeBytes": 2810
+    },
+    {
+      "artifactId": "wgsl-source:gather_split8_f16_vec4_f32_out-57d5326f08951af3.wgsl:57d5326f0895",
+      "hash": "sha256:57d5326f08951af3389f266fb4ca6f50fc501eb3d6bdb1187fb7f2f3b10b51db",
+      "sizeBytes": 6176
+    },
+    {
+      "artifactId": "wgsl-source:head-2d56380990eb5c66.wgsl:2d56380990eb",
+      "hash": "sha256:2d56380990eb5c66a8272ca8f9ff3903bd55f018f6d9de079cc32ae5759aafb7",
+      "sizeBytes": 15097
+    },
+    {
+      "artifactId": "wgsl-source:logit_finalize_f32-b20df676b5813f25.wgsl:b20df676b581",
+      "hash": "sha256:b20df676b5813f258a5e32eb11cb34ce4e5c2aafc7e4b1e469c07bb861e7522f",
+      "sizeBytes": 1139
+    },
+    {
+      "artifactId": "wgsl-source:norm-0402e449b9ff69a5.wgsl:0402e449b9ff",
+      "hash": "sha256:0402e449b9ff69a5b1a60ad617ea1156f2083d2b80aa4880ceb364c09a8b1239",
+      "sizeBytes": 15101
+    },
+    {
+      "artifactId": "wgsl-source:paired_beta-269fdb694f6e206b.wgsl:269fdb694f6e",
+      "hash": "sha256:269fdb694f6e206b6ea77582b29e4b98051f34dbad822a40e22032597fbfbe33",
+      "sizeBytes": 12989
+    },
+    {
+      "artifactId": "wgsl-source:paired_decay_scale-9340014c13ba79ae.wgsl:9340014c13ba",
+      "hash": "sha256:9340014c13ba79ae7d2bebe4ea14f1935e5cb4a9d0df08a3b2cc063b32271e2f",
+      "sizeBytes": 13616
+    },
+    {
+      "artifactId": "wgsl-source:paired_decay-93af9d61d9ca7e4d.wgsl:93af9d61d9ca",
+      "hash": "sha256:93af9d61d9ca7e4ddc2d8a6a0152763e7b6d8dc90397543ea33142c99c43744c",
+      "sizeBytes": 12893
+    },
+    {
+      "artifactId": "wgsl-source:paired_gate-240cda5577bc57ed.wgsl:240cda5577bc",
+      "hash": "sha256:240cda5577bc57edd48185717ee6a92106053b5c9a6bf48ed691381bae1c816f",
+      "sizeBytes": 13107
+    },
+    {
+      "artifactId": "wgsl-source:paired_log_decay-39c3a1fa41c039c5.wgsl:39c3a1fa41c0",
+      "hash": "sha256:39c3a1fa41c039c555e3cb7d04648e9d96d3f464bed512e54117a91182478ec4",
+      "sizeBytes": 13303
+    },
+    {
+      "artifactId": "wgsl-source:paired_norm-f8b06edca9b891aa.wgsl:f8b06edca9b8",
+      "hash": "sha256:f8b06edca9b891aa6759567f0e134a76e6abfae7f9f53464ea767ae9244a9aaa",
+      "sizeBytes": 13964
+    },
+    {
+      "artifactId": "wgsl-source:paired_pointwise_add-4404ea6b1516f7ff.wgsl:4404ea6b1516",
+      "hash": "sha256:4404ea6b1516f7ff2e619d50133faefddd20c6298c4987f7e29ac4fcdb3a61d2",
+      "sizeBytes": 12757
+    },
+    {
+      "artifactId": "wgsl-source:paired_pointwise_multiply-03555fdcf4d40579.wgsl:03555fdcf4d4",
+      "hash": "sha256:03555fdcf4d40579145ba174b21da504c50244a1784bcdc6a152e7be5d45d35d",
+      "sizeBytes": 12712
+    },
+    {
+      "artifactId": "wgsl-source:paired_pointwise_scale_inplace-b4e45349165af1de.wgsl:b4e45349165a",
+      "hash": "sha256:b4e45349165af1de16780482b82500a027c665b07831cdd750296c57202fd2d6",
+      "sizeBytes": 12621
+    },
+    {
+      "artifactId": "wgsl-source:paired_pointwise_scale-b99563bbbd7b7a80.wgsl:b99563bbbd7b",
+      "hash": "sha256:b99563bbbd7b7a80173990212b2c7907d779bbd37756a7cbd97f2ee8306f7370",
+      "sizeBytes": 12679
+    },
+    {
+      "artifactId": "wgsl-source:paired_pointwise_sigmoid-94ca066eb753a3c4.wgsl:94ca066eb753",
+      "hash": "sha256:94ca066eb753a3c48c92ee4530e3f867a59cac4c4b94cf6ce3419daacefe1fcc",
+      "sizeBytes": 12921
+    },
+    {
+      "artifactId": "wgsl-source:paired_pointwise_silu_unary-5d0ab4563118fc92.wgsl:5d0ab4563118",
+      "hash": "sha256:5d0ab4563118fc92cc701cb8ae8021c630fdd342316d4f31cc0359fab2ed3b43",
+      "sizeBytes": 12645
+    },
+    {
+      "artifactId": "wgsl-source:paired_pointwise_silu-e53e0a99d1c793b4.wgsl:e53e0a99d1c7",
+      "hash": "sha256:e53e0a99d1c793b42ca9e081b793085fca5943b011535fc30b50a28b2fa4c1f2",
+      "sizeBytes": 12918
+    },
+    {
+      "artifactId": "wgsl-source:paired_qk-20623d93648c0216.wgsl:20623d93648c",
+      "hash": "sha256:20623d93648c0216dfc4d122bf8637594d3b5d858f32d023cd9b015e92fea6ae",
+      "sizeBytes": 14097
+    },
+    {
+      "artifactId": "wgsl-source:paired_state-36dc4fe9f21e1dae.wgsl:36dc4fe9f21e",
+      "hash": "sha256:36dc4fe9f21e1daedbd0df276a8b139d7119dd9a3129ce8c8c5cc0717ae12fd7",
+      "sizeBytes": 14724
+    },
+    {
+      "artifactId": "wgsl-source:projection_f16-2d56380990eb5c66.wgsl:2d56380990eb",
+      "hash": "sha256:2d56380990eb5c66a8272ca8f9ff3903bd55f018f6d9de079cc32ae5759aafb7",
+      "sizeBytes": 15097
+    },
+    {
+      "artifactId": "wgsl-source:projection_q4-2d56380990eb5c66.wgsl:2d56380990eb",
+      "hash": "sha256:2d56380990eb5c66a8272ca8f9ff3903bd55f018f6d9de079cc32ae5759aafb7",
+      "sizeBytes": 15097
+    },
+    {
+      "artifactId": "wgsl-source:rope_precompute_paired-f78f0d247fa6a376.wgsl:f78f0d247fa6",
+      "hash": "sha256:f78f0d247fa6a376255b334a4255513f2c8cfd2d8cfecb085caccb9196fbafa5",
+      "sizeBytes": 13408
+    },
+    {
+      "artifactId": "wgsl-source:rope-247997005c27c52f.wgsl:247997005c27",
+      "hash": "sha256:247997005c27c52f2327c46716c3bb87bac6b5b01e27acce93f3791c56e5b5d8",
+      "sizeBytes": 15451
+    },
+    {
+      "artifactId": "wgsl-source:sample-634764ad77570805.wgsl:634764ad7757",
+      "hash": "sha256:634764ad775708050071fc9113a5ecf5efd1c0da99b6e15ccd9f0c4116b65366",
+      "sizeBytes": 12654
+    },
+    {
+      "artifactId": "wgsl-source:silu-e53e0a99d1c793b4.wgsl:e53e0a99d1c7",
+      "hash": "sha256:e53e0a99d1c793b42ca9e081b793085fca5943b011535fc30b50a28b2fa4c1f2",
+      "sizeBytes": 12918
+    },
+    {
+      "artifactId": "wgsl-source:split_qg_paired-e5c945262f0badc9.wgsl:e5c945262f0b",
+      "hash": "sha256:e5c945262f0badc9ae0ce4fdce4f9ac007a1a244dc49f5692d0a4b52490c765f",
+      "sizeBytes": 2172
+    },
+    {
+      "artifactId": "wgsl-source:split_qkv_paired-8b1e90e4e34643b5.wgsl:8b1e90e4e346",
+      "hash": "sha256:8b1e90e4e34643b523f331e82ae6cc90f4c37e7404a9cb8e1993dbd841e5c733",
+      "sizeBytes": 2158
+    },
+    {
+      "artifactId": "qualification-evidence:qualification-browser-webgpu-fd78dffe4dd2.json:fd78dffe4dd2",
+      "hash": "sha256:fd78dffe4dd22fce60257b7cdba4d8815a930978bb3245b05824f6a2d0a9816e",
+      "sizeBytes": 50295
+    },
+    {
+      "artifactId": "qualification-evidence:qualification-node-webgpu-12b9fc6a079e.json:12b9fc6a079e",
+      "hash": "sha256:12b9fc6a079eeffea88010d998ccc800c4073397b774aca13e2a5efd5dca9d02",
+      "sizeBytes": 59309
+    },
+    {
+      "artifactId": "qualification-evidence:qualification-node-webgpu-53e7a276c25b.json:53e7a276c25b",
+      "hash": "sha256:53e7a276c25b88b258c2614d9e4874bd4a37ab209f2fdbb9ae53912240b37406",
+      "sizeBytes": 61374
+    },
+    {
+      "artifactId": "qualification-evidence:resident-qualification-contract.json:70eeb6e9f333",
+      "hash": "sha256:70eeb6e9f33397dff1ccbb508696beeb7a2f989b5dbc00c2c5b47c670a4da9c5",
+      "sizeBytes": 3709
+    },
+    {
+      "artifactId": "piece-index:pieces.json:e64afdf50d99",
+      "hash": "sha256:e64afdf50d990992a8f7e8989693281b22bd7f695655669323f99ade2d0397bb",
+      "sizeBytes": 94223
+    },
+    {
+      "artifactId": "source-truth-evidence:model-ir-074ad8ac8e84.json:074ad8ac8e84",
+      "hash": "sha256:074ad8ac8e847fa960ccf3e06e9d24243348e892f7a7cc78d5879a3662090a77",
+      "sizeBytes": 63809
+    },
+    {
+      "artifactId": "program-bundle:program-bundle.json:d2cd66889584",
+      "hash": "sha256:d2cd668895840d8701c143525f498aa7e33906eacc612dee8a3981035b3f779e",
+      "sizeBytes": 159420
+    }
+  ],
+  "lifecycle": {
+    "release": {
+      "application": {
+        "applicationId": "reploid-resident-qualification",
+        "applicationRevision": "sha256:3f6d98a0dbf9f83a11e87f28b6483291618c9073756604b5e6e3c609736ecdf6",
+        "applicationRevisionDigest": "sha256:3f6d98a0dbf9f83a11e87f28b6483291618c9073756604b5e6e3c609736ecdf6",
+        "oracle": {
+          "digest": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+          "id": "approved-independent-f64"
+        },
+        "workload": {
+          "digest": "sha256:794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e",
+          "id": "frozen-three-request-fifty-five-prefixes"
+        }
+      },
+      "exclusions": {
+        "known": [
+          {
+            "code": "application-gate-failed",
+            "evidenceDigest": "sha256:daaf4a7e258a235cf882c5e94f19a29b2208665e769d5a9cafbde6a4faa98a94",
+            "reason": "Direct three-stage resident numerical comparison passed with prefill chunked at 16 tokens; installed conversations under this Capsule remain unqualified. Local qualification only.",
+            "scope": "public-chat-release"
+          },
+          {
+            "code": "unsupported-device",
+            "evidenceDigest": "sha256:daaf4a7e258a235cf882c5e94f19a29b2208665e769d5a9cafbde6a4faa98a94",
+            "reason": "Evidence covers the recorded providers in this partition order only: mac-host, intel-host, amd-host. Other providers and other role assignments are not qualified by these reports.",
+            "scope": "unobserved-gpu-provider-tuples"
+          },
+          {
+            "code": "application-gate-failed",
+            "evidenceDigest": "sha256:daaf4a7e258a235cf882c5e94f19a29b2208665e769d5a9cafbde6a4faa98a94",
+            "reason": "Qualification used retained driver caches on shared hosts; cold-start responsiveness is not established for this runtime.",
+            "scope": "cold-start-responsiveness"
+          }
+        ],
+        "rejectionTypes": [
+          "acceptance-failed",
+          "application-gate-failed",
+          "artifact-invalid",
+          "evidence-expired",
+          "migration-required",
+          "revoked",
+          "unsupported-device"
+        ]
+      },
+      "lifecycle": {
+        "failedUpgrade": {
+          "preservePrevious": true,
+          "previousCapsuleId": null,
+          "previousSemanticRoot": null
+        },
+        "migration": null,
+        "releaseVersion": "0.6.28",
+        "supersedes": null
+      },
+      "revocation": {
+        "authorityId": "reploid-paired-qualification-20261012",
+        "failClosedAfterExpiry": true,
+        "offlineExpirySeconds": 86400,
+        "policyDigest": "sha256:c0692294e2ba6643ce3e13b875525e0b39d8d378703d2c12e9697f4eef8c26a6"
+      },
+      "schema": "doppler.capsule-release/v1",
+      "source": {
+        "license": {
+          "name": "Apache License 2.0",
+          "sourceUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "spdxId": "Apache-2.0",
+          "textDigest": "sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        "provenanceDigest": "sha256:55ef3a95c0433e7217486db2c8303c5e76c9d22fba5397de94a469762bc8451a",
+        "repository": "Qwen/Qwen3.5-0.8B",
+        "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+        "revisionDigest": "sha256:f5a57c56e7984f26bbff2b4c10ef7bef4478f8a9401cc712a3e3188af34d05ce"
+      },
+      "stateSnapshot": {
+        "format": "declared-state-identity-only",
+        "identityDigest": "sha256:54c235c3767687c879fa1f1ef30260875b3a21c7bd171a863f292cc0feac7771",
+        "portableAcrossTargetIds": [
+          "webgpu-f32-f16-portable"
+        ],
+        "schema": "doppler.capsule-state-snapshot/v1"
+      }
+    },
+    "event": {
+      "capsule": {
+        "schema": "doppler.capsule/v3",
+        "semanticRoot": "sha256:171132d428ce64eaf706c637ee22fea0103f50a21e39e9899cac5d91b5f94234",
+        "envelopeDigest": "sha256:3b4a3e3d308be8fd5e9d0c9fe2cae7a6d06398d2a859b3f00b130225a017bd95"
+      },
+      "sequence": 4,
+      "previousEventDigest": "sha256:74ab985fb86baa7fe0c283bd9dabfb536b4a077e7942e9419eeca661500dea6a",
+      "issuedAtUtc": "2026-10-14T13:21:16.819Z",
+      "expiresAtUtc": "2026-10-15T13:21:16.819Z",
+      "action": "eligible",
+      "release": {
+        "application": {
+          "applicationId": "reploid-resident-qualification",
+          "applicationRevision": "sha256:3f6d98a0dbf9f83a11e87f28b6483291618c9073756604b5e6e3c609736ecdf6",
+          "applicationRevisionDigest": "sha256:3f6d98a0dbf9f83a11e87f28b6483291618c9073756604b5e6e3c609736ecdf6",
+          "oracle": {
+            "digest": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+            "id": "approved-independent-f64"
+          },
+          "workload": {
+            "digest": "sha256:794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e",
+            "id": "frozen-three-request-fifty-five-prefixes"
+          }
+        },
+        "exclusions": {
+          "known": [
+            {
+              "code": "application-gate-failed",
+              "evidenceDigest": "sha256:daaf4a7e258a235cf882c5e94f19a29b2208665e769d5a9cafbde6a4faa98a94",
+              "reason": "Direct three-stage resident numerical comparison passed with prefill chunked at 16 tokens; installed conversations under this Capsule remain unqualified. Local qualification only.",
+              "scope": "public-chat-release"
+            },
+            {
+              "code": "unsupported-device",
+              "evidenceDigest": "sha256:daaf4a7e258a235cf882c5e94f19a29b2208665e769d5a9cafbde6a4faa98a94",
+              "reason": "Evidence covers the recorded providers in this partition order only: mac-host, intel-host, amd-host. Other providers and other role assignments are not qualified by these reports.",
+              "scope": "unobserved-gpu-provider-tuples"
+            },
+            {
+              "code": "application-gate-failed",
+              "evidenceDigest": "sha256:daaf4a7e258a235cf882c5e94f19a29b2208665e769d5a9cafbde6a4faa98a94",
+              "reason": "Qualification used retained driver caches on shared hosts; cold-start responsiveness is not established for this runtime.",
+              "scope": "cold-start-responsiveness"
+            }
+          ],
+          "rejectionTypes": [
+            "acceptance-failed",
+            "application-gate-failed",
+            "artifact-invalid",
+            "evidence-expired",
+            "migration-required",
+            "revoked",
+            "unsupported-device"
+          ]
+        },
+        "lifecycle": {
+          "failedUpgrade": {
+            "preservePrevious": true,
+            "previousCapsuleId": null,
+            "previousSemanticRoot": null
+          },
+          "migration": null,
+          "releaseVersion": "0.6.28",
+          "supersedes": null
+        },
+        "revocation": {
+          "authorityId": "reploid-paired-qualification-20261012",
+          "failClosedAfterExpiry": true,
+          "offlineExpirySeconds": 86400,
+          "policyDigest": "sha256:c0692294e2ba6643ce3e13b875525e0b39d8d378703d2c12e9697f4eef8c26a6"
+        },
+        "schema": "doppler.capsule-release/v1",
+        "source": {
+          "license": {
+            "name": "Apache License 2.0",
+            "sourceUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+            "spdxId": "Apache-2.0",
+            "textDigest": "sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+          },
+          "provenanceDigest": "sha256:55ef3a95c0433e7217486db2c8303c5e76c9d22fba5397de94a469762bc8451a",
+          "repository": "Qwen/Qwen3.5-0.8B",
+          "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+          "revisionDigest": "sha256:f5a57c56e7984f26bbff2b4c10ef7bef4478f8a9401cc712a3e3188af34d05ce"
+        },
+        "stateSnapshot": {
+          "format": "declared-state-identity-only",
+          "identityDigest": "sha256:54c235c3767687c879fa1f1ef30260875b3a21c7bd171a863f292cc0feac7771",
+          "portableAcrossTargetIds": [
+            "webgpu-f32-f16-portable"
+          ],
+          "schema": "doppler.capsule-state-snapshot/v1"
+        }
+      },
+      "migratedFrom": {
+        "schema": "doppler.capsule/v2",
+        "semanticRoot": "sha256:3c8c47e0d9943994655e795e495054e37153bf5eda018c3428c16e0a3eca8795",
+        "envelopeDigest": "sha256:e3c81fb75a673f4d4769a38e8d801ad8ff9764808c61d6eaa1a72d2854c42665"
+      },
+      "nextSigner": null,
+      "schema": "doppler.capsule-release-event/v1",
+      "digest": "sha256:7f62c19a88165fded22d857860da729cb82f02a69f30e6f48765f35f1195ee45",
+      "signature": {
+        "authority": "reploid-paired-qualification-20261012",
+        "algorithm": "Ed25519",
+        "publicKeyDigest": "sha256:cddc8e43da370860a974cf759b19726bf5e7f9c5d7c0a2a84abb6c9d34ab2d53",
+        "signatureHex": "c80deb096ca65bf8a3c1e21e68cea3741c1fa681d2db87b6723dc8bb9780c55bc458263562e0d7bcf105bad1179bc8308c3a004c0f2ebd4da897464f9830dc04",
+        "signedDigest": "sha256:7f62c19a88165fded22d857860da729cb82f02a69f30e6f48765f35f1195ee45"
+      }
+    },
+    "checkpoint": {
+      "sequence": 4,
+      "digest": "sha256:7f62c19a88165fded22d857860da729cb82f02a69f30e6f48765f35f1195ee45"
+    },
+    "authorization": {
+      "mode": "managed",
+      "verifiedAtUtc": "2026-10-14T13:21:16.819Z",
+      "eventExpired": false,
+      "unseenRevocations": "unknown",
+      "retainedLocalUse": null
+    },
+    "nextPublicKeyDigest": "sha256:cddc8e43da370860a974cf759b19726bf5e7f9c5d7c0a2a84abb6c9d34ab2d53"
+  },
+  "verifiedFromCheckpoints": [
+    3,
+    0
+  ],
+  "physicalOpening": false,
+  "publicPromotion": false
+}

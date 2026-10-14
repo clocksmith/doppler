@@ -1,0 +1,50 @@
+{
+  "builderRevision": "07c55e72e2a13a7217cc593109d06c1573291a02",
+  "builderSha256": "5a93c6b08102781f52f02c9b78720f18051f53c7dce858858f58aa0901fde376",
+  "archiveSha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+  "sourceRevision": "a5f3ca4c5de29bd018402e571f4b2c432ebfc0a5",
+  "sourceRoot": "/var/tmp/qwen35-capsule-chunk16-20261014-b/source",
+  "runtime": "/var/tmp/reploid-completion-candidate-20261013/vendor/doppler/0.6.28",
+  "qualificationCampaign": "reploid/artifacts/completion-qualification-3-20261014/b",
+  "partitionOrder": [
+    "mac-host",
+    "intel-host",
+    "amd-host"
+  ],
+  "qualificationReports": [
+    {
+      "path": "/Users/xyz/deco/reploid/artifacts/completion-qualification-3-20261014/b/reports/partition-0.json",
+      "sha256": "fd78dffe4dd22fce60257b7cdba4d8815a930978bb3245b05824f6a2d0a9816e"
+    },
+    {
+      "path": "/Users/xyz/deco/reploid/artifacts/completion-qualification-3-20261014/b/reports/partition-1.json",
+      "sha256": "12b9fc6a079eeffea88010d998ccc800c4073397b774aca13e2a5efd5dca9d02"
+    },
+    {
+      "path": "/Users/xyz/deco/reploid/artifacts/completion-qualification-3-20261014/b/reports/partition-2.json",
+      "sha256": "53e7a276c25b88b258c2614d9e4874bd4a37ab209f2fdbb9ae53912240b37406"
+    }
+  ],
+  "contractSha256": "70eeb6e9f33397dff1ccbb508696beeb7a2f989b5dbc00c2c5b47c670a4da9c5",
+  "modelIRReceiptSha256": "074ad8ac8e847fa960ccf3e06e9d24243348e892f7a7cc78d5879a3662090a77",
+  "manifestSha256": "6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+  "pieceIndexSha256": "e64afdf50d990992a8f7e8989693281b22bd7f695655669323f99ade2d0397bb",
+  "programBundleSha256": "d2cd668895840d8701c143525f498aa7e33906eacc612dee8a3981035b3f779e",
+  "prefillTokenChunkSize": 16,
+  "identity": {
+    "schema": "doppler.capsule/v3",
+    "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v3-171132d428ce64eaf706c637ee22fea0103f50a21e39e9899cac5d91b5f94234",
+    "semanticRoot": "sha256:171132d428ce64eaf706c637ee22fea0103f50a21e39e9899cac5d91b5f94234",
+    "envelopeDigest": "sha256:3b4a3e3d308be8fd5e9d0c9fe2cae7a6d06398d2a859b3f00b130225a017bd95",
+    "artifactClosureDigest": "sha256:404c6ee4d4cb6412caafe203e9087f35b4ed8279814bab722d24b15c3f62a78c"
+  },
+  "issuedAtUtc": "2026-10-14T13:21:16.819Z",
+  "expiresAtUtc": "2026-10-15T13:21:16.819Z",
+  "artifactCount": 64,
+  "releaseHistory": {
+    "sequence": 4,
+    "previousEventDigest": "sha256:74ab985fb86baa7fe0c283bd9dabfb536b4a077e7942e9419eeca661500dea6a",
+    "continues": "release-renewal-3 (sequence 3)"
+  },
+  "scope": "Test authority only; release history continues at sequence 4. No production or physical acceptance."
+}
