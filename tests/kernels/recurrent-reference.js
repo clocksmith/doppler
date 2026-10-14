@@ -10,6 +10,27 @@ export const RECURRENT_REFERENCE = Object.freeze({
   functions: ['l2norm', 'torch_recurrent_gated_delta_rule', 'Qwen3_5RMSNormGated'],
 });
 
+// The sigmoid gate follows the pinned qwen4_exp source retained with the
+// Flash-Next reference receipts; only RMSNormGated's activation differs there.
+export const SIGMOID_NORM_GATE_REFERENCE = Object.freeze({
+  model: 'Qwen/Qwen3.8-Flash-Next',
+  modelRevision: 'de4b8e4d43b917e7706784d8bb445c9af86a3540',
+  equations: 'https://raw.githubusercontent.com/huggingface/transformers/e0eb2810ac1b2caf6d082f247d8d37162ecf67a0/src/transformers/models/qwen4_exp/modeling_qwen4_exp.py',
+  sourceSha256: '87c27c88424cea73d5d8d9179f76a77a97e6e4249ce43ecff79a8b255fab0504',
+  functions: ['Qwen4ExpTextRMSNormGated'],
+  receipt: 'artifacts/qwen38-flash-next-20261013/linear-attention-reference.json',
+});
+
+const sigmoid64 = x => x >= 0 ? 1 / (1 + Math.exp(-x)) : Math.exp(x) / (1 + Math.exp(x));
+
+// Gated RMSNorm gate act(z): Qwen3_5RMSNormGated uses silu = z * sigmoid(z);
+// Qwen4ExpTextRMSNormGated with output_gate_type="sigmoid" uses sigmoid(z).
+export function normGate(z, normGateActivation) {
+  if (normGateActivation === 'silu') return z * sigmoid64(z);
+  if (normGateActivation === 'sigmoid') return sigmoid64(z);
+  throw new Error(`Unsupported norm-gate activation ${JSON.stringify(normGateActivation)}`);
+}
+
 export function recurrentTraceLayout(p) {
   const heads = p.numTokens * p.numVHeads;
   const vectors = heads * p.headVDim;
@@ -70,6 +91,10 @@ export function recurrentReference(input, expected) {
   assert.equal(p.kSize, p.qSize);
   assert.equal(p.convDim, p.qSize + p.kSize + p.valueDim);
   assert(['shared', 'per_head'].includes(p.normMode));
+  // Captures recorded before the field existed are Qwen3.5 silu lanes, the
+  // same legacy meaning the manifest schema default carries.
+  const normGateActivation = p.normGateActivation === undefined ? 'silu' : p.normGateActivation;
+  assert(['silu', 'sigmoid'].includes(normGateActivation), 'Invalid normGateActivation');
   assert(Number.isFinite(p.qkL2NormEps) && p.qkL2NormEps >= 0);
   assert(Number.isFinite(p.rmsNormEps) && p.rmsNormEps >= 0);
   const layout = recurrentTraceLayout(p);
@@ -86,7 +111,7 @@ export function recurrentReference(input, expected) {
     .map(([name, f]) => [name, trace.subarray(f.offset, f.offset + f.length)]));
   const eps = Math.fround(p.qkL2NormEps), rmsEps = Math.fround(p.rmsNormEps);
   const softplus = x => x > 20 ? x : Math.log1p(Math.exp(x));
-  const sigmoid = x => x >= 0 ? 1 / (1 + Math.exp(-x)) : Math.exp(x) / (1 + Math.exp(x));
+  const sigmoid = sigmoid64;
   for (let t = 0; t < p.numTokens; t++) for (let h = 0; h < p.numVHeads; h++) {
     const row = t * p.numVHeads + h, srcHead = Math.floor(h / p.qRep);
     const qBase = t * p.convDim + srcHead * p.headKDim, kBase = qBase + p.qSize;
@@ -132,7 +157,7 @@ export function recurrentReference(input, expected) {
     for (let v = 0; v < p.headVDim; v++) {
       const out = row * p.headVDim + v;
       const z = tensors.z[p.qkvzPacked ? t * (p.convDim + p.valueDim) + p.convDim + h * p.headVDim + v : out];
-      const gate = z * sigmoid(z); stages.gate[out] = gate;
+      const gate = normGate(z, normGateActivation); stages.gate[out] = gate;
       stages.gatedOutput[out] = stages.rawOutput[out] * invRms * tensors.normWeight[p.normMode === 'per_head' ? h * p.headVDim + v : v] * gate;
     }
   }

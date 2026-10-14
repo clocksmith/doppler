@@ -46,9 +46,18 @@ try {
   for (const invalid of [NaN, Infinity, 0, -1, 0.1, 0.5]) {
     const invalidState = { ...state, numVHeads: invalid, recurrentStatePrecision: 'two-f32', recurrentStateComponents: 2 };
     await assert.rejects(() => runLinearAttentionCoreGPU(tensor, tensor, tensor, tensor, invalidState,
-      { numTokens: 1 }), /storage layout/);
+      { numTokens: 1, normGateActivation: 'silu' }), /storage layout/);
     assert.equal(active.size, 0, 'invalid geometry cannot allocate output');
   }
+  // The norm-gate activation comes from the resolved model config; absence or an
+  // unknown spelling fails before any allocation.
+  for (const normGateActivation of [undefined, null, 'swish']) {
+    const gateState = { ...state, recurrentStatePrecision: 'f32', recurrentStateComponents: 1 };
+    await assert.rejects(() => runLinearAttentionCoreGPU(tensor, tensor, tensor, tensor, gateState,
+      { numTokens: 1, normGateActivation, outputDtype: 'f32' }), /norm-gate activation/);
+    assert.equal(active.size, 0, 'missing norm-gate activation cannot allocate output');
+  }
+  for (const normGateActivation of ['silu', 'sigmoid'])
   for (const precision of ['f32', 'two-f32']) {
   state.recurrentStatePrecision = precision;
   state.recurrentStateComponents = precision === 'f32' ? 1 : 2;
@@ -57,7 +66,7 @@ try {
       for (failure of fused ? ['uniform'] : ['convolution', 'uniform']) {
         const recorder = recorded ? { getEncoder() {}, trackTemporaryBuffer() {} } : null;
         await assert.rejects(() => runLinearAttentionCoreGPU(tensor, tensor, tensor, tensor, state,
-          { numTokens: fused ? 1 : 2, abPacked: true, bProjOffsetElements: 1, outputDtype: 'f32', recorder }),
+          { numTokens: fused ? 1 : 2, abPacked: true, bProjOffsetElements: 1, outputDtype: 'f32', recorder, normGateActivation }),
         /allocation rejected/);
         assert.equal(active.size, 0, `${failure}, fused=${fused}, recorded=${recorded}: no retained output`);
       }

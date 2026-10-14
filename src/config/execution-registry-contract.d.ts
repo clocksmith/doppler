@@ -15,6 +15,18 @@ export declare function assertExecutionMechanismClosure(
   steps: import('./schema/execution-v1.schema.js').ExecutionV1ExpandedStepSchema[]
 ): void;
 
+/** Throw when a declared kernel's registry norm-gate activation differs from the manifest's. */
+export declare function assertLinearNormGateClosure(
+  graph: import('./schema/execution-v1.schema.js').ExecutionV1GraphSchema,
+  normGateActivation: 'silu' | 'sigmoid'
+): void;
+
+/**
+ * Require the paired mechanism closure. `normGateMechanisms` lists the
+ * activation-specific [operation, variant] pairs selected by
+ * `kernels.gatedDeltaRecurrent` rules (see paired-execution.js).
+ */
 export declare function assertPairedExecutionMechanismClosure(
-  graph: import('./schema/execution-v1.schema.js').ExecutionV1GraphSchema
+  graph: import('./schema/execution-v1.schema.js').ExecutionV1GraphSchema,
+  normGateMechanisms: ReadonlyArray<readonly [string, string]>
 ): void;

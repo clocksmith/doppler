@@ -41,6 +41,7 @@ export const PARAM_CATEGORIES = Object.freeze({
   ropeLocalYarnOriginalMaxPos: ParamCategory.MODEL,
   rmsNormEps: ParamCategory.MODEL,
   rmsNormWeightOffset: ParamCategory.MODEL,
+  linearNormGateActivation: ParamCategory.MODEL,
   postAttentionNorm: ParamCategory.MODEL,
   preFeedforwardNorm: ParamCategory.MODEL,
   postFeedforwardNorm: ParamCategory.MODEL,

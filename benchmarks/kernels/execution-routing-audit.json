@@ -1,6 +1,6 @@
 {
   "schema": "doppler.execution-routing-audit-index/v1",
-  "registryDigest": "sha256:f590818e06872cf1d05ca09c3e24deb60e8d177926ef884f90d40c123b329554",
+  "registryDigest": "sha256:cb1c94111fa06e6fb9acd323f3b53d7571e10bca586e40090517464b6ec3e78a",
   "manifestCount": 30,
   "integrityFailures": [
     {
@@ -8628,7 +8628,7 @@
           "kernelId": "gated_delta_fused_decode",
           "key": "gated_delta_fused_decode.wgsl#main",
           "declaredDigest": "sha256:b9aec655be0dfc674ba7ffc22dcb41bfccd655f9f8c0844b5eab4349494bb6b3",
-          "expectedDigest": "sha256:8b22a71709f9f0518180fa80762b8f071e9fc8dea47de0f2b5884d297dbe56b8",
+          "expectedDigest": "sha256:585ca624a2d06e40eb8ebef4a077894db15414437577901a01dec36762424705",
           "registeredVariants": [
             "gated_delta_fused_decode/default"
           ],
@@ -8638,7 +8638,7 @@
           "kernelId": "gated_delta_recurrent",
           "key": "gated_delta_recurrent.wgsl#main",
           "declaredDigest": "sha256:8a6a6392caa11b5f14500b543268df7b87ee3d56deaa72827f9b39692ccb835d",
-          "expectedDigest": "sha256:fb5629b3baca5d1209d600e9e5a07a7e22f8eb5ed393e33f931cf95f6443a05e",
+          "expectedDigest": "sha256:62c75dcabde791a94829d8c4f4e4f5323cd38e5b98abf41d7f92473aa931e1db",
           "registeredVariants": [
             "gated_delta_recurrent/default"
           ],
@@ -8940,7 +8940,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:f842e055f39ffefe467465d2a095bed50c55f503c20e105dad746c9961e8221a"
+      "digest": "sha256:d2c6dddbfb1f4c0619e5bcd724729ea612f1036e05af68a0b9b7e98d687fdb1b"
     },
     {
       "manifestPath": "models/local/translategemma-4b-1b-enes-q4k-ehf16-af32/manifest.json",
@@ -9987,5 +9987,5 @@
       "digest": "sha256:faecd51ef990c405e1e60941c2dbc90e6c04f5de717459ec175f9008cf1fc462"
     }
   ],
-  "digest": "sha256:b1ecded11197b89bcea2dcbfce6b94a49543de8e70ba97d7eb21ba9192105436"
+  "digest": "sha256:f4305ee187bc8a6f8d3bcace3bc31046a24858e459eb19e25455adb3cd3a3e7d"
 }

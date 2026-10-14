@@ -1,3 +1,4 @@
+export declare const LINEAR_NORM_GATE_ACTIVATIONS: readonly ['silu', 'sigmoid'];
 export declare const assertDenseFfnTensorShape: any;
 export declare const assertSupportedManifestInference: any;
 export declare const getDenseFfnTensorShape: any;

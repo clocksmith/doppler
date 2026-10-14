@@ -275,6 +275,11 @@ export type LinearNormMode =
   | 'shared'      // one [head_v_dim] vector shared across all value heads
   | 'per_head';   // one [num_v_heads * head_v_dim] vector
 
+/** Activation applied to z in the linear-attention gated RMSNorm (norm(x) * w * act(z)) */
+export type LinearNormGateActivation =
+  | 'silu'        // Qwen3.5 Qwen3_5RMSNormGated (hardcoded); legacy meaning of an absent field
+  | 'sigmoid';    // qwen4_exp output_gate_type="sigmoid" (Qwen3.8 Flash-Next)
+
 /** Global layer pattern (computed at runtime from numLayers) */
 export type GlobalLayerPattern =
   | 'even'       // Layers 0, 2, 4, ... are global (Gemma 2)

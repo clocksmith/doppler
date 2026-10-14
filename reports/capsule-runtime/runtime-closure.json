@@ -3,7 +3,7 @@
   "entrypoint": "src/capsule-runtime.js",
   "scope": "injected-capsule-core; excludes host-supplied program executors",
   "fileCount": 84,
-  "sourceBytes": 945630,
+  "sourceBytes": 954567,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -239,8 +239,8 @@
     },
     {
       "path": "src/config/execution-registry-contract.js",
-      "sizeBytes": 6542,
-      "hash": "sha256:0a85b92c5cc9dd80924dd57711e4733eed2013aa474fe25845cbdfe315aed4b6"
+      "sizeBytes": 8483,
+      "hash": "sha256:7b74d82d31f227f0772ee94f47267d859d9c3b50300f82b1f534ced9ac4a957a"
     },
     {
       "path": "src/config/forecast-manifest.js",
@@ -264,13 +264,13 @@
     },
     {
       "path": "src/config/kernel-registry-contract.js",
-      "sizeBytes": 5392,
-      "hash": "sha256:c37ac8ad8d99f4e9bfe46e06980676976ed693c78811f071f43bef45d7331a7a"
+      "sizeBytes": 5455,
+      "hash": "sha256:eb93e3bcbe9e305b1b73f27e77d4ad432786027d93f7dbbacfbabf78d45c1a6b"
     },
     {
       "path": "src/config/kernels/registry.json",
-      "sizeBytes": 502666,
-      "hash": "sha256:dd1d01e792657794510db3adec24a305ed141c3156e423d6a64acda00530b644"
+      "sizeBytes": 509183,
+      "hash": "sha256:a044adca0b81954c5bb87c8eeb86f7767dcffc190f4883389c8ac394dd05bb8a"
     },
     {
       "path": "src/config/layer-partition-plan.js",
@@ -324,8 +324,8 @@
     },
     {
       "path": "src/config/schema/kernel-registry.schema.js",
-      "sizeBytes": 1682,
-      "hash": "sha256:c32d842c7db094cb88a6484876edb5bd449b7c181be4454ca941124556354210"
+      "sizeBytes": 2098,
+      "hash": "sha256:da2d1f7e8c884764b20194e2fdcd3dd4bd60d955b1343679fad1f792564a9bda"
     },
     {
       "path": "src/config/target-plan.js",

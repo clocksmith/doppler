@@ -78,6 +78,14 @@
    "digest": "sha256:6a5aca1f92300e35f8371fb13a05963c54ac56730cc4bedc93b2bc5d8d9b2e16"
   },
   {
+   "path": "kernels/gated-delta-fused-decode.rules.json",
+   "digest": "sha256:8aaaca7c8aa223ae1ea5143c5c0450cc85cffda4d5c9bf6e89eab98f366b65ed"
+  },
+  {
+   "path": "kernels/gated-delta-recurrent.rules.json",
+   "digest": "sha256:b4d667ed2055a556f3e9aab66a898c05eb268fe7381d21a71a5062efef9585df"
+  },
+  {
    "path": "kernels/gather.rules.json",
    "digest": "sha256:435163572c60ea1f1a8e7b5a8ab991b958b0f938edb92c50eb1c3b035049f16d"
   },
@@ -2297,6 +2305,98 @@
     {
      "match": {},
      "value": "medium"
+    }
+   ]
+  },
+  "kernels/gated-delta-fused-decode.rules.json": {
+   "scalarVariant": [
+    {
+     "match": {
+      "inputDtype": "f32",
+      "normGateActivation": "silu"
+     },
+     "value": "default"
+    },
+    {
+     "match": {
+      "inputDtype": "f16",
+      "normGateActivation": "silu"
+     },
+     "value": "default_f16"
+    },
+    {
+     "match": {
+      "inputDtype": "f32",
+      "normGateActivation": "sigmoid"
+     },
+     "value": "sigmoid_gate"
+    },
+    {
+     "match": {
+      "inputDtype": "f16",
+      "normGateActivation": "sigmoid"
+     },
+     "value": "sigmoid_gate_f16"
+    }
+   ]
+  },
+  "kernels/gated-delta-recurrent.rules.json": {
+   "scalarVariant": [
+    {
+     "match": {
+      "inputDtype": "f32",
+      "normGateActivation": "silu"
+     },
+     "value": "default"
+    },
+    {
+     "match": {
+      "inputDtype": "f16",
+      "normGateActivation": "silu"
+     },
+     "value": "default_f16"
+    },
+    {
+     "match": {
+      "inputDtype": "f32",
+      "normGateActivation": "sigmoid"
+     },
+     "value": "sigmoid_gate"
+    },
+    {
+     "match": {
+      "inputDtype": "f16",
+      "normGateActivation": "sigmoid"
+     },
+     "value": "sigmoid_gate_f16"
+    }
+   ],
+   "pairedGateVariant": [
+    {
+     "match": {
+      "normGateActivation": "silu"
+     },
+     "value": "paired_gate"
+    },
+    {
+     "match": {
+      "normGateActivation": "sigmoid"
+     },
+     "value": "paired_gate_sigmoid"
+    }
+   ],
+   "pairedClosureAnchorVariant": [
+    {
+     "match": {
+      "normGateActivation": "silu"
+     },
+     "value": "paired"
+    },
+    {
+     "match": {
+      "normGateActivation": "sigmoid"
+     },
+     "value": null
     }
    ]
   },

@@ -6,8 +6,13 @@ import { createServer } from 'node:http';
 import { chromium } from 'playwright';
 const destination = process.argv[2];
 if (!destination) throw new Error('Provide receipt destination.');
+// Optional gated-RMSNorm activation: silu (Qwen3.5, the original receipts) or
+// sigmoid (qwen4_exp output_gate_type="sigmoid", gated_delta_gate_sigmoid_paired).
+const normGateActivation = process.argv[3] ?? 'silu';
+if (normGateActivation !== 'silu' && normGateActivation !== 'sigmoid') throw new Error('Norm gate must be silu or sigmoid.');
+const gateShader = normGateActivation === 'silu' ? 'gated_delta_gate_paired' : 'gated_delta_gate_sigmoid_paired';
 await mkdir(dirname(destination), { recursive: true });
-const sources = await Promise.all(['gated_delta_conv_paired', 'qwen_linear_attention_prepare_paired', 'qwen_linear_attention_scale_paired', 'qwen_linear_attention_log_decay_paired', 'qwen_linear_attention_decay_paired', 'gated_delta_qk_paired', 'gated_delta_state_paired', 'gated_delta_norm_paired', 'gated_delta_gate_paired'].map(name =>
+const sources = await Promise.all(['gated_delta_conv_paired', 'qwen_linear_attention_prepare_paired', 'qwen_linear_attention_scale_paired', 'qwen_linear_attention_log_decay_paired', 'qwen_linear_attention_decay_paired', 'gated_delta_qk_paired', 'gated_delta_state_paired', 'gated_delta_norm_paired', gateShader].map(name =>
   readFile(new URL(`../../src/gpu/kernels/${name}.wgsl`, import.meta.url), 'utf8')));
 const hash = value => createHash('sha256').update(value).digest('hex');
 let seed = 624901;
@@ -54,14 +59,15 @@ function reference(f) {
       const inv = 1 / Math.sqrt(raw.reduce((s, v) => s + v * v, 0) / f.vd + f.eps);
       for (let v = 0; v < f.vd; v++) {
         const gate = f.packed ? qkv[t * (f.convDim + f.valueDim) + f.convDim + h * f.vd + v] : z[t * f.valueDim + h * f.vd + v];
-        output.push(raw[v] * inv * (f.norm[v] + Number(f.offset)) * gate * sigmoid(gate));
+        output.push(raw[v] * inv * (f.norm[v] + Number(f.offset)) * (normGateActivation === 'silu' ? gate : 1) * sigmoid(gate));
       }
     }
   }
   return { conv, convState, state, output };
 }
 const receipt = { schema: 'doppler-paired-linear-physical-v1', shaderSha256: sources.map(hash), fixtureSha256: hash(JSON.stringify(cases)), seed: 624901,
-  tolerance: 2e-11, scope: 'Independent F64 convolution and gated-delta equations, initial state, source epsilon, paired persistent state, QKV/Z and A/B packing. No model qualification.', cases: [] };
+  tolerance: 2e-11, scope: 'Independent F64 convolution and gated-delta equations, initial state, source epsilon, paired persistent state, QKV/Z and A/B packing. No model qualification.', cases: [],
+  ...(normGateActivation === 'silu' ? {} : { normGateActivation }) };
 const server = createServer((_req, res) => res.end('<!doctype html>'));
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 let browser;

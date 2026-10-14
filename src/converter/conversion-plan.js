@@ -11,6 +11,7 @@ import {
 } from './quantization-info.js';
 import { cloneJsonValue } from '../formats/clone-json.js';
 import { resolveManifestMoEConfig, sanitizeModelId } from './core.js';
+import { assertConvertedLinearNormGateActivation } from './linear-norm-gate.js';
 import { resolveTensorRole } from '../formats/rdrr/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { log } from '../debug/index.js';
@@ -167,6 +168,7 @@ function resolveConversionPlanV1(options) {
 
   const modelId = converterConfig?.output?.modelBaseId ?? rawConfig?.model_id ?? 'unknown';
   validateV1InferenceFields(inference, modelId);
+  assertConvertedLinearNormGateActivation(inference, rawConfig, modelId);
 
   const sourceQuantization = (
     options?.sourceQuantization

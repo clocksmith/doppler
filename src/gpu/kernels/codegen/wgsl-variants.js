@@ -1,6 +1,35 @@
 import { ATTENTION_DECODE_ONLINE_F16KV_VARIANT } from './attention-decode-online-variant.js';
 import { WGSL_PATCH_VARIANTS } from './wgsl-patch-variants.js';
 
+// Linear-attention gated RMSNorm: norm(x) * w * act(z). The silu sources stay
+// byte-identical because conversion configs and signed Capsules pin their
+// digests; these derived kernels change only act() to sigmoid (qwen4_exp
+// output_gate_type="sigmoid", Qwen3.8 Flash-Next).
+const SCALAR_SIGMOID_NORM_GATE_RULES = Object.freeze([
+  {
+    type: 'literal',
+    count: 1,
+    from: 'override RECURRENT_STATE_COMPONENTS: u32 = 1u;\n',
+    to: '// Gated RMSNorm with a sigmoid gate: norm(x) * w * sigmoid(z). Silu lanes use the source.\n'
+      + 'override RECURRENT_STATE_COMPONENTS: u32 = 1u;\n',
+  },
+  {
+    type: 'literal',
+    count: 1,
+    from: 'let gate = silu(f32(z_proj[z_index]));',
+    to: 'let gate = sigmoid_refined(f32(z_proj[z_index]));',
+  },
+]);
+
+function scalarSigmoidNormGateVariant(kernel) {
+  return {
+    id: `${kernel.replaceAll('_', '-')}-sigmoid-gate`,
+    source: `src/gpu/kernels/${kernel}.wgsl`,
+    target: `src/gpu/kernels/${kernel.replace(/_f16$/u, '')}_sigmoid_gate${kernel.endsWith('_f16') ? '_f16' : ''}.wgsl`,
+    rules: SCALAR_SIGMOID_NORM_GATE_RULES,
+  };
+}
+
 export const WGSL_GENERATED_VARIANTS = Object.freeze([
   {
     id: 'conv2d-f16',
@@ -685,6 +714,27 @@ override WORKGROUP_SIZE: u32 = 256u;
         count: 1,
         from: '        output[out_offset] = f16(shared_acc[tid]);',
         to: '        output[out_offset] = shared_acc[tid];',
+      },
+    ],
+  },
+  ...['gated_delta_recurrent', 'gated_delta_recurrent_f16', 'gated_delta_fused_decode', 'gated_delta_fused_decode_f16']
+    .map(scalarSigmoidNormGateVariant),
+  {
+    id: 'gated-delta-gate-paired-sigmoid',
+    source: 'src/gpu/kernels/gated_delta_gate_paired.wgsl',
+    target: 'src/gpu/kernels/gated_delta_gate_sigmoid_paired.wgsl',
+    rules: [
+      {
+        type: 'literal',
+        count: 1,
+        from: '// Apply the paired SiLU gate to normalized, weighted recurrent output.',
+        to: '// Apply the paired sigmoid gate to normalized, weighted recurrent output. Silu lanes use the source.',
+      },
+      {
+        type: 'literal',
+        count: 1,
+        from: 'pair_silu(z[z_index])',
+        to: 'pair_sigmoid(z[z_index])',
       },
     ],
   },

@@ -1,5 +1,8 @@
 import { appendHeterogeneousAttentionValidation } from './heterogeneous-attention-contract.js';
 
+// Canonical linear-attention gated-RMSNorm activations (manifest spelling).
+export const LINEAR_NORM_GATE_ACTIVATIONS = Object.freeze(['silu', 'sigmoid']);
+
 export function normalizeFfnTensorShape(value) {
   if (!Array.isArray(value) || value.length !== 2) return null;
   const rows = Number(value[0]);
@@ -230,6 +233,13 @@ export function validateRequiredInferenceFields(inf, modelId) {
   }
   if (inf.normalization.rmsNormWeightOffset == null) {
     errors.push('normalization.rmsNormWeightOffset is required');
+  }
+  // Absent means the schema default (silu) for pre-field manifests; merge resolves it.
+  if (
+    inf.normalization.linearNormGateActivation !== undefined
+    && !LINEAR_NORM_GATE_ACTIVATIONS.includes(inf.normalization.linearNormGateActivation)
+  ) {
+    errors.push(`normalization.linearNormGateActivation must be one of ${LINEAR_NORM_GATE_ACTIVATIONS.join(', ')}`);
   }
   if (inf.normalization.rmsNormEps == null) {
     errors.push('normalization.rmsNormEps is required');

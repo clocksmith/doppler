@@ -3,6 +3,7 @@ import type { Tensor } from '../../../gpu/tensor.js';
 import type { WeightBuffer } from '../../../gpu/weight-buffer.js';
 import type { CommandRecorder } from '../../../gpu/command-recorder.js';
 import type { LinearNormMode } from '../../../config/schema/index.js';
+import type { LinearNormGateActivation } from '../../../config/schema/inference.schema.js';
 import type { ProbeConfigSchema } from '../../../config/schema/index.js';
 import type { ExecutionV1PoliciesSchema } from '../../../config/schema/execution-v1.schema.js';
 import type { KernelPathSchema } from '../../../config/schema/kernel-path.schema.js';
@@ -62,6 +63,8 @@ export interface RunLinearAttentionLayerOptions {
     linearValueHeadDim: number | null;
     linearConvKernelDim?: number | null;
     linearNormMode?: LinearNormMode | null;
+    /** Resolved gated-RMSNorm activation; selects and guards the gate kernel. */
+    linearNormGateActivation: LinearNormGateActivation;
     rmsNormEps: number;
     rmsNormWeightOffset: boolean;
     inputDtype?: 'f16' | 'f32' | null;

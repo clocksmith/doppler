@@ -166,4 +166,32 @@ const unifiedConverterConfig = createSourceRuntimeConverterConfig({
 assert.equal(unifiedConverterConfig.manifest.visionConfig?.vision_architecture, 'gemma4');
 assert.equal(unifiedConverterConfig.manifest.audioConfig?.audio_architecture, 'gemma4');
 
+// Linear-attention norm gate: authored from source-family semantics, never
+// recorded as the full-attention output gate for the Qwen hybrid families.
+const { readFile } = await import('node:fs/promises');
+const flashNextConfig = JSON.parse(await readFile(
+  new URL('../../artifacts/qwen38-flash-next-20261013/source/config.json', import.meta.url), 'utf8'));
+const flashNextInference = createSourceRuntimeInference(flashNextConfig);
+assert.equal(flashNextInference.normalization.linearNormGateActivation, 'sigmoid');
+assert.equal(flashNextInference.attention.outputGateType, null);
+
+const qwen38Config = JSON.parse(await readFile(
+  new URL('../../reports/model-ir-v2/source/qwen3.8-27b-config.json', import.meta.url), 'utf8'));
+assert.equal(qwen38Config.text_config.output_gate_type, 'swish');
+const qwen38Inference = createSourceRuntimeInference(qwen38Config);
+assert.equal(qwen38Inference.normalization.linearNormGateActivation, 'silu');
+assert.equal(qwen38Inference.attention.outputGateType, null, 'qwen3_5 "swish" describes the norm gate, not attention');
+
+assert.throws(() => createSourceRuntimeInference({
+  model_type: 'qwen3_5', text_config: { output_gate_type: 'sigmoid', layer_types: ['linear_attention'] },
+}), /hardcodes silu/);
+assert.throws(() => createSourceRuntimeInference({
+  model_type: 'qwen4_exp', text_config: { output_gate_type: 'swish', hidden_act: 'silu' },
+}), /accepts only "sigmoid" or "silu"/);
+assert.throws(() => createSourceRuntimeInference({
+  model_type: 'future_hybrid', layer_types: ['linear_attention', 'full_attention'],
+}), /no linear norm-gate activation mapping/);
+// Families without the Qwen norm-gate meaning keep the recorded field unchanged.
+assert.equal(createSourceRuntimeInference({ model_type: 'gemma3', output_gate_type: 'Sigmoid' }).attention.outputGateType, 'sigmoid');
+
 console.log('source-runtime-converter-config.test: ok');

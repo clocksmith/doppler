@@ -35,7 +35,8 @@ export async function createResidentPartitionSession(pipeline, allocation, token
     const [firstLayer, lastLayer] = allocation.plan.partitions[allocation.index].layerRange;
     if (allocation.plan.activationPrecision === 'two-f32'
       && owner.modelConfig?.layerTypes?.slice(firstLayer, lastLayer + 1).includes('linear_attention')) {
-      await preparePairedLinearAttentionPipelines(owner.gpuContext?.device, signal);
+      await preparePairedLinearAttentionPipelines(owner.gpuContext?.device, signal,
+        owner.modelConfig.linearNormGateActivation);
     }
     signal?.throwIfAborted();
     // Resident execution creates one cache per attempt. The opening pipeline's

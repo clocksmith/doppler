@@ -5,6 +5,8 @@ export interface VariantMetadata {
   tileM?: number;
   outputBinding?: number;
   maxKVLen?: number;
+  /** Gate activation applied by a gated-delta kernel's gated RMSNorm; guarded against the manifest. */
+  normGateActivation?: 'silu' | 'sigmoid';
   [key: string]: unknown;
 }
 

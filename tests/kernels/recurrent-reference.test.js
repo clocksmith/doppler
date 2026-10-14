@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { pairLinearCaptures, recurrentReference } from './recurrent-reference.js';
+import { createHash } from 'node:crypto';
+import { normGate, pairLinearCaptures, recurrentReference, SIGMOID_NORM_GATE_REFERENCE } from './recurrent-reference.js';
 import { recurrentInterventionOperands, interveneRecurrentShader } from './recurrent-intervention.js';
 import { observeRecurrentShader } from './recurrent-observation.js';
 import { readFile } from 'node:fs/promises';
@@ -102,4 +103,48 @@ const zeroInput = { ...input, params: { ...params, qkL2NormEps: 1e-6 },
 const zeroOutput = { ...expected, params: zeroInput.params,
   tensors: [tensor('convOutput', [0, 0, 3, 0, 0, 5])] };
 assert.deepEqual([...recurrentReference(zeroInput, zeroOutput).output], [0, 0]);
-console.log('recurrent-reference: scalar equations, state, packed layouts, sustained recurrence and capture pairing passed');
+
+// Gated RMSNorm gate semantics. Flash-Next (qwen4_exp, output_gate_type="sigmoid")
+// computes norm(x) * w * sigmoid(z); Qwen3.5 computes norm(x) * w * z * sigmoid(z).
+// The retained Flash-Next receipt fixes the expected gate and that silu is a
+// distinguishable alternative at its derived bound.
+const flashNextReceipt = JSON.parse(await readFile(new URL(`../../${SIGMOID_NORM_GATE_REFERENCE.receipt}`, import.meta.url), 'utf8'));
+assert.equal(flashNextReceipt.geometry.normGate, 'sigmoid');
+assert.equal(flashNextReceipt.checkpoint, SIGMOID_NORM_GATE_REFERENCE.modelRevision);
+assert.equal(flashNextReceipt.alternativeSemantics['norm-gate-silu'].distinguished, true);
+assert.equal(flashNextReceipt.alternativeSemantics['norm-weight-one-plus'].distinguished, true, 'w is applied without +1');
+assert.deepEqual(flashNextReceipt.qwen35Comparison.RMSNormGated.changedLines.filter(line => line.startsWith('+')),
+  ['+    def __init__(self, hidden_size: int, eps: float = 1e-6, activation: str = "silu") -> None:',
+    '+        self.activation = activation'], 'only the activation parameter separates the two gated norms');
+const modelingSource = await readFile(new URL('../../artifacts/qwen38-flash-next-20261013/source/modeling_qwen4_exp.py', import.meta.url));
+assert.equal(createHash('sha256').update(modelingSource).digest('hex'), SIGMOID_NORM_GATE_REFERENCE.sourceSha256);
+assert(modelingSource.toString('utf8').includes('activation=config.output_gate_type or config.hidden_act'));
+
+// Exact gate values: sigmoid(0)=1/2 while silu(0)=0; negative z keeps a positive
+// sigmoid gate but a negative silu gate; at z=1 the two coincide.
+assert.equal(normGate(0, 'sigmoid'), 0.5);
+assert.equal(normGate(0, 'silu'), 0);
+assert(Math.abs(normGate(-2, 'sigmoid') - 1 / (1 + Math.exp(2))) < 1e-16);
+assert(Math.abs(normGate(-2, 'silu') + 2 / (1 + Math.exp(2))) < 1e-16);
+assert.equal(normGate(1, 'sigmoid'), normGate(1, 'silu'));
+assert(normGate(-80, 'sigmoid') > 0 && Number.isFinite(normGate(80, 'silu')));
+assert.throws(() => normGate(1, 'swish'), /Unsupported/);
+
+// Same scalar recurrence as the hand-calculated case above, with z chosen so the
+// gates differ: raw outputs 2 and 3, invRms 1/sqrt(5) and 1/sqrt(10).
+const gateInput = { ...input, tensors: input.tensors.filter(t => t.role !== 'z').concat(tensor('z', [0, -2])) };
+const siluGated = recurrentReference(gateInput, expected);
+const sigmoidInput = { ...gateInput, params: { ...params, normGateActivation: 'sigmoid' } };
+const sigmoidExpected = { ...expected, params: sigmoidInput.params };
+const sigmoidGated = recurrentReference(sigmoidInput, sigmoidExpected);
+assert.deepEqual([...sigmoidGated.finalState], [...siluGated.finalState], 'the gate never feeds the recurrent state');
+assert.equal(siluGated.output[0], 0);
+assert(Math.abs(sigmoidGated.output[0] - 2 / Math.sqrt(5) * 0.5) < 1e-15);
+assert(Math.abs(siluGated.output[1] - 3 / Math.sqrt(10) * (-2 / (1 + Math.exp(2)))) < 1e-15);
+assert(Math.abs(sigmoidGated.output[1] - 3 / Math.sqrt(10) / (1 + Math.exp(2))) < 1e-15);
+// Absent activation in a capture is the legacy silu meaning; unknown spellings fail.
+assert.deepEqual([...recurrentReference({ ...gateInput, params: { ...params, normGateActivation: 'silu' } },
+  { ...expected, params: { ...params, normGateActivation: 'silu' } }).output], [...siluGated.output]);
+assert.throws(() => recurrentReference({ ...gateInput, params: { ...params, normGateActivation: 'swish' } },
+  { ...expected, params: { ...params, normGateActivation: 'swish' } }), /normGateActivation/);
+console.log('recurrent-reference: scalar equations, state, packed layouts, sustained recurrence, silu/sigmoid norm gates and capture pairing passed');

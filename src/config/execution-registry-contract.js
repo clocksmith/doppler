@@ -62,12 +62,43 @@ export function assertExecutionMechanismClosure(graph, steps) {
   }
 }
 
+/** Lane-mismatch guard: every kernel the graph declares whose registry entry
+ * applies a gated-RMSNorm gate must declare the manifest's activation.
+ * @param {import('./schema/execution-v1.schema.js').ExecutionV1GraphSchema} graph
+ * @param {'silu' | 'sigmoid'} normGateActivation */
+export function assertLinearNormGateClosure(graph, normGateActivation) {
+  if (!graph || !graph.kernels) throw new Error('[NormGate] An explicit execution graph is required.');
+  if (normGateActivation !== 'silu' && normGateActivation !== 'sigmoid') {
+    throw new Error(`[NormGate] Unsupported declared norm-gate activation ${JSON.stringify(normGateActivation)}.`);
+  }
+  const configs = Object.values(getKernelConfigs()).flatMap(variants => Object.values(variants));
+  for (const [key, decl] of Object.entries(graph.kernels)) {
+    const constantsHash = computeCanonicalSha256(decl.constants ?? {});
+    for (const config of configs) {
+      const declared = config.variantMetadata?.normGateActivation;
+      if (declared === undefined || config.shaderFile !== decl.kernel || config.entryPoint !== decl.entry
+        || computeCanonicalSha256(config.wgslOverrides ?? {}) !== constantsHash) continue;
+      if (declared !== normGateActivation) {
+        throw new Error(`[NormGate] execution.kernels.${key} (${decl.kernel}) is ${config.operation}/${config.variant}, `
+          + `which applies a ${declared} norm gate, but the manifest declares ${normGateActivation}.`);
+      }
+    }
+  }
+}
+
 /** The paired pipeline's wrapper-owned kernels are declared before either Run
  * admission or Rig signing. Gather retains scalar, vector and declared split
  * paths; this validates source reachability without selecting a runtime path.
- * @param {import('./schema/execution-v1.schema.js').ExecutionV1GraphSchema} graph */
-export function assertPairedExecutionMechanismClosure(graph) {
+ * The norm-gate mechanisms (gate phase and, for silu, the monolithic anchor)
+ * depend on the manifest activation and are selected by the caller's rule map.
+ * @param {import('./schema/execution-v1.schema.js').ExecutionV1GraphSchema} graph
+ * @param {ReadonlyArray<readonly [string, string]>} normGateMechanisms */
+export function assertPairedExecutionMechanismClosure(graph, normGateMechanisms) {
   if (!graph || !graph.kernels) throw new Error('[PairedExecution] An explicit execution graph is required.');
+  if (!Array.isArray(normGateMechanisms) || normGateMechanisms.length === 0
+    || !normGateMechanisms.every(entry => Array.isArray(entry) && entry.length === 2)) {
+    throw new Error('[PairedExecution] Activation-specific norm-gate mechanisms are required.');
+  }
   const configs = getKernelConfigs();
   const embeds = (graph.preLayer ?? []).filter(step => step[0] === 'embed');
   const embedding = embeds.length === 1 ? graph.kernels[embeds[0][1]] : null;
@@ -79,13 +110,13 @@ export function assertPairedExecutionMechanismClosure(graph) {
   }
   const required = [
     ['cast', 'f32_to_two_f32'], ['cast', 'two_f32_to_f16'],
-    ['gated_delta_conv', 'paired'], ['gated_delta_recurrent', 'paired'],
+    ['gated_delta_conv', 'paired'],
     ['qwen_linear_attention_prepare', 'paired_beta'],
     ['qwen_linear_attention_prepare', 'paired_decay_scale'],
     ['qwen_linear_attention_prepare', 'paired_log_decay'],
     ['qwen_linear_attention_prepare', 'paired_decay'],
     ['gated_delta_recurrent', 'paired_qk'], ['gated_delta_recurrent', 'paired_state'],
-    ['gated_delta_recurrent', 'paired_norm'], ['gated_delta_recurrent', 'paired_gate'],
+    ['gated_delta_recurrent', 'paired_norm'], ...normGateMechanisms,
     ['split_qg', 'paired'], ['split_qkv', 'paired'], ['rope_precompute', 'paired'],
     ['paired_pointwise', 'sigmoid'], ['paired_pointwise', 'scale'],
     ['logit_finalize', 'f32'],

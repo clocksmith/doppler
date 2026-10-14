@@ -751,6 +751,7 @@ function toParsedConfigFromMerged(merged, manifest) {
     linearValueHeadDim,
     linearConvKernelDim,
     linearNormMode,
+    linearNormGateActivation: inf.normalization.linearNormGateActivation,
     attentionBias: inf.attention.attentionBias,
     causalAttention,
     finalLogitSoftcapping: inf.output.finalLogitSoftcapping,

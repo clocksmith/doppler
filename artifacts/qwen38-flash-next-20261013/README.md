@@ -176,13 +176,34 @@ bodies, both conv functions and the padding helper are identical. The only
 semantic difference is the gated RMSNorm activation: Qwen3.5 hardcodes silu,
 while qwen4_exp uses `output_gate_type` (Flash-Next: `sigmoid`). Qwen3.5 also has
 a layer-level hub-kernel decorator. Read from Doppler source at `a40f02a1`
-(not executed): the gated-delta kernels hardcode a silu norm gate
+(not executed): the original gated-delta kernels hardcode a silu norm gate
 (`src/gpu/kernels/gated_delta_recurrent.wgsl:470`,
-`gated_delta_fused_decode.wgsl:477`, and their `_f16` variants). Doppler's
-`outputGateType` manifest field describes the full-attention output gate,
-whereas upstream `output_gate_type` selects only this linear-attention norm gate.
+`gated_delta_fused_decode.wgsl:477`, their `_f16` variants, and the paired
+`gated_delta_gate_paired.wgsl`, applied after `gated_delta_norm_paired.wgsl`).
 Head grouping (`head / q_rep`), the softplus threshold of 20 and the
 kernel-length conv state match upstream.
+
+Doppler source now declares the gate explicitly. These kernels and checks are
+static only and have not been run on a GPU:
+
+- The manifest field `inference.normalization.linearNormGateActivation` takes
+  `silu` or `sigmoid`. An absent field resolves to the schema default `silu`,
+  so existing Qwen3.5 artifacts are unchanged.
+- The converter maps qwen4_exp `output_gate_type or hidden_act` into the field
+  and authors silu for qwen3_5. It no longer records the norm-gate meaning as
+  `attention.outputGateType`.
+- Five generated sigmoid kernels differ from their unchanged silu sources only
+  in the gate call: `gated_delta_recurrent_sigmoid_gate{,_f16}.wgsl`,
+  `gated_delta_fused_decode_sigmoid_gate{,_f16}.wgsl` and
+  `gated_delta_gate_sigmoid_paired.wgsl`. These kernels are not yet
+  GPU-verified.
+- Rule-based kernel selection and registry `normGateActivation` metadata fail
+  closed when a kernel's gate activation differs from the manifest's.
+
+The contract is in `docs/conversion-runtime-contract.md`. The CPU reference
+(`tests/kernels/recurrent-reference.js`) computes both gates, and its test
+checks the sigmoid gate against this receipt's `normGate` and the pinned
+`modeling_qwen4_exp.py`.
 
 ### Sparse attention and QSA indexer
 
@@ -248,12 +269,25 @@ The CPU expert execution reference is now in place at full geometry (MoE block a
 1. Learned-checkpoint comparison: an independent reference on learned weights
    for selected layers, in the checkpoint's bfloat16 dtype, covering indexer
    selection (ties, near ties), routing and gated-delta decay ranges.
-2. Conversion: RDRR conversion and conversion-quality controls, including the
-   linear-attention norm-gate activation (sigmoid for Flash-Next).
-3. License suitability: Qwen Community License 1.0 requires a separate license
+2. Conversion: RDRR conversion and conversion-quality controls. The norm-gate
+   contract now exists: the field, the qwen4_exp mapping and conversion
+   fail-fast guards are in place. A Flash-Next conversion config must author
+   `linearNormGateActivation: "sigmoid"`; conversion rejects omission or silu.
+   No Flash-Next conversion config or RDRR artifact exists yet.
+3. GPU verification of the sigmoid gated-delta kernels against the CPU
+   reference. These cases are written but have not been run:
+   - Node/WebGPU: `node tests/inference/linear-attention-core-gpu-regression.test.js`
+     covers the scalar recurrent and fused-decode cases, f32/f16 inputs and
+     f32/two-f32 state.
+   - Physical browser WebGPU:
+     `node tests/kernels/paired-linear-physical.js <receipt.json> sigmoid`
+     covers the paired path.
+
+   Neither establishes Flash-Next numerics on learned weights.
+4. License suitability: Qwen Community License 1.0 requires a separate license
    for commercial Model-as-a-Service or AI Work Assistant use; suitability for
    the intended service is unresolved.
-4. Physical qualification on coordinated GPU time: hardware, memory-tier
+5. Physical qualification on coordinated GPU time: hardware, memory-tier
    placement (upstream notes a ~95 GiB n-gram embedding), concurrent state,
    admitted budgets and installed distributed acceptance under the existing
    full-model gate. GPU-only upstream implementations (FLA, causal_conv1d,

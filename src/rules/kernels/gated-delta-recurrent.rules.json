@@ -1,0 +1,60 @@
+{
+  "scalarVariant": [
+    {
+      "match": {
+        "inputDtype": "f32",
+        "normGateActivation": "silu"
+      },
+      "value": "default"
+    },
+    {
+      "match": {
+        "inputDtype": "f16",
+        "normGateActivation": "silu"
+      },
+      "value": "default_f16"
+    },
+    {
+      "match": {
+        "inputDtype": "f32",
+        "normGateActivation": "sigmoid"
+      },
+      "value": "sigmoid_gate"
+    },
+    {
+      "match": {
+        "inputDtype": "f16",
+        "normGateActivation": "sigmoid"
+      },
+      "value": "sigmoid_gate_f16"
+    }
+  ],
+  "pairedGateVariant": [
+    {
+      "match": {
+        "normGateActivation": "silu"
+      },
+      "value": "paired_gate"
+    },
+    {
+      "match": {
+        "normGateActivation": "sigmoid"
+      },
+      "value": "paired_gate_sigmoid"
+    }
+  ],
+  "pairedClosureAnchorVariant": [
+    {
+      "match": {
+        "normGateActivation": "silu"
+      },
+      "value": "paired"
+    },
+    {
+      "match": {
+        "normGateActivation": "sigmoid"
+      },
+      "value": null
+    }
+  ]
+}
