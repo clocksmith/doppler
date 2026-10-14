@@ -1,0 +1,137 @@
+{
+  "schema": "address-redaction-manifest/v1",
+  "aliases": [
+    "amd-host",
+    "intel-host"
+  ],
+  "scope": "user@host login forms missed by artifacts/address-redaction-20261013",
+  "note": "Redacted copies are derived files. Hash bindings elsewhere in this repository refer to the original bytes.",
+  "files": [
+    {
+      "path": "artifacts/qwen35-08b-capsule-intake-20261012/README.md",
+      "kind": "text",
+      "replacements": 2,
+      "originalSha256": "sha256:afd8f7d67ad9502a7f49820407317d03dd23b71adcd80a4a10e84f0a07538e04",
+      "redactedSha256": "sha256:0ea3295400b9824bdbfd045bee9a8ea45d6fdd3a5ec1766e29f0176756a903af",
+      "originalBytes": 7213,
+      "redactedBytes": 7219
+    },
+    {
+      "path": "artifacts/recurrent-two-f32-20261012/remote-raw-index.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:6f9357687636209e1d157b3fe91943b13ea52681e2628d9065c1ff4b46d20db2",
+      "redactedSha256": "sha256:1ee0b117769d0d13b13a9573740bb4305089757be7e3517d05c6d27f0a6edb0e",
+      "originalBytes": 947,
+      "redactedBytes": 950
+    },
+    {
+      "path": "artifacts/selective-materialization-20261012/README.md",
+      "kind": "text",
+      "replacements": 3,
+      "originalSha256": "sha256:db06c7902be4bb2a9d5342870b99c9772fb228e6ecee049154f39198e0d2e44d",
+      "redactedSha256": "sha256:eead3538e7ecd3aab3cc3d75a7d87d008554f5cef582ab3654eb35bc478f9674",
+      "originalBytes": 5164,
+      "redactedBytes": 5173
+    },
+    {
+      "path": "artifacts/selective-materialization-20261012/cache-coordinate-result-summary.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:2756c080fba19cf7798368add212060dc46a2add44dc598e4570efca73f93e35",
+      "redactedSha256": "sha256:c66b0ecf085d64821411ac03935a7548a23d9615bfd32d3cef2aa855c822183d",
+      "originalBytes": 153993,
+      "redactedBytes": 153996
+    },
+    {
+      "path": "artifacts/selective-materialization-20261012/chain-result-summary.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:44a72ca73e53f59528fb0d619c67269cdecc2279584bdcf2a3ca36da1a539a48",
+      "redactedSha256": "sha256:5832df7ac18e008e595ca9f7ef740d93b153ad2bfa0cde25dd1e4471470c61c4",
+      "originalBytes": 116279,
+      "redactedBytes": 116282
+    },
+    {
+      "path": "artifacts/selective-materialization-20261012/full-history-result-summary.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:0caaedced983f053b6a8ebaff87b2a0fb465b4d8c00bddb76e2a1fe160cc598f",
+      "redactedSha256": "sha256:e7c0f22df03d4f6d4501f63c613d5ff1c1cd97810c2bd67fac08a399f6cfec9d",
+      "originalBytes": 209959,
+      "redactedBytes": 209962
+    },
+    {
+      "path": "artifacts/selective-materialization-20261012/group-result-summary.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:6e7118faa0d9bbbfe3febef139bc3bf6b24cce16cd38717adb4a946991ea5c6b",
+      "redactedSha256": "sha256:c829c15c133e52755ac9f0c6bc9172fafe0751571ed5f1d5864d6ccbab1fde49",
+      "originalBytes": 168769,
+      "redactedBytes": 168772
+    },
+    {
+      "path": "artifacts/selective-materialization-20261012/interaction-result-summary.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:06358c17b9d7045f03c46dba1a8bbf8e16422cfca7efc6ca5cfb85a7281b1bf7",
+      "redactedSha256": "sha256:df6427cca193cb49cf9c86281bfb1609daad2d3d8affe74b7576e5ff8ab6e672",
+      "originalBytes": 278500,
+      "redactedBytes": 278503
+    },
+    {
+      "path": "artifacts/selective-materialization-20261012/prefix-result-summary.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:8d3c6721d5bd4d2d1f4adb3818b9fe9102f6f4fbce86ed899b928d9f30b0bfe7",
+      "redactedSha256": "sha256:3584e6382b444d51de2288288a2e82823f77aee3bb03f9bc8201f1d443cb2235",
+      "originalBytes": 83814,
+      "redactedBytes": 83817
+    },
+    {
+      "path": "artifacts/selective-materialization-20261012/projection-result-summary.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:38f88492dcf435d9c1aa57bdda4a57cb6dbf7456726f5660b38c867a4bc08125",
+      "redactedSha256": "sha256:1e377c398e55a982ecf4ecc2605e1da5edf599a0f94cdf95fb529af6956699ee",
+      "originalBytes": 107622,
+      "redactedBytes": 107625
+    },
+    {
+      "path": "artifacts/selective-materialization-20261012/raw-index.json",
+      "kind": "text",
+      "replacements": 9,
+      "originalSha256": "sha256:9fa99d9598bafdb9c34f2cb0409de44e162b0286ed7452d33dc0ff08663530e3",
+      "redactedSha256": "sha256:09a6509ebae46e8c1843f8419330cdac6381315c066c3fe89aa1cb15ecb3ea11",
+      "originalBytes": 2475,
+      "redactedBytes": 2502
+    },
+    {
+      "path": "artifacts/selective-materialization-20261012/result-summary.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:f0ac3605aeddf787405d722d2824aa1f3a6bb02be5bbbb342438a783661fff12",
+      "redactedSha256": "sha256:bb5fe606d1b335b9abd99902a96da3df6b9b18b16650266861bb7b6172832214",
+      "originalBytes": 101952,
+      "redactedBytes": 101955
+    },
+    {
+      "path": "artifacts/selective-materialization-20261012/scalar-result-summary.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:0667c2d909e94d688fca1b50c371d04bd7c131bda29a64e98e8bfc3fbd87aa13",
+      "redactedSha256": "sha256:469ef643e2533499d3fc6ea99a9bc60df78dd0a0b4f301b675adc0c1283fd339",
+      "originalBytes": 241096,
+      "redactedBytes": 241099
+    },
+    {
+      "path": "artifacts/source-prefix-correction-20261012/README.md",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:e8ed52e7e39795b3bd9bd5d30d1920ef4a2152b476ec9a3eec2649786d64d105",
+      "redactedSha256": "sha256:9ab5c3a2a99939e18bf3c1fe4e68e86ce8578019ec506ea6560cec9ffbc20b1f",
+      "originalBytes": 34432,
+      "redactedBytes": 34435
+    }
+  ]
+}

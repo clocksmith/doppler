@@ -1,6 +1,6 @@
 {
   "scope": "Retained raw implementation observations, not independent references",
-  "machine": "x@128",
+  "machine": "amd-host",
   "records": [
     {
       "path": "reports/local/two-f32-candidate-20261012/amd-full55.json",
