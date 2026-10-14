@@ -6583,7 +6583,7 @@
     {
       "file": "tests/gpu/paired-gate-phases.test.js",
       "kind": "asset",
-      "line": 10,
+      "line": 13,
       "expression": "new URL(`../../src/gpu/kernels/${config.shaderFile}`, import.meta.url)"
     },
     {
