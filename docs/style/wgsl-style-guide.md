@@ -5,10 +5,8 @@ Shared naming/logging/testing policy is canonical in [General Style Guide](./gen
 
 ## Kernel Plane Responsibility
 
-- WGSL is the compute plane and executes resolved dispatch parameters only.
-- Control-plane decisions (kernel choice, precision policy, fallback mode) must be resolved before dispatch.
-- WGSL may use constants and uniforms for values but must not branch for policy selection.
-- Keep variant and compatibility policy in JSON/rule assets and JS wrappers, then compile deterministic shader paths.
+- WGSL is the compute plane: it executes resolved dispatch parameters and may use constants and uniforms for values, but never branches for policy selection.
+- Control-plane decisions (kernel choice, precision policy, fallback mode) are resolved before dispatch; variant and compatibility policy stays in JSON/rule assets and JS wrappers, which compile deterministic shader paths.
 
 ## File Structure
 
@@ -59,10 +57,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
 ## Constants vs Uniforms
 
-| Type | When Set | Example | Use For |
-|------|----------|---------|---------|
-| **Constants** (`override`) | Pipeline creation | `HIDDEN_SIZE` | Model dimensions, feature flags |
-| **Uniforms** | Per-dispatch | `seq_len` | Values that change per-inference |
+`override` constants are fixed at pipeline creation; uniforms change per
+dispatch ([decision table](#entry-points-vs-override-constants-vs-uniforms)).
 
 ### Constants (use `override`)
 
@@ -102,27 +98,14 @@ authority. Missing geometry or layout fields fail before pipeline creation.
 
 ### Uniforms (use struct)
 
-Values that change per-inference:
-
-```wgsl
-struct Uniforms {
-    // Position tracking
-    seq_len: u32,           // Number of tokens this pass
-    start_pos: u32,         // Position in sequence (for RoPE)
-    kv_len: u32,            // Current KV cache length
-
-    // Runtime flags
-    is_prefill: u32,        // 1 = prefill, 0 = decode
-
-    // Padding for 16-byte alignment
-    _pad: vec2<u32>,
-}
-```
+Values that change per inference (`seq_len`, `start_pos`, `kv_len`, flags such
+as `is_prefill`) go in the `Uniforms` struct shown in [File Structure](#file-structure),
+padded to 16-byte alignment.
 
 ### Runtime Flags
 
-Runtime-toggled behavior MUST be expressed as explicit uniform fields (not padding).
-Keep JavaScript and WGSL layouts in lockstep, and avoid "hidden" flags that rely on `_pad`.
+Runtime-toggled behavior MUST be an explicit uniform field, never a "hidden"
+flag in `_pad`. Keep JavaScript and WGSL layouts in lockstep.
 
 ```wgsl
 // uniform-layout-example
@@ -145,11 +128,10 @@ compiled and read back by `tests/kernels/kernel-uniform-echo-physical.test.js`.
 
 ### Policy Constants Must Be Config-Driven
 
-Numerical policy values (safety thresholds, tuning bounds, optional feature toggles) must not be hidden as magic literals in shader code.
+Numerical policy values (safety thresholds, tuning bounds, optional feature toggles) must not be hidden as magic literals in shader code. Config owns them; WGSL consumes resolved values.
 
-- If policy is fixed for a kernel path/model family, express it as an `override` constant and set it from kernel-path/config metadata.
-- If policy may vary per dispatch/run, express it as an explicit uniform field.
-- Keep policy ownership in config; WGSL only consumes resolved values.
+- Policy fixed for a kernel path/model family: an `override` constant set from kernel-path/config metadata.
+- Policy that may vary per dispatch/run: an explicit uniform field.
 
 ---
 
@@ -157,25 +139,13 @@ Numerical policy values (safety thresholds, tuning bounds, optional feature togg
 
 ### Standard Layout
 
-```wgsl
-// Binding order: uniforms, inputs (read), outputs (read_write)
-@group(0) @binding(0) var<uniform> u: Uniforms;
-@group(0) @binding(1) var<storage, read> input: array<f32>;
-@group(0) @binding(2) var<storage, read> weights: array<f32>;
-@group(0) @binding(3) var<storage, read_write> output: array<f32>;
-```
+Binding order: uniforms at `@binding(0)`, then `read` inputs, then
+`read_write` outputs, as in [File Structure](#file-structure).
 
 ### With Multiple Weight Buffers
 
-```wgsl
-// FFN example
-@group(0) @binding(0) var<uniform> u: Uniforms;
-@group(0) @binding(1) var<storage, read> input: array<f32>;
-@group(0) @binding(2) var<storage, read> gate_weights: array<f32>;
-@group(0) @binding(3) var<storage, read> up_weights: array<f32>;
-@group(0) @binding(4) var<storage, read> down_weights: array<f32>;
-@group(0) @binding(5) var<storage, read_write> output: array<f32>;
-```
+Extra weights take consecutive `read` bindings after `input` (FFN:
+`gate_weights`, `up_weights`, `down_weights` at 2–4), then `output`.
 
 ### Quantized Weights
 
@@ -195,8 +165,6 @@ struct Q4KBlock {
 
 ## Entry Points vs Override Constants vs Uniforms
 
-This is the key design decision for kernel variants.
-
 **Strict Rule (The "Topology Test"):**
 Do not fork entry points for data values, dimensions, or optional math operations. Only fork entry points when the **loop nesting order** or **synchronization strategy** changes.
 
@@ -208,25 +176,9 @@ Do not fork entry points for data values, dimensions, or optional math operation
 | **Override constants** | Pipeline creation | None (compiler eliminates) | **Parametrization** (Dims, flags, loop bounds) |
 | **Uniforms** | Per-dispatch | Branch divergence | **Dynamic State** (Per-call values only) |
 
-### Decision Tree
-
-```
-Does the Loop Nesting or Sync Strategy change?
-├─ YES → Separate entry point (or separate file)
-│        Examples: GEMV (1D) vs GEMM (2D), Shared Mem vs Subgroups
-│
-└─ NO → Use Override Constants (Parametrization)
-        ├─ Is it known at pipeline creation (Model Load)?
-        │  ├─ YES → Override constant
-        │  │        Examples: HIDDEN_SIZE, WORKGROUP_SIZE, HAS_BIAS
-        │  │
-        │  └─ NO → Uniform (Per-dispatch)
-        │           Examples: seq_len, start_pos
-```
-
 ### USE Entry Points For (Topology Changes)
 
-Forking entry points is a last resort. Use only when the algorithm structure is incompatible.
+A last resort, only when the algorithm structure is incompatible:
 
 *   **Algorithm Topology:** Matrix Multiplication (2D tiled loops) vs Matrix-Vector (1D reduction).
 *   **Hardware Strategy:** `workgroupBarrier()` (Shared Memory) vs `subgroupAdd()` (Intrinsics).
@@ -248,7 +200,6 @@ Even if 10+ constants change (e.g., `WORKGROUP_SIZE`, `TILE_SIZE`, `UNROLL_FACTO
 *   **Dynamic State:** `seq_len`, `start_pos`, `kv_len`.
 *   **Sampling Params:** `temperature` (if it changes per step).
 *   **Runtime Switches:** Only if the value *must* change without reloading the pipeline (rare).
-```
 
 ### DON'T: Explode Entry Points for Feature Combinations
 
@@ -276,19 +227,9 @@ fn main() {
 }
 ```
 
-### DON'T: Mix Activation Functions in One File
-
-```wgsl
-// ☒ BAD - different functions in one file
-fn silu() { ... }
-fn gelu() { ... }
-fn relu() { ... }
-
-// ✓ GOOD - separate files
-// silu.wgsl, gelu.wgsl, relu.wgsl
-```
-
 ### File Organization
+
+Don't mix activation functions in one file.
 
 | Pattern | File Structure |
 |---------|----------------|
@@ -307,8 +248,7 @@ fn relu() { ... }
 
 1. **Binding element types are fixed at compile time**
    - `array<f16>` vs `array<f32>` outputs cannot be toggled by override
-   - If you need one code path, use packed `u32` with explicit unpacking
-   - Otherwise keep separate files (`matmul_f16.wgsl`, `matmul_f32.wgsl`)
+   - For one code path use packed `u32` with explicit unpacking; otherwise keep separate files (`matmul_f16.wgsl`, `matmul_f32.wgsl`)
 
 2. **Array footprint depends on address space**
    - The outermost array of a workgroup variable may use an override-expression
@@ -326,16 +266,13 @@ fn relu() { ... }
    and the executable `benchmarks/compute/override_probe.wgsl` probe.
 
 3. **Workgroup size is part of the pipeline**
-   - Different `@workgroup_size` values are separate pipelines
-   - Use separate files or separate entrypoints with clear variant IDs
+   - Different `@workgroup_size` values are separate pipelines: use separate files or entrypoints with clear variant IDs
 
 4. **Capability requirements are compile-time**
    - If any code path uses `enable f16` or `enable subgroups`, the pipeline requires that capability
    - Keep subgroup/f16 fallbacks as separate files when needed
 
 ### Layout Boundaries
-
-Group kernels by these criteria:
 
 | Operation | Separate Files For |
 |-----------|-------------------|
@@ -354,36 +291,11 @@ Keep non-optimized baseline variants available for debugging:
 
 ### Enforcement
 
-Validate kernel registry and check for policy violations by running the kernel
-harness (`tests/harness.html`, mode `kernels`) and reviewing console warnings.
-
----
-
-## Entry Points (Legacy Guidance)
-
-### Single Entry (Preferred)
-
-```wgsl
-@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
-fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-    // Use override constants for variants
-}
-```
-
-### Multiple Entries (When Justified)
-
-```wgsl
-// For M=1 vs M>1 (different algorithms)
-@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
-fn main() {
-    // GEMV - one row per workgroup
-}
-
-@compute @workgroup_size(TILE_SIZE, TILE_SIZE, 1)
-fn main_batched() {
-    // Tiled GEMM - different workgroup layout
-}
-```
+`npm run kernels:registry:check` statically checks kernel file inventory and
+naming; run it when the change touches kernel files or the registry. The kernel
+harness (`tests/harness.html`, mode `kernels`) reports registry and policy
+violations as console warnings; it is a browser/GPU run governed by the repo
+Development verification rules.
 
 ---
 
@@ -425,14 +337,11 @@ fn main(...) { }
 
 Kernel operation IDs, variant IDs, WGSL filenames, entry points, feature
 requirements, bindings, uniforms, and metadata are owned by
-`src/config/kernels/registry.json`.
-
-Kernel filename inventory and basic naming checks are handled by
-`tools/sync-kernel-reachability.js --check` (`npm run kernels:registry:check`).
+`src/config/kernels/registry.json`. Filename inventory and basic naming checks
+live in `tools/sync-kernel-reachability.js --check` (`npm run kernels:registry:check`).
 Do not add independent kernel suffix grammars in docs; update the registry
-schema/reachability check when the grammar changes.
-
-The cross-language file rule remains: WGSL files use `snake_case.wgsl`.
+schema/reachability check when the grammar changes. WGSL files use
+`snake_case.wgsl`.
 
 ### Constants
 
@@ -632,37 +541,21 @@ struct Uniforms {
 
 ## Kernel Compatibility and Overrides
 
-This section documents execution-v1 kernel compatibility rules and runtime
-overrides.
-
 ### Runtime Kernel Paths
 
 Kernel-path string IDs are removed. Portable kernel identity comes from
 execution-v1 graph steps with pinned WGSL files, entry points, and digests.
-Runtime config may only carry an inline execution-v1-derived `kernelPath`
-object or `null` for no explicit override.
-
-```json
-{
-  "runtime": {
-    "inference": {
-      "kernelPath": null
-    }
-  }
-}
-```
-
+Runtime config (`runtime.inference.kernelPath`) may carry only an inline
+execution-v1-derived object, or `null` for no explicit override.
 Kernel-path precedence and `null` semantics are defined in
 [`../conversion-runtime-contract.md`](../conversion-runtime-contract.md).
-Kernel paths remain explicit dispatch sequences; WGSL must not add its own
-selection behavior.
 
 ### RDRR Layout vs Runtime Kernels
 
 | RDRR Quantization | Layout Metadata | Runtime Kernel Mode | Requirements | Notes |
 |---|---|---|---|---|
 | F16 / BF16 | `defaultWeightLayout=row` or `column` | `gemma2-f16-f16a` or `gemma2-f16-f32a` | `shader-f16` for F16 | Layout affects transpose; kernel path controls arithmetic. |
-| Q4_K_M | `q4kLayout=row_wise` | `gemma2-q4k-fused-f32a`, `gemma2-q4k-fused-f32a`, `gemma2-q4k-dequant-f16a/f32a` | `subgroups` for fused; `shader-f16` for F16 | Row-wise layout required for fused Q4K. |
+| Q4_K_M | `q4kLayout=row_wise` | `gemma2-q4k-fused-f32a`, `gemma2-q4k-dequant-f16a/f32a` | `subgroups` for fused; `shader-f16` for F16 | Row-wise layout required for fused Q4K. |
 | Q4_K_M | `q4kLayout=column_wise` | `gemma2-q4k-dequant-f16a/f32a` | `shader-f16` for F16 | Column-wise capsules are not fused-compatible. |
 | Q4_K_M | `q4kLayout=flat` | `gemma2-q4k-dequant-f16a/f32a` | `shader-f16` for F16 | Flat packing has no fused kernel. |
 | MXFP4 | N/A | dequant + matmul (no dedicated kernel path yet) | `shader-f16` for F16 | Used for MoE experts; no fused matmul yet. |
