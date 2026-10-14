@@ -4,6 +4,7 @@ import { KERNEL_REF_CONTENT_DIGESTS } from '../../src/config/kernels/kernel-ref-
 import { createDopplerConfig } from '../../src/config/schema/index.js';
 import { compileExecutionV1 } from '../../src/inference/pipelines/text/execution-v1.js';
 import { compileExecutionPlanState, resolveExecutionSessionPlan } from '../../src/inference/pipelines/text/execution-plan.js';
+import { resolvePairedAttentionPipeline, resolvePairedAttentionVariant } from '../../src/gpu/kernels/paired-attention.js';
 const execution = JSON.parse(readFileSync(new URL('../../artifacts/paired-intermediates-20261012/signed-closure-correction/execution.json', import.meta.url)));
 for (const [variant, shader] of [
   ['paired_beta', 'qwen_linear_attention_prepare_paired'],
@@ -53,4 +54,20 @@ for (const alter of [
   m => { m.inference.normalization.linearNormGateActivation = 'sigmoid'; },
   m => { delete m.inference.normalization; },
 ]) { const changed = structuredClone(manifest); alter(changed); assert.throws(() => compile(changed), /PairedExecution|Execution|NormGate|normalization must be an object/); }
-console.log('paired execution plan: complete graph admission, exact variants, helper closure, scalar logits and session metadata pass');
+// The declared attention step selects the paired program; a tiled paired program is admitted and
+// dispatched, and attention programs without paired Q/output over F16 K/V fail closed.
+assert.equal(resolvePairedAttentionVariant(plan.primaryPlan.kernelPath, 'decode', 1), 'paired');
+assert.equal(resolvePairedAttentionVariant(null, 'decode', 1), 'paired');
+const tiled = structuredClone(manifest);
+tiled.inference.execution.kernels.attention = { ...tiled.inference.execution.kernels.attention,
+  kernel: 'attention_paired_tiled.wgsl', constants: { WORKGROUP_SIZE: 256, DOT_LANES: 4 },
+  digest: `sha256:${KERNEL_REF_CONTENT_DIGESTS['attention_paired_tiled.wgsl#main']}` };
+const tiledPlan = compile(tiled);
+assert.equal(tiledPlan.primaryPlan.activationPrecision, 'two-f32');
+for (const phase of ['prefill', 'decode']) assert.equal(resolvePairedAttentionVariant(tiledPlan.primaryPlan.kernelPath, phase, 1), 'paired_tiled');
+assert.deepEqual(resolvePairedAttentionPipeline('paired_tiled'), { operation: 'attention', variant: 'paired_tiled', constants: null });
+assert.throws(() => resolvePairedAttentionPipeline('decode_subgroup'), /not a declared paired/);
+const scalarAttention = structuredClone(manifest);
+scalarAttention.inference.execution.kernels.attention.kernel = 'attention_head256_f16kv.wgsl';
+assert.throws(() => compile(scalarAttention), /attention is not bound to the declared paired attention implementation/);
+console.log('paired execution plan: complete graph admission, exact variants, helper closure, scalar logits, tiled attention selection and session metadata pass');

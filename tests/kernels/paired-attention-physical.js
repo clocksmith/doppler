@@ -12,7 +12,7 @@ await mkdir(dirname(destination), { recursive: true });
 const root = resolve(fileURLToPath(new URL('../../', import.meta.url)));
 const receipt = { schema: 'doppler-paired-attention-wrapper-physical-v1', sources: {},
   scope: 'Actual split bit permutations, Q/K normalization, RoPE and causal GQA attention against independent F64 equations; no model qualification.' };
-for (const path of ['src/gpu/kernels/paired-split.js', 'src/gpu/kernels/split_qg_paired.wgsl', 'src/gpu/kernels/split_qkv_paired.wgsl', 'src/gpu/kernels/paired-rope.js', 'src/gpu/kernels/rope_precompute_paired.wgsl', 'src/gpu/kernels/rope_qk_paired.wgsl', 'src/gpu/kernels/rmsnorm-qk.js', 'src/gpu/kernels/paired-rmsnorm.js', 'src/gpu/kernels/paired-attention.js', 'src/gpu/kernels/attention_paired.wgsl', 'src/config/kernels/registry.json', 'src/rules/generated/rule-bundle.json']) {
+for (const path of ['src/gpu/kernels/paired-split.js', 'src/gpu/kernels/split_qg_paired.wgsl', 'src/gpu/kernels/split_qkv_paired.wgsl', 'src/gpu/kernels/paired-rope.js', 'src/gpu/kernels/rope_precompute_paired.wgsl', 'src/gpu/kernels/rope_qk_paired.wgsl', 'src/gpu/kernels/rmsnorm-qk.js', 'src/gpu/kernels/paired-rmsnorm.js', 'src/gpu/kernels/paired-attention.js', 'src/gpu/kernels/attention_paired.wgsl', 'src/gpu/kernels/attention_paired_tiled.wgsl', 'src/config/kernels/registry.json', 'src/rules/generated/rule-bundle.json']) {
   receipt.sources[path] = createHash('sha256').update(await readFile(resolve(root, path))).digest('hex');
 }
 const server = createServer(async (req, res) => {
@@ -102,7 +102,10 @@ try {
         const maxError=Math.max(compare(await numbers(result.q.buffer,q.data.length/2),expected(q.data),2e-12,'Q norm'),compare(await numbers(result.k.buffer,k.data.length/2),expected(k.data),2e-12,'K norm'));
         rows.push({kind:'qknorm',recorded,maxError,tolerance:2e-12});
       }
-      for(const config of [{tokens:3,kv:7,heads:4,kvheads:2,dim:8,start:4,window:0},{tokens:1,kv:9,heads:2,kvheads:1,dim:256,start:8,window:3},{tokens:1,kv:3,heads:2,kvheads:1,dim:8,start:0,kvStart:4,window:0}])for(const recorded of [false,true])for(const borrowed of [false,true]){
+      // Unpinned calls run the shipped program; an execution path pins the tiled program. Two
+      // configurations span several 255-key tiles, exercising the per-tile rescale.
+      const tiledPath={activationDtype:'f32',prefill:{steps:[{op:'attention',kernel:'attention_paired_tiled.wgsl',entry:'main'}]},decode:{steps:[{op:'attention',kernel:'attention_paired_tiled.wgsl',entry:'main'}]}};
+      for(const program of ['paired','paired_tiled'])for(const config of [{tokens:3,kv:7,heads:4,kvheads:2,dim:8,start:4,window:0},{tokens:1,kv:9,heads:2,kvheads:1,dim:256,start:8,window:3},{tokens:1,kv:3,heads:2,kvheads:1,dim:8,start:0,kvStart:4,window:0},{tokens:1,kv:300,heads:2,kvheads:1,dim:256,start:299,window:0},{tokens:3,kv:520,heads:2,kvheads:1,dim:64,start:517,window:0}])for(const recorded of [false,true])for(const borrowed of [false,true]){
         const {tokens,kv,heads,kvheads,dim,start,window}=config,kvStart=config.kvStart??0;
         const q=pair(Array.from({length:tokens*heads*dim},(_,i)=>((i%13)-6)/11+2**-27),[tokens,heads*dim]);
         // These dyadic cache values are exactly representable in F16, independent byte encoding.
@@ -110,7 +113,7 @@ try {
         const half=x=>{if(x===0)return 0;const sign=x<0?0x8000:0,abs=Math.abs(x),e=Math.floor(Math.log2(abs));return sign|((e+15)<<10)|Math.round((abs/2**e-1)*1024);};
         const halfTensor=(values,label)=>{const bytes=new Uint16Array(Math.ceil(values.length/2)*2);bytes.set(values.map(half));return createTensor(make(bytes.byteLength,bytes),'f16',[kv,kvheads*dim],label);};
         const K=halfTensor(kvals,'K'),V=halfTensor(vvals,'V'),scale=1/Math.sqrt(dim),supplied=borrowed?make(tokens*heads*dim*8):null;
-        const options={seqLen:tokens,kvLen:kv,numKVHeads:kvheads,scale,causal:true,startPos:start,kvStart,slidingWindow:window,attnSoftcap:0,kvLayout:'contiguous',outputBuffer:supplied};
+        const options={seqLen:tokens,kvLen:kv,numKVHeads:kvheads,scale,causal:true,startPos:start,kvStart,slidingWindow:window,attnSoftcap:0,kvLayout:'contiguous',outputBuffer:supplied,...(program==='paired_tiled'?{kernelPath:tiledPath}:{})};
         const result=await run(recorded,'paired_attention',()=>runAttention(q.tensor,K,V,null,heads,dim,options),r=>recordAttention(r,q.tensor,K,V,null,heads,dim,options));if(!borrowed)pooled.add(result.buffer);
         const expected=[];
         for(let t=0;t<tokens;t++)for(let h=0;h<heads;h++){
@@ -118,15 +121,15 @@ try {
           const max=Math.max(...scores),weights=scores.map(x=>Math.exp(x-max)),den=weights.reduce((a,b)=>a+b,0);
           for(let d=0;d<dim;d++)expected.push(allowed.length?allowed.reduce((sum,j,i)=>sum+weights[i]*vvals[(j*kvheads+Math.floor(h/(heads/kvheads)))*dim+d],0)/den:0);
         }
-        const maxError=compare(await numbers(result.buffer,expected.length),expected,2e-11,'paired attention');
-        rows.push({kind:'attention',config,recorded,borrowed,maxError,tolerance:2e-11});
+        const maxError=compare(await numbers(result.buffer,expected.length),expected,2e-11,`paired attention (${program})`);
+        rows.push({kind:'attention',program,config,recorded,borrowed,maxError,tolerance:2e-11});
       }
       await device.queue.onSubmittedWorkDone();for(const b of pooled)releaseBuffer(b);pooled.clear();await getBufferPool().settleDeferredDestruction();
       const stats=getBufferPool().getStats();if(stats.activeBuffers!==0||errors.length)throw new Error(JSON.stringify({stats,errors}));
       return {rows,errors,stats,adapter:{vendor:adapter.info.vendor,architecture:adapter.info.architecture},settled:true};
     }finally{await device.queue.onSubmittedWorkDone();for(const b of pooled)releaseBuffer(b);for(const b of owned)b.destroy();destroyBufferPool();destroyDevice();}
   });
-  receipt.browser = browser.version(); receipt.passed = receipt.result.rows.length === 29 && receipt.result.settled;
+  receipt.browser = browser.version(); receipt.passed = receipt.result.rows.length === 57 && receipt.result.settled;
 } catch (error) { receipt.error = error.stack; throw error; }
 finally {
   await browser?.close(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve));

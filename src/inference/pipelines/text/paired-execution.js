@@ -40,9 +40,11 @@ function requireStep(steps, role, operation, variant, outputPrecision = 'two-f32
   if (matches.length !== 1) throw new Error(`[PairedExecution] Exactly one ${role} step is required.`);
   const step = matches[0];
   const config = getKernelPathStepConfig(operation, step);
+  const metadata = config?.variantMetadata;
   if (!config || (variant != null && config.variant !== variant)
-    || (operation === 'matmul' && (config.variantMetadata?.inputPrecision !== 'two-f32'
-      || config.variantMetadata?.outputPrecision !== outputPrecision))) {
+    || ((operation === 'matmul' || operation === 'attention') && (metadata?.inputPrecision !== 'two-f32'
+      || metadata?.outputPrecision !== outputPrecision))
+    || (operation === 'attention' && metadata?.kvDtype !== 'f16')) {
     throw new Error(`[PairedExecution] ${role} is not bound to the declared paired ${operation} implementation.`);
   }
   if ([step.precision?.activationDtype, step.precision?.inputDtype, step.precision?.outputDtype]
@@ -76,7 +78,8 @@ export function validatePairedExecution(path, session, manifest) {
     if (types[layer] === 'full_attention') {
       for (const role of ['q_proj', 'k_proj', 'v_proj']) requireStep(steps, role, 'matmul', null);
       for (const role of ['rope_q', 'rope_k']) requireStep(steps, role, 'rope_qk', 'paired');
-      requireStep(steps, 'attention', 'attention', 'paired');
+      // Any registry attention program declaring paired Q/output over F16 K/V.
+      requireStep(steps, 'attention', 'attention', null);
     } else {
       for (const role of ['linear_qkv_proj', 'linear_z_proj', 'linear_a_proj', 'linear_b_proj']) {
         requireStep(steps, role, 'matmul', null);

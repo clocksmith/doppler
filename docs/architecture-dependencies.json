@@ -4469,6 +4469,7 @@
         "tests/inference/attention-kv-precision-source.test.js",
         "tests/inference/attention-output-projection.test.js",
         "tests/inference/attention-plan.test.js",
+        "tests/inference/attention-probe-representation.test.js",
         "tests/inference/attention-projection-dtype.test.js",
         "tests/inference/attention-projection-offsets.test.js",
         "tests/inference/attention-projections-cleanup.test.js",

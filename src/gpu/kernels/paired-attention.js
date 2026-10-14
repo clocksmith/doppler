@@ -2,12 +2,27 @@ import { createTensor } from '../tensor.js';
 import { getDevice } from '../device.js';
 import { unifiedKernelWrapper, withKernelOutput } from './kernel-execution.js';
 import { getKernelPathAttentionVariant } from '../../config/kernel-path-loader.js';
+import { getKernelConfig } from './kernel-configs.js';
 
 /** @type {Readonly<import('../tensor.js').TensorRepresentation>} */
 const PAIR = Object.freeze({ precision: 'two-f32', components: 2, elementStrideBytes: 8 });
+/** Program used when no execution path pins one (direct kernel calls). */
+const UNPINNED_PAIRED_ATTENTION_VARIANT = 'paired';
 /** @type {typeof import('./paired-attention.js').resolvePairedAttentionPipeline} */
-export function resolvePairedAttentionPipeline() {
-  return { operation: 'attention', variant: 'paired', constants: null };
+export function resolvePairedAttentionPipeline(variant) {
+  const metadata = typeof variant === 'string' ? getKernelConfig('attention', variant).variantMetadata : null;
+  if (metadata?.inputPrecision !== 'two-f32' || metadata.outputPrecision !== 'two-f32' || metadata.kvDtype !== 'f16') {
+    throw new Error(`[PairedAttention] attention/${String(variant)} is not a declared paired Q/output, F16 K/V program.`);
+  }
+  // Registry wgslOverrides carry each program's specialization constants.
+  return { operation: 'attention', variant, constants: null };
+}
+/** @type {typeof import('./paired-attention.js').resolvePairedAttentionVariant} */
+export function resolvePairedAttentionVariant(kernelPath, phase, layerIdx) {
+  if (kernelPath == null) return UNPINNED_PAIRED_ATTENTION_VARIANT;
+  const pinned = getKernelPathAttentionVariant(phase, layerIdx, kernelPath);
+  if (pinned == null) throw new Error('[PairedAttention] Execution path must explicitly select paired attention.');
+  return resolvePairedAttentionPipeline(pinned).variant;
 }
 /** @type {typeof import('./paired-attention.js').executePairedAttention} */
 export async function executePairedAttention(recorder, Q, K, V, mask, numHeads, headDim, options) {
@@ -49,10 +64,7 @@ export async function executePairedAttention(recorder, Q, K, V, mask, numHeads, 
     if (!Number.isSafeInteger(count) || count > 0xffffffff || tensor.buffer.size < count * stride
       || tensor.shape.reduce((product, value) => product * value, 1) < count) throw new Error('[PairedAttention] Logical tensor shape or storage is undersized.');
   }
-  if (options.kernelPath != null) {
-    const pinned = getKernelPathAttentionVariant(seqLen > 1 ? 'prefill' : 'decode', options.layerIdx, options.kernelPath);
-    if (pinned !== 'paired') throw new Error('[PairedAttention] Execution path must explicitly select paired attention.');
-  }
+  const variant = resolvePairedAttentionVariant(options.kernelPath ?? null, seqLen > 1 ? 'prefill' : 'decode', options.layerIdx);
   const bytes = queryCount * 8;
   if (outputBuffer && (outputBuffer.size < bytes || [Q.buffer, K.buffer, V.buffer].includes(outputBuffer))) {
     throw new Error('[PairedAttention] Borrowed output must be distinct and sufficiently sized.');
@@ -62,7 +74,7 @@ export async function executePairedAttention(recorder, Q, K, V, mask, numHeads, 
     throw new Error('[PairedAttention] Device dispatch limits exceeded or no device.');
   }
   return withKernelOutput(recorder, outputBuffer, bytes, 'paired_attention_output', async output => {
-    const pipeline = resolvePairedAttentionPipeline();
+    const pipeline = resolvePairedAttentionPipeline(variant);
     await unifiedKernelWrapper(pipeline.operation, recorder, pipeline.variant, [Q, K, V, output], {
       seq_len: seqLen, kv_len: kvLen, num_heads: numHeads, num_kv_heads: numKVHeads,
       head_dim: headDim, start_pos: startPos, kv_start: kvStart, sliding_window: slidingWindow,

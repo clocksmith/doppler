@@ -7,7 +7,7 @@ import { resolvePairedCastPipeline } from '../../../gpu/kernels/paired-cast.js';
 import { resolvePairedRMSNormPipeline } from '../../../gpu/kernels/paired-rmsnorm.js';
 import { resolvePairedPointwisePipeline } from '../../../gpu/kernels/paired-activation.js';
 import { resolvePairedSplitPipeline } from '../../../gpu/kernels/paired-split.js';
-import { resolvePairedAttentionPipeline } from '../../../gpu/kernels/paired-attention.js';
+import { resolvePairedAttentionPipeline, resolvePairedAttentionVariant } from '../../../gpu/kernels/paired-attention.js';
 import { listPairedLinearAttentionPipelines } from '../../../gpu/kernels/paired-linear-attention.js';
 import { resolvePairedProjectionPipeline } from '../../../gpu/kernels/matmul.js';
 import { resolveRoPEQKPipeline } from '../../../gpu/kernels/rope-qk.js';
@@ -132,7 +132,7 @@ function enumeratePairedStage(owner, allocation, requests) {
       { rmsNormWeightOffset: offset, ...UNFUSED }));
     const layerType = config.layerTypes?.[layerIdx];
     if (layerType === 'full_attention') {
-      enumeratePairedFullAttention(owner, layerIdx, weights, requests, projection);
+      enumeratePairedFullAttention(owner, layerIdx, weights, requests, projection, kernelPath);
     } else if (layerType === 'linear_attention') {
       for (const [role, field] of [['linear_qkv_proj', 'qkvProj'], ['linear_z_proj', 'linearInProjZ'],
         ['linear_a_proj', 'linearInProjA'], ['linear_b_proj', 'linearInProjB']]) {
@@ -180,8 +180,9 @@ function enumeratePairedStage(owner, allocation, requests) {
  * @param {Record<string, unknown>} weights
  * @param {ReturnType<typeof createRequestSet>} requests
  * @param {(role: string, weight: unknown, layerIdx: number) => void} projection
+ * @param {import('../../../config/schema/kernel-path.schema.js').KernelPathSchema | null} kernelPath
  */
-function enumeratePairedFullAttention(owner, layerIdx, weights, requests, projection) {
+function enumeratePairedFullAttention(owner, layerIdx, weights, requests, projection, kernelPath) {
   const config = /** @type {NonNullable<typeof owner.modelConfig>} */ (owner.modelConfig);
   if (weights.qkvProj && weights.qkvSizes) throw new NotEnumerable(`Layer ${layerIdx} fuses Q/K/V projections outside the declared paired program.`);
   projection('q_proj', weights.qProj, layerIdx);
@@ -211,7 +212,9 @@ function enumeratePairedFullAttention(owner, layerIdx, weights, requests, projec
   }
   // Paired K/V store directly into the F16 contiguous cache.
   requests.add('kv_cache_store', resolvePairedCastPipeline(false));
-  requests.add('attention', resolvePairedAttentionPipeline());
+  for (const phase of PHASES) {
+    requests.add('attention', resolvePairedAttentionPipeline(resolvePairedAttentionVariant(kernelPath, phase, layerIdx)));
+  }
   if (config.attentionOutputGate === true) {
     requests.add('attention_output_gate', resolvePairedPointwisePipeline(ATTENTION_OUTPUT_GATE_ACTIVATION,
       { inplace: false, gatedInputActivation: 'identity' }));
