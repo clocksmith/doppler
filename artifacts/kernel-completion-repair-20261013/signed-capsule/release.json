@@ -68,7 +68,7 @@
   },
   "revocation": {
     "authorityId": "reploid-paired-qualification-20261012",
-    "policyDigest": "sha256:264bae94adf893f2e3d6602830d1b850e549e90e497f0704f914f04c45dec89c",
+    "policyDigest": "sha256:c0692294e2ba6643ce3e13b875525e0b39d8d378703d2c12e9697f4eef8c26a6",
     "offlineExpirySeconds": 86400,
     "failClosedAfterExpiry": true
   },

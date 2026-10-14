@@ -1,20 +1,20 @@
 {
-  "repoRoot": "/var/tmp/qwen35-capsule-completion-20261013-b/source",
-  "programBundlePath": "/var/tmp/qwen35-capsule-completion-20261013-b/artifacts/program-bundle.json",
-  "manifestPath": "/var/tmp/qwen35-capsule-completion-20261013-b/source/capsule-input/model/manifest.json",
-  "modelDir": "/var/tmp/qwen35-capsule-completion-20261013-b/source/capsule-input/model",
+  "repoRoot": "/var/tmp/qwen35-capsule-completion-20261013-c/source",
+  "programBundlePath": "/var/tmp/qwen35-capsule-completion-20261013-c/artifacts/program-bundle.json",
+  "manifestPath": "/var/tmp/qwen35-capsule-completion-20261013-c/source/capsule-input/model/manifest.json",
+  "modelDir": "/var/tmp/qwen35-capsule-completion-20261013-c/source/capsule-input/model",
   "modelIRReceiptPath": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/model-ir-receipt.json",
-  "initialExecutionIdentityPath": "/var/tmp/qwen35-capsule-completion-20261013-b/initial-identity.json",
+  "initialExecutionIdentityPath": "/var/tmp/qwen35-capsule-completion-20261013-c/initial-identity.json",
   "qualificationReportPaths": [
     "/Users/xyz/deco/reploid/artifacts/completion-qualification-2-20261013/reports/partition-0.json",
     "/Users/xyz/deco/reploid/artifacts/completion-qualification-2-20261013/reports/partition-1.json",
     "/Users/xyz/deco/reploid/artifacts/completion-qualification-2-20261013/reports/partition-2.json"
   ],
   "residentQualificationContractPath": "/Users/xyz/deco/reploid/artifacts/completion-qualification-2-20261013/reports/contract.json",
-  "pieceIndexPath": "/var/tmp/qwen35-capsule-completion-20261013-b/pieces.json",
-  "releaseManifestPath": "/var/tmp/qwen35-capsule-completion-20261013-b/release.json",
+  "pieceIndexPath": "/var/tmp/qwen35-capsule-completion-20261013-c/pieces.json",
+  "releaseManifestPath": "/var/tmp/qwen35-capsule-completion-20261013-c/release.json",
   "signingPrivateKeyPath": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/signing-private.jwk.json",
   "signingPublicKeyPath": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/signing-public.jwk.json",
   "signingAuthority": "reploid-paired-qualification-20261012",
-  "outputPath": "/var/tmp/qwen35-capsule-completion-20261013-b/capsule.json"
+  "outputPath": "/var/tmp/qwen35-capsule-completion-20261013-c/capsule.json"
 }

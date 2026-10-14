@@ -6,7 +6,7 @@
   "deviceInfo": [
     {
       "index": 0,
-      "host": "mac.lan"
+      "host": "mac-host"
     },
     {
       "index": 1,

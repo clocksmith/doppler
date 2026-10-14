@@ -1,22 +1,22 @@
 {
   "ok": true,
   "forgeVersion": "2.0.0",
-  "outputPath": "../../../../var/tmp/qwen35-capsule-completion-20261013-b/capsule.json",
-  "absoluteOutputPath": "/var/tmp/qwen35-capsule-completion-20261013-b/capsule.json",
+  "outputPath": "../../../../var/tmp/qwen35-capsule-completion-20261013-c/capsule.json",
+  "absoluteOutputPath": "/var/tmp/qwen35-capsule-completion-20261013-c/capsule.json",
   "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
-  "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v2-82e0871ad5e9cc82",
-  "semanticRoot": "sha256:82e0871ad5e9cc8207f3b27679644d0494118d9421ca0c414377e357633e103b",
-  "envelopeHash": "sha256:1639cb541e5addcba5288883ff7d66613e561566d64deac9a8ec9605b688e895",
+  "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v2-e90af66faf52404f",
+  "semanticRoot": "sha256:e90af66faf52404f5927ae26982546f6cd403f460b1f2dd815e33e0e967f5bd9",
+  "envelopeHash": "sha256:0cec6b019fd60387f9984f4f96b45ba9a79145215446a909807d96208c93af1c",
   "schema": "doppler.capsule/v2",
   "schemaVersion": 2,
-  "createdAtUtc": "2026-10-14T01:56:35.680Z",
+  "createdAtUtc": "2026-10-14T02:14:06.662Z",
   "sourceBundleId": "qwen-3-5-0-8b-q4k-ehaf16-9e28445d7982",
-  "programBundlePath": "/var/tmp/qwen35-capsule-completion-20261013-b/artifacts/program-bundle.json",
+  "programBundlePath": "/var/tmp/qwen35-capsule-completion-20261013-c/artifacts/program-bundle.json",
   "executionGraphHash": "sha256:9e28445d798247290e44150f244b87e5ee1f8d97754baf3ed434bf95440549cf",
   "artifactCount": 64,
   "wgslModuleCount": 35,
   "targetPlanDigests": [
-    "sha256:750ed2c03d4447c1081dbd6500117b6d748a473bbea3db26aaa1493e29ccc655"
+    "sha256:767ab4683072a5a34d5eb3adcd545b9ac971fec54ee1e8a8fb6ba57ebca1d5f0"
   ],
   "stages": [
     {
@@ -62,10 +62,10 @@
   ],
   "searchReceipt": {
     "candidateTargetPlanHashes": [
-      "sha256:750ed2c03d4447c1081dbd6500117b6d748a473bbea3db26aaa1493e29ccc655"
+      "sha256:767ab4683072a5a34d5eb3adcd545b9ac971fec54ee1e8a8fb6ba57ebca1d5f0"
     ],
     "selectedTargetPlanHashes": [
-      "sha256:750ed2c03d4447c1081dbd6500117b6d748a473bbea3db26aaa1493e29ccc655"
+      "sha256:767ab4683072a5a34d5eb3adcd545b9ac971fec54ee1e8a8fb6ba57ebca1d5f0"
     ],
     "policy": "closed-program-source-plan",
     "evaluationReceipt": null

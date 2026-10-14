@@ -3,7 +3,7 @@
   "schemaVersion": 1,
   "bundleId": "qwen-3-5-0-8b-q4k-ehaf16-9e28445d7982",
   "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
-  "createdAtUtc": "2026-10-14T01:56:35.680Z",
+  "createdAtUtc": "2026-10-14T02:14:06.662Z",
   "package": {
     "schema": "doppler.program-bundle-package/v1",
     "root": ".",
@@ -239,7 +239,7 @@
       "expandedStepHash": "sha256:4cd4c5bc3efd209ca1b2cb36d094e8c9e7d4f0f1655ac6ae429feca169281559"
     },
     "weightSetHash": "sha256:4bca8ba4d62afe392ad46f9c64b96bd5293166c443200b43a4a7ebfd74480c98",
-    "artifactSetHash": "sha256:8f9d5049e065399d9f30532b2952f52a8106e3539fcacf9356bffb533bdee274"
+    "artifactSetHash": "sha256:6ed32f8d93020984edc8f78a733bc2e35b89be14c6cf8f9f204261397a144b3e"
   },
   "host": {
     "schema": "doppler.host-js/v1",
@@ -4981,11 +4981,11 @@
     "adapter": {
       "source": "reference-report",
       "surface": "node-webgpu",
-      "deviceInfoHash": "sha256:902cf9bfb4e1fa91225ad5f67681df9bd5dda5c4828fc5372e2c8aee264f095d",
+      "deviceInfoHash": "sha256:26e53bc3896838813915a56cfa64c54a81fd242c6f36dd726672abe79b301f7f",
       "deviceInfo": [
         {
           "index": 0,
-          "host": "mac.lan"
+          "host": "mac-host"
         },
         {
           "index": 1,
@@ -5002,7 +5002,7 @@
       "dispatch": "stable-json-sha256",
       "transcript": "stable-json-sha256"
     },
-    "captureHash": "sha256:290444acfaedbd2b193e9e21066300472b87deb453647af2bdb64493de698899"
+    "captureHash": "sha256:43c593a1a233b4a30280e03c7237a4c8341e63a77d52b25739cecbfb8754a339"
   },
   "artifacts": [
     {
@@ -5020,8 +5020,8 @@
     {
       "role": "reference-report",
       "path": "capsule-input/generation-report.json",
-      "hash": "sha256:729c2f36c15076f4934348c32ea8900df8f6bf5f488c3563c5209fac60674da9",
-      "sizeBytes": 5381
+      "hash": "sha256:c70dfd8704286e3bfee643089bd54fa39607552681a1cf786f3ca5b68f62620f",
+      "sizeBytes": 5382
     },
     {
       "role": "tokenizer",
@@ -5353,7 +5353,7 @@
     "source": {
       "kind": "browser-report",
       "path": "capsule-input/generation-report.json",
-      "hash": "sha256:729c2f36c15076f4934348c32ea8900df8f6bf5f488c3563c5209fac60674da9"
+      "hash": "sha256:c70dfd8704286e3bfee643089bd54fa39607552681a1cf786f3ca5b68f62620f"
     },
     "executionGraphHash": "sha256:9e28445d798247290e44150f244b87e5ee1f8d97754baf3ed434bf95440549cf",
     "surface": "node-webgpu",
