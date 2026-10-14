@@ -4,6 +4,7 @@ import { getBuffer, getWeightDtype, getLayout } from '../weight-buffer.js';
 import { unifiedKernelWrapper } from './kernel-execution.js';
 import { selectRuleValue } from './rule-registry.js';
 import { getDevice } from '../device.js';
+import { getKernelConfig } from './kernel-configs.js';
 
 /** @type {Readonly<import('../tensor.js').TensorRepresentation>} */
 const REPRESENTATION = Object.freeze({ precision: 'two-f32', components: 2, elementStrideBytes: 8 });
@@ -22,7 +23,15 @@ export function resolvePairedMatmulPipeline(weight, options) {
   }
   const transpose = automatic ? layout === 'row' : options.transposeB === true;
   const scalarOutput = options.outputPrecision === 'f32';
-  return { operation: 'matmul', variant: selectRuleValue('matmul', 'pairedVariant', { weightDtype: dtype, scalarOutput }),
+  const ruled = selectRuleValue('matmul', 'pairedVariant', { weightDtype: dtype, scalarOutput });
+  // An execution step may declare a registry program that replaces the ruled one for the same
+  // weight encoding and output form; anything else declared here fails closed.
+  const declared = options.programVariant ?? ruled;
+  const replaces = /** @type {{ variant?: unknown } | undefined} */ (getKernelConfig('matmul', declared).variantMetadata?.replacesMechanism);
+  if (declared !== ruled && replaces?.variant !== ruled) {
+    throw new Error(`[PairedMatmul] Declared matmul/${declared} does not replace matmul/${ruled} for this weight and output.`);
+  }
+  return { operation: 'matmul', variant: declared,
     constants: { WORKGROUP_SIZE: 64, WEIGHT_F16: dtype === 'f16', WEIGHT_Q4K: dtype === 'q4k',
       TRANSPOSE_B: transpose, SCALAR_OUTPUT: scalarOutput } };
 }

@@ -79,6 +79,12 @@ export interface KernelUniformValues {
   "matmul/paired_f32_scalar": Parameters<typeof writers0.write_matmul_paired_f32>[1];
   "matmul/paired_f16_scalar": Parameters<typeof writers0.write_matmul_paired_f32>[1];
   "matmul/paired_q4k_scalar": Parameters<typeof writers0.write_matmul_paired_f32>[1];
+  "matmul/paired_f32_compensated": Parameters<typeof writers0.write_matmul_paired_f32>[1];
+  "matmul/paired_f16_compensated": Parameters<typeof writers0.write_matmul_paired_f32>[1];
+  "matmul/paired_q4k_compensated": Parameters<typeof writers0.write_matmul_paired_f32>[1];
+  "matmul/paired_f32_scalar_compensated": Parameters<typeof writers0.write_matmul_paired_f32>[1];
+  "matmul/paired_f16_scalar_compensated": Parameters<typeof writers0.write_matmul_paired_f32>[1];
+  "matmul/paired_q4k_scalar_compensated": Parameters<typeof writers0.write_matmul_paired_f32>[1];
   "fused_ffn/default": Parameters<typeof writers0.write_fused_ffn_default>[1];
   "fused_ffn/multi": Parameters<typeof writers0.write_fused_ffn_default>[1];
   "fused_ffn/f16": Parameters<typeof writers0.write_fused_ffn_default>[1];

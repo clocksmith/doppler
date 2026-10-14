@@ -7,7 +7,11 @@ import { chromium } from 'playwright';
 const destination = process.argv[2];
 if (!destination) throw new Error('Provide receipt destination.');
 await mkdir(dirname(destination), { recursive: true });
-const source = await readFile(new URL('../../src/gpu/kernels/matmul_paired.wgsl', import.meta.url), 'utf8');
+// Optional program: matmul_paired (default) or matmul_paired_compensated, the declared
+// replacement with per-lane compensated accumulation; same constants and dispatch.
+const program = process.argv[3] ?? 'matmul_paired';
+if (program !== 'matmul_paired' && program !== 'matmul_paired_compensated') throw new Error('Program must be matmul_paired or matmul_paired_compensated.');
+const source = await readFile(new URL(`../../src/gpu/kernels/${program}.wgsl`, import.meta.url), 'utf8');
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 let seed = 624901;
 function random() { seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5; return (seed >>> 0) / 2 ** 32; }
@@ -42,7 +46,7 @@ for (const dtype of ['f32', 'f16', 'q4k']) for (const scalar of [false, true]) {
   }
   cases.push({ dtype, scalar, M, N, K, input, bytes: Array.from(bytes), values, alpha: 1.1 });
 }
-const receipt = { schema: 'doppler-paired-matmul-physical-v1', shaderSha256: hash(source), fixtureSha256: hash(JSON.stringify(cases)), seed: 624901, tolerance: 2e-12,
+const receipt = { schema: 'doppler-paired-matmul-physical-v1', ...(program === 'matmul_paired' ? {} : { program }), shaderSha256: hash(source), fixtureSha256: hash(JSON.stringify(cases)), seed: 624901, tolerance: 2e-12,
   scope: 'Independent F64 dot products of exact represented inputs/weights; Q4K fixture built from independent scales/minima/quants, fixed source F32 weight materialization. Public scalar output must match nearest F32 bits.', cases: [] };
 const server = createServer((_req, res) => res.end('<!doctype html>'));
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));

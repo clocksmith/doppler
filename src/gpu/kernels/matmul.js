@@ -214,7 +214,7 @@ function resolvePairedProjectionWeight(weight, pathVariant, requestedOutputPreci
 export function resolvePairedProjectionPipeline(weight, options) {
   const pathVariant = getKernelPathMatmulVariant(options.role, options.phase, options.layerIdx, options.kernelPath);
   return resolvePairedMatmulPipeline(resolvePairedProjectionWeight(weight, pathVariant, options.outputPrecision),
-    { transposeB: options.transposeB, outputPrecision: options.outputPrecision });
+    { transposeB: options.transposeB, outputPrecision: options.outputPrecision, programVariant: pathVariant });
 }
 
 async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
@@ -238,7 +238,7 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   if (A.precision === 'two-f32') {
     if (options.outputDtype !== 'f32') throw new Error('[Matmul] Paired activation projections require explicit F32 component dtype.');
     return executePairedMatmul(recorder, A, resolvePairedProjectionWeight(B, pathVariant, options.outputPrecision),
-      M, N, K, options);
+      M, N, K, { ...options, programVariant: pathVariant });
   }
   if (pathVariant && getKernelConfig('matmul', pathVariant).variantMetadata?.inputPrecision === 'two-f32') {
     throw new Error('[Matmul] Declared paired kernel requires explicit paired Tensor metadata.');
