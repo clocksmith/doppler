@@ -204,8 +204,13 @@ physical GPU (Apple metal-3) on 2026-10-14; receipts are in
   `amd-host` (AMD RDNA3, Vulkan) both commands also pass: the Node test through
   the final-9 Dawn module, and the paired physical test with sigmoid and silu in
   Chrome 146 ([`gpu-verification-20261014/amd-host/`](gpu-verification-20261014/amd-host/);
-  amdgpu error count unchanged). Intel Vulkan is not yet run; CI has no WebGPU
-  adapter.
+  amdgpu error count unchanged). On `intel-host` (Intel Gen12LP, Mesa 24.2.8
+  ANV) both pass too: the Node test, and the paired test with sigmoid and silu in
+  Chrome 136 at tolerance 2e-11
+  ([`gpu-verification-20261014/intel-host/`](gpu-verification-20261014/intel-host/)).
+  Both ran with a private Mesa shader cache (`MESA_SHADER_CACHE_DIR`) so an
+  interrupted compile could not affect the shared cache, and the i915
+  hang/reset count was unchanged. CI has no WebGPU adapter.
 - Rule-based kernel selection and registry `normGateActivation` metadata fail
   closed when a kernel's gate activation differs from the manifest's.
 
@@ -284,8 +289,8 @@ The CPU expert execution reference is now in place at full geometry (MoE block a
    `linearNormGateActivation: "sigmoid"`; conversion rejects omission or silu.
    No Flash-Next conversion config or RDRR artifact exists yet.
 3. GPU verification of the sigmoid gated-delta kernels against the CPU
-   reference on Intel Vulkan (Apple metal-3 and AMD RDNA3 Vulkan done
-   2026-10-14, see above). Neither establishes Flash-Next numerics on
+   reference: done 2026-10-14 on Apple metal-3, AMD RDNA3 Vulkan and Intel
+   Gen12LP Vulkan (see above). Neither establishes Flash-Next numerics on
    learned weights.
 4. License suitability: the checkpoint files are under the Qwen Community
    License 1.0 and the nine Transformers files under Apache-2.0
