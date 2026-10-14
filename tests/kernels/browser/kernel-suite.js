@@ -317,7 +317,8 @@ export async function runKernelSuite(harness) {
         const buffer = acquireBuffer(data.byteLength); owned.push(buffer); uploadData(buffer, data); return buffer;
       };
       try {
-        for (const dtype of ['f32', 'f16']) {
+        // F16 runs only where the device exposes shader-f16 (not SwiftShader CI).
+        for (const dtype of device.features.has('shader-f16') ? ['f32', 'f16'] : ['f32']) {
           const input = dtype === 'f16' ? f32ArrayToF16(values) : values;
           const rounded = dtype === 'f16' ? Float32Array.from(input, f16ToF32) : values;
           const inputBuffer = allocate(input), weight = allocate(new Float32Array(values.length).fill(1));
@@ -377,7 +378,7 @@ export async function runKernelSuite(harness) {
             const buffer = acquireBuffer(data.byteLength); owned.push(buffer); uploadData(buffer, data); return buffer;
           };
           try {
-            const layerState = { ...p, vSize: p.valueDim,
+            const layerState = { ...p, vSize: p.valueDim, recurrentStatePrecision: 'f32', recurrentStateComponents: 1, // captured F32 state lane
               convStateGPU: allocate(new Float32Array(p.convDim * p.convKernelSize)),
               recurrentStateGPU: allocate(new Float32Array(p.numVHeads * p.headKDim * p.headVDim)) };
             for (const role of ['convWeight', 'dtBias', 'aLog', 'normWeight']) layerState[`${role}GPU`] = allocate(inputs[role]);
