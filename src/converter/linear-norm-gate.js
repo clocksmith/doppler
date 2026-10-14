@@ -71,9 +71,12 @@ export function resolveSourceLinearNormGateActivation(rawConfig) {
  * Conversion contract: an authored inference.normalization.linearNormGateActivation
  * must equal the source semantics, and a source whose activation differs from
  * the legacy default must author it. Pre-field Qwen3.5 configs stay valid.
+ * `established` is the activation an existing manifest already declares (or
+ * its legacy default), used when refreshing that manifest instead of
+ * converting from source.
  * @type {typeof import('./linear-norm-gate.js').assertConvertedLinearNormGateActivation}
  */
-export function assertConvertedLinearNormGateActivation(inference, rawConfig, modelId) {
+export function assertConvertedLinearNormGateActivation(inference, rawConfig, modelId, established = null) {
   const declared = inference?.normalization?.linearNormGateActivation;
   if (declared !== undefined && !ACTIVATIONS.includes(declared)) {
     throw new Error(
@@ -81,7 +84,9 @@ export function assertConvertedLinearNormGateActivation(inference, rawConfig, mo
       `supported: ${LINEAR_NORM_GATE_ACTIVATIONS.join(', ')}.`
     );
   }
-  const source = resolveSourceLinearNormGateActivation(rawConfig);
+  // A refresh of an existing manifest supplies that manifest's own resolved
+  // activation; its retained config need not carry the source model_type.
+  const source = established ?? resolveSourceLinearNormGateActivation(rawConfig);
   if (source === null) {
     if (declared === undefined && sourceDeclaresLinearAttention(rawConfig)) {
       throw new Error(

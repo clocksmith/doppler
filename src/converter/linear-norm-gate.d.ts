@@ -16,9 +16,13 @@ export declare function resolveSourceLinearNormGateActivation(
   rawConfig: Record<string, unknown> | null | undefined
 ): LinearNormGateActivation | null;
 
-/** Throw when an authored activation disagrees with the source, or a non-legacy source omits it. */
+/**
+ * Throw when an authored activation disagrees with the source, or a non-legacy source omits it.
+ * `established` replaces source-family inference when refreshing an existing manifest.
+ */
 export declare function assertConvertedLinearNormGateActivation(
   inference: { normalization?: { linearNormGateActivation?: unknown } } | null | undefined,
   rawConfig: Record<string, unknown> | null | undefined,
-  modelId: string
+  modelId: string,
+  established?: LinearNormGateActivation | null
 ): void;

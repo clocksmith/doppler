@@ -52,6 +52,11 @@ assert.throws(() => assertConvertedLinearNormGateActivation(declared('swish'), q
 const unknownLinear = { model_type: 'future_hybrid', layer_types: ['linear_attention', 'full_attention'] };
 assert.throws(() => assertConvertedLinearNormGateActivation(declared(undefined), unknownLinear, 'future'), /without a known norm-gate mapping/);
 assert.doesNotThrow(() => assertConvertedLinearNormGateActivation(declared('sigmoid'), unknownLinear, 'future'));
+// Refreshing an existing manifest: its retained config may lack model_type, so the
+// manifest's own activation (absent = legacy silu) replaces family inference.
+assert.doesNotThrow(() => assertConvertedLinearNormGateActivation(declared(undefined), unknownLinear, 'refresh', 'silu'));
+assert.throws(() => assertConvertedLinearNormGateActivation(declared('sigmoid'), unknownLinear, 'refresh', 'silu'), /applies silu/);
+assert.throws(() => assertConvertedLinearNormGateActivation(declared(undefined), unknownLinear, 'refresh', 'sigmoid'), /must author/);
 assert.doesNotThrow(() => assertConvertedLinearNormGateActivation(declared(undefined), { model_type: 'gemma3' }, 'gemma'));
 
 // The checked-in Qwen3.5 conversion config converts unchanged (no field stamped);
