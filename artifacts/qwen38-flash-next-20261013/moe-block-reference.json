@@ -1,0 +1,353 @@
+{
+  "schema": "doppler.qwen38-moe-block-reference/v1",
+  "checkpoint": "de4b8e4d43b917e7706784d8bb445c9af86a3540",
+  "upstream": "e0eb2810ac1b2caf6d082f247d8d37162ecf67a0",
+  "torch": "2.11.0",
+  "surface": "CPU",
+  "environment": {
+    "machine": "arm64",
+    "blas": "accelerate",
+    "float32MatmulPrecision": "highest",
+    "threads": 2
+  },
+  "scope": "Unchanged upstream SparseMoeBlock, router, eager experts, shared expert and sigmoid gate at full geometry with synthetic F32 weights; pinned batched_mm and grouped_mm implementations; no checkpoint weights or Doppler execution",
+  "sourceNodes": {
+    "modeling_qwen4_exp.py": [
+      "Qwen4ExpTextMLP",
+      "Qwen4ExpTextExperts",
+      "Qwen4ExpTextTopKRouter",
+      "Qwen4ExpTextSparseMoeBlock"
+    ],
+    "integrations_moe.py": [
+      "_batched_linear",
+      "batched_mm_experts_forward",
+      "_can_use_grouped_mm",
+      "_grouped_mm",
+      "_grouped_linear",
+      "grouped_mm_experts_forward",
+      "_default_apply_gate",
+      "use_experts_implementation"
+    ],
+    "activations.py": [
+      "SiLUActivation"
+    ]
+  },
+  "testPorts": [
+    "ExpertWeights generates synthetic expert e on access instead of the dense 512-expert tensor",
+    "ExpertsRegistry stub resolves eager, batched_mm and grouped_mm like ExpertsInterface",
+    "grouped_mm runs on the hit experts with a monotonic id remap because it needs one dense weight tensor",
+    "deepgemm and sonicmoe are CUDA implementations and are not run"
+  ],
+  "geometry": {
+    "hiddenSize": 2560,
+    "experts": 512,
+    "topK": 10,
+    "expertIntermediate": 640,
+    "sharedIntermediate": 640,
+    "activation": "silu",
+    "tokens": 8
+  },
+  "recipe": {
+    "values": "splitmix64(index + stream<<40) >> 40, minus 2^23, times 2^(exponent-23); exact F32",
+    "weights": [
+      {
+        "name": "gate.weight",
+        "shape": [
+          512,
+          2560
+        ],
+        "stream": 64,
+        "exponent": -5,
+        "sha256": "f6b5a151a745ebbdd0e789d60279cac0d786c1deb81702c2a197e199d477606f"
+      },
+      {
+        "name": "shared_expert.down_proj.weight",
+        "shape": [
+          2560,
+          640
+        ],
+        "stream": 128,
+        "exponent": -4,
+        "sha256": "b699c22e7a0a6b5866c53448176fd20783e2eef871310aa0c539d716b281f1fa"
+      },
+      {
+        "name": "shared_expert.gate_proj.weight",
+        "shape": [
+          640,
+          2560
+        ],
+        "stream": 129,
+        "exponent": -5,
+        "sha256": "8cc86ba3c6d439ec72d93185c6ec33fdaa4af8c54447d914fb0740271af59f01"
+      },
+      {
+        "name": "shared_expert.up_proj.weight",
+        "shape": [
+          640,
+          2560
+        ],
+        "stream": 130,
+        "exponent": -5,
+        "sha256": "29b62ec0319c016e6fe9460a08a1241cbf591f5e635d0172fe74ba127c11fb73"
+      },
+      {
+        "name": "shared_expert_gate.weight",
+        "shape": [
+          1,
+          2560
+        ],
+        "stream": 192,
+        "exponent": -5,
+        "sha256": "d0055da6ba135c6cab30ae172762a91fad445550148d81ec39536eee674dc275"
+      },
+      {
+        "name": "experts.gate_up_proj[e]",
+        "shape": [
+          1280,
+          2560
+        ],
+        "stream": "65536 + e",
+        "exponent": -5
+      },
+      {
+        "name": "experts.down_proj[e]",
+        "shape": [
+          2560,
+          640
+        ],
+        "stream": "131072 + e",
+        "exponent": -4
+      }
+    ],
+    "hidden": {
+      "stream": 4096,
+      "exponent": 1,
+      "token1": "token 0 with elements 0..63 from stream 4097",
+      "token7": "copy of token 6",
+      "sha256": "2d2e695e0402e4ffb84a1cbb28603443f7591473a11163df3f0beac0b094af82"
+    }
+  },
+  "routing": {
+    "indices": [
+      [
+        25,
+        247,
+        151,
+        65,
+        71,
+        12,
+        217,
+        136,
+        383,
+        485
+      ],
+      [
+        25,
+        247,
+        151,
+        71,
+        12,
+        130,
+        65,
+        485,
+        4,
+        113
+      ],
+      [
+        165,
+        141,
+        368,
+        207,
+        4,
+        151,
+        58,
+        71,
+        329,
+        505
+      ],
+      [
+        28,
+        369,
+        457,
+        248,
+        304,
+        102,
+        115,
+        374,
+        494,
+        147
+      ],
+      [
+        235,
+        463,
+        493,
+        383,
+        215,
+        331,
+        349,
+        124,
+        494,
+        290
+      ],
+      [
+        26,
+        11,
+        462,
+        248,
+        288,
+        75,
+        77,
+        113,
+        105,
+        80
+      ],
+      [
+        237,
+        51,
+        211,
+        459,
+        20,
+        7,
+        168,
+        135,
+        134,
+        9
+      ],
+      [
+        237,
+        51,
+        211,
+        459,
+        20,
+        7,
+        168,
+        135,
+        134,
+        9
+      ]
+    ],
+    "weightsSha256": "beb44440682ceb57a8b4e3e81c4116c27b4b0dd66646dedeeada4552a4ce15bf",
+    "distinctExperts": 56,
+    "maxTokensPerExpert": 3,
+    "expertsShared": 22,
+    "logitMaxRatio": 0.0009066507468848715,
+    "selectionProvenStableTokens": 7,
+    "minSelectionMargin": -0.008465554627593557
+  },
+  "derivation": [
+    "Linear: |fl(Wx) - Wx| <= gamma_n |W||x| for any summation order (n = 2560 or 640), float32 matmul precision \"highest\".",
+    "PyTorch CPU float kernels at the executed commit: silu = x / (1 + exp(-x)), sigmoid = 1 / (1 + exp(-x)); exp within 4u (2 ulp).",
+    "Activation of a perturbed argument: |f(x~) - f(x)| <= L|dx| with L = 1.0999 (silu) or 1/4 (sigmoid), plus relative rounding 3.576e-07 of the computed value.",
+    "Products and sums carry |da||b| + |a||db| + |da||db| + u(|a|+|da|)(|b|+|db|) and da + db + u(|a+b| + da + db); every rounding adds 2^-126 for underflow.",
+    "Expert combine: each token sums its 10 weighted expert outputs (index_add_ into zeros, or view(T, 10, H).sum(1)); any order gives gamma_9.",
+    "The same order-independent bound covers the eager, batched_mm and grouped_mm implementations.",
+    "Routing weights and indices are the captured router outputs; the router has its own derived bound in expert-reference-fixtures.json.",
+    "Float64 truth: every bound is scaled by 1 + 2^-28, which covers float64 rounding (2^-29 of each F32 term)."
+  ],
+  "constants": {
+    "u": 5.960464477539063e-08,
+    "gamma2560": 0.00015261117724262125,
+    "gamma640": 3.814842790328611e-05,
+    "gamma9": 5.36442090748478e-07,
+    "epsSilu": 3.5762798944460883e-07,
+    "epsSigmoid": 3.5762798944460883e-07,
+    "lSilu": 1.0999,
+    "cExp": 4
+  },
+  "experts": {
+    "implementations": {
+      "eager": {
+        "maxRatio": 6.481573664178512e-06,
+        "maxAbsDifferenceFromEager": 0.0,
+        "bitwiseEqualToEager": true,
+        "sha256": "a156ce9423c751432024b0a69ba3c9a2c919f7fb5e2abbcad7bcf01ffe9cf2af"
+      },
+      "batched_mm": {
+        "maxRatio": 1.3519654760602211e-06,
+        "maxAbsDifferenceFromEager": 1.0728836059570312e-06,
+        "bitwiseEqualToEager": false,
+        "sha256": "d91f3bf82a3c201c4d0a1cc2ee7bd4a3f6bec66bccfe44dfe48b9235d01e8340"
+      },
+      "grouped_mm": {
+        "maxRatio": 6.458680034601784e-06,
+        "maxAbsDifferenceFromEager": 1.1920928955078125e-07,
+        "bitwiseEqualToEager": false,
+        "sha256": "18775bc47b83d8a0dff71ba32076272000b634c0f5b74dd7cf6d4ade4900df8f",
+        "torchGroupedMmKernel": true,
+        "compactedExperts": 56
+      }
+    },
+    "maxBound": 0.1767773733581962,
+    "minBound": 0.15444803655513564,
+    "maxObservedEager": 1.0546926781096477e-06,
+    "duplicateTokenOutputsBitwiseEqual": true
+  },
+  "sharedExpert": {
+    "maxRatio": 2.6109553502701918e-05
+  },
+  "block": {
+    "maxRatio": 9.825934278414527e-06,
+    "outputSha256": "845553d6a85965bc8f826ed549c4b3a2851d6c63fc98c745096f07597c1b7fc5",
+    "maxBound": 0.30290906732443945,
+    "maxObserved": 2.6805747936897717e-06,
+    "maxAbsOutput": 1.7749937690052953
+  },
+  "alternativeSemantics": {
+    "shared-gate-silu": {
+      "elementsBeyondTwiceBound": 952,
+      "maxDistanceOverTwiceBound": 2.7894224908261918,
+      "distinguished": true
+    },
+    "shared-gate-absent": {
+      "elementsBeyondTwiceBound": 2920,
+      "maxDistanceOverTwiceBound": 7.005484892841729,
+      "distinguished": true
+    },
+    "gate-up-swapped": {
+      "elementsBeyondTwiceBound": 108,
+      "maxDistanceOverTwiceBound": 1.754511498364741,
+      "distinguished": true
+    },
+    "routing-weights-ignored": {
+      "elementsBeyondTwiceBound": 15849,
+      "maxDistanceOverTwiceBound": 18.55247828617637,
+      "distinguished": true
+    },
+    "topk-not-renormalized": {
+      "elementsBeyondTwiceBound": 164,
+      "maxDistanceOverTwiceBound": 1.864904316517181,
+      "distinguished": true
+    }
+  },
+  "boundTightness": "Worst-case gamma_n bounds with cancellation (|W||x| >> |Wx|) and propagation through two projections are about 1e5 times the observed error here; they bound rounding rigorously, and alternative semantics are checked to exceed twice the bound, but they are not regression tolerances.",
+  "malformedRejected": {
+    "hiddenWidth2559": {
+      "rejected": true,
+      "error": "RuntimeError"
+    },
+    "expertIdBeyondSentinel": {
+      "rejected": true,
+      "error": "RuntimeError"
+    }
+  },
+  "notEstablished": [
+    "Learned weights and their routing distribution",
+    "bfloat16 checkpoint dtype (eager index_add_ accumulates in the output dtype)",
+    "deepgemm, sonicmoe and CUDA grouped_mm",
+    "Expert-parallel sentinel masking",
+    "Doppler expert execution"
+  ],
+  "checks": {
+    "eagerWithinDerivedBound": true,
+    "batchedMmWithinDerivedBound": true,
+    "groupedMmWithinDerivedBound": true,
+    "sharedExpertWithinDerivedBound": true,
+    "blockOutputWithinDerivedBound": true,
+    "routerLogitsWithinDerivedBound": true,
+    "malformedInputsRejected": true,
+    "sentinelExpertSlotIgnored": true,
+    "alternativeSemanticsDistinguished": true
+  },
+  "passed": true,
+  "modelQualified": false
+}
