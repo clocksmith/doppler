@@ -1,4 +1,4 @@
-import { executePairedRMSNorm } from './paired-rmsnorm.js';
+import { executePairedRMSNorm, resolvePairedRMSNormVariant } from './paired-rmsnorm.js';
 
 
 import { getKernelCapabilities } from '../device.js';
@@ -187,10 +187,9 @@ export async function runRMSNorm(
   const inferredHiddenSize = inferHiddenSize(input, hiddenSize);
   if (input.precision === 'two-f32') {
     const declared = getKernelPathRMSNormSpec(options.role, options.section, options.phase, options.layerIdx, options.kernelPath);
-    if (declared && declared.variant !== 'paired') {
-      throw new Error('[RMSNorm] Paired input disagrees with the declared scalar kernel.');
-    }
-    return executePairedRMSNorm(null, input, weight, eps, { ...options, batchSize, hiddenSize: inferredHiddenSize });
+    // A declared scalar program fails closed: paired input requires a paired program.
+    const variant = resolvePairedRMSNormVariant(declared?.variant ?? null);
+    return executePairedRMSNorm(null, input, weight, eps, { ...options, batchSize, hiddenSize: inferredHiddenSize, variant });
   }
   const variant = selectRMSNormKernel({ ...options, hiddenSize: inferredHiddenSize }, isF16);
   const normWeightBuffer = getBuffer(weight);
@@ -269,10 +268,9 @@ export async function recordRMSNorm(
   const inferredHiddenSize = inferHiddenSize(input, hiddenSize);
   if (input.precision === 'two-f32') {
     const declared = getKernelPathRMSNormSpec(options.role, options.section, options.phase, options.layerIdx, options.kernelPath);
-    if (declared && declared.variant !== 'paired') {
-      throw new Error('[RMSNorm] Paired input disagrees with the declared scalar kernel.');
-    }
-    return executePairedRMSNorm(recorder, input, weight, eps, { ...options, batchSize, hiddenSize: inferredHiddenSize });
+    // A declared scalar program fails closed: paired input requires a paired program.
+    const variant = resolvePairedRMSNormVariant(declared?.variant ?? null);
+    return executePairedRMSNorm(recorder, input, weight, eps, { ...options, batchSize, hiddenSize: inferredHiddenSize, variant });
   }
   const variant = selectRMSNormKernel({ ...options, hiddenSize: inferredHiddenSize }, isF16);
   const normWeightBuffer = getBuffer(weight);

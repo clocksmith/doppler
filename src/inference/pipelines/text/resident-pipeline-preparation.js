@@ -1,10 +1,11 @@
 import { canonicalizeJson } from '../../../formats/canonical-hash.js';
 import { ERROR_CODES, createDopplerError } from '../../../errors/doppler-error.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
+import { getKernelPathRMSNormSpec } from '../../../config/kernel-path-loader.js';
 import { getPipelineFast, resolvePipelineIdentity } from '../../../gpu/kernels/pipeline-cache.js';
 import { resolveGatherPipeline, resolveSplitGatherPipeline } from '../../../gpu/kernels/gather.js';
 import { resolvePairedCastPipeline } from '../../../gpu/kernels/paired-cast.js';
-import { resolvePairedRMSNormPipeline } from '../../../gpu/kernels/paired-rmsnorm.js';
+import { resolvePairedRMSNormPipeline, resolvePairedRMSNormVariant } from '../../../gpu/kernels/paired-rmsnorm.js';
 import { resolvePairedPointwisePipeline } from '../../../gpu/kernels/paired-activation.js';
 import { resolvePairedSplitPipeline } from '../../../gpu/kernels/paired-split.js';
 import { resolvePairedAttentionPipeline, resolvePairedAttentionVariant } from '../../../gpu/kernels/paired-attention.js';
@@ -97,6 +98,16 @@ function enumeratePairedStage(owner, allocation, requests) {
   const kernelPath = resolveActiveExecutionPlan(owner.executionPlanState).kernelPath ?? null;
   const offset = config.rmsNormWeightOffset === true;
   const partition = allocation.plan.partitions[allocation.index];
+  /** Each phase's declared paired RMSNorm program for a role.
+   * @param {string} role @param {'layer' | 'postLayer'} section @param {number} layerIdx
+   * @param {import('../../../config/schema/kernel-path.schema.js').KernelPathSchema | null} path
+   * @param {string | null} weightDtype @param {import('../../../gpu/kernels/paired-rmsnorm.js').PairedRMSNormFusion} fusion */
+  const norm = (role, section, layerIdx, path, weightDtype, fusion) => {
+    for (const phase of PHASES) {
+      const declared = getKernelPathRMSNormSpec(role, section, phase, layerIdx, path);
+      requests.add(role, resolvePairedRMSNormPipeline(weightDtype, fusion, resolvePairedRMSNormVariant(declared?.variant ?? null)));
+    }
+  };
   /** @param {string} role @param {unknown} weight @param {number} layerIdx */
   const projection = (role, weight, layerIdx) => {
     for (const phase of PHASES) {
@@ -128,8 +139,8 @@ function enumeratePairedStage(owner, allocation, requests) {
       throw new NotEnumerable(`Layer ${layerIdx} applies a layer scalar outside the declared paired program.`);
     }
     if (!weights.postAttnNorm) throw new NotEnumerable(`Layer ${layerIdx} has no fused post-attention normalization.`);
-    requests.add('input_norm', resolvePairedRMSNormPipeline(normWeightDtype(weights.inputNorm, 'input_norm'),
-      { rmsNormWeightOffset: offset, ...UNFUSED }));
+    norm('input_norm', 'layer', layerIdx, kernelPath, normWeightDtype(weights.inputNorm, 'input_norm'),
+      { rmsNormWeightOffset: offset, ...UNFUSED });
     const layerType = config.layerTypes?.[layerIdx];
     if (layerType === 'full_attention') {
       enumeratePairedFullAttention(owner, layerIdx, weights, requests, projection, kernelPath);
@@ -146,8 +157,8 @@ function enumeratePairedStage(owner, allocation, requests) {
       throw new NotEnumerable(`Layer ${layerIdx} type "${String(layerType)}" is outside the declared paired program.`);
     }
     // The attention residual is fused into the FFN input normalization.
-    requests.add('post_attn_norm', resolvePairedRMSNormPipeline(normWeightDtype(weights.postAttnNorm, 'post_attn_norm'),
-      { rmsNormWeightOffset: offset, preResidual: true, residual: false, outputPrenorm: true }));
+    norm('post_attn_norm', 'layer', layerIdx, kernelPath, normWeightDtype(weights.postAttnNorm, 'post_attn_norm'),
+      { rmsNormWeightOffset: offset, preResidual: true, residual: false, outputPrenorm: true });
     projection('ffn_gate', weights.gate, layerIdx);
     projection('ffn_up', weights.up, layerIdx);
     requests.add('activation', resolvePairedPointwisePipeline('silu', { inplace: false, gatedInputActivation: 'identity' }));
@@ -158,8 +169,8 @@ function enumeratePairedStage(owner, allocation, requests) {
   if (partition.hasLmHead) {
     const logitsConfig = getLogitsConfig(owner);
     const { finalNorm, lmHead } = getLogitsWeights(owner);
-    requests.add('final_norm', resolvePairedRMSNormPipeline(normWeightDtype(finalNorm, 'final_norm'),
-      { rmsNormWeightOffset: logitsConfig.rmsNormWeightOffset === true, ...UNFUSED }));
+    norm('final_norm', 'postLayer', 0, logitsConfig.kernelPath ?? null, normWeightDtype(finalNorm, 'final_norm'),
+      { rmsNormWeightOffset: logitsConfig.rmsNormWeightOffset === true, ...UNFUSED });
     if (resolveLogitInputScale(logitsConfig) !== 1) requests.add('logit_input_scale', resolvePairedPointwisePipeline('scale', UNGATED));
     for (const phase of PHASES) {
       const role = resolveLmHeadMatmulRole(phase);
@@ -201,9 +212,10 @@ function enumeratePairedFullAttention(owner, layerIdx, weights, requests, projec
     if (qkNorm.allowUnitQKNorm || config.queryKeyNormType !== 'rmsnorm') {
       throw new NotEnumerable(`Layer ${layerIdx} Q/K normalization is outside the declared paired program.`);
     }
+    // Head normalization has no declared step; it runs the unpinned paired program.
     for (const [role, field] of [['q_norm', 'qNorm'], ['k_norm', 'kNorm']]) {
       requests.add(role, resolvePairedRMSNormPipeline(normWeightDtype(weights[field], role),
-        { rmsNormWeightOffset: qkNorm.rmsNormWeightOffset, ...UNFUSED }));
+        { rmsNormWeightOffset: qkNorm.rmsNormWeightOffset, ...UNFUSED }, resolvePairedRMSNormVariant(null)));
     }
   }
   if (resolveQueryScale(config.queryScale) !== 1) requests.add('query_scale', resolvePairedPointwisePipeline('scale', UNGATED));

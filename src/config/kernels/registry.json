@@ -11950,6 +11950,105 @@
       "ruleChains": [],
       "wgslOnDisk": true
      }
+    },
+    "paired_sliced": {
+     "wgsl": "rmsnorm_paired_sliced.wgsl",
+     "immediateCompletion": "settled",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256
+     },
+     "requires": [],
+     "bindings": [
+      {
+       "name": "uniforms",
+       "type": "uniform",
+       "index": 0
+      },
+      {
+       "name": "input",
+       "type": "read-only-storage",
+       "index": 1
+      },
+      {
+       "name": "weight",
+       "type": "read-only-storage",
+       "index": 2
+      },
+      {
+       "name": "output",
+       "type": "storage",
+       "index": 3
+      },
+      {
+       "name": "residual",
+       "type": "read-only-storage",
+       "index": 4
+      },
+      {
+       "name": "prenorm",
+       "type": "storage",
+       "index": 5
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "size",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_tokens",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "eps_hi",
+        "type": "f32",
+        "offset": 8
+       },
+       {
+        "name": "eps_lo",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "token_stride",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "scale_hi",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "scale_lo",
+        "type": "f32",
+        "offset": 24
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "variantMetadata": {
+      "inputPrecision": "two-f32",
+      "outputPrecision": "two-f32",
+      "dispatchGeometry": "tokenSlices"
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
     }
    }
   },

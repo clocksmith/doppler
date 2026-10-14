@@ -71,7 +71,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // inference/pipelines/text/resident-pipeline-preparation.js; its declaration
   // stays outside the public type closure. Measured 1992 on npm 10.9.3.
   // The tiled paired attention shader adds one WGSL entry: measured 1993.
-  maxEntryCount: 1993,
+  // The sliced paired RMSNorm shader adds one WGSL entry: measured 1994.
+  maxEntryCount: 1994,
   // add14e4b: npm 9.2.0 produces 2,104,958 bytes; CI Node 22.23.2/npm 10.9.8
   // produces 2,107,073. Keep the measured cross-toolchain compression allowance.
   // Evidence: reports/capsule-baseline/20260907-release/remote-package-budget-failure.log.
@@ -146,7 +147,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Its progress, declared bound and cancel ownership change nine shipped files, no new
   // entries: measured 3,483,596 on Node 22.20.0/npm 10.9.3, plus that allowance.
   // The tiled paired attention shader and its selection: measured 3,486,660, plus that allowance.
-  maxPackedSize: 3_488_818,
+  // The sliced paired RMSNorm shader and its selection: measured 3,488,420, plus that allowance.
+  maxPackedSize: 3_490_578,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -202,7 +204,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // 26,027: measured 14,022,350 on Node 22.20.0/npm 10.9.3. Its progress, declared
   // bound and cancel ownership add 5,865: measured 14,028,215 on the same toolchain.
   // The tiled paired attention shader and its selection add 22,420: measured 14,050,635.
-  maxUnpackedSize: 14_050_635,
+  // The sliced paired RMSNorm shader and its selection add 20,437: measured 14,071,072.
+  maxUnpackedSize: 14_071_072,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
