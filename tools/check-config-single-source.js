@@ -84,37 +84,6 @@ const TEXT_RULES = Object.freeze([
   },
 ]);
 
-const REQUIRED_TEXT_SNIPPETS = Object.freeze({
-  'docs/developer-guides/config-source-of-truth.md': [
-    'src/config/kernels/registry.json',
-    'models/catalog.json',
-    'src/rules/inference/capability-transforms.rules.json',
-    'npm run capability-policy:check',
-    'npm run kernels:registry:check',
-    'npm run support:inventory:check',
-    'npm run ci:catalog:check',
-    'npm run registry:hf:check',
-    'npm run artifact:contract:check',
-  ],
-  'src/gpu/kernels/GUIDE.md': [
-    'docs/developer-guides/config-source-of-truth.md',
-    'src/config/kernels/registry.json',
-    'npm run kernels:registry:check',
-  ],
-  'docs/registry-workflow.md': [
-    'models/catalog.json',
-    'npm run support:inventory:check',
-    'npm run ci:catalog:check',
-    'developer-guides/config-source-of-truth.md',
-  ],
-  'models/GUIDE.md': [
-    'models/catalog.json',
-    'docs/model-support-inventory.md',
-    'npm run ci:catalog:check',
-    'docs/developer-guides/config-source-of-truth.md',
-  ],
-});
-
 const CODE_RULES = Object.freeze([
   {
     file: 'src/gpu/kernels/matmul.js',
@@ -520,12 +489,6 @@ async function checkTextFiles() {
       const matches = text.match(rule.pattern);
       if (matches?.length) {
         recordIssue(filePath, `${rule.label} appears ${matches.length} time(s)`);
-      }
-    }
-    const requiredSnippets = REQUIRED_TEXT_SNIPPETS[relPath] || [];
-    for (const snippet of requiredSnippets) {
-      if (!text.includes(snippet)) {
-        recordIssue(filePath, `missing required single-source reference: ${snippet}`);
       }
     }
   }

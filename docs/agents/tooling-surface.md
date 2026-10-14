@@ -28,7 +28,7 @@ Everything in `tools/` except `convert-safetensors-node.js`:
 - Benchmark comparison scripts (`compare-engines.js`, `bench-text-decode-paths.js`)
 - Model conversion helpers (`refresh-converted-manifest.js`, `onboarding-tooling.js`)
 - Sync/check scripts (`sync-model-support-matrix.js`, `check-contract-artifacts.js`)
-- Agent parity verification (`verify-agent-parity.js`, `verify-agent-freshness.js`)
+- Agent parity verification (`verify-agent-parity.js`)
 
 ## Rules
 

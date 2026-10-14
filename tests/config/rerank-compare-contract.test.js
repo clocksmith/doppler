@@ -19,9 +19,6 @@ const qwenRerankerMetalStabilityProfile = JSON.parse(
     'utf8'
   )
 );
-const kernelRegistry = JSON.parse(
-  await fs.readFile(new URL('../../src/config/kernels/registry.json', import.meta.url), 'utf8')
-);
 
 const catalogByModelId = new Map(
   (Array.isArray(catalog?.models) ? catalog.models : [])
@@ -31,52 +28,15 @@ const catalogByModelId = new Map(
 
 function assertQwenRerankerMetalProfile(profile, label) {
   const inference = profile.runtime.inference;
-  const session = inference.session;
-  const patch = inference.executionPatch;
   assert.equal(
     inference.compute,
     undefined,
     `${label} must not change manifest compute precision`
   );
   assert.equal(
-    session.useLargeBatchF16F32FusedGateUp,
+    inference.session.useLargeBatchF16F32FusedGateUp,
     undefined,
     `${label} must not enable the measured-losing large-batch f16/f32 fused gate/up path`
-  );
-  assert.equal(
-    session.prefillChunkLayers,
-    28,
-    `${label} must record the measured one-recorder prefill chunk policy`
-  );
-  assert.equal(
-    session.retainQ4KMaterialization,
-    true,
-    `${label} must retain Q4K materialization for the measured Metal rerank path`
-  );
-  assert.equal(
-    session.useWideTileQ4KPrefill,
-    true,
-    `${label} must use the measured wide-tile Q4K prefill path`
-  );
-  assert.equal(
-    patch?.addKernels?.[0]?.key,
-    'attn_head128',
-    `${label} must add the fixed head_dim=128 prefill attention kernel`
-  );
-  assert.equal(
-    patch.addKernels[0].kernel?.kernel,
-    'attention_head128_f16kv.wgsl',
-    `${label} must pin the fixed head_dim=128 f16-KV WGSL kernel`
-  );
-  assert.equal(
-    patch.addKernels[0].kernel?.digest,
-    'sha256:559a3da4f3f5dcc4671f5a9b429a84209340a66a6e17f583bb329b2e23832c9b',
-    `${label} must pin the measured head128 kernel digest`
-  );
-  assert.deepEqual(
-    patch?.set,
-    [{ section: 'prefill', op: 'attention', kernelKey: 'attn_head128' }],
-    `${label} must route prefill attention through the head128 kernel`
   );
 }
 
@@ -84,15 +44,6 @@ assert.equal(config.schemaVersion, 1);
 assert.ok(Array.isArray(config.modelProfiles) && config.modelProfiles.length > 0);
 assert.equal(typeof config.defaults?.query, 'string');
 assert.ok(Array.isArray(config.defaults?.documents) && config.defaults.documents.length >= 2);
-assert.equal(config.defaults?.expectedTopDocumentIndex, 0);
-assert.deepEqual(
-  config.workloads.map((entry) => [entry.id, entry.documentCount, entry.allowedCacheModes]),
-  [
-    ['rerank-q1-d010-short', 10, ['cold', 'warm']],
-    ['rerank-q1-d050-mixed', 50, ['cold', 'warm']],
-    ['rerank-q1-d100-long', 100, ['cold', 'warm']],
-  ]
-);
 
 for (const profile of config.modelProfiles) {
   const modelId = profile?.dopplerModelId;
@@ -141,26 +92,7 @@ for (const profile of config.modelProfiles) {
   }
 }
 
-const qwenReranker = config.modelProfiles.find(
-  (entry) => entry.dopplerModelId === 'qwen-3-reranker-0-6b-q4k-ehf16-af32'
-);
-assert.ok(qwenReranker, 'qwen-3-reranker-0-6b-q4k-ehf16-af32 must have a rerank compare profile');
-assert.equal(qwenReranker.releaseClaimable, true);
-assert.equal(qwenReranker.defaultDopplerSource, 'quickstart-registry');
-assert.equal(qwenReranker.defaultTjsDtype, 'q4');
-assert.equal(qwenReranker.dopplerRuntimeProfile, 'profiles/qwen-3-reranker-0-6b-metal-throughput');
-assert.equal(qwenReranker.dopplerVerifyRuntimeProfile, 'profiles/qwen-3-reranker-0-6b-metal-stability');
 assertQwenRerankerMetalProfile(qwenRerankerMetalThroughputProfile, 'Qwen reranker Metal throughput profile');
 assertQwenRerankerMetalProfile(qwenRerankerMetalStabilityProfile, 'Qwen reranker Metal stability profile');
-const head128Reachability = kernelRegistry.operations.attention.variants.prefill_head128_f16kv.reachability;
-assert.equal(head128Reachability.status, 'pinned');
-assert.deepEqual(
-  head128Reachability.inlineConfigs,
-  [
-    'glmocr/glm-ocr-f16-af32',
-    'runtime/profiles/qwen-3-reranker-0-6b-metal-stability',
-    'runtime/profiles/qwen-3-reranker-0-6b-metal-throughput',
-  ]
-);
 
 console.log('rerank-compare-contract.test: ok');

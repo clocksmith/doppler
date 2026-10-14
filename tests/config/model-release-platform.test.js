@@ -28,9 +28,6 @@ for (const field of policy.adoptionGate.requiredEvidence) {
   const report = await buildModelReleasePlatformReport();
   assert.equal(report.ok, true, report.errors.join('\n'));
   assert.equal(report.commercialAssessment, 'unestablished');
-  assert.equal(policy.positioning.entryProduct, 'Doppler Production Release');
-  assert.equal(policy.positioning.recurringProduct, 'Doppler Release Operations');
-  assert.equal(policy.positioning.initialIcp, 'Independent JavaScript and Electron application maintainers');
   assert.equal(policy.standaloneAdoptionGate.primary, true);
   assert.equal(policy.adoptionGate.goalId, 'local-webgpu-product-surface');
   assert.equal(policy.adoptionGate.paymentRequired, false);

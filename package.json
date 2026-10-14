@@ -125,8 +125,6 @@
     "test:demo:contract": "node tools/demo-contract-smoke.js",
     "test:demo:hardware": "node tools/demo-hardware-smoke.js",
     "agents:verify": "node tools/verify-agent-parity.js",
-    "agents:freshness": "node tools/verify-agent-freshness.js",
-    "agents:freshness:strict": "node tools/verify-agent-freshness.js --strict",
     "catscan:sync": "node tools/sync-catscan-index.js",
     "catscan:check": "node tools/sync-catscan-index.js --check",
     "conflicts:check": "node tools/check-merge-markers.js",

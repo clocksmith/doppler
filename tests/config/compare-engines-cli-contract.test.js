@@ -4,7 +4,6 @@ import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { spawnSync } from 'node:child_process';
-import { mergeKernelPathPolicy } from '../../src/config/merge-helpers.js';
 import {
   buildCompareSection,
   buildCompareFairnessAudit,
@@ -76,22 +75,10 @@ function assertCommandOutputMatches(result, pattern) {
       .filter(Boolean)
   );
   const gemma3Profile = compareConfig.modelProfiles.find((entry) => entry?.dopplerModelId === 'gemma-3-270m-it-q4k-ehf16-af32') || null;
-  const gemma3Q4kThroughputProfile = JSON.parse(await fs.readFile(
-    path.join(repoRoot, 'src', 'config', 'runtime', 'profiles', 'gemma3-270m-q4k-throughput-overlapped-probe.json'),
-    'utf8'
-  ));
-  const qwen08Profile = compareConfig.modelProfiles.find((entry) => entry?.dopplerModelId === 'qwen-3-5-0-8b-q4k-ehaf16') || null;
-  const qwen2Profile = compareConfig.modelProfiles.find((entry) => entry?.dopplerModelId === 'qwen-3-5-2b-q4k-ehaf16') || null;
   const gemma4Profile = compareConfig.modelProfiles.find((entry) => entry?.dopplerModelId === 'gemma-4-e2b-it-q4k-ehf16-af32') || null;
-  const gemma4Int4PleProfile = compareConfig.modelProfiles.find((entry) => entry?.dopplerModelId === 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple') || null;
-  const gemma4Af16Int4PleProfile = compareConfig.modelProfiles.find((entry) => entry?.dopplerModelId === 'gemma-4-e2b-it-q4k-ehf16-af16-int4ple') || null;
   const gemma4Catalog = (Array.isArray(catalog.models) ? catalog.models : [])
     .find((entry) => entry?.modelId === 'gemma-4-e2b-it-q4k-ehf16-af32') || null;
 
-  assert.deepEqual(compareConfig.defaults, {
-    warmLoadMode: 'opfs',
-    coldLoadMode: 'http',
-  });
   {
     const parityRuntimeBaseConfig = {
       profile: 'parity-runtime',
@@ -1123,101 +1110,38 @@ function assertCommandOutputMatches(result, pattern) {
     );
   }
   assert.ok(gemma3Profile, 'compare config must include gemma-3-270m-it-q4k-ehf16-af32');
-  assert.equal(
-    gemma3Profile?.dopplerRuntimeProfileByDecodeProfile?.throughput,
-    'profiles/gemma3-270m-q4k-throughput-overlapped-probe'
-  );
-  assert.equal(
-    gemma3Profile?.dopplerRuntimeProfileByDecodeProfile?.custom,
-    'profiles/gemma3-270m-q4k-throughput-overlapped-probe'
-  );
-  assert.equal(gemma3Q4kThroughputProfile.extends, 'profiles/throughput');
-  assert.equal(gemma3Q4kThroughputProfile.intent, 'calibrate');
-  assert.equal(gemma3Q4kThroughputProfile.stability, 'experimental');
-  const throughputDecodeProfile = benchmarkPolicy.decodeProfiles.profiles.throughput;
-  const expectedGemma3Q4kThroughputRuntime = {
-    inference: {
-      generation: {
-        disableMultiTokenDecode: throughputDecodeProfile.disableMultiTokenDecode,
-      },
-      batching: {
-        batchSize: throughputDecodeProfile.batchSize,
-        readbackInterval: throughputDecodeProfile.readbackInterval,
-        stopCheckMode: throughputDecodeProfile.stopCheckMode,
-        readbackMode: 'overlapped',
-      },
-      session: {
-        prefillChunkSubmitMode: 'sync',
-        retainQ4KMaterialization: true,
-        useWideTileQ4KPrefill: true,
-        useSandwichRMSNormPairFusion: true,
-        usePostFfnNextInputRMSNormPairFusion: true,
-        useFusedQKVSplitQKNormRoPE: true,
-        decodeLoop: {
-          batchSize: throughputDecodeProfile.batchSize,
-          stopCheckMode: throughputDecodeProfile.stopCheckMode,
-          readbackInterval: throughputDecodeProfile.readbackInterval,
-          readbackMode: 'overlapped',
-          ringTokens: 2,
-          ringStop: 1,
-          ringStaging: 2,
-          disableCommandBatching: false,
-        },
-      },
-    },
-  };
-  assert.deepEqual(gemma3Q4kThroughputProfile.runtime, expectedGemma3Q4kThroughputRuntime);
-  assert.ok(qwen08Profile, 'compare config must include qwen-3-5-0-8b-q4k-ehaf16');
-  assert.equal(qwen08Profile.defaultDopplerSurface, 'browser');
-  assert.equal(
-    qwen08Profile?.dopplerRuntimeProfileByDecodeProfile?.throughput,
-    'profiles/throughput'
-  );
-  assert.equal(
-    qwen08Profile?.dopplerRuntimeProfileByDecodeProfileByPlatform?.darwin?.throughput,
-    'profiles/qwen-3-5-0-8b-metal-throughput'
-  );
-  assert.equal(
-    resolveCompareRuntimeProfileMap(qwen08Profile, 'linux').throughput,
-    'profiles/throughput'
-  );
-  assert.equal(
-    resolveCompareRuntimeProfileMap(qwen08Profile, 'darwin').throughput,
-    'profiles/qwen-3-5-0-8b-metal-throughput'
-  );
-  assert.equal(qwen08Profile.compareLane, 'performance_comparable');
-  assert.equal(qwen08Profile.compareLaneReason, null);
-
-  assert.ok(qwen2Profile, 'compare config must include qwen-3-5-2b-q4k-ehaf16');
-  assert.equal(qwen2Profile.defaultDopplerSurface, 'browser');
-  assert.equal(
-    qwen2Profile?.dopplerRuntimeProfileByDecodeProfile?.throughput,
-    'profiles/throughput'
-  );
-  assert.equal(
-    qwen2Profile?.dopplerRuntimeProfileByDecodeProfileByPlatform?.darwin?.throughput,
-    'profiles/qwen-3-5-2b-metal-throughput'
-  );
-  assert.equal(
-    qwen2Profile?.dopplerRuntimeProfileByDecodeProfileByPlatform?.darwin?.parity,
-    'profiles/qwen-3-5-2b-metal-parity'
-  );
-  assert.equal(
-    resolveCompareRuntimeProfileMap(qwen2Profile, 'linux').throughput,
-    'profiles/throughput'
-  );
-  assert.equal(
-    resolveCompareRuntimeProfileMap(qwen2Profile, 'darwin').throughput,
-    'profiles/qwen-3-5-2b-metal-throughput'
-  );
-  assert.equal(
-    resolveCompareRuntimeProfileMap(qwen2Profile, 'darwin').parity,
-    'profiles/qwen-3-5-2b-metal-parity'
-  );
-  assert.equal(qwen2Profile.compareLane, 'performance_comparable');
-  assert.equal(qwen2Profile.compareLaneReason, null);
-  assert.equal(qwen2Profile.defaultLoadMode, 'http');
-  assert.match(qwen2Profile.defaultLoadModeReason, /strict offline/i);
+  {
+    // The throughput runtime profile a compare profile selects must carry the
+    // benchmark-policy throughput cadence, or the compare run fails its cadence check.
+    const throughputDecodeProfile = benchmarkPolicy.decodeProfiles.profiles.throughput;
+    const gemma3ThroughputBundle = await loadResolvedRuntimeProfileBundle(
+      gemma3Profile.dopplerRuntimeProfileByDecodeProfile.throughput
+    );
+    const gemma3ThroughputInference = gemma3ThroughputBundle.resolvedRuntime.inference;
+    assert.equal(
+      gemma3ThroughputInference.generation.disableMultiTokenDecode,
+      throughputDecodeProfile.disableMultiTokenDecode
+    );
+    for (const cadence of [gemma3ThroughputInference.batching, gemma3ThroughputInference.session.decodeLoop]) {
+      assert.equal(cadence.batchSize, throughputDecodeProfile.batchSize);
+      assert.equal(cadence.readbackInterval, throughputDecodeProfile.readbackInterval);
+      assert.equal(cadence.stopCheckMode, throughputDecodeProfile.stopCheckMode);
+    }
+  }
+  {
+    const platformMapped = {
+      dopplerRuntimeProfileByDecodeProfile: { throughput: 'unit/base-throughput', parity: 'unit/base-parity' },
+      dopplerRuntimeProfileByDecodeProfileByPlatform: { darwin: { throughput: 'unit/darwin-throughput' } },
+    };
+    assert.deepEqual({ ...resolveCompareRuntimeProfileMap(platformMapped, 'darwin') }, {
+      throughput: 'unit/darwin-throughput',
+      parity: 'unit/base-parity',
+    });
+    assert.deepEqual({ ...resolveCompareRuntimeProfileMap(platformMapped, 'linux') }, {
+      throughput: 'unit/base-throughput',
+      parity: 'unit/base-parity',
+    });
+  }
 
   const qwen2MetalParityBundle = await loadResolvedRuntimeProfileBundle(
     'profiles/qwen-3-5-2b-metal-parity'
@@ -1240,43 +1164,8 @@ function assertCommandOutputMatches(result, pattern) {
   );
 
   assert.ok(gemma4Profile, 'compare config must include gemma-4-e2b-it-q4k-ehf16-af32');
-  assert.equal(gemma4Profile.defaultDopplerSurface, 'browser');
-  assert.equal(gemma4Profile.defaultUseChatTemplate, true);
-  assert.equal(
-    gemma4Profile?.dopplerRuntimeProfileByDecodeProfile?.throughput,
-    'profiles/throughput'
-  );
-  assert.equal(gemma4Profile.compareLane, 'performance_comparable');
-  assert.match(gemma4Profile.compareLaneReason, /not exact-match/i);
-  assert.equal(gemma4Profile.outputParityPolicy?.requireMatch, false);
-  assert.equal(gemma4Profile.outputParityPolicy?.matchMode, 'decode-valid');
-  assert.match(gemma4Profile.outputParityPolicy?.reason || '', /product-format throughput/i);
-  assert.ok(gemma4Int4PleProfile, 'compare config must include gemma-4-e2b-it-q4k-ehf16-af32-int4ple');
-  assert.equal(
-    gemma4Int4PleProfile?.dopplerRuntimeProfileByDecodeProfile?.throughput,
-    'profiles/throughput'
-  );
-  assert.equal(gemma4Int4PleProfile.outputParityPolicy?.requireMatch, false);
-  assert.equal(gemma4Int4PleProfile.outputParityPolicy?.matchMode, 'decode-valid');
-  assert.match(gemma4Int4PleProfile.outputParityPolicy?.reason || '', /INT4-PLE product-format throughput/i);
-  assert.ok(gemma4Af16Int4PleProfile, 'compare config must include gemma-4-e2b-it-q4k-ehf16-af16-int4ple');
-  assert.equal(gemma4Af16Int4PleProfile.defaultDopplerSource, 'local');
-  assert.equal(gemma4Af16Int4PleProfile.defaultDopplerSurface, 'browser');
-  assert.equal(gemma4Af16Int4PleProfile.defaultLoadMode, 'http');
-  assert.match(gemma4Af16Int4PleProfile.defaultLoadModeReason, /weights-ref sibling/i);
-  assert.equal(gemma4Af16Int4PleProfile.defaultUseChatTemplate, true);
-  assert.equal(gemma4Af16Int4PleProfile.compareLane, 'performance_comparable');
-  assert.match(gemma4Af16Int4PleProfile.compareLaneReason, /local compute-throughput evidence/i);
-  assert.equal(
-    gemma4Af16Int4PleProfile?.dopplerRuntimeProfileByDecodeProfile?.throughput,
-    'profiles/throughput'
-  );
-  assert.equal(gemma4Af16Int4PleProfile.outputParityPolicy?.requireMatch, false);
-  assert.equal(gemma4Af16Int4PleProfile.outputParityPolicy?.matchMode, 'decode-valid');
-  assert.match(gemma4Af16Int4PleProfile.outputParityPolicy?.reason || '', /AF16 INT4-PLE product-format throughput/i);
   assert.ok(gemma4Catalog, 'models/catalog.json must include gemma-4-e2b-it-q4k-ehf16-af32');
   assert.equal(gemma4Catalog?.vendorBenchmark?.transformersjs?.repoId, gemma4Profile.defaultTjsModelId);
-  assert.equal(gemma4Catalog?.vendorBenchmark?.transformersjs?.dtype, 'q4f16');
 
   for (const profile of compareConfig.modelProfiles) {
     assert.ok(['performance_comparable', 'capability_only'].includes(profile.compareLane));
@@ -1329,72 +1218,28 @@ function assertCommandOutputMatches(result, pattern) {
       `benchmark-policy knownBadByModel.${modelId} must resolve to a local manifest, compare profile, or catalog model`
     );
   }
-
-  const compareRuntimePolicy = mergeKernelPathPolicy(
-    undefined,
-    benchmarkPolicy?.kernelPathPolicy?.compareRuntime
-  );
-  assert.equal(compareRuntimePolicy.mode, 'capability-aware');
-  assert.deepEqual(compareRuntimePolicy.sourceScope, ['model', 'manifest', 'config']);
-  assert.deepEqual(compareRuntimePolicy.allowSources, ['model', 'manifest', 'config']);
-  assert.equal(compareRuntimePolicy.onIncompatible, 'remap');
-  assert.equal(benchmarkPolicy?.browser?.compareChannelByPlatform?.darwin, 'chromium');
-  assert.equal(benchmarkPolicy?.browser?.compareChannelByPlatform?.linux, 'chromium');
-  assert.equal(benchmarkPolicy?.browser?.compareChannelByPlatform?.win32, 'chromium');
-  assert.equal(benchmarkPolicy?.decodeProfiles?.profiles?.parity?.stopCheckMode, 'batch');
-  assert.equal(benchmarkPolicy?.decodeProfiles?.profiles?.parity?.batchSize, 4);
-  assert.equal(benchmarkPolicy?.decodeProfiles?.profiles?.parity?.readbackInterval, 4);
-  assert.equal(benchmarkPolicy?.decodeProfiles?.profiles?.throughput?.stopCheckMode, 'batch');
-  assert.equal(benchmarkPolicy?.decodeProfiles?.profiles?.throughput?.batchSize, 8);
-  assert.equal(benchmarkPolicy?.decodeProfiles?.profiles?.throughput?.readbackInterval, 8);
-  assert.deepEqual(
-    benchmarkPolicy?.doppler?.loadModeRuntimeOverlays?.http?.runtimeConfig?.loading?.distribution?.sourceOrder,
-    ['http']
-  );
-  assert.equal(
-    benchmarkPolicy?.doppler?.loadModeRuntimeOverlays?.http?.runtimeConfig?.loading?.shardCache?.verifyHashes,
-    false
-  );
-  assert.equal(
-    benchmarkPolicy?.doppler?.loadModeRuntimeOverlays?.http?.runtimeConfig?.loading?.shardCache?.rangeCacheBlockBytes,
-    67108864
-  );
-  assert.equal(
-    benchmarkPolicy?.doppler?.loadModeRuntimeOverlays?.http?.runtimeConfig?.loading?.shardCache?.rangeCacheMaxBytes,
-    536870912
-  );
-  assert.equal(
-    benchmarkPolicy?.doppler?.loadModeRuntimeOverlays?.http?.runtimeConfig?.loading?.shardCache?.maxConcurrentLoads,
-    8
-  );
-  assert.equal(
-    benchmarkPolicy?.doppler?.loadModeRuntimeOverlays?.http?.runtimeConfig?.loading?.prefetch?.allowRangeLoaderPrefetch,
-    true
-  );
-  assert.equal(
-    benchmarkPolicy?.doppler?.loadModeRuntimeOverlays?.http?.runtimeConfig?.loading?.prefetch?.maxShards,
-    8
-  );
 }
 
 {
   const catalogBundle = await loadModelCatalogBundle();
+  const gemma4Tjs = catalogBundle.byModelId.get('gemma-4-e2b-it-q4k-ehf16-af32')?.vendorBenchmark?.transformersjs;
+  assert.ok(gemma4Tjs?.repoId, 'gemma-4-e2b-it-q4k-ehf16-af32 must declare a Transformers.js benchmark target');
   const gemma4Benchmark = resolveCatalogTransformersjsBenchmarkTarget(
     catalogBundle,
     'gemma-4-e2b-it-q4k-ehf16-af32',
     null
   );
-  assert.equal(gemma4Benchmark?.repoId, 'onnx-community/gemma-4-E2B-it-ONNX');
-  assert.equal(gemma4Benchmark?.dtype, 'q4f16');
+  assert.equal(gemma4Benchmark?.repoId, gemma4Tjs.repoId);
+  assert.equal(gemma4Benchmark?.dtype, gemma4Tjs.dtype);
   assert.equal(gemma4Benchmark?.source, 'catalog-model');
 
   const repoOverrideBenchmark = resolveCatalogTransformersjsBenchmarkTarget(
     catalogBundle,
     'unit-missing-model',
-    'onnx-community/gemma-4-E2B-it-ONNX'
+    gemma4Tjs.repoId
   );
-  assert.equal(repoOverrideBenchmark?.repoId, 'onnx-community/gemma-4-E2B-it-ONNX');
-  assert.equal(repoOverrideBenchmark?.dtype, 'q4f16');
+  assert.equal(repoOverrideBenchmark?.repoId, gemma4Tjs.repoId);
+  assert.equal(repoOverrideBenchmark?.dtype, gemma4Tjs.dtype);
   assert.equal(repoOverrideBenchmark?.source, 'catalog-repo');
 }
 

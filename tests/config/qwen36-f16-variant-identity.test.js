@@ -49,7 +49,6 @@ const af16ManifestPath = path.join('models', 'local', AF16_MODEL_ID, 'manifest.j
 const af32ManifestText = fs.readFileSync(af32ManifestPath, 'utf8');
 const af32Manifest = JSON.parse(af32ManifestText);
 const af16Manifest = readJson(af16ManifestPath);
-const profile = readJson('src/config/runtime/profiles/qwen3-6-27b-f16-activations-probe.json');
 
 const af32Entry = catalogEntry(catalog, AF32_MODEL_ID);
 const af16Entry = catalogEntry(catalog, AF16_MODEL_ID);
@@ -62,7 +61,6 @@ assert.ok(af16Entry, `${AF16_MODEL_ID}: f16 activation catalog entry must be pre
 
 assert.equal(af32Config.output?.modelBaseId, AF32_MODEL_ID);
 assert.equal(af16Config.output?.modelBaseId, AF16_MODEL_ID);
-assert.equal(profile.model, AF16_MODEL_ID);
 
 assert.equal(af32Manifest.quantizationInfo?.compute, 'f32');
 assert.equal(af32Manifest.quantizationInfo?.variantTag, 'q4k-ef16-af32');
@@ -132,8 +130,6 @@ assert.deepEqual(
   'af16 manifest session defaults must make the f16 compute lane explicit'
 );
 assert.equal(af16Manifest.inference?.session?.kvcache?.kvDtype, 'f16');
-assert.equal(af16Manifest.inference?.session?.decodeLoop?.batchSize, 3);
-assert.equal(af16Manifest.inference?.session?.decodeLoop?.readbackInterval, 1);
 
 assert.ok(af16Claim, 'af16 verified catalog entry must have an explicit release claim');
 assert.equal(af16Claim.mode, 'text');

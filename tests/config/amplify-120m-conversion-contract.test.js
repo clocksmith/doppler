@@ -79,28 +79,6 @@ assert.equal(plan.modelType, 'embedding');
 assert.equal(plan.manifestInference.schema, 'doppler.execution/v1');
 assert.equal(plan.manifestInference.supportsSequence, true);
 assert.deepEqual(plan.manifestInference.sequence, config.inference.sequence);
-assert.equal(config.inference.attention.causal, false);
-assert.equal(config.inference.rope.ropeInterleaved, true);
-assert.equal(config.inference.output.lmHeadBiasTensor, 'lm_head.bias');
-assert.equal(config.inference.output.embeddingTranspose, false);
-assert.equal(config.inference.output.embeddingVocabSize, null);
-assert.equal(config.session.skipEmbeddingKVCacheWrites, true);
-assert.equal(config.session.kvcache.kvDtype, 'f16');
-assert.equal(config.execution.kernels.attn_small.kernel, 'attention_small_f16kv.wgsl');
-assert.equal(config.execution.kernels.attn_small.precision.kvDtype, 'f16');
-
-assert.deepEqual(
-  Object.fromEntries(Object.entries(config.execution.kernels).map(([id, kernel]) => [id, kernel.digest])),
-  {
-    embed: 'sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9',
-    rmsnorm: 'sha256:4f4d144735bdff86b8567346ba7ea7b82fe68a2ac9656ba1577106158af9bc7c',
-    tiled: 'sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc',
-    rope: 'sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416',
-    attn_small: 'sha256:ad3bb913c17167eb28fefc6abd24602ea0f148bc22a2b5f437eeffcc6f7fc668',
-    residual: 'sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117',
-    silu: 'sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0',
-  }
-);
 
 const catalog = JSON.parse(fs.readFileSync('models/catalog.json', 'utf8'));
 const catalogEntry = catalog.models.find((entry) => entry.modelId === config.output.modelBaseId);

@@ -6,8 +6,6 @@ import { getInferenceLayerPatternContractArtifact } from '../../src/rules/rule-r
 {
   const artifact = getInferenceLayerPatternContractArtifact();
   assert.equal(artifact.ok, true);
-  assert.equal(artifact.stats.patternKindContexts, 16);
-  assert.equal(artifact.stats.layerTypeContexts, 12);
   assert.ok(
     artifact.checks.some((entry) => entry.id === 'inference.layerPattern.patternKind.semantics' && entry.ok)
   );

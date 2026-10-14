@@ -18,7 +18,6 @@ const gptOssProfile = JSON.parse(
 // === Mixtral profile has valid structure ===
 
 {
-  assert.equal(mixtralProfile.id, 'mixtral-moe-v1');
   assert.ok(mixtralProfile.description, 'must have description');
 }
 

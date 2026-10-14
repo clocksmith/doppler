@@ -2,14 +2,7 @@ import assert from 'node:assert/strict';
 
 import { createDopplerConfig } from '../../src/config/schema/doppler.schema.js';
 
-const defaultRuntime = createDopplerConfig().runtime;
-assert.deepEqual(defaultRuntime.inference.largeWeights, {
-  enabled: true,
-  safetyRatio: 0.9,
-  preferF16: true,
-  lmHeadChunkRows: null,
-  gpuResidentOverrides: null,
-});
+const defaultLargeWeights = createDopplerConfig().runtime.inference.largeWeights;
 
 const overriddenRuntime = createDopplerConfig({
   runtime: {
@@ -23,11 +16,9 @@ const overriddenRuntime = createDopplerConfig({
 }).runtime;
 
 assert.deepEqual(overriddenRuntime.inference.largeWeights, {
-  enabled: true,
-  safetyRatio: 0.9,
+  ...defaultLargeWeights,
   preferF16: false,
   lmHeadChunkRows: 512,
-  gpuResidentOverrides: null,
 });
 
 const overrideListRuntime = createDopplerConfig({

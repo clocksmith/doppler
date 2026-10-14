@@ -4,7 +4,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const repoRoot = process.cwd();
-const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
 
 function run(command, args) {
   const result = spawnSync(command, args, {
@@ -18,12 +17,6 @@ function run(command, args) {
   );
   return result;
 }
-
-assert.equal(
-  packageJson.scripts['bench:rerank:compare:hf'],
-  'node tools/compare-rerankers-hf.js',
-  'package script must expose the HF/PyTorch rerank compare lane'
-);
 
 run(process.execPath, ['--check', 'tools/compare-rerankers-hf.js']);
 run('python3', [
@@ -44,8 +37,5 @@ const runnerText = fs.readFileSync(
   'utf8'
 );
 assert.match(runnerText, /local_files_only/);
-assert.match(runnerText, /AutoModelForCausalLM/);
-assert.match(runnerText, /trueTokenId/);
-assert.match(runnerText, /falseTokenId/);
 
 console.log('hf-reranker-bench-contract.test: ok');

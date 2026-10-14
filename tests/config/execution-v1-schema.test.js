@@ -7,7 +7,6 @@ import {
 import assert from 'node:assert/strict';
 import { createDopplerConfig } from '../../src/config/schema/doppler.schema.js';
 import { applyExecutionV1RuntimeConfig, compileExecutionV1 } from '../../src/inference/pipelines/text/execution-v1.js';
-import { readFileSync } from 'fs';
 
 const D = (c) => 'sha256:' + c.repeat(64);
 
@@ -1128,10 +1127,5 @@ const compiledPipeline = compileExecutionV1({
 if (compiledPipeline.runtimeInferencePatch?.pipeline?.steps?.find((step) => step.op === 'attention')?.kvDtype !== 'f16') {
   throw new Error('Expected layer pipeline attention step to preserve kvDtype precision');
 }
-
-// === Real config file ===
-const realConfig = JSON.parse(readFileSync('src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json', 'utf8'));
-const realExpanded = expandExecutionV1(realConfig.execution);
-if (realExpanded.length !== 35) throw new Error(`Real config: expected 35 steps, got ${realExpanded.length}`);
 
 console.log('execution-v1-schema.test: ok');

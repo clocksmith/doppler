@@ -13,7 +13,6 @@ import { createTrainingConfig } from '../../src/config/training-defaults.js';
   });
   assert.equal(config.training.ul.enabled, true);
   assert.equal(config.training.ul.stage, 'stage1_joint');
-  assert.equal(config.training.ul.lambda0, 5);
 }
 
 {

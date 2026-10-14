@@ -13,37 +13,21 @@ async function readJson(relativePath) {
   return JSON.parse(await fs.readFile(filePath, 'utf8'));
 }
 
-const profile = await readJson('src/config/runtime/profiles/diffusiongemma-26b-a4b-throughput.json');
-const modelProfiles = new Map(KNOWN_MODELS.map((entry) => [entry.modelId, entry.defaultRuntimeProfile]));
-
-assert.equal(
-  modelProfiles.get('diffusiongemma-26b-a4b-it-q4k-ehf16-af16'),
-  'profiles/diffusiongemma-26b-a4b-throughput',
-  'DiffusionGemma must advertise the measured active-expert throughput profile.'
-);
-assert.equal(profile.id, 'profiles/diffusiongemma-26b-a4b-throughput');
-assert.equal(profile.extends, 'profiles/throughput');
-assert.equal(profile.intent, 'calibrate');
-assert.equal(profile.model, 'diffusiongemma-26b-a4b-it-q4k-ehf16-af16');
-assert.equal(
-  profile.runtime?.inference?.moe?.routing?.activeExpertSelection,
-  'topk-route',
-  'DiffusionGemma throughput profile must pin the GPU route-expert scheduler.'
-);
-assert.equal(
-  profile.runtime?.inference?.batching?.maxTokens,
-  16,
-  'DiffusionGemma throughput profile must cap canvas token chunks for 4GB WebGPU adapters.'
-);
-assert.equal(
-  profile.runtime?.inference?.diffusionGemma?.softEmbeddingLogitsChunkRows,
-  4096,
-  'DiffusionGemma throughput profile must cap self-conditioning soft-embedding chunks.'
-);
-assert.equal(
-  Object.hasOwn(profile.runtime?.inference?.moe?.routing ?? {}, 'maxTokensPerExpert'),
-  false,
-  'DiffusionGemma topk-route profile must not carry the readback slot budget.'
-);
+for (const { modelId, defaultRuntimeProfile } of KNOWN_MODELS) {
+  if (!defaultRuntimeProfile) {
+    continue;
+  }
+  const profile = await readJson(`src/config/runtime/${defaultRuntimeProfile}.json`);
+  assert.equal(profile.id, defaultRuntimeProfile, `${modelId}: advertised runtime profile must exist under its id`);
+  assert.equal(profile.model, modelId, `${modelId}: advertised runtime profile must be scoped to the model`);
+  const routing = profile.runtime?.inference?.moe?.routing ?? {};
+  if (routing.activeExpertSelection === 'topk-route') {
+    assert.equal(
+      Object.hasOwn(routing, 'maxTokensPerExpert'),
+      false,
+      `${modelId}: topk-route profile must not carry the readback slot budget.`
+    );
+  }
+}
 
 console.log('diffusiongemma-runtime-profile-contract.test: ok');

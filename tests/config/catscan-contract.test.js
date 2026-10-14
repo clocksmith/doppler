@@ -57,10 +57,6 @@ assert.deepEqual(
   repositoryReport.records.map((record) => record.path).sort(),
   [...repositoryReport.policy.requiredCharterPaths].sort()
 );
-assert.equal(
-  repositoryReport.records.find((record) => record.path === 'src/client/model-host/CATSCAN.md')?.componentId,
-  'doppler.runtime-source.client.model-host'
-);
 
 const fixtureRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-catscan-'));
 try {

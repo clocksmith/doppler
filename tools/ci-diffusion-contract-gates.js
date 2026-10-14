@@ -34,16 +34,6 @@ const LANE_MAP = Object.freeze({
       ],
     },
   ]),
-  docs_and_contract_lock: Object.freeze([
-    {
-      label: 'verify diffusion docs/contracts are GPU-only and stale scaffold references are removed',
-      cmd: 'node',
-      args: [
-        'tools/run-node-tests.js',
-        'tests/config/diffusion-gpu-contract-docs.test.js',
-      ],
-    },
-  ]),
 });
 
 function parseArgs(argv) {

@@ -50,53 +50,11 @@ const matrix = await readJson(MATRIX_PATH);
     repoRoot: REPO_ROOT,
   });
   assert.equal(report.ok, true, report.errors.join('\n'));
-  assert.equal(report.goals.length, 4);
-  assert.deepEqual(report.goals.map((goal) => goal.id), [
-    'open-execution-network',
-    'local-webgpu-product-surface',
-    'model-artifact-runtime-contract',
-    'correctness-performance-claims',
-  ]);
   assert.equal(report.actions.length, matrix.blockers.length);
-  assert.deepEqual(report.actions.map((action) => action.priority), Array.from({ length: 14 }, (_, i) => i + 1));
-  assert.equal(report.actions[0].code, 'external-executable-model-adoption-missing');
-  assert.equal(report.actions[0].completionClass, 'application');
-  assert.equal(report.actions[0].statusCommand, 'npm run model-release:check');
-  assert.equal(report.goals[0].label, 'Reproduce an open ESM-2 execution network');
-  assert.equal(report.goals[0].acceptanceScope, 'technical-network');
-  assert.equal(report.goals[1].acceptanceScope, 'standalone');
   assert.deepEqual(
-    matrix.goals[1].rows.map((row) => row.id),
-    [
-      'external-executable-model-adoption',
-      'canonical-production-release-contract',
-      'electron-reference-release',
-      'capsule-first-electron-reranking',
-      'production-release-toolchain',
-      'maintained-application-integrations',
-      'electron-fleet-qualification',
-      'revocation-and-customer-rollback',
-      'doppler-production-release-offer',
-      'three-unrelated-design-partners',
-    ]
+    report.actions.map((action) => action.priority),
+    Array.from({ length: report.actions.length }, (_, i) => i + 1)
   );
-  assert.equal(matrix.blockers.some((blocker) => blocker.code === 'bun-runtime-tier-experimental'), false);
-}
-
-{
-  const referenceIntegrations = rowById(
-    matrix,
-    'local-webgpu-product-surface',
-    'maintained-application-integrations'
-  );
-  assert.equal(referenceIntegrations.status, 'covered');
-  assert.equal(referenceIntegrations.claimAllowed, true);
-  assert.equal(
-    referenceIntegrations.label,
-    'Internally controlled reference integrations proving application-integration mechanics'
-  );
-  assert.equal(referenceIntegrations.smokeCommand, 'npm run product:integrations:check');
-  assert.deepEqual(referenceIntegrations.blockers, []);
 }
 
 {

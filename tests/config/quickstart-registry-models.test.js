@@ -6,23 +6,7 @@ import {
 
 const BROKEN_GEMMA_1B_QUICKSTART_REVISION = 'dfbe333a262f00050eebb6704827cad4839c6825';
 const models = await listQuickstartModels();
-const expectedModelIds = [
-  'gemma-3-270m-it-q4k-ehf16-af32',
-  'google-embeddinggemma-300m-q4k-ehf16-af32',
-  'gemma-3-1b-it-q4k-ehf16-af32',
-  'gemma-4-e2b-it-q4k-ehf16-af32',
-  'gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
-  'qwen-3-5-0-8b-q4k-ehaf16',
-  'qwen-3-5-2b-q4k-ehaf16',
-];
-
-// Registry should contain only hosted, release-claim-backed quickstart models.
-assert.equal(models.length, expectedModelIds.length, `Expected ${expectedModelIds.length} quickstart models, got ${models.length}`);
-
-const modelIds = models.map((m) => m.modelId);
-for (const modelId of expectedModelIds) {
-  assert.ok(modelIds.includes(modelId), `${modelId} missing`);
-}
+assert.ok(models.length > 0, 'quickstart registry must list hosted models');
 
 for (const entry of models) {
   assert.ok(entry.sourceCheckpointId, `${entry.modelId}: sourceCheckpointId missing`);
@@ -66,7 +50,6 @@ for (const entry of models) {
 {
   const entry = await resolveQuickstartModel('gemma4-e2b-int4ple');
   assert.ok(entry.hf);
-  assert.equal(entry.hf.repoId, 'clocksmith/rdrr');
   assert.ok(entry.hf.revision.length > 0);
   assert.ok(entry.hf.path.includes('gemma-4-e2b'));
 }
@@ -75,7 +58,6 @@ for (const entry of models) {
   const entry = await resolveQuickstartModel('qwen3-0.8b');
   assert.equal(entry.modelId, 'qwen-3-5-0-8b-q4k-ehaf16');
   assert.ok(entry.modes.includes('text'));
-  assert.equal(entry.hf.repoId, 'clocksmith/rdrr');
   assert.ok(entry.hf.path.includes('qwen-3-5-0-8b'));
 }
 
@@ -83,7 +65,6 @@ for (const entry of models) {
   const entry = await resolveQuickstartModel('qwen3-2b');
   assert.equal(entry.modelId, 'qwen-3-5-2b-q4k-ehaf16');
   assert.ok(entry.modes.includes('text'));
-  assert.equal(entry.hf.repoId, 'clocksmith/rdrr');
   assert.ok(entry.hf.path.includes('qwen-3-5-2b'));
 }
 

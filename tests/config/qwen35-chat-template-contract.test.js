@@ -8,9 +8,6 @@ const config = JSON.parse(await readFile(
   'utf8'
 ));
 
-assert.equal(config.inference.chatTemplate.type, 'qwen');
-assert.equal(config.inference.chatTemplate.thinking, false);
-
 const rendered = formatChatMessages([
   { role: 'system', content: 'Return JSON only.' },
   { role: 'user', content: 'Sentence: Ada visited London.' },

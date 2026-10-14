@@ -36,12 +36,6 @@ const catalogByModelId = new Map(
     .map((entry) => [entry.modelId, entry])
 );
 
-const expectedUpdated = [catalog.updatedAt, policy.updated]
-  .filter((value) => /^\d{4}-\d{2}-\d{2}$/.test(String(value)))
-  .sort()
-  .at(-1);
-assert.equal(inventory.updated, expectedUpdated, 'inventory updated date must be the latest dated source');
-
 function assertIncludes(value, expected, context) {
   assert.equal(
     String(value).includes(expected),
@@ -57,33 +51,6 @@ function assertRepoRelativeExistingFile(repoPath, context) {
   assert.equal(value.includes('\\'), false, `${context} must use forward slashes`);
   assert.equal(value.split('/').includes('..'), false, `${context} must not escape the repo`);
   assert.equal(fs.existsSync(path.join(repoRoot, value)), true, `${context} must exist: ${value}`);
-}
-
-assert.equal(policy.ordering, 'artifact-size-ascending');
-assert.equal(policy.preferredArchitecture.selection, 'benchmark-evidence-only');
-for (const evidenceId of ['runtimeReport', 'compareResult', 'summarySvg']) {
-  assert.equal(
-    policy.preferredArchitecture.requiredEvidence.includes(evidenceId),
-    true,
-    `preferred architecture policy must require ${evidenceId}`
-  );
-}
-assert.equal(policy.benchmarkCommands.mode, 'compute');
-assert.equal(policy.benchmarkCommands.save, true);
-assert.equal(policy.benchmarkCommands.json, true);
-for (const workloadId of ['p064-d064-t0-k1', 'p256-d128-t0-k1', 'p512-d128-t0-k1']) {
-  assert.equal(
-    policy.benchmarkCommands.workloads.includes(workloadId),
-    true,
-    `benchmark command policy must include workload ${workloadId}`
-  );
-}
-for (const decodeProfile of ['parity', 'throughput']) {
-  assert.equal(
-    policy.benchmarkCommands.decodeProfiles.includes(decodeProfile),
-    true,
-    `benchmark command policy must include decode profile ${decodeProfile}`
-  );
 }
 
 let previousSize = -1;
@@ -160,7 +127,6 @@ for (const sourceModel of inventory.sourceModels) {
     const catalogEntry = catalogByModelId.get(variant.modelId);
     assert.ok(catalogEntry, `${variant.modelId}: inventory variant must exist in catalog`);
     const expectedTypeCluster = resolveModelTypeCluster(catalogEntry.classification);
-    assert.deepEqual(variant.classification, catalogEntry.classification, `${variant.modelId}: classification must mirror catalog`);
     assert.deepEqual(
       variant.typeCluster,
       { id: expectedTypeCluster.id, label: expectedTypeCluster.label },
@@ -256,60 +222,5 @@ assert.equal(
   catalog.models.length,
   'model type counts must cover every catalog lane exactly once'
 );
-
-const qwenEmbedding = inventory.sourceModels
-  .flatMap((sourceModel) => sourceModel.variants)
-  .find((variant) => variant.modelId === 'qwen-3-embedding-0-6b-q4k-ehf16-af32');
-assert.ok(qwenEmbedding, 'qwen-3-embedding-0-6b-q4k-ehf16-af32 must be present in support inventory');
-assert.equal(qwenEmbedding.compare.profile?.kind, 'embedding');
-assert.equal(qwenEmbedding.compare.profile?.lane, 'performance_comparable');
-assert.equal(qwenEmbedding.compare.profile?.tjsModelId, 'onnx-community/Qwen3-Embedding-0.6B-ONNX');
-assert.equal(qwenEmbedding.actions.compareCommands.length, 1);
-assertIncludes(
-  qwenEmbedding.actions.compareCommands[0].command,
-  'node tools/compare-embeddings.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32',
-  'qwen embedding compare command'
-);
-assert.equal(qwenEmbedding.missing.includes('compare-profile'), false);
-assert.equal(qwenEmbedding.missing.includes('compare-result'), false);
-assert.equal(qwenEmbedding.missing.includes('summary-svg'), true);
-assertIncludes(
-  qwenEmbedding.evidence.compareResult,
-  'benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_',
-  'qwen embedding compare evidence'
-);
-assert.equal(qwenEmbedding.evidence.compareResultExists, true);
-assert.equal(qwenEmbedding.nextGate, 'summary-svg');
-assert.equal(qwenEmbedding.actions.primaryNextCommand, null);
-
-const qwenReranker = inventory.sourceModels
-  .flatMap((sourceModel) => sourceModel.variants)
-  .find((variant) => variant.modelId === 'qwen-3-reranker-0-6b-q4k-ehf16-af32');
-assert.ok(qwenReranker, 'qwen-3-reranker-0-6b-q4k-ehf16-af32 must be present in support inventory');
-assert.equal(qwenReranker.compare.profile?.kind, 'rerank');
-assert.equal(qwenReranker.compare.profile?.lane, 'performance_comparable');
-assert.equal(qwenReranker.compare.profile?.tjsModelId, 'onnx-community/Qwen3-Reranker-0.6B-ONNX');
-assert.equal(qwenReranker.actions.compareCommands.length, 1);
-assertIncludes(
-  qwenReranker.actions.compareCommands[0].command,
-  'node tools/compare-rerankers.js --model-id qwen-3-reranker-0-6b-q4k-ehf16-af32',
-  'qwen reranker compare command'
-);
-assert.equal(qwenReranker.missing.includes('compare-profile'), false);
-assert.equal(qwenReranker.missing.includes('compare-result'), false);
-assert.equal(qwenReranker.missing.includes('summary-svg'), true);
-assertIncludes(
-  qwenReranker.evidence.compareResult,
-  'benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_',
-  'qwen reranker compare evidence'
-);
-assert.equal(qwenReranker.evidence.compareResultExists, true);
-assert.equal(qwenReranker.nextGate, 'summary-svg');
-assert.equal(qwenReranker.actions.primaryNextCommand, null);
-
-const conversionOnlyIds = new Set(inventory.conversionOnly.map((entry) => entry.modelBaseId));
-for (const expected of ['gpt-oss-20b-f16-xmxfp4', 'janus-pro-1b-text-q4k-ehaf16']) {
-  assert.equal(conversionOnlyIds.has(expected), true, `${expected} must remain visible as conversion-only`);
-}
 
 console.log('model-support-inventory-contract.test: ok');

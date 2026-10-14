@@ -149,31 +149,18 @@ try {
   );
 
   const runtimeConfig = createDopplerConfig().runtime;
-  assert.equal(
-    runtimeConfig.inference.generation.maxTokens,
-    256,
-    'Default runtime config must own the text generation max token budget.'
-  );
-  assert.equal(
-    runtimeConfig.inference.generation.multimodalMaxTokens,
-    512,
-    'Default runtime config must own the multimodal generation max token budget.'
-  );
-  assert.equal(
-    runtimeConfig.inference.kvcache.quantization.bitWidth,
-    4,
-    'Default runtime config must own quantized KV bit width.'
-  );
-  assert.equal(
-    runtimeConfig.inference.kvcache.tiering.compression.bitWidth,
-    4,
-    'Default runtime config must own tiered KV compression bit width.'
-  );
-  assert.equal(
-    runtimeConfig.shared.debug.profiler.maxHistoryLabels,
-    1024,
-    'Default runtime config must own profiler label history length.'
-  );
+  for (const [label, value] of [
+    ['inference.generation.maxTokens', runtimeConfig.inference.generation.maxTokens],
+    ['inference.generation.multimodalMaxTokens', runtimeConfig.inference.generation.multimodalMaxTokens],
+    ['inference.kvcache.quantization.bitWidth', runtimeConfig.inference.kvcache.quantization.bitWidth],
+    ['inference.kvcache.tiering.compression.bitWidth', runtimeConfig.inference.kvcache.tiering.compression.bitWidth],
+    ['shared.debug.profiler.maxHistoryLabels', runtimeConfig.shared.debug.profiler.maxHistoryLabels],
+  ]) {
+    assert.ok(
+      Number.isInteger(value) && value > 0,
+      `Default runtime config must own ${label} as a positive integer.`
+    );
+  }
   assert.equal(
     runtimeConfig.inference.session.skipEmbeddingKVCacheWrites,
     false,

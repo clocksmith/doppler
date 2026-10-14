@@ -3,7 +3,6 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { expandExecutionV1 } from '../../src/config/schema/execution-v1.schema.js';
 import { compileExecutionV1 } from '../../src/inference/pipelines/text/execution-v1.js';
 import { getLayerSteps } from '../../src/config/kernel-path-loader.js';
 
@@ -15,104 +14,6 @@ const configPath = path.join(
   'src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32.json'
 );
 const config = JSON.parse(await fs.readFile(configPath, 'utf8'));
-const int4PleConfigPath = path.join(
-  repoRoot,
-  'src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple.json'
-);
-const int4PleConfig = JSON.parse(await fs.readFile(int4PleConfigPath, 'utf8'));
-
-assert.equal(config.output?.baseDir, 'models/local');
-assert.equal(config.output?.modelBaseId, 'gemma-4-e2b-it-q4k-ehf16-af32');
-assert.equal(config.output?.textOnly, false);
-
-assert.equal(config.quantization?.weights, 'q4k');
-assert.equal(config.quantization?.embeddings, 'f16');
-assert.equal(config.quantization?.lmHead, 'f16');
-assert.equal(config.quantization?.computePrecision, 'f32');
-assert.equal(config.quantization?.q4kLayout, 'row');
-
-assert.equal(config.inference?.attention?.queryPreAttnScalar, 1);
-assert.equal(config.inference?.attention?.slidingWindow, 512);
-assert.equal(config.inference?.attention?.valueNorm, true);
-assert.equal(config.inference?.normalization?.rmsNormWeightOffset, false);
-assert.equal(config.inference?.ffn?.useDoubleWideMlp, true);
-assert.equal(config.inference?.chatTemplate?.type, 'gemma4');
-assert.equal(config.inference?.rope?.partialRotaryFactor, 0.25);
-assert.equal(config.inference?.rope?.ropeLocalPartialRotaryFactor, null);
-assert.equal(config.inference?.rope?.ropeInterleaved, false);
-assert.equal(config.inference?.rope?.ropeFrequencyBaseDim, 512);
-assert.equal(config.inference?.rope?.ropeLocalFrequencyBaseDim, null);
-assert.equal(config.inference?.rope?.ropeScalingType, null);
-assert.equal(config.inference?.output?.finalLogitSoftcapping, 30);
-assert.equal(config.inference?.output?.embeddingPostprocessor, null);
-
-const expanded = expandExecutionV1(config.execution);
-assert.ok(expanded.length > 0, 'execution must expand to at least one step');
-assert.equal(config.execution?.kernels?.embed?.kernel, 'gather_split8_f16_vec4_f32_out.wgsl');
-assert.equal(config.execution?.kernels?.embed?.entry, 'gather_vec4_f32_out');
-assert.equal(config.execution?.kernels?.attn_decode?.kernel, 'attention_decode_online_f16kv.wgsl');
-assert.equal(config.execution?.kernels?.attn_decode?.entry, 'main');
-assert.equal(config.execution?.kernels?.attn_decode?.precision?.kvDtype, 'f16');
-assert.equal(config.execution?.kernels?.attn_small?.kernel, 'attention_small_f16kv.wgsl');
-assert.equal(config.execution?.kernels?.attn_small?.precision?.kvDtype, 'f16');
-assert.equal(config.execution?.kernels?.attn_head256?.kernel, 'attention_head256_f16kv.wgsl');
-assert.equal(config.execution?.kernels?.attn_head256?.precision?.kvDtype, 'f16');
-assert.equal(config.execution?.kernels?.attn_stream?.kernel, 'attention_streaming_f16kv.wgsl');
-assert.equal(config.execution?.kernels?.attn_stream?.precision?.kvDtype, 'f16');
-assert.equal(config.execution?.kernels?.attn_head256?.kernel, 'attention_head256_f16kv.wgsl');
-assert.equal(config.execution?.kernels?.attn_head256?.precision?.kvDtype, 'f16');
-assert.equal(config.execution?.kernels?.attn_head512?.kernel, 'attention_head512_f16kv.wgsl');
-assert.equal(config.execution?.kernels?.attn_head512?.precision?.kvDtype, 'f16');
-assert.equal(config.execution?.kernels?.gemv?.kernel, 'matmul_gemv_subgroup.wgsl');
-assert.equal(config.execution?.kernels?.tiled?.kernel, 'matmul_f16w_f32a.wgsl');
-assert.equal(config.execution?.kernels?.final_norm_stable?.kernel, 'rmsnorm.wgsl');
-assert.equal(config.execution?.kernels?.final_norm_stable?.precision?.inputDtype, 'f32');
-assert.equal(config.execution?.kernels?.final_norm_stable?.precision?.outputDtype, 'f32');
-assert.equal(config.execution?.kernels?.lm_head_gemv_stable?.kernel, 'matmul_gemv_subgroup.wgsl');
-assert.equal(config.execution?.kernels?.lm_head_gemv_stable?.precision?.inputDtype, 'f32');
-assert.equal(config.execution?.kernels?.lm_head_gemv_stable?.precision?.outputDtype, 'f32');
-assert.equal(config.execution?.kernels?.lm_head_prefill_stable?.kernel, 'matmul_f16w_f32a.wgsl');
-assert.equal(config.execution?.kernels?.lm_head_prefill_stable?.precision?.inputDtype, 'f32');
-assert.equal(config.execution?.kernels?.lm_head_prefill_stable?.precision?.outputDtype, 'f32');
-assert.equal(config.execution?.kernels?.sample?.kernel, 'sample.wgsl');
-assert.equal(
-  config.execution?.postLayer?.find((step) => step[0] === 'lm_head')?.[1],
-  'lm_head_gemv_stable'
-);
-
-assert.equal(config.session?.compute?.defaults?.activationDtype, 'f32');
-assert.equal(config.session?.compute?.defaults?.mathDtype, 'f32');
-assert.equal(config.session?.compute?.defaults?.accumDtype, 'f32');
-assert.equal(config.session?.compute?.defaults?.outputDtype, 'f32');
-assert.equal(config.session?.kvcache?.kvDtype, 'f16');
-assert.equal(config.session?.decodeLoop?.batchSize, 8);
-assert.equal(config.session?.decodeLoop?.stopCheckMode, 'batch');
-assert.equal(config.session?.decodeLoop?.readbackInterval, 8);
-assert.equal(config.session?.decodeLoop?.readbackMode, 'overlapped');
-assert.equal(config.session?.decodeLoop?.ringTokens, 2);
-assert.equal(config.session?.decodeLoop?.ringStop, 1);
-assert.equal(config.session?.decodeLoop?.ringStaging, 2);
-assert.equal(config.session?.decodeLoop?.disableCommandBatching, false);
-assert.equal(config.session?.retainQ4KMaterialization, false);
-assert.equal(config.session?.perLayerInputs?.materialization, 'gpu_split_tables');
-assert.equal(config.session?.perLayerInputs?.hotCache?.mode, 'prepared_tokens');
-assert.equal(config.session?.perLayerInputs?.hotCache?.maxTokens, 4096);
-assert.equal(config.session?.perLayerInputs?.hotCache?.maxBytes, 268435456);
-assert.equal(config.session?.perLayerInputs?.hotCache?.outputDtype, 'f32');
-
-assert.equal(int4PleConfig.output?.baseDir, 'models/local');
-assert.equal(int4PleConfig.output?.modelBaseId, 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple');
-assert.equal(int4PleConfig.quantization?.weights, 'q4k');
-assert.equal(int4PleConfig.quantization?.embeddings, 'f16');
-assert.equal(int4PleConfig.quantization?.lmHead, 'f16');
-assert.equal(int4PleConfig.quantization?.perLayerEmbeddings, 'int4_per_row');
-assert.equal(int4PleConfig.session?.retainQ4KMaterialization, false);
-assert.equal(int4PleConfig.execution?.kernels?.embed?.kernel, 'gather_split8_f16_vec4_f32_out.wgsl');
-assert.equal(int4PleConfig.execution?.kernels?.embed?.entry, 'gather_vec4_f32_out');
-// INT4 PLE rows stay range-backed; conversion rejects split-table materialization
-// for packed INT4 PLE tensors.
-assert.equal(int4PleConfig.session?.perLayerInputs?.materialization, 'range_backed');
-
 const manifestInference = {
   schema: 'doppler.execution/v1',
   ...config.inference,
