@@ -69,16 +69,66 @@
         "url": "https://raw.githubusercontent.com/huggingface/transformers/e0eb2810ac1b2caf6d082f247d8d37162ecf67a0/src/transformers/modeling_rope_utils.py",
         "bytes": 62715,
         "sha256": "6a0727073e080e163d0287e15fc1acb90035e9a9df9cb19a13b632a40abfac24"
+      },
+      {
+        "path": "integrations_moe.py",
+        "url": "https://raw.githubusercontent.com/huggingface/transformers/e0eb2810ac1b2caf6d082f247d8d37162ecf67a0/src/transformers/integrations/moe.py",
+        "bytes": 27977,
+        "sha256": "a4cdb41cd6c4e40a3e602644b5781a5dc53ac4ef227249db2ed40c7347990556"
+      },
+      {
+        "path": "integrations_hub_kernels.py",
+        "url": "https://raw.githubusercontent.com/huggingface/transformers/e0eb2810ac1b2caf6d082f247d8d37162ecf67a0/src/transformers/integrations/hub_kernels.py",
+        "bytes": 52195,
+        "sha256": "171823863cbeb8f4626b338315b6733810217c42a65c4b61b34d2313e0a5b533"
+      },
+      {
+        "path": "integrations_accelerate.py",
+        "url": "https://raw.githubusercontent.com/huggingface/transformers/e0eb2810ac1b2caf6d082f247d8d37162ecf67a0/src/transformers/integrations/accelerate.py",
+        "bytes": 46592,
+        "sha256": "863ddc3c52c533b2666d11cb66a3a00e90e26c2c0b2f8f065561aa62a9dd2623"
+      },
+      {
+        "path": "activations.py",
+        "url": "https://raw.githubusercontent.com/huggingface/transformers/e0eb2810ac1b2caf6d082f247d8d37162ecf67a0/src/transformers/activations.py",
+        "bytes": 13477,
+        "sha256": "5b20c0a3625edc0001a98f09ce3c6b5baa1100e1d7ad8dee649e4d45c8468665"
+      },
+      {
+        "path": "cache_utils.py",
+        "url": "https://raw.githubusercontent.com/huggingface/transformers/e0eb2810ac1b2caf6d082f247d8d37162ecf67a0/src/transformers/cache_utils.py",
+        "bytes": 107788,
+        "sha256": "2bef552bc39e8a4dc7ddfcf25740e6a4a7c4b836d92f5e56629a8ebfcd9cb246"
+      },
+      {
+        "path": "modeling_qwen3_5.py",
+        "url": "https://raw.githubusercontent.com/huggingface/transformers/e0eb2810ac1b2caf6d082f247d8d37162ecf67a0/src/transformers/models/qwen3_5/modeling_qwen3_5.py",
+        "bytes": 87885,
+        "sha256": "b48635f7388fbfd1b214b8c19275f8c9854fd02c4f3a3376a2339b753a2a5457"
       }
     ],
     "executed": false
   },
-  "amended": {
-    "at": "2026-10-14",
-    "added": [
-      "tokenizer.json",
-      "modeling_rope_utils.py"
-    ],
-    "note": "tokenizer.json sha256 and length equal the Hugging Face X-Linked-ETag and X-Linked-Size at the pinned revision; modeling_rope_utils.py supplies the pinned dynamic_rope_update decorator"
-  }
+  "amended": [
+    {
+      "at": "2026-10-14",
+      "added": [
+        "tokenizer.json",
+        "modeling_rope_utils.py"
+      ],
+      "note": "tokenizer.json sha256 and length equal the Hugging Face X-Linked-ETag and X-Linked-Size at the pinned revision; modeling_rope_utils.py supplies the pinned dynamic_rope_update decorator"
+    },
+    {
+      "at": "2026-10-14",
+      "added": [
+        "integrations_moe.py",
+        "integrations_hub_kernels.py",
+        "integrations_accelerate.py",
+        "activations.py",
+        "cache_utils.py",
+        "modeling_qwen3_5.py"
+      ],
+      "note": "expert implementations, kernel and accelerate decorators, activations, linear-attention cache and Qwen3.5 comparison source at the pinned Transformers revision"
+    }
+  ]
 }
