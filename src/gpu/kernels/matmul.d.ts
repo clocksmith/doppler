@@ -15,6 +15,7 @@ import type { OutputBufferOptions, OutputDtypeOptions, Vec4Options } from './typ
 import type { KernelPathSchema } from '../../config/schema/index.js';
 import type { MatmulDebugConfigSchema } from '../../config/schema/debug.schema.js';
 import type { ExecutionV1PoliciesSchema } from '../../config/schema/execution-v1.schema.js';
+import type { KernelPipelineRequest } from './pipeline-cache.js';
 
 /** Matmul kernel options */
 export interface MatmulOptions extends OutputBufferOptions, OutputDtypeOptions, Vec4Options {
@@ -49,6 +50,25 @@ export interface MatmulOptions extends OutputBufferOptions, OutputDtypeOptions, 
   /** Execution-v1 fail-fast policies for implicit dtype transitions. */
   executionPolicies?: ExecutionV1PoliciesSchema | null;
 }
+
+/** Declared lookup context for one paired projection role. */
+export interface PairedProjectionPipelineOptions {
+  role: string;
+  phase: 'decode' | 'prefill';
+  layerIdx: number;
+  kernelPath: KernelPathSchema | null;
+  transposeB: boolean | 'auto';
+  outputPrecision: 'f32' | 'two-f32';
+}
+
+/**
+ * Resolve the pipeline a paired projection dispatches, including the weight
+ * materialization its declared kernel binds. M, N and K never select the program.
+ */
+export declare function resolvePairedProjectionPipeline(
+  weight: GPUBuffer | WeightBuffer,
+  options: PairedProjectionPipelineOptions
+): KernelPipelineRequest;
 
 /**
  * Check if fused Q4K kernels are disabled.

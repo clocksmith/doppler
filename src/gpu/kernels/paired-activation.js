@@ -19,18 +19,25 @@ function validate(value, count) {
     throw new Error('[PairedActivation] Tensor shape or buffer is undersized.');
   }
 }
+/** @type {typeof import('./paired-activation.js').resolvePairedPointwisePipeline} */
+export function resolvePairedPointwisePipeline(operation, mode) {
+  return { operation: 'paired_pointwise',
+    variant: selectRuleValue('silu', 'pairedVariant', { operation, inplace: mode.inplace }),
+    constants: mode.gatedInputActivation === null ? null
+      : { HAS_GATE: true, INPUT_USE_IDENTITY: mode.gatedInputActivation === 'identity' } };
+}
 /**
  * @param {import('../command-recorder.js').CommandRecorder | null} target
  * @param {import('../tensor.js').Tensor} a
  * @param {import('../tensor.js').Tensor} b
  * @param {number} count
- * @param {string} operation
+ * @param {import('./paired-activation.js').PairedPointwiseOperation} operation
  * @param {import('./paired-activation.js').PairedPointwiseOptions} options
  * @param {number} scale
- * @param {Record<string, number | boolean> | null} constants
+ * @param {'silu' | 'identity' | null} gatedInputActivation
  * @param {readonly number[]} outputShape
  */
-async function execute(target, a, b, count, operation, options, scale, constants = null, outputShape = [count]) {
+async function execute(target, a, b, count, operation, options, scale, gatedInputActivation = null, outputShape = [count]) {
   validate(a, count); validate(b, count);
   if (!Number.isFinite(scale) || !Number.isFinite(Math.fround(scale))) throw new Error('[PairedActivation] Finite F32-pair scale required.');
   const inplace = options.inplace === true;
@@ -44,11 +51,11 @@ async function execute(target, a, b, count, operation, options, scale, constants
   if (!device) throw new Error('[PairedActivation] GPU device required.');
   const workgroups = Math.ceil(count / WORKGROUP_SIZES.DEFAULT);
   const x = Math.min(workgroups, device.limits.maxComputeWorkgroupsPerDimension);
-  const variant = selectRuleValue('silu', 'pairedVariant', { operation, inplace });
+  const pipeline = resolvePairedPointwisePipeline(operation, { inplace, gatedInputActivation });
   return withKernelOutput(target, supplied ?? null, bytes, 'paired_pointwise', async output => {
-    await unifiedKernelWrapper('paired_pointwise', target, variant, inplace ? [output] : (operation === 'scale' || operation === 'silu_unary' ? [a, output] : [a, b, output]), {
+    await unifiedKernelWrapper(pipeline.operation, target, pipeline.variant, inplace ? [output] : (operation === 'scale' || operation === 'silu_unary' ? [a, output] : [a, b, output]), {
       size: count, scale_hi: Math.fround(scale), scale_lo: Math.fround(scale - Math.fround(scale)),
-    }, [x, Math.ceil(workgroups / x), 1], constants);
+    }, [x, Math.ceil(workgroups / x), 1], pipeline.constants);
     return createTensor(output, 'f32', outputShape, 'paired_pointwise', PAIR);
   });
 }
@@ -75,7 +82,5 @@ export async function executePairedSiLU(target, input, count, options) {
   }
   const shape = input.shape.reduce((total, size) => total * size, 1) === count ? input.shape : [count];
   if (!options.gate) return execute(target, input, input, count, options.inputActivation === 'identity' ? 'scale' : 'silu_unary', options, 1, null, shape);
-  return execute(target, input, options.gate, count, options.gateActivation, options, 1, {
-    HAS_GATE: options.gate != null, INPUT_USE_IDENTITY: options.inputActivation === 'identity',
-  }, shape);
+  return execute(target, input, options.gate, count, options.gateActivation, options, 1, options.inputActivation, shape);
 }

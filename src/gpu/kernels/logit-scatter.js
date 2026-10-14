@@ -3,6 +3,10 @@ import { unifiedKernelWrapper } from './kernel-execution.js';
 
 const WORKGROUP_SIZE = 256;
 
+export function resolveLogitScatterPipeline(inputDtype) {
+  return { operation: 'logit_scatter', variant: inputDtype, constants: null };
+}
+
 export async function runLogitScatter(input, outputBuffer, options) {
   const rowCount = Number(options?.rowCount);
   const chunkColumns = Number(options?.chunkColumns);
@@ -23,10 +27,11 @@ export async function runLogitScatter(input, outputBuffer, options) {
   if (input?.dtype !== 'f16' && input?.dtype !== 'f32') {
     throw new Error(`[LogitScatter] unsupported input dtype "${input?.dtype ?? 'unknown'}".`);
   }
+  const pipeline = resolveLogitScatterPipeline(input.dtype);
   await unifiedKernelWrapper(
-    'logit_scatter',
+    pipeline.operation,
     null,
-    input.dtype,
+    pipeline.variant,
     [input, outputBuffer],
     {
       row_count: rowCount,
@@ -34,7 +39,8 @@ export async function runLogitScatter(input, outputBuffer, options) {
       target_columns: targetColumns,
       column_offset: columnOffset,
     },
-    Math.ceil((rowCount * chunkColumns) / WORKGROUP_SIZE)
+    Math.ceil((rowCount * chunkColumns) / WORKGROUP_SIZE),
+    pipeline.constants
   );
   return createTensor(outputBuffer, 'f32', [rowCount, targetColumns], 'logit_scatter_output');
 }

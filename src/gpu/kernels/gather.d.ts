@@ -8,6 +8,7 @@ import type { CommandRecorder } from '../command-recorder.js';
 import type { Tensor, TensorDtype } from '../tensor.js';
 import type { OutputBufferOptions } from './types.js';
 import type { SplitWeightBuffer, WeightDtype, WeightStorageEncoding } from '../weight-buffer.js';
+import type { KernelPipelineRequest } from './pipeline-cache.js';
 
 /** Gather kernel options */
 export interface GatherOptions extends OutputBufferOptions {
@@ -39,6 +40,30 @@ export interface GatherOptions extends OutputBufferOptions {
   /** Optional authored split gather section count, usually stamped from the manifest-selected embedding kernel. */
   splitGatherSectionCount?: number | null;
 }
+
+/** Inputs that select a plain gather program; the token count never does. */
+export interface GatherPipelineSelection {
+  embeddingDtype: Extract<WeightDtype, 'f16' | 'bf16' | 'f32' | 'litert_int4'>;
+  outputDtype: 'f16' | 'f32';
+  hiddenSize: number;
+  inputHiddenSize: number;
+  hiddenOffset: number;
+  useVec4?: boolean;
+  storageEncoding: WeightStorageEncoding | null;
+}
+
+/** Resolve the pipeline runGather/recordGather dispatch for these embedding properties. */
+export declare function resolveGatherPipeline(options: GatherPipelineSelection): KernelPipelineRequest;
+
+/**
+ * Resolve the pipeline runGatherSplit/recordGatherSplit dispatch. A null section
+ * count uses the manifest-stamped split variant carried by the split buffer.
+ */
+export declare function resolveSplitGatherPipeline(
+  splitEmbedding: SplitWeightBuffer,
+  outputDtype: 'f16' | 'f32',
+  splitGatherSectionCount: number | null
+): KernelPipelineRequest;
 
 /**
  * Run gather/embedding lookup

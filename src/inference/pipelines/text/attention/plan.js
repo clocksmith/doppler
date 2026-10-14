@@ -2,6 +2,8 @@ import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { hashRefactorReceiptValue } from '../../../refactor-receipt.js';
 
 export const ATTENTION_PLAN_SCHEMA = 'doppler.attention-plan/v1';
+// An enabled output gate is sigmoid(gate), including HF `output_gate_type=swish`.
+export const ATTENTION_OUTPUT_GATE_ACTIVATION = 'sigmoid';
 
 function deepFreeze(value) {
   if (!value || typeof value !== 'object' || Object.isFrozen(value)) {
@@ -213,7 +215,7 @@ export function resolveAttentionPlan(input = {}) {
     },
     outputGate: {
       enabled: normalized.outputGate.enabled,
-      semantics: normalized.outputGate.enabled ? 'sigmoid' : 'none',
+      semantics: normalized.outputGate.enabled ? ATTENTION_OUTPUT_GATE_ACTIVATION : 'none',
       mode: resolveOutputGateMode(normalized),
     },
     outputProjection: {

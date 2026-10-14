@@ -8,6 +8,25 @@ import { getDevice } from '../device.js';
 /** @type {Readonly<import('../tensor.js').TensorRepresentation>} */
 const REPRESENTATION = Object.freeze({ precision: 'two-f32', components: 2, elementStrideBytes: 8 });
 
+/** @type {typeof import('./paired-matmul.js').resolvePairedMatmulPipeline} */
+export function resolvePairedMatmulPipeline(weight, options) {
+  const dtype = getWeightDtype(weight);
+  if (typeof dtype !== 'string' || !['f32', 'f16', 'q4k'].includes(dtype)) {
+    throw new Error('[PairedMatmul] Explicit F32/F16/Q4K GPU weights are required.');
+  }
+  const layout = getLayout(weight);
+  const automatic = options.transposeB === undefined || options.transposeB === 'auto';
+  if (automatic && layout !== 'row' && layout !== 'column') throw new Error('[PairedMatmul] Explicit row/column layout required.');
+  if (options.outputPrecision !== undefined && options.outputPrecision !== 'f32' && options.outputPrecision !== 'two-f32') {
+    throw new Error('[PairedMatmul] Invalid output precision.');
+  }
+  const transpose = automatic ? layout === 'row' : options.transposeB === true;
+  const scalarOutput = options.outputPrecision === 'f32';
+  return { operation: 'matmul', variant: selectRuleValue('matmul', 'pairedVariant', { weightDtype: dtype, scalarOutput }),
+    constants: { WORKGROUP_SIZE: 64, WEIGHT_F16: dtype === 'f16', WEIGHT_Q4K: dtype === 'q4k',
+      TRANSPOSE_B: transpose, SCALAR_OUTPUT: scalarOutput } };
+}
+
 /** @type {typeof import('./paired-matmul.js').executePairedMatmul} */
 export async function executePairedMatmul(recorder, input, weight, M, N, K, options) {
   if (![M, N, K].every(value => Number.isSafeInteger(value) && value > 0 && value <= 0xffffff)
@@ -18,19 +37,12 @@ export async function executePairedMatmul(recorder, input, weight, M, N, K, opti
   if (input.dtype !== 'f32' || input.precision !== 'two-f32' || input.components !== 2 || input.elementStrideBytes !== 8) {
     throw new Error('[PairedMatmul] Interleaved two-F32 input is required.');
   }
-  const dtype = getWeightDtype(weight), buffer = getBuffer(weight);
-  if (typeof dtype !== 'string' || !['f32', 'f16', 'q4k'].includes(dtype) || !buffer || !('size' in buffer)) {
-    throw new Error('[PairedMatmul] Explicit F32/F16/Q4K GPU weights are required.');
-  }
-  const layout = getLayout(weight);
-  const transpose = options.transposeB === undefined || options.transposeB === 'auto' ? layout === 'row' : options.transposeB;
-  if ((options.transposeB === undefined || options.transposeB === 'auto') && layout !== 'row' && layout !== 'column') throw new Error('[PairedMatmul] Explicit row/column layout required.');
-  if (dtype === 'q4k' && (K % 256 !== 0 || !transpose)) throw new Error('[PairedMatmul] Q4K requires row layout and a K multiple of256.');
-  const scalarOutput = options.outputPrecision === 'f32';
-  if (options.outputPrecision !== undefined && options.outputPrecision !== 'f32' && options.outputPrecision !== 'two-f32') {
-    throw new Error('[PairedMatmul] Invalid output precision.');
-  }
-  const variant = selectRuleValue('matmul', 'pairedVariant', { weightDtype: dtype, scalarOutput });
+  const buffer = getBuffer(weight);
+  if (!buffer || !('size' in buffer)) throw new Error('[PairedMatmul] Explicit F32/F16/Q4K GPU weights are required.');
+  const pipeline = resolvePairedMatmulPipeline(weight, options);
+  const { WEIGHT_Q4K: q4k, TRANSPOSE_B: transpose, SCALAR_OUTPUT: scalarOutput } = pipeline.constants;
+  const dtype = getWeightDtype(weight);
+  if (q4k && (K % 256 !== 0 || !transpose)) throw new Error('[PairedMatmul] Q4K requires row layout and a K multiple of256.');
   const aOffset = options.aOffset ?? 0, bOffset = options.bOffset ?? 0, cOffset = options.cOffset ?? 0;
   if ([aOffset, bOffset, cOffset].some(value => !Number.isSafeInteger(value) || value < 0)
     || aOffset % 8 || bOffset % 4 || cOffset % (scalarOutput ? 4 : 8)) {
@@ -52,12 +64,9 @@ export async function executePairedMatmul(recorder, input, weight, M, N, K, opti
   const output = supplied ?? acquireBuffer(bytes, undefined, 'matmul_paired_output');
   const gridWidth = Math.min(M * N, device.limits.maxComputeWorkgroupsPerDimension);
   try {
-    await unifiedKernelWrapper('matmul', recorder, variant, [input, buffer, output], {
+    await unifiedKernelWrapper(pipeline.operation, recorder, pipeline.variant, [input, buffer, output], {
       M, N, K, grid_width: gridWidth, alpha_hi: Math.fround(alpha), alpha_lo: Math.fround(alpha - Math.fround(alpha)),
-    }, [gridWidth, Math.ceil(M * N / gridWidth), 1], {
-      WORKGROUP_SIZE: 64, WEIGHT_F16: dtype === 'f16', WEIGHT_Q4K: dtype === 'q4k',
-      TRANSPOSE_B: transpose, SCALAR_OUTPUT: scalarOutput,
-    });
+    }, [gridWidth, Math.ceil(M * N / gridWidth), 1], pipeline.constants);
     return createTensor(output, 'f32', [M, N], 'matmul_paired', scalarOutput ? undefined : REPRESENTATION);
   } catch (error) {
     if (!supplied) {

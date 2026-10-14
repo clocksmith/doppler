@@ -67,7 +67,10 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Paired execution, generation/resident contracts and sigmoid norm-gate kernels
   // add 74 src/ entries (31 WGSL, 43 JS/declarations); measured 1991 on npm 10.9.3.
   // Exact delta: artifacts/package-budget-20261014/inventory-delta.json.
-  maxEntryCount: 1991,
+  // Resident stage pipeline preparation adds one shipped module,
+  // inference/pipelines/text/resident-pipeline-preparation.js; its declaration
+  // stays outside the public type closure. Measured 1992 on npm 10.9.3.
+  maxEntryCount: 1992,
   // add14e4b: npm 9.2.0 produces 2,104,958 bytes; CI Node 22.23.2/npm 10.9.8
   // produces 2,107,073. Keep the measured cross-toolchain compression allowance.
   // Evidence: reports/capsule-baseline/20260907-release/remote-package-budget-failure.log.
@@ -137,7 +140,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Measured npm 9 payload plus the same 2,158-byte compression allowance.
   // The 74 entries of artifacts/package-budget-20261014/inventory-delta.json:
   // measured 3,474,000 packed on Node 22.20.0/npm 10.9.3, plus that allowance.
-  maxPackedSize: 3_476_158,
+  // Resident stage pipeline preparation (one module plus pipeline resolvers in
+  // 23 shipped files): measured 3,481,792 on Node 22.20.0/npm 10.9.3, plus that allowance.
+  maxPackedSize: 3_483_950,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -188,7 +193,10 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // The 74 entries of artifacts/package-budget-20261014/inventory-delta.json:
   // measured 13,996,039 unpacked bytes. The shipped browser kernel suite's
   // shader-f16 gate and declared F32 state add 217 bytes (c628f98f).
-  maxUnpackedSize: 13_996_256,
+  // The package.json test:smoke script (a7263035) added 67 bytes without a
+  // budget update (13,996,323 at HEAD). Resident stage pipeline preparation adds
+  // 26,027: measured 14,022,350 on Node 22.20.0/npm 10.9.3.
+  maxUnpackedSize: 14_022_350,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

@@ -11,7 +11,7 @@ const interpreterSource = [
 
 assert.match(
   planSource,
-  /semantics:\s*normalized\.outputGate\.enabled\s*\?\s*'sigmoid'\s*:\s*'none'/,
+  /export const ATTENTION_OUTPUT_GATE_ACTIVATION = 'sigmoid';[\s\S]*semantics:\s*normalized\.outputGate\.enabled\s*\?\s*ATTENTION_OUTPUT_GATE_ACTIVATION\s*:\s*'none'/,
   'the semantic attention plan must route enabled output gates through sigmoid'
 );
 assert.match(

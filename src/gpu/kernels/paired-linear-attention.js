@@ -18,29 +18,30 @@ function resolvePairedGateVariant(normGateActivation) {
     { normGateActivation }).variant;
 }
 
+/** @type {typeof import('./paired-linear-attention.js').listPairedLinearAttentionPipelines} */
+export function listPairedLinearAttentionPipelines(normGateActivation) {
+  const gateVariant = resolvePairedGateVariant(normGateActivation);
+  return [
+    { operation: 'gated_delta_conv', variant: 'paired', constants: CONV_CONSTANTS },
+    { operation: 'qwen_linear_attention_prepare', variant: 'paired_beta', constants: GATE_CONSTANTS },
+    { operation: 'qwen_linear_attention_prepare', variant: 'paired_decay_scale', constants: GATE_CONSTANTS },
+    { operation: 'qwen_linear_attention_prepare', variant: 'paired_log_decay', constants: GATE_CONSTANTS },
+    { operation: 'qwen_linear_attention_prepare', variant: 'paired_decay', constants: GATE_CONSTANTS },
+    { operation: 'gated_delta_recurrent', variant: 'paired_qk', constants: RECURRENT_CONSTANTS },
+    { operation: 'gated_delta_recurrent', variant: 'paired_state', constants: RECURRENT_CONSTANTS },
+    { operation: 'gated_delta_recurrent', variant: 'paired_norm', constants: RECURRENT_CONSTANTS },
+    { operation: 'gated_delta_recurrent', variant: gateVariant, constants: RECURRENT_CONSTANTS },
+  ];
+}
+
 /** @type {typeof import('./paired-linear-attention.js').preparePairedLinearAttentionPipelines} */
 export async function preparePairedLinearAttentionPipelines(device, signal, normGateActivation) {
   signal?.throwIfAborted();
   if (!device) throw new Error('[PairedLinear] Pipeline preparation requires the owning GPU device.');
-  const gateVariant = resolvePairedGateVariant(normGateActivation);
-  await getPipelineFast('gated_delta_conv', 'paired', null, CONV_CONSTANTS, device);
-  signal?.throwIfAborted();
-  await getPipelineFast('qwen_linear_attention_prepare', 'paired_beta', null, GATE_CONSTANTS, device);
-  signal?.throwIfAborted();
-  await getPipelineFast('qwen_linear_attention_prepare', 'paired_decay_scale', null, GATE_CONSTANTS, device);
-  signal?.throwIfAborted();
-  await getPipelineFast('qwen_linear_attention_prepare', 'paired_log_decay', null, GATE_CONSTANTS, device);
-  signal?.throwIfAborted();
-  await getPipelineFast('qwen_linear_attention_prepare', 'paired_decay', null, GATE_CONSTANTS, device);
-  signal?.throwIfAborted();
-  await getPipelineFast('gated_delta_recurrent', 'paired_qk', null, RECURRENT_CONSTANTS, device);
-  signal?.throwIfAborted();
-  await getPipelineFast('gated_delta_recurrent', 'paired_state', null, RECURRENT_CONSTANTS, device);
-  signal?.throwIfAborted();
-  await getPipelineFast('gated_delta_recurrent', 'paired_norm', null, RECURRENT_CONSTANTS, device);
-  signal?.throwIfAborted();
-  await getPipelineFast('gated_delta_recurrent', gateVariant, null, RECURRENT_CONSTANTS, device);
-  signal?.throwIfAborted();
+  for (const { operation, variant, constants } of listPairedLinearAttentionPipelines(normGateActivation)) {
+    await getPipelineFast(operation, variant, null, constants, device);
+    signal?.throwIfAborted();
+  }
 }
 
 /** @param {import('../tensor.js').Tensor} tensor @param {number} count */
@@ -68,7 +69,13 @@ export async function executePairedLinearAttention(qkv, z, a, b, state, options)
   }
   if (state.normMode !== 'shared' && state.normMode !== 'per_head') throw new Error('[PairedLinear] Explicit norm mode required.');
   if (typeof state.normWeightOffset !== 'boolean') throw new Error('[PairedLinear] Explicit norm weight offset required.');
-  const gateVariant = resolvePairedGateVariant(options.normGateActivation);
+  const [convPhase, betaPhase, decayScalePhase, logDecayPhase, decayPhase, qkPhase, statePhase, normPhase, gatePhase] =
+    listPairedLinearAttentionPipelines(options.normGateActivation);
+  /** @param {import('./pipeline-cache.js').KernelPipelineRequest} phase
+   * @param {Array<GPUBuffer | import('../tensor.js').Tensor>} bindings @param {number[]} workgroups
+   * @param {Record<string, number>} uniform */
+  const dispatch = (phase, bindings, uniform, workgroups) => unifiedKernelWrapper(phase.operation, recorder, phase.variant,
+    bindings, uniform, workgroups, phase.constants);
   const qeps = options.qkL2NormEps, eps = state.rmsNormEps;
   if (typeof qeps !== 'number' || ![qeps, eps].every(v => typeof v === 'number' && Number.isFinite(v) && v > 0 && Math.fround(v) > 0)) {
     throw new Error('[PairedLinear] Positive source epsilons required.');
@@ -123,30 +130,17 @@ export async function executePairedLinearAttention(qkv, z, a, b, state, options)
     conv = acquireBuffer(numTokens * state.convDim * 8, undefined, 'paired_linear_conv');
     gates = acquireBuffer(gateBytes, undefined, 'paired_linear_gates');
     output = acquireBuffer(numTokens * state.valueDim * 8, undefined, 'paired_linear_output');
-    await unifiedKernelWrapper('gated_delta_conv', recorder, 'paired', [qkv, state.convWeightGPU, state.convStateGPU, conv], uniform,
-      [Math.ceil(state.convDim / 64), 1, 1], CONV_CONSTANTS);
-    await unifiedKernelWrapper('qwen_linear_attention_prepare', recorder, 'paired_beta',
-      [b, gates], uniform,
-      [Math.ceil(numTokens * state.numVHeads / 64), 1, 1], GATE_CONSTANTS);
-    await unifiedKernelWrapper('qwen_linear_attention_prepare', recorder, 'paired_decay_scale',
-      [state.aLogGPU, a, state.dtBiasGPU, gates], uniform,
-      [Math.ceil(numTokens * state.numVHeads / 64), 2, 1], GATE_CONSTANTS);
-    await unifiedKernelWrapper('qwen_linear_attention_prepare', recorder, 'paired_log_decay',
-      [a, state.dtBiasGPU, gates], uniform,
-      [Math.ceil(numTokens * state.numVHeads / 64), 1, 1], GATE_CONSTANTS);
-    await unifiedKernelWrapper('qwen_linear_attention_prepare', recorder, 'paired_decay',
-      [gates], uniform,
-      [Math.ceil(numTokens * state.numVHeads / 64), 1, 1], GATE_CONSTANTS);
-    await unifiedKernelWrapper('gated_delta_recurrent', recorder, 'paired_qk',
-      [conv], uniform, [state.numKHeads, 1, 1], RECURRENT_CONSTANTS);
-    await unifiedKernelWrapper('gated_delta_recurrent', recorder, 'paired_state',
-      [conv, gates, state.recurrentStateGPU, output], uniform,
-      [state.numVHeads, 1, 1], RECURRENT_CONSTANTS);
-    await unifiedKernelWrapper('gated_delta_recurrent', recorder, 'paired_norm',
-      [state.normWeightGPU, output], uniform,
-      [state.numVHeads, 1, 1], RECURRENT_CONSTANTS);
-    await unifiedKernelWrapper('gated_delta_recurrent', recorder, gateVariant,
-      [z, output], uniform, [Math.ceil(numTokens * state.valueDim / 128), 1, 1], RECURRENT_CONSTANTS);
+    await dispatch(convPhase, [qkv, state.convWeightGPU, state.convStateGPU, conv], uniform,
+      [Math.ceil(state.convDim / 64), 1, 1]);
+    await dispatch(betaPhase, [b, gates], uniform, [Math.ceil(numTokens * state.numVHeads / 64), 1, 1]);
+    await dispatch(decayScalePhase, [state.aLogGPU, a, state.dtBiasGPU, gates], uniform,
+      [Math.ceil(numTokens * state.numVHeads / 64), 2, 1]);
+    await dispatch(logDecayPhase, [a, state.dtBiasGPU, gates], uniform, [Math.ceil(numTokens * state.numVHeads / 64), 1, 1]);
+    await dispatch(decayPhase, [gates], uniform, [Math.ceil(numTokens * state.numVHeads / 64), 1, 1]);
+    await dispatch(qkPhase, [conv], uniform, [state.numKHeads, 1, 1]);
+    await dispatch(statePhase, [conv, gates, state.recurrentStateGPU, output], uniform, [state.numVHeads, 1, 1]);
+    await dispatch(normPhase, [state.normWeightGPU, output], uniform, [state.numVHeads, 1, 1]);
+    await dispatch(gatePhase, [z, output], uniform, [Math.ceil(numTokens * state.valueDim / 128), 1, 1]);
     return createTensor(output, 'f32', [numTokens, state.valueDim], 'paired_linear_output', REPRESENTATION);
   } catch (error) { if (output) release(output); throw error; }
   finally { if (gates) release(gates); if (conv) release(conv); }

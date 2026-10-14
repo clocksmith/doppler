@@ -33,6 +33,21 @@ requires validating the descriptor against the accepted model, plan, index,
 layer range and generation configuration. Package version, exported API,
 resident readiness and signed model qualification are separate checks.
 
+Opening creates the stage's GPU compute pipelines before it reports ready, so a
+provider compile failure or crash happens at opening instead of during an answer.
+For the paired program the set comes from the resolved execution plan, kernel
+path, rules and loaded weight encodings. It covers the embedding gather, every
+assigned layer's prefill chunks and decode, and the output head. Pipelines are
+created one at a time on the stage device. Abort starts no further creation and
+waits for the started one to settle. A failed creation rejects opening with an
+error naming the pipeline. `getDescriptor().pipelinePreparation`
+(`doppler.resident-pipeline-preparation/v1`) reports `count`, `durationMs`, the
+shader, entry point, constants and program roles of each pipeline, and any
+`lazy` scope. Scalar resident programs, and paired stages outside the declared
+structure, are reported in `lazy` with `complete: false`. Their pipelines are
+still created on first use. Preparation does not qualify compile time or
+numerics on any provider.
+
 Each full attempt identity owns independent KV and recurrent state, continuation,
 sequence position, generation context, and decoder. Calls validate identity,
 step ordering, context bounds, activation shape/dtype, and generation settings.

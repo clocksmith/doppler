@@ -32,6 +32,8 @@ const target = new URL('../../src/inference/pipelines/text/resident-partition.js
 const substitutions = {
   './partition-execution.js': 'export const assertPartitionExecutionSupported = () => {}; export const executePartitionLayers = (...args) => orderedResidentFixture.execute(...args);',
   './partition-attempt.js': 'export const createPartitionAttempt = owner => orderedResidentFixture.create(owner);',
+  // Fixture owners load no model; real stage preparation is covered by resident-pipeline-preparation.test.js.
+  './resident-pipeline-preparation.js': 'export const prepareResidentPartitionPipelines = async () => ({ schema: "doppler.resident-pipeline-preparation/v1", complete: true, count: 0, durationMs: 0, pipelines: [], lazy: [] });',
   '../../../memory/buffer-pool.js': 'export const readBuffer = async row => row.buffer; export const releaseBuffer = () => {};',
 };
 const hooks = registerHooks({ resolve(name, context, next) {

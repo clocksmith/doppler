@@ -31,6 +31,10 @@ function resolveBiasBuffer(device, bias, sourceColumns) {
   throw new Error('[LogitFinalize] bias must be null, Float32Array, GPUBuffer, or WeightBuffer.');
 }
 
+export function resolveLogitFinalizePipeline(inputDtype) {
+  return { operation: 'logit_finalize', variant: inputDtype, constants: null };
+}
+
 async function finalizeLogitsTensor(target, input, options) {
   const device = getDevice();
   if (!device) {
@@ -67,10 +71,11 @@ async function finalizeLogitsTensor(target, input, options) {
   let bias = null;
   try {
     bias = resolveBiasBuffer(device, options.bias ?? null, sourceColumns);
+    const pipeline = resolveLogitFinalizePipeline(input.dtype);
     await unifiedKernelWrapper(
-      'logit_finalize',
+      pipeline.operation,
       target,
-      input.dtype,
+      pipeline.variant,
       [input, bias.buffer, output],
       {
         row_count: rowCount,
@@ -80,7 +85,8 @@ async function finalizeLogitsTensor(target, input, options) {
         output_scale: outputScale,
         softcap,
       },
-      Math.ceil((rowCount * targetColumns) / WORKGROUP_SIZE)
+      Math.ceil((rowCount * targetColumns) / WORKGROUP_SIZE),
+      pipeline.constants
     );
     return createTensor(output, 'f32', [rowCount, targetColumns], 'logit_finalize_output');
   } catch (error) {

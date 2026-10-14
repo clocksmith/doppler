@@ -689,6 +689,7 @@ inference/pipelines/text/per-layer/plan.d.ts
 inference/pipelines/text/pipeline-load-timing.d.ts
 inference/pipelines/text/probes.d.ts
 inference/pipelines/text/resident-partition.d.ts
+inference/pipelines/text/resident-pipeline-preparation.d.ts
 inference/pipelines/text/sequence-state.d.ts
 inference/pipelines/text/stage-names.d.ts
 inference/pipelines/text/stopping.d.ts
