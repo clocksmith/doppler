@@ -12,7 +12,7 @@ import { resolveGenerationOptions } from '../../src/config/generation-contract.j
 import { resolveResidentPartitionAllocation } from '../../src/inference/pipelines/text/resident-partition-contract.js';
 
 const LIMIT_KEYS = ['maxTokens', 'maxPromptTokens', 'maxActivationBytes', 'maxOutputCharacters',
-  'maxAttempts', 'maxConcurrentAttempts'];
+  'maxAttempts', 'maxConcurrentAttempts', 'maxPreparationMs'];
 const DIGEST = /^sha256:[a-f0-9]{64}$/;
 export const INDEPENDENT_TOLERANCE = 0.001;
 
@@ -55,7 +55,8 @@ export function resolvePhysicalPartitionConfig(manifest, modelIdentity, config =
     activationDtype: manifest.inference.session.compute.defaults.activationDtype });
   const planId = hashLayerPartitionPlan(plan);
   const limits = structuredClone(config !== null ? config.limits : { maxTokens: generation.maxTokens, maxPromptTokens: 2048,
-    maxActivationBytes: 1024 * 1024, maxOutputCharacters: 1024, maxAttempts: 16, maxConcurrentAttempts: 2 });
+    maxActivationBytes: 1024 * 1024, maxOutputCharacters: 1024, maxAttempts: 16, maxConcurrentAttempts: 2,
+    maxPreparationMs: 1_200_000 });
   resolveResidentPartitionAllocation(manifest, modelIdentity, {
     model: { id: manifest.modelId, identity: modelIdentity }, plan, planId, index: 0, participantId: 'a', limits, generation,
   });

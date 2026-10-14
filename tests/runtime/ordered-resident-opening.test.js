@@ -39,7 +39,7 @@ async function fixture(count = 3) {
     generation: { maxTokens: 1, maxSeqLen: 8, temperature: 0, topK: 1, topP: 1,
       repetitionPenalty: 1, repetitionPenaltyWindow: 0, useChatTemplate: false },
     limits: { maxTokens: 1, maxPromptTokens: 4, maxActivationBytes: 128, maxOutputCharacters: 100,
-      maxAttempts: 2, maxConcurrentAttempts: 1 } });
+      maxAttempts: 2, maxConcurrentAttempts: 1, maxPreparationMs: 60000 } });
   const runtime = createDopplerRun({
     device: { getProfile: () => ({ surface: 'browser-webgpu', maxBufferSize: 1024 }),
       getDevice: () => ({ createBuffer() {}, createCommandEncoder() {} }) },

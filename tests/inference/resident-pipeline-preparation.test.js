@@ -116,12 +116,12 @@ const model = { id: manifest.modelId, identity: 'sha256:' + 'a'.repeat(64) };
 const generation = resolveGenerationOptions({ maxTokens: 2, maxSeqLen: 32, temperature: 0, topK: 1, topP: 1,
   repetitionPenalty: 1, repetitionPenaltyWindow: 0, useChatTemplate: false });
 const limits = { maxTokens: 2, maxPromptTokens: 17, maxActivationBytes: 1 << 20, maxOutputCharacters: 64,
-  maxAttempts: 4, maxConcurrentAttempts: 1 };
-async function load(index) {
+  maxAttempts: 4, maxConcurrentAttempts: 1, maxPreparationMs: 60_000 };
+const allocate = (index, declared = limits) => resolveResidentPartitionAllocation(manifest, model.identity, { model, plan,
+  planId: hashLayerPartitionPlan(plan), index, participantId: `stage-${index}`, limits: declared, generation });
+async function load(index, declared = limits) {
   const pipeline = await createPipeline(manifest, { runtimeConfig, storage: storage(), partition: { plan, index } });
-  const allocation = resolveResidentPartitionAllocation(manifest, model.identity, { model, plan,
-    planId: hashLayerPartitionPlan(plan), index, participantId: `stage-${index}`, limits, generation });
-  return { pipeline, allocation };
+  return { pipeline, allocation: allocate(index, declared) };
 }
 const compiled = (module, entryPoint, constants) => `${module}#${entryPoint} ${canonicalizeJson(constants ?? {})}`;
 const boundIdentity = p => compiled(getShaderModuleIdentity(p.module), p.entryPoint, p.constants);
@@ -137,9 +137,19 @@ async function settle(condition = () => false) {
   const signal = new AbortController().signal;
   for (let index = 0; index < plan.stageCount; index++) {
     const { pipeline, allocation } = await load(index);
-    const resident = await createResidentPartitionSession(pipeline, allocation, {}, () => pipeline.unload(), signal);
+    const progress = [];
+    const resident = await createResidentPartitionSession(pipeline, allocation, {}, () => pipeline.unload(), signal,
+      event => progress.push(event));
     try {
       const preparation = resident.getDescriptor().pipelinePreparation;
+      // Observable while it runs: each pipeline's key, count and elapsed time, then one terminal record.
+      assert.deepEqual(progress.slice(0, -1).map(event => [event.status, event.prepared, event.key, event.outstanding]),
+        preparation.pipelines.map((entry, prepared) => ['preparing', prepared, entry.key, true]));
+      assert.deepEqual({ ...progress.at(-1), elapsedMs: 0, startedAt: 0 }, { phase: 'pipelines', status: 'prepared',
+        prepared: preparation.count, total: preparation.count, key: null, elapsedMs: 0, startedAt: 0,
+        maxDurationMs: limits.maxPreparationMs, outstanding: false, complete: true });
+      assert(progress.every((event, at) => event.total === preparation.count && event.phase === 'pipelines'
+        && (at === 0 || event.elapsedMs >= progress[at - 1].elapsedMs) && event.startedAt === progress[0].startedAt));
       assert.equal(preparation.schema, 'doppler.resident-pipeline-preparation/v1');
       assert.equal(preparation.complete, true);
       assert.deepEqual(preparation.lazy, []);
@@ -183,32 +193,40 @@ async function settle(condition = () => false) {
 
 // 2. Scalar programs report their pipelines as lazy instead of skipping them silently.
 {
+  const progress = [];
   const scalar = await prepareResidentPartitionPipelines({ gpuContext: null },
-    { plan: { activationPrecision: 'f32', partitions: [] }, index: 0 });
+    { plan: { activationPrecision: 'f32', partitions: [] }, index: 0 }, undefined, event => progress.push(event));
   assert.equal(scalar.complete, false);
   assert.equal(scalar.count, 0);
   assert.equal(scalar.lazy[0].scope, 'program');
+  assert.deepEqual(progress.map(event => [event.status, event.total, event.maxDurationMs, event.complete]), [['prepared', 0, null, false]]);
 }
 
-// 3. Abort during preparation waits for the started creation and starts no other.
+// 3. Cancel mid-creation: reported at once, but the stage keeps ownership (the opening
+// does not settle and nothing is released) until the started creation settles.
 {
   const record = createRecordingDevice();
   const { pipeline, allocation } = await load(1);
   try {
     record.hold = true;
-    const controller = new AbortController();
-    let settled = false;
-    const opening = createResidentPartitionSession(pipeline, allocation, {}, async () => {}, controller.signal);
+    const controller = new AbortController(), progress = [];
+    let settled = false, released = false;
+    const opening = createResidentPartitionSession(pipeline, allocation, {}, async () => { released = true; },
+      controller.signal, event => progress.push(event));
     opening.then(() => { settled = true; }, () => { settled = true; });
     await settle(() => record.pending.length === 1);
     assert.equal(record.pending.length, 1, 'preparation started a provider creation');
-    const started = record.created.length;
+    const started = record.created.length, inFlight = progress.at(-1).key;
     controller.abort(new Error('cancel preparation'));
-    await settle();
-    assert.equal(settled, false, 'abort must wait for the started provider creation to settle');
+    assert.deepEqual([progress.at(-1).status, progress.at(-1).outstanding, progress.at(-1).key], ['cancelling', true, inFlight]);
+    await new Promise(resolve => setTimeout(resolve, 30)); await settle();
+    assert.equal(settled, false, 'cancellation retains ownership until the started provider creation settles');
+    assert.equal(released, false, 'nothing is released while compilation is outstanding');
     record.pending.shift()();
     await assert.rejects(opening, /cancel preparation/);
+    assert.deepEqual([progress.at(-1).status, progress.at(-1).outstanding, progress.at(-1).key], ['cancelled', false, inFlight]);
     assert.equal(record.created.length, started, 'no pipeline creation starts after abort');
+    assert.equal(released, false, 'a failed opening never reports ready or closes as a resident');
   } finally { record.hold = false; await pipeline.unload(); }
 }
 
@@ -218,13 +236,48 @@ async function settle(condition = () => false) {
   const { pipeline, allocation } = await load(2);
   try {
     record.fail = descriptor => descriptor.label.startsWith('attention_paired');
-    await assert.rejects(createResidentPartitionSession(pipeline, allocation, {}, async () => {}), error => {
+    const progress = [];
+    await assert.rejects(createResidentPartitionSession(pipeline, allocation, {}, async () => {}, undefined,
+      event => progress.push(event)), error => {
       assert.match(error.message, /Resident stage 2 could not create GPU pipeline attention\/paired/);
       assert.match(error.message, /attention_paired\.wgsl#main/);
       assert.match(error.message, /not advertised ready/);
       assert.match(error.cause.message, /provider rejected attention_paired/);
       return true;
     });
+    assert.deepEqual([progress.at(-1).status, progress.at(-1).outstanding], ['failed', false]);
+    assert.match(progress.at(-1).error, /attention\/paired/);
   } finally { await pipeline.unload(); }
 }
-console.log('resident pipeline preparation: prepared set equals execution-bound set per stage, chunked prefill and decode; abort settles; failure names the pipeline');
+
+// 5. The declared bound fails opening naming the pipeline in progress; the started
+// creation still owns the stage until it settles. Without a declared bound, nothing starts.
+{
+  const record = createRecordingDevice();
+  const bounded = { ...limits, maxPreparationMs: 40 };
+  const { pipeline, allocation } = await load(0, bounded);
+  try {
+    record.hold = true;
+    const progress = [];
+    let settled = false;
+    const opening = createResidentPartitionSession(pipeline, allocation, {}, async () => {}, undefined, event => progress.push(event));
+    opening.then(() => { settled = true; }, () => { settled = true; });
+    await settle(() => record.pending.length === 1);
+    const started = record.created.length, inFlight = progress.at(-1).key;
+    await new Promise(resolve => setTimeout(resolve, 80)); await settle();
+    const exceeded = progress.at(-1);
+    assert.deepEqual([exceeded.status, exceeded.outstanding, exceeded.key, exceeded.maxDurationMs], ['timed-out', true, inFlight, 40]);
+    assert.match(exceeded.error, /exceeded its pipeline preparation bound \(limits\.maxPreparationMs=40\)/);
+    assert(exceeded.error.includes(inFlight), 'the timeout names the pipeline in progress');
+    assert.equal(settled, false, 'the bound reports failure without releasing an outstanding creation');
+    record.pending.shift()();
+    await assert.rejects(opening, error => error.code === 'DOPPLER_RESIDENT_PREPARATION_TIMEOUT' && error.message.includes(inFlight));
+    assert.deepEqual([progress.at(-1).status, progress.at(-1).outstanding], ['timed-out', false]);
+    assert.equal(record.created.length, started, 'no pipeline creation starts after the bound');
+    assert.throws(() => allocate(0, { ...limits, maxPreparationMs: undefined }), /maxPreparationMs/);
+    await runPipelineOperation(pipeline, owner => assert.rejects(prepareResidentPartitionPipelines(owner,
+      { ...allocation, limits: { ...limits, maxPreparationMs: undefined } }), /limits\.maxPreparationMs/));
+    assert.equal(record.created.length, started, 'an undeclared bound starts no creation');
+  } finally { record.hold = false; await pipeline.unload(); }
+}
+console.log('resident pipeline preparation: prepared set equals execution-bound set per stage; progress observable; cancel and bound retain ownership until settlement; failure and timeout name the pipeline');

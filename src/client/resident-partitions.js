@@ -43,10 +43,11 @@ export function createResidentPartitionFactory({ openCapsule, capsuleOptions }) 
  * storage and an exact manifest identity; no model identity is inferred from a URL.
  * @type {import('./resident-partitions.js').createManifestResidentPartitionFactory}
  */
-export function createManifestResidentPartitionFactory({ manifest, manifestIdentity, runtimeConfig, createStorage }) {
+export function createManifestResidentPartitionFactory({ manifest, manifestIdentity, runtimeConfig, createStorage, onLoadProgress }) {
   const source = structuredClone(manifest), config = structuredClone(runtimeConfig);
   if (!/^sha256:[a-f0-9]{64}$/.test(manifestIdentity) || typeof createStorage !== 'function'
     || !config || !source?.modelId) throw new Error('Pinned manifest, verified storage and explicit runtime configuration required.');
+  if (onLoadProgress != null && typeof onLoadProgress !== 'function') throw new Error('Resident onLoadProgress must be a function.');
   return Object.freeze({
     async openResidentPartition(input) {
       const [{ createPipeline, InferencePipeline }, { createModelHandle }, { createResidentPartitionSession }, { resolveResidentPartitionAllocation }] = await Promise.all([
@@ -87,7 +88,7 @@ export function createManifestResidentPartitionFactory({ manifest, manifestIdent
         };
         return await createResidentPartitionSession(pipeline, allocation, tokens, async () => {
           try { await opened.unload(); } finally { await storage.close?.(); }
-        }, signal);
+        }, signal, onLoadProgress);
       } catch (error) {
         try { await handle?.unload(); } finally { await storage.close?.(); }
         throw error;

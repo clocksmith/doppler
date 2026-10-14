@@ -38,15 +38,29 @@ provider compile failure or crash happens at opening instead of during an answer
 For the paired program the set comes from the resolved execution plan, kernel
 path, rules and loaded weight encodings. It covers the embedding gather, every
 assigned layer's prefill chunks and decode, and the output head. Pipelines are
-created one at a time on the stage device. Abort starts no further creation and
-waits for the started one to settle. A failed creation rejects opening with an
-error naming the pipeline. `getDescriptor().pipelinePreparation`
-(`doppler.resident-pipeline-preparation/v1`) reports `count`, `durationMs`, the
-shader, entry point, constants and program roles of each pipeline, and any
-`lazy` scope. Scalar resident programs, and paired stages outside the declared
-structure, are reported in `lazy` with `complete: false`. Their pipelines are
-still created on first use. Preparation does not qualify compile time or
-numerics on any provider.
+created one at a time on the stage device, within the host's required
+`limits.maxPreparationMs`. Nothing in Doppler supplies that bound.
+
+While preparation runs, the opener's `onLoadProgress` port receives
+`{ phase: 'pipelines', status, prepared, total, key, elapsedMs, startedAt,
+maxDurationMs, outstanding, complete }`. Signed openings pass it in the Capsule
+options; the manifest lane takes it as a factory option. `status` is
+`preparing`, `cancelling`, `cancelled`, `timed-out`, `failed` or `prepared`.
+
+A started provider creation cannot be interrupted. Abort, or exceeding the
+bound, starts no further creation and is reported at once (`cancelling`, or
+`timed-out` with an `error`), with `outstanding: true`. The opening keeps
+ownership and settles only after that creation settles. Abort then rejects with
+its reason. The bound rejects with `DOPPLER_RESIDENT_PREPARATION_TIMEOUT`, naming
+the pipeline in progress. A failed creation rejects with an error naming the
+pipeline. None of these report ready.
+
+`getDescriptor().pipelinePreparation` (`doppler.resident-pipeline-preparation/v1`)
+reports `count`, `durationMs`, the shader, entry point, constants and program
+roles of each pipeline, and any `lazy` scope. Scalar resident programs, and
+paired stages outside the declared structure, are reported in `lazy` with
+`complete: false`. Their pipelines are still created on first use. Preparation
+does not qualify compile time or numerics on any provider.
 
 Each full attempt identity owns independent KV and recurrent state, continuation,
 sequence position, generation context, and decoder. Calls validate identity,

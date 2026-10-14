@@ -12,6 +12,11 @@ export interface PartitionTiming {
 export interface ResidentPartitionLimits {
   maxTokens: number; maxPromptTokens: number; maxActivationBytes: number;
   maxOutputCharacters: number; maxAttempts: number; maxConcurrentAttempts: number;
+  /**
+   * Host-declared bound on opening pipeline preparation, in milliseconds. Exceeding it fails
+   * opening; a provider creation already in flight stays owned until it settles.
+   */
+  maxPreparationMs: number;
 }
 export interface ResidentPartitionAllocation {
   model: { id: string; identity: string };
@@ -48,6 +53,29 @@ export interface ResidentPipelinePreparation {
   /** Compiled programs in creation order; `key` is `shaderFile#entryPoint` plus canonical constants. */
   pipelines: Array<KernelPipelineIdentity & { key: string; roles: string[] }>;
   lazy: ResidentLazyPipelineScope[];
+}
+/**
+ * Opening progress for pipeline preparation, delivered through the opener's `onLoadProgress` port.
+ * `outstanding` means a started provider creation has not settled: the opening still owns it and
+ * has not released the stage, whatever the status.
+ */
+export interface ResidentPipelinePreparationProgress {
+  phase: 'pipelines';
+  /** `preparing` creates `key`; `cancelling` waits for `key` after an abort; the rest are terminal. */
+  status: 'preparing' | 'cancelling' | 'cancelled' | 'timed-out' | 'failed' | 'prepared';
+  /** Pipelines created so far, of `total`. */
+  prepared: number;
+  total: number;
+  key: string | null;
+  elapsedMs: number;
+  /** Wall-clock start (ms since the epoch), so observers can show live elapsed time between events. */
+  startedAt: number;
+  /** The allocation's `limits.maxPreparationMs`; null when the stage has nothing to prepare. */
+  maxDurationMs: number | null;
+  outstanding: boolean;
+  /** False when part of the stage program remains lazy. */
+  complete: boolean;
+  error?: string;
 }
 export interface ResidentPartitionDescriptor {
   schema: 'doppler.resident-partition/v1' | 'doppler.resident-partition/v2'; ready: boolean;

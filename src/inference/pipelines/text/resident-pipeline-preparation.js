@@ -1,4 +1,5 @@
 import { canonicalizeJson } from '../../../formats/canonical-hash.js';
+import { ERROR_CODES, createDopplerError } from '../../../errors/doppler-error.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { getPipelineFast, resolvePipelineIdentity } from '../../../gpu/kernels/pipeline-cache.js';
 import { resolveGatherPipeline, resolveSplitGatherPipeline } from '../../../gpu/kernels/gather.js';
@@ -234,30 +235,82 @@ export function resolveResidentPipelineProgram(owner, allocation) {
   return { pipelines: requests.list(), lazy: [] };
 }
 
+/**
+ * @param {import('./resident-partition-contract.js').ResidentPartitionAllocation} allocation
+ * @param {import('./resident-pipeline-preparation.js').ResidentPipelineEntry} entry
+ * @param {number} maxDurationMs @param {number} prepared @param {number} total
+ */
+function preparationTimeout(allocation, entry, maxDurationMs, prepared, total) {
+  return createDopplerError(ERROR_CODES.RESIDENT_PREPARATION_TIMEOUT, `Resident stage ${allocation.index} exceeded its `
+    + `pipeline preparation bound (limits.maxPreparationMs=${maxDurationMs}) while preparing GPU pipeline `
+    + `${entry.request.operation}/${entry.request.variant} (${entry.key}) after ${prepared} of ${total} pipelines `
+    + 'and was not advertised ready. Inspect the driver shader cache for this program, place the stage on another '
+    + 'device, or raise the bound in the host allocation policy only if this device is expected to compile it that slowly.');
+}
+
 /** @type {import('./resident-pipeline-preparation.js').prepareResidentPartitionPipelines} */
-export async function prepareResidentPartitionPipelines(owner, allocation, signal) {
+export async function prepareResidentPartitionPipelines(owner, allocation, signal, onProgress) {
   signal?.throwIfAborted();
   const program = resolveResidentPipelineProgram(owner, allocation);
+  const total = program.pipelines.length;
   const device = owner.gpuContext?.device;
-  if (program.pipelines.length && !device) throw new Error('Resident pipeline preparation requires the stage GPU device.');
-  const started = performance.now();
-  for (const { key, request } of program.pipelines) {
-    try {
-      // The same cache key execution uses: device, registry, shader source, entry, constants, auto layout.
-      await getPipelineFast(request.operation, request.variant, null, request.constants, device);
-    } catch (error) {
-      signal?.throwIfAborted();
-      throw new Error(`Resident stage ${allocation.index} could not create GPU pipeline ${request.operation}/${request.variant} `
-        + `(${key}) and was not advertised ready: ${error instanceof Error ? error.message : String(error)}. `
-        + 'Inspect the GPU provider and driver shader cache for this program, or place the stage on another device.',
-      { cause: error });
-    }
-    signal?.throwIfAborted();
+  const maxDurationMs = allocation.limits?.maxPreparationMs;
+  if (total && !device) throw new Error('Resident pipeline preparation requires the stage GPU device.');
+  if (total && (!Number.isSafeInteger(maxDurationMs) || maxDurationMs <= 0)) {
+    throw new Error('Resident pipeline preparation requires a positive limits.maxPreparationMs declared by the host allocation policy.');
   }
+  const startedAt = Date.now(), started = performance.now(), deadline = started + maxDurationMs;
+  let prepared = 0;
+  /** @param {import('./resident-partition-contract.js').ResidentPipelinePreparationProgress['status']} status
+   * @param {import('./resident-pipeline-preparation.js').ResidentPipelineEntry | null} entry
+   * @param {boolean} outstanding @param {Error | null} error */
+  const report = (status, entry, outstanding, error) => onProgress?.(Object.freeze({ phase: 'pipelines', status, prepared,
+    total, key: entry?.key ?? null, elapsedMs: performance.now() - started, startedAt,
+    maxDurationMs: total ? maxDurationMs : null, outstanding, complete: program.lazy.length === 0,
+    ...(error ? { error: error.message } : {}) }));
+  for (const entry of program.pipelines) {
+    const { key, request } = entry;
+    if (signal?.aborted) { report('cancelled', entry, false, null); throw signal.reason; }
+    if (performance.now() >= deadline) {
+      const timeout = preparationTimeout(allocation, entry, maxDurationMs, prepared, total);
+      report('timed-out', entry, false, timeout); throw timeout;
+    }
+    report('preparing', entry, true, null);
+    // The same cache key execution uses: device, registry, shader source, entry, constants, auto layout.
+    const creation = getPipelineFast(request.operation, request.variant, null, request.constants, device)
+      .then(() => null, /** @param {unknown} error */ error => ({ error }));
+    // Cancellation and the bound end preparation, but a started provider creation cannot
+    // be interrupted: the opening keeps ownership and does not settle until it does.
+    /** @type {null | 'cancelling' | 'timed-out'} */
+    let interruption = null;
+    const timeout = preparationTimeout(allocation, entry, maxDurationMs, prepared, total);
+    const cancel = () => { if (!interruption) { interruption = 'cancelling'; report('cancelling', entry, true, null); } };
+    const timer = setTimeout(() => {
+      if (!interruption) { interruption = 'timed-out'; report('timed-out', entry, true, timeout); }
+    }, Math.max(0, deadline - performance.now()));
+    signal?.addEventListener('abort', cancel, { once: true });
+    let outcome;
+    try { outcome = await creation; }
+    finally { clearTimeout(timer); signal?.removeEventListener('abort', cancel); }
+    if (!outcome) prepared++;
+    if (interruption === 'cancelling' || (!interruption && signal?.aborted)) {
+      report('cancelled', entry, false, null); throw /** @type {AbortSignal} */ (signal).reason;
+    }
+    if (interruption === 'timed-out') { report('timed-out', entry, false, timeout); throw timeout; }
+    if (outcome) {
+      const cause = outcome.error;
+      const failure = new Error(`Resident stage ${allocation.index} could not create GPU pipeline ${request.operation}/${request.variant} `
+        + `(${key}) and was not advertised ready: ${cause instanceof Error ? cause.message : String(cause)}. `
+        + 'Inspect the GPU provider and driver shader cache for this program, or place the stage on another device.',
+      { cause });
+      report('failed', entry, false, failure); throw failure;
+    }
+  }
+  report('prepared', null, false, null);
   return {
     schema: RESIDENT_PIPELINE_PREPARATION_SCHEMA,
     complete: program.lazy.length === 0,
-    count: program.pipelines.length,
+    count: total,
     durationMs: performance.now() - started,
     pipelines: program.pipelines.map(({ key, identity, roles }) => ({ key, operation: identity.operation,
       variant: identity.variant, shaderFile: identity.shaderFile, entryPoint: identity.entryPoint,

@@ -54,7 +54,8 @@ assert.notEqual(hashPartitionGeneration({ ...generation, temperature: 0 }), hash
 assert.throws(() => hashPartitionGeneration({ maxTokens: -1 }));
 const dimensions = { modelId: 'ordered-fixture', numLayers: 28, hiddenSize: 4, vocabSize: 16 };
 const model = { id: dimensions.modelId, identity: 'sha256:' + 'a'.repeat(64) };
-const limits = { maxAttempts: 20, maxConcurrentAttempts: 2, maxTokens: 2, maxPromptTokens: 4, maxActivationBytes: 128, maxOutputCharacters: 128 };
+const limits = { maxAttempts: 20, maxConcurrentAttempts: 2, maxTokens: 2, maxPromptTokens: 4, maxActivationBytes: 128, maxOutputCharacters: 128,
+  maxPreparationMs: 60000 };
 async function setup(splitLayers, activationPrecision = 'f32') {
   const plan = createOrderedLayerPartitionPlan({ ...dimensions, splitLayers, activationPrecision });
   const planId = hashLayerPartitionPlan(plan);

@@ -6,7 +6,8 @@ import { canonicalGenerationIdentity } from '../../../config/canonical-generatio
 import { exactRecord } from '../../../config/canonical-contract-codec.js';
 
 const IDENTITY_FIELDS = ['modelId', 'modelIdentity', 'planId', 'threadId', 'attemptId', 'participantA', 'participantB'];
-const LIMIT_FIELDS = ['maxTokens', 'maxPromptTokens', 'maxActivationBytes', 'maxOutputCharacters', 'maxAttempts', 'maxConcurrentAttempts'];
+const LIMIT_FIELDS = ['maxTokens', 'maxPromptTokens', 'maxActivationBytes', 'maxOutputCharacters', 'maxAttempts', 'maxConcurrentAttempts',
+  'maxPreparationMs'];
 
 /** Public generation binding used by resident admission and stage callers.
  * @type {import('./resident-partition-contract.js').hashPartitionGeneration} */
