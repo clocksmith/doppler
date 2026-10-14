@@ -113,6 +113,7 @@
     "typecheck:source-runtime": "tsc -p tsconfig.source-runtime.json --noEmit",
     "test:ci": "node tools/run-node-tests.js tests/config/ci-workflow-local-model-contract.test.js tests/config/tracked-benchmark-evidence-contract.test.js tests/converter/quantizer.test.js tests/inference/attention-softmax-stability.test.js tests/inference/bdpa-steamroller.test.js tests/inference/generate-token-ids-behavioral-parity.test.js tests/integration/command-api.test.js tests/integration/doppler-provider-contract.test.js",
     "test:unit": "node tools/run-node-tests.js --suite unit",
+    "test:smoke": "node tools/run-node-tests.js --suite ci-smoke",
     "test:unit:webgpu": "node tools/run-node-tests.js --suite unit-webgpu",
     "test:unit:browser": "node tools/run-node-tests.js --suite unit-browser",
     "test:gpu": "node tools/run-node-tests.js --suite gpu",

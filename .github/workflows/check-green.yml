@@ -1,5 +1,8 @@
-name: Default Green Chain
+name: Smoke
 
+# Hosted CI is a smoke test: behavior suites, the packed package, and the demo.
+# Config, policy, mirror, and freshness checks (npm run check:green,
+# kernels:check) and GPU kernel contracts run on demand, not on every push.
 on:
   pull_request:
   push:
@@ -14,18 +17,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check-green:
+  smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    env:
-      DOPPLER_POLICY_BASE_REF: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
-      DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION: ${{ vars.DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION }}
-      DOPPLER_MODEL_FAMILY_AUTHORIZATION: ${{ vars.DOPPLER_MODEL_FAMILY_AUTHORIZATION }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v6
@@ -34,36 +31,21 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        id: dependencies
         run: npm ci
 
       - name: Install Chromium
-        id: chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Sync package source closure
-        run: npm run package:closure:sync
+      - name: Behavior tests
+        run: npm run test:smoke
 
-      - name: Check kernel registries
-        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
-        run: npm run kernels:check
+      - name: Node WebGPU and browser unit tests
+        run: |
+          npm run test:unit:webgpu
+          npm run test:unit:browser
 
-      - name: Run repository acceptance checks
-        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
-        run: npm run check:green
+      - name: Packed package smoke
+        run: npm run package:smoke
 
-      - name: Run Node WebGPU unit tests
-        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
-        run: npm run test:unit:webgpu
-
-      - name: Run browser unit tests
-        if: ${{ !cancelled() && steps.chromium.outcome == 'success' }}
-        run: npm run test:unit:browser
-
-      - name: Run browser WebGPU kernel contract
-        if: ${{ !cancelled() && steps.chromium.outcome == 'success' }}
-        run: npm run test:gpu:browser
-
-      - name: Run demo UI and offline PWA contract
-        if: ${{ !cancelled() && steps.chromium.outcome == 'success' }}
+      - name: Demo UI and offline PWA smoke
         run: npm run test:demo:contract

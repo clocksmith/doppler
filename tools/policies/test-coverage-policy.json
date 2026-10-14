@@ -43,6 +43,11 @@
       ],
       "excludeRoots": []
     },
+    "ci-smoke": {
+      "roots": ["tests"],
+      "excludeRoots": ["tests/kernels", "tests/config", "tests/tooling", "tests/benchmarks", "tests/production-release"],
+      "excludeSuites": ["unit-webgpu", "unit-browser"]
+    },
     "gpu": { "roots": ["tests/kernels"], "excludeRoots": [] },
     "all": { "roots": ["tests"], "excludeRoots": [] }
   },

@@ -1,9 +1,7 @@
 name: Installed standalone and Reploid consumers
 
+# Cross-repository acceptance against a pinned Reploid consumer; run on demand.
 on:
-  pull_request:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
