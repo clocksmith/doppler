@@ -1,17 +1,17 @@
 # Doppler JavaScript Style Guide
 
-JavaScript conventions for kernel wrappers and pipeline code.
-
-See [General Style Guide](./general-style-guide.md#language-policy-javascript-declaration-files) for the rationale behind JavaScript-first development.
-Shared naming/logging/testing policy is canonical in [General Style Guide](./general-style-guide.md).
+JavaScript conventions for kernel wrappers and pipeline code. Shared naming,
+logging, testing, and anti-pattern policy, and the
+[JavaScript-first rationale](./general-style-guide.md#language-policy-javascript--declaration-files),
+are canonical in the [General Style Guide](./general-style-guide.md).
 
 ## Invariants (Quick Reference)
 
-Rules that cause bugs when violated. Each has a fuller section below with rationale and examples.
+Rules that cause bugs when violated; each has a fuller section below.
 
 - **Role Boundaries** — JSON owns policy; JS owns orchestration; WGSL owns math. See [Role Boundaries](#role-boundaries-json-js-wgsl).
 - **JSON Rule Maps** — any selection of kernel variants/dtype/op must use `selectRuleValue()` on a rule map. No inline ternaries. See [JSON Rule Maps](#json-rule-maps-required-for-selection-logic).
-- **Manifest-First Contract** — new inference knobs must land in `ManifestInferenceSchema`, the converter, `src/config/merge.js` with `_sources`, `parseModelConfigFromManifest()`, and tests. No runtime family detection, no hidden fallbacks. See [Manifest-First Contract](#manifest-first-contract).
+- **Manifest-First Contract** — new inference knobs must land in `ManifestInferenceSchema`, the converter, `src/config/merge.js` with `_sources`, `parseModelConfigFromManifest()`, and a narrow parse/merge test. No runtime family detection, no hidden fallbacks. See [Manifest-First Contract](#manifest-first-contract).
 - **Nullable Required Fields** — `null` = explicitly disabled (valid); `undefined` = missing (validation error). Check `=== undefined` for nullable, `== null` otherwise. See [Nullable Required Fields](#nullable-required-fields).
 - **Kernel Path Only** — kernel overrides use `kernelPath`. `kernelPlan` is removed and must not return. Overrides are config-only. See [Kernel Path Only](#kernel-path-only).
 - **Runtime Performance Invariants** — no hardcoded `f32` fallbacks when `shader-f16` is available; if `f32` is required, gate on explicit config and log once. Dtype decisions live in rule maps, not conditionals. See [Runtime Configuration (Performance Invariants)](#runtime-configuration-performance-invariants).
@@ -61,8 +61,7 @@ CommandContext + ResolvedRuntimeSession + ObservationContext
 
 Intent may govern permitted observation and evidence requirements. It must not
 change dtype, kernel, fusion, geometry, layout, or numeric inference behavior.
-Runtime validation protects untrusted boundaries; declarations protect
-consumers and refactors; tests protect behavior.
+Run a listed enforcement check when a change touches that invariant.
 
 ## Role Boundaries (JSON, JS, WGSL)
 
@@ -71,21 +70,19 @@ consumers and refactors; tests protect behavior.
 - WGSL owns only math and memory transforms.
 
 JavaScript may compute scalar dispatch sizes, byte offsets, validation bounds,
-and host-side sampling explicitly assigned to the control plane. Rig artifact
-construction, descriptor-bound byte decoding/materialization, application-input
-preprocessing, observation that cannot feed execution, and deterministic
-reference implementations are distinct reviewed roles. Numerically creative
-prototypes may remain under `src/experimental/` only while production imports
-are mechanically forbidden and support policy excludes them from Doppler Run
-claims. The source-compute policy inventories these roles by exact module and
-symbol; unreviewed or stale entries fail the style gate.
+and host-side sampling explicitly assigned to the control plane. The other
+reviewed numeric roles (Rig construction, byte decoding/materialization, input
+preprocessing, observation, references, `src/experimental/` prototypes) and
+their limits are canonical in the
+[General Execution Plane Contract](./general-style-guide.md#execution-plane-contract).
+The source-compute policy inventories these roles by exact module and symbol;
+unreviewed or stale entries fail the style gate.
 
 JavaScript may not read a tensor back to implement attention, normalization,
 activation, projection, pooling, rearrangement, scheduling, expert combination,
 or another tensor operation before uploading or returning the computed model
 result. Those operations require a registered WGSL program and a deterministic
-reference test. An allowed construction, codec, preprocessing, observation, or
-reference role may not be selected as a runtime fallback.
+reference test.
 
 Geometry is policy-bearing model semantics. Grid height, grid width, patch
 ordering, merge factors, head geometry, and layout strides must be explicit in
@@ -93,11 +90,10 @@ the resolved contract. A pipeline must fail before allocation or dispatch when
 required geometry is absent or inconsistent; `Math.sqrt(elementCount)` and
 shape reconstruction from tensor names are prohibited.
 
-For deterministic behavior:
-
-- All variant decisions must come from `selectRuleValue()` backed by JSON rules.
-- If rules or required config are missing, throw a configuration error.
-- Compatibility aliases are allowed only from explicit registry/JSON entries.
+For deterministic behavior, variant decisions come from `selectRuleValue()`
+([JSON Rule Maps](#json-rule-maps-required-for-selection-logic)); missing rules
+or required config throw a configuration error; compatibility aliases come only
+from explicit registry/JSON entries.
 
 ## JSON Rule Maps (Required for Selection Logic)
 
@@ -123,12 +119,12 @@ const variant = isDecode ? 'decode' : 'prefill';
 
 ## Manifest-First Contract
 
-Any new inference knob must be wired end-to-end:
-- Add to `ManifestInferenceSchema` (and converter defaults if needed)
+Any new inference knob or model behavior must be wired end-to-end:
+- Add to `ManifestInferenceSchema` (and converter defaults/fixtures if needed)
 - Populate in converter mapping (explicit conversion config + HF config)
-- Merge in `src/config/merge.js` with `_sources`
-- Validate in `parseModelConfigFromManifest()`
-- Add tests that assert manifest values and runtime overrides
+- Merge in `src/config/merge.js` with `_sources` tracking
+- Validate in `parseModelConfigFromManifest()` (null vs undefined rules)
+- Cover parse/merge behavior (manifest value, override precedence) with a narrow unit test; don't pin config literals
 
 Do not reintroduce runtime model detection or hidden family fallbacks.
 If a field affects inference behavior, absence is a configuration error at the
@@ -137,11 +133,9 @@ runtime tunables in pipeline, cache, execution-plan, or kernel-dispatch code.
 
 ## Nullable Required Fields
 
-For nullable-but-required fields:
-- `null` = explicitly disabled (valid)
-- `undefined` = missing (validation error)
-
-Validation should check `=== undefined` for nullable fields and `== null` for non-nullable fields.
+Semantics (`null` = disabled, `undefined` = missing) are canonical in
+[General: Nullable Required Fields](./general-style-guide.md#nullable-required-fields).
+Validate nullable fields with `=== undefined` and non-nullable fields with `== null`.
 
 ## Kernel Path Only
 
@@ -151,9 +145,10 @@ Kernel path overrides are config-only; harness/UI surfaces must not set kernel s
 
 ## Harness Override Rules
 
-- Harness selection must stay in explicit command/suite context, separate from runtime config.
+- Runtime tunables come from runtime config only. Harness/UI controls must not override them (prompt selection, max tokens, sampling temperature/topK/topP, trace categories, log levels, warmup/timed runs).
+- Command intent and harness selection stay in explicit command/suite context, never in `runtime.shared.*`.
 - Per-field URL overrides are forbidden; use `runtimeProfile`, `runtimeConfig`, `runtimeConfigUrl`, or `configChain`.
-- Harness/UI controls must not override runtime tunables (prompt, max tokens, sampling, trace/log levels, warmup/timed runs).
+- To tweak a tunable, create a runtime profile or pass `--config` with a runtime config file.
 See `config-style-guide.md` for merge order and category rules.
 
 ## Shared Contract + Engine Overlay (Bench Tools)
@@ -165,8 +160,7 @@ Cross-engine benchmark tools must build and pass two explicit config objects:
 
 Rules:
 - Parse/validate shared workload values once, then reuse for all engines.
-- Keep Doppler-only knobs (`batchSize`, `readbackInterval`, `kernelPath`) out of the shared contract.
-- Keep vendor backend/session flags out of the shared contract.
+- Keep Doppler-only knobs (`batchSize`, `readbackInterval`, `kernelPath`) and vendor backend/session flags out of the shared contract.
 - Build runtime payloads from `(sharedContract, engineOverlay)` helper functions instead of duplicating JSON assembly in each call site.
 
 ## Runtime Configuration (Performance Invariants)
@@ -182,33 +176,26 @@ Run code must respect dtype and performance invariants from config and device ca
 - Lane receipts must preserve declared lane, executed lane, applied transforms,
   and the matched capability policy when capability transforms are resolved.
 
-If you need to switch dtype or kernel variants, put the decision in rule maps or schema-driven config, not in ad-hoc conditionals.
+Dtype or kernel-variant switches belong in rule maps or schema-driven config, never ad-hoc conditionals.
 
 ## Runtime Failure-Path Invariants
 
 Runtime resource ownership must stay deterministic on both success and failure paths.
 
-- Any acquired runtime resource must have one clear owner and one deterministic cleanup path.
+- Any acquired runtime resource has one clear owner and one deterministic cleanup path.
 - Any `createBuffer()`, pooled-buffer acquire, `mapAsync()`, staging readback allocation, or temporary recorder allocation must release, destroy, or unmap on every throw path.
-- Prefer `try/finally` or a shared helper that owns the cleanup boundary. Do not duplicate cleanup sequences inline across multiple call sites.
-- GPU readback must use shared helpers rather than ad hoc `createBuffer() + copyBufferToBuffer() + mapAsync()` sequences unless a documented exception is required.
-- If an exception is required, document why the shared helper is insufficient and keep the cleanup path local, explicit, and test-covered.
+- Prefer `try/finally` or a shared helper that owns the cleanup boundary; do not duplicate cleanup sequences inline across call sites.
+- GPU readback uses shared helpers, not ad hoc `createBuffer() + copyBufferToBuffer() + mapAsync()` sequences. A documented exception states why the helper is insufficient and keeps its cleanup path local, explicit, and test-covered.
 
 ---
 
 ## Types: .d.ts Files
 
-Canonical type definitions live in `.d.ts` files. JavaScript remains executable
-without compilation. Modules listed in `tsconfig.source-strict.json` may use
-JSDoc type imports and local annotations to check their implementation against
-those definitions; do not duplicate entire public interfaces in JavaScript.
-
-| File | Contains |
-|------|----------|
-| `module.js` | JavaScript with checked type annotations in explicit strict roots |
-| `module.d.ts` | All type definitions for that module |
-
-Agents read `.d.ts` files directly for type context. No need to duplicate types in JS.
+Canonical type definitions live in `.d.ts` files, which agents read directly for
+type context. JavaScript remains executable without compilation. Modules listed
+in `tsconfig.source-strict.json` may use JSDoc type imports and local
+annotations to check their implementation against those definitions; do not
+duplicate public interfaces in JavaScript.
 
 ```javascript
 // module.js - clean, no type annotations
@@ -234,9 +221,9 @@ declare function writeUniforms(view: DataView, uniforms: KernelUniforms): void;
 Descriptions and examples belong in `.d.ts` files. Implementation JSDoc is
 limited to type-checking annotations in the declared strict roots.
 
-Run `npm run source:style:check` to verify the governed `src/` and `demo/`
-JavaScript trees. Use `npm run source:style:sync` only after sibling declaration
-coverage is complete.
+When a change touches declarations or strict-root annotations,
+`npm run source:style:check` verifies the governed `src/` and `demo/` trees. Use
+`npm run source:style:sync` only after sibling declaration coverage is complete.
 
 **Inline comments are rare.** Code should be self-explanatory. If you need a comment, first consider renaming or refactoring.
 
@@ -396,8 +383,7 @@ export function runKernel(
 ## run/record Function Parity
 
 Kernels that support both immediate (`run*`) and recorded (`record*`) execution
-must consume one semantic plan and one interpreter. Executor adapters may differ
-only in submission, resource retention, completion tasks, and readback.
+must consume one semantic plan and one interpreter ([Adapter Parity](#adapter-parity)).
 
 ```javascript
 // DON'T: Divergent implementations
@@ -425,7 +411,7 @@ export async function recordGather(...) {
 2. Do both consume the same immutable semantic plan?
 3. Is every numeric/kernel/fusion/layout choice made before executor selection?
 4. Are ownership differences expressed by immediate/recorded resource scopes?
-5. Does the normalized-plan parity test fail when one semantic decision changes?
+5. Is any new semantic decision covered by the normalized-plan parity test?
 
 ## Adapter Parity
 
@@ -434,16 +420,15 @@ The run/record rule applies to every execution adapter, not only kernels:
 - normalize command, session, workload, and operation policy before selecting
   browser, Node, immediate, recorded, benchmark, or replay execution;
 - bind runtime resources only after the semantic request or plan is complete;
-- allow adapters to differ in transport, submission, resource retention,
-  completion, readback scheduling, and evidence capture only;
-- forbid adapter-local dtype, kernel, fusion, geometry, layout, fallback, or
-  workload decisions;
-- preserve the canonical behavior receipt across structural refactors,
-  including resolved policy, operation order, ownership events, output
-  identity, and first failure boundary.
+- adapters differ only in transport, submission, resource retention,
+  completion, readback scheduling, and evidence capture; no adapter-local
+  dtype, kernel, fusion, geometry, layout, fallback, or workload decisions;
+- preserve the canonical behavior receipt across structural refactors
+  (resolved policy, operation order, ownership events, output identity, first
+  failure boundary).
 
-If two adapters need different semantic choices, those choices belong in the
-resolved contract and must remain visible in the receipt.
+Semantic choices that differ between adapters belong in the resolved contract
+and stay visible in the receipt.
 
 ---
 
@@ -472,44 +457,16 @@ function selectMatmulVariant(M, N, K, aDtype, bDtype, transposeB, caps) {
 
 ### Avoid: Rule Arrays in JS
 
-Inline rule arrays are not allowed in production code. Put all selection rules
-in JSON and evaluate them via the rule registry. The only exception is tests
-that validate the matcher itself.
-
-Selection rules must stay JSON-driven. See
-[JSON Rule Maps (Required for Selection Logic)](#json-rule-maps-required-for-selection-logic)
-for the canonical pattern.
+Inline rule arrays are not allowed in production code (tests of the matcher
+itself excepted). Selection rules live in JSON and are evaluated via the rule
+registry; see [JSON Rule Maps](#json-rule-maps-required-for-selection-logic).
 
 ### Rule Matcher Utility (Internal)
 
-```javascript
-// utils/rule-matcher.js
-// Types in rule-matcher.d.ts
-
-export function matchesRule(rule, context) {
-  for (const [key, expected] of Object.entries(rule)) {
-    const actual = context[key];
-
-    if (typeof expected === 'object' && expected !== null && !Array.isArray(expected)) {
-      // Range check: { gt: 100, lt: 1000 }
-      if ('gt' in expected && actual <= expected.gt) return false;
-      if ('lt' in expected && actual >= expected.lt) return false;
-      if ('eq' in expected && actual !== expected.eq) return false;
-    } else {
-      // Exact match
-      if (actual !== expected) return false;
-    }
-  }
-  return true;
-}
-
-export function selectByRules(rules, context, defaultValue) {
-  const rule = rules.find(r => matchesRule(r.match, context));
-  return rule?.value ?? defaultValue;
-}
-```
-
-Do not call `matchesRule` or `selectByRules` directly in production code. Use
+`src/rules/rule-matcher.js` implements `matchesRule()` (exact values or
+operator objects such as `{ gt: 100, lt: 1000 }`) and `selectByRules()`, which
+throws when no rule matches. Read the source for the operator set. Do not call
+`matchesRule` or `selectByRules` directly in production code. Use
 `selectRuleValue()` so all selection passes through the rule registry.
 
 ---
@@ -532,13 +489,12 @@ src/gpu/kernels/
   index.js               # Barrel export
 ```
 
-Note: `src/gpu/kernel-selector.js` is a thin re-export for backward compatibility; selection lives in `src/gpu/kernels/*`.
+`src/gpu/kernel-selector.js` is only a thin backward-compatibility re-export.
 
 ### Rule Registry
 
-Use `selectRuleValue()` from `src/rules/rule-registry.js` (or the kernel-local
-registry) for all kernel variant selection. Keep rules as pure data and build
-the context object before matching.
+All kernel variant selection uses `selectRuleValue()` ([JSON Rule Maps](#json-rule-maps-required-for-selection-logic)).
+Keep rules as pure data and build the context object before matching.
 
 ### Registry Derivation
 
@@ -554,17 +510,9 @@ Each kernel selects variants based on context:
 
 ### Pipeline Caching
 
-Pipelines are cached per variant/context combination in `pipeline-cache.js`:
-
-```javascript
-// Pipeline key includes all variant-affecting params
-const key = `matmul_${variant}_${M}_${N}_${K}_${aDtype}_${bDtype}`;
-let pipeline = pipelineCache.get(key);
-if (!pipeline) {
-  pipeline = await createPipeline(variant, constants);
-  pipelineCache.set(key, pipeline);
-}
-```
+Pipelines are cached per variant/context combination in `pipeline-cache.js`; the
+cache key includes every variant-affecting param (variant, dimensions, dtypes).
+See `getPipeline()` in [Kernel Wrapper Structure](#kernel-wrapper-structure).
 
 ### Threshold Wiring Pattern
 
@@ -676,7 +624,7 @@ This pattern applies to: `gather.js`, `residual.js`, and any kernel using `vec4<
 
 ## Quantization Format Constants
 
-Centralize quantization block sizes in a single module. Format-specific constants are **invariants** derived from the quantization spec. They should never be redefined.
+Quantization block sizes are **invariants** derived from the format spec, defined once in a single module and never redefined.
 
 ```javascript
 // loader/quantization-constants.js
@@ -795,88 +743,17 @@ export const KERNEL_SPECS = {
 
 ### Layer 3: KernelSpecs → Executor
 
-```javascript
-// gpu/kernel-executor.js
-
-export class KernelExecutor {
-  constructor(model, device) {
-    this.device = device;
-    this.pipelines = new Map();
-    // Pre-compute all specs from model config (pure transformation)
-    this.specs = Object.fromEntries(
-      Object.entries(KERNEL_SPECS).map(([name, factory]) => [name, factory(model)])
-    );
-  }
-
-  async dispatch(kernel, buffers, uniforms) {
-    const spec = this.specs[kernel];
-    if (!spec) throw new Error(`Unknown kernel: ${kernel}`);
-
-    const pipeline = await this.getPipeline(spec);
-    const uniformBuffer = this.createUniformBuffer(spec.uniformSize, uniforms);
-    const [x, y, z] = spec.workgroups(uniforms);
-
-    const encoder = this.device.createCommandEncoder();
-    const pass = encoder.beginComputePass();
-    pass.setPipeline(pipeline);
-    pass.setBindGroup(0, this.createBindGroup(pipeline, uniformBuffer, buffers));
-    pass.dispatchWorkgroups(x, y, z);
-    pass.end();
-    this.device.queue.submit([encoder.finish()]);
-  }
-
-  async getPipeline(spec) {
-    let pipeline = this.pipelines.get(spec.pipelineKey);
-    if (!pipeline) {
-      pipeline = await createPipelineWithConstants(spec.pipelineKey, 'main', spec.constants);
-      this.pipelines.set(spec.pipelineKey, pipeline);
-    }
-    return pipeline;
-  }
-}
-```
+The executor precomputes every spec from model config once (a pure
+transformation), throws on an unknown kernel name, caches pipelines by
+`spec.pipelineKey`, and dispatches `spec.workgroups(uniforms)` with the same
+encoder sequence as [Kernel Wrapper Structure](#kernel-wrapper-structure).
 
 ---
 
 ## Naming Conventions
 
-### Files
-
-```
-gpu/kernels/
-  matmul.js              # Main kernel wrapper
-  matmul-utils.js        # Shared utilities (if needed)
-  fused-matmul-norm.js   # Fused variant
-
-config/
-  model-config.js        # ModelConfig and parser
-  kernel-specs.js        # KernelSpec factories
-  config-tables.js       # WORKGROUP_SIZES, TILE_SIZES, etc.
-
-types/
-  gpu.d.ts               # GPU type declarations (optional)
-  inference.d.ts         # Inference type declarations (optional)
-```
-
-### Type Declarations (.d.ts)
-
-```typescript
-// types.d.ts
-interface ModelConfig { }
-type GPUVendor = 'apple' | 'nvidia' | 'amd' | 'intel' | 'default';
-```
-
-### Constants
-
-```javascript
-// UPPER_SNAKE_CASE for config tables
-const WORKGROUP_SIZES = { ... };
-const TILE_SIZES = { ... };
-const FUSION_THRESHOLDS = { ... };
-
-// camelCase for derived values
-const workgroupSize = WORKGROUP_SIZES[vendor].matmul;
-```
+File (`kebab-case.js`, e.g. `matmul.js`, `fused-matmul-norm.js`), type,
+variable, and constant naming: [General: Naming Conventions](./general-style-guide.md#naming-conventions).
 
 ---
 
@@ -913,36 +790,7 @@ const UNIFORM_LAYOUT = {
 const UNIFORM_SIZE = Object.values(UNIFORM_LAYOUT).reduce((sum, f) => sum + f.size, 0);
 ```
 
-### DON'T: Scatter Constants
-
-```javascript
-// BAD - same value in multiple places
-function selectMatmul() {
-  if (N > 4096) { ... }  // Magic number
-}
-function selectGemv() {
-  if (N > 4096) { ... }  // Same magic number, different file
-}
-
-// GOOD - centralized table
-const THRESHOLDS = {
-  gemvMulticol: { minN: 4096 },
-};
-```
-
-### DON'T: Mix Config Layers
-
-```javascript
-// BAD - uniform creation knows about manifest
-function createUniforms(manifest) {
-  view.setUint32(0, manifest.hidden_size);  // Wrong layer!
-}
-
-// GOOD - uniforms only know about runtime values
-function createUniforms(uniforms) {
-  view.setUint32(0, uniforms.seqLen);
-}
-```
+Scattered constants and mixed config layers: see [General: Anti-Patterns](./general-style-guide.md#anti-patterns).
 
 ### DON'T: Use Bare Fallback Literals
 
@@ -983,14 +831,14 @@ interface MergedConfig {
 // Debug output: "slidingWindow: 4096 (manifest)"
 ```
 
-Why: The first debugging question is "where did this value come from?" Source
-tracking answers that instantly.
+Source tracking answers the first debugging question: where did this value come from?
 
 ---
 
 ## Logging
 
-All library code MUST use the unified debug module (`debug/index.js`) instead of raw `console.*` calls. Exceptions: `tests/` harnesses, demo entry points, and one-time startup messages in `src/gpu/device.js`.
+All library code MUST use the unified debug module (`debug/index.js`) instead of
+raw `console.*`; the allowed exceptions are listed in [General: Logging](./general-style-guide.md#logging).
 
 ### Import
 
@@ -999,8 +847,6 @@ import { log, trace } from '../debug/index.js';
 ```
 
 ### Log Levels
-
-Use the appropriate log level based on message importance:
 
 ```javascript
 log.error('Module', 'Critical failure');        // Always shown (except silent)
@@ -1011,8 +857,6 @@ log.debug('Module', 'Implementation detail');   // Shown at debug level only
 ```
 
 ### Trace Categories
-
-For kernel/pipeline debugging, use trace categories:
 
 ```javascript
 trace.loader('Shard 0 from OPFS');              // Model loading
@@ -1052,15 +896,6 @@ Use consistent module names matching the file/class:
 | `loader/doppler-loader.js` | `'Loader'` |
 | `demo/demo.js` | `'DopplerDemo'` |
 
-### Exceptions
-
-Raw `console.*` is acceptable in:
-
-1. **Demo entry points** (`demo/`, `tests/harness.html`) - User-facing status output
-2. **Test files** (`tests/kernels/`, `tests/benchmarks/`, `tests/training/`) - Test harness output
-3. **Benchmarks** - Formatted results tables
-4. **One-time startup** - GPU device info in `device.js`
-
 ### Browser Console API
 
 The debug module exposes `window.DOPPLER` for runtime debugging:
@@ -1077,7 +912,8 @@ DOPPLER.getDebugSnapshot();
 
 ## Tests
 
-Tests are JavaScript. Same rules as source code: clean JS, types in `.d.ts` if needed.
+Tests are JavaScript under the same rules as source (types in `.d.ts` if
+needed). Which tests to write and run: [General: Testing](./general-style-guide.md#testing).
 
 ### File Naming
 
@@ -1090,15 +926,6 @@ tests/benchmarks/
 
 tests/training/browser/
   test-page.js               # Training harness
-```
-
-### Structure
-
-```javascript
-// In browser console (tests/harness.html, mode: kernels)
-const gpu = await window.testHarness.getGPU();
-const result = await window.testHarness.runMatmul(gpu.device, a, b, m, n, k);
-console.log('max error', Math.max(...result));
 ```
 
 ### What to Test
@@ -1129,10 +956,6 @@ export function matmulReference(a, b, m, n, k) {
   return c;
 }
 ```
-
-### Test Before Migrate
-
-**Gate:** Tests must exist for a module before that module's source is migrated to JS.
 
 ---
 

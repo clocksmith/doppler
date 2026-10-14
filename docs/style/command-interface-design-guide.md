@@ -1,18 +1,15 @@
 # Doppler Command Interface Design Guide
 
-Design rules for the command interface, independent of surface.
-This applies to browser clients and the Node CLI equally.
-
----
+Surface-independent design rules for the command interface, applying equally
+to browser clients and the Node CLI.
 
 ## Goals
 
-- **One contract**: browser and CLI use the same command schema.
+- **One contract**: browser and CLI use the same command schema, with no browser-only or CLI-only command semantics.
 - **Config-only control**: command behavior is encoded in runtime config.
 - **Shared fairness contract**: cross-engine benchmark axes are defined once and applied to all engines.
 - **Explicit exits**: each command has a measurable completion condition.
 - **Deterministic intent mapping**: command -> intent cluster is fixed.
-- **Parity by default**: no browser-only or CLI-only command semantics.
 - **Explicit control-plane exception**: a command that requires local files,
   signing keys, or durable operator state is Node-only and must fail closed on
   browser surfaces without changing its semantics.
@@ -23,172 +20,116 @@ This applies to browser clients and the Node CLI equally.
   - `convert` → convert intent
   - `refresh-integrity` → maintenance intent
   - `release` → production-release eligibility (no harness intent)
-  - `debug` → investigate intent
-  - `diagnose` → investigate intent
+  - `debug`, `diagnose` → investigate intent
   - `bench` → calibrate intent
   - `verify` → verify intent
-  - `lora` → operator lifecycle (no harness intent)
-  - `distill` → operator lifecycle (no harness intent)
+  - `lora`, `distill` → operator lifecycle (no harness intent)
 - Mapping lives in JSON-first runtime command metadata and `normalizeToolingCommandRequest()`.
 - Any unknown command, unsupported surface combination, or missing required contract value must fail fast.
 - No command surface may substitute behavior when capabilities differ; failures must surface at surface boundary.
 
----
-
 ## Canonical Commands
 
-- `convert`
-- `refresh-integrity`
-- `release`
-- `debug`
-- `diagnose`
-- `bench`
-- `verify`
-- `lora`
-- `distill`
-
-Defined in `src/tooling/command-api.js`.
+The nine commands above are canonical, defined in `src/tooling/command-api.js`.
 All surfaces must normalize via `normalizeToolingCommandRequest()`.
 
 Maintenance/export/discovery CLI paths such as `program-bundle` and `profiles`
 are intentionally outside this browser/Node command-runner contract when they
-only read local files and write deterministic artifacts. They must document that
-boundary and must not be silently treated as harnessed browser commands.
+only read local files and write deterministic artifacts; they must document that
+boundary and never be silently treated as harnessed browser commands.
 
 ## Workload Contract
 
 Workload names describe the run family and are independent of command intent.
 
-Canonical workloads:
-- `inference`
-- `embedding`
-- `rerank`
-- `kernels`
-- `training`
-- `diffusion`
-- `energy`
+Canonical workloads: `inference`, `embedding`, `rerank`, `kernels`, `training`,
+`diffusion`, `energy`.
 
 Rules:
-- `debug` is valid for `inference` and `embedding`.
-- `diagnose` is valid for `inference` and `embedding`; CLI execution is Node-only.
+- `debug` and `diagnose` are valid for `inference` and `embedding`.
 - `bench` is valid for `inference`, `embedding`, `training`, `diffusion`, and `energy`.
 - `verify` is valid for `kernels`, `inference`, `embedding`, `rerank`, `training`, `diffusion`, and `energy`.
 - `convert`, `refresh-integrity`, `release`, `lora`, and `distill` do not use workload-locked harness execution.
-- `workloadType` is reserved for submodes inside a workload family when a family needs it, such as training stage selection or diffusion lane selection.
-- `request.inferenceInput` is reserved for request-owned inference payloads such as prompt overrides and multimodal image inputs.
-- `request.inferenceInput` is workload data, not runtime tuning; sampling, kernel, and cache policy still belong in runtime config.
-- Runtime profile names must be orthogonal to command and workload names. Do not use `profiles/debug`, `profiles/bench`, or `profiles/embedding` as profile IDs.
-
----
+- `workloadType` is reserved for submodes inside a workload family, such as training stage selection or diffusion lane selection.
+- `request.inferenceInput` is reserved for request-owned inference payloads such as prompt overrides and multimodal image inputs. It is workload data, not runtime tuning; sampling, kernel, and cache policy still belong in runtime config.
+- Runtime profile names must be orthogonal to command and workload names: no `profiles/debug`, `profiles/bench`, or `profiles/embedding` profile IDs.
 
 ## Intent Clusters
 
 ### Verification (Gatekeeper)
 
-- **Intent**: `verify`
-- **Exit**: pass/fail workload summary + diagnostics
-- **Command**: `verify`
+- **Intent** `verify`, **command** `verify`. **Exit**: pass/fail workload summary + diagnostics.
 
 ### Investigation (Microscope)
 
-- **Intent**: `investigate`
-- **Exit**: trace/profile/log artifacts or interactive output
-- **Command**: `debug`
-- **Command**: `diagnose`
+- **Intent** `investigate`, **commands** `debug`, `diagnose`. **Exit**: trace/profile/log artifacts or interactive output.
 
 ### Calibration (Yardstick)
 
-- **Intent**: `calibrate`
-- **Exit**: comparable scalar metrics
-- **Command**: `bench`
+- **Intent** `calibrate`, **command** `bench`. **Exit**: comparable scalar metrics.
 - Training calibration runs through `bench` with `workload="training"`.
-- Use `workloadType` only when a training or diffusion workload needs a
-  submode such as stage selection.
-- Training payloads are schema-pinned (`trainingSchemaVersion=1` for training flows).
-- Force-resume audit fields are explicit and fail-closed:
-  - `forceResumeReason`, `forceResumeSource`, and `checkpointOperator` require
-    `forceResume=true`.
-- Diffusion calibration runs through `bench` with `workload="diffusion"`.
-- Diffusion verify/calibrate results must include
-  `metrics.performanceArtifact` with required stage lanes:
-  `cpu.prefillMs`, `cpu.denoiseMs`, `cpu.vaeMs`, and `cpu.totalMs`.
+  Training payloads are schema-pinned (`trainingSchemaVersion=1`).
+- Force-resume audit fields are explicit and fail-closed: `forceResumeReason`,
+  `forceResumeSource`, and `checkpointOperator` require `forceResume=true`.
 
 ### Maintenance
 
-- **Intent**: none (unless harnessed workload is executed)
-- **Exit**: materialized artifact + hashes
-- **Command**: `convert`
-- **Command**: `refresh-integrity`
+- **Intent** none (unless a harnessed workload is executed), **commands** `convert`, `refresh-integrity`. **Exit**: materialized artifact + hashes.
 
 ### Production release eligibility
 
-- **Intent**: none; the signed production-release manifest and evidence are authoritative.
+- **Intent** none (the signed production-release manifest and evidence are authoritative), **command** `release`.
 - **Exit**: an exact-device fleet receipt or a signed `eligible|blocked` decision bundle.
-- **Command**: `release`
 - **Phases**: `qualify|decide`; the CLI supplies `decide` for the unqualified
   `doppler release` form, while command API callers must declare the phase.
-- Runtime config, runtime profiles, implicit fallback, deployment, activation,
-  and self-promotion are forbidden.
+- `release` consumes only production-release, trust, signing, Capsule,
+  application, and fleet-evidence inputs. Runtime config, runtime profiles,
+  implicit fallback, deployment, activation, and self-promotion are forbidden.
 - `qualify` requires exact target and device identity on a customer-operated
   agent. `decide` requires trusted fleet signers and verifies one receipt per
   declared target.
 
 ### Training Operator Lifecycle
 
-- **Intent**: none (operator lifecycle is workload-driven, not harness-driven)
-- **Exit**: workload-locked run root plus checkpoint/eval/scoreboard/compare/quality-gate artifacts
-- **Commands**: `lora`, `distill`
+- **Intent** none (workload-driven, not harness-driven), **commands** `lora`, `distill`.
+- **Exit**: workload-locked run root plus checkpoint/eval/scoreboard/compare/quality-gate artifacts.
 - These commands normalize through the same command API but do not rewrite runtime config with harness metadata.
-- `lora.action` is:
-  `run|eval|watch|export|compare|quality-gate|activate`
-- `distill.action` is:
-  `run|stage-a|stage-b|eval|watch|compare|quality-gate|subsets`
+- `lora.action` is `run|eval|watch|export|compare|quality-gate|activate`.
+- `distill.action` is `run|stage-a|stage-b|eval|watch|compare|quality-gate|subsets`.
 - Operator commands are workload-first:
   `workloadPath` or `runRoot` is required, and behavior-changing eval/subset/checkpoint policy must come from workload JSON or explicit artifact references.
-
----
 
 ## Runtime Contract
 
 For harnessed commands (`debug`, `diagnose`, `bench`, `verify`), runners must preserve
-explicit command context outside runtime config:
-
-- `command`
-- `workload`
-- `modelId` (required except `kernels` and training-calibration flows where `bench + workload="training"` allows `modelId: null`)
-- normalized command intent
-
-`verify` workloads are: `kernels`, `inference`, `embedding`, `training`, `diffusion`, and `energy`.
+explicit command context outside runtime config: `command`, `workload`,
+normalized command intent, and `modelId` (required except `kernels` and
+training-calibration flows where `bench + workload="training"` allows `modelId: null`).
 
 Diffusion command contracts:
 - Verify path: `command="verify"` and `workload="diffusion"`.
 - Calibrate path: `command="bench"` and `workload="diffusion"`.
 - Diffusion harness metadata: `workloadType="diffusion"` and `suite="diffusion"`.
 - Runtime backend contract: `runtime.inference.diffusion.backend.pipeline="gpu"` only.
-- Both paths must emit timing diagnostics and diffusion stage metrics as contract artifacts.
+- Both paths must emit timing diagnostics and diffusion stage metrics as contract artifacts:
+  `metrics.performanceArtifact` with stage lanes `cpu.prefillMs`, `cpu.denoiseMs`,
+  `cpu.vaeMs`, and `cpu.totalMs`.
 
-Runtime inputs must compose identically across Node, browser, CLI, and harnessed manifest flows:
-
-- `configChain` (when supported by the surface)
-- `runtimeProfile`
-- `runtimeConfigUrl`
-- `runtimeConfig`
+Runtime inputs must compose identically across Node, browser, CLI, and
+harnessed manifest flows, in exactly this order: `configChain` (when supported
+by the surface), `runtimeProfile`, `runtimeConfigUrl`, `runtimeConfig`.
 
 Rules:
 
-- Preserve that order exactly.
 - `configChain` support must not exist on one harness surface and silently disappear on another.
 - If a surface cannot support one of these fields, it must reject the request explicitly instead of dropping or rewriting it.
 - Command metadata must remain in the request/suite context; do not rewrite `runtime.shared.*` to carry command semantics.
-- CLI `--runtime-profile <id>` is only a shorthand for setting `request.runtimeProfile` before normalization. It is not a per-field tuning flag and must conflict with `--runtime-config`, `runtimeConfigUrl`, `runtimeConfig`, or an existing `runtimeProfile` in `--config`.
-- CLI `profiles` is a read-only discovery command for checked-in runtime profile IDs. It is outside `normalizeToolingCommandRequest()` and must not execute a harnessed workload.
+- CLI `--runtime-profile <id>` only sets `request.runtimeProfile` before normalization (it is not a per-field tuning flag) and must conflict with `--runtime-config`, `runtimeConfigUrl`, `runtimeConfig`, or an existing `runtimeProfile` in `--config`.
 
-For cross-engine benchmarks, maintain a two-layer contract:
-
-1. Shared benchmark contract (prompt/workload/sampling/run policy)
-2. Engine overlay (engine-specific execution knobs)
-
-The shared contract is part of command semantics; engine overlays must not mutate fairness axes.
+Cross-engine benchmarks keep a two-layer contract: a shared benchmark contract
+(prompt/workload/sampling/run policy), which is part of command semantics, and
+an engine overlay (engine-specific execution knobs) that must not mutate
+fairness axes.
 
 Commands are rejected when:
 
@@ -200,12 +141,9 @@ Commands are rejected when:
 - operator command action is unknown
 - operator command is missing `workloadPath`/`runRoot` or required checkpoint/subset references
 
----
-
 ## Surface Parity Rules
 
 - Every command must run through `ensureCommandSupportedOnSurface()`.
-- Surface capability limits are explicit failures, not alternate behavior.
 - CLI and browser-relay envelope shape is stable across surfaces:
   - Success: `{ ok: true, schemaVersion: 1, surface, request, result }`
   - Error: `{ ok: false, schemaVersion: 1, surface|null, request|null, error: { code, message, details, retryable } }`
@@ -220,23 +158,18 @@ Commands are rejected when:
 
 - CLI supports `--surface auto|node|browser`.
 - `--surface auto` is explicit transport resolution for harnessed commands: try Node first, then browser relay only when Node WebGPU is unavailable. Command intent and contract stay unchanged.
-- Exception: training flows (`workload="training"` or explicit training workload variants) must not auto-downgrade from node to browser; this is a fail-closed transport rule that preserves command semantics.
-- `lora` and `distill` are also training flows for auto-surface purposes and must not silently downgrade.
+- Exception: training flows (`workload="training"`, explicit training workload variants, `lora`, and `distill`) must not auto-downgrade from node to browser; this fail-closed transport rule preserves command semantics.
 - Node runner may bootstrap WebGPU from available runtime support before failing.
 - Browser relay executes `runBrowserCommand()` in a browser via `src/tooling/command-runner.html`
-  (default headless, configured via `run.browser` fields in CLI `--config`).
-- Browser relay can attach to an existing server with `run.browser.baseUrl`.
-- `convert`, `refresh-integrity`, and `release` are Node-only in CLI (`--surface browser` is rejected).
-- `diagnose` is Node-only in CLI (`--surface browser` is rejected) and must not auto-downgrade to browser relay.
-- `lora` and `distill` are currently Node-only and must fail closed on browser surfaces until equivalent runtime semantics exist there.
-- `profiles` is CLI-local read-only discovery and does not accept `--surface` or `--config`.
+  (default headless, configured via `run.browser` fields in CLI `--config`), and can attach to an existing server with `run.browser.baseUrl`.
+- Node-only in CLI (`--surface browser` is rejected): `convert`, `refresh-integrity`,
+  `release`, and `diagnose` (which also never auto-downgrades to browser relay).
+  `lora` and `distill` are Node-only and fail closed on browser surfaces until
+  equivalent runtime semantics exist there.
+- `profiles` is CLI-local read-only discovery of checked-in runtime profile IDs: outside `normalizeToolingCommandRequest()`, never executes a harnessed workload, and accepts neither `--surface` nor `--config`.
 - `keepPipeline=true` is rejected on browser relay because pipeline objects are not serializable across process boundaries.
 - `convert` execution tuning belongs in `request.convertPayload.execution` and must not change command semantics.
 - `refresh-integrity` rebuilds manifest integrity metadata from local artifact bytes and must not consume runtime config inputs.
-- `release` consumes only production-release, trust, signing, Capsule, application,
-  and fleet-evidence inputs; it must not consume runtime config or activate a release.
-
----
 
 ## References
 

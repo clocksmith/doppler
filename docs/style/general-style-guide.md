@@ -1,31 +1,28 @@
 # Doppler General Style Guide
 
-General coding conventions and patterns for the DOPPLER codebase.
-
-This file is the canonical source for shared cross-language rules such as naming,
-logging, testing, and anti-pattern policy. Language-specific guides should only
-document deltas.
+Canonical source for DOPPLER's shared cross-language rules: naming, logging,
+testing, and anti-patterns. Language-specific guides document only deltas.
 
 ## Invariants (Quick Reference)
 
-Rules that cause bugs when violated. Each has a fuller section below with rationale and examples.
+Rules that cause bugs when violated; each has a fuller section below.
 
 - **Execution Plane Contract** — JSON owns policy; JS owns orchestration; WGSL owns compute only. Missing or ambiguous contract must fail fast. See [Execution Plane Contract](#execution-plane-contract).
 - **No Runtime Defaults in Code** — runtime code reads resolved config values directly. No literal fallbacks for tunables in JS. Missing policy raises a typed configuration error. See [No Runtime Defaults in Code](#no-runtime-defaults-in-code).
 - **Nullable Required Fields** — `null` = explicitly disabled (valid); `undefined` = not specified (validation error, fail fast).
 - **Runtime Reads the Manifest, Never Infers** — converter embeds all model-specific inference params in `manifest.json`. Runtime never detects model family in pipeline code. See [Runtime Reads the Manifest, Never Infers](#runtime-reads-the-manifest-never-infers).
-- **Storage Dtype Is Not Materialization Dtype** — manifests retain the exact stored tensor encoding. The selected, transformed execution path plus kernel-registry metadata determines whether the loader retains that encoding or materializes another dtype. See [Storage Dtype and Materialization Dtype](#storage-dtype-and-materialization-dtype).
+- **Storage Dtype Is Not Materialization Dtype** — manifests retain the exact stored tensor encoding; the selected, transformed execution path plus kernel-registry metadata decides whether the loader retains it or materializes another dtype. See [Storage Dtype and Materialization Dtype](#storage-dtype-and-materialization-dtype).
 - **Kernel Selection** — fully explicit in the manifest execution graph. Each step pins exact WGSL file, entry point, and content digest. `defaultKernelPath` does not exist in v1 manifests. See [Kernel Selection](#kernel-selection).
 - **Performance Invariants (F32 Policy)** — F32 is a correctness fallback, not a performance default. When `shader-f16` is available, prefer `f16` for activations/KV cache/intermediates. Any `f32` path must be explicitly configured and logged once per session.
-- **Capability Transform Classification** — every execution-v1 capability transform is a typed policy row with `kind`, `dtypeEffect`, and evidence. Hardware compatibility, explicit lanes, platform workarounds, session compatibility, and no-op rules are different categories. See [Capability Transform Classification](#capability-transform-classification).
+- **Capability Transform Classification** — every execution-v1 capability transform is a typed policy row with `kind`, `dtypeEffect`, and evidence, in one of the distinct categories below. See [Capability Transform Classification](#capability-transform-classification).
 - **No Ad-Hoc Debug Logging** — no temporary log statements. Use existing trace categories, config-driven probes, or permanent trace extensions. Use the debug module (`src/debug/index.js`), not raw `console.*` in runtime code. See [Logging](#logging).
-- **Single Source of Truth** — when the same metadata appears in multiple files, exactly one must be canonical. Mirrors are generated from that source and covered by a sync check. See [Core Principles](#core-principles).
-- **Failure-Path Regression Requirement** — any fix for buffer lifecycle, readback cleanup, or failure-path-only behavior must include a regression test exercising the failing path. See [Failure-Path Regression Requirement](#failure-path-regression-requirement).
-- **Inventory Before Edit** — when a failure indicates a repeated drift class, run or create the broadest inventory check before editing individual files. One-off repairs for recurring drift become checkable tooling with a `--check` mode. See [Inventory Before Edit](#inventory-before-edit).
+- **Single Source of Truth** — when the same metadata appears in multiple files, exactly one must be canonical. Remove copies where possible; an unavoidable mirror is generated from that source with a sync check. See [Core Principles](#core-principles).
+- **Failure-Path Regression Requirement** — a fix for buffer lifecycle, readback cleanup, or failure-path-only behavior includes a narrow regression test exercising the failing path. See [Failure-Path Regression Requirement](#failure-path-regression-requirement).
+- **Inventory Before Edit** — when a failure reveals a repeated drift class, inventory the whole class before editing individual files, and remove the duplication that causes it before adding check tooling. See [Inventory Before Edit](#inventory-before-edit).
 - **Semantic Ownership** — shared behavior lives in the narrowest subsystem that owns its meaning. New catch-all utility or helper modules are forbidden. See [Semantic Ownership](#semantic-ownership).
 - **Facade Purity** — public entrypoints and compatibility facades validate, normalize, delegate, and translate errors; they do not own workload algorithms or policy. See [Facade Purity](#facade-purity).
-- **Enforced Source Architecture** — ownership, restricted dependency direction, facade purity, and the source line ceiling are checked by `npm run source:architecture:check`. See [Source Architecture Gate](#source-architecture-gate).
-- **No JavaScript Runtime Tensor Math** — model-runtime tensor arithmetic and tensor-layout transforms execute in declared WGSL programs; JavaScript may validate shapes, bind resources, dispatch, and perform explicitly contracted scalar control work only. Rig artifact construction, byte codecs/materialization, host input preprocessing, observation, and test references are separate reviewed boundaries and may never become runtime compute fallbacks.
+- **Enforced Source Architecture** — ownership, restricted dependency direction, facade purity, and the source line ceiling are checked by `npm run source:architecture:check`. See [Source Style and Architecture Gates](#source-style-and-architecture-gates).
+- **No JavaScript Runtime Tensor Math** — model-runtime tensor arithmetic and layout transforms execute in declared WGSL programs; JavaScript validates shapes, binds resources, dispatches, and does explicitly contracted scalar control work only. Reviewed numeric boundaries (Rig construction, byte codecs/materialization, host input preprocessing, observation, test references) never become runtime compute fallbacks. See [Execution Plane Contract](#execution-plane-contract).
 - **Declared Semantic Geometry** — required tensor and spatial geometry comes from ModelIR, TargetPlan, manifest, or resolved session contracts. Run code never reconstructs it from counts, tensor names, model names, or heuristics.
 
 ## Core Principles
@@ -37,7 +34,8 @@ Rules that cause bugs when violated. Each has a fuller section below with ration
 5. **Single Source of Truth** - One canonical contract file, derived artifacts generated + check-synced
 
 When the same runtime-visible metadata appears in more than one file, exactly one file must be canonical.
-Any mirrors or convenience registries must be generated from that source and covered by a sync check in CI.
+Remove hand-maintained copies where possible; any remaining mirror or convenience registry is generated
+from that source and covered by a CI sync check, run locally only when editing either side.
 
 Release-facing model claims follow the same rule:
 
@@ -81,7 +79,7 @@ is explicit and inventoried by `npm run source:style:check`:
 - descriptor-bound artifact decoding and materialization before execution;
 - application-input preprocessing before a runtime tensor is created;
 - scalar sampling and other declared control-plane decisions after readback;
-- observation that never feeds a modified tensor back into execution; and
+- observation that never feeds a modified tensor back into execution;
 - deterministic CPU references in tests or quarantined reference modules; and
 - numerical prototypes under `src/experimental/` while the architecture gate
   proves that no production owner imports them and support policy keeps them
@@ -97,18 +95,12 @@ round trip is always runtime tensor compute and is forbidden.
 
 Doppler source code is **JavaScript** with **declaration files** (.d.ts) for every module in `src/` and `demo/`. Tests and tools may omit `.d.ts` unless they export public types.
 
-| File | Contains |
-|------|----------|
-| `module.js` | Executable JavaScript; checked boundary modules may import declaration types through JSDoc |
-| `module.d.ts` | Comprehensive type definitions |
-
 ### Why JavaScript
 
 | Reason | Explanation |
 |--------|-------------|
 | **Runtime compilation** | JS/WGSL/JSON changes compile without rebuild; hot-swap plumbing is planned |
 | **No generation quality difference** | No benchmarks show LLMs generate better TS than JS [1][2] |
-| **Layered contract protection** | Runtime validation, declarations, and tests protect different boundaries |
 | **Simpler toolchain** | Edit JS/WGSL/JSON and run directly; `tsc` only emits/validates `.d.ts` |
 
 ### Why .d.ts Files
@@ -124,16 +116,16 @@ Doppler source code is **JavaScript** with **declaration files** (.d.ts) for eve
 > Runtime validation protects untrusted boundaries; declarations protect
 > consumers and refactors; tests protect behavior.
 
-No one layer substitutes for the others. Runtime validation must fail fast on
-malformed external data, `.d.ts` declarations must precisely describe consumer
-and internal refactor contracts, and tests must preserve observable behavior.
+No layer substitutes for another: runtime validation fails fast on malformed
+external data, and `.d.ts` declarations precisely describe consumer and
+internal refactor contracts.
 
 ### File Format Summary
 
 | Format | Use For |
 |--------|---------|
-| **JavaScript (.js)** | All source code; no TypeScript syntax or build migration |
-| **Declaration files (.d.ts)** | Type specs for source modules (`src/`, `demo/`) |
+| **JavaScript (.js)** | All source code; no TypeScript syntax or build migration. Checked boundary modules may import declaration types through JSDoc |
+| **Declaration files (.d.ts)** | Comprehensive type specs for source modules (`src/`, `demo/`) |
 | **JSON (.json)** | Static config assets, manifests, fixtures |
 | **WGSL (.wgsl)** | GPU shaders |
 
@@ -141,7 +133,6 @@ and internal refactor contracts, and tests must preserve observable behavior.
 
 | Claim | Source |
 |-------|--------|
-| No JS vs TS generation quality difference | No benchmark measures this; both have equal training data [2] |
 | 15% of bugs caught by types → also caught by tests | [To Type or Not to Type (ICSE 2017)][4] |
 | Types help LLMs read context | Anders Hejlsberg, TS Lead Architect [3] |
 | TypeScript adoption driven by validating AI output | [GitHub Octoverse 2025][5] |
@@ -242,23 +233,18 @@ out of inference paths and do not use them to stand in for config.
 
 ### Reuse Config Merge Utilities
 
-Do not duplicate ad-hoc deep-merge helpers across command runners or harnesses.
-
-- Keep runtime merge semantics centralized in shared config utilities.
-- Preserve explicit semantics: `undefined` means "no override", `null` means "explicit disable/reset".
-- Import shared merge helpers in browser/Node surfaces to guarantee identical behavior.
+Do not duplicate ad-hoc deep-merge helpers across command runners or harnesses;
+browser and Node surfaces import the shared config merge utilities so behavior
+is identical. Preserve explicit semantics: `undefined` means "no override",
+`null` means "explicit disable/reset".
 
 ### Nullable Required Fields
 
 For fields that can be legitimately disabled:
 
 - `null` = explicitly disabled (valid)
-- `undefined` = not specified (validation error)
+- `undefined` = not specified (validation error, fail fast)
 
-Example: `slidingWindow: null` means "no sliding window" (intentional). Missing
-`slidingWindow` means the manifest is incomplete (fail fast).
-
-Example:
 ```json
 {
   "attention": {
@@ -267,13 +253,12 @@ Example:
   }
 }
 ```
-Both fields are explicitly disabled (valid). Omitting either field is invalid.
+Both fields are explicitly disabled (valid). Omitting either means the manifest is incomplete.
 
 ### Runtime Reads the Manifest, Never Infers
 
 - Converter embeds all model-specific inference params in `manifest.json`
-- Runtime never detects model family in pipeline code
-- Pipeline reads config values directly, no architecture-string inference
+- Pipeline reads config values directly; it never detects model family or infers from architecture strings
 - Run must not infer model parameters from tensor names, shapes, or heuristics
 - Model-specific runtime policy must live in JSON rule assets and use exact
   manifest fields or explicit variant ID lists. Do not use substring, prefix, or
@@ -289,19 +274,18 @@ const useSoftcapping = config.attnLogitSoftcapping !== null;
 
 ### Kernel Selection
 
-- Kernel selection is fully explicit in the manifest execution graph. Each step pins an exact WGSL file, entry point, and content digest. No runtime resolution.
+- Kernel selection is fully explicit in the manifest execution graph; each step pins an exact WGSL file, entry point, and content digest. No runtime resolution.
 - All models must ship with an execution graph. Models without one are unsupported.
 - `defaultKernelPath` does not exist in v1 manifests. The execution graph is the sole dispatch contract.
-- Kernel path overrides are config-only; do not add harness/UI flags for kernel selection.
-- Kernel selection logic lives in `src/gpu/kernels/*.js`; config files are data only.
+- Kernel path overrides are config-only (no harness/UI flags); selection logic lives in `src/gpu/kernels/*.js` and config files are data only.
 
 ### Manifest-Config Parity (Required Debug Check)
 
 When a manifest-based runtime error occurs (dtype mismatch, missing field, kernel conflict):
 
-1. **Compare the manifest to its conversion config first.** If they disagree, re-refresh the manifest — do not patch runtime code.
-2. The conversion config (`src/config/conversion/`) is the source of truth for all manifest inference fields. The manifest is a stamped artifact.
-3. Never add runtime workarounds for stale manifests. Fix the config, re-refresh, verify.
+1. **Compare the manifest to its conversion config first.** If they disagree, refresh the manifest — do not patch runtime code.
+2. The conversion config (`src/config/conversion/`) is the source of truth for all manifest inference fields; the manifest is a stamped artifact.
+3. Never add runtime workarounds for stale manifests. Fix the config, refresh, verify.
 
 ### Execution Graph Kernel Identity Lifecycle
 
@@ -311,16 +295,14 @@ When a manifest-based runtime error occurs (dtype mismatch, missing field, kerne
   String registry IDs are removed and must fail during config resolution.
 - Each execution step pins `kernel`, `entry`, and `kernelRef.digest`; digest drift
   is checked by the conversion/kernel digest checks.
-- `src/config/kernels/registry.json` is WGSL variant metadata only. It is not a
-  model kernel-path ID registry and must not be used as a runtime override
-  lookup table.
+- `src/config/kernels/registry.json` is WGSL variant metadata only, never a
+  model kernel-path ID registry or runtime override lookup table.
 - Add tuned kernels by updating the conversion execution graph or an explicit
-  execution graph transform, then benchmark and verify before promoting the
-  converted artifact.
-- Treat fused kernels as explicit behavior changes:
-  - preserve an equivalent non-fused baseline graph.
-  - benchmark fused candidates against non-fused and accuracy checks.
-  - only promote fused variants after both perf and correctness are green.
+  execution graph transform. Promoting the converted artifact (not committing
+  the change) requires benchmark and verify evidence.
+- Treat fused kernels as explicit behavior changes: preserve an equivalent
+  non-fused baseline graph, and promote a fused variant only after perf (vs.
+  non-fused) and correctness evidence are both green.
 
 ### Capability Transform Classification
 
@@ -344,34 +326,26 @@ Allowed categories:
   optimization without changing dtype.
 - `default-noop`: the final no-transform rule.
 
-Any dtype-changing row must expose the effect through `dtypeEffect`. Execution
-receipts must preserve the matched policy metadata so transformed lanes are
-visible. Run `npm run capability-policy:check` after changing capability
-transform policy, execution-v1 dtype lanes, or capability fallback behavior.
+Dtype-changing rows expose the effect through `dtypeEffect`, and execution
+receipts preserve the matched policy metadata so transformed lanes are visible.
+Run `npm run capability-policy:check` after changing capability transform
+policy, execution-v1 dtype lanes, or capability fallback behavior.
 
 ### Config-Only Overrides (Harness)
 
-- Runtime tunables are configured via runtime config only; harness/UI controls must not override tunables.
-- Forbidden overrides include: prompt selection, max tokens, sampling (temperature/topK/topP), trace categories, log levels, warmup/timed runs.
-- Command intent and harness selection must stay in explicit command/suite context, not in `runtime.shared.*`.
-- Harnesses must not accept per-field URL overrides; only `runtimeProfile`, `runtimeConfig`, `runtimeConfigUrl`, and `configChain` are allowed.
-- If a developer needs to tweak a tunable, they should create a runtime profile or pass `--config` with a runtime config file.
-See `config-style-guide.md` for merge order and category rules.
+Runtime tunables come from runtime config only; harness/UI controls never
+override them. Canonical rules: [JavaScript: Harness Override Rules](./javascript-style-guide.md#harness-override-rules)
+and `config-style-guide.md`.
 
 ### Failure-Path Regression Requirement
 
-- Any fix for buffer lifecycle, readback cleanup, deferred destruction, recorder teardown, or other failure-path-only behavior must include a regression test that exercises the failing path.
-- Happy-path coverage alone is not sufficient for cleanup bugs.
-- Any fix for command/harness parity drift must include a regression that proves unsupported or mismatched contract inputs fail closed rather than being ignored or rewritten.
+- A fix for buffer lifecycle, readback cleanup, deferred destruction, recorder teardown, or other failure-path-only behavior includes a regression test that exercises the failing path; happy-path coverage does not catch cleanup bugs.
+- A fix for command/harness parity drift includes a regression proving unsupported or mismatched contract inputs fail closed rather than being ignored or rewritten.
+- Keep these tests narrow; they do not call for full-suite runs.
 
 ### Manifest-First Change Checklist
 
-When adding a new inference knob or model behavior:
-- Add it to `ManifestInferenceSchema` (and defaults for converter fixtures).
-- Populate it in the converter (explicit conversion config + HF config mapping).
-- Merge it in `src/config/merge.js` with `_sources` tracking.
-- Validate it in `parseModelConfigFromManifest()` (null vs undefined rules).
-- Add/extend tests that assert manifest values and override precedence.
+New inference knobs and model behaviors follow the [JavaScript Manifest-First Contract](./javascript-style-guide.md#manifest-first-contract).
 
 ### Tensor-Config Consistency
 
@@ -382,9 +356,9 @@ When adding a new inference knob or model behavior:
 - QK-norm flag (`queryKeyNorm`)
 - Weight tying (`tieWordEmbeddings`)
 
-**Auto-detection**: The converter auto-detects normalization flags from tensor names. Auto-detected values fill unspecified config fields but must not override explicit conversion config.
+**Auto-detection**: The converter derives normalization flags from tensor names to fill unspecified config fields; it must not override explicit conversion config.
 
-**Why this matters**: The 2026-01-19 Gemma 3 postmortem documents complete model failure from a missing `postFeedforwardNorm: true` flag. The weights existed but the norm was skipped, causing logit divergence after 26 layers.
+**Why this matters**: In the 2026-01-19 Gemma 3 postmortem, a missing `postFeedforwardNorm: true` skipped a norm whose weights existed, and logits diverged after 26 layers.
 
 ```javascript
 // DON'T: Rely on hidden family defaults for architecture-specific features
@@ -404,9 +378,7 @@ When adding a new inference knob or model behavior:
 
 ### Weight-Interpretation Flag Verification (Required)
 
-**Flags that control how weights are interpreted at runtime must be verified against actual weight values, not inferred from HF class names or code inspection alone.**
-
-Affected flags include `rmsNormWeightOffset`, `scaleEmbeddings`, and any flag that changes the arithmetic applied to stored weights (e.g., `(1 + weight) * x` vs `weight * x`).
+**Verify weight-interpretation flags against actual weight values, never infer them from HF class names or code inspection alone.** This covers `rmsNormWeightOffset`, `scaleEmbeddings`, and any flag that changes the arithmetic applied to stored weights (e.g., `(1 + weight) * x` vs `weight * x`).
 
 **Verification procedure** before changing any weight-interpretation flag:
 
@@ -414,50 +386,40 @@ Affected flags include `rmsNormWeightOffset`, `scaleEmbeddings`, and any flag th
 2. **Check the distribution**:
    - `rmsNormWeightOffset: true` (Gemma-style): norm weights cluster near **0.0** (identity = `1 + 0 = 1`).
    - `rmsNormWeightOffset: false` (standard): norm weights cluster near **1.0** (identity = `1 * x`).
-3. **Run inference before AND after** the change to confirm coherence is preserved.
+3. **Run inference on the affected model before AND after** the change to confirm coherence is preserved.
 4. **Never patch external volume manifests** without first confirming the change produces coherent output on the patched model.
 
-**Why this matters**: The 2026-03-18 Qwen 3.5 incident: an agent changed `rmsNormWeightOffset` from `true` to `false` based on HF's `Qwen3_5RMSNorm` class name appearing to be "standard RMSNorm." The actual norm weights (mean ~0.24–0.65) proved the model uses Gemma-style `(1 + weight)` initialization. The change broke both Qwen models instantly (output collapsed to all-newlines/spaces). HF class names are not reliable indicators of weight initialization patterns.
-
-```javascript
-// DON'T: Change flags based on HF source code alone
-// "Qwen3_5RMSNorm looks like standard RMSNorm" → set rmsNormWeightOffset: false
-// WRONG — class name does not determine weight initialization
-
-// DO: Sample weight values first
-// Norm weights mean ~0.3 → Gemma-style (1 + weight) → rmsNormWeightOffset: true
-// Norm weights mean ~1.0 → Standard (weight) → rmsNormWeightOffset: false
-```
+**Why this matters**: On 2026-03-18 an agent flipped Qwen 3.5's `rmsNormWeightOffset` to `false` because HF's `Qwen3_5RMSNorm` looked like standard RMSNorm. The actual norm weights (mean ~0.24–0.65) are Gemma-style `(1 + weight)`, and both Qwen models collapsed to all-newline/space output. HF class names do not indicate weight initialization.
 
 ### Storage Dtype and Materialization Dtype
 
 Tensor storage identity and GPU materialization identity are separate contracts.
 
 - The manifest and tensor descriptors preserve the exact stored encoding. BF16
-  checkpoint bytes remain `BF16`; they are never declared as `F16` merely
-  because an older runtime materialized them that way.
+  checkpoint bytes stay `BF16`, never declared `F16` because an older runtime
+  materialized them that way.
 - The resolved execution path after capability transforms determines what the
   loader must provide. Resolve its pinned shader and entry point through
-  `src/config/kernels/registry.json`; do not maintain filename allowlists in
-  loader or pipeline code.
-- Only the selected path may request retained packed storage. An unselected
-  kernel elsewhere in the manifest execution closure cannot change how weights
-  are loaded.
+  `src/config/kernels/registry.json`; no filename allowlists in loader or
+  pipeline code.
+- Only the selected path may request retained packed storage; an unselected
+  kernel elsewhere in the manifest execution closure cannot change weight loading.
 - If the selected kernel consumes another dtype, materialization is an explicit
-  BF16-to-F16 or BF16-to-F32 step and the resulting weight descriptor records
-  that materialized dtype.
-- Capability transforms that replace a selected kernel must also change the
+  BF16-to-F16 or BF16-to-F32 step and the weight descriptor records the
+  materialized dtype.
+- A capability transform that replaces a selected kernel also changes the
   loader requirement derived from that path. Packed storage must never reach a
   kernel registered for a different weight dtype.
 
-Regression coverage must include the direct retained-storage lane and a
-transformed or alternate lane that requires materialization.
+A change to this contract needs regression coverage of both the direct
+retained-storage lane and a transformed or alternate lane that requires
+materialization.
 
 ### KV Cache Dtype Policy
 
-- Default KV cache dtype to `f16` when supported.
+- KV cache dtype defaults to `f16` when supported.
 - Force `f32` only when required (no `shader-f16`) or explicitly configured (e.g., `runtime.inference.kvcache.forceF32Softcap` for softcapping).
-- Do not introduce new defaults that silently upgrade to `f32`.
+- No new defaults that silently upgrade to `f32`.
 
 ### Performance Invariants (F32 Policy)
 
@@ -465,20 +427,15 @@ F32 is a correctness fallback, not a performance default. When `shader-f16` is a
 
 - Prefer `f16` for activations, KV cache, and intermediate buffers.
 - Any `f32` path must be explicitly configured (manifest or runtime) and logged once per session.
-- Avoid hidden dtype escalation via runtime fallbacks; use schema defaults and explicit switches.
+- No hidden dtype escalation via runtime fallbacks; use schema defaults and explicit switches.
 
-If `shader-f16` is unavailable, `f32` is required and should be treated as a capability constraint, not an optimization.
+Without `shader-f16`, `f32` is a required capability constraint, not an optimization.
 
 ### Runtime Profile Separation
 
 **Conversion configs** (`src/config/conversion/`) are the sole source of truth for conversion-time inference and execution fields stamped into the manifest.
 
-**Runtime profiles** (`src/config/runtime/profiles/` and other profile wrappers under `src/config/runtime/`) extend runtime defaults for different use cases without duplicating command names or workload names. They are loaded by the browser harness (`runtimeProfile`) and merged with runtime overrides. Runtime config is split into `runtime.shared`, `runtime.loading`, and `runtime.inference`, so profiles should place overrides under the correct section. Use `doppler profiles --json` for checked-in profile discovery instead of guessing IDs from filenames.
-
-The merge order for runtime config:
-1. Runtime default config (schema default configs)
-2. Runtime profile config (partial override)
-3. Runtime override config (explicit config)
+**Runtime profiles** (`src/config/runtime/profiles/` and other profile wrappers under `src/config/runtime/`) extend runtime defaults for different use cases without duplicating command or workload names. The browser harness loads them (`runtimeProfile`) and merges runtime overrides on top (see [Config Merge Order](#config-merge-order-per-domain)). Place overrides under the correct section: `runtime.shared`, `runtime.loading`, or `runtime.inference`. Discover checked-in profiles with `doppler profiles --json` instead of guessing IDs from filenames.
 
 Manifest + runtime config feed ModelConfig → PipelineSpec → KernelSpec → Dispatch.
 
@@ -504,7 +461,7 @@ Raw model metadata from RDRR format:
 
 ### Layer 2: ModelConfig (type declarations)
 
-Type declarations (in `.d.ts`) with derived values:
+With derived values:
 
 ```typescript
 // model-config.d.ts
@@ -592,8 +549,6 @@ interface RuntimeUniforms {
 
 ## Buffer Lifecycle
 
-Buffer allocation uses **power-of-2 bucketing** for small buffers, coarse steps for large buffers, and deferred destruction after GPU work completes.
-
 ### Principles
 
 1. **Bucket by size** - Power-of-2 for small buffers (256B, 512B, 1KB, 2KB, ...)
@@ -622,7 +577,7 @@ bufferPool.release(buffer);
 
 ### Why This Matters
 
-GPU buffer creation is expensive (~1ms). Pooling with coarse buckets amortizes creation cost and reduces memory fragmentation. The slight memory waste from rounding up is far cheaper than allocation overhead.
+GPU buffer creation is expensive (~1ms). Coarse-bucket pooling amortizes it and reduces fragmentation; rounding-up waste is far cheaper than allocation overhead.
 
 ---
 
@@ -668,7 +623,7 @@ Conversion configs may define `inference.pipeline` to drive per-layer step order
 
 ### When NOT to Use
 
-For production inference, let the hardcoded path run. It is optimized for the common case.
+Production inference: leave it unset so the optimized hardcoded path runs.
 
 ---
 
@@ -678,16 +633,7 @@ The loader transforms raw weight files (GGUF/SafeTensors) into GPU buffers. It h
 
 ### Quantization Format Constants
 
-Format-specific constants (block sizes, byte layouts) are **invariants** derived from the quantization spec. Import from a single source:
-
-```javascript
-// DON'T: Compute or redefine format constants locally
-const blockBytes = 2 + 2 + K_SCALE_SIZE + QK_K / 2;  // Computing Q4K block size
-const Q4K_BLOCK_BYTES = 144;  // Redefined locally
-
-// DO: Import from quantization-constants.js
-import { Q4K_BLOCK_BYTES, Q6K_BLOCK_BYTES } from './quantization-constants.js';
-```
+Format constants (block sizes, byte layouts) are spec invariants imported from one module; see [JavaScript: Quantization Format Constants](./javascript-style-guide.md#quantization-format-constants).
 
 ### Dtype Defaults
 
@@ -707,16 +653,8 @@ const embeddingDtype = options.embeddingDtype ?? defaults.defaultEmbeddingDtype;
 
 ### Memory Limits
 
-Cache sizes and memory thresholds should come from config:
-
-```javascript
-// DON'T: Hardcoded memory limits
-const maxCacheSize = 256 * 1024 * 1024;  // 256MB
-
-// DO: Reference config schema
-import { getStorageDefaults } from '../config/schema/index.js';
-const maxCacheSize = getStorageDefaults().expertCache.maxSize;
-```
+Cache sizes and memory thresholds also come from config, e.g.
+`getStorageDefaults().expertCache.maxSize` instead of a literal `256 * 1024 * 1024`.
 
 ---
 
@@ -738,18 +676,18 @@ execution planes, workload families, or lifecycle boundaries must split even
 when it remains below 999 lines.
 
 Existing over-limit files are governed in
-`tools/policies/source-architecture-policy.json`. Each entry records its
-current maximum and named extraction boundaries. An inherited file may shrink
-but may not grow. Once it reaches the limit, its policy entry must be removed.
+`tools/policies/source-architecture-policy.json`; each entry records the
+file's current maximum and named extraction boundaries. An inherited file may
+shrink but not grow; once it reaches the limit, its entry must be removed.
 The architecture check compares this ledger with `DOPPLER_POLICY_BASE_REF`
 (`HEAD` for an uncommitted local change). Adding a soft-limit review or raising
 `reviewedLines` fails unless the changed review records a `debtAuthorization`
-SHA-256 digest that exactly matches the externally supplied
+SHA-256 digest exactly matching the externally supplied
 `DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION`. Lowering or removing debt never
-requires authorization. Other policy relaxations—including global limit
-increases, new legacy ceilings, cross-owner dependency additions, exceptions,
-facades, experimental bridges, standalone reachability exemptions, and weaker
-constitutional graphs—require a fresh top-level `debtAuthorization` matching
+needs authorization. Every other policy relaxation (global limit increases,
+new legacy ceilings, cross-owner dependency additions, exceptions, facades,
+experimental bridges, standalone reachability exemptions, weaker
+constitutional graphs) needs a fresh top-level `debtAuthorization` matching
 the same externally administered CI variable.
 
 ## Semantic Ownership
@@ -772,11 +710,11 @@ second changing owner inventory. Its `genericModuleReviews` ledger classifies
 every inherited generic filename as a narrow semantic owner, a pure
 compatibility facade, or bounded legacy debt with named extraction targets.
 
-Every production module must have exactly one declared subsystem owner. The
-policy graph applies to every owner, not a selected subset, and must fail on
-cycles, forbidden dependency direction, production-to-experimental imports,
-unreachable production modules, stale exceptions, or ambiguous ownership.
-Compatibility modules are owned facades, never a generic legacy subsystem.
+Every production module has exactly one declared subsystem owner. The policy
+graph applies to every owner and fails on cycles, forbidden dependency
+direction, production-to-experimental imports, unreachable production modules,
+stale exceptions, or ambiguous ownership. Compatibility modules are owned
+facades, never a generic legacy subsystem.
 
 ## Facade Purity
 
@@ -794,7 +732,8 @@ behaviorally exercised.
 
 ## Source Style and Architecture Gates
 
-Run:
+Static gates; run them when a change touches what they check (source modules,
+imports, facades, declarations, numeric boundaries, or their policy files):
 
 ```bash
 npm run source:style:check
@@ -807,80 +746,39 @@ strict roots in `tsconfig.source-strict.json`. These import canonical contracts
 from sibling declarations; API descriptions remain in declarations. Strict roots
 enable `noImplicitAny` and `strictNullChecks` and include negative-use tests.
 `tools/policies/source-type-debt.json` inventories unchecked implementations and
-existing declaration `any` use; additions fail the type gate. It also enforces mechanically
-detectable execution-plane invariants: every typed-array numeric candidate is
-classified in the source-compute policy; production runtime tensor compute and
-readback/compute/upload paths are rejected; stale or missing classifications
-fail; runtime geometry inference, raw runtime logging outside allowed
-entrypoints, unowned policy/default construction, and imprecise sibling
-declarations fail.
+existing declaration `any` use; additions fail the type gate. The style gate also
+enforces mechanically detectable execution-plane invariants: every typed-array
+numeric candidate is classified in the source-compute policy; production runtime
+tensor compute, readback/compute/upload paths, stale or missing classifications,
+runtime geometry inference, raw runtime logging outside allowed entrypoints,
+unowned policy/default construction, and imprecise sibling declarations fail.
 `npm run source:style:sync` preserves annotations in checked strict roots.
 
 The architecture gate rejects unknown or ambiguous source owners, dependency
 cycles, forbidden dependency edges for every production owner,
 production-to-experimental edges, unreachable production modules,
-implementation declarations in declared facades, and unreviewed soft- or
-hard-limit files. It also rejects stale dependency exceptions and stale generic
-module ownership entries. Temporary exceptions are bounded debt and cannot be
-reported as repository-wide conformance.
+implementation declarations in declared facades, unreviewed soft- or
+hard-limit files, stale dependency exceptions, and stale generic module
+ownership entries. Temporary exceptions are bounded debt, never
+repository-wide conformance.
 
 ### Published Package Closure Gate
 
-`src/.npmignore` is generated by `npm run package:closure:sync`; do not edit it
+`src/.npmignore` is generated by `npm run package:closure:sync`; never edit it
 by hand. `npm run public:boundaries:check` verifies that every packed JavaScript,
 declaration, and resource file is reachable from a public package entry point
-and rejects repository-only files. Package count and size ceilings are
-ratcheting guardrails. Raise them only after auditing the generated closure and
-confirming that the delta is an intentional public-runtime dependency, then set
-the smallest practical new ceiling rather than bypassing closure validation.
+and rejects repository-only files. Package count and size ceilings ratchet:
+raise one only after auditing the generated closure and confirming the delta is
+an intentional public-runtime dependency, then set the smallest practical new
+ceiling rather than bypassing closure validation.
 
 ---
 
 ## File Organization
 
-```
-doppler/
-├── config/                    # Configuration layer
-│   ├── model-config.js        # ModelConfig type and parser
-│   ├── pipeline-spec.js       # PipelineSpec builder
-│   ├── kernel-specs.js        # KernelSpec factories
-│   └── config-tables.js       # WORKGROUP_SIZES, THRESHOLDS, etc.
-│
-├── gpu/
-│   ├── device.js              # WebGPU device management
-│   └── kernels/
-│       ├── utils.js           # Pipeline creation, bind groups
-│       ├── kernel-executor.js # Unified dispatch
-│       ├── matmul.js          # Matmul variants
-│       ├── matmul_f16.wgsl
-│       ├── matmul_gemv.wgsl
-│       ├── attention.js
-│       ├── attention_causal.wgsl
-│       └── ...
-│
-├── memory/
-│   ├── buffer-pool.js         # Buffer allocation
-│   └── heap-manager.js        # Heap utilities
-│
-├── inference/
-│   ├── pipeline.js            # Main inference loop
-│   └── pipeline/
-│       ├── embed.js           # Embedding layer
-│       ├── layer.js           # Transformer layer
-│       ├── attention.js       # Attention computation
-│       ├── ffn.js             # Feed-forward network
-│       └── logits.js          # Output projection
-│
-├── loader/
-│   ├── doppler-loader.js      # Model loading
-│   └── weights.js             # Weight types
-│
-├── formats/
-│   └── rdrr/                  # Manifest parsing, RDRR types
-│
-└── storage/
-    └── shard-manager.js       # OPFS storage
-```
+The maintained `src/` tree is in [AGENTS.md § Directory Structure](../../AGENTS.md#directory-structure);
+module ownership is canonical in `tools/policies/source-architecture-policy.json`
+(see [Semantic Ownership](#semantic-ownership)). Do not maintain a second tree here.
 
 ---
 
@@ -932,19 +830,8 @@ const workgroupSize = WORKGROUP_SIZES[vendor].matmul;
 
 ### WGSL
 
-```wgsl
-// UPPER_SNAKE_CASE for constants
-override HIDDEN_SIZE: u32 = 2048u;
-override WORKGROUP_SIZE: u32 = 256u;
-
-// snake_case for struct fields and functions
-struct Uniforms {
-    seq_len: u32,
-    start_pos: u32,
-}
-
-fn compute_attention_score(q: vec4<f32>, k: vec4<f32>) -> f32 { }
-```
+`UPPER_SNAKE_CASE` constants, `snake_case` struct fields and functions; see
+[WGSL Style Guide: Naming Conventions](./wgsl-style-guide.md#naming-conventions).
 
 ---
 
@@ -999,23 +886,11 @@ async function runKernel(...args) {
 
 ## Logging
 
-Use the unified debug system. Exceptions: `tests/` harnesses, demo entry points, and one-time startup messages in `src/gpu/device.js`.
-
-```javascript
-import { log, trace } from '../debug/index.js';
-
-// Log levels (verbosity)
-log.error('Module', 'Critical failure', { details });
-log.warn('Module', 'Something unexpected');
-log.info('Module', 'Normal operation');
-log.verbose('Module', 'Detailed info');
-log.debug('Module', 'Debug info');
-
-// Trace categories (what to show)
-trace.loader('Loading shard 0');
-trace.kernels('matmul M=1 K=1152 N=1024');
-trace.attn(layerIdx, 'Q maxAbs=1.2');
-```
+Use the unified debug module (`src/debug/index.js`: `log.*` levels, `trace.*`
+categories), never raw `console.*`, in runtime code. Raw console output is
+allowed only in `tools/` entry points, `tests/` harnesses, demo entry points,
+benchmark result tables, and one-time startup messages in `src/gpu/device.js`.
+API details: [JavaScript Style Guide: Logging](./javascript-style-guide.md#logging).
 
 ### No Ad-Hoc Debug Logging
 
@@ -1025,7 +900,7 @@ trace.attn(layerIdx, 'Q maxAbs=1.2');
 2. **Config-driven probes** for inspecting specific values
 3. **Extended trace categories** if needed visibility doesn't exist (permanent addition, not temporary)
 
-This rule exists to support the hot-swap architecture: change configs, not code. Adding `log.info()` calls to debug an issue violates this principle and pollutes the codebase.
+This supports the hot-swap architecture: change configs, not code.
 
 ```javascript
 // DON'T: Add temporary debug logging
@@ -1042,11 +917,12 @@ const probeConfig = {
 };
 ```
 
-If the trace system lacks visibility you need, extend it permanently with a new trace category or probe point. Do not add throwaway log statements.
-
 ---
 
 ## Testing
+
+Which tests to run follows the repo `AGENTS.md` Development verification section. Test behavior;
+don't add tests that only assert one file restates another or pin config literals.
 
 ### Unit Tests (Kernel Correctness)
 
@@ -1068,6 +944,8 @@ if (variant !== 'q4_fused') throw new Error(`expected q4_fused, got ${variant}`)
 
 ### Integration Runs (E2E)
 
+On demand; not a commit, push, or deploy gate.
+
 ```javascript
 // In browser console (demo diagnostics or harness)
 await runBrowserSuite({ workload: 'inference', modelId: 'gemma-3-270m-it-q4k-ehf16-af32' });
@@ -1077,16 +955,14 @@ await runBrowserSuite({ workload: 'inference', modelId: 'gemma-3-270m-it-q4k-ehf
 
 ## Enforcement
 
-- Use `tests/kernels/browser/test-page.js` to validate kernel registry and WGSL overrides.
-- Pull tunables from schema/config, not literals.
-- Import format constants from a single source of truth.
+- The kernel harness (`tests/kernels/browser/test-page.js`) validates kernel registry and WGSL overrides; run it when changing those.
 - Preserve working configs as checked-in config assets (configuration is documentation).
 
 ### Inventory Before Edit
 
-When a failure indicates a repeated drift class, run or create the broadest inventory check before editing individual files. Classify the full set first, then batch fixes by decision type: fix to runtime, fix to declarations, remove stale surface, or quarantine as pending-feature/debt with owner and expiry.
+When a failure reveals a repeated drift class, inventory the whole class (grep, or that class's existing check) before editing individual files. Classify the full set, then batch fixes by decision type: fix to runtime, fix to declarations, remove stale surface, or quarantine as pending-feature/debt with owner and expiry.
 
-One-off repairs for recurring drift should become checkable tooling with a `--check` mode before the task is considered complete. Examples in this repo: `npm run kernels:digests:check`, `npm run exports:parity:check`, `npm run pending:check` — each started as a one-off script and became a default-chain gate once it grew an allowlist or policy schema.
+Prefer removing the duplication that causes the drift. Add a `--check` tool only when the drift cannot be removed and keeps recurring (existing examples: `npm run kernels:digests:check`, `npm run exports:parity:check`, `npm run pending:check`), and run such checks only when a change edits what they check.
 
 ---
 
@@ -1094,25 +970,8 @@ One-off repairs for recurring drift should become checkable tooling with a `--ch
 
 ### Code Comments
 
-```javascript
-// WHY, not WHAT
-// BAD: Increment i
-// GOOD: Skip padding tokens (they have token_id = 0)
-
-// Document non-obvious behavior
-/* Workgroup calculation for attention kernel.
- *
- * We dispatch one workgroup per attention head. Each workgroup
- * processes all query positions for that head. This maximizes
- * cache locality for the KV values.
- *
- * Total workgroups: numHeads
- * Threads per workgroup: min(seqLen, WORKGROUP_SIZE)
- */
-function getAttentionWorkgroups(numHeads, seqLen) {
-  return [numHeads, 1, 1];
-}
-```
+Comment why, not what, and only for non-obvious behavior; see
+[JavaScript: Comments](./javascript-style-guide.md#comments).
 
 ### Config Documentation
 
@@ -1164,17 +1023,8 @@ if (N > THRESHOLDS.multicol.minN) { ... }
 
 ### DON'T: Implicit Defaults
 
-```javascript
-// BAD - hidden default
-function runKernel(opts) {
-  const wgSize = opts.workgroupSize || 256;  // Where does 256 come from?
-}
-
-// GOOD - explicit from config
-function runKernel(spec) {
-  const wgSize = spec.constants.WORKGROUP_SIZE;  // From model config
-}
-```
+See [No Runtime Defaults in Code](#no-runtime-defaults-in-code) and
+[JavaScript: Use Bare Fallback Literals](./javascript-style-guide.md#dont-use-bare-fallback-literals).
 
 ---
 

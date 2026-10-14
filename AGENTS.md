@@ -18,79 +18,66 @@ are retained evidence and acceptance contracts, not mandatory next work.
 Preserve model identity, compatibility, trust/checkpoint protections, and scoped
 qualification. Verification supports useful, fast, simple, portable execution.
 
-**File Extensions:** Always use `.js`. Never create `.mjs` files. The repo uses `"type": "module"` in `package.json`, so all `.js` files are ES modules. The `.mjs` extension is redundant and prohibited.
+**File Extensions:** Always use `.js`; never create `.mjs`. `package.json` sets `"type": "module"`, so every `.js` file is already an ES module.
 
 **See also:** [REPLOID](https://github.com/clocksmith/reploid) for browser-native AI agent orchestration.
 
 ## Git workflow: direct to main
 
-- Work and commit directly on the owning repository's `main` branch, then push
-  directly to its existing `origin/main` remote branch.
-- Do not create feature/task branches, branch-backed worktrees, or GitHub pull
-  requests. Do not use a branch/PR workflow unless the user explicitly requests it.
-- If the checkout is on another branch, preserve its work and move the task to
-  `main` safely; never discard changes to switch branches.
-- Stage only task-related changes, run the applicable checks, and integrate remote
-  updates without overwriting unrelated work. Never force-push `main`.
+- Commit on the owning repo's `main` and push to `origin/main`. No feature
+  branches, branch-backed worktrees, or PRs unless the user asks for them.
+- On another branch, preserve its work and move the task to `main` safely;
+  never discard changes to switch. Never force-push `main`.
+- Stage only task-related changes; integrate remote updates without
+  overwriting unrelated work.
 - Report the pushed commit or the concrete blocker. A local commit is not a push.
 
 ### MANDATORY: Read Style Guides First
 
-Before any non-trivial code edit, read the **invariant files** (compact, must-know rules):
+Before any non-trivial code edit, read the **invariant files**:
 
 1. **[General Invariants](docs/style/general-style-guide.md#invariants-quick-reference)** — execution plane, no runtime defaults, nullable fields, manifest-first
 2. **[JavaScript Invariants](docs/style/javascript-style-guide.md#invariants-quick-reference)** — role boundaries, rule maps, kernel path, failure-path cleanup
 3. **[Config Style Guide](docs/style/config-style-guide.md)** — schema layout, merge order, category rules, harness restrictions
 
-For deep work (kernel wrappers, buffer lifecycle, naming conventions, anti-patterns), read the full guides:
-- [General Style Guide](docs/style/general-style-guide.md)
-- [JavaScript Style Guide](docs/style/javascript-style-guide.md)
-- [WGSL Style Guide](docs/style/wgsl-style-guide.md) (shader work only)
+For deep work (kernel wrappers, buffer lifecycle, naming conventions, anti-patterns), read the full
+[General](docs/style/general-style-guide.md), [JavaScript](docs/style/javascript-style-guide.md),
+and (shader work only) [WGSL](docs/style/wgsl-style-guide.md) guides.
 
 ### Skill-Specific Style Guide Reads
 
-Baseline for all coding tasks:
-- `docs/style/general-style-guide.md` (Invariants quick-reference at top)
-- `docs/style/javascript-style-guide.md` (Invariants quick-reference at top)
-- `docs/style/config-style-guide.md`
-
-Add full guides by task/skill:
-- `doppler-kernel-reviewer`
-  - mandatory: `docs/style/general-style-guide.md`, `docs/style/javascript-style-guide.md`, `docs/style/wgsl-style-guide.md`
-  - also read `docs/style/config-style-guide.md` when review touches rule selection, dtype policy, or kernel-path metadata
-- `doppler-debug`
-  - mandatory: `docs/style/general-style-guide.md`, `docs/style/javascript-style-guide.md`, `docs/style/config-style-guide.md`, `docs/style/command-interface-design-guide.md`, `docs/style/harness-style-guide.md`
-- `doppler-bench`
-  - mandatory: `docs/style/general-style-guide.md`, `docs/style/javascript-style-guide.md`, `docs/style/config-style-guide.md`, `docs/style/command-interface-design-guide.md`, `docs/style/harness-style-guide.md`, `docs/style/benchmark-style-guide.md`
-- `doppler-perf`
-  - mandatory: `docs/style/general-style-guide.md`, `docs/style/javascript-style-guide.md`, `docs/style/config-style-guide.md`, `docs/style/harness-style-guide.md`, `docs/style/benchmark-style-guide.md`
-  - also read `docs/style/wgsl-style-guide.md` for shader changes
-  - also read `docs/style/command-interface-design-guide.md` when changing `bench`/`debug` command behavior
-- `doppler-convert`
-  - mandatory: `docs/style/general-style-guide.md`, `docs/style/javascript-style-guide.md`, `docs/style/config-style-guide.md`, `docs/style/command-interface-design-guide.md`
+Baseline for all coding tasks: the three invariant files above. Add full guides
+by skill (`general`, `javascript`, `config`, `wgsl`, `harness`, `benchmark` =
+`docs/style/<name>-style-guide.md`; `command-interface` =
+`docs/style/command-interface-design-guide.md`):
+- `doppler-kernel-reviewer`: general, javascript, wgsl; plus config when review
+  touches rule selection, dtype policy, or kernel-path metadata
+- `doppler-debug`: general, javascript, config, command-interface, harness
+- `doppler-bench`: general, javascript, config, command-interface, harness, benchmark
+- `doppler-perf`: general, javascript, config, harness, benchmark; plus wgsl for
+  shader changes and command-interface when changing `bench`/`debug` behavior
+- `doppler-convert`: general, javascript, config, command-interface
 
 ### Agent Enforcement
 
-- Before the first non-trivial code edit in any turn, open the invariant files above in that turn.
-- If work resumes from a summary, handoff, or context compaction, re-open the invariant files before editing.
+- Open the invariant files before the first non-trivial code edit in each turn,
+  and again when resuming from a summary, handoff, or context compaction.
 - When changing config merge, manifest-first resolution, execution-v1, kernel-path selection, or runtime fallback behavior, re-read the full sections in:
   - `docs/style/general-style-guide.md`: `Explicit over Implicit`, `No Runtime Defaults in Code`, `Nullable Required Fields`
   - `docs/style/javascript-style-guide.md`: `Manifest-First Contract`, `Runtime Configuration (Performance Invariants)`
-- Any change that could silently rewrite manifest/runtime behavior must either:
-  - fail fast with an actionable error, or
-  - add a regression test proving the rewrite cannot occur silently.
+- A change that could silently rewrite manifest/runtime behavior must fail fast
+  with an actionable error or add a regression test proving it cannot.
 
 ### Developer Guides (Required For Extension Work)
 
-- `docs/developer-guides/` is the canonical task-oriented playbook layer for extension work.
-- These guides are operational checklists, not the normative contract layer.
-- Normative rules still live in `docs/style/*.md`, `docs/config.md`, `docs/conversion-runtime-contract.md`, and other core contract docs.
-
-When the task is additive or extension-oriented, open `docs/developer-guides/README.md` and the matching guide before editing. This applies to work such as:
-- adding or changing runtime profiles, conversion configs, or kernel-path registries
-- adding manifest/runtime fields, chat template formatters, sampling knobs, activations, or kernels
-- adding commands, attention variants, quantization formats, or KV-cache layouts
-- onboarding a new model family or pipeline family
+`docs/developer-guides/` holds task-oriented playbooks (operational checklists,
+not normative contracts; those stay in `docs/style/*.md`, `docs/config.md`,
+`docs/conversion-runtime-contract.md`, and other core contract docs). Before
+additive or extension work, open `docs/developer-guides/README.md` and the
+matching guide: adding or changing runtime profiles, conversion configs,
+kernel-path registries, manifest/runtime fields, chat template formatters,
+sampling knobs, activations, kernels, commands, attention variants,
+quantization formats, or KV-cache layouts, or onboarding a model or pipeline family.
 
 ### Directory Structure
 
@@ -103,7 +90,7 @@ doppler/
 │   ├── converter/        # SafeTensors/GGUF → RDRR conversion
 │   ├── debug/            # Logging and tracing
 │   ├── errors/           # Error types and handling
-│   ├── experimental/     # Quarantined experimental/internal-only subsystem lanes
+│   ├── experimental/     # Quarantined internal-only lanes: adapters, bridge, browser, diffusion, distribution, energy, hotswap, orchestration, training
 │   ├── formats/          # Format parsing utilities
 │   ├── gpu/              # WebGPU device, buffer pools, kernels
 │   ├── inference/        # Pipeline, attention, FFN, embeddings
@@ -126,39 +113,25 @@ doppler/
     └── agents/           # Task-specific protocol docs (loaded by skills)
 ```
 
-Current quarantined subsystem lanes under `src/experimental/` include:
-- `adapters/`
-- `bridge/`
-- `browser/`
-- `diffusion/`
-- `distribution/`
-- `energy/`
-- `hotswap/`
-- `orchestration/`
-- `training/`
-
 ### Before Starting
 
-- Read `docs/architecture.md` for system overview.
-- Read `docs/rdrr-format.md` for RDRR format constraints.
-- Review `src/inference/pipelines/text.js` for inference flow.
-- Review `src/tooling/command-api.js` for command parity contract.
-- For extension work, read `docs/developer-guides/README.md` and the matching guide in `docs/developer-guides/`.
+- Read `docs/architecture.md` (system overview) and `docs/rdrr-format.md` (RDRR format constraints).
+- Review `src/inference/pipelines/text.js` (inference flow) and `src/tooling/command-api.js` (command parity contract).
 
 ### Component Intent
 
 Before modifying a file, read the canonical project goals and every
-`CATSCAN.md` from the project root to the target directory, parent first. For
-changes spanning directories, read the union of the applicable chains.
+`CATSCAN.md` from the project root to the target directory, parent first (the
+union of chains for changes spanning directories).
 
-Treat Target, Authority, Scope, Contracts, Invariants, Acceptance, and
-Non-goals as implementation constraints. A child CATSCAN may narrow its parent
-but may not silently broaden authority, weaken an invariant, or contradict it.
-Existing code does not overrule a charter; code may itself have drifted.
+Target, Authority, Scope, Contracts, Invariants, Acceptance, and Non-goals are
+implementation constraints. A child CATSCAN may narrow its parent but never
+silently broaden authority, weaken an invariant, or contradict it. Existing code
+does not overrule a charter; code may itself have drifted.
 
-Explicit user direction may change component intent. Identify the boundary
-change and update the affected CATSCAN with the implementation. Do not rewrite
-a charter to excuse failing code or evidence. CATSCAN constrains outcomes and
+Explicit user direction may change component intent: identify the boundary
+change and update the affected CATSCAN with the implementation. Never rewrite a
+charter to excuse failing code or evidence. CATSCAN constrains outcomes and
 authority, not internal algorithms.
 
 Repository-change handoffs must state:
@@ -168,16 +141,16 @@ Repository-change handoffs must state:
 - `Acceptance evidence: <commands or artifacts>`
 - `Boundary effects: none | <named components>`
 
-Run `npm run catscan:check` after changing a charter, component boundary, or
-the CATSCAN policy inventory.
+When you change a charter, component boundary, or the CATSCAN policy inventory,
+run `npm run catscan:check`.
 
 ### Public vs Internal Tooling
 
-See `docs/agents/tooling-surface.md` for the full breakdown.
+Full breakdown: `docs/agents/tooling-surface.md`.
 
 - **Public CLI**: `src/cli/doppler-cli.js` — ships as `bin.doppler`
 - **Command infrastructure**: `src/tooling/` — partially exported via `./tooling`
-- **Dev scripts**: `tools/` — internal repo scripts, never shipped (except `tools/convert-safetensors-node.js`)
+- **Dev scripts**: `tools/` — internal, never shipped (except `tools/convert-safetensors-node.js`)
 
 ### Command Surfaces (1:1 Contract)
 
@@ -185,32 +158,31 @@ See `docs/agents/tooling-surface.md` for the full breakdown.
 - Node entry: `runNodeCommand()` via `src/tooling/node-command-runner.js`
 - CLI entrypoint: `src/cli/doppler-cli.js`
 
-Rules:
-- New commands must be added to `src/tooling/command-api.js`.
-- Command semantics must match on browser and CLI.
-- Unsupported environment capabilities must fail fast (never silent fallback).
+New commands must be added to `src/tooling/command-api.js`. Command semantics
+must match on browser and CLI; unsupported environment capabilities fail fast
+(never silent fallback).
 
 ### CLI Quick Reference
 
-Commands have workload/intent rules defined in `src/rules/tooling/command-runtime.rules.json`. Do not guess the workload — use the table below.
+Workload/intent rules live in `src/rules/tooling/command-runtime.rules.json`. Do not guess the workload; use this table.
 
-| Command   | Workload          | Intent        | Example |
-|-----------|-------------------|---------------|---------|
-| `bench`   | caller choice     | `calibrate`   | `node src/cli/doppler-cli.js bench --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
-| `debug`   | caller choice     | `investigate` | `node src/cli/doppler-cli.js debug --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
-| `diagnose` | caller choice    | `investigate` | `node src/cli/doppler-cli.js diagnose --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
-| `verify`  | caller choice     | `verify`      | `node src/cli/doppler-cli.js verify --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
-| `convert` | n/a               | —             | `node src/cli/doppler-cli.js convert --config <path|url|json>` |
-| `profiles` | n/a             | discovery     | `node src/cli/doppler-cli.js profiles --json` |
-| `lora`    | n/a               | —             | `node src/cli/doppler-cli.js lora --config <path|url|json>` |
-| `distill` | n/a               | —             | `node src/cli/doppler-cli.js distill --config <path|url|json>` |
+| Command | Workload | Intent | Example |
+|---|---|---|---|
+| `bench` | caller choice | `calibrate` | `node src/cli/doppler-cli.js bench --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
+| `debug` | caller choice | `investigate` | `node src/cli/doppler-cli.js debug --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
+| `diagnose` | caller choice | `investigate` | `node src/cli/doppler-cli.js diagnose --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
+| `verify` | caller choice | `verify` | `node src/cli/doppler-cli.js verify --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
+| `convert` | n/a | — | `node src/cli/doppler-cli.js convert --config <path|url|json>` |
+| `profiles` | n/a | discovery | `node src/cli/doppler-cli.js profiles --json` |
+| `lora` | n/a | — | `node src/cli/doppler-cli.js lora --config <path|url|json>` |
+| `distill` | n/a | — | `node src/cli/doppler-cli.js distill --config <path|url|json>` |
 
 - `--config` accepts inline JSON, file path, or URL for all commands.
 - The CLI auto-resolves models from the external RDRR root (`/Volumes/models/rdrr` on macOS, `/media/x/models/rdrr` on Linux) by `modelId`.
-- To point at a model outside the external root, set `request.modelUrl` to a `file://` path. `modelUrl` is a **request-level** field.
-- Use `--surface node` to force Node/WebGPU, `--surface browser` to force headless Chromium, or omit for `auto`.
+- For a model outside that root, set the **request-level** `request.modelUrl` to a `file://` path.
+- `--surface node` forces Node/WebGPU, `--surface browser` forces headless Chromium; omit for `auto`.
 - Use `doppler profiles --json` to discover checked-in runtime profile IDs before choosing an investigation, verify, or calibration profile.
-- `--runtime-profile <id>` is an additive CLI shorthand for `request.runtimeProfile`; full JSON config remains canonical, and `--runtime-profile` must not be combined with `--runtime-config` or runtime fields inside `--config`.
+- `--runtime-profile <id>` is CLI shorthand for `request.runtimeProfile` (full JSON config stays canonical); never combine it with `--runtime-config` or runtime fields inside `--config`.
 
 ### Config System
 
@@ -219,9 +191,9 @@ Use runtime profiles/config payloads, not ad-hoc per-field flags.
 - Runtime profiles: `src/config/runtime/profiles/`
 - Conversion configs: `src/config/conversion/` (v1 format with inline execution graph)
 - Read tunables via `getRuntimeConfig()`; avoid hardcoded defaults in runtime paths.
-- `request.intent` is the sole active-run intent authority and is normalized from
-  command metadata. Runtime profiles declare top-level `compatibleIntents`;
-  `runtime.shared.tooling.intent` is removed and must not be authored.
+- `request.intent`, normalized from command metadata, is the sole active-run
+  intent authority. Runtime profiles declare top-level `compatibleIntents`; never
+  author the removed `runtime.shared.tooling.intent`.
 - Experimental model-scoped dtype lanes must be expressed as a runtime profile
   plus an execution-v1 capability transform. Do not change catalog/release
   metadata for the lane until the matching browser/WebGPU transcript or parity
@@ -233,71 +205,66 @@ Before changing dtype fallback, execution-v1 capability transforms, kernel-path
 remap behavior, or model-scoped runtime lanes, classify the rule in
 `src/rules/inference/capability-transforms.rules.json`:
 
-- `hardware-compatibility`: missing device feature only; no model or platform identity.
-- `runtime-session-compatibility`: resolved session constraint such as `kvDtype=f32`; no model or platform identity.
+- `hardware-compatibility` (missing device feature only) and
+  `runtime-session-compatibility` (resolved session constraint such as
+  `kvDtype=f32`): no model/platform identity.
 - `explicit-lane`: requested f16/selective-f16 lane from a runtime profile or manifest variant; not a fallback.
 - `platform-workaround`: exact platform plus exact model/list and evidence; no silent dtype change.
 - `lane-mismatch-guard`: fail closed when profile and manifest variant disagree.
-- `capability-optimization`: positive capability optimization without dtype change.
+- `capability-optimization`: positive capability optimization, no dtype change.
 - `default-noop`: final empty-match rule.
 
-Every capability transform rule must include `kind`, `dtypeEffect`, `reason`,
-and `evidence`, and execution receipts must expose the matched policy. Run
-`npm run capability-policy:check` after changing these rules. If behavior cannot
-be classified this way, fail fast instead of adding a silent fallback.
+Every rule must include `kind`, `dtypeEffect`, `reason`, and `evidence`;
+execution receipts must expose the matched policy. When you edit these rules,
+run `npm run capability-policy:check`. If behavior cannot be classified, fail
+fast instead of adding a silent fallback.
 
 ### Task-Specific Protocols
 
-These docs are loaded by skills on demand — not for every task:
+Loaded by skills on demand, not for every task (full index: `docs/agents/README.md`):
 
-- `docs/agents/conversion-protocol.md` — conversion triage + promotion gate (used by `doppler-convert`, `doppler-debug`)
-- `docs/agents/debug-protocol.md` — inference debug ladder (used by `doppler-debug`)
-- `docs/agents/benchmark-protocol.md` — vendor benchmark registry (used by `doppler-bench`, `doppler-perf`)
-- `docs/agents/hardware-notes.md` — GPU memory assumptions (used by all inference skills)
-
-See `docs/agents/README.md` for the full index.
+- `docs/agents/conversion-protocol.md` — conversion triage + promotion gate (`doppler-convert`, `doppler-debug`)
+- `docs/agents/debug-protocol.md` — inference debug ladder (`doppler-debug`)
+- `docs/agents/benchmark-protocol.md` — vendor benchmark registry (`doppler-bench`, `doppler-perf`)
+- `docs/agents/hardware-notes.md` — GPU memory assumptions (all inference skills)
 
 ### Performance Investigation Discipline
 
-- Treat prefill and decode as separate phases. Dump resolved kernel path, active decode mode, and loaded weight/materialization dtype per phase before changing kernels.
+- Treat prefill and decode as separate phases; dump each phase's resolved kernel path, active decode mode, and loaded weight/materialization dtype before changing kernels.
 - Keep parity and throughput lanes separate. Claimable compare work belongs to fairness-managed parity lanes; throughput-tuned runs are tuning evidence until promoted explicitly.
-- Before kernel edits, classify the wall: GPU compute vs submit/readback/orchestration. Do not assume a math-kernel bug when timing already shows orchestration dominating.
+- Before kernel edits, classify the wall: GPU compute vs submit/readback/orchestration. Do not assume a math-kernel bug when timing shows orchestration dominating.
 
 ### Intent-First Operations
 
 - Treat Doppler intent as real model/runtime capability and fair benchmark evidence, not README wording.
 - If the user asks what works, produce a scoreboard from current registry entries, manifests, sidecars, reports, and claim indexes before summarizing.
-- Preserve exact model/platform scope. If the user says browser-only, Node is not implied; if the user names embedding/reranker models, do those before adjacent generation models.
+- Preserve exact model/platform scope: browser-only does not imply Node; named embedding/reranker models come before adjacent generation models.
 - When the user distrusts a Doppler-vs-TJS or vendor benchmark, inspect and fix the harness fairness gates before editing public claims.
 - Fairness output must expose comparable surface, blocked lanes, overridden settings, failed runs, throughput-only rows, model identity, backend identity, and artifact paths.
 - Do not publish win/loss language until the claim-grade gate has mechanically passed.
-- If output quality is wrong, run the debug ladder and capture the first numerical or token divergence before refactoring broad runtime code.
-- Deployment/package status must be answered from `package.json`, npm/local package artifacts, source version files, and the actual publish/deploy command output.
+- Answer deployment/package status from `package.json`, npm/local package artifacts, source version files, and actual publish/deploy command output.
 
 ### Correctness Regression Discipline
 
-When a code change (kernel swap, transform, dtype policy, materialization path) produces incorrect model output — garbled text, numerical divergence, repeated tokens, or silent quality loss:
+When a code change (kernel swap, transform, dtype policy, materialization path) produces incorrect model output (garbled text, numerical divergence, repeated tokens, silent quality loss):
 
-1. **Hypothesis first.** Before reading code, write down exactly one falsifiable hypothesis and the diagnostic that would disprove it. Do not read more than 5 files before running a diagnostic.
-2. **Measure before tracing.** After isolating a behavioral difference (e.g., "path A correct, path B wrong"), the next step is always a per-layer or per-op numerical readback — not more static code analysis. Use `doppler-debug` probes to capture boundary values at the first divergence point.
-3. **Scope the change, not the codebase.** If the regression correlates with a specific transform or kernel swap, diff the execution graph before and after the transform. Do not trace the entire pipeline hoping to find the bug by inspection.
-4. **Do not ship workarounds as fixes.** Disabling a broken path is a workaround, not a fix. Label it as such. The underlying bug must be tracked and the workaround must include a comment or test explaining what it avoids and why.
-5. **Auto-trigger `doppler-debug`.** When the task involves incorrect model output, garbled text, or numerical divergence, invoke `doppler-debug` before any manual investigation. The debug ladder (classify → reference → dump → compare → isolate) exists to prevent aimless code reading.
+1. **Auto-trigger `doppler-debug`** before any manual investigation. Its ladder (classify → reference → dump → compare → isolate) captures the first numerical or token divergence before broad runtime refactoring.
+2. **Hypothesis first.** Write down one falsifiable hypothesis and the diagnostic that would disprove it. Read at most 5 files before running a diagnostic.
+3. **Measure before tracing.** Once a behavioral difference is isolated ("path A correct, path B wrong"), take a per-layer or per-op numerical readback with `doppler-debug` probes at the first divergence, not more static analysis.
+4. **Scope the change, not the codebase.** If the regression correlates with a transform or kernel swap, diff the execution graph before and after it instead of tracing the whole pipeline.
+5. **Workarounds are not fixes.** Label a disabled broken path as a workaround, track the underlying bug, and add a comment or test stating what it avoids and why.
 
 ### Logging
 
-Use debug module (`src/debug/index.js`), not raw `console.*` in runtime code.
+Use the debug module (`src/debug/index.js`), not raw `console.*`, in runtime code. Direct console output is allowed only in `tools/` entry points, `tests/` harnesses, `demo/` entry points, and one-time startup in `src/gpu/device.js`.
 
-Allowed direct console output: `tools/` entry points, `tests/` harnesses, `demo/` entry points, one-time startup in `src/gpu/device.js`.
-
-Do not add throwaway log statements. Use existing trace categories, config-driven probes, or permanent trace extensions. See [General Invariants](docs/style/general-style-guide.md#invariants-quick-reference).
+No throwaway log statements: use existing trace categories, config-driven probes, or permanent trace extensions.
 
 ### Guardrails
 
 - Handle GPU device loss gracefully.
 - Validate tensor shapes at kernel boundaries.
 - Keep command/runtime behavior deterministic under fixed config.
-- Do not ship surface-specific command behavior drift.
 
 ### Core Principles (Policy Contract)
 
@@ -310,7 +277,6 @@ Do not add throwaway log statements. Use existing trace categories, config-drive
 
 3. Contracts first
 - Runtime-visible behavior changes must update schema/config/docs in the same change.
-- Keep command/API behavior consistent across browser and Node runners.
 
 4. Reproducibility and traceability
 - Bench/debug outputs must preserve deterministic knobs (seed, sampling, cache/load mode, kernel path source).
@@ -318,7 +284,7 @@ Do not add throwaway log statements. Use existing trace categories, config-drive
 ### Doppler Non-negotiables
 
 1. No silent fallback for command semantics
-- Browser and Node surfaces must preserve the same command contract and failure semantics.
+- Browser and Node surfaces must preserve the same command contract and failure semantics; no surface-specific drift.
 
 2. No hidden benchmark methodology drift
 - Benchmark knobs that change comparability must be visible in config/command contracts, not hidden in scripts.
@@ -335,22 +301,18 @@ Do not add throwaway log statements. Use existing trace categories, config-drive
 
 ### Agent Instruction + Skills Parity (Required)
 
-- `AGENTS.md` is the canonical instruction file.
-- `CLAUDE.md` must be a symlink to `AGENTS.md`.
-- `GEMINI.md` must be a symlink to `AGENTS.md`.
-- `skills/` is the canonical skill registry directory.
-- `.agents/skills` must be a symlink to `../skills`.
-- `.claude/skills` must be a symlink to `../skills`.
-- `.gemini/skills` must be a symlink to `../skills`.
-- `.codex/skills` must be a symlink to `../skills`.
+- `AGENTS.md` is the canonical instruction file; `CLAUDE.md` and `GEMINI.md`
+  must be symlinks to it. Edit `AGENTS.md`, never the symlinks.
+- `skills/` is the canonical skill registry; `.agents/skills`, `.claude/skills`,
+  `.gemini/skills`, and `.codex/skills` must be symlinks to `../skills`.
 
-Validate parity before committing instruction or skill changes:
-
-- `npm run agents:verify`
+Run `npm run agents:verify` only when adding, moving, or recreating these
+symlinks or a `skills/` entry, or when renaming or removing an AGENTS.md heading
+listed in `tools/policies/agent-parity-policy.json`. Text edits need no check.
 
 ### Skills
 
-Canonical path: `skills/` (see `skills/README.md`).
+Index: `skills/README.md`.
 
 - `doppler-debug`: debug inference issues.
 - `doppler-bench`: run performance benchmarks.
@@ -369,6 +331,9 @@ See `docs/config.md` for kernel overrides and runtime modes.
   GPU/model campaigns, benchmarks, or full release qualification. Run them when
   explicitly requested or when a named correctness question cannot be answered by
   focused checks; state that reason before starting.
+- Config-contract, mirror, drift, and freshness checks run only when the change
+  edits what they check. Don't add tests that just restate another file or pin
+  config literals. Time-box long processes.
 - Once relevant checks pass, continue. Repeat or broaden verification only after
   another relevant change, a failure, or a concrete unresolved concern.
 - For documentation-only edits, inspect the diff and changed links. Do not run
@@ -382,14 +347,17 @@ See `docs/config.md` for kernel overrides and runtime modes.
 
 ## No speculative engineering timelines
 
-- Do not predict how long a coding, software-engineering, product-implementation, refactor, migration, launch, or similar work item will take. Avoid speculative delivery statements such as "1-2 weeks", "four months", or "a quick fix".
-- Describe planned work through concrete deltas, dependencies, risks, and validation instead of calendar duration.
-- This restriction does not apply to factual status for an already-running command, script, benchmark, training run, skill, deployment, or algorithm. You may report elapsed time, measured runtime, progress, and a grounded ETA when the active process exposes enough evidence.
-- Do not invent an ETA for an active process. If it does not expose one, report its current phase, latest output, and whether it is still making progress.
+- Never predict how long engineering work will take ("1-2 weeks", "a quick
+  fix"). Describe concrete deltas, dependencies, risks, and validation instead.
+- For an already-running process, report measured elapsed time, progress, or a
+  grounded ETA only when the process exposes one; otherwise report its phase,
+  latest output, and whether it is still progressing.
 
 ## Pick the real fix
 
-- when you find a correctness bug, the default is to fix it, not to relabel it
-- do not use effort or scope framing ("non-trivial", "real engineering effort", "worth its own thread", "we'll address later") as cover for choosing a lesser fix
-- do not propose "mark experimental", "add a TODO", or "rewrite the misleading comment" as a substitute for the actual engineering work when the underlying behavior is wrong
-- if scope genuinely must be split, describe the concrete deltas and ask the user which path to take, do not pre-decide a smaller version
+- Fix correctness bugs; don't relabel them. Effort or scope framing
+  ("non-trivial", "worth its own thread", "later") is no reason for a lesser fix.
+- "Mark experimental", "add a TODO", or "reword the misleading comment" does not
+  substitute for fixing wrong behavior.
+- If scope must be split, list the concrete deltas and ask the user which path
+  to take; don't pre-decide a smaller version.
