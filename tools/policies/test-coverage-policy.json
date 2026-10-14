@@ -3,7 +3,46 @@
   "updated": "2026-07-04",
   "suite": "all",
   "suites": {
-    "unit": { "roots": ["tests"], "excludeRoots": ["tests/kernels"] },
+    "unit": { "roots": ["tests"], "excludeRoots": ["tests/kernels"], "excludeSuites": ["unit-webgpu", "unit-browser"] },
+    "unit-webgpu": {
+      "roots": [
+        "tests/config/training-freeze-enforcement.test.js",
+        "tests/config/training-telemetry-alerts.test.js",
+        "tests/config/ul-stage1-determinism.test.js",
+        "tests/inference/bf16-weight-kernels-gpu-regression.test.js",
+        "tests/inference/fused-ffn-gelu-gpu-regression.test.js",
+        "tests/inference/fused-ffn-q4-metal-simd16-gpu-regression.test.js",
+        "tests/inference/fused-matmul-q4-metal-simd16-gpu-regression.test.js",
+        "tests/inference/fused-normed-ffn-gpu-regression.test.js",
+        "tests/inference/gelu-erf-gpu-regression.test.js",
+        "tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js",
+        "tests/inference/layer-plan-paired-physical.test.js",
+        "tests/inference/lfm2-conv-kernel-init.test.js",
+        "tests/inference/lfm2-layer-plan-conv-state.test.js",
+        "tests/inference/linear-attention-core-gpu-regression.test.js",
+        "tests/inference/logits-bias.test.js",
+        "tests/inference/logits-output-ownership.test.js",
+        "tests/inference/logits-paired-physical.test.js",
+        "tests/inference/paired-ffn-physical.test.js",
+        "tests/inference/rope-source-frequencies-gpu.test.js",
+        "tests/integration/training-force-resume-lineage.test.js",
+        "tests/integration/training-intent-split.test.js",
+        "tests/integration/training-report-lineage.test.js",
+        "tests/integration/ul-stage-workflow-regression.test.js",
+        "tests/loader/layer-loader-affine-norm.test.js",
+        "tests/loader/layer-loader-conv-precision.test.js",
+        "tests/loader/layer-loader-gemma4-ple-projection-stability.test.js",
+        "tests/training/suite-artifact-dir-cleanup.test.js"
+      ],
+      "excludeRoots": []
+    },
+    "unit-browser": {
+      "roots": [
+        "tests/client/document-search-ui.test.js",
+        "tests/inference/gemma3-nan-regression.test.js"
+      ],
+      "excludeRoots": []
+    },
     "gpu": { "roots": ["tests/kernels"], "excludeRoots": [] },
     "all": { "roots": ["tests"], "excludeRoots": [] }
   },
