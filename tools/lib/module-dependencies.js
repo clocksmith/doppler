@@ -102,6 +102,15 @@ export async function buildDependencyGraph(root, files, declarations = {}) {
     }
     const edges = [];
     for (const edge of parsed.edges) {
+      // A sibling checkout may or may not exist (local workspace vs CI), so an
+      // import that leaves the repository is never followed; the views stay
+      // identical in both environments.
+      if (edge.specifier.startsWith('.')
+        && path.relative(root, path.resolve(path.dirname(file), edge.specifier)).startsWith('..')) {
+        edges.push({ ...edge, target: null });
+        diagnostics.push({ file: relative, kind: 'outside-repository', line: edge.line, expression: edge.specifier });
+        continue;
+      }
       const target = await resolveTarget(file, edge.specifier, edge.kind);
       edges.push({ ...edge, target });
       if (target) pending.push(target);
