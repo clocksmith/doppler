@@ -41,6 +41,33 @@ Doe and Reploid remain optional integrations.
 
 ## Evidence
 
+### Selected wins against Transformers.js
+
+**18.8× faster warm generation on Qwen 3.5 0.8B; 16.3× on Qwen 3.5 2B.**
+These retained July 2026 Radeon 8060S browser runs used 512 prompt tokens and
+128 generated tokens on a synthetic raw-text workload, with exact output matches.
+The Apple M3 0.8B run was 4.1×
+faster. Generation includes prompt processing and decode; model load is separate.
+
+<picture>
+  <source media="(max-width: 640px)" srcset="assets/readme/generation-time-mobile.svg" />
+  <img src="assets/readme/generation-time.svg" alt="Selected July 2026 warm-generation times: Qwen 0.8B Radeon, Doppler 2.80s vs Transformers.js 52.66s; Qwen 2B Radeon, 3.45s vs 56.38s; Qwen 0.8B Apple M3, 5.44s vs 22.40s. Loading is shown separately in the chart." />
+</picture>
+
+These are **RDRR Q4K vs ONNX q4f16 product-format comparisons** against
+Transformers.js 4.0.1, not identical-format kernel benchmarks or measurements of
+today's releases. The 2B Radeon result uses a local artifact. Each card links its
+receipt; [the scoreboard](docs/model-competition-scoreboard.md) includes decode,
+retrieval, correctness and missing-evidence details. Selected wins do not imply
+every model, device, load phase or task is faster.
+
+**JavaScript orchestration. WGSL compute. No mandatory ONNX Runtime dependency.**
+This checkout declares zero mandatory npm runtime dependencies; model assets and
+the host's WebGPU provider are separate. Rig prepares model programs; Run executes
+them and reuses resident resources across requests. See the
+[source ownership map](docs/architecture.md). This is an architecture/dependency
+statement, not a measured browser-bundle-size or lines-of-code comparison.
+
 <!-- model-type-clusters:start -->
 
 **Model catalog:** text generators, multimodal generators, diffusion language models, translation specialists, language embedders, rerankers, protein encoders, nucleotide encoders.
