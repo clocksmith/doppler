@@ -1,0 +1,94 @@
+{
+  "schema": "doppler.capsule-release-renewal/v1",
+  "capsule": {
+    "schema": "doppler.capsule/v3",
+    "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v3-b1527013b75971d9a301a71672cbccaa45ee59e87438c86fe52923ff51ad2de9",
+    "semanticRoot": "sha256:b1527013b75971d9a301a71672cbccaa45ee59e87438c86fe52923ff51ad2de9",
+    "envelopeDigest": "sha256:759f5ab147e7204d17725a0c7212b39e1da174ad9fe81dfbe19f1f2ad7c880de",
+    "artifactClosureDigest": "sha256:9713082ae2b26d02a26cde8827b4746aac2468db3b08d5746f3f2e7b1c9f0550"
+  },
+  "runtimeArchive": "3b132ee7ff984c80ef48487d3010028ade46b64d39323304d674feebfde3bf78",
+  "authority": "reploid-paired-qualification-20261012",
+  "scope": "Local signed browser/Node opening qualification only; no public eligibility or application promotion",
+  "previous": {
+    "sequence": 9,
+    "digest": "sha256:dd83799625519d431d5e1f5c9b04b06bce0a0091ece922891d7d965a906c55bf",
+    "expiresAtUtc": "2026-10-16T04:35:38.490Z"
+  },
+  "renewed": {
+    "sequence": 10,
+    "digest": "sha256:e7b0cb348e0ff212ff6d1cde0f9b1ceaaa34cd6be5a7f6a38feed4e26f6ecd5e",
+    "issuedAtUtc": "2026-10-15T13:18:27.272Z",
+    "expiresAtUtc": "2026-10-16T13:18:27.272Z"
+  },
+  "verifiedFromCheckpoints": [
+    {
+      "from": {
+        "sequence": 9,
+        "digest": "sha256:dd83799625519d431d5e1f5c9b04b06bce0a0091ece922891d7d965a906c55bf"
+      },
+      "to": {
+        "sequence": 10,
+        "digest": "sha256:e7b0cb348e0ff212ff6d1cde0f9b1ceaaa34cd6be5a7f6a38feed4e26f6ecd5e"
+      },
+      "artifacts": 67
+    },
+    {
+      "from": {
+        "sequence": 8,
+        "digest": "sha256:0b40731ce1a425c9805790c0bbc97d3837c78c4225813abc43637b623db06fdf"
+      },
+      "to": {
+        "sequence": 10,
+        "digest": "sha256:e7b0cb348e0ff212ff6d1cde0f9b1ceaaa34cd6be5a7f6a38feed4e26f6ecd5e"
+      },
+      "artifacts": 67
+    },
+    {
+      "from": {
+        "sequence": 7,
+        "digest": "sha256:2486b1e7aa76d38415e23d145d97265ce1faecc5eec1086c9e5b54d9b6c82cb0"
+      },
+      "to": {
+        "sequence": 10,
+        "digest": "sha256:e7b0cb348e0ff212ff6d1cde0f9b1ceaaa34cd6be5a7f6a38feed4e26f6ecd5e"
+      },
+      "artifacts": 67
+    },
+    {
+      "from": {
+        "sequence": 6,
+        "digest": "sha256:b19052d587ee901ec00e1ae0256bdd1211a5257aafdf1db3ad86723c71ddd755"
+      },
+      "to": {
+        "sequence": 10,
+        "digest": "sha256:e7b0cb348e0ff212ff6d1cde0f9b1ceaaa34cd6be5a7f6a38feed4e26f6ecd5e"
+      },
+      "artifacts": 67
+    },
+    {
+      "from": {
+        "sequence": 5,
+        "digest": "sha256:70f24c979f6b08c25827de341f5b08ab441b1c30fdca6bcec019a596c3ed71d2"
+      },
+      "to": {
+        "sequence": 10,
+        "digest": "sha256:e7b0cb348e0ff212ff6d1cde0f9b1ceaaa34cd6be5a7f6a38feed4e26f6ecd5e"
+      },
+      "artifacts": 67
+    },
+    {
+      "from": {
+        "sequence": 0,
+        "digest": null
+      },
+      "to": {
+        "sequence": 10,
+        "digest": "sha256:e7b0cb348e0ff212ff6d1cde0f9b1ceaaa34cd6be5a7f6a38feed4e26f6ecd5e"
+      },
+      "artifacts": 67
+    }
+  ],
+  "verifiedAt": "2026-10-15T13:18:27.272Z",
+  "publicPromotion": false
+}
