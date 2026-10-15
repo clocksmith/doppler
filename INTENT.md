@@ -14,7 +14,7 @@ Deliver a simple, fast, portable JavaScript inference library, supported by Rig
 model preparation and signed immutable Capsules. Run executes the declared
 implementation; the application retains publisher trust and upgrade authority.
 
-The authoritative active sequence is [GOALS.md](GOALS.md#current-priorities).
+Public product priorities are stated in [GOALS.md](GOALS.md#current-priorities).
 Generation, embeddings, reranking, narrow choice scoring, and supported partitions
 share one maintained implementation. Useful outputs, installation, opening,
 bounded memory, session reuse, cancellation, and recovery determine the work.
@@ -33,9 +33,9 @@ and rewriting plans do not impose a competing priority or adoption prerequisite.
 - Token generation exposes observable evidence (probabilities, surprisal, top candidates) without altering model weights.
 - Standalone library utility remains independent of external network coordination or commercial licensing.
 - Exact-configuration execution, declared support, and external adoption are
-  separate conclusions. Missing customers cannot erase physical evidence;
-  customers cannot substitute for it. Narrow technical support does not require
-  a customer fleet, payment, or completion of the entire capability portfolio.
+  separate conclusions. Missing adopters cannot erase physical evidence;
+  adopters cannot substitute for it. Narrow technical support does not require
+  an adopter fleet, payment, or completion of the entire capability portfolio.
 - The search application owns initialization, indexing, query cancellation, and
   disposal. Healthy model sessions and compatible complete indexes survive queries;
   cancellation does not publish partial indexes or stale results.

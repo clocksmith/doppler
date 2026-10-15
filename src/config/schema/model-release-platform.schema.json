@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://doppler.local/schemas/model-release-platform.schema.json",
-  "title": "Doppler model release platform strategy contract",
+  "title": "Doppler model release platform contract",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -9,19 +9,17 @@
     "schemaVersion",
     "contractVersion",
     "id",
-    "positioning",
     "architecture",
     "modelIR",
     "capsule",
     "providers",
     "apiConvergence",
     "recovery",
-    "commercialOffer",
+    "releaseContract",
     "referenceIntegrations",
     "promotionSequence",
     "compatibilityGraph",
     "dataCustody",
-    "acquisitionBoundary",
     "claimBoundary",
     "adoptionGate",
     "networkAcceptance",
@@ -35,7 +33,7 @@
     },
     "schemaVersion": {
       "type": "integer",
-      "const": 6
+      "const": 7
     },
     "contractVersion": {
       "type": "string",
@@ -44,54 +42,6 @@
     "id": {
       "type": "string",
       "const": "doppler-model-release-platform"
-    },
-    "positioning": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "category",
-        "entryProduct",
-        "recurringProduct",
-        "initialIcp",
-        "northStar",
-        "promise",
-        "buyer",
-        "unitOfValue"
-      ],
-      "properties": {
-        "category": {
-          "type": "string",
-          "const": "AI-native model release foundry for JavaScript and WebGPU"
-        },
-        "entryProduct": {
-          "type": "string",
-          "const": "Doppler Production Release"
-        },
-        "recurringProduct": {
-          "type": "string",
-          "const": "Doppler Release Operations"
-        },
-        "initialIcp": {
-          "type": "string",
-          "const": "Independent JavaScript and Electron application maintainers"
-        },
-        "northStar": {
-          "type": "string",
-          "const": "Independent applications retain useful executable models and ship subsequent revisions with less effort; free adoption counts."
-        },
-        "promise": {
-          "type": "string",
-          "minLength": 1
-        },
-        "buyer": {
-          "type": "string",
-          "minLength": 1
-        },
-        "unitOfValue": {
-          "type": "string",
-          "const": "supported-model-release"
-        }
-      }
     },
     "architecture": {
       "type": "object",
@@ -207,38 +157,18 @@
         "$ref": "#/$defs/trackedRequirement"
       }
     },
-    "commercialOffer": {
+    "releaseContract": {
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "id",
-        "name",
-        "recurringProduct",
         "promise",
         "applicationClasses",
         "intake",
         "deliverables",
-        "paidSurfaces",
-        "promotionGate",
         "activationAuthority",
-        "selfPromotionAllowed",
-        "currentAssessment",
-        "blockerCode",
-        "requiredForTechnicalAcceptance"
+        "selfPromotionAllowed"
       ],
       "properties": {
-        "id": {
-          "type": "string",
-          "const": "doppler-production-release"
-        },
-        "name": {
-          "type": "string",
-          "const": "Doppler Production Release"
-        },
-        "recurringProduct": {
-          "type": "string",
-          "const": "Doppler Release Operations"
-        },
         "promise": {
           "type": "string",
           "minLength": 1
@@ -259,30 +189,12 @@
         "deliverables": {
           "$ref": "#/$defs/stringList"
         },
-        "paidSurfaces": {
-          "$ref": "#/$defs/stringList"
-        },
-        "promotionGate": {
-          "type": "string",
-          "minLength": 1
-        },
         "activationAuthority": {
           "type": "string",
           "const": "customer-controlled"
         },
         "selfPromotionAllowed": {
           "type": "boolean",
-          "const": false
-        },
-        "currentAssessment": {
-          "type": "string",
-          "const": "unestablished"
-        },
-        "blockerCode": {
-          "type": "string",
-          "const": "paid-doppler-production-release-missing"
-        },
-        "requiredForTechnicalAcceptance": {
           "const": false
         }
       }
@@ -339,8 +251,8 @@
     },
     "promotionSequence": {
       "type": "array",
-      "minItems": 10,
-      "maxItems": 10,
+      "minItems": 8,
+      "maxItems": 8,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -356,7 +268,7 @@
           "order": {
             "type": "integer",
             "minimum": 1,
-            "maximum": 10
+            "maximum": 8
           },
           "id": {
             "$ref": "#/$defs/id"
@@ -405,32 +317,6 @@
         },
         "shareableClasses": {
           "$ref": "#/$defs/stringList"
-        }
-      }
-    },
-    "acquisitionBoundary": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "operatingObjective",
-        "candidateBuyerClasses",
-        "rule",
-        "requiredForTechnicalAcceptance"
-      ],
-      "properties": {
-        "operatingObjective": {
-          "type": "string",
-          "minLength": 1
-        },
-        "candidateBuyerClasses": {
-          "$ref": "#/$defs/stringList"
-        },
-        "rule": {
-          "type": "string",
-          "minLength": 1
-        },
-        "requiredForTechnicalAcceptance": {
-          "const": false
         }
       }
     },
@@ -564,7 +450,7 @@
       }
     },
     "promotionSequenceScope": {
-      "const": "standalone-commercial"
+      "const": "standalone-release"
     },
     "standaloneAdoptionGate": {
       "type": "object",

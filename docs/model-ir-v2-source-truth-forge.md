@@ -219,7 +219,7 @@ kernels, dtype lane, fusion set, KV layout, memory policy, execution plan, and
 canonical resolved runtime-session digest. A later transition is still an
 error; initial equality and subsequent immutability are separate gates.
 
-## Campaign order
+## Campaigns
 
 Qwen3.8 is the lineage-acceleration campaign. It may reuse established Qwen
 semantics only where current checkpoint evidence confirms them. Changed block
@@ -229,11 +229,8 @@ derived.
 Glimmer is the generalization campaign. Its complete source intake must pass
 through the same pipeline before execution work begins. Glimmer execution may
 add reusable component, block, state, or lowering vocabulary; it may not add a
-Glimmer-named Runtime branch.
-
-The campaigns are sequential. Qwen3.8 stabilizes the representation and
-lowering contracts. Glimmer then tests whether they describe architecture
-rather than one lineage.
+Glimmer-named Runtime branch. Glimmer tests whether the representation and
+lowering contracts describe architecture rather than one lineage.
 
 ## Release evidence
 

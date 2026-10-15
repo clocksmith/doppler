@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "doppler",
-  "updatedAtUtc": "2026-09-27T01:34:32.466Z",
+  "updatedAtUtc": "2026-10-15T17:04:57.732Z",
   "goals": [
     {
       "id": "open-execution-network",
@@ -108,9 +108,7 @@
         "external-executable-model-adoption-missing",
         "customer-electron-fleet-receipts-missing",
         "customer-rollback-drill-missing",
-        "paid-doppler-production-release-missing",
-        "signed-live-revocation-authority-missing",
-        "three-unrelated-design-partners-missing"
+        "signed-live-revocation-authority-missing"
       ],
       "rows": [
         {
@@ -135,7 +133,7 @@
         },
         {
           "id": "canonical-production-release-contract",
-          "label": "Canonical Doppler Production Release contract",
+          "label": "Canonical production-release contract",
           "tier": "tier1",
           "status": "covered",
           "claimAllowed": true,
@@ -197,7 +195,7 @@
         },
         {
           "id": "production-release-toolchain",
-          "label": "Doppler Production Release toolchain",
+          "label": "Production-release toolchain",
           "tier": "tier1",
           "status": "covered",
           "claimAllowed": true,
@@ -285,59 +283,6 @@
           "blockers": [
             "customer-rollback-drill-missing",
             "signed-live-revocation-authority-missing"
-          ]
-        },
-        {
-          "id": "doppler-production-release-offer",
-          "label": "External Doppler Production Release offer",
-          "tier": "tier1",
-          "status": "partial",
-          "claimAllowed": false,
-          "supportSubsystemId": null,
-          "packageBin": null,
-          "packageExport": null,
-          "smokeCommand": null,
-          "evidencePaths": [
-            "docs/model-release-platform.md",
-            "GOALS.md",
-            "tools/policies/model-release-platform.json",
-            "src/config/schema/model-release-platform.schema.json",
-            "tools/check-model-release-platform.js",
-            "tests/config/model-release-platform.test.js",
-            "src/config/production-release.js",
-            "src/tooling/production-release.js",
-            "src/client/electron/index.js",
-            ".github/workflows/doppler-release.yml",
-            "tests/tooling/production-release.test.js",
-            "tools/policies/product-integration-qualification.json"
-          ],
-          "blockers": [
-            "paid-doppler-production-release-missing"
-          ]
-        },
-        {
-          "id": "three-unrelated-design-partners",
-          "label": "Three unrelated external design partners",
-          "tier": "tier1",
-          "status": "partial",
-          "claimAllowed": false,
-          "supportSubsystemId": null,
-          "packageBin": null,
-          "packageExport": null,
-          "smokeCommand": null,
-          "evidencePaths": [
-            "GOALS.md",
-            "docs/model-release-platform.md",
-            "tools/policies/model-release-platform.json",
-            "docs/electron-design-partner-program.md",
-            "tools/policies/electron-design-partner-prospects.json",
-            "tools/check-electron-design-partner-prospects.js",
-            "tests/config/electron-design-partner-prospects.test.js",
-            "tools/check-model-release-platform.js",
-            "tests/config/model-release-platform.test.js"
-          ],
-          "blockers": [
-            "three-unrelated-design-partners-missing"
           ]
         }
       ],
@@ -1101,7 +1046,7 @@
     },
     {
       "code": "post-promotion-monitoring-receipts-missing",
-      "priority": 13,
+      "priority": 11,
       "owner": "doppler-release",
       "completionClass": "human-promotion",
       "statusCommand": "npm run promotion:monitoring:check",
@@ -1123,7 +1068,7 @@
     },
     {
       "code": "signed-live-revocation-authority-missing",
-      "priority": 8,
+      "priority": 7,
       "owner": "doppler-security",
       "completionClass": "production-authority",
       "statusCommand": "npm run revocations:authority:check",
@@ -1151,7 +1096,7 @@
     },
     {
       "code": "provider-conformance-receipts-missing",
-      "priority": 11,
+      "priority": 9,
       "owner": "doppler-runtime",
       "completionClass": "hardware",
       "statusCommand": "npm run provider:conformance:check",
@@ -1174,7 +1119,7 @@
     },
     {
       "code": "runtime-ownership-decisions-missing",
-      "priority": 12,
+      "priority": 10,
       "owner": "doppler-product",
       "completionClass": "hardware",
       "statusCommand": "npm run runtime:ownership:check",
@@ -1199,7 +1144,7 @@
     },
     {
       "code": "capsule-first-surface-migration-incomplete",
-      "priority": 14,
+      "priority": 12,
       "owner": "doppler-runtime",
       "completionClass": "repository",
       "statusCommand": "npm run model-release:check",
@@ -1219,26 +1164,8 @@
       ]
     },
     {
-      "code": "paid-doppler-production-release-missing",
-      "priority": 6,
-      "owner": "doppler-product",
-      "completionClass": "application",
-      "statusCommand": "npm run model-release:check",
-      "description": "No external customer activation system has relied on a Doppler eligible-or-blocked decision for a production Electron release and its subsequent upgrade.",
-      "exitCriteria": "Retain an authorized paid external agreement, pinned Electron application and model intake, signed Capsule, declared Windows and macOS fleet receipts, known exclusions, a retained rejected candidate, customer-controlled activation and rollback evidence, and proof that the subsequent upgrade also relied on Doppler eligibility; then promote the commercial assessment through human review.",
-      "evidencePaths": [
-        "docs/model-release-platform.md",
-        "GOALS.md",
-        "tools/policies/model-release-platform.json",
-        "src/config/schema/model-release-platform.schema.json",
-        "tools/policies/product-integration-qualification.json",
-        "tools/check-model-release-platform.js",
-        "tests/config/model-release-platform.test.js"
-      ]
-    },
-    {
       "code": "customer-electron-fleet-receipts-missing",
-      "priority": 7,
+      "priority": 6,
       "owner": "doppler-release",
       "completionClass": "hardware",
       "statusCommand": "npm run model-release:check",
@@ -1256,7 +1183,7 @@
     },
     {
       "code": "customer-rollback-drill-missing",
-      "priority": 9,
+      "priority": 8,
       "owner": "doppler-release",
       "completionClass": "application",
       "statusCommand": "npm run model-release:check",
@@ -1268,22 +1195,6 @@
         "src/client/electron/ipc-contract.js",
         "tests/client/electron-release-adapter.test.js",
         "tools/policies/model-release-platform.json"
-      ]
-    },
-    {
-      "code": "three-unrelated-design-partners-missing",
-      "priority": 10,
-      "owner": "doppler-product",
-      "completionClass": "application",
-      "statusCommand": "npm run model-release:check",
-      "description": "The first external release has not been repeated by two additional unrelated Electron customers.",
-      "exitCriteria": "After the first paid release and subsequent upgrade are retained, complete the same delegated-eligibility path with two unrelated customers, each with its own application, model revision, supported fleet, rejection or failure evidence, rollback target, and customer-controlled activation authority.",
-      "evidencePaths": [
-        "GOALS.md",
-        "docs/model-release-platform.md",
-        "tools/policies/model-release-platform.json",
-        "tools/check-model-release-platform.js",
-        "tests/config/model-release-platform.test.js"
       ]
     }
   ]

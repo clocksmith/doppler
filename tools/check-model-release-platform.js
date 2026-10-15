@@ -11,12 +11,6 @@ const MATRIX_PATH = path.join(REPO_ROOT, 'src', 'config', 'goal-completion-matri
 const POLICY_SCHEMA = JSON.parse(await fs.readFile(new URL('../src/config/schema/model-release-platform.schema.json', import.meta.url), 'utf8'));
 
 const EXPECTED = Object.freeze({
-  positioning: Object.freeze({
-    entryProduct: 'Doppler Production Release',
-    recurringProduct: 'Doppler Release Operations',
-    initialIcp: POLICY_SCHEMA.properties.positioning.properties.initialIcp.const,
-    northStar: POLICY_SCHEMA.properties.positioning.properties.northStar.const,
-  }),
   forgeStages: ['inspect', 'normalize', 'analyze', 'lower', 'specialize', 'search', 'verify', 'qualify', 'package', 'sign'],
   runtimeSteps: ['validate', 'select', 'bind', 'allocate', 'execute', 'observe'],
   providers: ['doppler-webgpu', 'browser-dawn', 'doe-runtime', 'onnx-runtime', 'webnn', 'vendor-native', 'cpu-reference'],
@@ -35,8 +29,6 @@ const EXPECTED = Object.freeze({
     ['local-webgpu-product-surface', 'production-release-toolchain'],
     ['local-webgpu-product-surface', 'electron-fleet-qualification'],
     ['local-webgpu-product-surface', 'revocation-and-customer-rollback'],
-    ['local-webgpu-product-surface', 'doppler-production-release-offer'],
-    ['local-webgpu-product-surface', 'three-unrelated-design-partners'],
     ['model-artifact-runtime-contract', 'complete-capsule-release-closure'],
     ['model-artifact-runtime-contract', 'capsule-first-compatibility-migration'],
   ],
@@ -133,21 +125,14 @@ export async function validateModelReleasePlatform(policy, matrix, options = {})
   validateConstContract(policy?.adoptionGate, POLICY_SCHEMA.properties.adoptionGate, 'adoptionGate', errors);
   validateConstContract(policy?.standaloneAdoptionGate, POLICY_SCHEMA.properties.standaloneAdoptionGate, 'standaloneAdoptionGate', errors);
   if (policy?.schemaVersion !== POLICY_SCHEMA.properties.schemaVersion.const) errors.push('policy.schemaVersion must match its schema');
-  if (policy?.promotionSequenceScope !== 'standalone-commercial'
-    || policy?.commercialOffer?.requiredForTechnicalAcceptance !== false
-    || policy?.acquisitionBoundary?.requiredForTechnicalAcceptance !== false) {
-    errors.push('Commercial promotion, revenue, and acquisition must remain outside standalone and network technical acceptance.');
+  for (const field of Object.keys(policy || {})) {
+    if (!POLICY_SCHEMA.properties[field]) errors.push(`policy.${field} is not allowed`);
+  }
+  if (policy?.promotionSequenceScope !== POLICY_SCHEMA.properties.promotionSequenceScope.const) {
+    errors.push(`promotionSequenceScope must be ${POLICY_SCHEMA.properties.promotionSequenceScope.const}`);
   }
 
   if (policy?.id !== 'doppler-model-release-platform') errors.push('policy.id must be doppler-model-release-platform');
-  if (policy?.positioning?.unitOfValue !== 'supported-model-release') {
-    errors.push('positioning.unitOfValue must be supported-model-release');
-  }
-  for (const [field, expected] of Object.entries(EXPECTED.positioning)) {
-    if (policy?.positioning?.[field] !== expected) {
-      errors.push(`positioning.${field} must be ${expected}`);
-    }
-  }
   exactArray(policy?.architecture?.forgeStages, EXPECTED.forgeStages, 'architecture.forgeStages', errors);
   exactArray(policy?.architecture?.runtimeSteps, EXPECTED.runtimeSteps, 'architecture.runtimeSteps', errors);
   pathRows.push(['architecture.authorityPaths', policy?.architecture?.authorityPaths]);
@@ -190,18 +175,12 @@ export async function validateModelReleasePlatform(policy, matrix, options = {})
     pathRows
   );
   exactArray(Array.from(recoveryIndex.keys()), EXPECTED.recovery, 'recovery ids', errors);
-  exactArray(policy?.commercialOffer?.applicationClasses, EXPECTED.applicationClasses, 'commercialOffer.applicationClasses', errors);
-  if (policy?.commercialOffer?.name !== EXPECTED.positioning.entryProduct) {
-    errors.push(`commercialOffer.name must be ${EXPECTED.positioning.entryProduct}`);
+  exactArray(policy?.releaseContract?.applicationClasses, EXPECTED.applicationClasses, 'releaseContract.applicationClasses', errors);
+  if (policy?.releaseContract?.activationAuthority !== 'customer-controlled') {
+    errors.push('releaseContract.activationAuthority must be customer-controlled');
   }
-  if (policy?.commercialOffer?.recurringProduct !== EXPECTED.positioning.recurringProduct) {
-    errors.push(`commercialOffer.recurringProduct must be ${EXPECTED.positioning.recurringProduct}`);
-  }
-  if (policy?.commercialOffer?.activationAuthority !== 'customer-controlled') {
-    errors.push('commercialOffer.activationAuthority must be customer-controlled');
-  }
-  if (policy?.commercialOffer?.selfPromotionAllowed !== false) {
-    errors.push('commercialOffer.selfPromotionAllowed must be false');
+  if (policy?.releaseContract?.selfPromotionAllowed !== false) {
+    errors.push('releaseContract.selfPromotionAllowed must be false');
   }
   const referenceIntegrationIndex = indexById(
     policy?.referenceIntegrations?.integrations,
@@ -220,15 +199,9 @@ export async function validateModelReleasePlatform(policy, matrix, options = {})
   if (policy?.referenceIntegrations?.commercialDemandEvidence !== false) {
     errors.push('referenceIntegrations.commercialDemandEvidence must be false');
   }
-  if (policy?.commercialOffer?.currentAssessment !== 'unestablished') {
-    errors.push('commercialOffer.currentAssessment must remain unestablished until external evidence is promoted');
-  }
-  if (!blockerCodes.has(policy?.commercialOffer?.blockerCode)) {
-    errors.push(`commercialOffer.blockerCode is not defined: ${String(policy?.commercialOffer?.blockerCode)}`);
-  }
   exactArray(
     (policy?.promotionSequence || []).map((row) => row.order),
-    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    [1, 2, 3, 4, 5, 6, 7, 8],
     'promotionSequence order',
     errors
   );
@@ -262,7 +235,7 @@ export async function validateModelReleasePlatform(policy, matrix, options = {})
     migrationSurfaces: (policy?.apiConvergence || [])
       .filter((row) => row.mode === 'migration-required')
       .map((row) => row.id),
-    commercialAssessment: policy?.commercialOffer?.currentAssessment || null,
+    releaseActivationAuthority: policy?.releaseContract?.activationAuthority || null,
     implementedPromotionGates: Array.from(promotionIndex.values())
       .filter((row) => row.completionState === 'implemented')
       .map((row) => row.id),
@@ -297,7 +270,7 @@ export async function main(argv = process.argv.slice(2)) {
   else if (report.ok) {
     console.log(
       `model-release-platform: contract ok; ${report.partialRequirements.length} partial requirements, `
-      + `${report.migrationSurfaces.length} migration surfaces, commercial=${report.commercialAssessment}`
+      + `${report.migrationSurfaces.length} migration surfaces, ${report.externalPromotionGates.length} external promotion gates`
     );
   } else {
     for (const error of report.errors) console.error(`model-release-platform: ${error}`);

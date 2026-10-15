@@ -55,8 +55,6 @@ const REQUIRED_GOAL_ROWS = new Map([
       'maintained-application-integrations',
       'electron-fleet-qualification',
       'revocation-and-customer-rollback',
-      'doppler-production-release-offer',
-      'three-unrelated-design-partners',
     ],
   ],
   [

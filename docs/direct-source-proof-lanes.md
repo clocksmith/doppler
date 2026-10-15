@@ -133,12 +133,15 @@ That means a proof-grade direct-source lane must bind:
 If a proposed direct-source lane needs Doe to ingest raw source files directly
 instead of the closed bundle, it is not yet promotion-ready.
 
-## Promotion order
+## Lane promotion gates
 
-### Phase 1: Safetensors as the first additional canonical lane
+Each lane below has its own gates. A lane that builds on another lane inherits
+that lane's gates; listing a lane does not schedule it.
 
-Promote `safetensors` first because it has the cleanest checkpoint provenance
-story and the fewest imported runtime assumptions.
+### Safetensors canonical lane
+
+`safetensors` has the cleanest checkpoint provenance story and the fewest
+imported runtime assumptions.
 
 Required gates:
 
@@ -154,16 +157,16 @@ Required gates:
 - publication and reload flow proven through the same hosted/local artifact
   roots used by the current proof lanes.
 
-Non-goals for this phase:
+Non-goals for this lane:
 
 - replacing `RDRR` in quickstart flows;
 - converter-style quantization overrides on direct-source loads;
 - special-casing Doe/Cerebras around raw source format details.
 
-### Phase 2: Doe acceptance of direct-source proof bundles
+### Doe acceptance of direct-source proof bundles
 
-Once Doppler has a proof-grade `safetensors` direct-source lane, Doe can admit
-that lane as an additional portable-program input.
+Doe can admit a direct-source lane as an additional portable-program input only
+after Doppler has a proof-grade `safetensors` direct-source lane.
 
 Required gates:
 
@@ -178,9 +181,9 @@ Required gates:
 
 `RDRR` remains the primary Cerebras lane while this work is incomplete.
 
-### Phase 3: GGUF as the compatibility lane
+### GGUF compatibility lane
 
-Promote `GGUF` after the `safetensors` lane is stable.
+`GGUF` promotion requires a stable `safetensors` lane.
 
 Additional gates beyond the safetensors lane:
 

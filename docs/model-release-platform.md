@@ -1,52 +1,39 @@
-# Doppler Production Release platform
+# Model release contract
 
-Doppler is an independently usable JavaScript model-execution library. This page
-retains **optional release-operations and commercial hypotheses**, alongside their
-implemented contracts and unresolved external evidence. It is not the library's
+Doppler's release tooling turns a pinned model revision into an immutable signed
+Capsule and a signed `eligible` or `blocked` recommendation for one pinned
+application revision. It is an optional supporting operation, not the library's
 primary onboarding path or a competing engineering queue.
-[GOALS.md](../GOALS.md#current-priorities) owns current priorities. Useful local
+[GOALS.md](../GOALS.md#current-priorities) owns product priorities. Useful local
 execution and independent adoption remain primary; free retained use counts.
 Doe, Poolday, Reploid, and payment are not prerequisites. The separate network
 experiment cannot inherit adoption proof.
-
-The retained commercial hypothesis is:
-
-- Entry product: **Doppler Production Release**.
-- Recurring product: **Doppler Release Operations**.
-- Standalone ICP: **TypeScript/Electron desktop products on Windows and macOS**.
-- Standalone win: an unrelated application voluntarily ships a Doppler executable
-  model for a measured application improvement, retains it, and ships a second
-  revision with less release effort. P2P is optional and never substitutes for adoption.
-- Release eligibility, rollback, revocation, and paid operations support that
-  standalone adoption; none is a network technical-completion gate.
 
 Doppler signs an `eligible` or `blocked` recommendation. The customer’s updater,
 deployment system, feature flag, or administrator retains authority to activate
 and roll back the release. Doppler tooling and its GitHub Action must never
 self-promote or deploy the customer application.
 
-Schema version 6 makes standalone adoption primary while separating network,
-commercial and fleet evidence. `promotionSequence` is explicitly scoped to
-`standalone-commercial`; payment and acquisition do not determine technical completion.
-
 The validated contract is
-`tools/policies/model-release-platform.json`. `npm run model-release:check`
-binds that policy to the goal matrix and verifies the Rig/Capsule/Run split,
-the seven Capsule release requirements, provider neutrality, Capsule-first migration,
-recovery, commercial boundary, and ordered promotion gates. A passing check
-means the contract describes its gaps honestly; it does not establish external
-adoption or production authority.
+`tools/policies/model-release-platform.json`. Schema version 7 keeps standalone
+adoption primary and separates network and fleet evidence; `promotionSequence`
+is scoped to `standalone-release`. `npm run model-release:check` binds that
+policy to the goal matrix and verifies the Rig/Capsule/Run split, the seven
+Capsule release requirements, provider neutrality, Capsule-first migration,
+recovery, the release-contract activation boundary, and ordered promotion gates.
+A passing check means the contract describes its gaps honestly; it does not
+establish external adoption or production authority.
 
-The repository implementation is closed for the canonical product contract,
-reference release manifest, Capsule release contract, Capsule-first Electron
-reranking, `doppler release`, the non-promoting GitHub Action, and the typed
-Electron adapter. The policy separately reports gates that still require
-customer-operated device receipts, a production revocation authority, and paid
-external release evidence. Repository fixtures never satisfy those gates.
+The repository implementation is closed for the release contract, reference
+release manifest, Capsule release contract, Capsule-first Electron reranking,
+`doppler release`, the non-promoting GitHub Action, and the typed Electron
+adapter. The policy separately reports gates that still require
+customer-operated device receipts and a production revocation authority.
+Repository fixtures never satisfy those gates.
 
-## Entry and recurring products
+## Release inputs and outputs
 
-For one Doppler Production Release, a customer supplies:
+For one production release, the application owner supplies:
 
 - a pinned model revision, source and licence facts;
 - a pinned Electron application revision and application-owned acceptance tests;
@@ -59,35 +46,12 @@ For one Doppler Production Release, a customer supplies:
 Doppler returns an immutable Capsule, a signed eligible-or-blocked release decision,
 qualification receipts, typed exclusions, retained failure evidence, the
 previous working Capsule and rollback target, and revocation configuration.
-Doppler Release Operations repeats that process for upgrades, requalification,
-incidents, revocation, and support-fleet changes.
+Upgrades, requalification, incidents, revocation, and support-fleet changes
+repeat the same process.
 
 The retained standalone reference episode is an Electron document-search application
 upgrading to `qwen-3-reranker-0-6b-q4k-ehf16-af32`. It is a checked-in acceptance
 fixture, not evidence of external demand.
-
-## Independent adoption acceptance
-
-This is an optional external-integration acceptance contract. It does not select
-mainline engineering work. Free voluntary adoption and commercial release proof
-are separate outcomes. The application's owner controls adoption and rollback.
-
-| Gate | Required work | Exit evidence | Does not prove |
-| --- | --- | --- | --- |
-| D0: adopter contract | Name one unrelated JavaScript application, owner, pinned revision, workload, source model, incumbent, acceptance suite, supported hosts, and activation authority. | Customer-authorized, versioned integration contract with no synthetic ownership fields. | Runtime correctness or demand. |
-| D1: source-to-Capsule closure | Acquire attributable source facts, forge ModelIR, produce at least one qualified TargetPlan, and seal every required artifact into one signed Capsule. | Capsule validation, source lineage, packaged qualification evidence, and retained rejected candidates. | Application acceptance. |
-| D2: unchanged acceptance | Run the application's existing acceptance semantics against its incumbent and Doppler. Change only the declared provider or integration seam required to invoke Doppler. | Comparable application-level results, explicit exclusions, and no hidden fallback. | A material advantage or adoption. |
-| D3: material advantage | Predeclare and measure one adopter-valued advantage such as supported capability, installation simplicity, end-to-end latency, memory, offline custody, diagnostic depth, or correction speed. | Evidence showing the advantage without weakening correctness, reliability, or workload scope. | Production use. |
-| D4: voluntary adoption | The application owner chooses Doppler, distributes or activates the integration, and retains rollback authority. | Owner-attributed adoption record plus the exact shipped application, Capsule, execution, and acceptance identities. | Recurring demand. |
-| D5: repeated dependence | Requalify a later model, Capsule, application, browser, driver, or device change through Doppler. | A second owner-authorized release or upgrade using the same product contract. | Broad market adoption. |
-
-Gates remain ordered. A later gate cannot repair missing evidence from an
-earlier gate.
-
-The [prior adoption record](https://github.com/clocksmith/doppler/blob/e0b217e646eb0da5bc83f4ca7ec18932cbe6c086/docs/executable-model-adoption-plan.md)
-retains the original workstreams, stop conditions, and historical checkpoints.
-Current implementation and lifecycle requirements belong in the public API,
-Capsule, provider, and application contracts, not another adoption queue.
 
 ## Internal evidence and external proof
 
@@ -99,16 +63,8 @@ Reploid generation, Dream embedding retrieval, and Columbo reranking are:
 Their 3/3 qualification establishes neither external adoption nor commercial
 demand. Standalone application adoption requires a measured improvement, voluntary
 maintainer acceptance, retained use, and a second revision with less release
-effort. The separate commercial proof requires one paid external Electron release whose
-customer activation system relies on Doppler’s eligibility decision, followed
-by a subsequent upgrade through the same process. Two additional unrelated
-customers must then repeat the path.
-
-The separate [Electron design partner program](electron-design-partner-program.md)
-orders AnythingLLM, Joplin, Cherry Studio, Chatbox, and AFFiNE as researched
-prospects. The validated register deliberately reports zero qualified customers.
-It cannot satisfy this section's external, paid, fleet, rollback, revocation, or
-repeat-upgrade gates.
+effort. The policy's `standaloneAdoptionGate` lists the required evidence; the
+application's owner controls adoption and rollback.
 
 ## Capsule release closure
 
@@ -204,5 +160,4 @@ customer-approved derived patterns.
 
 Private inputs remain local by default. Redistribution and complete-job
 delegation require separate explicit authority. Protocols stay forkable and
-evidence exportable. Revenue and acquisition remain commercial hypotheses;
-neither is evidence for or a prerequisite of network technical acceptance.
+evidence exportable.

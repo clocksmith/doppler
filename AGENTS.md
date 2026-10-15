@@ -10,13 +10,14 @@ selects, binds, executes, and observes their declared programs. Browser and Node
 support are qualified separately; Bun remains experimental.
 
 **Current priorities:** Work within the product boundaries in
-[GOALS.md](GOALS.md#current-priorities). Finish dependable execution and lifecycle
-in the current public integration, then ordinary installation and independent
-application value. Reploid is a demanding consumer, not the owner of Doppler's
-roadmap; Doe is optional. Historical search, rewriting, and provider campaigns
-are retained evidence and acceptance contracts, not mandatory next work.
-Preserve model identity, compatibility, trust/checkpoint protections, and scoped
-qualification. Verification supports useful, fast, simple, portable execution.
+[GOALS.md](GOALS.md#current-priorities). The maintainers' ordered roadmap is
+private (in the deco workspace: `../ouroboros/docs/projects/doppler/roadmap.md`);
+public contributors follow GitHub issues and GOALS.md. Reploid is a demanding
+consumer, not the owner of Doppler's roadmap; Doe is optional. Historical search,
+rewriting, and provider campaigns are retained evidence and acceptance contracts,
+not mandatory next work. Preserve model identity, compatibility, trust/checkpoint
+protections, and scoped qualification. Verification supports useful, fast,
+simple, portable execution.
 
 **File Extensions:** Always use `.js`; never create `.mjs`. `package.json` sets `"type": "module"`, so every `.js` file is already an ES module.
 

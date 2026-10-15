@@ -193,8 +193,8 @@ const matrix = await readJson(MATRIX_PATH);
 }
 {
   const broken = clone(matrix);
-  broken.goals[0].blockers.push('paid-doppler-production-release-missing');
-  broken.goals[0].rows[0].blockers.push('paid-doppler-production-release-missing');
+  broken.goals[0].blockers.push('customer-electron-fleet-receipts-missing');
+  broken.goals[0].rows[0].blockers.push('customer-electron-fleet-receipts-missing');
   assert.ok((await validateFixture(broken)).includes('open-execution-network: unrelated launch blocker'));
 }
 for (const row of matrix.goals[0].rows) {

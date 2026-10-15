@@ -11,9 +11,7 @@
 
 Doppler began as a configurable research runtime for forward inference and prefill in WebGPU environments. In that model, runtime execution dynamically resolved device capabilities, remapped kernel paths, applied execution-v1 capability transforms, and progressively mutated shared state during model initialization.
 
-In the August 2026 landscape (Microsoft Foundry Local, Transformers.js v4 C++ WebGPU rewrite, Chrome Built-in AI), local model execution is no longer defined by generic runtime interpreters or universal ONNX operator zoos. 
-
-Doppler's strategic thesis is to become the **AI-native model release foundry for JavaScript and WebGPU**: taking newly released open-weight models and compiling them into small, explicit, verified, zero-daemon JavaScript/WGSL programs faster than any generic runtime can responsibly support them.
+Doppler's architectural direction is to take newly released open-weight models and compile them into small, explicit, verified, zero-daemon JavaScript/WGSL programs, rather than interpreting them through a generic runtime or a universal operator set.
 
 The historical pattern of load-time state mutation contradicts the contract of closed, verifiable Program Bundles. 
 
@@ -99,7 +97,7 @@ runtime ───X───▶ cloud routing
 ### Positive
 * **Deterministic Verification:** Eliminates nondeterministic load-time mutation bugs and precision regressions.
 * **Zero Runtime Overhead:** Runtime becomes a lightweight (~small bundle) plan–bind–execute machine with zero generic interpreter bloat.
-* **AI-Assisted Foundry Velocity:** AI proposes graphs, fusions, and kernels in Rig where deterministic test oracles (CPU oracles, metamorphic bounds) catch defects before capsule signing.
+* **AI-Assisted Rig Velocity:** AI proposes graphs, fusions, and kernels in Rig where deterministic test oracles (CPU oracles, metamorphic bounds) catch defects before capsule signing.
 * **First-Class Specialist Support:** Biological sequence models (ESM-2, ESMC, Nucleotide Transformer for Reploid) and Retrieval models enjoy identical AOT packaging guarantees.
 
 ### Phased Migration

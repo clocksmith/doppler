@@ -1,18 +1,8 @@
 {
   "$schema": "../../src/config/schema/model-release-platform.schema.json",
-  "schemaVersion": 6,
-  "contractVersion": "5.0.0",
+  "schemaVersion": 7,
+  "contractVersion": "6.0.0",
   "id": "doppler-model-release-platform",
-  "positioning": {
-    "category": "AI-native model release foundry for JavaScript and WebGPU",
-    "entryProduct": "Doppler Production Release",
-    "recurringProduct": "Doppler Release Operations",
-    "initialIcp": "Independent JavaScript and Electron application maintainers",
-    "northStar": "Independent applications retain useful executable models and ship subsequent revisions with less effort; free adoption counts.",
-    "promise": "Compile, package, verify, and execute exact model programs through JavaScript and standard WebGPU without requiring another repository.",
-    "buyer": "Revenue and acquisition are commercial hypotheses, not technical acceptance conditions.",
-    "unitOfValue": "supported-model-release"
-  },
   "architecture": {
     "authorityPaths": [
       "docs/architecture.md",
@@ -353,10 +343,7 @@
       "blockerCode": null
     }
   ],
-  "commercialOffer": {
-    "id": "doppler-production-release",
-    "name": "Doppler Production Release",
-    "recurringProduct": "Doppler Release Operations",
+  "releaseContract": {
     "promise": "Qualify one pinned model revision for one pinned Electron application revision and return a signed eligible-or-blocked recommendation, immutable Capsule, qualification evidence, exclusions, and customer-controlled rollback target.",
     "applicationClasses": [
       "electron-reranking"
@@ -378,22 +365,8 @@
       "known exclusions and typed rejection reasons",
       "failure bundle, previous working Capsule, rollback target, and revocation configuration"
     ],
-    "paidSurfaces": [
-      "private Capsules",
-      "Doppler Release Operations",
-      "supported hardware matrices",
-      "private registries",
-      "recurring model upgrades",
-      "incident response",
-      "performance tuning",
-      "long-term release maintenance"
-    ],
-    "promotionGate": "An external customer’s activation system relies on Doppler’s eligible-or-blocked decision for a production release and its subsequent upgrade while retaining activation and rollback authority.",
     "activationAuthority": "customer-controlled",
-    "selfPromotionAllowed": false,
-    "currentAssessment": "unestablished",
-    "blockerCode": "paid-doppler-production-release-missing",
-    "requiredForTechnicalAcceptance": false
+    "selfPromotionAllowed": false
   },
   "referenceIntegrations": {
     "classification": "Internally controlled reference integrations proving application-integration mechanics.",
@@ -418,7 +391,7 @@
     {
       "order": 1,
       "id": "canonical-product-contract",
-      "gate": "The validated contract and goal matrix name Doppler Production Release, Doppler Release Operations, the Electron ICP, and the customer-controlled activation boundary.",
+      "gate": "The validated contract and goal matrix declare the Rig/Capsule/Run release contract, the Electron reranking application class, and the customer-controlled activation boundary.",
       "completionState": "implemented",
       "evidencePaths": [
         "GOALS.md",
@@ -513,30 +486,6 @@
         "tests/client/electron-release-adapter.test.js"
       ],
       "blockerCode": "signed-live-revocation-authority-missing"
-    },
-    {
-      "order": 9,
-      "id": "paid-external-release-and-upgrade",
-      "gate": "One paid external customer relies on Doppler eligibility for a production release and the subsequent upgrade.",
-      "completionState": "external-evidence-required",
-      "evidencePaths": [
-        "GOALS.md",
-        "docs/model-release-platform.md"
-      ],
-      "blockerCode": "paid-doppler-production-release-missing"
-    },
-    {
-      "order": 10,
-      "id": "three-unrelated-design-partners",
-      "gate": "Two additional unrelated customers repeat the production release path; the researched prospect register is pipeline evidence only.",
-      "completionState": "external-evidence-required",
-      "evidencePaths": [
-        "GOALS.md",
-        "docs/model-release-platform.md",
-        "docs/electron-design-partner-program.md",
-        "tools/policies/electron-design-partner-prospects.json"
-      ],
-      "blockerCode": "three-unrelated-design-partners-missing"
     }
   ],
   "compatibilityGraph": [
@@ -563,28 +512,15 @@
       "customer-approved derived patterns"
     ]
   },
-  "acquisitionBoundary": {
-    "operatingObjective": "Independent applications retain useful executable models and ship subsequent revisions with less effort; free adoption counts.",
-    "candidateBuyerClasses": [
-      "model hubs",
-      "browser vendors",
-      "developer platforms",
-      "OEMs",
-      "silicon vendors",
-      "local-AI application companies"
-    ],
-    "rule": "Revenue and acquisition remain commercial hypotheses outside standalone and network technical acceptance.",
-    "requiredForTechnicalAcceptance": false
-  },
   "claimBoundary": {
     "goalStateAuthority": "src/config/goal-completion-matrix.json",
     "forbiddenInferences": [
       "A valid Capsule does not establish application support.",
       "A runtime proof does not establish complete Capsule-first surface convergence.",
-      "One internal model conversion does not establish a commercial release platform.",
+      "One internal model conversion does not establish a release platform.",
       "Provider availability does not authorize runtime invention or fallback.",
       "Valera consumption or Doe execution does not define Doppler's standalone survival.",
-      "Paid release eligibility, internal Capsules, benchmarks, and peer delivery do not substitute for executable-model adoption."
+      "Release eligibility, internal Capsules, benchmarks, and peer delivery do not substitute for executable-model adoption."
     ]
   },
   "adoptionGate": {
@@ -637,7 +573,7 @@
     "delegation": "explicit-complete-jobs",
     "protocols": "forkable"
   },
-  "promotionSequenceScope": "standalone-commercial",
+  "promotionSequenceScope": "standalone-release",
   "standaloneAdoptionGate": {
     "primary": true,
     "requiredEvidence": [

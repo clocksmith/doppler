@@ -2,10 +2,9 @@
 
 Status: `lowered-parity-investigation`
 
-Owner: Doppler Model Release Foundry
+Owner: Doppler Rig
 
-Portfolio role: subordinate execution campaign, not an independently ranked
-strategy or product vector
+Role: subordinate model-generalization campaign, not a separate product line
 
 ## Purpose
 
@@ -14,10 +13,9 @@ heterogeneous model into an architecture-specialized JavaScript product without
 adding model-family behavior to Runtime. It is one Glimmer product with
 independently qualified capability profiles, not three composable products.
 
-The initial market lane is installed workstation software: Node applications,
-Electron applications, and VS Code extensions. Browser support is a separately
-qualified target. Bun remains experimental under the existing Bun product
-qualification contract and cannot inherit Node evidence.
+Node, Electron, and browser WebGPU are separately qualified targets. Bun remains
+experimental under the existing Bun product qualification contract and cannot
+inherit Node evidence.
 
 ## Current evidence boundary
 
@@ -81,14 +79,17 @@ dependencies or extension composition. Each promoted capability profile must
 therefore produce a complete, independently signed and qualified Capsule. No profile
 may load undeclared artifacts from another Capsule.
 
-Each Capsule may contain multiple pre-qualified TargetPlans. Initial target order is
-Node WebGPU, Electron WebGPU, browser WebGPU, and then explicit Doe-native targets.
-Runtime selection must fail closed when the requested target is absent. Doe is an
+Each Capsule may contain multiple pre-qualified TargetPlans for Node WebGPU,
+Electron WebGPU, browser WebGPU, and explicit Doe-native targets. Runtime
+selection must fail closed when the requested target is absent. Doe is an
 optional native executor, never a browser requirement or hidden fallback.
 
-## Qualification stages
+## Qualification requirements
 
-### 1. Text source parity
+Each capability area below is qualified independently against its own evidence;
+listing an area does not schedule it.
+
+### Text source parity
 
 - Lower `text.generate` from the pinned ModelIR without a Glimmer-named Runtime branch.
 - Bind tokenizer, chat template, weights, output head, sampling policy, and source revision.
@@ -96,7 +97,7 @@ optional native executor, never a browser requirement or hidden fallback.
 - Qualify one self-contained `text-core` Capsule on Node WebGPU before making application claims.
 - Embed the exact Capsule in one Node or Electron application and retain task-level outcomes.
 
-### 2. Architecture specialization
+### Architecture specialization
 
 - Encode the 39 local and 13 global layer schedule directly in ModelIR and TargetPlans.
 - Replace generic `text.kv-state` with fixed local ring and growing global state contracts.
@@ -104,7 +105,7 @@ optional native executor, never a browser requirement or hidden fallback.
 - Search quantization and physical layouts through Rig while retaining rejected candidates.
 - Compare output quality, load, memory, prefill, decode, and complete application latency against the unspecialized baseline.
 
-### 3. DFlash speculative execution
+### DFlash speculative execution
 
 - Admit the exact DFlash source repository, revision, license, weights, and reference behavior separately.
 - Represent the drafter, hidden-state taps, verification graph, and acceptance policy in ModelIR and the Capsule.
@@ -114,7 +115,7 @@ optional native executor, never a browser requirement or hidden fallback.
 - Reproduce incumbent figures independently; upstream results are baselines, not Doppler evidence.
 - Keep `text-core` recommended when DFlash fails parity, reliability, memory, or the frozen gain threshold.
 
-### 4. Multimodal and Doe targets
+### Multimodal and Doe targets
 
 - Lower and qualify `vision.encode`, projector execution, and text/vision integration.
 - Preserve text-only operation without requiring perception artifacts.
@@ -131,14 +132,13 @@ parity, physical hardware identity, cold and warm load, memory, prefill, ordinar
 decode, speculative decode where applicable, failures, recovery, and complete
 application-task outcomes.
 
-The decisive external gate is one independently operated Node, Electron, or VS
-Code application selecting Doppler specifically for Glimmer and completing a
-predeclared workflow against the strongest relevant incumbent. Tokens per second
-alone cannot satisfy that gate.
+Application evidence requires an independently operated application completing
+a predeclared workflow against the strongest relevant incumbent. Tokens per
+second alone cannot satisfy that requirement.
 
 ## Non-goals
 
-- Creating another Ouroboros strategy, company, or commercial product vector.
+- Creating a separate product line for one model.
 - Claiming that model-artifact licensing covers every runtime dependency.
 - Treating Meta's quality or speed reports as Doppler results.
 - Advertising three-Capsule composition before a dependency contract exists.
