@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "url": "http://127.0.0.1:8127",
+  "surface": "llama.cpp web UI in Chrome",
+  "answer": "42",
+  "elapsedMs": 2404,
+  "text": "What is 17 + 25? Answer with the number only.\n\nWhat is 17 + 25? Answer with the number only.\n\n350 tokens\n1.9s\n185.89 tokens/s\n\n42\n\nqwen3.8\n27B\nq8\npinned\n3 tokens\n0.3s\n11.43 t/s\nOpen command picker\nOpen prompt picker\nOpen file mention picker\nAdd files, prompts, tools or MCP Servers\nqwen3.8\n27B\npinned\nSend\nChat 10/15/2026, 7:51:44 PM - llama-ui"
+}

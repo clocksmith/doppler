@@ -1,0 +1,105 @@
+{
+  "model": "qwen3.8-27b-pinned-q8",
+  "complete": true,
+  "scope": "Single-machine functional smoke; not discovery quality or matched performance qualification",
+  "results": [
+    {
+      "messages": [
+        {
+          "role": "user",
+          "content": "Use only this fictional catalog. Cedar: English, 100 minutes, gentle comedy, no violence. Storm: English, 130 minutes, violent thriller. Lumiere: French, 95 minutes, gentle comedy. We require English, no violence, and at most 110 minutes. Pick exactly one title and briefly explain which requirements it meets."
+        }
+      ],
+      "content": "**Cedar**\n\nThis title meets all the requirements:\n*   **Language:** It is in English.\n*   **Violence:** It has no violence.\n*   **Duration:** At 100 minutes, it is at most 110 minutes.",
+      "finishReason": "stop",
+      "usage": {
+        "completion_tokens": 59,
+        "prompt_tokens": 88,
+        "total_tokens": 147,
+        "prompt_tokens_details": {
+          "cached_tokens": 84
+        }
+      },
+      "timings": {
+        "cache_n": 84,
+        "prompt_n": 4,
+        "prompt_ms": 203.847,
+        "prompt_per_token_ms": 50.96175,
+        "prompt_per_second": 19.622560057297875,
+        "predicted_n": 59,
+        "predicted_ms": 7482.109,
+        "predicted_per_token_ms": 129.00187931034483,
+        "predicted_per_second": 7.751825053604539
+      },
+      "elapsedMs": 7866.882542
+    },
+    {
+      "messages": [
+        {
+          "role": "user",
+          "content": "Use only this fictional catalog. Cedar: English, 100 minutes, gentle comedy, no violence. Storm: English, 130 minutes, violent thriller. Lumiere: French, 95 minutes, gentle comedy. We require English, no violence, and at most 110 minutes. Pick exactly one title and briefly explain which requirements it meets."
+        },
+        {
+          "role": "assistant",
+          "content": "**Cedar**\n\nThis title meets all the requirements:\n*   **Language:** It is in English.\n*   **Violence:** It has no violence.\n*   **Duration:** At 100 minutes, it is at most 110 minutes."
+        },
+        {
+          "role": "user",
+          "content": "What is the runtime of the movie you picked? Answer in one sentence."
+        }
+      ],
+      "content": "The runtime of the movie I picked is 100 minutes.",
+      "finishReason": "stop",
+      "usage": {
+        "completion_tokens": 15,
+        "prompt_tokens": 175,
+        "total_tokens": 190,
+        "prompt_tokens_details": {
+          "cached_tokens": 146
+        }
+      },
+      "timings": {
+        "cache_n": 146,
+        "prompt_n": 29,
+        "prompt_ms": 527.179,
+        "prompt_per_token_ms": 18.17858620689655,
+        "prompt_per_second": 55.00977846234392,
+        "predicted_n": 15,
+        "predicted_ms": 1808.415,
+        "predicted_per_token_ms": 129.17249999999999,
+        "predicted_per_second": 7.741585863864213
+      },
+      "elapsedMs": 2356.5271249999996
+    },
+    {
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is 17 + 25? Answer with the number only."
+        }
+      ],
+      "content": "42",
+      "finishReason": "stop",
+      "usage": {
+        "completion_tokens": 3,
+        "prompt_tokens": 28,
+        "total_tokens": 31,
+        "prompt_tokens_details": {
+          "cached_tokens": 24
+        }
+      },
+      "timings": {
+        "cache_n": 24,
+        "prompt_n": 4,
+        "prompt_ms": 197.823,
+        "prompt_per_token_ms": 49.45575,
+        "prompt_per_second": 20.220095742153337,
+        "predicted_n": 3,
+        "predicted_ms": 261.934,
+        "predicted_per_token_ms": 130.967,
+        "predicted_per_second": 7.635511235654782
+      },
+      "elapsedMs": 748.8876250000012
+    }
+  ]
+}
