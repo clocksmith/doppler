@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "cancelledStreamingRequest": true,
+  "reusedServer": true,
+  "answer": "42",
+  "elapsedAfterAbortMs": 953.123625,
+  "usage": {
+    "completion_tokens": 3,
+    "prompt_tokens": 26,
+    "total_tokens": 29,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "model": "qwen3.8-27b-pinned-q8",
+  "complete": true,
+  "scope": "Single-machine functional smoke; not discovery quality or matched performance qualification",
+  "results": [
+    {
+      "messages": [
+        {
+          "role": "user",
+          "content": "Use only this fictional catalog. Cedar: English, 100 minutes, gentle comedy, no violence. Storm: English, 130 minutes, violent thriller. Lumiere: French, 95 minutes, gentle comedy. We require English, no violence, and at most 110 minutes. Pick exactly one title and briefly explain which requirements it meets."
+        },
+        {
+          "role": "assistant",
+          "content": "**Cedar**\n\nThis title meets all the requirements:\n*   **Language:** It is in English.\n*   **Violence:** It has no violence.\n*   **Duration:** At 100 minutes, it is at most 110 minutes."
+        },
+        {
+          "role": "user",
+          "content": "What is the runtime of the movie you picked? Answer in one sentence."
+        }
+      ],
+      "content": "**Cedar**\n\nThis title meets all the requirements:\n*   **Language:** It is in English.\n*   **Violence:** It has no violence.\n*   **Duration:** At 100 minutes, it is at most 110 minutes.",
+      "finishReason": "stop",
+      "usage": {
+        "completion_tokens": 59,
+        "prompt_tokens": 88,
+        "total_tokens": 147,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 88,
+        "prompt_ms": 702.391,
+        "prompt_per_token_ms": 7.981715909090909,
+        "prompt_per_second": 125.28634336146108,
+        "predicted_n": 59,
+        "predicted_ms": 7523.497,
+        "predicted_per_token_ms": 129.7154655172414,
+        "predicted_per_second": 7.709180983258184
+      },
+      "elapsedMs": 8278.198916000001
+    },
+    {
+      "messages": [
+        {
+          "role": "user",
+          "content": "Use only this fictional catalog. Cedar: English, 100 minutes, gentle comedy, no violence. Storm: English, 130 minutes, violent thriller. Lumiere: French, 95 minutes, gentle comedy. We require English, no violence, and at most 110 minutes. Pick exactly one title and briefly explain which requirements it meets."
+        },
+        {
+          "role": "assistant",
+          "content": "**Cedar**\n\nThis title meets all the requirements:\n*   **Language:** It is in English.\n*   **Violence:** It has no violence.\n*   **Duration:** At 100 minutes, it is at most 110 minutes."
+        },
+        {
+          "role": "user",
+          "content": "What is the runtime of the movie you picked? Answer in one sentence."
+        }
+      ],
+      "content": "The runtime of the movie I picked is 100 minutes.",
+      "finishReason": "stop",
+      "usage": {
+        "completion_tokens": 15,
+        "prompt_tokens": 175,
+        "total_tokens": 190,
+        "prompt_tokens_details": {
+          "cached_tokens": 146
+        }
+      },
+      "timings": {
+        "cache_n": 146,
+        "prompt_n": 29,
+        "prompt_ms": 515.183,
+        "prompt_per_token_ms": 17.764931034482757,
+        "prompt_per_second": 56.29067729331131,
+        "predicted_n": 15,
+        "predicted_ms": 1819.504,
+        "predicted_per_token_ms": 129.96457142857142,
+        "predicted_per_second": 7.694404628953825
+      },
+      "elapsedMs": 2354.770375
+    },
+    {
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is 17 + 25? Answer with the number only."
+        }
+      ],
+      "content": "42",
+      "finishReason": "stop",
+      "usage": {
+        "completion_tokens": 3,
+        "prompt_tokens": 28,
+        "total_tokens": 31,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 28,
+        "prompt_ms": 355.298,
+        "prompt_per_token_ms": 12.689214285714286,
+        "prompt_per_second": 78.80708588283639,
+        "predicted_n": 3,
+        "predicted_ms": 262.915,
+        "predicted_per_token_ms": 131.4575,
+        "predicted_per_second": 7.607021280642032
+      },
+      "elapsedMs": 824.9808329999996
+    }
+  ]
+}

@@ -1,0 +1,205 @@
+{
+  "host": "amd-host",
+  "source": {
+    "repository": "Qwen/Qwen3.8-27B",
+    "revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+    "complete": true,
+    "files": [
+      {
+        "file": "LICENSE",
+        "bytes": 11544,
+        "sha256": "bbedc3fda3305820b977265f01b8619d87570a6739de3a5582c3464840f1e57a",
+        "seconds": 0.0
+      },
+      {
+        "file": "README.md",
+        "bytes": 65012,
+        "sha256": "57e4bdb258ee1a7d2635c5174ebd4e56abe392505cdb5f8bbb356b0dc4293641",
+        "seconds": 0.0
+      },
+      {
+        "file": "config.json",
+        "bytes": 4312,
+        "sha256": "191e0af232104ed8b65258cf3fb2b842e288008baca7633c11b82a1ac7203aab",
+        "seconds": 0.0
+      },
+      {
+        "file": "generation_config.json",
+        "bytes": 202,
+        "sha256": "e70c136c1b78ddc1fb0905bac8e733a4dc448d4f852a5dd75143fffc70be550e",
+        "seconds": 0.0
+      },
+      {
+        "file": "merges.txt",
+        "bytes": 3353259,
+        "sha256": "a9d356d7bdf1ef4949e3e748e95b8e10ad9d4e2e838eddc38a0a7b6b94d1db8d",
+        "seconds": 0.01
+      },
+      {
+        "file": "model-00001-of-00018.safetensors",
+        "bytes": 3966730552,
+        "sha256": "ba0ce20aae489ad196733da5064bcdf159a1fe84f53336648196e1ebb7751b1c",
+        "seconds": 3.77
+      },
+      {
+        "file": "model-00002-of-00018.safetensors",
+        "bytes": 3043080328,
+        "sha256": "06a148c01bfbe3faa14a5f184a7ff29a706f7ae1c8b2705d2058e26d17a001fb",
+        "seconds": 1.94
+      },
+      {
+        "file": "model-00003-of-00018.safetensors",
+        "bytes": 2542796952,
+        "sha256": "2e1bf62cbcd406eaa64b60d10353e1f0ef4039d0976e56f05cabe953454f9968",
+        "seconds": 78.32
+      },
+      {
+        "file": "model-00004-of-00018.safetensors",
+        "bytes": 3988973152,
+        "sha256": "511e34063187882659753c4d93f3859f93c019fd438d8813071921c81d9a3f1a",
+        "seconds": 178.69
+      },
+      {
+        "file": "model-00005-of-00018.safetensors",
+        "bytes": 2099339864,
+        "sha256": "635cb53446dc74f219740fc59e18b774f877b803b9722e289ca62575a6efa701",
+        "seconds": 61.15
+      },
+      {
+        "file": "model-00006-of-00018.safetensors",
+        "bytes": 3979553696,
+        "sha256": "0bc5214fac607f0e6cc92eec3789d4b8559410ef9fce66621ba8158e8410dae0",
+        "seconds": 123.55
+      },
+      {
+        "file": "model-00007-of-00018.safetensors",
+        "bytes": 2108759344,
+        "sha256": "80b0c49033e9a0d5762562aa12f4acdb7f54da586f3d0110f28c48d91cf07892",
+        "seconds": 64.5
+      },
+      {
+        "file": "model-00008-of-00018.safetensors",
+        "bytes": 3979553696,
+        "sha256": "7192c5b66185d3592927daabee1cc19e6f6e0ce75988ee20e824b624765fda79",
+        "seconds": 171.8
+      },
+      {
+        "file": "model-00009-of-00018.safetensors",
+        "bytes": 2108759344,
+        "sha256": "af3c48cc37af44f3db6ae0579baf019180d48d9c527caa0a1f03ff85813a56d8",
+        "seconds": 46.57
+      },
+      {
+        "file": "model-00010-of-00018.safetensors",
+        "bytes": 3979553696,
+        "sha256": "163490a76f3bea3a40855b7efc04ce6d27afaf1a34f0bbde495b9491f76457c9",
+        "seconds": 202.05
+      },
+      {
+        "file": "model-00011-of-00018.safetensors",
+        "bytes": 2108759344,
+        "sha256": "5f3ae1b948aeee39da77aec558e8236cd65fe4d7cb7686a76bb007acc563c6d8",
+        "seconds": 118.98
+      },
+      {
+        "file": "model-00012-of-00018.safetensors",
+        "bytes": 3979553696,
+        "sha256": "a3de1c7114677a8f5ac5c4892c90e8238ea5c1e2038c80e757dfc87c3902ca55",
+        "seconds": 154.52
+      },
+      {
+        "file": "model-00013-of-00018.safetensors",
+        "bytes": 2108759344,
+        "sha256": "06ab79a41f74c9c5cb734816feb0c7fc364104b227165ee7391231e1155aa02a",
+        "seconds": 93.11
+      },
+      {
+        "file": "model-00014-of-00018.safetensors",
+        "bytes": 3979553696,
+        "sha256": "4138ed94603065ba884bbcadedb04d7718bb40117e85e6f5c6fc5b9c05b7a85b",
+        "seconds": 109.88
+      },
+      {
+        "file": "model-00015-of-00018.safetensors",
+        "bytes": 2108759344,
+        "sha256": "69224e27b9de4e7dbf6fc936c6eaae08447bda3b80a6c31a871ab451173afd22",
+        "seconds": 93.52
+      },
+      {
+        "file": "model-00016-of-00018.safetensors",
+        "bytes": 3979564040,
+        "sha256": "73cb9a1089fb6155cb648609478d6633be8a5c7d9ca5a05bc8925ce8a553cefe",
+        "seconds": 154.15
+      },
+      {
+        "file": "model-00017-of-00018.safetensors",
+        "bytes": 2108759344,
+        "sha256": "beb51f01056142ac4984bd800507b0dd0fd18de57f8e9ef6ea41d1a3598983a8",
+        "seconds": 55.96
+      },
+      {
+        "file": "model-00018-of-00018.safetensors",
+        "bytes": 3392197344,
+        "sha256": "1d3479509e21494658f9b64d317f5ea8e55c4025d28c702d6c4d0b356ce8ea06",
+        "seconds": 84.08
+      },
+      {
+        "file": "model.safetensors.index.json",
+        "bytes": 112216,
+        "sha256": "77042094076611b69791a610065f28b7013b8c621795fa86ddccc8bac7d1b9df",
+        "seconds": 0.13
+      },
+      {
+        "file": "preprocessor_config.json",
+        "bytes": 390,
+        "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+        "seconds": 0.13
+      },
+      {
+        "file": "tokenizer.json",
+        "bytes": 12809320,
+        "sha256": "0997f410c57a1f4e53b09e4be8f4a172d90edd9564368fb0847030937229b9f3",
+        "seconds": 0.99
+      },
+      {
+        "file": "tokenizer_config.json",
+        "bytes": 17928,
+        "sha256": "b11349aafa7cdc6a320767cf7ceb29ed82f7eda5d65e8e0819e76f0ce947bf27",
+        "seconds": 0.23
+      },
+      {
+        "file": "video_preprocessor_config.json",
+        "bytes": 385,
+        "sha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+        "seconds": 0.18
+      },
+      {
+        "file": "vocab.json",
+        "bytes": 6722759,
+        "sha256": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003",
+        "seconds": 0.72
+      }
+    ]
+  },
+  "conversion": {
+    "complete": true,
+    "sourceRevision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+    "llamaCommit": "59d5fad7c111d30a547d690b69235ed9e05c035d",
+    "representation": "Q8_0",
+    "bytes": 29047084512,
+    "sha256": "bb54d1417996e1222387f5ed5e2c8d234e390cfb97f4068c8f97e7153ccaf293"
+  },
+  "spirvHeadersCommit": "86f980c731e62ae4eaf383d320449d71687936bf",
+  "serverPid": 3677178,
+  "memory": {
+    "maxProcessRssBytes": 2008825856,
+    "minSystemAvailableBytes": 30763954176,
+    "last": {
+      "time": 1792108329.6756697,
+      "availableBytes": 30821638144,
+      "rssBytes": 2008825856
+    },
+    "note": "Process RSS is not complete GPU allocation accounting."
+  },
+  "serverLog": "0.00.048.324 I srv  llama_server: initializing ...\n0.00.048.349 I cmn  common_param: common_params_print_info: verbosity = 3 (adjust with the `-lv N` CLI arg)\n0.00.050.269 W srv  llama_server: security: no API key is set and CORS allows all origins (see https://github.com/ggml-org/llama.cpp/pull/25655)\n0.00.052.747 I srv    load_model: loading model '/var/tmp/doppler-27b-baseline-20261015/qwen3.8-27b-q8_0.gguf'\n0.00.670.863 W model has unused tensor blk.64.attn_norm.weight (size = 20480 bytes) -- ignoring\n0.00.670.877 W model has unused tensor blk.64.post_attention_norm.weight (size = 20480 bytes) -- ignoring\n0.00.670.882 W model has unused tensor blk.64.attn_q.weight (size = 66846720 bytes) -- ignoring\n0.00.670.883 W model has unused tensor blk.64.attn_k.weight (size = 5570560 bytes) -- ignoring\n0.00.670.885 W model has unused tensor blk.64.attn_v.weight (size = 5570560 bytes) -- ignoring\n0.00.670.890 W model has unused tensor blk.64.attn_output.weight (size = 33423360 bytes) -- ignoring\n0.00.670.892 W model has unused tensor blk.64.attn_q_norm.weight (size = 1024 bytes) -- ignoring\n0.00.670.893 W model has unused tensor blk.64.attn_k_norm.weight (size = 1024 bytes) -- ignoring\n0.00.670.895 W model has unused tensor blk.64.ffn_gate.weight (size = 94699520 bytes) -- ignoring\n0.00.670.896 W model has unused tensor blk.64.ffn_down.weight (size = 94699520 bytes) -- ignoring\n0.00.670.897 W model has unused tensor blk.64.ffn_up.weight (size = 94699520 bytes) -- ignoring\n0.00.670.900 W model has unused tensor blk.64.nextn.eh_proj.weight (size = 55705600 bytes) -- ignoring\n0.00.670.903 W model has unused tensor blk.64.nextn.enorm.weight (size = 20480 bytes) -- ignoring\n0.00.670.905 W model has unused tensor blk.64.nextn.hnorm.weight (size = 20480 bytes) -- ignoring\n0.00.670.913 W model has unused tensor blk.64.nextn.shared_head_norm.weight (size = 20480 bytes) -- ignoring\n0.21.463.659 I cmn          init: llama threadpool init, n_threads = 4\n0.21.838.213 I srv    load_model: initializing, n_slots = 1, n_ctx_slot = 4096, kv_unified = 'false'\n0.21.840.787 W srv          init: chat template supports preserving reasoning, it is enabled by default (may use more tokens, disable via --no-reasoning-preserve)\n0.21.843.484 I srv  llama_server: model loaded\n0.21.843.492 I srv  llama_server: listening on http://127.0.0.1:17827\n0.32.961.307 I slot get_availabl: id  0 | task -1 | selected slot by LRU, n_tokens = 0, t_last = -1\n0.32.961.362 I slot launch_slot_: id  0 | task 0 | processing task, is_child = 0\n0.41.187.293 I slot print_timing: id  0 | task 0 | prompt eval time =     702.39 ms /    88 tokens (    7.98 ms per token,   125.29 tokens per second)\n0.41.187.297 I slot print_timing: id  0 | task 0 |        eval time =    7523.50 ms /    59 tokens (  129.72 ms per token,     7.71 tokens per second)\n0.41.187.298 I slot print_timing: id  0 | task 0 |       total time =    8225.89 ms /   147 tokens\n0.41.187.304 I slot print_timing: id  0 | task 0 |    graphs reused =         57\n0.41.187.305 I slot print_timing: id  0 | task 0 |   graph reallocs =          0    /     0        (same size) / (changed size)\n0.41.187.345 I slot      release: id  0 | task 0 | stop processing: n_tokens = 146, truncated = 0\n0.41.219.624 I slot get_availabl: id  0 | task -1 | selected slot by LCP similarity, f_sim_best = 0.834 (> 0.100 thold), f_keep = 1.000\n0.41.219.772 I slot launch_slot_: id  0 | task 62 | processing task, is_child = 0\n0.43.554.491 I slot print_timing: id  0 | task 62 | prompt eval time =     515.18 ms /    29 tokens (   17.76 ms per token,    56.29 tokens per second)\n0.43.554.495 I slot print_timing: id  0 | task 62 |        eval time =    1819.50 ms /    15 tokens (  129.96 ms per token,     7.69 tokens per second)\n0.43.554.495 I slot print_timing: id  0 | task 62 |       total time =    2334.69 ms /    44 tokens\n0.43.554.497 I slot print_timing: id  0 | task 62 |    graphs reused =         70\n0.43.554.497 I slot print_timing: id  0 | task 62 |   graph reallocs =          0    /     0        (same size) / (changed size)\n0.43.554.524 I slot      release: id  0 | task 62 | stop processing: n_tokens = 189, truncated = 0\n0.43.569.654 I slot get_availabl: id  0 | task -1 | selected slot by LCP similarity, f_sim_best = 0.107 (> 0.100 thold), f_keep = 0.016\n0.43.759.713 I slot launch_slot_: id  0 | task 80 | processing task, is_child = 0\n0.44.377.971 I slot print_timing: id  0 | task 80 | prompt eval time =     355.30 ms /    28 tokens (   12.69 ms per token,    78.81 tokens per second)\n0.44.377.975 I slot print_timing: id  0 | task 80 |        eval time =     262.92 ms /     3 tokens (  131.46 ms per token,     7.61 tokens per second)\n0.44.377.976 I slot print_timing: id  0 | task 80 |       total time =     618.21 ms /    31 tokens\n0.44.377.977 I slot print_timing: id  0 | task 80 |    graphs reused =         71\n0.44.377.977 I slot print_timing: id  0 | task 80 |   graph reallocs =          0    /     0        (same size) / (changed size)\n0.44.377.999 I slot      release: id  0 | task 80 | stop processing: n_tokens = 30, truncated = 0\n1.09.737.408 I slot get_availabl: id  0 | task -1 | selected slot by LRU, n_tokens = 30, t_last = 5204353804408\n1.09.846.069 I slot launch_slot_: id  0 | task 85 | processing task, is_child = 0\n1.17.532.071 I slot print_timing: id  0 | task 85 | prompt eval time =     203.85 ms /     4 tokens (   50.96 ms per token,    19.62 tokens per second)\n1.17.532.075 I slot print_timing: id  0 | task 85 |        eval time =    7482.11 ms /    59 tokens (  129.00 ms per token,     7.75 tokens per second)\n1.17.532.076 I slot print_timing: id  0 | task 85 |       total time =    7685.96 ms /    63 tokens\n1.17.532.077 I slot print_timing: id  0 | task 85 |    graphs reused =        128\n1.17.532.078 I slot print_timing: id  0 | task 85 |   graph reallocs =          0    /     0        (same size) / (changed size)\n1.17.532.102 I slot      release: id  0 | task 85 | stop processing: n_tokens = 146, truncated = 0\n1.17.558.616 I slot get_availabl: id  0 | task -1 | selected slot by LCP similarity, f_sim_best = 0.834 (> 0.100 thold), f_keep = 1.000\n1.17.558.776 I slot launch_slot_: id  0 | task 145 | processing task, is_child = 0\n1.19.894.415 I slot print_timing: id  0 | task 145 | prompt eval time =     527.18 ms /    29 tokens (   18.18 ms per token,    55.01 tokens per second)\n1.19.894.419 I slot print_timing: id  0 | task 145 |        eval time =    1808.41 ms /    15 tokens (  129.17 ms per token,     7.74 tokens per second)\n1.19.894.420 I slot print_timing: id  0 | task 145 |       total time =    2335.59 ms /    44 tokens\n1.19.894.421 I slot print_timing: id  0 | task 145 |    graphs reused =        141\n1.19.894.422 I slot print_timing: id  0 | task 145 |   graph reallocs =          0    /     0        (same size) / (changed size)\n1.19.894.450 I slot      release: id  0 | task 145 | stop processing: n_tokens = 189, truncated = 0\n1.19.915.868 I slot get_availabl: id  0 | task -1 | selected slot by LCP similarity, f_sim_best = 0.107 (> 0.100 thold), f_keep = 0.016\n1.20.183.210 I slot launch_slot_: id  0 | task 163 | processing task, is_child = 0\n1.20.643.008 I slot print_timing: id  0 | task 163 | prompt eval time =     197.82 ms /     4 tokens (   49.46 ms per token,    20.22 tokens per second)\n1.20.643.012 I slot print_timing: id  0 | task 163 |        eval time =     261.93 ms /     3 tokens (  130.97 ms per token,     7.64 tokens per second)\n1.20.643.013 I slot print_timing: id  0 | task 163 |       total time =     459.76 ms /     7 tokens\n1.20.643.014 I slot print_timing: id  0 | task 163 |    graphs reused =        142\n1.20.643.015 I slot print_timing: id  0 | task 163 |   graph reallocs =          0    /     0        (same size) / (changed size)\n1.20.643.035 I slot      release: id  0 | task 163 | stop processing: n_tokens = 30, truncated = 0\n2.13.263.928 I slot get_availabl: id  0 | task -1 | selected slot by LRU, n_tokens = 30, t_last = 5204390069444\n2.13.354.429 I slot launch_slot_: id  0 | task 167 | processing task, is_child = 0\n2.15.499.696 I slot print_timing: id  0 | task 167 | prompt eval time =    1882.81 ms /   350 tokens (    5.38 ms per token,   185.89 tokens per second)\n2.15.499.700 I slot print_timing: id  0 | task 167 |        eval time =     262.41 ms /     3 tokens (  131.20 ms per token,     7.62 tokens per second)\n2.15.499.701 I slot print_timing: id  0 | task 167 |       total time =    2145.22 ms /   353 tokens\n2.15.499.702 I slot print_timing: id  0 | task 167 |    graphs reused =        145\n2.15.499.703 I slot print_timing: id  0 | task 167 |   graph reallocs =          0    /     0        (same size) / (changed size)\n2.15.499.738 I slot      release: id  0 | task 167 | stop processing: n_tokens = 352, truncated = 0\n"
+}
