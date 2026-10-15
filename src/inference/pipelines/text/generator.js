@@ -519,21 +519,19 @@ export class PipelineGenerator {
   }
 
   async *generate(prompt, options = {}) {
-    if (this._state.modelConfig?.reasoningOutput != null) {
-      const decoder = createGenerationOutputDecoder(this._state.tokenizer,
-        this._state.modelConfig.reasoningOutput,
-        [...this._state.modelConfig.stopTokenIds, this._state.tokenizer.getSpecialTokens?.()?.eos]
-          .filter(Number.isSafeInteger));
-      try {
-        yield* decodeGenerationStream(this._generateTokensInternal(prompt, { ...options, onToken: undefined }, 'token'),
-          decoder, { ...options, getStopReason: () => this._state.stats.stopReason });
-      } finally {
-        const usage = decoder.getUsage();
-        if (usage.rawTokens > 0) this._state.stats.outputUsage = usage;
-      }
-      return;
+    if (!this._state.isLoaded) throw new Error('Model not loaded');
+    if (this._state.isGenerating) throw new Error('Generation already in progress');
+    const decoder = createGenerationOutputDecoder(this._state.tokenizer,
+      this._state.modelConfig?.reasoningOutput,
+      [...this._state.modelConfig.stopTokenIds, this._state.tokenizer.getSpecialTokens?.()?.eos]
+        .filter(Number.isSafeInteger));
+    try {
+      yield* decodeGenerationStream(this._generateTokensInternal(prompt, { ...options, onToken: undefined }, 'token'),
+        decoder, { ...options, getStopReason: () => this._state.stats.stopReason });
+    } finally {
+      const usage = decoder.getUsage?.();
+      if (usage?.rawTokens > 0) this._state.stats.outputUsage = usage;
     }
-    yield* this._generateTokensInternal(prompt, options, 'text');
   }
 
   async *generateTokens(prompt, options = {}) {
@@ -577,22 +575,20 @@ export class PipelineGenerator {
   }
 
   async *generateWithPrefixKV(prefix, prompt, options = {}) {
-    if (this._state.modelConfig?.reasoningOutput != null) {
-      const decoder = createGenerationOutputDecoder(this._state.tokenizer,
-        this._state.modelConfig.reasoningOutput,
-        [...this._state.modelConfig.stopTokenIds, this._state.tokenizer.getSpecialTokens?.()?.eos]
-          .filter(Number.isSafeInteger));
-      try {
-        yield* decodeGenerationStream(generateWithPrefixKVImpl.call(this, prefix, prompt,
-          { ...options, onToken: undefined }, 'token'), decoder,
-          { ...options, getStopReason: () => this._state.stats.stopReason });
-      } finally {
-        const usage = decoder.getUsage();
-        if (usage.rawTokens > 0) this._state.stats.outputUsage = usage;
-      }
-      return;
+    if (!this._state.isLoaded) throw new Error('Model not loaded');
+    if (this._state.isGenerating) throw new Error('Generation already in progress');
+    const decoder = createGenerationOutputDecoder(this._state.tokenizer,
+      this._state.modelConfig?.reasoningOutput,
+      [...this._state.modelConfig.stopTokenIds, this._state.tokenizer.getSpecialTokens?.()?.eos]
+        .filter(Number.isSafeInteger));
+    try {
+      yield* decodeGenerationStream(generateWithPrefixKVImpl.call(this, prefix, prompt,
+        { ...options, onToken: undefined }, 'token'), decoder,
+        { ...options, getStopReason: () => this._state.stats.stopReason });
+    } finally {
+      const usage = decoder.getUsage?.();
+      if (usage?.rawTokens > 0) this._state.stats.outputUsage = usage;
     }
-    return yield* generateWithPrefixKVImpl.apply(this, arguments);
   }
 
   // ==========================================================================
