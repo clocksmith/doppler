@@ -1,0 +1,74 @@
+{
+  "ok": true,
+  "forgeVersion": "2.0.0",
+  "outputPath": "../../../../var/tmp/qwen35-capsule-faster-20261015-2/capsule.json",
+  "absoluteOutputPath": "/var/tmp/qwen35-capsule-faster-20261015-2/capsule.json",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v2-2990d25fa9753668",
+  "semanticRoot": "sha256:2990d25fa97536688d52eb5faf3add5f424923bf2b71ae26e3258c95060dbc46",
+  "envelopeHash": "sha256:e1b89e458418406bd209d0ee965dd0849f7d3731aa586a8a4fcae8981eaf567a",
+  "schema": "doppler.capsule/v2",
+  "schemaVersion": 2,
+  "createdAtUtc": "2026-10-15T01:51:29.997Z",
+  "sourceBundleId": "qwen-3-5-0-8b-q4k-ehaf16-334d27cd8140",
+  "programBundlePath": "/var/tmp/qwen35-capsule-faster-20261015-2/artifacts/program-bundle.json",
+  "executionGraphHash": "sha256:334d27cd8140cb865e13b069e31bab49608cbb014372d717b053316bc3e478d8",
+  "artifactCount": 67,
+  "wgslModuleCount": 38,
+  "targetPlanDigests": [
+    "sha256:14e49729f0e40cf5e02a71028f355cc4752f22cafd40aad2075d4af4e593d56b"
+  ],
+  "stages": [
+    {
+      "stage": "inspect",
+      "ok": true
+    },
+    {
+      "stage": "normalize",
+      "ok": true
+    },
+    {
+      "stage": "analyze",
+      "ok": true
+    },
+    {
+      "stage": "lower",
+      "ok": true
+    },
+    {
+      "stage": "specialize",
+      "ok": true
+    },
+    {
+      "stage": "search",
+      "ok": true
+    },
+    {
+      "stage": "verify",
+      "ok": true
+    },
+    {
+      "stage": "qualify",
+      "ok": true
+    },
+    {
+      "stage": "package",
+      "ok": true
+    },
+    {
+      "stage": "sign",
+      "ok": true
+    }
+  ],
+  "searchReceipt": {
+    "candidateTargetPlanHashes": [
+      "sha256:14e49729f0e40cf5e02a71028f355cc4752f22cafd40aad2075d4af4e593d56b"
+    ],
+    "selectedTargetPlanHashes": [
+      "sha256:14e49729f0e40cf5e02a71028f355cc4752f22cafd40aad2075d4af4e593d56b"
+    ],
+    "policy": "closed-program-source-plan",
+    "evaluationReceipt": null
+  },
+  "candidateEvaluation": null
+}

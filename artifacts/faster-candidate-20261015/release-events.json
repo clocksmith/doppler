@@ -1,0 +1,992 @@
+[
+  {
+    "capsule": {
+      "schema": "doppler.capsule/v3",
+      "semanticRoot": "sha256:73da7f55117f895e9d17a1dd811e411c6e4631596f70941042559c3d0a344142",
+      "envelopeDigest": "sha256:bd250a2162196f5988c806dcda48a79f14724bd8d373744d4ab9582c613ecafd"
+    },
+    "sequence": 1,
+    "previousEventDigest": null,
+    "issuedAtUtc": "2026-10-13T01:18:58.518Z",
+    "expiresAtUtc": "2026-10-14T01:18:58.518Z",
+    "action": "eligible",
+    "release": {
+      "application": {
+        "applicationId": "reploid-resident-qualification",
+        "applicationRevision": "sha256:397f4efbf47a8300660fa2e8b11761a3586c0d537044037d904aef255097ed3e",
+        "applicationRevisionDigest": "sha256:397f4efbf47a8300660fa2e8b11761a3586c0d537044037d904aef255097ed3e",
+        "oracle": {
+          "digest": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+          "id": "approved-independent-f64"
+        },
+        "workload": {
+          "digest": "sha256:794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e",
+          "id": "frozen-three-request-fifty-five-prefixes"
+        }
+      },
+      "exclusions": {
+        "known": [
+          {
+            "code": "application-gate-failed",
+            "evidenceDigest": "sha256:ca6394f2caeb7a73b5fef09d17deb0a1e85aa0656c23319b7bcbe4bb82e6a8c1",
+            "reason": "Direct browser/Node resident numerical comparison passed; signed opening, demanding concurrency and document usefulness remain unqualified. Local qualification only.",
+            "scope": "public-chat-release"
+          },
+          {
+            "code": "unsupported-device",
+            "evidenceDigest": "sha256:ca6394f2caeb7a73b5fef09d17deb0a1e85aa0656c23319b7bcbe4bb82e6a8c1",
+            "reason": "Evidence covers the recorded Mac browser and AMD Node provider in both partition roles. Other providers, browser AMD on these exact bytes and Suby are not qualified by these reports.",
+            "scope": "unobserved-gpu-provider-tuples"
+          },
+          {
+            "code": "application-gate-failed",
+            "evidenceDigest": "sha256:ca6394f2caeb7a73b5fef09d17deb0a1e85aa0656c23319b7bcbe4bb82e6a8c1",
+            "reason": "Cold AMD Node recurrent pipeline preparation took 743.124 seconds and exceeded the 300-second responsiveness bound; subsequent execution did not establish fast startup.",
+            "scope": "cold-start-responsiveness"
+          }
+        ],
+        "rejectionTypes": [
+          "acceptance-failed",
+          "application-gate-failed",
+          "artifact-invalid",
+          "evidence-expired",
+          "migration-required",
+          "revoked",
+          "unsupported-device"
+        ]
+      },
+      "lifecycle": {
+        "failedUpgrade": {
+          "preservePrevious": true,
+          "previousCapsuleId": null,
+          "previousSemanticRoot": null
+        },
+        "migration": null,
+        "releaseVersion": "0.6.28",
+        "supersedes": null
+      },
+      "revocation": {
+        "authorityId": "reploid-paired-qualification-20261012",
+        "failClosedAfterExpiry": true,
+        "offlineExpirySeconds": 86400,
+        "policyDigest": "sha256:3ff0fdad48e10bd5fb7bc6a5b6b27a439991cba44094d062278d79009dfc95b9"
+      },
+      "schema": "doppler.capsule-release/v1",
+      "source": {
+        "license": {
+          "name": "Apache License 2.0",
+          "sourceUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "spdxId": "Apache-2.0",
+          "textDigest": "sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        "provenanceDigest": "sha256:55ef3a95c0433e7217486db2c8303c5e76c9d22fba5397de94a469762bc8451a",
+        "repository": "Qwen/Qwen3.5-0.8B",
+        "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+        "revisionDigest": "sha256:f5a57c56e7984f26bbff2b4c10ef7bef4478f8a9401cc712a3e3188af34d05ce"
+      },
+      "stateSnapshot": {
+        "format": "declared-state-identity-only",
+        "identityDigest": "sha256:54c235c3767687c879fa1f1ef30260875b3a21c7bd171a863f292cc0feac7771",
+        "portableAcrossTargetIds": [
+          "webgpu-f32-f16-portable"
+        ],
+        "schema": "doppler.capsule-state-snapshot/v1"
+      }
+    },
+    "migratedFrom": {
+      "schema": "doppler.capsule/v2",
+      "semanticRoot": "sha256:ac52a5584cb7ee58cd7bd73373d123061c6739692343fe84eeb2847145fc843d",
+      "envelopeDigest": "sha256:38e7ffb5446d2835f9ab7885bd5236a2751c4c23b4d431dce2981a05bf806a56"
+    },
+    "nextSigner": null,
+    "schema": "doppler.capsule-release-event/v1",
+    "digest": "sha256:d47ddb8d6f45b23230fbf2cf1731122ccc6160c51a968e616ff6cf366bf8c9d2",
+    "signature": {
+      "authority": "reploid-paired-qualification-20261012",
+      "algorithm": "Ed25519",
+      "publicKeyDigest": "sha256:cddc8e43da370860a974cf759b19726bf5e7f9c5d7c0a2a84abb6c9d34ab2d53",
+      "signatureHex": "0d6c1dca682a13727fbc4b4fefadb6bc588ab7d9176a0ad95a0594e6445c72d08e2b6e227671f7319ac0ea4c45eb1b9ae48eac6972ade39c8ecfc11ebef90e0f",
+      "signedDigest": "sha256:d47ddb8d6f45b23230fbf2cf1731122ccc6160c51a968e616ff6cf366bf8c9d2"
+    }
+  },
+  {
+    "capsule": {
+      "schema": "doppler.capsule/v3",
+      "semanticRoot": "sha256:67f240af03e77a892eb1cc724000dd11e580ad180405b426b0f62e5c309b3fe1",
+      "envelopeDigest": "sha256:dc49c93429868710cb61ec08774b0be7aa6dd62ff0c8710c3bb857a72627541b"
+    },
+    "sequence": 2,
+    "previousEventDigest": "sha256:d47ddb8d6f45b23230fbf2cf1731122ccc6160c51a968e616ff6cf366bf8c9d2",
+    "issuedAtUtc": "2026-10-14T02:14:39.006Z",
+    "expiresAtUtc": "2026-10-15T02:14:39.006Z",
+    "action": "eligible",
+    "release": {
+      "application": {
+        "applicationId": "reploid-resident-qualification",
+        "applicationRevision": "sha256:3f6d98a0dbf9f83a11e87f28b6483291618c9073756604b5e6e3c609736ecdf6",
+        "applicationRevisionDigest": "sha256:3f6d98a0dbf9f83a11e87f28b6483291618c9073756604b5e6e3c609736ecdf6",
+        "oracle": {
+          "digest": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+          "id": "approved-independent-f64"
+        },
+        "workload": {
+          "digest": "sha256:794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e",
+          "id": "frozen-three-request-fifty-five-prefixes"
+        }
+      },
+      "exclusions": {
+        "known": [
+          {
+            "code": "application-gate-failed",
+            "evidenceDigest": "sha256:4d4e0b9e5ba42d6e3c300aa47e90d53091919cb7d6f59189e87231c78b48a134",
+            "reason": "Direct three-stage resident numerical comparison passed; signed opening, installed conversations and concurrency remain unqualified. Local qualification only.",
+            "scope": "public-chat-release"
+          },
+          {
+            "code": "unsupported-device",
+            "evidenceDigest": "sha256:4d4e0b9e5ba42d6e3c300aa47e90d53091919cb7d6f59189e87231c78b48a134",
+            "reason": "Evidence covers the recorded Mac browser, AMD Node and Intel Node providers in their recorded partition roles only. Other providers and other role assignments are not qualified by these reports.",
+            "scope": "unobserved-gpu-provider-tuples"
+          },
+          {
+            "code": "application-gate-failed",
+            "evidenceDigest": "sha256:4d4e0b9e5ba42d6e3c300aa47e90d53091919cb7d6f59189e87231c78b48a134",
+            "reason": "Qualification used retained driver caches on shared hosts; cold-start responsiveness is not established for this runtime.",
+            "scope": "cold-start-responsiveness"
+          }
+        ],
+        "rejectionTypes": [
+          "acceptance-failed",
+          "application-gate-failed",
+          "artifact-invalid",
+          "evidence-expired",
+          "migration-required",
+          "revoked",
+          "unsupported-device"
+        ]
+      },
+      "lifecycle": {
+        "failedUpgrade": {
+          "preservePrevious": true,
+          "previousCapsuleId": null,
+          "previousSemanticRoot": null
+        },
+        "migration": null,
+        "releaseVersion": "0.6.28",
+        "supersedes": null
+      },
+      "revocation": {
+        "authorityId": "reploid-paired-qualification-20261012",
+        "failClosedAfterExpiry": true,
+        "offlineExpirySeconds": 86400,
+        "policyDigest": "sha256:c0692294e2ba6643ce3e13b875525e0b39d8d378703d2c12e9697f4eef8c26a6"
+      },
+      "schema": "doppler.capsule-release/v1",
+      "source": {
+        "license": {
+          "name": "Apache License 2.0",
+          "sourceUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "spdxId": "Apache-2.0",
+          "textDigest": "sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        "provenanceDigest": "sha256:55ef3a95c0433e7217486db2c8303c5e76c9d22fba5397de94a469762bc8451a",
+        "repository": "Qwen/Qwen3.5-0.8B",
+        "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+        "revisionDigest": "sha256:f5a57c56e7984f26bbff2b4c10ef7bef4478f8a9401cc712a3e3188af34d05ce"
+      },
+      "stateSnapshot": {
+        "format": "declared-state-identity-only",
+        "identityDigest": "sha256:54c235c3767687c879fa1f1ef30260875b3a21c7bd171a863f292cc0feac7771",
+        "portableAcrossTargetIds": [
+          "webgpu-f32-f16-portable"
+        ],
+        "schema": "doppler.capsule-state-snapshot/v1"
+      }
+    },
+    "migratedFrom": {
+      "schema": "doppler.capsule/v2",
+      "semanticRoot": "sha256:e90af66faf52404f5927ae26982546f6cd403f460b1f2dd815e33e0e967f5bd9",
+      "envelopeDigest": "sha256:0cec6b019fd60387f9984f4f96b45ba9a79145215446a909807d96208c93af1c"
+    },
+    "nextSigner": null,
+    "schema": "doppler.capsule-release-event/v1",
+    "digest": "sha256:923ac7e602b3075a17f9e540eb0abfd436eaf1de41bebf8b6f15bdaee604b45f",
+    "signature": {
+      "authority": "reploid-paired-qualification-20261012",
+      "algorithm": "Ed25519",
+      "publicKeyDigest": "sha256:cddc8e43da370860a974cf759b19726bf5e7f9c5d7c0a2a84abb6c9d34ab2d53",
+      "signatureHex": "7603a0fa0a3c93afed96b54d7289224a79d199ccb3c878579a50ae15589cff6cdca6f7411a316876e9bdea19b51d4b5a9c51ce86e343256415354f5a027e420a",
+      "signedDigest": "sha256:923ac7e602b3075a17f9e540eb0abfd436eaf1de41bebf8b6f15bdaee604b45f"
+    }
+  },
+  {
+    "capsule": {
+      "schema": "doppler.capsule/v3",
+      "semanticRoot": "sha256:67f240af03e77a892eb1cc724000dd11e580ad180405b426b0f62e5c309b3fe1",
+      "envelopeDigest": "sha256:dc49c93429868710cb61ec08774b0be7aa6dd62ff0c8710c3bb857a72627541b"
+    },
+    "sequence": 3,
+    "previousEventDigest": "sha256:923ac7e602b3075a17f9e540eb0abfd436eaf1de41bebf8b6f15bdaee604b45f",
+    "issuedAtUtc": "2026-10-14T12:32:31.478Z",
+    "expiresAtUtc": "2026-10-15T12:32:31.478Z",
+    "action": "eligible",
+    "release": {
+      "application": {
+        "applicationId": "reploid-resident-qualification",
+        "applicationRevision": "sha256:3f6d98a0dbf9f83a11e87f28b6483291618c9073756604b5e6e3c609736ecdf6",
+        "applicationRevisionDigest": "sha256:3f6d98a0dbf9f83a11e87f28b6483291618c9073756604b5e6e3c609736ecdf6",
+        "oracle": {
+          "digest": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+          "id": "approved-independent-f64"
+        },
+        "workload": {
+          "digest": "sha256:794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e",
+          "id": "frozen-three-request-fifty-five-prefixes"
+        }
+      },
+      "exclusions": {
+        "known": [
+          {
+            "code": "application-gate-failed",
+            "evidenceDigest": "sha256:4d4e0b9e5ba42d6e3c300aa47e90d53091919cb7d6f59189e87231c78b48a134",
+            "reason": "Direct three-stage resident numerical comparison passed; signed opening, installed conversations and concurrency remain unqualified. Local qualification only.",
+            "scope": "public-chat-release"
+          },
+          {
+            "code": "unsupported-device",
+            "evidenceDigest": "sha256:4d4e0b9e5ba42d6e3c300aa47e90d53091919cb7d6f59189e87231c78b48a134",
+            "reason": "Evidence covers the recorded Mac browser, AMD Node and Intel Node providers in their recorded partition roles only. Other providers and other role assignments are not qualified by these reports.",
+            "scope": "unobserved-gpu-provider-tuples"
+          },
+          {
+            "code": "application-gate-failed",
+            "evidenceDigest": "sha256:4d4e0b9e5ba42d6e3c300aa47e90d53091919cb7d6f59189e87231c78b48a134",
+            "reason": "Qualification used retained driver caches on shared hosts; cold-start responsiveness is not established for this runtime.",
+            "scope": "cold-start-responsiveness"
+          }
+        ],
+        "rejectionTypes": [
+          "acceptance-failed",
+          "application-gate-failed",
+          "artifact-invalid",
+          "evidence-expired",
+          "migration-required",
+          "revoked",
+          "unsupported-device"
+        ]
+      },
+      "lifecycle": {
+        "failedUpgrade": {
+          "preservePrevious": true,
+          "previousCapsuleId": null,
+          "previousSemanticRoot": null
+        },
+        "migration": null,
+        "releaseVersion": "0.6.28",
+        "supersedes": null
+      },
+      "revocation": {
+        "authorityId": "reploid-paired-qualification-20261012",
+        "failClosedAfterExpiry": true,
+        "offlineExpirySeconds": 86400,
+        "policyDigest": "sha256:c0692294e2ba6643ce3e13b875525e0b39d8d378703d2c12e9697f4eef8c26a6"
+      },
+      "schema": "doppler.capsule-release/v1",
+      "source": {
+        "license": {
+          "name": "Apache License 2.0",
+          "sourceUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "spdxId": "Apache-2.0",
+          "textDigest": "sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        "provenanceDigest": "sha256:55ef3a95c0433e7217486db2c8303c5e76c9d22fba5397de94a469762bc8451a",
+        "repository": "Qwen/Qwen3.5-0.8B",
+        "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+        "revisionDigest": "sha256:f5a57c56e7984f26bbff2b4c10ef7bef4478f8a9401cc712a3e3188af34d05ce"
+      },
+      "stateSnapshot": {
+        "format": "declared-state-identity-only",
+        "identityDigest": "sha256:54c235c3767687c879fa1f1ef30260875b3a21c7bd171a863f292cc0feac7771",
+        "portableAcrossTargetIds": [
+          "webgpu-f32-f16-portable"
+        ],
+        "schema": "doppler.capsule-state-snapshot/v1"
+      }
+    },
+    "migratedFrom": {
+      "schema": "doppler.capsule/v2",
+      "semanticRoot": "sha256:e90af66faf52404f5927ae26982546f6cd403f460b1f2dd815e33e0e967f5bd9",
+      "envelopeDigest": "sha256:0cec6b019fd60387f9984f4f96b45ba9a79145215446a909807d96208c93af1c"
+    },
+    "nextSigner": null,
+    "schema": "doppler.capsule-release-event/v1",
+    "digest": "sha256:74ab985fb86baa7fe0c283bd9dabfb536b4a077e7942e9419eeca661500dea6a",
+    "signature": {
+      "authority": "reploid-paired-qualification-20261012",
+      "algorithm": "Ed25519",
+      "publicKeyDigest": "sha256:cddc8e43da370860a974cf759b19726bf5e7f9c5d7c0a2a84abb6c9d34ab2d53",
+      "signatureHex": "273f9c85dba44b1052387778d0b3ffa984c6c65f0112c5ec787283b35ac167ee50d520fb4e4d5ef5c324d074d279dcdbe7e170f01b5d86e5554f1170f1297c01",
+      "signedDigest": "sha256:74ab985fb86baa7fe0c283bd9dabfb536b4a077e7942e9419eeca661500dea6a"
+    }
+  },
+  {
+    "capsule": {
+      "schema": "doppler.capsule/v3",
+      "semanticRoot": "sha256:171132d428ce64eaf706c637ee22fea0103f50a21e39e9899cac5d91b5f94234",
+      "envelopeDigest": "sha256:3b4a3e3d308be8fd5e9d0c9fe2cae7a6d06398d2a859b3f00b130225a017bd95"
+    },
+    "sequence": 4,
+    "previousEventDigest": "sha256:74ab985fb86baa7fe0c283bd9dabfb536b4a077e7942e9419eeca661500dea6a",
+    "issuedAtUtc": "2026-10-14T13:21:16.819Z",
+    "expiresAtUtc": "2026-10-15T13:21:16.819Z",
+    "action": "eligible",
+    "release": {
+      "application": {
+        "applicationId": "reploid-resident-qualification",
+        "applicationRevision": "sha256:3f6d98a0dbf9f83a11e87f28b6483291618c9073756604b5e6e3c609736ecdf6",
+        "applicationRevisionDigest": "sha256:3f6d98a0dbf9f83a11e87f28b6483291618c9073756604b5e6e3c609736ecdf6",
+        "oracle": {
+          "digest": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+          "id": "approved-independent-f64"
+        },
+        "workload": {
+          "digest": "sha256:794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e",
+          "id": "frozen-three-request-fifty-five-prefixes"
+        }
+      },
+      "exclusions": {
+        "known": [
+          {
+            "code": "application-gate-failed",
+            "evidenceDigest": "sha256:daaf4a7e258a235cf882c5e94f19a29b2208665e769d5a9cafbde6a4faa98a94",
+            "reason": "Direct three-stage resident numerical comparison passed with prefill chunked at 16 tokens; installed conversations under this Capsule remain unqualified. Local qualification only.",
+            "scope": "public-chat-release"
+          },
+          {
+            "code": "unsupported-device",
+            "evidenceDigest": "sha256:daaf4a7e258a235cf882c5e94f19a29b2208665e769d5a9cafbde6a4faa98a94",
+            "reason": "Evidence covers the recorded providers in this partition order only: mac-host, intel-host, amd-host. Other providers and other role assignments are not qualified by these reports.",
+            "scope": "unobserved-gpu-provider-tuples"
+          },
+          {
+            "code": "application-gate-failed",
+            "evidenceDigest": "sha256:daaf4a7e258a235cf882c5e94f19a29b2208665e769d5a9cafbde6a4faa98a94",
+            "reason": "Qualification used retained driver caches on shared hosts; cold-start responsiveness is not established for this runtime.",
+            "scope": "cold-start-responsiveness"
+          }
+        ],
+        "rejectionTypes": [
+          "acceptance-failed",
+          "application-gate-failed",
+          "artifact-invalid",
+          "evidence-expired",
+          "migration-required",
+          "revoked",
+          "unsupported-device"
+        ]
+      },
+      "lifecycle": {
+        "failedUpgrade": {
+          "preservePrevious": true,
+          "previousCapsuleId": null,
+          "previousSemanticRoot": null
+        },
+        "migration": null,
+        "releaseVersion": "0.6.28",
+        "supersedes": null
+      },
+      "revocation": {
+        "authorityId": "reploid-paired-qualification-20261012",
+        "failClosedAfterExpiry": true,
+        "offlineExpirySeconds": 86400,
+        "policyDigest": "sha256:c0692294e2ba6643ce3e13b875525e0b39d8d378703d2c12e9697f4eef8c26a6"
+      },
+      "schema": "doppler.capsule-release/v1",
+      "source": {
+        "license": {
+          "name": "Apache License 2.0",
+          "sourceUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "spdxId": "Apache-2.0",
+          "textDigest": "sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        "provenanceDigest": "sha256:55ef3a95c0433e7217486db2c8303c5e76c9d22fba5397de94a469762bc8451a",
+        "repository": "Qwen/Qwen3.5-0.8B",
+        "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+        "revisionDigest": "sha256:f5a57c56e7984f26bbff2b4c10ef7bef4478f8a9401cc712a3e3188af34d05ce"
+      },
+      "stateSnapshot": {
+        "format": "declared-state-identity-only",
+        "identityDigest": "sha256:54c235c3767687c879fa1f1ef30260875b3a21c7bd171a863f292cc0feac7771",
+        "portableAcrossTargetIds": [
+          "webgpu-f32-f16-portable"
+        ],
+        "schema": "doppler.capsule-state-snapshot/v1"
+      }
+    },
+    "migratedFrom": {
+      "schema": "doppler.capsule/v2",
+      "semanticRoot": "sha256:3c8c47e0d9943994655e795e495054e37153bf5eda018c3428c16e0a3eca8795",
+      "envelopeDigest": "sha256:e3c81fb75a673f4d4769a38e8d801ad8ff9764808c61d6eaa1a72d2854c42665"
+    },
+    "nextSigner": null,
+    "schema": "doppler.capsule-release-event/v1",
+    "digest": "sha256:7f62c19a88165fded22d857860da729cb82f02a69f30e6f48765f35f1195ee45",
+    "signature": {
+      "authority": "reploid-paired-qualification-20261012",
+      "algorithm": "Ed25519",
+      "publicKeyDigest": "sha256:cddc8e43da370860a974cf759b19726bf5e7f9c5d7c0a2a84abb6c9d34ab2d53",
+      "signatureHex": "c80deb096ca65bf8a3c1e21e68cea3741c1fa681d2db87b6723dc8bb9780c55bc458263562e0d7bcf105bad1179bc8308c3a004c0f2ebd4da897464f9830dc04",
+      "signedDigest": "sha256:7f62c19a88165fded22d857860da729cb82f02a69f30e6f48765f35f1195ee45"
+    }
+  },
+  {
+    "capsule": {
+      "schema": "doppler.capsule/v3",
+      "semanticRoot": "sha256:171132d428ce64eaf706c637ee22fea0103f50a21e39e9899cac5d91b5f94234",
+      "envelopeDigest": "sha256:3b4a3e3d308be8fd5e9d0c9fe2cae7a6d06398d2a859b3f00b130225a017bd95"
+    },
+    "sequence": 5,
+    "previousEventDigest": "sha256:7f62c19a88165fded22d857860da729cb82f02a69f30e6f48765f35f1195ee45",
+    "issuedAtUtc": "2026-10-14T16:14:00.836Z",
+    "expiresAtUtc": "2026-10-15T16:14:00.836Z",
+    "action": "eligible",
+    "release": {
+      "application": {
+        "applicationId": "reploid-resident-qualification",
+        "applicationRevision": "sha256:3f6d98a0dbf9f83a11e87f28b6483291618c9073756604b5e6e3c609736ecdf6",
+        "applicationRevisionDigest": "sha256:3f6d98a0dbf9f83a11e87f28b6483291618c9073756604b5e6e3c609736ecdf6",
+        "oracle": {
+          "digest": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+          "id": "approved-independent-f64"
+        },
+        "workload": {
+          "digest": "sha256:794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e",
+          "id": "frozen-three-request-fifty-five-prefixes"
+        }
+      },
+      "exclusions": {
+        "known": [
+          {
+            "code": "application-gate-failed",
+            "evidenceDigest": "sha256:daaf4a7e258a235cf882c5e94f19a29b2208665e769d5a9cafbde6a4faa98a94",
+            "reason": "Direct three-stage resident numerical comparison passed with prefill chunked at 16 tokens; installed conversations under this Capsule remain unqualified. Local qualification only.",
+            "scope": "public-chat-release"
+          },
+          {
+            "code": "unsupported-device",
+            "evidenceDigest": "sha256:daaf4a7e258a235cf882c5e94f19a29b2208665e769d5a9cafbde6a4faa98a94",
+            "reason": "Evidence covers the recorded providers in this partition order only: mac-host, intel-host, amd-host. Other providers and other role assignments are not qualified by these reports.",
+            "scope": "unobserved-gpu-provider-tuples"
+          },
+          {
+            "code": "application-gate-failed",
+            "evidenceDigest": "sha256:daaf4a7e258a235cf882c5e94f19a29b2208665e769d5a9cafbde6a4faa98a94",
+            "reason": "Qualification used retained driver caches on shared hosts; cold-start responsiveness is not established for this runtime.",
+            "scope": "cold-start-responsiveness"
+          }
+        ],
+        "rejectionTypes": [
+          "acceptance-failed",
+          "application-gate-failed",
+          "artifact-invalid",
+          "evidence-expired",
+          "migration-required",
+          "revoked",
+          "unsupported-device"
+        ]
+      },
+      "lifecycle": {
+        "failedUpgrade": {
+          "preservePrevious": true,
+          "previousCapsuleId": null,
+          "previousSemanticRoot": null
+        },
+        "migration": null,
+        "releaseVersion": "0.6.28",
+        "supersedes": null
+      },
+      "revocation": {
+        "authorityId": "reploid-paired-qualification-20261012",
+        "failClosedAfterExpiry": true,
+        "offlineExpirySeconds": 86400,
+        "policyDigest": "sha256:c0692294e2ba6643ce3e13b875525e0b39d8d378703d2c12e9697f4eef8c26a6"
+      },
+      "schema": "doppler.capsule-release/v1",
+      "source": {
+        "license": {
+          "name": "Apache License 2.0",
+          "sourceUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "spdxId": "Apache-2.0",
+          "textDigest": "sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        "provenanceDigest": "sha256:55ef3a95c0433e7217486db2c8303c5e76c9d22fba5397de94a469762bc8451a",
+        "repository": "Qwen/Qwen3.5-0.8B",
+        "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+        "revisionDigest": "sha256:f5a57c56e7984f26bbff2b4c10ef7bef4478f8a9401cc712a3e3188af34d05ce"
+      },
+      "stateSnapshot": {
+        "format": "declared-state-identity-only",
+        "identityDigest": "sha256:54c235c3767687c879fa1f1ef30260875b3a21c7bd171a863f292cc0feac7771",
+        "portableAcrossTargetIds": [
+          "webgpu-f32-f16-portable"
+        ],
+        "schema": "doppler.capsule-state-snapshot/v1"
+      }
+    },
+    "migratedFrom": {
+      "schema": "doppler.capsule/v2",
+      "semanticRoot": "sha256:3c8c47e0d9943994655e795e495054e37153bf5eda018c3428c16e0a3eca8795",
+      "envelopeDigest": "sha256:e3c81fb75a673f4d4769a38e8d801ad8ff9764808c61d6eaa1a72d2854c42665"
+    },
+    "nextSigner": null,
+    "schema": "doppler.capsule-release-event/v1",
+    "digest": "sha256:70f24c979f6b08c25827de341f5b08ab441b1c30fdca6bcec019a596c3ed71d2",
+    "signature": {
+      "authority": "reploid-paired-qualification-20261012",
+      "algorithm": "Ed25519",
+      "publicKeyDigest": "sha256:cddc8e43da370860a974cf759b19726bf5e7f9c5d7c0a2a84abb6c9d34ab2d53",
+      "signatureHex": "3a0acb9d0eabfdbc79c4210d35f23d261e34b04855c980648f535a8403772921b1e0ea3f3fd2575c8ae89098e05878332c16a640eab9eb5d7d81a5e1a051600a",
+      "signedDigest": "sha256:70f24c979f6b08c25827de341f5b08ab441b1c30fdca6bcec019a596c3ed71d2"
+    }
+  },
+  {
+    "capsule": {
+      "schema": "doppler.capsule/v3",
+      "semanticRoot": "sha256:171132d428ce64eaf706c637ee22fea0103f50a21e39e9899cac5d91b5f94234",
+      "envelopeDigest": "sha256:3b4a3e3d308be8fd5e9d0c9fe2cae7a6d06398d2a859b3f00b130225a017bd95"
+    },
+    "sequence": 6,
+    "previousEventDigest": "sha256:70f24c979f6b08c25827de341f5b08ab441b1c30fdca6bcec019a596c3ed71d2",
+    "issuedAtUtc": "2026-10-14T19:34:07.241Z",
+    "expiresAtUtc": "2026-10-15T19:34:07.241Z",
+    "action": "eligible",
+    "release": {
+      "application": {
+        "applicationId": "reploid-resident-qualification",
+        "applicationRevision": "sha256:3f6d98a0dbf9f83a11e87f28b6483291618c9073756604b5e6e3c609736ecdf6",
+        "applicationRevisionDigest": "sha256:3f6d98a0dbf9f83a11e87f28b6483291618c9073756604b5e6e3c609736ecdf6",
+        "oracle": {
+          "digest": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+          "id": "approved-independent-f64"
+        },
+        "workload": {
+          "digest": "sha256:794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e",
+          "id": "frozen-three-request-fifty-five-prefixes"
+        }
+      },
+      "exclusions": {
+        "known": [
+          {
+            "code": "application-gate-failed",
+            "evidenceDigest": "sha256:daaf4a7e258a235cf882c5e94f19a29b2208665e769d5a9cafbde6a4faa98a94",
+            "reason": "Direct three-stage resident numerical comparison passed with prefill chunked at 16 tokens; installed conversations under this Capsule remain unqualified. Local qualification only.",
+            "scope": "public-chat-release"
+          },
+          {
+            "code": "unsupported-device",
+            "evidenceDigest": "sha256:daaf4a7e258a235cf882c5e94f19a29b2208665e769d5a9cafbde6a4faa98a94",
+            "reason": "Evidence covers the recorded providers in this partition order only: mac-host, intel-host, amd-host. Other providers and other role assignments are not qualified by these reports.",
+            "scope": "unobserved-gpu-provider-tuples"
+          },
+          {
+            "code": "application-gate-failed",
+            "evidenceDigest": "sha256:daaf4a7e258a235cf882c5e94f19a29b2208665e769d5a9cafbde6a4faa98a94",
+            "reason": "Qualification used retained driver caches on shared hosts; cold-start responsiveness is not established for this runtime.",
+            "scope": "cold-start-responsiveness"
+          }
+        ],
+        "rejectionTypes": [
+          "acceptance-failed",
+          "application-gate-failed",
+          "artifact-invalid",
+          "evidence-expired",
+          "migration-required",
+          "revoked",
+          "unsupported-device"
+        ]
+      },
+      "lifecycle": {
+        "failedUpgrade": {
+          "preservePrevious": true,
+          "previousCapsuleId": null,
+          "previousSemanticRoot": null
+        },
+        "migration": null,
+        "releaseVersion": "0.6.28",
+        "supersedes": null
+      },
+      "revocation": {
+        "authorityId": "reploid-paired-qualification-20261012",
+        "failClosedAfterExpiry": true,
+        "offlineExpirySeconds": 86400,
+        "policyDigest": "sha256:c0692294e2ba6643ce3e13b875525e0b39d8d378703d2c12e9697f4eef8c26a6"
+      },
+      "schema": "doppler.capsule-release/v1",
+      "source": {
+        "license": {
+          "name": "Apache License 2.0",
+          "sourceUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "spdxId": "Apache-2.0",
+          "textDigest": "sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        "provenanceDigest": "sha256:55ef3a95c0433e7217486db2c8303c5e76c9d22fba5397de94a469762bc8451a",
+        "repository": "Qwen/Qwen3.5-0.8B",
+        "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+        "revisionDigest": "sha256:f5a57c56e7984f26bbff2b4c10ef7bef4478f8a9401cc712a3e3188af34d05ce"
+      },
+      "stateSnapshot": {
+        "format": "declared-state-identity-only",
+        "identityDigest": "sha256:54c235c3767687c879fa1f1ef30260875b3a21c7bd171a863f292cc0feac7771",
+        "portableAcrossTargetIds": [
+          "webgpu-f32-f16-portable"
+        ],
+        "schema": "doppler.capsule-state-snapshot/v1"
+      }
+    },
+    "migratedFrom": {
+      "schema": "doppler.capsule/v2",
+      "semanticRoot": "sha256:3c8c47e0d9943994655e795e495054e37153bf5eda018c3428c16e0a3eca8795",
+      "envelopeDigest": "sha256:e3c81fb75a673f4d4769a38e8d801ad8ff9764808c61d6eaa1a72d2854c42665"
+    },
+    "nextSigner": null,
+    "schema": "doppler.capsule-release-event/v1",
+    "digest": "sha256:b19052d587ee901ec00e1ae0256bdd1211a5257aafdf1db3ad86723c71ddd755",
+    "signature": {
+      "authority": "reploid-paired-qualification-20261012",
+      "algorithm": "Ed25519",
+      "publicKeyDigest": "sha256:cddc8e43da370860a974cf759b19726bf5e7f9c5d7c0a2a84abb6c9d34ab2d53",
+      "signatureHex": "76ab0f34836c5a8caa72082abb7b8ed16c7619a9071c672514a21e96829de3fb1877f8d09d49339b36bcf3f53137a54da699c0dfcd39092bd43d83f8ea124800",
+      "signedDigest": "sha256:b19052d587ee901ec00e1ae0256bdd1211a5257aafdf1db3ad86723c71ddd755"
+    }
+  },
+  {
+    "capsule": {
+      "schema": "doppler.capsule/v3",
+      "semanticRoot": "sha256:e84a202413eded91aca6a3ae8166aef48c5b46d4389d7f538cd7116af113d5b3",
+      "envelopeDigest": "sha256:e206701553c79f3cd4bc75ea0810b12dd427dbb5d18f7b201cec7971f8ee3da4"
+    },
+    "sequence": 7,
+    "previousEventDigest": "sha256:b19052d587ee901ec00e1ae0256bdd1211a5257aafdf1db3ad86723c71ddd755",
+    "issuedAtUtc": "2026-10-15T00:43:43.504Z",
+    "expiresAtUtc": "2026-10-16T00:43:43.504Z",
+    "action": "eligible",
+    "release": {
+      "application": {
+        "applicationId": "reploid-resident-qualification",
+        "applicationRevision": "sha256:678e50f27cf751932e78f9eb36662611e7fe5c50cd1c244d9b2300bd7f2d1895",
+        "applicationRevisionDigest": "sha256:678e50f27cf751932e78f9eb36662611e7fe5c50cd1c244d9b2300bd7f2d1895",
+        "oracle": {
+          "digest": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+          "id": "approved-independent-f64"
+        },
+        "workload": {
+          "digest": "sha256:794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e",
+          "id": "frozen-three-request-fifty-five-prefixes"
+        }
+      },
+      "exclusions": {
+        "known": [
+          {
+            "code": "application-gate-failed",
+            "evidenceDigest": "sha256:b4f08a5e6bc6f543f7144a69fb2e737a1e67361b595513fbf30cfd5a97d2d5a8",
+            "reason": "Direct three-stage resident numerical comparison passed with the combined paired kernels and prefill chunked at 16 tokens; installed conversations under this Capsule are qualified separately. Local qualification only.",
+            "scope": "public-chat-release"
+          },
+          {
+            "code": "unsupported-device",
+            "evidenceDigest": "sha256:b4f08a5e6bc6f543f7144a69fb2e737a1e67361b595513fbf30cfd5a97d2d5a8",
+            "reason": "Evidence covers the recorded providers in this partition order only: mac-host, amd-host, amd-host. Other providers and other role assignments are not qualified by these reports.",
+            "scope": "unobserved-gpu-provider-tuples"
+          },
+          {
+            "code": "application-gate-failed",
+            "evidenceDigest": "sha256:b4f08a5e6bc6f543f7144a69fb2e737a1e67361b595513fbf30cfd5a97d2d5a8",
+            "reason": "Qualification used retained driver caches on shared hosts; cold-start responsiveness is not established for this runtime.",
+            "scope": "cold-start-responsiveness"
+          }
+        ],
+        "rejectionTypes": [
+          "acceptance-failed",
+          "application-gate-failed",
+          "artifact-invalid",
+          "evidence-expired",
+          "migration-required",
+          "revoked",
+          "unsupported-device"
+        ]
+      },
+      "lifecycle": {
+        "failedUpgrade": {
+          "preservePrevious": true,
+          "previousCapsuleId": null,
+          "previousSemanticRoot": null
+        },
+        "migration": null,
+        "releaseVersion": "0.6.28",
+        "supersedes": null
+      },
+      "revocation": {
+        "authorityId": "reploid-paired-qualification-20261012",
+        "failClosedAfterExpiry": true,
+        "offlineExpirySeconds": 86400,
+        "policyDigest": "sha256:cbbc3554698110ebcf3f8b45221b0247de27ae3779b7babb49358e17d84f13be"
+      },
+      "schema": "doppler.capsule-release/v1",
+      "source": {
+        "license": {
+          "name": "Apache License 2.0",
+          "sourceUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "spdxId": "Apache-2.0",
+          "textDigest": "sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        "provenanceDigest": "sha256:55ef3a95c0433e7217486db2c8303c5e76c9d22fba5397de94a469762bc8451a",
+        "repository": "Qwen/Qwen3.5-0.8B",
+        "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+        "revisionDigest": "sha256:f5a57c56e7984f26bbff2b4c10ef7bef4478f8a9401cc712a3e3188af34d05ce"
+      },
+      "stateSnapshot": {
+        "format": "declared-state-identity-only",
+        "identityDigest": "sha256:54c235c3767687c879fa1f1ef30260875b3a21c7bd171a863f292cc0feac7771",
+        "portableAcrossTargetIds": [
+          "webgpu-f32-f16-portable"
+        ],
+        "schema": "doppler.capsule-state-snapshot/v1"
+      }
+    },
+    "migratedFrom": {
+      "schema": "doppler.capsule/v2",
+      "semanticRoot": "sha256:40e2db194ecc92f40f64ab69bededdf6e1ac3cfbfbb0c1d7ef4667adba89ae09",
+      "envelopeDigest": "sha256:6817d6325524a72b168b091d5e8ee5e3ad6835dbe262312e237960ec8959fdd2"
+    },
+    "nextSigner": null,
+    "schema": "doppler.capsule-release-event/v1",
+    "digest": "sha256:2486b1e7aa76d38415e23d145d97265ce1faecc5eec1086c9e5b54d9b6c82cb0",
+    "signature": {
+      "authority": "reploid-paired-qualification-20261012",
+      "algorithm": "Ed25519",
+      "publicKeyDigest": "sha256:cddc8e43da370860a974cf759b19726bf5e7f9c5d7c0a2a84abb6c9d34ab2d53",
+      "signatureHex": "6c0e7602e164691bd3a916d090a4d9b272af9d68ebcdcfe86ba9175295c0404ab363fbbb4d382dc047a4dcf46fb710f3b45842219373d14bcfde6035c3f5d30e",
+      "signedDigest": "sha256:2486b1e7aa76d38415e23d145d97265ce1faecc5eec1086c9e5b54d9b6c82cb0"
+    }
+  },
+  {
+    "capsule": {
+      "schema": "doppler.capsule/v3",
+      "semanticRoot": "sha256:5a750ed88c70e38ad7f2a095c357717ee924a747245ef2bda22bc9505b0fc1f3",
+      "envelopeDigest": "sha256:5c34a5d0891ce960f774a100d2380198c0007b47f07b7e16f369162791c660f5"
+    },
+    "sequence": 8,
+    "previousEventDigest": "sha256:2486b1e7aa76d38415e23d145d97265ce1faecc5eec1086c9e5b54d9b6c82cb0",
+    "issuedAtUtc": "2026-10-15T01:52:11.114Z",
+    "expiresAtUtc": "2026-10-16T01:52:11.114Z",
+    "action": "eligible",
+    "release": {
+      "application": {
+        "applicationId": "reploid-resident-qualification",
+        "applicationRevision": "sha256:d5d1a1df954656489c14ea104e512e4f42fa65cb3996df586b540dd16bf93981",
+        "applicationRevisionDigest": "sha256:d5d1a1df954656489c14ea104e512e4f42fa65cb3996df586b540dd16bf93981",
+        "oracle": {
+          "digest": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+          "id": "approved-independent-f64"
+        },
+        "workload": {
+          "digest": "sha256:794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e",
+          "id": "frozen-three-request-fifty-five-prefixes"
+        }
+      },
+      "exclusions": {
+        "known": [
+          {
+            "code": "application-gate-failed",
+            "evidenceDigest": "sha256:d4116599bd7649ae3f8590eb463e0156b0e543f60375953e0d426a742f4d27ed",
+            "reason": "Direct three-stage resident numerical comparison passed with the combined paired kernels and prefill chunked at 16 tokens; installed conversations under this Capsule are qualified separately. Local qualification only.",
+            "scope": "public-chat-release"
+          },
+          {
+            "code": "unsupported-device",
+            "evidenceDigest": "sha256:d4116599bd7649ae3f8590eb463e0156b0e543f60375953e0d426a742f4d27ed",
+            "reason": "Evidence covers the recorded providers in this partition order only: mac-host, amd-host, amd-host. Other providers and other role assignments are not qualified by these reports.",
+            "scope": "unobserved-gpu-provider-tuples"
+          },
+          {
+            "code": "application-gate-failed",
+            "evidenceDigest": "sha256:d4116599bd7649ae3f8590eb463e0156b0e543f60375953e0d426a742f4d27ed",
+            "reason": "Qualification used retained driver caches on shared hosts; cold-start responsiveness is not established for this runtime.",
+            "scope": "cold-start-responsiveness"
+          }
+        ],
+        "rejectionTypes": [
+          "acceptance-failed",
+          "application-gate-failed",
+          "artifact-invalid",
+          "evidence-expired",
+          "migration-required",
+          "revoked",
+          "unsupported-device"
+        ]
+      },
+      "lifecycle": {
+        "failedUpgrade": {
+          "preservePrevious": true,
+          "previousCapsuleId": null,
+          "previousSemanticRoot": null
+        },
+        "migration": null,
+        "releaseVersion": "0.6.28",
+        "supersedes": null
+      },
+      "revocation": {
+        "authorityId": "reploid-paired-qualification-20261012",
+        "failClosedAfterExpiry": true,
+        "offlineExpirySeconds": 86400,
+        "policyDigest": "sha256:aab61be4b82fc37522140c4de6c5299c7b0819b352124f74c4b1feb4541c1018"
+      },
+      "schema": "doppler.capsule-release/v1",
+      "source": {
+        "license": {
+          "name": "Apache License 2.0",
+          "sourceUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "spdxId": "Apache-2.0",
+          "textDigest": "sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        "provenanceDigest": "sha256:55ef3a95c0433e7217486db2c8303c5e76c9d22fba5397de94a469762bc8451a",
+        "repository": "Qwen/Qwen3.5-0.8B",
+        "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+        "revisionDigest": "sha256:f5a57c56e7984f26bbff2b4c10ef7bef4478f8a9401cc712a3e3188af34d05ce"
+      },
+      "stateSnapshot": {
+        "format": "declared-state-identity-only",
+        "identityDigest": "sha256:54c235c3767687c879fa1f1ef30260875b3a21c7bd171a863f292cc0feac7771",
+        "portableAcrossTargetIds": [
+          "webgpu-f32-f16-portable"
+        ],
+        "schema": "doppler.capsule-state-snapshot/v1"
+      }
+    },
+    "migratedFrom": {
+      "schema": "doppler.capsule/v2",
+      "semanticRoot": "sha256:2990d25fa97536688d52eb5faf3add5f424923bf2b71ae26e3258c95060dbc46",
+      "envelopeDigest": "sha256:e1b89e458418406bd209d0ee965dd0849f7d3731aa586a8a4fcae8981eaf567a"
+    },
+    "nextSigner": null,
+    "schema": "doppler.capsule-release-event/v1",
+    "digest": "sha256:0b40731ce1a425c9805790c0bbc97d3837c78c4225813abc43637b623db06fdf",
+    "signature": {
+      "authority": "reploid-paired-qualification-20261012",
+      "algorithm": "Ed25519",
+      "publicKeyDigest": "sha256:cddc8e43da370860a974cf759b19726bf5e7f9c5d7c0a2a84abb6c9d34ab2d53",
+      "signatureHex": "030ce427fad454ba9e9bf7d98d3fbb2e1bd09ef418404b61a0daa96e6941030290551f8b2e89c6262a165397f28e4cbbbaedeeb141d346a9d286c4c7810f8909",
+      "signedDigest": "sha256:0b40731ce1a425c9805790c0bbc97d3837c78c4225813abc43637b623db06fdf"
+    }
+  },
+  {
+    "capsule": {
+      "schema": "doppler.capsule/v3",
+      "semanticRoot": "sha256:b1527013b75971d9a301a71672cbccaa45ee59e87438c86fe52923ff51ad2de9",
+      "envelopeDigest": "sha256:759f5ab147e7204d17725a0c7212b39e1da174ad9fe81dfbe19f1f2ad7c880de"
+    },
+    "sequence": 9,
+    "previousEventDigest": "sha256:0b40731ce1a425c9805790c0bbc97d3837c78c4225813abc43637b623db06fdf",
+    "issuedAtUtc": "2026-10-15T04:35:38.490Z",
+    "expiresAtUtc": "2026-10-16T04:35:38.490Z",
+    "action": "eligible",
+    "release": {
+      "application": {
+        "applicationId": "reploid-resident-qualification",
+        "applicationRevision": "sha256:5a16484ec0e25a60d1503c258652af1e610b49ca513c71a0ffdbf4c2e4e7e58c",
+        "applicationRevisionDigest": "sha256:5a16484ec0e25a60d1503c258652af1e610b49ca513c71a0ffdbf4c2e4e7e58c",
+        "oracle": {
+          "digest": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+          "id": "approved-independent-f64"
+        },
+        "workload": {
+          "digest": "sha256:794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e",
+          "id": "frozen-three-request-fifty-five-prefixes"
+        }
+      },
+      "exclusions": {
+        "known": [
+          {
+            "code": "application-gate-failed",
+            "evidenceDigest": "sha256:5e7342f95bdb8c0d80499454f35b708133a12020eea50226737d5e45932a85c3",
+            "reason": "Direct three-stage resident numerical comparison passed with the combined paired kernels and prefill chunked at 16 tokens; installed conversations under this Capsule are qualified separately. Local qualification only.",
+            "scope": "public-chat-release"
+          },
+          {
+            "code": "unsupported-device",
+            "evidenceDigest": "sha256:5e7342f95bdb8c0d80499454f35b708133a12020eea50226737d5e45932a85c3",
+            "reason": "Evidence covers the recorded providers in this partition order only: mac-host, amd-host, amd-host. Other providers and other role assignments are not qualified by these reports.",
+            "scope": "unobserved-gpu-provider-tuples"
+          },
+          {
+            "code": "application-gate-failed",
+            "evidenceDigest": "sha256:5e7342f95bdb8c0d80499454f35b708133a12020eea50226737d5e45932a85c3",
+            "reason": "Qualification used retained driver caches on shared hosts; cold-start responsiveness is not established for this runtime.",
+            "scope": "cold-start-responsiveness"
+          }
+        ],
+        "rejectionTypes": [
+          "acceptance-failed",
+          "application-gate-failed",
+          "artifact-invalid",
+          "evidence-expired",
+          "migration-required",
+          "revoked",
+          "unsupported-device"
+        ]
+      },
+      "lifecycle": {
+        "failedUpgrade": {
+          "preservePrevious": true,
+          "previousCapsuleId": null,
+          "previousSemanticRoot": null
+        },
+        "migration": null,
+        "releaseVersion": "0.6.28",
+        "supersedes": null
+      },
+      "revocation": {
+        "authorityId": "reploid-paired-qualification-20261012",
+        "failClosedAfterExpiry": true,
+        "offlineExpirySeconds": 86400,
+        "policyDigest": "sha256:14ff3d153154959ead070c2647f00c7c76f46742a327c1d21f0fc33891deefe0"
+      },
+      "schema": "doppler.capsule-release/v1",
+      "source": {
+        "license": {
+          "name": "Apache License 2.0",
+          "sourceUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "spdxId": "Apache-2.0",
+          "textDigest": "sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        "provenanceDigest": "sha256:55ef3a95c0433e7217486db2c8303c5e76c9d22fba5397de94a469762bc8451a",
+        "repository": "Qwen/Qwen3.5-0.8B",
+        "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+        "revisionDigest": "sha256:f5a57c56e7984f26bbff2b4c10ef7bef4478f8a9401cc712a3e3188af34d05ce"
+      },
+      "stateSnapshot": {
+        "format": "declared-state-identity-only",
+        "identityDigest": "sha256:54c235c3767687c879fa1f1ef30260875b3a21c7bd171a863f292cc0feac7771",
+        "portableAcrossTargetIds": [
+          "webgpu-f32-f16-portable"
+        ],
+        "schema": "doppler.capsule-state-snapshot/v1"
+      }
+    },
+    "migratedFrom": {
+      "schema": "doppler.capsule/v2",
+      "semanticRoot": "sha256:e7564d9d7c4acef1b96b210b3a55128bc217b137e52b907aa2cf51db9cf18e93",
+      "envelopeDigest": "sha256:d35c26a182d0873741d8ae00945d6cc2e2cd7cb66ad1d5a5529adb2caa012770"
+    },
+    "nextSigner": null,
+    "schema": "doppler.capsule-release-event/v1",
+    "digest": "sha256:dd83799625519d431d5e1f5c9b04b06bce0a0091ece922891d7d965a906c55bf",
+    "signature": {
+      "authority": "reploid-paired-qualification-20261012",
+      "algorithm": "Ed25519",
+      "publicKeyDigest": "sha256:cddc8e43da370860a974cf759b19726bf5e7f9c5d7c0a2a84abb6c9d34ab2d53",
+      "signatureHex": "3de12b069862aacacaa12dc296fe7d4dca72ecce0da0f7bda06cab636e2cf8327fce269f11a081f95793cc93f19f1bce7316eccb164479c0e64f3ac8e1aed006",
+      "signedDigest": "sha256:dd83799625519d431d5e1f5c9b04b06bce0a0091ece922891d7d965a906c55bf"
+    }
+  }
+]

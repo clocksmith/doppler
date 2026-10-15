@@ -1,0 +1,20 @@
+{
+  "repoRoot": "/var/tmp/qwen35-capsule-faster-20261015-2/source",
+  "programBundlePath": "/var/tmp/qwen35-capsule-faster-20261015-2/artifacts/program-bundle.json",
+  "manifestPath": "/var/tmp/qwen35-capsule-faster-20261015-2/source/capsule-input/model/manifest.json",
+  "modelDir": "/var/tmp/qwen35-capsule-faster-20261015-2/source/capsule-input/model",
+  "modelIRReceiptPath": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/model-ir-receipt.json",
+  "initialExecutionIdentityPath": "/var/tmp/qwen35-capsule-faster-20261015-2/initial-identity.json",
+  "qualificationReportPaths": [
+    "/Users/xyz/deco/reploid/artifacts/faster-candidate-20261015/placement-c/c3/reports/partition-0.json",
+    "/Users/xyz/deco/reploid/artifacts/faster-candidate-20261015/placement-c/c3/reports/partition-1.json",
+    "/Users/xyz/deco/reploid/artifacts/faster-candidate-20261015/placement-c/c3/reports/partition-2.json"
+  ],
+  "residentQualificationContractPath": "/Users/xyz/deco/reploid/artifacts/faster-candidate-20261015/placement-c/c3/reports/contract.json",
+  "pieceIndexPath": "/var/tmp/qwen35-capsule-faster-20261015-2/pieces.json",
+  "releaseManifestPath": "/var/tmp/qwen35-capsule-faster-20261015-2/release.json",
+  "signingPrivateKeyPath": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/signing-private.jwk.json",
+  "signingPublicKeyPath": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/signing-public.jwk.json",
+  "signingAuthority": "reploid-paired-qualification-20261012",
+  "outputPath": "/var/tmp/qwen35-capsule-faster-20261015-2/capsule.json"
+}

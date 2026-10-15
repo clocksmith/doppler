@@ -1,0 +1,8 @@
+{
+  "authority": "reploid-paired-qualification-20261012",
+  "scope": "Local signed browser/Node opening qualification only; no public eligibility or application promotion",
+  "offlineExpirySeconds": 86400,
+  "failClosedAfterExpiry": true,
+  "modelIdentity": "sha256:c6220c6aefef7006aa2b3bc3c89932d61788340597c9abf055d27e8cdd1767fd",
+  "runtimeArchiveSha256": "21d054eeb70212a7434c9eccfe467fe0accbb8685e9358f2b72341500978cd5f"
+}
