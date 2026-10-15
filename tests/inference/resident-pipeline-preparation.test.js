@@ -103,9 +103,10 @@ manifest.totalSize = cursor;
 manifest.tokenizer = { ...manifest.tokenizer, vocabSize: VOCAB };
 const tokenizerJson = JSON.stringify({ version: '1.0', model: { type: 'BPE', merges: [],
   vocab: Object.fromEntries(Array.from({ length: VOCAB }, (_, id) => [`t${id}`, id])) }, added_tokens: [] });
-const storage = () => createArtifactStorageContext({ manifest,
+const storage = (target = manifest) => createArtifactStorageContext({ manifest: target,
   readRange: async (_path, _offset, length) => new ArrayBuffer(length), readText: async () => tokenizerJson,
   readBinary: async () => new TextEncoder().encode(tokenizerJson).buffer });
+const withGraph = execution => ({ ...manifest, inference: { ...manifest.inference, execution } });
 const runtimeConfig = { inference: { compute: { activationDtype: 'f32' }, session: {
   intermediatePrecision: 'two-f32', linearRecurrentStatePrecision: 'two-f32', prefillTokenChunkSize: 16,
   prefillChunkLayers: 1, kvcache: { maxSeqLen: 32, kvDtype: 'f16', layout: 'contiguous' },
@@ -117,11 +118,11 @@ const generation = resolveGenerationOptions({ maxTokens: 2, maxSeqLen: 32, tempe
   repetitionPenalty: 1, repetitionPenaltyWindow: 0, useChatTemplate: false });
 const limits = { maxTokens: 2, maxPromptTokens: 17, maxActivationBytes: 1 << 20, maxOutputCharacters: 64,
   maxAttempts: 4, maxConcurrentAttempts: 1, maxPreparationMs: 60_000 };
-const allocate = (index, declared = limits) => resolveResidentPartitionAllocation(manifest, model.identity, { model, plan,
+const allocate = (index, declared = limits, target = manifest) => resolveResidentPartitionAllocation(target, model.identity, { model, plan,
   planId: hashLayerPartitionPlan(plan), index, participantId: `stage-${index}`, limits: declared, generation });
-async function load(index, declared = limits) {
-  const pipeline = await createPipeline(manifest, { runtimeConfig, storage: storage(), partition: { plan, index } });
-  return { pipeline, allocation: allocate(index, declared) };
+async function load(index, declared = limits, target = manifest) {
+  const pipeline = await createPipeline(target, { runtimeConfig, storage: storage(target), partition: { plan, index } });
+  return { pipeline, allocation: allocate(index, declared, target) };
 }
 const compiled = (module, entryPoint, constants) => `${module}#${entryPoint} ${canonicalizeJson(constants ?? {})}`;
 const boundIdentity = p => compiled(getShaderModuleIdentity(p.module), p.entryPoint, p.constants);
@@ -131,12 +132,35 @@ async function settle(condition = () => false) {
   for (let i = 0; i < 400 && !condition(); i++) await new Promise(resolve => setImmediate(resolve));
 }
 
-// 1. Every pipeline execution binds was created before readiness, and nothing else was.
-{
+// 1. Every pipeline execution binds was created before readiness, and nothing else was, on the
+// deployed graphs and on the faster candidate's graph with declared Q/K head-norm steps.
+// - The chunked-prefill Capsule graph (above) and the faster candidate's (manifest 548e6559, which
+//   declares rmsnorm_paired as mechanism kernel paired_qk_head_norm) have no q_norm/k_norm steps:
+//   their head norms run the interim program rmsnorm/paired.
+// - With q_norm and k_norm steps, the steps' program runs them: the sliced program through the
+//   norm key (paired_qk_head_norm removed, so rmsnorm_paired.wgsl leaves the closure), or the
+//   shipped program through the paired_qk_head_norm key.
+const candidate = JSON.parse(readFileSync(new URL('../fixtures/qwen35-faster-candidate-execution.json', import.meta.url)));
+const withQKNormSteps = (source, kernelKey) => {
+  const stepped = structuredClone(source);
+  for (const phase of ['decode', 'prefill']) {
+    stepped[phase].splice(stepped[phase].findIndex(step => step[0] === 'v_proj') + 1, 0, ['q_norm', kernelKey], ['k_norm', kernelKey]);
+  }
+  stepped.mechanismKernels = stepped.mechanismKernels.filter(key => key !== 'paired_qk_head_norm');
+  if (kernelKey !== 'paired_qk_head_norm') delete stepped.kernels.paired_qk_head_norm;
+  return stepped;
+};
+for (const [label, execution, headNormShader] of [
+  ['chunked-prefill graph without steps', graph, 'rmsnorm_paired.wgsl'],
+  ['faster-candidate graph without steps', candidate, 'rmsnorm_paired.wgsl'],
+  ['faster-candidate graph, steps declaring the sliced program', withQKNormSteps(candidate, 'norm'), 'rmsnorm_paired_sliced.wgsl'],
+  ['faster-candidate graph, steps declaring the shipped program', withQKNormSteps(candidate, 'paired_qk_head_norm'), 'rmsnorm_paired.wgsl'],
+]) {
+  const target = withGraph(execution);
   const record = createRecordingDevice();
   const signal = new AbortController().signal;
   for (let index = 0; index < plan.stageCount; index++) {
-    const { pipeline, allocation } = await load(index);
+    const { pipeline, allocation } = await load(index, limits, target);
     const progress = [];
     const resident = await createResidentPartitionSession(pipeline, allocation, {}, () => pipeline.unload(), signal,
       event => progress.push(event));
@@ -155,8 +179,8 @@ async function settle(condition = () => false) {
       assert.deepEqual(preparation.lazy, []);
       assert.equal(preparation.count, preparation.pipelines.length);
       assert(preparation.durationMs >= 0);
-      const declared = new Set(Object.values(graph.kernels).map(kernel => kernel.kernel));
-      for (const entry of preparation.pipelines) assert(declared.has(entry.shaderFile), `${entry.key} is outside the declared program`);
+      const declared = new Set(Object.values(execution.kernels).map(kernel => kernel.kernel));
+      for (const entry of preparation.pipelines) assert(declared.has(entry.shaderFile), `${label}: ${entry.key} is outside the declared program`);
       const createdAtReady = record.created.length, usedFrom = record.used.length;
       await runPipelineOperation(pipeline, async owner => {
         // 17 tokens prefill as chunks of 16 and 1; a 1-token prompt is a single chunk.
@@ -177,16 +201,21 @@ async function settle(condition = () => false) {
         assert.equal(unsupported.lazy[0].scope, 'stage', 'an undeclared program shape is reported lazy, never partially prepared');
         assert.match(unsupported.lazy[0].reason, /layer pipeline plan/);
       });
-      assert.equal(record.created.length, createdAtReady, `stage ${index} created pipelines after readiness`);
+      assert.equal(record.created.length, createdAtReady, `${label}: stage ${index} created pipelines after readiness`);
       const bound = new Set(record.used.slice(usedFrom).map(boundIdentity));
       const prepared = new Set(preparation.pipelines.map(preparedIdentity));
-      assert.deepEqual([...bound].filter(key => !prepared.has(key)), [], `stage ${index} bound unprepared pipelines`);
-      assert.deepEqual([...prepared].filter(key => !bound.has(key)), [], `stage ${index} prepared unused pipelines`);
+      assert.deepEqual([...bound].filter(key => !prepared.has(key)), [], `${label}: stage ${index} bound unprepared pipelines`);
+      assert.deepEqual([...prepared].filter(key => !bound.has(key)), [], `${label}: stage ${index} prepared unused pipelines`);
       const roles = rolesOf(preparation);
       assert.equal(roles.has('embed'), index === 0);
       assert.equal(roles.has('logits_finalize'), index === plan.stageCount - 1);
       assert.equal(roles.has('attention'), index === 2);
       assert.equal(roles.has('linear_attention'), index < 2, 'recurrent pipelines belong only to stages with linear layers');
+      // The full-attention stage prepares, and therefore binds, exactly the head-norm program the graph declares.
+      for (const role of ['q_norm', 'k_norm']) {
+        assert.deepEqual([...new Set(preparation.pipelines.filter(entry => entry.roles.includes(role)).map(entry => entry.shaderFile))],
+          index === 2 ? [headNormShader] : [], `${label}: stage ${index} ${role} program`);
+      }
     } finally { await resident.close(); }
   }
 }
@@ -280,4 +309,4 @@ async function settle(condition = () => false) {
     assert.equal(record.created.length, started, 'an undeclared bound starts no creation');
   } finally { record.hold = false; await pipeline.unload(); }
 }
-console.log('resident pipeline preparation: prepared set equals execution-bound set per stage; progress observable; cancel and bound retain ownership until settlement; failure and timeout name the pipeline');
+console.log('resident pipeline preparation: prepared set equals execution-bound set per stage on the deployed graphs with and without declared Q/K head-norm steps; progress observable; cancel and bound retain ownership until settlement; failure and timeout name the pipeline');

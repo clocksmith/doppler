@@ -97,7 +97,9 @@ try {
         const source=count=>Array.from({length:count},(_,i)=>((i%13)-6)/9+2**-28);
         const q=pair(source(tokens*heads*dim),[tokens,heads*dim]),k=pair(source(tokens*kvheads*dim),[tokens,kvheads*dim]);
         const wd=Float32Array.from({length:dim},(_,i)=>1+i/32),weight=createTensor(make(wd.byteLength,wd),'f32',[dim],'norm_weight');
-        const result=collect(await run(recorded,'paired_qknorm',()=>runRMSNormQK(q.tensor,k.tensor,weight,weight,eps,{numTokens:tokens,numHeads:heads,numKVHeads:kvheads,headDim:dim}),r=>recordRMSNormQK(r,q.tensor,k.tensor,weight,weight,eps,{numTokens:tokens,numHeads:heads,numKVHeads:kvheads,headDim:dim})));
+        // The graph's q_norm and k_norm steps declare the shipped head-norm program.
+        const qkSteps=['q_norm','k_norm'].map(op=>({op,kernel:'rmsnorm_paired.wgsl',entry:'main'})),qkGraph={kernelPath:{activationDtype:'f32',prefill:{steps:qkSteps},decode:{steps:qkSteps}},phase:'prefill',layerIdx:0};
+        const result=collect(await run(recorded,'paired_qknorm',()=>runRMSNormQK(q.tensor,k.tensor,weight,weight,eps,{numTokens:tokens,numHeads:heads,numKVHeads:kvheads,headDim:dim,...qkGraph}),r=>recordRMSNormQK(r,q.tensor,k.tensor,weight,weight,eps,{numTokens:tokens,numHeads:heads,numKVHeads:kvheads,headDim:dim,...qkGraph})));
         const expected=data=>{const out=[];for(let r=0;r<data.length/2/dim;r++){const values=Array.from({length:dim},(_,d)=>data[(r*dim+d)*2]+data[(r*dim+d)*2+1]),den=Math.sqrt(values.reduce((s,x)=>s+x*x,0)/dim+eps);out.push(...values.map((x,d)=>x/den*wd[d]));}return out;};
         const maxError=Math.max(compare(await numbers(result.q.buffer,q.data.length/2),expected(q.data),2e-12,'Q norm'),compare(await numbers(result.k.buffer,k.data.length/2),expected(k.data),2e-12,'K norm'));
         rows.push({kind:'qknorm',recorded,maxError,tolerance:2e-12});

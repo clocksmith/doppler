@@ -205,6 +205,39 @@ from the manifest's. A sigmoid paired closure declares
 `gated_delta_recurrent/paired_gate_sigmoid` instead of the silu gate and the
 silu monolithic anchor.
 
+## Paired Q/K head normalization steps
+
+A paired (two-F32) graph declares per-head query and key normalization as layer
+steps, `["q_norm", "<kernel key>"]` and `["k_norm", "<kernel key>"]`, placed
+after the projections. The key names any registry RMSNorm program with paired
+input and output, for example `rmsnorm/paired_sliced` through the graph's
+`norm` key, or `rmsnorm/paired`. Run selects the program from the step for each
+role, phase and layer, exactly as for the other norm roles. Resident pipeline
+preparation enumerates it through the same resolver, so the prepared set equals
+the dispatched set.
+
+Run admission binds exactly one paired program to each step of every
+full-attention layer in both phases. It fails closed when:
+
+- a step names a scalar program;
+- a phase lacks a step;
+- a scalar session declares the steps.
+
+Admission and Rig signing both refuse a graph that declares the steps when the
+manifest normalizes no heads. Paired Q/K normalization outside these steps fails
+before dispatch. That includes projection-axis and LayerNorm head normalization.
+
+**Interim rule.** Capsules signed before these steps existed declare neither step,
+such as manifests `6b2cb026` and `548e6559`. Their head norms keep running
+`rmsnorm/paired`, the program those Capsules qualified. Admission and Rig signing
+accept such a graph only if its closure declares that program, either as a step
+kernel or in `execution.mechanismKernels`. Manifest `548e6559` declares it as
+`paired_qk_head_norm`. A graph whose closure omits it is refused before loading.
+Manifest `64d74719` failed this way during preparation. Remove the rule and
+`UNDECLARED_PAIRED_QK_NORM_VARIANT` when every supported manifest declares the
+steps. A manifest that declares the steps needs no `paired_qk_head_norm`
+declaration.
+
 ## Explicit affine LayerNorm in layer plans
 
 A layer plan may declare `op: "layernorm"` with `weight` selecting `input`,

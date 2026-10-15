@@ -198,6 +198,14 @@ export interface ApplyAttentionQKNormOptions {
   onKNormApplied?: ((tensor: Tensor) => Promise<void> | void) | null;
   retainKInput?: boolean;
   allowUnitQKNorm?: boolean;
+  /**
+   * Paired heads: the execution graph whose `q_norm` and `k_norm` steps declare the
+   * head-normalization programs, and the phase and layer they run in. Paired input must take the
+   * per-head RMSNorm path; any other paired Q/K normalization fails closed.
+   */
+  kernelPath?: import('../../../../config/schema/kernel-path.schema.js').KernelPathSchema | null;
+  phase?: 'prefill' | 'decode';
+  layerIdx?: number;
 }
 
 export function applyAttentionQKNorm(

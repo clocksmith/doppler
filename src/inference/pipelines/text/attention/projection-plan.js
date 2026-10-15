@@ -117,6 +117,10 @@ export async function applyAttentionQKNorm({
   skipKNorm = false,
   retainKInput = false,
   allowUnitQKNorm = false,
+  // Paired heads: the graph whose q_norm and k_norm steps declare the programs, and where they run.
+  kernelPath,
+  phase,
+  layerIdx,
 }) {
   const runRmsNormForMode = getRmsNormRunner(recorder);
   const runRmsNormQKForMode = getRmsNormQKRunner(recorder);
@@ -167,19 +171,25 @@ export async function applyAttentionQKNorm({
         `expected ${kNormSize} f16 or f32 elements.`
       );
     }
-    if (
-      normalizationType === 'rmsnorm'
+    const headPair = normalizationType === 'rmsnorm'
       && normalizationAxis === 'head'
       && qNormApplies
       && kNormApplies
-      && canUseRMSNormQK(nextQ, nextK, { skipKNorm })
-    ) {
+      && canUseRMSNormQK(nextQ, nextK, { skipKNorm });
+    if (!headPair && nextQ.precision === 'two-f32') {
+      throw new Error('[PairedAttention] Paired Q/K normalization runs only as per-head RMSNorm of both Q and K '
+        + 'through the execution graph\'s q_norm and k_norm steps.');
+    }
+    if (headPair) {
       const fused = await runRmsNormQKForMode(nextQ, nextK, qNormBuf, kNormBuf, rmsNormEps, {
         numTokens,
         numHeads,
         numKVHeads,
         headDim,
         rmsNormWeightOffset: effectiveRmsNormWeightOffset,
+        kernelPath,
+        phase,
+        layerIdx,
       });
       releaseTemporary(nextQ.buffer);
       if (!retainKInput) {

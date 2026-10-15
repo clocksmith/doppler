@@ -5,7 +5,9 @@ import { getKernelPathRMSNormSpec } from '../../../config/kernel-path-loader.js'
 import { getPipelineFast, resolvePipelineIdentity } from '../../../gpu/kernels/pipeline-cache.js';
 import { resolveGatherPipeline, resolveSplitGatherPipeline } from '../../../gpu/kernels/gather.js';
 import { resolvePairedCastPipeline } from '../../../gpu/kernels/paired-cast.js';
-import { resolvePairedRMSNormPipeline, resolvePairedRMSNormVariant } from '../../../gpu/kernels/paired-rmsnorm.js';
+import {
+  resolvePairedQKNormVariant, resolvePairedRMSNormPipeline, resolvePairedRMSNormVariant,
+} from '../../../gpu/kernels/paired-rmsnorm.js';
 import { resolvePairedPointwisePipeline } from '../../../gpu/kernels/paired-activation.js';
 import { resolvePairedSplitPipeline } from '../../../gpu/kernels/paired-split.js';
 import { resolvePairedAttentionPipeline, resolvePairedAttentionVariant } from '../../../gpu/kernels/paired-attention.js';
@@ -209,13 +211,17 @@ function enumeratePairedFullAttention(owner, layerIdx, weights, requests, projec
     layerIdx, reusesSharedKV: false,
   });
   if (qkNorm.wantsQKNorm) {
-    if (qkNorm.allowUnitQKNorm || config.queryKeyNormType !== 'rmsnorm') {
+    if (qkNorm.allowUnitQKNorm || config.queryKeyNormType !== 'rmsnorm' || config.queryKeyNormAxis !== 'head') {
       throw new NotEnumerable(`Layer ${layerIdx} Q/K normalization is outside the declared paired program.`);
     }
-    // Head normalization has no declared step; it runs the unpinned paired program.
-    for (const [role, field] of [['q_norm', 'qNorm'], ['k_norm', 'kNorm']]) {
-      requests.add(role, resolvePairedRMSNormPipeline(normWeightDtype(weights[field], role),
-        { rmsNormWeightOffset: qkNorm.rmsNormWeightOffset, ...UNFUSED }, resolvePairedRMSNormVariant(null)));
+    // Each phase's program comes from the graph's q_norm and k_norm steps, through the resolver
+    // the head-normalization dispatch calls.
+    for (const [role, field] of /** @type {const} */ ([['q_norm', 'qNorm'], ['k_norm', 'kNorm']])) {
+      const weightDtype = normWeightDtype(weights[field], role);
+      for (const phase of PHASES) {
+        requests.add(role, resolvePairedRMSNormPipeline(weightDtype, { rmsNormWeightOffset: qkNorm.rmsNormWeightOffset, ...UNFUSED },
+          resolvePairedQKNormVariant(role, phase, layerIdx, kernelPath)));
+      }
     }
   }
   if (resolveQueryScale(config.queryScale) !== 1) requests.add('query_scale', resolvePairedPointwisePipeline('scale', UNGATED));

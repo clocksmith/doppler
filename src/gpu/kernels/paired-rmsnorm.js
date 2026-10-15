@@ -3,6 +3,7 @@ import { createTensor } from '../tensor.js';
 import { getBuffer, getWeightDtype } from '../weight-buffer.js';
 import { unifiedKernelWrapper } from './kernel-execution.js';
 import { getKernelConfig } from './kernel-configs.js';
+import { getKernelPathQKNormSpec } from '../../config/kernel-path-loader.js';
 
 /** @type {Readonly<import('../tensor.js').TensorRepresentation>} */
 const REPRESENTATION = Object.freeze({ precision: 'two-f32', components: 2, elementStrideBytes: 8 });
@@ -15,8 +16,17 @@ function assertPair(input, bytes, label) {
   }
 }
 
-/** Program used when no execution path pins one (Q/K head normalization and direct calls). */
+/** Program used when no execution path pins one (direct calls outside a graph). */
 const UNPINNED_PAIRED_RMSNORM_VARIANT = 'paired';
+
+/**
+ * Interim: the Q/K head-normalization program of a paired graph that declares no q_norm or
+ * k_norm step. Capsules signed before those steps existed ran and qualified it. Run admission
+ * and Rig signing accept such a graph only when its closure declares this program
+ * (assertPairedQKNormClosure), as the `paired_qk_head_norm` mechanism kernel or a step kernel.
+ * Remove it, with that acceptance, once every supported manifest declares the steps.
+ */
+export const UNDECLARED_PAIRED_QK_NORM_VARIANT = 'paired';
 
 /**
  * Registry declaration of a paired RMSNorm program. `tokenSlices` programs dispatch one workgroup
@@ -39,6 +49,13 @@ export function resolvePairedRMSNormVariant(declaredVariant) {
   const variant = declaredVariant ?? UNPINNED_PAIRED_RMSNORM_VARIANT;
   resolvePairedRMSNormProgram(variant);
   return variant;
+}
+
+/** @type {typeof import('./paired-rmsnorm.js').resolvePairedQKNormVariant} */
+export function resolvePairedQKNormVariant(op, phase, layerIdx, kernelPath) {
+  if (kernelPath == null) throw new Error(`[PairedRMSNorm] ${op} runs only from the execution graph that declares it.`);
+  const declared = getKernelPathQKNormSpec(op, phase, layerIdx, kernelPath);
+  return resolvePairedRMSNormVariant(declared === null ? UNDECLARED_PAIRED_QK_NORM_VARIANT : declared.variant);
 }
 
 /** @type {typeof import('./paired-rmsnorm.js').resolvePairedRMSNormPipeline} */

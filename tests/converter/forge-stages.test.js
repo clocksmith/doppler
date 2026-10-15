@@ -10,6 +10,7 @@ import { createRerankReferenceFixture } from '../helpers/rerank-reference-fixtur
 import { createEmbeddingReferenceFixture } from '../helpers/embedding-reference-fixture.js';
 import { createForgeEvaluationFixture } from '../helpers/forge-evaluation-fixture.js';
 import { hashTargetPlan } from '../../src/config/target-plan.js';
+import { KERNEL_REF_CONTENT_DIGESTS } from '../../src/config/kernels/kernel-ref-digests.js';
 import {
   TEST_CAPSULE_AUTHORITY,
   TEST_CAPSULE_PUBLIC_KEY,
@@ -290,6 +291,29 @@ for (const kind of ['recurrent', 'convolutional']) {
 const invalidActivation = structuredClone(pairedLowered);
 invalidActivation.normalized.manifest.inference.session.compute.defaults.activationDtype = 'f16';
 assert.throws(() => stageSpecialize(invalidActivation), /requires F32 source storage/);
+// Rig signing refuses a paired closure whose full-attention head norms have no declared program
+// (the faster candidate's generation-1 Capsule: sliced norm steps, rmsnorm_paired.wgsl undeclared)
+// and signs one that declares q_norm and k_norm steps or, interim, the program as a mechanism kernel.
+{
+  const headNormed = structuredClone(pairedLowered);
+  const inference = headNormed.normalized.manifest.inference;
+  inference.layerPattern = { type: 'custom', layerTypes: ['full_attention'] };
+  inference.execution.kernels.norm = { ...inference.execution.kernels.norm, kernel: 'rmsnorm_paired_sliced.wgsl',
+    constants: { WORKGROUP_SIZE: 256 }, digest: `sha256:${KERNEL_REF_CONTENT_DIGESTS['rmsnorm_paired_sliced.wgsl#main']}` };
+  assert.equal(inference.attention.queryKeyNorm, true);
+  assert.throws(() => stageSpecialize(headNormed), /declares no q_norm or k_norm step/);
+  const stepped = structuredClone(headNormed);
+  for (const phase of ['decode', 'prefill']) {
+    const steps = stepped.normalized.manifest.inference.execution[phase];
+    steps.splice(steps.findIndex(step => step[0] === 'v_proj') + 1, 0, ['q_norm', 'norm'], ['k_norm', 'norm']);
+  }
+  assert.doesNotThrow(() => stageSpecialize(stepped));
+  const interim = structuredClone(headNormed);
+  interim.normalized.manifest.inference.execution.kernels.paired_qk_head_norm = { kernel: 'rmsnorm_paired.wgsl', entry: 'main',
+    constants: {}, digest: `sha256:${KERNEL_REF_CONTENT_DIGESTS['rmsnorm_paired.wgsl#main']}` };
+  interim.normalized.manifest.inference.execution.mechanismKernels.push('paired_qk_head_norm');
+  assert.doesNotThrow(() => stageSpecialize(interim));
+}
 assert.deepEqual(v2Input.modelIR, modelIRV2, 'Physical storage sizing must not mutate source ModelIR');
 
 // Synthetic source closure only: proves Forge preserves declared adapter policy

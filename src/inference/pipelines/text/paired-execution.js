@@ -1,9 +1,13 @@
-import { getLayerSteps, getKernelPathStepConfig } from '../../../config/kernel-path-loader.js';
+import { getLayerSteps, getKernelPathStepConfig, kernelPathDeclaresQKNorm } from '../../../config/kernel-path-loader.js';
 import {
   assertLinearNormGateClosure,
   assertPairedExecutionMechanismClosure,
 } from '../../../config/execution-registry-contract.js';
+import { getKernelConfig } from '../../../config/kernel-registry-contract.js';
+import { expandExecutionV1 } from '../../../config/schema/execution-v1.schema.js';
 import { resolveLinearNormGateActivation } from '../../../config/schema/manifest.schema.js';
+import { computeCanonicalSha256 } from '../../../formats/canonical-hash.js';
+import { UNDECLARED_PAIRED_QK_NORM_VARIANT } from '../../../gpu/kernels/paired-rmsnorm.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 
 /**
@@ -26,6 +30,41 @@ export function assertPairedLinearMechanismClosure(manifestInference) {
   const mechanisms = anchor === null ? [] : [['gated_delta_recurrent', anchor]];
   mechanisms.push(['gated_delta_recurrent', gate]);
   assertPairedExecutionMechanismClosure(graph, mechanisms);
+}
+
+/**
+ * Q/K head normalization is part of the paired graph. When the manifest normalizes the heads of
+ * its full-attention layers, the graph's q_norm and k_norm steps declare the programs
+ * (validatePairedExecution binds one of each per layer and phase). Used by Run admission and Rig
+ * signing.
+ *
+ * Interim, so Capsules signed before the steps existed still validate: a graph that declares
+ * neither step runs UNDECLARED_PAIRED_QK_NORM_VARIANT for its head norms, and its closure must
+ * declare that program, as a mechanism kernel (`paired_qk_head_norm`) or a step kernel. Remove
+ * this branch once every supported manifest declares the steps.
+ * @type {typeof import('./paired-execution.js').assertPairedQKNormClosure}
+ */
+export function assertPairedQKNormClosure(manifestInference) {
+  const graph = manifestInference?.execution;
+  if (!graph) throw new Error('[PairedExecution] An explicit execution graph is required.');
+  const steps = expandExecutionV1(graph);
+  const declaresSteps = steps.some(step => step.op === 'q_norm' || step.op === 'k_norm');
+  const layerTypes = manifestInference.layerPattern?.layerTypes;
+  const normalizesHeads = manifestInference.attention?.queryKeyNorm === true
+    && Array.isArray(layerTypes) && layerTypes.includes('full_attention');
+  if (declaresSteps && !normalizesHeads) {
+    throw new Error('[PairedExecution] The graph declares q_norm or k_norm steps, but the manifest normalizes no full-attention heads.');
+  }
+  if (!normalizesHeads || declaresSteps) return;
+  const expected = getKernelConfig('rmsnorm', UNDECLARED_PAIRED_QK_NORM_VARIANT);
+  const constants = computeCanonicalSha256(expected.wgslOverrides ?? {});
+  const declarations = [...steps, ...(graph.mechanismKernels ?? []).map(key => graph.kernels[key])];
+  if (!declarations.some(decl => decl?.kernel === expected.shaderFile && decl.entry === expected.entryPoint
+    && computeCanonicalSha256(decl.constants ?? {}) === constants)) {
+    throw new Error(`[PairedExecution] The graph declares no q_norm or k_norm step, so its Q/K head norms would run `
+      + `rmsnorm/${UNDECLARED_PAIRED_QK_NORM_VARIANT} (${expected.shaderFile}), which its closure does not declare. `
+      + 'Declare q_norm and k_norm steps with their programs, or declare that program in execution.mechanismKernels.');
+  }
 }
 
 /**
@@ -69,6 +108,8 @@ export function validatePairedExecution(path, session, manifest) {
     throw new Error('[PairedExecution] Explicit complete linear/full-attention layer geometry is required.');
   }
   assertPairedLinearMechanismClosure(manifest.inference);
+  assertPairedQKNormClosure(manifest.inference);
+  const declaresQKNorm = kernelPathDeclaresQKNorm(path);
   for (let layer = 0; layer < count; layer++) for (const phase of /** @type {const} */ (['prefill', 'decode'])) {
     const steps = getLayerSteps(path, layer, phase);
     // Any registry RMSNorm program declaring paired input and output.
@@ -78,6 +119,8 @@ export function validatePairedExecution(path, session, manifest) {
     for (const role of ['attn_residual', 'ffn_residual']) requireStep(steps, role, 'paired_pointwise', 'add');
     if (types[layer] === 'full_attention') {
       for (const role of ['q_proj', 'k_proj', 'v_proj']) requireStep(steps, role, 'matmul', null);
+      // Any registry RMSNorm program declaring paired input and output; see assertPairedQKNormClosure.
+      if (declaresQKNorm) for (const role of ['q_norm', 'k_norm']) requireStep(steps, role, 'rmsnorm', null);
       for (const role of ['rope_q', 'rope_k']) requireStep(steps, role, 'rope_qk', 'paired');
       // Any registry attention program declaring paired Q/output over F16 K/V.
       requireStep(steps, 'attention', 'attention', null);

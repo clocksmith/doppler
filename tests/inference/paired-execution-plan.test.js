@@ -6,6 +6,7 @@ import { compileExecutionV1 } from '../../src/inference/pipelines/text/execution
 import { compileExecutionPlanState, resolveExecutionSessionPlan } from '../../src/inference/pipelines/text/execution-plan.js';
 import { resolvePairedAttentionPipeline, resolvePairedAttentionVariant } from '../../src/gpu/kernels/paired-attention.js';
 import { resolveDeclaredMechanismReplacements } from '../../src/config/execution-registry-contract.js';
+import { resolvePairedQKNormVariant } from '../../src/gpu/kernels/paired-rmsnorm.js';
 const execution = JSON.parse(readFileSync(new URL('../../artifacts/paired-intermediates-20261012/signed-closure-correction/execution.json', import.meta.url)));
 for (const [variant, shader] of [
   ['paired_beta', 'qwen_linear_attention_prepare_paired'],
@@ -110,4 +111,54 @@ for (const key of ['projection_q4', 'projection_f16', 'head']) {
     digest: `sha256:${KERNEL_REF_CONTENT_DIGESTS['matmul_paired_compensated.wgsl#main']}` };
 }
 assert.equal(compile(compensated).primaryPlan.activationPrecision, 'two-f32');
-console.log('paired execution plan: complete graph admission, exact variants, helper closure, scalar logits, tiled attention, sliced RMSNorm, compensated matmul and declared state (sliced or rolled) and Q/K replacement selection and session metadata pass');
+// Q/K head normalization. A manifest that normalizes full-attention heads declares q_norm and
+// k_norm steps; admission binds one paired RMSNorm program of each per layer and phase, and the
+// head norms run it. Interim: a graph without the steps runs rmsnorm/paired, which its closure
+// must declare (by a step, or as mechanism kernel paired_qk_head_norm).
+const headNormed = source => { const m = structuredClone(source); m.inference.attention = { queryKeyNorm: true }; return m; };
+const withQKNormSteps = (source, key, phases = ['decode', 'prefill']) => {
+  const m = structuredClone(source);
+  for (const phase of phases) {
+    const steps = m.inference.execution[phase];
+    steps.splice(steps.findIndex(step => step[0] === 'v_proj') + 1, 0, ['q_norm', key], ['k_norm', key]);
+  }
+  return m;
+};
+const shippedNorm = { kernel: 'rmsnorm_paired.wgsl', entry: 'main', constants: {}, digest: `sha256:${KERNEL_REF_CONTENT_DIGESTS['rmsnorm_paired.wgsl#main']}` };
+const qkVariants = (target, layer = 1) => ['prefill', 'decode'].flatMap(phase => ['q_norm', 'k_norm']
+  .map(op => resolvePairedQKNormVariant(op, phase, layer, compile(target).primaryPlan.kernelPath)));
+// The fixture's norm steps declare rmsnorm/paired, so its closure covers the interim program.
+assert.deepEqual(qkVariants(headNormed(manifest)), ['paired', 'paired', 'paired', 'paired']);
+// The faster candidate's generation-1 defect: the norm steps name the sliced program and nothing
+// declares rmsnorm/paired. Admission refuses it before loading instead of at preparation.
+assert.throws(() => compile(headNormed(sliced)), /declares no q_norm or k_norm step, so its Q\/K head norms would run rmsnorm\/paired/);
+const declaredMechanism = headNormed(sliced);
+declaredMechanism.inference.execution.kernels.paired_qk_head_norm = shippedNorm;
+declaredMechanism.inference.execution.mechanismKernels.push('paired_qk_head_norm');
+assert.deepEqual(qkVariants(declaredMechanism), ['paired', 'paired', 'paired', 'paired']);
+// Declared steps select their program: the sliced program through the norm key, or a separately
+// declared program; the mechanism declaration is then unnecessary.
+assert.deepEqual(qkVariants(withQKNormSteps(headNormed(sliced), 'norm')), ['paired_sliced', 'paired_sliced', 'paired_sliced', 'paired_sliced']);
+const separate = withQKNormSteps(headNormed(sliced), 'qk_norm');
+separate.inference.execution.kernels.qk_norm = shippedNorm;
+assert.deepEqual(qkVariants(separate), ['paired', 'paired', 'paired', 'paired']);
+// Fail closed: a phase without the steps, a scalar program, steps where no heads are normalized,
+// a scalar session, and head normalization requested outside a graph.
+assert.throws(() => compile(withQKNormSteps(headNormed(sliced), 'norm', ['decode'])), /Exactly one q_norm step is required/);
+const scalarStep = withQKNormSteps(headNormed(sliced), 'qk_norm');
+scalarStep.inference.execution.kernels.qk_norm = { kernel: 'rmsnorm.wgsl', entry: 'main',
+  digest: `sha256:${KERNEL_REF_CONTENT_DIGESTS['rmsnorm.wgsl#main']}` };
+assert.throws(() => compile(scalarStep), /q_norm is not bound to the declared paired rmsnorm implementation/);
+assert.throws(() => compile(withQKNormSteps(sliced, 'norm')), /declares q_norm or k_norm steps, but the manifest normalizes no full-attention heads/);
+{
+  const stepped = withQKNormSteps(headNormed(sliced), 'norm');
+  const path = compileExecutionV1({ manifestInference: stepped.inference, modelId: 'paired-fixture', numLayers: 2, weightDtype: 'q4k',
+    runtimeSession: stepped.inference.session, kernelPathPolicy: runtimeConfig.inference.kernelPathPolicy }).runtimeInferencePatch.kernelPath;
+  const scalarRuntime = structuredClone(runtimeConfig);
+  Object.assign(scalarRuntime.inference.session, { intermediatePrecision: 'f32', linearRecurrentStatePrecision: 'f32' });
+  assert.throws(() => compileExecutionPlanState({ runtimeConfig: scalarRuntime, manifest: stepped, resolvedKernelPath: path,
+    kernelPathSource: 'execution-v1' }), /q_norm and k_norm steps declare paired \(two-F32\) head normalization/);
+  assert.throws(() => resolvePairedQKNormVariant('q_norm', 'decode', 1, null), /runs only from the execution graph/);
+  assert.throws(() => resolvePairedQKNormVariant('q_norm', 'decode', undefined, path), /explicit phase and a layer index/);
+}
+console.log('paired execution plan: complete graph admission, exact variants, helper closure, scalar logits, tiled attention, sliced RMSNorm, compensated matmul and declared state (sliced or rolled) and Q/K replacement selection, declared Q/K head-norm steps with the interim closure rule, and session metadata pass');

@@ -1,4 +1,4 @@
-import { executePairedRMSNorm, resolvePairedRMSNormVariant } from './paired-rmsnorm.js';
+import { executePairedRMSNorm, resolvePairedQKNormVariant } from './paired-rmsnorm.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { padToQ4KBlock } from '../../config/schema/index.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
@@ -66,12 +66,14 @@ async function rmsNormQK(target, qTensor, kTensor, qWeight, kWeight, eps, option
         throw new Error('RMSNorm QK requires matching explicit interleaved two-F32 tensors.');
       }
     }
-    // Head normalization has no declared execution step; it runs the unpinned paired program.
-    const variant = resolvePairedRMSNormVariant(null);
+    // The graph's q_norm and k_norm steps declare the head-normalization programs.
+    const { kernelPath, phase, layerIdx } = options;
+    const qVariant = resolvePairedQKNormVariant('q_norm', phase, layerIdx, kernelPath);
+    const kVariant = resolvePairedQKNormVariant('k_norm', phase, layerIdx, kernelPath);
     let q = null;
     try {
-      q = await executePairedRMSNorm(target, qTensor, qWeight, eps, { batchSize: qRows, hiddenSize: headDim, rmsNormWeightOffset, variant });
-      const k = await executePairedRMSNorm(target, kTensor, kWeight, eps, { batchSize: kRows, hiddenSize: headDim, rmsNormWeightOffset, variant });
+      q = await executePairedRMSNorm(target, qTensor, qWeight, eps, { batchSize: qRows, hiddenSize: headDim, rmsNormWeightOffset, variant: qVariant });
+      const k = await executePairedRMSNorm(target, kTensor, kWeight, eps, { batchSize: kRows, hiddenSize: headDim, rmsNormWeightOffset, variant: kVariant });
       return { q, k };
     } catch (error) {
       if (q) {

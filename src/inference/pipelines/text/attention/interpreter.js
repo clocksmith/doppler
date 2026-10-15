@@ -471,7 +471,7 @@ export async function interpretAttentionWithRecorder(
       numTokens,
       numHeads,
       numKVHeads,
-      headDim,
+      headDim, kernelPath, phase, layerIdx,
       rmsNormWeightOffset: qkNormState.rmsNormWeightOffset,
       normalizationType: config.queryKeyNormType,
       normalizationAxis: config.queryKeyNormAxis,

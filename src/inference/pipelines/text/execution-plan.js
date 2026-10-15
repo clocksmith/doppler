@@ -6,6 +6,7 @@ import {
 } from './finiteness-policy.js';
 import { log } from '../../../debug/index.js';
 import { validatePairedExecution } from './paired-execution.js';
+import { kernelPathDeclaresQKNorm } from '../../../config/kernel-path-loader.js';
 import { assertLinearNormGateClosure } from '../../../config/execution-registry-contract.js';
 import { resolveLinearNormGateActivation } from '../../../config/schema/manifest.schema.js';
 
@@ -229,6 +230,10 @@ export function compileExecutionPlanState(options) {
   const sessionConfig = inferenceConfig.session ?? {};
   const representation = sessionConfig.intermediatePrecision === 'two-f32'
     ? validatePairedExecution(resolvedKernelPath, sessionConfig, manifest) : {};
+  if (sessionConfig.intermediatePrecision !== 'two-f32' && kernelPathDeclaresQKNorm(resolvedKernelPath)) {
+    throw new Error('[ExecutionPlan] q_norm and k_norm steps declare paired (two-F32) head normalization; '
+      + 'scalar Q/K normalization would not run their programs.');
+  }
   const decodeLoopConfig = sessionConfig.decodeLoop;
   if (!decodeLoopConfig || typeof decodeLoopConfig !== 'object') {
     throw new Error('[ExecutionPlan] runtimeConfig.inference.session.decodeLoop is required.');
