@@ -334,8 +334,8 @@ the override active. Do not promote this.
 
 ## LiteRT/TFLite lane status (2026-04-15)
 
-Goal 2 (the stronger "Doppler LiteRT beats both RDRR and TJS ONNX" claim)
-is **parked until reference data exists**.
+The stronger "Doppler LiteRT beats both RDRR and TJS ONNX" claim is
+**unsupported until reference data exists**.
 
 - The Gemma 4 E2B `.task` (`gemma-4-E2B-it-web.task`) PLE scale-companion
   layout is partially understood: the `_quantized_scale` bytes appear to be

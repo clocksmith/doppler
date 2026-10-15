@@ -10,8 +10,8 @@ kernels, artifact identities, and validation transcripts tied together by
 hashes.
 
 This is the normative home for Program Bundle fields. Doe owns ingest,
-capture, HostPlan, CSL, and receipt validation in its own repo; Ouroboros owns
-only the cross-repo journey and map.
+capture, HostPlan, CSL, and receipt validation in its own repo; the cross-repo
+journey and map are maintained outside this repository.
 
 ## Purpose
 

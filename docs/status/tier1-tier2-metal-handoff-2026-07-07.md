@@ -3,12 +3,11 @@
 Scope: collect Apple Metal browser evidence for current Tier 1 and Tier 2 lanes,
 then regenerate the README/support/release docs from saved receipts. Keep older
 supported models such as Gemma 3 270M in the supported-legacy tier unless the
-roadmap changes.
+support policy changes.
 
-Priority: close Tier 1 macOS evidence first. That means Qwen 3.5 0.8B
-generation plus Qwen embedding and reranker retrieval receipts on
-`darwin`/Metal browser WebGPU. Tier 2 rows are useful follow-up evidence, but
-they do not close the Tier 1 Mac gap.
+Tier 1 macOS closure requires Qwen 3.5 0.8B generation plus Qwen embedding and
+reranker retrieval receipts on `darwin`/Metal browser WebGPU. Tier 2 rows are
+separate evidence and do not close the Tier 1 Mac gap.
 
 ## Current Vulkan Receipts
 
@@ -147,7 +146,7 @@ Before pushing:
 ```bash
 git status --short
 git diff --stat
-git add README.md docs/model-roadmap.md docs/status/tier1-tier2-metal-handoff-2026-07-07.md benchmarks/vendors/local-inference-claim-matrix.json benchmarks/vendors/release-matrix.json docs/release-matrix.md benchmarks/vendors/model-support-inventory.json docs/model-support-inventory.md benchmarks/vendors/model-competition-scoreboard.json docs/model-competition-scoreboard.md benchmarks/vendors/results
+git add README.md docs/status/tier1-tier2-metal-handoff-2026-07-07.md benchmarks/vendors/local-inference-claim-matrix.json benchmarks/vendors/release-matrix.json docs/release-matrix.md benchmarks/vendors/model-support-inventory.json docs/model-support-inventory.md benchmarks/vendors/model-competition-scoreboard.json docs/model-competition-scoreboard.md benchmarks/vendors/results
 git commit -m "Refresh Tier 1 and Tier 2 benchmark evidence"
 git pull --rebase
 git push

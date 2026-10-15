@@ -64,12 +64,12 @@ assert.equal(invalidContractReadiness.deployment.broaderGoalProven, true);
 assert.equal(invalidContractReadiness.contractValid, false);
 assert.equal(invalidContractReadiness.technical.anyConfigurationProven, false, 'generic claimable rows are not physical GPU evidence');
 // Pure projection fixtures, not promoted adoption evidence. A network success
-// cannot substitute for adoption, and missing commercial evidence cannot block it.
+// cannot substitute for adoption, and missing deployment evidence cannot block it.
 const projection = {
   goals: { goals: [
     { id: 'open-execution-network', acceptanceScope: 'technical-network', status: 'complete', claimAllowed: true, blockers: [] },
     { id: 'local-webgpu-product-surface', acceptanceScope: 'standalone', claimAllowed: false,
-      blockers: ['paid-doppler-production-release-missing'], rowStates: [
+      blockers: ['customer-electron-fleet-receipts-missing'], rowStates: [
         { id: 'external-executable-model-adoption', status: 'partial', claimAllowed: false,
           blockers: ['external-executable-model-adoption-missing'] },
       ] },
@@ -128,17 +128,6 @@ assert.equal(
   'production-authority'
 );
 assert.equal(report.contracts.productIntegrations.qualified, 3);
-assert.equal(report.contracts.electronProspects.ok, true);
-assert.equal(report.contracts.electronProspects.researched, 5);
-assert.equal(report.contracts.electronProspects.primary, 3);
-assert.equal(report.contracts.electronProspects.qualifiedCustomers, 0);
-assert.deepEqual(
-  report.contracts.electronProspects.orderedTargets.map((entry) => entry.id),
-  ['anythingllm', 'joplin', 'cherry-studio', 'chatbox', 'affine']
-);
-assert.ok(report.contracts.electronProspects.orderedTargets.every(
-  (entry) => entry.claimAllowed === false
-));
 assert.equal(report.contracts.productPortfolioCoherence.ok, true);
 assert.equal(report.contracts.productPortfolioCoherence.workloads.length, 3);
 assert.equal(report.contracts.productPortfolioCoherence.requiredGates.length, 4);

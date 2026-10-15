@@ -296,14 +296,14 @@ Capabilities in [capabilities.json](./capabilities.json): the `format`
 feature category tracks `rdrr_runtime`, `onnx_runtime`, `safetensors_runtime`,
 and `format_matrix_compare` per target.
 
-## LiteRT/TFLite Goal Lane
+## LiteRT/TFLite Claim Lane
 
 Doppler has an experimental direct-source path for `.tflite`, `.task`, and
-`.litertlm` inputs. Treat that as a capability/best-available-web goal lane,
+`.litertlm` inputs. Treat that as a capability/best-available-web claim lane,
 not as part of the default claim matrix until the harness produces a saved
 compare artifact.
 
-The useful product claim, if the receipt supports it, is:
+The candidate claim this lane can test, if the receipt supports it, is:
 
 > Doppler runs Gemma 4 E2B in the browser faster than the best available
 > Transformers.js WebGPU/ONNX path under the same prompt, token, sampling,

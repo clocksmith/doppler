@@ -4,22 +4,21 @@
 multi-platform plan for fair local-GPU comparisons beyond the existing
 Transformers.js anchor lanes.
 
-The matrix's qualification order is explicit:
+The matrix's `qualificationOrder` names four lanes. Each has its own evidence
+requirements:
 
-1. Electron Qwen 3 Reranker release evidence at 10, 50, and 100 documents,
-   with cold and warm runs and stage timing from artifact validation through
-   readback.
-2. Reusable Strix Halo challenger infrastructure, including the
-   `amd-strix-halo-gfx1151` UMA-aware platform profile, direct ONNX Runtime
-   WebGPU, and deterministic llama.cpp generation with GGUF disclosure.
-3. Bounded LFM2.5 and Qwen3.8 correctness campaigns. F16 upstream controls and
-   first-divergence fixtures precede quantized promotion; Qwen3.8 vision and MTP
-   remain excluded.
-4. Unattended evidence production. Every run binds source, artifact, runtime,
-   hardware, engine revision, correctness, raw latency percentiles, failure
-   fixtures, and a retain/reject decision.
-
-This order keeps model research subordinate to the Electron release boundary.
+- Electron Qwen 3 Reranker release evidence at 10, 50, and 100 documents,
+  with cold and warm runs and stage timing from artifact validation through
+  readback.
+- Reusable Strix Halo challenger infrastructure, including the
+  `amd-strix-halo-gfx1151` UMA-aware platform profile, direct ONNX Runtime
+  WebGPU, and deterministic llama.cpp generation with GGUF disclosure.
+- Bounded LFM2.5 and Qwen3.8 correctness campaigns. F16 upstream controls and
+  first-divergence fixtures precede quantized promotion; Qwen3.8 vision and MTP
+  remain excluded.
+- Unattended evidence production. Every run binds source, artifact, runtime,
+  hardware, engine revision, correctness, raw latency percentiles, failure
+  fixtures, and a retain/reject decision.
 
 The matrix keeps three things separate:
 
@@ -80,9 +79,9 @@ the ONNX package is installed and the Qwen ONNX artifacts exist.
 The default `python3` PyTorch environment is not currently usable for challenger
 claims on this host: the installed torch build is CUDA,
 `torch.cuda.is_available()` is false, and `torch.version.hip` is unset. Two
-ROCm-enabled interpreters are present: `/home/x/.cache/columbo/rocm-py314/bin/python`
+ROCm-enabled interpreters are present: `<rocm7-python-interpreter>`
 reports torch `2.10.0+rocm7.0`, HIP `7.0.51831`, and `AMD Radeon 8060S`;
-`/home/x/.venvs/columbo-rocm/bin/python` reports torch `2.9.1+rocm6.4`, HIP
+`<rocm6.4-python-interpreter>` reports torch `2.9.1+rocm6.4`, HIP
 `6.4.43484-123eb5128`, and the same GPU. The ROCm 7 interpreter supports the
 newer Qwen architecture but segfaulted with exit 139 in both Qwen 3.5 2B
 generation and Qwen 3 Reranker HF smoke runs. The ROCm 6.4 interpreter sees the

@@ -44,8 +44,11 @@ not the primary reason developers install Doppler.
 
 ## Current priorities
 
-This section owns product priorities; the acceptance section below and retained
-campaign evidence do not create competing work queues.
+This section states Doppler's public product priorities; the acceptance section
+below and retained campaign evidence do not create competing work queues. The
+maintainers sequence work separately; public contributors pick work from
+[GitHub issues](https://github.com/clocksmith/doppler/issues) within these
+boundaries.
 
 Doppler is one independently useful JavaScript model-execution library. Prioritize
 useful outputs, straightforward installation, fast opening, bounded memory,
@@ -54,39 +57,16 @@ reusable sessions, cancellation, and recovery. Generation, embeddings, reranking
 use the same maintained implementation. Scoring uses contextual single-token
 labels and raw logits; calibration and task quality require separate evidence.
 
-1. **Finish dependable execution in the current integration.** Resolve the first
-   divergent numerical operation under the frozen model, inputs, precision, and
-   tolerance, then qualify the exact installed package. Exercise memory denial,
-   retained weights, concurrent conversations, isolated cancellation, contributor
-   loss, restart, and recovery. Reploid supplies the demanding two-computer
-   workload through public interfaces; Doppler owns loading, computation, and
-   execution-state lifecycle. Reploid owns discovery, placement, grants, transport,
-   readiness advertisement, and conversation policy. A requester downloading no
-   weights is this integration's requirement, not a restriction on standalone use.
-   Numerical parity, useful answers, and ordinary application operation are
-   separate acceptance claims. Preserve failures and unchanged references.
-2. **Make ordinary installation and one complete integration dependable.** Ship
-   accessible, pinned runtime/model bytes, a small public API, a runnable example,
-   and understandable failures. Verify fresh installation, acquisition, opening,
-   memory, repeated requests, cancellation, and offline reopening on each claimed
-   host. The retained search starter's fresh-install eligibility has expired;
-   renew its signed metadata and delivery before promoting it as current onboarding.
-   Retain existing search and generation evidence without extending its scope.
-3. **Earn independent application value.** Work with document-software teams that
-   have concrete local-operation or deployment constraints. Compare real tasks
-   against their strongest feasible alternative; measure output quality, first
-   useful result, memory, acquisition, and integration effort. Freeze acceptance
-   before changing code and retain unfavorable results. Independent adoption is
-   a product outcome; it does not gate technical investigation or scoped release.
-
 Expand models and optimizations around demonstrated application needs. Rewriting
-requires new task-quality evidence and customer pull; it is not an automatic next
-campaign. Doe is optional and does not replace a browser backend by download alone.
-Do not begin a Doe comparison, new modality, distributed architecture, training
-campaign, or model-catalog expansion merely because an older plan lists it.
-Verification supports dependable execution; retained independent use establishes
-product value. Keep Rig → Capsule → Run, public compatibility contracts, explicit
-ownership, and application-controlled trust and upgrades intact.
+requires new task-quality evidence; it is not an automatic next campaign. Doe is
+optional and does not replace a browser backend by download alone. Do not begin a
+Doe comparison, new modality, distributed architecture, training campaign, or
+model-catalog expansion merely because an older plan lists it. Verification
+supports dependable execution; retained independent use establishes product value.
+Numerical parity, useful answers, and ordinary application operation are separate
+acceptance claims; preserve failures and unchanged references. Keep Rig → Capsule
+→ Run, public compatibility contracts, explicit ownership, and
+application-controlled trust and upgrades intact.
 
 ## Operating Loops
 
@@ -102,7 +82,7 @@ ownership, and application-controlled trust and upgrades intact.
 ## Strategic Constraints
 
 - Provider neutrality: Doppler operates on standard WebGPU across browsers and runtimes without proprietary hardware lock-in.
-- Standalone sufficiency: Doppler must succeed as a self-contained open library; revenue, partner dependencies, or multi-repo integrations do not gate technical completion.
+- Standalone sufficiency: Doppler must succeed as a self-contained open library; payment, partner dependencies, or multi-repo integrations do not gate technical completion.
 - Deterministic verification: Evidence receipts must bind exact model hashes, kernel configurations, and execution environments.
 - Reploid is one consumer of the same public capabilities. It owns agents, peer
   coordination, consent, and application policy; Doppler supplies inference.
@@ -127,23 +107,23 @@ claims remain excluded.
 
 This file owns Doppler's mission, priorities, and product acceptance requirements.
 The technical owners below define their detailed contracts. The current joint
-Doppler–Reploid integration uses Reploid's
-[implementation roadmap](https://github.com/clocksmith/reploid/blob/main/ROADMAP.md);
-it does not replace Doppler's independent product goals.
+Doppler–Reploid integration follows Reploid's implementation roadmap, which is
+maintained privately; it does not replace Doppler's independent product goals.
 
 ### Standalone adoption acceptance
 
 Independent adoption means an unrelated application voluntarily retains Doppler
 for useful outputs, simpler integration, dependable operation, or a measured
-resource advantage. Internal reference integrations and paid release operations
-have separate evidence. Neither payment nor external adoption is permission to
-release a technically qualified configuration.
+resource advantage. Internal reference integrations have separate evidence.
+Neither payment nor external adoption is permission to release a technically
+qualified configuration.
 
 - [Root API](docs/api/root.md) and [getting started](docs/getting-started.md) own ordinary use.
 - [Product integration qualification](docs/product-integration-qualification.md) owns
   application, workload, provider, lifecycle, and numerical identity.
-- [Release operations](docs/model-release-platform.md) owns optional adoption and
-  release acceptance; the application retains activation and rollback authority.
+- [Release contract](docs/model-release-platform.md) owns Capsule release closure
+  and the non-promoting release command; the application retains activation and
+  rollback authority.
 - [Resident partitions](docs/distribution/resident-partition-execution.md) owns the
   public distributed execution boundary. Reploid owns placement and transport.
 
@@ -249,10 +229,9 @@ candidate or grants production authority. Missing evidence stays incomplete.
 
 ### Historical campaigns
 
-The [previous goals and campaign record](https://github.com/clocksmith/doppler/blob/e0b217e646eb0da5bc83f4ca7ec18932cbe6c086/docs/goals.md) retains the original search,
-Doe comparison, network, adoption, observability, and release sequences with
-their evidence. Those sequences are historical, not additional work queues.
-Current artifact/API requirements belong to the owners linked above.
+Earlier search, Doe comparison, network, adoption, observability, and release
+sequences are historical, not additional work queues. Current artifact/API
+requirements belong to the owners linked above.
 
 ---
 

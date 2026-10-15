@@ -52,7 +52,7 @@ Primary documentation index.
 - [CLI reference](cli.md), [tooling API](api/tooling.md), and [operations](operations.md) — engineering commands and diagnostics.
 - [Incremental Capsule streams](capsule-streaming.md) — migration and receipt transport.
 - [Revocation](revocation.md) — explicit trust and release-history boundaries.
-- [Optional release operations](model-release-platform.md) — retained commercial hypotheses and release contracts.
+- [Release contract](model-release-platform.md) — Capsule release closure, the non-promoting release command, and activation and custody boundaries.
 - [LoRA format](lora-format.md), [experimental tooling](api/tooling-experimental.md), [diffusion](api/diffusion.md), and [energy](api/energy.md) — separately scoped capabilities.
 - [Generated exports](api/reference/exports.md) — machine-derived inventory.
 

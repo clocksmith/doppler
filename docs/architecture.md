@@ -122,7 +122,7 @@ execution: generation, embeddings, reranking, narrow choice scoring, and support
 partition execution. Applications embed one maintained implementation for loading,
 execution, streaming, cancellation, and cleanup. Useful outputs, straightforward
 installation, fast opening, bounded memory, reuse, and recovery drive the work;
-[GOALS.md](../GOALS.md#current-priorities) owns current sequencing.
+[GOALS.md](../GOALS.md#current-priorities) states product priorities.
 
 Rig is the supporting model compiler/preparation system. It converts pinned source
 truth into signed immutable Capsules containing ModelIR-derived, qualified

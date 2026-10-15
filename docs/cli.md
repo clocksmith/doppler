@@ -131,7 +131,7 @@ Command-level surface support:
 - `program-bundle`: no `--surface`; reads declared files and writes a JSON artifact
 - `profiles`: no `--surface`; reads checked-in runtime config metadata only
 
-## Doppler Production Release
+## Production release command
 
 The installable public binary is `doppler` from the `doppler-gpu` package. Use
 either an installed binary or the explicit npm package form:

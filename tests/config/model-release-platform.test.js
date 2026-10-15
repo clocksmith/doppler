@@ -27,15 +27,14 @@ for (const field of policy.adoptionGate.requiredEvidence) {
 {
   const report = await buildModelReleasePlatformReport();
   assert.equal(report.ok, true, report.errors.join('\n'));
-  assert.equal(report.commercialAssessment, 'unestablished');
+  assert.equal(report.releaseActivationAuthority, 'customer-controlled');
   assert.equal(policy.standaloneAdoptionGate.primary, true);
   assert.equal(policy.adoptionGate.goalId, 'local-webgpu-product-surface');
   assert.equal(policy.adoptionGate.paymentRequired, false);
   assert.equal(policy.adoptionGate.p2pRequired, false);
-  assert.equal(report.promotionSequenceScope, 'standalone-commercial');
+  assert.equal(report.promotionSequenceScope, 'standalone-release');
   assert.equal(report.networkAcceptance.paymentRequired, false);
-  assert.equal(policy.commercialOffer.activationAuthority, 'customer-controlled');
-  assert.equal(policy.commercialOffer.selfPromotionAllowed, false);
+  assert.equal(policy.releaseContract.selfPromotionAllowed, false);
   assert.equal(policy.referenceIntegrations.externalAdoptionEvidence, false);
   assert.equal(policy.referenceIntegrations.commercialDemandEvidence, false);
   assert.deepEqual(report.migrationSurfaces, ['openai-server', 'generation', 'embedding']);
@@ -55,16 +54,10 @@ for (const field of policy.adoptionGate.requiredEvidence) {
   assert.deepEqual(report.externalPromotionGates, [
     'electron-fleet-qualification',
     'revocation-and-customer-rollback',
-    'paid-external-release-and-upgrade',
-    'three-unrelated-design-partners',
   ]);
   assert.equal(
     policy.promotionSequence.find((row) => row.id === 'electron-fleet-qualification')?.blockerCode,
     'customer-electron-fleet-receipts-missing'
-  );
-  assert.equal(
-    policy.promotionSequence.find((row) => row.id === 'three-unrelated-design-partners')?.blockerCode,
-    'three-unrelated-design-partners-missing'
   );
   assert.ok(policy.capsule.requiredReleaseElements.find(
     (row) => row.id === 'version-supersession-migration'
@@ -77,7 +70,7 @@ for (const field of policy.adoptionGate.requiredEvidence) {
 {
   const broken = clone(policy);
   const releaseCommand = broken.promotionSequence.find((row) => row.id === 'doppler-release-command');
-  releaseCommand.blockerCode = 'paid-doppler-production-release-missing';
+  releaseCommand.blockerCode = 'customer-electron-fleet-receipts-missing';
   const report = await validateModelReleasePlatform(broken, matrix);
   assert.ok(report.errors.includes(
     'promotionSequence.doppler-release-command: implemented gates must have blockerCode null'
@@ -117,10 +110,10 @@ for (const field of policy.adoptionGate.requiredEvidence) {
 {
   const broken = clone(matrix);
   const goal = broken.goals.find((row) => row.id === 'local-webgpu-product-surface');
-  goal.rows = goal.rows.filter((row) => row.id !== 'doppler-production-release-offer');
+  goal.rows = goal.rows.filter((row) => row.id !== 'canonical-production-release-contract');
   const report = await validateModelReleasePlatform(policy, broken);
   assert.ok(
-    report.errors.includes('goal matrix is missing local-webgpu-product-surface/doppler-production-release-offer'),
+    report.errors.includes('goal matrix is missing local-webgpu-product-surface/canonical-production-release-contract'),
     report.errors.join('\n')
   );
 }
@@ -135,9 +128,16 @@ for (const field of ['paymentRequired', 'doeRequired', 'agentCapsuleImprovementR
   broken.networkAcceptance[field] = true;
   assert.equal((await validateModelReleasePlatform(broken, matrix)).ok, false, field);
 }
-for (const field of ['commercialOffer', 'acquisitionBoundary']) {
+{
+  // The release contract carries no commercial offer; undeclared sections are rejected.
   const broken = clone(policy);
-  broken[field].requiredForTechnicalAcceptance = true;
+  broken.commercialOffer = { requiredForTechnicalAcceptance: false };
+  const report = await validateModelReleasePlatform(broken, matrix);
+  assert.ok(report.errors.includes('policy.commercialOffer is not allowed'), report.errors.join('\n'));
+}
+for (const [field, value] of [['activationAuthority', 'doppler-controlled'], ['selfPromotionAllowed', true]]) {
+  const broken = clone(policy);
+  broken.releaseContract[field] = value;
   assert.equal((await validateModelReleasePlatform(broken, matrix)).ok, false, field);
 }
 for (const [field, value] of [['privateInputDefault', 'shared'], ['delegation', 'automatic'], ['redistribution', 'automatic'], ['protocols', 'locked'], ['firstModelId', 'qwen']]) {

@@ -31,7 +31,7 @@ Make local AI an ordinary JavaScript dependency. Advance generation and search i
 - Artifact, tokenizer, graph, kernel, provider, and policy identity remain inspectable.
 - Unsupported or unresolved execution choices fail closed.
 - Standalone execution is independent; redistribution and delegation require authority.
-- Free adoption counts; revenue, acquisition, Doe, Poolday, and Reploid are not gates.
+- Free adoption counts; payment, Doe, Poolday, and Reploid are not gates.
 - Network artifact, execution, and history-improvement proof remains separate.
 - Component names are Doppler Rig and Doppler Run; existing serialized identities
   and public compatibility aliases remain stable.
