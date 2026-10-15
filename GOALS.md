@@ -183,9 +183,12 @@ uses this maintained engine and preserves those boundaries.
 
 ### Correctness and performance acceptance
 
-Doppler targets best-in-class browser inference against Transformers.js, WebLLM,
-and other relevant browser engines, and performance comparable to or better than
-MLX/MLX-LM and llama.cpp on the same supported hardware and workloads. This is an
+Doppler targets best-in-class browser inference against current Transformers.js
+on ONNX Runtime Web and competitive custom WGSL engines, and performance
+comparable to or better than MLX/MLX-LM, llama.cpp and supported optimized native
+inference configurations on the same hardware and workloads. Select challengers
+from current implementations and reproducible claims, including operator-level
+kernel work; framework familiarity alone does not define the competitive field. This is an
 engineering objective, not an achieved ranking. Qualify browser and Node results
 separately; compare native engines on their appropriate accelerated backends.
 Measure first useful output, sustained execution, complete-request latency,
