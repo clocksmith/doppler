@@ -6,11 +6,6 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
-const OUTPUT_PATH = path.join(REPO_ROOT, 'assets', 'doppler-webgpu-evidence.svg');
-const WIDTH = 1280;
-const HEIGHT = 930;
-const AXIS_START = 600;
-const AXIS_END = 970;
 const RATE_FORMATTER = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
@@ -87,9 +82,10 @@ function readJson(relativePath) {
 }
 
 function requiredNumber(value, label) {
-  const number = Number(value);
-  if (!Number.isFinite(number)) throw new Error(`missing finite ${label}`);
-  return number;
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
+    throw new Error(`missing positive finite ${label}`);
+  }
+  return value;
 }
 
 function requiredArray(value, label) {
@@ -194,14 +190,35 @@ function loadRetrievalRow(definition, report) {
   };
 }
 
+export function requireComparable(report, definition) {
+  if (definition.kind === 'paired-text') {
+    if (report.claimGrade !== true || report.correctness?.exactTokenParityAllPairs !== true
+      || report.correctness?.pairedComparableAllPairs !== true) {
+      throw new Error(`${definition.receipt}: paired correctness/claim gate failed`);
+    }
+    return;
+  }
+  if (report.fairness?.claimGrade !== true || report.fairness?.correctnessOk !== true) {
+    throw new Error(`${definition.receipt}: correctness/claim gate failed`);
+  }
+  if (definition.kind === 'text') {
+    const section = report.sections?.compute?.[definition.section];
+    if (report.fairness?.surfaceFairness?.sameRuntimeSurface !== true
+      || report.fairness?.sections?.[`compute/${definition.section}`]?.claimGrade !== true
+      || section?.pairedComparable !== true || section?.decodeValidity?.ok !== true) {
+      throw new Error(`${definition.receipt}: comparable surface/section gate failed`);
+    }
+  }
+}
+
 function loadRow(definition) {
   const report = readJson(definition.receipt);
-  if (definition.kind === 'text') return loadTextRow(definition, report);
-  if (definition.kind === 'paired-text') return loadPairedTextRow(definition, report);
-  if (definition.kind === 'embedding' || definition.kind === 'rerank') {
-    return loadRetrievalRow(definition, report);
-  }
-  throw new Error(`unsupported evidence row kind: ${definition.kind}`);
+  requireComparable(report, definition);
+  let row;
+  if (definition.kind === 'text') row = loadTextRow(definition, report);
+  else if (definition.kind === 'paired-text') row = loadPairedTextRow(definition, report);
+  else row = loadRetrievalRow(definition, report);
+  return { ...row, mismatch: report.correctness?.exactMatch === false };
 }
 
 function escapeXml(value) {
@@ -213,122 +230,170 @@ function escapeXml(value) {
     .replaceAll("'", '&apos;');
 }
 
-function formatRate(value, unit) {
-  return `${RATE_FORMATTER.format(value)} ${unit}`;
+const PURPLE = '#7542c8';
+const MUTED = '#657083';
+const RECEIPT_URL = 'https://github.com/clocksmith/doppler/blob/main/';
+
+function text(x, y, value, size = 18, color = '#202735', weight = 400, extra = '') {
+  return `<text x="${x}" y="${y}" font-size="${size}" fill="${color}" font-weight="${weight}" ${extra}>${escapeXml(value)}</text>`;
 }
 
-function scaleForRow(row) {
-  const values = [
-    row.doppler.min,
-    row.doppler.max,
-    row.doppler.rate,
-    row.transformersjs.min,
-    row.transformersjs.max,
-    row.transformersjs.rate,
-  ];
-  const minimum = Math.min(...values);
-  const maximum = Math.max(...values);
-  const span = Math.max(maximum - minimum, maximum * 0.02, 0.01);
-  const low = minimum - span * 0.08;
-  const high = maximum + span * 0.08;
-  return (value) => AXIS_START + ((value - low) / (high - low)) * (AXIS_END - AXIS_START);
+function frame(width, height, title, description, body) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="title desc">
+<title id="title">${escapeXml(title)}</title><desc id="desc">${escapeXml(description)}</desc>
+<style>text{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums}a:hover text{text-decoration:underline}</style>
+<rect x="1" y="1" width="${width - 2}" height="${height - 2}" rx="18" fill="white" stroke="#dce1e9" stroke-width="1.4"/>
+${text(36, 43, 'doppler', 24, PURPLE, 700)}
+${body.join('\n')}
+</svg>\n`;
 }
 
-function renderRange(scale, y, values, prefix) {
-  const minimum = scale(values.min);
-  const maximum = scale(values.max);
-  const rate = scale(values.rate);
-  const width = Math.max(2, maximum - minimum);
-  return [
-    `<path d="M${minimum.toFixed(1)} ${y}H${maximum.toFixed(1)}" class="${prefix}-mark"/>`,
-    `<rect x="${minimum.toFixed(1)}" y="${y - 7}" width="${width.toFixed(1)}" height="14" class="${prefix}-box"/>`,
-    `<path d="M${minimum.toFixed(1)} ${y - 8}V${y + 8}M${maximum.toFixed(1)} ${y - 8}V${y + 8}M${rate.toFixed(1)} ${y - 9}V${y + 9}" class="${prefix}-mark"/>`,
-  ].join('');
+function bar(x, y, width, value, max, color) {
+  return `<rect x="${x}" y="${y}" width="${width}" height="14" rx="7" fill="#eef0f4"/>
+<rect x="${x}" y="${y}" width="${(width * value / max).toFixed(2)}" height="14" rx="7" fill="${color}"/>`;
 }
 
-function renderRow(row, top) {
-  const scale = scaleForRow(row);
-  const detail = [`n=${row.runs}`];
-  if (row.detail) detail.push(row.detail);
+function receiptGroup(row, content) {
+  return `<g class="benchmark-row" data-receipt="${escapeXml(row.receipt)}"><a href="${RECEIPT_URL}${escapeXml(row.receipt)}">${content.join('\n')}</a></g>`;
+}
+
+function renderRateCard(row, x, y, width) {
+  const max = Math.max(row.doppler.max, row.transformersjs.max, row.doppler.rate, row.transformersjs.rate);
   const ratio = row.doppler.rate / row.transformersjs.rate;
-  return [
-    `<text x="42" y="${top + 24}" class="model">${escapeXml(row.model)}</text>`,
-    `<text x="42" y="${top + 49}" class="detail">${escapeXml(detail.join(' · '))}</text>`,
-    `<text x="320" y="${top + 23}" class="dv mono">${formatRate(row.doppler.rate, row.unit)}</text>`,
-    `<text x="320" y="${top + 49}" class="tv mono">${formatRate(row.transformersjs.rate, row.unit)}</text>`,
-    `<path d="M${AXIS_START} ${top + 19}H${AXIS_END}" class="axis"/>`,
-    renderRange(scale, top + 19, row.doppler, 'd'),
-    `<path d="M${AXIS_START} ${top + 45}H${AXIS_END}" class="axis"/>`,
-    renderRange(scale, top + 45, row.transformersjs, 't'),
-    `<path d="M1010 ${top + 8}V${top + 56}" class="divider"/>`,
-    `<text x="1109" y="${top + 41}" text-anchor="middle" class="ratio">${ratio.toFixed(2)}x</text>`,
-    `<path d="M42 ${top + 72}H1238" class="row"/>`,
-  ].join('\n  ');
-}
-
-function renderSvg(groups) {
-  const paired = groups.flatMap((group) => group.rows).find((row) => row.kind === 'paired-text');
-  const body = [
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" role="img" aria-labelledby="title desc">`,
-    '  <title id="title">Doppler and Transformers.js browser WebGPU throughput</title>',
-    '  <desc id="desc">Reported throughput and receipt-reported min-to-max rate ranges for nine browser WebGPU comparisons on Apple M3 Metal and Radeon 8060S Vulkan. Higher is faster.</desc>',
-    '  <defs><style>',
-    '    text{fill:#111;font-family:Inter,"Segoe UI","Helvetica Neue",Arial,sans-serif;letter-spacing:0}.mono{font-family:SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}.legend{font-size:12px;font-weight:750;fill:#495057}.column{font-size:11px;font-weight:800;fill:#6b7280}.section{font-size:18px;font-weight:800}.section-detail{font-size:12px;font-weight:750;fill:#495057}.model{font-size:16px;font-weight:800}.detail{font-size:12px;font-weight:650;fill:#6b7280}.dv,.tv{font-size:13px;font-weight:800}.dv{fill:#6d28d9}.tv{fill:#9a6700}.ratio{font-size:24px;font-weight:800;fill:#6d28d9}.footer{font-size:11px;font-weight:650;fill:#495057}.band{fill:#f4f4f5}.row{stroke:#e5e7eb}.axis{stroke:#e5e7eb;stroke-width:2}.divider{stroke:#e5e7eb}.d-box{fill:#ede9fe;stroke:#6d28d9;stroke-width:2}.t-box{fill:#fff4cc;stroke:#ffb000;stroke-width:2}.d-mark{fill:none;stroke:#6d28d9;stroke-width:2}.t-mark{fill:none;stroke:#ffb000;stroke-width:2}',
-    '  </style></defs>',
-    `  <rect width="${WIDTH}" height="${HEIGHT}" fill="#fff"/>`,
-    '',
-    '  <circle cx="49" cy="32" r="7" fill="#6d28d9"/><text x="65" y="37" class="legend">Doppler</text>',
-    '  <circle cx="149" cy="32" r="7" fill="#ffb000"/><text x="165" y="37" class="legend">Transformers.js</text>',
-    '  <text x="1238" y="37" text-anchor="end" class="legend">BAND MIN–MAX · CENTER REPORTED RATE</text>',
-    '  <path d="M42 56H1238" stroke="#111"/>',
-    '  <text x="42" y="82" class="column">MODEL</text><text x="320" y="82" class="column">THROUGHPUT</text>',
-    '  <text x="600" y="82" class="column">RECEIPT RATE RANGE · HIGHER IS FASTER →</text><text x="1109" y="82" text-anchor="middle" class="column">RATE RATIO</text>',
+  const detail = row.mismatch
+    ? `${row.runs} runs · ${row.detail} · outputs differ`
+    : row.kind === 'paired-text'
+      ? `${row.runs} paired runs · exact tokens`
+      : `${row.runs} runs · ${row.detail || 'published artifact'}`;
+  const content = [
+    `<rect x="${x}" y="${y}" width="${width}" height="234" rx="12" fill="#f7f3fd" stroke="#e5ddf3"/>`,
+    text(x + 22, y + 33, row.model, 21, '#202735', 600),
+    text(x + 22, y + 59, detail, 15, MUTED),
+    text(x + width - 22, y + 101, `${ratio.toFixed(2)}×`, 28, PURPLE, 650, 'text-anchor="end"'),
+    text(x + 22, y + 100, 'Doppler', 17, PURPLE, 600),
+    text(x + 22, y + 127, `${RATE_FORMATTER.format(row.doppler.rate)} ${row.unit}`, 18, PURPLE, 600),
+    bar(x + 22, y + 139, width - 44, row.doppler.rate, max, PURPLE),
+    text(x + 22, y + 184, 'Transformers.js', 17, MUTED, 500),
+    text(x + width - 22, y + 184, `${RATE_FORMATTER.format(row.transformersjs.rate)} ${row.unit}`, 18, MUTED, 500, 'text-anchor="end"'),
+    bar(x + 22, y + 198, width - 44, row.transformersjs.rate, max, '#8791a2'),
   ];
-
-  let sectionTop = 94;
-  for (const [groupIndex, group] of groups.entries()) {
-    body.push('');
-    body.push(`  <rect x="42" y="${sectionTop}" width="1196" height="38" class="band"/>`);
-    body.push(`  <text x="54" y="${sectionTop + 26}" class="section">${escapeXml(group.label)}</text><text x="1226" y="${sectionTop + 25}" text-anchor="end" class="section-detail">${group.rows.length} MODELS</text>`);
-    let rowTop = sectionTop + 46;
-    for (const row of group.rows) {
-      body.push('');
-      body.push(`  ${renderRow(row, rowTop)}`);
-      rowTop += 72;
-    }
-    sectionTop = rowTop + (groupIndex === 0 ? 12 : 0);
-  }
-
-  body.push('');
-  body.push('  <path d="M42 858H1238" stroke="#111"/>');
-  body.push('  <text x="42" y="883" class="footer">Each row uses its own throughput scale; faster is right.</text>');
-  body.push(`  <text x="42" y="906" class="footer">Metal Qwen 3.5 2B: ${paired.runs} paired runs · ${paired.pairWins.doppler} Doppler wins · ${paired.pairWins.transformersjs} TJS wins · exact tokens.</text>`);
-  body.push('  <text x="1238" y="906" text-anchor="end" class="footer mono">9 LINKED RESULTS</text>');
-  body.push('</svg>');
-  return `${body.join('\n')}\n`;
+  return receiptGroup(row, content);
 }
 
-function main() {
+function renderRates(groups, mobile) {
+  const width = mobile ? 620 : 1200;
+  const columns = mobile ? 1 : 2;
+  const cardWidth = (width - 72 - (columns - 1) * 20) / columns;
+  const body = [text(36, 85, 'More work per second.', mobile ? 27 : 30, '#202735', 600),
+    text(36, 116, 'Selected browser WebGPU results · higher is better', 17, MUTED)];
+  let y = 150;
+  for (const group of groups) {
+    body.push(text(36, y + 23, group.label, 23, '#202735', 600));
+    y += 43;
+    group.rows.forEach((row, i) => body.push(renderRateCard(row, 36 + (i % columns) * (cardWidth + 20), y + Math.floor(i / columns) * 254, cardWidth)));
+    y += Math.ceil(group.rows.length / columns) * 254 + 20;
+  }
+  const lines = mobile ? [
+    'July 2026 · Transformers.js 4.0.1 · zero-based bars',
+    'RDRR Q4K vs ONNX q4f16; different optimized formats.',
+    'Rates use each receipt’s estimator; synthetic text workloads.',
+    'Retrieval passed semantic fixtures, not numerical equivalence.',
+    'Local models and differing Gemma outputs are labeled.',
+    'Selected results; loading and task quality are separate.',
+  ] : [
+    'July 2026 · Transformers.js 4.0.1 · zero-based bars · RDRR Q4K vs ONNX q4f16 (different optimized formats).',
+    'Rates use each receipt’s estimator; synthetic text workloads. Retrieval passed semantic fixtures, not numerical equivalence.',
+    'Local models and differing Gemma outputs are labeled. Selected results; loading and task quality are separate.',
+  ];
+  lines.forEach((line, i) => body.push(text(36, y + 12 + i * 25, line, 15, MUTED)));
+  return frame(width, y + lines.length * 25 + 25, 'Doppler vs Transformers.js: selected measured throughput', 'Nine selected browser comparisons with per-card zero-based scales. Purple is Doppler, gray is Transformers.js. Every card links to its receipt.', body);
+}
+
+const LATENCY_ROWS = [
+  { model: 'Qwen 3.5 0.8B', platform: 'Radeon 8060S · Vulkan', kind: 'text', section: 'parity', receipt: 'benchmarks/vendors/results/compare_20260707T153509.json' },
+  { model: 'Qwen 3.5 2B', platform: 'Radeon 8060S · Vulkan', kind: 'text', section: 'parity', receipt: 'benchmarks/vendors/results/compare_20260707T161623.json' },
+  { model: 'Qwen 3.5 0.8B', platform: 'Apple M3 · Metal', kind: 'text', section: 'parity', receipt: 'benchmarks/vendors/results/compare_20260709T154633.json' },
+];
+
+function renderLatency(mobile) {
+  const width = mobile ? 620 : 1200;
+  const columns = mobile ? 1 : 3;
+  const cardWidth = (width - 72 - (columns - 1) * 20) / columns;
+  const body = [text(36, 85, 'Less waiting for the answer.', mobile ? 27 : 30, '#202735', 600),
+    text(36, 116, '512 prompt tokens → 128 generated · lower time is better', mobile ? 17 : 19, MUTED)];
+  LATENCY_ROWS.forEach((row, i) => {
+    const report = readJson(row.receipt);
+    requireComparable(report, row);
+    if (report.correctness?.exactMatch !== true) throw new Error(`${row.receipt}: exact output gate failed`);
+    const section = report.sections.compute.parity;
+    const d = section.doppler.result.timing;
+    const t = section.transformersjs.timing;
+    const dv = requiredNumber(d.totalRunMs, 'doppler totalRunMs') / 1000;
+    const tv = requiredNumber(t.totalRunMs, 'transformersjs totalRunMs') / 1000;
+    const dLoad = requiredNumber(d.modelLoadMs, 'doppler modelLoadMs') / 1000;
+    const tLoad = requiredNumber(t.modelLoadMs, 'transformersjs modelLoadMs') / 1000;
+    const x = 36 + (i % columns) * (cardWidth + 20);
+    const y = 150 + Math.floor(i / columns) * 414;
+    const label = report.fairness.releaseClaimable ? 'published artifact' : 'local artifact';
+    body.push(receiptGroup(row, [
+      `<rect x="${x}" y="${y}" width="${cardWidth}" height="394" rx="12" fill="#f7f3fd" stroke="#e5ddf3"/>`,
+      text(x + 22, y + 35, row.model, 23, '#202735', 600),
+      text(x + 22, y + 63, row.platform, 16, MUTED),
+      text(x + 22, y + 125, `${(tv / dv).toFixed(1)}×`, 54, PURPLE, 650),
+      text(x + 22, y + 155, 'faster warm generation', 18, PURPLE, 500),
+      text(x + 22, y + 198, 'Doppler', 17, PURPLE, 600),
+      text(x + cardWidth - 22, y + 198, `${dv.toFixed(2)} s`, 21, PURPLE, 600, 'text-anchor="end"'),
+      bar(x + 22, y + 213, cardWidth - 44, dv, tv, PURPLE),
+      text(x + 22, y + 260, 'Transformers.js', 17, MUTED, 500),
+      text(x + cardWidth - 22, y + 260, `${tv.toFixed(2)} s`, 21, MUTED, 500, 'text-anchor="end"'),
+      bar(x + 22, y + 275, cardWidth - 44, tv, tv, '#8791a2'),
+      text(x + 22, y + 323, `Load + run: ${(dLoad + dv).toFixed(2)} vs ${(tLoad + tv).toFixed(2)} s`, 16, '#202735', 500),
+      text(x + 22, y + 350, 'Sum of reported load and run times', 14, MUTED),
+      text(x + 22, y + 376, `${report.runs} runs · exact output · ${label}`, 14, MUTED),
+    ]));
+  });
+  const y = 150 + Math.ceil(LATENCY_ROWS.length / columns) * 414 + 12;
+  const lines = mobile ? [
+    'Warm generation includes prompt + decode; excludes load.',
+    'July 2026 · Chromium WebGPU · Transformers.js 4.0.1',
+    'RDRR Q4K vs ONNX q4f16: different optimized formats.',
+    'Synthetic text workloads; receipt timing summaries.',
+    'Warm load shown separately; not a cold-start claim.',
+    'Selected workloads, not every model or device.',
+  ] : [
+    'Warm generation includes prompt + decode; excludes model load. Warm load is shown separately, not a cold-start claim.',
+    'July 2026 · Chromium WebGPU · Transformers.js 4.0.1 · RDRR Q4K vs ONNX q4f16: different optimized formats.',
+    'Synthetic text workloads; receipt timing summaries, not a new benchmark. Selected results. Click a card for the source.',
+  ];
+  lines.forEach((line, i) => body.push(text(36, y + i * 25, line, 15, MUTED)));
+  return frame(width, y + lines.length * 25 + 22, 'Doppler vs Transformers.js: selected warm generation times', 'Three same-device browser comparisons with exact output matches. Zero-based time bars. Warm generation excludes loading; sums including reported warm load are shown separately.', body);
+}
+
+export function main() {
   const unknownArgs = process.argv.slice(2).filter((arg) => arg !== '--check');
   if (unknownArgs.length > 0) throw new Error(`unknown argument: ${unknownArgs[0]}`);
-  const groups = GROUPS.map((group) => ({
-    ...group,
-    rows: group.rows.map(loadRow),
-  }));
-  const expected = renderSvg(groups);
-  if (process.argv.includes('--check')) {
-    const actual = fs.readFileSync(OUTPUT_PATH, 'utf8');
-    if (actual !== expected) throw new Error('assets/doppler-webgpu-evidence.svg is stale; run npm run readme:evidence:sync');
-    console.log('README evidence SVG is current.');
-    return;
+  const groups = GROUPS.map((group) => ({ ...group, rows: group.rows.map(loadRow) }));
+  const outputs = [
+    ['assets/doppler-webgpu-evidence.svg', renderRates(groups, false)],
+    ['assets/doppler-webgpu-evidence-mobile.svg', renderRates(groups, true)],
+    ['assets/readme/generation-time.svg', renderLatency(false)],
+    ['assets/readme/generation-time-mobile.svg', renderLatency(true)],
+  ];
+  for (const [relativePath, expected] of outputs) {
+    const output = path.join(REPO_ROOT, relativePath);
+    if (process.argv.includes('--check')) {
+      if (fs.readFileSync(output, 'utf8') !== expected) throw new Error(`${relativePath} is stale; run npm run readme:evidence:sync`);
+    } else {
+      fs.writeFileSync(output, expected);
+      console.log(`wrote ${relativePath}`);
+    }
   }
-  fs.writeFileSync(OUTPUT_PATH, expected, 'utf8');
-  console.log(`wrote ${OUTPUT_PATH}`);
+  if (process.argv.includes('--check')) console.log('README evidence SVGs are current.');
 }
 
-try {
-  main();
-} catch (error) {
-  console.error(error instanceof Error ? error.message : String(error));
-  process.exit(1);
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  try { main(); } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
+  }
 }

@@ -1,6 +1,31 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
+import { requireComparable } from '../../benchmarks/vendors/generate-readme-evidence-svg.js';
+
+const receiptPath = 'benchmarks/vendors/results/compare_20260707T153509.json';
+const receipt = JSON.parse(await readFile(receiptPath, 'utf8'));
+const definition = { kind: 'text', section: 'parity', receipt: receiptPath };
+requireComparable(receipt, definition);
+for (const reject of [
+  (copy) => { copy.fairness.claimGrade = false; },
+  (copy) => { copy.fairness.correctnessOk = false; },
+  (copy) => { copy.fairness.surfaceFairness.sameRuntimeSurface = false; },
+  (copy) => { copy.fairness.sections['compute/parity'].claimGrade = false; },
+  (copy) => { copy.sections.compute.parity.decodeValidity.ok = false; },
+  (copy) => { copy.sections.compute.parity.pairedComparable = false; },
+]) {
+  const copy = structuredClone(receipt);
+  reject(copy);
+  assert.throws(() => requireComparable(copy, definition), /gate failed/);
+}
+
+const paired = JSON.parse(await readFile(
+  'benchmarks/vendors/results/qwen35-2b-metal-paired-p256-d512-20260710.json', 'utf8'
+));
+requireComparable(paired, { kind: 'paired-text', receipt: 'paired fixture' });
+paired.correctness.exactTokenParityAllPairs = false;
+assert.throws(() => requireComparable(paired, { kind: 'paired-text', receipt: 'paired fixture' }), /gate failed/);
 
 const result = spawnSync(
   process.execPath,

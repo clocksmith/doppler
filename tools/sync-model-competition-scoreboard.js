@@ -983,7 +983,9 @@ function evidenceSummary(evidence) {
     evidence?.embeddingCompareResult,
     evidence?.rerankCompareResult,
   ].filter(Boolean);
-  return entries.length > 0 ? entries.join('<br>') : 'none';
+  return entries.length > 0
+    ? entries.map((entry) => `[${path.basename(entry)}](../${entry})`).join('<br>')
+    : 'none';
 }
 
 function renderGenerationRows(lines, rows) {
@@ -1089,6 +1091,26 @@ function renderMarkdown(scoreboard) {
   lines.push('This is an evidence ledger, not an implementation queue. It records scoped verification, publication metadata, comparable measurements, and missing acceptance. [GOALS.md](../GOALS.md#current-priorities) owns work selection.');
   lines.push('');
   lines.push(`Updated at: ${scoreboard.updatedAt || 'unknown'}`);
+  lines.push('');
+  lines.push('## Selected measured results');
+  lines.push('');
+  lines.push('Retained July 2026 browser WebGPU comparisons against Transformers.js 4.0.1.');
+  lines.push('The charts link their receipts, including the paired Apple M3 Qwen 2B result.');
+  lines.push('They include historical measurements beyond the generated matrix rows below; they do not change those rows\' release gates.');
+  lines.push('');
+  lines.push('<picture>');
+  lines.push('  <source media="(max-width: 640px)" srcset="../assets/readme/generation-time-mobile.svg" />');
+  lines.push('  <img src="../assets/readme/generation-time.svg" alt="Selected warm-generation times with loading shown separately: Radeon Qwen 0.8B 18.8x, Radeon Qwen 2B 16.3x, Apple M3 Qwen 0.8B 4.1x. Exact outputs; local 2B artifact labeled." />');
+  lines.push('</picture>');
+  lines.push('');
+  lines.push('<picture>');
+  lines.push('  <source media="(max-width: 640px)" srcset="../assets/doppler-webgpu-evidence-mobile.svg" />');
+  lines.push('  <img src="../assets/doppler-webgpu-evidence.svg" alt="Nine selected decode and retrieval throughput comparisons on Apple M3 and Radeon 8060S, with zero-based bars and links to raw receipts." />');
+  lines.push('</picture>');
+  lines.push('');
+  lines.push('RDRR Q4K vs ONNX q4f16 are different optimized formats. Warm generation excludes loading; the displayed load-plus-run totals sum the reported components.');
+  lines.push('Retrieval has semantic-fixture acceptance, not equal embedding vectors or equal task quality. Gemma INT4-PLE outputs differ; its decode-valid gate is disclosed.');
+  lines.push('The charts are selected results, not a universal speed claim. Loading, task quality and current-version qualification remain separate.');
   lines.push('');
   lines.push('## Summary');
   lines.push('');

@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="673" viewBox="0 0 1200 673" role="img" aria-labelledby="title desc">
+<title id="title">Doppler vs Transformers.js: selected warm generation times</title><desc id="desc">Three same-device browser comparisons with exact output matches. Zero-based time bars. Warm generation excludes loading; sums including reported warm load are shown separately.</desc>
+<style>text{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums}a:hover text{text-decoration:underline}</style>
+<rect x="1" y="1" width="1198" height="671" rx="18" fill="white" stroke="#dce1e9" stroke-width="1.4"/>
+<text x="36" y="43" font-size="24" fill="#7542c8" font-weight="700" >doppler</text>
+<text x="36" y="85" font-size="30" fill="#202735" font-weight="600" >Less waiting for the answer.</text>
+<text x="36" y="116" font-size="19" fill="#657083" font-weight="400" >512 prompt tokens → 128 generated · lower time is better</text>
+<g class="benchmark-row" data-receipt="benchmarks/vendors/results/compare_20260707T153509.json"><a href="https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260707T153509.json"><rect x="36" y="150" width="362.6666666666667" height="394" rx="12" fill="#f7f3fd" stroke="#e5ddf3"/>
+<text x="58" y="185" font-size="23" fill="#202735" font-weight="600" >Qwen 3.5 0.8B</text>
+<text x="58" y="213" font-size="16" fill="#657083" font-weight="400" >Radeon 8060S · Vulkan</text>
+<text x="58" y="275" font-size="54" fill="#7542c8" font-weight="650" >18.8×</text>
+<text x="58" y="305" font-size="18" fill="#7542c8" font-weight="500" >faster warm generation</text>
+<text x="58" y="348" font-size="17" fill="#7542c8" font-weight="600" >Doppler</text>
+<text x="376.6666666666667" y="348" font-size="21" fill="#7542c8" font-weight="600" text-anchor="end">2.80 s</text>
+<rect x="58" y="363" width="318.6666666666667" height="14" rx="7" fill="#eef0f4"/>
+<rect x="58" y="363" width="16.97" height="14" rx="7" fill="#7542c8"/>
+<text x="58" y="410" font-size="17" fill="#657083" font-weight="500" >Transformers.js</text>
+<text x="376.6666666666667" y="410" font-size="21" fill="#657083" font-weight="500" text-anchor="end">52.66 s</text>
+<rect x="58" y="425" width="318.6666666666667" height="14" rx="7" fill="#eef0f4"/>
+<rect x="58" y="425" width="318.67" height="14" rx="7" fill="#8791a2"/>
+<text x="58" y="473" font-size="16" fill="#202735" font-weight="500" >Load + run: 4.55 vs 53.85 s</text>
+<text x="58" y="500" font-size="14" fill="#657083" font-weight="400" >Sum of reported load and run times</text>
+<text x="58" y="526" font-size="14" fill="#657083" font-weight="400" >15 runs · exact output · published artifact</text></a></g>
+<g class="benchmark-row" data-receipt="benchmarks/vendors/results/compare_20260707T161623.json"><a href="https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260707T161623.json"><rect x="418.6666666666667" y="150" width="362.6666666666667" height="394" rx="12" fill="#f7f3fd" stroke="#e5ddf3"/>
+<text x="440.6666666666667" y="185" font-size="23" fill="#202735" font-weight="600" >Qwen 3.5 2B</text>
+<text x="440.6666666666667" y="213" font-size="16" fill="#657083" font-weight="400" >Radeon 8060S · Vulkan</text>
+<text x="440.6666666666667" y="275" font-size="54" fill="#7542c8" font-weight="650" >16.3×</text>
+<text x="440.6666666666667" y="305" font-size="18" fill="#7542c8" font-weight="500" >faster warm generation</text>
+<text x="440.6666666666667" y="348" font-size="17" fill="#7542c8" font-weight="600" >Doppler</text>
+<text x="759.3333333333334" y="348" font-size="21" fill="#7542c8" font-weight="600" text-anchor="end">3.45 s</text>
+<rect x="440.6666666666667" y="363" width="318.6666666666667" height="14" rx="7" fill="#eef0f4"/>
+<rect x="440.6666666666667" y="363" width="19.50" height="14" rx="7" fill="#7542c8"/>
+<text x="440.6666666666667" y="410" font-size="17" fill="#657083" font-weight="500" >Transformers.js</text>
+<text x="759.3333333333334" y="410" font-size="21" fill="#657083" font-weight="500" text-anchor="end">56.38 s</text>
+<rect x="440.6666666666667" y="425" width="318.6666666666667" height="14" rx="7" fill="#eef0f4"/>
+<rect x="440.6666666666667" y="425" width="318.67" height="14" rx="7" fill="#8791a2"/>
+<text x="440.6666666666667" y="473" font-size="16" fill="#202735" font-weight="500" >Load + run: 9.32 vs 60.25 s</text>
+<text x="440.6666666666667" y="500" font-size="14" fill="#657083" font-weight="400" >Sum of reported load and run times</text>
+<text x="440.6666666666667" y="526" font-size="14" fill="#657083" font-weight="400" >15 runs · exact output · local artifact</text></a></g>
+<g class="benchmark-row" data-receipt="benchmarks/vendors/results/compare_20260709T154633.json"><a href="https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260709T154633.json"><rect x="801.3333333333334" y="150" width="362.6666666666667" height="394" rx="12" fill="#f7f3fd" stroke="#e5ddf3"/>
+<text x="823.3333333333334" y="185" font-size="23" fill="#202735" font-weight="600" >Qwen 3.5 0.8B</text>
+<text x="823.3333333333334" y="213" font-size="16" fill="#657083" font-weight="400" >Apple M3 · Metal</text>
+<text x="823.3333333333334" y="275" font-size="54" fill="#7542c8" font-weight="650" >4.1×</text>
+<text x="823.3333333333334" y="305" font-size="18" fill="#7542c8" font-weight="500" >faster warm generation</text>
+<text x="823.3333333333334" y="348" font-size="17" fill="#7542c8" font-weight="600" >Doppler</text>
+<text x="1142" y="348" font-size="21" fill="#7542c8" font-weight="600" text-anchor="end">5.44 s</text>
+<rect x="823.3333333333334" y="363" width="318.6666666666667" height="14" rx="7" fill="#eef0f4"/>
+<rect x="823.3333333333334" y="363" width="77.31" height="14" rx="7" fill="#7542c8"/>
+<text x="823.3333333333334" y="410" font-size="17" fill="#657083" font-weight="500" >Transformers.js</text>
+<text x="1142" y="410" font-size="21" fill="#657083" font-weight="500" text-anchor="end">22.40 s</text>
+<rect x="823.3333333333334" y="425" width="318.6666666666667" height="14" rx="7" fill="#eef0f4"/>
+<rect x="823.3333333333334" y="425" width="318.67" height="14" rx="7" fill="#8791a2"/>
+<text x="823.3333333333334" y="473" font-size="16" fill="#202735" font-weight="500" >Load + run: 7.70 vs 23.91 s</text>
+<text x="823.3333333333334" y="500" font-size="14" fill="#657083" font-weight="400" >Sum of reported load and run times</text>
+<text x="823.3333333333334" y="526" font-size="14" fill="#657083" font-weight="400" >3 runs · exact output · published artifact</text></a></g>
+<text x="36" y="576" font-size="15" fill="#657083" font-weight="400" >Warm generation includes prompt + decode; excludes model load. Warm load is shown separately, not a cold-start claim.</text>
+<text x="36" y="601" font-size="15" fill="#657083" font-weight="400" >July 2026 · Chromium WebGPU · Transformers.js 4.0.1 · RDRR Q4K vs ONNX q4f16: different optimized formats.</text>
+<text x="36" y="626" font-size="15" fill="#657083" font-weight="400" >Synthetic text workloads; receipt timing summaries, not a new benchmark. Selected results. Click a card for the source.</text>
+</svg>
