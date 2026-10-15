@@ -6984,7 +6984,7 @@
     {
       "file": "tests/kernels/paired-linear-physical.js",
       "kind": "asset",
-      "line": 21,
+      "line": 23,
       "expression": "new URL(`../../src/gpu/kernels/${name}.wgsl`, import.meta.url)"
     },
     {
