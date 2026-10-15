@@ -162,7 +162,7 @@
     },
     {
       "dopplerModelId": "qwen-3-5-0-8b-q4k-ehaf16",
-      "defaultTjsModelId": "onnx-community/Qwen3.5-0.8B-ONNX",
+      "defaultTjsModelId": "onnx-community/Qwen3.5-0.8B-ONNX-OPT",
       "defaultDopplerSource": "quickstart-registry",
       "modelBaseDir": null,
       "defaultDopplerSurface": "browser",
@@ -184,7 +184,7 @@
     },
     {
       "dopplerModelId": "qwen-3-5-2b-q4k-ehaf16",
-      "defaultTjsModelId": "onnx-community/Qwen3.5-2B-ONNX",
+      "defaultTjsModelId": "onnx-community/Qwen3.5-2B-ONNX-OPT",
       "defaultDopplerSource": "local",
       "modelBaseDir": "local",
       "defaultDopplerSurface": "browser",

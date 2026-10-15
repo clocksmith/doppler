@@ -284,8 +284,8 @@ function renderRates(groups, mobile) {
   const width = mobile ? 620 : 1200;
   const columns = mobile ? 1 : 2;
   const cardWidth = (width - 72 - (columns - 1) * 20) / columns;
-  const body = [text(36, 85, 'More work per second.', mobile ? 27 : 30, '#202735', 600),
-    text(36, 116, 'Selected browser WebGPU results · higher is better', 17, MUTED)];
+  const body = [text(36, 85, 'Historical throughput measurements.', mobile ? 26 : 30, '#202735', 600),
+    text(36, 116, 'Qwen text uses superseded ONNX exports · July 2026', 17, MUTED)];
   let y = 150;
   for (const group of groups) {
     body.push(text(36, y + 23, group.label, 23, '#202735', 600));
@@ -299,14 +299,14 @@ function renderRates(groups, mobile) {
     'Rates use each receipt’s estimator; synthetic text workloads.',
     'Retrieval passed semantic fixtures, not numerical equivalence.',
     'Local models and differing Gemma outputs are labeled.',
-    'Selected results; loading and task quality are separate.',
+    'Optimized Qwen export comparison remains unmeasured.',
   ] : [
     'July 2026 · Transformers.js 4.0.1 · zero-based bars · RDRR Q4K vs ONNX q4f16 (different optimized formats).',
     'Rates use each receipt’s estimator; synthetic text workloads. Retrieval passed semantic fixtures, not numerical equivalence.',
-    'Local models and differing Gemma outputs are labeled. Selected results; loading and task quality are separate.',
+    'Local models and differing Gemma outputs are labeled. Optimized Qwen export comparison remains unmeasured.',
   ];
   lines.forEach((line, i) => body.push(text(36, y + 12 + i * 25, line, 15, MUTED)));
-  return frame(width, y + lines.length * 25 + 25, 'Doppler vs Transformers.js: selected measured throughput', 'Nine selected browser comparisons with per-card zero-based scales. Purple is Doppler, gray is Transformers.js. Every card links to its receipt.', body);
+  return frame(width, y + lines.length * 25 + 25, 'Doppler vs Transformers.js: historical measured throughput', 'Nine historical browser comparisons with per-card zero-based scales. Qwen generation used superseded ONNX exports. Purple is Doppler, gray is Transformers.js. Every card links to its receipt.', body);
 }
 
 const LATENCY_ROWS = [
@@ -319,7 +319,7 @@ function renderLatency(mobile) {
   const width = mobile ? 620 : 1200;
   const columns = mobile ? 1 : 3;
   const cardWidth = (width - 72 - (columns - 1) * 20) / columns;
-  const body = [text(36, 85, 'Less waiting for the answer.', mobile ? 27 : 30, '#202735', 600),
+  const body = [text(36, 85, 'Historical Qwen baseline · July 2026', mobile ? 26 : 30, '#202735', 600),
     text(36, 116, '512 prompt tokens → 128 generated · lower time is better', mobile ? 17 : 19, MUTED)];
   LATENCY_ROWS.forEach((row, i) => {
     const report = readJson(row.receipt);
@@ -340,7 +340,7 @@ function renderLatency(mobile) {
       text(x + 22, y + 35, row.model, 23, '#202735', 600),
       text(x + 22, y + 63, row.platform, 16, MUTED),
       text(x + 22, y + 125, `${(tv / dv).toFixed(1)}×`, 54, PURPLE, 650),
-      text(x + 22, y + 155, 'faster warm generation', 18, PURPLE, 500),
+      text(x + 22, y + 155, 'observed warm-time ratio', 18, PURPLE, 500),
       text(x + 22, y + 198, 'Doppler', 17, PURPLE, 600),
       text(x + cardWidth - 22, y + 198, `${dv.toFixed(2)} s`, 21, PURPLE, 600, 'text-anchor="end"'),
       bar(x + 22, y + 213, cardWidth - 44, dv, tv, PURPLE),
@@ -359,14 +359,14 @@ function renderLatency(mobile) {
     'RDRR Q4K vs ONNX q4f16: different optimized formats.',
     'Synthetic text workloads; receipt timing summaries.',
     'Warm load shown separately; not a cold-start claim.',
-    'Selected workloads, not every model or device.',
+    'Superseded by ONNX-OPT; new comparison pending.',
   ] : [
     'Warm generation includes prompt + decode; excludes model load. Warm load is shown separately, not a cold-start claim.',
     'July 2026 · Chromium WebGPU · Transformers.js 4.0.1 · RDRR Q4K vs ONNX q4f16: different optimized formats.',
-    'Synthetic text workloads; receipt timing summaries, not a new benchmark. Selected results. Click a card for the source.',
+    'Superseded by ONNX-OPT; new comparison pending. Synthetic workloads; receipt summaries. Click a card for the source.',
   ];
   lines.forEach((line, i) => body.push(text(36, y + i * 25, line, 15, MUTED)));
-  return frame(width, y + lines.length * 25 + 22, 'Doppler vs Transformers.js: selected warm generation times', 'Three same-device browser comparisons with exact output matches. Zero-based time bars. Warm generation excludes loading; sums including reported warm load are shown separately.', body);
+  return frame(width, y + lines.length * 25 + 22, 'Historical Qwen times against superseded ONNX exports', 'Three historical same-device browser comparisons with exact output matches. Their superseded ONNX baseline does not establish an advantage over optimized exports. Zero-based time bars; warm loading shown separately.', body);
 }
 
 export function main() {

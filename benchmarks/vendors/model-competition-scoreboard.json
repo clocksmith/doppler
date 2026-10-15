@@ -1872,8 +1872,8 @@
         "bottleneck": "readback map wait",
         "bottleneckClass": "submit-readback-wait"
       },
-      "claimStatus": "summary-svg-missing",
-      "claimReason": "Local browser execution is verified and fresh local cross-engine compare receipts cover p064 and p256 with exact output match against Transformers.js q4f16. The p512 local claim-lane receipt remains pending; the separate hosted quickstart p512 receipt is tracked outside this local artifact lane.",
+      "claimStatus": "superseded-baseline",
+      "claimReason": "Historical receipt measured onnx-community/Qwen3.5-0.8B-ONNX; current comparator is onnx-community/Qwen3.5-0.8B-ONNX-OPT.",
       "evidence": {
         "runtimeReport": "reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json",
         "compareResult": "benchmarks/vendors/results/compare_20260705T160226.json",
@@ -1883,9 +1883,10 @@
         "localClaimLaneId": "qwen-3-5-0-8b-q4k-rdrr"
       },
       "missing": [
+        "current-comparator-result",
         "summary-svg"
       ],
-      "nextGate": "summary-svg",
+      "nextGate": "current-comparator-result",
       "nextCommand": "node tools/compare-engines.js --model-id qwen-3-5-0-8b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
     },
     {
@@ -1945,8 +1946,8 @@
         "bottleneck": "readback map wait",
         "bottleneckClass": "submit-readback-wait"
       },
-      "claimStatus": "summary-svg-missing",
-      "claimReason": "Local browser execution is verified and fresh local cross-engine compare receipts cover p064 and p256 with exact output match against Transformers.js q4f16. The p512 local claim-lane receipt remains pending; the separate hosted quickstart p512 receipt is tracked outside this local artifact lane.",
+      "claimStatus": "superseded-baseline",
+      "claimReason": "Historical receipt measured onnx-community/Qwen3.5-0.8B-ONNX; current comparator is onnx-community/Qwen3.5-0.8B-ONNX-OPT.",
       "evidence": {
         "runtimeReport": "reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json",
         "compareResult": "benchmarks/vendors/results/compare_20260705T161224.json",
@@ -1956,9 +1957,10 @@
         "localClaimLaneId": "qwen-3-5-0-8b-q4k-rdrr"
       },
       "missing": [
+        "current-comparator-result",
         "summary-svg"
       ],
-      "nextGate": "summary-svg",
+      "nextGate": "current-comparator-result",
       "nextCommand": "node tools/compare-engines.js --model-id qwen-3-5-0-8b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
     },
     {
@@ -2018,8 +2020,8 @@
         "bottleneck": "readback map wait",
         "bottleneckClass": "submit-readback-wait"
       },
-      "claimStatus": "summary-svg-missing",
-      "claimReason": "Local execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
+      "claimStatus": "superseded-baseline",
+      "claimReason": "Historical receipt measured onnx-community/Qwen3.5-2B-ONNX; current comparator is onnx-community/Qwen3.5-2B-ONNX-OPT.",
       "evidence": {
         "runtimeReport": "reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json",
         "compareResult": "benchmarks/vendors/results/compare_20260707T154847.json",
@@ -2029,9 +2031,10 @@
         "localClaimLaneId": "qwen-3-5-2b-q4k-rdrr"
       },
       "missing": [
+        "current-comparator-result",
         "summary-svg"
       ],
-      "nextGate": "summary-svg",
+      "nextGate": "current-comparator-result",
       "nextCommand": "node tools/compare-engines.js --model-id qwen-3-5-2b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
     },
     {
@@ -2091,8 +2094,8 @@
         "bottleneck": "readback map wait",
         "bottleneckClass": "submit-readback-wait"
       },
-      "claimStatus": "summary-svg-missing",
-      "claimReason": "Local execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
+      "claimStatus": "superseded-baseline",
+      "claimReason": "Historical receipt measured onnx-community/Qwen3.5-2B-ONNX; current comparator is onnx-community/Qwen3.5-2B-ONNX-OPT.",
       "evidence": {
         "runtimeReport": "reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json",
         "compareResult": "benchmarks/vendors/results/compare_20260707T155858.json",
@@ -2102,9 +2105,10 @@
         "localClaimLaneId": "qwen-3-5-2b-q4k-rdrr"
       },
       "missing": [
+        "current-comparator-result",
         "summary-svg"
       ],
-      "nextGate": "summary-svg",
+      "nextGate": "current-comparator-result",
       "nextCommand": "node tools/compare-engines.js --model-id qwen-3-5-2b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
     },
     {
@@ -2164,8 +2168,8 @@
         "bottleneck": "readback map wait",
         "bottleneckClass": "submit-readback-wait"
       },
-      "claimStatus": "summary-svg-missing",
-      "claimReason": "Local execution is verified; promote only after fresh cross-engine compare receipts pin the competitor artifact hash and summary SVG.",
+      "claimStatus": "superseded-baseline",
+      "claimReason": "Historical receipt measured onnx-community/Qwen3.5-2B-ONNX; current comparator is onnx-community/Qwen3.5-2B-ONNX-OPT.",
       "evidence": {
         "runtimeReport": "reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json",
         "compareResult": "benchmarks/vendors/results/compare_20260707T161623.json",
@@ -2175,9 +2179,10 @@
         "localClaimLaneId": "qwen-3-5-2b-q4k-rdrr"
       },
       "missing": [
+        "current-comparator-result",
         "summary-svg"
       ],
-      "nextGate": "summary-svg",
+      "nextGate": "current-comparator-result",
       "nextCommand": "node tools/compare-engines.js --model-id qwen-3-5-2b-q4k-ehaf16 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
     },
     {

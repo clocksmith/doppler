@@ -413,6 +413,46 @@ When `--compare-result` is provided, matrix generation also captures host/browse
 - Compare artifacts pin harness + metric-contract hashes; stale compare JSON is dropped from `vendor-bench matrix` unless you refresh it.
 - Doppler surface is now explicit in compare runs: `--doppler-surface auto|node|browser|bun` (default from `compare-engines.config.json` per model profile via `defaultDopplerSurface`, fallback `auto`). The `bun` surface executes the Doppler CLI through Bun while preserving the same compare-managed runtime payload; it remains a cross-surface diagnostic against browser-based Transformers.js unless a matching TJS Bun lane is added.
 
+## Qwen baseline audit (2026-10-15)
+
+The July Qwen generation receipts use Transformers.js 4.0.1 with the original
+`onnx-community/Qwen3.5-0.8B-ONNX` and `Qwen3.5-2B-ONNX` exports. Their recorded
+18.8×, 16.3× and 4.1× warm-generation ratios must not represent the current best
+Transformers.js baseline. Both original model cards now point to optimized
+replacements. The catalog and compare profiles select those replacements;
+no new timing or output-parity result against them has been qualified here.
+
+| New comparator | Revision observed on 2026-10-15 | Available dtype |
+| --- | --- | --- |
+| `onnx-community/Qwen3.5-0.8B-ONNX-OPT` | `9a4c21d8f724176b0a7edaaed36303044451886e` | `q4f16` merged decoder and embeddings |
+| `onnx-community/Qwen3.5-2B-ONNX-OPT` | `ed446636739bf426e73c5a00714fd8e010d36c21` | `q4f16` merged decoder and embeddings |
+
+Primary sources: [original 0.8B card](https://huggingface.co/onnx-community/Qwen3.5-0.8B-ONNX),
+[original 2B card](https://huggingface.co/onnx-community/Qwen3.5-2B-ONNX),
+[optimized 0.8B](https://huggingface.co/onnx-community/Qwen3.5-0.8B-ONNX-OPT),
+[optimized 2B](https://huggingface.co/onnx-community/Qwen3.5-2B-ONNX-OPT).
+The [upstream performance discussion](https://github.com/huggingface/transformers.js/issues/1599)
+reports sequential ONNX Scan operations in the old export, fused
+LinearAttention/CausalConvWithState in OPT, and a Transformers.js 4.2.0 version
+floor for graph-derived convolution-cache shapes. That is upstream analysis,
+not a Doppler reproduction of the optimized path.
+
+For the recorded Radeon 0.8B parity section, Doppler took 0.918 s to first token
+and 2.804 s for the run; TJS took 49.663 s and 52.659 s respectively. The large
+ratio is dominated by prefill/first-token time, not a 19× decode advantage.
+TJS retained 15 timed runs between 52.18 and 53.54 s, had profiling disabled and
+completed a generation prime before timing. The source SHA-256 matches runner
+revision `e8a7ffe29b46b454bcc5fbae29cfc43340f8d348`. These checks support the
+historical observation; they do not establish a current runtime advantage.
+
+Next comparison: qualify OPT with a compatible pinned TJS/ORT stack and exact
+artifact revisions, identical prompts/sampling/cache/outputs, separately measured
+load, first token, decode and complete run. Preserve old receipts. The scoreboard
+compares measured comparator IDs with the current catalog target, retains the
+actual old identity, and marks mismatches `superseded-baseline`; a passing old
+fairness verdict cannot silently promote a changed comparator. Do not disturb
+an occupied GPU merely to refresh these claims.
+
 ## Visualization
 
 Use [benchmarks/vendors/compare-chart.js](./compare-chart.js) to turn a saved compare result file into an SVG:

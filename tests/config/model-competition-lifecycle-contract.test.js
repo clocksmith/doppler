@@ -23,6 +23,17 @@ for (const row of scoreboard.rows) {
       'pass',
       `${row.rowId}: benchmark metrics require a currently passing catalog artifact`
     );
+    if (row.workloadMode === 'generation' && row.evidence?.compareResult) {
+      const receipt = JSON.parse(await readFile(row.evidence.compareResult, 'utf8'));
+      const expected = model.vendorBenchmark?.transformersjs?.repoId;
+      if (receipt.tjsModelId && expected && receipt.tjsModelId !== expected) {
+        assert.equal(row.competitor.modelId, receipt.tjsModelId,
+          `${row.rowId}: historical measurements must retain the measured comparator`);
+        assert.equal(row.claimStatus, 'superseded-baseline',
+          `${row.rowId}: obsolete comparator evidence cannot become a current claim`);
+        assert.ok(row.missing.includes('current-comparator-result'));
+      }
+    }
   }
   if (model.lifecycle?.status?.tested === 'failed') {
     assert.equal(row.metrics, null, `${row.rowId}: failed artifacts cannot retain scoreboard metrics`);
