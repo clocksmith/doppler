@@ -9,6 +9,8 @@ for (const surface of ['generate', 'generateTokenIds']) {
     let clears = 0;
     const layer = { seqLen: 19 };
     const state = {
+      modelConfig: { stopTokenIds: [], reasoningOutput: null },
+      tokenizer: { createIncrementalDecoder: () => ({ push() {}, finish() {} }) },
       isLoaded: condition !== 'unloaded',
       isGenerating: condition === 'busy',
       currentSeqLen: 19,

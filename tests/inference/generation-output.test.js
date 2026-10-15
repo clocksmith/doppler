@@ -94,7 +94,7 @@ for (const version of [1, 2]) {
 }
 
 const pipeline = Object.create(PipelineGenerator.prototype);
-pipeline._state = { stats: {}, tokenizer, modelConfig: { reasoningOutput: contract, stopTokenIds: [258] } };
+pipeline._state = { isLoaded: true, stats: {}, tokenizer, modelConfig: { reasoningOutput: contract, stopTokenIds: [258] } };
 pipeline._generateTokensInternal = (prompt, options, mode) => {
   assert.equal(mode, 'token'); return raw(ids);
 };
@@ -116,5 +116,34 @@ for (const stopReason of ['max-tokens', 'stop-sequence']) {
   assert.equal(partial.finish({ stopReason }), '');
   assert.equal(partial.getUsage().state, 'truncated');
   assert.equal(partial.getUsage().rawTokens, 2);
+}
+// Plain public text generation must buffer split UTF-8, just like reasoning output.
+for (const reasoningOutput of [null, undefined]) {
+  pipeline._state = { isLoaded: true, stats: {}, tokenizer, modelConfig: { reasoningOutput, stopTokenIds: [258] } };
+  const plainIds = [...bytes('Hello 🌍 café 世界'), 258];
+  pipeline._generateTokensInternal = (prompt, options, mode) => {
+    assert.equal(mode, 'token');
+    assert.equal(options.onToken, undefined, 'Only the output decoder owns text callbacks');
+    return raw(plainIds);
+  };
+  const seen = [];
+  const chunks = await Array.fromAsync(pipeline.generate('prompt', { onToken: (id, text) => seen.push({ id, text }) }));
+  assert.equal(chunks.join(''), 'Hello 🌍 café 世界');
+  assert(!chunks.some(chunk => chunk.includes('�')));
+  assert.deepEqual(seen.map(item => item.id), plainIds);
+  assert.equal(seen.map(item => item.text).join(''), chunks.join(''));
+  assert.deepEqual(await Array.fromAsync(pipeline.generateTokens('prompt')), plainIds);
+  // Each request gets fresh decoder state; an incomplete prior request cannot leak.
+  pipeline._generateTokensInternal = () => raw([0xf0, 0x9f]);
+  assert.equal((await Array.fromAsync(pipeline.generate('truncated'))).join(''), '�');
+  pipeline._generateTokensInternal = () => raw(bytes('OK'));
+  assert.equal((await Array.fromAsync(pipeline.generate('next'))).join(''), 'OK');
+  const controller = new AbortController();
+  pipeline._generateTokensInternal = () => raw(bytes('🌍'));
+  const before = settled;
+  await assert.rejects(async () => Array.fromAsync(pipeline.generate('cancel', {
+    signal: controller.signal, onToken() { controller.abort(new Error('stop incomplete character')); },
+  })), /stop incomplete character/);
+  assert.equal(settled, before + 1, 'Cancellation closes the token stream');
 }
 console.log('generation-output.test: ok (synthetic decoding and control, no model qualification)');
