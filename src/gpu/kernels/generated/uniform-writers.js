@@ -362,6 +362,7 @@ export const UNIFORM_WRITERS = Object.freeze({
   "gated_delta_recurrent/paired_qk_parallel": { size: 80, write: writers0.write_qwen_linear_attention_prepare_paired_beta },
   "gated_delta_recurrent/paired_state": { size: 80, write: writers0.write_qwen_linear_attention_prepare_paired_beta },
   "gated_delta_recurrent/paired_state_sliced": { size: 80, write: writers0.write_qwen_linear_attention_prepare_paired_beta },
+  "gated_delta_recurrent/paired_state_sliced_rolled": { size: 80, write: writers0.write_qwen_linear_attention_prepare_paired_beta },
   "gated_delta_recurrent/paired_norm": { size: 80, write: writers0.write_qwen_linear_attention_prepare_paired_beta },
   "gated_delta_recurrent/paired_gate": { size: 80, write: writers0.write_qwen_linear_attention_prepare_paired_beta },
   "gated_delta_recurrent/paired_gate_sigmoid": { size: 80, write: writers0.write_qwen_linear_attention_prepare_paired_beta },
