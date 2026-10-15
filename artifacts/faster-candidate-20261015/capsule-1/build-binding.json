@@ -1,0 +1,117 @@
+{
+  "builderRevision": "1c9ec3dbc2a369fe9331d047887ef71e45f7f6ad",
+  "builderSha256": "e307e535d26c3e35edd6941e51e4caf4671787f8567421b7c9dc5bdd413f51c8",
+  "archiveSha256": "21d054eeb70212a7434c9eccfe467fe0accbb8685e9358f2b72341500978cd5f",
+  "sourceRevision": "1c9ec3dbc2a369fe9331d047887ef71e45f7f6ad",
+  "sourceRoot": "/var/tmp/qwen35-capsule-faster-20261015/source",
+  "runtime": "/var/tmp/reploid-faster-candidate-20261015/vendor/doppler/0.6.28",
+  "qualificationCampaign": "reploid/artifacts/faster-candidate-20261015/placement-c/c",
+  "partitionOrder": [
+    "mac-host",
+    "amd-host",
+    "amd-host"
+  ],
+  "qualificationReports": [
+    {
+      "path": "/Users/xyz/deco/reploid/artifacts/faster-candidate-20261015/placement-c/c/reports/partition-0.json",
+      "sha256": "957108339f2a39caae80742712a8a737caf54536dc5c798c197aa3de6728de8b"
+    },
+    {
+      "path": "/Users/xyz/deco/reploid/artifacts/faster-candidate-20261015/placement-c/c/reports/partition-1.json",
+      "sha256": "b8176d605b9caf1c4165027627fda0cd33e2077d3782a5baaeb1019764bd7742"
+    },
+    {
+      "path": "/Users/xyz/deco/reploid/artifacts/faster-candidate-20261015/placement-c/c/reports/partition-2.json",
+      "sha256": "64a9c276c62786a070609f69f72d6f9f0513c66f629b9b294600cc866254e43c"
+    }
+  ],
+  "contractSha256": "727226575be1fba6b449e3887a8f47929b01e4e9da2c73d835a9ddc4d64cfe58",
+  "modelIRReceiptSha256": "074ad8ac8e847fa960ccf3e06e9d24243348e892f7a7cc78d5879a3662090a77",
+  "manifestSha256": "64d747193bd983feb3d25eea6227284c6e979ea35c7cb874a3b0a0a582c2acbd",
+  "pieceIndexSha256": "5e9ee2939e344601c463d9dda49e5424022261d417cdac7ae6e9712de88ab489",
+  "programBundleSha256": "1f7a692c9cb316f0c4c6d956d8616e81565bf9d1fb6f6acc0494d1e4462813f7",
+  "prefillTokenChunkSize": 16,
+  "identity": {
+    "schema": "doppler.capsule/v3",
+    "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v3-e84a202413eded91aca6a3ae8166aef48c5b46d4389d7f538cd7116af113d5b3",
+    "semanticRoot": "sha256:e84a202413eded91aca6a3ae8166aef48c5b46d4389d7f538cd7116af113d5b3",
+    "envelopeDigest": "sha256:e206701553c79f3cd4bc75ea0810b12dd427dbb5d18f7b201cec7971f8ee3da4",
+    "artifactClosureDigest": "sha256:8feb0868472a895b301b47b3281b595a08fcceede17f82734626f4d41e68e238"
+  },
+  "issuedAtUtc": "2026-10-15T00:43:43.504Z",
+  "expiresAtUtc": "2026-10-16T00:43:43.504Z",
+  "artifactCount": 66,
+  "releaseHistory": {
+    "sequence": 7,
+    "previousEventDigest": "sha256:b19052d587ee901ec00e1ae0256bdd1211a5257aafdf1db3ad86723c71ddd755",
+    "continues": "chunked-prefill-capsule-20261014/release-renewal-6 (sequence 6)",
+    "verifiedFromCheckpoints": [
+      {
+        "runtime": "candidate 21d054ee",
+        "required": true,
+        "from": {
+          "sequence": 6,
+          "digest": "sha256:b19052d587ee901ec00e1ae0256bdd1211a5257aafdf1db3ad86723c71ddd755"
+        },
+        "to": {
+          "sequence": 7,
+          "digest": "sha256:2486b1e7aa76d38415e23d145d97265ce1faecc5eec1086c9e5b54d9b6c82cb0"
+        },
+        "artifacts": 66
+      },
+      {
+        "runtime": "candidate 21d054ee",
+        "required": true,
+        "from": {
+          "sequence": 5,
+          "digest": "sha256:70f24c979f6b08c25827de341f5b08ab441b1c30fdca6bcec019a596c3ed71d2"
+        },
+        "to": {
+          "sequence": 7,
+          "digest": "sha256:2486b1e7aa76d38415e23d145d97265ce1faecc5eec1086c9e5b54d9b6c82cb0"
+        },
+        "artifacts": 66
+      },
+      {
+        "runtime": "candidate 21d054ee",
+        "required": true,
+        "from": {
+          "sequence": 0,
+          "digest": null
+        },
+        "to": {
+          "sequence": 7,
+          "digest": "sha256:2486b1e7aa76d38415e23d145d97265ce1faecc5eec1086c9e5b54d9b6c82cb0"
+        },
+        "artifacts": 66
+      },
+      {
+        "runtime": "final-9 runtime 2df37d88",
+        "required": false,
+        "from": {
+          "sequence": 6,
+          "digest": "sha256:b19052d587ee901ec00e1ae0256bdd1211a5257aafdf1db3ad86723c71ddd755"
+        },
+        "to": {
+          "sequence": 7,
+          "digest": "sha256:2486b1e7aa76d38415e23d145d97265ce1faecc5eec1086c9e5b54d9b6c82cb0"
+        },
+        "artifacts": 66
+      },
+      {
+        "runtime": "final-9 runtime 2df37d88",
+        "required": false,
+        "from": {
+          "sequence": 5,
+          "digest": "sha256:70f24c979f6b08c25827de341f5b08ab441b1c30fdca6bcec019a596c3ed71d2"
+        },
+        "to": {
+          "sequence": 7,
+          "digest": "sha256:2486b1e7aa76d38415e23d145d97265ce1faecc5eec1086c9e5b54d9b6c82cb0"
+        },
+        "artifacts": 66
+      }
+    ]
+  },
+  "scope": "Test authority only; release history continues at sequence 7. No production or physical acceptance."
+}

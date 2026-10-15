@@ -1,0 +1,74 @@
+{
+  "ok": true,
+  "forgeVersion": "2.0.0",
+  "outputPath": "../../../../var/tmp/qwen35-capsule-faster-20261015/capsule.json",
+  "absoluteOutputPath": "/var/tmp/qwen35-capsule-faster-20261015/capsule.json",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v2-40e2db194ecc92f4",
+  "semanticRoot": "sha256:40e2db194ecc92f40f64ab69bededdf6e1ac3cfbfbb0c1d7ef4667adba89ae09",
+  "envelopeHash": "sha256:6817d6325524a72b168b091d5e8ee5e3ad6835dbe262312e237960ec8959fdd2",
+  "schema": "doppler.capsule/v2",
+  "schemaVersion": 2,
+  "createdAtUtc": "2026-10-15T00:43:12.882Z",
+  "sourceBundleId": "qwen-3-5-0-8b-q4k-ehaf16-ffb898132339",
+  "programBundlePath": "/var/tmp/qwen35-capsule-faster-20261015/artifacts/program-bundle.json",
+  "executionGraphHash": "sha256:ffb898132339f8017e6545421ad9cff7ffb7527cb427cb50311cb0c998e648f8",
+  "artifactCount": 66,
+  "wgslModuleCount": 37,
+  "targetPlanDigests": [
+    "sha256:98588055dbe4c9543847a3f05167a7baef8d484aec0bdbc2d20b44626e40802a"
+  ],
+  "stages": [
+    {
+      "stage": "inspect",
+      "ok": true
+    },
+    {
+      "stage": "normalize",
+      "ok": true
+    },
+    {
+      "stage": "analyze",
+      "ok": true
+    },
+    {
+      "stage": "lower",
+      "ok": true
+    },
+    {
+      "stage": "specialize",
+      "ok": true
+    },
+    {
+      "stage": "search",
+      "ok": true
+    },
+    {
+      "stage": "verify",
+      "ok": true
+    },
+    {
+      "stage": "qualify",
+      "ok": true
+    },
+    {
+      "stage": "package",
+      "ok": true
+    },
+    {
+      "stage": "sign",
+      "ok": true
+    }
+  ],
+  "searchReceipt": {
+    "candidateTargetPlanHashes": [
+      "sha256:98588055dbe4c9543847a3f05167a7baef8d484aec0bdbc2d20b44626e40802a"
+    ],
+    "selectedTargetPlanHashes": [
+      "sha256:98588055dbe4c9543847a3f05167a7baef8d484aec0bdbc2d20b44626e40802a"
+    ],
+    "policy": "closed-program-source-plan",
+    "evaluationReceipt": null
+  },
+  "candidateEvaluation": null
+}

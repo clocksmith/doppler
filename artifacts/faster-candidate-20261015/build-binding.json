@@ -1,0 +1,169 @@
+{
+  "builderRevision": "77c5d9b2c68b138a67d8cec24a506fa5e022ef42",
+  "builderSha256": "fef22cce2c8f90f55b7dc1698f229b1b244c4760c208e333ac1507f6c1b27069",
+  "archiveSha256": "3b132ee7ff984c80ef48487d3010028ade46b64d39323304d674feebfde3bf78",
+  "sourceRevision": "77c5d9b2c68b138a67d8cec24a506fa5e022ef42",
+  "sourceRoot": "/var/tmp/qwen35-capsule-faster-20261015-3/source",
+  "runtime": "/var/tmp/reploid-faster-candidate-20261015-3/vendor/doppler/0.6.28",
+  "qualificationCampaign": "reploid/artifacts/faster-candidate-20261015/placement-c/c8",
+  "partitionOrder": [
+    "mac-host",
+    "amd-host",
+    "amd-host"
+  ],
+  "qualificationReports": [
+    {
+      "path": "/Users/xyz/deco/reploid/artifacts/faster-candidate-20261015/placement-c/c8/reports/partition-0.json",
+      "sha256": "79ea67b45e5793eae28638196fa65dae64c68d2c8fce966602d4adbaa5b1282c"
+    },
+    {
+      "path": "/Users/xyz/deco/reploid/artifacts/faster-candidate-20261015/placement-c/c8/reports/partition-1.json",
+      "sha256": "cc181ca74ffa5858beffd44c5d30f6e9d5afd1438a69b4f69448a8b3bb19ff82"
+    },
+    {
+      "path": "/Users/xyz/deco/reploid/artifacts/faster-candidate-20261015/placement-c/c8/reports/partition-2.json",
+      "sha256": "d4a1af868c9369c2b78ffc980f213fe1e5011fbc31258332fa402572273ec4c9"
+    }
+  ],
+  "contractSha256": "15df63a85f44bb80d892f21accc393286c59b9cf5611b044a250519110c4e2d2",
+  "modelIRReceiptSha256": "074ad8ac8e847fa960ccf3e06e9d24243348e892f7a7cc78d5879a3662090a77",
+  "manifestSha256": "548e65597f85e190d6f0edf38c63569b872a61696c28ec95dce031f913e953db",
+  "pieceIndexSha256": "1fa9d9edc8f978b8c6d1996b944f9dfc897db42fe1c4ae4106f1ca5dc7827bfa",
+  "programBundleSha256": "ff29b3204ac0db63ba7ff0f079961c89ab0d4be186049b3fd635606d5505fb80",
+  "prefillTokenChunkSize": 16,
+  "identity": {
+    "schema": "doppler.capsule/v3",
+    "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v3-b1527013b75971d9a301a71672cbccaa45ee59e87438c86fe52923ff51ad2de9",
+    "semanticRoot": "sha256:b1527013b75971d9a301a71672cbccaa45ee59e87438c86fe52923ff51ad2de9",
+    "envelopeDigest": "sha256:759f5ab147e7204d17725a0c7212b39e1da174ad9fe81dfbe19f1f2ad7c880de",
+    "artifactClosureDigest": "sha256:9713082ae2b26d02a26cde8827b4746aac2468db3b08d5746f3f2e7b1c9f0550"
+  },
+  "issuedAtUtc": "2026-10-15T04:35:38.490Z",
+  "expiresAtUtc": "2026-10-16T04:35:38.490Z",
+  "artifactCount": 67,
+  "releaseHistory": {
+    "sequence": 9,
+    "previousEventDigest": "sha256:0b40731ce1a425c9805790c0bbc97d3837c78c4225813abc43637b623db06fdf",
+    "continues": "faster-candidate-20261015/capsule-2 (sequence 8)",
+    "verifiedFromCheckpoints": [
+      {
+        "runtime": "candidate 21d054ee",
+        "required": true,
+        "from": {
+          "sequence": 8,
+          "digest": "sha256:0b40731ce1a425c9805790c0bbc97d3837c78c4225813abc43637b623db06fdf"
+        },
+        "to": {
+          "sequence": 9,
+          "digest": "sha256:dd83799625519d431d5e1f5c9b04b06bce0a0091ece922891d7d965a906c55bf"
+        },
+        "artifacts": 67
+      },
+      {
+        "runtime": "candidate 21d054ee",
+        "required": true,
+        "from": {
+          "sequence": 7,
+          "digest": "sha256:2486b1e7aa76d38415e23d145d97265ce1faecc5eec1086c9e5b54d9b6c82cb0"
+        },
+        "to": {
+          "sequence": 9,
+          "digest": "sha256:dd83799625519d431d5e1f5c9b04b06bce0a0091ece922891d7d965a906c55bf"
+        },
+        "artifacts": 67
+      },
+      {
+        "runtime": "candidate 21d054ee",
+        "required": true,
+        "from": {
+          "sequence": 6,
+          "digest": "sha256:b19052d587ee901ec00e1ae0256bdd1211a5257aafdf1db3ad86723c71ddd755"
+        },
+        "to": {
+          "sequence": 9,
+          "digest": "sha256:dd83799625519d431d5e1f5c9b04b06bce0a0091ece922891d7d965a906c55bf"
+        },
+        "artifacts": 67
+      },
+      {
+        "runtime": "candidate 21d054ee",
+        "required": true,
+        "from": {
+          "sequence": 5,
+          "digest": "sha256:70f24c979f6b08c25827de341f5b08ab441b1c30fdca6bcec019a596c3ed71d2"
+        },
+        "to": {
+          "sequence": 9,
+          "digest": "sha256:dd83799625519d431d5e1f5c9b04b06bce0a0091ece922891d7d965a906c55bf"
+        },
+        "artifacts": 67
+      },
+      {
+        "runtime": "candidate 21d054ee",
+        "required": true,
+        "from": {
+          "sequence": 0,
+          "digest": null
+        },
+        "to": {
+          "sequence": 9,
+          "digest": "sha256:dd83799625519d431d5e1f5c9b04b06bce0a0091ece922891d7d965a906c55bf"
+        },
+        "artifacts": 67
+      },
+      {
+        "runtime": "final-9 runtime 2df37d88",
+        "required": false,
+        "from": {
+          "sequence": 8,
+          "digest": "sha256:0b40731ce1a425c9805790c0bbc97d3837c78c4225813abc43637b623db06fdf"
+        },
+        "to": {
+          "sequence": 9,
+          "digest": "sha256:dd83799625519d431d5e1f5c9b04b06bce0a0091ece922891d7d965a906c55bf"
+        },
+        "artifacts": 67
+      },
+      {
+        "runtime": "final-9 runtime 2df37d88",
+        "required": false,
+        "from": {
+          "sequence": 7,
+          "digest": "sha256:2486b1e7aa76d38415e23d145d97265ce1faecc5eec1086c9e5b54d9b6c82cb0"
+        },
+        "to": {
+          "sequence": 9,
+          "digest": "sha256:dd83799625519d431d5e1f5c9b04b06bce0a0091ece922891d7d965a906c55bf"
+        },
+        "artifacts": 67
+      },
+      {
+        "runtime": "final-9 runtime 2df37d88",
+        "required": false,
+        "from": {
+          "sequence": 6,
+          "digest": "sha256:b19052d587ee901ec00e1ae0256bdd1211a5257aafdf1db3ad86723c71ddd755"
+        },
+        "to": {
+          "sequence": 9,
+          "digest": "sha256:dd83799625519d431d5e1f5c9b04b06bce0a0091ece922891d7d965a906c55bf"
+        },
+        "artifacts": 67
+      },
+      {
+        "runtime": "final-9 runtime 2df37d88",
+        "required": false,
+        "from": {
+          "sequence": 5,
+          "digest": "sha256:70f24c979f6b08c25827de341f5b08ab441b1c30fdca6bcec019a596c3ed71d2"
+        },
+        "to": {
+          "sequence": 9,
+          "digest": "sha256:dd83799625519d431d5e1f5c9b04b06bce0a0091ece922891d7d965a906c55bf"
+        },
+        "artifacts": 67
+      }
+    ]
+  },
+  "scope": "Test authority only; release history continues at sequence 9. No production or physical acceptance."
+}

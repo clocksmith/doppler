@@ -1,0 +1,186 @@
+{
+  "schema": "doppler.retained-split-generation-report/v1",
+  "scope": "Observed first 19-token request (prefill chunked at 16) on the three-stage route mac-host / amd-host / amd-host; exact independent source-token parity only",
+  "surface": "node",
+  "output": "Hello",
+  "deviceInfo": [
+    {
+      "index": 0,
+      "host": "mac-host"
+    },
+    {
+      "index": 1,
+      "host": "amd-host"
+    },
+    {
+      "index": 2,
+      "host": "amd-host"
+    }
+  ],
+  "metrics": {
+    "promptInput": {
+      "tokenIds": [
+        248045,
+        846,
+        198,
+        20206,
+        440,
+        1132,
+        279,
+        3299,
+        21251,
+        13,
+        248046,
+        198,
+        248045,
+        74455,
+        198,
+        248068,
+        271,
+        248069,
+        271
+      ]
+    },
+    "generationConfig": {
+      "maxTokens": 1024,
+      "maxSeqLen": 4096,
+      "temperature": 0,
+      "topP": 1,
+      "topK": 1,
+      "repetitionPenalty": 1,
+      "repetitionPenaltyWindow": 0,
+      "presencePenalty": 0,
+      "useChatTemplate": true,
+      "suppressTokenIds": [],
+      "stopSequences": [],
+      "seed": null
+    },
+    "tokensGenerated": 2,
+    "stopReason": "eos-token",
+    "sourceParity": {
+      "schema": "doppler.source-token-parity/v1",
+      "status": "passed",
+      "sourceModel": "Qwen/Qwen3.5-0.8B",
+      "sourceRevision": "2fc06364715b967f1860aea9cf38778875588b17",
+      "prompt": {
+        "passed": true,
+        "tokenIds": [
+          248045,
+          846,
+          198,
+          20206,
+          440,
+          1132,
+          279,
+          3299,
+          21251,
+          13,
+          248046,
+          198,
+          248045,
+          74455,
+          198,
+          248068,
+          271,
+          248069,
+          271
+        ],
+        "count": 19,
+        "mode": "Exact captured IDs; independently round-tripped through deployed tokenizer",
+        "expectedCount": 19,
+        "observedCount": 19,
+        "firstMismatchIndex": null
+      },
+      "generation": {
+        "passed": true,
+        "sourceTokens": [
+          9419,
+          248046
+        ],
+        "runtimeTokens": [
+          9419,
+          248046
+        ],
+        "sourceStop": "eos",
+        "scope": "Frozen first19-token request only; not document quality or full-model numerical qualification",
+        "expectedCount": 2,
+        "observedCount": 2,
+        "firstMismatchIndex": null
+      },
+      "provenance": {
+        "controlSha256": "d819c04e88fd7507c560f70ee7731ee183ed72793e1007a75d2b38658eeafce0",
+        "resultSha256": "b62fab0b64d300cbfa1c51fd233a8c73377cf5872da7d831c5d992eb7aa9d74a",
+        "physicalCaptureSha256": "b7a89b6ea8da0f8bab27008b27aeb827dd9ea2e796af6087dc4a5c1eb0ca74e7",
+        "archiveSha256": "21d054eeb70212a7434c9eccfe467fe0accbb8685e9358f2b72341500978cd5f",
+        "cpuAffinity": "0-3",
+        "threads": 4,
+        "commandEnvironment": "PYTHONPATH=/tmp/doppler-reference-deps; /usr/bin/python3; taskset -c 0-3; nice -n 10",
+        "dependencyFailure": "First invocation lacked retained blake3 module path; failed before inference. No model/control changes or dependency installation."
+      },
+      "expectedTranscriptPath": "source-token-result.json",
+      "expectedTranscriptHash": "sha256:b62fab0b64d300cbfa1c51fd233a8c73377cf5872da7d831c5d992eb7aa9d74a",
+      "sampling": "greedy"
+    },
+    "referenceTranscript": {
+      "surface": "node-webgpu",
+      "generationConfig": {
+        "maxTokens": 1024,
+        "maxSeqLen": 4096,
+        "temperature": 0,
+        "topP": 1,
+        "topK": 1,
+        "repetitionPenalty": 1,
+        "repetitionPenaltyWindow": 0,
+        "presencePenalty": 0,
+        "useChatTemplate": true,
+        "suppressTokenIds": [],
+        "stopSequences": [],
+        "seed": null
+      },
+      "prompt": {
+        "tokenCount": 19
+      },
+      "tokens": {
+        "ids": [
+          9419,
+          248046
+        ],
+        "coverage": {
+          "mode": "complete",
+          "omitted": 0
+        }
+      },
+      "output": {
+        "tokensGenerated": 2,
+        "stopReason": "eos-token",
+        "stopTokenId": 248046
+      }
+    }
+  },
+  "provenance": {
+    "captureSha256": "b7a89b6ea8da0f8bab27008b27aeb827dd9ea2e796af6087dc4a5c1eb0ca74e7",
+    "controlSha256": "d819c04e88fd7507c560f70ee7731ee183ed72793e1007a75d2b38658eeafce0",
+    "sourceResultSha256": "b62fab0b64d300cbfa1c51fd233a8c73377cf5872da7d831c5d992eb7aa9d74a",
+    "archiveSha256": "21d054eeb70212a7434c9eccfe467fe0accbb8685e9358f2b72341500978cd5f",
+    "rawCapture": "reploid/artifacts/faster-candidate-20261015/placement-c/c3 capture, retained locally; hashes in summary.json",
+    "independentAccuracy": "Separate resident qualification reports compare all55 full-vocabulary vectors with the approved F64 target",
+    "applicationQualification": false,
+    "signedOpening": false,
+    "documentQuality": false,
+    "rawGenerationConfig": {
+      "maxTokens": 1024,
+      "maxSeqLen": 4096,
+      "temperature": 0,
+      "topP": 1,
+      "topK": 1,
+      "repetitionPenalty": 1,
+      "repetitionPenaltyWindow": 0,
+      "presencePenalty": 0,
+      "useChatTemplate": true,
+      "suppressTokenIds": [],
+      "stopSequences": []
+    },
+    "seedNormalization": "Captured greedy request omits seed; transcript schema represents unspecified seed as explicit null.",
+    "sourceParityRecomputed": true
+  }
+}

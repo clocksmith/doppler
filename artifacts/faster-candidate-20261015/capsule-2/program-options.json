@@ -1,0 +1,8 @@
+{
+  "repoRoot": "/var/tmp/qwen35-capsule-faster-20261015-2/source",
+  "modelDir": "/var/tmp/qwen35-capsule-faster-20261015-2/source/capsule-input/model",
+  "manifestPath": "/var/tmp/qwen35-capsule-faster-20261015-2/source/capsule-input/model/manifest.json",
+  "referenceReportPath": "/var/tmp/qwen35-capsule-faster-20261015-2/source/capsule-input/generation-report.json",
+  "outputPath": "/var/tmp/qwen35-capsule-faster-20261015-2/artifacts/program-bundle.json",
+  "createdAtUtc": "2026-10-15T01:51:29.997Z"
+}

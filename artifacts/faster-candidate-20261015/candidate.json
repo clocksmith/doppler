@@ -1,0 +1,21 @@
+{
+  "schema": "doppler.faster-candidate-archive/v1",
+  "sourceCommit": "77c5d9b2c68b138a67d8cec24a506fa5e022ef42",
+  "method": "git archive <commit> | tar -x; npm pack --ignore-scripts --json (the same method reproduces 2df37d88... from a5f3ca4c and 21d054ee... from 1c9ec3db)",
+  "archiveSha256": "3b132ee7ff984c80ef48487d3010028ade46b64d39323304d674feebfde3bf78",
+  "archiveBytes": 3493591,
+  "packageVersion": "0.6.28",
+  "packageFiles": 1999,
+  "previousCandidateArchiveSha256": "21d054eeb70212a7434c9eccfe467fe0accbb8685e9358f2b72341500978cd5f",
+  "previousCandidateSourceCommit": "1c9ec3db",
+  "addedMembers": [
+    "package/src/gpu/kernels/gated_delta_state_paired_sliced_rolled.wgsl"
+  ],
+  "removedMembers": [],
+  "changedMembers": [
+    "package/src/config/kernels/registry.json",
+    "package/src/gpu/kernels/generated/uniform-writers.js"
+  ],
+  "baselineArchiveSha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+  "promotion": false
+}

@@ -1,0 +1,5774 @@
+{
+  "schema": "doppler.program-bundle/v1",
+  "schemaVersion": 1,
+  "bundleId": "qwen-3-5-0-8b-q4k-ehaf16-334d27cd8140",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "createdAtUtc": "2026-10-15T01:51:29.997Z",
+  "package": {
+    "schema": "doppler.program-bundle-package/v1",
+    "root": ".",
+    "files": [
+      {
+        "role": "host-source",
+        "path": "program/host/text-generation-d7abaa224ec64128.js",
+        "hash": "sha256:d7abaa224ec64128fb195e238b5ce3b0fabfc00b46406e5d4a0195ff1a03da15",
+        "sizeBytes": 1096
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/add-4404ea6b1516f7ff.wgsl",
+        "hash": "sha256:4404ea6b1516f7ff2e619d50133faefddd20c6298c4987f7e29ac4fcdb3a61d2",
+        "sizeBytes": 12757
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/attention-909aae38aefc27ce.wgsl",
+        "hash": "sha256:909aae38aefc27ce6aa1b389756df1ee639310b0936ae121b82b32e19c97c45a",
+        "sizeBytes": 18168
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/cast_f32_to_two_f32-059179f0bb62747b.wgsl",
+        "hash": "sha256:059179f0bb62747bda43dec235fb1f873d22cd068bda37bf478b944e02297ebc",
+        "sizeBytes": 622
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/cast_two_f32_to_f16-e13bbba70e0c7b93.wgsl",
+        "hash": "sha256:e13bbba70e0c7b9363b5ecf0d38e1f665dff7791d73283f4a6037879a2d33983",
+        "sizeBytes": 2428
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/embed-838e3c69451d02fe.wgsl",
+        "hash": "sha256:838e3c69451d02fee30839fd30621d28d8a0f5861c862a568ca4de72870b0b15",
+        "sizeBytes": 2538
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/gated_delta_conv_paired-8c42f6e730957631.wgsl",
+        "hash": "sha256:8c42f6e7309576313b00fbbd9981ba7551925ff6fee526081c2d393e02e8513d",
+        "sizeBytes": 13586
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/gated_delta_recurrent_paired-c7bd9b2d678deec4.wgsl",
+        "hash": "sha256:c7bd9b2d678deec41dee6822d85cb9e3629b0d8d6f95c85874bcfb44caf8651f",
+        "sizeBytes": 16479
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/gather_f16_vec4-a500eb8ca2a1ff7d.wgsl",
+        "hash": "sha256:a500eb8ca2a1ff7d6f19344a4d3ec0c9619ca15455f029aa601921d1917971f3",
+        "sizeBytes": 2810
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/gather_split8_f16_vec4_f32_out-57d5326f08951af3.wgsl",
+        "hash": "sha256:57d5326f08951af3389f266fb4ca6f50fc501eb3d6bdb1187fb7f2f3b10b51db",
+        "sizeBytes": 6176
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/head-ae5a3c159814a141.wgsl",
+        "hash": "sha256:ae5a3c159814a141e17100c83061e00b817f00df6a497bf3d6d15496d821e1e7",
+        "sizeBytes": 16187
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/logit_finalize_f32-b20df676b5813f25.wgsl",
+        "hash": "sha256:b20df676b5813f258a5e32eb11cb34ce4e5c2aafc7e4b1e469c07bb861e7522f",
+        "sizeBytes": 1139
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/norm-70c79461d2203d22.wgsl",
+        "hash": "sha256:70c79461d2203d22e7672b65b0b9f6bba297de38b73b476f20bb7afaf05df3f3",
+        "sizeBytes": 15446
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/paired_beta-269fdb694f6e206b.wgsl",
+        "hash": "sha256:269fdb694f6e206b6ea77582b29e4b98051f34dbad822a40e22032597fbfbe33",
+        "sizeBytes": 12989
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/paired_decay_scale-9340014c13ba79ae.wgsl",
+        "hash": "sha256:9340014c13ba79ae7d2bebe4ea14f1935e5cb4a9d0df08a3b2cc063b32271e2f",
+        "sizeBytes": 13616
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/paired_decay-93af9d61d9ca7e4d.wgsl",
+        "hash": "sha256:93af9d61d9ca7e4ddc2d8a6a0152763e7b6d8dc90397543ea33142c99c43744c",
+        "sizeBytes": 12893
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/paired_gate-240cda5577bc57ed.wgsl",
+        "hash": "sha256:240cda5577bc57edd48185717ee6a92106053b5c9a6bf48ed691381bae1c816f",
+        "sizeBytes": 13107
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/paired_log_decay-39c3a1fa41c039c5.wgsl",
+        "hash": "sha256:39c3a1fa41c039c555e3cb7d04648e9d96d3f464bed512e54117a91182478ec4",
+        "sizeBytes": 13303
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/paired_norm-f8b06edca9b891aa.wgsl",
+        "hash": "sha256:f8b06edca9b891aa6759567f0e134a76e6abfae7f9f53464ea767ae9244a9aaa",
+        "sizeBytes": 13964
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/paired_pointwise_add-4404ea6b1516f7ff.wgsl",
+        "hash": "sha256:4404ea6b1516f7ff2e619d50133faefddd20c6298c4987f7e29ac4fcdb3a61d2",
+        "sizeBytes": 12757
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/paired_pointwise_multiply-03555fdcf4d40579.wgsl",
+        "hash": "sha256:03555fdcf4d40579145ba174b21da504c50244a1784bcdc6a152e7be5d45d35d",
+        "sizeBytes": 12712
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/paired_pointwise_scale_inplace-b4e45349165af1de.wgsl",
+        "hash": "sha256:b4e45349165af1de16780482b82500a027c665b07831cdd750296c57202fd2d6",
+        "sizeBytes": 12621
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/paired_pointwise_scale-b99563bbbd7b7a80.wgsl",
+        "hash": "sha256:b99563bbbd7b7a80173990212b2c7907d779bbd37756a7cbd97f2ee8306f7370",
+        "sizeBytes": 12679
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/paired_pointwise_sigmoid-94ca066eb753a3c4.wgsl",
+        "hash": "sha256:94ca066eb753a3c48c92ee4530e3f867a59cac4c4b94cf6ce3419daacefe1fcc",
+        "sizeBytes": 12921
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/paired_pointwise_silu_unary-5d0ab4563118fc92.wgsl",
+        "hash": "sha256:5d0ab4563118fc92cc701cb8ae8021c630fdd342316d4f31cc0359fab2ed3b43",
+        "sizeBytes": 12645
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/paired_pointwise_silu-e53e0a99d1c793b4.wgsl",
+        "hash": "sha256:e53e0a99d1c793b42ca9e081b793085fca5943b011535fc30b50a28b2fa4c1f2",
+        "sizeBytes": 12918
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/paired_qk_head_norm-0402e449b9ff69a5.wgsl",
+        "hash": "sha256:0402e449b9ff69a5b1a60ad617ea1156f2083d2b80aa4880ceb364c09a8b1239",
+        "sizeBytes": 15101
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/paired_qk_parallel-a70a7992410f877c.wgsl",
+        "hash": "sha256:a70a7992410f877c0cf795a79eab5e554303790b0b9792c3053d6ba00e795d7d",
+        "sizeBytes": 14390
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/paired_qk-20623d93648c0216.wgsl",
+        "hash": "sha256:20623d93648c0216dfc4d122bf8637594d3b5d858f32d023cd9b015e92fea6ae",
+        "sizeBytes": 14097
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/paired_state_sliced-d7d0ef76094ae1b6.wgsl",
+        "hash": "sha256:d7d0ef76094ae1b68e1c25ff7aceb3004a672be45c685fc7660a281827ba73cc",
+        "sizeBytes": 16453
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/paired_state-36dc4fe9f21e1dae.wgsl",
+        "hash": "sha256:36dc4fe9f21e1daedbd0df276a8b139d7119dd9a3129ce8c8c5cc0717ae12fd7",
+        "sizeBytes": 14724
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/projection_f16-ae5a3c159814a141.wgsl",
+        "hash": "sha256:ae5a3c159814a141e17100c83061e00b817f00df6a497bf3d6d15496d821e1e7",
+        "sizeBytes": 16187
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/projection_q4-ae5a3c159814a141.wgsl",
+        "hash": "sha256:ae5a3c159814a141e17100c83061e00b817f00df6a497bf3d6d15496d821e1e7",
+        "sizeBytes": 16187
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/rope_precompute_paired-f78f0d247fa6a376.wgsl",
+        "hash": "sha256:f78f0d247fa6a376255b334a4255513f2c8cfd2d8cfecb085caccb9196fbafa5",
+        "sizeBytes": 13408
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/rope-247997005c27c52f.wgsl",
+        "hash": "sha256:247997005c27c52f2327c46716c3bb87bac6b5b01e27acce93f3791c56e5b5d8",
+        "sizeBytes": 15451
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/sample-634764ad77570805.wgsl",
+        "hash": "sha256:634764ad775708050071fc9113a5ecf5efd1c0da99b6e15ccd9f0c4116b65366",
+        "sizeBytes": 12654
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/silu-e53e0a99d1c793b4.wgsl",
+        "hash": "sha256:e53e0a99d1c793b42ca9e081b793085fca5943b011535fc30b50a28b2fa4c1f2",
+        "sizeBytes": 12918
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/split_qg_paired-e5c945262f0badc9.wgsl",
+        "hash": "sha256:e5c945262f0badc9ae0ce4fdce4f9ac007a1a244dc49f5692d0a4b52490c765f",
+        "sizeBytes": 2172
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/split_qkv_paired-8b1e90e4e34643b5.wgsl",
+        "hash": "sha256:8b1e90e4e34643b523f331e82ae6cc90f4c37e7404a9cb8e1993dbd841e5c733",
+        "sizeBytes": 2158
+      }
+    ],
+    "fileSetHash": "sha256:a5afdda68e7707d7810f1dcbea6c520661c1347f6daa60a26d026e85bf07c95f"
+  },
+  "sources": {
+    "manifest": {
+      "path": "capsule-input/model/manifest.json",
+      "hash": "sha256:c6220c6aefef7006aa2b3bc3c89932d61788340597c9abf055d27e8cdd1767fd"
+    },
+    "conversionConfig": null,
+    "executionGraph": {
+      "schema": "doppler.execution/v1",
+      "hash": "sha256:334d27cd8140cb865e13b069e31bab49608cbb014372d717b053316bc3e478d8",
+      "expandedStepHash": "sha256:ac7fc4ac99966b685701f9fa473dd189e62149697f222c10db049f364b8df231"
+    },
+    "weightSetHash": "sha256:4bca8ba4d62afe392ad46f9c64b96bd5293166c443200b43a4a7ebfd74480c98",
+    "artifactSetHash": "sha256:9575bc964b13a775bdd5bb051dc5e60d1baeae8b01090a0084ede10c0628cb8c"
+  },
+  "host": {
+    "schema": "doppler.host-js/v1",
+    "jsSubset": "doppler-webgpu-host/v1",
+    "entrypoints": [
+      {
+        "id": "text-generation",
+        "module": "program/host/text-generation-d7abaa224ec64128.js",
+        "export": "createTextGenerationProgram",
+        "role": "model-orchestration",
+        "sourceHash": "sha256:d7abaa224ec64128fb195e238b5ce3b0fabfc00b46406e5d4a0195ff1a03da15",
+        "validation": {
+          "dynamicImport": "none-detected",
+          "staticImport": "none-detected",
+          "dom": "none-detected",
+          "runtimeGlobals": "none-detected",
+          "network": "none-detected",
+          "dynamicCode": "none-detected"
+        }
+      }
+    ],
+    "constraints": {
+      "dynamicImport": "disallowed",
+      "staticImport": "disallowed",
+      "dom": "disallowed-in-model-path",
+      "runtimeGlobals": "disallowed",
+      "dynamicCode": "disallowed",
+      "filesystem": "declared-artifacts-only",
+      "network": "declared-artifacts-only"
+    }
+  },
+  "wgslModules": [
+    {
+      "id": "add",
+      "file": "paired_add.wgsl",
+      "entry": "main",
+      "digest": "sha256:2acc737b0e0a51a8554a88ead1dce63637842846723043115e1f4de24b8d8ff3",
+      "sourcePath": "program/wgsl/add-4404ea6b1516f7ff.wgsl",
+      "sourceHash": "sha256:4404ea6b1516f7ff2e619d50133faefddd20c6298c4987f7e29ac4fcdb3a61d2",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "a"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "b"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:55478c70c82f6b334c13f1b2257614fcf53c3ef82615ff672c668fe7480d7208"
+      }
+    },
+    {
+      "id": "attention",
+      "file": "attention_paired_tiled.wgsl",
+      "entry": "main",
+      "digest": "sha256:70a0a584eb26e3eb9aa14ea1082b9f3801bf730c43577874c1c4257a69b6ea16",
+      "sourcePath": "program/wgsl/attention-909aae38aefc27ce.wgsl",
+      "sourceHash": "sha256:909aae38aefc27ce6aa1b389756df1ee639310b0936ae121b82b32e19c97c45a",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "queries"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "keys"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "values"
+          },
+          {
+            "group": 0,
+            "binding": 4,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "DOT_LANES",
+            "type": "u32",
+            "defaultValue": "4u"
+          },
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:617e788650bc1c975c0734d0bbe116a329af25829097dd03b535da7a72b07caf"
+      }
+    },
+    {
+      "id": "cast_f32_to_two_f32",
+      "file": "cast_f32_to_two_f32.wgsl",
+      "entry": "main",
+      "digest": "sha256:4f79cf40e2b469745c53f11f12f5791b8429a6ada4d055c5bd6e418033860945",
+      "sourcePath": "program/wgsl/cast_f32_to_two_f32-059179f0bb62747b.wgsl",
+      "sourceHash": "sha256:059179f0bb62747bda43dec235fb1f873d22cd068bda37bf478b944e02297ebc",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "input"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:0c9a8323e16391d97f54ca2bfd4fc5b7ffa17e91c0bc8b10265f45755b95184a"
+      }
+    },
+    {
+      "id": "cast_two_f32_to_f16",
+      "file": "cast_two_f32_to_f16.wgsl",
+      "entry": "main",
+      "digest": "sha256:c849fddd43cc81e8d1b3e60cffc54275484df53ab29dde0371d17b2048844d01",
+      "sourcePath": "program/wgsl/cast_two_f32_to_f16-e13bbba70e0c7b93.wgsl",
+      "sourceHash": "sha256:e13bbba70e0c7b9363b5ecf0d38e1f665dff7791d73283f4a6037879a2d33983",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "input"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:0c9a8323e16391d97f54ca2bfd4fc5b7ffa17e91c0bc8b10265f45755b95184a"
+      }
+    },
+    {
+      "id": "embed",
+      "file": "gather_f16.wgsl",
+      "entry": "main",
+      "digest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
+      "sourcePath": "program/wgsl/embed-838e3c69451d02fe.wgsl",
+      "sourceHash": "sha256:838e3c69451d02fee30839fd30621d28d8a0f5861c862a568ca4de72870b0b15",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "indices"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "embeddings"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE_MAIN",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE_MAIN",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:1ba09f607f40bfad8dc2b5872fb41536547ea96a10390b6b21d6964c9672c306"
+      }
+    },
+    {
+      "id": "gated_delta_conv_paired",
+      "file": "gated_delta_conv_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:ca05b7f81bf84690720797173f4c5a3b3ced12ae3dd904043fc4d6b3cd6e66da",
+      "sourcePath": "program/wgsl/gated_delta_conv_paired-8c42f6e730957631.wgsl",
+      "sourceHash": "sha256:8c42f6e7309576313b00fbbd9981ba7551925ff6fee526081c2d393e02e8513d",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "qkv"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "weight"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "state"
+          },
+          {
+            "group": 0,
+            "binding": 4,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "64u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:d31f789f288550b3700ce5963d189fb366d38583cb7c5dbfc060934bd730d814"
+      }
+    },
+    {
+      "id": "gated_delta_recurrent_paired",
+      "file": "gated_delta_recurrent_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:c9f946e7682d9356c97684fc8b4e45c0d89a2d94984373899d8c81db77e1528d",
+      "sourcePath": "program/wgsl/gated_delta_recurrent_paired-c7bd9b2d678deec4.wgsl",
+      "sourceHash": "sha256:c7bd9b2d678deec41dee6822d85cb9e3629b0d8d6f95c85874bcfb44caf8651f",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "conv"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "z"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "gates"
+          },
+          {
+            "group": 0,
+            "binding": 4,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "norm_weight"
+          },
+          {
+            "group": 0,
+            "binding": 5,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "state"
+          },
+          {
+            "group": 0,
+            "binding": 6,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "128u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:393f91580f002c06fd2680635425e8672ebb9880391e13c42be70086bb21bc91"
+      }
+    },
+    {
+      "id": "gather_f16_vec4",
+      "file": "gather_f16_vec4.wgsl",
+      "entry": "gather_vec4",
+      "digest": "sha256:dc87e5e03cdbff74347ef8e42774570b1807d239ad64501a7e90ec8f600e912c",
+      "sourcePath": "program/wgsl/gather_f16_vec4-a500eb8ca2a1ff7d.wgsl",
+      "sourceHash": "sha256:a500eb8ca2a1ff7d6f19344a4d3ec0c9619ca15455f029aa601921d1917971f3",
+      "reachable": true,
+      "metadata": {
+        "entry": "gather_vec4",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "indices"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "embeddings"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE_VEC4",
+            "type": "u32",
+            "defaultValue": "64u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE_VEC4",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:863e8cea58d35f5b8a1e39bf54ea88e06620f11293abb28d3cef55623911c943"
+      }
+    },
+    {
+      "id": "gather_split8_f16_vec4_f32_out",
+      "file": "gather_split8_f16_vec4_f32_out.wgsl",
+      "entry": "gather_vec4_f32_out",
+      "digest": "sha256:18dce4731aa3c3cbde6a969cc54d63de4e545e7dce43204774323b6bfffc5c41",
+      "sourcePath": "program/wgsl/gather_split8_f16_vec4_f32_out-57d5326f08951af3.wgsl",
+      "sourceHash": "sha256:57d5326f08951af3389f266fb4ca6f50fc501eb3d6bdb1187fb7f2f3b10b51db",
+      "reachable": true,
+      "metadata": {
+        "entry": "gather_vec4_f32_out",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "indices"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "embeddings0"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "embeddings1"
+          },
+          {
+            "group": 0,
+            "binding": 4,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "embeddings2"
+          },
+          {
+            "group": 0,
+            "binding": 5,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "embeddings3"
+          },
+          {
+            "group": 0,
+            "binding": 6,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "embeddings4"
+          },
+          {
+            "group": 0,
+            "binding": 7,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "embeddings5"
+          },
+          {
+            "group": 0,
+            "binding": 8,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "embeddings6"
+          },
+          {
+            "group": 0,
+            "binding": 9,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "embeddings7"
+          },
+          {
+            "group": 0,
+            "binding": 10,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output_f32"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE_VEC4",
+            "type": "u32",
+            "defaultValue": "64u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE_VEC4",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:bd8f76058bf7cda74df9c99b89847e90058127646df69ae66beac052beabf6b0"
+      }
+    },
+    {
+      "id": "head",
+      "file": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "sourcePath": "program/wgsl/head-ae5a3c159814a141.wgsl",
+      "sourceHash": "sha256:ae5a3c159814a141e17100c83061e00b817f00df6a497bf3d6d15496d821e1e7",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "input"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "weight"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "SCALAR_OUTPUT",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "TRANSPOSE_B",
+            "type": "bool",
+            "defaultValue": "true"
+          },
+          {
+            "name": "WEIGHT_F16",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "WEIGHT_Q4K",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "64u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:896ba93c4192353b5f2b02e173949fd140a7d8e0d4ad428da7382020902d8324"
+      }
+    },
+    {
+      "id": "logit_finalize_f32",
+      "file": "logit_finalize_f32.wgsl",
+      "entry": "main",
+      "digest": "sha256:11b4afe3f329082ae7d57481bb5cd32b29c7796f57ed1215007fdba1c47a2250",
+      "sourcePath": "program/wgsl/logit_finalize_f32-b20df676b5813f25.wgsl",
+      "sourceHash": "sha256:b20df676b5813f258a5e32eb11cb34ce4e5c2aafc7e4b1e469c07bb861e7522f",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "input"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "bias"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:cf88b13ad49b0ae39b31c5d98192e93e5a756d7c9f3efc0fa171ec56be9cc3b2"
+      }
+    },
+    {
+      "id": "norm",
+      "file": "rmsnorm_paired_sliced.wgsl",
+      "entry": "main",
+      "digest": "sha256:92760258450f504f4707b4fcb98148967b11c9a8e27e95d3f1242191c88bf1cc",
+      "sourcePath": "program/wgsl/norm-70c79461d2203d22.wgsl",
+      "sourceHash": "sha256:70c79461d2203d22e7672b65b0b9f6bba297de38b73b476f20bb7afaf05df3f3",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "input"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "weight"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          },
+          {
+            "group": 0,
+            "binding": 4,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "residual"
+          },
+          {
+            "group": 0,
+            "binding": 5,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "prenorm"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "OUTPUT_PRENORM",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "POST_RESIDUAL",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "PRE_RESIDUAL",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "WEIGHT_F16",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "WEIGHT_OFFSET",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:768682a070d1f4cb365be2dd7600263090c9e92995c3c1d89d78e80d9e307383"
+      }
+    },
+    {
+      "id": "paired_beta",
+      "file": "qwen_linear_attention_prepare_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:c84d3a8f9416118f2e69aed5a2e3bc2899eb837db6635cd05c911595e03ff29d",
+      "sourcePath": "program/wgsl/paired_beta-269fdb694f6e206b.wgsl",
+      "sourceHash": "sha256:269fdb694f6e206b6ea77582b29e4b98051f34dbad822a40e22032597fbfbe33",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "b"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "gates"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "64u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:dc25faa2003ba9859483e8bbf94943d8a8b220e4ff1efd8a3c21e27d561da2d3"
+      }
+    },
+    {
+      "id": "paired_decay",
+      "file": "qwen_linear_attention_decay_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:1f74ffa35c3e4e93585c68a78bb1c6938ec9023ced029b90ab40c2b58060c3f2",
+      "sourcePath": "program/wgsl/paired_decay-93af9d61d9ca7e4d.wgsl",
+      "sourceHash": "sha256:93af9d61d9ca7e4ddc2d8a6a0152763e7b6d8dc90397543ea33142c99c43744c",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "gates"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "64u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:ab2db5a4e3a2e8a3adcbc605d68fd2c5ffe88a812b985a799270fc2b18071c86"
+      }
+    },
+    {
+      "id": "paired_decay_scale",
+      "file": "qwen_linear_attention_scale_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:2a454b78894514053277a3b0105266fa9bf7cd5cecd35ffacb8e44e206426823",
+      "sourcePath": "program/wgsl/paired_decay_scale-9340014c13ba79ae.wgsl",
+      "sourceHash": "sha256:9340014c13ba79ae7d2bebe4ea14f1935e5cb4a9d0df08a3b2cc063b32271e2f",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "a_log"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "a"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "dt_bias"
+          },
+          {
+            "group": 0,
+            "binding": 4,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "gates"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "64u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:628c1003299d4370d15bb0bc65982097c8ce62fa9ceaf53697130adbc075016f"
+      }
+    },
+    {
+      "id": "paired_gate",
+      "file": "gated_delta_gate_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:dc6db2f039324df7d606920f39a8abf21a9b38219b7ac60b1b5b05d1308ecb59",
+      "sourcePath": "program/wgsl/paired_gate-240cda5577bc57ed.wgsl",
+      "sourceHash": "sha256:240cda5577bc57edd48185717ee6a92106053b5c9a6bf48ed691381bae1c816f",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "z"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "128u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:5a7a7f91c717c42d0c1267fc30b13b3915505f13c0b824754f664d511019647c"
+      }
+    },
+    {
+      "id": "paired_log_decay",
+      "file": "qwen_linear_attention_log_decay_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:14d697eed886a767a5573394d924f019d074cf4fad6d5db5d57346dfb334e3d3",
+      "sourcePath": "program/wgsl/paired_log_decay-39c3a1fa41c039c5.wgsl",
+      "sourceHash": "sha256:39c3a1fa41c039c555e3cb7d04648e9d96d3f464bed512e54117a91182478ec4",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "a"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "dt_bias"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "gates"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "64u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:b92fc75f86a7b44175577ba5448fec5035d7ad9343fa6b7b113ad7164ed73042"
+      }
+    },
+    {
+      "id": "paired_norm",
+      "file": "gated_delta_norm_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:50b3c7008f1b9d11c404959e57e49f7c12e3ebf10ca1cf221fbbc8dcb8d2b888",
+      "sourcePath": "program/wgsl/paired_norm-f8b06edca9b891aa.wgsl",
+      "sourceHash": "sha256:f8b06edca9b891aa6759567f0e134a76e6abfae7f9f53464ea767ae9244a9aaa",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "norm_weight"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "128u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:8c44ef5868282bf52575dcc4443ba884cc3cb1d6fbb8b1796614a4d2643aa90e"
+      }
+    },
+    {
+      "id": "paired_pointwise_add",
+      "file": "paired_add.wgsl",
+      "entry": "main",
+      "digest": "sha256:2acc737b0e0a51a8554a88ead1dce63637842846723043115e1f4de24b8d8ff3",
+      "sourcePath": "program/wgsl/paired_pointwise_add-4404ea6b1516f7ff.wgsl",
+      "sourceHash": "sha256:4404ea6b1516f7ff2e619d50133faefddd20c6298c4987f7e29ac4fcdb3a61d2",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "a"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "b"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:55478c70c82f6b334c13f1b2257614fcf53c3ef82615ff672c668fe7480d7208"
+      }
+    },
+    {
+      "id": "paired_pointwise_multiply",
+      "file": "paired_multiply.wgsl",
+      "entry": "main",
+      "digest": "sha256:5040cf0a5250f04005c2e53846654d724870484ccfc161fca0c7915852d03190",
+      "sourcePath": "program/wgsl/paired_pointwise_multiply-03555fdcf4d40579.wgsl",
+      "sourceHash": "sha256:03555fdcf4d40579145ba174b21da504c50244a1784bcdc6a152e7be5d45d35d",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "a"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "b"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:55478c70c82f6b334c13f1b2257614fcf53c3ef82615ff672c668fe7480d7208"
+      }
+    },
+    {
+      "id": "paired_pointwise_scale",
+      "file": "paired_scale.wgsl",
+      "entry": "main",
+      "digest": "sha256:ec57f8e2d953e098fd0872967f1381fa38054e3a9b668bcc4b38981340c7ec34",
+      "sourcePath": "program/wgsl/paired_pointwise_scale-b99563bbbd7b7a80.wgsl",
+      "sourceHash": "sha256:b99563bbbd7b7a80173990212b2c7907d779bbd37756a7cbd97f2ee8306f7370",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "a"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:10c0c26ed75f7ffe097a3fd3a043cb9e97753c70d443f491ab2a77c270fd3351"
+      }
+    },
+    {
+      "id": "paired_pointwise_scale_inplace",
+      "file": "paired_scale_inplace.wgsl",
+      "entry": "main",
+      "digest": "sha256:7b687256b06422858b2cf8e08c2e769ed2e0a97df77699409c6440ffb26b0736",
+      "sourcePath": "program/wgsl/paired_pointwise_scale_inplace-b4e45349165af1de.wgsl",
+      "sourceHash": "sha256:b4e45349165af1de16780482b82500a027c665b07831cdd750296c57202fd2d6",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:bff98101bf78f030d97831cc3706759ab088907bc821ff80bc5ad3966972a2f0"
+      }
+    },
+    {
+      "id": "paired_pointwise_sigmoid",
+      "file": "paired_sigmoid.wgsl",
+      "entry": "main",
+      "digest": "sha256:e32ecaf9d961855856bdb2d99c2f62afd770f76af7749c846539192564c54c33",
+      "sourcePath": "program/wgsl/paired_pointwise_sigmoid-94ca066eb753a3c4.wgsl",
+      "sourceHash": "sha256:94ca066eb753a3c48c92ee4530e3f867a59cac4c4b94cf6ce3419daacefe1fcc",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "a"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "b"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "HAS_GATE",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "INPUT_USE_IDENTITY",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:29ef79c2ae5f790e34e64594fe7e45dcd5408db8bb1bfe6c83f5c223cdad954d"
+      }
+    },
+    {
+      "id": "paired_pointwise_silu",
+      "file": "paired_silu.wgsl",
+      "entry": "main",
+      "digest": "sha256:a84006c8b104cdb49d3752ecbc03d8e3e3486485126ec4de2fc1c2a38be25b28",
+      "sourcePath": "program/wgsl/paired_pointwise_silu-e53e0a99d1c793b4.wgsl",
+      "sourceHash": "sha256:e53e0a99d1c793b42ca9e081b793085fca5943b011535fc30b50a28b2fa4c1f2",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "a"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "b"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "HAS_GATE",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "INPUT_USE_IDENTITY",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:29ef79c2ae5f790e34e64594fe7e45dcd5408db8bb1bfe6c83f5c223cdad954d"
+      }
+    },
+    {
+      "id": "paired_pointwise_silu_unary",
+      "file": "paired_silu_unary.wgsl",
+      "entry": "main",
+      "digest": "sha256:ef957abaa055b70e3e8dd4c9956c0178f19713fca0084b9eb094981e8e1d4625",
+      "sourcePath": "program/wgsl/paired_pointwise_silu_unary-5d0ab4563118fc92.wgsl",
+      "sourceHash": "sha256:5d0ab4563118fc92cc701cb8ae8021c630fdd342316d4f31cc0359fab2ed3b43",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "a"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:10c0c26ed75f7ffe097a3fd3a043cb9e97753c70d443f491ab2a77c270fd3351"
+      }
+    },
+    {
+      "id": "paired_qk",
+      "file": "gated_delta_qk_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:1a9f0703fb32cb617645592387f2cc511db81b9dd6bc55204cf61e9c4080cbcc",
+      "sourcePath": "program/wgsl/paired_qk-20623d93648c0216.wgsl",
+      "sourceHash": "sha256:20623d93648c0216dfc4d122bf8637594d3b5d858f32d023cd9b015e92fea6ae",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "conv"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "128u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:268114d1b702a543ff240e63d7ef9d5f670d4e96ae02364afbe2a3ab2924d2c3"
+      }
+    },
+    {
+      "id": "paired_qk_head_norm",
+      "file": "rmsnorm_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:c0268aa06ac8962379dd811f5d256b0aceaa8300542e80619e3c088d683af61e",
+      "sourcePath": "program/wgsl/paired_qk_head_norm-0402e449b9ff69a5.wgsl",
+      "sourceHash": "sha256:0402e449b9ff69a5b1a60ad617ea1156f2083d2b80aa4880ceb364c09a8b1239",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "input"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "weight"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          },
+          {
+            "group": 0,
+            "binding": 4,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "residual"
+          },
+          {
+            "group": 0,
+            "binding": 5,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "prenorm"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "OUTPUT_PRENORM",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "POST_RESIDUAL",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "PRE_RESIDUAL",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "WEIGHT_F16",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "WEIGHT_OFFSET",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "64u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:fb432189d49eb8bb534cbe932950bfa827a567d15cd17044695695d45f27bac1"
+      }
+    },
+    {
+      "id": "paired_qk_parallel",
+      "file": "gated_delta_qk_paired_parallel.wgsl",
+      "entry": "main",
+      "digest": "sha256:75b6c97cea545f81e384a8d5254b8c97c5063b02a9e827c877383401eed92daa",
+      "sourcePath": "program/wgsl/paired_qk_parallel-a70a7992410f877c.wgsl",
+      "sourceHash": "sha256:a70a7992410f877c0cf795a79eab5e554303790b0b9792c3053d6ba00e795d7d",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "conv"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:33bbab728bf63b39fdf4b2ec5aabad72d109a4a2036c3e4e68f0fa38c9f63679"
+      }
+    },
+    {
+      "id": "paired_state",
+      "file": "gated_delta_state_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:f155843772cdc4f5fe2cf4ee266854315bfc28e01859856fbceb5b5586cfe47f",
+      "sourcePath": "program/wgsl/paired_state-36dc4fe9f21e1dae.wgsl",
+      "sourceHash": "sha256:36dc4fe9f21e1daedbd0df276a8b139d7119dd9a3129ce8c8c5cc0717ae12fd7",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "conv"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "gates"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "state"
+          },
+          {
+            "group": 0,
+            "binding": 4,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "128u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:e9c0bd314da05ab89f8dcaef15964363470dc5d21b030650f552d5e6093679e3"
+      }
+    },
+    {
+      "id": "paired_state_sliced",
+      "file": "gated_delta_state_paired_sliced.wgsl",
+      "entry": "main",
+      "digest": "sha256:731ae7762d2a24aaa949e837932e971a54ba21b28f2d04fb3505b79193c74b36",
+      "sourcePath": "program/wgsl/paired_state_sliced-d7d0ef76094ae1b6.wgsl",
+      "sourceHash": "sha256:d7d0ef76094ae1b68e1c25ff7aceb3004a672be45c685fc7660a281827ba73cc",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "conv"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "gates"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "state"
+          },
+          {
+            "group": 0,
+            "binding": 4,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "K_SLICES",
+            "type": "u32",
+            "defaultValue": "16u"
+          },
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:8418456e4ab7070010e94200a1c1c270437e29d31f6b5545e4c12957b7e27ac1"
+      }
+    },
+    {
+      "id": "projection_f16",
+      "file": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "sourcePath": "program/wgsl/projection_f16-ae5a3c159814a141.wgsl",
+      "sourceHash": "sha256:ae5a3c159814a141e17100c83061e00b817f00df6a497bf3d6d15496d821e1e7",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "input"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "weight"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "SCALAR_OUTPUT",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "TRANSPOSE_B",
+            "type": "bool",
+            "defaultValue": "true"
+          },
+          {
+            "name": "WEIGHT_F16",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "WEIGHT_Q4K",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "64u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:896ba93c4192353b5f2b02e173949fd140a7d8e0d4ad428da7382020902d8324"
+      }
+    },
+    {
+      "id": "projection_q4",
+      "file": "matmul_paired_compensated.wgsl",
+      "entry": "main",
+      "digest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+      "sourcePath": "program/wgsl/projection_q4-ae5a3c159814a141.wgsl",
+      "sourceHash": "sha256:ae5a3c159814a141e17100c83061e00b817f00df6a497bf3d6d15496d821e1e7",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "input"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "weight"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "SCALAR_OUTPUT",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "TRANSPOSE_B",
+            "type": "bool",
+            "defaultValue": "true"
+          },
+          {
+            "name": "WEIGHT_F16",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "WEIGHT_Q4K",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "64u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:896ba93c4192353b5f2b02e173949fd140a7d8e0d4ad428da7382020902d8324"
+      }
+    },
+    {
+      "id": "rope",
+      "file": "rope_qk_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:d2acf7323c3bc6df63b0e2985e05d67286ddb20f29eb3c937f261b3e606605d3",
+      "sourcePath": "program/wgsl/rope-247997005c27c52f.wgsl",
+      "sourceHash": "sha256:247997005c27c52f2327c46716c3bb87bac6b5b01e27acce93f3791c56e5b5d8",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "q_input"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "k_input"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "freqs_cos"
+          },
+          {
+            "group": 0,
+            "binding": 4,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "freqs_sin"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:4fd0cf38483bc02c4a089cfe65089dee8c1aec14ba8b2f195ca89c252eb2e0b6"
+      }
+    },
+    {
+      "id": "rope_precompute_paired",
+      "file": "rope_precompute_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:fcff9838eeb59dbaef97b8ccdd6e6a53299bbe1f2b130842c38cca6133b798ff",
+      "sourcePath": "program/wgsl/rope_precompute_paired-f78f0d247fa6a376.wgsl",
+      "sourceHash": "sha256:f78f0d247fa6a376255b334a4255513f2c8cfd2d8cfecb085caccb9196fbafa5",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "inverse_frequencies"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "cos_table"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "sin_table"
+          }
+        ],
+        "overrides": [],
+        "workgroupSize": [
+          "256"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:ef51338661b38d8bbb6655e79cfe372b6011e2ea5c92c1a6c8ffb64c2a4165e5"
+      }
+    },
+    {
+      "id": "sample",
+      "file": "sample.wgsl",
+      "entry": "sample_single_pass",
+      "digest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
+      "sourcePath": "program/wgsl/sample-634764ad77570805.wgsl",
+      "sourceHash": "sha256:634764ad775708050071fc9113a5ecf5efd1c0da99b6e15ccd9f0c4116b65366",
+      "reachable": true,
+      "metadata": {
+        "entry": "sample_single_pass",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "logits"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "topk_indices"
+          },
+          {
+            "group": 0,
+            "binding": 4,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "topk_logits"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:9c5e9c0070c000b95a1c9673fd21c5f6ec8f8fb45abc04246badd0f482251c65"
+      }
+    },
+    {
+      "id": "silu",
+      "file": "paired_silu.wgsl",
+      "entry": "main",
+      "digest": "sha256:a84006c8b104cdb49d3752ecbc03d8e3e3486485126ec4de2fc1c2a38be25b28",
+      "sourcePath": "program/wgsl/silu-e53e0a99d1c793b4.wgsl",
+      "sourceHash": "sha256:e53e0a99d1c793b42ca9e081b793085fca5943b011535fc30b50a28b2fa4c1f2",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "a"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "b"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "HAS_GATE",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "INPUT_USE_IDENTITY",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:29ef79c2ae5f790e34e64594fe7e45dcd5408db8bb1bfe6c83f5c223cdad954d"
+      }
+    },
+    {
+      "id": "split_qg_paired",
+      "file": "split_qg_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:15c4da5cf5022bea697ca972bbb96425e1b3a843c5bc7bb73f89641f4057da37",
+      "sourcePath": "program/wgsl/split_qg_paired-e5c945262f0badc9.wgsl",
+      "sourceHash": "sha256:e5c945262f0badc9ae0ce4fdce4f9ac007a1a244dc49f5692d0a4b52490c765f",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "params"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "input"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "Q"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "G"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:90d423c1c3a49bc9db51590872e0e9419211b181957e2fa47955d04dd9153e13"
+      }
+    },
+    {
+      "id": "split_qkv_paired",
+      "file": "split_qkv_paired.wgsl",
+      "entry": "main",
+      "digest": "sha256:af59d08a7cebd56cb531bfd5746fb2ecafdf041b4aa75e25ed4690d9126c65c4",
+      "sourcePath": "program/wgsl/split_qkv_paired-8b1e90e4e34643b5.wgsl",
+      "sourceHash": "sha256:8b1e90e4e34643b523f331e82ae6cc90f4c37e7404a9cb8e1993dbd841e5c733",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "params"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "input"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "Q"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "K"
+          },
+          {
+            "group": 0,
+            "binding": 4,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "V"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:f3bc133335503e79fc4b5963461073932616bb8163e1b28b283f40602558ddf5"
+      }
+    }
+  ],
+  "execution": {
+    "graphHash": "sha256:334d27cd8140cb865e13b069e31bab49608cbb014372d717b053316bc3e478d8",
+    "stepMetadataHash": "sha256:a43ef306c0072e9f46acabc17ef89403b769455d5f3e782c072e204029e6ad50",
+    "kernelClosure": {
+      "declaredKernelIds": [
+        "add",
+        "attention",
+        "cast_f32_to_two_f32",
+        "cast_two_f32_to_f16",
+        "embed",
+        "gated_delta_conv_paired",
+        "gated_delta_recurrent_paired",
+        "gather_f16_vec4",
+        "gather_split8_f16_vec4_f32_out",
+        "head",
+        "logit_finalize_f32",
+        "norm",
+        "paired_beta",
+        "paired_decay",
+        "paired_decay_scale",
+        "paired_gate",
+        "paired_log_decay",
+        "paired_norm",
+        "paired_pointwise_add",
+        "paired_pointwise_multiply",
+        "paired_pointwise_scale",
+        "paired_pointwise_scale_inplace",
+        "paired_pointwise_sigmoid",
+        "paired_pointwise_silu",
+        "paired_pointwise_silu_unary",
+        "paired_qk",
+        "paired_qk_head_norm",
+        "paired_qk_parallel",
+        "paired_state",
+        "paired_state_sliced",
+        "projection_f16",
+        "projection_q4",
+        "rope",
+        "rope_precompute_paired",
+        "sample",
+        "silu",
+        "split_qg_paired",
+        "split_qkv_paired"
+      ],
+      "reachableKernelIds": [
+        "add",
+        "attention",
+        "cast_f32_to_two_f32",
+        "cast_two_f32_to_f16",
+        "embed",
+        "gated_delta_conv_paired",
+        "gated_delta_recurrent_paired",
+        "gather_f16_vec4",
+        "gather_split8_f16_vec4_f32_out",
+        "head",
+        "logit_finalize_f32",
+        "norm",
+        "paired_beta",
+        "paired_decay",
+        "paired_decay_scale",
+        "paired_gate",
+        "paired_log_decay",
+        "paired_norm",
+        "paired_pointwise_add",
+        "paired_pointwise_multiply",
+        "paired_pointwise_scale",
+        "paired_pointwise_scale_inplace",
+        "paired_pointwise_sigmoid",
+        "paired_pointwise_silu",
+        "paired_pointwise_silu_unary",
+        "paired_qk",
+        "paired_qk_head_norm",
+        "paired_qk_parallel",
+        "paired_state",
+        "paired_state_sliced",
+        "projection_f16",
+        "projection_q4",
+        "rope",
+        "rope_precompute_paired",
+        "sample",
+        "silu",
+        "split_qg_paired",
+        "split_qkv_paired"
+      ],
+      "excludedKernelIds": [],
+      "undeclaredKernelRefs": [],
+      "expandedStepCount": 43,
+      "phases": {
+        "prefill": 19,
+        "decode": 19,
+        "preLayer": 1,
+        "postLayer": 4
+      }
+    },
+    "steps": [
+      {
+        "id": "preLayer_both_0_embed",
+        "index": 0,
+        "op": "embed",
+        "phase": "both",
+        "section": "preLayer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "embed",
+        "kernel": "gather_f16.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
+        "weights": "embed_tokens",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "both",
+          "workgroups": "symbolic:preLayer:both:embed",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "indices",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "embeddings",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_1_input_norm",
+        "index": 1,
+        "op": "input_norm",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "norm",
+        "kernel": "rmsnorm_paired_sliced.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:92760258450f504f4707b4fcb98148967b11c9a8e27e95d3f1242191c88bf1cc",
+        "weights": null,
+        "constants": {
+          "WORKGROUP_SIZE": 256
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:input_norm",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "residual",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 5,
+              "name": "prenorm",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_2_q_proj",
+        "index": 2,
+        "op": "q_proj",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "projection_q4",
+        "kernel": "matmul_paired_compensated.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+        "weights": "layer.{L}.self_attn.q_proj",
+        "constants": {
+          "WEIGHT_F16": false,
+          "WEIGHT_Q4K": true,
+          "SCALAR_OUTPUT": false
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:q_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_3_k_proj",
+        "index": 3,
+        "op": "k_proj",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "projection_q4",
+        "kernel": "matmul_paired_compensated.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+        "weights": "layer.{L}.self_attn.k_proj",
+        "constants": {
+          "WEIGHT_F16": false,
+          "WEIGHT_Q4K": true,
+          "SCALAR_OUTPUT": false
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:k_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_4_v_proj",
+        "index": 4,
+        "op": "v_proj",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "projection_q4",
+        "kernel": "matmul_paired_compensated.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+        "weights": "layer.{L}.self_attn.v_proj",
+        "constants": {
+          "WEIGHT_F16": false,
+          "WEIGHT_Q4K": true,
+          "SCALAR_OUTPUT": false
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:v_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_5_linear_qkv_proj",
+        "index": 5,
+        "op": "linear_qkv_proj",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "projection_q4",
+        "kernel": "matmul_paired_compensated.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+        "weights": "layer.{L}.linear_attn.in_proj_qkv",
+        "constants": {
+          "WEIGHT_F16": false,
+          "WEIGHT_Q4K": true,
+          "SCALAR_OUTPUT": false
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:linear_qkv_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_6_linear_z_proj",
+        "index": 6,
+        "op": "linear_z_proj",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "projection_q4",
+        "kernel": "matmul_paired_compensated.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+        "weights": "layer.{L}.linear_attn.in_proj_z",
+        "constants": {
+          "WEIGHT_F16": false,
+          "WEIGHT_Q4K": true,
+          "SCALAR_OUTPUT": false
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:linear_z_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_7_linear_a_proj",
+        "index": 7,
+        "op": "linear_a_proj",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "projection_q4",
+        "kernel": "matmul_paired_compensated.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+        "weights": "layer.{L}.linear_attn.in_proj_a",
+        "constants": {
+          "WEIGHT_F16": true,
+          "WEIGHT_Q4K": false,
+          "SCALAR_OUTPUT": false
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:linear_a_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_8_linear_b_proj",
+        "index": 8,
+        "op": "linear_b_proj",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "projection_q4",
+        "kernel": "matmul_paired_compensated.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+        "weights": "layer.{L}.linear_attn.in_proj_b",
+        "constants": {
+          "WEIGHT_F16": true,
+          "WEIGHT_Q4K": false,
+          "SCALAR_OUTPUT": false
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:linear_b_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_9_rope_q",
+        "index": 9,
+        "op": "rope_q",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "rope",
+        "kernel": "rope_qk_paired.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:d2acf7323c3bc6df63b0e2985e05d67286ddb20f29eb3c937f261b3e606605d3",
+        "weights": null,
+        "constants": null,
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:rope_q",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "q_input",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "k_input",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "freqs_cos",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "freqs_sin",
+              "addressSpace": "storage",
+              "access": "read"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_10_rope_k",
+        "index": 10,
+        "op": "rope_k",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "rope",
+        "kernel": "rope_qk_paired.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:d2acf7323c3bc6df63b0e2985e05d67286ddb20f29eb3c937f261b3e606605d3",
+        "weights": null,
+        "constants": null,
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:rope_k",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "q_input",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "k_input",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "freqs_cos",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "freqs_sin",
+              "addressSpace": "storage",
+              "access": "read"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_11_attention",
+        "index": 11,
+        "op": "attention",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "attention",
+        "kernel": "attention_paired_tiled.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:70a0a584eb26e3eb9aa14ea1082b9f3801bf730c43577874c1c4257a69b6ea16",
+        "weights": null,
+        "constants": {
+          "WORKGROUP_SIZE": 256,
+          "DOT_LANES": 4
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32",
+          "kvDtype": "f16"
+        },
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:attention",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "queries",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "keys",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "values",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_12_o_proj",
+        "index": 12,
+        "op": "o_proj",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "projection_q4",
+        "kernel": "matmul_paired_compensated.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+        "weights": "layer.{L}.self_attn.o_proj",
+        "constants": {
+          "WEIGHT_F16": false,
+          "WEIGHT_Q4K": true,
+          "SCALAR_OUTPUT": false
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:o_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_13_attn_residual",
+        "index": 13,
+        "op": "attn_residual",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "add",
+        "kernel": "paired_add.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:2acc737b0e0a51a8554a88ead1dce63637842846723043115e1f4de24b8d8ff3",
+        "weights": null,
+        "constants": null,
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:attn_residual",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "a",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "b",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_14_post_attn_norm",
+        "index": 14,
+        "op": "post_attn_norm",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "norm",
+        "kernel": "rmsnorm_paired_sliced.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:92760258450f504f4707b4fcb98148967b11c9a8e27e95d3f1242191c88bf1cc",
+        "weights": null,
+        "constants": {
+          "WORKGROUP_SIZE": 256
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:post_attn_norm",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "residual",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 5,
+              "name": "prenorm",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_15_gate_proj",
+        "index": 15,
+        "op": "gate_proj",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "projection_q4",
+        "kernel": "matmul_paired_compensated.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+        "weights": "layer.{L}.mlp.gate_proj",
+        "constants": {
+          "WEIGHT_F16": false,
+          "WEIGHT_Q4K": true,
+          "SCALAR_OUTPUT": false
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:gate_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_16_up_proj",
+        "index": 16,
+        "op": "up_proj",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "projection_q4",
+        "kernel": "matmul_paired_compensated.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+        "weights": "layer.{L}.mlp.up_proj",
+        "constants": {
+          "WEIGHT_F16": false,
+          "WEIGHT_Q4K": true,
+          "SCALAR_OUTPUT": false
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:up_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_17_activation",
+        "index": 17,
+        "op": "activation",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "silu",
+        "kernel": "paired_silu.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:a84006c8b104cdb49d3752ecbc03d8e3e3486485126ec4de2fc1c2a38be25b28",
+        "weights": null,
+        "constants": null,
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:activation",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "a",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "b",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_18_down_proj",
+        "index": 18,
+        "op": "down_proj",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "projection_q4",
+        "kernel": "matmul_paired_compensated.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+        "weights": "layer.{L}.mlp.down_proj",
+        "constants": {
+          "WEIGHT_F16": false,
+          "WEIGHT_Q4K": true,
+          "SCALAR_OUTPUT": false
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:down_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_19_ffn_residual",
+        "index": 19,
+        "op": "ffn_residual",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "add",
+        "kernel": "paired_add.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:2acc737b0e0a51a8554a88ead1dce63637842846723043115e1f4de24b8d8ff3",
+        "weights": null,
+        "constants": null,
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:ffn_residual",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "a",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "b",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_20_input_norm",
+        "index": 20,
+        "op": "input_norm",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "norm",
+        "kernel": "rmsnorm_paired_sliced.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:92760258450f504f4707b4fcb98148967b11c9a8e27e95d3f1242191c88bf1cc",
+        "weights": null,
+        "constants": {
+          "WORKGROUP_SIZE": 256
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:input_norm",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "residual",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 5,
+              "name": "prenorm",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_21_q_proj",
+        "index": 21,
+        "op": "q_proj",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "projection_q4",
+        "kernel": "matmul_paired_compensated.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+        "weights": "layer.{L}.self_attn.q_proj",
+        "constants": {
+          "WEIGHT_F16": false,
+          "WEIGHT_Q4K": true,
+          "SCALAR_OUTPUT": false
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:q_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_22_k_proj",
+        "index": 22,
+        "op": "k_proj",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "projection_q4",
+        "kernel": "matmul_paired_compensated.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+        "weights": "layer.{L}.self_attn.k_proj",
+        "constants": {
+          "WEIGHT_F16": false,
+          "WEIGHT_Q4K": true,
+          "SCALAR_OUTPUT": false
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:k_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_23_v_proj",
+        "index": 23,
+        "op": "v_proj",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "projection_q4",
+        "kernel": "matmul_paired_compensated.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+        "weights": "layer.{L}.self_attn.v_proj",
+        "constants": {
+          "WEIGHT_F16": false,
+          "WEIGHT_Q4K": true,
+          "SCALAR_OUTPUT": false
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:v_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_24_linear_qkv_proj",
+        "index": 24,
+        "op": "linear_qkv_proj",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "projection_q4",
+        "kernel": "matmul_paired_compensated.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+        "weights": "layer.{L}.linear_attn.in_proj_qkv",
+        "constants": {
+          "WEIGHT_F16": false,
+          "WEIGHT_Q4K": true,
+          "SCALAR_OUTPUT": false
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:linear_qkv_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_25_linear_z_proj",
+        "index": 25,
+        "op": "linear_z_proj",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "projection_q4",
+        "kernel": "matmul_paired_compensated.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+        "weights": "layer.{L}.linear_attn.in_proj_z",
+        "constants": {
+          "WEIGHT_F16": false,
+          "WEIGHT_Q4K": true,
+          "SCALAR_OUTPUT": false
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:linear_z_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_26_linear_a_proj",
+        "index": 26,
+        "op": "linear_a_proj",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "projection_q4",
+        "kernel": "matmul_paired_compensated.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+        "weights": "layer.{L}.linear_attn.in_proj_a",
+        "constants": {
+          "WEIGHT_F16": true,
+          "WEIGHT_Q4K": false,
+          "SCALAR_OUTPUT": false
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:linear_a_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_27_linear_b_proj",
+        "index": 27,
+        "op": "linear_b_proj",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "projection_q4",
+        "kernel": "matmul_paired_compensated.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+        "weights": "layer.{L}.linear_attn.in_proj_b",
+        "constants": {
+          "WEIGHT_F16": true,
+          "WEIGHT_Q4K": false,
+          "SCALAR_OUTPUT": false
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:linear_b_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_28_rope_q",
+        "index": 28,
+        "op": "rope_q",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "rope",
+        "kernel": "rope_qk_paired.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:d2acf7323c3bc6df63b0e2985e05d67286ddb20f29eb3c937f261b3e606605d3",
+        "weights": null,
+        "constants": null,
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:rope_q",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "q_input",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "k_input",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "freqs_cos",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "freqs_sin",
+              "addressSpace": "storage",
+              "access": "read"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_29_rope_k",
+        "index": 29,
+        "op": "rope_k",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "rope",
+        "kernel": "rope_qk_paired.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:d2acf7323c3bc6df63b0e2985e05d67286ddb20f29eb3c937f261b3e606605d3",
+        "weights": null,
+        "constants": null,
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:rope_k",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "q_input",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "k_input",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "freqs_cos",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "freqs_sin",
+              "addressSpace": "storage",
+              "access": "read"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_30_attention",
+        "index": 30,
+        "op": "attention",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "attention",
+        "kernel": "attention_paired_tiled.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:70a0a584eb26e3eb9aa14ea1082b9f3801bf730c43577874c1c4257a69b6ea16",
+        "weights": null,
+        "constants": {
+          "WORKGROUP_SIZE": 256,
+          "DOT_LANES": 4
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32",
+          "kvDtype": "f16"
+        },
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:attention",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "queries",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "keys",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "values",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_31_o_proj",
+        "index": 31,
+        "op": "o_proj",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "projection_q4",
+        "kernel": "matmul_paired_compensated.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+        "weights": "layer.{L}.self_attn.o_proj",
+        "constants": {
+          "WEIGHT_F16": false,
+          "WEIGHT_Q4K": true,
+          "SCALAR_OUTPUT": false
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:o_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_32_attn_residual",
+        "index": 32,
+        "op": "attn_residual",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "add",
+        "kernel": "paired_add.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:2acc737b0e0a51a8554a88ead1dce63637842846723043115e1f4de24b8d8ff3",
+        "weights": null,
+        "constants": null,
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:attn_residual",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "a",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "b",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_33_post_attn_norm",
+        "index": 33,
+        "op": "post_attn_norm",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "norm",
+        "kernel": "rmsnorm_paired_sliced.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:92760258450f504f4707b4fcb98148967b11c9a8e27e95d3f1242191c88bf1cc",
+        "weights": null,
+        "constants": {
+          "WORKGROUP_SIZE": 256
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:post_attn_norm",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "residual",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 5,
+              "name": "prenorm",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_34_gate_proj",
+        "index": 34,
+        "op": "gate_proj",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "projection_q4",
+        "kernel": "matmul_paired_compensated.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+        "weights": "layer.{L}.mlp.gate_proj",
+        "constants": {
+          "WEIGHT_F16": false,
+          "WEIGHT_Q4K": true,
+          "SCALAR_OUTPUT": false
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:gate_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_35_up_proj",
+        "index": 35,
+        "op": "up_proj",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "projection_q4",
+        "kernel": "matmul_paired_compensated.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+        "weights": "layer.{L}.mlp.up_proj",
+        "constants": {
+          "WEIGHT_F16": false,
+          "WEIGHT_Q4K": true,
+          "SCALAR_OUTPUT": false
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:up_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_36_activation",
+        "index": 36,
+        "op": "activation",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "silu",
+        "kernel": "paired_silu.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:a84006c8b104cdb49d3752ecbc03d8e3e3486485126ec4de2fc1c2a38be25b28",
+        "weights": null,
+        "constants": null,
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:activation",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "a",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "b",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_37_down_proj",
+        "index": 37,
+        "op": "down_proj",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "projection_q4",
+        "kernel": "matmul_paired_compensated.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+        "weights": "layer.{L}.mlp.down_proj",
+        "constants": {
+          "WEIGHT_F16": false,
+          "WEIGHT_Q4K": true,
+          "SCALAR_OUTPUT": false
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:down_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_38_ffn_residual",
+        "index": 38,
+        "op": "ffn_residual",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "add",
+        "kernel": "paired_add.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:2acc737b0e0a51a8554a88ead1dce63637842846723043115e1f4de24b8d8ff3",
+        "weights": null,
+        "constants": null,
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:ffn_residual",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "a",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "b",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "postLayer_both_39_final_norm",
+        "index": 39,
+        "op": "final_norm",
+        "phase": "both",
+        "section": "postLayer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "norm",
+        "kernel": "rmsnorm_paired_sliced.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:92760258450f504f4707b4fcb98148967b11c9a8e27e95d3f1242191c88bf1cc",
+        "weights": null,
+        "constants": {
+          "WORKGROUP_SIZE": 256
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "both",
+          "workgroups": "symbolic:postLayer:both:final_norm",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "residual",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 5,
+              "name": "prenorm",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "postLayer_both_40_lm_head",
+        "index": 40,
+        "op": "lm_head",
+        "phase": "both",
+        "section": "postLayer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "projection_q4",
+        "kernel": "matmul_paired_compensated.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+        "weights": "lm_head",
+        "constants": {
+          "WEIGHT_F16": false,
+          "WEIGHT_Q4K": true,
+          "SCALAR_OUTPUT": true
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "both",
+          "workgroups": "symbolic:postLayer:both:lm_head",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "postLayer_both_41_lm_head_prefill",
+        "index": 41,
+        "op": "lm_head_prefill",
+        "phase": "both",
+        "section": "postLayer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "projection_q4",
+        "kernel": "matmul_paired_compensated.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:0b66991171880e48eb58d9e479248bf539153c7543f5c3ba931064119492439c",
+        "weights": "lm_head",
+        "constants": {
+          "WEIGHT_F16": false,
+          "WEIGHT_Q4K": true,
+          "SCALAR_OUTPUT": true
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        },
+        "dispatch": {
+          "phase": "both",
+          "workgroups": "symbolic:postLayer:both:lm_head_prefill",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "postLayer_both_42_sample",
+        "index": 42,
+        "op": "sample",
+        "phase": "both",
+        "section": "postLayer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "sample",
+        "kernel": "sample.wgsl",
+        "entry": "sample_single_pass",
+        "kernelDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "both",
+          "workgroups": "symbolic:postLayer:both:sample",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "logits",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "topk_indices",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "topk_logits",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "captureProfile": {
+    "schema": "doppler.capture-profile/v1",
+    "deterministic": true,
+    "phases": [
+      "prefill",
+      "decode"
+    ],
+    "surfaces": [
+      "node-webgpu"
+    ],
+    "adapter": {
+      "source": "reference-report",
+      "surface": "node-webgpu",
+      "deviceInfoHash": "sha256:c639aded32363d13883d52403c0b04198d388dc5eb0805bac89d879ce13eae35",
+      "deviceInfo": [
+        {
+          "index": 0,
+          "host": "mac-host"
+        },
+        {
+          "index": 1,
+          "host": "amd-host"
+        },
+        {
+          "index": 2,
+          "host": "amd-host"
+        }
+      ]
+    },
+    "hashPolicy": {
+      "graph": "stable-json-sha256",
+      "dispatch": "stable-json-sha256",
+      "transcript": "stable-json-sha256"
+    },
+    "captureHash": "sha256:72cbd61f2c5f62fcfc351944e18673fe27b4fadcc92f5eff88143ceb9e2feb6f"
+  },
+  "artifacts": [
+    {
+      "role": "host-source",
+      "path": "program/host/text-generation-d7abaa224ec64128.js",
+      "hash": "sha256:d7abaa224ec64128fb195e238b5ce3b0fabfc00b46406e5d4a0195ff1a03da15",
+      "sizeBytes": 1096
+    },
+    {
+      "role": "manifest",
+      "path": "capsule-input/model/manifest.json",
+      "hash": "sha256:c6220c6aefef7006aa2b3bc3c89932d61788340597c9abf055d27e8cdd1767fd",
+      "sizeBytes": 223448
+    },
+    {
+      "role": "reference-report",
+      "path": "capsule-input/generation-report.json",
+      "hash": "sha256:7bf4dec1d3698287fb20044400178421a0c87db6c051ec822d46084acf712438",
+      "sizeBytes": 5405
+    },
+    {
+      "role": "tokenizer",
+      "path": "capsule-input/model/tokenizer.json",
+      "hash": "sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+      "sizeBytes": 9088480
+    },
+    {
+      "role": "weight-shard",
+      "path": "capsule-input/model/shard_00000.bin",
+      "hash": "sha256:96d19964c1444a98030586ba141b7b0c891fab95c52fb2c4429618a3ea711d1f",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "capsule-input/model/shard_00001.bin",
+      "hash": "sha256:c6dbd495c64493cc0964d49f26a2b7f18319da95d6122c4f7a2d09d6a5d9459e",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "capsule-input/model/shard_00002.bin",
+      "hash": "sha256:8afc35b2a6dc0f6bbf5de2cea79f8f53f199cec03a66d8cf5a117b724ba00dec",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "capsule-input/model/shard_00003.bin",
+      "hash": "sha256:735461c9819224e8c3faf8cfd7f2069dab97ed824556184990f795a32c305b29",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "capsule-input/model/shard_00004.bin",
+      "hash": "sha256:3cbdeb4e0c2505038e4313c91580511f5175d9108ab05652f69040452b282f69",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "capsule-input/model/shard_00005.bin",
+      "hash": "sha256:e34e6f23816d5cdaf1e16dfbf0d3f537d18fe673764d680d64245c84bfbf21b4",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "capsule-input/model/shard_00006.bin",
+      "hash": "sha256:70b3d422749e585719659b9e7627901d6aa1759851e717aec2abd8a96aab9313",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "capsule-input/model/shard_00007.bin",
+      "hash": "sha256:e564556babdfbb1baffab20a3778a434a0632047ff9347d203a19a9c818a89d4",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "capsule-input/model/shard_00008.bin",
+      "hash": "sha256:82cd4797be5ab68f782ed7aae634ee38e472f4c4187c9b835df649e7aa79da55",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "capsule-input/model/shard_00009.bin",
+      "hash": "sha256:294432c344a641b36daca64e82f00c727c74fa131804e1430796b4c3b139ad7b",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "capsule-input/model/shard_00010.bin",
+      "hash": "sha256:1290c563dc8242a983122e16397c75fd3d700acbcec9d96ee94d5eb2f63c795e",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "capsule-input/model/shard_00011.bin",
+      "hash": "sha256:4f9be8b80afcb3b6780a6e450fe9b57827ceb227e197dcdb9343b8d3adab0387",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "capsule-input/model/shard_00012.bin",
+      "hash": "sha256:93daf25bb1b1d4155b95f4b3969891220f66a66f71b00fe63a7f092967a7b668",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "capsule-input/model/shard_00013.bin",
+      "hash": "sha256:a9926de9af0b1bb05ac2b2a6b9bad1645b9a3fc3f740105b97e064959b12e690",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "capsule-input/model/shard_00014.bin",
+      "hash": "sha256:b338167c0c6a7bb0c967c73b0730d212f1ad718a899a8db50fef8b332eed66a8",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "capsule-input/model/shard_00015.bin",
+      "hash": "sha256:8bc98ed891947db766df770d7c52eb2afd6c8c3a827981ddae7e52d2caeae455",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "capsule-input/model/shard_00016.bin",
+      "hash": "sha256:914114c15d53702fedcd5bcbb153a4120b13fb45883ff76dabf9052fa8c9d266",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "capsule-input/model/shard_00017.bin",
+      "hash": "sha256:d8fb99646d5213b1b2609899a7d86cfb8a6b8d02b9aa934f1fade2a3f8f54c78",
+      "sizeBytes": 5198016
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/add-4404ea6b1516f7ff.wgsl",
+      "hash": "sha256:4404ea6b1516f7ff2e619d50133faefddd20c6298c4987f7e29ac4fcdb3a61d2",
+      "sizeBytes": 12757
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/attention-909aae38aefc27ce.wgsl",
+      "hash": "sha256:909aae38aefc27ce6aa1b389756df1ee639310b0936ae121b82b32e19c97c45a",
+      "sizeBytes": 18168
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/cast_f32_to_two_f32-059179f0bb62747b.wgsl",
+      "hash": "sha256:059179f0bb62747bda43dec235fb1f873d22cd068bda37bf478b944e02297ebc",
+      "sizeBytes": 622
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/cast_two_f32_to_f16-e13bbba70e0c7b93.wgsl",
+      "hash": "sha256:e13bbba70e0c7b9363b5ecf0d38e1f665dff7791d73283f4a6037879a2d33983",
+      "sizeBytes": 2428
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/embed-838e3c69451d02fe.wgsl",
+      "hash": "sha256:838e3c69451d02fee30839fd30621d28d8a0f5861c862a568ca4de72870b0b15",
+      "sizeBytes": 2538
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/gated_delta_conv_paired-8c42f6e730957631.wgsl",
+      "hash": "sha256:8c42f6e7309576313b00fbbd9981ba7551925ff6fee526081c2d393e02e8513d",
+      "sizeBytes": 13586
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/gated_delta_recurrent_paired-c7bd9b2d678deec4.wgsl",
+      "hash": "sha256:c7bd9b2d678deec41dee6822d85cb9e3629b0d8d6f95c85874bcfb44caf8651f",
+      "sizeBytes": 16479
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/gather_f16_vec4-a500eb8ca2a1ff7d.wgsl",
+      "hash": "sha256:a500eb8ca2a1ff7d6f19344a4d3ec0c9619ca15455f029aa601921d1917971f3",
+      "sizeBytes": 2810
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/gather_split8_f16_vec4_f32_out-57d5326f08951af3.wgsl",
+      "hash": "sha256:57d5326f08951af3389f266fb4ca6f50fc501eb3d6bdb1187fb7f2f3b10b51db",
+      "sizeBytes": 6176
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/head-ae5a3c159814a141.wgsl",
+      "hash": "sha256:ae5a3c159814a141e17100c83061e00b817f00df6a497bf3d6d15496d821e1e7",
+      "sizeBytes": 16187
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/logit_finalize_f32-b20df676b5813f25.wgsl",
+      "hash": "sha256:b20df676b5813f258a5e32eb11cb34ce4e5c2aafc7e4b1e469c07bb861e7522f",
+      "sizeBytes": 1139
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/norm-70c79461d2203d22.wgsl",
+      "hash": "sha256:70c79461d2203d22e7672b65b0b9f6bba297de38b73b476f20bb7afaf05df3f3",
+      "sizeBytes": 15446
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/paired_beta-269fdb694f6e206b.wgsl",
+      "hash": "sha256:269fdb694f6e206b6ea77582b29e4b98051f34dbad822a40e22032597fbfbe33",
+      "sizeBytes": 12989
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/paired_decay_scale-9340014c13ba79ae.wgsl",
+      "hash": "sha256:9340014c13ba79ae7d2bebe4ea14f1935e5cb4a9d0df08a3b2cc063b32271e2f",
+      "sizeBytes": 13616
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/paired_decay-93af9d61d9ca7e4d.wgsl",
+      "hash": "sha256:93af9d61d9ca7e4ddc2d8a6a0152763e7b6d8dc90397543ea33142c99c43744c",
+      "sizeBytes": 12893
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/paired_gate-240cda5577bc57ed.wgsl",
+      "hash": "sha256:240cda5577bc57edd48185717ee6a92106053b5c9a6bf48ed691381bae1c816f",
+      "sizeBytes": 13107
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/paired_log_decay-39c3a1fa41c039c5.wgsl",
+      "hash": "sha256:39c3a1fa41c039c555e3cb7d04648e9d96d3f464bed512e54117a91182478ec4",
+      "sizeBytes": 13303
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/paired_norm-f8b06edca9b891aa.wgsl",
+      "hash": "sha256:f8b06edca9b891aa6759567f0e134a76e6abfae7f9f53464ea767ae9244a9aaa",
+      "sizeBytes": 13964
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/paired_pointwise_add-4404ea6b1516f7ff.wgsl",
+      "hash": "sha256:4404ea6b1516f7ff2e619d50133faefddd20c6298c4987f7e29ac4fcdb3a61d2",
+      "sizeBytes": 12757
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/paired_pointwise_multiply-03555fdcf4d40579.wgsl",
+      "hash": "sha256:03555fdcf4d40579145ba174b21da504c50244a1784bcdc6a152e7be5d45d35d",
+      "sizeBytes": 12712
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/paired_pointwise_scale_inplace-b4e45349165af1de.wgsl",
+      "hash": "sha256:b4e45349165af1de16780482b82500a027c665b07831cdd750296c57202fd2d6",
+      "sizeBytes": 12621
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/paired_pointwise_scale-b99563bbbd7b7a80.wgsl",
+      "hash": "sha256:b99563bbbd7b7a80173990212b2c7907d779bbd37756a7cbd97f2ee8306f7370",
+      "sizeBytes": 12679
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/paired_pointwise_sigmoid-94ca066eb753a3c4.wgsl",
+      "hash": "sha256:94ca066eb753a3c48c92ee4530e3f867a59cac4c4b94cf6ce3419daacefe1fcc",
+      "sizeBytes": 12921
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/paired_pointwise_silu_unary-5d0ab4563118fc92.wgsl",
+      "hash": "sha256:5d0ab4563118fc92cc701cb8ae8021c630fdd342316d4f31cc0359fab2ed3b43",
+      "sizeBytes": 12645
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/paired_pointwise_silu-e53e0a99d1c793b4.wgsl",
+      "hash": "sha256:e53e0a99d1c793b42ca9e081b793085fca5943b011535fc30b50a28b2fa4c1f2",
+      "sizeBytes": 12918
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/paired_qk_head_norm-0402e449b9ff69a5.wgsl",
+      "hash": "sha256:0402e449b9ff69a5b1a60ad617ea1156f2083d2b80aa4880ceb364c09a8b1239",
+      "sizeBytes": 15101
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/paired_qk_parallel-a70a7992410f877c.wgsl",
+      "hash": "sha256:a70a7992410f877c0cf795a79eab5e554303790b0b9792c3053d6ba00e795d7d",
+      "sizeBytes": 14390
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/paired_qk-20623d93648c0216.wgsl",
+      "hash": "sha256:20623d93648c0216dfc4d122bf8637594d3b5d858f32d023cd9b015e92fea6ae",
+      "sizeBytes": 14097
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/paired_state_sliced-d7d0ef76094ae1b6.wgsl",
+      "hash": "sha256:d7d0ef76094ae1b68e1c25ff7aceb3004a672be45c685fc7660a281827ba73cc",
+      "sizeBytes": 16453
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/paired_state-36dc4fe9f21e1dae.wgsl",
+      "hash": "sha256:36dc4fe9f21e1daedbd0df276a8b139d7119dd9a3129ce8c8c5cc0717ae12fd7",
+      "sizeBytes": 14724
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/projection_f16-ae5a3c159814a141.wgsl",
+      "hash": "sha256:ae5a3c159814a141e17100c83061e00b817f00df6a497bf3d6d15496d821e1e7",
+      "sizeBytes": 16187
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/projection_q4-ae5a3c159814a141.wgsl",
+      "hash": "sha256:ae5a3c159814a141e17100c83061e00b817f00df6a497bf3d6d15496d821e1e7",
+      "sizeBytes": 16187
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/rope_precompute_paired-f78f0d247fa6a376.wgsl",
+      "hash": "sha256:f78f0d247fa6a376255b334a4255513f2c8cfd2d8cfecb085caccb9196fbafa5",
+      "sizeBytes": 13408
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/rope-247997005c27c52f.wgsl",
+      "hash": "sha256:247997005c27c52f2327c46716c3bb87bac6b5b01e27acce93f3791c56e5b5d8",
+      "sizeBytes": 15451
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/sample-634764ad77570805.wgsl",
+      "hash": "sha256:634764ad775708050071fc9113a5ecf5efd1c0da99b6e15ccd9f0c4116b65366",
+      "sizeBytes": 12654
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/silu-e53e0a99d1c793b4.wgsl",
+      "hash": "sha256:e53e0a99d1c793b42ca9e081b793085fca5943b011535fc30b50a28b2fa4c1f2",
+      "sizeBytes": 12918
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/split_qg_paired-e5c945262f0badc9.wgsl",
+      "hash": "sha256:e5c945262f0badc9ae0ce4fdce4f9ac007a1a244dc49f5692d0a4b52490c765f",
+      "sizeBytes": 2172
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/split_qkv_paired-8b1e90e4e34643b5.wgsl",
+      "hash": "sha256:8b1e90e4e34643b523f331e82ae6cc90f4c37e7404a9cb8e1993dbd841e5c733",
+      "sizeBytes": 2158
+    }
+  ],
+  "referenceTranscript": {
+    "schema": "doppler.reference-transcript/v1",
+    "source": {
+      "kind": "browser-report",
+      "path": "capsule-input/generation-report.json",
+      "hash": "sha256:7bf4dec1d3698287fb20044400178421a0c87db6c051ec822d46084acf712438"
+    },
+    "executionGraphHash": "sha256:334d27cd8140cb865e13b069e31bab49608cbb014372d717b053316bc3e478d8",
+    "surface": "node-webgpu",
+    "generationConfig": {
+      "maxTokens": 1024,
+      "maxSeqLen": 4096,
+      "temperature": 0,
+      "topP": 1,
+      "topK": 1,
+      "repetitionPenalty": 1,
+      "repetitionPenaltyWindow": 0,
+      "presencePenalty": 0,
+      "useChatTemplate": true,
+      "suppressTokenIds": [],
+      "stopSequences": [],
+      "seed": null
+    },
+    "sourceParity": {
+      "schema": "doppler.source-token-parity/v1",
+      "status": "passed",
+      "sourceModel": "Qwen/Qwen3.5-0.8B",
+      "sourceRevision": "2fc06364715b967f1860aea9cf38778875588b17",
+      "prompt": {
+        "passed": true,
+        "tokenIds": [
+          248045,
+          846,
+          198,
+          20206,
+          440,
+          1132,
+          279,
+          3299,
+          21251,
+          13,
+          248046,
+          198,
+          248045,
+          74455,
+          198,
+          248068,
+          271,
+          248069,
+          271
+        ],
+        "count": 19,
+        "mode": "Exact captured IDs; independently round-tripped through deployed tokenizer",
+        "expectedCount": 19,
+        "observedCount": 19,
+        "firstMismatchIndex": null
+      },
+      "generation": {
+        "passed": true,
+        "sourceTokens": [
+          9419,
+          248046
+        ],
+        "runtimeTokens": [
+          9419,
+          248046
+        ],
+        "sourceStop": "eos",
+        "scope": "Frozen first19-token request only; not document quality or full-model numerical qualification",
+        "expectedCount": 2,
+        "observedCount": 2,
+        "firstMismatchIndex": null
+      },
+      "provenance": {
+        "controlSha256": "d819c04e88fd7507c560f70ee7731ee183ed72793e1007a75d2b38658eeafce0",
+        "resultSha256": "b62fab0b64d300cbfa1c51fd233a8c73377cf5872da7d831c5d992eb7aa9d74a",
+        "physicalCaptureSha256": "b7a89b6ea8da0f8bab27008b27aeb827dd9ea2e796af6087dc4a5c1eb0ca74e7",
+        "archiveSha256": "21d054eeb70212a7434c9eccfe467fe0accbb8685e9358f2b72341500978cd5f",
+        "cpuAffinity": "0-3",
+        "threads": 4,
+        "commandEnvironment": "PYTHONPATH=/tmp/doppler-reference-deps; /usr/bin/python3; taskset -c 0-3; nice -n 10",
+        "dependencyFailure": "First invocation lacked retained blake3 module path; failed before inference. No model/control changes or dependency installation."
+      },
+      "expectedTranscriptPath": "source-token-result.json",
+      "expectedTranscriptHash": "sha256:b62fab0b64d300cbfa1c51fd233a8c73377cf5872da7d831c5d992eb7aa9d74a",
+      "sampling": "greedy"
+    },
+    "prompt": {
+      "identity": "metrics.promptInput",
+      "hash": "sha256:18cd315b8d410ed7dff6c5668626aa258d583e8d8428b7ea352fd1fa5d350c40",
+      "tokenIdsHash": null,
+      "tokenCount": 19
+    },
+    "output": {
+      "textHash": "sha256:185f8db32271fe25f561a6fc938b2e264306ec304eda518007d1764826381969",
+      "tokensGenerated": 2,
+      "stopReason": "eos-token",
+      "stopTokenId": 248046
+    },
+    "tokens": {
+      "generatedTokenIdsHash": "sha256:bbdf3f34641e923007edeb1f98bdd9320fa04aa71362ec998d5817a8e9714df0",
+      "generatedTextHash": "sha256:185f8db32271fe25f561a6fc938b2e264306ec304eda518007d1764826381969",
+      "preview": [],
+      "perStep": [
+        {
+          "index": 0,
+          "tokenId": 9419,
+          "tokenHash": "sha256:00a91d4445cf7e43a108b7acda7fbd3cf21da709d82f1c8e6ed910fbb7b07800"
+        },
+        {
+          "index": 1,
+          "tokenId": 248046,
+          "tokenHash": "sha256:0a2addadbe66688db7896e939e02f34661329a7185802fbfc5332f428ca627db"
+        }
+      ],
+      "ids": [
+        9419,
+        248046
+      ],
+      "coverage": {
+        "mode": "complete",
+        "omitted": 0
+      }
+    },
+    "phase": {
+      "prefillMs": null,
+      "decodeMs": null,
+      "prefillTokens": null,
+      "decodeTokens": null
+    },
+    "kvCache": {
+      "mode": "not-captured",
+      "layout": null,
+      "kvDtype": null,
+      "seqLen": null,
+      "maxSeqLen": null,
+      "usedBytes": null,
+      "allocatedBytes": null,
+      "counters": null,
+      "stateHash": "sha256:55d1446adf15f0619d5990f331d0c09db7d759840647e21411e7aba9934df5ec"
+    },
+    "logits": {
+      "mode": "not-captured",
+      "reason": "Browser reports do not persist per-step logits digests yet.",
+      "perStepDigests": null
+    },
+    "tolerance": {
+      "tokenPolicy": "exact generated token IDs when a full-token transcript is present; preview IDs are diagnostic only",
+      "logitsPolicy": "not captured in current browser report fixtures"
+    }
+  }
+}
