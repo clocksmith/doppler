@@ -531,6 +531,12 @@ async function buildGenerationRows(variantsByModelId, coverageByModelId, lanesBy
     }
     for (const surface of surfaces) {
       const missing = generationMissing(surface, lane);
+      const evidence = await generationEvidence(surface, lane, variant);
+      const receipt = evidence.compareResultExists ? await readJson(path.join(REPO_ROOT, evidence.compareResult)) : null;
+      const measuredTjsModelId = normalizeText(receipt?.tjsModelId);
+      const expectedTjsModelId = normalizeText(variant?.catalog?.vendorBenchmark?.transformersjs?.repoId);
+      const superseded = measuredTjsModelId && expectedTjsModelId && measuredTjsModelId !== expectedTjsModelId;
+      if (superseded) missing.unshift('current-comparator-result');
       rows.push(baseRow(variant, coverage, {
         rowId: [
           modelId,
@@ -546,9 +552,12 @@ async function buildGenerationRows(variantsByModelId, coverageByModelId, lanesBy
         platforms: platformStatus(variant, [surface?.surface]),
         correctness: normalizeText(surface?.correctness) || null,
         metrics: generationMetrics(surface),
-        claimStatus: generationClaimStatus(lane, surface),
-        claimReason: normalizeText(lane?.statusReason) || null,
-        evidence: await generationEvidence(surface, lane, variant),
+        competitor: { ...buildCompetitor(variant, coverage), modelId: measuredTjsModelId || resolveTjsModelId(variant, coverage) },
+        claimStatus: superseded ? 'superseded-baseline' : generationClaimStatus(lane, surface),
+        claimReason: superseded
+          ? `Historical receipt measured ${measuredTjsModelId}; current comparator is ${expectedTjsModelId}.`
+          : normalizeText(lane?.statusReason) || null,
+        evidence,
         missing,
         nextGate: missing[0] || normalizeText(variant?.nextGate) || null,
         nextCommand: missing.length > 0
@@ -1092,15 +1101,17 @@ function renderMarkdown(scoreboard) {
   lines.push('');
   lines.push(`Updated at: ${scoreboard.updatedAt || 'unknown'}`);
   lines.push('');
-  lines.push('## Selected measured results');
+  lines.push('## Historical measured results');
   lines.push('');
   lines.push('Retained July 2026 browser WebGPU comparisons against Transformers.js 4.0.1.');
+  lines.push('**Baseline audit, 2026-10-15:** Qwen 0.8B and 2B used superseded ONNX exports. Their 18.8x / 16.3x / 4.1x generation ratios are historical observations, not claims against current optimized Transformers.js.');
+  lines.push('The benchmark catalog now selects the upstream `-ONNX-OPT` replacements; no optimized-baseline timing or output-parity result is recorded here. See the [audit and sources](../benchmarks/vendors/README.md#qwen-baseline-audit-2026-10-15).');
   lines.push('The charts link their receipts, including the paired Apple M3 Qwen 2B result.');
   lines.push('They include historical measurements beyond the generated matrix rows below; they do not change those rows\' release gates.');
   lines.push('');
   lines.push('<picture>');
   lines.push('  <source media="(max-width: 640px)" srcset="../assets/readme/generation-time-mobile.svg" />');
-  lines.push('  <img src="../assets/readme/generation-time.svg" alt="Selected warm-generation times with loading shown separately: Radeon Qwen 0.8B 18.8x, Radeon Qwen 2B 16.3x, Apple M3 Qwen 0.8B 4.1x. Exact outputs; local 2B artifact labeled." />');
+  lines.push('  <img src="../assets/readme/generation-time.svg" alt="Historical warm-generation times against superseded Qwen ONNX exports. These ratios do not establish performance against the optimized replacements. Loading shown separately." />');
   lines.push('</picture>');
   lines.push('');
   lines.push('<picture>');
@@ -1136,6 +1147,7 @@ function renderMarkdown(scoreboard) {
   lines.push('- `claim-ready` and `claimable` mean the row has enough committed evidence for that row-level claim.');
   lines.push('- `candidate`, `local-comparable`, and `*-missing` rows are useful engineering evidence, but not release claims.');
   lines.push('- Missing HF, runtime, compare JSON, or SVG evidence stays visible as a gate instead of being inferred from local state.');
+  lines.push('- `superseded-baseline` retains measured values but requires a new comparison against the catalog\'s current comparator before a current-baseline claim.');
   lines.push('');
   renderGenerationRows(lines, generationRows);
   renderEmbeddingRows(lines, embeddingRows);

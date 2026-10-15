@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1646" viewBox="0 0 1200 1646" role="img" aria-labelledby="title desc">
-<title id="title">Doppler vs Transformers.js: selected measured throughput</title><desc id="desc">Nine selected browser comparisons with per-card zero-based scales. Purple is Doppler, gray is Transformers.js. Every card links to its receipt.</desc>
+<title id="title">Doppler vs Transformers.js: historical measured throughput</title><desc id="desc">Nine historical browser comparisons with per-card zero-based scales. Qwen generation used superseded ONNX exports. Purple is Doppler, gray is Transformers.js. Every card links to its receipt.</desc>
 <style>text{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums}a:hover text{text-decoration:underline}</style>
 <rect x="1" y="1" width="1198" height="1644" rx="18" fill="white" stroke="#dce1e9" stroke-width="1.4"/>
 <text x="36" y="43" font-size="24" fill="#7542c8" font-weight="700" >doppler</text>
-<text x="36" y="85" font-size="30" fill="#202735" font-weight="600" >More work per second.</text>
-<text x="36" y="116" font-size="17" fill="#657083" font-weight="400" >Selected browser WebGPU results · higher is better</text>
+<text x="36" y="85" font-size="30" fill="#202735" font-weight="600" >Historical throughput measurements.</text>
+<text x="36" y="116" font-size="17" fill="#657083" font-weight="400" >Qwen text uses superseded ONNX exports · July 2026</text>
 <text x="36" y="173" font-size="23" fill="#202735" font-weight="600" >Apple M3 · Metal</text>
 <g class="benchmark-row" data-receipt="benchmarks/vendors/results/compare_20260709T154633.json"><a href="https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/compare_20260709T154633.json"><rect x="36" y="193" width="554" height="234" rx="12" fill="#f7f3fd" stroke="#e5ddf3"/>
 <text x="58" y="226" font-size="21" fill="#202735" font-weight="600" >Qwen 3.5 0.8B text</text>
@@ -117,5 +117,5 @@
 <rect x="58" y="1470" width="285.77" height="14" rx="7" fill="#8791a2"/></a></g>
 <text x="36" y="1558" font-size="15" fill="#657083" font-weight="400" >July 2026 · Transformers.js 4.0.1 · zero-based bars · RDRR Q4K vs ONNX q4f16 (different optimized formats).</text>
 <text x="36" y="1583" font-size="15" fill="#657083" font-weight="400" >Rates use each receipt’s estimator; synthetic text workloads. Retrieval passed semantic fixtures, not numerical equivalence.</text>
-<text x="36" y="1608" font-size="15" fill="#657083" font-weight="400" >Local models and differing Gemma outputs are labeled. Selected results; loading and task quality are separate.</text>
+<text x="36" y="1608" font-size="15" fill="#657083" font-weight="400" >Local models and differing Gemma outputs are labeled. Optimized Qwen export comparison remains unmeasured.</text>
 </svg>
