@@ -11,11 +11,13 @@ if (!destination) throw new Error('Provide receipt destination.');
 const normGateActivation = process.argv[3] ?? 'silu';
 if (normGateActivation !== 'silu' && normGateActivation !== 'sigmoid') throw new Error('Norm gate must be silu or sigmoid.');
 const gateShader = normGateActivation === 'silu' ? 'gated_delta_gate_paired' : 'gated_delta_gate_sigmoid_paired';
-// Optional state program: paired_state (default) or its declared replacement paired_state_sliced,
-// which runs one workgroup per value head and block of 16 value columns.
+// Optional state program: paired_state (default) or a declared replacement, paired_state_sliced or
+// paired_state_sliced_rolled, which run one workgroup per value head and block of 16 value columns.
 const stateProgram = process.argv[4] ?? 'paired_state';
-if (stateProgram !== 'paired_state' && stateProgram !== 'paired_state_sliced') throw new Error('State program must be paired_state or paired_state_sliced.');
-const stateShader = stateProgram === 'paired_state' ? 'gated_delta_state_paired' : 'gated_delta_state_paired_sliced';
+const stateShaders = { paired_state: 'gated_delta_state_paired', paired_state_sliced: 'gated_delta_state_paired_sliced',
+  paired_state_sliced_rolled: 'gated_delta_state_paired_sliced_rolled' };
+if (!Object.hasOwn(stateShaders, stateProgram)) throw new Error(`State program must be one of ${Object.keys(stateShaders).join(', ')}.`);
+const stateShader = stateShaders[stateProgram];
 await mkdir(dirname(destination), { recursive: true });
 const sources = await Promise.all(['gated_delta_conv_paired', 'qwen_linear_attention_prepare_paired', 'qwen_linear_attention_scale_paired', 'qwen_linear_attention_log_decay_paired', 'qwen_linear_attention_decay_paired', 'gated_delta_qk_paired', stateShader, 'gated_delta_norm_paired', gateShader].map(name =>
   readFile(new URL(`../../src/gpu/kernels/${name}.wgsl`, import.meta.url), 'utf8')));
@@ -123,7 +125,7 @@ try {
       }
       return { results, errors, adapter: { vendor: adapter.info.vendor, architecture: adapter.info.architecture }, storageBindingLimit: device.limits.maxStorageBuffersPerShaderStage };
     } finally { await device.queue.onSubmittedWorkDone(); device.destroy(); }
-  }, { sources, cases, slicedState: stateProgram === 'paired_state_sliced' });
+  }, { sources, cases, slicedState: stateProgram !== 'paired_state' });
   receipt.adapter = physical.adapter; receipt.browser = browser.version(); receipt.errors = physical.errors; receipt.storageBindingLimit = physical.storageBindingLimit;
   for (let c = 0; c < cases.length; c++) {
     const expected = reference(cases[c]), rows = {};

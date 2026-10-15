@@ -180,6 +180,7 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "gated_delta_recurrent_sigmoid_gate_f16.wgsl#main": "1ba84d9d09ede755f5b18f3c64d234e7f68962eccbb8683272a0815b1787bc3b",
   "gated_delta_recurrent_sigmoid_gate.wgsl#main": "d0a3279da43e4e39cf252b7a12934f623fba6c955fda3fe3f3587b88e9740e61",
   "gated_delta_recurrent.wgsl#main": "62c75dcabde791a94829d8c4f4e4f5323cd38e5b98abf41d7f92473aa931e1db",
+  "gated_delta_state_paired_sliced_rolled.wgsl#main": "66ead3035467220fda5c807096055a1377c1d8711f1d1d0106bc02d242e95d2b",
   "gated_delta_state_paired_sliced.wgsl#main": "731ae7762d2a24aaa949e837932e971a54ba21b28f2d04fb3505b79193c74b36",
   "gated_delta_state_paired.wgsl#main": "f155843772cdc4f5fe2cf4ee266854315bfc28e01859856fbceb5b5586cfe47f",
   "gated_rmsnorm.wgsl#main": "401cabd3c13039f640b8831e760e78993d5c57183b92e08245721fb0c4544282",

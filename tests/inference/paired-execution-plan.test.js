@@ -91,6 +91,18 @@ assert.deepEqual(resolveDeclaredMechanismReplacements(replaced.inference.executi
 const respecialized = structuredClone(replaced);
 respecialized.inference.execution.kernels.paired_state_sliced.constants = { WORKGROUP_SIZE: 128, K_SLICES: 16 };
 assert.deepEqual(resolveDeclaredMechanismReplacements(respecialized.inference.execution), { 'gated_delta_recurrent/paired_qk': 'paired_qk_parallel' });
+// The rolled sliced state program is an alternative replacement of the same mechanism; declaring it with
+// the sliced program fails closed (two replacements of one mechanism).
+const rolled = structuredClone(manifest);
+rolled.inference.execution.kernels.paired_state_sliced_rolled = { kernel: 'gated_delta_state_paired_sliced_rolled.wgsl', entry: 'main',
+  constants: { WORKGROUP_SIZE: 256, K_SLICES: 16 }, digest: `sha256:${KERNEL_REF_CONTENT_DIGESTS['gated_delta_state_paired_sliced_rolled.wgsl#main']}` };
+rolled.inference.execution.mechanismKernels.push('paired_state_sliced_rolled');
+assert.equal(compile(rolled).primaryPlan.activationPrecision, 'two-f32');
+assert.deepEqual(resolveDeclaredMechanismReplacements(rolled.inference.execution), { 'gated_delta_recurrent/paired_state': 'paired_state_sliced_rolled' });
+const both = structuredClone(rolled);
+both.inference.execution.kernels.paired_state_sliced = replaced.inference.execution.kernels.paired_state_sliced;
+both.inference.execution.mechanismKernels.push('paired_state_sliced');
+assert.throws(() => resolveDeclaredMechanismReplacements(both.inference.execution), /declare both/);
 // Compensated matmul programs are admitted for vector projections and the scalar-output head.
 const compensated = structuredClone(manifest);
 for (const key of ['projection_q4', 'projection_f16', 'head']) {
@@ -98,4 +110,4 @@ for (const key of ['projection_q4', 'projection_f16', 'head']) {
     digest: `sha256:${KERNEL_REF_CONTENT_DIGESTS['matmul_paired_compensated.wgsl#main']}` };
 }
 assert.equal(compile(compensated).primaryPlan.activationPrecision, 'two-f32');
-console.log('paired execution plan: complete graph admission, exact variants, helper closure, scalar logits, tiled attention, sliced RMSNorm, compensated matmul and declared state and Q/K replacement selection and session metadata pass');
+console.log('paired execution plan: complete graph admission, exact variants, helper closure, scalar logits, tiled attention, sliced RMSNorm, compensated matmul and declared state (sliced or rolled) and Q/K replacement selection and session metadata pass');
