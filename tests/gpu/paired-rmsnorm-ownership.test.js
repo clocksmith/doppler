@@ -64,5 +64,43 @@ try {
       await assert.rejects(run(options)); assert.equal(calls.length, before); assert.equal(live.size, 0);
     }
   }
+  // Q/K head normalization (head 256, 8 query and 2 key heads per token) dispatches the programs the
+  // graph's q_norm and k_norm steps declare for the phase and layer. A graph declaring neither step
+  // runs the interim rmsnorm/paired program; a missing step, a scalar program or no graph dispatches
+  // nothing and leaves nothing allocated.
+  const { runRMSNormQK, recordRMSNormQK } = await import('../../src/gpu/kernels/rmsnorm-qk.js');
+  const q = createTensor({ size: 8 * 256 * 8 }, 'f32', [8, 256], 'q', representation);
+  const k = createTensor({ size: 2 * 256 * 8 }, 'f32', [2, 256], 'k', representation);
+  const headWeight = createTensor({ size: 1024 }, 'f32', [256], 'head_weight');
+  const graph = (qKernel, kKernel) => {
+    const steps = [{ op: 'input_norm', kernel: 'rmsnorm_paired.wgsl', entry: 'main' },
+      ...(qKernel ? [{ op: 'q_norm', kernel: qKernel, entry: 'main' }] : []),
+      ...(kKernel ? [{ op: 'k_norm', kernel: kKernel, entry: 'main' }] : [])];
+    return { activationDtype: 'f32', prefill: { steps }, decode: { steps } };
+  };
+  const recorder = { device: { limits: { maxComputeWorkgroupsPerDimension: 65535 } }, trackTemporaryBuffer: b => pairedNormControl.release(b) };
+  const heads = kernelPath => [q, k, headWeight, headWeight, 1e-6,
+    { numTokens: 1, numHeads: 8, numKVHeads: 2, headDim: 256, rmsNormWeightOffset: true, kernelPath, phase: 'decode', layerIdx: 3 }];
+  for (const [kernelPath, expected] of [
+    [graph('rmsnorm_paired_sliced.wgsl', 'rmsnorm_paired.wgsl'), [['paired_sliced', [8, 1, 1], undefined], ['paired', [2, 1, 1], 64]]],
+    [graph('rmsnorm_paired_sliced.wgsl', 'rmsnorm_paired_sliced.wgsl'), [['paired_sliced', [8, 1, 1], undefined], ['paired_sliced', [2, 1, 1], undefined]]],
+    [graph(null, null), [['paired', [8, 1, 1], 64], ['paired', [2, 1, 1], 64]]],
+  ]) {
+    for (const run of [(...args) => runRMSNormQK(...args), (...args) => recordRMSNormQK(recorder, ...args)]) {
+      const before = calls.length;
+      const result = await run(...heads(kernelPath));
+      assert.equal(calls.length, before + 2);
+      assert.deepEqual(calls.slice(-2).map(call => [call[2], call[5], call[6].WORKGROUP_SIZE]), expected);
+      assert.deepEqual(calls.slice(-2).map(call => call[6].WEIGHT_OFFSET), [true, true]);
+      pairedNormControl.release(result.q.buffer); pairedNormControl.release(result.k.buffer);
+      assert.equal(live.size, 0);
+    }
+  }
+  for (const [kernelPath, failure] of [[graph('rmsnorm_paired_sliced.wgsl', null), /k_norm requires exactly one declared step/],
+    [graph('rmsnorm.wgsl', 'rmsnorm.wgsl'), /not a declared paired RMSNorm program/], [null, /runs only from the execution graph/]]) {
+    const before = calls.length;
+    await assert.rejects(runRMSNormQK(...heads(kernelPath)), failure);
+    assert.equal(calls.length, before); assert.equal(live.size, 0);
+  }
 } finally { hooks.deregister(); delete globalThis.pairedNormControl; }
-console.log('paired RMSNorm: source epsilon, immediate/recorded ownership, allocation/dispatch failure, declared sliced program geometry and geometry rejection passed');
+console.log('paired RMSNorm: source epsilon, immediate/recorded ownership, allocation/dispatch failure, declared sliced program geometry, geometry rejection and graph-declared Q/K head-norm programs passed');

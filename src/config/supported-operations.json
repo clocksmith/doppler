@@ -52,6 +52,16 @@
       "description": "Value projection. Tiled matmul in prefill, GEMV in decode.",
       "kernelFamily": ["tiled", "gemv", "matmul_q4k"]
     },
+    "q_norm": {
+      "section": ["prefill", "decode"],
+      "description": "Per-head query RMS norm after the query projection. Paired (two-F32) graphs only; the step's program runs the head normalization.",
+      "kernelFamily": ["rmsnorm"]
+    },
+    "k_norm": {
+      "section": ["prefill", "decode"],
+      "description": "Per-head key RMS norm after the key projection. Paired (two-F32) graphs only; the step's program runs the head normalization.",
+      "kernelFamily": ["rmsnorm"]
+    },
     "rope_q": {
       "section": ["prefill", "decode"],
       "description": "Rotary embedding applied to the query projection.",

@@ -37,9 +37,12 @@ Opening creates the stage's GPU compute pipelines before it reports ready, so a
 provider compile failure or crash happens at opening instead of during an answer.
 For the paired program the set comes from the resolved execution plan, kernel
 path, rules and loaded weight encodings. It covers the embedding gather, every
-assigned layer's prefill chunks and decode, and the output head. Pipelines are
-created one at a time on the stage device, within the host's required
-`limits.maxPreparationMs`. Nothing in Doppler supplies that bound.
+assigned layer's prefill chunks and decode, and the output head. Q/K head norms
+use the programs the graph's `q_norm` and `k_norm` steps declare, through the
+resolver their dispatch calls. Graphs without those steps use the interim program
+in the [conversion contract](../conversion-runtime-contract.md#paired-qk-head-normalization-steps).
+Pipelines are created one at a time on the stage device, within the host's
+required `limits.maxPreparationMs`. Nothing in Doppler supplies that bound.
 
 While preparation runs, the opener's `onLoadProgress` port receives
 `{ phase: 'pipelines', status, prepared, total, key, elapsedMs, startedAt,

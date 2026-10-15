@@ -8,6 +8,14 @@ export interface RMSNormQKOptions {
   numKVHeads: number;
   headDim: number;
   rmsNormWeightOffset?: boolean;
+  /**
+   * Paired (two-F32) input only: the execution graph whose `q_norm` and `k_norm` steps declare
+   * the head-normalization programs, and the phase and layer they run in. Required for paired
+   * input; scalar input selects the fused scalar program by rule.
+   */
+  kernelPath?: import('../../config/schema/kernel-path.schema.js').KernelPathSchema | null;
+  phase?: 'prefill' | 'decode';
+  layerIdx?: number;
 }
 
 export interface RMSNormQKResult {

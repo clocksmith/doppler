@@ -15,6 +15,19 @@ export interface PairedRMSNormFusion {
  * when no path pins one. Fails closed unless the registry declares a paired program.
  */
 export declare function resolvePairedRMSNormVariant(declaredVariant: string | null): string;
+/**
+ * Interim Q/K head-normalization program of a paired graph that declares no `q_norm`/`k_norm`
+ * step (Capsules signed before the steps existed). Admission and Rig signing require such a
+ * graph's closure to declare it. Removable once every supported manifest declares the steps.
+ */
+export declare const UNDECLARED_PAIRED_QK_NORM_VARIANT: 'paired';
+/**
+ * The paired program a graph's `q_norm` or `k_norm` step declares for a phase and layer; the
+ * interim program when the graph declares neither step. Requires the execution graph's kernel
+ * path, and fails closed unless the registry declares a paired program.
+ */
+export declare function resolvePairedQKNormVariant(op: 'q_norm' | 'k_norm', phase: 'prefill' | 'decode',
+  layerIdx: number, kernelPath: import('../../config/schema/kernel-path.schema.js').KernelPathSchema | null | undefined): string;
 /** Resolve the pipeline executePairedRMSNorm dispatches; it does not depend on token or hidden counts. */
 export declare function resolvePairedRMSNormPipeline(weightDtype: string | null | undefined,
   fusion: PairedRMSNormFusion, variant: string): KernelPipelineRequest;

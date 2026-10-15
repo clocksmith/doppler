@@ -126,6 +126,21 @@ export function getKernelPathRMSNormSpec(
   path: KernelPathSchema | null | undefined
 ): { variant: string; inputDtype: 'f16' | 'f32'; constants: Record<string, number | boolean> | null } | null;
 
+/** True when any step of the path declares Q/K head normalization (`q_norm` or `k_norm`). */
+export function kernelPathDeclaresQKNorm(path: KernelPathSchema | null | undefined): boolean;
+
+/**
+ * The program a layer's `q_norm` or `k_norm` step declares, resolved like the other norm roles.
+ * Null only when the path declares neither op anywhere (graphs signed before the steps existed).
+ * Once declared, a missing or duplicated step for a role, layer and phase fails.
+ */
+export function getKernelPathQKNormSpec(
+  op: 'q_norm' | 'k_norm',
+  phase: KernelPathPhase,
+  layerIndex: number,
+  path: KernelPathSchema | null | undefined
+): { variant: string; inputDtype: 'f16' | 'f32'; constants: Record<string, number | boolean> | null } | null;
+
 export function getKernelPathActivationSpec(
   op: string,
   phase: KernelPathPhase | undefined,

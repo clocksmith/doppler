@@ -13,3 +13,13 @@ export declare function validatePairedExecution(
 export declare function assertPairedLinearMechanismClosure(
   manifestInference: import('../../../config/schema/manifest.schema.js').ManifestInferenceSchema
 ): void;
+
+/**
+ * Require the paired graph to declare Q/K head normalization when the manifest normalizes
+ * full-attention heads: `q_norm` and `k_norm` steps, or (interim, for Capsules signed before the
+ * steps existed) the undeclared-step program in its closure. Rejects the steps when the manifest
+ * normalizes no heads. Used by Run admission and Rig signing.
+ */
+export declare function assertPairedQKNormClosure(
+  manifestInference: import('../../../config/schema/manifest.schema.js').ManifestInferenceSchema
+): void;

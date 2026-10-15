@@ -463,6 +463,26 @@ export function getKernelPathRMSNormSpec(op, section, phase, layerIndex, path) {
   return { variant, inputDtype, constants: step.constants ?? null };
 }
 
+const QK_NORM_OPS = Object.freeze(['q_norm', 'k_norm']);
+
+// Whether any step of the path declares Q/K head normalization (q_norm or k_norm).
+export function kernelPathDeclaresQKNorm(path) {
+  if (path == null) return false;
+  return getKernelPathKernelSteps(path).some(step => QK_NORM_OPS.includes(step.op));
+}
+
+// The program a layer's q_norm or k_norm step declares, resolved exactly like the other norm
+// roles. Null only when the path declares neither op anywhere (graphs signed before the steps
+// existed; see resolvePairedQKNormVariant). Once declared, every role, layer and phase that
+// normalizes needs exactly one step.
+export function getKernelPathQKNormSpec(op, phase, layerIndex, path) {
+  if (!QK_NORM_OPS.includes(op) || !['prefill', 'decode'].includes(phase) || !Number.isInteger(layerIndex) || layerIndex < 0) {
+    throw new Error('Q/K head normalization lookup requires q_norm or k_norm, an explicit phase and a layer index.');
+  }
+  if (!kernelPathDeclaresQKNorm(path)) return null;
+  return getKernelPathRMSNormSpec(op, 'layer', phase, layerIndex, path);
+}
+
 export function getKernelPathStepPrecision(
   op,
   section,
