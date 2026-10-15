@@ -1,6 +1,21 @@
 
 
 import { getDevice, setTrackSubmits } from '../../../gpu/device.js';
+
+// Backport of the incremental text boundary from 76e5806b. Each request owns
+// decoder state; early return and abort close the underlying token iterator.
+async function* decodeTextStream(tokens, decoder, options) {
+  for await (const tokenId of tokens) {
+    options.signal?.throwIfAborted();
+    const text = decoder.push(tokenId);
+    if (text) yield text;
+    options.signal?.throwIfAborted();
+    options.onToken?.(tokenId, text);
+  }
+  options.signal?.throwIfAborted();
+  const final = decoder.finish();
+  if (final) yield final;
+}
 import { prefillWithToken, decodeStepWithToken } from './generator/capsule-generation.js';
 import { acquireBuffer, releaseBuffer, readBuffer, readBufferSlice, uploadData } from '../../../memory/buffer-pool.js';
 import { isGPUSamplingAvailable } from '../../../gpu/kernels/sample.js';
@@ -511,7 +526,10 @@ export class PipelineGenerator {
   }
 
   async *generate(prompt, options = {}) {
-    yield* this._generateTokensInternal(prompt, options, 'text');
+    if (!this._state.isLoaded) throw new Error('Model not loaded');
+    if (this._state.isGenerating) throw new Error('Generation already in progress');
+    const decoder = this._state.tokenizer.createIncrementalDecoder();
+    yield* decodeTextStream(this._generateTokensInternal(prompt, { ...options, onToken: undefined }, 'token'), decoder, options);
   }
 
   async *generateTokens(prompt, options = {}) {
@@ -555,7 +573,11 @@ export class PipelineGenerator {
   }
 
   async *generateWithPrefixKV(prefix, prompt, options = {}) {
-    return yield* generateWithPrefixKVImpl.apply(this, arguments);
+    if (!this._state.isLoaded) throw new Error('Model not loaded');
+    if (this._state.isGenerating) throw new Error('Generation already in progress');
+    const decoder = this._state.tokenizer.createIncrementalDecoder();
+    yield* decodeTextStream(generateWithPrefixKVImpl.call(this, prefix, prompt,
+      { ...options, onToken: undefined }, 'token'), decoder, options);
   }
 
   // ==========================================================================
