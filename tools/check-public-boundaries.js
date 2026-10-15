@@ -75,7 +75,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // The sliced state and parallel Q/K shaders and the extracted linear-attention config
   // module (its declaration stays outside the public type closure) add three: measured 1997.
   // The compensated paired matmul shader adds one WGSL entry: measured 1998.
-  maxEntryCount: 1998,
+  // The rolled sliced paired state program (77c5d9b2) adds one WGSL entry: measured 1999.
+  maxEntryCount: 1999,
   // add14e4b: npm 9.2.0 produces 2,104,958 bytes; CI Node 22.23.2/npm 10.9.8
   // produces 2,107,073. Keep the measured cross-toolchain compression allowance.
   // Evidence: reports/capsule-baseline/20260907-release/remote-package-budget-failure.log.
@@ -153,7 +154,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // The sliced paired RMSNorm shader and its selection: measured 3,488,420, plus that allowance.
   // Declared paired linear-attention replacement programs: measured 3,491,743, plus that allowance.
   // The compensated paired matmul programs: measured 3,493,137, plus that allowance.
-  maxPackedSize: 3_495_295,
+  // The rolled sliced paired state program (77c5d9b2) and paired Q/K head normalization
+  // graph steps (36b73ec8): measured 3,495,841 on Node 22.20.0/npm 10.9.3, plus that allowance.
+  maxPackedSize: 3_497_999,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -212,7 +215,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // The sliced paired RMSNorm shader and its selection add 20,437: measured 14,071,072.
   // Declared paired linear-attention replacement programs add 43,607: measured 14,114,679.
   // The compensated paired matmul programs add 29,698: measured 14,144,377.
-  maxUnpackedSize: 14_144_377,
+  // The rolled sliced paired state program (77c5d9b2) and paired Q/K head normalization
+  // graph steps (36b73ec8) add 28,520: measured 14,172,897.
+  maxUnpackedSize: 14_172_897,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
