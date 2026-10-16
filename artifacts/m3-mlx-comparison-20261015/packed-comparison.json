@@ -1,0 +1,44 @@
+{
+  "exactTokenAgreement": true,
+  "claim": "Sequential diagnostic, 1 timed repetitions per length; not an interleaved performance ranking.",
+  "timingBoundary": "Prompt-to-first delivered token; decode uses 127 delivery intervals for 128 tokens. Includes orchestration; not pure GPU time.",
+  "measurements": [
+    {
+      "promptTokens": 128,
+      "engines": [
+        {
+          "engine": "doppler",
+          "totalRunMsMedian": 3869.849834,
+          "promptToFirstTokenMsMedian": 193.62083399999983,
+          "decodeTokensPerSecondMedian": 34.56356335180266
+        },
+        {
+          "engine": "doppler",
+          "totalRunMsMedian": 4697.0473329999995,
+          "promptToFirstTokenMsMedian": 252.9514160000001,
+          "decodeTokensPerSecondMedian": 28.58428774540803
+        }
+      ]
+    },
+    {
+      "promptTokens": 1024,
+      "engines": [
+        {
+          "engine": "doppler",
+          "totalRunMsMedian": 4108.65375,
+          "promptToFirstTokenMsMedian": 624.4252919999999,
+          "decodeTokensPerSecondMedian": 36.45370162921805
+        },
+        {
+          "engine": "doppler",
+          "totalRunMsMedian": 5247.566374999999,
+          "promptToFirstTokenMsMedian": 876.4808749999993,
+          "decodeTokensPerSecondMedian": 29.057081958441064
+        }
+      ]
+    }
+  ],
+  "baselineRetainedModelBytes": 536252416,
+  "candidateRetainedModelBytes": 402952192,
+  "caveat": "Same stored Q4K bytes; different materialization and kernels. Exact tokens on two synthetic probes do not establish per-layer numerical parity or recommendation quality."
+}

@@ -1,0 +1,111 @@
+{
+  "component": "doppler.runtime-source.converter",
+  "intent": "preserved",
+  "boundaryEffects": [
+    "Conversion configs must explicitly name their runtime pipeline; source architecture names no longer leak into modelType.",
+    "13 previously incomplete conversion configs now declare transformer or gemma4.",
+    "No inference default, arithmetic kernel, catalog qualification, or deployment changed."
+  ],
+  "correctness": {
+    "weights": "Both F16 engines use pinned mirror source weights cast to F16.",
+    "sourceMirrorCaveat": "Identity is pinned to unsloth/gemma-3-270m-it; byte identity with original Google hosting was not independently established.",
+    "prompts": [
+      128,
+      1024
+    ],
+    "generatedTokensPerPrompt": 128,
+    "exactGreedyTokenAgreement": true,
+    "scope": "Two repeated synthetic document-continuation prompts, not an application-quality evaluation.",
+    "computeCaveat": "Doppler uses explicit F32 activations and F16 KV; MLX uses native F16 parameters/activations. This is a weight-matched diagnostic, not identical internal arithmetic or a claimable vendor ranking."
+  },
+  "performance": {
+    "exactTokenAgreement": true,
+    "claim": "Sequential diagnostic, two timed repetitions per length; not an interleaved performance ranking.",
+    "timingBoundary": "Prompt-to-first delivered token; decode uses 127 delivery intervals for 128 tokens. Includes orchestration; not pure GPU time.",
+    "measurements": [
+      {
+        "promptTokens": 128,
+        "engines": [
+          {
+            "engine": "mlx",
+            "totalRunMsMedian": 924.4419579626992,
+            "promptToFirstTokenMsMedian": 25.056874961592257,
+            "decodeTokensPerSecondMedian": 142.18894041889538
+          },
+          {
+            "engine": "doppler",
+            "totalRunMsMedian": 3434.1142290000003,
+            "promptToFirstTokenMsMedian": 147.9105414999999,
+            "decodeTokensPerSecondMedian": 38.72629037890165
+          }
+        ]
+      },
+      {
+        "promptTokens": 1024,
+        "engines": [
+          {
+            "engine": "mlx",
+            "totalRunMsMedian": 1048.8633334171027,
+            "promptToFirstTokenMsMedian": 125.9983335621655,
+            "decodeTokensPerSecondMedian": 138.5608190489305
+          },
+          {
+            "engine": "doppler",
+            "totalRunMsMedian": 3820.50075,
+            "promptToFirstTokenMsMedian": 570.6166250000015,
+            "decodeTokensPerSecondMedian": 39.198779664848615
+          }
+        ]
+      }
+    ]
+  },
+  "batch4Candidate": {
+    "evidence": "batch4-comparison.json",
+    "promoted": false,
+    "exactTokenAgreement": true,
+    "interpretation": "Four-token batch candidate reduces observed wall time, but remains slower than MLX. No default promotion from two sequential timing samples."
+  },
+  "packedResidency": {
+    "evidence": "packed-comparison.json",
+    "baselineRetainedModelBytes": 536252416,
+    "candidateRetainedModelBytes": 402952192,
+    "savedBytes": 133300224,
+    "promoted": false,
+    "interpretation": "Same stored Q4K bytes; candidate retains packed projection buffers. F16 embedding/head dominates remaining storage. Candidate is slower, and per-layer numerical/quality qualification remains required."
+  },
+  "largerModel": {
+    "source": "qwen27b-source-headers.json",
+    "estimate": "qwen27b-footprint.json",
+    "estimatedWeightGiB": 24.94145107269287,
+    "fits24GiBHostResident": false,
+    "interpretation": "Existing text-only Q4K policy exceeds physical memory before caches, activations, CPU copies and OS. Further quantization must be qualified before a resident 27B attempt.",
+    "ran27BOnM3": false
+  },
+  "priorEvidenceCorrection": {
+    "file": "reports/model-ir-v2/qwen3.8-27b.node-webgpu-qualification.json",
+    "prefillTokens": 5,
+    "scope": "Cannot establish realistic long-context prefill performance."
+  },
+  "excludedObservations": {
+    "mlx-natural-overlap.json": "Conversion CPU work overlapped this run; excluded from final timing summary.",
+    "doppler-natural-overlap.json": "Conversion CPU work overlapped this run; excluded from final timing summary.",
+    "doppler-packed-before-fix.json": "Retained failure: source gemma3_text was emitted as runtime modelType.",
+    "doppler-packed-candidate-overlay-error.json": "Candidate initially lacked explicit dtype overlay.",
+    "doppler-packed-candidate-session-error.json": "Session dtype alone did not populate the runtime compute mirror required by the custom path.",
+    "doppler-packed-candidate-cache-error.json": "Custom cache subtree omitted required maxSeqLen. Final candidate explicitly matches 4096-token capacity."
+  },
+  "acceptanceEvidence": [
+    "8 focused tests passed via tools/run-node-tests.js",
+    "node artifacts/m3-mlx-comparison-20261015/compare.test.js",
+    "npm run source:style:check",
+    "npm run source:architecture:check",
+    "git diff --check"
+  ],
+  "nextRequiredProof": [
+    "Qualify lower-bit linear-attention projections and/or embedding/head for 27B memory fit.",
+    "Profile CPU recording, submissions/readback and GPU time independently; zero missing counters are not proof of zero cost.",
+    "Validate packed candidate per-layer numerics and meaningful prompts before promotion.",
+    "Run interleaved controlled timing before claiming vendor parity or leadership."
+  ],
+  "fixCommit": "56e3abbd"
+}
