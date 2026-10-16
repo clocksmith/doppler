@@ -315,6 +315,74 @@ const LATENCY_ROWS = [
   { model: 'Qwen 3.5 0.8B', platform: 'Apple M3 · Metal', kind: 'text', section: 'parity', receipt: 'benchmarks/vendors/results/compare_20260709T154633.json' },
 ];
 
+const RETRIEVAL_HIGHLIGHTS = [
+  { model: 'Qwen3 Embedding 0.6B', label: 'Embeddings', kind: 'embedding', receipt: 'benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260710T011455.json' },
+  { model: 'Qwen3 Reranker 0.6B', label: 'Reranking', kind: 'rerank', receipt: 'benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260710T014450.json' },
+];
+
+export function loadHighlight(definition, report, catalog) {
+  requireComparable(report, definition);
+  const target = catalog.models.find((model) => model.modelId === report.model?.dopplerModelId)
+    ?.vendorBenchmark?.transformersjs;
+  if (report.fairness?.releaseClaimable !== true
+    || !target || target.repoId !== report.model?.transformersjsModelId
+    || target.dtype !== report.model?.transformersjsDtype) {
+    throw new Error(`${definition.receipt}: current comparator/release gate failed`);
+  }
+  const d = report.raw?.dopplerBench;
+  const t = report.raw?.transformersjsBench;
+  const dg = d?.deviceInfo?.adapterInfo;
+  const tg = t?.deviceInfo;
+  if (!dg?.device || dg.device !== tg?.device || dg.vendor !== tg.vendor
+    || d?.env?.runtime !== 'browser' || t?.env?.device !== 'webgpu'
+    || report.workload?.cacheMode !== 'warm'
+    || d?.metrics?.timedRuns !== t?.timedRuns) {
+    throw new Error(`${definition.receipt}: paired hardware/workload gate failed`);
+  }
+  return loadRetrievalRow(definition, report);
+}
+
+function renderHighlights(mobile) {
+  const width = mobile ? 620 : 1200;
+  const columns = mobile ? 1 : 2;
+  const cardWidth = (width - 72 - (columns - 1) * 20) / columns;
+  const catalog = readJson('models/catalog.json');
+  const body = [text(36, 85, 'More search work per second.', mobile ? 27 : 30, '#202735', 600),
+    text(36, 116, 'Doppler vs Transformers.js', 19, MUTED)];
+  RETRIEVAL_HIGHLIGHTS.forEach((definition, i) => {
+    const row = loadHighlight(definition, readJson(definition.receipt), catalog);
+    const ratio = row.doppler.rate / row.transformersjs.rate;
+    const max = Math.max(row.doppler.rate, row.transformersjs.rate);
+    const x = 36 + (i % columns) * (cardWidth + 20);
+    const y = 150 + Math.floor(i / columns) * 316;
+    body.push(receiptGroup(row, [
+      `<rect x="${x}" y="${y}" width="${cardWidth}" height="296" rx="12" fill="#f7f3fd" stroke="#e5ddf3"/>`,
+      text(x + 22, y + 34, definition.label, 23, '#202735', 600),
+      text(x + cardWidth - 22, y + 34, definition.model, 16, MUTED, 400, 'text-anchor="end"'),
+      text(x + 22, y + 114, `${ratio.toFixed(1)}×`, 68, PURPLE, 650),
+      text(x + 22, y + 146, 'higher throughput', 18, PURPLE, 500),
+      text(x + 22, y + 191, 'Doppler', 17, PURPLE, 600),
+      text(x + cardWidth - 22, y + 191, `${row.doppler.rate.toFixed(2)} ${row.unit}`, 18, PURPLE, 600, 'text-anchor="end"'),
+      bar(x + 22, y + 204, cardWidth - 44, row.doppler.rate, max, PURPLE),
+      text(x + 22, y + 251, 'Transformers.js', 17, MUTED, 500),
+      text(x + cardWidth - 22, y + 251, `${row.transformersjs.rate.toFixed(2)} ${row.unit}`, 18, MUTED, 500, 'text-anchor="end"'),
+      bar(x + 22, y + 264, cardWidth - 44, row.transformersjs.rate, max, '#8791a2'),
+    ]));
+  });
+  const y = 150 + Math.ceil(RETRIEVAL_HIGHLIGHTS.length / columns) * 316 + 12;
+  const lines = mobile ? [
+    'Radeon 8060S · Chromium WebGPU · 15 warm runs',
+    'July 2026 · Transformers.js 4.x · RDRR vs ONNX',
+    'Loading excluded · semantic fixtures passed · linked receipts',
+  ] : [
+    'Radeon 8060S · Chromium WebGPU · 15 warm runs · July 2026 · Transformers.js 4.x',
+    'RDRR vs ONNX · loading excluded · semantic fixtures passed · each card links its receipt',
+  ];
+  lines.forEach((line, i) => body.push(text(36, y + i * 25, line, 15, MUTED)));
+  return frame(width, y + lines.length * 25 + 22, 'Doppler retrieval benchmarks: 5.1x embedding and 1.7x reranking throughput',
+    'Recorded July 2026 Radeon 8060S WebGPU results, 15 warm runs. Qwen3 0.6B embeddings: 33.88 versus 6.69 per second. Reranking: 3.59 versus 2.12 per second. Loading excluded; different optimized formats, semantic fixtures passed. Zero-based bars and source links.', body);
+}
+
 function renderLatency(mobile) {
   const width = mobile ? 620 : 1200;
   const columns = mobile ? 1 : 3;
@@ -378,6 +446,8 @@ export function main() {
     ['assets/doppler-webgpu-evidence-mobile.svg', renderRates(groups, true)],
     ['assets/readme/generation-time.svg', renderLatency(false)],
     ['assets/readme/generation-time-mobile.svg', renderLatency(true)],
+    ['assets/readme/retrieval-benchmarks.svg', renderHighlights(false)],
+    ['assets/readme/retrieval-benchmarks-mobile.svg', renderHighlights(true)],
   ];
   for (const [relativePath, expected] of outputs) {
     const output = path.join(REPO_ROOT, relativePath);
