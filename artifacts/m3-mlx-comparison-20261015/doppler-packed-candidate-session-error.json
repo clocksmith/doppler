@@ -1,0 +1,362 @@
+{
+  "engine": "doppler",
+  "surface": "node-webgpu",
+  "nodeVersion": "v22.20.0",
+  "manifestHash": "6dd750a0815078a9dd19fe3ee51cbc60bc5e485ee2e6f8d07beab66cbce0662f",
+  "policy": {
+    "schema": "doppler.mlx-diagnostic-comparison/v1",
+    "claim": "Candidate packed GPU execution, unchanged Q4K artifact bytes. Residency and correctness diagnostic; no default promotion.",
+    "source": {
+      "repo": "unsloth/gemma-3-270m-it",
+      "revision": "23cf460f6bb16954176b3ddcc8d4f250501458a9",
+      "weightsSha256": "700b710a9a99c295ed546647aa81cacf9f81f4c573ea2be613a0e2517a44afab"
+    },
+    "shared": {
+      "weightDtype": "q4k-with-f16-embedding-and-head",
+      "promptTokenCounts": [
+        128,
+        1024
+      ],
+      "promptText": "This is a reference document about a small library. The library lends books, maintains a catalog, and helps readers find reliable information. Its opening hours vary by day. Readers may reserve available books and return them at the front desk. ",
+      "maxTokens": 128,
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1,
+      "repetitionPenalty": 1,
+      "useChatTemplate": false,
+      "suppressTokenIds": [],
+      "warmupRuns": 0,
+      "timedRuns": 1,
+      "requireExactPromptTokens": true,
+      "requireExactGeneratedTokens": true,
+      "maxProcessSeconds": 240,
+      "memoryLimitBytes": 3221225472
+    },
+    "engines": {
+      "mlx": {
+        "package": "mlx-lm",
+        "version": "0.32.1",
+        "prefillStepSize": 1024
+      },
+      "doppler": {
+        "surface": "node-webgpu",
+        "runtimeConfig": {
+          "shared": {
+            "bufferPool": {
+              "budget": {
+                "maxTotalBytes": 3221225472,
+                "highWatermarkRatio": 0.9,
+                "emergencyTrimTargetRatio": 0.8,
+                "hardFailOnBudgetExceeded": true
+              }
+            }
+          },
+          "inference": {
+            "kernelPath": {
+              "id": "gemma270m-packed-candidate-execution-inline",
+              "name": "Execution inline kernel path",
+              "description": "Generated from manifest.inference.execution",
+              "activationDtype": "f32",
+              "kvDtype": "f16",
+              "decode": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_multicol",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_multicol",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_multicol",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_decode_online_head256_f16kv.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f16"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_multicol",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_multicol",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_multicol",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "gelu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4.wgsl",
+                    "entry": "main_multicol",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  }
+                ]
+              },
+              "prefill": {
+                "steps": [
+                  {
+                    "op": "input_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "q_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "op": "k_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "op": "v_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "op": "rope_q",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "rope_k",
+                    "kernel": "rope.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "attention",
+                    "kernel": "attention_head256_f16kv.wgsl",
+                    "entry": "main",
+                    "precision": {
+                      "kvDtype": "f16"
+                    }
+                  },
+                  {
+                    "op": "o_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "op": "attn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "post_attn_norm",
+                    "kernel": "rmsnorm.wgsl",
+                    "entry": "main"
+                  },
+                  {
+                    "op": "gate_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.gate_proj"
+                  },
+                  {
+                    "op": "up_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "op": "activation",
+                    "kernel": "gelu.wgsl",
+                    "entry": "main",
+                    "constants": {
+                      "HAS_GATE": true
+                    }
+                  },
+                  {
+                    "op": "down_proj",
+                    "kernel": "fused_matmul_q4_widetile.wgsl",
+                    "entry": "main",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "op": "ffn_residual",
+                    "kernel": "residual.wgsl",
+                    "entry": "main"
+                  }
+                ]
+              },
+              "preLayer": [
+                {
+                  "op": "embed",
+                  "kernel": "gather.wgsl",
+                  "entry": "main",
+                  "weights": "embed_tokens"
+                }
+              ],
+              "postLayer": [
+                {
+                  "op": "final_norm",
+                  "kernel": "rmsnorm.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "lm_head",
+                  "kernel": "matmul_gemv_subgroup.wgsl",
+                  "entry": "main_multicol",
+                  "weights": "lm_head",
+                  "constants": {
+                    "MULTICOL_COLS_PER_WG": 8,
+                    "MULTICOL_THREADS_PER_COL": 32
+                  }
+                },
+                {
+                  "op": "lm_head_prefill",
+                  "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                  "entry": "main",
+                  "weights": "lm_head"
+                },
+                {
+                  "op": "sample",
+                  "kernel": "sample.wgsl",
+                  "entry": "sample_single_pass"
+                }
+              ]
+            },
+            "session": {
+              "compute": {
+                "defaults": {
+                  "activationDtype": "f32",
+                  "mathDtype": "f32",
+                  "accumDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              "kvcache": {
+                "kvDtype": "f16",
+                "layout": "contiguous",
+                "pageSize": 256,
+                "tiering": {
+                  "mode": "off",
+                  "hotWindow": 1024,
+                  "coldPageSize": 256,
+                  "coldDtype": "f16",
+                  "compression": {
+                    "mode": "none",
+                    "blockSize": 1,
+                    "bitWidth": 4,
+                    "prodMode": false
+                  },
+                  "gating": {
+                    "mode": "auto",
+                    "minAluBwRatio": 0
+                  }
+                },
+                "quantization": {
+                  "mode": "none",
+                  "bitWidth": 4,
+                  "prodMode": false
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "runs": [],
+  "complete": false,
+  "error": {
+    "message": "KernelPath \"gemma270m-packed-candidate-execution-inline\" selected from config requires explicit matching runtime dtypes for \"gemma-3-270m-it-packed-residency\". Mismatches: runtime.inference.compute.activationDtype=unset (expected f32). Set runtime.inference.session.compute.defaults.activationDtype, runtime.inference.session.kvcache.kvDtype, and runtime.inference.session.compute.defaults.outputDtype to match the kernel path.",
+    "stack": "Error: KernelPath \"gemma270m-packed-candidate-execution-inline\" selected from config requires explicit matching runtime dtypes for \"gemma-3-270m-it-packed-residency\". Mismatches: runtime.inference.compute.activationDtype=unset (expected f32). Set runtime.inference.session.compute.defaults.activationDtype, runtime.inference.session.kvcache.kvDtype, and runtime.inference.session.compute.defaults.outputDtype to match the kernel path.\n    at applyKernelPathRuntimeDtypeContract (file:///Users/xyz/deco/doppler/src/inference/pipelines/text/model-load.js:722:11)\n    at resolveKernelPathState (file:///Users/xyz/deco/doppler/src/inference/pipelines/text/model-load.js:814:29)\n    at InferencePipeline.loadModel (file:///Users/xyz/deco/doppler/src/inference/pipelines/text/lifecycle.js:277:29)\n    at async file:///Users/xyz/deco/doppler/src/inference/pipelines/factory.js:22:7\n    at async runWithShaderSourceScope (file:///Users/xyz/deco/doppler/src/gpu/kernels/shader-source-scope.js:70:16)\n    at async createInitializedPipeline (file:///Users/xyz/deco/doppler/src/inference/pipelines/factory.js:14:3)\n    at async loadProgram (file:///Users/xyz/deco/doppler/src/client/model-host/index.js:313:18)\n    at async Function.load (file:///Users/xyz/deco/doppler/src/client/model-host/index.js:210:13)\n    at async file:///Users/xyz/deco/doppler/artifacts/m3-mlx-comparison-20261015/doppler.js:25:11"
+  },
+  "unloadedPool": {
+    "allocations": 0,
+    "reuses": 0,
+    "totalBytesAllocated": 0,
+    "peakBytesAllocated": 0,
+    "currentBytesAllocated": 0,
+    "totalBytesRequested": 0,
+    "peakBytesRequested": 0,
+    "currentBytesRequested": 0,
+    "resources": {
+      "retainedModel": {
+        "bytes": 0,
+        "count": 0
+      },
+      "active": {
+        "bytes": 0,
+        "count": 0
+      },
+      "reusable": {
+        "bytes": 0,
+        "count": 0
+      },
+      "deferredCleanup": {
+        "bytes": 0,
+        "count": 0
+      }
+    },
+    "activeBuffers": 0,
+    "pooledBuffers": 0,
+    "budgetMaxBytes": 3221225472,
+    "budgetUtilization": 0,
+    "hitRate": "0%"
+  }
+}

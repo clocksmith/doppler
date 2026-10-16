@@ -1,0 +1,96 @@
+{
+  "startedAt": "2026-10-16T02:22:43.988Z",
+  "commit": "2ead8c65d26ebc2b45e5bea0841bb4bf67d3ec06",
+  "diffSha256": "4a8edec32c6ee1320e3d2ab54b7aa7ad9dc768c451076ba0b21153e6d3bb0063",
+  "hardware": "Apple M3\n25769803776",
+  "os": "ProductName:\t\tmacOS\nProductVersion:\t\t26.6.2\nBuildVersion:\t\t25G83",
+  "scripts": {
+    "doppler.js": "73be02e487568abd04597c596aecf2eac920342e80ace2fea5231cd9b22e2845",
+    "mlx-reference.py": "0ecab2f4cf83777b35d661ceab4bbc96fecaa5828df571e0b3a083e4d8f99a1f",
+    "compare.js": "a002c58e32bed994885ff9365270799d5045c84bd71f82e071481d2181104d59",
+    "run.js": "93898e3de6af1181b4bc46f5ed452c2706a66a1540c13ec8870edb053b1179a8"
+  },
+  "runs": [
+    {
+      "engine": "mlx",
+      "command": ".cache/mlx-comparison/bin/python",
+      "args": [
+        "/Users/xyz/deco/doppler/artifacts/m3-mlx-comparison-20261015/mlx-reference.py",
+        ".cache/mlx-gemma270m-source",
+        "/Users/xyz/deco/doppler/artifacts/m3-mlx-comparison-20261015/inputs.json",
+        "/Users/xyz/deco/doppler/artifacts/m3-mlx-comparison-20261015/mlx-natural.json",
+        "/Users/xyz/deco/doppler/artifacts/m3-mlx-comparison-20261015/natural-eos-policy.json"
+      ],
+      "startedAt": "2026-10-16T02:22:44.046Z",
+      "endedAt": "2026-10-16T02:22:52.459Z",
+      "timedOut": false,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "engine": "doppler",
+      "command": "/Users/xyz/.nvm/versions/node/v22.20.0/bin/node",
+      "args": [
+        "/Users/xyz/deco/doppler/artifacts/m3-mlx-comparison-20261015/doppler.js",
+        ".cache/mlx-gemma270m-rdrr",
+        "/Users/xyz/deco/doppler/artifacts/m3-mlx-comparison-20261015/inputs.json",
+        "/Users/xyz/deco/doppler/artifacts/m3-mlx-comparison-20261015/doppler-natural.json",
+        "/Users/xyz/deco/doppler/artifacts/m3-mlx-comparison-20261015/natural-eos-policy.json"
+      ],
+      "startedAt": "2026-10-16T02:22:52.460Z",
+      "endedAt": "2026-10-16T02:23:15.730Z",
+      "timedOut": false,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "engine": "doppler",
+      "command": "/Users/xyz/.nvm/versions/node/v22.20.0/bin/node",
+      "args": [
+        "/Users/xyz/deco/doppler/artifacts/m3-mlx-comparison-20261015/doppler.js",
+        ".cache/mlx-gemma270m-rdrr",
+        "/Users/xyz/deco/doppler/artifacts/m3-mlx-comparison-20261015/inputs.json",
+        "/Users/xyz/deco/doppler/artifacts/m3-mlx-comparison-20261015/doppler-batch4.json",
+        "/Users/xyz/deco/doppler/artifacts/m3-mlx-comparison-20261015/batch4-policy.json"
+      ],
+      "startedAt": "2026-10-16T02:23:15.734Z",
+      "endedAt": "2026-10-16T02:23:33.249Z",
+      "timedOut": false,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "engine": "doppler",
+      "command": "/Users/xyz/.nvm/versions/node/v22.20.0/bin/node",
+      "args": [
+        "/Users/xyz/deco/doppler/artifacts/m3-mlx-comparison-20261015/doppler.js",
+        ".cache/mlx-gemma270m-q4k",
+        "/Users/xyz/deco/doppler/artifacts/m3-mlx-comparison-20261015/inputs.json",
+        "/Users/xyz/deco/doppler/artifacts/m3-mlx-comparison-20261015/doppler-packed.json",
+        "/Users/xyz/deco/doppler/artifacts/m3-mlx-comparison-20261015/packed-policy.json"
+      ],
+      "startedAt": "2026-10-16T02:28:12.534Z",
+      "endedAt": "2026-10-16T02:28:22.265Z",
+      "timedOut": false,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "engine": "doppler",
+      "command": "/Users/xyz/.nvm/versions/node/v22.20.0/bin/node",
+      "args": [
+        "/Users/xyz/deco/doppler/artifacts/m3-mlx-comparison-20261015/doppler.js",
+        ".cache/mlx-gemma270m-q4k",
+        "/Users/xyz/deco/doppler/artifacts/m3-mlx-comparison-20261015/inputs.json",
+        "/Users/xyz/deco/doppler/artifacts/m3-mlx-comparison-20261015/doppler-packed-candidate.json",
+        "/Users/xyz/deco/doppler/artifacts/m3-mlx-comparison-20261015/packed-candidate-policy.json"
+      ],
+      "startedAt": "2026-10-16T02:28:22.266Z",
+      "endedAt": "2026-10-16T02:28:33.511Z",
+      "timedOut": false,
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "memoryCaveat": "MLX allocator bytes and Doppler pool bytes have different coverage. Never subtract or compare them as total system residency."
+}

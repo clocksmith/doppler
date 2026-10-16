@@ -1,0 +1,19 @@
+{
+  "workingDirectory": "doppler repository root",
+  "setup": [
+    "python3 -m venv .cache/mlx-comparison",
+    ".cache/mlx-comparison/bin/python -m pip install -r artifacts/m3-mlx-comparison-20261015/mlx-requirements.txt",
+    "python3 artifacts/m3-mlx-comparison-20261015/prepare-source.py",
+    "node tools/convert-safetensors-node.js .cache/mlx-gemma270m-source --config artifacts/m3-mlx-comparison-20261015/conversion.json --output-dir .cache/mlx-gemma270m-rdrr",
+    "node tools/convert-safetensors-node.js .cache/mlx-gemma270m-source --config artifacts/m3-mlx-comparison-20261015/packed-conversion.json --output-dir .cache/mlx-gemma270m-q4k",
+    "node artifacts/m3-mlx-comparison-20261015/prepare-packed-candidate.js"
+  ],
+  "run": "node artifacts/m3-mlx-comparison-20261015/run.js",
+  "validator": "node artifacts/m3-mlx-comparison-20261015/compare.test.js",
+  "constraints": [
+    "Run GPU engines sequentially with no conversion or other GPU campaign overlapping.",
+    "Each process is capped at 240 seconds. Allocator budgets are 3 GiB, not OS-enforced total process memory limits.",
+    "Source and converted model bytes stay in ignored .cache; retained manifests, input IDs, scripts, policies and source hashes define this evidence.",
+    "Runner overwrites local result JSON; retain existing evidence before rerunning."
+  ]
+}
