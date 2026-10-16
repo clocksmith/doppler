@@ -90,6 +90,11 @@
     "src/inference/resident-target-state.js",
     "src/inference/kv-cache/copy-state.js",
     "src/inference/resident-publication-contract.js",
-    "src/inference/pipelines/text/partition-replay.js"
+    "src/inference/pipelines/text/partition-replay.js",
+    "src/loader/tensors/buffer-write.js",
+    "src/inference/pipelines/text/generator/per-layer-buffer.js",
+    "src/inference/pipelines/text/generator/recorder-stats.js",
+    "src/loader/tensors/range-backed-weights.js",
+    "src/formats/flatbuffer-tables.js"
   ]
 }

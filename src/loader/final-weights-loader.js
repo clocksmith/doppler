@@ -1,3 +1,4 @@
+import { createRangeBackedWeightBuffer } from './tensors/range-backed-weights.js';
 
 
 import {
@@ -12,12 +13,10 @@ import { maybeDowncastToF16 } from './weight-downcast.js';
 import { getTensorNamesByRole } from './tensors/tensor-role.js';
 import { log, trace as debugTrace } from '../debug/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
-import { loadTensorRange } from './tensors/tensor-reader.js';
 
 // ============================================================================
 // Constants
 // ============================================================================
-
 
 const HEAD_GROUP = 'head';
 const FINAL_NORM_ROLE = 'norm';
@@ -32,34 +31,6 @@ const DIFFUSION_GEMMA_SELF_CONDITIONING_PREFIXES = [
 
 function isGpuBufferInstance(value) {
   return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
-}
-
-function createRangeBackedTensorSource(ctx, name, location) {
-  if (typeof ctx.loadShardRange !== 'function') {
-    return null;
-  }
-  const normalizedLocationDtype = typeof location?.dtype === 'string'
-    ? location.dtype.toLowerCase()
-    : 'f32';
-  return {
-    kind: 'tensor_range_source',
-    sourceDtype: normalizedLocationDtype,
-    async loadRange(byteOffset, byteLength) {
-      return loadTensorRange(location, name, byteOffset, byteLength, ctx.loadShardRange);
-    },
-  };
-}
-
-function createRangeBackedWeightBuffer(ctx, name, location) {
-  const source = createRangeBackedTensorSource(ctx, name, location);
-  if (!source || !location?.shape || location.shape.length !== 2) {
-    return null;
-  }
-  const layout = ctx.resolveWeightLayout(location);
-  const dtype = selectRuleValue('loader', 'weights', 'floatLocationDtype', {
-    locationDtype: location.dtype,
-  });
-  return createCpuWeightBuffer(source, dtype, layout, location.shape, name);
 }
 
 function normalizeLocationDtype(location) {
@@ -244,7 +215,6 @@ function shouldLoadDiffusionGemmaSelfConditioning(ctx) {
 // Main Function
 // ============================================================================
 
-
 export async function loadFinalWeights(ctx) {
   let normOffsetDebugLogged = ctx.normOffsetDebugLogged;
 
@@ -297,7 +267,6 @@ async function loadFinalNormBias(ctx) {
 // Final Norm Loading
 // ============================================================================
 
-
 async function loadFinalNorm(ctx) {
   
   let finalNorm = null;
@@ -348,7 +317,6 @@ async function loadFinalNorm(ctx) {
 // ============================================================================
 // LM Head Loading
 // ============================================================================
-
 
 async function loadLmHead(ctx) {
   
@@ -505,7 +473,6 @@ async function loadCpuFloatTensor(ctx, tensorName, label) {
   throw new Error(`[Loader] ${label} must decode to Float32Array on CPU.`);
 }
 
-
 function processLmHeadTensor(ctx, tensor, name, loc, shouldStream) {
   if (isSplitWeightBuffer(tensor)) {
     return tensor;
@@ -542,7 +509,6 @@ function processLmHeadTensor(ctx, tensor, name, loc, shouldStream) {
 
   return tensor;
 }
-
 
 async function maybeDowncastLmHead(ctx, lmHead, lmHeadName, lmHeadLoc) {
   // Check if tied to embeddings (skip downcast to avoid double-processing)

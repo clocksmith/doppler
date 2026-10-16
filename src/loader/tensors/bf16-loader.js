@@ -1,3 +1,4 @@
+import { alignTo4, writeBufferAligned } from './buffer-write.js';
 import { getDevice, getKernelCapabilities } from '../../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { runBF16ToF16 } from '../../gpu/kernel-selector.js';
@@ -20,30 +21,6 @@ function isReleasableBuffer(value) {
 
 function releaseOwnedGpuBuffer(buffer, owned) {
   if (owned && isReleasableBuffer(buffer)) releaseBuffer(buffer);
-}
-
-function alignTo4(size) {
-  return Math.ceil(size / 4) * 4;
-}
-
-function toUint8View(data) {
-  if (data instanceof Uint8Array) return data;
-  if (ArrayBuffer.isView(data)) {
-    return new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
-  }
-  return new Uint8Array(data);
-}
-
-function writeBufferAligned(device, buffer, data) {
-  const bytes = toUint8View(data);
-  const alignedSize = alignTo4(bytes.byteLength);
-  if (alignedSize === bytes.byteLength) {
-    device.queue.writeBuffer(buffer, 0, bytes);
-    return;
-  }
-  const padded = new Uint8Array(alignedSize);
-  padded.set(bytes);
-  device.queue.writeBuffer(buffer, 0, padded);
 }
 
 export async function loadBF16(shardData, location, name, config) {

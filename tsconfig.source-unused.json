@@ -10,6 +10,11 @@
     "src/cli/doppler-cli.js",
     "src/converter/artifact-identity.js",
     "src/inference/pipelines/text/generator.js",
-    "src/inference/pipelines/text/generator/text.js"
+    "src/inference/pipelines/text/generator/text.js",
+    "src/loader/tensors/buffer-write.js",
+    "src/inference/pipelines/text/generator/per-layer-buffer.js",
+    "src/inference/pipelines/text/generator/recorder-stats.js",
+    "src/loader/tensors/range-backed-weights.js",
+    "src/formats/flatbuffer-tables.js"
   ]
 }

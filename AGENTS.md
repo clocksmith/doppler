@@ -35,19 +35,15 @@ simple, portable execution.
 
 ### MANDATORY: Read Style Guides First
 
-Before any non-trivial code edit, read the **invariant files**:
-
-1. **[General Invariants](docs/style/general-style-guide.md#invariants-quick-reference)** — execution plane, no runtime defaults, nullable fields, manifest-first
-2. **[JavaScript Invariants](docs/style/javascript-style-guide.md#invariants-quick-reference)** — role boundaries, rule maps, kernel path, failure-path cleanup
-3. **[Config Style Guide](docs/style/config-style-guide.md)** — schema layout, merge order, category rules, harness restrictions
-
-For deep work (kernel wrappers, buffer lifecycle, naming conventions, anti-patterns), read the full
-[General](docs/style/general-style-guide.md), [JavaScript](docs/style/javascript-style-guide.md),
-and (shader work only) [WGSL](docs/style/wgsl-style-guide.md) guides.
+Before a non-trivial edit, read the [engineering checklist](docs/style/general-style-guide.md#invariants-quick-reference).
+Then read the linked sections and JavaScript/config invariants relevant to the
+changed behavior. Full guides remain references, not a mandatory 2,200-line
+preflight for an ordinary edit. Deep kernel, buffer-lifecycle, config-resolution
+or shader work still reads the applicable full guides below.
 
 ### Skill-Specific Style Guide Reads
 
-Baseline for all coding tasks: the three invariant files above. Add full guides
+Baseline for coding tasks: the engineering checklist and affected invariants. Add full guides
 by skill (`general`, `javascript`, `config`, `wgsl`, `harness`, `benchmark` =
 `docs/style/<name>-style-guide.md`; `command-interface` =
 `docs/style/command-interface-design-guide.md`):
@@ -61,7 +57,7 @@ by skill (`general`, `javascript`, `config`, `wgsl`, `harness`, `benchmark` =
 
 ### Agent Enforcement
 
-- Open the invariant files before the first non-trivial code edit in each turn,
+- Open the engineering checklist and affected invariant sections before the first non-trivial code edit in each turn,
   and again when resuming from a summary, handoff, or context compaction.
 - When changing config merge, manifest-first resolution, execution-v1, kernel-path selection, or runtime fallback behavior, re-read the full sections in:
   - `docs/style/general-style-guide.md`: `Explicit over Implicit`, `No Runtime Defaults in Code`, `Nullable Required Fields`

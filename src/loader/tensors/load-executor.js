@@ -1,3 +1,5 @@
+import { alignTo4, toUint8View, writeBufferAligned } from './buffer-write.js';
+export { alignTo4, toUint8View, writeBufferAligned } from './buffer-write.js';
 import { getDevice, getKernelCapabilities, getPlatformConfig } from '../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../memory/buffer-pool.js';
 import { dequantize, dequantizeRowwise, dequantizeQ6K, castF16ToF32 } from '../../gpu/kernel-selector.js';
@@ -60,18 +62,6 @@ export function logF32UpcastNonMatmul(name, numElements, bufferSize) {
   );
 }
 
-export function alignTo4(size) {
-  return Math.ceil(size / 4) * 4;
-}
-
-export function toUint8View(data) {
-  if (data instanceof Uint8Array) return data;
-  if (ArrayBuffer.isView(data)) {
-    return new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
-  }
-  return new Uint8Array(data);
-}
-
 export function toUint16View(data, label) {
   const bytes = toUint8View(data);
   if (bytes.byteLength % 2 !== 0) {
@@ -89,18 +79,6 @@ export function resolveInputByteLength(data, fallbackSize) {
   if (data instanceof ArrayBuffer) return data.byteLength;
   if (isGpuBufferInstance(data)) return data.size;
   return fallbackSize;
-}
-
-export function writeBufferAligned(device, buffer, data) {
-  const bytes = toUint8View(data);
-  const alignedSize = alignTo4(bytes.byteLength);
-  if (alignedSize === bytes.byteLength) {
-    device.queue.writeBuffer(buffer, 0, bytes);
-    return;
-  }
-  const padded = new Uint8Array(alignedSize);
-  padded.set(bytes);
-  device.queue.writeBuffer(buffer, 0, padded);
 }
 
 export function acquireAlignedBuffer(size, label) {

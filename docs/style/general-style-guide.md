@@ -5,25 +5,22 @@ testing, and anti-patterns. Language-specific guides document only deltas.
 
 ## Invariants (Quick Reference)
 
-Rules that cause bugs when violated; each has a fuller section below.
+Read this checklist first; open the linked sections for the behavior you change.
+Mechanically checked rules still need behavioral evidence at runtime boundaries.
 
-- **Execution Plane Contract** — JSON owns policy; JS owns orchestration; WGSL owns compute only. Missing or ambiguous contract must fail fast. See [Execution Plane Contract](#execution-plane-contract).
-- **No Runtime Defaults in Code** — runtime code reads resolved config values directly. No literal fallbacks for tunables in JS. Missing policy raises a typed configuration error. See [No Runtime Defaults in Code](#no-runtime-defaults-in-code).
-- **Nullable Required Fields** — `null` = explicitly disabled (valid); `undefined` = not specified (validation error, fail fast).
-- **Runtime Reads the Manifest, Never Infers** — converter embeds all model-specific inference params in `manifest.json`. Runtime never detects model family in pipeline code. See [Runtime Reads the Manifest, Never Infers](#runtime-reads-the-manifest-never-infers).
-- **Storage Dtype Is Not Materialization Dtype** — manifests retain the exact stored tensor encoding; the selected, transformed execution path plus kernel-registry metadata decides whether the loader retains it or materializes another dtype. See [Storage Dtype and Materialization Dtype](#storage-dtype-and-materialization-dtype).
-- **Kernel Selection** — fully explicit in the manifest execution graph. Each step pins exact WGSL file, entry point, and content digest. `defaultKernelPath` does not exist in v1 manifests. See [Kernel Selection](#kernel-selection).
-- **Performance Invariants (F32 Policy)** — F32 is a correctness fallback, not a performance default. When `shader-f16` is available, prefer `f16` for activations/KV cache/intermediates. Any `f32` path must be explicitly configured and logged once per session.
-- **Capability Transform Classification** — every execution-v1 capability transform is a typed policy row with `kind`, `dtypeEffect`, and evidence, in one of the distinct categories below. See [Capability Transform Classification](#capability-transform-classification).
-- **No Ad-Hoc Debug Logging** — no temporary log statements. Use existing trace categories, config-driven probes, or permanent trace extensions. Use the debug module (`src/debug/index.js`), not raw `console.*` in runtime code. See [Logging](#logging).
-- **Single Source of Truth** — when the same metadata appears in multiple files, exactly one must be canonical. Remove copies where possible; an unavoidable mirror is generated from that source with a sync check. See [Core Principles](#core-principles).
-- **Failure-Path Regression Requirement** — a fix for buffer lifecycle, readback cleanup, or failure-path-only behavior includes a narrow regression test exercising the failing path. See [Failure-Path Regression Requirement](#failure-path-regression-requirement).
-- **Inventory Before Edit** — when a failure reveals a repeated drift class, inventory the whole class before editing individual files, and remove the duplication that causes it before adding check tooling. See [Inventory Before Edit](#inventory-before-edit).
-- **Semantic Ownership** — shared behavior lives in the narrowest subsystem that owns its meaning. New catch-all utility or helper modules are forbidden. See [Semantic Ownership](#semantic-ownership).
-- **Facade Purity** — public entrypoints and compatibility facades validate, normalize, delegate, and translate errors; they do not own workload algorithms or policy. See [Facade Purity](#facade-purity).
-- **Enforced Source Architecture** — ownership, restricted dependency direction, facade purity, and the source line ceiling are checked by `npm run source:architecture:check`. See [Source Style and Architecture Gates](#source-style-and-architecture-gates).
-- **No JavaScript Runtime Tensor Math** — model-runtime tensor arithmetic and layout transforms execute in declared WGSL programs; JavaScript validates shapes, binds resources, dispatches, and does explicitly contracted scalar control work only. Reviewed numeric boundaries (Rig construction, byte codecs/materialization, host input preprocessing, observation, test references) never become runtime compute fallbacks. See [Execution Plane Contract](#execution-plane-contract).
-- **Declared Semantic Geometry** — required tensor and spatial geometry comes from ModelIR, TargetPlan, manifest, or resolved session contracts. Run code never reconstructs it from counts, tensor names, model names, or heuristics.
+| Standard | Evidence |
+| --- | --- |
+| Find the existing owner before adding a validator, serializer, lifecycle helper or facade. Share implementations only when inputs, permissions, failure handling and ownership match. Keep one named responsibility per extraction. | [Semantic ownership](#semantic-ownership); `source:architecture:check` checks owners, dependencies and facades. Consumer behavior requires focused tests and review. |
+| JSON owns policy, JavaScript orchestrates, WGSL computes. Geometry, kernel identity, dtype and materialization choices come from resolved contracts. | [Execution plane](#execution-plane-contract), [kernel selection](#kernel-selection); `source:style:check` and relevant numerical/reference tests. |
+| Read manifest facts; preserve merge precedence and distinguish disabled `null` from missing `undefined`. No hidden runtime defaults or fallback. | [Configuration layers](#configuration-layers), [config guide](config-style-guide.md); affected schema, merge and command-contract tests. |
+| Every acquired resource has one owner and a cleanup path on success, failure and cancellation. Share lifecycle mechanics, not different ownership policies. | [Buffer lifecycle](#buffer-lifecycle), [failure paths](javascript-style-guide.md#runtime-failure-path-invariants); focused ownership/failure tests. |
+| Keep package facades thin, modules bounded, and runtime logging in the debug subsystem. | [Facade purity](#facade-purity); `source:architecture:check` and `source:style:check`. |
+| Pair JavaScript with precise declarations. Add new shared implementations to strict and unused-local roots; expand existing coverage when cleaning a module. Passing a scoped gate is not whole-tree coverage. | [Language policy](#language-policy-javascript--declaration-files); `typecheck:source`, `source:unused:check`, and `exports:parity:check`. |
+| Remove copied decisions before adding another validator. Generate necessary mirrors from one owner and preserve artifact/receipt identities. | [Inventory before edit](#inventory-before-edit); relevant generator check and consumer tests, not file-content imitation tests. |
+| New or changed exceptions name affected paths, reason and an observable removal condition in their owning policy. Preserve existing debt; never raise a budget without inspecting the actual delta. | [Source gates](#source-style-and-architecture-gates); policy checks enforce registered limits, while removal conditions require review. |
+
+Run checks for affected contracts under `AGENTS.md` development verification.
+This checklist does not require a full suite, GPU campaign or release qualification.
 
 ## Core Principles
 
