@@ -268,7 +268,7 @@
           "embed": {
             "kernel": "gather_split8_f16_vec4_f32_out.wgsl",
             "entry": "gather_vec4_f32_out",
-            "digest": "sha256:18dce4731aa3c3cbde6a969cc54d63de4e545e7dce43204774323b6bfffc5c41"
+            "digest": "sha256:bc88d2106f80121ccb1f91f1ee0980173fe88bec5fe04cc941bdbc59b28e8ae1"
           },
           "rmsnorm": {
             "kernel": "rmsnorm.wgsl",

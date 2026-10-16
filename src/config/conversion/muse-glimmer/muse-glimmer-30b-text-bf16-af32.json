@@ -100,7 +100,7 @@
       "embed": {
         "kernel": "gather_bf16.wgsl",
         "entry": "main",
-        "digest": "sha256:731db73075cd054369b51259791ca3d99ef08431cc3a75d9547f2aa29771d08a"
+        "digest": "sha256:1dda963b66157d4cf8045684743a7329cb7abcf60272979ca6eb0a701cfd033e"
       },
       "rmsnorm": {
         "kernel": "rmsnorm.wgsl",

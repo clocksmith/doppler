@@ -2,7 +2,7 @@ import { executePairedSplitQG } from './paired-split.js';
 
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
-import { WORKGROUP_SIZES } from './constants.js';
+import { planSplitQKVDispatch } from './split-dispatch.js';
 import { unifiedKernelWrapper } from './kernel-execution.js';
 import { selectRuleValue } from './rule-registry.js';
 
@@ -27,7 +27,7 @@ async function _splitQG(target, qgTensor, options) {
       'split_qg', target, pipelineVariant,
       [qgTensor, qBuffer, gBuffer],
       { num_tokens: numTokens, num_heads: numHeads, head_dim: headDim, _pad: 0 },
-      Math.ceil((numTokens * qSize) / WORKGROUP_SIZES.DEFAULT)
+      planSplitQKVDispatch(numTokens * qSize)
     );
 
     const Q = qTensor || createTensor(qBuffer, outputDtype, [numTokens, qSize], 'Q');

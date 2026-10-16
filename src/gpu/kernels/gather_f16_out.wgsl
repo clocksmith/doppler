@@ -28,8 +28,9 @@ struct Uniforms {
 @group(0) @binding(4) var<storage, read_write> output_f16: array<f16>;
 
 @compute @workgroup_size(WORKGROUP_SIZE_MAIN, 1, 1)
-fn gather_f16_out(@builtin(global_invocation_id) gid: vec3<u32>) {
-    let tid = gid.x;
+fn gather_f16_out(@builtin(global_invocation_id) gid: vec3<u32>,
+    @builtin(num_workgroups) group_count: vec3<u32>) {
+    let tid = gid.x + gid.y * group_count.x * WORKGROUP_SIZE_MAIN;
     let total_elements = u.num_tokens * u.hidden_size;
 
     if (tid >= total_elements) {

@@ -38,7 +38,14 @@ const poolModule = `
 `;
 const modules = {
   '../../../../gpu/device.js': 'export const getDevice = () => globalThis.prefillChunkProbe.device; export const setTrackSubmits = () => {};',
-  '../embed.js': 'export const embed = async () => ({ buffer: globalThis.prefillChunkProbe.acquire(), dtype: "f32", shape: [2, 4] });',
+  '../embed.js': `export const embed = async (_ids, _weights, options) => {
+    const p = globalThis.prefillChunkProbe;
+    if (p.failEmbedding) {
+      options.recorder.trackTemporaryBuffer(p.acquire());
+      throw Error('embedding dispatch failed');
+    }
+    return { buffer: p.acquire(), dtype: 'f32', shape: [2, 4] };
+  };`,
   '../layer.js': `export const processLayer = async (layer, input, tokens, prefill, context) => {
     const p = globalThis.prefillChunkProbe;
     if (layer === 2 && p.fail) throw Error('layer failed');
@@ -67,6 +74,10 @@ try {
     weights: new Map([['embed', new Float32Array(16)]]), convLayerStates: new Map(), stats: {}, currentSeqLen: 0,
     useGPU: true, runtimeConfig: { inference: { session: { prefillChunkLayers: 1, prefillChunkSubmitMode: 'async' } }, shared: { debug: { probes: null } } },
   }, _getEffectiveActivationDtype: () => 'f32' };
+  probe.failEmbedding = true;
+  await assert.rejects(_prefill.call(host, [1, 2], { _returnGpuLogits: true }), /embedding dispatch failed/);
+  assert.equal(active.size, 0, 'Embedding failure aborts the recorder and releases token buffers');
+  probe.failEmbedding = false;
   for (let repeat = 0; repeat < 3; repeat++) {
     const result = await _prefill.call(host, [1, 2], { _returnGpuLogits: true });
     assert.equal(result.logitsBuffer, 'caller-owned');
