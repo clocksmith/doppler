@@ -1,3 +1,4 @@
+import { hasNodeVersion as isNodeRuntime } from './runtime-env.js';
 
 
 import { getRuntimeConfig } from '../config/runtime.js';
@@ -20,10 +21,6 @@ function formatTimestamp(value) {
     return value.replace(/[:]/g, '-');
   }
   return new Date().toISOString().replace(/[:]/g, '-');
-}
-
-function isNodeRuntime() {
-  return typeof process !== 'undefined' && !!process.versions?.node;
 }
 
 function nodeModule(specifier) {

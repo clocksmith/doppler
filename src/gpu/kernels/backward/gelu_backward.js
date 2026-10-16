@@ -14,26 +14,22 @@ const { run, record } = createBackwardKernel('gelu_backward', {
   getDevice: true,
 });
 
-export function runGeluBackward(input, gradOutput, options = {}) {
+function resolveBackwardOptions(gradOutput, options) {
   const bytesPerElement = dtypeBytes(gradOutput.dtype);
   const count = options.count ?? Math.floor(gradOutput.buffer.size / bytesPerElement);
-  return run(input, gradOutput, {
+  return {
     ...options,
     _count: count,
     _bytesPerElement: bytesPerElement,
     _shape: [...gradOutput.shape],
     _dtype: gradOutput.dtype,
-  });
+  };
+}
+
+export function runGeluBackward(input, gradOutput, options = {}) {
+  return run(input, gradOutput, resolveBackwardOptions(gradOutput, options));
 }
 
 export function recordGeluBackward(recorder, input, gradOutput, options = {}) {
-  const bytesPerElement = dtypeBytes(gradOutput.dtype);
-  const count = options.count ?? Math.floor(gradOutput.buffer.size / bytesPerElement);
-  return record(recorder, input, gradOutput, {
-    ...options,
-    _count: count,
-    _bytesPerElement: bytesPerElement,
-    _shape: [...gradOutput.shape],
-    _dtype: gradOutput.dtype,
-  });
+  return record(recorder, input, gradOutput, resolveBackwardOptions(gradOutput, options));
 }

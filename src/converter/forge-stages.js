@@ -1,3 +1,5 @@
+import { isPlainObject as isObject } from '../formats/plain-object.js';
+import { hashSortedJson as hashStable } from '../formats/sorted-json.js';
 import { assertOrderedResidentQualificationSet } from '../config/ordered-resident-qualification.js';
 import path from 'node:path';
 import { createModelIR, hashModelIR, validateModelIR } from '../config/model-ir.js';
@@ -18,16 +20,12 @@ import {
   signCapsuleV2,
 } from '../config/capsule-v2.js';
 import { sha256Hex } from '../formats/sha256.js';
-import { stableSortObject } from '../formats/stable-sort-object.js';
 import { buildQualificationRecords, promoteQualifiedModelIRV2, normalizeQualificationEvidence } from './forge-qualification.js';
 import { resolveCapsuleEmbeddingContract } from '../config/embedding-contract.js';
 import { assertPairedLinearMechanismClosure, assertPairedQKNormClosure } from '../inference/pipelines/text/paired-execution.js';
 import { evaluateForgeCandidates } from './forge-candidate-evaluation.js';
 
 export const RIG_PIPELINE_VERSION = '2.0.0';
-function isObject(value) {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
 
 function requireObject(value, label) {
   if (!isObject(value)) throw new Error(`Rig requires ${label} as an object.`);
@@ -42,10 +40,6 @@ function requireString(value, label) {
 function requirePositiveInteger(value, label) {
   if (!Number.isInteger(value) || value < 1) throw new Error(`Rig requires ${label} as a positive integer.`);
   return value;
-}
-
-function hashStable(value) {
-  return `sha256:${sha256Hex(JSON.stringify(stableSortObject(value)))}`;
 }
 
 function toPosix(value) {

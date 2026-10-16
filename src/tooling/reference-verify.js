@@ -1,3 +1,4 @@
+import { isPlainObject } from '../formats/plain-object.js';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -6,10 +7,6 @@ import { runBrowserCommandInNode } from './node-browser-command-runner.js';
 
 const DEFAULT_BROWSER_TIMEOUT_MS = 600000;
 const PROGRAM_BUNDLE_REFERENCE_TRANSCRIPT_SCHEMA_ID = 'doppler.reference-transcript/v1';
-
-function isPlainObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
-}
 
 function mergePlainObjects(base, patch) {
   const output = { ...(isPlainObject(base) ? base : {}) };

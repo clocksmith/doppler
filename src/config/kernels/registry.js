@@ -55,23 +55,6 @@ function getVariant(operation, variant) {
   return op?.variants[variant];
 }
 
-function getVariantNames(operation) {
-  const op = getOperation(operation);
-  return op ? Object.keys(op.variants) : [];
-}
-
-function isVariantAvailable(operation, variant, capabilities) {
-  const variantSchema = getVariant(operation, variant);
-  if (!variantSchema) return false;
-
-  const requires = variantSchema.requires || [];
-  for (const req of requires) {
-    if (req === 'shader-f16' && !capabilities.hasF16) return false;
-    if (req === 'subgroups' && !capabilities.hasSubgroups) return false;
-  }
-  return true;
-}
-
 export function resolveKernelConfig(operation, variant) {
   const opSchema = getOperation(operation);
   const variantSchema = getVariant(operation, variant);

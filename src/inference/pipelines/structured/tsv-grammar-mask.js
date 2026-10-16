@@ -42,26 +42,6 @@ function pieceAt(tokenizer, tokenId) {
   }
 }
 
-function countRunes(piece, char) {
-  let count = 0;
-  for (let i = 0; i < piece.length; i += 1) {
-    if (piece[i] === char) count += 1;
-  }
-  return count;
-}
-
-function classifyPiece(piece) {
-  const tabs = countRunes(piece, "\t");
-  const newlines = countRunes(piece, "\n");
-  return {
-    tabs,
-    newlines,
-    isOnlyWhitespace: /^\s*$/.test(piece),
-    hasNewline: newlines > 0,
-    hasTab: tabs > 0,
-  };
-}
-
 export function createTsvGrammarMask(opts = {}) {
   const fieldsPerLine = Math.max(2, Math.floor(Number(opts.fieldsPerLine) || 4));
   const tabsPerLineMax = fieldsPerLine - 1;

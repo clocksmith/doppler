@@ -1,20 +1,12 @@
+import { isPlainObject as isObject } from '../formats/plain-object.js';
+import { hashSortedJson as hashStable } from '../formats/sorted-json.js';
 import { assertOrderedResidentRecord } from '../config/ordered-resident-qualification.js';
 import path from 'node:path';
-import { sha256Hex } from '../formats/sha256.js';
-import { stableSortObject } from '../formats/stable-sort-object.js';
 import { assertSequenceReferenceTranscript } from '../config/sequence-reference.js';
 import { assertRerankReferenceTranscript, assertRerankSourceIdentity } from '../config/rerank-reference.js';
 import { assertEmbeddingReferenceTranscript, assertEmbeddingSourceIdentity } from '../config/embedding-reference.js';
 import { resolveCapsuleEmbeddingContract } from '../config/embedding-contract.js';
 import { assertChoiceScoringReferenceTranscript } from '../config/choice-scoring-reference.js';
-
-function isObject(value) {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
-function hashStable(value) {
-  return `sha256:${sha256Hex(JSON.stringify(stableSortObject(value)))}`;
-}
 
 export function promoteQualifiedModelIRV2(modelIR, programBundle) {
   const transcript = programBundle.referenceTranscript;

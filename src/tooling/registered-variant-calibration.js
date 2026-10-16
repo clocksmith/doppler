@@ -1,3 +1,4 @@
+import { isPlainObject as isObject } from '../formats/plain-object.js';
 import { computeCanonicalSha256 } from '../formats/canonical-hash.js';
 
 export const REGISTERED_VARIANT_CALIBRATION_PLAN_SCHEMA =
@@ -7,10 +8,6 @@ export const REGISTERED_VARIANT_CALIBRATION_RECEIPT_SCHEMA =
 
 const PHASES = new Set(['prefill', 'decode']);
 const TAIL_CLASSES = new Set(['full-block', 'tail']);
-
-function isObject(value) {
-  return value !== null && typeof value === 'object' && !Array.isArray(value);
-}
 
 function assertDigest(value, label) {
   if (!/^sha256:[0-9a-f]{64}$/.test(value ?? '')) {

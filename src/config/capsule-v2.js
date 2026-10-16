@@ -1,7 +1,9 @@
+import { isPlainObject as isObject } from '../formats/plain-object.js';
+import { requireString, requireDigest, requireExactKeys } from '../formats/contract-validation.js';
 
 import { hashModelIR, validateModelIR } from './model-ir.js';
 import { validateCapsuleReleaseContract } from './capsule-release-contract.js';
-import { hashTargetPlan, validateTargetPlan } from './target-plan.js';
+import { validateTargetPlan } from './target-plan.js';
 import { validateCapsuleTokenSelection } from './capsule-token-selection.js';
 import { sha256Hex } from '../formats/sha256.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
@@ -27,27 +29,8 @@ const ARTIFACT_ROLES = new Set([
   'wgsl-source',
 ]);
 
-function isObject(value) {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
 function canonicalJson(value) {
   return JSON.stringify(stableSortObject(value));
-}
-
-function requireString(value, label, errors) {
-  if (typeof value !== 'string' || !value.trim()) errors.push(`${label} must be a non-empty string.`);
-}
-
-function requireDigest(value, label, errors) {
-  if (!SHA256_PATTERN.test(value || '')) errors.push(`${label} must be a SHA-256 digest.`);
-}
-
-function requireExactKeys(value, allowed, label, errors) {
-  if (!isObject(value)) return;
-  for (const key of Object.keys(value)) {
-    if (!allowed.has(key)) errors.push(`${label}.${key} is not allowed.`);
-  }
 }
 
 function requireInstant(value, label, errors) {

@@ -1,3 +1,4 @@
+import { isPlainObject as isObject } from '../formats/plain-object.js';
 import { execFile } from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -30,10 +31,6 @@ import { loadCapsuleSigningKey, loadCapsuleV2 } from './capsule-v2.js';
 const execFileAsync = promisify(execFile);
 const DEVICE_IDENTITY_SCHEMA = 'doppler.electron-device-identity/v1';
 const VERSION_PATTERN = /^[0-9]+(?:\.[0-9]+)*$/u;
-
-function isObject(value) {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
 
 function assertExactKeys(value, allowed, label) {
   if (!isObject(value)) throw new Error(`${label} must be an object.`);

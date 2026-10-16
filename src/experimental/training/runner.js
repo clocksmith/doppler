@@ -1,3 +1,4 @@
+import { hasNodeVersion as isNodeRuntime } from '../../storage/runtime-env.js';
 
 import { log } from '../../debug/index.js';
 import { trainStep } from './trainer.js';
@@ -5,7 +6,7 @@ import { crossEntropyLoss } from './loss.js';
 import { clipGradients } from './clip.js';
 import { AdamOptimizer } from './optimizer.js';
 import { DynamicLossScaler, detectOverflow } from './loss-scaling.js';
-import { readBuffer, uploadData } from '../../memory/buffer-pool.js';
+import { readBuffer } from '../../memory/buffer-pool.js';
 import { f16ToF32Array } from '../../inference/kv-cache/types.js';
 import { DataLoader } from './dataloader.js';
 import { createCrossEntropyObjective } from './objectives/cross_entropy.js';
@@ -219,10 +220,6 @@ function flattenUniqueParams(paramGroups) {
     }
   }
   return output;
-}
-
-function isNodeRuntime() {
-  return typeof process !== 'undefined' && !!process.versions?.node;
 }
 
 function normalizeOptionalStringArray(value) {

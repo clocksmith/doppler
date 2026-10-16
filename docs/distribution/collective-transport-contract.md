@@ -22,38 +22,14 @@ It is distinct from shard delivery:
 
 ## Exactness classes
 
-Each collective step must declare an exactness class.
+Each collective step must declare an exactness class. The canonical definitions,
+phase restrictions and parity rules are in the
+[execution contract](execution-contract.md#collective-exactness-classes).
 
-### `bit-exact-solo`
-
-Bitwise identical to solo execution.
-
-Reserved for:
-- conformance tests
-- narrow debug lanes
-
-### `algorithm-exact`
-
-Bitwise identical when the declared reduction schedule is followed exactly.
-
-Required step metadata:
-- `reductionOrder`
-- `treeShape` or equivalent topology
-- `accumDtype`
-
-Phase 1 default:
-- `algorithm-exact`
-
-### `tolerance-bounded`
-
-Approximation lane only.
-
-Required metadata:
-- metric
-- epsilon
-
-Parity rule:
-- parity lanes reject `tolerance-bounded`
+For `algorithm-exact`, the step serializes its declared reduction schedule as
+`reductionOrder`, `treeShape` (or equivalent topology), and `accumDtype`. These
+wire fields implement the execution contract; they do not define a separate
+exactness policy.
 
 ## Step declaration
 

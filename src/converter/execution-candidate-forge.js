@@ -1,10 +1,11 @@
+import { isPlainObject as isObject } from '../formats/plain-object.js';
+import { hashSortedJson as hashValue } from '../formats/sorted-json.js';
 import { hashModelIR, validateModelIR } from '../config/model-ir.js';
 import { createTargetPlanV2 } from '../config/target-plan.js';
 import {
   INITIAL_EXECUTION_IDENTITY_V2_SCHEMA_ID,
   PROGRAM_LOAD_POLICY_SCHEMA_ID,
 } from '../config/initial-execution-identity.js';
-import { sha256Hex } from '../formats/sha256.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
 import { computeCanonicalSha256 } from '../formats/canonical-hash.js';
 import { evaluateForgeCandidates } from './forge-candidate-evaluation.js';
@@ -12,14 +13,6 @@ import { evaluateForgeCandidates } from './forge-candidate-evaluation.js';
 export const EXECUTION_CANDIDATE_FORGE_SCHEMA_ID = 'doppler.execution-candidate-forge/v1';
 
 const DIGEST_PATTERN = /^sha256:[0-9a-f]{64}$/;
-
-function isObject(value) {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
-function hashValue(value) {
-  return `sha256:${sha256Hex(JSON.stringify(stableSortObject(value)))}`;
-}
 
 function requireAttribution(proposal) {
   if (!isObject(proposal.author) || !['human', 'ai', 'tool'].includes(proposal.author.kind)

@@ -300,16 +300,6 @@
       "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
-      "id": "src/experimental/browser/gguf-importer.js#streamToShards",
-      "category": "artifact-construction",
-      "reason": "The quarantined browser intake path converts source artifact bytes before Capsule/runtime model execution."
-    },
-    {
-      "id": "src/experimental/browser/gguf-importer.js#buildTensorLocations",
-      "category": "artifact-construction",
-      "reason": "The quarantined browser intake path converts source artifact bytes before Capsule/runtime model execution."
-    },
-    {
       "id": "src/experimental/browser/quantization.js#decodeFloat32Chunks",
       "category": "artifact-construction",
       "reason": "The quarantined browser intake path converts source artifact bytes before Capsule/runtime model execution."
@@ -435,11 +425,6 @@
       "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
-      "id": "src/experimental/training/runner/lifecycle.js#selectTrainableParamGroups",
-      "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
-    },
-    {
       "id": "src/experimental/training/runner.js#collectObjectiveMetrics",
       "category": "quarantined-experimental",
       "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
@@ -471,11 +456,6 @@
     },
     {
       "id": "src/experimental/training/suite/plan.js#loadDistillDatasetFromJsonl",
-      "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
-    },
-    {
-      "id": "src/experimental/training/trainer.js#selectTrainableParamGroups",
       "category": "quarantined-experimental",
       "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },

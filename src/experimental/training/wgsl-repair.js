@@ -1,3 +1,4 @@
+import { isPlainObject as isObject } from '../../formats/plain-object.js';
 import { sha256Hex } from '../../formats/sha256.js';
 
 export const WGSL_REPAIR_TASK_CONTRACT = 'replacement_only_wgsl_span_v1';
@@ -27,10 +28,6 @@ const BLOCKING_REWARD_IDS = Object.freeze([
   'contract_pass',
   'policy_pass',
 ]);
-
-function isObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
-}
 
 function requireObject(value, label) {
   if (!isObject(value)) {

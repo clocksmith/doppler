@@ -1,9 +1,9 @@
+import { isPlainObject as isObject } from '../formats/plain-object.js';
+import { hashSortedJson as digest } from '../formats/sorted-json.js';
 import { validateModelIR } from '../config/model-ir.js';
 import { KERNEL_REF_CONTENT_DIGESTS } from '../config/kernels/kernel-ref-digests.js';
 import { expandExecutionV1 } from '../config/schema/index.js';
 import { validateRequiredInferenceFields } from '../inference/pipelines/text/config.js';
-import { sha256Hex } from '../formats/sha256.js';
-import { stableSortObject } from '../formats/stable-sort-object.js';
 import { sanitizeModelId } from './core.js';
 
 export const SEMANTIC_MANIFEST_LOWERING_SCHEMA_ID = 'doppler.semantic-manifest-lowering/v1';
@@ -21,16 +21,8 @@ const BLOCK_KIND_TO_LAYER_TYPE = Object.freeze({
   'full-attention': 'full_attention',
 });
 
-function isObject(value) {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
 function clone(value) {
   return structuredClone(value);
-}
-
-function digest(value) {
-  return `sha256:${sha256Hex(JSON.stringify(stableSortObject(value)))}`;
 }
 
 function requireAuthor(author) {

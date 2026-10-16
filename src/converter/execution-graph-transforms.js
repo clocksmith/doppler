@@ -1,5 +1,4 @@
-
-import { F16_TO_F32_ACTIVATION_MAP, F32_TO_F16_ACTIVATION_MAP, KERNEL_FILE_PRECISION_PATCHES, cloneGraph, deriveF16AttentionKernelEntry, deriveKernelEntry, deriveKernelEntryWithPrecision, deriveKernelKey, deriveLinearDecodeF16KernelEntry, deriveLmHeadDecodeF16KernelEntry, deriveQ4DecodeF16KernelEntry, deriveQ4PrefillF16AccumKernelEntry, deriveQ4PrefillF16KernelEntry, deriveQ4WideTilePrefillF16KernelEntry, findPhaseStep, narrowToF16Activations, replacePhaseStepKernelKey, useQwen36F16Activations, useQwenDecodeF16Matmuls, useQwenF16PrimaryMatmuls } from './execution-graph/dtype.js';
+import { F16_TO_F32_ACTIVATION_MAP, F32_TO_F16_ACTIVATION_MAP, KERNEL_FILE_PRECISION_PATCHES, cloneGraph, deriveKernelEntry, deriveKernelKey, deriveLinearDecodeF16KernelEntry, narrowToF16Activations, useQwen36F16Activations, useQwenDecodeF16Matmuls, useQwenF16PrimaryMatmuls } from './execution-graph/dtype.js';
 import { LAYER_PROJECTION_OPS, useGemma4Int4PleAf16Activations, useGemma4Int4PleSelectiveF16Decode, useGemma4TextF16ActivationsForLane } from './execution-graph/fusion.js';
 import { deriveMappedKernelEntry, deriveQ4DecodeF32ActivationKernelEntry, deriveQ4PrefillF32ActivationKernelEntry, findKernelKeyByFileAndEntry, hasKernelFile, remapDenseQ4KPrefillToQ4Native, remapStepKeys, removeSubgroups, widenProjectionWeightsToF32, widenToF32Activations } from './execution-graph/validation.js';
 export { remapDenseQ4KPrefillToQ4Native, removeSubgroups, widenProjectionWeightsToF32, widenToF32Activations } from './execution-graph/validation.js';
@@ -33,39 +32,6 @@ export function getKernelFilePrecisionPatch(kernel) {
 }
 
 /*
- * Check whether a kernel entry requires subgroup support.
- */
-
-/*
- * Find all kernel keys in the graph whose `kernel` file matches the given filename.
- */
-
-/*
- * Check whether any kernel in the graph uses the given shader file.
- */
-
-/*
- * Create a new kernel entry with the digest cleared (shader changed).
- */
-
-/*
- * Derive a non-colliding kernel key name.
- */
-
-/*
- * Replace kernel key references in step tuples.
- */
-
-/*
- * Check whether a step tuple's kernel key resolves to the given shader file.
- */
-function stepUsesFile(graph, step, filename) {
-  const kernelKey = step[1];
-  const entry = graph.kernels[kernelKey];
-  return entry != null && entry.kernel === filename;
-}
-
-/*
  * Find the first kernel key used by matching ops in a phase whose shader file
  * satisfies the provided predicate.
  */
@@ -84,14 +50,6 @@ function isLinearAttentionLayerType(layerType) {
     || normalized === 'linear'
     || normalized === 'gated_delta'
     || normalized === 'gated_delta_net';
-}
-
-function isFullAttentionLayerType(layerType) {
-  const normalized = normalizeLayerType(layerType);
-  return normalized === 'full_attention'
-    || normalized === 'full'
-    || normalized === 'global'
-    || normalized === 'standard';
 }
 
 function buildGroupedLayerEntries(baseStep, targetLayers, replacementKernelKey) {
@@ -120,24 +78,6 @@ function buildGroupedLayerEntries(baseStep, targetLayers, replacementKernelKey) 
   }
 
   return groupedEntries;
-}
-
-function replacePhaseStepEntries(steps, op, replacementEntries) {
-  if (!Array.isArray(steps) || steps.length === 0 || !Array.isArray(replacementEntries) || replacementEntries.length === 0) {
-    return { steps, changed: false };
-  }
-  const stepIndex = steps.findIndex((entry) => Array.isArray(entry) && entry[0] === op);
-  if (stepIndex === -1) {
-    return { steps, changed: false };
-  }
-  return {
-    steps: [
-      ...steps.slice(0, stepIndex),
-      ...replacementEntries,
-      ...steps.slice(stepIndex + 1),
-    ],
-    changed: true,
-  };
 }
 
 // =============================================================================

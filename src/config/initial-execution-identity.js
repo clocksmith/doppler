@@ -1,4 +1,5 @@
-import { sha256Hex } from '../formats/sha256.js';
+import { isPlainObject as isObject } from '../formats/plain-object.js';
+import { hashSortedJson as hashValue } from '../formats/sorted-json.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
 
 export const INITIAL_EXECUTION_IDENTITY_SCHEMA_ID = 'doppler.initial-execution-identity/v1';
@@ -7,14 +8,6 @@ export const PROGRAM_LOAD_POLICY_V1_SCHEMA_ID = 'doppler.capsule-program-load-po
 export const PROGRAM_LOAD_POLICY_SCHEMA_ID = 'doppler.capsule-program-load-policy/v2';
 
 const SHA256_PATTERN = /^sha256:[0-9a-f]{64}$/;
-
-function isObject(value) {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
-function hashValue(value) {
-  return `sha256:${sha256Hex(JSON.stringify(stableSortObject(value)))}`;
-}
 
 function collectKernelIds(entries, result) {
   if (!Array.isArray(entries)) return;

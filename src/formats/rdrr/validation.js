@@ -1,3 +1,4 @@
+import { isPlainObject } from '../plain-object.js';
 import { validateW8A8Policy } from '../../config/schema/w8a8.schema.js';
 import { validateW8A8StorageDescriptor } from './w8a8-storage.js';
 import { validateTensorConfigConsistency } from './tensor-config-validator.js';
@@ -37,10 +38,6 @@ const LOWERING_ALGORITHM_EXACT_INVARIANTS = new Set([
   'accum_dtype',
   'associativity_grouping',
 ]);
-
-function isPlainObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
-}
 
 function validateOptionalNonEmptyString(errors, object, field, prefix) {
   if (object[field] === undefined) {

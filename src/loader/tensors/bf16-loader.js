@@ -1,3 +1,4 @@
+import { isNativeGpuBuffer as isGpuBufferInstance } from '../../gpu/buffer-identity.js';
 import { alignTo4, writeBufferAligned } from './buffer-write.js';
 import { getDevice, getKernelCapabilities } from '../../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
@@ -10,10 +11,6 @@ import {
 } from '../dtype-utils.js';
 import { trace as debugTrace } from '../../debug/index.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
-
-function isGpuBufferInstance(value) {
-  return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
-}
 
 function isReleasableBuffer(value) {
   return typeof value === 'object' && value !== null && 'size' in value;

@@ -1,3 +1,4 @@
+import { isPlainObject } from '../../formats/plain-object.js';
 import fs from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 
@@ -19,10 +20,8 @@ function detectDefaultExternalModelsRoot() {
 }
 
 export const DEFAULT_EXTERNAL_MODELS_ROOT = detectDefaultExternalModelsRoot();
+export { isPlainObject };
 
-export function isPlainObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
-}
 
 export function ensureCatalogPayload(payload, label = 'catalog') {
   if (!isPlainObject(payload) || !Array.isArray(payload.models)) {

@@ -1,5 +1,3 @@
-
-
 import { getDevice } from '../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { log } from '../../../debug/index.js';
@@ -146,19 +144,4 @@ export function getVectorTensor(weight, label, length, config, debugFlags, devic
     tensor: createTensor(buffer, dtype, [length], label),
     owned: !isGpuBufferInstance(weight) && !isWeightBuffer(weight),
   };
-}
-
-
-function getGPUWeightBuffer(weight, label) {
-  // Handle WeightBuffer by extracting underlying GPUBuffer
-  if (isWeightBuffer(weight)) {
-    return weight.buffer;
-  }
-  if (isGpuBufferInstance(weight)) {
-    return weight;
-  }
-  // Weight not on GPU - this shouldn't happen if loader is working correctly
-  log.warn('Weights', `Weight ${label} not on GPU, uploading`);
-  // At this point weight is Float32Array or ArrayBuffer, so getWeightBuffer returns GPUBuffer
-  return  (getWeightBuffer(weight, label));
 }

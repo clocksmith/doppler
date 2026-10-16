@@ -1,12 +1,9 @@
+import { isPlainObject } from '../plain-object.js';
 const DESCRIPTOR_SCHEMA_VERSION = 'manifoldgguf.v0.1';
 const DESCRIPTOR_STORAGE_TYPE = 'functional_descriptor';
 const DESCRIPTOR_PRNG_ALGORITHM = 'coord_hash_normal_v1';
 const DESCRIPTOR_COORDINATE_INR_TYPE = 'siren';
 const DESCRIPTOR_SPARSE_FORMAT = 'coo_v1';
-
-function isPlainObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
-}
 
 function isPositiveInteger(value) {
   return Number.isInteger(value) && value > 0;

@@ -1,5 +1,6 @@
-import { sha256Hex } from '../formats/sha256.js';
-import { stableSortObject } from '../formats/stable-sort-object.js';
+import { isPlainObject as isObject } from '../formats/plain-object.js';
+import { hashSortedJson as hashValue } from '../formats/sorted-json.js';
+import { requireString } from '../formats/contract-validation.js';
 
 export const RELEASE_TO_JAVASCRIPT_RECEIPT_SCHEMA_ID = 'doppler.release-to-javascript-receipt/v2';
 
@@ -7,24 +8,12 @@ const SOURCE_PUBLICATION_TIMESTAMP_DISPOSITIONS = new Set(['observed', 'unresolv
 
 const DIGEST_PATTERN = /^sha256:[0-9a-f]{64}$/;
 
-function isObject(value) {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
-function hashValue(value) {
-  return `sha256:${sha256Hex(JSON.stringify(stableSortObject(value)))}`;
-}
-
 function timestamp(value, label, errors) {
   if (typeof value !== 'string' || !Number.isFinite(Date.parse(value))) {
     errors.push(`${label} must be an ISO timestamp.`);
     return null;
   }
   return Date.parse(value);
-}
-
-function requireString(value, label, errors) {
-  if (typeof value !== 'string' || !value.trim()) errors.push(`${label} must be a non-empty string.`);
 }
 
 function receiptCore(receipt) {

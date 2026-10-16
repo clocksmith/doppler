@@ -1,21 +1,13 @@
+import { isPlainObject as isObject } from '../formats/plain-object.js';
+import { hashSortedJson as digest } from '../formats/sorted-json.js';
 import { expandExecutionV1 } from '../config/schema/index.js';
 import { resolveTensorRole } from '../formats/rdrr/index.js';
-import { sha256Hex } from '../formats/sha256.js';
-import { stableSortObject } from '../formats/stable-sort-object.js';
 import { normalizeQuantTag } from './quantization-info.js';
 import { resolveConversionPlan } from './conversion-plan.js';
 import { validateSafetensorsIndexEvidence } from './safetensors-header-evidence.js';
 import { createTensorRoleClosureReceipt } from './tensor-role-closure.js';
 
 export const MANIFEST_CONVERSION_PREFLIGHT_SCHEMA_ID = 'doppler.manifest-conversion-preflight/v1';
-
-function isObject(value) {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
-function digest(value) {
-  return `sha256:${sha256Hex(JSON.stringify(stableSortObject(value)))}`;
-}
 
 function requireObject(value, label) {
   if (!isObject(value)) throw new Error(`${label} must be an object.`);

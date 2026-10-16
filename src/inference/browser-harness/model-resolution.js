@@ -1,3 +1,4 @@
+import { hasNodeVersion as isNodeRuntime } from '../../storage/runtime-env.js';
 import { parseModelConfigFromManifest } from '../pipelines/text/config.js';
 import { activateKernelPathState, resolveKernelPathState } from '../pipelines/text/model-load.js';
 import { parseManifest } from '../../formats/rdrr/index.js';
@@ -10,10 +11,6 @@ const DIRECT_SOURCE_FILE_EXTENSIONS = Object.freeze([
   '.task',
   '.litertlm',
 ]);
-
-function isNodeRuntime() {
-  return typeof process !== 'undefined' && !!process.versions?.node;
-}
 
 async function pathExists(nodeFs, targetPath) {
   try {

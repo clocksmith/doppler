@@ -1,3 +1,4 @@
+import { isNativeGpuBuffer } from './buffer-identity.js';
 
 
 import { log } from '../debug/index.js';
@@ -24,7 +25,7 @@ export function isGpuBufferInstance(value) {
   if (value.__dopplerFakeGPUBuffer === true) {
     return true;
   }
-  if (typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer) {
+  if (isNativeGpuBuffer(value)) {
     return true;
   }
   if (value.constructor?.name === 'FakeBuffer' && typeof value.size === 'number' && typeof value.usage === 'number' && typeof value.destroy === 'function') {

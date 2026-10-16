@@ -1,21 +1,9 @@
+import { isPlainObject as isObject } from '../formats/plain-object.js';
+import { requireString, requireDigest } from '../formats/contract-validation.js';
 export const MODEL_IR_V2_SCHEMA_ID = 'doppler.model-ir/v2';
 export const MODEL_IR_V2_SCHEMA_VERSION = 2;
-
-const SHA256_PATTERN = /^sha256:[0-9a-f]{64}$/;
 const ELIGIBLE_CONFIDENCE = new Set(['direct', 'derived']);
 const AUTHOR_KINDS = new Set(['human', 'ai', 'tool']);
-
-function isObject(value) {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
-function requireString(value, label, errors) {
-  if (typeof value !== 'string' || !value.trim()) errors.push(`${label} must be a non-empty string.`);
-}
-
-function requireDigest(value, label, errors) {
-  if (!SHA256_PATTERN.test(value || '')) errors.push(`${label} must be a SHA-256 digest.`);
-}
 
 function requireArray(value, label, errors) {
   if (!Array.isArray(value) || value.length === 0) {

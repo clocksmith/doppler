@@ -1,3 +1,4 @@
+import { isPlainObject as isObject } from '../formats/plain-object.js';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { parseSafetensorsHeader } from '../formats/safetensors/types.js';
@@ -17,10 +18,6 @@ const CONFIDENCE = new Set([
   'ambiguous',
   'unsupported',
 ]);
-
-function isObject(value) {
-  return value !== null && typeof value === 'object' && !Array.isArray(value);
-}
 
 function pointerValue(value, pointer) {
   const parts = pointer.split('/').slice(1).map((part) => (

@@ -25,81 +25,17 @@ Subpath support tiers are defined in [Subsystem Support Matrix](../subsystem-sup
 
 ## Subpath Split
 
-### `doppler-gpu/loaders`
+Use the [generated export inventory](reference/exports.md) for exact symbol names.
+The API pages explain each supported entrypoint:
 
-- `DopplerLoader`
-- `getDopplerLoader()`
-- `createDopplerLoader()`
-- `MultiModelLoader`
-- manifest/config bootstrap helpers used during explicit loader setup
-
-### `doppler-gpu/orchestration`
-
-- `KVCache`
-- `Tokenizer`
-- `SpeculativeDecoder`
-- `ExpertRouter`
-- `MoERouter`
-- `MultiModelNetwork`
-- `MultiPipelinePool`
-- `StructuredJsonHeadPipeline`
-- `createStructuredJsonHeadPipeline(...)`
-- `DreamStructuredPipeline`
-- `createDreamStructuredPipeline(...)`
-- `EnergyRowHeadPipeline`
-- `createEnergyRowHeadPipeline(...)`
-- `DreamEnergyHeadPipeline`
-- `createDreamEnergyHeadPipeline(...)`
-- `ADAPTER_MANIFEST_SCHEMA`
-- `validateAdapterManifest(...)`
-- `parseAdapterManifest(...)`
-- `serializeAdapterManifest(...)`
-- `createAdapterManifest(...)`
-- `computeLoRAScale(...)`
-- `loadLoRAWeights(...)`
-- `loadLoRAFromManifest(...)`
-- `loadLoRAFromUrl(...)`
-- `loadLoRAFromSafetensors(...)`
-- `AdapterManager`
-- `getAdapterManager()`
-- `resetAdapterManager()`
-- `AdapterRegistry`
-- `getAdapterRegistry()`
-- `resetAdapterRegistry()`
-- `createMemoryRegistry()`
-
-### GPU helpers
-
-- `LogitMergeKernel`
-- `getLogitMergeKernel(...)`
-- `mergeLogits(...)`
-- `mergeMultipleLogits(...)`
-
-### `doppler-gpu/generation`
-
-- `createPipeline(...)`
-- `InferencePipeline`
-- `EmbeddingPipeline`
-- core text-pipeline types and generation option types
-
-### `doppler-gpu/training`
-
-- explicit `webgpu_native` versus `external` backend capability checks
-- completion-masked SFT/LoRA workload execution and evaluation
-- autograd, optimizer, loss, checkpoint, and adapter-export primitives
-
-### `doppler-gpu/tooling`
-
-- tier1 runtime config/profile helpers
-- tier1 storage and manifest tooling
-- tier1 browser/Node command runners for canonical verify/debug/bench flows
-- diagnostics harness helpers
-- experimental Node operator flows (`diagnose`, `lora`, `distill`)
-
-### `doppler-gpu/tooling-experimental`
-
-- experimental browser conversion/file-picker helpers
-- experimental P2P/distribution helpers
+| Subpath | API contract |
+| --- | --- |
+| `doppler-gpu/loaders` | [Loader setup](loaders.md) |
+| `doppler-gpu/orchestration` | [Caches, routers, adapters and orchestration](orchestration.md) |
+| `doppler-gpu/generation` | [Pipeline construction and generation](generation.md) |
+| `doppler-gpu/training` | [Training and backend capabilities](training.md) |
+| `doppler-gpu/tooling` | [Generated tooling exports](reference/exports.md) |
+| `doppler-gpu/tooling-experimental` | [Generated experimental exports](reference/exports.md) |
 
 ## Migration Rule
 

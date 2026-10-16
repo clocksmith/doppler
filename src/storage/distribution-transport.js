@@ -60,14 +60,6 @@ function normalizeDistributionSourceOrder(rawSources = []) {
   return normalized;
 }
 
-function normalizeInteger(value, fallback, allowZero = false) {
-  const parsed = Number(value);
-  const min = allowZero ? 0 : 1;
-  return Number.isFinite(parsed) && parsed >= min && Number.isInteger(parsed)
-    ? parsed
-    : fallback;
-}
-
 function normalizeSamplingRate(value, fallback = 1, label = 'distribution.sourceDecision.trace.samplingRate') {
   if (value === undefined || value === null) {
     return fallback;

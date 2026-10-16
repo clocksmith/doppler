@@ -1,3 +1,4 @@
+import { isNativeGpuBuffer as isGpuBufferInstance } from '../gpu/buffer-identity.js';
 
 
 import { getDevice } from '../gpu/device.js';
@@ -7,10 +8,6 @@ import { createTensor } from '../gpu/tensor.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { getShaderModule } from '../gpu/kernels/shader-cache.js';
 import { getShaderScopeCacheKey } from '../gpu/kernels/shader-source-scope.js';
-
-function isGpuBufferInstance(value) {
-  return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
-}
 
 function isRouterVector(value) {
   return value instanceof Float32Array || isGpuBufferInstance(value) || isWeightBuffer(value);

@@ -171,87 +171,15 @@ function resolveRMSNormConstants(options, normWeightDtype) {
   return { ...actual, ...declared?.constants };
 }
 
-export async function runRMSNorm(
-  input,
-  weight,
-  eps,
-  options = {}
-) {
-  const {
-    batchSize = 1, hiddenSize, residual = null, outputBuffer = null,
-    preResidual = null, residualSumOutput = null,
-    outputScale = null,
-  } = options;
-  const resolvedOutputScale = resolveRMSNormOutputScale(outputScale);
-  const isF16 = input.dtype === 'f16';
-  const inferredHiddenSize = inferHiddenSize(input, hiddenSize);
-  if (input.precision === 'two-f32') {
-    const declared = getKernelPathRMSNormSpec(options.role, options.section, options.phase, options.layerIdx, options.kernelPath);
-    // A declared scalar program fails closed: paired input requires a paired program.
-    const variant = resolvePairedRMSNormVariant(declared?.variant ?? null);
-    return executePairedRMSNorm(null, input, weight, eps, { ...options, batchSize, hiddenSize: inferredHiddenSize, variant });
-  }
-  const variant = selectRMSNormKernel({ ...options, hiddenSize: inferredHiddenSize }, isF16);
-  const normWeightBuffer = getBuffer(weight);
-  assertRMSNormWeightBuffer(weight, normWeightBuffer, inferredHiddenSize);
-  const normWeightDtype = resolveNormWeightDtype(weight, inferredHiddenSize);
-  const constants = resolveRMSNormConstants(options, normWeightDtype);
-
-  const bytesPerElement = isF16 ? 2 : 4;
-  const paddedHiddenSize = padToQ4KBlock(inferredHiddenSize);
-  const outputSize = batchSize * paddedHiddenSize * bytesPerElement;
-  const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'rmsnorm_output');
-  const ownedOutput = outputBuffer ? null : outputBuf;
-  const dispatchPlan = planRMSNormDispatch(null, batchSize);
-
-  // Shader layout always includes the residual binding; when unused, bind a harmless placeholder.
-  const effectiveResidual = preResidual || residual;
-  const residualBuf = effectiveResidual?.buffer || effectiveResidual || input?.buffer || input || outputBuf;
-  const hasPrenormOutput = !!preResidual && !!residualSumOutput;
-  const kernelBindings = [input, normWeightBuffer, outputBuf, residualBuf];
-  // Binding 5 (residual_sum_output) must not alias binding 3 (output) — both are read_write.
-  // Allocate a small placeholder when the prenorm output path is inactive.
-  let ownedPrenormPlaceholder = null;
-  try {
-    ownedPrenormPlaceholder = hasPrenormOutput ? null : acquireBuffer(4, undefined, 'rmsnorm_prenorm_placeholder');
-    const prenormBuf = hasPrenormOutput
-      ? (residualSumOutput?.buffer || residualSumOutput)
-      : ownedPrenormPlaceholder;
-    const extraBindings = [{ binding: 5, buffer: prenormBuf }];
-    await unifiedKernelWrapper(
-      'rmsnorm',
-      null,
-      variant,
-      kernelBindings,
-      {
-        size: inferredHiddenSize,
-        num_tokens: batchSize,
-        eps,
-        has_residual: residual ? 1 : 0,
-        token_stride: dispatchPlan.tokenStride,
-        output_scale: resolvedOutputScale,
-        _pad1: 0,
-        _pad2: 0,
-      },
-      dispatchPlan.workgroups,
-      constants,
-      extraBindings,
-      resolveRMSNormDispatchLabel(options.label)
-    );
-
-    if (ownedPrenormPlaceholder) releaseBuffer(ownedPrenormPlaceholder);
-
-    return createTensor(outputBuf, input.dtype, [batchSize, inferredHiddenSize], 'rmsnorm_output');
-  } catch (error) {
-    if (ownedPrenormPlaceholder) releaseBuffer(ownedPrenormPlaceholder);
-    if (ownedOutput) {
-      releaseBuffer(ownedOutput);
-    }
-    throw error;
-  }
+export async function runRMSNorm(input, weight, eps, options = {}) {
+  return executeRMSNorm(null, input, weight, eps, options);
 }
 
-export async function recordRMSNorm(
+export async function recordRMSNorm(recorder, input, weight, eps, options = {}) {
+  return executeRMSNorm(recorder, input, weight, eps, options);
+}
+
+async function executeRMSNorm(
   recorder,
   input,
   weight,
@@ -296,7 +224,7 @@ export async function recordRMSNorm(
       ? (residualSumOutput?.buffer || residualSumOutput)
       : ownedPrenormPlaceholder;
     const extraBindings = [{ binding: 5, buffer: prenormBuf }];
-    if (ownedPrenormPlaceholder) {
+    if (recorder && ownedPrenormPlaceholder) {
       // Recorded bindings must survive idle-pool eviction before submission.
       recorder.trackTemporaryBuffer(ownedPrenormPlaceholder);
       ownedPrenormPlaceholder = null;
@@ -322,11 +250,17 @@ export async function recordRMSNorm(
       resolveRMSNormDispatchLabel(options.label)
     );
 
+    if (ownedPrenormPlaceholder) {
+      releaseBuffer(ownedPrenormPlaceholder);
+      ownedPrenormPlaceholder = null;
+    }
+
     return createTensor(outputBuf, input.dtype, [batchSize, inferredHiddenSize], 'rmsnorm_output');
   } catch (error) {
     if (ownedPrenormPlaceholder) releaseBuffer(ownedPrenormPlaceholder);
     if (ownedOutput) {
-      recorder.trackTemporaryBuffer(ownedOutput);
+      if (recorder) recorder.trackTemporaryBuffer(ownedOutput);
+      else releaseBuffer(ownedOutput);
     }
     throw error;
   }

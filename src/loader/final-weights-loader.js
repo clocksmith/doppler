@@ -1,3 +1,4 @@
+import { isNativeGpuBuffer as isGpuBufferInstance } from '../gpu/buffer-identity.js';
 import { createRangeBackedWeightBuffer } from './tensors/range-backed-weights.js';
 
 
@@ -28,10 +29,6 @@ const DIFFUSION_GEMMA_SELF_CONDITIONING_PREFIXES = [
   'decoder.self_conditioning',
   'self_conditioning',
 ];
-
-function isGpuBufferInstance(value) {
-  return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
-}
 
 function normalizeLocationDtype(location) {
   return typeof location?.dtype === 'string'

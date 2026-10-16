@@ -1,15 +1,7 @@
-import { sha256Hex } from '../formats/sha256.js';
-import { stableSortObject } from '../formats/stable-sort-object.js';
+import { isPlainObject as isObject } from '../formats/plain-object.js';
+import { hashSortedJson as digest } from '../formats/sorted-json.js';
 
 export const SOURCE_ACQUISITION_SCHEMA_ID = 'doppler.source-acquisition/v1';
-
-function isObject(value) {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
-function digest(value) {
-  return `sha256:${sha256Hex(JSON.stringify(stableSortObject(value)))}`;
-}
 
 function requireString(value, label) {
   if (typeof value !== 'string' || !value.trim()) throw new Error(`${label} must be a non-empty string.`);

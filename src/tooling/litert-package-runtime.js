@@ -13,7 +13,7 @@ import {
 } from '../formats/litert/types.js';
 import { resolveDirectSourcePackageProfile } from './source-package-profiles.js';
 import { cloneJsonValue } from '../formats/clone-json.js';
-import { computePackedByteSize, createLiteRTFloatTensor, inferLiteRTRowwiseLayout, isGemma4GlobalLayer, normalizeGemma4LiteRTTensors, normalizeText, resolveLiteRTScaleContract } from './litert/package.js';
+import { computePackedByteSize, createLiteRTFloatTensor, isGemma4GlobalLayer, normalizeGemma4LiteRTTensors, normalizeText } from './litert/package.js';
 export { inferLiteRTRowwiseLayout, resolveGemma4AttentionHeadDim } from './litert/package.js';
 
 export const LITERT_PACKAGE_SOURCE_KIND_TASK = 'litert-task';
@@ -331,103 +331,6 @@ function addFloatToNormalized(normalized, rawTensor, sourcePath, canonicalName, 
     throw new Error(`direct-source runtime: missing LiteRT tensor "${canonicalName}".`);
   }
   normalized.push(createLiteRTFloatTensor(rawTensor, sourcePath, canonicalName, role, group));
-}
-
-function createLiteRTRowwiseTensor(
-  rawTensor,
-  scaleTensor,
-  sumTensor,
-  sourcePath,
-  canonicalName,
-  role,
-  group = null,
-  expectedShape = null
-) {
-  if (!rawTensor || typeof rawTensor !== 'object') {
-    throw new Error(`direct-source runtime: missing LiteRT tensor "${canonicalName}".`);
-  }
-  if (!scaleTensor || typeof scaleTensor !== 'object') {
-    throw new Error(
-      `direct-source runtime: LiteRT tensor "${rawTensor.name}" is missing row-scale companion "${rawTensor.name}_quantized_scale".`
-    );
-  }
-  if (scaleTensor.size % 4 !== 0) {
-    throw new Error(
-      `direct-source runtime: LiteRT tensor "${rawTensor.name}" has invalid row-scale size ${scaleTensor.size}.`
-    );
-  }
-
-  const rowsFromScale = scaleTensor.size / 4;
-  if (!Number.isInteger(rowsFromScale) || rowsFromScale <= 0) {
-    throw new Error(
-      `direct-source runtime: LiteRT tensor "${rawTensor.name}" has invalid row count ${rowsFromScale}.`
-    );
-  }
-  if (sumTensor && typeof sumTensor === 'object') {
-    if (sumTensor.size % 4 !== 0) {
-      throw new Error(
-        `direct-source runtime: LiteRT tensor "${rawTensor.name}" has invalid row-sum size ${sumTensor.size}.`
-      );
-    }
-    const rowsFromSum = sumTensor.size / 4;
-    if (rowsFromSum !== rowsFromScale) {
-      throw new Error(
-        `direct-source runtime: LiteRT tensor "${rawTensor.name}" row-sum count ${rowsFromSum} ` +
-        `does not match row-scale count ${rowsFromScale}.`
-      );
-    }
-  }
-  const resolvedShape = Array.isArray(expectedShape) && expectedShape.length === 2
-    ? expectedShape
-    : null;
-  const rows = resolvedShape ? Number(resolvedShape[0]) : rowsFromScale;
-  const cols = resolvedShape ? Number(resolvedShape[1]) : null;
-  if (!Number.isInteger(rows) || rows <= 0 || (resolvedShape && rows !== rowsFromScale)) {
-    throw new Error(
-      `direct-source runtime: LiteRT tensor "${rawTensor.name}" row-scale count ${rowsFromScale} ` +
-      `does not match expected rows ${resolvedShape?.[0] ?? rows}.`
-    );
-  }
-  const layout = resolvedShape
-    ? inferLiteRTRowwiseLayout(rawTensor, resolvedShape, canonicalName, {
-      preferSignedPacked: !(sumTensor && typeof sumTensor === 'object'),
-    })
-    : inferLiteRTRowwiseLayout(rawTensor, [rowsFromScale, rawTensor.size / rowsFromScale], canonicalName, {
-      preferSignedPacked: !(sumTensor && typeof sumTensor === 'object'),
-    });
-  const resolvedCols = resolvedShape ? cols : Math.floor(rawTensor.size / rowsFromScale);
-  const scaleContract = resolveLiteRTScaleContract(layout.sourceDtype, canonicalName, {
-    hasSumCompanion: Boolean(sumTensor && typeof sumTensor === 'object'),
-  });
-  return {
-    name: canonicalName,
-    shape: [rows, resolvedCols],
-    dtype: 'F16',
-    offset: rawTensor.offset,
-    size: rawTensor.size,
-    sourcePath,
-    role,
-    ...(group ? { group } : {}),
-    sourceTransform: {
-      kind: 'litert_rowwise_dequant',
-      scheme: 'per_row_affine',
-      sourceDtype: layout.sourceDtype,
-      targetDtype: 'F16',
-      storageEncoding: layout.storageEncoding,
-      scaleSemantics: scaleContract.scaleSemantics,
-      scaleDivisor: scaleContract.scaleDivisor,
-      scaleSourcePath: sourcePath,
-      scaleOffset: scaleTensor.offset,
-      scaleSize: scaleTensor.size,
-      ...(sumTensor && typeof sumTensor === 'object'
-        ? {
-          rowSumSourcePath: sourcePath,
-          rowSumOffset: sumTensor.offset,
-          rowSumSize: sumTensor.size,
-        }
-        : {}),
-    },
-  };
 }
 
 function normalizeGemma412BSplitLiteRTTensors(parsedTFLitesByPath, virtualFiles, runtimeProfile, packageConfig) {

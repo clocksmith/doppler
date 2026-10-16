@@ -1,3 +1,4 @@
+import { isPlainObject } from '../../../formats/plain-object.js';
 import { getDevice, getDeviceLimits, getKernelCapabilities } from '../../../gpu/device.js';
 import { scopeKVCacheLayerRange, scopeKVCacheLayerIndices, resolveKVCacheLayerCount } from '../../kv-cache/layer-range.js';
 import {
@@ -25,20 +26,7 @@ import {
   createHttpArtifactStorageContext,
   createNodeFileArtifactStorageContext,
 } from '../../../storage/artifact-storage-context.js';
-
-// Extracted standalone modules
-import { initRoPEFrequencies, isGPURoPEBuffers } from './init-rope.js';
 import { hasLinearAttentionLayers } from './linear-attention.js';
-import {
-  applyChatTemplate,
-  applyGemmaChatTemplate,
-  applyGemma4ChatTemplate,
-  applyLlama3ChatTemplate,
-  applyGptOssChatTemplate,
-  applyQwenChatTemplate,
-  isStopToken,
-} from './init-chat-templates.js';
-import { fuseQKVWeights } from './init-qkv-fusion.js';
 import { rewriteWeightLoadError } from './load-errors.js';
 import { resolveWeightLoadingConfig } from './weight-loading-config.js';
 import { toArrayBuffer } from '../../../formats/array-buffer.js';
@@ -65,10 +53,6 @@ function resolveErrorMessage(error) {
     return error;
   }
   return String(error);
-}
-
-function isPlainObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
 }
 
 function isRuntimeInferenceConfigInput(value) {

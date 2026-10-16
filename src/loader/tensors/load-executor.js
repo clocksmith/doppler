@@ -1,6 +1,7 @@
+import { isNativeGpuBuffer as isGpuBufferInstance } from '../../gpu/buffer-identity.js';
 import { alignTo4, toUint8View, writeBufferAligned } from './buffer-write.js';
 export { alignTo4, toUint8View, writeBufferAligned } from './buffer-write.js';
-import { getDevice, getKernelCapabilities, getPlatformConfig } from '../../gpu/device.js';
+import { getDevice, getKernelCapabilities } from '../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../memory/buffer-pool.js';
 import { dequantize, dequantizeRowwise, dequantizeQ6K, castF16ToF32 } from '../../gpu/kernel-selector.js';
 import { createTensor } from '../../gpu/tensor.js';
@@ -9,16 +10,10 @@ import { f16ToF32, shouldDequantizeToF16, applyBufferLayout } from '../dtype-uti
 import { QK_K, Q4K_BLOCK_BYTES, Q6K_BLOCK_BYTES } from '../quantization-constants.js';
 import { log, trace as debugTrace } from '../../debug/index.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
-import { dequantizeQ4KM, dequantizeQ4KMRowWise, float32ToFloat16 } from '../../converter/quantizer.js';
+import { dequantizeQ4KM, dequantizeQ4KMRowWise } from '../../converter/quantizer.js';
 import { hasSourceTransform } from './source-transform.js';
-import { loadFunctionalDescriptor } from './functional-descriptor-loader.js';
-import { loadBF16 } from './bf16-loader.js';
 
 export let loggedF32UpcastNonMatmul = false;
-
-export function isGpuBufferInstance(value) {
-  return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
-}
 
 export function isReleasableBuffer(value) {
   return typeof value === 'object' && value !== null && 'size' in value;
@@ -553,3 +548,5 @@ export async function loadFloat(shardData, location, name, config) {
     releaseOwnedGpuBuffer(buffer, ownsBuffer);
   }
 }
+
+export { isGpuBufferInstance };

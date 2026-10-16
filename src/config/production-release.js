@@ -1,10 +1,10 @@
+import { isPlainObject as isObject } from '../formats/plain-object.js';
+import { requireObject, requireString, requireDigest, requireExactKeys } from '../formats/contract-validation.js';
 import { sha256Hex } from '../formats/sha256.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
 
 export const PRODUCTION_RELEASE_SCHEMA_ID = 'doppler.production-release/v1';
 export const PRODUCTION_RELEASE_SCHEMA_VERSION = 1;
-
-const SHA256_PATTERN = /^sha256:[0-9a-f]{64}$/;
 const ID_PATTERN = /^[a-z][a-z0-9-]*$/;
 const RELEASE_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*-release-[0-9a-f]{16}$/;
 const EVIDENCE_CLASSES = new Set(['reference-fixture', 'external-candidate', 'external-production']);
@@ -12,45 +12,18 @@ const OPERATING_SYSTEMS = new Set(['windows', 'macos']);
 const ARCHITECTURES = new Set(['x64', 'arm64']);
 const GPU_VENDORS = new Set(['amd', 'apple', 'intel', 'nvidia']);
 
-function isObject(value) {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
 function canonicalJson(value) {
   return JSON.stringify(stableSortObject(value));
-}
-
-function requireObject(value, label, errors) {
-  if (!isObject(value)) {
-    errors.push(`${label} must be an object.`);
-    return false;
-  }
-  return true;
-}
-
-function requireString(value, label, errors) {
-  if (typeof value !== 'string' || !value.trim()) errors.push(`${label} must be a non-empty string.`);
 }
 
 function requireId(value, label, errors) {
   if (!ID_PATTERN.test(value || '')) errors.push(`${label} must be a kebab-case identifier.`);
 }
 
-function requireDigest(value, label, errors) {
-  if (!SHA256_PATTERN.test(value || '')) errors.push(`${label} must be a SHA-256 digest.`);
-}
-
 function requireRepoPath(value, label, errors) {
   requireString(value, label, errors);
   if (typeof value === 'string' && (value.startsWith('/') || value.split('/').includes('..'))) {
     errors.push(`${label} must be a repository-relative path.`);
-  }
-}
-
-function requireExactKeys(value, allowed, label, errors) {
-  if (!isObject(value)) return;
-  for (const key of Object.keys(value)) {
-    if (!allowed.has(key)) errors.push(`${label}.${key} is not allowed.`);
   }
 }
 
