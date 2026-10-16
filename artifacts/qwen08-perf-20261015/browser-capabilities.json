@@ -1,0 +1,58 @@
+[
+  {
+    "flags": [],
+    "browserVersion": "155.0.8059.80",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+    "secureContext": true,
+    "webgpu": true,
+    "webnn": false,
+    "builder": "undefined",
+    "contexts": []
+  },
+  {
+    "flags": [
+      "--enable-features=WebMachineLearningNeuralNetwork"
+    ],
+    "browserVersion": "155.0.8059.80",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+    "secureContext": true,
+    "webgpu": true,
+    "webnn": true,
+    "builder": "function",
+    "contexts": [
+      {
+        "requestedDeviceType": "cpu",
+        "values": [
+          19,
+          22,
+          43,
+          50
+        ],
+        "correct": true,
+        "backendIdentity": "Not exposed; requested device type is not proof of actual accelerator"
+      },
+      {
+        "requestedDeviceType": "gpu",
+        "values": [
+          19,
+          22,
+          43,
+          50
+        ],
+        "correct": true,
+        "backendIdentity": "Not exposed; requested device type is not proof of actual accelerator"
+      },
+      {
+        "requestedDeviceType": "npu",
+        "values": [
+          19,
+          22,
+          43,
+          50
+        ],
+        "correct": true,
+        "backendIdentity": "Not exposed; requested device type is not proof of actual accelerator"
+      }
+    ]
+  }
+]

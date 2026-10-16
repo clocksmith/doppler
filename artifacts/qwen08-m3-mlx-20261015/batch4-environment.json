@@ -1,0 +1,35 @@
+{
+  "startedAt": "2026-10-16T02:46:20.941Z",
+  "runtimeCommit": "fd9adbc41b58c1863c529a23bbfa9bb6fa0a64e6",
+  "runtimeSource": "Committed snapshot in .cache/qwen08-runtime, excludes concurrent working-tree changes",
+  "diffSha256": "3032d336da67d00d54f3726c8ac7fa6fd56c8323c91d2d03b3806d4f130737da",
+  "hardware": "Apple M3\n25769803776",
+  "os": "ProductName:\t\tmacOS\nProductVersion:\t\t26.6.2\nBuildVersion:\t\t25G83",
+  "scripts": {
+    "doppler.js": "1baf70b5ebdb91d7aeadb64f411cd1a854270aa14ec9d5fd0910e801d0c79959",
+    "mlx-reference.py": "888a7360b04cef07ee48f7a106f1d53bd16e3f8e97dfd4a5ca58c5b3cc6d75bc",
+    "batch4-run.js": "a133e0521bdc08444469c49953fa2b9413144551d69981a3600ee9184ef65f93",
+    "batch4-policy.json": "e2f89b0e4cba86d7a66565eadc1c468cce582fe1cab9e1a55ab54af0609b7fb0",
+    "conversion.json": "da7801f40200c5b198b5f24ae09a3116c7b24043b75722382831bdf312f6dd14",
+    "compare.js": "a002c58e32bed994885ff9365270799d5045c84bd71f82e071481d2181104d59"
+  },
+  "runs": [
+    {
+      "engine": "doppler",
+      "command": "/Users/xyz/.nvm/versions/node/v22.20.0/bin/node",
+      "args": [
+        "/Users/xyz/deco/doppler/.cache/qwen08-runtime/artifacts/qwen08-m3-mlx-20261015/doppler.js",
+        "/Users/xyz/deco/doppler/.cache/qwen08-f16",
+        "/Users/xyz/deco/doppler/artifacts/qwen08-m3-mlx-20261015/inputs.json",
+        "/Users/xyz/deco/doppler/artifacts/qwen08-m3-mlx-20261015/doppler-batch4.json",
+        "/Users/xyz/deco/doppler/artifacts/qwen08-m3-mlx-20261015/batch4-policy.json"
+      ],
+      "startedAt": "2026-10-16T02:46:20.984Z",
+      "endedAt": "2026-10-16T02:47:02.041Z",
+      "timedOut": false,
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "memoryCaveat": "MLX allocator bytes and Doppler pool bytes have different coverage. Never subtract or compare them as total system residency."
+}

@@ -1,0 +1,101 @@
+{
+  "engine": "doppler",
+  "surface": "node-webgpu",
+  "nodeVersion": "v22.20.0",
+  "manifestHash": "cb8e4d8bf7fbc8522d1222bbbf3cf9a46e297a899cf737d4738554a1d1d68062",
+  "policy": {
+    "schema": "doppler.mlx-diagnostic-comparison/v1",
+    "claim": "Doe compatibility probe, not a performance comparison.",
+    "source": {
+      "repo": "Qwen/Qwen3.5-0.8B",
+      "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+      "weightsSha256": "04b1c301231dd422b8860db31311ab2721511346a32cb1e079c4c4e5f1fe4696",
+      "weightsFile": "model.safetensors-00001-of-00001.safetensors"
+    },
+    "shared": {
+      "weightDtype": "float16",
+      "promptTokenCounts": [
+        128
+      ],
+      "promptText": "This is a reference document about a small library. The library lends books, maintains a catalog, and helps readers find reliable information. Its opening hours vary by day. Readers may reserve available books and return them at the front desk. ",
+      "maxTokens": 16,
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1,
+      "repetitionPenalty": 1,
+      "useChatTemplate": false,
+      "suppressTokenIds": [],
+      "warmupRuns": 0,
+      "timedRuns": 1,
+      "requireExactPromptTokens": true,
+      "requireExactGeneratedTokens": true,
+      "maxProcessSeconds": 300,
+      "memoryLimitBytes": 6442450944,
+      "eosTokenIds": [
+        248046,
+        248044
+      ]
+    },
+    "engines": {
+      "mlx": {
+        "package": "mlx-lm",
+        "version": "0.32.1",
+        "prefillStepSize": 1024
+      },
+      "doppler": {
+        "surface": "node-webgpu",
+        "runtimeConfig": {
+          "shared": {
+            "bufferPool": {
+              "budget": {
+                "maxTotalBytes": 6442450944,
+                "highWatermarkRatio": 0.9,
+                "emergencyTrimTargetRatio": 0.8,
+                "hardFailOnBudgetExceeded": true
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "runs": [],
+  "complete": false,
+  "error": {
+    "message": "Pipeline load phase \"loadWeights\" failed: [Loader] Embedding \"model.language_model.embed_tokens.weight\" cannot be GPU-resident on this device: requires 508559360 bytes but max storage binding is 268435456 bytes. Configure a split embedding kernel that fits this device or use a device with a larger storage binding limit.",
+    "stack": "Error: Pipeline load phase \"loadWeights\" failed: [Loader] Embedding \"model.language_model.embed_tokens.weight\" cannot be GPU-resident on this device: requires 508559360 bytes but max storage binding is 268435456 bytes. Configure a split embedding kernel that fits this device or use a device with a larger storage binding limit.\n    at createPipelineLoadPhaseError (file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/pipeline-load-timing.js:9:19)\n    at withPipelineLoadPhase (file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/pipeline-load-timing.js:32:11)\n    at async timedPipelineLoadPhase (file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/pipeline-load-timing.js:73:12)\n    at async InferencePipeline.loadModel (file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/lifecycle.js:398:5)\n    at async file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/factory.js:22:7\n    at async runWithShaderSourceScope (file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/shader-source-scope.js:70:16)\n    at async createInitializedPipeline (file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/factory.js:14:3)\n    at async loadProgram (file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/client/model-host/index.js:313:18)\n    at async Function.load (file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/client/model-host/index.js:210:13)\n    at async file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/artifacts/qwen08-perf-20261015/doppler.js:26:11"
+  },
+  "unloadedPool": {
+    "allocations": 0,
+    "reuses": 0,
+    "totalBytesAllocated": 0,
+    "peakBytesAllocated": 0,
+    "currentBytesAllocated": 0,
+    "totalBytesRequested": 0,
+    "peakBytesRequested": 0,
+    "currentBytesRequested": 0,
+    "resources": {
+      "retainedModel": {
+        "bytes": 0,
+        "count": 0
+      },
+      "active": {
+        "bytes": 0,
+        "count": 0
+      },
+      "reusable": {
+        "bytes": 0,
+        "count": 0
+      },
+      "deferredCleanup": {
+        "bytes": 0,
+        "count": 0
+      }
+    },
+    "activeBuffers": 0,
+    "pooledBuffers": 0,
+    "budgetMaxBytes": 6442450944,
+    "budgetUtilization": 0,
+    "hitRate": "0%"
+  }
+}

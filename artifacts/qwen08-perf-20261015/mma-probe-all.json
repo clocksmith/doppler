@@ -1,0 +1,233 @@
+{
+  "scope": "Standalone F32 accumulation, F16 weight projection; not model qualification",
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  },
+  "configs": [
+    {
+      "componentType": "f32",
+      "resultComponentType": "f32",
+      "M": 8,
+      "N": 8,
+      "K": 8
+    },
+    {
+      "componentType": "f16",
+      "resultComponentType": "f16",
+      "M": 8,
+      "N": 8,
+      "K": 8
+    }
+  ],
+  "tolerance": {
+    "absolute": 0.001,
+    "relative": 0.001
+  },
+  "rows": [
+    {
+      "M": 128,
+      "N": 1024,
+      "K": 1024,
+      "name": "scalar",
+      "compileMs": 8.968875000000004,
+      "sha256": "78b78ec9a73766b5cfa71505f845a2cd3dac2468f8b92e5624e0c67201198888",
+      "times": [
+        3.16833299999999,
+        3.0822080000000085,
+        3.3650829999999985
+      ],
+      "maxAbsVsScalar": 0,
+      "maxAbsVsReference": 6.690530369724002e-7,
+      "checkedOutputs": 131072,
+      "referenceSamples": 64
+    },
+    {
+      "M": 128,
+      "N": 1024,
+      "K": 1024,
+      "name": "tiled",
+      "compileMs": 1.8655830000000009,
+      "sha256": "31b2f8d9623d77df223f12da61eb5a178209fa1ce43199fe94357d7791c2b3b5",
+      "times": [
+        1.9374170000000106,
+        1.9552919999999858,
+        2.017624999999981
+      ],
+      "maxAbsVsScalar": 0.0000010766088962554932,
+      "maxAbsVsReference": 1.953371224772127e-7,
+      "checkedOutputs": 131072,
+      "referenceSamples": 64
+    },
+    {
+      "M": 128,
+      "N": 1024,
+      "K": 1024,
+      "name": "mma",
+      "compileMs": 0.7082499999999996,
+      "sha256": "40c6af46a6242cc67982256620a5d0af0fafdbdf9d27e040eb38f3e8918a9224",
+      "times": [
+        3.250124999999997,
+        2.640250000000009,
+        2.670749999999998
+      ],
+      "maxAbsVsScalar": 0,
+      "maxAbsVsReference": 6.690530369724002e-7,
+      "checkedOutputs": 131072,
+      "referenceSamples": 64
+    },
+    {
+      "M": 128,
+      "N": 1024,
+      "K": 1024,
+      "name": "mma-tiled",
+      "compileMs": 72.533125,
+      "sha256": "bc561d9543055abe4c0852e17c70bab9ee8cb6a7872d5c7a37e51d2857cb006a",
+      "times": [
+        1.842708999999985,
+        1.774000000000001,
+        1.8570839999999862
+      ],
+      "maxAbsVsScalar": 0,
+      "maxAbsVsReference": 6.690530369724002e-7,
+      "checkedOutputs": 131072,
+      "referenceSamples": 64
+    },
+    {
+      "M": 128,
+      "N": 3584,
+      "K": 1024,
+      "name": "scalar",
+      "compileMs": 8.968875000000004,
+      "sha256": "78b78ec9a73766b5cfa71505f845a2cd3dac2468f8b92e5624e0c67201198888",
+      "times": [
+        9.569749999999999,
+        5.594708999999966,
+        4.254458
+      ],
+      "maxAbsVsScalar": 0,
+      "maxAbsVsReference": 5.516163099628102e-7,
+      "checkedOutputs": 458752,
+      "referenceSamples": 64
+    },
+    {
+      "M": 128,
+      "N": 3584,
+      "K": 1024,
+      "name": "tiled",
+      "compileMs": 1.8655830000000009,
+      "sha256": "31b2f8d9623d77df223f12da61eb5a178209fa1ce43199fe94357d7791c2b3b5",
+      "times": [
+        2.4016249999999673,
+        2.1666250000000105,
+        2.25079199999999
+      ],
+      "maxAbsVsScalar": 0.0000010766088962554932,
+      "maxAbsVsReference": 1.953371224772127e-7,
+      "checkedOutputs": 458752,
+      "referenceSamples": 64
+    },
+    {
+      "M": 128,
+      "N": 3584,
+      "K": 1024,
+      "name": "mma",
+      "compileMs": 0.7082499999999996,
+      "sha256": "40c6af46a6242cc67982256620a5d0af0fafdbdf9d27e040eb38f3e8918a9224",
+      "times": [
+        3.3187500000000227,
+        3.7532079999999723,
+        4.6426250000000095
+      ],
+      "maxAbsVsScalar": 0,
+      "maxAbsVsReference": 5.516163099628102e-7,
+      "checkedOutputs": 458752,
+      "referenceSamples": 64
+    },
+    {
+      "M": 128,
+      "N": 3584,
+      "K": 1024,
+      "name": "mma-tiled",
+      "compileMs": 72.533125,
+      "sha256": "bc561d9543055abe4c0852e17c70bab9ee8cb6a7872d5c7a37e51d2857cb006a",
+      "times": [
+        2.568834000000038,
+        2.7156249999999886,
+        2.832749999999976
+      ],
+      "maxAbsVsScalar": 0,
+      "maxAbsVsReference": 5.516163099628102e-7,
+      "checkedOutputs": 458752,
+      "referenceSamples": 64
+    },
+    {
+      "M": 1024,
+      "N": 3584,
+      "K": 1024,
+      "name": "scalar",
+      "compileMs": 8.968875000000004,
+      "sha256": "78b78ec9a73766b5cfa71505f845a2cd3dac2468f8b92e5624e0c67201198888",
+      "times": [
+        30.188499999999976,
+        28.080083000000002,
+        27.428583000000003
+      ],
+      "maxAbsVsScalar": 0,
+      "maxAbsVsReference": 6.828158234384318e-7,
+      "checkedOutputs": 3670016,
+      "referenceSamples": 64
+    },
+    {
+      "M": 1024,
+      "N": 3584,
+      "K": 1024,
+      "name": "tiled",
+      "compileMs": 1.8655830000000009,
+      "sha256": "31b2f8d9623d77df223f12da61eb5a178209fa1ce43199fe94357d7791c2b3b5",
+      "times": [
+        12.258082999999942,
+        11.795542000000069,
+        12.557916000000091
+      ],
+      "maxAbsVsScalar": 0.0000012498348951339722,
+      "maxAbsVsReference": 1.6406357872256194e-7,
+      "checkedOutputs": 3670016,
+      "referenceSamples": 64
+    },
+    {
+      "M": 1024,
+      "N": 3584,
+      "K": 1024,
+      "name": "mma",
+      "compileMs": 0.7082499999999996,
+      "sha256": "40c6af46a6242cc67982256620a5d0af0fafdbdf9d27e040eb38f3e8918a9224",
+      "times": [
+        22.83812499999999,
+        22.614124999999945,
+        20.200665999999956
+      ],
+      "maxAbsVsScalar": 0,
+      "maxAbsVsReference": 6.828158234384318e-7,
+      "checkedOutputs": 3670016,
+      "referenceSamples": 64
+    },
+    {
+      "M": 1024,
+      "N": 3584,
+      "K": 1024,
+      "name": "mma-tiled",
+      "compileMs": 72.533125,
+      "sha256": "bc561d9543055abe4c0852e17c70bab9ee8cb6a7872d5c7a37e51d2857cb006a",
+      "times": [
+        13.57912500000009,
+        13.445249999999987,
+        14.253874999999994
+      ],
+      "maxAbsVsScalar": 0,
+      "maxAbsVsReference": 6.828158234384318e-7,
+      "checkedOutputs": 3670016,
+      "referenceSamples": 64
+    }
+  ]
+}

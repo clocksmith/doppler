@@ -1,0 +1,106 @@
+{
+  "createdAt": "2026-10-16T02:58:19.708Z",
+  "providers": [
+    {
+      "specifier": "webgpu",
+      "info": {
+        "subgroupMatrixConfigs": [
+          {},
+          {}
+        ]
+      },
+      "features": [
+        "chromium-experimental-subgroup-matrix",
+        "texture-component-swizzle",
+        "primitive-index",
+        "texture-formats-tier2",
+        "texture-formats-tier1",
+        "subgroups",
+        "dual-source-blending",
+        "clip-distances",
+        "float32-blendable",
+        "float32-filterable",
+        "bgra8unorm-storage",
+        "rg11b10ufloat-renderable",
+        "shader-f16",
+        "indirect-first-instance",
+        "timestamp-query",
+        "texture-compression-astc-sliced-3d",
+        "texture-compression-astc",
+        "texture-compression-etc2",
+        "texture-compression-bc-sliced-3d",
+        "texture-compression-bc",
+        "depth32float-stencil8",
+        "depth-clip-control",
+        "core-features-and-limits"
+      ],
+      "wgslFeatures": [
+        "subgroup_uniformity",
+        "buffer_view",
+        "unrestricted_pointer_parameters",
+        "chromium_print",
+        "pointer_composite_access",
+        "immediate_address_space",
+        "subgroup_id",
+        "linear_indexing",
+        "texture_and_sampler_let",
+        "fragment_depth",
+        "uniform_buffer_standard_layout",
+        "packed_4x8_integer_dot_product",
+        "texture_formats_tier1",
+        "readonly_and_readwrite_storage_textures",
+        "filtering_parameters",
+        "texel_buffers",
+        "sized_binding_array",
+        "swizzle_assignment"
+      ],
+      "deviceCreated": true
+    },
+    {
+      "specifier": "file:///Users/xyz/deco/doe/packages/doe-gpu/src/index.js",
+      "info": {
+        "vendor": "Apple",
+        "architecture": "M3",
+        "device": "Apple M3",
+        "description": "Apple M3",
+        "isFallbackAdapter": false,
+        "subgroupMinSize": 32,
+        "subgroupMaxSize": 32,
+        "vendorID": 0,
+        "deviceID": 0,
+        "driverVersion": 0
+      },
+      "features": [
+        "core-features-and-limits",
+        "depth-clip-control",
+        "depth32float-stencil8",
+        "texture-compression-bc",
+        "texture-compression-etc2",
+        "texture-compression-astc",
+        "rg11b10ufloat-renderable",
+        "timestamp-query",
+        "bgra8unorm-storage",
+        "shader-f16",
+        "indirect-first-instance",
+        "float32-filterable",
+        "float32-blendable",
+        "clip-distances",
+        "dual-source-blending",
+        "subgroups",
+        "texture-formats-tier1",
+        "texture-formats-tier2",
+        "primitive-index",
+        "texture-component-swizzle"
+      ],
+      "wgslFeatures": [
+        "readonly-and-readwrite-storage-textures",
+        "packed_4x8_integer_dot_product"
+      ],
+      "deviceCreated": true
+    }
+  ],
+  "doeLibrary": {
+    "path": "/Users/xyz/deco/doe/.cache/qwen08-native/lib/libwebgpu_doe.dylib",
+    "sha256": "64832c70affb9fac77c86e031672557592971f25164b8aa3ee9cb03833e84d77"
+  }
+}

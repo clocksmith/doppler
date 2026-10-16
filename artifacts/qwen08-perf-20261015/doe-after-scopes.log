@@ -1,0 +1,48 @@
+[331.1ms][doppler] Resolving model
+[354.9ms][doppler] Fetching manifest
+[361.8ms][Platform] No specific platform matched for adapter (vendor=Apple, arch=M3), falling back to generic
+[GPU] Apple M3, f16/subgroups, 13.3GB, submit probe: 2.6ms
+[409.4ms][doppler] Loading weights
+[413.7ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[413.8ms][Config] Using manifest-first config (source of truth)
+[416.3ms][Pipeline] Resolved session applied (qwen3-5-0-8b-text-f16-matched): batchSize=1, stopCheckMode=batch, readbackInterval=1, disableCommandBatching=false
+[416.9ms][Pipeline] KernelPath: qwen3-5-0-8b-text-f16-matched-execution-inline (15 decode steps, 10 kernels, source=execution-v1)
+[417.3ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen3-5-0-8b-text-f16-matched-execution-inline
+[417.6ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[519.1ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[606.1ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges
+[606.3ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[607.2ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=4096
+[608.0ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen3-5-0-8b-text-f16-matched-execution-inline
+[638.0ms][ShardCache] Custom shard loader configured
+[638.2ms][Loader] Initializing...
+[723.3ms][HeapManager] Allocated segment 0: 1024MB
+[723.5ms][HeapManager] Segmented heap: 1GB per segment
+[723.5ms][HeapManager] Initialized with strategy: SEGMENTED
+[723.6ms][Loader] Initialized (f16, subgroups, unified)
+[723.9ms][Loader] Loading: qwen3-5-0-8b-text-f16-matched
+[724.6ms][Loader] [0.0s] Memory (start): | RSS=1.20 GB (heap=61.64 MB/97.95 MB, external=2.00 GB, arrayBuffers=2.00 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[948.7ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,1024], isWeightBuffer=true
+[949.0ms][Loader] Layers: 0-23
+[1689.5ms][Loader] Layers: 24 complete (0.74s)
+[1690.5ms][Loader] Complete: 1.40 GB in 0.96s (1.45 GB/s)
+[1691.1ms][Loader] [1.0s] Memory (complete): | RSS=1.28 GB (heap=61.87 MB/98.20 MB, external=1.02 GB, arrayBuffers=1.01 GB) | GPU=1.40 GB (344 active, 0 pooled, peak=1.40 GB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=344
+[1710.8ms][Pipeline] Model loaded successfully (1299ms)
+[1712.6ms][doppler] Model ready
+[1727.8ms][KernelSelect] matmul variant=f16w_f32a reason=path_override
+[1730.4ms][KernelSelect] matmul variant=f16w_f32a_tiled reason=default
+warning: doe: createShaderModule failed: MSL compilation error: program_source:32:16: error: use of undeclared identifier 'exp_refined'
+        return exp_refined(x, params, conv_out, z_proj, a_proj, b_proj, dt_bias, a_log, norm_weight, recurrent_state, output, _doe_sizes);
+               ^
+program_source:34:31: error: use of undeclared identifier 'exp_refined'
+    return log_refined((1.0 + exp_refined(x, params, conv_out, z_proj, a_proj, b_proj, dt_bias, a_log, norm_weight, recurrent_state, output, _doe_sizes)), params, conv_out, z_proj, a_proj, b_proj, dt_bias, a_log
+[1833.7ms][compileShader] gated_delta_recurrent_f32: MSL compilation failed: program_source:32:16: error: use of undeclared identifier 'exp_refined'         return exp_refined(x, params, conv_out, z_proj, a_proj, b_proj, dt_bias, a_log, norm_weight, recurrent_state, output, _doe_sizes);                ^ program_source:34:31: error: use of undeclared identifier 'exp_refined'     return log_refined((1.0 + exp_refined(x, params, conv_out, z_proj, a_proj, b_proj, dt_bias, a_log, norm_weight, recurrent_state, output, _doe_sizes)), params, conv_out, z_proj, a_proj, (line 0:0)
+[1837.0ms][ExpertCache] Cache cleared
+warning: doe: createShaderModule failed: MSL compilation error: program_source:32:16: error: use of undeclared identifier 'exp_refined'
+        return exp_refined(x, params, qkv, z_proj, ab_proj, conv_weight, conv_state, dt_bias, a_log, norm_weight, recurrent_state, output, _doe_sizes);
+               ^
+program_source:34:31: error: use of undeclared identifier 'exp_refined'
+    return log_refined((1.0 + exp_refined(x, params, qkv, z_proj, ab_proj, conv_weight, conv_state, dt_bias, a_log, norm_weight, recurrent_state, output, _doe_sizes)), params, qkv, z_proj, ab_proj, 
+[1852.0ms][compileShader] gated_delta_fused_decode_f32: MSL compilation failed: program_source:32:16: error: use of undeclared identifier 'exp_refined'         return exp_refined(x, params, qkv, z_proj, ab_proj, conv_weight, conv_state, dt_bias, a_log, norm_weight, recurrent_state, output, _doe_sizes);                ^ program_source:34:31: error: use of undeclared identifier 'exp_refined'     return log_refined((1.0 + exp_refined(x, params, qkv, z_proj, ab_proj, conv_weight, conv_state, dt_bias, a_log, norm_weight, recurrent_state, output, _doe_sizes)), params, (line 0:0)
+[1861.5ms][Pipeline] Unloaded
+[1862.0ms][GPU] Device lost: GPUDevice.destroy() was called, Reason: destroyed

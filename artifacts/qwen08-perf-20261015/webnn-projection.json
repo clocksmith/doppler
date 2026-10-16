@@ -1,0 +1,64 @@
+{
+  "flags": [
+    "--enable-features=WebMachineLearningNeuralNetwork"
+  ],
+  "browserVersion": "155.0.8059.80",
+  "scope": "Graph capability and diagnostic latency only; no Qwen WebNN backend",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+  "rows": [
+    {
+      "requestedDeviceType": "cpu",
+      "M": 128,
+      "N": 3584,
+      "K": 1024,
+      "weightDtype": "float32",
+      "preparationMs": 24.100000143051147,
+      "times": [
+        3.799999952316284,
+        3.700000047683716,
+        3.4000000953674316,
+        3.700000047683716
+      ],
+      "checkedOutputs": 458752,
+      "oracle": "Exact separable dyadic matrix, synthetic values; not model weights",
+      "timing": "write input + dispatch + complete output readback; verification excluded",
+      "backendIdentity": "Unverified; browser may use a different underlying accelerator"
+    },
+    {
+      "requestedDeviceType": "gpu",
+      "M": 128,
+      "N": 3584,
+      "K": 1024,
+      "weightDtype": "float32",
+      "preparationMs": 10.5,
+      "times": [
+        3.9000000953674316,
+        3.700000047683716,
+        4.199999809265137,
+        4.199999809265137
+      ],
+      "checkedOutputs": 458752,
+      "oracle": "Exact separable dyadic matrix, synthetic values; not model weights",
+      "timing": "write input + dispatch + complete output readback; verification excluded",
+      "backendIdentity": "Unverified; browser may use a different underlying accelerator"
+    },
+    {
+      "requestedDeviceType": "npu",
+      "M": 128,
+      "N": 3584,
+      "K": 1024,
+      "weightDtype": "float32",
+      "preparationMs": 9.799999952316284,
+      "times": [
+        3.299999952316284,
+        3.700000047683716,
+        4.599999904632568,
+        3.6000001430511475
+      ],
+      "checkedOutputs": 458752,
+      "oracle": "Exact separable dyadic matrix, synthetic values; not model weights",
+      "timing": "write input + dispatch + complete output readback; verification excluded",
+      "backendIdentity": "Unverified; browser may use a different underlying accelerator"
+    }
+  ]
+}

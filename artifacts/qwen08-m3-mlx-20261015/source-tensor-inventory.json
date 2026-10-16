@@ -1,0 +1,22 @@
+{
+  "text:F32": {
+    "parameters": 2592,
+    "bytes": 10368,
+    "tensors": 36
+  },
+  "text:BF16": {
+    "parameters": 752390432,
+    "bytes": 1504780864,
+    "tensors": 284
+  },
+  "vision:BF16": {
+    "parameters": 100592896,
+    "bytes": 201185792,
+    "tensors": 153
+  },
+  "mtp:BF16": {
+    "parameters": 20452864,
+    "bytes": 40905728,
+    "tensors": 15
+  }
+}

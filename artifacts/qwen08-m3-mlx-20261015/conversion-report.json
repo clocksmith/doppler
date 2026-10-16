@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "suite": "convert",
+  "command": "convert",
+  "modelId": "qwen3-5-0-8b-text-f16-matched",
+  "timestamp": "2026-10-16T02:44:21.642Z",
+  "startedAtUtc": "2026-10-16T02:44:07.713Z",
+  "completedAtUtc": "2026-10-16T02:44:23.426Z",
+  "durationMs": 15712.923625000001,
+  "source": "doppler",
+  "result": {
+    "modelType": "transformer",
+    "outputDir": "/Users/xyz/deco/doppler/.cache/qwen08-f16",
+    "shardCount": 23,
+    "tensorCount": 320,
+    "totalSize": 1504786048
+  },
+  "manifest": {
+    "quantization": "F16",
+    "quantizationInfo": {
+      "weights": "f16",
+      "embeddings": "f16",
+      "compute": "f32",
+      "variantTag": "f16-af32"
+    },
+    "inference": {
+      "schema": "doppler.execution/v1"
+    }
+  },
+  "executionContractArtifact": {
+    "schemaVersion": 1,
+    "source": "doppler",
+    "ok": true,
+    "checks": [
+      {
+        "id": "qwen3-5-0-8b-text-f16-matched.steps",
+        "ok": true
+      },
+      {
+        "id": "qwen3-5-0-8b-text-f16-matched.session",
+        "ok": true
+      }
+    ],
+    "errors": [],
+    "session": {
+      "layout": "contiguous",
+      "disableCommandBatching": false,
+      "decodeBatchSize": 1,
+      "headDim": 256,
+      "kvLen": 4096,
+      "coldQuantMode": "none",
+      "contiguousQuantMode": "none"
+    },
+    "steps": {
+      "total": 35,
+      "attention": 2,
+      "attentionPhases": {
+        "prefill": 1,
+        "decode": 1,
+        "both": 0
+      }
+    }
+  },
+  "layerPatternContractArtifact": {
+    "schemaVersion": 1,
+    "source": "doppler",
+    "ok": true,
+    "checks": [
+      {
+        "id": "inference.layerPattern.patternKind.shape",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.patternKind.semantics",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.layerType.shape",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.layerType.semantics",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.computeGlobalLayers.even",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.computeGlobalLayers.odd",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.computeGlobalLayers.every_n_offset",
+        "ok": true
+      },
+      {
+        "id": "inference.layerPattern.computeGlobalLayers.every_n_negative_offset",
+        "ok": true
+      }
+    ],
+    "errors": [],
+    "stats": {
+      "patternKindRules": 4,
+      "layerTypeRules": 6,
+      "patternKindContexts": 16,
+      "layerTypeContexts": 12
+    }
+  },
+  "requiredInferenceFieldsArtifact": {
+    "schemaVersion": 1,
+    "source": "doppler",
+    "scope": "manifest",
+    "label": "qwen3-5-0-8b-text-f16-matched.inference",
+    "ok": true,
+    "checks": [
+      {
+        "id": "qwen3-5-0-8b-text-f16-matched.inference.requiredInferenceFields",
+        "ok": true
+      }
+    ],
+    "errors": [],
+    "stats": {
+      "fieldCases": 51,
+      "nullableCases": 27,
+      "nonNullableCases": 24
+    }
+  }
+}

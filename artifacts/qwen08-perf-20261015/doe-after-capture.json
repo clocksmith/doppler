@@ -1,0 +1,2602 @@
+{
+  "engine": "doppler",
+  "surface": "node-webgpu",
+  "nodeVersion": "v22.20.0",
+  "manifestHash": "cb8e4d8bf7fbc8522d1222bbbf3cf9a46e297a899cf737d4738554a1d1d68062",
+  "policy": {
+    "schema": "doppler.mlx-diagnostic-comparison/v1",
+    "claim": "Doe compatibility probe, not a performance comparison.",
+    "source": {
+      "repo": "Qwen/Qwen3.5-0.8B",
+      "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+      "weightsSha256": "04b1c301231dd422b8860db31311ab2721511346a32cb1e079c4c4e5f1fe4696",
+      "weightsFile": "model.safetensors-00001-of-00001.safetensors"
+    },
+    "shared": {
+      "weightDtype": "float16",
+      "promptTokenCounts": [
+        128
+      ],
+      "promptText": "This is a reference document about a small library. The library lends books, maintains a catalog, and helps readers find reliable information. Its opening hours vary by day. Readers may reserve available books and return them at the front desk. ",
+      "maxTokens": 16,
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1,
+      "repetitionPenalty": 1,
+      "useChatTemplate": false,
+      "suppressTokenIds": [],
+      "warmupRuns": 0,
+      "timedRuns": 1,
+      "requireExactPromptTokens": true,
+      "requireExactGeneratedTokens": true,
+      "maxProcessSeconds": 300,
+      "memoryLimitBytes": 6442450944,
+      "eosTokenIds": [
+        248046,
+        248044
+      ]
+    },
+    "engines": {
+      "mlx": {
+        "package": "mlx-lm",
+        "version": "0.32.1",
+        "prefillStepSize": 1024
+      },
+      "doppler": {
+        "surface": "node-webgpu",
+        "runtimeConfig": {
+          "shared": {
+            "bufferPool": {
+              "budget": {
+                "maxTotalBytes": 6442450944,
+                "highWatermarkRatio": 0.9,
+                "emergencyTrimTargetRatio": 0.8,
+                "hardFailOnBudgetExceeded": true
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "runs": [
+    {
+      "promptTokenIds": [
+        1919,
+        369,
+        264,
+        5604,
+        2128,
+        883,
+        264,
+        2526,
+        6522,
+        13,
+        561,
+        6522,
+        75252,
+        6265,
+        11,
+        30941,
+        264,
+        15922,
+        11,
+        321,
+        8346,
+        12361,
+        1423,
+        14294,
+        1928,
+        13,
+        11116,
+        8306,
+        3979,
+        12904,
+        539,
+        1834,
+        13,
+        62239,
+        1189,
+        19874,
+        2420,
+        6265,
+        321,
+        460,
+        1070,
+        506,
+        279,
+        3929,
+        17471,
+        13,
+        1061,
+        369,
+        264,
+        5604,
+        2128,
+        883,
+        264,
+        2526,
+        6522,
+        13,
+        561,
+        6522,
+        75252,
+        6265,
+        11,
+        30941,
+        264,
+        15922,
+        11,
+        321,
+        8346,
+        12361,
+        1423,
+        14294,
+        1928,
+        13,
+        11116,
+        8306,
+        3979,
+        12904,
+        539,
+        1834,
+        13,
+        62239,
+        1189,
+        19874,
+        2420,
+        6265,
+        321,
+        460,
+        1070,
+        506,
+        279,
+        3929,
+        17471,
+        13,
+        1061,
+        369,
+        264,
+        5604,
+        2128,
+        883,
+        264,
+        2526,
+        6522,
+        13,
+        561,
+        6522,
+        75252,
+        6265,
+        11,
+        30941,
+        264,
+        15922,
+        11,
+        321,
+        8346,
+        12361,
+        1423,
+        14294,
+        1928,
+        13,
+        11116,
+        8306,
+        3979,
+        12904,
+        539,
+        1834,
+        13,
+        62239,
+        1189,
+        19874
+      ],
+      "warmup": false,
+      "totalRunMs": 2338.9046249999997,
+      "firstTokenMs": 1524.5725830000001,
+      "tokenTimes": [
+        1524.5725830000001,
+        1803.630083,
+        1842.2577919999999,
+        1881.16075,
+        1922.34825,
+        1962.5037499999999,
+        2001.7595000000001,
+        2039.2886249999997,
+        2077.7263749999997,
+        2115.940792,
+        2154.1265829999998,
+        2191.879958,
+        2228.6609169999997,
+        2265.6320419999997,
+        2302.5836249999998,
+        2337.7505829999996
+      ],
+      "evidence": {
+        "schema": "doppler_generation_evidence/v1",
+        "outputText": " available books and return them at the front desk. This is a reference document about",
+        "tokenIds": [
+          2420,
+          6265,
+          321,
+          460,
+          1070,
+          506,
+          279,
+          3929,
+          17471,
+          13,
+          1061,
+          369,
+          264,
+          5604,
+          2128,
+          883
+        ],
+        "transcript": {
+          "schema": "doppler_generation_transcript/v1",
+          "outputText": " available books and return them at the front desk. This is a reference document about",
+          "tokenIds": [
+            2420,
+            6265,
+            321,
+            460,
+            1070,
+            506,
+            279,
+            3929,
+            17471,
+            13,
+            1061,
+            369,
+            264,
+            5604,
+            2128,
+            883
+          ]
+        },
+        "transcriptHash": "sha256:ae54a5e015d38ef126c2d297c59d36f50b9cdab8d76fc49e387453d30f128c44",
+        "generationConfig": {
+          "temperature": 0,
+          "topP": 1,
+          "topK": 1,
+          "repetitionPenalty": 1,
+          "repetitionPenaltyWindow": 100,
+          "presencePenalty": 0,
+          "suppressTokenIds": [],
+          "greedyThreshold": 0.01,
+          "suppressSpecialTokens": false,
+          "suppressSpecialLikeTokens": false,
+          "maxTokens": 16,
+          "stopSequences": [],
+          "useChatTemplate": false,
+          "useSpeculative": null,
+          "seed": null
+        },
+        "generationConfigHash": "sha256:9b3577cb3bbb8a0b4b02578fe974e950f873cf17ae6a241b3dd1fb190795cb47",
+        "resolution": {
+          "schema": "doppler.resolution-identity/v1",
+          "logicalModelId": "file:///Users/xyz/deco/doppler/.cache/qwen08-f16/",
+          "resolvedArtifactVariantId": "sha256:cb8e4d8bf7fbc8522d1222bbbf3cf9a46e297a899cf737d4738554a1d1d68062",
+          "resolvedExecutionId": "sha256:185b61f7a9058babaddee9ea10e69634874a5b978fc0cb693c94f73e442dea10"
+        },
+        "executionIdentity": {
+          "schema": "doppler.resolved-execution-identity/v1",
+          "runtime": {
+            "package": "doppler-gpu",
+            "version": "0.6.30",
+            "surface": "node"
+          },
+          "resolvedRuntimeSessionId": "sha256:83cfdd03b899115a066070b41b5a499fc6e4b3578aa0b988bbebb1e4c9adf763",
+          "activeAdapter": null,
+          "activeAdapterId": null,
+          "activeAdapterDigest": null,
+          "backendIdentity": {
+            "backend": "webgpu",
+            "adapter": {
+              "vendor": "Apple",
+              "architecture": "M3",
+              "device": "Apple M3",
+              "description": "Apple M3"
+            },
+            "hasF16": true,
+            "hasSubgroups": true,
+            "maxBufferSize": 14302248960,
+            "deviceEpoch": 0,
+            "kernelPathId": null,
+            "kernelPathSource": "none",
+            "executionPlanId": null,
+            "activationDtype": null
+          }
+        },
+        "runtimeProfile": {
+          "schema": "doppler_runtime_profile/v1",
+          "runtime": {
+            "package": "doppler-gpu",
+            "version": "0.6.30",
+            "surface": "node"
+          },
+          "model": {
+            "modelId": "file:///Users/xyz/deco/doppler/.cache/qwen08-f16/",
+            "manifestHash": "sha256:cb8e4d8bf7fbc8522d1222bbbf3cf9a46e297a899cf737d4738554a1d1d68062",
+            "activeAdapter": null,
+            "activeAdapterId": null,
+            "activeAdapterDigest": null
+          },
+          "resolvedRuntimeSessionId": "sha256:83cfdd03b899115a066070b41b5a499fc6e4b3578aa0b988bbebb1e4c9adf763",
+          "backendIdentity": {
+            "backend": "webgpu",
+            "adapter": {
+              "vendor": "Apple",
+              "architecture": "M3",
+              "device": "Apple M3",
+              "description": "Apple M3"
+            },
+            "hasF16": true,
+            "hasSubgroups": true,
+            "maxBufferSize": 14302248960,
+            "deviceEpoch": 0,
+            "kernelPathId": null,
+            "kernelPathSource": "none",
+            "executionPlanId": null,
+            "activationDtype": null
+          }
+        },
+        "runtimeProfileHash": "sha256:c2e0feb90a42606aab6c2011dfba5eaccd01794901d27c0e5916fc4e8f689835",
+        "backendIdentity": {
+          "backend": "webgpu",
+          "adapter": {
+            "vendor": "Apple",
+            "architecture": "M3",
+            "device": "Apple M3",
+            "description": "Apple M3"
+          },
+          "hasF16": true,
+          "hasSubgroups": true,
+          "maxBufferSize": 14302248960,
+          "deviceEpoch": 0,
+          "kernelPathId": null,
+          "kernelPathSource": "none",
+          "executionPlanId": null,
+          "activationDtype": null
+        },
+        "backendIdentityHash": "sha256:45e0ab411f6604c465a2a7d728a0b9fa392a79d843256c4ad4654ccb48626a75",
+        "stats": {
+          "prefillTimeMs": 1518.862042,
+          "decodeTimeMs": 812.8676249999999,
+          "ttftMs": 1523.193708,
+          "loadTiming": {
+            "schemaVersion": 1,
+            "source": "doppler-loader",
+            "modelId": "qwen3-5-0-8b-text-f16-matched",
+            "status": "complete",
+            "customShardLoader": true,
+            "byteAccountingMode": "custom-loader-read-progress",
+            "totalBytes": 1504786048,
+            "totalShards": 23,
+            "bytesLoaded": 1504835200,
+            "shardsLoaded": 23,
+            "bytesPerSecond": 1424286009,
+            "phasesMs": {
+              "preflight": 0.854,
+              "tensorLocations": 1.066,
+              "embeddings": 269.185,
+              "layers": 783.594,
+              "finalWeights": 1.282,
+              "cleanup": 0.031
+            },
+            "layers": {
+              "count": 24,
+              "totalMs": 726.634,
+              "meanMs": 30.276,
+              "maxMs": 68.837,
+              "maxLayer": 10
+            },
+            "totalMs": 1056.554,
+            "failedPhase": null,
+            "error": null
+          },
+          "pipelineLoadTiming": {
+            "schemaVersion": 1,
+            "source": "doppler-pipeline",
+            "modelId": "qwen3-5-0-8b-text-f16-matched",
+            "status": "complete",
+            "phasesMs": {
+              "reset": 0.044,
+              "configResolution": 4.491,
+              "kernelWarmup": 0.028,
+              "tokenizer": 187.606,
+              "executionSetup": 5.193,
+              "loadWeights": 1204.15,
+              "rope": 6.533,
+              "convStates": 0.169
+            },
+            "details": {
+              "tokenizer": {
+                "schemaVersion": 1,
+                "source": "doppler-tokenizer",
+                "modelId": "qwen3-5-0-8b-text-f16-matched",
+                "status": "complete",
+                "tokenizerType": "bundled",
+                "tokenizerFile": "tokenizer.json",
+                "backend": "bundled",
+                "assetSource": "custom-loader",
+                "cacheHit": false,
+                "phasesMs": {
+                  "configResolution": 0.033,
+                  "cacheLookup": 0.031,
+                  "backendCreate": 0.048,
+                  "assetLoad": 100.179,
+                  "assetParse": 0.11,
+                  "backendLoad": 86.852,
+                  "cacheStore": 0.006
+                },
+                "totalMs": 187.39,
+                "error": null
+              }
+            },
+            "totalMs": 1408.337
+          },
+          "prefillTokens": 128,
+          "decodeTokens": 16,
+          "memoryUsageBytes": 0,
+          "tokensGenerated": 16,
+          "totalTimeMs": 2336.5604160000003,
+          "decodeRecordMs": 0,
+          "decodeRecordOps": 0,
+          "decodeRecordPasses": 0,
+          "decodeRecordOpLabels": {},
+          "decodeSubmitWaitMs": 0,
+          "decodeReadbackWaitMs": 0,
+          "decodeReadbackMapWaitMs": 0,
+          "decodeReadbackCleanupMs": 0,
+          "decodeReadbackCopyMs": 0,
+          "prefillRecordMs": 597.4683359999995,
+          "prefillRecordOps": 349,
+          "prefillRecordPasses": 6,
+          "prefillRecordOpLabels": {},
+          "prefillSubmitWaitMs": 739.5183339999999,
+          "prefillProfileSteps": [],
+          "decodeProfileSteps": [],
+          "executionPlan": null,
+          "kernelPathId": null,
+          "kernelPathSource": "none",
+          "operatorDiagnostics": null,
+          "attentionInputs": [
+            {
+              "phase": "prefill",
+              "layerIdx": 3,
+              "numTokens": 128,
+              "kvLen": 128,
+              "numHeads": 8,
+              "numKVHeads": 2,
+              "headDim": 256,
+              "activationDtype": "f32",
+              "inputDtype": "f32",
+              "normedDtype": "f32",
+              "useF16Activations": false,
+              "matmulOutputDtype": "f32",
+              "kvCacheDtype": "f16",
+              "cachedKDtype": "f16",
+              "cachedVDtype": "f16",
+              "qDtype": "f32",
+              "kDtype": "f32",
+              "vDtype": "f32",
+              "useFusedQKV": true,
+              "kvStart": 0,
+              "kvLayout": "contiguous",
+              "kvPageSize": 256,
+              "hotLen": null,
+              "coldLen": null,
+              "hotWindow": null,
+              "hotStart": null,
+              "coldQuantMode": null
+            },
+            {
+              "phase": "prefill",
+              "layerIdx": 7,
+              "numTokens": 128,
+              "kvLen": 128,
+              "numHeads": 8,
+              "numKVHeads": 2,
+              "headDim": 256,
+              "activationDtype": "f32",
+              "inputDtype": "f32",
+              "normedDtype": "f32",
+              "useF16Activations": false,
+              "matmulOutputDtype": "f32",
+              "kvCacheDtype": "f16",
+              "cachedKDtype": "f16",
+              "cachedVDtype": "f16",
+              "qDtype": "f32",
+              "kDtype": "f32",
+              "vDtype": "f32",
+              "useFusedQKV": true,
+              "kvStart": 0,
+              "kvLayout": "contiguous",
+              "kvPageSize": 256,
+              "hotLen": null,
+              "coldLen": null,
+              "hotWindow": null,
+              "hotStart": null,
+              "coldQuantMode": null
+            },
+            {
+              "phase": "prefill",
+              "layerIdx": 11,
+              "numTokens": 128,
+              "kvLen": 128,
+              "numHeads": 8,
+              "numKVHeads": 2,
+              "headDim": 256,
+              "activationDtype": "f32",
+              "inputDtype": "f32",
+              "normedDtype": "f32",
+              "useF16Activations": false,
+              "matmulOutputDtype": "f32",
+              "kvCacheDtype": "f16",
+              "cachedKDtype": "f16",
+              "cachedVDtype": "f16",
+              "qDtype": "f32",
+              "kDtype": "f32",
+              "vDtype": "f32",
+              "useFusedQKV": true,
+              "kvStart": 0,
+              "kvLayout": "contiguous",
+              "kvPageSize": 256,
+              "hotLen": null,
+              "coldLen": null,
+              "hotWindow": null,
+              "hotStart": null,
+              "coldQuantMode": null
+            },
+            {
+              "phase": "prefill",
+              "layerIdx": 15,
+              "numTokens": 128,
+              "kvLen": 128,
+              "numHeads": 8,
+              "numKVHeads": 2,
+              "headDim": 256,
+              "activationDtype": "f32",
+              "inputDtype": "f32",
+              "normedDtype": "f32",
+              "useF16Activations": false,
+              "matmulOutputDtype": "f32",
+              "kvCacheDtype": "f16",
+              "cachedKDtype": "f16",
+              "cachedVDtype": "f16",
+              "qDtype": "f32",
+              "kDtype": "f32",
+              "vDtype": "f32",
+              "useFusedQKV": true,
+              "kvStart": 0,
+              "kvLayout": "contiguous",
+              "kvPageSize": 256,
+              "hotLen": null,
+              "coldLen": null,
+              "hotWindow": null,
+              "hotStart": null,
+              "coldQuantMode": null
+            },
+            {
+              "phase": "prefill",
+              "layerIdx": 19,
+              "numTokens": 128,
+              "kvLen": 128,
+              "numHeads": 8,
+              "numKVHeads": 2,
+              "headDim": 256,
+              "activationDtype": "f32",
+              "inputDtype": "f32",
+              "normedDtype": "f32",
+              "useF16Activations": false,
+              "matmulOutputDtype": "f32",
+              "kvCacheDtype": "f16",
+              "cachedKDtype": "f16",
+              "cachedVDtype": "f16",
+              "qDtype": "f32",
+              "kDtype": "f32",
+              "vDtype": "f32",
+              "useFusedQKV": true,
+              "kvStart": 0,
+              "kvLayout": "contiguous",
+              "kvPageSize": 256,
+              "hotLen": null,
+              "coldLen": null,
+              "hotWindow": null,
+              "hotStart": null,
+              "coldQuantMode": null
+            },
+            {
+              "phase": "prefill",
+              "layerIdx": 23,
+              "numTokens": 128,
+              "kvLen": 128,
+              "numHeads": 8,
+              "numKVHeads": 2,
+              "headDim": 256,
+              "activationDtype": "f32",
+              "inputDtype": "f32",
+              "normedDtype": "f32",
+              "useF16Activations": false,
+              "matmulOutputDtype": "f32",
+              "kvCacheDtype": "f16",
+              "cachedKDtype": "f16",
+              "cachedVDtype": "f16",
+              "qDtype": "f32",
+              "kDtype": "f32",
+              "vDtype": "f32",
+              "useFusedQKV": true,
+              "kvStart": 0,
+              "kvLayout": "contiguous",
+              "kvPageSize": 256,
+              "hotLen": null,
+              "coldLen": null,
+              "hotWindow": null,
+              "hotStart": null,
+              "coldQuantMode": null
+            },
+            {
+              "phase": "decode",
+              "layerIdx": 3,
+              "numTokens": 1,
+              "kvLen": 129,
+              "numHeads": 8,
+              "numKVHeads": 2,
+              "headDim": 256,
+              "activationDtype": "f32",
+              "inputDtype": "f32",
+              "normedDtype": "f32",
+              "useF16Activations": false,
+              "matmulOutputDtype": "f32",
+              "kvCacheDtype": "f16",
+              "cachedKDtype": "f16",
+              "cachedVDtype": "f16",
+              "qDtype": "f32",
+              "kDtype": "f32",
+              "vDtype": "f32",
+              "useFusedQKV": true,
+              "kvStart": 0,
+              "kvLayout": "contiguous",
+              "kvPageSize": 256,
+              "hotLen": null,
+              "coldLen": null,
+              "hotWindow": null,
+              "hotStart": null,
+              "coldQuantMode": null
+            },
+            {
+              "phase": "decode",
+              "layerIdx": 7,
+              "numTokens": 1,
+              "kvLen": 129,
+              "numHeads": 8,
+              "numKVHeads": 2,
+              "headDim": 256,
+              "activationDtype": "f32",
+              "inputDtype": "f32",
+              "normedDtype": "f32",
+              "useF16Activations": false,
+              "matmulOutputDtype": "f32",
+              "kvCacheDtype": "f16",
+              "cachedKDtype": "f16",
+              "cachedVDtype": "f16",
+              "qDtype": "f32",
+              "kDtype": "f32",
+              "vDtype": "f32",
+              "useFusedQKV": true,
+              "kvStart": 0,
+              "kvLayout": "contiguous",
+              "kvPageSize": 256,
+              "hotLen": null,
+              "coldLen": null,
+              "hotWindow": null,
+              "hotStart": null,
+              "coldQuantMode": null
+            },
+            {
+              "phase": "decode",
+              "layerIdx": 11,
+              "numTokens": 1,
+              "kvLen": 129,
+              "numHeads": 8,
+              "numKVHeads": 2,
+              "headDim": 256,
+              "activationDtype": "f32",
+              "inputDtype": "f32",
+              "normedDtype": "f32",
+              "useF16Activations": false,
+              "matmulOutputDtype": "f32",
+              "kvCacheDtype": "f16",
+              "cachedKDtype": "f16",
+              "cachedVDtype": "f16",
+              "qDtype": "f32",
+              "kDtype": "f32",
+              "vDtype": "f32",
+              "useFusedQKV": true,
+              "kvStart": 0,
+              "kvLayout": "contiguous",
+              "kvPageSize": 256,
+              "hotLen": null,
+              "coldLen": null,
+              "hotWindow": null,
+              "hotStart": null,
+              "coldQuantMode": null
+            },
+            {
+              "phase": "decode",
+              "layerIdx": 15,
+              "numTokens": 1,
+              "kvLen": 129,
+              "numHeads": 8,
+              "numKVHeads": 2,
+              "headDim": 256,
+              "activationDtype": "f32",
+              "inputDtype": "f32",
+              "normedDtype": "f32",
+              "useF16Activations": false,
+              "matmulOutputDtype": "f32",
+              "kvCacheDtype": "f16",
+              "cachedKDtype": "f16",
+              "cachedVDtype": "f16",
+              "qDtype": "f32",
+              "kDtype": "f32",
+              "vDtype": "f32",
+              "useFusedQKV": true,
+              "kvStart": 0,
+              "kvLayout": "contiguous",
+              "kvPageSize": 256,
+              "hotLen": null,
+              "coldLen": null,
+              "hotWindow": null,
+              "hotStart": null,
+              "coldQuantMode": null
+            },
+            {
+              "phase": "decode",
+              "layerIdx": 19,
+              "numTokens": 1,
+              "kvLen": 129,
+              "numHeads": 8,
+              "numKVHeads": 2,
+              "headDim": 256,
+              "activationDtype": "f32",
+              "inputDtype": "f32",
+              "normedDtype": "f32",
+              "useF16Activations": false,
+              "matmulOutputDtype": "f32",
+              "kvCacheDtype": "f16",
+              "cachedKDtype": "f16",
+              "cachedVDtype": "f16",
+              "qDtype": "f32",
+              "kDtype": "f32",
+              "vDtype": "f32",
+              "useFusedQKV": true,
+              "kvStart": 0,
+              "kvLayout": "contiguous",
+              "kvPageSize": 256,
+              "hotLen": null,
+              "coldLen": null,
+              "hotWindow": null,
+              "hotStart": null,
+              "coldQuantMode": null
+            },
+            {
+              "phase": "decode",
+              "layerIdx": 23,
+              "numTokens": 1,
+              "kvLen": 129,
+              "numHeads": 8,
+              "numKVHeads": 2,
+              "headDim": 256,
+              "activationDtype": "f32",
+              "inputDtype": "f32",
+              "normedDtype": "f32",
+              "useF16Activations": false,
+              "matmulOutputDtype": "f32",
+              "kvCacheDtype": "f16",
+              "cachedKDtype": "f16",
+              "cachedVDtype": "f16",
+              "qDtype": "f32",
+              "kDtype": "f32",
+              "vDtype": "f32",
+              "useFusedQKV": true,
+              "kvStart": 0,
+              "kvLayout": "contiguous",
+              "kvPageSize": 256,
+              "hotLen": null,
+              "coldLen": null,
+              "hotWindow": null,
+              "hotStart": null,
+              "coldQuantMode": null
+            }
+          ],
+          "decodeMode": "single_token",
+          "batchGuardReason": "batch_size_1",
+          "singleTokenSubmitWaitMs": 57.999956999999995,
+          "singleTokenReadbackWaitMs": 326.8492110000002,
+          "singleTokenReadbackMapWaitMs": 321.7972500000001,
+          "singleTokenReadbackCleanupMs": 2.939458000000286,
+          "singleTokenReadbackCopyMs": 0.2856660000006741,
+          "singleTokenOrchestrationMs": 426.49495499999966,
+          "plePreparedTokenCacheHits": 0,
+          "plePreparedTokenCacheMisses": 0,
+          "plePreparedTokenCacheEntries": 0,
+          "plePreparedTokenCacheBytes": 0,
+          "pleHotVocabularyHits": 0,
+          "pleHotVocabularyMisses": 0,
+          "modelLoadMs": 1408.336667,
+          "gpuTimePrefillMs": null,
+          "gpuTimeDecodeMs": null,
+          "stopReason": "max-tokens",
+          "stopTokenId": null,
+          "batching": {
+            "batchedForwardCalls": 0,
+            "unbatchedForwardCalls": 0,
+            "totalBatchedTimeMs": 0,
+            "totalUnbatchedTimeMs": 0,
+            "gpuSubmissions": 0,
+            "requestedBatchTokens": 0,
+            "effectiveBatchTokens": 0,
+            "executedBatchTokens": 0,
+            "resolvedBatchTokens": 0,
+            "maxBatchTokenCap": null,
+            "batchClampCount": 0
+          }
+        }
+      },
+      "memory": {
+        "process": {
+          "rss": 928382976,
+          "heapTotal": 110329856,
+          "heapUsed": 88780256,
+          "external": 1101481091,
+          "arrayBuffers": 1098371445
+        },
+        "pool": {
+          "allocations": 5220,
+          "reuses": 795,
+          "totalBytesAllocated": 1755486720,
+          "peakBytesAllocated": 1598333696,
+          "currentBytesAllocated": 1571385088,
+          "totalBytesRequested": 1748015616,
+          "peakBytesRequested": 1596793344,
+          "currentBytesRequested": 1528323584,
+          "resources": {
+            "retainedModel": {
+              "bytes": 1505138176,
+              "count": 344
+            },
+            "active": {
+              "bytes": 24659968,
+              "count": 110
+            },
+            "reusable": {
+              "bytes": 41586944,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "activeBuffers": 454,
+          "pooledBuffers": 64,
+          "budgetMaxBytes": 6442450944,
+          "budgetUtilization": 0.24391106764475504,
+          "hitRate": "13.2%"
+        }
+      }
+    }
+  ],
+  "complete": true,
+  "modelLoadMs": 1479.5795830000002,
+  "device": {
+    "hasSubgroups": true,
+    "wgslLanguageFeatures": [
+      "readonly-and-readwrite-storage-textures",
+      "packed_4x8_integer_dot_product"
+    ],
+    "hasSubgroupsF16": true,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 14302248960,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 32768,
+    "adapterInfo": {
+      "vendor": "Apple",
+      "architecture": "M3",
+      "device": "Apple M3",
+      "description": "Apple M3"
+    },
+    "submitProbeMs": 2.1717500000000314
+  },
+  "loadedMemory": {
+    "process": {
+      "rss": 882098176,
+      "heapTotal": 103497728,
+      "heapUsed": 66052208,
+      "external": 1090739434,
+      "arrayBuffers": 1088623128
+    },
+    "pool": {
+      "allocations": 347,
+      "reuses": 0,
+      "totalBytesAllocated": 1506187008,
+      "peakBytesAllocated": 1506187008,
+      "currentBytesAllocated": 1506187008,
+      "totalBytesRequested": 1505892096,
+      "peakBytesRequested": 1505892096,
+      "currentBytesRequested": 1505891840,
+      "resources": {
+        "retainedModel": {
+          "bytes": 1505138176,
+          "count": 344
+        },
+        "active": {
+          "bytes": 1048576,
+          "count": 2
+        },
+        "reusable": {
+          "bytes": 256,
+          "count": 1
+        },
+        "deferredCleanup": {
+          "bytes": 0,
+          "count": 0
+        }
+      },
+      "activeBuffers": 346,
+      "pooledBuffers": 1,
+      "budgetMaxBytes": 6442450944,
+      "budgetUtilization": 0.23379099369049072,
+      "hitRate": "0.0%"
+    },
+    "labels": [
+      {
+        "label": "raw_model.language_model.embed_tokens.weight",
+        "bytes": 508559360,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.0.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.0.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.0.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.0.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.0.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.0.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.0.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.0.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.0.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.0.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.0.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.0.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.0.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.0.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.1.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.1.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.1.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.1.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.1.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.1.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.1.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.1.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.1.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.1.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.1.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.1.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.1.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.1.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.2.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.2.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.2.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.2.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.2.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.2.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.2.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.2.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.2.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.2.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.2.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.2.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.2.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.2.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.3.self_attn.k_norm.weight",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.3.self_attn.q_norm.weight",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.3.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.3.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.3.self_attn.v_proj.weight",
+        "bytes": 1048576,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.3.self_attn.k_proj.weight",
+        "bytes": 1048576,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.3.self_attn.q_proj.weight",
+        "bytes": 8388608,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.3.self_attn.o_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.3.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.3.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.3.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.4.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.4.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.4.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.4.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.4.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.4.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.4.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.4.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.4.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.4.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.4.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.4.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.4.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.4.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.5.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.5.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.5.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.5.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.5.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.5.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.5.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.5.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.5.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.5.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.5.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.5.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.5.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.5.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.6.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.6.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.6.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.6.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.6.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.6.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.6.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.6.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.6.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.6.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.6.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.6.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.6.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.6.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.7.self_attn.q_proj.weight",
+        "bytes": 8388608,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.7.self_attn.k_norm.weight",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.7.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.7.self_attn.q_norm.weight",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.7.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.7.self_attn.v_proj.weight",
+        "bytes": 1048576,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.7.self_attn.k_proj.weight",
+        "bytes": 1048576,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.7.self_attn.o_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.7.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.7.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.7.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.8.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.8.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.8.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.8.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.8.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.8.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.8.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.8.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.8.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.8.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.8.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.8.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.8.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.8.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.9.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.9.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.9.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.9.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.9.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.9.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.9.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.9.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.9.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.9.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.9.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.9.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.9.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.9.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.10.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.10.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.10.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.10.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.10.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.10.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.10.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.10.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.10.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.10.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.10.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.10.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.10.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.10.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.11.self_attn.q_proj.weight",
+        "bytes": 8388608,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.11.self_attn.q_norm.weight",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.11.self_attn.k_norm.weight",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.11.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.11.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.11.self_attn.v_proj.weight",
+        "bytes": 1048576,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.11.self_attn.k_proj.weight",
+        "bytes": 1048576,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.11.self_attn.o_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.11.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.11.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.11.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.12.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.13.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.13.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.14.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.15.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.15.self_attn.q_norm.weight",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.15.self_attn.k_norm.weight",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.15.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.15.self_attn.v_proj.weight",
+        "bytes": 1048576,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.15.self_attn.k_proj.weight",
+        "bytes": 1048576,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.15.self_attn.q_proj.weight",
+        "bytes": 8388608,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.15.self_attn.o_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.15.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.15.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.15.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.16.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.16.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.17.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.18.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.18.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.19.self_attn.v_proj.weight",
+        "bytes": 1048576,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.19.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.19.self_attn.k_norm.weight",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.19.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.19.self_attn.q_norm.weight",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.19.self_attn.k_proj.weight",
+        "bytes": 1048576,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.19.self_attn.q_proj.weight",
+        "bytes": 8388608,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.19.self_attn.o_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.19.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.19.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.19.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "raw_model.language_model.layers.20.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.21.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.22.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.22.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.23.self_attn.q_proj.weight",
+        "bytes": 8388608,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.23.self_attn.q_norm.weight",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.23.self_attn.k_norm.weight",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.23.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.23.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.23.self_attn.k_proj.weight",
+        "bytes": 1048576,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.23.self_attn.v_proj.weight",
+        "bytes": 1048576,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.23.self_attn.o_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.23.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.23.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.23.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.norm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "rope_cos",
+        "bytes": 524288,
+        "count": 1
+      },
+      {
+        "label": "rope_sin",
+        "bytes": 524288,
+        "count": 1
+      }
+    ]
+  },
+  "unloadedPool": {
+    "allocations": 5220,
+    "reuses": 795,
+    "totalBytesAllocated": 1755486720,
+    "peakBytesAllocated": 1598333696,
+    "currentBytesAllocated": 41586944,
+    "totalBytesRequested": 1748015616,
+    "peakBytesRequested": 1596793344,
+    "currentBytesRequested": 0,
+    "resources": {
+      "retainedModel": {
+        "bytes": 0,
+        "count": 0
+      },
+      "active": {
+        "bytes": 0,
+        "count": 0
+      },
+      "reusable": {
+        "bytes": 41586944,
+        "count": 64
+      },
+      "deferredCleanup": {
+        "bytes": 0,
+        "count": 0
+      }
+    },
+    "activeBuffers": 0,
+    "pooledBuffers": 64,
+    "budgetMaxBytes": 6442450944,
+    "budgetUtilization": 0.006455143292744954,
+    "hitRate": "13.2%"
+  }
+}
