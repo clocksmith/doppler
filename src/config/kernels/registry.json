@@ -2524,7 +2524,8 @@
        "gemma3/gemma-3-270m-it-w8a8-ehf16-af32",
        "glmocr/glm-ocr-f16-af32",
        "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
-       "qwen3/qwen-3-embedding-0-6b-f16-af32"
+       "qwen3/qwen-3-embedding-0-6b-f16-af32",
+       "runtime/profiles/qwen-3-5-0-8b-f16-m3"
       ],
       "ruleChains": ["matmul.rules.json#matmulKernel"],
       "wgslOnDisk": true
@@ -3693,7 +3694,8 @@
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
-       "qwen3/qwen3.8-27b-text-q4k-ehaf16"
+       "qwen3/qwen3.8-27b-text-q4k-ehaf16",
+       "runtime/profiles/qwen-3-5-0-8b-f16-m3"
       ],
       "ruleChains": ["matmul.rules.json#gemvPathVariant","matmul.rules.json#gemvVariant"],
       "wgslOnDisk": true
@@ -10212,7 +10214,8 @@
       "inlineConfigs": [
        "gemma3/gemma-3-270m-it-f16-af32",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
-       "gemma3/gemma-3-270m-it-w8a8-ehf16-af32"
+       "gemma3/gemma-3-270m-it-w8a8-ehf16-af32",
+       "runtime/profiles/qwen-3-5-0-8b-f16-m3"
       ],
       "ruleChains": [],
       "wgslOnDisk": true

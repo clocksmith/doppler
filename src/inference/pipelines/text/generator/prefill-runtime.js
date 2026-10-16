@@ -299,32 +299,34 @@ export async function _prefill(inputIds, opts) {
       });
     }
     const embedTraceStart = tracePrefillEnabled ? performance.now() : 0;
-    let baseEmbeddings = await embed(embeddingInputIds, embedBuffer, {
-      hiddenSize: config.hiddenSize,
-      vocabSize: config.vocabSize,
-      scaleEmbeddings: config.scaleEmbeddings,
-      embeddingScale: config.embeddingScale, embeddingNormalization: config.embeddingNormalization,
-      debug: opts.debug,
-      recorder,
-      transpose: this._state.embeddingTranspose,
-      debugProbes: this._state.runtimeConfig.shared.debug.probes,
-      operatorDiagnostics: this._state.operatorDiagnostics,
-      activationDtype,
-      intermediatePrecision: representation.precision,
-      embeddingDtype: selectRuleValue('inference', 'dtype', 'embeddingDtype', { dtype: embedDtype }),
-      embeddingStorageEncoding: embedMetadata?.storageEncoding ?? null,
-      executionPolicies: this._state.executionV1State?.policies ?? null,
-    });
-    if (tracePrefillEnabled) {
-      trace.perf('Prefill embed complete', {
-        numTokens,
-        elapsedMs: performance.now() - embedTraceStart,
-      });
-    }
-    let hiddenStates = baseEmbeddings;
+    let baseEmbeddings = null;
+    let hiddenStates = null;
     let perLayerInputs = null;
-    const perLayerInputsTraceStart = tracePrefillEnabled ? performance.now() : 0;
     try {
+      baseEmbeddings = await embed(embeddingInputIds, embedBuffer, {
+        hiddenSize: config.hiddenSize,
+        vocabSize: config.vocabSize,
+        scaleEmbeddings: config.scaleEmbeddings,
+        embeddingScale: config.embeddingScale, embeddingNormalization: config.embeddingNormalization,
+        debug: opts.debug,
+        recorder,
+        transpose: this._state.embeddingTranspose,
+        debugProbes: this._state.runtimeConfig.shared.debug.probes,
+        operatorDiagnostics: this._state.operatorDiagnostics,
+        activationDtype,
+        intermediatePrecision: representation.precision,
+        embeddingDtype: selectRuleValue('inference', 'dtype', 'embeddingDtype', { dtype: embedDtype }),
+        embeddingStorageEncoding: embedMetadata?.storageEncoding ?? null,
+        executionPolicies: this._state.executionV1State?.policies ?? null,
+      });
+      if (tracePrefillEnabled) {
+        trace.perf('Prefill embed complete', {
+          numTokens,
+          elapsedMs: performance.now() - embedTraceStart,
+        });
+      }
+      hiddenStates = baseEmbeddings;
+      const perLayerInputsTraceStart = tracePrefillEnabled ? performance.now() : 0;
       await probePrefillEmbedding('prefill_base_embedding_out', baseEmbeddings, {
         numTokens,
         hiddenSize: config.hiddenSize,

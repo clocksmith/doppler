@@ -12,6 +12,19 @@ const SPLIT_GATHER_STORAGE_BUFFER_OVERHEAD = 2;
 const SPLIT4_GATHER_SECTION_COUNT = 4;
 const SPLIT8_GATHER_SECTION_COUNT = 8;
 
+function planGatherDispatch(target, elements, elementsPerWorkgroup) {
+  const device = target?.device ?? getDevice();
+  const limit = device?.limits?.maxComputeWorkgroupsPerDimension;
+  const count = Math.ceil(elements / elementsPerWorkgroup);
+  if (!Number.isSafeInteger(limit) || limit < 1 || !Number.isSafeInteger(count) || count < 1) {
+    throw new Error('[Gather] dispatch requires positive geometry and an explicit device workgroup limit.');
+  }
+  const x = Math.min(count, limit);
+  const y = Math.ceil(count / x);
+  if (y > limit) throw new Error('[Gather] dispatch exceeds two-dimensional device workgroup capacity.');
+  return [x, y, 1];
+}
+
 function selectGatherVariant(
   useF16Input,
   useBF16Input,
@@ -251,11 +264,10 @@ async function _gatherSplit(
     hidden_offset: hiddenOffset,
   }, sections, config.sectionCount);
 
-  const workgroups = indirectBuffer
-    ? { indirectBuffer, indirectOffset }
-    : Math.ceil((numTokens * hiddenSize) / VEC4_ELEMENTS_PER_WG);
-
   try {
+    const workgroups = indirectBuffer
+      ? { indirectBuffer, indirectOffset }
+      : planGatherDispatch(target, numTokens * hiddenSize, VEC4_ELEMENTS_PER_WG);
     await unifiedKernelWrapper(
       pipeline.operation,
       target,
@@ -387,13 +399,11 @@ async function _gather(
     _pad1: 0,
   };
 
-  const workgroups = indirectBuffer
-    ? { indirectBuffer, indirectOffset }
-    : (useVec4
-      ? Math.ceil((numTokens * hiddenSize) / VEC4_ELEMENTS_PER_WG)
-      : Math.ceil((numTokens * hiddenSize) / WORKGROUP_SIZES.DEFAULT));
-
   try {
+    const workgroups = indirectBuffer
+      ? { indirectBuffer, indirectOffset }
+      : planGatherDispatch(target, numTokens * hiddenSize,
+        useVec4 ? VEC4_ELEMENTS_PER_WG : WORKGROUP_SIZES.DEFAULT);
     await unifiedKernelWrapper(
       pipeline.operation,
       target,
