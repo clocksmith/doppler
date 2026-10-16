@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="620" height="891" viewBox="0 0 620 891" role="img" aria-labelledby="title desc">
+<title id="title">Doppler retrieval benchmarks: 5.1x embedding and 1.7x reranking throughput</title><desc id="desc">Recorded July 2026 Radeon 8060S WebGPU results, 15 warm runs. Qwen3 0.6B embeddings: 33.88 versus 6.69 per second. Reranking: 3.59 versus 2.12 per second. Loading excluded; different optimized formats, semantic fixtures passed. Zero-based bars and source links.</desc>
+<style>text{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums}a:hover text{text-decoration:underline}</style>
+<rect x="1" y="1" width="618" height="889" rx="18" fill="white" stroke="#dce1e9" stroke-width="1.4"/>
+<text x="36" y="43" font-size="24" fill="#7542c8" font-weight="700" >doppler</text>
+<text x="36" y="85" font-size="27" fill="#202735" font-weight="600" >More search work per second.</text>
+<text x="36" y="116" font-size="19" fill="#657083" font-weight="400" >Doppler vs Transformers.js</text>
+<g class="benchmark-row" data-receipt="benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260710T011455.json"><a href="https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260710T011455.json"><rect x="36" y="150" width="548" height="296" rx="12" fill="#f7f3fd" stroke="#e5ddf3"/>
+<text x="58" y="184" font-size="23" fill="#202735" font-weight="600" >Embeddings</text>
+<text x="562" y="184" font-size="16" fill="#657083" font-weight="400" text-anchor="end">Qwen3 Embedding 0.6B</text>
+<text x="58" y="264" font-size="68" fill="#7542c8" font-weight="650" >5.1×</text>
+<text x="58" y="296" font-size="18" fill="#7542c8" font-weight="500" >higher throughput</text>
+<text x="58" y="341" font-size="17" fill="#7542c8" font-weight="600" >Doppler</text>
+<text x="562" y="341" font-size="18" fill="#7542c8" font-weight="600" text-anchor="end">33.88 embedding/s</text>
+<rect x="58" y="354" width="504" height="14" rx="7" fill="#eef0f4"/>
+<rect x="58" y="354" width="504.00" height="14" rx="7" fill="#7542c8"/>
+<text x="58" y="401" font-size="17" fill="#657083" font-weight="500" >Transformers.js</text>
+<text x="562" y="401" font-size="18" fill="#657083" font-weight="500" text-anchor="end">6.69 embedding/s</text>
+<rect x="58" y="414" width="504" height="14" rx="7" fill="#eef0f4"/>
+<rect x="58" y="414" width="99.55" height="14" rx="7" fill="#8791a2"/></a></g>
+<g class="benchmark-row" data-receipt="benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260710T014450.json"><a href="https://github.com/clocksmith/doppler/blob/main/benchmarks/vendors/results/rerank_compare_qwen-3-reranker-0-6b-q4k-ehf16-af32_20260710T014450.json"><rect x="36" y="466" width="548" height="296" rx="12" fill="#f7f3fd" stroke="#e5ddf3"/>
+<text x="58" y="500" font-size="23" fill="#202735" font-weight="600" >Reranking</text>
+<text x="562" y="500" font-size="16" fill="#657083" font-weight="400" text-anchor="end">Qwen3 Reranker 0.6B</text>
+<text x="58" y="580" font-size="68" fill="#7542c8" font-weight="650" >1.7×</text>
+<text x="58" y="612" font-size="18" fill="#7542c8" font-weight="500" >higher throughput</text>
+<text x="58" y="657" font-size="17" fill="#7542c8" font-weight="600" >Doppler</text>
+<text x="562" y="657" font-size="18" fill="#7542c8" font-weight="600" text-anchor="end">3.59 reranks/s</text>
+<rect x="58" y="670" width="504" height="14" rx="7" fill="#eef0f4"/>
+<rect x="58" y="670" width="504.00" height="14" rx="7" fill="#7542c8"/>
+<text x="58" y="717" font-size="17" fill="#657083" font-weight="500" >Transformers.js</text>
+<text x="562" y="717" font-size="18" fill="#657083" font-weight="500" text-anchor="end">2.12 reranks/s</text>
+<rect x="58" y="730" width="504" height="14" rx="7" fill="#eef0f4"/>
+<rect x="58" y="730" width="298.19" height="14" rx="7" fill="#8791a2"/></a></g>
+<text x="36" y="794" font-size="15" fill="#657083" font-weight="400" >Radeon 8060S · Chromium WebGPU · 15 warm runs</text>
+<text x="36" y="819" font-size="15" fill="#657083" font-weight="400" >July 2026 · Transformers.js 4.x · RDRR vs ONNX</text>
+<text x="36" y="844" font-size="15" fill="#657083" font-weight="400" >Loading excluded · semantic fixtures passed · linked receipts</text>
+</svg>

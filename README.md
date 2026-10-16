@@ -25,6 +25,15 @@ requirements and embedding the published compatibility API.
 The checkout's [signed Run API](docs/api/root.md) and resident partition exports
 have separate release requirements; do not assume they exist in npm 0.6.1.
 
+## Benchmarks
+
+<picture>
+  <source media="(max-width: 640px)" srcset="assets/readme/retrieval-benchmarks-mobile.svg" />
+  <img src="assets/readme/retrieval-benchmarks.svg" alt="Doppler delivers 5.1x embedding and 1.7x reranking throughput versus Transformers.js in recorded Radeon 8060S WebGPU benchmarks, July 2026. 15 warm runs, loading excluded." />
+</picture>
+
+[Setup and receipts](docs/model-competition-scoreboard.md)
+
 ## Technical architecture
 
 ### Preparation, host, and execution ownership
@@ -40,25 +49,6 @@ Doe and Reploid remain optional integrations.
 [Architecture and source owners](docs/architecture.md) · [Resident partition lifetimes](docs/architecture.md#resident-partitions-and-resource-lifetime)
 
 ## Evidence
-
-### Measured comparisons
-
-The [scoreboard](docs/model-competition-scoreboard.md) retains browser generation,
-embedding and reranking measurements with diagrams and linked receipts.
-The July Qwen results used Transformers.js 4.0.1 and the original ONNX exports.
-Their large warm-generation ratios do **not** establish an advantage over the
-optimized replacements now identified by the upstream model cards.
-
-New Qwen comparisons select the `-ONNX-OPT` exports. Their performance and output
-parity remain unmeasured here; the [baseline audit](benchmarks/vendors/README.md#qwen-baseline-audit-2026-10-15)
-records the correction and required comparison. Historical receipts remain intact.
-
-**JavaScript orchestration. WGSL compute. No mandatory ONNX Runtime dependency.**
-This checkout declares zero mandatory npm runtime dependencies; model assets and
-the host's WebGPU provider are separate. Rig prepares model programs; Run executes
-them and reuses resident resources across requests. See the
-[source ownership map](docs/architecture.md). This is an architecture/dependency
-statement, not a measured browser-bundle-size or lines-of-code comparison.
 
 <!-- model-type-clusters:start -->
 
