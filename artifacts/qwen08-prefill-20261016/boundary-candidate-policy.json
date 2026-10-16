@@ -1,0 +1,150 @@
+{
+  "schema": "doppler.mlx-diagnostic-comparison/v1",
+  "claim": "Qwen3.5-0.8B weight-matched M3 diagnostic. Internal activation arithmetic differs; no vendor ranking.",
+  "source": {
+    "repo": "Qwen/Qwen3.5-0.8B",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "weightsSha256": "04b1c301231dd422b8860db31311ab2721511346a32cb1e079c4c4e5f1fe4696",
+    "weightsFile": "model.safetensors-00001-of-00001.safetensors"
+  },
+  "shared": {
+    "weightDtype": "float16",
+    "promptTokenCounts": [
+      128,
+      1024
+    ],
+    "promptText": "This is a reference document about a small library. The library lends books, maintains a catalog, and helps readers find reliable information. Its opening hours vary by day. Readers may reserve available books and return them at the front desk. ",
+    "maxTokens": 2,
+    "temperature": 0,
+    "topK": 1,
+    "topP": 1,
+    "repetitionPenalty": 1,
+    "useChatTemplate": false,
+    "suppressTokenIds": [],
+    "warmupRuns": 0,
+    "timedRuns": 1,
+    "requireExactPromptTokens": true,
+    "requireExactGeneratedTokens": true,
+    "maxProcessSeconds": 300,
+    "memoryLimitBytes": 6442450944,
+    "eosTokenIds": [
+      248046,
+      248044
+    ]
+  },
+  "engines": {
+    "mlx": {
+      "package": "mlx-lm",
+      "version": "0.32.1",
+      "prefillStepSize": 1024
+    },
+    "doppler": {
+      "surface": "node-webgpu",
+      "runtimeConfig": {
+        "shared": {
+          "bufferPool": {
+            "budget": {
+              "maxTotalBytes": 6442450944,
+              "highWatermarkRatio": 0.9,
+              "emergencyTrimTargetRatio": 0.8,
+              "hardFailOnBudgetExceeded": true
+            }
+          }
+        },
+        "inference": {
+          "executionPatch": {
+            "addKernels": [
+              {
+                "key": "prefill_tiled_candidate",
+                "kernel": {
+                  "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:bfa95bf42cf7da2ab8b9d6b8af5b494dd8abcfe436d7788f7ecdb8892f04d3b8"
+                }
+              },
+              {
+                "key": "decode_head256_candidate",
+                "kernel": {
+                  "kernel": "attention_decode_online_head256_f16kv.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:fa4a40535b2aa1389b0510329fb31675d4da50ddfdfbf1e8125c7213c7ffb525",
+                  "precision": {
+                    "kvDtype": "f16"
+                  }
+                }
+              },
+              {
+                "key": "lm_head_32threads_candidate",
+                "kernel": {
+                  "kernel": "matmul_gemv_subgroup.wgsl",
+                  "entry": "main_multicol",
+                  "digest": "sha256:e41f94574d5ac54dd2710036da5d5acc643a483b79b2d74b86825efdaaa7438f",
+                  "constants": {
+                    "MULTICOL_COLS_PER_WG": 8,
+                    "MULTICOL_THREADS_PER_COL": 32
+                  }
+                }
+              }
+            ],
+            "set": [
+              {
+                "section": "prefill",
+                "op": "q_proj",
+                "kernelKey": "prefill_tiled_candidate"
+              },
+              {
+                "section": "prefill",
+                "op": "k_proj",
+                "kernelKey": "prefill_tiled_candidate"
+              },
+              {
+                "section": "prefill",
+                "op": "v_proj",
+                "kernelKey": "prefill_tiled_candidate"
+              },
+              {
+                "section": "prefill",
+                "op": "o_proj",
+                "kernelKey": "prefill_tiled_candidate"
+              },
+              {
+                "section": "prefill",
+                "op": "gate_proj",
+                "kernelKey": "prefill_tiled_candidate"
+              },
+              {
+                "section": "prefill",
+                "op": "up_proj",
+                "kernelKey": "prefill_tiled_candidate"
+              },
+              {
+                "section": "prefill",
+                "op": "down_proj",
+                "kernelKey": "prefill_tiled_candidate"
+              },
+              {
+                "section": "decode",
+                "op": "attention",
+                "kernelKey": "decode_head256_candidate"
+              },
+              {
+                "section": "postLayer",
+                "op": "lm_head",
+                "kernelKey": "lm_head_32threads_candidate"
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "observation": {
+    "dataDir": ".cache/qwen08-boundaries/candidate",
+    "diagnostics": {
+      "enabled": true,
+      "captureConfig": {
+        "defaultLevel": "slice"
+      }
+    }
+  }
+}

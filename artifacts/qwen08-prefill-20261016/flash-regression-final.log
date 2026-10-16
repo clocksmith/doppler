@@ -1,0 +1,6 @@
+[GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.6ms
+[174.3ms][KernelSelect] attention variant=prefill_flash_head256_f16kv reason=path_override:flash_prefill
+{"seqLen":31,"kvLen":31,"recorded":false,"maxAbs":7.098393961513239e-8}
+{"seqLen":65,"kvLen":129,"recorded":false,"maxAbs":1.3850870287518413e-8}
+{"seqLen":31,"kvLen":31,"recorded":true,"maxAbs":7.098393961513239e-8}
+{"seqLen":65,"kvLen":129,"recorded":true,"maxAbs":1.3850870287518413e-8}

@@ -1,0 +1,27 @@
+[GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.5ms
+[142.8ms][KernelSelect] attention variant=prefill_flash_head256_f16kv reason=path_override:flash_prefill
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Number of entries (7) did not match the expected number of entries (9) for [BindGroupLayoutInternal (unlabeled)].
+Expected layout: [{ binding: 0, visibility: ShaderStage::Compute, buffer: {type: BufferBindingType::Uniform, minBindingSize: 64, hasDynamicOffset: 0} }, { binding: 1, visibility: ShaderStage::Compute, buffer: {type: BufferBindingType::ReadOnlyStorage, minBindingSize: 4, hasDynamicOffset: 0} }, { binding: 2, visibility: ShaderStage::Compute, buffer: {type: BufferBindingType::ReadOnlyStorage, minBindingSize: 2, hasDynamicOffset: 0} }, { binding: 3, visibility: ShaderStage::Compute, buffer: {type: BufferBindingType::ReadOnlyStorage, minBindingSize: 2, hasDynamicOffset: 0} }, { binding: 4, visibility: ShaderStage::Compute, buffer: {type: BufferBindingType::Storage, minBindingSize: 4, hasDynamicOffset: 0} }, { binding: 5, visibility: ShaderStage::Compute, buffer: {type: BufferBindingType::Storage, minBindingSize: 4, hasDynamicOffset: 0} }, { binding: 6, visibility: ShaderStage::Compute, buffer: {type: BufferBindingType::Storage, minBindingSize: 4, hasDynamicOffset: 0} }, { binding: 7, visibility: ShaderStage::Compute, buffer: {type: BufferBindingType::ReadOnlyStorage, minBindingSize: 4, hasDynamicOffset: 0} }, { binding: 8, visibility: ShaderStage::Compute, buffer: {type: BufferBindingType::ReadOnlyStorage, minBindingSize: 4, hasDynamicOffset: 0} }]
+ - While validating [BindGroupDescriptor ""attention_bind_group""] against [BindGroupLayout (unlabeled)]
+ - While calling [Device].CreateBindGroup([BindGroupDescriptor ""attention_bind_group""]).
+
++ actual - expected
+
++ GPUValidationError {}
+- null
+
+    at runCase (file:///Users/xyz/deco/doppler/tests/inference/attention-flash-prefill-gpu-regression.test.js:54:12)
+    at async file:///Users/xyz/deco/doppler/tests/inference/attention-flash-prefill-gpu-regression.test.js:94:5 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: GPUValidationError {},
+  expected: null,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.20.0

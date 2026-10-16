@@ -1,0 +1,256 @@
+{
+  "scope": "Local Node/Dawn M3 diagnostic: Qwen3.5-0.8B F16 weights, F32 activations, F16 KV. Not vendor qualification.",
+  "profile": "profiles/qwen-3-5-0-8b-f16-m3",
+  "runtimeBase": "9f889f52abcbdb68b82669596e280bd0493e1ce1",
+  "runtimePatch": "runtime.patch",
+  "pairedReceipt": "paired-receipt.json",
+  "methodology": "One warmup followed by one measured complete answer per prompt length per child; model load excluded. Fixed four pairs, no early stopping or outlier deletion.",
+  "exactTokenRuns": 32,
+  "timing": [
+    {
+      "promptTokens": 128,
+      "outputTokens": 128,
+      "samples": {
+        "baseline": [
+          {
+            "pair": 0,
+            "totalMs": 4653.029208000001,
+            "firstTokenMs": 520.9090409999999
+          },
+          {
+            "pair": 1,
+            "totalMs": 5115.001374999999,
+            "firstTokenMs": 601.9253749999998
+          },
+          {
+            "pair": 2,
+            "totalMs": 4726.268415999999,
+            "firstTokenMs": 520.8087499999992
+          },
+          {
+            "pair": 3,
+            "totalMs": 4868.536,
+            "firstTokenMs": 631.9203339999995
+          }
+        ],
+        "candidate": [
+          {
+            "pair": 0,
+            "totalMs": 4673.3235,
+            "firstTokenMs": 370.1382080000003
+          },
+          {
+            "pair": 1,
+            "totalMs": 4899.180249999999,
+            "firstTokenMs": 370.1131660000001
+          },
+          {
+            "pair": 2,
+            "totalMs": 4611.411709,
+            "firstTokenMs": 474.7537090000005
+          },
+          {
+            "pair": 3,
+            "totalMs": 4954.917457999999,
+            "firstTokenMs": 366.0697919999993
+          }
+        ]
+      },
+      "medians": {
+        "baseline": {
+          "totalMs": 4797.4022079999995,
+          "firstTokenMs": 561.4172079999998
+        },
+        "candidate": {
+          "totalMs": 4786.251875,
+          "firstTokenMs": 370.1256870000002
+        }
+      },
+      "totalReductionPercent": 0.23242439379808078,
+      "firstTokenReductionPercent": 34.07297073801124
+    },
+    {
+      "promptTokens": 1024,
+      "outputTokens": 128,
+      "samples": {
+        "baseline": [
+          {
+            "pair": 0,
+            "totalMs": 8746.687249999999,
+            "firstTokenMs": 4080.4431250000016
+          },
+          {
+            "pair": 1,
+            "totalMs": 8589.193124999998,
+            "firstTokenMs": 3916.1789580000004
+          },
+          {
+            "pair": 2,
+            "totalMs": 8413.369125000001,
+            "firstTokenMs": 3881.633582999999
+          },
+          {
+            "pair": 3,
+            "totalMs": 11044.250833999999,
+            "firstTokenMs": 5845.7569589999985
+          }
+        ],
+        "candidate": [
+          {
+            "pair": 0,
+            "totalMs": 6961.979416999999,
+            "firstTokenMs": 2629.444707999999
+          },
+          {
+            "pair": 1,
+            "totalMs": 6749.280959000003,
+            "firstTokenMs": 2495.1434590000026
+          },
+          {
+            "pair": 2,
+            "totalMs": 7208.777750000001,
+            "firstTokenMs": 2592.816125000001
+          },
+          {
+            "pair": 3,
+            "totalMs": 6846.56525,
+            "firstTokenMs": 2637.957875
+          }
+        ]
+      },
+      "medians": {
+        "baseline": {
+          "totalMs": 8667.940187499999,
+          "firstTokenMs": 3998.311041500001
+        },
+        "candidate": {
+          "totalMs": 6904.272333499999,
+          "firstTokenMs": 2611.1304165
+        }
+      },
+      "totalReductionPercent": 20.347023812455213,
+      "firstTokenReductionPercent": 34.69416487616701
+    }
+  ],
+  "numerical": {
+    "absoluteTolerance": 0.001,
+    "scope": "Full logits at two steps per prompt; eight sampled values per captured operator, not full activation parity.",
+    "rows": [
+      {
+        "promptTokens": 128,
+        "logits": [
+          {
+            "step": 0,
+            "values": 248320,
+            "maxAbs": 0.0008392333984375,
+            "files": [
+              {
+                "file": ".cache/qwen08-boundaries/baseline/128-0.bin",
+                "count": 248320,
+                "sha256": "768c52e494e846ce9e7bb3edbf2141768fefac4434491a9683f00055cc3d0560"
+              },
+              {
+                "file": ".cache/qwen08-boundaries/candidate/128-0.bin",
+                "count": 248320,
+                "sha256": "18a2a723278caca136ddff32ea9a7fbce9d35618377ea46a8524a5b91c34dbc3"
+              }
+            ]
+          },
+          {
+            "step": 1,
+            "values": 248320,
+            "maxAbs": 0.0007152557373046875,
+            "files": [
+              {
+                "file": ".cache/qwen08-boundaries/baseline/128-1.bin",
+                "count": 248320,
+                "sha256": "b0ee94370a87bde7bcf869c0c99e78e14dde5f87d814faaf2bf26231172788ff"
+              },
+              {
+                "file": ".cache/qwen08-boundaries/candidate/128-1.bin",
+                "count": 248320,
+                "sha256": "48afaa511153ef7bd329b0fa11af172fedc0c757937127955a92a7cd6b1c4dc1"
+              }
+            ]
+          }
+        ],
+        "captures": 716,
+        "sampledLayers": 24,
+        "sampleValues": 5728,
+        "maxSampleAbs": 0.0006022453308105469
+      },
+      {
+        "promptTokens": 1024,
+        "logits": [
+          {
+            "step": 0,
+            "values": 248320,
+            "maxAbs": 0.0004508495330810547,
+            "files": [
+              {
+                "file": ".cache/qwen08-boundaries/baseline/1024-0.bin",
+                "count": 248320,
+                "sha256": "a2b0cf9ff6136831499f3d6f65008dbcb0384a122216f9cca967230231d89ec9"
+              },
+              {
+                "file": ".cache/qwen08-boundaries/candidate/1024-0.bin",
+                "count": 248320,
+                "sha256": "7230f6d698004a6ad05bb021fd1a24af3ae509e61db7fbbba1b35ac94cdf56c3"
+              }
+            ]
+          },
+          {
+            "step": 1,
+            "values": 248320,
+            "maxAbs": 0.0006759762763977051,
+            "files": [
+              {
+                "file": ".cache/qwen08-boundaries/baseline/1024-1.bin",
+                "count": 248320,
+                "sha256": "bc303f96de0b0d877654a16657f76b6643792a20df936fbe1f909104d7ea741c"
+              },
+              {
+                "file": ".cache/qwen08-boundaries/candidate/1024-1.bin",
+                "count": 248320,
+                "sha256": "3915618294275ce914268d527658384feb89a292ade2c02de995f4720a1dd4f5"
+              }
+            ]
+          }
+        ],
+        "captures": 716,
+        "sampledLayers": 24,
+        "sampleValues": 5728,
+        "maxSampleAbs": 0.0002987384796142578
+      }
+    ]
+  },
+  "selected": [
+    "Register-tiled F16-weight/F32-activation prefill matmul",
+    "Head-256 decode attention",
+    "LM-head subgroup geometry: 8 columns, 32 threads per column"
+  ],
+  "rejected": [
+    {
+      "candidate": "FlashAttention prefill",
+      "reason": "Repaired nine-binding dispatch and resource ownership; correct CPU reference, slower model answers. Not selected."
+    },
+    {
+      "candidate": "Coalesced shared-memory load mapping",
+      "reason": "Bit-identical standalone output, no consistent timing improvement. Shader reverted."
+    },
+    {
+      "candidate": "Larger K staging tiles",
+      "reason": "Valid K32/K64 probes slower. Initial invalid-pipeline result retained in tile-depth-invalid.json and excluded; final probe validates GPU errors and poisons output. Intermediate poison-write usage error retained in tile-depth-with-invalid-poison.json; corrected final rerun validates the write too. Shader reverted."
+    },
+    {
+      "candidate": "Fused recurrent decode core",
+      "reason": "No clear complete-answer improvement; not selected."
+    }
+  ],
+  "limitations": [
+    "Four timed samples per configuration and prompt length; all retained including the last slow baseline.",
+    "Short-prompt complete-answer median essentially unchanged.",
+    "No new MLX or Doe/Dawn comparison; no claim of beating either competitor.",
+    "Opt-in profile for the pinned local F16 text artifact; no default, browser, quantized, or other-model promotion."
+  ]
+}

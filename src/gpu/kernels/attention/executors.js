@@ -3,6 +3,7 @@ import { getDevice, getDeviceEpoch, getDeviceLimits, getKernelCapabilities } fro
 import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { createTensor } from '../../tensor.js';
 import { KernelBase } from '../kernel-base.js';
+import { withKernelOutput } from '../kernel-execution.js';
 import { getKernelThresholds, padToQ4KBlock } from '../../../config/schema/index.js';
 import { createUniformBufferWithView } from '../uniform-utils.js';
 import { getKernelConfig, getKernelValidator } from '../kernel-configs.js';
@@ -430,15 +431,6 @@ export async function executeAttention(
   // splitting + online-softmax reduction. Gated by options.useFlashPrefill so
   // callers opt in deliberately (runtime config flag). Conservative conditions:
   // head_dim=256, prefill (seqLen>1), contiguous KV, no bidirectional span.
-  if (!globalThis.__DOPPLER_FLASH_TRACE2__ && options.useFlashPrefill === true) {
-    globalThis.__DOPPLER_FLASH_TRACE2__ = true;
-    if (typeof process !== 'undefined' && process?.stderr?.write) process.stderr.write('[FLASH2] useFlash=' + options.useFlashPrefill
-      + ' hd=' + headDim + '/' + FLASH_HEAD_DIM
-      + ' seq=' + seqLen + ' kvL=' + kvLayout
-      + ' biDir=' + bidirectionalSpanLength
-      + ' indirect=' + (indirectBuffer == null ? 'n' : 'y')
-      + ' K=' + K?.dtype + ' V=' + V?.dtype + '\n');
-  }
   if (
     options.useFlashPrefill === true
     && headDim === FLASH_HEAD_DIM
@@ -493,6 +485,21 @@ export async function executeAttention(
     uniforms: { seqLen, numHeads, headDim, kvLen, numKVHeads },
     workgroups: plan.workgroups, constants: null, extraBindings: null,
   });
+
+  // The selected split-K kernel owns a nine-binding, two-pass contract.
+  // It cannot use the ordinary seven-binding attention dispatcher.
+  if (plan.tier === 'flash_prefill') {
+    if (bidirectionalSpanLength > 0 || mask != null) {
+      throw new Error('[FlashAttention] bidirectional spans and explicit masks are unsupported.');
+    }
+    if (indirectBuffer != null || seqLen <= 1 || Q.dtype !== 'f32' || K.dtype !== 'f16' || V.dtype !== 'f16') {
+      throw new Error('[FlashAttention] requires direct prefill with f32 Q and f16 K/V.');
+    }
+    return executeFlashAttentionPrefill(recorder, Q, K, V, numHeads, headDim, {
+      seqLen, kvLen, numKVHeads, scale, causal, startPos, outputBuffer,
+      attnSoftcap, slidingWindow, kvLenBuffer, kvStart, kvLayout, kvPageTable, kvPageSize,
+    });
+  }
 
   if (execution.recorder) {
     trace.attn(0, `recordAttention: isDecode=${plan.isDecode}, tier=${plan.tier}, variant=${plan.variant}, seqLen=${seqLen}, kvLen=${kvLen}, numHeads=${numHeads}, headDim=${headDim}, useF16KV=${plan.useF16KV}`);
@@ -643,14 +650,14 @@ export class FlashAttentionPrefillKernel extends KernelBase {
 }
 
 export function getFlashPrefillKernel(device) {
-  if (!flashPrefillKernel) {
+  if (!flashPrefillKernel || flashPrefillKernel.device !== device) {
     flashPrefillKernel = new FlashAttentionPrefillKernel(device);
   }
   return flashPrefillKernel;
 }
 
 export function getFlashReduceKernel(device) {
-  if (!flashReduceKernel) {
+  if (!flashReduceKernel || flashReduceKernel.device !== device) {
     flashReduceKernel = new FlashAttentionPrefillKernel(device);
   }
   return flashReduceKernel;
@@ -746,134 +753,139 @@ export async function executeFlashAttentionPrefill(recorder, Q, K, V, numHeads, 
   // fast path where the kernel writes normalised output directly).
   const paddedHiddenSize = padToQ4KBlock(numHeads * headDim);
   const outputSize = seqLen * paddedHiddenSize * 4;
-  const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'attention_flash_output');
+  return withKernelOutput(recorder, outputBuffer, outputSize, 'attention_flash_output', async (outputBuf) => {
+    const intermediates = [];
+    const uniforms = [];
+    const acquireIntermediate = (bytes, label) => {
+      const buffer = acquireBuffer(bytes, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST, label);
+      intermediates.push(buffer);
+      return buffer;
+    };
+    try {
 
-  // Intermediate buffers for the multi-split path. On the single-split fast
-  // path we bypass the reduce pass entirely and bind the output buffer in
-  // slot 4 (partial_acc slot) while m/l bindings get tiny stub buffers — the
-  // kernel skips writes to them.
-  const partialAccBytes = singleSplit
-    ? 4
-    : numQueryBlocks * numHeads * numKvSplits * FLASH_BLOCK_SIZE * FLASH_HEAD_DIM * 4;
-  const partialStatsBytes = singleSplit
-    ? 4
-    : numQueryBlocks * numHeads * numKvSplits * FLASH_BLOCK_SIZE * 4;
-  const partialAcc = singleSplit
-    ? outputBuf
-    : acquireBuffer(partialAccBytes, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST, 'flash_partial_acc');
-  const partialM = acquireBuffer(
-    partialStatsBytes,
-    GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-    'flash_partial_m'
-  );
-  const partialL = acquireBuffer(
-    partialStatsBytes,
-    GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-    'flash_partial_l'
-  );
+      // Intermediate buffers for the multi-split path. On the single-split fast
+      // path we bypass the reduce pass entirely and bind the output buffer in
+      // slot 4 (partial_acc slot) while m/l bindings get tiny stub buffers — the
+      // kernel skips writes to them.
+      const partialAccBytes = singleSplit
+        ? 4
+        : numQueryBlocks * numHeads * numKvSplits * FLASH_BLOCK_SIZE * FLASH_HEAD_DIM * 4;
+      const partialStatsBytes = singleSplit
+        ? 4
+        : numQueryBlocks * numHeads * numKvSplits * FLASH_BLOCK_SIZE * 4;
+      const partialAcc = singleSplit
+        ? outputBuf
+        : acquireIntermediate(partialAccBytes, 'flash_partial_acc');
+      const partialM = acquireIntermediate(
+        partialStatsBytes,
+        'flash_partial_m'
+      );
+      const partialL = acquireIntermediate(
+        partialStatsBytes,
+        'flash_partial_l'
+      );
 
-  // Pass 1 uniforms + dispatch.
-  const flashUniform = createFlashAttentionUniformBuffer(device, execution.recorder, {
-    numHeads,
-    numKVHeads,
-    headDim,
-    kvLen,
-    seqLen,
-    scale,
-    causal,
-    startPos,
-    attnSoftcap,
-    slidingWindow,
-    kvLenSource: kvLenBuffer ? 1 : 0,
-    kvStart,
-    pageSize: kvPageSize,
-    kvLayout: 0, // contiguous only for now
-    numKvSplits,
-  });
+      // Pass 1 uniforms + dispatch.
+      const flashUniform = createFlashAttentionUniformBuffer(device, execution.recorder, {
+        numHeads,
+        numKVHeads,
+        headDim,
+        kvLen,
+        seqLen,
+        scale,
+        causal,
+        startPos,
+        attnSoftcap,
+        slidingWindow,
+        kvLenSource: kvLenBuffer ? 1 : 0,
+        kvStart,
+        pageSize: kvPageSize,
+        kvLayout: 0, // contiguous only for now
+        numKvSplits,
+      });
 
-  const flashKernel = getFlashPrefillKernel(device);
-  const flashPipeline = await flashKernel.getPipeline('prefill_flash_head256_f16kv');
-  const kvLenBinding = kvLenBuffer || getKvLenFallbackBuffer(device);
-  const pageTableBinding = kvPageTable || getPageTableFallbackBuffer(device);
+      uniforms.push(flashUniform);
+      const flashKernel = getFlashPrefillKernel(device);
+      const flashPipeline = await flashKernel.getPipeline('prefill_flash_head256_f16kv');
+      const kvLenBinding = kvLenBuffer || getKvLenFallbackBuffer(device);
+      const pageTableBinding = kvPageTable || getPageTableFallbackBuffer(device);
 
-  const flashBindGroup = device.createBindGroup({
-    label: 'attention_flash_prefill_bg',
-    layout: flashPipeline.getBindGroupLayout(0),
-    entries: [
-      { binding: 0, resource: { buffer: flashUniform } },
-      { binding: 1, resource: { buffer: Q.buffer } },
-      { binding: 2, resource: { buffer: K.buffer } },
-      { binding: 3, resource: { buffer: V.buffer } },
-      { binding: 4, resource: { buffer: partialAcc } },
-      { binding: 5, resource: { buffer: partialM } },
-      { binding: 6, resource: { buffer: partialL } },
-      { binding: 7, resource: { buffer: kvLenBinding } },
-      { binding: 8, resource: { buffer: pageTableBinding } },
-    ],
-  });
+      const flashBindGroup = device.createBindGroup({
+        label: 'attention_flash_prefill_bg',
+        layout: flashPipeline.getBindGroupLayout(0),
+        entries: [
+          { binding: 0, resource: { buffer: flashUniform } },
+          { binding: 1, resource: { buffer: Q.buffer } },
+          { binding: 2, resource: { buffer: K.buffer } },
+          { binding: 3, resource: { buffer: V.buffer } },
+          { binding: 4, resource: { buffer: partialAcc } },
+          { binding: 5, resource: { buffer: partialM } },
+          { binding: 6, resource: { buffer: partialL } },
+          { binding: 7, resource: { buffer: kvLenBinding } },
+          { binding: 8, resource: { buffer: pageTableBinding } },
+        ],
+      });
 
-  dispatchAttentionKernel(
-    execution,
-    flashKernel,
-    flashPipeline,
-    flashBindGroup,
-    numQueryBlocks * numHeads * numKvSplits
-  );
-  releaseAttentionUniform(execution, flashUniform);
+      dispatchAttentionKernel(
+        execution,
+        flashKernel,
+        flashPipeline,
+        flashBindGroup,
+        numQueryBlocks * numHeads * numKvSplits
+      );
 
-  // Pass 2 — reduce. Skipped on the single-split fast path where pass 1
-  // already wrote the final normalised output directly to outputBuf.
-  if (!singleSplit) {
-    const reduceUniform = createFlashReduceUniformBuffer(device, execution.recorder, {
-      numHeads,
-      queryLen: seqLen,
-      numKvSplits,
-    });
 
-    const reduceKernel = getFlashReduceKernel(device);
-    const reducePipeline = await reduceKernel.getPipeline('prefill_flash_reduce');
+      // Pass 2 — reduce. Skipped on the single-split fast path where pass 1
+      // already wrote the final normalised output directly to outputBuf.
+      if (!singleSplit) {
+        const reduceUniform = createFlashReduceUniformBuffer(device, execution.recorder, {
+          numHeads,
+          queryLen: seqLen,
+          numKvSplits,
+        });
 
-    const reduceBindGroup = device.createBindGroup({
-      label: 'attention_flash_reduce_bg',
-      layout: reducePipeline.getBindGroupLayout(0),
-      entries: [
-        { binding: 0, resource: { buffer: reduceUniform } },
-        { binding: 1, resource: { buffer: partialAcc } },
-        { binding: 2, resource: { buffer: partialM } },
-        { binding: 3, resource: { buffer: partialL } },
-        { binding: 4, resource: { buffer: outputBuf } },
-      ],
-    });
+        uniforms.push(reduceUniform);
+        const reduceKernel = getFlashReduceKernel(device);
+        const reducePipeline = await reduceKernel.getPipeline('prefill_flash_reduce');
 
-    const totalQh = seqLen * numHeads;
-    const reduceWgX = Math.ceil(totalQh / FLASH_REDUCE_WG);
-    dispatchAttentionKernel(
-      execution,
-      reduceKernel,
-      reducePipeline,
-      reduceBindGroup,
-      [reduceWgX, FLASH_HEAD_DIM_VECS, 1]
-    );
-    releaseAttentionUniform(execution, reduceUniform);
-  }
+        const reduceBindGroup = device.createBindGroup({
+          label: 'attention_flash_reduce_bg',
+          layout: reducePipeline.getBindGroupLayout(0),
+          entries: [
+            { binding: 0, resource: { buffer: reduceUniform } },
+            { binding: 1, resource: { buffer: partialAcc } },
+            { binding: 2, resource: { buffer: partialM } },
+            { binding: 3, resource: { buffer: partialL } },
+            { binding: 4, resource: { buffer: outputBuf } },
+          ],
+        });
 
-  // Release intermediate buffers via the recorder's deferred cleanup so GPU
-  // work completes before they re-enter the pool. On the single-split path
-  // partialAcc IS the output buffer, so we skip it.
-  const intermediates = singleSplit ? [partialM, partialL] : [partialAcc, partialM, partialL];
-  if (execution.recorder) {
-    for (const buf of intermediates) {
-      execution.recorder.trackTemporaryBuffer(buf);
-    }
-  } else {
-    device.queue.onSubmittedWorkDone().then(() => {
-      for (const buf of intermediates) {
-        releaseBuffer(buf);
+        const totalQh = seqLen * numHeads;
+        const reduceWgX = Math.ceil(totalQh / FLASH_REDUCE_WG);
+        dispatchAttentionKernel(
+          execution,
+          reduceKernel,
+          reducePipeline,
+          reduceBindGroup,
+          [reduceWgX, FLASH_HEAD_DIM_VECS, 1]
+        );
+
       }
-    });
-  }
 
-  return createTensor(outputBuf, 'f32', [seqLen, numHeads, headDim], 'attention_flash_output');
+      return createTensor(outputBuf, 'f32', [seqLen, numHeads, headDim], 'attention_flash_output');
+    } finally {
+      // Retain every allocation even when preparing the reduce pass fails.
+      if (execution.recorder) {
+        for (const buffer of intermediates) execution.recorder.trackTemporaryBuffer(buffer);
+      } else {
+        try { await device.queue.onSubmittedWorkDone(); }
+        finally {
+          for (const buffer of intermediates) releaseBuffer(buffer);
+          for (const uniform of uniforms) releaseAttentionUniform(execution, uniform);
+        }
+      }
+    }
+  });
 }
 
 export const ORT_FLASH_WG = 64;

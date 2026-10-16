@@ -1,0 +1,2250 @@
+{
+  "ok": true,
+  "schemaVersion": 1,
+  "profileRoot": "src/config/runtime",
+  "profiles": [
+    {
+      "id": "compute/f16-activations",
+      "name": "f16-activations",
+      "description": "Experimental F16 activations for reduced memory bandwidth",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "canonical",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-02-25T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "default",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/compute/f16-activations.json",
+      "runtimePath": "compute/f16-activations.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "compute/f16-batched",
+      "name": "f16-batched",
+      "description": "F16 activations with multi-token decode batching for lower submit/readback overhead.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "canonical",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-02-25T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "compute/f16-activations",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/compute/f16-batched.json",
+      "runtimePath": "compute/f16-batched.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "default",
+      "name": "default",
+      "description": "Default DOPPLER configuration with balanced settings",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "canonical",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-02-25T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": null,
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/default.json",
+      "runtimePath": "default.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "diagnostics/debug-logits",
+      "name": "debug-logits",
+      "description": "Trace sample + logits with a top-k probe for a single token.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "canonical",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-02-25T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/verbose-trace",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/diagnostics/debug-logits.json",
+      "runtimePath": "diagnostics/debug-logits.json",
+      "signals": {
+        "trace": true,
+        "profiler": false,
+        "probes": true,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "experiments/bench/gemma3-bench-q4k",
+      "name": "gemma3-bench-q4k",
+      "description": "Benchmark run for Gemma 3 1B Q4K — calibration-mode throughput measurement.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-02-25T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "gemma-3-1b-it-q4k-ehf16-af32",
+      "path": "src/config/runtime/experiments/bench/gemma3-bench-q4k.json",
+      "runtimePath": "experiments/bench/gemma3-bench-q4k.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": true
+      }
+    },
+    {
+      "id": "experiments/bench/gemma3-bench-q4k-alt",
+      "name": "gemma3-bench-q4k-alt",
+      "description": "Gemma 3 1B Q4K alternate throughput profile for batched decode tuning.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-03-25T01:45:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "gemma-3-1b-it-q4k-ehf16-af32",
+      "path": "src/config/runtime/experiments/bench/gemma3-bench-q4k-alt.json",
+      "runtimePath": "experiments/bench/gemma3-bench-q4k-alt.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": true
+      }
+    },
+    {
+      "id": "experiments/bench/gemma3-bench-q4k-batched",
+      "name": "gemma3-bench-q4k-batched",
+      "description": "Gemma 3 1B Q4K benchmark profile with batch decode enabled.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-03-25T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "gemma-3-1b-it-q4k-ehf16-af32",
+      "path": "src/config/runtime/experiments/bench/gemma3-bench-q4k-batched.json",
+      "runtimePath": "experiments/bench/gemma3-bench-q4k-batched.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": true
+      }
+    },
+    {
+      "id": "experiments/bench/gemma4-bench-q4k",
+      "name": "gemma4-bench-q4k",
+      "description": "Benchmark run for Gemma 4 E2B Q4K with deterministic generation settings.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-04-14T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "gemma-4-e2b-it-q4k-ehf16-af32",
+      "path": "src/config/runtime/experiments/bench/gemma4-bench-q4k.json",
+      "runtimePath": "experiments/bench/gemma4-bench-q4k.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": true
+      }
+    },
+    {
+      "id": "experiments/bench/qwen3-bench-q4k-alt",
+      "name": "qwen3-bench-q4k-alt",
+      "description": "Qwen 3.5 0.8B Q4K alternate throughput profile for batched decode tuning.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-03-25T01:45:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "path": "src/config/runtime/experiments/bench/qwen3-bench-q4k-alt.json",
+      "runtimePath": "experiments/bench/qwen3-bench-q4k-alt.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": true
+      }
+    },
+    {
+      "id": "experiments/bench/qwen3-bench-q4k-batched",
+      "name": "qwen3-bench-q4k-batched",
+      "description": "Qwen 3.5 0.8B Q4K benchmark profile with batch decode enabled.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-03-25T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "path": "src/config/runtime/experiments/bench/qwen3-bench-q4k-batched.json",
+      "runtimePath": "experiments/bench/qwen3-bench-q4k-batched.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": true
+      }
+    },
+    {
+      "id": "experiments/debug/gemma3-browser-diagnose-q4k",
+      "name": "gemma3-browser-diagnose-q4k",
+      "description": "Browser/Chromium investigation profile for Gemma 3 1B Q4K that preserves compare-like runtime conditions while enabling GPU profiling and low-overhead operator diagnostics.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-03-28T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/default",
+      "modelId": null,
+      "model": "gemma-3-1b-it-q4k-ehf16-af32",
+      "path": "src/config/runtime/experiments/debug/gemma3-browser-diagnose-q4k.json",
+      "runtimePath": "experiments/debug/gemma3-browser-diagnose-q4k.json",
+      "signals": {
+        "trace": false,
+        "profiler": true,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "experiments/debug/gemma3-debug-q4k",
+      "name": "gemma3-q4k-debug",
+      "description": "Debug Gemma 3 1B Q4K inference - check kernel selection and alignment",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-02-25T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "default",
+      "modelId": null,
+      "model": "gemma-3-1b-it-q4k-ehf16-af32",
+      "path": "src/config/runtime/experiments/debug/gemma3-debug-q4k.json",
+      "runtimePath": "experiments/debug/gemma3-debug-q4k.json",
+      "signals": {
+        "trace": true,
+        "profiler": false,
+        "probes": true,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "experiments/debug/gemma4-e2b-browser-diagnose-q4k",
+      "name": "gemma4-e2b-browser-diagnose-q4k",
+      "description": "Browser/Chromium investigation profile for Gemma 4 E2B Q4K that preserves compare-like runtime conditions while enabling GPU profiling and low-overhead operator diagnostics. Mirrors gemma3-browser-diagnose-q4k. Use for classifying the prefill wall (GPU compute vs submit/readback/orchestration) before any kernel edit.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-04-17T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/default",
+      "modelId": null,
+      "model": "gemma-4-e2b-it-q4k-ehf16-af32",
+      "path": "src/config/runtime/experiments/debug/gemma4-e2b-browser-diagnose-q4k.json",
+      "runtimePath": "experiments/debug/gemma4-e2b-browser-diagnose-q4k.json",
+      "signals": {
+        "trace": false,
+        "profiler": true,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "experiments/debug/qwen35-browser-diagnose-q4k",
+      "name": "qwen35-browser-diagnose-q4k",
+      "description": "Browser/Chromium investigation profile for Qwen 3.5 0.8B Q4K that preserves compare-like prefill conditions while enabling GPU profiling and low-overhead operator diagnostics.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-03-29T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/default",
+      "modelId": null,
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "path": "src/config/runtime/experiments/debug/qwen35-browser-diagnose-q4k.json",
+      "runtimePath": "experiments/debug/qwen35-browser-diagnose-q4k.json",
+      "signals": {
+        "trace": false,
+        "profiler": true,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "experiments/verify/gemma3-verify",
+      "name": "gemma3-verify",
+      "description": null,
+      "intent": "verify",
+      "compatibleIntents": [
+        "verify"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-02-25T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "gemma-3-1b-it-f16-af32",
+      "path": "src/config/runtime/experiments/verify/gemma3-verify.json",
+      "runtimePath": "experiments/verify/gemma3-verify.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "experiments/verify/gemma4-e2b-verify",
+      "name": "gemma4-e2b-verify",
+      "description": null,
+      "intent": "verify",
+      "compatibleIntents": [
+        "verify"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-04-04T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "gemma-4-e2b-it-q4k-ehf16-af32",
+      "path": "src/config/runtime/experiments/verify/gemma4-e2b-verify.json",
+      "runtimePath": "experiments/verify/gemma4-e2b-verify.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "experiments/verify/lfm2-verify",
+      "name": "lfm2-verify",
+      "description": null,
+      "intent": "verify",
+      "compatibleIntents": [
+        "verify"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-03-16T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
+      "path": "src/config/runtime/experiments/verify/lfm2-verify.json",
+      "runtimePath": "experiments/verify/lfm2-verify.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "experiments/verify/translategemma-verify",
+      "name": "translategemma-verify",
+      "description": null,
+      "intent": "verify",
+      "compatibleIntents": [
+        "verify"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-03-16T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "translategemma-4b-it-q4k-ehf16-af32",
+      "path": "src/config/runtime/experiments/verify/translategemma-verify.json",
+      "runtimePath": "experiments/verify/translategemma-verify.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "model/gemma2-debug",
+      "name": "gemma2-debug",
+      "description": "Gemma 2 probe-focused debugging with targeted trace categories",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "canonical",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-02-25T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/verbose-trace",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/model/gemma2-debug.json",
+      "runtimePath": "model/gemma2-debug.json",
+      "signals": {
+        "trace": true,
+        "profiler": false,
+        "probes": true,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "model/gemma2-pipeline",
+      "name": "gemma2-pipeline",
+      "description": "Gemma 2 explicit layer pipeline (all norms as separate steps)",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "canonical",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-02-25T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "default",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/model/gemma2-pipeline.json",
+      "runtimePath": "model/gemma2-pipeline.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "model/gemma2-pipeline-debug",
+      "name": "gemma2-pipeline-debug",
+      "description": "Gemma 2 explicit pipeline with focused trace/probes",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "canonical",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-02-25T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "model/gemma2-debug",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/model/gemma2-pipeline-debug.json",
+      "runtimePath": "model/gemma2-pipeline-debug.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "model/gemma3-layer-probe",
+      "name": "gemma3-layer-probe",
+      "description": "Probe layer outputs to compare against HuggingFace reference",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "canonical",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-02-25T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/verbose-trace",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/model/gemma3-layer-probe.json",
+      "runtimePath": "model/gemma3-layer-probe.json",
+      "signals": {
+        "trace": true,
+        "profiler": false,
+        "probes": true,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "model/qwen3-5-layer-probe",
+      "name": "qwen3-5-layer-probe",
+      "description": "Probe all 24 layer outputs in Qwen 3.5 to isolate where the hidden state distribution collapses.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "canonical",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-03-13T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/verbose-trace",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/model/qwen3-5-layer-probe.json",
+      "runtimePath": "model/qwen3-5-layer-probe.json",
+      "signals": {
+        "trace": true,
+        "profiler": false,
+        "probes": true,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "model/qwen3-5-layer3-boundary-probe",
+      "name": "qwen3-5-layer3-boundary-probe",
+      "description": "Capture full-attention boundary checkpoints around layer 3 to isolate Q/K norm and partial RoPE behavior.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "canonical",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-03-23T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/verbose-trace",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/model/qwen3-5-layer3-boundary-probe.json",
+      "runtimePath": "model/qwen3-5-layer3-boundary-probe.json",
+      "signals": {
+        "trace": true,
+        "profiler": false,
+        "probes": true,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "model/qwen3-5-linear-attn-debug",
+      "name": "qwen3-5-linear-attn-debug",
+      "description": "Probe linear attention intermediates in Qwen 3.5 layer 0 for comparison with HF reference.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "canonical",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-03-13T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/verbose-trace",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/model/qwen3-5-linear-attn-debug.json",
+      "runtimePath": "model/qwen3-5-linear-attn-debug.json",
+      "signals": {
+        "trace": true,
+        "profiler": false,
+        "probes": true,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "platform/metal-apple-q4k",
+      "name": "metal-apple-q4k",
+      "description": "Metal (Apple GPU) tuned default for Q4K F16 activation/cache runtime policy.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "canonical",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-02-25T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "default",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/platform/metal-apple-q4k.json",
+      "runtimePath": "platform/metal-apple-q4k.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/default",
+      "name": "default",
+      "description": "Baseline runtime defaults from schema",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "canonical",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-02-25T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": null,
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/profiles/default.json",
+      "runtimePath": "profiles/default.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/diffusiongemma-26b-a4b-throughput",
+      "name": "diffusiongemma-26b-a4b-throughput",
+      "description": "DiffusionGemma calibration profile that selects the GPU route-expert scheduler for the Gemma 4 A4B MoE block-diffusion artifact.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-06-12T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
+      "path": "src/config/runtime/profiles/diffusiongemma-26b-a4b-throughput.json",
+      "runtimePath": "profiles/diffusiongemma-26b-a4b-throughput.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/gemma3-270m-q4k-throughput-overlapped-probe",
+      "name": "gemma3-270m-q4k-throughput-overlapped-probe",
+      "description": "Gemma 3 270M calibration profile that uses the Q4K 8x8 throughput cadence, overlapped decode readback, fused packed-QKV QK-norm/RoPE decode path, and sandwich RMSNorm-pair fusion for readback-bound browser diagnostics. Used to reduce decode readback submissions and dispatch count without changing shared prompt or sampling semantics.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-06-26T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "gemma-3-270m-it-q4k-ehf16-af32",
+      "path": "src/config/runtime/profiles/gemma3-270m-q4k-throughput-overlapped-probe.json",
+      "runtimePath": "profiles/gemma3-270m-q4k-throughput-overlapped-probe.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/gemma3-270m-q4k-throughput-probe",
+      "name": "gemma3-270m-q4k-throughput-probe",
+      "description": "Gemma 3 270M calibration profile that keeps the Q4K 8x4 throughput cadence and opts the Q4K lane into sync prefill, retained Q4K materialization, the wide-tile Q4K prefill path, and sequential decode readback. Used to measure reusable decode/prefill bottlenecks without changing shared prompt or sampling semantics.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-06-26T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "gemma-3-270m-it-q4k-ehf16-af32",
+      "path": "src/config/runtime/profiles/gemma3-270m-q4k-throughput-probe.json",
+      "runtimePath": "profiles/gemma3-270m-q4k-throughput-probe.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/gemma4-12b-rdrr-safe-b4",
+      "name": "gemma4-12b-rdrr-safe-b4",
+      "description": "Deprecated Gemma 4 12B RDRR safe profile alias. Use profiles/gemma4-12b-rdrr-safe-single for coherent local QAT runs.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "deprecated",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-06-07T00:00:00Z",
+      "supersedes": null,
+      "replacementId": "profiles/gemma4-12b-rdrr-safe-single",
+      "deprecatedAtUtc": "2026-06-08T00:00:00Z",
+      "extends": "profiles/default",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/profiles/gemma4-12b-rdrr-safe-b4.json",
+      "runtimePath": "profiles/gemma4-12b-rdrr-safe-b4.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/gemma4-12b-rdrr-safe-single",
+      "name": "gemma4-12b-rdrr-safe-single",
+      "description": "Gemma 4 12B RDRR safe single-token decode cadence for coherent local QAT runs on consumer hardware.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-06-08T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/default",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/profiles/gemma4-12b-rdrr-safe-single.json",
+      "runtimePath": "profiles/gemma4-12b-rdrr-safe-single.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/gemma4-31b-f16-activations-probe",
+      "name": "gemma4-31b-f16-activations-probe",
+      "description": "Experimental Gemma 4 31B text profile that requests the execution-v1 f16 compute lane against the f16 activation manifest variant sharing the existing Q4K weight capsule. Use for browser/WebGPU proof only after transcript parity is captured.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-04-28T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/default",
+      "modelId": null,
+      "model": "gemma-4-31b-it-text-q4k-ehf16-af16",
+      "path": "src/config/runtime/profiles/gemma4-31b-f16-activations-probe.json",
+      "runtimePath": "profiles/gemma4-31b-f16-activations-probe.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/gemma4-e2b-baseline-probe",
+      "name": "gemma4-e2b-baseline-probe",
+      "description": "One-off diagnostic profile with layer-0 kernel-debug dumps. Baseline (no RMSNorm+Q4K fusion) for comparison against gemma4-e2b-fused-rmsnorm-probe. Not for perf measurement — only correctness probe.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-04-18T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "gemma-4-e2b-it-q4k-ehf16-af32",
+      "path": "src/config/runtime/profiles/gemma4-e2b-baseline-probe.json",
+      "runtimePath": "profiles/gemma4-e2b-baseline-probe.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/gemma4-e2b-fused-rmsnorm-probe",
+      "name": "gemma4-e2b-fused-rmsnorm-probe",
+      "description": "One-off diagnostic profile with useFusedRmsnormWideTile=true and layer-0 kernel-debug dumps. Compares fused RMSNorm+Q4K WideTile output to baseline rmsnorm+matmul chain at q/k/v_proj call sites. Not for perf measurement — only correctness probe.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-04-18T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "gemma-4-e2b-it-q4k-ehf16-af32",
+      "path": "src/config/runtime/profiles/gemma4-e2b-fused-rmsnorm-probe.json",
+      "runtimePath": "profiles/gemma4-e2b-fused-rmsnorm-probe.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/gemma4-e2b-fused-rmsnorm-test",
+      "name": "gemma4-e2b-fused-rmsnorm-test",
+      "description": "Test profile with useFusedRmsnormWideTile=true for end-to-end correctness + perf measurement. Model fast-path settings come from the converted manifest.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-04-18T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "gemma-4-e2b-it-q4k-ehf16-af32",
+      "path": "src/config/runtime/profiles/gemma4-e2b-fused-rmsnorm-test.json",
+      "runtimePath": "profiles/gemma4-e2b-fused-rmsnorm-test.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/gemma4-e2b-int4ple-baseline-probe",
+      "name": "gemma4-e2b-int4ple-baseline-probe",
+      "description": "Apples-to-apples baseline counterpart for profiles/gemma4-e2b-int4ple-retain-q4k-probe. Same prompt/maxTokens/sampling but runs against the shipped manifest defaults (retainQ4KMaterialization=false, activationDtype=f32). Used to attribute perf deltas to the retain=true switch only.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-05-01T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/default",
+      "modelId": null,
+      "model": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+      "path": "src/config/runtime/profiles/gemma4-e2b-int4ple-baseline-probe.json",
+      "runtimePath": "profiles/gemma4-e2b-int4ple-baseline-probe.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/gemma4-e2b-int4ple-f16a-probe",
+      "name": "gemma4-e2b-int4ple-f16a-probe",
+      "description": "Experimental Gemma 4 E2B INT4 PLE profile that requests f16 activation narrowing against the existing execution-v1 manifest. Stage-1 probe only; do not use for release claims until correctness and perf gates pass.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-04-20T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+      "path": "src/config/runtime/profiles/gemma4-e2b-int4ple-f16a-probe.json",
+      "runtimePath": "profiles/gemma4-e2b-int4ple-f16a-probe.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/gemma4-e2b-int4ple-reference-export",
+      "name": "gemma4-e2b-int4ple-reference-export",
+      "description": "Gemma 4 E2B INT4 PLE reference-export profile for constrained Node WebGPU hosts. Keeps low-memory loading caps while preserving plain contiguous KV cache required by the execution-v1 INT4 PLE path.",
+      "intent": "verify",
+      "compatibleIntents": [
+        "verify"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-04-25T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/low-memory",
+      "modelId": null,
+      "model": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+      "path": "src/config/runtime/profiles/gemma4-e2b-int4ple-reference-export.json",
+      "runtimePath": "profiles/gemma4-e2b-int4ple-reference-export.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/gemma4-e2b-int4ple-retain-q4k-probe",
+      "name": "gemma4-e2b-int4ple-retain-q4k-probe",
+      "description": "Investigation probe that opts gemma-4-e2b INT4-PLE into retainQ4KMaterialization=true plus f16 activations so the fused-q4k+f16 kernel pool (q4k_f16a fused FFN, q4_fused_widetile_f16a matmul) can be exercised end-to-end. Existing capability-transforms.rules.json rule force-disables retain on Apple Metal because of the documented L0.ffn_down NaN; AMD/RDNA3 passes through. Use this profile to capture the AMD transcript before any kernel is promoted into a release-eligible runtime profile.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-05-01T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/default",
+      "modelId": null,
+      "model": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+      "path": "src/config/runtime/profiles/gemma4-e2b-int4ple-retain-q4k-probe.json",
+      "runtimePath": "profiles/gemma4-e2b-int4ple-retain-q4k-probe.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/gemma4-e2b-low-memory",
+      "name": "gemma4-e2b-low-memory",
+      "description": "Model-scoped Gemma 4 E2B low-memory profile with explicit contiguous TurboQuant KV compression and shorter context.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-04-06T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/low-memory",
+      "modelId": null,
+      "model": "gemma-4-e2b-it-q4k-ehf16-af32",
+      "path": "src/config/runtime/profiles/gemma4-e2b-low-memory.json",
+      "runtimePath": "profiles/gemma4-e2b-low-memory.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/gemma4-e2b-prefill-profile",
+      "name": "gemma4-e2b-prefill-profile",
+      "description": "Investigation profile with GPU timestamp-query profiling enabled, longer prompt (prefill≥81), and debug log level so per-kernel timings surface via log.warn('Profile', ...). Used to identify the actual prefill wall.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-04-18T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "gemma-4-e2b-it-q4k-ehf16-af32",
+      "path": "src/config/runtime/profiles/gemma4-e2b-prefill-profile.json",
+      "runtimePath": "profiles/gemma4-e2b-prefill-profile.json",
+      "signals": {
+        "trace": false,
+        "profiler": true,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/gemma4-e2b-throughput-probe",
+      "name": "gemma4-e2b-throughput-probe",
+      "description": "Throughput probe with a longer-prompt override (prefill≥64 tokens) for apples-to-apples baseline measurement against gemma4-e2b-fused-rmsnorm-test. Model fast-path settings come from the converted manifest.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-04-18T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "gemma-4-e2b-it-q4k-ehf16-af32",
+      "path": "src/config/runtime/profiles/gemma4-e2b-throughput-probe.json",
+      "runtimePath": "profiles/gemma4-e2b-throughput-probe.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/low-memory",
+      "name": "low-memory",
+      "description": "Low memory configuration for constrained environments",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "canonical",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-02-25T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/default",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/profiles/low-memory.json",
+      "runtimePath": "profiles/low-memory.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/muse-glimmer-30b-source-parity",
+      "name": "muse-glimmer-30b-source-parity",
+      "description": "Deterministic raw-text source-parity profile for the pinned Muse Glimmer 30B checkpoint. Restricts qualification to a 256-token contiguous KV session while preserving the manifest-declared graph, dtypes, kernels, and model semantics.",
+      "intent": "verify",
+      "compatibleIntents": [
+        "verify"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-08-23T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/production",
+      "modelId": null,
+      "model": "muse-glimmer-30b-text-f16-af32",
+      "path": "src/config/runtime/profiles/muse-glimmer-30b-source-parity.json",
+      "runtimePath": "profiles/muse-glimmer-30b-source-parity.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/muse-glimmer-30b-source-parity-f32kv",
+      "name": "muse-glimmer-30b-source-parity-f32kv",
+      "description": "Rejected-or-promotable Glimmer source-parity search candidate that preserves the f32 activation plan while testing f32 contiguous KV state against the frozen source oracle.",
+      "intent": "verify",
+      "compatibleIntents": [
+        "verify"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-08-23T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/muse-glimmer-30b-source-parity",
+      "modelId": null,
+      "model": "muse-glimmer-30b-text-f16-af32",
+      "path": "src/config/runtime/profiles/muse-glimmer-30b-source-parity-f32kv.json",
+      "runtimePath": "profiles/muse-glimmer-30b-source-parity-f32kv.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/production",
+      "name": "production",
+      "description": "Production configuration with optimized settings",
+      "intent": "verify",
+      "compatibleIntents": [
+        "verify"
+      ],
+      "stability": "canonical",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-02-25T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/default",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/profiles/production.json",
+      "runtimePath": "profiles/production.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/qwen-3-5-0-8b-f16-m3",
+      "name": "Qwen3.5 0.8B F16 M3",
+      "description": "Opt-in Node/WebGPU tuning for the pinned Qwen3.5 0.8B text-f16-matched artifact on M3. Register-tiled prefill, head-256 decode attention, and 32-thread LM-head reductions. F32 activations and F16 KV are unchanged. Local paired evidence: artifacts/qwen08-prefill-20261016/summary.json; no cross-engine qualification.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate",
+        "investigate",
+        "verify"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-10-16T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/default",
+      "modelId": null,
+      "model": "qwen3-5-0-8b-text-f16-matched",
+      "path": "src/config/runtime/profiles/qwen-3-5-0-8b-f16-m3.json",
+      "runtimePath": "profiles/qwen-3-5-0-8b-f16-m3.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/qwen-3-5-0-8b-metal-attn128-candidate",
+      "name": "qwen-3-5-0-8b-metal-attn128-candidate",
+      "description": "Investigation candidate for Qwen 3.5 0.8B browser/Metal parity. Copies the Metal parity profile and changes only online decode attention WORKGROUP_SIZE from the shader default 256 to 128.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-07-08T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/qwen-3-5-0-8b-metal-parity",
+      "modelId": null,
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "path": "src/config/runtime/profiles/qwen-3-5-0-8b-metal-attn128-candidate.json",
+      "runtimePath": "profiles/qwen-3-5-0-8b-metal-attn128-candidate.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/qwen-3-5-0-8b-metal-maxbatch64-candidate",
+      "name": "qwen-3-5-0-8b-metal-maxbatch64-candidate",
+      "description": "Investigation candidate for Qwen 3.5 0.8B browser/Metal throughput. Copies the baseline Metal profile and changes only maxBatchDecodeTokens from 128 to 64.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-07-08T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "path": "src/config/runtime/profiles/qwen-3-5-0-8b-metal-maxbatch64-candidate.json",
+      "runtimePath": "profiles/qwen-3-5-0-8b-metal-maxbatch64-candidate.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/qwen-3-5-0-8b-metal-normed-ffn-candidate",
+      "name": "qwen-3-5-0-8b-metal-normed-ffn-candidate",
+      "description": "Qwen 3.5 0.8B browser/Metal diagnostic profile copied from the Metal throughput profile with only the post-attention-norm fused gate/up prelude enabled. This is tuning evidence only unless receipts prove exact parity and faster decode.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-07-08T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/qwen-3-5-0-8b-metal-throughput",
+      "modelId": null,
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "path": "src/config/runtime/profiles/qwen-3-5-0-8b-metal-normed-ffn-candidate.json",
+      "runtimePath": "profiles/qwen-3-5-0-8b-metal-normed-ffn-candidate.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/qwen-3-5-0-8b-metal-overlap-ringtokens1-candidate",
+      "name": "qwen-3-5-0-8b-metal-overlap-ringtokens1-candidate",
+      "description": "Investigation candidate for Qwen 3.5 0.8B browser/Metal throughput. Copies the baseline Metal profile and changes only overlapped token ring depth while keeping ringStaging valid for overlapped readback.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-07-08T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "path": "src/config/runtime/profiles/qwen-3-5-0-8b-metal-overlap-ringtokens1-candidate.json",
+      "runtimePath": "profiles/qwen-3-5-0-8b-metal-overlap-ringtokens1-candidate.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/qwen-3-5-0-8b-metal-parity",
+      "name": "qwen-3-5-0-8b-metal-parity",
+      "description": "Qwen 3.5 0.8B browser/Metal parity profile. Preserves the release 4x4 decode cadence while enabling exact-safe decode fusions and overlapped readback on Apple Metal.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-07-08T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "path": "src/config/runtime/profiles/qwen-3-5-0-8b-metal-parity.json",
+      "runtimePath": "profiles/qwen-3-5-0-8b-metal-parity.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/qwen-3-5-0-8b-metal-sequential-candidate",
+      "name": "qwen-3-5-0-8b-metal-sequential-candidate",
+      "description": "Investigation candidate for Qwen 3.5 0.8B browser/Metal throughput. Copies the baseline Metal profile and changes only readback mode/ring sizing from overlapped to sequential.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-07-08T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "path": "src/config/runtime/profiles/qwen-3-5-0-8b-metal-sequential-candidate.json",
+      "runtimePath": "profiles/qwen-3-5-0-8b-metal-sequential-candidate.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/qwen-3-5-0-8b-metal-throughput",
+      "name": "qwen-3-5-0-8b-metal-throughput",
+      "description": "Qwen 3.5 0.8B browser/Metal throughput profile. Keeps the shared Qwen Q4K execution graph and uses overlapped decode readback on Apple Metal so submit/readback-bound decode can reuse ring staging without changing Vulkan cadence.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-07-08T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "path": "src/config/runtime/profiles/qwen-3-5-0-8b-metal-throughput.json",
+      "runtimePath": "profiles/qwen-3-5-0-8b-metal-throughput.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/qwen-3-5-0-8b-prefill-profile",
+      "name": "qwen-3-5-0-8b-prefill-profile",
+      "description": "Qwen 3.5 0.8B investigation profile with GPU timestamp-query profiling enabled and longer prompt (~80 tokens). Used to identify the actual prefill/decode wall via log.warn('Profile', ...).",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-04-18T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "path": "src/config/runtime/profiles/qwen-3-5-0-8b-prefill-profile.json",
+      "runtimePath": "profiles/qwen-3-5-0-8b-prefill-profile.json",
+      "signals": {
+        "trace": false,
+        "profiler": true,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/qwen-3-5-0-8b-throughput-probe",
+      "name": "qwen-3-5-0-8b-throughput-probe",
+      "description": "Qwen 3.5 0.8B throughput probe with a longer-prompt override (~80 tokens) for apples-to-apples measurement. Model fast-path settings come from the converted manifest.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-04-18T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "path": "src/config/runtime/profiles/qwen-3-5-0-8b-throughput-probe.json",
+      "runtimePath": "profiles/qwen-3-5-0-8b-throughput-probe.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/qwen-3-5-2b-f16-primary-throughput",
+      "name": "qwen-3-5-2b-f16-primary-throughput",
+      "description": "Qwen 3.5 2B throughput profile that explicitly requests the selective f16 primary projection lane. The compare harness still owns prompt, sampling, token budget, and decode cadence.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-07-07T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "qwen-3-5-2b-q4k-ehaf16",
+      "path": "src/config/runtime/profiles/qwen-3-5-2b-f16-primary-throughput.json",
+      "runtimePath": "profiles/qwen-3-5-2b-f16-primary-throughput.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/qwen-3-5-2b-metal-parity",
+      "name": "qwen-3-5-2b-metal-parity",
+      "description": "Qwen 3.5 2B browser/Metal parity profile. Preserves the release 4x4 decode cadence while inheriting the exact Metal Q4 GEMV and decode fusions from the throughput profile.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-07-10T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/qwen-3-5-2b-metal-throughput",
+      "modelId": null,
+      "model": "qwen-3-5-2b-q4k-ehaf16",
+      "path": "src/config/runtime/profiles/qwen-3-5-2b-metal-parity.json",
+      "runtimePath": "profiles/qwen-3-5-2b-metal-parity.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/qwen-3-5-2b-metal-throughput",
+      "name": "qwen-3-5-2b-metal-throughput",
+      "description": "Qwen 3.5 2B browser/Metal throughput profile. Uses 16-lane Q4_K decode projections, fused gate/up, and exact linear-attention fusions while preserving the manifest f32 compute lane.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-07-07T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "qwen-3-5-2b-q4k-ehaf16",
+      "path": "src/config/runtime/profiles/qwen-3-5-2b-metal-throughput.json",
+      "runtimePath": "profiles/qwen-3-5-2b-metal-throughput.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/qwen-3-5-9b-metal-correctness",
+      "name": "qwen-3-5-9b-metal-correctness",
+      "description": "Shared single-token decode contract for F16 and mixed-Q4_K correctness comparison on Apple Metal.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-07-12T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/production",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/profiles/qwen-3-5-9b-metal-correctness.json",
+      "runtimePath": "profiles/qwen-3-5-9b-metal-correctness.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/qwen-3-embedding-0-6b-metal-stability",
+      "name": "qwen-3-embedding-0-6b-metal-stability",
+      "description": "Qwen 3 Embedding 0.6B Metal validation profile preserving manifest compute precision.",
+      "intent": "verify",
+      "compatibleIntents": [
+        "verify"
+      ],
+      "stability": "canonical",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-07-09T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/default",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/profiles/qwen-3-embedding-0-6b-metal-stability.json",
+      "runtimePath": "profiles/qwen-3-embedding-0-6b-metal-stability.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/qwen-3-embedding-0-6b-metal-throughput",
+      "name": "qwen-3-embedding-0-6b-metal-throughput",
+      "description": "Qwen 3 Embedding 0.6B Metal throughput profile preserving manifest compute precision.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate"
+      ],
+      "stability": "canonical",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-07-09T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/profiles/qwen-3-embedding-0-6b-metal-throughput.json",
+      "runtimePath": "profiles/qwen-3-embedding-0-6b-metal-throughput.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/qwen-3-reranker-0-6b-metal-stability",
+      "name": "qwen-3-reranker-0-6b-metal-stability",
+      "description": "Qwen 3 Reranker 0.6B browser/Metal validation profile preserving manifest compute precision while exercising the fixed head_dim=128 f16-KV prefill attention path.",
+      "intent": "verify",
+      "compatibleIntents": [
+        "verify"
+      ],
+      "stability": "canonical",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-07-09T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/rerank-stability",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/profiles/qwen-3-reranker-0-6b-metal-stability.json",
+      "runtimePath": "profiles/qwen-3-reranker-0-6b-metal-stability.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/qwen-3-reranker-0-6b-metal-throughput",
+      "name": "qwen-3-reranker-0-6b-metal-throughput",
+      "description": "Qwen 3 Reranker 0.6B browser/Metal throughput profile preserving manifest compute precision while using fixed head_dim=128 f16-KV prefill attention.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate"
+      ],
+      "stability": "canonical",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-07-09T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/rerank-throughput",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/profiles/qwen-3-reranker-0-6b-metal-throughput.json",
+      "runtimePath": "profiles/qwen-3-reranker-0-6b-metal-throughput.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/qwen3-6-27b-f16-activations-probe",
+      "name": "qwen3-6-27b-f16-activations-probe",
+      "description": "Experimental Qwen 3.6 27B profile that requests the additive execution-v1 f16 compute lane against the f16 manifest sibling sharing the existing Q4K weight capsule.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-04-29T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/default",
+      "modelId": null,
+      "model": "qwen-3-6-27b-q4k-eaf16",
+      "path": "src/config/runtime/profiles/qwen3-6-27b-f16-activations-probe.json",
+      "runtimePath": "profiles/qwen3-6-27b-f16-activations-probe.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/qwen3-8-27b-source-parity",
+      "name": "qwen3-8-27b-source-parity",
+      "description": "Deterministic raw-text source-parity profile for the pinned Qwen3.8 27B checkpoint. Uses only manifest-declared execution policy and fails instead of remapping an incompatible kernel path.",
+      "intent": "verify",
+      "compatibleIntents": [
+        "verify"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-08-22T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/production",
+      "modelId": null,
+      "model": "qwen3-8-27b-text-f16-af32",
+      "path": "src/config/runtime/profiles/qwen3-8-27b-source-parity.json",
+      "runtimePath": "profiles/qwen3-8-27b-source-parity.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/rerank-stability",
+      "name": "rerank-stability",
+      "description": "Stable rerank validation profile with deterministic scoring and quiet tracing.",
+      "intent": "verify",
+      "compatibleIntents": [
+        "verify"
+      ],
+      "stability": "canonical",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-07-06T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/default",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/profiles/rerank-stability.json",
+      "runtimePath": "profiles/rerank-stability.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/rerank-throughput",
+      "name": "rerank-throughput",
+      "description": "Rerank benchmark profile for repeated yes/no-logit scoring throughput runs.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate"
+      ],
+      "stability": "canonical",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-07-06T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/rerank-stability",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/profiles/rerank-throughput.json",
+      "runtimePath": "profiles/rerank-throughput.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/simulation",
+      "name": "simulation",
+      "description": "Simulation profile for GH200/GB200 pod emulation",
+      "intent": "verify",
+      "compatibleIntents": [
+        "verify"
+      ],
+      "stability": "canonical",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-02-25T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/default",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/profiles/simulation.json",
+      "runtimePath": "profiles/simulation.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/throughput",
+      "name": "throughput",
+      "description": "Calibration profile with quiet logging and throughput-oriented sampling defaults.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate"
+      ],
+      "stability": "canonical",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-03-20T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/default",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/profiles/throughput.json",
+      "runtimePath": "profiles/throughput.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/trace-layers",
+      "name": "trace-layers",
+      "description": "Trace layer outputs for F16 vs Q4K comparison",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "canonical",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-02-25T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/default",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/profiles/trace-layers.json",
+      "runtimePath": "profiles/trace-layers.json",
+      "signals": {
+        "trace": true,
+        "profiler": false,
+        "probes": true,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/translategemma-1b-nativekd2-q4k-rdna3-throughput-probe",
+      "name": "translategemma-1b-nativekd2-q4k-rdna3-throughput-probe",
+      "description": "Experimental TranslateGemma 1B NativeKD2 EN/ES calibration profile for AMD RDNA3/Vulkan evidence. Preserves the manifest 4x1 sequential decode cadence while retaining Q4K materialization, selecting wide-tile Q4K prefill, and enabling exact-safe packed-QKV and RMSNorm-pair fusions.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-07-11T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": "translategemma-4b-1b-enes-q4k-ehf16-af32",
+      "path": "src/config/runtime/profiles/translategemma-1b-nativekd2-q4k-rdna3-throughput-probe.json",
+      "runtimePath": "profiles/translategemma-1b-nativekd2-q4k-rdna3-throughput-probe.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/turboquant",
+      "name": "turboquant",
+      "description": "Experimental tiered TurboQuant profile with execution-v1-native session KV cache settings.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate"
+      ],
+      "stability": "experimental",
+      "owner": "inference",
+      "createdAtUtc": "2026-03-25T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/profiles/turboquant.json",
+      "runtimePath": "profiles/turboquant.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/turboquant-contiguous",
+      "name": "turboquant-contiguous",
+      "description": "Experimental contiguous TurboQuant profile for full-attention decode with execution-v1-native session wiring.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate"
+      ],
+      "stability": "experimental",
+      "owner": "inference",
+      "createdAtUtc": "2026-03-25T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/profiles/turboquant-contiguous.json",
+      "runtimePath": "profiles/turboquant-contiguous.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/turboquant-contiguous-prod",
+      "name": "turboquant-contiguous-prod",
+      "description": "Experimental contiguous TurboQuant prod profile with execution-v1-native session wiring and QJL residual buffers.",
+      "intent": "calibrate",
+      "compatibleIntents": [
+        "calibrate"
+      ],
+      "stability": "experimental",
+      "owner": "inference",
+      "createdAtUtc": "2026-03-25T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/throughput",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/profiles/turboquant-contiguous-prod.json",
+      "runtimePath": "profiles/turboquant-contiguous-prod.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/vector-stability",
+      "name": "vector-stability",
+      "description": "Numerically stable single-vector profile for embedding validation runs.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "canonical",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-03-20T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/default",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/profiles/vector-stability.json",
+      "runtimePath": "profiles/vector-stability.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/vector-throughput",
+      "name": "vector-throughput",
+      "description": "Repeated embedding profile tuned for stable latency measurements.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "canonical",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-03-20T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/vector-stability",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/profiles/vector-throughput.json",
+      "runtimePath": "profiles/vector-throughput.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "profiles/verbose-trace",
+      "name": "verbose-trace",
+      "description": "Investigation profile with verbose logging and broad tracing enabled.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "canonical",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-03-20T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "profiles/default",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/profiles/verbose-trace.json",
+      "runtimePath": "profiles/verbose-trace.json",
+      "signals": {
+        "trace": true,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": true,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "tiers/gemma4-128gb",
+      "name": "Gemma 4 — 128 GB tier (unified memory APU)",
+      "description": "Gemma 4 MoE runtime tier for 128 GB unified memory systems (e.g., Ryzen AI MAX+ 395). Generous expert cache, contiguous KV, extended context. Budget leaves headroom for system and replay-prefill intermediates.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-04-04T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "default",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/tiers/gemma4-128gb.json",
+      "runtimePath": "tiers/gemma4-128gb.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "tiers/gemma4-16gb",
+      "name": "Gemma 4 — 16 GB tier (constrained)",
+      "description": "Gemma 4 MoE runtime tier for 16 GB GPU memory. Aggressively constrained: short context, minimal expert cache, hard budget enforcement. Fail-closed if budget is not met.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-03-17T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "default",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/tiers/gemma4-16gb.json",
+      "runtimePath": "tiers/gemma4-16gb.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "tiers/gemma4-24gb",
+      "name": "Gemma 4 — 24 GB tier",
+      "description": "Gemma 4 MoE runtime tier for 24 GB GPU memory. Moderate expert cache, contiguous KV, reduced context length.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-03-17T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "default",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/tiers/gemma4-24gb.json",
+      "runtimePath": "tiers/gemma4-24gb.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    },
+    {
+      "id": "tiers/gemma4-32gb",
+      "name": "Gemma 4 — 32 GB tier",
+      "description": "Gemma 4 MoE runtime tier for 32 GB GPU memory. Generous expert cache, contiguous KV, full-length context.",
+      "intent": "investigate",
+      "compatibleIntents": [
+        "investigate"
+      ],
+      "stability": "experimental",
+      "owner": "doppler-core",
+      "createdAtUtc": "2026-03-17T00:00:00Z",
+      "supersedes": null,
+      "replacementId": null,
+      "deprecatedAtUtc": null,
+      "extends": "default",
+      "modelId": null,
+      "model": null,
+      "path": "src/config/runtime/tiers/gemma4-32gb.json",
+      "runtimePath": "tiers/gemma4-32gb.json",
+      "signals": {
+        "trace": false,
+        "profiler": false,
+        "probes": false,
+        "debugTokens": false,
+        "benchmark": false
+      }
+    }
+  ]
+}
