@@ -3,31 +3,20 @@
 Generated from the catalog, support inventory, release matrix, embedding/rerank compare configs, and saved compare receipts.
 This is an evidence ledger, not an implementation queue. It records scoped verification, publication metadata, comparable measurements, and missing acceptance. [GOALS.md](../GOALS.md#current-priorities) owns work selection.
 
-Updated at: 2026-09-07T18:11:16.222Z
+Source evidence timestamp: 2026-09-07T18:11:16.222Z
 
-## Historical measured results
+## Current Qwen comparison
 
-Retained July 2026 browser WebGPU comparisons against Transformers.js 4.0.1.
-**Baseline audit, 2026-10-15:** Qwen 0.8B and 2B used superseded ONNX exports. Their 18.8x / 16.3x / 4.1x generation ratios are historical observations, not claims against current optimized Transformers.js.
-The benchmark catalog now selects the upstream `-ONNX-OPT` replacements; no optimized-baseline timing or output-parity result is recorded here. See the [audit and sources](../benchmarks/vendors/README.md#qwen-baseline-audit-2026-10-15).
-The charts link their receipts, including the paired Apple M3 Qwen 2B result.
-They include historical measurements beyond the generated matrix rows below; they do not change those rows' release gates.
+**Optimized-baseline measurements pending. No current Qwen speed multiplier is established.**
 
-<picture>
-  <source media="(max-width: 640px)" srcset="../assets/readme/generation-time-mobile.svg" />
-  <img src="../assets/readme/generation-time.svg" alt="Historical warm-generation times against superseded Qwen ONNX exports. These ratios do not establish performance against the optimized replacements. Loading shown separately." />
-</picture>
+| Model | Selected Transformers.js baseline | Timing and output parity |
+| --- | --- | --- |
+| Qwen 3.5 0.8B | `onnx-community/Qwen3.5-0.8B-ONNX-OPT` | Not measured |
+| Qwen 3.5 2B | `onnx-community/Qwen3.5-2B-ONNX-OPT` | Not measured |
 
-<picture>
-  <source media="(max-width: 640px)" srcset="../assets/doppler-webgpu-evidence-mobile.svg" />
-  <img src="../assets/doppler-webgpu-evidence.svg" alt="Nine selected decode and retrieval throughput comparisons on Apple M3 and Radeon 8060S, with zero-based bars and links to raw receipts." />
-</picture>
+Baseline corrected on 2026-10-15. Old exports had a slow prefill path; their large ratios are withdrawn from the current comparison. [Audit and sources](../benchmarks/vendors/README.md#qwen-baseline-audit-2026-10-15).
 
-RDRR Q4K vs ONNX q4f16 are different optimized formats. Warm generation excludes loading; the displayed load-plus-run totals sum the reported components.
-Retrieval has semantic-fixture acceptance, not equal embedding vectors or equal task quality. Gemma INT4-PLE outputs differ; its decode-valid gate is disclosed.
-The charts are selected results, not a universal speed claim. Loading, task quality and current-version qualification remain separate.
-
-## Summary
+## Recorded evidence summary (includes historical rows)
 
 - Catalog models: 31
 - Runtime-verified models: 26
@@ -67,11 +56,6 @@ The charts are selected results, not a universal speed claim. Loading, task qual
 | gemma-3-270m-it-q4k-ehf16-af32 | node | p256-d128-t0-k1<br>throughput | exact | 105.99 tok/s | 109.18 tok/s | transformersjs | 2156.26 tok/s | 1008.41 tok/s | doppler | command recording | summary-svg-missing | [2026-06-24T01-11-24.275Z.json](../reports/release-claims/gemma-3-270m-it-q4k-ehf16-af32/2026-06-24T01-11-24.275Z.json)<br>[compare_20260627T203031.json](../benchmarks/vendors/results/compare_20260627T203031.json) |
 | gemma-3-270m-it-q4k-ehf16-af32 | node | p512-d128-t0-k1<br>throughput | exact | 103 tok/s | 97.15 tok/s | doppler | 2453.29 tok/s | 1021.53 tok/s | doppler | command recording | candidate | [2026-06-24T01-11-24.275Z.json](../reports/release-claims/gemma-3-270m-it-q4k-ehf16-af32/2026-06-24T01-11-24.275Z.json)<br>[compare_20260627T200323.json](../benchmarks/vendors/results/compare_20260627T200323.json)<br>[gemma-3-270m-it-q4k-rdrr-node-p512-d128-t0-k1-strix-halo-20260627T200323.svg](../benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-node-p512-d128-t0-k1-strix-halo-20260627T200323.svg) |
 | gemma-4-e2b-it-q4k-ehf16-af32-int4ple | browser | p064-d064-t0-k1<br>parity | mismatch | 16.32 tok/s | 9.24 tok/s | doppler | 125.1 tok/s | 299.55 tok/s | transformersjs | decode orchestration | summary-svg-missing | [2026-04-22T18-09-10.471Z.reference.json](../reports/program-bundles/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/2026-04-22T18-09-10.471Z.reference.json)<br>[compare_20260707T170557.json](../benchmarks/vendors/results/compare_20260707T170557.json) |
-| qwen-3-5-0-8b-q4k-ehaf16 | browser | p064-d064-t0-k1<br>throughput | exact | 75.87 tok/s | 41.57 tok/s | doppler | 184.6 tok/s | 9.52 tok/s | doppler | readback map wait | superseded-baseline | [2026-05-10T02-22-04.891Z.json](../reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json)<br>[compare_20260705T160226.json](../benchmarks/vendors/results/compare_20260705T160226.json) |
-| qwen-3-5-0-8b-q4k-ehaf16 | browser | p256-d128-t0-k1<br>throughput | exact | 73.74 tok/s | 43.17 tok/s | doppler | 432.94 tok/s | 9.78 tok/s | doppler | readback map wait | superseded-baseline | [2026-05-10T02-22-04.891Z.json](../reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json)<br>[compare_20260705T161224.json](../benchmarks/vendors/results/compare_20260705T161224.json) |
-| qwen-3-5-2b-q4k-ehaf16 | browser | p064-d064-t0-k1<br>throughput | exact | 60.95 tok/s | 40.1 tok/s | doppler | 168.47 tok/s | 9.9 tok/s | doppler | readback map wait | superseded-baseline | [2026-05-03T02-33-21.397Z.json](../reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json)<br>[compare_20260707T154847.json](../benchmarks/vendors/results/compare_20260707T154847.json) |
-| qwen-3-5-2b-q4k-ehaf16 | browser | p256-d128-t0-k1<br>throughput | exact | 58.98 tok/s | 40.64 tok/s | doppler | 372.61 tok/s | 9.59 tok/s | doppler | readback map wait | superseded-baseline | [2026-05-03T02-33-21.397Z.json](../reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json)<br>[compare_20260707T155858.json](../benchmarks/vendors/results/compare_20260707T155858.json) |
-| qwen-3-5-2b-q4k-ehaf16 | browser | p512-d128-t0-k1<br>throughput | exact | 56.5 tok/s | 41.5 tok/s | doppler | 446.83 tok/s | 9.61 tok/s | doppler | readback map wait | superseded-baseline | [2026-05-03T02-33-21.397Z.json](../reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json)<br>[compare_20260707T161623.json](../benchmarks/vendors/results/compare_20260707T161623.json) |
 
 ## Embedding Competition Rows
 
@@ -126,6 +110,43 @@ The charts are selected results, not a universal speed claim. Loading, task qual
 | qwen3-8-27b-text-f16-af32 | text | missing | browser:missing<br>node:verified<br>bun:missing | transformersjs | verified-no-compare<br>hf-publish | hf-publish<br>compare-profile | [qwen3.8-27b.node-webgpu-qualification.json](../reports/model-ir-v2/qwen3.8-27b.node-webgpu-qualification.json) |
 | translategemma-4b-1b-enes-q4k-ehf16-af32 | translate | clocksmith/rdrr@1e2c047357f07dfe45a8effc2fa915acd73999ee<br>models/translategemma-4b-1b-enes-q4k-ehf16-af32 | browser:verified<br>node:verified<br>bun:missing | transformersjs | capability-only<br>benchmark-lane-capability-only | benchmark-lane-capability-only | [translategemma-4b-1b-enes-q4k-ehf16-af32_20260711T115839.json](../benchmarks/vendors/results/translategemma-nativekd2/hosted-browser/translategemma-4b-1b-enes-q4k-ehf16-af32_20260711T115839.json) |
 | translategemma-4b-it-q4k-ehf16-af32 | generation | clocksmith/rdrr@6fc46049882e961a57d1690ba1ffde21677d001a<br>models/translategemma-4b-it-q4k-ehf16-af32 | browser:verified<br>node:verified<br>bun:missing | transformersjs<br>onnx-community/translategemma-text-4b-it-ONNX<br>onnx/q4f16 | candidate<br>compare-result | chromium-webgpu<br>p064-d064-t0-k1<br>p256-d128-t0-k1<br>p512-d128-t0-k1<br>parity<br>throughput<br>chromium-webgpu:p064-d064-t0-k1<br>chromium-webgpu:p256-d128-t0-k1<br>chromium-webgpu:p512-d128-t0-k1 | [2026-03-22T14-48-13.935Z.json](../reports/release-claims/translategemma-4b-it-q4k-ehf16-af32/2026-03-22T14-48-13.935Z.json) |
+
+<details>
+<summary>Historical charts and superseded Qwen results — expand archive</summary>
+
+## Historical measured results
+
+Retained July 2026 browser WebGPU comparisons against Transformers.js 4.0.1.
+**Baseline audit, 2026-10-15:** Qwen 0.8B and 2B used superseded ONNX exports. Their 18.8x / 16.3x / 4.1x generation ratios are historical observations, not claims against current optimized Transformers.js.
+The benchmark catalog now selects the upstream `-ONNX-OPT` replacements; no optimized-baseline timing or output-parity result is recorded here. See the [audit and sources](../benchmarks/vendors/README.md#qwen-baseline-audit-2026-10-15).
+The charts link their receipts, including the paired Apple M3 Qwen 2B result.
+They include historical measurements beyond the generated matrix rows below; they do not change those rows' release gates.
+
+<picture>
+  <source media="(max-width: 640px)" srcset="../assets/readme/generation-time-mobile.svg" />
+  <img src="../assets/readme/generation-time.svg" alt="Historical warm-generation times against superseded Qwen ONNX exports. These ratios do not establish performance against the optimized replacements. Loading shown separately." />
+</picture>
+
+<picture>
+  <source media="(max-width: 640px)" srcset="../assets/doppler-webgpu-evidence-mobile.svg" />
+  <img src="../assets/doppler-webgpu-evidence.svg" alt="Nine selected decode and retrieval throughput comparisons on Apple M3 and Radeon 8060S, with zero-based bars and links to raw receipts." />
+</picture>
+
+RDRR Q4K vs ONNX q4f16 are different optimized formats. Warm generation excludes loading; the displayed load-plus-run totals sum the reported components.
+Retrieval has semantic-fixture acceptance, not equal embedding vectors or equal task quality. Gemma INT4-PLE outputs differ; its decode-valid gate is disclosed.
+The charts are selected results, not a universal speed claim. Loading, task quality and current-version qualification remain separate.
+
+## Generation Competition Rows
+
+| Model | Surface | Workload | Correctness | Doppler decode | TJS decode | Decode leader | Doppler prompt | TJS prompt | Prompt leader | Bottleneck | Claim | Evidence |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| qwen-3-5-0-8b-q4k-ehaf16 | browser | p064-d064-t0-k1<br>throughput | exact | 75.87 tok/s | 41.57 tok/s | doppler | 184.6 tok/s | 9.52 tok/s | doppler | readback map wait | superseded-baseline | [2026-05-10T02-22-04.891Z.json](../reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json)<br>[compare_20260705T160226.json](../benchmarks/vendors/results/compare_20260705T160226.json) |
+| qwen-3-5-0-8b-q4k-ehaf16 | browser | p256-d128-t0-k1<br>throughput | exact | 73.74 tok/s | 43.17 tok/s | doppler | 432.94 tok/s | 9.78 tok/s | doppler | readback map wait | superseded-baseline | [2026-05-10T02-22-04.891Z.json](../reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json)<br>[compare_20260705T161224.json](../benchmarks/vendors/results/compare_20260705T161224.json) |
+| qwen-3-5-2b-q4k-ehaf16 | browser | p064-d064-t0-k1<br>throughput | exact | 60.95 tok/s | 40.1 tok/s | doppler | 168.47 tok/s | 9.9 tok/s | doppler | readback map wait | superseded-baseline | [2026-05-03T02-33-21.397Z.json](../reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json)<br>[compare_20260707T154847.json](../benchmarks/vendors/results/compare_20260707T154847.json) |
+| qwen-3-5-2b-q4k-ehaf16 | browser | p256-d128-t0-k1<br>throughput | exact | 58.98 tok/s | 40.64 tok/s | doppler | 372.61 tok/s | 9.59 tok/s | doppler | readback map wait | superseded-baseline | [2026-05-03T02-33-21.397Z.json](../reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json)<br>[compare_20260707T155858.json](../benchmarks/vendors/results/compare_20260707T155858.json) |
+| qwen-3-5-2b-q4k-ehaf16 | browser | p512-d128-t0-k1<br>throughput | exact | 56.5 tok/s | 41.5 tok/s | doppler | 446.83 tok/s | 9.61 tok/s | doppler | readback map wait | superseded-baseline | [2026-05-03T02-33-21.397Z.json](../reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json)<br>[compare_20260707T161623.json](../benchmarks/vendors/results/compare_20260707T161623.json) |
+
+</details>
 
 ## Source Files
 
