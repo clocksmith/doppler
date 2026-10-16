@@ -1,0 +1,14 @@
+[473.2ms][doppler] Resolving model
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[528.6ms][doppler] Fetching manifest
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.6ms
+[787.1ms][doppler] Loading weights
+[Doppler] Log level set to: WARN
+[1117.8ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[Doppler] Log level set to: INFO
+[25924.0ms][doppler] Model ready
+[Doppler] Log level set to: WARN
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: WARN
+[Doppler] Log level set to: INFO

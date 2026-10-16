@@ -1,0 +1,84 @@
+{
+  "policy": {
+    "runtimeConfig": {
+      "shared": {
+        "debug": {
+          "logLevel": {
+            "defaultLogLevel": "warn"
+          }
+        },
+        "bufferPool": {
+          "budget": {
+            "maxTotalBytes": 60129542144,
+            "highWatermarkRatio": 0.94,
+            "emergencyTrimTargetRatio": 0.9,
+            "hardFailOnBudgetExceeded": true
+          }
+        }
+      },
+      "loading": {
+        "shardCache": {
+          "networkEntries": 2,
+          "maxConcurrentLoads": 1,
+          "verifyHashes": true
+        },
+        "prefetch": {
+          "enabled": false
+        }
+      },
+      "inference": {
+        "chatTemplate": {
+          "thinking": false
+        },
+        "kvcache": {
+          "maxSeqLen": 4096
+        },
+        "session": {
+          "kvcache": {
+            "maxSeqLen": 4096
+          },
+          "decodeLoop": {
+            "batchSize": 1,
+            "readbackInterval": 1,
+            "stopCheckMode": "per-token",
+            "readbackMode": "sequential",
+            "submitLatencyThresholdMs": null,
+            "maxBatchDecodeTokens": 1,
+            "ringTokens": 1,
+            "ringStop": 1,
+            "ringStaging": 1,
+            "disableCommandBatching": false
+          },
+          "prefillChunkLayers": 1,
+          "prefillTokenChunkSize": null
+        },
+        "generation": {
+          "disableMultiTokenDecode": true
+        },
+        "batching": {
+          "maxTokens": 128,
+          "batchSize": 1,
+          "readbackInterval": 1,
+          "stopCheckMode": "per-token",
+          "readbackMode": "sequential",
+          "ringTokens": 1,
+          "ringStop": 1,
+          "ringStaging": 1
+        }
+      }
+    },
+    "options": {
+      "maxTokens": 1,
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1,
+      "repetitionPenalty": 1
+    },
+    "prompt": "Use only this fictional catalog. Cedar: English, 100 minutes, gentle comedy, no violence. Storm: English, 130 minutes, violent thriller. Lumiere: French, 95 minutes, gentle comedy. We require English, no violence, and at most 110 minutes. Pick exactly one title and briefly explain which requirements it meets."
+  },
+  "observations": [],
+  "error": {
+    "message": "Pipeline load phase \"rope\" failed: RoPE frequency initialization requires the declared WebGPU execution path.",
+    "stack": "Error: Pipeline load phase \"rope\" failed: RoPE frequency initialization requires the declared WebGPU execution path.\n    at createPipelineLoadPhaseError (file:///var/tmp/doppler-qwen27b-webgpu-20261015/src/inference/pipelines/text/pipeline-load-timing.js:9:19)\n    at withPipelineLoadPhase (file:///var/tmp/doppler-qwen27b-webgpu-20261015/src/inference/pipelines/text/pipeline-load-timing.js:32:11)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async timedPipelineLoadPhase (file:///var/tmp/doppler-qwen27b-webgpu-20261015/src/inference/pipelines/text/pipeline-load-timing.js:73:12)\n    at async InferencePipeline.loadModel (file:///var/tmp/doppler-qwen27b-webgpu-20261015/src/inference/pipelines/text/lifecycle.js:406:5)\n    at async file:///var/tmp/doppler-qwen27b-webgpu-20261015/src/inference/pipelines/factory.js:22:7\n    at async runWithShaderSourceScope (file:///var/tmp/doppler-qwen27b-webgpu-20261015/src/gpu/kernels/shader-source-scope.js:70:16)\n    at async createInitializedPipeline (file:///var/tmp/doppler-qwen27b-webgpu-20261015/src/inference/pipelines/factory.js:14:3)\n    at async loadProgram (file:///var/tmp/doppler-qwen27b-webgpu-20261015/src/client/model-host/index.js:313:18)\n    at async Function.load (file:///var/tmp/doppler-qwen27b-webgpu-20261015/src/client/model-host/index.js:210:13)"
+  }
+}

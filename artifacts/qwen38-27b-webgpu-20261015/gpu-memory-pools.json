@@ -1,0 +1,9 @@
+{
+  "mem_info_preempt_used": 0,
+  "mem_info_vram_used": 530087936,
+  "mem_info_vis_vram_used": 530087936,
+  "mem_info_vis_vram_total": 536870912,
+  "mem_info_gtt_used": 56604119040,
+  "mem_info_vram_total": 536870912,
+  "mem_info_gtt_total": 65945591808
+}

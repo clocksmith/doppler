@@ -1,0 +1,11 @@
+Oct 15 20:08:43 amd-host kernel: amdgpu 0000:c2:00.0: VM memory stats for proc node(3870360) task node(3870360) is non-zero when fini
+Oct 15 20:11:01 amd-host kernel: amdgpu 0000:c2:00.0: Dumping IP State
+Oct 15 20:11:01 amd-host kernel: amdgpu 0000:c2:00.0: Dumping IP State Completed
+Oct 15 20:11:01 amd-host kernel: amdgpu 0000:c2:00.0: [drm] AMDGPU device coredump file has been created
+Oct 15 20:11:01 amd-host kernel: amdgpu 0000:c2:00.0: [drm] Check your /sys/class/drm/card1/device/devcoredump/data
+Oct 15 20:11:01 amd-host kernel: amdgpu 0000:c2:00.0: ring gfx_0.0.0 timeout, signaled seq=24664107, emitted seq=24664109
+Oct 15 20:11:01 amd-host kernel: amdgpu 0000:c2:00.0:  Process node pid 3893952 thread node pid 3893952
+Oct 15 20:11:01 amd-host kernel: amdgpu 0000:c2:00.0: Starting gfx_0.0.0 ring reset
+Oct 15 20:11:01 amd-host kernel: amdgpu 0000:c2:00.0: Ring gfx_0.0.0 reset succeeded
+Oct 15 20:11:01 amd-host kernel: amdgpu 0000:c2:00.0: [drm] device wedged, but recovered through reset
+Oct 15 20:11:02 amd-host kernel: amdgpu 0000:c2:00.0: VM memory stats for proc node(3893952) task node(3893952) is non-zero when fini

@@ -1,0 +1,65 @@
+{
+  "source": {
+    "artifactCompleteness": "complete",
+    "conversionConfigDigest": "sha256:19ea601d3315a30628528af3ab856367ca449bca9ad308e8d50e0523b8183a70",
+    "conversionConfigPath": "src/config/conversion/qwen3/qwen3.8-27b-text-f16-af32.json",
+    "manifestVariantId": "qwen3-8-27b-text-f16-af32-mv-4f6c6b282ab6",
+    "materializationProfile": "auto",
+    "modalitySet": [
+      "text"
+    ],
+    "shardSetHash": "sha256:a4d2e51d292e0d2be43366d51bb6327ec4dd6ef738b13b64d14ea20e99f2d35f",
+    "sourceCheckpointId": "Qwen/Qwen3.8-27B",
+    "sourceFormat": "safetensors",
+    "sourceRepo": "Qwen/Qwen3.8-27B",
+    "sourceRevision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+    "weightPackHash": "sha256:990c3ddb16759a3e3485f75531beee9e8e1d7fbb6ac86c9e11cb363306b54c3c",
+    "weightPackId": "qwen3-8-27b-text-f16-af32-wp-990c3ddb1675"
+  },
+  "modelId": "qwen3-8-27b-text-f16-af32",
+  "runtimeConfig": {
+    "shared": {
+      "debug": {
+        "logLevel": {
+          "defaultLogLevel": "warn"
+        }
+      }
+    },
+    "loading": {
+      "shardCache": {
+        "networkEntries": 2,
+        "maxConcurrentLoads": 1,
+        "verifyHashes": true
+      },
+      "prefetch": {
+        "enabled": false
+      }
+    },
+    "inference": {
+      "chatTemplate": {
+        "thinking": false
+      },
+      "kvcache": {
+        "maxSeqLen": 4096
+      },
+      "session": {
+        "kvcache": {
+          "maxSeqLen": 4096
+        }
+      }
+    }
+  },
+  "options": {
+    "maxTokens": 64,
+    "temperature": 0,
+    "topK": 1,
+    "topP": 1,
+    "repetitionPenalty": 1
+  },
+  "runs": [],
+  "loadMs": 27019.579889,
+  "error": {
+    "message": "GPU device not available",
+    "stack": "Error: GPU device not available\n    at embed (file:///var/tmp/doppler-qwen27b-webgpu-20261015/src/inference/pipelines/text/embed.js:219:22)\n    at runDecodeLayers (file:///var/tmp/doppler-qwen27b-webgpu-20261015/src/inference/pipelines/text/generator/decode.js:259:29)\n    at decodeStepLogits (file:///var/tmp/doppler-qwen27b-webgpu-20261015/src/inference/pipelines/text/generator/decode.js:890:86)\n    at PipelineGenerator._decodeStepToLogits (file:///var/tmp/doppler-qwen27b-webgpu-20261015/src/inference/pipelines/text/generator.js:432:12)\n    at PipelineGenerator._decodeNextTokenViaLogits (file:///var/tmp/doppler-qwen27b-webgpu-20261015/src/inference/pipelines/text/generator.js:436:35)\n    at decodeSingleTokenViaLogits (file:///var/tmp/doppler-qwen27b-webgpu-20261015/src/inference/pipelines/text/generator/decode-runtime.js:581:57)\n    at PipelineGenerator._runDecodeLoop (file:///var/tmp/doppler-qwen27b-webgpu-20261015/src/inference/pipelines/text/generator/decode-runtime.js:661:31)\n    at async PipelineGenerator._runDecodeLoop (file:///var/tmp/doppler-qwen27b-webgpu-20261015/src/inference/pipelines/text/generator.js:599:12)\n    at async PipelineGenerator.generateTokenIds (file:///var/tmp/doppler-qwen27b-webgpu-20261015/src/inference/pipelines/text/generator/decode-runtime.js:443:26)\n    at async file:///var/tmp/doppler-qwen27b-webgpu-20261015/src/client/model-host/model-session.js:202:22"
+  }
+}
