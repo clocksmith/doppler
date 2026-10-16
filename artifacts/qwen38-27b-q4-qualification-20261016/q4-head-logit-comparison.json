@@ -1,0 +1,219 @@
+{
+  "schema": "doppler.qwen-quantized-forced-logit-comparison/v1",
+  "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+  "scope": "Five shared prefixes of one fixed 104-token trajectory; independent F64 control with exact retained Q4 tensors, not quality or release qualification",
+  "maxAbsoluteLogitError": 0.001,
+  "rows": [
+    {
+      "position": 4,
+      "maxAbsoluteError": 0.0001419315375965624,
+      "rmsError": 2.9328184087771757e-05,
+      "cosineSimilarity": 0.999999999954251,
+      "referenceTopToken": 11751,
+      "dopplerTopToken": 11751,
+      "referenceMargin": 2.474625548408012,
+      "topReferenceTokens": [
+        {
+          "token": 11751,
+          "reference": 17.306794991735583,
+          "doppler": 17.306732177734375,
+          "error": 6.28140012075562e-05
+        },
+        {
+          "token": 524,
+          "reference": 14.83216944332757,
+          "doppler": 14.832122802734375,
+          "error": 4.664059319559044e-05
+        },
+        {
+          "token": 25,
+          "reference": 14.55886794437933,
+          "doppler": 14.558794975280762,
+          "error": 7.29690985679099e-05
+        },
+        {
+          "token": 31586,
+          "reference": 14.497789488789689,
+          "doppler": 14.49770736694336,
+          "error": 8.212184632938602e-05
+        },
+        {
+          "token": 264,
+          "reference": 14.329308768665758,
+          "doppler": 14.32922649383545,
+          "error": 8.227483030864846e-05
+        }
+      ],
+      "passed": true
+    },
+    {
+      "position": 100,
+      "maxAbsoluteError": 0.0014108571614217524,
+      "rmsError": 0.0002357060562953326,
+      "cosineSimilarity": 0.9999999982519158,
+      "referenceTopToken": 314,
+      "dopplerTopToken": 314,
+      "referenceMargin": 10.942329384440582,
+      "topReferenceTokens": [
+        {
+          "token": 314,
+          "reference": 24.19220895329725,
+          "doppler": 24.192068099975586,
+          "error": 0.0001408533216640251
+        },
+        {
+          "token": 33200,
+          "reference": 13.249879568856668,
+          "doppler": 13.25014877319336,
+          "error": 0.00026920433669097577
+        },
+        {
+          "token": 26707,
+          "reference": 12.818459842234054,
+          "doppler": 12.818572044372559,
+          "error": 0.00011220213850471339
+        },
+        {
+          "token": 22466,
+          "reference": 12.600772422656657,
+          "doppler": 12.60096263885498,
+          "error": 0.0001902161983231565
+        },
+        {
+          "token": 321,
+          "reference": 12.583316418757633,
+          "doppler": 12.583582878112793,
+          "error": 0.0002664593551600092
+        }
+      ],
+      "passed": false
+    },
+    {
+      "position": 101,
+      "maxAbsoluteError": 0.0007339851198638891,
+      "rmsError": 0.00014573043899571267,
+      "cosineSimilarity": 0.9999999991811352,
+      "referenceTopToken": 26707,
+      "dopplerTopToken": 26707,
+      "referenceMargin": 0.2323848131691051,
+      "topReferenceTokens": [
+        {
+          "token": 26707,
+          "reference": 22.037031762353227,
+          "doppler": 22.036945343017578,
+          "error": 8.641933564845772e-05
+        },
+        {
+          "token": 33200,
+          "reference": 21.80464694918412,
+          "doppler": 21.804109573364258,
+          "error": 0.0005373758198636835
+        },
+        {
+          "token": 22466,
+          "reference": 21.32343849410669,
+          "doppler": 21.32326316833496,
+          "error": 0.00017532577172829633
+        },
+        {
+          "token": 30466,
+          "reference": 19.120733471089167,
+          "doppler": 19.120567321777344,
+          "error": 0.00016614931182346027
+        },
+        {
+          "token": 41361,
+          "reference": 18.501247433318177,
+          "doppler": 18.501178741455078,
+          "error": 6.869186309899078e-05
+        }
+      ],
+      "passed": true
+    },
+    {
+      "position": 102,
+      "maxAbsoluteError": 0.00024363392090887004,
+      "rmsError": 4.7790170050258646e-05,
+      "cosineSimilarity": 0.9999999999257067,
+      "referenceTopToken": 369,
+      "dopplerTopToken": 369,
+      "referenceMargin": 8.973858558208354,
+      "topReferenceTokens": [
+        {
+          "token": 369,
+          "reference": 23.57879501773963,
+          "doppler": 23.578685760498047,
+          "error": 0.00010925724158283856
+        },
+        {
+          "token": 513,
+          "reference": 14.604936459531276,
+          "doppler": 14.604961395263672,
+          "error": 2.493573239625846e-05
+        },
+        {
+          "token": 682,
+          "reference": 14.05656058332271,
+          "doppler": 14.05650520324707,
+          "error": 5.5380075639988036e-05
+        },
+        {
+          "token": 318,
+          "reference": 13.614666206865923,
+          "doppler": 13.61458969116211,
+          "error": 7.651570381383976e-05
+        },
+        {
+          "token": 220,
+          "reference": 13.388319027408825,
+          "doppler": 13.3883695602417,
+          "error": 5.0532832874594646e-05
+        }
+      ],
+      "passed": true
+    },
+    {
+      "position": 103,
+      "maxAbsoluteError": 0.00022603815494193213,
+      "rmsError": 4.902424662429185e-05,
+      "cosineSimilarity": 0.9999999999517747,
+      "referenceTopToken": 60935,
+      "dopplerTopToken": 60935,
+      "referenceMargin": 9.612230588320298,
+      "topReferenceTokens": [
+        {
+          "token": 60935,
+          "reference": 27.521401090834104,
+          "doppler": 27.521305084228516,
+          "error": 9.600660558817253e-05
+        },
+        {
+          "token": 351,
+          "reference": 17.909170502513806,
+          "doppler": 17.909114837646484,
+          "error": 5.5664867321780775e-05
+        },
+        {
+          "token": 55918,
+          "reference": 15.604991930769954,
+          "doppler": 15.605045318603516,
+          "error": 5.338783356201304e-05
+        },
+        {
+          "token": 279,
+          "reference": 15.43207363566372,
+          "doppler": 15.432039260864258,
+          "error": 3.437479946200028e-05
+        },
+        {
+          "token": 50332,
+          "reference": 14.855703854951495,
+          "doppler": 14.855743408203125,
+          "error": 3.955325163040868e-05
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "passed": false
+}

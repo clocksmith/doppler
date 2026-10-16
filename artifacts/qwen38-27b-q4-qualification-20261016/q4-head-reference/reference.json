@@ -1,0 +1,616 @@
+{
+  "schema": "doppler.qwen-quantized-independent-reference/v1",
+  "qualified": false,
+  "scope": "Independent F64 equations with exact decoded retained weights and F16 KV storage; diagnostic reference, not GPU qualification",
+  "contractSha256": "d0c78bfc294493644d1b133b1cc6b8cbbf3017fb01529543d82b5ddbe8c2d32e",
+  "toolSha256": "29eb17db12d64a8977470bc5d5d7b6b90e1cafa35cea50939e296a876df808c6",
+  "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+  "cases": [
+    {
+      "id": "capital-branch-forced",
+      "inputIds": [
+        760,
+        6511,
+        314,
+        9338,
+        369,
+        11751,
+        13,
+        198,
+        760,
+        6511,
+        314,
+        9564,
+        369,
+        19241,
+        13,
+        198,
+        760,
+        6511,
+        314,
+        14898,
+        369,
+        21047,
+        13,
+        198,
+        760,
+        6511,
+        314,
+        17163,
+        369,
+        23327,
+        13,
+        198,
+        760,
+        6511,
+        314,
+        32208,
+        369,
+        77916,
+        13,
+        198,
+        760,
+        6511,
+        314,
+        23655,
+        369,
+        44299,
+        13,
+        198,
+        760,
+        6511,
+        314,
+        279,
+        3516,
+        14634,
+        369,
+        6924,
+        13,
+        198,
+        760,
+        6511,
+        314,
+        14227,
+        369,
+        31785,
+        13,
+        198,
+        760,
+        6511,
+        314,
+        279,
+        24844,
+        369,
+        36492,
+        13,
+        198,
+        760,
+        6511,
+        314,
+        31868,
+        369,
+        35938,
+        13,
+        198,
+        760,
+        6511,
+        314,
+        28169,
+        369,
+        13762,
+        13,
+        198,
+        760,
+        6511,
+        314,
+        33741,
+        369,
+        44745,
+        13,
+        198,
+        760,
+        6511,
+        314,
+        33200,
+        369
+      ],
+      "positions": [
+        4,
+        100,
+        101,
+        102,
+        103
+      ],
+      "logits": {
+        "path": "capital-branch-forced.npy",
+        "sha256": "7cd8651d91e0df1a1d052a82a94fb81a541ee4b0918c2663c300908479d91769",
+        "shape": [
+          5,
+          248320
+        ]
+      },
+      "greedyTokens": [
+        11751,
+        314,
+        26707,
+        369,
+        60935
+      ],
+      "layers": [
+        {
+          "layer": 0,
+          "kind": "linear_attention",
+          "hiddenSha256": "fd1fbce64acd53a4a63fa53776724bfd35f59e197c770e0c8027a4f1568cbea2",
+          "maxAbsHidden": 19.988680767922084
+        },
+        {
+          "layer": 1,
+          "kind": "linear_attention",
+          "hiddenSha256": "09d5a139344e978feaf19987ad122ac5a1bec0fad7c2ec7c2dbb1f61f6d01617",
+          "maxAbsHidden": 30.98534590090581
+        },
+        {
+          "layer": 2,
+          "kind": "linear_attention",
+          "hiddenSha256": "f0902c9a06ba24f50c4188da7f33f666bcf529359ae7ac9ffb7f7cfb1fecc02f",
+          "maxAbsHidden": 45.11065062079896
+        },
+        {
+          "layer": 3,
+          "kind": "full_attention",
+          "hiddenSha256": "2200a1c6222a451057c8f71c4990769024c31fa92bafc7c3a5d2820602cdc559",
+          "maxAbsHidden": 51.86879023341016
+        },
+        {
+          "layer": 4,
+          "kind": "linear_attention",
+          "hiddenSha256": "b91f5339eaa7ee42706b7603b85be20611e8be62de9c2f155008320abd038e19",
+          "maxAbsHidden": 55.04403448101848
+        },
+        {
+          "layer": 5,
+          "kind": "linear_attention",
+          "hiddenSha256": "3900e73b3f3227b099467590d3681ee80f4aebc59a1c33a6cda2b0d5df88d3eb",
+          "maxAbsHidden": 57.64228285223809
+        },
+        {
+          "layer": 6,
+          "kind": "linear_attention",
+          "hiddenSha256": "f12c30cad30576d457f2a7bdac0fb571b0911c767821c9a28a76d5bda7cdb14f",
+          "maxAbsHidden": 68.35141795140686
+        },
+        {
+          "layer": 7,
+          "kind": "full_attention",
+          "hiddenSha256": "8ceaa7dbbcd9d6c921fb8b51fb8ace9fc682d231bf5a0523ca135587031967f7",
+          "maxAbsHidden": 67.40228348819352
+        },
+        {
+          "layer": 8,
+          "kind": "linear_attention",
+          "hiddenSha256": "1e7d10c1660bcb0af0f306790bdb8040ba80e9b3bca85d2ed78223467dff788a",
+          "maxAbsHidden": 73.39613313373827
+        },
+        {
+          "layer": 9,
+          "kind": "linear_attention",
+          "hiddenSha256": "eacba93eeb4c441607133f85cafb0f73fe8d6e70bb807a680459afc72c696ef2",
+          "maxAbsHidden": 85.28569924013199
+        },
+        {
+          "layer": 10,
+          "kind": "linear_attention",
+          "hiddenSha256": "bb75efcb055d8526b9e2a9f6181428533edf090a7786cfccd0a12ba845280099",
+          "maxAbsHidden": 111.6206197634818
+        },
+        {
+          "layer": 11,
+          "kind": "full_attention",
+          "hiddenSha256": "84671f7c21ed87de6a4a928c3457c4ed370e19eb67964cd68720abd12820f286",
+          "maxAbsHidden": 108.39572133033161
+        },
+        {
+          "layer": 12,
+          "kind": "linear_attention",
+          "hiddenSha256": "42db5da8064a2cef1f68e2269b2770168caa6e1478d5cacaebb5ae448f56baa1",
+          "maxAbsHidden": 109.57855128478755
+        },
+        {
+          "layer": 13,
+          "kind": "linear_attention",
+          "hiddenSha256": "e56f03368214ad0f2d5edb78d56bc8ca293a99ff92959b5621d8c6db01c42764",
+          "maxAbsHidden": 115.83419398795246
+        },
+        {
+          "layer": 14,
+          "kind": "linear_attention",
+          "hiddenSha256": "cf14b21631039ccccc96d7cc976b58849a330a2b83e51c9065df268e0ab2d4d1",
+          "maxAbsHidden": 142.80089167612152
+        },
+        {
+          "layer": 15,
+          "kind": "full_attention",
+          "hiddenSha256": "05e157bfdf93734374be362b79ca53bc014f183b35195059ce022aa9b8530944",
+          "maxAbsHidden": 137.20520172547512
+        },
+        {
+          "layer": 16,
+          "kind": "linear_attention",
+          "hiddenSha256": "1fed6a06c41c48aaf424cc3a299ef524aea1fc6dd08e33c07f49170fadf7ee6a",
+          "maxAbsHidden": 133.06407748039013
+        },
+        {
+          "layer": 17,
+          "kind": "linear_attention",
+          "hiddenSha256": "0f420e79f03530179e877358be8d8d11c42305428d602652fc4ddbeffd813658",
+          "maxAbsHidden": 133.4203652300187
+        },
+        {
+          "layer": 18,
+          "kind": "linear_attention",
+          "hiddenSha256": "20143bf88e53070bd4c84d50db8d821c18d50edb703fc27ff9adf749d94eef70",
+          "maxAbsHidden": 170.8272397915655
+        },
+        {
+          "layer": 19,
+          "kind": "full_attention",
+          "hiddenSha256": "c7bdeddbd09cf5fa0bf8c8163d2c2683870f5783a2c4548eeeee0f9f1dcf31a3",
+          "maxAbsHidden": 147.39102064492465
+        },
+        {
+          "layer": 20,
+          "kind": "linear_attention",
+          "hiddenSha256": "7c1e25188051873fde63a7c25b29bc7335ca986fd89b860931364eee221ba1f2",
+          "maxAbsHidden": 129.1261566940157
+        },
+        {
+          "layer": 21,
+          "kind": "linear_attention",
+          "hiddenSha256": "3b6237368287ca689c5b8a01656e5b482beeb82f6bbfe4e9a27913e3b5d97e77",
+          "maxAbsHidden": 179.27641882255807
+        },
+        {
+          "layer": 22,
+          "kind": "linear_attention",
+          "hiddenSha256": "dda61ca1430e2211b605d8e9e6e28542de7839a1de3430e2a7a0dcd502372ff6",
+          "maxAbsHidden": 181.47713619715688
+        },
+        {
+          "layer": 23,
+          "kind": "full_attention",
+          "hiddenSha256": "6f54ff18b022866f919de3075241bbe1cd1c329c0a0d757bc03e534b86ced2a4",
+          "maxAbsHidden": 184.0128331371914
+        },
+        {
+          "layer": 24,
+          "kind": "linear_attention",
+          "hiddenSha256": "acb1cfbcebe15efcce7fec702949e55a88fdac5fc4aef3dc2588a969cdf07be1",
+          "maxAbsHidden": 184.46276030876425
+        },
+        {
+          "layer": 25,
+          "kind": "linear_attention",
+          "hiddenSha256": "d40fc79d28d7356c7e8ef906f24833e7613fe8bae69770bdb3fa5b9739c71357",
+          "maxAbsHidden": 199.62454969143346
+        },
+        {
+          "layer": 26,
+          "kind": "linear_attention",
+          "hiddenSha256": "b8d05a98f5d015ff84b63ebe8038987fdb640c03aaedadcbae5cecb86c6b377e",
+          "maxAbsHidden": 201.88222895798165
+        },
+        {
+          "layer": 27,
+          "kind": "full_attention",
+          "hiddenSha256": "62e08df099b3a466caf5dc759f4b79cae807523cb15359e4e068a14716c0bb67",
+          "maxAbsHidden": 202.05087584888668
+        },
+        {
+          "layer": 28,
+          "kind": "linear_attention",
+          "hiddenSha256": "3c60a95727a2012d65e96b2ca2816244c9bf84c14389b81e42042d14795c87be",
+          "maxAbsHidden": 201.6910257360323
+        },
+        {
+          "layer": 29,
+          "kind": "linear_attention",
+          "hiddenSha256": "a0e375984b95d917fb65f35a3b70b90983d13d2daaa87b88c5d76afd2c6c4c19",
+          "maxAbsHidden": 201.4423086956689
+        },
+        {
+          "layer": 30,
+          "kind": "linear_attention",
+          "hiddenSha256": "6905f318f7f11622db9d7d2d9b277ce947c54818884ae2e80d74de5adae5b8b4",
+          "maxAbsHidden": 202.82551668917205
+        },
+        {
+          "layer": 31,
+          "kind": "full_attention",
+          "hiddenSha256": "ee7609518b29f4728b92d940ca5cab03fff81b4b5c6ace7d8871bedc11505ba0",
+          "maxAbsHidden": 202.36491305690126
+        },
+        {
+          "layer": 32,
+          "kind": "linear_attention",
+          "hiddenSha256": "c9536f77f5016e3139ef73c9cd137433222364c64b757e8e570199b4a74a65d8",
+          "maxAbsHidden": 202.03780104518106
+        },
+        {
+          "layer": 33,
+          "kind": "linear_attention",
+          "hiddenSha256": "f54594176a500be85d18d8802538b4fde7b6f3be84ed17b290da5e6ac604b35e",
+          "maxAbsHidden": 201.62187572580572
+        },
+        {
+          "layer": 34,
+          "kind": "linear_attention",
+          "hiddenSha256": "941b67b9c8b628e1a31ec84a8529ce89ea3265b5360e1414aa542ac0cfeba8fc",
+          "maxAbsHidden": 202.87854768228735
+        },
+        {
+          "layer": 35,
+          "kind": "full_attention",
+          "hiddenSha256": "fc1c49091557883d5455c54c58e61851f1b83c816567c72ca266fb30e7b2de44",
+          "maxAbsHidden": 201.77206359833485
+        },
+        {
+          "layer": 36,
+          "kind": "linear_attention",
+          "hiddenSha256": "31c134398b48192cd23dddc65d72f02cfd5a586c451502c52d71c380e1e7e906",
+          "maxAbsHidden": 201.3142354593999
+        },
+        {
+          "layer": 37,
+          "kind": "linear_attention",
+          "hiddenSha256": "4c1033ba381b0f04882bbaf3999f85a3ccbd68c2242d59eaa3db50c53a9a46c3",
+          "maxAbsHidden": 200.83257019462326
+        },
+        {
+          "layer": 38,
+          "kind": "linear_attention",
+          "hiddenSha256": "9ba094095abb9bd4f04e1005a107f2d0c7a320a9eb02f2da850eeb7692ae3427",
+          "maxAbsHidden": 200.90233462093818
+        },
+        {
+          "layer": 39,
+          "kind": "full_attention",
+          "hiddenSha256": "ff679a19cac0e092e9771a6c54f400729daa974c544c2c9cf3a47a46605771aa",
+          "maxAbsHidden": 197.52752116126553
+        },
+        {
+          "layer": 40,
+          "kind": "linear_attention",
+          "hiddenSha256": "6ffb24d7d8d452ba4881d81d50e94ae1afaa6f9bd74a50dfecd0841400dc8a65",
+          "maxAbsHidden": 194.92269067200124
+        },
+        {
+          "layer": 41,
+          "kind": "linear_attention",
+          "hiddenSha256": "5ece9a3218337039aa5cadcd1b21fdf8c13c2bb9385698a5a8c43dfe91bf05e7",
+          "maxAbsHidden": 194.78637480167853
+        },
+        {
+          "layer": 42,
+          "kind": "linear_attention",
+          "hiddenSha256": "d7d3eb069422734187031fe50dc95834d98bd42dcd560ad9af45fbfd6becb578",
+          "maxAbsHidden": 191.37387965384048
+        },
+        {
+          "layer": 43,
+          "kind": "full_attention",
+          "hiddenSha256": "65f37cfc9b6c449c4926a9a46f032005e42c3a21787821176a393c98e48041f8",
+          "maxAbsHidden": 187.47688867421905
+        },
+        {
+          "layer": 44,
+          "kind": "linear_attention",
+          "hiddenSha256": "57f9d33ad7f2fb9ba6d7109221ee697533f1186c6421f9ef97189bb080738e5e",
+          "maxAbsHidden": 185.19953565427136
+        },
+        {
+          "layer": 45,
+          "kind": "linear_attention",
+          "hiddenSha256": "55740a8829c16b7c54cb843592149a2d49b4191859b207b5805b0debbd44fc10",
+          "maxAbsHidden": 183.7440361074302
+        },
+        {
+          "layer": 46,
+          "kind": "linear_attention",
+          "hiddenSha256": "c6bdf3c85ef08650d71b5ad0d6d7217dbe2f1d9fc98b925f16d9cd39b48e32a9",
+          "maxAbsHidden": 180.16147300152284
+        },
+        {
+          "layer": 47,
+          "kind": "full_attention",
+          "hiddenSha256": "72983800e1b1ca7f2f51cf82c9836bf0482c74631c7d64065b56fc9674596182",
+          "maxAbsHidden": 157.81588263018057
+        },
+        {
+          "layer": 48,
+          "kind": "linear_attention",
+          "hiddenSha256": "086da1eab3e63f9ba63736fb71385a536da51b5d5750c4e10eb785317d1c3815",
+          "maxAbsHidden": 139.6928193275537
+        },
+        {
+          "layer": 49,
+          "kind": "linear_attention",
+          "hiddenSha256": "a4acd29e8cd95faa1933561c4241f359e398bc71d667591a63d21dbbbfe11229",
+          "maxAbsHidden": 137.25166644574136
+        },
+        {
+          "layer": 50,
+          "kind": "linear_attention",
+          "hiddenSha256": "6058bb91f67ee8b70cf62699a9fdeeb29986c61d0f97ed5582c7f3ab86df9769",
+          "maxAbsHidden": 145.7265044607018
+        },
+        {
+          "layer": 51,
+          "kind": "full_attention",
+          "hiddenSha256": "def65fdafc119eb265cd8088e589746d0a044b848dd31fb25b44acd344b81334",
+          "maxAbsHidden": 98.03656550948577
+        },
+        {
+          "layer": 52,
+          "kind": "linear_attention",
+          "hiddenSha256": "af4c561fbb86e91eea94e8ece7a7188443dd1f273209ae61169ba5298aef3f72",
+          "maxAbsHidden": 100.79118132941213
+        },
+        {
+          "layer": 53,
+          "kind": "linear_attention",
+          "hiddenSha256": "8f0e69751e64878016402d241ee0663be21bc5a09363cb03643cc2c0ea642312",
+          "maxAbsHidden": 99.67775292325283
+        },
+        {
+          "layer": 54,
+          "kind": "linear_attention",
+          "hiddenSha256": "b782f5a83801ea8cc0930ba35fbf8e179741f782a473ad9ce39e49e9939fa978",
+          "maxAbsHidden": 541.7348980732041
+        },
+        {
+          "layer": 55,
+          "kind": "full_attention",
+          "hiddenSha256": "9f67c2cb2ad779c23f68c3c228ac528552158091f7a300d489c47df8deadb3f3",
+          "maxAbsHidden": 335.98609973022513
+        },
+        {
+          "layer": 56,
+          "kind": "linear_attention",
+          "hiddenSha256": "9811bff7035ed1b4a5fce0dd26ecbeec83808242cba76c20490c51a2c9614712",
+          "maxAbsHidden": 283.50768272212804
+        },
+        {
+          "layer": 57,
+          "kind": "linear_attention",
+          "hiddenSha256": "57258482a087acd27b78c6886dc577df085053983c9cd9bdd0d6d519f8777905",
+          "maxAbsHidden": 304.1356056443724
+        },
+        {
+          "layer": 58,
+          "kind": "linear_attention",
+          "hiddenSha256": "c4d28559a791b8f93cf744cb570f082e45a0272fb98246fa1ea271d0e7cbc258",
+          "maxAbsHidden": 818.9809346068355
+        },
+        {
+          "layer": 59,
+          "kind": "full_attention",
+          "hiddenSha256": "4da51126644a610b344225aa94776fe8b081848a5adbe5d933c96a681b15a383",
+          "maxAbsHidden": 220.60879353735248
+        },
+        {
+          "layer": 60,
+          "kind": "linear_attention",
+          "hiddenSha256": "451a38f23b5313d2ba91276ec305c7f4b1976dd35f941b2a00987f7e08626795",
+          "maxAbsHidden": 230.36330104844035
+        },
+        {
+          "layer": 61,
+          "kind": "linear_attention",
+          "hiddenSha256": "ba051ab3e702058c34cc0cdcb56e977ecafe278e801c7eff130ceaebd08eaaf9",
+          "maxAbsHidden": 231.71214569040717
+        },
+        {
+          "layer": 62,
+          "kind": "linear_attention",
+          "hiddenSha256": "6d5bd95cc04e370ade94b00ae8de09350260619d571c3df716bbb819efedbf3a",
+          "maxAbsHidden": 239.54681618708892
+        },
+        {
+          "layer": 63,
+          "kind": "full_attention",
+          "hiddenSha256": "593460ee67fef7e23caf8d5d886438af935af8d2ba8830e53b4a655f52cd3365",
+          "maxAbsHidden": 374.4773678091054
+        }
+      ],
+      "caches": [
+        {
+          "layer": 3,
+          "keySha256": "8b52d5be40be30c8d52f750d16451e59cbed75a454349180ddc286c27e5e501b",
+          "valueSha256": "1c73dd300d6ee2c52f4c4c840ac77eeccf44358b009aef65ba383fda897759e5"
+        },
+        {
+          "layer": 7,
+          "keySha256": "1fa1c8d2982ff7870428857608ac27484bfe3e8de86c7d1f72349161e13d7b70",
+          "valueSha256": "0ad514953dff41a3596195d1bdd619c89c428e83d85f7f3d0930bd9637aaaa9a"
+        },
+        {
+          "layer": 11,
+          "keySha256": "2919d509f1a00bee47d1b3baace61fa59b89bdcc99e4791e3ed70c30384ab9c1",
+          "valueSha256": "164cfa5295834c2f71e148240cfcb258374cd25178c7c60494db51c2cd7ee6d7"
+        },
+        {
+          "layer": 15,
+          "keySha256": "a853e360b8946b7ccc76ce0126bf7c4449985a292950a12f73268472d738060b",
+          "valueSha256": "6d329164e5fb9629bb8bcd484bd5cd1abde4a71b45ea50006a86c2173c07ca49"
+        },
+        {
+          "layer": 19,
+          "keySha256": "c4abbf08724c46e4343581fa644bfd3e971a046db37e30e5e39e0b62050a4034",
+          "valueSha256": "ad9fc6239fb54ccd45367f3d5123bed989b862f6c95ddcc7df27ad7f994802a4"
+        },
+        {
+          "layer": 23,
+          "keySha256": "66cbc01adb1dffe291a1c09ce441706ed421258bee731ad61f24f55a9a111921",
+          "valueSha256": "46d3f6b5d22b713dd96df977332c1c038d61534f554d783ff43f71d30cc93521"
+        },
+        {
+          "layer": 27,
+          "keySha256": "61b8f313a3939753c0fa6d0b5c96db481d19b0beb2d9f527b45c23053949349b",
+          "valueSha256": "8f3f60034fba0916b58bef1f225efbd10b7e3009bec3a15c8307005d5b23083a"
+        },
+        {
+          "layer": 31,
+          "keySha256": "8a48182e3565a55771f86eb47317673871caf2e4b88fea470e38b8e225f57795",
+          "valueSha256": "d16e8db667a81d93a70e3db984844f2a0315e790953b6af52b235a2aed1e440e"
+        },
+        {
+          "layer": 35,
+          "keySha256": "d65fa126586daff8363dd1ff300f4396bb2278893e711a82e71b1e6a2b4bfa9a",
+          "valueSha256": "0ee6a8a3431cc57649e324191a4a42fd37d24d576845a6b7b33ea1ee51a13096"
+        },
+        {
+          "layer": 39,
+          "keySha256": "c6bace85cc20f975e53512704476850d1483021c01deae89ab83563d2a197bce",
+          "valueSha256": "eb041d7cdc00ba46d945761e0e53e97f5229e3268b382ae3a93a6b160f48525b"
+        },
+        {
+          "layer": 43,
+          "keySha256": "b8d046b104077dd354204b7b4b1d7a8797f222730ee0580030ed40795bd89839",
+          "valueSha256": "0290f8f2ca43c93b2589e2eec4f5de165098b05c220ec1805e45d2be69b0a1ee"
+        },
+        {
+          "layer": 47,
+          "keySha256": "824ff36ace77f6bad32ef7fc32c35dfc619b8eda37474ef266093f6f59159a1d",
+          "valueSha256": "4e4373182b4f875259d0965c2a4450375a44c77692a628f4bd4759da69b07061"
+        },
+        {
+          "layer": 51,
+          "keySha256": "e05c3ce19fe02c780203f0e434096abf4bd4ab75fcd462dbb65cdbb7e200ae93",
+          "valueSha256": "2109afb09ec98701ab14e8915be80d67fa0586a2709b22ef3e8ce2f6422edd6b"
+        },
+        {
+          "layer": 55,
+          "keySha256": "435e7726e27c8a7373f81dc3bd6f97480f09015bbae9f946d85b389c770bf832",
+          "valueSha256": "bde9270bf090f161a740a1f71e4a10b5e37320f52c8d3ccedb2c4477f75c1acc"
+        },
+        {
+          "layer": 59,
+          "keySha256": "f864dfe71273c9bde82a65511eb8ece3183b7a9b1018fe6321022a62e0db63ff",
+          "valueSha256": "8d868d002544eb143cae3d40610fa494e5ef531030b496e9c798c662cd2b174b"
+        },
+        {
+          "layer": 63,
+          "keySha256": "08a0dee3f37f4f50d48c7ed6d0b679f9f8279219e48348234182dcf3a7f49cae",
+          "valueSha256": "b52c1662bc5e56af9e576dcb7ab2d2cec159358a8a8a69e2b8a75f3fc3259cd9"
+        }
+      ],
+      "elapsedSeconds": 119.04188797700044
+    }
+  ],
+  "tensorReads": 851,
+  "maxRssBytes": 16590532608,
+  "threads": {
+    "OPENBLAS_NUM_THREADS": "4",
+    "OMP_NUM_THREADS": "4"
+  }
+}

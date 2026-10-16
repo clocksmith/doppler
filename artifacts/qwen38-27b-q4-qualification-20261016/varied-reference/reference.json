@@ -1,0 +1,316 @@
+{
+  "schema": "doppler.qwen-quantized-transformers-reference/v1",
+  "qualified": false,
+  "scope": "Independent Transformers equations and gguf decoder; F32 arithmetic, F16 KV storage",
+  "versions": {
+    "torch": "2.11.0",
+    "transformers": "5.6.2",
+    "gguf": "0.19.0",
+    "numpy": "2.4.4"
+  },
+  "contractSha256": "6569deece204a463014ab3571401e3671dffe32db9bf378e4eda753b77ad5851",
+  "toolSha256": "4a7263a8db1d499e8a06cc0ca87bfb2eeb155151560fd7a150c9980f5c1cc01c",
+  "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+  "cases": [
+    {
+      "id": "arithmetic",
+      "positions": [
+        16
+      ],
+      "greedyTokens": [
+        271
+      ],
+      "logits": {
+        "path": "arithmetic.npy",
+        "sha256": "4765dca2530c140363e541cbd66a6488eb61e3602969011454a8ee8ce2f23405",
+        "shape": [
+          1,
+          248320
+        ]
+      },
+      "elapsedSeconds": 89.88011388099403
+    },
+    {
+      "id": "code",
+      "positions": [
+        62
+      ],
+      "greedyTokens": [
+        220
+      ],
+      "logits": {
+        "path": "code.npy",
+        "sha256": "a44c5cc31d9c019615e1ac8a18fc66022b2a0184ade5ba8943e1523f5bfedd1e",
+        "shape": [
+          1,
+          248320
+        ]
+      },
+      "elapsedSeconds": 97.21519052099757
+    },
+    {
+      "id": "long-movie",
+      "positions": [
+        562
+      ],
+      "greedyTokens": [
+        271
+      ],
+      "logits": {
+        "path": "long-movie.npy",
+        "sha256": "1c07a588de5fd8e3042ab5c8ba81d3a91fa2824610a1684bce9f9b96b3a9501a",
+        "shape": [
+          1,
+          248320
+        ]
+      },
+      "elapsedSeconds": 163.7624971309997
+    }
+  ],
+  "states": [
+    {
+      "caseId": "arithmetic",
+      "layer": 0,
+      "field": "recurrentState",
+      "shape": [
+        1,
+        48,
+        128,
+        128
+      ],
+      "position": 16,
+      "path": "arithmetic-layer-0-recurrentState.npy",
+      "sha256": "c01fb1533d7c6155241f495ad687e58b12fa208105653b23698ccb91b0f351f3"
+    },
+    {
+      "caseId": "arithmetic",
+      "layer": 0,
+      "field": "convState",
+      "shape": [
+        1,
+        10240,
+        4
+      ],
+      "position": 16,
+      "path": "arithmetic-layer-0-convState.npy",
+      "sha256": "69063a0abeb53c42eb14bbe4b4dee82de7887e22b5a4c773dda4cae793579441"
+    },
+    {
+      "caseId": "arithmetic",
+      "layer": 30,
+      "field": "recurrentState",
+      "shape": [
+        1,
+        48,
+        128,
+        128
+      ],
+      "position": 16,
+      "path": "arithmetic-layer-30-recurrentState.npy",
+      "sha256": "dc1bf8658aa35994b3e6ac013c33e824e5e2c57cc8b6d70196b82a9f36ae1ba2"
+    },
+    {
+      "caseId": "arithmetic",
+      "layer": 30,
+      "field": "convState",
+      "shape": [
+        1,
+        10240,
+        4
+      ],
+      "position": 16,
+      "path": "arithmetic-layer-30-convState.npy",
+      "sha256": "7bdd5c79f85e9a5de55282a5ca0129e9cff9f7e865a00b323c4b65de7fb42b8a"
+    },
+    {
+      "caseId": "arithmetic",
+      "layer": 62,
+      "field": "recurrentState",
+      "shape": [
+        1,
+        48,
+        128,
+        128
+      ],
+      "position": 16,
+      "path": "arithmetic-layer-62-recurrentState.npy",
+      "sha256": "b6584af44a2b36211974b2f3b2b3f0653dbe41e0d9c9d24bb58f7ef6b706b539"
+    },
+    {
+      "caseId": "arithmetic",
+      "layer": 62,
+      "field": "convState",
+      "shape": [
+        1,
+        10240,
+        4
+      ],
+      "position": 16,
+      "path": "arithmetic-layer-62-convState.npy",
+      "sha256": "07e7749dc7db0a85902965534ff655a208156c743cbef4e954161a33074a8411"
+    },
+    {
+      "caseId": "code",
+      "layer": 0,
+      "field": "recurrentState",
+      "shape": [
+        1,
+        48,
+        128,
+        128
+      ],
+      "position": 62,
+      "path": "code-layer-0-recurrentState.npy",
+      "sha256": "21657f43c84a192cdd1800fb37ef59f3a8f90268a90e6ad86bcaa1be53c55137"
+    },
+    {
+      "caseId": "code",
+      "layer": 0,
+      "field": "convState",
+      "shape": [
+        1,
+        10240,
+        4
+      ],
+      "position": 62,
+      "path": "code-layer-0-convState.npy",
+      "sha256": "e553092840925895a054cb70e0911a9fb6a2ac012db9d5395e148d7ded86faba"
+    },
+    {
+      "caseId": "code",
+      "layer": 30,
+      "field": "recurrentState",
+      "shape": [
+        1,
+        48,
+        128,
+        128
+      ],
+      "position": 62,
+      "path": "code-layer-30-recurrentState.npy",
+      "sha256": "5ef4ea55a8541fd2d240905cbd9a13a862f5901286dfed089e2303d7dfb79908"
+    },
+    {
+      "caseId": "code",
+      "layer": 30,
+      "field": "convState",
+      "shape": [
+        1,
+        10240,
+        4
+      ],
+      "position": 62,
+      "path": "code-layer-30-convState.npy",
+      "sha256": "f46b71b2417f7b3740f0154cc330b2708139c953d0b9ea33e1ab7b850154f2ac"
+    },
+    {
+      "caseId": "code",
+      "layer": 62,
+      "field": "recurrentState",
+      "shape": [
+        1,
+        48,
+        128,
+        128
+      ],
+      "position": 62,
+      "path": "code-layer-62-recurrentState.npy",
+      "sha256": "ebc50f5fd24a39222d44f6d1688fbcaa91b468a261bca462e19370022b70890b"
+    },
+    {
+      "caseId": "code",
+      "layer": 62,
+      "field": "convState",
+      "shape": [
+        1,
+        10240,
+        4
+      ],
+      "position": 62,
+      "path": "code-layer-62-convState.npy",
+      "sha256": "3c4ac25e936474171ddaba14364279b9b5a6108d4cdbce72a9a090c0127f87a5"
+    },
+    {
+      "caseId": "long-movie",
+      "layer": 0,
+      "field": "recurrentState",
+      "shape": [
+        1,
+        48,
+        128,
+        128
+      ],
+      "position": 562,
+      "path": "long-movie-layer-0-recurrentState.npy",
+      "sha256": "302dcff1744e59a4fecbdf3b0319e4adaca49fa6325ba5338be8ee9b1e267d86"
+    },
+    {
+      "caseId": "long-movie",
+      "layer": 0,
+      "field": "convState",
+      "shape": [
+        1,
+        10240,
+        4
+      ],
+      "position": 562,
+      "path": "long-movie-layer-0-convState.npy",
+      "sha256": "69063a0abeb53c42eb14bbe4b4dee82de7887e22b5a4c773dda4cae793579441"
+    },
+    {
+      "caseId": "long-movie",
+      "layer": 30,
+      "field": "recurrentState",
+      "shape": [
+        1,
+        48,
+        128,
+        128
+      ],
+      "position": 562,
+      "path": "long-movie-layer-30-recurrentState.npy",
+      "sha256": "48aff6ab877c4ac4fd81d2b9c94d72c50b803f1013517d3b62acfddfb72caff2"
+    },
+    {
+      "caseId": "long-movie",
+      "layer": 30,
+      "field": "convState",
+      "shape": [
+        1,
+        10240,
+        4
+      ],
+      "position": 562,
+      "path": "long-movie-layer-30-convState.npy",
+      "sha256": "1ff403b0a4cba7ce031bddb9282f6d32436a7fffd070986ad4ab7dd1899e46b3"
+    },
+    {
+      "caseId": "long-movie",
+      "layer": 62,
+      "field": "recurrentState",
+      "shape": [
+        1,
+        48,
+        128,
+        128
+      ],
+      "position": 562,
+      "path": "long-movie-layer-62-recurrentState.npy",
+      "sha256": "0876d8378944e2ced7ff621d9802392229b859db99b1f9dac298604bc34ba69f"
+    },
+    {
+      "caseId": "long-movie",
+      "layer": 62,
+      "field": "convState",
+      "shape": [
+        1,
+        10240,
+        4
+      ],
+      "position": 562,
+      "path": "long-movie-layer-62-convState.npy",
+      "sha256": "28431ee24bba8fa2b2d846d062766b6d0189e9072c816c613df2870840d3544a"
+    }
+  ],
+  "maxRssBytes": 17556283392
+}

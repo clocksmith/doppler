@@ -1,0 +1,40 @@
+{
+  "schema": "doppler.qwen-quantized-reference-input/v1",
+  "sourceRevision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+  "inputs": {
+    "inventory": {
+      "path": "/home/x/deco/doppler/.tmp/qwen38-q4-qualification-20261016/q4-head-inventory.json",
+      "sha256": "3e9c48a6039df1db5c6fca96cbeeedd6314da9b0f0ee0d8a105d81d62ead5608"
+    },
+    "sourceConfig": {
+      "path": "/home/x/deco/doppler/models/source/qwen3.8-27b/config.json",
+      "sha256": "191e0af232104ed8b65258cf3fb2b842e288008baca7633c11b82a1ac7203aab"
+    },
+    "equations": {
+      "path": "/home/x/deco/doppler/.tmp/qwen38-q4-qualification-20261016/qwen35-f64-reference.py",
+      "sha256": "90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7"
+    },
+    "transcript": {
+      "path": "/home/x/deco/doppler/reports/model-ir-v2/qwen3.8-27b.reference-transcript.json",
+      "sha256": "4d11b51fcdd7dc47ec276f807de48fb282b6eb6f40085af48f14a81d2277558c"
+    }
+  },
+  "cases": [],
+  "acceptance": {
+    "purpose": "Declared numerical bounds for varied prefills and selected recurrent/conv state; quality remains separate",
+    "implementationMaxAbsoluteLogitError": 0.001,
+    "quality": "separate frozen task suite required",
+    "implementationMaxAbsoluteStateError": 0.001
+  },
+  "resources": {
+    "cpuThreads": 4,
+    "memoryMaxBytes": 34359738368,
+    "timeoutSeconds": 900,
+    "gpu": false
+  },
+  "stateLayers": [
+    0,
+    30,
+    62
+  ]
+}

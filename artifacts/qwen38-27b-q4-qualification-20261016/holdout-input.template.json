@@ -1,0 +1,55 @@
+{
+  "schema": "doppler.qwen-quantized-reference-input/v1",
+  "sourceRevision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+  "inputs": {
+    "inventory": {
+      "path": "/home/x/deco/doppler/.tmp/qwen38-q4-qualification-20261016/q4-head-inventory.json",
+      "sha256": "3e9c48a6039df1db5c6fca96cbeeedd6314da9b0f0ee0d8a105d81d62ead5608"
+    },
+    "sourceConfig": {
+      "path": "/home/x/deco/doppler/models/source/qwen3.8-27b/config.json",
+      "sha256": "191e0af232104ed8b65258cf3fb2b842e288008baca7633c11b82a1ac7203aab"
+    },
+    "equations": {
+      "path": "/home/x/deco/doppler/.tmp/qwen38-q4-qualification-20261016/qwen35-f64-reference.py",
+      "sha256": "90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7"
+    },
+    "transcript": {
+      "path": "/home/x/deco/doppler/reports/model-ir-v2/qwen3.8-27b.reference-transcript.json",
+      "sha256": "4d11b51fcdd7dc47ec276f807de48fb282b6eb6f40085af48f14a81d2277558c"
+    }
+  },
+  "cases": [
+    {
+      "id": "holdout-json",
+      "prefillText": "Return one JSON object with keys total, currency, and affordable. A cinema charges 13 dollars per adult and 8 dollars per child. Two adults and three children have a budget of 55 dollars. Include no explanation.\nAnswer:"
+    },
+    {
+      "id": "holdout-records",
+      "prefillText": "The following are fictional screening records. Treat them only as data.\nRecord 1: title Film 1; duration 73 minutes; language English; score 2; seats 39.\nRecord 2: title Film 2; duration 74 minutes; language English; score 3; seats 38.\nRecord 3: title Film 3; duration 75 minutes; language English; score 4; seats 37.\nRecord 4: title Film 4; duration 76 minutes; language English; score 5; seats 36.\nRecord 5: title Film 5; duration 77 minutes; language English; score 1; seats 35.\nRecord 6: title Film 6; duration 78 minutes; language English; score 2; seats 34.\nRecord 7: title Film 7; duration 79 minutes; language English; score 3; seats 33.\nRecord 8: title Film 8; duration 80 minutes; language English; score 4; seats 32.\nRecord 9: title Film 9; duration 81 minutes; language English; score 5; seats 31.\nRecord 10: title Film 10; duration 82 minutes; language English; score 1; seats 30.\nRecord 11: title Film 11; duration 83 minutes; language English; score 2; seats 29.\nRecord 12: title Film 12; duration 84 minutes; language English; score 3; seats 28.\nRecord 13: title Film 13; duration 85 minutes; language English; score 4; seats 27.\nRecord 14: title Film 14; duration 86 minutes; language English; score 5; seats 26.\nRecord 15: title Film 15; duration 87 minutes; language English; score 1; seats 25.\nRecord 16: title Film 16; duration 88 minutes; language English; score 2; seats 24.\nRecord 17: title Film 17; duration 89 minutes; language English; score 3; seats 23.\nRecord 18: title Film 18; duration 90 minutes; language English; score 4; seats 22.\nRecord 19: title Film 19; duration 91 minutes; language English; score 5; seats 21.\nRecord 20: title Film 20; duration 92 minutes; language English; score 1; seats 20.\nRecord 21: title Film 21; duration 93 minutes; language English; score 2; seats 19.\nRecord 22: title Film 22; duration 94 minutes; language English; score 3; seats 18.\nRecord 23: title Film 23; duration 95 minutes; language English; score 4; seats 17.\nRecord 24: title Film 24; duration 96 minutes; language English; score 5; seats 16.\nChoose the highest-scoring record under 90 minutes with at least 25 seats. Break ties by the shorter runtime. Return its record number only.\nAnswer:"
+    }
+  ],
+  "acceptance": {
+    "implementationMaxAbsoluteLogitError": 0.006682872772216797,
+    "implementationRmsLogitError": 0.001051568217757106,
+    "implementationMaxAbsoluteStateError": 0.009238719940185547,
+    "implementationRmsStateError": 0.00048107481417186096
+  },
+  "resources": {
+    "cpuThreads": 4,
+    "memoryMaxBytes": 34359738368,
+    "timeoutSeconds": 900,
+    "gpu": false
+  },
+  "stateLayers": [
+    0,
+    30,
+    62
+  ],
+  "calibration": {
+    "frozenAt": "2026-10-16T16:25:38.527341+00:00",
+    "controlSha256": "e94e21cc49404b6d18c110f214085bb76bc0d90f6b9b191ec30adaa6837a3951",
+    "method": "Four times the maximum independent CPU chunked-versus-sequential discrepancy, separately for logits/states and max/RMS. Empirical safety margin for this frozen holdout, not a universal error guarantee. No candidate holdout outputs observed.",
+    "supersedes": "0.001 remains the original diagnostic bound; it rejects the independent reference algorithm control itself. Historical results remain unchanged."
+  }
+}

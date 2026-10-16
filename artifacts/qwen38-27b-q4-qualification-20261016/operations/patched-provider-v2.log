@@ -1,0 +1,42 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.5ms
+[Doppler] Log level set to: WARN
+[921.6ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: WARN
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: WARN
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: WARN
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: WARN
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: WARN
+radv/amdgpu: The CS has been cancelled because the context is lost. This context is innocent.
+Warning: ../src/amd/vulkan/radv_queue.c:1893: vkQueueSubmit() failed (VK_ERROR_DEVICE_LOST)
+[16197.2ms][GPU] Device lost: vkQueueSubmit failed with VK_ERROR_DEVICE_LOST
+    at CheckVkSuccessImpl (/home/runner/work/node-webgpu/node-webgpu/third_party/dawn/src/dawn/native/vulkan/VulkanError.cpp:104)
+, Reason: unknown
+[16211.3ms][BufferPool] Releasing buffer not tracked as active
+[Doppler] Log level set to: INFO
+[16212.3ms][BufferPool] Releasing buffer not tracked as active
+[16212.4ms][BufferPool] Releasing buffer not tracked as active
+[16212.4ms][BufferPool] Releasing buffer not tracked as active
+[16212.4ms][BufferPool] Releasing buffer not tracked as active
+[16212.4ms][BufferPool] Releasing buffer not tracked as active
+[16212.4ms][BufferPool] Releasing buffer not tracked as active
+[16212.4ms][BufferPool] Releasing buffer not tracked as active
+[16212.4ms][BufferPool] Releasing buffer not tracked as active
+[16212.6ms][BufferPool] Releasing buffer not tracked as active
+[16212.6ms][BufferPool] Releasing buffer not tracked as active
+[16212.6ms][BufferPool] Releasing buffer not tracked as active
+[16212.6ms][BufferPool] Releasing buffer not tracked as active
+[16212.6ms][BufferPool] Releasing buffer not tracked as active
+[16212.6ms][BufferPool] Releasing buffer not tracked as active
+[16212.6ms][BufferPool] Releasing buffer not tracked as active
+[16212.6ms][BufferPool] Releasing buffer not tracked as active
+[16212.6ms][BufferPool] Releasing buffer not tracked as active
+[16212.6ms][BufferPool] Releasing buffer not tracked as active
+[Doppler] Log level set to: WARN
+[Doppler] Log level set to: INFO

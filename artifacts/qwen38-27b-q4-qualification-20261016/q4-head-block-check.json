@@ -1,0 +1,75 @@
+{
+  "schema": "doppler.quantized-block-check/v1",
+  "scope": "Host decoder against independently decoded retained blocks; not WGSL or full-model qualification",
+  "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+  "decoder": {
+    "package": "gguf",
+    "version": "0.19.0"
+  },
+  "rows": [
+    {
+      "tensor": "model.language_model.layers.0.linear_attn.in_proj_qkv.weight",
+      "blockIndex": 0,
+      "values": 256,
+      "maxAbsoluteError": 0,
+      "passed": true
+    },
+    {
+      "tensor": "model.language_model.layers.0.linear_attn.in_proj_qkv.weight",
+      "blockIndex": 102400,
+      "values": 256,
+      "maxAbsoluteError": 0,
+      "passed": true
+    },
+    {
+      "tensor": "model.language_model.layers.0.linear_attn.in_proj_qkv.weight",
+      "blockIndex": 204799,
+      "values": 256,
+      "maxAbsoluteError": 0,
+      "passed": true
+    },
+    {
+      "tensor": "model.language_model.layers.0.mlp.gate_proj.weight",
+      "blockIndex": 0,
+      "values": 256,
+      "maxAbsoluteError": 0,
+      "passed": true
+    },
+    {
+      "tensor": "model.language_model.layers.0.mlp.gate_proj.weight",
+      "blockIndex": 174080,
+      "values": 256,
+      "maxAbsoluteError": 0,
+      "passed": true
+    },
+    {
+      "tensor": "model.language_model.layers.0.mlp.gate_proj.weight",
+      "blockIndex": 348159,
+      "values": 256,
+      "maxAbsoluteError": 0,
+      "passed": true
+    },
+    {
+      "tensor": "lm_head.weight",
+      "blockIndex": 0,
+      "values": 256,
+      "maxAbsoluteError": 0,
+      "passed": true
+    },
+    {
+      "tensor": "lm_head.weight",
+      "blockIndex": 2483200,
+      "values": 256,
+      "maxAbsoluteError": 0,
+      "passed": true
+    },
+    {
+      "tensor": "lm_head.weight",
+      "blockIndex": 4966399,
+      "values": 256,
+      "maxAbsoluteError": 0,
+      "passed": true
+    }
+  ],
+  "passed": true
+}

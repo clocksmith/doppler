@@ -1,0 +1,2 @@
+2026-10-16T12:27:30-04:00 128 systemd[10648]: Started doppler-qwen27-holdout-capture-20261016.service - [systemd-run] /usr/bin/bash .tmp/qwen38-q4-qualification-20261016/run-holdout-capture.sh.
+2026-10-16T12:27:54-04:00 128 systemd[10648]: doppler-qwen27-holdout-capture-20261016.service: Consumed 27.427s CPU time over 23.845s wall clock time, 1.1G memory peak.

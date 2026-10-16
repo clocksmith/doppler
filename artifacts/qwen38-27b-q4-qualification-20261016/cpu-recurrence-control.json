@@ -1,0 +1,925 @@
+{
+  "scope": "CPU Transformers native chunked versus sequential recurrence control; same input/weights/arithmetic/storage; diagnostic only",
+  "referenceSha256": "7c3bfe1a12afb88a7f8009880515941dc23017f74ede5dad7ad9298a72085343",
+  "candidateSha256": "6f17d37b8894ce8519fb117aa5e9815004cd2cf815142d492211e0386bc6ae8d",
+  "rows": [
+    {
+      "caseId": "arithmetic",
+      "maxAbsoluteError": 0.0002808570861816406,
+      "rmsError": 5.6187700493838786e-05,
+      "cosineSimilarity": 0.9999999998274908,
+      "referenceTopToken": 271,
+      "dopplerTopToken": 271,
+      "referenceMargin": 3.3286800384521484,
+      "topReferenceTokens": [
+        {
+          "token": 271,
+          "reference": 20.596214294433594,
+          "doppler": 20.596168518066406,
+          "error": 4.57763671875e-05
+        },
+        {
+          "token": 220,
+          "reference": 17.267534255981445,
+          "doppler": 17.267358779907227,
+          "error": 0.00017547607421875
+        },
+        {
+          "token": 198,
+          "reference": 15.324812889099121,
+          "doppler": 15.324793815612793,
+          "error": 1.9073486328125e-05
+        },
+        {
+          "token": 248046,
+          "reference": 14.309919357299805,
+          "doppler": 14.309797286987305,
+          "error": 0.0001220703125
+        },
+        {
+          "token": 1358,
+          "reference": 13.580750465393066,
+          "doppler": 13.580663681030273,
+          "error": 8.678436279296875e-05
+        }
+      ],
+      "passed": true
+    },
+    {
+      "caseId": "code",
+      "maxAbsoluteError": 0.0004589557647705078,
+      "rmsError": 0.00016277493101473376,
+      "cosineSimilarity": 0.9999999980371739,
+      "referenceTopToken": 220,
+      "dopplerTopToken": 220,
+      "referenceMargin": 0.8906116485595703,
+      "topReferenceTokens": [
+        {
+          "token": 220,
+          "reference": 19.956253051757812,
+          "doppler": 19.956066131591797,
+          "error": 0.000186920166015625
+        },
+        {
+          "token": 25,
+          "reference": 19.065641403198242,
+          "doppler": 19.06539535522461,
+          "error": 0.0002460479736328125
+        },
+        {
+          "token": 30,
+          "reference": 17.14786720275879,
+          "doppler": 17.14765167236328,
+          "error": 0.0002155303955078125
+        },
+        {
+          "token": 29739,
+          "reference": 16.652664184570312,
+          "doppler": 16.652477264404297,
+          "error": 0.000186920166015625
+        },
+        {
+          "token": 1259,
+          "reference": 16.650354385375977,
+          "doppler": 16.65015411376953,
+          "error": 0.0002002716064453125
+        }
+      ],
+      "passed": true
+    },
+    {
+      "caseId": "long-movie",
+      "maxAbsoluteError": 0.0016707181930541992,
+      "rmsError": 0.0002628920544392765,
+      "cosineSimilarity": 0.9999999974429205,
+      "referenceTopToken": 271,
+      "dopplerTopToken": 271,
+      "referenceMargin": 1.5381698608398438,
+      "topReferenceTokens": [
+        {
+          "token": 271,
+          "reference": 20.001712799072266,
+          "doppler": 20.001516342163086,
+          "error": 0.0001964569091796875
+        },
+        {
+          "token": 16142,
+          "reference": 18.463542938232422,
+          "doppler": 18.463726043701172,
+          "error": 0.00018310546875
+        },
+        {
+          "token": 19592,
+          "reference": 16.55072784423828,
+          "doppler": 16.550399780273438,
+          "error": 0.00032806396484375
+        },
+        {
+          "token": 561,
+          "reference": 16.470754623413086,
+          "doppler": 16.470935821533203,
+          "error": 0.0001811981201171875
+        },
+        {
+          "token": 248046,
+          "reference": 16.32827377319336,
+          "doppler": 16.327861785888672,
+          "error": 0.0004119873046875
+        }
+      ],
+      "passed": false
+    },
+    {
+      "caseId": "arithmetic",
+      "layer": 0,
+      "field": "recurrentState",
+      "maxAbsoluteError": 7.62939453125e-06,
+      "rmsError": 4.4448642949257954e-08,
+      "cosineSimilarity": 0.9999999999999873,
+      "referenceTopToken": 395329,
+      "dopplerTopToken": 395329,
+      "referenceMargin": 1.4006614685058594,
+      "topReferenceTokens": [
+        {
+          "token": 395329,
+          "reference": 28.20983123779297,
+          "doppler": 28.209836959838867,
+          "error": 5.7220458984375e-06
+        },
+        {
+          "token": 411714,
+          "reference": 26.80916976928711,
+          "doppler": 26.80916404724121,
+          "error": 5.7220458984375e-06
+        },
+        {
+          "token": 428097,
+          "reference": 23.55386734008789,
+          "doppler": 23.55386734008789,
+          "error": 0.0
+        },
+        {
+          "token": 478837,
+          "reference": 22.048437118530273,
+          "doppler": 22.048437118530273,
+          "error": 0.0
+        },
+        {
+          "token": 60966,
+          "reference": 21.830230712890625,
+          "doppler": 21.830230712890625,
+          "error": 0.0
+        }
+      ],
+      "passed": true
+    },
+    {
+      "caseId": "arithmetic",
+      "layer": 0,
+      "field": "convState",
+      "maxAbsoluteError": 0.0,
+      "rmsError": 0.0,
+      "cosineSimilarity": 1.0,
+      "referenceTopToken": 21413,
+      "dopplerTopToken": 21413,
+      "referenceMargin": 14.993560791015625,
+      "topReferenceTokens": [
+        {
+          "token": 21413,
+          "reference": 66.9428939819336,
+          "doppler": 66.9428939819336,
+          "error": 0.0
+        },
+        {
+          "token": 21412,
+          "reference": 51.94933319091797,
+          "doppler": 51.94933319091797,
+          "error": 0.0
+        },
+        {
+          "token": 21625,
+          "reference": 50.91694641113281,
+          "doppler": 50.91694641113281,
+          "error": 0.0
+        },
+        {
+          "token": 21415,
+          "reference": 50.28364944458008,
+          "doppler": 50.28364944458008,
+          "error": 0.0
+        },
+        {
+          "token": 16839,
+          "reference": 46.19987487792969,
+          "doppler": 46.19987487792969,
+          "error": 0.0
+        }
+      ],
+      "passed": true
+    },
+    {
+      "caseId": "arithmetic",
+      "layer": 30,
+      "field": "recurrentState",
+      "maxAbsoluteError": 6.444752216339111e-06,
+      "rmsError": 4.3106654966570074e-08,
+      "cosineSimilarity": 0.9999999999773526,
+      "referenceTopToken": 252582,
+      "dopplerTopToken": 252582,
+      "referenceMargin": 0.07078784704208374,
+      "topReferenceTokens": [
+        {
+          "token": 252582,
+          "reference": 1.0424752235412598,
+          "doppler": 1.0424751043319702,
+          "error": 1.1920928955078125e-07
+        },
+        {
+          "token": 247206,
+          "reference": 0.971687376499176,
+          "doppler": 0.9716926217079163,
+          "error": 5.245208740234375e-06
+        },
+        {
+          "token": 246566,
+          "reference": 0.674316942691803,
+          "doppler": 0.6743137836456299,
+          "error": 3.159046173095703e-06
+        },
+        {
+          "token": 254118,
+          "reference": 0.594005286693573,
+          "doppler": 0.5940059423446655,
+          "error": 6.556510925292969e-07
+        },
+        {
+          "token": 257830,
+          "reference": 0.5483900904655457,
+          "doppler": 0.5483874082565308,
+          "error": 2.682209014892578e-06
+        }
+      ],
+      "passed": true
+    },
+    {
+      "caseId": "arithmetic",
+      "layer": 30,
+      "field": "convState",
+      "maxAbsoluteError": 6.783008575439453e-05,
+      "rmsError": 8.356483512661696e-06,
+      "cosineSimilarity": 0.999999999972554,
+      "referenceTopToken": 11936,
+      "dopplerTopToken": 11936,
+      "referenceMargin": 0.19263362884521484,
+      "topReferenceTokens": [
+        {
+          "token": 11936,
+          "reference": 10.3200101852417,
+          "doppler": 10.320013999938965,
+          "error": 3.814697265625e-06
+        },
+        {
+          "token": 11939,
+          "reference": 10.127376556396484,
+          "doppler": 10.127373695373535,
+          "error": 2.86102294921875e-06
+        },
+        {
+          "token": 11938,
+          "reference": 10.069602966308594,
+          "doppler": 10.069599151611328,
+          "error": 3.814697265625e-06
+        },
+        {
+          "token": 11937,
+          "reference": 9.727571487426758,
+          "doppler": 9.727568626403809,
+          "error": 2.86102294921875e-06
+        },
+        {
+          "token": 15710,
+          "reference": 9.447342872619629,
+          "doppler": 9.447343826293945,
+          "error": 9.5367431640625e-07
+        }
+      ],
+      "passed": true
+    },
+    {
+      "caseId": "arithmetic",
+      "layer": 62,
+      "field": "recurrentState",
+      "maxAbsoluteError": 4.597008228302002e-05,
+      "rmsError": 3.674836375238825e-07,
+      "cosineSimilarity": 0.9999999998493145,
+      "referenceTopToken": 505822,
+      "dopplerTopToken": 505822,
+      "referenceMargin": 0.2044367790222168,
+      "topReferenceTokens": [
+        {
+          "token": 505822,
+          "reference": 2.5623855590820312,
+          "doppler": 2.5624048709869385,
+          "error": 1.9311904907226562e-05
+        },
+        {
+          "token": 498910,
+          "reference": 2.3579487800598145,
+          "doppler": 2.3579652309417725,
+          "error": 1.6450881958007812e-05
+        },
+        {
+          "token": 505747,
+          "reference": 2.3431143760681152,
+          "doppler": 2.3431396484375,
+          "error": 2.5272369384765625e-05
+        },
+        {
+          "token": 498835,
+          "reference": 2.0785088539123535,
+          "doppler": 2.0785298347473145,
+          "error": 2.09808349609375e-05
+        },
+        {
+          "token": 531699,
+          "reference": 2.072815418243408,
+          "doppler": 2.072829008102417,
+          "error": 1.3589859008789062e-05
+        }
+      ],
+      "passed": true
+    },
+    {
+      "caseId": "arithmetic",
+      "layer": 62,
+      "field": "convState",
+      "maxAbsoluteError": 0.0006160736083984375,
+      "rmsError": 4.48083207975271e-05,
+      "cosineSimilarity": 0.9999999998152046,
+      "referenceTopToken": 6354,
+      "dopplerTopToken": 6354,
+      "referenceMargin": 2.5009689331054688,
+      "topReferenceTokens": [
+        {
+          "token": 6354,
+          "reference": 23.747379302978516,
+          "doppler": 23.747318267822266,
+          "error": 6.103515625e-05
+        },
+        {
+          "token": 6352,
+          "reference": 21.246410369873047,
+          "doppler": 21.246381759643555,
+          "error": 2.86102294921875e-05
+        },
+        {
+          "token": 6355,
+          "reference": 18.797161102294922,
+          "doppler": 18.79720687866211,
+          "error": 4.57763671875e-05
+        },
+        {
+          "token": 186,
+          "reference": 18.53451156616211,
+          "doppler": 18.534639358520508,
+          "error": 0.0001277923583984375
+        },
+        {
+          "token": 6353,
+          "reference": 18.416357040405273,
+          "doppler": 18.416231155395508,
+          "error": 0.000125885009765625
+        }
+      ],
+      "passed": true
+    },
+    {
+      "caseId": "code",
+      "layer": 0,
+      "field": "recurrentState",
+      "maxAbsoluteError": 1.52587890625e-05,
+      "rmsError": 1.2463401569226876e-07,
+      "cosineSimilarity": 0.9999999999999347,
+      "referenceTopToken": 44785,
+      "dopplerTopToken": 44785,
+      "referenceMargin": 0.41439247131347656,
+      "topReferenceTokens": [
+        {
+          "token": 44785,
+          "reference": 28.412582397460938,
+          "doppler": 28.412582397460938,
+          "error": 0.0
+        },
+        {
+          "token": 395329,
+          "reference": 27.99818992614746,
+          "doppler": 27.9981746673584,
+          "error": 1.52587890625e-05
+        },
+        {
+          "token": 411714,
+          "reference": 27.057981491088867,
+          "doppler": 27.057981491088867,
+          "error": 0.0
+        },
+        {
+          "token": 93734,
+          "reference": 26.077070236206055,
+          "doppler": 26.077072143554688,
+          "error": 1.9073486328125e-06
+        },
+        {
+          "token": 77395,
+          "reference": 25.433473587036133,
+          "doppler": 25.4334716796875,
+          "error": 1.9073486328125e-06
+        }
+      ],
+      "passed": true
+    },
+    {
+      "caseId": "code",
+      "layer": 0,
+      "field": "convState",
+      "maxAbsoluteError": 0.0,
+      "rmsError": 0.0,
+      "cosineSimilarity": 1.0,
+      "referenceTopToken": 23755,
+      "dopplerTopToken": 23755,
+      "referenceMargin": 1.9734535217285156,
+      "topReferenceTokens": [
+        {
+          "token": 23755,
+          "reference": 51.75853729248047,
+          "doppler": 51.75853729248047,
+          "error": 0.0
+        },
+        {
+          "token": 22731,
+          "reference": 49.78508377075195,
+          "doppler": 49.78508377075195,
+          "error": 0.0
+        },
+        {
+          "token": 16839,
+          "reference": 48.1100959777832,
+          "doppler": 48.1100959777832,
+          "error": 0.0
+        },
+        {
+          "token": 17863,
+          "reference": 47.21582794189453,
+          "doppler": 47.21582794189453,
+          "error": 0.0
+        },
+        {
+          "token": 23063,
+          "reference": 46.640289306640625,
+          "doppler": 46.640289306640625,
+          "error": 0.0
+        }
+      ],
+      "passed": true
+    },
+    {
+      "caseId": "code",
+      "layer": 30,
+      "field": "recurrentState",
+      "maxAbsoluteError": 1.0794028639793396e-05,
+      "rmsError": 6.164926733192324e-08,
+      "cosineSimilarity": 0.9999999999638005,
+      "referenceTopToken": 260646,
+      "dopplerTopToken": 260646,
+      "referenceMargin": 0.4214283227920532,
+      "topReferenceTokens": [
+        {
+          "token": 260646,
+          "reference": 1.1244947910308838,
+          "doppler": 1.124500036239624,
+          "error": 5.245208740234375e-06
+        },
+        {
+          "token": 259238,
+          "reference": 0.7030664682388306,
+          "doppler": 0.7030649185180664,
+          "error": 1.5497207641601562e-06
+        },
+        {
+          "token": 252326,
+          "reference": 0.5259230732917786,
+          "doppler": 0.5259217023849487,
+          "error": 1.3709068298339844e-06
+        },
+        {
+          "token": 336369,
+          "reference": 0.4974438548088074,
+          "doppler": 0.4974431097507477,
+          "error": 7.450580596923828e-07
+        },
+        {
+          "token": 86610,
+          "reference": 0.4954405725002289,
+          "doppler": 0.49544015526771545,
+          "error": 4.172325134277344e-07
+        }
+      ],
+      "passed": true
+    },
+    {
+      "caseId": "code",
+      "layer": 30,
+      "field": "convState",
+      "maxAbsoluteError": 0.00010925531387329102,
+      "rmsError": 1.5044114706624011e-05,
+      "cosineSimilarity": 0.9999999998970431,
+      "referenceTopToken": 11938,
+      "dopplerTopToken": 11938,
+      "referenceMargin": 0.059594154357910156,
+      "topReferenceTokens": [
+        {
+          "token": 11938,
+          "reference": 10.372657775878906,
+          "doppler": 10.372664451599121,
+          "error": 6.67572021484375e-06
+        },
+        {
+          "token": 11821,
+          "reference": 10.313063621520996,
+          "doppler": 10.31307315826416,
+          "error": 9.5367431640625e-06
+        },
+        {
+          "token": 11937,
+          "reference": 9.950276374816895,
+          "doppler": 9.950285911560059,
+          "error": 9.5367431640625e-06
+        },
+        {
+          "token": 11939,
+          "reference": 9.84814167022705,
+          "doppler": 9.848137855529785,
+          "error": 3.814697265625e-06
+        },
+        {
+          "token": 11965,
+          "reference": 9.325739860534668,
+          "doppler": 9.325737953186035,
+          "error": 1.9073486328125e-06
+        }
+      ],
+      "passed": true
+    },
+    {
+      "caseId": "code",
+      "layer": 62,
+      "field": "recurrentState",
+      "maxAbsoluteError": 1.4163553714752197e-05,
+      "rmsError": 2.7276206974754586e-07,
+      "cosineSimilarity": 0.9999999999263258,
+      "referenceTopToken": 505822,
+      "dopplerTopToken": 505822,
+      "referenceMargin": 0.23041749000549316,
+      "topReferenceTokens": [
+        {
+          "token": 505822,
+          "reference": 2.7786293029785156,
+          "doppler": 2.7786316871643066,
+          "error": 2.384185791015625e-06
+        },
+        {
+          "token": 498910,
+          "reference": 2.5482118129730225,
+          "doppler": 2.5482122898101807,
+          "error": 4.76837158203125e-07
+        },
+        {
+          "token": 492766,
+          "reference": 2.2968270778656006,
+          "doppler": 2.296830654144287,
+          "error": 3.5762786865234375e-06
+        },
+        {
+          "token": 531699,
+          "reference": 1.9444947242736816,
+          "doppler": 1.9444938898086548,
+          "error": 8.344650268554688e-07
+        },
+        {
+          "token": 505747,
+          "reference": 1.7461342811584473,
+          "doppler": 1.7461326122283936,
+          "error": 1.6689300537109375e-06
+        }
+      ],
+      "passed": true
+    },
+    {
+      "caseId": "code",
+      "layer": 62,
+      "field": "convState",
+      "maxAbsoluteError": 0.0005230903625488281,
+      "rmsError": 3.499603350428548e-05,
+      "cosineSimilarity": 0.9999999998937565,
+      "referenceTopToken": 6355,
+      "dopplerTopToken": 6355,
+      "referenceMargin": 2.1247997283935547,
+      "topReferenceTokens": [
+        {
+          "token": 6355,
+          "reference": 22.324134826660156,
+          "doppler": 22.32399559020996,
+          "error": 0.0001392364501953125
+        },
+        {
+          "token": 6354,
+          "reference": 20.1993350982666,
+          "doppler": 20.19934844970703,
+          "error": 1.33514404296875e-05
+        },
+        {
+          "token": 6353,
+          "reference": 19.319801330566406,
+          "doppler": 19.31986427307129,
+          "error": 6.29425048828125e-05
+        },
+        {
+          "token": 21624,
+          "reference": 18.936288833618164,
+          "doppler": 18.936288833618164,
+          "error": 0.0
+        },
+        {
+          "token": 6352,
+          "reference": 15.62913703918457,
+          "doppler": 15.629085540771484,
+          "error": 5.14984130859375e-05
+        }
+      ],
+      "passed": true
+    },
+    {
+      "caseId": "long-movie",
+      "layer": 0,
+      "field": "recurrentState",
+      "maxAbsoluteError": 4.100799560546875e-05,
+      "rmsError": 2.776837418661762e-07,
+      "cosineSimilarity": 0.9999999999996363,
+      "referenceTopToken": 395329,
+      "dopplerTopToken": 395329,
+      "referenceMargin": 1.5227317810058594,
+      "topReferenceTokens": [
+        {
+          "token": 395329,
+          "reference": 27.429176330566406,
+          "doppler": 27.42917251586914,
+          "error": 3.814697265625e-06
+        },
+        {
+          "token": 93734,
+          "reference": 25.906444549560547,
+          "doppler": 25.906457901000977,
+          "error": 1.33514404296875e-05
+        },
+        {
+          "token": 411714,
+          "reference": 25.660764694213867,
+          "doppler": 25.66075897216797,
+          "error": 5.7220458984375e-06
+        },
+        {
+          "token": 77395,
+          "reference": 25.015506744384766,
+          "doppler": 25.015514373779297,
+          "error": 7.62939453125e-06
+        },
+        {
+          "token": 60966,
+          "reference": 24.40990447998047,
+          "doppler": 24.409902572631836,
+          "error": 1.9073486328125e-06
+        }
+      ],
+      "passed": true
+    },
+    {
+      "caseId": "long-movie",
+      "layer": 0,
+      "field": "convState",
+      "maxAbsoluteError": 0.0,
+      "rmsError": 0.0,
+      "cosineSimilarity": 1.0,
+      "referenceTopToken": 21413,
+      "dopplerTopToken": 21413,
+      "referenceMargin": 14.993560791015625,
+      "topReferenceTokens": [
+        {
+          "token": 21413,
+          "reference": 66.9428939819336,
+          "doppler": 66.9428939819336,
+          "error": 0.0
+        },
+        {
+          "token": 21412,
+          "reference": 51.94933319091797,
+          "doppler": 51.94933319091797,
+          "error": 0.0
+        },
+        {
+          "token": 21625,
+          "reference": 50.91694641113281,
+          "doppler": 50.91694641113281,
+          "error": 0.0
+        },
+        {
+          "token": 21415,
+          "reference": 50.28364944458008,
+          "doppler": 50.28364944458008,
+          "error": 0.0
+        },
+        {
+          "token": 16839,
+          "reference": 46.19987487792969,
+          "doppler": 46.19987487792969,
+          "error": 0.0
+        }
+      ],
+      "passed": true
+    },
+    {
+      "caseId": "long-movie",
+      "layer": 30,
+      "field": "recurrentState",
+      "maxAbsoluteError": 7.379334419965744e-06,
+      "rmsError": 1.238489856129838e-07,
+      "cosineSimilarity": 0.9999999998524546,
+      "referenceTopToken": 252582,
+      "dopplerTopToken": 252582,
+      "referenceMargin": 0.00775754451751709,
+      "topReferenceTokens": [
+        {
+          "token": 252582,
+          "reference": 0.9208366274833679,
+          "doppler": 0.9208375811576843,
+          "error": 9.5367431640625e-07
+        },
+        {
+          "token": 246566,
+          "reference": 0.9130790829658508,
+          "doppler": 0.9130733013153076,
+          "error": 5.781650543212891e-06
+        },
+        {
+          "token": 247206,
+          "reference": 0.8981292843818665,
+          "doppler": 0.8981236815452576,
+          "error": 5.602836608886719e-06
+        },
+        {
+          "token": 260390,
+          "reference": 0.596474826335907,
+          "doppler": 0.5964745879173279,
+          "error": 2.384185791015625e-07
+        },
+        {
+          "token": 259238,
+          "reference": 0.5501351952552795,
+          "doppler": 0.5501328706741333,
+          "error": 2.3245811462402344e-06
+        }
+      ],
+      "passed": true
+    },
+    {
+      "caseId": "long-movie",
+      "layer": 30,
+      "field": "convState",
+      "maxAbsoluteError": 0.00012004375457763672,
+      "rmsError": 1.7881891571488753e-05,
+      "cosineSimilarity": 0.9999999998757654,
+      "referenceTopToken": 11937,
+      "dopplerTopToken": 11937,
+      "referenceMargin": 0.4803428649902344,
+      "topReferenceTokens": [
+        {
+          "token": 11937,
+          "reference": 10.710564613342285,
+          "doppler": 10.710559844970703,
+          "error": 4.76837158203125e-06
+        },
+        {
+          "token": 11936,
+          "reference": 10.23022174835205,
+          "doppler": 10.230220794677734,
+          "error": 9.5367431640625e-07
+        },
+        {
+          "token": 11965,
+          "reference": 9.802770614624023,
+          "doppler": 9.802779197692871,
+          "error": 8.58306884765625e-06
+        },
+        {
+          "token": 13953,
+          "reference": 9.752821922302246,
+          "doppler": 9.752832412719727,
+          "error": 1.049041748046875e-05
+        },
+        {
+          "token": 11938,
+          "reference": 9.640027046203613,
+          "doppler": 9.640039443969727,
+          "error": 1.239776611328125e-05
+        }
+      ],
+      "passed": true
+    },
+    {
+      "caseId": "long-movie",
+      "layer": 62,
+      "field": "recurrentState",
+      "maxAbsoluteError": 0.0023096799850463867,
+      "rmsError": 1.1311606821592916e-05,
+      "cosineSimilarity": 0.9999999168156886,
+      "referenceTopToken": 505822,
+      "dopplerTopToken": 505822,
+      "referenceMargin": 0.5457398891448975,
+      "topReferenceTokens": [
+        {
+          "token": 505822,
+          "reference": 3.523944854736328,
+          "doppler": 3.523881673812866,
+          "error": 6.318092346191406e-05
+        },
+        {
+          "token": 498910,
+          "reference": 2.9782049655914307,
+          "doppler": 2.978123188018799,
+          "error": 8.177757263183594e-05
+        },
+        {
+          "token": 505747,
+          "reference": 2.936401128768921,
+          "doppler": 2.936393976211548,
+          "error": 7.152557373046875e-06
+        },
+        {
+          "token": 498835,
+          "reference": 2.6243324279785156,
+          "doppler": 2.6241323947906494,
+          "error": 0.00020003318786621094
+        },
+        {
+          "token": 531699,
+          "reference": 2.481776237487793,
+          "doppler": 2.4817135334014893,
+          "error": 6.270408630371094e-05
+        }
+      ],
+      "passed": false
+    },
+    {
+      "caseId": "long-movie",
+      "layer": 62,
+      "field": "convState",
+      "maxAbsoluteError": 0.001794576644897461,
+      "rmsError": 0.00012026870354296524,
+      "cosineSimilarity": 0.9999999986041527,
+      "referenceTopToken": 6354,
+      "dopplerTopToken": 6354,
+      "referenceMargin": 3.747964859008789,
+      "topReferenceTokens": [
+        {
+          "token": 6354,
+          "reference": 23.793901443481445,
+          "doppler": 23.79392433166504,
+          "error": 2.288818359375e-05
+        },
+        {
+          "token": 6355,
+          "reference": 20.045936584472656,
+          "doppler": 20.045461654663086,
+          "error": 0.0004749298095703125
+        },
+        {
+          "token": 21627,
+          "reference": 18.615219116210938,
+          "doppler": 18.615299224853516,
+          "error": 8.0108642578125e-05
+        },
+        {
+          "token": 21626,
+          "reference": 17.029193878173828,
+          "doppler": 17.029111862182617,
+          "error": 8.20159912109375e-05
+        },
+        {
+          "token": 6352,
+          "reference": 16.329729080200195,
+          "doppler": 16.32916259765625,
+          "error": 0.0005664825439453125
+        }
+      ],
+      "passed": false
+    }
+  ]
+}

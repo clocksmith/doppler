@@ -1,0 +1,324 @@
+{
+  "schema": "doppler.qwen-quantized-forced-logit-comparison/v1",
+  "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+  "referenceSha256": "7c3bfe1a12afb88a7f8009880515941dc23017f74ede5dad7ad9298a72085343",
+  "candidateSha256": "36c854d580bdecd7af798c0866c525521d441fbb264831f8e02ed08f1c3770d8",
+  "contractSha256": "6569deece204a463014ab3571401e3671dffe32db9bf378e4eda753b77ad5851",
+  "toolSha256": "5703e8a13dcaa502b7740870ae0706a28c186e217b85e50d108f7509d24d5aa3",
+  "maxAbsoluteLogitError": 0.001,
+  "rows": [
+    {
+      "caseId": "arithmetic",
+      "position": 16,
+      "maxAbsoluteError": 0.00027555227279663086,
+      "rmsError": 5.005831923204552e-05,
+      "cosineSimilarity": 0.9999999998629304,
+      "referenceTopToken": 271,
+      "dopplerTopToken": 271,
+      "referenceMargin": 3.3286800384521484,
+      "topReferenceTokens": [
+        {
+          "token": 271,
+          "reference": 20.596214294433594,
+          "doppler": 20.596282958984375,
+          "error": 6.866455078125e-05
+        },
+        {
+          "token": 220,
+          "reference": 17.267534255981445,
+          "doppler": 17.26748275756836,
+          "error": 5.14984130859375e-05
+        },
+        {
+          "token": 198,
+          "reference": 15.324812889099121,
+          "doppler": 15.324909210205078,
+          "error": 9.632110595703125e-05
+        },
+        {
+          "token": 248046,
+          "reference": 14.309919357299805,
+          "doppler": 14.309860229492188,
+          "error": 5.91278076171875e-05
+        },
+        {
+          "token": 1358,
+          "reference": 13.580750465393066,
+          "doppler": 13.580682754516602,
+          "error": 6.771087646484375e-05
+        }
+      ],
+      "passed": true
+    },
+    {
+      "caseId": "code",
+      "position": 62,
+      "maxAbsoluteError": 0.0007519721984863281,
+      "rmsError": 0.00014405710556265173,
+      "cosineSimilarity": 0.9999999984391615,
+      "referenceTopToken": 220,
+      "dopplerTopToken": 220,
+      "referenceMargin": 0.8906116485595703,
+      "topReferenceTokens": [
+        {
+          "token": 220,
+          "reference": 19.956253051757812,
+          "doppler": 19.956117630004883,
+          "error": 0.0001354217529296875
+        },
+        {
+          "token": 25,
+          "reference": 19.065641403198242,
+          "doppler": 19.065420150756836,
+          "error": 0.00022125244140625
+        },
+        {
+          "token": 30,
+          "reference": 17.14786720275879,
+          "doppler": 17.147666931152344,
+          "error": 0.0002002716064453125
+        },
+        {
+          "token": 29739,
+          "reference": 16.652664184570312,
+          "doppler": 16.652503967285156,
+          "error": 0.00016021728515625
+        },
+        {
+          "token": 1259,
+          "reference": 16.650354385375977,
+          "doppler": 16.650171279907227,
+          "error": 0.00018310546875
+        }
+      ],
+      "passed": true
+    },
+    {
+      "caseId": "long-movie",
+      "position": 562,
+      "maxAbsoluteError": 0.0021429061889648438,
+      "rmsError": 0.00032059403908127825,
+      "cosineSimilarity": 0.999999996249249,
+      "referenceTopToken": 271,
+      "dopplerTopToken": 271,
+      "referenceMargin": 1.5381698608398438,
+      "topReferenceTokens": [
+        {
+          "token": 271,
+          "reference": 20.001712799072266,
+          "doppler": 20.001781463623047,
+          "error": 6.866455078125e-05
+        },
+        {
+          "token": 16142,
+          "reference": 18.463542938232422,
+          "doppler": 18.463924407958984,
+          "error": 0.0003814697265625
+        },
+        {
+          "token": 19592,
+          "reference": 16.55072784423828,
+          "doppler": 16.55099105834961,
+          "error": 0.000263214111328125
+        },
+        {
+          "token": 561,
+          "reference": 16.470754623413086,
+          "doppler": 16.471019744873047,
+          "error": 0.0002651214599609375
+        },
+        {
+          "token": 248046,
+          "reference": 16.32827377319336,
+          "doppler": 16.32838249206543,
+          "error": 0.0001087188720703125
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "states": [
+    {
+      "caseId": "arithmetic",
+      "layer": 0,
+      "field": "recurrentState",
+      "position": 16,
+      "maxAbsoluteError": 1.150369644165039e-05,
+      "rmsError": 9.279092895229559e-08,
+      "cosineSimilarity": 0.9999999999999446,
+      "passed": true
+    },
+    {
+      "caseId": "arithmetic",
+      "layer": 0,
+      "field": "convState",
+      "position": 16,
+      "maxAbsoluteError": 1.52587890625e-05,
+      "rmsError": 5.813374854429957e-07,
+      "cosineSimilarity": 0.9999999999999905,
+      "passed": true
+    },
+    {
+      "caseId": "arithmetic",
+      "layer": 30,
+      "field": "recurrentState",
+      "position": 16,
+      "maxAbsoluteError": 5.133450031280518e-06,
+      "rmsError": 3.4520394600026705e-08,
+      "cosineSimilarity": 0.9999999999854782,
+      "passed": true
+    },
+    {
+      "caseId": "arithmetic",
+      "layer": 30,
+      "field": "convState",
+      "position": 16,
+      "maxAbsoluteError": 5.7697296142578125e-05,
+      "rmsError": 7.51105655854891e-06,
+      "cosineSimilarity": 0.9999999999778405,
+      "passed": true
+    },
+    {
+      "caseId": "arithmetic",
+      "layer": 62,
+      "field": "recurrentState",
+      "position": 16,
+      "maxAbsoluteError": 2.3737549781799316e-05,
+      "rmsError": 3.087437193821728e-07,
+      "cosineSimilarity": 0.9999999998929004,
+      "passed": true
+    },
+    {
+      "caseId": "arithmetic",
+      "layer": 62,
+      "field": "convState",
+      "position": 16,
+      "maxAbsoluteError": 0.00040531158447265625,
+      "rmsError": 3.8847464557748406e-05,
+      "cosineSimilarity": 0.9999999998612291,
+      "passed": true
+    },
+    {
+      "caseId": "code",
+      "layer": 0,
+      "field": "recurrentState",
+      "position": 62,
+      "maxAbsoluteError": 1.71661376953125e-05,
+      "rmsError": 1.4897506450959256e-07,
+      "cosineSimilarity": 0.9999999999999072,
+      "passed": true
+    },
+    {
+      "caseId": "code",
+      "layer": 0,
+      "field": "convState",
+      "position": 62,
+      "maxAbsoluteError": 1.52587890625e-05,
+      "rmsError": 5.287916205580417e-07,
+      "cosineSimilarity": 0.9999999999999905,
+      "passed": true
+    },
+    {
+      "caseId": "code",
+      "layer": 30,
+      "field": "recurrentState",
+      "position": 62,
+      "maxAbsoluteError": 9.104609489440918e-06,
+      "rmsError": 6.110685243479964e-08,
+      "cosineSimilarity": 0.9999999999645406,
+      "passed": true
+    },
+    {
+      "caseId": "code",
+      "layer": 30,
+      "field": "convState",
+      "position": 62,
+      "maxAbsoluteError": 8.83340835571289e-05,
+      "rmsError": 1.1454336220872225e-05,
+      "cosineSimilarity": 0.9999999999400253,
+      "passed": true
+    },
+    {
+      "caseId": "code",
+      "layer": 62,
+      "field": "recurrentState",
+      "position": 62,
+      "maxAbsoluteError": 2.4512410163879395e-05,
+      "rmsError": 2.8130876606940984e-07,
+      "cosineSimilarity": 0.999999999921596,
+      "passed": true
+    },
+    {
+      "caseId": "code",
+      "layer": 62,
+      "field": "convState",
+      "position": 62,
+      "maxAbsoluteError": 0.0005502700805664062,
+      "rmsError": 3.478172107606051e-05,
+      "cosineSimilarity": 0.9999999998951563,
+      "passed": true
+    },
+    {
+      "caseId": "long-movie",
+      "layer": 0,
+      "field": "recurrentState",
+      "position": 562,
+      "maxAbsoluteError": 4.9591064453125e-05,
+      "rmsError": 2.960163110697788e-07,
+      "cosineSimilarity": 0.999999999999588,
+      "passed": true
+    },
+    {
+      "caseId": "long-movie",
+      "layer": 0,
+      "field": "convState",
+      "position": 562,
+      "maxAbsoluteError": 1.52587890625e-05,
+      "rmsError": 5.813374854429957e-07,
+      "cosineSimilarity": 0.9999999999999905,
+      "passed": true
+    },
+    {
+      "caseId": "long-movie",
+      "layer": 30,
+      "field": "recurrentState",
+      "position": 562,
+      "maxAbsoluteError": 9.35140997171402e-06,
+      "rmsError": 1.1526991810869041e-07,
+      "cosineSimilarity": 0.9999999998720228,
+      "passed": true
+    },
+    {
+      "caseId": "long-movie",
+      "layer": 30,
+      "field": "convState",
+      "position": 562,
+      "maxAbsoluteError": 7.605552673339844e-05,
+      "rmsError": 1.595292903547718e-05,
+      "cosineSimilarity": 0.9999999999011581,
+      "passed": true
+    },
+    {
+      "caseId": "long-movie",
+      "layer": 62,
+      "field": "recurrentState",
+      "position": 562,
+      "maxAbsoluteError": 0.002226591110229492,
+      "rmsError": 1.4029001865148248e-05,
+      "cosineSimilarity": 0.9999998719162067,
+      "passed": false
+    },
+    {
+      "caseId": "long-movie",
+      "layer": 62,
+      "field": "convState",
+      "position": 562,
+      "maxAbsoluteError": 0.001285552978515625,
+      "rmsError": 0.00012935556748257455,
+      "cosineSimilarity": 0.9999999983874099,
+      "passed": false
+    }
+  ],
+  "passed": false,
+  "scope": "Frozen shared input histories and declared state snapshots; not model quality or release qualification"
+}

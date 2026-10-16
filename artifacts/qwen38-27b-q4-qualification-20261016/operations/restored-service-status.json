@@ -1,0 +1,45 @@
+{
+  "checkedAt": "2026-10-16T16:23:49.495265+00:00",
+  "services": [
+    {
+      "Id": "reploid-qwen-08b.service",
+      "ActiveState": "active",
+      "SubState": "running",
+      "MainPID": "2963679",
+      "ExecMainStartTimestamp": "Fri 2026-10-16 10:35:23 EDT",
+      "readyEvidence": [
+        "{\"event\":\"partition-state\",\"at\":\"2026-10-16T14:58:43.902Z\",\"phase\":\"executing\",\"error\":null,\"offering\":true,\"modelId\":\"qwen-3-5-0-8b-q4k-ehaf16\",\"unsettledOwners\":null,\"progress\":{\"phase\":\"ready\",\"message\":\"Model ready\"},\"placement\":[],\"placementOmitted\":0,\"descriptor\":null,\"reservations\":null,\"attempts\":{\"count\":0,\"omitted\":0,\"records\":[]},\"acquisition\":null,\"owner\":{\"status\":\"no owner policy\"}}",
+        "{\"event\":\"partition-state\",\"at\":\"2026-10-16T14:58:57.697Z\",\"phase\":\"ready\",\"error\":null,\"offering\":true,\"modelId\":\"qwen-3-5-0-8b-q4k-ehaf16\",\"unsettledOwners\":null,\"progress\":{\"phase\":\"ready\",\"message\":\"Model ready\"},\"placement\":[],\"placementOmitted\":0,\"descriptor\":null,\"reservations\":null,\"attempts\":{\"count\":0,\"omitted\":0,\"records\":[]},\"acquisition\":null,\"owner\":{\"status\":\"no owner policy\"}}"
+      ]
+    },
+    {
+      "Id": "reploid-qwen-2b.service",
+      "ActiveState": "active",
+      "SubState": "running",
+      "MainPID": "2967869",
+      "ExecMainStartTimestamp": "Fri 2026-10-16 10:35:46 EDT",
+      "readyEvidence": [
+        "{\"event\":\"partition-state\",\"at\":\"2026-10-16T14:59:02.692Z\",\"phase\":\"executing\",\"error\":null,\"offering\":true,\"modelId\":\"qwen-3-5-2b-q4k-ehaf16\",\"unsettledOwners\":null,\"progress\":{\"phase\":\"ready\",\"message\":\"Model ready\"},\"placement\":[],\"placementOmitted\":0,\"descriptor\":null,\"reservations\":null,\"attempts\":{\"count\":0,\"omitted\":0,\"records\":[]},\"acquisition\":null,\"owner\":{\"status\":\"no owner policy\"}}",
+        "{\"event\":\"partition-state\",\"at\":\"2026-10-16T14:59:09.261Z\",\"phase\":\"ready\",\"error\":null,\"offering\":true,\"modelId\":\"qwen-3-5-2b-q4k-ehaf16\",\"unsettledOwners\":null,\"progress\":{\"phase\":\"ready\",\"message\":\"Model ready\"},\"placement\":[],\"placementOmitted\":0,\"descriptor\":null,\"reservations\":null,\"attempts\":{\"count\":0,\"omitted\":0,\"records\":[]},\"acquisition\":null,\"owner\":{\"status\":\"no owner policy\"}}"
+      ]
+    },
+    {
+      "Id": "reploid-qwen-27b.service",
+      "ActiveState": "active",
+      "SubState": "running",
+      "MainPID": "4134139",
+      "ExecMainStartTimestamp": "Fri 2026-10-16 12:22:02 EDT",
+      "readyEvidence": [
+        "{\"event\":\"partition-state\",\"at\":\"2026-10-16T16:22:25.300Z\",\"phase\":\"loading\",\"error\":null,\"offering\":true,\"modelId\":\"qwen3-8-27b-text-f16-af32\",\"unsettledOwners\":null,\"progress\":{\"phase\":\"ready\",\"message\":\"Model ready\"},\"placement\":[],\"placementOmitted\":0,\"descriptor\":null,\"reservations\":null,\"attempts\":{\"count\":0,\"omitted\":0,\"records\":[]},\"acquisition\":null,\"owner\":{\"status\":\"no owner policy\"}}",
+        "{\"event\":\"partition-state\",\"at\":\"2026-10-16T16:22:25.302Z\",\"phase\":\"ready\",\"error\":null,\"offering\":true,\"modelId\":\"qwen3-8-27b-text-f16-af32\",\"unsettledOwners\":null,\"progress\":{\"phase\":\"ready\",\"message\":\"Model ready\"},\"placement\":[],\"placementOmitted\":0,\"descriptor\":null,\"reservations\":null,\"attempts\":{\"count\":0,\"omitted\":0,\"records\":[]},\"acquisition\":null,\"owner\":{\"status\":\"no owner policy\"}}"
+      ]
+    }
+  ],
+  "kernelIncidents": [
+    "2026-10-16T12:09:11-04:00 128 kernel: amdgpu 0000:c2:00.0: ring gfx_0.0.0 timeout, signaled seq=195487, emitted seq=195489",
+    "2026-10-16T12:09:11-04:00 128 kernel: amdgpu 0000:c2:00.0:  Process node pid 3989961 thread node pid 3989961",
+    "2026-10-16T12:09:11-04:00 128 kernel: amdgpu 0000:c2:00.0: Starting gfx_0.0.0 ring reset",
+    "2026-10-16T12:09:11-04:00 128 kernel: amdgpu 0000:c2:00.0: Ring gfx_0.0.0 reset succeeded",
+    "2026-10-16T12:09:11-04:00 128 kernel: amdgpu 0000:c2:00.0: [drm] device wedged, but recovered through reset"
+  ]
+}
