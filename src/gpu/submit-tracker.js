@@ -1,5 +1,3 @@
-
-
 import { trackSubmit } from './perf-guards.js';
 import { log, trace } from '../debug/index.js';
 
@@ -92,20 +90,6 @@ export function getSubmitStats() {
     minMs: minSubmitMs === Infinity ? 0 : minSubmitMs,
     timestamps: [...submitTimes],
     bySource: new Map(submitSources),
-  };
-}
-
-
-function getPhaseSubmitStats(phase) {
-  const ps = phaseStats[phase];
-  return {
-    count: ps.count,
-    totalMs: ps.totalMs,
-    avgMs: ps.count > 0 ? ps.totalMs / ps.count : 0,
-    maxMs: ps.maxMs,
-    minMs: ps.minMs === Infinity ? 0 : ps.minMs,
-    timestamps: [...ps.times],
-    bySource: new Map(ps.sources),
   };
 }
 

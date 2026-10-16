@@ -5,29 +5,11 @@
     "config/transforms/execution-graph-transforms.js": [
       "converter/execution-graph-transforms.js"
     ],
-    "config/transforms/execution-graph/dtype.js": [
-      "converter/execution-graph/dtype.js"
-    ],
-    "config/transforms/execution-graph/fusion.js": [
-      "converter/execution-graph/fusion.js"
-    ],
-    "config/transforms/execution-graph/validation.js": [
-      "converter/execution-graph/validation.js"
-    ],
-    "rules/capability-transform-resolver.js": [
-      "converter/capability-transform-resolver.js"
-    ],
     "client/runtime/source-runtime.js": [
       "client/model-host/source-loading.js"
     ],
     "inference/test-harness.js": [
       "tooling/test-harness.js"
-    ],
-    "tooling/source-runtime/bundle-plan.js": [
-      "formats/source-runtime.js"
-    ],
-    "tooling/source-runtime/bundle-materialize.js": [
-      "storage/source-storage-context.js"
     ],
     "index.js": [
       "client/doppler-api.js",
@@ -50,13 +32,6 @@
       "config/merge/execution-patches.js",
       "config/merge/kernel-path-policy.js",
       "config/merge/value-selection.js"
-    ],
-    "converter/index.js": [
-      "converter/conversion-plan.js",
-      "converter/core.js",
-      "converter/parsers/index.js",
-      "converter/quantizer.js",
-      "converter/shard-packer.js"
     ],
     "converter/parsers/index.js": [
       "converter/parsers/diffusion.js",
@@ -134,12 +109,6 @@
       "inference/pipelines/diffusion/weights.js"
     ],
     "inference/pipelines/diffusion/types.js": [],
-    "inference/pipelines/dream/energy-head-pipeline.js": [
-      "inference/pipelines/energy-head/row-head-pipeline.js"
-    ],
-    "inference/pipelines/dream/pipeline.js": [
-      "inference/pipelines/structured/json-head-pipeline.js"
-    ],
     "inference/pipelines/energy/index.js": [
       "experimental/energy/pipeline.js",
       "experimental/energy/quintel.js"
@@ -147,29 +116,12 @@
     "inference/pipelines/energy-head/row-head-pipeline.js": [
       "experimental/orchestration/energy-row-head-pipeline.js"
     ],
-    "inference/pipelines/index.js": [
-      "inference/pipelines/diffusion/index.js",
-      "inference/pipelines/energy-head/row-head-pipeline.js",
-      "inference/pipelines/energy/index.js",
-      "inference/pipelines/factory.js",
-      "inference/pipelines/registry.js",
-      "inference/pipelines/structured/json-head-pipeline.js",
-      "inference/pipelines/text.js"
-    ],
     "inference/pipelines/text/buffer-types.js": [],
     "inference/pipelines/text/bdpa-steamroller.js": [
       "experimental/bdpa/steamroller.js"
     ],
-    "inference/pipelines/text/embedding-pooling.js": [
-      "experimental/embeddings/sequence-pooling.js"
-    ],
     "inference/pipelines/text/debug-utils.js": [
       "inference/pipelines/text/debug-utils/index.js"
-    ],
-    "inference/pipelines/text/debug-utils/utils.js": [
-      "inference/pipelines/text/debug-utils/health-metrics.js",
-      "inference/pipelines/text/debug-utils/profiles.js",
-      "inference/pipelines/text/debug-utils/readback-decoding.js"
     ],
     "inference/pipelines/text/attention/heterogeneous-contract.js": [
       "config/heterogeneous-attention-contract.js"
@@ -199,13 +151,6 @@
     "inference/pipelines/text/logits/cpu-output.js": [
       "experimental/logits/cpu-output.js"
     ],
-    "inference/pipelines/text/index.js": [
-      "inference/pipelines/text.js",
-      "inference/pipelines/text/config.js",
-      "inference/pipelines/text/init.js",
-      "inference/pipelines/text/layer-partition-contract.js",
-      "inference/pipelines/text/model-load.js"
-    ],
     "inference/pipelines/text/types.js": [],
     "inference/tokenizers/types.js": [],
     "loader/quantization-constants.js": [
@@ -216,22 +161,6 @@
       "inference/pipelines/text/init.js",
       "inference/pipelines/text/model-load.js",
       "loader/index.js"
-    ],
-    "storage/index.js": [
-      "storage/artifact-storage-context.js",
-      "storage/blake3.js",
-      "storage/download-types.js",
-      "storage/downloader.js",
-      "storage/emulated-vram.js",
-      "storage/export.js",
-      "storage/inventory.js",
-      "storage/model-cache.js",
-      "storage/preflight.js",
-      "storage/quickstart-downloader.js",
-      "storage/quota.js",
-      "storage/registry.js",
-      "storage/reports.js",
-      "storage/shard-manager.js"
     ],
     "tooling-exports.js": [
       "tooling-exports.shared.js",
@@ -312,9 +241,6 @@
       "experimental/training/trainer.js"
     ],
     "types/chrome.js": [],
-    "types/index.js": [
-      "types/chrome.js"
-    ],
     "utils/array-buffer.js": [
       "formats/array-buffer.js"
     ],
@@ -324,28 +250,11 @@
     "utils/clone-json.js": [
       "formats/clone-json.js"
     ],
-    "utils/encode-utf8.js": [
-      "formats/encode-utf8.js"
-    ],
-    "utils/hf-resolve-url.js": [
-      "storage/hf-resolve-url.js"
-    ],
-    "utils/index.js": [
-      "utils/array-buffer.js",
-      "utils/clone-json.js",
-      "utils/load-json.js",
-      "utils/plain-object.js",
-      "utils/sha256.js",
-      "utils/stable-sort-object.js"
-    ],
     "utils/load-json.js": [
       "formats/load-json.js"
     ],
     "utils/plain-object.js": [
       "formats/plain-object.js"
-    ],
-    "utils/runtime-env.js": [
-      "storage/runtime-env.js"
     ],
     "utils/sha256.js": [
       "formats/sha256.js"
@@ -674,10 +583,6 @@
       "classification": "compatibility-facade",
       "semanticOwner": "inference/pipelines/text/debug-utils/index.js"
     },
-    "inference/pipelines/text/debug-utils/utils.js": {
-      "classification": "compatibility-facade",
-      "semanticOwner": "inference/pipelines/text/debug-utils/{readback-decoding,health-metrics,profiles}.js"
-    },
     "inference/pipelines/text/generator-helpers.js": {
       "classification": "compatibility-facade",
       "semanticOwner": "inference/pipelines/text/generator/{session-context,attention-lifecycle,logits-config}.js"
@@ -717,21 +622,14 @@
   },
   "facades": [
     "config/transforms/execution-graph-transforms.js",
-    "config/transforms/execution-graph/dtype.js",
-    "config/transforms/execution-graph/fusion.js",
-    "config/transforms/execution-graph/validation.js",
-    "rules/capability-transform-resolver.js",
     "client/runtime/source-runtime.js",
     "inference/test-harness.js",
-    "tooling/source-runtime/bundle-plan.js",
-    "tooling/source-runtime/bundle-materialize.js",
     "index.js",
     "index-browser.js",
     "config/schema/platform.schema.js",
     "config/execution-contract-check.js",
     "config/transforms/capability-transform-resolver.js",
     "config/merge-helpers.js",
-    "converter/index.js",
     "converter/parsers/index.js",
     "converter/tokenizer-utils.js",
     "formats/index.js",
@@ -749,16 +647,11 @@
     "inference/pipelines/diffusion/helpers.js",
     "inference/pipelines/diffusion/index.js",
     "inference/pipelines/diffusion/types.js",
-    "inference/pipelines/dream/energy-head-pipeline.js",
-    "inference/pipelines/dream/pipeline.js",
     "inference/pipelines/energy/index.js",
     "inference/pipelines/energy-head/row-head-pipeline.js",
-    "inference/pipelines/index.js",
     "inference/pipelines/text/buffer-types.js",
     "inference/pipelines/text/bdpa-steamroller.js",
-    "inference/pipelines/text/embedding-pooling.js",
     "inference/pipelines/text/debug-utils.js",
-    "inference/pipelines/text/debug-utils/utils.js",
     "inference/pipelines/text/attention/heterogeneous-contract.js",
     "inference/pipelines/text/config/validation.js",
     "inference/pipelines/text/generator-helpers.js",
@@ -767,12 +660,10 @@
     "inference/pipelines/text/logits/types.js",
     "inference/pipelines/text/logits/cpu.js",
     "inference/pipelines/text/logits/cpu-output.js",
-    "inference/pipelines/text/index.js",
     "inference/pipelines/text/types.js",
     "inference/tokenizers/types.js",
     "loader/quantization-constants.js",
     "loaders/index.js",
-    "storage/index.js",
     "tooling-exports.js",
     "tooling-exports.browser.js",
     "tooling-exports.shared.js",
@@ -785,16 +676,11 @@
     "tooling/node-browser-command-runner.js",
     "training-browser.js",
     "types/chrome.js",
-    "types/index.js",
     "utils/array-buffer.js",
     "utils/canonical-hash.js",
     "utils/clone-json.js",
-    "utils/encode-utf8.js",
-    "utils/hf-resolve-url.js",
-    "utils/index.js",
     "utils/load-json.js",
     "utils/plain-object.js",
-    "utils/runtime-env.js",
     "utils/sha256.js",
     "utils/stable-sort-object.js"
   ],

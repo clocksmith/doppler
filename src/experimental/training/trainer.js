@@ -1,3 +1,4 @@
+import { isTensorLike, resolveModelParamGroups, selectTrainableParamGroups } from './parameter-groups.js';
 import { AutogradTape } from './autograd.js';
 import { loadBackwardRegistry } from '../../config/backward-registry-loader.js';
 import { runScale } from '../../gpu/kernels/index.js';
@@ -26,34 +27,6 @@ function resolveTrainingObjective(options) {
   return createCrossEntropyObjective({ crossEntropyLoss: options.crossEntropyLoss });
 }
 
-function resolveModelParamGroups(model) {
-  if (model && typeof model.paramGroups === 'function') {
-    const groups = model.paramGroups();
-    if (!groups || typeof groups !== 'object') {
-      throw new Error('model.paramGroups() must return an object of tensor arrays.');
-    }
-    return groups;
-  }
-  if (model && typeof model.loraParams === 'function') {
-    return { lora: model.loraParams() };
-  }
-  return {};
-}
-
-function selectTrainableParamGroups(paramGroups, freezeMap) {
-  const trainableGroups = {};
-  const frozenGroups = [];
-  for (const [groupName, params] of Object.entries(paramGroups)) {
-    const normalizedParams = Array.isArray(params) ? params.filter(Boolean) : [];
-    if (freezeMap?.[groupName] === true) {
-      frozenGroups.push(groupName);
-      continue;
-    }
-    trainableGroups[groupName] = normalizedParams;
-  }
-  return { trainableGroups, frozenGroups };
-}
-
 function flattenUniqueParams(paramGroups) {
   const unique = new Set();
   const output = [];
@@ -65,13 +38,6 @@ function flattenUniqueParams(paramGroups) {
     }
   }
   return output;
-}
-
-function isTensorLike(value) {
-  return !!value
-    && typeof value === 'object'
-    && Array.isArray(value.shape)
-    && value.buffer != null;
 }
 
 function normalizeBackwardSeedPayload(payload, loss, lossScale) {

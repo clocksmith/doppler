@@ -1,5 +1,3 @@
-
-
 import { getDevice, getKernelCapabilities } from '../device.js';
 import { getShaderScopeCacheKey } from './shader-source-scope.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
@@ -9,7 +7,7 @@ import { FFN_DISPATCH } from './constants.js';
 import { createUniformBufferWithView } from './uniform-utils.js';
 import { getPipelineBindGroupLayout } from './pipeline-cache.js';
 import { recordDispatch } from './dispatch.js';
-import { trace, isTraceEnabled } from '../../debug/index.js';
+import { trace } from '../../debug/index.js';
 import { getBuffer, getWeightDtype } from '../weight-buffer.js';
 import { isFusedQ4KDisabled } from './matmul.js';
 import { getKernelThresholds, QK_K } from '../../config/schema/index.js';
@@ -288,7 +286,8 @@ function releaseRunResources(uniformBuffer, ownedBuffers) {
 }
 
 
-export async function runFusedFFN(
+async function executeFusedFFN(
+  recorder,
   input,
   W_gate,
   W_up,
@@ -296,7 +295,7 @@ export async function runFusedFFN(
   intermediateSize,
   options = {}
 ) {
-  const device = getDevice();
+  const device = recorder ? recorder.device : getDevice();
   const {
     batchSize = 1,
     activation = 'silu',
@@ -340,7 +339,7 @@ export async function runFusedFFN(
     throw new Error('Fused FFN requires f32 activations');
   }
 
-  trace.kernels(`FusedFFN: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}, isQ4K=${isQ4K}`);
+  trace.kernels(`FusedFFN${recorder ? ' record' : ''}: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}, isQ4K=${isQ4K}`);
 
   const kernel = new FusedFFNKernel(device);
   const constants = resolveFusedFFNPipelineConstants(variant, hiddenSize, pipelineConstants);
@@ -356,107 +355,6 @@ export async function runFusedFFN(
   const output = outputBuffer || ownedOutput;
 
   // Create uniform buffer
-  const uniformBuffer = createFFNUniformBuffer(device, null, {
-    M: batchSize,
-    hiddenSize,
-    intermediateSize,
-    alpha,
-    activation,
-    isQ4K,
-    swigluLimit: activation === 'silu' ? swigluLimit : null,
-  });
-
-  try {
-    const bindGroup = device.createBindGroup({
-      label: 'fused_ffn_bind_group',
-      layout: getPipelineBindGroupLayout(pipeline, 0),
-      entries: [
-        { binding: 0, resource: { buffer: uniformBuffer } },
-        { binding: 1, resource: { buffer: input.buffer } },
-        { binding: 2, resource: { buffer: getBuffer(W_gate) } },
-        { binding: 3, resource: { buffer: getBuffer(W_up) } },
-        { binding: 4, resource: { buffer: output } },
-      ],
-    });
-
-    const { workgroupsX, workgroupsY } = calculateFFNDispatch(variant, batchSize, intermediateSize, constants);
-    kernel.dispatch(pipeline, bindGroup, workgroupsX, workgroupsY);
-  } catch (error) {
-    releaseRunResources(uniformBuffer, [ownedOutput]);
-    throw error;
-  }
-
-  uniformBuffer.destroy();
-
-  return createTensor(output, outputDtype, [batchSize, intermediateSize], 'fused_ffn_output');
-}
-
-
-export async function recordFusedFFN(
-  recorder,
-  input,
-  W_gate,
-  W_up,
-  hiddenSize,
-  intermediateSize,
-  options = {}
-) {
-  const device = recorder.device;
-  const {
-    batchSize = 1,
-    activation = 'silu',
-    alpha = 1.0,
-    outputBuffer = null,
-    pipelineConstants = null,
-    variant: variantOverride = null,
-    swigluLimit,
-  } = options;
-  resolveSwigluLimit(swigluLimit, 'FusedFFN');
-
-  const gateDtype = getWeightDtype(W_gate);
-  const upDtype = getWeightDtype(W_up);
-  if (!gateDtype || !upDtype) {
-    throw new Error('Fused FFN requires explicit gate/up weight dtypes');
-  }
-  if (gateDtype !== upDtype) {
-    throw new Error(`Fused FFN requires matching gate/up dtypes (gate=${gateDtype}, up=${upDtype})`);
-  }
-  if (gateDtype !== 'f16' && gateDtype !== 'f32' && gateDtype !== 'q4k') {
-    throw new Error(`Fused FFN does not support ${gateDtype} weights`);
-  }
-
-  const isQ4K = gateDtype === 'q4k';
-  const variant = selectFFNVariant(
-    batchSize,
-    gateDtype,
-    intermediateSize,
-    hiddenSize,
-    input.dtype,
-    variantOverride
-  );
-  const requiresF16Input = F16_INPUT_VARIANTS.has(variant);
-  const usesF16Output = F16_OUTPUT_VARIANTS.has(variant);
-
-  if (requiresF16Input) {
-    if (input.dtype !== 'f16') {
-      throw new Error(`Fused FFN variant ${variant} requires f16 activations`);
-    }
-  } else if (input.dtype !== 'f32') {
-    throw new Error('Fused FFN requires f32 activations');
-  }
-
-  trace.kernels(`FusedFFN record: variant=${variant}, batch=${batchSize}, hidden=${hiddenSize}, intermediate=${intermediateSize}, activation=${activation}, isQ4K=${isQ4K}`);
-
-  const kernel = new FusedFFNKernel(device);
-  const constants = resolveFusedFFNPipelineConstants(variant, hiddenSize, pipelineConstants);
-  const pipeline = await kernel.getPipeline(variant, constants);
-
-  const outputBytesPerElement = usesF16Output ? 2 : 4;
-  const outputDtype = usesF16Output ? 'f16' : 'f32';
-  const outputSize = batchSize * intermediateSize * outputBytesPerElement;
-  const ownedOutput = outputBuffer ? null : acquireBuffer(outputSize, undefined, 'fused_ffn_output');
-  const output = outputBuffer || ownedOutput;
-
   const uniformBuffer = createFFNUniformBuffer(device, recorder, {
     M: batchSize,
     hiddenSize,
@@ -481,15 +379,40 @@ export async function recordFusedFFN(
     });
 
     const { workgroupsX, workgroupsY } = calculateFFNDispatch(variant, batchSize, intermediateSize, constants);
-    kernel.record(recorder, pipeline, bindGroup, workgroupsX, workgroupsY);
+    if (recorder) kernel.record(recorder, pipeline, bindGroup, workgroupsX, workgroupsY);
+    else kernel.dispatch(pipeline, bindGroup, workgroupsX, workgroupsY);
   } catch (error) {
-    if (ownedOutput) {
-      releaseBuffer(ownedOutput);
-    }
+    releaseRunResources(recorder ? null : uniformBuffer, [ownedOutput]);
     throw error;
   }
 
+  if (!recorder) uniformBuffer.destroy();
+
   return createTensor(output, outputDtype, [batchSize, intermediateSize], 'fused_ffn_output');
+}
+
+export async function runFusedFFN(
+  input,
+  W_gate,
+  W_up,
+  hiddenSize,
+  intermediateSize,
+  options = {}
+) {
+  return executeFusedFFN(null, input, W_gate, W_up, hiddenSize, intermediateSize, options);
+}
+
+
+export async function recordFusedFFN(
+  recorder,
+  input,
+  W_gate,
+  W_up,
+  hiddenSize,
+  intermediateSize,
+  options = {}
+) {
+  return executeFusedFFN(recorder, input, W_gate, W_up, hiddenSize, intermediateSize, options);
 }
 
 function validateFusedNormedFFNInputs(input, invRmsBuffer, normWeight, W_gate, W_up, hiddenSize, intermediateSize, options) {
@@ -557,7 +480,8 @@ function calculateFusedNormedDispatch(batchSize, intermediateSize, constants = n
   };
 }
 
-export async function runFusedFFNFromRMSNormStats(
+async function executeFusedFFNFromRMSNormStats(
+  recorder,
   input,
   invRmsBuffer,
   normWeight,
@@ -567,7 +491,7 @@ export async function runFusedFFNFromRMSNormStats(
   intermediateSize,
   options = {}
 ) {
-  const device = getDevice();
+  const device = recorder ? recorder.device : getDevice();
   const {
     batchSize,
     activation,
@@ -578,7 +502,7 @@ export async function runFusedFFNFromRMSNormStats(
   const outputSize = batchSize * intermediateSize * 4;
   const ownedOutput = options.outputBuffer ? null : acquireBuffer(outputSize, undefined, 'fused_normed_ffn_output');
   const output = options.outputBuffer || ownedOutput;
-  const uniformBuffer = createNormedFFNUniformBuffer(device, null, {
+  const uniformBuffer = createNormedFFNUniformBuffer(device, recorder, {
     M: batchSize,
     hiddenSize,
     intermediateSize,
@@ -592,20 +516,37 @@ export async function runFusedFFNFromRMSNormStats(
     const pipeline = await getFusedNormedFFNPipeline(device, constants);
     const bindGroup = createFusedNormedBindGroup(device, pipeline, uniformBuffer, input, normWeight, invRmsBuffer, W_gate, W_up, output);
     const { workgroupsX, workgroupsY } = calculateFusedNormedDispatch(batchSize, intermediateSize, constants);
-    const encoder = device.createCommandEncoder({ label: 'fused_normed_ffn_q4k_encoder' });
-    const pass = encoder.beginComputePass({ label: 'fused_normed_ffn_q4k' });
-    pass.setPipeline(pipeline);
-    pass.setBindGroup(0, bindGroup);
-    pass.dispatchWorkgroups(workgroupsX, workgroupsY, 1);
-    pass.end();
-    device.queue.submit([encoder.finish()]);
+    if (recorder) {
+      recordDispatch(recorder, pipeline, bindGroup, [workgroupsX, workgroupsY, 1], 'fused_normed_ffn_q4k');
+    } else {
+      const encoder = device.createCommandEncoder({ label: 'fused_normed_ffn_q4k_encoder' });
+      const pass = encoder.beginComputePass({ label: 'fused_normed_ffn_q4k' });
+      pass.setPipeline(pipeline);
+      pass.setBindGroup(0, bindGroup);
+      pass.dispatchWorkgroups(workgroupsX, workgroupsY, 1);
+      pass.end();
+      device.queue.submit([encoder.finish()]);
+    }
   } catch (error) {
     if (ownedOutput) releaseBuffer(ownedOutput);
-    uniformBuffer.destroy();
+    if (!recorder) uniformBuffer.destroy();
     throw error;
   }
-  uniformBuffer.destroy();
+  if (!recorder) uniformBuffer.destroy();
   return createTensor(output, 'f32', [batchSize, intermediateSize], 'fused_normed_ffn_output');
+}
+
+export async function runFusedFFNFromRMSNormStats(
+  input,
+  invRmsBuffer,
+  normWeight,
+  W_gate,
+  W_up,
+  hiddenSize,
+  intermediateSize,
+  options = {}
+) {
+  return executeFusedFFNFromRMSNormStats(null, input, invRmsBuffer, normWeight, W_gate, W_up, hiddenSize, intermediateSize, options);
 }
 
 export async function recordFusedFFNFromRMSNormStats(
@@ -619,36 +560,7 @@ export async function recordFusedFFNFromRMSNormStats(
   intermediateSize,
   options = {}
 ) {
-  const {
-    batchSize,
-    activation,
-    normWeightDtype,
-  } = validateFusedNormedFFNInputs(input, invRmsBuffer, normWeight, W_gate, W_up, hiddenSize, intermediateSize, options);
-  resolveSwigluLimit(options.swigluLimit, 'FusedNormedFFN');
-  const constants = normalizeQ4KPipelineConstants(options.pipelineConstants, 'FusedNormedFFN Q4K');
-  const outputSize = batchSize * intermediateSize * 4;
-  const ownedOutput = options.outputBuffer ? null : acquireBuffer(outputSize, undefined, 'fused_normed_ffn_output');
-  const output = options.outputBuffer || ownedOutput;
-  const uniformBuffer = createNormedFFNUniformBuffer(recorder.device, recorder, {
-    M: batchSize,
-    hiddenSize,
-    intermediateSize,
-    alpha: options.alpha ?? 1.0,
-    activation,
-    swigluLimit: activation === 'silu' ? options.swigluLimit : null,
-    rmsNormWeightOffset: options.rmsNormWeightOffset === true,
-    normWeightDtype,
-  });
-  try {
-    const pipeline = await getFusedNormedFFNPipeline(recorder.device, constants);
-    const bindGroup = createFusedNormedBindGroup(recorder.device, pipeline, uniformBuffer, input, normWeight, invRmsBuffer, W_gate, W_up, output);
-    const { workgroupsX, workgroupsY } = calculateFusedNormedDispatch(batchSize, intermediateSize, constants);
-    recordDispatch(recorder, pipeline, bindGroup, [workgroupsX, workgroupsY, 1], 'fused_normed_ffn_q4k');
-  } catch (error) {
-    if (ownedOutput) releaseBuffer(ownedOutput);
-    throw error;
-  }
-  return createTensor(output, 'f32', [batchSize, intermediateSize], 'fused_normed_ffn_output');
+  return executeFusedFFNFromRMSNormStats(recorder, input, invRmsBuffer, normWeight, W_gate, W_up, hiddenSize, intermediateSize, options);
 }
 
 

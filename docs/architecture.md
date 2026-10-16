@@ -301,46 +301,10 @@ See also: [ADR-0001: Dual-Hexagon Compiler Pipeline with an Immutable Capsule Sp
 The heterogeneous semantic and provenance contract is specified in
 [Heterogeneous ModelIR v2 and Source-Truth Rig](model-ir-v2-source-truth-forge.md).
 
-DOPPLER is organized as two sharply separated systems connected by one immutable artifact:
-
-```text
-Source Model Checkpoint
-    ↓
-┌──────────────────────────────────────────────────────────────┐
-│                    DOPPLER RIG                               │
-│  Inspect → Normalize → Analyze → Lower → Specialize → Search │
-│  → Verify → Qualify → Package → Sign                         │
-└──────────────────────────────┬───────────────────────────────┘
-                               │
-                    Immutable Doppler Capsule
-                               │
-┌──────────────────────────────▼───────────────────────────────┐
-│                    DOPPLER RUN                               │
-│  Validate → Select qualified target → Bind resources         │
-│  → Execute declared commands → Observe                       │
-└──────────────────────────────┬───────────────────────────────┘
-                               ↓
-                   Browser / Electron / Node App
-```
-
-### The Doppler Invariant Law
-
-> **Core Architectural Law:**  
-> *After a Doppler Capsule has been qualified and signed, no Run code may change its semantic graph, kernel closure, dtype lane, fusion strategy, or memory model.*
-
-All graph-changing, kernel-changing, fusion-changing, layout-changing, and precision-changing work lives ahead-of-time in **Doppler Rig**. **Doppler Run** is strictly an uncreative plan–bind–execute machine that selects among pre-qualified target plans.
-
-### Three Hashable Representations
-
-1. **`ModelIR` (Semantic Computation):**
-   * Hardware-agnostic representation of the model's computation graph: tensor roles, layer topology, attention geometry, normalization, RoPE semantics, FFN/MoE/linear-attention semantics, output topology, and prefill/decode phases.
-   * Zero WGSL filenames, zero dispatch formulas, and zero hardware-specific tile configurations.
-2. **`TargetPlan` (Concrete Hardware Specialization):**
-   * Complete implementation for a discrete hardware target class (e.g. `webgpu-f16-subgroups`, `webgpu-f16`, `webgpu-f32-safe`).
-   * Selected fusions, storage/compute dtypes, tensor layouts, memory slots, kernel IDs with cryptographic content digests (`sha256:...`), bindings, dispatch formulas, and capability predicates.
-3. **`SessionPlan` (Runtime Instance):**
-   * Instance of a `TargetPlan` bound to runtime parameters: actual prompt length, max generation length, sampling parameters, and concrete GPU buffer allocations within the Capsule's preflighted envelope.
-   * Never alters the target graph or substitutes unqualified kernels.
+The [ADR decision](adr/0001-dual-hexagon-capsule-spine.md#decision) owns the
+Rig → immutable Capsule → Run diagram, the immutable-runtime invariant and the
+ModelIR, TargetPlan and SessionPlan definitions. The stages below describe how
+that contract is implemented.
 
 ### Rig Compiler Stages
 
@@ -1312,10 +1276,6 @@ Parses GGUF metadata and tensors in the browser.
 ### safetensors-parser-browser.js - SafeTensors Parsing
 
 Parses SafeTensors metadata and tensor slices in the browser.
-
-### gguf-importer.js - GGUF Import Pipeline
-
-Builds RDRR shards from GGUF inputs in-browser.
 
 ### browser-converter.js - Browser Conversion
 

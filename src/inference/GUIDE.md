@@ -575,14 +575,9 @@ WGSL kernels are in `gpu/kernels/`. The wrappers in `gpu/kernel-selector.js` com
 
 ## Files Reference
 
-| File | Purpose |
-|------|---------|
-| `inference/pipelines/text.js` | Main inference loop, layer processing |
-| `loader/doppler-loader.js` | Weight loading, tensor naming |
-| `gpu/kernel-selector.js` | Kernel dispatch based on capabilities |
-| `memory/capability.js` | Memory64, unified memory detection |
-| `inference/kv-cache.js` | KV cache management |
-| `gpu/device.js` | WebGPU device, feature detection |
+See the [architecture file map](../../docs/architecture.md#key-files) and
+[pipeline submodules](../../docs/architecture.md#pipeline-submodules-inferencepipelines)
+for maintained source entrypoints.
 
 ---
 

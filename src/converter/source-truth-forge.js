@@ -1,17 +1,10 @@
+import { isPlainObject as isObject } from '../formats/plain-object.js';
+import { hashSortedJson as canonicalDigest } from '../formats/sorted-json.js';
 import { createModelIRV2, validateModelIRV2 } from '../config/model-ir-v2.js';
-import { sha256Hex } from '../formats/sha256.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
 
 export const SOURCE_TRUTH_FORGE_SCHEMA_ID = 'doppler.source-truth-forge/v2';
 export const SOURCE_TRUTH_FORGE_VERSION = '2.0.0';
-
-function isObject(value) {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
-function canonicalDigest(value) {
-  return `sha256:${sha256Hex(JSON.stringify(stableSortObject(value)))}`;
-}
 
 function sourceContent(source) {
   return isObject(source) && Object.hasOwn(source, 'content') ? source.content : source;

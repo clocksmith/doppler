@@ -2,7 +2,7 @@ import { isGPUSamplingAvailable } from '../../../../gpu/kernels/sample.js';
 import { samplingSeedForToken } from '../../../token-sampling.js';
 import { matchesStopSequence } from '../stopping.js';
 import { markWarmed as markKernelCacheWarmed } from '../../../../gpu/kernel-selection-cache.js';
-import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
+import { log, trace } from '../../../../debug/index.js';
 import {
   CAPTURE_LEVELS,
   createDefaultCaptureConfig,
@@ -10,82 +10,120 @@ import {
 } from '../../../../debug/index.js';
 import { validateCallTimeOptions } from '../../../../config/param-validator.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
-import { sample, applyRepetitionPenalty, logitsSanity, getTopK } from '../sampling.js';
-import { createKVCache, isStopToken } from '../init.js';
+import { getTopK } from '../sampling.js';
+import { isStopToken } from '../init.js';
 import { OperatorEventEmitter } from '../operator-events.js';
-import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype, getWeightMetadata, getLayout } from '../../../../gpu/weight-buffer.js';
-import {
-  decodeStep,
-  decodeStepLogits as runDecodeStepLogits,
-  advanceWithToken as runAdvanceWithToken,
-  generateNTokensGPU,
-  shouldUseBatchDecode,
-  sumProfileTimings,
-  FinitenessError,
-  advanceWithTokenAndEmbedding as runAdvanceWithTokenAndEmbedding,
-} from '../generator-steps.js';
-import {
-  buildLayerContext,
-  debugCheckBuffer as debugCheckBufferHelper,
-  resolvePerLayerInputsSession,
-} from './session-context.js';
-import {
-  assertTokenIdsInRange,
-  assertTokenIdInRange,
-  resolveStepOptions,
-  resolveGenerateOptions,
-  resolvePrefillOptions,
-  resolvePrefillEmbeddingOptions,
-  resolveAdvanceEmbeddingMode,
-  getFinalNormWeights,
-  extractEmbeddingFromHidden,
-  extractTokenEmbeddingsFromHidden,
-} from '../generator-runtime.js';
-import {
-  advanceDecodeStepCount,
-  createTsirFixtureState,
-  drainPendingTsirReads,
-} from '../tsir-fixture-writer.js';
-import {
-  activateFallbackExecutionPlan,
-  hasFallbackExecutionPlan,
-  rebaseExecutionSessionPlan,
-  resetActiveExecutionPlan,
-  resolveMaxBatchDecodeTokens,
-  resolvePrefillRecorderChunkLayers,
-  resolveActiveExecutionPlan,
-  setActiveExecutionPlan,
-} from '../execution-plan.js';
-import {
-  cloneLinearAttentionRuntime,
-  hasLinearAttentionLayers,
-  resetLinearAttentionRuntime,
-  restoreLinearAttentionRuntime,
-} from '../linear-attention.js';
-import {
-  preparePerLayerInputs,
-  createPleBufferCache,
-  prefetchPerLayerRow,
-  getPleHotVocabularyRuntime,
-  hasGpuSplitPerLayerInputEmbeddings,
-  hasRangeBackedPerLayerInputEmbeddings,
-} from '../per-layer-inputs.js';
-import {
-  shouldDisableBatchDecodeAfterShortBatch,
-  resolveHotVocabularyBatchDecodeAvailability,
-  primePleDecodeRuntimeCache,
-  recordPrefillProfileStep,
-  resolveTokenText,
-  usesReplayPrefillDecode,
-  assertIncrementalDecodeSupport,
-  summarizeExecutionPlan,
-  shouldRetryWithFinitenessFallback,
-  createUnhandledFinitenessPolicyError,
-  resolveTargetPlanKVDtype,
-  resolveCurrentKVCacheDtype,
-  cloneRuntimeInferenceWithKVDtype,
-} from '../generator-decode-policy.js';
-import { FINITENESS_RESET_WORDS, borrowLinearWeight, borrowNormWeight, canUseChunkedSoftEmbeddingLogits, getExperimentalIntentBundleModule, normalizeCanvasTokenIds, normalizeSelectedLogitTokenIds, normalizeSelfConditioningLogits, normalizeSelfConditioningLogitsState, normalizeSelfConditioningSoftEmbeddingState, recordPrefillRecorderStats, releaseBorrowedWeight, resolveDiffusionGemmaSoftEmbeddingChunkRows, resolvePrefillChunkSubmitMode, resolveSuppressedSamplingTokenIds, traceActivationHealth } from './text.js';
+import { isCpuWeightBuffer } from '../../../../gpu/weight-buffer.js';
+import { decodeStep, advanceWithToken as runAdvanceWithToken, generateNTokensGPU, shouldUseBatchDecode, advanceWithTokenAndEmbedding as runAdvanceWithTokenAndEmbedding } from '../generator-steps.js';
+import { debugCheckBuffer as debugCheckBufferHelper, resolvePerLayerInputsSession } from './session-context.js';
+import { resolveGenerateOptions, resolveAdvanceEmbeddingMode } from '../generator-runtime.js';
+import { createTsirFixtureState } from '../tsir-fixture-writer.js';
+import { resetActiveExecutionPlan, resolveMaxBatchDecodeTokens, resolveActiveExecutionPlan } from '../execution-plan.js';
+import { hasLinearAttentionLayers } from '../linear-attention.js';
+import { createPleBufferCache, prefetchPerLayerRow, getPleHotVocabularyRuntime, hasGpuSplitPerLayerInputEmbeddings, hasRangeBackedPerLayerInputEmbeddings } from '../per-layer-inputs.js';
+import { shouldDisableBatchDecodeAfterShortBatch, resolveHotVocabularyBatchDecodeAvailability, primePleDecodeRuntimeCache, resolveTokenText, usesReplayPrefillDecode, assertIncrementalDecodeSupport, summarizeExecutionPlan } from '../generator-decode-policy.js';
+import { getExperimentalIntentBundleModule, resolveSuppressedSamplingTokenIds } from './text.js';
+
+function prepareGenerationRuntime(generator, opts, options) {
+  generator._resetReplayPrefillRuntimeState();
+  generator._state.isGenerating = true;
+  generator._resetDecodeRuntimeState();
+  delete generator._state.stats.outputUsage;
+  generator._state.stats.gpuTimePrefillMs = undefined;
+  generator._state.stats.gpuTimeDecodeMs = undefined;
+  generator._state.stats.decodeRecordMs = 0;
+  generator._state.stats.decodeRecordOps = 0;
+  generator._state.stats.decodeRecordPasses = 0;
+  generator._state.stats.decodeRecordOpLabels = {};
+  generator._state.stats.decodeSubmitWaitMs = 0;
+  generator._state.stats.decodeReadbackWaitMs = 0;
+  generator._state.stats.decodeReadbackMapWaitMs = 0;
+  generator._state.stats.decodeReadbackCleanupMs = 0;
+  generator._state.stats.decodeReadbackCopyMs = 0;
+  generator._state.stats.prefillRecordMs = 0;
+  generator._state.stats.prefillRecordOps = 0;
+  generator._state.stats.prefillRecordPasses = 0;
+  generator._state.stats.prefillRecordOpLabels = {};
+  generator._state.stats.prefillSubmitWaitMs = 0;
+  generator._state.stats.singleTokenSubmitWaitMs = 0;
+  generator._state.stats.singleTokenReadbackWaitMs = 0;
+  generator._state.stats.singleTokenReadbackMapWaitMs = 0;
+  generator._state.stats.singleTokenReadbackCleanupMs = 0;
+  generator._state.stats.singleTokenReadbackCopyMs = 0;
+  generator._state.stats.singleTokenOrchestrationMs = 0;
+  generator._state.stats.pleHotVocabularyHits = 0;
+  generator._state.stats.pleHotVocabularyMisses = 0;
+  generator._state.stats.plePreparedTokenCacheHits = 0;
+  generator._state.stats.plePreparedTokenCacheMisses = 0;
+  generator._state.stats.plePreparedTokenCacheEntries = 0;
+  generator._state.stats.plePreparedTokenCacheBytes = 0;
+  generator._state.stats.decodeMode = null;
+  generator._state.stats.batchGuardReason = null;
+  generator._state.stats.stopReason = null;
+  generator._state.stats.stopTokenId = null;
+  generator._state.stats.ttftMs = 0;
+  const startTime = performance.now();
+
+  opts.onLogits = typeof options.onLogits === 'function' ? options.onLogits : null;
+  // Validate and normalize sampling parameters through single source of truth
+  const samplingConfig = opts;
+  opts.suppressTokenIds = resolveSuppressedSamplingTokenIds(generator._state, samplingConfig);
+  const diagnosticsEnabled = options?.diagnostics?.enabled === true
+    || generator._state.runtimeConfig?.shared?.harness?.mode === 'diagnose';
+  const tsirFixtureCfg = generator._state.runtimeConfig?.shared?.harness?.tsirFixture ?? null;
+  if (diagnosticsEnabled || tsirFixtureCfg) {
+    const captureConfig = {
+      ...createDefaultCaptureConfig(),
+      enabled: true,
+      defaultLevel: CAPTURE_LEVELS.SLICE,
+      ...(options?.diagnostics?.captureConfig ?? {}),
+    };
+    validateCaptureConfig(captureConfig);
+    generator._state.operatorDiagnostics = {
+      enabled: diagnosticsEnabled === true,
+      captureConfig,
+      emitter: diagnosticsEnabled ? new OperatorEventEmitter({
+        modelHash: generator._state.manifest?.modelId ?? null,
+        runtimeConfigHash: generator._state.resolvedKernelPath?.id ?? null,
+        executionPlanHash: opts.executionPlan?.id ?? null,
+      }) : null,
+      tsirFixture: createTsirFixtureState(tsirFixtureCfg),
+    };
+  }
+  return startTime;
+}
+
+async function samplePrefillToken(generator, prefillLogits, generatedIds, inputIds, opts, prefillStartSeqLen, warn) {
+  try {
+    return generator._sampleNextTokenFromLogits(prefillLogits, generatedIds, opts);
+  } catch (error) {
+    if (!generator._shouldUseFinitenessFallback(error, 'prefill-sample')) {
+      throw error;
+    }
+    if (warn) log.warn('Pipeline', 'FinitenessGuard caught non-finite prefill logits at sampling. Retrying with F32 precision.');
+    prefillLogits = await generator._retryWithPersistentFinitenessFallback(
+      opts,
+      'prefill-sample',
+      opts.maxTokens,
+      () => generator._prefill(inputIds, opts),
+      prefillStartSeqLen
+    );
+    return generator._sampleNextTokenFromLogits(prefillLogits, generatedIds, opts);
+  }
+}
+
+function finishGenerationRuntime(generator) {
+  resetActiveExecutionPlan(generator._state);
+  generator._state.stats.operatorDiagnostics = generator._state.operatorDiagnostics?.emitter
+    ? {
+      enabled: true,
+      timeline: generator._state.operatorDiagnostics.emitter.getTimeline(),
+      recordCount: generator._state.operatorDiagnostics.emitter.length,
+    }
+    : null;
+  generator._state.operatorDiagnostics = null;
+  generator._state.isGenerating = false;
+}
 
 export async function* _generateTokensInternal(prompt, options = {}, mode = 'text') {
     if (!this._state.isLoaded) throw new Error('Model not loaded');
@@ -93,71 +131,7 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
 
     validateCallTimeOptions(options);
     const opts = resolveGenerateOptions(this._state, options);
-    this._resetReplayPrefillRuntimeState();
-    this._state.isGenerating = true;
-    this._resetDecodeRuntimeState();
-    delete this._state.stats.outputUsage;
-    this._state.stats.gpuTimePrefillMs = undefined;
-    this._state.stats.gpuTimeDecodeMs = undefined;
-    this._state.stats.decodeRecordMs = 0;
-    this._state.stats.decodeRecordOps = 0;
-    this._state.stats.decodeRecordPasses = 0;
-    this._state.stats.decodeRecordOpLabels = {};
-    this._state.stats.decodeSubmitWaitMs = 0;
-    this._state.stats.decodeReadbackWaitMs = 0;
-    this._state.stats.decodeReadbackMapWaitMs = 0;
-    this._state.stats.decodeReadbackCleanupMs = 0;
-    this._state.stats.decodeReadbackCopyMs = 0;
-    this._state.stats.prefillRecordMs = 0;
-    this._state.stats.prefillRecordOps = 0;
-    this._state.stats.prefillRecordPasses = 0;
-    this._state.stats.prefillRecordOpLabels = {};
-    this._state.stats.prefillSubmitWaitMs = 0;
-    this._state.stats.singleTokenSubmitWaitMs = 0;
-    this._state.stats.singleTokenReadbackWaitMs = 0;
-    this._state.stats.singleTokenReadbackMapWaitMs = 0;
-    this._state.stats.singleTokenReadbackCleanupMs = 0;
-    this._state.stats.singleTokenReadbackCopyMs = 0;
-    this._state.stats.singleTokenOrchestrationMs = 0;
-    this._state.stats.pleHotVocabularyHits = 0;
-    this._state.stats.pleHotVocabularyMisses = 0;
-    this._state.stats.plePreparedTokenCacheHits = 0;
-    this._state.stats.plePreparedTokenCacheMisses = 0;
-    this._state.stats.plePreparedTokenCacheEntries = 0;
-    this._state.stats.plePreparedTokenCacheBytes = 0;
-    this._state.stats.decodeMode = null;
-    this._state.stats.batchGuardReason = null;
-    this._state.stats.stopReason = null;
-    this._state.stats.stopTokenId = null;
-    this._state.stats.ttftMs = 0;
-    const startTime = performance.now();
-
-    opts.onLogits = typeof options.onLogits === 'function' ? options.onLogits : null;
-    // Validate and normalize sampling parameters through single source of truth
-    const samplingConfig = opts;
-    opts.suppressTokenIds = resolveSuppressedSamplingTokenIds(this._state, samplingConfig);
-    const diagnosticsEnabled = options?.diagnostics?.enabled === true
-      || this._state.runtimeConfig?.shared?.harness?.mode === 'diagnose';
-    const tsirFixtureCfg = this._state.runtimeConfig?.shared?.harness?.tsirFixture ?? null;
-    if (diagnosticsEnabled || tsirFixtureCfg) {
-      const captureConfig = {
-        ...createDefaultCaptureConfig(),
-        enabled: true,
-        defaultLevel: CAPTURE_LEVELS.SLICE,
-        ...(options?.diagnostics?.captureConfig ?? {}),
-      };
-      validateCaptureConfig(captureConfig);
-      this._state.operatorDiagnostics = {
-        enabled: diagnosticsEnabled === true,
-        captureConfig,
-        emitter: diagnosticsEnabled ? new OperatorEventEmitter({
-          modelHash: this._state.manifest?.modelId ?? null,
-          runtimeConfigHash: this._state.resolvedKernelPath?.id ?? null,
-          executionPlanHash: opts.executionPlan?.id ?? null,
-        }) : null,
-        tsirFixture: createTsirFixtureState(tsirFixtureCfg),
-      };
-    }
+    const startTime = prepareGenerationRuntime(this, opts, options);
     const activePlan = opts.executionPlan ?? resolveActiveExecutionPlan(this._state);
     this._state.stats.executionPlan = {
       primary: summarizeExecutionPlan(this._state.executionPlanState?.primaryPlan ?? null),
@@ -188,7 +162,7 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
       const prefillStartSeqLen = this._state.currentSeqLen;
       const prefillStart = performance.now();
       const { inputIds, logits: initialPrefillLogits } = await this._prefillPromptToLogits(prompt, opts, 'generate');
-      let prefillLogits = initialPrefillLogits;
+      const prefillLogits = initialPrefillLogits;
       this._state.stats.prefillTimeMs = performance.now() - prefillStart;
       this._assertTokenIdsInRange(inputIds, 'generate.prefillTokens');
       const generatedIds = [...inputIds];
@@ -227,23 +201,7 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
         log.debug('Pipeline', `After rep penalty top-5: ${topAfterPenalty.map(t => `"${t.text}"(${(t.prob * 100).toFixed(1)}%)`).join(', ')}`);
       }
 
-      let firstToken;
-      try {
-        firstToken = this._sampleNextTokenFromLogits(prefillLogits, generatedIds, opts);
-      } catch (error) {
-        if (!this._shouldUseFinitenessFallback(error, 'prefill-sample')) {
-          throw error;
-        }
-        log.warn('Pipeline', 'FinitenessGuard caught non-finite prefill logits at sampling. Retrying with F32 precision.');
-        prefillLogits = await this._retryWithPersistentFinitenessFallback(
-          opts,
-          'prefill-sample',
-          opts.maxTokens,
-          () => this._prefill(inputIds, opts),
-          prefillStartSeqLen
-        );
-        firstToken = this._sampleNextTokenFromLogits(prefillLogits, generatedIds, opts);
-      }
+      const firstToken = await samplePrefillToken(this, prefillLogits, generatedIds, inputIds, opts, prefillStartSeqLen, true);
 
       if (opts.debug) {
         const firstTokenText = resolveTokenText(this._state.tokenizer, [firstToken], `[${firstToken}]`, (tokens) => this._state.tokenizer?.decode?.(tokens, true, false));
@@ -311,16 +269,7 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
       });
     } finally {
       this._closeFinitenessFallbackWindow(opts);
-      resetActiveExecutionPlan(this._state);
-      this._state.stats.operatorDiagnostics = this._state.operatorDiagnostics?.emitter
-        ? {
-          enabled: true,
-          timeline: this._state.operatorDiagnostics.emitter.getTimeline(),
-          recordCount: this._state.operatorDiagnostics.emitter.length,
-        }
-        : null;
-      this._state.operatorDiagnostics = null;
-      this._state.isGenerating = false;
+      finishGenerationRuntime(this);
     }
   }
 
@@ -330,97 +279,19 @@ export async function generateTokenIds(prompt, options = {}) {
 
     validateCallTimeOptions(options);
     const opts = resolveGenerateOptions(this._state, options);
-    this._resetReplayPrefillRuntimeState();
-    this._state.isGenerating = true;
-    this._resetDecodeRuntimeState();
-    delete this._state.stats.outputUsage;
-    this._state.stats.gpuTimePrefillMs = undefined;
-    this._state.stats.gpuTimeDecodeMs = undefined;
-    this._state.stats.decodeRecordMs = 0;
-    this._state.stats.decodeRecordOps = 0;
-    this._state.stats.decodeRecordPasses = 0;
-    this._state.stats.decodeRecordOpLabels = {};
-    this._state.stats.decodeSubmitWaitMs = 0;
-    this._state.stats.decodeReadbackWaitMs = 0;
-    this._state.stats.decodeReadbackMapWaitMs = 0;
-    this._state.stats.decodeReadbackCleanupMs = 0;
-    this._state.stats.decodeReadbackCopyMs = 0;
-    this._state.stats.prefillRecordMs = 0;
-    this._state.stats.prefillRecordOps = 0;
-    this._state.stats.prefillRecordPasses = 0;
-    this._state.stats.prefillRecordOpLabels = {};
-    this._state.stats.prefillSubmitWaitMs = 0;
-    this._state.stats.singleTokenSubmitWaitMs = 0;
-    this._state.stats.singleTokenReadbackWaitMs = 0;
-    this._state.stats.singleTokenReadbackMapWaitMs = 0;
-    this._state.stats.singleTokenReadbackCleanupMs = 0;
-    this._state.stats.singleTokenReadbackCopyMs = 0;
-    this._state.stats.singleTokenOrchestrationMs = 0;
-    this._state.stats.pleHotVocabularyHits = 0;
-    this._state.stats.pleHotVocabularyMisses = 0;
-    this._state.stats.plePreparedTokenCacheHits = 0;
-    this._state.stats.plePreparedTokenCacheMisses = 0;
-    this._state.stats.plePreparedTokenCacheEntries = 0;
-    this._state.stats.plePreparedTokenCacheBytes = 0;
-    this._state.stats.decodeMode = null;
-    this._state.stats.batchGuardReason = null;
-    this._state.stats.stopReason = null;
-    this._state.stats.stopTokenId = null;
-    this._state.stats.ttftMs = 0;
-    const startTime = performance.now();
-    opts.onLogits = typeof options.onLogits === 'function' ? options.onLogits : null;
-    // Validate and normalize sampling parameters through single source of truth
-    const samplingConfig = opts;
-    opts.suppressTokenIds = resolveSuppressedSamplingTokenIds(this._state, samplingConfig);
-    const diagnosticsEnabled = options?.diagnostics?.enabled === true
-      || this._state.runtimeConfig?.shared?.harness?.mode === 'diagnose';
-    const tsirFixtureCfg = this._state.runtimeConfig?.shared?.harness?.tsirFixture ?? null;
-    if (diagnosticsEnabled || tsirFixtureCfg) {
-      const captureConfig = {
-        ...createDefaultCaptureConfig(),
-        enabled: true,
-        defaultLevel: CAPTURE_LEVELS.SLICE,
-        ...(options?.diagnostics?.captureConfig ?? {}),
-      };
-      validateCaptureConfig(captureConfig);
-      this._state.operatorDiagnostics = {
-        enabled: diagnosticsEnabled === true,
-        captureConfig,
-        emitter: diagnosticsEnabled ? new OperatorEventEmitter({
-          modelHash: this._state.manifest?.modelId ?? null,
-          runtimeConfigHash: this._state.resolvedKernelPath?.id ?? null,
-          executionPlanHash: opts.executionPlan?.id ?? null,
-        }) : null,
-        tsirFixture: createTsirFixtureState(tsirFixtureCfg),
-      };
-    }
+    const startTime = prepareGenerationRuntime(this, opts, options);
 
     try {
       const prefillStartSeqLen = this._state.currentSeqLen;
       const prefillStart = performance.now();
       const { inputIds, logits: initialPrefillLogits } = await this._prefillPromptToLogits(prompt, opts, 'generateTokenIds');
-      let prefillLogits = initialPrefillLogits;
+      const prefillLogits = initialPrefillLogits;
       this._state.stats.prefillTimeMs = performance.now() - prefillStart;
       this._assertTokenIdsInRange(inputIds, 'generateTokenIds.prefillTokens');
       const generatedIds = [...inputIds];
       this._state.stats.prefillTokens = opts.promptTokenCount = inputIds.length;
 
-      let firstToken;
-      try {
-        firstToken = this._sampleNextTokenFromLogits(prefillLogits, generatedIds, opts);
-      } catch (error) {
-        if (!this._shouldUseFinitenessFallback(error, 'prefill-sample')) {
-          throw error;
-        }
-        prefillLogits = await this._retryWithPersistentFinitenessFallback(
-          opts,
-          'prefill-sample',
-          opts.maxTokens,
-          () => this._prefill(inputIds, opts),
-          prefillStartSeqLen
-        );
-        firstToken = this._sampleNextTokenFromLogits(prefillLogits, generatedIds, opts);
-      }
+      const firstToken = await samplePrefillToken(this, prefillLogits, generatedIds, inputIds, opts, prefillStartSeqLen, false);
 
       const stopTokenIds = this._state.modelConfig.stopTokenIds;
       const eosToken = this._state.tokenizer.getSpecialTokens?.()?.eos;
@@ -463,16 +334,7 @@ export async function generateTokenIds(prompt, options = {}) {
       if (this._state.stats.executionPlan) {
         this._state.stats.executionPlan.finalActivePlanId = this._state.executionPlanState?.activePlanId ?? null;
       }
-      resetActiveExecutionPlan(this._state);
-      this._state.stats.operatorDiagnostics = this._state.operatorDiagnostics?.emitter
-        ? {
-          enabled: true,
-          timeline: this._state.operatorDiagnostics.emitter.getTimeline(),
-          recordCount: this._state.operatorDiagnostics.emitter.length,
-        }
-        : null;
-      this._state.operatorDiagnostics = null;
-      this._state.isGenerating = false;
+      finishGenerationRuntime(this);
     }
   }
 
@@ -576,7 +438,6 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
 
     const readbackInterval = executionPlan.readbackInterval;
     const intervalBatches = readbackInterval == null ? 1 : readbackInterval;
-    const padTokenId = this._state.tokenizer?.getSpecialTokens?.()?.pad;
 
     const decodeSingleTokenViaLogits = async () => this._decodeNextTokenViaLogits(generatedIds, opts);
     const stopIfAborted = () => {

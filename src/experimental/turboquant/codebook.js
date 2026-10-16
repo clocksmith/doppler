@@ -1,4 +1,3 @@
-
 import { log } from '../../debug/index.js';
 
 // =============================================================================
@@ -81,18 +80,6 @@ function integrateWeighted(weightFn, valueFn, a, b, n) {
     sumV += w * valueFn(x);
   }
   return { integral: sumW * h / 3, moment: sumV * h / 3 };
-}
-
-function integrate(fn, a, b, n) {
-  if (n % 2 !== 0) n++;
-  const h = (b - a) / n;
-  let sum = 0;
-  for (let i = 0; i <= n; i++) {
-    const x = a + i * h;
-    const coeff = (i === 0 || i === n) ? 1 : (i % 2 === 0 ? 2 : 4);
-    sum += fn(x) * coeff;
-  }
-  return sum * h / 3;
 }
 
 // -- Max-Lloyd quantizer for sphere marginal ----------------------------------
@@ -295,22 +282,6 @@ function generateQJLMatrix(d, seed) {
     P[i] = rng.nextFloat() < 0.5 ? -scale : scale;
   }
   return P;
-}
-
-// -- Outlier fraction for non-integer bit-widths ------------------------------
-
-function computeOutlierFraction(effectiveBits, bitsHigh, bitsLow) {
-  if (bitsHigh <= bitsLow) {
-    throw new Error(`bitsHigh (${bitsHigh}) must be > bitsLow (${bitsLow}).`);
-  }
-  // effectiveBits = fraction * bitsHigh + (1 - fraction) * bitsLow
-  const fraction = (effectiveBits - bitsLow) / (bitsHigh - bitsLow);
-  if (fraction < 0 || fraction > 1) {
-    throw new Error(
-      `Effective bits ${effectiveBits} out of range [${bitsLow}, ${bitsHigh}].`
-    );
-  }
-  return fraction;
 }
 
 // -- GPU buffer upload helpers ------------------------------------------------

@@ -1,3 +1,4 @@
+import { isPlainObject } from '../formats/plain-object.js';
 import { loadJson } from '../formats/load-json.js';
 
 const TARGET_FIELDS = [
@@ -31,10 +32,6 @@ let liveRegistryValue = null;
 let assertLiveRegistryCurrent = null;
 let policyRevision = 0;
 const authorizedAdapters = new WeakMap();
-
-function isPlainObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
-}
 
 function deepFreeze(value) {
   for (const child of Object.values(value)) {

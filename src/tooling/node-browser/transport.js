@@ -313,49 +313,6 @@ export function finalizeBrowserRelayResponse(response, request) {
   };
 }
 
-function normalizeWebgpuBackend(value) {
-  const raw = asNonEmptyString(value);
-  if (!raw) return null;
-  const normalized = raw.toLowerCase();
-  if (normalized.includes('metal')) return 'metal';
-  if (normalized.includes('vulkan')) return 'vulkan';
-  if (normalized.includes('d3d12')) return 'd3d12';
-  if (normalized.includes('d3d11')) return 'd3d11';
-  if (normalized.includes('opengl') || normalized === 'gl') return 'opengl';
-  if (normalized.includes('swiftshader')) return 'swiftshader';
-  return normalized;
-}
-
-function readFlagValue(args, flagName) {
-  if (!Array.isArray(args)) return null;
-  for (let i = 0; i < args.length; i += 1) {
-    const token = String(args[i] ?? '');
-    if (token === flagName) {
-      return asNonEmptyString(args[i + 1]);
-    }
-    if (token.startsWith(`${flagName}=`)) {
-      return asNonEmptyString(token.slice(flagName.length + 1));
-    }
-  }
-  return null;
-}
-
-function inferWebgpuBackendFromArgs(args, hostPlatform) {
-  const explicit = normalizeWebgpuBackend(readFlagValue(args, '--use-angle'));
-  if (explicit) return explicit;
-  const normalizedArgs = Array.isArray(args)
-    ? args.map((value) => String(value ?? '').toLowerCase())
-    : [];
-  if (normalizedArgs.some((value) => value.includes('vulkan'))) return 'vulkan';
-  if (normalizedArgs.some((value) => value.includes('metal'))) return 'metal';
-  if (normalizedArgs.some((value) => value.includes('d3d12'))) return 'd3d12';
-  if (normalizedArgs.some((value) => value.includes('d3d11'))) return 'd3d11';
-  if (hostPlatform === 'darwin') return 'metal';
-  if (hostPlatform === 'linux') return 'vulkan';
-  if (hostPlatform === 'win32') return 'd3d12';
-  return null;
-}
-
 function withCrashRecoveryArgs(args = []) {
   return uniqueArgs([...args, ...CRASH_RECOVERY_BROWSER_ARGS]);
 }

@@ -1,3 +1,5 @@
+import { isPlainObject as isObject } from '../formats/plain-object.js';
+import { requireObject, requireExactKeys, requireString, requireDigest } from '../formats/contract-validation.js';
 import { sha256Hex } from '../formats/sha256.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
 import { hashCapsuleV2PublicKey } from './capsule-v2.js';
@@ -22,39 +24,12 @@ const REJECTION_CODE_SET = new Set([
   'unsupported-device',
 ]);
 
-function isObject(value) {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
 function canonicalJson(value) {
   return JSON.stringify(stableSortObject(value));
 }
 
-function requireObject(value, label, errors) {
-  if (!isObject(value)) {
-    errors.push(`${label} must be an object.`);
-    return false;
-  }
-  return true;
-}
-
-function requireExactKeys(value, allowed, label, errors) {
-  if (!isObject(value)) return;
-  for (const key of Object.keys(value)) {
-    if (!allowed.has(key)) errors.push(`${label}.${key} is not allowed.`);
-  }
-}
-
-function requireString(value, label, errors) {
-  if (typeof value !== 'string' || !value.trim()) errors.push(`${label} must be a non-empty string.`);
-}
-
 function requireId(value, label, errors) {
   if (!ID_PATTERN.test(value || '')) errors.push(`${label} must be a kebab-case identifier.`);
-}
-
-function requireDigest(value, label, errors) {
-  if (!DIGEST_PATTERN.test(value || '')) errors.push(`${label} must be a SHA-256 digest.`);
 }
 
 function requireInstant(value, label, errors) {

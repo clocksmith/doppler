@@ -2,21 +2,10 @@ import {
   inferConversionConfigModelId,
   resolveMaterializedManifestFromConversionConfig,
 } from '../conversion-config-materializer.js';
-import { mergeRuntimeValues } from '../../config/runtime-merge.js';
 import { extractExecutionContractFacts } from '../../config/execution-contract-check.js';
-import { validateKernelPath } from '../../config/kernel-path-loader.js';
-import { DEFAULT_RUNTIME_CONFIG, expandExecutionV1 } from '../../config/schema/index.js';
-import { compileExecutionPlanState } from '../../inference/pipelines/text/execution-plan.js';
+import { expandExecutionV1 } from '../../config/schema/index.js';
 import { compileExecutionV1, hasExecutionV1 } from '../../inference/pipelines/text/execution-v1.js';
-import {
-  assertKernelPathSessionCompatibility,
-  buildInlineKernelPath,
-  buildSessionRuntimePatch,
-  isPhaseMatch,
-  normalizeDtype,
-  requireSessionActivationDtype,
-  stepHasLayer,
-} from '../../inference/pipelines/text/execution-runtime-builders.js';
+import { buildInlineKernelPath } from '../../inference/pipelines/text/execution-runtime-builders.js';
 import { buildCustomRuntimeFacts } from './custom-runtime-facts.js';
 import {
   aggregateTopDecodeTimers,
@@ -464,15 +453,6 @@ function buildMaterializationFromManifestEntry(manifestEntry) {
     configPath: manifestPath,
     rawConfig: {},
     manifest,
-  };
-}
-
-function buildSkippedRecord(materialization, reason) {
-  return {
-    modelId: materialization.modelId,
-    configPath: materialization.configPath,
-    reason,
-    sources: buildModelSources([materialization]),
   };
 }
 

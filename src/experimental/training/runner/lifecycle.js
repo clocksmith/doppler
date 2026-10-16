@@ -1,29 +1,5 @@
-import { log } from '../../../debug/index.js';
-import { trainStep } from '../trainer.js';
-import { crossEntropyLoss } from '../loss.js';
-import { clipGradients } from '../clip.js';
-import { AdamOptimizer } from '../optimizer.js';
-import { DynamicLossScaler, detectOverflow } from '../loss-scaling.js';
-import { readBuffer, uploadData } from '../../../memory/buffer-pool.js';
-import { f16ToF32Array } from '../../../inference/kv-cache/types.js';
-import { DataLoader } from '../dataloader.js';
-import { createCrossEntropyObjective } from '../objectives/cross_entropy.js';
-import { createDistillKdObjective } from '../objectives/distill_kd.js';
-import { createDistillTripletObjective } from '../objectives/distill_triplet.js';
-import { createUlStage1JointObjective } from '../objectives/ul_stage1_joint.js';
-import { createUlStage2BaseObjective } from '../objectives/ul_stage2_base.js';
-import {
-  createDistillArtifactSession,
-  createUlArtifactSession,
-  resolveDistillTrainingContract,
-  resolveStageAArtifactContext,
-  resolveUlTrainingContract,
-  resolveStage1ArtifactContext,
-} from '../artifacts.js';
-import { loadCheckpoint, saveCheckpoint } from '../checkpoint.js';
-import { validateTrainingMetricsEntry } from '../../../config/schema/training-metrics.schema.js';
-import { sha256Hex } from '../../../formats/sha256.js';
-import { stableSortObject } from '../../../formats/stable-sort-object.js';
+import { isTensorLike, resolveModelParamGroups, selectTrainableParamGroups } from '../parameter-groups.js';
+import { uploadData } from '../../../memory/buffer-pool.js';
 
 export function buildProgressSnapshot(step, elapsedMs, context) {
   const shardIndex = context?.shardIndex ?? 1;
@@ -108,41 +84,6 @@ export function evaluateTelemetryAlerts(entry, telemetry) {
     alerts.push('min_effective_lr_below_threshold');
   }
   return alerts;
-}
-
-export function resolveModelParamGroups(model) {
-  if (model && typeof model.paramGroups === 'function') {
-    const groups = model.paramGroups();
-    if (!groups || typeof groups !== 'object') {
-      throw new Error('model.paramGroups() must return an object of tensor arrays.');
-    }
-    return groups;
-  }
-  if (model && typeof model.loraParams === 'function') {
-    return { lora: model.loraParams() };
-  }
-  return {};
-}
-
-export function selectTrainableParamGroups(paramGroups, freezeMap) {
-  const trainableGroups = {};
-  const frozenGroups = [];
-  for (const [groupName, params] of Object.entries(paramGroups)) {
-    const normalizedParams = Array.isArray(params) ? params.filter(Boolean) : [];
-    if (freezeMap?.[groupName] === true) {
-      frozenGroups.push(groupName);
-      continue;
-    }
-    trainableGroups[groupName] = normalizedParams;
-  }
-  return { trainableGroups, frozenGroups };
-}
-
-export function isTensorLike(value) {
-  return !!value
-    && typeof value === 'object'
-    && Array.isArray(value.shape)
-    && value.buffer != null;
 }
 
 export function normalizeOptionalString(value) {
@@ -255,3 +196,5 @@ export async function restoreTrainingCheckpointState(model, optimizer, checkpoin
     resumeAuditCount: resumeAudits.length,
   };
 }
+
+export { isTensorLike, resolveModelParamGroups, selectTrainableParamGroups };

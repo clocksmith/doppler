@@ -1,16 +1,8 @@
+import { isPlainObject as isObject } from '../formats/plain-object.js';
+import { hashSortedJson as digest } from '../formats/sorted-json.js';
 import { validateModelIR } from '../config/model-ir.js';
-import { sha256Hex } from '../formats/sha256.js';
-import { stableSortObject } from '../formats/stable-sort-object.js';
 
 export const TENSOR_ROLE_CLOSURE_SCHEMA_ID = 'doppler.tensor-role-closure/v1';
-
-function isObject(value) {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
-function digest(value) {
-  return `sha256:${sha256Hex(JSON.stringify(stableSortObject(value)))}`;
-}
 
 function requireObject(value, label) {
   if (!isObject(value)) throw new Error(`${label} must be an object.`);

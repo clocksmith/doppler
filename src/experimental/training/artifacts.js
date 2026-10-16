@@ -1,3 +1,4 @@
+import { hasNodeVersion as isNodeRuntime } from '../../storage/runtime-env.js';
 import { sha256Hex } from '../../formats/sha256.js';
 import { DISTILL_TRAINING_SCHEMA_VERSION } from '../../config/schema/distill-training.schema.js';
 import { UL_TRAINING_SCHEMA_VERSION } from '../../config/schema/ul-training.schema.js';
@@ -6,10 +7,6 @@ import { stableSortObject } from '../../formats/stable-sort-object.js';
 const DISTILL_MANIFEST_SCHEMA_VERSION = 1;
 const UL_MANIFEST_SCHEMA_VERSION = 1;
 const TRAINING_METRICS_SCHEMA_VERSION = 1;
-
-function isNodeRuntime() {
-  return typeof process !== 'undefined' && !!process.versions?.node;
-}
 
 function normalizeTimestamp(value) {
   const date = value instanceof Date

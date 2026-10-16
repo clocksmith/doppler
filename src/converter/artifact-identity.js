@@ -1,3 +1,4 @@
+import { isPlainObject as isPlainRecord } from '../formats/plain-object.js';
 export function sanitizeModelId(name) {
   const sanitized = name
     .toLowerCase()
@@ -222,10 +223,8 @@ export function getNestedTextConfig(config) {
   }
   return null;
 }
+export { isPlainRecord };
 
-export function isPlainRecord(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
-}
 
 export function stripUndefined(value) {
   if (Array.isArray(value)) {

@@ -1,8 +1,5 @@
+import { isPlainObject } from '../../plain-object.js';
 import { ERROR_CODES } from '../../../errors/doppler-error.js';
-
-function isPlainObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
-}
 
 function validateNonEmptyString(errors, value, path) {
   if (typeof value !== 'string' || value.trim().length === 0) {

@@ -1,8 +1,5 @@
+import { isPlainObject } from '../formats/plain-object.js';
 import { selectByRules } from './rule-matcher.js';
-
-function isPlainObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
-}
 
 function matchesExactObject(actual, expected) {
   if (!isPlainObject(actual) || !isPlainObject(expected)) {

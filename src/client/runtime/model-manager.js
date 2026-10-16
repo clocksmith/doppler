@@ -1,24 +1,18 @@
 import { getMemoryCapabilities } from '../../memory/capability.js';
 import { getHeapManager } from '../../memory/heap-manager.js';
-import {
-  initStorage,
-  openModelStore,
-  verifyIntegrity,
-  listModels,
-  loadManifestFromStore,
-} from '../../storage/shard-manager.js';
+import { initStorage, openModelStore, verifyIntegrity, loadManifestFromStore } from '../../storage/shard-manager.js';
 import { getManifest, parseManifest, getManifestUrl } from '../../formats/rdrr/index.js';
 import { downloadModel } from '../../storage/downloader.js';
 import { downloadShardWithOptionalDistribution } from '../../tooling/distribution-shard-transport.js';
-import { requestPersistence, getStorageReport } from '../../storage/quota.js';
-import { initDevice, getKernelCapabilities, getDeviceLimits, destroyDevice, getDevice } from '../../gpu/device.js';
+import { getKernelCapabilities, getDeviceLimits, getDevice } from '../../gpu/device.js';
 import { prepareKernelRuntime } from '../../gpu/kernel-runtime.js';
 import { createPipeline } from '../../inference/pipelines/text.js';
 import { log } from '../../debug/index.js';
 import { DopplerCapabilities } from './types.js';
-import { GB, HEADER_READ_SIZE } from '../../config/schema/index.js';
+import { HEADER_READ_SIZE } from '../../config/schema/index.js';
 import { resolveBridgeSourceRuntimeBundle } from '../model-host/source-loading.js';
-import { getRuntimeConfig } from '../../config/runtime.js';
+// Preserve module initialization formerly triggered by the unused named import.
+import '../../config/runtime.js';
 import { assertBundledResolutionNotRevoked } from '../../config/revocation-policy.js';
 import {
   buildSourceArtifactFingerprint,
@@ -199,68 +193,6 @@ export const fetchArrayBuffer = async (url) => {
   }
   return res.arrayBuffer();
 };
-
-async function initDoppler() {
-  if (DopplerCapabilities.initialized) {
-    return DopplerCapabilities.available;
-  }
-
-  try {
-    log.info('DopplerProvider', 'Initializing...');
-
-    if (!navigator.gpu) {
-      log.warn('DopplerProvider', 'WebGPU not available');
-      DopplerCapabilities.initialized = true;
-      return false;
-    }
-
-    const memCaps = await getMemoryCapabilities();
-    DopplerCapabilities.HAS_MEMORY64 = memCaps.hasMemory64;
-    DopplerCapabilities.IS_UNIFIED_MEMORY = memCaps.isUnifiedMemory;
-
-    const device = await initDevice();
-    if (!device) {
-      log.warn('DopplerProvider', 'Failed to initialize WebGPU device');
-      DopplerCapabilities.initialized = true;
-      return false;
-    }
-
-    const gpuCaps = getKernelCapabilities();
-    DopplerCapabilities.HAS_SUBGROUPS = gpuCaps.hasSubgroups;
-    DopplerCapabilities.HAS_F16 = gpuCaps.hasF16;
-
-    await initStorage();
-    await requestPersistence();
-
-    const heapManager = getHeapManager();
-    await heapManager.init();
-
-    if (memCaps.isUnifiedMemory) {
-      DopplerCapabilities.TIER_LEVEL = 1;
-      DopplerCapabilities.TIER_NAME = 'Unified Memory';
-      DopplerCapabilities.MAX_MODEL_SIZE = 60 * GB;
-    } else if (memCaps.hasMemory64) {
-      DopplerCapabilities.TIER_LEVEL = 2;
-      DopplerCapabilities.TIER_NAME = 'Memory64';
-      DopplerCapabilities.MAX_MODEL_SIZE = 40 * GB;
-    } else {
-      DopplerCapabilities.TIER_LEVEL = 3;
-      DopplerCapabilities.TIER_NAME = 'Basic';
-      DopplerCapabilities.MAX_MODEL_SIZE = 8 * GB;
-    }
-
-    DopplerCapabilities.available = true;
-    DopplerCapabilities.initialized = true;
-
-    log.info('DopplerProvider', 'Initialized successfully', DopplerCapabilities);
-    return true;
-  } catch (err) {
-    log.error('DopplerProvider', 'Init failed', err);
-    DopplerCapabilities.initialized = true;
-    DopplerCapabilities.available = false;
-    return false;
-  }
-}
 
 export async function loadModel(modelId, modelUrl = null, onProgress = null, localPath = null) {
   if (!DopplerCapabilities.available) {

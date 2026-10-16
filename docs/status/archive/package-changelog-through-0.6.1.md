@@ -39,11 +39,7 @@ budget.
   minor releases; package versions remain unchanged until publish preflight is
   complete.
 
-## [0.4.15] - 2026-07-24
+## Earlier releases
 
-### Added
-
-- Added `generateWithEvidence()` to loaded model handles. The browser-safe
-  result binds generated token IDs, transcript, resolved generation config,
-  runtime profile, WebGPU backend identity, and execution-plan identity with
-  canonical SHA-256 hashes.
+The [changelog through 0.4.15](package-changelog-through-0.4.15.md) owns the
+0.4.15 release entries and earlier history.

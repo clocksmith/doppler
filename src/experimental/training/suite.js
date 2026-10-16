@@ -1,48 +1,19 @@
-import { initDevice, getKernelCapabilities, getDevice } from '../../gpu/device.js';
-import { setPlatformsBaseUrl } from '../../config/platforms/loader.js';
-import { setRegistryUrl } from '../../config/kernels/registry.js';
-import { createTrainingConfig } from '../../config/training-defaults.js';
-import {
-  runMatmul,
-  runResidualAdd,
-} from '../../gpu/kernels/index.js';
-import { createTensor } from '../../gpu/tensor.js';
-import { acquireBuffer, uploadData, releaseBuffer } from '../../memory/buffer-pool.js';
-import { OpType } from './autograd.js';
+import { getKernelCapabilities } from '../../gpu/device.js';
 import { AdamOptimizer } from './optimizer.js';
 import { TrainingRunner } from './runner.js';
-import { trainStep } from './trainer.js';
 import { crossEntropyLoss } from './loss.js';
 import { clipGradients } from './clip.js';
 import { exportLoRAAdapter } from './export.js';
 import { sha256Hex } from '../../formats/sha256.js';
 import { computeSampleStats } from '../../debug/stats.js';
-import { parseJsonl } from './datasets/jsonl.js';
-import {
-  buildDistillCandidatePrompt,
-  buildDistillPrompt,
-  encodeDistillRow,
-  normalizeDistillDatasetPath,
-  normalizeOptionalString,
-  resolveDistillDataScope,
-  summarizeDirectionCounts,
-} from './distillation/suite-data.js';
+import { buildDistillPrompt, normalizeOptionalString, resolveDistillDataScope } from './distillation/suite-data.js';
 import { createDistillStudentRuntimeModelFixture } from './distillation/student-fixture.js';
-import { initializeInference } from '../../inference/test-harness.js';
-import { createPipeline } from '../../inference/pipelines/text.js';
-import { parseManifest } from '../../formats/rdrr/index.js';
-import { openModelStore, loadManifestFromStore } from '../../storage/shard-manager.js';
-import { DISTILL_ADAPTER_TOP_K, UL_STAGE_SET, buildDistillTrainingOverrides, clampDistillTopK, createDistillRuntimeContext, createToyModelFixture, loadDistillDatasetFromJsonl, normalizeTrainingConfigOverride, normalizeTrainingStage } from './suite/plan.js';
+// Preserve module initialization formerly triggered by the unused named import.
+import '../../inference/pipelines/text.js';
+import { DISTILL_ADAPTER_TOP_K, buildDistillTrainingOverrides, createDistillRuntimeContext, createToyModelFixture, loadDistillDatasetFromJsonl, normalizeTrainingConfigOverride } from './suite/plan.js';
 import { assertTrainingSchemaVersion, buildSuiteSummary, buildUlTrainingOverrides, isFiniteNumber, normalizeAdapterActivationConfig, resolveBenchProgressSummary, resolveDistillDatasetPath, resolveDistillShardProgressContext, trainingHarness, tryActivateAdapterPayload } from './suite/execution.js';
 export { runTrainingSuite, trainingHarness } from './suite/execution.js';
 export { buildDistillTrainingOverrides, createDistillRuntimeContext, createToyModelFixture, loadDistillDatasetFromJsonl, loadDistillModelHandle, normalizeDistillStudentGraphMode } from './suite/plan.js';
-
-function makeTensorFromF16Bits(values, shape, label) {
-  const data = values instanceof Uint16Array ? values : new Uint16Array(values);
-  const buffer = acquireBuffer(data.byteLength, undefined, label || 'train_tensor_f16');
-  uploadData(buffer, data);
-  return createTensor(buffer, 'f16', shape, label || 'train_tensor_f16');
-}
 
 export { buildDistillPrompt, resolveDistillDataScope };
 

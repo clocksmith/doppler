@@ -1,7 +1,7 @@
+import { hashSortedJson } from '../formats/sorted-json.js';
+import { isPlainObject as isObject } from '../formats/plain-object.js';
+import { requireString } from '../formats/contract-validation.js';
 import { validateRoPEInverseFrequencies } from './rope-frequencies.js';
-
-import { sha256Hex } from '../formats/sha256.js';
-import { stableSortObject } from '../formats/stable-sort-object.js';
 import {
   MODEL_IR_V2_SCHEMA_ID,
   validateModelIRV2,
@@ -18,16 +18,6 @@ export const MODEL_IR_SCHEMA_ID = 'doppler.model-ir/v1';
 export const MODEL_IR_SCHEMA_VERSION = 1;
 
 const SHA256_PATTERN = /^sha256:[0-9a-f]{64}$/;
-
-function isObject(value) {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
-function requireString(value, label, errors) {
-  if (typeof value !== 'string' || !value.trim()) {
-    errors.push(`${label} must be a non-empty string.`);
-  }
-}
 
 function requirePositiveInteger(value, label, errors) {
   if (!Number.isInteger(value) || value < 1) {
@@ -152,7 +142,7 @@ export function hashModelIR(ir) {
   if (!validation.ok) {
     throw new Error(`Cannot hash invalid ModelIR: ${validation.errors.join('; ')}`);
   }
-  return `sha256:${sha256Hex(JSON.stringify(stableSortObject(ir)))}`;
+  return hashSortedJson(ir);
 }
 
 export function createModelIR(params) {

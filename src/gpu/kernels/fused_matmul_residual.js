@@ -1,5 +1,3 @@
-
-
 import { getDevice } from '../device.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
@@ -25,13 +23,14 @@ function resolveFusedResidualVariant(input, residual) {
 }
 
 
-export async function runMatmulResidualFused(
+async function executeMatmulResidualFused(
+  recorder,
   input,
   weight,
   residual,
   options
 ) {
-  const device = getDevice();
+  const device = recorder ? recorder.device : getDevice();
   const {
     N,
     K,
@@ -43,7 +42,7 @@ export async function runMatmulResidualFused(
   
   const outputDtype = input.dtype;
 
-  trace.kernels(`MatmulResidualFused: N=${N}, K=${K}, alpha=${alpha}, dtype=${outputDtype}`);
+  if (!recorder) trace.kernels(`MatmulResidualFused: N=${N}, K=${K}, alpha=${alpha}, dtype=${outputDtype}`);
 
   const pipelineVariant = resolveFusedResidualVariant(input, residual);
   const pipeline = await getPipelineFast('fused_matmul_residual', pipelineVariant);
@@ -69,7 +68,7 @@ export async function runMatmulResidualFused(
       view.setUint32(24, 0, true);        // _pad1
       view.setUint32(28, 0, true);        // _pad2
     },
-    null,
+    recorder,
     device
   );
 
@@ -88,18 +87,28 @@ export async function runMatmulResidualFused(
     });
 
     const workgroups = N;
-    dispatch(device, pipeline, bindGroup, workgroups, 'matmul_residual_fused');
+    if (recorder) recordDispatch(recorder, pipeline, bindGroup, workgroups, 'matmul_residual_fused');
+    else dispatch(device, pipeline, bindGroup, workgroups, 'matmul_residual_fused');
   } catch (error) {
-    uniformBuffer.destroy();
+    if (!recorder) uniformBuffer.destroy();
     if (ownedOutput) {
       releaseBuffer(ownedOutput);
     }
     throw error;
   }
 
-  uniformBuffer.destroy();
+  if (!recorder) uniformBuffer.destroy();
 
   return createTensor(output, outputDtype, [1, N], 'matmul_residual_output');
+}
+
+export async function runMatmulResidualFused(
+  input,
+  weight,
+  residual,
+  options
+) {
+  return executeMatmulResidualFused(null, input, weight, residual, options);
 }
 
 
@@ -110,67 +119,5 @@ export async function recordMatmulResidualFused(
   residual,
   options
 ) {
-  const device = recorder.device;
-  const {
-    N,
-    K,
-    alpha = 1.0,
-    outputBuffer = null,
-  } = options;
-
-  const weightBuffer = getBuffer(weight);
-  
-  const outputDtype = input.dtype;
-
-  const pipelineVariant = resolveFusedResidualVariant(input, residual);
-  const pipeline = await getPipelineFast('fused_matmul_residual', pipelineVariant);
-
-  const ownedOutput = outputBuffer ? null : acquireBuffer(
-    N * dtypeBytes(outputDtype),
-    undefined,
-    'matmul_residual_output'
-  );
-  const output = outputBuffer || ownedOutput;
-
-  // Create uniform buffer
-  const uniformBuffer = createUniformBufferWithView(
-    'matmul_residual_uniforms',
-    32,
-    (view) => {
-      view.setUint32(0, 1, true);         // M = 1
-      view.setUint32(4, N, true);         // N
-      view.setUint32(8, K, true);         // K
-      view.setFloat32(12, alpha, true);   // alpha
-      view.setUint32(16, 1, true);        // transpose_b = 1
-      view.setUint32(20, 0, true);        // _pad0
-      view.setUint32(24, 0, true);        // _pad1
-      view.setUint32(28, 0, true);        // _pad2
-    },
-    recorder
-  );
-
-  // Create bind group
-  try {
-    const bindGroup = device.createBindGroup({
-      label: 'matmul_residual_bind_group',
-      layout: pipeline.getBindGroupLayout(0),
-      entries: [
-        { binding: 0, resource: { buffer: uniformBuffer } },
-        { binding: 1, resource: { buffer: input.buffer } },
-        { binding: 2, resource: { buffer: weightBuffer } },
-        { binding: 3, resource: { buffer: output } },
-        { binding: 4, resource: { buffer: residual.buffer } },
-      ],
-    });
-
-    const workgroups = N;
-    recordDispatch(recorder, pipeline, bindGroup, workgroups, 'matmul_residual_fused');
-  } catch (error) {
-    if (ownedOutput) {
-      releaseBuffer(ownedOutput);
-    }
-    throw error;
-  }
-
-  return createTensor(output, outputDtype, [1, N], 'matmul_residual_output');
+  return executeMatmulResidualFused(recorder, input, weight, residual, options);
 }

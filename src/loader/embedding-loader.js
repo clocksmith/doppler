@@ -1,3 +1,4 @@
+import { isNativeGpuBuffer as isGpuBufferInstance } from '../gpu/buffer-identity.js';
 
 
 import {
@@ -40,10 +41,6 @@ const SPLIT_UPLOAD_CHUNK_BYTES = 64 * 1024 * 1024;
 
 function isPerLayerEmbeddingTensor(name) {
   return String(name ?? '').toLowerCase().includes('embed_tokens_per_layer.weight');
-}
-
-function isGpuBufferInstance(value) {
-  return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
 }
 
 function normalizeLiteRTInt4StorageEncoding(transform, name) {

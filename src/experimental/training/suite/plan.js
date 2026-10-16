@@ -1,22 +1,10 @@
-import { initDevice, getKernelCapabilities, getDevice } from '../../../gpu/device.js';
-import { setPlatformsBaseUrl } from '../../../config/platforms/loader.js';
-import { setRegistryUrl } from '../../../config/kernels/registry.js';
+import { hasNodeVersion as isNodeRuntime } from '../../../storage/runtime-env.js';
+import { getDevice } from '../../../gpu/device.js';
 import { createTrainingConfig } from '../../../config/training-defaults.js';
-import {
-  runMatmul,
-  runResidualAdd,
-} from '../../../gpu/kernels/index.js';
+import { runMatmul } from '../../../gpu/kernels/index.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { acquireBuffer, uploadData, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { OpType } from '../autograd.js';
-import { AdamOptimizer } from '../optimizer.js';
-import { TrainingRunner } from '../runner.js';
-import { trainStep } from '../trainer.js';
-import { crossEntropyLoss } from '../loss.js';
-import { clipGradients } from '../clip.js';
-import { exportLoRAAdapter } from '../export.js';
-import { sha256Hex } from '../../../formats/sha256.js';
-import { computeSampleStats } from '../../../debug/stats.js';
 import { parseJsonl } from '../datasets/jsonl.js';
 import {
   buildDistillCandidatePrompt,
@@ -27,7 +15,6 @@ import {
   resolveDistillDataScope,
   summarizeDirectionCounts,
 } from '../distillation/suite-data.js';
-import { createDistillStudentRuntimeModelFixture } from '../distillation/student-fixture.js';
 import { initializeInference } from '../../../inference/test-harness.js';
 import { createPipeline } from '../../../inference/pipelines/text.js';
 import { parseManifest } from '../../../formats/rdrr/index.js';
@@ -59,10 +46,6 @@ export function makeTensorFromUint32(values, shape, label) {
 export function releaseTensor(tensor) {
   if (!tensor?.buffer) return;
   releaseBuffer(tensor.buffer);
-}
-
-export function isNodeRuntime() {
-  return typeof process !== 'undefined' && !!process.versions?.node;
 }
 
 export function toFiniteNumber(value, fallback) {
@@ -853,3 +836,5 @@ export function buildDistillTrainingOverrides(options = {}) {
     distill: distillOverride,
   };
 }
+
+export { isNodeRuntime };

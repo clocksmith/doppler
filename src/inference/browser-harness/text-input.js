@@ -1,3 +1,4 @@
+import { hasNodeVersion as isNodeRuntime } from '../../storage/runtime-env.js';
 import { CAPTURE_LEVELS, createDefaultCaptureConfig } from '../../debug/capture-policy.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
 import { loadJson } from '../../formats/load-json.js';
@@ -460,10 +461,6 @@ function createCanvasForImageDecode(width, height) {
     return canvas;
   }
   return null;
-}
-
-function isNodeRuntime() {
-  return typeof process !== 'undefined' && !!process.versions?.node;
 }
 
 async function decodeImageUrlToPixelsOnNode(url) {

@@ -88,16 +88,6 @@ export function inferSourceWeightQuantization(tensors) {
   return 'f16';
 }
 
-function normalizeKernelDtype(dtype) {
-  if (!dtype) return null;
-  const lower = String(dtype).trim().toLowerCase();
-  if (!lower) return null;
-  return selectRuleValue('inference', 'dtype', 'f16OrF32FromDtypeAlias', {
-    dtype: lower,
-    fallback: null,
-  });
-}
-
 function isV1Config(converterConfig) {
   const exec = converterConfig?.execution;
   return exec && typeof exec === 'object' && exec.kernels && typeof exec.kernels === 'object';
@@ -263,9 +253,6 @@ function resolveConversionPlanV1(options) {
 
 
 export function resolveConversionPlan(options) {
-  const rawConfig = options?.rawConfig || {};
-  const tensors = Array.isArray(options?.tensors) ? options.tensors : [];
-  const tensorNames = options?.tensorNames ?? tensors.map((tensor) => tensor.name);
   const converterConfig = options?.converterConfig;
   if (converterConfig == null) {
     throw new Error(

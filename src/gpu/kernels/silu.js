@@ -94,24 +94,25 @@ function planSiLUDispatch(device, size, useVec4) {
 }
 
 
-export async function runSiLU(
+async function executeSiLU(
+  recorder,
   input,
   options = {}
 ) {
   if (input.precision !== undefined || input.components !== undefined || input.elementStrideBytes !== undefined
     || options.gate?.precision !== undefined || options.gate?.components !== undefined || options.gate?.elementStrideBytes !== undefined) {
-    return executePairedSiLU(null, input, options.size ?? input.shape.reduce((total, size) => total * size, 1), {
+    return executePairedSiLU(recorder, input, options.size ?? input.shape.reduce((total, size) => total * size, 1), {
       ...options, gateActivation: options.gateActivation ?? 'silu',
       inputActivation: resolveInputActivation(options.inputActivation, Boolean(options.gate)),
     });
   }
 
-  const device = getDevice();
+  const device = recorder ? recorder.device : getDevice();
   const {
     size,
     gate = null,
     outputBuffer = null,
-    useVec4 = false,
+    useVec4: requestedVec4 = false,
     swigluLimit,
     gateActivation = 'silu',
     inputActivation,
@@ -124,6 +125,7 @@ export async function runSiLU(
 
   // Select variant using lookup table
   const variant = selectSiLUVariant(isF16);
+  const useVec4 = recorder ? false : requestedVec4;
   const overrides = resolveOverrides('silu', {
     hasGate: Boolean(gate),
     useVec4,
@@ -153,7 +155,7 @@ export async function runSiLU(
       view.setFloat32(8, gate ? resolvedSwigluLimit : 0, true);
       view.setFloat32(12, 0, true);
     },
-    null,
+    recorder,
     device
   );
 
@@ -167,14 +169,22 @@ export async function runSiLU(
       entries,
     });
 
-    dispatch(device, pipeline, bindGroup, dispatchPlan.workgroups, 'silu');
+    if (recorder) recordDispatch(recorder, pipeline, bindGroup, dispatchPlan.workgroups, 'silu');
+    else dispatch(device, pipeline, bindGroup, dispatchPlan.workgroups, 'silu');
     return createTensor(output, input.dtype, [inferredSize], 'silu_output');
   } catch (error) {
     cleanupRunResources(null, ownedOutput);
     throw error;
   } finally {
-    destroyAfterSubmit(device, uniformBuffer);
+    if (!recorder) destroyAfterSubmit(device, uniformBuffer);
   }
+}
+
+export async function runSiLU(
+  input,
+  options = {}
+) {
+  return executeSiLU(null, input, options);
 }
 
 
@@ -238,12 +248,13 @@ export async function runSwiGLURowsplitBias(
 }
 
 
-export async function runSiLURowSplit(
+async function executeSiLURowSplit(
+  recorder,
   input,
   options
 ) {
   if (input.precision !== undefined) throw new Error('[SiLU] Paired row-split execution requires a declared paired kernel.');
-  const device = getDevice();
+  const device = recorder ? recorder.device : getDevice();
   const { numTokens, dim, activation = 'silu', outputBuffer = null, swigluLimit } = options;
   const resolvedSwigluLimit = resolveSwigluLimit(swigluLimit, 'SiLU row-split');
 
@@ -269,7 +280,7 @@ export async function runSiLURowSplit(
       view.setFloat32(8, activation === 'silu' ? resolvedSwigluLimit : 0, true);
       view.setFloat32(12, 0, true);
     },
-    null,
+    recorder,
     device
   );
 
@@ -288,14 +299,22 @@ export async function runSiLURowSplit(
     });
 
     const workgroups = [Math.ceil(dim / WORKGROUP_SIZES.DEFAULT), numTokens, 1];
-    dispatch(device, pipeline, bindGroup, workgroups, 'silu_rowsplit');
+    if (recorder) recordDispatch(recorder, pipeline, bindGroup, workgroups, 'silu_rowsplit');
+    else dispatch(device, pipeline, bindGroup, workgroups, 'silu_rowsplit');
     return createTensor(output, input.dtype, [numTokens, dim], 'silu_rowsplit_output');
   } catch (error) {
     cleanupRunResources(null, ownedOutput);
     throw error;
   } finally {
-    uniformBuffer.destroy();
+    if (!recorder) uniformBuffer.destroy();
   }
+}
+
+export async function runSiLURowSplit(
+  input,
+  options
+) {
+  return executeSiLURowSplit(null, input, options);
 }
 
 
@@ -304,58 +323,7 @@ export async function recordSiLURowSplit(
   input,
   options
 ) {
-  if (input.precision !== undefined) throw new Error('[SiLU] Paired row-split execution requires a declared paired kernel.');
-  const device = recorder.device;
-  const { numTokens, dim, activation = 'silu', outputBuffer = null, swigluLimit } = options;
-  const resolvedSwigluLimit = resolveSwigluLimit(swigluLimit, 'SiLU row-split');
-
-  const isF16 = canUseF16(input);
-  const bytesPerElement = dtypeBytes(input.dtype);
-
-  const op = selectRuleValue('silu', 'activationOp', { activation });
-  const variant = selectRuleValue(op, 'variant', { isF16 });
-  const overrides = resolveOverrides(op, { useRowsplit: true });
-  const pipeline = await getPipelineFast(op, variant, null, overrides);
-
-  const outputSize = numTokens * dim * bytesPerElement;
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'silu_rowsplit_output');
-  const ownedOutput = outputBuffer ? null : output;
-
-  // Uniform buffer
-  const uniformBuffer = createUniformBufferWithView(
-    'silu_rowsplit_uniforms',
-    16,
-    (view) => {
-      view.setUint32(0, numTokens * dim, true);  // size
-      view.setUint32(4, dim, true);              // rowsplit_dim
-      view.setFloat32(8, activation === 'silu' ? resolvedSwigluLimit : 0, true);
-      view.setFloat32(12, 0, true);
-    },
-    recorder
-  );
-
-  try {
-    const gateBuffer = input.buffer;
-    const bindGroup = device.createBindGroup({
-      label: 'silu_rowsplit_bind_group',
-      layout: pipeline.getBindGroupLayout(0),
-      entries: [
-        { binding: 0, resource: { buffer: uniformBuffer } },
-        { binding: 1, resource: { buffer: input.buffer } },
-        { binding: 2, resource: { buffer: output } },
-        { binding: 3, resource: { buffer: gateBuffer } },
-      ],
-    });
-
-    const workgroups = [Math.ceil(dim / WORKGROUP_SIZES.DEFAULT), numTokens, 1];
-    recordDispatch(recorder, pipeline, bindGroup, workgroups, 'silu_rowsplit');
-    return createTensor(output, input.dtype, [numTokens, dim], 'silu_rowsplit_output');
-  } catch (error) {
-    if (ownedOutput) {
-      releaseBuffer(ownedOutput);
-    }
-    throw error;
-  }
+  return executeSiLURowSplit(recorder, input, options);
 }
 
 
@@ -364,79 +332,5 @@ export async function recordSiLU(
   input,
   options = {}
 ) {
-  if (input.precision !== undefined || input.components !== undefined || input.elementStrideBytes !== undefined
-    || options.gate?.precision !== undefined || options.gate?.components !== undefined || options.gate?.elementStrideBytes !== undefined) {
-    return executePairedSiLU(recorder, input, options.size ?? input.shape.reduce((total, size) => total * size, 1), {
-      ...options, gateActivation: options.gateActivation ?? 'silu',
-      inputActivation: resolveInputActivation(options.inputActivation, Boolean(options.gate)),
-    });
-  }
-
-  const device = recorder.device;
-  const {
-    size,
-    gate = null,
-    outputBuffer = null,
-    swigluLimit,
-    gateActivation = 'silu',
-    inputActivation,
-  } = options;
-  const resolvedSwigluLimit = resolveSwigluLimit(swigluLimit, 'SiLU');
-  const resolvedInputActivation = resolveInputActivation(inputActivation, Boolean(gate));
-
-  const isF16 = canUseF16(input);
-  const bytesPerElement = dtypeBytes(input.dtype);
-
-  // Select variant using lookup table
-  const variant = selectSiLUVariant(isF16);
-  const overrides = resolveOverrides('silu', {
-    hasGate: Boolean(gate),
-    useVec4: false,
-    useSplit: false,
-    useRowsplit: false,
-  });
-  const constants = {
-    ...(overrides || {}),
-    ...(gate && gateActivation === 'sigmoid' ? { GATE_USE_SIGMOID: true } : {}),
-    ...(resolvedInputActivation === 'identity' ? { INPUT_USE_IDENTITY: true } : {}),
-  };
-  const pipeline = await getPipelineFast('silu', variant, null, constants);
-
-  const inferredSize = size || (input.buffer.size / bytesPerElement);
-  const outputSize = inferredSize * bytesPerElement;
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'silu_output');
-  const ownedOutput = outputBuffer ? null : output;
-  const dispatchPlan = planSiLUDispatch(device, inferredSize, false);
-
-  // Uniform buffer
-  const uniformBuffer = createUniformBufferWithView(
-    'silu_uniforms',
-    16,
-    (view) => {
-      view.setUint32(0, inferredSize, true);
-      view.setUint32(4, dispatchPlan.dispatchStride, true);
-      view.setFloat32(8, gate ? resolvedSwigluLimit : 0, true);
-      view.setFloat32(12, 0, true);
-    },
-    recorder
-  );
-
-  // Create bind group using helper
-  const entries = createSiLUBindGroupEntries(uniformBuffer, input, output, gate);
-
-  try {
-    const bindGroup = device.createBindGroup({
-      label: 'silu_bind_group',
-      layout: pipeline.getBindGroupLayout(0),
-      entries,
-    });
-
-    recordDispatch(recorder, pipeline, bindGroup, dispatchPlan.workgroups, 'silu');
-    return createTensor(output, input.dtype, [inferredSize], 'silu_output');
-  } catch (error) {
-    if (ownedOutput) {
-      releaseBuffer(ownedOutput);
-    }
-    throw error;
-  }
+  return executeSiLU(recorder, input, options);
 }

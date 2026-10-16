@@ -35,15 +35,6 @@ function normalizeStopCheckMode(value) {
   return null;
 }
 
-function normalizeReadbackInterval(value) {
-  if (value == null) return null;
-  return normalizePositiveInt(value);
-}
-
-function normalizeBoolean(value) {
-  return typeof value === 'boolean' ? value : null;
-}
-
 function parseSessionDecodeLoopOptionalPositiveInt(value, label, modelId) {
   if (value === undefined) {
     return undefined;

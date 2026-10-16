@@ -1,10 +1,10 @@
+import { hashSortedJson } from '../formats/sorted-json.js';
+import { isPlainObject as isObject } from '../formats/plain-object.js';
+import { requireString, requireDigest } from '../formats/contract-validation.js';
 import { assertOrderedResidentQualificationSet, assertOrderedResidentRecord } from './ordered-resident-qualification.js';
 import { computeCanonicalSha256 } from '../formats/canonical-hash.js';
 import { validateCapsuleAdapterExecution } from './capsule-adapter-policy.js';
 import { validateCapsuleTokenSelection } from './capsule-token-selection.js';
-
-import { sha256Hex } from '../formats/sha256.js';
-import { stableSortObject } from '../formats/stable-sort-object.js';
 import { validateInitialExecutionIdentity } from './initial-execution-identity.js';
 
 export const TARGET_PLAN_SCHEMA_ID = 'doppler.target-plan/v1';
@@ -15,18 +15,6 @@ export const TARGET_PLAN_V2_SCHEMA_VERSION = 2;
 const SHA256_PATTERN = /^sha256:[0-9a-f]{64}$/;
 const SLOT_SCOPES = new Set(['static', 'layer-recycled', 'transient', 'session']);
 const SLOT_OWNERS = new Set(['runtime', 'program']);
-
-function isObject(value) {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
-function requireString(value, label, errors) {
-  if (typeof value !== 'string' || !value.trim()) errors.push(`${label} must be a non-empty string.`);
-}
-
-function requireDigest(value, label, errors) {
-  if (!SHA256_PATTERN.test(value || '')) errors.push(`${label} must be a SHA-256 digest.`);
-}
 
 function validateMemoryExpression(expression, label, errors) {
   if (!isObject(expression)) {
@@ -303,7 +291,7 @@ export function hashTargetPlan(plan) {
   if (!validation.ok) {
     throw new Error(`Cannot hash invalid TargetPlan: ${validation.errors.join('; ')}`);
   }
-  return `sha256:${sha256Hex(JSON.stringify(stableSortObject(plan)))}`;
+  return hashSortedJson(plan);
 }
 
 export function matchesDeviceCapability(targetPlan, deviceProfile) {

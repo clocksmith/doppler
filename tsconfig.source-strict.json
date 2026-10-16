@@ -95,6 +95,13 @@
     "src/inference/pipelines/text/generator/per-layer-buffer.js",
     "src/inference/pipelines/text/generator/recorder-stats.js",
     "src/loader/tensors/range-backed-weights.js",
-    "src/formats/flatbuffer-tables.js"
+    "src/formats/flatbuffer-tables.js",
+    "src/formats/sorted-json.js",
+    "src/formats/contract-validation.js",
+    "src/experimental/training/qwen-decoder-reference.js",
+    "src/experimental/training/report-ranking.js",
+    "src/experimental/training/parameter-groups.js",
+    "src/gpu/buffer-identity.js",
+    "src/storage/runtime-env.js"
   ]
 }

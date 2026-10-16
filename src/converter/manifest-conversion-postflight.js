@@ -1,16 +1,12 @@
+import { isPlainObject as isObject } from '../formats/plain-object.js';
+import { hashSortedJson as digest } from '../formats/sorted-json.js';
 import { validateConversionReport } from '../config/schema/conversion-report.schema.js';
 import { createConverterConfig } from '../config/schema/converter.schema.js';
-import { sha256Hex } from '../formats/sha256.js';
-import { stableSortObject } from '../formats/stable-sort-object.js';
 import { sanitizeModelId } from './core.js';
 
 export const MANIFEST_CONVERSION_POSTFLIGHT_SCHEMA_ID = 'doppler.manifest-conversion-postflight/v1';
 
 const SHA256_DIGEST = /^sha256:[0-9a-f]{64}$/;
-
-function isObject(value) {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
 
 function requireObject(value, label) {
   if (!isObject(value)) throw new Error(`${label} must be an object.`);
@@ -26,10 +22,6 @@ function requireDigest(value, label) {
   const digest = requireString(value, label);
   if (!SHA256_DIGEST.test(digest)) throw new Error(`${label} must be a SHA-256 digest.`);
   return digest;
-}
-
-function digest(value) {
-  return `sha256:${sha256Hex(JSON.stringify(stableSortObject(value)))}`;
 }
 
 function requireEqual(observed, expected, label) {

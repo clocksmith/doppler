@@ -1,3 +1,4 @@
+import { isPlainObject as isObject } from '../formats/plain-object.js';
 import { computeCanonicalSha256 } from '../formats/canonical-hash.js';
 import {
   calibrateRegisteredVariants,
@@ -10,10 +11,6 @@ import {
 
 export const REGISTERED_VARIANT_CALIBRATION_JOB_SCHEMA =
   'doppler.registered-variant-calibration-job/v1';
-
-function isObject(value) {
-  return value !== null && typeof value === 'object' && !Array.isArray(value);
-}
 
 function candidateKey(candidate) {
   return `${candidate.reference.operation}/${candidate.reference.variantId}`;

@@ -1,4 +1,3 @@
-
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { padToQ4KBlock } from '../../config/schema/index.js';
@@ -41,52 +40,15 @@ function resolveLayerNormParamDtype(weight, bias, explicitDtype) {
   return paramDtype;
 }
 
-export async function runLayerNorm(
-  input,
-  weight,
-  bias,
-  eps,
-  options = {}
-) {
-  const { batchSize = 1, hiddenSize = null, outputBuffer = null } = options;
-  const isF16 = input.dtype === 'f16';
-  const variant = selectLayerNormKernel(options, isF16);
-  const inferredHiddenSize = inferHiddenSize(input, hiddenSize);
-  const paramDtype = resolveLayerNormParamDtype(
-    weight,
-    bias,
-    options.normWeightDtype
-  );
-  const weightBuffer = getBuffer(weight);
-  const biasBuffer = getBuffer(bias);
-
-  const bytesPerElement = isF16 ? 2 : 4;
-  const paddedHiddenSize = padToQ4KBlock(inferredHiddenSize);
-  const outputSize = batchSize * paddedHiddenSize * bytesPerElement;
-  const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'layernorm_output');
-  const ownedOutput = outputBuffer ? null : outputBuf;
-
-  try {
-    await unifiedKernelWrapper(
-      'layernorm',
-      null,
-      variant,
-      [input, weightBuffer, biasBuffer, outputBuf],
-      { size: inferredHiddenSize, num_tokens: batchSize, eps },
-      batchSize,
-      { PARAMS_IS_F16: paramDtype === 'f16' }
-    );
-
-    return createTensor(outputBuf, input.dtype, [batchSize, inferredHiddenSize], 'layernorm_output');
-  } catch (error) {
-    if (ownedOutput) {
-      releaseBuffer(ownedOutput);
-    }
-    throw error;
-  }
+export async function runLayerNorm(input, weight, bias, eps, options = {}) {
+  return executeLayerNorm(null, input, weight, bias, eps, options);
 }
 
-export async function recordLayerNorm(
+export async function recordLayerNorm(recorder, input, weight, bias, eps, options = {}) {
+  return executeLayerNorm(recorder, input, weight, bias, eps, options);
+}
+
+async function executeLayerNorm(
   recorder,
   input,
   weight,

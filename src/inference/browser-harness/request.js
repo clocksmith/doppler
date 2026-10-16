@@ -1,3 +1,4 @@
+import { isPlainObject } from '../../formats/plain-object.js';
 import { sha256Hex } from '../../formats/sha256.js';
 import { stableSortObject } from '../../formats/stable-sort-object.js';
 
@@ -38,10 +39,8 @@ export const BROWSER_WORKLOAD_DISPATCH_MAP = Object.freeze({
     diffusion: 'runBenchSuite(diffusion)',
   }),
 });
+export { isPlainObject };
 
-export function isPlainObject(value) {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
 
 export function resolveExecutionPlanCadence(executionPlan) {
   if (!isPlainObject(executionPlan)) {

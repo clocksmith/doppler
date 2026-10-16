@@ -6,30 +6,11 @@ const gh200Nvl2Profile = await loadJson('../platforms/nvidia-gh200-nvl2.json', i
 const gb2008Profile = await loadJson('../platforms/nvidia-gb200-8gpu.json', import.meta.url, 'Failed to load platform config');
 const gb200Nvl72Profile = await loadJson('../platforms/nvidia-gb200-nvl72.json', import.meta.url, 'Failed to load platform config');
 
-// =============================================================================
-// GPU Specifications
-// =============================================================================
-
-const H100_GPU_SPEC = {
-  name: 'H100',
-  vramBytes: 96 * GB,
-  hbmBandwidthBytesPerSec: 3.35e12,   // 3.35 TB/s HBM3
-  fp16Tflops: 1979,                    // ~2 PFLOPS
-};
-
 const H200_GPU_SPEC = {
   name: 'H200',
   vramBytes: 144 * GB,
   hbmBandwidthBytesPerSec: 4.8e12,     // 4.8 TB/s HBM3e
   fp16Tflops: 1979,                     // ~2 PFLOPS
-};
-
-const B200_GPU_SPEC = {
-  name: 'B200',
-  vramBytes: 192 * GB,
-  hbmBandwidthBytesPerSec: 8e12,       // 8 TB/s HBM3e
-  fp16Tflops: 4500,                     // 4.5 PFLOPS
-  fp8Tflops: 9000,                      // 9 PFLOPS FP8
 };
 
 export const DEFAULT_GH200_GPU_SPEC = H200_GPU_SPEC;
@@ -56,11 +37,6 @@ const NVLINK_4_SPEC = {
   latencyUs: 1.0,              // ~1 microsecond
 };
 
-const NVLINK_5_SPEC = {
-  bandwidthBytesPerSec: 1.8e12, // 1.8 TB/s
-  latencyUs: 0.8,               // ~0.8 microseconds
-};
-
 export const DEFAULT_NVLINK_SPEC = NVLINK_4_SPEC;
 
 export const DEFAULT_NVLINK_C2C_SPEC = {
@@ -78,27 +54,6 @@ const GH200_TOPOLOGY = {
   gpusPerNode: 1,
   nodeCount: 1,
   cpuCount: 1,
-};
-
-const GH200_NVL2_TOPOLOGY = {
-  gpuCount: 2,
-  gpusPerNode: 2,
-  nodeCount: 1,
-  cpuCount: 2,
-};
-
-const GB200_8GPU_TOPOLOGY = {
-  gpuCount: 8,
-  gpusPerNode: 8,
-  nodeCount: 1,
-  cpuCount: 2,
-};
-
-const GB200_NVL72_TOPOLOGY = {
-  gpuCount: 72,
-  gpusPerNode: 8,
-  nodeCount: 9,
-  cpuCount: 18, // 2 CPUs per node
 };
 
 // =============================================================================
@@ -122,22 +77,6 @@ export const DEFAULT_PARALLELISM_CONFIG = {
   expertParallel: {
     enabled: false,
     degree: 1,
-  },
-};
-
-const TP2_PARALLELISM_CONFIG = {
-  ...DEFAULT_PARALLELISM_CONFIG,
-  tensorParallel: {
-    enabled: true,
-    degree: 2,
-  },
-};
-
-const TP8_PARALLELISM_CONFIG = {
-  ...DEFAULT_PARALLELISM_CONFIG,
-  tensorParallel: {
-    enabled: true,
-    degree: 8,
   },
 };
 
@@ -269,18 +208,6 @@ function mergeParallelismConfig(base, overrides) {
   };
 }
 
-// =============================================================================
-// Utility Functions
-// =============================================================================
-
-function calculateTotalVram(config) {
-  return config.gpuSpec.vramBytes * config.topology.gpuCount;
-}
-
-function calculateTotalCpuMemory(config) {
-  return config.cpuSpec.memoryBytes * config.topology.cpuCount;
-}
-
 export function formatBytes(bytes) {
   if (typeof bytes !== 'number' || Number.isNaN(bytes)) return 'NaN';
   if (bytes < 0) return '0 B';
@@ -294,8 +221,4 @@ export function formatBytes(bytes) {
     return `${(bytes / 1e3).toFixed(1)} KB`;
   }
   return `${bytes} B`;
-}
-
-function formatBandwidth(bytesPerSec) {
-  return `${formatBytes(bytesPerSec)}/s`;
 }

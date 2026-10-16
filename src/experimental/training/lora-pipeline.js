@@ -1,43 +1,22 @@
-import { access, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
-import { dirname, isAbsolute, join, resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
-
-import { loadBackwardRegistry } from '../../config/backward-registry-loader.js';
-import { acquireBuffer, readBuffer, releaseBuffer, uploadData } from '../../memory/buffer-pool.js';
+import { collectRequiredImprovementEvalIds, sortTrainingReports, summarizeQualityClaims } from './report-ranking.js';
+import { readFile, readdir } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
+import { uploadData } from '../../memory/buffer-pool.js';
 import { runMatmul } from '../../gpu/kernels/index.js';
 import { runResidualAdd } from '../../gpu/kernels/residual.js';
-import { parseJsonl } from './datasets/jsonl.js';
-import { loadTextPairsDataset, tokenizeTextPairs } from './datasets/text-pairs.js';
 import { LoraAdapter } from './lora.js';
 import { TrainingRunner, restoreTrainingCheckpointState } from './runner.js';
 import { AdamOptimizer } from './optimizer.js';
 import { crossEntropyLoss } from './loss.js';
 import { clipGradients } from './clip.js';
-import { OpType, AutogradTape } from './autograd.js';
+import { OpType } from './autograd.js';
 import { loadCheckpoint } from './checkpoint.js';
-import { exportLoRAAdapter } from './export.js';
-import { computeEvalMetrics } from './operator-eval.js';
 import { summarizeAgentEvalReportRequirements } from './operator-agent-eval.js';
 import { appendScoreboardRow } from './operator-scoreboard.js';
-import {
-  buildArtifactBase,
-  createTrainingRunLayout,
-  hashArtifactPayload,
-  writeJsonArtifact,
-  writeRunContract,
-  writeWorkloadLock,
-} from './operator-artifacts.js';
+import { writeJsonArtifact, writeRunContract, writeWorkloadLock } from './operator-artifacts.js';
 import { watchFinalizedCheckpoints } from './checkpoint-watch.js';
-import { loadLoRAFromManifest } from '../adapters/lora-loader.js';
-import { createUploadedTensor } from './tensor-factory.js';
-import { stableSortObject } from '../../formats/stable-sort-object.js';
-import { LORA_MODULE_ALIASES } from '../../inference/pipelines/text/lora.js';
-import { loadDistillModelHandle } from './suite.js';
-import { createDistillStudentRuntimeModelFixture } from './distillation/student-fixture.js';
-import { f16ToF32Array } from '../../inference/kv-cache/types.js';
-import { sha256BytesHex, sha256Hex } from '../../formats/sha256.js';
-import { LORA_RUNNER_BASE_MODEL_REGISTRY, finiteMetric, getLoraRunnerCompatibility, getPipelineConfig, isCausalLmLoraWorkload, isObjectRecord, normalizeLoraTargetModules, normalizeProviderEvalReport, preflightCausalLmLoraWorkload } from './lora/plan.js';
-import { buildArtifact, createCausalLmDatasetBatches, evaluateCausalLmLoraModel, evaluateToyLoraModel, exportCausalLmLoraModel, exportProviderCausalLmLoraModel, exportToyLoraModel, loadCausalLmTextPairSamples, loadToyLoraDataset, makeTensorFromFloat32, makeTensorFromUint32, releaseTensor, resolveDatasetPathForLoadedWorkload } from './lora/checkpoint.js';
+import { getLoraRunnerCompatibility, getPipelineConfig, isCausalLmLoraWorkload } from './lora/plan.js';
+import { buildArtifact, evaluateToyLoraModel, exportToyLoraModel, loadToyLoraDataset, makeTensorFromFloat32, makeTensorFromUint32, releaseTensor } from './lora/checkpoint.js';
 import { runInternalCausalLmLoraPipeline } from './lora/execution.js';
 import { buildRunContract, createLoraRunLayout, runProviderCausalLmLoraPipeline } from './lora/recovery.js';
 export { LORA_RUNNER_BASE_MODEL_REGISTRY, LORA_RUNNER_DATASET_FORMAT_REGISTRY, LORA_RUNNER_SUPPORT_CONTRACT, getLoraRunnerCompatibility, preflightCausalLmLoraWorkload } from './lora/plan.js';
@@ -56,10 +35,6 @@ export function assertLoraRunnerCompatibility(workload) {
     `observed taskType="${compatibility.observed.taskType}"`,
     `blockedReasons=${compatibility.blockedReasons.join(',')}`,
   ].join(' '));
-}
-
-function stableJson(value) {
-  return JSON.stringify(stableSortObject(value));
 }
 
 function createToyLoraModel(workload) {
@@ -521,22 +496,6 @@ async function listJsonFilesRecursive(rootDir) {
   return results.sort((left, right) => left.localeCompare(right));
 }
 
-function resolveComparableReportMetric(report, metric) {
-  if (!report || typeof report !== 'object') return null;
-  const direct = report[metric];
-  if (typeof direct === 'number' && Number.isFinite(direct)) {
-    return direct;
-  }
-  const nested = report.metrics?.[metric];
-  if (typeof nested === 'number' && Number.isFinite(nested)) {
-    return nested;
-  }
-  if (nested && typeof nested === 'object' && typeof nested.score === 'number' && Number.isFinite(nested.score)) {
-    return nested.score;
-  }
-  return null;
-}
-
 async function loadRunWorkloadForComparison(runRoot) {
   try {
     const raw = await readFile(join(runRoot, 'workload.lock.json'), 'utf8');
@@ -546,20 +505,6 @@ async function loadRunWorkloadForComparison(runRoot) {
     if (error?.code === 'ENOENT') return null;
     throw error;
   }
-}
-
-function sortTrainingReports(reports, workload = null) {
-  const metric = String(workload?.selectionMetric || reports[0]?.primaryMetric || 'primaryScore').trim();
-  const goal = String(workload?.selectionGoal || (metric === 'loss' ? 'min' : 'max')).trim();
-  return reports
-    .slice()
-    .sort((left, right) => {
-      const missingScore = goal === 'min' ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY;
-      const leftScore = resolveComparableReportMetric(left, metric) ?? missingScore;
-      const rightScore = resolveComparableReportMetric(right, metric) ?? missingScore;
-      if (goal === 'min') return leftScore - rightScore;
-      return rightScore - leftScore;
-    });
 }
 
 async function loadTrainingEvalReports(rootDir) {
@@ -609,25 +554,6 @@ export async function compareLoraRun(options) {
   return {
     ...payload,
     comparePath: artifact.path,
-  };
-}
-
-function collectRequiredImprovementEvalIds(workload) {
-  const evalDatasets = Array.isArray(workload?.evalDatasets) ? workload.evalDatasets : [];
-  return evalDatasets
-    .filter((entry) => entry?.quality?.requireImprovement === true)
-    .map((entry) => entry.id);
-}
-
-function summarizeQualityClaims(reports) {
-  const claims = reports
-    .map((report) => report.qualityClaim)
-    .filter((claim) => claim && typeof claim === 'object');
-  return {
-    count: claims.length,
-    improvedCount: claims.filter((claim) => claim.improved === true).length,
-    requiredCount: claims.filter((claim) => claim.requireImprovement === true).length,
-    failedRequiredCount: claims.filter((claim) => claim.requireImprovement === true && claim.improved !== true).length,
   };
 }
 

@@ -1,6 +1,5 @@
+import { hashSortedJson } from '../../formats/sorted-json.js';
 import { isExecutionV1Digest } from './execution-v1.schema.js';
-import { sha256Hex } from '../../formats/sha256.js';
-import { stableSortObject } from '../../formats/stable-sort-object.js';
 import { SEQUENCE_REFERENCE_TRANSCRIPT_SCHEMA_ID, assertSequenceReferenceTranscript } from '../sequence-reference.js';
 import { RERANK_REFERENCE_TRANSCRIPT_SCHEMA_ID, assertRerankReferenceTranscript } from '../rerank-reference.js';
 import { EMBEDDING_REFERENCE_TRANSCRIPT_SCHEMA_ID, assertEmbeddingReferenceTranscript } from '../embedding-reference.js';
@@ -222,7 +221,7 @@ function validatePackage(packageContract, host, modules, artifacts) {
   }
   assertNonEmptyArray(packageContract.files, 'package.files');
   assertDigest(packageContract.fileSetHash, 'package.fileSetHash');
-  const expectedFileSetHash = `sha256:${sha256Hex(JSON.stringify(stableSortObject(packageContract.files)))}`;
+  const expectedFileSetHash = hashSortedJson(packageContract.files);
   if (packageContract.fileSetHash !== expectedFileSetHash) {
     throw new Error('program bundle: package.fileSetHash must match package.files.');
   }

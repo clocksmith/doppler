@@ -1,3 +1,4 @@
+import { isPlainObject as isObject } from '../formats/plain-object.js';
 import { computeCanonicalSha256 } from '../formats/canonical-hash.js';
 
 export const SOURCE_BOUNDARY_CAPSULE_SCHEMA = 'doppler.source-boundary-capsule/v1';
@@ -8,10 +9,6 @@ export const DETERMINISTIC_TOKEN_EVIDENCE_SCHEMA =
   'doppler.deterministic-token-evidence/v1';
 export const BOUNDARY_PROVIDER_CAPTURE_SCHEMA =
   'doppler.boundary-provider-capture/v1';
-
-function isObject(value) {
-  return value !== null && typeof value === 'object' && !Array.isArray(value);
-}
 
 function assertEvidencePolicy(policy) {
   if (policy?.schema !== 'doppler.boundary-evidence-policy/v1') {

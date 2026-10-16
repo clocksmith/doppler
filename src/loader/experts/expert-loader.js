@@ -1,3 +1,4 @@
+import { isNativeGpuBuffer as isGpuBufferInstance } from '../../gpu/buffer-identity.js';
 
 
 import {
@@ -81,10 +82,6 @@ export function predictNextLayerExperts(currentExperts) {
   // For now, just predict same experts will be used
   // More sophisticated: track expert correlation across layers
   return currentExperts;
-}
-
-function isGpuBufferInstance(value) {
-  return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
 }
 
 // ============================================================================

@@ -1,4 +1,4 @@
-import { F16_TO_F32_ACTIVATION_MAP, F32_TO_F16_ACTIVATION_MAP, KERNEL_FILE_PRECISION_PATCHES, cloneGraph, deriveF16AttentionKernelEntry, deriveKernelEntry, deriveKernelEntryWithPrecision, deriveKernelKey, deriveLinearDecodeF16KernelEntry, deriveLmHeadDecodeF16KernelEntry, deriveQ4DecodeF16KernelEntry, deriveQ4PrefillF16AccumKernelEntry, deriveQ4PrefillF16KernelEntry, deriveQ4WideTilePrefillF16KernelEntry, findPhaseStep, narrowToF16Activations, replacePhaseStepKernelKey, useQwen36F16Activations, useQwenDecodeF16Matmuls, useQwenF16PrimaryMatmuls } from './dtype.js';
+import { F32_TO_F16_ACTIVATION_MAP, cloneGraph, deriveF16AttentionKernelEntry, deriveKernelEntry, deriveKernelEntryWithPrecision, deriveKernelKey, deriveLmHeadDecodeF16KernelEntry, deriveQ4DecodeF16KernelEntry, deriveQ4PrefillF16AccumKernelEntry, deriveQ4PrefillF16KernelEntry, deriveQ4WideTilePrefillF16KernelEntry, findPhaseStep, narrowToF16Activations, replacePhaseStepKernelKey } from './dtype.js';
 
 export function deriveDenseDecodeF16KernelEntry(base) {
   if (typeof base?.kernel !== 'string') {
@@ -184,6 +184,10 @@ export function remapGemma412BStableBoundaryEntries(result, sourceGraph) {
 }
 
 export function useGemma4TextF16ActivationsForLane(graph, ctx, options) {
+  return transformGemma4F16Activations(graph, ctx, options?.stableTextBoundary === true, false);
+}
+
+function transformGemma4F16Activations(graph, ctx, stableTextBoundary, preferWideTile) {
   const narrowed = narrowToF16Activations(graph, ctx);
   const result = narrowed ?? cloneGraph(graph);
   let changed = narrowed != null;
@@ -195,7 +199,6 @@ export function useGemma4TextF16ActivationsForLane(graph, ctx, options) {
     result.kernels[key] = entry;
     changed = true;
   };
-  const stableTextBoundary = options?.stableTextBoundary === true;
 
   const derivePrefillAttentionEntry = (entry) => {
     if (
@@ -244,7 +247,7 @@ export function useGemma4TextF16ActivationsForLane(graph, ctx, options) {
   const prefillProjectionStep = findPhaseStep(result.prefill, 'q_proj');
   const prefillProjectionKey = prefillProjectionStep?.[1] ?? null;
   const sourcePrefillProjectionEntry = result.kernels[prefillProjectionKey];
-  const prefillProjectionF16Entry = stableTextBoundary
+  const prefillProjectionF16Entry = (stableTextBoundary || preferWideTile)
     ? (
         deriveQ4WideTilePrefillF16KernelEntry(sourcePrefillProjectionEntry)
         ?? deriveQ4PrefillF16AccumKernelEntry(sourcePrefillProjectionEntry)
@@ -336,101 +339,5 @@ export function useGemma4TextF16ActivationsForLane(graph, ctx, options) {
 }
 
 export function useGemma4Int4PleAf16Activations(graph, ctx) {
-  const narrowed = narrowToF16Activations(graph, ctx);
-  const result = narrowed ?? cloneGraph(graph);
-  let changed = narrowed != null;
-
-  const replaceKernelEntry = (key, entry) => {
-    if (!key || !entry) {
-      return;
-    }
-    result.kernels[key] = entry;
-    changed = true;
-  };
-
-  const embedStep = findPhaseStep(result.preLayer, 'embed');
-  const embedKey = embedStep?.[1] ?? null;
-  const embedEntry = embedKey ? result.kernels[embedKey] : null;
-  if (embedEntry?.kernel === 'gather_f16.wgsl') {
-    replaceKernelEntry(
-      embedKey,
-      deriveKernelEntryWithPrecision(
-        deriveKernelEntry(embedEntry, 'gather_f16_vec4_f16_out.wgsl', 'gather_vec4_f16_out'),
-        { inputDtype: 'f16', outputDtype: 'f16' }
-      )
-    );
-  }
-
-  const decodeProjectionStep = findPhaseStep(result.decode, 'q_proj');
-  const decodeProjectionKey = decodeProjectionStep?.[1] ?? null;
-  replaceKernelEntry(
-    decodeProjectionKey,
-    deriveQ4DecodeF16KernelEntry(result.kernels[decodeProjectionKey])
-  );
-
-  const prefillProjectionStep = findPhaseStep(result.prefill, 'q_proj');
-  const prefillProjectionKey = prefillProjectionStep?.[1] ?? null;
-  replaceKernelEntry(
-    prefillProjectionKey,
-    deriveQ4WideTilePrefillF16KernelEntry(result.kernels[prefillProjectionKey])
-      ?? deriveQ4PrefillF16AccumKernelEntry(result.kernels[prefillProjectionKey])
-      ?? deriveQ4PrefillF16KernelEntry(result.kernels[prefillProjectionKey])
-  );
-
-  const replacePrefillAttentionEntries = (entries) => {
-    for (const entry of entries || []) {
-      if (Array.isArray(entry)) {
-        if (entry[0] !== 'attention') {
-          continue;
-        }
-        replaceKernelEntry(
-          entry[1],
-          deriveF16AttentionKernelEntry(result.kernels[entry[1]])
-        );
-        continue;
-      }
-      if (entry && typeof entry === 'object' && Array.isArray(entry.steps)) {
-        replacePrefillAttentionEntries(entry.steps);
-      }
-    }
-  };
-  replacePrefillAttentionEntries(result.prefill);
-
-  const finalNormStep = findPhaseStep(result.postLayer, 'final_norm');
-  const finalNormKey = finalNormStep?.[1] ?? null;
-  const finalNormEntry = finalNormKey ? result.kernels[finalNormKey] : null;
-  if (finalNormEntry?.kernel === 'rmsnorm.wgsl') {
-    replaceKernelEntry(
-      finalNormKey,
-      deriveKernelEntryWithPrecision(
-        deriveKernelEntry(finalNormEntry, 'rmsnorm_f16.wgsl', finalNormEntry.entry),
-        { inputDtype: 'f16', outputDtype: 'f16' }
-      )
-    );
-  }
-
-  const lmHeadStep = findPhaseStep(result.postLayer, 'lm_head');
-  const lmHeadKey = lmHeadStep?.[1] ?? null;
-  replaceKernelEntry(
-    lmHeadKey,
-    deriveLmHeadDecodeF16KernelEntry(result.kernels[lmHeadKey])
-  );
-
-  const lmHeadPrefillStep = findPhaseStep(result.postLayer, 'lm_head_prefill');
-  const lmHeadPrefillKey = lmHeadPrefillStep?.[1] ?? null;
-  const lmHeadPrefillEntry = lmHeadPrefillKey ? result.kernels[lmHeadPrefillKey] : null;
-  if (
-    lmHeadPrefillEntry?.kernel === 'matmul_f16w_f32a.wgsl'
-    || lmHeadPrefillEntry?.kernel === 'matmul_f16w_f32a_tiled.wgsl'
-  ) {
-    replaceKernelEntry(
-      lmHeadPrefillKey,
-      deriveKernelEntryWithPrecision(
-        deriveKernelEntry(lmHeadPrefillEntry, 'matmul_f16_tiled.wgsl', 'main'),
-        { inputDtype: 'f16', outputDtype: 'f16' }
-      )
-    );
-  }
-
-  return changed ? result : null;
+  return transformGemma4F16Activations(graph, ctx, false, true);
 }
