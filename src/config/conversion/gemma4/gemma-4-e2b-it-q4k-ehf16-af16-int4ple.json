@@ -612,5 +612,6 @@
       "dtypeTransition": "require_cast_step",
       "unresolvedKernel": "error"
     }
-  }
+  },
+  "modelType": "gemma4"
 }

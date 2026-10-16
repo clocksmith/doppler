@@ -415,5 +415,6 @@
   },
   "largeWeights": {
     "gpuResidentOverrides": null
-  }
+  },
+  "modelType": "transformer"
 }

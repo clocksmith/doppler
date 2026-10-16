@@ -176,6 +176,7 @@ const converterConfig = createConverterConfig();
 
 {
   const gemma4Config = createConverterConfig({
+    modelType: 'gemma4',
     quantization: {
       weights: 'f16',
       embeddings: 'f16',
@@ -296,6 +297,20 @@ const converterConfig = createConverterConfig();
     converterConfig: gemma4Config,
   });
   assert.equal(plan.quantizationInfo?.projector, 'f16');
+
+  // Source architecture names must never leak into the runtime pipeline field.
+  const textPipelineConfig = { ...gemma4Config, modelType: 'transformer' };
+  assert.equal(resolveConversionPlan({
+    rawConfig: { model_type: 'gemma3_text' },
+    tensors: [{ name: 'model.embed_tokens.weight', dtype: 'F16' }],
+    converterConfig: textPipelineConfig,
+  }).modelType, 'transformer');
+  for (const modelType of [undefined, null, '', ' transformer ']) {
+    assert.throws(() => resolveConversionPlan({
+      rawConfig: { model_type: 'gemma3_text' },
+      converterConfig: { ...textPipelineConfig, modelType },
+    }), /explicit modelType.*runtime pipeline/);
+  }
 
   const invalidGemma4Config = structuredClone(gemma4Config);
   delete invalidGemma4Config.inference.attention.valueNorm;

@@ -412,5 +412,6 @@
       "manifestVariantId": "translategemma-4b-it-q4k-ehf16-af32-mv-exec-v1",
       "artifactCompleteness": "complete"
     }
-  }
+  },
+  "modelType": "transformer"
 }
