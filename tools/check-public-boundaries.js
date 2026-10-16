@@ -76,7 +76,10 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // module (its declaration stays outside the public type closure) add three: measured 1997.
   // The compensated paired matmul shader adds one WGSL entry: measured 1998.
   // The rolled sliced paired state program (77c5d9b2) adds one WGSL entry: measured 1999.
-  maxEntryCount: 1999,
+  // DRY extraction adds five reachable JS owners for FlatBuffers, range-backed
+  // weights, aligned writes, per-layer buffer release and recorder statistics.
+  // Audited npm dry-run: 2004 entries; declarations stay repository-only.
+  maxEntryCount: 2004,
   // add14e4b: npm 9.2.0 produces 2,104,958 bytes; CI Node 22.23.2/npm 10.9.8
   // produces 2,107,073. Keep the measured cross-toolchain compression allowance.
   // Evidence: reports/capsule-baseline/20260907-release/remote-package-budget-failure.log.

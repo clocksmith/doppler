@@ -1,3 +1,4 @@
+import { createFlatBufferTableReader } from '../flatbuffer-tables.js';
 const TEXT_DECODER = new TextDecoder();
 const ZIP_TAIL_BYTES = 0xffff + 22;
 const ZIP_EOCD_SIGNATURE = 0x06054b50;
@@ -147,6 +148,9 @@ function createPagedSourceReader(source) {
     return new DataView(bytes.buffer, bytes.byteOffset, 4).getUint32(0, true);
   }
 
+  const { getTableFieldPos, readStringAtField, readTableVectorLength, readTableVectorEntry } =
+    createFlatBufferTableReader({ readSlice, readInt32, readUint16 });
+
   async function readInt32(offset) {
     const bytes = await readSlice(offset, 4);
     return new DataView(bytes.buffer, bytes.byteOffset, 4).getInt32(0, true);
@@ -172,28 +176,9 @@ function createPagedSourceReader(source) {
     return new DataView(bytes.buffer, bytes.byteOffset, 8).getFloat64(0, true);
   }
 
-  async function getTableFieldPos(tablePos, fieldIndex) {
-    const vtableRelative = await readInt32(tablePos);
-    const vtablePos = tablePos - vtableRelative;
-    const vtableLength = await readUint16(vtablePos);
-    const fieldPos = vtablePos + 4 + fieldIndex * 2;
-    if (fieldPos + 2 > vtablePos + vtableLength) {
-      return null;
-    }
-    const fieldOffset = await readUint16(fieldPos);
-    return fieldOffset === 0 ? null : tablePos + fieldOffset;
-  }
 
-  async function readStringAtField(tablePos, fieldIndex) {
-    const fieldPos = await getTableFieldPos(tablePos, fieldIndex);
-    if (fieldPos == null) {
-      return null;
-    }
-    const stringPos = fieldPos + await readInt32(fieldPos);
-    const stringLength = await readInt32(stringPos);
-    const bytes = await readSlice(stringPos + 4, stringLength);
-    return TEXT_DECODER.decode(bytes);
-  }
+
+
 
   async function readScalarAtField(tablePos, fieldIndex, type) {
     const fieldPos = await getTableFieldPos(tablePos, fieldIndex);
@@ -230,28 +215,9 @@ function createPagedSourceReader(source) {
     }
   }
 
-  async function readTableVectorLength(tablePos, fieldIndex) {
-    const fieldPos = await getTableFieldPos(tablePos, fieldIndex);
-    if (fieldPos == null) {
-      return 0;
-    }
-    const vectorPos = fieldPos + await readInt32(fieldPos);
-    return readInt32(vectorPos);
-  }
 
-  async function readTableVectorEntry(tablePos, fieldIndex, index) {
-    const fieldPos = await getTableFieldPos(tablePos, fieldIndex);
-    if (fieldPos == null) {
-      return null;
-    }
-    const vectorPos = fieldPos + await readInt32(fieldPos);
-    const length = await readInt32(vectorPos);
-    if (index < 0 || index >= length) {
-      return null;
-    }
-    const entryPos = vectorPos + 4 + index * 4;
-    return entryPos + await readInt32(entryPos);
-  }
+
+
 
   return {
     label,

@@ -1,3 +1,5 @@
+import { mergeRecordOpLabelCounts } from './recorder-stats.js';
+export { mergeRecordOpLabelCounts } from './recorder-stats.js';
 import '../../../../gpu/device.js'; // Preserve declared device initialization side effects.
 import { releaseBuffer, readBuffer } from '../../../../memory/buffer-pool.js';
 import { trace, isTraceEnabled } from '../../../../debug/index.js';
@@ -22,23 +24,6 @@ export const FINITENESS_RESET_WORDS = new Uint32Array(4);
 export const tokenizerSuppressionCache = new WeakMap();
 
 export const PREFILL_CHUNK_SUBMIT_MODES = new Set(['sync', 'async']);
-
-export function mergeRecordOpLabelCounts(target, source) {
-  const merged = target && typeof target === 'object' && !Array.isArray(target)
-    ? target
-    : {};
-  if (!source || typeof source !== 'object' || Array.isArray(source)) {
-    return merged;
-  }
-  for (const [label, rawCount] of Object.entries(source)) {
-    const count = Number(rawCount);
-    if (typeof label !== 'string' || label.length === 0 || !Number.isFinite(count) || count <= 0) {
-      continue;
-    }
-    merged[label] = (Number.isFinite(merged[label]) ? merged[label] : 0) + count;
-  }
-  return merged;
-}
 
 export function recordPrefillRecorderStats(state, recorder) {
   if (!recorder || typeof recorder.getStats !== 'function') {

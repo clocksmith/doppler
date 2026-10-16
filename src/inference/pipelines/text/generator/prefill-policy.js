@@ -1,4 +1,4 @@
-import { releaseBuffer } from '../../../../memory/buffer-pool.js';
+export { releasePerLayerInputBuffer } from './per-layer-buffer.js';
 
 export function resolveEffectivePrefillTokenChunkSize(state) {
   const runtimeSession = state?.runtimeConfig?.inference?.session;
@@ -23,25 +23,6 @@ export function resolvePrefillTokenChunkSize(state, numTokens) {
     throw new Error('inference.session.prefillTokenChunkSize must be null or a positive integer.');
   }
   return chunkSize < numTokens ? chunkSize : null;
-}
-
-export function releasePerLayerInputBuffer(buffer, recorder, decodeBuffers, pleCache = null) {
-  if (!buffer) {
-    return;
-  }
-  const ownsBuffer = decodeBuffers?.ownsBuffer(buffer) ?? false;
-  if (ownsBuffer) {
-    return;
-  }
-  const cachedPleBuffer = pleCache?.ownedBuffers instanceof Set && pleCache.ownedBuffers.has(buffer);
-  if (cachedPleBuffer) {
-    return;
-  }
-  if (recorder) {
-    recorder.trackTemporaryBuffer(buffer);
-    return;
-  }
-  releaseBuffer(buffer);
 }
 
 export function shouldDisablePrefillCommandBatching(state, opts, multimodalBidirectionalSpan) {

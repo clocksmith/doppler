@@ -1,3 +1,5 @@
+import { releasePerLayerInputBuffer } from './per-layer-buffer.js';
+export { releasePerLayerInputBuffer } from './per-layer-buffer.js';
 import { tensorElementBytes } from '../../../../gpu/tensor.js';
 import { getActivationRepresentation } from './activation-storage.js';
 import { createDecodeStepResources } from './decode-components.js';
@@ -73,25 +75,6 @@ export function isOwnedDecodeBuffer(candidate, decodeHiddenBuffer, decodeAltBuff
     return true;
   }
   return candidate === decodeAltBuffer;
-}
-
-export function releasePerLayerInputBuffer(buffer, recorder, decodeBuffers, pleCache = null) {
-  if (!buffer) {
-    return;
-  }
-  const ownsBuffer = decodeBuffers?.ownsBuffer(buffer) ?? false;
-  if (ownsBuffer) {
-    return;
-  }
-  const cachedPleBuffer = pleCache?.ownedBuffers instanceof Set && pleCache.ownedBuffers.has(buffer);
-  if (cachedPleBuffer) {
-    return;
-  }
-  if (recorder) {
-    recorder.trackTemporaryBuffer(buffer);
-    return;
-  }
-  releaseBuffer(buffer);
 }
 
 export function schedulePlePrefetchForToken(state, tokenId) {

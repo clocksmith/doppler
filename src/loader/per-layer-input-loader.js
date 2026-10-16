@@ -1,3 +1,4 @@
+import { createRangeBackedWeightBuffer } from './tensors/range-backed-weights.js';
 import {
   createWeightBuffer,
   createCpuWeightBuffer,
@@ -8,7 +9,6 @@ import {
 } from '../gpu/weight-buffer.js';
 import { log } from '../debug/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
-import { loadTensorRange } from './tensors/tensor-reader.js';
 import { acquireBuffer, releaseBuffer, uploadData } from '../memory/buffer-pool.js';
 import { QK_K, Q4K_BLOCK_BYTES } from './quantization-constants.js';
 import { dequantizeQ4KM, dequantizeQ4KMRowWise } from '../converter/quantizer.js';
@@ -80,34 +80,6 @@ function wrapRawTensorAsWeightBuffer(ctx, tensor, name) {
     return tensor;
   }
   return createWeightBuffer(tensor, dtype, layout, location.shape, name);
-}
-
-function createRangeBackedTensorSource(ctx, name, location) {
-  if (typeof ctx.loadShardRange !== 'function') {
-    return null;
-  }
-  const normalizedLocationDtype = typeof location?.dtype === 'string'
-    ? location.dtype.toLowerCase()
-    : 'f32';
-  return {
-    kind: 'tensor_range_source',
-    sourceDtype: normalizedLocationDtype,
-    async loadRange(byteOffset, byteLength) {
-      return loadTensorRange(location, name, byteOffset, byteLength, ctx.loadShardRange);
-    },
-  };
-}
-
-function createRangeBackedWeightBuffer(ctx, name, location) {
-  const source = createRangeBackedTensorSource(ctx, name, location);
-  if (!source || !location?.shape || location.shape.length !== 2) {
-    return null;
-  }
-  const layout = ctx.resolveWeightLayout(location);
-  const dtype = selectRuleValue('loader', 'weights', 'floatLocationDtype', {
-    locationDtype: location.dtype,
-  });
-  return createCpuWeightBuffer(source, dtype, layout, location.shape, name);
 }
 
 function isQ4KLocationDtype(dtype) {

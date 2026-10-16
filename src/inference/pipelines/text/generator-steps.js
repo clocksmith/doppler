@@ -1,3 +1,4 @@
+import { mergeRecordOpLabelCounts } from './generator/recorder-stats.js';
 import { getActivationRepresentation } from './generator/activation-storage.js';
 import { getDevice, setTrackSubmits } from '../../../gpu/device.js';
 import { releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
@@ -43,23 +44,6 @@ import { FINITENESS_RESET_WORDS, FinitenessError, decodeStep, getEffectiveActiva
 export { FinitenessError, decodeStep, decodeStepLogits, readMappedBufferCopy, readSampledTokenFromStagingBuffer, shouldUseFusedDecodeSampling, sumProfileTimings } from './generator/decode.js';
 
 const FINITENESS_STATUS_BYTES = FINITENESS_RESET_WORDS.byteLength;
-
-function mergeRecordOpLabelCounts(target, source) {
-  const merged = target && typeof target === 'object' && !Array.isArray(target)
-    ? target
-    : {};
-  if (!source || typeof source !== 'object' || Array.isArray(source)) {
-    return merged;
-  }
-  for (const [label, rawCount] of Object.entries(source)) {
-    const count = Number(rawCount);
-    if (typeof label !== 'string' || label.length === 0 || !Number.isFinite(count) || count <= 0) {
-      continue;
-    }
-    merged[label] = (Number.isFinite(merged[label]) ? merged[label] : 0) + count;
-  }
-  return merged;
-}
 
 export function shouldUseBatchDecode(config) {
   return isBatchDecodeEnabled(config);

@@ -410,6 +410,7 @@ formats/array-buffer.d.ts
 formats/canonical-hash.d.ts
 formats/clone-json.d.ts
 formats/encode-utf8.d.ts
+formats/flatbuffer-tables.d.ts
 formats/gguf/types.d.ts
 formats/index.d.ts
 formats/index.js
@@ -632,11 +633,13 @@ inference/pipelines/text/generator/decode-runtime.d.ts
 inference/pipelines/text/generator/decode.d.ts
 inference/pipelines/text/generator/diffusion.d.ts
 inference/pipelines/text/generator/logits-config.d.ts
+inference/pipelines/text/generator/per-layer-buffer.d.ts
 inference/pipelines/text/generator/prefill-observation.d.ts
 inference/pipelines/text/generator/prefill-policy.d.ts
 inference/pipelines/text/generator/prefill-runtime.d.ts
 inference/pipelines/text/generator/prefix-embedding.d.ts
 inference/pipelines/text/generator/prompt-input.d.ts
+inference/pipelines/text/generator/recorder-stats.d.ts
 inference/pipelines/text/generator/recovery.d.ts
 inference/pipelines/text/generator/session-context.d.ts
 inference/pipelines/text/generator/text.d.ts
@@ -733,8 +736,10 @@ loader/per-layer-input-loader.d.ts
 loader/tensor-load-error.d.ts
 loader/tensor-shard-indices.d.ts
 loader/tensors/bf16-loader.d.ts
+loader/tensors/buffer-write.d.ts
 loader/tensors/functional-descriptor-loader.d.ts
 loader/tensors/load-executor.d.ts
+loader/tensors/range-backed-weights.d.ts
 loader/tensors/source-transform.d.ts
 loader/tensors/source-transform/executor.d.ts
 loader/tensors/source-transform/plan.d.ts
