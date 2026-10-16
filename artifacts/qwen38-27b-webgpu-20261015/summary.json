@@ -1,0 +1,115 @@
+{
+  "scope": "Qwen3.8-27B text, F16 RDRR, whole model on one AMD Radeon 8060S through Node/Dawn WebGPU. Functional and resource-lifecycle evidence only.",
+  "component": "doppler.runtime-source.inference.pipelines.text",
+  "intent": "preserved",
+  "boundaryEffects": "Async prefill owns submitted recorder cleanup through completion; no arithmetic, artifact, sampling, or shader changes.",
+  "fixCommit": "06ff41b78808ad1147db71ba75428bcef6b7a195",
+  "runtimeIdentity": {
+    "baseCommit": "0656324e",
+    "changedFile": "src/inference/pipelines/text/generator/prefill-runtime.js",
+    "sha256": "bffee1719d85800d3ec93fcabd326e303f83bc0f28269578fb29fb1cd64ee033"
+  },
+  "modelIdentity": {
+    "artifactCompleteness": "complete",
+    "conversionConfigDigest": "sha256:19ea601d3315a30628528af3ab856367ca449bca9ad308e8d50e0523b8183a70",
+    "conversionConfigPath": "src/config/conversion/qwen3/qwen3.8-27b-text-f16-af32.json",
+    "manifestVariantId": "qwen3-8-27b-text-f16-af32-mv-4f6c6b282ab6",
+    "materializationProfile": "auto",
+    "modalitySet": [
+      "text"
+    ],
+    "shardSetHash": "sha256:a4d2e51d292e0d2be43366d51bb6327ec4dd6ef738b13b64d14ea20e99f2d35f",
+    "sourceCheckpointId": "Qwen/Qwen3.8-27B",
+    "sourceFormat": "safetensors",
+    "sourceRepo": "Qwen/Qwen3.8-27B",
+    "sourceRevision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+    "weightPackHash": "sha256:990c3ddb16759a3e3485f75531beee9e8e1d7fbb6ac86c9e11cb363306b54c3c",
+    "weightPackId": "qwen3-8-27b-text-f16-af32-wp-990c3ddb1675"
+  },
+  "modelId": "qwen3-8-27b-text-f16-af32",
+  "completed": true,
+  "exit": {
+    "code": 0,
+    "guardReason": null,
+    "elapsed": 94.2181281875819
+  },
+  "configuration": "run-11/policy.json: recorded async layer-chunk prefill; single-token decode; 4096-token cache; 56 GiB pool cap. Original multi-token decode failed on this host; not qualified.",
+  "results": [
+    {
+      "task": "fictional movie selection",
+      "promptTokens": 88,
+      "completionTokens": 91,
+      "answerMs": 42093.992369,
+      "prefillMs": 7802.805197999998,
+      "decodeMs": 34272.246269999996
+    },
+    {
+      "task": "follow-up",
+      "promptTokens": 203,
+      "completionTokens": 15,
+      "answerMs": 21283.812412,
+      "prefillMs": 16188.443314000004,
+      "decodeMs": 5079.042893999998
+    },
+    {
+      "task": "arithmetic",
+      "promptTokens": 28,
+      "completionTokens": 3,
+      "answerMs": 3846.4960199999914,
+      "prefillMs": 3098.608441000004,
+      "decodeMs": 732.6644559999986
+    }
+  ],
+  "leakComparison": {
+    "before": "run-8/result.json",
+    "after": "run-10/result.json",
+    "samePolicy": true,
+    "sameFirstToken": true,
+    "beforeActiveBytes": 2924478720,
+    "afterActiveBytes": 170967040,
+    "beforeUnloadActiveBytes": 2753511680,
+    "afterUnloadActiveBytes": 0
+  },
+  "repeatedRequestActiveBytes": [
+    170967040,
+    170967040,
+    170967040
+  ],
+  "tests": {
+    "regressionBeforeFix": "tests/inference/prefill-chunk-cleanup.test.js fails on original HEAD source: 6 active buffers, expected 0.",
+    "passed": [
+      "node tests/inference/prefill-chunk-cleanup.test.js",
+      "node tests/inference/prefill-output-ownership.test.js",
+      "node tests/inference/generator-prefill-submit-mode.test.js",
+      "node tests/gpu/command-recorder-cleanup.test.js",
+      "node tests/inference/multimodal-prefill-command-batching.test.js",
+      "node tests/inference/partition-prefill-lifetime.test.js",
+      "npm run source:architecture:check"
+    ]
+  },
+  "limitations": [
+    "Not browser or Reploid installed qualification; source harness only.",
+    "Three functional assertions do not establish broad answer quality or numerical parity.",
+    "No llama.cpp speed win: earlier llama.cpp used Q8_0; this run retains F16 weights.",
+    "Q8_0 packed execution is not implemented by this change; existing W8A8 is a different contract.",
+    "F16 loading remains vulnerable to driver allocation failure: run-9 failed before prefill, while its bounded retry run-10 and full run-11 passed.",
+    "Run-2 produced a GPU timeout/reset with original multi-token decode; single-token configuration is explicit in successful runs.",
+    "Unloaded reusable pool memory is a cache, distinct from active owned resources; harness destroys the device afterward."
+  ],
+  "attempts": {
+    "run-1": "External memory-reserve stop after load.",
+    "run-2": "Original multi-token decode caused GPU timeout/reset.",
+    "run-3": "Arithmetic and follow-up passed; external reserve stop during/after cleanup.",
+    "run-4": "Movie answer passed; reserve guard stopped follow-up.",
+    "run-5": "Movie answer passed; follow-up driver allocation failed.",
+    "run-6": "Explicit pool budget rejected follow-up allocation; leak exposed.",
+    "run-7": "Token chunking disabled recorded prefill as a diagnostic workaround. Three answers passed. Explicitly terminated after unload because provider kept event loop alive; not exit zero.",
+    "run-8": "Original recorded prefill one-token leak control; clean process exit.",
+    "run-9": "Patched runtime; failed during weight loading before exercising fix.",
+    "run-10": "Patched recorded prefill one-token probe: leak eliminated.",
+    "run-11": "Patched recorded prefill: all three answers, repeated memory stability, zero active buffers after unload, exit zero."
+  },
+  "evidenceHandling": "Remote evidence transferred in base32 to preserve numeric 128 values through the transport. Home paths and machine names are redacted. Per-run scripts are snapshots; they were executed from the isolated checkout, not from the evidence subdirectory.",
+  "liveState": "run-11/post-run-state.json: no owned inference processes, GPU allocation returned to idle baseline. No public contributors were stopped by this work.",
+  "relatedFilesystemWork": "Earlier inactive /dev/shm model/cache directories were checksum-verified and moved to SSD under /var/tmp/doppler-ram-archive-20261015 with original paths replaced by symlinks. Receipt files remain there; no unique source data deleted."
+}

@@ -1,0 +1,92 @@
+{"phase":"load","progress":{"phase":"resolve","percent":5,"message":"Resolving model"}}
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+{"phase":"load","progress":{"phase":"manifest","percent":15,"message":"Fetching manifest"}}
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.4ms
+{"phase":"load","progress":{"phase":"load","percent":25,"message":"Loading weights"}}
+[Doppler] Log level set to: WARN
+[1204.6ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+{"phase":"load","progress":{"phase":"load","percent":25,"message":"Parsing manifest..."}}
+{"phase":"load","progress":{"phase":"load","percent":25,"message":"Loading embeddings..."}}
+{"phase":"load","progress":{"phase":"load","percent":80,"message":"Layer 0: 1/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":80,"message":"Layer 1: 2/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":80,"message":"Layer 2: 3/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":80,"message":"Layer 3: 4/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":80,"message":"Layer 4: 5/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":80,"message":"Layer 5: 6/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":81,"message":"Layer 6: 7/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":81,"message":"Layer 7: 8/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":81,"message":"Layer 8: 9/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":81,"message":"Layer 9: 10/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":81,"message":"Layer 10: 11/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":81,"message":"Layer 11: 12/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":81,"message":"Layer 12: 13/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":81,"message":"Layer 13: 14/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":81,"message":"Layer 14: 15/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":81,"message":"Layer 15: 16/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":81,"message":"Layer 16: 17/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":81,"message":"Layer 17: 18/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":81,"message":"Layer 18: 19/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":82,"message":"Layer 19: 20/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":82,"message":"Layer 20: 21/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":82,"message":"Layer 21: 22/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":82,"message":"Layer 22: 23/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":82,"message":"Layer 23: 24/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":82,"message":"Layer 24: 25/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":82,"message":"Layer 25: 26/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":82,"message":"Layer 26: 27/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":82,"message":"Layer 27: 28/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":82,"message":"Layer 28: 29/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":82,"message":"Layer 29: 30/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":82,"message":"Layer 30: 31/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":83,"message":"Layer 31: 32/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":83,"message":"Layer 32: 33/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":83,"message":"Layer 33: 34/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":83,"message":"Layer 34: 35/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":83,"message":"Layer 35: 36/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":83,"message":"Layer 36: 37/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":83,"message":"Layer 37: 38/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":83,"message":"Layer 38: 39/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":83,"message":"Layer 39: 40/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":83,"message":"Layer 40: 41/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":83,"message":"Layer 41: 42/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":83,"message":"Layer 42: 43/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":83,"message":"Layer 43: 44/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":84,"message":"Layer 44: 45/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":84,"message":"Layer 45: 46/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":84,"message":"Layer 46: 47/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":84,"message":"Layer 47: 48/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":84,"message":"Layer 48: 49/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":84,"message":"Layer 49: 50/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":84,"message":"Layer 50: 51/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":84,"message":"Layer 51: 52/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":84,"message":"Layer 52: 53/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":84,"message":"Layer 53: 54/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":84,"message":"Layer 54: 55/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":84,"message":"Layer 55: 56/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":84,"message":"Layer 56: 57/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":85,"message":"Layer 57: 58/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":85,"message":"Layer 58: 59/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":85,"message":"Layer 59: 60/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":85,"message":"Layer 60: 61/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":85,"message":"Layer 61: 62/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":85,"message":"Layer 62: 63/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":85,"message":"Layer 63: 64/64 assigned layers"}}
+{"phase":"load","progress":{"phase":"load","percent":85,"message":"Loading final weights..."}}
+{"phase":"load","progress":{"phase":"load","percent":99,"message":"Loading weights"}}
+[Doppler] Log level set to: INFO
+{"phase":"load","progress":{"phase":"ready","percent":100,"message":"Model ready"}}
+{"phase":"loaded","loadMs":25870.250234}
+[Doppler] Log level set to: WARN
+[Doppler] Log level set to: INFO
+{"phase":"answer","content":"**Cedar**\n\nThis title meets all the requirements:\n*   **Language:** It is in English.\n*   **Violence:** It has no violence.\n*   **Duration:** At 100 minutes, it is at most 110 minutes.\n\n(Note: *Lumiere* is excluded because it is in French, and *Storm* is excluded because it contains violence and exceeds the time limit.)","usage":{"promptTokens":88,"completionTokens":91,"totalTokens":179}}
+[Doppler] Log level set to: WARN
+[Doppler] Log level set to: INFO
+{"phase":"answer","content":"The runtime of the movie I picked is 100 minutes.","usage":{"promptTokens":203,"completionTokens":15,"totalTokens":218}}
+[Doppler] Log level set to: WARN
+[Doppler] Log level set to: INFO
+{"phase":"answer","content":"42","usage":{"promptTokens":28,"completionTokens":3,"totalTokens":31}}
+{"phase":"unloading"}
+[Doppler] Log level set to: WARN
+[Doppler] Log level set to: INFO
+{"phase":"unloaded","complete":true}
