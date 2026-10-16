@@ -1,0 +1,45 @@
+{
+  "component": [
+    "doppler.runtime-source.config",
+    "doppler.runtime-source.gpu.kernels"
+  ],
+  "intent": "preserved",
+  "boundaryEffects": "Explicit FlashAttention paths now use the existing two-pass executor; opt-in profile selects existing kernels without dtype changes.",
+  "runtimeBase": "9f889f52abcbdb68b82669596e280bd0493e1ce1",
+  "runtimePatch": "runtime.patch",
+  "runtimeSnapshot": ".cache/qwen08-20261016",
+  "model": {
+    "directory": ".cache/qwen08-f16",
+    "manifestSha256": "cb8e4d8bf7fbc8522d1222bbbf3cf9a46e297a899cf737d4738554a1d1d68062",
+    "sourcePreparation": "artifacts/qwen08-m3-mlx-20261015/",
+    "note": "Weights and full-logit binary captures remain local; no model weights are committed."
+  },
+  "snapshotPreparation": [
+    "Archive src, tools, package.json from runtimeBase into a new snapshot directory.",
+    "Apply runtime.patch inside that snapshot.",
+    "Symlink node_modules to the repository node_modules.",
+    "Copy artifacts/qwen08-perf-20261015/doppler.js and this directory/boundary-run.js into snapshot/artifacts/qwen08-perf-20261015/.",
+    "paired-plan.json and paired-run.js retain the exact snapshot path used."
+  ],
+  "commands": {
+    "paired": "node artifacts/qwen08-prefill-20261016/paired-run.js",
+    "numericalBaseline": "node .cache/qwen08-20261016/artifacts/qwen08-perf-20261015/boundary-run.js .cache/qwen08-f16 artifacts/qwen08-m3-mlx-20261015/inputs.json artifacts/qwen08-prefill-20261016/boundary-baseline.json artifacts/qwen08-prefill-20261016/boundary-baseline-policy.json",
+    "numericalCandidate": "node .cache/qwen08-20261016/artifacts/qwen08-perf-20261015/boundary-run.js .cache/qwen08-f16 artifacts/qwen08-m3-mlx-20261015/inputs.json artifacts/qwen08-prefill-20261016/boundary-candidate.json artifacts/qwen08-prefill-20261016/boundary-candidate-policy.json",
+    "summarize": "node artifacts/qwen08-prefill-20261016/summarize.js",
+    "flashRegression": "node tests/inference/attention-flash-prefill-gpu-regression.test.js"
+  },
+  "checks": {
+    "flashGpuRegression": "pass; four CPU-reference cases plus injected allocation ownership failures",
+    "attentionPlan": "pass; six tests",
+    "kernelRegistry": "pass; 414 variants",
+    "kernelUniforms": "pass; 407 variants",
+    "onboarding": "pass",
+    "sourceTypes": "pass; scoped existing strict roots, executor remains inventoried unchecked",
+    "profileDiscovery": "pass",
+    "profileCommand": "profile-smoke-corrected.json: ok=true",
+    "numerical": "summary.json"
+  },
+  "rejectedHarnessResult": "tile-depth-invalid.json is invalid-pipeline output reuse; excluded. Final tile-depth-probe.js uses validation scopes, requested workgroup storage, and NaN output poisoning. tile-depth-with-invalid-poison.json retains the intermediate run whose output poison write omitted COPY_DST. The final rerun adds COPY_DST and validates poisoning itself; every pipeline, write, and dispatch passes validation.",
+  "profileSmokeCorrection": "profile-smoke.json used unsupported top-level prompt/maxTokens. Corrected command uses request.inferenceInput; retained both results.",
+  "artifactProbeReproduction": "Probe JS now references the captured rejected WGSL files, since production shader edits were reverted. Shader hashes in probe receipts identify measured source."
+}

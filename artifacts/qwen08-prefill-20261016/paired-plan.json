@@ -1,0 +1,27 @@
+{
+  "pairs": [
+    [
+      "baseline",
+      "candidate"
+    ],
+    [
+      "candidate",
+      "baseline"
+    ],
+    [
+      "baseline",
+      "candidate"
+    ],
+    [
+      "candidate",
+      "baseline"
+    ]
+  ],
+  "timing": "One warmup followed by one measured complete answer per prompt length per child; model load excluded. Fixed four pairs, no early stopping or outlier deletion.",
+  "correctness": "All 128 output token IDs must match the frozen reference for both prompts.",
+  "model": ".cache/qwen08-f16",
+  "inputs": "artifacts/qwen08-m3-mlx-20261015/inputs.json",
+  "runner": ".cache/qwen08-20261016/artifacts/qwen08-perf-20261015/doppler.js",
+  "runtimeBase": "9f889f52abcbdb68b82669596e280bd0493e1ce1",
+  "maxChildSeconds": 180
+}

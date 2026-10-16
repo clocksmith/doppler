@@ -1,0 +1,218 @@
+{
+  "scope": "Standalone F32 accumulation, F16 weight projection; not model qualification",
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  },
+  "scopeDetail": "Registered tiled matmul load mapping; unchanged arithmetic",
+  "tolerance": {
+    "absolute": 0.001,
+    "relative": 0.001
+  },
+  "rows": [
+    {
+      "M": 65,
+      "N": 67,
+      "K": 19,
+      "name": "before",
+      "compileMs": 2.953958,
+      "sha256": "31b2f8d9623d77df223f12da61eb5a178209fa1ce43199fe94357d7791c2b3b5",
+      "times": [
+        0.4191669999999874,
+        0.4125839999999954,
+        0.3785000000000025
+      ],
+      "maxAbsVsScalar": 0,
+      "maxAbsVsReference": 1.1670636013150215e-8,
+      "checkedOutputs": 4355,
+      "referenceSamples": 64
+    },
+    {
+      "M": 65,
+      "N": 67,
+      "K": 19,
+      "name": "k16",
+      "compileMs": 1.4175840000000015,
+      "sha256": "35e5295d2efa9e66259bc8c0992ac70b6f5dbf1fdd1b192392fcf0e08e8a1d2f",
+      "times": [
+        0.3824589999999972,
+        0.3709169999999915,
+        0.38433299999999804
+      ],
+      "maxAbsVsScalar": 0,
+      "maxAbsVsReference": 1.1670636013150215e-8,
+      "checkedOutputs": 4355,
+      "referenceSamples": 64
+    },
+    {
+      "M": 65,
+      "N": 67,
+      "K": 19,
+      "name": "k32",
+      "compileMs": 0.7819579999999959,
+      "sha256": "35e5295d2efa9e66259bc8c0992ac70b6f5dbf1fdd1b192392fcf0e08e8a1d2f",
+      "times": [
+        0.3761250000000018,
+        0.37983400000000245,
+        0.374834000000007
+      ],
+      "maxAbsVsScalar": 7.450580596923828e-9,
+      "maxAbsVsReference": 9.124050848186016e-9,
+      "checkedOutputs": 4355,
+      "referenceSamples": 64
+    },
+    {
+      "M": 65,
+      "N": 67,
+      "K": 19,
+      "name": "k64",
+      "compileMs": 68.601584,
+      "sha256": "35e5295d2efa9e66259bc8c0992ac70b6f5dbf1fdd1b192392fcf0e08e8a1d2f",
+      "times": [
+        0.3296659999999889,
+        0.4318749999999909,
+        0.43658299999999883
+      ],
+      "maxAbsVsScalar": 7.450580596923828e-9,
+      "maxAbsVsReference": 9.124050848186016e-9,
+      "checkedOutputs": 4355,
+      "referenceSamples": 64
+    },
+    {
+      "M": 128,
+      "N": 3584,
+      "K": 1024,
+      "name": "before",
+      "compileMs": 2.953958,
+      "sha256": "31b2f8d9623d77df223f12da61eb5a178209fa1ce43199fe94357d7791c2b3b5",
+      "times": [
+        4.838875000000002,
+        5.578791999999993,
+        4.665999999999997
+      ],
+      "maxAbsVsScalar": 0,
+      "maxAbsVsReference": 1.953371224772127e-7,
+      "checkedOutputs": 458752,
+      "referenceSamples": 64
+    },
+    {
+      "M": 128,
+      "N": 3584,
+      "K": 1024,
+      "name": "k16",
+      "compileMs": 1.4175840000000015,
+      "sha256": "35e5295d2efa9e66259bc8c0992ac70b6f5dbf1fdd1b192392fcf0e08e8a1d2f",
+      "times": [
+        2.2115829999999903,
+        3.7970420000000047,
+        5.730208000000005
+      ],
+      "maxAbsVsScalar": 0,
+      "maxAbsVsReference": 1.953371224772127e-7,
+      "checkedOutputs": 458752,
+      "referenceSamples": 64
+    },
+    {
+      "M": 128,
+      "N": 3584,
+      "K": 1024,
+      "name": "k32",
+      "compileMs": 0.7819579999999959,
+      "sha256": "35e5295d2efa9e66259bc8c0992ac70b6f5dbf1fdd1b192392fcf0e08e8a1d2f",
+      "times": [
+        5.50283300000001,
+        3.4572919999999954,
+        2.5171670000000006
+      ],
+      "maxAbsVsScalar": 4.172325134277344e-7,
+      "maxAbsVsReference": 1.3766322126684827e-7,
+      "checkedOutputs": 458752,
+      "referenceSamples": 64
+    },
+    {
+      "M": 128,
+      "N": 3584,
+      "K": 1024,
+      "name": "k64",
+      "compileMs": 68.601584,
+      "sha256": "35e5295d2efa9e66259bc8c0992ac70b6f5dbf1fdd1b192392fcf0e08e8a1d2f",
+      "times": [
+        4.149083000000019,
+        3.6855840000000057,
+        3.7488329999999905
+      ],
+      "maxAbsVsScalar": 4.3213367462158203e-7,
+      "maxAbsVsReference": 2.441028073008056e-7,
+      "checkedOutputs": 458752,
+      "referenceSamples": 64
+    },
+    {
+      "M": 1024,
+      "N": 3584,
+      "K": 1024,
+      "name": "before",
+      "compileMs": 2.953958,
+      "sha256": "31b2f8d9623d77df223f12da61eb5a178209fa1ce43199fe94357d7791c2b3b5",
+      "times": [
+        15.510958000000016,
+        15.73391700000002,
+        15.580624999999998
+      ],
+      "maxAbsVsScalar": 0,
+      "maxAbsVsReference": 1.6406357872256194e-7,
+      "checkedOutputs": 3670016,
+      "referenceSamples": 64
+    },
+    {
+      "M": 1024,
+      "N": 3584,
+      "K": 1024,
+      "name": "k16",
+      "compileMs": 1.4175840000000015,
+      "sha256": "35e5295d2efa9e66259bc8c0992ac70b6f5dbf1fdd1b192392fcf0e08e8a1d2f",
+      "times": [
+        19.170290999999963,
+        18.363500000000045,
+        14.984166000000073
+      ],
+      "maxAbsVsScalar": 0,
+      "maxAbsVsReference": 1.6406357872256194e-7,
+      "checkedOutputs": 3670016,
+      "referenceSamples": 64
+    },
+    {
+      "M": 1024,
+      "N": 3584,
+      "K": 1024,
+      "name": "k32",
+      "compileMs": 0.7819579999999959,
+      "sha256": "35e5295d2efa9e66259bc8c0992ac70b6f5dbf1fdd1b192392fcf0e08e8a1d2f",
+      "times": [
+        18.256999999999948,
+        18.76166599999999,
+        18.96154100000001
+      ],
+      "maxAbsVsScalar": 4.684552550315857e-7,
+      "maxAbsVsReference": 1.196539329839652e-7,
+      "checkedOutputs": 3670016,
+      "referenceSamples": 64
+    },
+    {
+      "M": 1024,
+      "N": 3584,
+      "K": 1024,
+      "name": "k64",
+      "compileMs": 68.601584,
+      "sha256": "35e5295d2efa9e66259bc8c0992ac70b6f5dbf1fdd1b192392fcf0e08e8a1d2f",
+      "times": [
+        31.590749999999957,
+        28.29454199999998,
+        25.248791000000097
+      ],
+      "maxAbsVsScalar": 5.736947059631348e-7,
+      "maxAbsVsReference": 2.8992620570988947e-7,
+      "checkedOutputs": 3670016,
+      "referenceSamples": 64
+    }
+  ]
+}

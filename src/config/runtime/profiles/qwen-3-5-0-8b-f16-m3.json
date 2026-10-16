@@ -1,0 +1,112 @@
+{
+  "id": "profiles/qwen-3-5-0-8b-f16-m3",
+  "name": "Qwen3.5 0.8B F16 M3",
+  "description": "Opt-in Node/WebGPU tuning for the pinned Qwen3.5 0.8B text-f16-matched artifact on M3. Register-tiled prefill, head-256 decode attention, and 32-thread LM-head reductions. F32 activations and F16 KV are unchanged. Local paired evidence: artifacts/qwen08-prefill-20261016/summary.json; no cross-engine qualification.",
+  "intent": "calibrate",
+  "compatibleIntents": [
+    "calibrate",
+    "investigate",
+    "verify"
+  ],
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-10-16T00:00:00Z",
+  "extends": "profiles/default",
+  "model": "qwen3-5-0-8b-text-f16-matched",
+  "runtime": {
+    "shared": {
+      "bufferPool": {
+        "budget": {
+          "maxTotalBytes": 6442450944,
+          "highWatermarkRatio": 0.9,
+          "emergencyTrimTargetRatio": 0.8,
+          "hardFailOnBudgetExceeded": true
+        }
+      }
+    },
+    "inference": {
+      "executionPatch": {
+        "addKernels": [
+          {
+            "key": "prefill_tiled_candidate",
+            "kernel": {
+              "kernel": "matmul_f16w_f32a_tiled.wgsl",
+              "entry": "main",
+              "digest": "sha256:bfa95bf42cf7da2ab8b9d6b8af5b494dd8abcfe436d7788f7ecdb8892f04d3b8"
+            }
+          },
+          {
+            "key": "decode_head256_candidate",
+            "kernel": {
+              "kernel": "attention_decode_online_head256_f16kv.wgsl",
+              "entry": "main",
+              "digest": "sha256:fa4a40535b2aa1389b0510329fb31675d4da50ddfdfbf1e8125c7213c7ffb525",
+              "precision": {
+                "kvDtype": "f16"
+              }
+            }
+          },
+          {
+            "key": "lm_head_32threads_candidate",
+            "kernel": {
+              "kernel": "matmul_gemv_subgroup.wgsl",
+              "entry": "main_multicol",
+              "digest": "sha256:e41f94574d5ac54dd2710036da5d5acc643a483b79b2d74b86825efdaaa7438f",
+              "constants": {
+                "MULTICOL_COLS_PER_WG": 8,
+                "MULTICOL_THREADS_PER_COL": 32
+              }
+            }
+          }
+        ],
+        "set": [
+          {
+            "section": "prefill",
+            "op": "q_proj",
+            "kernelKey": "prefill_tiled_candidate"
+          },
+          {
+            "section": "prefill",
+            "op": "k_proj",
+            "kernelKey": "prefill_tiled_candidate"
+          },
+          {
+            "section": "prefill",
+            "op": "v_proj",
+            "kernelKey": "prefill_tiled_candidate"
+          },
+          {
+            "section": "prefill",
+            "op": "o_proj",
+            "kernelKey": "prefill_tiled_candidate"
+          },
+          {
+            "section": "prefill",
+            "op": "gate_proj",
+            "kernelKey": "prefill_tiled_candidate"
+          },
+          {
+            "section": "prefill",
+            "op": "up_proj",
+            "kernelKey": "prefill_tiled_candidate"
+          },
+          {
+            "section": "prefill",
+            "op": "down_proj",
+            "kernelKey": "prefill_tiled_candidate"
+          },
+          {
+            "section": "decode",
+            "op": "attention",
+            "kernelKey": "decode_head256_candidate"
+          },
+          {
+            "section": "postLayer",
+            "op": "lm_head",
+            "kernelKey": "lm_head_32threads_candidate"
+          }
+        ]
+      }
+    }
+  }
+}

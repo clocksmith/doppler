@@ -9433,7 +9433,7 @@
       "tier": "flash_prefill",
       "exactHeadDim": 256,
       "maxHeadDim": 256,
-      "requiredShared": 16384
+      "requiredShared": 32768
      },
      "reachability": {
       "status": "unused",
@@ -9441,6 +9441,62 @@
       "ruleChains": [],
       "wgslOnDisk": true
      },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "Q",
+       "type": "read-only-storage",
+       "wgslName": "Q"
+      },
+      {
+       "index": 2,
+       "name": "K",
+       "type": "read-only-storage",
+       "wgslName": "K"
+      },
+      {
+       "index": 3,
+       "name": "V",
+       "type": "read-only-storage",
+       "wgslName": "V"
+      },
+      {
+       "index": 4,
+       "name": "partialAcc",
+       "type": "storage",
+       "wgslName": "partial_acc"
+      },
+      {
+       "index": 5,
+       "name": "partialM",
+       "type": "storage",
+       "wgslName": "partial_m"
+      },
+      {
+       "index": 6,
+       "name": "partialL",
+       "type": "storage",
+       "wgslName": "partial_l"
+      },
+      {
+       "index": 7,
+       "name": "kvLen",
+       "type": "read-only-storage",
+       "wgslName": "kv_len_buffer"
+      },
+      {
+       "index": 8,
+       "name": "pageTable",
+       "type": "read-only-storage",
+       "wgslName": "page_table"
+      }
+     ],
      "uniformsOverride": {
       "size": 64,
       "fields": [
@@ -9543,6 +9599,38 @@
       "ruleChains": [],
       "wgslOnDisk": true
      },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "partialAcc",
+       "type": "read-only-storage",
+       "wgslName": "partial_acc"
+      },
+      {
+       "index": 2,
+       "name": "partialM",
+       "type": "read-only-storage",
+       "wgslName": "partial_m"
+      },
+      {
+       "index": 3,
+       "name": "partialL",
+       "type": "read-only-storage",
+       "wgslName": "partial_l"
+      },
+      {
+       "index": 4,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "output"
+      }
+     ],
      "uniformsOverride": {
       "size": 16,
       "fields": [
