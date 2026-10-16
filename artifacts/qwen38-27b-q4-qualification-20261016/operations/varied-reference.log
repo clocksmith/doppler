@@ -1,0 +1,7 @@
+Running as unit: doppler-qwen27-varied-reference-20261016.service
+/usr/bin/python3: can't open file '/home/x/.tmp/qwen38-q4-qualification-20261016/qwen-quantized-transformers-reference.py': [Errno 2] No such file or directory
+          Finished with result: exit-code
+Main processes terminated with: code=exited, status=2/INVALIDARGUMENT
+               Service runtime: 13ms
+             CPU time consumed: 13ms
+                   Memory peak: 3.4M (swap: 0B)

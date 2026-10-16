@@ -1,0 +1,218 @@
+{
+  "schema": "doppler.qwen-quantized-transformers-reference/v1",
+  "qualified": false,
+  "scope": "Independent Transformers equations and gguf decoder; F32 arithmetic, F16 KV storage",
+  "versions": {
+    "torch": "2.11.0",
+    "transformers": "5.6.2",
+    "gguf": "0.19.0",
+    "numpy": "2.4.4"
+  },
+  "contractSha256": "bec293317d54d56f7e4fd7ee0d8419ee366bfa1b6fb2295a3164a505ec202dcc",
+  "toolSha256": "044ed4b370203c07ebe73df4519a5180110272c23476b99f0fb57306de2ecc39",
+  "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+  "cases": [
+    {
+      "id": "holdout-json",
+      "positions": [
+        49
+      ],
+      "greedyTokens": [
+        271
+      ],
+      "logits": {
+        "path": "holdout-json.npy",
+        "sha256": "31dc7b81be3096c59de99f7e62d47dd29af374ca50853d5da409af0d800cd089",
+        "shape": [
+          1,
+          248320
+        ]
+      },
+      "elapsedSeconds": 95.7104543969981
+    },
+    {
+      "id": "holdout-records",
+      "positions": [
+        750
+      ],
+      "greedyTokens": [
+        271
+      ],
+      "logits": {
+        "path": "holdout-records.npy",
+        "sha256": "a68df830035de0f26381ef5aedefd3b90770caea72d24f51b69b7e6d85a4ee35",
+        "shape": [
+          1,
+          248320
+        ]
+      },
+      "elapsedSeconds": 195.49595303899696
+    }
+  ],
+  "states": [
+    {
+      "caseId": "holdout-json",
+      "layer": 0,
+      "field": "recurrentState",
+      "shape": [
+        1,
+        48,
+        128,
+        128
+      ],
+      "position": 49,
+      "path": "holdout-json-layer-0-recurrentState.npy",
+      "sha256": "32fe5267ec84179c080ebe951213e9a50f542559baef594c67f7e4373d85f7eb"
+    },
+    {
+      "caseId": "holdout-json",
+      "layer": 0,
+      "field": "convState",
+      "shape": [
+        1,
+        10240,
+        4
+      ],
+      "position": 49,
+      "path": "holdout-json-layer-0-convState.npy",
+      "sha256": "69063a0abeb53c42eb14bbe4b4dee82de7887e22b5a4c773dda4cae793579441"
+    },
+    {
+      "caseId": "holdout-json",
+      "layer": 30,
+      "field": "recurrentState",
+      "shape": [
+        1,
+        48,
+        128,
+        128
+      ],
+      "position": 49,
+      "path": "holdout-json-layer-30-recurrentState.npy",
+      "sha256": "3666dd78dcb3de99eb08e96844e8829b08f0930e3407ba281a25486f77da9373"
+    },
+    {
+      "caseId": "holdout-json",
+      "layer": 30,
+      "field": "convState",
+      "shape": [
+        1,
+        10240,
+        4
+      ],
+      "position": 49,
+      "path": "holdout-json-layer-30-convState.npy",
+      "sha256": "ba871c905940f46a43486eead3efce15e130a1b669f2c5417cf384078c437f7d"
+    },
+    {
+      "caseId": "holdout-json",
+      "layer": 62,
+      "field": "recurrentState",
+      "shape": [
+        1,
+        48,
+        128,
+        128
+      ],
+      "position": 49,
+      "path": "holdout-json-layer-62-recurrentState.npy",
+      "sha256": "524a52acc515817db5371a86b3438f2d1fe1a598d6ca689da7938b6aca28bd2a"
+    },
+    {
+      "caseId": "holdout-json",
+      "layer": 62,
+      "field": "convState",
+      "shape": [
+        1,
+        10240,
+        4
+      ],
+      "position": 49,
+      "path": "holdout-json-layer-62-convState.npy",
+      "sha256": "df74ebe7f5a3d2a61ac8bca191cfd687310699cb6ab06afefc4213f953350b6f"
+    },
+    {
+      "caseId": "holdout-records",
+      "layer": 0,
+      "field": "recurrentState",
+      "shape": [
+        1,
+        48,
+        128,
+        128
+      ],
+      "position": 750,
+      "path": "holdout-records-layer-0-recurrentState.npy",
+      "sha256": "d6548dc4f71274e178a8435cc1b325561382d24b3637b865d51457f72ba80af9"
+    },
+    {
+      "caseId": "holdout-records",
+      "layer": 0,
+      "field": "convState",
+      "shape": [
+        1,
+        10240,
+        4
+      ],
+      "position": 750,
+      "path": "holdout-records-layer-0-convState.npy",
+      "sha256": "69063a0abeb53c42eb14bbe4b4dee82de7887e22b5a4c773dda4cae793579441"
+    },
+    {
+      "caseId": "holdout-records",
+      "layer": 30,
+      "field": "recurrentState",
+      "shape": [
+        1,
+        48,
+        128,
+        128
+      ],
+      "position": 750,
+      "path": "holdout-records-layer-30-recurrentState.npy",
+      "sha256": "c81e5bd834f046866767f01a2c63f49b883cd74ff43f0ecb0b6d22322082cadd"
+    },
+    {
+      "caseId": "holdout-records",
+      "layer": 30,
+      "field": "convState",
+      "shape": [
+        1,
+        10240,
+        4
+      ],
+      "position": 750,
+      "path": "holdout-records-layer-30-convState.npy",
+      "sha256": "e1e6b7e64d54b72064cd15a097bab55f0662563e8ea151ec0a88830f8944bb81"
+    },
+    {
+      "caseId": "holdout-records",
+      "layer": 62,
+      "field": "recurrentState",
+      "shape": [
+        1,
+        48,
+        128,
+        128
+      ],
+      "position": 750,
+      "path": "holdout-records-layer-62-recurrentState.npy",
+      "sha256": "082beb3212f74c6904e4c9c1456dccc11809954ffc84cbf9b6f429f2228a6a4a"
+    },
+    {
+      "caseId": "holdout-records",
+      "layer": 62,
+      "field": "convState",
+      "shape": [
+        1,
+        10240,
+        4
+      ],
+      "position": 750,
+      "path": "holdout-records-layer-62-convState.npy",
+      "sha256": "8261e0a25bb1e750378ffe562da9382e17f29a2c8d585b22fe5f3529b6cbf18e"
+    }
+  ],
+  "linearAttentionAlgorithm": "recurrent",
+  "maxRssBytes": 17893056512
+}

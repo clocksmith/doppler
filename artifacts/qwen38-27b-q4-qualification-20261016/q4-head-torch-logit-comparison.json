@@ -1,0 +1,223 @@
+{
+  "schema": "doppler.qwen-quantized-forced-logit-comparison/v1",
+  "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+  "referenceSha256": "2a4016b8932ed88cd255a8954f9778cbe36c2569ff2524482e03696426c6a88d",
+  "candidateSha256": "2f474515eeff13536a3f2cb4c2c0968e52af5d9f1d4b3e65128df0dd5dd0a252",
+  "contractSha256": "d0c78bfc294493644d1b133b1cc6b8cbbf3017fb01529543d82b5ddbe8c2d32e",
+  "toolSha256": "a3f67d55b17dd70cd80af22c8805831f485a6481496c057e5ec107cb6a0ed76c",
+  "maxAbsoluteLogitError": 0.001,
+  "rows": [
+    {
+      "position": 4,
+      "maxAbsoluteError": 0.00011301040649414062,
+      "rmsError": 1.8779153582914203e-05,
+      "cosineSimilarity": 0.9999999999784538,
+      "referenceTopToken": 11751,
+      "dopplerTopToken": 11751,
+      "referenceMargin": 2.4746017456054688,
+      "topReferenceTokens": [
+        {
+          "token": 11751,
+          "reference": 17.306760787963867,
+          "doppler": 17.306732177734375,
+          "error": 2.86102294921875e-05
+        },
+        {
+          "token": 524,
+          "reference": 14.832159042358398,
+          "doppler": 14.832122802734375,
+          "error": 3.62396240234375e-05
+        },
+        {
+          "token": 25,
+          "reference": 14.558797836303711,
+          "doppler": 14.558794975280762,
+          "error": 2.86102294921875e-06
+        },
+        {
+          "token": 31586,
+          "reference": 14.497727394104004,
+          "doppler": 14.49770736694336,
+          "error": 2.002716064453125e-05
+        },
+        {
+          "token": 264,
+          "reference": 14.329241752624512,
+          "doppler": 14.32922649383545,
+          "error": 1.52587890625e-05
+        }
+      ],
+      "passed": true
+    },
+    {
+      "position": 100,
+      "maxAbsoluteError": 0.000762939453125,
+      "rmsError": 0.0001318280436713334,
+      "cosineSimilarity": 0.9999999993812775,
+      "referenceTopToken": 314,
+      "dopplerTopToken": 314,
+      "referenceMargin": 10.942296028137207,
+      "topReferenceTokens": [
+        {
+          "token": 314,
+          "reference": 24.192296981811523,
+          "doppler": 24.192068099975586,
+          "error": 0.0002288818359375
+        },
+        {
+          "token": 33200,
+          "reference": 13.250000953674316,
+          "doppler": 13.25014877319336,
+          "error": 0.00014781951904296875
+        },
+        {
+          "token": 26707,
+          "reference": 12.818466186523438,
+          "doppler": 12.818572044372559,
+          "error": 0.00010585784912109375
+        },
+        {
+          "token": 22466,
+          "reference": 12.600724220275879,
+          "doppler": 12.60096263885498,
+          "error": 0.0002384185791015625
+        },
+        {
+          "token": 321,
+          "reference": 12.583494186401367,
+          "doppler": 12.583582878112793,
+          "error": 8.869171142578125e-05
+        }
+      ],
+      "passed": true
+    },
+    {
+      "position": 101,
+      "maxAbsoluteError": 0.0008707046508789062,
+      "rmsError": 0.00013571410947721272,
+      "cosineSimilarity": 0.9999999992606462,
+      "referenceTopToken": 26707,
+      "dopplerTopToken": 26707,
+      "referenceMargin": 0.23260116577148438,
+      "topReferenceTokens": [
+        {
+          "token": 26707,
+          "reference": 22.036718368530273,
+          "doppler": 22.036945343017578,
+          "error": 0.0002269744873046875
+        },
+        {
+          "token": 33200,
+          "reference": 21.80411720275879,
+          "doppler": 21.804109573364258,
+          "error": 7.62939453125e-06
+        },
+        {
+          "token": 22466,
+          "reference": 21.32296371459961,
+          "doppler": 21.32326316833496,
+          "error": 0.0002994537353515625
+        },
+        {
+          "token": 30466,
+          "reference": 19.120574951171875,
+          "doppler": 19.120567321777344,
+          "error": 7.62939453125e-06
+        },
+        {
+          "token": 41361,
+          "reference": 18.50115966796875,
+          "doppler": 18.501178741455078,
+          "error": 1.9073486328125e-05
+        }
+      ],
+      "passed": true
+    },
+    {
+      "position": 102,
+      "maxAbsoluteError": 0.00023102760314941406,
+      "rmsError": 4.318520560434881e-05,
+      "cosineSimilarity": 0.9999999999403785,
+      "referenceTopToken": 369,
+      "dopplerTopToken": 369,
+      "referenceMargin": 8.973784446716309,
+      "topReferenceTokens": [
+        {
+          "token": 369,
+          "reference": 23.578773498535156,
+          "doppler": 23.578685760498047,
+          "error": 8.7738037109375e-05
+        },
+        {
+          "token": 513,
+          "reference": 14.604989051818848,
+          "doppler": 14.604961395263672,
+          "error": 2.765655517578125e-05
+        },
+        {
+          "token": 682,
+          "reference": 14.056549072265625,
+          "doppler": 14.05650520324707,
+          "error": 4.38690185546875e-05
+        },
+        {
+          "token": 318,
+          "reference": 13.614652633666992,
+          "doppler": 13.61458969116211,
+          "error": 6.29425048828125e-05
+        },
+        {
+          "token": 220,
+          "reference": 13.38842487335205,
+          "doppler": 13.3883695602417,
+          "error": 5.53131103515625e-05
+        }
+      ],
+      "passed": true
+    },
+    {
+      "position": 103,
+      "maxAbsoluteError": 0.00022649765014648438,
+      "rmsError": 3.86043042129619e-05,
+      "cosineSimilarity": 0.9999999999580924,
+      "referenceTopToken": 60935,
+      "dopplerTopToken": 60935,
+      "referenceMargin": 9.612201690673828,
+      "topReferenceTokens": [
+        {
+          "token": 60935,
+          "reference": 27.521339416503906,
+          "doppler": 27.521305084228516,
+          "error": 3.4332275390625e-05
+        },
+        {
+          "token": 351,
+          "reference": 17.909137725830078,
+          "doppler": 17.909114837646484,
+          "error": 2.288818359375e-05
+        },
+        {
+          "token": 55918,
+          "reference": 15.605002403259277,
+          "doppler": 15.605045318603516,
+          "error": 4.291534423828125e-05
+        },
+        {
+          "token": 279,
+          "reference": 15.432063102722168,
+          "doppler": 15.432039260864258,
+          "error": 2.384185791015625e-05
+        },
+        {
+          "token": 50332,
+          "reference": 14.855741500854492,
+          "doppler": 14.855743408203125,
+          "error": 1.9073486328125e-06
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "scope": "One fixed shared input trajectory; numerical diagnostic, not model quality or release qualification"
+}
