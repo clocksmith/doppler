@@ -14,12 +14,13 @@ and the `gpuResidentOverrides` fix moving `embed_tokens.weight` to GPU.
 
 ## The evidence
 
-Canonical post-fix receipt: [`compare-goal1.stdout`](../../compare-goal1.stdout)
+Retained post-fix receipt: [`compare-goal1.stdout`](https://github.com/clocksmith/doppler/blob/0ce2b3801042654e495f3c4ce1d1a355acb5dfd7/compare-goal1.stdout)
 (2026-04-16T00:27:34Z, Apple M3, the manifest-owned throughput path with
 `gpuResidentOverrides` active). The corresponding pre-fix receipt is
 preserved in git history at commit
 [`3e1a6f9`](https://github.com/clocksmith/doppler/commit/3e1a6f9fc0711a70a3b55856307e5033b850f34c)
-(`git show 3e1a6f9:compare-goal1.stdout`). Both captured on the same
+(`git show 3e1a6f9:compare-goal1.stdout`). Recover the post-fix receipt with
+`git show 0ce2b380:compare-goal1.stdout`; it is no longer a working-tree file. Both captured on the same
 M3, same workload (`p064-d064-t0-k1`), tokenizerDelta P3 gating active.
 
 Hardware: Apple M3 / darwin arm64 / Chromium (`apple-m3` Metal 3).

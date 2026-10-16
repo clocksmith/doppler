@@ -1,137 +1,19 @@
-import { getDevice, setTrackSubmits } from '../../../../gpu/device.js';
-import { acquireBuffer, releaseBuffer, readBuffer, readBufferSlice, uploadData } from '../../../../memory/buffer-pool.js';
-import { isGPUSamplingAvailable } from '../../../../gpu/kernels/sample.js';
-import { markWarmed as markKernelCacheWarmed } from '../../../../gpu/kernel-selection-cache.js';
-import { resetSubmitStats, logSubmitStats } from '../../../../gpu/submit-tracker.js';
-import { createCommandRecorder, createProfilingRecorder, CommandRecorder } from '../../../../gpu/command-recorder.js';
-import { allowReadback } from '../../../../gpu/perf-guards.js';
-import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
+import '../../../../gpu/device.js'; // Preserve declared device initialization side effects.
+import { releaseBuffer, readBuffer } from '../../../../memory/buffer-pool.js';
+import { trace, isTraceEnabled } from '../../../../debug/index.js';
 import {
-  runMatmul,
-  runRMSNorm,
-  runGeLU,
-  runResidualAdd,
-  runScale,
-  runSoftmax,
-  runSoftEmbeddingSplitF16,
-  runSoftEmbeddingLogitsF16,
-} from '../../../../gpu/kernel-selector.js';
-import { runDiffusionGemmaCanvasStats } from '../../../../gpu/kernels/diffusion-gemma-sampling.js';
-import {
-  CAPTURE_LEVELS,
-  createDefaultCaptureConfig,
-  validateCaptureConfig,
-} from '../../../../debug/index.js';
-import { validateCallTimeOptions } from '../../../../config/param-validator.js';
-import { selectRuleValue } from '../../../../rules/rule-registry.js';
-import { sample, applyRepetitionPenalty, logitsSanity, getTopK } from '../sampling.js';
-import { createKVCache, isStopToken } from '../init.js';
-import { embed } from '../embed.js';
-import { processLayer } from '../layer.js';
-import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits, applySoftcapping } from '../logits/index.js';
-import { OperatorEventEmitter } from '../operator-events.js';
-import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype, getWeightMetadata, getLayout } from '../../../../gpu/weight-buffer.js';
-import {
-  decodeStep,
-  decodeStepLogits,
-  advanceWithToken,
-  generateNTokensGPU,
-  shouldUseBatchDecode,
-  sumProfileTimings,
-  FinitenessError,
-  advanceWithTokenAndEmbedding as runAdvanceWithTokenAndEmbedding,
-} from '../generator-steps.js';
-import {
-  buildLayerContext,
-  debugCheckBuffer as debugCheckBufferHelper,
-  resolvePerLayerInputsSession,
-} from './session-context.js';
-import {
-  getLogitsConfig,
-  getLogitsWeights,
-} from './logits-config.js';
-import { releaseSharedAttentionState } from './attention-lifecycle.js';
-import {
-  assertTokenIdsInRange,
-  assertTokenIdInRange,
-  resolveStepOptions,
-  resolveGenerateOptions,
-  resolvePrefillOptions,
-  resolvePrefillEmbeddingOptions,
-  resolveAdvanceEmbeddingMode,
-  getFinalNormWeights,
-  extractEmbeddingFromHidden,
-  extractTokenEmbeddingsFromHidden,
-} from '../generator-runtime.js';
-import { resolveSamplingConfig } from '../sampling-config.js';
+  isWeightBuffer,
+  isGpuBufferInstance,
+  isSplitWeightBuffer,
+  getWeightDtype,
+  getLayout,
+} from '../../../../gpu/weight-buffer.js';
 import { decodeReadback, getLogitsHealth } from '../debug-utils/index.js';
-import { parseFinitenessStatusWords } from '../finiteness-guard-status.js';
-import { resolveDeferredRoundingWindowTokens } from '../finiteness-policy.js';
-import {
-  advanceDecodeStepCount,
-  createTsirFixtureState,
-  drainPendingTsirReads,
-} from '../tsir-fixture-writer.js';
-import {
-  activateFallbackExecutionPlan,
-  hasFallbackExecutionPlan,
-  rebaseExecutionSessionPlan,
-  resetActiveExecutionPlan,
-  resolveMaxBatchDecodeTokens,
-  resolvePrefillRecorderChunkLayers,
-  resolveActiveExecutionPlan,
-  setActiveExecutionPlan,
-} from '../execution-plan.js';
-import {
-  cloneLinearAttentionRuntime,
-  hasLinearAttentionLayers,
-  resetLinearAttentionRuntime,
-  restoreLinearAttentionRuntime,
-} from '../linear-attention.js';
-import {
-  preparePerLayerInputs,
-  createPleBufferCache,
-  prefetchPerLayerRow,
-  getPleHotVocabularyRuntime,
-  hasGpuSplitPerLayerInputEmbeddings,
-  hasRangeBackedPerLayerInputEmbeddings,
-} from '../per-layer-inputs.js';
-import { createTensor, tensorElementBytes } from '../../../../gpu/tensor.js';
-import { getQKNormOnesBuffer } from '../attention/types.js';
+import { tensorElementBytes } from '../../../../gpu/tensor.js';
 import {
   getWeightBuffer as getPipelineWeightBuffer,
   getNormWeightBuffer as getPipelineNormWeightBuffer,
 } from '../weights.js';
-import {
-  resolvePromptInput,
-} from './prompt-input.js';
-import {
-  releasePerLayerInputBuffer,
-  shouldDisablePrefillCommandBatching,
-  resolveEffectivePrefillTokenChunkSize,
-} from './prefill-policy.js';
-import {
-  normalizePrefixEmbeddingOverride,
-  resolvePrefillEmbeddingInputIds,
-  resolvePrefillMultimodalBidirectionalSpan,
-  applyPrefixEmbeddingOverride,
-  resolvePrefixEmbeddingOverrideTransitionDeclaredBy,
-} from './prefix-embedding.js';
-import {
-  shouldDisableBatchDecodeAfterShortBatch,
-  resolveHotVocabularyBatchDecodeAvailability,
-  primePleDecodeRuntimeCache,
-  recordPrefillProfileStep,
-  resolveTokenText,
-  usesReplayPrefillDecode,
-  assertIncrementalDecodeSupport,
-  summarizeExecutionPlan,
-  shouldRetryWithFinitenessFallback,
-  createUnhandledFinitenessPolicyError,
-  resolveTargetPlanKVDtype,
-  resolveCurrentKVCacheDtype,
-  cloneRuntimeInferenceWithKVDtype,
-} from '../generator-decode-policy.js';
 
 export const SPECIAL_LIKE_TOKEN_RE = /^(<pad>|<unused\d*>|<eos>|<bos>|<s>|<\/s>|\[PAD\]|\[UNK\]|\[SEP\]|\[CLS\]|<[^>\n]{1,32}>)$/i;
 

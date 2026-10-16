@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": false
+  },
+  "include": [],
+  "files": [
+    "src/cli/doppler-cli.js",
+    "src/converter/artifact-identity.js",
+    "src/inference/pipelines/text/generator.js",
+    "src/inference/pipelines/text/generator/text.js"
+  ]
+}
