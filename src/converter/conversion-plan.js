@@ -139,7 +139,13 @@ function resolveConversionPlanV1(options) {
     : rawInference;
   const execution = converterConfig.execution;
   const session = converterConfig.session;
-  const modelType = converterConfig?.modelType ?? rawConfig?.model_type ?? 'transformer';
+  const modelType = converterConfig.modelType;
+  if (typeof modelType !== 'string' || modelType.length === 0 || modelType !== modelType.trim()) {
+    throw new Error(
+      'V1 conversion config requires an explicit modelType naming the runtime pipeline ' +
+      '(for example "transformer"). Source model_type identifies an architecture, not a runtime pipeline.'
+    );
+  }
   const requiresSessionPolicy = modelType !== 'embedding';
 
   if (!inference || typeof inference !== 'object') {

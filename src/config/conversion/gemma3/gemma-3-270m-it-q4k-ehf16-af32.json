@@ -414,5 +414,6 @@
       "manifestVariantId": "gemma-3-270m-it-q4k-ehf16-af32-mv-exec-v1",
       "artifactCompleteness": "complete"
     }
-  }
+  },
+  "modelType": "transformer"
 }

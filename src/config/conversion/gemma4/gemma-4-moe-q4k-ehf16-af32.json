@@ -377,5 +377,6 @@
   },
   "largeWeights": {
     "gpuResidentOverrides": null
-  }
+  },
+  "modelType": "gemma4"
 }

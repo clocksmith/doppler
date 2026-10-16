@@ -127,6 +127,7 @@ export interface ConverterConfigSchema {
   moeConfig?: MoEConfigSchema | null;
   execution?: ExecutionV1GraphSchema;
   session?: ExecutionV1SessionSchema;
+  /** Required for v1 conversion plans: runtime pipeline ID, not source model_type. */
   modelType?: string;
 }
 
