@@ -1,0 +1,119 @@
+(lldb) target create "/Users/xyz/.nvm/versions/node/v22.20.0/bin/node"
+Current executable set to '/Users/xyz/.nvm/versions/node/v22.20.0/bin/node' (arm64).
+(lldb) settings set -- target.run-args  "artifacts/qwen08-perf-20261015/mma-probe.js" "mma"
+(lldb) run
+provider imported
+device ready
+compile mma
+Process 84932 launched: '/Users/xyz/.nvm/versions/node/v22.20.0/bin/node' (arm64)
+Process 84932 stopped
+* thread #1, queue = 'com.apple.main-thread', stop reason = EXC_BAD_ACCESS (code=1, address=0x4e6f3454094c0a04)
+    frame #0: 0x0000000183ae6408 libsystem_pthread.dylib`pthread_mutex_lock + 12
+libsystem_pthread.dylib`pthread_mutex_lock:
+->  0x183ae6408 <+12>: ldr    x8, [x0]
+    0x183ae640c <+16>: mov    w9, #0x545a               ; =21594 
+    0x183ae6410 <+20>: movk   w9, #0x4d55, lsl #16
+    0x183ae6414 <+24>: cmp    x8, x9
+Target 0: (node) stopped.
+(lldb) thread backtrace all
+* thread #1, queue = 'com.apple.main-thread', stop reason = EXC_BAD_ACCESS (code=1, address=0x4e6f3454094c0a04)
+  * frame #0: 0x0000000183ae6408 libsystem_pthread.dylib`pthread_mutex_lock + 12
+    frame #1: 0x00000001839fe010 libc++.1.dylib`std::__1::mutex::lock() + 16
+    frame #2: 0x000000011cc21038 darwin-universal.dawn.node`dawn::native::InstanceBase::ProcessEvents() + 44
+    frame #3: 0x000000011c8fe00c darwin-universal.dawn.node`Napi::details::CallbackData<wgpu::binding::AsyncRunner::ScheduleProcessEvents(Napi::Env)::$_0, void>::Wrapper(napi_env__*, napi_callback_info__*) + 92
+    frame #4: 0x00000001000b187c node`v8impl::(anonymous namespace)::FunctionCallbackWrapper::Invoke(v8::FunctionCallbackInfo<v8::Value> const&) + 72
+    frame #5: 0x0000000100d12f98 node`Builtins_CallApiCallbackGeneric + 184
+    frame #6: 0x000000010b4968ec
+    frame #7: 0x0000000100d0ec0c node`Builtins_JSEntryTrampoline + 172
+    frame #8: 0x0000000100d0e8f4 node`Builtins_JSEntry + 148
+    frame #9: 0x0000000100448998 node`v8::internal::(anonymous namespace)::Invoke(v8::internal::Isolate*, v8::internal::(anonymous namespace)::InvokeParams const&) + 1652
+    frame #10: 0x00000001004482f4 node`v8::internal::Execution::Call(v8::internal::Isolate*, v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::Object>, int, v8::internal::Handle<v8::internal::Object>*) + 120
+    frame #11: 0x00000001002f78e0 node`v8::Function::Call(v8::Local<v8::Context>, v8::Local<v8::Value>, int, v8::Local<v8::Value>*) + 524
+    frame #12: 0x0000000100005d08 node`node::InternalMakeCallback(node::Environment*, v8::Local<v8::Object>, v8::Local<v8::Object>, v8::Local<v8::Function>, int, v8::Local<v8::Value>*, node::async_context, v8::Local<v8::Value>) + 504
+    frame #13: 0x0000000100005ff0 node`node::InternalMakeCallback(v8::Isolate*, v8::Local<v8::Object>, v8::Local<v8::Function>, int, v8::Local<v8::Value>*, node::async_context, v8::Local<v8::Value>) + 200
+    frame #14: 0x00000001000921e0 node`node::Environment::CheckImmediate(uv_check_s*) + 400
+    frame #15: 0x0000000100cf3c14 node`uv__run_check + 136
+    frame #16: 0x0000000100cecc34 node`uv_run + 1256
+    frame #17: 0x0000000100006518 node`node::SpinEventLoopInternal(node::Environment*) + 256
+    frame #18: 0x000000010014f520 node`node::NodeMainInstance::Run() + 276
+    frame #19: 0x00000001000bfb98 node`node::Start(int, char**) + 600
+    frame #20: 0x00000001837204e4 dyld`start + 6992
+  thread #2, name = 'DelayedTaskSchedulerWorker'
+    frame #0: 0x0000000183aadfc4 libsystem_kernel.dylib`kevent + 8
+    frame #1: 0x0000000100d0043c node`uv__io_poll + 784
+    frame #2: 0x0000000100cec8e4 node`uv_run + 408
+    frame #3: 0x0000000100185f2c node`node::WorkerThreadsTaskRunner::DelayedTaskScheduler::Run() + 352
+    frame #4: 0x0000000183aebc58 libsystem_pthread.dylib`_pthread_start + 136
+  thread #3
+    frame #0: 0x0000000183aab50c libsystem_kernel.dylib`__psynch_cvwait + 8
+    frame #1: 0x0000000183aec128 libsystem_pthread.dylib`_pthread_cond_wait + 980
+    frame #2: 0x0000000100cfb50c node`uv_cond_wait + 40
+    frame #3: 0x00000001001860e8 node`node::TaskQueue<v8::Task>::Locked::BlockingPop() + 52
+    frame #4: 0x0000000100183704 node`node::(anonymous namespace)::PlatformWorkerThread(void*) + 608
+    frame #5: 0x0000000183aebc58 libsystem_pthread.dylib`_pthread_start + 136
+  thread #4
+    frame #0: 0x0000000183aab50c libsystem_kernel.dylib`__psynch_cvwait + 8
+    frame #1: 0x0000000183aec128 libsystem_pthread.dylib`_pthread_cond_wait + 980
+    frame #2: 0x0000000100cfb50c node`uv_cond_wait + 40
+    frame #3: 0x00000001001860e8 node`node::TaskQueue<v8::Task>::Locked::BlockingPop() + 52
+    frame #4: 0x0000000100183704 node`node::(anonymous namespace)::PlatformWorkerThread(void*) + 608
+    frame #5: 0x0000000183aebc58 libsystem_pthread.dylib`_pthread_start + 136
+  thread #5
+    frame #0: 0x0000000183aab50c libsystem_kernel.dylib`__psynch_cvwait + 8
+    frame #1: 0x0000000183aec128 libsystem_pthread.dylib`_pthread_cond_wait + 980
+    frame #2: 0x0000000100cfb50c node`uv_cond_wait + 40
+    frame #3: 0x00000001001860e8 node`node::TaskQueue<v8::Task>::Locked::BlockingPop() + 52
+    frame #4: 0x0000000100183704 node`node::(anonymous namespace)::PlatformWorkerThread(void*) + 608
+    frame #5: 0x0000000183aebc58 libsystem_pthread.dylib`_pthread_start + 136
+  thread #6
+    frame #0: 0x0000000183aab50c libsystem_kernel.dylib`__psynch_cvwait + 8
+    frame #1: 0x0000000183aec128 libsystem_pthread.dylib`_pthread_cond_wait + 980
+    frame #2: 0x0000000100cfb50c node`uv_cond_wait + 40
+    frame #3: 0x00000001001860e8 node`node::TaskQueue<v8::Task>::Locked::BlockingPop() + 52
+    frame #4: 0x0000000100183704 node`node::(anonymous namespace)::PlatformWorkerThread(void*) + 608
+    frame #5: 0x0000000183aebc58 libsystem_pthread.dylib`_pthread_start + 136
+  thread #7
+    frame #0: 0x0000000183aa7bb0 libsystem_kernel.dylib`semaphore_wait_trap + 8
+    frame #1: 0x0000000100cfb388 node`uv_sem_wait + 24
+    frame #2: 0x000000010024cb9c node`node::inspector::(anonymous namespace)::StartIoThreadMain(void*) + 44
+    frame #3: 0x0000000183aebc58 libsystem_pthread.dylib`_pthread_start + 136
+  thread #8, queue = 'com.apple.CoreAnalytics::Client XPC Send'
+    frame #0: 0x0000000193b22d04 AppleSauce`operator new(unsigned long, std::__type_descriptor_t) + 8
+    frame #1: 0x0000000193b2205c AppleSauce`___lldb_unnamed_symbol711 + 116
+    frame #2: 0x000000018d683d10 CoreAnalytics`std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> applesauce::xpc::dyn_cast<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>>(applesauce::xpc::object const&) + 52
+    frame #3: 0x000000018d69f6b4 CoreAnalytics`invocation function for block in CoreAnalytics::Client::sendXpcMessage_sync(applesauce::xpc::dict, XPCMessagePriority, bool, bool) + 172
+    frame #4: 0x000000018393ef04 libdispatch.dylib`_dispatch_block_async_invoke2 + 148
+    frame #5: 0x00000001839494b0 libdispatch.dylib`_dispatch_client_callout + 16
+    frame #6: 0x0000000183938030 libdispatch.dylib`_dispatch_lane_serial_drain + 740
+    frame #7: 0x0000000183938b2c libdispatch.dylib`_dispatch_lane_invoke + 392
+    frame #8: 0x0000000183942e34 libdispatch.dylib`_dispatch_root_queue_drain_deferred_wlh + 284
+    frame #9: 0x0000000183942734 libdispatch.dylib`_dispatch_workloop_worker_thread + 720
+    frame #10: 0x0000000183ae7ec0 libsystem_pthread.dylib`_pthread_wqthread + 292
+  thread #9
+    frame #0: 0x0000000183aa99f0 libsystem_kernel.dylib`__workq_kernreturn + 8
+  thread #10, name = 'libuv-worker'
+    frame #0: 0x0000000183aab50c libsystem_kernel.dylib`__psynch_cvwait + 8
+    frame #1: 0x0000000183aec128 libsystem_pthread.dylib`_pthread_cond_wait + 980
+    frame #2: 0x0000000100cfb50c node`uv_cond_wait + 40
+    frame #3: 0x0000000100ce8ad0 node`worker + 392
+    frame #4: 0x0000000183aebc58 libsystem_pthread.dylib`_pthread_start + 136
+  thread #11, name = 'libuv-worker'
+    frame #0: 0x0000000183aab50c libsystem_kernel.dylib`__psynch_cvwait + 8
+    frame #1: 0x0000000183aec128 libsystem_pthread.dylib`_pthread_cond_wait + 980
+    frame #2: 0x0000000100cfb50c node`uv_cond_wait + 40
+    frame #3: 0x0000000100ce8ad0 node`worker + 392
+    frame #4: 0x0000000183aebc58 libsystem_pthread.dylib`_pthread_start + 136
+  thread #12, name = 'libuv-worker'
+    frame #0: 0x0000000183aab50c libsystem_kernel.dylib`__psynch_cvwait + 8
+    frame #1: 0x0000000183aec128 libsystem_pthread.dylib`_pthread_cond_wait + 980
+    frame #2: 0x0000000100cfb50c node`uv_cond_wait + 40
+    frame #3: 0x0000000100ce8ad0 node`worker + 392
+    frame #4: 0x0000000183aebc58 libsystem_pthread.dylib`_pthread_start + 136
+  thread #13, name = 'libuv-worker'
+    frame #0: 0x0000000183aab50c libsystem_kernel.dylib`__psynch_cvwait + 8
+    frame #1: 0x0000000183aec128 libsystem_pthread.dylib`_pthread_cond_wait + 980
+    frame #2: 0x0000000100cfb50c node`uv_cond_wait + 40
+    frame #3: 0x0000000100ce8ad0 node`worker + 392
+    frame #4: 0x0000000183aebc58 libsystem_pthread.dylib`_pthread_start + 136
+  thread #14
+    frame #0: 0x0000000183ae6c08 libsystem_pthread.dylib`start_wqthread

@@ -1,0 +1,59 @@
+{
+  "complete": true,
+  "provider": "file:///Users/xyz/deco/doe/packages/doe-gpu/src/index.js",
+  "cancelled": {
+    "tokenCount": 3,
+    "stopReason": "aborted"
+  },
+  "reuseTokenIds": [
+    2420,
+    6265,
+    321,
+    460,
+    1070,
+    506,
+    279,
+    3929,
+    17471,
+    13,
+    1061,
+    369,
+    264,
+    5604,
+    2128,
+    883
+  ],
+  "poolAfterUnload": {
+    "allocations": 6090,
+    "reuses": 1199,
+    "totalBytesAllocated": 1905118208,
+    "peakBytesAllocated": 1599660800,
+    "currentBytesAllocated": 41586944,
+    "totalBytesRequested": 1895822336,
+    "peakBytesRequested": 1596793344,
+    "currentBytesRequested": 0,
+    "resources": {
+      "retainedModel": {
+        "bytes": 0,
+        "count": 0
+      },
+      "active": {
+        "bytes": 0,
+        "count": 0
+      },
+      "reusable": {
+        "bytes": 41586944,
+        "count": 64
+      },
+      "deferredCleanup": {
+        "bytes": 0,
+        "count": 0
+      }
+    },
+    "activeBuffers": 0,
+    "pooledBuffers": 64,
+    "budgetMaxBytes": 6442450944,
+    "budgetUtilization": 0.006455143292744954,
+    "hitRate": "16.4%"
+  }
+}

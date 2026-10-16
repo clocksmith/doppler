@@ -1,0 +1,72 @@
+{
+  "scope": "Diagnostic reproduction; commands run from Doppler root unless stated. Use a new output directory to preserve these receipts.",
+  "frozenRuntime": "fd9adbc41b58c1863c529a23bbfa9bb6fa0a64e6",
+  "dependencies": {
+    "node": "22.20.0",
+    "webgpu": "0.4.0",
+    "zig": "0.15.2",
+    "mlxRequirements": "../qwen08-m3-mlx-20261015/mlx-requirements.txt"
+  },
+  "snapshotPreparation": [
+    "mkdir -p .cache/qwen08-runtime",
+    "git archive fd9adbc41b58c1863c529a23bbfa9bb6fa0a64e6 src tools package.json AGENTS.md GOALS.md CATSCAN.md docs | tar -x -C .cache/qwen08-runtime",
+    "ln -s ../../node_modules .cache/qwen08-runtime/node_modules",
+    "mkdir -p .cache/qwen08-runtime/artifacts",
+    "cp -R artifacts/qwen08-m3-mlx-20261015 artifacts/qwen08-perf-20261015 .cache/qwen08-runtime/artifacts/"
+  ],
+  "modelPreparation": [
+    "python3 artifacts/qwen08-m3-mlx-20261015/prepare-source.py",
+    "node .cache/qwen08-runtime/tools/convert-safetensors-node.js .cache/qwen08-source --config artifacts/qwen08-m3-mlx-20261015/conversion.json"
+  ],
+  "cacheState": "Original source weights were deleted after the filesystem filled. Converted weights remain local; source weights can be reacquired and hash-checked by prepare-source.py. No weights are committed.",
+  "generationCommand": "node .cache/qwen08-runtime/artifacts/qwen08-perf-20261015/doppler.js .cache/qwen08-f16 artifacts/qwen08-m3-mlx-20261015/inputs.json <result.json> artifacts/qwen08-perf-20261015/<policy.json>",
+  "policies": {
+    "baseline": "policy.json",
+    "candidate": "tiled-policy.json",
+    "timestamps": "gpu-timestamps-policy.json"
+  },
+  "doe": {
+    "landedCommit": "6fd3012d4",
+    "binaryIdentity": "doe-identity.json",
+    "binaryScope": "Measured library was built on the sourceBase plus doe-source.patch, before rebasing the fix onto newer main. The landed commit is not the measured binary identity.",
+    "build": "In Doe runtime/zig: zig build dropin emit-msl -Doptimize=ReleaseFast --prefix <doe-root>/.cache/qwen08-native",
+    "environment": {
+      "DOE_WEBGPU_LIB": "<doe-root>/.cache/qwen08-native/lib/libwebgpu_doe.dylib",
+      "DOPPLER_NODE_WEBGPU_MODULE": "file://<doe-root>/packages/doe-gpu/src/index.js"
+    },
+    "focusedChecks": [
+      "test-integration-metal-buffer-limits.js: independent maxBufferLength oracle and last-word readback in a 512MiB storage buffer",
+      "test-integration-nested-blocks.js: actual GPU results for scopes, helper declarations, constants and workgroup capture",
+      "Zig filters: compute runtime, MSL, Metal limits and integer tests passed; compiler prototype counting test updated to exclude declarations"
+    ]
+  },
+  "wasmBuild": "zig build-exe artifacts/qwen08-perf-20261015/half-convert.zig -target wasm32-freestanding -mcpu=baseline+simd128 -O ReleaseFast -fno-entry -rdynamic --export-memory --initial-memory=134217728 --max-memory=134217728 -femit-bin=artifacts/qwen08-perf-20261015/half-convert.wasm",
+  "standaloneProbes": [
+    "node artifacts/qwen08-perf-20261015/wasm-probe.js",
+    "node artifacts/qwen08-perf-20261015/browser-capabilities.js",
+    "node artifacts/qwen08-perf-20261015/webnn-projection.js",
+    "node .cache/qwen08-runtime/artifacts/qwen08-perf-20261015/mma-probe.js"
+  ],
+  "summaryCheck": "node artifacts/qwen08-perf-20261015/summarize.js",
+  "timingLimitations": [
+    "Sequential diagnostic runs, two timed model repetitions per prompt length; no confidence interval or tail qualification.",
+    "Observed host contention during confirmation; see host-contention.txt. All slow samples retained.",
+    "MLX and Doppler match text weight dtype and output token IDs but differ in internal activation and normalization arithmetic.",
+    "MMA prototype uses synthetic matrices, WebNN uses different synthetic values and float32 weights; their latencies are not direct comparisons."
+  ],
+  "failedAttempts": [
+    "doe-probe.json",
+    "doe-after-limits.json",
+    "doe-after-scopes.json",
+    "doe-after-forward.json",
+    "doe-after-unsigned.json",
+    "gpu-profile-run.json",
+    "mma-probe-mma.json"
+  ],
+  "mmaHarnessFix": "Retain Dawn GPU instance on globalThis through process exit. Earlier event-pump crashes are retained in mma-crash-backtrace.log and mma-crash-stack.log.",
+  "acceptance": {
+    "component": "doppler",
+    "intent": "preserved",
+    "boundaryEffects": "No production Doppler runtime/config changes; Doe owns native correctness fixes."
+  }
+}

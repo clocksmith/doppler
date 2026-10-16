@@ -1,0 +1,46 @@
+{
+  "scope": "Standalone F32 accumulation, F16 weight projection; not model qualification",
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  },
+  "configs": [
+    {
+      "componentType": "f32",
+      "resultComponentType": "f32",
+      "M": 8,
+      "N": 8,
+      "K": 8
+    },
+    {
+      "componentType": "f16",
+      "resultComponentType": "f16",
+      "M": 8,
+      "N": 8,
+      "K": 8
+    }
+  ],
+  "tolerance": {
+    "absolute": 0.001,
+    "relative": 0.001
+  },
+  "rows": [
+    {
+      "M": 128,
+      "N": 1024,
+      "K": 1024,
+      "name": "mma",
+      "compileMs": 3.408333000000084,
+      "sha256": "40c6af46a6242cc67982256620a5d0af0fafdbdf9d27e040eb38f3e8918a9224",
+      "times": [
+        2.746417000000065,
+        2.7796670000000177,
+        2.709124999999858
+      ],
+      "maxAbsVsScalar": 0,
+      "maxAbsVsReference": 6.690530369724002e-7,
+      "checkedOutputs": 131072,
+      "referenceSamples": 64
+    }
+  ]
+}

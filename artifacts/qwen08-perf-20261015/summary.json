@@ -1,0 +1,308 @@
+{
+  "scope": "M3 Qwen3.5-0.8B F16 diagnostics; no vendor ranking or runtime optimization promotion",
+  "runtimeCommit": "fd9adbc41b58c1863c529a23bbfa9bb6fa0a64e6",
+  "comparisons": {
+    "baseline-confirm": {
+      "exactTokenAgreement": true,
+      "claim": "Sequential diagnostic, 2 timed repetitions per length; not an interleaved performance ranking.",
+      "timingBoundary": "Prompt-to-first delivered token; decode uses 127 delivery intervals for 128 tokens. Includes orchestration; not pure GPU time.",
+      "measurements": [
+        {
+          "promptTokens": 128,
+          "engines": [
+            {
+              "engine": "doppler",
+              "totalRunMsMedian": 4751.203812,
+              "promptToFirstTokenMsMedian": 526.4410625000005,
+              "decodeTokensPerSecondMedian": 30.068472502917224
+            },
+            {
+              "engine": "doppler",
+              "totalRunMsMedian": 4801.8519375,
+              "promptToFirstTokenMsMedian": 572.4663540000001,
+              "decodeTokensPerSecondMedian": 30.05754220667223
+            }
+          ]
+        },
+        {
+          "promptTokens": 1024,
+          "engines": [
+            {
+              "engine": "doppler",
+              "totalRunMsMedian": 8361.165458500001,
+              "promptToFirstTokenMsMedian": 3865.7260414999982,
+              "decodeTokensPerSecondMedian": 28.2588121893631
+            },
+            {
+              "engine": "doppler",
+              "totalRunMsMedian": 8701.216957999999,
+              "promptToFirstTokenMsMedian": 3927.754583,
+              "decodeTokensPerSecondMedian": 26.608910729325647
+            }
+          ]
+        }
+      ]
+    },
+    "tiled": {
+      "exactTokenAgreement": true,
+      "claim": "Sequential diagnostic, 2 timed repetitions per length; not an interleaved performance ranking.",
+      "timingBoundary": "Prompt-to-first delivered token; decode uses 127 delivery intervals for 128 tokens. Includes orchestration; not pure GPU time.",
+      "measurements": [
+        {
+          "promptTokens": 128,
+          "engines": [
+            {
+              "engine": "doppler",
+              "totalRunMsMedian": 4751.203812,
+              "promptToFirstTokenMsMedian": 526.4410625000005,
+              "decodeTokensPerSecondMedian": 30.068472502917224
+            },
+            {
+              "engine": "doppler",
+              "totalRunMsMedian": 4629.452687,
+              "promptToFirstTokenMsMedian": 494.81835349999983,
+              "decodeTokensPerSecondMedian": 30.72602008062365
+            }
+          ]
+        },
+        {
+          "promptTokens": 1024,
+          "engines": [
+            {
+              "engine": "doppler",
+              "totalRunMsMedian": 8361.165458500001,
+              "promptToFirstTokenMsMedian": 3865.7260414999982,
+              "decodeTokensPerSecondMedian": 28.2588121893631
+            },
+            {
+              "engine": "doppler",
+              "totalRunMsMedian": 7167.436667,
+              "promptToFirstTokenMsMedian": 2515.0317085000006,
+              "decodeTokensPerSecondMedian": 27.30184679231975
+            }
+          ]
+        }
+      ]
+    },
+    "tiled-confirm": {
+      "exactTokenAgreement": true,
+      "claim": "Sequential diagnostic, 2 timed repetitions per length; not an interleaved performance ranking.",
+      "timingBoundary": "Prompt-to-first delivered token; decode uses 127 delivery intervals for 128 tokens. Includes orchestration; not pure GPU time.",
+      "measurements": [
+        {
+          "promptTokens": 128,
+          "engines": [
+            {
+              "engine": "doppler",
+              "totalRunMsMedian": 4751.203812,
+              "promptToFirstTokenMsMedian": 526.4410625000005,
+              "decodeTokensPerSecondMedian": 30.068472502917224
+            },
+            {
+              "engine": "doppler",
+              "totalRunMsMedian": 8450.9619585,
+              "promptToFirstTokenMsMedian": 476.12158350000027,
+              "decodeTokensPerSecondMedian": 16.093033063053802
+            }
+          ]
+        },
+        {
+          "promptTokens": 1024,
+          "engines": [
+            {
+              "engine": "doppler",
+              "totalRunMsMedian": 8361.165458500001,
+              "promptToFirstTokenMsMedian": 3865.7260414999982,
+              "decodeTokensPerSecondMedian": 28.2588121893631
+            },
+            {
+              "engine": "doppler",
+              "totalRunMsMedian": 10145.591062499996,
+              "promptToFirstTokenMsMedian": 3300.2873545,
+              "decodeTokensPerSecondMedian": 18.55622554104045
+            }
+          ]
+        }
+      ]
+    },
+    "doe-complete": {
+      "exactTokenAgreement": true,
+      "claim": "Sequential diagnostic, 2 timed repetitions per length; not an interleaved performance ranking.",
+      "timingBoundary": "Prompt-to-first delivered token; decode uses 127 delivery intervals for 128 tokens. Includes orchestration; not pure GPU time.",
+      "measurements": [
+        {
+          "promptTokens": 128,
+          "engines": [
+            {
+              "engine": "doppler",
+              "totalRunMsMedian": 4751.203812,
+              "promptToFirstTokenMsMedian": 526.4410625000005,
+              "decodeTokensPerSecondMedian": 30.068472502917224
+            },
+            {
+              "engine": "doppler",
+              "totalRunMsMedian": 5794.8663125,
+              "promptToFirstTokenMsMedian": 790.6716250000004,
+              "decodeTokensPerSecondMedian": 25.38367983760984
+            }
+          ]
+        },
+        {
+          "promptTokens": 1024,
+          "engines": [
+            {
+              "engine": "doppler",
+              "totalRunMsMedian": 8361.165458500001,
+              "promptToFirstTokenMsMedian": 3865.7260414999982,
+              "decodeTokensPerSecondMedian": 28.2588121893631
+            },
+            {
+              "engine": "doppler",
+              "totalRunMsMedian": 13900.042749999999,
+              "promptToFirstTokenMsMedian": 6919.802583499999,
+              "decodeTokensPerSecondMedian": 18.359205480111292
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "dispositions": {
+    "tiledPrefill": "Not promoted. Initial improvement did not reproduce; confirmation regressed. Host contention is recorded, not corrected by excluding slow samples.",
+    "doe": "Correctness fixes retained. All complete outputs match Dawn; cancellation and reuse pass. These sequential timings do not establish a performance advantage.",
+    "wasm": "Exact F16 materialization prototype only. Includes optimized JavaScript control and copies. Not integrated into inference; profile does not identify this as the dominant cost.",
+    "webnn": "Flagged browser graph probe only. Actual backend identity, ANE use, power and concurrent GPU availability remain unverified.",
+    "subgroupMatrix": "Correct synthetic projections, no consistent improvement over existing tiled kernel. Not integrated into model execution.",
+    "batching": "Existing four-token mode tested in adjacent baseline artifacts. Not a new zero-readback implementation and not promoted."
+  },
+  "profile": {
+    "prefillWallMs": 4149.144542,
+    "prefillGpuMs": 3787.3909759999997,
+    "decodeWallMs": 675.9302079999998,
+    "decodeGpuMs": 361.62764800000014,
+    "caveat": "Instrumented 1024-prompt/16-output run; overlapping waits and CPU samples are not an additive latency budget."
+  },
+  "wasm": [
+    {
+      "count": 65536,
+      "medianMs": {
+        "js": 1.6573340000000059,
+        "jsBitConversion": 0.0952920000000006,
+        "wasmWithCopies": 0.044166000000004146,
+        "wasmResident": 0.01999999999999602
+      },
+      "optimizedJsToWasmWithCopiesRatio": 2.1575872843361785
+    },
+    {
+      "count": 4194304,
+      "medianMs": {
+        "js": 105.93208300000003,
+        "jsBitConversion": 5.4421669999999835,
+        "wasmWithCopies": 2.3812920000000304,
+        "wasmResident": 1.258416000000011
+      },
+      "optimizedJsToWasmWithCopiesRatio": 2.285384152804408
+    }
+  ],
+  "subgroupMatrix": [
+    {
+      "M": 128,
+      "N": 1024,
+      "K": 1024,
+      "name": "scalar",
+      "medianMs": 3.16833299999999,
+      "maxAbsVsReference": 6.690530369724002e-7
+    },
+    {
+      "M": 128,
+      "N": 1024,
+      "K": 1024,
+      "name": "tiled",
+      "medianMs": 1.9552919999999858,
+      "maxAbsVsReference": 1.953371224772127e-7
+    },
+    {
+      "M": 128,
+      "N": 1024,
+      "K": 1024,
+      "name": "mma",
+      "medianMs": 2.670749999999998,
+      "maxAbsVsReference": 6.690530369724002e-7
+    },
+    {
+      "M": 128,
+      "N": 1024,
+      "K": 1024,
+      "name": "mma-tiled",
+      "medianMs": 1.842708999999985,
+      "maxAbsVsReference": 6.690530369724002e-7
+    },
+    {
+      "M": 128,
+      "N": 3584,
+      "K": 1024,
+      "name": "scalar",
+      "medianMs": 5.594708999999966,
+      "maxAbsVsReference": 5.516163099628102e-7
+    },
+    {
+      "M": 128,
+      "N": 3584,
+      "K": 1024,
+      "name": "tiled",
+      "medianMs": 2.25079199999999,
+      "maxAbsVsReference": 1.953371224772127e-7
+    },
+    {
+      "M": 128,
+      "N": 3584,
+      "K": 1024,
+      "name": "mma",
+      "medianMs": 3.7532079999999723,
+      "maxAbsVsReference": 5.516163099628102e-7
+    },
+    {
+      "M": 128,
+      "N": 3584,
+      "K": 1024,
+      "name": "mma-tiled",
+      "medianMs": 2.7156249999999886,
+      "maxAbsVsReference": 5.516163099628102e-7
+    },
+    {
+      "M": 1024,
+      "N": 3584,
+      "K": 1024,
+      "name": "scalar",
+      "medianMs": 28.080083000000002,
+      "maxAbsVsReference": 6.828158234384318e-7
+    },
+    {
+      "M": 1024,
+      "N": 3584,
+      "K": 1024,
+      "name": "tiled",
+      "medianMs": 12.258082999999942,
+      "maxAbsVsReference": 1.6406357872256194e-7
+    },
+    {
+      "M": 1024,
+      "N": 3584,
+      "K": 1024,
+      "name": "mma",
+      "medianMs": 22.614124999999945,
+      "maxAbsVsReference": 6.828158234384318e-7
+    },
+    {
+      "M": 1024,
+      "N": 3584,
+      "K": 1024,
+      "name": "mma-tiled",
+      "medianMs": 13.57912500000009,
+      "maxAbsVsReference": 6.828158234384318e-7
+    }
+  ],
+  "component": "doppler",
+  "intent": "preserved",
+  "boundaryEffects": "Evidence and standalone probes only. Production fixes are owned by Doe native Metal and WGSL lowering."
+}

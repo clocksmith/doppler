@@ -1,0 +1,1776 @@
+{
+  "engine": "doppler",
+  "surface": "node-webgpu",
+  "nodeVersion": "v22.20.0",
+  "manifestHash": "cb8e4d8bf7fbc8522d1222bbbf3cf9a46e297a899cf737d4738554a1d1d68062",
+  "policy": {
+    "schema": "doppler.mlx-diagnostic-comparison/v1",
+    "claim": "Doe compatibility probe, not a performance comparison.",
+    "source": {
+      "repo": "Qwen/Qwen3.5-0.8B",
+      "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+      "weightsSha256": "04b1c301231dd422b8860db31311ab2721511346a32cb1e079c4c4e5f1fe4696",
+      "weightsFile": "model.safetensors-00001-of-00001.safetensors"
+    },
+    "shared": {
+      "weightDtype": "float16",
+      "promptTokenCounts": [
+        128
+      ],
+      "promptText": "This is a reference document about a small library. The library lends books, maintains a catalog, and helps readers find reliable information. Its opening hours vary by day. Readers may reserve available books and return them at the front desk. ",
+      "maxTokens": 16,
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1,
+      "repetitionPenalty": 1,
+      "useChatTemplate": false,
+      "suppressTokenIds": [],
+      "warmupRuns": 0,
+      "timedRuns": 1,
+      "requireExactPromptTokens": true,
+      "requireExactGeneratedTokens": true,
+      "maxProcessSeconds": 300,
+      "memoryLimitBytes": 6442450944,
+      "eosTokenIds": [
+        248046,
+        248044
+      ]
+    },
+    "engines": {
+      "mlx": {
+        "package": "mlx-lm",
+        "version": "0.32.1",
+        "prefillStepSize": 1024
+      },
+      "doppler": {
+        "surface": "node-webgpu",
+        "runtimeConfig": {
+          "shared": {
+            "bufferPool": {
+              "budget": {
+                "maxTotalBytes": 6442450944,
+                "highWatermarkRatio": 0.9,
+                "emergencyTrimTargetRatio": 0.8,
+                "hardFailOnBudgetExceeded": true
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "runs": [],
+  "complete": false,
+  "modelLoadMs": 2612.4115,
+  "device": {
+    "hasSubgroups": true,
+    "wgslLanguageFeatures": [
+      "readonly-and-readwrite-storage-textures",
+      "packed_4x8_integer_dot_product"
+    ],
+    "hasSubgroupsF16": true,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 14302248960,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 32768,
+    "adapterInfo": {
+      "vendor": "Apple",
+      "architecture": "M3",
+      "device": "Apple M3",
+      "description": "Apple M3"
+    },
+    "submitProbeMs": 5.0299589999999625
+  },
+  "loadedMemory": {
+    "process": {
+      "rss": 2264514560,
+      "heapTotal": 104022016,
+      "heapUsed": 66091144,
+      "external": 1106995154,
+      "arrayBuffers": 1104878848
+    },
+    "pool": {
+      "allocations": 347,
+      "reuses": 0,
+      "totalBytesAllocated": 1506187008,
+      "peakBytesAllocated": 1506187008,
+      "currentBytesAllocated": 1506187008,
+      "totalBytesRequested": 1505892096,
+      "peakBytesRequested": 1505892096,
+      "currentBytesRequested": 1505891840,
+      "resources": {
+        "retainedModel": {
+          "bytes": 1505138176,
+          "count": 344
+        },
+        "active": {
+          "bytes": 1048576,
+          "count": 2
+        },
+        "reusable": {
+          "bytes": 256,
+          "count": 1
+        },
+        "deferredCleanup": {
+          "bytes": 0,
+          "count": 0
+        }
+      },
+      "activeBuffers": 346,
+      "pooledBuffers": 1,
+      "budgetMaxBytes": 6442450944,
+      "budgetUtilization": 0.23379099369049072,
+      "hitRate": "0.0%"
+    },
+    "labels": [
+      {
+        "label": "raw_model.language_model.embed_tokens.weight",
+        "bytes": 508559360,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.0.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.0.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.0.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.0.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.0.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.0.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.0.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.0.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.0.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.0.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.0.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.0.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.0.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.0.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.1.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.1.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.1.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.1.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.1.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.1.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.1.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.1.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.1.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.1.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.1.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.1.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.1.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.1.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.2.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.2.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.2.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.2.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.2.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.2.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.2.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.2.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.2.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.2.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.2.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.2.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.2.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.2.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.3.self_attn.q_norm.weight",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.3.self_attn.k_norm.weight",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.3.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.3.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.3.self_attn.k_proj.weight",
+        "bytes": 1048576,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.3.self_attn.v_proj.weight",
+        "bytes": 1048576,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.3.self_attn.o_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.3.self_attn.q_proj.weight",
+        "bytes": 8388608,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.3.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.3.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.3.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.4.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.4.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.4.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.4.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.4.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.4.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.4.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.4.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.4.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.4.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.4.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.4.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.4.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.4.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.5.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.5.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.5.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.5.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.5.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.5.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.5.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.5.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.5.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.5.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.5.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.5.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.5.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.5.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.6.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.6.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.6.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.6.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.6.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.6.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.6.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.6.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.6.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.6.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.6.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.6.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.6.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.6.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.7.self_attn.q_proj.weight",
+        "bytes": 8388608,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.7.self_attn.q_norm.weight",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.7.self_attn.k_norm.weight",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.7.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.7.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.7.self_attn.v_proj.weight",
+        "bytes": 1048576,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.7.self_attn.k_proj.weight",
+        "bytes": 1048576,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.7.self_attn.o_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.7.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.7.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.7.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.8.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.8.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.8.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.8.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.8.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.8.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.8.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.8.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.8.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.8.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.8.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.8.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.8.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.8.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.9.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.9.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.9.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.9.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.9.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.9.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.9.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.9.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.9.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.9.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.9.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.9.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.9.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.9.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.10.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.10.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.10.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.10.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.10.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.10.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.10.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.10.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.10.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.10.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.10.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.10.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.10.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.10.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.11.self_attn.q_proj.weight",
+        "bytes": 8388608,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.11.self_attn.q_norm.weight",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.11.self_attn.k_norm.weight",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.11.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.11.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.11.self_attn.k_proj.weight",
+        "bytes": 1048576,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.11.self_attn.v_proj.weight",
+        "bytes": 1048576,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.11.self_attn.o_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.11.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.11.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.11.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.12.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.13.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.13.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.14.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.15.self_attn.q_norm.weight",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.15.self_attn.k_norm.weight",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.15.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.15.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.15.self_attn.k_proj.weight",
+        "bytes": 1048576,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.15.self_attn.v_proj.weight",
+        "bytes": 1048576,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.15.self_attn.q_proj.weight",
+        "bytes": 8388608,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.15.self_attn.o_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.15.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.15.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.15.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.16.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.16.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.17.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.18.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.18.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.19.self_attn.v_proj.weight",
+        "bytes": 1048576,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.19.self_attn.q_norm.weight",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.19.self_attn.k_norm.weight",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.19.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.19.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.19.self_attn.k_proj.weight",
+        "bytes": 1048576,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.19.self_attn.o_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.19.self_attn.q_proj.weight",
+        "bytes": 8388608,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.19.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.19.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.19.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.20.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.20.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.21.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.22.linear_attn.in_proj_qkv.weight",
+        "bytes": 12582912,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.linear_attn.in_proj_a.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.linear_attn.in_proj_b.weight",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.linear_attn.conv1d.weight",
+        "bytes": 49152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.linear_attn.A_log",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.linear_attn.norm.weight",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.22.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.linear_attn.dt_bias",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.linear_attn.out_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.linear_attn.in_proj_z.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.23.self_attn.q_proj.weight",
+        "bytes": 8388608,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.23.self_attn.q_norm.weight",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.23.self_attn.k_norm.weight",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.23.post_attention_layernorm.weight",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.23.input_layernorm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.23.self_attn.k_proj.weight",
+        "bytes": 1048576,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.23.self_attn.v_proj.weight",
+        "bytes": 1048576,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.23.self_attn.o_proj.weight",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.23.mlp.down_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.23.mlp.up_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.23.mlp.gate_proj.weight",
+        "bytes": 7340032,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.norm.weight",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "rope_cos",
+        "bytes": 524288,
+        "count": 1
+      },
+      {
+        "label": "rope_sin",
+        "bytes": 524288,
+        "count": 1
+      }
+    ]
+  },
+  "error": {
+    "message": "Shader compilation failed for matmul_f16w_f32a_tiled",
+    "stack": "Error: Shader compilation failed for matmul_f16w_f32a_tiled\n    at compileShader (file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/shader-cache.js:223:13)\n    at async file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/shader-cache.js:247:20\n    at async getShaderModule (file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/shader-cache.js:258:20)\n    at async createPipeline (file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/pipeline-cache.js:328:24)\n    at async getMatmulPipeline (file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-dispatch.js:122:16)\n    at async executeMatmul (file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul.js:501:16)\n    at async projectLinearTensor (file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention/plan.js:518:22)\n    at async runLinearAttentionLayer (file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention.js:559:25)\n    at async processLayerGPU (file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/layer.js:339:18)\n    at async PipelineGenerator._prefill (file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator/prefill-runtime.js:475:31)"
+  },
+  "unloadedPool": {
+    "allocations": 360,
+    "reuses": 3,
+    "totalBytesAllocated": 1512807936,
+    "peakBytesAllocated": 1512807936,
+    "currentBytesAllocated": 668618496,
+    "totalBytesRequested": 1512431104,
+    "peakBytesRequested": 1512381696,
+    "currentBytesRequested": 0,
+    "resources": {
+      "retainedModel": {
+        "bytes": 0,
+        "count": 0
+      },
+      "active": {
+        "bytes": 0,
+        "count": 0
+      },
+      "reusable": {
+        "bytes": 668618496,
+        "count": 64
+      },
+      "deferredCleanup": {
+        "bytes": 0,
+        "count": 0
+      }
+    },
+    "activeBuffers": 0,
+    "pooledBuffers": 64,
+    "budgetMaxBytes": 6442450944,
+    "budgetUtilization": 0.1037832498550415,
+    "hitRate": "0.8%"
+  }
+}

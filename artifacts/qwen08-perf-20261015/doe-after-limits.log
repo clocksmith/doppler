@@ -1,0 +1,44 @@
+[713.1ms][doppler] Resolving model
+[784.6ms][doppler] Fetching manifest
+[800.6ms][Platform] No specific platform matched for adapter (vendor=Apple, arch=M3), falling back to generic
+[GPU] Apple M3, f16/subgroups, 13.3GB, submit probe: 5.0ms
+[932.4ms][doppler] Loading weights
+[947.5ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[947.6ms][Config] Using manifest-first config (source of truth)
+[951.8ms][Pipeline] Resolved session applied (qwen3-5-0-8b-text-f16-matched): batchSize=1, stopCheckMode=batch, readbackInterval=1, disableCommandBatching=false
+[952.7ms][Pipeline] KernelPath: qwen3-5-0-8b-text-f16-matched-execution-inline (15 decode steps, 10 kernels, source=execution-v1)
+[953.3ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen3-5-0-8b-text-f16-matched-execution-inline
+[953.7ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[1155.8ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[1419.4ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges
+[1419.8ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[1421.7ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=4096
+[1422.9ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen3-5-0-8b-text-f16-matched-execution-inline
+[1474.2ms][ShardCache] Custom shard loader configured
+[1474.7ms][Loader] Initializing...
+[1750.0ms][HeapManager] Allocated segment 0: 1024MB
+[1750.3ms][HeapManager] Segmented heap: 1GB per segment
+[1750.3ms][HeapManager] Initialized with strategy: SEGMENTED
+[1750.5ms][Loader] Initialized (f16, subgroups, unified)
+[1751.9ms][Loader] Loading: qwen3-5-0-8b-text-f16-matched
+[1756.7ms][Loader] [0.0s] Memory (start): | RSS=897.09 MB (heap=61.64 MB/98.20 MB, external=2.00 GB, arrayBuffers=1.00 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[2102.2ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,1024], isWeightBuffer=true
+[2102.6ms][Loader] Layers: 0-23
+[3035.6ms][Loader] Layers: 24 complete (0.93s)
+[3037.2ms][Loader] Complete: 1.40 GB in 1.28s (1.10 GB/s)
+[3040.7ms][Loader] [1.3s] Memory (complete): | RSS=2.13 GB (heap=61.87 MB/99.20 MB, external=1.03 GB, arrayBuffers=1.03 GB) | GPU=1.40 GB (344 active, 0 pooled, peak=1.40 GB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=344
+[3322.7ms][Pipeline] Model loaded successfully (2385ms)
+[3324.9ms][doppler] Model ready
+[3492.7ms][KernelSelect] matmul variant=f16w_f32a reason=path_override
+[3519.6ms][KernelSelect] matmul variant=f16w_f32a_tiled reason=default
+warning: doe: createShaderModule failed: MSL compilation error: program_source:80:24: error: redefinition of 'load_base'
+            const uint load_base = (tid * 4);
+                       ^
+program_source:63:24: note: previous definition is here
+            const uint load_base = (tid * 4);
+                       ^
+
+[3541.1ms][compileShader] matmul_f16w_f32a_tiled: MSL compilation failed: program_source:80:24: error: redefinition of 'load_base'             const uint load_base = (tid * 4);                        ^ program_source:63:24: note: previous definition is here             const uint load_base = (tid * 4);                        ^  (line 0:0)
+[3544.0ms][ExpertCache] Cache cleared
+[3544.7ms][Pipeline] Unloaded
+[3545.1ms][GPU] Device lost: GPUDevice.destroy() was called, Reason: destroyed
