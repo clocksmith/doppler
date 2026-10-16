@@ -397,6 +397,15 @@ export async function _prefill(inputIds, opts) {
     }
 
     let currentRecorder = recorder;
+    const submittedChunks = [];
+    const settleSubmittedChunks = async () => {
+      const results = await Promise.allSettled(submittedChunks.splice(0).map(
+        (chunk) => chunk.completeDeferredCleanup()
+      ));
+      const errors = results.filter((result) => result.status === 'rejected').map((result) => result.reason);
+      if (errors.length === 1) throw errors[0];
+      if (errors.length > 1) throw new AggregateError(errors, 'Prefill chunk completion failed.', { cause: errors[0] });
+    };
 
     // Chunked recorder submission: submit every N layers to release tracked intermediate
     // buffers, preventing unbounded memory growth during large prefills. Critical for
@@ -569,8 +578,9 @@ export async function _prefill(inputIds, opts) {
             // Chunk boundary exists only to bound intermediate buffer lifetime.
             // When the runtime opts into async chunk submit AND profile timings
             // are not being collected, skip the CPU-GPU wait: queue order is
-            // preserved across submits and deferred cleanup still releases
-            // tracked buffers when GPU work completes. Profile runs keep the
+            // preserved across submits and queue-owned cleanup releases
+            // tracked buffers when GPU work completes. Retain each recorder
+            // to observe completion failures before returning. Profile runs keep the
             // sync path because resolveProfileTimings requires the submitted
             // work to be done.
             const chunkSubmitMode = resolvePrefillChunkSubmitMode(
@@ -580,7 +590,8 @@ export async function _prefill(inputIds, opts) {
             const chunkSubmitStart = performance.now();
             recordPrefillRecorderStats(this._state, currentRecorder);
             if (chunkSubmitMode === 'async' && !opts.profile) {
-              currentRecorder.submit({ cleanup: 'deferred' });
+              currentRecorder.submit({ cleanup: 'queue' });
+              submittedChunks.push(currentRecorder);
             } else {
               await currentRecorder.submitAndWait();
               await recordProfile(currentRecorder);
@@ -690,6 +701,7 @@ export async function _prefill(inputIds, opts) {
       }
 
       if (returnHidden) {
+        await settleSubmittedChunks();
         if (currentRecorder) {
           currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
             currentHiddenBuffer,
@@ -864,6 +876,7 @@ export async function _prefill(inputIds, opts) {
     } finally {
       if (!transferred) {
         const cleanupErrors = [];
+        try { await settleSubmittedChunks(); } catch (error) { cleanupErrors.push(error); }
         try { releaseBuffer(currentHiddenBuffer); } catch (error) { cleanupErrors.push(error); }
         try { await currentRecorder?.abort(); } catch (error) { cleanupErrors.push(error); }
         if (failed || cleanupErrors.length > 0) {
