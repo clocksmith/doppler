@@ -21,6 +21,19 @@ Rules that cause bugs when violated; each has a fuller section below.
 - **Semantic Plan Purity** — operation plans are deterministic, immutable, and JSON-safe; GPU objects enter only at binding. See [Inference Contract Boundaries](#inference-contract-boundaries).
 - **Adapter Parity** — browser, Node, immediate, recorded, benchmark, and replay adapters consume one normalized semantic request or plan. See [Adapter Parity](#adapter-parity).
 
+## Unused imports and locals
+
+Remove unused bindings when editing a module. Preserve imports required for
+module initialization as explicit side-effect imports. Check re-exports,
+declaration consumers, computed loading, and declared standalone entrypoints
+before deleting an exported symbol or module.
+
+`npm run source:unused:check` uses TypeScript's unused-local diagnostics on the
+JavaScript implementations listed in `tsconfig.source-unused.json`; add cleaned
+modules there to expand coverage. The gate also runs with `source:style:check`.
+It does not establish general type correctness or check unused parameters;
+the existing strict-source and declaration checks remain separate.
+
 ## Core Principle: Config as Code
 
 Replace conditional logic with declarative configuration maps.

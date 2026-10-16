@@ -1,150 +1,35 @@
-
-
-import { getDevice, setTrackSubmits } from '../../../gpu/device.js';
+import '../../../gpu/device.js'; // Preserve declared device initialization side effects.
 import { prefillWithToken, decodeStepWithToken } from './generator/capsule-generation.js';
-import { acquireBuffer, releaseBuffer, readBuffer, readBufferSlice, uploadData } from '../../../memory/buffer-pool.js';
-import { isGPUSamplingAvailable } from '../../../gpu/kernels/sample.js';
-import { markWarmed as markKernelCacheWarmed } from '../../../gpu/kernel-selection-cache.js';
-import { resetSubmitStats, logSubmitStats } from '../../../gpu/submit-tracker.js';
-import { createCommandRecorder, createProfilingRecorder, CommandRecorder } from '../../../gpu/command-recorder.js';
-import { allowReadback } from '../../../gpu/perf-guards.js';
-import { log, trace, isTraceEnabled } from '../../../debug/index.js';
-import {
-  runMatmul,
-  runRMSNorm,
-  runGeLU,
-  runResidualAdd,
-  runScale,
-  runSoftmax,
-  runSoftEmbeddingSplitF16,
-  runSoftEmbeddingLogitsF16,
-} from '../../../gpu/kernel-selector.js';
-import { runDiffusionGemmaCanvasStats } from '../../../gpu/kernels/diffusion-gemma-sampling.js';
-import {
-  CAPTURE_LEVELS,
-  createDefaultCaptureConfig,
-  validateCaptureConfig,
-} from '../../../debug/index.js';
-import { validateCallTimeOptions } from '../../../config/param-validator.js';
-import { selectRuleValue } from '../../../rules/rule-registry.js';
+import { releaseBuffer } from '../../../memory/buffer-pool.js';
 
 // Pipeline sub-modules
-import { sample, applyRepetitionPenalty, applyPresencePenalty, logitsSanity, getTopK } from './sampling.js';
-import { createKVCache, isStopToken } from './init.js';
-import { embed } from './embed.js';
-import { processLayer } from './layer.js';
-import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits, applySoftcapping } from './logits/index.js';
-import { OperatorEventEmitter } from './operator-events.js';
-import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype, getWeightMetadata, getLayout } from '../../../gpu/weight-buffer.js';
-import {
-  decodeStep,
-  decodeStepLogits,
-  advanceWithToken,
-  generateNTokensGPU,
-  shouldUseBatchDecode,
-  sumProfileTimings,
-  FinitenessError,
-  advanceWithTokenAndEmbedding as runAdvanceWithTokenAndEmbedding,
-} from './generator-steps.js';
-import {
-  buildLayerContext,
-  debugCheckBuffer as debugCheckBufferHelper,
-  resolvePerLayerInputsSession,
-} from './generator/session-context.js';
-import {
-  getLogitsConfig,
-  getLogitsWeights,
-} from './generator/logits-config.js';
+import { sample, applyRepetitionPenalty, applyPresencePenalty } from './sampling.js';
+import { isStopToken } from './init.js';
+import { decodeStepLogits } from './generator-steps.js';
+import { buildLayerContext, debugCheckBuffer as debugCheckBufferHelper } from './generator/session-context.js';
+import { getLogitsConfig, getLogitsWeights } from './generator/logits-config.js';
 import { releaseSharedAttentionState } from './generator/attention-lifecycle.js';
 import { resetSequenceState } from './sequence-state.js';
 import {
   assertTokenIdsInRange,
   assertTokenIdInRange,
   resolveStepOptions,
-  resolveGenerateOptions,
-  resolvePrefillOptions,
-  resolvePrefillEmbeddingOptions,
-  resolveAdvanceEmbeddingMode,
   getFinalNormWeights,
   extractEmbeddingFromHidden,
   extractTokenEmbeddingsFromHidden,
 } from './generator-runtime.js';
 
-import { resolveSamplingConfig } from './sampling-config.js';
 import { samplingSeedForToken } from '../../token-sampling.js';
 import { createGenerationOutputDecoder, decodeGenerationStream } from '../../generation-output.js';
 import { matchesStopSequence } from './stopping.js';
-import { decodeReadback, getLogitsHealth } from './debug-utils/index.js';
-import { parseFinitenessStatusWords } from './finiteness-guard-status.js';
 import { resolveDeferredRoundingWindowTokens } from './finiteness-policy.js';
-import {
-  advanceDecodeStepCount,
-  createTsirFixtureState,
-  drainPendingTsirReads,
-} from './tsir-fixture-writer.js';
-import {
-  activateFallbackExecutionPlan,
-  hasFallbackExecutionPlan,
-  rebaseExecutionSessionPlan,
-  resetActiveExecutionPlan,
-  resolveMaxBatchDecodeTokens,
-  resolvePrefillRecorderChunkLayers,
-  resolveActiveExecutionPlan,
-  setActiveExecutionPlan,
-} from './execution-plan.js';
-import {
-  cloneLinearAttentionRuntime,
-  hasLinearAttentionLayers,
-  resetLinearAttentionRuntime,
-  restoreLinearAttentionRuntime,
-} from './linear-attention.js';
-import {
-  preparePerLayerInputs,
-  createPleBufferCache,
-  prefetchPerLayerRow,
-  getPleHotVocabularyRuntime,
-  hasGpuSplitPerLayerInputEmbeddings,
-  hasRangeBackedPerLayerInputEmbeddings,
-} from './per-layer-inputs.js';
-import { createTensor } from '../../../gpu/tensor.js';
-import { getQKNormOnesBuffer } from './attention/types.js';
-import {
-  getWeightBuffer as getPipelineWeightBuffer,
-  getNormWeightBuffer as getPipelineNormWeightBuffer,
-} from './weights.js';
+import { resetActiveExecutionPlan, resolveActiveExecutionPlan } from './execution-plan.js';
+import { resetLinearAttentionRuntime } from './linear-attention.js';
 
 // Extracted standalone helpers
-import {
-  resolvePromptInput,
-} from './generator/prompt-input.js';
-import {
-  releasePerLayerInputBuffer,
-  shouldDisablePrefillCommandBatching,
-  resolvePrefillTokenChunkSize,
-} from './generator/prefill-policy.js';
-import {
-  normalizePrefixEmbeddingOverride,
-  resolvePrefillEmbeddingInputIds,
-  resolvePrefillMultimodalBidirectionalSpan,
-  applyPrefixEmbeddingOverride,
-  resolvePrefixEmbeddingOverrideTransitionDeclaredBy,
-} from './generator/prefix-embedding.js';
-import {
-  shouldDisableBatchDecodeAfterShortBatch,
-  resolveHotVocabularyBatchDecodeAvailability,
-  primePleDecodeRuntimeCache,
-  recordPrefillProfileStep,
-  resolveTokenText,
-  usesReplayPrefillDecode,
-  assertIncrementalDecodeSupport,
-  summarizeExecutionPlan,
-  shouldRetryWithFinitenessFallback,
-  createUnhandledFinitenessPolicyError,
-  resolveTargetPlanKVDtype,
-  resolveCurrentKVCacheDtype,
-  cloneRuntimeInferenceWithKVDtype,
-} from './generator-decode-policy.js';
-import { FINITENESS_RESET_WORDS, borrowLinearWeight, borrowNormWeight, canUseChunkedSoftEmbeddingLogits, getExperimentalIntentBundleModule, normalizeCanvasTokenIds, normalizeSelectedLogitTokenIds, normalizeSelfConditioningLogits, normalizeSelfConditioningLogitsState, normalizeSelfConditioningSoftEmbeddingState, recordPrefillRecorderStats, releaseBorrowedWeight, resolveDiffusionGemmaSoftEmbeddingChunkRows, resolvePrefillChunkSubmitMode, resolveSuppressedSamplingTokenIds, traceActivationHealth } from './generator/text.js';
+import { resolvePromptInput } from './generator/prompt-input.js';
+import { resolvePrefillTokenChunkSize } from './generator/prefill-policy.js';
+import { usesReplayPrefillDecode } from './generator-decode-policy.js';
 import {
   _createDiffusionGemmaSelfConditioningEmbeddings as _createDiffusionGemmaSelfConditioningEmbeddingsImpl,
   _createDiffusionGemmaSelfConditioningSoftEmbeddingState as _createDiffusionGemmaSelfConditioningSoftEmbeddingStateImpl,

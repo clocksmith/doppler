@@ -861,6 +861,7 @@
         "tools/check-source-types.js",
         "tools/check-subsystem-support-contract.js",
         "tools/check-translation-artifact-competition.js",
+        "tools/check-unused-locals.js",
         "tools/check-wgsl-repair-semantic-readiness.js",
         "tools/ci-browser-opfs-registry-smoke.js",
         "tools/ci-diffusion-contract-gates.js",
@@ -4537,6 +4538,7 @@
         "tests/inference/generation-output.test.js",
         "tests/inference/generation-prompt-state-reset.test.js",
         "tests/inference/generation-request.test.js",
+        "tests/inference/generation-unicode.test.js",
         "tests/inference/generator-abort-delivery.test.js",
         "tests/inference/generator-activation-representation.test.js",
         "tests/inference/generator-batch-delivery-errors.test.js",
@@ -4645,6 +4647,7 @@
         "tests/inference/pipeline-shader-scope.test.js",
         "tests/inference/pipeline-unload-resources.test.js",
         "tests/inference/postnorm-contract.test.js",
+        "tests/inference/prefill-chunk-cleanup.test.js",
         "tests/inference/prefill-output-ownership.test.js",
         "tests/inference/presence-penalty.test.js",
         "tests/inference/probes-readback.test.js",
@@ -5152,6 +5155,7 @@
         "tests/tooling/trainer-artifact-handoff.test.js",
         "tests/tooling/training-bench-wrapper-contract.test.js",
         "tests/tooling/translation-artifact-competition.test.js",
+        "tests/tooling/unused-locals-check.test.js",
         "tests/tooling/verify-agent-parity-contract.test.js",
         "tests/tooling/wgsl-author-browser-executor.test.js",
         "tests/tooling/wgsl-author-execution-plan.test.js",
@@ -6779,6 +6783,12 @@
       "file": "tests/inference/partition-prefill-lifetime.test.js",
       "kind": "dynamic",
       "line": 89,
+      "expression": "import(target)"
+    },
+    {
+      "file": "tests/inference/prefill-chunk-cleanup.test.js",
+      "kind": "dynamic",
+      "line": 64,
       "expression": "import(target)"
     },
     {

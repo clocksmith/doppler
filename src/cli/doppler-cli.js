@@ -2,41 +2,43 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
-import { runNodeCommand } from '../tooling/node-command-runner.js';
-import { runBrowserCommandInNode } from '../tooling/node-browser-command-runner.js';
+import { fileURLToPath } from 'node:url';
 import { writeProgramBundle } from '../tooling/program-bundle.js';
-import {
-  TOOLING_COMMANDS,
-  normalizeToolingCommandRequest,
-} from '../tooling/command-api.js';
-import { createToolingErrorEnvelope } from '../tooling/command-envelope.js';
-import {
-  asStringOrNull,
-  resolveBrowserModelUrl,
-  resolveNodeModelUrl,
-  resolveStaticRootDir,
-  resolveRdrrRoot,
-} from './cli-model-resolution.js';
+import { TOOLING_COMMANDS, normalizeToolingCommandRequest } from '../tooling/command-api.js';
+import { asStringOrNull } from './cli-model-resolution.js';
 import { isPlainObject } from '../formats/plain-object.js';
 import {
   toSummary,
   isFailedVerificationResult,
-  formatNumber,
-  formatMs,
   saveBenchResult,
   loadBaseline,
   compareBenchResults,
   printManifestSummary,
-  printDeviceInfo,
   printConvertContractSummary,
   printConvertReportSummary,
   printMetricsSummary,
 } from './cli-output.js';
 import { formatRuntimeProfiles, listRuntimeProfiles } from './runtime-profiles.js';
-import { persistBrowserRelayReport } from './browser-report-output.js';
-import { isAbsoluteUrl, normalizeModelUrl, parseJsonObjectFlag, performIntake, readJsonObjectFile, readJsonObjectInput, runBoundaryCommand, runBundleCommand, runCommandOnSurface } from './commands/bundle.js';
-import { DEFAULT_CLI_POLICY, createCliToolingErrorEnvelope, parseRuntimeConfigUrl, resolveConfigEnvelope, resolveSurfaceForCommand, runManifestSweep, runWithAutoSurface } from './output/manifest.js';
+import {
+  isAbsoluteUrl,
+  normalizeModelUrl,
+  parseJsonObjectFlag,
+  performIntake,
+  readJsonObjectFile,
+  readJsonObjectInput,
+  runBoundaryCommand,
+  runBundleCommand,
+  runCommandOnSurface,
+} from './commands/bundle.js';
+import {
+  DEFAULT_CLI_POLICY,
+  createCliToolingErrorEnvelope,
+  parseRuntimeConfigUrl,
+  resolveConfigEnvelope,
+  resolveSurfaceForCommand,
+  runManifestSweep,
+  runWithAutoSurface,
+} from './output/manifest.js';
 import {
   parseCliArguments,
   validateBoundaryFlags,
