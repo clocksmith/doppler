@@ -59,8 +59,17 @@ fn finite_candidate(value: f32) -> bool {
 @group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> logits: array<f32>;              // [vocabSize]
 @group(0) @binding(2) var<storage, read_write> output: array<u32>;         // [N] - selected tokens
-@group(0) @binding(3) var<storage, read_write> topk_indices: array<u32>;    // [topK] - intermediate
-@group(0) @binding(4) var<storage, read_write> topk_logits: array<f32>;     // [topK] - intermediate
+@group(0) @binding(3) var<storage, read_write> topk_indices: array<atomic<u32>>;    // [topK] - intermediate
+@group(0) @binding(4) var<storage, read_write> topk_logits: array<atomic<u32>>;     // [topK] - intermediate
+
+
+// Explicit scratch loads/stores preserve heap mutations across Metal compilers.
+// Scores retain their F32 bits; indices and buffer sizes are unchanged.
+fn load_score(i: u32) -> f32 { return bitcast<f32>(atomicLoad(&topk_logits[i])); }
+fn store_score(i: u32, value: f32) { atomicStore(&topk_logits[i], bitcast<u32>(value)); }
+
+fn load_index(i: u32) -> u32 { return atomicLoad(&topk_indices[i]); }
+fn store_index(i: u32, value: u32) { atomicStore(&topk_indices[i], value); }
 
 // Shared memory for workgroup-level reduction
 var<workgroup> shared_values: array<f32, MAX_WORKGROUP_SIZE>;
@@ -75,17 +84,17 @@ fn sample_group_count() -> u32 {
 }
 
 fn heap_swap(base: u32, a: u32, b: u32) {
-    let value = topk_logits[base + a];
-    let token = topk_indices[base + a];
-    topk_logits[base + a] = topk_logits[base + b];
-    topk_indices[base + a] = topk_indices[base + b];
-    topk_logits[base + b] = value;
-    topk_indices[base + b] = token;
+    let value = load_score(base + a);
+    let token = load_index(base + a);
+    store_score(base + a, load_score(base + b));
+    store_index(base + a, load_index(base + b));
+    store_score(base + b, value);
+    store_index(base + b, token);
 }
 
 fn heap_better(base: u32, a: u32, b: u32) -> bool {
-    return candidate_beats(topk_logits[base + a], topk_indices[base + a],
-        topk_logits[base + b], topk_indices[base + b]);
+    return candidate_beats(load_score(base + a), load_index(base + a),
+        load_score(base + b), load_index(base + b));
 }
 
 fn heap_down(base: u32, count: u32) {
@@ -104,8 +113,8 @@ fn heap_down(base: u32, count: u32) {
 
 fn heap_offer(base: u32, count: u32, value: f32, token: u32) -> u32 {
     if (count < u.top_k) {
-        topk_logits[base + count] = value;
-        topk_indices[base + count] = token;
+        store_score(base + count, value);
+        store_index(base + count, token);
         var child = count;
         loop {
             if (child == 0u) { break; }
@@ -116,9 +125,9 @@ fn heap_offer(base: u32, count: u32, value: f32, token: u32) -> u32 {
         }
         return count + 1u;
     }
-    if (candidate_beats(value, token, topk_logits[base], topk_indices[base])) {
-        topk_logits[base] = value;
-        topk_indices[base] = token;
+    if (candidate_beats(value, token, load_score(base), load_index(base))) {
+        store_score(base, value);
+        store_index(base, token);
         heap_down(base, count);
     }
     return count;
@@ -132,7 +141,7 @@ fn find_topk_phase1(
 ) {
     if (lid.x != 0u) { return; }
     let base = wgid.x * u.top_k;
-    for (var k = 0u; k < u.top_k; k++) { topk_indices[base + k] = 0xffffffffu; }
+    for (var k = 0u; k < u.top_k; k++) { store_index(base + k, 0xffffffffu); }
     var count = 0u;
     for (var token = wgid.x; token < u.vocab_size; token += num_wg.x) {
         let raw = logits[token];
@@ -148,11 +157,11 @@ fn find_topk_phase1(
 fn find_topk_phase2(@builtin(local_invocation_id) lid: vec3<u32>) {
     if (lid.x != 0u) { return; }
     let base = sample_group_count() * u.top_k;
-    for (var k = 0u; k < u.top_k; k++) { topk_indices[base + k] = 0xffffffffu; }
+    for (var k = 0u; k < u.top_k; k++) { store_index(base + k, 0xffffffffu); }
     var count = 0u;
     for (var i = 0u; i < base; i++) {
-        if (topk_indices[i] != 0xffffffffu) {
-            count = heap_offer(base, count, topk_logits[i], topk_indices[i]);
+        if (load_index(i) != 0xffffffffu) {
+            count = heap_offer(base, count, load_score(i), load_index(i));
         }
     }
 }
@@ -164,7 +173,7 @@ fn softmax_and_sample(@builtin(local_invocation_id) lid: vec3<u32>) {
     if (lid.x != 0u) { return; }
     let base = sample_group_count() * u.top_k;
     var count = 0u;
-    while (count < u.top_k && topk_indices[base + count] != 0xffffffffu) { count++; }
+    while (count < u.top_k && load_index(base + count) != 0xffffffffu) { count++; }
     if (count == 0u) {
         output[u.output_index] = 0xffffffffu;
         return;
@@ -175,27 +184,27 @@ fn softmax_and_sample(@builtin(local_invocation_id) lid: vec3<u32>) {
         heap_swap(base, 0u, remaining);
         heap_down(base, remaining);
     }
-    let maximum = topk_logits[base];
+    let maximum = load_score(base);
     var total = 0.0;
     for (var i = 0u; i < count; i++) {
-        let weight = exp((topk_logits[base + i] - maximum) / u.temperature);
-        topk_logits[base + i] = weight;
+        let weight = exp((load_score(base + i) - maximum) / u.temperature);
+        store_score(base + i, weight);
         total += weight;
     }
     var retained = 0u;
     var retained_total = 0.0;
     loop {
-        retained_total += topk_logits[base + retained];
+        retained_total += load_score(base + retained);
         retained++;
         if (retained >= count || retained_total >= u.top_p * total) { break; }
     }
     let threshold = u.random_value * retained_total;
     var cumulative = 0.0;
-    var selected = topk_indices[base + retained - 1u];
+    var selected = load_index(base + retained - 1u);
     for (var i = 0u; i < retained; i++) {
-        cumulative += topk_logits[base + i];
+        cumulative += load_score(base + i);
         if (cumulative > threshold) {
-            selected = topk_indices[base + i];
+            selected = load_index(base + i);
             break;
         }
     }
@@ -322,8 +331,8 @@ fn argmax(
 
     // Write workgroup result to global memory
     if (thread_idx == 0u) {
-        topk_logits[wgid.x] = shared_values[0];
-        topk_indices[wgid.x] = shared_indices[0];
+        store_score(wgid.x, shared_values[0]);
+        store_index(wgid.x, shared_indices[0]);
     }
 }
 
@@ -337,8 +346,8 @@ fn argmax_reduce(
 
     // Load workgroup maxes (up to WORKGROUP_SIZE)
     if (thread_idx < num_groups) {
-        shared_values[thread_idx] = topk_logits[thread_idx];
-        shared_indices[thread_idx] = topk_indices[thread_idx];
+        shared_values[thread_idx] = load_score(thread_idx);
+        shared_indices[thread_idx] = load_index(thread_idx);
     } else {
         shared_values[thread_idx] = NEG_INF;
         shared_indices[thread_idx] = 0xffffffffu;

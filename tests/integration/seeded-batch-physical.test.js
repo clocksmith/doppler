@@ -18,13 +18,20 @@ else {
   try {
     receipt.commit = (await exec('git', ['rev-parse', 'HEAD'])).stdout.trim();
     const archive = join(directory, 'source.tar');
-    await exec('git', ['archive', '--output', archive, 'HEAD']); await exec('tar', ['-xf', archive, '-C', directory]);
+    const packageArchive = process.argv[3] === '--package-archive' ? resolve(process.argv[4]) : null;
+    if (packageArchive) {
+      receipt.packageArchiveSha256 = hash(await readFile(packageArchive));
+      await exec('tar', ['-xf', packageArchive, '--strip-components=1', '-C', directory]);
+    } else {
+      await exec('git', ['archive', '--output', archive, 'HEAD']);
+      await exec('tar', ['-xf', archive, '-C', directory]);
+    }
     if (process.argv[3] === '--candidate-decode-runtime') {
       const path = 'src/inference/pipelines/text/generator/decode-runtime.js';
       const candidate = await readFile(path);
       receipt.candidate = { path, baseSha256: hash(await readFile(join(directory, path))), sha256: hash(candidate) };
       await writeFile(join(directory, path), candidate);
-    } else assert(process.argv[3] === undefined, 'Unknown physical audit option');
+    } else assert(process.argv[3] === undefined || packageArchive, 'Unknown physical audit option');
     const helper = await readFile(new URL('../kernels/seeded-batch-physical.js', import.meta.url));
     receipt.helperSha256 = hash(helper);
     server = createServer(async (request, response) => {
@@ -47,7 +54,8 @@ else {
     });
     await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
     browser = await chromium.launch({ channel: 'chrome', headless: true,
-      args: ['--enable-unsafe-webgpu', '--enable-features=Vulkan', '--use-angle=vulkan', '--disable-gpu-sandbox'] });
+      args: ['--enable-unsafe-webgpu', '--disable-gpu-sandbox', ...(process.platform === 'darwin'
+        ? ['--use-angle=metal'] : ['--enable-features=Vulkan', '--use-angle=vulkan', '--disable-vulkan-surface'])] });
     receipt.browser = browser.version();
     const system = await browser.newBrowserCDPSession();
     receipt.systemInfo = await system.send('SystemInfo.getInfo');

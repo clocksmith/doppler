@@ -10458,6 +10458,7 @@
       "inlineConfigs": [
        "runtime/profiles/qwen-3-5-0-8b-metal-parity",
        "runtime/profiles/qwen-3-5-0-8b-metal-throughput",
+       "runtime/profiles/qwen-3-5-0-8b-vulkan-parity",
        "runtime/profiles/qwen-3-5-2b-metal-throughput"
       ],
       "ruleChains": [],
