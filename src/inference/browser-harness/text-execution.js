@@ -1,83 +1,44 @@
+import { buildRequestTiming } from './request-timing.js';
 import { isPlainObject } from '../../formats/plain-object.js';
-
 import { observeInitialExecutionIdentity } from '../../config/initial-execution-identity.js';
-
 import { isExecutionObservationRequested } from '../../tooling/execution-cost-ledger.js';
-
 import {
-
   assertRerankLogitsVector,
-
   buildRerankScoreRecord,
-
   formatRerankPrompt,
-
   resolveRerankScoringConfig,
-
   scoreRerankDocument,
-
 } from '../rerank.js';
-
 import {
-
   DEFAULT_IMAGE_TRANSCRIPTION_PROMPT,
-
   DEFAULT_IMAGE_TRANSCRIPTION_SOFT_TOKEN_BUDGET,
-
   describePromptInput,
-
   formatEmbeddingSemanticText,
-
   resolveAutomaticGenerationDiagnostics,
-
   resolveEmbeddingSemanticFixtures,
-
   resolveEmbeddingSemanticStyle,
-
   resolveGenerationPromptInput,
-
   resolveInferenceImagePayload,
-
   resolveMaxTokens,
-
   resolvePrompt,
-
   resolveRerankInput,
-
   resolveRerankSemanticFixtures,
-
 } from './text-input.js';
-
 import {
-
   buildGenerationPhaseFromStats,
-
   captureKvCacheByteProof,
-
   cosineSimilarity,
-
   digestLogitsForTranscript,
-
   normalizeTokenIdArray,
-
   resolveGenerationUseChatTemplate,
-
   resolvePromptTokenIdsForTranscript,
-
   shouldCaptureReferenceKvBytes,
-
   shouldCaptureReferenceLogits,
-
   shouldEnableReferenceTranscriptDiagnostics,
-
   summarizeEmbeddingValues,
-
   summarizeGenerationTokens,
-
   summarizeRerankScores,
-
   top1Index,
-
 } from './text-evidence.js';
 
 function getPipelineTokenizer(pipeline) {
@@ -600,19 +561,6 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
 
   const durationMs = performance.now() - start;
   const tokensPerSec = durationMs > 0 ? (tokenIds.length / durationMs) * 1000 : 0;
-  const firstTokenMs = tokenTimestamps.length > 0 ? tokenTimestamps[0] - start : null;
-  const decodeMs = firstTokenMs === null ? null : durationMs - firstTokenMs;
-  const decodeTokens = Math.max(0, tokenIds.length - 1);
-  const requestTiming = {
-    scope: 'generation-call-through-completion',
-    firstTokenMs,
-    totalRunMs: durationMs,
-    decodeMs,
-    decodeTokens,
-    tokensGenerated: tokenIds.length,
-    decodeTokensPerSec: decodeMs > 0 ? (decodeTokens / decodeMs) * 1000 : 0,
-    perTokenMs: tokenTimestamps.slice(1).map((time, index) => time - tokenTimestamps[index]),
-  };
   const { phase } = buildGenerationPhaseFromStats(pipeline, durationMs, tokenIds.length);
   const kvCacheByteProof = await captureKvCacheByteProof(
     pipeline,
@@ -635,7 +583,7 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
     output: tokens.join(''),
     durationMs,
     tokensPerSec,
-    requestTiming,
+    requestTiming: buildRequestTiming(start, durationMs, tokenTimestamps),
     phase,
   };
 }

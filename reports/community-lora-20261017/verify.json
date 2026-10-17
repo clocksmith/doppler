@@ -1,0 +1,43 @@
+{
+  "modelUrl": "file:///Users/xyz/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
+  "trainer": {
+    "rank": 2,
+    "alpha": 4,
+    "optimizer": {
+      "type": "adamw",
+      "lr": 0.0001,
+      "beta1": 0.9,
+      "beta2": 0.999,
+      "eps": 1e-08,
+      "weightDecay": 0
+    },
+    "gradient": {
+      "maxNorm": 1
+    },
+    "precision": {
+      "activations": "f32",
+      "gradients": "f32",
+      "loraParams": "f32"
+    }
+  },
+  "action": "verify",
+  "roundPath": "/Users/xyz/deco/doppler/reports/community-lora-20261017/round.json",
+  "contributionPaths": [
+    "/Users/xyz/deco/doppler/reports/community-lora-20261017/contribution-m3.json",
+    "/Users/xyz/deco/doppler/reports/community-lora-20261017/contribution-amd.json"
+  ],
+  "outputPath": "/Users/xyz/deco/doppler/reports/community-lora-20261017/reloaded.json",
+  "exportDir": "/Users/xyz/deco/doppler/reports/community-lora-20261017/adapter",
+  "adapter": {
+    "id": "qwen35-community-round-qualification",
+    "name": "Qwen3.5 community round qualification",
+    "version": "0.0.1",
+    "description": "One cross-machine qualification step; not quality evaluated.",
+    "weightsPath": "adapter.safetensors"
+  },
+  "inputIds": [
+    100,
+    200,
+    300
+  ]
+}

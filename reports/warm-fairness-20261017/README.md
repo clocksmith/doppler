@@ -55,3 +55,27 @@ and invalid comparison samples. It does not simulate GPU correctness.
 
 Previous skipped CI and qualification failures remain open; these checks do not
 close them.
+
+## Prefill attribution after the harness repair
+
+[Instrumented command](prefill-profile-command.json),
+[config](prefill-profile-config.json), [raw receipt](prefill-profile.log), and
+[summary](prefill-attribution.json) retain one warm timestamp-instrumented
+64-input/128-output request. Observed request TTFT was 250.7 ms, internal prefill
+247.4 ms, GPU timestamp sum 175.4 ms, CPU recording 47.9 ms, and submit/wait
+153.5 ms. GPU work: projections 135.2 ms, recurrent attention 30.9 ms, full
+attention 4.37 ms, convolution 3.37 ms. There were 337 recorded operations.
+
+These clocks are not a disjoint additive partition: submit/wait includes GPU
+execution, and CPU recording can overlap queued work. They identify projections
+and command recording as the main targets without claiming that the arithmetic
+residual is pure overhead. The instrumented request is excluded from primary
+performance statistics. No kernel selection was changed or promoted.
+
+Next experiment: attribute recording cost within projection dispatch and test
+one projection or recording change against the unchanged graph using adjacent
+paired samples and numerical gates. The earlier narrow-tile candidate was
+neutral in the browser and remains unadopted. Warm TTFT, burst-delivery tails,
+AMD timing reruns, 2B current-harness coverage, cold-start separation and transfer
+latency remain open. Current community training qualification is retained
+[separately](../community-lora-20261017/README.md).
