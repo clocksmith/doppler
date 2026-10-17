@@ -14,7 +14,7 @@ import { dequantizeQ4KM, dequantizeQ4KMRowWise, float32ToFloat16 } from '../../c
 import { hasSourceTransform } from './source-transform.js';
 import { loadFunctionalDescriptor } from './functional-descriptor-loader.js';
 import { loadBF16 } from './bf16-loader.js';
-import { acquireAlignedBuffer, canUseFusedQ4KStorage, convertF16ToF32CPU, getQ4KCpuReferenceContext, getQ4KOutputDtype, getShapeElementCount, isEmbeddingRole, isGpuBufferInstance, isPackedQ4K, loadFloat, loadQ4KDequant, loadQ4KMixed, loadQ6K, releaseOwnedGpuBuffer, resolveInputByteLength, shouldUseFusedQ4K, toUint16View, toUint8View, writeBufferAligned } from './load-executor.js';
+import { acquireAlignedBuffer, canUseFusedQ4KStorage, convertF16ToF32CPU, getQ4KCpuReferenceContext, getQ4KOutputDtype, getShapeElementCount, isEmbeddingRole, isGpuBufferInstance, isPackedQ4K, materializeFloatRequirements, loadFloat, loadQ4KDequant, loadQ4KMixed, loadQ6K, releaseOwnedGpuBuffer, resolveInputByteLength, shouldUseFusedQ4K, toUint16View, toUint8View, writeBufferAligned } from './load-executor.js';
 export { convertF16ToF32CPU, getQ4KOutputDtype, getWeightLayout, isPackedQ4K, loadFloat, loadQ4KDequant, loadQ6K, shouldUseFusedQ4K } from './load-executor.js';
 
 export { loadBF16 } from './bf16-loader.js';
@@ -570,6 +570,7 @@ export async function loadTensorToGPU(shardData, location, name, config) {
   const w4a16FusedEligible = isW4A16FusedEligible(location, { ...config, gpuCapabilities: caps });
   const loaderPath = selectRuleValue('loader', 'tensorLoader', 'gpuLoaderPath', {
     dtype,
+    representationMode: config.representationRequirement?.mode ?? null,
     role: location.role ?? null,
     litertAffineInt4FusedEligible,
     w4a16FusedEligible,
@@ -589,7 +590,11 @@ export async function loadTensorToGPU(shardData, location, name, config) {
   if (loaderPath === 'q4k_fused' && q4kLimitFallback.limitFallbackEligible) {
     logQ4KLimitFallbackOnce(name, q4kLimitFallback);
   }
-  return loader(shardData, location, name, config);
+  if (config.representationRequirement?.mode === 'packed-only' && !useFusedQ4K) {
+    throw new Error(`Tensor "${name}" cannot supply required packed Q4 storage.`);
+  }
+  const result = await loader(shardData, location, name, config);
+  return materializeFloatRequirements(result, shardData, location, name, config);
 }
 
 const CPU_LOADER_DISPATCH = {

@@ -107,6 +107,7 @@
     "src/inference/browser-harness/request-timing.js",
     "src/inference/browser-harness/benchmark-execution.js",
     "src/gpu/kernels/attention/executors.js",
-    "src/gpu/kernels/attention/plan.js"
+    "src/gpu/kernels/attention/plan.js",
+    "src/loader/weight-representation-plan.js"
   ]
 }

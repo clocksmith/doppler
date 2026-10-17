@@ -436,6 +436,8 @@ export async function _loadWeights() {
         loadingConfig: this.runtimeConfig.loading,
         baseUrl: this.baseUrl ?? undefined,
         resolvedKernelPath: this.resolvedKernelPath,
+        reachableKernelPaths: [this.executionPlanState.primaryPlan, this.executionPlanState.fallbackPlan]
+          .filter(Boolean).map(plan => plan.kernelPath).filter(Boolean),
         kernelPathSource: this.kernelPathSource,
         keepF32Weights: this.runtimeConfig.inference.compute.keepF32Weights === true,
         loaderDebug: this.runtimeConfig?.shared?.debug?.loader ?? null,

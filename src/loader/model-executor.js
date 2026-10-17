@@ -100,14 +100,16 @@ export async function _loadTensor(name, toGPU = true, silent = false, consumerRo
       if (allowF32UpcastNonMatmul == null) {
         throw new Error('runtime.loading.allowF32UpcastNonMatmul is required.');
       }
+      const requirement = this.weightRepresentationPlan?.[name] ?? null;
       const config = {
+        representationRequirement: requirement,
         w8a8Policy: this.manifest?.quantizationInfo?.w8a8,
-        useFusedQ4K: this.useFusedQ4K,
+        useFusedQ4K: requirement ? requirement.mode !== 'dense-only' : this.useFusedQ4K,
         q4kMaterializationMode: this.q4kMaterializationMode,
         q4kFusedRoles: this.q4kFusedRoles,
         q4kPackedOnlyRoles: this.q4kPackedOnlyRoles,
         consumerRole,
-        keepF32Weights: this.keepF32Weights,
+        keepF32Weights: requirement?.keepF32Weights ?? this.keepF32Weights,
         keepBF16Weights: this.keepBF16Weights,
         q4kLayout: this.q4kLayout,
         loaderDebug: this._loaderDebug,
@@ -129,6 +131,9 @@ export async function _loadTensor(name, toGPU = true, silent = false, consumerRo
         });
       }
 
+      if (isGpuBufferInstance(shardData) && !result.allocatedBuffers.includes(shardData)) {
+        releaseBuffer(shardData);
+      }
       for (const buffer of result.allocatedBuffers) {
         this.gpuBuffers.add(buffer);
       }
@@ -407,6 +412,7 @@ export async function _loadLayer(layerIdx, _onProgress) {
       tensorLocations: this.tensorLocations,
       loadTensor: (name, toGPU, silent, consumerRole) => this._loadTensor(name, toGPU, silent, consumerRole),
       needsNormWeightOffset: () => this._needsNormWeightOffset(),
+      weightRepresentationPlan: this.weightRepresentationPlan,
       gpuBuffers: this.gpuBuffers,
       keepF32Weights: this.keepF32Weights,
       isMoE: this.isMoE,
@@ -442,6 +448,7 @@ export async function _loadFinalWeights(_onProgress) {
       loadTensor: (name, toGPU, silent, consumerRole) => this._loadTensor(name, toGPU, silent, consumerRole),
       loadShardRange: (index, offset, length) => this.shardCache.loadRange(index, offset, length),
       needsNormWeightOffset: () => this._needsNormWeightOffset(),
+      weightRepresentationPlan: this.weightRepresentationPlan,
       shouldStreamLargeWeight: (name, loc, label) => this._shouldStreamLargeWeight(name, loc, label),
       resolveWeightLayout: (loc) => this._resolveWeightLayout(loc),
       embeddings: this.embeddings,

@@ -163,6 +163,48 @@ function assertPoolClean() {
   assert.equal(device.createdBuffers.length, 0);
 }
 
+// Reachable fallback precision is retained, not replaced by role-wide packed policy.
+{
+  const device = createFakeDevice({ features: ['shader-f16', 'subgroups'], withShaders: true });
+  resetRuntimeState(device);
+  const location = { dtype: 'Q4_K_M', size: 144, shape: [1, 256], role: 'matmul' };
+  const config = {
+    useFusedQ4K: true, q4kLayout: 'row', keepF32Weights: false,
+    q4kMaterializationMode: 'mixed', q4kPackedOnlyRoles: ['q_proj'], consumerRole: 'q_proj',
+    representationRequirement: { mode: 'both', complete: true, dtypes: Object.freeze(['f16', 'f32', 'q4k']) },
+  };
+  const result = await loadTensorToGPU(new Uint8Array(144), location, 'fallback_q_proj', config);
+  assert.deepEqual(Object.keys(result.data.materializations).sort(), ['f16', 'f32', 'q4k']);
+  assert.equal(result.allocatedBuffers.length, 3);
+  assert.notEqual(result.data.materializations.f16.buffer, result.data.materializations.f32.buffer);
+  const dense = await loadTensorToGPU(new Uint8Array(144), location, 'dense_q_proj', {
+    ...config, representationRequirement: { mode: 'dense-only', complete: true, dtypes: ['f16', 'f32'] },
+  });
+  assert.deepEqual(Object.keys(dense.data.materializations).sort(), ['f16', 'f32']);
+  assert.equal(dense.allocatedBuffers.length, 2);
+  const float = await loadTensorToGPU(new Uint8Array(1024), { ...location, dtype: 'F32', size: 1024 }, 'float_q_proj', {
+    ...config, representationRequirement: { mode: 'dense-only', complete: true, dtypes: ['f16', 'f32'] },
+  });
+  assert.deepEqual(Object.keys(float.data.materializations).sort(), ['f16', 'f32']);
+  assert.equal(float.allocatedBuffers.length, 2);
+}
+
+// Failure after the first dense copy must retire it and the owned packed upload.
+{
+  const device = createFakeDevice({ features: ['shader-f16', 'subgroups'], withShaders: true });
+  let submissions = 0;
+  device.queue.submit = () => { if (++submissions === 2) throw new Error('second precision failed'); };
+  resetRuntimeState(device);
+  await assert.rejects(() => loadTensorToGPU(new Uint8Array(144), {
+    dtype: 'Q4_K_M', size: 144, shape: [1, 256], role: 'matmul',
+  }, 'failed_fallback', {
+    useFusedQ4K: true, q4kLayout: 'row', keepF32Weights: false,
+    representationRequirement: { mode: 'both', complete: true, dtypes: ['f16', 'f32', 'q4k'] },
+  }), /second precision failed/);
+  await flushDeferredDestroy();
+  assertPoolClean();
+}
+
 const PIPELINE_FAILURE = /shader-f16|createShaderModule|createComputePipeline|createComputePipelineAsync/;
 
 {

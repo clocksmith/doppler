@@ -20,6 +20,7 @@ import {
   CONV_SUFFIXES,
   FFN_SUFFIXES,
   LAYER_PREFIXES,
+  LAYER_WEIGHT_CONSUMERS,
   LINEAR_ATTN_SUFFIXES,
   MATMUL_KEYS,
   ROUTER_SUFFIXES,
@@ -230,7 +231,6 @@ async function stabilizePerLayerInputGateWeight(ctx, weights, layerIdx) {
 export async function loadLayer(ctx, layerIdx) {
   const prefixes = LAYER_PREFIXES(layerIdx);
 
-  
   const weights = {
     inputNorm: null,
     inputNormBias: null,
@@ -314,6 +314,7 @@ export async function loadLayer(ctx, layerIdx) {
 
 function createTryLoad(ctx, prefixes) {
   return async (suffixes, consumerRole) => {
+    consumerRole ??= LAYER_WEIGHT_CONSUMERS.find(binding => binding.suffixes === suffixes)?.role;
     for (const prefix of prefixes) {
       for (const suffix of suffixes) {
         const tensor = await ctx.loadTensor(`${prefix}.${suffix}`, true, true, consumerRole);
@@ -696,14 +697,13 @@ async function loadRouterWeights(ctx, weights, layerIdx, tryLoad) {
 // ============================================================================
 // Weight Downcast
 // ============================================================================
-
 async function downcastLayerWeights(ctx, weights, layerIdx) {
   const caps = getKernelCapabilities();
   if (!caps.hasF16) return;
 
   await batchDowncastWeights(
-     ( (weights)),
-     (MATMUL_KEYS),
+    weights,
+    MATMUL_KEYS.filter(key => !ctx.weightRepresentationPlan?.[weights[key]?.label]?.complete),
     {
       keepF32: ctx.keepF32Weights,
       layerIdx,
