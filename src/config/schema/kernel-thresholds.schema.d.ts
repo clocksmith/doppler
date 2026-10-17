@@ -277,6 +277,9 @@ export declare const DEFAULT_KERNEL_THRESHOLDS: KernelThresholdsConfigSchema;
  */
 export declare function getKernelThresholds(): KernelThresholdsConfigSchema;
 
+/** Immutable execution snapshot, replaced atomically when thresholds change. */
+export declare function getKernelThresholdSnapshot(): import('../kernel-registry-contract.js').DeepReadonly<KernelThresholdsConfigSchema>;
+
 /**
  * Override kernel thresholds (merges with current config).
  */

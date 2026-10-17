@@ -6,7 +6,7 @@ import { acquireBuffer } from '../../memory/buffer-pool.js';
 import { ALIGNMENT, QUANTIZATION, TILE_SIZES } from './constants.js';
 import { getKernelConfig } from './kernel-configs.js';
 import { hasRequiredFeatures } from './feature-check.js';
-import { getKernelThresholds } from '../../config/schema/index.js';
+import { getKernelThresholdSnapshot } from '../../config/schema/index.js';
 import {
   getKernelPathMatmulConstants,
   getKernelPathMatmulVariant,
@@ -146,7 +146,7 @@ export function selectMatmulKernel(options = {}) {
   if (outputDtype !== 'f16' && outputDtype !== 'f32') {
     throw new Error(`[Matmul] selectMatmulKernel requires outputDtype "f16" or "f32", got ${String(outputDtype)}.`);
   }
-  const { tiledPrefillMinRows } = getKernelThresholds().matmul;
+  const { tiledPrefillMinRows } = getKernelThresholdSnapshot().matmul;
 
   const inputsAreF16 = aDtype === 'f16' && bDtype === 'f16';
   // F16 weights needing F32a path: weights are F16 and either activation is already F32,
@@ -439,7 +439,7 @@ export function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, trans
   const hadPathVariant = Boolean(pathVariant);
 
   if (pathVariant && !strict && M === 1 && bDtype === 'f16' && capabilities.hasSubgroups) {
-    const { multicolThreshold } = getKernelThresholds().matmul;
+    const { multicolThreshold } = getKernelThresholdSnapshot().matmul;
     pathVariant = resolveGemvPathVariant(pathVariant, aDtype, requestedOutputDtype, N, multicolThreshold);
   }
 
@@ -485,7 +485,7 @@ export function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, trans
         && requestedOutputDtype === 'f16'
         && transposeB === true
       ) {
-        const { tiledPrefillMinRows } = getKernelThresholds().matmul;
+        const { tiledPrefillMinRows } = getKernelThresholdSnapshot().matmul;
         if (M <= tiledPrefillMinRows) {
           const adaptiveVariant = selectMatmulKernel({
             ...options,
@@ -643,7 +643,7 @@ export function selectMatmulVariantAndFlags(mode, M, N, K, aDtype, bDtype, trans
   const useF32Gemv = canGemv && (aDtype === 'f32' || (aDtype === 'f16' && !wantF16Output));
   const useGemv = useF16Gemv || useF32Gemv;
   const useVec4 = (K % 4 === 0);
-  const { multicolThreshold } = getKernelThresholds().matmul;
+  const { multicolThreshold } = getKernelThresholdSnapshot().matmul;
   const gemvVariant = useGemv
     ? selectGemvVariant(useF16Gemv, useF32Gemv, capabilities.hasSubgroups, useVec4, N, multicolThreshold)
     : null;

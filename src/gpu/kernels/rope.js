@@ -3,13 +3,13 @@ import { getKernelCapabilities } from '../device.js';
 import { createTensor } from '../tensor.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { unifiedKernelWrapper } from './kernel-execution.js';
-import { getKernelThresholds } from '../../config/schema/index.js';
+import { getKernelThresholdSnapshot } from '../../config/schema/index.js';
 import { selectRuleValue } from './rule-registry.js';
 import { castF16ToF32, castF32ToF16, recordCastF16ToF32, recordCastF32ToF16 } from './cast.js';
 import { releaseBuffer } from '../../memory/buffer-pool.js';
 import { assertImplicitDtypeTransitionAllowed } from '../../config/dtype-transition-contract.js';
 
-const getRopeDefaults = () => getKernelThresholds().rope;
+const getRopeDefaults = () => getKernelThresholdSnapshot().rope;
 
 async function _rope(target, input, freqsCos, freqsSin, seqLen, options = {}) {
   if (input.precision !== undefined || input.components !== undefined || input.elementStrideBytes !== undefined) {

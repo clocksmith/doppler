@@ -719,8 +719,8 @@ export {
   DEFAULT_CAST_THRESHOLDS,
   DEFAULT_KERNEL_THRESHOLDS,
 
-  // Functions
   getKernelThresholds,
+  getKernelThresholdSnapshot,
   setKernelThresholds,
   resetKernelThresholds,
 } from './kernel-thresholds.schema.js';
