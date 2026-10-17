@@ -3442,7 +3442,7 @@ async function assertCompatibleCompareConfigDrift(report, compareResultPath, cur
   }
 }
 
-async function assertCompareArtifactContracts(report, compareResultPath) {
+export async function assertCompareArtifactContracts(report, compareResultPath) {
   const checks = [
     {
       label: 'benchmarkPolicy',
@@ -4123,6 +4123,19 @@ function renderReleaseMatrixMarkdown(matrix, options = {}) {
   return `${lines.join('\n')}\n`;
 }
 
+export function selectReleaseCompareResults(compareResults, coveredModelIdSet) {
+  return compareResults.filter((entry) => {
+    const modelId = asNonEmptyString(entry?.dopplerModelId);
+    const comparableLane = entry?.compareLane == null || entry.compareLane === 'performance_comparable';
+    const fairnessAllowsRelease = entry?.fairness?.releaseClaimable === true;
+    return modelId != null
+      && coveredModelIdSet.has(modelId)
+      && comparableLane
+      && fairnessAllowsRelease
+      && entry?.pairedComparable !== false;
+  });
+}
+
 async function doMatrix(flags, timestamp = null) {
   const { registry, workloads } = await loadRegistryBundle();
   const capabilities = await loadCapabilitiesBundle(registry);
@@ -4253,16 +4266,7 @@ async function doMatrix(flags, timestamp = null) {
   }
   modelCoverage.sort((a, b) => a.dopplerModelId.localeCompare(b.dopplerModelId));
   const coveredModelIdSet = new Set(modelCoverage.map((entry) => entry.dopplerModelId));
-  const releaseCompareResults = compareResults.filter((entry) => {
-    const modelId = asNonEmptyString(entry?.dopplerModelId);
-    const comparableLane = entry?.compareLane == null || entry.compareLane === 'performance_comparable';
-    const fairnessAllowsRelease = entry?.fairness?.releaseClaimable === true;
-    return modelId != null
-      && coveredModelIdSet.has(modelId)
-      && comparableLane
-      && fairnessAllowsRelease
-      && entry?.pairedComparable !== false;
-  });
+  const releaseCompareResults = selectReleaseCompareResults(compareResults, coveredModelIdSet);
   const latestReleaseCompareResult = selectLatestCompareResult(releaseCompareResults);
 
   const normalizedWorkloads = workloads.workloads.map((workload) => ({
@@ -4855,7 +4859,9 @@ async function main() {
   throw new Error(`Unknown command "${command}"`);
 }
 
-main().catch((error) => {
-  console.error(`[vendor-bench] ${error.message}`);
-  process.exitCode = 1;
-});
+if (process.argv[1] && await fs.realpath(process.argv[1]) === __filename) {
+  main().catch((error) => {
+    console.error(`[vendor-bench] ${error.message}`);
+    process.exitCode = 1;
+  });
+}
