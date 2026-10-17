@@ -83,6 +83,12 @@ node src/cli/doppler-cli.js bench \
 Use `profiles` to discover checked-in runtime profile IDs before selecting a
 verify, debug, diagnose, or bench runtime:
 
+Discovery lists the profiles available in the installation. The npm package
+includes general runtime defaults and the retained Qwen comparison profiles with
+their ancestors. One-off probes, diagnostic campaigns, simulation settings, and
+machine-specific deployment examples remain in the repository; `package.json`
+owns their publication exclusions. Use a repository checkout for those profiles.
+
 ```bash
 node src/cli/doppler-cli.js profiles --json
 node src/cli/doppler-cli.js profiles --pretty

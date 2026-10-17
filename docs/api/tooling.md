@@ -148,6 +148,7 @@ CLI notes:
 - `--surface auto` for `diagnose`, `lora`, and `distill` does not downgrade to browser
 - `--config` accepts inline JSON, file path, or URL for all commands
 - `profiles --json` lists runtime profile IDs, metadata, and trace/profile signal hints
+- Profile discovery reflects installed files; repository-only probes and campaign configurations are not included in npm.
 - `--runtime-profile <id>` is a CLI shorthand for `request.runtimeProfile`; it conflicts with `--runtime-config` and runtime fields inside `--config`
 - `--runtime-config` supports inline JSON, file path, or URL for `verify`, `debug`, `diagnose`, and `bench`
 - `diagnose` is Node-only and uses the same normalized request contract as `debug`
