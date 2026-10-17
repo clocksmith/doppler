@@ -43,6 +43,7 @@ const pipeline = {
   manifest: { inference: { chatTemplate: { enabled: false } } },
   runtimeConfig: {
     inference: {
+      session: { speculation: null },
       generation: { maxTokens: 1, useSpeculative: false },
       sampling: {
         temperature: 0,

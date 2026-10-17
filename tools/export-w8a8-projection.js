@@ -11,7 +11,9 @@ const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const FIXTURE = 'tests/fixtures/w8a8-qualification.json';
 const PHYSICAL = 'artifacts/w8a8-kernels-20261011/frozen-projections-physical.json';
 const REFERENCE = 'tests/kernels/reference/w8a8.js';
-const OPERANDS = 'tests/kernels/w8a8-physical.js';
+// Exact bytes from 1168be7c, matching the retained physical receipt.
+const OPERANDS = 'artifacts/w8a8-kernels-20261011/physical-operand-source.js';
+const ORIGINAL_OPERANDS = 'tests/kernels/w8a8-physical.js';
 const SHADERS = ['quantize_w8a8.wgsl', 'matmul_w8a8.wgsl', 'matmul_w8a8_packed.wgsl', 'rescale_w8a8.wgsl'];
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 
@@ -44,7 +46,7 @@ export async function exportW8A8Projection(config) {
   const fixture = JSON.parse(fixtureBytes), physical = JSON.parse(physicalBytes);
   assert.equal(hash(fixtureBytes), physical.fixture.sha256, 'Frozen fixture identity changed');
   assert.equal(hash(referenceBytes), physical.files[`/${REFERENCE}`], 'Independent oracle changed since physical verification');
-  assert.equal(hash(operandSourceBytes), physical.files[`/${OPERANDS}`], 'Operand generator changed since physical verification');
+  assert.equal(hash(operandSourceBytes), physical.files[`/${ORIGINAL_OPERANDS}`], 'Archived operand generator differs from physical verification');
   const { operators } = fixture;
   assert.equal(operators.seed, 7331, 'Frozen operand seed changed');
   assert(operators.M.includes(1) && operators.projections.some(row => row.name === 'query' && row.N === 1024 && row.K === 640), 'Verified query shape missing');
@@ -101,7 +103,7 @@ export async function exportW8A8Projection(config) {
       sourceCommit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(),
       sourceStatus: execFileSync('git', ['status', '--short'], { cwd: ROOT, encoding: 'utf8' }),
       exporterSha256: hash(await readFile(fileURLToPath(import.meta.url))), fixturePath: FIXTURE, physicalPath: PHYSICAL,
-      referencePath: REFERENCE, operandSourcePath: OPERANDS, originalPhysicalCommit: physical.commit },
+      referencePath: REFERENCE, operandSourcePath: OPERANDS, originalOperandSourcePath: ORIGINAL_OPERANDS, originalPhysicalCommit: physical.commit },
     buffers: {
       uniforms: { size: 16, initial: 'uniforms.u32le.bin', usage: ['UNIFORM', 'COPY_DST'] },
       activation: { size: 2560, initial: 'activation.f32le.bin', usage: ['STORAGE', 'COPY_DST'] },

@@ -4,8 +4,8 @@ import { readFileSync } from 'node:fs';
 // =============================================================================
 // generateTokenIds / _runDecodeLoop semantic parity contract test
 //
-// generateTokenIds() is an intentional lean fast path that bypasses
-// _runDecodeLoop(). This test proves both paths honor the same contract
+// generateTokenIds() and streaming generation share _runDecodeLoop()
+// and preparation, sampling and finalization helpers. This test proves both paths honor the same contract
 // obligations. If a future change drops a contract check from either path,
 // this test fails and forces explicit acknowledgment.
 //
@@ -60,6 +60,19 @@ function extractMethodBody(source, marker) {
 const generateTokenIdsBody = extractMethodBody(generatorSource, 'export async function generateTokenIds(prompt');
 const runDecodeLoopBody = extractMethodBody(generatorSource, 'export async function* _runDecodeLoop(generatedIds');
 const generateTokensInternalBody = extractMethodBody(generatorSource, 'export async function* _generateTokensInternal(prompt');
+const prepareBody = extractMethodBody(generatorSource, 'function prepareGenerationRuntime(');
+const sampleBody = extractMethodBody(generatorSource, 'async function samplePrefillToken(');
+const finishBody = extractMethodBody(generatorSource, 'function finishGenerationRuntime(');
+for (const body of [generateTokenIdsBody, generateTokensInternalBody]) {
+  assert.ok(body.includes('prepareGenerationRuntime(this,'));
+  assert.ok(body.includes('samplePrefillToken(this,'));
+  assert.ok(body.slice(body.lastIndexOf('finally')).includes('finishGenerationRuntime(this,'));
+}
+assert.ok(sampleBody.includes('_shouldUseFinitenessFallback'));
+assert.ok(sampleBody.includes('_retryWithPersistentFinitenessFallback'));
+for (const cleanup of ['resetActiveExecutionPlan', 'isGenerating = false']) {
+  assert.ok(finishBody.includes(cleanup));
+}
 
 // Sanity: bodies should be substantial
 assert.ok(generateTokenIdsBody.length > 500, `generateTokenIds body too short (${generateTokenIdsBody.length})`);
@@ -90,7 +103,7 @@ const DECODE_CONTRACT = [
   {
     id: 'finiteness-retry',
     description: 'Finiteness fallback retry on decode error',
-    generateTokenIdsPattern: '_shouldUseFinitenessFallback',
+    generateTokenIdsPattern: 'samplePrefillToken(',
     runDecodeLoopPattern: '_shouldUseFinitenessFallback',
   },
   {
@@ -116,8 +129,7 @@ const STATS_CONTRACT = [
 
 // Cleanup that must be in finally blocks
 const CLEANUP_CONTRACT = [
-  'resetActiveExecutionPlan',
-  'isGenerating = false',
+  'finishGenerationRuntime(',
   '_closeFinitenessFallbackWindow',
 ];
 
@@ -195,7 +207,7 @@ for (const cleanup of CLEANUP_CONTRACT) {
 
 for (const marker of DIAGNOSTICS_CONTRACT) {
   assert.ok(
-    generateTokenIdsBody.includes(marker),
+    (prepareBody + finishBody).includes(marker),
     `generateTokenIds must include diagnostics contract marker ${marker}`
   );
 }
@@ -256,11 +268,11 @@ assert.ok(
 // === 10. _resetDecodeRuntimeState called at entry in both surfaces ===
 
 assert.ok(
-  generateTokenIdsBody.includes('_resetDecodeRuntimeState'),
+  prepareBody.includes('_resetDecodeRuntimeState'),
   'generateTokenIds must call _resetDecodeRuntimeState at entry'
 );
 assert.ok(
-  generateTokensInternalBody.includes('_resetDecodeRuntimeState'),
+  prepareBody.includes('_resetDecodeRuntimeState'),
   '_generateTokensInternal must call _resetDecodeRuntimeState at entry'
 );
 

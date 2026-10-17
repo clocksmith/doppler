@@ -56,3 +56,12 @@ The reference uses independent BigInt rational quantization; its integer product
 and sums remain exactly representable in JavaScript Number under the fixed I32
 bound. Active and deferred allocation counts both finish at zero. This extends
 operator correctness coverage; it does not establish model accuracy or speed.
+
+The offline projection exporter retains [the exact operand source](physical-operand-source.js)
+served by this receipt. These bytes were recovered from `1168be7c` and match
+the receipt's SHA-256, `452391ebf71ee3e8f074fcc29952a17dc24fedbfff349eeb20266cfd42511d0b`.
+The receipt was captured with working-tree changes; its HEAD alone does not
+identify those source bytes. Later additions to the live test do not change
+this archived proof. Export still verifies the fixture, oracle, packaged shaders,
+and archived operand source against the retained receipt and makes no new
+physical-execution claim.

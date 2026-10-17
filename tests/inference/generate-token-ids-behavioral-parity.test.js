@@ -188,6 +188,57 @@ function stubGenerator(gen, tokenSequence) {
   };
 }
 
+// Every public surface retries eligible prefill sampling failures through the
+// persistent fallback owner, and propagates unrelated failures with cleanup.
+for (const surface of ['generateTokenIds', 'generateTokens', 'generate']) {
+  for (const eligible of [true, false]) {
+    const state = createMinimalState();
+    const generator = new PipelineGenerator(state);
+    stubGenerator(generator, [9, EOS_TOKEN]);
+    const failure = new Error(eligible ? 'non-finite sample' : 'unrelated sample failure');
+    let samples = 0;
+    let retries = 0;
+    generator._sampleNextTokenFromLogits = () => {
+      if (++samples === 1) throw failure;
+      return 9;
+    };
+    generator._shouldUseFinitenessFallback = (error, phase) => {
+      assert.equal(error, failure);
+      assert.equal(phase, 'prefill-sample');
+      return eligible;
+    };
+    generator._prefill = async inputIds => {
+      assert.deepEqual(inputIds, [1, 5, 7]);
+      return makeLogitsForToken(9);
+    };
+    generator._retryWithPersistentFinitenessFallback = async (opts, phase, budget, retry, startSeqLen) => {
+      retries++;
+      assert.equal(phase, 'prefill-sample');
+      assert.equal(budget, opts.maxTokens);
+      assert.equal(startSeqLen, 0);
+      return retry();
+    };
+    const run = async () => {
+      const options = { useChatTemplate: false, diagnostics: { enabled: true } };
+      if (surface === 'generateTokenIds') return (await generator[surface]('fixture', options)).tokenIds;
+      const output = [];
+      for await (const token of generator[surface]('fixture', options)) output.push(token);
+      return output;
+    };
+    if (eligible) {
+      assert.deepEqual(await run(), surface === 'generate' ? ['[9]', '[2]'] : [9, EOS_TOKEN]);
+      assert.equal(retries, 1);
+    } else {
+      await assert.rejects(run, error => error === failure);
+      assert.equal(retries, 0);
+    }
+    assert.equal(state.isGenerating, false);
+    assert.equal(state.operatorDiagnostics, null);
+    assert.equal(state.stats.operatorDiagnostics.enabled, true);
+  }
+}
+console.log('  ok: shared prefill fallback, diagnostics and failure cleanup');
+
 // Streaming observes the first token, every decode token, and immediate EOS.
 for (const sequence of [[9, 10, EOS_TOKEN], [EOS_TOKEN]]) {
   const state = createMinimalState();

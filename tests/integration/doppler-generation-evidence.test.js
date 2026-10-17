@@ -23,6 +23,7 @@ async function hashValue(value) {
 
 const runtimeConfig = {
   inference: {
+    session: { speculation: null },
     generation: {
       maxTokens: 32,
       useSpeculative: false,
@@ -92,6 +93,7 @@ const pipeline = {
         ...runtimeConfig.inference.sampling,
         stopSequences: [],
         useSpeculative: false,
+        speculation: null,
         seed: undefined,
         maxTokens: 4,
         temperature: 0,
@@ -103,7 +105,7 @@ const pipeline = {
       assert.deepEqual(prompt, [{ role: 'user', content: 'hello' }]);
       assert.deepEqual(options, {
         ...runtimeConfig.inference.sampling, maxTokens: 2,
-        stopSequences: [], useSpeculative: false, useChatTemplate: true, seed: undefined,
+        stopSequences: [], useSpeculative: false, speculation: null, useChatTemplate: true, seed: undefined,
       });
     }
     return {
