@@ -4,6 +4,8 @@ export async function auditW8A8(operators = null) {
   const { initDevice, getKernelCapabilities, destroyDevice } = await import('/src/gpu/device.js');
   const { acquireBuffer, releaseBuffer, readBuffer, getBufferPool, destroyBufferPool } = await import('/src/memory/buffer-pool.js');
   const { unifiedKernelWrapper } = await import('/src/gpu/kernels/kernel-execution.js');
+  const { getKernelConfig } = await import('/src/gpu/kernels/kernel-configs.js');
+  const { calculateMatmulDispatch } = await import('/src/gpu/kernels/matmul-dispatch.js');
   const { runW8A8Matmul, recordW8A8Matmul, assertW8A8Status, validateW8A8Matmul } = await import('/src/gpu/kernels/w8a8.js');
   const { createTensor } = await import('/src/gpu/tensor.js');
   const { createWeightBuffer } = await import('/src/gpu/weight-buffer.js');
@@ -18,7 +20,7 @@ export async function auditW8A8(operators = null) {
     for (let i = 0; i < a.length; i++) check(Object.is(a[i], b[i]), `${message}: index${i}, actual${a[i]}, expected${b[i]}`);
   };
   const packedAvailable = capabilities.wgslLanguageFeatures?.includes('packed_4x8_integer_dot_product');
-  const variants = ['w8a8_portable', ...(packedAvailable ? ['w8a8_packed'] : [])];
+  const variants = ['w8a8_portable', ...(packedAvailable ? ['w8a8_packed', 'w8a8_packed_cooperative'] : [])];
   const settle = async () => {
     for (let i = 0; i < 32; i++) {
       await device.queue.onSubmittedWorkDone();
@@ -60,7 +62,8 @@ export async function auditW8A8(operators = null) {
         await assertW8A8Status(status);
         equal(new Uint8Array(await readBuffer(packed, qa.bytes.length)), qa.bytes, 'Exact activation bytes');
         for (const variant of variants) {
-          await unifiedKernelWrapper('matmul', null, variant, [packed, weights.buffer, accumulator, status], uniforms, Math.ceil(M * N / 64));
+          const dispatch = calculateMatmulDispatch(variant, false, false, M, N, getKernelConfig('matmul', variant)).workgroups;
+          await unifiedKernelWrapper('matmul', null, variant, [packed, weights.buffer, accumulator, status], uniforms, dispatch);
           await assertW8A8Status(status);
           equal(new Int32Array(await readBuffer(accumulator, M * N * 4)), expected.accumulators, 'Exact signed accumulation');
           const options = { variant, outputDtype: 'f32' };
@@ -77,6 +80,45 @@ export async function auditW8A8(operators = null) {
         }
       } finally { for (const buffer of owned) releaseBuffer(buffer); }
       check((await settle()).active.bytes === 0, 'Shape retained active GPU buffers');
+    }
+    // Exercise every byte value in every packed position, including -128 and
+    // dirty tails. A malformed word must be skipped and set the sticky status.
+    for (const K of [1, 2, 3, 4, 5, 7, 8]) {
+      const N = 1024, words = 1 + Math.ceil(K / 4), owned = [];
+      const upload = data => {
+        const buffer = acquireBuffer(data.byteLength); owned.push(buffer);
+        device.queue.writeBuffer(buffer, 0, data); return buffer;
+      };
+      try {
+        const a = new Uint8Array(words * 4), w = new Uint8Array(N * words * 4);
+        new DataView(a.buffer).setFloat32(0, 1, true); a.fill(1, 4, 4 + K);
+        const expected = new Int32Array(N), view = new DataView(w.buffer);
+        for (let column = 0; column < N; column++) {
+          const base = column * words * 4;
+          view.setFloat32(base, 1, true);
+          w.fill(127, base + 4, base + 4 + K);
+          w[base + (words - 1) * 4 + (column % 4)] = Math.floor(column / 4);
+          for (let word = 0; word < words - 1; word++) {
+            let sum = 0, valid = true;
+            for (let byte = 0; byte < 4; byte++) {
+              const offset = word * 4 + byte, value = w[base + 4 + offset];
+              if (value === 128 || (offset >= K && value !== 0)) valid = false;
+              if (offset < K) sum += value < 128 ? value : value - 256;
+            }
+            if (valid) expected[column] += sum;
+          }
+        }
+        const packed = upload(a), weights = upload(w), output = upload(new Int32Array(N)), status = upload(new Uint32Array(1));
+        for (const variant of variants) {
+          device.queue.writeBuffer(status, 0, new Uint32Array(1));
+          const dispatch = calculateMatmulDispatch(variant, false, false, 1, N, getKernelConfig('matmul', variant)).workgroups;
+          await unifiedKernelWrapper('matmul', null, variant, [packed, weights, output, status],
+            { rows: 1, columns: N, inner: K, row_words: words }, dispatch);
+          equal(new Int32Array(await readBuffer(output, N * 4)), expected, 'Packed byte-domain and padding accumulation');
+          check(new Uint32Array(await readBuffer(status, 4))[0] === 8, 'Packed byte-domain rejection flags');
+          rows.push({ K, variant, byteDomainCases: N, accumulatorsExact: true, statusBits: 8 });
+        }
+      } finally { for (const buffer of owned) releaseBuffer(buffer); }
     }
     // Scalar conversion ties precede independently checked floating rescale boundaries.
     const integerValues = new Int32Array([16777217, 16777219, -16777217, 2147479576, 0]);
@@ -135,6 +177,8 @@ export async function auditW8A8(operators = null) {
       { name: 'negative128', A: new Float32Array([1]), flag: 8, mutate: bytes => { bytes[4] = 128; } },
       { name: 'padding', A: new Float32Array([1]), flag: 8, mutate: bytes => { bytes[5] = 1; } },
       { name: 'bad-scale', A: new Float32Array([1]), flag: 4, mutate: bytes => { new DataView(bytes.buffer).setFloat32(0, Infinity, true); } },
+      { name: 'zero-row-scale', A: new Float32Array([1]), W: new Float32Array([0]), flag: 4,
+        mutate: bytes => { new DataView(bytes.buffer).setFloat32(0, 2, true); } },
       { name: 'overflow', A: new Float32Array([2 ** 120]), W: new Float32Array([2 ** 120]), flag: 16 },
     ]) {
       const owned = [];

@@ -25,6 +25,7 @@ export interface KernelUniformValues {
   "gated_delta_recurrent_checkpoint_forward/default": Parameters<typeof writers0.write_gated_delta_recurrent_checkpoint_forward_default>[1];
   "matmul/w8a8_portable": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
   "matmul/w8a8_packed": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
+  "matmul/w8a8_packed_cooperative": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
   "matmul/f16": Parameters<typeof writers0.write_matmul_f16>[1];
   "matmul/f16_vec4": Parameters<typeof writers0.write_matmul_f16>[1];
   "matmul/f16_tiled": Parameters<typeof writers0.write_matmul_f16>[1];

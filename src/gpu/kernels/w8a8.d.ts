@@ -2,7 +2,7 @@ import type { Tensor } from '../tensor.js';
 import type { WeightBuffer } from '../weight-buffer.js';
 import type { CommandRecorder } from '../command-recorder.js';
 export interface W8A8Options {
-  variant: 'w8a8_portable' | 'w8a8_packed';
+  variant: 'w8a8_portable' | 'w8a8_packed' | 'w8a8_packed_cooperative';
   outputDtype: 'f32';
   outputBuffer?: GPUBuffer | null;
   signal?: AbortSignal;

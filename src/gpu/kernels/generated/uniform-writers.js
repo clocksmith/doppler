@@ -25,6 +25,7 @@ export const UNIFORM_WRITERS = Object.freeze({
   "gated_delta_recurrent_checkpoint_forward/default": { size: 48, write: writers0.write_gated_delta_recurrent_checkpoint_forward_default },
   "matmul/w8a8_portable": { size: 16, write: writers0.write_w8a8_quantize_f32 },
   "matmul/w8a8_packed": { size: 16, write: writers0.write_w8a8_quantize_f32 },
+  "matmul/w8a8_packed_cooperative": { size: 16, write: writers0.write_w8a8_quantize_f32 },
   "matmul/f16": { size: 32, write: writers0.write_matmul_f16 },
   "matmul/f16_vec4": { size: 32, write: writers0.write_matmul_f16 },
   "matmul/f16_tiled": { size: 32, write: writers0.write_matmul_f16 },
