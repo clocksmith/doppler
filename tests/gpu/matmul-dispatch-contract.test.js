@@ -440,3 +440,16 @@ for (const variant of ['w8a8_portable', 'w8a8_packed']) {
       [Math.ceil(M * N / 64), 1, 1]);
   }
 }
+
+// Cooperative reduction assigns a complete independent row to each Y group.
+{
+  const variant = 'w8a8_packed_cooperative', config = KERNEL_CONFIGS.matmul[variant];
+  for (const [M, N] of [[3, 17], [1, 1024], [128, 640]]) {
+    const { workgroups } = calculateMatmulDispatch(variant, false, false, M, N, config);
+    const columns = config.workgroupSize[0] / config.wgslOverrides.LANES_PER_OUTPUT;
+    assert.equal(workgroups[1], M);
+    assert(workgroups[0] * columns >= N);
+    assert((workgroups[0] - 1) * columns < N);
+  }
+  assert.throws(() => calculateMatmulDispatch(variant, false, false, 65536, 1, config), /limits/);
+}

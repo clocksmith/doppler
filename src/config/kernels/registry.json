@@ -2004,6 +2004,95 @@
       "wgslOnDisk": true
      }
     },
+    "w8a8_packed_cooperative": {
+     "wgsl": "matmul_w8a8_packed_cooperative.wgsl",
+     "entryPoint": "main",
+     "workgroup": [64,1,1],
+     "requires": [],
+     "requiredWgslFeatures": ["packed_4x8_integer_dot_product"],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "activations",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      },
+      {
+       "index": 4,
+       "name": "status",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 16,
+      "fields": [
+       {
+        "name": "rows",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "columns",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "inner",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "row_words",
+        "type": "u32",
+        "offset": 12
+       }
+      ]
+     },
+     "weightDtype": "w8a8",
+     "outputDtype": "i32",
+     "variantMetadata": {
+      "dispatchGeometry": "row-column-block",
+      "mechanismKernels": [
+       {
+        "operation": "w8a8_quantize",
+        "variant": "f32"
+       },
+       {
+        "operation": "w8a8_rescale",
+        "variant": "activation"
+       },
+       {
+        "operation": "w8a8_rescale",
+        "variant": "weight"
+       }
+      ],
+      "colsPerWg": 4
+     },
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 64,
+      "LANES_PER_OUTPUT": 16
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
     "f16": {
      "wgsl": "matmul_f16.wgsl",
      "entryPoint": "main",

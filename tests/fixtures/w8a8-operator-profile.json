@@ -1,0 +1,11 @@
+{
+  "schema": "doppler.w8a8-operator-profile/v1",
+  "scope": "Warm synthetic packed projection tuning; excludes model loading and does not establish model quality or end-to-end speed",
+  "seed": 1391952291,
+  "warmups": 3,
+  "pairs": 12,
+  "operationsPerSubmission": 8,
+  "profileRuns": 3,
+  "variants": ["w8a8_packed", "w8a8_packed_cooperative"],
+  "shapes": [[1, 640, 2048], [16, 640, 2048], [128, 640, 2048], [1, 1024, 5120], [16, 1024, 5120]]
+}
