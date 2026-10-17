@@ -1,0 +1,74 @@
+{
+  "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
+  "promoted": false,
+  "package": {
+    "files": 1959,
+    "packedBytes": 3483987,
+    "unpackedBytes": 14168991,
+    "limitsUnchanged": true,
+    "receipt": "receipt.json"
+  },
+  "primaryComparison": {
+    "pairs": 24,
+    "allExitZeroAndClaimGradeAndRetainedTranscriptMatch": true,
+    "summary": "comparison-summary.json"
+  },
+  "focusedQualification": {
+    "metal": {
+      "receipt": "metal/status.json",
+      "processes": 13,
+      "failed": [],
+      "skipped": []
+    },
+    "vulkan": {
+      "receipt": "vulkan-evidence/results/status.json",
+      "processes": 13,
+      "failed": [],
+      "skipped": [
+        {
+          "exitCode": 0,
+          "name": "fused-matmul-q4-metal-simd16-gpu-regression.test",
+          "elapsedSeconds": 0.26409722099197097,
+          "skipLines": [
+            "fused-matmul-q4-metal-simd16-gpu-regression.test: skipped (requires Apple Metal subgroups)"
+          ]
+        }
+      ]
+    }
+  },
+  "browserLifecycle": {
+    "metal-0-8b": {
+      "receipt": "browser-metal-0-8b.json",
+      "passed": true,
+      "scope": "Physical browser public logits, cancellation, completed-work and post-submission device destruction and recreation; no spontaneous-loss claim"
+    },
+    "metal-2b": {
+      "receipt": "browser-metal-2b.json",
+      "passed": true,
+      "scope": "Physical browser public logits, cancellation, completed-work and post-submission device destruction and recreation; no spontaneous-loss claim"
+    },
+    "vulkan-0-8b": {
+      "receipt": "vulkan-evidence/browser-vulkan-0-8b.json",
+      "passed": true,
+      "scope": "Physical browser public logits, cancellation, completed-work and post-submission device destruction and recreation; no spontaneous-loss claim"
+    },
+    "vulkan-2b": {
+      "receipt": "vulkan-evidence/browser-vulkan-2b.json",
+      "passed": true,
+      "scope": "Physical browser public logits, cancellation, completed-work and post-submission device destruction and recreation; no spontaneous-loss claim"
+    }
+  },
+  "open": [
+    "CI GPU bootstrap failure and all remaining suite skips are not closed by these focused checks.",
+    "Cross-engine dedicated GPU peak residency unavailable.",
+    "Complete browser/process-launch and network-cold opening unavailable.",
+    "M3 2B variability; hosts were not exclusive.",
+    "Original cold firstLoad summary mixes model load with resident median; use derived coldOpening from actual first samples.",
+    "No delivery or per-tensor representation change made."
+  ],
+  "memoryPass": {
+    "metalPairs": 4,
+    "allExitZero": true,
+    "summary": "memory-summary.json"
+  }
+}

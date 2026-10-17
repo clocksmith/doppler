@@ -1,0 +1,442 @@
+[
+  {
+    "lane": "metal",
+    "model": "qwen-3-5-0-8b-q4k-ehaf16",
+    "order": "doppler-first",
+    "receipt": "memory-metal/warm-p64-0-8b-doppler-first/compare_latest.json",
+    "claimGrade": true,
+    "outputParity": "match",
+    "scope": "process tree sampled during model opening, warmups and three requests; aggregate RSS, shared mappings included; not dedicated VRAM",
+    "engines": {
+      "doppler": {
+        "peakRssBytes": 3612213248,
+        "sampling": {
+          "intervalMs": 500,
+          "sampleCount": 35,
+          "includeSamples": true,
+          "sources": {
+            "procfs": false,
+            "darwinPs": true,
+            "meminfo": false,
+            "rocmSmi": false
+          },
+          "unavailableReasons": [
+            "meminfo-unavailable",
+            "rocm-smi-unavailable"
+          ]
+        },
+        "cpuTotalMs": {
+          "min": 0,
+          "max": 16010,
+          "mean": 9880.588,
+          "last": 8550
+        }
+      },
+      "transformersjs": {
+        "peakRssBytes": 4393566208,
+        "sampling": {
+          "intervalMs": 500,
+          "sampleCount": 39,
+          "includeSamples": true,
+          "sources": {
+            "procfs": false,
+            "darwinPs": true,
+            "meminfo": false,
+            "rocmSmi": false
+          },
+          "unavailableReasons": [
+            "meminfo-unavailable",
+            "rocm-smi-unavailable"
+          ]
+        },
+        "cpuTotalMs": {
+          "min": 0,
+          "max": 39860,
+          "mean": 22409.737,
+          "last": 39860
+        }
+      }
+    }
+  },
+  {
+    "lane": "metal",
+    "model": "qwen-3-5-0-8b-q4k-ehaf16",
+    "order": "transformersjs-first",
+    "receipt": "memory-metal/warm-p64-0-8b-transformersjs-first/compare_latest.json",
+    "claimGrade": true,
+    "outputParity": "match",
+    "scope": "process tree sampled during model opening, warmups and three requests; aggregate RSS, shared mappings included; not dedicated VRAM",
+    "engines": {
+      "doppler": {
+        "peakRssBytes": 3600285696,
+        "sampling": {
+          "intervalMs": 500,
+          "sampleCount": 36,
+          "includeSamples": true,
+          "sources": {
+            "procfs": false,
+            "darwinPs": true,
+            "meminfo": false,
+            "rocmSmi": false
+          },
+          "unavailableReasons": [
+            "meminfo-unavailable",
+            "rocm-smi-unavailable"
+          ]
+        },
+        "cpuTotalMs": {
+          "min": 0,
+          "max": 17840,
+          "mean": 11229.143,
+          "last": 17840
+        }
+      },
+      "transformersjs": {
+        "peakRssBytes": 4261117952,
+        "sampling": {
+          "intervalMs": 500,
+          "sampleCount": 40,
+          "includeSamples": true,
+          "sources": {
+            "procfs": false,
+            "darwinPs": true,
+            "meminfo": false,
+            "rocmSmi": false
+          },
+          "unavailableReasons": [
+            "meminfo-unavailable",
+            "rocm-smi-unavailable"
+          ]
+        },
+        "cpuTotalMs": {
+          "min": 0,
+          "max": 41490,
+          "mean": 23453.846,
+          "last": 41490
+        }
+      }
+    }
+  },
+  {
+    "lane": "metal",
+    "model": "qwen-3-5-2b-q4k-ehaf16",
+    "order": "doppler-first",
+    "receipt": "memory-metal/warm-p64-2b-doppler-first/compare_latest.json",
+    "claimGrade": true,
+    "outputParity": "match",
+    "scope": "process tree sampled during model opening, warmups and three requests; aggregate RSS, shared mappings included; not dedicated VRAM",
+    "engines": {
+      "doppler": {
+        "peakRssBytes": 3168239616,
+        "sampling": {
+          "intervalMs": 500,
+          "sampleCount": 71,
+          "includeSamples": true,
+          "sources": {
+            "procfs": false,
+            "darwinPs": true,
+            "meminfo": false,
+            "rocmSmi": false
+          },
+          "unavailableReasons": [
+            "meminfo-unavailable",
+            "rocm-smi-unavailable"
+          ]
+        },
+        "cpuTotalMs": {
+          "min": 0,
+          "max": 20820,
+          "mean": 13180.286,
+          "last": 2810
+        }
+      },
+      "transformersjs": {
+        "peakRssBytes": 5512282112,
+        "sampling": {
+          "intervalMs": 500,
+          "sampleCount": 92,
+          "includeSamples": true,
+          "sources": {
+            "procfs": false,
+            "darwinPs": true,
+            "meminfo": false,
+            "rocmSmi": false
+          },
+          "unavailableReasons": [
+            "meminfo-unavailable",
+            "rocm-smi-unavailable"
+          ]
+        },
+        "cpuTotalMs": {
+          "min": 0,
+          "max": 54020,
+          "mean": 19035.275,
+          "last": 1450
+        }
+      }
+    }
+  },
+  {
+    "lane": "metal",
+    "model": "qwen-3-5-2b-q4k-ehaf16",
+    "order": "transformersjs-first",
+    "receipt": "memory-metal/warm-p64-2b-transformersjs-first/compare_latest.json",
+    "claimGrade": true,
+    "outputParity": "match",
+    "scope": "process tree sampled during model opening, warmups and three requests; aggregate RSS, shared mappings included; not dedicated VRAM",
+    "engines": {
+      "doppler": {
+        "peakRssBytes": 3941466112,
+        "sampling": {
+          "intervalMs": 500,
+          "sampleCount": 61,
+          "includeSamples": true,
+          "sources": {
+            "procfs": false,
+            "darwinPs": true,
+            "meminfo": false,
+            "rocmSmi": false
+          },
+          "unavailableReasons": [
+            "meminfo-unavailable",
+            "rocm-smi-unavailable"
+          ]
+        },
+        "cpuTotalMs": {
+          "min": 0,
+          "max": 17300,
+          "mean": 10601,
+          "last": 2300
+        }
+      },
+      "transformersjs": {
+        "peakRssBytes": 5957337088,
+        "sampling": {
+          "intervalMs": 500,
+          "sampleCount": 92,
+          "includeSamples": true,
+          "sources": {
+            "procfs": false,
+            "darwinPs": true,
+            "meminfo": false,
+            "rocmSmi": false
+          },
+          "unavailableReasons": [
+            "meminfo-unavailable",
+            "rocm-smi-unavailable"
+          ]
+        },
+        "cpuTotalMs": {
+          "min": 0,
+          "max": 50310,
+          "mean": 16314.945,
+          "last": 1390
+        }
+      }
+    }
+  },
+  {
+    "lane": "vulkan",
+    "model": "qwen-3-5-0-8b-q4k-ehaf16",
+    "order": "doppler-first",
+    "receipt": "comparison-vulkan-preliminary/warm-p64-0-8b-doppler-first/compare_latest.json",
+    "claimGrade": true,
+    "outputParity": "match",
+    "scope": "process tree sampled during model opening, warmups and three requests; aggregate RSS, shared mappings included; not dedicated VRAM",
+    "engines": {
+      "doppler": {
+        "peakRssBytes": 2521243648,
+        "sampling": {
+          "intervalMs": 500,
+          "sampleCount": 22,
+          "includeSamples": true,
+          "sources": {
+            "procfs": true,
+            "meminfo": true,
+            "rocmSmi": true
+          },
+          "unavailableReasons": []
+        },
+        "cpuTotalMs": {
+          "min": 0,
+          "max": 14130,
+          "mean": 8502.857,
+          "last": 14130
+        }
+      },
+      "transformersjs": {
+        "peakRssBytes": 3451805696,
+        "sampling": {
+          "intervalMs": 500,
+          "sampleCount": 40,
+          "includeSamples": true,
+          "sources": {
+            "procfs": true,
+            "meminfo": true,
+            "rocmSmi": true
+          },
+          "unavailableReasons": []
+        },
+        "cpuTotalMs": {
+          "min": 0,
+          "max": 31930,
+          "mean": 17761.795,
+          "last": 31930
+        }
+      }
+    }
+  },
+  {
+    "lane": "vulkan",
+    "model": "qwen-3-5-0-8b-q4k-ehaf16",
+    "order": "transformersjs-first",
+    "receipt": "comparison-vulkan-preliminary/warm-p64-0-8b-transformersjs-first/compare_latest.json",
+    "claimGrade": true,
+    "outputParity": "match",
+    "scope": "process tree sampled during model opening, warmups and three requests; aggregate RSS, shared mappings included; not dedicated VRAM",
+    "engines": {
+      "doppler": {
+        "peakRssBytes": 2441383936,
+        "sampling": {
+          "intervalMs": 500,
+          "sampleCount": 21,
+          "includeSamples": true,
+          "sources": {
+            "procfs": true,
+            "meminfo": true,
+            "rocmSmi": true
+          },
+          "unavailableReasons": []
+        },
+        "cpuTotalMs": {
+          "min": 0,
+          "max": 13280,
+          "mean": 7917,
+          "last": 13280
+        }
+      },
+      "transformersjs": {
+        "peakRssBytes": 3300118528,
+        "sampling": {
+          "intervalMs": 500,
+          "sampleCount": 39,
+          "includeSamples": true,
+          "sources": {
+            "procfs": true,
+            "meminfo": true,
+            "rocmSmi": true
+          },
+          "unavailableReasons": []
+        },
+        "cpuTotalMs": {
+          "min": 0,
+          "max": 31090,
+          "mean": 17407.895,
+          "last": 31090
+        }
+      }
+    }
+  },
+  {
+    "lane": "vulkan",
+    "model": "qwen-3-5-2b-q4k-ehaf16",
+    "order": "doppler-first",
+    "receipt": "comparison-vulkan-preliminary/warm-p64-2b-doppler-first/compare_latest.json",
+    "claimGrade": true,
+    "outputParity": "match",
+    "scope": "process tree sampled during model opening, warmups and three requests; aggregate RSS, shared mappings included; not dedicated VRAM",
+    "engines": {
+      "doppler": {
+        "peakRssBytes": 3048689664,
+        "sampling": {
+          "intervalMs": 500,
+          "sampleCount": 29,
+          "includeSamples": true,
+          "sources": {
+            "procfs": true,
+            "meminfo": true,
+            "rocmSmi": true
+          },
+          "unavailableReasons": []
+        },
+        "cpuTotalMs": {
+          "min": 0,
+          "max": 17320,
+          "mean": 11041.429,
+          "last": 17320
+        }
+      },
+      "transformersjs": {
+        "peakRssBytes": 5877944320,
+        "sampling": {
+          "intervalMs": 500,
+          "sampleCount": 43,
+          "includeSamples": true,
+          "sources": {
+            "procfs": true,
+            "meminfo": true,
+            "rocmSmi": true
+          },
+          "unavailableReasons": []
+        },
+        "cpuTotalMs": {
+          "min": 0,
+          "max": 34070,
+          "mean": 19065,
+          "last": 34070
+        }
+      }
+    }
+  },
+  {
+    "lane": "vulkan",
+    "model": "qwen-3-5-2b-q4k-ehaf16",
+    "order": "transformersjs-first",
+    "receipt": "comparison-vulkan-preliminary/warm-p64-2b-transformersjs-first/compare_latest.json",
+    "claimGrade": true,
+    "outputParity": "match",
+    "scope": "process tree sampled during model opening, warmups and three requests; aggregate RSS, shared mappings included; not dedicated VRAM",
+    "engines": {
+      "doppler": {
+        "peakRssBytes": 2968707072,
+        "sampling": {
+          "intervalMs": 500,
+          "sampleCount": 30,
+          "includeSamples": true,
+          "sources": {
+            "procfs": true,
+            "meminfo": true,
+            "rocmSmi": true
+          },
+          "unavailableReasons": []
+        },
+        "cpuTotalMs": {
+          "min": 0,
+          "max": 18110,
+          "mean": 11540.345,
+          "last": 18110
+        }
+      },
+      "transformersjs": {
+        "peakRssBytes": 6615740416,
+        "sampling": {
+          "intervalMs": 500,
+          "sampleCount": 43,
+          "includeSamples": true,
+          "sources": {
+            "procfs": true,
+            "meminfo": true,
+            "rocmSmi": true
+          },
+          "unavailableReasons": []
+        },
+        "cpuTotalMs": {
+          "min": 0,
+          "max": 34100,
+          "mean": 19129.048,
+          "last": 34100
+        }
+      }
+    }
+  }
+]
