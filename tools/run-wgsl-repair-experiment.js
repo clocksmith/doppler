@@ -70,16 +70,6 @@ function modelRequest(policy) {
   };
 }
 
-function adapterRequest(policy) {
-  const adapter = policy.trainer.adapter;
-  return {
-    rank: adapter.rank,
-    alpha: adapter.alpha,
-    dropout: adapter.dropout,
-    targetModules: adapter.targetModules,
-  };
-}
-
 function commonTraining(policy) {
   return {
     dtype: policy.trainer.dtype,

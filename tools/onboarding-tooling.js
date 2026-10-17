@@ -327,21 +327,6 @@ function resolveConversionConfigModelId(config, policy = getActivePolicy()) {
   return { modelId, error: null };
 }
 
-function toSafeJsIdentifier(value) {
-  const tokens = String(value)
-    .trim()
-    .toLowerCase()
-    .split(/[^a-z0-9]+/)
-    .filter(Boolean);
-  if (!tokens.length) return 'modelConfig';
-  const head = tokens[0].replace(/^[^a-z]+/, '') || 'model';
-  const tail = tokens.slice(1).map((token) => token[0].toUpperCase() + token.slice(1)).join('');
-  const identifier = `${head}${tail}`;
-  return /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(identifier)
-    ? identifier
-    : `model_${identifier.replace(/[^a-z0-9_]/gi, '_')}`;
-}
-
 function toRuntimeProfileId(runtimeProfileRoot, filePath) {
   const relativePath = path.relative(runtimeProfileRoot, filePath);
   return relativePath.replace(/\\/g, '/').replace(/\.json$/i, '');
@@ -425,30 +410,6 @@ function validateSinglePathValue(fieldPath, paths, key, issues, code = 'HARNESS_
   for (const [index, candidate] of candidates.entries()) {
     if (!assertString(candidate)) {
       issues.push(toIssue(ERROR, code, fieldPath, `"${key}" canonical path #${index + 1} must be a non-empty string`));
-    }
-  }
-}
-
-function validateStringList(fieldPath, values, issues, code) {
-  if (values == null) return;
-  if (!Array.isArray(values)) {
-    issues.push(toIssue(
-      ERROR,
-      code || 'JSON_ARRAY_EXPECTED',
-      fieldPath,
-      'must be an array of non-empty strings'
-    ));
-    return;
-  }
-  for (const item of values) {
-    if (!assertString(item)) {
-      issues.push(toIssue(
-        ERROR,
-        code || 'JSON_STRING_REQUIRED',
-        fieldPath,
-        'all items must be non-empty strings'
-      ));
-      return;
     }
   }
 }
@@ -1275,118 +1236,6 @@ async function validateCompareConfigs(root, issues, context) {
   context.compareProfilesWithoutConversion = noConfigProfiles;
 }
 
-function kernelRegistrySnippet(kindId, fileName, status, statusReason, policy = getActivePolicy()) {
-  const defaults = policy.defaults?.kernelPath || {};
-  const statusDefault = resolveText(defaults.statusDefault, 'experimental');
-  const statusValue = resolveText(status, statusDefault);
-  const statusReasonValue = resolveText(statusReason, resolveText(defaults.statusReason, 'scaffolded'));
-  return toJsonText({
-    id: kindId,
-    file: fileName,
-    status: statusValue,
-    statusReason: statusReasonValue,
-    notes: `Add ${kindId} kernel path and update as needed.`,
-  });
-}
-
-function renderKernelPathTemplate(id, options = {}, policy = getActivePolicy()) {
-  const kernelId = normalizeId(id);
-  const kernelDefaults = policy.defaults?.kernelPath || {};
-  const statusValue = resolveText(options.status, resolveText(kernelDefaults.statusDefault, 'experimental'));
-  const excludedStatuses = resolveTextArray(kernelDefaults.excludeStatuses, []);
-  const shouldHideStatus = excludedStatuses.includes(statusValue);
-  return {
-    id: kernelId,
-    name: `${kernelId}`,
-    description: `${kernelDefaults.descriptionTemplate ? kernelDefaults.descriptionTemplate.replace('{id}', kernelId) : `Scaffolded kernel path for ${kernelId}.`}`,
-    activationDtype: resolveText(kernelDefaults.activationDtype, 'f16'),
-    kvDtype: resolveText(kernelDefaults.kvDtype, 'f16'),
-    decode: {
-      steps: [
-        { op: 'input_norm', kernel: 'rmsnorm.wgsl', entry: 'main' },
-        { op: 'q_proj', kernel: 'matmul_f16w_f32a.wgsl', entry: 'main', weights: 'layer.{L}.self_attn.q_proj' },
-        { op: 'k_proj', kernel: 'matmul_f16w_f32a.wgsl', entry: 'main', weights: 'layer.{L}.self_attn.k_proj' },
-        { op: 'v_proj', kernel: 'matmul_f16w_f32a.wgsl', entry: 'main', weights: 'layer.{L}.self_attn.v_proj' },
-        { op: 'rope_q', kernel: 'rope.wgsl', entry: 'main' },
-        { op: 'rope_k', kernel: 'rope.wgsl', entry: 'main' },
-        { op: 'attention', kernel: 'attention_decode_chunked_f16kv.wgsl', entry: 'main' },
-        { op: 'o_proj', kernel: 'matmul_f16w_f32a.wgsl', entry: 'main', weights: 'layer.{L}.self_attn.o_proj' },
-        { op: 'attn_residual', kernel: 'residual.wgsl', entry: 'main' },
-        { op: 'post_attn_norm', kernel: 'rmsnorm.wgsl', entry: 'main' },
-        { op: 'gate_proj', kernel: 'matmul_f16w_f32a.wgsl', entry: 'main', weights: 'layer.{L}.mlp.gate_proj' },
-        { op: 'up_proj', kernel: 'matmul_f16w_f32a.wgsl', entry: 'main', weights: 'layer.{L}.mlp.up_proj' },
-        { op: 'activation', kernel: 'gelu.wgsl', entry: 'main' },
-        { op: 'down_proj', kernel: 'matmul_f16w_f32a.wgsl', entry: 'main', weights: 'layer.{L}.mlp.down_proj' },
-        { op: 'ffn_residual', kernel: 'residual.wgsl', entry: 'main' },
-      ],
-    },
-    prefill: {
-      steps: [
-        { op: 'input_norm', kernel: 'rmsnorm.wgsl', entry: 'main' },
-        { op: 'q_proj', kernel: 'matmul_f16w_f32a.wgsl', entry: 'main', weights: 'layer.{L}.self_attn.q_proj' },
-        { op: 'k_proj', kernel: 'matmul_f16w_f32a.wgsl', entry: 'main', weights: 'layer.{L}.self_attn.k_proj' },
-        { op: 'v_proj', kernel: 'matmul_f16w_f32a.wgsl', entry: 'main', weights: 'layer.{L}.self_attn.v_proj' },
-        { op: 'rope_q', kernel: 'rope.wgsl', entry: 'main' },
-        { op: 'rope_k', kernel: 'rope.wgsl', entry: 'main' },
-        { op: 'attention', kernel: 'attention_streaming_f16kv.wgsl', entry: 'main' },
-        { op: 'o_proj', kernel: 'matmul_f16w_f32a.wgsl', entry: 'main', weights: 'layer.{L}.self_attn.o_proj' },
-        { op: 'attn_residual', kernel: 'residual.wgsl', entry: 'main' },
-        { op: 'post_attn_norm', kernel: 'rmsnorm.wgsl', entry: 'main' },
-        { op: 'gate_proj', kernel: 'matmul_f16w_f32a.wgsl', entry: 'main', weights: 'layer.{L}.mlp.gate_proj' },
-        { op: 'up_proj', kernel: 'matmul_f16w_f32a.wgsl', entry: 'main', weights: 'layer.{L}.mlp.up_proj' },
-        { op: 'activation', kernel: 'gelu.wgsl', entry: 'main' },
-        { op: 'down_proj', kernel: 'matmul_f16w_f32a.wgsl', entry: 'main', weights: 'layer.{L}.mlp.down_proj' },
-        { op: 'ffn_residual', kernel: 'residual.wgsl', entry: 'main' },
-      ],
-    },
-    preLayer: [
-      { op: 'embed', kernel: 'gather.wgsl', entry: 'main', weights: 'embed_tokens' },
-    ],
-    postLayer: [
-      { op: 'final_norm', kernel: 'rmsnorm.wgsl', entry: 'main' },
-      { op: 'lm_head', kernel: 'matmul_gemv_subgroup.wgsl', entry: 'main_multicol', weights: 'lm_head' },
-    ],
-    sampling: [
-      { op: 'sample', kernel: 'sample.wgsl', entry: 'sample_single_pass' },
-    ],
-    ...(shouldHideStatus
-      ? {}
-      : {
-        status: statusValue,
-      }),
-  };
-}
-
-function renderModelFamilyTemplate(id, baseFamilyId = null, policy = getActivePolicy()) {
-  const modelDefaults = policy.defaults?.model || {};
-  return {
-    id,
-    name: id,
-    extends: resolveText(baseFamilyId, resolveText(modelDefaults.baseFamily, 'transformer')),
-    architecture: {},
-    inference: {
-      attention: {},
-      normalization: {},
-      ffn: {},
-      output: {},
-      layerPattern: {
-        type: 'every_n',
-        period: 1,
-      },
-      kernelPaths: {},
-    },
-    tokenizer: {
-      bosToken: '<bos>',
-      eosTokens: ['<eos>'],
-      addBosToken: true,
-    },
-    detection: {
-      architecturePatterns: [id],
-      modelTypePatterns: [id],
-    },
-  };
-}
-
 function renderConversionTemplate(id, options = {}, policy = getActivePolicy()) {
   const defaults = policyDefaultsFromActivePolicy(policy);
   const conversionDefaults = isObject(defaults.conversion) ? defaults.conversion : {};
@@ -1493,26 +1342,10 @@ async function runCheck(context, policy = getActivePolicy()) {
     loaderConfigDetectionOrder = [],
     kernelPathIds = new Set(),
     kernelStatusById = new Map(),
-    runtimeProfileIds = new Set(),
-    conversionModelIds = new Set(),
-    compareProfileIds = new Set(),
-    compareProfilesWithoutConversion = new Set(),
-    modelFamiliesWithoutLoaderConfig = new Set(),
-    modelFamiliesMissingDetectionOrder = new Set(),
     kernelRuleVariantParity = { ruleSets: 0, variants: 0 },
     generatedWgsl = { variants: 0, drift: 0 },
     programBundles = { count: 0 },
   } = context;
-  const resolvedContext = {
-    ...context,
-    modelFamilyIds,
-    conversionModelIds: context.conversionModelIds,
-    runtimeProfileIds: context.runtimeProfileIds,
-    compareProfileIds: context.compareProfileIds,
-    compareProfilesWithoutConversion: context.compareProfilesWithoutConversion,
-    modelFamiliesWithoutLoaderConfig: context.modelFamiliesWithoutLoaderConfig,
-    modelFamiliesMissingDetectionOrder: context.modelFamiliesMissingDetectionOrder,
-  };
 
   return {
     status: issueCounts(issues).errors === 0 ? 'pass' : 'fail',
@@ -1529,18 +1362,18 @@ async function runCheck(context, policy = getActivePolicy()) {
         generatedWgslVariants: generatedWgsl.variants,
         generatedWgslDrifted: generatedWgsl.drift,
         loaderDetectionOrder: Array.isArray(loaderConfigDetectionOrder) ? loaderConfigDetectionOrder.length : 0,
-        runtimeProfiles: resolvedContext.runtimeProfileIds ? resolvedContext.runtimeProfileIds.size : 0,
-        conversionProfiles: resolvedContext.conversionModelIds ? resolvedContext.conversionModelIds.size : 0,
-        compareProfiles: resolvedContext.compareProfileIds ? resolvedContext.compareProfileIds.size : 0,
+        runtimeProfiles: context.runtimeProfileIds ? context.runtimeProfileIds.size : 0,
+        conversionProfiles: context.conversionModelIds ? context.conversionModelIds.size : 0,
+        compareProfiles: context.compareProfileIds ? context.compareProfileIds.size : 0,
         programBundles: programBundles.count,
       },
       stats: {
         ...issueCounts(issues),
       },
       coverage: {
-        compareProfilesWithoutConversion: Array.from(resolvedContext.compareProfilesWithoutConversion || []),
-        modelFamiliesWithoutLoaderConfig: Array.from(resolvedContext.modelFamiliesWithoutLoaderConfig || []),
-        modelFamiliesMissingDetectionOrder: Array.from(resolvedContext.modelFamiliesMissingDetectionOrder || []),
+        compareProfilesWithoutConversion: Array.from(context.compareProfilesWithoutConversion || []),
+        modelFamiliesWithoutLoaderConfig: Array.from(context.modelFamiliesWithoutLoaderConfig || []),
+        modelFamiliesMissingDetectionOrder: Array.from(context.modelFamiliesMissingDetectionOrder || []),
       },
     },
     compatibility: {
@@ -1609,7 +1442,6 @@ async function runScaffold(context, policy = getActivePolicy()) {
     return 0;
   }
 
-  const supportedKinds = resolveTextArray(policy.scaffoldKinds, ['conversion', 'kernel', 'behavior']);
   const kindError = resolveText(policy.defaults?.errors?.unsupportedKind, 'Unsupported scaffold kind');
   throw new Error(`${kindError} "${kind}"`);
 }

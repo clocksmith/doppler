@@ -1,5 +1,4 @@
 import fs from 'node:fs';
-import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 
 const DEFAULT_RESOURCE_TELEMETRY_INTERVAL_MS = 500;
@@ -8,11 +7,6 @@ const PROC_ROOT = '/proc';
 
 function isPlainObject(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
-}
-
-function asFiniteNumber(value) {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function roundNumber(value, digits = 3) {
