@@ -63,6 +63,7 @@ const report = { schema: 'doppler.installed-generation-qualification-result/v1',
   signedCapsule: false, externalAdoption: false, comparisonScope: w8a8 ? 'Frozen quantization approximation, task quality and lifecycle; execution success is not quality acceptance.' : 'Exact frozen source tokens; no vendor performance comparison.' };
 let context, server, release, restoreFetch, timer, pendingSample;
 const observe = async phase => {
+  if (report.modelTransfer) phase = { ...phase, modelTransfer: structuredClone(report.modelTransfer) };
   report.phases.push(phase); report.stage = phase.stage;
   await fs.writeFile(path.join(config.outputDir, 'progress.json'), JSON.stringify({ stage: report.stage, phases: report.phases }, null, 2));
   console.log(JSON.stringify(phase));
@@ -84,6 +85,23 @@ try {
     const page = context.pages()[0]; page.setDefaultTimeout(config.timeoutMs);
     const cdp = await context.newCDPSession(page);
     report.browserIdentity = await cdp.send('Browser.getVersion');
+    report.modelTransfer = { requests: 0, rangeRequests: 0, statuses: {}, encodedBytesReceived: 0,
+      definition: 'CDP loadingFinished encodedDataLength for model requests; includes HTTP overhead, excludes unfinished requests.' };
+    const modelRequests = new Set();
+    cdp.on('Network.requestWillBeSent', event => {
+      if (!event.request.url.startsWith(server.baseUrl + '/model/')) return;
+      modelRequests.add(event.requestId); report.modelTransfer.requests++;
+      if (Object.keys(event.request.headers).some(key => key.toLowerCase() === 'range')) report.modelTransfer.rangeRequests++;
+    });
+    cdp.on('Network.responseReceived', event => {
+      if (!modelRequests.has(event.requestId)) return;
+      const status = event.response.status;
+      report.modelTransfer.statuses[status] = (report.modelTransfer.statuses[status] || 0) + 1;
+    });
+    cdp.on('Network.loadingFinished', event => {
+      if (modelRequests.has(event.requestId)) report.modelTransfer.encodedBytesReceived += event.encodedDataLength;
+    });
+    await cdp.send('Network.enable');
     page.on('console', message => report.logs.push({ type: message.type(), text: message.text() }));
     page.on('pageerror', error => report.logs.push({ type: 'pageerror', text: error.message }));
     await page.route('**/*', route => {
