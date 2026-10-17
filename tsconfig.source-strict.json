@@ -108,6 +108,8 @@
     "src/inference/pipelines/text/generator/speculative-runtime.js",
     "src/inference/pipelines/text/linear-attention/state-checkpoint.js",
     "src/inference/pipelines/text/linear-attention/state-clone.js",
-    "src/config/schema/speculation-self.schema.js"
+    "src/config/schema/speculation-self.schema.js",
+    "src/experimental/training/lora-training-round.js",
+    "src/inference/browser-harness/request-timing.js"
   ]
 }

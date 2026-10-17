@@ -55,6 +55,11 @@
   ],
   "reviews": [
     {
+      "id": "src/experimental/training/native-qwen-lora.js#NativeQwenLoRATrainer.applyRound",
+      "category": "gpu-orchestration",
+      "reason": "Validates contribution metadata, uploads unchanged gradient payload bytes, and records parameter-to-GPU-gradient Map entries. Token-count weights are scalar dispatch inputs; WGSL scale/add kernels perform all gradient arithmetic. The scalar loss mean is observation only."
+    },
+    {
       "id": "src/client/runtime/capsule-piece-reader.js#createCapsulePieceReader",
       "category": "artifact-codec-materialization",
       "reason": "Validates signed artifact and piece metadata and copies unchanged artifact bytes into the verified storage reader. Map insertion and byte materialization do not compute or transform model tensors."

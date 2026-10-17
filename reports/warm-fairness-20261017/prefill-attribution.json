@@ -1,0 +1,31 @@
+{
+  "scope": "one instrumented warm request; attribution, not performance comparison",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "prefillTokens": 64,
+  "generatedTokens": 128,
+  "requestFirstTokenMs": 250.7,
+  "internalPrefillMs": 247.4,
+  "gpuTimestampMs": 175.401319,
+  "cpuRecordMs": 47.900000005960464,
+  "submitWaitMs": 153.5,
+  "gpuGroupsMs": {
+    "projections": 135.20214000000004,
+    "linear_attention_recurrent": 30.910490000000003,
+    "attention": 4.370934,
+    "linear_attention_conv": 3.3705309999999997,
+    "silu": 0.450243,
+    "rmsnorm:post_attn_norm": 0.291747,
+    "rmsnorm": 0.27666,
+    "split_qkv_rmsnorm_rope_qk": 0.24708000000000002,
+    "residual": 0.180454,
+    "rmsnorm:input_norm": 0.050291,
+    "kv_cache_write:f32_to_f16": 0.029374,
+    "gather": 0.021375
+  },
+  "sourceBase": "73d471a09c9e45efcbc9758ebf50517a79634170",
+  "sourceSha256": {
+    "src/inference/browser-harness/benchmark-execution.js": "7b3e5930ca67a81977730c58dda3634b8cde998f3e172b94bc57f1ad1c4fcd2a",
+    "src/inference/browser-harness/text-execution.js": "942b6febd04d5ded5b58d0905ed2a775dc0ee2ab61851412080b578df5d76757",
+    "src/inference/browser-harness/request-timing.js": "93c9d000dc27927e75cdc696b6910670733023beb5171dc81dfe9ce96718b80d"
+  }
+}

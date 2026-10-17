@@ -28,6 +28,7 @@ export {
 } from './experimental/training/native-qwen-lora.js';
 export type {
   NativeQwenLoRATrainerOptions,
+  NativeQwenLoRAExportOptions,
   NativeQwenLoRACheckpoint,
   NativeQwenLoRAStepResult,
   NativeQwenSftLoRAOptions,
@@ -135,3 +136,7 @@ export declare function assertTrainingBackend(
 export declare function trainSftLoRA(
   options: TrainSftLoRAOptions
 ): Promise<CausalLmLoraTrainerResult | Record<string, unknown>>;
+
+export type {
+  LoRATrainingSample, LoRATrainingAssignment, LoRATrainingRound, LoRAGradientContribution,
+} from './experimental/training/lora-training-round.js';

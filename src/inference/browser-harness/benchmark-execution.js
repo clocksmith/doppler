@@ -1,17 +1,9 @@
-import { getRuntimeConfig, setRuntimeConfig } from '../../config/runtime.js';
+import { summarizeRequestTiming } from './request-timing.js';
+import { getRuntimeConfig } from '../../config/runtime.js';
 import { computeSampleStats as computeStats } from '../../debug/stats.js';
 import { validateTrainingMetricsReport } from '../../config/schema/training-metrics.schema.js';
-import {
-  modelSupportsEmbedding,
-  modelSupportsRerank,
-  modelSupportsSequence,
-} from '../../config/schema/manifest.schema.js';
-import {
-  buildSuiteSummary,
-  normalizeCacheMode,
-  normalizeLoadMode,
-  normalizeWorkloadType,
-} from './suite-summary.js';
+import { modelSupportsEmbedding, modelSupportsRerank } from '../../config/schema/manifest.schema.js';
+import { buildSuiteSummary, normalizeCacheMode, normalizeLoadMode, normalizeWorkloadType } from './suite-summary.js';
 import {
   toTimingNumber,
   buildFirstLoadComposition,
@@ -22,37 +14,27 @@ import {
   buildTimingDiagnostics,
 } from './timing-diagnostics.js';
 import { buildDecodeBottleneckDiagnostics } from './decode-diagnostics.js';
-import {
-  resolveDeviceInfo,
-  resolveKernelPathForModel,
-} from './model-resolution.js';
+import { resolveDeviceInfo } from './model-resolution.js';
 import { initializeSuiteModel } from './model-initialization.js';
-import {
-  resolveBenchmarkRunSettings,
-} from './text-input.js';
+import { resolveBenchmarkRunSettings } from './text-input.js';
 import {
   normalizeDecodeRecordOpLabels,
   normalizeUniformCacheStats,
   buildDecodeRecordTopOps,
   buildDecodeRecordTopOpGroups,
-  isCoherentOutput,
 } from './text-evidence.js';
-import {
-  runEmbeddingSemanticChecks,
-  runRerank,
-  runRerankSemanticChecks,
-  runSequenceEncoding,
-  runTextInference,
-  runEmbedding,
-} from './text-execution.js';
+import { runTextInference, runEmbedding } from './text-execution.js';
 import { buildSuiteContractMetrics } from '../browser-harness-contract-helpers.js';
+import { runDiffusionSuite } from '../browser-harness-diffusion-energy-suites.js';
+import { resolveDecodeCadence, resolveExecutionGraphHash } from './request.js';
 import {
-  runDiffusionSuite,
-  runEnergySuite,
-} from '../browser-harness-diffusion-energy-suites.js';
-import { createUnsupportedWorkloadError, hashStableJson, resolveDecodeCadence, resolveDispatchSuite, resolveExecutionGraphHash, resolveHarnessContext, resolveHarnessMode, resolveWorkload } from './request.js';
-import { attachExecutionCostLedger, buildReferenceTranscriptSeed, resolvePipelineLoadTimings, serializeSequenceProbeRows, summarizePrefillRecordOps, summarizeTimingPhaseSamples } from './report.js';
-import { runInferenceSuite, runKernelSuite, withHarnessPhase } from './inference-execution.js';
+  attachExecutionCostLedger,
+  buildReferenceTranscriptSeed,
+  resolvePipelineLoadTimings,
+  summarizePrefillRecordOps,
+  summarizeTimingPhaseSamples,
+} from './report.js';
+import { withHarnessPhase } from './inference-execution.js';
 
 export const TRAINING_SUITE_MODULE_PATH = '../../experimental/training/suite.js';
 import { runRerankBenchmark } from './benchmark-rerank.js';
@@ -794,42 +776,29 @@ export async function runBenchSuite(options = {}) {
       promptInput: generatedPromptInput,
     };
 
-    const requestStats = {};
-    for (const key of ['firstTokenMs', 'totalRunMs', 'decodeMs', 'decodeTokensPerSec']) {
-      requestStats[key] = computeSampleStats(requestTimingSamples.map((sample) => sample[key]));
-    }
-    const requestTokenStats = computeSampleStats(requestTimingSamples.flatMap((sample) => sample.perTokenMs));
-    const requestPrefillStats = computeSampleStats(requestTimingSamples.map((sample, index) => (
-      sample.firstTokenMs > 0 ? (prefillTokens[index] / sample.firstTokenMs) * 1000 : 0
-    )));
-    metrics.requestTiming = {
-      scope: 'generation-call-through-completion',
-      samples: requestTimingSamples,
-      latency: requestStats,
-      perTokenMs: requestTokenStats,
-    };
-    const hasRequestTiming = requestTimingSamples.length === timedRuns
-      && requestTimingSamples.every((sample) => Number.isFinite(sample.firstTokenMs));
+    const requestReport = summarizeRequestTiming(requestTimingSamples, prefillTokens, timedRuns, safeModelLoadMs, samplePolicy);
+    metrics.requestTiming = requestReport.metrics;
     timing = buildCanonicalTiming({
       modelLoadMs: safeModelLoadMs,
-      firstTokenMs: hasRequestTiming ? requestStats.firstTokenMs.median : normalizedFirstTokenMs,
+      firstTokenMs: normalizedFirstTokenMs,
       firstResponseMs: Number.isFinite(normalizedFirstTokenMs)
-        ? safeModelLoadMs + (hasRequestTiming ? requestStats.firstTokenMs.median : normalizedFirstTokenMs)
+        ? safeModelLoadMs + normalizedFirstTokenMs
         : null,
       prefillMs: prefillMsStats?.median ?? null,
-      decodeMs: hasRequestTiming ? requestStats.decodeMs.median : decodeMsStats?.median ?? null,
-      decodeMsPerTokenP50: hasRequestTiming ? requestTokenStats.median : decodeMsPerTokenStats?.median ?? null,
-      decodeMsPerTokenP95: hasRequestTiming ? requestTokenStats.p95 : decodeMsPerTokenStats?.p95 ?? null,
-      decodeMsPerTokenP99: hasRequestTiming ? requestTokenStats.p99 : decodeMsPerTokenStats?.p99 ?? null,
-      totalRunMs: hasRequestTiming ? requestStats.totalRunMs.median : totalMsStats.median,
-      decodeTokensPerSec: hasRequestTiming ? requestStats.decodeTokensPerSec.median : decodeTokensPerSecStats?.median,
+      decodeMs: decodeMsStats?.median ?? null,
+      decodeMsPerTokenP50: decodeMsPerTokenStats?.median ?? null,
+      decodeMsPerTokenP95: decodeMsPerTokenStats?.p95 ?? null,
+      decodeMsPerTokenP99: decodeMsPerTokenStats?.p99 ?? null,
+      totalRunMs: totalMsStats.median,
+      decodeTokensPerSec: decodeTokensPerSecStats?.median,
       prefillTokensPerSec: prefillTokensPerSecStats?.median,
-      prefillTokensPerSecTtft: hasRequestTiming ? requestPrefillStats.median : prefillTokensPerSecTtftStats?.median,
+      prefillTokensPerSecTtft: prefillTokensPerSecTtftStats?.median,
       cacheMode,
       loadMode,
+      ...requestReport.timing,
     });
-    timing.scope = hasRequestTiming ? 'generation-call-through-completion' : 'internal-pipeline';
-    if (hasRequestTiming) timing.promptTokensPerSecToFirstToken = requestPrefillStats.median;
+    timing.scope = requestReport.scope;
+    timing.promptTokensPerSecToFirstToken = requestReport.timing.prefillTokensPerSecTtft ?? null;
   }
 
   const memoryStats = typeof harness.pipeline?.getMemoryStats === 'function'

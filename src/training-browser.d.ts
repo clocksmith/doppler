@@ -13,7 +13,12 @@ export {
 } from './experimental/training/native-qwen-lora.js';
 export type {
   NativeQwenLoRATrainerOptions,
+  NativeQwenLoRAExportOptions,
   NativeQwenLoRACheckpoint,
   NativeQwenLoRAStepResult,
   NativeQwenSftLoRAOptions,
 } from './experimental/training/native-qwen-lora.js';
+
+export type {
+  LoRATrainingSample, LoRATrainingAssignment, LoRATrainingRound, LoRAGradientContribution,
+} from './experimental/training/lora-training-round.js';

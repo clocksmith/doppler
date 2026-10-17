@@ -1,0 +1,36 @@
+[290.5ms][TestHarness] Initializing WebGPU...
+[GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.5ms
+[302.5ms][TestHarness] GPU: hasF16=true, hasSubgroups=true
+[302.6ms][TestHarness] Fetching manifest...
+[315.6ms][TestHarness] Model: transformer
+[316.1ms][TestHarness] Creating pipeline...
+[320.2ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[320.2ms][Config] Using manifest-first config (source of truth)
+[323.1ms][Pipeline] Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+[323.3ms][Pipeline] Vision capable: imageTokenId=248056
+[323.9ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (15 decode steps, 11 kernels, source=execution-v1)
+[324.1ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[324.4ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[436.9ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[530.0ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges
+[530.2ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[531.0ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=4096
+[532.1ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[568.3ms][ShardCache] Custom shard loader configured
+[568.5ms][Loader] Initializing...
+[658.6ms][HeapManager] Allocated segment 0: 1024MB
+[658.7ms][HeapManager] Segmented heap: 1GB per segment
+[658.7ms][HeapManager] Initialized with strategy: SEGMENTED
+[658.8ms][Loader] Initialized (f16, subgroups, unified)
+[659.1ms][Loader] Loading: qwen-3-5-0-8b-q4k-ehaf16
+[659.8ms][Loader] [0.0s] Memory (start): | RSS=1.20 GB (heap=62.70 MB/98.58 MB, external=1.00 GB, arrayBuffers=1.00 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[790.9ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,1024], isWeightBuffer=true
+[791.1ms][Loader] Layers: 0-23
+[893.3ms][Loader] Layers: 24 complete (0.10s)
+[930.3ms][Loader] Complete: 890.16 MB in 0.27s (3.23 GB/s)
+[930.9ms][Loader] [0.3s] Memory (complete): | RSS=1.30 GB (heap=65.92 MB/100.08 MB, external=1.02 GB, arrayBuffers=1.02 GB) | GPU=893.10 MB (345 active, 0 pooled, peak=893.10 MB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=345
+[938.4ms][Pipeline] Model loaded successfully (621ms)
+[939.9ms][TestHarness] Pipeline ready
+{"passed":true,"entry":"doppler-gpu/training","stepCount":1,"contributors":["m3","amd"],"weightsSha256":"5fe5d81fe9d274ceb01a55705be69b8645f0fcda5689eea7cbd5a8c912cc8a7f","version":"0.0.1"}
+[993.6ms][ExpertCache] Cache cleared
+[997.1ms][Pipeline] Unloaded

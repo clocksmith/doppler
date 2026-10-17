@@ -1,0 +1,39 @@
+{
+  "modelUrl": "file:///Users/xyz/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
+  "trainer": {
+    "rank": 2,
+    "alpha": 4,
+    "optimizer": {
+      "type": "adamw",
+      "lr": 0.0001,
+      "beta1": 0.9,
+      "beta2": 0.999,
+      "eps": 1e-8,
+      "weightDecay": 0
+    },
+    "gradient": {
+      "maxNorm": 1
+    },
+    "precision": {
+      "activations": "f32",
+      "gradients": "f32",
+      "loraParams": "f32"
+    }
+  },
+  "action": "prepare",
+  "jobId": "m3-amd-qualification",
+  "roundId": "0",
+  "assignments": [
+    {
+      "participantId": "m3",
+      "sampleHash": "sha256:3f562fe6f50c81ae9e9ab01850b3d80f453e0b7f78c68d87a008186c3c54e38b",
+      "supervisedTokenCount": 3
+    },
+    {
+      "participantId": "amd",
+      "sampleHash": "sha256:26b9e8f43b82a96da58282c9b3ff00eede27093e0c6d4fc267e259247c64a0ce",
+      "supervisedTokenCount": 1
+    }
+  ],
+  "outputPath": "/Users/xyz/deco/doppler/reports/community-lora-20261017/round.json"
+}
