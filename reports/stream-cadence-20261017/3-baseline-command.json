@@ -1,0 +1,10 @@
+[
+  "node",
+  "src/cli/doppler-cli.js",
+  "bench",
+  "--surface",
+  "browser",
+  "--config",
+  "reports/stream-cadence-20261017/baseline-config.json",
+  "--json"
+]
