@@ -1,0 +1,678 @@
+{
+  "schema": "doppler.qwen-service-summary/v1",
+  "timingScope": "Instrumented fresh-process/profile local-file model loading and first/warm requests; shared hosts, OS cache not evicted; not a new matched competitor benchmark.",
+  "lanes": [
+    {
+      "lane": "metal-node-08-final",
+      "passed": true,
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "manifestDigest": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+      "archiveSha256": "6b057b0e526a7a18afcefd655cb2fc4acb96e958962eee5a67b3caee231be1f9",
+      "hardware": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "apple-m3",
+        "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+        "isFallbackAdapter": false
+      },
+      "browser": null,
+      "runtime": {
+        "name": "node",
+        "version": "v22.20.0"
+      },
+      "loadMs": 1271.354209,
+      "firstRequestTtftMs": 564.2945,
+      "warmRequestTtftMs": 564.1398749999989,
+      "warmPrefillMs": 552.9913329999999,
+      "prefillRecordMs": 207.51741599999514,
+      "prefillSubmitWaitMs": 267.4022920000025,
+      "warmDecodeTokensPerSecond": 21.574433499102767,
+      "decodeTokens": 127,
+      "peakRssBytes": 2221555712,
+      "memoryDefinition": "darwin fresh-process peak RSS, including shared mappings, across load, generation, cancellation and recovery.",
+      "cancellation": {
+        "chunks": 1,
+        "elapsedMs": 690.0813330000001,
+        "stopReason": "aborted",
+        "tokensGenerated": 1,
+        "decodeTokens": 0,
+        "abortRejection": {
+          "name": "AbortError",
+          "message": "This operation was aborted"
+        }
+      },
+      "lostDeviceRejection": {
+        "name": "Error",
+        "message": "Pipeline device is lost; reload this model on a live device."
+      },
+      "managedMemory": {
+        "allocations": 62735,
+        "reuses": 1015,
+        "totalBytesAllocated": 1636398848,
+        "peakBytesAllocated": 1020146432,
+        "currentBytesAllocated": 987739904,
+        "totalBytesRequested": 1575582976,
+        "peakBytesRequested": 989468160,
+        "currentBytesRequested": 955888128,
+        "resources": {
+          "retainedModel": {
+            "bytes": 936486912,
+            "count": 345
+          },
+          "active": {
+            "bytes": 23676928,
+            "count": 110
+          },
+          "reusable": {
+            "bytes": 27576064,
+            "count": 64
+          },
+          "deferredCleanup": {
+            "bytes": 30365696,
+            "count": 3650
+          }
+        },
+        "activeBuffers": 455,
+        "pooledBuffers": 64,
+        "budgetMaxBytes": 0,
+        "budgetUtilization": 0,
+        "hitRate": "1.6%"
+      },
+      "coldLoadTransfer": null
+    },
+    {
+      "lane": "metal-node-2b-final",
+      "passed": true,
+      "model": "qwen-3-5-2b-q4k-ehaf16",
+      "manifestDigest": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+      "archiveSha256": "6b057b0e526a7a18afcefd655cb2fc4acb96e958962eee5a67b3caee231be1f9",
+      "hardware": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "apple-m3",
+        "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+        "isFallbackAdapter": false
+      },
+      "browser": null,
+      "runtime": {
+        "name": "node",
+        "version": "v22.20.0"
+      },
+      "loadMs": 2744.975584,
+      "firstRequestTtftMs": 1449.8642080000004,
+      "warmRequestTtftMs": 1488.520042,
+      "warmPrefillMs": 1477.5095419999998,
+      "prefillRecordMs": 338.22312399999646,
+      "prefillSubmitWaitMs": 916.789208999995,
+      "warmDecodeTokensPerSecond": 10.479911057750726,
+      "decodeTokens": 127,
+      "peakRssBytes": 2256814080,
+      "memoryDefinition": "darwin fresh-process peak RSS, including shared mappings, across load, generation, cancellation and recovery.",
+      "cancellation": {
+        "chunks": 1,
+        "elapsedMs": 1422.4861249999994,
+        "stopReason": "aborted",
+        "tokensGenerated": 1,
+        "decodeTokens": 0,
+        "abortRejection": {
+          "name": "AbortError",
+          "message": "This operation was aborted"
+        }
+      },
+      "lostDeviceRejection": {
+        "name": "Error",
+        "message": "Pipeline device is lost; reload this model on a live device."
+      },
+      "managedMemory": {
+        "allocations": 58217,
+        "reuses": 961,
+        "totalBytesAllocated": 3206185728,
+        "peakBytesAllocated": 2167790336,
+        "currentBytesAllocated": 2123735808,
+        "totalBytesRequested": 3148648704,
+        "peakBytesRequested": 2148982272,
+        "currentBytesRequested": 2100722176,
+        "resources": {
+          "retainedModel": {
+            "bytes": 2078535680,
+            "count": 345
+          },
+          "active": {
+            "bytes": 23676928,
+            "count": 110
+          },
+          "reusable": {
+            "bytes": 21523200,
+            "count": 63
+          },
+          "deferredCleanup": {
+            "bytes": 41272320,
+            "count": 3373
+          }
+        },
+        "activeBuffers": 455,
+        "pooledBuffers": 63,
+        "budgetMaxBytes": 0,
+        "budgetUtilization": 0,
+        "hitRate": "1.6%"
+      },
+      "coldLoadTransfer": null
+    },
+    {
+      "lane": "metal-browser-08-ranges",
+      "passed": true,
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "manifestDigest": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+      "archiveSha256": "6b057b0e526a7a18afcefd655cb2fc4acb96e958962eee5a67b3caee231be1f9",
+      "hardware": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "",
+        "description": "",
+        "isFallbackAdapter": false
+      },
+      "browser": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/155.0.8059.80",
+        "revision": "@43a195105613ac83c21d3f14de279f4a045c7da0",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+        "jsVersion": "15.5.35.23"
+      },
+      "runtime": null,
+      "loadMs": 4066.5,
+      "firstRequestTtftMs": 527,
+      "warmRequestTtftMs": 465,
+      "warmPrefillMs": 454.59999999962747,
+      "prefillRecordMs": 195.20000000298023,
+      "prefillSubmitWaitMs": 198.9999999962747,
+      "warmDecodeTokensPerSecond": 35.696216763179464,
+      "decodeTokens": 127,
+      "peakRssBytes": 2250637312,
+      "memoryDefinition": "Sampled darwin renderer RSS, including shared mappings, across load, generation, cancellation and recovery.",
+      "cancellation": {
+        "chunks": 1,
+        "elapsedMs": 460.5,
+        "stopReason": "aborted",
+        "tokensGenerated": 1,
+        "decodeTokens": 0,
+        "abortRejection": {
+          "name": "AbortError",
+          "message": "signal is aborted without reason"
+        }
+      },
+      "lostDeviceRejection": {
+        "name": "Error",
+        "message": "Pipeline device is lost; reload this model on a live device."
+      },
+      "managedMemory": {
+        "allocations": 62735,
+        "reuses": 1015,
+        "totalBytesAllocated": 1636398848,
+        "peakBytesAllocated": 1020146432,
+        "currentBytesAllocated": 987739904,
+        "totalBytesRequested": 1575582976,
+        "peakBytesRequested": 989468160,
+        "currentBytesRequested": 955888128,
+        "resources": {
+          "retainedModel": {
+            "bytes": 936486912,
+            "count": 345
+          },
+          "active": {
+            "bytes": 23676928,
+            "count": 110
+          },
+          "reusable": {
+            "bytes": 27576064,
+            "count": 64
+          },
+          "deferredCleanup": {
+            "bytes": 30365696,
+            "count": 3650
+          }
+        },
+        "activeBuffers": 455,
+        "pooledBuffers": 64,
+        "budgetMaxBytes": 0,
+        "budgetUtilization": 0,
+        "hitRate": "1.6%"
+      },
+      "coldLoadTransfer": {
+        "requests": 295,
+        "rangeRequests": 291,
+        "statuses": {
+          "200": 4,
+          "206": 291
+        },
+        "encodedBytesReceived": 1164827905,
+        "definition": "CDP loadingFinished encodedDataLength for model requests; includes HTTP overhead, excludes unfinished requests."
+      }
+    },
+    {
+      "lane": "metal-browser-2b-ranges",
+      "passed": true,
+      "model": "qwen-3-5-2b-q4k-ehaf16",
+      "manifestDigest": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+      "archiveSha256": "6b057b0e526a7a18afcefd655cb2fc4acb96e958962eee5a67b3caee231be1f9",
+      "hardware": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "",
+        "description": "",
+        "isFallbackAdapter": false
+      },
+      "browser": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/155.0.8059.80",
+        "revision": "@43a195105613ac83c21d3f14de279f4a045c7da0",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+        "jsVersion": "15.5.35.23"
+      },
+      "runtime": null,
+      "loadMs": 7790.199999999255,
+      "firstRequestTtftMs": 958.1000000014901,
+      "warmRequestTtftMs": 965.6000000014901,
+      "warmPrefillMs": 954.9000000003725,
+      "prefillRecordMs": 165.09999999776483,
+      "prefillSubmitWaitMs": 618.6999999992549,
+      "warmDecodeTokensPerSecond": 21.62917042764721,
+      "decodeTokens": 127,
+      "peakRssBytes": 2353774592,
+      "memoryDefinition": "Sampled darwin renderer RSS, including shared mappings, across load, generation, cancellation and recovery.",
+      "cancellation": {
+        "chunks": 1,
+        "elapsedMs": 897.3000000007451,
+        "stopReason": "aborted",
+        "tokensGenerated": 1,
+        "decodeTokens": 0,
+        "abortRejection": {
+          "name": "AbortError",
+          "message": "signal is aborted without reason"
+        }
+      },
+      "lostDeviceRejection": {
+        "name": "Error",
+        "message": "Pipeline device is lost; reload this model on a live device."
+      },
+      "managedMemory": {
+        "allocations": 58217,
+        "reuses": 961,
+        "totalBytesAllocated": 3206185728,
+        "peakBytesAllocated": 2167790336,
+        "currentBytesAllocated": 2123735808,
+        "totalBytesRequested": 3148648704,
+        "peakBytesRequested": 2148982272,
+        "currentBytesRequested": 2100722176,
+        "resources": {
+          "retainedModel": {
+            "bytes": 2078535680,
+            "count": 345
+          },
+          "active": {
+            "bytes": 23676928,
+            "count": 110
+          },
+          "reusable": {
+            "bytes": 21523200,
+            "count": 63
+          },
+          "deferredCleanup": {
+            "bytes": 41272320,
+            "count": 3373
+          }
+        },
+        "activeBuffers": 455,
+        "pooledBuffers": 63,
+        "budgetMaxBytes": 0,
+        "budgetUtilization": 0,
+        "hitRate": "1.6%"
+      },
+      "coldLoadTransfer": {
+        "requests": 719,
+        "rangeRequests": 715,
+        "statuses": {
+          "200": 4,
+          "206": 715
+        },
+        "encodedBytesReceived": 2487792196,
+        "definition": "CDP loadingFinished encodedDataLength for model requests; includes HTTP overhead, excludes unfinished requests."
+      }
+    },
+    {
+      "lane": "vulkan-node-08-final",
+      "passed": true,
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "manifestDigest": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+      "archiveSha256": "6b057b0e526a7a18afcefd655cb2fc4acb96e958962eee5a67b3caee231be1f9",
+      "hardware": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "radeon-8060s-graphics-radv-strix-halo-",
+        "description": "radv: Mesa 26.0.3-1ubuntu1",
+        "isFallbackAdapter": false
+      },
+      "browser": null,
+      "runtime": {
+        "name": "node",
+        "version": "v22.22.1"
+      },
+      "loadMs": 2066.870874,
+      "firstRequestTtftMs": 1144.2577789999996,
+      "warmRequestTtftMs": 1116.968382000001,
+      "warmPrefillMs": 1105.5002829999994,
+      "prefillRecordMs": 102.5339880000065,
+      "prefillSubmitWaitMs": 950.3944009999977,
+      "warmDecodeTokensPerSecond": 33.5920829827564,
+      "decodeTokens": 127,
+      "peakRssBytes": 1387917312,
+      "memoryDefinition": "linux fresh-process peak RSS, including shared mappings, across load, generation, cancellation and recovery.",
+      "cancellation": {
+        "chunks": 1,
+        "elapsedMs": 351.6587760000002,
+        "stopReason": "aborted",
+        "tokensGenerated": 1,
+        "decodeTokens": 0,
+        "abortRejection": {
+          "name": "AbortError",
+          "message": "This operation was aborted"
+        }
+      },
+      "lostDeviceRejection": {
+        "name": "Error",
+        "message": "Pipeline device is lost; reload this model on a live device."
+      },
+      "managedMemory": {
+        "allocations": 62735,
+        "reuses": 1015,
+        "totalBytesAllocated": 1636398848,
+        "peakBytesAllocated": 1020146432,
+        "currentBytesAllocated": 987739904,
+        "totalBytesRequested": 1575582976,
+        "peakBytesRequested": 989468160,
+        "currentBytesRequested": 955888128,
+        "resources": {
+          "retainedModel": {
+            "bytes": 936486912,
+            "count": 345
+          },
+          "active": {
+            "bytes": 23676928,
+            "count": 110
+          },
+          "reusable": {
+            "bytes": 27576064,
+            "count": 64
+          },
+          "deferredCleanup": {
+            "bytes": 30365696,
+            "count": 3650
+          }
+        },
+        "activeBuffers": 455,
+        "pooledBuffers": 64,
+        "budgetMaxBytes": 0,
+        "budgetUtilization": 0,
+        "hitRate": "1.6%"
+      },
+      "coldLoadTransfer": null
+    },
+    {
+      "lane": "vulkan-node-2b-final",
+      "passed": true,
+      "model": "qwen-3-5-2b-q4k-ehaf16",
+      "manifestDigest": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+      "archiveSha256": "6b057b0e526a7a18afcefd655cb2fc4acb96e958962eee5a67b3caee231be1f9",
+      "hardware": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "radeon-8060s-graphics-radv-strix-halo-",
+        "description": "radv: Mesa 26.0.3-1ubuntu1",
+        "isFallbackAdapter": false
+      },
+      "browser": null,
+      "runtime": {
+        "name": "node",
+        "version": "v22.22.1"
+      },
+      "loadMs": 3305.233416,
+      "firstRequestTtftMs": 701.2864449999997,
+      "warmRequestTtftMs": 399.3611979999987,
+      "warmPrefillMs": 393.2410209999998,
+      "prefillRecordMs": 112.50785599999836,
+      "prefillSubmitWaitMs": 222.01448999999957,
+      "warmDecodeTokensPerSecond": 28.349058252365456,
+      "decodeTokens": 127,
+      "peakRssBytes": 1849155584,
+      "memoryDefinition": "linux fresh-process peak RSS, including shared mappings, across load, generation, cancellation and recovery.",
+      "cancellation": {
+        "chunks": 1,
+        "elapsedMs": 405.4359480000003,
+        "stopReason": "aborted",
+        "tokensGenerated": 1,
+        "decodeTokens": 0,
+        "abortRejection": {
+          "name": "AbortError",
+          "message": "This operation was aborted"
+        }
+      },
+      "lostDeviceRejection": {
+        "name": "Error",
+        "message": "Pipeline device is lost; reload this model on a live device."
+      },
+      "managedMemory": {
+        "allocations": 58217,
+        "reuses": 961,
+        "totalBytesAllocated": 3206185728,
+        "peakBytesAllocated": 2167790336,
+        "currentBytesAllocated": 2123735808,
+        "totalBytesRequested": 3148648704,
+        "peakBytesRequested": 2148982272,
+        "currentBytesRequested": 2100722176,
+        "resources": {
+          "retainedModel": {
+            "bytes": 2078535680,
+            "count": 345
+          },
+          "active": {
+            "bytes": 23676928,
+            "count": 110
+          },
+          "reusable": {
+            "bytes": 21523200,
+            "count": 63
+          },
+          "deferredCleanup": {
+            "bytes": 41272320,
+            "count": 3373
+          }
+        },
+        "activeBuffers": 455,
+        "pooledBuffers": 63,
+        "budgetMaxBytes": 0,
+        "budgetUtilization": 0,
+        "hitRate": "1.6%"
+      },
+      "coldLoadTransfer": null
+    },
+    {
+      "lane": "vulkan-browser-08-ranges",
+      "passed": true,
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "manifestDigest": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+      "archiveSha256": "6b057b0e526a7a18afcefd655cb2fc4acb96e958962eee5a67b3caee231be1f9",
+      "hardware": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "",
+        "description": "",
+        "isFallbackAdapter": false
+      },
+      "browser": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/146.0.7680.177",
+        "revision": "@ae03f7fb2cf1215853896d6a4c15fdceee2badb7",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/146.0.0.0 Safari/537.36",
+        "jsVersion": "14.6.202.31"
+      },
+      "runtime": null,
+      "loadMs": 7866.300000011921,
+      "firstRequestTtftMs": 867,
+      "warmRequestTtftMs": 789.1000000089407,
+      "warmPrefillMs": 778.5999999940395,
+      "prefillRecordMs": 222.89999997615814,
+      "prefillSubmitWaitMs": 465.4000000208616,
+      "warmDecodeTokensPerSecond": 22.856937170431422,
+      "decodeTokens": 127,
+      "peakRssBytes": 1276801024,
+      "memoryDefinition": "Sampled linux renderer RSS, including shared mappings, across load, generation, cancellation and recovery.",
+      "cancellation": {
+        "chunks": 1,
+        "elapsedMs": 613.0999999940395,
+        "stopReason": "aborted",
+        "tokensGenerated": 1,
+        "decodeTokens": 0,
+        "abortRejection": {
+          "name": "AbortError",
+          "message": "signal is aborted without reason"
+        }
+      },
+      "lostDeviceRejection": {
+        "name": "Error",
+        "message": "Pipeline device is lost; reload this model on a live device."
+      },
+      "managedMemory": {
+        "allocations": 62735,
+        "reuses": 1015,
+        "totalBytesAllocated": 1636398848,
+        "peakBytesAllocated": 1020146432,
+        "currentBytesAllocated": 987739904,
+        "totalBytesRequested": 1575582976,
+        "peakBytesRequested": 989468160,
+        "currentBytesRequested": 955888128,
+        "resources": {
+          "retainedModel": {
+            "bytes": 936486912,
+            "count": 345
+          },
+          "active": {
+            "bytes": 23676928,
+            "count": 110
+          },
+          "reusable": {
+            "bytes": 27576064,
+            "count": 64
+          },
+          "deferredCleanup": {
+            "bytes": 62772224,
+            "count": 7545
+          }
+        },
+        "activeBuffers": 455,
+        "pooledBuffers": 64,
+        "budgetMaxBytes": 0,
+        "budgetUtilization": 0,
+        "hitRate": "1.6%"
+      },
+      "coldLoadTransfer": {
+        "requests": 302,
+        "rangeRequests": 298,
+        "statuses": {
+          "200": 4,
+          "206": 298
+        },
+        "encodedBytesReceived": 1164656252,
+        "definition": "CDP loadingFinished encodedDataLength for model requests; includes HTTP overhead, excludes unfinished requests."
+      }
+    },
+    {
+      "lane": "vulkan-browser-2b-ranges",
+      "passed": true,
+      "model": "qwen-3-5-2b-q4k-ehaf16",
+      "manifestDigest": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+      "archiveSha256": "6b057b0e526a7a18afcefd655cb2fc4acb96e958962eee5a67b3caee231be1f9",
+      "hardware": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "",
+        "description": "",
+        "isFallbackAdapter": false
+      },
+      "browser": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/146.0.7680.177",
+        "revision": "@ae03f7fb2cf1215853896d6a4c15fdceee2badb7",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/146.0.0.0 Safari/537.36",
+        "jsVersion": "14.6.202.31"
+      },
+      "runtime": null,
+      "loadMs": 15922.29999999702,
+      "firstRequestTtftMs": 1112.5,
+      "warmRequestTtftMs": 705.6999999880791,
+      "warmPrefillMs": 699.1999999880791,
+      "prefillRecordMs": 210.59999997913837,
+      "prefillSubmitWaitMs": 374.20000000298023,
+      "warmDecodeTokensPerSecond": 59.72535741142025,
+      "decodeTokens": 127,
+      "peakRssBytes": 1694752768,
+      "memoryDefinition": "Sampled linux renderer RSS, including shared mappings, across load, generation, cancellation and recovery.",
+      "cancellation": {
+        "chunks": 1,
+        "elapsedMs": 765.2999999970198,
+        "stopReason": "aborted",
+        "tokensGenerated": 1,
+        "decodeTokens": 0,
+        "abortRejection": {
+          "name": "AbortError",
+          "message": "signal is aborted without reason"
+        }
+      },
+      "lostDeviceRejection": {
+        "name": "Error",
+        "message": "Pipeline device is lost; reload this model on a live device."
+      },
+      "managedMemory": {
+        "allocations": 58217,
+        "reuses": 961,
+        "totalBytesAllocated": 3206185728,
+        "peakBytesAllocated": 2167790336,
+        "currentBytesAllocated": 2123735808,
+        "totalBytesRequested": 3148648704,
+        "peakBytesRequested": 2148982272,
+        "currentBytesRequested": 2100722176,
+        "resources": {
+          "retainedModel": {
+            "bytes": 2078535680,
+            "count": 345
+          },
+          "active": {
+            "bytes": 23676928,
+            "count": 110
+          },
+          "reusable": {
+            "bytes": 21523200,
+            "count": 63
+          },
+          "deferredCleanup": {
+            "bytes": 85326848,
+            "count": 6973
+          }
+        },
+        "activeBuffers": 455,
+        "pooledBuffers": 63,
+        "budgetMaxBytes": 0,
+        "budgetUtilization": 0,
+        "hitRate": "1.6%"
+      },
+      "coldLoadTransfer": {
+        "requests": 701,
+        "rangeRequests": 697,
+        "statuses": {
+          "200": 4,
+          "206": 697
+        },
+        "encodedBytesReceived": 2450864176,
+        "definition": "CDP loadingFinished encodedDataLength for model requests; includes HTTP overhead, excludes unfinished requests."
+      }
+    }
+  ]
+}

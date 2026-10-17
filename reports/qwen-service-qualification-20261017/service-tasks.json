@@ -1,0 +1,84 @@
+{
+  "schema": "reploid.model-service-tasks/v1",
+  "scope": "Fourteen frozen bounded engineering tasks; exact answers are a scoped quality gate, not human preference or general correctness. Includes all eight previously retained service tasks.",
+  "tasks": [
+    {
+      "id": "record-filter",
+      "prompt": "Records: Ada, paid, 8 units; Ben, unpaid, 12 units; Cy, paid, 5 units. Sum only paid units. Reply with only the number.",
+      "expected": "13"
+    },
+    {
+      "id": "json-extraction",
+      "prompt": "From this record: item=lantern; count=7. Return only JSON with keys item and count. count must be a number.",
+      "expectedJson": {
+        "item": "lantern",
+        "count": 7
+      }
+    },
+    {
+      "id": "missing-information",
+      "prompt": "Report: The delivery reached the depot on Tuesday. No destination address is recorded. What street was it delivered to? If the report does not say, reply with exactly UNKNOWN.",
+      "expected": "UNKNOWN"
+    },
+    {
+      "id": "latest-correction",
+      "prompt": "Order log in chronological order: quantity 8; corrected quantity 11; final corrected quantity 6. What is the final quantity? Reply with only the number.",
+      "expected": "6"
+    },
+    {
+      "id": "constraint-selection",
+      "prompt": "Choose exactly one device. Requirements: at least 32 GB RAM and price at most 900. A: 16 GB, 500. B: 32 GB, 850. C: 48 GB, 1100. Reply only with its letter.",
+      "expected": "B"
+    },
+    {
+      "id": "code-trace",
+      "prompt": "Python code: values = [2, 5, 8]; result = sum(x * 2 for x in values if x > 3). What is result? Reply with only the number.",
+      "expected": "26"
+    },
+    {
+      "id": "ordered-extraction",
+      "prompt": "Sort these integers numerically in ascending order: 14, -3, 2, 0. Return only a JSON array of numbers.",
+      "expectedJson": [
+        -3,
+        0,
+        2,
+        14
+      ]
+    },
+    {
+      "id": "unicode-copy",
+      "prompt": "Copy exactly the text between the brackets, preserving every character and adding nothing: [café — 東京]",
+      "expected": "café — 東京"
+    },
+    {
+      "id": "base-arithmetic",
+      "prompt": "What is 17 + 25? Reply with only the number.",
+      "expected": "42"
+    },
+    {
+      "id": "base-movie-constraints",
+      "prompt": "Choose from these fictional movies: Cedar, a calm comedy lasting 84 minutes; Harbor, a tense thriller lasting 91 minutes; Orbit, a calm comedy lasting 122 minutes. We want a calm comedy under 100 minutes. Reply with only the title.",
+      "expected": "Cedar"
+    },
+    {
+      "id": "base-instruction",
+      "prompt": "Reply with exactly these three lowercase words, separated by single spaces, without punctuation: copper silver gold",
+      "expected": "copper silver gold"
+    },
+    {
+      "id": "base-context-extraction",
+      "prompt": "The parcel label says blue: 16, green: 25, red: 31. What number belongs to green? Reply with only the number.",
+      "expected": "25"
+    },
+    {
+      "id": "base-constraint-count",
+      "prompt": "Count the even integers in this list: 3, 4, 7, 10, 12. Reply with only the count.",
+      "expected": "3"
+    },
+    {
+      "id": "single-instruction-exclusion",
+      "prompt": "Reply with the first item that is not a fruit in this list: apple, pear, hammer, orange. Reply with only that item.",
+      "expected": "hammer"
+    }
+  ]
+}
