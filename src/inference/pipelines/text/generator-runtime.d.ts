@@ -22,6 +22,7 @@ export interface GenerateOptionsResolved extends StepOptionsResolved {
   maxTokens: number;
   stopSequences: string[];
   useSpeculative: boolean;
+  speculation: import('../../../config/schema/speculation-self.schema.js').SelfSpeculationConfig | null;
   useChatTemplate: boolean;
   benchmark: boolean;
 }

@@ -1,0 +1,382 @@
+{
+  "schema": "doppler.prompt-lookup-observation/v1",
+  "host": "mac-host",
+  "identity": {
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "manifestHash": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+    "sourceFiles": {
+      "src/inference/pipelines/text/generator/speculative-runtime.js": "fb18b9c4768d036a54f1e4d3baf6e5a5642b108e944d2b4f7420daf30060aa72",
+      "src/inference/pipelines/text/linear-attention/state-checkpoint.js": "e15dd647e22d7880946eedfc13cb3a440f0c0d143e7cb6ce05211e3846f3e6f7",
+      "src/inference/pipelines/text/generator/decode-runtime.js": "4e4c4b949020a2784e99798ea6a36eacc5cd55a267d8f75fbeee97eeb4f87728",
+      "src/inference/pipelines/text/generator/prefill-runtime.js": "56b8853d90a28f4f37476a2ad52a7c7481b83ab7f2208f7ef4ecde8e5438e402",
+      "src/inference/pipelines/text/generation-request.js": "ca08824e887917cb1ea2db0f1bc7ca72008cd5402b0ae66f4d7396c2e14ba2ec",
+      "src/inference/pipelines/text/generator-runtime.js": "bf3115534198f760d6b6e4fb4030919a6d0cfc46445228f001c85f3f35eaeef8",
+      "src/config/schema/speculation-self.schema.js": "4264687cdfd80fbf4168cb8873766a41b7e3a79594c23aa421ace4938c2454a0"
+    },
+    "adapter": "sha256:dc0248f45553e69defd8a1846619443f1ac5902a118548c70a7254c21f66f64b",
+    "maxSeqLen": 512,
+    "tokens": 3,
+    "minMatchTokens": 3,
+    "maxMatchTokens": 4,
+    "maxRejectedBlocks": 1,
+    "temperature": 0,
+    "topK": 1,
+    "topP": 1,
+    "maxTokens": 40,
+    "repetitionPenalty": 1,
+    "repetitionPenaltyWindow": 1,
+    "useChatTemplate": true
+  },
+  "results": [
+    {
+      "prompt": "Repeat exactly: The red fox jumps over the blue box. The red fox jumps over the blue box. The red fox jumps over the blue box.",
+      "results": [
+        {
+          "mode": "none",
+          "tokens": [
+            760,
+            2438,
+            37550,
+            33075,
+            888,
+            279,
+            6105,
+            3618,
+            13,
+            561,
+            2438,
+            37550,
+            33075,
+            888,
+            279,
+            6105,
+            3618,
+            13,
+            561,
+            2438,
+            37550,
+            33075,
+            888,
+            279,
+            6105,
+            3618,
+            13,
+            248046
+          ],
+          "ms": 1696.6940000000002,
+          "stats": {
+            "decodeMode": "batched_gpu",
+            "proposed": 0,
+            "accepted": 0,
+            "stopReason": "stop-token"
+          }
+        },
+        {
+          "mode": "lookup",
+          "tokens": [
+            760,
+            2438,
+            37550,
+            33075,
+            888,
+            279,
+            6105,
+            3618,
+            13,
+            561,
+            2438,
+            37550,
+            33075,
+            888,
+            279,
+            6105,
+            3618,
+            13,
+            561,
+            2438,
+            37550,
+            33075,
+            888,
+            279,
+            6105,
+            3618,
+            13,
+            248046
+          ],
+          "ms": 1967.791709,
+          "stats": {
+            "decodeMode": "target_verified_lookup",
+            "proposed": 6,
+            "accepted": 4,
+            "stopReason": "stop-token"
+          }
+        },
+        {
+          "mode": "none",
+          "tokens": [
+            760,
+            2438,
+            37550,
+            33075,
+            888,
+            279,
+            6105,
+            3618,
+            13,
+            561,
+            2438,
+            37550,
+            33075,
+            888,
+            279,
+            6105,
+            3618,
+            13,
+            561,
+            2438,
+            37550,
+            33075,
+            888,
+            279,
+            6105,
+            3618,
+            13,
+            248046
+          ],
+          "ms": 1561.2777919999999,
+          "stats": {
+            "decodeMode": "batched_gpu",
+            "proposed": 0,
+            "accepted": 0,
+            "stopReason": "stop-token"
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "What is two plus three?",
+      "results": [
+        {
+          "mode": "none",
+          "tokens": [
+            11280,
+            5346,
+            2250,
+            16327,
+            4097,
+            13,
+            248046
+          ],
+          "ms": 1538.1035419999998,
+          "stats": {
+            "decodeMode": "batched_gpu",
+            "proposed": 0,
+            "accepted": 0,
+            "stopReason": "stop-token"
+          }
+        },
+        {
+          "mode": "lookup",
+          "tokens": [
+            11280,
+            5346,
+            2250,
+            16327,
+            4097,
+            13,
+            248046
+          ],
+          "ms": 635.8245420000003,
+          "stats": {
+            "decodeMode": "single_token",
+            "proposed": 0,
+            "accepted": 0,
+            "stopReason": "stop-token"
+          }
+        },
+        {
+          "mode": "none",
+          "tokens": [
+            11280,
+            5346,
+            2250,
+            16327,
+            4097,
+            13,
+            248046
+          ],
+          "ms": 1379.4791249999998,
+          "stats": {
+            "decodeMode": "batched_gpu",
+            "proposed": 0,
+            "accepted": 0,
+            "stopReason": "stop-token"
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "Write a JSON array of four objects with keys name and city.",
+      "results": [
+        {
+          "mode": "none",
+          "tokens": [
+            4754,
+            591,
+            3147,
+            12702,
+            47956,
+            2129,
+            8656,
+            3147,
+            3446,
+            4121,
+            8934,
+            1288,
+            591,
+            3147,
+            60396,
+            8809,
+            2129,
+            8656,
+            3147,
+            28629,
+            11563,
+            8934,
+            1288,
+            591,
+            3147,
+            24703,
+            11023,
+            2129,
+            8656,
+            3147,
+            44635,
+            8934,
+            1288,
+            591,
+            3147,
+            81151,
+            423,
+            3189,
+            2129,
+            8656
+          ],
+          "ms": 1893.0844159999997,
+          "stats": {
+            "decodeMode": "batched_gpu",
+            "proposed": 0,
+            "accepted": 0,
+            "stopReason": "max-tokens"
+          }
+        },
+        {
+          "mode": "lookup",
+          "tokens": [
+            4754,
+            591,
+            3147,
+            12702,
+            47956,
+            2129,
+            8656,
+            3147,
+            3446,
+            4121,
+            8934,
+            1288,
+            591,
+            3147,
+            60396,
+            8809,
+            2129,
+            8656,
+            3147,
+            28629,
+            11563,
+            8934,
+            1288,
+            591,
+            3147,
+            24703,
+            11023,
+            2129,
+            8656,
+            3147,
+            44635,
+            8934,
+            1288,
+            591,
+            3147,
+            81151,
+            423,
+            3189,
+            2129,
+            8656
+          ],
+          "ms": 2350.2245000000003,
+          "stats": {
+            "decodeMode": "target_verified_lookup",
+            "proposed": 3,
+            "accepted": 0,
+            "stopReason": "max-tokens"
+          }
+        },
+        {
+          "mode": "none",
+          "tokens": [
+            4754,
+            591,
+            3147,
+            12702,
+            47956,
+            2129,
+            8656,
+            3147,
+            3446,
+            4121,
+            8934,
+            1288,
+            591,
+            3147,
+            60396,
+            8809,
+            2129,
+            8656,
+            3147,
+            28629,
+            11563,
+            8934,
+            1288,
+            591,
+            3147,
+            24703,
+            11023,
+            2129,
+            8656,
+            3147,
+            44635,
+            8934,
+            1288,
+            591,
+            3147,
+            81151,
+            423,
+            3189,
+            2129,
+            8656
+          ],
+          "ms": 1884.8377499999988,
+          "stats": {
+            "decodeMode": "batched_gpu",
+            "proposed": 0,
+            "accepted": 0,
+            "stopReason": "max-tokens"
+          }
+        }
+      ]
+    }
+  ],
+  "lifecycle": "cancelled-and-reused",
+  "scope": "Sequential diagnostic with other public contributors running; not isolated performance acceptance."
+}

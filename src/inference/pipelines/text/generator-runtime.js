@@ -5,7 +5,7 @@ import { isGpuBufferInstance, isWeightBuffer, isCpuWeightBuffer, getBufferDtype 
 import { decodeReadback } from './debug-utils/index.js';
 import { resolveExecutionSessionPlan } from './execution-plan.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
-import { validateSelfSpeculationConfig } from '../../../config/schema/speculation-self.schema.js';
+import { assertSpeculativeCapability } from './generator/speculative-runtime.js';
 
 const UNKNOWN_TOKENIZER_VOCAB_SIZE = 'unknown';
 const INVALID_DTYPE_SENTINEL = '__invalid_dtype__';
@@ -162,7 +162,11 @@ export function resolveGenerateOptions(state, options = {}) {
   const generationDefaults = runtimeDefaults.generation;
   const executionPlan = resolveExecutionSessionPlan(state, options);
   const logitMaskFn = resolveLogitMask(options);
-  const speculation = resolveSpeculationConfig(state, options);
+  const speculation = options.speculation;
+  if (speculation?.mode === 'lookup') assertSpeculativeCapability(state, options);
+  if (speculation?.mode === 'lookup' && options.temperature !== 0) {
+    throw new Error('[Pipeline] lookup speculation currently requires greedy target sampling.');
+  }
   if (logitMaskFn && (speculation || (options.useSpeculative ?? generationDefaults.useSpeculative))) {
     throw new Error('[Pipeline] logitMaskFn is incompatible with speculative decoding.');
   }
@@ -207,31 +211,6 @@ function resolveLogitMask(options) {
   if (options.logitMaskFn == null) return null;
   if (typeof options.logitMaskFn !== 'function') throw new Error('[Pipeline] logitMaskFn must be a synchronous function or null.');
   return options.logitMaskFn;
-}
-
-function resolveSpeculationConfig(state, options) {
-  const sessionSpeculation = state.runtimeConfig?.inference?.session?.speculation;
-  const callSpeculation = options.speculation ?? null;
-  if (sessionSpeculation === undefined) {
-    throw new Error('[Pipeline] runtime.inference.session.speculation is required.');
-  }
-  if (callSpeculation === null) {
-    if (sessionSpeculation === null) return null;
-    validateSelfSpeculationConfig(sessionSpeculation);
-    return sessionSpeculation.mode === 'none' ? null : sessionSpeculation;
-  }
-  if (!sessionSpeculation || typeof sessionSpeculation !== 'object') {
-    throw new Error('[Pipeline] options.speculation requires runtime.inference.session.speculation defaults.');
-  }
-  if (!callSpeculation || typeof callSpeculation !== 'object') {
-    throw new Error('[Pipeline] options.speculation must be an object.');
-  }
-  const merged = {
-    ...sessionSpeculation,
-    ...callSpeculation,
-  };
-  validateSelfSpeculationConfig(merged);
-  return merged.mode === 'none' ? null : merged;
 }
 
 export function resolvePrefillOptions(state, options = {}) {

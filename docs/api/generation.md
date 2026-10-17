@@ -56,6 +56,42 @@ generation does not depend on the draw sequence. Older seeded multi-token
 results used a repeated draw and must not be represented as evidence for this
 corrected sequence behavior.
 
+## Opt-in prompt lookup decoding
+
+A whole-model pipeline can propose tokens copied from earlier matching token
+sequences, then verify the block with the target model. This is prompt lookup,
+not a smaller draft model. It changes scheduling and state management, not the
+selected checkpoint or adapter. Enable explicitly per request:
+
+```js
+const text = await pipeline.generateText(prompt, {
+  temperature: 0,
+  speculation: {
+    mode: 'lookup', tokens: 3, minMatchTokens: 3, maxMatchTokens: 4,
+    maxRejectedBlocks: 1,
+  },
+});
+```
+
+The same policy can be supplied through `runtimeConfig.inference.session.speculation`.
+Per-call values override the resolved session; `speculation: null` disables it.
+The resolved policy is frozen into generation request evidence. Greedy target
+verification and rollback are required; approximate acceptance is rejected.
+After `maxRejectedBlocks` partially rejected blocks, the request resumes ordinary
+decoding. Statistics expose proposed and accepted draft token counts.
+
+This path requires contiguous KV state, whole-model execution, and no shared KV,
+MoE, independent convolution, or custom logit mask. Recurrent attention snapshots
+stay on the GPU; rejection restores them and replays only accepted inputs.
+Sampling, stop conditions, output limits and cancellation remain enforced.
+
+[Scoped physical evidence](../../reports/speculative-lookup/20261016/README.md)
+covers Qwen 0.8B with LoRA on Mac and Qwen 27B Q4K on AMD. Equal output in those
+cases does not establish universal numerical equivalence or a general speedup.
+Lookup and rollback can cost more than ordinary decoding; it is off by default.
+`self` remains serial target-model bursts. Separate draft-model (`draft`) and
+multi-head (`medusa`) generation are not wired into this pipeline.
+
 ## Symbol Notes
 
 ### Construction

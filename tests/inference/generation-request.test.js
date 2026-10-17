@@ -11,3 +11,13 @@ for (const invalid of [{ seed: null }, { stopSequences: null }, { useChatTemplat
   assert.throws(() => resolveTextGenerationRequest(invalid, runtime));
 }
 assert.throws(() => generationRequestEvidence({ ...request }), /resolved request/, 'untrusted copies must pass normalization');
+
+assert.throws(() => resolveTextGenerationRequest({ useSpeculative: true }, runtime), /explicit supported speculation policy/);
+const policy = { mode: 'lookup', tokens: 3, maxMatchTokens: 4, minMatchTokens: 3, maxRejectedBlocks: 1 };
+const lookup = resolveTextGenerationRequest({ speculation: policy }, runtime);
+policy.tokens = 9;
+assert.equal(generationRequestEvidence(lookup).speculation.tokens, 3);
+assert(Object.isFrozen(lookup.speculation));
+runtime.inference.session.speculation = lookup.speculation;
+assert.equal(resolveTextGenerationRequest({ speculation: null }, runtime).speculation, null);
+assert.equal(resolveTextGenerationRequest({}, runtime).speculation.mode, 'lookup');

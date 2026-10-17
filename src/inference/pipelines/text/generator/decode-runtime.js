@@ -1,3 +1,4 @@
+import { lookupDraft, verifySpeculativeTokens } from './speculative-runtime.js';
 import { isGPUSamplingAvailable } from '../../../../gpu/kernels/sample.js';
 import { samplingSeedForToken } from '../../../token-sampling.js';
 import { matchesStopSequence } from '../stopping.js';
@@ -29,6 +30,8 @@ function prepareGenerationRuntime(generator, opts, options) {
   generator._state.isGenerating = true;
   generator._resetDecodeRuntimeState();
   delete generator._state.stats.outputUsage;
+  generator._state.stats.speculationAttempts = 0;
+  generator._state.stats.speculationAccepted = 0;
   generator._state.stats.gpuTimePrefillMs = undefined;
   generator._state.stats.gpuTimeDecodeMs = undefined;
   generator._state.stats.decodeRecordMs = 0;
@@ -411,6 +414,8 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
           selfSpeculationEnabled: opts.speculation?.mode === 'self' && !initialHotVocabularyBatchDecodeAvailable,
           hasRangeBackedPerLayerInputs,
         });
+    const ordinaryBatchPath = useBatchPath;
+    if (opts.speculation?.mode === 'lookup') useBatchPath = false;
     if (!useBatchPath) {
       let reason = null;
       if (replayPrefillDecode) reason = 'replay_prefill_decode';
@@ -453,12 +458,41 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
       );
     }
 
+    let rejectedDraftBlocks = 0;
     while (tokensGenerated < opts.maxTokens) {
       if (stopIfAborted()) break;
       if (this._hasFinitenessFallbackWindow() && useBatchPath) {
         useBatchPath = false;
       }
       const hotVocabularyBatchDecodeAvailable = resolveCurrentHotVocabularyBatchDecodeAvailable();
+
+      if (opts.speculation?.mode === 'lookup' && rejectedDraftBlocks < opts.speculation.maxRejectedBlocks) {
+        const remaining = opts.maxTokens - tokensGenerated;
+        const proposal = remaining > 1 ? lookupDraft(generatedIds, Math.min(opts.speculation.tokens, remaining - 1), opts.speculation.maxMatchTokens, opts.speculation.minMatchTokens) : [];
+        if (proposal.length) {
+          const stop = (context, token) => isStopToken(token, stopTokenIds, eosToken)
+            || matchesStopSequence(this._state.tokenizer, context, stopSequenceStart, opts.stopSequences, this._state.modelConfig?.reasoningOutput);
+          const result = await verifySpeculativeTokens(this, generatedIds, proposal, opts, options.signal, stop);
+          if (result.accepted < proposal.length) rejectedDraftBlocks++;
+          if (rejectedDraftBlocks >= opts.speculation.maxRejectedBlocks) useBatchPath = ordinaryBatchPath;
+          this._state.stats.decodeMode = 'target_verified_lookup';
+          this._state.stats.speculationAttempts += proposal.length;
+          this._state.stats.speculationAccepted += result.accepted;
+          for (const token of result.tokens) {
+            if (stopIfAborted()) break;
+            generatedIds.push(token); tokensGenerated++;
+            const text = emitMode === 'token' ? '' : decodeToken(token);
+            yield emitMode === 'token' ? token : text;
+            options.onToken?.(token, text);
+          }
+          const last = generatedIds[generatedIds.length - 1];
+          if (isStopToken(last, stopTokenIds, eosToken)) { this._recordStopReason('stop-token', last); break; }
+          if (matchesStopSequence(this._state.tokenizer, generatedIds, stopSequenceStart, opts.stopSequences, this._state.modelConfig?.reasoningOutput)) {
+            this._recordStopReason('stop-sequence', last); break;
+          }
+          continue;
+        }
+      }
 
       if (useBatchPath) {
         const remaining = opts.maxTokens - tokensGenerated;
