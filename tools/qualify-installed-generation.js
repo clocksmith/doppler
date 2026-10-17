@@ -78,6 +78,7 @@ try {
         ...(w8Benchmark ? config.comparisonModels.map((model, index) => ({ urlPrefix: '/comparison-model/' + index, rootDir: model.modelDir })) : [])] });
     const profile = path.join(config.outputDir, 'profile');
     context = await chromium.launchPersistentContext(profile, { headless: true, args: config.launchArgs,
+      ...(config.browserExecutable ? { executablePath: config.browserExecutable } : {}),
       timeout: config.timeoutMs, env: { ...process.env, TMPDIR: config.temporaryDirectory } });
     report.browserVersion = context.browser()?.version() ?? null;
     const page = context.pages()[0]; page.setDefaultTimeout(config.timeoutMs);
@@ -120,7 +121,7 @@ try {
     } else {
       report.peakRssBytes = Math.max(...report.memorySamples.map(sample => sample.rendererRssBytes));
       assert(Number.isFinite(report.peakRssBytes) && !report.memoryError);
-      report.memoryDefinition = 'Sampled Linux renderer RSS, including shared mappings, across load, generation, cancellation and recovery.';
+      report.memoryDefinition = `Sampled ${process.platform} renderer RSS, including shared mappings, across load, generation, cancellation and recovery.`;
     }
   } else {
     const { bootstrapNodeWebGPUProvider, releaseNodeWebGPU } = await import(moduleUrl('src/tooling/node-webgpu.js'));
@@ -142,7 +143,7 @@ try {
       partitionsModule: moduleUrl(publicPartitionsTarget), poolObservationModule: moduleUrl('src/memory/buffer-pool.js'),
       identityModule: moduleUrl('src/config/initial-execution-identity.js') }, reference, observe);
     report.peakRssBytes = process.resourceUsage().maxRSS * 1024;
-    report.memoryDefinition = 'Linux fresh-process peak RSS, including shared mappings, across load, generation, cancellation and recovery.';
+    report.memoryDefinition = `${process.platform} fresh-process peak RSS, including shared mappings, across load, generation, cancellation and recovery.`;
   }
   report.passed = report.result.passed; report.physicalExecution = report.result.outputs.length > 0 || (report.result.pairs?.length ?? 0) > 0;
 } catch (error) { report.error = { message: error.message, stack: error.stack }; }

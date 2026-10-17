@@ -2,8 +2,8 @@
   "schema": "doppler.capsule-runtime-closure/v1",
   "entrypoint": "src/capsule-runtime.js",
   "scope": "injected-capsule-core; excludes host-supplied program executors",
-  "fileCount": 84,
-  "sourceBytes": 982754,
+  "fileCount": 87,
+  "sourceBytes": 988416,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -179,8 +179,8 @@
     },
     {
       "path": "src/config/capsule-release-contract.js",
-      "sizeBytes": 10700,
-      "hash": "sha256:1111bb795b062f008c4aebfc2a54cee961b0ffabaf6f328de00013b57cbfef1a"
+      "sizeBytes": 10058,
+      "hash": "sha256:a9b12f5ce93d937ef683b28553250338b5197c4f2a8a995308b3f232d7dc8249"
     },
     {
       "path": "src/config/capsule-release-events.js",
@@ -209,8 +209,8 @@
     },
     {
       "path": "src/config/capsule-v2.js",
-      "sizeBytes": 20497,
-      "hash": "sha256:6121d72a2e99d43d2ac5e0d788e094f2bacb78e220404c6a94c792e44e7ea797"
+      "sizeBytes": 20034,
+      "hash": "sha256:fb7b7b4bb4f8764bacdcc5338ee6c931f4c39d0655009e9bc16b7c6c7cb4ad86"
     },
     {
       "path": "src/config/capsule-v3.js",
@@ -259,8 +259,8 @@
     },
     {
       "path": "src/config/initial-execution-identity.js",
-      "sizeBytes": 14956,
-      "hash": "sha256:2c25b83186104597025031a9436a53ba0d3a71c1ee170c4f4ccebdd3e4f6d689"
+      "sizeBytes": 14838,
+      "hash": "sha256:a3725508febc6eea6e6d41166a2b74e42d6e4ae3c69e583e12acea84d82294e0"
     },
     {
       "path": "src/config/kernel-registry-contract.js",
@@ -269,13 +269,13 @@
     },
     {
       "path": "src/config/kernels/registry.json",
-      "sizeBytes": 535032,
-      "hash": "sha256:67a055aabc69d230dd090cad361ca75bdc321fc147d3c6cb2b46facbfa0fc667"
+      "sizeBytes": 540631,
+      "hash": "sha256:6585b968976ab98b4f28f468a46fd59fd65e0a1e604fa8b2cfee5d52a20f2cec"
     },
     {
       "path": "src/config/layer-partition-plan.js",
-      "sizeBytes": 12648,
-      "hash": "sha256:f35be4cd7432690f0107b5a2e3256c0280e0b03203c8ef791c099a2ea83e2a1c"
+      "sizeBytes": 13258,
+      "hash": "sha256:19a4dba495920108d4a535f337368d39eb5a99ced50c84f4e09ee87f75a03e81"
     },
     {
       "path": "src/config/lora-layouts.js",
@@ -289,13 +289,13 @@
     },
     {
       "path": "src/config/model-ir-v2.js",
-      "sizeBytes": 11513,
-      "hash": "sha256:f64d3b1be9d3c86cfc0bae569af1c095c72701b335fd8a7f4425c3930191a084"
+      "sizeBytes": 11214,
+      "hash": "sha256:80e5917a15d1bd8a725d98cb21c69c5f0504984cfb83f0dd68c93f101bf9831a"
     },
     {
       "path": "src/config/model-ir.js",
-      "sizeBytes": 6954,
-      "hash": "sha256:cb808e6a8c05a0b174f930891d648eac027f6e270266b68b7227afc8dd74078d"
+      "sizeBytes": 6720,
+      "hash": "sha256:558901ffc96bc380ff0f1dd6b88b2dd19c8e05ca396b0b8415dc400a81350d3d"
     },
     {
       "path": "src/config/ordered-resident-qualification.js",
@@ -304,8 +304,8 @@
     },
     {
       "path": "src/config/revocation-policy.js",
-      "sizeBytes": 10773,
-      "hash": "sha256:0e2ee4c9a9f711da2e7a2d2b4a3963573d5478ff07cc45ef969e0d6e3cdf7d89"
+      "sizeBytes": 10720,
+      "hash": "sha256:9730047acd9a9345fb77be9f9a19d9eb7dda50e04d81f9292dd301be0b0ad31f"
     },
     {
       "path": "src/config/revocation-registry.json",
@@ -329,8 +329,8 @@
     },
     {
       "path": "src/config/target-plan.js",
-      "sizeBytes": 24364,
-      "hash": "sha256:3016ab3ea0fe535b5325c6e44fd8568d4eb98581c8cf8800abfeda99db1e3d2b"
+      "sizeBytes": 24013,
+      "hash": "sha256:d265b8e2d5c7c81a200f36d289fe084cbf4fafffba8cadf6467d844dc6ab035e"
     },
     {
       "path": "src/config/wgsl-language-contract.js",
@@ -393,14 +393,29 @@
       "hash": "sha256:0034c8318465e897c78d01f2a15025ce86464e05799d4b1162327618251a9fda"
     },
     {
+      "path": "src/formats/contract-validation.js",
+      "sizeBytes": 1068,
+      "hash": "sha256:43057cb85a7191cac16067c4a884114aa0ac001079b37161196f649e68669154"
+    },
+    {
       "path": "src/formats/load-json.js",
       "sizeBytes": 1158,
       "hash": "sha256:71761a83b6d7a0e89962592f6d3181f9524eb6784bafb1879dcd4316b936ed5f"
     },
     {
+      "path": "src/formats/plain-object.js",
+      "sizeBytes": 113,
+      "hash": "sha256:2d966f313816b1dfed810fd83bdabf3b38360ead2e926763ceadb6c3df81caf8"
+    },
+    {
       "path": "src/formats/sha256.js",
       "sizeBytes": 5548,
       "hash": "sha256:5a8e1d52e1e7349cbb4f990d854a420c45a65c1eaf83f4e1921b369f4512868b"
+    },
+    {
+      "path": "src/formats/sorted-json.js",
+      "sizeBytes": 432,
+      "hash": "sha256:33174ec71afabefd198adac030272fae7ee9ba18170364fc9004356fcf64e26b"
     },
     {
       "path": "src/formats/stable-sort-object.js",
@@ -450,7 +465,7 @@
     {
       "path": "src/version.js",
       "sizeBytes": 98,
-      "hash": "sha256:b7b354621c564bb2bb40f2e5699d12ea4f9591792fcf3659c459814b7b6a7ddc"
+      "hash": "sha256:6a281c9d1f577d466862596301b9cb49f6c12497deaf7128874cbbd73ae073e9"
     }
   ],
   "passed": true

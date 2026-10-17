@@ -10,6 +10,18 @@ import { assertSpeculativeCapability } from './generator/speculative-runtime.js'
 const UNKNOWN_TOKENIZER_VOCAB_SIZE = 'unknown';
 const INVALID_DTYPE_SENTINEL = '__invalid_dtype__';
 
+export function settleGenerationStats(stats, startTime, generatedTokenCount, aborted) {
+  // Iterator return and callback failures can bypass ordinary decode accounting.
+  stats.tokensGenerated = generatedTokenCount;
+  stats.decodeTokens = Math.max(0, generatedTokenCount - 1);
+  stats.totalTimeMs = performance.now() - startTime;
+  if (aborted) {
+    stats.stopReason = 'aborted';
+    stats.stopTokenId = null;
+    stats.decodeTimeMs = stats.decodeTokens > 0 ? Math.max(0, stats.totalTimeMs - stats.ttftMs) : 0;
+  }
+}
+
 function resolveConfiguredValue(value, defaultValue, context, validate) {
   if (value === undefined) {
     return defaultValue;

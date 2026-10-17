@@ -34,6 +34,13 @@ function createFakeTokenizer() {
     decode(ids, skipSpecial, skipFallback) {
       return ids.map((id) => `[${id}]`).join('');
     },
+    createIncrementalDecoder() {
+      return {
+        push: (id) => `[${id}]`,
+        pendingText: () => '',
+        finish: () => '',
+      };
+    },
     getSpecialTokens() {
       return { eos: EOS_TOKEN, pad: 0 };
     },
@@ -346,7 +353,9 @@ console.log('  ok: maxTokens cap parity');
     if (callCount2 >= 3) controller2.abort();
     return neverEnds[callCount2] ?? 19;
   };
-  for await (const _ of gen2.generate('test', { useChatTemplate: false, signal: controller2.signal })) { void _; }
+  await assert.rejects(async () => {
+    for await (const _ of gen2.generate('test', { useChatTemplate: false, signal: controller2.signal })) { void _; }
+  }, { name: 'AbortError' });
   const abortedLen2 = state2.stats.tokensGenerated;
 
   assert.ok(abortedLen2 < 20, `generate() must stop on abort (got ${abortedLen2})`);
@@ -357,6 +366,36 @@ console.log('  ok: maxTokens cap parity');
   );
 }
 console.log('  ok: abort signal parity');
+
+// Closing the stream while suspended at a yield must settle this request's
+// accounting, even when a previous request produced many more tokens.
+for (const abortAfter of [1, 3]) {
+  const state = createMinimalState({ maxTokens: 8, stopTokenIds: [] });
+  const gen = new PipelineGenerator(state);
+  stubGenerator(gen, [10, 11, 12, 13, 14, 15, 16, 17]);
+  for await (const _ of gen.generate('previous', { useChatTemplate: false })) { void _; }
+  assert.equal(state.stats.tokensGenerated, 8);
+  state.stats.batching = { batchedForwardCalls: 999 };
+  stubGenerator(gen, [10, 11, 12, 13, 14, 15, 16, 17]);
+  const controller = new AbortController();
+  let chunks = 0;
+  await assert.rejects(async () => {
+    for await (const _ of gen.generate('cancel', { useChatTemplate: false, signal: controller.signal })) {
+      void _;
+      if (++chunks === abortAfter) controller.abort();
+    }
+  }, { name: 'AbortError' });
+  assert.equal(chunks, abortAfter);
+  assert.equal(state.stats.tokensGenerated, abortAfter);
+  assert.equal(state.stats.decodeTokens, abortAfter - 1);
+  assert.equal(state.stats.stopReason, 'aborted');
+  assert.deepEqual(state.stats.batching, state.batchingStats);
+  assert.equal(state.isGenerating, false);
+  stubGenerator(gen, [9, EOS_TOKEN]);
+  assert.deepEqual((await gen.generateTokenIds('reuse', { useChatTemplate: false })).tokenIds,
+    [9, EOS_TOKEN]);
+}
+console.log('  ok: streamed cancellation accounting and reuse');
 
 // === Test 4: Stop sequences — both paths respect string stop ===
 {
@@ -495,10 +534,14 @@ for (const surface of ['generate', 'generateTokenIds', 'generateWithPrefixKV']) 
     const options = { useChatTemplate: false, signal: controller.signal,
       onToken() { callbacks++; controller.abort(); } };
     if (surface === 'generate') {
-      for await (const _ of generator.generate('test', options)) { void _; }
+      await assert.rejects(async () => {
+        for await (const _ of generator.generate('test', options)) { void _; }
+      }, { name: 'AbortError' });
     } else if (surface === 'generateWithPrefixKV') {
       const prefix = { cache: { clone: () => ({}) }, seqLen: 0, tokens: [] };
-      for await (const value of generator.generateWithPrefixKV(prefix, 'test', options)) void value;
+      await assert.rejects(async () => {
+        for await (const value of generator.generateWithPrefixKV(prefix, 'test', options)) void value;
+      }, { name: 'AbortError' });
     } else await generator.generateTokenIds('test', options);
     assert.equal(callbacks, 1);
     assert.equal(decoded, 0);
