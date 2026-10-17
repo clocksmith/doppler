@@ -187,6 +187,20 @@ function assertPoolClean() {
   });
   assert.deepEqual(Object.keys(float.data.materializations).sort(), ['f16', 'f32']);
   assert.equal(float.allocatedBuffers.length, 2);
+  // An embedding alias may feed a packed output head as well as dense gather.
+  const { compileWeightRepresentationPlan } = await import('../../src/loader/weight-representation-plan.js');
+  const embeddingLocation = { ...location, shardIndex: 0, offset: 0, role: 'embedding' };
+  const aliasPlan = compileWeightRepresentationPlan(new Map([
+    ['embedding', embeddingLocation], ['head', { ...embeddingLocation, role: 'lm_head' }],
+  ]), { architecture: { numLayers: 1 } }, [{ id: 'alias', postLayer: [
+    { op: 'lm_head', kernel: 'fused_matmul_q4.wgsl', entry: 'main_multicol' },
+    { op: 'lm_head_prefill', kernel: 'matmul_f16w_f32a_tiled.wgsl', entry: 'main' },
+  ], prefill: { steps: [] }, decode: { steps: [] } }], config);
+  const embedding = await loadTensorToGPU(new Uint8Array(144), embeddingLocation, 'embedding', {
+    ...config, representationRequirement: aliasPlan.embedding,
+  });
+  assert.deepEqual(Object.keys(embedding.data.materializations).sort(), ['f16', 'f32', 'q4k']);
+  assert.equal(embeddingLocation.role, 'embedding');
 }
 
 // Failure after the first dense copy must retire it and the owned packed upload.

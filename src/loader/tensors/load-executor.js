@@ -113,10 +113,8 @@ export function canUseFusedQ4KStorage(location, config) {
   const caps = config.gpuCapabilities || getKernelCapabilities();
   if (!caps?.hasSubgroups) return false;
 
-  const isMatmulWeight = shouldDequantizeToF16(location);
-  if (!isMatmulWeight) return false;
-
-  if (isEmbeddingRole(location)) return false;
+  const packedConsumer = config.representationRequirement?.consumers?.some(consumer => consumer.weightDtype === 'q4k');
+  if (!packedConsumer && (!shouldDequantizeToF16(location) || isEmbeddingRole(location))) return false;
   if (isPackedQ4K(location)) return false;
 
   return true;
@@ -150,9 +148,8 @@ export function convertF16ToF32CPU(f16Data) {
   return f32;
 }
 
-export async function materializeQ4KDenseBuffer(quantBuffer, shardData, location, name, config) {
+export async function materializeQ4KDenseBuffer(quantBuffer, shardData, location, name, config, outputDtype = getQ4KOutputDtype(location, config)) {
   let dequantized = null;
-  const outputDtype = getQ4KOutputDtype(location, config);
   const loaderDebug = normalizeLoaderDebugConfig(config);
   const debugEnabled = loaderDebug?.enabled === true;
   const forceGpuDequant = loaderDebug?.forceGpuDequant === true;
@@ -160,7 +157,7 @@ export async function materializeQ4KDenseBuffer(quantBuffer, shardData, location
   const runQ4KDequantParity = loaderDebug?.runQ4KDequantParity === true;
   const paritySamples = loaderDebug?.q4kDequantParitySamples ?? 256;
 
-  const q4kCpuReferenceContext = getQ4KCpuReferenceContext(shardData, location, config);
+  const q4kCpuReferenceContext = getQ4KCpuReferenceContext(shardData, location, config, outputDtype);
   const { needsRowwise, layout, K } = q4kCpuReferenceContext;
   const preferCpuDequant = loaderDebug?.preferCpuDequant === true;
   const canUseCpuReference = !forceGpuDequant && preferCpuDequant && q4kCpuReferenceContext.eligible;
@@ -323,7 +320,7 @@ async function loadQ4KRepresentations(shardData, location, name, config, packed)
     let primary;
     for (const dtype of requested) {
       const dense = await materializeQ4KDenseBuffer(quantBuffer, shardData, location, name,
-        { ...config, keepF32Weights: dtype === 'f32' });
+        { ...config, keepF32Weights: dtype === 'f32' }, dtype);
       allocatedBuffers.push(...dense.allocatedBuffers);
       if (dense.outputDtype !== dtype) throw new Error(`Tensor "${name}" cannot materialize required ${dtype} storage.`);
       materializations.set(dtype, { buffer: dense.buffer, layout: dense.layout });
@@ -348,8 +345,7 @@ async function loadQ4KRepresentations(shardData, location, name, config, packed)
   }
 }
 
-export function getQ4KCpuReferenceContext(shardData, location, config) {
-  const outputDtype = getQ4KOutputDtype(location, config);
+export function getQ4KCpuReferenceContext(shardData, location, config, outputDtype = getQ4KOutputDtype(location, config)) {
   const isMatrixLike = Array.isArray(location.shape) && location.shape.length >= 2;
   const K = isMatrixLike ? location.shape[location.shape.length - 1] : 0;
   const layout = getWeightLayout(location, config);
