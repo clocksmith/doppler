@@ -178,7 +178,6 @@
     "src/config/schema/quantization.schema.js",
     "src/config/schema/runtime-profile.schema.js",
     "src/config/schema/shared-runtime.schema.js",
-    "src/config/schema/speculation-self.schema.js",
     "src/config/schema/speculative.schema.js",
     "src/config/schema/storage.schema.js",
     "src/config/schema/support-tiers.schema.js",

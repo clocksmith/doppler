@@ -1,3 +1,5 @@
+import { isPlainObject } from '../../src/formats/plain-object.js';
+import { exactKeys } from './evidence-fields.js';
 import {
   canonicalizeJson,
   computeCanonicalJsonSha256,
@@ -13,25 +15,6 @@ const STATUSES = new Set(['passed', 'failed']);
 
 function normalizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
-}
-
-function isPlainObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
-}
-
-function exactKeys(value, fields, label, errors) {
-  if (!isPlainObject(value)) {
-    errors.push(`${label} must be an object`);
-    return false;
-  }
-  const expected = new Set(fields);
-  for (const field of Object.keys(value)) {
-    if (!expected.has(field)) errors.push(`${label}.${field} is not supported`);
-  }
-  for (const field of fields) {
-    if (!Object.hasOwn(value, field)) errors.push(`${label}.${field} is required`);
-  }
-  return true;
 }
 
 function requiredText(value, label, errors) {

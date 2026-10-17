@@ -1,3 +1,5 @@
+import { exactKeys } from './evidence-fields.js';
+
 const ACTIVATION_SCHEMA = 'doppler.runtime-promotion-activation-evidence/v1';
 const DECISION_SCHEMA = 'doppler.runtime-promotion-decision-evidence/v1';
 const SHA256_PATTERN = /^sha256:[0-9a-f]{64}$/;
@@ -13,25 +15,6 @@ const SCOPE_FIELDS = Object.freeze([
 
 function normalizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
-}
-
-function isPlainObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
-}
-
-function exactKeys(value, fields, label, errors) {
-  if (!isPlainObject(value)) {
-    errors.push(`${label} must be an object`);
-    return false;
-  }
-  const expected = new Set(fields);
-  for (const field of Object.keys(value)) {
-    if (!expected.has(field)) errors.push(`${label}.${field} is not supported`);
-  }
-  for (const field of fields) {
-    if (!Object.hasOwn(value, field)) errors.push(`${label}.${field} is required`);
-  }
-  return true;
 }
 
 function text(value, label, errors, nullable = false) {

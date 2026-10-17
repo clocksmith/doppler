@@ -322,15 +322,9 @@ That claim is valid only if the artifact shows:
 - The compare section explicitly records the differing formats and does not
   imply a format-identical kernel benchmark.
 
-## Closed Workstream Snapshot (2026-02-22 UTC)
+## Execution tracking
 
-- Gemma 3 Q4K `f32a` now auto-selects `gemma3-q4k-dequant-f32a-online` on subgroup-capable devices ([src/rules/inference/kernel-path.rules.json](../../src/rules/inference/kernel-path.rules.json)).
-- Kernel path registry marks `gemma3-q4k-dequant-f32a-online` as canonical/default ([src/config/kernel-paths/registry.json](../../src/config/kernel-paths/registry.json)).
-- Claimed text-model execution paths are checked by [tests/config/claimed-text-models-failfast-contract.test.js](../../tests/config/claimed-text-models-failfast-contract.test.js).
-- The deterministic CI contract runs those checks on every pull request and main-branch push ([.github/workflows/check-green.yml](../../.github/workflows/check-green.yml)).
-- Historical local performance numbers are stale after kernel-path routing updates; re-run apples-to-apples benchmark suites before publishing comparative claims.
-
-Execution tracking now lives in:
+Current execution tracking lives in:
 
 - generated normalized artifacts under [results/](./results/)
 - committed compare fixtures under [fixtures/](./fixtures/)
