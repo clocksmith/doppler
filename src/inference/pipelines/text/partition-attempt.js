@@ -2,7 +2,8 @@ import { PipelineState } from './state.js';
 import { createKVCache } from './init.js';
 import { assertPartitionExecutionSupported } from './partition-execution.js';
 import { resolveLayerPartition } from './layer-partition-contract.js';
-import { createLinearAttentionRuntime, resetLinearAttentionRuntime, cloneLinearAttentionRuntime } from './linear-attention.js';
+import { createLinearAttentionRuntime, resetLinearAttentionRuntime } from './linear-attention.js';
+import { cloneLinearAttentionRuntimeOnGPU } from './linear-attention/state-clone.js';
 import { KVCache } from '../../kv-cache/base.js';
 import { MixedGeometryKVCache } from '../../kv-cache/mixed-geometry.js';
 
@@ -76,7 +77,7 @@ export async function clonePartitionAttempt(parent, signal) {
       await child.state.kvCache.copyFrom(source.kvCache);
     } else throw new Error('Missing matching child KV owner.');
     signal.throwIfAborted();
-    child.state.linearAttentionRuntime = await cloneLinearAttentionRuntime(source.linearAttentionRuntime);
+    child.state.linearAttentionRuntime = await cloneLinearAttentionRuntimeOnGPU(source.linearAttentionRuntime);
     child.state.currentSeqLen = source.currentSeqLen;
     child.state.decodeStepCount = source.decodeStepCount;
     child.state.currentTokenIds = source.currentTokenIds ? [...source.currentTokenIds] : null;

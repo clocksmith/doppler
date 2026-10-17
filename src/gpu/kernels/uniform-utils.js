@@ -10,18 +10,29 @@ import { getUniformCache, toUniformArrayBuffer } from '../uniform-cache.js';
 // Uniform Buffer Creation
 // ============================================================================
 
-const verifiedLayouts = new WeakSet();
+const verifiedLayouts = new WeakMap();
 
 function getUniformWriter(config) {
   const kernel = `${config?.operation}/${config?.variant}`;
   const writer = UNIFORM_WRITERS[kernel];
   if (!writer) throw new Error(`Kernel "${kernel}" has no generated uniform layout.`);
-  if (!verifiedLayouts.has(config)) {
+  const layout = config.uniforms;
+  const verifiedKernels = verifiedLayouts.get(layout);
+  if (!Object.isFrozen(config)) {
+    throw new Error(`Kernel "${kernel}" must use its immutable registry uniform layout; generate layouts before packaging.`);
+  }
+  if (!verifiedKernels?.has(kernel)) {
     const canonical = KERNEL_CONFIGS[config.operation]?.[config.variant];
-    if (!Object.isFrozen(config) || canonicalizeJson(config.uniforms) !== canonicalizeJson(canonical?.uniforms)) {
+    if (!layout || !Object.isFrozen(layout) || !Array.isArray(layout.fields) || !Object.isFrozen(layout.fields)
+      || !layout.fields.every(Object.isFrozen)
+      || canonicalizeJson(layout) !== canonicalizeJson(canonical?.uniforms)) {
       throw new Error(`Kernel "${kernel}" must use its immutable registry uniform layout; generate layouts before packaging.`);
     }
-    verifiedLayouts.add(config);
+    // Dispatch geometry wrappers share their registry's deeply frozen layout.
+    // Validate each layout/kernel pair once, independent of wrapper lifetime.
+    const kernels = verifiedKernels ?? new Set();
+    kernels.add(kernel);
+    verifiedLayouts.set(layout, kernels);
   }
   return { kernel, writer };
 }

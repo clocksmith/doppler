@@ -1,0 +1,489 @@
+{
+  "schema": "doppler.qwen-optimization-summary/v1",
+  "baseCommit": "ed69d0ce",
+  "scope": "Apple M3 local tuning; no vendor claim or support promotion",
+  "clones": [
+    {
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "receipt": "mac-recurrent-clone.json.gz",
+      "milliseconds": {
+        "cpu-roundtrip": {
+          "median": 6.586749999999938,
+          "min": 6.264250000000175,
+          "max": 7.099333000000115,
+          "samples": 12
+        },
+        "gpu": {
+          "median": 1.9257084999999279,
+          "min": 1.7513750000002801,
+          "max": 2.1091670000000704,
+          "samples": 12
+        }
+      },
+      "speedup": 3.4204294159786826,
+      "recurrentLayers": 9,
+      "dynamicBytes": 10321920,
+      "exactContinuationSteps": 128,
+      "passed": true
+    },
+    {
+      "modelId": "qwen-3-5-2b-q4k-ehaf16",
+      "receipt": "mac-recurrent-clone-2b.json.gz",
+      "milliseconds": {
+        "cpu-roundtrip": {
+          "median": 6.450457999999799,
+          "min": 6.271916000000147,
+          "max": 7.432791000000179,
+          "samples": 12
+        },
+        "gpu": {
+          "median": 1.8217915000000175,
+          "min": 1.5662499999998545,
+          "max": 3.181250000000091,
+          "samples": 12
+        }
+      },
+      "speedup": 3.5407224152707575,
+      "recurrentLayers": 9,
+      "dynamicBytes": 10321920,
+      "exactContinuationSteps": 128,
+      "passed": true
+    }
+  ],
+  "uniformPreparation": {
+    "milliseconds": {
+      "baseline": {
+        "median": 386.6050415000002,
+        "min": 380.89300000000003,
+        "max": 394.19270800000004,
+        "samples": 12
+      },
+      "candidate": {
+        "median": 12.685187499999756,
+        "min": 12.059375000000273,
+        "max": 14.510083000000122,
+        "samples": 12
+      }
+    },
+    "speedup": 30.4768882210064,
+    "wrappersPerSample": 30000,
+    "scope": "CPU uniform length validation and serialization; no GPU dispatch",
+    "passed": true
+  },
+  "kernels": {
+    "rejectedJointReduction": [
+      {
+        "variant": "default",
+        "tokens": 1,
+        "gpuMilliseconds": {
+          "baseline": {
+            "median": 0.2146245,
+            "min": 0.196608,
+            "max": 0.215791,
+            "samples": 12
+          },
+          "candidate": {
+            "median": 0.2118335,
+            "min": 0.196608,
+            "max": 0.262144,
+            "samples": 12
+          }
+        },
+        "medianPairedSpeedup": 1.0104937551368862,
+        "candidateFasterPairs": 9,
+        "exactStateAndOutput": true
+      },
+      {
+        "variant": "default",
+        "tokens": 22,
+        "gpuMilliseconds": {
+          "baseline": {
+            "median": 3.670016,
+            "min": 3.60448,
+            "max": 3.670016,
+            "samples": 12
+          },
+          "candidate": {
+            "median": 3.60448,
+            "min": 3.538944,
+            "max": 3.735552,
+            "samples": 12
+          }
+        },
+        "medianPairedSpeedup": 1.018181818181818,
+        "candidateFasterPairs": 8,
+        "exactStateAndOutput": true
+      },
+      {
+        "variant": "default",
+        "tokens": 128,
+        "gpuMilliseconds": {
+          "baseline": {
+            "median": 9.895936,
+            "min": 8.192,
+            "max": 14.7456,
+            "samples": 12
+          },
+          "candidate": {
+            "median": 10.32192,
+            "min": 8.585216,
+            "max": 12.976128,
+            "samples": 12
+          }
+        },
+        "medianPairedSpeedup": 0.9855994152046784,
+        "candidateFasterPairs": 4,
+        "exactStateAndOutput": true
+      },
+      {
+        "variant": "default_f16",
+        "tokens": 1,
+        "gpuMilliseconds": {
+          "baseline": {
+            "median": 0.229376,
+            "min": 0.196608,
+            "max": 0.262144,
+            "samples": 12
+          },
+          "candidate": {
+            "median": 0.196608,
+            "min": 0.196608,
+            "max": 0.262144,
+            "samples": 12
+          }
+        },
+        "medianPairedSpeedup": 1.0,
+        "candidateFasterPairs": 4,
+        "exactStateAndOutput": true
+      },
+      {
+        "variant": "default_f16",
+        "tokens": 22,
+        "gpuMilliseconds": {
+          "baseline": {
+            "median": 3.670016,
+            "min": 1.96608,
+            "max": 3.670016,
+            "samples": 12
+          },
+          "candidate": {
+            "median": 3.60448,
+            "min": 3.538944,
+            "max": 3.735552,
+            "samples": 12
+          }
+        },
+        "medianPairedSpeedup": 1.009090909090909,
+        "candidateFasterPairs": 6,
+        "exactStateAndOutput": true
+      },
+      {
+        "variant": "default_f16",
+        "tokens": 128,
+        "gpuMilliseconds": {
+          "baseline": {
+            "median": 10.452992,
+            "min": 8.585216,
+            "max": 15.335424,
+            "samples": 12
+          },
+          "candidate": {
+            "median": 10.354688,
+            "min": 8.585216,
+            "max": 13.893632,
+            "samples": 12
+          }
+        },
+        "medianPairedSpeedup": 1.0115662962005687,
+        "candidateFasterPairs": 9,
+        "exactStateAndOutput": true
+      }
+    ],
+    "retainedStateReuse": [
+      {
+        "variant": "default",
+        "tokens": 1,
+        "gpuMilliseconds": {
+          "baseline": {
+            "median": 0.196608,
+            "min": 0.196608,
+            "max": 0.196608,
+            "samples": 12
+          },
+          "candidate": {
+            "median": 0.131072,
+            "min": 0.131072,
+            "max": 0.262144,
+            "samples": 12
+          }
+        },
+        "medianPairedSpeedup": 1.5,
+        "candidateFasterPairs": 7,
+        "exactStateAndOutput": true
+      },
+      {
+        "variant": "default",
+        "tokens": 22,
+        "gpuMilliseconds": {
+          "baseline": {
+            "median": 1.769472,
+            "min": 1.179648,
+            "max": 3.670016,
+            "samples": 12
+          },
+          "candidate": {
+            "median": 1.245184,
+            "min": 0.720896,
+            "max": 2.29376,
+            "samples": 12
+          }
+        },
+        "medianPairedSpeedup": 1.5751879699248121,
+        "candidateFasterPairs": 10,
+        "exactStateAndOutput": true
+      },
+      {
+        "variant": "default",
+        "tokens": 128,
+        "gpuMilliseconds": {
+          "baseline": {
+            "median": 10.420224000000001,
+            "min": 8.650752,
+            "max": 15.07328,
+            "samples": 12
+          },
+          "candidate": {
+            "median": 5.767168,
+            "min": 5.177344,
+            "max": 10.092544,
+            "samples": 12
+          }
+        },
+        "medianPairedSpeedup": 1.6427053031998209,
+        "candidateFasterPairs": 12,
+        "exactStateAndOutput": true
+      },
+      {
+        "variant": "default_f16",
+        "tokens": 1,
+        "gpuMilliseconds": {
+          "baseline": {
+            "median": 0.196608,
+            "min": 0.196608,
+            "max": 0.262144,
+            "samples": 12
+          },
+          "candidate": {
+            "median": 0.16383999999999999,
+            "min": 0.131072,
+            "max": 0.196608,
+            "samples": 12
+          }
+        },
+        "medianPairedSpeedup": 1.4166666666666665,
+        "candidateFasterPairs": 7,
+        "exactStateAndOutput": true
+      },
+      {
+        "variant": "default_f16",
+        "tokens": 22,
+        "gpuMilliseconds": {
+          "baseline": {
+            "median": 3.670016,
+            "min": 3.60448,
+            "max": 3.670016,
+            "samples": 12
+          },
+          "candidate": {
+            "median": 2.260992,
+            "min": 2.228224,
+            "max": 2.29376,
+            "samples": 12
+          }
+        },
+        "medianPairedSpeedup": 1.6088235294117648,
+        "candidateFasterPairs": 12,
+        "exactStateAndOutput": true
+      },
+      {
+        "variant": "default_f16",
+        "tokens": 128,
+        "gpuMilliseconds": {
+          "baseline": {
+            "median": 10.944512,
+            "min": 8.912896,
+            "max": 13.76256,
+            "samples": 12
+          },
+          "candidate": {
+            "median": 6.127616,
+            "min": 5.177344,
+            "max": 8.716288,
+            "samples": 12
+          }
+        },
+        "medianPairedSpeedup": 1.682611506140918,
+        "candidateFasterPairs": 12,
+        "exactStateAndOutput": true
+      }
+    ]
+  },
+  "generation": [
+    {
+      "file": "mac-generation-baseline.json.gz",
+      "surface": "browser",
+      "loadMode": "opfs",
+      "cacheMode": "warm",
+      "tokensPerSecond": 48.42,
+      "prefillMs": 170.6,
+      "firstTokenMs": 172,
+      "modelLoadMs": 1102.6,
+      "recordMs": 755.6999999999534,
+      "generatedTokens": 128,
+      "tokenHash": "sha256:ba8b48509bd05e2093867f2a48b5d3a241ea08b3a688e9f2b97c9d0689410ee1",
+      "textHash": "sha256:2dafd3be4036e3457a262652da00bbd97ede9bb8eef71e7ebf61e0abd80ae5d9"
+    },
+    {
+      "file": "mac-generation-profile.json.gz",
+      "surface": "browser",
+      "loadMode": "opfs",
+      "cacheMode": "warm",
+      "tokensPerSecond": 45.97,
+      "prefillMs": 165,
+      "firstTokenMs": 168.1,
+      "modelLoadMs": 727.1,
+      "recordMs": 821.3999999999069,
+      "generatedTokens": 128,
+      "tokenHash": "sha256:ba8b48509bd05e2093867f2a48b5d3a241ea08b3a688e9f2b97c9d0689410ee1",
+      "textHash": "sha256:2dafd3be4036e3457a262652da00bbd97ede9bb8eef71e7ebf61e0abd80ae5d9"
+    },
+    {
+      "file": "node-generation-0-baseline.log.gz",
+      "surface": "node",
+      "loadMode": "file",
+      "cacheMode": "warm",
+      "tokensPerSecond": 42.57,
+      "prefillMs": 212.67,
+      "firstTokenMs": 216.74,
+      "modelLoadMs": 783.33,
+      "recordMs": 2476.3390419999996,
+      "generatedTokens": 128,
+      "tokenHash": "sha256:ba8b48509bd05e2093867f2a48b5d3a241ea08b3a688e9f2b97c9d0689410ee1",
+      "textHash": "sha256:2dafd3be4036e3457a262652da00bbd97ede9bb8eef71e7ebf61e0abd80ae5d9"
+    },
+    {
+      "file": "node-generation-1-candidate.log.gz",
+      "surface": "node",
+      "loadMode": "file",
+      "cacheMode": "warm",
+      "tokensPerSecond": 39.26,
+      "prefillMs": 200.27,
+      "firstTokenMs": 202.04,
+      "modelLoadMs": 829.58,
+      "recordMs": 2694.1605419999996,
+      "generatedTokens": 128,
+      "tokenHash": "sha256:ba8b48509bd05e2093867f2a48b5d3a241ea08b3a688e9f2b97c9d0689410ee1",
+      "textHash": "sha256:2dafd3be4036e3457a262652da00bbd97ede9bb8eef71e7ebf61e0abd80ae5d9"
+    },
+    {
+      "file": "node-generation-2-candidate.log.gz",
+      "surface": "node",
+      "loadMode": "file",
+      "cacheMode": "warm",
+      "tokensPerSecond": 24.29,
+      "prefillMs": 346.63,
+      "firstTokenMs": 350.27,
+      "modelLoadMs": 804.57,
+      "recordMs": 4552.807042000002,
+      "generatedTokens": 128,
+      "tokenHash": "sha256:ba8b48509bd05e2093867f2a48b5d3a241ea08b3a688e9f2b97c9d0689410ee1",
+      "textHash": "sha256:2dafd3be4036e3457a262652da00bbd97ede9bb8eef71e7ebf61e0abd80ae5d9"
+    },
+    {
+      "file": "node-generation-3-baseline.log.gz",
+      "surface": "node",
+      "loadMode": "file",
+      "cacheMode": "warm",
+      "tokensPerSecond": 19.78,
+      "prefillMs": 388.23,
+      "firstTokenMs": 391.36,
+      "modelLoadMs": 919.23,
+      "recordMs": 5738.851001000003,
+      "generatedTokens": 128,
+      "tokenHash": "sha256:ba8b48509bd05e2093867f2a48b5d3a241ea08b3a688e9f2b97c9d0689410ee1",
+      "textHash": "sha256:2dafd3be4036e3457a262652da00bbd97ede9bb8eef71e7ebf61e0abd80ae5d9"
+    },
+    {
+      "file": "node-generation-4-baseline.log.gz",
+      "surface": "node",
+      "loadMode": "file",
+      "cacheMode": "warm",
+      "tokensPerSecond": 21.12,
+      "prefillMs": 328.29,
+      "firstTokenMs": 331.68,
+      "modelLoadMs": 948.62,
+      "recordMs": 5349.320416000002,
+      "generatedTokens": 128,
+      "tokenHash": "sha256:ba8b48509bd05e2093867f2a48b5d3a241ea08b3a688e9f2b97c9d0689410ee1",
+      "textHash": "sha256:2dafd3be4036e3457a262652da00bbd97ede9bb8eef71e7ebf61e0abd80ae5d9"
+    },
+    {
+      "file": "node-generation-5-candidate.log.gz",
+      "surface": "node",
+      "loadMode": "file",
+      "cacheMode": "warm",
+      "tokensPerSecond": 24.45,
+      "prefillMs": 359.58,
+      "firstTokenMs": 369.71,
+      "modelLoadMs": 844.1,
+      "recordMs": 4609.840583999998,
+      "generatedTokens": 128,
+      "tokenHash": "sha256:ba8b48509bd05e2093867f2a48b5d3a241ea08b3a688e9f2b97c9d0689410ee1",
+      "textHash": "sha256:2dafd3be4036e3457a262652da00bbd97ede9bb8eef71e7ebf61e0abd80ae5d9"
+    },
+    {
+      "file": "node-generation-optimized.log.gz",
+      "surface": "node",
+      "loadMode": "file",
+      "cacheMode": "warm",
+      "tokensPerSecond": 47.84,
+      "prefillMs": 174.69,
+      "firstTokenMs": 176.07,
+      "modelLoadMs": 661.64,
+      "recordMs": 1530.4442080000008,
+      "generatedTokens": 128,
+      "tokenHash": "sha256:ba8b48509bd05e2093867f2a48b5d3a241ea08b3a688e9f2b97c9d0689410ee1",
+      "textHash": "sha256:2dafd3be4036e3457a262652da00bbd97ede9bb8eef71e7ebf61e0abd80ae5d9"
+    },
+    {
+      "file": "browser-generation-optimized.log.gz",
+      "surface": "browser",
+      "loadMode": "opfs",
+      "cacheMode": "warm",
+      "tokensPerSecond": 49.91,
+      "prefillMs": 174.7,
+      "firstTokenMs": 176.2,
+      "modelLoadMs": 689.8,
+      "recordMs": 714.2999999998137,
+      "generatedTokens": 128,
+      "tokenHash": "sha256:ba8b48509bd05e2093867f2a48b5d3a241ea08b3a688e9f2b97c9d0689410ee1",
+      "textHash": "sha256:2dafd3be4036e3457a262652da00bbd97ede9bb8eef71e7ebf61e0abd80ae5d9"
+    }
+  ],
+  "checks": {
+    "strictTypes": "passed",
+    "declarations": "passed",
+    "projectTypecheck": "passed",
+    "sourceStyle": "passed",
+    "sourceUnused": "passed",
+    "kernelRegistry": "passed",
+    "kernelDigests": "passed",
+    "sourceRecipeDigests": "passed",
+    "compensatedHelpers": "passed",
+    "normGateClosure": "passed",
+    "uniformWriters": "408 variants / 3544 fields passed",
+    "physicalCpuReference": "passed: f32/f16, silu/sigmoid, scalar/two-f32 states",
+    "architecture": "pre-existing failure: gpu/kernels/attention/executors.js 971 lines exceeds reviewed ceiling 960; file unchanged"
+  },
+  "allGenerationTokenIdsExact": true
+}
