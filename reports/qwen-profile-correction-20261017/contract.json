@@ -1,0 +1,24 @@
+{
+  "baseCommit": "e6b97ddd05927cd941cb1b4cfb6e5e92a6c0e36c",
+  "changes": {
+    "src/config/runtime/profiles/qwen-3-5-0-8b-vulkan-parity.json": "44eee392e13dde22fecd3b0eeb1f8c9f8633146ab0ccdc9dbdcec91fcd19260b",
+    "src/config/runtime/profiles/qwen-3-5-2b-vulkan-parity.json": "b19e399a674c019e8f50b675469ffac9e63da558ca6d6d5322fe9515b88abb80",
+    "benchmarks/vendors/compare-engines.config.json": "2078b1b1b99d9918aa5e67d493b9388fd6c4bd11c0c4c9e59553967b705874c1"
+  },
+  "hypothesis": "The missing Linux parity runtime profile omits existing decode fusions, increasing orchestration and readback costs. Enable those fusions explicitly without changing prefill projection kernels, shared workload, precision, or 4x4 cadence.",
+  "acceptance": "Retain only with exact matched token agreement, unchanged workload, and improved AMD throughput/TTFT; retain all losses. Delivery cadence remains separately reported. Metal unchanged control. Existing source snapshots preserve runtime code identity.",
+  "workload": {
+    "prefillTokens": 64,
+    "maxTokens": 128,
+    "warmups": 2,
+    "runs": 3,
+    "sampling": "greedy seed 0",
+    "engineOrders": [
+      "doppler-first",
+      "transformersjs-first"
+    ],
+    "loadMode": "http",
+    "mode": "warm",
+    "coldLimitation": "Initial engine loading is measured; OS caches are not purged and this is not network-cold startup."
+  }
+}
