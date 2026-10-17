@@ -6,12 +6,26 @@ import {
 
 import {
   getMatmulBindingSizes,
+  getMatmulConfig,
   validateMatmulDimensions,
   requiresF32Input,
 } from '../../src/gpu/kernels/matmul-selection.js';
 
 import { TILE_SIZES } from '../../src/gpu/kernels/constants.js';
 import { KERNEL_CONFIGS } from '../../src/config/kernel-registry-contract.js';
+
+// A WideTile column specialization must change both the shader workgroup and
+// the dispatch grid, including partial tiles; otherwise output columns vanish.
+for (const variant of ['q4_fused_widetile', 'q4_fused_widetile_f16',
+  'q4_fused_widetile_f16a', 'q4_fused_widetile_residual', 'q4_fused_rmsnorm_widetile']) {
+  const original = getMatmulConfig(variant, null);
+  const specialized = getMatmulConfig(variant, { TILE_M: 8, TILE_N: 128 });
+  const dispatch = calculateMatmulDispatch(variant, true, false, false, 19, 517, specialized);
+  assert.deepEqual(specialized.workgroupSize, [128, 1, 1]);
+  assert.deepEqual(dispatch.workgroups, [5, 3, 1]);
+  assert.equal(getMatmulConfig(variant, null), original, 'specialization must preserve registry identity');
+  assert.equal(original.variantMetadata.colsPerWg, 256, 'specialization must not mutate the shared variant');
+}
 
 // Renaming a variant or changing legacy routing flags cannot change geometry.
 for (const [variant, config] of Object.entries(KERNEL_CONFIGS.matmul)) {

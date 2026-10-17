@@ -241,11 +241,11 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
           options.signal?.aborted ? null : firstToken);
         this._state.stats.decodeTimeMs = 0;
         this._state.stats.tokensGenerated = 1;
-        this._state.stats.decodeTokens = 1;
+        this._state.stats.decodeTokens = 0;
       } else {
         yield* this._runDecodeLoop(generatedIds, opts, options, decodeRuntime);
       }
-      const tokensGenerated = this._state.stats.decodeTokens ?? 1;
+      const tokensGenerated = this._state.stats.tokensGenerated ?? 1;
       this._state.stats.totalTimeMs = performance.now() - startTime;
 
       if (opts.debug) {
@@ -323,7 +323,7 @@ export async function generateTokenIds(prompt, options = {}) {
           options.signal?.aborted ? null : firstToken);
         this._state.stats.decodeTimeMs = 0;
         this._state.stats.tokensGenerated = 1;
-        this._state.stats.decodeTokens = 1;
+        this._state.stats.decodeTokens = 0;
       }
 
       this._state.stats.totalTimeMs = performance.now() - startTime;
@@ -712,7 +712,7 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
 
           if (opts.debug || opts.benchmark) {
             const elapsedMs = performance.now() - decodeStart;
-            const tokPerSec = (tokensGenerated / elapsedMs) * 1000;
+            const tokPerSec = (Math.max(0, tokensGenerated - 1) / elapsedMs) * 1000;
             log.debug('Decode', `#${tokensGenerated} speculation:self (${tokPerSec.toFixed(2)} tok/s avg)`);
           }
 
@@ -782,7 +782,7 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
 
         if (opts.debug || opts.benchmark) {
           const elapsedMs = performance.now() - decodeStart;
-          const tokPerSec = (tokensGenerated / elapsedMs) * 1000;
+          const tokPerSec = (Math.max(0, tokensGenerated - 1) / elapsedMs) * 1000;
           log.debug('Decode', `#${tokensGenerated} "${tokenText}" ${tokenTime.toFixed(0)}ms (${tokPerSec.toFixed(2)} tok/s avg)`);
         }
 
@@ -802,7 +802,8 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
     }
     this._state.stats.decodeTimeMs = performance.now() - decodeStart;
     this._state.stats.tokensGenerated = tokensGenerated;
-    this._state.stats.decodeTokens = tokensGenerated;
+    // Prefill produces the first token; decode timing covers only later tokens.
+    this._state.stats.decodeTokens = Math.max(0, tokensGenerated - 1);
     this._state.stats.batching = { ...this._state.batchingStats };
   }
 
