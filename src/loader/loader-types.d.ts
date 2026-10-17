@@ -279,6 +279,7 @@ export interface KernelCapabilities {
  * Q4K loading configuration.
  */
 export interface Q4KConfig {
+  representationPaths?: import('../config/schema/kernel-path.schema.js').KernelPathSchema[];
   /** Use fused Q4K matmul kernels (keeps raw quantized weights) */
   useFusedQ4K: boolean;
   /** Q4K layout: 'row' = fused kernel (fast), 'col' = dequant fallback */

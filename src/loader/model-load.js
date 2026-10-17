@@ -1,3 +1,4 @@
+import { compileWeightRepresentationPlan } from './weight-representation-plan.js';
 import { openModelStore, verifyIntegrity, loadManifestFromStore } from '../storage/shard-manager.js';
 import { parseManifest } from '../formats/rdrr/index.js';
 import { getDevice } from '../gpu/device.js';
@@ -121,6 +122,9 @@ async function loadModel(modelId, options) {
     activeLoadPhase = 'tensorLocations';
     phaseStart = nowMs();
     await this._buildTensorLocations();
+    this.weightRepresentationPlan = this.representationPaths?.length
+      ? compileWeightRepresentationPlan(this.tensorLocations, this.manifest, this.representationPaths, this)
+      : null;
     finishLoadPhase(this.loadTiming, activeLoadPhase, phaseStart);
 
     const loadStartTime = Date.now();

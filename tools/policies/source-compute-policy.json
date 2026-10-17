@@ -1193,6 +1193,16 @@
       "id": "src/inference/pipelines/text/linear-attention/plan.js#ensureLayerRuntimeGpuBuffers",
       "category": "gpu-orchestration",
       "reason": "Allocates and uploads declared immutable weights and zero/state bytes; indexed writes assign or clear GPU ownership fields only. Partial failure releases only newly acquired resources and preserves existing resident buffers."
+    },
+    {
+      "id": "src/loader/tensors/load-executor.js#loadQ4KRepresentations",
+      "category": "gpu-orchestration",
+      "reason": "Builds dtype-to-GPU-buffer metadata and owns allocation cleanup; GPU dequantization and cast kernels perform tensor arithmetic. No host tensor element loop."
+    },
+    {
+      "id": "src/loader/tensors/load-executor.js#materializeFloatRequirements",
+      "category": "gpu-orchestration",
+      "reason": "Builds dtype-to-GPU-buffer metadata and owns allocation cleanup; GPU dequantization and cast kernels perform tensor arithmetic. No host tensor element loop."
     }
   ]
 }

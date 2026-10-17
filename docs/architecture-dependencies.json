@@ -688,6 +688,7 @@
         "src/loader/tensors/tensor-role.js",
         "src/loader/tensors/w8a8-loader.js",
         "src/loader/weight-downcast.js",
+        "src/loader/weight-representation-plan.js",
         "src/memory/address-table.js",
         "src/memory/buffer-pool.js",
         "src/memory/capability.js",
@@ -1897,6 +1898,7 @@
         "src/loader/tensors/tensor-role.js",
         "src/loader/tensors/w8a8-loader.js",
         "src/loader/weight-downcast.js",
+        "src/loader/weight-representation-plan.js",
         "src/memory/address-table.js",
         "src/memory/buffer-pool.js",
         "src/memory/capability.js",
@@ -2978,6 +2980,7 @@
         "src/loader/tensors/tensor-role.js",
         "src/loader/tensors/w8a8-loader.js",
         "src/loader/weight-downcast.js",
+        "src/loader/weight-representation-plan.js",
         "src/memory/address-table.js",
         "src/memory/buffer-pool.js",
         "src/memory/capability.js",
@@ -3920,6 +3923,7 @@
         "src/loader/tensors/tensor-role.js",
         "src/loader/tensors/w8a8-loader.js",
         "src/loader/weight-downcast.js",
+        "src/loader/weight-representation-plan.js",
         "src/loader/weights.js",
         "src/loaders/index.js",
         "src/memory/address-table.js",
@@ -5069,6 +5073,7 @@
         "tests/loader/tensor-loader-weight-ownership.test.js",
         "tests/loader/tensor-source-transform.test.js",
         "tests/loader/w8a8-loader.test.js",
+        "tests/loader/weight-representation-plan.test.js",
         "tests/memory/buffer-pool-device-budget.test.js",
         "tests/memory/device-budget.test.js",
         "tests/memory/heap-manager.test.js",
@@ -6208,6 +6213,7 @@
         "src/loader/tensors/tensor-role.js",
         "src/loader/tensors/w8a8-loader.js",
         "src/loader/weight-downcast.js",
+        "src/loader/weight-representation-plan.js",
         "src/memory/address-table.js",
         "src/memory/buffer-pool.js",
         "src/memory/capability.js",
@@ -6507,13 +6513,13 @@
     {
       "file": "src/inference/pipelines/text/init.js",
       "kind": "dynamic",
-      "line": 889,
+      "line": 890,
       "expression": "import(simulatorEnvSpecifier)"
     },
     {
       "file": "src/inference/pipelines/text/init.js",
       "kind": "dynamic",
-      "line": 893,
+      "line": 894,
       "expression": "import(simulatorIndexSpecifier)"
     },
     {

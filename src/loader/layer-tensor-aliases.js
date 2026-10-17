@@ -99,3 +99,13 @@ export const MATMUL_KEYS = [
   'routerWeight',
 ];
 
+
+// Shared by loader binding and pre-load representation analysis.
+export const LAYER_WEIGHT_CONSUMERS = Object.freeze([
+  ['q_proj', ATTN_SUFFIXES.qProj], ['q_gate_proj', ATTN_SUFFIXES.qGateProj],
+  ['k_proj', ATTN_SUFFIXES.kProj], ['v_proj', ATTN_SUFFIXES.vProj], ['o_proj', ATTN_SUFFIXES.oProj],
+  ['linear_qkv_proj', LINEAR_ATTN_SUFFIXES.qkvProj], ['linear_out_proj', LINEAR_ATTN_SUFFIXES.outProj],
+  ['linear_z_proj', LINEAR_ATTN_SUFFIXES.inProjZ], ['linear_a_proj', LINEAR_ATTN_SUFFIXES.inProjA],
+  ['linear_b_proj', LINEAR_ATTN_SUFFIXES.inProjB], ['ffn_gate_up', FFN_SUFFIXES.ffnGateUp],
+  ['ffn_gate', FFN_SUFFIXES.ffnGate, ['ffn_gate_up']], ['ffn_up', FFN_SUFFIXES.ffnUp, ['ffn_gate_up']], ['ffn_down', FFN_SUFFIXES.ffnDown],
+].map(([role, suffixes, additionalRoles = []]) => Object.freeze({ role, suffixes, additionalRoles: Object.freeze(additionalRoles) })));

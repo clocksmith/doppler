@@ -27,6 +27,7 @@ export type TensorLoader = (
 export interface LayerLoaderContext {
   /** Tensor locations map */
   tensorLocations: Map<string, TensorLocation>;
+  weightRepresentationPlan?: import('./weight-representation-plan.js').WeightRepresentationPlan | null;
   /** Load a tensor by name */
   loadTensor: TensorLoader;
   /** Check if model needs norm weight offset */

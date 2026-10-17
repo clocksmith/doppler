@@ -656,14 +656,15 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
 
   const dopplerLoader = options.loader ?? createDopplerLoader(loadingConfig);
   const keepF32Weights = options.keepF32Weights === true;
-  dopplerLoader.setQ4KConfig(
-    resolveWeightLoadingConfig(
+  dopplerLoader.setQ4KConfig({
+    representationPaths: options.reachableKernelPaths ?? [options.resolvedKernelPath].filter(Boolean),
+    ...resolveWeightLoadingConfig(
       manifest,
       options.resolvedKernelPath ?? null,
       options.kernelPathSource ?? 'none',
       keepF32Weights
-    )
-  );
+    ),
+  });
   dopplerLoader.setLoaderDebugConfig(loaderDebug ?? null);
   dopplerLoader.setPerLayerInputSession(
     resolvePerLayerInputsSession(

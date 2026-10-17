@@ -280,6 +280,7 @@ export interface LoadWeightsOptions {
   verifyHashes?: boolean;
   baseUrl?: string;
   resolvedKernelPath?: KernelPathSchema | null;
+  reachableKernelPaths?: KernelPathSchema[];
   kernelPathSource?: KernelPathSource;
   keepF32Weights?: boolean;
   loaderDebug?: LoaderDebugConfigSchema | null;

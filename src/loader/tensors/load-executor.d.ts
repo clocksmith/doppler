@@ -24,3 +24,11 @@ export declare const shouldUseFusedQ4K: any;
 export declare const toUint16View: any;
 export declare const toUint8View: any;
 export declare const writeBufferAligned: any;
+
+export declare function materializeFloatRequirements(
+  result: import('./tensor-loader.js').TensorLoadResult,
+  shardData: ArrayBuffer | Uint8Array | GPUBuffer,
+  location: import('../loader-types.js').TensorLocation,
+  name: string,
+  config: import('./tensor-loader.js').TensorLoadConfig
+): Promise<import('./tensor-loader.js').TensorLoadResult>;
