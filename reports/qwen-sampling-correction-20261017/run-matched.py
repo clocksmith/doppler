@@ -19,3 +19,5 @@ for mode,prefill,warmup in [('warm',64,2),('cold',64,0),('warm',1024,2)]:
     except subprocess.TimeoutExpired:status=dict(timeout=True)
    status.update(run=name,elapsedSeconds=time.monotonic()-start,receiptExists=(dest/'compare_latest.json').exists());statuses.append(status)
    (dest/'status.json').write_text(json.dumps(status,indent=2)+'\n');(out/'status.json').write_text(json.dumps(statuses,indent=2)+'\n');print(json.dumps(status),flush=True)
+   if status.get('exitCode',1)!=0 and not status['receiptExists']:raise RuntimeError('Comparator setup failed; repair before remaining configurations')
+

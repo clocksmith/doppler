@@ -10,12 +10,10 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { buildExecutionContractArtifact } from '../src/config/execution-contract-check.js';
 import { buildManifestRequiredInferenceFieldsArtifact } from '../src/config/required-inference-fields-contract-check.js';
-import { mergeKernelPathPolicy } from '../src/config/merge-helpers.js';
+import { mergeKernelPathPolicy } from '../src/config/merge/kernel-path-policy.js';
 import { mergeRuntimeValues } from '../src/config/runtime-merge.js';
-import {
-  DEFAULT_EXTERNAL_MODELS_ROOT,
-  buildEntryRemoteBaseUrl,
-} from '../src/tooling/hf-registry-utils.js';
+import { DEFAULT_EXTERNAL_MODELS_ROOT } from '../src/tooling/hf-registry/catalog-io.js';
+import { buildEntryRemoteBaseUrl } from '../src/tooling/hf-registry/registry-urls.js';
 import { resolveSyntheticPromptForModel } from '../benchmarks/vendors/workload-prompt.js';
 import {
   DEFAULT_RESOURCE_TELEMETRY_INTERVAL_MS,
@@ -1623,8 +1621,9 @@ function resolveCompareRuntimeProfileMap(compareProfile, platform = process.plat
   });
 }
 
-async function loadCompareProfileRuntimeBundles(compareProfile, platform = process.platform) {
-  const entries = Object.entries(resolveCompareRuntimeProfileMap(compareProfile, platform));
+async function loadCompareProfileRuntimeBundles(compareProfile, platform = process.platform, requiredProfiles = null) {
+  const entries = Object.entries(resolveCompareRuntimeProfileMap(compareProfile, platform))
+    .filter(([profile]) => requiredProfiles === null || requiredProfiles.includes(profile));
   if (entries.length === 0) {
     return new Map();
   }
@@ -5750,7 +5749,9 @@ async function main() {
   const defaultDopplerModelId = resolveDefaultDopplerModelId(compareProfileConfig);
   const dopplerModelId = flags['model-id'] || defaultDopplerModelId;
   const compareProfile = resolveCompareProfile(compareProfileConfig, dopplerModelId);
-  const compareProfileRuntimeBundles = await loadCompareProfileRuntimeBundles(compareProfile);
+  const decodeProfile = parseDecodeProfile(flags['decode-profile']);
+  const requiredProfiles = ['compute', 'all'].includes(flags.mode ?? 'all') ? null : [decodeProfile];
+  const compareProfileRuntimeBundles = await loadCompareProfileRuntimeBundles(compareProfile, process.platform, requiredProfiles);
   const modelCatalog = await loadModelCatalogBundle();
   const catalogCompareBenchmark = resolveCatalogTransformersjsBenchmarkTarget(modelCatalog, dopplerModelId, null);
   if (
@@ -5980,7 +5981,6 @@ async function main() {
     promptContract: sharedContract.promptContract,
   });
   const outputParityPolicy = resolveOutputParityPolicy(sharedContract, compareProfile);
-  const decodeProfile = parseDecodeProfile(flags['decode-profile']);
   const resolveCompareProfileRuntimeBundle = (profileId) => compareProfileRuntimeBundles.get(profileId) || null;
   const compareProfileRuntimeBundleMetadata = Object.fromEntries(
     [...compareProfileRuntimeBundles.entries()].map(([profileId, bundle]) => [
@@ -6871,6 +6871,7 @@ export {
   assertDopplerDecodeCadence,
   loadModelCatalogBundle,
   loadResolvedRuntimeProfileBundle,
+  loadCompareProfileRuntimeBundles,
   normalizeCompareLoadModeDefaults,
   parseArgs,
   parseJsonBlock,
