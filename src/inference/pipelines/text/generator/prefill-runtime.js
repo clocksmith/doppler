@@ -21,7 +21,7 @@ import { decodeReadback, getLogitsHealth } from '../debug-utils/index.js';
 import { parseFinitenessStatusWords } from '../finiteness-guard-status.js';
 import { drainPendingTsirReads } from '../tsir-fixture-writer.js';
 import { resolvePrefillRecorderChunkLayers } from '../execution-plan.js';
-import { hasLinearAttentionLayers, resetLinearAttentionRuntime } from '../linear-attention.js';
+import { hasLinearAttentionLayers, resetLinearAttentionSequence } from '../linear-attention.js';
 import { preparePerLayerInputs } from '../per-layer-inputs.js';
 import { getActivationRepresentation } from './activation-storage.js';
 import { createTensor, tensorElementBytes } from '../../../../gpu/tensor.js';
@@ -169,7 +169,7 @@ export async function _prefill(inputIds, opts) {
     this._state.stats.prefillProfileSteps = [];
 
     if (startPos === 0 && hasLinearAttentionLayers(config.layerTypes)) {
-      this._state.linearAttentionRuntime = resetLinearAttentionRuntime(this._state.linearAttentionRuntime);
+      this._state.linearAttentionRuntime = resetLinearAttentionSequence(this._state.linearAttentionRuntime);
     }
     if (startPos === 0) {
       for (const [, convState] of this._state.convLayerStates) {

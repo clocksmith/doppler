@@ -1,0 +1,75 @@
+--- src/gpu/kernels/fused_matmul_q4_widetile.wgsl
++++ src/gpu/kernels/fused_matmul_q4_widetile_direct.wgsl
+@@ -118,13 +118,15 @@
+         workgroupBarrier();
+ 
+         if (col < u.N) {
+-            let block = B_q4k[col * num_blocks + b];
+-            let d = unpack_f16_lo(block.d_dmin);
+-            let dmin = unpack_f16_hi(block.d_dmin);
++            let block_index = col * num_blocks + b;
++            let block_scales = B_q4k[block_index].scales;
++            let d_dmin = B_q4k[block_index].d_dmin;
++            let d = unpack_f16_lo(d_dmin);
++            let dmin = unpack_f16_hi(d_dmin);
+ 
+             for (var p: u32 = 0u; p < NUM_SUBBLOCK_PAIRS; p = p + 1u) {
+-                let sm_even = get_scale_min_k4(block.scales, 2u * p);
+-                let sm_odd = get_scale_min_k4(block.scales, 2u * p + 1u);
++                let sm_even = get_scale_min_k4(block_scales, 2u * p);
++                let sm_odd = get_scale_min_k4(block_scales, 2u * p + 1u);
+                 let scale_even = d * f32(sm_even.x);
+                 let min_even_scalar = dmin * f32(sm_even.y);
+                 let scale_odd = d * f32(sm_odd.x);
+@@ -137,7 +139,7 @@
+                 let qs_base = p * U32S_PER_PAIR;
+ 
+                 for (var uidx: u32 = 0u; uidx < U32S_PER_PAIR; uidx = uidx + 1u) {
+-                    let packed = block.qs[qs_base + uidx];
++                    let packed = B_q4k[block_index].qs[qs_base + uidx];
+                     let lower_u32 = unpack4xU8(packed & 0x0F0F0F0Fu);
+                     let upper_u32 = unpack4xU8((packed >> 4u) & 0x0F0F0F0Fu);
+                     let w_even = scale_even * vec4<f32>(lower_u32) - min_even;
+@@ -146,11 +148,37 @@
+                     let elem_even = pair_base_even + uidx * 4u;
+                     let elem_odd = pair_base_odd + uidx * 4u;
+ 
+-                    for (var m: u32 = 0u; m < TILE_M; m = m + 1u) {
+-                        let a_even = load_a_vec4(m, elem_even);
+-                        let a_odd = load_a_vec4(m, elem_odd);
+-                        results[m] = fma(a_even, w_even, results[m]);
+-                        results[m] = fma(a_odd, w_odd, results[m]);
++                    if (TILE_M > 0u) {
++                        results[0] = fma(load_a_vec4(0u, elem_even), w_even, results[0]);
++                        results[0] = fma(load_a_vec4(0u, elem_odd), w_odd, results[0]);
++                    }
++                    if (TILE_M > 1u) {
++                        results[1] = fma(load_a_vec4(1u, elem_even), w_even, results[1]);
++                        results[1] = fma(load_a_vec4(1u, elem_odd), w_odd, results[1]);
++                    }
++                    if (TILE_M > 2u) {
++                        results[2] = fma(load_a_vec4(2u, elem_even), w_even, results[2]);
++                        results[2] = fma(load_a_vec4(2u, elem_odd), w_odd, results[2]);
++                    }
++                    if (TILE_M > 3u) {
++                        results[3] = fma(load_a_vec4(3u, elem_even), w_even, results[3]);
++                        results[3] = fma(load_a_vec4(3u, elem_odd), w_odd, results[3]);
++                    }
++                    if (TILE_M > 4u) {
++                        results[4] = fma(load_a_vec4(4u, elem_even), w_even, results[4]);
++                        results[4] = fma(load_a_vec4(4u, elem_odd), w_odd, results[4]);
++                    }
++                    if (TILE_M > 5u) {
++                        results[5] = fma(load_a_vec4(5u, elem_even), w_even, results[5]);
++                        results[5] = fma(load_a_vec4(5u, elem_odd), w_odd, results[5]);
++                    }
++                    if (TILE_M > 6u) {
++                        results[6] = fma(load_a_vec4(6u, elem_even), w_even, results[6]);
++                        results[6] = fma(load_a_vec4(6u, elem_odd), w_odd, results[6]);
++                    }
++                    if (TILE_M > 7u) {
++                        results[7] = fma(load_a_vec4(7u, elem_even), w_even, results[7]);
++                        results[7] = fma(load_a_vec4(7u, elem_odd), w_odd, results[7]);
+                     }
+                 }
+             }

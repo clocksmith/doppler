@@ -110,6 +110,11 @@ export declare function resetLinearAttentionRuntime(
   runtime: LinearAttentionRuntime | null | undefined
 ): LinearAttentionRuntime;
 
+/** Clears sequence state; prepared resources remain owned until full reset/unload. */
+export declare function resetLinearAttentionSequence(
+  runtime: LinearAttentionRuntime | null | undefined
+): LinearAttentionRuntime;
+
 export declare function cloneLinearAttentionRuntime(
   runtime: LinearAttentionRuntime | null | undefined
 ): Promise<LinearAttentionRuntime>;

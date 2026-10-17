@@ -1,9 +1,11 @@
 {
   "id": "profiles/qwen-3-5-0-8b-metal-parity",
   "name": "qwen-3-5-0-8b-metal-parity",
-  "description": "Qwen 3.5 0.8B browser/Metal parity profile. Preserves the release 4x4 decode cadence while enabling exact-safe decode fusions and overlapped readback on Apple Metal.",
+  "description": "Qwen 3.5 0.8B browser/Metal parity profile. Preserves the release 4x4 decode cadence while enabling exact-safe decode fusions and overlapped readback on Apple Metal. Prefill uses direct packed Q4_K reads with statically indexed f32 row accumulators.",
   "intent": "calibrate",
-  "compatibleIntents": ["calibrate"],
+  "compatibleIntents": [
+    "calibrate"
+  ],
   "stability": "experimental",
   "owner": "doppler-core",
   "createdAtUtc": "2026-07-08T00:00:00Z",
@@ -23,6 +25,18 @@
                 "kvDtype": "f16"
               }
             }
+          },
+          {
+            "key": "q4_prefill_direct",
+            "kernel": {
+              "kernel": "fused_matmul_q4_widetile_direct.wgsl",
+              "entry": "main",
+              "digest": "sha256:915e20bda5a0c6c65697e9df8942dc3fe75f8dec9c2310ec0a39d1677f88598b",
+              "constants": {
+                "TILE_M": 4,
+                "TILE_N": 256
+              }
+            }
           }
         ],
         "set": [
@@ -30,6 +44,41 @@
             "section": "decode",
             "op": "attention",
             "kernelKey": "attn_decode_head256"
+          },
+          {
+            "section": "prefill",
+            "op": "q_proj",
+            "kernelKey": "q4_prefill_direct"
+          },
+          {
+            "section": "prefill",
+            "op": "k_proj",
+            "kernelKey": "q4_prefill_direct"
+          },
+          {
+            "section": "prefill",
+            "op": "v_proj",
+            "kernelKey": "q4_prefill_direct"
+          },
+          {
+            "section": "prefill",
+            "op": "o_proj",
+            "kernelKey": "q4_prefill_direct"
+          },
+          {
+            "section": "prefill",
+            "op": "gate_proj",
+            "kernelKey": "q4_prefill_direct"
+          },
+          {
+            "section": "prefill",
+            "op": "up_proj",
+            "kernelKey": "q4_prefill_direct"
+          },
+          {
+            "section": "prefill",
+            "op": "down_proj",
+            "kernelKey": "q4_prefill_direct"
           }
         ]
       },

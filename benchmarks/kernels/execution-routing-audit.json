@@ -1,6 +1,6 @@
 {
   "schema": "doppler.execution-routing-audit-index/v1",
-  "registryDigest": "sha256:037d2d26d959a661aa5ed3a99e27afb0cb63cebdb2a519dc62c7ca06fdfa8572",
+  "registryDigest": "sha256:18a757fed3c1884bb9064165fc4c4be690ffef2e489573f54cde06e22dd53b38",
   "manifestCount": 30,
   "integrityFailures": [
     {
@@ -15,6 +15,11 @@
     },
     {
       "manifestPath": "models/local/create-gemma-3-1b-qualification/manifest.json",
+      "kernelId": "embed",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/create-gemma-3-1b-qualification/manifest.json",
       "kernelId": "gelu",
       "status": "digest-mismatch"
     },
@@ -46,6 +51,11 @@
     {
       "manifestPath": "models/local/diffusiongemma-26b-a4b-it-q4k-ehf16-af16/manifest.json",
       "kernelId": "attn_head256",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/diffusiongemma-26b-a4b-it-q4k-ehf16-af16/manifest.json",
+      "kernelId": "embed",
       "status": "digest-mismatch"
     },
     {
@@ -90,6 +100,11 @@
     },
     {
       "manifestPath": "models/local/gemma-3-1b-it-q4k-ehf16-af32/manifest.json",
+      "kernelId": "embed",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-3-1b-it-q4k-ehf16-af32/manifest.json",
       "kernelId": "gelu",
       "status": "digest-mismatch"
     },
@@ -116,6 +131,11 @@
     {
       "manifestPath": "models/local/gemma-3-270m-it-f16-af32/manifest.json",
       "kernelId": "attn_head256",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-3-270m-it-f16-af32/manifest.json",
+      "kernelId": "embed",
       "status": "digest-mismatch"
     },
     {
@@ -146,6 +166,11 @@
     {
       "manifestPath": "models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json",
       "kernelId": "attn_head256",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json",
+      "kernelId": "embed",
       "status": "digest-mismatch"
     },
     {
@@ -181,6 +206,11 @@
     {
       "manifestPath": "models/local/gemma-4-12b-it-text-q4k-ehf16-af16/manifest.json",
       "kernelId": "attn_head256",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-12b-it-text-q4k-ehf16-af16/manifest.json",
+      "kernelId": "embed",
       "status": "digest-mismatch"
     },
     {
@@ -230,6 +260,11 @@
     },
     {
       "manifestPath": "models/local/gemma-4-12b-it-text-q4k-ehf16-af32/manifest.json",
+      "kernelId": "embed",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-12b-it-text-q4k-ehf16-af32/manifest.json",
       "kernelId": "final_norm_stable",
       "status": "digest-mismatch"
     },
@@ -265,6 +300,11 @@
     },
     {
       "manifestPath": "models/local/gemma-4-12b-it-text-w4a16-ct-ehf16-af16/manifest.json",
+      "kernelId": "embed",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-12b-it-text-w4a16-ct-ehf16-af16/manifest.json",
       "kernelId": "final_norm_stable",
       "status": "digest-mismatch"
     },
@@ -296,6 +336,11 @@
     {
       "manifestPath": "models/local/gemma-4-31b-it-text-q4k-ehf16-af16/manifest.json",
       "kernelId": "attn_head256",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-31b-it-text-q4k-ehf16-af16/manifest.json",
+      "kernelId": "embed",
       "status": "digest-mismatch"
     },
     {
@@ -341,6 +386,11 @@
     {
       "manifestPath": "models/local/gemma-4-31b-it-text-q4k-ehf16-af32/manifest.json",
       "kernelId": "attn_head256",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-31b-it-text-q4k-ehf16-af32/manifest.json",
+      "kernelId": "embed",
       "status": "digest-mismatch"
     },
     {
@@ -386,6 +436,11 @@
     {
       "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/manifest.json",
       "kernelId": "attn_head256",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/manifest.json",
+      "kernelId": "embed",
       "status": "digest-mismatch"
     },
     {
@@ -431,6 +486,11 @@
     {
       "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json",
       "kernelId": "attn_head256",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json",
+      "kernelId": "embed",
       "status": "digest-mismatch"
     },
     {
@@ -466,6 +526,11 @@
     {
       "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af32/manifest.json",
       "kernelId": "attn_head256",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af32/manifest.json",
+      "kernelId": "embed",
       "status": "digest-mismatch"
     },
     {
@@ -496,6 +561,11 @@
     {
       "manifestPath": "models/local/glm-ocr-f16-af32-pad-token-v1/manifest.json",
       "kernelId": "attn_decode",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/glm-ocr-f16-af32-pad-token-v1/manifest.json",
+      "kernelId": "embed",
       "status": "digest-mismatch"
     },
     {
@@ -535,6 +605,11 @@
     },
     {
       "manifestPath": "models/local/glm-ocr-f16-af32/manifest.json",
+      "kernelId": "embed",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/glm-ocr-f16-af32/manifest.json",
       "kernelId": "rmsnorm",
       "status": "digest-mismatch"
     },
@@ -556,6 +631,11 @@
     {
       "manifestPath": "models/local/glm-ocr-f16-af32/manifest.json",
       "kernelId": "tiled",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/google-embeddinggemma-300m-q4k-ehf16-af32/manifest.json",
+      "kernelId": "embed",
       "status": "digest-mismatch"
     },
     {
@@ -576,6 +656,11 @@
     {
       "manifestPath": "models/local/lfm2-5-1-2b-instruct-q4k-ehf16-af32/manifest.json",
       "kernelId": "attn_decode",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/lfm2-5-1-2b-instruct-q4k-ehf16-af32/manifest.json",
+      "kernelId": "embed",
       "status": "digest-mismatch"
     },
     {
@@ -606,6 +691,11 @@
     {
       "manifestPath": "models/local/minicpm4-0-5b-f16-af32/manifest.json",
       "kernelId": "attn_decode",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/minicpm4-0-5b-f16-af32/manifest.json",
+      "kernelId": "embed",
       "status": "digest-mismatch"
     },
     {
@@ -636,6 +726,11 @@
     {
       "manifestPath": "models/local/muse-glimmer-30b-text-bf16-af32/manifest.json",
       "kernelId": "attn_head256",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/muse-glimmer-30b-text-bf16-af32/manifest.json",
+      "kernelId": "embed",
       "status": "digest-mismatch"
     },
     {
@@ -666,6 +761,11 @@
     {
       "manifestPath": "models/local/muse-glimmer-30b-text-f16-af32/manifest.json",
       "kernelId": "attn_head256",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/muse-glimmer-30b-text-f16-af32/manifest.json",
+      "kernelId": "embed",
       "status": "digest-mismatch"
     },
     {
@@ -690,6 +790,11 @@
     },
     {
       "manifestPath": "models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
+      "kernelId": "embed",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
       "kernelId": "q4_widetile",
       "status": "digest-mismatch"
     },
@@ -701,6 +806,11 @@
     {
       "manifestPath": "models/local/qwen-3-5-2b-q4k-ehaf16/manifest.json",
       "kernelId": "attn_head256",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/qwen-3-5-2b-q4k-ehaf16/manifest.json",
+      "kernelId": "embed",
       "status": "digest-mismatch"
     },
     {
@@ -726,6 +836,11 @@
     {
       "manifestPath": "models/local/qwen-3-6-27b-q4k-eaf16/manifest.json",
       "kernelId": "attn_head256",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/qwen-3-6-27b-q4k-eaf16/manifest.json",
+      "kernelId": "embed",
       "status": "digest-mismatch"
     },
     {
@@ -780,6 +895,11 @@
     },
     {
       "manifestPath": "models/local/qwen-3-6-27b-q4k-ehaf16/manifest.json",
+      "kernelId": "embed",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/qwen-3-6-27b-q4k-ehaf16/manifest.json",
       "kernelId": "lm_head_q4",
       "status": "digest-mismatch"
     },
@@ -825,6 +945,11 @@
     },
     {
       "manifestPath": "models/local/qwen-3-embedding-0-6b-q4k-ehf16-af32/manifest.json",
+      "kernelId": "embed",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/qwen-3-embedding-0-6b-q4k-ehf16-af32/manifest.json",
       "kernelId": "q4_decode_gemv",
       "status": "digest-mismatch"
     },
@@ -855,6 +980,11 @@
     },
     {
       "manifestPath": "models/local/qwen-3-reranker-0-6b-f16-af32/manifest.json",
+      "kernelId": "embed",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/qwen-3-reranker-0-6b-f16-af32/manifest.json",
       "kernelId": "rmsnorm",
       "status": "digest-mismatch"
     },
@@ -876,6 +1006,11 @@
     {
       "manifestPath": "models/local/qwen-3-reranker-0-6b-q4k-ehf16-af32/manifest.json",
       "kernelId": "attn_decode",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/qwen-3-reranker-0-6b-q4k-ehf16-af32/manifest.json",
+      "kernelId": "embed",
       "status": "digest-mismatch"
     },
     {
@@ -921,6 +1056,11 @@
     {
       "manifestPath": "models/local/qwen3-8-27b-text-f16-af32/manifest.json",
       "kernelId": "attn_head256",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/qwen3-8-27b-text-f16-af32/manifest.json",
+      "kernelId": "embed",
       "status": "digest-mismatch"
     },
     {
@@ -970,6 +1110,11 @@
     },
     {
       "manifestPath": "models/local/translategemma-4b-1b-enes-q4k-ehf16-af32/manifest.json",
+      "kernelId": "embed",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/translategemma-4b-1b-enes-q4k-ehf16-af32/manifest.json",
       "kernelId": "gelu",
       "status": "digest-mismatch"
     },
@@ -991,6 +1136,11 @@
     {
       "manifestPath": "models/local/translategemma-4b-it-q4k-ehf16-af32/manifest.json",
       "kernelId": "attn_decode",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/translategemma-4b-it-q4k-ehf16-af32/manifest.json",
+      "kernelId": "embed",
       "status": "digest-mismatch"
     },
     {
@@ -1058,11 +1208,11 @@
           "kernelId": "embed",
           "key": "gather_f16.wgsl#main",
           "declaredDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
-          "expectedDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
+          "expectedDigest": "sha256:a2c318bc362d676769d8cb751d61a4d7777e1068be0456eff634e0821d783c10",
           "registeredVariants": [
             "gather/f16"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gelu",
@@ -1232,7 +1382,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:4bbc6a0a440f3022bd5b020bc003fedf09d6d24a361b28e19f3124f7c5977f3a",
+            "descriptorDigest": "sha256:4283707c7c4eb6c757e5c085e061014d01a03cd64a7ad8de9645f9b1769b86ff",
             "kernelDigest": "sha256:bfa95bf42cf7da2ab8b9d6b8af5b494dd8abcfe436d7788f7ecdb8892f04d3b8",
             "requires": [
               "shader-f16"
@@ -1266,7 +1416,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:4bbc6a0a440f3022bd5b020bc003fedf09d6d24a361b28e19f3124f7c5977f3a",
+            "descriptorDigest": "sha256:4283707c7c4eb6c757e5c085e061014d01a03cd64a7ad8de9645f9b1769b86ff",
             "kernelDigest": "sha256:bfa95bf42cf7da2ab8b9d6b8af5b494dd8abcfe436d7788f7ecdb8892f04d3b8",
             "requires": [
               "shader-f16"
@@ -1285,7 +1435,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:338cbfc794da49d53feae41cf63f6e5633e2dbf334bc3f975bdec71ece48ce9f"
+      "digest": "sha256:c12bc672c5c06a795f142c86bec1d91b7eccffe79d6484511753a7a122f837e9"
     },
     {
       "manifestPath": "models/local/diffusiongemma-26b-a4b-it-q4k-ehf16-af16/manifest.json",
@@ -1350,11 +1500,11 @@
           "kernelId": "embed",
           "key": "gather.wgsl#main",
           "declaredDigest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6",
-          "expectedDigest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6",
+          "expectedDigest": "sha256:07fa1796cbddf137054897c831cf10ac7845dc98bffa1a8637614ddb4b82d74d",
           "registeredVariants": [
             "gather/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "final_norm_stable",
@@ -1508,7 +1658,7 @@
         }
       ],
       "opportunities": [],
-      "digest": "sha256:7a131161eff8b01aab8f522355f2d631f1a1a225661cd7ab874a4de7391a0970"
+      "digest": "sha256:0625a9018311783e52b77821d3b7d1a7107a58284ed444092bececa069db1a79"
     },
     {
       "manifestPath": "models/local/gemma-3-1b-it-q4k-ehf16-af32/manifest.json",
@@ -1552,11 +1702,11 @@
           "kernelId": "embed",
           "key": "gather_f16.wgsl#main",
           "declaredDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
-          "expectedDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
+          "expectedDigest": "sha256:a2c318bc362d676769d8cb751d61a4d7777e1068be0456eff634e0821d783c10",
           "registeredVariants": [
             "gather/f16"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gelu",
@@ -1726,7 +1876,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:4bbc6a0a440f3022bd5b020bc003fedf09d6d24a361b28e19f3124f7c5977f3a",
+            "descriptorDigest": "sha256:4283707c7c4eb6c757e5c085e061014d01a03cd64a7ad8de9645f9b1769b86ff",
             "kernelDigest": "sha256:bfa95bf42cf7da2ab8b9d6b8af5b494dd8abcfe436d7788f7ecdb8892f04d3b8",
             "requires": [
               "shader-f16"
@@ -1760,7 +1910,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:4bbc6a0a440f3022bd5b020bc003fedf09d6d24a361b28e19f3124f7c5977f3a",
+            "descriptorDigest": "sha256:4283707c7c4eb6c757e5c085e061014d01a03cd64a7ad8de9645f9b1769b86ff",
             "kernelDigest": "sha256:bfa95bf42cf7da2ab8b9d6b8af5b494dd8abcfe436d7788f7ecdb8892f04d3b8",
             "requires": [
               "shader-f16"
@@ -1779,7 +1929,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:338cbfc794da49d53feae41cf63f6e5633e2dbf334bc3f975bdec71ece48ce9f"
+      "digest": "sha256:c12bc672c5c06a795f142c86bec1d91b7eccffe79d6484511753a7a122f837e9"
     },
     {
       "manifestPath": "models/local/gemma-3-270m-it-f16-af32/manifest.json",
@@ -1823,11 +1973,11 @@
           "kernelId": "embed",
           "key": "gather.wgsl#main",
           "declaredDigest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6",
-          "expectedDigest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6",
+          "expectedDigest": "sha256:07fa1796cbddf137054897c831cf10ac7845dc98bffa1a8637614ddb4b82d74d",
           "registeredVariants": [
             "gather/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gelu",
@@ -1957,7 +2107,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:4bbc6a0a440f3022bd5b020bc003fedf09d6d24a361b28e19f3124f7c5977f3a",
+            "descriptorDigest": "sha256:4283707c7c4eb6c757e5c085e061014d01a03cd64a7ad8de9645f9b1769b86ff",
             "kernelDigest": "sha256:bfa95bf42cf7da2ab8b9d6b8af5b494dd8abcfe436d7788f7ecdb8892f04d3b8",
             "requires": [
               "shader-f16"
@@ -1991,7 +2141,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:4bbc6a0a440f3022bd5b020bc003fedf09d6d24a361b28e19f3124f7c5977f3a",
+            "descriptorDigest": "sha256:4283707c7c4eb6c757e5c085e061014d01a03cd64a7ad8de9645f9b1769b86ff",
             "kernelDigest": "sha256:bfa95bf42cf7da2ab8b9d6b8af5b494dd8abcfe436d7788f7ecdb8892f04d3b8",
             "requires": [
               "shader-f16"
@@ -2010,7 +2160,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:b78fddd0a32e836d47715b6affa61c3fc881b2cb9ff0e07bdcc346b4006c3521"
+      "digest": "sha256:cc07c41aa926b091553beaa472da7df517db63b73002cb498745c90d21f8dc4f"
     },
     {
       "manifestPath": "models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json",
@@ -2054,11 +2204,11 @@
           "kernelId": "embed",
           "key": "gather.wgsl#main",
           "declaredDigest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6",
-          "expectedDigest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6",
+          "expectedDigest": "sha256:07fa1796cbddf137054897c831cf10ac7845dc98bffa1a8637614ddb4b82d74d",
           "registeredVariants": [
             "gather/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gelu",
@@ -2188,7 +2338,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:4bbc6a0a440f3022bd5b020bc003fedf09d6d24a361b28e19f3124f7c5977f3a",
+            "descriptorDigest": "sha256:4283707c7c4eb6c757e5c085e061014d01a03cd64a7ad8de9645f9b1769b86ff",
             "kernelDigest": "sha256:bfa95bf42cf7da2ab8b9d6b8af5b494dd8abcfe436d7788f7ecdb8892f04d3b8",
             "requires": [
               "shader-f16"
@@ -2222,7 +2372,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:4bbc6a0a440f3022bd5b020bc003fedf09d6d24a361b28e19f3124f7c5977f3a",
+            "descriptorDigest": "sha256:4283707c7c4eb6c757e5c085e061014d01a03cd64a7ad8de9645f9b1769b86ff",
             "kernelDigest": "sha256:bfa95bf42cf7da2ab8b9d6b8af5b494dd8abcfe436d7788f7ecdb8892f04d3b8",
             "requires": [
               "shader-f16"
@@ -2241,7 +2391,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:4b5d3c9e2dcd8991af8fad62b0522a793cb6d87562ce16452fd91227d383811a"
+      "digest": "sha256:c9d96d04d55fad76748066641ee1f2b8065e8eb059f0837c6af4224c6bc07ac2"
     },
     {
       "manifestPath": "models/local/gemma-4-12b-it-text-q4k-ehf16-af16/manifest.json",
@@ -2306,11 +2456,11 @@
           "kernelId": "embed",
           "key": "gather.wgsl#main",
           "declaredDigest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6",
-          "expectedDigest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6",
+          "expectedDigest": "sha256:07fa1796cbddf137054897c831cf10ac7845dc98bffa1a8637614ddb4b82d74d",
           "registeredVariants": [
             "gather/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "final_norm_stable",
@@ -2454,7 +2604,7 @@
         }
       ],
       "opportunities": [],
-      "digest": "sha256:cf3a4bfae53d6cb576d65ee3f446c74a05653fbaa2ea034e6a25a64f9c0e8c08"
+      "digest": "sha256:930ac0f921a91d9da20db9c9dbd02a9055a1ae6f1c49cb70f01232e567bdc4bb"
     },
     {
       "manifestPath": "models/local/gemma-4-12b-it-text-q4k-ehf16-af32/manifest.json",
@@ -2519,11 +2669,11 @@
           "kernelId": "embed",
           "key": "gather.wgsl#main",
           "declaredDigest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6",
-          "expectedDigest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6",
+          "expectedDigest": "sha256:07fa1796cbddf137054897c831cf10ac7845dc98bffa1a8637614ddb4b82d74d",
           "registeredVariants": [
             "gather/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "final_norm_stable",
@@ -2761,7 +2911,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:790572cedc8da69f88fe17fe0ddcfb9b12d825a846ee210fae0bcb68cdc256f4"
+      "digest": "sha256:ddfe91bdb00afc9806ceb4a9d50b68a7843b778c90248e63d3c5d213c81b5daa"
     },
     {
       "manifestPath": "models/local/gemma-4-12b-it-text-w4a16-ct-ehf16-af16/manifest.json",
@@ -2827,11 +2977,11 @@
           "kernelId": "embed",
           "key": "gather.wgsl#main",
           "declaredDigest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6",
-          "expectedDigest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6",
+          "expectedDigest": "sha256:07fa1796cbddf137054897c831cf10ac7845dc98bffa1a8637614ddb4b82d74d",
           "registeredVariants": [
             "gather/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "final_norm_stable",
@@ -2945,7 +3095,7 @@
         }
       ],
       "opportunities": [],
-      "digest": "sha256:8a2c0211f488c161f92333a248ba1a99c973b0769f135fc5a97755fdc19145fc"
+      "digest": "sha256:722db367fb653dd40b31d871cb8a212d8cecdfaca4d5d94123d71ebf69a26d8b"
     },
     {
       "manifestPath": "models/local/gemma-4-31b-it-text-q4k-ehf16-af16/manifest.json",
@@ -3010,11 +3160,11 @@
           "kernelId": "embed",
           "key": "gather.wgsl#main",
           "declaredDigest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6",
-          "expectedDigest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6",
+          "expectedDigest": "sha256:07fa1796cbddf137054897c831cf10ac7845dc98bffa1a8637614ddb4b82d74d",
           "registeredVariants": [
             "gather/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "final_norm_stable",
@@ -3158,7 +3308,7 @@
         }
       ],
       "opportunities": [],
-      "digest": "sha256:8d034ca9b7ad20fd0a192095ffb5d91b43fdeac9ede86012ae4aa6404b1b51a4"
+      "digest": "sha256:5537c8fdf7cee96939ac5ffe9d9a0206f5cdd2516bc68b5b89cccf609f7b700a"
     },
     {
       "manifestPath": "models/local/gemma-4-31b-it-text-q4k-ehf16-af32/manifest.json",
@@ -3223,11 +3373,11 @@
           "kernelId": "embed",
           "key": "gather.wgsl#main",
           "declaredDigest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6",
-          "expectedDigest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6",
+          "expectedDigest": "sha256:07fa1796cbddf137054897c831cf10ac7845dc98bffa1a8637614ddb4b82d74d",
           "registeredVariants": [
             "gather/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "final_norm_stable",
@@ -3465,7 +3615,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:ed3a2ff8614ed272e11ad4cf53092fa415285fd23e573f64375325fd57399a19"
+      "digest": "sha256:55b68a7f01be41d466489aee0ad4e8be480d267a21bfae225ff2dd6891f6f565"
     },
     {
       "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/manifest.json",
@@ -3530,11 +3680,11 @@
           "kernelId": "embed",
           "key": "gather_split8_f16_vec4_f16_out.wgsl#gather_vec4_f16_out",
           "declaredDigest": "sha256:ce77263ace3099526665174b0fba1d93696bf782268d172d6b71b63a8021338d",
-          "expectedDigest": "sha256:ce77263ace3099526665174b0fba1d93696bf782268d172d6b71b63a8021338d",
+          "expectedDigest": "sha256:5a6922136dad0cf05059533f24ea0989875c3659b464dfc7528518d57ce1e0c1",
           "registeredVariants": [
             "gather_split8/f16_vec4_f16_out"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "final_norm_stable",
@@ -3678,7 +3828,7 @@
         }
       ],
       "opportunities": [],
-      "digest": "sha256:9da42c8023261f42d302709a2beae548ffc58701e7ec0fdd85be3d076b8b630b"
+      "digest": "sha256:123c2966725ec50bd698c1971ba7d027f35230601255c90a15da02c9adc18711"
     },
     {
       "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json",
@@ -3743,11 +3893,11 @@
           "kernelId": "embed",
           "key": "gather_split8_f16_vec4_f32_out.wgsl#gather_vec4_f32_out",
           "declaredDigest": "sha256:18dce4731aa3c3cbde6a969cc54d63de4e545e7dce43204774323b6bfffc5c41",
-          "expectedDigest": "sha256:18dce4731aa3c3cbde6a969cc54d63de4e545e7dce43204774323b6bfffc5c41",
+          "expectedDigest": "sha256:bc88d2106f80121ccb1f91f1ee0980173fe88bec5fe04cc941bdbc59b28e8ae1",
           "registeredVariants": [
             "gather_split8/f16_vec4_f32_out"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "final_norm_stable",
@@ -3963,7 +4113,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:ea92b6a68dc85ce80baeefc5921a76eb44c47681d2d47efb8e23dfe2483df256"
+      "digest": "sha256:e9bd83805b69eb384b23febcb0d3342c794c6f1b1fa2c9500c2b65b4fa9b1e74"
     },
     {
       "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af32/manifest.json",
@@ -4028,11 +4178,11 @@
           "kernelId": "embed",
           "key": "gather_split8_f16_vec4_f32_out.wgsl#gather_vec4_f32_out",
           "declaredDigest": "sha256:18dce4731aa3c3cbde6a969cc54d63de4e545e7dce43204774323b6bfffc5c41",
-          "expectedDigest": "sha256:18dce4731aa3c3cbde6a969cc54d63de4e545e7dce43204774323b6bfffc5c41",
+          "expectedDigest": "sha256:bc88d2106f80121ccb1f91f1ee0980173fe88bec5fe04cc941bdbc59b28e8ae1",
           "registeredVariants": [
             "gather_split8/f16_vec4_f32_out"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "final_norm_stable",
@@ -4248,7 +4398,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:4db913d5772c52560721c7cadef7c61cc3e1968018503f89c0d671c17539a65a"
+      "digest": "sha256:48aa89830f8a4f3030cb146e827e5feeb9695d2d3b61176c98e1cfd5937240a6"
     },
     {
       "manifestPath": "models/local/glm-ocr-f16-af32-pad-token-v1/manifest.json",
@@ -4281,11 +4431,11 @@
           "kernelId": "embed",
           "key": "gather_f16.wgsl#main",
           "declaredDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
-          "expectedDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
+          "expectedDigest": "sha256:a2c318bc362d676769d8cb751d61a4d7777e1068be0456eff634e0821d783c10",
           "registeredVariants": [
             "gather/f16"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gemv",
@@ -4442,7 +4592,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:4bbc6a0a440f3022bd5b020bc003fedf09d6d24a361b28e19f3124f7c5977f3a",
+            "descriptorDigest": "sha256:4283707c7c4eb6c757e5c085e061014d01a03cd64a7ad8de9645f9b1769b86ff",
             "kernelDigest": "sha256:bfa95bf42cf7da2ab8b9d6b8af5b494dd8abcfe436d7788f7ecdb8892f04d3b8",
             "requires": [
               "shader-f16"
@@ -4473,7 +4623,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:4bbc6a0a440f3022bd5b020bc003fedf09d6d24a361b28e19f3124f7c5977f3a",
+            "descriptorDigest": "sha256:4283707c7c4eb6c757e5c085e061014d01a03cd64a7ad8de9645f9b1769b86ff",
             "kernelDigest": "sha256:bfa95bf42cf7da2ab8b9d6b8af5b494dd8abcfe436d7788f7ecdb8892f04d3b8",
             "requires": [
               "shader-f16"
@@ -4492,7 +4642,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:3c3795200949741f6fa32ef30273e0aab68dcd27ca88b9bf0059cb048bff8764"
+      "digest": "sha256:4c3f2336bb6550e8cb0ec3377cbb2e8964bbbccf55674772b1ad0cf2ce0a306d"
     },
     {
       "manifestPath": "models/local/glm-ocr-f16-af32/manifest.json",
@@ -4525,11 +4675,11 @@
           "kernelId": "embed",
           "key": "gather_f16.wgsl#main",
           "declaredDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
-          "expectedDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
+          "expectedDigest": "sha256:a2c318bc362d676769d8cb751d61a4d7777e1068be0456eff634e0821d783c10",
           "registeredVariants": [
             "gather/f16"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gemv",
@@ -4686,7 +4836,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:4bbc6a0a440f3022bd5b020bc003fedf09d6d24a361b28e19f3124f7c5977f3a",
+            "descriptorDigest": "sha256:4283707c7c4eb6c757e5c085e061014d01a03cd64a7ad8de9645f9b1769b86ff",
             "kernelDigest": "sha256:bfa95bf42cf7da2ab8b9d6b8af5b494dd8abcfe436d7788f7ecdb8892f04d3b8",
             "requires": [
               "shader-f16"
@@ -4745,7 +4895,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:4bbc6a0a440f3022bd5b020bc003fedf09d6d24a361b28e19f3124f7c5977f3a",
+            "descriptorDigest": "sha256:4283707c7c4eb6c757e5c085e061014d01a03cd64a7ad8de9645f9b1769b86ff",
             "kernelDigest": "sha256:bfa95bf42cf7da2ab8b9d6b8af5b494dd8abcfe436d7788f7ecdb8892f04d3b8",
             "requires": [
               "shader-f16"
@@ -4764,7 +4914,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:ef2a8be25d4bc36aec37e155addce3f6daf85f35c36ae6651ece38ba499fcf74"
+      "digest": "sha256:db02542f80e987f756a84cc7a2dde099b15e6e844ea479bc0d6bf428fadd9c1c"
     },
     {
       "manifestPath": "models/local/google-embeddinggemma-300m-q4k-ehf16-af32/manifest.json",
@@ -4788,11 +4938,11 @@
           "kernelId": "embed",
           "key": "gather.wgsl#main",
           "declaredDigest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6",
-          "expectedDigest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6",
+          "expectedDigest": "sha256:07fa1796cbddf137054897c831cf10ac7845dc98bffa1a8637614ddb4b82d74d",
           "registeredVariants": [
             "gather/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gelu",
@@ -4939,7 +5089,7 @@
           "candidate": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:4bbc6a0a440f3022bd5b020bc003fedf09d6d24a361b28e19f3124f7c5977f3a",
+            "descriptorDigest": "sha256:4283707c7c4eb6c757e5c085e061014d01a03cd64a7ad8de9645f9b1769b86ff",
             "kernelDigest": "sha256:bfa95bf42cf7da2ab8b9d6b8af5b494dd8abcfe436d7788f7ecdb8892f04d3b8",
             "requires": [
               "shader-f16"
@@ -4949,7 +5099,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:e706a6dfe97c3dc4ad54d7f47c0574bee9c5d09eba4d5db4e36015430773b127"
+      "digest": "sha256:0a7bed88052f0e3c35e502f54775c665198a2a0ce1b07f5d2b8050069597a304"
     },
     {
       "manifestPath": "models/local/lfm2-5-1-2b-instruct-q4k-ehf16-af32/manifest.json",
@@ -4983,11 +5133,11 @@
           "kernelId": "embed",
           "key": "gather_f16.wgsl#main",
           "declaredDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
-          "expectedDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
+          "expectedDigest": "sha256:a2c318bc362d676769d8cb751d61a4d7777e1068be0456eff634e0821d783c10",
           "registeredVariants": [
             "gather/f16"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gelu",
@@ -5147,7 +5297,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:4bbc6a0a440f3022bd5b020bc003fedf09d6d24a361b28e19f3124f7c5977f3a",
+            "descriptorDigest": "sha256:4283707c7c4eb6c757e5c085e061014d01a03cd64a7ad8de9645f9b1769b86ff",
             "kernelDigest": "sha256:bfa95bf42cf7da2ab8b9d6b8af5b494dd8abcfe436d7788f7ecdb8892f04d3b8",
             "requires": [
               "shader-f16"
@@ -5237,7 +5387,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:4bbc6a0a440f3022bd5b020bc003fedf09d6d24a361b28e19f3124f7c5977f3a",
+            "descriptorDigest": "sha256:4283707c7c4eb6c757e5c085e061014d01a03cd64a7ad8de9645f9b1769b86ff",
             "kernelDigest": "sha256:bfa95bf42cf7da2ab8b9d6b8af5b494dd8abcfe436d7788f7ecdb8892f04d3b8",
             "requires": [
               "shader-f16"
@@ -5256,7 +5406,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:a229352cf2e0dae9b4d261cd248c31dbb7c55389f72704499b60ce5d3b6330aa"
+      "digest": "sha256:983a1cfcc9d7c39c4bd65f165cc171dcb0ac005804666bc99464d74578b84df3"
     },
     {
       "manifestPath": "models/local/minicpm4-0-5b-f16-af32/manifest.json",
@@ -5290,11 +5440,11 @@
           "kernelId": "embed",
           "key": "gather_f16.wgsl#main",
           "declaredDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
-          "expectedDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
+          "expectedDigest": "sha256:a2c318bc362d676769d8cb751d61a4d7777e1068be0456eff634e0821d783c10",
           "registeredVariants": [
             "gather/f16"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gemv",
@@ -5587,7 +5737,7 @@
           "candidate": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:4bbc6a0a440f3022bd5b020bc003fedf09d6d24a361b28e19f3124f7c5977f3a",
+            "descriptorDigest": "sha256:4283707c7c4eb6c757e5c085e061014d01a03cd64a7ad8de9645f9b1769b86ff",
             "kernelDigest": "sha256:bfa95bf42cf7da2ab8b9d6b8af5b494dd8abcfe436d7788f7ecdb8892f04d3b8",
             "requires": [
               "shader-f16"
@@ -5597,7 +5747,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:a5c1032b803af197d996d4d30157c8c7fc7f2e8c574a25d3dd86f7b3be4611b5"
+      "digest": "sha256:a72651dac6f5a9d522407e4be539e665096b3dcfcff73531cd9a5c390daf3b9c"
     },
     {
       "manifestPath": "models/local/muse-glimmer-30b-text-bf16-af32/manifest.json",
@@ -5641,11 +5791,11 @@
           "kernelId": "embed",
           "key": "gather_bf16.wgsl#main",
           "declaredDigest": "sha256:731db73075cd054369b51259791ca3d99ef08431cc3a75d9547f2aa29771d08a",
-          "expectedDigest": "sha256:731db73075cd054369b51259791ca3d99ef08431cc3a75d9547f2aa29771d08a",
+          "expectedDigest": "sha256:1dda963b66157d4cf8045684743a7329cb7abcf60272979ca6eb0a701cfd033e",
           "registeredVariants": [
             "gather/bf16"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gemv",
@@ -5872,7 +6022,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:3acb0aef4d3e111440fe2e184b694372ce5968bde09a9c51e582750f1c2210c2"
+      "digest": "sha256:69827efbd4cc0f3c771854bc3b820390344a1d2ca95d13b9c2fb5945b9f72f63"
     },
     {
       "manifestPath": "models/local/muse-glimmer-30b-text-f16-af32/manifest.json",
@@ -5916,11 +6066,11 @@
           "kernelId": "embed",
           "key": "gather_f16.wgsl#main",
           "declaredDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
-          "expectedDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
+          "expectedDigest": "sha256:a2c318bc362d676769d8cb751d61a4d7777e1068be0456eff634e0821d783c10",
           "registeredVariants": [
             "gather/f16"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gemv",
@@ -6269,7 +6419,7 @@
           "candidate": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:4bbc6a0a440f3022bd5b020bc003fedf09d6d24a361b28e19f3124f7c5977f3a",
+            "descriptorDigest": "sha256:4283707c7c4eb6c757e5c085e061014d01a03cd64a7ad8de9645f9b1769b86ff",
             "kernelDigest": "sha256:bfa95bf42cf7da2ab8b9d6b8af5b494dd8abcfe436d7788f7ecdb8892f04d3b8",
             "requires": [
               "shader-f16"
@@ -6279,7 +6429,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:77b30d712c8a8f5f48502712b7096101a5d75ad08428c17fbc5e85c9c63ce97b"
+      "digest": "sha256:ed311a9a9ff6af6bdd4d8c36eb0937dd78a983830d90eb93d6517902eeb385a9"
     },
     {
       "manifestPath": "models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
@@ -6323,11 +6473,11 @@
           "kernelId": "embed",
           "key": "gather_f16.wgsl#main",
           "declaredDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
-          "expectedDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
+          "expectedDigest": "sha256:a2c318bc362d676769d8cb751d61a4d7777e1068be0456eff634e0821d783c10",
           "registeredVariants": [
             "gather/f16"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "lm_head_gemv",
@@ -6580,7 +6730,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:8df06a9bab483311178947f24f29b0dbc277d21b81c862eca657e9400adcdba6"
+      "digest": "sha256:73380644534211359bcc2a0c2b66ddbe4707c8bce563972bbfdb794839207db4"
     },
     {
       "manifestPath": "models/local/qwen-3-5-2b-q4k-ehaf16/manifest.json",
@@ -6624,11 +6774,11 @@
           "kernelId": "embed",
           "key": "gather_f16.wgsl#main",
           "declaredDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
-          "expectedDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
+          "expectedDigest": "sha256:a2c318bc362d676769d8cb751d61a4d7777e1068be0456eff634e0821d783c10",
           "registeredVariants": [
             "gather/f16"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "lm_head_gemv",
@@ -6881,7 +7031,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:2e38e4d1ae2f4918e6df3f50687c82613c0b84dc0c27bc5b6db1cdb5504e2bcc"
+      "digest": "sha256:5d540c3eb634516f806a7c45c7acefb53e8afce0366586c6386982ed91c1be4d"
     },
     {
       "manifestPath": "models/local/qwen-3-6-27b-q4k-eaf16/manifest.json",
@@ -6925,11 +7075,11 @@
           "kernelId": "embed",
           "key": "gather_f16.wgsl#main",
           "declaredDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
-          "expectedDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
+          "expectedDigest": "sha256:a2c318bc362d676769d8cb751d61a4d7777e1068be0456eff634e0821d783c10",
           "registeredVariants": [
             "gather/f16"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "lm_head_gemv",
@@ -7053,7 +7203,7 @@
         }
       ],
       "opportunities": [],
-      "digest": "sha256:bcef29ebbc9098cfaee1c8d14fb0de440c7cc06c4bd74d70cfa2d4c4d51a7ac9"
+      "digest": "sha256:2459f33a7ee766f8653b98df9895e5fc714bc1de09f49b38e168b45119bcb4c7"
     },
     {
       "manifestPath": "models/local/qwen-3-6-27b-q4k-ehaf16/manifest.json",
@@ -7097,11 +7247,11 @@
           "kernelId": "embed",
           "key": "gather_f16.wgsl#main",
           "declaredDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
-          "expectedDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
+          "expectedDigest": "sha256:a2c318bc362d676769d8cb751d61a4d7777e1068be0456eff634e0821d783c10",
           "registeredVariants": [
             "gather/f16"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "lm_head_gemv",
@@ -7354,7 +7504,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:eeef6bb29026534260dfa7a944c8ed1c32ddfd4157e2a3b4109c8ac1eb91fa57"
+      "digest": "sha256:9bc42d5f9b0f8bb673e2aa72e463f67c152540a07dd6c8ae050eda4193ffee40"
     },
     {
       "manifestPath": "models/local/qwen-3-embedding-0-6b-q4k-ehf16-af32/manifest.json",
@@ -7388,11 +7538,11 @@
           "kernelId": "embed",
           "key": "gather_f16.wgsl#main",
           "declaredDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
-          "expectedDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
+          "expectedDigest": "sha256:a2c318bc362d676769d8cb751d61a4d7777e1068be0456eff634e0821d783c10",
           "registeredVariants": [
             "gather/f16"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "q4_decode_gemv",
@@ -7668,7 +7818,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:0051098631d43f36ace5cbd3df0a55d3afe9756300c4ab08cf4904959568661d"
+      "digest": "sha256:7a3db2f9ed14c9f7adb42aeb545edb4f8e74d3a31cb9dde4618be479d1b1606f"
     },
     {
       "manifestPath": "models/local/qwen-3-reranker-0-6b-f16-af32/manifest.json",
@@ -7702,11 +7852,11 @@
           "kernelId": "embed",
           "key": "gather_f16.wgsl#main",
           "declaredDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
-          "expectedDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
+          "expectedDigest": "sha256:a2c318bc362d676769d8cb751d61a4d7777e1068be0456eff634e0821d783c10",
           "registeredVariants": [
             "gather/f16"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gemv",
@@ -8055,7 +8205,7 @@
           "candidate": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:4bbc6a0a440f3022bd5b020bc003fedf09d6d24a361b28e19f3124f7c5977f3a",
+            "descriptorDigest": "sha256:4283707c7c4eb6c757e5c085e061014d01a03cd64a7ad8de9645f9b1769b86ff",
             "kernelDigest": "sha256:bfa95bf42cf7da2ab8b9d6b8af5b494dd8abcfe436d7788f7ecdb8892f04d3b8",
             "requires": [
               "shader-f16"
@@ -8065,7 +8215,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:3b48315108aa4db21a5bafbbb49020ca6b940c7b61cfbfb6c7b66f1e0e3bf7ee"
+      "digest": "sha256:3fc1fcf5a62b13a320f0bc977eb95388732cae9c0e87e8e9ee975933073f4cd3"
     },
     {
       "manifestPath": "models/local/qwen-3-reranker-0-6b-q4k-ehf16-af32/manifest.json",
@@ -8110,11 +8260,11 @@
           "kernelId": "embed",
           "key": "gather_f16.wgsl#main",
           "declaredDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
-          "expectedDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
+          "expectedDigest": "sha256:a2c318bc362d676769d8cb751d61a4d7777e1068be0456eff634e0821d783c10",
           "registeredVariants": [
             "gather/f16"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gemv",
@@ -8554,7 +8704,7 @@
           "candidate": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:4bbc6a0a440f3022bd5b020bc003fedf09d6d24a361b28e19f3124f7c5977f3a",
+            "descriptorDigest": "sha256:4283707c7c4eb6c757e5c085e061014d01a03cd64a7ad8de9645f9b1769b86ff",
             "kernelDigest": "sha256:bfa95bf42cf7da2ab8b9d6b8af5b494dd8abcfe436d7788f7ecdb8892f04d3b8",
             "requires": [
               "shader-f16"
@@ -8564,7 +8714,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:e97918880a14b14c5a6c9532ff14977bc8521c18d0e24508275f6ac6322ae948"
+      "digest": "sha256:b2246a39359a5fe11454d23f9280f70b9e76c8a45958d71b384be3d6652840f3"
     },
     {
       "manifestPath": "models/local/qwen3-8-27b-text-f16-af32/manifest.json",
@@ -8608,11 +8758,11 @@
           "kernelId": "embed",
           "key": "gather_f16.wgsl#main",
           "declaredDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
-          "expectedDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
+          "expectedDigest": "sha256:a2c318bc362d676769d8cb751d61a4d7777e1068be0456eff634e0821d783c10",
           "registeredVariants": [
             "gather/f16"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gated_delta_conv",
@@ -8628,7 +8778,7 @@
           "kernelId": "gated_delta_fused_decode",
           "key": "gated_delta_fused_decode.wgsl#main",
           "declaredDigest": "sha256:b9aec655be0dfc674ba7ffc22dcb41bfccd655f9f8c0844b5eab4349494bb6b3",
-          "expectedDigest": "sha256:585ca624a2d06e40eb8ebef4a077894db15414437577901a01dec36762424705",
+          "expectedDigest": "sha256:87dbb137e1495ebb0821ef5a8a90e7a6460883e1bd4eafb1c13ae9b1a1052cfb",
           "registeredVariants": [
             "gated_delta_fused_decode/default"
           ],
@@ -8638,7 +8788,7 @@
           "kernelId": "gated_delta_recurrent",
           "key": "gated_delta_recurrent.wgsl#main",
           "declaredDigest": "sha256:8a6a6392caa11b5f14500b543268df7b87ee3d56deaa72827f9b39692ccb835d",
-          "expectedDigest": "sha256:62c75dcabde791a94829d8c4f4e4f5323cd38e5b98abf41d7f92473aa931e1db",
+          "expectedDigest": "sha256:33e2f208b15ff6140d493609b6e4814c44f23fb2f3f1b66f2a62336a04dfd46e",
           "registeredVariants": [
             "gated_delta_recurrent/default"
           ],
@@ -8930,7 +9080,7 @@
           "candidate": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:4bbc6a0a440f3022bd5b020bc003fedf09d6d24a361b28e19f3124f7c5977f3a",
+            "descriptorDigest": "sha256:4283707c7c4eb6c757e5c085e061014d01a03cd64a7ad8de9645f9b1769b86ff",
             "kernelDigest": "sha256:bfa95bf42cf7da2ab8b9d6b8af5b494dd8abcfe436d7788f7ecdb8892f04d3b8",
             "requires": [
               "shader-f16"
@@ -8940,7 +9090,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:d2c6dddbfb1f4c0619e5bcd724729ea612f1036e05af68a0b9b7e98d687fdb1b"
+      "digest": "sha256:e30cad8a1486464ba9212d05c16af0dd41792054680211d2296f15a7100237b5"
     },
     {
       "manifestPath": "models/local/translategemma-4b-1b-enes-q4k-ehf16-af32/manifest.json",
@@ -8974,11 +9124,11 @@
           "kernelId": "embed",
           "key": "gather_f16.wgsl#main",
           "declaredDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
-          "expectedDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
+          "expectedDigest": "sha256:a2c318bc362d676769d8cb751d61a4d7777e1068be0456eff634e0821d783c10",
           "registeredVariants": [
             "gather/f16"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gelu",
@@ -9175,7 +9325,7 @@
           "candidate": {
             "operation": "attention",
             "variantId": "decode_online_head256_f16kv",
-            "descriptorDigest": "sha256:94aa65dd2a6fd3eec3daa860c986ba4dc8b3d537dc9d38bb335d67e58b06c288",
+            "descriptorDigest": "sha256:22f23933ba92575a5539dd876599536c9b03666ff1a5e79a3a60e173a1062714",
             "kernelDigest": "sha256:fa4a40535b2aa1389b0510329fb31675d4da50ddfdfbf1e8125c7213c7ffb525",
             "requires": [
               "shader-f16",
@@ -9204,7 +9354,7 @@
           "candidate": {
             "operation": "attention",
             "variantId": "decode_online_head256_f16kv",
-            "descriptorDigest": "sha256:94aa65dd2a6fd3eec3daa860c986ba4dc8b3d537dc9d38bb335d67e58b06c288",
+            "descriptorDigest": "sha256:22f23933ba92575a5539dd876599536c9b03666ff1a5e79a3a60e173a1062714",
             "kernelDigest": "sha256:fa4a40535b2aa1389b0510329fb31675d4da50ddfdfbf1e8125c7213c7ffb525",
             "requires": [
               "shader-f16",
@@ -9291,7 +9441,7 @@
           "candidate": {
             "operation": "attention",
             "variantId": "prefill_flash_head256_f16kv",
-            "descriptorDigest": "sha256:f8b118ba003a950770f5e9176a4e67033dc94953d5dfee68cb0d8139c5670a77",
+            "descriptorDigest": "sha256:1f14c592b570d4b908d9c896ad9b5dea5dbd347bbed04bf1f1b1f12093e62b60",
             "kernelDigest": "sha256:dc06506d7adf0d30f551276ca4229197817ca097a4825ee8fd16a0ac2b843c54",
             "requires": [
               "shader-f16"
@@ -9319,7 +9469,7 @@
           "candidate": {
             "operation": "attention",
             "variantId": "prefill_flash_head256_f16kv",
-            "descriptorDigest": "sha256:f8b118ba003a950770f5e9176a4e67033dc94953d5dfee68cb0d8139c5670a77",
+            "descriptorDigest": "sha256:1f14c592b570d4b908d9c896ad9b5dea5dbd347bbed04bf1f1b1f12093e62b60",
             "kernelDigest": "sha256:dc06506d7adf0d30f551276ca4229197817ca097a4825ee8fd16a0ac2b843c54",
             "requires": [
               "shader-f16"
@@ -9499,7 +9649,7 @@
           "candidate": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:4bbc6a0a440f3022bd5b020bc003fedf09d6d24a361b28e19f3124f7c5977f3a",
+            "descriptorDigest": "sha256:4283707c7c4eb6c757e5c085e061014d01a03cd64a7ad8de9645f9b1769b86ff",
             "kernelDigest": "sha256:bfa95bf42cf7da2ab8b9d6b8af5b494dd8abcfe436d7788f7ecdb8892f04d3b8",
             "requires": [
               "shader-f16"
@@ -9509,7 +9659,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:43fde860d826b656a0d1aa744b33779a968466f00bea3cd9e31ab52783472ca8"
+      "digest": "sha256:2f95d287ddd08a677022c19c68825682e567e1ee31a3216c203c5016f28c93de"
     },
     {
       "manifestPath": "models/local/translategemma-4b-it-q4k-ehf16-af32/manifest.json",
@@ -9543,11 +9693,11 @@
           "kernelId": "embed",
           "key": "gather_f16.wgsl#main",
           "declaredDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
-          "expectedDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
+          "expectedDigest": "sha256:a2c318bc362d676769d8cb751d61a4d7777e1068be0456eff634e0821d783c10",
           "registeredVariants": [
             "gather/f16"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gelu",
@@ -9718,7 +9868,7 @@
           "candidate": {
             "operation": "attention",
             "variantId": "decode_online_head256_f16kv",
-            "descriptorDigest": "sha256:94aa65dd2a6fd3eec3daa860c986ba4dc8b3d537dc9d38bb335d67e58b06c288",
+            "descriptorDigest": "sha256:22f23933ba92575a5539dd876599536c9b03666ff1a5e79a3a60e173a1062714",
             "kernelDigest": "sha256:fa4a40535b2aa1389b0510329fb31675d4da50ddfdfbf1e8125c7213c7ffb525",
             "requires": [
               "shader-f16",
@@ -9747,7 +9897,7 @@
           "candidate": {
             "operation": "attention",
             "variantId": "decode_online_head256_f16kv",
-            "descriptorDigest": "sha256:94aa65dd2a6fd3eec3daa860c986ba4dc8b3d537dc9d38bb335d67e58b06c288",
+            "descriptorDigest": "sha256:22f23933ba92575a5539dd876599536c9b03666ff1a5e79a3a60e173a1062714",
             "kernelDigest": "sha256:fa4a40535b2aa1389b0510329fb31675d4da50ddfdfbf1e8125c7213c7ffb525",
             "requires": [
               "shader-f16",
@@ -9834,7 +9984,7 @@
           "candidate": {
             "operation": "attention",
             "variantId": "prefill_flash_head256_f16kv",
-            "descriptorDigest": "sha256:f8b118ba003a950770f5e9176a4e67033dc94953d5dfee68cb0d8139c5670a77",
+            "descriptorDigest": "sha256:1f14c592b570d4b908d9c896ad9b5dea5dbd347bbed04bf1f1b1f12093e62b60",
             "kernelDigest": "sha256:dc06506d7adf0d30f551276ca4229197817ca097a4825ee8fd16a0ac2b843c54",
             "requires": [
               "shader-f16"
@@ -9862,7 +10012,7 @@
           "candidate": {
             "operation": "attention",
             "variantId": "prefill_flash_head256_f16kv",
-            "descriptorDigest": "sha256:f8b118ba003a950770f5e9176a4e67033dc94953d5dfee68cb0d8139c5670a77",
+            "descriptorDigest": "sha256:1f14c592b570d4b908d9c896ad9b5dea5dbd347bbed04bf1f1b1f12093e62b60",
             "kernelDigest": "sha256:dc06506d7adf0d30f551276ca4229197817ca097a4825ee8fd16a0ac2b843c54",
             "requires": [
               "shader-f16"
@@ -9984,8 +10134,8 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:faecd51ef990c405e1e60941c2dbc90e6c04f5de717459ec175f9008cf1fc462"
+      "digest": "sha256:8c083b86d05eb02653a75a7de80cded485f0c1a4296f46b757a2cea070a175d7"
     }
   ],
-  "digest": "sha256:6db484afda1deed693cf341cc786fd131fa3fe9a9cae0a3f12616da6169e772c"
+  "digest": "sha256:1bdb8b568bd478d315eb3b6451849fac89e6f1e180bec53ee5184658c4a9590d"
 }

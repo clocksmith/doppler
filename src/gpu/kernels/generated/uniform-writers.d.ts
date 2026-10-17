@@ -70,6 +70,7 @@ export interface KernelUniformValues {
   "matmul/q4_fused_prefill_tiled_f16": Parameters<typeof writers0.write_matmul_q4_fused_f16a>[1];
   "matmul/q4_fused_widetile_f16": Parameters<typeof writers0.write_matmul_q4_fused_f16a>[1];
   "matmul/q4_fused_widetile_f16a": Parameters<typeof writers0.write_matmul_q4_fused_f16a>[1];
+  "matmul/q4_fused_widetile_direct": Parameters<typeof writers0.write_matmul_q4_fused_f16a>[1];
   "matmul/q4_fused_widetile": Parameters<typeof writers0.write_matmul_q4_fused_f16a>[1];
   "matmul/q4_fused_rmsnorm_widetile": Parameters<typeof writers0.write_matmul_q4_fused_rmsnorm_widetile>[1];
   "matmul/q4_fused_widetile_residual": Parameters<typeof writers0.write_matmul_q4_fused_f16a>[1];
@@ -367,6 +368,10 @@ export interface KernelUniformValues {
   "gated_delta_recurrent/paired_norm": Parameters<typeof writers0.write_qwen_linear_attention_prepare_paired_beta>[1];
   "gated_delta_recurrent/paired_gate": Parameters<typeof writers0.write_qwen_linear_attention_prepare_paired_beta>[1];
   "gated_delta_recurrent/paired_gate_sigmoid": Parameters<typeof writers0.write_qwen_linear_attention_prepare_paired_beta>[1];
+  "gated_delta_fused_decode/paired_default": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
+  "gated_delta_fused_decode/paired_default_f16": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
+  "gated_delta_fused_decode/paired_sigmoid_gate": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
+  "gated_delta_fused_decode/paired_sigmoid_gate_f16": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_fused_decode/default": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_fused_decode/default_f16": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_fused_decode/sigmoid_gate": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];

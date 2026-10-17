@@ -3,7 +3,7 @@ import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { createTensor } from '../../tensor.js';
 import { KernelBase } from '../kernel-base.js';
 import { TILE_SIZES } from '../constants.js';
-import { getKernelThresholds, padToQ4KBlock } from '../../../config/schema/index.js';
+import { getKernelThresholdSnapshot, padToQ4KBlock } from '../../../config/schema/index.js';
 import { createUniformBufferWithView } from '../uniform-utils.js';
 import { getKernelConfig } from '../kernel-configs.js';
 import { getPipelineBindGroupLayout } from '../pipeline-cache.js';
@@ -41,7 +41,7 @@ export function selectAttentionTier(
   caps
 ) {
   const isDecode = seqLen === 1;
-  const thresholds = getKernelThresholds().attention;
+  const thresholds = getKernelThresholdSnapshot().attention;
   const largeRequired = useF16KV
     ? thresholds.largeSharedF16
     : thresholds.largeSharedF32;
@@ -121,10 +121,10 @@ export function resolveAttentionVariant(
   // - Large headDim (parallelizes across dimensions)
   // - KV length within shared memory limit (from kernel config)
   const chunkedMaxKVLen = getChunkedMaxKVLen();
-  const minHeadDimForChunked = getKernelThresholds().attention.minHeadDimForChunked;
+  const minHeadDimForChunked = getKernelThresholdSnapshot().attention.minHeadDimForChunked;
   const canUseChunked = isDecode && useF16KV && headDim >= minHeadDimForChunked && kvLen <= chunkedMaxKVLen;
   const decodeSubgroupMaxKVLen = chunkedMaxKVLen;
-  const decodeSubgroupMaxHeadDim = getKernelThresholds().attention.subgroupMaxHeadDim;
+  const decodeSubgroupMaxHeadDim = getKernelThresholdSnapshot().attention.subgroupMaxHeadDim;
   const subgroupConfig = getKernelConfig('attention', 'decode_subgroup');
   const canUseDecodeSubgroup = isDecode && !useF16KV && !useF16Q
     && headDim <= decodeSubgroupMaxHeadDim && kvLen <= decodeSubgroupMaxKVLen
@@ -134,7 +134,7 @@ export function resolveAttentionVariant(
     && caps.hasF16
     && caps.hasSubgroups
     && headDim <= decodeSubgroupMaxHeadDim
-    && sharedLimit >= getKernelThresholds().attention.subgroupShared;
+    && sharedLimit >= getKernelThresholdSnapshot().attention.subgroupShared;
   const chunkedVariant = selectKernelRuleValue('attention', 'chunkedVariant', { useF16 });
   const pagedVariant = selectKernelRuleValue('attention', 'pagedVariant', { useF16 });
   const optimizedVariant = selectKernelRuleValue('attention', 'optimizedVariant', { useF16 });
@@ -255,7 +255,7 @@ export function validateAttentionVariant(
     throw new Error(`Attention kernel "${variant}" is decode-only but prefill requested.`);
   }
 
-  const thresholds = getKernelThresholds().attention;
+  const thresholds = getKernelThresholdSnapshot().attention;
   const chunkedMaxKVLen = getChunkedMaxKVLen();
   const isChunked = normalized.startsWith('decode_chunked');
   if (isChunked) {

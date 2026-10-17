@@ -25,6 +25,16 @@ export { applyLinearNormWeightOffset } from './linear-attention/plan.js';
 import { assertRecurrentStateLayout, assertConvolutionStateLayout, resolveRecurrentStateLayout } from './linear-attention/state-layout.js';
 import { LINEAR_RUNTIME_SCHEMA_VERSION, cloneLayerRuntimeState } from './linear-attention/state-clone.js';
 const QK_L2NORM_EPS = 1e-6;
+// Prepared parameters belong to the loaded pipeline, never to a conversation.
+// Snapshots intentionally do not carry these source-identity associations.
+const preparedLayerSources = new WeakMap();
+const freshSequenceLayers = new WeakSet();
+function preparationSources(layerWeights, config) {
+  return [layerWeights.linearConv1D, layerWeights.linearDtBias, layerWeights.linearALog,
+    layerWeights.linearNorm, config.linearConvKernelDim, config.linearNormMode,
+    config.rmsNormEps, config.rmsNormWeightOffset, config.sessionSettings?.intermediatePrecision,
+    resolveRecurrentStateLayout(config.sessionSettings).precision];
+}
 function cloneLayerMap(layers) {
   const cloned = new Map();
   for (const [layerIdx, layerState] of layers.entries()) {
@@ -193,6 +203,15 @@ function isLayerRuntimeCompatible(layerState, projectionLayout, requestedNormMod
 async function getLayerRuntimeState(runtime, layerIdx, layerWeights, config, currentSeqLen, projectionLayout) {
   const requestedNormMode = normalizeLinearNormMode(config.linearNormMode);
   let layerState = runtime.layers.get(layerIdx) ?? null;
+  if (currentSeqLen === 0 && layerState && freshSequenceLayers.delete(layerState)) {
+    const previousSources = preparedLayerSources.get(layerState);
+    const sources = preparationSources(layerWeights, config);
+    if (!previousSources || sources.some((value, index) => value !== previousSources[index])) {
+      releaseLayerRuntimeGpuBuffers(layerState);
+      runtime.layers.delete(layerIdx);
+      layerState = null;
+    }
+  }
   if (layerState) {
     assertRecurrentStateLayout(layerState);
     assertConvolutionStateLayout(layerState);
@@ -212,6 +231,7 @@ async function getLayerRuntimeState(runtime, layerIdx, layerWeights, config, cur
       currentSeqLen,
       projectionLayout
     );
+    preparedLayerSources.set(layerState, preparationSources(layerWeights, config));
     runtime.layers.set(layerIdx, layerState);
     ensureLayerRuntimeGpuBuffers(layerState);
     return layerState;
@@ -288,6 +308,25 @@ export function resetLinearAttentionRuntime(runtime) {
   runtime.schemaVersion = LINEAR_RUNTIME_SCHEMA_VERSION;
   runtime.layers = new Map();
   return runtime;
+}
+// Clear conversation state while retaining this pipeline's prepared parameters.
+export function resetLinearAttentionSequence(runtime) {
+  if (runtime?.schemaVersion !== LINEAR_RUNTIME_SCHEMA_VERSION) return resetLinearAttentionRuntime(runtime);
+  const target = ensureRuntime(runtime);
+  try {
+    for (const layerState of target.layers.values()) {
+      assertRecurrentStateLayout(layerState);
+      assertConvolutionStateLayout(layerState);
+      clearDynamicLayerState(layerState);
+      layerState.seqLen = 0;
+      layerState.warnedSeqMismatch = false;
+      freshSequenceLayers.add(layerState);
+    }
+    return target;
+  } catch (error) {
+    resetLinearAttentionRuntime(target);
+    throw error;
+  }
 }
 export async function cloneLinearAttentionRuntime(runtime) {
   if (!runtime || typeof runtime !== 'object' || !(runtime.layers instanceof Map)) {
