@@ -865,6 +865,7 @@ function usage() {
     '  --top-p <n>                   Sampling top-p',
     '  --warmup <n>                  Warmup runs per engine',
     '  --warm-engine-order <order>   doppler-first|transformersjs-first; alternate between paired sessions',
+    '  --cold-engine-order <order>   doppler-first|transformersjs-first; defaults to doppler-first',
     '  --runs <n>                    Timed runs per engine',
     '  --decode-profile <profile>     parity|throughput|custom (default: parity)',
     '  --doppler-surface <surface>     auto|node|browser|bun (default: from compare profile, fallback auto)',
@@ -5708,6 +5709,10 @@ async function main() {
   if (!['doppler-first', 'transformersjs-first'].includes(warmEngineOrder)) {
     throw new Error('--warm-engine-order must be doppler-first or transformersjs-first');
   }
+  const coldEngineOrder = flags['cold-engine-order'] ?? 'doppler-first';
+  if (!['doppler-first', 'transformersjs-first'].includes(coldEngineOrder)) {
+    throw new Error('--cold-engine-order must be doppler-first or transformersjs-first');
+  }
   const runTimestamp = parseTimestampValue(flags.timestamp, '--timestamp');
   const workloadCatalog = await loadWorkloadCatalog();
   const defaultWorkloadId = workloadCatalog.defaultWorkloadId;
@@ -6295,6 +6300,7 @@ async function main() {
     },
     methodology: {
       warmEngineOrder,
+      coldEngineOrder,
       timingScope: 'generation-call-through-completion',
       outlierPolicy: 'none',
       promptTokensPerSecToFirstToken: 'prompt_tokens / firstTokenMs',
@@ -6661,6 +6667,7 @@ async function main() {
   }
 
   if (needCold) {
+    const runDopplerCold = async () => {
     dopplerCold = await runDoppler(
       dopplerModelId,
       dopplerModelSource.modelUrl,
@@ -6698,6 +6705,8 @@ async function main() {
       'Doppler'
     );
 
+    };
+    const runTransformersjsCold = async () => {
     tjsCold = await runTjs(
       tjsModelId,
       sharedContract,
@@ -6725,6 +6734,11 @@ async function main() {
       'TJS'
     );
 
+    };
+    const runners = coldEngineOrder === 'doppler-first'
+      ? [runDopplerCold, runTransformersjsCold]
+      : [runTransformersjsCold, runDopplerCold];
+    for (const run of runners) await run();
     assertComparableTiming(dopplerCold, tjsCold);
     report.sections.cold = buildCompareSection({
       cacheMode: 'cold',
