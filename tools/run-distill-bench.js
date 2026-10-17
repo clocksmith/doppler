@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn } from 'node:child_process';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { loadTrainingWorkloadCapsule } from '../src/experimental/training/workloads.js';
@@ -319,11 +319,6 @@ function extractStageAArtifact(trainingResult) {
     }
   }
   throw new Error('Unable to find stage_a artifact in training suite output.');
-}
-
-function resolveOptionalInteger(value, fallback, label) {
-  if (value === undefined || value === null || value === '') return fallback;
-  return parsePositiveInteger(value, label);
 }
 
 export function resolveResumeOverrideFields(args, workloadConfig) {

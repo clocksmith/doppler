@@ -1532,12 +1532,6 @@ function runtimeProfileIdToRepoPath(profileId) {
   return `src/config/runtime/profiles/${normalized.slice('profiles/'.length)}.json`;
 }
 
-async function hashRepoFileBytes(repoPath, label) {
-  const absolutePath = await assertRepoPathExists(repoPath, label);
-  const bytes = await fs.readFile(absolutePath);
-  return crypto.createHash('sha256').update(bytes).digest('hex');
-}
-
 function computeShardSetHash(manifest) {
   const shards = Array.isArray(manifest?.shards) ? manifest.shards : [];
   if (shards.length === 0) return null;
@@ -4159,7 +4153,6 @@ async function doMatrix(flags, timestamp = null) {
   );
   const {
     compareResults,
-    latestCompareResult,
     droppedCompareArtifacts,
   } = await loadCompareResultSummaries({
     compareResultFlag,
