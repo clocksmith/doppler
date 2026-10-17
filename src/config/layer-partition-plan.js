@@ -23,7 +23,8 @@ export function createLayerPartitionPlan({
   vocabSize,
   splitLayer = null,
   activationDtype = 'f32',
-  activationPrecision
+  activationPrecision,
+  adapterIdentities
 }) {
   if (!modelId || typeof modelId !== 'string') {
     throw new TypeError('modelId must be a non-empty string');
@@ -41,6 +42,10 @@ export function createLayerPartitionPlan({
     throw new TypeError(`activationDtype must be 'f32' or 'f16'; got "${activationDtype}"`);
   }
 
+  if (adapterIdentities !== undefined && (!Array.isArray(adapterIdentities)
+    || adapterIdentities.length !== 1 || !/^sha256:[a-f0-9]{64}$/.test(adapterIdentities[0]))) {
+    throw new Error('Partition adapters require one exact execution identity; omit the field for the base model.');
+  }
   const paired = activationPrecision === 'two-f32';
   if (activationPrecision !== undefined && activationPrecision !== activationDtype && !paired) {
     throw new TypeError('Unsupported activation precision.');
@@ -103,6 +108,7 @@ export function createLayerPartitionPlan({
     schema: paired ? PAIRED_LAYER_PARTITION_SCHEMA : LAYER_PARTITION_SCHEMA,
     modelId,
     totalLayers: numLayers,
+    ...(adapterIdentities === undefined ? {} : { adapterIdentities: Object.freeze([...adapterIdentities]) }),
     hiddenSize,
     vocabSize,
     splitLayer: split,
@@ -149,6 +155,7 @@ export function createOrderedLayerPartitionPlan(options) {
   return Object.freeze({
     schema: ORDERED_LAYER_PARTITION_SCHEMA, modelId: base.modelId, totalLayers: base.totalLayers,
     hiddenSize: base.hiddenSize, vocabSize: base.vocabSize, stageCount,
+    ...(base.adapterIdentities === undefined ? {} : { adapterIdentities: base.adapterIdentities }),
     splitLayers: Object.freeze([...splitLayers]), activationDtype: base.activationDtype,
     activationPrecision: layout.precision, activationComponents: layout.components,
     activationElementStrideBytes: layout.elementStrideBytes, partitions: Object.freeze(partitions),
@@ -177,7 +184,7 @@ export function validateOrderedLayerPartitionPlan(manifest, plan) {
     numLayers: /** @type {number} */ (architecture.numLayers),
     hiddenSize: /** @type {number} */ (architecture.hiddenSize),
     vocabSize: /** @type {number} */ (architecture.vocabSize),
-    splitLayers: plan.splitLayers, activationDtype: plan.activationDtype, activationPrecision: plan.activationPrecision,
+    splitLayers: plan.splitLayers, activationDtype: plan.activationDtype, activationPrecision: plan.activationPrecision, adapterIdentities: plan.adapterIdentities,
   });
   if (!matchesPartitionRecord(plan, canonical)) throw new Error('Ordered partition plan does not match the model manifest.');
   return canonical;
@@ -216,7 +223,7 @@ export function resolveLayerPartition(manifest, allocation) {
   const canonical = createLayerPartitionPlan({ modelId: manifest?.modelId,
     numLayers: architecture?.numLayers, hiddenSize: architecture?.hiddenSize,
     vocabSize: architecture?.vocabSize, splitLayer: plan.splitLayer,
-    activationDtype: plan.activationDtype, activationPrecision: plan.activationPrecision });
+    activationDtype: plan.activationDtype, activationPrecision: plan.activationPrecision, adapterIdentities: plan.adapterIdentities });
   /** @type {(actual: unknown, expected: unknown) => boolean} */
   const matches = (actual, expected) => {
     if (expected === null || typeof expected !== 'object') return actual === expected;

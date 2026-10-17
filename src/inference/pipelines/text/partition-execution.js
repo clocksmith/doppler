@@ -15,17 +15,24 @@ import { resolveLayerPartition, validateActivationTensorShape } from './layer-pa
 import { resolvePrefillTokenChunkSize, shouldDisablePrefillCommandBatching } from './generator/prefill-policy.js';
 
 /** @type {import('./partition-execution.js').assertPartitionExecutionSupported} */
-export function assertPartitionExecutionSupported(state, plan) {
+export function assertPartitionExecutionSupported(state, plan, requireAdapter = true) {
   const config = state.modelConfig;
   if (!state.useGPU || !config) throw new Error('Resident partition execution requires a loaded WebGPU model.');
   if (config.useMoE || config.numKvSharedLayers > 0 || (config.hiddenSizePerLayerInput !== null && config.hiddenSizePerLayerInput > 0)
     || config.decodeStrategy !== 'incremental' || config.causalAttention !== true
     || config.layerTypes?.some(type => !['full_attention', 'sliding_attention', 'linear_attention'].includes(type))
-    || state.lora || config.diffusionGemma
+    || config.diffusionGemma
     || ((state.visionCapable || state.audioCapable)
       && plan.partitions[0]?.inputContract?.type !== 'token-ids')
     || state.runtimeConfig.inference.session.usePostFfnNextInputRMSNormPairFusion === true) {
-    throw new Error('Resident partition execution supports token-only causal full, sliding and linear attention without shared KV, per-layer-input, adapter, multimodal input, or cross-layer fusion dependencies.');
+    throw new Error('Resident partition execution supports token-only causal full, sliding and linear attention without shared KV, per-layer-input, multimodal input, or cross-layer fusion dependencies.');
+  }
+  const adapters = plan.adapterIdentities ?? [];
+  if (requireAdapter && JSON.stringify(adapters) !== JSON.stringify(state.lora ? [state.lora.identity?.digest] : [])) {
+    throw new Error('Resident adapter identity differs from the accepted partition plan.');
+  }
+  if (state.lora && state.resolvedRuntimeSession?.runtime.session.intermediatePrecision === 'two-f32') {
+    throw new Error('Partition LoRA requires scalar execution; paired LoRA kernels are unavailable.');
   }
   if (!state.executionPlanState) throw new Error('Resident partition requires a resolved execution plan.');
   const execution = resolveActiveExecutionPlan(state.executionPlanState);
