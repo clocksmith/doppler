@@ -179,6 +179,9 @@
           "parity": "profiles/qwen-3-5-0-8b-metal-parity",
           "throughput": "profiles/qwen-3-5-0-8b-metal-throughput",
           "custom": "profiles/qwen-3-5-0-8b-metal-throughput"
+        },
+        "linux": {
+          "parity": "profiles/qwen-3-5-0-8b-vulkan-parity"
         }
       }
     },
@@ -200,6 +203,9 @@
         "darwin": {
           "parity": "profiles/qwen-3-5-2b-metal-parity",
           "throughput": "profiles/qwen-3-5-2b-metal-throughput"
+        },
+        "linux": {
+          "parity": "profiles/qwen-3-5-2b-vulkan-parity"
         }
       },
       "compareLane": "performance_comparable",

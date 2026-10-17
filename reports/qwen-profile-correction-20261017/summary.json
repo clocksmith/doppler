@@ -1,0 +1,3527 @@
+{
+  "decision": "retain explicit Linux parity profile selection; no runtime code or kernel correction",
+  "scope": "Local Qwen3.5 Q4_K/f32-compute/f16-KV versus Transformers.js 4.2.0 ONNX q4f16; product formats differ. Browser performance and Node lifecycle are separate.",
+  "rows": [
+    {
+      "lane": "metal",
+      "order": "doppler-first",
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "receipt": "metal/0-8b-doppler-first/compare_latest.json",
+      "sha256": "4e45f9e44b71be90ae991e536406fd1d60539d23f3d9a4707258655b7627ad4c",
+      "fairness": {
+        "schemaVersion": 1,
+        "claimGrade": true,
+        "releaseClaimable": false,
+        "localComparable": true,
+        "correctnessOk": true,
+        "primarySection": "warm",
+        "invalidReason": null,
+        "invalidReasons": [],
+        "formatFairness": {
+          "schemaVersion": 1,
+          "doppler": "rdrr",
+          "transformersjs": "onnx",
+          "sameFormat": false,
+          "class": "optimized-rdrr-vs-onnx",
+          "disclosureRequired": true,
+          "blocksClaim": false,
+          "reason": "formats differ and must be disclosed with any claim"
+        },
+        "surfaceFairness": {
+          "schemaVersion": 1,
+          "dopplerRequestedSurface": "browser",
+          "dopplerCommandSurface": "browser",
+          "transformersjsSurface": "browser",
+          "sameRuntimeSurface": true,
+          "blocksClaim": false
+        },
+        "sections": {
+          "warm": {
+            "schemaVersion": 1,
+            "sectionId": "warm",
+            "claimGrade": true,
+            "invalidReasons": [],
+            "gates": {
+              "performanceComparableLane": true,
+              "sameRuntimeSurface": true,
+              "tjsModelPinned": true,
+              "pairedComparable": true,
+              "throughputCadencePromotable": null
+            },
+            "invalidReason": null
+          }
+        },
+        "semantics": {
+          "claimGrade": "true means the primary compare section passed its configured output-parity policy, prompt/decode validity, same runtime surface, pinned comparator model, and performance-comparable lane gates.",
+          "releaseClaimable": "true means claimGrade evidence measured the hosted quickstart-registry Doppler artifact.",
+          "localComparable": "true means claimGrade evidence exists but is local-artifact evidence, not a hosted release claim.",
+          "formatFairness": "different optimized formats are allowed only as disclosed product-format comparisons, not format-identical engine claims."
+        }
+      },
+      "outputParity": {
+        "schemaVersion": 1,
+        "status": "match",
+        "reason": null,
+        "exactMatch": true,
+        "normalizedMatch": true,
+        "charMismatchIndex": -1,
+        "tokenMatch": {
+          "leftTokenCount": 128,
+          "rightTokenCount": 128,
+          "matchingPrefixTokens": 128,
+          "firstMismatchTokenIndex": -1
+        },
+        "tokenIdMatch": {
+          "leftTokenCount": 128,
+          "rightTokenCount": 128,
+          "matchingPrefixTokens": 128,
+          "firstMismatchTokenIndex": -1,
+          "firstMismatch": null
+        },
+        "lengths": {
+          "dopplerChars": 697,
+          "transformersjsChars": 697
+        }
+      },
+      "doppler": {
+        "modelLoadMs": 1322.6,
+        "firstTokenMs": 181.7,
+        "firstResponseMs": 1504.3,
+        "prefillMs": 170.4,
+        "decodeMs": 2222.8,
+        "decodeMsPerTokenP50": 0,
+        "decodeMsPerTokenP95": 274.2,
+        "decodeMsPerTokenP99": 283.24,
+        "decodeTokensPerSec": 57.14,
+        "prefillTokensPerSec": 375.59,
+        "totalRunMs": 2403,
+        "cacheMode": "warm",
+        "loadMode": "http",
+        "scope": "generation-call-through-completion",
+        "promptTokensPerSecToFirstToken": 352.2289488181752
+      },
+      "transformersjs": {
+        "scope": "generation-call-through-completion",
+        "modelLoadMs": 2521.829999998212,
+        "firstTokenMs": 146.69999999925494,
+        "firstResponseMs": 2668.529999997467,
+        "prefillMs": 146.69999999925494,
+        "decodeMs": 3119.240000002086,
+        "totalRunMs": 3265.940000001341,
+        "decodeTokensPerSec": 40.71504597270972,
+        "promptTokensPerSecToFirstToken": 436.2644853464556,
+        "prefillTokensPerSec": 436.2644853464556,
+        "prefillTokensPerSecTtft": 436.2644853464556,
+        "decodeMsPerTokenP50": 22.674999997019768,
+        "decodeMsPerTokenP95": 70.80499999970198,
+        "decodeMsPerTokenP99": 161.46300000026815,
+        "cacheMode": "warm",
+        "loadMode": "http"
+      },
+      "memoryAccounting": {
+        "schemaVersion": 1,
+        "gpuMemoryComparable": false,
+        "doppler": {
+          "schemaVersion": 1,
+          "source": "doppler-memoryStats",
+          "gpuMemoryComparable": true,
+          "usedBytes": 988866304,
+          "pool": {
+            "peakBytesAllocated": 1020146432,
+            "peakBytesRequested": 989468416,
+            "currentBytesAllocated": 986494720,
+            "currentBytesRequested": 955888128,
+            "activeBuffers": 455,
+            "pooledBuffers": 64
+          },
+          "kvCache": {
+            "allocatedBytes": 2371584,
+            "usedBytes": 2347008,
+            "theoreticalBytes": 2371584,
+            "efficiency": 0.99,
+            "seqLen": 191,
+            "maxSeqLen": 193,
+            "layout": "contiguous",
+            "kvDtype": "f16"
+          }
+        },
+        "transformersjs": {
+          "schemaVersion": 1,
+          "source": "browser-performance-memory",
+          "gpuMemoryComparable": false,
+          "usedJSHeapBeforeBytes": 3779576,
+          "usedJSHeapAfterBytes": 98852814,
+          "usedJSHeapDeltaBytes": 95073238,
+          "totalJSHeapBeforeBytes": 5937464,
+          "totalJSHeapAfterBytes": 156638606,
+          "jsHeapSizeLimitBytes": 4395630592
+        },
+        "comparability": {
+          "gpuMemory": false,
+          "reason": "Doppler reports GPU buffer-pool/KV memory; Transformers.js exposes browser JS heap here, not WebGPU allocation residency."
+        }
+      },
+      "efficiencyMetrics": {
+        "schemaVersion": 1,
+        "units": {
+          "decodeTokensPerSecPerPeakRssGiB": "tok/s/GiB RSS",
+          "decodeTokensPerSecPerPeakGpuGiB": "tok/s/GiB GPU memory"
+        },
+        "doppler": {
+          "peakRssBytes": null,
+          "peakGpuMemoryBytes": null,
+          "meanCpuPercent": null,
+          "meanGpuUtilizationPercent": null,
+          "meanPowerWatts": null,
+          "decodeTokensPerSecPerPeakRssGiB": null,
+          "decodeTokensPerSecPerPeakGpuGiB": null
+        },
+        "transformersjs": {
+          "peakRssBytes": null,
+          "peakGpuMemoryBytes": null,
+          "meanCpuPercent": null,
+          "meanGpuUtilizationPercent": null,
+          "meanPowerWatts": null,
+          "decodeTokensPerSecPerPeakRssGiB": null,
+          "decodeTokensPerSecPerPeakGpuGiB": null
+        },
+        "comparability": {
+          "processTree": true,
+          "gpuTelemetry": false,
+          "reason": "Host process-tree RSS/CPU and system/GPU telemetry are sampled by the same parent benchmark tool; GPU memory is device-global when sourced from rocm-smi."
+        }
+      },
+      "dopplerBottleneck": {
+        "schemaVersion": 1,
+        "dominant": {
+          "id": "readback_map_wait",
+          "label": "readback map wait",
+          "ms": 1681.1,
+          "shareOfDecode": 0.756
+        },
+        "bottleneckClass": "submit-readback-wait",
+        "decodeWallMs": 2222.8,
+        "componentsMs": {
+          "commandRecordMs": 521.967,
+          "submitWaitMs": 1681.3,
+          "readbackWaitMs": 1691.867,
+          "effectiveSubmitReadbackWaitMs": 1691.867,
+          "readbackMapWaitMs": 1681.1,
+          "readbackCleanupMs": 10.467,
+          "readbackCopyMs": 0.167,
+          "readbackUnattributedMs": 0.133,
+          "gpuTimestampMs": null,
+          "submitReadbackSlackMs": null,
+          "orchestrationMs": 2.633,
+          "residualMs": 6.333
+        },
+        "recording": {
+          "opCount": 28067,
+          "passCount": 32,
+          "uniqueOpLabels": 126,
+          "msPerOp": 0.019,
+          "msPerPass": 16.311,
+          "passesPerOp": 0.001,
+          "msPerExecutedBatchToken": 4.11,
+          "opsPerExecutedBatchToken": 221,
+          "passesPerExecutedBatchToken": 0.252,
+          "topOps": [
+            {
+              "label": "fused_ffn",
+              "count": 3048,
+              "shareOfOps": 0.109
+            },
+            {
+              "label": "rmsnorm:post_attn_norm",
+              "count": 3048,
+              "shareOfOps": 0.109
+            },
+            {
+              "label": "residual_rmsnorm_pair:ffn_residual_next_input_norm",
+              "count": 2921,
+              "shareOfOps": 0.104
+            },
+            {
+              "label": "linear_attention_fused_decode_core",
+              "count": 2286,
+              "shareOfOps": 0.081
+            },
+            {
+              "label": "attention",
+              "count": 762,
+              "shareOfOps": 0.027
+            },
+            {
+              "label": "split_qkv_rmsnorm_rope_qk:f16kv_cache",
+              "count": 762,
+              "shareOfOps": 0.027
+            },
+            {
+              "label": "gather",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "lm_head_argmax_q4k_phase1",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "lm_head_argmax_q4k_phase2",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L0",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L1",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L10",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L11",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L12",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L13",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L14",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L15",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L16",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L17",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L18",
+              "count": 127,
+              "shareOfOps": 0.005
+            }
+          ],
+          "semantics": {
+            "opCount": "Logical compute dispatches recorded into batch-decode command buffers.",
+            "passCount": "Actual WebGPU compute passes opened while recording batch-decode command buffers.",
+            "uniqueOpLabels": "Number of distinct exact compute-pass labels recorded in batch-decode command buffers.",
+            "msPerOp": "decodeRecordMs divided by logical recorded compute dispatches.",
+            "msPerPass": "decodeRecordMs divided by actual WebGPU compute passes.",
+            "passesPerOp": "Actual WebGPU compute passes divided by logical recorded compute dispatches.",
+            "msPerExecutedBatchToken": "decodeRecordMs divided by batch-path tokens submitted for execution.",
+            "opsPerExecutedBatchToken": "Logical recorded compute dispatches divided by batch-path tokens submitted for execution.",
+            "passesPerExecutedBatchToken": "Actual WebGPU compute passes divided by batch-path tokens submitted for execution.",
+            "topOps": "Highest-count exact compute-pass labels observed during command recording."
+          }
+        },
+        "shares": {
+          "commandRecord": 0.235,
+          "submitWait": 0.756,
+          "readbackWait": 0.761,
+          "effectiveSubmitReadbackWait": 0.761,
+          "readbackMapWait": 0.756,
+          "readbackCleanup": 0.005,
+          "readbackCopy": 0,
+          "readbackUnattributed": 0,
+          "gpuTimestamp": null,
+          "submitReadbackSlack": null,
+          "orchestration": 0.001,
+          "residual": 0.003
+        },
+        "semantics": {
+          "effectiveSubmitReadbackWaitMs": "max(decodeSubmitWaitMs, decodeReadbackWaitMs); submit and readback waits overlap.",
+          "readbackMapWaitMs": "Wall time awaiting staging-buffer mapAsync; usually includes GPU completion behind the readback.",
+          "gpuTimestampMs": "Timestamp-query GPU work when available; null means it was not captured."
+        }
+      },
+      "artifact": {
+        "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
+        "weightCapsuleId": "qwen-3-5-0-8b-q4k-ehaf16-wp-catalog-v1",
+        "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
+        "shardSetHash": null,
+        "artifactCompleteness": "complete"
+      },
+      "environment": {
+        "host": {
+          "platform": "darwin",
+          "arch": "arm64",
+          "nodeVersion": "v22.20.0"
+        },
+        "browser": {
+          "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+          "baseUrl": null,
+          "channel": "chromium"
+        }
+      },
+      "deviceInfo": {
+        "hasSubgroups": true,
+        "wgslLanguageFeatures": [
+          "packed_4x8_integer_dot_product",
+          "subgroup_uniformity",
+          "immediate_address_space",
+          "subgroup_id",
+          "linear_indexing",
+          "readonly_and_readwrite_storage_textures",
+          "swizzle_assignment",
+          "unrestricted_pointer_parameters",
+          "buffer_view",
+          "texture_formats_tier1",
+          "pointer_composite_access",
+          "texture_and_sampler_let",
+          "uniform_buffer_standard_layout"
+        ],
+        "hasSubgroupsF16": true,
+        "hasF16": true,
+        "hasTimestampQuery": true,
+        "maxBufferSize": 4294967292,
+        "maxWorkgroupSize": 1024,
+        "maxWorkgroupStorageSize": 32768,
+        "adapterInfo": {
+          "vendor": "apple",
+          "architecture": "metal-3",
+          "device": "0x0000",
+          "description": "Apple M3"
+        },
+        "submitProbeMs": 1.300000000745058
+      },
+      "tjsDeviceInfo": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "0x0000",
+        "description": "Apple M3",
+        "hasF16": true,
+        "hasSubgroups": true,
+        "hasTimestampQuery": true
+      }
+    },
+    {
+      "lane": "metal",
+      "order": "transformersjs-first",
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "receipt": "metal/0-8b-transformersjs-first/compare_latest.json",
+      "sha256": "e41f88bd5429fef18b87d2da17d512a7bd2ebeca8d04223b6388ac41796ba95e",
+      "fairness": {
+        "schemaVersion": 1,
+        "claimGrade": true,
+        "releaseClaimable": false,
+        "localComparable": true,
+        "correctnessOk": true,
+        "primarySection": "warm",
+        "invalidReason": null,
+        "invalidReasons": [],
+        "formatFairness": {
+          "schemaVersion": 1,
+          "doppler": "rdrr",
+          "transformersjs": "onnx",
+          "sameFormat": false,
+          "class": "optimized-rdrr-vs-onnx",
+          "disclosureRequired": true,
+          "blocksClaim": false,
+          "reason": "formats differ and must be disclosed with any claim"
+        },
+        "surfaceFairness": {
+          "schemaVersion": 1,
+          "dopplerRequestedSurface": "browser",
+          "dopplerCommandSurface": "browser",
+          "transformersjsSurface": "browser",
+          "sameRuntimeSurface": true,
+          "blocksClaim": false
+        },
+        "sections": {
+          "warm": {
+            "schemaVersion": 1,
+            "sectionId": "warm",
+            "claimGrade": true,
+            "invalidReasons": [],
+            "gates": {
+              "performanceComparableLane": true,
+              "sameRuntimeSurface": true,
+              "tjsModelPinned": true,
+              "pairedComparable": true,
+              "throughputCadencePromotable": null
+            },
+            "invalidReason": null
+          }
+        },
+        "semantics": {
+          "claimGrade": "true means the primary compare section passed its configured output-parity policy, prompt/decode validity, same runtime surface, pinned comparator model, and performance-comparable lane gates.",
+          "releaseClaimable": "true means claimGrade evidence measured the hosted quickstart-registry Doppler artifact.",
+          "localComparable": "true means claimGrade evidence exists but is local-artifact evidence, not a hosted release claim.",
+          "formatFairness": "different optimized formats are allowed only as disclosed product-format comparisons, not format-identical engine claims."
+        }
+      },
+      "outputParity": {
+        "schemaVersion": 1,
+        "status": "match",
+        "reason": null,
+        "exactMatch": true,
+        "normalizedMatch": true,
+        "charMismatchIndex": -1,
+        "tokenMatch": {
+          "leftTokenCount": 128,
+          "rightTokenCount": 128,
+          "matchingPrefixTokens": 128,
+          "firstMismatchTokenIndex": -1
+        },
+        "tokenIdMatch": {
+          "leftTokenCount": 128,
+          "rightTokenCount": 128,
+          "matchingPrefixTokens": 128,
+          "firstMismatchTokenIndex": -1,
+          "firstMismatch": null
+        },
+        "lengths": {
+          "dopplerChars": 697,
+          "transformersjsChars": 697
+        }
+      },
+      "doppler": {
+        "modelLoadMs": 1459.3,
+        "firstTokenMs": 192.6,
+        "firstResponseMs": 1651.9,
+        "prefillMs": 180.7,
+        "decodeMs": 2413.9,
+        "decodeMsPerTokenP50": 0,
+        "decodeMsPerTokenP95": 288.2,
+        "decodeMsPerTokenP99": 310.46,
+        "decodeTokensPerSec": 52.61,
+        "prefillTokensPerSec": 354.18,
+        "totalRunMs": 2641.7,
+        "cacheMode": "warm",
+        "loadMode": "http",
+        "scope": "generation-call-through-completion",
+        "promptTokensPerSecToFirstToken": 332.29491173802046
+      },
+      "transformersjs": {
+        "scope": "generation-call-through-completion",
+        "modelLoadMs": 2062.664999999106,
+        "firstTokenMs": 142.79499999806285,
+        "firstResponseMs": 2205.459999997169,
+        "prefillMs": 142.79499999806285,
+        "decodeMs": 2805.190000001341,
+        "totalRunMs": 2949.144999999553,
+        "decodeTokensPerSec": 45.27322569948534,
+        "promptTokensPerSecToFirstToken": 448.1949648157724,
+        "prefillTokensPerSec": 448.1949648157724,
+        "prefillTokensPerSecTtft": 448.1949648157724,
+        "decodeMsPerTokenP50": 21.189999997615814,
+        "decodeMsPerTokenP95": 24.21000000089407,
+        "decodeMsPerTokenP99": 41.09699999988072,
+        "cacheMode": "warm",
+        "loadMode": "http"
+      },
+      "memoryAccounting": {
+        "schemaVersion": 1,
+        "gpuMemoryComparable": false,
+        "doppler": {
+          "schemaVersion": 1,
+          "source": "doppler-memoryStats",
+          "gpuMemoryComparable": true,
+          "usedBytes": 988866304,
+          "pool": {
+            "peakBytesAllocated": 1020146432,
+            "peakBytesRequested": 989468416,
+            "currentBytesAllocated": 986494720,
+            "currentBytesRequested": 955888128,
+            "activeBuffers": 455,
+            "pooledBuffers": 64
+          },
+          "kvCache": {
+            "allocatedBytes": 2371584,
+            "usedBytes": 2347008,
+            "theoreticalBytes": 2371584,
+            "efficiency": 0.99,
+            "seqLen": 191,
+            "maxSeqLen": 193,
+            "layout": "contiguous",
+            "kvDtype": "f16"
+          }
+        },
+        "transformersjs": {
+          "schemaVersion": 1,
+          "source": "browser-performance-memory",
+          "gpuMemoryComparable": false,
+          "usedJSHeapBeforeBytes": 3794496,
+          "usedJSHeapAfterBytes": 80484365,
+          "usedJSHeapDeltaBytes": 76689869,
+          "totalJSHeapBeforeBytes": 5937464,
+          "totalJSHeapAfterBytes": 149937173,
+          "jsHeapSizeLimitBytes": 4395630592
+        },
+        "comparability": {
+          "gpuMemory": false,
+          "reason": "Doppler reports GPU buffer-pool/KV memory; Transformers.js exposes browser JS heap here, not WebGPU allocation residency."
+        }
+      },
+      "efficiencyMetrics": {
+        "schemaVersion": 1,
+        "units": {
+          "decodeTokensPerSecPerPeakRssGiB": "tok/s/GiB RSS",
+          "decodeTokensPerSecPerPeakGpuGiB": "tok/s/GiB GPU memory"
+        },
+        "doppler": {
+          "peakRssBytes": null,
+          "peakGpuMemoryBytes": null,
+          "meanCpuPercent": null,
+          "meanGpuUtilizationPercent": null,
+          "meanPowerWatts": null,
+          "decodeTokensPerSecPerPeakRssGiB": null,
+          "decodeTokensPerSecPerPeakGpuGiB": null
+        },
+        "transformersjs": {
+          "peakRssBytes": null,
+          "peakGpuMemoryBytes": null,
+          "meanCpuPercent": null,
+          "meanGpuUtilizationPercent": null,
+          "meanPowerWatts": null,
+          "decodeTokensPerSecPerPeakRssGiB": null,
+          "decodeTokensPerSecPerPeakGpuGiB": null
+        },
+        "comparability": {
+          "processTree": true,
+          "gpuTelemetry": false,
+          "reason": "Host process-tree RSS/CPU and system/GPU telemetry are sampled by the same parent benchmark tool; GPU memory is device-global when sourced from rocm-smi."
+        }
+      },
+      "dopplerBottleneck": {
+        "schemaVersion": 1,
+        "dominant": {
+          "id": "readback_map_wait",
+          "label": "readback map wait",
+          "ms": 1607.167,
+          "shareOfDecode": 0.666
+        },
+        "bottleneckClass": "submit-readback-wait",
+        "decodeWallMs": 2413.9,
+        "componentsMs": {
+          "commandRecordMs": 761.233,
+          "submitWaitMs": 1607.4,
+          "readbackWaitMs": 1623.467,
+          "effectiveSubmitReadbackWaitMs": 1623.467,
+          "readbackMapWaitMs": 1607.167,
+          "readbackCleanupMs": 15.967,
+          "readbackCopyMs": 0.133,
+          "readbackUnattributedMs": 0.2,
+          "gpuTimestampMs": null,
+          "submitReadbackSlackMs": null,
+          "orchestrationMs": 4.033,
+          "residualMs": 25.167
+        },
+        "recording": {
+          "opCount": 28067,
+          "passCount": 32,
+          "uniqueOpLabels": 126,
+          "msPerOp": 0.027,
+          "msPerPass": 23.789,
+          "passesPerOp": 0.001,
+          "msPerExecutedBatchToken": 5.994,
+          "opsPerExecutedBatchToken": 221,
+          "passesPerExecutedBatchToken": 0.252,
+          "topOps": [
+            {
+              "label": "fused_ffn",
+              "count": 3048,
+              "shareOfOps": 0.109
+            },
+            {
+              "label": "rmsnorm:post_attn_norm",
+              "count": 3048,
+              "shareOfOps": 0.109
+            },
+            {
+              "label": "residual_rmsnorm_pair:ffn_residual_next_input_norm",
+              "count": 2921,
+              "shareOfOps": 0.104
+            },
+            {
+              "label": "linear_attention_fused_decode_core",
+              "count": 2286,
+              "shareOfOps": 0.081
+            },
+            {
+              "label": "attention",
+              "count": 762,
+              "shareOfOps": 0.027
+            },
+            {
+              "label": "split_qkv_rmsnorm_rope_qk:f16kv_cache",
+              "count": 762,
+              "shareOfOps": 0.027
+            },
+            {
+              "label": "gather",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "lm_head_argmax_q4k_phase1",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "lm_head_argmax_q4k_phase2",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L0",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L1",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L10",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L11",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L12",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L13",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L14",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L15",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L16",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L17",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L18",
+              "count": 127,
+              "shareOfOps": 0.005
+            }
+          ],
+          "semantics": {
+            "opCount": "Logical compute dispatches recorded into batch-decode command buffers.",
+            "passCount": "Actual WebGPU compute passes opened while recording batch-decode command buffers.",
+            "uniqueOpLabels": "Number of distinct exact compute-pass labels recorded in batch-decode command buffers.",
+            "msPerOp": "decodeRecordMs divided by logical recorded compute dispatches.",
+            "msPerPass": "decodeRecordMs divided by actual WebGPU compute passes.",
+            "passesPerOp": "Actual WebGPU compute passes divided by logical recorded compute dispatches.",
+            "msPerExecutedBatchToken": "decodeRecordMs divided by batch-path tokens submitted for execution.",
+            "opsPerExecutedBatchToken": "Logical recorded compute dispatches divided by batch-path tokens submitted for execution.",
+            "passesPerExecutedBatchToken": "Actual WebGPU compute passes divided by batch-path tokens submitted for execution.",
+            "topOps": "Highest-count exact compute-pass labels observed during command recording."
+          }
+        },
+        "shares": {
+          "commandRecord": 0.315,
+          "submitWait": 0.666,
+          "readbackWait": 0.673,
+          "effectiveSubmitReadbackWait": 0.673,
+          "readbackMapWait": 0.666,
+          "readbackCleanup": 0.007,
+          "readbackCopy": 0,
+          "readbackUnattributed": 0,
+          "gpuTimestamp": null,
+          "submitReadbackSlack": null,
+          "orchestration": 0.002,
+          "residual": 0.01
+        },
+        "semantics": {
+          "effectiveSubmitReadbackWaitMs": "max(decodeSubmitWaitMs, decodeReadbackWaitMs); submit and readback waits overlap.",
+          "readbackMapWaitMs": "Wall time awaiting staging-buffer mapAsync; usually includes GPU completion behind the readback.",
+          "gpuTimestampMs": "Timestamp-query GPU work when available; null means it was not captured."
+        }
+      },
+      "artifact": {
+        "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
+        "weightCapsuleId": "qwen-3-5-0-8b-q4k-ehaf16-wp-catalog-v1",
+        "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
+        "shardSetHash": null,
+        "artifactCompleteness": "complete"
+      },
+      "environment": {
+        "host": {
+          "platform": "darwin",
+          "arch": "arm64",
+          "nodeVersion": "v22.20.0"
+        },
+        "browser": {
+          "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+          "baseUrl": null,
+          "channel": "chromium"
+        }
+      },
+      "deviceInfo": {
+        "hasSubgroups": true,
+        "wgslLanguageFeatures": [
+          "packed_4x8_integer_dot_product",
+          "subgroup_uniformity",
+          "immediate_address_space",
+          "subgroup_id",
+          "linear_indexing",
+          "readonly_and_readwrite_storage_textures",
+          "swizzle_assignment",
+          "unrestricted_pointer_parameters",
+          "buffer_view",
+          "texture_formats_tier1",
+          "pointer_composite_access",
+          "texture_and_sampler_let",
+          "uniform_buffer_standard_layout"
+        ],
+        "hasSubgroupsF16": true,
+        "hasF16": true,
+        "hasTimestampQuery": true,
+        "maxBufferSize": 4294967292,
+        "maxWorkgroupSize": 1024,
+        "maxWorkgroupStorageSize": 32768,
+        "adapterInfo": {
+          "vendor": "apple",
+          "architecture": "metal-3",
+          "device": "0x0000",
+          "description": "Apple M3"
+        },
+        "submitProbeMs": 1.4000000022351742
+      },
+      "tjsDeviceInfo": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "0x0000",
+        "description": "Apple M3",
+        "hasF16": true,
+        "hasSubgroups": true,
+        "hasTimestampQuery": true
+      }
+    },
+    {
+      "lane": "metal",
+      "order": "doppler-first",
+      "model": "qwen-3-5-2b-q4k-ehaf16",
+      "receipt": "metal/2b-doppler-first/compare_latest.json",
+      "sha256": "4b06ce235a5fa18d0c4035ee2db5af2e10c649cb8af85543f90005a857ef25b0",
+      "fairness": {
+        "schemaVersion": 1,
+        "claimGrade": true,
+        "releaseClaimable": false,
+        "localComparable": true,
+        "correctnessOk": true,
+        "primarySection": "warm",
+        "invalidReason": null,
+        "invalidReasons": [],
+        "formatFairness": {
+          "schemaVersion": 1,
+          "doppler": "rdrr",
+          "transformersjs": "onnx",
+          "sameFormat": false,
+          "class": "optimized-rdrr-vs-onnx",
+          "disclosureRequired": true,
+          "blocksClaim": false,
+          "reason": "formats differ and must be disclosed with any claim"
+        },
+        "surfaceFairness": {
+          "schemaVersion": 1,
+          "dopplerRequestedSurface": "browser",
+          "dopplerCommandSurface": "browser",
+          "transformersjsSurface": "browser",
+          "sameRuntimeSurface": true,
+          "blocksClaim": false
+        },
+        "sections": {
+          "warm": {
+            "schemaVersion": 1,
+            "sectionId": "warm",
+            "claimGrade": true,
+            "invalidReasons": [],
+            "gates": {
+              "performanceComparableLane": true,
+              "sameRuntimeSurface": true,
+              "tjsModelPinned": true,
+              "pairedComparable": true,
+              "throughputCadencePromotable": null
+            },
+            "invalidReason": null
+          }
+        },
+        "semantics": {
+          "claimGrade": "true means the primary compare section passed its configured output-parity policy, prompt/decode validity, same runtime surface, pinned comparator model, and performance-comparable lane gates.",
+          "releaseClaimable": "true means claimGrade evidence measured the hosted quickstart-registry Doppler artifact.",
+          "localComparable": "true means claimGrade evidence exists but is local-artifact evidence, not a hosted release claim.",
+          "formatFairness": "different optimized formats are allowed only as disclosed product-format comparisons, not format-identical engine claims."
+        }
+      },
+      "outputParity": {
+        "schemaVersion": 1,
+        "status": "match",
+        "reason": null,
+        "exactMatch": true,
+        "normalizedMatch": true,
+        "charMismatchIndex": -1,
+        "tokenMatch": {
+          "leftTokenCount": 128,
+          "rightTokenCount": 128,
+          "matchingPrefixTokens": 128,
+          "firstMismatchTokenIndex": -1
+        },
+        "tokenIdMatch": {
+          "leftTokenCount": 128,
+          "rightTokenCount": 128,
+          "matchingPrefixTokens": 128,
+          "firstMismatchTokenIndex": -1,
+          "firstMismatch": null
+        },
+        "lengths": {
+          "dopplerChars": 697,
+          "transformersjsChars": 697
+        }
+      },
+      "doppler": {
+        "modelLoadMs": 3083.9,
+        "firstTokenMs": 503,
+        "firstResponseMs": 3586.9,
+        "prefillMs": 485.5,
+        "decodeMs": 3904.3,
+        "decodeMsPerTokenP50": 0,
+        "decodeMsPerTokenP95": 442.6,
+        "decodeMsPerTokenP99": 553.32,
+        "decodeTokensPerSec": 32.53,
+        "prefillTokensPerSec": 131.82,
+        "totalRunMs": 4410.5,
+        "cacheMode": "warm",
+        "loadMode": "http",
+        "scope": "generation-call-through-completion",
+        "promptTokensPerSecToFirstToken": 127.2365805168986
+      },
+      "transformersjs": {
+        "scope": "generation-call-through-completion",
+        "modelLoadMs": 6852.980000000447,
+        "firstTokenMs": 784.769999999553,
+        "firstResponseMs": 7637.75,
+        "prefillMs": 784.769999999553,
+        "decodeMs": 11710.01000000164,
+        "totalRunMs": 12494.780000001192,
+        "decodeTokensPerSec": 10.845421993660315,
+        "promptTokensPerSecToFirstToken": 81.552556800128,
+        "prefillTokensPerSec": 81.552556800128,
+        "prefillTokensPerSecTtft": 81.552556800128,
+        "decodeMsPerTokenP50": 91.64499999955297,
+        "decodeMsPerTokenP95": 150.035000000149,
+        "decodeMsPerTokenP99": 199.2179999977348,
+        "cacheMode": "warm",
+        "loadMode": "http"
+      },
+      "memoryAccounting": {
+        "schemaVersion": 1,
+        "gpuMemoryComparable": false,
+        "doppler": {
+          "schemaVersion": 1,
+          "source": "doppler-memoryStats",
+          "gpuMemoryComparable": true,
+          "usedBytes": 2126107392,
+          "pool": {
+            "peakBytesAllocated": 2167790336,
+            "peakBytesRequested": 2148982528,
+            "currentBytesAllocated": 2123735808,
+            "currentBytesRequested": 2100722176,
+            "activeBuffers": 455,
+            "pooledBuffers": 63
+          },
+          "kvCache": {
+            "allocatedBytes": 2371584,
+            "usedBytes": 2347008,
+            "theoreticalBytes": 2371584,
+            "efficiency": 0.99,
+            "seqLen": 191,
+            "maxSeqLen": 193,
+            "layout": "contiguous",
+            "kvDtype": "f16"
+          }
+        },
+        "transformersjs": {
+          "schemaVersion": 1,
+          "source": "browser-performance-memory",
+          "gpuMemoryComparable": false,
+          "usedJSHeapBeforeBytes": 3783280,
+          "usedJSHeapAfterBytes": 106795915,
+          "usedJSHeapDeltaBytes": 103012635,
+          "totalJSHeapBeforeBytes": 5937464,
+          "totalJSHeapAfterBytes": 147371407,
+          "jsHeapSizeLimitBytes": 4395630592
+        },
+        "comparability": {
+          "gpuMemory": false,
+          "reason": "Doppler reports GPU buffer-pool/KV memory; Transformers.js exposes browser JS heap here, not WebGPU allocation residency."
+        }
+      },
+      "efficiencyMetrics": {
+        "schemaVersion": 1,
+        "units": {
+          "decodeTokensPerSecPerPeakRssGiB": "tok/s/GiB RSS",
+          "decodeTokensPerSecPerPeakGpuGiB": "tok/s/GiB GPU memory"
+        },
+        "doppler": {
+          "peakRssBytes": null,
+          "peakGpuMemoryBytes": null,
+          "meanCpuPercent": null,
+          "meanGpuUtilizationPercent": null,
+          "meanPowerWatts": null,
+          "decodeTokensPerSecPerPeakRssGiB": null,
+          "decodeTokensPerSecPerPeakGpuGiB": null
+        },
+        "transformersjs": {
+          "peakRssBytes": null,
+          "peakGpuMemoryBytes": null,
+          "meanCpuPercent": null,
+          "meanGpuUtilizationPercent": null,
+          "meanPowerWatts": null,
+          "decodeTokensPerSecPerPeakRssGiB": null,
+          "decodeTokensPerSecPerPeakGpuGiB": null
+        },
+        "comparability": {
+          "processTree": true,
+          "gpuTelemetry": false,
+          "reason": "Host process-tree RSS/CPU and system/GPU telemetry are sampled by the same parent benchmark tool; GPU memory is device-global when sourced from rocm-smi."
+        }
+      },
+      "dopplerBottleneck": {
+        "schemaVersion": 1,
+        "dominant": {
+          "id": "readback_map_wait",
+          "label": "readback map wait",
+          "ms": 3165.4,
+          "shareOfDecode": 0.811
+        },
+        "bottleneckClass": "submit-readback-wait",
+        "decodeWallMs": 3904.3,
+        "componentsMs": {
+          "commandRecordMs": 766.6,
+          "submitWaitMs": 3165.667,
+          "readbackWaitMs": 3181.733,
+          "effectiveSubmitReadbackWaitMs": 3181.733,
+          "readbackMapWaitMs": 3165.4,
+          "readbackCleanupMs": 15.967,
+          "readbackCopyMs": 0.2,
+          "readbackUnattributedMs": 0.167,
+          "gpuTimestampMs": null,
+          "submitReadbackSlackMs": null,
+          "orchestrationMs": 4.067,
+          "residualMs": 0
+        },
+        "recording": {
+          "opCount": 25781,
+          "passCount": 32,
+          "uniqueOpLabels": 108,
+          "msPerOp": 0.03,
+          "msPerPass": 23.956,
+          "passesPerOp": 0.001,
+          "msPerExecutedBatchToken": 6.036,
+          "opsPerExecutedBatchToken": 203,
+          "passesPerExecutedBatchToken": 0.252,
+          "topOps": [
+            {
+              "label": "fused_ffn",
+              "count": 3048,
+              "shareOfOps": 0.118
+            },
+            {
+              "label": "rmsnorm:post_attn_norm",
+              "count": 3048,
+              "shareOfOps": 0.118
+            },
+            {
+              "label": "residual_rmsnorm_pair:ffn_residual_next_input_norm",
+              "count": 2921,
+              "shareOfOps": 0.113
+            },
+            {
+              "label": "linear_attention_fused_decode_core",
+              "count": 2286,
+              "shareOfOps": 0.089
+            },
+            {
+              "label": "attention",
+              "count": 762,
+              "shareOfOps": 0.03
+            },
+            {
+              "label": "split_qkv_rmsnorm_rope_qk:f16kv_cache",
+              "count": 762,
+              "shareOfOps": 0.03
+            },
+            {
+              "label": "gather",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "lm_head_argmax_q4k_phase1",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "lm_head_argmax_q4k_phase2",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L0",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L1",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L10",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L11",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L12",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L13",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L14",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L15",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L16",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L17",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L18",
+              "count": 127,
+              "shareOfOps": 0.005
+            }
+          ],
+          "semantics": {
+            "opCount": "Logical compute dispatches recorded into batch-decode command buffers.",
+            "passCount": "Actual WebGPU compute passes opened while recording batch-decode command buffers.",
+            "uniqueOpLabels": "Number of distinct exact compute-pass labels recorded in batch-decode command buffers.",
+            "msPerOp": "decodeRecordMs divided by logical recorded compute dispatches.",
+            "msPerPass": "decodeRecordMs divided by actual WebGPU compute passes.",
+            "passesPerOp": "Actual WebGPU compute passes divided by logical recorded compute dispatches.",
+            "msPerExecutedBatchToken": "decodeRecordMs divided by batch-path tokens submitted for execution.",
+            "opsPerExecutedBatchToken": "Logical recorded compute dispatches divided by batch-path tokens submitted for execution.",
+            "passesPerExecutedBatchToken": "Actual WebGPU compute passes divided by batch-path tokens submitted for execution.",
+            "topOps": "Highest-count exact compute-pass labels observed during command recording."
+          }
+        },
+        "shares": {
+          "commandRecord": 0.196,
+          "submitWait": 0.811,
+          "readbackWait": 0.815,
+          "effectiveSubmitReadbackWait": 0.815,
+          "readbackMapWait": 0.811,
+          "readbackCleanup": 0.004,
+          "readbackCopy": 0,
+          "readbackUnattributed": 0,
+          "gpuTimestamp": null,
+          "submitReadbackSlack": null,
+          "orchestration": 0.001,
+          "residual": 0
+        },
+        "semantics": {
+          "effectiveSubmitReadbackWaitMs": "max(decodeSubmitWaitMs, decodeReadbackWaitMs); submit and readback waits overlap.",
+          "readbackMapWaitMs": "Wall time awaiting staging-buffer mapAsync; usually includes GPU completion behind the readback.",
+          "gpuTimestampMs": "Timestamp-query GPU work when available; null means it was not captured."
+        }
+      },
+      "artifact": {
+        "sourceCheckpointId": "Qwen/Qwen3.5-2B",
+        "weightCapsuleId": "qwen-3-5-2b-q4k-ehaf16-wp-catalog-v1",
+        "manifestVariantId": "qwen-3-5-2b-q4k-ehaf16-mv-exec-v1",
+        "shardSetHash": null,
+        "artifactCompleteness": "complete"
+      },
+      "environment": {
+        "host": {
+          "platform": "darwin",
+          "arch": "arm64",
+          "nodeVersion": "v22.20.0"
+        },
+        "browser": {
+          "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+          "baseUrl": null,
+          "channel": "chromium"
+        }
+      },
+      "deviceInfo": {
+        "hasSubgroups": true,
+        "wgslLanguageFeatures": [
+          "packed_4x8_integer_dot_product",
+          "subgroup_uniformity",
+          "immediate_address_space",
+          "subgroup_id",
+          "linear_indexing",
+          "readonly_and_readwrite_storage_textures",
+          "swizzle_assignment",
+          "unrestricted_pointer_parameters",
+          "buffer_view",
+          "texture_formats_tier1",
+          "pointer_composite_access",
+          "texture_and_sampler_let",
+          "uniform_buffer_standard_layout"
+        ],
+        "hasSubgroupsF16": true,
+        "hasF16": true,
+        "hasTimestampQuery": true,
+        "maxBufferSize": 4294967292,
+        "maxWorkgroupSize": 1024,
+        "maxWorkgroupStorageSize": 32768,
+        "adapterInfo": {
+          "vendor": "apple",
+          "architecture": "metal-3",
+          "device": "0x0000",
+          "description": "Apple M3"
+        },
+        "submitProbeMs": 1
+      },
+      "tjsDeviceInfo": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "0x0000",
+        "description": "Apple M3",
+        "hasF16": true,
+        "hasSubgroups": true,
+        "hasTimestampQuery": true
+      }
+    },
+    {
+      "lane": "metal",
+      "order": "transformersjs-first",
+      "model": "qwen-3-5-2b-q4k-ehaf16",
+      "receipt": "metal/2b-transformersjs-first/compare_latest.json",
+      "sha256": "3866581654d7eac5c5aa233fbaf34237d75c578f3483044e6111cb73d21ba276",
+      "fairness": {
+        "schemaVersion": 1,
+        "claimGrade": true,
+        "releaseClaimable": false,
+        "localComparable": true,
+        "correctnessOk": true,
+        "primarySection": "warm",
+        "invalidReason": null,
+        "invalidReasons": [],
+        "formatFairness": {
+          "schemaVersion": 1,
+          "doppler": "rdrr",
+          "transformersjs": "onnx",
+          "sameFormat": false,
+          "class": "optimized-rdrr-vs-onnx",
+          "disclosureRequired": true,
+          "blocksClaim": false,
+          "reason": "formats differ and must be disclosed with any claim"
+        },
+        "surfaceFairness": {
+          "schemaVersion": 1,
+          "dopplerRequestedSurface": "browser",
+          "dopplerCommandSurface": "browser",
+          "transformersjsSurface": "browser",
+          "sameRuntimeSurface": true,
+          "blocksClaim": false
+        },
+        "sections": {
+          "warm": {
+            "schemaVersion": 1,
+            "sectionId": "warm",
+            "claimGrade": true,
+            "invalidReasons": [],
+            "gates": {
+              "performanceComparableLane": true,
+              "sameRuntimeSurface": true,
+              "tjsModelPinned": true,
+              "pairedComparable": true,
+              "throughputCadencePromotable": null
+            },
+            "invalidReason": null
+          }
+        },
+        "semantics": {
+          "claimGrade": "true means the primary compare section passed its configured output-parity policy, prompt/decode validity, same runtime surface, pinned comparator model, and performance-comparable lane gates.",
+          "releaseClaimable": "true means claimGrade evidence measured the hosted quickstart-registry Doppler artifact.",
+          "localComparable": "true means claimGrade evidence exists but is local-artifact evidence, not a hosted release claim.",
+          "formatFairness": "different optimized formats are allowed only as disclosed product-format comparisons, not format-identical engine claims."
+        }
+      },
+      "outputParity": {
+        "schemaVersion": 1,
+        "status": "match",
+        "reason": null,
+        "exactMatch": true,
+        "normalizedMatch": true,
+        "charMismatchIndex": -1,
+        "tokenMatch": {
+          "leftTokenCount": 128,
+          "rightTokenCount": 128,
+          "matchingPrefixTokens": 128,
+          "firstMismatchTokenIndex": -1
+        },
+        "tokenIdMatch": {
+          "leftTokenCount": 128,
+          "rightTokenCount": 128,
+          "matchingPrefixTokens": 128,
+          "firstMismatchTokenIndex": -1,
+          "firstMismatch": null
+        },
+        "lengths": {
+          "dopplerChars": 697,
+          "transformersjsChars": 697
+        }
+      },
+      "doppler": {
+        "modelLoadMs": 4117,
+        "firstTokenMs": 667.4,
+        "firstResponseMs": 4784.4,
+        "prefillMs": 643.4,
+        "decodeMs": 5769.4,
+        "decodeMsPerTokenP50": 0,
+        "decodeMsPerTokenP95": 661.8,
+        "decodeMsPerTokenP99": 767.38,
+        "decodeTokensPerSec": 22.01,
+        "prefillTokensPerSec": 99.47,
+        "totalRunMs": 6436.8,
+        "cacheMode": "warm",
+        "loadMode": "http",
+        "scope": "generation-call-through-completion",
+        "promptTokensPerSecToFirstToken": 95.89451603204324
+      },
+      "transformersjs": {
+        "scope": "generation-call-through-completion",
+        "modelLoadMs": 7210.795000001788,
+        "firstTokenMs": 424.16999999806285,
+        "firstResponseMs": 7634.964999999851,
+        "prefillMs": 424.16999999806285,
+        "decodeMs": 6092.195000000298,
+        "totalRunMs": 6516.364999998361,
+        "decodeTokensPerSec": 20.846345200702505,
+        "promptTokensPerSecToFirstToken": 150.88290072445548,
+        "prefillTokensPerSec": 150.88290072445548,
+        "prefillTokensPerSecTtft": 150.88290072445548,
+        "decodeMsPerTokenP50": 43.90500000119209,
+        "decodeMsPerTokenP95": 65.97500000149012,
+        "decodeMsPerTokenP99": 88.44400000050662,
+        "cacheMode": "warm",
+        "loadMode": "http"
+      },
+      "memoryAccounting": {
+        "schemaVersion": 1,
+        "gpuMemoryComparable": false,
+        "doppler": {
+          "schemaVersion": 1,
+          "source": "doppler-memoryStats",
+          "gpuMemoryComparable": true,
+          "usedBytes": 2126107392,
+          "pool": {
+            "peakBytesAllocated": 2167790336,
+            "peakBytesRequested": 2148982528,
+            "currentBytesAllocated": 2123735808,
+            "currentBytesRequested": 2100722176,
+            "activeBuffers": 455,
+            "pooledBuffers": 63
+          },
+          "kvCache": {
+            "allocatedBytes": 2371584,
+            "usedBytes": 2347008,
+            "theoreticalBytes": 2371584,
+            "efficiency": 0.99,
+            "seqLen": 191,
+            "maxSeqLen": 193,
+            "layout": "contiguous",
+            "kvDtype": "f16"
+          }
+        },
+        "transformersjs": {
+          "schemaVersion": 1,
+          "source": "browser-performance-memory",
+          "gpuMemoryComparable": false,
+          "usedJSHeapBeforeBytes": 3783292,
+          "usedJSHeapAfterBytes": 86712452,
+          "usedJSHeapDeltaBytes": 82929160,
+          "totalJSHeapBeforeBytes": 6199608,
+          "totalJSHeapAfterBytes": 146305160,
+          "jsHeapSizeLimitBytes": 4395630592
+        },
+        "comparability": {
+          "gpuMemory": false,
+          "reason": "Doppler reports GPU buffer-pool/KV memory; Transformers.js exposes browser JS heap here, not WebGPU allocation residency."
+        }
+      },
+      "efficiencyMetrics": {
+        "schemaVersion": 1,
+        "units": {
+          "decodeTokensPerSecPerPeakRssGiB": "tok/s/GiB RSS",
+          "decodeTokensPerSecPerPeakGpuGiB": "tok/s/GiB GPU memory"
+        },
+        "doppler": {
+          "peakRssBytes": null,
+          "peakGpuMemoryBytes": null,
+          "meanCpuPercent": null,
+          "meanGpuUtilizationPercent": null,
+          "meanPowerWatts": null,
+          "decodeTokensPerSecPerPeakRssGiB": null,
+          "decodeTokensPerSecPerPeakGpuGiB": null
+        },
+        "transformersjs": {
+          "peakRssBytes": null,
+          "peakGpuMemoryBytes": null,
+          "meanCpuPercent": null,
+          "meanGpuUtilizationPercent": null,
+          "meanPowerWatts": null,
+          "decodeTokensPerSecPerPeakRssGiB": null,
+          "decodeTokensPerSecPerPeakGpuGiB": null
+        },
+        "comparability": {
+          "processTree": true,
+          "gpuTelemetry": false,
+          "reason": "Host process-tree RSS/CPU and system/GPU telemetry are sampled by the same parent benchmark tool; GPU memory is device-global when sourced from rocm-smi."
+        }
+      },
+      "dopplerBottleneck": {
+        "schemaVersion": 1,
+        "dominant": {
+          "id": "readback_map_wait",
+          "label": "readback map wait",
+          "ms": 4058.333,
+          "shareOfDecode": 0.703
+        },
+        "bottleneckClass": "submit-readback-wait",
+        "decodeWallMs": 5769.4,
+        "componentsMs": {
+          "commandRecordMs": 1651.467,
+          "submitWaitMs": 4058.933,
+          "readbackWaitMs": 4091.1,
+          "effectiveSubmitReadbackWaitMs": 4091.1,
+          "readbackMapWaitMs": 4058.333,
+          "readbackCleanupMs": 32.167,
+          "readbackCopyMs": 0.333,
+          "readbackUnattributedMs": 0.267,
+          "gpuTimestampMs": null,
+          "submitReadbackSlackMs": null,
+          "orchestrationMs": 7.133,
+          "residualMs": 19.7
+        },
+        "recording": {
+          "opCount": 25781,
+          "passCount": 32,
+          "uniqueOpLabels": 108,
+          "msPerOp": 0.064,
+          "msPerPass": 51.608,
+          "passesPerOp": 0.001,
+          "msPerExecutedBatchToken": 13.004,
+          "opsPerExecutedBatchToken": 203,
+          "passesPerExecutedBatchToken": 0.252,
+          "topOps": [
+            {
+              "label": "fused_ffn",
+              "count": 3048,
+              "shareOfOps": 0.118
+            },
+            {
+              "label": "rmsnorm:post_attn_norm",
+              "count": 3048,
+              "shareOfOps": 0.118
+            },
+            {
+              "label": "residual_rmsnorm_pair:ffn_residual_next_input_norm",
+              "count": 2921,
+              "shareOfOps": 0.113
+            },
+            {
+              "label": "linear_attention_fused_decode_core",
+              "count": 2286,
+              "shareOfOps": 0.089
+            },
+            {
+              "label": "attention",
+              "count": 762,
+              "shareOfOps": 0.03
+            },
+            {
+              "label": "split_qkv_rmsnorm_rope_qk:f16kv_cache",
+              "count": 762,
+              "shareOfOps": 0.03
+            },
+            {
+              "label": "gather",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "lm_head_argmax_q4k_phase1",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "lm_head_argmax_q4k_phase2",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L0",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L1",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L10",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L11",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L12",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L13",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L14",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L15",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L16",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L17",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L18",
+              "count": 127,
+              "shareOfOps": 0.005
+            }
+          ],
+          "semantics": {
+            "opCount": "Logical compute dispatches recorded into batch-decode command buffers.",
+            "passCount": "Actual WebGPU compute passes opened while recording batch-decode command buffers.",
+            "uniqueOpLabels": "Number of distinct exact compute-pass labels recorded in batch-decode command buffers.",
+            "msPerOp": "decodeRecordMs divided by logical recorded compute dispatches.",
+            "msPerPass": "decodeRecordMs divided by actual WebGPU compute passes.",
+            "passesPerOp": "Actual WebGPU compute passes divided by logical recorded compute dispatches.",
+            "msPerExecutedBatchToken": "decodeRecordMs divided by batch-path tokens submitted for execution.",
+            "opsPerExecutedBatchToken": "Logical recorded compute dispatches divided by batch-path tokens submitted for execution.",
+            "passesPerExecutedBatchToken": "Actual WebGPU compute passes divided by batch-path tokens submitted for execution.",
+            "topOps": "Highest-count exact compute-pass labels observed during command recording."
+          }
+        },
+        "shares": {
+          "commandRecord": 0.286,
+          "submitWait": 0.704,
+          "readbackWait": 0.709,
+          "effectiveSubmitReadbackWait": 0.709,
+          "readbackMapWait": 0.703,
+          "readbackCleanup": 0.006,
+          "readbackCopy": 0,
+          "readbackUnattributed": 0,
+          "gpuTimestamp": null,
+          "submitReadbackSlack": null,
+          "orchestration": 0.001,
+          "residual": 0.003
+        },
+        "semantics": {
+          "effectiveSubmitReadbackWaitMs": "max(decodeSubmitWaitMs, decodeReadbackWaitMs); submit and readback waits overlap.",
+          "readbackMapWaitMs": "Wall time awaiting staging-buffer mapAsync; usually includes GPU completion behind the readback.",
+          "gpuTimestampMs": "Timestamp-query GPU work when available; null means it was not captured."
+        }
+      },
+      "artifact": {
+        "sourceCheckpointId": "Qwen/Qwen3.5-2B",
+        "weightCapsuleId": "qwen-3-5-2b-q4k-ehaf16-wp-catalog-v1",
+        "manifestVariantId": "qwen-3-5-2b-q4k-ehaf16-mv-exec-v1",
+        "shardSetHash": null,
+        "artifactCompleteness": "complete"
+      },
+      "environment": {
+        "host": {
+          "platform": "darwin",
+          "arch": "arm64",
+          "nodeVersion": "v22.20.0"
+        },
+        "browser": {
+          "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+          "baseUrl": null,
+          "channel": "chromium"
+        }
+      },
+      "deviceInfo": {
+        "hasSubgroups": true,
+        "wgslLanguageFeatures": [
+          "packed_4x8_integer_dot_product",
+          "subgroup_uniformity",
+          "immediate_address_space",
+          "subgroup_id",
+          "linear_indexing",
+          "readonly_and_readwrite_storage_textures",
+          "swizzle_assignment",
+          "unrestricted_pointer_parameters",
+          "buffer_view",
+          "texture_formats_tier1",
+          "pointer_composite_access",
+          "texture_and_sampler_let",
+          "uniform_buffer_standard_layout"
+        ],
+        "hasSubgroupsF16": true,
+        "hasF16": true,
+        "hasTimestampQuery": true,
+        "maxBufferSize": 4294967292,
+        "maxWorkgroupSize": 1024,
+        "maxWorkgroupStorageSize": 32768,
+        "adapterInfo": {
+          "vendor": "apple",
+          "architecture": "metal-3",
+          "device": "0x0000",
+          "description": "Apple M3"
+        },
+        "submitProbeMs": 1.699999999254942
+      },
+      "tjsDeviceInfo": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "0x0000",
+        "description": "Apple M3",
+        "hasF16": true,
+        "hasSubgroups": true,
+        "hasTimestampQuery": true
+      }
+    },
+    {
+      "lane": "vulkan",
+      "order": "doppler-first",
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "receipt": "vulkan/0-8b-doppler-first/compare_latest.json",
+      "sha256": "b3b0c6daa4de7e095e1651e1a94a30f929cb078f1f9bd5ba5942d887fd16da62",
+      "fairness": {
+        "schemaVersion": 1,
+        "claimGrade": true,
+        "releaseClaimable": false,
+        "localComparable": true,
+        "correctnessOk": true,
+        "primarySection": "warm",
+        "invalidReason": null,
+        "invalidReasons": [],
+        "formatFairness": {
+          "schemaVersion": 1,
+          "doppler": "rdrr",
+          "transformersjs": "onnx",
+          "sameFormat": false,
+          "class": "optimized-rdrr-vs-onnx",
+          "disclosureRequired": true,
+          "blocksClaim": false,
+          "reason": "formats differ and must be disclosed with any claim"
+        },
+        "surfaceFairness": {
+          "schemaVersion": 1,
+          "dopplerRequestedSurface": "browser",
+          "dopplerCommandSurface": "browser",
+          "transformersjsSurface": "browser",
+          "sameRuntimeSurface": true,
+          "blocksClaim": false
+        },
+        "sections": {
+          "warm": {
+            "schemaVersion": 1,
+            "sectionId": "warm",
+            "claimGrade": true,
+            "invalidReasons": [],
+            "gates": {
+              "performanceComparableLane": true,
+              "sameRuntimeSurface": true,
+              "tjsModelPinned": true,
+              "pairedComparable": true,
+              "throughputCadencePromotable": null
+            },
+            "invalidReason": null
+          }
+        },
+        "semantics": {
+          "claimGrade": "true means the primary compare section passed its configured output-parity policy, prompt/decode validity, same runtime surface, pinned comparator model, and performance-comparable lane gates.",
+          "releaseClaimable": "true means claimGrade evidence measured the hosted quickstart-registry Doppler artifact.",
+          "localComparable": "true means claimGrade evidence exists but is local-artifact evidence, not a hosted release claim.",
+          "formatFairness": "different optimized formats are allowed only as disclosed product-format comparisons, not format-identical engine claims."
+        }
+      },
+      "outputParity": {
+        "schemaVersion": 1,
+        "status": "match",
+        "reason": null,
+        "exactMatch": true,
+        "normalizedMatch": true,
+        "charMismatchIndex": -1,
+        "tokenMatch": {
+          "leftTokenCount": 128,
+          "rightTokenCount": 128,
+          "matchingPrefixTokens": 128,
+          "firstMismatchTokenIndex": -1
+        },
+        "tokenIdMatch": {
+          "leftTokenCount": 128,
+          "rightTokenCount": 128,
+          "matchingPrefixTokens": 128,
+          "firstMismatchTokenIndex": -1,
+          "firstMismatch": null
+        },
+        "lengths": {
+          "dopplerChars": 697,
+          "transformersjsChars": 697
+        }
+      },
+      "doppler": {
+        "modelLoadMs": 2343.8,
+        "firstTokenMs": 144.4,
+        "firstResponseMs": 2488.2,
+        "prefillMs": 135,
+        "decodeMs": 1290.6,
+        "decodeMsPerTokenP50": 0,
+        "decodeMsPerTokenP95": 148.3,
+        "decodeMsPerTokenP99": 170.64,
+        "decodeTokensPerSec": 98.4,
+        "prefillTokensPerSec": 474.07,
+        "totalRunMs": 1448.2,
+        "cacheMode": "warm",
+        "loadMode": "http",
+        "scope": "generation-call-through-completion",
+        "promptTokensPerSecToFirstToken": 443.21329647207085
+      },
+      "transformersjs": {
+        "scope": "generation-call-through-completion",
+        "modelLoadMs": 2303.814999997616,
+        "firstTokenMs": 101.7049999833107,
+        "firstResponseMs": 2405.5199999809265,
+        "prefillMs": 101.7049999833107,
+        "decodeMs": 4716.080000013113,
+        "totalRunMs": 4816.125,
+        "decodeTokensPerSec": 26.92914454369877,
+        "promptTokensPerSecToFirstToken": 629.2709307359726,
+        "prefillTokensPerSec": 629.2709307359726,
+        "prefillTokensPerSecTtft": 629.2709307359726,
+        "decodeMsPerTokenP50": 31.304999977350235,
+        "decodeMsPerTokenP95": 62.89999997615814,
+        "decodeMsPerTokenP99": 88.11200001835807,
+        "cacheMode": "warm",
+        "loadMode": "http"
+      },
+      "memoryAccounting": {
+        "schemaVersion": 1,
+        "gpuMemoryComparable": false,
+        "doppler": {
+          "schemaVersion": 1,
+          "source": "doppler-memoryStats",
+          "gpuMemoryComparable": true,
+          "usedBytes": 988866304,
+          "pool": {
+            "peakBytesAllocated": 1020146432,
+            "peakBytesRequested": 989468416,
+            "currentBytesAllocated": 986494720,
+            "currentBytesRequested": 955888128,
+            "activeBuffers": 455,
+            "pooledBuffers": 64
+          },
+          "kvCache": {
+            "allocatedBytes": 2371584,
+            "usedBytes": 2347008,
+            "theoreticalBytes": 2371584,
+            "efficiency": 0.99,
+            "seqLen": 191,
+            "maxSeqLen": 193,
+            "layout": "contiguous",
+            "kvDtype": "f16"
+          }
+        },
+        "transformersjs": {
+          "schemaVersion": 1,
+          "source": "browser-performance-memory",
+          "gpuMemoryComparable": false,
+          "usedJSHeapBeforeBytes": 3857461,
+          "usedJSHeapAfterBytes": 82593080,
+          "usedJSHeapDeltaBytes": 78735619,
+          "totalJSHeapBeforeBytes": 6464641,
+          "totalJSHeapAfterBytes": 147431060,
+          "jsHeapSizeLimitBytes": 4294967296
+        },
+        "comparability": {
+          "gpuMemory": false,
+          "reason": "Doppler reports GPU buffer-pool/KV memory; Transformers.js exposes browser JS heap here, not WebGPU allocation residency."
+        }
+      },
+      "efficiencyMetrics": {
+        "schemaVersion": 1,
+        "units": {
+          "decodeTokensPerSecPerPeakRssGiB": "tok/s/GiB RSS",
+          "decodeTokensPerSecPerPeakGpuGiB": "tok/s/GiB GPU memory"
+        },
+        "doppler": {
+          "peakRssBytes": 2507845632,
+          "peakGpuMemoryBytes": 528134144,
+          "meanCpuPercent": 134.978,
+          "meanGpuUtilizationPercent": 64.462,
+          "meanPowerWatts": 99.592,
+          "decodeTokensPerSecPerPeakRssGiB": 42.13,
+          "decodeTokensPerSecPerPeakGpuGiB": 200.056
+        },
+        "transformersjs": {
+          "peakRssBytes": 3210567680,
+          "peakGpuMemoryBytes": 528490496,
+          "meanCpuPercent": 140.885,
+          "meanGpuUtilizationPercent": 63.879,
+          "meanPowerWatts": 99.462,
+          "decodeTokensPerSecPerPeakRssGiB": 9.006,
+          "decodeTokensPerSecPerPeakGpuGiB": 54.712
+        },
+        "comparability": {
+          "processTree": true,
+          "gpuTelemetry": true,
+          "reason": "Host process-tree RSS/CPU and system/GPU telemetry are sampled by the same parent benchmark tool; GPU memory is device-global when sourced from rocm-smi."
+        }
+      },
+      "dopplerBottleneck": {
+        "schemaVersion": 1,
+        "dominant": {
+          "id": "command_record",
+          "label": "command recording",
+          "ms": 671.1,
+          "shareOfDecode": 0.52
+        },
+        "bottleneckClass": "command-recording",
+        "decodeWallMs": 1290.6,
+        "componentsMs": {
+          "commandRecordMs": 671.1,
+          "submitWaitMs": 584.733,
+          "readbackWaitMs": 606,
+          "effectiveSubmitReadbackWaitMs": 606,
+          "readbackMapWaitMs": 584.4,
+          "readbackCleanupMs": 21.167,
+          "readbackCopyMs": 0.167,
+          "readbackUnattributedMs": 0.267,
+          "gpuTimestampMs": null,
+          "submitReadbackSlackMs": null,
+          "orchestrationMs": 4.533,
+          "residualMs": 8.967
+        },
+        "recording": {
+          "opCount": 28067,
+          "passCount": 32,
+          "uniqueOpLabels": 126,
+          "msPerOp": 0.024,
+          "msPerPass": 20.972,
+          "passesPerOp": 0.001,
+          "msPerExecutedBatchToken": 5.284,
+          "opsPerExecutedBatchToken": 221,
+          "passesPerExecutedBatchToken": 0.252,
+          "topOps": [
+            {
+              "label": "fused_ffn",
+              "count": 3048,
+              "shareOfOps": 0.109
+            },
+            {
+              "label": "rmsnorm:post_attn_norm",
+              "count": 3048,
+              "shareOfOps": 0.109
+            },
+            {
+              "label": "residual_rmsnorm_pair:ffn_residual_next_input_norm",
+              "count": 2921,
+              "shareOfOps": 0.104
+            },
+            {
+              "label": "linear_attention_fused_decode_core",
+              "count": 2286,
+              "shareOfOps": 0.081
+            },
+            {
+              "label": "attention",
+              "count": 762,
+              "shareOfOps": 0.027
+            },
+            {
+              "label": "split_qkv_rmsnorm_rope_qk:f16kv_cache",
+              "count": 762,
+              "shareOfOps": 0.027
+            },
+            {
+              "label": "gather",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "lm_head_argmax_q4k_phase1",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "lm_head_argmax_q4k_phase2",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L0",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L1",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L10",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L11",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L12",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L13",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L14",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L15",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L16",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L17",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L18",
+              "count": 127,
+              "shareOfOps": 0.005
+            }
+          ],
+          "semantics": {
+            "opCount": "Logical compute dispatches recorded into batch-decode command buffers.",
+            "passCount": "Actual WebGPU compute passes opened while recording batch-decode command buffers.",
+            "uniqueOpLabels": "Number of distinct exact compute-pass labels recorded in batch-decode command buffers.",
+            "msPerOp": "decodeRecordMs divided by logical recorded compute dispatches.",
+            "msPerPass": "decodeRecordMs divided by actual WebGPU compute passes.",
+            "passesPerOp": "Actual WebGPU compute passes divided by logical recorded compute dispatches.",
+            "msPerExecutedBatchToken": "decodeRecordMs divided by batch-path tokens submitted for execution.",
+            "opsPerExecutedBatchToken": "Logical recorded compute dispatches divided by batch-path tokens submitted for execution.",
+            "passesPerExecutedBatchToken": "Actual WebGPU compute passes divided by batch-path tokens submitted for execution.",
+            "topOps": "Highest-count exact compute-pass labels observed during command recording."
+          }
+        },
+        "shares": {
+          "commandRecord": 0.52,
+          "submitWait": 0.453,
+          "readbackWait": 0.47,
+          "effectiveSubmitReadbackWait": 0.47,
+          "readbackMapWait": 0.453,
+          "readbackCleanup": 0.016,
+          "readbackCopy": 0,
+          "readbackUnattributed": 0,
+          "gpuTimestamp": null,
+          "submitReadbackSlack": null,
+          "orchestration": 0.004,
+          "residual": 0.007
+        },
+        "semantics": {
+          "effectiveSubmitReadbackWaitMs": "max(decodeSubmitWaitMs, decodeReadbackWaitMs); submit and readback waits overlap.",
+          "readbackMapWaitMs": "Wall time awaiting staging-buffer mapAsync; usually includes GPU completion behind the readback.",
+          "gpuTimestampMs": "Timestamp-query GPU work when available; null means it was not captured."
+        }
+      },
+      "artifact": {
+        "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
+        "weightCapsuleId": "qwen-3-5-0-8b-q4k-ehaf16-wp-catalog-v1",
+        "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
+        "shardSetHash": null,
+        "artifactCompleteness": "complete"
+      },
+      "environment": {
+        "host": {
+          "platform": "linux",
+          "arch": "x64",
+          "nodeVersion": "v22.22.1"
+        },
+        "browser": {
+          "executable": "/opt/google/chrome/chrome",
+          "baseUrl": null,
+          "channel": "chromium"
+        }
+      },
+      "deviceInfo": {
+        "hasSubgroups": true,
+        "wgslLanguageFeatures": [
+          "packed_4x8_integer_dot_product",
+          "subgroup_uniformity",
+          "subgroup_id",
+          "readonly_and_readwrite_storage_textures",
+          "unrestricted_pointer_parameters",
+          "texture_and_sampler_let",
+          "pointer_composite_access",
+          "uniform_buffer_standard_layout"
+        ],
+        "hasSubgroupsF16": true,
+        "hasF16": true,
+        "hasTimestampQuery": true,
+        "maxBufferSize": 4294967292,
+        "maxWorkgroupSize": 1024,
+        "maxWorkgroupStorageSize": 65536,
+        "adapterInfo": {
+          "vendor": "amd",
+          "architecture": "rdna-3",
+          "device": "0x1586",
+          "description": "Radeon 8060S Graphics (RADV STRIX_HALO)"
+        },
+        "submitProbeMs": 3.699999988079071
+      },
+      "tjsDeviceInfo": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "0x1586",
+        "description": "Radeon 8060S Graphics (RADV STRIX_HALO)",
+        "hasF16": true,
+        "hasSubgroups": true,
+        "hasTimestampQuery": true
+      }
+    },
+    {
+      "lane": "vulkan",
+      "order": "transformersjs-first",
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "receipt": "vulkan/0-8b-transformersjs-first/compare_latest.json",
+      "sha256": "39f3262dd701a7d07db461a7f83ea9f8f4d357ebc6b55a15f3fb287fba807cc4",
+      "fairness": {
+        "schemaVersion": 1,
+        "claimGrade": true,
+        "releaseClaimable": false,
+        "localComparable": true,
+        "correctnessOk": true,
+        "primarySection": "warm",
+        "invalidReason": null,
+        "invalidReasons": [],
+        "formatFairness": {
+          "schemaVersion": 1,
+          "doppler": "rdrr",
+          "transformersjs": "onnx",
+          "sameFormat": false,
+          "class": "optimized-rdrr-vs-onnx",
+          "disclosureRequired": true,
+          "blocksClaim": false,
+          "reason": "formats differ and must be disclosed with any claim"
+        },
+        "surfaceFairness": {
+          "schemaVersion": 1,
+          "dopplerRequestedSurface": "browser",
+          "dopplerCommandSurface": "browser",
+          "transformersjsSurface": "browser",
+          "sameRuntimeSurface": true,
+          "blocksClaim": false
+        },
+        "sections": {
+          "warm": {
+            "schemaVersion": 1,
+            "sectionId": "warm",
+            "claimGrade": true,
+            "invalidReasons": [],
+            "gates": {
+              "performanceComparableLane": true,
+              "sameRuntimeSurface": true,
+              "tjsModelPinned": true,
+              "pairedComparable": true,
+              "throughputCadencePromotable": null
+            },
+            "invalidReason": null
+          }
+        },
+        "semantics": {
+          "claimGrade": "true means the primary compare section passed its configured output-parity policy, prompt/decode validity, same runtime surface, pinned comparator model, and performance-comparable lane gates.",
+          "releaseClaimable": "true means claimGrade evidence measured the hosted quickstart-registry Doppler artifact.",
+          "localComparable": "true means claimGrade evidence exists but is local-artifact evidence, not a hosted release claim.",
+          "formatFairness": "different optimized formats are allowed only as disclosed product-format comparisons, not format-identical engine claims."
+        }
+      },
+      "outputParity": {
+        "schemaVersion": 1,
+        "status": "match",
+        "reason": null,
+        "exactMatch": true,
+        "normalizedMatch": true,
+        "charMismatchIndex": -1,
+        "tokenMatch": {
+          "leftTokenCount": 128,
+          "rightTokenCount": 128,
+          "matchingPrefixTokens": 128,
+          "firstMismatchTokenIndex": -1
+        },
+        "tokenIdMatch": {
+          "leftTokenCount": 128,
+          "rightTokenCount": 128,
+          "matchingPrefixTokens": 128,
+          "firstMismatchTokenIndex": -1,
+          "firstMismatch": null
+        },
+        "lengths": {
+          "dopplerChars": 697,
+          "transformersjsChars": 697
+        }
+      },
+      "doppler": {
+        "modelLoadMs": 1724.5,
+        "firstTokenMs": 179.9,
+        "firstResponseMs": 1904.4,
+        "prefillMs": 172.5,
+        "decodeMs": 1539.6,
+        "decodeMsPerTokenP50": 0,
+        "decodeMsPerTokenP95": 173.2,
+        "decodeMsPerTokenP99": 226.5,
+        "decodeTokensPerSec": 82.49,
+        "prefillTokensPerSec": 371.01,
+        "totalRunMs": 1871.3,
+        "cacheMode": "warm",
+        "loadMode": "http",
+        "scope": "generation-call-through-completion",
+        "promptTokensPerSecToFirstToken": 355.75319620833545
+      },
+      "transformersjs": {
+        "scope": "generation-call-through-completion",
+        "modelLoadMs": 2896.5550000071526,
+        "firstTokenMs": 123.63500002026558,
+        "firstResponseMs": 3020.190000027418,
+        "prefillMs": 123.63500002026558,
+        "decodeMs": 4777.0199999809265,
+        "totalRunMs": 4900.655000001192,
+        "decodeTokensPerSec": 26.585611950652723,
+        "promptTokensPerSecToFirstToken": 517.6527681442105,
+        "prefillTokensPerSec": 517.6527681442105,
+        "prefillTokensPerSecTtft": 517.6527681442105,
+        "decodeMsPerTokenP50": 29.99500000476837,
+        "decodeMsPerTokenP95": 65.81499999761581,
+        "decodeMsPerTokenP99": 85.37799999713886,
+        "cacheMode": "warm",
+        "loadMode": "http"
+      },
+      "memoryAccounting": {
+        "schemaVersion": 1,
+        "gpuMemoryComparable": false,
+        "doppler": {
+          "schemaVersion": 1,
+          "source": "doppler-memoryStats",
+          "gpuMemoryComparable": true,
+          "usedBytes": 988866304,
+          "pool": {
+            "peakBytesAllocated": 1020146432,
+            "peakBytesRequested": 989468416,
+            "currentBytesAllocated": 986494720,
+            "currentBytesRequested": 955888128,
+            "activeBuffers": 455,
+            "pooledBuffers": 64
+          },
+          "kvCache": {
+            "allocatedBytes": 2371584,
+            "usedBytes": 2347008,
+            "theoreticalBytes": 2371584,
+            "efficiency": 0.99,
+            "seqLen": 191,
+            "maxSeqLen": 193,
+            "layout": "contiguous",
+            "kvDtype": "f16"
+          }
+        },
+        "transformersjs": {
+          "schemaVersion": 1,
+          "source": "browser-performance-memory",
+          "gpuMemoryComparable": false,
+          "usedJSHeapBeforeBytes": 3868201,
+          "usedJSHeapAfterBytes": 78647028,
+          "usedJSHeapDeltaBytes": 74778827,
+          "totalJSHeapBeforeBytes": 6468737,
+          "totalJSHeapAfterBytes": 137841168,
+          "jsHeapSizeLimitBytes": 4294967296
+        },
+        "comparability": {
+          "gpuMemory": false,
+          "reason": "Doppler reports GPU buffer-pool/KV memory; Transformers.js exposes browser JS heap here, not WebGPU allocation residency."
+        }
+      },
+      "efficiencyMetrics": {
+        "schemaVersion": 1,
+        "units": {
+          "decodeTokensPerSecPerPeakRssGiB": "tok/s/GiB RSS",
+          "decodeTokensPerSecPerPeakGpuGiB": "tok/s/GiB GPU memory"
+        },
+        "doppler": {
+          "peakRssBytes": 2527170560,
+          "peakGpuMemoryBytes": 527425536,
+          "meanCpuPercent": 123.868,
+          "meanGpuUtilizationPercent": 56.24,
+          "meanPowerWatts": 99.078,
+          "decodeTokensPerSecPerPeakRssGiB": 35.048,
+          "decodeTokensPerSecPerPeakGpuGiB": 167.935
+        },
+        "transformersjs": {
+          "peakRssBytes": 3350974464,
+          "peakGpuMemoryBytes": 528551936,
+          "meanCpuPercent": 147.313,
+          "meanGpuUtilizationPercent": 68.474,
+          "meanPowerWatts": 99.456,
+          "decodeTokensPerSecPerPeakRssGiB": 8.519,
+          "decodeTokensPerSecPerPeakGpuGiB": 54.008
+        },
+        "comparability": {
+          "processTree": true,
+          "gpuTelemetry": true,
+          "reason": "Host process-tree RSS/CPU and system/GPU telemetry are sampled by the same parent benchmark tool; GPU memory is device-global when sourced from rocm-smi."
+        }
+      },
+      "dopplerBottleneck": {
+        "schemaVersion": 1,
+        "dominant": {
+          "id": "readback_map_wait",
+          "label": "readback map wait",
+          "ms": 841.267,
+          "shareOfDecode": 0.546
+        },
+        "bottleneckClass": "submit-readback-wait",
+        "decodeWallMs": 1539.6,
+        "componentsMs": {
+          "commandRecordMs": 732.767,
+          "submitWaitMs": 841.733,
+          "readbackWaitMs": 863.1,
+          "effectiveSubmitReadbackWaitMs": 863.1,
+          "readbackMapWaitMs": 841.267,
+          "readbackCleanupMs": 21.333,
+          "readbackCopyMs": 0.267,
+          "readbackUnattributedMs": 0.233,
+          "gpuTimestampMs": null,
+          "submitReadbackSlackMs": null,
+          "orchestrationMs": 5.3,
+          "residualMs": 0
+        },
+        "recording": {
+          "opCount": 28067,
+          "passCount": 32,
+          "uniqueOpLabels": 126,
+          "msPerOp": 0.026,
+          "msPerPass": 22.899,
+          "passesPerOp": 0.001,
+          "msPerExecutedBatchToken": 5.77,
+          "opsPerExecutedBatchToken": 221,
+          "passesPerExecutedBatchToken": 0.252,
+          "topOps": [
+            {
+              "label": "fused_ffn",
+              "count": 3048,
+              "shareOfOps": 0.109
+            },
+            {
+              "label": "rmsnorm:post_attn_norm",
+              "count": 3048,
+              "shareOfOps": 0.109
+            },
+            {
+              "label": "residual_rmsnorm_pair:ffn_residual_next_input_norm",
+              "count": 2921,
+              "shareOfOps": 0.104
+            },
+            {
+              "label": "linear_attention_fused_decode_core",
+              "count": 2286,
+              "shareOfOps": 0.081
+            },
+            {
+              "label": "attention",
+              "count": 762,
+              "shareOfOps": 0.027
+            },
+            {
+              "label": "split_qkv_rmsnorm_rope_qk:f16kv_cache",
+              "count": 762,
+              "shareOfOps": 0.027
+            },
+            {
+              "label": "gather",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "lm_head_argmax_q4k_phase1",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "lm_head_argmax_q4k_phase2",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L0",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L1",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L10",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L11",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L12",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L13",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L14",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L15",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L16",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L17",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L18",
+              "count": 127,
+              "shareOfOps": 0.005
+            }
+          ],
+          "semantics": {
+            "opCount": "Logical compute dispatches recorded into batch-decode command buffers.",
+            "passCount": "Actual WebGPU compute passes opened while recording batch-decode command buffers.",
+            "uniqueOpLabels": "Number of distinct exact compute-pass labels recorded in batch-decode command buffers.",
+            "msPerOp": "decodeRecordMs divided by logical recorded compute dispatches.",
+            "msPerPass": "decodeRecordMs divided by actual WebGPU compute passes.",
+            "passesPerOp": "Actual WebGPU compute passes divided by logical recorded compute dispatches.",
+            "msPerExecutedBatchToken": "decodeRecordMs divided by batch-path tokens submitted for execution.",
+            "opsPerExecutedBatchToken": "Logical recorded compute dispatches divided by batch-path tokens submitted for execution.",
+            "passesPerExecutedBatchToken": "Actual WebGPU compute passes divided by batch-path tokens submitted for execution.",
+            "topOps": "Highest-count exact compute-pass labels observed during command recording."
+          }
+        },
+        "shares": {
+          "commandRecord": 0.476,
+          "submitWait": 0.547,
+          "readbackWait": 0.561,
+          "effectiveSubmitReadbackWait": 0.561,
+          "readbackMapWait": 0.546,
+          "readbackCleanup": 0.014,
+          "readbackCopy": 0,
+          "readbackUnattributed": 0,
+          "gpuTimestamp": null,
+          "submitReadbackSlack": null,
+          "orchestration": 0.003,
+          "residual": 0
+        },
+        "semantics": {
+          "effectiveSubmitReadbackWaitMs": "max(decodeSubmitWaitMs, decodeReadbackWaitMs); submit and readback waits overlap.",
+          "readbackMapWaitMs": "Wall time awaiting staging-buffer mapAsync; usually includes GPU completion behind the readback.",
+          "gpuTimestampMs": "Timestamp-query GPU work when available; null means it was not captured."
+        }
+      },
+      "artifact": {
+        "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
+        "weightCapsuleId": "qwen-3-5-0-8b-q4k-ehaf16-wp-catalog-v1",
+        "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
+        "shardSetHash": null,
+        "artifactCompleteness": "complete"
+      },
+      "environment": {
+        "host": {
+          "platform": "linux",
+          "arch": "x64",
+          "nodeVersion": "v22.22.1"
+        },
+        "browser": {
+          "executable": "/opt/google/chrome/chrome",
+          "baseUrl": null,
+          "channel": "chromium"
+        }
+      },
+      "deviceInfo": {
+        "hasSubgroups": true,
+        "wgslLanguageFeatures": [
+          "packed_4x8_integer_dot_product",
+          "subgroup_uniformity",
+          "subgroup_id",
+          "readonly_and_readwrite_storage_textures",
+          "unrestricted_pointer_parameters",
+          "texture_and_sampler_let",
+          "pointer_composite_access",
+          "uniform_buffer_standard_layout"
+        ],
+        "hasSubgroupsF16": true,
+        "hasF16": true,
+        "hasTimestampQuery": true,
+        "maxBufferSize": 4294967292,
+        "maxWorkgroupSize": 1024,
+        "maxWorkgroupStorageSize": 65536,
+        "adapterInfo": {
+          "vendor": "amd",
+          "architecture": "rdna-3",
+          "device": "0x1586",
+          "description": "Radeon 8060S Graphics (RADV STRIX_HALO)"
+        },
+        "submitProbeMs": 1.5999999940395355
+      },
+      "tjsDeviceInfo": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "0x1586",
+        "description": "Radeon 8060S Graphics (RADV STRIX_HALO)",
+        "hasF16": true,
+        "hasSubgroups": true,
+        "hasTimestampQuery": true
+      }
+    },
+    {
+      "lane": "vulkan",
+      "order": "doppler-first",
+      "model": "qwen-3-5-2b-q4k-ehaf16",
+      "receipt": "vulkan/2b-doppler-first/compare_latest.json",
+      "sha256": "a80b58c9e95d28877a4b5439e750ee7025943b5934d122f133a1f49643268048",
+      "fairness": {
+        "schemaVersion": 1,
+        "claimGrade": true,
+        "releaseClaimable": false,
+        "localComparable": true,
+        "correctnessOk": true,
+        "primarySection": "warm",
+        "invalidReason": null,
+        "invalidReasons": [],
+        "formatFairness": {
+          "schemaVersion": 1,
+          "doppler": "rdrr",
+          "transformersjs": "onnx",
+          "sameFormat": false,
+          "class": "optimized-rdrr-vs-onnx",
+          "disclosureRequired": true,
+          "blocksClaim": false,
+          "reason": "formats differ and must be disclosed with any claim"
+        },
+        "surfaceFairness": {
+          "schemaVersion": 1,
+          "dopplerRequestedSurface": "browser",
+          "dopplerCommandSurface": "browser",
+          "transformersjsSurface": "browser",
+          "sameRuntimeSurface": true,
+          "blocksClaim": false
+        },
+        "sections": {
+          "warm": {
+            "schemaVersion": 1,
+            "sectionId": "warm",
+            "claimGrade": true,
+            "invalidReasons": [],
+            "gates": {
+              "performanceComparableLane": true,
+              "sameRuntimeSurface": true,
+              "tjsModelPinned": true,
+              "pairedComparable": true,
+              "throughputCadencePromotable": null
+            },
+            "invalidReason": null
+          }
+        },
+        "semantics": {
+          "claimGrade": "true means the primary compare section passed its configured output-parity policy, prompt/decode validity, same runtime surface, pinned comparator model, and performance-comparable lane gates.",
+          "releaseClaimable": "true means claimGrade evidence measured the hosted quickstart-registry Doppler artifact.",
+          "localComparable": "true means claimGrade evidence exists but is local-artifact evidence, not a hosted release claim.",
+          "formatFairness": "different optimized formats are allowed only as disclosed product-format comparisons, not format-identical engine claims."
+        }
+      },
+      "outputParity": {
+        "schemaVersion": 1,
+        "status": "match",
+        "reason": null,
+        "exactMatch": true,
+        "normalizedMatch": true,
+        "charMismatchIndex": -1,
+        "tokenMatch": {
+          "leftTokenCount": 128,
+          "rightTokenCount": 128,
+          "matchingPrefixTokens": 128,
+          "firstMismatchTokenIndex": -1
+        },
+        "tokenIdMatch": {
+          "leftTokenCount": 128,
+          "rightTokenCount": 128,
+          "matchingPrefixTokens": 128,
+          "firstMismatchTokenIndex": -1,
+          "firstMismatch": null
+        },
+        "lengths": {
+          "dopplerChars": 697,
+          "transformersjsChars": 697
+        }
+      },
+      "doppler": {
+        "modelLoadMs": 4323.6,
+        "firstTokenMs": 213.1,
+        "firstResponseMs": 4536.7,
+        "prefillMs": 190,
+        "decodeMs": 2259.8,
+        "decodeMsPerTokenP50": 0,
+        "decodeMsPerTokenP95": 218.6,
+        "decodeMsPerTokenP99": 306.82,
+        "decodeTokensPerSec": 56.2,
+        "prefillTokensPerSec": 336.84,
+        "totalRunMs": 2529.4,
+        "cacheMode": "warm",
+        "loadMode": "http",
+        "scope": "generation-call-through-completion",
+        "promptTokensPerSecToFirstToken": 300.3284842880812
+      },
+      "transformersjs": {
+        "scope": "generation-call-through-completion",
+        "modelLoadMs": 3189.9950000047684,
+        "firstTokenMs": 279.1200000047684,
+        "firstResponseMs": 3469.1150000095367,
+        "prefillMs": 279.1200000047684,
+        "decodeMs": 3688.4500000178814,
+        "totalRunMs": 3967.270000010729,
+        "decodeTokensPerSec": 34.43180739860492,
+        "promptTokensPerSecToFirstToken": 229.29206075847895,
+        "prefillTokensPerSec": 229.29206075847895,
+        "prefillTokensPerSecTtft": 229.29206075847895,
+        "decodeMsPerTokenP50": 26.685000002384186,
+        "decodeMsPerTokenP95": 50.314999997615814,
+        "decodeMsPerTokenP99": 79.64299999475477,
+        "cacheMode": "warm",
+        "loadMode": "http"
+      },
+      "memoryAccounting": {
+        "schemaVersion": 1,
+        "gpuMemoryComparable": false,
+        "doppler": {
+          "schemaVersion": 1,
+          "source": "doppler-memoryStats",
+          "gpuMemoryComparable": true,
+          "usedBytes": 2126107392,
+          "pool": {
+            "peakBytesAllocated": 2170149632,
+            "peakBytesRequested": 2148982528,
+            "currentBytesAllocated": 2123735808,
+            "currentBytesRequested": 2100722176,
+            "activeBuffers": 455,
+            "pooledBuffers": 63
+          },
+          "kvCache": {
+            "allocatedBytes": 2371584,
+            "usedBytes": 2347008,
+            "theoreticalBytes": 2371584,
+            "efficiency": 0.99,
+            "seqLen": 191,
+            "maxSeqLen": 193,
+            "layout": "contiguous",
+            "kvDtype": "f16"
+          }
+        },
+        "transformersjs": {
+          "schemaVersion": 1,
+          "source": "browser-performance-memory",
+          "gpuMemoryComparable": false,
+          "usedJSHeapBeforeBytes": 3872741,
+          "usedJSHeapAfterBytes": 105087744,
+          "usedJSHeapDeltaBytes": 101215003,
+          "totalJSHeapBeforeBytes": 6464641,
+          "totalJSHeapAfterBytes": 145757264,
+          "jsHeapSizeLimitBytes": 4294967296
+        },
+        "comparability": {
+          "gpuMemory": false,
+          "reason": "Doppler reports GPU buffer-pool/KV memory; Transformers.js exposes browser JS heap here, not WebGPU allocation residency."
+        }
+      },
+      "efficiencyMetrics": {
+        "schemaVersion": 1,
+        "units": {
+          "decodeTokensPerSecPerPeakRssGiB": "tok/s/GiB RSS",
+          "decodeTokensPerSecPerPeakGpuGiB": "tok/s/GiB GPU memory"
+        },
+        "doppler": {
+          "peakRssBytes": 3079364608,
+          "peakGpuMemoryBytes": 528486400,
+          "meanCpuPercent": 114.167,
+          "meanGpuUtilizationPercent": 72.077,
+          "meanPowerWatts": 99.468,
+          "decodeTokensPerSecPerPeakRssGiB": 19.596,
+          "decodeTokensPerSecPerPeakGpuGiB": 114.183
+        },
+        "transformersjs": {
+          "peakRssBytes": 6448410624,
+          "peakGpuMemoryBytes": 528568320,
+          "meanCpuPercent": 145.028,
+          "meanGpuUtilizationPercent": 62.579,
+          "meanPowerWatts": 99.432,
+          "decodeTokensPerSecPerPeakRssGiB": 5.733,
+          "decodeTokensPerSecPerPeakGpuGiB": 69.945
+        },
+        "comparability": {
+          "processTree": true,
+          "gpuTelemetry": true,
+          "reason": "Host process-tree RSS/CPU and system/GPU telemetry are sampled by the same parent benchmark tool; GPU memory is device-global when sourced from rocm-smi."
+        }
+      },
+      "dopplerBottleneck": {
+        "schemaVersion": 1,
+        "dominant": {
+          "id": "readback_map_wait",
+          "label": "readback map wait",
+          "ms": 1337.1,
+          "shareOfDecode": 0.592
+        },
+        "bottleneckClass": "submit-readback-wait",
+        "decodeWallMs": 2259.8,
+        "componentsMs": {
+          "commandRecordMs": 758.967,
+          "submitWaitMs": 1337.467,
+          "readbackWaitMs": 1361.6,
+          "effectiveSubmitReadbackWaitMs": 1361.6,
+          "readbackMapWaitMs": 1337.1,
+          "readbackCleanupMs": 24.167,
+          "readbackCopyMs": 0.1,
+          "readbackUnattributedMs": 0.233,
+          "gpuTimestampMs": null,
+          "submitReadbackSlackMs": null,
+          "orchestrationMs": 5.2,
+          "residualMs": 134.033
+        },
+        "recording": {
+          "opCount": 28067,
+          "passCount": 32,
+          "uniqueOpLabels": 126,
+          "msPerOp": 0.027,
+          "msPerPass": 23.718,
+          "passesPerOp": 0.001,
+          "msPerExecutedBatchToken": 5.976,
+          "opsPerExecutedBatchToken": 221,
+          "passesPerExecutedBatchToken": 0.252,
+          "topOps": [
+            {
+              "label": "fused_ffn",
+              "count": 3048,
+              "shareOfOps": 0.109
+            },
+            {
+              "label": "rmsnorm:post_attn_norm",
+              "count": 3048,
+              "shareOfOps": 0.109
+            },
+            {
+              "label": "residual_rmsnorm_pair:ffn_residual_next_input_norm",
+              "count": 2921,
+              "shareOfOps": 0.104
+            },
+            {
+              "label": "linear_attention_fused_decode_core",
+              "count": 2286,
+              "shareOfOps": 0.081
+            },
+            {
+              "label": "attention",
+              "count": 762,
+              "shareOfOps": 0.027
+            },
+            {
+              "label": "split_qkv_rmsnorm_rope_qk:f16kv_cache",
+              "count": 762,
+              "shareOfOps": 0.027
+            },
+            {
+              "label": "gather",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "lm_head_argmax_q4k_phase1",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "lm_head_argmax_q4k_phase2",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L0",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L1",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L10",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L11",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L12",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L13",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L14",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L15",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L16",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L17",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L18",
+              "count": 127,
+              "shareOfOps": 0.005
+            }
+          ],
+          "semantics": {
+            "opCount": "Logical compute dispatches recorded into batch-decode command buffers.",
+            "passCount": "Actual WebGPU compute passes opened while recording batch-decode command buffers.",
+            "uniqueOpLabels": "Number of distinct exact compute-pass labels recorded in batch-decode command buffers.",
+            "msPerOp": "decodeRecordMs divided by logical recorded compute dispatches.",
+            "msPerPass": "decodeRecordMs divided by actual WebGPU compute passes.",
+            "passesPerOp": "Actual WebGPU compute passes divided by logical recorded compute dispatches.",
+            "msPerExecutedBatchToken": "decodeRecordMs divided by batch-path tokens submitted for execution.",
+            "opsPerExecutedBatchToken": "Logical recorded compute dispatches divided by batch-path tokens submitted for execution.",
+            "passesPerExecutedBatchToken": "Actual WebGPU compute passes divided by batch-path tokens submitted for execution.",
+            "topOps": "Highest-count exact compute-pass labels observed during command recording."
+          }
+        },
+        "shares": {
+          "commandRecord": 0.336,
+          "submitWait": 0.592,
+          "readbackWait": 0.603,
+          "effectiveSubmitReadbackWait": 0.603,
+          "readbackMapWait": 0.592,
+          "readbackCleanup": 0.011,
+          "readbackCopy": 0,
+          "readbackUnattributed": 0,
+          "gpuTimestamp": null,
+          "submitReadbackSlack": null,
+          "orchestration": 0.002,
+          "residual": 0.059
+        },
+        "semantics": {
+          "effectiveSubmitReadbackWaitMs": "max(decodeSubmitWaitMs, decodeReadbackWaitMs); submit and readback waits overlap.",
+          "readbackMapWaitMs": "Wall time awaiting staging-buffer mapAsync; usually includes GPU completion behind the readback.",
+          "gpuTimestampMs": "Timestamp-query GPU work when available; null means it was not captured."
+        }
+      },
+      "artifact": {
+        "sourceCheckpointId": "Qwen/Qwen3.5-2B",
+        "weightCapsuleId": "qwen-3-5-2b-q4k-ehaf16-wp-catalog-v1",
+        "manifestVariantId": "qwen-3-5-2b-q4k-ehaf16-mv-exec-v1",
+        "shardSetHash": null,
+        "artifactCompleteness": "complete"
+      },
+      "environment": {
+        "host": {
+          "platform": "linux",
+          "arch": "x64",
+          "nodeVersion": "v22.22.1"
+        },
+        "browser": {
+          "executable": "/opt/google/chrome/chrome",
+          "baseUrl": null,
+          "channel": "chromium"
+        }
+      },
+      "deviceInfo": {
+        "hasSubgroups": true,
+        "wgslLanguageFeatures": [
+          "packed_4x8_integer_dot_product",
+          "subgroup_uniformity",
+          "subgroup_id",
+          "readonly_and_readwrite_storage_textures",
+          "unrestricted_pointer_parameters",
+          "pointer_composite_access",
+          "texture_and_sampler_let",
+          "uniform_buffer_standard_layout"
+        ],
+        "hasSubgroupsF16": true,
+        "hasF16": true,
+        "hasTimestampQuery": true,
+        "maxBufferSize": 4294967292,
+        "maxWorkgroupSize": 1024,
+        "maxWorkgroupStorageSize": 65536,
+        "adapterInfo": {
+          "vendor": "amd",
+          "architecture": "rdna-3",
+          "device": "0x1586",
+          "description": "Radeon 8060S Graphics (RADV STRIX_HALO)"
+        },
+        "submitProbeMs": 1.5999999940395355
+      },
+      "tjsDeviceInfo": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "0x1586",
+        "description": "Radeon 8060S Graphics (RADV STRIX_HALO)",
+        "hasF16": true,
+        "hasSubgroups": true,
+        "hasTimestampQuery": true
+      }
+    },
+    {
+      "lane": "vulkan",
+      "order": "transformersjs-first",
+      "model": "qwen-3-5-2b-q4k-ehaf16",
+      "receipt": "vulkan/2b-transformersjs-first/compare_latest.json",
+      "sha256": "03896c89eb8942ad78f82b4172daa1c3bda8c98d682bf6fa588cf36f6b2aa0f0",
+      "fairness": {
+        "schemaVersion": 1,
+        "claimGrade": true,
+        "releaseClaimable": false,
+        "localComparable": true,
+        "correctnessOk": true,
+        "primarySection": "warm",
+        "invalidReason": null,
+        "invalidReasons": [],
+        "formatFairness": {
+          "schemaVersion": 1,
+          "doppler": "rdrr",
+          "transformersjs": "onnx",
+          "sameFormat": false,
+          "class": "optimized-rdrr-vs-onnx",
+          "disclosureRequired": true,
+          "blocksClaim": false,
+          "reason": "formats differ and must be disclosed with any claim"
+        },
+        "surfaceFairness": {
+          "schemaVersion": 1,
+          "dopplerRequestedSurface": "browser",
+          "dopplerCommandSurface": "browser",
+          "transformersjsSurface": "browser",
+          "sameRuntimeSurface": true,
+          "blocksClaim": false
+        },
+        "sections": {
+          "warm": {
+            "schemaVersion": 1,
+            "sectionId": "warm",
+            "claimGrade": true,
+            "invalidReasons": [],
+            "gates": {
+              "performanceComparableLane": true,
+              "sameRuntimeSurface": true,
+              "tjsModelPinned": true,
+              "pairedComparable": true,
+              "throughputCadencePromotable": null
+            },
+            "invalidReason": null
+          }
+        },
+        "semantics": {
+          "claimGrade": "true means the primary compare section passed its configured output-parity policy, prompt/decode validity, same runtime surface, pinned comparator model, and performance-comparable lane gates.",
+          "releaseClaimable": "true means claimGrade evidence measured the hosted quickstart-registry Doppler artifact.",
+          "localComparable": "true means claimGrade evidence exists but is local-artifact evidence, not a hosted release claim.",
+          "formatFairness": "different optimized formats are allowed only as disclosed product-format comparisons, not format-identical engine claims."
+        }
+      },
+      "outputParity": {
+        "schemaVersion": 1,
+        "status": "match",
+        "reason": null,
+        "exactMatch": true,
+        "normalizedMatch": true,
+        "charMismatchIndex": -1,
+        "tokenMatch": {
+          "leftTokenCount": 128,
+          "rightTokenCount": 128,
+          "matchingPrefixTokens": 128,
+          "firstMismatchTokenIndex": -1
+        },
+        "tokenIdMatch": {
+          "leftTokenCount": 128,
+          "rightTokenCount": 128,
+          "matchingPrefixTokens": 128,
+          "firstMismatchTokenIndex": -1,
+          "firstMismatch": null
+        },
+        "lengths": {
+          "dopplerChars": 697,
+          "transformersjsChars": 697
+        }
+      },
+      "doppler": {
+        "modelLoadMs": 4622.8,
+        "firstTokenMs": 269.9,
+        "firstResponseMs": 4892.7,
+        "prefillMs": 250.6,
+        "decodeMs": 2355.3,
+        "decodeMsPerTokenP50": 0,
+        "decodeMsPerTokenP95": 249.1,
+        "decodeMsPerTokenP99": 312.16,
+        "decodeTokensPerSec": 53.92,
+        "prefillTokensPerSec": 255.39,
+        "totalRunMs": 2621.5,
+        "cacheMode": "warm",
+        "loadMode": "http",
+        "scope": "generation-call-through-completion",
+        "promptTokensPerSecToFirstToken": 237.12486108059835
+      },
+      "transformersjs": {
+        "scope": "generation-call-through-completion",
+        "modelLoadMs": 4291.629999995232,
+        "firstTokenMs": 286.0750000178814,
+        "firstResponseMs": 4577.705000013113,
+        "prefillMs": 286.0750000178814,
+        "decodeMs": 5229.084999978542,
+        "totalRunMs": 5462.504999995232,
+        "decodeTokensPerSec": 24.287231896310953,
+        "promptTokensPerSecToFirstToken": 223.717556570828,
+        "prefillTokensPerSec": 223.717556570828,
+        "prefillTokensPerSecTtft": 223.717556570828,
+        "decodeMsPerTokenP50": 37.75999999046326,
+        "decodeMsPerTokenP95": 74.44999998807907,
+        "decodeMsPerTokenP99": 104.46399999856948,
+        "cacheMode": "warm",
+        "loadMode": "http"
+      },
+      "memoryAccounting": {
+        "schemaVersion": 1,
+        "gpuMemoryComparable": false,
+        "doppler": {
+          "schemaVersion": 1,
+          "source": "doppler-memoryStats",
+          "gpuMemoryComparable": true,
+          "usedBytes": 2126107392,
+          "pool": {
+            "peakBytesAllocated": 2170149632,
+            "peakBytesRequested": 2148982528,
+            "currentBytesAllocated": 2123735808,
+            "currentBytesRequested": 2100722176,
+            "activeBuffers": 455,
+            "pooledBuffers": 63
+          },
+          "kvCache": {
+            "allocatedBytes": 2371584,
+            "usedBytes": 2347008,
+            "theoreticalBytes": 2371584,
+            "efficiency": 0.99,
+            "seqLen": 191,
+            "maxSeqLen": 193,
+            "layout": "contiguous",
+            "kvDtype": "f16"
+          }
+        },
+        "transformersjs": {
+          "schemaVersion": 1,
+          "source": "browser-performance-memory",
+          "gpuMemoryComparable": false,
+          "usedJSHeapBeforeBytes": 3870645,
+          "usedJSHeapAfterBytes": 102054898,
+          "usedJSHeapDeltaBytes": 98184253,
+          "totalJSHeapBeforeBytes": 6730881,
+          "totalJSHeapAfterBytes": 142129602,
+          "jsHeapSizeLimitBytes": 4294967296
+        },
+        "comparability": {
+          "gpuMemory": false,
+          "reason": "Doppler reports GPU buffer-pool/KV memory; Transformers.js exposes browser JS heap here, not WebGPU allocation residency."
+        }
+      },
+      "efficiencyMetrics": {
+        "schemaVersion": 1,
+        "units": {
+          "decodeTokensPerSecPerPeakRssGiB": "tok/s/GiB RSS",
+          "decodeTokensPerSecPerPeakGpuGiB": "tok/s/GiB GPU memory"
+        },
+        "doppler": {
+          "peakRssBytes": 3037032448,
+          "peakGpuMemoryBytes": 528490496,
+          "meanCpuPercent": 111.863,
+          "meanGpuUtilizationPercent": 78.5,
+          "meanPowerWatts": 99.647,
+          "decodeTokensPerSecPerPeakRssGiB": 19.063,
+          "decodeTokensPerSecPerPeakGpuGiB": 109.55
+        },
+        "transformersjs": {
+          "peakRssBytes": 7224283136,
+          "peakGpuMemoryBytes": 528547840,
+          "meanCpuPercent": 147.515,
+          "meanGpuUtilizationPercent": 71.221,
+          "meanPowerWatts": 99.496,
+          "decodeTokensPerSecPerPeakRssGiB": 3.61,
+          "decodeTokensPerSecPerPeakGpuGiB": 49.339
+        },
+        "comparability": {
+          "processTree": true,
+          "gpuTelemetry": true,
+          "reason": "Host process-tree RSS/CPU and system/GPU telemetry are sampled by the same parent benchmark tool; GPU memory is device-global when sourced from rocm-smi."
+        }
+      },
+      "dopplerBottleneck": {
+        "schemaVersion": 1,
+        "dominant": {
+          "id": "readback_map_wait",
+          "label": "readback map wait",
+          "ms": 1558.167,
+          "shareOfDecode": 0.662
+        },
+        "bottleneckClass": "submit-readback-wait",
+        "decodeWallMs": 2355.3,
+        "componentsMs": {
+          "commandRecordMs": 783.733,
+          "submitWaitMs": 1558.667,
+          "readbackWaitMs": 1584.633,
+          "effectiveSubmitReadbackWaitMs": 1584.633,
+          "readbackMapWaitMs": 1558.167,
+          "readbackCleanupMs": 25.767,
+          "readbackCopyMs": 0.267,
+          "readbackUnattributedMs": 0.433,
+          "gpuTimestampMs": null,
+          "submitReadbackSlackMs": null,
+          "orchestrationMs": 5.633,
+          "residualMs": 0
+        },
+        "recording": {
+          "opCount": 28067,
+          "passCount": 32,
+          "uniqueOpLabels": 126,
+          "msPerOp": 0.028,
+          "msPerPass": 24.492,
+          "passesPerOp": 0.001,
+          "msPerExecutedBatchToken": 6.171,
+          "opsPerExecutedBatchToken": 221,
+          "passesPerExecutedBatchToken": 0.252,
+          "topOps": [
+            {
+              "label": "fused_ffn",
+              "count": 3048,
+              "shareOfOps": 0.109
+            },
+            {
+              "label": "rmsnorm:post_attn_norm",
+              "count": 3048,
+              "shareOfOps": 0.109
+            },
+            {
+              "label": "residual_rmsnorm_pair:ffn_residual_next_input_norm",
+              "count": 2921,
+              "shareOfOps": 0.104
+            },
+            {
+              "label": "linear_attention_fused_decode_core",
+              "count": 2286,
+              "shareOfOps": 0.081
+            },
+            {
+              "label": "attention",
+              "count": 762,
+              "shareOfOps": 0.027
+            },
+            {
+              "label": "split_qkv_rmsnorm_rope_qk:f16kv_cache",
+              "count": 762,
+              "shareOfOps": 0.027
+            },
+            {
+              "label": "gather",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "lm_head_argmax_q4k_phase1",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "lm_head_argmax_q4k_phase2",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L0",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L1",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L10",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L11",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L12",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L13",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L14",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L15",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L16",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L17",
+              "count": 127,
+              "shareOfOps": 0.005
+            },
+            {
+              "label": "matmul:ffn_down:L18",
+              "count": 127,
+              "shareOfOps": 0.005
+            }
+          ],
+          "semantics": {
+            "opCount": "Logical compute dispatches recorded into batch-decode command buffers.",
+            "passCount": "Actual WebGPU compute passes opened while recording batch-decode command buffers.",
+            "uniqueOpLabels": "Number of distinct exact compute-pass labels recorded in batch-decode command buffers.",
+            "msPerOp": "decodeRecordMs divided by logical recorded compute dispatches.",
+            "msPerPass": "decodeRecordMs divided by actual WebGPU compute passes.",
+            "passesPerOp": "Actual WebGPU compute passes divided by logical recorded compute dispatches.",
+            "msPerExecutedBatchToken": "decodeRecordMs divided by batch-path tokens submitted for execution.",
+            "opsPerExecutedBatchToken": "Logical recorded compute dispatches divided by batch-path tokens submitted for execution.",
+            "passesPerExecutedBatchToken": "Actual WebGPU compute passes divided by batch-path tokens submitted for execution.",
+            "topOps": "Highest-count exact compute-pass labels observed during command recording."
+          }
+        },
+        "shares": {
+          "commandRecord": 0.333,
+          "submitWait": 0.662,
+          "readbackWait": 0.673,
+          "effectiveSubmitReadbackWait": 0.673,
+          "readbackMapWait": 0.662,
+          "readbackCleanup": 0.011,
+          "readbackCopy": 0,
+          "readbackUnattributed": 0,
+          "gpuTimestamp": null,
+          "submitReadbackSlack": null,
+          "orchestration": 0.002,
+          "residual": 0
+        },
+        "semantics": {
+          "effectiveSubmitReadbackWaitMs": "max(decodeSubmitWaitMs, decodeReadbackWaitMs); submit and readback waits overlap.",
+          "readbackMapWaitMs": "Wall time awaiting staging-buffer mapAsync; usually includes GPU completion behind the readback.",
+          "gpuTimestampMs": "Timestamp-query GPU work when available; null means it was not captured."
+        }
+      },
+      "artifact": {
+        "sourceCheckpointId": "Qwen/Qwen3.5-2B",
+        "weightCapsuleId": "qwen-3-5-2b-q4k-ehaf16-wp-catalog-v1",
+        "manifestVariantId": "qwen-3-5-2b-q4k-ehaf16-mv-exec-v1",
+        "shardSetHash": null,
+        "artifactCompleteness": "complete"
+      },
+      "environment": {
+        "host": {
+          "platform": "linux",
+          "arch": "x64",
+          "nodeVersion": "v22.22.1"
+        },
+        "browser": {
+          "executable": "/opt/google/chrome/chrome",
+          "baseUrl": null,
+          "channel": "chromium"
+        }
+      },
+      "deviceInfo": {
+        "hasSubgroups": true,
+        "wgslLanguageFeatures": [
+          "packed_4x8_integer_dot_product",
+          "subgroup_uniformity",
+          "subgroup_id",
+          "readonly_and_readwrite_storage_textures",
+          "unrestricted_pointer_parameters",
+          "pointer_composite_access",
+          "texture_and_sampler_let",
+          "uniform_buffer_standard_layout"
+        ],
+        "hasSubgroupsF16": true,
+        "hasF16": true,
+        "hasTimestampQuery": true,
+        "maxBufferSize": 4294967292,
+        "maxWorkgroupSize": 1024,
+        "maxWorkgroupStorageSize": 65536,
+        "adapterInfo": {
+          "vendor": "amd",
+          "architecture": "rdna-3",
+          "device": "0x1586",
+          "description": "Radeon 8060S Graphics (RADV STRIX_HALO)"
+        },
+        "submitProbeMs": 2.7999999821186066
+      },
+      "tjsDeviceInfo": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "0x1586",
+        "description": "Radeon 8060S Graphics (RADV STRIX_HALO)",
+        "hasF16": true,
+        "hasSubgroups": true,
+        "hasTimestampQuery": true
+      }
+    }
+  ],
+  "prefillDiagnostics": [
+    {
+      "lane": "metal",
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "scope": "One fresh instrumented generation; debug does not run the requested benchmark warmup loop. Not warm or comparative timing.",
+      "prefillWallMs": 331.1,
+      "gpuMs": 152.759286,
+      "recordWallMs": 122.80000000819564,
+      "submitWaitWallMs": 155.9999999962747,
+      "gpuGroupsMs": {
+        "linear_attention_recurrent": 37.90888100000001,
+        "matmul:linear_qkv_proj": 23.535846999999993,
+        "matmul:ffn_down": 17.454439,
+        "matmul:ffn_up": 16.206834000000004,
+        "matmul:ffn_gate": 16.050130000000003,
+        "matmul:linear_z_proj": 8.035919999999999,
+        "matmul:linear_out_proj": 7.868341,
+        "attention": 4.488805,
+        "matmul:linear_a_proj": 4.026645,
+        "matmul:linear_b_proj": 3.749903,
+        "linear_attention_conv": 3.274575,
+        "matmul:qkv_proj": 3.2127039999999996,
+        "matmul:o_proj": 2.1758859999999998,
+        "matmul:q_gate_proj": 2.142676,
+        "gather": 0.668365,
+        "rmsnorm": 0.5678629999999999,
+        "silu": 0.475247,
+        "rmsnorm:post_attn_norm": 0.34811499999999995,
+        "split_qkv_rmsnorm_rope_qk": 0.269328,
+        "residual": 0.21578399999999998,
+        "rmsnorm:input_norm": 0.054334,
+        "kv_cache_write:f32_to_f16": 0.028664000000000002
+      },
+      "source": "metal/0-8b-prefill-diagnostic-debug/run.log"
+    },
+    {
+      "lane": "metal",
+      "model": "qwen-3-5-2b-q4k-ehaf16",
+      "scope": "One fresh instrumented generation; debug does not run the requested benchmark warmup loop. Not warm or comparative timing.",
+      "prefillWallMs": 608.7,
+      "gpuMs": 325.59365,
+      "recordWallMs": 143.70000000670552,
+      "submitWaitWallMs": 312.20000000298023,
+      "gpuGroupsMs": {
+        "matmul:ffn_up": 54.96732499999999,
+        "matmul:ffn_down": 54.422213000000006,
+        "matmul:ffn_gate": 54.228919999999995,
+        "matmul:linear_qkv_proj": 45.17689300000001,
+        "linear_attention_recurrent": 37.845843,
+        "matmul:linear_z_proj": 17.622397999999997,
+        "matmul:linear_out_proj": 13.554208000000001,
+        "matmul:linear_a_proj": 10.274800999999998,
+        "matmul:linear_b_proj": 8.135379,
+        "matmul:qkv_proj": 6.857604,
+        "attention": 5.210005000000001,
+        "matmul:q_gate_proj": 4.69051,
+        "matmul:o_proj": 4.668387,
+        "linear_attention_conv": 4.281434,
+        "silu": 1.6398449999999998,
+        "rmsnorm:post_attn_norm": 0.618991,
+        "rmsnorm": 0.520242,
+        "residual": 0.42665999999999993,
+        "split_qkv_rmsnorm_rope_qk": 0.29616200000000004,
+        "rmsnorm:input_norm": 0.080122,
+        "kv_cache_write:f32_to_f16": 0.045249,
+        "gather": 0.030459
+      },
+      "source": "metal/2b-prefill-diagnostic-debug/run.log"
+    },
+    {
+      "lane": "vulkan",
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "scope": "One fresh instrumented generation; debug does not run the requested benchmark warmup loop. Not warm or comparative timing.",
+      "prefillWallMs": 482.2,
+      "gpuMs": 71.615119,
+      "recordWallMs": 338.30000001192093,
+      "submitWaitWallMs": 98.2000000178814,
+      "gpuGroupsMs": {
+        "linear_attention_recurrent": 37.426624000000004,
+        "matmul:linear_qkv_proj": 5.553209000000001,
+        "matmul:linear_a_proj": 5.4436149999999985,
+        "matmul:linear_b_proj": 4.5668489999999995,
+        "attention": 3.852869,
+        "matmul:ffn_down": 2.5809199999999994,
+        "matmul:ffn_up": 2.3960960000000004,
+        "matmul:ffn_gate": 2.3239600000000005,
+        "matmul:linear_z_proj": 2.0188270000000004,
+        "linear_attention_conv": 1.706444,
+        "matmul:linear_out_proj": 1.346487,
+        "matmul:qkv_proj": 0.545224,
+        "matmul:o_proj": 0.379552,
+        "matmul:q_gate_proj": 0.379271,
+        "silu": 0.290061,
+        "rmsnorm": 0.24870399999999998,
+        "residual": 0.22874899999999998,
+        "rmsnorm:post_attn_norm": 0.20166199999999998,
+        "split_qkv_rmsnorm_rope_qk": 0.051498,
+        "rmsnorm:input_norm": 0.031499,
+        "kv_cache_write:f32_to_f16": 0.022119,
+        "gather": 0.02088
+      },
+      "source": "vulkan/0-8b-prefill-diagnostic-debug/run.log"
+    },
+    {
+      "lane": "vulkan",
+      "model": "qwen-3-5-2b-q4k-ehaf16",
+      "scope": "One fresh instrumented generation; debug does not run the requested benchmark warmup loop. Not warm or comparative timing.",
+      "prefillWallMs": 820.4,
+      "gpuMs": 262.29836,
+      "recordWallMs": 464.0999999642372,
+      "submitWaitWallMs": 260.09999999403954,
+      "gpuGroupsMs": {
+        "linear_attention_recurrent": 118.59168000000001,
+        "matmul:linear_a_proj": 25.768351999999993,
+        "matmul:linear_b_proj": 25.424505000000003,
+        "matmul:ffn_gate": 14.040907999999998,
+        "matmul:ffn_down": 13.355778,
+        "matmul:ffn_up": 12.993699000000001,
+        "matmul:linear_qkv_proj": 12.192516000000001,
+        "linear_attention_conv": 9.444720000000002,
+        "attention": 9.245868,
+        "matmul:linear_z_proj": 6.240829,
+        "matmul:linear_out_proj": 5.290488999999999,
+        "silu": 2.4509169999999996,
+        "matmul:qkv_proj": 1.816849,
+        "matmul:q_gate_proj": 1.61467,
+        "matmul:o_proj": 1.2761550000000002,
+        "rmsnorm:post_attn_norm": 1.1649070000000001,
+        "rmsnorm": 0.7039600000000001,
+        "residual": 0.39313699999999996,
+        "split_qkv_rmsnorm_rope_qk": 0.11004700000000002,
+        "rmsnorm:input_norm": 0.08820700000000001,
+        "kv_cache_write:f32_to_f16": 0.070811,
+        "gather": 0.019356
+      },
+      "source": "vulkan/2b-prefill-diagnostic-debug/run.log"
+    }
+  ],
+  "lifecycle": [
+    {
+      "lane": "metal",
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "passed": true,
+      "rows": 4,
+      "cancellation": {
+        "chunks": 1,
+        "nextRequestMatchesFresh": true
+      },
+      "scope": "Node physical fresh-conversation reset and cancellation parity; not performance or general quality",
+      "source": "metal/0-8b-lifecycle/run.log"
+    },
+    {
+      "lane": "metal",
+      "model": "qwen-3-5-2b-q4k-ehaf16",
+      "passed": true,
+      "rows": 4,
+      "cancellation": {
+        "chunks": 1,
+        "nextRequestMatchesFresh": true
+      },
+      "scope": "Node physical fresh-conversation reset and cancellation parity; not performance or general quality",
+      "source": "metal/2b-lifecycle/run.log"
+    },
+    {
+      "lane": "vulkan",
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "passed": true,
+      "rows": 4,
+      "cancellation": {
+        "chunks": 1,
+        "nextRequestMatchesFresh": true
+      },
+      "scope": "Node physical fresh-conversation reset and cancellation parity; not performance or general quality",
+      "source": "vulkan/0-8b-lifecycle/run.log"
+    },
+    {
+      "lane": "vulkan",
+      "model": "qwen-3-5-2b-q4k-ehaf16",
+      "passed": true,
+      "rows": 4,
+      "cancellation": {
+        "chunks": 1,
+        "nextRequestMatchesFresh": true
+      },
+      "scope": "Node physical fresh-conversation reset and cancellation parity; not performance or general quality",
+      "source": "vulkan/2b-lifecycle/run.log"
+    }
+  ],
+  "openFailures": [
+    "0.8B warm TTFT loses on both GPUs",
+    "Metal 2B TTFT changes winner between engine orders",
+    "Vulkan 2B loading loses in both orders",
+    "Every measured Doppler token-delivery p95 loses",
+    "No network-cold startup qualification",
+    "No universal numerical or useful-answer qualification; movie quality rejection unchanged",
+    "Existing architecture limit and skipped release checks remain open"
+  ]
+}
