@@ -31,6 +31,9 @@ try {
   const manifest = await exportW8A8Projection(config);
   assert.deepEqual(manifest.shape, { M: 1, N: 1024, K: 640 });
   assert.equal(manifest.claims.newPhysicalExecution, false);
+  const physical = JSON.parse(await readFile(path.join(outputDir, 'physical-verification.json'), 'utf8'));
+  assert.equal(hash(await readFile(path.join(outputDir, 'physical-operand-source.js'))),
+    physical.files[`/${manifest.provenance.originalOperandSourcePath}`]);
   assert.deepEqual(manifest.sequences.packed, ['quantize', 'packed-dot', 'activation-rescale', 'weight-rescale']);
   for (const [name, identity] of Object.entries(manifest.files)) {
     const bytes = await readFile(path.join(outputDir, name));

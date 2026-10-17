@@ -27,6 +27,14 @@ for (const entry of manifest.files) {
   // Later shader changes and the recorded stale-digest repair have exact
   // identity mappings. Every other field still matches the frozen archive.
   const shaderChanges = {
+    // 17dc3b3a: flatten large gather/split dispatches across workgroup rows.
+    'sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9':
+      'sha256:a2c318bc362d676769d8cb751d61a4d7777e1068be0456eff634e0821d783c10',
+    'sha256:ce77263ace3099526665174b0fba1d93696bf782268d172d6b71b63a8021338d':
+      'sha256:5a6922136dad0cf05059533f24ea0989875c3659b464dfc7528518d57ce1e0c1',
+    'sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6':
+      'sha256:07fa1796cbddf137054897c831cf10ac7845dc98bffa1a8637614ddb4b82d74d',
+
     ...digestRebindings,
     ...JSON.parse(await fs.readFile(
       'artifacts/recovery-20261009/numerical-digest-rebindings.json', 'utf8'
@@ -53,6 +61,10 @@ for (const entry of manifest.files) {
     // digest to its actual bytes while comparing every computational field.
     const base = await fs.readFile('models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json');
     expected.manifest.weightsRef.manifestDigest = `sha256:${createHash('sha256').update(base).digest('hex')}`;
+  }
+  // 56e3abbd made the previously implicit Gemma 4 runtime pipeline explicit.
+  if (entry.source.startsWith('src/config/conversion/gemma4/') && expected.modelType === undefined) {
+    expected.modelType = 'gemma4';
   }
   assert.deepEqual(current, expected,
     `${entry.source}: naming must not change model computation or numerical policy`);
