@@ -400,26 +400,24 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>,
     let g = -exp_refined(a_log[head]) * softplus(f32(a_proj[ab_row_base]) + dt_bias[head]);
     let g_exp = exp_refined(g);
 
-    if (is_active) {
-      for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
-        let state_idx = recurrent_head_base + kd * head_v_dim + vd;
-        if (RECURRENT_STATE_COMPONENTS == 2u) {
-          state_store(state_idx, pair_mul_scalar(state_load(state_idx), g_exp));
-        } else {
-          recurrent_state[state_idx] = recurrent_state[state_idx] * g_exp;
-        }
-      }
-    }
     var kv_mem = 0.0;
     var kv_pair = vec2<f32>(0.0);
+    var out_value = 0.0;
+    var out_pair = vec2<f32>(0.0);
     if (is_active) {
+      // Consume the decayed value before storing it, avoiding a second state
+      // load. Keep the original rounding and increasing-k reduction order.
       for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
         let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + kd], k_norm_scale);
         let state_idx = recurrent_head_base + kd * head_v_dim + vd;
         if (RECURRENT_STATE_COMPONENTS == 2u) {
-          kv_pair = pair_add(kv_pair, pair_mul_scalar(state_load(state_idx), k_normed));
+          let decayed = pair_mul_scalar(state_load(state_idx), g_exp);
+          state_store(state_idx, decayed);
+          kv_pair = pair_add(kv_pair, pair_mul_scalar(decayed, k_normed));
         } else {
-          kv_mem = fma(recurrent_state[state_idx], k_normed, kv_mem);
+          let decayed = recurrent_state[state_idx] * g_exp;
+          recurrent_state[state_idx] = decayed;
+          kv_mem = fma(decayed, k_normed, kv_mem);
         }
       }
       let delta = multiply_ordered(conv_out[conv_row_base + v_base + vd] - kv_mem, beta);
@@ -427,33 +425,25 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>,
       if (RECURRENT_STATE_COMPONENTS == 2u) {
         delta_pair = pair_mul_scalar(pair_add(vec2<f32>(conv_out[conv_row_base + v_base + vd], 0.0), -kv_pair), beta);
       }
+      // The updated element also contributes to the output immediately.
       for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
         let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + kd], k_norm_scale);
-        let state_idx = recurrent_head_base + kd * head_v_dim + vd;
-        if (RECURRENT_STATE_COMPONENTS == 2u) {
-          state_store(state_idx, pair_add(state_load(state_idx), pair_mul_scalar(delta_pair, k_normed)));
-        } else {
-          recurrent_state[state_idx] = fma(k_normed, delta, recurrent_state[state_idx]);
-        }
-      }
-    }
-
-    var out_value = 0.0;
-    var out_pair = vec2<f32>(0.0);
-    if (is_active) {
-      for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
         let q_normed = fma(conv_out[conv_row_base + q_base + kd], q_norm_scale, 0.0);
         let state_idx = recurrent_head_base + kd * head_v_dim + vd;
         if (RECURRENT_STATE_COMPONENTS == 2u) {
-          out_pair = pair_add(out_pair, pair_mul_scalar(state_load(state_idx), q_normed));
+          let updated = pair_add(state_load(state_idx), pair_mul_scalar(delta_pair, k_normed));
+          state_store(state_idx, updated);
+          out_pair = pair_add(out_pair, pair_mul_scalar(updated, q_normed));
         } else {
-          out_value = fma(recurrent_state[state_idx], q_normed, out_value);
+          let updated = fma(k_normed, delta, recurrent_state[state_idx]);
+          recurrent_state[state_idx] = updated;
+          out_value = fma(updated, q_normed, out_value);
         }
       }
     }
-  if (RECURRENT_STATE_COMPONENTS == 2u) {
-    out_value = out_pair.x + out_pair.y;
-  }
+    if (RECURRENT_STATE_COMPONENTS == 2u) {
+      out_value = out_pair.x + out_pair.y;
+    }
     if (is_active) {
       output[out_row_base + vd] = out_value;
     }

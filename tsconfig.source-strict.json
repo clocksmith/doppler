@@ -105,6 +105,7 @@
     "src/storage/runtime-env.js",
     "src/inference/pipelines/text/generator/speculative-runtime.js",
     "src/inference/pipelines/text/linear-attention/state-checkpoint.js",
+    "src/inference/pipelines/text/linear-attention/state-clone.js",
     "src/config/schema/speculation-self.schema.js"
   ]
 }

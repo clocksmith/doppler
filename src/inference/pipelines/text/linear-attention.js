@@ -23,42 +23,8 @@ import { getLoRAModule } from './lora.js';
 import { applyProjectionLoRA, createLayerRuntimeState, ensureLayerRuntimeGpuBuffers, inferLinearNormModeFromWeight, isGpuBuffer, normalizeLinearNormMode, projectLinearTensor, releaseOrTrackBuffer, releaseResolvedWeightBuffer, resolveMatmulStepDtype, toPositiveInt } from './linear-attention/plan.js';
 export { applyLinearNormWeightOffset } from './linear-attention/plan.js';
 import { assertRecurrentStateLayout, assertConvolutionStateLayout, resolveRecurrentStateLayout } from './linear-attention/state-layout.js';
-const LINEAR_RUNTIME_SCHEMA_VERSION = 4;
+import { LINEAR_RUNTIME_SCHEMA_VERSION, cloneLayerRuntimeState } from './linear-attention/state-clone.js';
 const QK_L2NORM_EPS = 1e-6;
-function cloneLayerRuntimeState(layerState) {
-  assertRecurrentStateLayout(layerState);
-  assertConvolutionStateLayout(layerState);
-  return {
-    layerIdx: layerState.layerIdx,
-    seqLen: layerState.seqLen,
-    warnedSeqMismatch: layerState.warnedSeqMismatch === true,
-    convKernelSize: layerState.convKernelSize,
-    convDim: layerState.convDim,
-    keyDim: layerState.keyDim,
-    valueDim: layerState.valueDim,
-    numKHeads: layerState.numKHeads,
-    numVHeads: layerState.numVHeads,
-    headKDim: layerState.headKDim,
-    headVDim: layerState.headVDim,
-    qSize: layerState.qSize,
-    kSize: layerState.kSize,
-    vSize: layerState.vSize,
-    qRep: layerState.qRep,
-    normMode: layerState.normMode === 'per_head' ? 'per_head' : 'shared',
-    rmsNormEps: layerState.rmsNormEps,
-    convWeight: layerState.convWeight.slice(),
-    dtBias: layerState.dtBias.slice(),
-    aLog: layerState.aLog.slice(),
-    normWeight: layerState.normWeight.slice(),
-    convState: layerState.convState.slice(),
-    convStatePrecision: layerState.convStatePrecision,
-    convStateComponents: layerState.convStateComponents,
-    normWeightOffset: layerState.normWeightOffset,
-    recurrentState: layerState.recurrentState.slice(),
-    recurrentStatePrecision: layerState.recurrentStatePrecision,
-    recurrentStateComponents: layerState.recurrentStateComponents,
-  };
-}
 function cloneLayerMap(layers) {
   const cloned = new Map();
   for (const [layerIdx, layerState] of layers.entries()) {

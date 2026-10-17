@@ -1,0 +1,11 @@
+{
+  "schema": "doppler.recurrent-clone-profile/v1",
+  "modelDirectory": "/Users/xyz/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
+  "manifestHash": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "maxSeqLen": 256,
+  "prompt": "Write a detailed explanation of how tides work.",
+  "warmupPairs": 2,
+  "measuredPairs": 12,
+  "continuationSteps": 128,
+  "output": "/Users/xyz/deco/doppler/reports/qwen-optimization-20261017/mac-recurrent-clone.json"
+}

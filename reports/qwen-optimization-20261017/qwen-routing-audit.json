@@ -1,0 +1,307 @@
+{
+  "schema": "doppler.execution-routing-audit-index/v1",
+  "registryDigest": "sha256:7236ec314719a8ecca5b8682b2d533bb8c0051e6a90e823aac9acf46cd6f800d",
+  "audits": [
+    {
+      "manifestPath": "models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
+      "schema": "doppler.execution-routing-audit/v1",
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "artifactDigest": null,
+      "executionGraphDigest": "sha256:1445925cd341b863c3ce5caa5ba653a79afff6a55d21a50c324c8d684142ce21",
+      "integrity": [
+        {
+          "kernelId": "attn_decode",
+          "key": "attention_decode_online_f16kv.wgsl#main",
+          "declaredDigest": "sha256:c6d9f8c614a2a088cb533958007896391efb3e348377dc8095c409944c562912",
+          "expectedDigest": "sha256:c6d9f8c614a2a088cb533958007896391efb3e348377dc8095c409944c562912",
+          "registeredVariants": [
+            "attention/decode_online_f16kv"
+          ],
+          "status": "verified"
+        },
+        {
+          "kernelId": "attn_head256",
+          "key": "attention_head256_f16kv.wgsl#main",
+          "declaredDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
+          "expectedDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
+          "registeredVariants": [
+            "attention/prefill_head256_f16kv"
+          ],
+          "status": "verified"
+        },
+        {
+          "kernelId": "attn_stream",
+          "key": "attention_streaming_f16kv.wgsl#main",
+          "declaredDigest": "sha256:c3ec920699a81ee6df04a64eb0ea2477bec168ebb809af29f2d4b0924a4bdf8f",
+          "expectedDigest": "sha256:c3ec920699a81ee6df04a64eb0ea2477bec168ebb809af29f2d4b0924a4bdf8f",
+          "registeredVariants": [
+            "attention/prefill_streaming_f16kv",
+            "attention/decode_streaming_f16kv"
+          ],
+          "status": "verified"
+        },
+        {
+          "kernelId": "embed",
+          "key": "gather_f16.wgsl#main",
+          "declaredDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
+          "expectedDigest": "sha256:a2c318bc362d676769d8cb751d61a4d7777e1068be0456eff634e0821d783c10",
+          "registeredVariants": [
+            "gather/f16"
+          ],
+          "status": "digest-mismatch"
+        },
+        {
+          "kernelId": "lm_head_gemv",
+          "key": "matmul_gemv_subgroup_f16a.wgsl#main_multicol",
+          "declaredDigest": "sha256:8f62e404087d4e6a7b786f15951b7f817d6ecf71625786a16ad8d744e3dd9eb3",
+          "expectedDigest": "sha256:8f62e404087d4e6a7b786f15951b7f817d6ecf71625786a16ad8d744e3dd9eb3",
+          "registeredVariants": [
+            "matmul/gemv_subgroup_multicol_f16a"
+          ],
+          "status": "verified"
+        },
+        {
+          "kernelId": "lm_head_q4",
+          "key": "fused_matmul_q4.wgsl#main_gemv",
+          "declaredDigest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7",
+          "expectedDigest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7",
+          "registeredVariants": [
+            "matmul/q4_fused_gemv"
+          ],
+          "status": "verified"
+        },
+        {
+          "kernelId": "q4_decode",
+          "key": "fused_matmul_q4.wgsl#main_multicol",
+          "declaredDigest": "sha256:53d5573ae047f553dac3c226507c6e1d80a2a2a2939acb65acd8092dd229677b",
+          "expectedDigest": "sha256:53d5573ae047f553dac3c226507c6e1d80a2a2a2939acb65acd8092dd229677b",
+          "registeredVariants": [
+            "matmul/q4_fused_multicol"
+          ],
+          "status": "verified"
+        },
+        {
+          "kernelId": "q4_decode_gemv",
+          "key": "fused_matmul_q4.wgsl#main_gemv",
+          "declaredDigest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7",
+          "expectedDigest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7",
+          "registeredVariants": [
+            "matmul/q4_fused_gemv"
+          ],
+          "status": "verified"
+        },
+        {
+          "kernelId": "q4_prefill",
+          "key": "fused_matmul_q4_batched_multicol_shared.wgsl#main",
+          "declaredDigest": "sha256:142817adcacb28750a92793996cd15c2d9fe13d03e0c2d0aadf3e674dc7a35d6",
+          "expectedDigest": "sha256:142817adcacb28750a92793996cd15c2d9fe13d03e0c2d0aadf3e674dc7a35d6",
+          "registeredVariants": [
+            "matmul/q4_fused_batched_multicol_shared"
+          ],
+          "status": "verified"
+        },
+        {
+          "kernelId": "q4_widetile",
+          "key": "fused_matmul_q4_widetile.wgsl#main",
+          "declaredDigest": "sha256:26e00e5a829ac064b85ed9b1c2565ec8d957ee468666903f1d47e07d93dfb3bc",
+          "expectedDigest": "sha256:c434473d64a163eddbb6fc349aec944e4bef6b067170acdf4d55daf92f1932bf",
+          "registeredVariants": [
+            "matmul/q4_fused_widetile"
+          ],
+          "status": "digest-mismatch"
+        },
+        {
+          "kernelId": "residual",
+          "key": "residual.wgsl#main",
+          "declaredDigest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117",
+          "expectedDigest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117",
+          "registeredVariants": [
+            "residual/default"
+          ],
+          "status": "verified"
+        },
+        {
+          "kernelId": "rmsnorm",
+          "key": "rmsnorm.wgsl#main",
+          "declaredDigest": "sha256:4f4d144735bdff86b8567346ba7ea7b82fe68a2ac9656ba1577106158af9bc7c",
+          "expectedDigest": "sha256:4f4d144735bdff86b8567346ba7ea7b82fe68a2ac9656ba1577106158af9bc7c",
+          "registeredVariants": [
+            "rmsnorm/default"
+          ],
+          "status": "verified"
+        },
+        {
+          "kernelId": "rope",
+          "key": "rope.wgsl#main",
+          "declaredDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
+          "registeredVariants": [
+            "rope/default"
+          ],
+          "status": "verified"
+        },
+        {
+          "kernelId": "sample",
+          "key": "sample.wgsl#sample_single_pass",
+          "declaredDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
+          "registeredVariants": [
+            "sample/single_pass"
+          ],
+          "status": "verified"
+        },
+        {
+          "kernelId": "silu",
+          "key": "silu.wgsl#main",
+          "declaredDigest": "sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0",
+          "expectedDigest": "sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0",
+          "registeredVariants": [
+            "silu/default"
+          ],
+          "status": "verified"
+        },
+        {
+          "kernelId": "tiled",
+          "key": "matmul_f16w_f32a.wgsl#main",
+          "declaredDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
+          "expectedDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
+          "registeredVariants": [
+            "matmul/f16w_f32a"
+          ],
+          "status": "verified"
+        }
+      ],
+      "opportunities": [
+        {
+          "phase": "decode",
+          "roles": [
+            "attention"
+          ],
+          "kernelId": "attn_decode",
+          "reason": "f16-output-variant-available",
+          "selected": {
+            "operation": "attention",
+            "variantId": "decode_online_f16kv",
+            "descriptorDigest": "sha256:9b609dae1657c814f3ed079a70e4d7db7e9420edf6c1904c95a012d205ee9d8d",
+            "kernelDigest": "sha256:c6d9f8c614a2a088cb533958007896391efb3e348377dc8095c409944c562912",
+            "requires": [
+              "shader-f16",
+              "subgroups"
+            ]
+          },
+          "candidate": {
+            "operation": "attention",
+            "variantId": "decode_online_f16",
+            "descriptorDigest": "sha256:d439f1d0e8a32c3f93734045d4b4bcdd84ac33c1a66273be3a4bf428e5eebf54",
+            "kernelDigest": "sha256:b1a3b2f6366d36e119f5ba0c0b1c9bcd7d830f4a053dea9f60505fa91c6e67b0",
+            "requires": [
+              "shader-f16",
+              "subgroups"
+            ]
+          },
+          "disposition": "calibration-required",
+          "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
+        },
+        {
+          "phase": "decode",
+          "roles": [
+            "down_proj",
+            "gate_proj",
+            "k_proj",
+            "o_proj",
+            "q_proj",
+            "up_proj",
+            "v_proj"
+          ],
+          "kernelId": "q4_decode_gemv",
+          "reason": "f16-output-variant-available",
+          "selected": {
+            "operation": "matmul",
+            "variantId": "q4_fused_gemv",
+            "descriptorDigest": "sha256:b7b728f1b8d72eb6b03f87778729d3b814202100e446f1ca6bf45f900fd284a9",
+            "kernelDigest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7",
+            "requires": [
+              "subgroups"
+            ]
+          },
+          "candidate": {
+            "operation": "matmul",
+            "variantId": "q4_fused_f16a",
+            "descriptorDigest": "sha256:13235befb06ba6d002406837bcb3174447f7359cee0c46b2d96e63c5878028ff",
+            "kernelDigest": "sha256:f620f275f6614ce93fc30f90945ed3fe9ddbfb150cdb2b80ec3dd5e51325cd77",
+            "requires": [
+              "shader-f16",
+              "subgroups"
+            ]
+          },
+          "disposition": "calibration-required",
+          "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
+        },
+        {
+          "phase": "postLayer",
+          "roles": [
+            "lm_head"
+          ],
+          "kernelId": "lm_head_q4",
+          "reason": "f16-output-variant-available",
+          "selected": {
+            "operation": "matmul",
+            "variantId": "q4_fused_gemv",
+            "descriptorDigest": "sha256:b7b728f1b8d72eb6b03f87778729d3b814202100e446f1ca6bf45f900fd284a9",
+            "kernelDigest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7",
+            "requires": [
+              "subgroups"
+            ]
+          },
+          "candidate": {
+            "operation": "matmul",
+            "variantId": "q4_fused_f16a",
+            "descriptorDigest": "sha256:13235befb06ba6d002406837bcb3174447f7359cee0c46b2d96e63c5878028ff",
+            "kernelDigest": "sha256:f620f275f6614ce93fc30f90945ed3fe9ddbfb150cdb2b80ec3dd5e51325cd77",
+            "requires": [
+              "shader-f16",
+              "subgroups"
+            ]
+          },
+          "disposition": "calibration-required",
+          "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
+        },
+        {
+          "phase": "prefill",
+          "roles": [
+            "down_proj",
+            "gate_proj",
+            "k_proj",
+            "o_proj",
+            "q_proj",
+            "up_proj",
+            "v_proj"
+          ],
+          "kernelId": "q4_widetile",
+          "reason": "f16-output-variant-available",
+          "selected": {
+            "operation": "matmul",
+            "variantId": "q4_fused_widetile",
+            "descriptorDigest": "sha256:6e60ae8d36eb7bee71d16dd5acd879891164bb2a5ec423a8160d141107ba7eb0",
+            "kernelDigest": "sha256:c434473d64a163eddbb6fc349aec944e4bef6b067170acdf4d55daf92f1932bf",
+            "requires": [
+              "shader-f16"
+            ]
+          },
+          "candidate": {
+            "operation": "matmul",
+            "variantId": "q4_fused_widetile_f16a",
+            "descriptorDigest": "sha256:1413aa50fff7321d2dd107c1bb54a4a4fc0c2bc9db871ecdb9e03ba1481c6ad0",
+            "kernelDigest": "sha256:fd0fb3e0a5aeb8189674cfdf450181ca132e4a2db899a122ef93ec0b4abf9b1d",
+            "requires": [
+              "shader-f16"
+            ]
+          },
+          "disposition": "calibration-required",
+          "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
+        }
+      ],
+      "digest": "sha256:73380644534211359bcc2a0c2b66ddbe4707c8bce563972bbfdb794839207db4"
+    }
+  ]
+}

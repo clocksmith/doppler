@@ -3,6 +3,7 @@ import { registerHooks } from 'node:module';
 globalThis.GPUBufferUsage = { MAP_READ: 1, MAP_WRITE: 2, COPY_SRC: 4, COPY_DST: 8, STORAGE: 128, UNIFORM: 64 };
 const { setDevice } = await import('../../src/gpu/device.js');
 const { KVCache } = await import('../../src/inference/kv-cache/base.js');
+const { getBufferPool, destroyBufferPool } = await import('../../src/memory/buffer-pool.js');
 const target = new URL('../../src/inference/pipelines/text/partition-attempt.js', import.meta.url).href;
 const replayURL = new URL('../../src/inference/pipelines/text/partition-replay.js', import.meta.url).href;
 const buffers = [], caches = [];
@@ -14,7 +15,7 @@ const device = { features: new Set(), limits: { maxStorageBufferBindingSize: 1e6
     onSubmittedWorkDone: () => wait(),
   },
   createBuffer({ size, usage }) {
-    const buffer = { size, usage, bytes: new Uint8Array(size), destroyed: false, destroy() { this.destroyed = true; } };
+    const buffer = { size, usage, bytes: new Uint8Array(size), __dopplerFakeGPUBuffer: true, destroyed: false, destroy() { this.destroyed = true; } };
     buffers.push(buffer); return buffer;
   },
   createBindGroup() { return {}; },
@@ -118,6 +119,10 @@ try {
     new AbortController().signal), /unknown contract field/);
   outputChild.close(); outputParent.close();
   parent.close();
+  const pool = getBufferPool();
+  assert.equal(pool.getStats().activeBuffers, 0, 'all cloned recurrent buffers are released');
+  destroyBufferPool();
+  await pool.settleDeferredDestruction();
   assert(buffers.every(buffer => buffer.destroyed));
 } finally {
   hooks.deregister(); delete globalThis.cloneTestCreateCache; delete globalThis.runPartitionReplayFixture;
