@@ -1,0 +1,118 @@
+{
+  "baselineCommit": "11d941d41",
+  "candidateCommit": "3c488a927f5fb33f0c293440f48e185b17da03de",
+  "candidateIncludesGeneratedClosureRepair": true,
+  "baseline": {
+    "entryCount": 2004,
+    "size": 3493492,
+    "unpackedSize": 14162322
+  },
+  "candidate": {
+    "entryCount": 2024,
+    "size": 3503884,
+    "unpackedSize": 14265879
+  },
+  "added": [
+    {
+      "path": "src/config/runtime/profiles/qwen-3-5-0-8b-f16-m3.json",
+      "size": 3458,
+      "mode": 420
+    },
+    {
+      "path": "src/config/runtime/profiles/qwen-3-5-0-8b-vulkan-parity.json",
+      "size": 2735,
+      "mode": 420
+    },
+    {
+      "path": "src/config/runtime/profiles/qwen-3-5-2b-vulkan-parity.json",
+      "size": 577,
+      "mode": 420
+    },
+    {
+      "path": "src/experimental/training/lora-training-round.d.ts",
+      "size": 1500,
+      "mode": 420
+    },
+    {
+      "path": "src/experimental/training/lora-training-round.js",
+      "size": 4608,
+      "mode": 420
+    },
+    {
+      "path": "src/experimental/training/parameter-groups.js",
+      "size": 1352,
+      "mode": 420
+    },
+    {
+      "path": "src/experimental/training/report-ranking.js",
+      "size": 2306,
+      "mode": 420
+    },
+    {
+      "path": "src/formats/contract-validation.js",
+      "size": 1068,
+      "mode": 420
+    },
+    {
+      "path": "src/formats/sorted-json.js",
+      "size": 432,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/buffer-identity.js",
+      "size": 182,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/fused_matmul_q4_widetile_direct.wgsl",
+      "size": 8030,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/gated_delta_fused_decode_paired.wgsl",
+      "size": 19449,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/gated_delta_fused_decode_paired_f16.wgsl",
+      "size": 19462,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/gated_delta_fused_decode_paired_sigmoid_gate.wgsl",
+      "size": 19734,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/gated_delta_fused_decode_paired_sigmoid_gate_f16.wgsl",
+      "size": 19751,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/matmul_w8a8_packed_cooperative.wgsl",
+      "size": 3377,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/browser-harness/request-timing.js",
+      "size": 2622,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/speculative-runtime.js",
+      "size": 4381,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/pipelines/text/linear-attention/state-checkpoint.js",
+      "size": 2514,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/pipelines/text/linear-attention/state-clone.js",
+      "size": 4099,
+      "mode": 420
+    }
+  ],
+  "removed": []
+}
