@@ -1,0 +1,649 @@
+{
+  "baselineCommit": "11d941d41",
+  "inspectedCheckpoint": "0ae25082",
+  "additions": [
+    {
+      "path": "src/config/runtime/profiles/qwen-3-5-0-8b-f16-m3.json",
+      "size": 3458,
+      "mode": 420,
+      "classification": "development or qualification tooling",
+      "action": "exclude from npm",
+      "reason": "Machine-specific qualification profile; preserve in repository only.",
+      "sha256": "c56750688927e26c1e6c34d414be461aa1663404151a41d7eec50deecc4dc4ff"
+    },
+    {
+      "path": "src/config/runtime/profiles/qwen-3-5-0-8b-vulkan-parity.json",
+      "size": 2735,
+      "mode": 420,
+      "classification": "required public runtime",
+      "action": "retain",
+      "reason": "Reachable public source, declared shader asset, or retained comparison profile.",
+      "sha256": "44eee392e13dde22fecd3b0eeb1f8c9f8633146ab0ccdc9dbdcec91fcd19260b"
+    },
+    {
+      "path": "src/config/runtime/profiles/qwen-3-5-2b-vulkan-parity.json",
+      "size": 577,
+      "mode": 420,
+      "classification": "required public runtime",
+      "action": "retain",
+      "reason": "Reachable public source, declared shader asset, or retained comparison profile.",
+      "sha256": "b19e399a674c019e8f50b675469ffac9e63da558ca6d6d5322fe9515b88abb80"
+    },
+    {
+      "path": "src/experimental/training/lora-training-round.d.ts",
+      "size": 1500,
+      "mode": 420,
+      "classification": "experimental API",
+      "action": "retain",
+      "reason": "Reachable from the existing public training export; retain compatibility without expanding training scope.",
+      "sha256": "3d9de340b552cfe7314faa42b1b8e259828e7219101941c5b648ca4238b7771e"
+    },
+    {
+      "path": "src/experimental/training/lora-training-round.js",
+      "size": 4608,
+      "mode": 420,
+      "classification": "experimental API",
+      "action": "retain",
+      "reason": "Reachable from the existing public training export; retain compatibility without expanding training scope.",
+      "sha256": "f2aeb31080952e4053b42bb93688f16f1e733a0c8ddfa5ac9dd4b70e42d903f9"
+    },
+    {
+      "path": "src/experimental/training/parameter-groups.js",
+      "size": 1352,
+      "mode": 420,
+      "classification": "experimental API",
+      "action": "retain",
+      "reason": "Reachable from the existing public training export; retain compatibility without expanding training scope.",
+      "sha256": "b961481393c38f3b793f9043e8bab2f419ff8b6d66974e2c4b8e9e8e3d33d5f1"
+    },
+    {
+      "path": "src/experimental/training/report-ranking.js",
+      "size": 2306,
+      "mode": 420,
+      "classification": "experimental API",
+      "action": "retain",
+      "reason": "Reachable from the existing public training export; retain compatibility without expanding training scope.",
+      "sha256": "c70bcaa558c758503ab282df2a1a0c2231d507608792b215ea4de6145f0223dd"
+    },
+    {
+      "path": "src/formats/contract-validation.js",
+      "size": 1068,
+      "mode": 420,
+      "classification": "required public runtime",
+      "action": "retain",
+      "reason": "Reachable public source, declared shader asset, or retained comparison profile.",
+      "sha256": "43057cb85a7191cac16067c4a884114aa0ac001079b37161196f649e68669154"
+    },
+    {
+      "path": "src/formats/sorted-json.js",
+      "size": 432,
+      "mode": 420,
+      "classification": "required public runtime",
+      "action": "retain",
+      "reason": "Reachable public source, declared shader asset, or retained comparison profile.",
+      "sha256": "33174ec71afabefd198adac030272fae7ee9ba18170364fc9004356fcf64e26b"
+    },
+    {
+      "path": "src/gpu/buffer-identity.js",
+      "size": 182,
+      "mode": 420,
+      "classification": "required public runtime",
+      "action": "retain",
+      "reason": "Reachable public source, declared shader asset, or retained comparison profile.",
+      "sha256": "457980007a5d0b423aaaadff29e227be6afc8c1539449bf68c29287fafd9c4cb"
+    },
+    {
+      "path": "src/gpu/kernels/fused_matmul_q4_widetile_direct.wgsl",
+      "size": 8030,
+      "mode": 420,
+      "classification": "required public runtime",
+      "action": "retain",
+      "reason": "Reachable public source, declared shader asset, or retained comparison profile.",
+      "sha256": "1e824cae88609f95199b790d00a0a5ac64b5a5479d56ef6ba992695296304a25"
+    },
+    {
+      "path": "src/gpu/kernels/gated_delta_fused_decode_paired.wgsl",
+      "size": 19449,
+      "mode": 420,
+      "classification": "required public runtime",
+      "action": "retain",
+      "reason": "Reachable public source, declared shader asset, or retained comparison profile.",
+      "sha256": "fd811f031df1a3f291356cfb9d97af699e5b5a14656b7c2124c710e5b40800a1"
+    },
+    {
+      "path": "src/gpu/kernels/gated_delta_fused_decode_paired_f16.wgsl",
+      "size": 19462,
+      "mode": 420,
+      "classification": "required public runtime",
+      "action": "retain",
+      "reason": "Reachable public source, declared shader asset, or retained comparison profile.",
+      "sha256": "18c6e8963149b631e0443d9ac25c6f8902e08856e4b6f858d4bc541a953e1e37"
+    },
+    {
+      "path": "src/gpu/kernels/gated_delta_fused_decode_paired_sigmoid_gate.wgsl",
+      "size": 19734,
+      "mode": 420,
+      "classification": "required public runtime",
+      "action": "retain",
+      "reason": "Reachable public source, declared shader asset, or retained comparison profile.",
+      "sha256": "debb160547539fbc79f63dc62c06d7b168ed1deb09ec5965827f9024e8de17e2"
+    },
+    {
+      "path": "src/gpu/kernels/gated_delta_fused_decode_paired_sigmoid_gate_f16.wgsl",
+      "size": 19751,
+      "mode": 420,
+      "classification": "required public runtime",
+      "action": "retain",
+      "reason": "Reachable public source, declared shader asset, or retained comparison profile.",
+      "sha256": "bbf7dca806d8a153ebd78180c09bc8608e60c88f9eafa8d65c2c83530fed2377"
+    },
+    {
+      "path": "src/gpu/kernels/matmul_w8a8_packed_cooperative.wgsl",
+      "size": 3377,
+      "mode": 420,
+      "classification": "required public runtime",
+      "action": "retain",
+      "reason": "Reachable public source, declared shader asset, or retained comparison profile.",
+      "sha256": "dc527069dc264bafc95cc1f971a79e755122564cc7b72289f98621c33424d90d"
+    },
+    {
+      "path": "src/inference/browser-harness/request-timing.js",
+      "size": 2622,
+      "mode": 420,
+      "classification": "required public runtime",
+      "action": "retain",
+      "reason": "Reachable public source, declared shader asset, or retained comparison profile.",
+      "sha256": "93c9d000dc27927e75cdc696b6910670733023beb5171dc81dfe9ce96718b80d"
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/speculative-runtime.js",
+      "size": 4381,
+      "mode": 420,
+      "classification": "required public runtime",
+      "action": "retain",
+      "reason": "Reachable public source, declared shader asset, or retained comparison profile.",
+      "sha256": "fb18b9c4768d036a54f1e4d3baf6e5a5642b108e944d2b4f7420daf30060aa72"
+    },
+    {
+      "path": "src/inference/pipelines/text/linear-attention/state-checkpoint.js",
+      "size": 2514,
+      "mode": 420,
+      "classification": "required public runtime",
+      "action": "retain",
+      "reason": "Reachable public source, declared shader asset, or retained comparison profile.",
+      "sha256": "e15dd647e22d7880946eedfc13cb3a440f0c0d143e7cb6ce05211e3846f3e6f7"
+    },
+    {
+      "path": "src/inference/pipelines/text/linear-attention/state-clone.js",
+      "size": 4099,
+      "mode": 420,
+      "classification": "required public runtime",
+      "action": "retain",
+      "reason": "Reachable public source, declared shader asset, or retained comparison profile.",
+      "sha256": "df38897941f80bb663a85b4dd66e4b8dbfeb2ecd1a50b746fb5ad593fe8fe0cf"
+    }
+  ],
+  "generatedDuplicateAdditions": [],
+  "publicationExclusions": [
+    {
+      "path": "src/config/runtime/diagnostics/debug-logits.json",
+      "bytes": 1130,
+      "sha256": "307bf686dc543ca7a958ea88c4c1f94c4d61874599b5a36803c4be0282932333",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/experiments/bench/gemma3-bench-q4k-alt.json",
+      "bytes": 1470,
+      "sha256": "d483d1e0fd7dfd16b897482cdbe8aedab1204647a20fb82c20970aa0a6b9b4a7",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/experiments/bench/gemma3-bench-q4k-batched.json",
+      "bytes": 1467,
+      "sha256": "a90ebbe9493862c32b6a6ec9ac8008b9d5a36767118fac83349749c2558b0286",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/experiments/bench/gemma3-bench-q4k.json",
+      "bytes": 1432,
+      "sha256": "4343f3f5f73103f5ae699f569a956edb08c1263673523749b421bdcc71dd7841",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/experiments/bench/gemma4-bench-q4k.json",
+      "bytes": 899,
+      "sha256": "d0c30560d50ee62438647d2b3ea78637a487cdf26192c69f31e591d5e319927a",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/experiments/bench/qwen3-bench-q4k-alt.json",
+      "bytes": 1467,
+      "sha256": "31fddf3ffe5efb923ea52e166f2f1c36813f8b3bb729e57f0ca3dd0c1230fa52",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/experiments/bench/qwen3-bench-q4k-batched.json",
+      "bytes": 1462,
+      "sha256": "4e1cae843365da67cdeac6e41c69e3317f6c175d8c6235e2e99a9d6dd66004d5",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/experiments/debug/gemma3-browser-diagnose-q4k.json",
+      "bytes": 2453,
+      "sha256": "40b6afd89f2d21ef6a5b62465169614738369ce92bef57d5d058e684438c7cd7",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/experiments/debug/gemma3-debug-q4k.json",
+      "bytes": 4278,
+      "sha256": "71d7e354b991bcb4aa9e39ac4a8c76103d078eda9c2fa76f43153361f5e1cdc2",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/experiments/debug/gemma4-e2b-browser-diagnose-q4k.json",
+      "bytes": 2737,
+      "sha256": "304e4a5959c07d59637520c253b6b2cb8e0ef8b6d3d1a4e6582fedc5f2219e48",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/experiments/debug/qwen35-browser-diagnose-q4k.json",
+      "bytes": 2450,
+      "sha256": "01b6c6822861e75755f4b9fb2454ae2108db27d5310cb5761970fdf687b7a60c",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/experiments/verify/gemma3-verify.json",
+      "bytes": 769,
+      "sha256": "6a0099b3fbd1a6d7996926499ba5eb9cbef1c14cfea07fe07898e1b3a4292ea5",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/experiments/verify/gemma4-e2b-verify.json",
+      "bytes": 810,
+      "sha256": "0d876c5579565ac441bca02a4011909bd777d5ab176b677e83d3721a19c8885b",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/experiments/verify/lfm2-verify.json",
+      "bytes": 941,
+      "sha256": "1ad510d617fe9910a3e2d6460c79bd4b5b641ad3a9e236ee3f14ec45bd213cda",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/experiments/verify/translategemma-verify.json",
+      "bytes": 794,
+      "sha256": "c4b4902acb0dcfa1575254b7e840e969296b38beba55f9a84abf12b4d86758b6",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/model/gemma2-debug.json",
+      "bytes": 1591,
+      "sha256": "8ca298fbfcc274fa8800d36d5986d8d792c76d3b0af439dc39d1d6c58b7b1b4e",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/model/gemma2-pipeline-debug.json",
+      "bytes": 1588,
+      "sha256": "d72671ffbe8a1ad7be6407622cec2ffef26533c0387ad05e055ac1102bbb6d56",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/model/gemma2-pipeline.json",
+      "bytes": 1615,
+      "sha256": "ea24a6c2b60acd9f2decf8d9ecdf36e2ce4b5e74ac26177d6c2d7deba13b8ae5",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/model/gemma3-layer-probe.json",
+      "bytes": 1732,
+      "sha256": "bbf139d5fe47e67f050d6015f958efb327cd5a1e7a9ec0f3c5065afac4ba262b",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/model/qwen3-5-layer-probe.json",
+      "bytes": 1445,
+      "sha256": "06daa3b16a10111aeb068bde4aa9a1a517036f846cdcf44ef7bf2111aaa5187a",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/model/qwen3-5-layer3-boundary-probe.json",
+      "bytes": 2883,
+      "sha256": "1d8588b004f75c25a6cdbc1a3fc74628345bb438827c13f9512c15e7bbdc2f18",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/model/qwen3-5-linear-attn-debug.json",
+      "bytes": 2302,
+      "sha256": "0f49d4028a1a6c2f7bb39077bb96b596c2050c362ca2f1967217f54132e09816",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/optimization-candidates/registry.json",
+      "bytes": 153,
+      "sha256": "e3926b94c1a7ea9560dad8d7b180790fd802332759306045ff81b8d5ba1b3fbb",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/diffusiongemma-26b-a4b-throughput.json",
+      "bytes": 787,
+      "sha256": "c9c8bb5be78a6ee4fb17b97bcf43316f547ad525ee2a2a64753d937c716665fc",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/gemma3-270m-q4k-throughput-overlapped-probe.json",
+      "bytes": 1580,
+      "sha256": "1ebb3d36bade5c0657827228f8e4e99ec23fbd9d39c0f9db675c4e8bd8778823",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/gemma3-270m-q4k-throughput-probe.json",
+      "bytes": 1395,
+      "sha256": "d7492977ca2023730022fb82864145c784b54af0fef8a4cd953a6e77376156c1",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/gemma4-12b-rdrr-safe-b4.json",
+      "bytes": 1222,
+      "sha256": "bf7c6f6752570c8c81756f54bcaf898450250f36f561236238e51b6157985d9b",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/gemma4-12b-rdrr-safe-single.json",
+      "bytes": 1110,
+      "sha256": "7092e39efaad0403ce3e95b6fb35af12de3ecbc59ff031076e0c827ea49a0099",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/gemma4-31b-f16-activations-probe.json",
+      "bytes": 1678,
+      "sha256": "9db0772a0953d3c57b45edd7660ebc0507b159eae4beb8c168cec6113e06cb8b",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/gemma4-e2b-baseline-probe.json",
+      "bytes": 1022,
+      "sha256": "1c04a6a0d3fc3e4ea666b339bd223dd1a855ca80d7c8dad80a321ec7d215415a",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/gemma4-e2b-fused-rmsnorm-probe.json",
+      "bytes": 1147,
+      "sha256": "5216f1010f13abe158a26b27fbb0dd82c8fd80df223e4e1558764111492795ac",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/gemma4-e2b-fused-rmsnorm-test.json",
+      "bytes": 1027,
+      "sha256": "af80e5fc9e7504899536df817e1d2ebdb7835727f414e5f637e878bd451570c6",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/gemma4-e2b-int4ple-baseline-probe.json",
+      "bytes": 1315,
+      "sha256": "31729b8e65946cc7ebb1da635bff8941b91261217f0290e74410baece231a700",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/gemma4-e2b-int4ple-f16a-probe.json",
+      "bytes": 1315,
+      "sha256": "2cf4a9c11d196b8bc5c67f396c29bcc1a3bae8b9cda947003e6509cf805590c5",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/gemma4-e2b-int4ple-reference-export.json",
+      "bytes": 1710,
+      "sha256": "e360656b5ee5ff8d101e369e66805d0b3d17e9595c38fafc7c1367ea13265e56",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/gemma4-e2b-int4ple-retain-q4k-probe.json",
+      "bytes": 1880,
+      "sha256": "deb0924eb095e4b96c4de89ea9bf6b5557da687f6a8b9c0ea854c01c339e2e87",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/gemma4-e2b-low-memory.json",
+      "bytes": 1670,
+      "sha256": "5be45f7cc11752c5a8eb1819f5a7d5d4533c51ede836e8698a87e9f1cb12009b",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/gemma4-e2b-prefill-profile.json",
+      "bytes": 1303,
+      "sha256": "ac66208883ce9de29d8b7e704734269256059ba967c0a21420e9c38c2351efc9",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/gemma4-e2b-throughput-probe.json",
+      "bytes": 1011,
+      "sha256": "ee79df034d01a88244159143b0a1fd0bc5a3b2b65557b3c32d0c3e2b040f5191",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/muse-glimmer-30b-source-parity-f32kv.json",
+      "bytes": 926,
+      "sha256": "c89171323b341909de7a84679c5398e99519bd1ab4d16f2d7b9d029622a0691e",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/muse-glimmer-30b-source-parity.json",
+      "bytes": 3013,
+      "sha256": "926166e7089ef5d5ccc75732916a1e816506ea4542bb1e6d7fc1cf61a122220a",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/qwen-3-5-0-8b-f16-m3.json",
+      "bytes": 3458,
+      "sha256": "c56750688927e26c1e6c34d414be461aa1663404151a41d7eec50deecc4dc4ff",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/qwen-3-5-0-8b-metal-attn128-candidate.json",
+      "bytes": 722,
+      "sha256": "be1dd6f0290dcb274a2f757cdb685bb833eb1a596c61ca9f62670930cc02ada9",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/qwen-3-5-0-8b-metal-maxbatch64-candidate.json",
+      "bytes": 1648,
+      "sha256": "c9827cbc9cf3dbfab7c7748cbd584a9e4787cc08e989fc3dfb0b4b49328163ba",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/qwen-3-5-0-8b-metal-normed-ffn-candidate.json",
+      "bytes": 747,
+      "sha256": "afbee3dca35423ca00f2044944c70a00a38d23e35c6cc64f4c066538bf7a8a6b",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/qwen-3-5-0-8b-metal-overlap-ringtokens1-candidate.json",
+      "bytes": 1715,
+      "sha256": "e15f91c7036d68597f5b02ed2a824c3f2d47e3286bc2638d14bfa8f1a32db84d",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/qwen-3-5-0-8b-metal-sequential-candidate.json",
+      "bytes": 1669,
+      "sha256": "e3ed1e377738022072ad15a7a84620d2bc0f8fca7733db48706067c8fd466ef9",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/qwen-3-5-0-8b-metal-throughput.json",
+      "bytes": 4112,
+      "sha256": "e5022175f1d12cedfd14fc0f3c10f77757d1558773e21db85b4291fdb1dfd3ed",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/qwen-3-5-0-8b-prefill-profile.json",
+      "bytes": 1275,
+      "sha256": "17391aedbf907a40df7b0cd344da7b842d2d2acc20db10f769d0710a39b08b7a",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/qwen-3-5-0-8b-throughput-probe.json",
+      "bytes": 970,
+      "sha256": "b9c5702645d75a5555c7e49a1a294e666b7f23fa1eea1e2ec0280ea909bf331f",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/qwen-3-5-2b-f16-primary-throughput.json",
+      "bytes": 649,
+      "sha256": "057057be2f137bea628218ca72c73815498690c64e3c80b89bb0f1ed7b1f6686",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/qwen-3-5-9b-metal-correctness.json",
+      "bytes": 1284,
+      "sha256": "eaba9d04ea3c738557fdac53fd773f764f2b571c939a98bc6423a639d2aa4918",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/qwen3-6-27b-f16-activations-probe.json",
+      "bytes": 1523,
+      "sha256": "4eb624c4736a00b8b7825e3f6219d6c81789fb927803f481b4b1eeeab0e5f076",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/qwen3-8-27b-source-parity.json",
+      "bytes": 2372,
+      "sha256": "a2b6b4b4131483249b59aa04e68cc3bdad3c4ae7ac9b96caadcd839e01b7c75d",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/simulation.json",
+      "bytes": 691,
+      "sha256": "22f9e9b40b6cb4e23a6d3aa9a91508c610e489f2de2b1c6fbacf70cf7c27490f",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/trace-layers.json",
+      "bytes": 2438,
+      "sha256": "fdd78531f962792a0a25fec90e48f6af8dfcab4b954f19bd6b576b8ea5f79049",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/translategemma-1b-nativekd2-q4k-rdna3-throughput-probe.json",
+      "bytes": 998,
+      "sha256": "c0918a1491eb2fcd5e48d40e07908b30e390fe1b447d39957c65163e20b291d3",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/turboquant-contiguous-prod.json",
+      "bytes": 811,
+      "sha256": "b11225fc404007b6c13af7f3e393e8f17e3386100c28e308b934c50ff6db48b0",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/turboquant-contiguous.json",
+      "bytes": 793,
+      "sha256": "16054f28475585b196482d6915fe4bbb88d79ffd72b648fce5bd75b29331b0ef",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/turboquant.json",
+      "bytes": 960,
+      "sha256": "6d1d0db884cb31866c77e3d5e53d5188d03409b89a57382d462eb53b5ea9b770",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/profiles/verbose-trace.json",
+      "bytes": 841,
+      "sha256": "ae2396fd6ca68e42fbccfa5211355ed3f6d8b633fd23ab6bcd98e8972f43c7f6",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/tiers/gemma4-128gb.json",
+      "bytes": 2091,
+      "sha256": "f9b4a30d014b46c36519666d5476440309042599d75ee18e652c34e7724bb841",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/tiers/gemma4-16gb.json",
+      "bytes": 2089,
+      "sha256": "3c1878c2f983def530f448b384bc64459b68c141e61e12bb2e089539c0c8c030",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/tiers/gemma4-24gb.json",
+      "bytes": 1961,
+      "sha256": "f0f8630b2a0fa082bcb13f9e24927303edecddf9e0785c32623d8dcc7b824be7",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    },
+    {
+      "path": "src/config/runtime/tiers/gemma4-32gb.json",
+      "bytes": 1961,
+      "sha256": "5cfa0d82b8691474717d57275c5eb397600e1d7ec92735b503e76f38a7a43027",
+      "classification": "repository-only configuration",
+      "action": "exclude from npm; retain source"
+    }
+  ],
+  "limitsUnchanged": {
+    "files": 2004,
+    "packedBytes": 3497999,
+    "unpackedBytes": 14172897
+  }
+}
