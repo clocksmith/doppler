@@ -1,3 +1,4 @@
+import { authorizeBundledAdapter } from '../../config/revocation-policy.js';
 import { log } from '../../debug/index.js';
 import { getDopplerLoader } from '../../loader/doppler-loader.js';
 import { fetchArrayBuffer, readOPFSFile, writeOPFSFile } from './storage.js';
@@ -82,7 +83,7 @@ export function assertLoRATargetsForPipeline(pipeline, lora) {
   if (!(pipeline?.weights instanceof Map)) {
     throw new Error('LoRA activation requires loaded per-layer model weights.');
   }
-  if (!(lora?.layers instanceof Map) || lora.layers.size === 0) {
+  if (!(lora?.layers instanceof Map) || lora.layers.size === 0 && !pipeline.modelPartition) {
     throw new Error('LoRA activation requires at least one loaded adapter layer.');
   }
 
@@ -125,6 +126,22 @@ export async function loadLoRAAdapterForPipeline(pipeline, adapter, loadOptions 
       lora = await loadLoRAFromManifest(adapter, options);
     }
     assertLoRABaseModelForPipeline(pipeline, lora);
+    if (pipeline.modelPartition) {
+      const { plan, index } = pipeline.modelPartition;
+      if (JSON.stringify(plan.adapterIdentities) !== JSON.stringify([lora.identity?.digest])) {
+        throw new Error('LoRA execution identity differs from the accepted partition plan.');
+      }
+      for (const layer of lora.layers.keys()) {
+        if (!Number.isSafeInteger(layer) || layer < 0 || layer >= plan.totalLayers) {
+          throw new Error('LoRA targets a layer outside the base model.');
+        }
+      }
+      const [first, last] = plan.partitions[index].layerRange;
+      // Verify the complete source before retaining only this stage's A/B pairs.
+      // The global digest identifies that source; planId binds the local layer range.
+      lora = await authorizeBundledAdapter({ ...lora,
+        layers: new Map([...lora.layers].filter(([layer]) => layer >= first && layer <= last)) });
+    }
     assertLoRATargetsForPipeline(pipeline, lora);
     return lora;
   });

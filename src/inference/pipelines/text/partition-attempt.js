@@ -25,6 +25,7 @@ export function createPartitionAttempt(owner, maxSeqLen) {
   // execution counters, attention state and buffers; it never unloads the owner.
   const state = Object.assign(new PipelineState(), {
     manifest: owner.manifest, modelConfig: owner.modelConfig, modelPartition: owner.modelPartition,
+    lora: owner.lora,
     weights: owner.weights, expertWeights: owner.expertWeights, tokenizer: owner.tokenizer,
     runtimeConfig: owner.runtimeConfig, resolvedRuntimeSession: owner.resolvedRuntimeSession,
     resolvedKernelPath: owner.resolvedKernelPath, kernelPathSource: owner.kernelPathSource,

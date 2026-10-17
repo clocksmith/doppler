@@ -369,7 +369,7 @@ export async function loadModel(manifest) {
       executionV1State: this.executionV1State,
       executionPlanState: this.executionPlanState,
     });
-    if (this.modelPartition) assertPartitionExecutionSupported(this, this.modelPartition.plan);
+    if (this.modelPartition) assertPartitionExecutionSupported(this, this.modelPartition.plan, false);
 
     // Initialize MoE router if needed
     if (this.modelConfig.useMoE) {

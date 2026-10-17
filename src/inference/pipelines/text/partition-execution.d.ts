@@ -6,7 +6,7 @@ export type PartitionExecutionState = PipelineState & {
   visionCapable?: boolean; audioCapable?: boolean; operatorDiagnostics?: unknown;
   modelPartition?: { plan: AnyLayerPartitionPlan; index: number } | null;
 };
-export function assertPartitionExecutionSupported(state: PartitionExecutionState, plan: AnyLayerPartitionPlan): void;
+export function assertPartitionExecutionSupported(state: PartitionExecutionState, plan: AnyLayerPartitionPlan, requireAdapter?: boolean): void;
 export type ExecutePartitionChunk = (state: PartitionExecutionState,
   input: { numTokens: number; tokenIds?: number[]; activationBytes?: ArrayBuffer | ArrayBufferView },
   signal: AbortSignal, prefill: boolean, finalChunk: boolean) => Promise<{

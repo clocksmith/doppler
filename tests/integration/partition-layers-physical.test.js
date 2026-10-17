@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
+import { loadLoRAAdapterForPipeline, unloadLoRAAdapterForPipeline } from '../../src/client/runtime/lora.js';
 import { probeNodeGPU } from '../helpers/gpu-probe.js';
 import { createPipeline } from '../../src/inference/pipelines/text.js';
 import { createNodeFileArtifactStorageContext } from '../../src/storage/artifact-storage-context.js';
@@ -20,8 +21,11 @@ if (!modelDirectory) {
 } else {
   const manifestBytes = await fs.readFile(path.join(modelDirectory, 'manifest.json'));
   const manifest = JSON.parse(manifestBytes);
+  const adapterFile = process.env.DOPPLER_PARTITION_ADAPTER;
+  const adapter = adapterFile ? JSON.parse(await fs.readFile(adapterFile, 'utf8')) : null;
   const plan = createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,
-    activationDtype: manifest.inference.session.compute.defaults.activationDtype });
+    activationDtype: manifest.inference.session.compute.defaults.activationDtype,
+    ...(adapter ? { adapterIdentities: [adapter.identity] } : {}) });
   const signal = new AbortController().signal;
   const runtimeConfig = { inference: { session: { kvcache: { maxSeqLen: 128 } } } };
   const report = { kind: 'local-partition-numerical-diagnostic', modelId: manifest.modelId,
@@ -40,11 +44,26 @@ if (!modelDirectory) {
     assert.ok(gpu.ready, gpu.reason);
     report.providerReceipt = gpu.providerReceipt;
     report.adapter = getKernelCapabilities().adapterInfo;
+    if (adapter) report.lora = { identity: adapter.identity, artifact: adapter.artifact, baseModelIdentity: adapter.baseModelIdentity };
+    if (adapter) assert.equal(adapter.baseModelIdentity, report.manifestHash);
     for (const index of [null, 0, 1]) {
       const storage = createNodeFileArtifactStorageContext(pathToFileURL(path.resolve(modelDirectory)).href, manifest);
       const pipeline = await createPipeline(manifest, { runtimeConfig, storage,
         ...(index === null ? {} : { partition: { plan, index } }) });
       pipelines.push(pipeline);
+      if (adapter) {
+        await loadLoRAAdapterForPipeline(pipeline, adapter.manifest, {
+          weightsLayout: adapter.weightsLayout,
+          fetchUrl: async () => {
+            const bytes = await fs.readFile(process.env.DOPPLER_PARTITION_ADAPTER_WEIGHTS);
+            assert.equal('sha256:' + createHash('sha256').update(bytes).digest('hex'), adapter.artifact.hash);
+            return bytes;
+          },
+        });
+        assert.equal(pipeline.getActiveLoRA().identity.digest, adapter.identity);
+        if (index !== null) assert.ok([...pipeline.getActiveLoRA().layers.keys()].every(layer =>
+          layer >= plan.partitions[index].layerRange[0] && layer <= plan.partitions[index].layerRange[1]));
+      }
     }
     const [reference, a, b] = pipelines;
     const prompt = 'The color of the sky is';
@@ -59,11 +78,12 @@ if (!modelDirectory) {
       .filter(layer => !hasLinearAttentionLayers([reference.modelConfig.layerTypes?.[layer]]));
     assert.equal(a.kvCache.numLayers, expectedKvLayers(0, plan.splitLayer).length);
     assert.equal(b.kvCache.numLayers, expectedKvLayers(plan.splitLayer, plan.totalLayers).length);
+    let adapterLogits = null;
     for (let step = 0; step < 3; step++) {
       const expected = step === 0
         ? await reference.prefillWithLogits(prompt, { inputIds, useChatTemplate: false })
         : await reference.decodeStepLogits(inputIds, { useChatTemplate: false });
-      if (step === 0) snapshot = expected.cache;
+      if (step === 0) { snapshot = expected.cache; adapterLogits = expected.logits.slice(); }
       const boundary = await runPipelineOperation(a, async state => {
         assertPartitionExecutionSupported(state, plan);
         const result = await executePartitionLayers(state, { numTokens: inputIds.length, tokenIds: inputIds }, signal);
@@ -88,6 +108,15 @@ if (!modelDirectory) {
       assert.ok(comparison.matches, `partition logits differ at step ${step}: ${JSON.stringify(comparison)}`);
       assert.equal(argmax(observed), tokenId);
       inputIds = [tokenId];
+    }
+    if (adapter) {
+      await unloadLoRAAdapterForPipeline(reference);
+      reference.reset();
+      const base = await reference.prefillWithLogits(prompt, { inputIds: report.promptTokenIds, useChatTemplate: false });
+      try {
+        report.adapterEffect = comparePartitionExecution({ splitOutput: adapterLogits, referenceOutput: base.logits });
+        assert.ok(report.adapterEffect.maxDiff > 0, 'An applied adapter must change the observed logits');
+      } finally { base.cache.destroy(); }
     }
     const activeBuffers = () => a.getBufferPool().getStats().activeBuffers;
     let beforeFailures = activeBuffers();
