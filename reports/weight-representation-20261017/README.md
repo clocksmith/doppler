@@ -14,8 +14,9 @@ retires allocated copies. Inference configuration and kernels are unchanged.
 Baseline archive SHA-256:
 `75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2`.
 Candidate archive SHA-256:
-`399bd877b93afbc13ef250eb4f317859bfc6cb1182e905c1d75c0a74911b41f9`.
-The initial pre-review archive is retained separately and is not the candidate.
+`b7f5195e32c9e813f2e877c9a26ef773d067f257446a12b875d565cc5cad16f0`.
+This second candidate includes the embedding/output-head alias correction.
+The first candidate and initial pre-review archive are retained separately.
 
 The generated rule bundle uses compact JSON with identical parsed rule data,
 apart from the three declared per-tensor materialization selections. Readable
@@ -26,8 +27,10 @@ strict types, architecture, style, exports and generated dependency checks pass.
 These checks do not establish numerical or multi-device model qualification.
 
 The physical driver compares the unchanged baseline with this exact candidate on
-`qwen-3-5-2b-q4k-ehaf16` and `qwen-3-6-27b-q4k-ehaf16`, on M3 Metal and Radeon 8060S
-Vulkan. Every served runtime file must match its archive inventory. Inputs,
+`qwen-3-5-2b-q4k-ehaf16` and `qwen3-8-27b-text-q4k-ehaf16`. The 2B runs on M3 Metal and Radeon 8060S
+Vulkan; the current 27B Q4 artifact is available on AMD only. M3 27B remains
+unexecuted: the artifact is not provisioned locally and available disk is below
+its size. The initial obsolete Qwen3.6 manifest attempts remain failed evidence. Every served runtime file must match its archive inventory. Inputs,
 context, profiles and generation settings are identical within each pair.
 Cold opening means fresh browser/model state with provisioned local weights;
 OS/driver caches are not purged. Recreated-device opening is separate. Both engine
