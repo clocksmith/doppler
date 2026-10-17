@@ -416,56 +416,53 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>,
   let g = -exp_refined(a_log[head]) * softplus(f32(ab_proj[ab_row_base]) + dt_bias[head]);
   let g_exp = exp_refined(g);
 
-  if (is_v_active) {
-    for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
-      let state_idx = recurrent_head_base + kd * head_v_dim + lane;
-      if (RECURRENT_STATE_COMPONENTS == 2u) {
-          state_store(state_idx, pair_mul_scalar(state_load(state_idx), g_exp));
-        } else {
-          recurrent_state[state_idx] = recurrent_state[state_idx] * g_exp;
-        }
-    }
-  }
-
   var kv_mem = 0.0;
-    var kv_pair = vec2<f32>(0.0);
-  if (is_v_active) {
-    for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
-      let k_normed = multiply_ordered(shared_k[kd], k_norm_scale);
-      let state_idx = recurrent_head_base + kd * head_v_dim + lane;
-      if (RECURRENT_STATE_COMPONENTS == 2u) {
-          kv_pair = pair_add(kv_pair, pair_mul_scalar(state_load(state_idx), k_normed));
-        } else {
-          kv_mem = fma(recurrent_state[state_idx], k_normed, kv_mem);
-        }
-    }
-    let delta = multiply_ordered(v_val - kv_mem, beta);
-      var delta_pair = vec2<f32>(0.0);
-      if (RECURRENT_STATE_COMPONENTS == 2u) {
-        delta_pair = pair_mul_scalar(pair_add(vec2<f32>(v_val, 0.0), -kv_pair), beta);
-      }
-    for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
-      let k_normed = multiply_ordered(shared_k[kd], k_norm_scale);
-      let state_idx = recurrent_head_base + kd * head_v_dim + lane;
-      if (RECURRENT_STATE_COMPONENTS == 2u) {
-          state_store(state_idx, pair_add(state_load(state_idx), pair_mul_scalar(delta_pair, k_normed)));
-        } else {
-          recurrent_state[state_idx] = fma(k_normed, delta, recurrent_state[state_idx]);
-        }
-    }
-  }
-
+  var kv_pair = vec2<f32>(0.0);
   var out_value = 0.0;
-    var out_pair = vec2<f32>(0.0);
+  var out_pair = vec2<f32>(0.0);
   if (is_v_active) {
-    for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
-      let q_normed = fma(shared_q[kd], q_norm_scale, 0.0);
-      let state_idx = recurrent_head_base + kd * head_v_dim + lane;
-      if (RECURRENT_STATE_COMPONENTS == 2u) {
-          out_pair = pair_add(out_pair, pair_mul_scalar(state_load(state_idx), q_normed));
-        } else {
-          out_value = fma(recurrent_state[state_idx], q_normed, out_value);
-        }
+    if (RECURRENT_STATE_COMPONENTS == 2u) {
+      // Keep compensated arithmetic in separate loops. Interleaving its integer
+      // residual recovery regressed the paired Vulkan measurements.
+      for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
+        let state_idx = recurrent_head_base + kd * head_v_dim + lane;
+        state_store(state_idx, pair_mul_scalar(state_load(state_idx), g_exp));
+      }
+      for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
+        let k_normed = multiply_ordered(shared_k[kd], k_norm_scale);
+        let state_idx = recurrent_head_base + kd * head_v_dim + lane;
+        kv_pair = pair_add(kv_pair, pair_mul_scalar(state_load(state_idx), k_normed));
+      }
+      let delta_pair = pair_mul_scalar(pair_add(vec2<f32>(v_val, 0.0), -kv_pair), beta);
+      for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
+        let k_normed = multiply_ordered(shared_k[kd], k_norm_scale);
+        let state_idx = recurrent_head_base + kd * head_v_dim + lane;
+        state_store(state_idx, pair_add(state_load(state_idx), pair_mul_scalar(delta_pair, k_normed)));
+      }
+      for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
+        let q_normed = fma(shared_q[kd], q_norm_scale, 0.0);
+        let state_idx = recurrent_head_base + kd * head_v_dim + lane;
+        out_pair = pair_add(out_pair, pair_mul_scalar(state_load(state_idx), q_normed));
+      }
+    } else {
+      // Reuse each decayed and updated scalar while preserving rounding and
+      // increasing-k reduction order, avoiding two state loads per element.
+      for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
+        let k_normed = multiply_ordered(shared_k[kd], k_norm_scale);
+        let state_idx = recurrent_head_base + kd * head_v_dim + lane;
+        let decayed = recurrent_state[state_idx] * g_exp;
+        recurrent_state[state_idx] = decayed;
+        kv_mem = fma(decayed, k_normed, kv_mem);
+      }
+      let delta = multiply_ordered(v_val - kv_mem, beta);
+      for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
+        let k_normed = multiply_ordered(shared_k[kd], k_norm_scale);
+        let q_normed = fma(shared_q[kd], q_norm_scale, 0.0);
+        let state_idx = recurrent_head_base + kd * head_v_dim + lane;
+        let updated = fma(k_normed, delta, recurrent_state[state_idx]);
+        recurrent_state[state_idx] = updated;
+        out_value = fma(updated, q_normed, out_value);
+      }
     }
   }
 

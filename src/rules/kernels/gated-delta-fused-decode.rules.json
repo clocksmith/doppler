@@ -3,6 +3,38 @@
     {
       "match": {
         "inputDtype": "f32",
+        "normGateActivation": "silu",
+        "stateComponents": 2
+      },
+      "value": "paired_default"
+    },
+    {
+      "match": {
+        "inputDtype": "f16",
+        "normGateActivation": "silu",
+        "stateComponents": 2
+      },
+      "value": "paired_default_f16"
+    },
+    {
+      "match": {
+        "inputDtype": "f32",
+        "normGateActivation": "sigmoid",
+        "stateComponents": 2
+      },
+      "value": "paired_sigmoid_gate"
+    },
+    {
+      "match": {
+        "inputDtype": "f16",
+        "normGateActivation": "sigmoid",
+        "stateComponents": 2
+      },
+      "value": "paired_sigmoid_gate_f16"
+    },
+    {
+      "match": {
+        "inputDtype": "f32",
         "normGateActivation": "silu"
       },
       "value": "default"
