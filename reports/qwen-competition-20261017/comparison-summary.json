@@ -1,0 +1,806 @@
+[
+  {
+    "receipt": "compare-final-metal-08/compare_20261017T143212.json",
+    "model": "qwen-3-5-0-8b-q4k-ehaf16",
+    "phase": "warm-compute",
+    "hardware": {
+      "host": {
+        "platform": "darwin",
+        "arch": "arm64",
+        "nodeVersion": "v22.20.0",
+        "osRelease": "25.6.0",
+        "cpuModel": "Apple M3"
+      },
+      "browser": {
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+        "platform": "MacIntel",
+        "language": "en-US",
+        "vendor": "Google Inc.",
+        "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "channel": null
+      },
+      "gpu": {
+        "api": "webgpu",
+        "backend": "metal",
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "0x0000",
+        "description": "Apple M3",
+        "hasF16": true,
+        "hasSubgroups": true,
+        "hasTimestampQuery": true
+      },
+      "runtime": {
+        "library": "transformers.js",
+        "version": "4.x",
+        "surface": "browser",
+        "device": "webgpu",
+        "dtype": "q4f16",
+        "requestedDtype": "q4f16",
+        "executionProviderMode": "webgpu-only",
+        "cacheMode": "warm",
+        "loadMode": "http",
+        "persistentContextRequired": true,
+        "persistentContextUsed": true,
+        "crashRecoveryArgsUsed": false
+      }
+    },
+    "warmupRuns": 1,
+    "runs": 3,
+    "fairness": {
+      "schemaVersion": 1,
+      "claimGrade": true,
+      "releaseClaimable": false,
+      "localComparable": true,
+      "correctnessOk": true,
+      "primarySection": "compute/parity",
+      "invalidReason": null,
+      "invalidReasons": [],
+      "formatFairness": {
+        "schemaVersion": 1,
+        "doppler": "rdrr",
+        "transformersjs": "onnx",
+        "sameFormat": false,
+        "class": "optimized-rdrr-vs-onnx",
+        "disclosureRequired": true,
+        "blocksClaim": false,
+        "reason": "formats differ and must be disclosed with any claim"
+      },
+      "surfaceFairness": {
+        "schemaVersion": 1,
+        "dopplerRequestedSurface": "browser",
+        "dopplerCommandSurface": "browser",
+        "transformersjsSurface": "browser",
+        "sameRuntimeSurface": true,
+        "blocksClaim": false
+      },
+      "sections": {
+        "compute/parity": {
+          "schemaVersion": 1,
+          "sectionId": "compute/parity",
+          "claimGrade": true,
+          "invalidReasons": [],
+          "gates": {
+            "performanceComparableLane": true,
+            "sameRuntimeSurface": true,
+            "tjsModelPinned": true,
+            "pairedComparable": true,
+            "throughputCadencePromotable": null
+          },
+          "invalidReason": null
+        },
+        "compute/throughput": {
+          "schemaVersion": 1,
+          "sectionId": "compute/throughput",
+          "claimGrade": false,
+          "invalidReasons": [
+            "throughput-cadence:throughput-decode-not-faster-than-parity"
+          ],
+          "gates": {
+            "performanceComparableLane": true,
+            "sameRuntimeSurface": true,
+            "tjsModelPinned": true,
+            "pairedComparable": true,
+            "throughputCadencePromotable": false
+          },
+          "invalidReason": "throughput-cadence:throughput-decode-not-faster-than-parity"
+        },
+        "warm": {
+          "schemaVersion": 1,
+          "sectionId": "warm",
+          "claimGrade": true,
+          "invalidReasons": [],
+          "gates": {
+            "performanceComparableLane": true,
+            "sameRuntimeSurface": true,
+            "tjsModelPinned": true,
+            "pairedComparable": true,
+            "throughputCadencePromotable": null
+          },
+          "invalidReason": null
+        },
+        "cold": {
+          "schemaVersion": 1,
+          "sectionId": "cold",
+          "claimGrade": true,
+          "invalidReasons": [],
+          "gates": {
+            "performanceComparableLane": true,
+            "sameRuntimeSurface": true,
+            "tjsModelPinned": true,
+            "pairedComparable": true,
+            "throughputCadencePromotable": null
+          },
+          "invalidReason": null
+        }
+      },
+      "semantics": {
+        "claimGrade": "true means the primary compare section passed its configured output-parity policy, prompt/decode validity, same runtime surface, pinned comparator model, and performance-comparable lane gates.",
+        "releaseClaimable": "true means claimGrade evidence measured the hosted quickstart-registry Doppler artifact.",
+        "localComparable": "true means claimGrade evidence exists but is local-artifact evidence, not a hosted release claim.",
+        "formatFairness": "different optimized formats are allowed only as disclosed product-format comparisons, not format-identical engine claims."
+      }
+    },
+    "exactOutputIds": 128,
+    "doppler": {
+      "decodeTokensPerSec": 29.8,
+      "firstTokenMs": 448,
+      "modelLoadMs": 3295.7
+    },
+    "transformersjs": {
+      "decodeTokensPerSec": 25.75072487276514,
+      "firstTokenMs": 241.1000000005588,
+      "modelLoadMs": 3265.929999999702
+    }
+  },
+  {
+    "receipt": "compare-retry-metal-2b/compare_20261017T144932.json",
+    "model": "qwen-3-5-2b-q4k-ehaf16",
+    "phase": "warm-compute",
+    "hardware": {
+      "host": {
+        "platform": "darwin",
+        "arch": "arm64",
+        "nodeVersion": "v22.20.0",
+        "osRelease": "25.6.0",
+        "cpuModel": "Apple M3"
+      },
+      "browser": {
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+        "platform": "MacIntel",
+        "language": "en-US",
+        "vendor": "Google Inc.",
+        "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "channel": null
+      },
+      "gpu": {
+        "api": "webgpu",
+        "backend": "metal",
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "0x0000",
+        "description": "Apple M3",
+        "hasF16": true,
+        "hasSubgroups": true,
+        "hasTimestampQuery": true
+      },
+      "runtime": {
+        "library": "transformers.js",
+        "version": "4.x",
+        "surface": "browser",
+        "device": "webgpu",
+        "dtype": "q4f16",
+        "requestedDtype": "q4f16",
+        "executionProviderMode": "webgpu-only",
+        "cacheMode": "warm",
+        "loadMode": "http",
+        "persistentContextRequired": true,
+        "persistentContextUsed": true,
+        "crashRecoveryArgsUsed": false
+      }
+    },
+    "warmupRuns": 1,
+    "runs": 3,
+    "fairness": {
+      "schemaVersion": 1,
+      "claimGrade": true,
+      "releaseClaimable": false,
+      "localComparable": true,
+      "correctnessOk": true,
+      "primarySection": "compute/parity",
+      "invalidReason": null,
+      "invalidReasons": [],
+      "formatFairness": {
+        "schemaVersion": 1,
+        "doppler": "rdrr",
+        "transformersjs": "onnx",
+        "sameFormat": false,
+        "class": "optimized-rdrr-vs-onnx",
+        "disclosureRequired": true,
+        "blocksClaim": false,
+        "reason": "formats differ and must be disclosed with any claim"
+      },
+      "surfaceFairness": {
+        "schemaVersion": 1,
+        "dopplerRequestedSurface": "browser",
+        "dopplerCommandSurface": "browser",
+        "transformersjsSurface": "browser",
+        "sameRuntimeSurface": true,
+        "blocksClaim": false
+      },
+      "sections": {
+        "compute/parity": {
+          "schemaVersion": 1,
+          "sectionId": "compute/parity",
+          "claimGrade": true,
+          "invalidReasons": [],
+          "gates": {
+            "performanceComparableLane": true,
+            "sameRuntimeSurface": true,
+            "tjsModelPinned": true,
+            "pairedComparable": true,
+            "throughputCadencePromotable": null
+          },
+          "invalidReason": null
+        },
+        "compute/throughput": {
+          "schemaVersion": 1,
+          "sectionId": "compute/throughput",
+          "claimGrade": false,
+          "invalidReasons": [
+            "throughput-cadence:throughput-decode-not-faster-than-parity"
+          ],
+          "gates": {
+            "performanceComparableLane": true,
+            "sameRuntimeSurface": true,
+            "tjsModelPinned": true,
+            "pairedComparable": true,
+            "throughputCadencePromotable": false
+          },
+          "invalidReason": "throughput-cadence:throughput-decode-not-faster-than-parity"
+        }
+      },
+      "semantics": {
+        "claimGrade": "true means the primary compare section passed its configured output-parity policy, prompt/decode validity, same runtime surface, pinned comparator model, and performance-comparable lane gates.",
+        "releaseClaimable": "true means claimGrade evidence measured the hosted quickstart-registry Doppler artifact.",
+        "localComparable": "true means claimGrade evidence exists but is local-artifact evidence, not a hosted release claim.",
+        "formatFairness": "different optimized formats are allowed only as disclosed product-format comparisons, not format-identical engine claims."
+      }
+    },
+    "exactOutputIds": 128,
+    "doppler": {
+      "decodeTokensPerSec": 20.46,
+      "firstTokenMs": 997.4,
+      "modelLoadMs": 5426.5
+    },
+    "transformersjs": {
+      "decodeTokensPerSec": 19.274285219962525,
+      "firstTokenMs": 472.6350000007078,
+      "modelLoadMs": 9299.945000000298
+    }
+  },
+  {
+    "receipt": "compare-fixed-browser-vulkan-08/compare_20261017T143258.json",
+    "model": "qwen-3-5-0-8b-q4k-ehaf16",
+    "phase": "warm-compute",
+    "hardware": {
+      "host": {
+        "platform": "linux",
+        "arch": "x64",
+        "nodeVersion": "v22.22.1",
+        "osRelease": "7.0.0-38-generic",
+        "cpuModel": "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S"
+      },
+      "browser": {
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/146.0.0.0 Safari/537.36",
+        "platform": "Linux x86_64",
+        "language": "en-US",
+        "vendor": "Google Inc.",
+        "executable": "/opt/google/chrome/chrome",
+        "channel": null
+      },
+      "gpu": {
+        "api": "webgpu",
+        "backend": "vulkan",
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "0x1586",
+        "description": "Radeon 8060S Graphics (RADV STRIX_HALO)",
+        "hasF16": true,
+        "hasSubgroups": true,
+        "hasTimestampQuery": true
+      },
+      "runtime": {
+        "library": "transformers.js",
+        "version": "4.x",
+        "surface": "browser",
+        "device": "webgpu",
+        "dtype": "q4f16",
+        "requestedDtype": "q4f16",
+        "executionProviderMode": "webgpu-only",
+        "cacheMode": "warm",
+        "loadMode": "http",
+        "persistentContextRequired": true,
+        "persistentContextUsed": true,
+        "crashRecoveryArgsUsed": false
+      }
+    },
+    "warmupRuns": 1,
+    "runs": 3,
+    "fairness": {
+      "schemaVersion": 1,
+      "claimGrade": true,
+      "releaseClaimable": false,
+      "localComparable": true,
+      "correctnessOk": true,
+      "primarySection": "compute/parity",
+      "invalidReason": null,
+      "invalidReasons": [],
+      "formatFairness": {
+        "schemaVersion": 1,
+        "doppler": "rdrr",
+        "transformersjs": "onnx",
+        "sameFormat": false,
+        "class": "optimized-rdrr-vs-onnx",
+        "disclosureRequired": true,
+        "blocksClaim": false,
+        "reason": "formats differ and must be disclosed with any claim"
+      },
+      "surfaceFairness": {
+        "schemaVersion": 1,
+        "dopplerRequestedSurface": "browser",
+        "dopplerCommandSurface": "browser",
+        "transformersjsSurface": "browser",
+        "sameRuntimeSurface": true,
+        "blocksClaim": false
+      },
+      "sections": {
+        "compute/parity": {
+          "schemaVersion": 1,
+          "sectionId": "compute/parity",
+          "claimGrade": true,
+          "invalidReasons": [],
+          "gates": {
+            "performanceComparableLane": true,
+            "sameRuntimeSurface": true,
+            "tjsModelPinned": true,
+            "pairedComparable": true,
+            "throughputCadencePromotable": null
+          },
+          "invalidReason": null
+        },
+        "compute/throughput": {
+          "schemaVersion": 1,
+          "sectionId": "compute/throughput",
+          "claimGrade": true,
+          "invalidReasons": [],
+          "gates": {
+            "performanceComparableLane": true,
+            "sameRuntimeSurface": true,
+            "tjsModelPinned": true,
+            "pairedComparable": true,
+            "throughputCadencePromotable": true
+          },
+          "invalidReason": null
+        },
+        "warm": {
+          "schemaVersion": 1,
+          "sectionId": "warm",
+          "claimGrade": true,
+          "invalidReasons": [],
+          "gates": {
+            "performanceComparableLane": true,
+            "sameRuntimeSurface": true,
+            "tjsModelPinned": true,
+            "pairedComparable": true,
+            "throughputCadencePromotable": null
+          },
+          "invalidReason": null
+        },
+        "cold": {
+          "schemaVersion": 1,
+          "sectionId": "cold",
+          "claimGrade": true,
+          "invalidReasons": [],
+          "gates": {
+            "performanceComparableLane": true,
+            "sameRuntimeSurface": true,
+            "tjsModelPinned": true,
+            "pairedComparable": true,
+            "throughputCadencePromotable": null
+          },
+          "invalidReason": null
+        }
+      },
+      "semantics": {
+        "claimGrade": "true means the primary compare section passed its configured output-parity policy, prompt/decode validity, same runtime surface, pinned comparator model, and performance-comparable lane gates.",
+        "releaseClaimable": "true means claimGrade evidence measured the hosted quickstart-registry Doppler artifact.",
+        "localComparable": "true means claimGrade evidence exists but is local-artifact evidence, not a hosted release claim.",
+        "formatFairness": "different optimized formats are allowed only as disclosed product-format comparisons, not format-identical engine claims."
+      }
+    },
+    "exactOutputIds": 128,
+    "doppler": {
+      "decodeTokensPerSec": 97.66,
+      "firstTokenMs": 308.9,
+      "modelLoadMs": 3498.3
+    },
+    "transformersjs": {
+      "decodeTokensPerSec": 42.2116933036457,
+      "firstTokenMs": 84.24500000476837,
+      "modelLoadMs": 2350.8850000053644
+    }
+  },
+  {
+    "receipt": "compare-fixed-browser-vulkan-2b/compare_20261017T143456.json",
+    "model": "qwen-3-5-2b-q4k-ehaf16",
+    "phase": "warm-compute",
+    "hardware": {
+      "host": {
+        "platform": "linux",
+        "arch": "x64",
+        "nodeVersion": "v22.22.1",
+        "osRelease": "7.0.0-38-generic",
+        "cpuModel": "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S"
+      },
+      "browser": {
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/146.0.0.0 Safari/537.36",
+        "platform": "Linux x86_64",
+        "language": "en-US",
+        "vendor": "Google Inc.",
+        "executable": "/opt/google/chrome/chrome",
+        "channel": null
+      },
+      "gpu": {
+        "api": "webgpu",
+        "backend": "vulkan",
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "0x1586",
+        "description": "Radeon 8060S Graphics (RADV STRIX_HALO)",
+        "hasF16": true,
+        "hasSubgroups": true,
+        "hasTimestampQuery": true
+      },
+      "runtime": {
+        "library": "transformers.js",
+        "version": "4.x",
+        "surface": "browser",
+        "device": "webgpu",
+        "dtype": "q4f16",
+        "requestedDtype": "q4f16",
+        "executionProviderMode": "webgpu-only",
+        "cacheMode": "warm",
+        "loadMode": "http",
+        "persistentContextRequired": true,
+        "persistentContextUsed": true,
+        "crashRecoveryArgsUsed": false
+      }
+    },
+    "warmupRuns": 1,
+    "runs": 3,
+    "fairness": {
+      "schemaVersion": 1,
+      "claimGrade": true,
+      "releaseClaimable": false,
+      "localComparable": true,
+      "correctnessOk": true,
+      "primarySection": "compute/parity",
+      "invalidReason": null,
+      "invalidReasons": [],
+      "formatFairness": {
+        "schemaVersion": 1,
+        "doppler": "rdrr",
+        "transformersjs": "onnx",
+        "sameFormat": false,
+        "class": "optimized-rdrr-vs-onnx",
+        "disclosureRequired": true,
+        "blocksClaim": false,
+        "reason": "formats differ and must be disclosed with any claim"
+      },
+      "surfaceFairness": {
+        "schemaVersion": 1,
+        "dopplerRequestedSurface": "browser",
+        "dopplerCommandSurface": "browser",
+        "transformersjsSurface": "browser",
+        "sameRuntimeSurface": true,
+        "blocksClaim": false
+      },
+      "sections": {
+        "compute/parity": {
+          "schemaVersion": 1,
+          "sectionId": "compute/parity",
+          "claimGrade": true,
+          "invalidReasons": [],
+          "gates": {
+            "performanceComparableLane": true,
+            "sameRuntimeSurface": true,
+            "tjsModelPinned": true,
+            "pairedComparable": true,
+            "throughputCadencePromotable": null
+          },
+          "invalidReason": null
+        },
+        "compute/throughput": {
+          "schemaVersion": 1,
+          "sectionId": "compute/throughput",
+          "claimGrade": true,
+          "invalidReasons": [],
+          "gates": {
+            "performanceComparableLane": true,
+            "sameRuntimeSurface": true,
+            "tjsModelPinned": true,
+            "pairedComparable": true,
+            "throughputCadencePromotable": true
+          },
+          "invalidReason": null
+        },
+        "warm": {
+          "schemaVersion": 1,
+          "sectionId": "warm",
+          "claimGrade": true,
+          "invalidReasons": [],
+          "gates": {
+            "performanceComparableLane": true,
+            "sameRuntimeSurface": true,
+            "tjsModelPinned": true,
+            "pairedComparable": true,
+            "throughputCadencePromotable": null
+          },
+          "invalidReason": null
+        },
+        "cold": {
+          "schemaVersion": 1,
+          "sectionId": "cold",
+          "claimGrade": true,
+          "invalidReasons": [],
+          "gates": {
+            "performanceComparableLane": true,
+            "sameRuntimeSurface": true,
+            "tjsModelPinned": true,
+            "pairedComparable": true,
+            "throughputCadencePromotable": null
+          },
+          "invalidReason": null
+        }
+      },
+      "semantics": {
+        "claimGrade": "true means the primary compare section passed its configured output-parity policy, prompt/decode validity, same runtime surface, pinned comparator model, and performance-comparable lane gates.",
+        "releaseClaimable": "true means claimGrade evidence measured the hosted quickstart-registry Doppler artifact.",
+        "localComparable": "true means claimGrade evidence exists but is local-artifact evidence, not a hosted release claim.",
+        "formatFairness": "different optimized formats are allowed only as disclosed product-format comparisons, not format-identical engine claims."
+      }
+    },
+    "exactOutputIds": 128,
+    "doppler": {
+      "decodeTokensPerSec": 71.28,
+      "firstTokenMs": 337.8,
+      "modelLoadMs": 6172.3
+    },
+    "transformersjs": {
+      "decodeTokensPerSec": 41.521518445182764,
+      "firstTokenMs": 257.39500001072884,
+      "modelLoadMs": 3294.75
+    }
+  },
+  {
+    "receipt": "compare-first-request-metal-08/compare_20261017T145800.json",
+    "model": "qwen-3-5-0-8b-q4k-ehaf16",
+    "phase": "first-request",
+    "hardware": {
+      "host": {
+        "platform": "darwin",
+        "arch": "arm64",
+        "nodeVersion": "v22.20.0",
+        "osRelease": "25.6.0",
+        "cpuModel": "Apple M3"
+      },
+      "browser": {
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+        "platform": "MacIntel",
+        "language": "en-US",
+        "vendor": "Google Inc.",
+        "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "channel": null
+      },
+      "gpu": {
+        "api": "webgpu",
+        "backend": "metal",
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "0x0000",
+        "description": "Apple M3",
+        "hasF16": true,
+        "hasSubgroups": true,
+        "hasTimestampQuery": true
+      },
+      "runtime": {
+        "library": "transformers.js",
+        "version": "4.x",
+        "surface": "browser",
+        "device": "webgpu",
+        "dtype": "q4f16",
+        "requestedDtype": "q4f16",
+        "executionProviderMode": "webgpu-only",
+        "cacheMode": "cold",
+        "loadMode": "http",
+        "persistentContextRequired": false,
+        "persistentContextUsed": true,
+        "crashRecoveryArgsUsed": false
+      }
+    },
+    "warmupRuns": 0,
+    "runs": 1,
+    "fairness": {
+      "schemaVersion": 1,
+      "claimGrade": true,
+      "releaseClaimable": false,
+      "localComparable": true,
+      "correctnessOk": true,
+      "primarySection": "cold",
+      "invalidReason": null,
+      "invalidReasons": [],
+      "formatFairness": {
+        "schemaVersion": 1,
+        "doppler": "rdrr",
+        "transformersjs": "onnx",
+        "sameFormat": false,
+        "class": "optimized-rdrr-vs-onnx",
+        "disclosureRequired": true,
+        "blocksClaim": false,
+        "reason": "formats differ and must be disclosed with any claim"
+      },
+      "surfaceFairness": {
+        "schemaVersion": 1,
+        "dopplerRequestedSurface": "browser",
+        "dopplerCommandSurface": "browser",
+        "transformersjsSurface": "browser",
+        "sameRuntimeSurface": true,
+        "blocksClaim": false
+      },
+      "sections": {
+        "cold": {
+          "schemaVersion": 1,
+          "sectionId": "cold",
+          "claimGrade": true,
+          "invalidReasons": [],
+          "gates": {
+            "performanceComparableLane": true,
+            "sameRuntimeSurface": true,
+            "tjsModelPinned": true,
+            "pairedComparable": true,
+            "throughputCadencePromotable": null
+          },
+          "invalidReason": null
+        }
+      },
+      "semantics": {
+        "claimGrade": "true means the primary compare section passed its configured output-parity policy, prompt/decode validity, same runtime surface, pinned comparator model, and performance-comparable lane gates.",
+        "releaseClaimable": "true means claimGrade evidence measured the hosted quickstart-registry Doppler artifact.",
+        "localComparable": "true means claimGrade evidence exists but is local-artifact evidence, not a hosted release claim.",
+        "formatFairness": "different optimized formats are allowed only as disclosed product-format comparisons, not format-identical engine claims."
+      }
+    },
+    "exactOutputIds": 128,
+    "doppler": {
+      "decodeTokensPerSec": 36.01,
+      "firstTokenMs": 528.4,
+      "modelLoadMs": 3015.1
+    },
+    "transformersjs": {
+      "decodeTokensPerSec": 27.914235160949875,
+      "firstTokenMs": 360.32500000018626,
+      "modelLoadMs": 2275.5800000000745
+    }
+  },
+  {
+    "receipt": "compare-first-request-metal-2b/compare_20261017T145834.json",
+    "model": "qwen-3-5-2b-q4k-ehaf16",
+    "phase": "first-request",
+    "hardware": {
+      "host": {
+        "platform": "darwin",
+        "arch": "arm64",
+        "nodeVersion": "v22.20.0",
+        "osRelease": "25.6.0",
+        "cpuModel": "Apple M3"
+      },
+      "browser": {
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+        "platform": "MacIntel",
+        "language": "en-US",
+        "vendor": "Google Inc.",
+        "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "channel": null
+      },
+      "gpu": {
+        "api": "webgpu",
+        "backend": "metal",
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "0x0000",
+        "description": "Apple M3",
+        "hasF16": true,
+        "hasSubgroups": true,
+        "hasTimestampQuery": true
+      },
+      "runtime": {
+        "library": "transformers.js",
+        "version": "4.x",
+        "surface": "browser",
+        "device": "webgpu",
+        "dtype": "q4f16",
+        "requestedDtype": "q4f16",
+        "executionProviderMode": "webgpu-only",
+        "cacheMode": "cold",
+        "loadMode": "http",
+        "persistentContextRequired": false,
+        "persistentContextUsed": true,
+        "crashRecoveryArgsUsed": false
+      }
+    },
+    "warmupRuns": 0,
+    "runs": 1,
+    "fairness": {
+      "schemaVersion": 1,
+      "claimGrade": true,
+      "releaseClaimable": false,
+      "localComparable": true,
+      "correctnessOk": true,
+      "primarySection": "cold",
+      "invalidReason": null,
+      "invalidReasons": [],
+      "formatFairness": {
+        "schemaVersion": 1,
+        "doppler": "rdrr",
+        "transformersjs": "onnx",
+        "sameFormat": false,
+        "class": "optimized-rdrr-vs-onnx",
+        "disclosureRequired": true,
+        "blocksClaim": false,
+        "reason": "formats differ and must be disclosed with any claim"
+      },
+      "surfaceFairness": {
+        "schemaVersion": 1,
+        "dopplerRequestedSurface": "browser",
+        "dopplerCommandSurface": "browser",
+        "transformersjsSurface": "browser",
+        "sameRuntimeSurface": true,
+        "blocksClaim": false
+      },
+      "sections": {
+        "cold": {
+          "schemaVersion": 1,
+          "sectionId": "cold",
+          "claimGrade": true,
+          "invalidReasons": [],
+          "gates": {
+            "performanceComparableLane": true,
+            "sameRuntimeSurface": true,
+            "tjsModelPinned": true,
+            "pairedComparable": true,
+            "throughputCadencePromotable": null
+          },
+          "invalidReason": null
+        }
+      },
+      "semantics": {
+        "claimGrade": "true means the primary compare section passed its configured output-parity policy, prompt/decode validity, same runtime surface, pinned comparator model, and performance-comparable lane gates.",
+        "releaseClaimable": "true means claimGrade evidence measured the hosted quickstart-registry Doppler artifact.",
+        "localComparable": "true means claimGrade evidence exists but is local-artifact evidence, not a hosted release claim.",
+        "formatFairness": "different optimized formats are allowed only as disclosed product-format comparisons, not format-identical engine claims."
+      }
+    },
+    "exactOutputIds": 128,
+    "doppler": {
+      "decodeTokensPerSec": 19.1,
+      "firstTokenMs": 875.8,
+      "modelLoadMs": 5084.4
+    },
+    "transformersjs": {
+      "decodeTokensPerSec": 17.803858951380374,
+      "firstTokenMs": 591.2099999999627,
+      "modelLoadMs": 7663.429999999702
+    }
+  }
+]
