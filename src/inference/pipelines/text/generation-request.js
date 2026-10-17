@@ -1,3 +1,4 @@
+import { resolveSelfSpeculationConfig } from '../../../config/schema/speculation-self.schema.js';
 import { resolveSamplingConfig } from './sampling-config.js';
 
 /** @type {WeakMap<object, import('./sampling-config.js').ResolvedSamplingConfig>} */
@@ -31,12 +32,17 @@ export function resolveTextGenerationRequest(options, runtimeConfig, modelConfig
   if (options.seed !== undefined && (!Number.isFinite(options.seed) || options.seed < 0)) {
     throw new Error('Generation seed must be a non-negative finite number when supplied.');
   }
+  const speculation = resolveSelfSpeculationConfig(runtimeConfig.inference.session?.speculation, options.speculation);
+  if (useSpeculative === true && !speculation) {
+    throw new Error('Generation useSpeculative=true requires an explicit supported speculation policy.');
+  }
   const request = Object.freeze({
     ...options,
     ...sampling,
     maxTokens,
     seed: options.seed,
     useSpeculative,
+    speculation,
     useChatTemplate: resolveChatTemplateSetting(options, runtimeConfig, modelConfig),
     suppressTokenIds: Object.freeze([...sampling.suppressTokenIds]),
     stopSequences: Object.freeze([...stopSequences]),
@@ -61,6 +67,7 @@ export function generationRequestEvidence(request) {
     stopSequences: request.stopSequences,
     useChatTemplate: request.useChatTemplate,
     useSpeculative: request.useSpeculative ?? null,
+    speculation: request.speculation,
     seed: request.seed ?? null,
   });
 }

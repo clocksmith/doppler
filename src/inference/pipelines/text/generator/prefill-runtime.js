@@ -823,11 +823,11 @@ export async function _prefill(inputIds, opts) {
           undefined,
           debugCheckBuffer,
           this._state.runtimeConfig.shared.debug.probes,
-          { lastPositionOnly: true, selectedTokenIds: selectedLogitTokenIds, returnGpuBuffer: opts._returnGpuLogits === true },
+          { lastPositionOnly: opts._returnAllLogits !== true, selectedTokenIds: selectedLogitTokenIds, returnGpuBuffer: opts._returnGpuLogits === true },
           this._state.operatorDiagnostics
         );
 
-        if (opts._returnGpuLogits === true || selectedLogitTokenIds !== null) {
+        if (opts._returnAllLogits === true || opts._returnGpuLogits === true || selectedLogitTokenIds !== null) {
           lastLogits = logits;
         } else {
           lastLogits = logits.length === logitsVocabSize

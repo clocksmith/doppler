@@ -102,6 +102,9 @@
     "src/experimental/training/report-ranking.js",
     "src/experimental/training/parameter-groups.js",
     "src/gpu/buffer-identity.js",
-    "src/storage/runtime-env.js"
+    "src/storage/runtime-env.js",
+    "src/inference/pipelines/text/generator/speculative-runtime.js",
+    "src/inference/pipelines/text/linear-attention/state-checkpoint.js",
+    "src/config/schema/speculation-self.schema.js"
   ]
 }
