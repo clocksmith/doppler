@@ -1,10 +1,8 @@
-import { exactKeys } from './evidence-fields.js';
+import { exactKeys, text, sha256, revision, instant, boolean, integer, number } from './evidence-fields.js';
 import { computeCanonicalJsonSha256 } from './canonical-json.js';
 
 const EVIDENCE_SCHEMA = 'doppler.bun-product-qualification-evidence/v1';
 const PROMOTION_SCHEMA = 'doppler.bun-product-promotion-evidence/v1';
-const SHA256_PATTERN = /^sha256:[0-9a-f]{64}$/;
-const REVISION_PATTERN = /^[0-9a-f]{40}$/;
 
 export const BUN_QUALIFICATION_EVIDENCE_CLASSES = Object.freeze([
   'surfaceConformance',
@@ -17,64 +15,6 @@ export const BUN_QUALIFICATION_EVIDENCE_CLASSES = Object.freeze([
   'upgradeRequalification',
   'rollbackRevocation',
 ]);
-
-function normalizeText(value) {
-  return typeof value === 'string' ? value.trim() : '';
-}
-
-function text(value, label, errors, nullable = false) {
-  if (nullable && value === null) return null;
-  const normalized = normalizeText(value);
-  if (!normalized) errors.push(`${label} must be a non-empty string${nullable ? ' or null' : ''}`);
-  return normalized || null;
-}
-
-function sha256(value, label, errors, nullable = false) {
-  const normalized = text(value, label, errors, nullable)?.toLowerCase() ?? null;
-  if (normalized && !SHA256_PATTERN.test(normalized)) {
-    errors.push(`${label} must be a SHA-256 identity${nullable ? ' or null' : ''}`);
-  }
-  return normalized;
-}
-
-function revision(value, label, errors) {
-  const normalized = text(value, label, errors)?.toLowerCase() ?? null;
-  if (normalized && !REVISION_PATTERN.test(normalized)) {
-    errors.push(`${label} must be a lowercase 40-hex revision`);
-  }
-  return normalized;
-}
-
-function instant(value, label, errors) {
-  const normalized = text(value, label, errors);
-  const parsed = normalized ? new Date(normalized) : null;
-  if (!parsed || !Number.isFinite(parsed.getTime()) || parsed.toISOString() !== normalized) {
-    errors.push(`${label} must be an ISO instant`);
-    return null;
-  }
-  return parsed;
-}
-
-function boolean(value, label, errors) {
-  if (typeof value !== 'boolean') errors.push(`${label} must be boolean`);
-  return value === true;
-}
-
-function integer(value, label, errors, minimum = 0) {
-  if (!Number.isInteger(value) || value < minimum) {
-    errors.push(`${label} must be an integer of at least ${minimum}`);
-    return null;
-  }
-  return value;
-}
-
-function number(value, label, errors, minimum = 0) {
-  if (!Number.isFinite(value) || value < minimum) {
-    errors.push(`${label} must be a finite number of at least ${minimum}`);
-    return null;
-  }
-  return value;
-}
 
 function match(actual, expected, label, errors) {
   if (expected != null && actual != null && actual !== expected) {

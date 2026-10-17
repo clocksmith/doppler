@@ -1,5 +1,5 @@
 import { isPlainObject } from '../../src/formats/plain-object.js';
-import { exactKeys } from './evidence-fields.js';
+import { exactKeys, text as requiredText, instant as isoInstant } from './evidence-fields.js';
 import {
   canonicalizeJson,
   computeCanonicalJsonSha256,
@@ -13,16 +13,6 @@ const ROLES = new Set(['source', 'incumbent']);
 const WORKLOADS = new Set(['generation', 'embedding', 'reranking']);
 const STATUSES = new Set(['passed', 'failed']);
 
-function normalizeText(value) {
-  return typeof value === 'string' ? value.trim() : '';
-}
-
-function requiredText(value, label, errors) {
-  const normalized = normalizeText(value);
-  if (!normalized) errors.push(`${label} must be a non-empty string`);
-  return normalized || null;
-}
-
 function requiredSha256(value, label, errors) {
   const normalized = requiredText(value, label, errors)?.toLowerCase() ?? null;
   if (normalized && !SHA256_PATTERN.test(normalized)) {
@@ -34,16 +24,6 @@ function requiredSha256(value, label, errors) {
 function nullableSha256(value, label, errors) {
   if (value === null) return null;
   return requiredSha256(value, label, errors);
-}
-
-function isoInstant(value, label, errors) {
-  const normalized = requiredText(value, label, errors);
-  const instant = normalized ? new Date(normalized) : null;
-  if (!instant || !Number.isFinite(instant.getTime()) || instant.toISOString() !== normalized) {
-    errors.push(`${label} must be an ISO instant`);
-    return null;
-  }
-  return instant;
 }
 
 function matchExpected(actual, expected, label, errors) {

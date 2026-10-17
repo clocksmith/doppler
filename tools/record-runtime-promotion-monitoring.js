@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
-import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+import { normalizeText, requireText } from './lib/evidence-fields.js';
+import { isRepoRelativePath, readJson, writeJsonAtomically } from './lib/evidence-io.js';
 import { isPlainObject } from '../src/formats/plain-object.js';
 
 import { computeCanonicalSha256 } from '../src/utils/canonical-hash.js';
@@ -31,10 +32,6 @@ const DEFAULT_REVOCATION_PATH = path.join(
 );
 const CAPTURE_SCHEMA = 'doppler.runtime-promotion-monitoring-capture/v1';
 
-function normalizeText(value) {
-  return typeof value === 'string' ? value.trim() : '';
-}
-
 function assertExactKeys(value, fields, label) {
   if (!isPlainObject(value)) throw new Error(`${label} must be an object.`);
   const expected = new Set(fields);
@@ -44,12 +41,6 @@ function assertExactKeys(value, fields, label) {
   if (missing.length > 0) throw new Error(`${label}.${missing[0]} is required.`);
 }
 
-function requireText(value, label) {
-  const normalized = normalizeText(value);
-  if (!normalized) throw new Error(`${label} must be a non-empty string.`);
-  return normalized;
-}
-
 function parseInstant(value, label) {
   const normalized = requireText(value, label);
   const instant = new Date(normalized);
@@ -57,24 +48,6 @@ function parseInstant(value, label) {
     throw new Error(`${label} must be an ISO instant.`);
   }
   return instant;
-}
-
-function isRepoRelativePath(value) {
-  const normalized = normalizeText(value);
-  return Boolean(
-    normalized
-    && !path.isAbsolute(normalized)
-    && !normalized.includes('\\')
-    && !normalized.split('/').includes('..')
-  );
-}
-
-async function readJson(filePath, label) {
-  try {
-    return JSON.parse(await fs.readFile(filePath, 'utf8'));
-  } catch (error) {
-    throw new Error(`${label} is not readable JSON: ${error.message}`);
-  }
 }
 
 async function readEvidencePath(value, label, repoRoot) {
@@ -259,17 +232,6 @@ async function validateCapture(capture, context) {
     decision,
     decisionResult,
   };
-}
-
-async function writeJsonAtomically(filePath, value) {
-  await fs.mkdir(path.dirname(filePath), { recursive: true });
-  const temporaryPath = `${filePath}.${process.pid}.tmp`;
-  try {
-    await fs.writeFile(temporaryPath, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
-    await fs.rename(temporaryPath, filePath);
-  } finally {
-    await fs.rm(temporaryPath, { force: true });
-  }
 }
 
 export async function recordRuntimePromotionMonitoring(options) {

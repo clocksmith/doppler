@@ -1,10 +1,9 @@
-import { exactKeys } from './evidence-fields.js';
+import { exactKeys, text, sha256, instant, boolean } from './evidence-fields.js';
 import { computeCanonicalJsonSha256 } from './canonical-json.js';
 
 const OWNER_SCHEMA = 'doppler.signed-revocation-authority-owner-confirmation/v1';
 const EVIDENCE_SCHEMA = 'doppler.signed-revocation-authority-evidence/v1';
 const PROMOTION_SCHEMA = 'doppler.signed-revocation-authority-promotion-evidence/v1';
-const SHA256_PATTERN = /^sha256:[0-9a-f]{64}$/;
 const REVISION_PATTERN = /^[0-9a-f]{40}$/;
 
 export const REVOCATION_AUTHORITY_EVIDENCE_CLASSES = Object.freeze([
@@ -79,20 +78,12 @@ const OBSERVATION_FIELDS = Object.freeze({
   ],
 });
 
-function normalizeText(value) {
-  return typeof value === 'string' ? value.trim() : '';
-}
-
-function text(value, label, errors) {
-  const normalized = normalizeText(value);
-  if (!normalized) errors.push(`${label} must be a non-empty string`);
-  return normalized || null;
-}
-
-function sha256(value, label, errors) {
-  const normalized = text(value, label, errors)?.toLowerCase() ?? null;
-  if (normalized && !SHA256_PATTERN.test(normalized)) errors.push(`${label} must be a SHA-256 identity`);
-  return normalized;
+function integer(value, label, errors, minimum = 0) {
+  if (!Number.isInteger(value) || value < minimum) {
+    errors.push(`${label} must be an integer >= ${minimum}`);
+    return null;
+  }
+  return value;
 }
 
 function revision(value, label, errors) {
@@ -101,32 +92,6 @@ function revision(value, label, errors) {
     errors.push(`${label} must be a 40-character commit revision`);
   }
   return normalized;
-}
-
-function instant(value, label, errors) {
-  const normalized = text(value, label, errors);
-  const parsed = normalized ? new Date(normalized) : null;
-  if (!parsed || !Number.isFinite(parsed.getTime()) || parsed.toISOString() !== normalized) {
-    errors.push(`${label} must be an ISO instant`);
-    return null;
-  }
-  return parsed;
-}
-
-function boolean(value, label, errors) {
-  if (typeof value !== 'boolean') {
-    errors.push(`${label} must be boolean`);
-    return false;
-  }
-  return value;
-}
-
-function integer(value, label, errors, minimum = 0) {
-  if (!Number.isInteger(value) || value < minimum) {
-    errors.push(`${label} must be an integer >= ${minimum}`);
-    return null;
-  }
-  return value;
 }
 
 function strings(value, label, errors) {
