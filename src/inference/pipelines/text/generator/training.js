@@ -21,6 +21,7 @@ import {
   assertTokenIdInRange,
   resolveStepOptions,
   resolveGenerateOptions,
+  settleGenerationStats,
   resolvePrefillOptions,
   resolvePrefillEmbeddingOptions,
   resolveAdvanceEmbeddingMode,
@@ -670,6 +671,7 @@ export async function* generateWithPrefixKV(prefix, prompt, options = {}, emissi
     this._state.currentSeqLen = prefix.seqLen;
 
     this._state.isGenerating = true;
+    this._resetDecodeRuntimeState();
     this._state.decodeStepCount = 0;
     resetActiveExecutionPlan(this._state);
     delete this._state.stats.outputUsage;
@@ -692,7 +694,17 @@ export async function* generateWithPrefixKV(prefix, prompt, options = {}, emissi
     this._state.stats.prefillRecordOpLabels = {};
     this._state.stats.prefillSubmitWaitMs = 0;
     this._state.stats.ttftMs = 0;
+    this._state.stats.stopReason = null;
+    this._state.stats.stopTokenId = null;
+    this._state.stats.prefillTokens = 0;
+    this._state.stats.tokensGenerated = 0;
+    this._state.stats.decodeTokens = 0;
+    this._state.stats.prefillTimeMs = 0;
+    this._state.stats.decodeTimeMs = 0;
+    this._state.stats.totalTimeMs = 0;
     const startTime = performance.now();
+    let generatedIds = [];
+    let promptTokenCount = 0;
 
     const opts = resolveGenerateOptions(this._state, options);
 
@@ -701,8 +713,8 @@ export async function* generateWithPrefixKV(prefix, prompt, options = {}, emissi
 
       const inputIds = this._state.tokenizer.encode(processedPrompt);
       this._assertTokenIdsInRange(inputIds, 'generateWithPrefixKV.encode');
-      const generatedIds = [...prefix.tokens, ...inputIds];
-      const promptTokenCount = opts.promptTokenCount = generatedIds.length;
+      generatedIds = [...prefix.tokens, ...inputIds];
+      promptTokenCount = opts.promptTokenCount = generatedIds.length;
       this._state.stats.prefillTokens = inputIds.length;
 
       const prefillStart = performance.now();
@@ -753,6 +765,9 @@ export async function* generateWithPrefixKV(prefix, prompt, options = {}, emissi
       }
       this._state.stats.totalTimeMs = performance.now() - startTime;
     } finally {
+      settleGenerationStats(this._state.stats, startTime,
+        Math.max(0, generatedIds.length - promptTokenCount), options.signal?.aborted === true);
+      this._state.stats.batching = { ...this._state.batchingStats };
       this._closeFinitenessFallbackWindow(opts);
       resetActiveExecutionPlan(this._state);
       this._state.isGenerating = false;

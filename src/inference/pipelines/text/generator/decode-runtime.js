@@ -17,7 +17,7 @@ import { OperatorEventEmitter } from '../operator-events.js';
 import { isCpuWeightBuffer } from '../../../../gpu/weight-buffer.js';
 import { decodeStep, advanceWithToken as runAdvanceWithToken, generateNTokensGPU, shouldUseBatchDecode, advanceWithTokenAndEmbedding as runAdvanceWithTokenAndEmbedding } from '../generator-steps.js';
 import { debugCheckBuffer as debugCheckBufferHelper, resolvePerLayerInputsSession } from './session-context.js';
-import { resolveGenerateOptions, resolveAdvanceEmbeddingMode } from '../generator-runtime.js';
+import { resolveGenerateOptions, resolveAdvanceEmbeddingMode, settleGenerationStats } from '../generator-runtime.js';
 import { createTsirFixtureState } from '../tsir-fixture-writer.js';
 import { resetActiveExecutionPlan, resolveMaxBatchDecodeTokens, resolveActiveExecutionPlan } from '../execution-plan.js';
 import { hasLinearAttentionLayers } from '../linear-attention.js';
@@ -65,6 +65,12 @@ function prepareGenerationRuntime(generator, opts, options) {
   generator._state.stats.stopReason = null;
   generator._state.stats.stopTokenId = null;
   generator._state.stats.ttftMs = 0;
+  generator._state.stats.prefillTimeMs = 0;
+  generator._state.stats.decodeTimeMs = 0;
+  generator._state.stats.prefillTokens = 0;
+  generator._state.stats.tokensGenerated = 0;
+  generator._state.stats.decodeTokens = 0;
+  generator._state.stats.totalTimeMs = 0;
   const startTime = performance.now();
 
   opts.onLogits = typeof options.onLogits === 'function' ? options.onLogits : null;
@@ -115,7 +121,10 @@ async function samplePrefillToken(generator, prefillLogits, generatedIds, inputI
   }
 }
 
-function finishGenerationRuntime(generator) {
+function finishGenerationRuntime(generator, options, startTime, generatedIds, promptTokenCount) {
+  settleGenerationStats(generator._state.stats, startTime,
+    Math.max(0, generatedIds.length - promptTokenCount), options.signal?.aborted === true);
+  generator._state.stats.batching = { ...generator._state.batchingStats };
   resetActiveExecutionPlan(generator._state);
   generator._state.stats.operatorDiagnostics = generator._state.operatorDiagnostics?.emitter
     ? {
@@ -135,6 +144,8 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
     validateCallTimeOptions(options);
     const opts = resolveGenerateOptions(this._state, options);
     const startTime = prepareGenerationRuntime(this, opts, options);
+    let generatedIds = [];
+    let promptTokenCount = 0;
     const activePlan = opts.executionPlan ?? resolveActiveExecutionPlan(this._state);
     this._state.stats.executionPlan = {
       primary: summarizeExecutionPlan(this._state.executionPlanState?.primaryPlan ?? null),
@@ -168,7 +179,8 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
       const prefillLogits = initialPrefillLogits;
       this._state.stats.prefillTimeMs = performance.now() - prefillStart;
       this._assertTokenIdsInRange(inputIds, 'generate.prefillTokens');
-      const generatedIds = [...inputIds];
+      generatedIds = [...inputIds];
+      promptTokenCount = inputIds.length;
       this._state.stats.prefillTokens = opts.promptTokenCount = inputIds.length;
 
       if (opts.debug) {
@@ -272,7 +284,7 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
       });
     } finally {
       this._closeFinitenessFallbackWindow(opts);
-      finishGenerationRuntime(this);
+      finishGenerationRuntime(this, options, startTime, generatedIds, promptTokenCount);
     }
   }
 
@@ -283,6 +295,8 @@ export async function generateTokenIds(prompt, options = {}) {
     validateCallTimeOptions(options);
     const opts = resolveGenerateOptions(this._state, options);
     const startTime = prepareGenerationRuntime(this, opts, options);
+    let generatedIds = [];
+    let promptTokenCount = 0;
 
     try {
       const prefillStartSeqLen = this._state.currentSeqLen;
@@ -291,7 +305,8 @@ export async function generateTokenIds(prompt, options = {}) {
       const prefillLogits = initialPrefillLogits;
       this._state.stats.prefillTimeMs = performance.now() - prefillStart;
       this._assertTokenIdsInRange(inputIds, 'generateTokenIds.prefillTokens');
-      const generatedIds = [...inputIds];
+      generatedIds = [...inputIds];
+      promptTokenCount = inputIds.length;
       this._state.stats.prefillTokens = opts.promptTokenCount = inputIds.length;
 
       const firstToken = await samplePrefillToken(this, prefillLogits, generatedIds, inputIds, opts, prefillStartSeqLen, false);
@@ -337,7 +352,7 @@ export async function generateTokenIds(prompt, options = {}) {
       if (this._state.stats.executionPlan) {
         this._state.stats.executionPlan.finalActivePlanId = this._state.executionPlanState?.activePlanId ?? null;
       }
-      finishGenerationRuntime(this);
+      finishGenerationRuntime(this, options, startTime, generatedIds, promptTokenCount);
     }
   }
 
