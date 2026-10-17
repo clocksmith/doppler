@@ -7,6 +7,13 @@
   },
   "include": [],
   "files": [
+    "tools/lib/evidence-io.js",
+    "tools/record-bun-product-qualification.js",
+    "tools/record-runtime-ownership-evaluation.js",
+    "tools/record-runtime-promotion-monitoring.js",
+    "tools/record-provider-conformance.js",
+    "tools/record-signed-revocation-authority-evaluation.js",
+    "tools/record-product-integration-evaluation.js",
     "tools/lib/evidence-fields.js",
     "tools/lib/bun-product-qualification-evidence.js",
     "tools/lib/runtime-promotion-monitoring-evidence.js",

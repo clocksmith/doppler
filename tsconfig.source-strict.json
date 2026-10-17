@@ -16,6 +16,7 @@
   },
   "include": [],
   "files": [
+    "tools/lib/evidence-io.js",
     "tools/lib/evidence-fields.js",
     "src/config/layer-partition-plan.js",
     "src/config/ordered-resident-qualification.js",
