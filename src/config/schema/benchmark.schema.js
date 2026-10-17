@@ -41,6 +41,8 @@ export const DEFAULT_BENCHMARK_RUN_CONFIG = {
 // =============================================================================
 
 export const DEFAULT_BENCHMARK_STATS_CONFIG = {
+  // Retain stalls in benchmark summaries; diagnostic IQR filtering is opt-in.
+  outlierPolicy: 'none',
   outlierIqrMultiplier: 1.5,
   warmupStabilityPercent: 10,
   thermalSlowdownPercent: 10,
