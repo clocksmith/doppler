@@ -68,6 +68,7 @@ Primary documentation index.
 - [Testing](testing.md) - testing index.
 - [Testing Runbook](testing-runbook.md) - operational test execution.
 - [Kernel Testing Design](kernel-testing-design.md) - kernel correctness design guidance.
+- [Potential Doppler optimizations](performance/potential-optimizations.md) - single prepared-execution opportunity inventory, ordered implementation and evidence gates.
 - [Kernel Performance Optimization](developer-guides/16-kernel-performance-optimization.md) - phase-led GPU optimization, negative results, and parity stopping rules.
 - [Kernel Benchmark Baselines](../tests/kernels/benchmarks.md) - expected kernel perf ranges and reference baselines.
 - [Benchmark Methodology](benchmark-methodology.md) - fairness and claim publication policy.

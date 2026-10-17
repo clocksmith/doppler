@@ -299,26 +299,13 @@ pure-f16 execution path yet.
 
 That is the concrete path forward for closing the gap.
 
-### Path forward
+### Optimization follow-up
 
-1. Add an execution-v1 graph or transform routing Gemma 4 E2B
-   matmul/attention through the pure-f16 variants instead of
-   `f16w_f32a` / `_f16kv`.
-2. Validate numerically on the q4k-ehf16-af32 artifact first — activations
-   becoming f16 has real magnitude implications for the per-layer
-   embeddings (PLE) projection and the final logit softcap. Accept only if
-   decode output stays coherent and logits match the f32 baseline within
-   tolerance.
-3. Re-run the canonical compare. The hypothesis is a roughly 1.5–2×
-   speedup on decode, which would put Doppler within 30% of TJS on the
-   same workload rather than 2.6× behind.
-4. Only then move the public tok/s claim in
-   [`docs/model-support-matrix.md`](../model-support-matrix.md) and the
-   README.
-
-Do *not* attribute the remaining gap back to embedding residency, CPU
-round-trips, or the `gpuResidentOverrides` path — that lane is closed and
-the receipts prove it.
+Forward-looking candidates are consolidated in
+[Potential Doppler optimizations](potential-optimizations.md#kernel-opportunities-merged-from-earlier-investigations).
+The historical F16 proposal requires fresh numerical and full-model qualification;
+its estimated gain was not a measured result. Preserve the corrected attribution
+and retained receipts above when selecting the next experiment.
 
 ## Claim implications
 
