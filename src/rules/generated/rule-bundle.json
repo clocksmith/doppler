@@ -79,7 +79,7 @@
   },
   {
    "path": "kernels/gated-delta-fused-decode.rules.json",
-   "digest": "sha256:8aaaca7c8aa223ae1ea5143c5c0450cc85cffda4d5c9bf6e89eab98f366b65ed"
+   "digest": "sha256:9435a0d12603964146125ae49189d748ac2a1084a01d4b906dde911f1bb097d8"
   },
   {
    "path": "kernels/gated-delta-recurrent.rules.json",
@@ -2310,6 +2310,38 @@
   },
   "kernels/gated-delta-fused-decode.rules.json": {
    "scalarVariant": [
+    {
+     "match": {
+      "inputDtype": "f32",
+      "normGateActivation": "silu",
+      "stateComponents": 2
+     },
+     "value": "paired_default"
+    },
+    {
+     "match": {
+      "inputDtype": "f16",
+      "normGateActivation": "silu",
+      "stateComponents": 2
+     },
+     "value": "paired_default_f16"
+    },
+    {
+     "match": {
+      "inputDtype": "f32",
+      "normGateActivation": "sigmoid",
+      "stateComponents": 2
+     },
+     "value": "paired_sigmoid_gate"
+    },
+    {
+     "match": {
+      "inputDtype": "f16",
+      "normGateActivation": "sigmoid",
+      "stateComponents": 2
+     },
+     "value": "paired_sigmoid_gate_f16"
+    },
     {
      "match": {
       "inputDtype": "f32",

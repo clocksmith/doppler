@@ -23859,6 +23859,70 @@
     ]
    },
    "variants": {
+    "paired_default": {
+     "wgsl": "gated_delta_fused_decode_paired.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "normGateActivation": "silu"
+     },
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["gated-delta-fused-decode.rules.json#scalarVariant"],
+      "wgslOnDisk": true
+     }
+    },
+    "paired_default_f16": {
+     "wgsl": "gated_delta_fused_decode_paired_f16.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": ["shader-f16"],
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "normGateActivation": "silu"
+     },
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["gated-delta-fused-decode.rules.json#scalarVariant"],
+      "wgslOnDisk": true
+     }
+    },
+    "paired_sigmoid_gate": {
+     "wgsl": "gated_delta_fused_decode_paired_sigmoid_gate.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "normGateActivation": "sigmoid"
+     },
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["gated-delta-fused-decode.rules.json#scalarVariant"],
+      "wgslOnDisk": true
+     }
+    },
+    "paired_sigmoid_gate_f16": {
+     "wgsl": "gated_delta_fused_decode_paired_sigmoid_gate_f16.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": ["shader-f16"],
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "normGateActivation": "sigmoid"
+     },
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["gated-delta-fused-decode.rules.json#scalarVariant"],
+      "wgslOnDisk": true
+     }
+    },
     "default": {
      "wgsl": "gated_delta_fused_decode.wgsl",
      "entryPoint": "main",

@@ -374,7 +374,7 @@
       "gated_delta_fused_decode": {
         "kernel": "gated_delta_fused_decode.wgsl",
         "entry": "main",
-        "digest": "sha256:585ca624a2d06e40eb8ebef4a077894db15414437577901a01dec36762424705"
+        "digest": "sha256:87dbb137e1495ebb0821ef5a8a90e7a6460883e1bd4eafb1c13ae9b1a1052cfb"
       },
       "gemv": {
         "kernel": "matmul_gemv_subgroup.wgsl",

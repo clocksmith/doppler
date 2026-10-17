@@ -25,6 +25,16 @@ for (const [operation, group, base] of [
   assert.equal(scalar(operation, group, 'f32', 'sigmoid'), `${base}_sigmoid_gate.wgsl`);
   assert.equal(scalar(operation, group, 'f16', 'sigmoid'), `${base}_sigmoid_gate_f16.wgsl`);
 }
+// Compensated state retains the original compiled shader; scalar fusion must
+// not change the numerical or performance path for two-component state.
+for (const inputDtype of ['f32', 'f16']) {
+  for (const normGateActivation of ['silu', 'sigmoid']) {
+    const config = resolveGatedDeltaNormGateKernel('gated_delta_fused_decode', 'gatedDeltaFusedDecode',
+      'scalarVariant', { inputDtype, normGateActivation, stateComponents: 2 });
+    assert.match(config.shaderFile, /gated_delta_fused_decode_paired/);
+    assert.equal(config.variantMetadata.normGateActivation, normGateActivation);
+  }
+}
 const pairedGate = normGateActivation => resolveGatedDeltaNormGateKernel('gated_delta_recurrent', 'gatedDeltaRecurrent',
   'pairedGateVariant', { normGateActivation });
 assert.equal(pairedGate('silu').variant, 'paired_gate');
