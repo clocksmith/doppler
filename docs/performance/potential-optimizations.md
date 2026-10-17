@@ -79,6 +79,14 @@ separates prepared parameters from dynamic recurrent state. Qualify reuse agains
 changed weights, precision, reset failures, cancellation, and device loss; never
 reuse the previous conversation's recurrent state implicitly.
 
+The [2026-10-17 frozen-runtime delivery experiment](../../reports/qwen-delivery-attribution-20261017/README.md)
+attributes 16-token bursts to grouped readback before generator yield. Reducing
+readback grouping to four tokens improves cadence but regresses 0.8B decode by
+roughly 14% on M3 and 33% on AMD against restored controls; that candidate is
+rejected. Readback wait includes GPU execution, not just transfer. Preserve queued
+work and explicit resource ownership when evaluating progressive delivery; do not
+trade away measured throughput merely to reduce the group size.
+
 Expected benefit: less CPU orchestration, repeated conversion/readback, and
 allocation. Graph-level layout, constant, fusion, and buffer optimization have
 precedent in [oneDNN Graph Compiler](https://arxiv.org/abs/2301.01333);
