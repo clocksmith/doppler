@@ -63,6 +63,8 @@ For the executable intake, boundary, cost-ledger, registered-variant, and
 promotion contracts, follow
 [Model and Kernel Evidence Loop](../evidence-loop.md).
 
+Potential work is consolidated in [Potential Doppler optimizations](../performance/potential-optimizations.md). This guide owns investigation methods, kernel constraints, and retained negative results.
+
 ## Optimization Levers
 
 ### Q4_K Decomposition
