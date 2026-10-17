@@ -1871,7 +1871,7 @@ window.__runBench = async (config) => {
     // TTFT = time until first streamer callback
     const ttftMs = firstTokenTime !== null ? firstTokenTime - genStart : totalMs;
     // Decode time = everything after first token
-    const decodeMs = Math.max(totalMs - ttftMs, 0.1);
+    const decodeMs = totalMs - ttftMs;
     // Decode tokens = all tokens after the first one
     const decodeTokens = Math.max(newTokenCount - 1, 0);
 
@@ -1893,7 +1893,7 @@ window.__runBench = async (config) => {
       decodeTokens,
       prefillTokens,
       tokensPerSec: newTokenCount / (totalMs / 1000),
-      decodeTokensPerSec: decodeTokens > 0 ? decodeTokens / (decodeMs / 1000) : 0,
+      decodeTokensPerSec: decodeTokens > 0 && decodeMs > 0 ? decodeTokens / (decodeMs / 1000) : 0,
       prefillTokensPerSecTtft,
       prefillTokensPerSec: prefillTokensPerSecTtft,
       perTokenMs,
@@ -1949,6 +1949,7 @@ window.__runBench = async (config) => {
     ? modelLoadMs + medianTtftMs
     : null;
   const timing = {
+    scope: 'generation-call-through-completion',
     modelLoadMs,
     firstTokenMs: medianTtftMs,
     firstResponseMs,
@@ -2009,6 +2010,7 @@ window.__runBench = async (config) => {
     timingDiagnostics,
     deviceInfo,
     metrics: {
+      samplePolicy: { outlierPolicy: 'none' },
       decodeTokensPerSec,
       promptTokensPerSecToFirstToken: prefillTokensPerSec,
       prefillTokensPerSec,

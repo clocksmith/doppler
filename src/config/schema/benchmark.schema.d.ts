@@ -29,6 +29,7 @@ export interface BenchmarkRunConfig {
 }
 
 export interface BenchmarkStatsConfig {
+  outlierPolicy: 'none' | 'iqr';
   outlierIqrMultiplier: number;
   warmupStabilityPercent: number;
   thermalSlowdownPercent: number;

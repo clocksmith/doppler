@@ -551,6 +551,7 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
     || shouldEnableReferenceTranscriptDiagnostics(runOverrides, runtimeConfig);
   const disableCommandBatchingForDiagnostics = explicitDiagnosticsEnabled
     || (Array.isArray(debugProbes) && debugProbes.length > 0);
+  const tokenTimestamps = [];
   const start = performance.now();
   const diagnostics = resolveAutomaticGenerationDiagnostics(runtimeConfig, runOverrides);
   const captureLogits = shouldCaptureReferenceLogits(runOverrides, runtimeConfig);
@@ -583,6 +584,7 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
       },
     } : {}),
     onToken: (tokenId, tokenText) => {
+      tokenTimestamps.push(performance.now());
       tokenIds.push(tokenId);
       tokenRecords.push({
         id: tokenId,
@@ -596,8 +598,21 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
     }
   }
 
-  const durationMs = Math.max(1, performance.now() - start);
-  const tokensPerSec = (tokens.length / durationMs) * 1000;
+  const durationMs = performance.now() - start;
+  const tokensPerSec = durationMs > 0 ? (tokenIds.length / durationMs) * 1000 : 0;
+  const firstTokenMs = tokenTimestamps.length > 0 ? tokenTimestamps[0] - start : null;
+  const decodeMs = firstTokenMs === null ? null : durationMs - firstTokenMs;
+  const decodeTokens = Math.max(0, tokenIds.length - 1);
+  const requestTiming = {
+    scope: 'generation-call-through-completion',
+    firstTokenMs,
+    totalRunMs: durationMs,
+    decodeMs,
+    decodeTokens,
+    tokensGenerated: tokenIds.length,
+    decodeTokensPerSec: decodeMs > 0 ? (decodeTokens / decodeMs) * 1000 : 0,
+    perTokenMs: tokenTimestamps.slice(1).map((time, index) => time - tokenTimestamps[index]),
+  };
   const { phase } = buildGenerationPhaseFromStats(pipeline, durationMs, tokenIds.length);
   const kvCacheByteProof = await captureKvCacheByteProof(
     pipeline,
@@ -620,6 +635,7 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
     output: tokens.join(''),
     durationMs,
     tokensPerSec,
+    requestTiming,
     phase,
   };
 }

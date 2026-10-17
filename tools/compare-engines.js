@@ -864,6 +864,7 @@ function usage() {
     '  --top-k <n>                   Sampling top-k',
     '  --top-p <n>                   Sampling top-p',
     '  --warmup <n>                  Warmup runs per engine',
+    '  --warm-engine-order <order>   doppler-first|transformersjs-first; alternate between paired sessions',
     '  --runs <n>                    Timed runs per engine',
     '  --decode-profile <profile>     parity|throughput|custom (default: parity)',
     '  --doppler-surface <surface>     auto|node|browser|bun (default: from compare profile, fallback auto)',
@@ -5034,6 +5035,31 @@ function resolvePromptContractValidity(promptContract) {
   return { ok: true, invalidReason: null };
 }
 
+function assertComparableTiming(doppler, transformersjs) {
+  for (const [engine, value] of Object.entries({ doppler, transformersjs })) {
+    const result = [value?.result?.result, value?.result, value].find((row) => row?.timing);
+    if (result?.timing?.scope !== 'generation-call-through-completion') {
+      throw new Error(`${engine}: comparable generation timing scope is missing`);
+    }
+    if (result?.metrics?.samplePolicy?.outlierPolicy !== 'none') {
+      throw new Error(`${engine}: comparable timing must retain all samples`);
+    }
+    const samples = engine === 'doppler' ? result.metrics.requestTiming?.samples : result.runs;
+    if (!Array.isArray(samples) || samples.length === 0) {
+      throw new Error(`${engine}: comparable timing samples are missing`);
+    }
+    for (const sample of samples) {
+      const first = engine === 'doppler' ? sample.firstTokenMs : sample.ttftMs;
+      const total = engine === 'doppler' ? sample.totalRunMs : sample.totalMs;
+      if (!Number.isFinite(first) || first < 0 || !Number.isFinite(total) || total < first
+        || !Number.isFinite(sample.decodeMs) || sample.decodeMs < 0
+        || Math.abs(total - first - sample.decodeMs) > 0.001) {
+        throw new Error(`${engine}: invalid generation timing sample`);
+      }
+    }
+  }
+}
+
 function buildCompareSection({
   cacheMode,
   loadMode,
@@ -5678,6 +5704,10 @@ async function main() {
     console.log(usage());
     return;
   }
+  const warmEngineOrder = flags['warm-engine-order'] ?? 'doppler-first';
+  if (!['doppler-first', 'transformersjs-first'].includes(warmEngineOrder)) {
+    throw new Error('--warm-engine-order must be doppler-first or transformersjs-first');
+  }
   const runTimestamp = parseTimestampValue(flags.timestamp, '--timestamp');
   const workloadCatalog = await loadWorkloadCatalog();
   const defaultWorkloadId = workloadCatalog.defaultWorkloadId;
@@ -6264,6 +6294,9 @@ async function main() {
       cold: resolvedLoadModes.cold,
     },
     methodology: {
+      warmEngineOrder,
+      timingScope: 'generation-call-through-completion',
+      outlierPolicy: 'none',
       promptTokensPerSecToFirstToken: 'prompt_tokens / firstTokenMs',
       prefillPhaseMs: {
         doppler: 'available inside Doppler payload timing.prefillMs as internal_prefill_phase',
@@ -6538,10 +6571,12 @@ async function main() {
         }),
       };
     }
+    assertComparableTiming(dopplerComputeParity, tjsCompute);
     report.correctness = buildCorrectnessReport(dopplerComputeParity, tjsCompute, sharedContract.promptRaw);
   }
 
   if (needWarm) {
+    const runDopplerWarm = async () => {
     dopplerWarm = await runDoppler(
       dopplerModelId,
       dopplerModelSource.modelUrl,
@@ -6578,7 +6613,8 @@ async function main() {
       'warm',
       'Doppler'
     );
-
+    };
+    const runTransformersjsWarm = async () => {
     tjsWarm = await runTjs(
       tjsModelId,
       sharedContract,
@@ -6605,6 +6641,12 @@ async function main() {
       'warm',
       'TJS'
     );
+    };
+    const runners = warmEngineOrder === 'doppler-first'
+      ? [runDopplerWarm, runTransformersjsWarm]
+      : [runTransformersjsWarm, runDopplerWarm];
+    for (const run of runners) await run();
+    assertComparableTiming(dopplerWarm, tjsWarm);
 
     report.sections.warm = buildCompareSection({
       cacheMode: 'warm',
@@ -6683,6 +6725,7 @@ async function main() {
       'TJS'
     );
 
+    assertComparableTiming(dopplerCold, tjsCold);
     report.sections.cold = buildCompareSection({
       cacheMode: 'cold',
       loadMode: resolvedLoadModes.cold,
@@ -6800,6 +6843,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 }
 
 export {
+  assertComparableTiming,
   applyDopplerBenchCaptureRunConfig,
   attachCompareFairnessAudit,
   buildCompareSection,

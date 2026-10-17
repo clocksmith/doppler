@@ -1,5 +1,5 @@
 import { getRuntimeConfig, setRuntimeConfig } from '../../config/runtime.js';
-import { computeSampleStats } from '../../debug/stats.js';
+import { computeSampleStats as computeStats } from '../../debug/stats.js';
 import { validateTrainingMetricsReport } from '../../config/schema/training-metrics.schema.js';
 import {
   modelSupportsEmbedding,
@@ -82,6 +82,8 @@ export function resolveBenchmarkIterationSettings(runtimeConfig) {
 export async function runBenchSuite(options = {}) {
   const startTime = performance.now();
   const runtimeConfig = getRuntimeConfig();
+  const samplePolicy = runtimeConfig.shared.benchmark.stats;
+  const computeSampleStats = (values) => computeStats(values, samplePolicy);
   const iterationSettings = resolveBenchmarkIterationSettings(runtimeConfig);
   const warmupRuns = iterationSettings.warmupRuns;
   const timedRuns = iterationSettings.timedRuns;
@@ -299,6 +301,7 @@ export async function runBenchSuite(options = {}) {
     ];
 
     metrics = {
+      samplePolicy: { ...samplePolicy },
       warmupRuns,
       timedRuns,
       validRuns: durations.length,
@@ -427,6 +430,7 @@ export async function runBenchSuite(options = {}) {
     const plePreparedTokenCacheEntries = [];
     const plePreparedTokenCacheBytes = [];
 
+    const requestTimingSamples = [];
     let generatedText = null;
     let generatedPromptInput = null;
     let generatedReferenceTranscript = null;
@@ -471,6 +475,7 @@ export async function runBenchSuite(options = {}) {
         lastDecodeProfileSteps = run?.phase?.decodeProfileSteps ?? null;
       }
       if (i >= warmupRuns) {
+        if (run.requestTiming) requestTimingSamples.push(run.requestTiming);
         const phase = run?.phase ?? {};
         const phaseTokens = Array.isArray(run?.tokens) ? run.tokens : [];
         const phaseGpu = phase.gpu;
@@ -731,6 +736,7 @@ export async function runBenchSuite(options = {}) {
     const normalizedFirstTokenMs = sampleTimingNumber(ttftMsStats, 'median', null);
 
     metrics = {
+      samplePolicy: { ...samplePolicy },
       warmupRuns,
       timedRuns,
       ...(Number.isFinite(benchRun?.seed) ? { seed: benchRun.seed } : {}),
@@ -788,24 +794,42 @@ export async function runBenchSuite(options = {}) {
       promptInput: generatedPromptInput,
     };
 
+    const requestStats = {};
+    for (const key of ['firstTokenMs', 'totalRunMs', 'decodeMs', 'decodeTokensPerSec']) {
+      requestStats[key] = computeSampleStats(requestTimingSamples.map((sample) => sample[key]));
+    }
+    const requestTokenStats = computeSampleStats(requestTimingSamples.flatMap((sample) => sample.perTokenMs));
+    const requestPrefillStats = computeSampleStats(requestTimingSamples.map((sample, index) => (
+      sample.firstTokenMs > 0 ? (prefillTokens[index] / sample.firstTokenMs) * 1000 : 0
+    )));
+    metrics.requestTiming = {
+      scope: 'generation-call-through-completion',
+      samples: requestTimingSamples,
+      latency: requestStats,
+      perTokenMs: requestTokenStats,
+    };
+    const hasRequestTiming = requestTimingSamples.length === timedRuns
+      && requestTimingSamples.every((sample) => Number.isFinite(sample.firstTokenMs));
     timing = buildCanonicalTiming({
       modelLoadMs: safeModelLoadMs,
-      firstTokenMs: normalizedFirstTokenMs,
+      firstTokenMs: hasRequestTiming ? requestStats.firstTokenMs.median : normalizedFirstTokenMs,
       firstResponseMs: Number.isFinite(normalizedFirstTokenMs)
-        ? safeModelLoadMs + normalizedFirstTokenMs
+        ? safeModelLoadMs + (hasRequestTiming ? requestStats.firstTokenMs.median : normalizedFirstTokenMs)
         : null,
       prefillMs: prefillMsStats?.median ?? null,
-      decodeMs: decodeMsStats?.median ?? null,
-      decodeMsPerTokenP50: decodeMsPerTokenStats?.median ?? null,
-      decodeMsPerTokenP95: decodeMsPerTokenStats?.p95 ?? null,
-      decodeMsPerTokenP99: decodeMsPerTokenStats?.p99 ?? null,
-      totalRunMs: totalMsStats.median,
-      decodeTokensPerSec: decodeTokensPerSecStats?.median,
+      decodeMs: hasRequestTiming ? requestStats.decodeMs.median : decodeMsStats?.median ?? null,
+      decodeMsPerTokenP50: hasRequestTiming ? requestTokenStats.median : decodeMsPerTokenStats?.median ?? null,
+      decodeMsPerTokenP95: hasRequestTiming ? requestTokenStats.p95 : decodeMsPerTokenStats?.p95 ?? null,
+      decodeMsPerTokenP99: hasRequestTiming ? requestTokenStats.p99 : decodeMsPerTokenStats?.p99 ?? null,
+      totalRunMs: hasRequestTiming ? requestStats.totalRunMs.median : totalMsStats.median,
+      decodeTokensPerSec: hasRequestTiming ? requestStats.decodeTokensPerSec.median : decodeTokensPerSecStats?.median,
       prefillTokensPerSec: prefillTokensPerSecStats?.median,
-      prefillTokensPerSecTtft: prefillTokensPerSecTtftStats?.median,
+      prefillTokensPerSecTtft: hasRequestTiming ? requestPrefillStats.median : prefillTokensPerSecTtftStats?.median,
       cacheMode,
       loadMode,
     });
+    timing.scope = hasRequestTiming ? 'generation-call-through-completion' : 'internal-pipeline';
+    if (hasRequestTiming) timing.promptTokensPerSecToFirstToken = requestPrefillStats.median;
   }
 
   const memoryStats = typeof harness.pipeline?.getMemoryStats === 'function'
