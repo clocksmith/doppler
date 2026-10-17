@@ -19,7 +19,13 @@ for (let ancestor = path.dirname(output); ; ancestor = path.dirname(ancestor)) {
     'Consumer ancestors must not contain node_modules');
   if (ancestor === path.dirname(ancestor)) break;
 }
-await fs.cp(source, app, { recursive: true, filter: filename => !path.relative(source, filename).split(path.sep).includes('node_modules') });
+await fs.cp(source, app, { recursive: true, filter: filename => {
+  const relative = path.relative(source, filename).split(path.sep).join('/');
+  // The installed server acquires these signed shards from shard-sources.json.
+  // Developer-local weight caches are not part of the copy-and-run delivery.
+  return !relative.split('/').includes('node_modules')
+    && !/^capsules\/(embedding|reranker)\/artifacts\/model\/shard_\d+\.bin$/.test(relative);
+} });
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const lock = await fs.readFile(path.join(app, 'package-lock.json'));
 const report = { schema: 'doppler.installed-starter-check/v1', passed: false, physicalExecution: false,
