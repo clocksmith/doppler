@@ -89,6 +89,11 @@ function applyMatmulConstants(config, constants) {
     variantMetadata = { ...(variantMetadata ?? {}), tileM: constants.TILE_M };
     updated = true;
   }
+  if (Number.isFinite(constants.TILE_N)) {
+    workgroupSize = [constants.TILE_N, workgroupSize[1], workgroupSize[2]];
+    variantMetadata = { ...(variantMetadata ?? {}), colsPerWg: constants.TILE_N };
+    updated = true;
+  }
   if (Number.isFinite(constants.COLS_PER_WG)) {
     variantMetadata = { ...(variantMetadata ?? {}), colsPerWg: constants.COLS_PER_WG };
     updated = true;

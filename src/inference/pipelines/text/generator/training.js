@@ -747,7 +747,7 @@ export async function* generateWithPrefixKV(prefix, prompt, options = {}, emissi
           options.signal?.aborted ? null : firstToken);
         this._state.stats.decodeTimeMs = 0;
         this._state.stats.tokensGenerated = 1;
-        this._state.stats.decodeTokens = 1;
+        this._state.stats.decodeTokens = 0;
       } else {
         yield* this._runDecodeLoop(generatedIds, opts, options, decodeRuntime);
       }

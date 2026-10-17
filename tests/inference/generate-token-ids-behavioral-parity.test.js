@@ -403,7 +403,7 @@ console.log('  ok: stop sequence parity');
   assert.ok(Number.isFinite(result1.stats.totalTimeMs), 'totalTimeMs must be set');
   assert.ok(Number.isFinite(result1.stats.ttftMs), 'ttftMs must be set');
   assert.equal(result1.stats.tokensGenerated, 3, 'tokensGenerated must match');
-  assert.equal(result1.stats.decodeTokens, 3, 'decodeTokens must match');
+  assert.equal(result1.stats.decodeTokens, 2, 'decodeTokens excludes the prefill-produced token');
   assert.equal(result1.stats.prefillTokens, 3, 'prefillTokens must match input length');
 }
 console.log('  ok: stats fields');
@@ -505,6 +505,7 @@ for (const surface of ['generate', 'generateTokenIds', 'generateWithPrefixKV']) 
     assert.equal(state.stats.stopReason, 'aborted', `${surface} first token ${firstToken}`);
     assert.equal(state.stats.stopTokenId, null);
     assert.equal(state.stats.tokensGenerated, 1);
+    assert.equal(state.stats.decodeTokens, 0);
     assert.equal(state.isGenerating, false);
     stubGenerator(generator, [10, EOS_TOKEN]);
     assert.deepEqual((await generator.generateTokenIds('fresh', { useChatTemplate: false })).tokenIds, [10, EOS_TOKEN]);
@@ -537,6 +538,7 @@ for (const surface of ['generate', 'generateTokenIds', 'generateWithPrefixKV']) 
     assert.equal(state.stats.stopReason, row.reason, `${surface} first token ${row.token}`);
     assert.equal(state.stats.stopTokenId, row.token);
     assert.equal(state.stats.tokensGenerated, 1);
+    assert.equal(state.stats.decodeTokens, 0);
     assert.equal(state.isGenerating, false);
   }
 }
