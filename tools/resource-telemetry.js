@@ -119,6 +119,34 @@ function readProcProcessRows(clockTicksPerSecond) {
   return { rows, unavailableReason: null };
 }
 
+// macOS ps reports aggregate process RSS and CPU time. RSS includes shared
+// mappings; it is not unique physical RAM or WebGPU buffer residency.
+function parseDarwinProcessRows(text) {
+  const rows = [];
+  for (const line of text.trim().split('\n')) {
+    const fields = line.trim().split(/\s+/);
+    if (fields.length !== 4) continue;
+    const [pid, ppid, rssKiB] = fields.slice(0, 3).map(Number);
+    const match = /^(?:(\d+)-)?(?:(\d+):)?(\d+):(\d+(?:\.\d+)?)$/.exec(fields[3]);
+    if (!Number.isSafeInteger(pid) || pid <= 0 || !Number.isSafeInteger(ppid) || ppid < 0
+      || !Number.isFinite(rssKiB) || rssKiB < 0 || !match) continue;
+    const totalCpuMs = ((Number(match[1] ?? 0) * 86400) + (Number(match[2] ?? 0) * 3600)
+      + Number(match[3]) * 60 + Number(match[4])) * 1000;
+    rows.push({ pid, ppid, rssBytes: rssKiB * 1024, hwmBytes: null,
+      userMs: null, systemMs: null, totalCpuMs });
+  }
+  return rows;
+}
+
+function readDarwinProcessRows() {
+  const result = spawnSync('/bin/ps', ['-axo', 'pid=,ppid=,rss=,time='], {
+    encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 2000,
+  });
+  if (result.status !== 0) return { rows: [], unavailableReason: 'darwin-ps-failed' };
+  const rows = parseDarwinProcessRows(result.stdout);
+  return { rows, unavailableReason: rows.length > 0 ? null : 'darwin-ps-empty' };
+}
+
 function collectProcessTree(rows, rootPid) {
   const childrenByParent = new Map();
   const rowByPid = new Map();
@@ -411,10 +439,11 @@ function createResourceTelemetrySampler(options = {}) {
   const clockTicksPerSecond = resolveClockTicksPerSecond();
   const rocmSmiAvailable = normalized.includeGpu === true && commandExists('rocm-smi');
   const setupUnavailableReasons = [];
-  if (process.platform !== 'linux') setupUnavailableReasons.push('linux-procfs-required');
+  if (!['linux', 'darwin'].includes(process.platform)) setupUnavailableReasons.push('process-telemetry-unsupported-platform');
   if (normalized.includeGpu === true && !rocmSmiAvailable) setupUnavailableReasons.push('rocm-smi-unavailable');
   const sources = {
     procfs: process.platform === 'linux' && fs.existsSync(PROC_ROOT),
+    darwinPs: process.platform === 'darwin',
     meminfo: process.platform === 'linux' && fs.existsSync(`${PROC_ROOT}/meminfo`),
     rocmSmi: rocmSmiAvailable,
   };
@@ -429,7 +458,8 @@ function createResourceTelemetrySampler(options = {}) {
     if (!Number.isInteger(pid) || pid <= 0) return;
     const timestampMs = Date.now();
     const unavailableReasons = [];
-    const procRows = readProcProcessRows(clockTicksPerSecond);
+    const procRows = process.platform === 'darwin'
+      ? readDarwinProcessRows() : readProcProcessRows(clockTicksPerSecond);
     if (procRows.unavailableReason) unavailableReasons.push(procRows.unavailableReason);
     const processTree = collectProcessTree(procRows.rows, pid);
     const elapsedMs = previousSample ? timestampMs - previousSample.timestampMs : null;
@@ -499,5 +529,6 @@ export {
   normalizeResourceTelemetryOptions,
   parseResourceTelemetryMode,
   parseRocmSmiJson,
+  parseDarwinProcessRows,
   summarizeResourceTelemetrySamples,
 };

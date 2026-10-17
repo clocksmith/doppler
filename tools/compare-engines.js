@@ -6354,7 +6354,9 @@ async function main() {
         intervalMs: resourceTelemetryOptions.intervalMs,
         includeSamples: resourceTelemetryOptions.includeSamples,
         sources: {
-          processTree: 'linux procfs process tree',
+          processTree: process.platform === 'darwin'
+            ? 'macOS ps process tree; aggregate RSS includes shared mappings'
+            : 'linux procfs process tree',
           systemRam: 'linux /proc/meminfo',
           gpu: 'optional rocm-smi device-global telemetry when available',
         },

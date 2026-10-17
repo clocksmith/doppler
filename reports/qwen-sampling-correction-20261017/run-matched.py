@@ -2,9 +2,14 @@ import hashlib,json,pathlib,subprocess,sys,time
 root,models,relay=map(pathlib.Path,sys.argv[1:4]);browser=sys.argv[4];out=pathlib.Path(sys.argv[5]);inventory=pathlib.Path(sys.argv[6]);out.mkdir(parents=True,exist_ok=True)
 archive_sha='75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2'
 contract=dict(archiveSha256=archive_sha,models=['qwen-3-5-0-8b-q4k-ehaf16','qwen-3-5-2b-q4k-ehaf16'],formats={'doppler':'Q4_K weights, F32 compute, F16 KV','transformersjs':'ONNX q4f16; formats differ'},workloads=[dict(mode='warm',promptTokens=64,decodeTokens=128,warmup=2,runs=3),dict(mode='cold',promptTokens=64,decodeTokens=128,warmup=0,runs=3),dict(mode='warm',promptTokens=1024,decodeTokens=128,warmup=2,runs=3)],orders=['doppler-first','transformersjs-first'],sampling=dict(temperature=0,topK=1,topP=1,seed=0),coldScope='engine profile/cache cold; provisioned local artifacts; OS and driver caches not purged; not network-cold',acceptance='existing comparator prompt/token/sampling/fairness gates unchanged; keep failed and non-comparable runs',memoryScope='retain engine/process/device telemetry with its provenance; unequal memory surfaces cannot establish a cross-engine VRAM win')
+memory_only='--memory-only' in sys.argv[7:]
+if memory_only:
+ contract['purpose']='separate instrumented process-memory pass; does not replace primary latency results'
+ contract['workloads']=contract['workloads'][:1]
 (out/'contract.json').write_text(json.dumps(contract,indent=2)+'\n')
 records=json.loads(inventory.read_text());statuses=[]
-for mode,prefill,warmup in [('warm',64,2),('cold',64,0),('warm',1024,2)]:
+for workload in contract['workloads']:
+ mode,prefill,warmup=workload['mode'],workload['promptTokens'],workload['warmup']
  for size in ['0-8b','2b']:
   for order in contract['orders']:
    name=f'{mode}-p{prefill}-{size}-{order}';dest=out/name;dest.mkdir(exist_ok=False)
@@ -20,4 +25,3 @@ for mode,prefill,warmup in [('warm',64,2),('cold',64,0),('warm',1024,2)]:
    status.update(run=name,elapsedSeconds=time.monotonic()-start,receiptExists=(dest/'compare_latest.json').exists());statuses.append(status)
    (dest/'status.json').write_text(json.dumps(status,indent=2)+'\n');(out/'status.json').write_text(json.dumps(statuses,indent=2)+'\n');print(json.dumps(status),flush=True)
    if status.get('exitCode',1)!=0 and not status['receiptExists']:raise RuntimeError('Comparator setup failed; repair before remaining configurations')
-
