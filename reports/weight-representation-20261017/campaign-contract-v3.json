@@ -1,0 +1,116 @@
+{
+  "schema": "doppler.weight-representation-campaign/v1",
+  "reportRoot": "reports/weight-representation-20261017",
+  "timeoutSeconds": 900,
+  "baselineSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
+  "candidateSha256": "f3e9bdef19cf4986c2a0fb4ee8242bdf6f71185acc44d3259d59ae23e1922901",
+  "unavailable": [
+    {
+      "host": "metal",
+      "model": "qwen3-8-27b-text-q4k-ehaf16",
+      "reason": "Exact Q4 artifact not provisioned locally; 12 GiB free disk is below approximately 16 GiB artifact size. No M3 27B execution claimed."
+    }
+  ],
+  "hosts": {
+    "metal": {
+      "baseline": ".cache/weight-representation-baseline-20261017",
+      "candidate": ".cache/weight-representation-candidate-v3-20261017",
+      "cases": [
+        {
+          "id": "materialization",
+          "engine": "candidate",
+          "driver": "browser-materialization.mjs",
+          "modelDir": "models/local/qwen-3-5-2b-q4k-ehaf16",
+          "config": "metal-2b-config.json"
+        },
+        {
+          "id": "baseline-2b-first",
+          "engine": "baseline",
+          "modelDir": "models/local/qwen-3-5-2b-q4k-ehaf16",
+          "config": "metal-2b-config.json"
+        },
+        {
+          "id": "candidate-2b-first",
+          "engine": "candidate",
+          "modelDir": "models/local/qwen-3-5-2b-q4k-ehaf16",
+          "config": "metal-2b-config.json"
+        },
+        {
+          "id": "candidate-2b-second",
+          "engine": "candidate",
+          "modelDir": "models/local/qwen-3-5-2b-q4k-ehaf16",
+          "config": "metal-2b-config.json"
+        },
+        {
+          "id": "baseline-2b-second",
+          "engine": "baseline",
+          "modelDir": "models/local/qwen-3-5-2b-q4k-ehaf16",
+          "config": "metal-2b-config.json"
+        }
+      ]
+    },
+    "vulkan": {
+      "baseline": ".cache/weight-representation-baseline-20261017-r1",
+      "candidate": ".cache/weight-representation-candidate-v3-20261017",
+      "cases": [
+        {
+          "id": "materialization",
+          "engine": "candidate",
+          "driver": "browser-materialization.mjs",
+          "modelDir": "models/local/qwen-3-5-2b-q4k-ehaf16",
+          "config": "vulkan-2b-config.json"
+        },
+        {
+          "id": "baseline-2b-first",
+          "engine": "baseline",
+          "modelDir": "models/local/qwen-3-5-2b-q4k-ehaf16",
+          "config": "vulkan-2b-config.json"
+        },
+        {
+          "id": "candidate-2b-first",
+          "engine": "candidate",
+          "modelDir": "models/local/qwen-3-5-2b-q4k-ehaf16",
+          "config": "vulkan-2b-config.json"
+        },
+        {
+          "id": "candidate-2b-second",
+          "engine": "candidate",
+          "modelDir": "models/local/qwen-3-5-2b-q4k-ehaf16",
+          "config": "vulkan-2b-config.json"
+        },
+        {
+          "id": "baseline-2b-second",
+          "engine": "baseline",
+          "modelDir": "models/local/qwen-3-5-2b-q4k-ehaf16",
+          "config": "vulkan-2b-config.json"
+        },
+        {
+          "id": "baseline-27b-first",
+          "engine": "baseline",
+          "modelDir": "/home/x/.local/share/reploid/models/qwen38-27b-q4k-19ecff3e",
+          "config": "vulkan-27b-config.json"
+        },
+        {
+          "id": "candidate-27b-first",
+          "engine": "candidate",
+          "modelDir": "/home/x/.local/share/reploid/models/qwen38-27b-q4k-19ecff3e",
+          "config": "vulkan-27b-config.json"
+        },
+        {
+          "id": "candidate-27b-second",
+          "engine": "candidate",
+          "modelDir": "/home/x/.local/share/reploid/models/qwen38-27b-q4k-19ecff3e",
+          "config": "vulkan-27b-config.json"
+        },
+        {
+          "id": "baseline-27b-second",
+          "engine": "baseline",
+          "modelDir": "/home/x/.local/share/reploid/models/qwen38-27b-q4k-19ecff3e",
+          "config": "vulkan-27b-config.json"
+        }
+      ],
+      "waitForReceipt": "reports/weight-representation-20261017/vulkan/final/baseline-27b-second/receipt.json"
+    }
+  },
+  "outputDirectory": "final-v3"
+}

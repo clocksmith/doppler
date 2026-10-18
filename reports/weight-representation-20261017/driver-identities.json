@@ -1,0 +1,30 @@
+[
+  {
+    "file": "browser-compare.mjs",
+    "sha256": "c2d5296331b47ccd556bac1fe09d2f030a77e5bc518685c3ce14872e7fbb4d53"
+  },
+  {
+    "file": "browser-materialization.mjs",
+    "sha256": "5373f962beb1dc088d93efa4f3309084fd7eb010b8dd3aed1d9be9ab415d4713"
+  },
+  {
+    "file": "run-campaign.py",
+    "sha256": "9d40c754d758f434b4ce3afefb25cb65ded2444ef020d753e0bf0f242f72f36a"
+  },
+  {
+    "file": "extract-runtime.py",
+    "sha256": "cc14e6628ed7f85fab4f8149fdec522b02848b45484aca8ba54e57bc9eb7db37"
+  },
+  {
+    "file": "verify-model.py",
+    "sha256": "abb6cc42c2a7dfb3a7c1af121fef102475d2bbf3565e8cf3f8f2071549951993"
+  },
+  {
+    "file": "summarize.py",
+    "sha256": "fc12ada891ec8425b52e7fcb1d1385c6c4d2081ee46c9027e90341cb7fb2bbf0"
+  },
+  {
+    "file": "campaign-contract-v3.json",
+    "sha256": "1ff2b6bd8d8b5c4bada274550d962cbaaad6d3f7241e96b524ea4a2272f40a50"
+  }
+]
