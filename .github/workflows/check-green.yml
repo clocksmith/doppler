@@ -39,6 +39,17 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
+      - name: Configure software Vulkan for hosted smoke
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y mesa-vulkan-drivers
+          icd=$(dpkg -L mesa-vulkan-drivers | awk '/\/lvp_icd(\.[^/]*)?\.json$/ { print; exit }')
+          test -n "$icd" && test -f "$icd"
+          echo "VK_ICD_FILENAMES=$icd" >> "$GITHUB_ENV"
+          cat "$icd"
+        # Lavapipe executes WGSL on the CPU. This smoke is not hardware qualification.
+        # https://dawn.googlesource.com/dawn/+/refs/heads/main/src/dawn/node/README.md
+
       - name: Behavior tests
         run: npm run test:smoke
 

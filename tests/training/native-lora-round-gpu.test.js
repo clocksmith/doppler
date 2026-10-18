@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { bootstrapNativeTrainingHost, releaseNativeTrainingHost } from '../../src/training.js';
-import { initDevice } from '../../src/gpu/device.js';
+import { initDevice, getKernelCapabilities } from '../../src/gpu/device.js';
 import { createUploadedTensor } from '../../src/experimental/training/tensor-factory.js';
 import { releaseBuffer } from '../../src/memory/buffer-pool.js';
 import { createWeightBuffer } from '../../src/gpu/weight-buffer.js';
@@ -8,8 +8,8 @@ import { quantizeToQ4KMRowWise } from '../../src/converter/quantizer.js';
 import { createNativeQwenLoRATrainer } from '../../src/experimental/training/native-qwen-lora.js';
 import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
 
-// Real GPU suffix oracle. This small frozen-base fixture isolates the collective
-// update; it does not establish full-model training quality or network behavior.
+// Executed WebGPU suffix oracle. Adapter metadata distinguishes hardware from
+// software providers; this fixture does not establish full-model training quality.
 await bootstrapNativeTrainingHost();
 await initDevice();
 const hiddenSize = 4, intermediateSize = 6, vocabSize = 8;
@@ -86,7 +86,8 @@ try {
   assert.equal(computeCanonicalSha256(await trainer.createCheckpoint()), computeCanonicalSha256(actual));
   const adapter = await trainer.exportAdapter({ id: 'round-oracle', name: 'Round oracle', weightsPath: 'adapter.safetensors' });
   assert.ok(adapter.weights.byteLength > 0 && adapter.weightsSha256);
-  console.log(JSON.stringify({ passed: true, scope: 'real GPU suffix oracle; one device; no full-model quality claim',
+  console.log(JSON.stringify({ passed: true, scope: 'executed WebGPU suffix oracle; one adapter; no full-model quality claim',
+    adapter: getKernelCapabilities().adapterInfo,
     maxAbsoluteError, stepCount: receipt.stepCount, supervisedTokenCount: receipt.supervisedTokenCount,
     weightsSha256: adapter.weightsSha256 }, null, 2));
 } finally {
