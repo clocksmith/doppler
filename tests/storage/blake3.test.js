@@ -1,8 +1,31 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
 const { createHasher, hash } = await import('../../src/storage/blake3.js');
+const { computeHash, createStreamingHasher } = await import('../../src/storage/shards/integrity.js');
+const vectors = JSON.parse(readFileSync(new URL('./blake3-vectors.json', import.meta.url), 'utf8'));
+
+for (const row of vectors.cases) {
+  const input = Uint8Array.from({ length: row.length }, (_, index) => index % 251);
+  assert.equal(Buffer.from(await hash(input)).toString('hex'), row.hex, `official vector ${row.length}`);
+  assert.equal(Buffer.from(await hash(input.buffer)).toString('hex'), row.hex);
+  for (const step of [1, 63, 64, 65, 777, 1024, 4096]) {
+    const incremental = createHasher();
+    incremental.update(new Uint8Array(0));
+    for (let offset = 0; offset < input.length; offset += step) {
+      incremental.update(input.subarray(offset, offset + step));
+    }
+    assert.equal(Buffer.from(incremental.finalize()).toString('hex'), row.hex,
+      `official vector ${row.length}, update size ${step}`);
+    assert.equal(Buffer.from(incremental.finalize()).toString('hex'), row.hex);
+  }
+}
 
 const bytes = new Uint8Array([1, 2, 3, 4]);
+for (const algorithm of ['sha1', 'doppler-blake3-legacy', 'BLAKE3']) {
+  await assert.rejects(computeHash(bytes, algorithm), /Unsupported hash algorithm/);
+  await assert.rejects(createStreamingHasher(algorithm), /Unsupported hash algorithm/);
+}
 const hasher = createHasher();
 hasher.update(bytes.subarray(0, 2));
 hasher.update(bytes.subarray(2));
@@ -23,8 +46,8 @@ const emptyHasher = createHasher();
 assert.deepEqual(emptyHasher.finalize(), await hash(new Uint8Array(0)));
 assert.deepEqual(emptyHasher.finalize(), await hash(new Uint8Array(0)));
 
-// Retained digest values from 7ac72347. These protect existing artifact identity;
-// they are not an assertion of compatibility with another hash implementation.
+// Retained digest values from 7ac72347. Preserve this historical evidence, but
+// never accept these nonstandard values as BLAKE3 or rewrite old artifacts.
 const retained = [
   {
     "length": 0,
@@ -77,11 +100,12 @@ const retained = [
 ];
 for (const row of retained) {
   const input = Uint8Array.from({ length: row.length }, (_, index) => index % 251);
-  assert.equal(Buffer.from(await hash(input)).toString('hex'), row.hex);
+  const standard = Buffer.from(await hash(input)).toString('hex');
+  assert.notEqual(standard, row.hex, `legacy digest must not pass as BLAKE3 (${row.length})`);
   for (const step of [1, 777, 65536]) {
     const incremental = createHasher();
     for (let offset = 0; offset < input.length; offset += step) incremental.update(input.subarray(offset, offset + step));
-    assert.equal(Buffer.from(incremental.finalize()).toString('hex'), row.hex);
+    assert.equal(Buffer.from(incremental.finalize()).toString('hex'), standard);
   }
 }
 console.log('blake3.test: ok');
