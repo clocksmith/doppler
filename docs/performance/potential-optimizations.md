@@ -83,7 +83,13 @@ The [successor 2B Metal observation](../../reports/qwen-bind-group-reuse-2026101
 found changing input/output buffers on successive recorded matmul calls and no
 exact repeats within a recorder. A binding-only cache for that measured path was
 rejected before implementation. Do not infer the same result for other models,
-operations, or lifetimes. Stabilizing allocation remains a separate experiment.
+operations, or lifetimes. The subsequent [bounded FFN scratch experiment](../../reports/qwen-scratch-reuse-20261018/README.md)
+reused one existing session intermediate and removed 744 pool allocations per
+request, but failed its fixed complete-request improvement gate. Its runtime
+patch was removed; the candidate and negative evidence remain frozen. Do not
+resume bind-group caching from input stability alone: the output still changed.
+Next attribute the measured GPU completion wait to operators before another
+allocation or kernel change; keep general scratch arenas separate.
 
 Derive scratch slots and safe reuse from the selected graph's actual lifetimes;
 extend [decode buffers](../../src/inference/decode-buffers.js), the

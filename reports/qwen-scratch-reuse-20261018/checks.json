@@ -1,0 +1,18 @@
+{
+  "candidate": [
+    "node --check src/inference/pipelines/text/ffn/dense-executor.js",
+    "node tests/inference/decode-buffer-representation.test.js",
+    "npm run source:architecture:check"
+  ],
+  "controlAfterRevert": [
+    "npm run source:style:check"
+  ],
+  "evidence": [
+    "node --check reports/qwen-scratch-reuse-20261018/run.js",
+    "node --check reports/qwen-scratch-reuse-20261018/prepare-vulkan-successor.js",
+    "python3 reports/qwen-scratch-reuse-20261018/summarize.py"
+  ],
+  "allListedChecksPassed": true,
+  "fullRepositorySuiteRun": false,
+  "scope": "Focused development checks plus explicitly requested physical campaign. No new release or CI acceptance."
+}

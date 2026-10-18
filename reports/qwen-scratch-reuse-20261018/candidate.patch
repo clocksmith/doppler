@@ -1,0 +1,49 @@
+diff --git a/src/inference/pipelines/text/ffn/dense-executor.js b/src/inference/pipelines/text/ffn/dense-executor.js
+index b63acca6..da495982 100644
+--- a/src/inference/pipelines/text/ffn/dense-executor.js
++++ b/src/inference/pipelines/text/ffn/dense-executor.js
+@@ -117,6 +117,7 @@ export async function dispatchFusedGateUp({
+   normStats = null,
+   pipelineConstants = null,
+   variant = null,
++  context = null,
+ }) {
+   const useNativeF16Fused = canUseNativeF16FusedGateUp({
+     inputDtype: inputTensor.dtype,
+@@ -188,11 +189,22 @@ export async function dispatchFusedGateUp({
+       );
+     return fusedNormedOutput;
+   }
++  // The down projection is the final reader before the next layer writes this
++  // session slot. Recorded dispatches preserve that order on the same queue.
++  // Captures may retain activations past that point, so keep their pooled owner.
++  const scratch = context?.decodeBuffers?.getFFNIntermediateBuffer();
++  const outputBuffer = recorder && context?.phase === 'decode' && numTokens === 1
++    && gateDtype === 'q4k' && fusedInput.dtype === 'f32'
++    && !context.activationPrecision && !context.lora && !context.trainingCapture
++    && !context.debugProbes?.length && !context.operatorDiagnostics?.enabled
++    && !context.operatorDiagnostics?.tsirFixture?.dir && !isTraceEnabled('logits')
++    && scratch?.size >= intermediateSize * 4
++    ? scratch : null;
+   const fusedOutput = recorder
+     ? await recordFusedFFN(
+       recorder, fusedInput, gateWeight, upWeight,
+       hiddenSize, intermediateSize,
+-      { batchSize: numTokens, activation, swigluLimit, pipelineConstants, variant }
++      { batchSize: numTokens, activation, swigluLimit, pipelineConstants, variant, outputBuffer }
+     )
+     : await runFusedFFN(
+       fusedInput, gateWeight, upWeight,
+diff --git a/src/inference/pipelines/text/ffn/dense.js b/src/inference/pipelines/text/ffn/dense.js
+index df047aae..2f575ce3 100644
+--- a/src/inference/pipelines/text/ffn/dense.js
++++ b/src/inference/pipelines/text/ffn/dense.js
+@@ -418,7 +418,7 @@ export async function runDenseFFNGPU(
+       executionPolicies: context.executionPolicies ?? null,
+       normStats: context.__pendingFfnInputNormStats ?? null,
+       pipelineConstants: fusedGateUpPipelineConstants,
+-      variant: fusedGateUpVariant,
++      variant: fusedGateUpVariant, context,
+     });
+     await runProbes('ffn_act', fusedOutput.buffer, {
+       layerIdx,
