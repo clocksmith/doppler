@@ -7,11 +7,13 @@ export interface WeightConsumer {
   readonly phase: string;
   readonly path: string;
   readonly variant: string | null;
+  readonly declaredWeightDtype: string | null;
   readonly weightDtype: string | null;
 }
 export interface WeightRepresentationRequirement {
   readonly mode: 'packed-only' | 'dense-only' | 'both';
   readonly complete: boolean;
+  readonly primaryDtype: 'f16' | null;
   readonly dtypes: readonly string[];
   readonly aliases: readonly string[];
   readonly consumers: readonly WeightConsumer[];

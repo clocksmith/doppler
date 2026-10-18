@@ -14,9 +14,10 @@ retires allocated copies. Inference configuration and kernels are unchanged.
 Baseline archive SHA-256:
 `75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2`.
 Candidate archive SHA-256:
-`b7f5195e32c9e813f2e877c9a26ef773d067f257446a12b875d565cc5cad16f0`.
-This second candidate includes the embedding/output-head alias correction.
-The first candidate and initial pre-review archive are retained separately.
+`f3e9bdef19cf4986c2a0fb4ee8242bdf6f71185acc44d3259d59ae23e1922901`.
+This third candidate includes embedding/output-head aliases and the existing
+stored-F16 adaptive fallback beneath Q4 paths.
+Earlier immutable candidates and their receipts are retained separately.
 
 The generated rule bundle uses compact JSON with identical parsed rule data,
 apart from the three declared per-tensor materialization selections. Readable

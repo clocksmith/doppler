@@ -66,3 +66,12 @@ const projections = new Map([[name(0, 'mlp.gate_proj.weight'), tensor(0)],
 const projectionPlan = compile(projections, manifest, [fused], defaults);
 assert.deepEqual(projectionPlan[name(0, 'mlp.gate_proj.weight')].dtypes, ['f16', 'q4k']);
 assert.deepEqual(projectionPlan[name(0, 'linear_attn.out_proj.weight')].dtypes, ['f32', 'q4k']);
+
+// A Q4 path explicitly permits stored F16 weights to reach adaptive F16 kernels.
+const floats = new Map([[name(0), { ...tensor(0), dtype: 'F16', size: 512 }]]);
+const floatFallback = compile(floats, manifest, [path(), path('f32')], defaults)[name(0)];
+assert.deepEqual(floatFallback.dtypes, ['f16', 'f32']);
+assert.equal(floatFallback.mode, 'dense-only');
+assert.equal(floatFallback.primaryDtype, 'f16');
+assert.equal(floatFallback.consumers[0].declaredWeightDtype, 'q4k');
+assert.equal(floatFallback.consumers[0].weightDtype, 'f16');

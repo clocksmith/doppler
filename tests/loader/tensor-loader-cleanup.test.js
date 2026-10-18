@@ -201,6 +201,13 @@ function assertPoolClean() {
   });
   assert.deepEqual(Object.keys(embedding.data.materializations).sort(), ['f16', 'f32', 'q4k']);
   assert.equal(embeddingLocation.role, 'embedding');
+  const adaptive = await loadTensorToGPU(new Uint8Array(512), { ...location, dtype: 'F16', size: 512 }, 'adaptive', {
+    ...config, keepF32Weights: true,
+    representationRequirement: { mode: 'dense-only', complete: true, dtypes: ['f16', 'f32'], primaryDtype: 'f16' },
+  });
+  assert.equal(adaptive.data.dtype, 'f16', 'The reachable Q4-to-F16 fallback must see F16 as the primary storage.');
+  assert.ok(adaptive.data.materializations.f32);
+  assert.equal(adaptive.data.materializations.q4k, undefined);
 }
 
 // Failure after the first dense copy must retire it and the owned packed upload.

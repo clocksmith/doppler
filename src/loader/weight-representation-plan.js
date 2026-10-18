@@ -1,4 +1,5 @@
 import { getKernelPathMatmulVariant } from '../config/kernel-path-loader.js';
+import { selectRuleValue } from '../rules/rule-registry.js';
 import { getKernelConfigs } from '../config/kernel-registry-contract.js';
 import { LAYER_PREFIXES, LAYER_WEIGHT_CONSUMERS } from './layer-tensor-aliases.js';
 
@@ -38,9 +39,15 @@ export function compileWeightRepresentationPlan(locations, manifest, paths, defa
         const variant = getKernelPathMatmulVariant(role, phase, layer, path);
         const config = variant == null ? null : getKernelConfigs().matmul?.[variant];
         if (optional && variant == null) continue;
-        const dtype = config?.weightDtype ?? null;
+        const declaredWeightDtype = config?.weightDtype ?? null;
+        const storedDtype = locations.get(name)?.dtype.toLowerCase();
+        const floatFallback = storedDtype === 'f16' && declaredWeightDtype === 'q4k'
+          && selectRuleValue('kernels', 'matmul', 'weightDtypeMismatchPolicy', {
+            actualWeightDtype: storedDtype, requiredWeightDtype: declaredWeightDtype,
+          }) === 'fallthrough';
+        const dtype = floatFallback ? storedDtype : declaredWeightDtype;
         group.consumers.push(Object.freeze({ tensor: name, role, layer, phase,
-          path: path.id, variant, weightDtype: dtype }));
+          path: path.id, variant, declaredWeightDtype, weightDtype: dtype }));
         if (dtype) group.dtypes.add(dtype); else group.unresolved = true;
       }
     }
@@ -105,6 +112,7 @@ export function compileWeightRepresentationPlan(locations, manifest, paths, defa
     }
     if (packed && defaults.q4kLayout !== 'row') throw new Error(`Tensor "${name}" requires row-packed Q4 storage.`);
     result[name] = Object.freeze({ mode: packed ? (dense ? 'both' : 'packed-only') : 'dense-only',
+      primaryDtype: group.consumers.some(c => c.declaredWeightDtype === 'q4k' && c.weightDtype === 'f16') ? 'f16' : null,
       complete, dtypes: Object.freeze(dtypes), aliases: Object.freeze([...group.names].sort()),
       consumers: Object.freeze([...group.consumers]),
       keepF32Weights: q4 && complete && denseDtypes.length > 0 ? denseDtypes.includes('f32') : defaults.keepF32Weights });
