@@ -1,0 +1,39 @@
+{
+  "schema": "doppler.scratch-reuse-experiment/v1",
+  "baselineSource": "0e75e3c4f51c806c8af6d8bdf473b063fe62532f",
+  "baselineArchiveSha256": "2662a8b9923dbeb4a455556bf6536a5b1291595a4f5846800eff312f6c24c60f",
+  "modelManifestSha256": "c3364f7fecc01b70ce63b4de3347d8305a1a6437ac63bb943edece7fa279fc0e",
+  "hypothesis": "Reusing the already allocated session FFN intermediate for recorded Q4_K decode removes fused_ffn_output pool acquisitions and reduces complete-request latency. No binding cache or output reuse.",
+  "candidate": "Forward session-owned intermediate only on recorded, single-token, scalar F32 Q4_K fused gate/up without norm-stats, adapters, training or diagnostics. Last consumer is down projection; queue order precedes the next write.",
+  "control": "Frozen allocator runtime; same configuration, grouping, weights, shader arithmetic and workload.",
+  "primary": {
+    "pairs": 8,
+    "order": [
+      "baseline,candidate",
+      "candidate,baseline",
+      "baseline,candidate",
+      "candidate,baseline",
+      "baseline,candidate",
+      "candidate,baseline",
+      "baseline,candidate",
+      "candidate,baseline"
+    ],
+    "warmRequestsPerOpening": 5,
+    "maxTokens": 32,
+    "prompt": "The capital of France is",
+    "acceptance": "All tokens/text exact and lifecycle pass; paired opening-level warm median complete-latency gain >=2%, two-sided 95% paired bootstrap lower bound >0, median first output/decode and measured peak memory no regression >3%. Fixed sample count, no optional stopping."
+  },
+  "attribution": "Separate instrumented pass times BufferPool.acquire and GPUDevice.createBuffer and counts labels; not used for speed claims. Primary pass only reads counters outside timed generation.",
+  "lifecycle": [
+    "overlapping distinct sessions",
+    "isolated cancellation and reuse",
+    "unload while unrelated session remains usable",
+    "submitted device destruction and recreation"
+  ],
+  "limitations": [
+    "Fresh browser/HTTP opening is not OS-cache-cold loading",
+    "Peak pool and browser RSS are not total physical GPU memory",
+    "Physical Vulkan successor qualification independent of Metal performance",
+    "No general model/fallback support claim"
+  ]
+}
