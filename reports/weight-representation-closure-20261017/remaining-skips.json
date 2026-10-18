@@ -1,0 +1,24 @@
+{
+  "runId": 39085130244,
+  "head": "bbcf7ffd7a9dd49ba850e5c2c2a8ff36158ffe32",
+  "interpretation": "Successful workflow stages do not establish execution of these optional model, platform, or retained-evidence lanes. These remain unexecuted in hosted CI. Prior physical receipts are separately scoped.",
+  "lines": [
+    "2026-10-18T01:06:05.6878688Z # manifest-conversion-preflight.test: skipped (source weight index unavailable at models/source/glimmer-30b/model.safetensors.index.json)",
+    "2026-10-18T01:09:17.1093132Z # linear-prepared-sequence-physical: skipped (no provisioned model)",
+    "2026-10-18T01:09:17.2258600Z # litert-gemma4-task-ple-scale.test: skipped (source artifact not available at /home/runner/work/doppler/doppler/models/source/litert/gemma-4-e2b-it/gemma-4-E2B-it-web.task)",
+    "2026-10-18T01:09:34.8833303Z # partition-layers-physical: skipped; set DOPPLER_PARTITION_MODEL_DIR to a local RDRR generation model",
+    "2026-10-18T01:09:37.4175671Z # qwen-linear-attention-regression.test: skipped (set DOPPLER_QWEN35_LINEAR_MODEL_DIR)",
+    "2026-10-18T01:09:39.4392313Z # resident-partition-physical: skipped; set DOPPLER_PARTITION_MODEL_DIR",
+    "2026-10-18T01:09:39.8724762Z # rmsnorm-dispatch-physical: SKIP (DOPPLER_RMS_CAPTURE not supplied)",
+    "2026-10-18T01:09:42.2557758Z # seeded-batch-physical: SKIP (explicit result path required)",
+    "2026-10-18T01:09:44.5461970Z # speculative-generation-physical: skipped; set MODEL_DIR to a local verified model",
+    "2026-10-18T01:09:48.7254994Z # translategemma-q4k-regression.test: skipped (legacy TranslateGemma Q4K is outside the current Gemma 4/Qwen 3.5 release focus)",
+    "2026-10-18T01:09:50.0109950Z # w8a8-physical: SKIP (explicit result path required)",
+    "2026-10-18T01:10:26.8074333Z ok 1 - retained V10 token-budget derivation bytes match their frozen digest # SKIP Local evidence unavailable: reports/training/wgsl-repair/doppler-wgsl-repair-v9/corpus-v1/train-anchor.jsonl",
+    "2026-10-18T01:10:27.4536851Z ok 1 - retained V11 corpus has frozen hashes and disjoint families # SKIP Local evidence unavailable: reports/training/wgsl-repair/doppler-wgsl-repair-v9/corpus-v1",
+    "2026-10-18T01:10:28.8311767Z ok 1 - retained family-distillation transport and adapter byte custody # SKIP Local evidence unavailable: reports/training/wgsl-writer/family-distillation-v1/transport/0-8b-v2/transport-request.json",
+    "2026-10-18T01:10:34.2069342Z # fused-ffn-q4-metal-simd16-gpu-regression.test: skipped (requires Apple Metal subgroups)",
+    "2026-10-18T01:10:34.6147456Z # fused-matmul-q4-metal-simd16-gpu-regression.test: skipped (requires Apple Metal subgroups)",
+    "2026-10-18T01:10:36.5421377Z # gemma4-e2b-q4k-apple-retain-regression.test: skipped (vendor=mesa not apple)"
+  ]
+}
