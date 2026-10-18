@@ -543,7 +543,7 @@ export async function materializeFloatRequirements(result, shardData, location, 
       }
       materializations.set(dtype, { buffer, layout: weight.layout });
     }
-    const primary = requirement.dtypes.includes(weight.dtype) ? weight.dtype : requirement.dtypes[0];
+    const primary = requirement.primaryDtype ?? (requirement.dtypes.includes(weight.dtype) ? weight.dtype : requirement.dtypes[0]);
     const data = createWeightBuffer(materializations.get(primary).buffer, primary, weight.layout,
       weight.shape, name, Object.fromEntries(materializations));
     const retained = new Set([...materializations.values()].map(value => value.buffer));
