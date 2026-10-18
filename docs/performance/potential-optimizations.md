@@ -37,13 +37,22 @@ dense representation required by another reachable consumer; tied weights and
 aliases must be analyzed together. Remove dense shadows only after proving that
 every reachable consumer accepts the retained representation.
 
-Start from the current role-level queries in
-[`kernel-path-loader.js`](../../src/config/kernel-path-loader.js)
-(`kernelPathRequiresWeightDtype`) and materialization in
-[`manifest-config.js`](../../src/loader/manifest-config.js) and
-[`model-executor.js`](../../src/loader/model-executor.js).
-Replace coarse requirements with tensor/alias requirements derived from the
-selected graph, including recovery paths. Keep incompatible plans fail-closed.
+The text loader now compiles these requirements in
+[`weight-representation-plan.js`](../../src/loader/weight-representation-plan.js)
+before reading weights, using shared loader bindings and the runtime's exact
+layer/phase variant resolver. The Q4 materializer retains independent F16/F32
+copies when required. Explicit fallback plans, composite FFN consumers, physical
+aliases, tied endpoints and stored-F16 adaptive fallbacks participate in the
+union. Unknown consumers remain conservative; legacy callers without resolved
+paths retain their existing loading policy. This is not universal optimization
+of every quantization format or implicit sharing of alias allocations.
+
+The [frozen comparison and open gates](../../reports/weight-representation-20261017/README.md)
+own qualification status. A physical mixed-consumer fixture demonstrates one
+removed F16 shadow while preserving fallback copies. The final 2B comparison on
+M3/AMD and 27B comparison on AMD retain identical model and peak pool bytes;
+these profiles were already packed. Their timings establish no speedup. M3 27B
+and the separate hosted CI gates remain open in that report.
 
 Expected benefit: less startup conversion and GPU residency. Removing an F16
 shadow saves roughly `2N` bytes for `N` elements; F32 saves `4N`, before alignment
