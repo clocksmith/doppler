@@ -1,0 +1,248 @@
+{
+  "schema": "doppler.bind-group-observation/v1",
+  "baselineCommit": "0e75e3c4f51c806c8af6d8bdf473b063fe62532f",
+  "baselineArchiveSha256": "2662a8b9923dbeb4a455556bf6536a5b1291595a4f5846800eff312f6c24c60f",
+  "successorManifestSha256": "c3364f7fecc01b70ce63b4de3347d8305a1a6437ac63bb943edece7fa279fc0e",
+  "browser": "155.0.8059.80",
+  "gpu": [
+    {
+      "vendorId": 4203,
+      "deviceId": 0,
+      "vendorString": "Google Inc. (Apple)",
+      "deviceString": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Version 26.6.2 (Build 25G83))",
+      "driverVendor": "Apple",
+      "driverVersion": "26.6.2"
+    }
+  ],
+  "scope": "Qwen3.5-2B Q4_K/F32 compute/F16 KV, Chrome Metal on Apple M3, context 2048, greedy 32 output tokens; instrumented binding observations are separate from baseline lifecycle timings.",
+  "decision": "reject binding-only cache for the observed matmul path before implementation",
+  "runtimeCandidateImplemented": false,
+  "candidatePerformanceMeasured": false,
+  "reason": "No same-recorder binding identity repeats. Input and output GPUBuffer identities change on every successive per-layer decode matmul. Stabilizing scratch allocation is a separate experiment.",
+  "recordedDecodeMatmulCalls": 20832,
+  "sameRecorderIdentityRepeats": 0,
+  "lifetimeIdentityRepeats": 38,
+  "operations": {
+    "batch_decode/matmul:linear_qkvz_proj": {
+      "calls": 3906,
+      "sameRecorderHits": 0,
+      "lifetimeHits": 18,
+      "successiveCalls": 3654,
+      "pipelineChanges": 0,
+      "layoutChanges": 0
+    },
+    "batch_decode/matmul:linear_ab_proj": {
+      "calls": 3906,
+      "sameRecorderHits": 0,
+      "lifetimeHits": 9,
+      "successiveCalls": 3654,
+      "pipelineChanges": 0,
+      "layoutChanges": 0
+    },
+    "batch_decode/matmul:linear_out_proj": {
+      "calls": 3906,
+      "sameRecorderHits": 0,
+      "lifetimeHits": 6,
+      "successiveCalls": 3654,
+      "pipelineChanges": 0,
+      "layoutChanges": 0
+    },
+    "batch_decode/matmul:ffn_down": {
+      "calls": 5208,
+      "sameRecorderHits": 0,
+      "lifetimeHits": 5,
+      "successiveCalls": 4872,
+      "pipelineChanges": 0,
+      "layoutChanges": 0
+    },
+    "batch_decode/matmul:qkv_proj": {
+      "calls": 1302,
+      "sameRecorderHits": 0,
+      "lifetimeHits": 0,
+      "successiveCalls": 1218,
+      "pipelineChanges": 0,
+      "layoutChanges": 0
+    },
+    "batch_decode/matmul:q_gate_proj": {
+      "calls": 1302,
+      "sameRecorderHits": 0,
+      "lifetimeHits": 0,
+      "successiveCalls": 1218,
+      "pipelineChanges": 0,
+      "layoutChanges": 0
+    },
+    "batch_decode/matmul:o_proj": {
+      "calls": 1302,
+      "sameRecorderHits": 0,
+      "lifetimeHits": 0,
+      "successiveCalls": 1218,
+      "pipelineChanges": 0,
+      "layoutChanges": 0
+    }
+  },
+  "bindingChanges": {
+    "batch_decode/matmul:linear_qkvz_proj": {
+      "binding0.buffer": 0,
+      "binding0.offset": 0,
+      "binding0.size": 0,
+      "binding1.buffer": 3654,
+      "binding1.offset": 0,
+      "binding1.size": 0,
+      "binding2.buffer": 0,
+      "binding2.offset": 0,
+      "binding2.size": 0,
+      "binding3.buffer": 3654,
+      "binding3.offset": 0,
+      "binding3.size": 0
+    },
+    "batch_decode/matmul:linear_ab_proj": {
+      "binding0.buffer": 0,
+      "binding0.offset": 0,
+      "binding0.size": 0,
+      "binding1.buffer": 3654,
+      "binding1.offset": 0,
+      "binding1.size": 0,
+      "binding2.buffer": 0,
+      "binding2.offset": 0,
+      "binding2.size": 0,
+      "binding3.buffer": 3654,
+      "binding3.offset": 0,
+      "binding3.size": 0
+    },
+    "batch_decode/matmul:linear_out_proj": {
+      "binding0.buffer": 0,
+      "binding0.offset": 0,
+      "binding0.size": 0,
+      "binding1.buffer": 3654,
+      "binding1.offset": 0,
+      "binding1.size": 0,
+      "binding2.buffer": 0,
+      "binding2.offset": 0,
+      "binding2.size": 0,
+      "binding3.buffer": 3654,
+      "binding3.offset": 0,
+      "binding3.size": 0
+    },
+    "batch_decode/matmul:ffn_down": {
+      "binding0.buffer": 0,
+      "binding0.offset": 0,
+      "binding0.size": 0,
+      "binding1.buffer": 4872,
+      "binding1.offset": 0,
+      "binding1.size": 0,
+      "binding2.buffer": 0,
+      "binding2.offset": 0,
+      "binding2.size": 0,
+      "binding3.buffer": 4872,
+      "binding3.offset": 0,
+      "binding3.size": 0
+    },
+    "batch_decode/matmul:qkv_proj": {
+      "binding0.buffer": 0,
+      "binding0.offset": 0,
+      "binding0.size": 0,
+      "binding1.buffer": 1218,
+      "binding1.offset": 0,
+      "binding1.size": 0,
+      "binding2.buffer": 0,
+      "binding2.offset": 0,
+      "binding2.size": 0,
+      "binding3.buffer": 1218,
+      "binding3.offset": 0,
+      "binding3.size": 0
+    },
+    "batch_decode/matmul:q_gate_proj": {
+      "binding0.buffer": 0,
+      "binding0.offset": 0,
+      "binding0.size": 0,
+      "binding1.buffer": 1218,
+      "binding1.offset": 0,
+      "binding1.size": 0,
+      "binding2.buffer": 0,
+      "binding2.offset": 0,
+      "binding2.size": 0,
+      "binding3.buffer": 1218,
+      "binding3.offset": 0,
+      "binding3.size": 0
+    },
+    "batch_decode/matmul:o_proj": {
+      "binding0.buffer": 0,
+      "binding0.offset": 0,
+      "binding0.size": 0,
+      "binding1.buffer": 1218,
+      "binding1.offset": 0,
+      "binding1.size": 0,
+      "binding2.buffer": 0,
+      "binding2.offset": 0,
+      "binding2.size": 0,
+      "binding3.buffer": 1218,
+      "binding3.offset": 0,
+      "binding3.size": 0
+    }
+  },
+  "baselineObservations": {
+    "openingMs": 5345.5,
+    "warmSamples": 3,
+    "warmFirstOutputMedianMs": 198,
+    "warmCompleteMedianMs": 1537.3000000044703,
+    "warmDecodeMedianTokensPerSecond": 22.96126212870586,
+    "warmRecordingMedianMs": 380,
+    "warmChunkGapP95Ms": 619.7000000029802,
+    "longPrefillFirstOutputMs": 7896,
+    "peakPoolAllocatedBytes": 4432379648,
+    "peakBrowserProcessRssSumBytes": 2731917312,
+    "caveats": [
+      "three warm samples, no comparative performance claim",
+      "fresh Chrome process and HTTP load; OS disk cache was not flushed",
+      "nonexclusive host; unrelated contributor processes were not modified",
+      "pool accounting is not physical GPU residency; RSS may count shared mappings more than once",
+      "delivered text chunks are not necessarily one token each"
+    ]
+  },
+  "lifecycleStages": [
+    "open",
+    "first",
+    "warm",
+    "warm",
+    "warm",
+    "numerical",
+    "long-prefill",
+    "cancel",
+    "concurrent",
+    "isolated-cancel",
+    "other-unloaded",
+    "lost-cleanup",
+    "recreated",
+    "unloaded"
+  ],
+  "successorNumericalComparison": {
+    "comparison": "successor frozen 0e75e3c4 versus retained representation candidate-v3 on M3, same config and workload; not a speed comparison",
+    "passed": true,
+    "rows": [
+      {
+        "stage": "first",
+        "tokensEqual": true,
+        "textEqual": true,
+        "logitsEqual": true
+      },
+      {
+        "stage": "numerical",
+        "tokensEqual": true,
+        "textEqual": true,
+        "logitsEqual": true
+      },
+      {
+        "stage": "long-prefill",
+        "tokensEqual": true,
+        "textEqual": true,
+        "logitsEqual": true
+      }
+    ]
+  },
+  "pending": [
+    "physical Vulkan qualification of this successor",
+    "optional M3 27B lane",
+    "separate scratch-lifetime campaign before assuming stable input/output bindings",
+    "no optimized package or general performance claim"
+  ]
+}

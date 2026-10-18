@@ -1,0 +1,23 @@
+{
+  "runId": 39085845335,
+  "head": "0e75e3c4f51c806c8af6d8bdf473b063fe62532f",
+  "lines": [
+    "2026-10-18T01:17:17.5259427Z # manifest-conversion-preflight.test: skipped (source weight index unavailable at models/source/glimmer-30b/model.safetensors.index.json)",
+    "2026-10-18T01:19:16.0647526Z # linear-prepared-sequence-physical: skipped (no provisioned model)",
+    "2026-10-18T01:19:16.1402768Z # litert-gemma4-task-ple-scale.test: skipped (source artifact not available at /home/runner/work/doppler/doppler/models/source/litert/gemma-4-e2b-it/gemma-4-E2B-it-web.task)",
+    "2026-10-18T01:19:29.1227591Z # partition-layers-physical: skipped; set DOPPLER_PARTITION_MODEL_DIR to a local RDRR generation model",
+    "2026-10-18T01:19:30.6723661Z # qwen-linear-attention-regression.test: skipped (set DOPPLER_QWEN35_LINEAR_MODEL_DIR)",
+    "2026-10-18T01:19:31.9280454Z # resident-partition-physical: skipped; set DOPPLER_PARTITION_MODEL_DIR",
+    "2026-10-18T01:19:32.2001212Z # rmsnorm-dispatch-physical: SKIP (DOPPLER_RMS_CAPTURE not supplied)",
+    "2026-10-18T01:19:33.6420384Z # seeded-batch-physical: SKIP (explicit result path required)",
+    "2026-10-18T01:19:35.1067648Z # speculative-generation-physical: skipped; set MODEL_DIR to a local verified model",
+    "2026-10-18T01:19:37.5998163Z # translategemma-q4k-regression.test: skipped (legacy TranslateGemma Q4K is outside the current Gemma 4/Qwen 3.5 release focus)",
+    "2026-10-18T01:19:38.4083648Z # w8a8-physical: SKIP (explicit result path required)",
+    "2026-10-18T01:20:01.3701211Z ok 1 - retained V10 token-budget derivation bytes match their frozen digest # SKIP Local evidence unavailable: reports/training/wgsl-repair/doppler-wgsl-repair-v9/corpus-v1/train-anchor.jsonl",
+    "2026-10-18T01:20:01.7535190Z ok 1 - retained V11 corpus has frozen hashes and disjoint families # SKIP Local evidence unavailable: reports/training/wgsl-repair/doppler-wgsl-repair-v9/corpus-v1",
+    "2026-10-18T01:20:02.6650478Z ok 1 - retained family-distillation transport and adapter byte custody # SKIP Local evidence unavailable: reports/training/wgsl-writer/family-distillation-v1/transport/0-8b-v2/transport-request.json",
+    "2026-10-18T01:20:06.2330574Z # fused-ffn-q4-metal-simd16-gpu-regression.test: skipped (requires Apple Metal subgroups)",
+    "2026-10-18T01:20:06.4928435Z # fused-matmul-q4-metal-simd16-gpu-regression.test: skipped (requires Apple Metal subgroups)",
+    "2026-10-18T01:20:07.7182235Z # gemma4-e2b-q4k-apple-retain-regression.test: skipped (vendor=mesa not apple)"
+  ]
+}

@@ -74,6 +74,17 @@ buffer identity, offsets, sizes, and device identity in compatibility checks.
 Rebuild after relocation, device loss, or incompatible session state. Cached bind
 groups must never observe another request's uniforms or reclaimed scratch.
 
+Keep binding identity separate from execution compatibility: shape and constants
+can select a different pipeline even when buffer ranges match. A cache hit never
+authorizes overwriting a uniform-ring slot or scratch buffer still owned by an
+earlier submission; those ownership leases last through GPU completion.
+
+The [successor 2B Metal observation](../../reports/qwen-bind-group-reuse-20261017/README.md)
+found changing input/output buffers on successive recorded matmul calls and no
+exact repeats within a recorder. A binding-only cache for that measured path was
+rejected before implementation. Do not infer the same result for other models,
+operations, or lifetimes. Stabilizing allocation remains a separate experiment.
+
 Derive scratch slots and safe reuse from the selected graph's actual lifetimes;
 extend [decode buffers](../../src/inference/decode-buffers.js), the
 [buffer pool](../../src/memory/buffer-pool.js), and

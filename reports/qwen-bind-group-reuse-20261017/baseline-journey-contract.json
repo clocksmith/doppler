@@ -1,0 +1,19 @@
+{
+  "schema": "doppler.baseline-lifecycle/v1",
+  "parentContractSha256": "d9c21ebaf2568196d4e1d6792e4949e29dd59c39fc907f27ba17da61cba5c511",
+  "driverSha256": "e5ecfef5e8d166fe6e87ecd227a7218abafb102588ebb831d25d1f566e8b672c",
+  "surface": "Chrome WebGPU Metal",
+  "artifact": "successor-manifest.json",
+  "candidate": null,
+  "changes": "Add two simultaneous resident sessions with distinct prompts, isolated cancellation, reuse, and unload; record delivery times and browser process CPU time. No bind-group instrumentation in this pass.",
+  "requirements": [
+    "same generated tokens as isolated sessions",
+    "finite public logits",
+    "cancellation does not affect unrelated request",
+    "unload leaves unrelated work usable",
+    "submitted device loss rejects",
+    "recreated device produces identical tokens"
+  ],
+  "timingScope": "baseline observation only, no speedup or comparative claim",
+  "timeoutSeconds": 300
+}
