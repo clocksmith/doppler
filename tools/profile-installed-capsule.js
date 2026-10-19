@@ -8,12 +8,14 @@ import { execFileSync } from 'node:child_process';
 import { chromium } from 'playwright';
 import { createStaticFileServer } from '../src/tooling/node-browser-command-runner.js';
 import { installGpuObservation } from './lib/installed-gpu-observation.js';
+import { compareProfileRuns, validateProfilePairs } from './lib/profile-comparison.js';
 
 const read = async file => JSON.parse(await fs.readFile(file, 'utf8'));
 const sha256 = data => createHash('sha256').update(data).digest('hex');
 const config = await read(process.argv[2]);
 assert.equal(config.schema, 'doppler.installed-capsule-profile/v1');
 assert(config.runs.length >= 2 && config.runs.every(run => typeof run.instrumented === 'boolean'));
+if (config.overheadPairs !== undefined) validateProfilePairs(config.runs, config.overheadPairs);
 assert(Number.isSafeInteger(config.cpuSamplingIntervalUs) && config.cpuSamplingIntervalUs > 0);
 assert(Number.isSafeInteger(config.timeoutMs) && config.timeoutMs > 0);
 assert.equal(config.model.descriptor.request.schema, 'doppler.capsule-operation-request/v2');
@@ -32,6 +34,7 @@ const report = { schema: 'doppler.installed-capsule-profile-result/v1', passed: 
   sourceRevision: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
   probeSha256: sha256(await fs.readFile(new URL(import.meta.url))),
   observerSha256: sha256(await fs.readFile(new URL('./lib/installed-gpu-observation.js', import.meta.url))),
+  comparisonSha256: sha256(await fs.readFile(new URL('./lib/profile-comparison.js', import.meta.url))),
   scope: 'Public installed Capsule path. Instrumented CPU samples and existing WebGPU calls; no extra GPU work or fence. Waits overlap and must not be summed as independent GPU time.' };
 let browser, server, page, timeout;
 try {
@@ -105,6 +108,9 @@ try {
     report.runs.push({ ...run, ...result });
     await fs.writeFile(path.join(config.outputDir, 'progress.json'), JSON.stringify(report, null, 2));
     console.log(JSON.stringify({ run: index, label: run.label, tokens: result.completed.output.tokenIds.length, elapsedMs: result.elapsedMs }));
+  }
+  if (config.overheadPairs !== undefined) {
+    report.overheadComparison = compareProfileRuns(report.runs, config.overheadPairs);
   }
   report.passed = true;
 } catch (error) { report.error = { message: error.message, stack: error.stack }; }

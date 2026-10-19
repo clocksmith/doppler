@@ -41,7 +41,8 @@ export interface TokenCostPhase {
   dispatches: number;
   unattributedDispatches: number;
   dispatchGeometryCoverage: number | null;
-  commandBufferSubmissions: number;
+  /** Sum of recorded submission counts; null when absent from any observed step. */
+  commandBufferSubmissions: number | null;
   observerReadbacks: number;
   executionReadbacks: { value: null; status: string };
   estimatedBytesMoved: {

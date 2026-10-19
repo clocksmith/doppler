@@ -137,6 +137,12 @@ are not added again. Bytes moved are labeled estimated and remain unavailable
 unless an estimator supplies them. Summed GPU operation durations are never
 asserted to equal wall time.
 
+Partial operation traces retain the full recorded phase count: missing dispatches
+remain unattributed. Command-buffer submissions sum the recorder counters, not
+the number of profile steps; absent counters stay `null`. A completion fence
+includes queued GPU execution. It does not, by itself, justify changing readback
+copies, delivery cadence, or submission policy.
+
 For browser inference, `artifactDigest` binds the declared artifact identity,
 ordered shard hashes, tokenizer contract, and total size. `wrapperDigest` binds
 the versioned text-execution wrapper contract, resolved execution plan, kernel
@@ -150,6 +156,41 @@ hypothesis should name the ledger entry it expects to reduce. The classifier
 also compares those GPU walls with built-in command-recording,
 submit/readback-fence, and host-orchestration walls, then returns experiments
 appropriate to the largest observed cost.
+
+When the largest observation is a completion fence, the prescribed next steps
+are operator attribution and a comparison of profiled and ordinary requests.
+Instrumentation changes pass boundaries and adds observation work; its timings
+must remain separate from primary performance evidence.
+
+The installed public-Capsule probe, `tools/profile-installed-capsule.js`, can
+compare its existing CPU/API instrumentation with ordinary execution. Declare
+`overheadPairs` in its input JSON before execution, using zero-based run indices:
+
+```json
+{
+  "runs": [
+    { "label": "warmup", "instrumented": false },
+    { "label": "ordinary-a", "instrumented": false },
+    { "label": "observed-a", "instrumented": true },
+    { "label": "observed-b", "instrumented": true },
+    { "label": "ordinary-b", "instrumented": false }
+  ],
+  "overheadPairs": [
+    { "ordinaryRun": 1, "instrumentedRun": 2 },
+    { "ordinaryRun": 4, "instrumentedRun": 3 }
+  ]
+}
+```
+
+These fields supplement the probe's existing package, model, launch, output,
+sampling, and timeout contract. The first request is excluded; pairs must be
+adjacent, disjoint, and contain one request of each kind. Completed outputs must
+match. The receipt retains each pair's complete-request and first-delivery
+deltas, including unfavorable observations. Missing delivery observations stay
+`null`. This compares CPU sampling plus API observation, **not** GPU timestamp
+overhead; timestamp-instrumented runtime requests need their own matched control.
+All pairs share one opening, so they are not independent opening samples.
+The code and unit tests do not establish measured overhead or a performance win.
 
 ## 4. Calibrate Registered Variants
 
