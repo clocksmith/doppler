@@ -138,7 +138,7 @@ for (const batched of [false, true]) {
     'decode recorders must retain dispatch geometry only for debug or observer runs'
   );
   assert.equal(
-    generatorStepsSource.includes("createProfilingRecorder('batch_decode', device, recorderOptions)"),
+    generatorStepsSource.includes("createProfilingRecorder('batch_decode', device, { ...recorderOptions, profilePhase: 'decode' })"),
     true,
     'batch decode profiling must keep labeled profile recorder path'
   );

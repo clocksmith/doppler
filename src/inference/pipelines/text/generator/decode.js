@@ -347,9 +347,7 @@ export async function submitDecodeRecorderProfile(state, opts, recorder, profile
     return;
   }
 
-  const timings = recorder.isProfilingEnabled()
-    ? await recorder.resolveProfileTimings()
-    : null;
+  const timings = await recorder.resolveProfileTimings({ requireComplete: true });
   const total = sumProfileTimings(timings);
   if (total !== null) {
     state.stats.gpuTimeDecodeMs = (state.stats.gpuTimeDecodeMs ?? 0) + total;
@@ -669,9 +667,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
       }
 
       if (opts.profile) {
-        const timings = recorder.isProfilingEnabled()
-          ? await recorder.resolveProfileTimings()
-          : null;
+        const timings = await recorder.resolveProfileTimings({ requireComplete: true });
         const total = sumProfileTimings(timings);
         if (total !== null) {
           state.stats.gpuTimeDecodeMs = (state.stats.gpuTimeDecodeMs ?? 0) + total;
