@@ -1,11 +1,10 @@
-
-
 import { getDevice, hasFeature, FEATURES } from './device.js';
 import { allowReadback, trackAllocation } from './perf-guards.js';
 import { getUniformCache, toUniformArrayBuffer } from './uniform-cache.js';
 import { isBufferActive, isPersistentBuffer, releaseBuffer, discardBuffer } from '../memory/buffer-pool.js';
 import { log } from '../debug/index.js';
 import { getRuntimeConfig } from '../config/runtime.js';
+import { getPipelineProvenance } from './kernels/pipeline-cache.js';
 
 let didLogQueryClamp = false;
 let didLogQueryFallback = false;
@@ -36,6 +35,8 @@ export class CommandRecorder {
   #activeComputePass = null;
   // Profiling state
   #profilingEnabled;
+  #profileRequested;
+  #profileReport = null;
   #querySet = null;
   #queryBuffer = null;
   #readbackBuffer = null;
@@ -53,7 +54,6 @@ export class CommandRecorder {
 
     this.label = label;
     this.#encoder = this.device.createCommandEncoder({ label });
-
     // Temporary buffers to destroy after submit (created directly by recorder)
     this.#tempBuffers = [];
     // Pooled buffers to release after submit (came from buffer pool)
@@ -65,7 +65,6 @@ export class CommandRecorder {
     this.#completionTasks = [];
 
     this.#submitted = false;
-
     this.#opCount = 0;
     this.#recordLabels = options.recordLabels !== false;
     this.#recordDispatches = options.recordDispatches !== false;
@@ -77,7 +76,8 @@ export class CommandRecorder {
       : null;
     this.#computePassCount = 0;
     this.#activeComputePass = null;
-    this.#profilingEnabled = options.profile === true && hasFeature(FEATURES.TIMESTAMP_QUERY);
+    this.#profileRequested = options.profile === true;
+    this.#profilingEnabled = this.#profileRequested && hasFeature(FEATURES.TIMESTAMP_QUERY);
     if (this.#profilingEnabled) {
       this.#initProfiling();
     }
@@ -263,7 +263,7 @@ export class CommandRecorder {
     });
   }
 
-  #beginRawComputePass(opLabel) {
+  #beginRawComputePass(opLabel, dispatch = null) {
     this.#computePassCount++;
     const passLabel = `${this.label}_${opLabel}_${this.#computePassCount}`;
 
@@ -274,6 +274,7 @@ export class CommandRecorder {
 
       this.#profileEntries.push({
         label: opLabel,
+        dispatch,
         startQueryIndex: startIndex,
         endQueryIndex: endIndex,
       });
@@ -328,7 +329,10 @@ export class CommandRecorder {
       workgroups
     );
     if (this.#profilingEnabled) {
-      const pass = this.#beginRawComputePass(opLabel);
+      const pass = this.#beginRawComputePass(opLabel, {
+        kind: 'direct', workgroups: [...workgroups], pipelineLabel: pipeline.label || null,
+        pipeline: getPipelineProvenance(pipeline),
+      });
       pass.setPipeline(pipeline);
       pass.setBindGroup(0, bindGroup);
       pass.dispatchWorkgroups(workgroups[0], workgroups[1], workgroups[2]);
@@ -352,7 +356,10 @@ export class CommandRecorder {
       null
     );
     if (this.#profilingEnabled) {
-      const pass = this.#beginRawComputePass(opLabel);
+      const pass = this.#beginRawComputePass(opLabel, {
+        kind: 'indirect', workgroups: null, pipelineLabel: pipeline.label || null,
+        pipeline: getPipelineProvenance(pipeline),
+      });
       pass.setPipeline(pipeline);
       pass.setBindGroup(0, bindGroup);
       pass.dispatchWorkgroupsIndirect(indirectBuffer, indirectOffset);
@@ -583,6 +590,13 @@ export class CommandRecorder {
         workgroups: record.workgroups ? [...record.workgroups] : null,
       })),
       computePassCount: this.#computePassCount,
+      ...(this.#profileRequested ? { profile: structuredClone({
+        status: this.#profilingEnabled ? 'pending' : 'unavailable',
+        recorderLabel: this.label, computePasses: this.#computePassCount,
+        measuredPasses: 0, intervals: [], ...this.#profileReport,
+        unmeasuredPasses: this.#computePassCount - (this.#profileReport?.measuredPasses ?? 0),
+        scope: 'Recorded compute passes only; copies and other queues are unaccounted for.',
+      }) } : {}),
       tempBufferCount: this.#tempBuffers.length,
       pooledBufferCount: this.#pooledBuffers.length,
       submitted: this.#submitted,
@@ -614,6 +628,7 @@ export class CommandRecorder {
   }
 
   async resolveProfileTimings(options = {}) {
+    this.#profileReport ??= { status: 'unavailable', measuredPasses: 0, intervals: [] };
     if (!this.#profilingEnabled || !this.#querySet || !this.#queryBuffer || !this.#readbackBuffer) {
       if (options.requireComplete) throw new Error('[CommandRecorder] Complete timestamp profiling is unavailable.');
       return null;
@@ -626,6 +641,7 @@ export class CommandRecorder {
     if (this.#profileEntries.length === 0) {
       try {
         await this.completeDeferredCleanup();
+        this.#profileReport.status = this.#computePassCount === 0 ? 'complete' : 'incomplete';
       } finally {
         this.#destroyProfilingResources();
       }
@@ -635,6 +651,7 @@ export class CommandRecorder {
     let mapped = false;
 
     try {
+      this.#profileReport.status = 'failed';
       await this.device.queue.onSubmittedWorkDone();
       await this.completeDeferredCleanup();
       if (options.requireComplete && this.#profileEntries.length !== this.#computePassCount) {
@@ -669,13 +686,13 @@ export class CommandRecorder {
           continue;
         }
 
-        if (timings[entry.label] !== undefined) {
-          timings[entry.label] += durationMs;
-        } else {
-          timings[entry.label] = durationMs;
-        }
+        this.#profileReport.intervals.push({ label: entry.label, dispatch: entry.dispatch,
+          count: entry.dispatch ? 1 : null, durationMs });
+        this.#profileReport.measuredPasses++;
+        timings[entry.label] = (timings[entry.label] ?? 0) + durationMs;
       }
 
+      this.#profileReport.status = this.#profileReport.measuredPasses === this.#computePassCount ? 'complete' : 'incomplete';
       return timings;
     } finally {
       if (mapped && this.#readbackBuffer) {
