@@ -1,0 +1,682 @@
+{
+  "scope": "Single instrumented short-prompt development request on M3 Metal. Not complete-request optimization or model correctness qualification.",
+  "exactOutputs": true,
+  "phases": {
+    "prefill": {
+      "computePasses": 337,
+      "measuredPasses": 337,
+      "unmeasuredPasses": 0,
+      "measuredPassesWithUnknownShader": 36,
+      "measuredMs": 209.80030899999997,
+      "dominant": [
+        {
+          "phase": "prefill",
+          "pipeline": {
+            "operation": "matmul",
+            "variant": "q4_fused_widetile_direct",
+            "shaderFile": "fused_matmul_q4_widetile_direct.wgsl",
+            "shaderHash": "sha256:1e824cae88609f95199b790d00a0a5ac64b5a5479d56ef6ba992695296304a25",
+            "entryPoint": "main",
+            "constants": {
+              "TILE_M": 4,
+              "TILE_N": 256
+            },
+            "registryIdentity": "sha256:8160f81cf3f9463041793ead5bd3ec6e915185df3d8abf6aef04fa2190322e0c"
+          },
+          "pipelineLabel": "matmul_q4_fused_widetile_direct_pipeline_TILE_M=4|TILE_N=256",
+          "workgroups": [
+            24,
+            2,
+            1
+          ],
+          "operationLabels": [
+            "matmul:linear_qkv_proj:L0",
+            "matmul:ffn_gate:L0",
+            "matmul:ffn_up:L0",
+            "matmul:linear_qkv_proj:L1",
+            "matmul:ffn_gate:L1",
+            "matmul:ffn_up:L1",
+            "matmul:linear_qkv_proj:L2",
+            "matmul:ffn_gate:L2",
+            "matmul:ffn_up:L2",
+            "matmul:ffn_gate:L3",
+            "matmul:ffn_up:L3",
+            "matmul:linear_qkv_proj:L4",
+            "matmul:ffn_gate:L4",
+            "matmul:ffn_up:L4",
+            "matmul:linear_qkv_proj:L5",
+            "matmul:ffn_gate:L5",
+            "matmul:ffn_up:L5",
+            "matmul:linear_qkv_proj:L6",
+            "matmul:ffn_gate:L6",
+            "matmul:ffn_up:L6",
+            "matmul:ffn_gate:L7",
+            "matmul:ffn_up:L7",
+            "matmul:linear_qkv_proj:L8",
+            "matmul:ffn_gate:L8",
+            "matmul:ffn_up:L8",
+            "matmul:linear_qkv_proj:L9",
+            "matmul:ffn_gate:L9",
+            "matmul:ffn_up:L9",
+            "matmul:linear_qkv_proj:L10",
+            "matmul:ffn_gate:L10",
+            "matmul:ffn_up:L10",
+            "matmul:ffn_gate:L11",
+            "matmul:ffn_up:L11",
+            "matmul:linear_qkv_proj:L12",
+            "matmul:ffn_gate:L12",
+            "matmul:ffn_up:L12",
+            "matmul:linear_qkv_proj:L13",
+            "matmul:ffn_gate:L13",
+            "matmul:ffn_up:L13",
+            "matmul:linear_qkv_proj:L14",
+            "matmul:ffn_gate:L14",
+            "matmul:ffn_up:L14",
+            "matmul:ffn_gate:L15",
+            "matmul:ffn_up:L15",
+            "matmul:linear_qkv_proj:L16",
+            "matmul:ffn_gate:L16",
+            "matmul:ffn_up:L16",
+            "matmul:linear_qkv_proj:L17",
+            "matmul:ffn_gate:L17",
+            "matmul:ffn_up:L17",
+            "matmul:linear_qkv_proj:L18",
+            "matmul:ffn_gate:L18",
+            "matmul:ffn_up:L18",
+            "matmul:ffn_gate:L19",
+            "matmul:ffn_up:L19",
+            "matmul:linear_qkv_proj:L20",
+            "matmul:ffn_gate:L20",
+            "matmul:ffn_up:L20",
+            "matmul:linear_qkv_proj:L21",
+            "matmul:ffn_gate:L21",
+            "matmul:ffn_up:L21",
+            "matmul:linear_qkv_proj:L22",
+            "matmul:ffn_gate:L22",
+            "matmul:ffn_up:L22",
+            "matmul:ffn_gate:L23",
+            "matmul:ffn_up:L23"
+          ],
+          "count": 66,
+          "durationMs": 82.35982799999998
+        },
+        {
+          "phase": "prefill",
+          "pipeline": {
+            "operation": "matmul",
+            "variant": "q4_fused_widetile_direct",
+            "shaderFile": "fused_matmul_q4_widetile_direct.wgsl",
+            "shaderHash": "sha256:1e824cae88609f95199b790d00a0a5ac64b5a5479d56ef6ba992695296304a25",
+            "entryPoint": "main",
+            "constants": {
+              "TILE_M": 4,
+              "TILE_N": 256
+            },
+            "registryIdentity": "sha256:8160f81cf3f9463041793ead5bd3ec6e915185df3d8abf6aef04fa2190322e0c"
+          },
+          "pipelineLabel": "matmul_q4_fused_widetile_direct_pipeline_TILE_M=4|TILE_N=256",
+          "workgroups": [
+            8,
+            2,
+            1
+          ],
+          "operationLabels": [
+            "matmul:linear_z_proj:L0",
+            "matmul:linear_out_proj:L0",
+            "matmul:ffn_down:L0",
+            "matmul:linear_z_proj:L1",
+            "matmul:linear_out_proj:L1",
+            "matmul:ffn_down:L1",
+            "matmul:linear_z_proj:L2",
+            "matmul:linear_out_proj:L2",
+            "matmul:ffn_down:L2",
+            "matmul:q_gate_proj:L3",
+            "matmul:o_proj:L3",
+            "matmul:ffn_down:L3",
+            "matmul:linear_z_proj:L4",
+            "matmul:linear_out_proj:L4",
+            "matmul:ffn_down:L4",
+            "matmul:linear_z_proj:L5",
+            "matmul:linear_out_proj:L5",
+            "matmul:ffn_down:L5",
+            "matmul:linear_z_proj:L6",
+            "matmul:linear_out_proj:L6",
+            "matmul:ffn_down:L6",
+            "matmul:q_gate_proj:L7",
+            "matmul:o_proj:L7",
+            "matmul:ffn_down:L7",
+            "matmul:linear_z_proj:L8",
+            "matmul:linear_out_proj:L8",
+            "matmul:ffn_down:L8",
+            "matmul:linear_z_proj:L9",
+            "matmul:linear_out_proj:L9",
+            "matmul:ffn_down:L9",
+            "matmul:linear_z_proj:L10",
+            "matmul:linear_out_proj:L10",
+            "matmul:ffn_down:L10",
+            "matmul:q_gate_proj:L11",
+            "matmul:o_proj:L11",
+            "matmul:ffn_down:L11",
+            "matmul:linear_z_proj:L12",
+            "matmul:linear_out_proj:L12",
+            "matmul:ffn_down:L12",
+            "matmul:linear_z_proj:L13",
+            "matmul:linear_out_proj:L13",
+            "matmul:ffn_down:L13",
+            "matmul:linear_z_proj:L14",
+            "matmul:linear_out_proj:L14",
+            "matmul:ffn_down:L14",
+            "matmul:q_gate_proj:L15",
+            "matmul:o_proj:L15",
+            "matmul:ffn_down:L15",
+            "matmul:linear_z_proj:L16",
+            "matmul:linear_out_proj:L16",
+            "matmul:ffn_down:L16",
+            "matmul:linear_z_proj:L17",
+            "matmul:linear_out_proj:L17",
+            "matmul:ffn_down:L17",
+            "matmul:linear_z_proj:L18",
+            "matmul:linear_out_proj:L18",
+            "matmul:ffn_down:L18",
+            "matmul:q_gate_proj:L19",
+            "matmul:o_proj:L19",
+            "matmul:ffn_down:L19",
+            "matmul:linear_z_proj:L20",
+            "matmul:linear_out_proj:L20",
+            "matmul:ffn_down:L20",
+            "matmul:linear_z_proj:L21",
+            "matmul:linear_out_proj:L21",
+            "matmul:ffn_down:L21",
+            "matmul:linear_z_proj:L22",
+            "matmul:linear_out_proj:L22",
+            "matmul:ffn_down:L22",
+            "matmul:q_gate_proj:L23",
+            "matmul:o_proj:L23",
+            "matmul:ffn_down:L23"
+          ],
+          "count": 72,
+          "durationMs": 80.06783199999997
+        },
+        {
+          "phase": "prefill",
+          "pipeline": {
+            "operation": "matmul",
+            "variant": "f16w_f32a",
+            "shaderFile": "matmul_f16w_f32a.wgsl",
+            "shaderHash": "sha256:78b78ec9a73766b5cfa71505f845a2cd3dac2468f8b92e5624e0c67201198888",
+            "entryPoint": "main",
+            "constants": {},
+            "registryIdentity": "sha256:8160f81cf3f9463041793ead5bd3ec6e915185df3d8abf6aef04fa2190322e0c"
+          },
+          "pipelineLabel": "matmul_f16w_f32a_pipeline",
+          "workgroups": [
+            1,
+            1,
+            1
+          ],
+          "operationLabels": [
+            "matmul:linear_a_proj:L0",
+            "matmul:linear_b_proj:L0",
+            "matmul:linear_a_proj:L1",
+            "matmul:linear_b_proj:L1",
+            "matmul:linear_a_proj:L2",
+            "matmul:linear_b_proj:L2",
+            "matmul:linear_a_proj:L4",
+            "matmul:linear_b_proj:L4",
+            "matmul:linear_a_proj:L5",
+            "matmul:linear_b_proj:L5",
+            "matmul:linear_a_proj:L6",
+            "matmul:linear_b_proj:L6",
+            "matmul:linear_a_proj:L8",
+            "matmul:linear_b_proj:L8",
+            "matmul:linear_a_proj:L9",
+            "matmul:linear_b_proj:L9",
+            "matmul:linear_a_proj:L10",
+            "matmul:linear_b_proj:L10",
+            "matmul:linear_a_proj:L12",
+            "matmul:linear_b_proj:L12",
+            "matmul:linear_a_proj:L13",
+            "matmul:linear_b_proj:L13",
+            "matmul:linear_a_proj:L14",
+            "matmul:linear_b_proj:L14",
+            "matmul:linear_a_proj:L16",
+            "matmul:linear_b_proj:L16",
+            "matmul:linear_a_proj:L17",
+            "matmul:linear_b_proj:L17",
+            "matmul:linear_a_proj:L18",
+            "matmul:linear_b_proj:L18",
+            "matmul:linear_a_proj:L20",
+            "matmul:linear_b_proj:L20",
+            "matmul:linear_a_proj:L21",
+            "matmul:linear_b_proj:L21",
+            "matmul:linear_a_proj:L22",
+            "matmul:linear_b_proj:L22"
+          ],
+          "count": 36,
+          "durationMs": 13.210632
+        },
+        {
+          "phase": "prefill",
+          "pipeline": {
+            "operation": "matmul",
+            "variant": "q4_fused_widetile_direct",
+            "shaderFile": "fused_matmul_q4_widetile_direct.wgsl",
+            "shaderHash": "sha256:1e824cae88609f95199b790d00a0a5ac64b5a5479d56ef6ba992695296304a25",
+            "entryPoint": "main",
+            "constants": {
+              "TILE_M": 4,
+              "TILE_N": 256
+            },
+            "registryIdentity": "sha256:8160f81cf3f9463041793ead5bd3ec6e915185df3d8abf6aef04fa2190322e0c"
+          },
+          "pipelineLabel": "matmul_q4_fused_widetile_direct_pipeline_TILE_M=4|TILE_N=256",
+          "workgroups": [
+            12,
+            2,
+            1
+          ],
+          "operationLabels": [
+            "matmul:qkv_proj:L3",
+            "matmul:qkv_proj:L7",
+            "matmul:qkv_proj:L11",
+            "matmul:qkv_proj:L15",
+            "matmul:qkv_proj:L19",
+            "matmul:qkv_proj:L23"
+          ],
+          "count": 6,
+          "durationMs": 12.523767
+        },
+        {
+          "phase": "prefill",
+          "pipeline": null,
+          "pipelineLabel": "linear_attention_recurrent_pipeline_f32",
+          "workgroups": [
+            16,
+            1,
+            1
+          ],
+          "operationLabels": [
+            "linear_attention_recurrent"
+          ],
+          "count": 18,
+          "durationMs": 11.020038000000001
+        },
+        {
+          "phase": "prefill",
+          "pipeline": {
+            "operation": "attention",
+            "variant": "prefill_head256_f16kv",
+            "shaderFile": "attention_head256_f16kv.wgsl",
+            "shaderHash": "sha256:2f06e4d568f9c9f523a1b6e7bdebb8d02125f657865414b116be74d2ded9ba7d",
+            "entryPoint": "main",
+            "constants": {},
+            "registryIdentity": "sha256:8160f81cf3f9463041793ead5bd3ec6e915185df3d8abf6aef04fa2190322e0c"
+          },
+          "pipelineLabel": "attention_prefill_head256_f16kv_pipeline",
+          "workgroups": [
+            8,
+            1,
+            1
+          ],
+          "operationLabels": [
+            "attention"
+          ],
+          "count": 6,
+          "durationMs": 7.601384
+        },
+        {
+          "phase": "prefill",
+          "pipeline": null,
+          "pipelineLabel": "linear_attention_conv_pipeline_f32",
+          "workgroups": [
+            24,
+            1,
+            1
+          ],
+          "operationLabels": [
+            "linear_attention_conv"
+          ],
+          "count": 18,
+          "durationMs": 0.7310700000000001
+        },
+        {
+          "phase": "prefill",
+          "pipeline": {
+            "operation": "rmsnorm",
+            "variant": "default",
+            "shaderFile": "rmsnorm.wgsl",
+            "shaderHash": "sha256:a1986477198de29aa97205475bdc5bf3c79039917dd26ba16c9d9e6e687e0f4f",
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "WEIGHT_IS_F16": 1,
+              "PRE_RESIDUAL": 1,
+              "OUTPUT_PRENORM": 1
+            },
+            "registryIdentity": "sha256:8160f81cf3f9463041793ead5bd3ec6e915185df3d8abf6aef04fa2190322e0c"
+          },
+          "pipelineLabel": "rmsnorm_default_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+          "workgroups": [
+            5,
+            1,
+            1
+          ],
+          "operationLabels": [
+            "rmsnorm:post_attn_norm"
+          ],
+          "count": 24,
+          "durationMs": 0.6529440000000001
+        }
+      ]
+    },
+    "decode": {
+      "computePasses": 6293,
+      "measuredPasses": 4096,
+      "unmeasuredPasses": 2197,
+      "measuredPassesWithUnknownShader": 364,
+      "measuredMs": 807.4761530000003,
+      "dominant": [
+        {
+          "phase": "decode",
+          "pipeline": {
+            "operation": "fused_ffn",
+            "variant": "q4k_metal_simd16",
+            "shaderFile": "fused_ffn_q4k_metal_simd16.wgsl",
+            "shaderHash": "sha256:127e1ff0ad2f275c68699455150bf9d58cf3b2b9422008f84edeb1b98d55b387",
+            "entryPoint": "main",
+            "constants": {
+              "WORKGROUP_SIZE": 256,
+              "COLS_PER_WG": 16,
+              "THREADS_PER_COL": 16,
+              "USE_FULL_BLOCK_FAST_PATH": 1
+            },
+            "registryIdentity": "sha256:8160f81cf3f9463041793ead5bd3ec6e915185df3d8abf6aef04fa2190322e0c"
+          },
+          "pipelineLabel": "fused_ffn_q4k_metal_simd16_pipeline_COLS_PER_WG=16|THREADS_PER_COL=16|USE_FULL_BLOCK_FAST_PATH=1|WORKGROUP_SIZE=256",
+          "workgroups": [
+            384,
+            1,
+            1
+          ],
+          "operationLabels": [
+            "fused_ffn"
+          ],
+          "count": 484,
+          "durationMs": 242.31948800000004
+        },
+        {
+          "phase": "decode",
+          "pipeline": {
+            "operation": "matmul",
+            "variant": "q4_fused_metal_simd16",
+            "shaderFile": "fused_matmul_q4_metal_simd16.wgsl",
+            "shaderHash": "sha256:f9e51e19712254526dd2ae94b9ccfc0937d9e05e828cba34dddf34e9c2c04c43",
+            "entryPoint": "main",
+            "constants": {
+              "WORKGROUP_SIZE": 256,
+              "COLS_PER_WG": 16,
+              "THREADS_PER_COL_GEMV": 16,
+              "USE_FULL_BLOCK_FAST_PATH": 1
+            },
+            "registryIdentity": "sha256:8160f81cf3f9463041793ead5bd3ec6e915185df3d8abf6aef04fa2190322e0c"
+          },
+          "pipelineLabel": "matmul_q4_fused_metal_simd16_pipeline_COLS_PER_WG=16|THREADS_PER_COL_GEMV=16|USE_FULL_BLOCK_FAST_PATH=1|WORKGROUP_SIZE=256",
+          "workgroups": [
+            128,
+            1,
+            1
+          ],
+          "operationLabels": [
+            "matmul:linear_out_proj:L0",
+            "matmul:ffn_down:L0",
+            "matmul:linear_out_proj:L1",
+            "matmul:ffn_down:L1",
+            "matmul:linear_out_proj:L2",
+            "matmul:ffn_down:L2",
+            "matmul:q_gate_proj:L3",
+            "matmul:o_proj:L3",
+            "matmul:ffn_down:L3",
+            "matmul:linear_out_proj:L4",
+            "matmul:ffn_down:L4",
+            "matmul:linear_out_proj:L5",
+            "matmul:ffn_down:L5",
+            "matmul:linear_out_proj:L6",
+            "matmul:ffn_down:L6",
+            "matmul:q_gate_proj:L7",
+            "matmul:o_proj:L7",
+            "matmul:ffn_down:L7",
+            "matmul:linear_out_proj:L8",
+            "matmul:ffn_down:L8",
+            "matmul:linear_out_proj:L9",
+            "matmul:ffn_down:L9",
+            "matmul:linear_out_proj:L10",
+            "matmul:ffn_down:L10",
+            "matmul:q_gate_proj:L11",
+            "matmul:o_proj:L11",
+            "matmul:ffn_down:L11",
+            "matmul:linear_out_proj:L12",
+            "matmul:ffn_down:L12",
+            "matmul:linear_out_proj:L13",
+            "matmul:ffn_down:L13",
+            "matmul:linear_out_proj:L14",
+            "matmul:ffn_down:L14",
+            "matmul:q_gate_proj:L15",
+            "matmul:o_proj:L15",
+            "matmul:ffn_down:L15",
+            "matmul:linear_out_proj:L16",
+            "matmul:ffn_down:L16",
+            "matmul:linear_out_proj:L17",
+            "matmul:ffn_down:L17",
+            "matmul:linear_out_proj:L18",
+            "matmul:ffn_down:L18",
+            "matmul:q_gate_proj:L19",
+            "matmul:o_proj:L19",
+            "matmul:ffn_down:L19",
+            "matmul:linear_out_proj:L20",
+            "matmul:ffn_down:L20",
+            "matmul:linear_out_proj:L21",
+            "matmul:ffn_down:L21",
+            "matmul:linear_out_proj:L22",
+            "matmul:ffn_down:L22",
+            "matmul:q_gate_proj:L23",
+            "matmul:o_proj:L23",
+            "matmul:ffn_down:L23"
+          ],
+          "count": 1088,
+          "durationMs": 188.9266619999999
+        },
+        {
+          "phase": "decode",
+          "pipeline": {
+            "operation": "lm_head_argmax",
+            "variant": "phase1_q4k_f32a",
+            "shaderFile": "lm_head_argmax_q4k.wgsl",
+            "shaderHash": "sha256:c03288d7f793e2a68322396037eaa9908359003e88b2da90725ae0e517f3076d",
+            "entryPoint": "phase1",
+            "constants": {
+              "WORKGROUP_SIZE": 256,
+              "COLS_PER_WG": 128,
+              "THREADS_PER_COL": 2,
+              "USE_FULL_BLOCK_FAST_PATH": 1
+            },
+            "registryIdentity": "sha256:8160f81cf3f9463041793ead5bd3ec6e915185df3d8abf6aef04fa2190322e0c"
+          },
+          "pipelineLabel": "lm_head_argmax_phase1_q4k_f32a_pipeline_COLS_PER_WG=128|THREADS_PER_COL=2|USE_FULL_BLOCK_FAST_PATH=1|WORKGROUP_SIZE=256",
+          "workgroups": [
+            1940,
+            1,
+            1
+          ],
+          "operationLabels": [
+            "lm_head_argmax_q4k_phase1"
+          ],
+          "count": 20,
+          "durationMs": 162.11919299999997
+        },
+        {
+          "phase": "decode",
+          "pipeline": {
+            "operation": "matmul",
+            "variant": "q4_fused_metal_simd16",
+            "shaderFile": "fused_matmul_q4_metal_simd16.wgsl",
+            "shaderHash": "sha256:f9e51e19712254526dd2ae94b9ccfc0937d9e05e828cba34dddf34e9c2c04c43",
+            "entryPoint": "main",
+            "constants": {
+              "WORKGROUP_SIZE": 256,
+              "COLS_PER_WG": 16,
+              "THREADS_PER_COL_GEMV": 16,
+              "USE_FULL_BLOCK_FAST_PATH": 1
+            },
+            "registryIdentity": "sha256:8160f81cf3f9463041793ead5bd3ec6e915185df3d8abf6aef04fa2190322e0c"
+          },
+          "pipelineLabel": "matmul_q4_fused_metal_simd16_pipeline_COLS_PER_WG=16|THREADS_PER_COL_GEMV=16|USE_FULL_BLOCK_FAST_PATH=1|WORKGROUP_SIZE=256",
+          "workgroups": [
+            512,
+            1,
+            1
+          ],
+          "operationLabels": [
+            "matmul:linear_qkvz_proj:L0",
+            "matmul:linear_qkvz_proj:L1",
+            "matmul:linear_qkvz_proj:L2",
+            "matmul:linear_qkvz_proj:L4",
+            "matmul:linear_qkvz_proj:L5",
+            "matmul:linear_qkvz_proj:L6",
+            "matmul:linear_qkvz_proj:L8",
+            "matmul:linear_qkvz_proj:L9",
+            "matmul:linear_qkvz_proj:L10",
+            "matmul:linear_qkvz_proj:L12",
+            "matmul:linear_qkvz_proj:L13",
+            "matmul:linear_qkvz_proj:L14",
+            "matmul:linear_qkvz_proj:L16",
+            "matmul:linear_qkvz_proj:L17",
+            "matmul:linear_qkvz_proj:L18",
+            "matmul:linear_qkvz_proj:L20",
+            "matmul:linear_qkvz_proj:L21",
+            "matmul:linear_qkvz_proj:L22"
+          ],
+          "count": 364,
+          "durationMs": 128.31461000000002
+        },
+        {
+          "phase": "decode",
+          "pipeline": null,
+          "pipelineLabel": "linear_attention_fused_decode_pipeline_f32",
+          "workgroups": [
+            16,
+            1,
+            1
+          ],
+          "operationLabels": [
+            "linear_attention_fused_decode_core"
+          ],
+          "count": 364,
+          "durationMs": 43.449043999999965
+        },
+        {
+          "phase": "decode",
+          "pipeline": {
+            "operation": "matmul",
+            "variant": "q4_fused_metal_simd16",
+            "shaderFile": "fused_matmul_q4_metal_simd16.wgsl",
+            "shaderHash": "sha256:f9e51e19712254526dd2ae94b9ccfc0937d9e05e828cba34dddf34e9c2c04c43",
+            "entryPoint": "main",
+            "constants": {
+              "WORKGROUP_SIZE": 256,
+              "COLS_PER_WG": 16,
+              "THREADS_PER_COL_GEMV": 16,
+              "USE_FULL_BLOCK_FAST_PATH": 1
+            },
+            "registryIdentity": "sha256:8160f81cf3f9463041793ead5bd3ec6e915185df3d8abf6aef04fa2190322e0c"
+          },
+          "pipelineLabel": "matmul_q4_fused_metal_simd16_pipeline_COLS_PER_WG=16|THREADS_PER_COL_GEMV=16|USE_FULL_BLOCK_FAST_PATH=1|WORKGROUP_SIZE=256",
+          "workgroups": [
+            192,
+            1,
+            1
+          ],
+          "operationLabels": [
+            "matmul:qkv_proj:L3",
+            "matmul:qkv_proj:L7",
+            "matmul:qkv_proj:L11",
+            "matmul:qkv_proj:L15",
+            "matmul:qkv_proj:L19",
+            "matmul:qkv_proj:L23"
+          ],
+          "count": 120,
+          "durationMs": 16.635244
+        },
+        {
+          "phase": "decode",
+          "pipeline": {
+            "operation": "matmul",
+            "variant": "gemv_subgroup",
+            "shaderFile": "matmul_gemv_subgroup.wgsl",
+            "shaderHash": "sha256:04db4c712bc4f88ccd07588d68f852acd65f7db705c3b1f4217bf67eff8082ed",
+            "entryPoint": "main",
+            "constants": {},
+            "registryIdentity": "sha256:8160f81cf3f9463041793ead5bd3ec6e915185df3d8abf6aef04fa2190322e0c"
+          },
+          "pipelineLabel": "matmul_gemv_subgroup_pipeline",
+          "workgroups": [
+            8,
+            1,
+            1
+          ],
+          "operationLabels": [
+            "matmul:linear_ab_proj:L0",
+            "matmul:linear_ab_proj:L1",
+            "matmul:linear_ab_proj:L2",
+            "matmul:linear_ab_proj:L4",
+            "matmul:linear_ab_proj:L5",
+            "matmul:linear_ab_proj:L6",
+            "matmul:linear_ab_proj:L8",
+            "matmul:linear_ab_proj:L9",
+            "matmul:linear_ab_proj:L10",
+            "matmul:linear_ab_proj:L12",
+            "matmul:linear_ab_proj:L13",
+            "matmul:linear_ab_proj:L14",
+            "matmul:linear_ab_proj:L16",
+            "matmul:linear_ab_proj:L17",
+            "matmul:linear_ab_proj:L18",
+            "matmul:linear_ab_proj:L20",
+            "matmul:linear_ab_proj:L21",
+            "matmul:linear_ab_proj:L22"
+          ],
+          "count": 364,
+          "durationMs": 7.688390000000005
+        },
+        {
+          "phase": "decode",
+          "pipeline": {
+            "operation": "rmsnorm",
+            "variant": "default",
+            "shaderFile": "rmsnorm.wgsl",
+            "shaderHash": "sha256:a1986477198de29aa97205475bdc5bf3c79039917dd26ba16c9d9e6e687e0f4f",
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "WEIGHT_IS_F16": 1,
+              "PRE_RESIDUAL": 1,
+              "OUTPUT_PRENORM": 1
+            },
+            "registryIdentity": "sha256:8160f81cf3f9463041793ead5bd3ec6e915185df3d8abf6aef04fa2190322e0c"
+          },
+          "pipelineLabel": "rmsnorm_default_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+          "workgroups": [
+            1,
+            1,
+            1
+          ],
+          "operationLabels": [
+            "rmsnorm:post_attn_norm"
+          ],
+          "count": 484,
+          "durationMs": 6.282144000000004
+        }
+      ]
+    }
+  },
+  "candidate": null,
+  "disposition": "No optimization selected: incomplete decode coverage and instrumentation-distorted execution do not establish avoidable cost."
+}

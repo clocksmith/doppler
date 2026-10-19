@@ -16,6 +16,13 @@ import { trace } from '../../debug/index.js';
 let deviceCaches = new WeakMap();
 
 let pipelineBindGroupLayoutCache = new WeakMap();
+const pipelineProvenance = new WeakMap();
+
+// Observation only. Pipelines created outside this owner have unknown provenance.
+export function getPipelineProvenance(pipeline) {
+  const identity = pipelineProvenance.get(pipeline);
+  return identity ? structuredClone(identity) : null;
+}
 
 let cacheGeneration = 0;
 const deviceIds = new WeakMap();
@@ -347,10 +354,16 @@ export async function createPipeline(
     },
   };
 
+  const provenance = {
+    operation, variant, shaderFile: config.shaderFile,
+    shaderHash: getShaderModuleIdentity(shaderModule), entryPoint: config.entryPoint,
+    constants: structuredClone(resolvedConstants ?? {}), registryIdentity: getKernelRegistry().identity,
+  };
   const task = Promise.resolve().then(async () => {
     assertDeviceValid(device, epoch, requireCurrentDevice);
     const pipeline = await device.createComputePipelineAsync(pipelineDescriptor);
     assertDeviceValid(device, epoch, requireCurrentDevice);
+    pipelineProvenance.set(pipeline, provenance);
     if (generation === cacheGeneration && pipelineTasks.get(cacheKey) === task) pipelineCache.set(cacheKey, pipeline);
     return pipeline;
   });

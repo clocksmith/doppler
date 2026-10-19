@@ -968,6 +968,7 @@
         "tools/lib/node-test-suites.js",
         "tools/lib/policy-base.js",
         "tools/lib/product-integration-evidence.js",
+        "tools/lib/profile-comparison.js",
         "tools/lib/provider-conformance-evidence.js",
         "tools/lib/q4k-projection-reference.js",
         "tools/lib/run-browser-oracle.js",
@@ -5184,6 +5185,7 @@
         "tests/tooling/product-integration-evidence.test.js",
         "tests/tooling/product-readiness-report.test.js",
         "tests/tooling/production-release.test.js",
+        "tests/tooling/profile-comparison.test.js",
         "tests/tooling/program-bundle-exporter.test.js",
         "tests/tooling/program-bundle-paired-closure.test.js",
         "tests/tooling/program-bundle-parity.test.js",
@@ -7293,7 +7295,7 @@
     {
       "file": "tools/profile-installed-capsule.js",
       "kind": "dynamic",
-      "line": 62,
+      "line": 65,
       "expression": "import(hostUrl)"
     },
     {

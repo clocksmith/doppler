@@ -116,3 +116,14 @@ export declare function getPipelineCacheStats(device?: GPUDevice | null): {
   bindGroupLayouts: number;
   pipelineLayouts: number;
 };
+/** Identity observed at compilation, never inferred from a pipeline label. */
+export interface PipelineProvenance {
+  operation: string;
+  variant: string;
+  shaderFile: string;
+  shaderHash: string;
+  entryPoint: string;
+  constants: Record<string, number>;
+  registryIdentity: string;
+}
+export function getPipelineProvenance(pipeline: GPUComputePipeline): PipelineProvenance | null;
