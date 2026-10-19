@@ -327,7 +327,7 @@ export function createDecodeRecorder(state, opts) {
       aggregateDispatches: opts.executionObserver === true,
     };
     recorder = opts.profile
-      ? createProfilingRecorder('decode', device, recorderOptions)
+      ? createProfilingRecorder('decode', device, { ...recorderOptions, profilePhase: 'decode' })
       : createCommandRecorder('decode', recorderOptions, device);
   }
   if (state.decodeStepCount === 1) {

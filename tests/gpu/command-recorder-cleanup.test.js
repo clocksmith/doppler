@@ -662,3 +662,60 @@ destroyBufferPool();
 resetRuntimeConfig();
 setDevice(null);
 console.log('command-recorder-cleanup.test: ok');
+
+// Phase attribution uses explicit recorder scopes, even when labels overlap.
+for (const groupByPhase of [true, false]) {
+  setRuntimeConfig({ shared: { debug: { profiler: { maxQueries: 8, defaultQueryLimit: 8 } } } });
+  const device = createFakeDevice({ features: [FEATURES.TIMESTAMP_QUERY] });
+  setDevice(device, { platformConfig: null });
+  const recorder = new CommandRecorder(device, 'phase_profile', { profile: true, profilePhase: 'prefill' });
+  recorder.recordDispatch({}, {}, [1, 1, 1], 'projection');
+  recorder.setProfilePhase('decode');
+  recorder.recordDispatchIndirect({}, {}, {}, 0, 'projection');
+  recorder.setProfilePhase(null);
+  recorder.beginComputePass('sampling').end();
+  device.createdBuffers[1].getMappedRange = () => BigUint64Array.from([
+    0n, 2_000_000n, 3_000_000n, 8_000_000n, 9_000_000n, 10_000_000n,
+  ]).buffer;
+  recorder.submit();
+  assert.throws(() => recorder.setProfilePhase('decode'), /after submit/);
+  assert.deepEqual(await recorder.resolveProfileTimings({ requireComplete: true, groupByPhase }),
+    groupByPhase ? { prefill: { projection: 2 }, decode: { projection: 5 }, unattributed: { sampling: 1 } }
+      : { projection: 7, sampling: 1 });
+  assert.equal(recorder.getStats().profiling.timestampedPassCount, 3, 'coverage survives timestamp cleanup');
+  assert.equal(recorder.getStats().profiling.timingClass, 'instrumented-diagnostic');
+  setDevice(null); resetRuntimeConfig();
+}
+{
+  const device = createFakeDevice();
+  const recorder = new CommandRecorder(device, 'ordinary');
+  recorder.recordDispatch({}, {}, [1, 1, 1]);
+  recorder.setProfilePhase('decode');
+  recorder.recordDispatch({}, {}, [1, 1, 1]);
+  assert.equal(device.computePasses.length, 1, 'observation phase cannot split ordinary coalesced passes');
+  assert.equal(recorder.getStats().profiling.timingClass, 'ordinary-request');
+  assert.throws(() => recorder.setProfilePhase('guessed'), /profilePhase/);
+  recorder.abort();
+}
+
+{
+  setRuntimeConfig({ shared: { debug: { profiler: { maxQueries: 1, defaultQueryLimit: 8 } } } });
+  const device = createFakeDevice({ features: [FEATURES.TIMESTAMP_QUERY] });
+  setDevice(device, { platformConfig: null });
+  const recorder = new CommandRecorder(device, 'no_complete_pair', { profile: true, profilePhase: 'decode' });
+  recorder.recordDispatch({}, {}, [1, 1, 1]);
+  recorder.submit();
+  await assert.rejects(recorder.resolveProfileTimings({ groupByPhase: true, requireComplete: true }), /capacity/);
+  assert.equal(recorder.getStats().profiling.untimestampedPassCount, 1);
+  assert(device.createdBuffers.every(buffer => buffer.destroyed));
+  setDevice(null); resetRuntimeConfig();
+}
+{
+  const device = createFakeDevice();
+  setDevice(device, { platformConfig: null });
+  const recorder = new CommandRecorder(device, 'unsupported_timestamp', { profile: true });
+  assert.equal(recorder.getStats().profiling.enabled, false);
+  assert.equal(recorder.getStats().profiling.timingClass, 'instrumented-diagnostic',
+    'a requested diagnostic without timestamps must never become ordinary timing evidence');
+  recorder.abort(); setDevice(null);
+}

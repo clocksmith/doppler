@@ -390,7 +390,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     aggregateDispatches: opts.executionObserver === true,
   };
   const recorder = opts.profile
-    ? createProfilingRecorder('batch_decode', device, recorderOptions)
+    ? createProfilingRecorder('batch_decode', device, { ...recorderOptions, profilePhase: 'decode' })
     : createCommandRecorder('batch_decode', recorderOptions, device);
   const lmHead = state.weights.get('lm_head');
   if (lmHead && isCpuWeightBuffer(lmHead)) {

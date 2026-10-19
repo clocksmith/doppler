@@ -36,6 +36,8 @@ export class CommandRecorder {
   #activeComputePass = null;
   // Profiling state
   #profilingEnabled;
+  #profilingRequested;
+  #profilePhase;
   #querySet = null;
   #queryBuffer = null;
   #readbackBuffer = null;
@@ -51,6 +53,8 @@ export class CommandRecorder {
       throw new Error('[CommandRecorder] No GPU device available');
     }
 
+    this.#profilePhase = null;
+    this.setProfilePhase(options.profilePhase ?? null);
     this.label = label;
     this.#encoder = this.device.createCommandEncoder({ label });
 
@@ -77,7 +81,8 @@ export class CommandRecorder {
       : null;
     this.#computePassCount = 0;
     this.#activeComputePass = null;
-    this.#profilingEnabled = options.profile === true && hasFeature(FEATURES.TIMESTAMP_QUERY);
+    this.#profilingRequested = options.profile === true;
+    this.#profilingEnabled = this.#profilingRequested && hasFeature(FEATURES.TIMESTAMP_QUERY);
     if (this.#profilingEnabled) {
       this.#initProfiling();
     }
@@ -141,6 +146,15 @@ export class CommandRecorder {
       log.warn('CommandRecorder', `Failed to initialize profiling: ${e}`);
       this.#profilingEnabled = false;
     }
+  }
+
+  // Phase is caller-owned observation metadata, never inferred from a kernel label.
+  setProfilePhase(phase) {
+    if (phase !== null && phase !== 'prefill' && phase !== 'decode') {
+      throw new Error('[CommandRecorder] profilePhase must be prefill, decode, or null.');
+    }
+    if (this.#submitted) throw new Error('[CommandRecorder] Cannot change phase after submit');
+    this.#profilePhase = phase;
   }
 
   isProfilingEnabled() {
@@ -274,6 +288,7 @@ export class CommandRecorder {
 
       this.#profileEntries.push({
         label: opLabel,
+        phase: this.#profilePhase,
         startQueryIndex: startIndex,
         endQueryIndex: endIndex,
       });
@@ -583,6 +598,13 @@ export class CommandRecorder {
         workgroups: record.workgroups ? [...record.workgroups] : null,
       })),
       computePassCount: this.#computePassCount,
+      profiling: {
+        timingClass: this.#profilingRequested ? 'instrumented-diagnostic' : 'ordinary-request',
+        enabled: this.#profilingEnabled,
+        phase: this.#profilePhase,
+        timestampedPassCount: this.#nextQueryIndex / 2,
+        untimestampedPassCount: this.#computePassCount - this.#nextQueryIndex / 2,
+      },
       tempBufferCount: this.#tempBuffers.length,
       pooledBufferCount: this.#pooledBuffers.length,
       submitted: this.#submitted,
@@ -626,6 +648,9 @@ export class CommandRecorder {
     if (this.#profileEntries.length === 0) {
       try {
         await this.completeDeferredCleanup();
+        if (options.requireComplete && this.#computePassCount !== 0) {
+          throw new Error('[CommandRecorder] Timestamp query capacity did not cover every compute pass.');
+        }
       } finally {
         this.#destroyProfilingResources();
       }
@@ -669,11 +694,10 @@ export class CommandRecorder {
           continue;
         }
 
-        if (timings[entry.label] !== undefined) {
-          timings[entry.label] += durationMs;
-        } else {
-          timings[entry.label] = durationMs;
-        }
+        const group = options.groupByPhase === true
+          ? (timings[entry.phase ?? 'unattributed'] ??= {})
+          : timings;
+        group[entry.label] = (group[entry.label] ?? 0) + durationMs;
       }
 
       return timings;

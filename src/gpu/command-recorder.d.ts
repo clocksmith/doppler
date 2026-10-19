@@ -9,6 +9,8 @@
 export interface RecorderOptions {
   /** Enable GPU timestamp profiling (requires 'timestamp-query' feature) */
   profile?: boolean;
+  /** Explicit observation phase; null leaves timings unattributed. */
+  profilePhase?: 'prefill' | 'decode' | null;
   /** Collect per-label operation counts for diagnostics. Defaults to true. */
   recordLabels?: boolean;
   /** Collect per-dispatch geometry for evidence ledgers. Defaults to true. */
@@ -35,6 +37,9 @@ export declare class CommandRecorder {
    * Check if profiling is enabled and available.
    */
   isProfilingEnabled(): boolean;
+
+  /** Attribute subsequent timestamped passes without changing computation. */
+  setProfilePhase(phase: 'prefill' | 'decode' | null): void;
 
   /**
    * Create a temporary buffer that will be destroyed after submit.
@@ -163,6 +168,13 @@ export declare class CommandRecorder {
       count?: number;
     }>;
     computePassCount: number;
+    profiling: {
+      timingClass: 'instrumented-diagnostic' | 'ordinary-request';
+      enabled: boolean;
+      phase: 'prefill' | 'decode' | null;
+      timestampedPassCount: number;
+      untimestampedPassCount: number;
+    };
     tempBufferCount: number;
     pooledBufferCount: number;
     submitted: boolean;
@@ -187,7 +199,15 @@ export declare class CommandRecorder {
    * Labels with multiple invocations are aggregated (e.g., 'matmul' across all layers).
    *
    */
+  resolveProfileTimings(options: {
+    /** Group timings by explicit phase. Unscoped passes remain unattributed.
+     * Timestamps split compute passes and are diagnostic evidence, not ordinary request latency.
+     * Resolving consumes the timestamp resources; choose one aggregation per recorder. */
+    groupByPhase: true;
+    requireComplete?: boolean;
+  }): Promise<Partial<Record<'prefill' | 'decode' | 'unattributed', ProfileTimings>> | null>;
   resolveProfileTimings(options?: {
+    groupByPhase?: false;
     /** Reject absent, incomplete, invalid, or unavailable timestamp evidence.
      * Valid durations above 60 seconds remain observable in this mode. */
     requireComplete?: boolean;
