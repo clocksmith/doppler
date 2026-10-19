@@ -157,7 +157,37 @@ const fenceClassification = classifyTokenCostLedger(fenceDominated, {
   ],
 });
 assert.equal(fenceClassification.dominantWall, 'submit-readback-fence');
-assert.ok(fenceClassification.prescribedExperiments.includes('deepen-readback-ring'));
+assert.deepEqual(fenceClassification.prescribedExperiments, [
+  'attribute-gpu-operators-inside-fence',
+  'compare-profiled-and-unprofiled-requests',
+], 'a completion fence includes GPU computation, not just readback overhead');
+
+// A recorder can submit several command buffers; a profile step is not a submission.
+const partialTrace = buildTokenCostLedger({
+  metrics: {
+    decodeMs: 20,
+    decodeRecordOps: 10,
+    decodeProfileSteps: [{
+      timings: { projection: 4 },
+      recorderStats: {
+        submissionCount: 3,
+        dispatches: [{ label: 'projection', workgroups: [1, 1, 1], count: 2 }],
+      },
+    }, {
+      timings: { sampling: 1 },
+      recorderStats: {
+        submissionCount: 2,
+        dispatches: [{ label: 'sampling', workgroups: [1, 1, 1] }],
+      },
+    }],
+  },
+}).phases[1];
+assert.equal(partialTrace.dispatches, 10);
+assert.equal(partialTrace.unattributedDispatches, 7);
+assert.equal(partialTrace.dispatchGeometryCoverage, 0.3);
+assert.equal(partialTrace.commandBufferSubmissions, 5);
+assert.equal(ledger.phases[0].commandBufferSubmissions, null);
+assert.equal(lightweightEstimated.phases[1].commandBufferSubmissions, null);
 
 assert.equal(isExecutionObservationRequested({
   shared: { benchmark: { run: { executionObserver: { enabled: true } } } },

@@ -13,6 +13,7 @@
     "tools/run-wgsl-repair-experiment.js",
     "tools/vendor-bench.js",
     "tools/lib/evidence-io.js",
+    "tools/lib/profile-comparison.js",
     "tools/record-bun-product-qualification.js",
     "tools/record-runtime-ownership-evaluation.js",
     "tools/record-runtime-promotion-monitoring.js",
