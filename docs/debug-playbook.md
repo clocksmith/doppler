@@ -118,3 +118,20 @@ Avoid:
 - next binary split or fix
 
 Use [debug-investigation-template.md](debug-investigation-template.md) when the investigation spans multiple iterations or agents.
+
+## GPU phase timing diagnostics
+
+`CommandRecorder` accepts `profilePhase: 'prefill' | 'decode' | null` as explicit
+observation metadata. `setProfilePhase()` attributes subsequent passes; labels do
+not select phases. Generation recorders bind their phase at creation. Resolve once
+with `resolveProfileTimings({ groupByPhase: true, requireComplete: true })` for
+phase-to-kernel millisecond totals; unscoped passes are `unattributed`. Omitting
+`groupByPhase` preserves the existing per-kernel aggregate.
+
+Timestamp profiling splits compute passes and reads query buffers. Keep these
+instrumented diagnostics separate from ordinary complete-request latency and
+throughput samples. Recorder stats expose the requested timing class, timestamp
+availability and timestamped/untimestamped pass counts, including after cleanup.
+Strict resolution rejects unavailable timestamps or incomplete pass coverage;
+partial observations cannot establish a complete phase cost. Changing observation
+phase does not add passes, submits or waits to an ordinary recorder.

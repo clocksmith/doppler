@@ -209,7 +209,7 @@ export async function _prefill(inputIds, opts) {
         aggregateDispatches: opts.executionObserver === true,
       };
       return opts.profile
-        ? createProfilingRecorder(label, device, recorderOptions)
+        ? createProfilingRecorder(label, device, { ...recorderOptions, profilePhase: 'prefill' })
         : createCommandRecorder(label, recorderOptions, device);
     };
     const recorder = createRecorder('prefill');
