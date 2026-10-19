@@ -870,9 +870,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     state.batchingStats.resolvedBatchTokens = (state.batchingStats.resolvedBatchTokens ?? 0) + actualCount;
 
     if (opts.profile) {
-      const timings = recorder.isProfilingEnabled()
-        ? await recorder.resolveProfileTimings()
-        : null;
+      const timings = await recorder.resolveProfileTimings({ requireComplete: true });
       const total = sumProfileTimings(timings);
       if (total !== null) {
         state.stats.gpuTimeDecodeMs = (state.stats.gpuTimeDecodeMs ?? 0) + total;

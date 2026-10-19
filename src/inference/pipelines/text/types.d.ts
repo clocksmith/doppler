@@ -369,7 +369,7 @@ export interface GenerateOptions {
   /** Abort signal to cancel generation */
   signal?: AbortSignal;
 
-  /** Enable GPU timestamp profiling */
+  /** Instrumented diagnostic profiling; recorded segments require complete timestamp coverage. */
   profile?: boolean;
 
   /** Log benchmark stats */

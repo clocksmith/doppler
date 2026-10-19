@@ -135,3 +135,9 @@ availability and timestamped/untimestamped pass counts, including after cleanup.
 Strict resolution rejects unavailable timestamps or incomplete pass coverage;
 partial observations cannot establish a complete phase cost. Changing observation
 phase does not add passes, submits or waits to an ordinary recorder.
+
+Generation profiling resolves each recorded prefill/decode segment with complete
+coverage required. Unavailable timestamps or exhausted queries fail the diagnostic
+request before a partial sum can enter the phase GPU totals. This opt-in failure
+does not affect ordinary requests. GPU pass totals exclude host orchestration,
+copies and other work outside the recorder; they are not complete-request latency.

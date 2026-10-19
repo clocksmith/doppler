@@ -241,9 +241,7 @@ export async function _prefill(inputIds, opts) {
     let hasGpuTimePrefill = false;
     const recordProfile = async (rec) => {
       if (!opts.profile || !rec) return;
-      const timings = rec.isProfilingEnabled()
-        ? await rec.resolveProfileTimings()
-        : null;
+      const timings = await rec.resolveProfileTimings({ requireComplete: true });
       const total = sumProfileTimings(timings);
       if (total !== null) {
         gpuTimePrefillMs += total;
