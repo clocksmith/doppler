@@ -87,7 +87,9 @@ export async function computeHash(data, algorithm) {
   if (!algorithm) {
     throw new Error('computeHash requires an explicit hash algorithm.');
   }
-  return algorithm === 'sha256' ? computeSHA256(data) : computeBlake3(data);
+  if (algorithm === 'sha256') return computeSHA256(data);
+  if (algorithm === 'blake3') return computeBlake3(data);
+  throw new Error(`Unsupported hash algorithm: ${algorithm}. Expected sha256 or blake3.`);
 }
 
 export async function createStreamingHasher(algorithm) {
@@ -96,6 +98,9 @@ export async function createStreamingHasher(algorithm) {
   }
   if (algorithm === 'sha256') {
     return createSha256StreamingHasher();
+  }
+  if (algorithm !== 'blake3') {
+    throw new Error(`Unsupported hash algorithm: ${algorithm}. Expected sha256 or blake3.`);
   }
   await initBlake3('blake3');
   return blake3Module.createHasher();

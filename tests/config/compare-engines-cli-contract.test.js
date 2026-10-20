@@ -17,6 +17,7 @@ import {
   assertDopplerDecodeCadence,
   loadModelCatalogBundle,
   loadResolvedRuntimeProfileBundle,
+  loadCompareProfileRuntimeBundles,
   normalizeCompareLoadModeDefaults,
   parseArgs as parseCompareArgs,
   parseJsonBlock,
@@ -2636,3 +2637,12 @@ function assertCommandOutputMatches(result, pattern) {
 }
 
 console.log('compare-engines-cli-contract.test: ok');
+
+// A warm/cold lane must not load unrelated experimental profiles. Selected
+// profiles still fail if missing; no implicit runtime fallback is introduced.
+const selectedProfileFixture = { dopplerRuntimeProfileByDecodeProfile: {
+  parity: 'profiles/throughput', throughput: 'profiles/qualification-missing-profile',
+} };
+const selectedBundles = await loadCompareProfileRuntimeBundles(selectedProfileFixture, 'darwin', ['parity']);
+assert.deepEqual([...selectedBundles.keys()], ['parity']);
+await assert.rejects(loadCompareProfileRuntimeBundles(selectedProfileFixture, 'darwin', ['throughput']), /ENOENT/);

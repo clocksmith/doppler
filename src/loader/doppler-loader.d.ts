@@ -109,6 +109,8 @@ export declare class DopplerLoader {
   q4kFusedRoles: string[];
   /** Roles with only packed consumers across all selected phases and layers. */
   q4kPackedOnlyRoles: string[];
+  representationPaths: import('../config/schema/kernel-path.schema.js').KernelPathSchema[];
+  weightRepresentationPlan: import('./weight-representation-plan.js').WeightRepresentationPlan | null;
 
   constructor(loadingConfig?: LoadingConfigSchema);
 

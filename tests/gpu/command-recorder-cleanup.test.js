@@ -207,6 +207,35 @@ for (const failure of [null, 'queue', 'map', 'capacity']) {
 }
 resetRuntimeConfig();
 
+for (const queries of [2, 8]) {
+  setRuntimeConfig({ shared: { debug: { profiler: { maxQueries: queries, defaultQueryLimit: queries } } } });
+  const device = createFakeDevice({ features: [FEATURES.TIMESTAMP_QUERY] });
+  setDevice(device, { platformConfig: null });
+  const recorder = new CommandRecorder(device, 'decode_attribution', { profile: true });
+  recorder.recordDispatch({ label: 'test_pipeline' }, {}, [7, 2, 1], 'projection');
+  recorder.recordDispatchIndirect({ label: 'unknown_geometry' }, {}, {}, 0, 'indirect');
+  device.createdBuffers[1].getMappedRange = () => BigUint64Array.from([0n, 1_000_000n, 2_000_000n, 5_000_000n]).buffer;
+  await recorder.submitAndWait();
+  await recorder.resolveProfileTimings();
+  const report = recorder.getStats().profile;
+  assert.equal(report.status, queries === 2 ? 'incomplete' : 'complete');
+  assert.equal(report.computePasses, 2);
+  assert.equal(report.measuredPasses, queries === 2 ? 1 : 2);
+  assert.equal(report.unmeasuredPasses, queries === 2 ? 1 : 0);
+  assert.deepEqual(report.intervals[0], { label: 'projection', count: 1, durationMs: 1,
+    dispatch: { kind: 'direct', workgroups: [7, 2, 1], pipelineLabel: 'test_pipeline', pipeline: null } });
+  if (queries === 8) {
+    assert.equal(report.intervals[1].dispatch.workgroups, null, 'indirect dispatch geometry remains unknown');
+    assert.equal(report.intervals[1].durationMs, 3);
+  }
+  report.intervals[0].dispatch.workgroups[0] = 999;
+  assert.equal(recorder.getStats().profile.intervals[0].dispatch.workgroups[0], 7);
+  await recorder.resolveProfileTimings();
+  assert.equal(recorder.getStats().profile.measuredPasses, queries === 2 ? 1 : 2, 'repeated resolution retains observations');
+  assert(device.createdBuffers.every(buffer => buffer.destroyed));
+  setDevice(null); resetRuntimeConfig();
+}
+
 {
   setRuntimeConfig({ shared: { debug: { profiler: { maxQueries: 8, defaultQueryLimit: 8 } } } });
   const device = createFakeDevice({ features: [FEATURES.TIMESTAMP_QUERY] });

@@ -6,12 +6,26 @@ import {
 
 import {
   getMatmulBindingSizes,
+  getMatmulConfig,
   validateMatmulDimensions,
   requiresF32Input,
 } from '../../src/gpu/kernels/matmul-selection.js';
 
 import { TILE_SIZES } from '../../src/gpu/kernels/constants.js';
 import { KERNEL_CONFIGS } from '../../src/config/kernel-registry-contract.js';
+
+// A WideTile column specialization must change both the shader workgroup and
+// the dispatch grid, including partial tiles; otherwise output columns vanish.
+for (const variant of ['q4_fused_widetile', 'q4_fused_widetile_f16',
+  'q4_fused_widetile_f16a', 'q4_fused_widetile_residual', 'q4_fused_rmsnorm_widetile']) {
+  const original = getMatmulConfig(variant, null);
+  const specialized = getMatmulConfig(variant, { TILE_M: 8, TILE_N: 128 });
+  const dispatch = calculateMatmulDispatch(variant, true, false, false, 19, 517, specialized);
+  assert.deepEqual(specialized.workgroupSize, [128, 1, 1]);
+  assert.deepEqual(dispatch.workgroups, [5, 3, 1]);
+  assert.equal(getMatmulConfig(variant, null), original, 'specialization must preserve registry identity');
+  assert.equal(original.variantMetadata.colsPerWg, 256, 'specialization must not mutate the shared variant');
+}
 
 // Renaming a variant or changing legacy routing flags cannot change geometry.
 for (const [variant, config] of Object.entries(KERNEL_CONFIGS.matmul)) {
@@ -439,4 +453,17 @@ for (const variant of ['w8a8_portable', 'w8a8_packed']) {
     assert.deepEqual(calculateMatmulDispatch(variant, false, false, M, N, KERNEL_CONFIGS.matmul[variant]).workgroups,
       [Math.ceil(M * N / 64), 1, 1]);
   }
+}
+
+// Cooperative reduction assigns a complete independent row to each Y group.
+{
+  const variant = 'w8a8_packed_cooperative', config = KERNEL_CONFIGS.matmul[variant];
+  for (const [M, N] of [[3, 17], [1, 1024], [128, 640]]) {
+    const { workgroups } = calculateMatmulDispatch(variant, false, false, M, N, config);
+    const columns = config.workgroupSize[0] / config.wgslOverrides.LANES_PER_OUTPUT;
+    assert.equal(workgroups[1], M);
+    assert(workgroups[0] * columns >= N);
+    assert((workgroups[0] - 1) * columns < N);
+  }
+  assert.throws(() => calculateMatmulDispatch(variant, false, false, 65536, 1, config), /limits/);
 }

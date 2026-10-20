@@ -8,14 +8,14 @@ import { createUniformBufferWithView } from './uniform-utils.js';
 import { createBindGroupWithValidation } from './bind-group-validation.js';
 import { dispatchKernel } from './dispatch.js';
 import { trace } from '../../debug/index.js';
-import { getKernelThresholds } from '../../config/schema/index.js';
+import { getKernelThresholdSnapshot } from '../../config/schema/index.js';
 import { selectRuleValue } from './rule-registry.js';
 import { getDevice } from '../device.js';
 
 function selectSoftmaxVariant(innerSize) {
   const caps = getKernelCapabilities();
   const hasSubgroups = caps?.hasSubgroups ?? false;
-  const { smallThreshold } = getKernelThresholds().softmax;
+  const { smallThreshold } = getKernelThresholdSnapshot().softmax;
   const isSmall = innerSize <= smallThreshold;
   return selectRuleValue('softmax', 'variant', { hasSubgroups, isSmall });
 }

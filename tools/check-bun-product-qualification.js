@@ -5,8 +5,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-import { isPlainObject } from '../src/formats/plain-object.js';
-
+import { exactKeys } from './lib/evidence-fields.js';
 import { computeCanonicalJsonSha256 } from './lib/canonical-json.js';
 import {
   BUN_QUALIFICATION_EVIDENCE_CLASSES,
@@ -41,21 +40,6 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 function normalizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
-}
-
-function exactKeys(value, fields, label, errors) {
-  if (!isPlainObject(value)) {
-    errors.push(`${label} must be an object`);
-    return false;
-  }
-  const expected = new Set(fields);
-  for (const field of Object.keys(value)) {
-    if (!expected.has(field)) errors.push(`${label}.${field} is not supported`);
-  }
-  for (const field of fields) {
-    if (!Object.hasOwn(value, field)) errors.push(`${label}.${field} is required`);
-  }
-  return true;
 }
 
 function text(value, label, errors, nullable = false) {

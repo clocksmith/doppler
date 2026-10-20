@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import { setDevice } from '../../src/gpu/device.js';
 import { clearShaderCaches, registerShaderSources } from '../../src/gpu/kernels/shader-cache.js';
 import {
-  clearPipelineCaches, getCachedPipeline, getPipelineFast,
+  clearPipelineCaches, getCachedPipeline, getPipelineFast, getPipelineProvenance,
   getOrCreateBindGroupLayout, getOrCreatePipelineLayout,
 } from '../../src/gpu/kernels/pipeline-cache.js';
 
@@ -85,6 +85,14 @@ test('compute cache distinguishes actual layouts and shader bytes', async t => {
   const changed = await getPipelineFast('scale', 'default');
   assert.notEqual(changed, original);
   assert.equal(changed.compute.module.code, 'source B');
+  const identity = getPipelineProvenance(original);
+  assert.equal(identity.shaderFile, 'scale.wgsl');
+  assert.equal(identity.operation, 'scale');
+  assert.notEqual(identity.shaderHash, getPipelineProvenance(changed).shaderHash);
+  assert.match(identity.shaderHash, /^sha256:[a-f0-9]{64}$/);
+  identity.constants.changed = 5;
+  assert.equal(getPipelineProvenance(original).constants.changed, undefined);
+  assert.equal(getPipelineProvenance({ label: original.label }), null, 'labels cannot invent provenance');
 });
 
 test('concurrent compilation is shared, failures retry, and sync lookup never returns a promise', async t => {

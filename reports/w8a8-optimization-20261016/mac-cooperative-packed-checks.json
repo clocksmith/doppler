@@ -1,0 +1,2793 @@
+{
+  "scope": "Physical W8A8 operator and ownership checks against independent rational reference; not model qualification",
+  "files": {
+    "/tests/kernels/w8a8-physical.js": "5d6c879fe74d1a1752622c588bf3211a88c464d80580f360dc411761b2c92923",
+    "/tests/kernels/reference/w8a8.js": "e604d49a3dc69ab2b40169db211ee22cdf9a5c73e4ffb39adf6fe7ff1580212d",
+    "/src/gpu/device.js": "74545dc0914fba5ab5a87393c4dd460ba8c5c66f205538f176d7bd98a02646f3",
+    "/src/gpu/submit-tracker.js": "196e04ad8513e6a7c6eb2a09e48eb7176ca057d4a327e628435e12b8803146aa",
+    "/src/gpu/submit-probe.js": "c5e7571e12fe4047fa69041f6335790755b9065cfdc29ad3df210abeec4995e6",
+    "/src/debug/index.js": "d6bb999afcc25fc437bffbfac63bc5653692478b280b04d837e6bf114e181800",
+    "/src/errors/doppler-error.js": "b309b75f1563c1e141a97d7c6f0b963fbb606fb2db8a4384a45e57924806fe8d",
+    "/src/config/schema/index.js": "a4c4ade31884531d6e9d7062373104d8e807841150df136bd514fde2abf01485",
+    "/src/memory/device-budget.js": "90b51128e9e20d17e278a839b8df21dabfbed33cbe2686b8b18f5f2828e6b00a",
+    "/src/gpu/device-state.js": "17fca78e22cb9f85511ef565b8fbf6e5ddb84e298bbea1f49b45fc0e21918f94",
+    "/src/gpu/perf-guards.js": "d4e9cf344ec1c987b2c147e5989c7ca8d2ce2a0f685079ae02a73a137d03889d",
+    "/src/debug/signals.js": "961bd8fbf9649b9cf1d1abfd5ea42fa8de5fd846c6fd8a195f4f8caa4815243e",
+    "/src/debug/config.js": "a0a763a5ecd9c90d479650e9dd31cd80721d36fedb139c2c12659b519d811d58",
+    "/src/debug/log.js": "0e13a658a145f3dc178138c30860226ea270c91557c07b98f6709c3a116d809a",
+    "/src/debug/tensor.js": "3099bb41fb3a5df975ca298a6e84d88a0d0bd852d4687de21dbe58039c0c35d3",
+    "/src/debug/trace.js": "410f87a4d37892e28a7e153b072250dfd558c988bcc9a2226f183a1cf2b276ee",
+    "/src/debug/capture-policy.js": "eebe99b3bd281bd8b46d63f1ab952fc465a4225c4d9edb8d326ae849106b6025",
+    "/src/debug/history.js": "357c5ffab86bc997474845710379603008f64a025572bebbff5212d7aba7422c",
+    "/src/config/schema/manifest.schema.js": "e6dfa294c34cb5be0c47772e8d9c744f84161c218f4259a6ead4d937deb34e3a",
+    "/src/config/schema/kernel-path.schema.js": "3267b3198fd06ed25b60df19bbe815b63475d775120371703befdbe635be96e7",
+    "/src/config/schema/inference.schema.js": "3df7a3e2cb7296d7790f586b0b46579c47d7a686fe7aa974cef6548120fd13c8",
+    "/src/config/schema/execution-v1.schema.js": "4b7803755cf5f44b91bae20c6bf87a6d487f8b204ec6ebced829b66ee569c495",
+    "/src/config/schema/conversion.schema.js": "72837f68bece395ca01df9ae956d82e768a7f2d5c83256a2105a37ec0f8e41b9",
+    "/src/config/schema/program-bundle.schema.js": "af31f6dc850614b375dfcf7b394c2f3a3d693e9fb341058e0be9a356f7410edd",
+    "/src/config/schema/browser-suite-metrics.schema.js": "dab51946376a3b5a8b228080f4e37f90ec7fccffb07a7ae1d31e64d259ea6fe1",
+    "/src/config/schema/support-tiers.schema.js": "51d42fbf338a03a973fdad9a582ef1912a8f40d23672966042a007a417168905",
+    "/src/config/schema/conversion-report.schema.js": "829e67c59ac88d4002d6b1c0236114244c1c0555d303bde06cc258d6351abd2c",
+    "/src/config/schema/converter.schema.js": "ef923b5c102bc9f13ea7bbb6e0f77ca45089cefc9709371495694f2c7f2d7ff5",
+    "/src/config/schema/loading.schema.js": "9f324e70e702d5593b6f2b326c2b477b747ca424af62fd7373d25a1931fec089",
+    "/src/config/schema/storage.schema.js": "71fae3efc1e84fb6bedc7d003701481d636b4ab1bfd92a90efd08e8141262cab",
+    "/src/config/schema/kernel-registry.schema.js": "da2d1f7e8c884764b20194e2fdcd3dd4bd60d955b1343679fad1f792564a9bda",
+    "/src/config/schema/distribution.schema.js": "2826f4bd3a54cd648bf9456985a0ac1d42ba9d9b36c31121ae49c2912efb8cc4",
+    "/src/config/schema/diffusion.schema.js": "87cdf7bfbb988d3ef389dfc2ce29b0afb385bfb8f1c758dfff4c8617ecf9d2ab",
+    "/src/config/schema/moe.schema.js": "1a435478d792cab87700b881de9b4718c3ef0cbb528ad8ac9f4dc1ea4fcf1952",
+    "/src/config/schema/energy.schema.js": "f1a2ffe889d67b849bf31bb805d8679d63b87f2ce7fb84426167f664e5f033c0",
+    "/src/config/schema/kvcache.schema.js": "8f4fc7f9b53112d66041296e480a779ec382047c533c85ec8c9404c5acd034dd",
+    "/src/config/schema/debug.schema.js": "2e93df23cf8dbc54f3548cb38a5cba00bd1e96b3827de29ae409038f8992c59f",
+    "/src/config/schema/gpu-cache.schema.js": "4bcf9b0e7d888eaf3db76369fcad628d07b6996221c091be6a63cd55010965f3",
+    "/src/config/schema/benchmark.schema.js": "de1d2bcfc16ebd91cc2806ce502f6c64b37d08f5f2c2c8bef11df90d5bee9f53",
+    "/src/config/schema/tooling.schema.js": "e3a103cb851b86be3ae87319fddd634431af8ba845e2ac8838cd73a1e95c8187",
+    "/src/config/schema/runtime-profile.schema.js": "5aa668e23e677017816e6d7991e55844c2c8a3e0b5e11ae9de53741ae205434e",
+    "/src/config/schema/hotswap.schema.js": "2d1076a52fd46770a7039b96f63a9815e7a13ff7e2435af9c14c219630126e77",
+    "/src/config/schema/ecosystem.schema.js": "4c76d9258865fb6f78cb6cebaf025c681404a8254b89a97c0cd0e3ab6d1ea868",
+    "/src/config/schema/buffer-pool.schema.js": "cc0e809d95df3ff0528a0c166fbe0f41ad5c5d3917d5a5374b2a53371d7baebb",
+    "/src/config/schema/memory-limits.schema.js": "b264b693055d199d913f115d78a1d46d73c1f6c3609bc275e6ddb55d5c27fe8a",
+    "/src/config/schema/bridge.schema.js": "a8281b541070d0c679838e912c1fcae3c8b6b678888f487e071e51ca1cae92e7",
+    "/src/config/schema/adapter.schema.js": "edbec0a4cb410f7c564c80a73a0f4bb6c0bef8e5d2913f8a4975ac2b25a5b34e",
+    "/src/config/schema/lora.schema.js": "f9595412014d43660f7a7eb0f16798b8360a2f0c90c0b8e7dc2e3f9880daa402",
+    "/src/config/schema/training.schema.js": "5dab9141fcf812cfdce22845c241df5ab54b31e1a7146324261183e62ea78229",
+    "/src/config/schema/distill-training.schema.js": "33d34082a4c8565cc2d4a0c66d342938e6f01ec42614de8c7b1576ef850a3cca",
+    "/src/config/schema/ul-training.schema.js": "d72909a1638d959836abe893dfd82fc8c95ae7923fcf968336e259592b846c54",
+    "/src/config/schema/training-metrics.schema.js": "191603eadc76cffc995bde2b2b486b7704ac37f1fe52c84fa7070b7944d43df6",
+    "/src/config/schema/backward-registry.schema.js": "2e1ce767d58162a38b9a6a3719d8771cbcdc23ae2b8dc339802744690e3a0ea8",
+    "/src/config/schema/quantization-defaults.schema.js": "71984557038d593825a1feeaa7073bd17b0de6514aa39d9910ce54d039e4b77a",
+    "/src/config/schema/quantization.schema.js": "a98180248fb4dcd4586b6344a86a7cbfd32b83ae0a079fdd16784ae2450ca599",
+    "/src/config/schema/units.schema.js": "436ae15805b8fb513e20c7f24cc0212a6ee4a365905e3c19e7a90637f90efe31",
+    "/src/config/schema/shared-runtime.schema.js": "acfe3f963caf835f461bcbcfdc247fd75024e2f536cc7665c6be8f79beb8095f",
+    "/src/config/schema/kernel-thresholds.schema.js": "26c8bccd9448af53420c7cfe1909557a386afdd67dec825b319b65592d9c9a0c",
+    "/src/config/schema/emulation.schema.js": "b8fa5e5399ba19a47db28dc7d770a3f85c7738e3418686963db29cdce26945ac",
+    "/src/config/schema/kernel-warmup.schema.js": "579146336a8d3d84a4e463c45b057b85b2bfd894e5ef8eb3a0d137a821d67656",
+    "/src/config/schema/harness.schema.js": "0e3e7f10ef3b75bf83cbc3bedc0f9e73ea8c0587d18a69a05393dd4a0f320c66",
+    "/src/config/schema/speculative.schema.js": "98be0cc410bc69587679ecb8bb8a29a8522600c17344d5696292651091e6a9e3",
+    "/src/config/schema/speculation-self.schema.js": "4264687cdfd80fbf4168cb8873766a41b7e3a79594c23aa421ace4938c2454a0",
+    "/src/config/schema/doppler.schema.js": "18a788ec9b42439f79bc0abb7f5432de80dfec195ba1a32a4a8f989ac1131824",
+    "/src/debug/stats.js": "d41d4c21fe45c3425bb34f1509bbaab44097ddf4168277e4173c4e8ccaadf2d5",
+    "/src/formats/sha256.js": "5a8e1d52e1e7349cbb4f990d854a420c45a65c1eaf83f4e1921b369f4512868b",
+    "/src/config/manifest-inference-validation.js": "73accf9dd7799d0cef45ae83939eff60a6147cd41ea0203093a04896156c4d52",
+    "/src/config/execution-registry-contract.js": "16b1b678d197c0dcc33ece360f8a19834b5420b755cad7ae28da109168cfadd3",
+    "/src/formats/sorted-json.js": "33174ec71afabefd198adac030272fae7ee9ba18170364fc9004356fcf64e26b",
+    "/src/config/sequence-reference.js": "4183b0ca9e007dadecb2ba24dd05d59299b2dd1f6a2730790ca8467b2e36d2d3",
+    "/src/config/rerank-reference.js": "cd08c7677ba9c7c4c880a6c732e9919af9614d6cb740e2523397f274234b4a64",
+    "/src/config/embedding-reference.js": "4e83aaef87ea9357bbda68e921b579ecb8443f2dcf1fd75dad9fbf8a04e498f5",
+    "/src/config/schema/intent-bundle.schema.js": "d537b93ac42f7aeb2981fee421ae0670102b92175af24d6237e977f458947422",
+    "/src/config/choice-scoring-reference.js": "904007f625a674da2b5eb91f2336e75788d006d02d1b61dfbd4c660eb935a15e",
+    "/src/formats/clone-json.js": "c185ee208e39d52c8d123eaac4f2695cdf6e55fc4719d54359d0a16c22c0520c",
+    "/src/formats/load-json.js": "71761a83b6d7a0e89962592f6d3181f9524eb6784bafb1879dcd4316b936ed5f",
+    "/src/config/runtime-merge.js": "c874fdb59b8d0030f6449a394ba7b394fd043ee44f27375ac212f8da9db1b49b",
+    "/src/config/param-validator.js": "f512eb17886a79523bc55c95e68a53349af65833bef39333226f43339a05ae4a",
+    "/src/formats/plain-object.js": "2d966f313816b1dfed810fd83bdabf3b38360ead2e926763ceadb6c3df81caf8",
+    "/src/config/merge/value-selection.js": "11912af8839df7e26de1f8a04726277295ba226aa3f60b1a00378ad79606f19e",
+    "/src/config/merge/kernel-path-policy.js": "8dc20d3fc105ea17cd4ffb1d8ae1ba162c5f82ddbde645e7ac7aad82683885df",
+    "/src/config/merge/execution-patches.js": "2bf1cdb949a30eb89979d4dee7d6cd2deb00a4db44789828eab93614e9037ca9",
+    "/src/config/kernel-registry-contract.js": "eb93e3bcbe9e305b1b73f27e77d4ad432786027d93f7dbbacfbabf78d45c1a6b",
+    "/src/config/heterogeneous-attention-contract.js": "ec87da2df5790c1312beb5182171cc64a7c406a1a93f96537e012c9d0325dad5",
+    "/src/formats/canonical-hash.js": "0034c8318465e897c78d01f2a15025ce86464e05799d4b1162327618251a9fda",
+    "/src/formats/stable-sort-object.js": "2318fb1b8fd8930544459f330827ac71e14c06b14bc47c16dce7a7f9c14fd8d9",
+    "/src/config/param-categories.js": "fc9a70d93241ecf59ef90ea7eabf82dfa5d87bf303f02a81e6b5bc1399bba1d4",
+    "/src/config/choice-scoring.js": "fb3342e5a9aeb0c9faa29b93fdb70693fab56ea88077061b1fef203efab756f0",
+    "/src/config/choice-scoring.json": "ca0f7ac4360d47d4c27c331b604258d082c80ffa0467df2c6b6fdb99b4ff55e8",
+    "/src/config/capsule-v2.js": "fb7b7b4bb4f8764bacdcc5338ee6c931f4c39d0655009e9bc16b7c6c7cb4ad86",
+    "/src/formats/contract-validation.js": "43057cb85a7191cac16067c4a884114aa0ac001079b37161196f649e68669154",
+    "/src/config/capsule-token-selection.js": "a66302a574c4f9c8832c4db14b0417fbd5b9ee3a20a75261ffc47fa6880a4567",
+    "/src/config/model-ir.js": "558901ffc96bc380ff0f1dd6b88b2dd19c8e05ca396b0b8415dc400a81350d3d",
+    "/src/config/capsule-release-contract.js": "a9b12f5ce93d937ef683b28553250338b5197c4f2a8a995308b3f232d7dc8249",
+    "/src/config/target-plan.js": "d265b8e2d5c7c81a200f36d289fe084cbf4fafffba8cadf6467d844dc6ab035e",
+    "/src/config/capsule-token-selection.json": "2b5f496ee8768df816c0ca441ddc5ab9d501fddb91a8bd3616483033ff9c6746",
+    "/src/config/rope-frequencies.js": "35ce10b989052c732a0c7b9a94476c7e543599e39cc2bcf5a66c1778bfb585ad",
+    "/src/config/model-ir-v2.js": "80e5917a15d1bd8a725d98cb21c69c5f0504984cfb83f0dd68c93f101bf9831a",
+    "/src/config/ordered-resident-qualification.js": "480f142d51ab52e9cfea5f86f0bbcbc7baac4476cd69ad59ee741c9ea63168bf",
+    "/src/config/capsule-adapter-policy.js": "234d879e345dd0d5d238fccaa232f03dfa9bde504777f26e270c01c4632d7cdb",
+    "/src/config/initial-execution-identity.js": "a3725508febc6eea6e6d41166a2b74e42d6e4ae3c69e583e12acea84d82294e0",
+    "/src/config/layer-partition-plan.js": "19a4dba495920108d4a535f337368d39eb5a99ced50c84f4e09ee87f75a03e81",
+    "/src/config/capsule-adapters.json": "fdc319264ebd39573a354d63246bf2c5d1a1a7897be566b5a7fd853615dea621",
+    "/src/config/kernels/registry.json": "72d198e841ce784a78795b8eb6754cae06e0e62f8431d3085e2a6f50a418ac37",
+    "/src/config/platforms/nvidia-gh200.json": "328dfac7c24af3cb12f0fdf7a3fc425a2690051a4fa06a996a330f0ad818258d",
+    "/src/config/platforms/nvidia-gh200-nvl2.json": "3d2f9beabcda6e10e8c3db9b01aa7b58a5b143fbb81fe51f65e46e5b9c81c916",
+    "/src/config/platforms/nvidia-gb200-8gpu.json": "a896127e6577bb36859e37625a393bb86bee74701c424ed7941ee9099f94a180",
+    "/src/config/platforms/nvidia-gb200-nvl72.json": "e05bffb6ab634ef872f663cc21b8667c9d652e54d6434fb5caa7572401c95353",
+    "/src/memory/buffer-pool.js": "123087a2363cbbece266b714534642c12e9097715509dbb84a1a8e41622e6a83",
+    "/src/config/runtime.js": "34edef5761faf6b4cd5fb6c44d9ec4cd817b36ac2b9367fae422353397eb5038",
+    "/src/gpu/kernels/kernel-execution.js": "e6c33fa2d37195ddc61efb646cfde63ff93b1cd78b2e0f4922176c069f0e7e9e",
+    "/src/gpu/kernels/kernel-configs.js": "2b10fc9582156946d017f5b028d7a86d7c3da77b5d1ebe54443b2617453c4039",
+    "/src/gpu/kernels/pipeline-cache.js": "465947c20b43a5d63711f340a23f0c040e3aec8325a15e79677b23c7d92ef7dc",
+    "/src/gpu/kernels/dispatch.js": "54d566c6e0184b555756965a96b06121173e34cbf8f05dfd63e9258f4e6917b6",
+    "/src/gpu/kernels/uniform-utils.js": "ded8f67ff50cbb1298ffbab9deb91fe7bcd792285b7e67349dedc18700ed4847",
+    "/src/gpu/kernels/feature-check.js": "ce4ba97642f0e1c0b213145dfe22f5b9b531c72a3f7f0cf9be5065902a88ab9e",
+    "/src/gpu/kernels/shader-cache.js": "1fc90e90b9b28fd9effe0669e86eef200b3e15be8f93fa768f70340c80067145",
+    "/src/gpu/kernels/generated/uniform-writers.js": "2215dc98e781269bcb31eb56614d225dbcd2e0aa8d81ad122cb3ec70290c37c5",
+    "/src/gpu/uniform-cache.js": "a05e20d00b726506591af8af4a3b9defed790c9a6ad50ba305670162c0747957",
+    "/src/gpu/kernels/constants.js": "749760ad2fb7cd82279fd31452bf3cda10c44ed3700731ff634f408e5baaac71",
+    "/src/gpu/kernels/shader-source-scope.js": "683ba9c805a1b77936dc12b5beebd001a19001e2ab90c781373ed2c6241d28fb",
+    "/src/gpu/kernels/generated/uniform-writers-0.js": "abb85fa5b9e3b17a16e689fcbfe7a038a6af3591155b2ebd761bdbe578e886b3",
+    "/src/gpu/kernels/generated/uniform-writers-2.js": "ca402cd720e5362fec848d5b9fbf3701e7d5415a236fb14eb02efd5722f4f08d",
+    "/src/gpu/kernels/generated/uniform-writers-1.js": "90ad6208d5c664bd8a1166cdf2c75d3174085a5ab7712d94e888881ce8b2c3d6",
+    "/src/config/wgsl-language-contract.js": "3d0c959cfe7d934fcb48763eab16cfa072cd802e7ca935f5936c62f628fd4007",
+    "/src/gpu/kernels/uniform-encoding.js": "ad59e6b06afd3fd29fd0a4930f71856c80e7d3ad2c5e12b654ae7ee70831cd41",
+    "/src/gpu/kernels/matmul-dispatch.js": "792156f16c389dfc9dc697fd1925a19e6bb858cb86df5ae2307a68979c99f475",
+    "/src/gpu/kernels/kernel-bindings.js": "969d658be4095a858fa7ffd8790c514bbc5aab9e224f2ef1ea13a7ffb5fa72bd",
+    "/src/gpu/kernels/kernel-base.js": "6a285501d625241aa05360a93427bfa02528e5614eda98e5f7b9a7254e2490bf",
+    "/src/gpu/kernels/w8a8.js": "957239260aa03dc7b0b5b080b25764a67703a6fc4577af724fc5e8a47022c6c7",
+    "/src/gpu/tensor.js": "732b00eacd2a946ee1bf3521795d7722ca0379d24a278ee5c47c9e98bf030a5c",
+    "/src/config/schema/w8a8.schema.js": "74f9a1694bea3efa7be84894fed9399b871b41fb79d509b92992b7179e3a5074",
+    "/src/rules/rule-registry.js": "fe97c4fad9be77d3e322650b063ba1efe903f0ce2374e69a0402d18559fe7107",
+    "/src/rules/rule-matcher.js": "a980451d7fcd2b137b7cf31497a7308319a971d0cded4646833b4d23b40e2eff",
+    "/src/rules/execution-rules-contract-check.js": "72f7b35a1809ed2597bdecf03de2e17457511d7eea0750ef199cff15d666b6b8",
+    "/src/rules/layer-pattern-contract-check.js": "cd53c95ca35d311140ec886c29e4d340a02e0c2b27bd9ccc6cebc94c958321a8",
+    "/src/rules/generated/rule-bundle.json": "d45c49ab9b89f8e467bef5659d29c6574c17c9b7c371119f4d14c414b0345849",
+    "/src/gpu/weight-buffer.js": "dd7337d2124c64a87b176c3da98113e39a6a43fe2dd3ca5c7207ff4206867edb",
+    "/src/gpu/buffer-identity.js": "457980007a5d0b423aaaadff29e227be6afc8c1539449bf68c29287fafd9c4cb",
+    "/src/gpu/command-recorder.js": "986c3f11679ef3617e3931124575b6b52e97a7de1e806f8c771aeeec891a4010",
+    "/src/config/platforms/loader.js": "d2d61e83282c767df9f8155d1c7e6e87b29e66e1629ae886b0511024bdd14d1d",
+    "/src/config/kernels/registry.js": "1b77d80999497469381d2971be56ba65a14c65b5e9761562bb5c2b045bed6390",
+    "/src/config/platforms/apple-m3.json": "a64fd02be5da0b24ad7c94c88cac4998e9d3a635f83baff795be280662f26f6a",
+    "/src/gpu/kernels/probe_shader_f16.wgsl": "85d26934e7253dc9a4e88c19098d57745f8d9723d4f03ecb81b2f70302a9b748",
+    "/src/gpu/kernels/submit_probe.wgsl": "b6001e7264cff565d8a29faa2e53e693a5c931d51d169ab5bbfe2392b672c9fb",
+    "/src/gpu/kernels/quantize_w8a8.wgsl": "d01bbb40e706e027c70cdd5360eb5745b6e0412db7d2f05203a8d67cc8260899",
+    "/src/gpu/kernels/matmul_w8a8.wgsl": "adb69e32003508afddb0844bdf4b4cc62f72e6ec0f01d66e80c44dc3a886d00e",
+    "/src/gpu/kernels/rescale_w8a8.wgsl": "84779a6e84571b2733f5f4e5ba96127e31d452ee04ab94c1224f82e7b8459884",
+    "/src/gpu/kernels/matmul_w8a8_packed.wgsl": "073aaece4131b2ec3fcbd6cbc304f4a5497ddd62a3f1954d01bd7f9a33424d1b",
+    "/src/gpu/kernels/matmul_w8a8_packed_cooperative.wgsl": "dc527069dc264bafc95cc1f971a79e755122564cc7b72289f98621c33424d90d",
+    "/tests/kernels/w8a8-profile.js": "b43c30a0997da3f5567df6ab44a80e3c028872e94f1a209a0cffca298669f6fb"
+  },
+  "fixture": {
+    "path": "tests/fixtures/w8a8-operator-profile.json",
+    "sha256": "dc23db10399ba527b20e60b024643483ea1ff24b5ee95eec6c19051aae12d474",
+    "config": {
+      "schema": "doppler.w8a8-operator-profile/v1",
+      "scope": "Warm synthetic packed projection tuning; excludes model loading and does not establish model quality or end-to-end speed",
+      "seed": 1391952291,
+      "warmups": 3,
+      "pairs": 12,
+      "variants": [
+        "w8a8_packed",
+        "w8a8_packed_cooperative"
+      ],
+      "shapes": [
+        [
+          1,
+          640,
+          2048
+        ],
+        [
+          16,
+          640,
+          2048
+        ],
+        [
+          128,
+          640,
+          2048
+        ],
+        [
+          1,
+          1024,
+          5120
+        ],
+        [
+          16,
+          1024,
+          5120
+        ]
+      ]
+    }
+  },
+  "commit": "66fdc22ae070be90f7e1192d4e7ff79747d97b14",
+  "sourceStatus": " M benchmarks/kernels/execution-routing-audit.json\n M src/config/kernels/kernel-ref-digests.js\n M src/config/kernels/registry.json\n M src/gpu/kernels/generated/uniform-writers.d.ts\n M src/gpu/kernels/generated/uniform-writers.js\n M src/gpu/kernels/w8a8.d.ts\n M src/gpu/kernels/w8a8.js\n M tests/integration/w8a8-physical.test.js\n M tests/kernels/w8a8-physical.js\n?? src/gpu/kernels/matmul_w8a8_packed_cooperative.wgsl\n?? tests/fixtures/w8a8-operator-profile.json\n?? tests/kernels/w8a8-profile.js\n",
+  "launch": {
+    "channel": "chrome",
+    "headless": true,
+    "args": [
+      "--enable-unsafe-webgpu"
+    ]
+  },
+  "browser": "155.0.8059.80",
+  "systemInfo": {
+    "gpu": {
+      "devices": [
+        {
+          "vendorId": 4203,
+          "deviceId": 0,
+          "vendorString": "Google Inc. (Apple)",
+          "deviceString": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Version 26.6.2 (Build 25G83))",
+          "driverVendor": "Apple",
+          "driverVersion": "26.6.2"
+        }
+      ],
+      "auxAttributes": {
+        "amdSwitchable": false,
+        "canSupportThreadedTextureMailbox": false,
+        "directRenderingVersion": "",
+        "displayType": "ANGLE_METAL",
+        "glExtensions": "GL_AMD_performance_monitor GL_ANGLE_base_vertex_base_instance_shader_builtin GL_ANGLE_blob_cache GL_ANGLE_client_arrays GL_ANGLE_clip_cull_distance GL_ANGLE_compressed_texture_etc GL_ANGLE_depth_texture GL_ANGLE_framebuffer_blit GL_ANGLE_framebuffer_multisample GL_ANGLE_get_serialized_context_string GL_ANGLE_get_tex_level_parameter GL_ANGLE_instanced_arrays GL_ANGLE_memory_size GL_ANGLE_pack_reverse_row_order GL_ANGLE_polygon_mode GL_ANGLE_program_binary_readiness_query GL_ANGLE_program_cache_control GL_ANGLE_provoking_vertex GL_ANGLE_renderability_validation GL_ANGLE_request_extension GL_ANGLE_rgbx_internal_format GL_ANGLE_robust_client_memory GL_ANGLE_shader_pixel_local_storage GL_ANGLE_shader_pixel_local_storage_coherent GL_ANGLE_stencil_texturing GL_ANGLE_texture_compression_dxt3 GL_ANGLE_texture_compression_dxt5 GL_ANGLE_texture_multisample GL_ANGLE_translated_shader_source GL_APPLE_clip_distance GL_ARM_rgba8 GL_CHROMIUM_bind_generates_resource GL_CHROMIUM_bind_uniform_location GL_CHROMIUM_copy_texture GL_CHROMIUM_lose_context GL_EXT_base_instance GL_EXT_blend_func_extended GL_EXT_blend_minmax GL_EXT_clip_control GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_compressed_ETC1_RGB8_sub_texture GL_EXT_conservative_depth GL_EXT_debug_label GL_EXT_debug_marker GL_EXT_depth_clamp GL_EXT_discard_framebuffer GL_EXT_disjoint_timer_query GL_EXT_draw_buffers GL_EXT_draw_buffers_indexed GL_EXT_draw_elements_base_vertex GL_EXT_float_blend GL_EXT_frag_depth GL_EXT_instanced_arrays GL_EXT_map_buffer_range GL_EXT_multisampled_render_to_texture GL_EXT_occlusion_query_boolean GL_EXT_polygon_offset_clamp GL_EXT_pvrtc_sRGB GL_EXT_read_format_bgra GL_EXT_render_snorm GL_EXT_robustness GL_EXT_sRGB GL_EXT_shader_texture_lod GL_EXT_texture_compression_bptc GL_EXT_texture_compression_dxt1 GL_EXT_texture_compression_rgtc GL_EXT_texture_compression_s3tc_srgb GL_EXT_texture_filter_anisotropic GL_EXT_texture_format_BGRA8888 GL_EXT_texture_mirror_clamp_to_edge GL_EXT_texture_norm16 GL_EXT_texture_rg GL_EXT_texture_sRGB_R8 GL_EXT_texture_sRGB_RG8 GL_EXT_texture_shadow_lod GL_EXT_texture_storage GL_IMG_texture_compression_pvrtc GL_KHR_debug GL_KHR_parallel_shader_compile GL_KHR_robustness GL_KHR_texture_compression_astc_hdr GL_KHR_texture_compression_astc_ldr GL_KHR_texture_compression_astc_sliced_3d GL_MESA_framebuffer_flip_y GL_NV_fence GL_NV_framebuffer_blit GL_NV_pixel_buffer_object GL_NV_shader_noperspective_interpolation GL_OES_EGL_image GL_OES_EGL_sync GL_OES_compressed_ETC1_RGB8_texture GL_OES_depth24 GL_OES_depth32 GL_OES_depth_texture GL_OES_draw_buffers_indexed GL_OES_draw_elements_base_vertex GL_OES_element_index_uint GL_OES_fbo_render_mipmap GL_OES_get_program_binary GL_OES_mapbuffer GL_OES_packed_depth_stencil GL_OES_required_internalformat GL_OES_rgb8_rgba8 GL_OES_sample_variables GL_OES_shader_multisample_interpolation GL_OES_standard_derivatives GL_OES_surfaceless_context GL_OES_texture_3D GL_OES_texture_float GL_OES_texture_float_linear GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_texture_npot GL_OES_texture_stencil8 GL_OES_vertex_array_object GL_QCOM_render_shared_exponent ",
+        "glImplementationParts": "(gl=egl-angle,angle=metal)",
+        "glRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Version 26.6.2 (Build 25G83))",
+        "glResetNotificationStrategy": 33362,
+        "glVendor": "Google Inc. (Apple)",
+        "glVersion": "OpenGL ES 3.0 (ANGLE 2.1.28854 git hash: cccf60cde32c)",
+        "glWsExtensions": "",
+        "glWsVendor": "",
+        "glWsVersion": "",
+        "inProcessGpu": false,
+        "initializationTime": 0.034963,
+        "isAsan": false,
+        "isClangCoverage": false,
+        "jpegDecodeAcceleratorSupported": false,
+        "maxMsaaSamples": "4",
+        "optimus": false,
+        "passthroughCmdDecoder": true,
+        "pixelShaderVersion": "3.00",
+        "processCrashCount": 0,
+        "sandboxed": false,
+        "skiaBackendType": "GraphiteDawnMetal",
+        "subpixelFontRendering": true,
+        "targetCpuBits": 64,
+        "vertexShaderVersion": "3.00",
+        "visibilityCallbackCallCount": 0
+      },
+      "featureStatus": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "enabled_on",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "enabled",
+        "webgl": "enabled",
+        "webgpu": "enabled",
+        "webnn": "disabled_off"
+      },
+      "driverBugWorkarounds": [
+        "disable_2d_canvas_auto_flush",
+        "enable_webgl_timer_query_extensions",
+        "disabled_extension_GL_KHR_blend_equation_advanced",
+        "disabled_extension_GL_KHR_blend_equation_advanced_coherent"
+      ],
+      "videoDecoding": [],
+      "videoEncoding": []
+    },
+    "modelName": "Mac",
+    "modelVersion": "15.12",
+    "commandLine": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate,RenderDocument,OptimizationHints --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --disable-infobars --disable-search-engine-choice-screen --disable-sync --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --enable-unsafe-webgpu --user-data-dir=/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/playwright_chromiumdev_profile-5QQEv9 --remote-debugging-pipe --no-startup-window --noerrdialogs --flag-switches-begin --flag-switches-end"
+  },
+  "browserErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "result": {
+    "qualified": true,
+    "capabilities": {
+      "hasSubgroups": true,
+      "wgslLanguageFeatures": [
+        "packed_4x8_integer_dot_product",
+        "subgroup_uniformity",
+        "immediate_address_space",
+        "linear_indexing",
+        "subgroup_id",
+        "readonly_and_readwrite_storage_textures",
+        "swizzle_assignment",
+        "unrestricted_pointer_parameters",
+        "buffer_view",
+        "texture_formats_tier1",
+        "texture_and_sampler_let",
+        "pointer_composite_access",
+        "uniform_buffer_standard_layout"
+      ],
+      "hasSubgroupsF16": true,
+      "hasF16": true,
+      "hasTimestampQuery": true,
+      "maxBufferSize": 4294967292,
+      "maxWorkgroupSize": 1024,
+      "maxWorkgroupStorageSize": 32768,
+      "adapterInfo": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "unknown",
+        "description": ""
+      },
+      "submitProbeMs": 1.1000001430511475
+    },
+    "packedAvailable": true,
+    "rows": [
+      {
+        "M": 1,
+        "N": 1,
+        "K": 1,
+        "variant": "w8a8_portable",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 1,
+        "N": 1,
+        "K": 1,
+        "variant": "w8a8_packed",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 1,
+        "N": 1,
+        "K": 1,
+        "variant": "w8a8_packed_cooperative",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 2,
+        "N": 3,
+        "K": 5,
+        "variant": "w8a8_portable",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 2,
+        "N": 3,
+        "K": 5,
+        "variant": "w8a8_packed",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 2,
+        "N": 3,
+        "K": 5,
+        "variant": "w8a8_packed_cooperative",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 3,
+        "N": 7,
+        "K": 9,
+        "variant": "w8a8_portable",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 3,
+        "N": 7,
+        "K": 9,
+        "variant": "w8a8_packed",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 3,
+        "N": 7,
+        "K": 9,
+        "variant": "w8a8_packed_cooperative",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 2,
+        "N": 5,
+        "K": 4,
+        "variant": "w8a8_portable",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 2,
+        "N": 5,
+        "K": 4,
+        "variant": "w8a8_packed",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 2,
+        "N": 5,
+        "K": 4,
+        "variant": "w8a8_packed_cooperative",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 5,
+        "N": 3,
+        "K": 257,
+        "variant": "w8a8_portable",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 5,
+        "N": 3,
+        "K": 257,
+        "variant": "w8a8_packed",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 5,
+        "N": 3,
+        "K": 257,
+        "variant": "w8a8_packed_cooperative",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 2,
+        "N": 8,
+        "K": 640,
+        "variant": "w8a8_portable",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 2,
+        "N": 8,
+        "K": 640,
+        "variant": "w8a8_packed",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 2,
+        "N": 8,
+        "K": 640,
+        "variant": "w8a8_packed_cooperative",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 3,
+        "N": 17,
+        "K": 2048,
+        "variant": "w8a8_portable",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 3,
+        "N": 17,
+        "K": 2048,
+        "variant": "w8a8_packed",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 3,
+        "N": 17,
+        "K": 2048,
+        "variant": "w8a8_packed_cooperative",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 1,
+        "N": 2,
+        "K": 133144,
+        "variant": "w8a8_portable",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 1,
+        "N": 2,
+        "K": 133144,
+        "variant": "w8a8_packed",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 1,
+        "N": 2,
+        "K": 133144,
+        "variant": "w8a8_packed_cooperative",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "rescalePairs": 1032,
+        "overflows": 126,
+        "exactBits": true,
+        "minimumNormalRoundUp": true,
+        "signedZeroFlush": true
+      },
+      {
+        "failure": "nan",
+        "variant": "w8a8_portable",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 1
+      },
+      {
+        "failure": "nan",
+        "variant": "w8a8_portable",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 1
+      },
+      {
+        "failure": "nan",
+        "variant": "w8a8_packed",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 1
+      },
+      {
+        "failure": "nan",
+        "variant": "w8a8_packed",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 1
+      },
+      {
+        "failure": "nan",
+        "variant": "w8a8_packed_cooperative",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 1
+      },
+      {
+        "failure": "nan",
+        "variant": "w8a8_packed_cooperative",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 1
+      },
+      {
+        "failure": "infinity",
+        "variant": "w8a8_portable",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 1
+      },
+      {
+        "failure": "infinity",
+        "variant": "w8a8_portable",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 1
+      },
+      {
+        "failure": "infinity",
+        "variant": "w8a8_packed",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 1
+      },
+      {
+        "failure": "infinity",
+        "variant": "w8a8_packed",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 1
+      },
+      {
+        "failure": "infinity",
+        "variant": "w8a8_packed_cooperative",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 1
+      },
+      {
+        "failure": "infinity",
+        "variant": "w8a8_packed_cooperative",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 1
+      },
+      {
+        "failure": "subnormal",
+        "variant": "w8a8_portable",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 2
+      },
+      {
+        "failure": "subnormal",
+        "variant": "w8a8_portable",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 2
+      },
+      {
+        "failure": "subnormal",
+        "variant": "w8a8_packed",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 2
+      },
+      {
+        "failure": "subnormal",
+        "variant": "w8a8_packed",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 2
+      },
+      {
+        "failure": "subnormal",
+        "variant": "w8a8_packed_cooperative",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 2
+      },
+      {
+        "failure": "subnormal",
+        "variant": "w8a8_packed_cooperative",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 2
+      },
+      {
+        "failure": "scale-underflow",
+        "variant": "w8a8_portable",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 4
+      },
+      {
+        "failure": "scale-underflow",
+        "variant": "w8a8_portable",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 4
+      },
+      {
+        "failure": "scale-underflow",
+        "variant": "w8a8_packed",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 4
+      },
+      {
+        "failure": "scale-underflow",
+        "variant": "w8a8_packed",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 4
+      },
+      {
+        "failure": "scale-underflow",
+        "variant": "w8a8_packed_cooperative",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 4
+      },
+      {
+        "failure": "scale-underflow",
+        "variant": "w8a8_packed_cooperative",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 4
+      },
+      {
+        "failure": "negative128",
+        "variant": "w8a8_portable",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 8
+      },
+      {
+        "failure": "negative128",
+        "variant": "w8a8_portable",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 8
+      },
+      {
+        "failure": "negative128",
+        "variant": "w8a8_packed",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 8
+      },
+      {
+        "failure": "negative128",
+        "variant": "w8a8_packed",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 8
+      },
+      {
+        "failure": "negative128",
+        "variant": "w8a8_packed_cooperative",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 8
+      },
+      {
+        "failure": "negative128",
+        "variant": "w8a8_packed_cooperative",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 8
+      },
+      {
+        "failure": "padding",
+        "variant": "w8a8_portable",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 8
+      },
+      {
+        "failure": "padding",
+        "variant": "w8a8_portable",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 8
+      },
+      {
+        "failure": "padding",
+        "variant": "w8a8_packed",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 8
+      },
+      {
+        "failure": "padding",
+        "variant": "w8a8_packed",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 8
+      },
+      {
+        "failure": "padding",
+        "variant": "w8a8_packed_cooperative",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 8
+      },
+      {
+        "failure": "padding",
+        "variant": "w8a8_packed_cooperative",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 8
+      },
+      {
+        "failure": "bad-scale",
+        "variant": "w8a8_portable",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 4
+      },
+      {
+        "failure": "bad-scale",
+        "variant": "w8a8_portable",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 4
+      },
+      {
+        "failure": "bad-scale",
+        "variant": "w8a8_packed",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 4
+      },
+      {
+        "failure": "bad-scale",
+        "variant": "w8a8_packed",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 4
+      },
+      {
+        "failure": "bad-scale",
+        "variant": "w8a8_packed_cooperative",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 4
+      },
+      {
+        "failure": "bad-scale",
+        "variant": "w8a8_packed_cooperative",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 4
+      },
+      {
+        "failure": "overflow",
+        "variant": "w8a8_portable",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 16
+      },
+      {
+        "failure": "overflow",
+        "variant": "w8a8_portable",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 16
+      },
+      {
+        "failure": "overflow",
+        "variant": "w8a8_packed",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 16
+      },
+      {
+        "failure": "overflow",
+        "variant": "w8a8_packed",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 16
+      },
+      {
+        "failure": "overflow",
+        "variant": "w8a8_packed_cooperative",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 16
+      },
+      {
+        "failure": "overflow",
+        "variant": "w8a8_packed_cooperative",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 16
+      },
+      {
+        "lifecycle": "shared-status-deferred",
+        "partial": false,
+        "validations": 1,
+        "code": "DOPPLER_W8A8_INVALID_INPUT"
+      },
+      {
+        "lifecycle": "shared-status-deferred",
+        "partial": true,
+        "validations": 1,
+        "code": "DOPPLER_W8A8_INVALID_INPUT"
+      },
+      {
+        "lifecycle": "abort-and-fresh-reuse",
+        "preflightRejections": 9,
+        "outputExact": true
+      }
+    ],
+    "resources": {
+      "retainedModel": {
+        "bytes": 0,
+        "count": 0
+      },
+      "active": {
+        "bytes": 0,
+        "count": 0
+      },
+      "reusable": {
+        "bytes": 1656064,
+        "count": 24
+      },
+      "deferredCleanup": {
+        "bytes": 0,
+        "count": 0
+      }
+    }
+  },
+  "profile": {
+    "capabilities": {
+      "hasSubgroups": true,
+      "wgslLanguageFeatures": [
+        "packed_4x8_integer_dot_product",
+        "subgroup_uniformity",
+        "immediate_address_space",
+        "linear_indexing",
+        "subgroup_id",
+        "readonly_and_readwrite_storage_textures",
+        "swizzle_assignment",
+        "unrestricted_pointer_parameters",
+        "buffer_view",
+        "texture_formats_tier1",
+        "texture_and_sampler_let",
+        "pointer_composite_access",
+        "uniform_buffer_standard_layout"
+      ],
+      "hasSubgroupsF16": true,
+      "hasF16": true,
+      "hasTimestampQuery": true,
+      "maxBufferSize": 4294967292,
+      "maxWorkgroupSize": 1024,
+      "maxWorkgroupStorageSize": 32768,
+      "adapterInfo": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "unknown",
+        "description": ""
+      },
+      "submitProbeMs": 0.5999999046325684
+    },
+    "config": {
+      "schema": "doppler.w8a8-operator-profile/v1",
+      "scope": "Warm synthetic packed projection tuning; excludes model loading and does not establish model quality or end-to-end speed",
+      "seed": 1391952291,
+      "warmups": 3,
+      "pairs": 12,
+      "variants": [
+        "w8a8_packed",
+        "w8a8_packed_cooperative"
+      ],
+      "shapes": [
+        [
+          1,
+          640,
+          2048
+        ],
+        [
+          16,
+          640,
+          2048
+        ],
+        [
+          128,
+          640,
+          2048
+        ],
+        [
+          1,
+          1024,
+          5120
+        ],
+        [
+          16,
+          1024,
+          5120
+        ]
+      ]
+    },
+    "shapes": [
+      {
+        "M": 1,
+        "N": 640,
+        "K": 2048,
+        "runs": [
+          {
+            "pair": -3,
+            "warmup": true,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 3.5,
+            "recordMs": 2.299999952316284,
+            "submitAndValidateMs": 1.2000000476837158,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": -3,
+            "warmup": true,
+            "variant": "w8a8_packed",
+            "wallMs": 1.5,
+            "recordMs": 0.39999985694885254,
+            "submitAndValidateMs": 1.1000001430511475,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": -2,
+            "warmup": true,
+            "variant": "w8a8_packed",
+            "wallMs": 1.2000000476837158,
+            "recordMs": 0.10000014305114746,
+            "submitAndValidateMs": 1.0999999046325684,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": -2,
+            "warmup": true,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.9000000953674316,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.9000000953674316,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": -1,
+            "warmup": true,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 1,
+            "recordMs": 0.10000014305114746,
+            "submitAndValidateMs": 0.8999998569488525,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": -1,
+            "warmup": true,
+            "variant": "w8a8_packed",
+            "wallMs": 1.2999999523162842,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 1.2000000476837158,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 0,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 1.0999999046325684,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 1,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 0,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.9000000953674316,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.9000000953674316,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 1,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.8999998569488525,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.8999998569488525,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 1,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 1.1000001430511475,
+            "recordMs": 0.10000014305114746,
+            "submitAndValidateMs": 1,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 2,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 1,
+            "recordMs": 0,
+            "submitAndValidateMs": 1,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 2,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.5,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 0.40000009536743164,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 3,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.5,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.5,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 3,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 0.7000000476837158,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 0.6000001430511475,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 4,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 0.7999999523162842,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 0.7000000476837158,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 4,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.5999999046325684,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 0.5,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 5,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.5,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 0.40000009536743164,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 5,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 0.7000000476837158,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 0.6000001430511475,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 6,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 0.7000000476837158,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.7000000476837158,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 6,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.5,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.5,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 7,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.5,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 0.40000009536743164,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 7,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 0.7999999523162842,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 0.7000000476837158,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 8,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 0.5999999046325684,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.5999999046325684,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 8,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.5,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.5,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 9,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.5,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.5,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 9,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 0.7999999523162842,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 0.7000000476837158,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 10,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 0.5999999046325684,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.5999999046325684,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 10,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.5999999046325684,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 0.5,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 11,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.5,
+            "recordMs": 0.10000014305114746,
+            "submitAndValidateMs": 0.39999985694885254,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 11,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 0.6000001430511475,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.6000001430511475,
+            "gpuMs": null,
+            "exactOutput": true
+          }
+        ],
+        "profiles": [
+          {
+            "variant": "w8a8_packed",
+            "wallMs": 0.9000000953674316,
+            "recordMs": 0.10000014305114746,
+            "submitAndValidateMs": 0.7999999523162842,
+            "gpuMs": {
+              "w8a8_quantize": 0.009082,
+              "matmul": 0.143151,
+              "w8a8_rescale": 0.006749
+            },
+            "exactOutput": true
+          },
+          {
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.7000000476837158,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 0.6000001430511475,
+            "gpuMs": {
+              "w8a8_quantize": 0.010207,
+              "matmul": 0.019455,
+              "w8a8_rescale": 0.006874
+            },
+            "exactOutput": true
+          }
+        ],
+        "summaries": {
+          "w8a8_packed": {
+            "mean": 0.7916666666666666,
+            "median": 0.75,
+            "min": 0.5999999046325684,
+            "max": 1.1000001430511475,
+            "p95": 1.100000011920929,
+            "p99": 1.1000001168251037,
+            "stdDev": 0.18319554523668635,
+            "ci95": 0.11898899702633378,
+            "samples": 12,
+            "samplesAfterOutlierRemoval": 12,
+            "outliersRemoved": 0
+          },
+          "w8a8_packed_cooperative": {
+            "mean": 0.5833333134651184,
+            "median": 0.5,
+            "min": 0.5,
+            "max": 0.9000000953674316,
+            "p95": 0.8999999642372132,
+            "p99": 0.900000069141388,
+            "stdDev": 0.15275251228679268,
+            "ci95": 0.0992156670991928,
+            "samples": 12,
+            "samplesAfterOutlierRemoval": 12,
+            "outliersRemoved": 0
+          }
+        }
+      },
+      {
+        "M": 16,
+        "N": 640,
+        "K": 2048,
+        "runs": [
+          {
+            "pair": -3,
+            "warmup": true,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 2.3999998569488525,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 2.299999952316284,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": -3,
+            "warmup": true,
+            "variant": "w8a8_packed",
+            "wallMs": 2.1000001430511475,
+            "recordMs": 0,
+            "submitAndValidateMs": 2.1000001430511475,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": -2,
+            "warmup": true,
+            "variant": "w8a8_packed",
+            "wallMs": 2.1000001430511475,
+            "recordMs": 0.10000014305114746,
+            "submitAndValidateMs": 2,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": -2,
+            "warmup": true,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 1.5999999046325684,
+            "recordMs": 0,
+            "submitAndValidateMs": 1.5999999046325684,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": -1,
+            "warmup": true,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 1.6000001430511475,
+            "recordMs": 0,
+            "submitAndValidateMs": 1.6000001430511475,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": -1,
+            "warmup": true,
+            "variant": "w8a8_packed",
+            "wallMs": 2,
+            "recordMs": 0,
+            "submitAndValidateMs": 2,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 0,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 1.7999999523162842,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 1.7000000476837158,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 0,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 1.6000001430511475,
+            "recordMs": 0.10000014305114746,
+            "submitAndValidateMs": 1.5,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 1,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 1.2999999523162842,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 1.2000000476837158,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 1,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 1.7999999523162842,
+            "recordMs": 0,
+            "submitAndValidateMs": 1.7999999523162842,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 2,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 2.0999999046325684,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 2,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 2,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.8999998569488525,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.8999998569488525,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 3,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.9000000953674316,
+            "recordMs": 0.10000014305114746,
+            "submitAndValidateMs": 0.7999999523162842,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 3,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 0.7999999523162842,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 0.7000000476837158,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 4,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 0.9000000953674316,
+            "recordMs": 0.10000014305114746,
+            "submitAndValidateMs": 0.7999999523162842,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 4,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.7999999523162842,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.7999999523162842,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 5,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.7000000476837158,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.7000000476837158,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 5,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 0.7999999523162842,
+            "recordMs": 0.10000014305114746,
+            "submitAndValidateMs": 0.6999998092651367,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 6,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 0.6999998092651367,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.6999998092651367,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 6,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.7000000476837158,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.7000000476837158,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 7,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.7000000476837158,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.7000000476837158,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 7,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 0.7999999523162842,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.7999999523162842,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 8,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 0.9000000953674316,
+            "recordMs": 0.10000014305114746,
+            "submitAndValidateMs": 0.7999999523162842,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 8,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.7000000476837158,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.7000000476837158,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 9,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.7999999523162842,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 0.7000000476837158,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 9,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 0.7999999523162842,
+            "recordMs": 0.10000014305114746,
+            "submitAndValidateMs": 0.6999998092651367,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 10,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 0.7999999523162842,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.7999999523162842,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 10,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.7999999523162842,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 0.7000000476837158,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 11,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.9000000953674316,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 0.8000001907348633,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 11,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 0.8000001907348633,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.8000001907348633,
+            "gpuMs": null,
+            "exactOutput": true
+          }
+        ],
+        "profiles": [
+          {
+            "variant": "w8a8_packed",
+            "wallMs": 0.8999998569488525,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 0.7999999523162842,
+            "gpuMs": {
+              "w8a8_quantize": 0.008833,
+              "matmul": 0.273567,
+              "w8a8_rescale": 0.007291000000000001
+            },
+            "exactOutput": true
+          },
+          {
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.7999999523162842,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.7999999523162842,
+            "gpuMs": {
+              "w8a8_quantize": 0.008832,
+              "matmul": 0.20203,
+              "w8a8_rescale": 0.007415
+            },
+            "exactOutput": true
+          }
+        ],
+        "summaries": {
+          "w8a8_packed": {
+            "mean": 1.0833333134651184,
+            "median": 0.8000000715255737,
+            "min": 0.6999998092651367,
+            "max": 2.0999999046325684,
+            "p95": 1.9349999308586119,
+            "p99": 2.066999909877777,
+            "stdDev": 0.5006056731032192,
+            "ci95": 0.32515292263949713,
+            "samples": 12,
+            "samplesAfterOutlierRemoval": 12,
+            "outliersRemoved": 0
+          },
+          "w8a8_packed_cooperative": {
+            "mean": 0.9000000158945719,
+            "median": 0.7999999523162842,
+            "min": 0.7000000476837158,
+            "max": 1.6000001430511475,
+            "p95": 1.4350000381469725,
+            "p99": 1.5670001220703127,
+            "stdDev": 0.2763397307072635,
+            "ci95": 0.17948792015058068,
+            "samples": 12,
+            "samplesAfterOutlierRemoval": 12,
+            "outliersRemoved": 0
+          }
+        }
+      },
+      {
+        "M": 128,
+        "N": 640,
+        "K": 2048,
+        "runs": [
+          {
+            "pair": -3,
+            "warmup": true,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 8,
+            "recordMs": 0.10000014305114746,
+            "submitAndValidateMs": 7.8999998569488525,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": -3,
+            "warmup": true,
+            "variant": "w8a8_packed",
+            "wallMs": 9.100000143051147,
+            "recordMs": 0.10000014305114746,
+            "submitAndValidateMs": 9,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": -2,
+            "warmup": true,
+            "variant": "w8a8_packed",
+            "wallMs": 9.299999952316284,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 9.200000047683716,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": -2,
+            "warmup": true,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 3.700000047683716,
+            "recordMs": 0.10000014305114746,
+            "submitAndValidateMs": 3.5999999046325684,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": -1,
+            "warmup": true,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 3.5,
+            "recordMs": 0,
+            "submitAndValidateMs": 3.5,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": -1,
+            "warmup": true,
+            "variant": "w8a8_packed",
+            "wallMs": 3.799999952316284,
+            "recordMs": 0,
+            "submitAndValidateMs": 3.799999952316284,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 0,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 3.299999952316284,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 3.200000047683716,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 0,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 2.799999952316284,
+            "recordMs": 0.10000014305114746,
+            "submitAndValidateMs": 2.6999998092651367,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 1,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 2.5,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 2.4000000953674316,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 1,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 3.0999999046325684,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 3,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 2,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 3,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 2.9000000953674316,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 2,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 2.5999999046325684,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 2.5,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 3,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 2.200000047683716,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 2.1000001430511475,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 3,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 2.9000000953674316,
+            "recordMs": 0,
+            "submitAndValidateMs": 2.9000000953674316,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 4,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 3,
+            "recordMs": 0,
+            "submitAndValidateMs": 3,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 4,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 2.299999952316284,
+            "recordMs": 0,
+            "submitAndValidateMs": 2.299999952316284,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 5,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 2.0999999046325684,
+            "recordMs": 0,
+            "submitAndValidateMs": 2.0999999046325684,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 5,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 2.700000047683716,
+            "recordMs": 0,
+            "submitAndValidateMs": 2.700000047683716,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 6,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 3,
+            "recordMs": 0,
+            "submitAndValidateMs": 3,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 6,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 2.299999952316284,
+            "recordMs": 0,
+            "submitAndValidateMs": 2.299999952316284,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 7,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 2.299999952316284,
+            "recordMs": 0.10000014305114746,
+            "submitAndValidateMs": 2.1999998092651367,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 7,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 2.5999999046325684,
+            "recordMs": 0,
+            "submitAndValidateMs": 2.5999999046325684,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 8,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 2.5,
+            "recordMs": 0,
+            "submitAndValidateMs": 2.5,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 8,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 2.5,
+            "recordMs": 0,
+            "submitAndValidateMs": 2.5,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 9,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 2.299999952316284,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 2.200000047683716,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 9,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 2.799999952316284,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 2.700000047683716,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 10,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 2.8999998569488525,
+            "recordMs": 0,
+            "submitAndValidateMs": 2.8999998569488525,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 10,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 2.200000047683716,
+            "recordMs": 0,
+            "submitAndValidateMs": 2.200000047683716,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 11,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 2.1000001430511475,
+            "recordMs": 0,
+            "submitAndValidateMs": 2.1000001430511475,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 11,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 2.5999999046325684,
+            "recordMs": 0,
+            "submitAndValidateMs": 2.5999999046325684,
+            "gpuMs": null,
+            "exactOutput": true
+          }
+        ],
+        "profiles": [
+          {
+            "variant": "w8a8_packed",
+            "wallMs": 2.8000001907348633,
+            "recordMs": 0,
+            "submitAndValidateMs": 2.8000001907348633,
+            "gpuMs": {
+              "w8a8_quantize": 0.030457,
+              "matmul": 1.990523,
+              "w8a8_rescale": 0.021457999999999998
+            },
+            "exactOutput": true
+          },
+          {
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 2.299999952316284,
+            "recordMs": 0,
+            "submitAndValidateMs": 2.299999952316284,
+            "gpuMs": {
+              "w8a8_quantize": 0.031999,
+              "matmul": 1.549244,
+              "w8a8_rescale": 0.021332999999999998
+            },
+            "exactOutput": true
+          }
+        ],
+        "summaries": {
+          "w8a8_packed": {
+            "mean": 2.866666634877523,
+            "median": 2.899999976158142,
+            "min": 2.5,
+            "max": 3.299999952316284,
+            "p95": 3.1899999260902403,
+            "p99": 3.2779999470710757,
+            "stdDev": 0.23484359782738823,
+            "ci95": 0.15253539122599066,
+            "samples": 12,
+            "samplesAfterOutlierRemoval": 12,
+            "outliersRemoved": 0
+          },
+          "w8a8_packed_cooperative": {
+            "mean": 2.349999984105428,
+            "median": 2.299999952316284,
+            "min": 2.0999999046325684,
+            "max": 2.799999952316284,
+            "p95": 2.6899999260902403,
+            "p99": 2.7779999470710757,
+            "stdDev": 0.21105791450396444,
+            "ci95": 0.137086136722648,
+            "samples": 12,
+            "samplesAfterOutlierRemoval": 12,
+            "outliersRemoved": 0
+          }
+        }
+      },
+      {
+        "M": 1,
+        "N": 1024,
+        "K": 5120,
+        "runs": [
+          {
+            "pair": -3,
+            "warmup": true,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 2.6000001430511475,
+            "recordMs": 0.20000004768371582,
+            "submitAndValidateMs": 2.4000000953674316,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": -3,
+            "warmup": true,
+            "variant": "w8a8_packed",
+            "wallMs": 2,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 1.9000000953674316,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": -2,
+            "warmup": true,
+            "variant": "w8a8_packed",
+            "wallMs": 1.9000000953674316,
+            "recordMs": 0,
+            "submitAndValidateMs": 1.9000000953674316,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": -2,
+            "warmup": true,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.8999998569488525,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 0.7999999523162842,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": -1,
+            "warmup": true,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.7999999523162842,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.7999999523162842,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": -1,
+            "warmup": true,
+            "variant": "w8a8_packed",
+            "wallMs": 2.0999999046325684,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 2,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 0,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 2,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 1.9000000953674316,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 0,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 1.1999998092651367,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 1.0999999046325684,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 1,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.9000000953674316,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 0.8000001907348633,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 1,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 2,
+            "recordMs": 0.10000014305114746,
+            "submitAndValidateMs": 1.8999998569488525,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 2,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 1.8999998569488525,
+            "recordMs": 0,
+            "submitAndValidateMs": 1.8999998569488525,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 2,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.8000001907348633,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.8000001907348633,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 3,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 1,
+            "recordMs": 0.10000014305114746,
+            "submitAndValidateMs": 0.8999998569488525,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 3,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 1.9000000953674316,
+            "recordMs": 0.10000014305114746,
+            "submitAndValidateMs": 1.7999999523162842,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 4,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 2.299999952316284,
+            "recordMs": 0,
+            "submitAndValidateMs": 2.299999952316284,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 4,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 1,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 0.9000000953674316,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 5,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.9000000953674316,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.9000000953674316,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 5,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 0.8999998569488525,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 0.7999999523162842,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 6,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 0.8999998569488525,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.8999998569488525,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 6,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.6000001430511475,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.6000001430511475,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 7,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.5999999046325684,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.5999999046325684,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 7,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 0.7999999523162842,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.7999999523162842,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 8,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 1,
+            "recordMs": 0,
+            "submitAndValidateMs": 1,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 8,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.7000000476837158,
+            "recordMs": 0.10000014305114746,
+            "submitAndValidateMs": 0.5999999046325684,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 9,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.5,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.5,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 9,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 1,
+            "recordMs": 0,
+            "submitAndValidateMs": 1,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 10,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 1,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 0.9000000953674316,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 10,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.5,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.5,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 11,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.5999999046325684,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.5999999046325684,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 11,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 1,
+            "recordMs": 0,
+            "submitAndValidateMs": 1,
+            "gpuMs": null,
+            "exactOutput": true
+          }
+        ],
+        "profiles": [
+          {
+            "variant": "w8a8_packed",
+            "wallMs": 1.0999999046325684,
+            "recordMs": 0,
+            "submitAndValidateMs": 1.0999999046325684,
+            "gpuMs": {
+              "w8a8_quantize": 0.016416,
+              "matmul": 0.421529,
+              "w8a8_rescale": 0.006999
+            },
+            "exactOutput": true
+          },
+          {
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 0.5999999046325684,
+            "recordMs": 0,
+            "submitAndValidateMs": 0.5999999046325684,
+            "gpuMs": {
+              "w8a8_quantize": 0.016458,
+              "matmul": 0.06329,
+              "w8a8_rescale": 0.006958
+            },
+            "exactOutput": true
+          }
+        ],
+        "summaries": {
+          "w8a8_packed": {
+            "mean": 1.3916666309038799,
+            "median": 1,
+            "min": 0.7999999523162842,
+            "max": 2.299999952316284,
+            "p95": 2.1349999785423277,
+            "p99": 2.266999957561493,
+            "stdDev": 0.5664215318617333,
+            "ci95": 0.3679015768820684,
+            "samples": 12,
+            "samplesAfterOutlierRemoval": 12,
+            "outliersRemoved": 0
+          },
+          "w8a8_packed_cooperative": {
+            "mean": 0.7750000158945719,
+            "median": 0.7500001192092896,
+            "min": 0.5,
+            "max": 1.1999998092651367,
+            "p95": 1.0899999141693113,
+            "p99": 1.1779998302459718,
+            "stdDev": 0.2261334892637728,
+            "ci95": 0.14687800976163215,
+            "samples": 12,
+            "samplesAfterOutlierRemoval": 12,
+            "outliersRemoved": 0
+          }
+        }
+      },
+      {
+        "M": 16,
+        "N": 1024,
+        "K": 5120,
+        "runs": [
+          {
+            "pair": -3,
+            "warmup": true,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 4.799999952316284,
+            "recordMs": 0.2999999523162842,
+            "submitAndValidateMs": 4.5,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": -3,
+            "warmup": true,
+            "variant": "w8a8_packed",
+            "wallMs": 3,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 2.9000000953674316,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": -2,
+            "warmup": true,
+            "variant": "w8a8_packed",
+            "wallMs": 3,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 2.9000000953674316,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": -2,
+            "warmup": true,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 2.200000047683716,
+            "recordMs": 0,
+            "submitAndValidateMs": 2.200000047683716,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": -1,
+            "warmup": true,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 2.200000047683716,
+            "recordMs": 0.10000014305114746,
+            "submitAndValidateMs": 2.0999999046325684,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": -1,
+            "warmup": true,
+            "variant": "w8a8_packed",
+            "wallMs": 2.5,
+            "recordMs": 0,
+            "submitAndValidateMs": 2.5,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 0,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 1.5999999046325684,
+            "recordMs": 0,
+            "submitAndValidateMs": 1.5999999046325684,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 0,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 1.5,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 1.4000000953674316,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 1,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 1.5,
+            "recordMs": 0,
+            "submitAndValidateMs": 1.5,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 1,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 2,
+            "recordMs": 0,
+            "submitAndValidateMs": 2,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 2,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 1.6999998092651367,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 1.5999999046325684,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 2,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 1.5999999046325684,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 1.5,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 3,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 1.1999998092651367,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 1.0999999046325684,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 3,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 1.7999999523162842,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 1.7000000476837158,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 4,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 1.7999999523162842,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 1.7000000476837158,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 4,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 1.5,
+            "recordMs": 0.10000014305114746,
+            "submitAndValidateMs": 1.3999998569488525,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 5,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 1.2999999523162842,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 1.2000000476837158,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 5,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 1.6000001430511475,
+            "recordMs": 0,
+            "submitAndValidateMs": 1.6000001430511475,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 6,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 1.7000000476837158,
+            "recordMs": 0.10000014305114746,
+            "submitAndValidateMs": 1.5999999046325684,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 6,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 1.4000000953674316,
+            "recordMs": 0,
+            "submitAndValidateMs": 1.4000000953674316,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 7,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 1.4000000953674316,
+            "recordMs": 0.10000014305114746,
+            "submitAndValidateMs": 1.2999999523162842,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 7,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 1.7999999523162842,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 1.7000000476837158,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 8,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 1.7000000476837158,
+            "recordMs": 0,
+            "submitAndValidateMs": 1.7000000476837158,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 8,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 1.3999998569488525,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 1.2999999523162842,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 9,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 1.2999999523162842,
+            "recordMs": 0,
+            "submitAndValidateMs": 1.2999999523162842,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 9,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 1.7000000476837158,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 1.6000001430511475,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 10,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 1.6999998092651367,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 1.5999999046325684,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 10,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 1.2999999523162842,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 1.2000000476837158,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 11,
+            "warmup": false,
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 1.4000000953674316,
+            "recordMs": 0,
+            "submitAndValidateMs": 1.4000000953674316,
+            "gpuMs": null,
+            "exactOutput": true
+          },
+          {
+            "pair": 11,
+            "warmup": false,
+            "variant": "w8a8_packed",
+            "wallMs": 1.7000000476837158,
+            "recordMs": 0.09999990463256836,
+            "submitAndValidateMs": 1.6000001430511475,
+            "gpuMs": null,
+            "exactOutput": true
+          }
+        ],
+        "profiles": [
+          {
+            "variant": "w8a8_packed",
+            "wallMs": 1.9000000953674316,
+            "recordMs": 0,
+            "submitAndValidateMs": 1.9000000953674316,
+            "gpuMs": {
+              "w8a8_quantize": 0.019125,
+              "matmul": 1.116173,
+              "w8a8_rescale": 0.009167
+            },
+            "exactOutput": true
+          },
+          {
+            "variant": "w8a8_packed_cooperative",
+            "wallMs": 1.4000000953674316,
+            "recordMs": 0,
+            "submitAndValidateMs": 1.4000000953674316,
+            "gpuMs": {
+              "w8a8_quantize": 0.018917,
+              "matmul": 0.740144,
+              "w8a8_rescale": 0.009083
+            },
+            "exactOutput": true
+          }
+        ],
+        "summaries": {
+          "w8a8_packed": {
+            "mean": 1.7333333094914753,
+            "median": 1.7000000476837158,
+            "min": 1.5999999046325684,
+            "max": 2,
+            "p95": 1.8899999737739561,
+            "p99": 1.9779999947547915,
+            "stdDev": 0.10730866591850045,
+            "ci95": 0.06969902304872909,
+            "samples": 12,
+            "samplesAfterOutlierRemoval": 12,
+            "outliersRemoved": 0
+          },
+          "w8a8_packed_cooperative": {
+            "mean": 1.399999976158142,
+            "median": 1.4000000953674316,
+            "min": 1.1999998092651367,
+            "max": 1.5999999046325684,
+            "p95": 1.5449999570846558,
+            "p99": 1.5889999151229859,
+            "stdDev": 0.11281524186083085,
+            "ci95": 0.07327564903917386,
+            "samples": 12,
+            "samplesAfterOutlierRemoval": 12,
+            "outliersRemoved": 0
+          }
+        }
+      }
+    ],
+    "errors": []
+  }
+}

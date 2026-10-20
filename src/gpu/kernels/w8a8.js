@@ -57,7 +57,7 @@ export function validateW8A8Matmul(device, input, weights, M, N, K, options) {
     || K > W8A8_POLICY.maxReductionWidth || !Number.isSafeInteger(M * N) || M * N > 0xffffffff) {
     throw new Error('W8A8 dimensions exceed the exact I32 accumulation contract.');
   }
-  if (!options || !['w8a8_portable', 'w8a8_packed'].includes(options.variant)) {
+  if (!options || !['w8a8_portable', 'w8a8_packed', 'w8a8_packed_cooperative'].includes(options.variant)) {
     throw new Error('W8A8 requires an explicitly declared portable or packed variant.');
   }
   if (input?.dtype !== 'f32' || weights?.dtype !== 'w8a8' || weights.layout !== 'row'
@@ -96,8 +96,12 @@ export function validateW8A8Matmul(device, input, weights, M, N, K, options) {
     if (!hasRequiredFeatures([...config.requires], capabilities, [...getKernelWgslRequirements(config)])) {
       throw new Error(`W8A8 declared kernel ${operation}/${variant} requires unavailable capabilities.`);
     }
-    const workgroups = operation === 'w8a8_quantize' ? M : Math.ceil(M * N / config.workgroupSize[0]);
-    if (workgroups > device.limits.maxComputeWorkgroupsPerDimension) throw new Error('W8A8 dispatch exceeds device workgroup limits.');
+    const workgroups = operation === 'matmul'
+      ? calculateMatmulDispatch(variant, false, false, M, N, config).workgroups
+      : [operation === 'w8a8_quantize' ? M : Math.ceil(M * N / config.workgroupSize[0])];
+    if (workgroups.some(count => count > device.limits.maxComputeWorkgroupsPerDimension)) {
+      throw new Error('W8A8 dispatch exceeds device workgroup limits.');
+    }
   }
   return { rows: M, columns: N, inner: K, row_words: rowStrideBytes / 4 };
 }

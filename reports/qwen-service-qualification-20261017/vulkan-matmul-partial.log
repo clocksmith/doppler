@@ -1,0 +1,10 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.9ms
+fused-matmul-q4-widetile-f16a-parity:
+  shape M=19 K=512 N=517 TILE_M=8 TILE_N=128
+  max_abs_diff=3.907e-3 max_rel_diff=8.964e-1
+  nan_count=0 inf_count=0 first_nan_idx=-1 first_diff_idx=-1
+  actual[0..6]=-0.0562,-0.0864,-0.0974,-0.0028,0.1632,0.0061
+  expected[0..6]=-0.0562,-0.0863,-0.0977,-0.0029,0.1624,0.0060
+fused-matmul-q4-widetile-f16a-parity.test: ok

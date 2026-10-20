@@ -344,6 +344,8 @@ export interface GenerateOptions {
 
   /** @category generation Enable speculative decoding */
   useSpeculative?: boolean;
+  /** Exact target-verified lookup requires greedy sampling and explicit bounds. */
+  speculation?: Partial<import('../../../config/schema/speculation-self.schema.js').SelfSpeculationConfig> | null;
 
   /** @category hybrid Apply chat template (auto-detected for Gemma) */
   useChatTemplate?: boolean;
@@ -524,6 +526,8 @@ export interface GenerationResult {
     prefillTimeMs: number;
     decodeTimeMs: number;
     totalTimeMs: number;
+    speculationAttempts?: number;
+    speculationAccepted?: number;
     tokensGenerated: number;
   };
 }
@@ -604,6 +608,8 @@ export interface PipelineStats {
   modelLoadMs?: number;
   loadTiming?: LoaderLoadTiming | null;
   pipelineLoadTiming?: PipelineLoadTiming | null;
+  speculationAttempts?: number;
+  speculationAccepted?: number;
   tokensGenerated: number;
   totalTimeMs: number;
   gpuTimePrefillMs?: number;

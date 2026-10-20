@@ -3,6 +3,7 @@ import type { KernelPathSource } from '../../../config/kernel-path-loader.js';
 import type { Manifest } from './config.js';
 
 export interface ResolvedWeightLoadingConfig {
+  representationPaths?: KernelPathSchema[];
   useFusedQ4K: boolean;
   q4kLayout: 'row' | 'col' | null;
   keepF32Weights: boolean;

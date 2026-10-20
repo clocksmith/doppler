@@ -1,15 +1,49 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
 
 import {
   ARTIFACT_FORMAT_DIRECT_SOURCE,
   ARTIFACT_FORMAT_RDRR,
+  createArtifactStorageContext,
   createHttpArtifactStorageContext,
   createNodeFileArtifactStorageContext,
   getArtifactFormat,
 } from '../../src/storage/artifact-storage-context.js';
+
+// Independent official BLAKE3 digest, plus the retained pre-correction digest
+// for identical bytes. Verification must reject the latter without mutation.
+{
+  const vectors = JSON.parse(readFileSync(new URL('./blake3-vectors.json', import.meta.url), 'utf8'));
+  const standard = vectors.cases.find(row => row.length === 65).hex;
+  const legacy = 'b5ef4905c6aa739c7c0573dc76813e0b6ef2da83aafbc212bb4e30181783671f';
+  const bytes = Uint8Array.from({ length: 65 }, (_, index) => index);
+  for (const streaming of [false, true]) {
+    for (const digest of [standard, legacy]) {
+      const manifest = { modelId: 'blake3-control', hashAlgorithm: 'blake3', shards: [
+        { filename: 'weights.bin', size: bytes.length, hash: digest },
+      ] };
+      const original = JSON.stringify(manifest);
+      const context = createArtifactStorageContext({
+        manifest, verifyHashes: true,
+        async readRange(_path, offset, length) { return bytes.slice(offset, offset + length); },
+        streamRange: streaming ? async function* () {
+          yield bytes.subarray(0, 64);
+          yield bytes.subarray(64);
+        } : undefined,
+      });
+      if (digest === standard) {
+        assert.deepEqual(new Uint8Array(await context.loadShard(0)), bytes);
+      } else {
+        await assert.rejects(context.loadShard(0), /Artifact shard hash mismatch/);
+        await assert.rejects(context.loadShard(0), /Artifact shard hash mismatch/);
+      }
+      assert.equal(JSON.stringify(manifest), original, 'verification must not rewrite legacy identity');
+      assert.deepEqual([...bytes], Array.from({ length: 65 }, (_, index) => index));
+    }
+  }
+}
 
 {
   const directSourceManifest = {

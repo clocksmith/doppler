@@ -193,9 +193,13 @@ function buildPhase(name, wallMs, profileSteps, metrics, fallbackOps = null) {
     0
   );
   const observedDispatches = sampleMetric(metrics, `${name}RecordOps`);
-  const dispatches = observedOperations.length > 0
-    ? attributedDispatches
-    : Math.max(attributedDispatches, observedDispatches ?? 0);
+  // A sampled/truncated trace does not replace the full phase's operation count.
+  const dispatches = Math.max(attributedDispatches, observedDispatches ?? 0);
+  const submissionCounts = steps.map((step) => step.recorderStats?.submissionCount);
+  const commandBufferSubmissions = submissionCounts.length > 0
+    && submissionCounts.every((count) => Number.isSafeInteger(count) && count >= 0)
+    ? submissionCounts.reduce((sum, count) => sum + count, 0)
+    : null;
   const knownDispatchGeometry = operations.reduce(
     (sum, operation) => sum + operation.knownDispatchGeometry,
     0
@@ -221,7 +225,7 @@ function buildPhase(name, wallMs, profileSteps, metrics, fallbackOps = null) {
     dispatches,
     unattributedDispatches: Math.max(0, dispatches - attributedDispatches),
     dispatchGeometryCoverage: dispatches > 0 ? knownDispatchGeometry / dispatches : null,
-    commandBufferSubmissions: steps.length,
+    commandBufferSubmissions,
     observerReadbacks: hasTimestampEvidence ? steps.length : 0,
     executionReadbacks: {
       value: null,
@@ -360,9 +364,8 @@ export function classifyTokenCostLedger(ledger, policy) {
       'reduce-command-pass-count',
     ],
     'submit-readback-fence': [
-      'gpu-resident-sampling-feedback',
-      'reduce-submissions',
-      'deepen-readback-ring',
+      'attribute-gpu-operators-inside-fence',
+      'compare-profiled-and-unprofiled-requests',
     ],
     'host-orchestration': [
       'remove-per-token-graph-traversal',

@@ -2,7 +2,7 @@ import { createTrainingConfig } from '../../config/training-defaults.js';
 import { loadBackwardRegistry } from '../../config/backward-registry-loader.js';
 import { getWeightDtype, isWeightBuffer } from '../../gpu/weight-buffer.js';
 import { createTensor, tensorBytes } from '../../gpu/tensor.js';
-import { runMatmul, runRMSNorm, runResidualAdd } from '../../gpu/kernels/index.js';
+import { runMatmul, runRMSNorm, runResidualAdd, runScale } from '../../gpu/kernels/index.js';
 import { readBuffer, releaseBuffer, uploadData } from '../../memory/buffer-pool.js';
 import { LoraAdapter } from './lora.js';
 import { AdamOptimizer } from './optimizer.js';
@@ -12,6 +12,9 @@ import { trainStep } from './trainer.js';
 import { OpType } from './autograd.js';
 import { createUploadedTensor } from './tensor-factory.js';
 import { exportLoRAAdapter } from './export.js';
+import { computeCanonicalSha256 } from '../../formats/canonical-hash.js';
+import { detectOverflow } from './loss-scaling.js';
+import { createLoRATrainingRound, validateLoRATrainingRound, validateLoRAContributions, describeLoRATrainingSample } from './lora-training-round.js';
 
 function asWeightTensor(weight, shape, label) {
   if (!weight) throw new Error(`native_qwen_lora_missing_weight: ${label}.`);
@@ -66,7 +69,7 @@ async function serializeTensor(tensor) {
   };
 }
 
-function restoreTensor(tensor, snapshot, label) {
+function validateTensorSnapshot(tensor, snapshot, label) {
   if (snapshot?.dtype !== tensor.dtype || JSON.stringify(snapshot?.shape) !== JSON.stringify(tensor.shape)) {
     throw new Error(`native_qwen_lora_checkpoint_tensor_mismatch: ${label}.`);
   }
@@ -75,7 +78,7 @@ function restoreTensor(tensor, snapshot, label) {
   if (bytes.byteLength !== expectedBytes) {
     throw new Error(`native_qwen_lora_checkpoint_tensor_size_mismatch: ${label}.`);
   }
-  uploadData(tensor.buffer, bytes);
+  return bytes;
 }
 
 function createCausalLmObjective(owner) {
@@ -170,6 +173,8 @@ export class NativeQwenLoRATrainer {
     this.registry = loadBackwardRegistry();
     this.activeCapture = null;
     this.disposed = false;
+    this.operationActive = false;
+    this.failed = false;
   }
 
   paramGroups() {
@@ -253,7 +258,18 @@ export class NativeQwenLoRATrainer {
     this.activeCapture = null;
   }
 
-  async trainStep(inputIds, targetIds, supervisedTokenCount) {
+  async withOperation(operation) {
+    if (this.disposed || this.failed) throw new Error('NativeQwenLoRATrainer is unavailable; initialize a new trainer.');
+    if (this.operationActive) throw new Error('native_qwen_lora_operation_already_active.');
+    this.operationActive = true;
+    try { return await operation(); } finally { this.operationActive = false; }
+  }
+
+  trainStep(inputIds, targetIds, supervisedTokenCount) {
+    return this.withOperation(() => this.runStep(inputIds, targetIds, supervisedTokenCount));
+  }
+
+  async runStep(inputIds, targetIds, supervisedTokenCount, contribution = null) {
     if (this.disposed) throw new Error('NativeQwenLoRATrainer is disposed.');
     if (inputIds.length !== targetIds.length) {
       throw new Error('native_qwen_lora_target_length_mismatch.');
@@ -286,15 +302,30 @@ export class NativeQwenLoRATrainer {
           clipGradients,
           optimizer: this.optimizer,
           trainingObjective: createCausalLmObjective(this),
+          applyClip: contribution === null,
+          applyOptimizer: contribution === null,
         }
       );
-      const gradientNorm = result.clipMetrics?.gradient_norm_unclipped ?? null;
-      releaseTensorSet(result.grads.values(), new Set());
-      return {
-        loss: result.objectiveMetrics.loss,
-        gradientNorm,
-        optimizer: result.optimizerMetrics,
-      };
+      try {
+        if (contribution) {
+          if (await detectOverflow(result.grads)) throw new Error('LoRA round: non-finite local gradient.');
+          return {
+            ...contribution,
+            loss: result.objectiveMetrics.loss,
+            gradients: {
+              A: await serializeTensor(result.grads.get(this.adapter.A)),
+              B: await serializeTensor(result.grads.get(this.adapter.B)),
+            },
+          };
+        }
+        return {
+          loss: result.objectiveMetrics.loss,
+          gradientNorm: result.clipMetrics?.gradient_norm_unclipped ?? null,
+          optimizer: result.optimizerMetrics,
+        };
+      } finally {
+        releaseTensorSet(result.grads.values(), new Set());
+      }
     } finally {
       releaseBuffer(targets.buffer);
       if (this.activeCapture) {
@@ -305,7 +336,7 @@ export class NativeQwenLoRATrainer {
   }
 
   exportAdapter(options) {
-    return exportLoRAAdapter({
+    return this.withOperation(() => exportLoRAAdapter({
       id: options.id,
       name: options.name,
       baseModel: this.baseModelId,
@@ -318,15 +349,23 @@ export class NativeQwenLoRATrainer {
       ],
       weightsFormat: 'safetensors',
       weightsPath: options.weightsPath,
+      version: options.version,
+      description: options.description,
       metadata: {
+        ...options.metadata,
+        baseManifestHash: computeCanonicalSha256(this.pipeline.manifest),
         trainingBackend: 'webgpu_native',
         trainingSurfaces: ['browser', 'node', 'bun'],
         targetLayer: this.layerIdx,
       },
-    });
+    }));
   }
 
-  async createCheckpoint() {
+  createCheckpoint() {
+    return this.withOperation(() => this.captureCheckpoint());
+  }
+
+  async captureCheckpoint() {
     if (this.disposed) throw new Error('NativeQwenLoRATrainer is disposed.');
     const params = [this.adapter.A, this.adapter.B];
     const optimizer = [];
@@ -354,6 +393,12 @@ export class NativeQwenLoRATrainer {
   }
 
   restoreCheckpoint(checkpoint) {
+    if (this.operationActive) throw new Error('native_qwen_lora_operation_already_active.');
+    if (this.failed) throw new Error('NativeQwenLoRATrainer is unavailable; initialize a new trainer.');
+    this.applyCheckpoint(checkpoint);
+  }
+
+  applyCheckpoint(checkpoint) {
     if (this.disposed) throw new Error('NativeQwenLoRATrainer is disposed.');
     if (
       checkpoint?.schemaVersion !== 1
@@ -370,19 +415,126 @@ export class NativeQwenLoRATrainer {
     ) {
       throw new Error('native_qwen_lora_checkpoint_identity_mismatch.');
     }
-    const params = [this.adapter.A, this.adapter.B];
-    restoreTensor(this.adapter.A, checkpoint.adapter?.A, 'adapter.A');
-    restoreTensor(this.adapter.B, checkpoint.adapter?.B, 'adapter.B');
-    params.forEach((param, index) => {
+    const entries = [
+      [this.adapter.A, checkpoint.adapter?.A, 'adapter.A'],
+      [this.adapter.B, checkpoint.adapter?.B, 'adapter.B'],
+    ];
+    [this.adapter.A, this.adapter.B].forEach((param, index) => {
       const state = this.optimizer.getState(param);
-      restoreTensor(state.m, checkpoint.optimizer[index]?.m, `optimizer.${index}.m`);
-      restoreTensor(state.v, checkpoint.optimizer[index]?.v, `optimizer.${index}.v`);
+      entries.push([state.m, checkpoint.optimizer[index]?.m, `optimizer.${index}.m`]);
+      entries.push([state.v, checkpoint.optimizer[index]?.v, `optimizer.${index}.v`]);
     });
+    const validated = entries.map(([tensor, snapshot, label]) => [tensor, validateTensorSnapshot(tensor, snapshot, label)]);
+    for (const [tensor, bytes] of validated) uploadData(tensor.buffer, bytes);
     this.optimizer.stepCount = checkpoint.stepCount;
+  }
+
+  describeTrainingSample(participantId, sample) {
+    return describeLoRATrainingSample(participantId, sample);
+  }
+
+  createTrainingRound({ jobId, roundId, assignments }) {
+    return this.withOperation(async () => createLoRATrainingRound({
+      jobId, roundId, assignments,
+      baseManifestHash: computeCanonicalSha256(this.pipeline.manifest),
+      trainingConfigHash: computeCanonicalSha256(this.trainingConfig.training),
+      checkpoint: await this.captureCheckpoint(),
+    }));
+  }
+
+  validateRoundIdentity(round) {
+    validateLoRATrainingRound(round);
+    if (round.baseManifestHash !== computeCanonicalSha256(this.pipeline.manifest)
+      || round.trainingConfigHash !== computeCanonicalSha256(this.trainingConfig.training)) {
+      throw new Error('LoRA round: base artifact or training configuration mismatch.');
+    }
+  }
+
+  computeGradientContribution(round, participantId, sample) {
+    return this.withOperation(async () => {
+      this.validateRoundIdentity(round);
+      const assignment = round.assignments.find((entry) => entry.participantId === participantId);
+      if (!assignment || assignment.sampleHash !== computeCanonicalSha256(sample)
+        || assignment.supervisedTokenCount !== sample.supervisedTokenCount) {
+        throw new Error('LoRA round: sample does not match its assignment.');
+      }
+      this.applyCheckpoint(round.checkpoint);
+      return this.runStep(sample.inputIds, sample.targetIds, sample.supervisedTokenCount, {
+        schema: 'doppler.lora-gradient-contribution/v1',
+        roundHash: round.roundHash,
+        participantId,
+        sampleHash: assignment.sampleHash,
+        supervisedTokenCount: sample.supervisedTokenCount,
+      });
+    });
+  }
+
+  applyGradientContributions(round, contributions) {
+    return this.withOperation(() => this.applyRound(round, contributions));
+  }
+
+  async applyRound(round, contributions) {
+    this.validateRoundIdentity(round);
+    const ordered = validateLoRAContributions(round, contributions);
+    if (computeCanonicalSha256(await this.captureCheckpoint()) !== round.checkpointHash) {
+      throw new Error('LoRA round: stale coordinator checkpoint; refusing a repeated or outdated update.');
+    }
+    const tokenCount = ordered.reduce((sum, entry) => sum + entry.supervisedTokenCount, 0);
+    const parameters = [this.adapter.A, this.adapter.B];
+    const owned = new Set();
+    const gradients = new Map();
+    let optimizerStarted = false;
+    try {
+      for (const [index, name] of ['A', 'B'].entries()) {
+        const parameter = parameters[index];
+        let sum = null;
+        for (const entry of ordered) {
+          const snapshot = entry.gradients?.[name];
+          if (snapshot?.dtype !== 'f32' || JSON.stringify(snapshot.shape) !== JSON.stringify(parameter.shape)) {
+            throw new Error(`LoRA round: invalid ${name} gradient layout.`);
+          }
+          const expectedBytes = tensorBytes(parameter.shape, 'f32');
+          if (typeof snapshot.bytes !== 'string' || snapshot.bytes.length !== Math.ceil(expectedBytes / 3) * 4) {
+            throw new Error('LoRA round: invalid gradient payload length.');
+          }
+          const bytes = decodeBytes(snapshot.bytes);
+          if (bytes.byteLength !== expectedBytes) throw new Error('LoRA round: invalid gradient byte length.');
+          const uploaded = createUploadedTensor(bytes, 'f32', parameter.shape, `lora_round_${name}`);
+          owned.add(uploaded);
+          const scaled = await runScale(uploaded, entry.supervisedTokenCount / tokenCount, { inplace: false });
+          owned.add(scaled);
+          sum = sum ? await runResidualAdd(sum, scaled, parameter.shape.reduce((a, b) => a * b, 1)) : scaled;
+          owned.add(sum);
+        }
+        gradients.set(parameter, sum);
+      }
+      if (await detectOverflow(gradients)) throw new Error('LoRA round: non-finite aggregate gradient.');
+      // Clip the global token-weighted mean exactly once, then perform one AdamW update.
+      const clipped = await clipGradients(gradients, this.trainingConfig);
+      for (const tensor of clipped.clippedGrads.values()) owned.add(tensor);
+      optimizerStarted = true;
+      const optimizer = await this.optimizer.step(parameters, clipped.clippedGrads, this.trainingConfig);
+      return {
+        roundHash: round.roundHash,
+        contributors: ordered.map((entry) => entry.participantId),
+        supervisedTokenCount: tokenCount,
+        loss: ordered.reduce((sum, entry) => sum + entry.loss * (entry.supervisedTokenCount / tokenCount), 0),
+        gradientNorm: clipped.gradient_norm_unclipped,
+        optimizer,
+        stepCount: this.optimizer.stepCount,
+      };
+    } catch (error) {
+      // A failed GPU update may be partial. Never continue or silently retry it.
+      if (optimizerStarted) this.failed = true;
+      throw error;
+    } finally {
+      releaseTensorSet(owned, new Set());
+    }
   }
 
   dispose() {
     if (this.disposed) return;
+    if (this.operationActive) throw new Error('native_qwen_lora_operation_already_active.');
     this.disposed = true;
     if (this.activeCapture) this.activeCapture.dispose();
     for (const state of this.optimizer.state.values()) {

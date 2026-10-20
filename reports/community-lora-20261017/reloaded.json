@@ -1,0 +1,25 @@
+{
+  "schema": "doppler.community-lora-qualification/v1",
+  "action": "verify",
+  "source": {
+    "src/experimental/training/native-qwen-lora.js": "e56952e7d15927580ee512781f1dcf2c3a69d7102380bbbc8a6ec0b38d5f6db0",
+    "src/experimental/training/lora-training-round.js": "f2aeb31080952e4053b42bb93688f16f1e733a0c8ddfa5ac9dd4b70e42d903f9"
+  },
+  "device": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "apple-m3",
+    "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)"
+  },
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "baseManifestHash": "sha256:cf20c690cc397a4bd8e64ee4b00158114947ee75568c0ae8f2df8a9ebc052965",
+  "result": {
+    "adapterId": "qwen35-community-round-qualification",
+    "version": "0.0.1",
+    "corruptionRejected": true,
+    "adapterDelta": 0.0001690387725830078,
+    "restoredDelta": 0,
+    "finiteLogits": 248320,
+    "qualityQualified": false
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "comparison": "successor frozen 0e75e3c4 versus retained representation candidate-v3 on M3, same config and workload; not a speed comparison",
+  "passed": true,
+  "rows": [
+    {
+      "stage": "first",
+      "tokensEqual": true,
+      "textEqual": true,
+      "logitsEqual": true
+    },
+    {
+      "stage": "numerical",
+      "tokensEqual": true,
+      "textEqual": true,
+      "logitsEqual": true
+    },
+    {
+      "stage": "long-prefill",
+      "tokensEqual": true,
+      "textEqual": true,
+      "logitsEqual": true
+    }
+  ]
+}

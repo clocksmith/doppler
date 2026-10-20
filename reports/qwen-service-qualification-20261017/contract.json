@@ -1,0 +1,54 @@
+{
+  "schema": "doppler.qwen-service-campaign/v1",
+  "models": [
+    "qwen-3-5-0-8b-q4k-ehaf16",
+    "qwen-3-5-2b-q4k-ehaf16"
+  ],
+  "platforms": [
+    "Apple M3 Metal",
+    "AMD Radeon 8060S Vulkan"
+  ],
+  "surfaces": [
+    "node",
+    "browser"
+  ],
+  "maxConcurrentGpuJobsPerHost": 1,
+  "perJobTimeoutMs": 600000,
+  "maxPromptTokens": 512,
+  "maxOutputTokens": 128,
+  "primaryModel": "qwen-3-5-2b-q4k-ehaf16",
+  "numericalGate": {
+    "recurrent": "exact output and state bytes against baseline; CPU-reference tolerance unchanged",
+    "matmul": "existing CPU/reference tolerance, complete partial-tile coverage",
+    "generation": "identical 64 prompt token IDs and all 128 generated IDs vs retained reference"
+  },
+  "lifecycle": [
+    "cancel after submitted generation",
+    "same-session reuse",
+    "explicit device.destroy loss",
+    "reject old session",
+    "new device/session recovery"
+  ],
+  "exclusions": [
+    "real driver crash recovery",
+    "general quality",
+    "external retention"
+  ],
+  "memory": "managed allocations and process RSS are separate; no physical GPU memory claim",
+  "reploidJourney": {
+    "maxConcurrentRequests": 2,
+    "model": "qwen-3-5-2b-q4k-ehaf16",
+    "requesterWeights": false,
+    "wholeModelFirst": true
+  },
+  "qwen27": {
+    "accepted": false,
+    "chunkSizeRequired": 256,
+    "sourceRevision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+    "cpuF16ControlTimeoutSeconds": 600,
+    "qualityTasks": 14
+  },
+  "initialCandidateCommit": "64801866",
+  "candidateCommit": "8b211c3f",
+  "archiveSha256": "6b057b0e526a7a18afcefd655cb2fc4acb96e958962eee5a67b3caee231be1f9"
+}

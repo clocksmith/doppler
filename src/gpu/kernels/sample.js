@@ -12,7 +12,7 @@ import { createKernelUniformBuffer } from './uniform-utils.js';
 import { allowReadback } from '../perf-guards.js';
 import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
 import { selectRuleValue as selectSharedRuleValue } from '../../rules/rule-registry.js';
-import { getKernelThresholds } from '../../config/schema/index.js';
+import { getKernelThresholdSnapshot } from '../../config/schema/index.js';
 import { recordDispatch } from './dispatch.js';
 import { validateGenerationField } from '../../config/generation-contract.js';
 
@@ -103,7 +103,7 @@ function assertSampleOptions(options, recordMode = false) {
 async function resolveArgmaxPipelines(device, vocabSize, variants) {
   const argmaxPipeline = await createSamplePipeline(device, variants.argmax);
   const reduceWorkgroups = Math.min(WORKGROUP_SIZES.DEFAULT, Math.ceil(vocabSize / WORKGROUP_SIZES.DEFAULT));
-  const { argmaxReduceVocabThreshold } = getKernelThresholds().sample;
+  const { argmaxReduceVocabThreshold } = getKernelThresholdSnapshot().sample;
   const useSinglePassArgmax = vocabSize <= argmaxReduceVocabThreshold;
   const numWorkgroups = useSinglePassArgmax ? 1 : reduceWorkgroups;
   const reducePipeline = useSinglePassArgmax

@@ -10,12 +10,10 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { buildExecutionContractArtifact } from '../src/config/execution-contract-check.js';
 import { buildManifestRequiredInferenceFieldsArtifact } from '../src/config/required-inference-fields-contract-check.js';
-import { mergeKernelPathPolicy } from '../src/config/merge-helpers.js';
+import { mergeKernelPathPolicy } from '../src/config/merge/kernel-path-policy.js';
 import { mergeRuntimeValues } from '../src/config/runtime-merge.js';
-import {
-  DEFAULT_EXTERNAL_MODELS_ROOT,
-  buildEntryRemoteBaseUrl,
-} from '../src/tooling/hf-registry-utils.js';
+import { DEFAULT_EXTERNAL_MODELS_ROOT } from '../src/tooling/hf-registry/catalog-io.js';
+import { buildEntryRemoteBaseUrl } from '../src/tooling/hf-registry/registry-urls.js';
 import { resolveSyntheticPromptForModel } from '../benchmarks/vendors/workload-prompt.js';
 import {
   DEFAULT_RESOURCE_TELEMETRY_INTERVAL_MS,
@@ -864,6 +862,8 @@ function usage() {
     '  --top-k <n>                   Sampling top-k',
     '  --top-p <n>                   Sampling top-p',
     '  --warmup <n>                  Warmup runs per engine',
+    '  --warm-engine-order <order>   doppler-first|transformersjs-first; alternate between paired sessions',
+    '  --cold-engine-order <order>   doppler-first|transformersjs-first; defaults to doppler-first',
     '  --runs <n>                    Timed runs per engine',
     '  --decode-profile <profile>     parity|throughput|custom (default: parity)',
     '  --doppler-surface <surface>     auto|node|browser|bun (default: from compare profile, fallback auto)',
@@ -1621,8 +1621,9 @@ function resolveCompareRuntimeProfileMap(compareProfile, platform = process.plat
   });
 }
 
-async function loadCompareProfileRuntimeBundles(compareProfile, platform = process.platform) {
-  const entries = Object.entries(resolveCompareRuntimeProfileMap(compareProfile, platform));
+async function loadCompareProfileRuntimeBundles(compareProfile, platform = process.platform, requiredProfiles = null) {
+  const entries = Object.entries(resolveCompareRuntimeProfileMap(compareProfile, platform))
+    .filter(([profile]) => requiredProfiles === null || requiredProfiles.includes(profile));
   if (entries.length === 0) {
     return new Map();
   }
@@ -5034,6 +5035,31 @@ function resolvePromptContractValidity(promptContract) {
   return { ok: true, invalidReason: null };
 }
 
+function assertComparableTiming(doppler, transformersjs) {
+  for (const [engine, value] of Object.entries({ doppler, transformersjs })) {
+    const result = [value?.result?.result, value?.result, value].find((row) => row?.timing);
+    if (result?.timing?.scope !== 'generation-call-through-completion') {
+      throw new Error(`${engine}: comparable generation timing scope is missing`);
+    }
+    if (result?.metrics?.samplePolicy?.outlierPolicy !== 'none') {
+      throw new Error(`${engine}: comparable timing must retain all samples`);
+    }
+    const samples = engine === 'doppler' ? result.metrics.requestTiming?.samples : result.runs;
+    if (!Array.isArray(samples) || samples.length === 0) {
+      throw new Error(`${engine}: comparable timing samples are missing`);
+    }
+    for (const sample of samples) {
+      const first = engine === 'doppler' ? sample.firstTokenMs : sample.ttftMs;
+      const total = engine === 'doppler' ? sample.totalRunMs : sample.totalMs;
+      if (!Number.isFinite(first) || first < 0 || !Number.isFinite(total) || total < first
+        || !Number.isFinite(sample.decodeMs) || sample.decodeMs < 0
+        || Math.abs(total - first - sample.decodeMs) > 0.001) {
+        throw new Error(`${engine}: invalid generation timing sample`);
+      }
+    }
+  }
+}
+
 function buildCompareSection({
   cacheMode,
   loadMode,
@@ -5678,6 +5704,14 @@ async function main() {
     console.log(usage());
     return;
   }
+  const warmEngineOrder = flags['warm-engine-order'] ?? 'doppler-first';
+  if (!['doppler-first', 'transformersjs-first'].includes(warmEngineOrder)) {
+    throw new Error('--warm-engine-order must be doppler-first or transformersjs-first');
+  }
+  const coldEngineOrder = flags['cold-engine-order'] ?? 'doppler-first';
+  if (!['doppler-first', 'transformersjs-first'].includes(coldEngineOrder)) {
+    throw new Error('--cold-engine-order must be doppler-first or transformersjs-first');
+  }
   const runTimestamp = parseTimestampValue(flags.timestamp, '--timestamp');
   const workloadCatalog = await loadWorkloadCatalog();
   const defaultWorkloadId = workloadCatalog.defaultWorkloadId;
@@ -5715,7 +5749,9 @@ async function main() {
   const defaultDopplerModelId = resolveDefaultDopplerModelId(compareProfileConfig);
   const dopplerModelId = flags['model-id'] || defaultDopplerModelId;
   const compareProfile = resolveCompareProfile(compareProfileConfig, dopplerModelId);
-  const compareProfileRuntimeBundles = await loadCompareProfileRuntimeBundles(compareProfile);
+  const decodeProfile = parseDecodeProfile(flags['decode-profile']);
+  const requiredProfiles = ['compute', 'all'].includes(flags.mode ?? 'all') ? null : [decodeProfile];
+  const compareProfileRuntimeBundles = await loadCompareProfileRuntimeBundles(compareProfile, process.platform, requiredProfiles);
   const modelCatalog = await loadModelCatalogBundle();
   const catalogCompareBenchmark = resolveCatalogTransformersjsBenchmarkTarget(modelCatalog, dopplerModelId, null);
   if (
@@ -5945,7 +5981,6 @@ async function main() {
     promptContract: sharedContract.promptContract,
   });
   const outputParityPolicy = resolveOutputParityPolicy(sharedContract, compareProfile);
-  const decodeProfile = parseDecodeProfile(flags['decode-profile']);
   const resolveCompareProfileRuntimeBundle = (profileId) => compareProfileRuntimeBundles.get(profileId) || null;
   const compareProfileRuntimeBundleMetadata = Object.fromEntries(
     [...compareProfileRuntimeBundles.entries()].map(([profileId, bundle]) => [
@@ -6264,6 +6299,10 @@ async function main() {
       cold: resolvedLoadModes.cold,
     },
     methodology: {
+      warmEngineOrder,
+      coldEngineOrder,
+      timingScope: 'generation-call-through-completion',
+      outlierPolicy: 'none',
       promptTokensPerSecToFirstToken: 'prompt_tokens / firstTokenMs',
       prefillPhaseMs: {
         doppler: 'available inside Doppler payload timing.prefillMs as internal_prefill_phase',
@@ -6315,7 +6354,9 @@ async function main() {
         intervalMs: resourceTelemetryOptions.intervalMs,
         includeSamples: resourceTelemetryOptions.includeSamples,
         sources: {
-          processTree: 'linux procfs process tree',
+          processTree: process.platform === 'darwin'
+            ? 'macOS ps process tree; aggregate RSS includes shared mappings'
+            : 'linux procfs process tree',
           systemRam: 'linux /proc/meminfo',
           gpu: 'optional rocm-smi device-global telemetry when available',
         },
@@ -6538,10 +6579,12 @@ async function main() {
         }),
       };
     }
+    assertComparableTiming(dopplerComputeParity, tjsCompute);
     report.correctness = buildCorrectnessReport(dopplerComputeParity, tjsCompute, sharedContract.promptRaw);
   }
 
   if (needWarm) {
+    const runDopplerWarm = async () => {
     dopplerWarm = await runDoppler(
       dopplerModelId,
       dopplerModelSource.modelUrl,
@@ -6578,7 +6621,8 @@ async function main() {
       'warm',
       'Doppler'
     );
-
+    };
+    const runTransformersjsWarm = async () => {
     tjsWarm = await runTjs(
       tjsModelId,
       sharedContract,
@@ -6605,6 +6649,12 @@ async function main() {
       'warm',
       'TJS'
     );
+    };
+    const runners = warmEngineOrder === 'doppler-first'
+      ? [runDopplerWarm, runTransformersjsWarm]
+      : [runTransformersjsWarm, runDopplerWarm];
+    for (const run of runners) await run();
+    assertComparableTiming(dopplerWarm, tjsWarm);
 
     report.sections.warm = buildCompareSection({
       cacheMode: 'warm',
@@ -6619,6 +6669,7 @@ async function main() {
   }
 
   if (needCold) {
+    const runDopplerCold = async () => {
     dopplerCold = await runDoppler(
       dopplerModelId,
       dopplerModelSource.modelUrl,
@@ -6656,6 +6707,8 @@ async function main() {
       'Doppler'
     );
 
+    };
+    const runTransformersjsCold = async () => {
     tjsCold = await runTjs(
       tjsModelId,
       sharedContract,
@@ -6683,6 +6736,12 @@ async function main() {
       'TJS'
     );
 
+    };
+    const runners = coldEngineOrder === 'doppler-first'
+      ? [runDopplerCold, runTransformersjsCold]
+      : [runTransformersjsCold, runDopplerCold];
+    for (const run of runners) await run();
+    assertComparableTiming(dopplerCold, tjsCold);
     report.sections.cold = buildCompareSection({
       cacheMode: 'cold',
       loadMode: resolvedLoadModes.cold,
@@ -6800,6 +6859,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 }
 
 export {
+  assertComparableTiming,
   applyDopplerBenchCaptureRunConfig,
   attachCompareFairnessAudit,
   buildCompareSection,
@@ -6813,6 +6873,7 @@ export {
   assertDopplerDecodeCadence,
   loadModelCatalogBundle,
   loadResolvedRuntimeProfileBundle,
+  loadCompareProfileRuntimeBundles,
   normalizeCompareLoadModeDefaults,
   parseArgs,
   parseJsonBlock,

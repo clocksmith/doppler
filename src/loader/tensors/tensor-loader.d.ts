@@ -16,6 +16,7 @@ import type { TensorLocation, KernelCapabilities } from '../loader-types.js';
 import type { LoaderDebugConfigSchema } from '../../config/schema/debug.schema.js';
 
 export interface TensorLoadConfig {
+  representationRequirement?: import('../weight-representation-plan.js').WeightRepresentationRequirement | null;
   /** Bound layer consumer slot; distinct from the immutable artifact tensor role. */
   consumerRole?: string;
   w8a8Policy?: W8A8Policy | null;

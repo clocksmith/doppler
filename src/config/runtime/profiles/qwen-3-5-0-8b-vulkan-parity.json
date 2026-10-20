@@ -1,0 +1,88 @@
+{
+  "id": "profiles/qwen-3-5-0-8b-vulkan-parity",
+  "name": "qwen-3-5-0-8b-vulkan-parity",
+  "description": "Qwen 3.5 0.8B browser/Vulkan candidate. Uses the existing decode fusions and overlapped readback with parity 4x4 cadence, retaining manifest prefill projections. Physical qualification is scoped to Radeon 8060S; this profile does not establish support for every Linux GPU.",
+  "intent": "calibrate",
+  "compatibleIntents": [
+    "calibrate"
+  ],
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-10-17T00:00:00Z",
+  "extends": "profiles/throughput",
+  "model": "qwen-3-5-0-8b-q4k-ehaf16",
+  "runtime": {
+    "inference": {
+      "executionPatch": {
+        "addKernels": [
+          {
+            "key": "attn_decode_head256",
+            "kernel": {
+              "kernel": "attention_decode_online_head256_f16kv_output_gate.wgsl",
+              "entry": "main",
+              "digest": "sha256:275a1f7cfdd40ab95c467bb4744a1509dd6eadb39ec8fdd0d1e1ba80eb34f9c5",
+              "precision": {
+                "kvDtype": "f16"
+              }
+            }
+          }
+        ],
+        "set": [
+          {
+            "section": "decode",
+            "op": "attention",
+            "kernelKey": "attn_decode_head256"
+          }
+        ]
+      },
+      "batching": {
+        "batchSize": 4,
+        "readbackInterval": 4,
+        "stopCheckMode": "batch",
+        "readbackMode": "overlapped",
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 2
+      },
+      "session": {
+        "usePostFfnNextInputRMSNormPairFusion": true,
+        "useGreedyLmHeadArgmaxFusion": true,
+        "lmHeadArgmaxQ4K": {
+          "useFullBlockFastPath": true,
+          "colsPerWorkgroup": 128,
+          "threadsPerCol": 2
+        },
+        "attentionDecodeOnline": {
+          "useDirectContiguousKVLayout": true,
+          "useOutputGateFusion": true
+        },
+        "useFusedQKVSplitQKNormRoPE": true,
+        "useLinearAttentionABProjectionFusion": true,
+        "useLinearAttentionQKVZProjectionFusion": false,
+        "useLinearAttentionFusedDecodeCore": true,
+        "decodeLoop": {
+          "batchSize": 4,
+          "stopCheckMode": "batch",
+          "readbackInterval": 4,
+          "readbackMode": "overlapped",
+          "submitLatencyThresholdMs": null,
+          "maxBatchDecodeTokens": null,
+          "ringTokens": 1,
+          "ringStop": 1,
+          "ringStaging": 2,
+          "disableCommandBatching": false
+        }
+      },
+      "kernelPathPolicy": {
+        "mode": "capability-aware",
+        "sourceScope": [
+          "manifest"
+        ],
+        "allowSources": [
+          "manifest"
+        ],
+        "onIncompatible": "remap"
+      }
+    }
+  }
+}

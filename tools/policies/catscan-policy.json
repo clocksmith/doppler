@@ -21,6 +21,7 @@
   ],
   "freedomText": "Any implementation is permitted if it preserves these boundaries and passes the acceptance evidence.",
   "ignoredDirectories": [
+    ".cache",
     ".git",
     ".tmp",
     ".worktrees",

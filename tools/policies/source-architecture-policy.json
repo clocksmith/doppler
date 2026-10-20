@@ -832,13 +832,6 @@
         "inference/browser-harness/benchmark-execution-components.js"
       ]
     },
-    "inference/browser-harness/text-execution.js": {
-      "reviewedLines": 757,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
-      "extractTo": [
-        "inference/browser-harness/text-execution-components.js"
-      ]
-    },
     "inference/kv-cache/base.js": {
       "reviewedLines": 957,
       "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
@@ -992,13 +985,6 @@
       "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
       "extractTo": [
         "inference/tokenizers/bundled-components.js"
-      ]
-    },
-    "loader/doppler-loader.js": {
-      "reviewedLines": 775,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
-      "extractTo": [
-        "loader/doppler-loader-components.js"
       ]
     },
     "loader/tensors/source-transform.js": {

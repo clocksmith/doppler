@@ -49,7 +49,8 @@ const bundle = {
   sources,
   files,
 };
-const output = `${JSON.stringify(bundle, null, 1)}\n`;
+// Keep the generated shipped bundle compact; readable source rules remain canonical.
+const output = `${JSON.stringify(bundle)}\n`;
 
 if (checkOnly) {
   let current = null;

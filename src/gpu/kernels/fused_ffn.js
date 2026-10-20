@@ -10,7 +10,7 @@ import { recordDispatch } from './dispatch.js';
 import { trace } from '../../debug/index.js';
 import { getBuffer, getWeightDtype } from '../weight-buffer.js';
 import { isFusedQ4KDisabled } from './matmul.js';
-import { getKernelThresholds, QK_K } from '../../config/schema/index.js';
+import { getKernelThresholdSnapshot, QK_K } from '../../config/schema/index.js';
 import { selectRuleValue } from './rule-registry.js';
 import { resolveNormWeightDtype } from './rmsnorm.js';
 import { getShaderModule } from './shader-cache.js';
@@ -63,7 +63,7 @@ const Q4K_VARIANTS = new Set([
 ]);
 
 function selectFFNVariant(batchSize, weightDtype, intermediateSize, hiddenSize, inputDtype, variantOverride = null) {
-  const { multiOutputThreshold } = getKernelThresholds().ffn;
+  const { multiOutputThreshold } = getKernelThresholdSnapshot().ffn;
   const capabilities = getKernelCapabilities();
   const isQ4K = weightDtype === 'q4k';
   const fusedAllowed = !isFusedQ4KDisabled();

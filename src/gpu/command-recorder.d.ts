@@ -22,6 +22,29 @@ export interface RecorderOptions {
 /** Profiling result - maps kernel label to time in milliseconds */
 export type ProfileTimings = Record<string, number>;
 
+export interface RecorderProfile {
+  status: 'pending' | 'unavailable' | 'failed' | 'complete' | 'incomplete';
+  recorderLabel: string;
+  computePasses: number;
+  measuredPasses: number;
+  unmeasuredPasses: number;
+  /** Compute-only coverage; no claim about copies, other queues or complete-request wall time. */
+  scope: string;
+  intervals: Array<{
+    label: string;
+    /** Dispatch invocations; unknown for a manually recorded raw pass. */
+    count: number | null;
+    durationMs: number;
+    /** Null for raw passes whose dispatches the recorder does not own. */
+    dispatch: null | {
+      kind: 'direct' | 'indirect';
+      workgroups: number[] | null;
+      pipelineLabel: string | null;
+      pipeline: import('./kernels/pipeline-cache.js').PipelineProvenance | null;
+    };
+  }>;
+}
+
 /**
  * CommandRecorder wraps a GPUCommandEncoder and manages temporary resources.
  */
@@ -175,6 +198,8 @@ export declare class CommandRecorder {
       timestampedPassCount: number;
       untimestampedPassCount: number;
     };
+    /** Present only for explicitly requested profiling; available after timing resolution. */
+    profile?: RecorderProfile;
     tempBufferCount: number;
     pooledBufferCount: number;
     submitted: boolean;

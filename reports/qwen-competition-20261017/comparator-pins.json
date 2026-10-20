@@ -1,0 +1,272 @@
+[
+  {
+    "key": "tjs-08",
+    "repo": "onnx-community/Qwen3.5-0.8B-ONNX-OPT",
+    "revision": "9a4c21d8f724176b0a7edaaed36303044451886e",
+    "files": [
+      {
+        "path": "chat_template.jinja",
+        "bytes": 7755,
+        "sha256": null
+      },
+      {
+        "path": "config.json",
+        "bytes": 2849,
+        "sha256": null
+      },
+      {
+        "path": "generation_config.json",
+        "bytes": 248,
+        "sha256": null
+      },
+      {
+        "path": "onnx/decoder_model_merged_q4f16.onnx",
+        "bytes": 697833,
+        "sha256": "bd556c6ba812cb7c46328d0caf05e9c3a7e3b8b644add85ae21ad7054524d387"
+      },
+      {
+        "path": "onnx/decoder_model_merged_q4f16.onnx_data",
+        "bytes": 435777536,
+        "sha256": "e3459410bf09b756150fb590778f09a52dda85ca1426f65ecac18192fac18b91"
+      },
+      {
+        "path": "onnx/embed_tokens_q4f16.onnx",
+        "bytes": 1064,
+        "sha256": "8218531ac44ae9978d50647f1d907c53c308f758514b992504238c77843c254d"
+      },
+      {
+        "path": "onnx/embed_tokens_q4f16.onnx_data",
+        "bytes": 147005440,
+        "sha256": "ec4a1f13ff942653b52000a7a0ec40504110d8be9a0ecab2da4d3063588ed563"
+      },
+      {
+        "path": "onnx/vision_encoder_q4f16.onnx",
+        "bytes": 213118,
+        "sha256": "1e76d0c16c1c196e7e6f33053284369e0bc82b10bdc2f14bdf103f86ae5eb11a"
+      },
+      {
+        "path": "onnx/vision_encoder_q4f16.onnx_data",
+        "bytes": 61919744,
+        "sha256": "0847376fcef41cb3874a21f0eb1b75428502537e16f360bdbf854e71ef552319"
+      },
+      {
+        "path": "preprocessor_config.json",
+        "bytes": 336,
+        "sha256": null
+      },
+      {
+        "path": "processor_config.json",
+        "bytes": 1300,
+        "sha256": null
+      },
+      {
+        "path": "tokenizer.json",
+        "bytes": 19226111,
+        "sha256": "89da80cc6689bef4d90cc1028249436975ffb0814618f1d93c65310e05801a9b"
+      },
+      {
+        "path": "tokenizer_config.json",
+        "bytes": 10069,
+        "sha256": null
+      }
+    ]
+  },
+  {
+    "key": "tjs-2b",
+    "repo": "onnx-community/Qwen3.5-2B-ONNX-OPT",
+    "revision": "ed446636739bf426e73c5a00714fd8e010d36c21",
+    "files": [
+      {
+        "path": "chat_template.jinja",
+        "bytes": 7755,
+        "sha256": null
+      },
+      {
+        "path": "config.json",
+        "bytes": 2993,
+        "sha256": null
+      },
+      {
+        "path": "generation_config.json",
+        "bytes": 248,
+        "sha256": null
+      },
+      {
+        "path": "onnx/decoder_model_merged_q4f16.onnx",
+        "bytes": 707377,
+        "sha256": "c567d4d34dc97185e85bb40c9c30d6f73133858b1f8a32b90166b7fea4b653bf"
+      },
+      {
+        "path": "onnx/decoder_model_merged_q4f16.onnx_data",
+        "bytes": 1088892928,
+        "sha256": "06dd7841f90e5c4ecc029193a29478750ae9dcbfeaf8cfb223cf8b69cc5666d6"
+      },
+      {
+        "path": "onnx/embed_tokens_q4f16.onnx",
+        "bytes": 1064,
+        "sha256": "802a072ff21f540eda7f343aa71dbb0354c8859caaf34f09b3bf8117725d7de8"
+      },
+      {
+        "path": "onnx/embed_tokens_q4f16.onnx_data",
+        "bytes": 294010880,
+        "sha256": "650aa8eb39b7404ca2c908d78243c82b6fd88321feeb8fca175745806c6b3a81"
+      },
+      {
+        "path": "onnx/vision_encoder_q4f16.onnx",
+        "bytes": 394142,
+        "sha256": "2999a8fb031d394a0697c5413eb0bb624e45e4c3aacefd67524d4627679423d5"
+      },
+      {
+        "path": "onnx/vision_encoder_q4f16.onnx_data",
+        "bytes": 196945920,
+        "sha256": "c54ed06141904a99fa05a9ffaf460ee05441d50dde54f784ec2ae71a43c58314"
+      },
+      {
+        "path": "preprocessor_config.json",
+        "bytes": 336,
+        "sha256": null
+      },
+      {
+        "path": "processor_config.json",
+        "bytes": 1300,
+        "sha256": null
+      },
+      {
+        "path": "tokenizer.json",
+        "bytes": 19226111,
+        "sha256": "89da80cc6689bef4d90cc1028249436975ffb0814618f1d93c65310e05801a9b"
+      },
+      {
+        "path": "tokenizer_config.json",
+        "bytes": 10069,
+        "sha256": null
+      }
+    ]
+  },
+  {
+    "key": "mlx-08",
+    "repo": "mlx-community/Qwen3.5-0.8B-4bit",
+    "revision": "da28692b5f139cb0ec58a356b437486b7dac7462",
+    "files": [
+      {
+        "path": "chat_template.jinja",
+        "bytes": 7755,
+        "sha256": null
+      },
+      {
+        "path": "config.json",
+        "bytes": 3112,
+        "sha256": null
+      },
+      {
+        "path": "model.safetensors",
+        "bytes": 625229487,
+        "sha256": "f5a0d9dd3efa73510542a8023d610ff26be2b4b020d181cfc4bedaa1fcc5dd9e"
+      },
+      {
+        "path": "model.safetensors.index.json",
+        "bytes": 71473,
+        "sha256": null
+      },
+      {
+        "path": "preprocessor_config.json",
+        "bytes": 390,
+        "sha256": null
+      },
+      {
+        "path": "processor_config.json",
+        "bytes": 1300,
+        "sha256": null
+      },
+      {
+        "path": "tokenizer.json",
+        "bytes": 19989343,
+        "sha256": "87a7830d63fcf43bf241c3c5242e96e62dd3fdc29224ca26fed8ea333db72de4"
+      },
+      {
+        "path": "tokenizer_config.json",
+        "bytes": 1139,
+        "sha256": null
+      },
+      {
+        "path": "video_preprocessor_config.json",
+        "bytes": 385,
+        "sha256": null
+      },
+      {
+        "path": "vocab.json",
+        "bytes": 6722759,
+        "sha256": null
+      }
+    ]
+  },
+  {
+    "key": "mlx-2b",
+    "repo": "mlx-community/Qwen3.5-2B-4bit",
+    "revision": "674aaa7240b91e8012fcad5d791b7dfe5ba90207",
+    "files": [
+      {
+        "path": "chat_template.jinja",
+        "bytes": 7755,
+        "sha256": null
+      },
+      {
+        "path": "config.json",
+        "bytes": 3113,
+        "sha256": null
+      },
+      {
+        "path": "model.safetensors",
+        "bytes": 1722271785,
+        "sha256": "713fe7e5d3c3965f7106b0d0ee17615f7869c23c8d327996df8c1196fbcf07d5"
+      },
+      {
+        "path": "model.safetensors.index.json",
+        "bytes": 81722,
+        "sha256": null
+      },
+      {
+        "path": "preprocessor_config.json",
+        "bytes": 390,
+        "sha256": null
+      },
+      {
+        "path": "processor_config.json",
+        "bytes": 1300,
+        "sha256": null
+      },
+      {
+        "path": "tokenizer.json",
+        "bytes": 19989343,
+        "sha256": "87a7830d63fcf43bf241c3c5242e96e62dd3fdc29224ca26fed8ea333db72de4"
+      },
+      {
+        "path": "tokenizer_config.json",
+        "bytes": 1139,
+        "sha256": null
+      },
+      {
+        "path": "video_preprocessor_config.json",
+        "bytes": 385,
+        "sha256": null
+      },
+      {
+        "path": "vocab.json",
+        "bytes": 6722759,
+        "sha256": null
+      }
+    ]
+  },
+  {
+    "key": "llama-08",
+    "repo": "unsloth/Qwen3.5-0.8B-GGUF",
+    "revision": "6ab461498e2023f6e3c1baea90a8f0fe38ab64d0",
+    "files": [
+      {
+        "path": "Qwen3.5-0.8B-Q4_K_M.gguf",
+        "bytes": 532517120,
+        "sha256": "bd258782e35f7f458f8aced1adc053e6e92e89bc735ba3be89d38a06121dc517"
+      }
+    ]
+  }
+]

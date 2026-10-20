@@ -1,17 +1,9 @@
-import { getRuntimeConfig, setRuntimeConfig } from '../../config/runtime.js';
-import { computeSampleStats } from '../../debug/stats.js';
+import { summarizeRequestTiming } from './request-timing.js';
+import { getRuntimeConfig } from '../../config/runtime.js';
+import { computeSampleStats as computeStats } from '../../debug/stats.js';
 import { validateTrainingMetricsReport } from '../../config/schema/training-metrics.schema.js';
-import {
-  modelSupportsEmbedding,
-  modelSupportsRerank,
-  modelSupportsSequence,
-} from '../../config/schema/manifest.schema.js';
-import {
-  buildSuiteSummary,
-  normalizeCacheMode,
-  normalizeLoadMode,
-  normalizeWorkloadType,
-} from './suite-summary.js';
+import { modelSupportsEmbedding, modelSupportsRerank } from '../../config/schema/manifest.schema.js';
+import { buildSuiteSummary, normalizeCacheMode, normalizeLoadMode, normalizeWorkloadType } from './suite-summary.js';
 import {
   toTimingNumber,
   buildFirstLoadComposition,
@@ -22,37 +14,27 @@ import {
   buildTimingDiagnostics,
 } from './timing-diagnostics.js';
 import { buildDecodeBottleneckDiagnostics } from './decode-diagnostics.js';
-import {
-  resolveDeviceInfo,
-  resolveKernelPathForModel,
-} from './model-resolution.js';
+import { resolveDeviceInfo } from './model-resolution.js';
 import { initializeSuiteModel } from './model-initialization.js';
-import {
-  resolveBenchmarkRunSettings,
-} from './text-input.js';
+import { resolveBenchmarkRunSettings } from './text-input.js';
 import {
   normalizeDecodeRecordOpLabels,
   normalizeUniformCacheStats,
   buildDecodeRecordTopOps,
   buildDecodeRecordTopOpGroups,
-  isCoherentOutput,
 } from './text-evidence.js';
-import {
-  runEmbeddingSemanticChecks,
-  runRerank,
-  runRerankSemanticChecks,
-  runSequenceEncoding,
-  runTextInference,
-  runEmbedding,
-} from './text-execution.js';
+import { runTextInference, runEmbedding } from './text-execution.js';
 import { buildSuiteContractMetrics } from '../browser-harness-contract-helpers.js';
+import { runDiffusionSuite } from '../browser-harness-diffusion-energy-suites.js';
+import { resolveDecodeCadence, resolveExecutionGraphHash } from './request.js';
 import {
-  runDiffusionSuite,
-  runEnergySuite,
-} from '../browser-harness-diffusion-energy-suites.js';
-import { createUnsupportedWorkloadError, hashStableJson, resolveDecodeCadence, resolveDispatchSuite, resolveExecutionGraphHash, resolveHarnessContext, resolveHarnessMode, resolveWorkload } from './request.js';
-import { attachExecutionCostLedger, buildReferenceTranscriptSeed, resolvePipelineLoadTimings, serializeSequenceProbeRows, summarizePrefillRecordOps, summarizeTimingPhaseSamples } from './report.js';
-import { runInferenceSuite, runKernelSuite, withHarnessPhase } from './inference-execution.js';
+  attachExecutionCostLedger,
+  buildReferenceTranscriptSeed,
+  resolvePipelineLoadTimings,
+  summarizePrefillRecordOps,
+  summarizeTimingPhaseSamples,
+} from './report.js';
+import { withHarnessPhase } from './inference-execution.js';
 
 export const TRAINING_SUITE_MODULE_PATH = '../../experimental/training/suite.js';
 import { runRerankBenchmark } from './benchmark-rerank.js';
@@ -82,6 +64,8 @@ export function resolveBenchmarkIterationSettings(runtimeConfig) {
 export async function runBenchSuite(options = {}) {
   const startTime = performance.now();
   const runtimeConfig = getRuntimeConfig();
+  const samplePolicy = runtimeConfig.shared.benchmark.stats;
+  const computeSampleStats = (values) => computeStats(values, samplePolicy);
   const iterationSettings = resolveBenchmarkIterationSettings(runtimeConfig);
   const warmupRuns = iterationSettings.warmupRuns;
   const timedRuns = iterationSettings.timedRuns;
@@ -299,6 +283,7 @@ export async function runBenchSuite(options = {}) {
     ];
 
     metrics = {
+      samplePolicy: { ...samplePolicy },
       warmupRuns,
       timedRuns,
       validRuns: durations.length,
@@ -427,6 +412,7 @@ export async function runBenchSuite(options = {}) {
     const plePreparedTokenCacheEntries = [];
     const plePreparedTokenCacheBytes = [];
 
+    const requestTimingSamples = [];
     let generatedText = null;
     let generatedPromptInput = null;
     let generatedReferenceTranscript = null;
@@ -471,6 +457,7 @@ export async function runBenchSuite(options = {}) {
         lastDecodeProfileSteps = run?.phase?.decodeProfileSteps ?? null;
       }
       if (i >= warmupRuns) {
+        if (run.requestTiming) requestTimingSamples.push(run.requestTiming);
         const phase = run?.phase ?? {};
         const phaseTokens = Array.isArray(run?.tokens) ? run.tokens : [];
         const phaseGpu = phase.gpu;
@@ -731,6 +718,7 @@ export async function runBenchSuite(options = {}) {
     const normalizedFirstTokenMs = sampleTimingNumber(ttftMsStats, 'median', null);
 
     metrics = {
+      samplePolicy: { ...samplePolicy },
       warmupRuns,
       timedRuns,
       ...(Number.isFinite(benchRun?.seed) ? { seed: benchRun.seed } : {}),
@@ -788,6 +776,8 @@ export async function runBenchSuite(options = {}) {
       promptInput: generatedPromptInput,
     };
 
+    const requestReport = summarizeRequestTiming(requestTimingSamples, prefillTokens, timedRuns, safeModelLoadMs, samplePolicy);
+    metrics.requestTiming = requestReport.metrics;
     timing = buildCanonicalTiming({
       modelLoadMs: safeModelLoadMs,
       firstTokenMs: normalizedFirstTokenMs,
@@ -805,7 +795,10 @@ export async function runBenchSuite(options = {}) {
       prefillTokensPerSecTtft: prefillTokensPerSecTtftStats?.median,
       cacheMode,
       loadMode,
+      ...requestReport.timing,
     });
+    timing.scope = requestReport.scope;
+    timing.promptTokensPerSecToFirstToken = requestReport.timing.prefillTokensPerSecTtft ?? null;
   }
 
   const memoryStats = typeof harness.pipeline?.getMemoryStats === 'function'

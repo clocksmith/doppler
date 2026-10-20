@@ -1,83 +1,44 @@
+import { buildRequestTiming } from './request-timing.js';
 import { isPlainObject } from '../../formats/plain-object.js';
-
 import { observeInitialExecutionIdentity } from '../../config/initial-execution-identity.js';
-
 import { isExecutionObservationRequested } from '../../tooling/execution-cost-ledger.js';
-
 import {
-
   assertRerankLogitsVector,
-
   buildRerankScoreRecord,
-
   formatRerankPrompt,
-
   resolveRerankScoringConfig,
-
   scoreRerankDocument,
-
 } from '../rerank.js';
-
 import {
-
   DEFAULT_IMAGE_TRANSCRIPTION_PROMPT,
-
   DEFAULT_IMAGE_TRANSCRIPTION_SOFT_TOKEN_BUDGET,
-
   describePromptInput,
-
   formatEmbeddingSemanticText,
-
   resolveAutomaticGenerationDiagnostics,
-
   resolveEmbeddingSemanticFixtures,
-
   resolveEmbeddingSemanticStyle,
-
   resolveGenerationPromptInput,
-
   resolveInferenceImagePayload,
-
   resolveMaxTokens,
-
   resolvePrompt,
-
   resolveRerankInput,
-
   resolveRerankSemanticFixtures,
-
 } from './text-input.js';
-
 import {
-
   buildGenerationPhaseFromStats,
-
   captureKvCacheByteProof,
-
   cosineSimilarity,
-
   digestLogitsForTranscript,
-
   normalizeTokenIdArray,
-
   resolveGenerationUseChatTemplate,
-
   resolvePromptTokenIdsForTranscript,
-
   shouldCaptureReferenceKvBytes,
-
   shouldCaptureReferenceLogits,
-
   shouldEnableReferenceTranscriptDiagnostics,
-
   summarizeEmbeddingValues,
-
   summarizeGenerationTokens,
-
   summarizeRerankScores,
-
   top1Index,
-
 } from './text-evidence.js';
 
 function getPipelineTokenizer(pipeline) {
@@ -551,6 +512,7 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
     || shouldEnableReferenceTranscriptDiagnostics(runOverrides, runtimeConfig);
   const disableCommandBatchingForDiagnostics = explicitDiagnosticsEnabled
     || (Array.isArray(debugProbes) && debugProbes.length > 0);
+  const tokenTimestamps = [];
   const start = performance.now();
   const diagnostics = resolveAutomaticGenerationDiagnostics(runtimeConfig, runOverrides);
   const captureLogits = shouldCaptureReferenceLogits(runOverrides, runtimeConfig);
@@ -583,6 +545,7 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
       },
     } : {}),
     onToken: (tokenId, tokenText) => {
+      tokenTimestamps.push(performance.now());
       tokenIds.push(tokenId);
       tokenRecords.push({
         id: tokenId,
@@ -596,8 +559,8 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
     }
   }
 
-  const durationMs = Math.max(1, performance.now() - start);
-  const tokensPerSec = (tokens.length / durationMs) * 1000;
+  const durationMs = performance.now() - start;
+  const tokensPerSec = durationMs > 0 ? (tokenIds.length / durationMs) * 1000 : 0;
   const { phase } = buildGenerationPhaseFromStats(pipeline, durationMs, tokenIds.length);
   const kvCacheByteProof = await captureKvCacheByteProof(
     pipeline,
@@ -620,6 +583,7 @@ export async function runGeneration(pipeline, runtimeConfig, runOverrides = null
     output: tokens.join(''),
     durationMs,
     tokensPerSec,
+    requestTiming: buildRequestTiming(start, durationMs, tokenTimestamps),
     phase,
   };
 }

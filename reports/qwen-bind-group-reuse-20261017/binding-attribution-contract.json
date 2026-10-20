@@ -1,0 +1,6 @@
+{
+  "parentContractSha256": "d9c21ebaf2568196d4e1d6792e4949e29dd59c39fc907f27ba17da61cba5c511",
+  "driverSha256": "7220368b527f7d5d4fc19bdeb0e5b1d0248a507517f5d3c9401cdb53dd5f8501",
+  "question": "Which exact binding identities prevent reuse?",
+  "runtimeChange": null
+}

@@ -4,7 +4,7 @@ import { executePairedRMSNorm, resolvePairedRMSNormVariant } from './paired-rmsn
 import { getKernelCapabilities } from '../device.js';
 import { acquireBuffer, getBufferRequestedSize, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
-import { getKernelThresholds, padToQ4KBlock } from '../../config/schema/index.js';
+import { getKernelThresholdSnapshot, padToQ4KBlock } from '../../config/schema/index.js';
 import { selectRuleValue } from './rule-registry.js';
 import { selectRuleValue as selectLoaderRule } from '../../rules/rule-registry.js';
 import { getBuffer, getWeightDtype, getBufferDtype } from '../weight-buffer.js';
@@ -139,7 +139,7 @@ export function selectRMSNormKernel(options = {}, isF16 = false) {
     return declared.variant;
   }
   const { residual = null, hiddenSize = null } = options;
-  const { smallThreshold } = getKernelThresholds().rmsnorm;
+  const { smallThreshold } = getKernelThresholdSnapshot().rmsnorm;
   const caps = getKernelCapabilities();
   const hasSubgroups = caps?.hasSubgroups ?? false;
   const isSmall = hiddenSize !== null && hiddenSize <= smallThreshold;

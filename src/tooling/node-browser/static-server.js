@@ -107,6 +107,17 @@ async function resolveFileForRequest(rootDir, mounts, requestPath) {
   return stats.isFile() ? { filePath: resolved, size: stats.size } : null;
 }
 
+function resolveByteRange(header, size) {
+  const match = /^bytes=(\d*)-(\d*)$/.exec(header);
+  if (!match || (!match[1] && !match[2]) || size === 0) return null;
+  const first = Number(match[1]);
+  const last = Number(match[2]);
+  if (!Number.isSafeInteger(first) || !Number.isSafeInteger(last)) return null;
+  const start = match[1] ? first : Math.max(0, size - last);
+  const end = match[1] && match[2] ? Math.min(last, size - 1) : size - 1;
+  return start <= end && start < size ? { start, end } : null;
+}
+
 export async function createStaticFileServer(options = {}) {
   const rootDir = path.resolve(options.rootDir || fileURLToPath(new URL('../../..', import.meta.url)));
   const staticMounts = normalizeStaticMounts(options.staticMounts || []);
@@ -133,9 +144,19 @@ export async function createStaticFileServer(options = {}) {
       res.end('File not found');
       return;
     }
-    res.statusCode = 200;
+    const rangeHeader = method === 'GET' ? req.headers.range : undefined;
+    const range = rangeHeader ? resolveByteRange(rangeHeader, resolved.size) : null;
+    res.setHeader('Accept-Ranges', 'bytes');
+    if (rangeHeader && !range) {
+      res.statusCode = 416;
+      res.setHeader('Content-Range', `bytes */${resolved.size}`);
+      res.end();
+      return;
+    }
+    res.statusCode = range ? 206 : 200;
     res.setHeader('Content-Type', contentTypeFor(resolved.filePath));
-    res.setHeader('Content-Length', resolved.size);
+    res.setHeader('Content-Length', range ? range.end - range.start + 1 : resolved.size);
+    if (range) res.setHeader('Content-Range', `bytes ${range.start}-${range.end}/${resolved.size}`);
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
@@ -144,8 +165,10 @@ export async function createStaticFileServer(options = {}) {
       return;
     }
     const stream = createReadStream(resolved.filePath, {
+      ...range,
       highWaterMark: resolved.size > 1024 * 1024 ? 1024 * 1024 : undefined,
     });
+    res.on('close', () => stream.destroy());
     stream.on('error', () => {
       if (!res.headersSent) res.statusCode = 500;
       res.end();

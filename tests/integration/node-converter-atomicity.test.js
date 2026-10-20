@@ -216,6 +216,7 @@ const minimalV1Inference = {
           quantization: {
             weights: 'f16',
           },
+          modelType: 'transformer',
           inference: minimalV1Inference,
           session: minimalV1SessionDefaults,
           execution: minimalV1Execution,

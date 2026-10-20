@@ -39,7 +39,23 @@ try {
       assert.equal(state.stats.stopReason, 'stop-token');
       assert.equal(state.stats.stopTokenId, stop);
       assert.equal(state.stats.tokensGenerated, 3);
+      assert.equal(state.stats.decodeTokens, 2);
     }
   }
+  // A one-token budget is fulfilled by prefill without any decode invocation.
+  const state = { useGPU: false, modelConfig: { hiddenSize: 4, numLayers: 1 },
+    runtimeConfig: createDopplerConfig().runtime, weights: new Map(), stats: {}, batchingStats: {} };
+  const pipeline = { _state: state, _hasFinitenessFallbackWindow: () => false,
+    _recordStopReason(reason) { state.stats.stopReason = reason; } };
+  const opts = { maxTokens: 1, stopSequences: [], suppressTokenIds: [], speculation: null,
+    executionPlan: { batchSize: 1, readbackInterval: 1, disableMultiTokenDecode: true,
+      disableCommandBatching: true, maxBatchDecodeTokens: null, activationDtype: 'f32' } };
+  for await (const token of _runDecodeLoop.call(pipeline, [1], opts, {},
+    { stopTokenIds: [], eosToken: 9, stopSequenceStart: 0, decodeToken: String, emitMode: 'token' })) {
+    assert.fail(`Unexpected decode token ${token}`);
+  }
+  assert.equal(state.stats.tokensGenerated, 1);
+  assert.equal(state.stats.decodeTokens, 0);
+  assert.equal(state.stats.stopReason, 'max-tokens');
 } finally { setDevice(null); }
 console.log('generator-stop-token-parity.test: ok');

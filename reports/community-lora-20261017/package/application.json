@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "entry": "doppler-gpu/training",
+  "stepCount": 1,
+  "contributors": [
+    "m3",
+    "amd"
+  ],
+  "weightsSha256": "5fe5d81fe9d274ceb01a55705be69b8645f0fcda5689eea7cbd5a8c912cc8a7f",
+  "version": "0.0.1"
+}

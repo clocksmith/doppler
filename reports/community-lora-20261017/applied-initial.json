@@ -1,0 +1,68 @@
+{
+  "schema": "doppler.community-lora-qualification/v1",
+  "action": "apply",
+  "source": {
+    "src/experimental/training/native-qwen-lora.js": "9d335ddac853b2dac469ed04864f26b10913636158b29fe0edeac10e89f1932c",
+    "src/experimental/training/lora-training-round.js": "f2aeb31080952e4053b42bb93688f16f1e733a0c8ddfa5ac9dd4b70e42d903f9"
+  },
+  "device": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "apple-m3",
+    "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)"
+  },
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "baseManifestHash": "sha256:cf20c690cc397a4bd8e64ee4b00158114947ee75568c0ae8f2df8a9ebc052965",
+  "result": {
+    "roundHash": "sha256:5f22df2e0a389ba64815c8728e051cc88e5e9863ea56e7d29ed1879240f945a4",
+    "contributors": [
+      "m3",
+      "amd"
+    ],
+    "supervisedTokenCount": 4,
+    "loss": 10.014784097671509,
+    "gradientNorm": 0.060910472813688846,
+    "optimizer": {
+      "optimizer_ms": 1.390625,
+      "effective_lr": 0.0001,
+      "scheduler_index": 0,
+      "scheduler_phase": "constant"
+    },
+    "stepCount": 1,
+    "adapterManifest": {
+      "version": "0.0.1",
+      "checksumAlgorithm": "sha256",
+      "weightsFormat": "safetensors",
+      "id": "qwen35-community-round-qualification",
+      "name": "Qwen3.5 community round qualification",
+      "baseModel": "qwen-3-5-0-8b-q4k-ehaf16",
+      "rank": 2,
+      "alpha": 4,
+      "targetModules": [
+        "down_proj"
+      ],
+      "description": "One cross-machine qualification step; not quality evaluated.",
+      "metadata": {
+        "trainingRoundHash": "sha256:5f22df2e0a389ba64815c8728e051cc88e5e9863ea56e7d29ed1879240f945a4",
+        "parentCheckpointHash": "sha256:5484783d4d834bf1eaedeebe6dd222f1c17f72bd9f1f451c3375d3136d578e94",
+        "participants": [
+          "m3",
+          "amd"
+        ],
+        "supervisedTokenCount": 4,
+        "baseManifestHash": "sha256:cf20c690cc397a4bd8e64ee4b00158114947ee75568c0ae8f2df8a9ebc052965",
+        "trainingBackend": "webgpu_native",
+        "trainingSurfaces": [
+          "browser",
+          "node",
+          "bun"
+        ],
+        "targetLayer": 23
+      },
+      "weightsPath": "adapter.safetensors",
+      "weightsSize": 37051,
+      "checksum": "5fe5d81fe9d274ceb01a55705be69b8645f0fcda5689eea7cbd5a8c912cc8a7f"
+    },
+    "weightsSha256": "5fe5d81fe9d274ceb01a55705be69b8645f0fcda5689eea7cbd5a8c912cc8a7f"
+  }
+}

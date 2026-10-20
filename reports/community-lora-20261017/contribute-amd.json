@@ -1,0 +1,38 @@
+{
+  "modelUrl": "file:///home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
+  "trainer": {
+    "rank": 2,
+    "alpha": 4,
+    "optimizer": {
+      "type": "adamw",
+      "lr": 0.0001,
+      "beta1": 0.9,
+      "beta2": 0.999,
+      "eps": 1e-8,
+      "weightDecay": 0
+    },
+    "gradient": {
+      "maxNorm": 1
+    },
+    "precision": {
+      "activations": "f32",
+      "gradients": "f32",
+      "loraParams": "f32"
+    }
+  },
+  "action": "contribute",
+  "roundPath": "round.json",
+  "participantId": "amd",
+  "sample": {
+    "inputIds": [
+      500,
+      600
+    ],
+    "targetIds": [
+      4294967295,
+      700
+    ],
+    "supervisedTokenCount": 1
+  },
+  "outputPath": "contribution-amd.json"
+}

@@ -6,7 +6,7 @@ import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast } from './pipeline-cache.js';
 import { createUniformBufferWithView } from './uniform-utils.js';
 import { WORKGROUP_SIZES } from './constants.js';
-import { getKernelThresholds } from '../../config/schema/index.js';
+import { getKernelThresholdSnapshot } from '../../config/schema/index.js';
 import { trace } from '../../debug/index.js';
 import { selectRuleValue } from './rule-registry.js';
 import { selectRuleValue as selectLoaderRule } from '../../rules/rule-registry.js';
@@ -71,7 +71,7 @@ async function executeMatmulRMSNormFused(
     throw new Error('[MatmulRMSNormFused] eps is required.');
   }
 
-  const { maxMediumN } = getKernelThresholds().fusedMatmul;
+  const { maxMediumN } = getKernelThresholdSnapshot().fusedMatmul;
   if (N > maxMediumN) {
     throw new Error(`[MatmulRMSNormFused] N=${N} exceeds maxMediumN=${maxMediumN}; kernel only supports single-workgroup RMSNorm.`);
   }
@@ -199,7 +199,7 @@ export function shouldUseFusedMatmulRMSNorm(M, N, K) {
     return false;
   }
 
-  const { maxMediumN, maxMediumK } = getKernelThresholds().fusedMatmul;
+  const { maxMediumN, maxMediumK } = getKernelThresholdSnapshot().fusedMatmul;
   if (N > maxMediumN) {
     return false;
   }

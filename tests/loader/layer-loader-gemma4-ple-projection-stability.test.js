@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
+import { after } from 'node:test';
 
 const { bootstrapNodeWebGPU } = await import('../../src/tooling/node-webgpu.js');
-const { initDevice } = await import('../../src/gpu/device.js');
+const { initDevice, destroyDevice } = await import('../../src/gpu/device.js');
 const { acquireBuffer, releaseBuffer, uploadData } = await import('../../src/memory/buffer-pool.js');
 const { createWeightBuffer, isWeightBuffer } = await import('../../src/gpu/weight-buffer.js');
 const { loadLayer } = await import('../../src/loader/layer-loader.js');
@@ -21,7 +22,16 @@ if (!webgpuReady) {
   process.exit(0);
 }
 
-await initDevice();
+const device = await initDevice();
+after(async () => {
+  // Metadata assertions can finish while promotion kernels are still queued.
+  // Native test cleanup must not tear down Dawn/Lavapipe with pending work.
+  try {
+    await device.queue.onSubmittedWorkDone();
+  } finally {
+    destroyDevice();
+  }
+});
 
 function makeF16Buffer(values, label) {
   const packed = f32ToF16Array(new Float32Array(values));
@@ -37,7 +47,8 @@ function makeQ4KBuffer(values, shape, label) {
   return buffer;
 }
 
-function releaseTrackedBuffers(buffers) {
+async function releaseTrackedBuffers(buffers) {
+  await device.queue.onSubmittedWorkDone();
   const released = new Set();
   for (const buffer of buffers) {
     if (!buffer || released.has(buffer)) {
@@ -152,7 +163,7 @@ try {
     'Gemma 4 per-layer input gate should retain the original q4k materialization'
   );
 } finally {
-  releaseTrackedBuffers([
+  await releaseTrackedBuffers([
     denseF16Buffer,
     packedQ4KBuffer,
     denseGateF16Buffer,
@@ -225,7 +236,7 @@ try {
     'Gemma 4 q4k per-layer input gate reference path should upload a dense f32 buffer'
   );
 } finally {
-  releaseTrackedBuffers(referenceGpuBuffers);
+  await releaseTrackedBuffers(referenceGpuBuffers);
 }
 
 console.log('layer-loader-gemma4-ple-projection-stability.test: ok');

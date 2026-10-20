@@ -1,0 +1,16 @@
+[
+  {
+    "model": "2b",
+    "sourceRepository": "clocksmith/reploid",
+    "path": "self/config/model-pieces/qwen-2b-pieces.json",
+    "commit": "dd5af6cfbac57ab8749b8306e6b7714d0724a9cd",
+    "sha256": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc"
+  },
+  {
+    "model": "27b",
+    "sourceRepository": "clocksmith/reploid",
+    "path": "self/config/model-pieces/qwen27b-q4-pieces.json",
+    "commit": "7af582137401c68365d7b9dfff2ce9b340b1bd8e",
+    "sha256": "69400a62b129f8f045564527f6c7867b038b5c20edfe1842d3f36d60101a4600"
+  }
+]

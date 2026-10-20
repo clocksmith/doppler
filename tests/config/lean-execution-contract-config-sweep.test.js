@@ -79,6 +79,7 @@ try {
     policies: { unsupportedPrecision: 'error', dtypeTransition: 'require_cast_step', unresolvedKernel: 'error' },
   };
   writeFileSync(path.join(configDir, 'unit-model.json'), JSON.stringify({
+    modelType: 'transformer',
     output: {
       modelBaseId: 'unit-model',
     },
@@ -140,6 +141,7 @@ try {
   }, null, 2), 'utf8');
 
   writeFileSync(path.join(configDir, 'mapped-model-f16.json'), JSON.stringify({
+    modelType: 'transformer',
     output: {
       modelBaseId: 'mapped-model-f16',
     },
@@ -201,6 +203,7 @@ try {
   }, null, 2), 'utf8');
 
   writeFileSync(path.join(embeddingConfigDir, 'embedding-model.json'), JSON.stringify({
+    modelType: 'embedding',
     output: {
       modelBaseId: 'embedding-model',
     },
@@ -296,7 +299,7 @@ try {
   });
   assert.equal(summary.schemaVersion, 1);
   assert.equal(summary.totals.configs, 4);
-  assert.equal(summary.totals.passed, 3);
+  assert.equal(summary.totals.passed, 3, JSON.stringify(summary.results, null, 2));
   assert.equal(summary.totals.explicitSkips, 1);
   assert.equal(summary.results.some((entry) => entry.status === 'pass' && entry.modelId === 'unit-model'), true);
   assert.equal(summary.results.some((entry) => entry.status === 'pass' && entry.modelId === 'mapped-model-f16'), true);

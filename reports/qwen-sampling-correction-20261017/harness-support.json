@@ -1,0 +1,21 @@
+{
+  "files": [
+    {
+      "path": ".harness-support/src/tooling/hf-registry/registry-urls.js",
+      "source": "src/tooling/hf-registry/registry-urls.js",
+      "sha256": "58fcdc6d514af24f49ad50103c1b57533c0f0a69bd76c15b3b257ffca45da6dd"
+    },
+    {
+      "path": ".harness-support/src/tooling/hf-registry/catalog-io.js",
+      "source": "src/tooling/hf-registry/catalog-io.js",
+      "sha256": "466bd36294838898dc45a2a90a50b834a218618a2a79d68020c8ddb6ad159c8a"
+    },
+    {
+      "path": ".harness-support/src/formats/plain-object.js",
+      "source": "src/formats/plain-object.js",
+      "sha256": "2d966f313816b1dfed810fd83bdabf3b38360ead2e926763ceadb6c3df81caf8"
+    }
+  ],
+  "reason": "Repository-only URL construction used by comparator; kept outside frozen runtime src",
+  "comparatorImportChange": "registry-urls.js redirected into .harness-support; runtime imports unchanged"
+}

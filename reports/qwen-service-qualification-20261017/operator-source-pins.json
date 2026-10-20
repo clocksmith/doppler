@@ -1,0 +1,17 @@
+[
+  {
+    "path": "src/gpu/kernels/fused_matmul_q4_widetile_f16a.wgsl",
+    "sha256": "7e152c0f0350257d9336d89b81169b567417e8890d8bceed3c9030dc66f25ae9",
+    "equalsInstalledArchive": true
+  },
+  {
+    "path": "src/gpu/kernels/matmul-dispatch.js",
+    "sha256": "792156f16c389dfc9dc697fd1925a19e6bb858cb86df5ae2307a68979c99f475",
+    "equalsInstalledArchive": true
+  },
+  {
+    "path": "src/gpu/kernels/matmul-selection.js",
+    "sha256": "b189cb0a2dd1ee226e248e184e57476241a34ebeb1e55d7e4ef065b03451faca",
+    "equalsInstalledArchive": true
+  }
+]

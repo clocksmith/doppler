@@ -1,0 +1,2 @@
+[GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.4ms
+linear-attention-core-gpu-regression.test: ok

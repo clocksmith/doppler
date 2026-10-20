@@ -282,7 +282,7 @@
       },
       "vendorBenchmark": {
         "transformersjs": {
-          "repoId": "onnx-community/Qwen3.5-0.8B-ONNX",
+          "repoId": "onnx-community/Qwen3.5-0.8B-ONNX-OPT",
           "dtype": "q4f16"
         }
       }
@@ -328,7 +328,7 @@
       },
       "vendorBenchmark": {
         "transformersjs": {
-          "repoId": "onnx-community/Qwen3.5-2B-ONNX",
+          "repoId": "onnx-community/Qwen3.5-2B-ONNX-OPT",
           "dtype": "q4f16"
         }
       }

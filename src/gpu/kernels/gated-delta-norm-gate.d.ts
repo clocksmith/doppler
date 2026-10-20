@@ -18,5 +18,5 @@ export declare function resolveGatedDeltaNormGateKernel(
   operation: 'gated_delta_recurrent' | 'gated_delta_fused_decode',
   ruleGroup: 'gatedDeltaRecurrent' | 'gatedDeltaFusedDecode',
   ruleName: 'scalarVariant' | 'pairedGateVariant',
-  context: { normGateActivation: LinearNormGateActivation; inputDtype?: 'f16' | 'f32' }
+  context: { normGateActivation: LinearNormGateActivation; inputDtype?: 'f16' | 'f32'; stateComponents?: number }
 ): KernelConfig;

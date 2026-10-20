@@ -1,10 +1,10 @@
+import { isPlainObject } from '../../src/formats/plain-object.js';
+import { exactKeys, normalizeText, text, sha256, revision, integer, boolean, instant } from './evidence-fields.js';
 import { computeCanonicalJsonSha256 } from './canonical-json.js';
 
 const DIMENSION_SCHEMA = 'doppler.runtime-ownership-dimension-evidence/v1';
 const HYPOTHESIS_SCHEMA = 'doppler.runtime-ownership-hypothesis-evidence/v1';
 const PROMOTION_SCHEMA = 'doppler.runtime-ownership-promotion-evidence/v1';
-const SHA256_PATTERN = /^sha256:[0-9a-f]{64}$/;
-const REVISION_PATTERN = /^[0-9a-f]{40}$/;
 
 export const RUNTIME_OWNERSHIP_DIMENSION_CLASSES = Object.freeze([
   'correctness',
@@ -18,51 +18,6 @@ export const RUNTIME_OWNERSHIP_DIMENSION_CLASSES = Object.freeze([
   'providerRisk',
 ]);
 
-function normalizeText(value) {
-  return typeof value === 'string' ? value.trim() : '';
-}
-
-function isPlainObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
-}
-
-function exactKeys(value, fields, label, errors) {
-  if (!isPlainObject(value)) {
-    errors.push(`${label} must be an object`);
-    return false;
-  }
-  const expected = new Set(fields);
-  for (const field of Object.keys(value)) {
-    if (!expected.has(field)) errors.push(`${label}.${field} is not supported`);
-  }
-  for (const field of fields) {
-    if (!Object.hasOwn(value, field)) errors.push(`${label}.${field} is required`);
-  }
-  return true;
-}
-
-function text(value, label, errors) {
-  const normalized = normalizeText(value);
-  if (!normalized) errors.push(`${label} must be a non-empty string`);
-  return normalized || null;
-}
-
-function sha256(value, label, errors) {
-  const normalized = text(value, label, errors)?.toLowerCase() ?? null;
-  if (normalized && !SHA256_PATTERN.test(normalized)) {
-    errors.push(`${label} must be a SHA-256 identity`);
-  }
-  return normalized;
-}
-
-function revision(value, label, errors) {
-  const normalized = text(value, label, errors)?.toLowerCase() ?? null;
-  if (normalized && !REVISION_PATTERN.test(normalized)) {
-    errors.push(`${label} must be a lowercase 40-hex revision`);
-  }
-  return normalized;
-}
-
 function finiteNumber(value, label, errors, minimum = null) {
   if (!Number.isFinite(value)) {
     errors.push(`${label} must be finite`);
@@ -70,29 +25,6 @@ function finiteNumber(value, label, errors, minimum = null) {
   }
   if (minimum !== null && value < minimum) errors.push(`${label} must be at least ${minimum}`);
   return value;
-}
-
-function integer(value, label, errors, minimum = 0) {
-  if (!Number.isInteger(value) || value < minimum) {
-    errors.push(`${label} must be an integer of at least ${minimum}`);
-    return null;
-  }
-  return value;
-}
-
-function boolean(value, label, errors) {
-  if (typeof value !== 'boolean') errors.push(`${label} must be boolean`);
-  return value === true;
-}
-
-function instant(value, label, errors) {
-  const normalized = text(value, label, errors);
-  const parsed = normalized ? new Date(normalized) : null;
-  if (!parsed || !Number.isFinite(parsed.getTime()) || parsed.toISOString() !== normalized) {
-    errors.push(`${label} must be an ISO instant`);
-    return null;
-  }
-  return parsed;
 }
 
 function match(actual, expected, label, errors) {

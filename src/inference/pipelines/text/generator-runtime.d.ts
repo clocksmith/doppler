@@ -5,6 +5,10 @@ import type { ParsedModelConfig } from './config.js';
 import type { ExecutionSessionPlan } from './execution-plan.js';
 import type { LoadedEmbeddingPostprocessor } from '../../../loader/final-weights-loader.js';
 
+export function settleGenerationStats(
+  stats: PipelineState['stats'], startTime: number, generatedTokenCount: number, aborted: boolean
+): void;
+
 export interface StepOptionsResolved extends RuntimeSamplingOptions {
   logitMaskFn: GenerateOptions['logitMaskFn'];
   promptTokenCount?: number;
@@ -22,6 +26,7 @@ export interface GenerateOptionsResolved extends StepOptionsResolved {
   maxTokens: number;
   stopSequences: string[];
   useSpeculative: boolean;
+  speculation: import('../../../config/schema/speculation-self.schema.js').SelfSpeculationConfig | null;
   useChatTemplate: boolean;
   benchmark: boolean;
 }

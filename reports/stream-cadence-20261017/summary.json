@@ -1,0 +1,216 @@
+{
+  "component": "doppler.runtime-source.inference.pipelines.text",
+  "intent": "preserved",
+  "boundaryEffects": "none; evidence only, no runtime/profile changes adopted",
+  "sourceCommit": "5b7074d9d7fbe2423923ce02c44f314e1b94ac5c",
+  "concurrentWorkspaceChanges": "Unrelated package.json, package-lock.json, src/version.js version bump 0.6.31 to 0.6.32 appeared during runs; not edited or staged by this investigation. Executable inference sources unchanged.",
+  "contract": {
+    "model": "qwen-3-5-0-8b-q4k-ehaf16",
+    "hardware": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "0x0000",
+      "description": "Apple M3"
+    },
+    "surface": {
+      "library": "doppler",
+      "runtime": "browser",
+      "device": "webgpu",
+      "browserUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+      "browserPlatform": "MacIntel",
+      "browserLanguage": "en-US",
+      "browserVendor": "Google Inc."
+    },
+    "precision": "Q4_K weights, f32 activations/accumulation, f16 KV",
+    "promptTokens": 64,
+    "generatedTokens": 128,
+    "decodeTokens": 127,
+    "sampling": "greedy temperature=0 topK=1 topP=1; seed=null in saved config",
+    "warmupRunsPerSession": 2,
+    "timedRunsPerSession": 5,
+    "order": [
+      "baseline",
+      "candidate",
+      "candidate",
+      "baseline"
+    ],
+    "loadMode": "http; warm filesystem/cache; not purged cold load",
+    "timeoutSecondsPerSession": 180,
+    "observerEnabled": false,
+    "samplesFiltered": 0
+  },
+  "hypothesis": "Reducing readbackInterval from 4 to 1 at batchSize=4 will improve token-delivery gaps without reducing decode throughput.",
+  "configurationDelta": [
+    {
+      "path": ".request.runtimeConfig.inference.batching.readbackInterval",
+      "baseline": 4,
+      "candidate": 1
+    },
+    {
+      "path": ".request.runtimeConfig.inference.session.decodeLoop.readbackInterval",
+      "baseline": 4,
+      "candidate": 1
+    }
+  ],
+  "runs": [
+    {
+      "run": 0,
+      "lane": "baseline",
+      "receipt": "0-baseline.log",
+      "sha256": "fcb4fb88621d01ec0d7177c33461b999079388f311e29089c8b88b9bd3f39fe7",
+      "timing": {
+        "modelLoadMs": 1472.6,
+        "firstTokenMs": 250,
+        "firstResponseMs": 1722.6,
+        "prefillMs": 248.3,
+        "decodeMs": 2210.8,
+        "decodeMsPerTokenP50": 0,
+        "decodeMsPerTokenP95": 273.28,
+        "decodeMsPerTokenP99": 280.7,
+        "decodeTokensPerSec": 57.45,
+        "prefillTokensPerSec": 257.75,
+        "totalRunMs": 2467.8,
+        "cacheMode": "warm",
+        "loadMode": "http",
+        "scope": "generation-call-through-completion",
+        "promptTokensPerSecToFirstToken": 256
+      },
+      "recordMsMedian": 537,
+      "tokensPerReadback": 16,
+      "tokenIdsHash": "sha256:abc60a9b7d433776812c6c71cd8d0fc7abfc92238d6498a55b9456b6ae1051d9",
+      "tokenCostLedgerIdentity": {
+        "artifactDigest": "sha256:498dfcae99ef2b502908beaefc09459a213819d5a132b7456c81ce53047fad10",
+        "manifestDigest": "sha256:51bcdb65e4dead3992d65546bc3f2405146c7b7ab812181fe94e0ad0d34aef2c",
+        "executionGraphDigest": "sha256:72a319349559eba467a0d3a11defa48821a61b0bdaa8a79d5c56158115a02847",
+        "runtimeConfigDigest": "sha256:9868ba754e83bc2b18abdfc65e8cda0632e75bb7302de8bc705f02340f7114a6",
+        "kernelSetDigest": "sha256:34b51b66ccb786efbe2b4c69b3a48422f3f4cf3729930ed3ae12f02daa888c50",
+        "wrapperDigest": "sha256:cbc97c99f186b6f2dad1c27d2b15e29c5994ed04c40abb4cf28ce09f8ba0f0c4",
+        "browserDigest": "sha256:61b7891fb701b7deec23af06ed79ab4e05461637605fae7ad0f182c76f7600e3",
+        "adapterDigest": "sha256:89225dcce6919c9d54a3da5d0c224d7cd7736f494b95990d9bf60d867cf7ab9c"
+      }
+    },
+    {
+      "run": 1,
+      "lane": "candidate",
+      "receipt": "1-candidate.log",
+      "sha256": "afd106c9d573eb2e53090cbbbb9ee5bcfbb24d9e3d9d87b36c9810cf9f7f8880",
+      "timing": {
+        "modelLoadMs": 1461.2,
+        "firstTokenMs": 252.4,
+        "firstResponseMs": 1713.6,
+        "prefillMs": 250.5,
+        "decodeMs": 2820.4,
+        "decodeMsPerTokenP50": 0,
+        "decodeMsPerTokenP95": 90.43,
+        "decodeMsPerTokenP99": 94.46,
+        "decodeTokensPerSec": 45.03,
+        "prefillTokensPerSec": 255.49,
+        "totalRunMs": 3074.2,
+        "cacheMode": "warm",
+        "loadMode": "http",
+        "scope": "generation-call-through-completion",
+        "promptTokensPerSecToFirstToken": 253.56576861899066
+      },
+      "recordMsMedian": 555.8000000007451,
+      "tokensPerReadback": 4,
+      "tokenIdsHash": "sha256:abc60a9b7d433776812c6c71cd8d0fc7abfc92238d6498a55b9456b6ae1051d9",
+      "tokenCostLedgerIdentity": {
+        "artifactDigest": "sha256:498dfcae99ef2b502908beaefc09459a213819d5a132b7456c81ce53047fad10",
+        "manifestDigest": "sha256:51bcdb65e4dead3992d65546bc3f2405146c7b7ab812181fe94e0ad0d34aef2c",
+        "executionGraphDigest": "sha256:72a319349559eba467a0d3a11defa48821a61b0bdaa8a79d5c56158115a02847",
+        "runtimeConfigDigest": "sha256:2dd41d103b8c3f73bdeb988dbd52d4d97608fa165928833e8a5f1d2ab1a6001f",
+        "kernelSetDigest": "sha256:34b51b66ccb786efbe2b4c69b3a48422f3f4cf3729930ed3ae12f02daa888c50",
+        "wrapperDigest": "sha256:b3807965dec76336dc3cb9cfc44dc34586c312afef122a18836b86e7683a2e49",
+        "browserDigest": "sha256:61b7891fb701b7deec23af06ed79ab4e05461637605fae7ad0f182c76f7600e3",
+        "adapterDigest": "sha256:89225dcce6919c9d54a3da5d0c224d7cd7736f494b95990d9bf60d867cf7ab9c"
+      }
+    },
+    {
+      "run": 2,
+      "lane": "candidate",
+      "receipt": "2-candidate.log",
+      "sha256": "22e26e739c7c2c0abbafb5ae546ca238c0f013c79b2463c72e839abaa86385bd",
+      "timing": {
+        "modelLoadMs": 1472.4,
+        "firstTokenMs": 268.8,
+        "firstResponseMs": 1741.2,
+        "prefillMs": 266,
+        "decodeMs": 2880.1,
+        "decodeMsPerTokenP50": 0,
+        "decodeMsPerTokenP95": 93.4,
+        "decodeMsPerTokenP99": 98.87,
+        "decodeTokensPerSec": 44.1,
+        "prefillTokensPerSec": 240.6,
+        "totalRunMs": 3148.9,
+        "cacheMode": "warm",
+        "loadMode": "http",
+        "scope": "generation-call-through-completion",
+        "promptTokensPerSecToFirstToken": 238.09523809457815
+      },
+      "recordMsMedian": 597.7000000141561,
+      "tokensPerReadback": 4,
+      "tokenIdsHash": "sha256:abc60a9b7d433776812c6c71cd8d0fc7abfc92238d6498a55b9456b6ae1051d9",
+      "tokenCostLedgerIdentity": {
+        "artifactDigest": "sha256:498dfcae99ef2b502908beaefc09459a213819d5a132b7456c81ce53047fad10",
+        "manifestDigest": "sha256:51bcdb65e4dead3992d65546bc3f2405146c7b7ab812181fe94e0ad0d34aef2c",
+        "executionGraphDigest": "sha256:72a319349559eba467a0d3a11defa48821a61b0bdaa8a79d5c56158115a02847",
+        "runtimeConfigDigest": "sha256:2dd41d103b8c3f73bdeb988dbd52d4d97608fa165928833e8a5f1d2ab1a6001f",
+        "kernelSetDigest": "sha256:34b51b66ccb786efbe2b4c69b3a48422f3f4cf3729930ed3ae12f02daa888c50",
+        "wrapperDigest": "sha256:b3807965dec76336dc3cb9cfc44dc34586c312afef122a18836b86e7683a2e49",
+        "browserDigest": "sha256:61b7891fb701b7deec23af06ed79ab4e05461637605fae7ad0f182c76f7600e3",
+        "adapterDigest": "sha256:89225dcce6919c9d54a3da5d0c224d7cd7736f494b95990d9bf60d867cf7ab9c"
+      }
+    },
+    {
+      "run": 3,
+      "lane": "baseline",
+      "receipt": "3-baseline.log",
+      "sha256": "2a1c6ff3b69660f0f0a825d3f90ab2032d1b3e3d26119711f35ff44db0c922c5",
+      "timing": {
+        "modelLoadMs": 1449.7,
+        "firstTokenMs": 337.5,
+        "firstResponseMs": 1787.2,
+        "prefillMs": 333.6,
+        "decodeMs": 2525.4,
+        "decodeMsPerTokenP50": 0,
+        "decodeMsPerTokenP95": 300.91,
+        "decodeMsPerTokenP99": 320.33,
+        "decodeTokensPerSec": 50.29,
+        "prefillTokensPerSec": 191.85,
+        "totalRunMs": 2863.1,
+        "cacheMode": "warm",
+        "loadMode": "http",
+        "scope": "generation-call-through-completion",
+        "promptTokensPerSecToFirstToken": 189.62962962962962
+      },
+      "recordMsMedian": 1051.2999999932945,
+      "tokensPerReadback": 16,
+      "tokenIdsHash": "sha256:abc60a9b7d433776812c6c71cd8d0fc7abfc92238d6498a55b9456b6ae1051d9",
+      "tokenCostLedgerIdentity": {
+        "artifactDigest": "sha256:498dfcae99ef2b502908beaefc09459a213819d5a132b7456c81ce53047fad10",
+        "manifestDigest": "sha256:51bcdb65e4dead3992d65546bc3f2405146c7b7ab812181fe94e0ad0d34aef2c",
+        "executionGraphDigest": "sha256:72a319349559eba467a0d3a11defa48821a61b0bdaa8a79d5c56158115a02847",
+        "runtimeConfigDigest": "sha256:9868ba754e83bc2b18abdfc65e8cda0632e75bb7302de8bc705f02340f7114a6",
+        "kernelSetDigest": "sha256:34b51b66ccb786efbe2b4c69b3a48422f3f4cf3729930ed3ae12f02daa888c50",
+        "wrapperDigest": "sha256:cbc97c99f186b6f2dad1c27d2b15e29c5994ed04c40abb4cf28ce09f8ba0f0c4",
+        "browserDigest": "sha256:61b7891fb701b7deec23af06ed79ab4e05461637605fae7ad0f182c76f7600e3",
+        "adapterDigest": "sha256:89225dcce6919c9d54a3da5d0c224d7cd7736f494b95990d9bf60d867cf7ab9c"
+      }
+    }
+  ],
+  "correctness": "All four saved final-run transcripts have exactly the same 128 token IDs. Every timed request generated 128 tokens. No per-request token transcript captured; not blanket correctness or held-out quality evidence.",
+  "disposition": "rejected",
+  "reason": "Both candidate sessions reduced p95 delivery gaps to 90-93ms but decode was 44-45 tok/s, slower than both baseline sessions at 50-57 tok/s. No profile changes adopted.",
+  "limits": [
+    "M3 browser only; no AMD, Node, 2B, cancellation, device loss or memory qualification from this experiment.",
+    "Shared host; baseline CPU recording median rose from 537.0 to 1051.3ms across ABBA. Do not attribute first-token or load variation to a decode-only change.",
+    "Five timed requests per session support rejection of this large observed tradeoff, not a claim-grade cross-engine result.",
+    "Earlier CI failures and skipped qualification checks remain open."
+  ],
+  "next": {
+    "streaming": "Prototype earlier delivery while retaining partial-submission CPU/GPU overlap in generator-steps.js; verify cancellation, stop-token resolution and staging-buffer lifetime before paired timing.",
+    "prefill": "Existing timestamp attribution puts 135.2ms of 175.4ms GPU time in projections and 30.9ms in recurrent linear attention; optimize a runtime-matched projection candidate without changing precision.",
+    "baselineCommand": "node src/cli/doppler-cli.js bench --surface browser --config reports/stream-cadence-20261017/baseline-config.json --json",
+    "candidateCommand": "node src/cli/doppler-cli.js bench --surface browser --config reports/stream-cadence-20261017/candidate-config.json --json"
+  }
+}

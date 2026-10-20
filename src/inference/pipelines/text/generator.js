@@ -24,7 +24,7 @@ import { createGenerationOutputDecoder, decodeGenerationStream } from '../../gen
 import { matchesStopSequence } from './stopping.js';
 import { resolveDeferredRoundingWindowTokens } from './finiteness-policy.js';
 import { resetActiveExecutionPlan, resolveActiveExecutionPlan } from './execution-plan.js';
-import { resetLinearAttentionRuntime } from './linear-attention.js';
+import { resetLinearAttentionSequence } from './linear-attention.js';
 
 // Extracted standalone helpers
 import { resolvePromptInput } from './generator/prompt-input.js';
@@ -111,7 +111,7 @@ export class PipelineGenerator {
 
   _resetReplayPrefillRuntimeState() {
     this._state.kvCache?.clear?.();
-    this._state.linearAttentionRuntime = resetLinearAttentionRuntime(this._state.linearAttentionRuntime);
+    this._state.linearAttentionRuntime = resetLinearAttentionSequence(this._state.linearAttentionRuntime);
     this._state.currentSeqLen = 0;
   }
 

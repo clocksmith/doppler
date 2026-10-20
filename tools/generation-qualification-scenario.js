@@ -18,6 +18,7 @@ export async function runGenerationQualificationScenario(config, reference, obse
   const api = await import(config.apiModule);
   const { getDevice, destroyDevice } = await import(config.deviceModule);
   const { observeInitialExecutionIdentity } = await import(config.identityModule);
+  const pool = config.poolObservationModule ? await import(config.poolObservationModule) : null;
   const report = { passed: false, outputs: [], stage: 'load', cleanup: [] };
   let session;
   async function open() {
@@ -27,7 +28,8 @@ export async function runGenerationQualificationScenario(config, reference, obse
     requireValue(source.sourceRepo === reference.source.model && source.sourceRevision === reference.source.revision,
       'Generation source identity differs from the frozen reference.');
     const identity = observeInitialExecutionIdentity(session.advanced.getResolvedRuntimeSession());
-    return { loadMs: performance.now() - started, identity, manifest: session.manifest };
+    return { loadMs: performance.now() - started, identity, manifest: session.manifest,
+      managedMemory: pool?.getBufferPool().getStats() ?? null };
   }
   async function generate(row) {
     session.resetGenerationState();
@@ -35,7 +37,8 @@ export async function runGenerationQualificationScenario(config, reference, obse
     const started = performance.now();
     const result = await session.generateWithEvidence(row.prompt, config.generation);
     return { queryIndex: row.queryIndex, elapsedMs: performance.now() - started,
-      result, comparison: compareGenerationTokens(row, result, promptTokens) };
+      result, managedMemory: pool?.getBufferPool().getStats() ?? null,
+      comparison: compareGenerationTokens(row, result, promptTokens) };
   }
   try {
     report.open = await open(); await observe({ stage: 'loaded', loadMs: report.open.loadMs });
@@ -51,13 +54,18 @@ export async function runGenerationQualificationScenario(config, reference, obse
     report.stage = 'cancellation';
     session.resetGenerationState();
     const controller = new AbortController();
-    const cancelStarted = performance.now(); let chunks = 0;
-    for await (const _chunk of session.generate(first.prompt, { ...config.generation, signal: controller.signal })) {
-      chunks++;
-      if (chunks === config.cancellation.afterChunks) controller.abort();
+    const cancelStarted = performance.now(); let chunks = 0, abortRejection = null;
+    try {
+      for await (const _chunk of session.generate(first.prompt, { ...config.generation, signal: controller.signal })) {
+        chunks++;
+        if (chunks === config.cancellation.afterChunks) controller.abort();
+      }
+    } catch (error) {
+      if (!controller.signal.aborted || error.name !== 'AbortError') throw error;
+      abortRejection = { name: error.name, message: error.message };
     }
     const stats = session.advanced.getStats();
-    report.cancellation = { chunks, elapsedMs: performance.now() - cancelStarted, stats };
+    report.cancellation = { chunks, elapsedMs: performance.now() - cancelStarted, stats, abortRejection };
     requireValue(controller.signal.aborted && stats.stopReason === 'aborted', 'Generation did not observe cancellation.');
     requireValue(report.cancellation.elapsedMs <= config.cancellation.maxElapsedMs, 'Generation cancellation exceeded the explicit budget.');
     report.afterCancellation = await generate(first);

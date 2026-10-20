@@ -1,0 +1,13 @@
+{
+  "contract.json": "707b7c284d10ceae8780d7c34fa6b4ae4ff14866f66edf0a5fc716972729a62e",
+  "run.js": "297cabcd3c3a612b5588f2ed05827f8cc23ab7c29c3c6ee7b2928df4cc5b9fee",
+  "compare.py": "c1345c6837d57de869c9298c45901d2be5415af09509fad16e281f1fc015e49c",
+  "candidate.patch": "d6b1e8da42169a3e4d09d9c72bf4c8188ff6c97bb9bcefe1fb0cc3112cb7168a",
+  "doppler-gpu-0.6.32.tgz": "addf3788637a68ed929c20445d7a540e6a5bd417811284e8a5a11737b6c4284d",
+  "baselineArchiveSha256": "2662a8b9923dbeb4a455556bf6536a5b1291595a4f5846800eff312f6c24c60f",
+  "configSha256": "c35b5b220963a7e2c729a5742f196fb329baa0c484d516625b7522eaf494f9d0",
+  "archiveRuntimeDifferences": [
+    "src/inference/pipelines/text/ffn/dense.js",
+    "src/inference/pipelines/text/ffn/dense-executor.js"
+  ]
+}

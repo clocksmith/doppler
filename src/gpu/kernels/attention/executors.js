@@ -4,16 +4,16 @@ import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { createTensor } from '../../tensor.js';
 import { KernelBase } from '../kernel-base.js';
 import { withKernelOutput } from '../kernel-execution.js';
-import { getKernelThresholds, padToQ4KBlock } from '../../../config/schema/index.js';
+import { padToQ4KBlock } from '../../../config/schema/index.js';
 import { createUniformBufferWithView } from '../uniform-utils.js';
 import { getKernelConfig, getKernelValidator } from '../kernel-configs.js';
 import { getPipelineBindGroupLayout } from '../pipeline-cache.js';
 import { hasRequiredFeatures } from '../feature-check.js';
 import { dispatchIndirect, recordDispatchIndirect } from '../dispatch.js';
 import { releaseUniformBuffer } from '../../uniform-cache.js';
-import { log, trace } from '../../../debug/index.js';
+import { trace } from '../../../debug/index.js';
 import { getRuntimeConfig } from '../../../config/runtime.js';
-import { getRequiredVariantMaxKVLen, resolveAttentionPlan } from './plan.js';
+import { resolveAttentionPlan, resolveOnlineDecodePipelineConstants } from './plan.js';
 
 export let kvLenFallbackBuffer = null;
 export let kvLenFallbackBufferEpoch = -1;
@@ -71,36 +71,6 @@ export class AttentionKernel extends KernelBase {
   ) {
     this.recordKernel(recorder, pipeline, bindGroup, workgroups, 'attention');
   }
-}
-
-export function resolveOnlineDecodePipelineConstants(variant, headDim, options = {}) {
-  if (!variant?.startsWith('decode_online')) {
-    return null;
-  }
-  const policy = getRuntimeConfig()?.inference?.session?.attentionDecodeOnline;
-  const workgroupSize = policy?.workgroupSize;
-  const constants = {};
-  if (workgroupSize != null) {
-    if (workgroupSize !== 128 && workgroupSize !== 256) {
-      throw new Error(`attentionDecodeOnline.workgroupSize must be 128 or 256, got ${workgroupSize}.`);
-    }
-    if (headDim > workgroupSize * 2) {
-      throw new Error(
-        `attentionDecodeOnline.workgroupSize=${workgroupSize} cannot cover headDim=${headDim}; ` +
-        `requires headDim <= ${workgroupSize * 2}.`
-      );
-    }
-    constants.WORKGROUP_SIZE = workgroupSize;
-  }
-  if (
-    variant === 'decode_online_head256_f16kv_output_gate'
-    && policy?.useDirectContiguousKVLayout === true
-    && options.kvLayout === 'contiguous'
-    && options.slidingWindow === 0
-  ) {
-    constants.USE_DIRECT_KV_LAYOUT = true;
-  }
-  return Object.keys(constants).length > 0 ? constants : null;
 }
 
 export class AttentionBDPAKernel extends KernelBase {
@@ -506,10 +476,12 @@ export async function executeAttention(
   }
 
   const kernel = new AttentionKernel(execution.device);
-  const pipelineConstants = resolveOnlineDecodePipelineConstants(plan.variant, headDim, {
-    kvLayout,
-    slidingWindow,
-  });
+  const pipelineConstants = resolveOnlineDecodePipelineConstants(
+    plan.variant,
+    headDim,
+    getRuntimeConfig()?.inference?.session?.attentionDecodeOnline,
+    { kvLayout, slidingWindow }
+  );
   const usesOutputGateFusion = plan.variant === 'decode_online_head256_f16kv_output_gate';
   const pipeline = await kernel.getPipeline(plan.variant, pipelineConstants);
 

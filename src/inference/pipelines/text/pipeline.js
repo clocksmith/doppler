@@ -44,6 +44,7 @@ import {
   createLinearAttentionRuntime,
   hasLinearAttentionLayers,
   resetLinearAttentionRuntime,
+  resetLinearAttentionSequence,
   restoreLinearAttentionRuntime,
 } from './linear-attention.js';
 import { createObservationContext } from '../../observation-context.js';
@@ -525,7 +526,7 @@ export class InferencePipeline extends PipelineState {
 
   reset() {
     this.kvCache?.clear();
-    this.linearAttentionRuntime = resetLinearAttentionRuntime(this.linearAttentionRuntime);
+    this.linearAttentionRuntime = resetLinearAttentionSequence(this.linearAttentionRuntime);
     this.currentSeqLen = 0;
     this.decodeStepCount = 0;
     this.debugFlags = {};
@@ -548,7 +549,7 @@ export class InferencePipeline extends PipelineState {
 
   resetForBatch() {
     this.kvCache?.clear();
-    this.linearAttentionRuntime = resetLinearAttentionRuntime(this.linearAttentionRuntime);
+    this.linearAttentionRuntime = resetLinearAttentionSequence(this.linearAttentionRuntime);
     this.currentSeqLen = 0;
     this.decodeStepCount = 0;
     this.decodeBuffers?.resetPingPong();

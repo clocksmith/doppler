@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "node",
+    "src/cli/doppler-cli.js",
+    "bench",
+    "--surface",
+    "browser",
+    "--config",
+    "/Users/xyz/deco/doppler/reports/warm-fairness-20261017/prefill-profile-config.json",
+    "--json"
+  ],
+  "timeoutSeconds": 240,
+  "purpose": "timestamp-instrumented attribution only; no performance comparison"
+}

@@ -1,0 +1,32 @@
+{
+  "passed": true,
+  "historicalReceipt": "reports/weight-representation-20261017/vulkan/final-v3/candidate-2b-first/receipt.json",
+  "historicalReceiptSha256": "fd60ab5dd85b89291d48b825ec254ba993e814ae00c67c2227075943fdd60118",
+  "successorReceiptSha256": "fc20e0f5817ac28f754d4bf8ca61bdfd47ef61724db13efd70a901be7969f4af",
+  "sameConfiguration": true,
+  "comparisons": {
+    "first": {
+      "tokens": true,
+      "text": true
+    },
+    "long-prefill": {
+      "tokens": true,
+      "text": true
+    },
+    "numerical": {
+      "logitsSha256": true,
+      "vocab": true
+    }
+  },
+  "hardware": [
+    {
+      "vendorId": 4098,
+      "deviceId": 5510,
+      "vendorString": "Google Inc. (AMD)",
+      "deviceString": "ANGLE (AMD, Vulkan 1.4.335 (Radeon 8060S Graphics (RADV STRIX_HALO) (0x00001586)), radv-26.0.3)",
+      "driverVendor": "AMD",
+      "driverVersion": "26.0.3"
+    }
+  ],
+  "scope": "Physical Chrome Vulkan successor qualification against retained same-device predecessor; no scratch candidate or AMD speedup claim"
+}
