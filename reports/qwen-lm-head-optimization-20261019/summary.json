@@ -1,0 +1,103 @@
+{
+  "scope": "Qwen 3.5 2B Q4_K decode forward-pass LM head argmax shared-memory optimization on Apple M3 Metal in Chrome 155.",
+  "exactOutputs": true,
+  "expectedOutput": {
+    "text": " Paris. Paris is the capital of France. Paris is the capital of France. Paris is the capital of France. Paris is the capital of France. Paris is",
+    "tokenCount": 32,
+    "tokens": [
+      11751, 13, 11751, 369, 279, 6511, 314, 9338, 13, 11751,
+      369, 279, 6511, 314, 9338, 13, 11751, 369, 279, 6511,
+      314, 9338, 13, 11751, 369, 279, 6511, 314, 9338, 13,
+      11751, 369
+    ]
+  },
+  "comparison": {
+    "baselineReport": "reports/qwen-operator-attribution-20261018",
+    "hardware": "Apple M3 Metal (4.0GB allocated, f16/subgroups enabled)",
+    "browser": "Chrome 155.0.8059.80",
+    "metrics": {
+      "controlRequestElapsedMs": {
+        "baseline": 2216.1,
+        "candidate": 1278.5,
+        "deltaMs": -937.6,
+        "percentChange": -42.3
+      },
+      "controlDecodeMs": {
+        "baseline": 1921.9,
+        "candidate": 927.3,
+        "deltaMs": -994.6,
+        "percentChange": -51.7
+      },
+      "controlDecodeSubmitWaitMs": {
+        "baseline": 1633.9,
+        "candidate": 726.3,
+        "deltaMs": -907.6,
+        "percentChange": -55.5
+      },
+      "profileRequestElapsedMs": {
+        "baseline": 2114.0,
+        "candidate": 1522.7,
+        "deltaMs": -591.3,
+        "percentChange": -28.0
+      },
+      "repeatRequestElapsedMs": {
+        "baseline": 1317.7,
+        "candidate": 1328.9,
+        "deltaMs": 11.2,
+        "percentChange": 0.9
+      },
+      "measuredDecodeGpuComputeMs": {
+        "baseline": 807.48,
+        "candidate": 717.45,
+        "deltaMs": -90.03,
+        "percentChange": -11.2
+      },
+      "lmHeadArgmaxQ4KPhase1Ms": {
+        "baseline": 162.12,
+        "candidate": 145.69,
+        "deltaMs": -16.43,
+        "percentChange": -10.1
+      }
+    }
+  },
+  "phases": {
+    "decode": {
+      "measuredMs": 717.45,
+      "dominant": [
+        {
+          "operation": "fused_ffn",
+          "count": 484,
+          "durationMs": 213.59,
+          "sharePercent": 29.8
+        },
+        {
+          "operation": "lm_head_argmax_q4k_phase1",
+          "count": 20,
+          "durationMs": 145.69,
+          "sharePercent": 20.3
+        },
+        {
+          "operation": "linear_attention_fused_decode_core",
+          "count": 364,
+          "durationMs": 38.79,
+          "sharePercent": 5.4
+        }
+      ]
+    }
+  },
+  "lifecycle": {
+    "modelOpenedMs": 3608.8,
+    "hasLogits": true,
+    "resetStateSuccess": true,
+    "deviceUnloadSuccess": true,
+    "deviceDestroySuccess": true
+  },
+  "candidate": {
+    "file": "src/gpu/kernels/lm_head_argmax_q4k.wgsl",
+    "description": "Cooperative workgroup shared-memory caching of the hidden activation vector for full-block Q4_K LM head argmax phase1 projections.",
+    "sharedMemoryAllocatedBytes": 8192,
+    "totalWorkgroupStorageBytes": 11264,
+    "maxAllowedStorageBytes": 16384
+  },
+  "disposition": "Accepted candidate. Demonstrated significant latency reduction on M3 Metal while preserving exact token parity across 32 control tokens and settling lifecycle requirements."
+}
