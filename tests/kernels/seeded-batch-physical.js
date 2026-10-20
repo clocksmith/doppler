@@ -1,7 +1,7 @@
 /** Real batch/sampling/cleanup owners; fixed GPU logits replace model computation. */
 export async function auditSeededBatches() {
   const { initDevice, getKernelCapabilities, destroyDevice } = await import('/src/gpu/device.js');
-  const { acquireBuffer, getBufferPool, destroyBufferPool } = await import('/src/memory/buffer-pool.js');
+  const { acquireBuffer, releaseBuffer, getBufferPool, destroyBufferPool } = await import('/src/memory/buffer-pool.js');
   const { getRuntimeConfig } = await import('/src/config/runtime.js');
   const { generateNTokensGPU } = await import('/src/inference/pipelines/text/generator-steps.js');
   const { PipelineGenerator } = await import('/src/inference/pipelines/text/generator.js');
@@ -22,7 +22,8 @@ export async function auditSeededBatches() {
   const embed = device.createBuffer({ size: 4, usage: GPUBufferUsage.STORAGE });
   const rows = [];
   const check = (condition, message) => { if (!condition) throw new Error(message); };
-  const equal = (left, right, message) => check(JSON.stringify(left) === JSON.stringify(right), message);
+  const equal = (left, right, message) => check(JSON.stringify(left) === JSON.stringify(right),
+    `${message}: ${JSON.stringify({ actual: left, expected: right })}`);
   function expected(seed, index) {
     // Independent scalar oracle: freeze the documented counter and inverse CDF.
     const drawSeed = index === 0 ? seed : ((seed % 4294967296) + (index % 4294967296)) % 4294967296;
@@ -67,6 +68,18 @@ export async function auditSeededBatches() {
     return resources;
   };
   try {
+    const { runGPUSample } = await import('/src/gpu/kernels/sample.js');
+    const directInput = createInput(values, 'fixture_direct_logits');
+    try {
+      const actual = [];
+      for (let seed = 3; seed < 10; seed++) actual.push(await runGPUSample(directInput, 512, {
+        temperature: 1, topK: 4, topP: 1, randomSeed: seed, greedyThreshold: 0,
+        padTokenId: 510, logitSoftcap: null, logitsDtype: 'f32', outputIndex: 0,
+      }));
+      const oracle = Array.from({ length: 7 }, (_, i) => expected(0, i + 3));
+      rows.push({ directSampler: { actual, expected: oracle } });
+      equal(actual, oracle, 'Independent GPU dispatches differ from scalar sampling');
+    } finally { releaseBuffer(directInput); }
     for (const seed of [0, 17, 0.25, 4294967295, Number.MAX_VALUE]) {
       const ids = [1, 2, 3, 4, 5], opts = options(seed);
       const oracle = Array.from({ length: 7 }, (_, i) => expected(seed, i + 3));

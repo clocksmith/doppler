@@ -1,0 +1,379 @@
+{
+  "schema": "doppler.prompt-lookup-observation/v1",
+  "host": "amd-host",
+  "identity": {
+    "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+    "manifestHash": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+    "adapter": null,
+    "maxSeqLen": 512,
+    "tokens": 3,
+    "minMatchTokens": 3,
+    "maxMatchTokens": 4,
+    "maxRejectedBlocks": 1,
+    "temperature": 0,
+    "topK": 1,
+    "topP": 1,
+    "maxTokens": 40,
+    "repetitionPenalty": 1,
+    "repetitionPenaltyWindow": 1,
+    "useChatTemplate": true
+  },
+  "results": [
+    {
+      "prompt": "Repeat exactly: The red fox jumps over the blue box. The red fox jumps over the blue box. The red fox jumps over the blue box.",
+      "results": [
+        {
+          "mode": "none",
+          "tokens": [
+            760,
+            2438,
+            37550,
+            33075,
+            888,
+            279,
+            6105,
+            3618,
+            13,
+            561,
+            2438,
+            37550,
+            33075,
+            888,
+            279,
+            6105,
+            3618,
+            13,
+            561,
+            2438,
+            37550,
+            33075,
+            888,
+            279,
+            6105,
+            3618,
+            13,
+            248046
+          ],
+          "ms": 5765.578252999999,
+          "stats": {
+            "decodeMode": "batched_gpu",
+            "proposed": 0,
+            "accepted": 0,
+            "stopReason": "stop-token"
+          }
+        },
+        {
+          "mode": "lookup",
+          "tokens": [
+            760,
+            2438,
+            37550,
+            33075,
+            888,
+            279,
+            6105,
+            3618,
+            13,
+            561,
+            2438,
+            37550,
+            33075,
+            888,
+            279,
+            6105,
+            3618,
+            13,
+            561,
+            2438,
+            37550,
+            33075,
+            888,
+            279,
+            6105,
+            3618,
+            13,
+            248046
+          ],
+          "ms": 6982.935979000002,
+          "stats": {
+            "decodeMode": "target_verified_lookup",
+            "proposed": 6,
+            "accepted": 4,
+            "stopReason": "stop-token"
+          }
+        },
+        {
+          "mode": "none",
+          "tokens": [
+            760,
+            2438,
+            37550,
+            33075,
+            888,
+            279,
+            6105,
+            3618,
+            13,
+            561,
+            2438,
+            37550,
+            33075,
+            888,
+            279,
+            6105,
+            3618,
+            13,
+            561,
+            2438,
+            37550,
+            33075,
+            888,
+            279,
+            6105,
+            3618,
+            13,
+            248046
+          ],
+          "ms": 5565.644249000001,
+          "stats": {
+            "decodeMode": "batched_gpu",
+            "proposed": 0,
+            "accepted": 0,
+            "stopReason": "stop-token"
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "What is two plus three?",
+      "results": [
+        {
+          "mode": "none",
+          "tokens": [
+            11280,
+            5346,
+            2250,
+            16327,
+            2972,
+            20,
+            159034,
+            248046
+          ],
+          "ms": 4981.053277999999,
+          "stats": {
+            "decodeMode": "batched_gpu",
+            "proposed": 0,
+            "accepted": 0,
+            "stopReason": "stop-token"
+          }
+        },
+        {
+          "mode": "lookup",
+          "tokens": [
+            11280,
+            5346,
+            2250,
+            16327,
+            2972,
+            20,
+            159034,
+            248046
+          ],
+          "ms": 2063.0861540000005,
+          "stats": {
+            "decodeMode": "single_token",
+            "proposed": 0,
+            "accepted": 0,
+            "stopReason": "stop-token"
+          }
+        },
+        {
+          "mode": "none",
+          "tokens": [
+            11280,
+            5346,
+            2250,
+            16327,
+            2972,
+            20,
+            159034,
+            248046
+          ],
+          "ms": 4786.056200000003,
+          "stats": {
+            "decodeMode": "batched_gpu",
+            "proposed": 0,
+            "accepted": 0,
+            "stopReason": "stop-token"
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "Write a JSON array of four objects with keys name and city.",
+      "results": [
+        {
+          "mode": "none",
+          "tokens": [
+            71093,
+            2164,
+            198,
+            58,
+            198,
+            220,
+            313,
+            198,
+            262,
+            328,
+            591,
+            763,
+            328,
+            59605,
+            487,
+            198,
+            262,
+            328,
+            8656,
+            763,
+            328,
+            3446,
+            4121,
+            1,
+            198,
+            220,
+            2390,
+            198,
+            220,
+            313,
+            198,
+            262,
+            328,
+            591,
+            763,
+            328,
+            31318,
+            487,
+            198,
+            262
+          ],
+          "ms": 6228.6425970000055,
+          "stats": {
+            "decodeMode": "batched_gpu",
+            "proposed": 0,
+            "accepted": 0,
+            "stopReason": "max-tokens"
+          }
+        },
+        {
+          "mode": "lookup",
+          "tokens": [
+            71093,
+            2164,
+            198,
+            58,
+            198,
+            220,
+            313,
+            198,
+            262,
+            328,
+            591,
+            763,
+            328,
+            59605,
+            487,
+            198,
+            262,
+            328,
+            8656,
+            763,
+            328,
+            3446,
+            4121,
+            1,
+            198,
+            220,
+            2390,
+            198,
+            220,
+            313,
+            198,
+            262,
+            328,
+            591,
+            763,
+            328,
+            31318,
+            487,
+            198,
+            262
+          ],
+          "ms": 7283.216296999999,
+          "stats": {
+            "decodeMode": "target_verified_lookup",
+            "proposed": 3,
+            "accepted": 0,
+            "stopReason": "max-tokens"
+          }
+        },
+        {
+          "mode": "none",
+          "tokens": [
+            71093,
+            2164,
+            198,
+            58,
+            198,
+            220,
+            313,
+            198,
+            262,
+            328,
+            591,
+            763,
+            328,
+            59605,
+            487,
+            198,
+            262,
+            328,
+            8656,
+            763,
+            328,
+            3446,
+            4121,
+            1,
+            198,
+            220,
+            2390,
+            198,
+            220,
+            313,
+            198,
+            262,
+            328,
+            591,
+            763,
+            328,
+            31318,
+            487,
+            198,
+            262
+          ],
+          "ms": 6246.382283999999,
+          "stats": {
+            "decodeMode": "batched_gpu",
+            "proposed": 0,
+            "accepted": 0,
+            "stopReason": "max-tokens"
+          }
+        }
+      ]
+    }
+  ],
+  "lifecycle": "cancelled-and-reused",
+  "scope": "Sequential diagnostic with other public contributors running; not isolated performance acceptance.",
+  "sourceSnapshot": {
+    "sourceTreeHash": "sha256:d06dbd63e5202a5e60ba375d721e2d19caee56c0c1c4cce3b5f460ed09b60e5e"
+  }
+}

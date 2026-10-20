@@ -1,0 +1,254 @@
+{
+  "schema": "doppler.qualification-checkpoint/v1",
+  "observedAt": "2026-10-17T20:09:31.342716+00:00",
+  "sourceCommits": [
+    "0a304fad",
+    "3c488a92"
+  ],
+  "additionalChanges": "generated package exclusions, runtime closure and dependency views captured with this report",
+  "qualificationComplete": false,
+  "performanceClaimsChanged": false,
+  "unit": {
+    "command": "npm run test:unit",
+    "initialExitCode": 1,
+    "initialFileCount": 946,
+    "initialFailures": [
+      "tests/config/capsule-naming-migration.test.js",
+      "tests/config/catscan-contract.test.js",
+      "tests/config/gemma4-e2b-int4ple-f16-variant-identity.test.js",
+      "tests/config/lean-execution-contract-config-sweep.test.js",
+      "tests/config/local-gpu-challenger-matrix-contract.test.js",
+      "tests/config/quickstart-registry-sync.test.js",
+      "tests/inference/generate-token-ids-contract.test.js",
+      "tests/integration/doppler-generation-evidence.test.js",
+      "tests/integration/doppler-resolution-policy.test.js",
+      "tests/integration/node-converter-atomicity.test.js",
+      "tests/integration/node-converter-surface-errors.test.js",
+      "tests/integration/source-runtime-parity.test.js",
+      "tests/tooling/export-w8a8-projection.test.js"
+    ],
+    "rerunExitCode": 0,
+    "rerunFileCount": 946,
+    "selfSkippedFiles": [
+      {
+        "test": "tests/converter/manifest-conversion-preflight.test.js",
+        "messages": [
+          "# manifest-conversion-preflight.test: skipped (source weight index unavailable at models/source/glimmer-30b/model.safetensors.index.json)"
+        ],
+        "status": "open-skipped-evidence; other checks in this file may have run"
+      },
+      {
+        "test": "tests/integration/linear-prepared-sequence-physical.test.js",
+        "messages": [
+          "# linear-prepared-sequence-physical: skipped (no provisioned model)"
+        ],
+        "status": "open-skipped-evidence; other checks in this file may have run"
+      },
+      {
+        "test": "tests/integration/partition-layers-physical.test.js",
+        "messages": [
+          "# partition-layers-physical: skipped; set DOPPLER_PARTITION_MODEL_DIR to a local RDRR generation model"
+        ],
+        "status": "open-skipped-evidence; other checks in this file may have run"
+      },
+      {
+        "test": "tests/integration/qwen-linear-attention-regression.test.js",
+        "messages": [
+          "# qwen-linear-attention-regression.test: skipped (set DOPPLER_QWEN35_LINEAR_MODEL_DIR)"
+        ],
+        "status": "open-skipped-evidence; other checks in this file may have run"
+      },
+      {
+        "test": "tests/integration/resident-partition-physical.test.js",
+        "messages": [
+          "# resident-partition-physical: skipped; set DOPPLER_PARTITION_MODEL_DIR"
+        ],
+        "status": "open-skipped-evidence; other checks in this file may have run"
+      },
+      {
+        "test": "tests/integration/rmsnorm-dispatch-physical.test.js",
+        "messages": [
+          "# rmsnorm-dispatch-physical: SKIP (DOPPLER_RMS_CAPTURE not supplied)"
+        ],
+        "status": "open-skipped-evidence; other checks in this file may have run"
+      },
+      {
+        "test": "tests/integration/seeded-batch-physical.test.js",
+        "messages": [
+          "# seeded-batch-physical: SKIP (explicit result path required)"
+        ],
+        "status": "open-skipped-evidence; other checks in this file may have run"
+      },
+      {
+        "test": "tests/integration/speculative-generation-physical.test.js",
+        "messages": [
+          "# speculative-generation-physical: skipped; set MODEL_DIR to a local verified model"
+        ],
+        "status": "open-skipped-evidence; other checks in this file may have run"
+      },
+      {
+        "test": "tests/integration/translategemma-q4k-regression.test.js",
+        "messages": [
+          "# translategemma-q4k-regression.test: skipped (legacy TranslateGemma Q4K is outside the current Gemma 4/Qwen 3.5 release focus)"
+        ],
+        "status": "open-skipped-evidence; other checks in this file may have run"
+      },
+      {
+        "test": "tests/integration/w8a8-physical.test.js",
+        "messages": [
+          "# w8a8-physical: SKIP (explicit result path required)"
+        ],
+        "status": "open-skipped-evidence; other checks in this file may have run"
+      },
+      {
+        "test": "tests/tooling/glimmer-hf-reference-contract.test.js",
+        "messages": [
+          "# glimmer-hf-reference-contract.test: skipped (boundary artifacts unavailable at reports/model-ir-v2/glimmer-30b.hf-boundaries)"
+        ],
+        "status": "open-skipped-evidence; other checks in this file may have run"
+      },
+      {
+        "test": "tests/tooling/source-boundary-comparison.test.js",
+        "messages": [
+          "ok 1 - retained Glimmer boundary captures reproduce the historical rejected comparison # SKIP Local boundary capture unavailable: reports/model-ir-v2/glimmer-30b.node-candidate-11-tsir/generation_step_7"
+        ],
+        "status": "open-skipped-evidence; other checks in this file may have run"
+      },
+      {
+        "test": "tests/training/student-code-experiment.test.js",
+        "messages": [
+          "ok 1 - retained teacher labels reproduce the historical training dataset # SKIP Local evidence unavailable: reports/training/teacher-qualification/doppler-js-wgsl-2026-07-11-v4"
+        ],
+        "status": "open-skipped-evidence; other checks in this file may have run"
+      },
+      {
+        "test": "tests/training/wgsl-repair-v10-policy.test.js",
+        "messages": [
+          "ok 1 - retained V10 token-budget derivation bytes match their frozen digest # SKIP Local evidence unavailable: reports/training/wgsl-repair/doppler-wgsl-repair-v9/corpus-v1/train-anchor.jsonl"
+        ],
+        "status": "open-skipped-evidence; other checks in this file may have run"
+      },
+      {
+        "test": "tests/training/wgsl-repair-v11-policy.test.js",
+        "messages": [
+          "ok 1 - retained V11 corpus has frozen hashes and disjoint families # SKIP Local evidence unavailable: reports/training/wgsl-repair/doppler-wgsl-repair-v9/corpus-v1"
+        ],
+        "status": "open-skipped-evidence; other checks in this file may have run"
+      },
+      {
+        "test": "tests/training/wgsl-writer-family-distillation-contract.test.js",
+        "messages": [
+          "ok 1 - retained family-distillation transport and adapter byte custody # SKIP Local evidence unavailable: reports/training/wgsl-writer/family-distillation-v1/transport/0-8b-v2/transport-request.json"
+        ],
+        "status": "open-skipped-evidence; other checks in this file may have run"
+      }
+    ],
+    "countsIncludeSelfSkippedFiles": true
+  },
+  "excludedSuites": {
+    "unit-webgpu": {
+      "roots": [
+        "tests/config/training-freeze-enforcement.test.js",
+        "tests/config/training-telemetry-alerts.test.js",
+        "tests/config/ul-stage1-determinism.test.js",
+        "tests/inference/bf16-weight-kernels-gpu-regression.test.js",
+        "tests/inference/fused-ffn-gelu-gpu-regression.test.js",
+        "tests/inference/fused-ffn-q4-metal-simd16-gpu-regression.test.js",
+        "tests/inference/fused-matmul-q4-metal-simd16-gpu-regression.test.js",
+        "tests/inference/fused-normed-ffn-gpu-regression.test.js",
+        "tests/inference/gelu-erf-gpu-regression.test.js",
+        "tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js",
+        "tests/inference/layer-plan-paired-physical.test.js",
+        "tests/inference/lfm2-conv-kernel-init.test.js",
+        "tests/inference/lfm2-layer-plan-conv-state.test.js",
+        "tests/inference/linear-attention-core-gpu-regression.test.js",
+        "tests/inference/logits-bias.test.js",
+        "tests/inference/logits-output-ownership.test.js",
+        "tests/inference/logits-paired-physical.test.js",
+        "tests/inference/paired-ffn-physical.test.js",
+        "tests/inference/rope-source-frequencies-gpu.test.js",
+        "tests/integration/training-force-resume-lineage.test.js",
+        "tests/integration/training-intent-split.test.js",
+        "tests/integration/training-report-lineage.test.js",
+        "tests/integration/ul-stage-workflow-regression.test.js",
+        "tests/loader/layer-loader-affine-norm.test.js",
+        "tests/loader/layer-loader-conv-precision.test.js",
+        "tests/loader/layer-loader-gemma4-ple-projection-stability.test.js",
+        "tests/training/suite-artifact-dir-cleanup.test.js"
+      ],
+      "excludeRoots": []
+    },
+    "unit-browser": {
+      "roots": [
+        "tests/client/document-search-ui.test.js",
+        "tests/inference/gemma3-nan-regression.test.js"
+      ],
+      "excludeRoots": []
+    },
+    "gpu": {
+      "roots": [
+        "tests/kernels"
+      ],
+      "excludeRoots": []
+    }
+  },
+  "pendingTests": [
+    {
+      "path": "tests/integration/doppler-public-logits-api-contract.pending.test.js",
+      "feature": "Public logits API (advanced.prefillWithLogits / advanced.decodeStepLogits) on the Doppler client surface.",
+      "owner": "doppler-cleanup",
+      "created": "2026-04-19",
+      "expires": "2026-10-19",
+      "expectedMissing": [
+        "src/client/doppler-api.js advanced.prefillWithLogits",
+        "src/client/doppler-api.js advanced.decodeStepLogits",
+        "src/client/doppler-api.browser.js advanced.prefillWithLogits",
+        "src/client/doppler-api.browser.js advanced.decodeStepLogits",
+        "src/client/doppler-api.d.ts prefillWithLogits / decodeStepLogits type signatures"
+      ]
+    }
+  ],
+  "repositoryChecks": {
+    "command": "check:green scripts except test:unit (run separately)",
+    "initialFailures": [
+      "runtime:closure:check",
+      "public:boundaries:check",
+      "package:smoke",
+      "source:dependencies:check"
+    ],
+    "passedAfterRegeneration": [
+      "runtime:closure:check",
+      "package:smoke",
+      "source:dependencies:check"
+    ],
+    "remainingFailure": {
+      "check": "public:boundaries:check",
+      "reason": "Package file/byte limits exceeded",
+      "limits": {
+        "files": 2004,
+        "packedBytes": 3497999,
+        "unpackedBytes": 14172897
+      },
+      "measured": {
+        "files": 2024,
+        "packedBytes": 3503884,
+        "unpackedBytes": 14265879
+      },
+      "thresholdsChanged": false
+    }
+  },
+  "ci": {
+    "runId": 39065144820,
+    "head": "3c488a92",
+    "observedStatus": "in_progress",
+    "observedConclusion": "",
+    "url": "https://github.com/clocksmith/doppler/actions/runs/39065144820",
+    "completionClaim": false
+  },
+  "remainingPhysicalQualification": [
+    "current-source M3/Metal and AMD/Vulkan 0.8B and 2B, alternating engine order",
+    "cold/warm opening and TTFT, long prefill, memory",
+    "cancellation/reuse and device-loss/recreation"
+  ],
+  "nextOptimization": "Attribute 16-token delivery bursts, preserve decode throughput, then implement per-tensor representation reachability."
+}

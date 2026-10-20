@@ -151,10 +151,21 @@ export const DEFAULT_KERNEL_THRESHOLDS = {
 // Runtime Access
 // =============================================================================
 
-let currentThresholds = cloneThresholdTree(DEFAULT_KERNEL_THRESHOLDS);
+function freezeThresholdTree(value) {
+  for (const child of Object.values(value)) {
+    if (child !== null && typeof child === 'object') freezeThresholdTree(child);
+  }
+  return Object.freeze(value);
+}
+
+let currentThresholds = freezeThresholdTree(cloneThresholdTree(DEFAULT_KERNEL_THRESHOLDS));
 
 export function getKernelThresholds() {
   return cloneThresholdTree(currentThresholds);
+}
+
+export function getKernelThresholdSnapshot() {
+  return currentThresholds;
 }
 
 export function setKernelThresholds(overrides) {
@@ -171,9 +182,9 @@ export function setKernelThresholds(overrides) {
     fusedMatmul: { ...currentThresholds.fusedMatmul, ...overrides.fusedMatmul },
     cast: { ...currentThresholds.cast, ...overrides.cast },
   };
-  currentThresholds = cloneThresholdTree(nextThresholds);
+  currentThresholds = freezeThresholdTree(cloneThresholdTree(nextThresholds));
 }
 
 export function resetKernelThresholds() {
-  currentThresholds = cloneThresholdTree(DEFAULT_KERNEL_THRESHOLDS);
+  currentThresholds = freezeThresholdTree(cloneThresholdTree(DEFAULT_KERNEL_THRESHOLDS));
 }

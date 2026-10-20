@@ -1,0 +1,15 @@
+{
+  "modelId": "qwen-3-5-2b-q4k-ehaf16",
+  "manifestSha256": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+  "file": "shard_00000.bin",
+  "bytes": 67108864,
+  "sha256": "e40985f8ab9f9d321fe46c309edf79d39291156826c9a77903caed4fadf8138c",
+  "declared": "7f38a80c6ba6593361224d8041712c18cb78151c1697cc5de7562cf53a2dbb4a",
+  "legacy": "7f38a80c6ba6593361224d8041712c18cb78151c1697cc5de7562cf53a2dbb4a",
+  "standard": "ed436f5e41bb514f0ecc2b49a8eae00a8b0985d470e649d3b1265eba54347f2d",
+  "independentPythonBlake3": "ed436f5e41bb514f0ecc2b49a8eae00a8b0985d470e649d3b1265eba54347f2d",
+  "standardMatchesIndependent": true,
+  "legacyMatchesManifest": true,
+  "manifestUnchanged": true,
+  "scope": "Read-only first-shard diagnostic. Full inventory independent SHA256 evidence remains in the representation campaign. No artifact migration or release promotion."
+}

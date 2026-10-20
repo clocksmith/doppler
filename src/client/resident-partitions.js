@@ -43,13 +43,15 @@ export function createResidentPartitionFactory({ openCapsule, capsuleOptions }) 
  * storage and an exact manifest identity; no model identity is inferred from a URL.
  * @type {import('./resident-partitions.js').createManifestResidentPartitionFactory}
  */
-export function createManifestResidentPartitionFactory({ manifest, manifestIdentity, runtimeConfig, createStorage, onLoadProgress }) {
+export function createManifestResidentPartitionFactory({ manifest, manifestIdentity, runtimeConfig, createStorage, onLoadProgress, resolveAdapter }) {
   const source = structuredClone(manifest), config = structuredClone(runtimeConfig);
   if (!/^sha256:[a-f0-9]{64}$/.test(manifestIdentity) || typeof createStorage !== 'function'
     || !config || !source?.modelId) throw new Error('Pinned manifest, verified storage and explicit runtime configuration required.');
   if (onLoadProgress != null && typeof onLoadProgress !== 'function') throw new Error('Resident onLoadProgress must be a function.');
   return Object.freeze({
     async openResidentPartition(input) {
+      const { signal: requestSignal, ...request } = input;
+      input = { ...structuredClone(request), signal: requestSignal };
       const [{ createPipeline, InferencePipeline }, { createModelHandle }, { createResidentPartitionSession }, { resolveResidentPartitionAllocation }] = await Promise.all([
         import('../inference/pipelines/text.js'), import('./model-host/model-session.js'),
         import('../inference/pipelines/text/resident-partition.js'), import('../inference/pipelines/text/resident-partition-contract.js'),
@@ -57,6 +59,13 @@ export function createManifestResidentPartitionFactory({ manifest, manifestIdent
       input.signal.throwIfAborted();
       const { signal, ...allocationInput } = input;
       const allocation = resolveResidentPartitionAllocation(source, manifestIdentity, { ...allocationInput, generation: input.model.generation });
+      const selected = input.model.adapters ?? [];
+      if (JSON.stringify(selected.map(adapter => adapter.identity)) !== JSON.stringify(allocation.plan.adapterIdentities ?? [])) {
+        throw new Error('Resident adapter selection differs from the accepted plan.');
+      }
+      if (selected.some(adapter => adapter.baseModelIdentity !== manifestIdentity) || selected.length && typeof resolveAdapter !== 'function') {
+        throw new Error('Resident adapter requires its exact base artifact and verified acquisition.');
+      }
       const storage = await createStorage(input);
       /** @type {ReturnType<typeof createModelHandle> | null} */
       let handle = null;
@@ -74,6 +83,13 @@ export function createManifestResidentPartitionFactory({ manifest, manifestIdent
         const opened = createModelHandle(pipeline, { modelId: source.modelId, manifestHash: manifestIdentity.slice(7) });
         handle = opened;
         input.signal.throwIfAborted();
+        for (const adapter of selected) {
+          if (!resolveAdapter) throw new Error('Resident adapter acquisition is unavailable.');
+          const acquired = await resolveAdapter(adapter, { signal });
+          signal.throwIfAborted();
+          await opened.loadLoRA(acquired.manifest, acquired.options);
+          signal.throwIfAborted();
+        }
         /** @type {import('../inference/pipelines/text/resident-partition-contract.js').ResidentPartitionTokenPorts} */
         const tokens = {
           tokenize: (prompt, options) => opened.advanced.tokenizePrompt(prompt, options),

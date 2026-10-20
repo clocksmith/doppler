@@ -1,6 +1,7 @@
 import type { InferencePipeline } from '../../inference/pipelines/text.js';
 import type { LoRAExportResult } from './export.js';
 import type { Tensor } from '../../gpu/tensor.js';
+import type { LoRATrainingSample, LoRATrainingAssignment, LoRATrainingRound, LoRAGradientContribution } from './lora-training-round.js';
 
 export interface NativeQwenLoRATrainerOptions {
   pipeline: InferencePipeline;
@@ -19,6 +20,15 @@ export interface NativeQwenLoRATrainerOptions {
   };
   gradient?: { maxNorm?: number };
   precision?: { activations?: 'f16' | 'f32'; gradients?: 'f32'; loraParams?: 'f16' | 'f32' };
+}
+
+export interface NativeQwenLoRAExportOptions {
+  id: string;
+  name: string;
+  weightsPath: string;
+  version?: string;
+  description?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface NativeQwenLoRAStepResult {
@@ -58,11 +68,20 @@ export declare class NativeQwenLoRATrainer {
     targetIds: readonly number[],
     supervisedTokenCount: number
   ): Promise<NativeQwenLoRAStepResult>;
-  exportAdapter(options: {
-    id: string;
-    name: string;
-    weightsPath: string;
-  }): Promise<LoRAExportResult>;
+  describeTrainingSample(participantId: string, sample: LoRATrainingSample): LoRATrainingAssignment;
+  createTrainingRound(options: {
+    jobId: string;
+    roundId: string;
+    assignments: LoRATrainingAssignment[];
+  }): Promise<LoRATrainingRound>;
+  computeGradientContribution(round: LoRATrainingRound, participantId: string, sample: LoRATrainingSample): Promise<LoRAGradientContribution>;
+  applyGradientContributions(round: LoRATrainingRound, contributions: LoRAGradientContribution[]): Promise<NativeQwenLoRAStepResult & {
+    roundHash: string;
+    contributors: string[];
+    supervisedTokenCount: number;
+    stepCount: number;
+  }>;
+  exportAdapter(options: NativeQwenLoRAExportOptions): Promise<LoRAExportResult>;
   createCheckpoint(): Promise<NativeQwenLoRACheckpoint>;
   restoreCheckpoint(checkpoint: NativeQwenLoRACheckpoint): void;
   dispose(): void;
@@ -93,7 +112,7 @@ export interface NativeQwenSftLoRAOptions extends NativeQwenLoRATrainerOptions {
     supervisedTokenCount: number;
   }>;
   maxSteps?: number;
-  export?: { id: string; name: string; weightsPath: string } | null;
+  export?: NativeQwenLoRAExportOptions | null;
 }
 
 export declare function trainNativeQwenSftLoRA(options: NativeQwenSftLoRAOptions): Promise<{

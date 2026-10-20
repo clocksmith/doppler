@@ -1,0 +1,15 @@
+{
+  "id": "profiles/qwen-3-5-2b-vulkan-parity",
+  "name": "qwen-3-5-2b-vulkan-parity",
+  "description": "Qwen 3.5 2B browser/Vulkan candidate. Shares the explicit Qwen decode fusions and parity cadence while retaining manifest projection kernels. Qualification remains model and device specific.",
+  "intent": "calibrate",
+  "compatibleIntents": [
+    "calibrate"
+  ],
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-10-17T00:00:00Z",
+  "extends": "profiles/qwen-3-5-0-8b-vulkan-parity",
+  "model": "qwen-3-5-2b-q4k-ehaf16",
+  "runtime": {}
+}

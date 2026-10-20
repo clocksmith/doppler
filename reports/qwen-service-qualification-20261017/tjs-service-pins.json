@@ -1,0 +1,74 @@
+{
+  "key": "tjs-2b",
+  "repo": "onnx-community/Qwen3.5-2B-ONNX-OPT",
+  "revision": "ed446636739bf426e73c5a00714fd8e010d36c21",
+  "files": [
+    {
+      "path": "chat_template.jinja",
+      "bytes": 7755,
+      "sha256": "273d8e0e683b885071fb17e08d71e5f2a5ddfb5309756181681de4f5a1822d80"
+    },
+    {
+      "path": "config.json",
+      "bytes": 2993,
+      "sha256": "b028de63b0ed8b37107acaaf1475d40d6d4feb5721153674e7d1d0bdbfd0f258"
+    },
+    {
+      "path": "generation_config.json",
+      "bytes": 248,
+      "sha256": "dc0cbe66543f310896469b7b1448af792f403293a1080baaf04d586c57b23e48"
+    },
+    {
+      "path": "onnx/decoder_model_merged_q4f16.onnx",
+      "bytes": 707377,
+      "sha256": "c567d4d34dc97185e85bb40c9c30d6f73133858b1f8a32b90166b7fea4b653bf"
+    },
+    {
+      "path": "onnx/decoder_model_merged_q4f16.onnx_data",
+      "bytes": 1088892928,
+      "sha256": "06dd7841f90e5c4ecc029193a29478750ae9dcbfeaf8cfb223cf8b69cc5666d6"
+    },
+    {
+      "path": "onnx/embed_tokens_q4f16.onnx",
+      "bytes": 1064,
+      "sha256": "802a072ff21f540eda7f343aa71dbb0354c8859caaf34f09b3bf8117725d7de8"
+    },
+    {
+      "path": "onnx/embed_tokens_q4f16.onnx_data",
+      "bytes": 294010880,
+      "sha256": "650aa8eb39b7404ca2c908d78243c82b6fd88321feeb8fca175745806c6b3a81"
+    },
+    {
+      "path": "onnx/vision_encoder_q4f16.onnx",
+      "bytes": 394142,
+      "sha256": "2999a8fb031d394a0697c5413eb0bb624e45e4c3aacefd67524d4627679423d5"
+    },
+    {
+      "path": "onnx/vision_encoder_q4f16.onnx_data",
+      "bytes": 196945920,
+      "sha256": "c54ed06141904a99fa05a9ffaf460ee05441d50dde54f784ec2ae71a43c58314"
+    },
+    {
+      "path": "preprocessor_config.json",
+      "bytes": 336,
+      "sha256": "6a970fd06f30e6943b3e2c14d5d3b42d49b06cf99b99103d56689bef462d90f8"
+    },
+    {
+      "path": "processor_config.json",
+      "bytes": 1300,
+      "sha256": "14932921ca485d458a04dafd8069fbb0a4505622a48208d19ed247115801385b"
+    },
+    {
+      "path": "tokenizer.json",
+      "bytes": 19226111,
+      "sha256": "89da80cc6689bef4d90cc1028249436975ffb0814618f1d93c65310e05801a9b"
+    },
+    {
+      "path": "tokenizer_config.json",
+      "bytes": 10069,
+      "sha256": "5dcac2c1306b11d1e18ec4c024a174bded2ca3178ce87b0aa590711696407f3d"
+    }
+  ],
+  "transformersVersion": "4.2.0",
+  "bundleSha256": "0a96dcf4c48981b7d05f53827e6975ec239132606ad0d526bbc2db0fcdbc4ded"
+}

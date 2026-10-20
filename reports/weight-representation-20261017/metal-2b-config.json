@@ -1,0 +1,1079 @@
+{
+  "request": {
+    "runtimeConfig": {
+      "shared": {
+        "debug": {
+          "logOutput": {
+            "stdout": true,
+            "file": null,
+            "append": true
+          },
+          "logHistory": {
+            "maxLogHistoryEntries": 1000
+          },
+          "logLevel": {
+            "defaultLogLevel": "silent"
+          },
+          "trace": {
+            "enabled": false,
+            "categories": [
+              "all"
+            ],
+            "layers": null,
+            "maxDecodeSteps": 0,
+            "file": null
+          },
+          "pipeline": {
+            "enabled": false,
+            "categories": [],
+            "layers": null,
+            "maxDecodeSteps": 0,
+            "maxAbsThreshold": 10000,
+            "bufferStats": false,
+            "readbackSampleSize": 512
+          },
+          "loader": {
+            "enabled": false,
+            "forceGpuDequant": false,
+            "preferCpuDequant": false,
+            "failOnCpuDequantPath": false,
+            "runQ4KDequantParity": false,
+            "q4kDequantParitySamples": 256
+          },
+          "matmul": {
+            "enabled": false,
+            "forceSplitQKV": false,
+            "validateAttentionWeightBuffer": false,
+            "failOnSmallAttentionWeightBuffer": false,
+            "logAttentionWeightBuffer": false,
+            "logProjectionValues": false
+          },
+          "kernelTrace": {
+            "layers": [],
+            "breakOnAnomaly": false,
+            "explosionThreshold": 10,
+            "collapseThreshold": 1e-06,
+            "maxSteps": 5000
+          },
+          "probes": [],
+          "profiler": {
+            "enabled": false,
+            "queryCapacity": 256,
+            "maxQueries": 16384,
+            "defaultQueryLimit": 4096,
+            "maxSamples": 100,
+            "maxDurationMs": 60000,
+            "logEveryDecodeSteps": 64,
+            "maxHistoryLabels": 1024
+          },
+          "perfGuards": {
+            "allowGPUReadback": true,
+            "trackSubmitCount": false,
+            "trackAllocations": false,
+            "logExpensiveOps": false,
+            "strictMode": false
+          }
+        },
+        "benchmark": {
+          "output": {
+            "schemaVersion": 1
+          },
+          "run": {
+            "promptName": "medium",
+            "customPrompt": "evidence supports it user request must stay safe true false yes no a the system should allow review when policy is clear and block unsafe changes only if evidence supports it user request must stay safe true false yes no a the system should allow review when policy is clear and block unsafe changes only if evidence supports it user request must stay",
+            "maxNewTokens": 128,
+            "seed": null,
+            "runType": "warm",
+            "warmupRuns": 2,
+            "timedRuns": 3,
+            "sampling": {
+              "temperature": 0,
+              "topK": 1,
+              "topP": 1,
+              "repetitionPenalty": 1,
+              "greedyThreshold": 0.01
+            },
+            "debug": false,
+            "profile": false,
+            "executionObserver": {
+              "enabled": false,
+              "includeDispatchGeometry": true,
+              "estimateBytesMoved": false
+            },
+            "useChatTemplate": false,
+            "captureMemoryTimeSeries": false,
+            "memoryTimeSeriesIntervalMs": 100,
+            "loadMode": "http"
+          },
+          "stats": {
+            "outlierPolicy": "none",
+            "outlierIqrMultiplier": 1.5,
+            "warmupStabilityPercent": 10,
+            "thermalSlowdownPercent": 10,
+            "minSamplesForComparison": 3
+          },
+          "comparison": {
+            "regressionThresholdPercent": 10,
+            "failOnRegression": true
+          },
+          "baselines": {
+            "enabled": true,
+            "file": "tests/baselines.json",
+            "failOnOutOfRange": true,
+            "requireQualityOk": true
+          }
+        },
+        "harness": {
+          "mode": "verify",
+          "workload": "kernels",
+          "autorun": false,
+          "skipLoad": false,
+          "modelId": null,
+          "referenceTranscript": {
+            "enabled": false,
+            "captureLogits": false,
+            "captureKvBytes": false
+          },
+          "tsirFixture": null,
+          "trainingBench": {
+            "ebmRecorded": {
+              "dims": {
+                "M": 128,
+                "K": 512,
+                "H": 1024,
+                "O": 1
+              }
+            }
+          }
+        },
+        "tooling": {
+          "diagnostics": "on_failure",
+          "refactorReceipts": "off",
+          "converter": null
+        },
+        "ecosystem": {
+          "schemaVersion": 1,
+          "tenantTrust": {
+            "enabled": false,
+            "sso": {
+              "required": false,
+              "providers": [
+                "oidc"
+              ]
+            },
+            "rbac": {
+              "enforced": true,
+              "roleModel": "org-project"
+            },
+            "namespaceOwnership": {
+              "enforced": true
+            },
+            "publishSigning": {
+              "required": true,
+              "algorithm": "ed25519"
+            }
+          },
+          "publishWorkflow": {
+            "enabled": false,
+            "channels": [
+              "canary",
+              "stable"
+            ],
+            "gates": {
+              "schemaValidation": true,
+              "metadataValidation": true,
+              "reproducibilityCheck": false,
+              "malwareScan": false
+            },
+            "rollback": {
+              "enabled": true,
+              "maxRollbackDepth": 20
+            }
+          },
+          "discovery": {
+            "enabled": false,
+            "ranking": {
+              "mode": "policy",
+              "signals": {
+                "qualityEvidenceWeight": 0.35,
+                "trustWeight": 0.25,
+                "compatibilityWeight": 0.2,
+                "adoptionWeight": 0.2
+              },
+              "minEvidenceRuns": 1
+            },
+            "badges": {
+              "enabled": true
+            },
+            "recommendations": {
+              "enabled": true,
+              "dependencyAware": true
+            }
+          },
+          "artifactRegistry": {
+            "enabled": true,
+            "types": [
+              "model",
+              "dataset",
+              "adapter",
+              "eval",
+              "prompt",
+              "app"
+            ],
+            "linking": {
+              "enforced": true,
+              "signedLinks": true
+            }
+          },
+          "hostedAccess": {
+            "enabled": false,
+            "apiKeys": {
+              "enabled": true,
+              "rotationDays": 90
+            },
+            "quotas": {
+              "enabled": true,
+              "defaultRequestsPerMinute": 600,
+              "burstMultiplier": 2
+            },
+            "billing": {
+              "meteringEnabled": false,
+              "currency": "usd"
+            },
+            "endpoints": {
+              "managedInference": true
+            }
+          },
+          "compliance": {
+            "enabled": false,
+            "auditLog": {
+              "immutable": true,
+              "retentionDays": 3650,
+              "legalHold": true
+            },
+            "jurisdiction": {
+              "enabled": false,
+              "defaultRegion": "global"
+            },
+            "takedown": {
+              "automated": false,
+              "slaHours": 24
+            },
+            "exportControl": {
+              "enabled": false,
+              "denyUnknownClassification": true
+            }
+          },
+          "provenance": {
+            "enabled": true,
+            "notarization": {
+              "requiredForPublic": true,
+              "allowUnsignedPrivate": false,
+              "algorithm": "ed25519"
+            },
+            "attestations": {
+              "required": true,
+              "formats": [
+                "slsa-v1"
+              ]
+            },
+            "revocation": {
+              "enabled": true,
+              "propagationSlaMinutes": 15
+            }
+          },
+          "developerEcosystem": {
+            "enabled": true,
+            "sdks": {
+              "js": true,
+              "python": true,
+              "agents": true
+            },
+            "ciHooks": {
+              "publishVerifyPromote": true
+            },
+            "migrations": {
+              "hfImport": true,
+              "registryAdapters": true
+            },
+            "contracts": {
+              "stability": "semver"
+            }
+          },
+          "networkEffects": {
+            "enabled": false,
+            "socialSignals": {
+              "follows": true,
+              "stars": true,
+              "trends": true
+            },
+            "trustScores": {
+              "enabled": true,
+              "decayHalfLifeDays": 30
+            },
+            "incentives": {
+              "enabled": false,
+              "mode": "credits"
+            }
+          },
+          "abuse": {
+            "enabled": true,
+            "antiSybil": {
+              "enabled": false,
+              "minCost": "none"
+            },
+            "investigation": {
+              "enabled": true,
+              "queueSlaHours": 24
+            },
+            "enforcement": {
+              "mode": "progressive",
+              "allowAppeal": true,
+              "recoveryWindowDays": 30
+            }
+          },
+          "qualityEvidence": {
+            "enabled": true,
+            "registry": {
+              "requiredForRanking": true,
+              "immutableHistory": true
+            },
+            "gating": {
+              "promotionRequiresEvidence": false,
+              "minVerifiedRuns": 3
+            },
+            "verifiability": {
+              "requireArtifactBinding": true,
+              "requireSignedRuns": false
+            }
+          },
+          "reliability": {
+            "enabled": true,
+            "edgeRelay": {
+              "policy": "hybrid",
+              "minRelayRegions": 2
+            },
+            "failover": {
+              "tiers": [
+                "peer",
+                "relay",
+                "origin"
+              ],
+              "maxTierSwitches": 3
+            },
+            "sla": {
+              "enabled": false,
+              "targetAvailability": 0.999,
+              "targetP95Ms": 2000
+            }
+          }
+        },
+        "platform": null,
+        "kernelRegistry": {
+          "url": null
+        },
+        "kernelThresholds": {
+          "matmul": {
+            "multicolThreshold": 256,
+            "tiledPrefillMinRows": 32
+          },
+          "rmsnorm": {
+            "smallThreshold": 256
+          },
+          "softmax": {
+            "smallThreshold": 256
+          },
+          "ffn": {
+            "multiOutputThreshold": 1024
+          },
+          "sample": {
+            "argmaxReduceVocabThreshold": 65536,
+            "singlePassTopKThreshold": 100
+          },
+          "rope": {
+            "defaultTheta": 10000,
+            "uniformSize": 32,
+            "defaultStartPos": 0
+          },
+          "attention": {
+            "chunkedMaxKVLen": 2048,
+            "minHeadDimForChunked": 128,
+            "tierHeadDimLimits": {
+              "tier3": 64,
+              "tier2": 128,
+              "tier1": 256
+            },
+            "tierMinSharedMemory": {
+              "tier3": 16384,
+              "tier2": 32768,
+              "tier1": 65536
+            },
+            "largeMaxHeadDim": 64,
+            "smallMaxHeadDim": 256,
+            "subgroupMaxHeadDim": 256,
+            "largeSharedF32": 20480,
+            "largeSharedF16": 49152,
+            "smallSharedF32": 8192,
+            "smallSharedF16": 4096,
+            "subgroupShared": 8192
+          },
+          "fusedMatmul": {
+            "maxMediumN": 4096,
+            "maxMediumK": 8192,
+            "colsPerWg": 4
+          },
+          "cast": {
+            "maxWorkgroupsPerDim": 65535
+          }
+        },
+        "kernelWarmup": {
+          "prewarm": false,
+          "prewarmMode": "parallel"
+        },
+        "bufferPool": {
+          "bucket": {
+            "minBucketSizeBytes": 256,
+            "largeBufferThresholdBytes": 65536,
+            "largeBufferStepBytes": 65536
+          },
+          "limits": {
+            "maxBuffersPerBucket": 8,
+            "maxTotalPooledBuffers": 64
+          },
+          "alignment": {
+            "alignmentBytes": 256
+          },
+          "budget": {
+            "maxTotalBytes": 0,
+            "highWatermarkRatio": 0.9,
+            "emergencyTrimTargetRatio": 0.75,
+            "hardFailOnBudgetExceeded": true
+          }
+        },
+        "gpuCache": {
+          "uniformCacheMaxEntries": 256,
+          "uniformCacheMaxAgeMs": 60000
+        },
+        "memory": {
+          "heapTesting": {
+            "heapTestSizes": [
+              17179869184,
+              8589934592,
+              4294967296,
+              2147483648,
+              1073741824
+            ],
+            "fallbackMaxHeapBytes": 1073741824
+          },
+          "segmentTesting": {
+            "segmentTestSizes": [
+              1073741824,
+              536870912,
+              268435456,
+              134217728
+            ],
+            "safeSegmentSizeBytes": 268435456
+          },
+          "addressSpace": {
+            "targetAddressSpaceBytes": 8589934592
+          },
+          "segmentAllocation": {
+            "fallbackSegmentSizeBytes": 4294967296,
+            "segmentFallbackSizes": [
+              536870912,
+              268435456,
+              134217728
+            ]
+          },
+          "emulatedStorage": {
+            "vramBudgetBytes": 4294967296,
+            "ramBudgetBytes": 17179869184
+          }
+        },
+        "hotSwap": {
+          "enabled": false,
+          "localOnly": false,
+          "allowUnsignedLocal": false,
+          "policyVersion": 1,
+          "rollout": {
+            "mode": "shadow",
+            "canaryPercent": 0,
+            "cohortSalt": "doppler-hotswap-v1",
+            "optInAllowlist": []
+          },
+          "trustedSigners": [],
+          "manifestUrl": null
+        },
+        "intentBundle": {
+          "enabled": false,
+          "bundleUrl": null,
+          "bundle": null,
+          "requireBaseModelHash": true,
+          "requireKernelRegistryVersion": true,
+          "enforceDeterministicOutput": false
+        },
+        "bridge": {
+          "maxReadSizeBytes": 104857600,
+          "allowedDirectories": "/Users:/home:/tmp:/var/tmp",
+          "timeouts": {
+            "pingTimeoutMs": 5000,
+            "readTimeoutMs": 60000,
+            "listTimeoutMs": 30000,
+            "defaultTimeoutMs": 30000
+          }
+        }
+      },
+      "loading": {
+        "storage": {
+          "quota": {
+            "lowSpaceThresholdBytes": 524288000,
+            "criticalSpaceThresholdBytes": 104857600,
+            "monitorIntervalMs": 30000
+          },
+          "vramEstimation": {
+            "unifiedMemoryRatio": 0.5,
+            "fallbackVramBytes": 4294967296,
+            "lowVramHeadroomBytes": 524288000
+          },
+          "alignment": {
+            "bufferAlignmentBytes": 4096
+          },
+          "backend": {
+            "backend": "auto",
+            "opfs": {
+              "useSyncAccessHandle": false,
+              "maxConcurrentHandles": 2
+            },
+            "indexeddb": {
+              "dbName": "doppler-models",
+              "shardStore": "shards",
+              "metaStore": "meta",
+              "chunkSizeBytes": 4194304
+            },
+            "memory": {
+              "maxBytes": 536870912
+            },
+            "streaming": {
+              "readChunkBytes": 4194304,
+              "maxInFlightBytes": 67108864,
+              "useByob": true
+            }
+          }
+        },
+        "distribution": {
+          "concurrentDownloads": 3,
+          "maxRetries": 3,
+          "initialRetryDelayMs": 1000,
+          "maxRetryDelayMs": 30000,
+          "maxChunkSizeBytes": 8388608,
+          "cdnBasePath": null,
+          "sourceOrder": [
+            "http"
+          ],
+          "sourceMatrix": {
+            "cache": {
+              "onHit": "return",
+              "onMiss": "next",
+              "onFailure": "next"
+            },
+            "p2p": {
+              "onHit": "return",
+              "onMiss": "next",
+              "onFailure": "next"
+            },
+            "http": {
+              "onHit": "return",
+              "onMiss": "terminal",
+              "onFailure": "terminal"
+            }
+          },
+          "sourceDecision": {
+            "deterministic": true,
+            "trace": {
+              "enabled": false,
+              "includeSkippedSources": true,
+              "samplingRate": 1
+            }
+          },
+          "antiRollback": {
+            "enabled": true,
+            "requireExpectedHash": true,
+            "requireExpectedSize": false,
+            "requireManifestVersionSet": true
+          },
+          "p2p": {
+            "enabled": false,
+            "timeoutMs": 3000,
+            "maxRetries": 1,
+            "retryDelayMs": 250,
+            "contractVersion": 1,
+            "transport": null,
+            "controlPlane": {
+              "enabled": false,
+              "contractVersion": 1,
+              "tokenRefreshSkewMs": 5000,
+              "tokenProvider": null,
+              "policyEvaluator": null
+            },
+            "webrtc": {
+              "enabled": false,
+              "peerId": null,
+              "requestTimeoutMs": 2500,
+              "maxPayloadBytes": 67108864,
+              "selectPeer": null,
+              "getDataChannel": null
+            },
+            "security": {
+              "requireSessionToken": false,
+              "sessionToken": null,
+              "tokenExpiresAtMs": null
+            },
+            "abuse": {
+              "rateLimitPerMinute": 0,
+              "maxConsecutiveFailures": 3,
+              "quarantineMs": 30000
+            }
+          },
+          "progressUpdateIntervalMs": 100,
+          "requiredContentEncoding": null
+        },
+        "shardCache": {
+          "opfsEntries": 2,
+          "networkEntries": 16,
+          "moeMaxEntries": 16,
+          "verifyHashes": false,
+          "maxConcurrentLoads": 8,
+          "rangeCacheBlockBytes": 67108864,
+          "rangeCacheMaxBytes": 536870912,
+          "rangeCacheMinBytes": 4096
+        },
+        "memoryManagement": {
+          "flushIntervalLayers": 4,
+          "flushThresholdBytes": 268435456,
+          "gpuQueueFlushLayers": 4,
+          "logIntervalMs": 30000,
+          "budget": {
+            "enabled": true,
+            "maxResidentBytes": null,
+            "systemMemoryFraction": 0.5,
+            "reserveBytes": 2147483648,
+            "minimumBudgetBytes": 1073741824
+          }
+        },
+        "prefetch": {
+          "enabled": true,
+          "layersAhead": 1,
+          "maxShards": 8,
+          "allowRangeLoaderPrefetch": true
+        },
+        "opfsPath": {
+          "opfsRootDir": "doppler-models"
+        },
+        "expertCache": {
+          "defaultSizeBytes": 2147483648,
+          "maxBufferPercentage": 0.25,
+          "maxBufferFallbackBytes": 268435456,
+          "evictionHighWatermark": 0.9,
+          "emergencyTrimToRatio": 0.75,
+          "gptOssPager": {
+            "enabled": true,
+            "maxResidentLayers": 2
+          }
+        },
+        "allowF32UpcastNonMatmul": false
+      },
+      "inference": {
+        "batching": {
+          "maxTokens": 128,
+          "batchSize": 4,
+          "readbackInterval": 4,
+          "stopCheckMode": "batch",
+          "readbackMode": "sequential",
+          "ringTokens": 1,
+          "ringStop": 1,
+          "ringStaging": 1
+        },
+        "sampling": {
+          "temperature": 0,
+          "topP": 1,
+          "topK": 1,
+          "repetitionPenalty": 1,
+          "presencePenalty": 0,
+          "greedyThreshold": 0.01,
+          "repetitionPenaltyWindow": 100,
+          "suppressSpecialTokens": false,
+          "suppressSpecialLikeTokens": false,
+          "suppressTokenIds": []
+        },
+        "compute": {},
+        "tokenizer": {},
+        "largeWeights": {
+          "enabled": true,
+          "safetyRatio": 0.9,
+          "preferF16": true,
+          "lmHeadChunkRows": null,
+          "gpuResidentOverrides": null
+        },
+        "kvcache": {
+          "maxSeqLen": 2048,
+          "gpuPagedFallbackMaxSeqLen": 4096,
+          "kvDtype": "f16",
+          "forceF32Softcap": false,
+          "layout": "contiguous",
+          "pageSize": 256,
+          "bdpaVocabSize": 2048,
+          "windowSize": 1024,
+          "tiering": {
+            "mode": "off",
+            "hotWindow": 1024,
+            "coldPageSize": 256,
+            "coldDtype": "f16",
+            "compression": {
+              "mode": "none",
+              "blockSize": 1,
+              "bitWidth": 4,
+              "prodMode": false
+            },
+            "gating": {
+              "mode": "auto",
+              "minAluBwRatio": 0
+            }
+          },
+          "quantization": {
+            "mode": "none",
+            "bitWidth": 4,
+            "prodMode": false
+          }
+        },
+        "diffusion": {},
+        "diffusionGemma": {},
+        "energy": {},
+        "moe": {
+          "routing": {
+            "numExperts": 8,
+            "topK": 2,
+            "normalizeWeights": true,
+            "routerDtype": "f32",
+            "maxTokensPerExpert": 0,
+            "maxTokensPerExpertHeadroom": 2,
+            "maxTokensPerExpertMin": 4,
+            "maxTokensPerExpertCap": 0,
+            "activeExpertSelection": "all"
+          },
+          "cache": {
+            "dequantCacheMaxEntries": 128
+          }
+        },
+        "speculative": {
+          "numDraftTokens": 5,
+          "maxRejectionRetries": 3,
+          "enableTreeDraft": false,
+          "temperature": 1,
+          "randomSeed": null
+        },
+        "generation": {
+          "maxTokens": 128,
+          "multimodalMaxTokens": 512,
+          "disableMultiTokenDecode": false
+        },
+        "kernelPathPolicy": {
+          "mode": "capability-aware",
+          "sourceScope": [
+            "model",
+            "manifest",
+            "config"
+          ],
+          "allowSources": [
+            "model",
+            "manifest",
+            "config"
+          ],
+          "onIncompatible": "remap"
+        },
+        "chatTemplate": {
+          "enabled": false,
+          "type": null,
+          "thinking": false
+        },
+        "session": {
+          "kvcache": {
+            "maxSeqLen": 2048,
+            "gpuPagedFallbackMaxSeqLen": 4096,
+            "kvDtype": "f16",
+            "forceF32Softcap": false,
+            "layout": "contiguous",
+            "pageSize": 256,
+            "bdpaVocabSize": 2048,
+            "windowSize": 1024,
+            "tiering": {
+              "mode": "off",
+              "hotWindow": 1024,
+              "coldPageSize": 256,
+              "coldDtype": "f16",
+              "compression": {
+                "mode": "none",
+                "blockSize": 1,
+                "bitWidth": 4,
+                "prodMode": false
+              },
+              "gating": {
+                "mode": "auto",
+                "minAluBwRatio": 0
+              }
+            },
+            "quantization": {
+              "mode": "none",
+              "bitWidth": 4,
+              "prodMode": false
+            }
+          },
+          "speculation": {
+            "mode": "none",
+            "tokens": 1,
+            "verify": "greedy",
+            "threshold": null,
+            "rollbackOnReject": true
+          },
+          "prefillChunkSubmitMode": "sync",
+          "prefillChunkLayers": 4,
+          "prefillTokenChunkSize": null,
+          "skipEmbeddingKVCacheWrites": false,
+          "useFlashPrefillAttention": false,
+          "useFusedGateUpGelu": false,
+          "useLargeBatchF16F32FusedGateUp": false,
+          "useTiledQ4KPrefill": false,
+          "retainQ4KMaterialization": false,
+          "useWideTileQ4KPrefill": false,
+          "useWideTileQ4KDecode": false,
+          "useSandwichRMSNormPairFusion": false,
+          "usePostFfnNextInputRMSNormPairFusion": true,
+          "usePostAttnNormFusedGateUp": false,
+          "fusedFfnQ4K": {
+            "decode": {
+              "variant": "q4k_metal_simd16",
+              "pipelineConstants": {
+                "WORKGROUP_SIZE": 256,
+                "COLS_PER_WG": 16,
+                "THREADS_PER_COL": 16,
+                "USE_FULL_BLOCK_FAST_PATH": true
+              }
+            }
+          },
+          "lmHeadArgmaxQ4K": {
+            "useFullBlockFastPath": true,
+            "colsPerWorkgroup": 128,
+            "threadsPerCol": 2
+          },
+          "attentionDecodeOnline": {
+            "useDirectContiguousKVLayout": true,
+            "useOutputGateFusion": true
+          },
+          "useLinearAttentionABProjectionFusion": true,
+          "useLinearAttentionQKVZProjectionFusion": true,
+          "useLinearAttentionFusedDecodeCore": true,
+          "linearRecurrentStatePrecision": "f32",
+          "intermediatePrecision": "f32",
+          "useOrtFlashPrefillAttention": false,
+          "useWideTileResidualFusion": false,
+          "useFusedRmsnormWideTile": false,
+          "useFusedQKVSplitQKNorm": false,
+          "useFusedQKVSplitQKNormRoPE": true,
+          "useGreedyLmHeadArgmaxFusion": true,
+          "decodeLoop": {
+            "batchSize": 4,
+            "stopCheckMode": "batch",
+            "readbackInterval": 4,
+            "readbackMode": "sequential",
+            "submitLatencyThresholdMs": null,
+            "maxBatchDecodeTokens": null,
+            "ringTokens": 1,
+            "ringStop": 1,
+            "ringStaging": 1,
+            "disableCommandBatching": false
+          }
+        },
+        "executionPatch": {
+          "addKernels": [
+            {
+              "key": "attn_decode_head256",
+              "kernel": {
+                "kernel": "attention_decode_online_head256_f16kv_output_gate.wgsl",
+                "entry": "main",
+                "digest": "sha256:275a1f7cfdd40ab95c467bb4744a1509dd6eadb39ec8fdd0d1e1ba80eb34f9c5",
+                "precision": {
+                  "kvDtype": "f16"
+                }
+              }
+            },
+            {
+              "key": "q4_decode_metal_simd16",
+              "kernel": {
+                "kernel": "fused_matmul_q4_metal_simd16.wgsl",
+                "entry": "main",
+                "digest": "sha256:f3570460a332b211885baeabe7ccaf142f7234fff8f55973344157096206f4c4",
+                "constants": {
+                  "WORKGROUP_SIZE": 256,
+                  "COLS_PER_WG": 16,
+                  "THREADS_PER_COL_GEMV": 16,
+                  "USE_FULL_BLOCK_FAST_PATH": true
+                }
+              }
+            },
+            {
+              "key": "q4_prefill_direct",
+              "kernel": {
+                "kernel": "fused_matmul_q4_widetile_direct.wgsl",
+                "entry": "main",
+                "digest": "sha256:915e20bda5a0c6c65697e9df8942dc3fe75f8dec9c2310ec0a39d1677f88598b",
+                "constants": {
+                  "TILE_M": 4,
+                  "TILE_N": 256
+                }
+              }
+            }
+          ],
+          "set": [
+            {
+              "section": "decode",
+              "op": "attention",
+              "kernelKey": "attn_decode_head256"
+            },
+            {
+              "section": "decode",
+              "op": "q_proj",
+              "kernelKey": "q4_decode_metal_simd16"
+            },
+            {
+              "section": "decode",
+              "op": "k_proj",
+              "kernelKey": "q4_decode_metal_simd16"
+            },
+            {
+              "section": "decode",
+              "op": "v_proj",
+              "kernelKey": "q4_decode_metal_simd16"
+            },
+            {
+              "section": "decode",
+              "op": "o_proj",
+              "kernelKey": "q4_decode_metal_simd16"
+            },
+            {
+              "section": "decode",
+              "op": "gate_proj",
+              "kernelKey": "q4_decode_metal_simd16"
+            },
+            {
+              "section": "decode",
+              "op": "up_proj",
+              "kernelKey": "q4_decode_metal_simd16"
+            },
+            {
+              "section": "decode",
+              "op": "down_proj",
+              "kernelKey": "q4_decode_metal_simd16"
+            },
+            {
+              "section": "prefill",
+              "op": "q_proj",
+              "kernelKey": "q4_prefill_direct"
+            },
+            {
+              "section": "prefill",
+              "op": "k_proj",
+              "kernelKey": "q4_prefill_direct"
+            },
+            {
+              "section": "prefill",
+              "op": "v_proj",
+              "kernelKey": "q4_prefill_direct"
+            },
+            {
+              "section": "prefill",
+              "op": "o_proj",
+              "kernelKey": "q4_prefill_direct"
+            },
+            {
+              "section": "prefill",
+              "op": "gate_proj",
+              "kernelKey": "q4_prefill_direct"
+            },
+            {
+              "section": "prefill",
+              "op": "up_proj",
+              "kernelKey": "q4_prefill_direct"
+            },
+            {
+              "section": "prefill",
+              "op": "down_proj",
+              "kernelKey": "q4_prefill_direct"
+            }
+          ],
+          "remove": [],
+          "add": []
+        },
+        "prompt": "evidence supports it user request must stay safe true false yes no a the system should allow review when policy is clear and block unsafe changes only if evidence supports it user request must stay safe true false yes no a the system should allow review when policy is clear and block unsafe changes only if evidence supports it user request must stay"
+      },
+      "emulation": {
+        "enabled": false,
+        "targetChip": "gh200",
+        "timingMode": "functional",
+        "gpuSpec": {
+          "name": "H200",
+          "vramBytes": 154618822656,
+          "hbmBandwidthBytesPerSec": 4800000000000,
+          "fp16Tflops": 1979
+        },
+        "cpuSpec": {
+          "name": "Grace",
+          "cores": 72,
+          "memoryBytes": 515396075520,
+          "memoryBandwidthBytesPerSec": 546000000000
+        },
+        "topology": {
+          "gpuCount": 1,
+          "gpusPerNode": 1,
+          "nodeCount": 1,
+          "cpuCount": 1
+        },
+        "nvlink": {
+          "bandwidthBytesPerSec": 900000000000,
+          "latencyUs": 1
+        },
+        "nvlinkC2C": {
+          "bandwidthBytesPerSec": 900000000000,
+          "latencyUs": 0.5,
+          "coherent": true
+        },
+        "parallelism": {
+          "tensorParallel": {
+            "enabled": false,
+            "degree": 1
+          },
+          "pipelineParallel": {
+            "enabled": false,
+            "stages": 1,
+            "microBatches": 1
+          },
+          "dataParallel": {
+            "enabled": false,
+            "degree": 1
+          },
+          "expertParallel": {
+            "enabled": false,
+            "degree": 1
+          }
+        },
+        "timingScaling": {
+          "computeScale": 1,
+          "memoryScale": 1,
+          "nvlinkScale": 1
+        },
+        "opfsRootPath": "emulation",
+        "maxActiveWorkingSetBytes": 4294967296,
+        "statsEnabled": true,
+        "logOperations": false
+      }
+    }
+  }
+}

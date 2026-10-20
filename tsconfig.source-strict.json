@@ -16,6 +16,9 @@
   },
   "include": [],
   "files": [
+    "tools/lib/evidence-io.js",
+    "tools/lib/profile-comparison.js",
+    "tools/lib/evidence-fields.js",
     "src/config/layer-partition-plan.js",
     "src/config/ordered-resident-qualification.js",
     "src/inference/pipelines/text/generator/activation-storage.js",
@@ -102,6 +105,13 @@
     "src/experimental/training/report-ranking.js",
     "src/experimental/training/parameter-groups.js",
     "src/gpu/buffer-identity.js",
-    "src/storage/runtime-env.js"
+    "src/storage/runtime-env.js",
+    "src/inference/pipelines/text/generator/speculative-runtime.js",
+    "src/inference/pipelines/text/linear-attention/state-checkpoint.js",
+    "src/inference/pipelines/text/linear-attention/state-clone.js",
+    "src/config/schema/speculation-self.schema.js",
+    "src/experimental/training/lora-training-round.js",
+    "src/inference/browser-harness/request-timing.js",
+    "src/loader/weight-representation-plan.js"
   ]
 }

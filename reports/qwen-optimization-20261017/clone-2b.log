@@ -1,0 +1,52 @@
+[GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.5ms
+[1727.0ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[1727.1ms][Config] Using manifest-first config (source of truth)
+[1729.8ms][Pipeline] Resolved session applied (qwen-3-5-2b-q4k-ehaf16): batchSize=12, stopCheckMode=batch, readbackInterval=32, disableCommandBatching=false
+[1730.5ms][Pipeline] KernelPath: qwen-3-5-2b-q4k-ehaf16-execution-inline (15 decode steps, 11 kernels, source=execution-v1)
+[1730.7ms][Pipeline] 24L/2048H/8heads (256dim), kernelPath=qwen-3-5-2b-q4k-ehaf16-execution-inline
+[1731.0ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[1833.8ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[1924.3ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges
+[1924.7ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[1925.6ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=256, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=256
+[1926.5ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-2b-q4k-ehaf16-execution-inline
+[1961.6ms][ShardCache] Custom shard loader configured
+[1961.8ms][Loader] Initializing...
+[2046.7ms][HeapManager] Allocated segment 0: 1024MB
+[2046.8ms][HeapManager] Segmented heap: 1GB per segment
+[2046.8ms][HeapManager] Initialized with strategy: SEGMENTED
+[2046.9ms][Loader] Initialized (f16, subgroups, unified)
+[2047.2ms][Loader] Loading: qwen-3-5-2b-q4k-ehaf16
+[2047.9ms][Loader] [0.0s] Memory (start): | RSS=1.39 GB (heap=58.09 MB/92.36 MB, external=1.02 GB, arrayBuffers=1.02 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[2320.5ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,2048], isWeightBuffer=true
+[2320.8ms][Loader] Layers: 0-11
+[2467.4ms][Loader] Layers: 12 complete (0.15s)
+[2467.6ms][Loader] Complete: 1.31 GB in 0.41s (3.17 GB/s)
+[2468.3ms][Loader] [0.4s] Memory (complete): | RSS=1.57 GB (heap=59.12 MB/92.86 MB, external=1.06 GB, arrayBuffers=1.06 GB) | GPU=1.31 GB (172 active, 0 pooled, peak=1.31 GB) | ShardCache=0 B (0 shards) | Layers=12, GPUBuffers=172
+[2473.9ms][Pipeline] Model loaded successfully (750ms)
+[2476.6ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=256, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=256
+[2496.4ms][KernelSelect] matmul variant=q4_fused_widetile reason=path_override
+[2499.1ms][KernelSelect] matmul variant=f16w_f32a reason=default
+[2537.0ms][KernelSelect] attention variant=prefill_head256_f16kv reason=path_override:tiled_small
+{"pair":-2,"warmup":true,"samples":[{"mode":"cpu-roundtrip","elapsedMs":8.484540999999808},{"mode":"gpu","elapsedMs":2.905500000000302}]}
+{"pair":-1,"warmup":true,"samples":[{"mode":"gpu","elapsedMs":1.8327079999999114},{"mode":"cpu-roundtrip","elapsedMs":6.573374999999942}]}
+{"pair":0,"warmup":false,"samples":[{"mode":"cpu-roundtrip","elapsedMs":7.432791000000179},{"mode":"gpu","elapsedMs":3.181250000000091}]}
+{"pair":1,"warmup":false,"samples":[{"mode":"gpu","elapsedMs":1.8528329999999187},{"mode":"cpu-roundtrip","elapsedMs":6.485582999999679}]}
+{"pair":2,"warmup":false,"samples":[{"mode":"cpu-roundtrip","elapsedMs":6.271916000000147},{"mode":"gpu","elapsedMs":1.598667000000205}]}
+{"pair":3,"warmup":false,"samples":[{"mode":"gpu","elapsedMs":1.6356660000001284},{"mode":"cpu-roundtrip","elapsedMs":6.286040999999841}]}
+{"pair":4,"warmup":false,"samples":[{"mode":"cpu-roundtrip","elapsedMs":6.355958000000101},{"mode":"gpu","elapsedMs":1.890208000000257}]}
+{"pair":5,"warmup":false,"samples":[{"mode":"gpu","elapsedMs":1.7907500000001164},{"mode":"cpu-roundtrip","elapsedMs":6.531958999999915}]}
+{"pair":6,"warmup":false,"samples":[{"mode":"cpu-roundtrip","elapsedMs":7.382250000000113},{"mode":"gpu","elapsedMs":1.9441249999999854}]}
+{"pair":7,"warmup":false,"samples":[{"mode":"gpu","elapsedMs":1.597041999999874},{"mode":"cpu-roundtrip","elapsedMs":6.415332999999919}]}
+{"pair":8,"warmup":false,"samples":[{"mode":"cpu-roundtrip","elapsedMs":6.3324579999998605},{"mode":"gpu","elapsedMs":2.023208000000068}]}
+{"pair":9,"warmup":false,"samples":[{"mode":"gpu","elapsedMs":1.74087499999996},{"mode":"cpu-roundtrip","elapsedMs":6.608708000000206}]}
+{"pair":10,"warmup":false,"samples":[{"mode":"cpu-roundtrip","elapsedMs":6.388500000000022},{"mode":"gpu","elapsedMs":2.0010839999999916}]}
+{"pair":11,"warmup":false,"samples":[{"mode":"gpu","elapsedMs":1.5662499999998545},{"mode":"cpu-roundtrip","elapsedMs":6.586542000000009}]}
+[3214.0ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=256, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=256
+[3216.6ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=256, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=256
+[3225.3ms][KernelSelect] matmul variant=q4_fused_gemv reason=path_override
+[3310.3ms][KernelSelect] matmul variant=gemv_subgroup reason=gemv
+[3322.3ms][KernelSelect] attention variant=decode_online_f16kv reason=path_override:subgroup
+[9764.9ms][ExpertCache] Cache cleared
+[9772.2ms][Pipeline] Unloaded
+{"passed":true,"recurrentBytes":10321920,"output":"/Users/xyz/deco/doppler/reports/qwen-optimization-20261017/mac-recurrent-clone-2b.json"}

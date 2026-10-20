@@ -3,9 +3,9 @@ import { alignTo4, toUint8View, writeBufferAligned } from './buffer-write.js';
 export { alignTo4, toUint8View, writeBufferAligned } from './buffer-write.js';
 import { getDevice, getKernelCapabilities } from '../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../memory/buffer-pool.js';
-import { dequantize, dequantizeRowwise, dequantizeQ6K, castF16ToF32 } from '../../gpu/kernel-selector.js';
+import { dequantize, dequantizeRowwise, dequantizeQ6K, castF16ToF32, castF32ToF16 } from '../../gpu/kernel-selector.js';
 import { createTensor } from '../../gpu/tensor.js';
-import { createWeightBuffer } from '../../gpu/weight-buffer.js';
+import { createWeightBuffer, isWeightBuffer } from '../../gpu/weight-buffer.js';
 import { f16ToF32, shouldDequantizeToF16, applyBufferLayout } from '../dtype-utils.js';
 import { QK_K, Q4K_BLOCK_BYTES, Q6K_BLOCK_BYTES } from '../quantization-constants.js';
 import { log, trace as debugTrace } from '../../debug/index.js';
@@ -113,10 +113,8 @@ export function canUseFusedQ4KStorage(location, config) {
   const caps = config.gpuCapabilities || getKernelCapabilities();
   if (!caps?.hasSubgroups) return false;
 
-  const isMatmulWeight = shouldDequantizeToF16(location);
-  if (!isMatmulWeight) return false;
-
-  if (isEmbeddingRole(location)) return false;
+  const packedConsumer = config.representationRequirement?.consumers?.some(consumer => consumer.weightDtype === 'q4k');
+  if (!packedConsumer && (!shouldDequantizeToF16(location) || isEmbeddingRole(location))) return false;
   if (isPackedQ4K(location)) return false;
 
   return true;
@@ -150,9 +148,8 @@ export function convertF16ToF32CPU(f16Data) {
   return f32;
 }
 
-export async function materializeQ4KDenseBuffer(quantBuffer, shardData, location, name, config) {
+export async function materializeQ4KDenseBuffer(quantBuffer, shardData, location, name, config, outputDtype = getQ4KOutputDtype(location, config)) {
   let dequantized = null;
-  const outputDtype = getQ4KOutputDtype(location, config);
   const loaderDebug = normalizeLoaderDebugConfig(config);
   const debugEnabled = loaderDebug?.enabled === true;
   const forceGpuDequant = loaderDebug?.forceGpuDequant === true;
@@ -160,7 +157,7 @@ export async function materializeQ4KDenseBuffer(quantBuffer, shardData, location
   const runQ4KDequantParity = loaderDebug?.runQ4KDequantParity === true;
   const paritySamples = loaderDebug?.q4kDequantParitySamples ?? 256;
 
-  const q4kCpuReferenceContext = getQ4KCpuReferenceContext(shardData, location, config);
+  const q4kCpuReferenceContext = getQ4KCpuReferenceContext(shardData, location, config, outputDtype);
   const { needsRowwise, layout, K } = q4kCpuReferenceContext;
   const preferCpuDequant = loaderDebug?.preferCpuDequant === true;
   const canUseCpuReference = !forceGpuDequant && preferCpuDequant && q4kCpuReferenceContext.eligible;
@@ -296,74 +293,51 @@ export async function materializeQ4KDenseBuffer(quantBuffer, shardData, location
 }
 
 export async function loadQ4KDequant(shardData, location, name, config) {
-  const device = getDevice();
-  let ownsQuantBuffer = !isGpuBufferInstance(shardData);
-  const quantBuffer = isGpuBufferInstance(shardData)
-    ? shardData
-    : acquireAlignedBuffer(location.size, `quant_${name}`);
-  let dequantized = null;
-  try {
-    if (ownsQuantBuffer) {
-      writeBufferAligned(device, quantBuffer, shardData);
-    }
-
-    const dense = await materializeQ4KDenseBuffer(quantBuffer, shardData, location, name, config);
-    dequantized = dense.buffer;
-    releaseOwnedGpuBuffer(quantBuffer, ownsQuantBuffer);
-    ownsQuantBuffer = false;
-
-    return {
-      data: createWeightBuffer(dequantized, dense.outputDtype, dense.layout, location.shape, name),
-      allocatedBuffers: [dequantized],
-    };
-  } catch (error) {
-    if (isReleasableBuffer(dequantized)) {
-      releaseBuffer(dequantized);
-    }
-    throw error;
-  } finally {
-    releaseOwnedGpuBuffer(quantBuffer, ownsQuantBuffer);
-  }
+  return loadQ4KRepresentations(shardData, location, name, config, false);
 }
 
 export async function loadQ4KMixed(shardData, location, name, config) {
-  const canMaterializeMixed = shouldUseFusedQ4K(location, config)
-    && config.q4kLayout === 'row';
-  if (!canMaterializeMixed) {
-    return loadQ4KDequant(shardData, location, name, config);
+  const packed = shouldUseFusedQ4K(location, config) && config.q4kLayout === 'row';
+  if (!packed && config.representationRequirement?.dtypes.includes('q4k')) {
+    throw new Error(`Tensor "${name}" cannot retain required packed Q4 storage.`);
   }
+  return loadQ4KRepresentations(shardData, location, name, config, packed);
+}
 
+async function loadQ4KRepresentations(shardData, location, name, config, packed) {
   const device = getDevice();
   let ownsQuantBuffer = !isGpuBufferInstance(shardData);
-  const quantBuffer = isGpuBufferInstance(shardData)
-    ? shardData
-    : acquireAlignedBuffer(location.size, `q4k_mixed_${name}`);
-  let dequantized = null;
+  const quantBuffer = ownsQuantBuffer ? acquireAlignedBuffer(location.size, `quant_${name}`) : shardData;
+  const allocatedBuffers = [];
   try {
-    if (ownsQuantBuffer) {
-      writeBufferAligned(device, quantBuffer, shardData);
+    if (ownsQuantBuffer) writeBufferAligned(device, quantBuffer, shardData);
+    const requested = config.representationRequirement?.dtypes.filter(dtype => dtype !== 'q4k') ?? [];
+    if (!config.representationRequirement?.complete || requested.length === 0) {
+      const legacy = getQ4KOutputDtype(location, config);
+      if (!requested.includes(legacy)) requested.push(legacy);
     }
-
-    const dense = await materializeQ4KDenseBuffer(quantBuffer, shardData, location, name, config);
-    dequantized = dense.buffer;
+    const materializations = new Map();
+    let primary;
+    for (const dtype of requested) {
+      const dense = await materializeQ4KDenseBuffer(quantBuffer, shardData, location, name,
+        { ...config, keepF32Weights: dtype === 'f32' }, dtype);
+      allocatedBuffers.push(...dense.allocatedBuffers);
+      if (dense.outputDtype !== dtype) throw new Error(`Tensor "${name}" cannot materialize required ${dtype} storage.`);
+      materializations.set(dtype, { buffer: dense.buffer, layout: dense.layout });
+      primary ??= dense;
+    }
+    if (packed) {
+      materializations.set('q4k', { buffer: quantBuffer, layout: 'row' });
+      allocatedBuffers.push(quantBuffer);
+    }
+    const data = createWeightBuffer(primary.buffer, primary.outputDtype, primary.layout,
+      location.shape, name, Object.fromEntries(materializations));
+    if (!packed) releaseOwnedGpuBuffer(quantBuffer, ownsQuantBuffer);
     ownsQuantBuffer = false;
-
-    return {
-      data: createWeightBuffer(
-        dense.buffer,
-        dense.outputDtype,
-        dense.layout,
-        location.shape,
-        name,
-        {
-          q4k: { buffer: quantBuffer, layout: 'row' },
-        }
-      ),
-      allocatedBuffers: [quantBuffer, dense.buffer],
-    };
+    return { data, allocatedBuffers };
   } catch (error) {
-    if (isReleasableBuffer(dequantized)) {
-      releaseBuffer(dequantized);
+    for (const buffer of allocatedBuffers) {
+      if (buffer !== quantBuffer) releaseBuffer(buffer);
     }
     throw error;
   } finally {
@@ -371,8 +345,7 @@ export async function loadQ4KMixed(shardData, location, name, config) {
   }
 }
 
-export function getQ4KCpuReferenceContext(shardData, location, config) {
-  const outputDtype = getQ4KOutputDtype(location, config);
+export function getQ4KCpuReferenceContext(shardData, location, config, outputDtype = getQ4KOutputDtype(location, config)) {
   const isMatrixLike = Array.isArray(location.shape) && location.shape.length >= 2;
   const K = isMatrixLike ? location.shape[location.shape.length - 1] : 0;
   const layout = getWeightLayout(location, config);
@@ -550,3 +523,34 @@ export async function loadFloat(shardData, location, name, config) {
 }
 
 export { isGpuBufferInstance };
+
+// Complete declared float consumers before the layer-level legacy downcast.
+export async function materializeFloatRequirements(result, shardData, location, name, config) {
+  const requirement = config.representationRequirement;
+  if (!requirement?.complete || !['F16', 'F32'].includes(location.dtype) || !isWeightBuffer(result.data)) return result;
+  const weight = result.data;
+  const materializations = new Map();
+  const buffers = [...result.allocatedBuffers];
+  try {
+    for (const dtype of requirement.dtypes) {
+      if (!['f16', 'f32'].includes(dtype)) throw new Error(`Tensor "${name}" cannot supply ${dtype} from ${location.dtype}.`);
+      let buffer = weight.buffer;
+      if (dtype !== weight.dtype) {
+        const input = createTensor(weight.buffer, weight.dtype, weight.shape, name);
+        const converted = await (dtype === 'f16' ? castF32ToF16(input) : castF16ToF32(input));
+        buffer = converted.buffer;
+        buffers.push(buffer);
+      }
+      materializations.set(dtype, { buffer, layout: weight.layout });
+    }
+    const primary = requirement.primaryDtype ?? (requirement.dtypes.includes(weight.dtype) ? weight.dtype : requirement.dtypes[0]);
+    const data = createWeightBuffer(materializations.get(primary).buffer, primary, weight.layout,
+      weight.shape, name, Object.fromEntries(materializations));
+    const retained = new Set([...materializations.values()].map(value => value.buffer));
+    for (const buffer of buffers) if (!retained.has(buffer) && buffer !== shardData) releaseBuffer(buffer);
+    return { data, allocatedBuffers: [...retained] };
+  } catch (error) {
+    for (const buffer of buffers) if (buffer !== shardData) releaseBuffer(buffer);
+    throw error;
+  }
+}

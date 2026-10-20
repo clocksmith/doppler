@@ -1,3 +1,4 @@
+import { lookupDraft, verifySpeculativeTokens } from './speculative-runtime.js';
 import { isGPUSamplingAvailable } from '../../../../gpu/kernels/sample.js';
 import { samplingSeedForToken } from '../../../token-sampling.js';
 import { matchesStopSequence } from '../stopping.js';
@@ -16,7 +17,7 @@ import { OperatorEventEmitter } from '../operator-events.js';
 import { isCpuWeightBuffer } from '../../../../gpu/weight-buffer.js';
 import { decodeStep, advanceWithToken as runAdvanceWithToken, generateNTokensGPU, shouldUseBatchDecode, advanceWithTokenAndEmbedding as runAdvanceWithTokenAndEmbedding } from '../generator-steps.js';
 import { debugCheckBuffer as debugCheckBufferHelper, resolvePerLayerInputsSession } from './session-context.js';
-import { resolveGenerateOptions, resolveAdvanceEmbeddingMode } from '../generator-runtime.js';
+import { resolveGenerateOptions, resolveAdvanceEmbeddingMode, settleGenerationStats } from '../generator-runtime.js';
 import { createTsirFixtureState } from '../tsir-fixture-writer.js';
 import { resetActiveExecutionPlan, resolveMaxBatchDecodeTokens, resolveActiveExecutionPlan } from '../execution-plan.js';
 import { hasLinearAttentionLayers } from '../linear-attention.js';
@@ -29,6 +30,8 @@ function prepareGenerationRuntime(generator, opts, options) {
   generator._state.isGenerating = true;
   generator._resetDecodeRuntimeState();
   delete generator._state.stats.outputUsage;
+  generator._state.stats.speculationAttempts = 0;
+  generator._state.stats.speculationAccepted = 0;
   generator._state.stats.gpuTimePrefillMs = undefined;
   generator._state.stats.gpuTimeDecodeMs = undefined;
   generator._state.stats.decodeRecordMs = 0;
@@ -62,6 +65,12 @@ function prepareGenerationRuntime(generator, opts, options) {
   generator._state.stats.stopReason = null;
   generator._state.stats.stopTokenId = null;
   generator._state.stats.ttftMs = 0;
+  generator._state.stats.prefillTimeMs = 0;
+  generator._state.stats.decodeTimeMs = 0;
+  generator._state.stats.prefillTokens = 0;
+  generator._state.stats.tokensGenerated = 0;
+  generator._state.stats.decodeTokens = 0;
+  generator._state.stats.totalTimeMs = 0;
   const startTime = performance.now();
 
   opts.onLogits = typeof options.onLogits === 'function' ? options.onLogits : null;
@@ -112,7 +121,10 @@ async function samplePrefillToken(generator, prefillLogits, generatedIds, inputI
   }
 }
 
-function finishGenerationRuntime(generator) {
+function finishGenerationRuntime(generator, options, startTime, generatedIds, promptTokenCount) {
+  settleGenerationStats(generator._state.stats, startTime,
+    Math.max(0, generatedIds.length - promptTokenCount), options.signal?.aborted === true);
+  generator._state.stats.batching = { ...generator._state.batchingStats };
   resetActiveExecutionPlan(generator._state);
   generator._state.stats.operatorDiagnostics = generator._state.operatorDiagnostics?.emitter
     ? {
@@ -132,6 +144,8 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
     validateCallTimeOptions(options);
     const opts = resolveGenerateOptions(this._state, options);
     const startTime = prepareGenerationRuntime(this, opts, options);
+    let generatedIds = [];
+    let promptTokenCount = 0;
     const activePlan = opts.executionPlan ?? resolveActiveExecutionPlan(this._state);
     this._state.stats.executionPlan = {
       primary: summarizeExecutionPlan(this._state.executionPlanState?.primaryPlan ?? null),
@@ -165,7 +179,8 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
       const prefillLogits = initialPrefillLogits;
       this._state.stats.prefillTimeMs = performance.now() - prefillStart;
       this._assertTokenIdsInRange(inputIds, 'generate.prefillTokens');
-      const generatedIds = [...inputIds];
+      generatedIds = [...inputIds];
+      promptTokenCount = inputIds.length;
       this._state.stats.prefillTokens = opts.promptTokenCount = inputIds.length;
 
       if (opts.debug) {
@@ -238,11 +253,11 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
           options.signal?.aborted ? null : firstToken);
         this._state.stats.decodeTimeMs = 0;
         this._state.stats.tokensGenerated = 1;
-        this._state.stats.decodeTokens = 1;
+        this._state.stats.decodeTokens = 0;
       } else {
         yield* this._runDecodeLoop(generatedIds, opts, options, decodeRuntime);
       }
-      const tokensGenerated = this._state.stats.decodeTokens ?? 1;
+      const tokensGenerated = this._state.stats.tokensGenerated ?? 1;
       this._state.stats.totalTimeMs = performance.now() - startTime;
 
       if (opts.debug) {
@@ -269,7 +284,7 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
       });
     } finally {
       this._closeFinitenessFallbackWindow(opts);
-      finishGenerationRuntime(this);
+      finishGenerationRuntime(this, options, startTime, generatedIds, promptTokenCount);
     }
   }
 
@@ -280,6 +295,8 @@ export async function generateTokenIds(prompt, options = {}) {
     validateCallTimeOptions(options);
     const opts = resolveGenerateOptions(this._state, options);
     const startTime = prepareGenerationRuntime(this, opts, options);
+    let generatedIds = [];
+    let promptTokenCount = 0;
 
     try {
       const prefillStartSeqLen = this._state.currentSeqLen;
@@ -288,7 +305,8 @@ export async function generateTokenIds(prompt, options = {}) {
       const prefillLogits = initialPrefillLogits;
       this._state.stats.prefillTimeMs = performance.now() - prefillStart;
       this._assertTokenIdsInRange(inputIds, 'generateTokenIds.prefillTokens');
-      const generatedIds = [...inputIds];
+      generatedIds = [...inputIds];
+      promptTokenCount = inputIds.length;
       this._state.stats.prefillTokens = opts.promptTokenCount = inputIds.length;
 
       const firstToken = await samplePrefillToken(this, prefillLogits, generatedIds, inputIds, opts, prefillStartSeqLen, false);
@@ -320,7 +338,7 @@ export async function generateTokenIds(prompt, options = {}) {
           options.signal?.aborted ? null : firstToken);
         this._state.stats.decodeTimeMs = 0;
         this._state.stats.tokensGenerated = 1;
-        this._state.stats.decodeTokens = 1;
+        this._state.stats.decodeTokens = 0;
       }
 
       this._state.stats.totalTimeMs = performance.now() - startTime;
@@ -334,7 +352,7 @@ export async function generateTokenIds(prompt, options = {}) {
       if (this._state.stats.executionPlan) {
         this._state.stats.executionPlan.finalActivePlanId = this._state.executionPlanState?.activePlanId ?? null;
       }
-      finishGenerationRuntime(this);
+      finishGenerationRuntime(this, options, startTime, generatedIds, promptTokenCount);
     }
   }
 
@@ -411,6 +429,8 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
           selfSpeculationEnabled: opts.speculation?.mode === 'self' && !initialHotVocabularyBatchDecodeAvailable,
           hasRangeBackedPerLayerInputs,
         });
+    const ordinaryBatchPath = useBatchPath;
+    if (opts.speculation?.mode === 'lookup') useBatchPath = false;
     if (!useBatchPath) {
       let reason = null;
       if (replayPrefillDecode) reason = 'replay_prefill_decode';
@@ -453,12 +473,41 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
       );
     }
 
+    let rejectedDraftBlocks = 0;
     while (tokensGenerated < opts.maxTokens) {
       if (stopIfAborted()) break;
       if (this._hasFinitenessFallbackWindow() && useBatchPath) {
         useBatchPath = false;
       }
       const hotVocabularyBatchDecodeAvailable = resolveCurrentHotVocabularyBatchDecodeAvailable();
+
+      if (opts.speculation?.mode === 'lookup' && rejectedDraftBlocks < opts.speculation.maxRejectedBlocks) {
+        const remaining = opts.maxTokens - tokensGenerated;
+        const proposal = remaining > 1 ? lookupDraft(generatedIds, Math.min(opts.speculation.tokens, remaining - 1), opts.speculation.maxMatchTokens, opts.speculation.minMatchTokens) : [];
+        if (proposal.length) {
+          const stop = (context, token) => isStopToken(token, stopTokenIds, eosToken)
+            || matchesStopSequence(this._state.tokenizer, context, stopSequenceStart, opts.stopSequences, this._state.modelConfig?.reasoningOutput);
+          const result = await verifySpeculativeTokens(this, generatedIds, proposal, opts, options.signal, stop);
+          if (result.accepted < proposal.length) rejectedDraftBlocks++;
+          if (rejectedDraftBlocks >= opts.speculation.maxRejectedBlocks) useBatchPath = ordinaryBatchPath;
+          this._state.stats.decodeMode = 'target_verified_lookup';
+          this._state.stats.speculationAttempts += proposal.length;
+          this._state.stats.speculationAccepted += result.accepted;
+          for (const token of result.tokens) {
+            if (stopIfAborted()) break;
+            generatedIds.push(token); tokensGenerated++;
+            const text = emitMode === 'token' ? '' : decodeToken(token);
+            yield emitMode === 'token' ? token : text;
+            options.onToken?.(token, text);
+          }
+          const last = generatedIds[generatedIds.length - 1];
+          if (isStopToken(last, stopTokenIds, eosToken)) { this._recordStopReason('stop-token', last); break; }
+          if (matchesStopSequence(this._state.tokenizer, generatedIds, stopSequenceStart, opts.stopSequences, this._state.modelConfig?.reasoningOutput)) {
+            this._recordStopReason('stop-sequence', last); break;
+          }
+          continue;
+        }
+      }
 
       if (useBatchPath) {
         const remaining = opts.maxTokens - tokensGenerated;
@@ -678,7 +727,7 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
 
           if (opts.debug || opts.benchmark) {
             const elapsedMs = performance.now() - decodeStart;
-            const tokPerSec = (tokensGenerated / elapsedMs) * 1000;
+            const tokPerSec = (Math.max(0, tokensGenerated - 1) / elapsedMs) * 1000;
             log.debug('Decode', `#${tokensGenerated} speculation:self (${tokPerSec.toFixed(2)} tok/s avg)`);
           }
 
@@ -748,7 +797,7 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
 
         if (opts.debug || opts.benchmark) {
           const elapsedMs = performance.now() - decodeStart;
-          const tokPerSec = (tokensGenerated / elapsedMs) * 1000;
+          const tokPerSec = (Math.max(0, tokensGenerated - 1) / elapsedMs) * 1000;
           log.debug('Decode', `#${tokensGenerated} "${tokenText}" ${tokenTime.toFixed(0)}ms (${tokPerSec.toFixed(2)} tok/s avg)`);
         }
 
@@ -768,7 +817,8 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
     }
     this._state.stats.decodeTimeMs = performance.now() - decodeStart;
     this._state.stats.tokensGenerated = tokensGenerated;
-    this._state.stats.decodeTokens = tokensGenerated;
+    // Prefill produces the first token; decode timing covers only later tokens.
+    this._state.stats.decodeTokens = Math.max(0, tokensGenerated - 1);
     this._state.stats.batching = { ...this._state.batchingStats };
   }
 

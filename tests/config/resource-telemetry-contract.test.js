@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {
   parseResourceTelemetryMode,
   parseRocmSmiJson,
+  parseDarwinProcessRows,
   summarizeResourceTelemetrySamples,
 } from '../../tools/resource-telemetry.js';
 
@@ -109,5 +110,19 @@ assert.equal(summary.gpu.utilizationPercent.mean, 20);
 assert.equal(summary.gpu.memoryUsedBytes.max, 4096);
 assert.deepEqual(summary.sampling.unavailableReasons, ['unit-warning']);
 assert.equal(Object.hasOwn(summary, 'samples'), false);
+
+
+const darwinRows = parseDarwinProcessRows(`
+ 12 1 2048 0:01.25
+ 13 12 4096 1:02:03.50
+ 14 12 0 2-01:00:00.00
+ broken row
+ 0 0 -1 0:00.0
+`);
+assert.deepEqual(darwinRows.map(row => [row.pid, row.ppid, row.rssBytes, row.totalCpuMs]),
+  [[12, 1, 2097152, 1250], [13, 12, 4194304, 3723500], [14, 12, 0, 176400000]]);
+assert(darwinRows.every(row => row.hwmBytes === null && row.userMs === null && row.systemMs === null),
+  'ps does not provide high-water RSS or separate user/system CPU counters');
+assert.deepEqual(parseDarwinProcessRows(''), []);
 
 console.log('resource-telemetry-contract.test: ok');

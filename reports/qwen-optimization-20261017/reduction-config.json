@@ -1,0 +1,19 @@
+{
+  "schema": "doppler.recurrent-reduction-profile/v1",
+  "baseline": ".tmp/qwen-state-clone-20261017-v1",
+  "candidate": ".tmp/qwen-joint-reduction-20261017",
+  "warmupPairs": 3,
+  "measuredPairs": 12,
+  "heads": 16,
+  "headDim": 128,
+  "workgroupSize": 128,
+  "variants": [
+    "default",
+    "default_f16"
+  ],
+  "tokens": [
+    1,
+    22,
+    128
+  ]
+}

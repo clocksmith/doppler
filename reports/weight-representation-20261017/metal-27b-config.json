@@ -1,0 +1,24 @@
+{
+  "request": {
+    "runtimeConfig": {
+      "shared": {
+        "debug": {
+          "logLevel": {
+            "defaultLogLevel": "silent"
+          }
+        }
+      },
+      "inference": {
+        "session": {
+          "prefillTokenChunkSize": 256,
+          "kvcache": {
+            "maxSeqLen": 2048
+          }
+        },
+        "kvcache": {
+          "maxSeqLen": 2048
+        }
+      }
+    }
+  }
+}

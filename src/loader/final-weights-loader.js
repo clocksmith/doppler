@@ -508,6 +508,7 @@ function processLmHeadTensor(ctx, tensor, name, loc, shouldStream) {
 }
 
 async function maybeDowncastLmHead(ctx, lmHead, lmHeadName, lmHeadLoc) {
+  if (ctx.weightRepresentationPlan?.[lmHeadName]?.complete) return lmHead;
   // Check if tied to embeddings (skip downcast to avoid double-processing)
   const tiedToEmbeddings =
     lmHead === ctx.embeddings ||

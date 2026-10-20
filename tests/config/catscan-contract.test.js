@@ -85,7 +85,7 @@ try {
       'Freedom',
     ],
     freedomText: FREEDOM,
-    ignoredDirectories: ['node_modules'],
+    ignoredDirectories: ['node_modules', '.cache'],
     requiredCharterPaths: ['CATSCAN.md', 'src/CATSCAN.md'],
   };
   const policyPath = path.join(fixtureRoot, 'tools', 'policies', 'catscan-policy.json');
@@ -102,6 +102,10 @@ try {
   await fs.writeFile(policyPath, `${JSON.stringify(policy, null, 2)}\n`, 'utf8');
   await fs.writeFile(path.join(fixtureRoot, 'CATSCAN.md'), rootSource, 'utf8');
   await fs.writeFile(path.join(fixtureRoot, 'src', 'CATSCAN.md'), childSource, 'utf8');
+
+  // Local source snapshots are not additional repository components.
+  await fs.mkdir(path.join(fixtureRoot, '.cache', 'snapshot'), { recursive: true });
+  await fs.writeFile(path.join(fixtureRoot, '.cache', 'snapshot', 'CATSCAN.md'), rootSource, 'utf8');
 
   const stale = await buildCatscanReport({ repoRoot: fixtureRoot, policyPath });
   assert.equal(stale.ok, false);

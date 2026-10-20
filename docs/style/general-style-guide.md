@@ -918,8 +918,32 @@ const probeConfig = {
 
 ## Testing
 
-Which tests to run follows the repo `AGENTS.md` Development verification section. Test behavior;
-don't add tests that only assert one file restates another or pin config literals.
+Which tests to run follows the repo `AGENTS.md` Development verification section.
+
+### Test value
+
+Every test must identify an observable behavior and the defect it would catch.
+An assertion is useful only when its failure calls for a concrete repair to that
+behavior or its test fixture.
+
+- Do not add tests that copy configuration literals, pin current model lists,
+  benchmark winners, timestamps or tuning values, search source text for an
+  implementation spelling, or compare hand-maintained mirror files.
+- Test configuration through its consumer: precedence, explicit nulls, rejected
+  inputs, authorization, serialization and resulting execution. Configuration
+  is data, not a second implementation to reproduce in assertions.
+- Expected results need an independent contract or oracle. Do not calculate
+  expectations with the same helper under test or duplicate its branches.
+- Use controlled fixtures, temporary files and deterministic clocks. Ordinary
+  tests must not require old local benchmark output, current production state,
+  network access or a fresh qualification campaign.
+- Keep one canonical generator/schema check where delivery requires it; run it
+  when its inputs change. Do not duplicate that check in unit tests. Test the
+  generator or validator itself with valid, invalid and failure-path inputs.
+- When a test repeatedly fails, identify its protected behavior. Fix a real
+  defect; replace a brittle fixture or assertion; delete a test with no remaining
+  behavioral obligation. Do not preserve permanent noise, blindly update
+  snapshots, weaken safety assertions, or delete a useful test just to get green.
 
 ### Unit Tests (Kernel Correctness)
 

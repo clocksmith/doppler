@@ -1,3 +1,4 @@
+import { exactKeys, text as requiredText, instant as isoInstant } from './evidence-fields.js';
 import { computeCanonicalJsonSha256 } from './canonical-json.js';
 
 const OWNER_SCHEMA = 'doppler.product-integration-owner-confirmation/v1';
@@ -79,35 +80,6 @@ const OBSERVATION_FIELDS = Object.freeze({
   ],
 });
 
-function normalizeText(value) {
-  return typeof value === 'string' ? value.trim() : '';
-}
-
-function isPlainObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
-}
-
-function exactKeys(value, fields, label, errors) {
-  if (!isPlainObject(value)) {
-    errors.push(`${label} must be an object`);
-    return false;
-  }
-  const expected = new Set(fields);
-  for (const field of Object.keys(value)) {
-    if (!expected.has(field)) errors.push(`${label}.${field} is not supported`);
-  }
-  for (const field of fields) {
-    if (!Object.hasOwn(value, field)) errors.push(`${label}.${field} is required`);
-  }
-  return true;
-}
-
-function requiredText(value, label, errors) {
-  const normalized = normalizeText(value);
-  if (!normalized) errors.push(`${label} must be a non-empty string`);
-  return normalized || null;
-}
-
 function requiredSha256(value, label, errors) {
   const normalized = requiredText(value, label, errors)?.toLowerCase() ?? null;
   if (normalized && !SHA256_PATTERN.test(normalized)) {
@@ -122,16 +94,6 @@ function requiredRevision(value, label, errors) {
     errors.push(`${label} must be a 40-character commit revision`);
   }
   return normalized;
-}
-
-function isoInstant(value, label, errors) {
-  const normalized = requiredText(value, label, errors);
-  const instant = normalized ? new Date(normalized) : null;
-  if (!instant || !Number.isFinite(instant.getTime()) || instant.toISOString() !== normalized) {
-    errors.push(`${label} must be an ISO instant`);
-    return null;
-  }
-  return instant;
 }
 
 function matchExpected(actual, expected, label, errors) {

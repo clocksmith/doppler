@@ -1,0 +1,85 @@
+{
+  "baseCommit": "c380af74",
+  "variants": {
+    "baseline": {},
+    "static-rows": {
+      "src/config/kernels/kernel-ref-digests.js": "1172e19d41733e81b2426cb7328eac4807972af05a4f5e105e1bae38f0d76d9c",
+      "src/gpu/kernels/fused_matmul_q4_widetile.wgsl": "da0cd6ffb9747176c1698a24abfd767fe717625c559b0ef56c671b99eafbe832"
+    },
+    "direct-block": {
+      "src/config/kernels/kernel-ref-digests.js": "b529c035844b6493a8790952bee9c5cbf0c41f6fb041a67567ae0b5dfa8de42c",
+      "src/gpu/kernels/fused_matmul_q4_widetile.wgsl": "574036a94107f07247fa30dcd98affb4b1af50c190a45f081b6fd23022006ebd"
+    },
+    "combined": {
+      "src/config/kernels/kernel-ref-digests.js": "b529c035844b6493a8790952bee9c5cbf0c41f6fb041a67567ae0b5dfa8de42c",
+      "src/config/schema/kernel-thresholds.schema.d.ts": "846e8efb10653c101ee6ff523f2fb9746fe0409e80b15f860131f83c8ac42655",
+      "src/config/schema/index.js": "ea9a0671c0e06e011f430755859af3355a7e2a688c536d01bfffa97b98effc80",
+      "src/config/schema/kernel-thresholds.schema.js": "c653a88f0f11c7d73dae441c8b1a9408701b4355ba0416037e562776c5030b8c",
+      "src/config/schema/index.d.ts": "aaf4e5fb334fc819264851cd211c7b5dca84147621af27f3b8ed760dc7c29e21",
+      "src/gpu/kernels/rmsnorm.js": "1e6a6d28d322e5aa04da4f47d0ac52ddca3e7921269154f03c9c6580e3fd8d41",
+      "src/gpu/kernels/fused_matmul_rmsnorm.js": "4daf5baa103cd96d98c7a9315a02bba9a959e7012a0ea36528d7d66652ac2e29",
+      "src/gpu/kernels/matmul-selection.js": "b4d16d4ba7eeedf0cf18d96cf210f4ee820babdead93b17fd4bf10f9832bdc73",
+      "src/gpu/kernels/fused_matmul_q4_widetile.wgsl": "574036a94107f07247fa30dcd98affb4b1af50c190a45f081b6fd23022006ebd",
+      "src/gpu/kernels/softmax.js": "cc255b53d8d33956fa9fcb40dc94cc5905bf81c01a3d651790657a86dae9f257",
+      "src/gpu/kernels/sample.js": "6304fba1a366d7ea87ace2f4c8d4c37d8a5de070c688b879b7f52f5f486770ee",
+      "src/gpu/kernels/rope.js": "7aa58a1a894f6079a6e658a2f4556700749ca5a030b9cc2567ad576ce79d0f34",
+      "src/gpu/kernels/fused_ffn.js": "49dae36fb1da050b78d1db3ffd87063a810f34e017e5995b68aa462538906ec6",
+      "src/gpu/kernels/attention/plan.js": "d26db2c59d128b12cc1d38910383163bfd8921b38ca0852bf434e5b6ceccaa32"
+    },
+    "vector-tile": {
+      "src/config/kernels/kernel-ref-digests.js": "1b8f883efee031140153c73de74ad1d90341272ca2fb80e6aa0e73b134628380",
+      "src/gpu/kernels/fused_matmul_q4_widetile.wgsl": "781e0bc569078d55498f1fc5d04160430aabeecc055030142c425ad8c6598612"
+    },
+    "prepared": {
+      "src/inference/pipelines/text/linear-attention.js": "3efd96fbbb96d1c8f33bb95eb63368547e91094af86e340fb83d1540e40aac54",
+      "src/inference/pipelines/text/linear-attention.d.ts": "23b36669e571abed6d82bde2530e2b5183fde5ee4cc05ad94ab1c13f039fd51d",
+      "src/inference/pipelines/text/generator.js": "1e9be6d0d2e97160a464a027795336b90ed91e336700219965c2eb75b0ca6813",
+      "src/inference/pipelines/text/pipeline.js": "ceeab6a68bff424498c4bb78a0ec8594925d36516bc05e914d0957bb434169e7",
+      "src/inference/pipelines/text/generator/prefill-runtime.js": "2ebe07f57db576fd0560df61b959c41f06842484767999e4fedd66c6c18567cc",
+      "src/config/kernels/kernel-ref-digests.js": "b529c035844b6493a8790952bee9c5cbf0c41f6fb041a67567ae0b5dfa8de42c",
+      "src/config/schema/kernel-thresholds.schema.d.ts": "846e8efb10653c101ee6ff523f2fb9746fe0409e80b15f860131f83c8ac42655",
+      "src/config/schema/index.js": "ea9a0671c0e06e011f430755859af3355a7e2a688c536d01bfffa97b98effc80",
+      "src/config/schema/kernel-thresholds.schema.js": "c653a88f0f11c7d73dae441c8b1a9408701b4355ba0416037e562776c5030b8c",
+      "src/config/schema/index.d.ts": "aaf4e5fb334fc819264851cd211c7b5dca84147621af27f3b8ed760dc7c29e21",
+      "src/gpu/kernels/rmsnorm.js": "1e6a6d28d322e5aa04da4f47d0ac52ddca3e7921269154f03c9c6580e3fd8d41",
+      "src/gpu/kernels/fused_matmul_rmsnorm.js": "4daf5baa103cd96d98c7a9315a02bba9a959e7012a0ea36528d7d66652ac2e29",
+      "src/gpu/kernels/matmul-selection.js": "b4d16d4ba7eeedf0cf18d96cf210f4ee820babdead93b17fd4bf10f9832bdc73",
+      "src/gpu/kernels/fused_matmul_q4_widetile.wgsl": "574036a94107f07247fa30dcd98affb4b1af50c190a45f081b6fd23022006ebd",
+      "src/gpu/kernels/softmax.js": "cc255b53d8d33956fa9fcb40dc94cc5905bf81c01a3d651790657a86dae9f257",
+      "src/gpu/kernels/sample.js": "6304fba1a366d7ea87ace2f4c8d4c37d8a5de070c688b879b7f52f5f486770ee",
+      "src/gpu/kernels/rope.js": "7aa58a1a894f6079a6e658a2f4556700749ca5a030b9cc2567ad576ce79d0f34",
+      "src/gpu/kernels/fused_ffn.js": "49dae36fb1da050b78d1db3ffd87063a810f34e017e5995b68aa462538906ec6",
+      "src/gpu/kernels/attention/plan.js": "d26db2c59d128b12cc1d38910383163bfd8921b38ca0852bf434e5b6ceccaa32"
+    },
+    "registered": {
+      "src/version.js": "10057651113a182ac96a45bbc4c99ae04bcd710f7f525267505fcc090790c556",
+      "src/inference/pipelines/text/linear-attention.js": "3efd96fbbb96d1c8f33bb95eb63368547e91094af86e340fb83d1540e40aac54",
+      "src/inference/pipelines/text/linear-attention.d.ts": "23b36669e571abed6d82bde2530e2b5183fde5ee4cc05ad94ab1c13f039fd51d",
+      "src/inference/pipelines/text/generator.js": "1e9be6d0d2e97160a464a027795336b90ed91e336700219965c2eb75b0ca6813",
+      "src/inference/pipelines/text/pipeline.js": "ceeab6a68bff424498c4bb78a0ec8594925d36516bc05e914d0957bb434169e7",
+      "src/inference/pipelines/text/generator/prefill-runtime.js": "2ebe07f57db576fd0560df61b959c41f06842484767999e4fedd66c6c18567cc",
+      "src/config/kernels/registry.json": "9295c23de8b83a7ffee93aa48f1c6a343e3ec9a0df7e358669dd684d1b65d6ce",
+      "src/config/kernels/kernel-ref-digests.js": "cbd39d732d927155ad0019ea0f201ba2e380e0f999a97b9369bf35bda2f8baf6",
+      "src/config/schema/kernel-thresholds.schema.d.ts": "846e8efb10653c101ee6ff523f2fb9746fe0409e80b15f860131f83c8ac42655",
+      "src/config/schema/index.js": "ea9a0671c0e06e011f430755859af3355a7e2a688c536d01bfffa97b98effc80",
+      "src/config/schema/kernel-thresholds.schema.js": "c653a88f0f11c7d73dae441c8b1a9408701b4355ba0416037e562776c5030b8c",
+      "src/config/schema/index.d.ts": "c2fdbe7bca5a7cecc5705adc1a7cbafdfba9172ba7761f4eabdac44bdbb81ce8",
+      "src/config/runtime/profiles/qwen-3-5-2b-metal-throughput.json": "077b73abe6c0340fbb8fe07cb9b37edccffa08efa85240a6b6b75860d5cd202d",
+      "src/config/runtime/profiles/qwen-3-5-0-8b-metal-parity.json": "a79538c2d823a2fdee0354a222e6ac7906f5c0962cf8317b17c97c3706d9b9ba",
+      "src/config/runtime/profiles/qwen-3-5-0-8b-metal-throughput.json": "e5022175f1d12cedfd14fc0f3c10f77757d1558773e21db85b4291fdb1dfd3ed",
+      "src/gpu/kernels/fused_matmul_q4_widetile_direct.wgsl": "1e824cae88609f95199b790d00a0a5ac64b5a5479d56ef6ba992695296304a25",
+      "src/gpu/kernels/rmsnorm.js": "1e6a6d28d322e5aa04da4f47d0ac52ddca3e7921269154f03c9c6580e3fd8d41",
+      "src/gpu/kernels/fused_matmul_rmsnorm.js": "4daf5baa103cd96d98c7a9315a02bba9a959e7012a0ea36528d7d66652ac2e29",
+      "src/gpu/kernels/matmul-selection.js": "b4d16d4ba7eeedf0cf18d96cf210f4ee820babdead93b17fd4bf10f9832bdc73",
+      "src/gpu/kernels/softmax.js": "cc255b53d8d33956fa9fcb40dc94cc5905bf81c01a3d651790657a86dae9f257",
+      "src/gpu/kernels/sample.js": "6304fba1a366d7ea87ace2f4c8d4c37d8a5de070c688b879b7f52f5f486770ee",
+      "src/gpu/kernels/rope.js": "7aa58a1a894f6079a6e658a2f4556700749ca5a030b9cc2567ad576ce79d0f34",
+      "src/gpu/kernels/fused_ffn.js": "49dae36fb1da050b78d1db3ffd87063a810f34e017e5995b68aa462538906ec6",
+      "src/gpu/kernels/generated/uniform-writers.js": "9bb7c6d2428dc7a1e8ed2e029db8d58d5d4f9e119a0ac3cc7ca272ae4524ca01",
+      "src/gpu/kernels/generated/uniform-writers.d.ts": "8a852825b27eb2109b522b44456b399daa6eece600de116c104f262f2f6f9b72",
+      "src/gpu/kernels/attention/plan.js": "d26db2c59d128b12cc1d38910383163bfd8921b38ca0852bf434e5b6ceccaa32",
+      "src/gpu/kernels/codegen/wgsl-patch-variants.js": "b38269e5b44dcc0b9aa24bd71e55acc1d3dac60dfe168d427ff7f907f206f38a",
+      "src/gpu/kernels/codegen/patches/fused_matmul_q4_widetile_direct.from.fused_matmul_q4_widetile.diff": "2c0ef3590b5d7cab2358318457f4a987239c756fe2488432fd4bf7bbb55a5b31"
+    }
+  }
+}

@@ -1,9 +1,11 @@
+import type { SelfSpeculationConfig } from '../../../config/schema/speculation-self.schema.js';
 import type { ResolvedSamplingConfig, SamplingCallOptions } from './sampling-config.js';
 
 export interface GenerationRequestOptions extends SamplingCallOptions {
   maxTokens?: number;
   seed?: number;
   useSpeculative?: boolean;
+  speculation?: Partial<SelfSpeculationConfig> | null;
   useChatTemplate?: boolean;
   stopSequences?: readonly string[];
 }
@@ -11,6 +13,7 @@ export interface GenerationRequestRuntime {
   inference: {
     generation: { maxTokens: number; useSpeculative?: boolean };
     sampling: ResolvedSamplingConfig;
+    session?: { speculation: SelfSpeculationConfig | null };
     chatTemplate?: { enabled?: boolean | null };
   };
 }
@@ -19,6 +22,7 @@ export type ResolvedTextGenerationRequest = Readonly<Omit<ResolvedSamplingConfig
   maxTokens: number;
   seed: number | undefined;
   useSpeculative: boolean | undefined;
+  speculation: Readonly<SelfSpeculationConfig> | null;
   useChatTemplate: boolean;
   stopSequences: readonly string[];
 }>;

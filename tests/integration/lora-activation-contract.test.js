@@ -205,3 +205,31 @@ function sha256Hex(bytes) {
 }
 
 console.log('lora-activation-contract.test: ok');
+
+// Partition placement retains only owned layers while preserving the verified global identity.
+{
+  const { loadLoRAFromManifest } = await import('../../src/experimental/adapters/lora-loader.js');
+  const { loadLoRAAdapterForPipeline } = await import('../../src/client/runtime/lora.js');
+  const { createLayerPartitionPlan, hashLayerPartitionPlan } = await import('../../src/config/layer-partition-plan.js');
+  const manifest = { id: 'partition-adapter', name: 'partition-adapter', baseModel: 'base', rank: 1, alpha: 2,
+    targetModules: ['q_proj'], tensors: [0, 1].flatMap(layer => ['a', 'b'].map(kind => ({
+      name: `layers.${layer}.q_proj.lora_${kind}`, shape: [1, 1], dtype: 'f32', data: [layer + 1] }))) };
+  const adapter = await loadLoRAFromManifest(manifest);
+  const geometry = { modelId: 'base', numLayers: 2, hiddenSize: 1, vocabSize: 2, splitLayer: 1 };
+  const basePlan = createLayerPartitionPlan(geometry);
+  const plan = createLayerPartitionPlan({ ...geometry, adapterIdentities: [adapter.identity.digest] });
+  assert.notEqual(hashLayerPartitionPlan(basePlan), hashLayerPartitionPlan(plan));
+  for (const index of [0, 1]) {
+    const pipeline = { manifest: { modelId: 'base' }, modelPartition: { plan, index },
+      weights: new Map([[`layer_${index}`, { qProj: {} }]]), lora: null,
+      setLoRAAdapter(value) { this.lora = value; }, getActiveLoRA() { return this.lora; } };
+    await loadLoRAAdapterForPipeline(pipeline, manifest);
+    assert.deepEqual([...pipeline.lora.layers.keys()], [index]);
+    assert.equal(pipeline.lora.identity.digest, adapter.identity.digest);
+    pipeline.modelPartition = { plan: basePlan, index };
+    await assert.rejects(loadLoRAAdapterForPipeline(pipeline, manifest), /accepted partition plan/);
+    assert.deepEqual([...pipeline.lora.layers.keys()], [index], 'failed replacement preserves the active adapter');
+  }
+  assert.throws(() => createLayerPartitionPlan({ ...geometry, adapterIdentities: [] }), /one exact/);
+  assert.throws(() => createLayerPartitionPlan({ ...geometry, adapterIdentities: ['unverified'] }), /one exact/);
+}

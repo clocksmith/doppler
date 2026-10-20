@@ -93,6 +93,10 @@ assert.notEqual(hashJson(af16Config), hashJson(retainedConfig));
 const currentWithRetainedKernel = structuredClone(af16Config);
 currentWithRetainedKernel.execution.kernels.gelu.digest = retainedConfig.execution.kernels.gelu.digest;
 const digestRebindings = {
+  // 17dc3b3a: flatten large gather/split dispatches across workgroup rows.
+  'sha256:ce77263ace3099526665174b0fba1d93696bf782268d172d6b71b63a8021338d':
+    'sha256:5a6922136dad0cf05059533f24ea0989875c3659b464dfc7528518d57ce1e0c1',
+
   ...readJson('artifacts/release-kernel-digests-2026-09-12/recipe-digest-rebindings.json'),
   ...readJson('artifacts/recovery-20261009/numerical-digest-rebindings.json'),
   ...readJson('artifacts/numerical-20261010/digest-rebindings.json'),
@@ -108,8 +112,11 @@ for (const [id, kernel] of Object.entries(retainedConfig.execution.kernels)) {
     currentWithRetainedKernel.execution.kernels[id].digest = kernel.digest;
   }
 }
+// 56e3abbd declares the runtime pipeline; the retained artifact identity stays unchanged.
+assert.equal(currentWithRetainedKernel.modelType, 'gemma4');
+delete currentWithRetainedKernel.modelType;
 assert.deepEqual(currentWithRetainedKernel, retainedConfig,
-  'Only the GELU identity, explicit RMS, WideTile, RoPE and attention arithmetic changes, and recorded digest repairs may differ.');
+  'Only the GELU identity, explicit RMS, WideTile, RoPE and attention arithmetic changes, gather/split dispatch geometry, explicit runtime pipeline, and recorded digest repairs may differ.');
 
 assert.deepEqual(
   af16Manifest.inference?.session?.compute?.defaults,

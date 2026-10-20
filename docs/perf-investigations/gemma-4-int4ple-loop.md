@@ -28,13 +28,10 @@ The runtime's finiteness guard fires at prefill-sample under fail-fast policy. E
 - activationDtype=f16 selective decode lane: −8% (fires but doesn't help)
 - TurboQuant KV profiles exist but KV is only 5 MB — not the bottleneck for short context
 
-**Three real paths forward, in priority order:**
-
-1. **Fix the Apple Metal NaN bug** (highest ROI, riskiest). Read `src/gpu/kernels/fused_matmul_q4_widetile.wgsl`, `_residual.wgsl`, `_f16.wgsl`, and `fused_ffn_q4k_f16.wgsl` line-by-line for f16 reads/writes/casts. Suspect Apple Metal-specific subnormal flush behavior or fastmath rounding. If a fix lands, drop the capability transform and unlock 30–50% throughput.
-
-2. **f16a prefill + useFusedGateUpGelu** (medium scope). The `fused-gate-up-gelu.js` kernel exists, requires f16 weights + f16 activations + gelu (bypasses q4k path entirely). Currently the selective f16 lane only narrows decode activations. Extending to prefill + flipping `useFusedGateUpGelu: true` could be a 20–30% prefill win without touching the NaN bug.
-
-3. **ReDrafter speculative decoding** (large scope, large win). Apple paper shows 2.3× on Apple Silicon via Metal/MLX. EAGLE-3 also reports 2–6×. Requires draft-head training/loading, verification path, KV rollback. Probably the biggest absolute win available but >>1-iter scope.
+Potential follow-up work is consolidated in
+[Potential Doppler optimizations](../performance/potential-optimizations.md#kernel-opportunities-merged-from-earlier-investigations).
+The per-iteration decisions below are historical experiment records, not a current
+priority list or promises of speedup.
 
 **Where things live:**
 - Per-kernel profile JSON: `reports/perf/gemma-4-int4ple-loop/iter-002-profile.json`
@@ -221,23 +218,13 @@ This is a different shape from the iter 23–25 / Qwen-3.5 fix (those swapped ma
 
 FFN expansion sites: `src/inference/pipelines/text/ffn/dense.js` and `src/inference/pipelines/text/ffn/standard.js`.
 
-### Web research — 2026 candidate enhancements (scored)
+### Candidate inventory
 
-Scoring axes (each 1–5, higher better):
-- **Impact**: expected speedup against the identified bottleneck
-- **WebGPU fit**: how cleanly it maps to WebGPU/Metal capabilities (subgroups, f16, no CUDA-only ops)
-- **Doppler integration cost**: lower is better (existing kernels = high; new WGSL = medium; new pipeline phase = low)
-
-| Candidate                                          | Impact | WebGPU fit | Integration | Notes |
-|----------------------------------------------------|:------:|:----------:|:-----------:|-------|
-| **Wire fused_ffn_q4k_f16 into FFN expansion**      |   5    |     5      |      4      | Kernel exists; replaces 3 matmul + activation dispatches with 1; targets the 57–74% of GPU. NO new WGSL. |
-| **Wire fused_matmul_q4_widetile for q/o/lm_head**  |   3    |     5      |      4      | Skips f16 dequant materialization for q_proj/o_proj/lm_head; smaller targets. |
-| **Wire fused_rmsnorm_q4_widetile**                 |   2    |     5      |      3      | RMSNorm is only 1.3% prefill / 2.2% decode; saves dispatches but kernel-time gain modest. |
-| **TurboQuant KV cache (already in repo profiles)** |   2    |     4      |      5      | Runtime-config-only swap (`profiles/turboquant-contiguous-prod`); KV is small here (5 MB) so memory not the wall; could help at long context. |
-| **Speculative decoding (ReDrafter / EAGLE-3)**     |   4    |     3      |      1      | 2–3× decode wins on Apple Silicon proven; needs draft head + verification path; large scope. |
-| **Mega-kernel / WeInfer-style persistent dispatch**|   4    |     2      |      1      | Targets dispatch overhead (40% CPU side); needs WebGPU runtime rework, browser/spec dependencies. |
-| **Flash prefill (`attention_prefill_flash_head256`)** | 2   |     5      |      4      | Kernel exists but attention is only 4.5% of prefill — small win. |
-| **Move PLE prep off the critical path**            |   2    |     4      |      3      | 75% miss rate on decode is real, but the GPU walltime calls show PLE matmul ops are <8% of decode — bigger fish first. |
+The candidate list is merged into
+[Potential Doppler optimizations](../performance/potential-optimizations.md).
+The profiling, trial decisions, and negative results remain here with their
+original model and date scope. Historical impact scores were estimates, not
+measured Doppler gains.
 
 ### Iter 2 conclusion → iter 3 target
 
@@ -441,13 +428,9 @@ Tight, cache-warm bench sweep on Node surface, deterministic generation (seed/te
 
 Decode wall on this model + this hardware is genuinely GPU-compute-bound (FFN + lm_head, ~70%+). Orchestration is already tight. Runtime-only knobs that don't unlock the q4k-fusion path can't materially move throughput.
 
-Three real paths forward, all expensive:
-
-1. **Fix the Apple Metal NaN** — kernel deep-dive on `fused_matmul_q4_widetile*.wgsl` and `fused_ffn_q4k_f16.wgsl`. Find the exact f16 op that breaks on Metal. This unlocks 30–50% throughput per the iter-2 GPU breakdown.
-2. **Implement ReDrafter / EAGLE-3 speculative decoding** — proven 2–2.3× win on Apple Silicon. Substantial architectural work (draft head training/loading, verification path, cache rollback). Probably the largest absolute win available, but >> one-iter scope.
-3. **Reduce prefill activation precision (f16 widening) via the existing selective lane** — the `gemma4-e2b-int4ple-f16a-probe` path with prefill activations narrowed to f16 might unlock `useFusedGateUpGelu` (which needs f16 weights + f16 activations + gelu, no q4k dep). Requires the f16-narrowing transform on prefill, plus correctness gating. Worth one trial.
-
-**Iter 6 target**: option 1 — read the widetile q4 kernel(s) for the specific f16 failure mode. Identify the line. If it's a small fix (e.g., promote an f16 accumulator to f32, or add a guard against subnormal flush), propose it. If it's structural, document the work-required estimate and pivot to option 3 (f16a + useFusedGateUpGelu) for iter 7.
+Follow-up proposals are maintained in the
+[single optimization inventory](../performance/potential-optimizations.md#kernel-opportunities-merged-from-earlier-investigations).
+The retained failure requires numerical localization before a guard is removed.
 
 ### Cumulative delta table (iters 1–5)
 

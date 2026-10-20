@@ -1,0 +1,45 @@
+{
+  "schema": "doppler.qwen27-f16-code-control/v1",
+  "accepted": false,
+  "sourceRevision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+  "expectedAnswer": "26",
+  "tokenText": {
+    "17": "2",
+    "21": "6"
+  },
+  "observations": [
+    {
+      "format": "q4",
+      "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+      "contractSha256": "cde55fb6797fa3feeedf05484ee086155dc74b8014ed43edec5a1d97720002b9",
+      "referenceToolSha256": "044ed4b370203c07ebe73df4519a5180110272c23476b99f0fb57306de2ecc39",
+      "greedyTokens": [
+        17,
+        17,
+        248046
+      ],
+      "secondDigitLogits": {
+        "2": 22.87346076965332,
+        "6": 21.738426208496094
+      },
+      "elapsedSeconds": 101.35634864399617
+    },
+    {
+      "format": "f16",
+      "manifestSha256": "f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+      "contractSha256": "88a3952af62619a5e1c583824175cf18d7a62c61b8405c0f1d8c25a58f7652ea",
+      "referenceToolSha256": "044ed4b370203c07ebe73df4519a5180110272c23476b99f0fb57306de2ecc39",
+      "greedyTokens": [
+        17,
+        21,
+        248046
+      ],
+      "secondDigitLogits": {
+        "2": 20.8443603515625,
+        "6": 22.601882934570312
+      },
+      "elapsedSeconds": 174.94111191900447
+    }
+  ],
+  "scope": "One exact application prompt. Both retained token paths are self-consistent greedy paths including stop. Independent CPU Transformers equations, F32 arithmetic and F16 KV; no Doppler F16 GPU qualification or general quality claim."
+}

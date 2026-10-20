@@ -608,8 +608,9 @@ export async function interpretAttentionWithRecorder(
   const kvOwnership = reusesSharedKV
     ? 'borrowed'
     : (storeSharedKV ? 'transferred' : 'submitOwned');
-  resourceScope.register(kTensor.buffer, 'key', kvOwnership);
-  resourceScope.register(vTensor.buffer, valueAliasesKey ? 'value-key-alias' : 'value', kvOwnership);
+  // Direct cache writes produce no temporary K/V tensors to own.
+  if (kTensor) resourceScope.register(kTensor.buffer, 'key', kvOwnership);
+  if (vTensor) resourceScope.register(vTensor.buffer, valueAliasesKey ? 'value-key-alias' : 'value', kvOwnership);
 
   // 4. Update KV cache (cache stores raw GPUBuffers for memory efficiency)
   if (!skipKVCacheWrites && !diffusionGemmaDecoder && state.kvCache?.hasGPUCache?.()) {

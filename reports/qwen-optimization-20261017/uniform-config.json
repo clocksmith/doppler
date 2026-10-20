@@ -1,0 +1,22 @@
+{
+  "schema": "doppler.uniform-validation-profile/v1",
+  "baseline": ".tmp/qwen-state-clone-20261017-v1",
+  "candidate": ".tmp/qwen-uniform-candidate-20261017",
+  "warmupPairs": 3,
+  "measuredPairs": 12,
+  "iterations": 10000,
+  "kernels": [
+    [
+      "matmul",
+      "f32"
+    ],
+    [
+      "matmul",
+      "f16"
+    ],
+    [
+      "sample",
+      "argmax"
+    ]
+  ]
+}

@@ -2004,6 +2004,95 @@
       "wgslOnDisk": true
      }
     },
+    "w8a8_packed_cooperative": {
+     "wgsl": "matmul_w8a8_packed_cooperative.wgsl",
+     "entryPoint": "main",
+     "workgroup": [64,1,1],
+     "requires": [],
+     "requiredWgslFeatures": ["packed_4x8_integer_dot_product"],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "activations",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      },
+      {
+       "index": 4,
+       "name": "status",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 16,
+      "fields": [
+       {
+        "name": "rows",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "columns",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "inner",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "row_words",
+        "type": "u32",
+        "offset": 12
+       }
+      ]
+     },
+     "weightDtype": "w8a8",
+     "outputDtype": "i32",
+     "variantMetadata": {
+      "dispatchGeometry": "row-column-block",
+      "mechanismKernels": [
+       {
+        "operation": "w8a8_quantize",
+        "variant": "f32"
+       },
+       {
+        "operation": "w8a8_rescale",
+        "variant": "activation"
+       },
+       {
+        "operation": "w8a8_rescale",
+        "variant": "weight"
+       }
+      ],
+      "colsPerWg": 4
+     },
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 64,
+      "LANES_PER_OUTPUT": 16
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
     "f16": {
      "wgsl": "matmul_f16.wgsl",
      "entryPoint": "main",
@@ -5535,6 +5624,56 @@
        "wgslName": "C"
       }
      ]
+    },
+    "q4_fused_widetile_direct": {
+     "wgsl": "fused_matmul_q4_widetile_direct.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": ["shader-f16"],
+     "outputDtype": "f32",
+     "weightDtype": "q4k",
+     "variantMetadata": {
+      "tileM": 4,
+      "colsPerWg": 256,
+      "dispatchGeometry": "row-column-tile"
+     },
+     "description": "Q4_K WideTile with direct packed-weight reads and statically indexed row accumulators. Preserves f32 arithmetic; selected only by explicit execution graphs.",
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_q4k"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ],
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": [
+       "runtime/profiles/qwen-3-5-0-8b-metal-parity",
+       "runtime/profiles/qwen-3-5-0-8b-metal-throughput",
+       "runtime/profiles/qwen-3-5-2b-metal-throughput"
+      ],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
     },
     "q4_fused_widetile": {
      "wgsl": "fused_matmul_q4_widetile.wgsl",
@@ -10319,6 +10458,7 @@
       "inlineConfigs": [
        "runtime/profiles/qwen-3-5-0-8b-metal-parity",
        "runtime/profiles/qwen-3-5-0-8b-metal-throughput",
+       "runtime/profiles/qwen-3-5-0-8b-vulkan-parity",
        "runtime/profiles/qwen-3-5-2b-metal-throughput"
       ],
       "ruleChains": [],
@@ -23770,6 +23910,70 @@
     ]
    },
    "variants": {
+    "paired_default": {
+     "wgsl": "gated_delta_fused_decode_paired.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "normGateActivation": "silu"
+     },
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["gated-delta-fused-decode.rules.json#scalarVariant"],
+      "wgslOnDisk": true
+     }
+    },
+    "paired_default_f16": {
+     "wgsl": "gated_delta_fused_decode_paired_f16.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": ["shader-f16"],
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "normGateActivation": "silu"
+     },
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["gated-delta-fused-decode.rules.json#scalarVariant"],
+      "wgslOnDisk": true
+     }
+    },
+    "paired_sigmoid_gate": {
+     "wgsl": "gated_delta_fused_decode_paired_sigmoid_gate.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "normGateActivation": "sigmoid"
+     },
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["gated-delta-fused-decode.rules.json#scalarVariant"],
+      "wgslOnDisk": true
+     }
+    },
+    "paired_sigmoid_gate_f16": {
+     "wgsl": "gated_delta_fused_decode_paired_sigmoid_gate_f16.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": ["shader-f16"],
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "normGateActivation": "sigmoid"
+     },
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["gated-delta-fused-decode.rules.json#scalarVariant"],
+      "wgslOnDisk": true
+     }
+    },
     "default": {
      "wgsl": "gated_delta_fused_decode.wgsl",
      "entryPoint": "main",

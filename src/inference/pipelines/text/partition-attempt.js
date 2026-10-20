@@ -2,7 +2,8 @@ import { PipelineState } from './state.js';
 import { createKVCache } from './init.js';
 import { assertPartitionExecutionSupported } from './partition-execution.js';
 import { resolveLayerPartition } from './layer-partition-contract.js';
-import { createLinearAttentionRuntime, resetLinearAttentionRuntime, cloneLinearAttentionRuntime } from './linear-attention.js';
+import { createLinearAttentionRuntime, resetLinearAttentionRuntime } from './linear-attention.js';
+import { cloneLinearAttentionRuntimeOnGPU } from './linear-attention/state-clone.js';
 import { KVCache } from '../../kv-cache/base.js';
 import { MixedGeometryKVCache } from '../../kv-cache/mixed-geometry.js';
 
@@ -25,6 +26,7 @@ export function createPartitionAttempt(owner, maxSeqLen) {
   // execution counters, attention state and buffers; it never unloads the owner.
   const state = Object.assign(new PipelineState(), {
     manifest: owner.manifest, modelConfig: owner.modelConfig, modelPartition: owner.modelPartition,
+    lora: owner.lora,
     weights: owner.weights, expertWeights: owner.expertWeights, tokenizer: owner.tokenizer,
     runtimeConfig: owner.runtimeConfig, resolvedRuntimeSession: owner.resolvedRuntimeSession,
     resolvedKernelPath: owner.resolvedKernelPath, kernelPathSource: owner.kernelPathSource,
@@ -75,7 +77,7 @@ export async function clonePartitionAttempt(parent, signal) {
       await child.state.kvCache.copyFrom(source.kvCache);
     } else throw new Error('Missing matching child KV owner.');
     signal.throwIfAborted();
-    child.state.linearAttentionRuntime = await cloneLinearAttentionRuntime(source.linearAttentionRuntime);
+    child.state.linearAttentionRuntime = await cloneLinearAttentionRuntimeOnGPU(source.linearAttentionRuntime);
     child.state.currentSeqLen = source.currentSeqLen;
     child.state.decodeStepCount = source.decodeStepCount;
     child.state.currentTokenIds = source.currentTokenIds ? [...source.currentTokenIds] : null;

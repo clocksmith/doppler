@@ -1,21 +1,41 @@
-import { getDevice, getDeviceEpoch, getDeviceLimits, getKernelCapabilities } from '../../device.js';
-import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
-import { createTensor } from '../../tensor.js';
-import { KernelBase } from '../kernel-base.js';
 import { TILE_SIZES } from '../constants.js';
-import { getKernelThresholds, padToQ4KBlock } from '../../../config/schema/index.js';
-import { createUniformBufferWithView } from '../uniform-utils.js';
+import { getKernelThresholdSnapshot } from '../../../config/schema/index.js';
 import { getKernelConfig } from '../kernel-configs.js';
-import { getPipelineBindGroupLayout } from '../pipeline-cache.js';
 import { hasRequiredFeatures, getKernelWgslRequirements } from '../feature-check.js';
-import { dispatchIndirect, recordDispatchIndirect } from '../dispatch.js';
-import { releaseUniformBuffer } from '../../uniform-cache.js';
 import { log, trace } from '../../../debug/index.js';
 import { getKernelPathAttentionVariant, getKernelPathStrict } from '../../../config/kernel-path-loader.js';
 import { selectRuleValue as selectKernelRuleValue } from '../rule-registry.js';
 import { selectRuleValue as selectSharedRuleValue } from '../../../rules/rule-registry.js';
 import { logKernelSelectionOnce } from '../../kernel-selection-log.js';
-import { getRuntimeConfig } from '../../../config/runtime.js';
+
+export function resolveOnlineDecodePipelineConstants(variant, headDim, policy, options = {}) {
+  if (!variant?.startsWith('decode_online')) {
+    return null;
+  }
+  const workgroupSize = policy?.workgroupSize;
+  const constants = {};
+  if (workgroupSize != null) {
+    if (workgroupSize !== 128 && workgroupSize !== 256) {
+      throw new Error(`attentionDecodeOnline.workgroupSize must be 128 or 256, got ${workgroupSize}.`);
+    }
+    if (headDim > workgroupSize * 2) {
+      throw new Error(
+        `attentionDecodeOnline.workgroupSize=${workgroupSize} cannot cover headDim=${headDim}; ` +
+        `requires headDim <= ${workgroupSize * 2}.`
+      );
+    }
+    constants.WORKGROUP_SIZE = workgroupSize;
+  }
+  if (
+    variant === 'decode_online_head256_f16kv_output_gate'
+    && policy?.useDirectContiguousKVLayout === true
+    && options.kvLayout === 'contiguous'
+    && options.slidingWindow === 0
+  ) {
+    constants.USE_DIRECT_KV_LAYOUT = true;
+  }
+  return Object.keys(constants).length > 0 ? constants : null;
+}
 
 export let loggedAttentionTier = false;
 
@@ -41,7 +61,7 @@ export function selectAttentionTier(
   caps
 ) {
   const isDecode = seqLen === 1;
-  const thresholds = getKernelThresholds().attention;
+  const thresholds = getKernelThresholdSnapshot().attention;
   const largeRequired = useF16KV
     ? thresholds.largeSharedF16
     : thresholds.largeSharedF32;
@@ -121,10 +141,10 @@ export function resolveAttentionVariant(
   // - Large headDim (parallelizes across dimensions)
   // - KV length within shared memory limit (from kernel config)
   const chunkedMaxKVLen = getChunkedMaxKVLen();
-  const minHeadDimForChunked = getKernelThresholds().attention.minHeadDimForChunked;
+  const minHeadDimForChunked = getKernelThresholdSnapshot().attention.minHeadDimForChunked;
   const canUseChunked = isDecode && useF16KV && headDim >= minHeadDimForChunked && kvLen <= chunkedMaxKVLen;
   const decodeSubgroupMaxKVLen = chunkedMaxKVLen;
-  const decodeSubgroupMaxHeadDim = getKernelThresholds().attention.subgroupMaxHeadDim;
+  const decodeSubgroupMaxHeadDim = getKernelThresholdSnapshot().attention.subgroupMaxHeadDim;
   const subgroupConfig = getKernelConfig('attention', 'decode_subgroup');
   const canUseDecodeSubgroup = isDecode && !useF16KV && !useF16Q
     && headDim <= decodeSubgroupMaxHeadDim && kvLen <= decodeSubgroupMaxKVLen
@@ -134,7 +154,7 @@ export function resolveAttentionVariant(
     && caps.hasF16
     && caps.hasSubgroups
     && headDim <= decodeSubgroupMaxHeadDim
-    && sharedLimit >= getKernelThresholds().attention.subgroupShared;
+    && sharedLimit >= getKernelThresholdSnapshot().attention.subgroupShared;
   const chunkedVariant = selectKernelRuleValue('attention', 'chunkedVariant', { useF16 });
   const pagedVariant = selectKernelRuleValue('attention', 'pagedVariant', { useF16 });
   const optimizedVariant = selectKernelRuleValue('attention', 'optimizedVariant', { useF16 });
@@ -255,7 +275,7 @@ export function validateAttentionVariant(
     throw new Error(`Attention kernel "${variant}" is decode-only but prefill requested.`);
   }
 
-  const thresholds = getKernelThresholds().attention;
+  const thresholds = getKernelThresholdSnapshot().attention;
   const chunkedMaxKVLen = getChunkedMaxKVLen();
   const isChunked = normalized.startsWith('decode_chunked');
   if (isChunked) {

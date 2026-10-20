@@ -1,0 +1,212 @@
+{
+  "config": {
+    "schema": "doppler.uniform-validation-profile/v1",
+    "baseline": ".tmp/qwen-state-clone-20261017-v1",
+    "candidate": ".tmp/qwen-uniform-candidate-20261017",
+    "warmupPairs": 3,
+    "measuredPairs": 12,
+    "iterations": 10000,
+    "kernels": [
+      [
+        "matmul",
+        "f32"
+      ],
+      [
+        "matmul",
+        "f16"
+      ],
+      [
+        "sample",
+        "argmax"
+      ]
+    ]
+  },
+  "startedAt": "2026-10-17T13:16:18.322Z",
+  "sources": {
+    "baseline": "ded8f67ff50cbb1298ffbab9deb91fe7bcd792285b7e67349dedc18700ed4847",
+    "candidate": "6caa5d93354e9527008a5c4017b60aaf6842ea3a65c87ead3fcda768bf1fe698"
+  },
+  "pairs": [
+    {
+      "pair": 0,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "baseline": {
+        "ms": 385.6656659999999,
+        "checksum": 960000
+      },
+      "candidate": {
+        "ms": 12.813666000000012,
+        "checksum": 960000
+      }
+    },
+    {
+      "pair": 1,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "candidate": {
+        "ms": 12.658750000000055,
+        "checksum": 960000
+      },
+      "baseline": {
+        "ms": 386.5680000000002,
+        "checksum": 960000
+      }
+    },
+    {
+      "pair": 2,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "baseline": {
+        "ms": 389.3022500000002,
+        "checksum": 960000
+      },
+      "candidate": {
+        "ms": 12.059375000000273,
+        "checksum": 960000
+      }
+    },
+    {
+      "pair": 3,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "candidate": {
+        "ms": 14.510083000000122,
+        "checksum": 960000
+      },
+      "baseline": {
+        "ms": 386.6420830000002,
+        "checksum": 960000
+      }
+    },
+    {
+      "pair": 4,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "baseline": {
+        "ms": 387.68650000000025,
+        "checksum": 960000
+      },
+      "candidate": {
+        "ms": 12.59304099999963,
+        "checksum": 960000
+      }
+    },
+    {
+      "pair": 5,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "candidate": {
+        "ms": 12.22504200000003,
+        "checksum": 960000
+      },
+      "baseline": {
+        "ms": 394.19270800000004,
+        "checksum": 960000
+      }
+    },
+    {
+      "pair": 6,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "baseline": {
+        "ms": 383.89512500000046,
+        "checksum": 960000
+      },
+      "candidate": {
+        "ms": 12.967333999999937,
+        "checksum": 960000
+      }
+    },
+    {
+      "pair": 7,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "candidate": {
+        "ms": 12.625042000000576,
+        "checksum": 960000
+      },
+      "baseline": {
+        "ms": 388.71766599999955,
+        "checksum": 960000
+      }
+    },
+    {
+      "pair": 8,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "baseline": {
+        "ms": 387.57645799999955,
+        "checksum": 960000
+      },
+      "candidate": {
+        "ms": 12.682917000000089,
+        "checksum": 960000
+      }
+    },
+    {
+      "pair": 9,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "candidate": {
+        "ms": 12.84637500000008,
+        "checksum": 960000
+      },
+      "baseline": {
+        "ms": 383.4386249999998,
+        "checksum": 960000
+      }
+    },
+    {
+      "pair": 10,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "baseline": {
+        "ms": 382.76816600000075,
+        "checksum": 960000
+      },
+      "candidate": {
+        "ms": 12.687457999999424,
+        "checksum": 960000
+      }
+    },
+    {
+      "pair": 11,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "candidate": {
+        "ms": 12.794750000000022,
+        "checksum": 960000
+      },
+      "baseline": {
+        "ms": 380.89300000000003,
+        "checksum": 960000
+      }
+    }
+  ],
+  "passed": true
+}

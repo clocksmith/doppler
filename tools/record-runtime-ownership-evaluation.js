@@ -5,6 +5,8 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+import { normalizeText, requireText } from './lib/evidence-fields.js';
+import { isRepoRelativePath, readJson, writeJsonAtomically } from './lib/evidence-io.js';
 import { isPlainObject } from '../src/formats/plain-object.js';
 
 import { validateRuntimeOwnershipDecisions } from './check-runtime-ownership-decisions.js';
@@ -40,10 +42,6 @@ const RESULT_FIELDS = Object.freeze([
 ]);
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-function normalizeText(value) {
-  return typeof value === 'string' ? value.trim() : '';
-}
-
 function assertExactKeys(value, expectedFields, label) {
   if (!isPlainObject(value)) throw new Error(`${label} must be an object.`);
   const expected = new Set(expectedFields);
@@ -55,12 +53,6 @@ function assertExactKeys(value, expectedFields, label) {
   if (missing.length > 0) throw new Error(`${label}.${missing[0]} is required.`);
 }
 
-function requireText(value, label) {
-  const normalized = normalizeText(value);
-  if (!normalized) throw new Error(`${label} must be a non-empty string.`);
-  return normalized;
-}
-
 function parseIsoInstant(value, label) {
   const normalized = requireText(value, label);
   const instant = new Date(normalized);
@@ -68,16 +60,6 @@ function parseIsoInstant(value, label) {
     throw new Error(`${label} must be an ISO instant.`);
   }
   return instant;
-}
-
-function isRepoRelativePath(value) {
-  const normalized = normalizeText(value);
-  return Boolean(
-    normalized
-    && !path.isAbsolute(normalized)
-    && !normalized.includes('\\')
-    && !normalized.split('/').includes('..')
-  );
 }
 
 async function requireRepoPath(value, label, repoRoot) {
@@ -99,14 +81,6 @@ async function readEvidencePath(value, label, repoRoot) {
     digest: computeRuntimeOwnershipDecisionEvidenceDigest(receipt),
     receipt,
   };
-}
-
-async function readJson(filePath, label) {
-  try {
-    return JSON.parse(await fs.readFile(filePath, 'utf8'));
-  } catch (error) {
-    throw new Error(`${label} is not readable JSON: ${error.message}`);
-  }
 }
 
 function hasPriorEvaluation(decision) {
@@ -344,17 +318,6 @@ async function validateCapture(capture, context) {
     doppler,
     evidenceIdentity,
   };
-}
-
-async function writeJsonAtomically(filePath, value) {
-  await fs.mkdir(path.dirname(filePath), { recursive: true });
-  const temporaryPath = `${filePath}.${process.pid}.tmp`;
-  try {
-    await fs.writeFile(temporaryPath, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
-    await fs.rename(temporaryPath, filePath);
-  } finally {
-    await fs.rm(temporaryPath, { force: true });
-  }
 }
 
 export async function recordRuntimeOwnershipEvaluation(options) {

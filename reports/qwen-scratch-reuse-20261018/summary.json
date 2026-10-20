@@ -1,0 +1,576 @@
+{
+  "schema": "doppler.scratch-reuse-result/v1",
+  "accepted": false,
+  "disposition": "reject: complete-request/memory gates not established",
+  "contractSha256": "707b7c284d10ceae8780d7c34fa6b4ae4ff14866f66edf0a5fc716972729a62e",
+  "archives": {
+    "baseline": "2662a8b9923dbeb4a455556bf6536a5b1291595a4f5846800eff312f6c24c60f",
+    "candidate": "addf3788637a68ed929c20445d7a540e6a5bd417811284e8a5a11737b6c4284d"
+  },
+  "modelManifestSha256": "c3364f7fecc01b70ce63b4de3347d8305a1a6437ac63bb943edece7fa279fc0e",
+  "pairs": {
+    "baseline": [
+      {
+        "openingMs": 3788.7999999970198,
+        "firstOutputMs": 101.20000000298023,
+        "completeMs": 784.1000000014901,
+        "decodeMs": 682.2000000029802,
+        "decodeTokensPerSecond": 45.44121958350128,
+        "cpuRecordingMs": 110.5,
+        "prefillMs": 90.80000000447035,
+        "submitWaitMs": 574.7000000029802,
+        "readbackWaitMs": 576.6000000014901,
+        "readbackMapWaitMs": 574.7000000029802,
+        "readbackCleanupMs": 1.7999999970197678,
+        "readbackCopyMs": 0.10000000149011612,
+        "recordedDispatches": 6293,
+        "recordedPasses": 8,
+        "newPoolAllocations": 7202,
+        "poolReuses": 241,
+        "peakPoolBytes": 2151974656,
+        "peakRssSumBytes": 3745398784
+      },
+      {
+        "openingMs": 4229.30000000447,
+        "firstOutputMs": 111.69999999552965,
+        "completeMs": 838.6000000014901,
+        "decodeMs": 722.3000000044703,
+        "decodeTokensPerSecond": 42.91845493535669,
+        "cpuRecordingMs": 131.80000000447035,
+        "prefillMs": 97.29999999701977,
+        "submitWaitMs": 585.7999999970198,
+        "readbackWaitMs": 590,
+        "readbackMapWaitMs": 585.7999999970198,
+        "readbackCleanupMs": 3.6000000089406967,
+        "readbackCopyMs": 0,
+        "recordedDispatches": 6293,
+        "recordedPasses": 8,
+        "newPoolAllocations": 7202,
+        "poolReuses": 241,
+        "peakPoolBytes": 2151974656,
+        "peakRssSumBytes": 3666837504
+      },
+      {
+        "openingMs": 4315.5,
+        "firstOutputMs": 110.60000000149012,
+        "completeMs": 837.1000000014901,
+        "decodeMs": 726.1000000014901,
+        "decodeTokensPerSecond": 42.69384382307724,
+        "cpuRecordingMs": 135.70000000298023,
+        "prefillMs": 97.09999999403954,
+        "submitWaitMs": 587,
+        "readbackWaitMs": 589.8999999985099,
+        "readbackMapWaitMs": 586.7999999970198,
+        "readbackCleanupMs": 5.300000011920929,
+        "readbackCopyMs": 0.10000000149011612,
+        "recordedDispatches": 6293,
+        "recordedPasses": 8,
+        "newPoolAllocations": 7202,
+        "poolReuses": 241,
+        "peakPoolBytes": 2151974656,
+        "peakRssSumBytes": 3729014784
+      },
+      {
+        "openingMs": 4326.10000000149,
+        "firstOutputMs": 113.90000000596046,
+        "completeMs": 858.7000000029802,
+        "decodeMs": 744.1999999955297,
+        "decodeTokensPerSecond": 41.65546896020722,
+        "cpuRecordingMs": 180.80000000447035,
+        "prefillMs": 98.89999999850988,
+        "submitWaitMs": 562.6000000014901,
+        "readbackWaitMs": 567.4000000059605,
+        "readbackMapWaitMs": 562.3999999985099,
+        "readbackCleanupMs": 5.299999997019768,
+        "readbackCopyMs": 0.09999999403953552,
+        "recordedDispatches": 6293,
+        "recordedPasses": 8,
+        "newPoolAllocations": 7202,
+        "poolReuses": 241,
+        "peakPoolBytes": 2151974656,
+        "peakRssSumBytes": 3690184704
+      },
+      {
+        "openingMs": 4721.79999999702,
+        "firstOutputMs": 113.79999999701977,
+        "completeMs": 868,
+        "decodeMs": 745.3999999985099,
+        "decodeTokensPerSecond": 41.58840890805202,
+        "cpuRecordingMs": 145.49999999254942,
+        "prefillMs": 99.5,
+        "submitWaitMs": 586.8000000044703,
+        "readbackWaitMs": 594.1000000014901,
+        "readbackMapWaitMs": 586.7000000104308,
+        "readbackCleanupMs": 6.899999998509884,
+        "readbackCopyMs": 0.10000000149011612,
+        "recordedDispatches": 6293,
+        "recordedPasses": 8,
+        "newPoolAllocations": 7202,
+        "poolReuses": 241,
+        "peakPoolBytes": 2151974656,
+        "peakRssSumBytes": 3678142464
+      },
+      {
+        "openingMs": 4244.30000000447,
+        "firstOutputMs": 146.89999999850988,
+        "completeMs": 1263.7000000029802,
+        "decodeMs": 1141.7000000029802,
+        "decodeTokensPerSecond": 27.152491897975896,
+        "cpuRecordingMs": 217,
+        "prefillMs": 130.89999999850988,
+        "submitWaitMs": 963.5000000074506,
+        "readbackWaitMs": 967.7999999970198,
+        "readbackMapWaitMs": 963.4000000059605,
+        "readbackCleanupMs": 4.200000002980232,
+        "readbackCopyMs": 0,
+        "recordedDispatches": 6293,
+        "recordedPasses": 8,
+        "newPoolAllocations": 7202,
+        "poolReuses": 241,
+        "peakPoolBytes": 2151974656,
+        "peakRssSumBytes": 3584720896
+      },
+      {
+        "openingMs": 4530.19999999553,
+        "firstOutputMs": 158,
+        "completeMs": 1462.3999999985099,
+        "decodeMs": 1271.2999999970198,
+        "decodeTokensPerSecond": 24.38448831910066,
+        "cpuRecordingMs": 289.29999999701977,
+        "prefillMs": 144,
+        "submitWaitMs": 916.6000000014901,
+        "readbackWaitMs": 923.5999999940395,
+        "readbackMapWaitMs": 916.2000000029802,
+        "readbackCleanupMs": 4.399999991059303,
+        "readbackCopyMs": 0,
+        "recordedDispatches": 6293,
+        "recordedPasses": 8,
+        "newPoolAllocations": 7202,
+        "poolReuses": 241,
+        "peakPoolBytes": 2151974656,
+        "peakRssSumBytes": 3662397440
+      },
+      {
+        "openingMs": 4510.5,
+        "firstOutputMs": 147.29999999701977,
+        "completeMs": 1209.8999999985099,
+        "decodeMs": 1069.8000000044703,
+        "decodeTokensPerSecond": 28.977378949215236,
+        "cpuRecordingMs": 181.19999999552965,
+        "prefillMs": 128.19999999552965,
+        "submitWaitMs": 892.7999999970198,
+        "readbackWaitMs": 896.1000000014901,
+        "readbackMapWaitMs": 892.7000000029802,
+        "readbackCleanupMs": 3.399999998509884,
+        "readbackCopyMs": 0.09999999403953552,
+        "recordedDispatches": 6293,
+        "recordedPasses": 8,
+        "newPoolAllocations": 7202,
+        "poolReuses": 241,
+        "peakPoolBytes": 2151974656,
+        "peakRssSumBytes": 3554574336
+      }
+    ],
+    "candidate": [
+      {
+        "openingMs": 3784.89999999851,
+        "firstOutputMs": 104.69999999552965,
+        "completeMs": 802.3999999985099,
+        "decodeMs": 697,
+        "decodeTokensPerSecond": 44.47632711621234,
+        "cpuRecordingMs": 122.5,
+        "prefillMs": 93.29999999701977,
+        "submitWaitMs": 569.9000000059605,
+        "readbackWaitMs": 572.8000000044703,
+        "readbackMapWaitMs": 569.9000000059605,
+        "readbackCleanupMs": 2,
+        "readbackCopyMs": 0,
+        "recordedDispatches": 6293,
+        "recordedPasses": 8,
+        "newPoolAllocations": 6458,
+        "poolReuses": 241,
+        "peakPoolBytes": 2139391744,
+        "peakRssSumBytes": 3717791744
+      },
+      {
+        "openingMs": 4104.30000000447,
+        "firstOutputMs": 115.70000000298023,
+        "completeMs": 847.2999999970198,
+        "decodeMs": 717.5,
+        "decodeTokensPerSecond": 43.20557491289198,
+        "cpuRecordingMs": 136.69999999552965,
+        "prefillMs": 100,
+        "submitWaitMs": 576.5,
+        "readbackWaitMs": 580.2999999970198,
+        "readbackMapWaitMs": 576.5,
+        "readbackCleanupMs": 3.399999998509884,
+        "readbackCopyMs": 0,
+        "recordedDispatches": 6293,
+        "recordedPasses": 8,
+        "newPoolAllocations": 6458,
+        "poolReuses": 241,
+        "peakPoolBytes": 2139391744,
+        "peakRssSumBytes": 3713024000
+      },
+      {
+        "openingMs": 4715.0999999940395,
+        "firstOutputMs": 113.10000000149012,
+        "completeMs": 969.2000000029802,
+        "decodeMs": 852.1000000014901,
+        "decodeTokensPerSecond": 36.38070648978499,
+        "cpuRecordingMs": 157.89999999850988,
+        "prefillMs": 103.10000000149012,
+        "submitWaitMs": 691.4000000059605,
+        "readbackWaitMs": 693.5999999940395,
+        "readbackMapWaitMs": 691.2000000029802,
+        "readbackCleanupMs": 2.6999999955296516,
+        "readbackCopyMs": 0,
+        "recordedDispatches": 6293,
+        "recordedPasses": 8,
+        "newPoolAllocations": 6458,
+        "poolReuses": 241,
+        "peakPoolBytes": 2139391744,
+        "peakRssSumBytes": 3681976320
+      },
+      {
+        "openingMs": 4311.0999999940395,
+        "firstOutputMs": 109.89999999850988,
+        "completeMs": 838.1000000014901,
+        "decodeMs": 727.5,
+        "decodeTokensPerSecond": 42.61168384879725,
+        "cpuRecordingMs": 145.70000000298023,
+        "prefillMs": 96.60000000149012,
+        "submitWaitMs": 592.3000000044703,
+        "readbackWaitMs": 597,
+        "readbackMapWaitMs": 592.1000000014901,
+        "readbackCleanupMs": 4.800000004470348,
+        "readbackCopyMs": 0.10000000149011612,
+        "recordedDispatches": 6293,
+        "recordedPasses": 8,
+        "newPoolAllocations": 6458,
+        "poolReuses": 241,
+        "peakPoolBytes": 2139391744,
+        "peakRssSumBytes": 3726147584
+      },
+      {
+        "openingMs": 4506.19999999553,
+        "firstOutputMs": 113.80000000447035,
+        "completeMs": 861.3999999985099,
+        "decodeMs": 748.2999999970198,
+        "decodeTokensPerSecond": 41.42723506631493,
+        "cpuRecordingMs": 150.89999999850988,
+        "prefillMs": 97.60000000149012,
+        "submitWaitMs": 596.7000000029802,
+        "readbackWaitMs": 602.6000000014901,
+        "readbackMapWaitMs": 596.5000000074506,
+        "readbackCleanupMs": 5.9000000059604645,
+        "readbackCopyMs": 0.10000000149011612,
+        "recordedDispatches": 6293,
+        "recordedPasses": 8,
+        "newPoolAllocations": 6458,
+        "poolReuses": 241,
+        "peakPoolBytes": 2139391744,
+        "peakRssSumBytes": 3742400512
+      },
+      {
+        "openingMs": 4741.30000000447,
+        "firstOutputMs": 120.10000000149012,
+        "completeMs": 914.6000000014901,
+        "decodeMs": 780,
+        "decodeTokensPerSecond": 39.743589743589745,
+        "cpuRecordingMs": 193.80000000447035,
+        "prefillMs": 103.30000000447035,
+        "submitWaitMs": 580.3999999985099,
+        "readbackWaitMs": 585.3999999985099,
+        "readbackMapWaitMs": 580.2999999970198,
+        "readbackCleanupMs": 5.699999995529652,
+        "readbackCopyMs": 0.10000000149011612,
+        "recordedDispatches": 6293,
+        "recordedPasses": 8,
+        "newPoolAllocations": 6458,
+        "poolReuses": 241,
+        "peakPoolBytes": 2139391744,
+        "peakRssSumBytes": 3675586560
+      },
+      {
+        "openingMs": 4634.30000000447,
+        "firstOutputMs": 154.69999999552965,
+        "completeMs": 1312.6000000014901,
+        "decodeMs": 1158.3000000044703,
+        "decodeTokensPerSecond": 26.76336009659014,
+        "cpuRecordingMs": 222.00000000745058,
+        "prefillMs": 137.80000000447035,
+        "submitWaitMs": 942.9000000059605,
+        "readbackWaitMs": 947.6000000014901,
+        "readbackMapWaitMs": 942.8000000044703,
+        "readbackCleanupMs": 4,
+        "readbackCopyMs": 0.10000000149011612,
+        "recordedDispatches": 6293,
+        "recordedPasses": 8,
+        "newPoolAllocations": 6458,
+        "poolReuses": 241,
+        "peakPoolBytes": 2139391744,
+        "peakRssSumBytes": 3712712704
+      },
+      {
+        "openingMs": 4551.60000000149,
+        "firstOutputMs": 147.60000000149012,
+        "completeMs": 1275.6000000014901,
+        "decodeMs": 1155.4000000059605,
+        "decodeTokensPerSecond": 26.830534879556932,
+        "cpuRecordingMs": 298.09999999403954,
+        "prefillMs": 131.60000000149012,
+        "submitWaitMs": 914.6000000014901,
+        "readbackWaitMs": 919.3999999910593,
+        "readbackMapWaitMs": 914.1999999955297,
+        "readbackCleanupMs": 3.899999998509884,
+        "readbackCopyMs": 0,
+        "recordedDispatches": 6293,
+        "recordedPasses": 8,
+        "newPoolAllocations": 6458,
+        "poolReuses": 241,
+        "peakPoolBytes": 2139391744,
+        "peakRssSumBytes": 3623976960
+      }
+    ]
+  },
+  "medians": {
+    "baseline": {
+      "openingMs": 4320.800000000745,
+      "firstOutputMs": 113.85000000149012,
+      "completeMs": 863.3500000014901,
+      "decodeMs": 744.7999999970198,
+      "decodeTokensPerSecond": 41.621938934129616,
+      "cpuRecordingMs": 163.14999999850988,
+      "prefillMs": 99.19999999925494,
+      "submitWaitMs": 586.9000000022352,
+      "readbackWaitMs": 592.0500000007451,
+      "readbackMapWaitMs": 586.7500000037253,
+      "readbackCleanupMs": 4.299999997019768,
+      "readbackCopyMs": 0.09999999403953552,
+      "recordedDispatches": 6293.0,
+      "recordedPasses": 8.0,
+      "newPoolAllocations": 7202.0,
+      "poolReuses": 241.0,
+      "peakPoolBytes": 2151974656.0,
+      "peakRssSumBytes": 3672489984.0
+    },
+    "candidate": {
+      "openingMs": 4528.89999999851,
+      "firstOutputMs": 114.75000000372529,
+      "completeMs": 888.0,
+      "decodeMs": 764.1499999985099,
+      "decodeTokensPerSecond": 40.585412404952336,
+      "cpuRecordingMs": 154.39999999850988,
+      "prefillMs": 101.55000000074506,
+      "submitWaitMs": 594.5000000037253,
+      "readbackWaitMs": 599.8000000007451,
+      "readbackMapWaitMs": 594.3000000044703,
+      "readbackCleanupMs": 3.949999999254942,
+      "readbackCopyMs": 0.05000000074505806,
+      "recordedDispatches": 6293.0,
+      "recordedPasses": 8.0,
+      "newPoolAllocations": 6458.0,
+      "poolReuses": 241.0,
+      "peakPoolBytes": 2139391744.0,
+      "peakRssSumBytes": 3712868352.0
+    }
+  },
+  "pairedCompleteGainPercent": [
+    -2.3338859835461134,
+    -1.037443357442669,
+    -15.780671365578192,
+    2.398975195227504,
+    0.7603686637661422,
+    27.62522750658122,
+    10.24343544838433,
+    -5.430200843297883
+  ],
+  "medianPairedGainPercent": -0.13853734683826335,
+  "pairedBootstrap95Percent": [
+    -5.430200843297883,
+    10.24343544838433
+  ],
+  "regressionPercent": {
+    "firstOutputMs": 0.790513835945017,
+    "decodeMs": 2.5980128895767285,
+    "peakPoolBytes": -0.5847146928481317,
+    "peakRssSumBytes": 1.0994820455853427
+  },
+  "numerical": "Exact short/long tokens, text and public-prefill-logit byte digest on M3; not general correctness or task quality",
+  "vulkanSuccessorQualification": {
+    "passed": true,
+    "historicalReceipt": "reports/weight-representation-20261017/vulkan/final-v3/candidate-2b-first/receipt.json",
+    "historicalReceiptSha256": "fd60ab5dd85b89291d48b825ec254ba993e814ae00c67c2227075943fdd60118",
+    "successorReceiptSha256": "fc20e0f5817ac28f754d4bf8ca61bdfd47ef61724db13efd70a901be7969f4af",
+    "sameConfiguration": true,
+    "comparisons": {
+      "first": {
+        "tokens": true,
+        "text": true
+      },
+      "long-prefill": {
+        "tokens": true,
+        "text": true
+      },
+      "numerical": {
+        "logitsSha256": true,
+        "vocab": true
+      }
+    },
+    "hardware": [
+      {
+        "vendorId": 4098,
+        "deviceId": 5510,
+        "vendorString": "Google Inc. (AMD)",
+        "deviceString": "ANGLE (AMD, Vulkan 1.4.335 (Radeon 8060S Graphics (RADV STRIX_HALO) (0x00001586)), radv-26.0.3)",
+        "driverVendor": "AMD",
+        "driverVersion": "26.0.3"
+      }
+    ],
+    "scope": "Physical Chrome Vulkan successor qualification against retained same-device predecessor; no scratch candidate or AMD speedup claim"
+  },
+  "lifecycle": {
+    "m3CandidatePassed": true,
+    "stages": [
+      "open",
+      "first",
+      "warm",
+      "warm",
+      "warm",
+      "warm",
+      "warm",
+      "numerical",
+      "long-prefill",
+      "cancel",
+      "concurrent",
+      "isolated-cancel",
+      "in-flight-unload",
+      "other-unloaded",
+      "lost-cleanup",
+      "recreated",
+      "unloaded"
+    ]
+  },
+  "attribution": {
+    "baseline": {
+      "allAcquire": {
+        "calls": 45628,
+        "ms": 127.20000003278255
+      },
+      "allCreate": {
+        "calls": 44181,
+        "ms": 52.10000002384186
+      },
+      "ffnInputAcquire": {
+        "calls": 4464,
+        "ms": 11.100000001490116
+      },
+      "ffnInputCreate": {
+        "calls": 4420,
+        "ms": 5.000000014901161
+      },
+      "fusedOutputs": {
+        "fused_ffn_output_32768": 4452,
+        "matmul_output_32768": 12
+      },
+      "scratchBuffers": 0,
+      "pool": {
+        "allocations": 43957,
+        "reuses": 1671,
+        "totalBytesAllocated": 2752591616,
+        "peakBytesAllocated": 2151974656,
+        "currentBytesAllocated": 2108051200,
+        "totalBytesRequested": 2679868160,
+        "peakBytesRequested": 2142164992,
+        "currentBytesRequested": 2101196800,
+        "resources": {
+          "retainedModel": {
+            "bytes": 2078535680,
+            "count": 345
+          },
+          "active": {
+            "bytes": 24135680,
+            "count": 110
+          },
+          "reusable": {
+            "bytes": 5379840,
+            "count": 61
+          },
+          "deferredCleanup": {
+            "bytes": 0,
+            "count": 0
+          }
+        },
+        "activeBuffers": 455,
+        "pooledBuffers": 61,
+        "budgetMaxBytes": 0,
+        "budgetUtilization": 0,
+        "hitRate": "3.7%"
+      },
+      "ownedWeightBytes": 2113925120
+    },
+    "candidate": {
+      "allAcquire": {
+        "calls": 41164,
+        "ms": 114.10000003874302
+      },
+      "allCreate": {
+        "calls": 39717,
+        "ms": 42.69999999552965
+      },
+      "ffnInputAcquire": {
+        "calls": 0,
+        "ms": 0
+      },
+      "ffnInputCreate": {
+        "calls": 0,
+        "ms": 0
+      },
+      "fusedOutputs": {
+        "decode_ffn_intermediate": 4464
+      },
+      "scratchBuffers": 1,
+      "pool": {
+        "allocations": 39493,
+        "reuses": 1671,
+        "totalBytesAllocated": 2606315264,
+        "peakBytesAllocated": 2139391744,
+        "currentBytesAllocated": 2108051200,
+        "totalBytesRequested": 2569800448,
+        "peakBytesRequested": 2132727808,
+        "currentBytesRequested": 2101196800,
+        "resources": {
+          "retainedModel": {
+            "bytes": 2078535680,
+            "count": 345
+          },
+          "active": {
+            "bytes": 24135680,
+            "count": 110
+          },
+          "reusable": {
+            "bytes": 5379840,
+            "count": 61
+          },
+          "deferredCleanup": {
+            "bytes": 0,
+            "count": 0
+          }
+        },
+        "activeBuffers": 455,
+        "pooledBuffers": 61,
+        "budgetMaxBytes": 0,
+        "budgetUtilization": 0,
+        "hitRate": "4.1%"
+      },
+      "ownedWeightBytes": 2113925120
+    }
+  },
+  "limits": [
+    "Eight opening pairs, five warm requests each; opening-level medians bootstrap, not 40 independent observations",
+    "GPU allocated pool bytes exclude driver allocations and raw buffers; unchanged session slot is preallocated in both arms",
+    "RSS sums may double-count shared pages; no claim of exclusive host",
+    "Submit and readback waits overlap; do not add them"
+  ]
+}

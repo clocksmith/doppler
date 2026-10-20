@@ -51,6 +51,21 @@ assert.throws(() => { sample.uniforms = { ...sample.uniforms, size: 16 }; }, /re
 assert.throws(() => writeUniformsFromObject(new DataView(new ArrayBuffer(32)), {
   ...sample, uniforms: { ...sample.uniforms, size: 16 },
 }, {}), /immutable registry/);
+const clonedLayout = structuredClone(sample.uniforms);
+const shallowConfig = Object.freeze({ ...sample, uniforms: clonedLayout });
+assert.throws(() => getUniformByteLength(shallowConfig), /immutable registry/, 'a frozen wrapper cannot admit mutable fields');
+Object.freeze(clonedLayout);
+assert.throws(() => getUniformByteLength(shallowConfig), /immutable registry/, 'the fields array must also be immutable');
+Object.freeze(clonedLayout.fields);
+assert.throws(() => getUniformByteLength(shallowConfig), /immutable registry/, 'field descriptors must be immutable');
+clonedLayout.fields.forEach(Object.freeze);
+assert.equal(getUniformByteLength(shallowConfig), sample.uniforms.size);
+const changedIdentity = Object.freeze({ ...sample, operation: 'matmul', variant: 'f32' });
+assert.throws(() => getUniformByteLength(changedIdentity), /immutable registry/, 'layout reuse cannot bypass kernel identity');
+for (let i = 0; i < 4; i++) {
+  const wrapper = Object.freeze({ ...sample, workgroupSize: Object.freeze([32 << i, 1, 1]) });
+  assert.equal(getUniformByteLength(wrapper), sample.uniforms.size, 'dispatch geometry does not change the layout');
+}
 let allocations = 0;
 assert.throws(() => createKernelUniformBuffer('invalid', sample, {}, null, {
   createBuffer() { allocations++; throw new Error('must not allocate'); },

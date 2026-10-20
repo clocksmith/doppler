@@ -24,6 +24,7 @@ const { createWeightBuffer } = await import('../../src/gpu/weight-buffer.js');
 const {
   destroyBufferPool,
   getBufferPool,
+  releaseBuffer,
 } = await import('../../src/memory/buffer-pool.js');
 const { runLayerAttentionGPU } = await import('../../src/inference/pipelines/text/attention/run.js');
 const { recordLayerAttentionGPU } = await import('../../src/inference/pipelines/text/attention/record.js');
@@ -181,6 +182,54 @@ function assertPoolIsClean() {
 }
 
 try {
+  {
+    const device = createFakeDevice();
+    device.features.add('shader-f16');
+    device.features.add('subgroups');
+    resetRuntime(device);
+    const recorder = new CommandRecorder(device, 'attention_direct_cache_ownership');
+    const buffer = (size) => new FakeBuffer({ size, usage: GPUBufferUsage.STORAGE });
+    const keysGPU = buffer(64);
+    const valuesGPU = buffer(64);
+    const updates = [];
+    const state = createAttentionState();
+    state.stats = {};
+    state.resolvedRuntimeSession.runtime.session.useFusedQKVSplitQKNormRoPE = true;
+    state.ropeFreqsCos = buffer(32);
+    state.ropeFreqsSin = buffer(32);
+    state.kvCache = {
+      kvDtype: 'f16',
+      layout: 'contiguous',
+      hasGPUCache: () => true,
+      getGPUBuffers: () => ({ keysGPU, valuesGPU, seqLen: 1, layout: 'contiguous' }),
+      recordF16UpdateAlreadyWrittenFromGPU: (...args) => updates.push(args),
+    };
+    const weights = createLayerWeights();
+    weights.qkvProj = createWeightBuffer(buffer(192), 'f32', 'row', [12, 4], 'qkv_proj');
+    weights.qkvSizes = [4, 4, 4];
+    weights.qNorm = createWeightBuffer(buffer(16), 'f32', 'row', [4], 'q_norm');
+    weights.kNorm = createWeightBuffer(buffer(16), 'f32', 'row', [4], 'k_norm');
+    const { output } = await recordLayerAttentionGPU(
+      recorder, createInputTensor(), weights,
+      { ...createConfig(), isPrefill: false, kvDtype: 'f16', queryKeyNorm: true,
+        queryKeyNormType: 'rmsnorm', queryKeyNormAxis: 'head',
+        kernelPath: {
+          id: 'direct-cache-ownership',
+          decode: { steps: [{ op: 'attention', kernel: 'attention_decode_online_f16kv.wgsl', entry: 'main',
+            precision: { activationDtype: 'f32', kvDtype: 'f16', outputDtype: 'f32' } }] },
+        } },
+      state, false, {}, (weight) => weight, (weight) => weight.buffer,
+      null, null
+    );
+    await recorder.submitAndWait();
+    assert.deepEqual(updates, [[0, 0, 1, null]], 'the fused write must advance the cache once');
+    assert.equal(keysGPU.destroyed, false, 'the cache retains ownership of keys');
+    assert.equal(valuesGPU.destroyed, false, 'the cache retains ownership of values');
+    releaseBuffer(output.buffer);
+    assertPoolIsClean();
+    resetRuntime();
+  }
+
   {
     resetRuntime(createFakeDevice({ createBindGroupThrowAt: 4 }));
     await assert.rejects(() => runLayerAttentionGPU(

@@ -1,0 +1,11 @@
+{
+  "request": {
+    "workload": "inference",
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelUrl": "file:///Users/xyz/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
+    "inferenceInput": {
+      "prompt": "Write a detailed explanation of how tides work.",
+      "maxTokens": 128
+    }
+  }
+}

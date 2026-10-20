@@ -1,0 +1,38 @@
+[
+  {
+    "index": 0,
+    "mode": "baseline",
+    "exitCode": 0,
+    "file": "node-generation-0-baseline.log"
+  },
+  {
+    "index": 1,
+    "mode": "candidate",
+    "exitCode": 0,
+    "file": "node-generation-1-candidate.log"
+  },
+  {
+    "index": 2,
+    "mode": "candidate",
+    "exitCode": 0,
+    "file": "node-generation-2-candidate.log"
+  },
+  {
+    "index": 3,
+    "mode": "baseline",
+    "exitCode": 0,
+    "file": "node-generation-3-baseline.log"
+  },
+  {
+    "index": 4,
+    "mode": "baseline",
+    "exitCode": 0,
+    "file": "node-generation-4-baseline.log"
+  },
+  {
+    "index": 5,
+    "mode": "candidate",
+    "exitCode": 0,
+    "file": "node-generation-5-candidate.log"
+  }
+]

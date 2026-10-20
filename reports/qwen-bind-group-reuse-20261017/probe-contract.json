@@ -1,0 +1,30 @@
+{
+  "schema": "doppler.bind-group-experiment/v1",
+  "stage": "baseline observation before candidate selection",
+  "baselineCommit": "0e75e3c4f51c806c8af6d8bdf473b063fe62532f",
+  "baselineArchiveSha256": "2662a8b9923dbeb4a455556bf6536a5b1291595a4f5846800eff312f6c24c60f",
+  "manifestSha256": "c3364f7fecc01b70ce63b4de3347d8305a1a6437ac63bb943edece7fa279fc0e",
+  "configSha256": "c35b5b220963a7e2c729a5742f196fb329baa0c484d516625b7522eaf494f9d0",
+  "driverSha256": "e8cb99c5d23d1db7e616b393a29de4791267b611478086e135a1f46baed3c636",
+  "workload": {
+    "shortPrompt": "The capital of France is",
+    "longPrompt": "A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. A film catalog contains titles, durations, languages and release years. ",
+    "maxTokens": 32,
+    "temperature": 0,
+    "topK": 1,
+    "topP": 1,
+    "seed": 0,
+    "useChatTemplate": false,
+    "warmRuns": 3,
+    "context": 2048
+  },
+  "observation": "exact buffer/layout/pipeline binding repetition within recorder and lifetime; instrumentation timings are not primary performance evidence",
+  "hypothesis": "Repeated recorded decode matmul bindings within a recorder allow reuse without cross-request ownership or mutable uniform changes.",
+  "nonGoals": [
+    "scratch arenas",
+    "representation analysis",
+    "readback grouping changes",
+    "Reploid",
+    "27B provisioning"
+  ]
+}

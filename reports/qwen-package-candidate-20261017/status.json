@@ -1,0 +1,23 @@
+{
+  "packageFixCommit": "4a38847d",
+  "originalArchiveSha256": "37bf7a3fccda69c8aae4871f0f66bccc3aadeeb15c1b36b82935e58114ca6ee6",
+  "originalArchiveDisposition": "failed physical sampling qualification; retained; not promoted",
+  "packageGates": "passed unchanged limits and installed consumer",
+  "publicLogits": "obsolete pending source-location test fails; shared-handle behavior, installed types, and both model/browser GPU journeys pass",
+  "nodeQualification": "both models pass prepared reset/cancellation and regression after test teardown/config repairs; original failures retained",
+  "browserLifecycle": "both models on M3 and AMD pass explicit completed-work destruction, stale-session rejection, unload, recreation and exact-text reuse; mid-submit destruction not qualified",
+  "sampling": {
+    "metal": "independent and batched draws fail; final sorting scratch contains duplicate indices",
+    "vulkan": "original seeded batch/cancellation/consumer cleanup audit passes",
+    "correction": "atomic scratch access passes 540 M3 operator cases; new package and remaining physical qualification pending"
+  },
+  "comparisons": "not started: physical numerical gate failed",
+  "ci": "earlier failures remain open; current CI not asserted",
+  "next": [
+    "freeze corrected package and rerun physical sampling on both GPUs",
+    "rerun current-candidate Qwen lifecycle and browser checks",
+    "matched cold/warm/long-prefill comparisons, both GPUs and engine orders",
+    "attribute 16-token delivery before changes",
+    "per-tensor reachability only afterward"
+  ]
+}

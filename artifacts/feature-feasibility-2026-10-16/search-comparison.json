@@ -1,0 +1,342 @@
+{
+  "schema": "doppler.feature-search-comparison/v1",
+  "corpusSha256": "9a5e7f901f404d7d3e4bc7cdd4f2d4950d6532870b5e36f3a27bbfb998ee198a",
+  "retainedModelReportSha256": "9201d5d838ebe537c956fdca5a7642fc36e2d4be07edbe202aa09cc0b5ecb71b",
+  "scope": "Fresh untuned BM25 ranking versus retained physical Doppler results; no new model execution or controlled timing comparison.",
+  "lexicalPolicy": {
+    "k1": 1.2,
+    "b": 0.75,
+    "stopwords": [
+      "a",
+      "an",
+      "and",
+      "are",
+      "as",
+      "at",
+      "be",
+      "been",
+      "but",
+      "by",
+      "can",
+      "do",
+      "does",
+      "for",
+      "from",
+      "had",
+      "has",
+      "have",
+      "how",
+      "i",
+      "if",
+      "in",
+      "into",
+      "is",
+      "it",
+      "its",
+      "me",
+      "my",
+      "of",
+      "on",
+      "or",
+      "our",
+      "should",
+      "than",
+      "that",
+      "the",
+      "their",
+      "them",
+      "then",
+      "there",
+      "these",
+      "they",
+      "this",
+      "to",
+      "was",
+      "we",
+      "were",
+      "what",
+      "when",
+      "where",
+      "which",
+      "who",
+      "why",
+      "will",
+      "with",
+      "would",
+      "you",
+      "your"
+    ],
+    "input": "Title plus existing Unicode-window passages",
+    "tokenizer": "Lowercase Unicode letters/numbers; fixed stopwords; no stemming",
+    "ties": "Stable original passage order",
+    "tuning": "None; this is one baseline, not the strongest possible lexical system"
+  },
+  "documents": 17,
+  "passages": 30,
+  "answerableQueries": 18,
+  "lexicalTop1Correct": 15,
+  "retainedModelTop1Correct": 17,
+  "retainedModelMedianMs": 1418.9776904999999,
+  "retainedModelIndexMs": 12960.874235000003,
+  "retainedModelMetrics": {
+    "rankingTop1Rate": 0.9444444444444444,
+    "answerableTop1Rate": 0.9444444444444444,
+    "identifierTop1Rate": 1,
+    "longDocumentTop1Rate": 1,
+    "noAnswerFalsePositives": 3
+  },
+  "limitations": [
+    "Internal, small corpus; no independent user-preference trial",
+    "Original upgrade query annotation is known ambiguous and has not been changed",
+    "No remote API quality, latency, or monetary-cost comparison",
+    "Ranking does not establish answerability; all three absent-answer cases failed the retained threshold requirement"
+  ],
+  "rows": [
+    {
+      "id": "bread",
+      "query": "How should I store the culture that leavens my bread when I only bake occasionally?",
+      "relevantIds": [
+        "sourdough"
+      ],
+      "lexicalTopId": "recipe",
+      "lexicalCorrect": false,
+      "retainedModelTopId": "sourdough",
+      "retainedModelCorrect": true,
+      "retainedModelElapsedMs": 1728.0033360000016
+    },
+    {
+      "id": "bike",
+      "query": "What should I inspect before replacing the inner tube on my bike?",
+      "relevantIds": [
+        "tire"
+      ],
+      "lexicalTopId": "tire",
+      "lexicalCorrect": true,
+      "retainedModelTopId": "tire",
+      "retainedModelCorrect": true,
+      "retainedModelElapsedMs": 1480.1355020000046
+    },
+    {
+      "id": "moon",
+      "query": "Why can our planet's shadow turn the full moon red?",
+      "relevantIds": [
+        "eclipse"
+      ],
+      "lexicalTopId": "eclipse",
+      "lexicalCorrect": true,
+      "retainedModelTopId": "eclipse",
+      "retainedModelCorrect": true,
+      "retainedModelElapsedMs": 1462.1928899999984
+    },
+    {
+      "id": "sun",
+      "query": "Which body passes in front of the Sun during a solar eclipse?",
+      "relevantIds": [
+        "solar"
+      ],
+      "lexicalTopId": "solar",
+      "lexicalCorrect": true,
+      "retainedModelTopId": "solar",
+      "retainedModelCorrect": true,
+      "retainedModelElapsedMs": 1515.7374410000048
+    },
+    {
+      "id": "restore",
+      "query": "I accidentally deleted a tracked file without committing. How do I get it back?",
+      "relevantIds": [
+        "git"
+      ],
+      "lexicalTopId": "git",
+      "lexicalCorrect": true,
+      "retainedModelTopId": "git",
+      "retainedModelCorrect": true,
+      "retainedModelElapsedMs": 1293.4855169999937
+    },
+    {
+      "id": "motor",
+      "query": "What component uses the car battery to crank the engine?",
+      "relevantIds": [
+        "starter-motor"
+      ],
+      "lexicalTopId": "starter-motor",
+      "lexicalCorrect": true,
+      "retainedModelTopId": "starter-motor",
+      "retainedModelCorrect": true,
+      "retainedModelElapsedMs": 1463.6661020000029
+    },
+    {
+      "id": "id-e17",
+      "query": "What should I do about E-17?",
+      "relevantIds": [
+        "sync-e17"
+      ],
+      "lexicalTopId": "sync-e17",
+      "lexicalCorrect": true,
+      "retainedModelTopId": "sync-e17",
+      "retainedModelCorrect": true,
+      "retainedModelElapsedMs": 1341.2101630000034
+    },
+    {
+      "id": "id-e71",
+      "query": "How is E-71 resolved?",
+      "relevantIds": [
+        "sync-e71"
+      ],
+      "lexicalTopId": "sync-e71",
+      "lexicalCorrect": true,
+      "retainedModelTopId": "sync-e71",
+      "retainedModelCorrect": true,
+      "retainedModelElapsedMs": 1378.5398249999998
+    },
+    {
+      "id": "id-4821",
+      "query": "What did SEARCH-4821 change?",
+      "relevantIds": [
+        "ticket-4821"
+      ],
+      "lexicalTopId": "ticket-4821",
+      "lexicalCorrect": true,
+      "retainedModelTopId": "ticket-4821",
+      "retainedModelCorrect": true,
+      "retainedModelElapsedMs": 1207.2371490000005
+    },
+    {
+      "id": "id-4812",
+      "query": "What did SEARCH-4812 fix?",
+      "relevantIds": [
+        "ticket-4812"
+      ],
+      "lexicalTopId": "ticket-4812",
+      "lexicalCorrect": true,
+      "retainedModelTopId": "ticket-4812",
+      "retainedModelCorrect": true,
+      "retainedModelElapsedMs": 1415.959388000003
+    },
+    {
+      "id": "gpu",
+      "query": "How can search recover after the graphics processor disappears?",
+      "relevantIds": [
+        "device"
+      ],
+      "lexicalTopId": "device",
+      "lexicalCorrect": true,
+      "retainedModelTopId": "device",
+      "retainedModelCorrect": true,
+      "retainedModelElapsedMs": 1386.6081820000036
+    },
+    {
+      "id": "upgrade",
+      "query": "Can I keep document vectors when only the ranking model changes?",
+      "relevantIds": [
+        "recipe"
+      ],
+      "lexicalTopId": "ticket-4821",
+      "lexicalCorrect": false,
+      "retainedModelTopId": "ticket-4821",
+      "retainedModelCorrect": false,
+      "retainedModelElapsedMs": 1417.957785999999
+    },
+    {
+      "id": "backup",
+      "query": "Which local information should I put in my own backup file?",
+      "relevantIds": [
+        "export"
+      ],
+      "lexicalTopId": "export",
+      "lexicalCorrect": true,
+      "retainedModelTopId": "export",
+      "retainedModelCorrect": true,
+      "retainedModelElapsedMs": 1603.9786759999988
+    },
+    {
+      "id": "escapement",
+      "query": "What controls the release of stored energy in a mechanical timepiece?",
+      "relevantIds": [
+        "clock"
+      ],
+      "lexicalTopId": "clock",
+      "lexicalCorrect": true,
+      "retainedModelTopId": "clock",
+      "retainedModelCorrect": true,
+      "retainedModelElapsedMs": 1240.0021070000003
+    },
+    {
+      "id": "pan",
+      "query": "Why does a copper pan have an inner lining?",
+      "relevantIds": [
+        "copper"
+      ],
+      "lexicalTopId": "copper",
+      "lexicalCorrect": true,
+      "retainedModelTopId": "copper",
+      "retainedModelCorrect": true,
+      "retainedModelElapsedMs": 1419.9975950000007
+    },
+    {
+      "id": "version",
+      "query": "Which Larch version made the old search vectors incompatible?",
+      "relevantIds": [
+        "release"
+      ],
+      "lexicalTopId": "ticket-4821",
+      "lexicalCorrect": false,
+      "retainedModelTopId": "release",
+      "retainedModelCorrect": true,
+      "retainedModelElapsedMs": 1393.1597029999975
+    },
+    {
+      "id": "tail",
+      "query": "What is the recovery phrase for cabinet AZ-904?",
+      "relevantIds": [
+        "archive"
+      ],
+      "lexicalTopId": "archive",
+      "lexicalCorrect": true,
+      "retainedModelTopId": "archive",
+      "retainedModelCorrect": true,
+      "retainedModelElapsedMs": 1626.9556030000022
+    },
+    {
+      "id": "tail-neighbor",
+      "query": "What is the recovery phrase for cabinet AZ-940?",
+      "relevantIds": [
+        "archive"
+      ],
+      "lexicalTopId": "archive",
+      "lexicalCorrect": true,
+      "retainedModelTopId": "archive",
+      "retainedModelCorrect": true,
+      "retainedModelElapsedMs": 1616.4852089999986
+    },
+    {
+      "id": "weather",
+      "query": "What is the weather forecast for Oslo tomorrow?",
+      "relevantIds": [],
+      "lexicalTopId": "sourdough",
+      "lexicalCorrect": null,
+      "retainedModelTopId": "export",
+      "retainedModelCorrect": null,
+      "retainedModelElapsedMs": 1203.3056260000012
+    },
+    {
+      "id": "refund",
+      "query": "What is the refund deadline for ticket ZX-883?",
+      "relevantIds": [],
+      "lexicalTopId": "ticket-4821",
+      "lexicalCorrect": null,
+      "retainedModelTopId": "ticket-4812",
+      "retainedModelCorrect": null,
+      "retainedModelElapsedMs": 1389.2880659999937
+    },
+    {
+      "id": "missing-cabinet",
+      "query": "What is the recovery phrase for cabinet AZ-999?",
+      "relevantIds": [],
+      "lexicalTopId": "archive",
+      "lexicalCorrect": null,
+      "retainedModelTopId": "archive",
+      "retainedModelCorrect": null,
+      "retainedModelElapsedMs": 1607.752210999999
+    }
+  ]
+}

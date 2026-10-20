@@ -165,3 +165,32 @@ Registry and runner behavior are canonical in
 [../benchmarks/vendors/README.md](../benchmarks/vendors/README.md).
 Implementation conventions are in
 [style/benchmark-style-guide.md](style/benchmark-style-guide.md).
+
+## Generation request timing (2026-10-17)
+
+The Doppler and Transformers.js comparison uses `timing.scope =
+"generation-call-through-completion"`: start immediately before invoking
+generation, first token at the token callback, and completion after generation
+returns. Tokenization inside generation and post-token cleanup remain included.
+Decode throughput counts generated token IDs after the first token, divided by
+completion minus first-token time. Inter-token percentiles measure callback
+arrival gaps; burst delivery can have zero gaps and long tails. They are not
+per-kernel latencies. Doppler's internal phase and GPU counters remain under
+`metrics`; `metrics.requestTiming` retains the application timing samples.
+
+Benchmark statistics default to `shared.benchmark.stats.outlierPolicy = "none"`.
+Diagnostic IQR summaries are opt-in and rejected by `compare-engines`. Warmup
+samples stay excluded; timed stalls stay included. Invalid or missing timing
+samples cannot pass the comparison. The shared diagnostic statistics primitive
+retains its existing IQR default for non-benchmark callers.
+
+A warm run reuses the loaded engine for its declared warmups and timed requests.
+Each request starts with fresh sequence state; this does not measure a reused
+prompt/KV prefix. Loading, warm first-token time, internal prefill, and decode
+remain separate. Use `--warm-engine-order doppler-first` and
+`--warm-engine-order transformersjs-first` on alternating adjacent comparison
+sessions. The chosen order is retained in `methodology.warmEngineOrder`. This
+controls session order; it does not interleave samples between two resident
+engines. Existing cold/compute sections retain their fixed order.
+
+See [the retained harness audit](../reports/warm-fairness-20261017/README.md).

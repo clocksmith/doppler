@@ -1,0 +1,40 @@
+{
+  "modelUrl": "file:///Users/xyz/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
+  "trainer": {
+    "rank": 2,
+    "alpha": 4,
+    "optimizer": {
+      "type": "adamw",
+      "lr": 0.0001,
+      "beta1": 0.9,
+      "beta2": 0.999,
+      "eps": 1e-8,
+      "weightDecay": 0
+    },
+    "gradient": {
+      "maxNorm": 1
+    },
+    "precision": {
+      "activations": "f32",
+      "gradients": "f32",
+      "loraParams": "f32"
+    }
+  },
+  "action": "contribute",
+  "roundPath": "/Users/xyz/deco/doppler/reports/community-lora-20261017/round.json",
+  "participantId": "m3",
+  "sample": {
+    "inputIds": [
+      100,
+      200,
+      300
+    ],
+    "targetIds": [
+      200,
+      300,
+      400
+    ],
+    "supervisedTokenCount": 3
+  },
+  "outputPath": "/Users/xyz/deco/doppler/reports/community-lora-20261017/contribution-m3.json"
+}

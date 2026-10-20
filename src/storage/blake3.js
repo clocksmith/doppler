@@ -47,10 +47,10 @@ function compress(cv, blockWords, counter, blockLen, flags, out = new Uint32Arra
   let v9 = IV[1];
   let v10 = IV[2];
   let v11 = IV[3];
-  let v12 = IV[4] ^ (counter >>> 0);
-  let v13 = IV[5] ^ (Math.floor(counter / 0x100000000) >>> 0);
-  let v14 = IV[6] ^ blockLen;
-  let v15 = IV[7] ^ flags;
+  let v12 = counter >>> 0;
+  let v13 = Math.floor(counter / 0x100000000) >>> 0;
+  let v14 = blockLen;
+  let v15 = flags;
   for (let round = 0; round < 7; round++) {
     const schedule = MESSAGE_SCHEDULE[round];
     v0 = (v0 + v4 + blockWords[schedule[0]]) >>> 0;
@@ -240,6 +240,12 @@ function outputBytes(output, outLen) {
       output.blockLen,
       output.flags | ROOT
     );
+    // Compression retains the working state for chainingValue(). Root output
+    // needs BLAKE3's final mixing too, including the upper eight XOF words.
+    for (let i = 0; i < 8; i++) {
+      state[i] ^= state[i + 8];
+      state[i + 8] ^= output.inputCv[i];
+    }
     const block = stateToBytes(state);
     const take = Math.min(outLen - offset, block.length);
     result.set(block.subarray(0, take), offset);

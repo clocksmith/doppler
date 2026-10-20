@@ -220,12 +220,24 @@ async function scanTypeGraph(entrypoints) {
   return { typeFiles, issues };
 }
 
-async function collectPublicResourceFiles(resourceFiles) {
+// Publication policy lives in package.json.files. Resource exclusions support
+// exact paths and directory/** entries; unrelated npm globs stay npm-owned.
+function excludesResource(packageJson, repoPath) {
+  return (packageJson.files ?? []).some((entry) => {
+    if (!entry.startsWith('!')) return false;
+    const excluded = entry.slice(1);
+    return excluded === repoPath
+      || (excluded.endsWith('/**') && repoPath.startsWith(excluded.slice(0, -2)));
+  });
+}
+
+async function collectPublicResourceFiles(resourceFiles, packageJson) {
   const output = new Set(resourceFiles);
   for (const resourceDir of PUBLIC_RESOURCE_DIRS) {
     const absoluteDir = path.join(ROOT_DIR, resourceDir);
     for (const filePath of await walkFiles(absoluteDir, (entry) => entry.endsWith('.json'))) {
-      output.add(normalizePath(filePath));
+      const repoPath = normalizePath(filePath);
+      if (!excludesResource(packageJson, repoPath)) output.add(repoPath);
     }
   }
 
@@ -246,7 +258,22 @@ export async function buildPackageSourceClosure(packageJson) {
   const entrypoints = collectEntrypoints(packageJson);
   const runtime = await scanRuntimeGraph(entrypoints.runtime);
   const types = await scanTypeGraph(entrypoints.types);
-  const packageResourceFiles = await collectPublicResourceFiles(runtime.resourceFiles);
+  const packageResourceFiles = await collectPublicResourceFiles(runtime.resourceFiles, packageJson);
+  const issues = [...runtime.issues, ...types.issues];
+  for (const resource of packageResourceFiles) {
+    if (excludesResource(packageJson, resource)) {
+      issues.push(`required runtime resource is excluded from publication: ${resource}`);
+    }
+    if (!resource.startsWith('src/config/runtime/') || !resource.endsWith('.json')) continue;
+    const profile = JSON.parse(await fs.readFile(path.join(ROOT_DIR, resource), 'utf8'));
+    const parents = Array.isArray(profile.extends) ? profile.extends : [profile.extends];
+    for (const parent of parents.filter((value) => typeof value === 'string')) {
+      const dependency = `src/config/runtime/${parent.replace(/\.json$/u, '')}.json`;
+      if (!packageResourceFiles.has(dependency)) {
+        issues.push(`${resource} extends an unpublished runtime profile: ${parent}`);
+      }
+    }
+  }
   const allSourceCodeFiles = await walkFiles(
     SOURCE_DIR,
     (filePath) => filePath.endsWith('.js') || filePath.endsWith('.d.ts')
@@ -273,7 +300,7 @@ export async function buildPackageSourceClosure(packageJson) {
     typeFiles: types.typeFiles,
     packageResourceFiles,
     ignoredSourceFiles,
-    issues: [...runtime.issues, ...types.issues],
+    issues,
   };
 }
 

@@ -735,8 +735,13 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `LORA_RUNNER_DATASET_FORMAT_REGISTRY`
   - `LORA_RUNNER_SUPPORT_CONTRACT`
   - `LoraAdapter`
+  - `LoRAGradientContribution`
+  - `LoRATrainingAssignment`
+  - `LoRATrainingRound`
+  - `LoRATrainingSample`
   - `LoRAWorkloadPipelineConfig`
   - `NativeQwenLoRACheckpoint`
+  - `NativeQwenLoRAExportOptions`
   - `NativeQwenLoRAStepResult`
   - `NativeQwenLoRATrainer`
   - `NativeQwenLoRATrainerOptions`

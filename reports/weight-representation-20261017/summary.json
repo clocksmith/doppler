@@ -1,0 +1,699 @@
+{
+  "schema": "doppler.weight-representation-comparison/v1",
+  "baselineSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
+  "candidateSha256": "f3e9bdef19cf4986c2a0fb4ee8242bdf6f71185acc44d3259d59ae23e1922901",
+  "unavailable": [
+    {
+      "host": "metal",
+      "model": "qwen3-8-27b-text-q4k-ehaf16",
+      "reason": "Exact Q4 artifact not provisioned locally; 12 GiB free disk is below approximately 16 GiB artifact size. No M3 27B execution claimed."
+    }
+  ],
+  "cases": [
+    {
+      "host": "metal",
+      "id": "materialization",
+      "engine": "candidate",
+      "driver": "browser-materialization.mjs",
+      "modelDir": "models/local/qwen-3-5-2b-q4k-ehaf16",
+      "config": "metal-2b-config.json",
+      "receipt": "metal/final-v3/materialization/receipt.json",
+      "receiptSha256": "c2cc94ea16a2e82292cf669e338e4b69dcbea160a319a55760c8a1a400303c80",
+      "archiveSha256": "f3e9bdef19cf4986c2a0fb4ee8242bdf6f71185acc44d3259d59ae23e1922901",
+      "status": "passed",
+      "failure": null,
+      "fixture": {
+        "passed": true,
+        "rows": [
+          {
+            "mode": "legacy-role",
+            "allocatedBytes": 1536,
+            "tensors": [
+              {
+                "name": "model.layers.0.self_attn.q_proj.weight",
+                "dtypes": [
+                  "f16",
+                  "q4k"
+                ]
+              },
+              {
+                "name": "model.layers.1.self_attn.q_proj.weight",
+                "dtypes": [
+                  "f16",
+                  "q4k"
+                ]
+              }
+            ]
+          },
+          {
+            "mode": "per-tensor",
+            "allocatedBytes": 1024,
+            "tensors": [
+              {
+                "name": "model.layers.0.self_attn.q_proj.weight",
+                "dtypes": [
+                  "q4k"
+                ]
+              },
+              {
+                "name": "model.layers.1.self_attn.q_proj.weight",
+                "dtypes": [
+                  "f16",
+                  "q4k"
+                ]
+              }
+            ]
+          },
+          {
+            "fallbackCopies": [
+              "f16",
+              "f32",
+              "q4k"
+            ],
+            "allocatedBytes": 1792
+          },
+          {
+            "embeddingAliasCopies": [
+              "f16",
+              "f32",
+              "q4k"
+            ],
+            "exactValues": true
+          },
+          {
+            "adaptiveF16Fallback": true,
+            "matmulExpected": 256,
+            "matmulObserved": 256,
+            "retainedF32": true
+          }
+        ]
+      }
+    },
+    {
+      "host": "metal",
+      "id": "baseline-2b-first",
+      "engine": "baseline",
+      "modelDir": "models/local/qwen-3-5-2b-q4k-ehaf16",
+      "config": "metal-2b-config.json",
+      "receipt": "metal/final-v3/baseline-2b-first/receipt.json",
+      "receiptSha256": "ba91708093f4ce31c8dfd24c8bd68619bbc985f7edbb45f38fe123af8f4b3aa9",
+      "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
+      "status": "passed",
+      "failure": null,
+      "modelManifestSha256": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+      "configSha256": "c35b5b220963a7e2c729a5742f196fb329baa0c484d516625b7522eaf494f9d0",
+      "browser": "155.0.8059.80",
+      "openingMs": 5180.79999999702,
+      "recreatedOpeningMs": 4892.89999999851,
+      "firstRequestTtftMs": 554.8999999985099,
+      "firstRequestCompleteMs": 1355.1999999955297,
+      "warmTtftMs": 124.69999999552965,
+      "warmCompleteMs": 853.3000000044703,
+      "warmPrefillMs": 102.89999999850988,
+      "warmDecodeTokensPerSecond": 42.6527242709509,
+      "longPrefillTokens": 833,
+      "longPrefillMs": 3781.0999999940395,
+      "longTtftMs": 3804.39999999851,
+      "longCompleteMs": 4578.5,
+      "peakRssSumBytes": 2818883584,
+      "openingPoolAllocatedBytes": 2079060224,
+      "openingPoolModelBytes": 2078535680,
+      "peakPoolAllocatedBytes": 2738839296,
+      "sourceBytesRead": 2614326368,
+      "tensorLocationsMs": 0.7,
+      "planModes": {}
+    },
+    {
+      "host": "metal",
+      "id": "candidate-2b-first",
+      "engine": "candidate",
+      "modelDir": "models/local/qwen-3-5-2b-q4k-ehaf16",
+      "config": "metal-2b-config.json",
+      "receipt": "metal/final-v3/candidate-2b-first/receipt.json",
+      "receiptSha256": "463e738b0b9db2a1564497f6da37fe5064cc5f4989564ef554f798d4b36e6683",
+      "archiveSha256": "f3e9bdef19cf4986c2a0fb4ee8242bdf6f71185acc44d3259d59ae23e1922901",
+      "status": "passed",
+      "failure": null,
+      "modelManifestSha256": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+      "configSha256": "c35b5b220963a7e2c729a5742f196fb329baa0c484d516625b7522eaf494f9d0",
+      "browser": "155.0.8059.80",
+      "openingMs": 3840.1999999955297,
+      "recreatedOpeningMs": 4695.89999999851,
+      "firstRequestTtftMs": 288.8999999985099,
+      "firstRequestCompleteMs": 1071.0999999940395,
+      "warmTtftMs": 113,
+      "warmCompleteMs": 823.8000000044703,
+      "warmPrefillMs": 94.09999999403954,
+      "warmDecodeTokensPerSecond": 43.63738738747892,
+      "longPrefillTokens": 833,
+      "longPrefillMs": 3786.3000000044703,
+      "longTtftMs": 3801.39999999851,
+      "longCompleteMs": 4574.19999999553,
+      "peakRssSumBytes": 3535503360,
+      "openingPoolAllocatedBytes": 2079060224,
+      "openingPoolModelBytes": 2078535680,
+      "peakPoolAllocatedBytes": 2738839296,
+      "sourceBytesRead": 2589674368,
+      "tensorLocationsMs": 3.1,
+      "planModes": {
+        "dense-only": 170,
+        "packed-only": 151
+      }
+    },
+    {
+      "host": "metal",
+      "id": "candidate-2b-second",
+      "engine": "candidate",
+      "modelDir": "models/local/qwen-3-5-2b-q4k-ehaf16",
+      "config": "metal-2b-config.json",
+      "receipt": "metal/final-v3/candidate-2b-second/receipt.json",
+      "receiptSha256": "b99883053348afb9b7e0a6078815104eb85f4f1480a88eb03ba3fe3d811bed52",
+      "archiveSha256": "f3e9bdef19cf4986c2a0fb4ee8242bdf6f71185acc44d3259d59ae23e1922901",
+      "status": "passed",
+      "failure": null,
+      "modelManifestSha256": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+      "configSha256": "c35b5b220963a7e2c729a5742f196fb329baa0c484d516625b7522eaf494f9d0",
+      "browser": "155.0.8059.80",
+      "openingMs": 4184.60000000149,
+      "recreatedOpeningMs": 4562.60000000149,
+      "firstRequestTtftMs": 346.70000000298023,
+      "firstRequestCompleteMs": 1171.3999999985099,
+      "warmTtftMs": 111.89999999850988,
+      "warmCompleteMs": 829.3999999985099,
+      "warmPrefillMs": 95.60000000149012,
+      "warmDecodeTokensPerSecond": 43.23570432357043,
+      "longPrefillTokens": 833,
+      "longPrefillMs": 3836.1999999955297,
+      "longTtftMs": 3854.39999999851,
+      "longCompleteMs": 4628.70000000298,
+      "peakRssSumBytes": 3317481472,
+      "openingPoolAllocatedBytes": 2079060224,
+      "openingPoolModelBytes": 2078535680,
+      "peakPoolAllocatedBytes": 2738839296,
+      "sourceBytesRead": 2598923104,
+      "tensorLocationsMs": 3.4,
+      "planModes": {
+        "dense-only": 170,
+        "packed-only": 151
+      }
+    },
+    {
+      "host": "metal",
+      "id": "baseline-2b-second",
+      "engine": "baseline",
+      "modelDir": "models/local/qwen-3-5-2b-q4k-ehaf16",
+      "config": "metal-2b-config.json",
+      "receipt": "metal/final-v3/baseline-2b-second/receipt.json",
+      "receiptSha256": "24ef80fb8c6d038012c67b7ae5e1279f0bbf78e5e491f51700dddd3cb35c645c",
+      "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
+      "status": "passed",
+      "failure": null,
+      "modelManifestSha256": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+      "configSha256": "c35b5b220963a7e2c729a5742f196fb329baa0c484d516625b7522eaf494f9d0",
+      "browser": "155.0.8059.80",
+      "openingMs": 3794.5,
+      "recreatedOpeningMs": 4920.89999999851,
+      "firstRequestTtftMs": 321,
+      "firstRequestCompleteMs": 1102.2000000029802,
+      "warmTtftMs": 116.30000000447035,
+      "warmCompleteMs": 829.6000000014901,
+      "warmPrefillMs": 98.60000000149012,
+      "warmDecodeTokensPerSecond": 43.47826086956522,
+      "longPrefillTokens": 833,
+      "longPrefillMs": 3861.7000000029802,
+      "longTtftMs": 3879.7999999970198,
+      "longCompleteMs": 4655.39999999851,
+      "peakRssSumBytes": 3524788224,
+      "openingPoolAllocatedBytes": 2079060224,
+      "openingPoolModelBytes": 2078535680,
+      "peakPoolAllocatedBytes": 2738839296,
+      "sourceBytesRead": 2598444576,
+      "tensorLocationsMs": 0.7,
+      "planModes": {}
+    },
+    {
+      "host": "vulkan",
+      "id": "materialization",
+      "engine": "candidate",
+      "driver": "browser-materialization.mjs",
+      "modelDir": "models/local/qwen-3-5-2b-q4k-ehaf16",
+      "config": "vulkan-2b-config.json",
+      "receipt": "vulkan/final-v3/materialization/receipt.json",
+      "receiptSha256": "a4f31781ccb47c6162d6b6ebfdfa28a98e8164653d3b53740cbc36e333061409",
+      "archiveSha256": "f3e9bdef19cf4986c2a0fb4ee8242bdf6f71185acc44d3259d59ae23e1922901",
+      "status": "passed",
+      "failure": null,
+      "fixture": {
+        "passed": true,
+        "rows": [
+          {
+            "mode": "legacy-role",
+            "allocatedBytes": 1536,
+            "tensors": [
+              {
+                "name": "model.layers.0.self_attn.q_proj.weight",
+                "dtypes": [
+                  "f16",
+                  "q4k"
+                ]
+              },
+              {
+                "name": "model.layers.1.self_attn.q_proj.weight",
+                "dtypes": [
+                  "f16",
+                  "q4k"
+                ]
+              }
+            ]
+          },
+          {
+            "mode": "per-tensor",
+            "allocatedBytes": 1024,
+            "tensors": [
+              {
+                "name": "model.layers.0.self_attn.q_proj.weight",
+                "dtypes": [
+                  "q4k"
+                ]
+              },
+              {
+                "name": "model.layers.1.self_attn.q_proj.weight",
+                "dtypes": [
+                  "f16",
+                  "q4k"
+                ]
+              }
+            ]
+          },
+          {
+            "fallbackCopies": [
+              "f16",
+              "f32",
+              "q4k"
+            ],
+            "allocatedBytes": 1792
+          },
+          {
+            "embeddingAliasCopies": [
+              "f16",
+              "f32",
+              "q4k"
+            ],
+            "exactValues": true
+          },
+          {
+            "adaptiveF16Fallback": true,
+            "matmulExpected": 256,
+            "matmulObserved": 256,
+            "retainedF32": true
+          }
+        ]
+      }
+    },
+    {
+      "host": "vulkan",
+      "id": "baseline-2b-first",
+      "engine": "baseline",
+      "modelDir": "models/local/qwen-3-5-2b-q4k-ehaf16",
+      "config": "vulkan-2b-config.json",
+      "receipt": "vulkan/final-v3/baseline-2b-first/receipt.json",
+      "receiptSha256": "2b1610035d9e40c4675df476699dec0504e955e1b5c1306a11bb7c4afe2e49f5",
+      "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
+      "status": "passed",
+      "failure": null,
+      "modelManifestSha256": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+      "configSha256": "682587277a98acfa0ea2b85c2f1a8db9db489b8e6532b7365e62129c5ea6f55f",
+      "browser": "146.0.7680.177",
+      "openingMs": 5858.100000023842,
+      "recreatedOpeningMs": 7298.5999999940395,
+      "firstRequestTtftMs": 455,
+      "firstRequestCompleteMs": 949.7000000178814,
+      "warmTtftMs": 70.09999999403954,
+      "warmCompleteMs": 453.30000001192093,
+      "warmPrefillMs": 59,
+      "warmDecodeTokensPerSecond": 80.98223615212805,
+      "longPrefillTokens": 833,
+      "longPrefillMs": 1316.4000000059605,
+      "longTtftMs": 1323.5999999940395,
+      "longCompleteMs": 1725.0999999940395,
+      "peakRssSumBytes": 2113433600,
+      "openingPoolAllocatedBytes": 2079060224,
+      "openingPoolModelBytes": 2078535680,
+      "peakPoolAllocatedBytes": 2738839296,
+      "sourceBytesRead": 2194370752,
+      "tensorLocationsMs": 1.2,
+      "planModes": {}
+    },
+    {
+      "host": "vulkan",
+      "id": "candidate-2b-first",
+      "engine": "candidate",
+      "modelDir": "models/local/qwen-3-5-2b-q4k-ehaf16",
+      "config": "vulkan-2b-config.json",
+      "receipt": "vulkan/final-v3/candidate-2b-first/receipt.json",
+      "receiptSha256": "fd60ab5dd85b89291d48b825ec254ba993e814ae00c67c2227075943fdd60118",
+      "archiveSha256": "f3e9bdef19cf4986c2a0fb4ee8242bdf6f71185acc44d3259d59ae23e1922901",
+      "status": "passed",
+      "failure": null,
+      "modelManifestSha256": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+      "configSha256": "682587277a98acfa0ea2b85c2f1a8db9db489b8e6532b7365e62129c5ea6f55f",
+      "browser": "146.0.7680.177",
+      "openingMs": 5892.200000017881,
+      "recreatedOpeningMs": 7295.199999988079,
+      "firstRequestTtftMs": 394.30000001192093,
+      "firstRequestCompleteMs": 884,
+      "warmTtftMs": 70.7999999821186,
+      "warmCompleteMs": 462.2999999821186,
+      "warmPrefillMs": 62.30000001192093,
+      "warmDecodeTokensPerSecond": 79.32446263831724,
+      "longPrefillTokens": 833,
+      "longPrefillMs": 1325.9000000059605,
+      "longTtftMs": 1332.0999999940395,
+      "longCompleteMs": 1732.4000000059605,
+      "peakRssSumBytes": 2119217152,
+      "openingPoolAllocatedBytes": 2079060224,
+      "openingPoolModelBytes": 2078535680,
+      "peakPoolAllocatedBytes": 2738839296,
+      "sourceBytesRead": 2210837408,
+      "tensorLocationsMs": 5.4,
+      "planModes": {
+        "dense-only": 170,
+        "packed-only": 151
+      }
+    },
+    {
+      "host": "vulkan",
+      "id": "candidate-2b-second",
+      "engine": "candidate",
+      "modelDir": "models/local/qwen-3-5-2b-q4k-ehaf16",
+      "config": "vulkan-2b-config.json",
+      "receipt": "vulkan/final-v3/candidate-2b-second/receipt.json",
+      "receiptSha256": "ec27840c8868ede88e80c8ea27833021ce6ed964a08f77b021ffa9ae6e6303bd",
+      "archiveSha256": "f3e9bdef19cf4986c2a0fb4ee8242bdf6f71185acc44d3259d59ae23e1922901",
+      "status": "passed",
+      "failure": null,
+      "modelManifestSha256": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+      "configSha256": "682587277a98acfa0ea2b85c2f1a8db9db489b8e6532b7365e62129c5ea6f55f",
+      "browser": "146.0.7680.177",
+      "openingMs": 5971,
+      "recreatedOpeningMs": 6687,
+      "firstRequestTtftMs": 480.5,
+      "firstRequestCompleteMs": 951,
+      "warmTtftMs": 71.30000001192093,
+      "warmCompleteMs": 453.69999998807907,
+      "warmPrefillMs": 63.19999998807907,
+      "warmDecodeTokensPerSecond": 81.36482939632546,
+      "longPrefillTokens": 833,
+      "longPrefillMs": 1323.7000000178814,
+      "longTtftMs": 1330.0999999940395,
+      "longCompleteMs": 1728.5,
+      "peakRssSumBytes": 2186706944,
+      "openingPoolAllocatedBytes": 2079060224,
+      "openingPoolModelBytes": 2078535680,
+      "peakPoolAllocatedBytes": 2738839296,
+      "sourceBytesRead": 2258479712,
+      "tensorLocationsMs": 6.1,
+      "planModes": {
+        "dense-only": 170,
+        "packed-only": 151
+      }
+    },
+    {
+      "host": "vulkan",
+      "id": "baseline-2b-second",
+      "engine": "baseline",
+      "modelDir": "models/local/qwen-3-5-2b-q4k-ehaf16",
+      "config": "vulkan-2b-config.json",
+      "receipt": "vulkan/final-v3/baseline-2b-second/receipt.json",
+      "receiptSha256": "fb5f90e84cafd0ba389f2cd09219f702c495bb5358af92035ab919790eed7819",
+      "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
+      "status": "passed",
+      "failure": null,
+      "modelManifestSha256": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+      "configSha256": "682587277a98acfa0ea2b85c2f1a8db9db489b8e6532b7365e62129c5ea6f55f",
+      "browser": "146.0.7680.177",
+      "openingMs": 5898.699999988079,
+      "recreatedOpeningMs": 6796.699999988079,
+      "firstRequestTtftMs": 413.7000000178814,
+      "firstRequestCompleteMs": 892.5,
+      "warmTtftMs": 65.09999999403954,
+      "warmCompleteMs": 447.39999997615814,
+      "warmPrefillMs": 55.19999998807907,
+      "warmDecodeTokensPerSecond": 81.34347940300405,
+      "longPrefillTokens": 833,
+      "longPrefillMs": 1322.2999999821186,
+      "longTtftMs": 1329.300000011921,
+      "longCompleteMs": 1736,
+      "peakRssSumBytes": 2133090304,
+      "openingPoolAllocatedBytes": 2079060224,
+      "openingPoolModelBytes": 2078535680,
+      "peakPoolAllocatedBytes": 2738839296,
+      "sourceBytesRead": 2225634176,
+      "tensorLocationsMs": 1.2,
+      "planModes": {}
+    },
+    {
+      "host": "vulkan",
+      "id": "baseline-27b-first",
+      "engine": "baseline",
+      "modelDir": "/home/x/.local/share/reploid/models/qwen38-27b-q4k-19ecff3e",
+      "config": "vulkan-27b-config.json",
+      "receipt": "vulkan/final-v3/baseline-27b-first/receipt.json",
+      "receiptSha256": "7e2c52d63b10b2577730ae2733a131c0f7df2141bc39adf8c1b83d77785850dc",
+      "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
+      "status": "passed",
+      "failure": null,
+      "modelManifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+      "configSha256": "2dcd181b30fd6fa9014f04a895a013e08d7f29edb4d9d4c88e4552ee88ad2265",
+      "browser": "146.0.7680.177",
+      "openingMs": 53093.09999999404,
+      "recreatedOpeningMs": 56460.40000000596,
+      "firstRequestTtftMs": 996.9000000059605,
+      "firstRequestCompleteMs": 4773.299999982119,
+      "warmTtftMs": 283,
+      "warmCompleteMs": 3779.0999999940395,
+      "warmPrefillMs": 239.2000000178814,
+      "warmDecodeTokensPerSecond": 8.855371782816455,
+      "longPrefillTokens": 833,
+      "longPrefillMs": 13066.5,
+      "longTtftMs": 13113.199999988079,
+      "longCompleteMs": 16845.79999998212,
+      "peakRssSumBytes": 1689477120,
+      "openingPoolAllocatedBytes": 17002270976,
+      "openingPoolModelBytes": 17001746432,
+      "peakPoolAllocatedBytes": 18391164416,
+      "sourceBytesRead": 16995007488,
+      "tensorLocationsMs": 2.5,
+      "planModes": {}
+    },
+    {
+      "host": "vulkan",
+      "id": "candidate-27b-first",
+      "engine": "candidate",
+      "modelDir": "/home/x/.local/share/reploid/models/qwen38-27b-q4k-19ecff3e",
+      "config": "vulkan-27b-config.json",
+      "receipt": "vulkan/final-v3/candidate-27b-first/receipt.json",
+      "receiptSha256": "9ed431c09802da3c6237a85de10796f7bc0316167c517604d3301d1a64d182e4",
+      "archiveSha256": "f3e9bdef19cf4986c2a0fb4ee8242bdf6f71185acc44d3259d59ae23e1922901",
+      "status": "passed",
+      "failure": null,
+      "modelManifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+      "configSha256": "2dcd181b30fd6fa9014f04a895a013e08d7f29edb4d9d4c88e4552ee88ad2265",
+      "browser": "146.0.7680.177",
+      "openingMs": 53392.09999999404,
+      "recreatedOpeningMs": 56481.80000001192,
+      "firstRequestTtftMs": 1004.9000000059605,
+      "firstRequestCompleteMs": 4747.299999982119,
+      "warmTtftMs": 271.80000001192093,
+      "warmCompleteMs": 3797.7000000178814,
+      "warmPrefillMs": 232.5,
+      "warmDecodeTokensPerSecond": 8.793078995887107,
+      "longPrefillTokens": 833,
+      "longPrefillMs": 13230.199999988079,
+      "longTtftMs": 13276.5,
+      "longCompleteMs": 17069.40000000596,
+      "peakRssSumBytes": 1780887552,
+      "openingPoolAllocatedBytes": 17002270976,
+      "openingPoolModelBytes": 17001746432,
+      "peakPoolAllocatedBytes": 18391164416,
+      "sourceBytesRead": 16995007488,
+      "tensorLocationsMs": 12.6,
+      "planModes": {
+        "dense-only": 450,
+        "packed-only": 401
+      }
+    },
+    {
+      "host": "vulkan",
+      "id": "candidate-27b-second",
+      "engine": "candidate",
+      "modelDir": "/home/x/.local/share/reploid/models/qwen38-27b-q4k-19ecff3e",
+      "config": "vulkan-27b-config.json",
+      "receipt": "vulkan/final-v3/candidate-27b-second/receipt.json",
+      "receiptSha256": "8935097b6d2c71ad58909531cfe68f5b8ae435f23b8ae541d9772b4b2de9bfe8",
+      "archiveSha256": "f3e9bdef19cf4986c2a0fb4ee8242bdf6f71185acc44d3259d59ae23e1922901",
+      "status": "passed",
+      "failure": null,
+      "modelManifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+      "configSha256": "2dcd181b30fd6fa9014f04a895a013e08d7f29edb4d9d4c88e4552ee88ad2265",
+      "browser": "146.0.7680.177",
+      "openingMs": 53783.30000001192,
+      "recreatedOpeningMs": 56572.19999998808,
+      "firstRequestTtftMs": 1019.4000000059605,
+      "firstRequestCompleteMs": 4799.5999999940395,
+      "warmTtftMs": 274.69999998807907,
+      "warmCompleteMs": 3781.699999988079,
+      "warmPrefillMs": 228.40000000596046,
+      "warmDecodeTokensPerSecond": 8.840472252339216,
+      "longPrefillTokens": 833,
+      "longPrefillMs": 13198.90000000596,
+      "longTtftMs": 13243.59999999404,
+      "longCompleteMs": 17020.80000001192,
+      "peakRssSumBytes": 1683972096,
+      "openingPoolAllocatedBytes": 17002270976,
+      "openingPoolModelBytes": 17001746432,
+      "peakPoolAllocatedBytes": 18391164416,
+      "sourceBytesRead": 16995007488,
+      "tensorLocationsMs": 12.2,
+      "planModes": {
+        "dense-only": 450,
+        "packed-only": 401
+      }
+    },
+    {
+      "host": "vulkan",
+      "id": "baseline-27b-second",
+      "engine": "baseline",
+      "modelDir": "/home/x/.local/share/reploid/models/qwen38-27b-q4k-19ecff3e",
+      "config": "vulkan-27b-config.json",
+      "receipt": "vulkan/final-v3/baseline-27b-second/receipt.json",
+      "receiptSha256": "54668e969453b81b05956194afb39eaaaca157bcf0d5e77bd0f710772a462d60",
+      "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
+      "status": "passed",
+      "failure": null,
+      "modelManifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+      "configSha256": "2dcd181b30fd6fa9014f04a895a013e08d7f29edb4d9d4c88e4552ee88ad2265",
+      "browser": "146.0.7680.177",
+      "openingMs": 52586.09999999404,
+      "recreatedOpeningMs": 57013.69999998808,
+      "firstRequestTtftMs": 979.2000000178814,
+      "firstRequestCompleteMs": 4733.9000000059605,
+      "warmTtftMs": 286.2999999821186,
+      "warmCompleteMs": 3800.0999999940395,
+      "warmPrefillMs": 238.19999998807907,
+      "warmDecodeTokensPerSecond": 8.821604393743087,
+      "longPrefillTokens": 833,
+      "longPrefillMs": 13155.199999988079,
+      "longTtftMs": 13202.5,
+      "longCompleteMs": 16998.399999976158,
+      "peakRssSumBytes": 1688821760,
+      "openingPoolAllocatedBytes": 17002270976,
+      "openingPoolModelBytes": 17001746432,
+      "peakPoolAllocatedBytes": 18391164416,
+      "sourceBytesRead": 16995007488,
+      "tensorLocationsMs": 1.9,
+      "planModes": {}
+    }
+  ],
+  "comparisons": [
+    {
+      "host": "metal",
+      "model": "2b",
+      "order": [
+        "baseline-2b-first",
+        "candidate-2b-first",
+        "candidate-2b-second",
+        "baseline-2b-second"
+      ],
+      "complete": true,
+      "sameManifest": true,
+      "sameConfig": true,
+      "allPrefillLogitsByteIdentical": true,
+      "allShortTokensIdentical": true,
+      "allLongTokensIdentical": true,
+      "allLifecyclePassed": true,
+      "allUnloadOwnershipReleased": true,
+      "gatePassed": true
+    },
+    {
+      "host": "vulkan",
+      "model": "2b",
+      "order": [
+        "baseline-2b-first",
+        "candidate-2b-first",
+        "candidate-2b-second",
+        "baseline-2b-second"
+      ],
+      "complete": true,
+      "sameManifest": true,
+      "sameConfig": true,
+      "allPrefillLogitsByteIdentical": true,
+      "allShortTokensIdentical": true,
+      "allLongTokensIdentical": true,
+      "allLifecyclePassed": true,
+      "allUnloadOwnershipReleased": true,
+      "gatePassed": true
+    },
+    {
+      "host": "vulkan",
+      "model": "27b",
+      "order": [
+        "baseline-27b-first",
+        "candidate-27b-first",
+        "candidate-27b-second",
+        "baseline-27b-second"
+      ],
+      "complete": true,
+      "sameManifest": true,
+      "sameConfig": true,
+      "allPrefillLogitsByteIdentical": true,
+      "allShortTokensIdentical": true,
+      "allLongTokensIdentical": true,
+      "allLifecyclePassed": true,
+      "allUnloadOwnershipReleased": true,
+      "gatePassed": true
+    }
+  ],
+  "limits": [
+    "Fresh browser/model opening; OS and driver caches not purged; local provisioned weights only.",
+    "Two openings per engine/model/host, each followed by three short warm requests; no outliers removed.",
+    "RSS sums browser process mappings every 500 ms; shared mappings can be counted repeatedly and short peaks missed.",
+    "GPU counters cover the Doppler pool, not total vendor VRAM. ownedWeightBytes in raw receipts sums the loader tracking set and can include retired buffers; it is not used as resident memory.",
+    "No separate CPU-time measurement. tensorLocations phase includes planning plus location construction wall time.",
+    "Device recovery deliberately destroys the device after submission, not arbitrary spontaneous device loss.",
+    "Token and full prefill-logit equality are scoped workload evidence, not general model correctness."
+  ],
+  "modelIntegrity": [
+    {
+      "host": "metal",
+      "model": "2b",
+      "receipt": "metal/model-2b-piece-integrity.json",
+      "passed": true,
+      "receiptSha256": "034ea189c85e860a02e6fe88e64624d1977d7cdc5f62ad4d948fcd397dedd78a",
+      "files": 33,
+      "bytes": 2087223456
+    },
+    {
+      "host": "vulkan",
+      "model": "2b",
+      "receipt": "vulkan/model-2b-piece-integrity.json",
+      "passed": true,
+      "receiptSha256": "78e13e02a3640c323e2981558ad743811b191d8ca03f2cc24ad39d82785be90f",
+      "files": 33,
+      "bytes": 2087223456
+    },
+    {
+      "host": "vulkan",
+      "model": "27b",
+      "receipt": "vulkan/model-27b-piece-integrity.json",
+      "passed": true,
+      "receiptSha256": "71028be921e9676dc87eb6c267e11828c37030ffb140e0a86b78be32c0b56d48",
+      "files": 255,
+      "bytes": 17003441484
+    }
+  ],
+  "same2bBytesAcrossHosts": true,
+  "modelIntegrityPassed": true,
+  "availableMatrixComplete": true,
+  "fullRequestedMatrixComplete": false
+}

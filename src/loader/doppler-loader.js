@@ -177,6 +177,8 @@ export class DopplerLoader {
   q4kMaterializationMode = 'dense';
   q4kFusedRoles = [];
   q4kPackedOnlyRoles = [];
+  representationPaths = [];
+  weightRepresentationPlan = null;
   // Internal tracking
   
   _normOffsetLogged = false;
@@ -203,7 +205,6 @@ export class DopplerLoader {
     );
   }
 
-  
   setLoadingConfig(config) {
     this._loadingConfig = config;
     this.shardCache.configure({
@@ -226,8 +227,8 @@ export class DopplerLoader {
     this._perLayerInputSession = sessionConfig ?? null;
   }
 
-  
   setQ4KConfig(config) {
+    this.representationPaths = structuredClone(config.representationPaths ?? []);
     this.useFusedQ4K = config.useFusedQ4K;
     this.q4kLayout = config.q4kLayout;
     this.keepF32Weights = config.keepF32Weights;
@@ -241,7 +242,6 @@ export class DopplerLoader {
       : [];
   }
 
-  
   _getMemoryState() {
     return {
       shardCacheBytes: this.shardCache.totalBytes,
@@ -280,7 +280,6 @@ export class DopplerLoader {
     );
   }
 
-  
   _stopMemoryLogging(phase = 'complete') {
     if (this._memoryMonitor) {
       this._memoryMonitor.stop(phase, () => this._getMemoryState());
@@ -288,7 +287,6 @@ export class DopplerLoader {
     }
   }
 
-  
   setCustomShardLoader(loadShardFn, options = {}) {
     this.shardCache.setCustomLoader(loadShardFn, options.verify !== false, {
       loadRange: options.loadShardRange ?? null,
@@ -303,7 +301,6 @@ export class DopplerLoader {
     this._loadAuxiliaryFile = typeof loadAuxiliaryFile === 'function' ? loadAuxiliaryFile : null;
   }
 
-  
   setTensorsJsonUrl(url) {
     this._tensorsJsonUrl = url;
   }
@@ -312,17 +309,14 @@ export class DopplerLoader {
     this._loadTensorsJson = typeof loadTensorsJson === 'function' ? loadTensorsJson : null;
   }
 
-  
   async _loadShard(shardIndex, options) {
     return this.shardCache.load(shardIndex, options);
   }
 
-  
   _getLoadShard() {
     return this._loadShardOverride ?? ((idx, options) => this._loadShard(idx, options));
   }
 
-  
   async init() {
     log.info('Loader', 'Initializing...');
 
@@ -354,7 +348,6 @@ export class DopplerLoader {
     log.info('Loader', `Initialized (${caps})`);
   }
 
-  
   setManifest(manifest) {
     this.manifest = manifest;
     setCurrentManifest(manifest);
@@ -364,7 +357,6 @@ export class DopplerLoader {
     debugTrace.loader('Manifest set externally');
   }
 
-  
   async loadLoRAWeights(manifest) {
     const prevManifest = this.manifest;
     const prevLocations = new Map(this.tensorLocations);
@@ -391,25 +383,22 @@ export class DopplerLoader {
     }
   }
 
-  
   _resolveWeightLayout(location) {
     return resolveWeightLayout(location);
   }
 
-  
   _shouldStreamLargeWeight(name, location, label) {
     const manifestOverrides = this.manifest?.inference?.largeWeights?.gpuResidentOverrides ?? null;
     return shouldStreamLargeWeight(name, location, label, this.gpuCapabilities, this.keepF32Weights, manifestOverrides);
   }
 
-  
   async load(modelId, options = {}) {
     return loadImpl.call(this, modelId, options);
   }
 
-  
   async _buildTensorLocations() {
     this.tensorLocations.clear();
+    this.weightRepresentationPlan = null;
     if (!this.manifest) {
       this._layerShardMap.clear();
       return;
@@ -515,7 +504,6 @@ export class DopplerLoader {
     }
   }
 
-  
   async _loadTensor(name, toGPU = true, silent = false, consumerRole) {
     return _loadTensorImpl.call(this, name, toGPU, silent, consumerRole);
   }
@@ -540,7 +528,6 @@ export class DopplerLoader {
     return _assembleFunctionalDescriptorDataImpl.call(this, location, name);
   }
 
-  
   async _assembleShardData(location, name, options = {}) {
     return _assembleShardDataImpl.call(this, location, name, options);
   }
@@ -553,7 +540,6 @@ export class DopplerLoader {
     return _assembleShardDataToGpuBufferImpl.call(this, location, name);
   }
 
-  
   _needsNormWeightOffset() {
     const result = needsNormWeightOffset(this.manifest);
     if (result && !this._normOffsetLogged) {
@@ -562,37 +548,30 @@ export class DopplerLoader {
     return result;
   }
 
-  
   async _loadEmbeddings(_onProgress) {
     return _loadEmbeddingsImpl.call(this, _onProgress);
   }
 
-  
   async _loadLayer(layerIdx, _onProgress) {
     return _loadLayerImpl.call(this, layerIdx, _onProgress);
   }
 
-  
   _isExpertLayer(_layerIdx) {
     return this.isMoE;
   }
 
-  
   prefetchExperts(nextLayerIdx, expertIndices) {
     prefetchExpertsFromModule(this._getExpertLoaderContext(), nextLayerIdx, expertIndices, this.isMoE);
   }
 
-  
   predictNextLayerExperts(currentExperts) {
     return predictNextLayerExpertsFromModule(currentExperts);
   }
 
-  
   async loadExpert(layerIdx, expertIdx) {
     return loadExpertFromModule(this._getExpertLoaderContext(), layerIdx, expertIdx);
   }
 
-  
   _getExpertLoaderContext() {
     const loadShard = this._getLoadShard();
     return {
@@ -608,12 +587,10 @@ export class DopplerLoader {
     };
   }
 
-  
   async _loadFinalWeights(_onProgress) {
     return _loadFinalWeightsImpl.call(this, _onProgress);
   }
 
-  
   getLayerWeights(layerIdx) {
     return this.layers.get(layerIdx) || null;
   }
@@ -630,12 +607,10 @@ export class DopplerLoader {
     return  (this.manifest?.config) || {};
   }
 
-  
   canRunDense() {
     return this.isUnifiedMemory;
   }
 
-  
   getStats() {
     const expertCacheCount = this.expertCache?.getStats().expertCount || 0;
     return {
@@ -654,12 +629,10 @@ export class DopplerLoader {
     return this.loadTiming ? cloneJsonValue(this.loadTiming) : null;
   }
 
-  
   getExpertCacheStats() {
     return this.expertCache?.getStats() || null;
   }
 
-  
   async unload() {
     debugTrace.loader(' Unloading model...');
 
@@ -736,6 +709,7 @@ export class DopplerLoader {
     this.isLoaded = false;
     this.loadTiming = null;
     this.tensorLocations.clear();
+    this.weightRepresentationPlan = null;
     this._layerShardMap.clear();
     this.shardCache.clear();
     this._normOffsetLogged = false;

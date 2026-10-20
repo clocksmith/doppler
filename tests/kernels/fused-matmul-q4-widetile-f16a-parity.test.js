@@ -8,18 +8,26 @@ import { destroyDevice, getDevice } from '../../src/gpu/device.js';
 import { quantizeQ4_KRef } from './reference/dequant.js';
 import { dequantQ4KRowsRef } from './reference/fused-ffn-q4k.js';
 import { f32ToF16Array, f16ToF32Bits } from '../../src/inference/kv-cache/types.js';
+import { getMatmulConfig } from '../../src/gpu/kernels/matmul-selection.js';
+import { calculateMatmulDispatch } from '../../src/gpu/kernels/matmul-dispatch.js';
 
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), '..');
 const kernelSrc = readFileSync(join(rootDir, '../src/gpu/kernels/fused_matmul_q4_widetile_f16a.wgsl'), 'utf8');
 
-const M = 4;
-const K = 1536;
-const N = 6144;
+const partialTile = process.argv.includes('--partial-tile');
+const M = partialTile ? 19 : 4;
+const K = partialTile ? 512 : 1536;
+const N = partialTile ? 517 : 6144;
+const TILE_M = partialTile ? 8 : 4;
+const TILE_N = partialTile ? 128 : 256;
+const constants = { TILE_M, TILE_N };
+const outputBytes = Math.ceil(M * N * 2 / 4) * 4;
 const numBlocksPerRow = Math.ceil(K / 256);
 const blockBytes = 144;
 
 const gpu = await probeNodeGPU();
 if (!gpu.ready) {
+  assert(!partialTile, 'Physical partial-tile qualification requires a GPU: ' + gpu.reason);
   console.log(`fused-matmul-q4-widetile-f16a-parity.test: skipped (${gpu.reason})`);
   process.exit(0);
 }
@@ -77,7 +85,7 @@ const module_ = device.createShaderModule({ code: kernelSrc, label: 'widetile_f1
 const pipeline = await device.createComputePipelineAsync({
   label: 'widetile_f16a_parity_pipeline',
   layout: 'auto',
-  compute: { module: module_, entryPoint: 'main' },
+  compute: { module: module_, entryPoint: 'main', constants },
 });
 
 function makeStorageBuffer(data, label, usage = GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC) {
@@ -92,10 +100,11 @@ const wBuf = makeStorageBuffer(Wq, 'parity_w_q4k');
 
 const outputBuf = device.createBuffer({
   label: 'parity_output_f16',
-  size: M * N * 2,
+  size: outputBytes,
   usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
 });
-device.queue.writeBuffer(outputBuf, 0, new Uint16Array(M * N));
+// A missing partial row/column must fail even when its expected value is small.
+device.queue.writeBuffer(outputBuf, 0, new Uint16Array(outputBytes / 2).fill(0x7e00));
 
 const uniformBytes = new ArrayBuffer(32);
 const dv = new DataView(uniformBytes);
@@ -123,24 +132,23 @@ const bindGroup = device.createBindGroup({
   ],
 });
 
-const TILE_N = 256;
-const TILE_M = 4;
-const wgX = Math.ceil(N / TILE_N);
-const wgY = Math.ceil(M / TILE_M);
+const config = getMatmulConfig('q4_fused_widetile_f16a', constants);
+const { workgroups } = calculateMatmulDispatch('q4_fused_widetile_f16a', true, false, false, M, N, config);
+assert.deepEqual(workgroups, [Math.ceil(N / TILE_N), Math.ceil(M / TILE_M), 1]);
 
 const encoder = device.createCommandEncoder({ label: 'parity_encoder' });
 const pass = encoder.beginComputePass({ label: 'parity_pass' });
 pass.setPipeline(pipeline);
 pass.setBindGroup(0, bindGroup);
-pass.dispatchWorkgroups(wgX, wgY, 1);
+pass.dispatchWorkgroups(...workgroups);
 pass.end();
 
 const stagingBuf = device.createBuffer({
   label: 'parity_staging',
-  size: M * N * 2,
+  size: outputBytes,
   usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
 });
-encoder.copyBufferToBuffer(outputBuf, 0, stagingBuf, 0, M * N * 2);
+encoder.copyBufferToBuffer(outputBuf, 0, stagingBuf, 0, outputBytes);
 device.queue.submit([encoder.finish()]);
 
 await stagingBuf.mapAsync(GPUMapMode.READ);

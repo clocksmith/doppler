@@ -84,7 +84,7 @@ async function createPipelines(device, inputDtype, stateComponents, normGateActi
     'gated_delta_recurrent', 'gatedDeltaRecurrent', 'scalarVariant', gateContext
   );
   const fusedDecodeConfig = resolveGatedDeltaNormGateKernel(
-    'gated_delta_fused_decode', 'gatedDeltaFusedDecode', 'scalarVariant', gateContext
+    'gated_delta_fused_decode', 'gatedDeltaFusedDecode', 'scalarVariant', { ...gateContext, stateComponents }
   );
   const [convModule, recurrentModule, fusedDecodeModule] = await Promise.all([
     getShaderModule(device, `gated_delta_conv${suffix}.wgsl`, `gated_delta_conv_${variant}`),

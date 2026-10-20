@@ -34,6 +34,13 @@ function createFakeTokenizer() {
     decode(ids, skipSpecial, skipFallback) {
       return ids.map((id) => `[${id}]`).join('');
     },
+    createIncrementalDecoder() {
+      return {
+        push: (id) => `[${id}]`,
+        pendingText: () => '',
+        finish: () => '',
+      };
+    },
     getSpecialTokens() {
       return { eos: EOS_TOKEN, pad: 0 };
     },
@@ -180,6 +187,57 @@ function stubGenerator(gen, tokenSequence) {
     return EOS_TOKEN;
   };
 }
+
+// Every public surface retries eligible prefill sampling failures through the
+// persistent fallback owner, and propagates unrelated failures with cleanup.
+for (const surface of ['generateTokenIds', 'generateTokens', 'generate']) {
+  for (const eligible of [true, false]) {
+    const state = createMinimalState();
+    const generator = new PipelineGenerator(state);
+    stubGenerator(generator, [9, EOS_TOKEN]);
+    const failure = new Error(eligible ? 'non-finite sample' : 'unrelated sample failure');
+    let samples = 0;
+    let retries = 0;
+    generator._sampleNextTokenFromLogits = () => {
+      if (++samples === 1) throw failure;
+      return 9;
+    };
+    generator._shouldUseFinitenessFallback = (error, phase) => {
+      assert.equal(error, failure);
+      assert.equal(phase, 'prefill-sample');
+      return eligible;
+    };
+    generator._prefill = async inputIds => {
+      assert.deepEqual(inputIds, [1, 5, 7]);
+      return makeLogitsForToken(9);
+    };
+    generator._retryWithPersistentFinitenessFallback = async (opts, phase, budget, retry, startSeqLen) => {
+      retries++;
+      assert.equal(phase, 'prefill-sample');
+      assert.equal(budget, opts.maxTokens);
+      assert.equal(startSeqLen, 0);
+      return retry();
+    };
+    const run = async () => {
+      const options = { useChatTemplate: false, diagnostics: { enabled: true } };
+      if (surface === 'generateTokenIds') return (await generator[surface]('fixture', options)).tokenIds;
+      const output = [];
+      for await (const token of generator[surface]('fixture', options)) output.push(token);
+      return output;
+    };
+    if (eligible) {
+      assert.deepEqual(await run(), surface === 'generate' ? ['[9]', '[2]'] : [9, EOS_TOKEN]);
+      assert.equal(retries, 1);
+    } else {
+      await assert.rejects(run, error => error === failure);
+      assert.equal(retries, 0);
+    }
+    assert.equal(state.isGenerating, false);
+    assert.equal(state.operatorDiagnostics, null);
+    assert.equal(state.stats.operatorDiagnostics.enabled, true);
+  }
+}
+console.log('  ok: shared prefill fallback, diagnostics and failure cleanup');
 
 // Streaming observes the first token, every decode token, and immediate EOS.
 for (const sequence of [[9, 10, EOS_TOKEN], [EOS_TOKEN]]) {
@@ -346,7 +404,9 @@ console.log('  ok: maxTokens cap parity');
     if (callCount2 >= 3) controller2.abort();
     return neverEnds[callCount2] ?? 19;
   };
-  for await (const _ of gen2.generate('test', { useChatTemplate: false, signal: controller2.signal })) { void _; }
+  await assert.rejects(async () => {
+    for await (const _ of gen2.generate('test', { useChatTemplate: false, signal: controller2.signal })) { void _; }
+  }, { name: 'AbortError' });
   const abortedLen2 = state2.stats.tokensGenerated;
 
   assert.ok(abortedLen2 < 20, `generate() must stop on abort (got ${abortedLen2})`);
@@ -357,6 +417,36 @@ console.log('  ok: maxTokens cap parity');
   );
 }
 console.log('  ok: abort signal parity');
+
+// Closing the stream while suspended at a yield must settle this request's
+// accounting, even when a previous request produced many more tokens.
+for (const abortAfter of [1, 3]) {
+  const state = createMinimalState({ maxTokens: 8, stopTokenIds: [] });
+  const gen = new PipelineGenerator(state);
+  stubGenerator(gen, [10, 11, 12, 13, 14, 15, 16, 17]);
+  for await (const _ of gen.generate('previous', { useChatTemplate: false })) { void _; }
+  assert.equal(state.stats.tokensGenerated, 8);
+  state.stats.batching = { batchedForwardCalls: 999 };
+  stubGenerator(gen, [10, 11, 12, 13, 14, 15, 16, 17]);
+  const controller = new AbortController();
+  let chunks = 0;
+  await assert.rejects(async () => {
+    for await (const _ of gen.generate('cancel', { useChatTemplate: false, signal: controller.signal })) {
+      void _;
+      if (++chunks === abortAfter) controller.abort();
+    }
+  }, { name: 'AbortError' });
+  assert.equal(chunks, abortAfter);
+  assert.equal(state.stats.tokensGenerated, abortAfter);
+  assert.equal(state.stats.decodeTokens, abortAfter - 1);
+  assert.equal(state.stats.stopReason, 'aborted');
+  assert.deepEqual(state.stats.batching, state.batchingStats);
+  assert.equal(state.isGenerating, false);
+  stubGenerator(gen, [9, EOS_TOKEN]);
+  assert.deepEqual((await gen.generateTokenIds('reuse', { useChatTemplate: false })).tokenIds,
+    [9, EOS_TOKEN]);
+}
+console.log('  ok: streamed cancellation accounting and reuse');
 
 // === Test 4: Stop sequences — both paths respect string stop ===
 {
@@ -403,7 +493,7 @@ console.log('  ok: stop sequence parity');
   assert.ok(Number.isFinite(result1.stats.totalTimeMs), 'totalTimeMs must be set');
   assert.ok(Number.isFinite(result1.stats.ttftMs), 'ttftMs must be set');
   assert.equal(result1.stats.tokensGenerated, 3, 'tokensGenerated must match');
-  assert.equal(result1.stats.decodeTokens, 3, 'decodeTokens must match');
+  assert.equal(result1.stats.decodeTokens, 2, 'decodeTokens excludes the prefill-produced token');
   assert.equal(result1.stats.prefillTokens, 3, 'prefillTokens must match input length');
 }
 console.log('  ok: stats fields');
@@ -495,16 +585,21 @@ for (const surface of ['generate', 'generateTokenIds', 'generateWithPrefixKV']) 
     const options = { useChatTemplate: false, signal: controller.signal,
       onToken() { callbacks++; controller.abort(); } };
     if (surface === 'generate') {
-      for await (const _ of generator.generate('test', options)) { void _; }
+      await assert.rejects(async () => {
+        for await (const _ of generator.generate('test', options)) { void _; }
+      }, { name: 'AbortError' });
     } else if (surface === 'generateWithPrefixKV') {
       const prefix = { cache: { clone: () => ({}) }, seqLen: 0, tokens: [] };
-      for await (const value of generator.generateWithPrefixKV(prefix, 'test', options)) void value;
+      await assert.rejects(async () => {
+        for await (const value of generator.generateWithPrefixKV(prefix, 'test', options)) void value;
+      }, { name: 'AbortError' });
     } else await generator.generateTokenIds('test', options);
     assert.equal(callbacks, 1);
     assert.equal(decoded, 0);
     assert.equal(state.stats.stopReason, 'aborted', `${surface} first token ${firstToken}`);
     assert.equal(state.stats.stopTokenId, null);
     assert.equal(state.stats.tokensGenerated, 1);
+    assert.equal(state.stats.decodeTokens, 0);
     assert.equal(state.isGenerating, false);
     stubGenerator(generator, [10, EOS_TOKEN]);
     assert.deepEqual((await generator.generateTokenIds('fresh', { useChatTemplate: false })).tokenIds, [10, EOS_TOKEN]);
@@ -537,6 +632,7 @@ for (const surface of ['generate', 'generateTokenIds', 'generateWithPrefixKV']) 
     assert.equal(state.stats.stopReason, row.reason, `${surface} first token ${row.token}`);
     assert.equal(state.stats.stopTokenId, row.token);
     assert.equal(state.stats.tokensGenerated, 1);
+    assert.equal(state.stats.decodeTokens, 0);
     assert.equal(state.isGenerating, false);
   }
 }

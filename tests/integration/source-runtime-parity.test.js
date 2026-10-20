@@ -58,7 +58,7 @@ const parityExecution = {
     embed: {
       kernel: 'gather.wgsl',
       entry: 'main',
-      digest: 'sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6',
+      digest: 'sha256:07fa1796cbddf137054897c831cf10ac7845dc98bffa1a8637614ddb4b82d74d',
     },
     rmsnorm: {
       kernel: 'rmsnorm.wgsl',
@@ -324,6 +324,7 @@ try {
   await convertSafetensorsDirectory({
     inputDir: fixtureDir,
     converterConfig: {
+      modelType: 'transformer',
       output: {
         modelBaseId: MODEL_ID,
         dir: outputDir,

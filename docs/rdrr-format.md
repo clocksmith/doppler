@@ -55,6 +55,36 @@ from `modelId` as the combined release/artifact/runtime identity.
   shard sets must still fail unless an explicit loader path supports the
   reference.
 
+## Shard hash algorithms and legacy BLAKE3
+
+`hashAlgorithm: "blake3"` means standard unkeyed BLAKE3 with a 32-byte digest;
+`"sha256"` means SHA-256. Hashes are not interchangeable. Unknown algorithms
+must not select BLAKE3 implicitly. Verification does not retry a mismatch using
+the historical Doppler hash implementation.
+
+The implementation through `bbcf7ffd` produced nonstandard values under the
+BLAKE3 name: its compression initialization XORed the counter, block length,
+and flags with IV words, and its root output omitted the final mixing. Both
+defects are corrected. The regression suite uses the
+[official vectors at a pinned revision](https://github.com/BLAKE3-team/BLAKE3/blob/f55849f89cd85083c1c9daa2c5de20766f309c00/test_vectors/test_vectors.json)
+and retains historical digests as rejection cases.
+
+This correction does **not** migrate old model artifacts. A manifest containing
+the historical digest will fail standard BLAKE3 verification. Preserve its raw
+manifest, shards, signatures, and qualification receipts. An old frozen runtime
+may reproduce that historical digest, but does not establish standard BLAKE3
+integrity. Independently authenticated SHA-256 piece verification remains a
+separate evidence path; it does not make the manifest's BLAKE3 field correct.
+
+Migration requires an explicitly produced new artifact identity: first verify
+the unchanged source bytes against an independent trusted inventory, calculate
+standard digests with an independent implementation, and create a new manifest
+in a separate destination. Record old/new manifest identities and the byte
+inventory; rebuild bound signatures, piece-index references, and release
+metadata before qualification. Never edit a signed manifest in place or reuse
+old release acceptance for the new identity. A mismatch alone is not authority
+to trust the bytes or replace their digest.
+
 ## Integrity extensions (Phase 0 additive contract)
 
 `integrityExtensions` is optional and does not change canonical artifact

@@ -71,3 +71,60 @@ on the workload's independent evaluation and quality gates.
 
 See [Training Handbook](../training-handbook.md) for workload schemas, command
 equivalents, artifact layout, and claim boundaries.
+
+## Community adapter training and sharing
+
+For individual training, create a `NativeQwenLoRATrainer`, run `trainStep`, and
+call `exportAdapter({ id, name, version, weightsPath, description, metadata })`.
+The export includes safetensors weights, their checksum, a versioned RDRR adapter
+manifest, and the exact base-manifest hash. Keep the manifest and weight file
+together. Existing adapter loading and Reploid publication remain the consumers;
+export alone does not publish, evaluate, or mark an adapter ready.
+
+For synchronous data-parallel training, each participant keeps the same frozen
+base model on its own GPU. The coordinator owns the optimizer. Each participant
+can describe its local sample without uploading the sample to other participants:
+
+```js
+const assignment = workerTrainer.describeTrainingSample(participantId, sample);
+// The application collects assignments and sends this round to each worker.
+const round = await coordinator.createTrainingRound({
+  jobId, roundId, assignments,
+});
+const contribution = await workerTrainer.computeGradientContribution(
+  round, participantId, sample,
+);
+// After every declared participant completes, send all contributions here.
+const receipt = await coordinator.applyGradientContributions(round, contributions);
+const checkpoint = await coordinator.createCheckpoint();
+```
+
+The application supplies transport, storage, participant selection, deadlines,
+and explicit retry. Doppler validates exact base artifact, training settings,
+checkpoint, assignment and round identity. A worker restores the round checkpoint
+and produces unclipped mean gradients without updating its optimizer. The
+coordinator sums those gradients on the GPU, weighted by supervised-token count,
+clips once, and performs one AdamW step. Unequal sample lengths therefore have
+the same token weighting as a combined batch. Summation order is the declared
+assignment order, independent of network arrival order.
+
+Missing, duplicate, foreign and stale contributions are rejected. Invalid
+payload sizes and non-finite aggregate gradients cannot update the optimizer.
+A replayed completed round is rejected against the coordinator's changed
+checkpoint. Concurrent trainer operations are rejected. An exception during a
+GPU optimizer update invalidates that trainer: initialize a new trainer from
+the retained checkpoint rather than assuming cleanup or update completion.
+If a contributor leaves, the coordinator must retain the original checkpoint
+and explicitly retry or create a new round; it cannot silently average a subset.
+
+This is gradient aggregation, not averaging separately trained adapters. It
+requires the exact native target listed above; it does not enable arbitrary
+layers, 2B native training, or a model split across GPUs. Checkpoint and gradient
+transfers may expose training information even though raw samples stay local.
+Identity checks do not establish that an untrusted contributor computed a good
+update. Evaluate a resulting adapter before making it available as a ready model.
+
+The bounded file-transport qualification driver is
+`node tools/qualify-community-lora.js --config <job.json>`. It executes one
+`prepare`, `contribute`, `apply`, or `verify` action on already-provisioned weights. It is
+repository qualification tooling, not a public network service or training UI.

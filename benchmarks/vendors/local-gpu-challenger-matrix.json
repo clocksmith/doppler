@@ -812,7 +812,7 @@
       "alternateDopplerArtifactIds": [],
       "anchorComparator": {
         "competitorId": "transformersjs-webgpu",
-        "modelId": "onnx-community/Qwen3.5-0.8B-ONNX",
+        "modelId": "onnx-community/Qwen3.5-0.8B-ONNX-OPT",
         "format": "onnx",
         "dtype": "q4f16",
         "status": "configured"
@@ -1089,7 +1089,7 @@
       "alternateDopplerArtifactIds": [],
       "anchorComparator": {
         "competitorId": "transformersjs-webgpu",
-        "modelId": "onnx-community/Qwen3.5-2B-ONNX",
+        "modelId": "onnx-community/Qwen3.5-2B-ONNX-OPT",
         "format": "onnx",
         "dtype": "q4f16",
         "status": "configured"

@@ -441,6 +441,7 @@ export {
 
   // Functions
   getKernelThresholds,
+  getKernelThresholdSnapshot,
   setKernelThresholds,
   resetKernelThresholds,
 } from './kernel-thresholds.schema.js';

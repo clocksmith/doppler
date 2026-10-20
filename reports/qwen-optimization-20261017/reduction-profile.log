@@ -1,0 +1,7 @@
+[GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.5ms
+{"variant":"default","tokens":1,"pairs":12,"passed":true}
+{"variant":"default","tokens":22,"pairs":12,"passed":true}
+{"variant":"default","tokens":128,"pairs":12,"passed":true}
+{"variant":"default_f16","tokens":1,"pairs":12,"passed":true}
+{"variant":"default_f16","tokens":22,"pairs":12,"passed":true}
+{"variant":"default_f16","tokens":128,"pairs":12,"passed":true}

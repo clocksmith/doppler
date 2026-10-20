@@ -1,0 +1,12 @@
+[GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.7ms
+[280.0ms][KernelSelect] matmul variant=f32 reason=default
+[289.7ms][KernelSelect] matmul variant=q4_fused_batched reason=q4k_fused
+[310.3ms][KernelSelect] matmul variant=q4_fused_multicol reason=q4k_fused
+{
+  "passed": true,
+  "scope": "real GPU suffix oracle; one device; no full-model quality claim",
+  "maxAbsoluteError": 1.862645149230957e-9,
+  "stepCount": 1,
+  "supervisedTokenCount": 3,
+  "weightsSha256": "4758d4390a4617a3a4d2a6961fe033d7aa2e452277ed5fd880ac203b7c4077b3"
+}
