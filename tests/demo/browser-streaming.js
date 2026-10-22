@@ -135,7 +135,7 @@ export async function checkDemoStreaming(page) {
       inertHtml: container.textContent.includes('<img src=x onerror=alert(1)>'),
       code: container.querySelector('pre code')?.textContent,
       quality: container.querySelector('strong .word-quality')?.textContent,
-      disclaimer: container.querySelector('.word-quality')?.title.includes('not factual accuracy'),
+      disclaimer: container.querySelector('.word-quality')?.dataset.quality?.includes('not factual accuracy'),
     };
   });
   assert.deepEqual(markdown, {
