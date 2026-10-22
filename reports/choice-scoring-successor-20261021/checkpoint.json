@@ -1,0 +1,24 @@
+{
+  "schema": "doppler.choice-scoring-candidate-checkpoint/v1",
+  "published": false,
+  "archive": {
+    "file": "doppler-gpu-0.6.32.tgz",
+    "sha256": "2cc4d07c6a9aee7a2d433cd81d514225cafb7114237ff49e0d0ab27899dad65a",
+    "sourceCommit": "c704cc58"
+  },
+  "model": {
+    "manifestSha256": "451c6a87d45f0ccac8718b41cc1b8682a3f0cf7c3f6803a3e14d5ac191900124",
+    "location": ".cache/qwen-reranker-q4k-successor-20261021 (local NVMe)"
+  },
+  "capsule": {
+    "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v2-77d2938ba0606000",
+    "semanticRoot": "sha256:77d2938ba0606000f2bd13cbfd3f963bbbc0a388022453cb986a543cb6a5e2ab",
+    "envelopeHash": "sha256:870d08363724edf492fe4093099932b716e2bb2f5e007e4db06f15df24765ebb",
+    "targetPlanDigests": [
+      "sha256:f6108fbabdd8016e68192346c4c01081c273007cc46d49e49a8bac47cac1149b"
+    ],
+    "signingAuthority": "local-choice-acceptance",
+    "publicKeyDigest": "sha256:09c7bf9443b06b8940fe2b8f243917e20d3664e9eef8f085889ebe1d0c3deff4",
+    "signing": "fresh local test key from tests/integration/rig-choice-scoring-capsule.js; test release metadata; not release trust"
+  }
+}

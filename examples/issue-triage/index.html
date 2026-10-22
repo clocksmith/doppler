@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Local Issue Triage</title>
+<style>
+  :root { color-scheme: light dark; --fg: #1b1f24; --bg: #ffffff; --muted: #5b6470; --line: #d5dae1; --accent: #2457c5; --warn: #9a5b00; }
+  @media (prefers-color-scheme: dark) { :root { --fg: #e6e9ee; --bg: #14171b; --muted: #9aa3ae; --line: #343a42; --accent: #7aa2ff; --warn: #e0a64a; } }
+  body { font: 15px/1.45 system-ui, sans-serif; color: var(--fg); background: var(--bg); max-width: 760px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 1.3rem; margin: 0 0 4px; }
+  p.lede { color: var(--muted); margin: 0 0 16px; }
+  label { display: block; font-weight: 600; margin: 12px 0 4px; }
+  input, textarea { width: 100%; box-sizing: border-box; font: inherit; color: inherit; background: transparent; border: 1px solid var(--line); border-radius: 6px; padding: 8px; }
+  textarea { min-height: 160px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  button { font: inherit; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: inherit; cursor: pointer; }
+  button.primary { border-color: var(--accent); color: var(--accent); }
+  button:disabled { opacity: 0.5; cursor: default; }
+  #status { color: var(--muted); margin-top: 12px; min-height: 1.4em; }
+  #suggestion { border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin-top: 16px; }
+  #suggestion[hidden] { display: none; }
+  .review { color: var(--warn); font-weight: 600; }
+  table { border-collapse: collapse; width: 100%; margin-top: 8px; font-variant-numeric: tabular-nums; }
+  td, th { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); }
+  #log { font-size: 0.9rem; color: var(--muted); white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>Local issue triage</h1>
+<p class="lede">Suggests bug, feature or question for one issue, on this device. You decide the label; nothing is applied or sent anywhere.</p>
+
+<label for="title">Issue title</label>
+<input id="title" autocomplete="off">
+<label for="body">Issue body</label>
+<textarea id="body"></textarea>
+
+<div class="row">
+  <button id="suggest" class="primary" disabled>Suggest a label</button>
+  <button id="cancel" disabled>Cancel</button>
+</div>
+<div id="status">Opening the model…</div>
+
+<section id="suggestion" hidden>
+  <div>Suggested: <strong id="suggested"></strong> <span id="review" class="review"></span></div>
+  <table><thead><tr><th>Label</th><th>Score (yes − no logit)</th></tr></thead><tbody id="scores"></tbody></table>
+  <div class="row" id="decide"></div>
+</section>
+
+<h2 style="font-size:1rem;margin-top:24px">Your decisions</h2>
+<div class="row"><input id="decider" placeholder="Your name (recorded with each decision)" autocomplete="off"><button id="export">Export decisions</button></div>
+<div id="log"></div>
+
+<script type="importmap">{"imports":{
+  "doppler-gpu/host":"./node_modules/doppler-gpu/src/client/capsule-host.browser.js",
+  "doppler-gpu/choice-scoring-contract":"./node_modules/doppler-gpu/src/config/choice-scoring.js"
+}}</script>
+<script type="module" src="./app.js"></script>
+</body>
+</html>

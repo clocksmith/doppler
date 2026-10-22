@@ -1,0 +1,108 @@
+{
+  "engine": "transformersjs",
+  "rep": 2,
+  "profileDir": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/compare-full/profiles/transformersjs-2",
+  "cold": {
+    "openMs": 6292.5,
+    "observations": 0,
+    "version": "4.2.0",
+    "firstDecisionMs": 634.5,
+    "launchToFirstDecisionMs": 6931,
+    "storage": {
+      "usage": 35046400,
+      "quota": 39567345254,
+      "usageDetails": {
+        "caches": 35046400
+      },
+      "cached": [
+        "transformers-cache: /tjs-remote/Qwen/Qwen3-Reranker-0.6B/resolve/main/config.json",
+        "transformers-cache: /tjs-remote/Qwen/Qwen3-Reranker-0.6B/resolve/main/tokenizer_config.json",
+        "transformers-cache: /tjs-remote/Qwen/Qwen3-Reranker-0.6B/resolve/main/tokenizer.json",
+        "transformers-cache: /tjs-remote/Qwen/Qwen3-Reranker-0.6B/resolve/main/generation_config.json",
+        "transformers-cache: /npm/onnxruntime-web@1.26.0-dev.20260416-b7804b056c/dist/ort-wasm-simd-threaded.asyncify.mjs",
+        "transformers-cache: /npm/onnxruntime-web@1.26.0-dev.20260416-b7804b056c/dist/ort-wasm-simd-threaded.asyncify.wasm"
+      ]
+    },
+    "transfer": {
+      "modelBytes": 1514911957,
+      "modelRequests": 6
+    },
+    "pageErrors": [
+      "error: Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "warning: Unable to add response to browser cache: UnknownError: Failed to execute 'put' on 'Cache': Unexpected internal error.."
+    ],
+    "peakMemory": {
+      "totalRss": 7963766784,
+      "rendererRss": 6461263872,
+      "gpuProcessRss": 1062010880,
+      "gpuMemory": 3333623808
+    }
+  },
+  "referenceScores": [
+    [
+      "bug",
+      11.8515625,
+      15.6796875
+    ],
+    [
+      "feature",
+      9.3828125,
+      15.4765625
+    ],
+    [
+      "question",
+      6.296875,
+      14.8359375
+    ]
+  ],
+  "warmMs": [
+    199.7999999821186,
+    248.39999997615814,
+    136.7999999821186,
+    414.09999999403954,
+    435.5,
+    210.5,
+    255.80000001192093,
+    175.5,
+    221.7999999821186,
+    177.7999999821186,
+    139.40000000596046,
+    339.5,
+    319.40000000596046,
+    133.40000000596046,
+    260.89999997615814,
+    193.60000002384186,
+    209.09999999403954,
+    249.40000000596046,
+    242.59999999403954,
+    400.19999998807907
+  ],
+  "cancel": {
+    "status": "AbortError",
+    "code": 20,
+    "message": "signal is aborted without reason",
+    "delayMs": 60,
+    "totalMs": 108.5,
+    "abortToSettleMs": 44.400000005960464,
+    "reuseIdentical": true
+  },
+  "offline": {
+    "failed": true,
+    "error": "page.evaluate: TypeError: Failed to fetch\n    at getFile (http://127.0.0.1:38247/tjs-package/dist/transformers.web.js:6475:16)\n    at loadResourceFile (http://127.0.0.1:38247/tjs-package/dist/transformers.web.js:6609:24)\n    at async getModelFile (http://127.0.0.1:38247/tjs-package/dist/transformers.web.js:6749:10)\n    at async getCoreModelFile (http://127.0.0.1:38247/tjs-package/dist/transformers",
+    "transfer": {
+      "modelBytes": 0,
+      "modelRequests": 0,
+      "blockedUrls": [
+        "/tjs-remote/Qwen/Qwen3-Reranker-0.6B/resolve/main/onnx/model_fp16.onnx"
+      ]
+    },
+    "pageErrors": [
+      "error: Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+    ]
+  },
+  "recovery": {
+    "failed": true,
+    "error": "page.evaluate: TypeError: Failed to fetch\n    at getFile (http://127.0.0.1:38247/tjs-package/dist/transformers.web.js:6475:16)\n    at loadResourceFile (http://127.0.0.1:38247/tjs-package/dist/transformers.web.js:6609:24)\n    at async getModelFile (http://127.0.0.1:38247/tjs-package/dist/transformers.web.js:6749:10)\n    at async getCoreModelFile (http://127.0.0.1:38247/tjs-package/dist/transformers",
+    "blockedUrls": null
+  }
+}
