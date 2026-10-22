@@ -32,6 +32,9 @@ const WG_N: u32 = 16u;
 // tileB[k * WG_N + ty] holds weight rows ty*4..ty*4+3 of column k. Each inner-loop
 // step reads one vec4 per operand: A is broadcast across ty, and B is contiguous
 // across ty, so neither read bank-conflicts. 64*16 f32 per tile → 8192 bytes total.
+// Each thread stages exactly one whole vec4 per tile. Threads must never write
+// separate components of one shared vec4: a dynamically indexed component store
+// can lower to a read-modify-write of the whole vector (Metal does), which races.
 var<workgroup> tileA: array<vec4<f32>, 256>;  // TILE_K * WG_M
 var<workgroup> tileB: array<vec4<f32>, 256>;  // TILE_K * WG_N
 
@@ -50,6 +53,17 @@ struct Uniforms {
 @group(0) @binding(1) var<storage, read> A: array<f32>;
 @group(0) @binding(2) var<storage, read> B: array<f16>;
 @group(0) @binding(3) var<storage, read_write> C: array<f32>;
+
+// Guarded global reads; out-of-range elements stage as zero.
+fn load_a(row: u32, col: u32) -> f32 {
+    if (row < u.M && col < u.K) { return A[row * u.K + col]; }
+    return 0.0;
+}
+
+fn load_b(n: u32, col: u32) -> f32 {
+    if (n < u.N && col < u.K) { return f32(B[n * u.K + col]); }
+    return 0.0;
+}
 
 @compute @workgroup_size(WG_M, WG_N, 1)
 fn main(
@@ -75,40 +89,28 @@ fn main(
     for (var t: u32 = 0u; t < num_tiles; t = t + 1u) {
         let k_offset = t * TILE_K;
 
-        // Load A tile (f32): 64 rows x 16 cols = 1024 elements, 256 threads → 4 each
+        // Load A tile (f32): 64 rows x 16 cols. Thread tid stages column k = tid % 16 of
+        // rows group*4..group*4+3, group = tid / 16, as one vec4. Sixteen consecutive
+        // threads read sixteen consecutive floats of each row.
         {
-            let load_base = tid * 4u;
-            for (var i: u32 = 0u; i < 4u; i = i + 1u) {
-                let elem_idx = load_base + i;
-                let load_row = elem_idx / TILE_K;
-                let load_col = elem_idx % TILE_K;
-                let global_row = wg_id.x * TILE_M + load_row;
-                let global_col = k_offset + load_col;
-                let slot = load_col * WG_M + load_row / THREAD_M;
-                if (global_row < u.M && global_col < u.K) {
-                    tileA[slot][load_row % THREAD_M] = A[global_row * u.K + global_col];
-                } else {
-                    tileA[slot][load_row % THREAD_M] = 0.0;
-                }
-            }
+            let group = tid / TILE_K;
+            let k = tid % TILE_K;
+            let row = wg_id.x * TILE_M + group * THREAD_M;
+            let col = k_offset + k;
+            tileA[k * WG_M + group] = vec4<f32>(
+                load_a(row, col), load_a(row + 1u, col), load_a(row + 2u, col), load_a(row + 3u, col)
+            );
         }
 
-        // Load B tile (f16 → f32): B is [N, K] (row-major/transposed)
+        // Load B tile (f16 → f32): B is [N, K] (row-major/transposed), staged the same way.
         {
-            let load_base = tid * 4u;
-            for (var i: u32 = 0u; i < 4u; i = i + 1u) {
-                let elem_idx = load_base + i;
-                let load_row = elem_idx / TILE_K;  // N-dimension local offset
-                let load_col = elem_idx % TILE_K;  // K-dimension local offset
-                let global_n = wg_id.y * TILE_N + load_row;
-                let global_k = k_offset + load_col;
-                let slot = load_col * WG_N + load_row / THREAD_N;
-                if (global_n < u.N && global_k < u.K) {
-                    tileB[slot][load_row % THREAD_N] = f32(B[global_n * u.K + global_k]);
-                } else {
-                    tileB[slot][load_row % THREAD_N] = 0.0;
-                }
-            }
+            let group = tid / TILE_K;
+            let k = tid % TILE_K;
+            let n = wg_id.y * TILE_N + group * THREAD_N;
+            let col = k_offset + k;
+            tileB[k * WG_N + group] = vec4<f32>(
+                load_b(n, col), load_b(n + 1u, col), load_b(n + 2u, col), load_b(n + 3u, col)
+            );
         }
 
         workgroupBarrier();
