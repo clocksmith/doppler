@@ -41,7 +41,7 @@
   cursor: pointer;
 }
 .token-chip--unavailable {
-  text-decoration-color: #000;
+  text-decoration-color: var(--fg);
   text-decoration-style: dotted;
 }
 .token-chip:hover,
@@ -56,7 +56,7 @@
   padding: var(--demo-space-2);
   border: 1px solid var(--doppler-line);
   border-radius: var(--demo-control-radius);
-  background: #ffffff;
+  background: var(--doppler-surface);
   box-shadow: var(--doppler-inset);
 }
 .token-inspector-card-header {
@@ -70,13 +70,13 @@
   max-width: 100%;
   padding: 4px 8px;
   border-radius: 7px;
-  background: #000;
-  color: #fff;
+  background: var(--fg);
+  color: var(--bg);
   font: 13px/1.5 var(--font-mono);
   overflow-wrap: anywhere;
 }
 .token-inspector-id,
-.token-inspector-metrics { font: 12px/1.6 var(--font-mono); color: #000; }
+.token-inspector-metrics { font: 12px/1.6 var(--font-mono); color: var(--fg); }
 .token-candidates > summary {
   min-height: 32px;
   padding: 4px 0;
@@ -90,11 +90,11 @@
   align-items: center;
   gap: var(--demo-space-1);
   font: 12px/1.5 var(--font-mono);
-  color: #000;
+  color: var(--fg);
 }
-.token-candidate-text { white-space: pre-wrap; overflow-wrap: anywhere; color: #000; }
+.token-candidate-text { white-space: pre-wrap; overflow-wrap: anywhere; color: var(--fg); }
 .token-candidate-row.is-winner { font-weight: 700; }
-.token-candidate-bar-bg { position: relative; height: 5px; background: #fff; border-radius: 999px; overflow: hidden; }
+.token-candidate-bar-bg { position: relative; height: 5px; background: var(--doppler-surface); border-radius: 999px; overflow: hidden; }
 .token-candidate-bar-fill { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, #5169e8, #d13b4d); }
 .token-candidate-pct { text-align: right; font-variant-numeric: tabular-nums; }
 .token-inspector-nav { display: flex; justify-content: flex-end; gap: 8px; }
