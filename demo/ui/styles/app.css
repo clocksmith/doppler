@@ -220,6 +220,7 @@ body.pwa-window-controls .app-shell {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
+  margin-left: auto;
 }
 
 .app-brand {
