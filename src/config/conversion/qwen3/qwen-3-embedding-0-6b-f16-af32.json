@@ -239,7 +239,7 @@
       "matmul_f16w_f32a_tiled": {
         "kernel": "matmul_f16w_f32a_tiled.wgsl",
         "entry": "main",
-        "digest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92"
+        "digest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a"
       },
       "rmsnorm_qk": {
         "kernel": "rmsnorm_qk.wgsl",
@@ -284,7 +284,7 @@
       "f16_prefill_tiled": {
         "kernel": "matmul_f16w_f32a_tiled.wgsl",
         "entry": "main",
-        "digest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92"
+        "digest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a"
       },
       "split_qkv": {
         "kernel": "split_qkv.wgsl",

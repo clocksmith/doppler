@@ -200,7 +200,7 @@
       "tiled": {
         "kernel": "matmul_f16w_f32a_tiled.wgsl",
         "entry": "main",
-        "digest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92"
+        "digest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a"
       },
       "attn_small": {
         "kernel": "attention_small_f16kv.wgsl",
