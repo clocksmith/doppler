@@ -1,6 +1,6 @@
 {
   "schema": "doppler.execution-routing-audit-index/v1",
-  "registryDigest": "sha256:d5cfb4cfc1d96bf0ac146da2ab2cd603116e0af5af6a7a2d83b28f81a48f8456",
+  "registryDigest": "sha256:43def24d10ec8047c5287d72429dd21c3d200f0f16ca2cd396fcc18e7b7e7351",
   "manifestCount": 31,
   "integrityFailures": [
     {
@@ -1363,7 +1363,7 @@
           "kernelId": "tiled",
           "key": "matmul_f16w_f32a_tiled.wgsl#main",
           "declaredDigest": "sha256:e94ae5374e8b43dd48b663eff59a45c822c3784d5702a1145266b6ffd15ba78c",
-          "expectedDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+          "expectedDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
           "registeredVariants": [
             "matmul/f16w_f32a_tiled"
           ],
@@ -1447,8 +1447,8 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:42057aad19961b397001103b58bd895fa24e3212acc7ebc3c1fcff0b07f703b1",
-            "kernelDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+            "descriptorDigest": "sha256:b49c7b55c0c315029d5568be4d40fea9856d047e8ab98fd702dab707491f027b",
+            "kernelDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
             "requires": [
               "shader-f16"
             ]
@@ -1481,8 +1481,8 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:42057aad19961b397001103b58bd895fa24e3212acc7ebc3c1fcff0b07f703b1",
-            "kernelDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+            "descriptorDigest": "sha256:b49c7b55c0c315029d5568be4d40fea9856d047e8ab98fd702dab707491f027b",
+            "kernelDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
             "requires": [
               "shader-f16"
             ]
@@ -1500,7 +1500,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:8c0f480adc2aecc8744795a21fb857ab9a5a60beb90b222d796afb7f3b90e252"
+      "digest": "sha256:f39c2d1a37725a32a75c9e3e9b3a2a31d2b0d08072e4b3ce8a6b954f2fd1aeda"
     },
     {
       "manifestPath": "models/local/diffusiongemma-26b-a4b-it-q4k-ehf16-af16/manifest.json",
@@ -1857,7 +1857,7 @@
           "kernelId": "tiled",
           "key": "matmul_f16w_f32a_tiled.wgsl#main",
           "declaredDigest": "sha256:e94ae5374e8b43dd48b663eff59a45c822c3784d5702a1145266b6ffd15ba78c",
-          "expectedDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+          "expectedDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
           "registeredVariants": [
             "matmul/f16w_f32a_tiled"
           ],
@@ -1941,8 +1941,8 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:42057aad19961b397001103b58bd895fa24e3212acc7ebc3c1fcff0b07f703b1",
-            "kernelDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+            "descriptorDigest": "sha256:b49c7b55c0c315029d5568be4d40fea9856d047e8ab98fd702dab707491f027b",
+            "kernelDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
             "requires": [
               "shader-f16"
             ]
@@ -1975,8 +1975,8 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:42057aad19961b397001103b58bd895fa24e3212acc7ebc3c1fcff0b07f703b1",
-            "kernelDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+            "descriptorDigest": "sha256:b49c7b55c0c315029d5568be4d40fea9856d047e8ab98fd702dab707491f027b",
+            "kernelDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
             "requires": [
               "shader-f16"
             ]
@@ -1994,7 +1994,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:8c0f480adc2aecc8744795a21fb857ab9a5a60beb90b222d796afb7f3b90e252"
+      "digest": "sha256:f39c2d1a37725a32a75c9e3e9b3a2a31d2b0d08072e4b3ce8a6b954f2fd1aeda"
     },
     {
       "manifestPath": "models/local/gemma-3-270m-it-f16-af32/manifest.json",
@@ -2118,7 +2118,7 @@
           "kernelId": "tiled",
           "key": "matmul_f16w_f32a_tiled.wgsl#main",
           "declaredDigest": "sha256:e94ae5374e8b43dd48b663eff59a45c822c3784d5702a1145266b6ffd15ba78c",
-          "expectedDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+          "expectedDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
           "registeredVariants": [
             "matmul/f16w_f32a_tiled"
           ],
@@ -2172,8 +2172,8 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:42057aad19961b397001103b58bd895fa24e3212acc7ebc3c1fcff0b07f703b1",
-            "kernelDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+            "descriptorDigest": "sha256:b49c7b55c0c315029d5568be4d40fea9856d047e8ab98fd702dab707491f027b",
+            "kernelDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
             "requires": [
               "shader-f16"
             ]
@@ -2206,8 +2206,8 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:42057aad19961b397001103b58bd895fa24e3212acc7ebc3c1fcff0b07f703b1",
-            "kernelDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+            "descriptorDigest": "sha256:b49c7b55c0c315029d5568be4d40fea9856d047e8ab98fd702dab707491f027b",
+            "kernelDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
             "requires": [
               "shader-f16"
             ]
@@ -2225,7 +2225,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:839b8cea8f7ad22c2b145b9e89e9e67a9cb8150641ca0636bf58aa968103d2c1"
+      "digest": "sha256:f895b657bd0b0b2c62f5f89a18234059773906bf0fa787249898d35d4e56eeab"
     },
     {
       "manifestPath": "models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json",
@@ -2349,7 +2349,7 @@
           "kernelId": "tiled",
           "key": "matmul_f16w_f32a_tiled.wgsl#main",
           "declaredDigest": "sha256:e94ae5374e8b43dd48b663eff59a45c822c3784d5702a1145266b6ffd15ba78c",
-          "expectedDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+          "expectedDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
           "registeredVariants": [
             "matmul/f16w_f32a_tiled"
           ],
@@ -2403,8 +2403,8 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:42057aad19961b397001103b58bd895fa24e3212acc7ebc3c1fcff0b07f703b1",
-            "kernelDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+            "descriptorDigest": "sha256:b49c7b55c0c315029d5568be4d40fea9856d047e8ab98fd702dab707491f027b",
+            "kernelDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
             "requires": [
               "shader-f16"
             ]
@@ -2437,8 +2437,8 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:42057aad19961b397001103b58bd895fa24e3212acc7ebc3c1fcff0b07f703b1",
-            "kernelDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+            "descriptorDigest": "sha256:b49c7b55c0c315029d5568be4d40fea9856d047e8ab98fd702dab707491f027b",
+            "kernelDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
             "requires": [
               "shader-f16"
             ]
@@ -2456,7 +2456,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:c2cd3e75d758c5cdc14407baa43e8bd918b2a85257e97f63c9dece5fc2ed311c"
+      "digest": "sha256:6d31fc04cb37c13abfcdb1d394f098e7eb24ae121c9ae87fc63c0f27dca64485"
     },
     {
       "manifestPath": "models/local/gemma-4-12b-it-text-q4k-ehf16-af16/manifest.json",
@@ -2957,7 +2957,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a",
-            "descriptorDigest": "sha256:0771f72574fcfc66fd9b29e9465e95bcdfe098dc0d2be039ebc6cbd22e6710c9",
+            "descriptorDigest": "sha256:fdd47dc8253b6c49eae5157b082dcc73036149e949fb623c842a0f006bc8169f",
             "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
             "requires": [
               "shader-f16"
@@ -2976,7 +2976,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:e4f8ec289ffcb65bc0962c5b74d824c652f12a8ecd1e5c13231fc5d7e2b77699"
+      "digest": "sha256:3b3f57878bf455d4ad90104a2052939ccbd0712df63532db39d3dcd64243699c"
     },
     {
       "manifestPath": "models/local/gemma-4-12b-it-text-w4a16-ct-ehf16-af16/manifest.json",
@@ -3661,7 +3661,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a",
-            "descriptorDigest": "sha256:0771f72574fcfc66fd9b29e9465e95bcdfe098dc0d2be039ebc6cbd22e6710c9",
+            "descriptorDigest": "sha256:fdd47dc8253b6c49eae5157b082dcc73036149e949fb623c842a0f006bc8169f",
             "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
             "requires": [
               "shader-f16"
@@ -3680,7 +3680,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:2679ddc6c78b6c0d8e915ccdeec2fce7aea18e28902a9c60bc0ba74da589d28f"
+      "digest": "sha256:cc50a288d3b0ab364e73096966aaf7ee793a3b52950d5c6d79c79c09059e8adc"
     },
     {
       "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/manifest.json",
@@ -4159,7 +4159,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a",
-            "descriptorDigest": "sha256:0771f72574fcfc66fd9b29e9465e95bcdfe098dc0d2be039ebc6cbd22e6710c9",
+            "descriptorDigest": "sha256:fdd47dc8253b6c49eae5157b082dcc73036149e949fb623c842a0f006bc8169f",
             "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
             "requires": [
               "shader-f16"
@@ -4178,7 +4178,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:7638c03a569c9b2ab4b2eea87fcc7e58c5f75df2f317c99e868a5db2bdaf4526"
+      "digest": "sha256:eaca8917b632d3bd78d47f8bd551abff40de2d26dfe945eab33588a2e5b28e6e"
     },
     {
       "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af32/manifest.json",
@@ -4444,7 +4444,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a",
-            "descriptorDigest": "sha256:0771f72574fcfc66fd9b29e9465e95bcdfe098dc0d2be039ebc6cbd22e6710c9",
+            "descriptorDigest": "sha256:fdd47dc8253b6c49eae5157b082dcc73036149e949fb623c842a0f006bc8169f",
             "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
             "requires": [
               "shader-f16"
@@ -4463,7 +4463,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:34420babb04be381248b251fcff34a4c205cbcb011aab0815320a96eb6db6dd6"
+      "digest": "sha256:4d551d8d5d0d344e727c75b6fefa3bad0b4a410152f5252862035464968e980c"
     },
     {
       "manifestPath": "models/local/glm-ocr-f16-af32-pad-token-v1/manifest.json",
@@ -4576,7 +4576,7 @@
           "kernelId": "tiled",
           "key": "matmul_f16w_f32a_tiled.wgsl#main",
           "declaredDigest": "sha256:e94ae5374e8b43dd48b663eff59a45c822c3784d5702a1145266b6ffd15ba78c",
-          "expectedDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+          "expectedDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
           "registeredVariants": [
             "matmul/f16w_f32a_tiled"
           ],
@@ -4657,8 +4657,8 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:42057aad19961b397001103b58bd895fa24e3212acc7ebc3c1fcff0b07f703b1",
-            "kernelDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+            "descriptorDigest": "sha256:b49c7b55c0c315029d5568be4d40fea9856d047e8ab98fd702dab707491f027b",
+            "kernelDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
             "requires": [
               "shader-f16"
             ]
@@ -4688,8 +4688,8 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:42057aad19961b397001103b58bd895fa24e3212acc7ebc3c1fcff0b07f703b1",
-            "kernelDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+            "descriptorDigest": "sha256:b49c7b55c0c315029d5568be4d40fea9856d047e8ab98fd702dab707491f027b",
+            "kernelDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
             "requires": [
               "shader-f16"
             ]
@@ -4707,7 +4707,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:65ea95dba98bee9295c9040a22022583b46bcd07ffde672524e1c264bfa5f3eb"
+      "digest": "sha256:def0cbb92f65e79dbecb120d145f62199052bde84846e9d54b024c795abe9c8b"
     },
     {
       "manifestPath": "models/local/glm-ocr-f16-af32/manifest.json",
@@ -4820,7 +4820,7 @@
           "kernelId": "tiled",
           "key": "matmul_f16w_f32a_tiled.wgsl#main",
           "declaredDigest": "sha256:e94ae5374e8b43dd48b663eff59a45c822c3784d5702a1145266b6ffd15ba78c",
-          "expectedDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+          "expectedDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
           "registeredVariants": [
             "matmul/f16w_f32a_tiled"
           ],
@@ -4901,8 +4901,8 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:42057aad19961b397001103b58bd895fa24e3212acc7ebc3c1fcff0b07f703b1",
-            "kernelDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+            "descriptorDigest": "sha256:b49c7b55c0c315029d5568be4d40fea9856d047e8ab98fd702dab707491f027b",
+            "kernelDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
             "requires": [
               "shader-f16"
             ]
@@ -4938,7 +4938,7 @@
           "candidate": {
             "operation": "attention",
             "variantId": "prefill_head128_f16kv",
-            "descriptorDigest": "sha256:31b4d16efe366873018842d0c3154f1a3b8dad54ec60e0c817574e400cb6e491",
+            "descriptorDigest": "sha256:59258d6613477ab9e254a501c999e45609b99b3ce02ca6de922f1fe57e3e5d2a",
             "kernelDigest": "sha256:559a3da4f3f5dcc4671f5a9b429a84209340a66a6e17f583bb329b2e23832c9b",
             "requires": [
               "shader-f16"
@@ -4960,8 +4960,8 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:42057aad19961b397001103b58bd895fa24e3212acc7ebc3c1fcff0b07f703b1",
-            "kernelDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+            "descriptorDigest": "sha256:b49c7b55c0c315029d5568be4d40fea9856d047e8ab98fd702dab707491f027b",
+            "kernelDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
             "requires": [
               "shader-f16"
             ]
@@ -4979,7 +4979,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:7af7c38c1817c27a5a7d38dea4eb55bb4dc6dd0ad2f445bda5ceca665960d350"
+      "digest": "sha256:ad375ba98c0d79dae36b2712cee6d09a5379f880af4e8a6dfa557ec3445186f1"
     },
     {
       "manifestPath": "models/local/google-embeddinggemma-300m-q4k-ehf16-af32/manifest.json",
@@ -5077,7 +5077,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a",
-            "descriptorDigest": "sha256:0771f72574fcfc66fd9b29e9465e95bcdfe098dc0d2be039ebc6cbd22e6710c9",
+            "descriptorDigest": "sha256:fdd47dc8253b6c49eae5157b082dcc73036149e949fb623c842a0f006bc8169f",
             "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
             "requires": [
               "shader-f16"
@@ -5111,7 +5111,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a",
-            "descriptorDigest": "sha256:0771f72574fcfc66fd9b29e9465e95bcdfe098dc0d2be039ebc6cbd22e6710c9",
+            "descriptorDigest": "sha256:fdd47dc8253b6c49eae5157b082dcc73036149e949fb623c842a0f006bc8169f",
             "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
             "requires": [
               "shader-f16"
@@ -5145,7 +5145,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a",
-            "descriptorDigest": "sha256:0771f72574fcfc66fd9b29e9465e95bcdfe098dc0d2be039ebc6cbd22e6710c9",
+            "descriptorDigest": "sha256:fdd47dc8253b6c49eae5157b082dcc73036149e949fb623c842a0f006bc8169f",
             "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
             "requires": [
               "shader-f16"
@@ -5154,8 +5154,8 @@
           "candidate": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:42057aad19961b397001103b58bd895fa24e3212acc7ebc3c1fcff0b07f703b1",
-            "kernelDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+            "descriptorDigest": "sha256:b49c7b55c0c315029d5568be4d40fea9856d047e8ab98fd702dab707491f027b",
+            "kernelDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
             "requires": [
               "shader-f16"
             ]
@@ -5164,7 +5164,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:c535ad84c1ea3e9712626c455c0264e141a8443695434471c7cefb1a5a57e174"
+      "digest": "sha256:6b7e3e9a70a2bfb5b6bda576ec91c185b363493a73ea691fea58f0aa968c648f"
     },
     {
       "manifestPath": "models/local/lfm2-5-1-2b-instruct-q4k-ehf16-af32/manifest.json",
@@ -5278,7 +5278,7 @@
           "kernelId": "tiled",
           "key": "matmul_f16w_f32a_tiled.wgsl#main",
           "declaredDigest": "sha256:e94ae5374e8b43dd48b663eff59a45c822c3784d5702a1145266b6ffd15ba78c",
-          "expectedDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+          "expectedDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
           "registeredVariants": [
             "matmul/f16w_f32a_tiled"
           ],
@@ -5362,8 +5362,8 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:42057aad19961b397001103b58bd895fa24e3212acc7ebc3c1fcff0b07f703b1",
-            "kernelDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+            "descriptorDigest": "sha256:b49c7b55c0c315029d5568be4d40fea9856d047e8ab98fd702dab707491f027b",
+            "kernelDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
             "requires": [
               "shader-f16"
             ]
@@ -5452,8 +5452,8 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:42057aad19961b397001103b58bd895fa24e3212acc7ebc3c1fcff0b07f703b1",
-            "kernelDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+            "descriptorDigest": "sha256:b49c7b55c0c315029d5568be4d40fea9856d047e8ab98fd702dab707491f027b",
+            "kernelDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
             "requires": [
               "shader-f16"
             ]
@@ -5471,7 +5471,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:831c45d69ee881e7744a4c3a1ce8478aa044c14228e531c58fe07e6e6d2fdee5"
+      "digest": "sha256:e95a3dfbda7d1339843d50e972ae15a03f0341837cece9b571c632e801b32c95"
     },
     {
       "manifestPath": "models/local/minicpm4-0-5b-f16-af32/manifest.json",
@@ -5669,7 +5669,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a",
-            "descriptorDigest": "sha256:0771f72574fcfc66fd9b29e9465e95bcdfe098dc0d2be039ebc6cbd22e6710c9",
+            "descriptorDigest": "sha256:fdd47dc8253b6c49eae5157b082dcc73036149e949fb623c842a0f006bc8169f",
             "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
             "requires": [
               "shader-f16"
@@ -5759,7 +5759,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a",
-            "descriptorDigest": "sha256:0771f72574fcfc66fd9b29e9465e95bcdfe098dc0d2be039ebc6cbd22e6710c9",
+            "descriptorDigest": "sha256:fdd47dc8253b6c49eae5157b082dcc73036149e949fb623c842a0f006bc8169f",
             "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
             "requires": [
               "shader-f16"
@@ -5793,7 +5793,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a",
-            "descriptorDigest": "sha256:0771f72574fcfc66fd9b29e9465e95bcdfe098dc0d2be039ebc6cbd22e6710c9",
+            "descriptorDigest": "sha256:fdd47dc8253b6c49eae5157b082dcc73036149e949fb623c842a0f006bc8169f",
             "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
             "requires": [
               "shader-f16"
@@ -5802,8 +5802,8 @@
           "candidate": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:42057aad19961b397001103b58bd895fa24e3212acc7ebc3c1fcff0b07f703b1",
-            "kernelDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+            "descriptorDigest": "sha256:b49c7b55c0c315029d5568be4d40fea9856d047e8ab98fd702dab707491f027b",
+            "kernelDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
             "requires": [
               "shader-f16"
             ]
@@ -5812,7 +5812,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:08d441ee1118c3ae9bf09a18d2ccd746cd1f18b76b9a38e14ad2864627afa789"
+      "digest": "sha256:550a72c1656c88bf5f1319677567bb91cc4de69075107c93ac9ae2039ef3eebb"
     },
     {
       "manifestPath": "models/local/muse-glimmer-30b-text-bf16-af32/manifest.json",
@@ -5993,7 +5993,7 @@
           "candidate": {
             "operation": "attention",
             "variantId": "prefill_head128_f16kv",
-            "descriptorDigest": "sha256:31b4d16efe366873018842d0c3154f1a3b8dad54ec60e0c817574e400cb6e491",
+            "descriptorDigest": "sha256:59258d6613477ab9e254a501c999e45609b99b3ce02ca6de922f1fe57e3e5d2a",
             "kernelDigest": "sha256:559a3da4f3f5dcc4671f5a9b429a84209340a66a6e17f583bb329b2e23832c9b",
             "requires": [
               "shader-f16"
@@ -6021,7 +6021,7 @@
           "candidate": {
             "operation": "attention",
             "variantId": "prefill_head128_f16kv",
-            "descriptorDigest": "sha256:31b4d16efe366873018842d0c3154f1a3b8dad54ec60e0c817574e400cb6e491",
+            "descriptorDigest": "sha256:59258d6613477ab9e254a501c999e45609b99b3ce02ca6de922f1fe57e3e5d2a",
             "kernelDigest": "sha256:559a3da4f3f5dcc4671f5a9b429a84209340a66a6e17f583bb329b2e23832c9b",
             "requires": [
               "shader-f16"
@@ -6087,7 +6087,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:a44c3bddb554244798983dc0e1e6cb32c7615661cc4d7730a26afcf3c48fa2c4"
+      "digest": "sha256:b03dfc06c8249730e6bf2ee94f2d534e1ff843896b45bf281253e04c0b10ee88"
     },
     {
       "manifestPath": "models/local/muse-glimmer-30b-text-f16-af32/manifest.json",
@@ -6295,7 +6295,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a",
-            "descriptorDigest": "sha256:0771f72574fcfc66fd9b29e9465e95bcdfe098dc0d2be039ebc6cbd22e6710c9",
+            "descriptorDigest": "sha256:fdd47dc8253b6c49eae5157b082dcc73036149e949fb623c842a0f006bc8169f",
             "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
             "requires": [
               "shader-f16"
@@ -6332,7 +6332,7 @@
           "candidate": {
             "operation": "attention",
             "variantId": "prefill_head128_f16kv",
-            "descriptorDigest": "sha256:31b4d16efe366873018842d0c3154f1a3b8dad54ec60e0c817574e400cb6e491",
+            "descriptorDigest": "sha256:59258d6613477ab9e254a501c999e45609b99b3ce02ca6de922f1fe57e3e5d2a",
             "kernelDigest": "sha256:559a3da4f3f5dcc4671f5a9b429a84209340a66a6e17f583bb329b2e23832c9b",
             "requires": [
               "shader-f16"
@@ -6360,7 +6360,7 @@
           "candidate": {
             "operation": "attention",
             "variantId": "prefill_head128_f16kv",
-            "descriptorDigest": "sha256:31b4d16efe366873018842d0c3154f1a3b8dad54ec60e0c817574e400cb6e491",
+            "descriptorDigest": "sha256:59258d6613477ab9e254a501c999e45609b99b3ce02ca6de922f1fe57e3e5d2a",
             "kernelDigest": "sha256:559a3da4f3f5dcc4671f5a9b429a84209340a66a6e17f583bb329b2e23832c9b",
             "requires": [
               "shader-f16"
@@ -6441,7 +6441,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a",
-            "descriptorDigest": "sha256:0771f72574fcfc66fd9b29e9465e95bcdfe098dc0d2be039ebc6cbd22e6710c9",
+            "descriptorDigest": "sha256:fdd47dc8253b6c49eae5157b082dcc73036149e949fb623c842a0f006bc8169f",
             "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
             "requires": [
               "shader-f16"
@@ -6475,7 +6475,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a",
-            "descriptorDigest": "sha256:0771f72574fcfc66fd9b29e9465e95bcdfe098dc0d2be039ebc6cbd22e6710c9",
+            "descriptorDigest": "sha256:fdd47dc8253b6c49eae5157b082dcc73036149e949fb623c842a0f006bc8169f",
             "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
             "requires": [
               "shader-f16"
@@ -6484,8 +6484,8 @@
           "candidate": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:42057aad19961b397001103b58bd895fa24e3212acc7ebc3c1fcff0b07f703b1",
-            "kernelDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+            "descriptorDigest": "sha256:b49c7b55c0c315029d5568be4d40fea9856d047e8ab98fd702dab707491f027b",
+            "kernelDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
             "requires": [
               "shader-f16"
             ]
@@ -6494,7 +6494,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:7251a2c9b357e6722ae1b5a76ffe0950979a0a2130cb9afe5cacccef79db4670"
+      "digest": "sha256:8c0da004045ea1bff349471d707531c9b8b8d108246b29e74629c44bc82ca265"
     },
     {
       "manifestPath": "models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
@@ -7755,7 +7755,7 @@
           "candidate": {
             "operation": "attention",
             "variantId": "prefill_head128_f16kv",
-            "descriptorDigest": "sha256:31b4d16efe366873018842d0c3154f1a3b8dad54ec60e0c817574e400cb6e491",
+            "descriptorDigest": "sha256:59258d6613477ab9e254a501c999e45609b99b3ce02ca6de922f1fe57e3e5d2a",
             "kernelDigest": "sha256:559a3da4f3f5dcc4671f5a9b429a84209340a66a6e17f583bb329b2e23832c9b",
             "requires": [
               "shader-f16"
@@ -7783,7 +7783,7 @@
           "candidate": {
             "operation": "attention",
             "variantId": "prefill_head128_f16kv",
-            "descriptorDigest": "sha256:31b4d16efe366873018842d0c3154f1a3b8dad54ec60e0c817574e400cb6e491",
+            "descriptorDigest": "sha256:59258d6613477ab9e254a501c999e45609b99b3ce02ca6de922f1fe57e3e5d2a",
             "kernelDigest": "sha256:559a3da4f3f5dcc4671f5a9b429a84209340a66a6e17f583bb329b2e23832c9b",
             "requires": [
               "shader-f16"
@@ -7883,7 +7883,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:6f4db118f07508bf66eaad9b16da48cdf8c47ce85ddb1ec0e6aa1a8e0d3541cd"
+      "digest": "sha256:d2a0fa9e6761518f7f9ef1f646b025b3925ec36bec897d7c459d0861b54ccad0"
     },
     {
       "manifestPath": "models/local/qwen-3-reranker-0-6b-f16-af32/manifest.json",
@@ -8081,7 +8081,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a",
-            "descriptorDigest": "sha256:0771f72574fcfc66fd9b29e9465e95bcdfe098dc0d2be039ebc6cbd22e6710c9",
+            "descriptorDigest": "sha256:fdd47dc8253b6c49eae5157b082dcc73036149e949fb623c842a0f006bc8169f",
             "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
             "requires": [
               "shader-f16"
@@ -8118,7 +8118,7 @@
           "candidate": {
             "operation": "attention",
             "variantId": "prefill_head128_f16kv",
-            "descriptorDigest": "sha256:31b4d16efe366873018842d0c3154f1a3b8dad54ec60e0c817574e400cb6e491",
+            "descriptorDigest": "sha256:59258d6613477ab9e254a501c999e45609b99b3ce02ca6de922f1fe57e3e5d2a",
             "kernelDigest": "sha256:559a3da4f3f5dcc4671f5a9b429a84209340a66a6e17f583bb329b2e23832c9b",
             "requires": [
               "shader-f16"
@@ -8146,7 +8146,7 @@
           "candidate": {
             "operation": "attention",
             "variantId": "prefill_head128_f16kv",
-            "descriptorDigest": "sha256:31b4d16efe366873018842d0c3154f1a3b8dad54ec60e0c817574e400cb6e491",
+            "descriptorDigest": "sha256:59258d6613477ab9e254a501c999e45609b99b3ce02ca6de922f1fe57e3e5d2a",
             "kernelDigest": "sha256:559a3da4f3f5dcc4671f5a9b429a84209340a66a6e17f583bb329b2e23832c9b",
             "requires": [
               "shader-f16"
@@ -8227,7 +8227,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a",
-            "descriptorDigest": "sha256:0771f72574fcfc66fd9b29e9465e95bcdfe098dc0d2be039ebc6cbd22e6710c9",
+            "descriptorDigest": "sha256:fdd47dc8253b6c49eae5157b082dcc73036149e949fb623c842a0f006bc8169f",
             "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
             "requires": [
               "shader-f16"
@@ -8261,7 +8261,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a",
-            "descriptorDigest": "sha256:0771f72574fcfc66fd9b29e9465e95bcdfe098dc0d2be039ebc6cbd22e6710c9",
+            "descriptorDigest": "sha256:fdd47dc8253b6c49eae5157b082dcc73036149e949fb623c842a0f006bc8169f",
             "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
             "requires": [
               "shader-f16"
@@ -8270,8 +8270,8 @@
           "candidate": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:42057aad19961b397001103b58bd895fa24e3212acc7ebc3c1fcff0b07f703b1",
-            "kernelDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+            "descriptorDigest": "sha256:b49c7b55c0c315029d5568be4d40fea9856d047e8ab98fd702dab707491f027b",
+            "kernelDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
             "requires": [
               "shader-f16"
             ]
@@ -8280,7 +8280,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:39ad800038db874506f69b7d518de76716a1f19ee006e596dab33348ddc296ce"
+      "digest": "sha256:8ea5fd3e22a5cbe57a77387315c3db1a24c9683f8042b1760d8aa379d54c105b"
     },
     {
       "manifestPath": "models/local/qwen-3-reranker-0-6b-q4k-ehf16-af32/manifest.json",
@@ -8557,7 +8557,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a",
-            "descriptorDigest": "sha256:0771f72574fcfc66fd9b29e9465e95bcdfe098dc0d2be039ebc6cbd22e6710c9",
+            "descriptorDigest": "sha256:fdd47dc8253b6c49eae5157b082dcc73036149e949fb623c842a0f006bc8169f",
             "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
             "requires": [
               "shader-f16"
@@ -8594,7 +8594,7 @@
           "candidate": {
             "operation": "attention",
             "variantId": "prefill_head128_f16kv",
-            "descriptorDigest": "sha256:31b4d16efe366873018842d0c3154f1a3b8dad54ec60e0c817574e400cb6e491",
+            "descriptorDigest": "sha256:59258d6613477ab9e254a501c999e45609b99b3ce02ca6de922f1fe57e3e5d2a",
             "kernelDigest": "sha256:559a3da4f3f5dcc4671f5a9b429a84209340a66a6e17f583bb329b2e23832c9b",
             "requires": [
               "shader-f16"
@@ -8622,7 +8622,7 @@
           "candidate": {
             "operation": "attention",
             "variantId": "prefill_head128_f16kv",
-            "descriptorDigest": "sha256:31b4d16efe366873018842d0c3154f1a3b8dad54ec60e0c817574e400cb6e491",
+            "descriptorDigest": "sha256:59258d6613477ab9e254a501c999e45609b99b3ce02ca6de922f1fe57e3e5d2a",
             "kernelDigest": "sha256:559a3da4f3f5dcc4671f5a9b429a84209340a66a6e17f583bb329b2e23832c9b",
             "requires": [
               "shader-f16"
@@ -8730,7 +8730,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a",
-            "descriptorDigest": "sha256:0771f72574fcfc66fd9b29e9465e95bcdfe098dc0d2be039ebc6cbd22e6710c9",
+            "descriptorDigest": "sha256:fdd47dc8253b6c49eae5157b082dcc73036149e949fb623c842a0f006bc8169f",
             "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
             "requires": [
               "shader-f16"
@@ -8760,7 +8760,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a",
-            "descriptorDigest": "sha256:0771f72574fcfc66fd9b29e9465e95bcdfe098dc0d2be039ebc6cbd22e6710c9",
+            "descriptorDigest": "sha256:fdd47dc8253b6c49eae5157b082dcc73036149e949fb623c842a0f006bc8169f",
             "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
             "requires": [
               "shader-f16"
@@ -8769,8 +8769,8 @@
           "candidate": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:42057aad19961b397001103b58bd895fa24e3212acc7ebc3c1fcff0b07f703b1",
-            "kernelDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+            "descriptorDigest": "sha256:b49c7b55c0c315029d5568be4d40fea9856d047e8ab98fd702dab707491f027b",
+            "kernelDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
             "requires": [
               "shader-f16"
             ]
@@ -8779,7 +8779,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:808e0f22fe6c501552caa28cf49925a551ff12cb47a95668808a695b086537bf"
+      "digest": "sha256:91dfb0aee43cbae8d50af160336d979e51429c738e22c1f2749d08dc5148f56b"
     },
     {
       "manifestPath": "models/local/qwen3-8-27b-text-f16-af32/manifest.json",
@@ -9068,7 +9068,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a",
-            "descriptorDigest": "sha256:0771f72574fcfc66fd9b29e9465e95bcdfe098dc0d2be039ebc6cbd22e6710c9",
+            "descriptorDigest": "sha256:fdd47dc8253b6c49eae5157b082dcc73036149e949fb623c842a0f006bc8169f",
             "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
             "requires": [
               "shader-f16"
@@ -9102,7 +9102,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a",
-            "descriptorDigest": "sha256:0771f72574fcfc66fd9b29e9465e95bcdfe098dc0d2be039ebc6cbd22e6710c9",
+            "descriptorDigest": "sha256:fdd47dc8253b6c49eae5157b082dcc73036149e949fb623c842a0f006bc8169f",
             "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
             "requires": [
               "shader-f16"
@@ -9136,7 +9136,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a",
-            "descriptorDigest": "sha256:0771f72574fcfc66fd9b29e9465e95bcdfe098dc0d2be039ebc6cbd22e6710c9",
+            "descriptorDigest": "sha256:fdd47dc8253b6c49eae5157b082dcc73036149e949fb623c842a0f006bc8169f",
             "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
             "requires": [
               "shader-f16"
@@ -9145,8 +9145,8 @@
           "candidate": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:42057aad19961b397001103b58bd895fa24e3212acc7ebc3c1fcff0b07f703b1",
-            "kernelDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+            "descriptorDigest": "sha256:b49c7b55c0c315029d5568be4d40fea9856d047e8ab98fd702dab707491f027b",
+            "kernelDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
             "requires": [
               "shader-f16"
             ]
@@ -9155,7 +9155,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:ec790751beb347a31e068ec4f1ce664093e81284820749206778c60781bd1d00"
+      "digest": "sha256:d30d561206dea57550325df831827a4fb07de5fe4be840492e23b33b29880159"
     },
     {
       "manifestPath": "models/local/qwen3-8-27b-text-q4k-ehaf16/manifest.json",
@@ -9684,7 +9684,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a",
-            "descriptorDigest": "sha256:0771f72574fcfc66fd9b29e9465e95bcdfe098dc0d2be039ebc6cbd22e6710c9",
+            "descriptorDigest": "sha256:fdd47dc8253b6c49eae5157b082dcc73036149e949fb623c842a0f006bc8169f",
             "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
             "requires": [
               "shader-f16"
@@ -10002,7 +10002,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a",
-            "descriptorDigest": "sha256:0771f72574fcfc66fd9b29e9465e95bcdfe098dc0d2be039ebc6cbd22e6710c9",
+            "descriptorDigest": "sha256:fdd47dc8253b6c49eae5157b082dcc73036149e949fb623c842a0f006bc8169f",
             "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
             "requires": [
               "shader-f16"
@@ -10036,7 +10036,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a",
-            "descriptorDigest": "sha256:0771f72574fcfc66fd9b29e9465e95bcdfe098dc0d2be039ebc6cbd22e6710c9",
+            "descriptorDigest": "sha256:fdd47dc8253b6c49eae5157b082dcc73036149e949fb623c842a0f006bc8169f",
             "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
             "requires": [
               "shader-f16"
@@ -10045,8 +10045,8 @@
           "candidate": {
             "operation": "matmul",
             "variantId": "f16w_f32a_tiled",
-            "descriptorDigest": "sha256:42057aad19961b397001103b58bd895fa24e3212acc7ebc3c1fcff0b07f703b1",
-            "kernelDigest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92",
+            "descriptorDigest": "sha256:b49c7b55c0c315029d5568be4d40fea9856d047e8ab98fd702dab707491f027b",
+            "kernelDigest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a",
             "requires": [
               "shader-f16"
             ]
@@ -10055,7 +10055,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:0157716b2d5037acac93a3dcf4b9491c00383be167e51274e47e94181c71c578"
+      "digest": "sha256:d03614bf745ee6db1b1e50a410d95f062272d65c75721aa38ec2aca2df293608"
     },
     {
       "manifestPath": "models/local/translategemma-4b-it-q4k-ehf16-af32/manifest.json",
@@ -10227,7 +10227,7 @@
           "selected": {
             "operation": "matmul",
             "variantId": "f16w_f32a",
-            "descriptorDigest": "sha256:0771f72574fcfc66fd9b29e9465e95bcdfe098dc0d2be039ebc6cbd22e6710c9",
+            "descriptorDigest": "sha256:fdd47dc8253b6c49eae5157b082dcc73036149e949fb623c842a0f006bc8169f",
             "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
             "requires": [
               "shader-f16"
@@ -10530,8 +10530,8 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:2564cf38ad118319ae131ce655b0d900d852a51ff5fbc32caabac47ba2e5fa74"
+      "digest": "sha256:3ca2162b15cda4b85ef7c9688fac33c62717714c374d658bf1e603ff0f679693"
     }
   ],
-  "digest": "sha256:0553e1eb648a69b72ed9997d885ec3dce8d22e7b5ccc3a06e067e5ad91b2c190"
+  "digest": "sha256:fe40c9d1e501f27759befbcac9aac42e78f56bd33f9e636e1bec7eb40975b26a"
 }
