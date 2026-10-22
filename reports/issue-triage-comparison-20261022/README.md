@@ -70,6 +70,14 @@ classifier's quality zero-shot. This is one device and one model; it is not a ge
 Open Doppler walls, measured here: reopening from local storage takes 13.5 s with no network,
 and GPU memory is about twice the competitor's for a 0.6B model.
 
+Follow-up attribution: the amdgpu GTT+VRAM figure is device-global per process and includes
+Dawn upload staging and reclaim lag. Wrapping `GPUDevice.createBuffer` during an offline reopen
+and one decision found 1.49 GiB of live Doppler buffers (2.79 GiB created over the run): the
+296 MiB F16 embedding table, 448 MiB of KV, the F16 FFN weights and Q4_K projections
+([doppler-gpu-buffers.json](doppler-gpu-buffers.json)). About 10 s of the reopen was JavaScript
+SHA-256 and BLAKE3 re-hashing; [be482a91](../capsule-open-hashing-20261022/README.md) reduced the
+reopen to 8.5-8.7 s after this comparison was run. The table above is unchanged.
+
 Component: `doppler.examples` (reference application), `doppler` (evidence).
 Intent: preserved.
 Acceptance evidence: this directory; `examples/issue-triage/tools/product-compare.js` with `config.json`.
