@@ -104,7 +104,7 @@
     "artifactIdentity": {
       "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
       "weightCapsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-wp-source-pinned-01-local-grid",
-      "manifestVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-source-pinned-02-closed",
+      "manifestVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-source-pinned-03-tiled-head128",
       "artifactCompleteness": "complete",
       "sourceRepo": "Qwen/Qwen3-Reranker-0.6B",
       "sourceRevision": "e61197ed45024b0ed8a2d74b80b4d909f1255473"
@@ -308,9 +308,9 @@
         "digest": "sha256:142817adcacb28750a92793996cd15c2d9fe13d03e0c2d0aadf3e674dc7a35d6"
       },
       "tiled": {
-        "kernel": "matmul_f16w_f32a.wgsl",
+        "kernel": "matmul_f16w_f32a_tiled.wgsl",
         "entry": "main",
-        "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc"
+        "digest": "sha256:bed71e396f1c4d76a1e0c252b79cedd092c2b67aefcf733e861ed706ec820e92"
       },
       "lm_head_gemv": {
         "kernel": "matmul_gemv_subgroup.wgsl",
@@ -351,10 +351,10 @@
           "kvDtype": "f16"
         }
       },
-      "attn_small": {
-        "kernel": "attention_small_f16kv.wgsl",
+      "attn_head128": {
+        "kernel": "attention_head128_f16kv.wgsl",
         "entry": "main",
-        "digest": "sha256:ad3bb913c17167eb28fefc6abd24602ea0f148bc22a2b5f437eeffcc6f7fc668",
+        "digest": "sha256:559a3da4f3f5dcc4671f5a9b429a84209340a66a6e17f583bb329b2e23832c9b",
         "precision": {
           "kvDtype": "f16"
         }
@@ -526,7 +526,7 @@
       ],
       [
         "attention",
-        "attn_small"
+        "attn_head128"
       ],
       [
         "o_proj",
