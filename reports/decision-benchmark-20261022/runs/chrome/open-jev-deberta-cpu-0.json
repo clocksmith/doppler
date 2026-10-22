@@ -1,0 +1,29 @@
+{
+ "runId": "chrome-open-jev-deberta-cpu-0",
+ "browser": {
+  "name": "chrome",
+  "kind": "chrome",
+  "version": "Google Chrome 146.0.7680.177"
+ },
+ "lane": "open-jev-deberta",
+ "mode": "cpu",
+ "rep": 0,
+ "quality": false,
+ "launchToReportMs": 1200636,
+ "transfer": {
+  "modelBytes": 486677872,
+  "modelRequests": 8,
+  "missing": [
+   "/favicon.ico"
+  ]
+ },
+ "peakMemory": {
+  "totalRss": 2947379200,
+  "gpuMemory": 22999040,
+  "processes": 16
+ },
+ "report": {
+  "error": "timeout after 1200000 ms",
+  "lastProgress": "120 open-jev-deberta: opening"
+ }
+}

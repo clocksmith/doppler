@@ -1,0 +1,66 @@
+{
+ "runId": "firefox-nightly-transformersjs-fp16-cpu-0",
+ "browser": {
+  "name": "firefox-nightly",
+  "kind": "firefox",
+  "version": "Mozilla Firefox 160.0a1"
+ },
+ "lane": "transformersjs-fp16",
+ "mode": "cpu",
+ "rep": 0,
+ "quality": false,
+ "launchToReportMs": 1484,
+ "transfer": {
+  "modelBytes": 11424041,
+  "modelRequests": 5,
+  "missing": [
+   "/favicon.ico"
+  ]
+ },
+ "peakMemory": {
+  "totalRss": 912048128,
+  "gpuMemory": 4218880,
+  "processes": 6
+ },
+ "report": {
+  "lane": "transformersjs-fp16",
+  "runId": "firefox-nightly-transformersjs-fp16-cpu-0",
+  "mode": "cpu",
+  "quality": false,
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:160.0) Gecko/20100101 Firefox/160.0",
+  "startedAtMs": 232,
+  "gpu": {
+   "available": true,
+   "adapter": {
+    "vendor": "",
+    "architecture": "",
+    "device": "",
+    "description": "",
+    "isFallbackAdapter": false
+   },
+   "features": [
+    "bgra8unorm-storage",
+    "clip-distances",
+    "core-features-and-limits",
+    "depth-clip-control",
+    "depth32float-stencil8",
+    "dual-source-blending",
+    "float32-blendable",
+    "float32-filterable",
+    "indirect-first-instance",
+    "rg11b10ufloat-renderable",
+    "shader-f16",
+    "texture-compression-bc",
+    "texture-compression-bc-sliced-3d",
+    "timestamp-query"
+   ],
+   "maxBufferSize": 2147483644,
+   "maxStorageBufferBindingSize": 2147483644
+  },
+  "gpuRemoved": true,
+  "comparison": "a-runtime-parity",
+  "error": "Error: The device (webgpu) does not support fp16.\ngetSession@http://127.0.0.1:36383/app/benchmark/node_modules/@huggingface/transformers/dist/transformers.web.js:19734:11\n",
+  "messages": [],
+  "finishedAtMs": 416
+ }
+}

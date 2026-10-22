@@ -1,0 +1,470 @@
+{
+ "runId": "chrome-transformersjs-fp16-cold-1",
+ "browser": {
+  "name": "chrome",
+  "kind": "chrome",
+  "version": "Google Chrome 146.0.7680.177"
+ },
+ "lane": "transformersjs-fp16",
+ "mode": "cold",
+ "rep": 1,
+ "quality": false,
+ "launchToReportMs": 10071,
+ "transfer": {
+  "modelBytes": 1514911957,
+  "modelRequests": 6,
+  "missing": [
+   "/favicon.ico"
+  ]
+ },
+ "peakMemory": {
+  "totalRss": 8431370240,
+  "gpuMemory": 3647983616,
+  "processes": 15
+ },
+ "report": {
+  "lane": "transformersjs-fp16",
+  "runId": "chrome-transformersjs-fp16-cold-1",
+  "mode": "cold",
+  "quality": false,
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/146.0.0.0 Safari/537.36",
+  "startedAtMs": 94.30000001192093,
+  "gpu": {
+   "available": true,
+   "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "",
+    "description": "",
+    "isFallbackAdapter": false
+   },
+   "features": [
+    "bgra8unorm-storage",
+    "chromium-experimental-multi-draw-indirect",
+    "chromium-experimental-subgroup-matrix",
+    "chromium-experimental-timestamp-query-inside-passes",
+    "clip-distances",
+    "core-features-and-limits",
+    "depth-clip-control",
+    "depth32float-stencil8",
+    "dual-source-blending",
+    "float32-blendable",
+    "float32-filterable",
+    "indirect-first-instance",
+    "primitive-index",
+    "rg11b10ufloat-renderable",
+    "shader-f16",
+    "subgroups",
+    "texture-component-swizzle",
+    "texture-compression-bc",
+    "texture-compression-bc-sliced-3d",
+    "texture-formats-tier1",
+    "texture-formats-tier2",
+    "timestamp-query"
+   ],
+   "maxBufferSize": 4294967292,
+   "maxStorageBufferBindingSize": 4294967292
+  },
+  "comparison": "a-runtime-parity",
+  "openMs": 6214.199999988079,
+  "runtime": {
+   "engine": "transformersjs",
+   "version": "4.3.1",
+   "device": "webgpu",
+   "dtype": "fp16"
+  },
+  "firstDecisionMs": 564.6999999880791,
+  "coldCompleteMs": 6889.199999988079,
+  "firstIssue": {
+   "index": 1136,
+   "label": "bug",
+   "repo": "bitcoin/bitcoin",
+   "elapsedMs": 564.6999999880791,
+   "probabilities": {
+    "bug": 0.9178403059125387,
+    "feature": 0.0753409202477896,
+    "question": 0.006818773839671817
+   },
+   "choice": "bug",
+   "detail": {
+    "routes": [
+     {
+      "id": "bug",
+      "yes": 11.8515625,
+      "no": 15.5859375,
+      "score": -3.734375
+     },
+     {
+      "id": "feature",
+      "yes": 9.2109375,
+      "no": 15.4453125,
+      "score": -6.234375
+     },
+     {
+      "id": "question",
+      "yes": 6.08203125,
+      "no": 14.71875,
+      "score": -8.63671875
+     }
+    ],
+    "bodyCharacterBudget": 1600
+   }
+  },
+  "test": [
+   {
+    "index": 1146,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 230.19999998807907,
+    "probabilities": {
+     "bug": 0.8824322095359035,
+     "feature": 0.08737262071617195,
+     "question": 0.030195169747924418
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.3046875,
+       "no": 16.03125,
+       "score": -3.7265625
+      },
+      {
+       "id": "feature",
+       "yes": 8.8984375,
+       "no": 14.9375,
+       "score": -6.0390625
+      },
+      {
+       "id": "question",
+       "yes": 7.90625,
+       "no": 15.0078125,
+       "score": -7.1015625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1190,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 148.39999997615814,
+    "probabilities": {
+     "bug": 0.36108833652550637,
+     "feature": 0.3554901807535709,
+     "question": 0.2834214827209229
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.7421875,
+       "no": 16,
+       "score": -4.2578125
+      },
+      {
+       "id": "feature",
+       "yes": 11.703125,
+       "no": 15.9765625,
+       "score": -4.2734375
+      },
+      {
+       "id": "question",
+       "yes": 11.6875,
+       "no": 16.1875,
+       "score": -4.5
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1118,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 177.80000001192093,
+    "probabilities": {
+     "bug": 0.8340072956503214,
+     "feature": 0.10117656411088695,
+     "question": 0.06481614023879169
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.9921875,
+       "no": 16.109375,
+       "score": -5.1171875
+      },
+      {
+       "id": "feature",
+       "yes": 9.2265625,
+       "no": 16.453125,
+       "score": -7.2265625
+      },
+      {
+       "id": "question",
+       "yes": 8.90625,
+       "no": 16.578125,
+       "score": -7.671875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1120,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 298.19999998807907,
+    "probabilities": {
+     "bug": 0.8605332619094925,
+     "feature": 0.06456732766001984,
+     "question": 0.07489941043048769
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.7890625,
+       "no": 15.8515625,
+       "score": -5.0625
+      },
+      {
+       "id": "feature",
+       "yes": 7.01171875,
+       "no": 14.6640625,
+       "score": -7.65234375
+      },
+      {
+       "id": "question",
+       "yes": 7.74609375,
+       "no": 15.25,
+       "score": -7.50390625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1121,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 197.9000000357628,
+    "probabilities": {
+     "bug": 0.48665898175522515,
+     "feature": 0.2816566103058874,
+     "question": 0.23168440793888745
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.5,
+       "no": 16.953125,
+       "score": -5.453125
+      },
+      {
+       "id": "feature",
+       "yes": 10.0625,
+       "no": 16.0625,
+       "score": -6
+      },
+      {
+       "id": "question",
+       "yes": 9.8828125,
+       "no": 16.078125,
+       "score": -6.1953125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1123,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 196.5999999642372,
+    "probabilities": {
+     "bug": 0.4378929011562066,
+     "feature": 0.4589078202586632,
+     "question": 0.10319927858513019
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 7.5078125,
+       "no": 15.59375,
+       "score": -8.0859375
+      },
+      {
+       "id": "feature",
+       "yes": 7.03125,
+       "no": 15.0703125,
+       "score": -8.0390625
+      },
+      {
+       "id": "question",
+       "yes": 5.640625,
+       "no": 15.171875,
+       "score": -9.53125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1134,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 291.0999999642372,
+    "probabilities": {
+     "bug": 0.7806799619704651,
+     "feature": 0.09771355456816014,
+     "question": 0.12160648346137487
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.5625,
+       "no": 15.8984375,
+       "score": -7.3359375
+      },
+      {
+       "id": "feature",
+       "yes": 5.1796875,
+       "no": 14.59375,
+       "score": -9.4140625
+      },
+      {
+       "id": "question",
+       "yes": 6.34375,
+       "no": 15.5390625,
+       "score": -9.1953125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1143,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 304.30000001192093,
+    "probabilities": {
+     "bug": 0.9922578119324861,
+     "feature": 0.006505443022599457,
+     "question": 0.0012367450449145743
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 13.4609375,
+       "no": 16.328125,
+       "score": -2.8671875
+      },
+      {
+       "id": "feature",
+       "yes": 6.94921875,
+       "no": 14.84375,
+       "score": -7.89453125
+      },
+      {
+       "id": "question",
+       "yes": 5.1328125,
+       "no": 14.6875,
+       "score": -9.5546875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1173,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 375.69999998807907,
+    "probabilities": {
+     "bug": 0.8676527605227294,
+     "feature": 0.08760366536560292,
+     "question": 0.04474357411166781
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.1640625,
+       "no": 15.625,
+       "score": -6.4609375
+      },
+      {
+       "id": "feature",
+       "yes": 6.63671875,
+       "no": 15.390625,
+       "score": -8.75390625
+      },
+      {
+       "id": "question",
+       "yes": 7.18359375,
+       "no": 16.609375,
+       "score": -9.42578125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1142,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 241.20000004768372,
+    "probabilities": {
+     "bug": 0.7698194978503884,
+     "feature": 0.12517963916851574,
+     "question": 0.10500086298109587
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.140625,
+       "no": 16.453125,
+       "score": -6.3125
+      },
+      {
+       "id": "feature",
+       "yes": 7.81640625,
+       "no": 15.9453125,
+       "score": -8.12890625
+      },
+      {
+       "id": "question",
+       "yes": 7.9765625,
+       "no": 16.28125,
+       "score": -8.3046875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   }
+  ],
+  "messages": [
+   "warn: Unable to add response to browser cache: UnknownError: Failed to execute 'put' on 'Cache': Unexpected internal error.."
+  ],
+  "finishedAtMs": 9369.399999976158
+ }
+}

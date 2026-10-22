@@ -1,0 +1,3705 @@
+{
+ "runId": "chrome-open-jev-kev-4b-cold-0",
+ "browser": {
+  "name": "chrome",
+  "kind": "chrome",
+  "version": "Google Chrome 146.0.7680.177"
+ },
+ "lane": "open-jev-kev-4b",
+ "mode": "cold",
+ "rep": 0,
+ "quality": true,
+ "launchToReportMs": 94040,
+ "transfer": {
+  "modelBytes": 2276780627,
+  "modelRequests": 12,
+  "missing": [
+   "/favicon.ico"
+  ]
+ },
+ "peakMemory": {
+  "totalRss": 5710589952,
+  "gpuMemory": 6038867968,
+  "processes": 15
+ },
+ "report": {
+  "lane": "open-jev-kev-4b",
+  "runId": "chrome-open-jev-kev-4b-cold-0",
+  "mode": "cold",
+  "quality": true,
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/146.0.0.0 Safari/537.36",
+  "startedAtMs": 105,
+  "gpu": {
+   "available": true,
+   "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "",
+    "description": "",
+    "isFallbackAdapter": false
+   },
+   "features": [
+    "bgra8unorm-storage",
+    "chromium-experimental-multi-draw-indirect",
+    "chromium-experimental-subgroup-matrix",
+    "chromium-experimental-timestamp-query-inside-passes",
+    "clip-distances",
+    "core-features-and-limits",
+    "depth-clip-control",
+    "depth32float-stencil8",
+    "dual-source-blending",
+    "float32-blendable",
+    "float32-filterable",
+    "indirect-first-instance",
+    "primitive-index",
+    "rg11b10ufloat-renderable",
+    "shader-f16",
+    "subgroups",
+    "texture-component-swizzle",
+    "texture-compression-bc",
+    "texture-compression-bc-sliced-3d",
+    "texture-formats-tier1",
+    "texture-formats-tier2",
+    "timestamp-query"
+   ],
+   "maxBufferSize": 4294967292,
+   "maxStorageBufferBindingSize": 4294967292
+  },
+  "comparison": "b-product",
+  "openMs": 6623.399999976158,
+  "runtime": {
+   "engine": "open-jev",
+   "version": "0.1.2",
+   "transformersVersion": "4.3.1",
+   "model": "onnx-community/kev-4b-ONNX",
+   "family": "kev",
+   "device": "webgpu",
+   "dtype": "q4f16"
+  },
+  "firstDecisionMs": 927.6000000238419,
+  "coldCompleteMs": 7741.800000011921,
+  "firstIssue": {
+   "index": 1136,
+   "label": "bug",
+   "repo": "bitcoin/bitcoin",
+   "elapsedMs": 927.6000000238419,
+   "probabilities": {
+    "bug": 0.9701423790732119,
+    "feature": 0.0011074412988930891,
+    "question": 0.02875017962789509
+   },
+   "choice": "bug",
+   "detail": {
+    "confidence": 0.9701423790732119
+   }
+  },
+  "test": [
+   {
+    "index": 1146,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 194.80000001192093,
+    "probabilities": {
+     "bug": 0.9869249122227347,
+     "feature": 0.0012666692718225799,
+     "question": 0.011808418505442737
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9869249122227347
+    }
+   },
+   {
+    "index": 1190,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 180.69999998807907,
+    "probabilities": {
+     "bug": 0.33338792426587377,
+     "feature": 0.09014733808361199,
+     "question": 0.5764647376505142
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.5764647376505142
+    }
+   },
+   {
+    "index": 1118,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 210.9000000357628,
+    "probabilities": {
+     "bug": 0.953833143277083,
+     "feature": 0.0008529601107428021,
+     "question": 0.045313896612174345
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.953833143277083
+    }
+   },
+   {
+    "index": 1120,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 446.30000001192093,
+    "probabilities": {
+     "bug": 0.9941351785578612,
+     "feature": 0.00040305845292888843,
+     "question": 0.005461762989209937
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9941351785578612
+    }
+   },
+   {
+    "index": 1121,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 277.80000001192093,
+    "probabilities": {
+     "bug": 0.9889712867013977,
+     "feature": 0.0008505020545465189,
+     "question": 0.010178211244055735
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9889712867013977
+    }
+   },
+   {
+    "index": 1123,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 270,
+    "probabilities": {
+     "bug": 0.48222710941993796,
+     "feature": 0.0668589453139981,
+     "question": 0.450913945266064
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.48222710941993796
+    }
+   },
+   {
+    "index": 1134,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 446.69999998807907,
+    "probabilities": {
+     "bug": 0.5539600639242629,
+     "feature": 0.033365495090693746,
+     "question": 0.41267444098504347
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.5539600639242629
+    }
+   },
+   {
+    "index": 1143,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 459.5,
+    "probabilities": {
+     "bug": 0.9815426369103528,
+     "feature": 0.0002456510375543929,
+     "question": 0.018211712052092918
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9815426369103528
+    }
+   },
+   {
+    "index": 1173,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 573.2999999523163,
+    "probabilities": {
+     "bug": 0.9989502023306417,
+     "feature": 0.0004500605295687153,
+     "question": 0.000599737139789542
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9989502023306417
+    }
+   },
+   {
+    "index": 1142,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 336.5,
+    "probabilities": {
+     "bug": 0.39102778320193826,
+     "feature": 0.0021525004723094675,
+     "question": 0.6068197163257524
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.6068197163257524
+    }
+   },
+   {
+    "index": 978,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 323,
+    "probabilities": {
+     "bug": 0.015894373616877358,
+     "feature": 0.22793286264964358,
+     "question": 0.7561727637334791
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.7561727637334791
+    }
+   },
+   {
+    "index": 936,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 328.4000000357628,
+    "probabilities": {
+     "bug": 0.0013675709764475593,
+     "feature": 0.9777967059546044,
+     "question": 0.020835723068948035
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9777967059546044
+    }
+   },
+   {
+    "index": 962,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 210.9000000357628,
+    "probabilities": {
+     "bug": 0.0007049427304284802,
+     "feature": 0.980111141174246,
+     "question": 0.01918391609532564
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.980111141174246
+    }
+   },
+   {
+    "index": 932,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 205.19999998807907,
+    "probabilities": {
+     "bug": 0.00009022795564620147,
+     "feature": 0.9993289758822829,
+     "question": 0.0005807961620709021
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9993289758822829
+    }
+   },
+   {
+    "index": 941,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 384.7000000476837,
+    "probabilities": {
+     "bug": 0.08383349396339215,
+     "feature": 0.7466527331590583,
+     "question": 0.1695137728775495
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.7466527331590583
+    }
+   },
+   {
+    "index": 975,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 273.5999999642372,
+    "probabilities": {
+     "bug": 0.0009001346611097794,
+     "feature": 0.9775246135110967,
+     "question": 0.02157525182779352
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9775246135110967
+    }
+   },
+   {
+    "index": 985,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 398.39999997615814,
+    "probabilities": {
+     "bug": 0.001543618230328494,
+     "feature": 0.9883562635405854,
+     "question": 0.01010011822908615
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9883562635405854
+    }
+   },
+   {
+    "index": 934,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 365.39999997615814,
+    "probabilities": {
+     "bug": 0.00038163594028936266,
+     "feature": 0.9961514849125355,
+     "question": 0.003466879147175093
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9961514849125355
+    }
+   },
+   {
+    "index": 908,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 209.29999995231628,
+    "probabilities": {
+     "bug": 0.0005222183748962925,
+     "feature": 0.999216217468772,
+     "question": 0.0002615641563317624
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.999216217468772
+    }
+   },
+   {
+    "index": 976,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 202,
+    "probabilities": {
+     "bug": 0.37354206337307694,
+     "feature": 0.5542200819536062,
+     "question": 0.07223785467331692
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.5542200819536062
+    }
+   },
+   {
+    "index": 1008,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 432.80000001192093,
+    "probabilities": {
+     "bug": 0.15054611781126423,
+     "feature": 0.5221327216702308,
+     "question": 0.3273211605185049
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.5221327216702308
+    }
+   },
+   {
+    "index": 1072,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 378.7000000476837,
+    "probabilities": {
+     "bug": 0.9787082856445404,
+     "feature": 0.0018240829660042394,
+     "question": 0.019467631389455373
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9787082856445404
+    }
+   },
+   {
+    "index": 1058,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 994,
+    "probabilities": {
+     "bug": 0.6760841608378225,
+     "feature": 0.001422271251312849,
+     "question": 0.32249356791086475
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.6760841608378225
+    }
+   },
+   {
+    "index": 1077,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 572.1000000238419,
+    "probabilities": {
+     "bug": 0.6331663247222598,
+     "feature": 0.007472876651358145,
+     "question": 0.3593607986263821
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.6331663247222598
+    }
+   },
+   {
+    "index": 1035,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 419.80000001192093,
+    "probabilities": {
+     "bug": 0.9791194779120013,
+     "feature": 0.0019577775480922022,
+     "question": 0.018922744539906576
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9791194779120013
+    }
+   },
+   {
+    "index": 1054,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 168.5,
+    "probabilities": {
+     "bug": 0.1758368184420637,
+     "feature": 0.02057442057390077,
+     "question": 0.8035887609840356
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.8035887609840356
+    }
+   },
+   {
+    "index": 1039,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 318.10000002384186,
+    "probabilities": {
+     "bug": 0.873495224021498,
+     "feature": 0.0026168093934990574,
+     "question": 0.12388796658500298
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.873495224021498
+    }
+   },
+   {
+    "index": 1087,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 170.39999997615814,
+    "probabilities": {
+     "bug": 0.24822166457950867,
+     "feature": 0.0019900311278387888,
+     "question": 0.7497883042926526
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.7497883042926526
+    }
+   },
+   {
+    "index": 1097,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 197.5,
+    "probabilities": {
+     "bug": 0.5388773145328173,
+     "feature": 0.0019934734175302373,
+     "question": 0.45912921204965246
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.5388773145328173
+    }
+   },
+   {
+    "index": 1095,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 119.40000003576279,
+    "probabilities": {
+     "bug": 0.16426229563888367,
+     "feature": 0.10100160308620622,
+     "question": 0.7347361012749101
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.7347361012749101
+    }
+   },
+   {
+    "index": 60,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 537.6000000238419,
+    "probabilities": {
+     "bug": 0.998371101504109,
+     "feature": 0.0003362270182508178,
+     "question": 0.001292671477640103
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.998371101504109
+    }
+   },
+   {
+    "index": 75,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 507.60000002384186,
+    "probabilities": {
+     "bug": 0.9987494825795957,
+     "feature": 0.00018575256789942371,
+     "question": 0.0010647648525048937
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9987494825795957
+    }
+   },
+   {
+    "index": 47,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 255.89999997615814,
+    "probabilities": {
+     "bug": 0.9845399241084397,
+     "feature": 0.0008925391282899073,
+     "question": 0.014567536763270435
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9845399241084397
+    }
+   },
+   {
+    "index": 52,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 568.3000000119209,
+    "probabilities": {
+     "bug": 0.9978235916395872,
+     "feature": 0.0004404274974247082,
+     "question": 0.001735980862988149
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9978235916395872
+    }
+   },
+   {
+    "index": 92,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 264.0999999642372,
+    "probabilities": {
+     "bug": 0.9989160588702161,
+     "feature": 0.0001721576116360701,
+     "question": 0.0009117835181477158
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9989160588702161
+    }
+   },
+   {
+    "index": 21,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 369.69999998807907,
+    "probabilities": {
+     "bug": 0.9989943324172477,
+     "feature": 0.00045583074704743515,
+     "question": 0.0005498368357047796
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9989943324172477
+    }
+   },
+   {
+    "index": 37,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 257.4000000357628,
+    "probabilities": {
+     "bug": 0.9951998021219854,
+     "feature": 0.004196259457688343,
+     "question": 0.0006039384203260164
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9951998021219854
+    }
+   },
+   {
+    "index": 94,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 430.80000001192093,
+    "probabilities": {
+     "bug": 0.9992455758715613,
+     "feature": 0.00004617017256512269,
+     "question": 0.0007082539558735136
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9992455758715613
+    }
+   },
+   {
+    "index": 65,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 221.60000002384186,
+    "probabilities": {
+     "bug": 0.937878982662604,
+     "feature": 0.03990071972013405,
+     "question": 0.022220297617261905
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.937878982662604
+    }
+   },
+   {
+    "index": 66,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 400.5,
+    "probabilities": {
+     "bug": 0.9982543036962113,
+     "feature": 0.00019118020428003814,
+     "question": 0.001554516099508616
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9982543036962113
+    }
+   },
+   {
+    "index": 151,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 295.89999997615814,
+    "probabilities": {
+     "bug": 0.09900463103587448,
+     "feature": 0.6765738640111374,
+     "question": 0.22442150495298802
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.6765738640111374
+    }
+   },
+   {
+    "index": 134,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 299.89999997615814,
+    "probabilities": {
+     "bug": 0.0003221461747544152,
+     "feature": 0.9985583835653622,
+     "question": 0.0011194702598835227
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9985583835653622
+    }
+   },
+   {
+    "index": 188,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 265.30000001192093,
+    "probabilities": {
+     "bug": 0.0046289669701050536,
+     "feature": 0.9716672535335589,
+     "question": 0.023703779496335956
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9716672535335589
+    }
+   },
+   {
+    "index": 174,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 398.4000000357628,
+    "probabilities": {
+     "bug": 0.036395430539987235,
+     "feature": 0.6575272452900044,
+     "question": 0.3060773241700085
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.6575272452900044
+    }
+   },
+   {
+    "index": 149,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 268.5,
+    "probabilities": {
+     "bug": 0.8570621260624776,
+     "feature": 0.12287008724745634,
+     "question": 0.02006778669006607
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.8570621260624776
+    }
+   },
+   {
+    "index": 119,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 428.9000000357628,
+    "probabilities": {
+     "bug": 0.0016383639200634051,
+     "feature": 0.8807796746879883,
+     "question": 0.11758196139194821
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.8807796746879883
+    }
+   },
+   {
+    "index": 131,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 417.39999997615814,
+    "probabilities": {
+     "bug": 0.0002825429232635329,
+     "feature": 0.9992186647377496,
+     "question": 0.0004987923389869669
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9992186647377496
+    }
+   },
+   {
+    "index": 129,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 195.30000001192093,
+    "probabilities": {
+     "bug": 0.04883621421331201,
+     "feature": 0.9378127077662838,
+     "question": 0.013351078020404245
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9378127077662838
+    }
+   },
+   {
+    "index": 165,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 373.80000001192093,
+    "probabilities": {
+     "bug": 0.013542520119580603,
+     "feature": 0.8771980659228872,
+     "question": 0.10925941395753223
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.8771980659228872
+    }
+   },
+   {
+    "index": 156,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 410.7999999523163,
+    "probabilities": {
+     "bug": 0.9901894618263946,
+     "feature": 0.001970268322719151,
+     "question": 0.007840269850886346
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9901894618263946
+    }
+   },
+   {
+    "index": 297,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 414.30000001192093,
+    "probabilities": {
+     "bug": 0.17158565120086847,
+     "feature": 0.0034047131450752736,
+     "question": 0.8250096356540563
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.8250096356540563
+    }
+   },
+   {
+    "index": 230,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 400.89999997615814,
+    "probabilities": {
+     "bug": 0.9627166649139361,
+     "feature": 0.007710713378840469,
+     "question": 0.029572621707223558
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9627166649139361
+    }
+   },
+   {
+    "index": 202,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 404,
+    "probabilities": {
+     "bug": 0.07171015996508912,
+     "feature": 0.05040515119548276,
+     "question": 0.877884688839428
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.877884688839428
+    }
+   },
+   {
+    "index": 254,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 350.9000000357628,
+    "probabilities": {
+     "bug": 0.9990377301264355,
+     "feature": 0.0002534713882536608,
+     "question": 0.000708798485310875
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9990377301264355
+    }
+   },
+   {
+    "index": 236,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 298.9000000357628,
+    "probabilities": {
+     "bug": 0.6244083070557763,
+     "feature": 0.00491875029232301,
+     "question": 0.3706729426519006
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.6244083070557763
+    }
+   },
+   {
+    "index": 239,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 300.39999997615814,
+    "probabilities": {
+     "bug": 0.10684974782231202,
+     "feature": 0.09705057315841452,
+     "question": 0.7960996790192735
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.7960996790192735
+    }
+   },
+   {
+    "index": 249,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 344.30000001192093,
+    "probabilities": {
+     "bug": 0.968945637158733,
+     "feature": 0.0002705264937993609,
+     "question": 0.030783836347467654
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.968945637158733
+    }
+   },
+   {
+    "index": 289,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 116.5,
+    "probabilities": {
+     "bug": 0.0015689284974665558,
+     "feature": 0.0007127178926614821,
+     "question": 0.997718353609872
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.997718353609872
+    }
+   },
+   {
+    "index": 211,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 210,
+    "probabilities": {
+     "bug": 0.0030002749271294715,
+     "feature": 0.9481979626785013,
+     "question": 0.04880176239436908
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9481979626785013
+    }
+   },
+   {
+    "index": 268,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 199.5,
+    "probabilities": {
+     "bug": 0.6852033700917659,
+     "feature": 0.020812943146614974,
+     "question": 0.2939836867616191
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.6852033700917659
+    }
+   },
+   {
+    "index": 667,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 297.7000000476837,
+    "probabilities": {
+     "bug": 0.053656923903521316,
+     "feature": 0.5392761110610078,
+     "question": 0.4070669650354709
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.5392761110610078
+    }
+   },
+   {
+    "index": 634,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 560.6999999880791,
+    "probabilities": {
+     "bug": 0.9531271606931286,
+     "feature": 0.006756666024473456,
+     "question": 0.04011617328239783
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9531271606931286
+    }
+   },
+   {
+    "index": 629,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 678.2999999523163,
+    "probabilities": {
+     "bug": 0.9978603821376028,
+     "feature": 0.001071637216166385,
+     "question": 0.0010679806462309028
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9978603821376028
+    }
+   },
+   {
+    "index": 675,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 163.9000000357628,
+    "probabilities": {
+     "bug": 0.004736841220402222,
+     "feature": 0.9894679548857849,
+     "question": 0.005795203893812847
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9894679548857849
+    }
+   },
+   {
+    "index": 687,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 166.80000001192093,
+    "probabilities": {
+     "bug": 0.9915597793955715,
+     "feature": 0.002474690098661542,
+     "question": 0.0059655305057668955
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9915597793955715
+    }
+   },
+   {
+    "index": 605,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 271.10000002384186,
+    "probabilities": {
+     "bug": 0.9929180365100566,
+     "feature": 0.0003622692693655271,
+     "question": 0.006719694220577775
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9929180365100566
+    }
+   },
+   {
+    "index": 690,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 769.8000000119209,
+    "probabilities": {
+     "bug": 0.995531519696831,
+     "feature": 0.0009016226880903476,
+     "question": 0.0035668576150786543
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.995531519696831
+    }
+   },
+   {
+    "index": 694,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 194.69999998807907,
+    "probabilities": {
+     "bug": 0.9853622770492587,
+     "feature": 0.005872066599567587,
+     "question": 0.008765656351173648
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9853622770492587
+    }
+   },
+   {
+    "index": 653,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 310.30000001192093,
+    "probabilities": {
+     "bug": 0.9971254946547492,
+     "feature": 0.0008214486379893388,
+     "question": 0.0020530567072614657
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9971254946547492
+    }
+   },
+   {
+    "index": 696,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 347.80000001192093,
+    "probabilities": {
+     "bug": 0.9943677973741,
+     "feature": 0.0012564358606976629,
+     "question": 0.004375766765202581
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9943677973741
+    }
+   },
+   {
+    "index": 739,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 304.39999997615814,
+    "probabilities": {
+     "bug": 0.0001099958701330653,
+     "feature": 0.9991904032788939,
+     "question": 0.0006996008509730958
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9991904032788939
+    }
+   },
+   {
+    "index": 714,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 171.19999998807907,
+    "probabilities": {
+     "bug": 0.004316965095860384,
+     "feature": 0.985085473479985,
+     "question": 0.010597561424154628
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.985085473479985
+    }
+   },
+   {
+    "index": 746,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 168.39999997615814,
+    "probabilities": {
+     "bug": 0.010410112412473495,
+     "feature": 0.9811016947611878,
+     "question": 0.008488192826338893
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9811016947611878
+    }
+   },
+   {
+    "index": 727,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 207.60000002384186,
+    "probabilities": {
+     "bug": 0.0097073393142841,
+     "feature": 0.974288940695712,
+     "question": 0.016003719990003763
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.974288940695712
+    }
+   },
+   {
+    "index": 785,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 165.69999998807907,
+    "probabilities": {
+     "bug": 0.0003593469060780372,
+     "feature": 0.9965181269675287,
+     "question": 0.0031225261263932787
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9965181269675287
+    }
+   },
+   {
+    "index": 701,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 117,
+    "probabilities": {
+     "bug": 0.00023335231227085074,
+     "feature": 0.9925355716664078,
+     "question": 0.007231076021321398
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9925355716664078
+    }
+   },
+   {
+    "index": 712,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 307.80000001192093,
+    "probabilities": {
+     "bug": 0.00008967622227785987,
+     "feature": 0.9990549173182579,
+     "question": 0.0008554064594641568
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9990549173182579
+    }
+   },
+   {
+    "index": 731,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 257.60000002384186,
+    "probabilities": {
+     "bug": 0.0008158160749436921,
+     "feature": 0.9811435787840668,
+     "question": 0.018040605140989496
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9811435787840668
+    }
+   },
+   {
+    "index": 728,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 116.60000002384186,
+    "probabilities": {
+     "bug": 0.008800696956456333,
+     "feature": 0.9644984851088453,
+     "question": 0.02670081793469833
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9644984851088453
+    }
+   },
+   {
+    "index": 710,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 519,
+    "probabilities": {
+     "bug": 0.008383413615889594,
+     "feature": 0.9871380241757605,
+     "question": 0.004478562208349897
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9871380241757605
+    }
+   },
+   {
+    "index": 856,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 257.80000001192093,
+    "probabilities": {
+     "bug": 0.00004490697614087922,
+     "feature": 0.9988488833797002,
+     "question": 0.0011062096441588891
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9988488833797002
+    }
+   },
+   {
+    "index": 897,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 507.89999997615814,
+    "probabilities": {
+     "bug": 0.9942706339747976,
+     "feature": 0.0009075433001465895,
+     "question": 0.004821822725055671
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9942706339747976
+    }
+   },
+   {
+    "index": 885,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 570,
+    "probabilities": {
+     "bug": 0.994236196253881,
+     "feature": 0.00047035140210552204,
+     "question": 0.00529345234401349
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.994236196253881
+    }
+   },
+   {
+    "index": 820,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 272.39999997615814,
+    "probabilities": {
+     "bug": 0.00035133095744864756,
+     "feature": 0.9954472652261297,
+     "question": 0.0042014038164216614
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9954472652261297
+    }
+   },
+   {
+    "index": 801,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 360.9000000357628,
+    "probabilities": {
+     "bug": 0.007053295837325171,
+     "feature": 0.9757266761243754,
+     "question": 0.017220028038299504
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9757266761243754
+    }
+   },
+   {
+    "index": 859,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 390,
+    "probabilities": {
+     "bug": 0.9365924278931728,
+     "feature": 0.010877340865284225,
+     "question": 0.052530231241543004
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9365924278931728
+    }
+   },
+   {
+    "index": 804,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 429.5,
+    "probabilities": {
+     "bug": 0.11836909188652203,
+     "feature": 0.0035718198158116274,
+     "question": 0.8780590882976663
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.8780590882976663
+    }
+   },
+   {
+    "index": 869,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 409.19999998807907,
+    "probabilities": {
+     "bug": 0.00006672251432634635,
+     "feature": 0.999289948829288,
+     "question": 0.0006433286563858467
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.999289948829288
+    }
+   },
+   {
+    "index": 873,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 210.5,
+    "probabilities": {
+     "bug": 0.37089050195893375,
+     "feature": 0.5578610968832965,
+     "question": 0.0712484011577698
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.5578610968832965
+    }
+   },
+   {
+    "index": 892,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 518.8000000119209,
+    "probabilities": {
+     "bug": 0.9963643951457182,
+     "feature": 0.00041760022620079075,
+     "question": 0.0032180046280810936
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9963643951457182
+    }
+   },
+   {
+    "index": 1274,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 516.8000000119209,
+    "probabilities": {
+     "bug": 0.9963126655111773,
+     "feature": 0.0003714020462640731,
+     "question": 0.0033159324425586557
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9963126655111773
+    }
+   },
+   {
+    "index": 1277,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 514.6999999880791,
+    "probabilities": {
+     "bug": 0.9980689115556689,
+     "feature": 0.0007241959301763346,
+     "question": 0.0012068925141546498
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9980689115556689
+    }
+   },
+   {
+    "index": 1233,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 607.6999999880791,
+    "probabilities": {
+     "bug": 0.8401120769297992,
+     "feature": 0.007339721747540826,
+     "question": 0.15254820132265984
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.8401120769297992
+    }
+   },
+   {
+    "index": 1215,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 569.2000000476837,
+    "probabilities": {
+     "bug": 0.9964948468679937,
+     "feature": 0.00023843783403007537,
+     "question": 0.0032667152979761575
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9964948468679937
+    }
+   },
+   {
+    "index": 1213,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 196.69999998807907,
+    "probabilities": {
+     "bug": 0.6480097322609059,
+     "feature": 0.29798711473034317,
+     "question": 0.05400315300875091
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.6480097322609059
+    }
+   },
+   {
+    "index": 1253,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 483.30000001192093,
+    "probabilities": {
+     "bug": 0.6815214201224752,
+     "feature": 0.000922063608130177,
+     "question": 0.3175565162693946
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.6815214201224752
+    }
+   },
+   {
+    "index": 1296,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 271.30000001192093,
+    "probabilities": {
+     "bug": 0.9414425445794307,
+     "feature": 0.05472499474540334,
+     "question": 0.003832460675165983
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9414425445794307
+    }
+   },
+   {
+    "index": 1241,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 413.10000002384186,
+    "probabilities": {
+     "bug": 0.99935220299,
+     "feature": 0.00021943025256305609,
+     "question": 0.00042836675743677927
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.99935220299
+    }
+   },
+   {
+    "index": 1206,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 261.10000002384186,
+    "probabilities": {
+     "bug": 0.7290195321460827,
+     "feature": 0.2112264949350513,
+     "question": 0.05975397291886602
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.7290195321460827
+    }
+   },
+   {
+    "index": 1279,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 262.10000002384186,
+    "probabilities": {
+     "bug": 0.6810942933135897,
+     "feature": 0.28364521013007754,
+     "question": 0.035260496556332746
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.6810942933135897
+    }
+   },
+   {
+    "index": 1418,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 392.19999998807907,
+    "probabilities": {
+     "bug": 0.03487721696862882,
+     "feature": 0.9528438074857652,
+     "question": 0.01227897554560597
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9528438074857652
+    }
+   },
+   {
+    "index": 1467,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 671.4000000357628,
+    "probabilities": {
+     "bug": 0.036162296809480375,
+     "feature": 0.9235744618781639,
+     "question": 0.04026324131235563
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9235744618781639
+    }
+   },
+   {
+    "index": 1411,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 264.80000001192093,
+    "probabilities": {
+     "bug": 0.19285741602074485,
+     "feature": 0.7642571098577585,
+     "question": 0.04288547412149661
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.7642571098577585
+    }
+   },
+   {
+    "index": 1449,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 261.80000001192093,
+    "probabilities": {
+     "bug": 0.024598697643786405,
+     "feature": 0.9486474660807221,
+     "question": 0.026753836275491515
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9486474660807221
+    }
+   },
+   {
+    "index": 1445,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 373.0999999642372,
+    "probabilities": {
+     "bug": 0.14344555514576046,
+     "feature": 0.8364269180873638,
+     "question": 0.020127526766875806
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.8364269180873638
+    }
+   },
+   {
+    "index": 1485,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 430.80000001192093,
+    "probabilities": {
+     "bug": 0.026434250705220465,
+     "feature": 0.9565026805765502,
+     "question": 0.01706306871822931
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9565026805765502
+    }
+   },
+   {
+    "index": 1443,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 164.30000001192093,
+    "probabilities": {
+     "bug": 0.000179724041554011,
+     "feature": 0.9729639007547177,
+     "question": 0.02685637520372827
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9729639007547177
+    }
+   },
+   {
+    "index": 1442,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 552.8000000119209,
+    "probabilities": {
+     "bug": 0.000123128922716722,
+     "feature": 0.9977239946855415,
+     "question": 0.002152876391741637
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9977239946855415
+    }
+   },
+   {
+    "index": 1451,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 411,
+    "probabilities": {
+     "bug": 0.008454795535046673,
+     "feature": 0.9696365391108602,
+     "question": 0.021908665354093155
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9696365391108602
+    }
+   },
+   {
+    "index": 1463,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 257.69999998807907,
+    "probabilities": {
+     "bug": 0.00913228769221893,
+     "feature": 0.9800440130370782,
+     "question": 0.01082369927070267
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9800440130370782
+    }
+   },
+   {
+    "index": 1386,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 191.80000001192093,
+    "probabilities": {
+     "bug": 0.001688036189564504,
+     "feature": 0.008909695394819705,
+     "question": 0.9894022684156157
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.9894022684156157
+    }
+   },
+   {
+    "index": 1320,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 307.5999999642372,
+    "probabilities": {
+     "bug": 0.0003476485126315503,
+     "feature": 0.00010367189026869445,
+     "question": 0.9995486795970997
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.9995486795970997
+    }
+   },
+   {
+    "index": 1339,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 195.89999997615814,
+    "probabilities": {
+     "bug": 0.008571730814859938,
+     "feature": 0.010299171182493032,
+     "question": 0.9811290980026469
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.9811290980026469
+    }
+   },
+   {
+    "index": 1378,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 168.10000002384186,
+    "probabilities": {
+     "bug": 0.0013812020620612828,
+     "feature": 0.3534973732025342,
+     "question": 0.6451214247354045
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.6451214247354045
+    }
+   },
+   {
+    "index": 1388,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 505.30000001192093,
+    "probabilities": {
+     "bug": 0.9606374451407814,
+     "feature": 0.0032738165482323776,
+     "question": 0.03608873831098624
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9606374451407814
+    }
+   },
+   {
+    "index": 1323,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 524.1000000238419,
+    "probabilities": {
+     "bug": 0.3761533488926212,
+     "feature": 0.001247339057184958,
+     "question": 0.6225993120501938
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.6225993120501938
+    }
+   },
+   {
+    "index": 1376,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 623.6999999880791,
+    "probabilities": {
+     "bug": 0.9031240539226688,
+     "feature": 0.0031631331790748607,
+     "question": 0.09371281289825631
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9031240539226688
+    }
+   },
+   {
+    "index": 1334,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 421.30000001192093,
+    "probabilities": {
+     "bug": 0.9946643296814673,
+     "feature": 0.000592516874112765,
+     "question": 0.004743153444419939
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9946643296814673
+    }
+   },
+   {
+    "index": 1380,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 251.5999999642372,
+    "probabilities": {
+     "bug": 0.7839212262472607,
+     "feature": 0.003849342246260469,
+     "question": 0.21222943150647894
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.7839212262472607
+    }
+   },
+   {
+    "index": 1322,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 422.19999998807907,
+    "probabilities": {
+     "bug": 0.9492679618909352,
+     "feature": 0.004913660808243204,
+     "question": 0.0458183773008214
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9492679618909352
+    }
+   },
+   {
+    "index": 526,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 413.30000001192093,
+    "probabilities": {
+     "bug": 0.9986102240082424,
+     "feature": 0.00014267997572263834,
+     "question": 0.0012470960160349878
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9986102240082424
+    }
+   },
+   {
+    "index": 595,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 552.1999999880791,
+    "probabilities": {
+     "bug": 0.996328554966001,
+     "feature": 0.0007415238730183084,
+     "question": 0.0029299211609806804
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.996328554966001
+    }
+   },
+   {
+    "index": 516,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 545.3999999761581,
+    "probabilities": {
+     "bug": 0.9956898209330605,
+     "feature": 0.0004425002649911976,
+     "question": 0.0038676788019483188
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9956898209330605
+    }
+   },
+   {
+    "index": 570,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 421.5999999642372,
+    "probabilities": {
+     "bug": 0.996907014868622,
+     "feature": 0.0004211047140305432,
+     "question": 0.0026718804173476137
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.996907014868622
+    }
+   },
+   {
+    "index": 528,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 348.39999997615814,
+    "probabilities": {
+     "bug": 0.992990650052043,
+     "feature": 0.00022983985346623878,
+     "question": 0.006779510094490793
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.992990650052043
+    }
+   },
+   {
+    "index": 504,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 417.80000001192093,
+    "probabilities": {
+     "bug": 0.966380426758678,
+     "feature": 0.0017253545631333751,
+     "question": 0.03189421867818874
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.966380426758678
+    }
+   },
+   {
+    "index": 538,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 368.5999999642372,
+    "probabilities": {
+     "bug": 0.9984637485548862,
+     "feature": 0.0001667853239721114,
+     "question": 0.0013694661211416765
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9984637485548862
+    }
+   },
+   {
+    "index": 539,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 558.5999999642372,
+    "probabilities": {
+     "bug": 0.9955180918487736,
+     "feature": 0.0005463206508305977,
+     "question": 0.003935587500395835
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9955180918487736
+    }
+   },
+   {
+    "index": 515,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 523.1000000238419,
+    "probabilities": {
+     "bug": 0.9908491186131202,
+     "feature": 0.000366490939771012,
+     "question": 0.008784390447108832
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9908491186131202
+    }
+   },
+   {
+    "index": 523,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 576.6999999880791,
+    "probabilities": {
+     "bug": 0.9955225146422662,
+     "feature": 0.0005399582213240161,
+     "question": 0.003937527136409892
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9955225146422662
+    }
+   },
+   {
+    "index": 472,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 504.69999998807907,
+    "probabilities": {
+     "bug": 0.00008906538335207415,
+     "feature": 0.9990559448547998,
+     "question": 0.0008549897618480635
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9990559448547998
+    }
+   },
+   {
+    "index": 461,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 420.30000001192093,
+    "probabilities": {
+     "bug": 0.004300173474514088,
+     "feature": 0.009161436788689113,
+     "question": 0.9865383897367968
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.9865383897367968
+    }
+   },
+   {
+    "index": 404,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 247.19999998807907,
+    "probabilities": {
+     "bug": 0.026914221996827168,
+     "feature": 0.5230598331697959,
+     "question": 0.45002594483337693
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.5230598331697959
+    }
+   },
+   {
+    "index": 450,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 170.30000001192093,
+    "probabilities": {
+     "bug": 0.9319578270377527,
+     "feature": 0.0016429070287883242,
+     "question": 0.06639926593345902
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9319578270377527
+    }
+   },
+   {
+    "index": 422,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 424.19999998807907,
+    "probabilities": {
+     "bug": 0.8612030235223782,
+     "feature": 0.01635384583269921,
+     "question": 0.12244313064492252
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.8612030235223782
+    }
+   },
+   {
+    "index": 440,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 364.19999998807907,
+    "probabilities": {
+     "bug": 0.053299431242893894,
+     "feature": 0.810462723185562,
+     "question": 0.13623784557154422
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.810462723185562
+    }
+   },
+   {
+    "index": 462,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 496.80000001192093,
+    "probabilities": {
+     "bug": 0.08854041723346916,
+     "feature": 0.8743652566713397,
+     "question": 0.03709432609519119
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.8743652566713397
+    }
+   },
+   {
+    "index": 455,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 376.10000002384186,
+    "probabilities": {
+     "bug": 0.0003039673828420813,
+     "feature": 0.9980913556855483,
+     "question": 0.0016046769316095117
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9980913556855483
+    }
+   },
+   {
+    "index": 497,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 266.80000001192093,
+    "probabilities": {
+     "bug": 0.000021592139733045914,
+     "feature": 0.9990067828168705,
+     "question": 0.000971625043396402
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9990067828168705
+    }
+   },
+   {
+    "index": 456,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 501.5999999642372,
+    "probabilities": {
+     "bug": 0.18723622453410907,
+     "feature": 0.7944766154071704,
+     "question": 0.018287160058720515
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.7944766154071704
+    }
+   },
+   {
+    "index": 325,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 263.80000001192093,
+    "probabilities": {
+     "bug": 0.9416918596360307,
+     "feature": 0.0009486526949499407,
+     "question": 0.05735948766901917
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9416918596360307
+    }
+   },
+   {
+    "index": 370,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 514.3000000119209,
+    "probabilities": {
+     "bug": 0.9330444256739093,
+     "feature": 0.0030879743187339024,
+     "question": 0.0638676000073569
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9330444256739093
+    }
+   },
+   {
+    "index": 378,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 260.89999997615814,
+    "probabilities": {
+     "bug": 0.6740575241775786,
+     "feature": 0.0006255610072331218,
+     "question": 0.32531691481518826
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.6740575241775786
+    }
+   },
+   {
+    "index": 335,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 508.30000001192093,
+    "probabilities": {
+     "bug": 0.8847680524826259,
+     "feature": 0.00373062404169935,
+     "question": 0.11150132347567474
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.8847680524826259
+    }
+   },
+   {
+    "index": 300,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 269.0999999642372,
+    "probabilities": {
+     "bug": 0.9015988746932797,
+     "feature": 0.0029780808697036742,
+     "question": 0.09542304443701652
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9015988746932797
+    }
+   },
+   {
+    "index": 331,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 420,
+    "probabilities": {
+     "bug": 0.1504217567586247,
+     "feature": 0.0015319309490071397,
+     "question": 0.8480463122923683
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.8480463122923683
+    }
+   },
+   {
+    "index": 312,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 411.89999997615814,
+    "probabilities": {
+     "bug": 0.1746911681827157,
+     "feature": 0.0064255696393383825,
+     "question": 0.8188832621779459
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.8188832621779459
+    }
+   },
+   {
+    "index": 386,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 301,
+    "probabilities": {
+     "bug": 0.05340760002858107,
+     "feature": 0.1156321458619072,
+     "question": 0.8309602541095118
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.8309602541095118
+    }
+   },
+   {
+    "index": 384,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 363.39999997615814,
+    "probabilities": {
+     "bug": 0.004495333806928852,
+     "feature": 0.00418602193667817,
+     "question": 0.991318644256393
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.991318644256393
+    }
+   },
+   {
+    "index": 337,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 207.69999998807907,
+    "probabilities": {
+     "bug": 0.002587923045979037,
+     "feature": 0.10961227772279565,
+     "question": 0.8877997992312252
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.8877997992312252
+    }
+   }
+  ],
+  "train": [
+   {
+    "index": 1136,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 542.1999999880791,
+    "probabilities": {
+     "bug": 0.9701423790732119,
+     "feature": 0.0011074412988930891,
+     "question": 0.02875017962789509
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9701423790732119
+    }
+   },
+   {
+    "index": 1120,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 309.80000001192093,
+    "probabilities": {
+     "bug": 0.9445415826427048,
+     "feature": 0.012030179634222623,
+     "question": 0.043428237723072416
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9445415826427048
+    }
+   },
+   {
+    "index": 1190,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 369.60000002384186,
+    "probabilities": {
+     "bug": 0.9900673830667954,
+     "feature": 0.001491416186831723,
+     "question": 0.008441200746372793
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9900673830667954
+    }
+   },
+   {
+    "index": 1156,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 168.69999998807907,
+    "probabilities": {
+     "bug": 0.7886769778925431,
+     "feature": 0.0409261483836472,
+     "question": 0.17039687372380968
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.7886769778925431
+    }
+   },
+   {
+    "index": 1166,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 619.6999999880791,
+    "probabilities": {
+     "bug": 0.9945660786181836,
+     "feature": 0.0007373263251277813,
+     "question": 0.004696595056688591
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9945660786181836
+    }
+   },
+   {
+    "index": 1105,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 672.8000000119209,
+    "probabilities": {
+     "bug": 0.9967411900633075,
+     "feature": 0.00015610481560642624,
+     "question": 0.0031027051210860816
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9967411900633075
+    }
+   },
+   {
+    "index": 971,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 302,
+    "probabilities": {
+     "bug": 0.007288114748948578,
+     "feature": 0.986780900764195,
+     "question": 0.0059309844868564955
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.986780900764195
+    }
+   },
+   {
+    "index": 904,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 407.2000000476837,
+    "probabilities": {
+     "bug": 0.00012551344981883615,
+     "feature": 0.9993244680110329,
+     "question": 0.0005500185391482829
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9993244680110329
+    }
+   },
+   {
+    "index": 959,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 264.19999998807907,
+    "probabilities": {
+     "bug": 0.0012441922505597753,
+     "feature": 0.8227292355360556,
+     "question": 0.17602657221338466
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.8227292355360556
+    }
+   },
+   {
+    "index": 945,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 357.19999998807907,
+    "probabilities": {
+     "bug": 0.022598368896984692,
+     "feature": 0.9760391818777864,
+     "question": 0.0013624492252289646
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9760391818777864
+    }
+   },
+   {
+    "index": 909,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 262.7000000476837,
+    "probabilities": {
+     "bug": 0.03079349675640643,
+     "feature": 0.9576360790350962,
+     "question": 0.011570424208497408
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9576360790350962
+    }
+   },
+   {
+    "index": 917,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 169.89999997615814,
+    "probabilities": {
+     "bug": 0.0009684469083083959,
+     "feature": 0.9937961785686655,
+     "question": 0.00523537452302606
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9937961785686655
+    }
+   },
+   {
+    "index": 1048,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 569.8000000119209,
+    "probabilities": {
+     "bug": 0.8399377535301757,
+     "feature": 0.0010048237581936235,
+     "question": 0.15905742271163056
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.8399377535301757
+    }
+   },
+   {
+    "index": 1059,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 582.8000000119209,
+    "probabilities": {
+     "bug": 0.8843756351714903,
+     "feature": 0.00029725498416858804,
+     "question": 0.11532710984434105
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.8843756351714903
+    }
+   },
+   {
+    "index": 1040,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 162.19999998807907,
+    "probabilities": {
+     "bug": 0.3180619228522688,
+     "feature": 0.0006638965696582056,
+     "question": 0.681274180578073
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.681274180578073
+    }
+   },
+   {
+    "index": 1053,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 408.0999999642372,
+    "probabilities": {
+     "bug": 0.9625069942692754,
+     "feature": 0.0030277585185556856,
+     "question": 0.03446524721216907
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9625069942692754
+    }
+   },
+   {
+    "index": 1055,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 201.10000002384186,
+    "probabilities": {
+     "bug": 0.20309612935421606,
+     "feature": 0.016834747190016073,
+     "question": 0.7800691234557677
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.7800691234557677
+    }
+   },
+   {
+    "index": 1044,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 309.60000002384186,
+    "probabilities": {
+     "bug": 0.5635429450555177,
+     "feature": 0.003528953451602123,
+     "question": 0.43292810149288
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.5635429450555177
+    }
+   },
+   {
+    "index": 0,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 385.30000001192093,
+    "probabilities": {
+     "bug": 0.9982058489110327,
+     "feature": 0.00017304618868099313,
+     "question": 0.0016211049002863328
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9982058489110327
+    }
+   },
+   {
+    "index": 20,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 377.39999997615814,
+    "probabilities": {
+     "bug": 0.9960557205845564,
+     "feature": 0.0003868522566451663,
+     "question": 0.0035574271587983978
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9960557205845564
+    }
+   },
+   {
+    "index": 89,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 623.8999999761581,
+    "probabilities": {
+     "bug": 0.9985776260319755,
+     "feature": 0.0003462947518818889,
+     "question": 0.0010760792161425314
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9985776260319755
+    }
+   },
+   {
+    "index": 81,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 257.4000000357628,
+    "probabilities": {
+     "bug": 0.9947893697885882,
+     "feature": 0.0003490475572381202,
+     "question": 0.004861582654173673
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9947893697885882
+    }
+   },
+   {
+    "index": 35,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 365.69999998807907,
+    "probabilities": {
+     "bug": 0.9984073063537426,
+     "feature": 0.00016038681152402457,
+     "question": 0.0014323068347332618
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9984073063537426
+    }
+   },
+   {
+    "index": 83,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 417.39999997615814,
+    "probabilities": {
+     "bug": 0.9985091361628101,
+     "feature": 0.0002893202501758958,
+     "question": 0.0012015435870140665
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9985091361628101
+    }
+   },
+   {
+    "index": 183,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 374.39999997615814,
+    "probabilities": {
+     "bug": 0.009364163072490665,
+     "feature": 0.7424361244573807,
+     "question": 0.24819971247012862
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.7424361244573807
+    }
+   },
+   {
+    "index": 154,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 422.0999999642372,
+    "probabilities": {
+     "bug": 0.0011618932189380144,
+     "feature": 0.9942651136276156,
+     "question": 0.004572993153446285
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9942651136276156
+    }
+   },
+   {
+    "index": 126,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 417.30000001192093,
+    "probabilities": {
+     "bug": 0.060529098709406204,
+     "feature": 0.917703377129409,
+     "question": 0.02176752416118483
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.917703377129409
+    }
+   },
+   {
+    "index": 108,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 322.5,
+    "probabilities": {
+     "bug": 0.00013619606362763075,
+     "feature": 0.9950814448240167,
+     "question": 0.004782359112355801
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9950814448240167
+    }
+   },
+   {
+    "index": 148,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 300.30000001192093,
+    "probabilities": {
+     "bug": 0.9738271530659287,
+     "feature": 0.0097413082758719,
+     "question": 0.016431538658199314
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9738271530659287
+    }
+   },
+   {
+    "index": 136,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 258.30000001192093,
+    "probabilities": {
+     "bug": 0.19710353204766276,
+     "feature": 0.017222714690002604,
+     "question": 0.7856737532623347
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.7856737532623347
+    }
+   },
+   {
+    "index": 238,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 408.80000001192093,
+    "probabilities": {
+     "bug": 0.6891623247677934,
+     "feature": 0.0026252190442581083,
+     "question": 0.3082124561879485
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.6891623247677934
+    }
+   },
+   {
+    "index": 292,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 198.4000000357628,
+    "probabilities": {
+     "bug": 0.908548222320186,
+     "feature": 0.006943628857445723,
+     "question": 0.08450814882236843
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.908548222320186
+    }
+   },
+   {
+    "index": 261,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 296.30000001192093,
+    "probabilities": {
+     "bug": 0.006803794170530603,
+     "feature": 0.0077777686048130885,
+     "question": 0.9854184372246564
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.9854184372246564
+    }
+   },
+   {
+    "index": 226,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 297.2999999523163,
+    "probabilities": {
+     "bug": 0.03192859279033892,
+     "feature": 0.028121904972494723,
+     "question": 0.9399495022371664
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.9399495022371664
+    }
+   },
+   {
+    "index": 206,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 165.60000002384186,
+    "probabilities": {
+     "bug": 0.0010330413837405994,
+     "feature": 0.06024533968721925,
+     "question": 0.9387216189290402
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.9387216189290402
+    }
+   },
+   {
+    "index": 209,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 268.5,
+    "probabilities": {
+     "bug": 0.926490749991649,
+     "feature": 0.0005144331376429231,
+     "question": 0.07299481687070812
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.926490749991649
+    }
+   },
+   {
+    "index": 681,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 203.9000000357628,
+    "probabilities": {
+     "bug": 0.9421845726983824,
+     "feature": 0.044023546122509874,
+     "question": 0.013791881179107752
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9421845726983824
+    }
+   },
+   {
+    "index": 668,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 410.5,
+    "probabilities": {
+     "bug": 0.9991548546991599,
+     "feature": 0.0001574024152181957,
+     "question": 0.0006877428856221298
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9991548546991599
+    }
+   },
+   {
+    "index": 604,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 170.39999997615814,
+    "probabilities": {
+     "bug": 0.08789648035162267,
+     "feature": 0.05148279390985381,
+     "question": 0.8606207257385236
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.8606207257385236
+    }
+   },
+   {
+    "index": 605,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 121.59999996423721,
+    "probabilities": {
+     "bug": 0.8760170590073524,
+     "feature": 0.06949159965550444,
+     "question": 0.05449134133714301
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.8760170590073524
+    }
+   },
+   {
+    "index": 608,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 267,
+    "probabilities": {
+     "bug": 0.6436176808124103,
+     "feature": 0.2667322940693959,
+     "question": 0.08965002511819374
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.6436176808124103
+    }
+   },
+   {
+    "index": 680,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 236.30000001192093,
+    "probabilities": {
+     "bug": 0.9483728507510779,
+     "feature": 0.03595566996860925,
+     "question": 0.015671479280312792
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9483728507510779
+    }
+   },
+   {
+    "index": 752,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 163,
+    "probabilities": {
+     "bug": 0.0012827848473080643,
+     "feature": 0.958379956907205,
+     "question": 0.04033725824548688
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.958379956907205
+    }
+   },
+   {
+    "index": 704,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 169.69999998807907,
+    "probabilities": {
+     "bug": 0.005312417000188027,
+     "feature": 0.9716846188774805,
+     "question": 0.023002964122331392
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9716846188774805
+    }
+   },
+   {
+    "index": 708,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 120.09999996423721,
+    "probabilities": {
+     "bug": 0.005629997884281376,
+     "feature": 0.983058446482158,
+     "question": 0.011311555633560573
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.983058446482158
+    }
+   },
+   {
+    "index": 797,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 219.0999999642372,
+    "probabilities": {
+     "bug": 0.00009481869298269537,
+     "feature": 0.9991516877408491,
+     "question": 0.0007534935661683372
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9991516877408491
+    }
+   },
+   {
+    "index": 792,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 266.30000001192093,
+    "probabilities": {
+     "bug": 0.0018555826366999759,
+     "feature": 0.9956093747285115,
+     "question": 0.002535042634788498
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9956093747285115
+    }
+   },
+   {
+    "index": 731,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 122.80000001192093,
+    "probabilities": {
+     "bug": 0.0006344274433324014,
+     "feature": 0.9936777526835462,
+     "question": 0.005687819873121602
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9936777526835462
+    }
+   },
+   {
+    "index": 873,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 507.89999997615814,
+    "probabilities": {
+     "bug": 0.5501568618629022,
+     "feature": 0.005181861623330876,
+     "question": 0.4446612765137668
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.5501568618629022
+    }
+   },
+   {
+    "index": 876,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 697.7999999523163,
+    "probabilities": {
+     "bug": 0.9714426478609247,
+     "feature": 0.0012541254567340092,
+     "question": 0.0273032266823413
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9714426478609247
+    }
+   },
+   {
+    "index": 841,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 767,
+    "probabilities": {
+     "bug": 0.9141688145693663,
+     "feature": 0.005325504455591791,
+     "question": 0.08050568097504197
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9141688145693663
+    }
+   },
+   {
+    "index": 810,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 716.8999999761581,
+    "probabilities": {
+     "bug": 0.9862002614941733,
+     "feature": 0.0010411686809720158,
+     "question": 0.012758569824854796
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9862002614941733
+    }
+   },
+   {
+    "index": 857,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 665.3999999761581,
+    "probabilities": {
+     "bug": 0.6226433257307371,
+     "feature": 0.007731492856418865,
+     "question": 0.36962518141284406
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.6226433257307371
+    }
+   },
+   {
+    "index": 865,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 353.19999998807907,
+    "probabilities": {
+     "bug": 0.016305862418361936,
+     "feature": 0.5124886718032088,
+     "question": 0.47120546577842926
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.5124886718032088
+    }
+   },
+   {
+    "index": 1215,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 262.0999999642372,
+    "probabilities": {
+     "bug": 0.7933933956943844,
+     "feature": 0.18805678943486664,
+     "question": 0.01854981487074891
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.7933933956943844
+    }
+   },
+   {
+    "index": 1280,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 513.3999999761581,
+    "probabilities": {
+     "bug": 0.9890424552397131,
+     "feature": 0.007791140525930968,
+     "question": 0.0031664042343559707
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9890424552397131
+    }
+   },
+   {
+    "index": 1281,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 321.69999998807907,
+    "probabilities": {
+     "bug": 0.9534946234852373,
+     "feature": 0.007948827323511628,
+     "question": 0.038556549191251004
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9534946234852373
+    }
+   },
+   {
+    "index": 1250,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 414.9000000357628,
+    "probabilities": {
+     "bug": 0.9919138133462158,
+     "feature": 0.0009647264848597903,
+     "question": 0.007121460168924451
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9919138133462158
+    }
+   },
+   {
+    "index": 1299,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 300.69999998807907,
+    "probabilities": {
+     "bug": 0.02246681980148498,
+     "feature": 0.9590524783313593,
+     "question": 0.018480701867155565
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9590524783313593
+    }
+   },
+   {
+    "index": 1218,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 318.5,
+    "probabilities": {
+     "bug": 0.9603518187160605,
+     "feature": 0.00475266705223716,
+     "question": 0.034895514231702215
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9603518187160605
+    }
+   },
+   {
+    "index": 1451,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 204.10000002384186,
+    "probabilities": {
+     "bug": 0.024318415367020847,
+     "feature": 0.0023867791829063623,
+     "question": 0.9732948054500727
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.9732948054500727
+    }
+   },
+   {
+    "index": 1441,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 198.20000004768372,
+    "probabilities": {
+     "bug": 0.09363071534765849,
+     "feature": 0.7740706686413397,
+     "question": 0.13229861601100182
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.7740706686413397
+    }
+   },
+   {
+    "index": 1480,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 303.5,
+    "probabilities": {
+     "bug": 0.004108668850903905,
+     "feature": 0.9897714872134428,
+     "question": 0.006119843935653336
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9897714872134428
+    }
+   },
+   {
+    "index": 1456,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 256.10000002384186,
+    "probabilities": {
+     "bug": 0.8419562046802704,
+     "feature": 0.1470980091015161,
+     "question": 0.010945786218213517
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.8419562046802704
+    }
+   },
+   {
+    "index": 1442,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 315.30000001192093,
+    "probabilities": {
+     "bug": 0.00017320631926471066,
+     "feature": 0.9981543157344719,
+     "question": 0.001672477946263446
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9981543157344719
+    }
+   },
+   {
+    "index": 1468,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 435.69999998807907,
+    "probabilities": {
+     "bug": 0.5536812433690987,
+     "feature": 0.4354390242021822,
+     "question": 0.010879732428719004
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.5536812433690987
+    }
+   },
+   {
+    "index": 1352,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 172.5,
+    "probabilities": {
+     "bug": 0.00270357359360068,
+     "feature": 0.00019472580198823296,
+     "question": 0.9971017006044112
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.9971017006044112
+    }
+   },
+   {
+    "index": 1336,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 511.69999998807907,
+    "probabilities": {
+     "bug": 0.8891347086579381,
+     "feature": 0.047733199892318647,
+     "question": 0.06313209144974326
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.8891347086579381
+    }
+   },
+   {
+    "index": 1323,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 160.30000001192093,
+    "probabilities": {
+     "bug": 0.008431492805583996,
+     "feature": 0.16286332283560748,
+     "question": 0.8287051843588085
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.8287051843588085
+    }
+   },
+   {
+    "index": 1340,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 399,
+    "probabilities": {
+     "bug": 0.3274455646076482,
+     "feature": 0.003299152364782305,
+     "question": 0.6692552830275695
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.6692552830275695
+    }
+   },
+   {
+    "index": 1385,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 301,
+    "probabilities": {
+     "bug": 0.9855260243606464,
+     "feature": 0.0016241301960541262,
+     "question": 0.012849845443299649
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9855260243606464
+    }
+   },
+   {
+    "index": 1396,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 173.10000002384186,
+    "probabilities": {
+     "bug": 0.05515378143401142,
+     "feature": 0.0009945154053057996,
+     "question": 0.9438517031606827
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.9438517031606827
+    }
+   },
+   {
+    "index": 556,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 376.5,
+    "probabilities": {
+     "bug": 0.8490750494946727,
+     "feature": 0.0029449300948380945,
+     "question": 0.14798002041048902
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.8490750494946727
+    }
+   },
+   {
+    "index": 500,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 543.8999999761581,
+    "probabilities": {
+     "bug": 0.9920791755502851,
+     "feature": 0.0015298864900810951,
+     "question": 0.006390937959633751
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9920791755502851
+    }
+   },
+   {
+    "index": 514,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 547,
+    "probabilities": {
+     "bug": 0.956669383967115,
+     "feature": 0.001543064478818169,
+     "question": 0.04178755155406661
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.956669383967115
+    }
+   },
+   {
+    "index": 534,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 422.89999997615814,
+    "probabilities": {
+     "bug": 0.9861418064022586,
+     "feature": 0.0005044306881420101,
+     "question": 0.013353762909599493
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9861418064022586
+    }
+   },
+   {
+    "index": 538,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 615.3999999761581,
+    "probabilities": {
+     "bug": 0.9960025223880462,
+     "feature": 0.0006097612999829355,
+     "question": 0.003387716311970985
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9960025223880462
+    }
+   },
+   {
+    "index": 565,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 412.60000002384186,
+    "probabilities": {
+     "bug": 0.9890627543847424,
+     "feature": 0.0007506348468521314,
+     "question": 0.010186610768405503
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9890627543847424
+    }
+   },
+   {
+    "index": 421,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 429.4000000357628,
+    "probabilities": {
+     "bug": 0.9770500787683138,
+     "feature": 0.003415377089414677,
+     "question": 0.0195345441422714
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9770500787683138
+    }
+   },
+   {
+    "index": 425,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 404.5999999642372,
+    "probabilities": {
+     "bug": 0.277323585348441,
+     "feature": 0.01864313480406894,
+     "question": 0.7040332798474901
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.7040332798474901
+    }
+   },
+   {
+    "index": 495,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 502.4000000357628,
+    "probabilities": {
+     "bug": 0.9981505124277245,
+     "feature": 0.00019569356325420222,
+     "question": 0.0016537940090212463
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9981505124277245
+    }
+   },
+   {
+    "index": 454,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 345.2999999523163,
+    "probabilities": {
+     "bug": 0.002934119013368106,
+     "feature": 0.9931385023732677,
+     "question": 0.00392737861336428
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9931385023732677
+    }
+   },
+   {
+    "index": 400,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 203.89999997615814,
+    "probabilities": {
+     "bug": 0.0037294519712607714,
+     "feature": 0.98191376200528,
+     "question": 0.014356786023459214
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.98191376200528
+    }
+   },
+   {
+    "index": 493,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 165.79999995231628,
+    "probabilities": {
+     "bug": 0.00026562620982536225,
+     "feature": 0.9931654985085995,
+     "question": 0.006568875281575134
+    },
+    "choice": "feature",
+    "detail": {
+     "confidence": 0.9931654985085995
+    }
+   },
+   {
+    "index": 383,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 305.2999999523163,
+    "probabilities": {
+     "bug": 0.07601643945350636,
+     "feature": 0.001861902919156877,
+     "question": 0.9221216576273368
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.9221216576273368
+    }
+   },
+   {
+    "index": 341,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 411.5,
+    "probabilities": {
+     "bug": 0.06765999057975422,
+     "feature": 0.015045471597299834,
+     "question": 0.9172945378229459
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.9172945378229459
+    }
+   },
+   {
+    "index": 374,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 431.4000000357628,
+    "probabilities": {
+     "bug": 0.3173947063060279,
+     "feature": 0.1056283079530704,
+     "question": 0.5769769857409017
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.5769769857409017
+    }
+   },
+   {
+    "index": 373,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 411.5,
+    "probabilities": {
+     "bug": 0.1824229692543782,
+     "feature": 0.02671393714101058,
+     "question": 0.7908630936046113
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.7908630936046113
+    }
+   },
+   {
+    "index": 319,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 164.69999998807907,
+    "probabilities": {
+     "bug": 0.0024930850993822645,
+     "feature": 0.00538195768142473,
+     "question": 0.992124957219193
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.992124957219193
+    }
+   },
+   {
+    "index": 394,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 403,
+    "probabilities": {
+     "bug": 0.2985129078785403,
+     "feature": 0.0019801808409955508,
+     "question": 0.6995069112804642
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.6995069112804642
+    }
+   }
+  ],
+  "messages": [
+   "warn: Unable to add response to browser cache: UnknownError: Failed to execute 'put' on 'Cache': Unexpected internal error.."
+  ],
+  "finishedAtMs": 93276.09999996424
+ }
+}

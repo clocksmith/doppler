@@ -1,0 +1,33 @@
+{
+ "runId": "node-transformersjs-fp16-2",
+ "browser": {
+  "name": "node",
+  "kind": "node",
+  "version": "v22.22.1"
+ },
+ "lane": "transformersjs-fp16",
+ "mode": "node",
+ "rep": 2,
+ "quality": false,
+ "launchToReportMs": 2304,
+ "exit": {
+  "code": 0,
+  "signal": null
+ },
+ "stderrTail": "Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.\nWarning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.\n",
+ "peakMemory": {
+  "totalRss": 1761275904,
+  "gpuMemory": 2795610112
+ },
+ "report": {
+  "lane": "transformersjs-fp16",
+  "mode": "node",
+  "quality": false,
+  "startedAtMs": 58.903617,
+  "platform": {
+   "node": "v22.22.1"
+  },
+  "error": "TypeError: Invalid argument: \"present.0.key\" is not a valid output name.\nTypeError: Invalid argument: \"present.0.key\" is not a valid output name.\n    at new OnnxruntimeSessionHandler (/home/x/deco/doppler/examples/issue-triage/benchmark/node_modules/onnxruntime-node/dist/backend.js:50:92)\n    at Immediate.<anonymous> (/home/x/deco/doppler/examples/issue-triage/benchmark/node_modules/onnxruntime-node/dist/backend.js:136:29)\n    at process.processImmediate (node:internal/timers:484:21)",
+  "finishedAtMs": 2202.340069
+ }
+}

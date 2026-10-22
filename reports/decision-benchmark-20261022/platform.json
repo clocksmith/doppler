@@ -1,0 +1,23 @@
+{
+ "platform": {
+  "os": "Linux 7.0.0-38-generic",
+  "arch": "x64",
+  "cpu": "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S",
+  "node": "v22.22.1",
+  "hostname": "128"
+ },
+ "browsers": [
+  {
+   "name": "chrome",
+   "kind": "chrome",
+   "executable": "/usr/bin/google-chrome",
+   "version": "Google Chrome 146.0.7680.177"
+  },
+  {
+   "name": "firefox-nightly",
+   "kind": "firefox",
+   "executable": "/home/x/.local/opt/firefox-nightly/firefox",
+   "version": "Mozilla Firefox 160.0a1"
+  }
+ ]
+}

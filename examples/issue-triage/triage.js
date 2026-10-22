@@ -33,7 +33,7 @@ export const TRIAGE_POLICY = Object.freeze({
   reviewMargin: null,
 });
 
-function documentText(issue, bodyBudget) {
+export function documentText(issue, bodyBudget) {
   const body = String(issue.body ?? '').replace(/\r\n/g, '\n').trim();
   const clipped = body.length > bodyBudget ? `${body.slice(0, bodyBudget)}…` : body;
   return `Title: ${String(issue.title ?? '').trim()}\n\n${clipped}`;

@@ -1,0 +1,7 @@
+239150 224571877960 /usr/bin/gnome-shell
+239830 2234433010484 /usr/bin/Xwayland
+2707 47771826 /usr/bin/node
+2710233 2450522760 /opt/google/chrome/chrome
+2711 6716583990 /usr/bin/node
+2828115 241990644 /snap/snap-store/1447/bin/snap-store
+343381 974481500331 /usr/lib/chatgpt/ChatGPT

@@ -1,0 +1,251 @@
+{
+ "runId": "chrome-open-jev-kev-4b-cold-2",
+ "browser": {
+  "name": "chrome",
+  "kind": "chrome",
+  "version": "Google Chrome 146.0.7680.177"
+ },
+ "lane": "open-jev-kev-4b",
+ "mode": "cold",
+ "rep": 2,
+ "quality": false,
+ "launchToReportMs": 12340,
+ "transfer": {
+  "modelBytes": 2276780627,
+  "modelRequests": 12,
+  "missing": [
+   "/favicon.ico"
+  ]
+ },
+ "peakMemory": {
+  "totalRss": 5700378624,
+  "gpuMemory": 5302956032,
+  "processes": 15
+ },
+ "report": {
+  "lane": "open-jev-kev-4b",
+  "runId": "chrome-open-jev-kev-4b-cold-2",
+  "mode": "cold",
+  "quality": false,
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/146.0.0.0 Safari/537.36",
+  "startedAtMs": 92.89999997615814,
+  "gpu": {
+   "available": true,
+   "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "",
+    "description": "",
+    "isFallbackAdapter": false
+   },
+   "features": [
+    "bgra8unorm-storage",
+    "chromium-experimental-multi-draw-indirect",
+    "chromium-experimental-subgroup-matrix",
+    "chromium-experimental-timestamp-query-inside-passes",
+    "clip-distances",
+    "core-features-and-limits",
+    "depth-clip-control",
+    "depth32float-stencil8",
+    "dual-source-blending",
+    "float32-blendable",
+    "float32-filterable",
+    "indirect-first-instance",
+    "primitive-index",
+    "rg11b10ufloat-renderable",
+    "shader-f16",
+    "subgroups",
+    "texture-component-swizzle",
+    "texture-compression-bc",
+    "texture-compression-bc-sliced-3d",
+    "texture-formats-tier1",
+    "texture-formats-tier2",
+    "timestamp-query"
+   ],
+   "maxBufferSize": 4294967292,
+   "maxStorageBufferBindingSize": 4294967292
+  },
+  "comparison": "b-product",
+  "openMs": 7084.900000035763,
+  "runtime": {
+   "engine": "open-jev",
+   "version": "0.1.2",
+   "transformersVersion": "4.3.1",
+   "model": "onnx-community/kev-4b-ONNX",
+   "family": "kev",
+   "device": "webgpu",
+   "dtype": "q4f16"
+  },
+  "firstDecisionMs": 952,
+  "coldCompleteMs": 8147.699999988079,
+  "firstIssue": {
+   "index": 1136,
+   "label": "bug",
+   "repo": "bitcoin/bitcoin",
+   "elapsedMs": 952,
+   "probabilities": {
+    "bug": 0.9701423790732119,
+    "feature": 0.0011074412988930891,
+    "question": 0.02875017962789509
+   },
+   "choice": "bug",
+   "detail": {
+    "confidence": 0.9701423790732119
+   }
+  },
+  "test": [
+   {
+    "index": 1146,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 195,
+    "probabilities": {
+     "bug": 0.9869249122227347,
+     "feature": 0.0012666692718225799,
+     "question": 0.011808418505442737
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9869249122227347
+    }
+   },
+   {
+    "index": 1190,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 174.70000004768372,
+    "probabilities": {
+     "bug": 0.33338792426587377,
+     "feature": 0.09014733808361199,
+     "question": 0.5764647376505142
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.5764647376505142
+    }
+   },
+   {
+    "index": 1118,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 205.10000002384186,
+    "probabilities": {
+     "bug": 0.953833143277083,
+     "feature": 0.0008529601107428021,
+     "question": 0.045313896612174345
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.953833143277083
+    }
+   },
+   {
+    "index": 1120,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 455.60000002384186,
+    "probabilities": {
+     "bug": 0.9941351785578612,
+     "feature": 0.00040305845292888843,
+     "question": 0.005461762989209937
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9941351785578612
+    }
+   },
+   {
+    "index": 1121,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 269.10000002384186,
+    "probabilities": {
+     "bug": 0.9889712867013977,
+     "feature": 0.0008505020545465189,
+     "question": 0.010178211244055735
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9889712867013977
+    }
+   },
+   {
+    "index": 1123,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 269.80000001192093,
+    "probabilities": {
+     "bug": 0.48222710941993796,
+     "feature": 0.0668589453139981,
+     "question": 0.450913945266064
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.48222710941993796
+    }
+   },
+   {
+    "index": 1134,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 434.4000000357628,
+    "probabilities": {
+     "bug": 0.5539600639242629,
+     "feature": 0.033365495090693746,
+     "question": 0.41267444098504347
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.5539600639242629
+    }
+   },
+   {
+    "index": 1143,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 464.5,
+    "probabilities": {
+     "bug": 0.9815426369103528,
+     "feature": 0.0002456510375543929,
+     "question": 0.018211712052092918
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9815426369103528
+    }
+   },
+   {
+    "index": 1173,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 576.4000000357628,
+    "probabilities": {
+     "bug": 0.9989502023306417,
+     "feature": 0.0004500605295687153,
+     "question": 0.000599737139789542
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.9989502023306417
+    }
+   },
+   {
+    "index": 1142,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 334.5,
+    "probabilities": {
+     "bug": 0.39102778320193826,
+     "feature": 0.0021525004723094675,
+     "question": 0.6068197163257524
+    },
+    "choice": "question",
+    "detail": {
+     "confidence": 0.6068197163257524
+    }
+   }
+  ],
+  "messages": [],
+  "finishedAtMs": 11544.599999964237
+ }
+}
