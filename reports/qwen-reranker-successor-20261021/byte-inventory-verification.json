@@ -1,0 +1,125 @@
+{
+ "trustedInventory": "reports/choice-scoring/model-derivation.json",
+ "files": [
+  {
+   "name": "shard_00000.bin",
+   "sizeBytes": 67108864,
+   "sha256": "e43dc1fe474193bad57b19b1daf032a070c99f87ce79bc8995c4c1f37b120b53",
+   "sha256Trusted": "e43dc1fe474193bad57b19b1daf032a070c99f87ce79bc8995c4c1f37b120b53",
+   "sizeTrusted": 67108864,
+   "blake3Python": "05bca663aa2224cf2620a42f8f58725dc58f879e30813ead7858f200d27c2531"
+  },
+  {
+   "name": "shard_00001.bin",
+   "sizeBytes": 67108864,
+   "sha256": "b1a9ca6f91fbe89d2ca0e027014521447629f7a50e5afdb9ee94c8716328ee55",
+   "sha256Trusted": "b1a9ca6f91fbe89d2ca0e027014521447629f7a50e5afdb9ee94c8716328ee55",
+   "sizeTrusted": 67108864,
+   "blake3Python": "a351dab41dadcb0c9845d03909c934bfc46c590ab83bcbb138ea3511a8de3bb0"
+  },
+  {
+   "name": "shard_00002.bin",
+   "sizeBytes": 67108864,
+   "sha256": "53bb6a526b121103cb13b0af70699af64485b62d98e1420d8bd43faf5ef960a7",
+   "sha256Trusted": "53bb6a526b121103cb13b0af70699af64485b62d98e1420d8bd43faf5ef960a7",
+   "sizeTrusted": 67108864,
+   "blake3Python": "1e89d139704a0dd7f0647739d23ecbf30b54d8696dd10c257679882ab497ebc7"
+  },
+  {
+   "name": "shard_00003.bin",
+   "sizeBytes": 67108864,
+   "sha256": "74b1668c351029b2222e0145af3da91592c1e8a9a8aa40a5441c28cc88d9855c",
+   "sha256Trusted": "74b1668c351029b2222e0145af3da91592c1e8a9a8aa40a5441c28cc88d9855c",
+   "sizeTrusted": 67108864,
+   "blake3Python": "abbb1184641606be6f1bbc9a6b9c4e59c11947555154e8294c7d294dac51fdeb"
+  },
+  {
+   "name": "shard_00004.bin",
+   "sizeBytes": 67108864,
+   "sha256": "1f70260c157513d652f75c1f506b0f6b078222adbaaa90afa6561fb01a8d5371",
+   "sha256Trusted": "1f70260c157513d652f75c1f506b0f6b078222adbaaa90afa6561fb01a8d5371",
+   "sizeTrusted": 67108864,
+   "blake3Python": "2231c9dcae7f0fbf5d1437d5ffc417c3e82433f24228050815d6da7156af3be5"
+  },
+  {
+   "name": "shard_00005.bin",
+   "sizeBytes": 67108864,
+   "sha256": "be400366f25743b99b267579b436b7773fd44cc0e0074698fb9291cf5f4bf402",
+   "sha256Trusted": "be400366f25743b99b267579b436b7773fd44cc0e0074698fb9291cf5f4bf402",
+   "sizeTrusted": 67108864,
+   "blake3Python": "67470cb8cd306bff211aa4fd03d10a69dd98578aa411bef122875daadf1bc523"
+  },
+  {
+   "name": "shard_00006.bin",
+   "sizeBytes": 67108864,
+   "sha256": "6eddb4885ed8a4b95543bf1d58f6ff6d999e5540efaaad5c13f7fdcebab379d7",
+   "sha256Trusted": "6eddb4885ed8a4b95543bf1d58f6ff6d999e5540efaaad5c13f7fdcebab379d7",
+   "sizeTrusted": 67108864,
+   "blake3Python": "d02d3134511014599be9e5f27809cf62b53d79f44adf1b40f6a39f3c30a51d73"
+  },
+  {
+   "name": "shard_00007.bin",
+   "sizeBytes": 67108864,
+   "sha256": "b423fe39fd37a28c00f58224655bd8893c7197d957f3d8c1bb27f04c9f76631c",
+   "sha256Trusted": "b423fe39fd37a28c00f58224655bd8893c7197d957f3d8c1bb27f04c9f76631c",
+   "sizeTrusted": 67108864,
+   "blake3Python": "7fad0dddb9a953c23d2a366ad88e63d2668787a4a984d06643dd7545fec58e42"
+  },
+  {
+   "name": "shard_00008.bin",
+   "sizeBytes": 67108864,
+   "sha256": "c4cd27f13f532d26c97af072e9dff14df884e0962c779b8a3244f54cc61fcb26",
+   "sha256Trusted": "c4cd27f13f532d26c97af072e9dff14df884e0962c779b8a3244f54cc61fcb26",
+   "sizeTrusted": 67108864,
+   "blake3Python": "98e060e3aa4da0857753ab83ea5936631cb0f7af571e8298740b343bc5b18d0e"
+  },
+  {
+   "name": "shard_00009.bin",
+   "sizeBytes": 67108864,
+   "sha256": "ddee29d1cc48a42381e252c5adbd34676905a93cd65501497cfbb7421f6514f6",
+   "sha256Trusted": "ddee29d1cc48a42381e252c5adbd34676905a93cd65501497cfbb7421f6514f6",
+   "sizeTrusted": 67108864,
+   "blake3Python": "c505f530ab30364a4250086d67c15c0e4c60c0097d844f2d79639c256252a0ef"
+  },
+  {
+   "name": "shard_00010.bin",
+   "sizeBytes": 67108864,
+   "sha256": "7106ff539dee527b0bec28848f66f69d7915401d59f82a4aa4890229a4b3a134",
+   "sha256Trusted": "7106ff539dee527b0bec28848f66f69d7915401d59f82a4aa4890229a4b3a134",
+   "sizeTrusted": 67108864,
+   "blake3Python": "9bcb807f7a3ed66ac0f06de9cd4615197b9f48fc0583de6b7c8a6024ac867d17"
+  },
+  {
+   "name": "shard_00011.bin",
+   "sizeBytes": 67108864,
+   "sha256": "8bf8ba9479280948f6384d5e6a2a7eee386019337e7e177d2a6236a21e7afb3d",
+   "sha256Trusted": "8bf8ba9479280948f6384d5e6a2a7eee386019337e7e177d2a6236a21e7afb3d",
+   "sizeTrusted": 67108864,
+   "blake3Python": "b7ee5a3664fdb622e44cdd53140678662b748d51bdf79618067729999528bb09"
+  },
+  {
+   "name": "shard_00012.bin",
+   "sizeBytes": 67108864,
+   "sha256": "2af87d6ca8ec3989386987db9f63ece226c6c3b6a0d879399ad5c45ed2a73a24",
+   "sha256Trusted": "2af87d6ca8ec3989386987db9f63ece226c6c3b6a0d879399ad5c45ed2a73a24",
+   "sizeTrusted": 67108864,
+   "blake3Python": "d47482cb19654ea211ff6177f2fe5e69dffdf2f343dda087c63a1de647309dfb"
+  },
+  {
+   "name": "shard_00013.bin",
+   "sizeBytes": 65906688,
+   "sha256": "4a59f30b1fd66b77e75fe4e8b566b73b97b0ce15cfdd81736b57b8c3c6b05e8c",
+   "sha256Trusted": "4a59f30b1fd66b77e75fe4e8b566b73b97b0ce15cfdd81736b57b8c3c6b05e8c",
+   "sizeTrusted": 65906688,
+   "blake3Python": "72ffa9942bdaf7efafce15cf9dab50d9fb0f0b8f9dbfcbba3b41ae5b8d1f702a"
+  },
+  {
+   "name": "tokenizer.json",
+   "sizeBytes": 5363085,
+   "sha256": "4dae0c382163323e93f51d37f4c27d96c74f6be94b231289c24da71dfa3f7dc6",
+   "sha256Trusted": "4dae0c382163323e93f51d37f4c27d96c74f6be94b231289c24da71dfa3f7dc6",
+   "sizeTrusted": 5363085,
+   "blake3Python": "69d24e69af0fce26ded0b9ef6ba1e5c589c74f35f03d09ef89d7536f8e479172"
+  }
+ ]
+}

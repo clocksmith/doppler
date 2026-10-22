@@ -1,0 +1,76 @@
+{
+  "shards": [
+    {
+      "filename": "shard_00000.bin",
+      "legacy": "0cc53e7d8d17c261ba583309a571bf3224e5dd3553557345c22bc9fd098fee04",
+      "standard": "05bca663aa2224cf2620a42f8f58725dc58f879e30813ead7858f200d27c2531"
+    },
+    {
+      "filename": "shard_00001.bin",
+      "legacy": "77e0e12d9a92600c6b3f6f3be8ef7d8d9b40be6f6bf56fdcd1fe2b87140ee98b",
+      "standard": "a351dab41dadcb0c9845d03909c934bfc46c590ab83bcbb138ea3511a8de3bb0"
+    },
+    {
+      "filename": "shard_00002.bin",
+      "legacy": "76a22c934ca088be266a5b9d1bb5f579d51b8caa0deca1b47760eac9a17db687",
+      "standard": "1e89d139704a0dd7f0647739d23ecbf30b54d8696dd10c257679882ab497ebc7"
+    },
+    {
+      "filename": "shard_00003.bin",
+      "legacy": "f4644133521b4e4774e0ee1b78038c82aaccb214280381c75608ddcfd37d0856",
+      "standard": "abbb1184641606be6f1bbc9a6b9c4e59c11947555154e8294c7d294dac51fdeb"
+    },
+    {
+      "filename": "shard_00004.bin",
+      "legacy": "f1800030bca0c125e8e90531e60779b6ac8f03c0d21ec345739bf9b7c97543f7",
+      "standard": "2231c9dcae7f0fbf5d1437d5ffc417c3e82433f24228050815d6da7156af3be5"
+    },
+    {
+      "filename": "shard_00005.bin",
+      "legacy": "b4fd9b2b6989239026d5d2ca0c2d86b16ea91c49464207d7a6d1ac092c69ba1d",
+      "standard": "67470cb8cd306bff211aa4fd03d10a69dd98578aa411bef122875daadf1bc523"
+    },
+    {
+      "filename": "shard_00006.bin",
+      "legacy": "071511c027d33017a52419ce4200d5485e6be72fa1563bd53817957c9ae6914a",
+      "standard": "d02d3134511014599be9e5f27809cf62b53d79f44adf1b40f6a39f3c30a51d73"
+    },
+    {
+      "filename": "shard_00007.bin",
+      "legacy": "12429eb83262502aa53459c36e3b7cc5d18a594b482e68c6b760e96ba5d70aa8",
+      "standard": "7fad0dddb9a953c23d2a366ad88e63d2668787a4a984d06643dd7545fec58e42"
+    },
+    {
+      "filename": "shard_00008.bin",
+      "legacy": "cc780a085621401a8ba1c1c9b74152c85cc331520e4bffae9992133ad650fdc6",
+      "standard": "98e060e3aa4da0857753ab83ea5936631cb0f7af571e8298740b343bc5b18d0e"
+    },
+    {
+      "filename": "shard_00009.bin",
+      "legacy": "538be3755b6aa8732206d770f6190f85b5bde2a23fec7cc8bc2d58a5c445ae7d",
+      "standard": "c505f530ab30364a4250086d67c15c0e4c60c0097d844f2d79639c256252a0ef"
+    },
+    {
+      "filename": "shard_00010.bin",
+      "legacy": "77060f70485e3b227a3b152518c37b3ad333509abaefc1e164fe53c1f38c7a2e",
+      "standard": "9bcb807f7a3ed66ac0f06de9cd4615197b9f48fc0583de6b7c8a6024ac867d17"
+    },
+    {
+      "filename": "shard_00011.bin",
+      "legacy": "50af60b17c65c22d88c62aaf8caeb10898439bcfa3955acd229f44bc30bb8fdd",
+      "standard": "b7ee5a3664fdb622e44cdd53140678662b748d51bdf79618067729999528bb09"
+    },
+    {
+      "filename": "shard_00012.bin",
+      "legacy": "c502b18fe6c66c20d1b5087bd510ce7ce3bacc562dddd162e1338d8cd302991a",
+      "standard": "d47482cb19654ea211ff6177f2fe5e69dffdf2f343dda087c63a1de647309dfb"
+    },
+    {
+      "filename": "shard_00013.bin",
+      "legacy": "d61e88a0f9ba2e580eaecf9086f9ad34aefd6a623ce3104be58e9b90b9fa2b68",
+      "standard": "72ffa9942bdaf7efafce15cf9dab50d9fb0f0b8f9dbfcbba3b41ae5b8d1f702a"
+    }
+  ],
+  "shardSetHash": "sha256:58ab239faccb32c7aaa639a19872a7789f8387ee86b229515214ec280c365abd",
+  "weightPackHash": "sha256:5b7c8ebfb417faf3388ade1f67de523810d6d0e65033c37aced177621b542b52"
+}
