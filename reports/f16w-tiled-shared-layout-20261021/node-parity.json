@@ -1,0 +1,162 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.7ms
+{
+  "passed": true,
+  "shaderSha256": "8376893a0d1badbe9d46ca8b1be00a5bc4b1a5a55f6f65fa7ebff32d7229adcb",
+  "provider": {
+    "schema": "doe.webgpu-provider-receipt/v1",
+    "contract": "doe.webgpu-provider/v1",
+    "implementation": "doppler",
+    "providers": [
+      {
+        "id": "pre-installed",
+        "kind": "global"
+      },
+      {
+        "id": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "gpu": {
+          "kind": "factory",
+          "path": "create",
+          "args": [
+            [
+              "enable-dawn-features=allow_unsafe_apis"
+            ]
+          ]
+        },
+        "globals": {
+          "GPUBufferUsage": "globals.GPUBufferUsage",
+          "GPUShaderStage": "globals.GPUShaderStage",
+          "GPUMapMode": "globals.GPUMapMode",
+          "GPUTextureUsage": "globals.GPUTextureUsage"
+        }
+      }
+    ],
+    "providerOrder": [
+      "pre-installed",
+      "webgpu"
+    ],
+    "adapterOptions": null,
+    "globals": {
+      "mode": "replace",
+      "installed": [
+        "GPUBufferUsage",
+        "GPUShaderStage",
+        "GPUMapMode",
+        "GPUTextureUsage",
+        "navigator.gpu"
+      ],
+      "restored": false
+    },
+    "attempts": [
+      {
+        "providerId": "pre-installed",
+        "kind": "global",
+        "module": null,
+        "ok": false,
+        "stage": "gpu.validate",
+        "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+        "detail": "Selected provider does not expose GPU.requestAdapter()."
+      },
+      {
+        "providerId": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "ok": true,
+        "stage": "complete",
+        "code": null,
+        "detail": null
+      }
+    ],
+    "selectedProviderId": "webgpu",
+    "ok": true
+  },
+  "rows": [
+    {
+      "M": 1,
+      "N": 1,
+      "K": 1,
+      "workgroups": [
+        1,
+        1,
+        1
+      ],
+      "maxAbsError": 0,
+      "byteExactReference": true
+    },
+    {
+      "M": 3,
+      "N": 5,
+      "K": 7,
+      "workgroups": [
+        1,
+        1,
+        1
+      ],
+      "maxAbsError": 1.3473538729158463e-8,
+      "byteExactReference": true
+    },
+    {
+      "M": 64,
+      "N": 64,
+      "K": 16,
+      "workgroups": [
+        1,
+        1,
+        1
+      ],
+      "maxAbsError": 3.82393636755296e-8,
+      "byteExactReference": true
+    },
+    {
+      "M": 65,
+      "N": 63,
+      "K": 17,
+      "workgroups": [
+        2,
+        1,
+        1
+      ],
+      "maxAbsError": 3.580908014555462e-8,
+      "byteExactReference": true
+    },
+    {
+      "M": 130,
+      "N": 151,
+      "K": 200,
+      "workgroups": [
+        3,
+        3,
+        1
+      ],
+      "maxAbsError": 1.315914390787043e-7,
+      "byteExactReference": true
+    },
+    {
+      "M": 102,
+      "N": 3072,
+      "K": 1024,
+      "workgroups": [
+        2,
+        48,
+        1
+      ],
+      "maxAbsError": 3.5817890164935307e-7,
+      "byteExactReference": true
+    },
+    {
+      "M": 37,
+      "N": 1024,
+      "K": 3072,
+      "workgroups": [
+        1,
+        16,
+        1
+      ],
+      "maxAbsError": 5.348259279891465e-7,
+      "byteExactReference": true
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "schema": "doppler.f16w-tiled-continuation/v1",
+  "task": "90 NLBSE train issues (seed issue-triage-20261021, 6 per repo x label), 3 scoreChoices calls each, Chrome 146 Vulkan, Radeon 8060S",
+  "model": "qwen-3-reranker-0-6b-q4k-ehf16-af32 weights; experiment manifests under .cache/ (not committed)",
+  "bitIdenticalIssues": 90,
+  "issues": 90,
+  "medianMsPerIssue": {
+    "original-manifest": 1928.6,
+    "routed-previous-kernel": 877.2,
+    "routed-candidate-kernel": 633.2
+  },
+  "totalSeconds": {
+    "original-manifest": 182.9,
+    "routed-previous-kernel": 78.9,
+    "routed-candidate-kernel": 53.3
+  }
+}
