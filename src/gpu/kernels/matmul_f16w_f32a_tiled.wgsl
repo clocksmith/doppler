@@ -28,10 +28,12 @@ const THREAD_N: u32 = 4u;
 const WG_M: u32 = 16u;
 const WG_N: u32 = 16u;
 
-// Shared memory: TILE_M * TILE_K + TILE_N * TILE_K
-// tileA: 64*16 f32 = 4096 bytes, tileB: 64*16 f32 = 4096 bytes → 8192 bytes total
-var<workgroup> tileA: array<f32, 1024>;  // TILE_M * TILE_K = 64 * 16
-var<workgroup> tileB: array<f32, 1024>;  // TILE_N * TILE_K = 64 * 16
+// Shared memory, k-major: tileA[k * WG_M + tx] holds rows tx*4..tx*4+3 of column k,
+// tileB[k * WG_N + ty] holds weight rows ty*4..ty*4+3 of column k. Each inner-loop
+// step reads one vec4 per operand: A is broadcast across ty, and B is contiguous
+// across ty, so neither read bank-conflicts. 64*16 f32 per tile → 8192 bytes total.
+var<workgroup> tileA: array<vec4<f32>, 256>;  // TILE_K * WG_M
+var<workgroup> tileB: array<vec4<f32>, 256>;  // TILE_K * WG_N
 
 struct Uniforms {
     M: u32,
@@ -82,10 +84,11 @@ fn main(
                 let load_col = elem_idx % TILE_K;
                 let global_row = wg_id.x * TILE_M + load_row;
                 let global_col = k_offset + load_col;
+                let slot = load_col * WG_M + load_row / THREAD_M;
                 if (global_row < u.M && global_col < u.K) {
-                    tileA[elem_idx] = A[global_row * u.K + global_col];
+                    tileA[slot][load_row % THREAD_M] = A[global_row * u.K + global_col];
                 } else {
-                    tileA[elem_idx] = 0.0;
+                    tileA[slot][load_row % THREAD_M] = 0.0;
                 }
             }
         }
@@ -99,10 +102,11 @@ fn main(
                 let load_col = elem_idx % TILE_K;  // K-dimension local offset
                 let global_n = wg_id.y * TILE_N + load_row;
                 let global_k = k_offset + load_col;
+                let slot = load_col * WG_N + load_row / THREAD_N;
                 if (global_n < u.N && global_k < u.K) {
-                    tileB[elem_idx] = f32(B[global_n * u.K + global_k]);
+                    tileB[slot][load_row % THREAD_N] = f32(B[global_n * u.K + global_k]);
                 } else {
-                    tileB[elem_idx] = 0.0;
+                    tileB[slot][load_row % THREAD_N] = 0.0;
                 }
             }
         }
@@ -118,15 +122,10 @@ fn main(
 
         // Compute: each thread accumulates its 4x4 output tile
         for (var k: u32 = 0u; k < TILE_K; k = k + 1u) {
-            let a0 = tileA[(tx * THREAD_M + 0u) * TILE_K + k];
-            let a1 = tileA[(tx * THREAD_M + 1u) * TILE_K + k];
-            let a2 = tileA[(tx * THREAD_M + 2u) * TILE_K + k];
-            let a3 = tileA[(tx * THREAD_M + 3u) * TILE_K + k];
-
-            let b0 = tileB[(ty * THREAD_N + 0u) * TILE_K + k];
-            let b1 = tileB[(ty * THREAD_N + 1u) * TILE_K + k];
-            let b2 = tileB[(ty * THREAD_N + 2u) * TILE_K + k];
-            let b3 = tileB[(ty * THREAD_N + 3u) * TILE_K + k];
+            let a = tileA[k * WG_M + tx];
+            let b = tileB[k * WG_N + ty];
+            let a0 = a.x; let a1 = a.y; let a2 = a.z; let a3 = a.w;
+            let b0 = b.x; let b1 = b.y; let b2 = b.z; let b3 = b.w;
 
             tile00 = fma(a0, b0, tile00); tile01 = fma(a0, b1, tile01); tile02 = fma(a0, b2, tile02); tile03 = fma(a0, b3, tile03);
             tile10 = fma(a1, b0, tile10); tile11 = fma(a1, b1, tile11); tile12 = fma(a1, b2, tile12); tile13 = fma(a1, b3, tile13);
