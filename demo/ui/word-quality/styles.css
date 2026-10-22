@@ -20,3 +20,19 @@
 .word-quality-legend[hidden] { display: none; }
 .quality-low { text-decoration: underline 2px #2563eb; text-underline-offset: 4px; }
 .quality-high { text-decoration: underline 2px #c43838; text-underline-offset: 4px; }
+
+.word-quality-tip {
+  position: fixed;
+  z-index: 1000;
+  max-width: min(320px, calc(100vw - 16px));
+  padding: 8px 10px;
+  border: 1px solid var(--doppler-line, currentColor);
+  border-radius: 10px;
+  background: var(--bg, #fff);
+  color: var(--fg, #000);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 18%);
+  font: 11px/1.5 var(--font-mono);
+  white-space: pre-line;
+  pointer-events: none;
+}
+.word-quality-tip[hidden] { display: none; }

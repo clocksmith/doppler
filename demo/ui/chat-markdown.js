@@ -39,7 +39,7 @@ export function renderChatMarkdown(container, source, quality = null) {
       ));
       /** @param {number | null} v */
       const number = (v) => typeof v === 'number' && Number.isFinite(v) ? v.toFixed(3) : 'unavailable';
-      span.title = [
+      span.dataset.quality = [
         'Perplexity measures model surprise, not factual accuracy.',
         'Rolling perplexity: ' + number(word.rollingPerplexity),
         'Window: ' + (word.rollingWindow?.size ?? '?') + ' ' + (word.rollingWindow?.unit ?? 'words'),
@@ -163,4 +163,69 @@ export function renderChatMarkdown(container, source, quality = null) {
   }
   container.classList.add('chat-markdown');
   container.replaceChildren(fragment);
+  bindQualityTips(container);
+}
+
+/** @type {HTMLElement | null} */
+let qualityTip = null;
+/** @type {HTMLElement | null} */
+let pinnedWord = null;
+
+/** @param {HTMLElement} word */
+function showQualityTip(word) {
+  if (!qualityTip) {
+    qualityTip = document.createElement('div');
+    qualityTip.className = 'word-quality-tip';
+    qualityTip.setAttribute('role', 'tooltip');
+    qualityTip.hidden = true;
+    document.body.append(qualityTip);
+  }
+  qualityTip.textContent = word.dataset.quality || '';
+  qualityTip.hidden = false;
+  const rect = word.getBoundingClientRect();
+  const tip = qualityTip.getBoundingClientRect();
+  const left = Math.min(Math.max(8, rect.left), window.innerWidth - tip.width - 8);
+  const below = rect.bottom + 8 + tip.height <= window.innerHeight;
+  qualityTip.style.left = `${left}px`;
+  qualityTip.style.top = `${below ? rect.bottom + 8 : Math.max(8, rect.top - tip.height - 8)}px`;
+}
+
+function hideQualityTip() {
+  if (qualityTip) qualityTip.hidden = true;
+  pinnedWord = null;
+}
+
+// Hover shows a word's perplexity at once; a click keeps it open until the
+// next click or Escape. One shared tip serves every rendered answer.
+/** @param {HTMLElement} container */
+function bindQualityTips(container) {
+  if (container.dataset.qualityTips) return;
+  container.dataset.qualityTips = 'bound';
+  /** @param {Event} event */
+  const wordFor = (event) => /** @type {HTMLElement | null} */ (
+    event.target instanceof Element ? event.target.closest('.word-quality[data-quality]') : null
+  );
+  container.addEventListener('pointerover', (event) => {
+    const word = wordFor(event);
+    if (word && !pinnedWord) showQualityTip(word);
+  });
+  container.addEventListener('pointerout', (event) => {
+    const word = wordFor(event);
+    if (word && !pinnedWord && !word.contains(/** @type {Node | null} */ (event.relatedTarget))) hideQualityTip();
+  });
+  container.addEventListener('click', (event) => {
+    const word = wordFor(event);
+    if (!word) return;
+    if (pinnedWord === word) { hideQualityTip(); return; }
+    showQualityTip(word);
+    pinnedWord = word;
+  });
+  if (!document.body.dataset.qualityTipsDismiss) {
+    document.body.dataset.qualityTipsDismiss = 'bound';
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape') hideQualityTip(); });
+    document.addEventListener('click', (event) => {
+      if (pinnedWord && !(event.target instanceof Element && event.target.closest('.word-quality'))) hideQualityTip();
+    });
+    window.addEventListener('scroll', () => { if (!pinnedWord) hideQualityTip(); }, true);
+  }
 }
