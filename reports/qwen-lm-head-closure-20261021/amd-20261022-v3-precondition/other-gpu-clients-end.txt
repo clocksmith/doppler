@@ -1,0 +1,7 @@
+239150 1792695147 224571877960 /usr/bin/gnome-shell --mode=ubuntu 
+239830 1792695147 2192029590172 /usr/bin/Xwayland :0 -rootless -noreset -accessx -core -auth /run/user/1000/.mut
+2707 1792695147 47771826 /usr/bin/node server/native-participant.js --contribute --execution-mode whole-m
+2710233 1792695147 2450522760 /opt/google/chrome/chrome --type=gpu-process --ozone-platform=wayland --render-n
+2711 1792695147 6716583990 /usr/bin/node server/native-participant.js --contribute --execution-mode whole-m
+2828115 1792695147 241990644 /snap/snap-store/1447/bin/snap-store 
+343381 1792695147 957794651475 /usr/lib/chatgpt/ChatGPT --type=gpu-process --gpu-recent-crash-count=0 --ozone-p

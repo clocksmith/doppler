@@ -2,9 +2,10 @@
 
 Closes the AMD half of the [0e0c5276 optimization](../qwen-lm-head-optimization-20261019/README.md)
 under a pre-registered, balanced, independent-process comparison. **The AMD half fails promotion:**
-exact parity and lifecycle pass, but there is no complete-request improvement. The kernel change is
+exact parity and lifecycle pass in v2 and in the restated v3 gate (cancellation, reuse, device
+recreation), but there is no complete-request improvement. The kernel change is
 removed from the shared default and retained here as [candidate.patch](candidate.patch). The M3 half
-runs the same harness on Mars with [contract-v2-metal.json](contract-v2-metal.json).
+runs the same harness on Mars with [contract-v3-metal.json](contract-v3-metal.json).
 
 ## Setup
 
@@ -29,6 +30,7 @@ runs the same harness on Mars with [contract-v2-metal.json](contract-v2-metal.js
 |---|---|---|---|---|---|---|
 | [v1](amd-20261021/summary.json), [contract](contract.json) | empty runtime config | **No** (`useGreedyLmHeadArgmaxFusion` defaults false) | +0.08% [−0.71, +0.87] | +0.29% [−0.72, +1.26] | 240/240 | 40/40 |
 | [v2](amd-20261021-v2/summary.json), [contract](contract-v2.json) | `profiles/qwen-3-5-2b-vulkan-parity` | **Yes**, 31 `lm_head_argmax_phase1_q4k_f32a` dispatches with `USE_FULL_BLOCK_FAST_PATH=1` per request in both arms ([precondition](amd-20261021-v2-precondition/)) | **+0.47% [−0.14, +1.09]**, medians 439.8 vs 441.7 ms | +0.29% [−0.10, +0.69] | 240/240 | 40/40 |
+| [v3](amd-20261022-v3/summary.json), [contract](contract-v3.json) | same | **Yes**, 31 per request in both arms ([precondition](amd-20261022-v3-precondition/)) | **−0.33% [−0.70, +0.07]**, medians 440.4 vs 437.7 ms | −0.06% [−0.41, +0.28] | 240/240 | 40/40, including cancellation, reuse and device recreation |
 
 Every request in both runs produced the Mac's retained 32 tokens and text. Cold request, prefill
 and opening intervals all include zero (see each `summary.json`).
@@ -41,6 +43,36 @@ path. v2 was pre-registered as an amendment before its data and checked the disp
 diagnostics, which disables the fused argmax (`generator-steps.js` `shouldUseGreedyLmHeadArgmaxFusion`),
 so profiled requests use the full-vocabulary GEMV in both arms. The Mac report's 10.1% kernel figure
 predates that gating. The v2 decode interval excludes a decode reduction larger than about 0.1%.
+
+## v3: restated gate (2026-10-22)
+
+The owner restated the gate to require exact cancellation, reuse, unload and device recreation
+as well as tokens and text. [contract-v3.json](contract-v3.json) amends v2 with those checks and
+moves both arms to current main (`36ce6036` source; arm B = A + [candidate.patch](candidate.patch)).
+After its timed requests, every process aborts one request from `onToken` after its 4th token,
+runs one full request in the same session, unloads, destroys the device, reopens on a new
+device and runs one more request. These checks are not part of the timed metric.
+
+- All 40 processes passed. Every cancelled request rejected with `AbortError`, the compat
+  facade's [abort contract](../../src/inference/pipelines/text/abort-contract.js), after exactly the
+  first 4 expected tokens, and settled 0.7 ms after the abort (median, both arms). The reuse and
+  recreated-device requests reproduced the 32 expected tokens and text exactly. Reopening on a
+  new device took 6.1 s (median).
+- The warm complete request changed by −0.33% [−0.70, +0.07]. The upper bound is not below
+  zero, so **v3 also fails promotion**. Decode time, the only phase the kernel touches, changed by
+  −0.06% [−0.41, +0.28].
+- Together, v2 and v3 bound any AMD complete-request effect within about ±1%, with no
+  detectable decode change. The candidate stays an operator-level result on AMD, not a
+  release claim.
+- Run: 2026-10-22 18:40–18:52 UTC, Chrome 146.0.7680.177, same model copy. Reploid
+  participants did no GPU work; Xwayland used 1.1 s and the ChatGPT app 0.95 s of GPU over
+  12.4 minutes ([start](amd-20261022-v3-precondition/other-gpu-clients-start.txt),
+  [end](amd-20261022-v3-precondition/other-gpu-clients-end.txt)). The `404` per sample is the
+  static server's missing root page, also present in v2.
+- `kernel-probe.js` now records the profiled third request's failure instead of aborting. Since
+  [e667f3ca](../qwen-numerical-localization-20261022/README.md), profiled batched decode on this
+  recurrent model rejects when timestamp capacity runs out, so timing on AMD is still unavailable.
+  The precondition counts come from the unprofiled request.
 
 ## Contention
 
@@ -70,18 +102,25 @@ established here.
 
 ## M3 half (Mars)
 
+The restated order puts M3 first. Because the AMD half was already measured, it ran first here,
+which does not change the AMD outcome. Use [contract-v3-metal.json](contract-v3-metal.json):
+same harness, same lifecycle checks, and the Metal product profile.
+
 ```sh
 R=reports/qwen-lm-head-closure-20261021
 git worktree add --detach ../lmhead-A HEAD            # baseline = current main
 git worktree add --detach ../lmhead-B HEAD && git -C ../lmhead-B apply "$PWD/$R/candidate.patch"
 ln -s "$PWD/node_modules" ../lmhead-A/node_modules; ln -s "$PWD/node_modules" ../lmhead-B/node_modules
-node $R/kernel-probe.js ../lmhead-B <model> $R/contract-v2-metal.json kernel-B.json
-node $R/compare.js ../lmhead-A ../lmhead-B <model> <newOutDir> 10 $R/contract-v2-metal.json
+node $R/kernel-probe.js ../lmhead-A <model> $R/contract-v3-metal.json kernel-A.json
+node $R/kernel-probe.js ../lmhead-B <model> $R/contract-v3-metal.json kernel-B.json
+node $R/compare.js ../lmhead-A ../lmhead-B <model> <newOutDir> 10 $R/contract-v3-metal.json
 ```
 
-Confirm the precondition (phase-1 dispatches in `pipelineCounts`) before the timed run.
+Before the timed run, confirm the precondition: phase-1 dispatches in `requests[1].pipelineCounts`. A Metal pass alone
+can justify only an explicitly selected Metal variant. AMD shows no complete-request gain for a
+shared default.
 
 Component: `doppler.runtime-source.gpu.kernels`, `doppler` (evidence).
 Intent: preserved.
-Acceptance evidence: this directory's summaries, `npm run kernels:check`, `node --test tests/gpu/lm-head-argmax-recorder.test.js`.
+Acceptance evidence: this directory's summaries (v1, v2, v3), `npm run kernels:check`, `node --test tests/gpu/lm-head-argmax-recorder.test.js`.
 Boundary effects: none; no manifest pinned the candidate digest.

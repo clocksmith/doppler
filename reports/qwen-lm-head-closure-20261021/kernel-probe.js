@@ -76,14 +76,22 @@ try {
         const tokens = [];
         const pieces = [];
         const start = performance.now();
-        for await (const text of handle.generate(config.prompt, {
-          ...config.generation,
-          profile,
-          executionObserver: profile,
-          signal: AbortSignal.timeout(60000),
-          onToken: (token) => tokens.push(token),
-        })) {
-          pieces.push(text);
+        try {
+          for await (const text of handle.generate(config.prompt, {
+            ...config.generation,
+            profile,
+            executionObserver: profile,
+            signal: AbortSignal.timeout(60000),
+            onToken: (token) => tokens.push(token),
+          })) {
+            pieces.push(text);
+          }
+        } catch (error) {
+          // Since e667f3ca, profiled batched decode on recurrent models rejects when
+          // timestamp capacity runs out; the precondition is the unprofiled count.
+          if (!profile) throw error;
+          out.profiledError = String(error?.message || error);
+          break;
         }
         const elapsedMs = performance.now() - start;
         const stats = handle.advanced.getStats() ?? {};

@@ -1,0 +1,98 @@
+{
+  "schema": "doppler.lm-head-closure-contract/v3",
+  "frozenAt": "2026-10-22T15:30:00-04:00",
+  "question": "Does the Q4_K LM-head shared-memory activation cache (candidate.patch, originally 0e0c5276) improve complete-request latency on AMD Strix Halo Chrome/Vulkan without changing tokens, text, cancellation, session reuse, unload or device recreation?",
+  "arms": {
+    "A": "Doppler main at the commit that adds this contract (source identical to 36ce6036); lm_head_argmax_q4k.wgsl is the pre-0e0c5276 kernel",
+    "B": "Arm A plus candidate.patch (lm_head_argmax_q4k.wgsl and its kernel-ref digest only)"
+  },
+  "model": {
+    "directory": ".cache/qwen-2b-standard-blake3-20261018-v2",
+    "modelId": "qwen-3-5-2b-q4k-ehaf16",
+    "manifestVariantId": "qwen-3-5-2b-q4k-ehaf16-mv-exec-v1-standard-blake3-v1",
+    "lmHead": "Q4_K_M [248320, 2048], tied embeddings"
+  },
+  "prompt": "The capital of France is",
+  "generation": {
+    "useChatTemplate": false,
+    "temperature": 0,
+    "topK": 1,
+    "topP": 1,
+    "maxTokens": 32,
+    "seed": 0,
+    "repetitionPenalty": 1
+  },
+  "macRetainedExpectedTokens": [
+    11751,
+    13,
+    11751,
+    369,
+    279,
+    6511,
+    314,
+    9338,
+    13,
+    11751,
+    369,
+    279,
+    6511,
+    314,
+    9338,
+    13,
+    11751,
+    369,
+    279,
+    6511,
+    314,
+    9338,
+    13,
+    11751,
+    369,
+    279,
+    6511,
+    314,
+    9338,
+    13,
+    11751,
+    369
+  ],
+  "design": {
+    "unit": "one independent Node process launching one fresh headless Chrome process, opening the model once",
+    "requestsPerProcess": {
+      "cold": 1,
+      "warm": 5
+    },
+    "order": "blocks alternate ABBA and BAAB; 10 blocks = 20 processes per arm",
+    "browser": "Google Chrome stable via Playwright channel=chrome, --use-angle=vulkan --enable-features=Vulkan",
+    "contention": "gpu_busy_percent sampled every 100 ms by the parent during each process; Reploid native participants left running and recorded"
+  },
+  "primaryMetric": "per-process median of the 5 warm complete-request wall times (generate() call start to iterator end)",
+  "secondaryMetrics": [
+    "cold first complete-request wall time",
+    "model open time",
+    "decode and prefill stats from getStats()"
+  ],
+  "analysis": "paired by block position: log(B/A) for adjacent A,B processes within each block (2 pairs per block, 20 pairs). Report mean, median, 95% t-interval and 10000-resample percentile bootstrap interval of the mean log ratio, expressed as percent change.",
+  "promotionRule": {
+    "parity": "every request in every process of both arms yields identical token IDs and text; A and B must match each other",
+    "lifecycle": "every process completes the lifecycle sequence: the cancelled request rejects with AbortError after a proper prefix of the expected tokens, the reuse and device-recreation requests reproduce the expected tokens and text exactly, unload() and destroyDevice() succeed, and Chrome exits cleanly",
+    "latency": "upper bound of the 95% bootstrap interval of mean warm complete-request percent change (B vs A) is below 0",
+    "otherwise": "retain the kernel measurement as an operator-level result; make no release or complete-request claim on this platform"
+  },
+  "crossPlatform": "Run on M3 (contract-v3-metal.json, Mars) and AMD (contract-v3.json, Jupiter). A shared default needs both to pass; a single-platform pass can only justify an explicitly selected platform variant.",
+  "amends": {
+    "contract": "contract-v2.json",
+    "reason": "The owner restated the promotion gate on 2026-10-22 to require exact cancellation, reuse, unload and device recreation in addition to tokens and text; arms move to current main because 0428c15a is no longer the head."
+  },
+  "runtimeProfile": "profiles/qwen-3-5-2b-vulkan-parity",
+  "runtimeProfileEffect": "useGreedyLmHeadArgmaxFusion=true, lmHeadArgmaxQ4K {useFullBlockFastPath: true, colsPerWorkgroup: 128, threadsPerCol: 2} plus the profile's other Qwen decode fusions and decodeLoop batchSize 4 / overlapped readback",
+  "preconditions": [
+    "a kernel-timing probe in each arm shows decode lm_head_argmax_q4k phase1 dispatches before the latency comparison is run"
+  ],
+  "lifecycleChecks": {
+    "abortAfterTokens": 4,
+    "sequence": "after the timed requests, in the same session: abort one request from onToken after its 4th token; run one full request (reuse after cancellation); unload(); destroyDevice(); load() again on a new device and run one full request; unload(); destroyDevice(); close Chrome. Not timed for the primary metric.",
+    "expectedAbortErrorName": "AbortError",
+    "abortContract": "load() is the compat facade; its generate() rejects with AbortError per src/inference/pipelines/text/abort-contract.js. DOPPLER_GENERATION_ABORTED belongs to Capsule operations, not this surface."
+  }
+}
