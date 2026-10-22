@@ -1,0 +1,60 @@
+{
+  "schema": "doppler.decision-benchmark-contract/v1",
+  "frozenAt": "2026-10-22T16:20:00-04:00",
+  "authority": "Owner decision 2026-10-22 about 15:30 EDT: keep typed choice scoring, run a head-to-head benchmark before further packaging; the owner chooses the workload from the results. No npm publication.",
+  "workload": {
+    "task": "Three-way GitHub issue routing (bug, feature, question); the application suggests, a human decides",
+    "data": "NLBSE'24 issue report classification, revision 2927bc67, CSV SHA-256 pins in examples/issue-triage/dataset.js",
+    "test": "150 test issues: stratifiedSample(test, perCell 10, seed issue-triage-20261021), as in reports/issue-triage-comparison-20261022",
+    "train": "90 train issues: stratifiedSample(train, perCell 6, seed issue-triage-20261021); used only for label-free centering and for choosing the best open alternative",
+    "state": "documentText(issue, 1600) from examples/issue-triage/triage.js for every engine; reranker lanes fall back to 800 then 300 characters only when the prompt reaches maxSeqLen 1024",
+    "issueText": "never committed; results record indices, labels, probabilities and timings"
+  },
+  "comparisons": {
+    "a-runtime-parity": {
+      "question": "Same model, same weights and same precision: how do Doppler and Transformers.js differ in accuracy, numerical agreement, latency and memory?",
+      "model": "Qwen/Qwen3-Reranker-0.6B@e61197ed, application prompts and yes/no answer logits",
+      "lanes": {
+        "doppler-f16": "Doppler compat load() of a fresh standard-BLAKE3 F16 conversion from the pinned source safetensors; F16 weights. Activation precision recorded exactly: f16 if the af16 runtime lane runs this model correctly, otherwise f32 and the mismatch stated",
+        "transformersjs-fp16": "Transformers.js 4.3.1, device webgpu, dtype fp16 (model_fp16 graph of the export already used in reports/issue-triage-comparison-20261022, plus the source generation_config.json)"
+      },
+      "numericalReference": "FP32 ONNX of the same checkpoint on CPU (reports/issue-triage-numerics-20261022/fp32-oracle.js) on the 40-issue subset"
+    },
+    "b-product": {
+      "question": "Doppler with its chosen model versus the best open alternative, each used as its authors intend",
+      "lanes": {
+        "doppler-capsule-q4k": "Doppler 0.6.32 candidate archive 3f87f551 and test-signed Capsule ...-92b23b6a7b37aa70 (Q4K reranker successor 6beadee3), installed into OPFS through the application's installation adapter",
+        "open-jev-kev-0.6b": "open-jev 0.1.2 + Transformers.js 4.3.1, model onnx-community/kev-0.6b-ONNX@5a827091, dtype chosen by open-jev (q4f16 on WebGPU with shader-f16, q4 otherwise)",
+        "open-jev-kev-4b": "same, onnx-community/kev-4b-ONNX@195bdf73",
+        "open-jev-deberta": "same, onnx-community/open-jev-deberta-v3-large-ONNX@7c79f25b (fp16 on WebGPU with shader-f16)"
+      },
+      "openJevQuestion": "choice(\"What type of GitHub issue is this?\", [\"bug\", \"feature\", \"question\"], descriptions = the three TRIAGE_POLICY route queries); default temperature and truncation",
+      "bestOpenAlternative": "the open-jev lane with the highest train-split accuracy; all open-jev lanes are reported",
+      "notRun": {
+        "TypeSafe Jev": "hosted, paid API with new signups paused; would send issue text to a third party; not run without an owner-provided account and approval",
+        "Chrome Decisions API": "explainer only, dev-trial flag code from 2026-10; recorded as unavailable unless chrome://flags#decisions-api exists in the tested Chrome build",
+        "Laya builds": "kevala, @r4ai/laya-web and open-jev-laya use other wrappers and checkpoints; not in this run"
+      }
+    }
+  },
+  "metrics": {
+    "accuracy": "test accuracy and macro-F1 of the top choice; paired bootstrap (10,000 resamples, seed 20261022) of differences against doppler-capsule-q4k (product) and between parity lanes",
+    "calibration": "three-way probabilities: open-jev probabilities as returned; reranker lanes softmax over route scores yes-no at temperature 1 (raw, the primary) and after label-free centering with train-split offsets. Report ECE (10 equal-width bins of top-choice confidence), multiclass Brier score and NLL",
+    "coldComplete": "fresh browser profile, empty caches, model files from a local byte-counting HTTP origin: page navigation to first decision returned; 3 repetitions per lane, lanes alternated",
+    "warmComplete": "per-decision wall time from request to probabilities, all test decisions after the first; median and p90",
+    "memory": "peak total browser RSS over all processes of the profile (Linux /proc; macOS ps), and amdgpu GTT+VRAM on Linux; sampled every 200 ms",
+    "gpuProvider": "WebGPU adapter info (vendor, architecture, device, description) and adapter features as seen by the page; the engine's own report of its device/dtype/execution provider; console warnings about nodes assigned to CPU",
+    "cpuFallback": "the same page with navigator.gpu removed before any engine loads: record what each lane does (explicit failure, or the device and dtype it falls back to) and, where it runs, accuracy and warm latency on the first 30 test issues"
+  },
+  "platforms": {
+    "jupiter": "Linux 7.0.0-38, Radeon 8060S (RADV STRIX_HALO): Google Chrome stable 146.0.7680.177 (Vulkan); Firefox Nightly (WebGPU is Nightly-only on Linux), exact build recorded; Node 22.22.1 (Doppler via webgpu@0.4.0 Dawn, Transformers.js via onnxruntime-node)",
+    "mars": "Apple M3, macOS: Safari, Chrome stable, Firefox; Node. Run by the Mars owner with the same harness"
+  },
+  "fairness": {
+    "sameState": "every lane sees the same issue text and truncation budget",
+    "noTestTuning": "prompts, questions and centering are fixed here; the test split is never used to choose anything",
+    "oneEngineAtATime": "lanes run one at a time on an otherwise idle GPU; other GPU clients recorded from amdgpu fdinfo before and after",
+    "determinism": "accuracy is computed from the first repetition; later repetitions must reproduce its first 10 decisions or the lane is reported as nondeterministic"
+  },
+  "decisionRule": "No promotion or claim follows automatically. The owner chooses the workload from the results."
+}

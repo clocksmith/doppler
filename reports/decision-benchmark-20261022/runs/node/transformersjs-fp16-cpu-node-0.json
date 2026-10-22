@@ -1,0 +1,8480 @@
+{
+ "runId": "node-transformersjs-fp16-cpu-0",
+ "browser": {
+  "name": "node",
+  "kind": "node",
+  "version": "v22.22.1"
+ },
+ "lane": "transformersjs-fp16-cpu",
+ "mode": "node",
+ "rep": 0,
+ "quality": true,
+ "launchToReportMs": 462788,
+ "exit": {
+  "code": 0,
+  "signal": null
+ },
+ "stderrTail": "",
+ "peakMemory": {
+  "totalRss": 3844718592,
+  "gpuMemory": 0
+ },
+ "report": {
+  "lane": "transformersjs-fp16-cpu",
+  "mode": "node",
+  "quality": true,
+  "startedAtMs": 45.526522,
+  "platform": {
+   "node": "v22.22.1"
+  },
+  "openMs": 3426.892319,
+  "runtime": {
+   "engine": "transformersjs",
+   "version": "4.3.1",
+   "device": "cpu",
+   "dtype": "fp16"
+  },
+  "firstDecisionMs": 2240.588657,
+  "coldCompleteMs": 5714.679251,
+  "firstIssue": {
+   "index": 1136,
+   "label": "bug",
+   "repo": "bitcoin/bitcoin",
+   "elapsedMs": 2240.588657,
+   "probabilities": {
+    "bug": 0.8958154909008426,
+    "feature": 0.09515878966772942,
+    "question": 0.009025719431427917
+   },
+   "choice": "bug",
+   "detail": {
+    "routes": [
+     {
+      "id": "bug",
+      "yes": 12.203125,
+      "no": 16.03125,
+      "score": -3.828125
+     },
+     {
+      "id": "feature",
+      "yes": 9.5234375,
+      "no": 15.59375,
+      "score": -6.0703125
+     },
+     {
+      "id": "question",
+      "yes": 6.30078125,
+      "no": 14.7265625,
+      "score": -8.42578125
+     }
+    ],
+    "bodyCharacterBudget": 1600
+   }
+  },
+  "test": [
+   {
+    "index": 1146,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 502.81757500000003,
+    "probabilities": {
+     "bug": 0.8764154058918238,
+     "feature": 0.09833108334518757,
+     "question": 0.025253510762988655
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.7109375,
+       "no": 16.421875,
+       "score": -3.7109375
+      },
+      {
+       "id": "feature",
+       "yes": 9.3359375,
+       "no": 15.234375,
+       "score": -5.8984375
+      },
+      {
+       "id": "question",
+       "yes": 8.0546875,
+       "no": 15.3125,
+       "score": -7.2578125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1190,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 433.8472299999994,
+    "probabilities": {
+     "bug": 0.3662147727028021,
+     "feature": 0.3898335963159962,
+     "question": 0.24395163098120165
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.1484375,
+       "no": 16.421875,
+       "score": -4.2734375
+      },
+      {
+       "id": "feature",
+       "yes": 12.1328125,
+       "no": 16.34375,
+       "score": -4.2109375
+      },
+      {
+       "id": "question",
+       "yes": 11.9921875,
+       "no": 16.671875,
+       "score": -4.6796875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1118,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 583.6686519999994,
+    "probabilities": {
+     "bug": 0.8465829700007377,
+     "feature": 0.0935113867337404,
+     "question": 0.05990564326552194
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.4140625,
+       "no": 16.390625,
+       "score": -4.9765625
+      },
+      {
+       "id": "feature",
+       "yes": 9.5390625,
+       "no": 16.71875,
+       "score": -7.1796875
+      },
+      {
+       "id": "question",
+       "yes": 9.25,
+       "no": 16.875,
+       "score": -7.625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1120,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 1895.2809169999991,
+    "probabilities": {
+     "bug": 0.8434080111841172,
+     "feature": 0.08318313225423536,
+     "question": 0.07340885656164746
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.890625,
+       "no": 16.125,
+       "score": -5.234375
+      },
+      {
+       "id": "feature",
+       "yes": 7.28515625,
+       "no": 14.8359375,
+       "score": -7.55078125
+      },
+      {
+       "id": "question",
+       "yes": 7.79296875,
+       "no": 15.46875,
+       "score": -7.67578125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1121,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 761.7114140000012,
+    "probabilities": {
+     "bug": 0.5047371024644662,
+     "feature": 0.32083042244131743,
+     "question": 0.17443247509421636
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.0078125,
+       "no": 17.25,
+       "score": -5.2421875
+      },
+      {
+       "id": "feature",
+       "yes": 10.6328125,
+       "no": 16.328125,
+       "score": -5.6953125
+      },
+      {
+       "id": "question",
+       "yes": 10.1015625,
+       "no": 16.40625,
+       "score": -6.3046875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1123,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 865.7295419999991,
+    "probabilities": {
+     "bug": 0.4200380083319326,
+     "feature": 0.4778282953508968,
+     "question": 0.10213369631717069
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 7.76171875,
+       "no": 15.984375,
+       "score": -8.22265625
+      },
+      {
+       "id": "feature",
+       "yes": 7.234375,
+       "no": 15.328125,
+       "score": -8.09375
+      },
+      {
+       "id": "question",
+       "yes": 5.67578125,
+       "no": 15.3125,
+       "score": -9.63671875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1134,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 2461.329518999999,
+    "probabilities": {
+     "bug": 0.7980612270870817,
+     "feature": 0.08919090479267487,
+     "question": 0.11274786812024334
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.8984375,
+       "no": 16.203125,
+       "score": -7.3046875
+      },
+      {
+       "id": "feature",
+       "yes": 5.35546875,
+       "no": 14.8515625,
+       "score": -9.49609375
+      },
+      {
+       "id": "question",
+       "yes": 6.09765625,
+       "no": 15.359375,
+       "score": -9.26171875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1143,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 1665.2169390000017,
+    "probabilities": {
+     "bug": 0.9911858817976005,
+     "feature": 0.007306364639100997,
+     "question": 0.0015077535632983313
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 13.6328125,
+       "no": 16.734375,
+       "score": -3.1015625
+      },
+      {
+       "id": "feature",
+       "yes": 7.24609375,
+       "no": 15.2578125,
+       "score": -8.01171875
+      },
+      {
+       "id": "question",
+       "yes": 5.35546875,
+       "no": 14.9453125,
+       "score": -9.58984375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1173,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 2149.9344519999977,
+    "probabilities": {
+     "bug": 0.8553913768541981,
+     "feature": 0.09597225266095655,
+     "question": 0.048636370484845357
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.3671875,
+       "no": 15.796875,
+       "score": -6.4296875
+      },
+      {
+       "id": "feature",
+       "yes": 7.0859375,
+       "no": 15.703125,
+       "score": -8.6171875
+      },
+      {
+       "id": "question",
+       "yes": 7.171875,
+       "no": 16.46875,
+       "score": -9.296875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1142,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 1206.0027800000025,
+    "probabilities": {
+     "bug": 0.7647154326929748,
+     "feature": 0.12338197501303617,
+     "question": 0.11190259229398901
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.40625,
+       "no": 16.890625,
+       "score": -6.484375
+      },
+      {
+       "id": "feature",
+       "yes": 7.81640625,
+       "no": 16.125,
+       "score": -8.30859375
+      },
+      {
+       "id": "question",
+       "yes": 8.046875,
+       "no": 16.453125,
+       "score": -8.40625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 978,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 1683.7038520000024,
+    "probabilities": {
+     "bug": 0.03418778646271972,
+     "feature": 0.8545871264902848,
+     "question": 0.1112250870469954
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 7.8515625,
+       "no": 15.59375,
+       "score": -7.7421875
+      },
+      {
+       "id": "feature",
+       "yes": 11.6328125,
+       "no": 16.15625,
+       "score": -4.5234375
+      },
+      {
+       "id": "question",
+       "yes": 8.71875,
+       "no": 15.28125,
+       "score": -6.5625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 936,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 1780.7901779999993,
+    "probabilities": {
+     "bug": 0.019746542986928763,
+     "feature": 0.9702072295483444,
+     "question": 0.010046227464727059
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 6.22265625,
+       "no": 15.7578125,
+       "score": -9.53515625
+      },
+      {
+       "id": "feature",
+       "yes": 10.25,
+       "no": 15.890625,
+       "score": -5.640625
+      },
+      {
+       "id": "question",
+       "yes": 5.6015625,
+       "no": 15.8125,
+       "score": -10.2109375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 962,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 1295.092536,
+    "probabilities": {
+     "bug": 0.04122910897042441,
+     "feature": 0.9531473753432043,
+     "question": 0.005623515686371387
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.3203125,
+       "no": 16.34375,
+       "score": -7.0234375
+      },
+      {
+       "id": "feature",
+       "yes": 13.0859375,
+       "no": 16.96875,
+       "score": -3.8828125
+      },
+      {
+       "id": "question",
+       "yes": 7.6875,
+       "no": 16.703125,
+       "score": -9.015625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 932,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 1002.8307820000009,
+    "probabilities": {
+     "bug": 0.00924803120880527,
+     "feature": 0.9619302439776474,
+     "question": 0.028821724813547257
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 7.45703125,
+       "no": 15.78125,
+       "score": -8.32421875
+      },
+      {
+       "id": "feature",
+       "yes": 12.5546875,
+       "no": 16.234375,
+       "score": -3.6796875
+      },
+      {
+       "id": "question",
+       "yes": 9.15625,
+       "no": 16.34375,
+       "score": -7.1875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 941,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 1471.158569000003,
+    "probabilities": {
+     "bug": 0.5383881919318894,
+     "feature": 0.40639672851344866,
+     "question": 0.05521507955466206
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 6.93359375,
+       "no": 15.8203125,
+       "score": -8.88671875
+      },
+      {
+       "id": "feature",
+       "yes": 6.74609375,
+       "no": 15.9140625,
+       "score": -9.16796875
+      },
+      {
+       "id": "question",
+       "yes": 5.9921875,
+       "no": 17.15625,
+       "score": -11.1640625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 975,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 1704.180725000002,
+    "probabilities": {
+     "bug": 0.012003700545415753,
+     "feature": 0.9610510036063388,
+     "question": 0.026945295848245496
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 5.625,
+       "no": 16.078125,
+       "score": -10.453125
+      },
+      {
+       "id": "feature",
+       "yes": 9.7578125,
+       "no": 15.828125,
+       "score": -6.0703125
+      },
+      {
+       "id": "question",
+       "yes": 4.64453125,
+       "no": 14.2890625,
+       "score": -9.64453125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 985,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 2514.851060000001,
+    "probabilities": {
+     "bug": 0.036172153025080034,
+     "feature": 0.9041900488754505,
+     "question": 0.05963779809946945
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 6.140625,
+       "no": 15.2109375,
+       "score": -9.0703125
+      },
+      {
+       "id": "feature",
+       "yes": 10.0390625,
+       "no": 15.890625,
+       "score": -5.8515625
+      },
+      {
+       "id": "question",
+       "yes": 6.4140625,
+       "no": 14.984375,
+       "score": -8.5703125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 934,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 2377.737517999998,
+    "probabilities": {
+     "bug": 0.03972059682580064,
+     "feature": 0.8900208281694009,
+     "question": 0.07025857500479853
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.8125,
+       "no": 15.875,
+       "score": -7.0625
+      },
+      {
+       "id": "feature",
+       "yes": 12.015625,
+       "no": 15.96875,
+       "score": -3.953125
+      },
+      {
+       "id": "question",
+       "yes": 8.234375,
+       "no": 14.7265625,
+       "score": -6.4921875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 908,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 1416.6538330000003,
+    "probabilities": {
+     "bug": 0.003333938462288745,
+     "feature": 0.9801916135044292,
+     "question": 0.01647444803328214
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 6.70703125,
+       "no": 15.0625,
+       "score": -8.35546875
+      },
+      {
+       "id": "feature",
+       "yes": 13.5625,
+       "no": 16.234375,
+       "score": -2.671875
+      },
+      {
+       "id": "question",
+       "yes": 8.546875,
+       "no": 15.3046875,
+       "score": -6.7578125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 976,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 1252.4177039999995,
+    "probabilities": {
+     "bug": 0.3545313277197981,
+     "feature": 0.4999693085472386,
+     "question": 0.14549936373296327
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.8671875,
+       "no": 15.4140625,
+       "score": -6.546875
+      },
+      {
+       "id": "feature",
+       "yes": 9.390625,
+       "no": 15.59375,
+       "score": -6.203125
+      },
+      {
+       "id": "question",
+       "yes": 8.203125,
+       "no": 15.640625,
+       "score": -7.4375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1008,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 3015.869743999996,
+    "probabilities": {
+     "bug": 0.2799146889991211,
+     "feature": 0.6820547100210446,
+     "question": 0.03803060097983417
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 7.890625,
+       "no": 15.171875,
+       "score": -7.28125
+      },
+      {
+       "id": "feature",
+       "yes": 8.1171875,
+       "no": 14.5078125,
+       "score": -6.390625
+      },
+      {
+       "id": "question",
+       "yes": 5.68359375,
+       "no": 14.9609375,
+       "score": -9.27734375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1072,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 2031.2961699999942,
+    "probabilities": {
+     "bug": 0.9522814329803113,
+     "feature": 0.032205648743511665,
+     "question": 0.015512918276177111
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.7578125,
+       "no": 16.46875,
+       "score": -3.7109375
+      },
+      {
+       "id": "feature",
+       "yes": 7.78515625,
+       "no": 14.8828125,
+       "score": -7.09765625
+      },
+      {
+       "id": "question",
+       "yes": 7.5234375,
+       "no": 15.3515625,
+       "score": -7.828125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1058,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 4700.941693000001,
+    "probabilities": {
+     "bug": 0.9833409490186488,
+     "feature": 0.00484746508487182,
+     "question": 0.011811585896479224
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 13.4609375,
+       "no": 16.1875,
+       "score": -2.7265625
+      },
+      {
+       "id": "feature",
+       "yes": 7.375,
+       "no": 15.4140625,
+       "score": -8.0390625
+      },
+      {
+       "id": "question",
+       "yes": 8.75,
+       "no": 15.8984375,
+       "score": -7.1484375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1077,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 3523.199797000001,
+    "probabilities": {
+     "bug": 0.6238147409470051,
+     "feature": 0.2285939269605504,
+     "question": 0.14759133209244454
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.1796875,
+       "no": 14.9375,
+       "score": -6.7578125
+      },
+      {
+       "id": "feature",
+       "yes": 7.83203125,
+       "no": 15.59375,
+       "score": -7.76171875
+      },
+      {
+       "id": "question",
+       "yes": 7.36328125,
+       "no": 15.5625,
+       "score": -8.19921875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1035,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 2408.925519000004,
+    "probabilities": {
+     "bug": 0.7040097886519611,
+     "feature": 0.20648541087644448,
+     "question": 0.08950480047159455
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.40625,
+       "no": 15.9140625,
+       "score": -3.5078125
+      },
+      {
+       "id": "feature",
+       "yes": 10.484375,
+       "no": 15.21875,
+       "score": -4.734375
+      },
+      {
+       "id": "question",
+       "yes": 10.3046875,
+       "no": 15.875,
+       "score": -5.5703125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1054,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 781.5823230000024,
+    "probabilities": {
+     "bug": 0.10928422384420575,
+     "feature": 0.3611395853622635,
+     "question": 0.5295761907935308
+    },
+    "choice": "question",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.46875,
+       "no": 16.328125,
+       "score": -6.859375
+      },
+      {
+       "id": "feature",
+       "yes": 10.03125,
+       "no": 15.6953125,
+       "score": -5.6640625
+      },
+      {
+       "id": "question",
+       "yes": 10.578125,
+       "no": 15.859375,
+       "score": -5.28125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1039,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 1250.3404850000006,
+    "probabilities": {
+     "bug": 0.8330168647879275,
+     "feature": 0.09419493276254139,
+     "question": 0.07278820244953127
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 13.8671875,
+       "no": 17.125,
+       "score": -3.2578125
+      },
+      {
+       "id": "feature",
+       "yes": 10.1171875,
+       "no": 15.5546875,
+       "score": -5.4375
+      },
+      {
+       "id": "question",
+       "yes": 9.984375,
+       "no": 15.6796875,
+       "score": -5.6953125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1087,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 499.87038400000165,
+    "probabilities": {
+     "bug": 0.6047073187465246,
+     "feature": 0.08643840421740583,
+     "question": 0.30885427703606955
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.5859375,
+       "no": 17.09375,
+       "score": -5.5078125
+      },
+      {
+       "id": "feature",
+       "yes": 9.46875,
+       "no": 16.921875,
+       "score": -7.453125
+      },
+      {
+       "id": "question",
+       "yes": 10.5390625,
+       "no": 16.71875,
+       "score": -6.1796875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1097,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 602.4418030000015,
+    "probabilities": {
+     "bug": 0.5296828372865833,
+     "feature": 0.03119466720242797,
+     "question": 0.43912249551098864
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.1328125,
+       "no": 16.578125,
+       "score": -6.4453125
+      },
+      {
+       "id": "feature",
+       "yes": 7.14453125,
+       "no": 16.421875,
+       "score": -9.27734375
+      },
+      {
+       "id": "question",
+       "yes": 9.3984375,
+       "no": 16.03125,
+       "score": -6.6328125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1095,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 738.4337240000023,
+    "probabilities": {
+     "bug": 0.36567436760594807,
+     "feature": 0.2961321274901046,
+     "question": 0.3381935049039473
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.5,
+       "no": 14.4921875,
+       "score": -5.9921875
+      },
+      {
+       "id": "feature",
+       "yes": 8.984375,
+       "no": 15.1875,
+       "score": -6.203125
+      },
+      {
+       "id": "question",
+       "yes": 8.15625,
+       "no": 14.2265625,
+       "score": -6.0703125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 60,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 2887.936754000002,
+    "probabilities": {
+     "bug": 0.9565329960828284,
+     "feature": 0.02539136193727461,
+     "question": 0.018075641979897118
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 13.015625,
+       "no": 16.375,
+       "score": -3.359375
+      },
+      {
+       "id": "feature",
+       "yes": 7.67578125,
+       "no": 14.6640625,
+       "score": -6.98828125
+      },
+      {
+       "id": "question",
+       "yes": 7.453125,
+       "no": 14.78125,
+       "score": -7.328125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 75,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 3229.8240149999983,
+    "probabilities": {
+     "bug": 0.8932959773668733,
+     "feature": 0.0768451968404734,
+     "question": 0.02985882579265338
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.1484375,
+       "no": 16.453125,
+       "score": -4.3046875
+      },
+      {
+       "id": "feature",
+       "yes": 8.0703125,
+       "no": 14.828125,
+       "score": -6.7578125
+      },
+      {
+       "id": "question",
+       "yes": 6.8203125,
+       "no": 14.5234375,
+       "score": -7.703125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 47,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 1646.0493150000038,
+    "probabilities": {
+     "bug": 0.9937743459154946,
+     "feature": 0.0022428786775379687,
+     "question": 0.003982775406967438
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 13.8515625,
+       "no": 16.421875,
+       "score": -2.5703125
+      },
+      {
+       "id": "feature",
+       "yes": 5.0234375,
+       "no": 13.6875,
+       "score": -8.6640625
+      },
+      {
+       "id": "question",
+       "yes": 6.60546875,
+       "no": 14.6953125,
+       "score": -8.08984375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 52,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 3565.02324200001,
+    "probabilities": {
+     "bug": 0.7644625088391587,
+     "feature": 0.14704453264454131,
+     "question": 0.0884929585163
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.3125,
+       "no": 16.328125,
+       "score": -4.015625
+      },
+      {
+       "id": "feature",
+       "yes": 8.0859375,
+       "no": 13.75,
+       "score": -5.6640625
+      },
+      {
+       "id": "question",
+       "yes": 7.328125,
+       "no": 13.5,
+       "score": -6.171875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 92,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 1596.9270899999974,
+    "probabilities": {
+     "bug": 0.8139322150620873,
+     "feature": 0.0888574445251414,
+     "question": 0.09721034041277109
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.7265625,
+       "no": 16,
+       "score": -6.2734375
+      },
+      {
+       "id": "feature",
+       "yes": 6.87109375,
+       "no": 15.359375,
+       "score": -8.48828125
+      },
+      {
+       "id": "question",
+       "yes": 7.453125,
+       "no": 15.8515625,
+       "score": -8.3984375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 21,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 2281.0006920000014,
+    "probabilities": {
+     "bug": 0.9450382098529977,
+     "feature": 0.048544230934895065,
+     "question": 0.00641755921210727
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 14.296875,
+       "no": 16.890625,
+       "score": -2.59375
+      },
+      {
+       "id": "feature",
+       "yes": 9.53125,
+       "no": 15.09375,
+       "score": -5.5625
+      },
+      {
+       "id": "question",
+       "yes": 7.1640625,
+       "no": 14.75,
+       "score": -7.5859375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 37,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 1488.0407540000015,
+    "probabilities": {
+     "bug": 0.8581633125022362,
+     "feature": 0.11082134745171854,
+     "question": 0.03101534004604545
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 13.015625,
+       "no": 17.203125,
+       "score": -4.1875
+      },
+      {
+       "id": "feature",
+       "yes": 9.5390625,
+       "no": 15.7734375,
+       "score": -6.234375
+      },
+      {
+       "id": "question",
+       "yes": 7.953125,
+       "no": 15.4609375,
+       "score": -7.5078125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 94,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 2767.932209999999,
+    "probabilities": {
+     "bug": 0.9710422405134149,
+     "feature": 0.020390899929089993,
+     "question": 0.008566859557495058
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.9921875,
+       "no": 16.75,
+       "score": -3.7578125
+      },
+      {
+       "id": "feature",
+       "yes": 7.41015625,
+       "no": 15.03125,
+       "score": -7.62109375
+      },
+      {
+       "id": "question",
+       "yes": 7.03515625,
+       "no": 15.5234375,
+       "score": -8.48828125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 65,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 1156.5774110000057,
+    "probabilities": {
+     "bug": 0.3766522916128458,
+     "feature": 0.5743261602939355,
+     "question": 0.04902154809321869
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.4609375,
+       "no": 16.25,
+       "score": -5.7890625
+      },
+      {
+       "id": "feature",
+       "yes": 10.328125,
+       "no": 15.6953125,
+       "score": -5.3671875
+      },
+      {
+       "id": "question",
+       "yes": 8.296875,
+       "no": 16.125,
+       "score": -7.828125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 66,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 2547.5113739999942,
+    "probabilities": {
+     "bug": 0.7707316591862061,
+     "feature": 0.19487148118256195,
+     "question": 0.03439685963123194
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.9375,
+       "no": 16.265625,
+       "score": -3.328125
+      },
+      {
+       "id": "feature",
+       "yes": 10.859375,
+       "no": 15.5625,
+       "score": -4.703125
+      },
+      {
+       "id": "question",
+       "yes": 9.140625,
+       "no": 15.578125,
+       "score": -6.4375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 151,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 1835.1660660000052,
+    "probabilities": {
+     "bug": 0.26162071441007984,
+     "feature": 0.5714321765406576,
+     "question": 0.1669471090492625
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 6.39453125,
+       "no": 15.109375,
+       "score": -8.71484375
+      },
+      {
+       "id": "feature",
+       "yes": 7.58984375,
+       "no": 15.5234375,
+       "score": -7.93359375
+      },
+      {
+       "id": "question",
+       "yes": 5.640625,
+       "no": 14.8046875,
+       "score": -9.1640625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 134,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 1776.7803699999931,
+    "probabilities": {
+     "bug": 0.07102129078484636,
+     "feature": 0.8127956315971011,
+     "question": 0.11618307761805251
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.421875,
+       "no": 16.59375,
+       "score": -4.171875
+      },
+      {
+       "id": "feature",
+       "yes": 15,
+       "no": 16.734375,
+       "score": -1.734375
+      },
+      {
+       "id": "question",
+       "yes": 12.8359375,
+       "no": 16.515625,
+       "score": -3.6796875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 188,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 1590.941611999995,
+    "probabilities": {
+     "bug": 0.3717112466139834,
+     "feature": 0.5324517771178598,
+     "question": 0.09583697626815665
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.8828125,
+       "no": 16.71875,
+       "score": -7.8359375
+      },
+      {
+       "id": "feature",
+       "yes": 8.7578125,
+       "no": 16.234375,
+       "score": -7.4765625
+      },
+      {
+       "id": "question",
+       "yes": 7.55859375,
+       "no": 16.75,
+       "score": -9.19140625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 174,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 2486.9920060000004,
+    "probabilities": {
+     "bug": 0.04075101816854425,
+     "feature": 0.9420947233609678,
+     "question": 0.017154258470488112
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 5.1484375,
+       "no": 15.25,
+       "score": -10.1015625
+      },
+      {
+       "id": "feature",
+       "yes": 7.6796875,
+       "no": 14.640625,
+       "score": -6.9609375
+      },
+      {
+       "id": "question",
+       "yes": 3.017578125,
+       "no": 13.984375,
+       "score": -10.966796875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 149,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 1462.1613660000003,
+    "probabilities": {
+     "bug": 0.263044008494124,
+     "feature": 0.698464148423493,
+     "question": 0.03849184308238292
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.828125,
+       "no": 16.515625,
+       "score": -4.6875
+      },
+      {
+       "id": "feature",
+       "yes": 12.4453125,
+       "no": 16.15625,
+       "score": -3.7109375
+      },
+      {
+       "id": "question",
+       "yes": 9.578125,
+       "no": 16.1875,
+       "score": -6.609375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 119,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 2744.128998,
+    "probabilities": {
+     "bug": 0.10426048063934257,
+     "feature": 0.8461040895547006,
+     "question": 0.04963542980595686
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.6953125,
+       "no": 16.84375,
+       "score": -5.1484375
+      },
+      {
+       "id": "feature",
+       "yes": 13.7421875,
+       "no": 16.796875,
+       "score": -3.0546875
+      },
+      {
+       "id": "question",
+       "yes": 11.1875,
+       "no": 17.078125,
+       "score": -5.890625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 131,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 2650.6654699999926,
+    "probabilities": {
+     "bug": 0.021186679113838938,
+     "feature": 0.9702865017355982,
+     "question": 0.008526819150562817
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 7.15234375,
+       "no": 14.859375,
+       "score": -7.70703125
+      },
+      {
+       "id": "feature",
+       "yes": 12.3984375,
+       "no": 16.28125,
+       "score": -3.8828125
+      },
+      {
+       "id": "question",
+       "yes": 4.703125,
+       "no": 13.3203125,
+       "score": -8.6171875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 129,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 795.2920149999991,
+    "probabilities": {
+     "bug": 0.07829771217772295,
+     "feature": 0.8753124286096402,
+     "question": 0.046389859212636914
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.9765625,
+       "no": 16.734375,
+       "score": -6.7578125
+      },
+      {
+       "id": "feature",
+       "yes": 11.875,
+       "no": 16.21875,
+       "score": -4.34375
+      },
+      {
+       "id": "question",
+       "yes": 8.375,
+       "no": 15.65625,
+       "score": -7.28125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 165,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 1383.988296999989,
+    "probabilities": {
+     "bug": 0.03494296635426975,
+     "feature": 0.940758015363512,
+     "question": 0.02429901828221824
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 6.57421875,
+       "no": 15.265625,
+       "score": -8.69140625
+      },
+      {
+       "id": "feature",
+       "yes": 9.75,
+       "no": 15.1484375,
+       "score": -5.3984375
+      },
+      {
+       "id": "question",
+       "yes": 4.765625,
+       "no": 13.8203125,
+       "score": -9.0546875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 156,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 1499.6697710000008,
+    "probabilities": {
+     "bug": 0.73908303824114,
+     "feature": 0.24182704494177135,
+     "question": 0.019089916817088663
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 14.3515625,
+       "no": 16.609375,
+       "score": -2.2578125
+      },
+      {
+       "id": "feature",
+       "yes": 12.828125,
+       "no": 16.203125,
+       "score": -3.375
+      },
+      {
+       "id": "question",
+       "yes": 9.2578125,
+       "no": 15.171875,
+       "score": -5.9140625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 297,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 1425.6627009999938,
+    "probabilities": {
+     "bug": 0.3259185621634839,
+     "feature": 0.18862719254384727,
+     "question": 0.4854542452926688
+    },
+    "choice": "question",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 6.14453125,
+       "no": 14.5703125,
+       "score": -8.42578125
+      },
+      {
+       "id": "feature",
+       "yes": 3.49609375,
+       "no": 12.46875,
+       "score": -8.97265625
+      },
+      {
+       "id": "question",
+       "yes": 6.44921875,
+       "no": 14.4765625,
+       "score": -8.02734375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 230,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 1510.3516579999996,
+    "probabilities": {
+     "bug": 0.6902333290294661,
+     "feature": 0.25591419139880967,
+     "question": 0.05385247957172424
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.4296875,
+       "no": 15.2734375,
+       "score": -5.84375
+      },
+      {
+       "id": "feature",
+       "yes": 8.3203125,
+       "no": 15.15625,
+       "score": -6.8359375
+      },
+      {
+       "id": "question",
+       "yes": 7.18359375,
+       "no": 15.578125,
+       "score": -8.39453125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 202,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 1466.3063510000065,
+    "probabilities": {
+     "bug": 0.34067286623424364,
+     "feature": 0.47482861588729963,
+     "question": 0.18449851787845672
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 7.90234375,
+       "no": 14.78125,
+       "score": -6.87890625
+      },
+      {
+       "id": "feature",
+       "yes": 8.1484375,
+       "no": 14.6953125,
+       "score": -6.546875
+      },
+      {
+       "id": "question",
+       "yes": 6.6953125,
+       "no": 14.1875,
+       "score": -7.4921875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 254,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 1227.639360000001,
+    "probabilities": {
+     "bug": 0.9122943174989764,
+     "feature": 0.0766615404687424,
+     "question": 0.011044142032281169
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 13.390625,
+       "no": 16.875,
+       "score": -3.484375
+      },
+      {
+       "id": "feature",
+       "yes": 10.0390625,
+       "no": 16,
+       "score": -5.9609375
+      },
+      {
+       "id": "question",
+       "yes": 8.3046875,
+       "no": 16.203125,
+       "score": -7.8984375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 236,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 1107.9247009999963,
+    "probabilities": {
+     "bug": 0.612977277756835,
+     "feature": 0.34926392481616103,
+     "question": 0.03775879742700397
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 7.84765625,
+       "no": 15.8125,
+       "score": -7.96484375
+      },
+      {
+       "id": "feature",
+       "yes": 6.73828125,
+       "no": 15.265625,
+       "score": -8.52734375
+      },
+      {
+       "id": "question",
+       "yes": 3.591796875,
+       "no": 14.34375,
+       "score": -10.751953125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 239,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 2070.125992000001,
+    "probabilities": {
+     "bug": 0.12212007217425634,
+     "feature": 0.7658162503214834,
+     "question": 0.11206367750426029
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.234375,
+       "no": 16.078125,
+       "score": -5.84375
+      },
+      {
+       "id": "feature",
+       "yes": 12.5078125,
+       "no": 16.515625,
+       "score": -4.0078125
+      },
+      {
+       "id": "question",
+       "yes": 9.796875,
+       "no": 15.7265625,
+       "score": -5.9296875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 249,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 1444.2631150000088,
+    "probabilities": {
+     "bug": 0.9248074417561625,
+     "feature": 0.057302001010914795,
+     "question": 0.017890557232922856
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.9765625,
+       "no": 16.421875,
+       "score": -3.4453125
+      },
+      {
+       "id": "feature",
+       "yes": 9.6328125,
+       "no": 15.859375,
+       "score": -6.2265625
+      },
+      {
+       "id": "question",
+       "yes": 8.578125,
+       "no": 15.96875,
+       "score": -7.390625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 289,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 407.2211229999957,
+    "probabilities": {
+     "bug": 0.05684076076178432,
+     "feature": 0.3735553503895003,
+     "question": 0.5696038888487154
+    },
+    "choice": "question",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 5.078125,
+       "no": 15.546875,
+       "score": -10.46875
+      },
+      {
+       "id": "feature",
+       "yes": 6.9453125,
+       "no": 15.53125,
+       "score": -8.5859375
+      },
+      {
+       "id": "question",
+       "yes": 8.0078125,
+       "no": 16.171875,
+       "score": -8.1640625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 211,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 954.7576059999992,
+    "probabilities": {
+     "bug": 0.05204952042281083,
+     "feature": 0.8667023271787578,
+     "question": 0.08124815239843125
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.2578125,
+       "no": 16.765625,
+       "score": -8.5078125
+      },
+      {
+       "id": "feature",
+       "yes": 10.4921875,
+       "no": 16.1875,
+       "score": -5.6953125
+      },
+      {
+       "id": "question",
+       "yes": 8.359375,
+       "no": 16.421875,
+       "score": -8.0625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 268,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 1114.6484950000013,
+    "probabilities": {
+     "bug": 0.6881290411137664,
+     "feature": 0.17950918564066112,
+     "question": 0.13236177324557244
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.984375,
+       "no": 16.671875,
+       "score": -4.6875
+      },
+      {
+       "id": "feature",
+       "yes": 9.859375,
+       "no": 15.890625,
+       "score": -6.03125
+      },
+      {
+       "id": "question",
+       "yes": 10.2734375,
+       "no": 16.609375,
+       "score": -6.3359375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 667,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 1814.930032999997,
+    "probabilities": {
+     "bug": 0.05511088959604657,
+     "feature": 0.9034514110058933,
+     "question": 0.0414376993980602
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.0390625,
+       "no": 16.296875,
+       "score": -6.2578125
+      },
+      {
+       "id": "feature",
+       "yes": 12.5703125,
+       "no": 16.03125,
+       "score": -3.4609375
+      },
+      {
+       "id": "question",
+       "yes": 7.87890625,
+       "no": 14.421875,
+       "score": -6.54296875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 634,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 3474.5705869999947,
+    "probabilities": {
+     "bug": 0.7522799106849367,
+     "feature": 0.08117002074502228,
+     "question": 0.16655006857004104
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.53125,
+       "no": 16.53125,
+       "score": -5
+      },
+      {
+       "id": "feature",
+       "yes": 9.2421875,
+       "no": 16.46875,
+       "score": -7.2265625
+      },
+      {
+       "id": "question",
+       "yes": 9.8359375,
+       "no": 16.34375,
+       "score": -6.5078125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 629,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 3339.7539499999984,
+    "probabilities": {
+     "bug": 0.7503627166393083,
+     "feature": 0.21666864648623074,
+     "question": 0.03296863687446096
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 15.1640625,
+       "no": 16.53125,
+       "score": -1.3671875
+      },
+      {
+       "id": "feature",
+       "yes": 13.796875,
+       "no": 16.40625,
+       "score": -2.609375
+      },
+      {
+       "id": "question",
+       "yes": 11.5546875,
+       "no": 16.046875,
+       "score": -4.4921875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 675,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 503.8329589999921,
+    "probabilities": {
+     "bug": 0.0362742229400514,
+     "feature": 0.8320727502290217,
+     "question": 0.13165302683092678
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.484375,
+       "no": 16.703125,
+       "score": -7.21875
+      },
+      {
+       "id": "feature",
+       "yes": 12.6328125,
+       "no": 16.71875,
+       "score": -4.0859375
+      },
+      {
+       "id": "question",
+       "yes": 10.7578125,
+       "no": 16.6875,
+       "score": -5.9296875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 687,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 495.56299600000784,
+    "probabilities": {
+     "bug": 0.6215704002234792,
+     "feature": 0.2823610805102834,
+     "question": 0.09606851926623741
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 14.03125,
+       "no": 16.90625,
+       "score": -2.875
+      },
+      {
+       "id": "feature",
+       "yes": 13.0703125,
+       "no": 16.734375,
+       "score": -3.6640625
+      },
+      {
+       "id": "question",
+       "yes": 11.8046875,
+       "no": 16.546875,
+       "score": -4.7421875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 605,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 953.6697299999942,
+    "probabilities": {
+     "bug": 0.9325313836508297,
+     "feature": 0.038640813264520624,
+     "question": 0.028827803084649734
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.640625,
+       "no": 16.53125,
+       "score": -4.890625
+      },
+      {
+       "id": "feature",
+       "yes": 7.37109375,
+       "no": 15.4453125,
+       "score": -8.07421875
+      },
+      {
+       "id": "question",
+       "yes": 7.265625,
+       "no": 15.6328125,
+       "score": -8.3671875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 690,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 4612.602628000008,
+    "probabilities": {
+     "bug": 0.6065371836787715,
+     "feature": 0.1632472683556237,
+     "question": 0.23021554796560467
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.984375,
+       "no": 16.765625,
+       "score": -3.78125
+      },
+      {
+       "id": "feature",
+       "yes": 9.5390625,
+       "no": 14.6328125,
+       "score": -5.09375
+      },
+      {
+       "id": "question",
+       "yes": 9.8984375,
+       "no": 14.6484375,
+       "score": -4.75
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 694,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 1133.0394910000032,
+    "probabilities": {
+     "bug": 0.092215656249945,
+     "feature": 0.5103350259283164,
+     "question": 0.39744931782173853
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.5234375,
+       "no": 16.46875,
+       "score": -4.9453125
+      },
+      {
+       "id": "feature",
+       "yes": 12.3203125,
+       "no": 15.5546875,
+       "score": -3.234375
+      },
+      {
+       "id": "question",
+       "yes": 12.5,
+       "no": 15.984375,
+       "score": -3.484375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 653,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 1947.847449000008,
+    "probabilities": {
+     "bug": 0.261626291061016,
+     "feature": 0.5759262507066999,
+     "question": 0.16244745823228415
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.1796875,
+       "no": 16.9375,
+       "score": -6.7578125
+      },
+      {
+       "id": "feature",
+       "yes": 9.1015625,
+       "no": 15.0703125,
+       "score": -5.96875
+      },
+      {
+       "id": "question",
+       "yes": 8.265625,
+       "no": 15.5,
+       "score": -7.234375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 696,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 1464.9820340000006,
+    "probabilities": {
+     "bug": 0.36737109157141784,
+     "feature": 0.53452178421533,
+     "question": 0.09810712421325217
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.3671875,
+       "no": 17.703125,
+       "score": -6.3359375
+      },
+      {
+       "id": "feature",
+       "yes": 10.4921875,
+       "no": 16.453125,
+       "score": -5.9609375
+      },
+      {
+       "id": "question",
+       "yes": 8.96875,
+       "no": 16.625,
+       "score": -7.65625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 739,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 1982.020027000006,
+    "probabilities": {
+     "bug": 0.004709536520162815,
+     "feature": 0.9628542013069701,
+     "question": 0.03243626217286696
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 6.8125,
+       "no": 15.6953125,
+       "score": -8.8828125
+      },
+      {
+       "id": "feature",
+       "yes": 13.203125,
+       "no": 16.765625,
+       "score": -3.5625
+      },
+      {
+       "id": "question",
+       "yes": 8.375,
+       "no": 15.328125,
+       "score": -6.953125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 714,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 1122.074192999993,
+    "probabilities": {
+     "bug": 0.018918699432961854,
+     "feature": 0.9259088733841456,
+     "question": 0.0551724271828925
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.8515625,
+       "no": 16.8125,
+       "score": -7.9609375
+      },
+      {
+       "id": "feature",
+       "yes": 12.3515625,
+       "no": 16.421875,
+       "score": -4.0703125
+      },
+      {
+       "id": "question",
+       "yes": 9.8125,
+       "no": 16.703125,
+       "score": -6.890625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 746,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 1071.151951000007,
+    "probabilities": {
+     "bug": 0.15026339833792943,
+     "feature": 0.7571620074849806,
+     "question": 0.09257459417708983
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.7265625,
+       "no": 15.515625,
+       "score": -6.7890625
+      },
+      {
+       "id": "feature",
+       "yes": 10.421875,
+       "no": 15.59375,
+       "score": -5.171875
+      },
+      {
+       "id": "question",
+       "yes": 8.640625,
+       "no": 15.9140625,
+       "score": -7.2734375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 727,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 1425.0466840000008,
+    "probabilities": {
+     "bug": 0.15764650890906168,
+     "feature": 0.6637165933892495,
+     "question": 0.17863689770168886
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.2421875,
+       "no": 17.296875,
+       "score": -6.0546875
+      },
+      {
+       "id": "feature",
+       "yes": 11.7734375,
+       "no": 16.390625,
+       "score": -4.6171875
+      },
+      {
+       "id": "question",
+       "yes": 11.0078125,
+       "no": 16.9375,
+       "score": -5.9296875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 785,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 982.6498729999876,
+    "probabilities": {
+     "bug": 0.025842076716804867,
+     "feature": 0.7611394174071744,
+     "question": 0.21301850587602075
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.390625,
+       "no": 17.859375,
+       "score": -6.46875
+      },
+      {
+       "id": "feature",
+       "yes": 13.7109375,
+       "no": 16.796875,
+       "score": -3.0859375
+      },
+      {
+       "id": "question",
+       "yes": 12.65625,
+       "no": 17.015625,
+       "score": -4.359375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 701,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 875.1373129999847,
+    "probabilities": {
+     "bug": 0.008512198922356768,
+     "feature": 0.9461847083648575,
+     "question": 0.04530309271278581
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.9609375,
+       "no": 17.0625,
+       "score": -7.1015625
+      },
+      {
+       "id": "feature",
+       "yes": 14.203125,
+       "no": 16.59375,
+       "score": -2.390625
+      },
+      {
+       "id": "question",
+       "yes": 11.2890625,
+       "no": 16.71875,
+       "score": -5.4296875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 712,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 2062.829281000013,
+    "probabilities": {
+     "bug": 0.010412543003046042,
+     "feature": 0.9784599807483442,
+     "question": 0.011127476248609812
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 6.98828125,
+       "no": 16.328125,
+       "score": -9.33984375
+      },
+      {
+       "id": "feature",
+       "yes": 11.9375,
+       "no": 16.734375,
+       "score": -4.796875
+      },
+      {
+       "id": "question",
+       "yes": 5,
+       "no": 14.2734375,
+       "score": -9.2734375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 731,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 1692.9916279999889,
+    "probabilities": {
+     "bug": 0.009930189996921898,
+     "feature": 0.9590009941173503,
+     "question": 0.031068815885727873
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.40625,
+       "no": 15.8046875,
+       "score": -7.3984375
+      },
+      {
+       "id": "feature",
+       "yes": 12.953125,
+       "no": 15.78125,
+       "score": -2.828125
+      },
+      {
+       "id": "question",
+       "yes": 8.3984375,
+       "no": 14.65625,
+       "score": -6.2578125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 728,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 808.9684819999966,
+    "probabilities": {
+     "bug": 0.21785876616704453,
+     "feature": 0.6869657875612412,
+     "question": 0.09517544627171426
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.609375,
+       "no": 17.84375,
+       "score": -5.234375
+      },
+      {
+       "id": "feature",
+       "yes": 13.0703125,
+       "no": 17.15625,
+       "score": -4.0859375
+      },
+      {
+       "id": "question",
+       "yes": 11.046875,
+       "no": 17.109375,
+       "score": -6.0625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 710,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 2916.048791999987,
+    "probabilities": {
+     "bug": 0.06050588802192469,
+     "feature": 0.8822082885786426,
+     "question": 0.05728582339943264
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.078125,
+       "no": 14.8203125,
+       "score": -6.7421875
+      },
+      {
+       "id": "feature",
+       "yes": 12.328125,
+       "no": 16.390625,
+       "score": -4.0625
+      },
+      {
+       "id": "question",
+       "yes": 7.65625,
+       "no": 14.453125,
+       "score": -6.796875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 856,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 1471.4369829999923,
+    "probabilities": {
+     "bug": 0.0035509607436416692,
+     "feature": 0.9731122582732606,
+     "question": 0.023336780983097875
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 5.47265625,
+       "no": 15.3359375,
+       "score": -9.86328125
+      },
+      {
+       "id": "feature",
+       "yes": 12.390625,
+       "no": 16.640625,
+       "score": -4.25
+      },
+      {
+       "id": "question",
+       "yes": 7.68359375,
+       "no": 15.6640625,
+       "score": -7.98046875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 897,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 3164.118751000002,
+    "probabilities": {
+     "bug": 0.6993711099368419,
+     "feature": 0.26753329258444664,
+     "question": 0.03309559747871143
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 13.4453125,
+       "no": 17.671875,
+       "score": -4.2265625
+      },
+      {
+       "id": "feature",
+       "yes": 11.203125,
+       "no": 16.390625,
+       "score": -5.1875
+      },
+      {
+       "id": "question",
+       "yes": 7.41796875,
+       "no": 14.6953125,
+       "score": -7.27734375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 885,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 2646.8440399999963,
+    "probabilities": {
+     "bug": 0.9322922882925011,
+     "feature": 0.02201122674014953,
+     "question": 0.04569648496734939
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 13.0625,
+       "no": 16.546875,
+       "score": -3.484375
+      },
+      {
+       "id": "feature",
+       "yes": 7.97265625,
+       "no": 15.203125,
+       "score": -7.23046875
+      },
+      {
+       "id": "question",
+       "yes": 8.78125,
+       "no": 15.28125,
+       "score": -6.5
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 820,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 1008.6507090000086,
+    "probabilities": {
+     "bug": 0.003449625906116402,
+     "feature": 0.9791680594048914,
+     "question": 0.017382314688992286
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.3515625,
+       "no": 17.203125,
+       "score": -7.8515625
+      },
+      {
+       "id": "feature",
+       "yes": 15.21875,
+       "no": 17.421875,
+       "score": -2.203125
+      },
+      {
+       "id": "question",
+       "yes": 10.21875,
+       "no": 16.453125,
+       "score": -6.234375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 801,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 2232.9089530000056,
+    "probabilities": {
+     "bug": 0.0028704538912998692,
+     "feature": 0.9414666427267802,
+     "question": 0.055662903381919995
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 4.86328125,
+       "no": 15.3671875,
+       "score": -10.50390625
+      },
+      {
+       "id": "feature",
+       "yes": 12.2265625,
+       "no": 16.9375,
+       "score": -4.7109375
+      },
+      {
+       "id": "question",
+       "yes": 8.3515625,
+       "no": 15.890625,
+       "score": -7.5390625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 859,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 2388.0775420000136,
+    "probabilities": {
+     "bug": 0.32619420909857433,
+     "feature": 0.39040335077083416,
+     "question": 0.2834024401305915
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.921875,
+       "no": 16.5,
+       "score": -4.578125
+      },
+      {
+       "id": "feature",
+       "yes": 10.953125,
+       "no": 15.3515625,
+       "score": -4.3984375
+      },
+      {
+       "id": "question",
+       "yes": 10.390625,
+       "no": 15.109375,
+       "score": -4.71875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 804,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 2775.0911529999867,
+    "probabilities": {
+     "bug": 0.016896089823845137,
+     "feature": 0.3238262879750859,
+     "question": 0.659277622201069
+    },
+    "choice": "question",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 6.5546875,
+       "no": 15.6015625,
+       "score": -9.046875
+      },
+      {
+       "id": "feature",
+       "yes": 8.109375,
+       "no": 14.203125,
+       "score": -6.09375
+      },
+      {
+       "id": "question",
+       "yes": 10.6328125,
+       "no": 16.015625,
+       "score": -5.3828125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 869,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 2532.885304000025,
+    "probabilities": {
+     "bug": 0.0024126870460894536,
+     "feature": 0.9964296930581282,
+     "question": 0.0011576198957822293
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.109375,
+       "no": 15.9453125,
+       "score": -7.8359375
+      },
+      {
+       "id": "feature",
+       "yes": 15.5625,
+       "no": 17.375,
+       "score": -1.8125
+      },
+      {
+       "id": "question",
+       "yes": 5.8671875,
+       "no": 14.4375,
+       "score": -8.5703125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 873,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 1456.2060539999802,
+    "probabilities": {
+     "bug": 0.11883398076443169,
+     "feature": 0.7994926983001219,
+     "question": 0.08167332093544653
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.65625,
+       "no": 15.25,
+       "score": -5.59375
+      },
+      {
+       "id": "feature",
+       "yes": 11.9765625,
+       "no": 15.6640625,
+       "score": -3.6875
+      },
+      {
+       "id": "question",
+       "yes": 9.1015625,
+       "no": 15.0703125,
+       "score": -5.96875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 892,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 3074.615671000007,
+    "probabilities": {
+     "bug": 0.6250245610600283,
+     "feature": 0.26465205061044345,
+     "question": 0.11032338832952827
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.90625,
+       "no": 16.28125,
+       "score": -4.375
+      },
+      {
+       "id": "feature",
+       "yes": 9.6171875,
+       "no": 14.8515625,
+       "score": -5.234375
+      },
+      {
+       "id": "question",
+       "yes": 8.3828125,
+       "no": 14.4921875,
+       "score": -6.109375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1274,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 3116.329765000002,
+    "probabilities": {
+     "bug": 0.922725199953872,
+     "feature": 0.05287636567034373,
+     "question": 0.024398434375784393
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.734375,
+       "no": 14.8125,
+       "score": -5.078125
+      },
+      {
+       "id": "feature",
+       "yes": 6.1953125,
+       "no": 14.1328125,
+       "score": -7.9375
+      },
+      {
+       "id": "question",
+       "yes": 5.53125,
+       "no": 14.2421875,
+       "score": -8.7109375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1277,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 3229.7699560000037,
+    "probabilities": {
+     "bug": 0.47494209086649,
+     "feature": 0.4977350377070474,
+     "question": 0.027322871426462655
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.8515625,
+       "no": 16.84375,
+       "score": -5.9921875
+      },
+      {
+       "id": "feature",
+       "yes": 9.9921875,
+       "no": 15.9375,
+       "score": -5.9453125
+      },
+      {
+       "id": "question",
+       "yes": 7.43359375,
+       "no": 16.28125,
+       "score": -8.84765625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1233,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 2926.8681090000027,
+    "probabilities": {
+     "bug": 0.8023130253240603,
+     "feature": 0.14497500345690423,
+     "question": 0.052711971219035265
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.59375,
+       "no": 16.109375,
+       "score": -5.515625
+      },
+      {
+       "id": "feature",
+       "yes": 8.1953125,
+       "no": 15.421875,
+       "score": -7.2265625
+      },
+      {
+       "id": "question",
+       "yes": 7.91796875,
+       "no": 16.15625,
+       "score": -8.23828125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1215,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 3729.8245490000118,
+    "probabilities": {
+     "bug": 0.9016551519893028,
+     "feature": 0.09139306790502183,
+     "question": 0.006951780105675316
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.4375,
+       "no": 15.7578125,
+       "score": -5.3203125
+      },
+      {
+       "id": "feature",
+       "yes": 5.5859375,
+       "no": 13.1953125,
+       "score": -7.609375
+      },
+      {
+       "id": "question",
+       "yes": 3.587890625,
+       "no": 13.7734375,
+       "score": -10.185546875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1213,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 908.3301890000002,
+    "probabilities": {
+     "bug": 0.3226308138415961,
+     "feature": 0.5842089315246282,
+     "question": 0.09316025463377578
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.5546875,
+       "no": 15.484375,
+       "score": -6.9296875
+      },
+      {
+       "id": "feature",
+       "yes": 8.34375,
+       "no": 14.6796875,
+       "score": -6.3359375
+      },
+      {
+       "id": "question",
+       "yes": 7.859375,
+       "no": 16.03125,
+       "score": -8.171875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1253,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 2625.111836999975,
+    "probabilities": {
+     "bug": 0.4838982992679129,
+     "feature": 0.1149359204010138,
+     "question": 0.4011657803310733
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.3984375,
+       "no": 16.15625,
+       "score": -5.7578125
+      },
+      {
+       "id": "feature",
+       "yes": 8.515625,
+       "no": 15.7109375,
+       "score": -7.1953125
+      },
+      {
+       "id": "question",
+       "yes": 10.4765625,
+       "no": 16.421875,
+       "score": -5.9453125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1296,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 1606.6323089999787,
+    "probabilities": {
+     "bug": 0.9457620555911538,
+     "feature": 0.05012355265789781,
+     "question": 0.00411439175094846
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 13.625,
+       "no": 16.375,
+       "score": -2.75
+      },
+      {
+       "id": "feature",
+       "yes": 9.78125,
+       "no": 15.46875,
+       "score": -5.6875
+      },
+      {
+       "id": "question",
+       "yes": 7.8125,
+       "no": 16,
+       "score": -8.1875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1241,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 2268.648535000015,
+    "probabilities": {
+     "bug": 0.5711481994129846,
+     "feature": 0.4146091294304688,
+     "question": 0.014242671156546627
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.96875,
+       "no": 16.1875,
+       "score": -5.21875
+      },
+      {
+       "id": "feature",
+       "yes": 10.0625,
+       "no": 15.6015625,
+       "score": -5.5390625
+      },
+      {
+       "id": "question",
+       "yes": 6.19140625,
+       "no": 15.1015625,
+       "score": -8.91015625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1206,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 788.5866570000071,
+    "probabilities": {
+     "bug": 0.600900193770038,
+     "feature": 0.37310741490603555,
+     "question": 0.025992391323926525
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.984375,
+       "no": 15.828125,
+       "score": -4.84375
+      },
+      {
+       "id": "feature",
+       "yes": 9.71875,
+       "no": 15.0390625,
+       "score": -5.3203125
+      },
+      {
+       "id": "question",
+       "yes": 7.6875,
+       "no": 15.671875,
+       "score": -7.984375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1279,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 1093.1604499999958,
+    "probabilities": {
+     "bug": 0.2916240319412853,
+     "feature": 0.6995696853510212,
+     "question": 0.00880628270769345
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.3515625,
+       "no": 16.484375,
+       "score": -5.1328125
+      },
+      {
+       "id": "feature",
+       "yes": 11.7265625,
+       "no": 15.984375,
+       "score": -4.2578125
+      },
+      {
+       "id": "question",
+       "yes": 8.0703125,
+       "no": 16.703125,
+       "score": -8.6328125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1418,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 2723.707494000002,
+    "probabilities": {
+     "bug": 0.11125227659032291,
+     "feature": 0.828496725528897,
+     "question": 0.06025099788078012
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.140625,
+       "no": 16.21875,
+       "score": -8.078125
+      },
+      {
+       "id": "feature",
+       "yes": 10.5546875,
+       "no": 16.625,
+       "score": -6.0703125
+      },
+      {
+       "id": "question",
+       "yes": 7.74609375,
+       "no": 16.4375,
+       "score": -8.69140625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1467,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 3422.2554029999883,
+    "probabilities": {
+     "bug": 0.2322163199041151,
+     "feature": 0.6190203208248058,
+     "question": 0.1487633592710791
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 7.36328125,
+       "no": 15.140625,
+       "score": -7.77734375
+      },
+      {
+       "id": "feature",
+       "yes": 8.8671875,
+       "no": 15.6640625,
+       "score": -6.796875
+      },
+      {
+       "id": "question",
+       "yes": 7.21484375,
+       "no": 15.4375,
+       "score": -8.22265625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1411,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 1019.7353480000165,
+    "probabilities": {
+     "bug": 0.7500159031792984,
+     "feature": 0.23053597189547353,
+     "question": 0.01944812492522807
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.046875,
+       "no": 15.7109375,
+       "score": -4.6640625
+      },
+      {
+       "id": "feature",
+       "yes": 8.71875,
+       "no": 14.5625,
+       "score": -5.84375
+      },
+      {
+       "id": "question",
+       "yes": 6.63671875,
+       "no": 14.953125,
+       "score": -8.31640625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1449,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 756.4108889999916,
+    "probabilities": {
+     "bug": 0.4941056754671559,
+     "feature": 0.36433067835565963,
+     "question": 0.1415636461771845
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.890625,
+       "no": 15.328125,
+       "score": -5.4375
+      },
+      {
+       "id": "feature",
+       "yes": 8.3125,
+       "no": 14.0546875,
+       "score": -5.7421875
+      },
+      {
+       "id": "question",
+       "yes": 8.171875,
+       "no": 14.859375,
+       "score": -6.6875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1445,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 1990.324665000022,
+    "probabilities": {
+     "bug": 0.5340008361223354,
+     "feature": 0.3188664632785994,
+     "question": 0.1471327005990652
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.0703125,
+       "no": 16.453125,
+       "score": -6.3828125
+      },
+      {
+       "id": "feature",
+       "yes": 9.0078125,
+       "no": 15.90625,
+       "score": -6.8984375
+      },
+      {
+       "id": "question",
+       "yes": 8.59375,
+       "no": 16.265625,
+       "score": -7.671875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1485,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 2884.052521000005,
+    "probabilities": {
+     "bug": 0.20223402695851111,
+     "feature": 0.7513905646998014,
+     "question": 0.04637540834168751
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.9296875,
+       "no": 16.875,
+       "score": -7.9453125
+      },
+      {
+       "id": "feature",
+       "yes": 9.5078125,
+       "no": 16.140625,
+       "score": -6.6328125
+      },
+      {
+       "id": "question",
+       "yes": 5.92578125,
+       "no": 15.34375,
+       "score": -9.41796875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1443,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 1071.087486000004,
+    "probabilities": {
+     "bug": 0.021204710877750825,
+     "feature": 0.8338873891210828,
+     "question": 0.14490790000116638
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 7.125,
+       "no": 15.125,
+       "score": -8
+      },
+      {
+       "id": "feature",
+       "yes": 11.09375,
+       "no": 15.421875,
+       "score": -4.328125
+      },
+      {
+       "id": "question",
+       "yes": 9.3203125,
+       "no": 15.3984375,
+       "score": -6.078125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1442,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 2928.8627620000043,
+    "probabilities": {
+     "bug": 0.030505526820826676,
+     "feature": 0.9527134005102628,
+     "question": 0.01678107266891038
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 7.33984375,
+       "no": 15.7890625,
+       "score": -8.44921875
+      },
+      {
+       "id": "feature",
+       "yes": 11.2109375,
+       "no": 16.21875,
+       "score": -5.0078125
+      },
+      {
+       "id": "question",
+       "yes": 7,
+       "no": 16.046875,
+       "score": -9.046875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1451,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 2759.0505720000074,
+    "probabilities": {
+     "bug": 0.047295951370303665,
+     "feature": 0.9352367418946049,
+     "question": 0.01746730673509127
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 7,
+       "no": 15.390625,
+       "score": -8.390625
+      },
+      {
+       "id": "feature",
+       "yes": 10.6875,
+       "no": 16.09375,
+       "score": -5.40625
+      },
+      {
+       "id": "question",
+       "yes": 5.89453125,
+       "no": 15.28125,
+       "score": -9.38671875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1463,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 1722.4259829999937,
+    "probabilities": {
+     "bug": 0.255440446890892,
+     "feature": 0.5847090060385368,
+     "question": 0.15985054707057103
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.96875,
+       "no": 16.390625,
+       "score": -5.421875
+      },
+      {
+       "id": "feature",
+       "yes": 11.46875,
+       "no": 16.0625,
+       "score": -4.59375
+      },
+      {
+       "id": "question",
+       "yes": 10.203125,
+       "no": 16.09375,
+       "score": -5.890625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1386,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 1086.7278719999886,
+    "probabilities": {
+     "bug": 0.2328652154358276,
+     "feature": 0.40078637779691334,
+     "question": 0.3663484067672591
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 7.875,
+       "no": 15.6640625,
+       "score": -7.7890625
+      },
+      {
+       "id": "feature",
+       "yes": 7.36328125,
+       "no": 14.609375,
+       "score": -7.24609375
+      },
+      {
+       "id": "question",
+       "yes": 9.1953125,
+       "no": 16.53125,
+       "score": -7.3359375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1320,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 1922.8301370000117,
+    "probabilities": {
+     "bug": 0.01093166490638037,
+     "feature": 0.02406422060252864,
+     "question": 0.9650041144910909
+    },
+    "choice": "question",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 7.19921875,
+       "no": 16.953125,
+       "score": -9.75390625
+      },
+      {
+       "id": "feature",
+       "yes": 6.35546875,
+       "no": 15.3203125,
+       "score": -8.96484375
+      },
+      {
+       "id": "question",
+       "yes": 11.2109375,
+       "no": 16.484375,
+       "score": -5.2734375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1339,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 876.8786869999894,
+    "probabilities": {
+     "bug": 0.24572863074387427,
+     "feature": 0.32300419152061166,
+     "question": 0.43126717773551415
+    },
+    "choice": "question",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.0390625,
+       "no": 15.6796875,
+       "score": -6.640625
+      },
+      {
+       "id": "feature",
+       "yes": 8.4921875,
+       "no": 14.859375,
+       "score": -6.3671875
+      },
+      {
+       "id": "question",
+       "yes": 10.015625,
+       "no": 16.09375,
+       "score": -6.078125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1378,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 512.0441289999872,
+    "probabilities": {
+     "bug": 0.033856342000155935,
+     "feature": 0.9008838507364172,
+     "question": 0.06525980726342692
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.21875,
+       "no": 17.15625,
+       "score": -8.9375
+      },
+      {
+       "id": "feature",
+       "yes": 10.171875,
+       "no": 15.828125,
+       "score": -5.65625
+      },
+      {
+       "id": "question",
+       "yes": 8.703125,
+       "no": 16.984375,
+       "score": -8.28125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1388,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 1902.2113390000013,
+    "probabilities": {
+     "bug": 0.6335533191821989,
+     "feature": 0.2833425705576213,
+     "question": 0.08310411026017973
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.9375,
+       "no": 16.28125,
+       "score": -5.34375
+      },
+      {
+       "id": "feature",
+       "yes": 9.3828125,
+       "no": 15.53125,
+       "score": -6.1484375
+      },
+      {
+       "id": "question",
+       "yes": 9.53125,
+       "no": 16.90625,
+       "score": -7.375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1323,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 3093.732175000012,
+    "probabilities": {
+     "bug": 0.8714889028348166,
+     "feature": 0.09588714063210697,
+     "question": 0.03262395653307645
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.3515625,
+       "no": 14.9140625,
+       "score": -5.5625
+      },
+      {
+       "id": "feature",
+       "yes": 5.88671875,
+       "no": 13.65625,
+       "score": -7.76953125
+      },
+      {
+       "id": "question",
+       "yes": 4.87109375,
+       "no": 13.71875,
+       "score": -8.84765625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1376,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 3570.1983480000054,
+    "probabilities": {
+     "bug": 0.967168268240458,
+     "feature": 0.016576171974042035,
+     "question": 0.01625555978549995
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.3203125,
+       "no": 16,
+       "score": -4.6796875
+      },
+      {
+       "id": "feature",
+       "yes": 4.35546875,
+       "no": 13.1015625,
+       "score": -8.74609375
+      },
+      {
+       "id": "question",
+       "yes": 6.4140625,
+       "no": 15.1796875,
+       "score": -8.765625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1334,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 2176.090458999999,
+    "probabilities": {
+     "bug": 0.7367799048795796,
+     "feature": 0.08266441432536346,
+     "question": 0.18055568079505704
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.640625,
+       "no": 17.0625,
+       "score": -4.421875
+      },
+      {
+       "id": "feature",
+       "yes": 9.25,
+       "no": 15.859375,
+       "score": -6.609375
+      },
+      {
+       "id": "question",
+       "yes": 10.578125,
+       "no": 16.40625,
+       "score": -5.828125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1380,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 1590.9443930000125,
+    "probabilities": {
+     "bug": 0.7953289574206146,
+     "feature": 0.16284817287665881,
+     "question": 0.04182286970272672
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.203125,
+       "no": 14.9609375,
+       "score": -5.7578125
+      },
+      {
+       "id": "feature",
+       "yes": 7.328125,
+       "no": 14.671875,
+       "score": -7.34375
+      },
+      {
+       "id": "question",
+       "yes": 6.7734375,
+       "no": 15.4765625,
+       "score": -8.703125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1322,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 2572.0482809999958,
+    "probabilities": {
+     "bug": 0.5392873366295112,
+     "feature": 0.07530138448884846,
+     "question": 0.3854112788816403
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.578125,
+       "no": 16,
+       "score": -4.421875
+      },
+      {
+       "id": "feature",
+       "yes": 8.7265625,
+       "no": 15.1171875,
+       "score": -6.390625
+      },
+      {
+       "id": "question",
+       "yes": 11.3828125,
+       "no": 16.140625,
+       "score": -4.7578125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 526,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 2843.2813650000026,
+    "probabilities": {
+     "bug": 0.9911969026943758,
+     "feature": 0.007538377366709723,
+     "question": 0.0012647199389144766
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 14.21875,
+       "no": 16.234375,
+       "score": -2.015625
+      },
+      {
+       "id": "feature",
+       "yes": 7.39453125,
+       "no": 14.2890625,
+       "score": -6.89453125
+      },
+      {
+       "id": "question",
+       "yes": 6.4921875,
+       "no": 15.171875,
+       "score": -8.6796875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 595,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 3356.4535230000038,
+    "probabilities": {
+     "bug": 0.9628368762191221,
+     "feature": 0.01605682521448263,
+     "question": 0.02110629856639538
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 13.6171875,
+       "no": 16.421875,
+       "score": -2.8046875
+      },
+      {
+       "id": "feature",
+       "yes": 8.1796875,
+       "no": 15.078125,
+       "score": -6.8984375
+      },
+      {
+       "id": "question",
+       "yes": 8.4921875,
+       "no": 15.1171875,
+       "score": -6.625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 516,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 3193.2472579999885,
+    "probabilities": {
+     "bug": 0.9798528987662539,
+     "feature": 0.015714595923022674,
+     "question": 0.004432505310723374
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 13.1875,
+       "no": 15.921875,
+       "score": -2.734375
+      },
+      {
+       "id": "feature",
+       "yes": 6.875,
+       "no": 13.7421875,
+       "score": -6.8671875
+      },
+      {
+       "id": "question",
+       "yes": 5.7734375,
+       "no": 13.90625,
+       "score": -8.1328125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 570,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 2663.902040999994,
+    "probabilities": {
+     "bug": 0.9635498419344333,
+     "feature": 0.024694035002618006,
+     "question": 0.011756123062948662
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 15.0390625,
+       "no": 16.21875,
+       "score": -1.1796875
+      },
+      {
+       "id": "feature",
+       "yes": 10.1015625,
+       "no": 14.9453125,
+       "score": -4.84375
+      },
+      {
+       "id": "question",
+       "yes": 8.9921875,
+       "no": 14.578125,
+       "score": -5.5859375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 528,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 1932.769382999977,
+    "probabilities": {
+     "bug": 0.9537903617319425,
+     "feature": 0.03420318952511302,
+     "question": 0.01200644874294427
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 13.546875,
+       "no": 17.15625,
+       "score": -3.609375
+      },
+      {
+       "id": "feature",
+       "yes": 9.1875,
+       "no": 16.125,
+       "score": -6.9375
+      },
+      {
+       "id": "question",
+       "yes": 8.5,
+       "no": 16.484375,
+       "score": -7.984375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 504,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 1524.0821289999876,
+    "probabilities": {
+     "bug": 0.9260679875873641,
+     "feature": 0.051636505985049784,
+     "question": 0.022295506427586192
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.2265625,
+       "no": 15.90625,
+       "score": -3.6796875
+      },
+      {
+       "id": "feature",
+       "yes": 6.73828125,
+       "no": 13.3046875,
+       "score": -6.56640625
+      },
+      {
+       "id": "question",
+       "yes": 6.5625,
+       "no": 13.96875,
+       "score": -7.40625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 538,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 1332.8401090000116,
+    "probabilities": {
+     "bug": 0.9905552135910267,
+     "feature": 0.008437116537310154,
+     "question": 0.001007669871663179
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 15.7421875,
+       "no": 16.171875,
+       "score": -0.4296875
+      },
+      {
+       "id": "feature",
+       "yes": 9.8984375,
+       "no": 15.09375,
+       "score": -5.1953125
+      },
+      {
+       "id": "question",
+       "yes": 9.0390625,
+       "no": 16.359375,
+       "score": -7.3203125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 539,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 3652.7636219999986,
+    "probabilities": {
+     "bug": 0.9775512289462494,
+     "feature": 0.017974551439621265,
+     "question": 0.004474219614129323
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 13.140625,
+       "no": 15.7265625,
+       "score": -2.5859375
+      },
+      {
+       "id": "feature",
+       "yes": 6.30859375,
+       "no": 12.890625,
+       "score": -6.58203125
+      },
+      {
+       "id": "question",
+       "yes": 5.76171875,
+       "no": 13.734375,
+       "score": -7.97265625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 515,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 3062.939698000002,
+    "probabilities": {
+     "bug": 0.9566755839243833,
+     "feature": 0.03539566451165897,
+     "question": 0.00792875156395766
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 13.8671875,
+       "no": 16.828125,
+       "score": -2.9609375
+      },
+      {
+       "id": "feature",
+       "yes": 8.296875,
+       "no": 14.5546875,
+       "score": -6.2578125
+      },
+      {
+       "id": "question",
+       "yes": 7.08203125,
+       "no": 14.8359375,
+       "score": -7.75390625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 523,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 3680.955894999992,
+    "probabilities": {
+     "bug": 0.9844819945551245,
+     "feature": 0.007516612785199555,
+     "question": 0.008001392659676065
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 14.4765625,
+       "no": 16.625,
+       "score": -2.1484375
+      },
+      {
+       "id": "feature",
+       "yes": 7.2578125,
+       "no": 14.28125,
+       "score": -7.0234375
+      },
+      {
+       "id": "question",
+       "yes": 6.515625,
+       "no": 13.4765625,
+       "score": -6.9609375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 472,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 3145.557998000004,
+    "probabilities": {
+     "bug": 0.03374020761797599,
+     "feature": 0.9335576618205499,
+     "question": 0.03270213056147425
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.046875,
+       "no": 15.9453125,
+       "score": -5.8984375
+      },
+      {
+       "id": "feature",
+       "yes": 14.078125,
+       "no": 16.65625,
+       "score": -2.578125
+      },
+      {
+       "id": "question",
+       "yes": 9.2890625,
+       "no": 15.21875,
+       "score": -5.9296875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 461,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 2585.5605550000037,
+    "probabilities": {
+     "bug": 0.6426129459561197,
+     "feature": 0.21949376852209845,
+     "question": 0.13789328552178176
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.265625,
+       "no": 14.609375,
+       "score": -5.34375
+      },
+      {
+       "id": "feature",
+       "yes": 7.54296875,
+       "no": 13.9609375,
+       "score": -6.41796875
+      },
+      {
+       "id": "question",
+       "yes": 8.5234375,
+       "no": 15.40625,
+       "score": -6.8828125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 404,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 1645.942424000008,
+    "probabilities": {
+     "bug": 0.2509824990736064,
+     "feature": 0.7319379275191034,
+     "question": 0.017079573407290244
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.53125,
+       "no": 16.359375,
+       "score": -4.828125
+      },
+      {
+       "id": "feature",
+       "yes": 12.5546875,
+       "no": 16.3125,
+       "score": -3.7578125
+      },
+      {
+       "id": "question",
+       "yes": 8.34375,
+       "no": 15.859375,
+       "score": -7.515625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 450,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 1093.3795099999988,
+    "probabilities": {
+     "bug": 0.7974777341777525,
+     "feature": 0.1486755499721815,
+     "question": 0.05384671585006606
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.109375,
+       "no": 16.75,
+       "score": -4.640625
+      },
+      {
+       "id": "feature",
+       "yes": 9.15625,
+       "no": 15.4765625,
+       "score": -6.3203125
+      },
+      {
+       "id": "question",
+       "yes": 9.2890625,
+       "no": 16.625,
+       "score": -7.3359375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 422,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 3144.4575339999865,
+    "probabilities": {
+     "bug": 0.6366137134593094,
+     "feature": 0.2716733855455784,
+     "question": 0.0917129009951122
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.890625,
+       "no": 16.796875,
+       "score": -4.90625
+      },
+      {
+       "id": "feature",
+       "yes": 9.8203125,
+       "no": 15.578125,
+       "score": -5.7578125
+      },
+      {
+       "id": "question",
+       "yes": 9.203125,
+       "no": 16.046875,
+       "score": -6.84375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 440,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 2284.194269999978,
+    "probabilities": {
+     "bug": 0.29222455907313855,
+     "feature": 0.6333100069216827,
+     "question": 0.07446543400517867
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.8359375,
+       "no": 16.859375,
+       "score": -6.0234375
+      },
+      {
+       "id": "feature",
+       "yes": 11.140625,
+       "no": 16.390625,
+       "score": -5.25
+      },
+      {
+       "id": "question",
+       "yes": 9.3125,
+       "no": 16.703125,
+       "score": -7.390625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 462,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 2556.3848759999964,
+    "probabilities": {
+     "bug": 0.3538854216113268,
+     "feature": 0.6408037148714555,
+     "question": 0.005310863517217683
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.953125,
+       "no": 15.5703125,
+       "score": -3.6171875
+      },
+      {
+       "id": "feature",
+       "yes": 12.6796875,
+       "no": 15.703125,
+       "score": -3.0234375
+      },
+      {
+       "id": "question",
+       "yes": 7.07421875,
+       "no": 14.890625,
+       "score": -7.81640625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 455,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 2047.4144930000184,
+    "probabilities": {
+     "bug": 0.05636455063425103,
+     "feature": 0.93855403101238,
+     "question": 0.005081418353369026
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.9140625,
+       "no": 14.9453125,
+       "score": -5.03125
+      },
+      {
+       "id": "feature",
+       "yes": 13.90625,
+       "no": 16.125,
+       "score": -2.21875
+      },
+      {
+       "id": "question",
+       "yes": 6.59375,
+       "no": 14.03125,
+       "score": -7.4375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 497,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 1589.2246409999789,
+    "probabilities": {
+     "bug": 0.033155752923593594,
+     "feature": 0.9391415785910432,
+     "question": 0.02770266848536313
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.28125,
+       "no": 16.203125,
+       "score": -6.921875
+      },
+      {
+       "id": "feature",
+       "yes": 13,
+       "no": 16.578125,
+       "score": -3.578125
+      },
+      {
+       "id": "question",
+       "yes": 8.03125,
+       "no": 15.1328125,
+       "score": -7.1015625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 456,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 3053.836574999965,
+    "probabilities": {
+     "bug": 0.18022934611331382,
+     "feature": 0.8140670103651755,
+     "question": 0.0057036435215107005
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.7421875,
+       "no": 15.0703125,
+       "score": -5.328125
+      },
+      {
+       "id": "feature",
+       "yes": 11.8828125,
+       "no": 15.703125,
+       "score": -3.8203125
+      },
+      {
+       "id": "question",
+       "yes": 5.875,
+       "no": 14.65625,
+       "score": -8.78125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 325,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 1735.1139369999873,
+    "probabilities": {
+     "bug": 0.5155927071518389,
+     "feature": 0.08286328877240344,
+     "question": 0.40154400407575763
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.703125,
+       "no": 15.8828125,
+       "score": -4.1796875
+      },
+      {
+       "id": "feature",
+       "yes": 9.2734375,
+       "no": 15.28125,
+       "score": -6.0078125
+      },
+      {
+       "id": "question",
+       "yes": 11.34375,
+       "no": 15.7734375,
+       "score": -4.4296875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 370,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 1922.284056000004,
+    "probabilities": {
+     "bug": 0.8008607230550834,
+     "feature": 0.14246901722936403,
+     "question": 0.05667025971555272
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 14.1953125,
+       "no": 15.96875,
+       "score": -1.7734375
+      },
+      {
+       "id": "feature",
+       "yes": 11.3984375,
+       "no": 14.8984375,
+       "score": -3.5
+      },
+      {
+       "id": "question",
+       "yes": 9.7578125,
+       "no": 14.1796875,
+       "score": -4.421875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 378,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 857.0380750000477,
+    "probabilities": {
+     "bug": 0.8354892910055667,
+     "feature": 0.04225161299561291,
+     "question": 0.12225909599882037
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.8046875,
+       "no": 16.671875,
+       "score": -4.8671875
+      },
+      {
+       "id": "feature",
+       "yes": 8.3046875,
+       "no": 16.15625,
+       "score": -7.8515625
+      },
+      {
+       "id": "question",
+       "yes": 10.2109375,
+       "no": 17,
+       "score": -6.7890625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 335,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 2174.902067999996,
+    "probabilities": {
+     "bug": 0.6044218970778116,
+     "feature": 0.051188887075969726,
+     "question": 0.3443892158462187
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.765625,
+       "no": 16.03125,
+       "score": -3.265625
+      },
+      {
+       "id": "feature",
+       "yes": 8.9375,
+       "no": 14.671875,
+       "score": -5.734375
+      },
+      {
+       "id": "question",
+       "yes": 12.125,
+       "no": 15.953125,
+       "score": -3.828125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 300,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 929.0186669999966,
+    "probabilities": {
+     "bug": 0.6239776289870098,
+     "feature": 0.06226671521088585,
+     "question": 0.31375565580210446
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.796875,
+       "no": 16.671875,
+       "score": -4.875
+      },
+      {
+       "id": "feature",
+       "yes": 8.4296875,
+       "no": 15.609375,
+       "score": -7.1796875
+      },
+      {
+       "id": "question",
+       "yes": 10.3046875,
+       "no": 15.8671875,
+       "score": -5.5625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 331,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 2773.717299000011,
+    "probabilities": {
+     "bug": 0.6221673111952035,
+     "feature": 0.16615092227251857,
+     "question": 0.21168176653227794
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.3046875,
+       "no": 16.1875,
+       "score": -4.8828125
+      },
+      {
+       "id": "feature",
+       "yes": 10.421875,
+       "no": 16.625,
+       "score": -6.203125
+      },
+      {
+       "id": "question",
+       "yes": 11.3671875,
+       "no": 17.328125,
+       "score": -5.9609375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 312,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 2340.196529000008,
+    "probabilities": {
+     "bug": 0.5426950762045064,
+     "feature": 0.08721903586128936,
+     "question": 0.37008588793420427
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.0078125,
+       "no": 17.21875,
+       "score": -6.2109375
+      },
+      {
+       "id": "feature",
+       "yes": 8.2109375,
+       "no": 16.25,
+       "score": -8.0390625
+      },
+      {
+       "id": "question",
+       "yes": 10,
+       "no": 16.59375,
+       "score": -6.59375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 386,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 1128.82058900001,
+    "probabilities": {
+     "bug": 0.3979008348321651,
+     "feature": 0.3511462542752104,
+     "question": 0.25095291089262445
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.5,
+       "no": 16.296875,
+       "score": -5.796875
+      },
+      {
+       "id": "feature",
+       "yes": 10.234375,
+       "no": 16.15625,
+       "score": -5.921875
+      },
+      {
+       "id": "question",
+       "yes": 10.8359375,
+       "no": 17.09375,
+       "score": -6.2578125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 384,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 1299.9186360000167,
+    "probabilities": {
+     "bug": 0.13817546195867939,
+     "feature": 0.25216580840385405,
+     "question": 0.6096587296374666
+    },
+    "choice": "question",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.578125,
+       "no": 16.5,
+       "score": -7.921875
+      },
+      {
+       "id": "feature",
+       "yes": 8.4453125,
+       "no": 15.765625,
+       "score": -7.3203125
+      },
+      {
+       "id": "question",
+       "yes": 10.484375,
+       "no": 16.921875,
+       "score": -6.4375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 337,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 1240.042034000042,
+    "probabilities": {
+     "bug": 0.08633927542677043,
+     "feature": 0.8996759095747305,
+     "question": 0.013984814998499176
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.265625,
+       "no": 17.640625,
+       "score": -7.375
+      },
+      {
+       "id": "feature",
+       "yes": 11.078125,
+       "no": 16.109375,
+       "score": -5.03125
+      },
+      {
+       "id": "question",
+       "yes": 8.5234375,
+       "no": 17.71875,
+       "score": -9.1953125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   }
+  ],
+  "train": [
+   {
+    "index": 1136,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 3483.8692339999834,
+    "probabilities": {
+     "bug": 0.8958154909008426,
+     "feature": 0.09515878966772942,
+     "question": 0.009025719431427917
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.203125,
+       "no": 16.03125,
+       "score": -3.828125
+      },
+      {
+       "id": "feature",
+       "yes": 9.5234375,
+       "no": 15.59375,
+       "score": -6.0703125
+      },
+      {
+       "id": "question",
+       "yes": 6.30078125,
+       "no": 14.7265625,
+       "score": -8.42578125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1120,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 1589.9859219999635,
+    "probabilities": {
+     "bug": 0.7719655661397402,
+     "feature": 0.0623843813760078,
+     "question": 0.1656500524842521
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.0078125,
+       "no": 17.0625,
+       "score": -5.0546875
+      },
+      {
+       "id": "feature",
+       "yes": 8.4296875,
+       "no": 16,
+       "score": -7.5703125
+      },
+      {
+       "id": "question",
+       "yes": 10.109375,
+       "no": 16.703125,
+       "score": -6.59375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1190,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 1819.1729080000077,
+    "probabilities": {
+     "bug": 0.8094696894616583,
+     "feature": 0.14626818626129542,
+     "question": 0.044262124277046046
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.375,
+       "no": 16.59375,
+       "score": -5.21875
+      },
+      {
+       "id": "feature",
+       "yes": 8.0546875,
+       "no": 14.984375,
+       "score": -6.9296875
+      },
+      {
+       "id": "question",
+       "yes": 7.2265625,
+       "no": 15.3515625,
+       "score": -8.125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1156,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 481.92449499998474,
+    "probabilities": {
+     "bug": 0.5582615692759173,
+     "feature": 0.3256310899550427,
+     "question": 0.11610734076903997
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 14.109375,
+       "no": 17.5,
+       "score": -3.390625
+      },
+      {
+       "id": "feature",
+       "yes": 12.7265625,
+       "no": 16.65625,
+       "score": -3.9296875
+      },
+      {
+       "id": "question",
+       "yes": 11.9453125,
+       "no": 16.90625,
+       "score": -4.9609375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1166,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 2614.067541000026,
+    "probabilities": {
+     "bug": 0.9431206349967214,
+     "feature": 0.04342647166128144,
+     "question": 0.013452893341997143
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.6953125,
+       "no": 16.125,
+       "score": -4.4296875
+      },
+      {
+       "id": "feature",
+       "yes": 8.7578125,
+       "no": 16.265625,
+       "score": -7.5078125
+      },
+      {
+       "id": "question",
+       "yes": 8.3359375,
+       "no": 17.015625,
+       "score": -8.6796875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1105,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 3326.9428949999856,
+    "probabilities": {
+     "bug": 0.9890765249750625,
+     "feature": 0.0041541816554329595,
+     "question": 0.00676929336950459
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 15.1015625,
+       "no": 16.234375,
+       "score": -1.1328125
+      },
+      {
+       "id": "feature",
+       "yes": 7.59765625,
+       "no": 14.203125,
+       "score": -6.60546875
+      },
+      {
+       "id": "question",
+       "yes": 8.4140625,
+       "no": 14.53125,
+       "score": -6.1171875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 971,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 1723.9602109999978,
+    "probabilities": {
+     "bug": 0.12517486054555807,
+     "feature": 0.822644494274445,
+     "question": 0.05218064517999697
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.8828125,
+       "no": 17.0625,
+       "score": -6.1796875
+      },
+      {
+       "id": "feature",
+       "yes": 12.6875,
+       "no": 16.984375,
+       "score": -4.296875
+      },
+      {
+       "id": "question",
+       "yes": 8.765625,
+       "no": 15.8203125,
+       "score": -7.0546875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 904,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 1964.0544300000183,
+    "probabilities": {
+     "bug": 0.0016556506378419078,
+     "feature": 0.9910106849101344,
+     "question": 0.007333664452023552
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 7.36328125,
+       "no": 16.3125,
+       "score": -8.94921875
+      },
+      {
+       "id": "feature",
+       "yes": 14.4609375,
+       "no": 17.015625,
+       "score": -2.5546875
+      },
+      {
+       "id": "question",
+       "yes": 8.2265625,
+       "no": 15.6875,
+       "score": -7.4609375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 959,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 930.9136300000246,
+    "probabilities": {
+     "bug": 0.022432946102744593,
+     "feature": 0.9538731407377916,
+     "question": 0.023693913159463793
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 5.171875,
+       "no": 14.703125,
+       "score": -9.53125
+      },
+      {
+       "id": "feature",
+       "yes": 8.7890625,
+       "no": 14.5703125,
+       "score": -5.78125
+      },
+      {
+       "id": "question",
+       "yes": 5,
+       "no": 14.4765625,
+       "score": -9.4765625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 945,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 2148.861711000034,
+    "probabilities": {
+     "bug": 0.4314291898933443,
+     "feature": 0.5285980931688039,
+     "question": 0.03997271693785192
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.5546875,
+       "no": 16.359375,
+       "score": -5.8046875
+      },
+      {
+       "id": "feature",
+       "yes": 10.5078125,
+       "no": 16.109375,
+       "score": -5.6015625
+      },
+      {
+       "id": "question",
+       "yes": 6.73046875,
+       "no": 14.9140625,
+       "score": -8.18359375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 909,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 1499.1390119999996,
+    "probabilities": {
+     "bug": 0.01771705383329885,
+     "feature": 0.9266342349276956,
+     "question": 0.05564871123900552
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 5.92578125,
+       "no": 15.5703125,
+       "score": -9.64453125
+      },
+      {
+       "id": "feature",
+       "yes": 10.71875,
+       "no": 16.40625,
+       "score": -5.6875
+      },
+      {
+       "id": "question",
+       "yes": 7.640625,
+       "no": 16.140625,
+       "score": -8.5
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 917,
+    "label": "feature",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 1104.0077080000192,
+    "probabilities": {
+     "bug": 0.020936689463380516,
+     "feature": 0.9329747121165048,
+     "question": 0.0460885984201147
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.84375,
+       "no": 16.890625,
+       "score": -7.046875
+      },
+      {
+       "id": "feature",
+       "yes": 13.875,
+       "no": 17.125,
+       "score": -3.25
+      },
+      {
+       "id": "question",
+       "yes": 9.9921875,
+       "no": 16.25,
+       "score": -6.2578125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1048,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 3167.2532650000066,
+    "probabilities": {
+     "bug": 0.6954535040744476,
+     "feature": 0.11442008784843917,
+     "question": 0.19012640807711312
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.7421875,
+       "no": 16.84375,
+       "score": -4.1015625
+      },
+      {
+       "id": "feature",
+       "yes": 9.5625,
+       "no": 15.46875,
+       "score": -5.90625
+      },
+      {
+       "id": "question",
+       "yes": 9.890625,
+       "no": 15.2890625,
+       "score": -5.3984375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1059,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 2357.5654210000066,
+    "probabilities": {
+     "bug": 0.6217323390642201,
+     "feature": 0.05063774146787238,
+     "question": 0.32762991946790765
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.46875,
+       "no": 15.4921875,
+       "score": -5.0234375
+      },
+      {
+       "id": "feature",
+       "yes": 8.03125,
+       "no": 15.5625,
+       "score": -7.53125
+      },
+      {
+       "id": "question",
+       "yes": 10.8046875,
+       "no": 16.46875,
+       "score": -5.6640625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1040,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 923.1579149999889,
+    "probabilities": {
+     "bug": 0.3144525453191128,
+     "feature": 0.26896551529862867,
+     "question": 0.4165819393822585
+    },
+    "choice": "question",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.90625,
+       "no": 16.75,
+       "score": -3.84375
+      },
+      {
+       "id": "feature",
+       "yes": 12.9375,
+       "no": 16.9375,
+       "score": -4
+      },
+      {
+       "id": "question",
+       "yes": 13.21875,
+       "no": 16.78125,
+       "score": -3.5625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1053,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 2371.033451000054,
+    "probabilities": {
+     "bug": 0.8918588553501096,
+     "feature": 0.07436109483220357,
+     "question": 0.03378004981768679
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 13.765625,
+       "no": 17.375,
+       "score": -3.609375
+      },
+      {
+       "id": "feature",
+       "yes": 10.96875,
+       "no": 17.0625,
+       "score": -6.09375
+      },
+      {
+       "id": "question",
+       "yes": 11.1640625,
+       "no": 18.046875,
+       "score": -6.8828125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1055,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 712.5632529999712,
+    "probabilities": {
+     "bug": 0.28171847837241354,
+     "feature": 0.5825824780627311,
+     "question": 0.13569904356485543
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.015625,
+       "no": 16.609375,
+       "score": -8.59375
+      },
+      {
+       "id": "feature",
+       "yes": 8.1328125,
+       "no": 16,
+       "score": -7.8671875
+      },
+      {
+       "id": "question",
+       "yes": 7.56640625,
+       "no": 16.890625,
+       "score": -9.32421875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1044,
+    "label": "question",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 1024.508136999968,
+    "probabilities": {
+     "bug": 0.4516738498753977,
+     "feature": 0.28486712637363515,
+     "question": 0.26345902375096714
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.3359375,
+       "no": 15.90625,
+       "score": -5.5703125
+      },
+      {
+       "id": "feature",
+       "yes": 8.8125,
+       "no": 14.84375,
+       "score": -6.03125
+      },
+      {
+       "id": "question",
+       "yes": 8.9140625,
+       "no": 15.0234375,
+       "score": -6.109375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 0,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 1797.0675040000351,
+    "probabilities": {
+     "bug": 0.7532516833500417,
+     "feature": 0.20115724442596108,
+     "question": 0.045591072223997255
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.9765625,
+       "no": 16.28125,
+       "score": -3.3046875
+      },
+      {
+       "id": "feature",
+       "yes": 10.8125,
+       "no": 15.4375,
+       "score": -4.625
+      },
+      {
+       "id": "question",
+       "yes": 8.9609375,
+       "no": 15.0703125,
+       "score": -6.109375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 20,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 1246.951575999963,
+    "probabilities": {
+     "bug": 0.9935878844464924,
+     "feature": 0.003237365939476453,
+     "question": 0.003174749614030956
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.4609375,
+       "no": 16.171875,
+       "score": -3.7109375
+      },
+      {
+       "id": "feature",
+       "yes": 5.8515625,
+       "no": 15.2890625,
+       "score": -9.4375
+      },
+      {
+       "id": "question",
+       "yes": 6.28515625,
+       "no": 15.7421875,
+       "score": -9.45703125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 89,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 2332.911430999986,
+    "probabilities": {
+     "bug": 0.8781341741157218,
+     "feature": 0.10487817095108505,
+     "question": 0.016987654933193104
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 13.125,
+       "no": 16.625,
+       "score": -3.5
+      },
+      {
+       "id": "feature",
+       "yes": 9.515625,
+       "no": 15.140625,
+       "score": -5.625
+      },
+      {
+       "id": "question",
+       "yes": 8.03125,
+       "no": 15.4765625,
+       "score": -7.4453125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 81,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 761.7160620000213,
+    "probabilities": {
+     "bug": 0.8800710450894705,
+     "feature": 0.055172872224157364,
+     "question": 0.06475608268637216
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 13.140625,
+       "no": 17.234375,
+       "score": -4.09375
+      },
+      {
+       "id": "feature",
+       "yes": 7.99609375,
+       "no": 14.859375,
+       "score": -6.86328125
+      },
+      {
+       "id": "question",
+       "yes": 8.609375,
+       "no": 15.3125,
+       "score": -6.703125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 35,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 1488.594282999984,
+    "probabilities": {
+     "bug": 0.7467184822321228,
+     "feature": 0.22246076514267654,
+     "question": 0.03082075262520079
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 13.171875,
+       "no": 16.4375,
+       "score": -3.265625
+      },
+      {
+       "id": "feature",
+       "yes": 11.3046875,
+       "no": 15.78125,
+       "score": -4.4765625
+      },
+      {
+       "id": "question",
+       "yes": 9.1171875,
+       "no": 15.5703125,
+       "score": -6.453125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 83,
+    "label": "bug",
+    "repo": "facebook/react",
+    "elapsedMs": 2005.46785299998,
+    "probabilities": {
+     "bug": 0.9645286244941716,
+     "feature": 0.031004721829629375,
+     "question": 0.004466653676199113
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 14.4921875,
+       "no": 17.03125,
+       "score": -2.5390625
+      },
+      {
+       "id": "feature",
+       "yes": 10.6953125,
+       "no": 16.671875,
+       "score": -5.9765625
+      },
+      {
+       "id": "question",
+       "yes": 8.6796875,
+       "no": 16.59375,
+       "score": -7.9140625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 183,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 1301.8701050000382,
+    "probabilities": {
+     "bug": 0.3216770690631016,
+     "feature": 0.43455799071826506,
+     "question": 0.24376494021863337
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 7.7265625,
+       "no": 16.65625,
+       "score": -8.9296875
+      },
+      {
+       "id": "feature",
+       "yes": 6.25390625,
+       "no": 14.8828125,
+       "score": -8.62890625
+      },
+      {
+       "id": "question",
+       "yes": 6.66796875,
+       "no": 15.875,
+       "score": -9.20703125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 154,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 1862.0227629999863,
+    "probabilities": {
+     "bug": 0.05631875616067135,
+     "feature": 0.9377914845662068,
+     "question": 0.005889759273121807
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 13.5234375,
+       "no": 16.859375,
+       "score": -3.3359375
+      },
+      {
+       "id": "feature",
+       "yes": 15.5859375,
+       "no": 16.109375,
+       "score": -0.5234375
+      },
+      {
+       "id": "question",
+       "yes": 10.578125,
+       "no": 16.171875,
+       "score": -5.59375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 126,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 2866.000286000024,
+    "probabilities": {
+     "bug": 0.2239376344534316,
+     "feature": 0.628048627296348,
+     "question": 0.14801373825022046
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.1171875,
+       "no": 16.171875,
+       "score": -5.0546875
+      },
+      {
+       "id": "feature",
+       "yes": 12.5859375,
+       "no": 16.609375,
+       "score": -4.0234375
+      },
+      {
+       "id": "question",
+       "yes": 9.1640625,
+       "no": 14.6328125,
+       "score": -5.46875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 108,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 2074.025665000023,
+    "probabilities": {
+     "bug": 0.02525542273302005,
+     "feature": 0.9626268930113605,
+     "question": 0.0121176842556193
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.4140625,
+       "no": 15.5390625,
+       "score": -7.125
+      },
+      {
+       "id": "feature",
+       "yes": 12.90625,
+       "no": 16.390625,
+       "score": -3.484375
+      },
+      {
+       "id": "question",
+       "yes": 7.6953125,
+       "no": 15.5546875,
+       "score": -7.859375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 148,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 1973.4251040000236,
+    "probabilities": {
+     "bug": 0.7942605204016374,
+     "feature": 0.15040761152325588,
+     "question": 0.05533186807510676
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 14.2734375,
+       "no": 16.734375,
+       "score": -2.4609375
+      },
+      {
+       "id": "feature",
+       "yes": 11.6328125,
+       "no": 15.7578125,
+       "score": -4.125
+      },
+      {
+       "id": "question",
+       "yes": 10.765625,
+       "no": 15.890625,
+       "score": -5.125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 136,
+    "label": "feature",
+    "repo": "facebook/react",
+    "elapsedMs": 1530.5950329999905,
+    "probabilities": {
+     "bug": 0.45185520328620826,
+     "feature": 0.27193125130630363,
+     "question": 0.2762135454074881
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.5703125,
+       "no": 15.8203125,
+       "score": -6.25
+      },
+      {
+       "id": "feature",
+       "yes": 8.078125,
+       "no": 14.8359375,
+       "score": -6.7578125
+      },
+      {
+       "id": "question",
+       "yes": 8.2421875,
+       "no": 14.984375,
+       "score": -6.7421875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 238,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 2431.9274899999727,
+    "probabilities": {
+     "bug": 0.9625701130561707,
+     "feature": 0.027844575121981813,
+     "question": 0.009585311821847532
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.6015625,
+       "no": 15.8671875,
+       "score": -4.265625
+      },
+      {
+       "id": "feature",
+       "yes": 5.44140625,
+       "no": 13.25,
+       "score": -7.80859375
+      },
+      {
+       "id": "question",
+       "yes": 5.0703125,
+       "no": 13.9453125,
+       "score": -8.875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 292,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 1398.2276490000077,
+    "probabilities": {
+     "bug": 0.6760120978438585,
+     "feature": 0.2785206550873885,
+     "question": 0.04546724706875292
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.2578125,
+       "no": 14.796875,
+       "score": -6.5390625
+      },
+      {
+       "id": "feature",
+       "yes": 5.97265625,
+       "no": 13.3984375,
+       "score": -7.42578125
+      },
+      {
+       "id": "question",
+       "yes": 5.78515625,
+       "no": 15.0234375,
+       "score": -9.23828125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 261,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 2032.7088809999987,
+    "probabilities": {
+     "bug": 0.6457672038579582,
+     "feature": 0.303849594272105,
+     "question": 0.05038320186993692
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 5.1015625,
+       "no": 14.984375,
+       "score": -9.8828125
+      },
+      {
+       "id": "feature",
+       "yes": 3.58984375,
+       "no": 14.2265625,
+       "score": -10.63671875
+      },
+      {
+       "id": "question",
+       "yes": 2.81640625,
+       "no": 15.25,
+       "score": -12.43359375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 226,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 2437.394703000027,
+    "probabilities": {
+     "bug": 0.17143313437188518,
+     "feature": 0.5599161573687857,
+     "question": 0.268650708259329
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 7.80859375,
+       "no": 16.046875,
+       "score": -8.23828125
+      },
+      {
+       "id": "feature",
+       "yes": 8.671875,
+       "no": 15.7265625,
+       "score": -7.0546875
+      },
+      {
+       "id": "question",
+       "yes": 8.4140625,
+       "no": 16.203125,
+       "score": -7.7890625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 206,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 926.6751359999762,
+    "probabilities": {
+     "bug": 0.015224094244228256,
+     "feature": 0.3010433638979156,
+     "question": 0.683732541857856
+    },
+    "choice": "question",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 7.8984375,
+       "no": 17.078125,
+       "score": -9.1796875
+      },
+      {
+       "id": "feature",
+       "yes": 9.3515625,
+       "no": 15.546875,
+       "score": -6.1953125
+      },
+      {
+       "id": "question",
+       "yes": 10.90625,
+       "no": 16.28125,
+       "score": -5.375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 209,
+    "label": "question",
+    "repo": "facebook/react",
+    "elapsedMs": 1405.0824209999992,
+    "probabilities": {
+     "bug": 0.4744109164401622,
+     "feature": 0.2832836970153696,
+     "question": 0.24230538654446804
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.546875,
+       "no": 17.40625,
+       "score": -6.859375
+      },
+      {
+       "id": "feature",
+       "yes": 8.90625,
+       "no": 16.28125,
+       "score": -7.375
+      },
+      {
+       "id": "question",
+       "yes": 9.328125,
+       "no": 16.859375,
+       "score": -7.53125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 681,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 771.5122659999761,
+    "probabilities": {
+     "bug": 0.11084740055800547,
+     "feature": 0.8000842108588838,
+     "question": 0.08906838858311078
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.0390625,
+       "no": 16.359375,
+       "score": -6.3203125
+      },
+      {
+       "id": "feature",
+       "yes": 11.6875,
+       "no": 16.03125,
+       "score": -4.34375
+      },
+      {
+       "id": "question",
+       "yes": 9.4453125,
+       "no": 15.984375,
+       "score": -6.5390625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 668,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 2573.1417920000385,
+    "probabilities": {
+     "bug": 0.8656965244230168,
+     "feature": 0.11715928432974018,
+     "question": 0.017144191247242882
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.8359375,
+       "no": 17.640625,
+       "score": -4.8046875
+      },
+      {
+       "id": "feature",
+       "yes": 10.0546875,
+       "no": 16.859375,
+       "score": -6.8046875
+      },
+      {
+       "id": "question",
+       "yes": 8.1328125,
+       "no": 16.859375,
+       "score": -8.7265625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 604,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 744.526978000009,
+    "probabilities": {
+     "bug": 0.07019146802079514,
+     "feature": 0.5227165070018301,
+     "question": 0.4070920249773748
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.9375,
+       "no": 18.328125,
+       "score": -7.390625
+      },
+      {
+       "id": "feature",
+       "yes": 11.6796875,
+       "no": 17.0625,
+       "score": -5.3828125
+      },
+      {
+       "id": "question",
+       "yes": 11.2421875,
+       "no": 16.875,
+       "score": -5.6328125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 605,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 572.6900420000311,
+    "probabilities": {
+     "bug": 0.2629258369211371,
+     "feature": 0.7091446344338178,
+     "question": 0.02792952864504509
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.84375,
+       "no": 16.328125,
+       "score": -5.484375
+      },
+      {
+       "id": "feature",
+       "yes": 11.7890625,
+       "no": 16.28125,
+       "score": -4.4921875
+      },
+      {
+       "id": "question",
+       "yes": 8.5078125,
+       "no": 16.234375,
+       "score": -7.7265625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 608,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 1520.940883000032,
+    "probabilities": {
+     "bug": 0.0967865666713001,
+     "feature": 0.7612853164030636,
+     "question": 0.14192811692563645
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.2578125,
+       "no": 15.859375,
+       "score": -6.6015625
+      },
+      {
+       "id": "feature",
+       "yes": 11.6484375,
+       "no": 16.1875,
+       "score": -4.5390625
+      },
+      {
+       "id": "question",
+       "yes": 9.2734375,
+       "no": 15.4921875,
+       "score": -6.21875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 680,
+    "label": "bug",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 1039.2178980000317,
+    "probabilities": {
+     "bug": 0.23546507690069768,
+     "feature": 0.45743056789972286,
+     "question": 0.30710435519957957
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.4453125,
+       "no": 16.25,
+       "score": -6.8046875
+      },
+      {
+       "id": "feature",
+       "yes": 9.96875,
+       "no": 16.109375,
+       "score": -6.140625
+      },
+      {
+       "id": "question",
+       "yes": 10.1015625,
+       "no": 16.640625,
+       "score": -6.5390625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 752,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 887.6986580000375,
+    "probabilities": {
+     "bug": 0.027968492662352216,
+     "feature": 0.955589678698506,
+     "question": 0.016441828639141745
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.4140625,
+       "no": 17.234375,
+       "score": -6.8203125
+      },
+      {
+       "id": "feature",
+       "yes": 13.7890625,
+       "no": 17.078125,
+       "score": -3.2890625
+      },
+      {
+       "id": "question",
+       "yes": 9.3515625,
+       "no": 16.703125,
+       "score": -7.3515625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 704,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 984.0540529999998,
+    "probabilities": {
+     "bug": 0.1235739884701232,
+     "feature": 0.8249127091164925,
+     "question": 0.05151330241338427
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.34375,
+       "no": 16.3125,
+       "score": -6.96875
+      },
+      {
+       "id": "feature",
+       "yes": 11.1171875,
+       "no": 16.1875,
+       "score": -5.0703125
+      },
+      {
+       "id": "question",
+       "yes": 8.84375,
+       "no": 16.6875,
+       "score": -7.84375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 708,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 926.1560140000074,
+    "probabilities": {
+     "bug": 0.02180724804547921,
+     "feature": 0.8119427994769838,
+     "question": 0.16624995247753696
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.9375,
+       "no": 16.75,
+       "score": -6.8125
+      },
+      {
+       "id": "feature",
+       "yes": 12.8203125,
+       "no": 16.015625,
+       "score": -3.1953125
+      },
+      {
+       "id": "question",
+       "yes": 11.4375,
+       "no": 16.21875,
+       "score": -4.78125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 797,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 1231.7943139999988,
+    "probabilities": {
+     "bug": 0.012036163935629155,
+     "feature": 0.9636501165737951,
+     "question": 0.024313719490575734
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.484375,
+       "no": 16.890625,
+       "score": -8.40625
+      },
+      {
+       "id": "feature",
+       "yes": 13.0703125,
+       "no": 17.09375,
+       "score": -4.0234375
+      },
+      {
+       "id": "question",
+       "yes": 9.21875,
+       "no": 16.921875,
+       "score": -7.703125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 792,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 1582.0544419999933,
+    "probabilities": {
+     "bug": 0.11266963218965403,
+     "feature": 0.6768357829466493,
+     "question": 0.21049458486369657
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 7.29296875,
+       "no": 14.59375,
+       "score": -7.30078125
+      },
+      {
+       "id": "feature",
+       "yes": 9.484375,
+       "no": 14.9921875,
+       "score": -5.5078125
+      },
+      {
+       "id": "question",
+       "yes": 7.64453125,
+       "no": 14.3203125,
+       "score": -6.67578125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 731,
+    "label": "feature",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 837.8281619999907,
+    "probabilities": {
+     "bug": 0.021803409061388102,
+     "feature": 0.9271045445801954,
+     "question": 0.05109204635841643
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.9375,
+       "no": 17.09375,
+       "score": -7.15625
+      },
+      {
+       "id": "feature",
+       "yes": 12.703125,
+       "no": 16.109375,
+       "score": -3.40625
+      },
+      {
+       "id": "question",
+       "yes": 9.7734375,
+       "no": 16.078125,
+       "score": -6.3046875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 873,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 2399.6180169999716,
+    "probabilities": {
+     "bug": 0.44191964718469934,
+     "feature": 0.033287786963167455,
+     "question": 0.5247925658521332
+    },
+    "choice": "question",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 14.046875,
+       "no": 17.03125,
+       "score": -2.984375
+      },
+      {
+       "id": "feature",
+       "yes": 10.8203125,
+       "no": 16.390625,
+       "score": -5.5703125
+      },
+      {
+       "id": "question",
+       "yes": 14.328125,
+       "no": 17.140625,
+       "score": -2.8125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 876,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 2934.912980999972,
+    "probabilities": {
+     "bug": 0.7199934584671228,
+     "feature": 0.15091882756900996,
+     "question": 0.12908771396386728
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.171875,
+       "no": 15.390625,
+       "score": -3.21875
+      },
+      {
+       "id": "feature",
+       "yes": 9.5625,
+       "no": 14.34375,
+       "score": -4.78125
+      },
+      {
+       "id": "question",
+       "yes": 9.8984375,
+       "no": 14.8359375,
+       "score": -4.9375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 841,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 3891.6644220000017,
+    "probabilities": {
+     "bug": 0.7003483993677223,
+     "feature": 0.055719374585293115,
+     "question": 0.24393222604698453
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 13.671875,
+       "no": 17.25,
+       "score": -3.578125
+      },
+      {
+       "id": "feature",
+       "yes": 10.09375,
+       "no": 16.203125,
+       "score": -6.109375
+      },
+      {
+       "id": "question",
+       "yes": 12.2421875,
+       "no": 16.875,
+       "score": -4.6328125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 810,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 4404.847333999991,
+    "probabilities": {
+     "bug": 0.4903398193118674,
+     "feature": 0.20281336249036144,
+     "question": 0.3068468181977711
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.0078125,
+       "no": 16.109375,
+       "score": -4.1015625
+      },
+      {
+       "id": "feature",
+       "yes": 10.03125,
+       "no": 15.015625,
+       "score": -4.984375
+      },
+      {
+       "id": "question",
+       "yes": 10.34375,
+       "no": 14.9140625,
+       "score": -4.5703125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 857,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 4115.454628999985,
+    "probabilities": {
+     "bug": 0.3559875678584109,
+     "feature": 0.2044264613267411,
+     "question": 0.43958597081484796
+    },
+    "choice": "question",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.0625,
+       "no": 15.8203125,
+       "score": -4.7578125
+      },
+      {
+       "id": "feature",
+       "yes": 10.984375,
+       "no": 16.296875,
+       "score": -5.3125
+      },
+      {
+       "id": "question",
+       "yes": 11.5,
+       "no": 16.046875,
+       "score": -4.546875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 865,
+    "label": "question",
+    "repo": "microsoft/vscode",
+    "elapsedMs": 1984.0640860000276,
+    "probabilities": {
+     "bug": 0.3544179788610697,
+     "feature": 0.49014227096257795,
+     "question": 0.1554397501763523
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.484375,
+       "no": 16.421875,
+       "score": -7.9375
+      },
+      {
+       "id": "feature",
+       "yes": 7.44140625,
+       "no": 15.0546875,
+       "score": -7.61328125
+      },
+      {
+       "id": "question",
+       "yes": 6.27734375,
+       "no": 15.0390625,
+       "score": -8.76171875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1215,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 1155.5453190000262,
+    "probabilities": {
+     "bug": 0.5590888787895895,
+     "feature": 0.3312491981314792,
+     "question": 0.10966192307893134
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.515625,
+       "no": 15.609375,
+       "score": -5.09375
+      },
+      {
+       "id": "feature",
+       "yes": 9.359375,
+       "no": 14.9765625,
+       "score": -5.6171875
+      },
+      {
+       "id": "question",
+       "yes": 7.26953125,
+       "no": 13.9921875,
+       "score": -6.72265625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1280,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 2203.1160260000033,
+    "probabilities": {
+     "bug": 0.8615674573017638,
+     "feature": 0.1241205604616272,
+     "question": 0.014311982236608931
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.4453125,
+       "no": 15.890625,
+       "score": -5.4453125
+      },
+      {
+       "id": "feature",
+       "yes": 8.7265625,
+       "no": 16.109375,
+       "score": -7.3828125
+      },
+      {
+       "id": "question",
+       "yes": 5.80078125,
+       "no": 15.34375,
+       "score": -9.54296875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1281,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 1617.8979690000415,
+    "probabilities": {
+     "bug": 0.7016305378641623,
+     "feature": 0.2812782705963285,
+     "question": 0.017091191539509217
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.8125,
+       "no": 16.71875,
+       "score": -4.90625
+      },
+      {
+       "id": "feature",
+       "yes": 9.7890625,
+       "no": 15.609375,
+       "score": -5.8203125
+      },
+      {
+       "id": "question",
+       "yes": 7.09765625,
+       "no": 15.71875,
+       "score": -8.62109375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1250,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 2588.7475470000063,
+    "probabilities": {
+     "bug": 0.7688727373587111,
+     "feature": 0.18989816688729286,
+     "question": 0.041229095753996144
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.359375,
+       "no": 16.0625,
+       "score": -4.703125
+      },
+      {
+       "id": "feature",
+       "yes": 8.203125,
+       "no": 14.3046875,
+       "score": -6.1015625
+      },
+      {
+       "id": "question",
+       "yes": 5.96484375,
+       "no": 13.59375,
+       "score": -7.62890625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1299,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 1867.064504000009,
+    "probabilities": {
+     "bug": 0.6468526765450227,
+     "feature": 0.305551568950871,
+     "question": 0.047595754504106226
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.09375,
+       "no": 15.9296875,
+       "score": -5.8359375
+      },
+      {
+       "id": "feature",
+       "yes": 8.453125,
+       "no": 15.0390625,
+       "score": -6.5859375
+      },
+      {
+       "id": "question",
+       "yes": 6.0078125,
+       "no": 14.453125,
+       "score": -8.4453125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1218,
+    "label": "bug",
+    "repo": "opencv/opencv",
+    "elapsedMs": 2187.0580260000424,
+    "probabilities": {
+     "bug": 0.6466690042897476,
+     "feature": 0.22348282786069662,
+     "question": 0.12984816784955583
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.8125,
+       "no": 17.203125,
+       "score": -6.390625
+      },
+      {
+       "id": "feature",
+       "yes": 8.3203125,
+       "no": 15.7734375,
+       "score": -7.453125
+      },
+      {
+       "id": "question",
+       "yes": 7.40234375,
+       "no": 15.3984375,
+       "score": -7.99609375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1451,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 1368.700048000028,
+    "probabilities": {
+     "bug": 0.03610613044659501,
+     "feature": 0.17360370937865702,
+     "question": 0.790290160174748
+    },
+    "choice": "question",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.140625,
+       "no": 14.921875,
+       "score": -6.78125
+      },
+      {
+       "id": "feature",
+       "yes": 9.4453125,
+       "no": 14.65625,
+       "score": -5.2109375
+      },
+      {
+       "id": "question",
+       "yes": 12.28125,
+       "no": 15.9765625,
+       "score": -3.6953125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1441,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 1181.3185159999994,
+    "probabilities": {
+     "bug": 0.15469087181930213,
+     "feature": 0.8105222152741826,
+     "question": 0.034786912906515144
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.5703125,
+       "no": 16.75,
+       "score": -5.1796875
+      },
+      {
+       "id": "feature",
+       "yes": 12.9609375,
+       "no": 16.484375,
+       "score": -3.5234375
+      },
+      {
+       "id": "question",
+       "yes": 8.71875,
+       "no": 15.390625,
+       "score": -6.671875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1480,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 1527.003033999994,
+    "probabilities": {
+     "bug": 0.2824022529772244,
+     "feature": 0.43739316581366644,
+     "question": 0.28020458120910924
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.6328125,
+       "no": 15.75,
+       "score": -5.1171875
+      },
+      {
+       "id": "feature",
+       "yes": 10.3125,
+       "no": 14.9921875,
+       "score": -4.6796875
+      },
+      {
+       "id": "question",
+       "yes": 10.7265625,
+       "no": 15.8515625,
+       "score": -5.125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1456,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 1666.3609220000217,
+    "probabilities": {
+     "bug": 0.6466343456446919,
+     "feature": 0.32769833708191426,
+     "question": 0.025667317273393858
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.71875,
+       "no": 16.484375,
+       "score": -3.765625
+      },
+      {
+       "id": "feature",
+       "yes": 10.9375,
+       "no": 15.3828125,
+       "score": -4.4453125
+      },
+      {
+       "id": "question",
+       "yes": 8.2734375,
+       "no": 15.265625,
+       "score": -6.9921875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1442,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 1008.6276519999956,
+    "probabilities": {
+     "bug": 0.04814984020394997,
+     "feature": 0.9156464508909585,
+     "question": 0.03620370890509162
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.40625,
+       "no": 15.6796875,
+       "score": -7.2734375
+      },
+      {
+       "id": "feature",
+       "yes": 10.9765625,
+       "no": 15.3046875,
+       "score": -4.328125
+      },
+      {
+       "id": "question",
+       "yes": 7.25390625,
+       "no": 14.8125,
+       "score": -7.55859375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1468,
+    "label": "feature",
+    "repo": "opencv/opencv",
+    "elapsedMs": 1530.2489419999765,
+    "probabilities": {
+     "bug": 0.6933409257103123,
+     "feature": 0.29588158822636723,
+     "question": 0.010777486063320527
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.53125,
+       "no": 15.625,
+       "score": -5.09375
+      },
+      {
+       "id": "feature",
+       "yes": 9.2265625,
+       "no": 15.171875,
+       "score": -5.9453125
+      },
+      {
+       "id": "question",
+       "yes": 5.7734375,
+       "no": 15.03125,
+       "score": -9.2578125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1352,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 502.09689000004437,
+    "probabilities": {
+     "bug": 0.0977286429691145,
+     "feature": 0.06459468867430514,
+     "question": 0.8376766683565804
+    },
+    "choice": "question",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.9453125,
+       "no": 18.15625,
+       "score": -8.2109375
+      },
+      {
+       "id": "feature",
+       "yes": 8.53125,
+       "no": 17.15625,
+       "score": -8.625
+      },
+      {
+       "id": "question",
+       "yes": 11.828125,
+       "no": 17.890625,
+       "score": -6.0625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1336,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 1916.32958900003,
+    "probabilities": {
+     "bug": 0.5180005368091158,
+     "feature": 0.3673173831572352,
+     "question": 0.11468208003364909
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.7890625,
+       "no": 14.78125,
+       "score": -5.9921875
+      },
+      {
+       "id": "feature",
+       "yes": 8.828125,
+       "no": 15.1640625,
+       "score": -6.3359375
+      },
+      {
+       "id": "question",
+       "yes": 6.5078125,
+       "no": 14.0078125,
+       "score": -7.5
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1323,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 753.4440179999801,
+    "probabilities": {
+     "bug": 0.07200643029806048,
+     "feature": 0.3938515945341501,
+     "question": 0.5341419751677894
+    },
+    "choice": "question",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 7.61328125,
+       "no": 14.7265625,
+       "score": -7.11328125
+      },
+      {
+       "id": "feature",
+       "yes": 9.8203125,
+       "no": 15.234375,
+       "score": -5.4140625
+      },
+      {
+       "id": "question",
+       "yes": 10.53125,
+       "no": 15.640625,
+       "score": -5.109375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1340,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 2762.7445690000313,
+    "probabilities": {
+     "bug": 0.7074170061792396,
+     "feature": 0.06736043426786686,
+     "question": 0.22522255955289347
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 6.5859375,
+       "no": 14.1875,
+       "score": -7.6015625
+      },
+      {
+       "id": "feature",
+       "yes": 4.8828125,
+       "no": 14.8359375,
+       "score": -9.953125
+      },
+      {
+       "id": "question",
+       "yes": 5.63671875,
+       "no": 14.3828125,
+       "score": -8.74609375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1385,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 1791.9524930000189,
+    "probabilities": {
+     "bug": 0.8758460970779742,
+     "feature": 0.07773576031673601,
+     "question": 0.04641814260528972
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 13.65625,
+       "no": 16.984375,
+       "score": -3.328125
+      },
+      {
+       "id": "feature",
+       "yes": 9.8984375,
+       "no": 15.6484375,
+       "score": -5.75
+      },
+      {
+       "id": "question",
+       "yes": 9.765625,
+       "no": 16.03125,
+       "score": -6.265625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1396,
+    "label": "question",
+    "repo": "opencv/opencv",
+    "elapsedMs": 1095.47397500003,
+    "probabilities": {
+     "bug": 0.24068847045602298,
+     "feature": 0.4712451484221026,
+     "question": 0.2880663811218744
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.6484375,
+       "no": 16.3125,
+       "score": -7.6640625
+      },
+      {
+       "id": "feature",
+       "yes": 8.703125,
+       "no": 15.6953125,
+       "score": -6.9921875
+      },
+      {
+       "id": "question",
+       "yes": 9.59375,
+       "no": 17.078125,
+       "score": -7.484375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 556,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 1485.1646380000166,
+    "probabilities": {
+     "bug": 0.9764246581340941,
+     "feature": 0.005123806358973051,
+     "question": 0.01845153550693301
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 14.9375,
+       "no": 16.296875,
+       "score": -1.359375
+      },
+      {
+       "id": "feature",
+       "yes": 9.375,
+       "no": 15.984375,
+       "score": -6.609375
+      },
+      {
+       "id": "question",
+       "yes": 10.890625,
+       "no": 16.21875,
+       "score": -5.328125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 500,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 3115.3220459999866,
+    "probabilities": {
+     "bug": 0.9902658796449328,
+     "feature": 0.005076063057088982,
+     "question": 0.00465805729797812
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 15.4765625,
+       "no": 16.640625,
+       "score": -1.1640625
+      },
+      {
+       "id": "feature",
+       "yes": 8.1875,
+       "no": 14.625,
+       "score": -6.4375
+      },
+      {
+       "id": "question",
+       "yes": 9.015625,
+       "no": 15.5390625,
+       "score": -6.5234375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 514,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 3536.189726999961,
+    "probabilities": {
+     "bug": 0.9807484099973272,
+     "feature": 0.016743388499082947,
+     "question": 0.002508201503589979
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 13.5,
+       "no": 16.484375,
+       "score": -2.984375
+      },
+      {
+       "id": "feature",
+       "yes": 6.8984375,
+       "no": 13.953125,
+       "score": -7.0546875
+      },
+      {
+       "id": "question",
+       "yes": 5.859375,
+       "no": 14.8125,
+       "score": -8.953125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 534,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 2838.8323010000167,
+    "probabilities": {
+     "bug": 0.7681194658397597,
+     "feature": 0.18315843174322502,
+     "question": 0.04872210241701534
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.3515625,
+       "no": 15.4609375,
+       "score": -4.109375
+      },
+      {
+       "id": "feature",
+       "yes": 7.90234375,
+       "no": 13.4453125,
+       "score": -5.54296875
+      },
+      {
+       "id": "question",
+       "yes": 7.140625,
+       "no": 14.0078125,
+       "score": -6.8671875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 538,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 3520.7599100000225,
+    "probabilities": {
+     "bug": 0.9411835098694462,
+     "feature": 0.04103090800066147,
+     "question": 0.017785582129892282
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.828125,
+       "no": 15.9140625,
+       "score": -3.0859375
+      },
+      {
+       "id": "feature",
+       "yes": 8.0859375,
+       "no": 14.3046875,
+       "score": -6.21875
+      },
+      {
+       "id": "question",
+       "yes": 6.7578125,
+       "no": 13.8125,
+       "score": -7.0546875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 565,
+    "label": "bug",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 2488.0663910000003,
+    "probabilities": {
+     "bug": 0.8991324915587141,
+     "feature": 0.057479617126806645,
+     "question": 0.04338789131447926
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.9765625,
+       "no": 16.390625,
+       "score": -4.4140625
+      },
+      {
+       "id": "feature",
+       "yes": 7.59375,
+       "no": 14.7578125,
+       "score": -7.1640625
+      },
+      {
+       "id": "question",
+       "yes": 7.9375,
+       "no": 15.3828125,
+       "score": -7.4453125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 421,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 2838.430265999981,
+    "probabilities": {
+     "bug": 0.9136231699590451,
+     "feature": 0.06828350297795238,
+     "question": 0.01809332706300248
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 13.484375,
+       "no": 16.171875,
+       "score": -2.6875
+      },
+      {
+       "id": "feature",
+       "yes": 8.953125,
+       "no": 14.234375,
+       "score": -5.28125
+      },
+      {
+       "id": "question",
+       "yes": 8.3359375,
+       "no": 14.9453125,
+       "score": -6.609375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 425,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 2535.9078549999977,
+    "probabilities": {
+     "bug": 0.6291069447944583,
+     "feature": 0.3263763834247636,
+     "question": 0.04451667178077818
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.28125,
+       "no": 16.359375,
+       "score": -6.078125
+      },
+      {
+       "id": "feature",
+       "yes": 8.09375,
+       "no": 14.828125,
+       "score": -6.734375
+      },
+      {
+       "id": "question",
+       "yes": 6.28125,
+       "no": 15.0078125,
+       "score": -8.7265625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 495,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 3053.069843000034,
+    "probabilities": {
+     "bug": 0.9585255102722834,
+     "feature": 0.03491428915946362,
+     "question": 0.006560200568253065
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 16.1875,
+       "no": 17.671875,
+       "score": -1.484375
+      },
+      {
+       "id": "feature",
+       "yes": 11.71875,
+       "no": 16.515625,
+       "score": -4.796875
+      },
+      {
+       "id": "question",
+       "yes": 10.15625,
+       "no": 16.625,
+       "score": -6.46875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 454,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 2034.8550239999895,
+    "probabilities": {
+     "bug": 0.2969152315428889,
+     "feature": 0.7012200050559807,
+     "question": 0.001864763401130434
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.9765625,
+       "no": 16.625,
+       "score": -3.6484375
+      },
+      {
+       "id": "feature",
+       "yes": 13.7109375,
+       "no": 16.5,
+       "score": -2.7890625
+      },
+      {
+       "id": "question",
+       "yes": 8.421875,
+       "no": 17.140625,
+       "score": -8.71875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 400,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 657.2076229999657,
+    "probabilities": {
+     "bug": 0.3779033180743394,
+     "feature": 0.5413215099632886,
+     "question": 0.08077517196237195
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.3203125,
+       "no": 15.3046875,
+       "score": -5.984375
+      },
+      {
+       "id": "feature",
+       "yes": 9.890625,
+       "no": 15.515625,
+       "score": -5.625
+      },
+      {
+       "id": "question",
+       "yes": 7.68359375,
+       "no": 15.2109375,
+       "score": -7.52734375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 493,
+    "label": "feature",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 604.9025889999466,
+    "probabilities": {
+     "bug": 0.028411413861116668,
+     "feature": 0.9119096899072283,
+     "question": 0.05967889623165516
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.234375,
+       "no": 16.84375,
+       "score": -7.609375
+      },
+      {
+       "id": "feature",
+       "yes": 12.6875,
+       "no": 16.828125,
+       "score": -4.140625
+      },
+      {
+       "id": "question",
+       "yes": 10.3359375,
+       "no": 17.203125,
+       "score": -6.8671875
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 383,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 1029.7113799999934,
+    "probabilities": {
+     "bug": 0.5300914597896326,
+     "feature": 0.16550262526161383,
+     "question": 0.3044059149487536
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.796875,
+       "no": 16.03125,
+       "score": -7.234375
+      },
+      {
+       "id": "feature",
+       "yes": 6.9375,
+       "no": 15.3359375,
+       "score": -8.3984375
+      },
+      {
+       "id": "question",
+       "yes": 8.09375,
+       "no": 15.8828125,
+       "score": -7.7890625
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 341,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 2084.4129860000103,
+    "probabilities": {
+     "bug": 0.14757095307094312,
+     "feature": 0.21639849622324753,
+     "question": 0.6360305507058094
+    },
+    "choice": "question",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.046875,
+       "no": 15.09375,
+       "score": -6.046875
+      },
+      {
+       "id": "feature",
+       "yes": 8.15625,
+       "no": 13.8203125,
+       "score": -5.6640625
+      },
+      {
+       "id": "question",
+       "yes": 10.828125,
+       "no": 15.4140625,
+       "score": -4.5859375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 374,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 1861.561883999966,
+    "probabilities": {
+     "bug": 0.753452121884347,
+     "feature": 0.21756071806447758,
+     "question": 0.028987160051175378
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.40625,
+       "no": 15.7578125,
+       "score": -5.3515625
+      },
+      {
+       "id": "feature",
+       "yes": 8.171875,
+       "no": 14.765625,
+       "score": -6.59375
+      },
+      {
+       "id": "question",
+       "yes": 7.8125,
+       "no": 16.421875,
+       "score": -8.609375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 373,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 2485.0006789999898,
+    "probabilities": {
+     "bug": 0.3195653583674209,
+     "feature": 0.17374467168740917,
+     "question": 0.50668996994517
+    },
+    "choice": "question",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 9.875,
+       "no": 15.4609375,
+       "score": -5.5859375
+      },
+      {
+       "id": "feature",
+       "yes": 8.3515625,
+       "no": 14.546875,
+       "score": -6.1953125
+      },
+      {
+       "id": "question",
+       "yes": 10.2890625,
+       "no": 15.4140625,
+       "score": -5.125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 319,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 1076.28533600003,
+    "probabilities": {
+     "bug": 0.10918371255234433,
+     "feature": 0.24509003914265978,
+     "question": 0.6457262483049959
+    },
+    "choice": "question",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 6.49609375,
+       "no": 15.2109375,
+       "score": -8.71484375
+      },
+      {
+       "id": "feature",
+       "yes": 8.140625,
+       "no": 16.046875,
+       "score": -7.90625
+      },
+      {
+       "id": "question",
+       "yes": 9.484375,
+       "no": 16.421875,
+       "score": -6.9375
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 394,
+    "label": "question",
+    "repo": "tensorflow/tensorflow",
+    "elapsedMs": 2570.3779119999963,
+    "probabilities": {
+     "bug": 0.624688308399315,
+     "feature": 0.2051972206839779,
+     "question": 0.17011447091670717
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 8.296875,
+       "no": 15.265625,
+       "score": -6.96875
+      },
+      {
+       "id": "feature",
+       "yes": 6.22265625,
+       "no": 14.3046875,
+       "score": -8.08203125
+      },
+      {
+       "id": "question",
+       "yes": 6.16796875,
+       "no": 14.4375,
+       "score": -8.26953125
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   }
+  ],
+  "finishedAtMs": 462652.622456
+ }
+}

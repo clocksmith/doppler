@@ -1,0 +1,136 @@
+{
+ "runId": "node-open-jev-deberta-2",
+ "browser": {
+  "name": "node",
+  "kind": "node",
+  "version": "v22.22.1"
+ },
+ "lane": "open-jev-deberta",
+ "mode": "node",
+ "rep": 2,
+ "quality": false,
+ "launchToReportMs": 3279,
+ "exit": {
+  "code": 0,
+  "signal": null
+ },
+ "stderrTail": "",
+ "peakMemory": {
+  "totalRss": 1251803136,
+  "gpuMemory": 0
+ },
+ "report": {
+  "lane": "open-jev-deberta",
+  "mode": "node",
+  "quality": false,
+  "startedAtMs": 44.84514,
+  "platform": {
+   "node": "v22.22.1"
+  },
+  "openMs": 1001.1874019999999,
+  "runtime": {
+   "engine": "open-jev",
+   "version": "0.1.2",
+   "transformersVersion": "4.3.1",
+   "model": "onnx-community/open-jev-deberta-v3-large-ONNX",
+   "family": "open-jev",
+   "device": "cpu",
+   "dtype": "q4"
+  },
+  "firstDecisionMs": 476.01827000000003,
+  "coldCompleteMs": 1523.620201,
+  "firstIssue": {
+   "index": 1136,
+   "label": "bug",
+   "repo": "bitcoin/bitcoin",
+   "elapsedMs": 476.01827000000003,
+   "probabilities": {
+    "bug": 0.45854698768100227,
+    "feature": 0.28598711333920834,
+    "question": 0.2554658989797894
+   },
+   "choice": "bug",
+   "detail": {
+    "confidence": 0.45854698768100227
+   }
+  },
+  "test": [
+   {
+    "index": 1146,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 190.03452300000004,
+    "probabilities": {
+     "bug": 0.40732625399390965,
+     "feature": 0.31938943954096377,
+     "question": 0.2732843064651266
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.40732625399390965
+    }
+   },
+   {
+    "index": 1190,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 110.47161399999982,
+    "probabilities": {
+     "bug": 0.37308490632677255,
+     "feature": 0.36849607371610793,
+     "question": 0.25841901995711947
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.37308490632677255
+    }
+   },
+   {
+    "index": 1118,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 275.9172110000002,
+    "probabilities": {
+     "bug": 0.501714211605078,
+     "feature": 0.2585577116671057,
+     "question": 0.23972807672781632
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.501714211605078
+    }
+   },
+   {
+    "index": 1120,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 637.113531,
+    "probabilities": {
+     "bug": 0.419054477569407,
+     "feature": 0.3086016571150706,
+     "question": 0.2723438653155225
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.419054477569407
+    }
+   },
+   {
+    "index": 1121,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 433.929748,
+    "probabilities": {
+     "bug": 0.4304985361469583,
+     "feature": 0.2886824043941525,
+     "question": 0.28081905945888924
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.4304985361469583
+    }
+   }
+  ],
+  "finishedAtMs": 3191.804032
+ }
+}

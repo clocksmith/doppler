@@ -53,11 +53,11 @@ export async function openDopplerEngine({ descriptor, baseUrl, mode = 'install-o
 
 // Transformers.js on the same source checkpoint, reading the same answer-token logits.
 // Its default browser cache retains downloaded model files.
-export async function openTransformersEngine({ transformers, modelId, dtype = 'fp16', signal }) {
+export async function openTransformersEngine({ transformers, modelId, dtype = 'fp16', device = 'webgpu', signal }) {
   const { AutoTokenizer, AutoModelForCausalLM } = transformers;
   const [tokenizer, model] = await Promise.all([
     AutoTokenizer.from_pretrained(modelId),
-    AutoModelForCausalLM.from_pretrained(modelId, { device: 'webgpu', dtype }),
+    AutoModelForCausalLM.from_pretrained(modelId, { device, dtype }),
   ]);
   signal?.throwIfAborted();
   const encode = (text) => Array.from(tokenizer(text, { add_special_tokens: false }).input_ids.data, Number);
@@ -83,7 +83,9 @@ export async function openTransformersEngine({ transformers, modelId, dtype = 'f
       // signal is honored only before and after it.
       const output = await model(inputs);
       requestSignal?.throwIfAborted();
-      const { data, dims } = output.logits;
+      // fp16 logits arrive as raw Uint16 bits where Float16Array is missing (Node 22).
+      const logits = output.logits.type === 'float16' ? output.logits.to('float32') : output.logits;
+      const { data, dims } = logits;
       const vocab = dims.at(-1);
       const offset = (dims.at(-2) - 1) * vocab;
       const scored = choices.map((choice, i) => ({
@@ -93,6 +95,7 @@ export async function openTransformersEngine({ transformers, modelId, dtype = 'f
         logit: Number(data[offset + tokenIds[i]]),
       }));
       output.logits.dispose?.();
+      if (logits !== output.logits) logits.dispose?.();
       const selected = scored.reduce((best, choice) => (choice.logit > best.logit ? choice : best));
       return { choices: scored, selectedId: selected.id, promptTokenCount: promptIds.length };
     },

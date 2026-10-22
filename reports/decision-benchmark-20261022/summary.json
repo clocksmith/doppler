@@ -1,0 +1,2205 @@
+{
+ "lanes": {
+  "chrome/doppler-capsule-q4k": {
+   "platform": "chrome",
+   "lane": "doppler-capsule-q4k",
+   "browserVersion": "Google Chrome 146.0.7680.177",
+   "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/146.0.0.0 Safari/537.36",
+   "errors": [],
+   "runtime": {
+    "engine": "doppler",
+    "surface": "capsule",
+    "observations": 40
+   },
+   "gpu": {
+    "available": true,
+    "adapter": {
+     "vendor": "amd",
+     "architecture": "rdna-3",
+     "device": "",
+     "description": "",
+     "isFallbackAdapter": false
+    },
+    "features": [
+     "bgra8unorm-storage",
+     "chromium-experimental-multi-draw-indirect",
+     "chromium-experimental-subgroup-matrix",
+     "chromium-experimental-timestamp-query-inside-passes",
+     "clip-distances",
+     "core-features-and-limits",
+     "depth-clip-control",
+     "depth32float-stencil8",
+     "dual-source-blending",
+     "float32-blendable",
+     "float32-filterable",
+     "indirect-first-instance",
+     "primitive-index",
+     "rg11b10ufloat-renderable",
+     "shader-f16",
+     "subgroups",
+     "texture-component-swizzle",
+     "texture-compression-bc",
+     "texture-compression-bc-sliced-3d",
+     "texture-formats-tier1",
+     "texture-formats-tier2",
+     "timestamp-query"
+    ],
+    "maxBufferSize": 4294967292,
+    "maxStorageBufferBindingSize": 4294967292
+   },
+   "coldCompleteMs": [
+    11148.100000023842,
+    11355,
+    11187.300000011921
+   ],
+   "openMs": [
+    10197,
+    10383.400000035763,
+    10228.300000011921
+   ],
+   "firstDecisionMs": [
+    844.2000000476837,
+    861.4000000357628,
+    847.3000000119209
+   ],
+   "peakRss": [
+    2597441536,
+    2591461376,
+    2623569920
+   ],
+   "peakGpuMemory": [
+    7568830464,
+    6432714752,
+    6196826112
+   ],
+   "modelBytes": [
+    944564192,
+    944564192,
+    944564192
+   ],
+   "messages": [
+    "warn: [7004.0ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.",
+    "warn: [7151.9ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.",
+    "warn: [7008.9ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model."
+   ],
+   "warmDecisionMs": {
+    "median": 542.2999999821186,
+    "p90": 780.5999999642372,
+    "samples": 150
+   },
+   "test": {
+    "n": 150,
+    "accuracy": 0.5733333333333334,
+    "macroF1": 0.523398221894283,
+    "f1": {
+     "bug": 0.6056338028169014,
+     "feature": 0.7272727272727273,
+     "question": 0.23728813559322035
+    },
+    "ece": 0.21797208772520463,
+    "brier": 0.6214259195153201,
+    "nll": 1.1078905240072707,
+    "meanConfidence": 0.7678715451963376
+   },
+   "train": {
+    "n": 90,
+    "accuracy": 0.5777777777777777,
+    "macroF1": 0.5628734611172351,
+    "f1": {
+     "bug": 0.5813953488372093,
+     "feature": 0.7169811320754716,
+     "question": 0.3902439024390244
+    },
+    "ece": 0.17560988523468563,
+    "brier": 0.573195822393661,
+    "nll": 1.0268411454124367,
+    "meanConfidence": 0.7533876630124633
+   },
+   "testLabelFreeCentered": {
+    "n": 150,
+    "accuracy": 0.6066666666666667,
+    "macroF1": 0.592468826386955,
+    "f1": {
+     "bug": 0.5714285714285714,
+     "feature": 0.7368421052631579,
+     "question": 0.4691358024691358
+    },
+    "ece": 0.09321201958489034,
+    "brier": 0.509963398169912,
+    "nll": 0.8757930736394045,
+    "meanConfidence": 0.699878686251557,
+    "offsets": {
+     "bug": -4.494154432084826,
+     "feature": -5.615226769447327,
+     "question": -6.319088345103793
+    }
+   },
+   "determinism": [
+    {
+     "rep": 1,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    },
+    {
+     "rep": 2,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    }
+   ],
+   "cpuFallback": {
+    "status": "failed",
+    "error": "Error: WebGPU is unavailable. Run in a WebGPU-capable browser.",
+    "gpuRemoved": true
+   }
+  },
+  "chrome/doppler-f16": {
+   "platform": "chrome",
+   "lane": "doppler-f16",
+   "browserVersion": "Google Chrome 146.0.7680.177",
+   "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/146.0.0.0 Safari/537.36",
+   "errors": [],
+   "runtime": {
+    "engine": "doppler",
+    "surface": "compat",
+    "weights": "f16",
+    "activations": "f32",
+    "adapterInfo": null
+   },
+   "gpu": {
+    "available": true,
+    "adapter": {
+     "vendor": "amd",
+     "architecture": "rdna-3",
+     "device": "",
+     "description": "",
+     "isFallbackAdapter": false
+    },
+    "features": [
+     "bgra8unorm-storage",
+     "chromium-experimental-multi-draw-indirect",
+     "chromium-experimental-subgroup-matrix",
+     "chromium-experimental-timestamp-query-inside-passes",
+     "clip-distances",
+     "core-features-and-limits",
+     "depth-clip-control",
+     "depth32float-stencil8",
+     "dual-source-blending",
+     "float32-blendable",
+     "float32-filterable",
+     "indirect-first-instance",
+     "primitive-index",
+     "rg11b10ufloat-renderable",
+     "shader-f16",
+     "subgroups",
+     "texture-component-swizzle",
+     "texture-compression-bc",
+     "texture-compression-bc-sliced-3d",
+     "texture-formats-tier1",
+     "texture-formats-tier2",
+     "timestamp-query"
+    ],
+    "maxBufferSize": 4294967292,
+    "maxStorageBufferBindingSize": 4294967292
+   },
+   "coldCompleteMs": [
+    4728.300000011921,
+    4530.199999988079,
+    4629.199999988079
+   ],
+   "openMs": [
+    3730.599999964237,
+    3430.199999988079,
+    3565.900000035763
+   ],
+   "firstDecisionMs": [
+    891.3000000119209,
+    901.6999999880791,
+    950.8999999761581
+   ],
+   "peakRss": [
+    1608019968,
+    1594040320,
+    1563426816
+   ],
+   "peakGpuMemory": [
+    9120600064,
+    7436316672,
+    7588163584
+   ],
+   "modelBytes": [
+    1207832320,
+    1207832320,
+    1207832320
+   ],
+   "messages": [
+    "warn: [1097.6ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.",
+    "warn: [1102.0ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.",
+    "warn: [1078.2ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model."
+   ],
+   "warmDecisionMs": {
+    "median": 578.0500000119209,
+    "p90": 828.5,
+    "samples": 150
+   },
+   "test": {
+    "n": 150,
+    "accuracy": 0.5866666666666667,
+    "macroF1": 0.5279750648228863,
+    "f1": {
+     "bug": 0.6141732283464567,
+     "feature": 0.7241379310344828,
+     "question": 0.24561403508771928
+    },
+    "ece": 0.1804930614474163,
+    "brier": 0.5627438390465795,
+    "nll": 1.0525612273032277,
+    "meanConfidence": 0.7671597281140832
+   },
+   "train": {
+    "n": 90,
+    "accuracy": 0.6222222222222222,
+    "macroF1": 0.6014076226049665,
+    "f1": {
+     "bug": 0.6329113924050633,
+     "feature": 0.7213114754098361,
+     "question": 0.45
+    },
+    "ece": 0.12515197327266492,
+    "brier": 0.5314209113670423,
+    "nll": 0.9336367798914508,
+    "meanConfidence": 0.735652389927817
+   },
+   "testLabelFreeCentered": {
+    "n": 150,
+    "accuracy": 0.6666666666666666,
+    "macroF1": 0.6553907067890862,
+    "f1": {
+     "bug": 0.6481481481481481,
+     "feature": 0.7610619469026548,
+     "question": 0.5569620253164557
+    },
+    "ece": 0.07149700527723404,
+    "brier": 0.48120119671092926,
+    "nll": 0.8435338091681577,
+    "meanConfidence": 0.7147615897409642,
+    "offsets": {
+     "bug": -5.521348100238376,
+     "feature": -5.849764908684625,
+     "question": -7.029241826799181
+    }
+   },
+   "determinism": [
+    {
+     "rep": 1,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    },
+    {
+     "rep": 2,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    }
+   ],
+   "cpuFallback": {
+    "status": "failed",
+    "error": "Error: WebGPU is unavailable. Install a Node WebGPU provider or run in a WebGPU-capable browser.",
+    "gpuRemoved": true
+   }
+  },
+  "chrome/open-jev-deberta": {
+   "platform": "chrome",
+   "lane": "open-jev-deberta",
+   "browserVersion": "Google Chrome 146.0.7680.177",
+   "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/146.0.0.0 Safari/537.36",
+   "errors": [],
+   "runtime": {
+    "engine": "open-jev",
+    "version": "0.1.2",
+    "transformersVersion": "4.3.1",
+    "model": "onnx-community/open-jev-deberta-v3-large-ONNX",
+    "family": "open-jev",
+    "device": "webgpu",
+    "dtype": "fp16"
+   },
+   "gpu": {
+    "available": true,
+    "adapter": {
+     "vendor": "amd",
+     "architecture": "rdna-3",
+     "device": "",
+     "description": "",
+     "isFallbackAdapter": false
+    },
+    "features": [
+     "bgra8unorm-storage",
+     "chromium-experimental-multi-draw-indirect",
+     "chromium-experimental-subgroup-matrix",
+     "chromium-experimental-timestamp-query-inside-passes",
+     "clip-distances",
+     "core-features-and-limits",
+     "depth-clip-control",
+     "depth32float-stencil8",
+     "dual-source-blending",
+     "float32-blendable",
+     "float32-filterable",
+     "indirect-first-instance",
+     "primitive-index",
+     "rg11b10ufloat-renderable",
+     "shader-f16",
+     "subgroups",
+     "texture-component-swizzle",
+     "texture-compression-bc",
+     "texture-compression-bc-sliced-3d",
+     "texture-formats-tier1",
+     "texture-formats-tier2",
+     "timestamp-query"
+    ],
+    "maxBufferSize": 4294967292,
+    "maxStorageBufferBindingSize": 4294967292
+   },
+   "coldCompleteMs": [
+    3552.5,
+    3578.800000011921,
+    3549.199999988079
+   ],
+   "openMs": [
+    3207.199999988079,
+    3247.099999964237,
+    3203.800000011921
+   ],
+   "firstDecisionMs": [
+    235.19999998807907,
+    228.9000000357628,
+    229
+   ],
+   "peakRss": [
+    3682291712,
+    3912445952,
+    3685851136
+   ],
+   "peakGpuMemory": [
+    2166239232,
+    2127048704,
+    2127032320
+   ],
+   "modelBytes": [
+    883544131,
+    883544131,
+    883544131
+   ],
+   "messages": [
+    "warn: Unable to add response to browser cache: UnknownError: Failed to execute 'put' on 'Cache': Unexpected internal error.."
+   ],
+   "warmDecisionMs": {
+    "median": 80.75000002980232,
+    "p90": 85.5,
+    "samples": 150
+   },
+   "test": {
+    "n": 150,
+    "accuracy": 0.58,
+    "macroF1": 0.48000311235605353,
+    "f1": {
+     "bug": 0.6388888888888888,
+     "feature": 0.7619047619047619,
+     "question": 0.0392156862745098
+    },
+    "ece": 0.1356308422438278,
+    "brier": 0.5867257426569417,
+    "nll": 0.9897660923903091,
+    "meanConfidence": 0.46922807939134636
+   },
+   "train": {
+    "n": 90,
+    "accuracy": 0.5666666666666667,
+    "macroF1": 0.5018817204301076,
+    "f1": {
+     "bug": 0.5806451612903226,
+     "feature": 0.8,
+     "question": 0.125
+    },
+    "ece": 0.10985827334904338,
+    "brier": 0.596580756627865,
+    "nll": 1.001923024216594,
+    "meanConfidence": 0.4628717330295571
+   },
+   "determinism": [
+    {
+     "rep": 1,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    },
+    {
+     "rep": 2,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    }
+   ],
+   "cpuFallback": {
+    "status": "failed",
+    "error": "timeout after 1200000 ms",
+    "gpuRemoved": null
+   }
+  },
+  "chrome/open-jev-kev-0.6b": {
+   "platform": "chrome",
+   "lane": "open-jev-kev-0.6b",
+   "browserVersion": "Google Chrome 146.0.7680.177",
+   "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/146.0.0.0 Safari/537.36",
+   "errors": [],
+   "runtime": {
+    "engine": "open-jev",
+    "version": "0.1.2",
+    "transformersVersion": "4.3.1",
+    "model": "onnx-community/kev-0.6b-ONNX",
+    "family": "kev",
+    "device": "webgpu",
+    "dtype": "q4f16"
+   },
+   "gpu": {
+    "available": true,
+    "adapter": {
+     "vendor": "amd",
+     "architecture": "rdna-3",
+     "device": "",
+     "description": "",
+     "isFallbackAdapter": false
+    },
+    "features": [
+     "bgra8unorm-storage",
+     "chromium-experimental-multi-draw-indirect",
+     "chromium-experimental-subgroup-matrix",
+     "chromium-experimental-timestamp-query-inside-passes",
+     "clip-distances",
+     "core-features-and-limits",
+     "depth-clip-control",
+     "depth32float-stencil8",
+     "dual-source-blending",
+     "float32-blendable",
+     "float32-filterable",
+     "indirect-first-instance",
+     "primitive-index",
+     "rg11b10ufloat-renderable",
+     "shader-f16",
+     "subgroups",
+     "texture-component-swizzle",
+     "texture-compression-bc",
+     "texture-compression-bc-sliced-3d",
+     "texture-formats-tier1",
+     "texture-formats-tier2",
+     "timestamp-query"
+    ],
+    "maxBufferSize": 4294967292,
+    "maxStorageBufferBindingSize": 4294967292
+   },
+   "coldCompleteMs": [
+    3001.599999964237,
+    3082.100000023842,
+    2965.600000023842
+   ],
+   "openMs": [
+    2646.599999964237,
+    2675.599999964237,
+    2549.800000011921
+   ],
+   "firstDecisionMs": [
+    238.19999998807907,
+    293.30000001192093,
+    232.69999998807907
+   ],
+   "peakRss": [
+    2521313280,
+    2269503488,
+    2397507584
+   ],
+   "peakGpuMemory": [
+    1366315008,
+    1011519488,
+    1010479104
+   ],
+   "modelBytes": [
+    345740067,
+    345740067,
+    345740067
+   ],
+   "messages": [],
+   "warmDecisionMs": {
+    "median": 82.59999999403954,
+    "p90": 118.19999998807907,
+    "samples": 150
+   },
+   "test": {
+    "n": 150,
+    "accuracy": 0.5666666666666667,
+    "macroF1": 0.518357887685389,
+    "f1": {
+     "bug": 0.6081081081081081,
+     "feature": 0.7096774193548387,
+     "question": 0.23728813559322035
+    },
+    "ece": 0.27504178763614634,
+    "brier": 0.660302049035217,
+    "nll": 1.3101491355646144,
+    "meanConfidence": 0.8417084543028127
+   },
+   "train": {
+    "n": 90,
+    "accuracy": 0.5666666666666667,
+    "macroF1": 0.5259889676910953,
+    "f1": {
+     "bug": 0.5957446808510638,
+     "feature": 0.76,
+     "question": 0.2222222222222222
+    },
+    "ece": 0.30101454638790026,
+    "brier": 0.6902752857598682,
+    "nll": 1.298776309759306,
+    "meanConfidence": 0.8544436562659914
+   },
+   "determinism": [
+    {
+     "rep": 1,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    },
+    {
+     "rep": 2,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    }
+   ],
+   "cpuFallback": {
+    "status": "failed",
+    "error": "Error: Can't create a session. ERROR_CODE: 9, ERROR_MESSAGE: Could not find an implementation for GatherBlockQuantized(1) node with name '/backbone/embed_tokens/Gather_Q4'",
+    "gpuRemoved": true
+   }
+  },
+  "chrome/open-jev-kev-4b": {
+   "platform": "chrome",
+   "lane": "open-jev-kev-4b",
+   "browserVersion": "Google Chrome 146.0.7680.177",
+   "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/146.0.0.0 Safari/537.36",
+   "errors": [],
+   "runtime": {
+    "engine": "open-jev",
+    "version": "0.1.2",
+    "transformersVersion": "4.3.1",
+    "model": "onnx-community/kev-4b-ONNX",
+    "family": "kev",
+    "device": "webgpu",
+    "dtype": "q4f16"
+   },
+   "gpu": {
+    "available": true,
+    "adapter": {
+     "vendor": "amd",
+     "architecture": "rdna-3",
+     "device": "",
+     "description": "",
+     "isFallbackAdapter": false
+    },
+    "features": [
+     "bgra8unorm-storage",
+     "chromium-experimental-multi-draw-indirect",
+     "chromium-experimental-subgroup-matrix",
+     "chromium-experimental-timestamp-query-inside-passes",
+     "clip-distances",
+     "core-features-and-limits",
+     "depth-clip-control",
+     "depth32float-stencil8",
+     "dual-source-blending",
+     "float32-blendable",
+     "float32-filterable",
+     "indirect-first-instance",
+     "primitive-index",
+     "rg11b10ufloat-renderable",
+     "shader-f16",
+     "subgroups",
+     "texture-component-swizzle",
+     "texture-compression-bc",
+     "texture-compression-bc-sliced-3d",
+     "texture-formats-tier1",
+     "texture-formats-tier2",
+     "timestamp-query"
+    ],
+    "maxBufferSize": 4294967292,
+    "maxStorageBufferBindingSize": 4294967292
+   },
+   "coldCompleteMs": [
+    7741.800000011921,
+    7729,
+    8147.699999988079
+   ],
+   "openMs": [
+    6623.399999976158,
+    6595.800000011921,
+    7084.900000035763
+   ],
+   "firstDecisionMs": [
+    927.6000000238419,
+    951.1000000238419,
+    952
+   ],
+   "peakRss": [
+    5710589952,
+    5760561152,
+    5700378624
+   ],
+   "peakGpuMemory": [
+    6038867968,
+    5302587392,
+    5302956032
+   ],
+   "modelBytes": [
+    2276780627,
+    2276780627,
+    2276780627
+   ],
+   "messages": [
+    "warn: Unable to add response to browser cache: UnknownError: Failed to execute 'put' on 'Cache': Unexpected internal error.."
+   ],
+   "warmDecisionMs": {
+    "median": 355.9000000357628,
+    "p90": 552.8000000119209,
+    "samples": 150
+   },
+   "test": {
+    "n": 150,
+    "accuracy": 0.72,
+    "macroF1": 0.696789644012945,
+    "f1": {
+     "bug": 0.736,
+     "feature": 0.8543689320388349,
+     "question": 0.5
+    },
+    "ece": 0.18692731408463104,
+    "brier": 0.4688592108675356,
+    "nll": 1.0147999701980526,
+    "meanConfidence": 0.8980919964120655
+   },
+   "train": {
+    "n": 90,
+    "accuracy": 0.7222222222222222,
+    "macroF1": 0.7181108133489085,
+    "f1": {
+     "bug": 0.7272727272727273,
+     "feature": 0.8148148148148148,
+     "question": 0.6122448979591837
+    },
+    "ece": 0.17833692938680798,
+    "brier": 0.43635046160753604,
+    "nll": 0.9108668880657842,
+    "meanConfidence": 0.9005591516090302
+   },
+   "determinism": [
+    {
+     "rep": 1,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    },
+    {
+     "rep": 2,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    }
+   ],
+   "cpuFallback": {
+    "status": "failed",
+    "error": "Error: Can't create a session. ERROR_CODE: 9, ERROR_MESSAGE: Could not find an implementation for GatherBlockQuantized(1) node with name '/backbone/embed_tokens/Gather_Q4'",
+    "gpuRemoved": true
+   }
+  },
+  "chrome/transformersjs-fp16": {
+   "platform": "chrome",
+   "lane": "transformersjs-fp16",
+   "browserVersion": "Google Chrome 146.0.7680.177",
+   "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/146.0.0.0 Safari/537.36",
+   "errors": [],
+   "runtime": {
+    "engine": "transformersjs",
+    "version": "4.3.1",
+    "device": "webgpu",
+    "dtype": "fp16"
+   },
+   "gpu": {
+    "available": true,
+    "adapter": {
+     "vendor": "amd",
+     "architecture": "rdna-3",
+     "device": "",
+     "description": "",
+     "isFallbackAdapter": false
+    },
+    "features": [
+     "bgra8unorm-storage",
+     "chromium-experimental-multi-draw-indirect",
+     "chromium-experimental-subgroup-matrix",
+     "chromium-experimental-timestamp-query-inside-passes",
+     "clip-distances",
+     "core-features-and-limits",
+     "depth-clip-control",
+     "depth32float-stencil8",
+     "dual-source-blending",
+     "float32-blendable",
+     "float32-filterable",
+     "indirect-first-instance",
+     "primitive-index",
+     "rg11b10ufloat-renderable",
+     "shader-f16",
+     "subgroups",
+     "texture-component-swizzle",
+     "texture-compression-bc",
+     "texture-compression-bc-sliced-3d",
+     "texture-formats-tier1",
+     "texture-formats-tier2",
+     "timestamp-query"
+    ],
+    "maxBufferSize": 4294967292,
+    "maxStorageBufferBindingSize": 4294967292
+   },
+   "coldCompleteMs": [
+    6748.100000023842,
+    6889.199999988079,
+    6968.199999988079
+   ],
+   "openMs": [
+    6011.800000011921,
+    6214.199999988079,
+    6244.400000035763
+   ],
+   "firstDecisionMs": [
+    620.6000000238419,
+    564.6999999880791,
+    616.8999999761581
+   ],
+   "peakRss": [
+    8372363264,
+    8431370240,
+    8348839936
+   ],
+   "peakGpuMemory": [
+    3647787008,
+    3647983616,
+    3293589504
+   ],
+   "modelBytes": [
+    1514911957,
+    1514911957,
+    1514911957
+   ],
+   "messages": [
+    "warn: Unable to add response to browser cache: UnknownError: Failed to execute 'put' on 'Cache': Unexpected internal error.."
+   ],
+   "warmDecisionMs": {
+    "median": 255.0499999821186,
+    "p90": 366.69999998807907,
+    "samples": 150
+   },
+   "test": {
+    "n": 150,
+    "accuracy": 0.6133333333333333,
+    "macroF1": 0.5630241925403731,
+    "f1": {
+     "bug": 0.640625,
+     "feature": 0.7433628318584071,
+     "question": 0.3050847457627119
+    },
+    "ece": 0.16026427394441967,
+    "brier": 0.5565754203155306,
+    "nll": 1.0471125664119858,
+    "meanConfidence": 0.7599067415078994
+   },
+   "train": {
+    "n": 90,
+    "accuracy": 0.6222222222222222,
+    "macroF1": 0.6014076226049665,
+    "f1": {
+     "bug": 0.6329113924050633,
+     "feature": 0.7213114754098361,
+     "question": 0.45
+    },
+    "ece": 0.11390814088057413,
+    "brier": 0.5276177683158534,
+    "nll": 0.9269434422297393,
+    "meanConfidence": 0.7361303631027962
+   },
+   "testLabelFreeCentered": {
+    "n": 150,
+    "accuracy": 0.66,
+    "macroF1": 0.6493208176802366,
+    "f1": {
+     "bug": 0.6542056074766355,
+     "feature": 0.7636363636363637,
+     "question": 0.5301204819277109
+    },
+    "ece": 0.05400378263210996,
+    "brier": 0.48304637214125296,
+    "nll": 0.8510477744657375,
+    "meanConfidence": 0.7140037826321103,
+    "offsets": {
+     "bug": -5.503776041666667,
+     "feature": -5.873415798611111,
+     "question": -6.974435763888889
+    }
+   },
+   "determinism": [
+    {
+     "rep": 1,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    },
+    {
+     "rep": 2,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    }
+   ],
+   "cpuFallback": {
+    "status": "failed",
+    "error": "Error: The device (webgpu) does not support fp16.",
+    "gpuRemoved": true
+   }
+  },
+  "firefox-nightly/doppler-capsule-q4k": {
+   "platform": "firefox-nightly",
+   "lane": "doppler-capsule-q4k",
+   "browserVersion": "Mozilla Firefox 160.0a1",
+   "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:160.0) Gecko/20100101 Firefox/160.0",
+   "errors": [
+    "rep0: Error: TargetSelector: Device does not satisfy capability predicates and surface qualification with the application selection policy for any prequalified target plan in Capsule. Available targets: [webgpu-f32-f16-subgroups]. (surface: browser-webgpu, hasF16: true, hasSubgroups: false) ",
+    "rep1: Error: TargetSelector: Device does not satisfy capability predicates and surface qualification with the application selection policy for any prequalified target plan in Capsule. Available targets: [webgpu-f32-f16-subgroups]. (surface: browser-webgpu, hasF16: true, hasSubgroups: false) ",
+    "rep2: Error: TargetSelector: Device does not satisfy capability predicates and surface qualification with the application selection policy for any prequalified target plan in Capsule. Available targets: [webgpu-f32-f16-subgroups]. (surface: browser-webgpu, hasF16: true, hasSubgroups: false) "
+   ],
+   "runtime": null,
+   "gpu": {
+    "available": true,
+    "adapter": {
+     "vendor": "",
+     "architecture": "",
+     "device": "",
+     "description": "",
+     "isFallbackAdapter": false
+    },
+    "features": [
+     "bgra8unorm-storage",
+     "clip-distances",
+     "core-features-and-limits",
+     "depth-clip-control",
+     "depth32float-stencil8",
+     "dual-source-blending",
+     "float32-blendable",
+     "float32-filterable",
+     "indirect-first-instance",
+     "rg11b10ufloat-renderable",
+     "shader-f16",
+     "texture-compression-bc",
+     "texture-compression-bc-sliced-3d",
+     "timestamp-query"
+    ],
+    "maxBufferSize": 2147483644,
+    "maxStorageBufferBindingSize": 2147483644
+   },
+   "coldCompleteMs": [],
+   "openMs": [],
+   "firstDecisionMs": [],
+   "peakRss": [],
+   "peakGpuMemory": [],
+   "modelBytes": [],
+   "messages": [],
+   "cpuFallback": {
+    "status": "failed",
+    "error": "Error: WebGPU is unavailable. Run in a WebGPU-capable browser.",
+    "gpuRemoved": true
+   }
+  },
+  "firefox-nightly/doppler-f16": {
+   "platform": "firefox-nightly",
+   "lane": "doppler-f16",
+   "browserVersion": "Mozilla Firefox 160.0a1",
+   "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:160.0) Gecko/20100101 Firefox/160.0",
+   "errors": [
+    "rep0: Error: Shader compilation failed for rmsnorm_default",
+    "rep1: Error: Shader compilation failed for rmsnorm_default",
+    "rep2: Error: Shader compilation failed for rmsnorm_default"
+   ],
+   "runtime": null,
+   "gpu": {
+    "available": true,
+    "adapter": {
+     "vendor": "",
+     "architecture": "",
+     "device": "",
+     "description": "",
+     "isFallbackAdapter": false
+    },
+    "features": [
+     "bgra8unorm-storage",
+     "clip-distances",
+     "core-features-and-limits",
+     "depth-clip-control",
+     "depth32float-stencil8",
+     "dual-source-blending",
+     "float32-blendable",
+     "float32-filterable",
+     "indirect-first-instance",
+     "rg11b10ufloat-renderable",
+     "shader-f16",
+     "texture-compression-bc",
+     "texture-compression-bc-sliced-3d",
+     "timestamp-query"
+    ],
+    "maxBufferSize": 2147483644,
+    "maxStorageBufferBindingSize": 2147483644
+   },
+   "coldCompleteMs": [],
+   "openMs": [],
+   "firstDecisionMs": [],
+   "peakRss": [],
+   "peakGpuMemory": [],
+   "modelBytes": [],
+   "messages": [
+    "warn: [1313.0ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.",
+    "error: [3966.0ms][compileShader] rmsnorm_default: \nShader 'rmsnorm_default' parsing error: the `subgroups` enable-extension is not yet supported\n   ┌─ wgsl:16:8\n   │\n16 │ enable subgroups;\n   │        ^^^^^^^^^ this enable-extension specifies standard functionality which is not yet implemented in Naga\n   │\n   = note: Let Naga maintainers know that you ran into this at <https://github.com/gfx-rs/wgpu/issu",
+    "warn: [1300.0ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.",
+    "error: [3853.0ms][compileShader] rmsnorm_default: \nShader 'rmsnorm_default' parsing error: the `subgroups` enable-extension is not yet supported\n   ┌─ wgsl:16:8\n   │\n16 │ enable subgroups;\n   │        ^^^^^^^^^ this enable-extension specifies standard functionality which is not yet implemented in Naga\n   │\n   = note: Let Naga maintainers know that you ran into this at <https://github.com/gfx-rs/wgpu/issu",
+    "error: [4242.0ms][compileShader] rmsnorm_default: \nShader 'rmsnorm_default' parsing error: the `subgroups` enable-extension is not yet supported\n   ┌─ wgsl:16:8\n   │\n16 │ enable subgroups;\n   │        ^^^^^^^^^ this enable-extension specifies standard functionality which is not yet implemented in Naga\n   │\n   = note: Let Naga maintainers know that you ran into this at <https://github.com/gfx-rs/wgpu/issu"
+   ],
+   "cpuFallback": {
+    "status": "failed",
+    "error": "Error: WebGPU is unavailable. Install a Node WebGPU provider or run in a WebGPU-capable browser.",
+    "gpuRemoved": true
+   }
+  },
+  "firefox-nightly/open-jev-deberta": {
+   "platform": "firefox-nightly",
+   "lane": "open-jev-deberta",
+   "browserVersion": "Mozilla Firefox 160.0a1",
+   "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:160.0) Gecko/20100101 Firefox/160.0",
+   "errors": [
+    "rep0: Error: failed to call OrtRun(). ERROR_CODE: 1, ERROR_MESSAGE: /mnt/azure_nvme_temp/_work/1/s/onnxruntime/core/providers/webgpu/buffer_manager.cc:525 void onnxruntime::webgpu::BufferManager::Upload(void *, WGPUBuffer, size_t) const [ONNXRuntimeError] : 1 : FAIL : Failed to create a WebGPU compute pipeline: ShaderModule with 'Clip' label is invalid",
+    "rep1: Error: failed to call OrtRun(). ERROR_CODE: 1, ERROR_MESSAGE: /mnt/azure_nvme_temp/_work/1/s/onnxruntime/core/providers/webgpu/buffer_manager.cc:525 void onnxruntime::webgpu::BufferManager::Upload(void *, WGPUBuffer, size_t) const [ONNXRuntimeError] : 1 : FAIL : Failed to create a WebGPU compute pipeline: ShaderModule with 'Clip' label is invalid",
+    "rep2: Error: failed to call OrtRun(). ERROR_CODE: 1, ERROR_MESSAGE: /mnt/azure_nvme_temp/_work/1/s/onnxruntime/core/providers/webgpu/buffer_manager.cc:525 void onnxruntime::webgpu::BufferManager::Upload(void *, WGPUBuffer, size_t) const [ONNXRuntimeError] : 1 : FAIL : Failed to create a WebGPU compute pipeline: ShaderModule with 'Clip' label is invalid"
+   ],
+   "runtime": null,
+   "gpu": {
+    "available": true,
+    "adapter": {
+     "vendor": "",
+     "architecture": "",
+     "device": "",
+     "description": "",
+     "isFallbackAdapter": false
+    },
+    "features": [
+     "bgra8unorm-storage",
+     "clip-distances",
+     "core-features-and-limits",
+     "depth-clip-control",
+     "depth32float-stencil8",
+     "dual-source-blending",
+     "float32-blendable",
+     "float32-filterable",
+     "indirect-first-instance",
+     "rg11b10ufloat-renderable",
+     "shader-f16",
+     "texture-compression-bc",
+     "texture-compression-bc-sliced-3d",
+     "timestamp-query"
+    ],
+    "maxBufferSize": 2147483644,
+    "maxStorageBufferBindingSize": 2147483644
+   },
+   "coldCompleteMs": [],
+   "openMs": [],
+   "firstDecisionMs": [],
+   "peakRss": [],
+   "peakGpuMemory": [],
+   "modelBytes": [],
+   "messages": [
+    "error: An error occurred during model execution: \"Error: failed to call OrtRun(). ERROR_CODE: 1, ERROR_MESSAGE: /mnt/azure_nvme_temp/_work/1/s/onnxruntime/core/providers/webgpu/buffer_manager.cc:525 void onnxruntime::webgpu::BufferManager::Upload(void *, WGPUBuffer, size_t) const [ONNXRuntimeError] : 1 : FAIL : Failed to create a WebGPU compute pipeline: ShaderModule with 'Clip' label is invalid\n\".",
+    "error: Inputs given to model: [object Object]"
+   ],
+   "cpuFallback": {
+    "status": "failed",
+    "error": "Error: Can't create a session. ERROR_CODE: 9, ERROR_MESSAGE: Could not find an implementation for GatherBlockQuantized(1) node with name '/backbone/embeddings/word_embeddings/Gather_Q4'",
+    "gpuRemoved": true
+   }
+  },
+  "firefox-nightly/open-jev-kev-0.6b": {
+   "platform": "firefox-nightly",
+   "lane": "open-jev-kev-0.6b",
+   "browserVersion": "Mozilla Firefox 160.0a1",
+   "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:160.0) Gecko/20100101 Firefox/160.0",
+   "errors": [],
+   "runtime": {
+    "engine": "open-jev",
+    "version": "0.1.2",
+    "transformersVersion": "4.3.1",
+    "model": "onnx-community/kev-0.6b-ONNX",
+    "family": "kev",
+    "device": "webgpu",
+    "dtype": "q4f16"
+   },
+   "gpu": {
+    "available": true,
+    "adapter": {
+     "vendor": "",
+     "architecture": "",
+     "device": "",
+     "description": "",
+     "isFallbackAdapter": false
+    },
+    "features": [
+     "bgra8unorm-storage",
+     "clip-distances",
+     "core-features-and-limits",
+     "depth-clip-control",
+     "depth32float-stencil8",
+     "dual-source-blending",
+     "float32-blendable",
+     "float32-filterable",
+     "indirect-first-instance",
+     "rg11b10ufloat-renderable",
+     "shader-f16",
+     "texture-compression-bc",
+     "texture-compression-bc-sliced-3d",
+     "timestamp-query"
+    ],
+    "maxBufferSize": 2147483644,
+    "maxStorageBufferBindingSize": 2147483644
+   },
+   "coldCompleteMs": [
+    4079,
+    4068,
+    3778
+   ],
+   "openMs": [
+    3116,
+    3106,
+    2826
+   ],
+   "firstDecisionMs": [
+    658,
+    675,
+    649
+   ],
+   "peakRss": [
+    2736332800,
+    2786996224,
+    2787119104
+   ],
+   "peakGpuMemory": [
+    2085625856,
+    1801347072,
+    1801494528
+   ],
+   "modelBytes": [
+    345740067,
+    345740067,
+    345740067
+   ],
+   "messages": [],
+   "warmDecisionMs": {
+    "median": 699,
+    "p90": 703,
+    "samples": 150
+   },
+   "test": {
+    "n": 150,
+    "accuracy": 0.58,
+    "macroF1": 0.530155437855723,
+    "f1": {
+     "bug": 0.6122448979591837,
+     "feature": 0.7368421052631579,
+     "question": 0.2413793103448276
+    },
+    "ece": 0.2939517885286538,
+    "brier": 0.6607354428784772,
+    "nll": 1.3077949914163285,
+    "meanConfidence": 0.8424151916458255
+   },
+   "train": {
+    "n": 90,
+    "accuracy": 0.5666666666666667,
+    "macroF1": 0.5259889676910953,
+    "f1": {
+     "bug": 0.5957446808510638,
+     "feature": 0.76,
+     "question": 0.2222222222222222
+    },
+    "ece": 0.3004019640400903,
+    "brier": 0.6850738071850264,
+    "nll": 1.2854092601273197,
+    "meanConfidence": 0.8540637882700477
+   },
+   "determinism": [
+    {
+     "rep": 1,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    },
+    {
+     "rep": 2,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    }
+   ],
+   "cpuFallback": {
+    "status": "failed",
+    "error": "Error: Can't create a session. ERROR_CODE: 9, ERROR_MESSAGE: Could not find an implementation for GatherBlockQuantized(1) node with name '/backbone/embed_tokens/Gather_Q4'",
+    "gpuRemoved": true
+   }
+  },
+  "firefox-nightly/open-jev-kev-4b": {
+   "platform": "firefox-nightly",
+   "lane": "open-jev-kev-4b",
+   "browserVersion": "Mozilla Firefox 160.0a1",
+   "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:160.0) Gecko/20100101 Firefox/160.0",
+   "errors": [],
+   "runtime": {
+    "engine": "open-jev",
+    "version": "0.1.2",
+    "transformersVersion": "4.3.1",
+    "model": "onnx-community/kev-4b-ONNX",
+    "family": "kev",
+    "device": "webgpu",
+    "dtype": "q4f16"
+   },
+   "gpu": {
+    "available": true,
+    "adapter": {
+     "vendor": "",
+     "architecture": "",
+     "device": "",
+     "description": "",
+     "isFallbackAdapter": false
+    },
+    "features": [
+     "bgra8unorm-storage",
+     "clip-distances",
+     "core-features-and-limits",
+     "depth-clip-control",
+     "depth32float-stencil8",
+     "dual-source-blending",
+     "float32-blendable",
+     "float32-filterable",
+     "indirect-first-instance",
+     "rg11b10ufloat-renderable",
+     "shader-f16",
+     "texture-compression-bc",
+     "texture-compression-bc-sliced-3d",
+     "timestamp-query"
+    ],
+    "maxBufferSize": 2147483644,
+    "maxStorageBufferBindingSize": 2147483644
+   },
+   "coldCompleteMs": [
+    8912,
+    8987,
+    8945
+   ],
+   "openMs": [
+    7050,
+    7050,
+    7100
+   ],
+   "firstDecisionMs": [
+    1546,
+    1659,
+    1529
+   ],
+   "peakRss": [
+    7821926400,
+    8030986240,
+    8117596160
+   ],
+   "peakGpuMemory": [
+    6743900160,
+    6062145536,
+    6062145536
+   ],
+   "modelBytes": [
+    2276780627,
+    2276780627,
+    2276780627
+   ],
+   "messages": [],
+   "warmDecisionMs": {
+    "median": 1115,
+    "p90": 1529,
+    "samples": 150
+   },
+   "test": {
+    "n": 150,
+    "accuracy": 0.72,
+    "macroF1": 0.696789644012945,
+    "f1": {
+     "bug": 0.736,
+     "feature": 0.8543689320388349,
+     "question": 0.5
+    },
+    "ece": 0.19257623676047003,
+    "brier": 0.4724851254988647,
+    "nll": 1.027013007114003,
+    "meanConfidence": 0.8984798497392595
+   },
+   "train": {
+    "n": 90,
+    "accuracy": 0.7222222222222222,
+    "macroF1": 0.7181108133489085,
+    "f1": {
+     "bug": 0.7272727272727273,
+     "feature": 0.8148148148148148,
+     "question": 0.6122448979591837
+    },
+    "ece": 0.18342225167312315,
+    "brier": 0.44003782489782434,
+    "nll": 0.9106919291069631,
+    "meanConfidence": 0.8979741282619093
+   },
+   "determinism": [
+    {
+     "rep": 1,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    },
+    {
+     "rep": 2,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    }
+   ],
+   "cpuFallback": {
+    "status": "failed",
+    "error": "Error: Can't create a session. ERROR_CODE: 9, ERROR_MESSAGE: Could not find an implementation for GatherBlockQuantized(1) node with name '/backbone/embed_tokens/Gather_Q4'",
+    "gpuRemoved": true
+   }
+  },
+  "firefox-nightly/transformersjs-fp16": {
+   "platform": "firefox-nightly",
+   "lane": "transformersjs-fp16",
+   "browserVersion": "Mozilla Firefox 160.0a1",
+   "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:160.0) Gecko/20100101 Firefox/160.0",
+   "errors": [],
+   "runtime": {
+    "engine": "transformersjs",
+    "version": "4.3.1",
+    "device": "webgpu",
+    "dtype": "fp16"
+   },
+   "gpu": {
+    "available": true,
+    "adapter": {
+     "vendor": "",
+     "architecture": "",
+     "device": "",
+     "description": "",
+     "isFallbackAdapter": false
+    },
+    "features": [
+     "bgra8unorm-storage",
+     "clip-distances",
+     "core-features-and-limits",
+     "depth-clip-control",
+     "depth32float-stencil8",
+     "dual-source-blending",
+     "float32-blendable",
+     "float32-filterable",
+     "indirect-first-instance",
+     "rg11b10ufloat-renderable",
+     "shader-f16",
+     "texture-compression-bc",
+     "texture-compression-bc-sliced-3d",
+     "timestamp-query"
+    ],
+    "maxBufferSize": 2147483644,
+    "maxStorageBufferBindingSize": 2147483644
+   },
+   "coldCompleteMs": [
+    9394,
+    9404,
+    9484
+   ],
+   "openMs": [
+    8326,
+    8309,
+    8425
+   ],
+   "firstDecisionMs": [
+    781,
+    790,
+    786
+   ],
+   "peakRss": [
+    9078255616,
+    8809447424,
+    8787001344
+   ],
+   "peakGpuMemory": [
+    4528873472,
+    4236288000,
+    4239056896
+   ],
+   "modelBytes": [
+    1514911957,
+    1514911957,
+    1514911957
+   ],
+   "messages": [],
+   "warmDecisionMs": {
+    "median": 501,
+    "p90": 660,
+    "samples": 150
+   },
+   "test": {
+    "n": 150,
+    "accuracy": 0.6133333333333333,
+    "macroF1": 0.5630241925403731,
+    "f1": {
+     "bug": 0.640625,
+     "feature": 0.7433628318584071,
+     "question": 0.3050847457627119
+    },
+    "ece": 0.16026427394441967,
+    "brier": 0.5565754203155306,
+    "nll": 1.0471125664119858,
+    "meanConfidence": 0.7599067415078994
+   },
+   "train": {
+    "n": 90,
+    "accuracy": 0.6222222222222222,
+    "macroF1": 0.6014076226049665,
+    "f1": {
+     "bug": 0.6329113924050633,
+     "feature": 0.7213114754098361,
+     "question": 0.45
+    },
+    "ece": 0.11390814088057413,
+    "brier": 0.5276177683158534,
+    "nll": 0.9269434422297393,
+    "meanConfidence": 0.7361303631027962
+   },
+   "testLabelFreeCentered": {
+    "n": 150,
+    "accuracy": 0.66,
+    "macroF1": 0.6493208176802366,
+    "f1": {
+     "bug": 0.6542056074766355,
+     "feature": 0.7636363636363637,
+     "question": 0.5301204819277109
+    },
+    "ece": 0.05400378263210996,
+    "brier": 0.48304637214125296,
+    "nll": 0.8510477744657375,
+    "meanConfidence": 0.7140037826321103,
+    "offsets": {
+     "bug": -5.503776041666667,
+     "feature": -5.873415798611111,
+     "question": -6.974435763888889
+    }
+   },
+   "determinism": [
+    {
+     "rep": 1,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    },
+    {
+     "rep": 2,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    }
+   ],
+   "cpuFallback": {
+    "status": "failed",
+    "error": "Error: The device (webgpu) does not support fp16.",
+    "gpuRemoved": true
+   }
+  },
+  "node/doppler-f16": {
+   "platform": "node",
+   "lane": "doppler-f16",
+   "browserVersion": "v22.22.1",
+   "userAgent": null,
+   "errors": [],
+   "runtime": {
+    "engine": "doppler",
+    "surface": "node compat",
+    "weights": "f16",
+    "deviceInfo": {
+     "vendor": "amd",
+     "architecture": "rdna-3",
+     "device": "radeon-8060s-graphics-radv-strix-halo-",
+     "description": "radv: Mesa 26.0.3-1ubuntu1"
+    }
+   },
+   "gpu": {
+    "provider": "webgpu (Dawn) npm package",
+    "adapter": {
+     "vendor": "amd",
+     "architecture": "rdna-3",
+     "device": "radeon-8060s-graphics-radv-strix-halo-",
+     "description": "radv: Mesa 26.0.3-1ubuntu1"
+    },
+    "features": [
+     "bgra8unorm-storage",
+     "clip-distances",
+     "core-features-and-limits",
+     "depth-clip-control",
+     "depth32float-stencil8",
+     "dual-source-blending",
+     "float32-blendable",
+     "float32-filterable",
+     "indirect-first-instance",
+     "primitive-index",
+     "rg11b10ufloat-renderable",
+     "shader-f16",
+     "subgroups",
+     "texture-component-swizzle",
+     "texture-compression-bc",
+     "texture-compression-bc-sliced-3d",
+     "texture-formats-tier1",
+     "texture-formats-tier2",
+     "timestamp-query"
+    ]
+   },
+   "coldCompleteMs": [
+    2213.679922,
+    2068.371332,
+    2151.902157
+   ],
+   "openMs": [
+    1268.424201,
+    1119.273491,
+    1196.4366499999999
+   ],
+   "firstDecisionMs": [
+    899.9852720000001,
+    890.4993070000003,
+    908.6230579999999
+   ],
+   "peakRss": [
+    713457664,
+    613855232,
+    628260864
+   ],
+   "peakGpuMemory": [
+    8347238400,
+    6977249280,
+    6980157440
+   ],
+   "modelBytes": [
+    null,
+    null,
+    null
+   ],
+   "messages": [],
+   "warmDecisionMs": {
+    "median": 640.869246000002,
+    "p90": 962.8173769999994,
+    "samples": 150
+   },
+   "test": {
+    "n": 150,
+    "accuracy": 0.5866666666666667,
+    "macroF1": 0.5279750648228863,
+    "f1": {
+     "bug": 0.6141732283464567,
+     "feature": 0.7241379310344828,
+     "question": 0.24561403508771928
+    },
+    "ece": 0.1804930614474163,
+    "brier": 0.5627438390465795,
+    "nll": 1.0525612273032277,
+    "meanConfidence": 0.7671597281140832
+   },
+   "train": {
+    "n": 90,
+    "accuracy": 0.6222222222222222,
+    "macroF1": 0.6014076226049665,
+    "f1": {
+     "bug": 0.6329113924050633,
+     "feature": 0.7213114754098361,
+     "question": 0.45
+    },
+    "ece": 0.12515197327266492,
+    "brier": 0.5314209113670423,
+    "nll": 0.9336367798914508,
+    "meanConfidence": 0.735652389927817
+   },
+   "testLabelFreeCentered": {
+    "n": 150,
+    "accuracy": 0.6666666666666666,
+    "macroF1": 0.6553907067890862,
+    "f1": {
+     "bug": 0.6481481481481481,
+     "feature": 0.7610619469026548,
+     "question": 0.5569620253164557
+    },
+    "ece": 0.07149700527723404,
+    "brier": 0.48120119671092926,
+    "nll": 0.8435338091681577,
+    "meanConfidence": 0.7147615897409642,
+    "offsets": {
+     "bug": -5.521348100238376,
+     "feature": -5.849764908684625,
+     "question": -7.029241826799181
+    }
+   },
+   "determinism": [
+    {
+     "rep": 1,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    },
+    {
+     "rep": 2,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    }
+   ]
+  },
+  "node/doppler-q4k": {
+   "platform": "node",
+   "lane": "doppler-q4k",
+   "browserVersion": "v22.22.1",
+   "userAgent": null,
+   "errors": [],
+   "runtime": {
+    "engine": "doppler",
+    "surface": "node compat",
+    "weights": "q4k",
+    "deviceInfo": {
+     "vendor": "amd",
+     "architecture": "rdna-3",
+     "device": "radeon-8060s-graphics-radv-strix-halo-",
+     "description": "radv: Mesa 26.0.3-1ubuntu1"
+    }
+   },
+   "gpu": {
+    "provider": "webgpu (Dawn) npm package",
+    "adapter": {
+     "vendor": "amd",
+     "architecture": "rdna-3",
+     "device": "radeon-8060s-graphics-radv-strix-halo-",
+     "description": "radv: Mesa 26.0.3-1ubuntu1"
+    },
+    "features": [
+     "bgra8unorm-storage",
+     "clip-distances",
+     "core-features-and-limits",
+     "depth-clip-control",
+     "depth32float-stencil8",
+     "dual-source-blending",
+     "float32-blendable",
+     "float32-filterable",
+     "indirect-first-instance",
+     "primitive-index",
+     "rg11b10ufloat-renderable",
+     "shader-f16",
+     "subgroups",
+     "texture-component-swizzle",
+     "texture-compression-bc",
+     "texture-compression-bc-sliced-3d",
+     "texture-formats-tier1",
+     "texture-formats-tier2",
+     "timestamp-query"
+    ]
+   },
+   "coldCompleteMs": [
+    2043.293408,
+    1967.37227,
+    2034.237268
+   ],
+   "openMs": [
+    1103.155703,
+    1017.575009,
+    1076.7335990000001
+   ],
+   "firstDecisionMs": [
+    890.90679,
+    903.729664,
+    912.3396949999999
+   ],
+   "peakRss": [
+    711708672,
+    612319232,
+    613756928
+   ],
+   "peakGpuMemory": [
+    6929981440,
+    5759262720,
+    5770928128
+   ],
+   "modelBytes": [
+    null,
+    null,
+    null
+   ],
+   "messages": [],
+   "warmDecisionMs": {
+    "median": 588.5590680000005,
+    "p90": 920.1895640000002,
+    "samples": 150
+   },
+   "test": {
+    "n": 150,
+    "accuracy": 0.5733333333333334,
+    "macroF1": 0.523398221894283,
+    "f1": {
+     "bug": 0.6056338028169014,
+     "feature": 0.7272727272727273,
+     "question": 0.23728813559322035
+    },
+    "ece": 0.21797208772520463,
+    "brier": 0.6214259195153201,
+    "nll": 1.1078905240072707,
+    "meanConfidence": 0.7678715451963376
+   },
+   "train": {
+    "n": 90,
+    "accuracy": 0.5777777777777777,
+    "macroF1": 0.5628734611172351,
+    "f1": {
+     "bug": 0.5813953488372093,
+     "feature": 0.7169811320754716,
+     "question": 0.3902439024390244
+    },
+    "ece": 0.17560988523468563,
+    "brier": 0.573195822393661,
+    "nll": 1.0268411454124367,
+    "meanConfidence": 0.7533876630124633
+   },
+   "testLabelFreeCentered": {
+    "n": 150,
+    "accuracy": 0.6066666666666667,
+    "macroF1": 0.592468826386955,
+    "f1": {
+     "bug": 0.5714285714285714,
+     "feature": 0.7368421052631579,
+     "question": 0.4691358024691358
+    },
+    "ece": 0.09321201958489034,
+    "brier": 0.509963398169912,
+    "nll": 0.8757930736394045,
+    "meanConfidence": 0.699878686251557,
+    "offsets": {
+     "bug": -4.494154432084826,
+     "feature": -5.615226769447327,
+     "question": -6.319088345103793
+    }
+   },
+   "determinism": [
+    {
+     "rep": 1,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    },
+    {
+     "rep": 2,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    }
+   ]
+  },
+  "node/open-jev-deberta": {
+   "platform": "node",
+   "lane": "open-jev-deberta",
+   "browserVersion": "v22.22.1",
+   "userAgent": null,
+   "errors": [],
+   "runtime": {
+    "engine": "open-jev",
+    "version": "0.1.2",
+    "transformersVersion": "4.3.1",
+    "model": "onnx-community/open-jev-deberta-v3-large-ONNX",
+    "family": "open-jev",
+    "device": "cpu",
+    "dtype": "q4"
+   },
+   "gpu": null,
+   "coldCompleteMs": [
+    1712.030412,
+    1799.134479,
+    1523.620201
+   ],
+   "openMs": [
+    979.1711639999999,
+    1044.100125,
+    1001.1874019999999
+   ],
+   "firstDecisionMs": [
+    685.5165420000001,
+    710.7764870000001,
+    476.01827000000003
+   ],
+   "peakRss": [
+    1312796672,
+    1287684096,
+    1251803136
+   ],
+   "peakGpuMemory": [
+    0,
+    0,
+    0
+   ],
+   "modelBytes": [
+    null,
+    null,
+    null
+   ],
+   "messages": [],
+   "warmDecisionMs": {
+    "median": 493.9736574999988,
+    "p90": 612.5713289999985,
+    "samples": 150
+   },
+   "test": {
+    "n": 150,
+    "accuracy": 0.6066666666666667,
+    "macroF1": 0.5281656701844495,
+    "f1": {
+     "bug": 0.647887323943662,
+     "feature": 0.7884615384615384,
+     "question": 0.14814814814814814
+    },
+    "ece": 0.1395398576900058,
+    "brier": 0.5778175172926138,
+    "nll": 0.9749130149192797,
+    "meanConfidence": 0.46712680897666076
+   },
+   "train": {
+    "n": 90,
+    "accuracy": 0.6,
+    "macroF1": 0.5312910428158655,
+    "f1": {
+     "bug": 0.6170212765957447,
+     "feature": 0.8518518518518519,
+     "question": 0.125
+    },
+    "ece": 0.14440157354787184,
+    "brier": 0.5887444500765929,
+    "nll": 0.9885933494108292,
+    "meanConfidence": 0.4623330821670635
+   },
+   "determinism": [
+    {
+     "rep": 1,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    },
+    {
+     "rep": 2,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    }
+   ]
+  },
+  "node/open-jev-kev-0.6b": {
+   "platform": "node",
+   "lane": "open-jev-kev-0.6b",
+   "browserVersion": "v22.22.1",
+   "userAgent": null,
+   "errors": [],
+   "runtime": {
+    "engine": "open-jev",
+    "version": "0.1.2",
+    "transformersVersion": "4.3.1",
+    "model": "onnx-community/kev-0.6b-ONNX",
+    "family": "kev",
+    "device": "cpu",
+    "dtype": "q4"
+   },
+   "gpu": null,
+   "coldCompleteMs": [
+    1989.816939,
+    1966.067003,
+    2103.589863
+   ],
+   "openMs": [
+    1107.837577,
+    1040.675649,
+    1012.9086960000001
+   ],
+   "firstDecisionMs": [
+    837.7404410000001,
+    878.4858550000001,
+    1042.47092
+   ],
+   "peakRss": [
+    1000333312,
+    800067584,
+    801071104
+   ],
+   "peakGpuMemory": [
+    0,
+    0,
+    0
+   ],
+   "modelBytes": [
+    null,
+    null,
+    null
+   ],
+   "messages": [],
+   "warmDecisionMs": {
+    "median": 463.17888949999906,
+    "p90": 854.1292879999964,
+    "samples": 150
+   },
+   "test": {
+    "n": 150,
+    "accuracy": 0.5866666666666667,
+    "macroF1": 0.5359392221697371,
+    "f1": {
+     "bug": 0.6164383561643836,
+     "feature": 0.75,
+     "question": 0.2413793103448276
+    },
+    "ece": 0.28879081683078583,
+    "brier": 0.6621722702675419,
+    "nll": 1.3255584919645371,
+    "meanConfidence": 0.8435637478955006
+   },
+   "train": {
+    "n": 90,
+    "accuracy": 0.5666666666666667,
+    "macroF1": 0.5259889676910953,
+    "f1": {
+     "bug": 0.5957446808510638,
+     "feature": 0.76,
+     "question": 0.2222222222222222
+    },
+    "ece": 0.30375820960013833,
+    "brier": 0.6905540327183781,
+    "nll": 1.3041011370083488,
+    "meanConfidence": 0.8576176851297791
+   },
+   "determinism": [
+    {
+     "rep": 1,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    },
+    {
+     "rep": 2,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    }
+   ]
+  },
+  "node/open-jev-kev-4b": {
+   "platform": "node",
+   "lane": "open-jev-kev-4b",
+   "browserVersion": "v22.22.1",
+   "userAgent": null,
+   "errors": [],
+   "runtime": {
+    "engine": "open-jev",
+    "version": "0.1.2",
+    "transformersVersion": "4.3.1",
+    "model": "onnx-community/kev-4b-ONNX",
+    "family": "kev",
+    "device": "cpu",
+    "dtype": "q4"
+   },
+   "gpu": null,
+   "coldCompleteMs": [
+    5958.076456,
+    5617.365584,
+    5335.687927
+   ],
+   "openMs": [
+    2802.629551,
+    2708.205041,
+    2666.50848
+   ],
+   "firstDecisionMs": [
+    3108.665216,
+    2862.401206,
+    2621.06968
+   ],
+   "peakRss": [
+    4246859776,
+    3783045120,
+    3784986624
+   ],
+   "peakGpuMemory": [
+    0,
+    0,
+    0
+   ],
+   "modelBytes": [
+    null,
+    null,
+    null
+   ],
+   "messages": [],
+   "warmDecisionMs": {
+    "median": 1899.497628000012,
+    "p90": 3183.5000109999964,
+    "samples": 150
+   },
+   "test": {
+    "n": 150,
+    "accuracy": 0.72,
+    "macroF1": 0.696789644012945,
+    "f1": {
+     "bug": 0.736,
+     "feature": 0.8543689320388349,
+     "question": 0.5
+    },
+    "ece": 0.19286209080506908,
+    "brier": 0.47142188107216404,
+    "nll": 1.0253470989561606,
+    "meanConfidence": 0.899162023772591
+   },
+   "train": {
+    "n": 90,
+    "accuracy": 0.7222222222222222,
+    "macroF1": 0.7181108133489085,
+    "f1": {
+     "bug": 0.7272727272727273,
+     "feature": 0.8148148148148148,
+     "question": 0.6122448979591837
+    },
+    "ece": 0.1930667249394417,
+    "brier": 0.4437402184751566,
+    "nll": 0.915719328110583,
+    "meanConfidence": 0.8998443090296646
+   },
+   "determinism": [
+    {
+     "rep": 1,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    },
+    {
+     "rep": 2,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    }
+   ]
+  },
+  "node/transformersjs-fp16-cpu": {
+   "platform": "node",
+   "lane": "transformersjs-fp16-cpu",
+   "browserVersion": "v22.22.1",
+   "userAgent": null,
+   "errors": [],
+   "runtime": {
+    "engine": "transformersjs",
+    "version": "4.3.1",
+    "device": "cpu",
+    "dtype": "fp16"
+   },
+   "gpu": null,
+   "coldCompleteMs": [
+    5714.679251,
+    7173.893755,
+    6287.148688
+   ],
+   "openMs": [
+    3426.892319,
+    3524.150987,
+    3642.635549
+   ],
+   "firstDecisionMs": [
+    2240.588657,
+    3603.791234,
+    2596.2315019999996
+   ],
+   "peakRss": [
+    3844718592,
+    3855650816,
+    4168577024
+   ],
+   "peakGpuMemory": [
+    0,
+    0,
+    0
+   ],
+   "modelBytes": [
+    null,
+    null,
+    null
+   ],
+   "messages": [],
+   "warmDecisionMs": {
+    "median": 1755.9471534999902,
+    "p90": 3193.2472579999885,
+    "samples": 150
+   },
+   "test": {
+    "n": 150,
+    "accuracy": 0.5866666666666667,
+    "macroF1": 0.5279750648228863,
+    "f1": {
+     "bug": 0.6141732283464567,
+     "feature": 0.7241379310344828,
+     "question": 0.24561403508771928
+    },
+    "ece": 0.1803484946082653,
+    "brier": 0.5626775000400226,
+    "nll": 1.0522669377237432,
+    "meanConfidence": 0.7670151612749323
+   },
+   "train": {
+    "n": 90,
+    "accuracy": 0.6222222222222222,
+    "macroF1": 0.6014076226049665,
+    "f1": {
+     "bug": 0.6329113924050633,
+     "feature": 0.7213114754098361,
+     "question": 0.45
+    },
+    "ece": 0.1250161979069241,
+    "brier": 0.5309322403368628,
+    "nll": 0.9329197555103548,
+    "meanConfidence": 0.7353762357112527
+   },
+   "testLabelFreeCentered": {
+    "n": 150,
+    "accuracy": 0.6666666666666666,
+    "macroF1": 0.6553907067890862,
+    "f1": {
+     "bug": 0.6481481481481481,
+     "feature": 0.7610619469026548,
+     "question": 0.5569620253164557
+    },
+    "ece": 0.07132973026812742,
+    "brier": 0.48129517888241174,
+    "nll": 0.8437362227731511,
+    "meanConfidence": 0.7147705647271682,
+    "offsets": {
+     "bug": -5.521614583333333,
+     "feature": -5.846918402777778,
+     "question": -7.024826388888889
+    }
+   },
+   "determinism": [
+    {
+     "rep": 1,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    },
+    {
+     "rep": 2,
+     "sameChoices": true,
+     "maxProbabilityDifference": 0
+    }
+   ]
+  },
+  "node/transformersjs-fp16": {
+   "platform": "node",
+   "lane": "transformersjs-fp16",
+   "browserVersion": "v22.22.1",
+   "userAgent": null,
+   "errors": [
+    "rep0: TypeError: Invalid argument: \"present.0.key\" is not a valid output name.",
+    "rep1: TypeError: Invalid argument: \"present.0.key\" is not a valid output name.",
+    "rep2: TypeError: Invalid argument: \"present.0.key\" is not a valid output name."
+   ],
+   "runtime": null,
+   "gpu": null,
+   "coldCompleteMs": [],
+   "openMs": [],
+   "firstDecisionMs": [],
+   "peakRss": [],
+   "peakGpuMemory": [],
+   "modelBytes": [],
+   "messages": []
+  }
+ },
+ "comparisons": {
+  "chrome": {
+   "productBaseline": "doppler-capsule-q4k",
+   "bestOpenAlternativeByTrainAccuracy": "open-jev-kev-4b",
+   "product": {
+    "open-jev-kev-0.6b": {
+     "minusDoppler": {
+      "difference": -0.006666666666666667,
+      "ci95": [
+       -0.08,
+       0.06666666666666667
+      ],
+      "agree": 120
+     }
+    },
+    "open-jev-kev-4b": {
+     "minusDoppler": {
+      "difference": 0.14666666666666667,
+      "ci95": [
+       0.08,
+       0.21333333333333335
+      ],
+      "agree": 118
+     }
+    },
+    "open-jev-deberta": {
+     "minusDoppler": {
+      "difference": 0.006666666666666667,
+      "ci95": [
+       -0.06,
+       0.07333333333333333
+      ],
+      "agree": 119
+     }
+    }
+   },
+   "parity": {
+    "dopplerF16MinusTransformersjsFp16": {
+     "difference": -0.02666666666666667,
+     "ci95": [
+      -0.05333333333333334,
+      -0.006666666666666667
+     ],
+     "agree": 146
+    }
+   }
+  },
+  "firefox-nightly": {
+   "productBaseline": "doppler-capsule-q4k",
+   "bestOpenAlternativeByTrainAccuracy": "open-jev-kev-4b",
+   "product": {},
+   "parity": null
+  },
+  "node": {
+   "productBaseline": "doppler-q4k",
+   "bestOpenAlternativeByTrainAccuracy": "open-jev-kev-4b",
+   "product": {
+    "open-jev-kev-0.6b": {
+     "minusDoppler": {
+      "difference": 0.013333333333333334,
+      "ci95": [
+       -0.05333333333333334,
+       0.08
+      ],
+      "agree": 123
+     }
+    },
+    "open-jev-kev-4b": {
+     "minusDoppler": {
+      "difference": 0.14666666666666667,
+      "ci95": [
+       0.08,
+       0.21333333333333335
+      ],
+      "agree": 118
+     }
+    },
+    "open-jev-deberta": {
+     "minusDoppler": {
+      "difference": 0.03333333333333333,
+      "ci95": [
+       -0.03333333333333333,
+       0.1
+      ],
+      "agree": 120
+     }
+    }
+   },
+   "parity": null
+  }
+ }
+}

@@ -1,0 +1,74 @@
+{
+ "runId": "chrome-open-jev-kev-4b-cpu-0",
+ "browser": {
+  "name": "chrome",
+  "kind": "chrome",
+  "version": "Google Chrome 146.0.7680.177"
+ },
+ "lane": "open-jev-kev-4b",
+ "mode": "cpu",
+ "rep": 0,
+ "quality": false,
+ "launchToReportMs": 6737,
+ "transfer": {
+  "modelBytes": 2528556274,
+  "modelRequests": 12,
+  "missing": [
+   "/favicon.ico"
+  ]
+ },
+ "peakMemory": {
+  "totalRss": 6038429696,
+  "gpuMemory": 22999040,
+  "processes": 16
+ },
+ "report": {
+  "lane": "open-jev-kev-4b",
+  "runId": "chrome-open-jev-kev-4b-cpu-0",
+  "mode": "cpu",
+  "quality": false,
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/146.0.0.0 Safari/537.36",
+  "startedAtMs": 94.69999998807907,
+  "gpu": {
+   "available": true,
+   "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "",
+    "description": "",
+    "isFallbackAdapter": false
+   },
+   "features": [
+    "bgra8unorm-storage",
+    "chromium-experimental-multi-draw-indirect",
+    "chromium-experimental-subgroup-matrix",
+    "chromium-experimental-timestamp-query-inside-passes",
+    "clip-distances",
+    "core-features-and-limits",
+    "depth-clip-control",
+    "depth32float-stencil8",
+    "dual-source-blending",
+    "float32-blendable",
+    "float32-filterable",
+    "indirect-first-instance",
+    "primitive-index",
+    "rg11b10ufloat-renderable",
+    "shader-f16",
+    "subgroups",
+    "texture-component-swizzle",
+    "texture-compression-bc",
+    "texture-compression-bc-sliced-3d",
+    "texture-formats-tier1",
+    "texture-formats-tier2",
+    "timestamp-query"
+   ],
+   "maxBufferSize": 4294967292,
+   "maxStorageBufferBindingSize": 4294967292
+  },
+  "gpuRemoved": true,
+  "comparison": "b-product",
+  "error": "Error: Can't create a session. ERROR_CODE: 9, ERROR_MESSAGE: Could not find an implementation for GatherBlockQuantized(1) node with name '/backbone/embed_tokens/Gather_Q4'\nError: Can't create a session. ERROR_CODE: 9, ERROR_MESSAGE: Could not find an implementation for GatherBlockQuantized(1) node with name '/backbone/embed_tokens/Gather_Q4'\n    at V (http://127.0.0.1:36383/app/benchmark/node_modules/onnxruntime-web/dist/ort.webgpu.bundle.min.mjs:10:30993)\n    at tr (http://127.0.0.1:36383/app/benchmark/node_modules/onnxruntime-web/dist/ort.webgpu.bundle.min.mjs:11:22453)\n    at async gr.loadModel (http://127.0.0.1:36383/app/benchmark/node_modules/onnxruntime-web/dist/ort.webgpu.bundle.min.mjs:11:35359)\n    at async yr.createInferenceSessionHandler (http://127.0.0.1:36383/app/benchmark/node_modules/onnxruntime-web/dist/ort.webgpu.bundle.min.mjs:11:37083)\n    at async a.create (http://127.0.0.1:36383/app/benchmark/node_modules/onnxruntime-web/dist/ort.webgpu.bundle.min.mjs:6:19961)\n    at async createInferenceSession (http://127.0.0.1:36383/app/benchmark/node_modules/@huggingface/transformers/dist/transformers.web.js:8707:19)\n    at async http://127.0.0.1:36383/app/benchmark/node_modules/@huggingface/transformers/dist/transformers.web.js:19792:25\n    at async Promise.all (index 0)\n    at async constructSessions (http://127.0.0.1:36383/app/benchmark/node_modules/@huggingface/transformers/dist/transformers.web.js:19782:5)\n    at async Promise.all (index 0)",
+  "messages": [],
+  "finishedAtMs": 5948.100000023842
+ }
+}

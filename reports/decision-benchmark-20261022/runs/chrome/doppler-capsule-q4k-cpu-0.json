@@ -1,0 +1,74 @@
+{
+ "runId": "chrome-doppler-capsule-q4k-cpu-0",
+ "browser": {
+  "name": "chrome",
+  "kind": "chrome",
+  "version": "Google Chrome 146.0.7680.177"
+ },
+ "lane": "doppler-capsule-q4k",
+ "mode": "cpu",
+ "rep": 0,
+ "quality": false,
+ "launchToReportMs": 1468,
+ "transfer": {
+  "modelBytes": 266376,
+  "modelRequests": 1,
+  "missing": [
+   "/favicon.ico"
+  ]
+ },
+ "peakMemory": {
+  "totalRss": 1157795840,
+  "gpuMemory": 22999040,
+  "processes": 13
+ },
+ "report": {
+  "lane": "doppler-capsule-q4k",
+  "runId": "chrome-doppler-capsule-q4k-cpu-0",
+  "mode": "cpu",
+  "quality": false,
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/146.0.0.0 Safari/537.36",
+  "startedAtMs": 90.19999998807907,
+  "gpu": {
+   "available": true,
+   "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "",
+    "description": "",
+    "isFallbackAdapter": false
+   },
+   "features": [
+    "bgra8unorm-storage",
+    "chromium-experimental-multi-draw-indirect",
+    "chromium-experimental-subgroup-matrix",
+    "chromium-experimental-timestamp-query-inside-passes",
+    "clip-distances",
+    "core-features-and-limits",
+    "depth-clip-control",
+    "depth32float-stencil8",
+    "dual-source-blending",
+    "float32-blendable",
+    "float32-filterable",
+    "indirect-first-instance",
+    "primitive-index",
+    "rg11b10ufloat-renderable",
+    "shader-f16",
+    "subgroups",
+    "texture-component-swizzle",
+    "texture-compression-bc",
+    "texture-compression-bc-sliced-3d",
+    "texture-formats-tier1",
+    "texture-formats-tier2",
+    "timestamp-query"
+   ],
+   "maxBufferSize": 4294967292,
+   "maxStorageBufferBindingSize": 4294967292
+  },
+  "gpuRemoved": true,
+  "comparison": "b-product",
+  "error": "Error: WebGPU is unavailable. Run in a WebGPU-capable browser.\nError: WebGPU is unavailable. Run in a WebGPU-capable browser.\n    at ensureWebGPUAvailable (http://127.0.0.1:36383/app/benchmark/node_modules/doppler-gpu/src/client/doppler-api.browser.js:10:9)\n    at Object.getProfile (http://127.0.0.1:36383/app/benchmark/node_modules/doppler-gpu/src/client/model-host/index.js:405:17)\n    at Object.openCapsule (http://127.0.0.1:36383/app/benchmark/node_modules/doppler-gpu/src/client/runtime/composition-root.js:108:26)\n    at async openCapsule (http://127.0.0.1:36383/app/benchmark/node_modules/doppler-gpu/src/client/model-host/index.js:457:14)\n    at async http://127.0.0.1:36383/app/installation.js:146:19",
+  "messages": [],
+  "finishedAtMs": 731.5
+ }
+}

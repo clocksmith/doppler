@@ -1,0 +1,288 @@
+{
+ "runId": "node-doppler-f16-2",
+ "browser": {
+  "name": "node",
+  "kind": "node",
+  "version": "v22.22.1"
+ },
+ "lane": "doppler-f16",
+ "mode": "node",
+ "rep": 2,
+ "quality": false,
+ "launchToReportMs": 5028,
+ "exit": {
+  "code": 0,
+  "signal": null
+ },
+ "stderrTail": "Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.\nWarning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.\n[683.1ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.\n",
+ "peakMemory": {
+  "totalRss": 628260864,
+  "gpuMemory": 6980157440
+ },
+ "report": {
+  "lane": "doppler-f16",
+  "mode": "node",
+  "quality": false,
+  "startedAtMs": 45.248743,
+  "platform": {
+   "node": "v22.22.1"
+  },
+  "gpu": {
+   "provider": "webgpu (Dawn) npm package",
+   "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "radeon-8060s-graphics-radv-strix-halo-",
+    "description": "radv: Mesa 26.0.3-1ubuntu1"
+   },
+   "features": [
+    "bgra8unorm-storage",
+    "clip-distances",
+    "core-features-and-limits",
+    "depth-clip-control",
+    "depth32float-stencil8",
+    "dual-source-blending",
+    "float32-blendable",
+    "float32-filterable",
+    "indirect-first-instance",
+    "primitive-index",
+    "rg11b10ufloat-renderable",
+    "shader-f16",
+    "subgroups",
+    "texture-component-swizzle",
+    "texture-compression-bc",
+    "texture-compression-bc-sliced-3d",
+    "texture-formats-tier1",
+    "texture-formats-tier2",
+    "timestamp-query"
+   ]
+  },
+  "openMs": 1196.4366499999999,
+  "runtime": {
+   "engine": "doppler",
+   "surface": "node compat",
+   "weights": "f16",
+   "deviceInfo": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "radeon-8060s-graphics-radv-strix-halo-",
+    "description": "radv: Mesa 26.0.3-1ubuntu1"
+   }
+  },
+  "firstDecisionMs": 908.6230579999999,
+  "coldCompleteMs": 2151.902157,
+  "firstIssue": {
+   "index": 1136,
+   "label": "bug",
+   "repo": "bitcoin/bitcoin",
+   "elapsedMs": 908.6230579999999,
+   "probabilities": {
+    "bug": 0.8967887144008163,
+    "feature": 0.09437527766255346,
+    "question": 0.00883600793663039
+   },
+   "choice": "bug",
+   "detail": {
+    "routes": [
+     {
+      "id": "bug",
+      "yes": 12.21387004852295,
+      "no": 16.025592803955078,
+      "score": -3.811722755432129
+     },
+     {
+      "id": "feature",
+      "yes": 9.533095359802246,
+      "no": 15.596359252929688,
+      "score": -6.063263893127441
+     },
+     {
+      "id": "question",
+      "yes": 6.293942928314209,
+      "no": 14.725650787353516,
+      "score": -8.431707859039307
+     }
+    ],
+    "bodyCharacterBudget": 1600
+   }
+  },
+  "test": [
+   {
+    "index": 1146,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 604.5345010000001,
+    "probabilities": {
+     "bug": 0.8780587142868616,
+     "feature": 0.09677607277070309,
+     "question": 0.025165212942435324
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.712961196899414,
+       "no": 16.41839599609375,
+       "score": -3.705434799194336
+      },
+      {
+       "id": "feature",
+       "yes": 9.324974060058594,
+       "no": 15.235722541809082,
+       "score": -5.910748481750488
+      },
+      {
+       "id": "question",
+       "yes": 8.046378135681152,
+       "no": 15.30406379699707,
+       "score": -7.257685661315918
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1190,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 384.31931699999996,
+    "probabilities": {
+     "bug": 0.3660489683945491,
+     "feature": 0.38882188153375064,
+     "question": 0.24512915007170022
+    },
+    "choice": "feature",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.14463996887207,
+       "no": 16.41944122314453,
+       "score": -4.274801254272461
+      },
+      {
+       "id": "feature",
+       "yes": 12.135663986206055,
+       "no": 16.35011100769043,
+       "score": -4.214447021484375
+      },
+      {
+       "id": "question",
+       "yes": 11.993780136108398,
+       "no": 16.66956329345703,
+       "score": -4.675783157348633
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1118,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 415.62446,
+    "probabilities": {
+     "bug": 0.848306339861455,
+     "feature": 0.0926439200363328,
+     "question": 0.05904974010221217
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 11.418272018432617,
+       "no": 16.38900375366211,
+       "score": -4.970731735229492
+      },
+      {
+       "id": "feature",
+       "yes": 9.529614448547363,
+       "no": 16.714824676513672,
+       "score": -7.185210227966309
+      },
+      {
+       "id": "question",
+       "yes": 9.241939544677734,
+       "no": 16.877532958984375,
+       "score": -7.635593414306641
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1120,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 931.4752850000004,
+    "probabilities": {
+     "bug": 0.8428240189099312,
+     "feature": 0.08348447037521631,
+     "question": 0.07369151071485246
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 10.890073776245117,
+       "no": 16.133419036865234,
+       "score": -5.243345260620117
+      },
+      {
+       "id": "feature",
+       "yes": 7.291908264160156,
+       "no": 14.84735107421875,
+       "score": -7.555442810058594
+      },
+      {
+       "id": "question",
+       "yes": 7.795665740966797,
+       "no": 15.475881576538086,
+       "score": -7.680215835571289
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   },
+   {
+    "index": 1121,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 467.31086400000004,
+    "probabilities": {
+     "bug": 0.5079864682714214,
+     "feature": 0.31864497489778015,
+     "question": 0.1733685568307984
+    },
+    "choice": "bug",
+    "detail": {
+     "routes": [
+      {
+       "id": "bug",
+       "yes": 12.009653091430664,
+       "no": 17.244443893432617,
+       "score": -5.234790802001953
+      },
+      {
+       "id": "feature",
+       "yes": 10.623123168945312,
+       "no": 16.324291229248047,
+       "score": -5.701168060302734
+      },
+      {
+       "id": "question",
+       "yes": 10.102828979492188,
+       "no": 16.412654876708984,
+       "score": -6.309825897216797
+      }
+     ],
+     "bodyCharacterBudget": 1600
+    }
+   }
+  ],
+  "finishedAtMs": 4959.00215
+ }
+}

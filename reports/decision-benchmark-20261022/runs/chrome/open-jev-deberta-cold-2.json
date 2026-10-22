@@ -1,0 +1,253 @@
+{
+ "runId": "chrome-open-jev-deberta-cold-2",
+ "browser": {
+  "name": "chrome",
+  "kind": "chrome",
+  "version": "Google Chrome 146.0.7680.177"
+ },
+ "lane": "open-jev-deberta",
+ "mode": "cold",
+ "rep": 2,
+ "quality": false,
+ "launchToReportMs": 5072,
+ "transfer": {
+  "modelBytes": 883544131,
+  "modelRequests": 8,
+  "missing": [
+   "/favicon.ico"
+  ]
+ },
+ "peakMemory": {
+  "totalRss": 3685851136,
+  "gpuMemory": 2127032320,
+  "processes": 15
+ },
+ "report": {
+  "lane": "open-jev-deberta",
+  "runId": "chrome-open-jev-deberta-cold-2",
+  "mode": "cold",
+  "quality": false,
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/146.0.0.0 Safari/537.36",
+  "startedAtMs": 97.19999998807907,
+  "gpu": {
+   "available": true,
+   "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "",
+    "description": "",
+    "isFallbackAdapter": false
+   },
+   "features": [
+    "bgra8unorm-storage",
+    "chromium-experimental-multi-draw-indirect",
+    "chromium-experimental-subgroup-matrix",
+    "chromium-experimental-timestamp-query-inside-passes",
+    "clip-distances",
+    "core-features-and-limits",
+    "depth-clip-control",
+    "depth32float-stencil8",
+    "dual-source-blending",
+    "float32-blendable",
+    "float32-filterable",
+    "indirect-first-instance",
+    "primitive-index",
+    "rg11b10ufloat-renderable",
+    "shader-f16",
+    "subgroups",
+    "texture-component-swizzle",
+    "texture-compression-bc",
+    "texture-compression-bc-sliced-3d",
+    "texture-formats-tier1",
+    "texture-formats-tier2",
+    "timestamp-query"
+   ],
+   "maxBufferSize": 4294967292,
+   "maxStorageBufferBindingSize": 4294967292
+  },
+  "comparison": "b-product",
+  "openMs": 3203.800000011921,
+  "runtime": {
+   "engine": "open-jev",
+   "version": "0.1.2",
+   "transformersVersion": "4.3.1",
+   "model": "onnx-community/open-jev-deberta-v3-large-ONNX",
+   "family": "open-jev",
+   "device": "webgpu",
+   "dtype": "fp16"
+  },
+  "firstDecisionMs": 229,
+  "coldCompleteMs": 3549.199999988079,
+  "firstIssue": {
+   "index": 1136,
+   "label": "bug",
+   "repo": "bitcoin/bitcoin",
+   "elapsedMs": 229,
+   "probabilities": {
+    "bug": 0.4704439385899756,
+    "feature": 0.2908582471461083,
+    "question": 0.2386978142639162
+   },
+   "choice": "bug",
+   "detail": {
+    "confidence": 0.4704439385899756
+   }
+  },
+  "test": [
+   {
+    "index": 1146,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 54.200000047683716,
+    "probabilities": {
+     "bug": 0.423963612373911,
+     "feature": 0.3231350187949991,
+     "question": 0.2529013688310899
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.423963612373911
+    }
+   },
+   {
+    "index": 1190,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 53.30000001192093,
+    "probabilities": {
+     "bug": 0.37998114029281754,
+     "feature": 0.3657643158463433,
+     "question": 0.2542545438608391
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.37998114029281754
+    }
+   },
+   {
+    "index": 1118,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 62.59999996423721,
+    "probabilities": {
+     "bug": 0.505780778684056,
+     "feature": 0.27173397912405417,
+     "question": 0.22248524219188998
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.505780778684056
+    }
+   },
+   {
+    "index": 1120,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 84.19999998807907,
+    "probabilities": {
+     "bug": 0.42580995026758656,
+     "feature": 0.3239391276744293,
+     "question": 0.2502509220579842
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.42580995026758656
+    }
+   },
+   {
+    "index": 1121,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 132.80000001192093,
+    "probabilities": {
+     "bug": 0.4476636991006271,
+     "feature": 0.3017796275097989,
+     "question": 0.25055667338957405
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.4476636991006271
+    }
+   },
+   {
+    "index": 1123,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 72.89999997615814,
+    "probabilities": {
+     "bug": 0.41706692498922887,
+     "feature": 0.3180263844515587,
+     "question": 0.2649066905592124
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.41706692498922887
+    }
+   },
+   {
+    "index": 1134,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 84.59999996423721,
+    "probabilities": {
+     "bug": 0.389360918742609,
+     "feature": 0.34986587960228044,
+     "question": 0.26077320165511064
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.389360918742609
+    }
+   },
+   {
+    "index": 1143,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 85.10000002384186,
+    "probabilities": {
+     "bug": 0.4725728335170165,
+     "feature": 0.28692330369686625,
+     "question": 0.24050386278611716
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.4725728335170165
+    }
+   },
+   {
+    "index": 1173,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 88.10000002384186,
+    "probabilities": {
+     "bug": 0.43524685978639976,
+     "feature": 0.32125941056342366,
+     "question": 0.24349372965017665
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.43524685978639976
+    }
+   },
+   {
+    "index": 1142,
+    "label": "bug",
+    "repo": "bitcoin/bitcoin",
+    "elapsedMs": 83.19999998807907,
+    "probabilities": {
+     "bug": 0.41214187465834384,
+     "feature": 0.31092745158655993,
+     "question": 0.2769306737550962
+    },
+    "choice": "bug",
+    "detail": {
+     "confidence": 0.41214187465834384
+    }
+   }
+  ],
+  "messages": [
+   "warn: Unable to add response to browser cache: UnknownError: Failed to execute 'put' on 'Cache': Unexpected internal error.."
+  ],
+  "finishedAtMs": 4360
+ }
+}

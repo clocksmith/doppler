@@ -1,0 +1,78 @@
+{
+ "runId": "firefox-nightly-open-jev-deberta-cold-0",
+ "browser": {
+  "name": "firefox-nightly",
+  "kind": "firefox",
+  "version": "Mozilla Firefox 160.0a1"
+ },
+ "lane": "open-jev-deberta",
+ "mode": "cold",
+ "rep": 0,
+ "quality": true,
+ "launchToReportMs": 6149,
+ "transfer": {
+  "modelBytes": 883544131,
+  "modelRequests": 8,
+  "missing": [
+   "/favicon.ico"
+  ]
+ },
+ "peakMemory": {
+  "totalRss": 4280737792,
+  "gpuMemory": 2346360832,
+  "processes": 11
+ },
+ "report": {
+  "lane": "open-jev-deberta",
+  "runId": "firefox-nightly-open-jev-deberta-cold-0",
+  "mode": "cold",
+  "quality": true,
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:160.0) Gecko/20100101 Firefox/160.0",
+  "startedAtMs": 243,
+  "gpu": {
+   "available": true,
+   "adapter": {
+    "vendor": "",
+    "architecture": "",
+    "device": "",
+    "description": "",
+    "isFallbackAdapter": false
+   },
+   "features": [
+    "bgra8unorm-storage",
+    "clip-distances",
+    "core-features-and-limits",
+    "depth-clip-control",
+    "depth32float-stencil8",
+    "dual-source-blending",
+    "float32-blendable",
+    "float32-filterable",
+    "indirect-first-instance",
+    "rg11b10ufloat-renderable",
+    "shader-f16",
+    "texture-compression-bc",
+    "texture-compression-bc-sliced-3d",
+    "timestamp-query"
+   ],
+   "maxBufferSize": 2147483644,
+   "maxStorageBufferBindingSize": 2147483644
+  },
+  "comparison": "b-product",
+  "openMs": 4422,
+  "runtime": {
+   "engine": "open-jev",
+   "version": "0.1.2",
+   "transformersVersion": "4.3.1",
+   "model": "onnx-community/open-jev-deberta-v3-large-ONNX",
+   "family": "open-jev",
+   "device": "webgpu",
+   "dtype": "fp16"
+  },
+  "error": "Error: failed to call OrtRun(). ERROR_CODE: 1, ERROR_MESSAGE: /mnt/azure_nvme_temp/_work/1/s/onnxruntime/core/providers/webgpu/buffer_manager.cc:525 void onnxruntime::webgpu::BufferManager::Upload(void *, WGPUBuffer, size_t) const [ONNXRuntimeError] : 1 : FAIL : Failed to create a WebGPU compute pipeline: ShaderModule with 'Clip' label is invalid\n\nV@http://127.0.0.1:36383/app/benchmark/node_modules/onnxruntime-web/dist/ort.webgpu.bundle.min.mjs:10:30993\nnr@http://127.0.0.1:36383/app/benchmark/node_modules/onnxruntime-web/dist/ort.webgpu.bundle.min.mjs:11:28200\n",
+  "messages": [
+   "error: An error occurred during model execution: \"Error: failed to call OrtRun(). ERROR_CODE: 1, ERROR_MESSAGE: /mnt/azure_nvme_temp/_work/1/s/onnxruntime/core/providers/webgpu/buffer_manager.cc:525 void onnxruntime::webgpu::BufferManager::Upload(void *, WGPUBuffer, size_t) const [ONNXRuntimeError] : 1 : FAIL : Failed to create a WebGPU compute pipeline: ShaderModule with 'Clip' label is invalid\n\".",
+   "error: Inputs given to model: [object Object]"
+  ],
+  "finishedAtMs": 5058
+ }
+}
