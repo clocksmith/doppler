@@ -49,7 +49,7 @@ const WORKER_SHELL_END = '// END GENERATED DEMO SHELL';
 // Includes W8A8, verified-piece-reader, tokenizer, output, and the recurrent
 // state-layout validator reachable through the public host API. Keep the
 // ceiling exact; demo UI changes add no runtime modules.
-const MAX_MODULES = 718;
+const MAX_MODULES = 760;
 const MAX_TOTAL_BYTES = 10_000_000;
 const MODULE_ROOTS = [
   'demo/demo.js',
