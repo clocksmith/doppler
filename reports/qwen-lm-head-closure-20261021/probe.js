@@ -1,5 +1,8 @@
 // One independent sample: fresh Chrome, one model opening, one cold and N warm
-// complete requests. Invoked by compare.js; never run two GPU probes at once.
+// complete requests. Contracts with `lifecycleChecks` then cancel one request,
+// reuse the session, unload, destroy the device and reopen on a new device; those
+// checks run after the timed requests. Invoked by compare.js; never run two GPU
+// probes at once.
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -62,20 +65,45 @@ try {
       out.openMs = performance.now() - openStart;
       const adapterInfo = handle.advanced?.getStats?.()?.adapterInfo ?? null;
       out.adapterInfo = adapterInfo;
-      const total = config.requests.cold + config.requests.warm;
-      for (let i = 0; i < total; i += 1) {
-        handle.resetGenerationState();
+      const runRequest = async (target, abortAfterTokens = null) => {
+        target.resetGenerationState();
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(new Error('request timeout')), 60000);
         const tokens = [];
         const pieces = [];
         const start = performance.now();
-        for await (const text of handle.generate(config.prompt, {
-          ...config.generation,
-          signal: AbortSignal.timeout(60000),
-          onToken: (token) => tokens.push(token),
-        })) {
-          pieces.push(text);
+        let abortedAtMs = null;
+        try {
+          for await (const text of target.generate(config.prompt, {
+            ...config.generation,
+            signal: controller.signal,
+            onToken: (token) => {
+              tokens.push(token);
+              if (abortAfterTokens != null && tokens.length === abortAfterTokens && abortedAtMs == null) {
+                abortedAtMs = performance.now();
+                controller.abort();
+              }
+            },
+          })) {
+            pieces.push(text);
+          }
+        } catch (error) {
+          if (abortedAtMs == null) throw error;
+          return {
+            settledAfterAbortMs: performance.now() - abortedAtMs,
+            tokens,
+            errorName: error?.name ?? null,
+            errorCode: error?.code ?? null,
+            errorMessage: String(error?.message ?? error).slice(0, 300),
+          };
+        } finally {
+          clearTimeout(timeout);
         }
-        const elapsedMs = performance.now() - start;
+        return { elapsedMs: performance.now() - start, abortedAtMs, tokens, text: pieces.join('') };
+      };
+      const total = config.requests.cold + config.requests.warm;
+      for (let i = 0; i < total; i += 1) {
+        const request = await runRequest(handle);
         const stats = handle.advanced.getStats() ?? {};
         const numericStats = {};
         for (const [key, value] of Object.entries(stats)) {
@@ -83,11 +111,28 @@ try {
         }
         out.requests.push({
           kind: i < config.requests.cold ? 'cold' : 'warm',
-          elapsedMs,
-          tokens,
-          text: pieces.join(''),
+          elapsedMs: request.elapsedMs,
+          tokens: request.tokens,
+          text: request.text,
           stats: numericStats,
         });
+      }
+      if (config.lifecycleChecks) {
+        const checks = config.lifecycleChecks;
+        out.lifecycle.cancel = {
+          abortAfterTokens: checks.abortAfterTokens,
+          ...(await runRequest(handle, checks.abortAfterTokens)),
+        };
+        const reuse = await runRequest(handle);
+        out.lifecycle.reuseAfterCancel = { tokens: reuse.tokens, text: reuse.text };
+        await handle.unload();
+        handle = null;
+        destroyDevice();
+        const reopenStart = performance.now();
+        handle = await load({ url: new URL('/model/', location.href).href }, runtimeConfig ? { runtimeConfig } : {});
+        const reopenMs = performance.now() - reopenStart;
+        const recreated = await runRequest(handle);
+        out.lifecycle.deviceRecreation = { reopenMs, tokens: recreated.tokens, text: recreated.text };
       }
     } catch (error) {
       out.error = String(error?.stack || error);
@@ -113,6 +158,7 @@ try {
     runtimeProfile: contract.runtimeProfile ?? null,
     generation: contract.generation,
     requests: contract.design.requestsPerProcess,
+    lifecycleChecks: contract.lifecycleChecks ?? null,
   });
   Object.assign(result, evaluation);
 } catch (error) {

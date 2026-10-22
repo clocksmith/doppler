@@ -146,7 +146,27 @@ const expected = samples.find((s) => s.probe.requests?.length)?.probe.requests[0
 const parity = samples.every((s) => s.probe.requests?.length === contract.design.requestsPerProcess.cold + contract.design.requestsPerProcess.warm
   && s.probe.requests.every((r) => r.text === expected.text && JSON.stringify(r.tokens) === JSON.stringify(expected.tokens)));
 const matchesMacRetained = JSON.stringify(expected?.tokens) === JSON.stringify(contract.macRetainedExpectedTokens);
-const lifecycle = samples.every((s) => s.code === 0 && !s.probe.error && s.probe.lifecycle?.unload && s.probe.lifecycle?.destroyDevice && s.probe.lifecycle?.browserClosed);
+const sameAsExpected = (r) => r?.text === expected?.text && JSON.stringify(r?.tokens) === JSON.stringify(expected?.tokens);
+const checks = contract.lifecycleChecks ?? null;
+const lifecycleCheck = (s) => {
+  const l = s.probe.lifecycle ?? {};
+  if (!checks) return true;
+  const c = l.cancel ?? {};
+  return c.errorName === checks.expectedAbortErrorName
+    && c.tokens?.length >= checks.abortAfterTokens
+    && c.tokens.length < expected.tokens.length
+    && JSON.stringify(c.tokens) === JSON.stringify(expected.tokens.slice(0, c.tokens.length))
+    && sameAsExpected(l.reuseAfterCancel)
+    && sameAsExpected(l.deviceRecreation);
+};
+const lifecycle = samples.every((s) => s.code === 0 && !s.probe.error && s.probe.lifecycle?.unload && s.probe.lifecycle?.destroyDevice && s.probe.lifecycle?.browserClosed && lifecycleCheck(s));
+const lifecycleChecks = checks && {
+  passing: samples.filter(lifecycleCheck).length,
+  of: samples.length,
+  cancelSettledAfterAbortMs: { A: median(samples.filter((x) => x.arm === 'A').map((x) => x.probe.lifecycle?.cancel?.settledAfterAbortMs).filter((v) => v != null)),
+    B: median(samples.filter((x) => x.arm === 'B').map((x) => x.probe.lifecycle?.cancel?.settledAfterAbortMs).filter((v) => v != null)) },
+  cancelTokenCounts: [...new Set(samples.map((x) => x.probe.lifecycle?.cancel?.tokens?.length))],
+};
 const warmMedian = (s) => median(s.probe.requests?.filter((r) => r.kind === 'warm').map((r) => r.elapsedMs) ?? []);
 const warmDecode = (s) => median(s.probe.requests?.filter((r) => r.kind === 'warm').map((r) => r.stats.decodeTimeMs) ?? []);
 const warmPrefill = (s) => median(s.probe.requests?.filter((r) => r.kind === 'warm').map((r) => r.stats.prefillTimeMs) ?? []);
@@ -174,6 +194,7 @@ const summary = {
   matchesMacRetained,
   expectedText: expected?.text,
   lifecycle,
+  lifecycleChecks,
   metrics,
   contention,
   browserVersions: [...new Set(samples.map((s) => s.probe.browserVersion))],
@@ -186,5 +207,5 @@ const summary = {
   },
 };
 await fs.writeFile(path.join(outDir, 'summary.json'), `${JSON.stringify(summary, null, 2)}\n`);
-await fs.writeFile(path.join(outDir, 'samples.json'), `${JSON.stringify(samples.map(({ probe, ...rest }) => ({ ...rest, probe: { ...probe, requests: probe.requests?.map(({ tokens, text, ...r }) => r) } })), null, 2)}\n`);
-console.log(JSON.stringify({ parity, matchesMacRetained, lifecycle, metrics, contention, promotion: summary.promotion }, null, 2));
+await fs.writeFile(path.join(outDir, 'samples.json'), `${JSON.stringify(samples.map(({ probe, ...rest }) => ({ ...rest, probe: { ...probe, requests: probe.requests?.map(({ tokens, text, ...r }) => r), lifecycle: probe.lifecycle && { ...probe.lifecycle, reuseAfterCancel: undefined, deviceRecreation: probe.lifecycle.deviceRecreation && { reopenMs: probe.lifecycle.deviceRecreation.reopenMs } } } })), null, 2)}\n`);
+console.log(JSON.stringify({ parity, matchesMacRetained, lifecycle, lifecycleChecks, metrics, contention, promotion: summary.promotion }, null, 2));
