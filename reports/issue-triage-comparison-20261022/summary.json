@@ -1,0 +1,271 @@
+{
+  "engines": {
+    "doppler": {
+      "repetitions": 3,
+      "quality": {
+        "testIssues": 150,
+        "raw": {
+          "accuracy": 0.5733333333333334,
+          "macroF1": 0.523398221894283,
+          "f1": {
+            "bug": 0.6056338028169014,
+            "feature": 0.7272727272727273,
+            "question": 0.23728813559322035
+          }
+        },
+        "labelFreeCentered": {
+          "accuracy": 0.6066666666666667,
+          "macroF1": 0.592468826386955,
+          "f1": {
+            "bug": 0.5714285714285714,
+            "feature": 0.7368421052631579,
+            "question": 0.4691358024691358
+          },
+          "offsetsFromUnlabeledTrain": {
+            "bug": -4.494154432084826,
+            "feature": -5.615226769447327,
+            "question": -6.319088345103793
+          }
+        },
+        "testMsPerIssue": {
+          "median": 629.0499999970198,
+          "p90": 862.5999999940395
+        }
+      },
+      "coldOpenMs": 14577.699999988079,
+      "coldOpenMsAll": [
+        14506.5,
+        15043.40000000596,
+        14577.699999988079
+      ],
+      "firstDecisionMs": 932.3000000119209,
+      "launchToFirstDecisionMs": 15513,
+      "acquiredModelBytes": 944564241,
+      "warmDecisionMs": {
+        "median": 647.5,
+        "p90": 1024,
+        "samples": 60
+      },
+      "peakMemoryBytes": {
+        "totalRss": 2141429760,
+        "rendererRss": 1426649088,
+        "gpuProcessRss": 229007360,
+        "gpuMemory": 6960041984
+      },
+      "cancellation": [
+        {
+          "status": "GenerationError",
+          "code": "DOPPLER_GENERATION_ABORTED",
+          "abortToSettleMs": 231.59999999403954,
+          "reuseIdentical": true
+        },
+        {
+          "status": "GenerationError",
+          "code": "DOPPLER_GENERATION_ABORTED",
+          "abortToSettleMs": 233.19999998807907,
+          "reuseIdentical": true
+        },
+        {
+          "status": "GenerationError",
+          "code": "DOPPLER_GENERATION_ABORTED",
+          "abortToSettleMs": 231.5,
+          "reuseIdentical": true
+        }
+      ],
+      "offlineReopen": [
+        {
+          "openMs": 13500.299999982119,
+          "identical": true,
+          "modelBytes": 0
+        },
+        {
+          "openMs": 13487,
+          "identical": true,
+          "modelBytes": 0
+        },
+        {
+          "openMs": 13474.5,
+          "identical": true,
+          "modelBytes": 0
+        }
+      ],
+      "crashRecovery": [
+        {
+          "relaunchToFirstDecisionMs": 14529,
+          "identical": true
+        },
+        {
+          "relaunchToFirstDecisionMs": 14386,
+          "identical": true
+        },
+        {
+          "relaunchToFirstDecisionMs": 14397,
+          "identical": true
+        }
+      ],
+      "retainedStorage": {
+        "usage": 944451530,
+        "cachedEntries": 0
+      }
+    },
+    "transformersjs": {
+      "repetitions": 3,
+      "quality": {
+        "testIssues": 150,
+        "raw": {
+          "accuracy": 0.6133333333333333,
+          "macroF1": 0.5630241925403731,
+          "f1": {
+            "bug": 0.640625,
+            "feature": 0.7433628318584071,
+            "question": 0.3050847457627119
+          }
+        },
+        "labelFreeCentered": {
+          "accuracy": 0.6533333333333333,
+          "macroF1": 0.6427284427284428,
+          "f1": {
+            "bug": 0.6476190476190476,
+            "feature": 0.7567567567567568,
+            "question": 0.5238095238095238
+          },
+          "offsetsFromUnlabeledTrain": {
+            "bug": -5.502777777777778,
+            "feature": -5.882009548611111,
+            "question": -6.935286458333334
+          }
+        },
+        "testMsPerIssue": {
+          "median": 238.75,
+          "p90": 337.09999999403954
+        }
+      },
+      "coldOpenMs": 6322,
+      "coldOpenMsAll": [
+        6378.200000017881,
+        6322,
+        6292.5
+      ],
+      "firstDecisionMs": 618.3000000119209,
+      "launchToFirstDecisionMs": 6945,
+      "acquiredModelBytes": 1514911957,
+      "warmDecisionMs": {
+        "median": 236.24999998509884,
+        "p90": 400.19999998807907,
+        "samples": 60
+      },
+      "peakMemoryBytes": {
+        "totalRss": 7958454272,
+        "rendererRss": 6461263872,
+        "gpuProcessRss": 1062010880,
+        "gpuMemory": 3333623808
+      },
+      "cancellation": [
+        {
+          "status": "AbortError",
+          "code": 20,
+          "abortToSettleMs": 43.79999998211861,
+          "reuseIdentical": true
+        },
+        {
+          "status": "AbortError",
+          "code": 20,
+          "abortToSettleMs": 40.599999994039536,
+          "reuseIdentical": true
+        },
+        {
+          "status": "AbortError",
+          "code": 20,
+          "abortToSettleMs": 44.400000005960464,
+          "reuseIdentical": true
+        }
+      ],
+      "offlineReopen": [
+        {
+          "failed": true,
+          "blockedUrls": [
+            "/tjs-remote/Qwen/Qwen3-Reranker-0.6B/resolve/main/onnx/model_fp16.onnx"
+          ],
+          "cacheWarning": "warning: Unable to add response to browser cache: UnknownError: Failed to execute 'put' on 'Cache': Unexpected internal error.."
+        },
+        {
+          "failed": true,
+          "blockedUrls": [
+            "/tjs-remote/Qwen/Qwen3-Reranker-0.6B/resolve/main/onnx/model_fp16.onnx"
+          ],
+          "cacheWarning": "warning: Unable to add response to browser cache: UnknownError: Failed to execute 'put' on 'Cache': Unexpected internal error.."
+        },
+        {
+          "failed": true,
+          "blockedUrls": [
+            "/tjs-remote/Qwen/Qwen3-Reranker-0.6B/resolve/main/onnx/model_fp16.onnx"
+          ],
+          "cacheWarning": "warning: Unable to add response to browser cache: UnknownError: Failed to execute 'put' on 'Cache': Unexpected internal error.."
+        }
+      ],
+      "crashRecovery": [
+        {
+          "failed": true
+        },
+        {
+          "failed": true
+        },
+        {
+          "failed": true
+        }
+      ],
+      "retainedStorage": {
+        "usage": 35046400,
+        "cachedEntries": 6
+      }
+    }
+  },
+  "install": {
+    "method": "fresh npm init consumer, empty npm cache directory, npm 10 / Node 22.22.1, Linux; Doppler from the candidate tarball, Transformers.js from the npm registry",
+    "doppler": {
+      "spec": "doppler-gpu-0.6.32.tgz (sha256 2cc4d07c6a9aee7a2d433cd81d514225cafb7114237ff49e0d0ab27899dad65a)",
+      "default": {
+        "packages": 7,
+        "wallSeconds": 3.62,
+        "nodeModulesBytes": 96727412
+      },
+      "omitOptional": {
+        "packages": 1,
+        "wallSeconds": 0.95,
+        "nodeModulesBytes": 14161743
+      }
+    },
+    "transformersjs": {
+      "spec": "@huggingface/transformers@4.2.0",
+      "default": {
+        "packages": 52,
+        "wallSeconds": 33.08,
+        "nodeModulesBytes": 724283749
+      },
+      "omitOptional": {
+        "packages": 48,
+        "wallSeconds": 31.67,
+        "nodeModulesBytes": 689928328
+      }
+    },
+    "caveat": "Registry download time depends on network; the Doppler tarball was local. Package and byte counts do not depend on the network."
+  },
+  "dopplerMinusTransformersjs": {
+    "raw": {
+      "accuracyDifference": -0.04,
+      "bootstrap95": [
+        -0.1,
+        0.02
+      ],
+      "agreement": 126
+    },
+    "labelFreeCentered": {
+      "accuracyDifference": -0.04666666666666667,
+      "bootstrap95": [
+        -0.1,
+        0.006666666666666667
+      ],
+      "agreement": 130
+    }
+  }
+}

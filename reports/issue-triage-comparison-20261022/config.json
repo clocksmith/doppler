@@ -1,0 +1,11 @@
+{
+  "dopplerSourceRoot": "<local>",
+  "outDir": "<local>",
+  "csvDirectory": "<local>",
+  "capsuleDirectory": "dist/qual-0632-20261021/capsule (test-signed; reports/choice-scoring-successor-20261021)",
+  "descriptorPath": "dist/qual-0632-20261021/descriptor.json",
+  "transformersPackageDirectory": "/home/x/deco/doppler/node_modules/@huggingface/transformers",
+  "transformersModelId": "Qwen/Qwen3-Reranker-0.6B",
+  "transformersModelDirectory": "/var/tmp/issue-triage-tjs-overlay-20261022 (export e145ff16... + source generation_config.json 81051cd3...)",
+  "repetitions": 3
+}

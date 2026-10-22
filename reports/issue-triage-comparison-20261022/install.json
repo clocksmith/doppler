@@ -1,0 +1,14 @@
+{
+  "method": "fresh npm init consumer, empty npm cache directory, npm 10 / Node 22.22.1, Linux; Doppler from the candidate tarball, Transformers.js from the npm registry",
+  "doppler": {
+    "spec": "doppler-gpu-0.6.32.tgz (sha256 2cc4d07c6a9aee7a2d433cd81d514225cafb7114237ff49e0d0ab27899dad65a)",
+    "default": { "packages": 7, "wallSeconds": 3.62, "nodeModulesBytes": 96727412 },
+    "omitOptional": { "packages": 1, "wallSeconds": 0.95, "nodeModulesBytes": 14161743 }
+  },
+  "transformersjs": {
+    "spec": "@huggingface/transformers@4.2.0",
+    "default": { "packages": 52, "wallSeconds": 33.08, "nodeModulesBytes": 724283749 },
+    "omitOptional": { "packages": 48, "wallSeconds": 31.67, "nodeModulesBytes": 689928328 }
+  },
+  "caveat": "Registry download time depends on network; the Doppler tarball was local. Package and byte counts do not depend on the network."
+}
