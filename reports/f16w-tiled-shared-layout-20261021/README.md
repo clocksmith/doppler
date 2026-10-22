@@ -33,6 +33,27 @@ separate model-identity change, not part of this commit.
 - Bit-identical output does not qualify any model or package; it removes a numerical question.
   Speedups are one AMD device; other GPUs need their own timing.
 
+## Correction: Metal corruption and 7425fd58 (2026-10-22)
+
+The evidence above covered AMD Vulkan only, and the layout was wrong on Apple GPUs. Four threads
+each wrote one dynamically indexed component of the same shared `vec4`. Tint lowers that store
+on Metal to a read-modify-write of the whole vector, so writes were lost. Every model routed
+through this kernel produced garbage on Metal, and the parity test failed there.
+[7425fd58](https://github.com/clocksmith/doppler/commit/7425fd58) stages one whole `vec4` per
+thread and keeps the k-major layout and FMA order. It was verified on Apple Metal.
+
+The fixed kernel on the same AMD device (Chrome 146 Vulkan, GPU timestamps, median of 20):
+
+| Check | Result |
+|---|---|
+| vs the [original shader](previous-matmul_f16w_f32a_tiled.wgsl), 11 shapes ([result](chrome-7425fd58-vs-previous.json)) | Byte-identical; 613×3072×1024 2.82 → 0.69 ms, 513×4096×2560 8.64 → 2.27 ms, 102×3072×1024 0.66 → 0.17 ms |
+| vs the 07d0f6ba layout, 11 shapes ([result](chrome-7425fd58-vs-07d0f6ba.json)) | Byte-identical; equal to 1.31× faster on the large shapes (613-row prefill 1.13–1.30×), except 102×1024×3072 (0.27 → 0.31 ms) |
+| `tests/kernels/matmul-f16w-f32a-tiled-parity.test.js --require-gpu --reference-shader previous-matmul_f16w_f32a_tiled.wgsl` (Node Dawn/Vulkan) | Byte-exact on all shapes |
+
+The end-to-end figures above were measured with the 07d0f6ba layout. Any artifact that pinned
+its digest (`sha256:bed71e39…`) carries the Metal defect and must be rebuilt against
+`sha256:5dada682…`.
+
 Component: `doppler.runtime-source.gpu.kernels`, `doppler.runtime-source.config`, `doppler.tests`.
 Intent: preserved.
 Acceptance evidence: this directory, `npm run kernels:check`, `node tests/kernels/matmul-f16w-f32a-tiled-parity.test.js --require-gpu --reference-shader reports/f16w-tiled-shared-layout-20261021/previous-matmul_f16w_f32a_tiled.wgsl`.

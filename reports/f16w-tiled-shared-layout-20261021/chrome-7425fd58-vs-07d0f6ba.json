@@ -1,0 +1,119 @@
+{
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "description": "Radeon 8060S Graphics (RADV STRIX_HALO)"
+  },
+  "rows": [
+    {
+      "M": 1,
+      "N": 1,
+      "K": 1,
+      "identicalBytes": true,
+      "differingBytes": 0,
+      "oldMs": 0.004007,
+      "newMs": 0.003727,
+      "gflopsNew": 0.0005366246310705661
+    },
+    {
+      "M": 3,
+      "N": 5,
+      "K": 7,
+      "identicalBytes": true,
+      "differingBytes": 0,
+      "oldMs": 0.017994,
+      "newMs": 0.004008,
+      "gflopsNew": 0.05239520958083832
+    },
+    {
+      "M": 64,
+      "N": 64,
+      "K": 16,
+      "identicalBytes": true,
+      "differingBytes": 0,
+      "oldMs": 0.019997,
+      "newMs": 0.019838,
+      "gflopsNew": 6.607117652989213
+    },
+    {
+      "M": 65,
+      "N": 63,
+      "K": 17,
+      "identicalBytes": true,
+      "differingBytes": 0,
+      "oldMs": 0.027011,
+      "newMs": 0.005931,
+      "gflopsNew": 23.474962063732928
+    },
+    {
+      "M": 102,
+      "N": 3072,
+      "K": 1024,
+      "identicalBytes": true,
+      "differingBytes": 0,
+      "oldMs": 0.174006,
+      "newMs": 0.172002,
+      "gflopsNew": 3730.936337949559
+    },
+    {
+      "M": 102,
+      "N": 1024,
+      "K": 3072,
+      "identicalBytes": true,
+      "differingBytes": 0,
+      "oldMs": 0.271269,
+      "newMs": 0.313267,
+      "gflopsNew": 2048.503391675472
+    },
+    {
+      "M": 613,
+      "N": 3072,
+      "K": 1024,
+      "identicalBytes": true,
+      "differingBytes": 0,
+      "oldMs": 0.837291,
+      "newMs": 0.672101,
+      "gflopsNew": 5738.2187022486205
+    },
+    {
+      "M": 613,
+      "N": 1024,
+      "K": 3072,
+      "identicalBytes": true,
+      "differingBytes": 0,
+      "oldMs": 0.76768,
+      "newMs": 0.683682,
+      "gflopsNew": 5641.018087356402
+    },
+    {
+      "M": 613,
+      "N": 2048,
+      "K": 1024,
+      "identicalBytes": true,
+      "differingBytes": 0,
+      "oldMs": 0.604093,
+      "newMs": 0.462348,
+      "gflopsNew": 5560.980802339363
+    },
+    {
+      "M": 130,
+      "N": 151,
+      "K": 2000,
+      "identicalBytes": true,
+      "differingBytes": 0,
+      "oldMs": 0.233558,
+      "newMs": 0.182944,
+      "gflopsNew": 429.20237887003674
+    },
+    {
+      "M": 513,
+      "N": 4096,
+      "K": 2560,
+      "identicalBytes": true,
+      "differingBytes": 0,
+      "oldMs": 2.85676,
+      "newMs": 2.230545,
+      "gflopsNew": 4823.211260028379
+    }
+  ]
+}
