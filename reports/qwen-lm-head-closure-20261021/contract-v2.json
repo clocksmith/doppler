@@ -1,0 +1,92 @@
+{
+  "schema": "doppler.lm-head-closure-contract/v2",
+  "frozenAt": "2026-10-21T23:40:00-04:00",
+  "question": "Does the Q4_K LM-head shared-memory activation cache (0e0c5276) improve complete-request latency on AMD Strix Halo Chrome/Vulkan without changing tokens, text or lifecycle?",
+  "arms": {
+    "A": "HEAD 0428c15a with src/gpu/kernels/lm_head_argmax_q4k.wgsl and its kernel-ref digest reverted to 0e0c5276^ (no other change)",
+    "B": "HEAD 0428c15a unchanged (shared-memory cache)"
+  },
+  "model": {
+    "directory": ".cache/qwen-2b-standard-blake3-20261018-v2",
+    "modelId": "qwen-3-5-2b-q4k-ehaf16",
+    "manifestVariantId": "qwen-3-5-2b-q4k-ehaf16-mv-exec-v1-standard-blake3-v1",
+    "lmHead": "Q4_K_M [248320, 2048], tied embeddings"
+  },
+  "prompt": "The capital of France is",
+  "generation": {
+    "useChatTemplate": false,
+    "temperature": 0,
+    "topK": 1,
+    "topP": 1,
+    "maxTokens": 32,
+    "seed": 0,
+    "repetitionPenalty": 1
+  },
+  "macRetainedExpectedTokens": [
+    11751,
+    13,
+    11751,
+    369,
+    279,
+    6511,
+    314,
+    9338,
+    13,
+    11751,
+    369,
+    279,
+    6511,
+    314,
+    9338,
+    13,
+    11751,
+    369,
+    279,
+    6511,
+    314,
+    9338,
+    13,
+    11751,
+    369,
+    279,
+    6511,
+    314,
+    9338,
+    13,
+    11751,
+    369
+  ],
+  "design": {
+    "unit": "one independent Node process launching one fresh headless Chrome process, opening the model once",
+    "requestsPerProcess": {
+      "cold": 1,
+      "warm": 5
+    },
+    "order": "blocks alternate ABBA and BAAB; 10 blocks = 20 processes per arm",
+    "browser": "Google Chrome stable via Playwright channel=chrome, --use-angle=vulkan --enable-features=Vulkan",
+    "contention": "gpu_busy_percent sampled every 100 ms by the parent during each process; Reploid native participants left running and recorded"
+  },
+  "primaryMetric": "per-process median of the 5 warm complete-request wall times (generate() call start to iterator end)",
+  "secondaryMetrics": [
+    "cold first complete-request wall time",
+    "model open time",
+    "decode and prefill stats from getStats()"
+  ],
+  "analysis": "paired by block position: log(B/A) for adjacent A,B processes within each block (2 pairs per block, 20 pairs). Report mean, median, 95% t-interval and 10000-resample percentile bootstrap interval of the mean log ratio, expressed as percent change.",
+  "promotionRule": {
+    "parity": "every request in every process of both arms yields identical token IDs and text; A and B must match each other",
+    "lifecycle": "every process completes unload() and destroyDevice() without error, and Chrome exits cleanly",
+    "latency": "upper bound of the 95% bootstrap interval of mean warm complete-request percent change (B vs A) is below 0",
+    "otherwise": "retain the kernel measurement separately; do not claim a complete-request improvement on AMD"
+  },
+  "crossPlatform": "The M3 Metal half runs on Mars with this same contract; AMD alone cannot promote the change for Metal.",
+  "amends": {
+    "contract": "contract.json",
+    "reason": "The v1 run (amd-20261021/) loaded the manifest with an empty runtime config. useGreedyLmHeadArgmaxFusion defaults to false, so lm_head_argmax_q4k was never dispatched in either arm; v1 measures the default lane only and cannot test the kernel. v2 runs the AMD product lane that enables the fused argmax."
+  },
+  "runtimeProfile": "profiles/qwen-3-5-2b-vulkan-parity",
+  "runtimeProfileEffect": "useGreedyLmHeadArgmaxFusion=true, lmHeadArgmaxQ4K {useFullBlockFastPath: true, colsPerWorkgroup: 128, threadsPerCol: 2} plus the profile's other Qwen decode fusions and decodeLoop batchSize 4 / overlapped readback",
+  "preconditions": [
+    "a kernel-timing probe in each arm shows decode lm_head_argmax_q4k phase1 dispatches before the latency comparison is run"
+  ]
+}

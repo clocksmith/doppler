@@ -4,7 +4,6 @@ override WORKGROUP_SIZE: u32 = 256u;
 override COLS_PER_WG: u32 = 64u;
 override THREADS_PER_COL: u32 = 4u;
 override USE_FULL_BLOCK_FAST_PATH: bool = false;
-override SHARED_HIDDEN_MAX: u32 = 2048u;
 
 const QK_K: u32 = 256u;
 const SUBBLOCK_SIZE: u32 = 32u;
@@ -37,7 +36,6 @@ struct Q4KBlock {
 @group(0) @binding(4) var<storage, read_write> temp_indices: array<u32>;
 @group(0) @binding(5) var<storage, read_write> temp_logits: array<f32>;
 
-var<workgroup> shared_hidden: array<f32, SHARED_HIDDEN_MAX>;
 var<workgroup> partial_sums: array<f32, MAX_WORKGROUP_SIZE>;
 var<workgroup> candidate_values: array<f32, MAX_WORKGROUP_SIZE>;
 var<workgroup> candidate_indices: array<u32, MAX_WORKGROUP_SIZE>;
@@ -125,10 +123,10 @@ fn accumulate_full_block(block: Q4KBlock, k_base: u32) -> f32 {
             let w3 = scale * f32(q3) - min_val;
 
             partial_sum = partial_sum
-                + shared_hidden[k0] * w0
-                + shared_hidden[k0 + 1u] * w1
-                + shared_hidden[k0 + 2u] * w2
-                + shared_hidden[k0 + 3u] * w3;
+                + hidden[k0] * w0
+                + hidden[k0 + 1u] * w1
+                + hidden[k0 + 2u] * w2
+                + hidden[k0 + 3u] * w3;
         }
     }
 
@@ -191,14 +189,7 @@ fn phase1(
     let is_valid = col < u.vocab_size && col != u.pad_token_id;
 
     let num_blocks = (u.hidden_size + QK_K - 1u) / QK_K;
-    let has_full_blocks = USE_FULL_BLOCK_FAST_PATH && (u.hidden_size % QK_K) == 0u && u.hidden_size <= SHARED_HIDDEN_MAX;
-
-    if (has_full_blocks) {
-        for (var idx: u32 = local_id; idx < u.hidden_size; idx = idx + WORKGROUP_SIZE) {
-            shared_hidden[idx] = hidden[idx];
-        }
-        workgroupBarrier();
-    }
+    let has_full_blocks = USE_FULL_BLOCK_FAST_PATH && (u.hidden_size % QK_K) == 0u;
     var partial_sum: f32 = 0.0;
 
     if (is_valid) {
