@@ -1,0 +1,212 @@
+{
+  "schema": "doppler.qwen35-f64-next-token-oracle/v1",
+  "toolSha256": "b725973953300bb5a5f2a818f28a2fb13a61b3c2ee6cd617a3d7ce77519c941c",
+  "referenceToolSha256": "90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7",
+  "manifestSha256": "c3364f7fecc01b70ce63b4de3347d8305a1a6437ac63bb943edece7fa279fc0e",
+  "shardIdentities": [
+    {
+      "path": "shard_00000.bin",
+      "sha256": "e40985f8ab9f9d321fe46c309edf79d39291156826c9a77903caed4fadf8138c"
+    },
+    {
+      "path": "shard_00001.bin",
+      "sha256": "90e92e3d8514b5c2fcaef03aff390b3c8f631accbcfe65c128df1596a125ccaa"
+    },
+    {
+      "path": "shard_00002.bin",
+      "sha256": "b5669f5a6d833823f0da3df5d0342d33e10d5d7a3680f48ca2620837017ed2c1"
+    },
+    {
+      "path": "shard_00003.bin",
+      "sha256": "7e3fdae5f8d99e432f7a292a1254418d1d09a0a79314f0bc3e9d3c09eeb3854b"
+    },
+    {
+      "path": "shard_00004.bin",
+      "sha256": "7c21e0947d289020054e86a1612d786645599329804916476aec43434a2a5642"
+    },
+    {
+      "path": "shard_00005.bin",
+      "sha256": "75ffea68179bfc1661f5c397773075a49bc6b47f573a61e2abd8528eb10f7e67"
+    },
+    {
+      "path": "shard_00006.bin",
+      "sha256": "2da4b5acbb6d8228fef116737ef97d3a59132ce23aae9924d67132ac27768da3"
+    },
+    {
+      "path": "shard_00007.bin",
+      "sha256": "86a40588ebd372311f58c5e373ea37eb9a1d333086b3ab66f3e98e0f5363f740"
+    },
+    {
+      "path": "shard_00008.bin",
+      "sha256": "57bef927eb6501d0e1926ea193287d795ea29786872897bb4b8d3a06b2ee69d8"
+    },
+    {
+      "path": "shard_00009.bin",
+      "sha256": "e42fa398483166c68229199b46421b7c6b0c37c637bae74a96881975dc789c33"
+    },
+    {
+      "path": "shard_00010.bin",
+      "sha256": "20fc0c589c4d1b6c392494efdcc19dc609330b40e5c6d7f6c88d2d2960edcf80"
+    },
+    {
+      "path": "shard_00011.bin",
+      "sha256": "2314a134f563a9c293473b6ef5bf069ddfe5004603e1c2191d96105a541a2a2b"
+    },
+    {
+      "path": "shard_00012.bin",
+      "sha256": "df0251383140bd5ba1b29d344dae040d1ddc767b36e420a1ca78f0cbf09f9662"
+    },
+    {
+      "path": "shard_00013.bin",
+      "sha256": "ed6f9a979093bcee652843e6690fb03c9a1075d99415550f946c9e63d022116e"
+    },
+    {
+      "path": "shard_00014.bin",
+      "sha256": "b03f83743498cc9fa485585500f1f1bd091e5728dff67d44ea5515cb56d68aa7"
+    },
+    {
+      "path": "shard_00015.bin",
+      "sha256": "16f9ef87c68a85a29e010b889f9e9fae6406d9ad0afba453a4fb89cef46c31b3"
+    },
+    {
+      "path": "shard_00016.bin",
+      "sha256": "55db600b5c517044abc2dc77623d793e90c5d9328026e273f7d66703b7bb47b5"
+    },
+    {
+      "path": "shard_00017.bin",
+      "sha256": "40840ec94c809d140126b4024bba274fa4f828309e910b77098d2c89c85e930b"
+    },
+    {
+      "path": "shard_00018.bin",
+      "sha256": "77dd43e6cdaac7b5a0dece8ae50a1103a42fb2c79d8b68077444442fb3fe87fd"
+    },
+    {
+      "path": "shard_00019.bin",
+      "sha256": "8d455c998b8a42f7204047b5817753c10b3b5cd0b8086182dca25329f5e25798"
+    },
+    {
+      "path": "shard_00020.bin",
+      "sha256": "acf08871b5f94896bd8baf3c2ed865fcf474e00963725c834d156927469fa48e"
+    },
+    {
+      "path": "shard_00021.bin",
+      "sha256": "8fc284f0a15469c06d947294ba3c8f23a28d2c8c9f12ba61c8f7ad7f1f112cb9"
+    },
+    {
+      "path": "shard_00022.bin",
+      "sha256": "e6be53cf5aa65c614a9f8abdb5b936065ee35ba5b7a2887e26943c33d7ba6b5c"
+    },
+    {
+      "path": "shard_00023.bin",
+      "sha256": "b3afaaef362b461e733c7bc92036b4431d73fe2cea5c7ad24a9f3f4a7ca2468b"
+    },
+    {
+      "path": "shard_00024.bin",
+      "sha256": "fac5325975af8c3891ac06eab551bc626214ebc8592a66d0ff68f3ec748b8e6b"
+    },
+    {
+      "path": "shard_00025.bin",
+      "sha256": "9696fd9d6aa8ba3c0ce1e5baa6d2fab07175352e5e223321838d084c98d65119"
+    },
+    {
+      "path": "shard_00026.bin",
+      "sha256": "4f266183c6d2908e2ad40340d72a8a67da5c19c4424bf49ac3c9703620dc2d4d"
+    },
+    {
+      "path": "shard_00027.bin",
+      "sha256": "bc4a80fb6194d0a234be97ce4ab952a87d91116287895b1a6ba91df0a223d81a"
+    },
+    {
+      "path": "shard_00028.bin",
+      "sha256": "b568aca6801ebe959b4ad24dceb84710bdcf1713f3486ae3d1eca2485fdbfcb7"
+    },
+    {
+      "path": "shard_00029.bin",
+      "sha256": "0194e7576e12ea20135be07705b7bb3d066081c86020eeee0f863cf126c68ce6"
+    },
+    {
+      "path": "shard_00030.bin",
+      "sha256": "fbd36138bfce2c76a465f7d38fb7d44f5914dbb6094e89de65e69fcca2880beb"
+    },
+    {
+      "path": "shard_00031.bin",
+      "sha256": "f17e99a1989c12d1ca0e3eb0f8f6c00a3125df1a87e1ad2d869bf89a92d87449"
+    }
+  ],
+  "prompt": "The capital of France is",
+  "promptTokenIds": [
+    760,
+    6511,
+    314,
+    9338,
+    369
+  ],
+  "tokenIds": [
+    760,
+    6511,
+    314,
+    9338,
+    369,
+    11751
+  ],
+  "top": [
+    {
+      "tokenId": 13,
+      "logit": 20.93103200423396,
+      "text": "."
+    },
+    {
+      "tokenId": 11,
+      "logit": 20.151313117444527,
+      "text": ","
+    },
+    {
+      "tokenId": 318,
+      "logit": 17.877723447735967,
+      "text": " ("
+    },
+    {
+      "tokenId": 321,
+      "logit": 17.316683503107576,
+      "text": " and"
+    },
+    {
+      "tokenId": 440,
+      "logit": 16.47775527503997,
+      "text": " with"
+    },
+    {
+      "tokenId": 26,
+      "logit": 16.37312868831891,
+      "text": ";"
+    },
+    {
+      "tokenId": 303,
+      "logit": 15.236820801483248,
+      "text": " in"
+    },
+    {
+      "tokenId": 694,
+      "logit": 15.066796649862987,
+      "text": " but"
+    },
+    {
+      "tokenId": 271,
+      "logit": 14.886100213556626,
+      "text": "\n\n"
+    },
+    {
+      "tokenId": 198,
+      "logit": 14.826365555699038,
+      "text": "\n"
+    }
+  ],
+  "winner": 13,
+  "marginTop1Top2": 0.779718886789432,
+  "watch": {
+    "13": 20.93103200423396,
+    "198": 14.826365555699038,
+    "11": 20.151313117444527
+  },
+  "logitsF64Sha256": "4315454903a11f30c03e27a040f592b2303b792a13f2dd09f934c3faa0bc2f73"
+}

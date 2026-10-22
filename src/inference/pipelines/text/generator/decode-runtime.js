@@ -24,6 +24,7 @@ import { hasLinearAttentionLayers } from '../linear-attention.js';
 import { createPleBufferCache, prefetchPerLayerRow, getPleHotVocabularyRuntime, hasGpuSplitPerLayerInputEmbeddings, hasRangeBackedPerLayerInputEmbeddings } from '../per-layer-inputs.js';
 import { shouldDisableBatchDecodeAfterShortBatch, resolveHotVocabularyBatchDecodeAvailability, primePleDecodeRuntimeCache, resolveTokenText, usesReplayPrefillDecode, assertIncrementalDecodeSupport, summarizeExecutionPlan } from '../generator-decode-policy.js';
 import { getExperimentalIntentBundleModule, resolveSuppressedSamplingTokenIds } from './text.js';
+import { assertBatchRetryInPlaceAllowed } from './batch-retry-policy.js';
 
 function prepareGenerationRuntime(generator, opts, options) {
   generator._resetReplayPrefillRuntimeState();
@@ -564,6 +565,7 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
           batchResult = await this._generateNTokensGPU(lastToken, thisBatchSize, generatedIds, batchOpts);
         } catch (error) {
           if (stopIfAborted()) break;
+          assertBatchRetryInPlaceAllowed(this._state, error);
           log.warn('Pipeline', `Batch decode failed, falling back to single-token: ${error}`);
           useBatchPath = false;
           let nextToken;
