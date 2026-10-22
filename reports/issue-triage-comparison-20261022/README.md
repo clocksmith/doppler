@@ -78,6 +78,33 @@ and one decision found 1.49 GiB of live Doppler buffers (2.79 GiB created over t
 SHA-256 and BLAKE3 re-hashing; [be482a91](../capsule-open-hashing-20261022/README.md) reduced the
 reopen to 8.5-8.7 s after this comparison was run. The table above is unchanged.
 
+## Rebuilt candidate (later on 2026-10-22)
+
+The measured candidate pinned the tiled F16 matmul layout that corrupts output on Metal. The
+[rebuilt candidate](../choice-scoring-successor-20261022/README.md) (archive `3f87f551…` at
+`509eed3f`, Capsule `…-92b23b6a7b37aa70`, fixed kernel 7425fd58) also contains the
+[hashing change](../capsule-open-hashing-20261022/README.md). Only the Doppler arm was re-run, with the
+same harness and 3 repetitions ([config](rebuilt-candidate/config.json), [runs](rebuilt-candidate/),
+[summary](rebuilt-candidate/summary.json)). The Transformers.js rows are the runs above, unchanged.
+
+| | Doppler, first candidate | Doppler, rebuilt | Transformers.js |
+|---|---|---|---|
+| Open from empty profile (3 runs) | 14.5, 15.0, 14.6 s | 9.7, 10.2, 9.9 s | 6.4, 6.3, 6.3 s |
+| First decision | 932 ms | 856 ms | 618 ms |
+| Warm decision, median / p90 (60) | 648 / 1,024 ms | 549 / 909 ms | 236 / 400 ms |
+| Test issues, median per issue (150) | 629 ms | 527 ms | |
+| Peak browser RSS | 1.99 GB | 1.98 GB | 7.41 GB |
+| Cancellation, abort → settled | 232 ms | 182–186 ms, `DOPPLER_GENERATION_ABORTED`, reuse identical (3/3) | 44 ms |
+| Offline reopen | 13.5 s | 8.6–8.7 s, identical, 0 bytes fetched (3/3) | fails (3/3) |
+| Killed mid-request, relaunched offline | 14.4 s | 9.7–9.8 s, identical (3/3) | fails (3/3) |
+| Test accuracy, raw / centered | 0.573 / 0.607 | same | 0.613 / 0.653 |
+
+All 240 quality requests returned bit-identical yes/no logits to the first candidate, as expected
+from a kernel that is byte-identical on this device. Transformers.js remains 1.6× faster to open
+and 2.3× faster per decision. Install timings were measured with the first archive. The rebuilt
+archive installs as 1 package and 14.16 MB with `--omit=optional`, against 14.16 MB before. Reploid's participants did no GPU
+work during the re-run ([counters](rebuilt-candidate/other-gpu-clients.txt)).
+
 Component: `doppler.examples` (reference application), `doppler` (evidence).
 Intent: preserved.
 Acceptance evidence: this directory; `examples/issue-triage/tools/product-compare.js` with `config.json`.

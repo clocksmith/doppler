@@ -1,0 +1,7 @@
+239150 0.00s-gpu /usr/bin/gnome-shell
+239830 0.63s-gpu /usr/bin/Xwayland
+2707 0.00s-gpu /usr/bin/node
+2710233 0.00s-gpu /opt/google/chrome/chrome
+2711 0.00s-gpu /usr/bin/node
+2828115 0.00s-gpu /snap/snap-store/1447/bin/snap-store
+343381 0.33s-gpu /usr/lib/chatgpt/ChatGPT

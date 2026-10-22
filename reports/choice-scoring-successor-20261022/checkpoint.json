@@ -1,0 +1,25 @@
+{
+  "schema": "doppler.choice-scoring-candidate-checkpoint/v1",
+  "published": false,
+  "supersedes": "reports/choice-scoring-successor-20261021/checkpoint.json (pinned the Metal-defective tiled kernel bed71e39)",
+  "archive": {
+    "file": "doppler-gpu-0.6.32.tgz",
+    "sha256": "3f87f551a1a02ed1d9a8f71558d4519ddfcad7b88048d24f2dbf97ad675161bd",
+    "sourceCommit": "509eed3f"
+  },
+  "model": {
+    "manifestSha256": "6beadee33abc94eed49e54b95ed8f3f46c6eddcf40fffd97a084f3f4c936b861",
+    "location": ".cache/qwen-reranker-q4k-successor-20261022 (local NVMe; shards hard-linked from the 20261021 successor)"
+  },
+  "capsule": {
+    "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v2-92b23b6a7b37aa70",
+    "semanticRoot": "sha256:92b23b6a7b37aa70bf4f8114b3293f3b2683de93a0c367a4288834556c9bfc8b",
+    "envelopeHash": "sha256:3104bb8dde25a6e39e1a5e7254e7605a5299f2796553e4bead4241ab91f9c3db",
+    "targetPlanDigests": [
+      "sha256:97eba16b78752c5e4957305999e3c8bef25ceed0970bff914a88f6b45125e388"
+    ],
+    "signingAuthority": "local-choice-acceptance",
+    "publicKeyDigest": "sha256:cc81b535f052097ba52c54cd1e2b7025d9de5e05702cd4d6fea57779c2760b55",
+    "signing": "fresh local test key from tests/integration/rig-choice-scoring-capsule.js; test release metadata; not release trust"
+  }
+}

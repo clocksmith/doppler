@@ -1,0 +1,103 @@
+{
+  "engine": "doppler",
+  "rep": 1,
+  "profileDir": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/compare-0632b/profiles/doppler-1",
+  "cold": {
+    "openMs": 10204.600000023842,
+    "observations": 40,
+    "version": null,
+    "trace": null,
+    "firstDecisionMs": 846,
+    "launchToFirstDecisionMs": 11055,
+    "storage": {
+      "usage": 944451481,
+      "quota": 39567345254,
+      "usageDetails": {
+        "fileSystem": 944451481
+      },
+      "cached": []
+    },
+    "transfer": {
+      "modelBytes": 944564192,
+      "modelRequests": 41
+    },
+    "pageErrors": [
+      "error: Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "warning: [7029.9ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model."
+    ],
+    "peakMemory": {
+      "totalRss": 2140499968,
+      "rendererRss": 1392836608,
+      "gpuProcessRss": 242032640,
+      "gpuMemory": 6960566272
+    }
+  },
+  "referenceScores": [
+    [
+      "bug",
+      13.130777359008789,
+      16.35968780517578
+    ],
+    [
+      "feature",
+      8.676734924316406,
+      15.312094688415527
+    ],
+    [
+      "question",
+      7.715510368347168,
+      15.114595413208008
+    ]
+  ],
+  "warmMs": [
+    453.10000002384186,
+    560.6000000238419,
+    312.10000002384186,
+    922.6000000238419,
+    945.6000000238419,
+    509.10000002384186,
+    578.5,
+    396.30000001192093,
+    548.8000000119209,
+    420.10000002384186,
+    333.5,
+    799.3999999761581,
+    753.1999999880791,
+    356.39999997615814,
+    594.8000000119209,
+    332.10000002384186,
+    438.80000001192093,
+    563.8000000119209,
+    546.4000000357628,
+    864
+  ],
+  "cancel": {
+    "status": "GenerationError",
+    "code": "DOPPLER_GENERATION_ABORTED",
+    "message": "signal is aborted without reason",
+    "delayMs": 60,
+    "totalMs": 242.4000000357628,
+    "abortToSettleMs": 182.10000002384186,
+    "reuseIdentical": true
+  },
+  "offline": {
+    "openMs": 8685.299999952316,
+    "observations": 40,
+    "version": null,
+    "trace": null,
+    "identical": true,
+    "firstDecisionMs": 926.4000000357628,
+    "transfer": {
+      "modelBytes": 0,
+      "modelRequests": 0,
+      "blockedUrls": []
+    },
+    "pageErrors": [
+      "warning: [5549.0ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model."
+    ]
+  },
+  "recovery": {
+    "relaunchToFirstDecisionMs": 9752,
+    "identical": true
+  }
+}
