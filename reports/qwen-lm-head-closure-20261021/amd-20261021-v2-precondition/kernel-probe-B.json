@@ -1,0 +1,423 @@
+{
+  "sourceRoot": "/home/x/deco/doppler",
+  "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+  "startedAt": "2026-10-22T03:10:29.900Z",
+  "lifecycle": {
+    "unload": true,
+    "destroyDevice": true,
+    "browserClosed": true
+  },
+  "browserVersion": "146.0.7680.177",
+  "failedResponses": [
+    "404 http://127.0.0.1:42165/"
+  ],
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "requests": [
+    {
+      "kind": "warm",
+      "groups": {},
+      "pipelineCounts": null,
+      "elapsedMs": 877.9000000059605,
+      "tokens": [
+        11751,
+        13,
+        11751,
+        369,
+        279,
+        6511,
+        314,
+        9338,
+        13,
+        11751,
+        369,
+        279,
+        6511,
+        314,
+        9338,
+        13,
+        11751,
+        369,
+        279,
+        6511,
+        314,
+        9338,
+        13,
+        11751,
+        369,
+        279,
+        6511,
+        314,
+        9338,
+        13,
+        11751,
+        369
+      ],
+      "text": " Paris. Paris is the capital of France. Paris is the capital of France. Paris is the capital of France. Paris is the capital of France. Paris is",
+      "stats": {
+        "prefillTimeMs": 384.7000000178814,
+        "decodeTimeMs": 486.09999999403954,
+        "ttftMs": 388.69999998807907,
+        "prefillTokens": 5,
+        "decodeTokens": 31,
+        "memoryUsageBytes": 0,
+        "tokensGenerated": 32,
+        "totalTimeMs": 875.6999999880791,
+        "decodeRecordMs": 322.59999999403954,
+        "decodeRecordOps": 6851,
+        "decodeRecordPasses": 8,
+        "decodeSubmitWaitMs": 156.2000000178814,
+        "decodeReadbackWaitMs": 161.69999998807907,
+        "decodeReadbackMapWaitMs": 155.2000000178814,
+        "decodeReadbackCleanupMs": 5.4000000059604645,
+        "decodeReadbackCopyMs": 0.09999999403953552,
+        "prefillRecordMs": 315.30000001192093,
+        "prefillRecordOps": 337,
+        "prefillRecordPasses": 6,
+        "prefillSubmitWaitMs": 31.5,
+        "singleTokenSubmitWaitMs": 0,
+        "singleTokenReadbackWaitMs": 0,
+        "singleTokenReadbackMapWaitMs": 0,
+        "singleTokenReadbackCleanupMs": 0,
+        "singleTokenReadbackCopyMs": 0,
+        "singleTokenOrchestrationMs": 0,
+        "plePreparedTokenCacheHits": 0,
+        "plePreparedTokenCacheMisses": 0,
+        "plePreparedTokenCacheEntries": 0,
+        "plePreparedTokenCacheBytes": 0,
+        "pleHotVocabularyHits": 0,
+        "pleHotVocabularyMisses": 0,
+        "modelLoadMs": 5706.5,
+        "speculationAttempts": 0,
+        "speculationAccepted": 0
+      }
+    },
+    {
+      "kind": "warm",
+      "groups": {},
+      "pipelineCounts": {
+        "gather_f16_vec4_pipeline": 32,
+        "rmsnorm_default_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1": 87,
+        "matmul_q4_fused_widetile_pipeline": 144,
+        "matmul_f16w_f32a_pipeline": 36,
+        "linear_attention_conv_pipeline_f32": 18,
+        "linear_attention_recurrent_pipeline_f32": 18,
+        "rmsnorm_default_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1": 768,
+        "silu_default_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1": 24,
+        "residual_vec4_pipeline": 55,
+        "split_qkv_rmsnorm_rope_qk_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1": 6,
+        "kv_cache_write_f32_to_f16_pipeline": 6,
+        "attention_prefill_head256_f16kv_pipeline": 6,
+        "silu_default_pipeline_GATE_USE_SIGMOID=1|HAS_GATE=1|INPUT_USE_IDENTITY=1": 6,
+        "matmul_q4_fused_batched_multicol_shared_pipeline": 1,
+        "logit_finalize_f32_pipeline": 1,
+        "matmul_q4_fused_gemv_pipeline": 2976,
+        "matmul_gemv_subgroup_pipeline": 558,
+        "linear_attention_fused_decode_pipeline_f32": 558,
+        "fused_ffn_q4k_pipeline": 744,
+        "residual_rmsnorm_pair_subgroup_pipeline_NORM_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1": 713,
+        "split_qkv_rmsnorm_rope_qk_f16kv_cache_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1": 186,
+        "attention_decode_online_head256_f16kv_output_gate_pipeline": 186,
+        "lm_head_argmax_phase1_q4k_f32a_pipeline_COLS_PER_WG=128|THREADS_PER_COL=2|USE_FULL_BLOCK_FAST_PATH=1|WORKGROUP_SIZE=256": 31,
+        "lm_head_argmax_phase2_q4k_pipeline_COLS_PER_WG=128|THREADS_PER_COL=2|WORKGROUP_SIZE=256": 31
+      },
+      "elapsedMs": 454.7999999821186,
+      "tokens": [
+        11751,
+        13,
+        11751,
+        369,
+        279,
+        6511,
+        314,
+        9338,
+        13,
+        11751,
+        369,
+        279,
+        6511,
+        314,
+        9338,
+        13,
+        11751,
+        369,
+        279,
+        6511,
+        314,
+        9338,
+        13,
+        11751,
+        369,
+        279,
+        6511,
+        314,
+        9338,
+        13,
+        11751,
+        369
+      ],
+      "text": " Paris. Paris is the capital of France. Paris is the capital of France. Paris is the capital of France. Paris is the capital of France. Paris is",
+      "stats": {
+        "prefillTimeMs": 64,
+        "decodeTimeMs": 374.59999999403954,
+        "ttftMs": 68.39999997615814,
+        "prefillTokens": 5,
+        "decodeTokens": 31,
+        "memoryUsageBytes": 0,
+        "tokensGenerated": 32,
+        "totalTimeMs": 443.09999999403954,
+        "decodeRecordMs": 164.2999999821186,
+        "decodeRecordOps": 6851,
+        "decodeRecordPasses": 8,
+        "decodeSubmitWaitMs": 205.40000000596046,
+        "decodeReadbackWaitMs": 209.40000000596046,
+        "decodeReadbackMapWaitMs": 205.30000001192093,
+        "decodeReadbackCleanupMs": 4,
+        "decodeReadbackCopyMs": 0.09999999403953552,
+        "prefillRecordMs": 13.499999970197678,
+        "prefillRecordOps": 337,
+        "prefillRecordPasses": 6,
+        "prefillSubmitWaitMs": 28.400000035762787,
+        "singleTokenSubmitWaitMs": 0,
+        "singleTokenReadbackWaitMs": 0,
+        "singleTokenReadbackMapWaitMs": 0,
+        "singleTokenReadbackCleanupMs": 0,
+        "singleTokenReadbackCopyMs": 0,
+        "singleTokenOrchestrationMs": 0,
+        "plePreparedTokenCacheHits": 0,
+        "plePreparedTokenCacheMisses": 0,
+        "plePreparedTokenCacheEntries": 0,
+        "plePreparedTokenCacheBytes": 0,
+        "pleHotVocabularyHits": 0,
+        "pleHotVocabularyMisses": 0,
+        "modelLoadMs": 5706.5,
+        "speculationAttempts": 0,
+        "speculationAccepted": 0
+      }
+    },
+    {
+      "kind": "profiled",
+      "groups": {
+        "prefill:gather_f16_vec4_pipeline": {
+          "count": 1,
+          "durationMs": 0.006733
+        },
+        "prefill:rmsnorm_default_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1": {
+          "count": 24,
+          "durationMs": 0.216847
+        },
+        "prefill:matmul_q4_fused_widetile_pipeline": {
+          "count": 144,
+          "durationMs": 12.689617000000004
+        },
+        "prefill:matmul_f16w_f32a_pipeline": {
+          "count": 36,
+          "durationMs": 4.845692999999999
+        },
+        "prefill:linear_attention_conv_pipeline_f32": {
+          "count": 18,
+          "durationMs": 0.268424
+        },
+        "prefill:linear_attention_recurrent_pipeline_f32": {
+          "count": 18,
+          "durationMs": 3.4818529999999996
+        },
+        "prefill:rmsnorm_default_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1": {
+          "count": 24,
+          "durationMs": 0.213042
+        },
+        "prefill:silu_default_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1": {
+          "count": 24,
+          "durationMs": 0.14198700000000003
+        },
+        "prefill:residual_vec4_pipeline": {
+          "count": 24,
+          "durationMs": 0.211079
+        },
+        "prefill:split_qkv_rmsnorm_rope_qk_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1": {
+          "count": 6,
+          "durationMs": 0.054822
+        },
+        "prefill:kv_cache_write_f32_to_f16_pipeline": {
+          "count": 6,
+          "durationMs": 0.046848999999999995
+        },
+        "prefill:attention_prefill_head256_f16kv_pipeline": {
+          "count": 6,
+          "durationMs": 0.513643
+        },
+        "prefill:silu_default_pipeline_GATE_USE_SIGMOID=1|HAS_GATE=1|INPUT_USE_IDENTITY=1": {
+          "count": 6,
+          "durationMs": 0.055744
+        },
+        "prefill:#computePasses": {
+          "count": 337,
+          "durationMs": 0
+        },
+        "prefill:#measuredPasses": {
+          "count": 337,
+          "durationMs": 0
+        },
+        "prefill:#unmeasuredPasses": {
+          "count": 0,
+          "durationMs": 0
+        },
+        "decode:rmsnorm_default_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1": {
+          "count": 61,
+          "durationMs": 0.6591930000000003
+        },
+        "decode:matmul_q4_fused_gemv_pipeline": {
+          "count": 2976,
+          "durationMs": 143.67108299999978
+        },
+        "decode:matmul_gemv_subgroup_pipeline": {
+          "count": 558,
+          "durationMs": 6.9919700000000065
+        },
+        "decode:linear_attention_fused_decode_pipeline_f32": {
+          "count": 558,
+          "durationMs": 38.719419999999985
+        },
+        "decode:rmsnorm_default_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1": {
+          "count": 744,
+          "durationMs": 4.304763000000003
+        },
+        "decode:fused_ffn_q4k_pipeline": {
+          "count": 744,
+          "durationMs": 77.49844
+        },
+        "decode:residual_rmsnorm_pair_subgroup_pipeline_NORM_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1": {
+          "count": 713,
+          "durationMs": 6.655641999999997
+        },
+        "decode:split_qkv_rmsnorm_rope_qk_f16kv_cache_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1": {
+          "count": 186,
+          "durationMs": 0.7885939999999994
+        },
+        "decode:attention_decode_online_head256_f16kv_output_gate_pipeline": {
+          "count": 186,
+          "durationMs": 1.8603439999999996
+        },
+        "decode:residual_vec4_pipeline": {
+          "count": 31,
+          "durationMs": 0.23632499999999998
+        },
+        "decode:#computePasses": {
+          "count": 6907,
+          "durationMs": 0
+        },
+        "decode:#measuredPasses": {
+          "count": 6907,
+          "durationMs": 0
+        },
+        "decode:#unmeasuredPasses": {
+          "count": 0,
+          "durationMs": 0
+        },
+        "decode:gather_f16_vec4_pipeline": {
+          "count": 30,
+          "durationMs": 0.28798
+        },
+        "decode:matmul_q4_fused_gemv_pipeline_COLS_PER_WG=64|THREADS_PER_COL_GEMV=4": {
+          "count": 30,
+          "durationMs": 40.300133999999986
+        },
+        "decode:logit_finalize_f32_pipeline": {
+          "count": 30,
+          "durationMs": 0.24935000000000004
+        },
+        "decode:sample_argmax_pipeline": {
+          "count": 30,
+          "durationMs": 0.14639300000000005
+        },
+        "decode:sample_argmax_reduce_pipeline": {
+          "count": 30,
+          "durationMs": 0.08724600000000002
+        }
+      },
+      "pipelineCounts": null,
+      "elapsedMs": 1064.2999999821186,
+      "tokens": [
+        11751,
+        198,
+        760,
+        6511,
+        314,
+        9338,
+        369,
+        11751,
+        13,
+        1049,
+        369,
+        279,
+        7526,
+        3177,
+        303,
+        9338,
+        321,
+        279,
+        2018,
+        7526,
+        303,
+        4357,
+        13,
+        1049,
+        369,
+        279,
+        6511,
+        314,
+        279,
+        57109,
+        273,
+        6596
+      ],
+      "text": " Paris\nThe capital of France is Paris. It is the largest city in France and the second largest in Europe. It is the capital of the Île-de",
+      "stats": {
+        "prefillTimeMs": 81.30000001192093,
+        "decodeTimeMs": 971.6000000238419,
+        "ttftMs": 87.09999999403954,
+        "prefillTokens": 5,
+        "decodeTokens": 31,
+        "memoryUsageBytes": 0,
+        "tokensGenerated": 32,
+        "totalTimeMs": 1058.800000011921,
+        "decodeRecordMs": 95.80000001192093,
+        "decodeRecordOps": 3536,
+        "decodeRecordPasses": 3536,
+        "decodeSubmitWaitMs": 102.5,
+        "decodeReadbackWaitMs": 104.40000000596046,
+        "decodeReadbackMapWaitMs": 102.30000001192093,
+        "decodeReadbackCleanupMs": 2,
+        "decodeReadbackCopyMs": 0,
+        "prefillRecordMs": 12.399999976158142,
+        "prefillRecordOps": 337,
+        "prefillRecordPasses": 337,
+        "prefillSubmitWaitMs": 46.20000001788139,
+        "singleTokenSubmitWaitMs": 0.6000000834465027,
+        "singleTokenReadbackWaitMs": 411.6999998986721,
+        "singleTokenReadbackMapWaitMs": 401.89999997615814,
+        "singleTokenReadbackCleanupMs": 8.699999988079071,
+        "singleTokenReadbackCopyMs": 0.29999998211860657,
+        "singleTokenOrchestrationMs": 314.6000000834465,
+        "plePreparedTokenCacheHits": 0,
+        "plePreparedTokenCacheMisses": 0,
+        "plePreparedTokenCacheEntries": 0,
+        "plePreparedTokenCacheBytes": 0,
+        "pleHotVocabularyHits": 0,
+        "pleHotVocabularyMisses": 0,
+        "modelLoadMs": 5706.5,
+        "speculationAttempts": 0,
+        "speculationAccepted": 0,
+        "gpuTimePrefillMs": 22.746333,
+        "gpuTimeDecodeMs": 322.45687699999996
+      }
+    }
+  ],
+  "runtimeProfile": "profiles/qwen-3-5-2b-vulkan-parity",
+  "lmHeadFusion": true,
+  "openMs": 5837.5999999940395,
+  "adapterInfo": null,
+  "finishedAt": "2026-10-22T03:10:38.875Z"
+}

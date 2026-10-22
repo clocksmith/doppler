@@ -1,0 +1,72 @@
+commit 0e0c5276a379dcf9f1756852f10c09cf7f0b198f
+Author: X <x@simulatte.world>
+Date:   Mon Oct 19 20:52:05 2026 -0400
+
+    Optimize Q4_K LM head argmax with cooperative shared-memory activation caching
+
+diff --git a/src/config/kernels/kernel-ref-digests.js b/src/config/kernels/kernel-ref-digests.js
+index 8a3b37e4..af2ff57e 100644
+--- a/src/config/kernels/kernel-ref-digests.js
++++ b/src/config/kernels/kernel-ref-digests.js
+@@ -230,8 +230,8 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
+   "linear_attention_summary.wgsl#main": "be9c1fe861dcb5ea46927749764267656a69160bc8b732c6eb1a1bcb0c075589",
+   "lm_head_argmax_f16.wgsl#phase1": "f99abe20b7b7a2de5fb03c9b0459bcc2ccdfd1c0bacfbb9465122de05702adbc",
+   "lm_head_argmax_f16.wgsl#phase2": "04176fa09b96bc7c68ae26bedc7bb67ca241dc4adfa1bdf068d4fbe81b807649",
+-  "lm_head_argmax_q4k.wgsl#phase1": "e4e709f582068e1e2b0cd96d132564683dae731bb80448a2dac7f1c8d62e75fd",
+-  "lm_head_argmax_q4k.wgsl#phase2": "eeb9e9d946a01892b3f401607b4ecd263a0f078bdb828e09857ec2e4c4bccb42",
++  "lm_head_argmax_q4k.wgsl#phase1": "8e535289ee900d724a39044d1a1dbe0b5921507da5aff37d081fa6d9c6cf029a",
++  "lm_head_argmax_q4k.wgsl#phase2": "f3c5e4f2ee4534dd6939e4651bbfe895fbe45894aaaacd5aa516d52facf2d01f",
+   "lm_head_select_logits.wgsl#main": "41ed8ecef1bb439dc852591278a78680bd4166e8e3d3af39484784722ccb3561",
+   "logit_finalize_f16.wgsl#main": "01a6168428392f81bfc4532a3042fe8fb5cdf617ede2119f2f6250da1a88c41c",
+   "logit_finalize_f32.wgsl#main": "11b4afe3f329082ae7d57481bb5cd32b29c7796f57ed1215007fdba1c47a2250",
+diff --git a/src/gpu/kernels/lm_head_argmax_q4k.wgsl b/src/gpu/kernels/lm_head_argmax_q4k.wgsl
+index d7453c86..4255277e 100644
+--- a/src/gpu/kernels/lm_head_argmax_q4k.wgsl
++++ b/src/gpu/kernels/lm_head_argmax_q4k.wgsl
+@@ -4,6 +4,7 @@ override WORKGROUP_SIZE: u32 = 256u;
+ override COLS_PER_WG: u32 = 64u;
+ override THREADS_PER_COL: u32 = 4u;
+ override USE_FULL_BLOCK_FAST_PATH: bool = false;
++override SHARED_HIDDEN_MAX: u32 = 2048u;
+ 
+ const QK_K: u32 = 256u;
+ const SUBBLOCK_SIZE: u32 = 32u;
+@@ -36,6 +37,7 @@ struct Q4KBlock {
+ @group(0) @binding(4) var<storage, read_write> temp_indices: array<u32>;
+ @group(0) @binding(5) var<storage, read_write> temp_logits: array<f32>;
+ 
++var<workgroup> shared_hidden: array<f32, SHARED_HIDDEN_MAX>;
+ var<workgroup> partial_sums: array<f32, MAX_WORKGROUP_SIZE>;
+ var<workgroup> candidate_values: array<f32, MAX_WORKGROUP_SIZE>;
+ var<workgroup> candidate_indices: array<u32, MAX_WORKGROUP_SIZE>;
+@@ -123,10 +125,10 @@ fn accumulate_full_block(block: Q4KBlock, k_base: u32) -> f32 {
+             let w3 = scale * f32(q3) - min_val;
+ 
+             partial_sum = partial_sum
+-                + hidden[k0] * w0
+-                + hidden[k0 + 1u] * w1
+-                + hidden[k0 + 2u] * w2
+-                + hidden[k0 + 3u] * w3;
++                + shared_hidden[k0] * w0
++                + shared_hidden[k0 + 1u] * w1
++                + shared_hidden[k0 + 2u] * w2
++                + shared_hidden[k0 + 3u] * w3;
+         }
+     }
+ 
+@@ -189,7 +191,14 @@ fn phase1(
+     let is_valid = col < u.vocab_size && col != u.pad_token_id;
+ 
+     let num_blocks = (u.hidden_size + QK_K - 1u) / QK_K;
+-    let has_full_blocks = USE_FULL_BLOCK_FAST_PATH && (u.hidden_size % QK_K) == 0u;
++    let has_full_blocks = USE_FULL_BLOCK_FAST_PATH && (u.hidden_size % QK_K) == 0u && u.hidden_size <= SHARED_HIDDEN_MAX;
++
++    if (has_full_blocks) {
++        for (var idx: u32 = local_id; idx < u.hidden_size; idx = idx + WORKGROUP_SIZE) {
++            shared_hidden[idx] = hidden[idx];
++        }
++        workgroupBarrier();
++    }
+     var partial_sum: f32 = 0.0;
+ 
+     if (is_valid) {
