@@ -8,7 +8,10 @@ window.harness = {
   async open(engineName, config) {
     const started = performance.now();
     if (engineName === 'doppler') {
-      engine = await openDopplerEngine({ descriptor: config.descriptor, baseUrl: location.href, mode: config.mode });
+      const events = [];
+      engine = await openDopplerEngine({ descriptor: config.descriptor, baseUrl: location.href, mode: config.mode,
+        onProgress: config.trace ? (event) => events.push({ atMs: performance.now() - started, type: event.type, phase: event.phase ?? null }) : undefined });
+      if (config.trace) engine.trace = { events, observations: engine.observations };
     } else {
       const transformers = await import('/tjs-package/dist/transformers.web.js');
       Object.assign(transformers.env, {
@@ -20,7 +23,8 @@ window.harness = {
       engine = await openTransformersEngine({ transformers, modelId: config.modelId });
       engine.version = transformers.env.version;
     }
-    return { openMs: performance.now() - started, observations: engine.observations.length, version: engine.version ?? null };
+    return { openMs: performance.now() - started, observations: engine.observations.length, version: engine.version ?? null,
+      trace: engine.trace ?? null };
   },
   async triage(issue) {
     const started = performance.now();

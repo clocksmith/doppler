@@ -1,0 +1,786 @@
+{
+  "install": {
+    "openMs": 9878.40000000596,
+    "observations": 40,
+    "version": null,
+    "trace": {
+      "events": [
+        {
+          "atMs": 497.90000000596046,
+          "type": "capsule-validation-started",
+          "phase": null
+        },
+        {
+          "atMs": 541,
+          "type": "target-selected",
+          "phase": null
+        },
+        {
+          "atMs": 6285.299999982119,
+          "type": "capsule-validation-complete",
+          "phase": null
+        },
+        {
+          "atMs": 9875.699999988079,
+          "type": "capsule-load-complete",
+          "phase": null
+        }
+      ],
+      "observations": [
+        {
+          "artifactId": "host-source:choice-scoring-d7abaa224ec64128.js:d7abaa224ec6",
+          "source": "network",
+          "bytes": 1096,
+          "storageReadMs": 0.4000000059604645,
+          "acquisitionMs": 1.2999999821186066,
+          "verificationMs": 0.10000002384185791,
+          "storageWriteMs": 1.199999988079071
+        },
+        {
+          "artifactId": "manifest:manifest.json:451c6a87d45f",
+          "source": "network",
+          "bytes": 138933,
+          "storageReadMs": 0.09999999403953552,
+          "acquisitionMs": 1.5999999940395355,
+          "verificationMs": 0,
+          "storageWriteMs": 0.800000011920929
+        },
+        {
+          "artifactId": "reference-report:node.json.qualification.json:90f897b405e4",
+          "source": "network",
+          "bytes": 69448,
+          "storageReadMs": 0.29999998211860657,
+          "acquisitionMs": 1,
+          "verificationMs": 0.10000002384185791,
+          "storageWriteMs": 0.699999988079071
+        },
+        {
+          "artifactId": "tokenizer:tokenizer.json:4dae0c382163",
+          "source": "network",
+          "bytes": 5363085,
+          "storageReadMs": 0.19999998807907104,
+          "acquisitionMs": 16.099999994039536,
+          "verificationMs": 3.300000011920929,
+          "storageWriteMs": 5.5999999940395355
+        },
+        {
+          "artifactId": "weight-shard:shard_00000.bin:e43dc1fe4741",
+          "source": "network",
+          "bytes": 67108864,
+          "storageReadMs": 0.5,
+          "acquisitionMs": 56.19999998807907,
+          "verificationMs": 42.60000002384186,
+          "storageWriteMs": 65.09999999403954
+        },
+        {
+          "artifactId": "weight-shard:shard_00001.bin:b1a9ca6f91fb",
+          "source": "network",
+          "bytes": 67108864,
+          "storageReadMs": 0.7000000178813934,
+          "acquisitionMs": 47.79999998211861,
+          "verificationMs": 45.099999994039536,
+          "storageWriteMs": 49
+        },
+        {
+          "artifactId": "weight-shard:shard_00002.bin:53bb6a526b12",
+          "source": "network",
+          "bytes": 67108864,
+          "storageReadMs": 1,
+          "acquisitionMs": 53.10000002384186,
+          "verificationMs": 42.29999998211861,
+          "storageWriteMs": 46.80000001192093
+        },
+        {
+          "artifactId": "weight-shard:shard_00003.bin:74b1668c3510",
+          "source": "network",
+          "bytes": 67108864,
+          "storageReadMs": 0.9000000059604645,
+          "acquisitionMs": 47.20000001788139,
+          "verificationMs": 44.19999998807907,
+          "storageWriteMs": 48.900000005960464
+        },
+        {
+          "artifactId": "weight-shard:shard_00004.bin:1f70260c1575",
+          "source": "network",
+          "bytes": 67108864,
+          "storageReadMs": 0.7000000178813934,
+          "acquisitionMs": 46.89999997615814,
+          "verificationMs": 41.5,
+          "storageWriteMs": 45.10000002384186
+        },
+        {
+          "artifactId": "weight-shard:shard_00005.bin:be400366f257",
+          "source": "network",
+          "bytes": 67108864,
+          "storageReadMs": 0.699999988079071,
+          "acquisitionMs": 46.099999994039536,
+          "verificationMs": 41.30000001192093,
+          "storageWriteMs": 42.80000001192093
+        },
+        {
+          "artifactId": "weight-shard:shard_00006.bin:6eddb4885ed8",
+          "source": "network",
+          "bytes": 67108864,
+          "storageReadMs": 1,
+          "acquisitionMs": 45.400000005960464,
+          "verificationMs": 40.69999998807907,
+          "storageWriteMs": 45
+        },
+        {
+          "artifactId": "weight-shard:shard_00007.bin:b423fe39fd37",
+          "source": "network",
+          "bytes": 67108864,
+          "storageReadMs": 0.699999988079071,
+          "acquisitionMs": 46.599999994039536,
+          "verificationMs": 40.80000001192093,
+          "storageWriteMs": 43.900000005960464
+        },
+        {
+          "artifactId": "weight-shard:shard_00008.bin:c4cd27f13f53",
+          "source": "network",
+          "bytes": 67108864,
+          "storageReadMs": 0.5999999940395355,
+          "acquisitionMs": 45.20000001788139,
+          "verificationMs": 39.89999997615814,
+          "storageWriteMs": 45.20000001788139
+        },
+        {
+          "artifactId": "weight-shard:shard_00009.bin:ddee29d1cc48",
+          "source": "network",
+          "bytes": 67108864,
+          "storageReadMs": 0.7000000178813934,
+          "acquisitionMs": 42.599999994039536,
+          "verificationMs": 40.70000001788139,
+          "storageWriteMs": 39.79999998211861
+        },
+        {
+          "artifactId": "weight-shard:shard_00010.bin:7106ff539dee",
+          "source": "network",
+          "bytes": 67108864,
+          "storageReadMs": 0.7999999821186066,
+          "acquisitionMs": 45.400000005960464,
+          "verificationMs": 40,
+          "storageWriteMs": 38.69999998807907
+        },
+        {
+          "artifactId": "weight-shard:shard_00011.bin:8bf8ba947928",
+          "source": "network",
+          "bytes": 67108864,
+          "storageReadMs": 0.699999988079071,
+          "acquisitionMs": 49.599999994039536,
+          "verificationMs": 40.80000001192093,
+          "storageWriteMs": 43.599999994039536
+        },
+        {
+          "artifactId": "weight-shard:shard_00012.bin:2af87d6ca8ec",
+          "source": "network",
+          "bytes": 67108864,
+          "storageReadMs": 0.7999999821186066,
+          "acquisitionMs": 47.70000001788139,
+          "verificationMs": 40.29999998211861,
+          "storageWriteMs": 40.20000001788139
+        },
+        {
+          "artifactId": "weight-shard:shard_00013.bin:4a59f30b1fd6",
+          "source": "network",
+          "bytes": 65906688,
+          "storageReadMs": 0.5999999940395355,
+          "acquisitionMs": 48.900000005960464,
+          "verificationMs": 39.69999998807907,
+          "storageWriteMs": 42.69999998807907
+        },
+        {
+          "artifactId": "wgsl-source:attn_decode-e433b9865c273417.wgsl:e433b9865c27",
+          "source": "network",
+          "bytes": 13341,
+          "storageReadMs": 1.100000023841858,
+          "acquisitionMs": 2.0999999940395355,
+          "verificationMs": 0.09999999403953552,
+          "storageWriteMs": 0.800000011920929
+        },
+        {
+          "artifactId": "wgsl-source:attn_head128-700ed13b2f8abe00.wgsl:700ed13b2f8a",
+          "source": "network",
+          "bytes": 8804,
+          "storageReadMs": 0.19999998807907104,
+          "acquisitionMs": 1.2000000178813934,
+          "verificationMs": 0.09999999403953552,
+          "storageWriteMs": 0.699999988079071
+        },
+        {
+          "artifactId": "wgsl-source:dequant_q4_f16-8c07df9b95c2af5c.wgsl:8c07df9b95c2",
+          "source": "network",
+          "bytes": 4927,
+          "storageReadMs": 0.09999999403953552,
+          "acquisitionMs": 1,
+          "verificationMs": 0,
+          "storageWriteMs": 0.5999999940395355
+        },
+        {
+          "artifactId": "wgsl-source:embed-9df554650458ecd3.wgsl:9df554650458",
+          "source": "network",
+          "bytes": 2637,
+          "storageReadMs": 0.09999999403953552,
+          "acquisitionMs": 1,
+          "verificationMs": 0,
+          "storageWriteMs": 0.5
+        },
+        {
+          "artifactId": "wgsl-source:gather_vec4-e31f92511add1fd3.wgsl:e31f92511add",
+          "source": "network",
+          "bytes": 2909,
+          "storageReadMs": 0.09999999403953552,
+          "acquisitionMs": 0.9000000059604645,
+          "verificationMs": 0,
+          "storageWriteMs": 0.5
+        },
+        {
+          "artifactId": "wgsl-source:gemv-04db4c712bc4f88c.wgsl:04db4c712bc4",
+          "source": "network",
+          "bytes": 16657,
+          "storageReadMs": 0,
+          "acquisitionMs": 0.9000000059604645,
+          "verificationMs": 0.09999999403953552,
+          "storageWriteMs": 0.4000000059604645
+        },
+        {
+          "artifactId": "wgsl-source:kv_write_f32_f16-fdba1f04c135d44d.wgsl:fdba1f04c135",
+          "source": "network",
+          "bytes": 861,
+          "storageReadMs": 0.09999999403953552,
+          "acquisitionMs": 0.800000011920929,
+          "verificationMs": 0,
+          "storageWriteMs": 0.699999988079071
+        },
+        {
+          "artifactId": "wgsl-source:lm_head_select_logits-232e803e00fa9b7b.wgsl:232e803e00fa",
+          "source": "network",
+          "bytes": 2064,
+          "storageReadMs": 0.09999999403953552,
+          "acquisitionMs": 1.2999999821186066,
+          "verificationMs": 0.10000002384185791,
+          "storageWriteMs": 0.5
+        },
+        {
+          "artifactId": "wgsl-source:q4_decode_gemv-9c4d919d5ad5eadd.wgsl:9c4d919d5ad5",
+          "source": "network",
+          "bytes": 15738,
+          "storageReadMs": 0.09999999403953552,
+          "acquisitionMs": 1.5,
+          "verificationMs": 0,
+          "storageWriteMs": 0.5999999940395355
+        },
+        {
+          "artifactId": "wgsl-source:q4_widetile-d38300e9c30877e2.wgsl:d38300e9c308",
+          "source": "network",
+          "bytes": 6179,
+          "storageReadMs": 0.20000001788139343,
+          "acquisitionMs": 0.9000000059604645,
+          "verificationMs": 0.09999999403953552,
+          "storageWriteMs": 0.5
+        },
+        {
+          "artifactId": "wgsl-source:residual_vec4-04781252bb73f1a2.wgsl:04781252bb73",
+          "source": "network",
+          "bytes": 1366,
+          "storageReadMs": 0.09999999403953552,
+          "acquisitionMs": 0.9000000059604645,
+          "verificationMs": 0,
+          "storageWriteMs": 0.5999999940395355
+        },
+        {
+          "artifactId": "wgsl-source:residual-e5d606c42ae57cb7.wgsl:e5d606c42ae5",
+          "source": "network",
+          "bytes": 1712,
+          "storageReadMs": 0,
+          "acquisitionMs": 0.8999999761581421,
+          "verificationMs": 0,
+          "storageWriteMs": 0.5
+        },
+        {
+          "artifactId": "wgsl-source:rmsnorm_qk-44629a6d94587955.wgsl:44629a6d9458",
+          "source": "network",
+          "bytes": 4740,
+          "storageReadMs": 0.09999999403953552,
+          "acquisitionMs": 0.7999999821186066,
+          "verificationMs": 0,
+          "storageWriteMs": 0.6000000238418579
+        },
+        {
+          "artifactId": "wgsl-source:rmsnorm-a1986477198de29a.wgsl:a1986477198d",
+          "source": "network",
+          "bytes": 16212,
+          "storageReadMs": 0.19999998807907104,
+          "acquisitionMs": 0.800000011920929,
+          "verificationMs": 0,
+          "storageWriteMs": 0.5999999940395355
+        },
+        {
+          "artifactId": "wgsl-source:rope_precompute-5a8cd9b06791bfcb.wgsl:5a8cd9b06791",
+          "source": "network",
+          "bytes": 8180,
+          "storageReadMs": 0,
+          "acquisitionMs": 0.9000000059604645,
+          "verificationMs": 0.09999999403953552,
+          "storageWriteMs": 0.4000000059604645
+        },
+        {
+          "artifactId": "wgsl-source:rope_qk-8b4d60b823a54159.wgsl:8b4d60b823a5",
+          "source": "network",
+          "bytes": 3360,
+          "storageReadMs": 0,
+          "acquisitionMs": 0.8999999761581421,
+          "verificationMs": 0,
+          "storageWriteMs": 0.6000000238418579
+        },
+        {
+          "artifactId": "wgsl-source:rope-67f33084da2b0e14.wgsl:67f33084da2b",
+          "source": "network",
+          "bytes": 12276,
+          "storageReadMs": 0.09999999403953552,
+          "acquisitionMs": 1.4000000059604645,
+          "verificationMs": 0,
+          "storageWriteMs": 0.5999999940395355
+        },
+        {
+          "artifactId": "wgsl-source:sample-b36189b2be356219.wgsl:b36189b2be35",
+          "source": "network",
+          "bytes": 13094,
+          "storageReadMs": 0.20000001788139343,
+          "acquisitionMs": 0.9000000059604645,
+          "verificationMs": 0.09999999403953552,
+          "storageWriteMs": 0.5
+        },
+        {
+          "artifactId": "wgsl-source:silu-38f7209006ccacb8.wgsl:38f7209006cc",
+          "source": "network",
+          "bytes": 5216,
+          "storageReadMs": 0.09999999403953552,
+          "acquisitionMs": 1,
+          "verificationMs": 0,
+          "storageWriteMs": 0.5999999940395355
+        },
+        {
+          "artifactId": "wgsl-source:tiled-8376893a0d1badbe.wgsl:8376893a0d1b",
+          "source": "network",
+          "bytes": 8284,
+          "storageReadMs": 0.20000001788139343,
+          "acquisitionMs": 1,
+          "verificationMs": 0,
+          "storageWriteMs": 0.4000000059604645
+        },
+        {
+          "artifactId": "qualification-evidence:qualification-browser-webgpu-b4cd4c9916eb.json:b4cd4c9916eb",
+          "source": "network",
+          "bytes": 69394,
+          "storageReadMs": 0.19999998807907104,
+          "acquisitionMs": 1,
+          "verificationMs": 0.09999999403953552,
+          "storageWriteMs": 0.5
+        },
+        {
+          "artifactId": "program-bundle:program-bundle.json:a227b84b9f24",
+          "source": "network",
+          "bytes": 185432,
+          "storageReadMs": 0.09999999403953552,
+          "acquisitionMs": 1.4000000059604645,
+          "verificationMs": 0.09999999403953552,
+          "storageWriteMs": 0.7000000178813934
+        }
+      ]
+    }
+  },
+  "reopen": {
+    "openMs": 8726.200000017881,
+    "observations": 40,
+    "version": null,
+    "trace": {
+      "events": [
+        {
+          "atMs": 413.30000001192093,
+          "type": "capsule-validation-started",
+          "phase": null
+        },
+        {
+          "atMs": 458.60000002384186,
+          "type": "target-selected",
+          "phase": null
+        },
+        {
+          "atMs": 5178.100000023842,
+          "type": "capsule-validation-complete",
+          "phase": null
+        },
+        {
+          "atMs": 8726,
+          "type": "capsule-load-complete",
+          "phase": null
+        }
+      ],
+      "observations": [
+        {
+          "artifactId": "host-source:choice-scoring-d7abaa224ec64128.js:d7abaa224ec6",
+          "source": "storage",
+          "bytes": 1096,
+          "storageReadMs": 0.7000000178813934,
+          "verificationMs": 0.09999999403953552
+        },
+        {
+          "artifactId": "manifest:manifest.json:451c6a87d45f",
+          "source": "storage",
+          "bytes": 138933,
+          "storageReadMs": 0.4000000059604645,
+          "verificationMs": 0.09999999403953552
+        },
+        {
+          "artifactId": "reference-report:node.json.qualification.json:90f897b405e4",
+          "source": "storage",
+          "bytes": 69448,
+          "storageReadMs": 0.30000001192092896,
+          "verificationMs": 0.09999999403953552
+        },
+        {
+          "artifactId": "tokenizer:tokenizer.json:4dae0c382163",
+          "source": "storage",
+          "bytes": 5363085,
+          "storageReadMs": 2,
+          "verificationMs": 3.4000000059604645
+        },
+        {
+          "artifactId": "weight-shard:shard_00000.bin:e43dc1fe4741",
+          "source": "storage",
+          "bytes": 67108864,
+          "storageReadMs": 13.199999988079071,
+          "verificationMs": 45.60000002384186
+        },
+        {
+          "artifactId": "weight-shard:shard_00001.bin:b1a9ca6f91fb",
+          "source": "storage",
+          "bytes": 67108864,
+          "storageReadMs": 19.69999998807907,
+          "verificationMs": 47
+        },
+        {
+          "artifactId": "weight-shard:shard_00002.bin:53bb6a526b12",
+          "source": "storage",
+          "bytes": 67108864,
+          "storageReadMs": 25.900000005960464,
+          "verificationMs": 43.30000001192093
+        },
+        {
+          "artifactId": "weight-shard:shard_00003.bin:74b1668c3510",
+          "source": "storage",
+          "bytes": 67108864,
+          "storageReadMs": 21.900000005960464,
+          "verificationMs": 48.69999998807907
+        },
+        {
+          "artifactId": "weight-shard:shard_00004.bin:1f70260c1575",
+          "source": "storage",
+          "bytes": 67108864,
+          "storageReadMs": 26.600000023841858,
+          "verificationMs": 44.39999997615814
+        },
+        {
+          "artifactId": "weight-shard:shard_00005.bin:be400366f257",
+          "source": "storage",
+          "bytes": 67108864,
+          "storageReadMs": 16.200000017881393,
+          "verificationMs": 47.19999998807907
+        },
+        {
+          "artifactId": "weight-shard:shard_00006.bin:6eddb4885ed8",
+          "source": "storage",
+          "bytes": 67108864,
+          "storageReadMs": 16.5,
+          "verificationMs": 42.5
+        },
+        {
+          "artifactId": "weight-shard:shard_00007.bin:b423fe39fd37",
+          "source": "storage",
+          "bytes": 67108864,
+          "storageReadMs": 15.900000005960464,
+          "verificationMs": 41.69999998807907
+        },
+        {
+          "artifactId": "weight-shard:shard_00008.bin:c4cd27f13f53",
+          "source": "storage",
+          "bytes": 67108864,
+          "storageReadMs": 15.800000011920929,
+          "verificationMs": 42.19999998807907
+        },
+        {
+          "artifactId": "weight-shard:shard_00009.bin:ddee29d1cc48",
+          "source": "storage",
+          "bytes": 67108864,
+          "storageReadMs": 18.900000005960464,
+          "verificationMs": 43
+        },
+        {
+          "artifactId": "weight-shard:shard_00010.bin:7106ff539dee",
+          "source": "storage",
+          "bytes": 67108864,
+          "storageReadMs": 18.80000001192093,
+          "verificationMs": 42.099999994039536
+        },
+        {
+          "artifactId": "weight-shard:shard_00011.bin:8bf8ba947928",
+          "source": "storage",
+          "bytes": 67108864,
+          "storageReadMs": 13.099999994039536,
+          "verificationMs": 47.599999994039536
+        },
+        {
+          "artifactId": "weight-shard:shard_00012.bin:2af87d6ca8ec",
+          "source": "storage",
+          "bytes": 67108864,
+          "storageReadMs": 14,
+          "verificationMs": 42.400000005960464
+        },
+        {
+          "artifactId": "weight-shard:shard_00013.bin:4a59f30b1fd6",
+          "source": "storage",
+          "bytes": 65906688,
+          "storageReadMs": 19.099999994039536,
+          "verificationMs": 40.80000001192093
+        },
+        {
+          "artifactId": "wgsl-source:attn_decode-e433b9865c273417.wgsl:e433b9865c27",
+          "source": "storage",
+          "bytes": 13341,
+          "storageReadMs": 1.600000023841858,
+          "verificationMs": 0.09999999403953552
+        },
+        {
+          "artifactId": "wgsl-source:attn_head128-700ed13b2f8abe00.wgsl:700ed13b2f8a",
+          "source": "storage",
+          "bytes": 8804,
+          "storageReadMs": 4.600000023841858,
+          "verificationMs": 0.09999999403953552
+        },
+        {
+          "artifactId": "wgsl-source:dequant_q4_f16-8c07df9b95c2af5c.wgsl:8c07df9b95c2",
+          "source": "storage",
+          "bytes": 4927,
+          "storageReadMs": 0.4000000059604645,
+          "verificationMs": 0
+        },
+        {
+          "artifactId": "wgsl-source:embed-9df554650458ecd3.wgsl:9df554650458",
+          "source": "storage",
+          "bytes": 2637,
+          "storageReadMs": 0.4000000059604645,
+          "verificationMs": 0
+        },
+        {
+          "artifactId": "wgsl-source:gather_vec4-e31f92511add1fd3.wgsl:e31f92511add",
+          "source": "storage",
+          "bytes": 2909,
+          "storageReadMs": 0.4000000059604645,
+          "verificationMs": 0
+        },
+        {
+          "artifactId": "wgsl-source:gemv-04db4c712bc4f88c.wgsl:04db4c712bc4",
+          "source": "storage",
+          "bytes": 16657,
+          "storageReadMs": 0.3999999761581421,
+          "verificationMs": 0
+        },
+        {
+          "artifactId": "wgsl-source:kv_write_f32_f16-fdba1f04c135d44d.wgsl:fdba1f04c135",
+          "source": "storage",
+          "bytes": 861,
+          "storageReadMs": 0.4000000059604645,
+          "verificationMs": 0
+        },
+        {
+          "artifactId": "wgsl-source:lm_head_select_logits-232e803e00fa9b7b.wgsl:232e803e00fa",
+          "source": "storage",
+          "bytes": 2064,
+          "storageReadMs": 0.20000001788139343,
+          "verificationMs": 0
+        },
+        {
+          "artifactId": "wgsl-source:q4_decode_gemv-9c4d919d5ad5eadd.wgsl:9c4d919d5ad5",
+          "source": "storage",
+          "bytes": 15738,
+          "storageReadMs": 0.4000000059604645,
+          "verificationMs": 0
+        },
+        {
+          "artifactId": "wgsl-source:q4_widetile-d38300e9c30877e2.wgsl:d38300e9c308",
+          "source": "storage",
+          "bytes": 6179,
+          "storageReadMs": 0.4000000059604645,
+          "verificationMs": 0
+        },
+        {
+          "artifactId": "wgsl-source:residual_vec4-04781252bb73f1a2.wgsl:04781252bb73",
+          "source": "storage",
+          "bytes": 1366,
+          "storageReadMs": 0.699999988079071,
+          "verificationMs": 0
+        },
+        {
+          "artifactId": "wgsl-source:residual-e5d606c42ae57cb7.wgsl:e5d606c42ae5",
+          "source": "storage",
+          "bytes": 1712,
+          "storageReadMs": 0.4000000059604645,
+          "verificationMs": 0
+        },
+        {
+          "artifactId": "wgsl-source:rmsnorm_qk-44629a6d94587955.wgsl:44629a6d9458",
+          "source": "storage",
+          "bytes": 4740,
+          "storageReadMs": 0.30000001192092896,
+          "verificationMs": 0
+        },
+        {
+          "artifactId": "wgsl-source:rmsnorm-a1986477198de29a.wgsl:a1986477198d",
+          "source": "storage",
+          "bytes": 16212,
+          "storageReadMs": 0.30000001192092896,
+          "verificationMs": 0.09999999403953552
+        },
+        {
+          "artifactId": "wgsl-source:rope_precompute-5a8cd9b06791bfcb.wgsl:5a8cd9b06791",
+          "source": "storage",
+          "bytes": 8180,
+          "storageReadMs": 0.30000001192092896,
+          "verificationMs": 0
+        },
+        {
+          "artifactId": "wgsl-source:rope_qk-8b4d60b823a54159.wgsl:8b4d60b823a5",
+          "source": "storage",
+          "bytes": 3360,
+          "storageReadMs": 0.20000001788139343,
+          "verificationMs": 0.09999999403953552
+        },
+        {
+          "artifactId": "wgsl-source:rope-67f33084da2b0e14.wgsl:67f33084da2b",
+          "source": "storage",
+          "bytes": 12276,
+          "storageReadMs": 0.4000000059604645,
+          "verificationMs": 0
+        },
+        {
+          "artifactId": "wgsl-source:sample-b36189b2be356219.wgsl:b36189b2be35",
+          "source": "storage",
+          "bytes": 13094,
+          "storageReadMs": 0.4000000059604645,
+          "verificationMs": 0
+        },
+        {
+          "artifactId": "wgsl-source:silu-38f7209006ccacb8.wgsl:38f7209006cc",
+          "source": "storage",
+          "bytes": 5216,
+          "storageReadMs": 0.5,
+          "verificationMs": 0
+        },
+        {
+          "artifactId": "wgsl-source:tiled-8376893a0d1badbe.wgsl:8376893a0d1b",
+          "source": "storage",
+          "bytes": 8284,
+          "storageReadMs": 0.29999998211860657,
+          "verificationMs": 0
+        },
+        {
+          "artifactId": "qualification-evidence:qualification-browser-webgpu-b4cd4c9916eb.json:b4cd4c9916eb",
+          "source": "storage",
+          "bytes": 69394,
+          "storageReadMs": 0.5,
+          "verificationMs": 0
+        },
+        {
+          "artifactId": "program-bundle:program-bundle.json:a227b84b9f24",
+          "source": "storage",
+          "bytes": 185432,
+          "storageReadMs": 0.7000000178813934,
+          "verificationMs": 0.09999999403953552
+        }
+      ]
+    }
+  },
+  "cpuTop": [
+    [
+      "compressBlock src/formats/sha256.js:107",
+      3406
+    ],
+    [
+      "compress src/storage/blake3.js:44",
+      1493
+    ],
+    [
+      "digest 127.0.0.1:43569/app/installation.js:7",
+      621
+    ],
+    [
+      "(idle) :0",
+      446
+    ],
+    [
+      "createChunkOutput src/storage/blake3.js:187",
+      398
+    ],
+    [
+      "readRange client/runtime/verified-capsule-artifact-store.js:178",
+      362
+    ],
+    [
+      "(garbage collector) :0",
+      351
+    ],
+    [
+      "(program) :0",
+      338
+    ],
+    [
+      "blockWordsFromBytes src/storage/blake3.js:29",
+      284
+    ],
+    [
+      "(anon) client/runtime/verified-capsule-artifact-store.js:113",
+      227
+    ],
+    [
+      "update src/storage/blake3.js:276",
+      125
+    ],
+    [
+      "chainingValue src/storage/blake3.js:167",
+      85
+    ],
+    [
+      "parentOutput src/storage/blake3.js:218",
+      48
+    ],
+    [
+      "writeBufferAligned loader/tensors/buffer-write.js:16",
+      42
+    ],
+    [
+      "update src/formats/sha256.js:52",
+      39
+    ],
+    [
+      "loadTokenizerJson src/storage/artifact-storage-context.js:387",
+      34
+    ],
+    [
+      "computeCanonicalSha256 src/formats/canonical-hash.js:65",
+      32
+    ],
+    [
+      "writeAlignedChunk src/loader/model-executor.js:315",
+      27
+    ],
+    [
+      "readText client/runtime/capsule-artifact-source.js:56",
+      27
+    ],
+    [
+      "buildMergeRanks tokenizers/bundled/registry.js:97",
+      27
+    ]
+  ]
+}
