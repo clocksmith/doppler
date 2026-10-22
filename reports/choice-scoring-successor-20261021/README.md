@@ -1,5 +1,8 @@
 # Choice scoring on the 0.6.32 candidate archive (2026-10-21)
 
+**Superseded** by the [rebuilt candidate](../choice-scoring-successor-20261022/README.md): this
+candidate pins the tiled F16 matmul layout that corrupts output on Metal (`bed71e39…`).
+
 Re-runs the existing installed choice-scoring qualification
 ([prior record](../choice-scoring/README.md), archive 0.6.4) for the
 [reranker successor](../qwen-reranker-successor-20261021/README.md) on a 0.6.32 candidate archive.
