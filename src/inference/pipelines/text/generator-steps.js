@@ -894,6 +894,13 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
 
     state.currentSeqLen += actualCount;
     return { tokens: generatedTokens, actualCount };
+  } catch (error) {
+    // Submitted work may already have advanced KV and recurrent state while
+    // currentSeqLen did not; callers must not decode this position again in place.
+    if (recorder.getStats().submissionCount > 0 && error !== null && typeof error === 'object') {
+      error.decodeStateAdvanced = true;
+    }
+    throw error;
   } finally {
     state.batchingStats.totalBatchedTimeMs += Math.max(0, performance.now() - batchStart);
     state.batchingStats.gpuSubmissions += recorder.getStats().submissionCount;

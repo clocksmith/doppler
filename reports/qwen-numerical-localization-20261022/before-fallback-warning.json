@@ -1,0 +1,395 @@
+{
+ "sourceRoot": "/home/x/deco/doppler",
+ "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+ "startedAt": "2026-10-22T04:39:03.706Z",
+ "lifecycle": {
+  "unload": true,
+  "destroyDevice": true,
+  "browserClosed": true
+ },
+ "browserVersion": "146.0.7680.177",
+ "failedResponses": [
+  "404 http://127.0.0.1:33167/"
+ ],
+ "consoleErrors": [
+  "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "[7865.0ms][Pipeline] Batch decode failed, falling back to single-token: Error: [CommandRecorder] Timestamp query capacity did not cover every compute pass."
+ ],
+ "requests": [
+  {
+   "kind": "profile=false observer=false",
+   "groups": {},
+   "pipelineCounts": {
+    "gather_f16_vec4_pipeline": 32,
+    "rmsnorm_default_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1": 800,
+    "matmul_q4_fused_widetile_pipeline": 150,
+    "matmul_f16w_f32a_pipeline": 36,
+    "linear_attention_conv_pipeline_f32": 576,
+    "linear_attention_recurrent_pipeline_f32": 576,
+    "rmsnorm_default_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1": 768,
+    "silu_default_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1": 24,
+    "residual_vec4_pipeline": 768,
+    "split_qg_default_pipeline": 192,
+    "rmsnorm_qk_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1": 192,
+    "rope_qk_default_pipeline": 192,
+    "kv_cache_write_f32_to_f16_pipeline": 192,
+    "attention_prefill_head256_f16kv_pipeline": 6,
+    "silu_default_pipeline_GATE_USE_SIGMOID=1|HAS_GATE=1|INPUT_USE_IDENTITY=1": 192,
+    "matmul_q4_fused_batched_multicol_shared_pipeline": 1,
+    "logit_finalize_f32_pipeline": 32,
+    "matmul_q4_fused_gemv_pipeline": 3162,
+    "matmul_gemv_subgroup_pipeline": 1116,
+    "fused_ffn_q4k_pipeline": 744,
+    "attention_decode_online_f16kv_pipeline": 186,
+    "matmul_q4_fused_gemv_pipeline_COLS_PER_WG=64|THREADS_PER_COL_GEMV=4": 31,
+    "sample_argmax_pipeline": 31,
+    "sample_argmax_reduce_pipeline": 31
+   },
+   "elapsedMs": 898.5,
+   "tokens": [
+    11751,
+    13,
+    11751,
+    369,
+    279,
+    6511,
+    314,
+    9338,
+    13,
+    11751,
+    369,
+    279,
+    6511,
+    314,
+    9338,
+    13,
+    11751,
+    369,
+    279,
+    6511,
+    314,
+    9338,
+    13,
+    11751,
+    369,
+    279,
+    6511,
+    314,
+    9338,
+    13,
+    11751,
+    369
+   ],
+   "text": " Paris. Paris is the capital of France. Paris is the capital of France. Paris is the capital of France. Paris is the capital of France. Paris is",
+   "stats": {
+    "prefillTimeMs": 379.2999999821186,
+    "decodeTimeMs": 511.80000001192093,
+    "ttftMs": 384.09999999403954,
+    "prefillTokens": 5,
+    "decodeTokens": 31,
+    "memoryUsageBytes": 0,
+    "tokensGenerated": 32,
+    "totalTimeMs": 896.7999999821186,
+    "decodeRecordMs": 316.10000002384186,
+    "decodeRecordOps": 9672,
+    "decodeRecordPasses": 3,
+    "decodeSubmitWaitMs": 188.59999999403954,
+    "decodeReadbackWaitMs": 194.19999998807907,
+    "decodeReadbackMapWaitMs": 188.09999999403954,
+    "decodeReadbackCleanupMs": 5.800000011920929,
+    "decodeReadbackCopyMs": 0.09999999403953552,
+    "prefillRecordMs": 295.59999999403954,
+    "prefillRecordOps": 355,
+    "prefillRecordPasses": 6,
+    "prefillSubmitWaitMs": 31.600000023841858,
+    "singleTokenSubmitWaitMs": 0,
+    "singleTokenReadbackWaitMs": 0,
+    "singleTokenReadbackMapWaitMs": 0,
+    "singleTokenReadbackCleanupMs": 0,
+    "singleTokenReadbackCopyMs": 0,
+    "singleTokenOrchestrationMs": 0,
+    "plePreparedTokenCacheHits": 0,
+    "plePreparedTokenCacheMisses": 0,
+    "plePreparedTokenCacheEntries": 0,
+    "plePreparedTokenCacheBytes": 0,
+    "pleHotVocabularyHits": 0,
+    "pleHotVocabularyMisses": 0,
+    "modelLoadMs": 5760.300000011921,
+    "speculationAttempts": 0,
+    "speculationAccepted": 0
+   }
+  },
+  {
+   "kind": "profile=true observer=false",
+   "groups": {
+    "prefill:gather_f16_vec4_pipeline": {
+     "count": 1,
+     "durationMs": 0.005049
+    },
+    "prefill:rmsnorm_default_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1": {
+     "count": 24,
+     "durationMs": 0.209075
+    },
+    "prefill:matmul_q4_fused_widetile_pipeline": {
+     "count": 150,
+     "durationMs": 12.400706999999997
+    },
+    "prefill:matmul_f16w_f32a_pipeline": {
+     "count": 36,
+     "durationMs": 4.565006000000001
+    },
+    "prefill:linear_attention_conv_pipeline_f32": {
+     "count": 18,
+     "durationMs": 0.28000499999999995
+    },
+    "prefill:linear_attention_recurrent_pipeline_f32": {
+     "count": 18,
+     "durationMs": 3.516076
+    },
+    "prefill:rmsnorm_default_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1": {
+     "count": 24,
+     "durationMs": 0.22081300000000004
+    },
+    "prefill:silu_default_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1": {
+     "count": 24,
+     "durationMs": 0.14527099999999998
+    },
+    "prefill:residual_vec4_pipeline": {
+     "count": 24,
+     "durationMs": 0.22269499999999998
+    },
+    "prefill:split_qg_default_pipeline": {
+     "count": 6,
+     "durationMs": 0.030938
+    },
+    "prefill:rmsnorm_qk_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1": {
+     "count": 6,
+     "durationMs": 0.024326999999999998
+    },
+    "prefill:rope_qk_default_pipeline": {
+     "count": 6,
+     "durationMs": 0.018954000000000002
+    },
+    "prefill:kv_cache_write_f32_to_f16_pipeline": {
+     "count": 6,
+     "durationMs": 0.017472
+    },
+    "prefill:attention_prefill_head256_f16kv_pipeline": {
+     "count": 6,
+     "durationMs": 0.5032239999999999
+    },
+    "prefill:silu_default_pipeline_GATE_USE_SIGMOID=1|HAS_GATE=1|INPUT_USE_IDENTITY=1": {
+     "count": 6,
+     "durationMs": 0.049372
+    },
+    "prefill:#computePasses": {
+     "count": 355,
+     "durationMs": 0
+    },
+    "prefill:#measuredPasses": {
+     "count": 355,
+     "durationMs": 0
+    },
+    "prefill:#unmeasuredPasses": {
+     "count": 0,
+     "durationMs": 0
+    },
+    "decode:rmsnorm_default_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1": {
+     "count": 774,
+     "durationMs": 5.868933999999994
+    },
+    "decode:matmul_q4_fused_gemv_pipeline": {
+     "count": 3162,
+     "durationMs": 156.22105299999967
+    },
+    "decode:matmul_gemv_subgroup_pipeline": {
+     "count": 1116,
+     "durationMs": 14.546228999999975
+    },
+    "decode:linear_attention_conv_pipeline_f32": {
+     "count": 558,
+     "durationMs": 3.6856130000000027
+    },
+    "decode:linear_attention_recurrent_pipeline_f32": {
+     "count": 558,
+     "durationMs": 39.03527700000002
+    },
+    "decode:rmsnorm_default_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1": {
+     "count": 744,
+     "durationMs": 4.410046
+    },
+    "decode:fused_ffn_q4k_pipeline": {
+     "count": 744,
+     "durationMs": 80.28541599999991
+    },
+    "decode:residual_vec4_pipeline": {
+     "count": 744,
+     "durationMs": 3.2974260000000033
+    },
+    "decode:split_qg_default_pipeline": {
+     "count": 186,
+     "durationMs": 0.46335500000000013
+    },
+    "decode:rmsnorm_qk_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1": {
+     "count": 186,
+     "durationMs": 0.7037200000000006
+    },
+    "decode:rope_qk_default_pipeline": {
+     "count": 186,
+     "durationMs": 0.6047660000000004
+    },
+    "decode:kv_cache_write_f32_to_f16_pipeline": {
+     "count": 186,
+     "durationMs": 0.5854699999999998
+    },
+    "decode:attention_decode_online_f16kv_pipeline": {
+     "count": 186,
+     "durationMs": 6.339852000000001
+    },
+    "decode:silu_default_pipeline_GATE_USE_SIGMOID=1|HAS_GATE=1|INPUT_USE_IDENTITY=1": {
+     "count": 186,
+     "durationMs": 0.45857200000000004
+    },
+    "decode:#computePasses": {
+     "count": 9666,
+     "durationMs": 0
+    },
+    "decode:#measuredPasses": {
+     "count": 9666,
+     "durationMs": 0
+    },
+    "decode:#unmeasuredPasses": {
+     "count": 0,
+     "durationMs": 0
+    },
+    "decode:gather_f16_vec4_pipeline": {
+     "count": 30,
+     "durationMs": 0.398791
+    },
+    "decode:matmul_q4_fused_gemv_pipeline_COLS_PER_WG=64|THREADS_PER_COL_GEMV=4": {
+     "count": 30,
+     "durationMs": 40.650315000000006
+    },
+    "decode:logit_finalize_f32_pipeline": {
+     "count": 30,
+     "durationMs": 0.31662999999999997
+    },
+    "decode:sample_argmax_pipeline": {
+     "count": 30,
+     "durationMs": 0.16871699999999998
+    },
+    "decode:sample_argmax_reduce_pipeline": {
+     "count": 30,
+     "durationMs": 0.087405
+    }
+   },
+   "pipelineCounts": {
+    "gather_f16_vec4_pipeline": 63,
+    "rmsnorm_default_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1": 1575,
+    "matmul_q4_fused_widetile_pipeline": 150,
+    "matmul_f16w_f32a_pipeline": 36,
+    "linear_attention_conv_pipeline_f32": 1134,
+    "linear_attention_recurrent_pipeline_f32": 1134,
+    "rmsnorm_default_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1": 1512,
+    "silu_default_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1": 24,
+    "residual_vec4_pipeline": 1512,
+    "split_qg_default_pipeline": 378,
+    "rmsnorm_qk_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1": 378,
+    "rope_qk_default_pipeline": 378,
+    "kv_cache_write_f32_to_f16_pipeline": 378,
+    "attention_prefill_head256_f16kv_pipeline": 6,
+    "silu_default_pipeline_GATE_USE_SIGMOID=1|HAS_GATE=1|INPUT_USE_IDENTITY=1": 378,
+    "matmul_q4_fused_batched_multicol_shared_pipeline": 1,
+    "logit_finalize_f32_pipeline": 63,
+    "matmul_q4_fused_gemv_pipeline": 6324,
+    "matmul_gemv_subgroup_pipeline": 2232,
+    "fused_ffn_q4k_pipeline": 1488,
+    "attention_decode_online_f16kv_pipeline": 372,
+    "matmul_q4_fused_gemv_pipeline_COLS_PER_WG=64|THREADS_PER_COL_GEMV=4": 62,
+    "sample_argmax_pipeline": 61,
+    "sample_argmax_reduce_pipeline": 61
+   },
+   "elapsedMs": 1439.800000011921,
+   "tokens": [
+    11751,
+    198,
+    760,
+    6511,
+    314,
+    9338,
+    369,
+    11751,
+    13,
+    1049,
+    369,
+    279,
+    7526,
+    3177,
+    303,
+    9338,
+    321,
+    279,
+    2018,
+    7526,
+    303,
+    4357,
+    13,
+    1049,
+    369,
+    279,
+    6511,
+    314,
+    279,
+    57109,
+    273,
+    6596
+   ],
+   "text": " Paris\nThe capital of France is Paris. It is the largest city in France and the second largest in Europe. It is the capital of the \u00cele-de",
+   "stats": {
+    "prefillTimeMs": 91.30000001192093,
+    "decodeTimeMs": 1340.2000000178814,
+    "ttftMs": 94,
+    "prefillTokens": 5,
+    "decodeTokens": 31,
+    "memoryUsageBytes": 0,
+    "tokensGenerated": 32,
+    "totalTimeMs": 1434.4000000059605,
+    "decodeRecordMs": 256.5,
+    "decodeRecordOps": 9672,
+    "decodeRecordPasses": 9672,
+    "decodeSubmitWaitMs": 190,
+    "decodeReadbackWaitMs": 194.89999997615814,
+    "decodeReadbackMapWaitMs": 189.89999997615814,
+    "decodeReadbackCleanupMs": 4.5999999940395355,
+    "decodeReadbackCopyMs": 0.09999999403953552,
+    "prefillRecordMs": 12.400000035762787,
+    "prefillRecordOps": 355,
+    "prefillRecordPasses": 355,
+    "prefillSubmitWaitMs": 54.400000005960464,
+    "singleTokenSubmitWaitMs": 0.4999999701976776,
+    "singleTokenReadbackWaitMs": 461.0000000298023,
+    "singleTokenReadbackMapWaitMs": 447.7999999523163,
+    "singleTokenReadbackCleanupMs": 12.20000010728836,
+    "singleTokenReadbackCopyMs": 0.4000000059604645,
+    "singleTokenOrchestrationMs": 365.59999999403954,
+    "plePreparedTokenCacheHits": 0,
+    "plePreparedTokenCacheMisses": 0,
+    "plePreparedTokenCacheEntries": 0,
+    "plePreparedTokenCacheBytes": 0,
+    "pleHotVocabularyHits": 0,
+    "pleHotVocabularyMisses": 0,
+    "modelLoadMs": 5760.300000011921,
+    "speculationAttempts": 0,
+    "speculationAccepted": 0,
+    "gpuTimePrefillMs": 22.208984,
+    "gpuTimeDecodeMs": 358.12758700000006
+   }
+  }
+ ],
+ "runtimeProfile": null,
+ "lmHeadFusion": null,
+ "openMs": 5884.199999988079,
+ "adapterInfo": null,
+ "finishedAt": "2026-10-22T04:39:12.652Z"
+}
