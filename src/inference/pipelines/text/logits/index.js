@@ -571,8 +571,10 @@ export async function computeLogits(
     }
 
     if (selectedTokenIds && resolveLogitOutputScale(config) === 1) {
-      if (lastPositionOnly !== true) {
-        throw new Error('[Logits] selectedTokenIds requires lastPositionOnly=true.');
+      // A one-token final prefill chunk already has exactly one hidden row;
+      // resolveLmHeadMatmulConfig intentionally skips the redundant row slice.
+      if (matmulRows !== 1) {
+        throw new Error('[Logits] selectedTokenIds requires exactly one hidden row; set lastPositionOnly=true.');
       }
       if (lmHeadBias != null) {
         throw new Error('[Logits] selectedTokenIds with LM-head bias requires the full GPU logits path.');
