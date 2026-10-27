@@ -54,6 +54,8 @@ export type DownloadStatus = 'downloading' | 'paused' | 'completed' | 'error';
 export interface DownloadState {
   modelId: string;
   baseUrl: string;
+  manifestUrl?: string;
+  expectedManifestHash?: string | null;
   manifest: RDRRManifest;
   manifestVersionSet?: string;
   completedShards: Set<number>;
@@ -76,6 +78,8 @@ export interface DownloadState {
 export interface SerializedDownloadState {
   modelId: string;
   baseUrl: string;
+  manifestUrl?: string;
+  expectedManifestHash?: string | null;
   manifest: RDRRManifest;
   manifestVersionSet?: string;
   completedShards: number[];
@@ -96,6 +100,9 @@ export interface SerializedDownloadState {
  * Download options
  */
 export interface DownloadOptions {
+  /** Separate metadata URL. Requires expectedManifestHash; artifact URLs keep using baseUrl. */
+  manifestUrl?: string;
+  expectedManifestHash?: import('./download/integrity.js').ExpectedManifestHash;
   transport?: import('./distribution-transport.js').ShardTransport;
   concurrency?: number;
   requestPersist?: boolean;

@@ -1,9 +1,46 @@
+import { getManifestUrl } from '../../formats/rdrr/index.js';
 import {
   createStreamingHasher,
   loadFileFromStore,
   writeShard,
 } from '../shard-manager.js';
 import { resolveSourceArtifact } from '../source-artifact-store.js';
+
+export function normalizeExpectedManifestHash(value) {
+  const raw = value && typeof value === 'object'
+    ? value.hex ?? value.hash ?? value.digest ?? ''
+    : value;
+  const normalized = String(raw || '').trim().toLowerCase().replace(/^sha256:/, '');
+  if (!normalized) return null;
+  if (!/^[0-9a-f]{64}$/.test(normalized)) {
+    throw new Error('expectedManifestHash must be a SHA-256 hex digest.');
+  }
+  return normalized;
+}
+
+export function resolveManifestReference(baseUrl, options = {}) {
+  const expectedManifestHash = normalizeExpectedManifestHash(options.expectedManifestHash);
+  if (options.manifestUrl != null) {
+    if (typeof options.manifestUrl !== 'string' || !options.manifestUrl.trim()) {
+      throw new Error('manifestUrl must be a nonempty URL string.');
+    }
+    if (!expectedManifestHash) {
+      throw new Error('manifestUrl requires expectedManifestHash to pin the separate metadata.');
+    }
+  }
+  return {
+    manifestUrl: options.manifestUrl ?? getManifestUrl(baseUrl),
+    expectedManifestHash,
+  };
+}
+
+export async function assertManifestHash(text, expectedHash) {
+  if (!expectedHash) return;
+  const actualHash = await computeAssetHash(new TextEncoder().encode(text), 'sha256');
+  if (actualHash !== expectedHash) {
+    throw new Error(`Remote manifest hash mismatch: expected ${expectedHash}, got ${actualHash}.`);
+  }
+}
 
 export function buildManifestVersionSet(manifest) {
   const sourceArtifact = resolveSourceArtifact(manifest);

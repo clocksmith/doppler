@@ -31,6 +31,30 @@ import { getKernelCapabilities } from 'doppler-gpu/tooling/device';
 The umbrella tooling path remains a compatibility facade. New demo imports are
 restricted to the root API plus the runtime and evidence slices.
 
+## Pinned cache acquisition
+
+`ensureModelCachedSource(modelId, baseUrl, onProgress, options)` prepares an
+integrity-verified OPFS source. `baseUrl` always locates shards and tokenizer
+assets. An optional `options.manifestUrl` locates metadata separately and
+requires `options.expectedManifestHash`, a SHA-256 digest of the exact manifest
+text. Metadata must match before a model store is opened or weights are fetched;
+there is no fallback to `baseUrl/manifest.json` on refusal.
+
+```js
+const source = await ensureModelCachedSource(modelId, weightsBaseUrl, onProgress, {
+  manifestUrl: '/recognition/models/embedding/manifest.json',
+  expectedManifestHash: manifestSha256,
+  signal: controller.signal,
+});
+```
+
+A complete cache pinned to the expected manifest hash is verified without
+network requests. Cancellation never admits partial downloads as complete
+sources. Resuming a download preserves its metadata URL and hash pin; supplying
+new explicit options replaces those references and revalidates the manifest.
+These checks establish artifact integrity, not inference or performance
+qualification of a newly published manifest variant.
+
 ## Audience
 
 Tool builders, harness code, demos, and consumers that need browser/CLI command parity or direct access to the normalized command contract.

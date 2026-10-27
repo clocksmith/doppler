@@ -1,9 +1,18 @@
+export type ExpectedManifestHash = string | { hex?: string; hash?: string; digest?: string };
+export declare function normalizeExpectedManifestHash(value: ExpectedManifestHash | null | undefined): string | null;
+export declare function resolveManifestReference(baseUrl: string, options?: {
+  manifestUrl?: string;
+  expectedManifestHash?: ExpectedManifestHash;
+}): { manifestUrl: string; expectedManifestHash: string | null };
+
 export interface DownloadSourceStats {
   cache: number;
   p2p: number;
   http: number;
   unknown: number;
 }
+
+export declare function assertManifestHash(text: string, expectedHash: string | null): Promise<void>;
 
 export declare function buildManifestVersionSet(manifest: unknown): string;
 export declare function createDefaultSourceStats(): DownloadSourceStats;

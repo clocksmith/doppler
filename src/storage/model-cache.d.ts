@@ -32,6 +32,8 @@ export interface CachedModelSourceResult extends EnsureModelCachedResult {
 }
 
 export interface EnsureModelCachedSourceOptions {
+  /** Separate metadata URL. Requires expectedManifestHash; artifact URLs keep using baseUrl. */
+  manifestUrl?: string;
   expectedManifestHash?: string | { hex?: string; hash?: string; digest?: string };
   signal?: AbortSignal;
 }

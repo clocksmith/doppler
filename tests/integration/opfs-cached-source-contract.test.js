@@ -7,6 +7,7 @@ import {
   computeSHA256,
   deleteFileFromStore,
   openModelStore,
+  modelExists,
 } from '../../src/storage/shard-manager.js';
 import { loadPersistentModelSource } from '../../src/storage/model-cache.js';
 import { ensureModelCachedSource } from '../../src/tooling/opfs-cache.js';
@@ -210,7 +211,8 @@ try {
   });
 
   const modelId = 'opfs-cached-source-contract';
-  const modelBaseUrl = 'https://example.test/opfs-cached-source-contract';
+  const modelBaseUrl = 'https://weights.example.test/pinned/opfs-cached-source-contract';
+  const manifestUrl = 'https://metadata.example.test/migrated/manifest.json';
   const shardBytes = new Uint8Array([7, 11, 13, 17]);
   const manifest = await createManifest(modelId, shardBytes);
   const manifestText = JSON.stringify(manifest);
@@ -219,7 +221,7 @@ try {
   globalThis.fetch = async (url) => {
     fetchCount += 1;
     const href = String(url);
-    if (href === `${modelBaseUrl}/manifest.json`) {
+    if (href === manifestUrl) {
       return new Response(manifestText, { status: 200 });
     }
     if (href === `${modelBaseUrl}/model-00001-of-00001.bin`) {
@@ -228,8 +230,23 @@ try {
     throw new Error(`Unexpected fetch: ${href}`);
   };
 
+  await assert.rejects(
+    () => ensureModelCachedSource(modelId, modelBaseUrl, null, { manifestUrl }),
+    /manifestUrl requires expectedManifestHash/
+  );
+  assert.equal(fetchCount, 0);
+  await assert.rejects(
+    () => ensureModelCachedSource(modelId, modelBaseUrl, null, {
+      manifestUrl, expectedManifestHash: 'f'.repeat(64),
+    }),
+    /manifest hash mismatch/
+  );
+  assert.equal(fetchCount, 1, 'mismatched metadata must not fetch shards');
+  assert.equal(await modelExists(modelId), false, 'mismatched metadata must not open a store');
+
   const imported = await ensureModelCachedSource(modelId, modelBaseUrl, null, {
     expectedManifestHash,
+    manifestUrl,
   });
   assert.equal(imported.cacheState, 'imported');
   assert.equal(imported.storageBackend, 'opfs');
@@ -246,6 +263,7 @@ try {
   const hitEvents = [];
   const hit = await ensureModelCachedSource(modelId, modelBaseUrl, (event) => hitEvents.push(event), {
     expectedManifestHash,
+    manifestUrl,
   });
   assert.equal(hit.cacheState, 'verified-hit');
   assert.equal(hit.fromCache, true);
@@ -277,12 +295,13 @@ try {
   globalThis.fetch = async (url) => {
     repairFetches += 1;
     const href = String(url);
-    if (href === `${modelBaseUrl}/manifest.json`) return new Response(manifestText, { status: 200 });
+    if (href === manifestUrl) return new Response(manifestText, { status: 200 });
     if (href === `${modelBaseUrl}/model-00001-of-00001.bin`) return new Response(shardBytes, { status: 200 });
     throw new Error(`Unexpected repair fetch: ${href}`);
   };
   const repaired = await ensureModelCachedSource(modelId, modelBaseUrl, null, {
     expectedManifestHash,
+    manifestUrl,
   });
   assert.equal(repaired.cacheState, 'imported');
   assert.ok(repairFetches >= 2);
@@ -291,9 +310,32 @@ try {
   await assert.rejects(
     () => ensureModelCachedSource(modelId, modelBaseUrl, null, {
       expectedManifestHash: 'f'.repeat(64),
+      manifestUrl,
     }),
     /manifest hash mismatch/
   );
+  const preserved = await loadPersistentModelSource(modelId);
+  assert.equal(preserved.manifestHash, expectedManifestHash, 'refused metadata must preserve the old complete cache');
+  await preserved.storageContext.close();
+  const interruptedId = `${modelId}-interrupted`;
+  const interruptedManifest = await createManifest(interruptedId, shardBytes);
+  const interruptedText = JSON.stringify(interruptedManifest);
+  const interruptedHash = await computeSHA256(new TextEncoder().encode(interruptedText));
+  const controller = new AbortController();
+  globalThis.fetch = async (url) => {
+    if (String(url) === manifestUrl) return new Response(interruptedText);
+    assert.equal(String(url), `${modelBaseUrl}/model-00001-of-00001.bin`);
+    controller.abort();
+    return new Response(shardBytes);
+  };
+  await assert.rejects(
+    () => ensureModelCachedSource(interruptedId, modelBaseUrl, null, {
+      manifestUrl, expectedManifestHash: interruptedHash, signal: controller.signal,
+    }),
+    (error) => error?.name === 'AbortError'
+  );
+  assert.equal(await loadPersistentModelSource(interruptedId), null,
+    'cancelled partial download must not become a loadable source');
 } finally {
   globalThis.fetch = originalFetch;
   if (originalNavigator === undefined) {

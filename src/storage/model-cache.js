@@ -13,8 +13,9 @@ import { requireManifestHashAlgorithm } from './shards/integrity.js';
 import { createOpfsArtifactStorageContext } from './artifact-storage-context.js';
 import { downloadModel, estimateTimeRemaining, formatSpeed } from './downloader.js';
 import { createAbortError } from './download/retry.js';
+import { normalizeExpectedManifestHash, resolveManifestReference, assertManifestHash } from './download/integrity.js';
 import { isOPFSAvailable, formatBytes } from './quota.js';
-import { parseManifest, getManifestUrl, getExpectedShardHash } from '../formats/rdrr/index.js';
+import { parseManifest, getExpectedShardHash } from '../formats/rdrr/index.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 import { cloneJsonValue } from '../formats/clone-json.js';
 import { log } from '../debug/index.js';
@@ -63,18 +64,6 @@ function toErrorMessage(error) {
 
 function throwIfAborted(signal) {
   if (signal?.aborted) throw createAbortError();
-}
-
-function normalizeExpectedManifestHash(value) {
-  const raw = value && typeof value === 'object'
-    ? value.hex ?? value.hash ?? value.digest ?? ''
-    : value;
-  const normalized = String(raw || '').trim().toLowerCase().replace(/^sha256:/, '');
-  if (!normalized) return null;
-  if (!/^[0-9a-f]{64}$/.test(normalized)) {
-    throw new Error('expectedManifestHash must be a SHA-256 hex digest.');
-  }
-  return normalized;
 }
 
 function manifestTotalBytes(manifest) {
@@ -208,8 +197,7 @@ function buildManifestFingerprint(manifest) {
   });
 }
 
-async function fetchRemoteManifest(modelBaseUrl, signal = null) {
-  const manifestUrl = getManifestUrl(modelBaseUrl);
+async function fetchRemoteManifest(manifestUrl, signal = null) {
   const response = await fetch(manifestUrl, { cache: 'no-store', signal });
   if (!response.ok) {
     throw new Error(`manifest fetch failed (${response.status})`);
@@ -401,13 +389,11 @@ async function ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress = nul
     if (exists) {
       try {
         const [{ text: remoteManifestText, manifest: remoteManifest }, cachedPayload] = await Promise.all([
-          fetchRemoteManifest(modelBaseUrl, signal),
+          fetchRemoteManifest(resolveManifestReference(modelBaseUrl, options).manifestUrl, signal),
           loadCachedManifest(modelId),
         ]);
         throwIfAborted(signal);
-        if (expectedManifestHash && await sha256Text(remoteManifestText) !== expectedManifestHash) {
-          throw new Error(`Remote manifest hash mismatch for "${modelId}"; cached model left unchanged.`);
-        }
+        await assertManifestHash(remoteManifestText, expectedManifestHash);
         const cachedManifestText = cachedPayload.text;
         // Raw legacy metadata participates only in comparison, never execution.
         const cachedManifest = cachedPayload.manifest ?? cachedPayload.unvalidatedManifest;
@@ -545,7 +531,7 @@ async function ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress = nul
         ? (progress.downloadedBytes / (1024 * 1024)).toFixed(1)
         : '?';
       log.verbose(MODULE, `Shard ${shard}/${total} (${mb} MB)`);
-    }, { signal });
+    }, { signal, expectedManifestHash, manifestUrl: options.manifestUrl, modelId });
 
     if (success) {
       throwIfAborted(signal);
@@ -588,7 +574,7 @@ export function ensureModelCachedSource(modelId, modelBaseUrl, onProgress = null
   return runCacheOperation(modelId, onProgress, async () => {
     const signal = options?.signal || null;
     throwIfAborted(signal);
-    const expectedManifestHash = normalizeExpectedManifestHash(options.expectedManifestHash);
+    const { expectedManifestHash } = resolveManifestReference(modelBaseUrl, options);
     const pinnedHit = await resolvePinnedCacheHit(
       modelId,
       expectedManifestHash,
@@ -599,7 +585,7 @@ export function ensureModelCachedSource(modelId, modelBaseUrl, onProgress = null
       modelId,
       modelBaseUrl,
       onProgress,
-      { signal, expectedManifestHash },
+      { signal, expectedManifestHash, manifestUrl: options.manifestUrl },
     );
     throwIfAborted(signal);
     if (!cache.cached) {

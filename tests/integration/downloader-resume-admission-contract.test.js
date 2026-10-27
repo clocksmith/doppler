@@ -11,12 +11,13 @@ import { resetRuntimeConfig, setRuntimeConfig } from '../../src/config/runtime.j
 import {
   cleanup,
   computeHash,
+  computeSHA256,
   openModelStore,
   saveAuxFile,
   writeShard,
 } from '../../src/storage/shard-manager.js';
 import {
-  downloadModel,
+  resumeDownload,
   inspectModelDownloadResume,
 } from '../../src/storage/downloader.js';
 import { buildManifestVersionSet } from '../../src/storage/download/integrity.js';
@@ -152,7 +153,7 @@ async function createManifest(modelId, shardPayloads) {
   };
 }
 
-async function seedCompletedShard(modelId, manifest, payload, replacement = payload) {
+async function seedCompletedShard(modelId, manifest, payload, replacement = payload, metadata = {}) {
   parseManifest(JSON.stringify(manifest));
   await openModelStore(modelId);
   await writeShard(0, payload);
@@ -167,6 +168,7 @@ async function seedCompletedShard(modelId, manifest, payload, replacement = payl
     completedShards: new Set([0]),
     startTime: 1,
     status: 'paused',
+    ...metadata,
   });
 }
 
@@ -206,7 +208,11 @@ try {
     },
   });
 
-  await seedCompletedShard(manifest.modelId, manifest, shardA);
+  const separateManifestUrl = 'https://metadata.example.test/resume-manifest.json';
+  const expectedManifestHash = await computeSHA256(new TextEncoder().encode(JSON.stringify(manifest)));
+  await seedCompletedShard(manifest.modelId, manifest, shardA, shardA, {
+    manifestUrl: separateManifestUrl, expectedManifestHash,
+  });
   const inspection = await inspectModelDownloadResume(manifest.modelId, manifest);
   assert.equal(inspectPackageModelDownloadResume, inspectModelDownloadResume);
   assert.equal(buildPackageManifestVersionSet(manifest), buildManifestVersionSet(manifest));
@@ -223,7 +229,7 @@ try {
   const fetchedShardPaths = [];
   globalThis.fetch = async (url) => {
     const href = String(url);
-    if (href.endsWith('/manifest.json')) {
+    if (href === separateManifestUrl) {
       return new Response(JSON.stringify(manifest), { status: 200 });
     }
     if (href.endsWith('/shard-1.bin')) {
@@ -235,7 +241,7 @@ try {
     }
     throw new Error(`Unexpected fetch: ${href}`);
   };
-  assert.equal(await downloadModel(`https://example.test/${manifest.modelId}`, null, {
+  assert.equal(await resumeDownload(manifest.modelId, null, {
     requestPersist: false,
     concurrency: 1,
   }), true);
@@ -254,6 +260,18 @@ try {
   assert.equal(corruptInspection.verifiedBytes, 0);
   assert.equal(corruptInspection.remainingBytes, 8);
   assert.equal(corruptInspection.verifiedShards, 0);
+
+  const unpinned = await createManifest('unpinned-resume', [shardA]);
+  await seedCompletedShard(unpinned.modelId, unpinned, shardA);
+  let unpinnedFetches = 0;
+  globalThis.fetch = async (url) => {
+    unpinnedFetches++;
+    assert.equal(String(url), `https://example.test/${unpinned.modelId}/manifest.json`);
+    return new Response(JSON.stringify(unpinned));
+  };
+  assert.equal(await resumeDownload(unpinned.modelId, null, { requestPersist: false }), true);
+  assert.equal(unpinnedFetches, 1);
+
 } finally {
   globalThis.fetch = originalFetch;
   if (originalIndexedDb === undefined) delete globalThis.indexedDB;
