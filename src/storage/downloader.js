@@ -1,9 +1,6 @@
-
-
 import {
   parseManifest,
   getExpectedShardHash,
-  getManifestUrl,
 } from '../formats/rdrr/index.js';
 
 import {
@@ -36,6 +33,8 @@ import {
 import { resolveSourceArtifact } from './source-artifact-store.js';
 import {
   buildManifestVersionSet,
+  resolveManifestReference,
+  assertManifestHash,
   computeAssetHash,
   createDefaultSourceStats,
   fileExistsInStore,
@@ -63,11 +62,7 @@ export {
 } from './download/integrity.js';
 export { inspectModelDownloadResume } from './download/resume-inspection.js';
 
-// ============================================================================
-// Module State
-// ============================================================================
-
-
+// Active download owners and store admission.
 const activeDownloads = new Map();
 const openingDownloads = new Set();
 
@@ -95,13 +90,14 @@ export async function downloadModel(
     throw createAbortError();
   }
 
-  // Fetch and parse manifest
-  const manifestUrl = getManifestUrl(baseUrl);
+  // Pin metadata before opening a store; artifact files remain rooted at baseUrl.
+  const { manifestUrl, expectedManifestHash } = resolveManifestReference(baseUrl, options);
   const manifestResponse = await fetchWithRetry(manifestUrl, { signal: externalSignal });
   const manifestJson = await manifestResponse.text();
   if (externalSignal?.aborted) {
     throw createAbortError();
   }
+  await assertManifestHash(manifestJson, expectedManifestHash);
   const manifest = parseManifest(manifestJson);
   const directSourceArtifact = resolveSourceArtifact(manifest);
   const trackedShards = directSourceArtifact ? directSourceArtifact.sourceFiles : manifest.shards;
@@ -213,6 +209,7 @@ export async function downloadModel(
       }
     }
 
+    Object.assign(state, { manifestUrl: options.manifestUrl, expectedManifestHash });
     let verifiedDownloadedBytes = 0;
     for (const idx of state.completedShards) {
       const info = trackedShards[idx];
@@ -592,6 +589,8 @@ export async function resumeDownload(
   }
 
   return downloadModel(state.baseUrl, onProgress, {
+    manifestUrl: state.manifestUrl,
+    expectedManifestHash: state.expectedManifestHash,
     ...options,
     modelId: options.modelId ?? state.modelId,
   });

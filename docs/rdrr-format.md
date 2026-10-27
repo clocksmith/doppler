@@ -85,6 +85,18 @@ metadata before qualification. Never edit a signed manifest in place or reuse
 old release acceptance for the new identity. A mismatch alone is not authority
 to trust the bytes or replace their digest.
 
+The internal `tools/migrate-rdrr-shard-hashes.js <options.json>` helper accepts
+`sourceDir`, `destinationDir`, `inventoryPath`, `inventoryHash`, and
+`inventoryPrefix`. Its input is an independently authenticated, SHA-256-pinned
+Git-LFS tree inventory, not the old manifest's hashes. It verifies every shard
+against inventory SHA-256, verifies manifest/tokenizer source bytes, rebuilds
+canonical artifact identities and tensor Merkle roots, and writes a new
+manifest plus migration receipt outside the source directory. Signed,
+referenced, whole-file/group-hashed, or separately indexed artifacts require an
+explicit metadata rebuild and are refused by this helper. The receipt records
+that qualification was not transferred; it does not authorize publication or
+establish numerical correctness.
+
 ## Integrity extensions (Phase 0 additive contract)
 
 `integrityExtensions` is optional and does not change canonical artifact
