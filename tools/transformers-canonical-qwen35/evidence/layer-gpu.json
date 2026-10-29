@@ -1,0 +1,631 @@
+{
+  "schema": "doppler.qwen35-linear-gpu.v1",
+  "pass": true,
+  "options": {
+    "executionProviders": [
+      "webgpu"
+    ],
+    "extra": {
+      "session": {
+        "disable_cpu_ep_fallback": "1",
+        "use_ort_model_bytes_directly": "1"
+      }
+    },
+    "preferredOutputLocation": {
+      "present_conv": "gpu-buffer",
+      "present_recurrent": "gpu-buffer"
+    },
+    "enableMemPattern": false
+  },
+  "checks": [
+    {
+      "label": "prefill-1",
+      "mode": "prefill",
+      "tensor": "output",
+      "location": "cpu",
+      "maxAbsoluteError": 5.21540641784668e-8,
+      "meanAbsoluteError": 4.629632677222162e-9,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "prefill-1",
+      "mode": "prefill",
+      "tensor": "present_conv",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 0.0000032186508178710938,
+      "meanAbsoluteError": 5.400262104160447e-8,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "prefill-1",
+      "mode": "prefill",
+      "tensor": "present_recurrent",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 8.754432201385498e-8,
+      "meanAbsoluteError": 1.5463807031758078e-10,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "prefill-2",
+      "mode": "prefill",
+      "tensor": "output",
+      "location": "cpu",
+      "maxAbsoluteError": 6.146728992462158e-8,
+      "meanAbsoluteError": 7.659108014479443e-9,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "prefill-2",
+      "mode": "prefill",
+      "tensor": "present_conv",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 0.00000286102294921875,
+      "meanAbsoluteError": 1.1404142235179233e-7,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "prefill-2",
+      "mode": "prefill",
+      "tensor": "present_recurrent",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 1.2665987014770508e-7,
+      "meanAbsoluteError": 3.06848309582001e-10,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "prefill-28",
+      "mode": "prefill",
+      "tensor": "output",
+      "location": "cpu",
+      "maxAbsoluteError": 3.2782554626464844e-7,
+      "meanAbsoluteError": 2.0908580815128175e-8,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "prefill-28",
+      "mode": "prefill",
+      "tensor": "present_conv",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 0.000003814697265625,
+      "meanAbsoluteError": 2.16151872696931e-7,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "prefill-28",
+      "mode": "prefill",
+      "tensor": "present_recurrent",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 0.0000011473894119262695,
+      "meanAbsoluteError": 1.4116462941921178e-9,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "prefill-63",
+      "mode": "prefill",
+      "tensor": "output",
+      "location": "cpu",
+      "maxAbsoluteError": 0.0000012516975402832031,
+      "meanAbsoluteError": 2.5467210302690962e-8,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "prefill-63",
+      "mode": "prefill",
+      "tensor": "present_conv",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 0.000003814697265625,
+      "meanAbsoluteError": 2.206699058297327e-7,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "prefill-63",
+      "mode": "prefill",
+      "tensor": "present_recurrent",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 8.940696716308594e-7,
+      "meanAbsoluteError": 1.9864404870288933e-9,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "prefill-64",
+      "mode": "prefill",
+      "tensor": "output",
+      "location": "cpu",
+      "maxAbsoluteError": 8.344650268554688e-7,
+      "meanAbsoluteError": 2.3164363616937772e-8,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "prefill-64",
+      "mode": "prefill",
+      "tensor": "present_conv",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 0.000007152557373046875,
+      "meanAbsoluteError": 2.1271758148556455e-7,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "prefill-64",
+      "mode": "prefill",
+      "tensor": "present_recurrent",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 0.0000010728836059570312,
+      "meanAbsoluteError": 1.9568447596965303e-9,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "prefill-65",
+      "mode": "prefill",
+      "tensor": "output",
+      "location": "cpu",
+      "maxAbsoluteError": 0.0000012516975402832031,
+      "meanAbsoluteError": 2.2841718892398543e-8,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "prefill-65",
+      "mode": "prefill",
+      "tensor": "present_conv",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 0.000003814697265625,
+      "meanAbsoluteError": 2.1255208645006482e-7,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "prefill-65",
+      "mode": "prefill",
+      "tensor": "present_recurrent",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 4.991888999938965e-7,
+      "meanAbsoluteError": 1.9661740409147106e-9,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "prefill-127",
+      "mode": "prefill",
+      "tensor": "output",
+      "location": "cpu",
+      "maxAbsoluteError": 0.000001043081283569336,
+      "meanAbsoluteError": 2.6209267022046778e-8,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "prefill-127",
+      "mode": "prefill",
+      "tensor": "present_conv",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 0.00000762939453125,
+      "meanAbsoluteError": 2.1929181252359578e-7,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "prefill-127",
+      "mode": "prefill",
+      "tensor": "present_recurrent",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 0.0000023245811462402344,
+      "meanAbsoluteError": 2.7332350483016907e-9,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "prefill-128",
+      "mode": "prefill",
+      "tensor": "output",
+      "location": "cpu",
+      "maxAbsoluteError": 7.450580596923828e-7,
+      "meanAbsoluteError": 2.655130769001375e-8,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "prefill-128",
+      "mode": "prefill",
+      "tensor": "present_conv",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 0.0000040531158447265625,
+      "meanAbsoluteError": 2.157431222560291e-7,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "prefill-128",
+      "mode": "prefill",
+      "tensor": "present_recurrent",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 7.450580596923828e-7,
+      "meanAbsoluteError": 2.5092057210222003e-9,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "decode-random-state",
+      "mode": "decode",
+      "tensor": "output",
+      "location": "cpu",
+      "maxAbsoluteError": 8.940696716308594e-7,
+      "meanAbsoluteError": 1.3593108860732173e-7,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "decode-random-state",
+      "mode": "decode",
+      "tensor": "present_conv",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 0.0000040531158447265625,
+      "meanAbsoluteError": 5.952170741470771e-8,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "decode-random-state",
+      "mode": "decode",
+      "tensor": "present_recurrent",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 0.000001430511474609375,
+      "meanAbsoluteError": 1.9266068181783558e-8,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[28, 1, 1]-step-0",
+      "mode": "prefill",
+      "tensor": "output",
+      "location": "cpu",
+      "maxAbsoluteError": 4.6566128730773926e-7,
+      "meanAbsoluteError": 1.838934404950278e-8,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[28, 1, 1]-step-0",
+      "mode": "prefill",
+      "tensor": "present_conv",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 0.00000667572021484375,
+      "meanAbsoluteError": 2.1109346715064703e-7,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[28, 1, 1]-step-0",
+      "mode": "prefill",
+      "tensor": "present_recurrent",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 6.854534149169922e-7,
+      "meanAbsoluteError": 1.393798173529788e-9,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[28, 1, 1]-step-1",
+      "mode": "decode",
+      "tensor": "output",
+      "location": "cpu",
+      "maxAbsoluteError": 1.7881393432617188e-7,
+      "meanAbsoluteError": 2.4869149850559324e-8,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[28, 1, 1]-step-1",
+      "mode": "decode",
+      "tensor": "present_conv",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 0.000010013580322265625,
+      "meanAbsoluteError": 5.828425949279866e-8,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[28, 1, 1]-step-1",
+      "mode": "decode",
+      "tensor": "present_recurrent",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 7.152557373046875e-7,
+      "meanAbsoluteError": 2.2601758353989708e-10,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[28, 1, 1]-step-2",
+      "mode": "decode",
+      "tensor": "output",
+      "location": "cpu",
+      "maxAbsoluteError": 8.940696716308594e-8,
+      "meanAbsoluteError": 1.6848382244916138e-8,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[28, 1, 1]-step-2",
+      "mode": "decode",
+      "tensor": "present_conv",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 0.0000026226043701171875,
+      "meanAbsoluteError": 5.857764229233453e-8,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[28, 1, 1]-step-2",
+      "mode": "decode",
+      "tensor": "present_recurrent",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 2.980232238769531e-7,
+      "meanAbsoluteError": 2.175094484204083e-10,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[63, 1, 1]-step-0",
+      "mode": "prefill",
+      "tensor": "output",
+      "location": "cpu",
+      "maxAbsoluteError": 4.76837158203125e-7,
+      "meanAbsoluteError": 2.5431405860387548e-8,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[63, 1, 1]-step-0",
+      "mode": "prefill",
+      "tensor": "present_conv",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 0.0000050067901611328125,
+      "meanAbsoluteError": 2.1470459291942726e-7,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[63, 1, 1]-step-0",
+      "mode": "prefill",
+      "tensor": "present_recurrent",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 5.066394805908203e-7,
+      "meanAbsoluteError": 2.0593361441660995e-9,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[63, 1, 1]-step-1",
+      "mode": "decode",
+      "tensor": "output",
+      "location": "cpu",
+      "maxAbsoluteError": 1.1175870895385742e-7,
+      "meanAbsoluteError": 1.7799617779701293e-8,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[63, 1, 1]-step-1",
+      "mode": "decode",
+      "tensor": "present_conv",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 0.0000045299530029296875,
+      "meanAbsoluteError": 5.4533415783097894e-8,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[63, 1, 1]-step-1",
+      "mode": "decode",
+      "tensor": "present_recurrent",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 1.1920928955078125e-7,
+      "meanAbsoluteError": 1.660831785142182e-10,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[63, 1, 1]-step-2",
+      "mode": "decode",
+      "tensor": "output",
+      "location": "cpu",
+      "maxAbsoluteError": 9.12696123123169e-8,
+      "meanAbsoluteError": 2.14382680496783e-8,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[63, 1, 1]-step-2",
+      "mode": "decode",
+      "tensor": "present_conv",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 0.0000032186508178710938,
+      "meanAbsoluteError": 5.513384386072554e-8,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[63, 1, 1]-step-2",
+      "mode": "decode",
+      "tensor": "present_recurrent",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 6.705522537231445e-8,
+      "meanAbsoluteError": 1.8211556647619457e-10,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[64, 1]-step-0",
+      "mode": "prefill",
+      "tensor": "output",
+      "location": "cpu",
+      "maxAbsoluteError": 7.152557373046875e-7,
+      "meanAbsoluteError": 2.5802854208638835e-8,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[64, 1]-step-0",
+      "mode": "prefill",
+      "tensor": "present_conv",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 0.0000035762786865234375,
+      "meanAbsoluteError": 2.171430347012541e-7,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[64, 1]-step-0",
+      "mode": "prefill",
+      "tensor": "present_recurrent",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 8.046627044677734e-7,
+      "meanAbsoluteError": 2.037380348404777e-9,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[64, 1]-step-1",
+      "mode": "decode",
+      "tensor": "output",
+      "location": "cpu",
+      "maxAbsoluteError": 1.30385160446167e-7,
+      "meanAbsoluteError": 2.437483459516443e-8,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[64, 1]-step-1",
+      "mode": "decode",
+      "tensor": "present_conv",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 0.0000030994415283203125,
+      "meanAbsoluteError": 5.502607421566571e-8,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[64, 1]-step-1",
+      "mode": "decode",
+      "tensor": "present_recurrent",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 3.5762786865234375e-7,
+      "meanAbsoluteError": 1.8694372314271082e-10,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[65, 1, 1]-step-0",
+      "mode": "prefill",
+      "tensor": "output",
+      "location": "cpu",
+      "maxAbsoluteError": 6.854534149169922e-7,
+      "meanAbsoluteError": 2.285456557178122e-8,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[65, 1, 1]-step-0",
+      "mode": "prefill",
+      "tensor": "present_conv",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 0.0000057220458984375,
+      "meanAbsoluteError": 2.2142172576936994e-7,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[65, 1, 1]-step-0",
+      "mode": "prefill",
+      "tensor": "present_recurrent",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 8.940696716308594e-7,
+      "meanAbsoluteError": 2.0134051599210575e-9,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[65, 1, 1]-step-1",
+      "mode": "decode",
+      "tensor": "output",
+      "location": "cpu",
+      "maxAbsoluteError": 1.2665987014770508e-7,
+      "meanAbsoluteError": 1.7273851238286397e-8,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[65, 1, 1]-step-1",
+      "mode": "decode",
+      "tensor": "present_conv",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 0.0000032186508178710938,
+      "meanAbsoluteError": 5.6595511388479736e-8,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[65, 1, 1]-step-1",
+      "mode": "decode",
+      "tensor": "present_recurrent",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 1.1920928955078125e-7,
+      "meanAbsoluteError": 2.1046020212223213e-10,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[65, 1, 1]-step-2",
+      "mode": "decode",
+      "tensor": "output",
+      "location": "cpu",
+      "maxAbsoluteError": 2.1606683731079102e-7,
+      "meanAbsoluteError": 2.6997142299478583e-8,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[65, 1, 1]-step-2",
+      "mode": "decode",
+      "tensor": "present_conv",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 0.00000476837158203125,
+      "meanAbsoluteError": 5.299855598828174e-8,
+      "failedElements": 0,
+      "pass": true
+    },
+    {
+      "label": "partition-[65, 1, 1]-step-2",
+      "mode": "decode",
+      "tensor": "present_recurrent",
+      "location": "gpu-buffer",
+      "maxAbsoluteError": 1.4156103134155273e-7,
+      "meanAbsoluteError": 2.4009631273153725e-10,
+      "failedElements": 0,
+      "pass": true
+    }
+  ],
+  "gpuErrors": [],
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "",
+    "description": ""
+  },
+  "claim": "Untimed canonical single-layer ONNX GPU admission/parity only; no full model or speed proof",
+  "browserErrors": []
+}

@@ -1,0 +1,1085 @@
+{
+  "schema": "doppler.native-hf-canonical-reference-summary.v1",
+  "scope": "CPU native HF eager F32 math with explicit physical cache rounding; not a GPU or speed receipt",
+  "inputs": {
+    "canonicalManifestSha256": "77e74f2b0ddf51d0e01edd5888f531e8dda57e8257e2f7ace94916da306cfe95",
+    "configSha256": "c4e4b5cc6a38e43168e7b08e6e991f0c74e7b07d2ca1fe4432f36e2d4e66d2f3",
+    "safetensorsHeaderSha256": "434d00a9998ff2254673ab03669904341dba0d2029a6fc7eeef22c70fa7342ac"
+  },
+  "byteVerification": "passed",
+  "frameworks": {
+    "torch": "2.11.0",
+    "transformers": "5.6.2",
+    "safetensors": "0.7.0"
+  },
+  "sourceSha256": {
+    "native": "3e2b6239e4b2c3e512d4f9836a1dba12e975ae652407e84f2d3c2beebf0c9528",
+    "cache": "a51d2cd525f4458941a20cb5b3b8a8d989d8ca5bcd451855a27bb41743fed586",
+    "reference": "816bc26010baba0cc508854d79a4b1c95fffe8443aaf9a8ac0aea8641897068a"
+  },
+  "engineReceipts": {
+    "pooled": {
+      "path": "/home/x/.local/state/doppler/pooled-equal-weights-20261029/pooled-probe-04/result.json",
+      "sha256": "317026383eb269728653edec5a95eb109bed733b2cbf2fe15dfb96b1245e7ca5"
+    },
+    "doppler": {
+      "path": "/home/x/.local/state/doppler/pooled-equal-weights-20261029/doppler-probe-04.json",
+      "sha256": "61fe454bc82b06dc6eae5380a20cb67b3605c5eb1491b9aaaf978c4dbb112b5e"
+    }
+  },
+  "contract": {
+    "weights": "F32",
+    "kvPhysical": "f16",
+    "attentionMath": "F32 on exactly widened physical cache values",
+    "recurrentState": "F32",
+    "convolutionState": "F32",
+    "threads": 1,
+    "head": "separate untied canonical matrix"
+  },
+  "promptIds": [
+    248045,
+    846,
+    198,
+    7734,
+    264,
+    11346,
+    12654,
+    7873,
+    314,
+    1330,
+    2542,
+    11,
+    7854,
+    539,
+    6813,
+    321,
+    449,
+    15673,
+    13,
+    248046,
+    198,
+    248045,
+    74455,
+    198,
+    248068,
+    271,
+    248069,
+    271
+  ],
+  "comparisons": [
+    {
+      "name": "prompt-pooled",
+      "maxAbsoluteError": 0.007462501525878906,
+      "meanAbsoluteError": 0.0012157701421529055,
+      "p99AbsoluteError": 0.003910565748810768,
+      "nativeArgmax": 8160,
+      "engineArgmax": 8160
+    },
+    {
+      "name": "prompt-doppler",
+      "maxAbsoluteError": 0.0007315874099731445,
+      "meanAbsoluteError": 0.00012652376608457416,
+      "p99AbsoluteError": 0.0004105567932128906,
+      "nativeArgmax": 8160,
+      "engineArgmax": 8160
+    },
+    {
+      "name": "single-pooled",
+      "maxAbsoluteError": 0.03991496562957764,
+      "meanAbsoluteError": 0.006070011295378208,
+      "p99AbsoluteError": 0.019420146942138672,
+      "nativeArgmax": 220,
+      "engineArgmax": 220
+    },
+    {
+      "name": "single-doppler",
+      "maxAbsoluteError": 0.0009921789169311523,
+      "meanAbsoluteError": 0.00011389677820261568,
+      "p99AbsoluteError": 0.00047140195965766907,
+      "nativeArgmax": 220,
+      "engineArgmax": 220
+    },
+    {
+      "name": "layer-0-pooled-0",
+      "maxAbsoluteError": 1.811981201171875e-05,
+      "meanAbsoluteError": 1.665569698161562e-06,
+      "p99AbsoluteError": 6.6910188252222724e-06,
+      "nativeArgmax": 101,
+      "engineArgmax": 101
+    },
+    {
+      "name": "layer-0-doppler-0",
+      "maxAbsoluteError": 3.725290298461914e-07,
+      "meanAbsoluteError": 5.053135510024731e-08,
+      "p99AbsoluteError": 1.9371509552001953e-07,
+      "nativeArgmax": 101,
+      "engineArgmax": 101
+    },
+    {
+      "name": "layer-0-doppler-1",
+      "maxAbsoluteError": 3.725290298461914e-07,
+      "meanAbsoluteError": 5.053135510024731e-08,
+      "p99AbsoluteError": 1.9371509552001953e-07,
+      "nativeArgmax": 101,
+      "engineArgmax": 101
+    },
+    {
+      "name": "layer-1-pooled-0",
+      "maxAbsoluteError": 2.282857894897461e-05,
+      "meanAbsoluteError": 1.7762351944838883e-06,
+      "p99AbsoluteError": 6.970652975724079e-06,
+      "nativeArgmax": 622,
+      "engineArgmax": 622
+    },
+    {
+      "name": "layer-1-doppler-0",
+      "maxAbsoluteError": 2.3245811462402344e-06,
+      "meanAbsoluteError": 6.62834054310224e-08,
+      "p99AbsoluteError": 2.2094718588050455e-07,
+      "nativeArgmax": 622,
+      "engineArgmax": 622
+    },
+    {
+      "name": "layer-1-doppler-1",
+      "maxAbsoluteError": 2.3245811462402344e-06,
+      "meanAbsoluteError": 6.62834054310224e-08,
+      "p99AbsoluteError": 2.2094718588050455e-07,
+      "nativeArgmax": 622,
+      "engineArgmax": 622
+    },
+    {
+      "name": "layer-2-pooled-0",
+      "maxAbsoluteError": 4.076957702636719e-05,
+      "meanAbsoluteError": 1.5872242329351138e-06,
+      "p99AbsoluteError": 6.899314030306414e-06,
+      "nativeArgmax": 536,
+      "engineArgmax": 536
+    },
+    {
+      "name": "layer-2-doppler-0",
+      "maxAbsoluteError": 1.5497207641601562e-06,
+      "meanAbsoluteError": 7.514984190493124e-08,
+      "p99AbsoluteError": 2.665074134711176e-07,
+      "nativeArgmax": 536,
+      "engineArgmax": 536
+    },
+    {
+      "name": "layer-2-doppler-1",
+      "maxAbsoluteError": 1.5497207641601562e-06,
+      "meanAbsoluteError": 7.514984190493124e-08,
+      "p99AbsoluteError": 2.665074134711176e-07,
+      "nativeArgmax": 536,
+      "engineArgmax": 536
+    },
+    {
+      "name": "layer-3-pooled-0",
+      "maxAbsoluteError": 4.8279762268066406e-05,
+      "meanAbsoluteError": 8.164604878402315e-06,
+      "p99AbsoluteError": 2.69457814283669e-05,
+      "nativeArgmax": 477,
+      "engineArgmax": 477
+    },
+    {
+      "name": "layer-3-doppler-0",
+      "maxAbsoluteError": 2.5033950805664062e-06,
+      "meanAbsoluteError": 1.5297382560675032e-07,
+      "p99AbsoluteError": 5.364418029785156e-07,
+      "nativeArgmax": 477,
+      "engineArgmax": 477
+    },
+    {
+      "name": "layer-3-doppler-1",
+      "maxAbsoluteError": 2.5033950805664062e-06,
+      "meanAbsoluteError": 1.5297382560675032e-07,
+      "p99AbsoluteError": 5.364418029785156e-07,
+      "nativeArgmax": 477,
+      "engineArgmax": 477
+    },
+    {
+      "name": "layer-4-pooled-0",
+      "maxAbsoluteError": 3.204867243766785e-05,
+      "meanAbsoluteError": 6.755685717507731e-06,
+      "p99AbsoluteError": 2.3915083147585392e-05,
+      "nativeArgmax": 477,
+      "engineArgmax": 477
+    },
+    {
+      "name": "layer-4-doppler-0",
+      "maxAbsoluteError": 1.7285346984863281e-06,
+      "meanAbsoluteError": 1.3414523891697172e-07,
+      "p99AbsoluteError": 4.470348358154297e-07,
+      "nativeArgmax": 477,
+      "engineArgmax": 477
+    },
+    {
+      "name": "layer-4-doppler-1",
+      "maxAbsoluteError": 1.7285346984863281e-06,
+      "meanAbsoluteError": 1.3414523891697172e-07,
+      "p99AbsoluteError": 4.470348358154297e-07,
+      "nativeArgmax": 477,
+      "engineArgmax": 477
+    },
+    {
+      "name": "layer-5-pooled-0",
+      "maxAbsoluteError": 3.2184645533561707e-05,
+      "meanAbsoluteError": 5.927947313466575e-06,
+      "p99AbsoluteError": 1.9661523765535094e-05,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-5-doppler-0",
+      "maxAbsoluteError": 9.760260581970215e-07,
+      "meanAbsoluteError": 1.1445308700785972e-07,
+      "p99AbsoluteError": 3.989043761976063e-07,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-5-doppler-1",
+      "maxAbsoluteError": 9.760260581970215e-07,
+      "meanAbsoluteError": 1.1445308700785972e-07,
+      "p99AbsoluteError": 3.989043761976063e-07,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-6-pooled-0",
+      "maxAbsoluteError": 3.0875205993652344e-05,
+      "meanAbsoluteError": 5.447937837743666e-06,
+      "p99AbsoluteError": 1.8461161744198762e-05,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-6-doppler-0",
+      "maxAbsoluteError": 4.291534423828125e-06,
+      "meanAbsoluteError": 1.7697630028123967e-07,
+      "p99AbsoluteError": 9.399664122611284e-07,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-6-doppler-1",
+      "maxAbsoluteError": 4.291534423828125e-06,
+      "meanAbsoluteError": 1.7697630028123967e-07,
+      "p99AbsoluteError": 9.399664122611284e-07,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-7-pooled-0",
+      "maxAbsoluteError": 0.00017401576042175293,
+      "meanAbsoluteError": 2.9874665415263735e-05,
+      "p99AbsoluteError": 0.0001167477312264964,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-7-doppler-0",
+      "maxAbsoluteError": 5.364418029785156e-06,
+      "meanAbsoluteError": 8.176432402251521e-07,
+      "p99AbsoluteError": 2.9298680601641536e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-7-doppler-1",
+      "maxAbsoluteError": 5.364418029785156e-06,
+      "meanAbsoluteError": 8.176432402251521e-07,
+      "p99AbsoluteError": 2.9298680601641536e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-8-pooled-0",
+      "maxAbsoluteError": 0.00016224384307861328,
+      "meanAbsoluteError": 2.7422345738159493e-05,
+      "p99AbsoluteError": 0.00010908208787441254,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-8-doppler-0",
+      "maxAbsoluteError": 5.7220458984375e-06,
+      "meanAbsoluteError": 7.078481303324224e-07,
+      "p99AbsoluteError": 2.382472302997485e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-8-doppler-1",
+      "maxAbsoluteError": 5.7220458984375e-06,
+      "meanAbsoluteError": 7.078481303324224e-07,
+      "p99AbsoluteError": 2.382472302997485e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-9-pooled-0",
+      "maxAbsoluteError": 0.00014957785606384277,
+      "meanAbsoluteError": 2.4835882868501358e-05,
+      "p99AbsoluteError": 9.290513844462112e-05,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-9-doppler-0",
+      "maxAbsoluteError": 5.066394805908203e-06,
+      "meanAbsoluteError": 6.429933137042099e-07,
+      "p99AbsoluteError": 2.2019448806531727e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-9-doppler-1",
+      "maxAbsoluteError": 5.066394805908203e-06,
+      "meanAbsoluteError": 6.429933137042099e-07,
+      "p99AbsoluteError": 2.2019448806531727e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-10-pooled-0",
+      "maxAbsoluteError": 0.00013065338134765625,
+      "meanAbsoluteError": 2.1057359845144674e-05,
+      "p99AbsoluteError": 8.467028965242207e-05,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-10-doppler-0",
+      "maxAbsoluteError": 4.976987838745117e-06,
+      "meanAbsoluteError": 5.574287342824391e-07,
+      "p99AbsoluteError": 1.8758328224066645e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-10-doppler-1",
+      "maxAbsoluteError": 4.976987838745117e-06,
+      "meanAbsoluteError": 5.574287342824391e-07,
+      "p99AbsoluteError": 1.8758328224066645e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-11-pooled-0",
+      "maxAbsoluteError": 0.00038552284240722656,
+      "meanAbsoluteError": 5.141305518918671e-05,
+      "p99AbsoluteError": 0.0002106816682498902,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-11-doppler-0",
+      "maxAbsoluteError": 1.023709774017334e-05,
+      "meanAbsoluteError": 2.2703864033246646e-06,
+      "p99AbsoluteError": 8.114615411614068e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-11-doppler-1",
+      "maxAbsoluteError": 1.023709774017334e-05,
+      "meanAbsoluteError": 2.2703864033246646e-06,
+      "p99AbsoluteError": 8.114615411614068e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-12-pooled-0",
+      "maxAbsoluteError": 0.00034433603286743164,
+      "meanAbsoluteError": 4.903249646304175e-05,
+      "p99AbsoluteError": 0.00019721199350897223,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-12-doppler-0",
+      "maxAbsoluteError": 9.298324584960938e-06,
+      "meanAbsoluteError": 2.1154339719942072e-06,
+      "p99AbsoluteError": 7.139966328395531e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-12-doppler-1",
+      "maxAbsoluteError": 9.298324584960938e-06,
+      "meanAbsoluteError": 2.1154339719942072e-06,
+      "p99AbsoluteError": 7.139966328395531e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-13-pooled-0",
+      "maxAbsoluteError": 0.00031238794326782227,
+      "meanAbsoluteError": 4.623474524123594e-05,
+      "p99AbsoluteError": 0.00017934278002940118,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-13-doppler-0",
+      "maxAbsoluteError": 9.119510650634766e-06,
+      "meanAbsoluteError": 1.9245412659074645e-06,
+      "p99AbsoluteError": 6.4107425714610144e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-13-doppler-1",
+      "maxAbsoluteError": 9.119510650634766e-06,
+      "meanAbsoluteError": 1.9245412659074645e-06,
+      "p99AbsoluteError": 6.4107425714610144e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-14-pooled-0",
+      "maxAbsoluteError": 0.00020313262939453125,
+      "meanAbsoluteError": 4.391381298773922e-05,
+      "p99AbsoluteError": 0.0001488471170887351,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-14-doppler-0",
+      "maxAbsoluteError": 1.1444091796875e-05,
+      "meanAbsoluteError": 1.8282803466718178e-06,
+      "p99AbsoluteError": 6.307811418082565e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-14-doppler-1",
+      "maxAbsoluteError": 1.1444091796875e-05,
+      "meanAbsoluteError": 1.8282803466718178e-06,
+      "p99AbsoluteError": 6.307811418082565e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-15-pooled-0",
+      "maxAbsoluteError": 0.002312690019607544,
+      "meanAbsoluteError": 0.00025751942303031683,
+      "p99AbsoluteError": 0.0014383943052962422,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-15-doppler-0",
+      "maxAbsoluteError": 1.2218952178955078e-05,
+      "meanAbsoluteError": 1.940871925398824e-06,
+      "p99AbsoluteError": 6.616115570068359e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-15-doppler-1",
+      "maxAbsoluteError": 1.2218952178955078e-05,
+      "meanAbsoluteError": 1.940871925398824e-06,
+      "p99AbsoluteError": 6.616115570068359e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-16-pooled-0",
+      "maxAbsoluteError": 0.0018958449363708496,
+      "meanAbsoluteError": 0.00026006900588981807,
+      "p99AbsoluteError": 0.0013802393805235624,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-16-doppler-0",
+      "maxAbsoluteError": 1.1682510375976562e-05,
+      "meanAbsoluteError": 1.973430016732891e-06,
+      "p99AbsoluteError": 6.718710210407153e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-16-doppler-1",
+      "maxAbsoluteError": 1.1682510375976562e-05,
+      "meanAbsoluteError": 1.973430016732891e-06,
+      "p99AbsoluteError": 6.718710210407153e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-17-pooled-0",
+      "maxAbsoluteError": 0.001830965280532837,
+      "meanAbsoluteError": 0.00027654526638798416,
+      "p99AbsoluteError": 0.0014161838917061687,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-17-doppler-0",
+      "maxAbsoluteError": 1.0311603546142578e-05,
+      "meanAbsoluteError": 2.0565248632919975e-06,
+      "p99AbsoluteError": 7.024520527920686e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-17-doppler-1",
+      "maxAbsoluteError": 1.0311603546142578e-05,
+      "meanAbsoluteError": 2.0565248632919975e-06,
+      "p99AbsoluteError": 7.024520527920686e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-18-pooled-0",
+      "maxAbsoluteError": 0.0025787353515625,
+      "meanAbsoluteError": 0.00032837496837601066,
+      "p99AbsoluteError": 0.001513965311460197,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-18-doppler-0",
+      "maxAbsoluteError": 1.0669231414794922e-05,
+      "meanAbsoluteError": 2.361479801038513e-06,
+      "p99AbsoluteError": 7.417427696054801e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-18-doppler-1",
+      "maxAbsoluteError": 1.0669231414794922e-05,
+      "meanAbsoluteError": 2.361479801038513e-06,
+      "p99AbsoluteError": 7.417427696054801e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-19-pooled-0",
+      "maxAbsoluteError": 0.0027518272399902344,
+      "meanAbsoluteError": 0.00033934725797735155,
+      "p99AbsoluteError": 0.0013343293685466051,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-19-doppler-0",
+      "maxAbsoluteError": 1.1563301086425781e-05,
+      "meanAbsoluteError": 2.6715483727457467e-06,
+      "p99AbsoluteError": 8.494931535096839e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-19-doppler-1",
+      "maxAbsoluteError": 1.1563301086425781e-05,
+      "meanAbsoluteError": 2.6715483727457467e-06,
+      "p99AbsoluteError": 8.494931535096839e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-20-pooled-0",
+      "maxAbsoluteError": 0.0028597116470336914,
+      "meanAbsoluteError": 0.00040792563231661916,
+      "p99AbsoluteError": 0.001461113104596734,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-20-doppler-0",
+      "maxAbsoluteError": 1.8298625946044922e-05,
+      "meanAbsoluteError": 3.0115211302472744e-06,
+      "p99AbsoluteError": 9.432435035705566e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-20-doppler-1",
+      "maxAbsoluteError": 1.8298625946044922e-05,
+      "meanAbsoluteError": 3.0115211302472744e-06,
+      "p99AbsoluteError": 9.432435035705566e-06,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-21-pooled-0",
+      "maxAbsoluteError": 0.003302931785583496,
+      "meanAbsoluteError": 0.00046943582128733397,
+      "p99AbsoluteError": 0.0016509006964042783,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-21-doppler-0",
+      "maxAbsoluteError": 1.735985279083252e-05,
+      "meanAbsoluteError": 3.485456545604393e-06,
+      "p99AbsoluteError": 1.1076741429860704e-05,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-21-doppler-1",
+      "maxAbsoluteError": 1.735985279083252e-05,
+      "meanAbsoluteError": 3.485456545604393e-06,
+      "p99AbsoluteError": 1.1076741429860704e-05,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-22-pooled-0",
+      "maxAbsoluteError": 0.005652904510498047,
+      "meanAbsoluteError": 0.0005576053517870605,
+      "p99AbsoluteError": 0.0019006256479769945,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-22-doppler-0",
+      "maxAbsoluteError": 3.439188003540039e-05,
+      "meanAbsoluteError": 4.153771442361176e-06,
+      "p99AbsoluteError": 1.4161840226734057e-05,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-22-doppler-1",
+      "maxAbsoluteError": 3.439188003540039e-05,
+      "meanAbsoluteError": 4.153771442361176e-06,
+      "p99AbsoluteError": 1.4161840226734057e-05,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-23-pooled-0",
+      "maxAbsoluteError": 0.007534027099609375,
+      "meanAbsoluteError": 0.0006213441956788301,
+      "p99AbsoluteError": 0.0020867616403847933,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-23-doppler-0",
+      "maxAbsoluteError": 8.153915405273438e-05,
+      "meanAbsoluteError": 8.247895493695978e-06,
+      "p99AbsoluteError": 3.3814620110206306e-05,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    },
+    {
+      "name": "layer-23-doppler-1",
+      "maxAbsoluteError": 8.153915405273438e-05,
+      "meanAbsoluteError": 8.247895493695978e-06,
+      "p99AbsoluteError": 3.3814620110206306e-05,
+      "nativeArgmax": 123,
+      "engineArgmax": 123
+    }
+  ],
+  "completed": true,
+  "fullReceipt": {
+    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/native-reference-f16-01/receipt.json",
+    "sha256": "6d762e7e551aebb659ff14c7fa5038b9199d13d81ea2e82e0cf3bb438571099d",
+    "parameterCount": 321
+  },
+  "runs": [
+    {
+      "name": "prompt",
+      "cacheEvents": [
+        {
+          "layer": 3,
+          "newLength": 28,
+          "storedShape": [
+            1,
+            2,
+            28,
+            256
+          ],
+          "producerDtype": "torch.float32",
+          "physicalKeyDtype": "torch.float16",
+          "physicalValueDtype": "torch.float16",
+          "attentionKeyDtype": "torch.float32",
+          "attentionValueDtype": "torch.float32",
+          "newKeyRoundingMax": 0.0033845901489257812,
+          "newValueRoundingMax": 0.0009579658508300781
+        },
+        {
+          "layer": 7,
+          "newLength": 28,
+          "storedShape": [
+            1,
+            2,
+            28,
+            256
+          ],
+          "producerDtype": "torch.float32",
+          "physicalKeyDtype": "torch.float16",
+          "physicalValueDtype": "torch.float16",
+          "attentionKeyDtype": "torch.float32",
+          "attentionValueDtype": "torch.float32",
+          "newKeyRoundingMax": 0.0036630630493164062,
+          "newValueRoundingMax": 0.0038442611694335938
+        },
+        {
+          "layer": 11,
+          "newLength": 28,
+          "storedShape": [
+            1,
+            2,
+            28,
+            256
+          ],
+          "producerDtype": "torch.float32",
+          "physicalKeyDtype": "torch.float16",
+          "physicalValueDtype": "torch.float16",
+          "attentionKeyDtype": "torch.float32",
+          "attentionValueDtype": "torch.float32",
+          "newKeyRoundingMax": 0.0039052963256835938,
+          "newValueRoundingMax": 0.0066165924072265625
+        },
+        {
+          "layer": 15,
+          "newLength": 28,
+          "storedShape": [
+            1,
+            2,
+            28,
+            256
+          ],
+          "producerDtype": "torch.float32",
+          "physicalKeyDtype": "torch.float16",
+          "physicalValueDtype": "torch.float16",
+          "attentionKeyDtype": "torch.float32",
+          "attentionValueDtype": "torch.float32",
+          "newKeyRoundingMax": 0.00612640380859375,
+          "newValueRoundingMax": 0.00675201416015625
+        },
+        {
+          "layer": 19,
+          "newLength": 28,
+          "storedShape": [
+            1,
+            2,
+            28,
+            256
+          ],
+          "producerDtype": "torch.float32",
+          "physicalKeyDtype": "torch.float16",
+          "physicalValueDtype": "torch.float16",
+          "attentionKeyDtype": "torch.float32",
+          "attentionValueDtype": "torch.float32",
+          "newKeyRoundingMax": 0.0029382705688476562,
+          "newValueRoundingMax": 0.0025348663330078125
+        },
+        {
+          "layer": 23,
+          "newLength": 28,
+          "storedShape": [
+            1,
+            2,
+            28,
+            256
+          ],
+          "producerDtype": "torch.float32",
+          "physicalKeyDtype": "torch.float16",
+          "physicalValueDtype": "torch.float16",
+          "attentionKeyDtype": "torch.float32",
+          "attentionValueDtype": "torch.float32",
+          "newKeyRoundingMax": 0.0039043426513671875,
+          "newValueRoundingMax": 0.0038814544677734375
+        }
+      ],
+      "linearStates": [
+        {
+          "layer": 0,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 1,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 2,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 4,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 5,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 6,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 8,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 9,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 10,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 12,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 13,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 14,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 16,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 17,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 18,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 20,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 21,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 22,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        }
+      ]
+    },
+    {
+      "name": "single",
+      "cacheEvents": [
+        {
+          "layer": 3,
+          "newLength": 1,
+          "storedShape": [
+            1,
+            2,
+            1,
+            256
+          ],
+          "producerDtype": "torch.float32",
+          "physicalKeyDtype": "torch.float16",
+          "physicalValueDtype": "torch.float16",
+          "attentionKeyDtype": "torch.float32",
+          "attentionValueDtype": "torch.float32",
+          "newKeyRoundingMax": 0.0021581649780273438,
+          "newValueRoundingMax": 0.0008687973022460938
+        },
+        {
+          "layer": 7,
+          "newLength": 1,
+          "storedShape": [
+            1,
+            2,
+            1,
+            256
+          ],
+          "producerDtype": "torch.float32",
+          "physicalKeyDtype": "torch.float16",
+          "physicalValueDtype": "torch.float16",
+          "attentionKeyDtype": "torch.float32",
+          "attentionValueDtype": "torch.float32",
+          "newKeyRoundingMax": 0.0025358200073242188,
+          "newValueRoundingMax": 0.0038442611694335938
+        },
+        {
+          "layer": 11,
+          "newLength": 1,
+          "storedShape": [
+            1,
+            2,
+            1,
+            256
+          ],
+          "producerDtype": "torch.float32",
+          "physicalKeyDtype": "torch.float16",
+          "physicalValueDtype": "torch.float16",
+          "attentionKeyDtype": "torch.float32",
+          "attentionValueDtype": "torch.float32",
+          "newKeyRoundingMax": 0.0038928985595703125,
+          "newValueRoundingMax": 0.00661468505859375
+        },
+        {
+          "layer": 15,
+          "newLength": 1,
+          "storedShape": [
+            1,
+            2,
+            1,
+            256
+          ],
+          "producerDtype": "torch.float32",
+          "physicalKeyDtype": "torch.float16",
+          "physicalValueDtype": "torch.float16",
+          "attentionKeyDtype": "torch.float32",
+          "attentionValueDtype": "torch.float32",
+          "newKeyRoundingMax": 0.0061283111572265625,
+          "newValueRoundingMax": 0.006744384765625
+        },
+        {
+          "layer": 19,
+          "newLength": 1,
+          "storedShape": [
+            1,
+            2,
+            1,
+            256
+          ],
+          "producerDtype": "torch.float32",
+          "physicalKeyDtype": "torch.float16",
+          "physicalValueDtype": "torch.float16",
+          "attentionKeyDtype": "torch.float32",
+          "attentionValueDtype": "torch.float32",
+          "newKeyRoundingMax": 0.00193023681640625,
+          "newValueRoundingMax": 0.0011377334594726562
+        },
+        {
+          "layer": 23,
+          "newLength": 1,
+          "storedShape": [
+            1,
+            2,
+            1,
+            256
+          ],
+          "producerDtype": "torch.float32",
+          "physicalKeyDtype": "torch.float16",
+          "physicalValueDtype": "torch.float16",
+          "attentionKeyDtype": "torch.float32",
+          "attentionValueDtype": "torch.float32",
+          "newKeyRoundingMax": 0.0035505294799804688,
+          "newValueRoundingMax": 0.0028781890869140625
+        }
+      ],
+      "linearStates": [
+        {
+          "layer": 0,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 1,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 2,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 4,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 5,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 6,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 8,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 9,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 10,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 12,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 13,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 14,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 16,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 17,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 18,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 20,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 21,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        },
+        {
+          "layer": 22,
+          "convDtype": "torch.float32",
+          "recurrentDtype": "torch.float32"
+        }
+      ]
+    }
+  ]
+}

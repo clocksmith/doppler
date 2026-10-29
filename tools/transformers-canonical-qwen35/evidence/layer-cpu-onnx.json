@@ -1,0 +1,1764 @@
+{
+  "schema": "doppler.transformers-qwen35-custom-linear.v1",
+  "inputs": {
+    "canonicalManifestSha256": "77e74f2b0ddf51d0e01edd5888f531e8dda57e8257e2f7ace94916da306cfe95",
+    "configSha256": "c4e4b5cc6a38e43168e7b08e6e991f0c74e7b07d2ca1fe4432f36e2d4e66d2f3",
+    "safetensorsHeaderSha256": "434d00a9998ff2254673ab03669904341dba0d2029a6fc7eeef22c70fa7342ac"
+  },
+  "frameworks": {
+    "torch": "2.11.0",
+    "transformers": "5.6.2",
+    "safetensors": "0.7.0",
+    "onnx": "1.23.2",
+    "onnxscript": "0.7.2",
+    "onnxruntime": "1.26.0"
+  },
+  "policySha256": "7d57774ff9d8cf791ac9fd095abe4197d87df078283ae76fee1cfea4f9456287",
+  "sourceSha256": {
+    "native": "3e2b6239e4b2c3e512d4f9836a1dba12e975ae652407e84f2d3c2beebf0c9528",
+    "adapter": "1f79d5ed97cbc9b48c717590195f1dc1beb329cec42ac122b91adaa6aafdcbb8"
+  },
+  "parameters": [
+    {
+      "name": "model.language_model.layers.0.linear_attn.A_log",
+      "sha256": "ad78e0805c16a73f70c722e837d1d342df3d9714bea32d353d976e155dd73494"
+    },
+    {
+      "name": "model.language_model.layers.0.linear_attn.norm.weight",
+      "sha256": "b92121af2866c2e156749dc12e27d5f873abb1595291be3a7465c8c65fd6e439"
+    },
+    {
+      "name": "model.language_model.layers.0.linear_attn.conv1d.weight",
+      "sha256": "5c454f9d98a882668455fe66a1baadfe05b7b1a62a7dfae76ee1c3b3443605f4"
+    },
+    {
+      "name": "model.language_model.layers.0.linear_attn.dt_bias",
+      "sha256": "5cc0802165d8bcf1732815a772436a6cd8c9aa2d546b6ea7c05aa4cb6b5b371d"
+    },
+    {
+      "name": "model.language_model.layers.0.linear_attn.in_proj_a.weight",
+      "sha256": "2fc65e6cf0ef787da1b4c159bffac95517791a4f55dcac542df0b1ea5a683713"
+    },
+    {
+      "name": "model.language_model.layers.0.linear_attn.in_proj_b.weight",
+      "sha256": "aea404569f411e01cde7807e0947d425221071f9e12fa2fcb4b1f2c077097759"
+    },
+    {
+      "name": "model.language_model.layers.0.linear_attn.in_proj_qkv.weight",
+      "sha256": "9da2e1911c6524f81171d3d48538545afe460064888e204fdcb8ce772e4a7e96"
+    },
+    {
+      "name": "model.language_model.layers.0.linear_attn.in_proj_z.weight",
+      "sha256": "fbbaaa2db803b72fb16c9217ed8a84d36b1a5ce588b017ce74898d5c269080eb"
+    },
+    {
+      "name": "model.language_model.layers.0.linear_attn.out_proj.weight",
+      "sha256": "d2a5c98c8584f9bad6feda0f8df095c5d3fe3b2ba422bbf502264c3551b24211"
+    }
+  ],
+  "scope": "Canonical layer CPU parity and ONNX structure only; no GPU execution or full model proof",
+  "checks": [
+    {
+      "case": "prefill-1",
+      "tensor": "output",
+      "shape": [
+        1,
+        1,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "maxReferenceMagnitude": 0.0593949630856514
+    },
+    {
+      "case": "prefill-1",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "maxReferenceMagnitude": 3.2736518383026123
+    },
+    {
+      "case": "prefill-1",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "maxReferenceMagnitude": 0.03525403514504433
+    },
+    {
+      "case": "prefill-2",
+      "tensor": "output",
+      "shape": [
+        1,
+        2,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "maxReferenceMagnitude": 0.030913587659597397
+    },
+    {
+      "case": "prefill-2",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "maxReferenceMagnitude": 3.493903160095215
+    },
+    {
+      "case": "prefill-2",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "maxReferenceMagnitude": 0.14467978477478027
+    },
+    {
+      "case": "prefill-28",
+      "tensor": "output",
+      "shape": [
+        1,
+        28,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.4901161193847656e-08,
+      "meanAbsoluteError": 3.259097158814228e-10,
+      "maxReferenceMagnitude": 0.745228111743927
+    },
+    {
+      "case": "prefill-28",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "maxReferenceMagnitude": 5.100748538970947
+    },
+    {
+      "case": "prefill-28",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 5.960464477539063e-08,
+      "meanAbsoluteError": 2.7576017858077506e-11,
+      "maxReferenceMagnitude": 0.454657644033432
+    },
+    {
+      "case": "prefill-63",
+      "tensor": "output",
+      "shape": [
+        1,
+        63,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 6.05359673500061e-08,
+      "meanAbsoluteError": 1.2434790974680254e-09,
+      "maxReferenceMagnitude": 0.5130878686904907
+    },
+    {
+      "case": "prefill-63",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "maxReferenceMagnitude": 4.9126362800598145
+    },
+    {
+      "case": "prefill-63",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 5.960464477539063e-08,
+      "meanAbsoluteError": 3.320071301216032e-11,
+      "maxReferenceMagnitude": 0.5250543355941772
+    },
+    {
+      "case": "prefill-64",
+      "tensor": "output",
+      "shape": [
+        1,
+        64,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 2.9802322387695312e-08,
+      "meanAbsoluteError": 8.149956265413039e-10,
+      "maxReferenceMagnitude": 1.2295973300933838
+    },
+    {
+      "case": "prefill-64",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "maxReferenceMagnitude": 3.484213352203369
+    },
+    {
+      "case": "prefill-64",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 2.384185791015625e-07,
+      "meanAbsoluteError": 3.487915858912949e-11,
+      "maxReferenceMagnitude": 1.4393012523651123
+    },
+    {
+      "case": "prefill-65",
+      "tensor": "output",
+      "shape": [
+        1,
+        65,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 5.960464477539063e-08,
+      "meanAbsoluteError": 1.5927456020747854e-09,
+      "maxReferenceMagnitude": 0.574614405632019
+    },
+    {
+      "case": "prefill-65",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "maxReferenceMagnitude": 5.751328468322754
+    },
+    {
+      "case": "prefill-65",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.1920928955078125e-07,
+      "meanAbsoluteError": 6.323103846073153e-11,
+      "maxReferenceMagnitude": 0.5509516596794128
+    },
+    {
+      "case": "prefill-127",
+      "tensor": "output",
+      "shape": [
+        1,
+        127,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 5.960464477539063e-08,
+      "meanAbsoluteError": 2.2493578111237866e-09,
+      "maxReferenceMagnitude": 0.8131953477859497
+    },
+    {
+      "case": "prefill-127",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "maxReferenceMagnitude": 6.902326583862305
+    },
+    {
+      "case": "prefill-127",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.7881393432617188e-07,
+      "meanAbsoluteError": 7.403892776647325e-11,
+      "maxReferenceMagnitude": 1.1159652471542358
+    },
+    {
+      "case": "prefill-128",
+      "tensor": "output",
+      "shape": [
+        1,
+        128,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 8.940696716308594e-08,
+      "meanAbsoluteError": 1.9990602506680943e-09,
+      "maxReferenceMagnitude": 0.6486029624938965
+    },
+    {
+      "case": "prefill-128",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "maxReferenceMagnitude": 3.8317713737487793
+    },
+    {
+      "case": "prefill-128",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.4901161193847656e-07,
+      "meanAbsoluteError": 8.620820723947986e-11,
+      "maxReferenceMagnitude": 0.7590303421020508
+    },
+    {
+      "case": "decode-random-state",
+      "tensor": "output",
+      "shape": [
+        1,
+        1,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "maxReferenceMagnitude": 0.5810630917549133
+    },
+    {
+      "case": "decode-random-state",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "maxReferenceMagnitude": 4.849046230316162
+    },
+    {
+      "case": "decode-random-state",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "maxReferenceMagnitude": 4.5975213050842285
+    },
+    {
+      "case": "partition-[28, 1, 1]-step-0",
+      "tensor": "output",
+      "shape": [
+        1,
+        28,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.862645149230957e-08,
+      "meanAbsoluteError": 3.5845534873679696e-10,
+      "maxReferenceMagnitude": 0.3469633162021637
+    },
+    {
+      "case": "partition-[28, 1, 1]-step-0",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "maxReferenceMagnitude": 6.461302757263184
+    },
+    {
+      "case": "partition-[28, 1, 1]-step-0",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 4.470348358154297e-08,
+      "meanAbsoluteError": 3.978606506749305e-12,
+      "maxReferenceMagnitude": 0.5439163446426392
+    },
+    {
+      "case": "partition-[28, 1, 1]-step-1",
+      "tensor": "output",
+      "shape": [
+        1,
+        1,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 7.450580596923828e-09,
+      "meanAbsoluteError": 6.42216946289409e-10,
+      "maxReferenceMagnitude": 0.18832755088806152
+    },
+    {
+      "case": "partition-[28, 1, 1]-step-1",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "maxReferenceMagnitude": 6.461302757263184
+    },
+    {
+      "case": "partition-[28, 1, 1]-step-1",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 5.960464477539063e-08,
+      "meanAbsoluteError": 3.935296966767199e-12,
+      "maxReferenceMagnitude": 1.359234094619751
+    },
+    {
+      "case": "partition-[28, 1, 1]-step-2",
+      "tensor": "output",
+      "shape": [
+        1,
+        1,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 7.450580596923828e-09,
+      "meanAbsoluteError": 5.754259291279595e-10,
+      "maxReferenceMagnitude": 0.1464875340461731
+    },
+    {
+      "case": "partition-[28, 1, 1]-step-2",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "maxReferenceMagnitude": 5.2851338386535645
+    },
+    {
+      "case": "partition-[28, 1, 1]-step-2",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 5.960464477539063e-08,
+      "meanAbsoluteError": 3.886693050736412e-12,
+      "maxReferenceMagnitude": 0.48150140047073364
+    },
+    {
+      "case": "partition-[63, 1, 1]-step-0",
+      "tensor": "output",
+      "shape": [
+        1,
+        63,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 5.960464477539063e-08,
+      "meanAbsoluteError": 1.2372596280840753e-09,
+      "maxReferenceMagnitude": 0.9813098907470703
+    },
+    {
+      "case": "partition-[63, 1, 1]-step-0",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "maxReferenceMagnitude": 5.891663074493408
+    },
+    {
+      "case": "partition-[63, 1, 1]-step-0",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 6.332993507385254e-08,
+      "meanAbsoluteError": 4.701345562851955e-11,
+      "maxReferenceMagnitude": 0.5949814319610596
+    },
+    {
+      "case": "partition-[63, 1, 1]-step-1",
+      "tensor": "output",
+      "shape": [
+        1,
+        1,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 3.725290298461914e-08,
+      "meanAbsoluteError": 2.8857130018877797e-09,
+      "maxReferenceMagnitude": 0.20225128531455994
+    },
+    {
+      "case": "partition-[63, 1, 1]-step-1",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "maxReferenceMagnitude": 5.891663074493408
+    },
+    {
+      "case": "partition-[63, 1, 1]-step-1",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 5.960464477539063e-08,
+      "meanAbsoluteError": 4.855934404579543e-11,
+      "maxReferenceMagnitude": 0.5313923358917236
+    },
+    {
+      "case": "partition-[63, 1, 1]-step-2",
+      "tensor": "output",
+      "shape": [
+        1,
+        1,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.3969838619232178e-08,
+      "meanAbsoluteError": 2.971773938043043e-09,
+      "maxReferenceMagnitude": 0.07847118377685547
+    },
+    {
+      "case": "partition-[63, 1, 1]-step-2",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "maxReferenceMagnitude": 5.891663074493408
+    },
+    {
+      "case": "partition-[63, 1, 1]-step-2",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 5.960464477539063e-08,
+      "meanAbsoluteError": 4.9559193554538084e-11,
+      "maxReferenceMagnitude": 0.51646888256073
+    },
+    {
+      "case": "partition-[64, 1]-step-0",
+      "tensor": "output",
+      "shape": [
+        1,
+        64,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 2.9802322387695312e-08,
+      "meanAbsoluteError": 4.804722175677512e-10,
+      "maxReferenceMagnitude": 0.6230154037475586
+    },
+    {
+      "case": "partition-[64, 1]-step-0",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "maxReferenceMagnitude": 3.98421049118042
+    },
+    {
+      "case": "partition-[64, 1]-step-0",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.043081283569336e-07,
+      "meanAbsoluteError": 3.192919539873884e-11,
+      "maxReferenceMagnitude": 0.5636004209518433
+    },
+    {
+      "case": "partition-[64, 1]-step-1",
+      "tensor": "output",
+      "shape": [
+        1,
+        1,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.4901161193847656e-08,
+      "meanAbsoluteError": 2.421018052700674e-09,
+      "maxReferenceMagnitude": 0.08270706236362457
+    },
+    {
+      "case": "partition-[64, 1]-step-1",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "maxReferenceMagnitude": 3.98421049118042
+    },
+    {
+      "case": "partition-[64, 1]-step-1",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.043081283569336e-07,
+      "meanAbsoluteError": 3.2426280410779995e-11,
+      "maxReferenceMagnitude": 0.5676432251930237
+    },
+    {
+      "case": "partition-[65, 1, 1]-step-0",
+      "tensor": "output",
+      "shape": [
+        1,
+        65,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 5.960464477539063e-08,
+      "meanAbsoluteError": 7.325272055602738e-10,
+      "maxReferenceMagnitude": 0.6314876675605774
+    },
+    {
+      "case": "partition-[65, 1, 1]-step-0",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "maxReferenceMagnitude": 6.305521011352539
+    },
+    {
+      "case": "partition-[65, 1, 1]-step-0",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 5.960464477539063e-08,
+      "meanAbsoluteError": 1.8788994665674963e-11,
+      "maxReferenceMagnitude": 0.6504980325698853
+    },
+    {
+      "case": "partition-[65, 1, 1]-step-1",
+      "tensor": "output",
+      "shape": [
+        1,
+        1,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.1175870895385742e-08,
+      "meanAbsoluteError": 2.039087121374905e-09,
+      "maxReferenceMagnitude": 0.14569473266601562
+    },
+    {
+      "case": "partition-[65, 1, 1]-step-1",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "maxReferenceMagnitude": 6.305521011352539
+    },
+    {
+      "case": "partition-[65, 1, 1]-step-1",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 2.9802322387695312e-08,
+      "meanAbsoluteError": 1.947759141474048e-11,
+      "maxReferenceMagnitude": 0.6483450531959534
+    },
+    {
+      "case": "partition-[65, 1, 1]-step-2",
+      "tensor": "output",
+      "shape": [
+        1,
+        1,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.4901161193847656e-08,
+      "meanAbsoluteError": 2.453219849485322e-09,
+      "maxReferenceMagnitude": 0.1719682812690735
+    },
+    {
+      "case": "partition-[65, 1, 1]-step-2",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "maxReferenceMagnitude": 6.305521011352539
+    },
+    {
+      "case": "partition-[65, 1, 1]-step-2",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 2.9802322387695312e-08,
+      "meanAbsoluteError": 2.1056328555757453e-11,
+      "maxReferenceMagnitude": 0.6363690495491028
+    },
+    {
+      "case": "onnx-cpu-prefill-1",
+      "tensor": "output",
+      "shape": [
+        1,
+        1,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.1175870895385742e-08,
+      "meanAbsoluteError": 2.55905163726311e-09,
+      "maxReferenceMagnitude": 0.0593949630856514
+    },
+    {
+      "case": "onnx-cpu-prefill-1",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 3.337860107421875e-06,
+      "meanAbsoluteError": 3.7387028584134896e-08,
+      "maxReferenceMagnitude": 3.2736518383026123
+    },
+    {
+      "case": "onnx-cpu-prefill-1",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 5.960464477539063e-08,
+      "meanAbsoluteError": 1.0774969805282808e-10,
+      "maxReferenceMagnitude": 0.03525403514504433
+    },
+    {
+      "case": "onnx-cpu-prefill-2",
+      "tensor": "output",
+      "shape": [
+        1,
+        2,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 6.51925802230835e-08,
+      "meanAbsoluteError": 5.547551751305946e-09,
+      "maxReferenceMagnitude": 0.030913587659597397
+    },
+    {
+      "case": "onnx-cpu-prefill-2",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 2.0563602447509766e-06,
+      "meanAbsoluteError": 7.667184576121144e-08,
+      "maxReferenceMagnitude": 3.493903160095215
+    },
+    {
+      "case": "onnx-cpu-prefill-2",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 8.940696716308594e-08,
+      "meanAbsoluteError": 2.1223545143556066e-10,
+      "maxReferenceMagnitude": 0.14467978477478027
+    },
+    {
+      "case": "onnx-cpu-prefill-28",
+      "tensor": "output",
+      "shape": [
+        1,
+        28,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.7881393432617188e-07,
+      "meanAbsoluteError": 9.88223813891409e-09,
+      "maxReferenceMagnitude": 0.745228111743927
+    },
+    {
+      "case": "onnx-cpu-prefill-28",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.5497207641601562e-06,
+      "meanAbsoluteError": 1.0831126928678714e-07,
+      "maxReferenceMagnitude": 5.100748538970947
+    },
+    {
+      "case": "onnx-cpu-prefill-28",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 3.129243850708008e-07,
+      "meanAbsoluteError": 7.252841660587706e-10,
+      "maxReferenceMagnitude": 0.454657644033432
+    },
+    {
+      "case": "onnx-cpu-prefill-63",
+      "tensor": "output",
+      "shape": [
+        1,
+        63,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 2.682209014892578e-07,
+      "meanAbsoluteError": 1.2205947363952419e-08,
+      "maxReferenceMagnitude": 0.5130878686904907
+    },
+    {
+      "case": "onnx-cpu-prefill-63",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.6689300537109375e-06,
+      "meanAbsoluteError": 1.1363655971763365e-07,
+      "maxReferenceMagnitude": 4.9126362800598145
+    },
+    {
+      "case": "onnx-cpu-prefill-63",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 4.0605664253234863e-07,
+      "meanAbsoluteError": 1.1007327271883582e-09,
+      "maxReferenceMagnitude": 0.5250543355941772
+    },
+    {
+      "case": "onnx-cpu-prefill-64",
+      "tensor": "output",
+      "shape": [
+        1,
+        64,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 2.086162567138672e-07,
+      "meanAbsoluteError": 1.1069914762629196e-08,
+      "maxReferenceMagnitude": 1.2295973300933838
+    },
+    {
+      "case": "onnx-cpu-prefill-64",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 2.0265579223632812e-06,
+      "meanAbsoluteError": 1.1210570960429322e-07,
+      "maxReferenceMagnitude": 3.484213352203369
+    },
+    {
+      "case": "onnx-cpu-prefill-64",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 4.172325134277344e-07,
+      "meanAbsoluteError": 1.0731262545249365e-09,
+      "maxReferenceMagnitude": 1.4393012523651123
+    },
+    {
+      "case": "onnx-cpu-prefill-65",
+      "tensor": "output",
+      "shape": [
+        1,
+        65,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 2.086162567138672e-07,
+      "meanAbsoluteError": 1.1337500716024351e-08,
+      "maxReferenceMagnitude": 0.574614405632019
+    },
+    {
+      "case": "onnx-cpu-prefill-65",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.430511474609375e-06,
+      "meanAbsoluteError": 1.0709245401585576e-07,
+      "maxReferenceMagnitude": 5.751328468322754
+    },
+    {
+      "case": "onnx-cpu-prefill-65",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 4.172325134277344e-07,
+      "meanAbsoluteError": 1.082381628769724e-09,
+      "maxReferenceMagnitude": 0.5509516596794128
+    },
+    {
+      "case": "onnx-cpu-prefill-127",
+      "tensor": "output",
+      "shape": [
+        1,
+        127,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 3.5762786865234375e-07,
+      "meanAbsoluteError": 1.372219138318087e-08,
+      "maxReferenceMagnitude": 0.8131953477859497
+    },
+    {
+      "case": "onnx-cpu-prefill-127",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.430511474609375e-06,
+      "meanAbsoluteError": 1.0813902662221153e-07,
+      "maxReferenceMagnitude": 6.902326583862305
+    },
+    {
+      "case": "onnx-cpu-prefill-127",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 8.344650268554688e-07,
+      "meanAbsoluteError": 1.4498694467235396e-09,
+      "maxReferenceMagnitude": 1.1159652471542358
+    },
+    {
+      "case": "onnx-cpu-prefill-128",
+      "tensor": "output",
+      "shape": [
+        1,
+        128,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 2.5331974029541016e-07,
+      "meanAbsoluteError": 1.3281349353633232e-08,
+      "maxReferenceMagnitude": 0.6486029624938965
+    },
+    {
+      "case": "onnx-cpu-prefill-128",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.430511474609375e-06,
+      "meanAbsoluteError": 1.0803097438838449e-07,
+      "maxReferenceMagnitude": 3.8317713737487793
+    },
+    {
+      "case": "onnx-cpu-prefill-128",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 5.364418029785156e-07,
+      "meanAbsoluteError": 1.3569773082977576e-09,
+      "maxReferenceMagnitude": 0.7590303421020508
+    },
+    {
+      "case": "onnx-cpu-decode-random-state",
+      "tensor": "output",
+      "shape": [
+        1,
+        1,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 4.3213367462158203e-07,
+      "meanAbsoluteError": 8.179404176189564e-08,
+      "maxReferenceMagnitude": 0.5810630917549133
+    },
+    {
+      "case": "onnx-cpu-decode-random-state",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.6689300537109375e-06,
+      "meanAbsoluteError": 4.027850764032337e-08,
+      "maxReferenceMagnitude": 4.849046230316162
+    },
+    {
+      "case": "onnx-cpu-decode-random-state",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.1920928955078125e-06,
+      "meanAbsoluteError": 1.4292653283121126e-08,
+      "maxReferenceMagnitude": 4.5975213050842285
+    },
+    {
+      "case": "onnx-cpu-partition-[28, 1, 1]-step-0",
+      "tensor": "output",
+      "shape": [
+        1,
+        28,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.6391277313232422e-07,
+      "meanAbsoluteError": 9.467911787908179e-09,
+      "maxReferenceMagnitude": 0.3469633162021637
+    },
+    {
+      "case": "onnx-cpu-partition-[28, 1, 1]-step-0",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.430511474609375e-06,
+      "meanAbsoluteError": 1.1008753375563174e-07,
+      "maxReferenceMagnitude": 6.461302757263184
+    },
+    {
+      "case": "onnx-cpu-partition-[28, 1, 1]-step-0",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 2.980232238769531e-07,
+      "meanAbsoluteError": 7.533621504407506e-10,
+      "maxReferenceMagnitude": 0.5439163446426392
+    },
+    {
+      "case": "onnx-cpu-partition-[28, 1, 1]-step-1",
+      "tensor": "output",
+      "shape": [
+        1,
+        1,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 6.705522537231445e-08,
+      "meanAbsoluteError": 1.4455608265961928e-08,
+      "maxReferenceMagnitude": 0.18832755088806152
+    },
+    {
+      "case": "onnx-cpu-partition-[28, 1, 1]-step-1",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 2.86102294921875e-06,
+      "meanAbsoluteError": 3.66993440081842e-08,
+      "maxReferenceMagnitude": 6.461302757263184
+    },
+    {
+      "case": "onnx-cpu-partition-[28, 1, 1]-step-1",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.1920928955078125e-07,
+      "meanAbsoluteError": 1.2788294034837833e-10,
+      "maxReferenceMagnitude": 1.359234094619751
+    },
+    {
+      "case": "onnx-cpu-partition-[28, 1, 1]-step-2",
+      "tensor": "output",
+      "shape": [
+        1,
+        1,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 7.450580596923828e-08,
+      "meanAbsoluteError": 1.065018295776099e-08,
+      "maxReferenceMagnitude": 0.1464875340461731
+    },
+    {
+      "case": "onnx-cpu-partition-[28, 1, 1]-step-2",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.7881393432617188e-06,
+      "meanAbsoluteError": 3.863645758883649e-08,
+      "maxReferenceMagnitude": 5.2851338386535645
+    },
+    {
+      "case": "onnx-cpu-partition-[28, 1, 1]-step-2",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.7881393432617188e-07,
+      "meanAbsoluteError": 1.4684620186500297e-10,
+      "maxReferenceMagnitude": 0.48150140047073364
+    },
+    {
+      "case": "onnx-cpu-partition-[63, 1, 1]-step-0",
+      "tensor": "output",
+      "shape": [
+        1,
+        63,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 2.8312206268310547e-07,
+      "meanAbsoluteError": 1.2273817517893804e-08,
+      "maxReferenceMagnitude": 0.9813098907470703
+    },
+    {
+      "case": "onnx-cpu-partition-[63, 1, 1]-step-0",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.430511474609375e-06,
+      "meanAbsoluteError": 1.0649186066302718e-07,
+      "maxReferenceMagnitude": 5.891663074493408
+    },
+    {
+      "case": "onnx-cpu-partition-[63, 1, 1]-step-0",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 3.501772880554199e-07,
+      "meanAbsoluteError": 1.1624946560928606e-09,
+      "maxReferenceMagnitude": 0.5949814319610596
+    },
+    {
+      "case": "onnx-cpu-partition-[63, 1, 1]-step-1",
+      "tensor": "output",
+      "shape": [
+        1,
+        1,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 6.612390279769897e-08,
+      "meanAbsoluteError": 1.2289120832065237e-08,
+      "maxReferenceMagnitude": 0.20225128531455994
+    },
+    {
+      "case": "onnx-cpu-partition-[63, 1, 1]-step-1",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.5497207641601562e-06,
+      "meanAbsoluteError": 3.741041609828244e-08,
+      "maxReferenceMagnitude": 5.891663074493408
+    },
+    {
+      "case": "onnx-cpu-partition-[63, 1, 1]-step-1",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 8.940696716308594e-08,
+      "meanAbsoluteError": 1.2949209760027003e-10,
+      "maxReferenceMagnitude": 0.5313923358917236
+    },
+    {
+      "case": "onnx-cpu-partition-[63, 1, 1]-step-2",
+      "tensor": "output",
+      "shape": [
+        1,
+        1,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 5.587935447692871e-08,
+      "meanAbsoluteError": 1.1539981414898648e-08,
+      "maxReferenceMagnitude": 0.07847118377685547
+    },
+    {
+      "case": "onnx-cpu-partition-[63, 1, 1]-step-2",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 2.1457672119140625e-06,
+      "meanAbsoluteError": 3.789173419477265e-08,
+      "maxReferenceMagnitude": 5.891663074493408
+    },
+    {
+      "case": "onnx-cpu-partition-[63, 1, 1]-step-2",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 5.960464477539063e-08,
+      "meanAbsoluteError": 1.3756441819001708e-10,
+      "maxReferenceMagnitude": 0.51646888256073
+    },
+    {
+      "case": "onnx-cpu-partition-[64, 1]-step-0",
+      "tensor": "output",
+      "shape": [
+        1,
+        64,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 2.384185791015625e-07,
+      "meanAbsoluteError": 1.218112100076496e-08,
+      "maxReferenceMagnitude": 0.6230154037475586
+    },
+    {
+      "case": "onnx-cpu-partition-[64, 1]-step-0",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.430511474609375e-06,
+      "meanAbsoluteError": 1.1057345972176336e-07,
+      "maxReferenceMagnitude": 3.98421049118042
+    },
+    {
+      "case": "onnx-cpu-partition-[64, 1]-step-0",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 3.5762786865234375e-07,
+      "meanAbsoluteError": 1.052418596714233e-09,
+      "maxReferenceMagnitude": 0.5636004209518433
+    },
+    {
+      "case": "onnx-cpu-partition-[64, 1]-step-1",
+      "tensor": "output",
+      "shape": [
+        1,
+        1,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 9.685754776000977e-08,
+      "meanAbsoluteError": 1.3598402404113585e-08,
+      "maxReferenceMagnitude": 0.08270706236362457
+    },
+    {
+      "case": "onnx-cpu-partition-[64, 1]-step-1",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.1920928955078125e-06,
+      "meanAbsoluteError": 3.633980938388959e-08,
+      "maxReferenceMagnitude": 3.98421049118042
+    },
+    {
+      "case": "onnx-cpu-partition-[64, 1]-step-1",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.1920928955078125e-07,
+      "meanAbsoluteError": 1.2997720955088e-10,
+      "maxReferenceMagnitude": 0.5676432251930237
+    },
+    {
+      "case": "onnx-cpu-partition-[65, 1, 1]-step-0",
+      "tensor": "output",
+      "shape": [
+        1,
+        65,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.9371509552001953e-07,
+      "meanAbsoluteError": 1.0978733477884361e-08,
+      "maxReferenceMagnitude": 0.6314876675605774
+    },
+    {
+      "case": "onnx-cpu-partition-[65, 1, 1]-step-0",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 2.384185791015625e-06,
+      "meanAbsoluteError": 1.1362470075937381e-07,
+      "maxReferenceMagnitude": 6.305521011352539
+    },
+    {
+      "case": "onnx-cpu-partition-[65, 1, 1]-step-0",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 3.5762786865234375e-07,
+      "meanAbsoluteError": 1.0457019694598557e-09,
+      "maxReferenceMagnitude": 0.6504980325698853
+    },
+    {
+      "case": "onnx-cpu-partition-[65, 1, 1]-step-1",
+      "tensor": "output",
+      "shape": [
+        1,
+        1,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 8.940696716308594e-08,
+      "meanAbsoluteError": 1.114617020903097e-08,
+      "maxReferenceMagnitude": 0.14569473266601562
+    },
+    {
+      "case": "onnx-cpu-partition-[65, 1, 1]-step-1",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 2.7418136596679688e-06,
+      "meanAbsoluteError": 3.8067071272962494e-08,
+      "maxReferenceMagnitude": 6.305521011352539
+    },
+    {
+      "case": "onnx-cpu-partition-[65, 1, 1]-step-1",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 8.940696716308594e-08,
+      "meanAbsoluteError": 1.51363824252293e-10,
+      "maxReferenceMagnitude": 0.6483450531959534
+    },
+    {
+      "case": "onnx-cpu-partition-[65, 1, 1]-step-2",
+      "tensor": "output",
+      "shape": [
+        1,
+        1,
+        1024
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.1920928955078125e-07,
+      "meanAbsoluteError": 1.3938119991507847e-08,
+      "maxReferenceMagnitude": 0.1719682812690735
+    },
+    {
+      "case": "onnx-cpu-partition-[65, 1, 1]-step-2",
+      "tensor": "conv",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "pass": true,
+      "maxAbsoluteError": 1.430511474609375e-06,
+      "meanAbsoluteError": 3.607954113249434e-08,
+      "maxReferenceMagnitude": 6.305521011352539
+    },
+    {
+      "case": "onnx-cpu-partition-[65, 1, 1]-step-2",
+      "tensor": "recurrent",
+      "shape": [
+        1,
+        16,
+        128,
+        128
+      ],
+      "pass": true,
+      "maxAbsoluteError": 8.940696716308594e-08,
+      "meanAbsoluteError": 1.6274165348661995e-10,
+      "maxReferenceMagnitude": 0.6363690495491028
+    }
+  ],
+  "exports": [
+    {
+      "mode": "prefill",
+      "sha256": "f481e161ed513f096931534aa7d1ad354e8d80ff70faacab4ee410b59cc80046",
+      "lowerings": [
+        {
+          "node": "node_RMSNormalization_6009",
+          "from": "RMSNormalization",
+          "to": [
+            "Mul",
+            "ReduceMean",
+            "Add",
+            "Sqrt",
+            "Reciprocal",
+            "Mul",
+            "Mul"
+          ],
+          "reason": "No RMSNormalization shader in pinned ORT-WebGPU registration"
+        }
+      ],
+      "operators": {
+        "Add": 137,
+        "Concat": 259,
+        "Conv": 1,
+        "CumSum": 2,
+        "Exp": 9,
+        "Gather": 128,
+        "Greater": 1,
+        "Log": 1,
+        "MatMul": 21,
+        "Mul": 154,
+        "Neg": 2,
+        "Reciprocal": 3,
+        "ReduceMean": 1,
+        "ReduceSum": 128,
+        "Reshape": 6,
+        "Shape": 1,
+        "Sigmoid": 3,
+        "Slice": 275,
+        "Sqrt": 3,
+        "Sub": 6,
+        "Transpose": 12,
+        "Unsqueeze": 265,
+        "Where": 6
+      },
+      "hiddenShape": [
+        "1",
+        "s11",
+        "1024"
+      ]
+    },
+    {
+      "mode": "decode",
+      "sha256": "67e7fb24735c685cc8fabf0d198a32badabcba97b1cae1daedf666d558692586",
+      "lowerings": [
+        {
+          "node": "node_RMSNormalization_144",
+          "from": "RMSNormalization",
+          "to": [
+            "Mul",
+            "ReduceMean",
+            "Add",
+            "Sqrt",
+            "Reciprocal",
+            "Mul",
+            "Mul"
+          ],
+          "reason": "No RMSNormalization shader in pinned ORT-WebGPU registration"
+        }
+      ],
+      "operators": {
+        "Add": 6,
+        "Concat": 1,
+        "Conv": 1,
+        "Exp": 2,
+        "Gather": 5,
+        "Greater": 1,
+        "Log": 1,
+        "MatMul": 5,
+        "Mul": 17,
+        "Reciprocal": 3,
+        "ReduceMean": 1,
+        "ReduceSum": 4,
+        "Reshape": 6,
+        "Sigmoid": 3,
+        "Slice": 5,
+        "Sqrt": 3,
+        "Sub": 1,
+        "Transpose": 2,
+        "Unsqueeze": 7,
+        "Where": 2
+      },
+      "hiddenShape": [
+        "1",
+        "1",
+        "1024"
+      ]
+    }
+  ],
+  "cpuParity": "passed",
+  "onnxCpuParity": "passed",
+  "completed": true
+}

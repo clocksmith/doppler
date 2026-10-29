@@ -1,0 +1,37 @@
+{
+  "schema": "doppler.transformers-canonical-qwen35.v1",
+  "frameworks": {
+    "torch": "2.11.0",
+    "transformers": "5.6.2",
+    "safetensors": "0.7.0"
+  },
+  "exportFrontend": {
+    "frameworks": { "onnx": "1.23.2", "onnxscript": "0.7.2", "onnxruntime": "1.26.0" },
+    "opset": 23,
+    "dynamicSequenceMin": 2,
+    "dynamicSequenceMaxima": [64, 128]
+  },
+  "linearExport": {
+    "prefillBound": 128,
+    "chunkSize": 64,
+    "layer": 0,
+    "cpuLengths": [1, 2, 28, 63, 64, 65, 127, 128],
+    "cpuPartitions": [[28, 1, 1], [63, 1, 1], [64, 1], [65, 1, 1]],
+    "absoluteTolerance": 0.00001,
+    "relativeTolerance": 0.0001,
+    "seed": 734561
+  },
+  "sourceSchema": "doppler.equal-weight-canonical.v1",
+  "sourcePrefix": "model.language_model.",
+  "targetPrefix": "model.",
+  "exactNames": {
+    "model.language_model.lm_head.weight": "lm_head.weight"
+  },
+  "modelType": "qwen3_5",
+  "textModelType": "qwen3_5_text",
+  "textClass": "Qwen3_5ForCausalLM",
+  "dtype": "float32",
+  "threads": 1,
+  "headerLimitBytes": 10485760,
+  "hashChunkBytes": 4194304
+}
