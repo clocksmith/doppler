@@ -64,8 +64,8 @@ Tool builders, harness code, demos, and consumers that need browser/CLI command 
 Public and tooling-oriented rather than app-facing.
 This subpath is mixed-tier: the command/storage/registry core is `tier1`, while
 Node operator flows on the same export surface remain `experimental`.
-Browser import helpers and P2P helpers now live on
-`doppler-gpu/tooling-experimental`. See [Subsystem Support Matrix](../subsystem-support-matrix.md).
+Browser import helpers and P2P helpers are not package exports (the former
+`doppler-gpu/tooling-experimental` subpath was removed in 0.7.0). See [Subsystem Support Matrix](../subsystem-support-matrix.md).
 
 ## Primary Exports
 
@@ -326,7 +326,7 @@ console.log(result.result?.subset?.subsetManifestPath);
 - `watch`, `compare`, and `quality-gate` are run-root-driven actions
 - `eval` and `export` can operate from an explicit checkpoint path or from finalized checkpoints already present in the run root
 - behavior-changing training/eval policy belongs in workload JSON, not in ad hoc command flags
-- browser conversion/file-picker helpers and P2P helpers were split to `doppler-gpu/tooling-experimental`
+- browser conversion/file-picker helpers and P2P helpers are repository-internal; `doppler-gpu/tooling-experimental` was removed in 0.7.0
 
 ## Code Pointers
 

@@ -58,7 +58,7 @@ async function writeImportSmoke(consumerDir, packageJson) {
     "assert.equal(typeof runtime.openCapsule, 'function');",
     "assert.equal('openPack' in runtime, false);",
     "assert.equal('createFetchPackArtifactStore' in runtime, false);",
-    `for (const removed of ['pack', 'run', 'capsule', 'electron', 'choice-scoring-contract']) await assert.rejects(import('${packageJson.name}/' + removed), { code: 'ERR_PACKAGE_PATH_NOT_EXPORTED' });`,
+    `for (const removed of ['pack', 'run', 'capsule', 'electron', 'choice-scoring-contract', 'loaders', 'serve', 'tooling-experimental', 'orchestration', 'diffusion', 'energy', 'models/qwen3']) await assert.rejects(import('${packageJson.name}/' + removed), { code: 'ERR_PACKAGE_PATH_NOT_EXPORTED' });`,
     `await import(${JSON.stringify(browserToolingPath)});`,
     "assert.equal(Object.hasOwn(globalThis, 'DOPPLER'), false, 'package imports must not install diagnostics');",
     `const { createRuleRegistry, createKernelRegistry } = await import('${packageJson.name}/tooling/runtime');`,
@@ -208,9 +208,6 @@ import { registerDocumentSearchReleaseMain } from './main.js';
 import { createDocumentSearchReleaseStore, createDocumentSearchCheckpointStore, prepareDocumentSearchReleaseOptions } from './release-storage.js';
 import type { RuntimePorts, CapsuleRerankRequest, CapsuleEmbeddingRequest, CapsuleEmbeddingResult, DopplerRuntimeSession } from '${packageJson.name}';
 import type { ElectronReleaseStateCoordinator } from '${packageJson.name}/host/electron';
-import { createCapsuleServeHandler } from '${packageJson.name}/serve';
-import type { CapsuleServePolicy } from '${packageJson.name}/serve';
-declare const servingPolicy: CapsuleServePolicy;
 declare const ports: RuntimePorts;
 declare const releaseState: ElectronReleaseStateCoordinator;
 declare const request: CapsuleRerankRequest;
@@ -221,12 +218,6 @@ const hostSession: Promise<DopplerRuntimeSession> = openCapsule('https://applica
 const renderer = createDocumentSearchRenderer(releaseState, ports);
 renderer.rerank(request).then(receipt => receipt.capsule.semanticRoot);
 const session: Promise<DopplerRuntimeSession> = renderer.openCurrent();
-session.then(value => {
-  const handler = createCapsuleServeHandler({ session: value, policy: servingPolicy, token: 'application-secret' });
-  const drained: Promise<void> = handler.close();
-  // @ts-expect-error Serving requires explicit authentication.
-  createCapsuleServeHandler({ session: value, policy: servingPolicy });
-});
 declare const embeddingRequest: CapsuleEmbeddingRequest;
 const embedding: Promise<CapsuleEmbeddingResult> = session.then(value => value.embed(embeddingRequest));
 session.then(value => {

@@ -16,7 +16,7 @@ import {
   TieredKVCache,
   BasisDecomposedPagedCache,
   MixedGeometryKVCache,
-} from '../../kv-cache.js';
+} from '../../kv-cache/index.js';
 import { MoERouter } from '../../moe-router.js';
 import { SpeculativeDecoder } from '../../speculative.js';
 import { DecodeBufferManager } from '../../decode-buffers.js';

@@ -28,7 +28,7 @@ import type {
   TieredKVCache,
   BasisDecomposedPagedCache,
   MixedGeometryKVCache,
-} from '../../kv-cache.js';
+} from '../../kv-cache/index.js';
 import type { DecodeRingStats } from '../../decode-ring.js';
 import type { LinearAttentionRuntime } from './linear-attention.js';
 import type { TokenizerLoadTiming } from '../../tokenizer.js';

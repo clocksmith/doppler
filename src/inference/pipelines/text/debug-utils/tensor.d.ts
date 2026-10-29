@@ -19,7 +19,7 @@
  * @module inference/pipelines/text/debug-utils/tensor
  */
 
-import type { KVCache, SlidingWindowKVCache } from '../../../kv-cache.js';
+import type { KVCache, SlidingWindowKVCache } from '../../../kv-cache/index.js';
 
 // ============================================================================
 // Types

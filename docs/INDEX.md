@@ -42,7 +42,7 @@ Primary documentation index.
 - [Provider conformance](provider-conformance.md) — separately scoped browser/Node/provider support.
 - [Runtime ownership](runtime-ownership.md) — choosing an execution owner with evidence.
 - [Bun qualification](bun-product-qualification.md) — experimental host evidence and promotion.
-- [Loaders](api/loaders.md), [orchestration](api/orchestration.md), and [advanced root exports](api/advanced-root-exports.md) — lower-level APIs.
+- [Advanced root exports](api/advanced-root-exports.md) — lower-level APIs.
 
 ## Advanced operations
 
@@ -53,7 +53,7 @@ Primary documentation index.
 - [Incremental Capsule streams](capsule-streaming.md) — migration and receipt transport.
 - [Revocation](revocation.md) — explicit trust and release-history boundaries.
 - [Release contract](model-release-platform.md) — Capsule release closure, the non-promoting release command, and activation and custody boundaries.
-- [LoRA format](lora-format.md), [experimental tooling](api/tooling-experimental.md), [diffusion](api/diffusion.md), and [energy](api/energy.md) — separately scoped capabilities.
+- [LoRA format](lora-format.md) — separately scoped capability.
 - [Generated exports](api/reference/exports.md) — machine-derived inventory.
 
 ## Historical and experimental campaigns

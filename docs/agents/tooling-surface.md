@@ -17,7 +17,7 @@ Exports:
 - `"./tooling"` — `src/tooling-exports.js` (command runners, harness API)
 - `"./tooling/storage"`, `"./tooling/device"`, `"./tooling/manifest"`, `"./tooling/runtime"`, `"./tooling/evidence"` — narrow tooling slices
 - `"./generation"` — text pipeline construction
-- Deprecated in 0.7.0, removed in 0.8.0: `"./loaders"`, `"./orchestration"`, `"./diffusion"`, `"./energy"`, `"./serve"`, `"./tooling-experimental"`, `"./models/*"` (see `CHANGELOG.md`)
+- Removed in 0.7.0: `"./loaders"`, `"./orchestration"`, `"./diffusion"`, `"./energy"`, `"./serve"`, `"./tooling-experimental"`, `"./models/*"` (see `CHANGELOG.md`)
 
 Binary: `doppler` → `src/cli/doppler-cli.js`
 

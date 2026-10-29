@@ -16,15 +16,9 @@ The generated export inventory lives under [reference/exports.md](reference/expo
 
 ### Exported advanced surfaces
 
-- [Capsule HTTP adapter](serve.md) - `doppler-gpu/serve`; optional Node transport over an application-owned session (deprecated)
 - [Advanced Export Map](advanced-root-exports.md) - migration map from the old broad root surface to dedicated advanced subpaths
-- [Loaders API](loaders.md) - `doppler-gpu/loaders` (deprecated)
-- [Orchestration API](orchestration.md) - `doppler-gpu/orchestration` (deprecated)
 - [Generation API](generation.md) - `doppler-gpu/generation`
-- [Diffusion API](diffusion.md) - `doppler-gpu/diffusion` (deprecated)
-- [Energy API](energy.md) - `doppler-gpu/energy` (deprecated)
 - [Tooling API](tooling.md) - `doppler-gpu/tooling`, with a tier1 command/storage core plus experimental operator flows
-- [Experimental Tooling API](tooling-experimental.md) - `doppler-gpu/tooling-experimental` for browser-conversion and P2P helpers (deprecated)
 
 ## Documentation Form
 
@@ -64,16 +58,10 @@ Deprecated subpaths are listed with their removal release in the
 
 ### Tier1 advanced
 
-- `doppler-gpu/loaders`
 - `doppler-gpu/generation`
 - tier1 portions of `doppler-gpu/tooling`
 
 ### Exported but experimental
 
-- `doppler-gpu/serve`
 - `doppler-gpu/compat`
-- `doppler-gpu/orchestration`
-- `doppler-gpu/diffusion`
-- `doppler-gpu/energy`
-- `doppler-gpu/tooling-experimental`
 - experimental operator portions of `doppler-gpu/tooling`

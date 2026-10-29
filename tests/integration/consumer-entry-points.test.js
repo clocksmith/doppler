@@ -57,11 +57,4 @@ for (const [subpath, implementationPath, names] of migrations) {
   }
 }
 
-// ./loaders keeps loader-module exports and no longer forwards text-pipeline internals.
-{
-  const loaders = await importEntry('./loaders');
-  const loader = await import(pathToFileURL('src/loader/index.js').href);
-  assert.deepEqual(Object.keys(loaders).sort(), Object.keys(loader).sort());
-}
-
 console.log('consumer-entry-points.test: ok');

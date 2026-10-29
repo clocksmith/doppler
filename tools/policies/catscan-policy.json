@@ -55,7 +55,6 @@
     "src/inference/pipelines/text/CATSCAN.md",
     "src/loader/CATSCAN.md",
     "src/memory/CATSCAN.md",
-    "src/models/CATSCAN.md",
     "src/rules/CATSCAN.md",
     "src/storage/CATSCAN.md",
     "src/tooling/CATSCAN.md",

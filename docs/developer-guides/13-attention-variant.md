@@ -22,7 +22,7 @@ Add a new attention mechanism within the existing transformer text pipeline.
 - `src/inference/pipelines/text/attention/run.js` and `record.js` only as public facades
 - `src/inference/pipelines/text/attention/projections.js` when QKV setup changes
 - `src/gpu/kernels/attention*.wgsl` and `src/gpu/kernels/attention.js`
-- `src/inference/kv-cache/*` or `src/inference/kv-cache.js` if layout interactions change
+- `src/inference/kv-cache/*` if layout interactions change
 - conversion config `inference.execution` and execution graph transforms
 - Optional new manifest/runtime fields and conversion-config updates
 - Kernel tests and end-to-end pipeline tests

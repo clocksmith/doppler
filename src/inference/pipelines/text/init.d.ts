@@ -28,7 +28,7 @@ import {
   BasisDecomposedPagedCache,
   QuantizedKVCache,
   MixedGeometryKVCache,
-} from '../../kv-cache.js';
+} from '../../kv-cache/index.js';
 import { Tokenizer, type ModelManifest as TokenizerManifest } from '../../tokenizer.js';
 import { MoERouter } from '../../moe-router.js';
 import { SpeculativeDecoder } from '../../speculative.js';

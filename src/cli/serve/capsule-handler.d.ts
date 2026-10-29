@@ -1,4 +1,3 @@
-/** @deprecated Since 0.7.0. Removed in 0.8.0; no replacement export. See CHANGELOG.md. */
 import type { DopplerRuntimeSession } from '../../client/runtime/composition-root.js';
 import type { CapsuleServePolicy } from '../../config/capsule-serve.js';
 export type { CapsuleServePolicy } from '../../config/capsule-serve.js';

@@ -3,8 +3,6 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { KNOWN_MODELS } from '../../src/models/diffusiongemma.js';
-
 const testDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(testDir, '..', '..');
 
@@ -13,18 +11,15 @@ async function readJson(relativePath) {
   return JSON.parse(await fs.readFile(filePath, 'utf8'));
 }
 
-const profileDir = path.join(repoRoot, 'src/config/runtime/profiles');
-const familyModelIds = new Set(KNOWN_MODELS.map(({ modelId }) => modelId));
-const profileFiles = (await fs.readdir(profileDir)).filter((name) => name.endsWith('.json'));
-let checkedProfiles = 0;
-for (const name of profileFiles) {
-  const profile = await readJson(`src/config/runtime/profiles/${name}`);
-  if (!familyModelIds.has(profile.model)) {
-    continue;
-  }
-  checkedProfiles += 1;
+const profileDir = 'src/config/runtime/profiles';
+const profileNames = (await fs.readdir(path.join(repoRoot, profileDir)))
+  .filter((name) => name.startsWith('diffusiongemma-') && name.endsWith('.json'));
+assert.ok(profileNames.length > 0, 'expected at least one DiffusionGemma runtime profile');
+for (const name of profileNames) {
+  const profile = await readJson(`${profileDir}/${name}`);
   const modelId = profile.model;
-  assert.equal(profile.id, `profiles/${name.slice(0, -'.json'.length)}`, `${modelId}: runtime profile id must match its path`);
+  assert.equal(profile.id, `profiles/${name.slice(0, -'.json'.length)}`, `${name}: runtime profile id must match its path`);
+  assert.match(modelId, /^diffusiongemma-/, `${name}: runtime profile must be scoped to a DiffusionGemma model`);
   const routing = profile.runtime?.inference?.moe?.routing ?? {};
   if (routing.activeExpertSelection === 'topk-route') {
     assert.equal(
@@ -34,6 +29,5 @@ for (const name of profileFiles) {
     );
   }
 }
-assert.ok(checkedProfiles > 0, 'DiffusionGemma must have at least one model-scoped runtime profile');
 
 console.log('diffusiongemma-runtime-profile-contract.test: ok');
