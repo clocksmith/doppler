@@ -1,4 +1,4 @@
-import { QK_K, QK4_K_BLOCK_SIZE } from './quantization-constants.js';
+import { QK_K, QK4_K_BLOCK_SIZE } from '../config/schema/quantization.schema.js';
 import { float16ToFloat32 } from './float16.js';
 
 // Q4_K_M block layout decoding (256 elements per 144-byte block).
