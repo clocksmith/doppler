@@ -10,7 +10,6 @@
     "tools/onboarding-tooling.js",
     "tools/resource-telemetry.js",
     "tools/run-distill-bench.js",
-    "tools/run-wgsl-repair-experiment.js",
     "tools/vendor-bench.js",
     "tools/lib/evidence-io.js",
     "tools/lib/profile-comparison.js",

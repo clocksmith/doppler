@@ -37,7 +37,7 @@ These are narrow compiler-repair results; they are not semantic-kernel or
 promotion evidence. A sealed semantic WGSL result, minimum-risk sequence
 training, process-reward training, CISPO/PPO, and validation-high teacher
 checkpoint promotion remain absent. See the
-[V11 optimizer result](status/wgsl-repair-v11-2026-07-12.md).
+[V11 optimizer result](https://github.com/clocksmith/gamma/blob/main/projects/distillation/wgsl/campaign/docs/status/wgsl-repair-v11-2026-07-12.md).
 
 V12 separately completed the three-lane data-composition question with nine
 base-initialized Qwen 3.5 9B SFT runs. External20 reached 99.443% mean public
@@ -45,12 +45,12 @@ pass@1, versus 98.439% for anchor and 98.885% for random20, and beat anchor at
 all three seeds. None of its six per-seed control comparisons was significant
 after Holm correction. V12 is seed-confirmed data-centric SFT compiler evidence;
 it is not RLVR, teacher distillation, semantic-kernel correctness, or promotion.
-See the [V12 controlled-data result](status/wgsl-repair-v12-2026-07-13.md).
+See the [V12 controlled-data result](https://github.com/clocksmith/gamma/blob/main/projects/distillation/wgsl/campaign/docs/status/wgsl-repair-v12-2026-07-13.md).
 
 The V8 WGSL student replay is execution-verified SFT, also called
 response or sequence-level distillation. It is not RLVR and it is not logit
 knowledge distillation. The current receipt is
-[WGSL student replay v8](status/wgsl-student-replay-v8-2026-07-11.md).
+[WGSL student replay v8](https://github.com/clocksmith/gamma/blob/main/projects/distillation/wgsl/campaign/docs/status/wgsl-student-replay-v8-2026-07-11.md).
 
 ## Method Names
 
@@ -320,10 +320,10 @@ can become claimable:
 An artifact class being implemented does not prove that a run emitted a valid
 instance. A claim still requires the complete linked set for that run. See
 [Training Artifact Policy](training-artifact-policy.md) and the
-[V10 result receipt](status/wgsl-repair-v10-2026-07-12.md). The primary V11
+[V10 result receipt](https://github.com/clocksmith/gamma/blob/main/projects/distillation/wgsl/campaign/docs/status/wgsl-repair-v10-2026-07-12.md). The primary V11
 run now supplies a linked diagnostic-rollout, reward, GRPO update, checkpoint,
 public verification, and paired-comparison chain; its
-[result receipt](status/wgsl-repair-v11-2026-07-12.md) keeps the failed DPO lane
+[result receipt](https://github.com/clocksmith/gamma/blob/main/projects/distillation/wgsl/campaign/docs/status/wgsl-repair-v11-2026-07-12.md) keeps the failed DPO lane
 in the same evidence boundary.
 
 ## Promotion and Rejection

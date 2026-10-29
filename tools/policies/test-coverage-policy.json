@@ -50,9 +50,7 @@
         "tests/config",
         "tests/tooling",
         "tests/benchmarks",
-        "tests/production-release",
-        "tests/training/host-teacher-qualification.test.js",
-        "tests/training/student-code-experiment.test.js"
+        "tests/production-release"
       ],
       "excludeSuites": ["unit-webgpu", "unit-browser"]
     },

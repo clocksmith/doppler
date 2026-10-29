@@ -173,14 +173,11 @@ Action requirements:
 - `tools/run-agent-heldout-eval.js` converts held-out candidate completions into
   a normal `training_eval_report`; when rows require patch evidence it verifies
   unified diffs with `git apply --check` against the explicit `--patch-root`.
-- Host-session teacher selection for Doppler JavaScript and WGSL uses the
-  versioned policy in `tools/policies/host-teacher-qualification-policy.json`
-  and the hidden split bank in `tools/teacher-qualification/`. Verify the bank
-  with `npm run training:teachers:verify`. Run qualification and accepted-label
-  export with an explicit model identity, for example
-  `npm run training:teachers:qualify -- --teacher codex=<full-model-id> --with-labels`.
-  `claude -p` is also supported through
-  `--teacher claude=<full-model-id>`.
+- Host-session teacher selection for Doppler JavaScript and WGSL, and the
+  student code experiment, moved to Gamma with the WGSL training campaign:
+  [Gamma WGSL campaign](https://github.com/clocksmith/gamma/blob/main/projects/distillation/wgsl/campaign/README.md). Its policy, hidden split bank, and
+  `training:teachers:*` / `training:students:*` scripts run there against an
+  explicit Doppler checkout.
 - Host qualification runs in disposable pinned source snapshots. The actual
   git diff, allowed-path and command audits, exact original-source recovery,
   executable checks, CLI version, model id, evaluator harness hash, and
@@ -236,14 +233,14 @@ public pass@1 from 88.29% to 94.98%, with 20 paired wins and zero losses. The
 400-step DPO policy trained on 11 pairs regressed to 36.79% pass@1 and is
 rejected. This is one-seed compiler-repair capability evidence, not semantic
 kernel correctness or promotion. See the
-[V11 optimizer result](status/wgsl-repair-v11-2026-07-12.md).
+[V11 optimizer result](https://github.com/clocksmith/gamma/blob/main/projects/distillation/wgsl/campaign/docs/status/wgsl-repair-v11-2026-07-12.md).
 
 These optimizer surfaces, and any future minimum-risk, process-supervision,
 CISPO, or on-policy distillation lane, must follow the
 [Verifier-Guided and RLVR Training Contract](rlvr-training-contract.md) and
 materialize the complete artifact chain before making a training claim. The
-[V8 rejection](status/wgsl-student-replay-v8-2026-07-11.md) and
-[V10 SFT result](status/wgsl-repair-v10-2026-07-12.md) remain separate.
+[V8 rejection](https://github.com/clocksmith/gamma/blob/main/projects/distillation/wgsl/campaign/docs/status/wgsl-student-replay-v8-2026-07-11.md) and
+[V10 SFT result](https://github.com/clocksmith/gamma/blob/main/projects/distillation/wgsl/campaign/docs/status/wgsl-repair-v10-2026-07-12.md) remain separate.
 
 V12 completed the corrected data-lane ablation. The old 800-step dataset order
 exposed byte-identical prefixes in anchor, external20, and random20; V12 instead
@@ -254,8 +251,8 @@ three seeds and replayed the frozen diagnostic selection rule on public data,
 but none of the six per-seed control tests was significant after Holm
 correction. This is seed-confirmed data-centric SFT compiler evidence, not
 teacher distillation, semantic-kernel correctness, or promotion. See the
-[V12 controlled-data result](status/wgsl-repair-v12-2026-07-13.md) and the
-[historical design](status/wgsl-repair-v12-design-2026-07-12.md).
+[V12 controlled-data result](https://github.com/clocksmith/gamma/blob/main/projects/distillation/wgsl/campaign/docs/status/wgsl-repair-v12-2026-07-13.md) and the
+[historical design](https://github.com/clocksmith/gamma/blob/main/projects/distillation/wgsl/campaign/docs/status/wgsl-repair-v12-design-2026-07-12.md).
 
 Legacy Distill Studio helpers are compatibility tooling only:
 - `tools/distill-studio-mvp.js`
