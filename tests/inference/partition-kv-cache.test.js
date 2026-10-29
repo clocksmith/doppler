@@ -3,7 +3,7 @@ import { createKVCache } from '../../src/inference/pipelines/text/init.js';
 import { DEFAULT_KVCACHE_CONFIG } from '../../src/config/schema/index.js';
 import { SlidingWindowKVCache } from '../../src/inference/kv-cache/sliding-window.js';
 import { setDevice } from '../../src/gpu/device.js';
-import { captureKvCacheByteProof } from '../../src/inference/browser-harness/text-evidence.js';
+import { captureKvCacheByteProof } from '../../src/tooling/browser-harness/text-evidence.js';
 const originalGPUBuffer = globalThis.GPUBuffer;
 const originalGPUBufferUsage = globalThis.GPUBufferUsage;
 globalThis.GPUBufferUsage = { STORAGE: 0x80, COPY_SRC: 0x04, COPY_DST: 0x08 };

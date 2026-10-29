@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const { trace, log } = await import('../../src/debug/index.js');
-const { runBrowserSuite } = await import('../../src/inference/browser-harness.js');
+const { runBrowserSuite } = await import('../../src/tooling/browser-harness.js');
 
 function createHarnessOverride(marker) {
   let decodeTokens = 0;

@@ -14,7 +14,7 @@ import { sha256Hex } from '../../formats/sha256.js';
 import {
   buildTokenCostLedger,
   isExecutionObservationRequested,
-} from '../../tooling/execution-cost-ledger.js';
+} from '../execution-cost-ledger.js';
 import { createUnsupportedWorkloadError, hashStableJson, resolveDecodeCadence, resolveDispatchSuite, resolveExecutionGraphHash, resolveHarnessContext, resolveHarnessMode, resolveWorkload } from './request.js';
 
 export function resolvePipelineLoadTimings(pipeline) {

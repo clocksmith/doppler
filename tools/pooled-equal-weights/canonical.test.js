@@ -79,8 +79,8 @@ test('converted tensor verification rejects a changed numeric value even when sh
 
 test('diagnostic snapshots exclude local model caches and never alter the source observation owner', async t => {
   const f = await fixture(t), source = path.join(f.root, 'runtime'), output = path.join(f.root, 'snapshot');
-  const owner = 'src/inference/browser-harness/benchmark-execution.js';
-  for (const dir of ['src/inference/browser-harness', 'demo', 'tests', 'tools', 'benchmarks', 'models/local', 'node_modules']) {
+  const owner = 'src/tooling/browser-harness/benchmark-execution.js';
+  for (const dir of ['src/tooling/browser-harness', 'demo', 'tests', 'tools', 'benchmarks', 'models/local', 'node_modules']) {
     await fs.mkdir(path.join(source, dir), { recursive: true });
   }
   await fs.mkdir(path.join(source, 'src/inference/pipelines/text'), { recursive: true });

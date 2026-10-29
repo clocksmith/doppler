@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-import { getDefaultEmbeddingSemanticFixtures } from '../../src/inference/browser-harness-text-helpers.js';
+import { getDefaultEmbeddingSemanticFixtures } from '../../src/tooling/browser-harness-text-helpers.js';
 
 const asset = JSON.parse(
   readFileSync(new URL('../../src/inference/fixtures/embedding-semantic-fixtures.json', import.meta.url), 'utf8')

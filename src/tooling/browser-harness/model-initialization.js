@@ -11,11 +11,11 @@ import { loadManifestFromStore, openModelStore } from '../../storage/shard-manag
 import { resolveRuntime } from './runtime-config.js';
 import { cloneRuntimeConfig } from './runtime-isolation.js';
 import { normalizeLoadMode } from './suite-summary.js';
-import { createPipeline } from '../pipelines/text.js';
+import { createPipeline } from '../../inference/pipelines/text.js';
 import { initializeInference } from '../test-harness.js';
 import { resolveLocalSourceRuntimePathFromModelUrl } from './model-resolution.js';
 
-const NODE_SOURCE_RUNTIME_MODULE_PATH = '../../tooling/node-source-runtime.js';
+const NODE_SOURCE_RUNTIME_MODULE_PATH = '../node-source-runtime.js';
 
 function resolveSourceVerifyHashes(options = {}) {
   const explicit = options?.runtime?.runtimeConfig?.loading?.shardCache?.verifyHashes;

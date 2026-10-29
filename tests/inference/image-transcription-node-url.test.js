@@ -3,7 +3,7 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { runImageTranscription } from '../../src/inference/browser-harness-text-helpers.js';
+import { runImageTranscription } from '../../src/tooling/browser-harness-text-helpers.js';
 import { sha256BytesHex } from '../../src/formats/sha256.js';
 
 const samplePath = path.resolve(process.cwd(), 'examples/samples/sample-pastel-600x400.png');

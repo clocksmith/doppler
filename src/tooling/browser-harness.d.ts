@@ -1,17 +1,17 @@
 /**
  * browser-harness.ts - Browser diagnostics harness
  *
- * @module inference/browser-harness
+ * @module tooling/browser-harness
  */
 
 import type { InitializeResult, RuntimeOverrides, InferenceHarnessOptions } from './test-harness.js';
-import type { InferencePipeline } from './pipelines/text.js';
+import type { InferencePipeline } from '../inference/pipelines/text.js';
 import type { DiffusionPipeline } from '../experimental/diffusion/pipeline.js';
 import type { EnergyPipeline } from '../experimental/energy/pipeline.js';
 import type { SavedReportInfo, SaveReportOptions } from '../storage/reports.js';
 import type { DebugSnapshot } from '../debug/history.js';
-import type { CommandContext } from '../tooling/command-context.js';
-import type { ToolingIntent } from '../tooling/command-api.js';
+import type { CommandContext } from './command-context.js';
+import type { ToolingIntent } from './command-api.js';
 
 
 export interface RuntimeConfigLoadOptions {

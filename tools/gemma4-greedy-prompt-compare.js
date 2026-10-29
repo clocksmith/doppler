@@ -8,7 +8,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { getRuntimeConfig, setRuntimeConfig } from '../src/config/runtime.js';
 import { mergeRuntimeValues } from '../src/config/runtime-merge.js';
-import { initializeInference } from '../src/inference/test-harness.js';
+import { initializeInference } from '../src/tooling/test-harness.js';
 import { installNodeFileFetchShim } from '../src/tooling/node-file-fetch.js';
 import { bootstrapNodeWebGPU } from '../src/tooling/node-webgpu.js';
 

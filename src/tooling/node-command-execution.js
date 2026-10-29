@@ -17,7 +17,7 @@ import {
 } from './command-runtime-execution.js';
 import { refreshManifestIntegrity } from './rdrr-integrity-refresh.js';
 import { runProductionRelease } from './production-release.js';
-import { loadRuntimeConfigFromRef } from '../inference/browser-harness/runtime-config.js';
+import { loadRuntimeConfigFromRef } from './browser-harness/runtime-config.js';
 import { isPlainObject } from '../formats/plain-object.js';
 import {
   getActiveKernelPath,
@@ -69,7 +69,7 @@ function loadRuntimeModules() {
 
   installNodeFileFetchShim();
   runtimeModulesPromise = Promise.all([
-    import('../inference/browser-harness.js'),
+    import('./browser-harness.js'),
     import('../config/runtime.js'),
   ]).then(([harness, runtime]) => ({ harness, runtime }));
 

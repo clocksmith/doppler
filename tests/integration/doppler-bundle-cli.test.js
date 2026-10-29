@@ -106,7 +106,7 @@ function runCli(args, options = {}) {
 // exercises intake → (skip capture) → bundle and lands the canonical artifacts
 // under --out.
 {
-  const { resolveExecutionGraphHash } = await import('../../src/inference/browser-harness.js');
+  const { resolveExecutionGraphHash } = await import('../../src/tooling/browser-harness.js');
   const FIXTURE_REPORT = path.join(
     ROOT_DIR,
     'tests',

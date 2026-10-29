@@ -7,7 +7,7 @@ import {
   runRerank,
   runRerankSemanticChecks,
   scoreRerankDocument,
-} from '../../src/inference/browser-harness-text-helpers.js';
+} from '../../src/tooling/browser-harness-text-helpers.js';
 
 const scoringConfig = {
   format: 'qwen3_yes_no_logit',

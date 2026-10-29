@@ -115,7 +115,7 @@
     "src/inference/pipelines/text/linear-attention/state-clone.js",
     "src/config/schema/speculation-self.schema.js",
     "src/experimental/training/lora-training-round.js",
-    "src/inference/browser-harness/request-timing.js",
+    "src/tooling/browser-harness/request-timing.js",
     "src/loader/weight-representation-plan.js",
     "src/rules/greedy-sampling.js",
     "src/inference/pipelines/text/generator/greedy-head-policy.js",

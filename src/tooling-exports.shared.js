@@ -37,19 +37,19 @@ export { captureMemorySnapshot } from './loader/memory-monitor.js';
 export { destroyBufferPool } from './memory/buffer-pool.js';
 
 // Browser-safe runtime profile helpers
-export { loadRuntimeConfigFromUrl, applyRuntimeConfigFromUrl, loadRuntimeProfile, applyRuntimeProfile } from './inference/browser-harness/runtime-config.js';
+export { loadRuntimeConfigFromUrl, applyRuntimeConfigFromUrl, loadRuntimeProfile, applyRuntimeProfile } from './tooling/browser-harness/runtime-config.js';
 
 // Reference-transcript capture helpers — used by demo and verify flows to emit
 // doppler.reference-transcript/v1 seeds without depending on the full harness.
 export {
   buildReferenceTranscriptSeed,
   resolveExecutionGraphHash,
-} from './inference/browser-harness.js';
+} from './tooling/browser-harness.js';
 export {
   captureKvCacheByteProof,
   digestLogitsForTranscript,
   runRerank,
-} from './inference/browser-harness-text-helpers.js';
+} from './tooling/browser-harness-text-helpers.js';
 export {
   MODEL_CHECKPOINT_EVIDENCE_SCHEMA,
   MODEL_CHECKPOINT_STAGES,

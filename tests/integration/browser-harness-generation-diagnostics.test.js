@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 
-const { runBrowserSuite } = await import('../../src/inference/browser-harness.js');
-const { runGeneration } = await import('../../src/inference/browser-harness-text-helpers.js');
+const { runBrowserSuite } = await import('../../src/tooling/browser-harness.js');
+const { runGeneration } = await import('../../src/tooling/browser-harness-text-helpers.js');
 const { setRuntimeConfig } = await import('../../src/config/runtime.js');
 
 const digest = (character) => `sha256:${character.repeat(64)}`;
@@ -475,7 +475,7 @@ function createHarnessOverride(records) {
 {
   // run.seed takes precedence over run.sampling.seed and inference.sampling.seed.
   // Validates the three-level precedence: run.seed > run.sampling.seed > inference.sampling.seed.
-  const { resolveBenchmarkRunSettings } = await import('../../src/inference/browser-harness-text-helpers.js');
+  const { resolveBenchmarkRunSettings } = await import('../../src/tooling/browser-harness-text-helpers.js');
   const benchmarkBaseInference = {
     prompt: 'The sky is',
     generation: { maxTokens: 1 },

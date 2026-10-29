@@ -530,17 +530,17 @@
       "reason": "TurboQuant QJL construction is isolated under src/experimental and excluded from Capsule Runtime support claims."
     },
     {
-      "id": "src/inference/browser-harness/text-evidence.js#groupDecodeRecordOpLabels",
+      "id": "src/tooling/browser-harness/text-evidence.js#groupDecodeRecordOpLabels",
       "category": "observation",
       "reason": "The browser harness groups execution receipt counters for evidence and does not alter any runtime tensor."
     },
     {
-      "id": "src/inference/browser-harness/text-input.js#decodeBase64ToBytes",
+      "id": "src/tooling/browser-harness/text-input.js#decodeBase64ToBytes",
       "category": "host-input-preprocessing",
       "reason": "The browser harness decodes application-supplied image or protocol bytes before creating a runtime model tensor."
     },
     {
-      "id": "src/inference/browser-harness/text-input.js#normalizeRawImageBytes",
+      "id": "src/tooling/browser-harness/text-input.js#normalizeRawImageBytes",
       "category": "host-input-preprocessing",
       "reason": "The browser harness decodes application-supplied image or protocol bytes before creating a runtime model tensor."
     },

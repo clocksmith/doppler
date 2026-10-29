@@ -5,7 +5,7 @@ import path from 'node:path';
 import { listRuntimeProfiles } from '../../src/cli/runtime-profiles.js';
 import { resolveRuntimeConfig } from '../../src/config/runtime.js';
 import { expandExecutionV1 } from '../../src/config/schema/execution-v1.schema.js';
-import { loadRuntimeProfile } from '../../src/inference/browser-harness/runtime-config.js';
+import { loadRuntimeProfile } from '../../src/tooling/browser-harness/runtime-config.js';
 import { installNodeFileFetchShim } from '../../src/tooling/node-file-fetch.js';
 import { stripLegacyRuntimeIntent } from '../../src/tooling/runtime-intent.js';
 
