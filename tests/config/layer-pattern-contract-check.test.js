@@ -2,64 +2,55 @@ import assert from 'node:assert/strict';
 
 import { buildLayerPatternContractArtifact } from '../../src/rules/layer-pattern-contract-check.js';
 import { getInferenceLayerPatternContractArtifact } from '../../src/rules/rule-registry.js';
+import { computeGlobalLayers } from '../../src/config/schema/inference.schema.js';
+import ruleBundle from '../../src/rules/generated/rule-bundle.json' with { type: 'json' };
+
+const checkedIn = ruleBundle.files['inference/layer-pattern.rules.json'];
+
+function assertRejected(ruleFile, fragment) {
+  const artifact = buildLayerPatternContractArtifact(ruleFile);
+  assert.equal(artifact.ok, false, `expected rejection containing "${fragment}"`);
+  assert.ok(
+    artifact.errors.some((message) => message.includes(fragment)),
+    `expected an error containing "${fragment}"; got ${JSON.stringify(artifact.errors)}`
+  );
+}
 
 {
   const artifact = getInferenceLayerPatternContractArtifact();
-  assert.equal(artifact.ok, true);
-  assert.ok(
-    artifact.checks.some((entry) => entry.id === 'inference.layerPattern.patternKind.semantics' && entry.ok)
-  );
-  assert.ok(
-    artifact.checks.some((entry) => entry.id === 'inference.layerPattern.computeGlobalLayers.every_n_negative_offset' && entry.ok)
-  );
+  assert.equal(artifact.ok, true, artifact.errors.join(' | '));
+  assert.ok(artifact.checks.every((entry) => entry.ok));
+  assert.deepEqual(artifact, buildLayerPatternContractArtifact(checkedIn));
 }
 
+assertRejected(
+  { ...checkedIn, patternKind: checkedIn.patternKind.slice(0, -1) },
+  'patternKind must end with a catch-all rule'
+);
+assertRejected(
+  { ...checkedIn, patternKind: [...checkedIn.patternKind.slice(0, -1), { match: { patternTyp: 'x' }, value: 'x' }, { match: {}, value: null }] },
+  'patternKind[3].match.patternTyp is not a context field'
+);
+assertRejected(
+  { ...checkedIn, layerType: [{ match: { patternKind: 'unproduced_kind' }, value: 'full_attention' }, ...checkedIn.layerType] },
+  'layerType[0].match.patternKind must be a kind produced by patternKind'
+);
 {
-  const artifact = buildLayerPatternContractArtifact({
-    patternKind: [
-      { match: { patternType: 'alternating', globalPattern: 'odd' }, value: 'alternating_even' },
-      { match: { patternType: 'alternating', globalPattern: 'odd' }, value: 'alternating_odd' },
-      { match: { patternType: 'every_n' }, value: 'every_n' },
-      { match: {}, value: null },
-    ],
-    layerType: [
-      { match: { patternKind: 'alternating_even', isEven: true }, value: 'full_attention' },
-      { match: { patternKind: 'alternating_even' }, value: 'sliding_attention' },
-      { match: { patternKind: 'alternating_odd', isEven: false }, value: 'full_attention' },
-      { match: { patternKind: 'alternating_odd' }, value: 'sliding_attention' },
-      { match: { patternKind: 'every_n', isStride: true }, value: 'full_attention' },
-      { match: { patternKind: 'every_n' }, value: 'sliding_attention' },
-    ],
-  });
-
-  assert.equal(artifact.ok, false);
-  assert.ok(
-    artifact.errors.some((message) => message.includes('patternKind rule[0] drifted'))
+  const kind = checkedIn.patternKind[0].value;
+  assertRejected(
+    { ...checkedIn, layerType: checkedIn.layerType.filter((rule) => !(rule.match.patternKind === kind && Object.keys(rule.match).length === 1)) },
+    `layerType must end pattern kind "${kind}"`
   );
 }
+assertRejected(
+  { ...checkedIn, layerType: [{ match: { patternKind: checkedIn.patternKind[0].value }, value: 7 }, ...checkedIn.layerType] },
+  'layerType[0].value must be a non-empty string'
+);
 
-{
-  const artifact = buildLayerPatternContractArtifact({
-    patternKind: [
-      { match: { patternType: 'alternating', globalPattern: 'even' }, value: 'alternating_even' },
-      { match: { patternType: 'alternating', globalPattern: 'odd' }, value: 'alternating_odd' },
-      { match: { patternType: 'every_n' }, value: 'every_n' },
-      { match: {}, value: null },
-    ],
-    layerType: [
-      { match: { patternKind: 'alternating_even', isEven: true }, value: 'sliding_attention' },
-      { match: { patternKind: 'alternating_even' }, value: 'sliding_attention' },
-      { match: { patternKind: 'alternating_odd', isEven: false }, value: 'full_attention' },
-      { match: { patternKind: 'alternating_odd' }, value: 'sliding_attention' },
-      { match: { patternKind: 'every_n', isStride: true }, value: 'full_attention' },
-      { match: { patternKind: 'every_n' }, value: 'sliding_attention' },
-    ],
-  });
-
-  assert.equal(artifact.ok, false);
-  assert.ok(
-    artifact.errors.some((message) => message.includes('layerType rule[0] drifted') || message.includes('layerType mismatched context'))
-  );
-}
+// computeGlobalLayers normalizes layer pattern offsets.
+assert.deepEqual(computeGlobalLayers({ type: 'alternating', globalPattern: 'even' }, 6), [0, 2, 4]);
+assert.deepEqual(computeGlobalLayers({ type: 'alternating', globalPattern: 'odd' }, 6), [1, 3, 5]);
+assert.deepEqual(computeGlobalLayers({ type: 'every_n', period: 6, offset: 5 }, 12), [5, 11]);
+assert.deepEqual(computeGlobalLayers({ type: 'every_n', period: 6, offset: -1 }, 12), [5, 11]);
 
 console.log('layer-pattern-contract-check.test: ok');

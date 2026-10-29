@@ -1,571 +1,77 @@
-import { isPlainObject } from '../formats/plain-object.js';
-import { selectByRules } from './rule-matcher.js';
+import { buildRuleFileStructureArtifact } from './rule-matcher.js';
 
-function matchesExactObject(actual, expected) {
-  if (!isPlainObject(actual) || !isPlainObject(expected)) {
-    return false;
-  }
-  const actualKeys = Object.keys(actual).sort();
-  const expectedKeys = Object.keys(expected).sort();
-  if (actualKeys.length !== expectedKeys.length) {
-    return false;
-  }
-  for (let i = 0; i < actualKeys.length; i += 1) {
-    if (actualKeys[i] !== expectedKeys[i]) {
-      return false;
-    }
-  }
-  for (const key of expectedKeys) {
-    const expectedValue = expected[key];
-    const actualValue = actual[key];
-    if (isPlainObject(expectedValue)) {
-      if (!matchesExactObject(actualValue, expectedValue)) {
-        return false;
-      }
-      continue;
-    }
-    if (Array.isArray(expectedValue)) {
-      if (!Array.isArray(actualValue) || actualValue.length !== expectedValue.length) {
-        return false;
-      }
-      for (let i = 0; i < expectedValue.length; i += 1) {
-        if (actualValue[i] !== expectedValue[i]) {
-          return false;
-        }
-      }
-      continue;
-    }
-    if (actualValue !== expectedValue) {
-      return false;
-    }
-  }
-  return true;
-}
+// Structural contract for inference/execution.rules.json. Context keys mirror
+// the selection contexts built in inference/pipelines/text/execution-plan.js;
+// rule values are owned only by the JSON file.
 
-function decodeRecorderSemantic(context) {
-  return context.hasDevice === true
-    && context.debug !== true
-    && context.disableCommandBatching !== true
-    && context.kvLayout !== 'bdpa_paged';
-}
+const isBoolean = (value) => typeof value === 'boolean';
+const isPositiveInteger = (value) => Number.isInteger(value) && value >= 1;
 
-function profileDecodeRecorderSemantic(context) {
-  return context.hasDevice === true
-    && context.debug !== true
-    && context.kvLayout !== 'bdpa_paged';
-}
+const DECODE_RECORDER_CONTEXT = Object.freeze(['hasDevice', 'debug', 'disableCommandBatching', 'kvLayout']);
 
-function batchDecodeSemantic(context) {
-  return context.batchSize > 1
-    && context.useGPU === true
-    && context.gpuSamplingAvailable === true
-    && context.disableMultiTokenDecode !== true
-    && context.disableCommandBatching !== true
-    && context.isBdpaPagedLayout !== true
-    && context.finitenessFallbackWindowOpen !== true
-    && (
-      context.hasLinearAttentionLayers !== true
-      || context.hasRangeBackedPerLayerInputs !== true
-    )
-    && (
-      context.hasRangeBackedPerLayerInputs !== true
-      || context.selfSpeculationEnabled !== true
-    );
-}
-
-function enumerateDecodeRecorderContexts() {
-  const values = [true, false];
-  const kvLayouts = ['bdpa_paged', 'paged', null];
-  const contexts = [];
-  for (const hasDevice of values) {
-    for (const debug of values) {
-      for (const disableCommandBatching of values) {
-        for (const kvLayout of kvLayouts) {
-          contexts.push({
-            hasDevice,
-            debug,
-            disableCommandBatching,
-            kvLayout,
-          });
-        }
-      }
-    }
-  }
-  return contexts;
-}
-
-function enumerateBatchDecodeContexts() {
-  const values = [true, false];
-  const batchSizes = [1, 2];
-  const contexts = [];
-  for (const batchSize of batchSizes) {
-    for (const useGPU of values) {
-      for (const gpuSamplingAvailable of values) {
-        for (const disableMultiTokenDecode of values) {
-          for (const disableCommandBatching of values) {
-            for (const isBdpaPagedLayout of values) {
-              for (const finitenessFallbackWindowOpen of values) {
-                for (const hasLinearAttentionLayers of values) {
-                  for (const selfSpeculationEnabled of values) {
-                    for (const hasRangeBackedPerLayerInputs of values) {
-                      contexts.push({
-                        batchSize,
-                        useGPU,
-                        gpuSamplingAvailable,
-                        disableMultiTokenDecode,
-                        disableCommandBatching,
-                        isBdpaPagedLayout,
-                        finitenessFallbackWindowOpen,
-                        hasLinearAttentionLayers,
-                        selfSpeculationEnabled,
-                        hasRangeBackedPerLayerInputs,
-                      });
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  return contexts;
-}
-
-function maxBatchDecodeTokensSemantic(context) {
-  if (context.hasHotVocabularyBatchDecode === true) {
-    return 1;
-  }
-  if (context.hasLinearAttentionLayers === true) {
-    return 32;
-  }
-  if (context.hasGpuSplitPerLayerInputs === true && context.currentSeqLen >= 192) {
-    return 2;
-  }
-  if (context.hasGpuSplitPerLayerInputs === true && context.maxDecodeTokens > 16) {
-    return 16;
-  }
-  if (context.hasGpuSplitPerLayerInputs === true) {
-    return 8;
-  }
-  if (
-    (
-      context.modelId === 'gemma-4-12b-it-text-q4k-ehf16-af16'
-      || context.modelId === 'gemma-4-12b-it-text-q4k-ehf16-hq4k-af16'
-      || context.modelId === 'gemma-4-12b-it-text-w4a16-ct-ehf16-af16'
-    )
-    && context.activationDtype === 'f16'
-    && context.numLayers >= 48
-    && context.hiddenSize >= 3840
-    && context.maxDecodeTokens > 8
-  ) {
-    return 8;
-  }
-  if (context.numLayers >= 48 && context.hiddenSize >= 3840 && context.maxDecodeTokens > 16) {
-    return 16;
-  }
-  return null;
-}
-
-function enumerateMaxBatchDecodeTokenContexts() {
-  return [
-    { hasHotVocabularyBatchDecode: true, hasGpuSplitPerLayerInputs: false, hasLinearAttentionLayers: false, currentSeqLen: 19, maxDecodeTokens: 8, numLayers: 48, hiddenSize: 3840 },
-    { hasHotVocabularyBatchDecode: false, hasGpuSplitPerLayerInputs: false, hasLinearAttentionLayers: true, currentSeqLen: 19, maxDecodeTokens: 8, numLayers: 48, hiddenSize: 3840 },
-    { hasHotVocabularyBatchDecode: false, hasGpuSplitPerLayerInputs: true, hasLinearAttentionLayers: false, currentSeqLen: 133, maxDecodeTokens: 16, numLayers: 48, hiddenSize: 3840 },
-    { hasHotVocabularyBatchDecode: false, hasGpuSplitPerLayerInputs: true, hasLinearAttentionLayers: false, currentSeqLen: 133, maxDecodeTokens: 32, numLayers: 48, hiddenSize: 3840 },
-    { hasHotVocabularyBatchDecode: false, hasGpuSplitPerLayerInputs: true, hasLinearAttentionLayers: false, currentSeqLen: 283, maxDecodeTokens: 16, numLayers: 48, hiddenSize: 3840 },
-    { hasHotVocabularyBatchDecode: false, hasGpuSplitPerLayerInputs: false, hasLinearAttentionLayers: false, modelId: 'gemma-4-12b-it-text-q4k-ehf16-af16', activationDtype: 'f16', currentSeqLen: 330, maxDecodeTokens: 64, numLayers: 48, hiddenSize: 3840 },
-    { hasHotVocabularyBatchDecode: false, hasGpuSplitPerLayerInputs: false, hasLinearAttentionLayers: false, currentSeqLen: 19, maxDecodeTokens: 32, numLayers: 48, hiddenSize: 3840 },
-    { hasHotVocabularyBatchDecode: false, hasGpuSplitPerLayerInputs: false, hasLinearAttentionLayers: false, currentSeqLen: 19, maxDecodeTokens: 8, numLayers: 32, hiddenSize: 2048 },
-  ];
-}
-
-function prefillRecorderChunkLayersSemantic(context) {
-  if (context.hasGpuSplitPerLayerInputs === true && context.numTokens <= 32) {
-    return 8;
-  }
-  return 4;
-}
-
-function enumeratePrefillRecorderChunkLayerContexts() {
-  return [
-    { hasGpuSplitPerLayerInputs: true, numTokens: 1 },
-    { hasGpuSplitPerLayerInputs: true, numTokens: 15 },
-    { hasGpuSplitPerLayerInputs: true, numTokens: 32 },
-    { hasGpuSplitPerLayerInputs: true, numTokens: 33 },
-    { hasGpuSplitPerLayerInputs: false, numTokens: 15 },
-    { hasGpuSplitPerLayerInputs: false, numTokens: 64 },
-  ];
-}
-
-function checkRuleShape(rules, expectedMatches, label) {
-  if (!Array.isArray(rules)) {
-    return {
-      ok: false,
-      errors: [`[ExecutionRulesContract] ${label} must be an array.`],
-    };
-  }
-  if (!Array.isArray(expectedMatches) || expectedMatches.length === 0) {
-    return {
-      ok: false,
-      errors: [`[ExecutionRulesContract] ${label} expectedMatches must be a non-empty array.`],
-    };
-  }
-  if (rules.length !== expectedMatches.length + 1) {
-    return {
-      ok: false,
-      errors: [
-        `[ExecutionRulesContract] ${label} must contain exactly ${expectedMatches.length + 1} rules; got ${rules.length}.`,
-      ],
-    };
-  }
-  const errors = [];
-  for (let index = 0; index < expectedMatches.length; index += 1) {
-    const rule = rules[index];
-    if (!matchesExactObject(rule?.match, expectedMatches[index]) || rule?.value !== true) {
-      errors.push(
-        `[ExecutionRulesContract] ${label} rule ${index + 1} drifted from the expected enabling predicate.`
-      );
-      break;
-    }
-  }
-  const fallbackRule = rules[rules.length - 1];
-  if (!matchesExactObject(fallbackRule?.match, {}) || fallbackRule?.value !== false) {
-    errors.push(`[ExecutionRulesContract] ${label} fallback rule must be { match: {}, value: false }.`);
-  }
-  return {
-    ok: errors.length === 0,
-    errors,
-  };
-}
-
-function checkRuleSemantics(rules, contexts, expectedValue, label) {
-  const errors = [];
-  for (const context of contexts) {
-    const actual = selectByRules(rules, context);
-    const expected = expectedValue(context);
-    if (actual !== expected) {
-      errors.push(
-        `[ExecutionRulesContract] ${label} mismatched context ${JSON.stringify(context)}: ` +
-        `expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}.`
-      );
-      break;
-    }
-  }
-  return {
-    ok: errors.length === 0,
-    errors,
-    sampledContexts: contexts.length,
-  };
-}
+const EXECUTION_RULE_SPECS = Object.freeze({
+  decodeRecorderEnabled: {
+    contextKeys: DECODE_RECORDER_CONTEXT,
+    isValue: isBoolean,
+    valueType: 'a boolean',
+    catchAll: true,
+  },
+  profileDecodeRecorderEnabled: {
+    contextKeys: DECODE_RECORDER_CONTEXT,
+    isValue: isBoolean,
+    valueType: 'a boolean',
+    catchAll: true,
+  },
+  batchDecodeEnabled: {
+    contextKeys: Object.freeze([
+      'batchSize',
+      'useGPU',
+      'gpuSamplingAvailable',
+      'disableMultiTokenDecode',
+      'disableCommandBatching',
+      'isBdpaPagedLayout',
+      'finitenessFallbackWindowOpen',
+      'hasLinearAttentionLayers',
+      'selfSpeculationEnabled',
+      'hasRangeBackedPerLayerInputs',
+    ]),
+    isValue: isBoolean,
+    valueType: 'a boolean',
+    catchAll: true,
+  },
+  maxBatchDecodeTokens: {
+    contextKeys: Object.freeze([
+      'hasHotVocabularyBatchDecode',
+      'hasGpuSplitPerLayerInputs',
+      'hasLinearAttentionLayers',
+      'modelId',
+      'activationDtype',
+      'currentSeqLen',
+      'maxDecodeTokens',
+      'numLayers',
+      'hiddenSize',
+    ]),
+    isValue: (value) => value === null || isPositiveInteger(value),
+    valueType: 'null or a positive integer',
+    catchAll: true,
+  },
+  prefillRecorderChunkLayers: {
+    contextKeys: Object.freeze(['hasGpuSplitPerLayerInputs', 'numTokens']),
+    isValue: isPositiveInteger,
+    valueType: 'a positive integer',
+    catchAll: true,
+  },
+  finitenessFallbackActivationDtype: {
+    contextKeys: Object.freeze(['activationDtype']),
+    isValue: (value) => value === 'f16' || value === 'f32',
+    valueType: '"f16" or "f32"',
+    catchAll: true,
+  },
+});
 
 export function buildInferenceExecutionRulesContractArtifact(ruleGroup) {
-  const errors = [];
-  const checks = [];
-  const decodeRules = ruleGroup?.decodeRecorderEnabled;
-  const profileDecodeRules = ruleGroup?.profileDecodeRecorderEnabled;
-  const batchRules = ruleGroup?.batchDecodeEnabled;
-  const maxBatchDecodeTokenRules = ruleGroup?.maxBatchDecodeTokens;
-  const prefillRecorderChunkLayerRules = ruleGroup?.prefillRecorderChunkLayers;
-
-  const decodeShape = checkRuleShape(
-    decodeRules,
-    [{
-      hasDevice: true,
-      debug: false,
-      disableCommandBatching: false,
-      kvLayout: { neq: 'bdpa_paged' },
-    }],
-    'decodeRecorderEnabled'
-  );
-  errors.push(...decodeShape.errors);
-  checks.push({
-    id: 'inference.execution.decodeRecorderEnabled.shape',
-    ok: decodeShape.ok,
+  return buildRuleFileStructureArtifact(ruleGroup, EXECUTION_RULE_SPECS, {
+    idPrefix: 'inference.execution',
+    label: 'ExecutionRulesContract',
   });
-
-  const decodeSemantics = Array.isArray(decodeRules)
-    ? checkRuleSemantics(
-      decodeRules,
-      enumerateDecodeRecorderContexts(),
-      decodeRecorderSemantic,
-      'decodeRecorderEnabled'
-    )
-    : { ok: false, errors: ['[ExecutionRulesContract] decodeRecorderEnabled is unavailable for semantic check.'], sampledContexts: 0 };
-  errors.push(...decodeSemantics.errors);
-  checks.push({
-    id: 'inference.execution.decodeRecorderEnabled.semantics',
-    ok: decodeSemantics.ok,
-  });
-
-  const profileDecodeShape = checkRuleShape(
-    profileDecodeRules,
-    [{
-      hasDevice: true,
-      debug: false,
-      kvLayout: { neq: 'bdpa_paged' },
-    }],
-    'profileDecodeRecorderEnabled'
-  );
-  errors.push(...profileDecodeShape.errors);
-  checks.push({
-    id: 'inference.execution.profileDecodeRecorderEnabled.shape',
-    ok: profileDecodeShape.ok,
-  });
-
-  const profileDecodeSemantics = Array.isArray(profileDecodeRules)
-    ? checkRuleSemantics(
-      profileDecodeRules,
-      enumerateDecodeRecorderContexts(),
-      profileDecodeRecorderSemantic,
-      'profileDecodeRecorderEnabled'
-    )
-    : {
-      ok: false,
-      errors: ['[ExecutionRulesContract] profileDecodeRecorderEnabled is unavailable for semantic check.'],
-      sampledContexts: 0,
-    };
-  errors.push(...profileDecodeSemantics.errors);
-  checks.push({
-    id: 'inference.execution.profileDecodeRecorderEnabled.semantics',
-    ok: profileDecodeSemantics.ok,
-  });
-
-  const batchShape = checkRuleShape(
-    batchRules,
-    [{
-      batchSize: { gt: 1 },
-      useGPU: true,
-      gpuSamplingAvailable: true,
-      disableMultiTokenDecode: { neq: true },
-      disableCommandBatching: false,
-      isBdpaPagedLayout: false,
-      finitenessFallbackWindowOpen: false,
-      hasLinearAttentionLayers: false,
-      hasRangeBackedPerLayerInputs: false,
-    }, {
-      batchSize: { gt: 1 },
-      useGPU: true,
-      gpuSamplingAvailable: true,
-      disableMultiTokenDecode: { neq: true },
-      disableCommandBatching: false,
-      isBdpaPagedLayout: false,
-      finitenessFallbackWindowOpen: false,
-      hasLinearAttentionLayers: false,
-      hasRangeBackedPerLayerInputs: true,
-      selfSpeculationEnabled: false,
-    }, {
-      batchSize: { gt: 1 },
-      useGPU: true,
-      gpuSamplingAvailable: true,
-      disableMultiTokenDecode: { neq: true },
-      disableCommandBatching: false,
-      isBdpaPagedLayout: false,
-      finitenessFallbackWindowOpen: false,
-      hasLinearAttentionLayers: true,
-      hasRangeBackedPerLayerInputs: false,
-    }],
-    'batchDecodeEnabled'
-  );
-  errors.push(...batchShape.errors);
-  checks.push({
-    id: 'inference.execution.batchDecodeEnabled.shape',
-    ok: batchShape.ok,
-  });
-
-  const batchSemantics = Array.isArray(batchRules)
-    ? checkRuleSemantics(
-      batchRules,
-      enumerateBatchDecodeContexts(),
-      batchDecodeSemantic,
-      'batchDecodeEnabled'
-    )
-    : { ok: false, errors: ['[ExecutionRulesContract] batchDecodeEnabled is unavailable for semantic check.'], sampledContexts: 0 };
-  errors.push(...batchSemantics.errors);
-  checks.push({
-    id: 'inference.execution.batchDecodeEnabled.semantics',
-    ok: batchSemantics.ok,
-  });
-
-  const maxBatchShapeErrors = [];
-  if (!Array.isArray(maxBatchDecodeTokenRules) || maxBatchDecodeTokenRules.length !== 8) {
-    maxBatchShapeErrors.push('[ExecutionRulesContract] maxBatchDecodeTokens must contain exactly 8 rules.');
-  } else {
-    const [
-      hotVocabularyRule,
-      linearAttentionRule,
-      splitTablesLongContextRule,
-      splitTablesLargeDecodeRule,
-      splitTablesFallbackRule,
-      gemma412BAf16DenseRule,
-      largeDenseDecodeRule,
-      fallbackRule,
-    ] = maxBatchDecodeTokenRules;
-    if (!matchesExactObject(hotVocabularyRule?.match, { hasHotVocabularyBatchDecode: true }) || hotVocabularyRule?.value !== 1) {
-      maxBatchShapeErrors.push(
-        '[ExecutionRulesContract] maxBatchDecodeTokens hot-vocabulary rule must cap tokenizer_scores bursts at 1 token.'
-      );
-    }
-    if (!matchesExactObject(linearAttentionRule?.match, { hasLinearAttentionLayers: true }) || linearAttentionRule?.value !== 32) {
-      maxBatchShapeErrors.push(
-        '[ExecutionRulesContract] maxBatchDecodeTokens linear-attention rule must cap unsafe burst recording at 32 tokens.'
-      );
-    }
-    if (
-      !matchesExactObject(splitTablesLongContextRule?.match, {
-        hasGpuSplitPerLayerInputs: true,
-        currentSeqLen: { gte: 192 },
-      })
-      || splitTablesLongContextRule?.value !== 2
-    ) {
-      maxBatchShapeErrors.push(
-        '[ExecutionRulesContract] maxBatchDecodeTokens gpu_split_tables long-context rule must cap bursts at 2 tokens.'
-      );
-    }
-    if (
-      !matchesExactObject(splitTablesLargeDecodeRule?.match, {
-        hasGpuSplitPerLayerInputs: true,
-        maxDecodeTokens: { gt: 16 },
-      })
-      || splitTablesLargeDecodeRule?.value !== 16
-    ) {
-      maxBatchShapeErrors.push(
-        '[ExecutionRulesContract] maxBatchDecodeTokens gpu_split_tables large-decode rule must cap bursts at 16 tokens.'
-      );
-    }
-    if (!matchesExactObject(splitTablesFallbackRule?.match, { hasGpuSplitPerLayerInputs: true }) || splitTablesFallbackRule?.value !== 8) {
-      maxBatchShapeErrors.push(
-        '[ExecutionRulesContract] maxBatchDecodeTokens gpu_split_tables fallback rule must cap bursts at 8 tokens.'
-      );
-    }
-    if (
-      !matchesExactObject(gemma412BAf16DenseRule?.match, {
-        modelId: {
-          in: [
-            'gemma-4-12b-it-text-q4k-ehf16-af16',
-            'gemma-4-12b-it-text-q4k-ehf16-hq4k-af16',
-            'gemma-4-12b-it-text-w4a16-ct-ehf16-af16',
-          ],
-        },
-        activationDtype: 'f16',
-        numLayers: { gte: 48 },
-        hiddenSize: { gte: 3840 },
-        maxDecodeTokens: { gt: 8 },
-      })
-      || gemma412BAf16DenseRule?.value !== 8
-    ) {
-      maxBatchShapeErrors.push(
-        '[ExecutionRulesContract] maxBatchDecodeTokens Gemma 4 12B af16 dense rule must cap bursts at 8 tokens.'
-      );
-    }
-    if (
-      !matchesExactObject(largeDenseDecodeRule?.match, {
-        numLayers: { gte: 48 },
-        hiddenSize: { gte: 3840 },
-        maxDecodeTokens: { gt: 16 },
-      })
-      || largeDenseDecodeRule?.value !== 16
-    ) {
-      maxBatchShapeErrors.push(
-        '[ExecutionRulesContract] maxBatchDecodeTokens large dense decode rule must cap bursts at 16 tokens.'
-      );
-    }
-    if (!matchesExactObject(fallbackRule?.match, {}) || fallbackRule?.value !== null) {
-      maxBatchShapeErrors.push(
-        '[ExecutionRulesContract] maxBatchDecodeTokens fallback rule must be { match: {}, value: null }.'
-      );
-    }
-  }
-  errors.push(...maxBatchShapeErrors);
-  checks.push({
-    id: 'inference.execution.maxBatchDecodeTokens.shape',
-    ok: maxBatchShapeErrors.length === 0,
-  });
-
-  const maxBatchSemantics = Array.isArray(maxBatchDecodeTokenRules)
-    ? checkRuleSemantics(
-      maxBatchDecodeTokenRules,
-      enumerateMaxBatchDecodeTokenContexts(),
-      maxBatchDecodeTokensSemantic,
-      'maxBatchDecodeTokens'
-    )
-    : {
-      ok: false,
-      errors: ['[ExecutionRulesContract] maxBatchDecodeTokens is unavailable for semantic check.'],
-      sampledContexts: 0,
-    };
-  errors.push(...maxBatchSemantics.errors);
-  checks.push({
-    id: 'inference.execution.maxBatchDecodeTokens.semantics',
-    ok: maxBatchSemantics.ok,
-  });
-
-  const prefillChunkShapeErrors = [];
-  if (!Array.isArray(prefillRecorderChunkLayerRules) || prefillRecorderChunkLayerRules.length !== 2) {
-    prefillChunkShapeErrors.push(
-      '[ExecutionRulesContract] prefillRecorderChunkLayers must contain exactly 2 rules.'
-    );
-  } else {
-    const [shortSplitTablesRule, fallbackRule] = prefillRecorderChunkLayerRules;
-    if (
-      !matchesExactObject(shortSplitTablesRule?.match, {
-        hasGpuSplitPerLayerInputs: true,
-        numTokens: { lte: 32 },
-      })
-      || shortSplitTablesRule?.value !== 8
-    ) {
-      prefillChunkShapeErrors.push(
-        '[ExecutionRulesContract] prefillRecorderChunkLayers short-prompt gpu_split_tables rule must use 8-layer chunks.'
-      );
-    }
-    if (!matchesExactObject(fallbackRule?.match, {}) || fallbackRule?.value !== 4) {
-      prefillChunkShapeErrors.push(
-        '[ExecutionRulesContract] prefillRecorderChunkLayers fallback rule must be { match: {}, value: 4 }.'
-      );
-    }
-  }
-  errors.push(...prefillChunkShapeErrors);
-  checks.push({
-    id: 'inference.execution.prefillRecorderChunkLayers.shape',
-    ok: prefillChunkShapeErrors.length === 0,
-  });
-
-  const prefillChunkSemantics = Array.isArray(prefillRecorderChunkLayerRules)
-    ? checkRuleSemantics(
-      prefillRecorderChunkLayerRules,
-      enumeratePrefillRecorderChunkLayerContexts(),
-      prefillRecorderChunkLayersSemantic,
-      'prefillRecorderChunkLayers'
-    )
-    : {
-      ok: false,
-      errors: ['[ExecutionRulesContract] prefillRecorderChunkLayers is unavailable for semantic check.'],
-      sampledContexts: 0,
-    };
-  errors.push(...prefillChunkSemantics.errors);
-  checks.push({
-    id: 'inference.execution.prefillRecorderChunkLayers.semantics',
-    ok: prefillChunkSemantics.ok,
-  });
-
-  return {
-    schemaVersion: 1,
-    source: 'doppler',
-    ok: errors.length === 0,
-    checks,
-    errors,
-    stats: {
-      decodeRecorderRules: Array.isArray(decodeRules) ? decodeRules.length : 0,
-      profileDecodeRecorderRules: Array.isArray(profileDecodeRules) ? profileDecodeRules.length : 0,
-      batchDecodeRules: Array.isArray(batchRules) ? batchRules.length : 0,
-      maxBatchDecodeTokenRules: Array.isArray(maxBatchDecodeTokenRules) ? maxBatchDecodeTokenRules.length : 0,
-      prefillRecorderChunkLayerRules: Array.isArray(prefillRecorderChunkLayerRules) ? prefillRecorderChunkLayerRules.length : 0,
-      decodeRecorderContexts: decodeSemantics.sampledContexts,
-      profileDecodeRecorderContexts: profileDecodeSemantics.sampledContexts,
-      batchDecodeContexts: batchSemantics.sampledContexts,
-      maxBatchDecodeTokenContexts: maxBatchSemantics.sampledContexts,
-      prefillRecorderChunkLayerContexts: prefillChunkSemantics.sampledContexts,
-    },
-  };
 }
