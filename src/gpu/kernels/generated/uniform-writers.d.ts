@@ -81,6 +81,8 @@ export interface KernelUniformValues {
   "matmul/q4_fused_rmsnorm_widetile": Parameters<typeof writers0.write_matmul_q4_fused_rmsnorm_widetile>[1];
   "matmul/q4_fused_widetile_residual": Parameters<typeof writers0.write_matmul_q4_fused_f16a>[1];
   "matmul/gemv_f32": Parameters<typeof writers0.write_matmul_gemv_subgroup>[1];
+  "matmul/f32_compensated": Parameters<typeof writers0.write_matmul_f16>[1];
+  "matmul/gemv_f32_compensated": Parameters<typeof writers0.write_matmul_gemv_subgroup>[1];
   "matmul/f32": Parameters<typeof writers0.write_matmul_f16>[1];
   "matmul/paired_f32": Parameters<typeof writers0.write_matmul_paired_f32>[1];
   "matmul/paired_f16": Parameters<typeof writers0.write_matmul_paired_f32>[1];

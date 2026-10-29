@@ -6291,6 +6291,218 @@
       }
      ]
     },
+    "f32_compensated": {
+     "wgsl": "matmul_compensated_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [16,16,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "weightDtype": "f32",
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 20,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ],
+     "variantMetadata": {
+      "dispatchGeometry": "matrix-workgroup",
+      "colsPerThread": 1,
+      "numericContract": {
+       "activationRepresentation": "single-f32",
+       "weightRepresentation": "single-f32",
+       "internalAccumulation": "compensated-f32-pair",
+       "outputRepresentation": "single-f32",
+       "residualRecovery": "integer-significand",
+       "roundingBoundary": "compensated-alpha-product-to-f32",
+       "range": "finite-operands-and-finite-intermediates; no-extended-exponent"
+      }
+     },
+     "description": "Opt-in single-F32 matmul with compensated internal product, accumulation and alpha scaling.",
+     "wgslOverrides": {
+      "COMPENSATED_F32": true,
+      "TILE_SIZE": 16
+     }
+    },
+    "gemv_f32_compensated": {
+     "wgsl": "matmul_gemv_compensated_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [32,4,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "weightDtype": "f32",
+     "wgslOverrides": {
+      "THREADS_PER_COL": 32,
+      "COLS_PER_WG": 4,
+      "COMPENSATED_F32": true
+     },
+     "variantMetadata": {
+      "colsPerWg": 4,
+      "dispatchGeometry": "linear-column-block",
+      "numericContract": {
+       "activationRepresentation": "single-f32",
+       "weightRepresentation": "single-f32",
+       "internalAccumulation": "compensated-f32-pair",
+       "outputRepresentation": "single-f32",
+       "residualRecovery": "integer-significand",
+       "roundingBoundary": "compensated-alpha-product-to-f32",
+       "range": "finite-operands-and-finite-intermediates; no-extended-exponent"
+      }
+     },
+     "description": "Opt-in single-F32 matmul with compensated internal product, accumulation and alpha scaling.",
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "workgroups_x",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
+    },
     "f32": {
      "wgsl": "matmul_f32.wgsl",
      "entryPoint": "main",
