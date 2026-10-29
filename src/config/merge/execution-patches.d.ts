@@ -1,3 +1,5 @@
+export declare function assertExecutionPatchShape(patch: unknown, label?: string): void;
+
 export declare function mergeExecutionPatchLists<T extends {
   addKernels?: unknown;
   set?: unknown;
