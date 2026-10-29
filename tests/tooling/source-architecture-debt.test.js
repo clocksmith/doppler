@@ -98,6 +98,21 @@ const mergedFiles = structuredClone(renamedPolicy);
 mergedFiles.constitutionalRenames.files['client/another.js'] = 'client/execution.js';
 assert.match(validateArchitecturePolicyDelta(mergedFiles, baselinePolicy).join('; '), /one-to-one/);
 
+const facadeBaseline = {
+  ...baselinePolicy,
+  facades: ['outer.js', 'inner.js'],
+  facadeDependencies: { 'outer.js': ['inner.js'], 'inner.js': ['a/x.js', 'a/y.js'] },
+};
+const inlinedFacade = {
+  ...facadeBaseline,
+  facades: ['outer.js'],
+  facadeDependencies: { 'outer.js': ['a/x.js', 'a/y.js'] },
+};
+assert.deepEqual(findArchitecturePolicyRelaxations(inlinedFacade, facadeBaseline), []);
+const widenedFacade = structuredClone(inlinedFacade);
+widenedFacade.facadeDependencies['outer.js'].push('a/z.js');
+assert.deepEqual(findArchitecturePolicyRelaxations(widenedFacade, facadeBaseline), ['facade dependency added outer.js->a/z.js']);
+
 assert.equal(resolvePolicyBaseRef([], {}), 'HEAD');
 assert.equal(resolvePolicyBaseRef([], { DOPPLER_POLICY_BASE_REF: '' }), 'HEAD');
 assert.equal(resolvePolicyBaseRef([], { DOPPLER_POLICY_BASE_REF: '000000' }), 'HEAD');

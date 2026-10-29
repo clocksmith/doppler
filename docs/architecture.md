@@ -21,7 +21,7 @@ peer placement, and application decisions remain outside Doppler.
 
 | Boundary | Implementation |
 | --- | --- |
-| Source preparation | [converter](../src/converter/), [model-capsule-forge.js](../src/tooling/model-capsule-forge.js) |
+| Source preparation | [converter](../src/converter/), [model-capsule-rig.js](../src/tooling/model-capsule-rig.js) |
 | Public host and injected core | [model-host/index.js](../src/client/model-host/index.js), [capsule-runtime.js](../src/capsule-runtime.js), [composition-root.js](../src/client/runtime/composition-root.js) |
 | Artifact verification and plan selection | [verified-capsule-artifact-store.js](../src/client/runtime/verified-capsule-artifact-store.js), [target-plan.js](../src/config/target-plan.js) |
 | Operations and execution | [capsule-operation-adapters.js](../src/client/runtime/capsule-operation-adapters.js), [session-controller.js](../src/client/runtime/session-controller.js), [resource-binder.js](../src/client/runtime/resource-binder.js), [command-executor.js](../src/client/runtime/command-executor.js) |
@@ -165,7 +165,7 @@ See [execution ownership and dependency checks](architecture-consolidation.md)
 for resource lifetimes, compatibility scopes and the generated dependency views.
 
 - `src/converter/`: source interpretation, lowering, candidate evaluation, and
-  immutable Capsule construction. `src/tooling/model-capsule-forge.js` owns file,
+  immutable Capsule construction. `src/tooling/model-capsule-rig.js` owns file,
   qualification-input, signing-key, and command orchestration around that engine.
 - `src/client/runtime/composition-root.js`: injected Capsule execution core. It
   verifies, selects, binds, executes, and observes declared plans; it does not
@@ -270,7 +270,7 @@ Use these code/doc locations to validate architecture claims in this file:
   - `src/inference/pipelines/text/model-load.js`
   - `src/config/merge.js`
 - Manifest/build-time conversion behavior:
-  - `src/converter/manifest-inference.js`
+  - `src/converter/conversion-plan.js`
   - `src/converter/rope-config.js`
 - RDRR shard/manifest layout:
   - `src/config/schema/manifest.schema.js`
@@ -938,17 +938,19 @@ EXECUTION TIME:
 | `output` | `finalLogitSoftcapping`, `tieWordEmbeddings`, `scaleEmbeddings` | `30`, `false`, `true` |
 | `layerPattern` | `type`, `globalPattern`, `period` | `"alternating"`, `"odd"`, `null` |
 
-**Layer Pattern Transformation (Conversion Config → Manifest):**
+**Layer Pattern (Conversion Config → Manifest):**
 
-Conversion configs define layer patterns in one format; the converter transforms them for the manifest:
+Conversion configs and manifests share one `layerPattern` shape (`type`,
+`globalPattern`, `period`, `offset`, `layerTypes`); the converter copies it
+unchanged (`src/converter/conversion-plan.js`). Per-layer attention kinds are
+resolved from `src/rules/inference/layer-pattern.rules.json`.
 
-| Conversion Config Format | Manifest Format | Example |
-|---------------|-----------------|---------|
-| `type: "all_attention"` | `type: "uniform"` | All layers use global attention |
-| `type: "alternating", globalPattern: "odd"` | `type: "alternating"` | Odd layers use global attention |
-| `type: "alternating", globalPatternN: 6` | `type: "every_n", period: 6, offset: 5` | Every 6th layer uses global attention at layers 5, 11, 17 (Gemma 3) |
-
-The converter (`src/converter/manifest-inference.js`) performs this mapping. Conversion configs use `globalPatternN` for readability; manifests use `period` for runtime efficiency.
+| `type` | Fields used | Example |
+|--------|-------------|---------|
+| `uniform` | none | All layers use the same attention |
+| `alternating` | `globalPattern` (`"odd"` or `"even"`) | Odd layers use global attention |
+| `every_n` | `period`, `offset` | `period: 6, offset: 5`: global attention at layers 5, 11, 17 (Gemma 3) |
+| `custom` | `layerTypes` | One explicit entry per layer |
 
 **RoPE Theta Sourcing:**
 
@@ -1478,7 +1480,7 @@ Different devices get different kernel implementations:
 - Subgroup support → shuffle-based reductions
 - Large context → streaming attention
 
-Source: `src/rules/inference/kernel-path.rules.json`, `src/rules/kernels/*.rules.json`, `src/gpu/kernels/attention.js`  
+Source: `src/rules/inference/capability-transforms.rules.json`, `src/rules/kernels/*.rules.json`, `src/gpu/kernels/attention.js`  
 See `config.md` for kernel selection rules and runtime overrides.
 
 ---

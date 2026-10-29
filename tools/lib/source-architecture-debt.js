@@ -74,6 +74,19 @@ function constitutionalRenameMaps(currentPolicy, baselinePolicy, errors) {
   return { domains, files };
 }
 
+function baselineFacadeReach(baselinePolicy, facade) {
+  const edges = baselinePolicy.facadeDependencies ?? {};
+  const reach = new Set();
+  const pending = [...(edges[facade] ?? [])];
+  while (pending.length > 0) {
+    const dependency = pending.pop();
+    if (reach.has(dependency)) continue;
+    reach.add(dependency);
+    if (edges[dependency]) pending.push(...edges[dependency]);
+  }
+  return [...reach];
+}
+
 export function findArchitecturePolicyRelaxations(currentPolicy, baselinePolicy) {
   const relaxations = [];
   for (const key of ['softLineLimit', 'lineLimit']) {
@@ -129,7 +142,10 @@ export function findArchitecturePolicyRelaxations(currentPolicy, baselinePolicy)
     // inventoried, adding an edge is a policy relaxation like any other import.
     if (!(baselinePolicy?.facades ?? []).includes(facade)) continue;
     if (!baselinePolicy?.facadeDependencies?.[facade]) continue;
-    for (const dependency of addedValues(dependencies, baselinePolicy.facadeDependencies[facade])) {
+    // Inlining a baseline facade that this facade already re-exported moves
+    // edges without widening what the facade reaches.
+    const reachable = baselineFacadeReach(baselinePolicy, facade);
+    for (const dependency of addedValues(dependencies, reachable)) {
       relaxations.push(`facade dependency added ${facade}->${dependency}`);
     }
   }
