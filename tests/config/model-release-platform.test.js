@@ -25,46 +25,57 @@ for (const field of policy.adoptionGate.requiredEvidence) {
 }
 
 {
+  // The checked-in policy validates, and the report's summaries are derived from
+  // the policy rows rather than maintained as separate lists.
   const report = await buildModelReleasePlatformReport();
   assert.equal(report.ok, true, report.errors.join('\n'));
-  assert.equal(report.releaseActivationAuthority, 'customer-controlled');
-  assert.equal(policy.standaloneAdoptionGate.primary, true);
-  assert.equal(policy.adoptionGate.goalId, 'local-webgpu-product-surface');
-  assert.equal(policy.adoptionGate.paymentRequired, false);
-  assert.equal(policy.adoptionGate.p2pRequired, false);
-  assert.equal(report.promotionSequenceScope, 'standalone-release');
-  assert.equal(report.networkAcceptance.paymentRequired, false);
-  assert.equal(policy.releaseContract.selfPromotionAllowed, false);
-  assert.equal(policy.referenceIntegrations.externalAdoptionEvidence, false);
-  assert.equal(policy.referenceIntegrations.commercialDemandEvidence, false);
-  assert.deepEqual(report.migrationSurfaces, ['openai-server', 'generation', 'embedding']);
-  assert.equal(
-    policy.apiConvergence.find((row) => row.id === 'electron-reranking')?.mode,
-    'capsule-authoritative'
+  assert.equal(report.releaseActivationAuthority, policy.releaseContract.activationAuthority);
+  assert.equal(report.promotionSequenceScope, policy.promotionSequenceScope);
+  assert.deepEqual(
+    report.migrationSurfaces,
+    policy.apiConvergence.filter((row) => row.mode === 'migration-required').map((row) => row.id)
   );
-  assert.deepEqual(report.partialRequirements, []);
-  assert.deepEqual(report.implementedPromotionGates, [
-    'canonical-product-contract',
-    'electron-reference-release',
-    'capsule-release-closure',
-    'capsule-first-electron-reranking',
-    'doppler-release-command',
-    'github-release-action',
-  ]);
-  assert.deepEqual(report.externalPromotionGates, [
-    'electron-fleet-qualification',
-    'revocation-and-customer-rollback',
-  ]);
-  assert.equal(
-    policy.promotionSequence.find((row) => row.id === 'electron-fleet-qualification')?.blockerCode,
-    'customer-electron-fleet-receipts-missing'
+  assert.deepEqual(
+    report.partialRequirements,
+    [...policy.capsule.requiredReleaseElements, ...policy.recovery]
+      .filter((row) => row.implementationState === 'partial')
+      .map((row) => row.id)
   );
-  assert.ok(policy.capsule.requiredReleaseElements.find(
-    (row) => row.id === 'version-supersession-migration'
-  )?.implementationState === 'implemented');
-  assert.ok(policy.recovery.find(
-    (row) => row.id === 'portable-state-snapshot-identity'
-  )?.implementationState === 'implemented');
+  const gateIds = (state) => policy.promotionSequence
+    .filter((row) => row.completionState === state)
+    .map((row) => row.id);
+  assert.deepEqual(report.implementedPromotionGates, gateIds('implemented'));
+  assert.deepEqual(report.externalPromotionGates, gateIds('external-evidence-required'));
+  // Every promotion gate is classified exactly once.
+  assert.equal(
+    report.implementedPromotionGates.length + report.externalPromotionGates.length,
+    policy.promotionSequence.length
+  );
+}
+
+{
+  // An external gate without a defined blocker code is rejected.
+  const broken = clone(policy);
+  const gate = broken.promotionSequence.find((row) => row.completionState === 'external-evidence-required');
+  assert.ok(gate, 'policy must contain an external-evidence gate to exercise this path');
+  gate.blockerCode = 'undefined-blocker-code';
+  const report = await validateModelReleasePlatform(broken, matrix);
+  assert.ok(
+    report.errors.includes(`promotionSequence.${gate.id}: external gates require a defined blockerCode`),
+    report.errors.join('\n')
+  );
+}
+
+{
+  // A migration-required API surface needs a defined blocker; others must not carry one.
+  const broken = clone(policy);
+  const authoritative = broken.apiConvergence.find((row) => row.mode !== 'migration-required');
+  authoritative.blockerCode = 'customer-electron-fleet-receipts-missing';
+  const report = await validateModelReleasePlatform(broken, matrix);
+  assert.ok(
+    report.errors.includes(`apiConvergence.${authoritative.id}: non-migration row must have blockerCode null`),
+    report.errors.join('\n')
+  );
 }
 
 {

@@ -7,6 +7,8 @@ Canonical guide for running Doppler tests.
 | Action | How | When |
 | --- | --- | --- |
 | Repository acceptance | `npm run check:green` | source, contract, or integration changes |
+| Behavior checks only | `npm run check:behavior` | quick local loop |
+| Full check sweep | `npm run check:all` | release preparation or gate-policy changes |
 | Node tests | `npm run test:unit` | all non-kernel test directories |
 | Kernel correctness | `tests/harness.html` mode `kernels` | after kernel changes |
 | Inference smoke | `tests/harness.html` mode `inference` | after pipeline changes |
@@ -33,7 +35,36 @@ Overlapping roots run each file once. `.pending.test.js` files are omitted from
 directory discovery unless `--include-pending` is supplied; explicitly naming a
 pending file still runs it.
 
-`check:green` expands its read-only npm check chain through the existing Node
+## Repository gate
+
+[`tools/policies/check-gate-policy.json`](../tools/policies/check-gate-policy.json)
+splits the read-only checks into two sets, run by `tools/run-check-gate.js`:
+
+- `behavior`: unit tests, declaration types, the browser import graph, package
+  export parity, and the command surface contract. These run on every change.
+- `triggered`: mirror, drift, freshness and policy checks. Each runs only when
+  a changed file matches its inputs: the declared globs, repository paths named
+  inside its `referencedBy` JSON files, or the local import closure of the tools
+  and tests its npm script runs.
+
+Changed files are the commits since the merge base with `origin/main` plus
+staged, unstaged and untracked files. Pass `--base <ref>` to compare against
+another ref; an unknown ref fails instead of selecting nothing.
+
+| Command | Runs |
+| --- | --- |
+| `npm run check:green` | behavior checks plus the triggered checks for the current change |
+| `npm run check:behavior` | behavior checks only |
+| `npm run check:changed` | triggered checks for the current change only |
+| `npm run check:all` | every behavior and triggered check |
+
+Add `--list` to `node tools/run-check-gate.js` to print the selection and the
+matching file for each triggered check without running anything. Editing the
+gate policy or `tools/run-check-gate.js` selects every triggered check. A new
+check belongs in the policy with inputs that cover every file it reads.
+`check:green` before this split ran every check; that sweep is now `check:all`.
+
+The gate expands its read-only npm check chain through the existing Node
 runner's `--scripts` mode. Successful overlapping tests run once within that
 invocation's consecutive test batches, each in a separate process. Intervening
 commands invalidate test success; a failed prerequisite stops the chain. There

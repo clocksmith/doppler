@@ -143,18 +143,20 @@ test('invalid FFN branch mode fails manifest inference validation', () => {
   );
 });
 
-test('DiffusionGemma declares explicit prefill override f32 to f16 cast', () => {
+test('DiffusionGemma f16-activation lane declares the prefill override f32 to f16 transition', () => {
+  // Prefix embedding overrides arrive as f32; an f16 activation lane must
+  // declare the transition in its execution graph rather than cast implicitly.
+  assert.equal(diffusionGemmaConfig.session.compute.defaults.activationDtype, 'f16');
   const expanded = expandExecutionV1(diffusionGemmaConfig.execution);
-  const castStep = expanded.find((step) => step.section === 'preLayer' && step.op === 'cast');
 
-  assert.ok(castStep, 'expected pre-layer cast step');
-  assert.equal(castStep.kernel, 'cast_f32_to_f16.wgsl');
-  assert.equal(castStep.fromDtype, 'f32');
-  assert.equal(castStep.toDtype, 'f16');
   assert.equal(
-    resolvePrefixEmbeddingOverrideTransitionDeclaredBy({
-      resolvedSteps: { all: expanded },
-    }),
+    resolvePrefixEmbeddingOverrideTransitionDeclaredBy({ resolvedSteps: { all: expanded } }),
     'explicit_cast_step'
+  );
+  const withoutPreLayerCast = expanded.filter((step) => !(step.section === 'preLayer' && step.op === 'cast'));
+  assert.ok(withoutPreLayerCast.length < expanded.length, 'expected a pre-layer cast step to remove');
+  assert.equal(
+    resolvePrefixEmbeddingOverrideTransitionDeclaredBy({ resolvedSteps: { all: withoutPreLayerCast } }),
+    null
   );
 });

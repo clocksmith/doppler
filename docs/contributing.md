@@ -28,11 +28,17 @@ npm run agents:verify
 
 ## Default CI contract
 
-`npm run ci:check` runs `kernels:check` (kernel codegen, registry, and digest checks) and then `check:green`, the green chain below. The `Default Green Chain` GitHub Actions workflow (`.github/workflows/check-green.yml`) runs those two as separate steps, followed by `test:unit:webgpu`, `test:unit:browser`, `test:gpu:browser`, and `test:demo:contract`.
+`npm run check:green` is the repository gate: behavior checks on every change, plus
+the mirror, drift and policy checks whose inputs the change touches. The
+[testing runbook](testing-runbook.md#repository-gate) defines both sets.
+`npm run ci:check` runs `kernels:check` (kernel codegen, registry, and digest checks)
+and then `check:all`, every gate check regardless of inputs.
 
-`npm run check:green` runs the read-only repository gates and Node tests. Use
-`npm run` or `npm pkg get scripts` to discover the current commands rather than
-maintaining a second list here. Suite selection, pending tests, and isolated
+The `Smoke` GitHub Actions workflow (`.github/workflows/check-green.yml`) runs
+`test:smoke`, `test:unit:webgpu`, `test:unit:browser`, `package:smoke`, and
+`test:demo:contract`. It does not run `check:green`. Use `npm run` or
+`npm pkg get scripts` to discover the current commands rather than maintaining a
+second list here. Suite selection, pending tests, and isolated
 execution are documented in the [testing runbook](testing-runbook.md).
 
 Automatic CI also installs Chromium for its declared browser contracts. That

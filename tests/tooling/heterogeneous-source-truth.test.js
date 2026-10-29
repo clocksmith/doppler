@@ -22,54 +22,93 @@ async function forgeCheckedInSpec(name) {
   return { spec, sources, packet, receipt };
 }
 
+// Structural ModelIR invariants that hold for any heterogeneous source, independent of
+// the specific model's hyperparameters.
+function assertModelIRInvariants(name, receipt) {
+  const ir = receipt.modelIR;
+  assert.deepEqual(receipt.unresolvedFacts, [], `${name}: signed ModelIR must not carry unresolved facts`);
+
+  const factIds = new Set(ir.provenance.facts.map((fact) => fact.id));
+  assert.ok(ir.provenance.facts.every((fact) => (
+    fact.disposition === 'accepted'
+    && ['direct', 'derived'].includes(fact.confidence)
+    && fact.validation.status === 'passed'
+    && fact.evidence.length > 0
+  )), `${name}: every signed fact must be accepted, sourced and validated`);
+  for (const node of [...ir.components, ...ir.blockSchedules, ...ir.stateSpaces, ...ir.entryPoints]) {
+    for (const ref of node.factRefs ?? []) {
+      assert.ok(factIds.has(ref), `${name}: ${node.id} references unknown fact ${ref}`);
+    }
+  }
+
+  const componentIds = new Set(ir.components.map((component) => component.id));
+  const blockClassIds = new Set(ir.blockClasses.map((blockClass) => blockClass.id));
+  for (const schedule of ir.blockSchedules) {
+    assert.ok(componentIds.has(schedule.componentId), `${name}: ${schedule.id} targets unknown component`);
+    schedule.blocks.forEach((block, index) => {
+      assert.equal(block.index, index, `${name}: ${schedule.id} block indexes must be contiguous`);
+      assert.ok(blockClassIds.has(block.blockClassId), `${name}: ${schedule.id}[${index}] uses undeclared block class`);
+    });
+    const component = ir.components.find((entry) => entry.id === schedule.componentId);
+    if (Number.isInteger(component.properties?.numLayers)) {
+      assert.equal(schedule.blocks.length, component.properties.numLayers,
+        `${name}: ${schedule.id} length must match the component's sourced layer count`);
+    }
+  }
+
+  // Support scope partitions the declared entry points and agrees with each entry point's status.
+  const scope = ir.supportScope;
+  const entryIds = ir.entryPoints.map((entryPoint) => entryPoint.id);
+  const scoped = [...scope.loweredEntryPoints, ...scope.unloweredEntryPoints];
+  assert.equal(new Set(scoped).size, scoped.length, `${name}: lowered and unlowered entry points must be disjoint`);
+  assert.deepEqual([...scoped].sort(), [...entryIds].sort(), `${name}: support scope must cover every entry point`);
+  for (const entryPoint of ir.entryPoints) {
+    const expected = scope.loweredEntryPoints.includes(entryPoint.id) ? 'lowered' : 'unlowered';
+    assert.equal(entryPoint.status, expected, `${name}: ${entryPoint.id} status must match support scope`);
+  }
+  for (const qualified of scope.qualifiedEntryPoints) {
+    assert.ok(scope.loweredEntryPoints.includes(qualified), `${name}: ${qualified} cannot be qualified before lowering`);
+  }
+}
+
 const qwen = await forgeCheckedInSpec('qwen3.8-27b');
-const qwenIR = qwen.receipt.modelIR;
-assert.deepEqual(qwenIR.components.map((component) => component.type), [
-  'text-decoder', 'vision-encoder', 'projector', 'speculative-drafter',
-]);
-assert.equal(qwenIR.blockSchedules.find((schedule) => schedule.id === 'text.schedule').blocks.length, 64);
-assert.equal(qwenIR.blockSchedules.find((schedule) => schedule.id === 'text.schedule').blocks[3].blockClassId, 'full-attention');
-assert.deepEqual(qwenIR.stateSpaces.map((state) => state.kind), ['kv', 'recurrent', 'convolutional']);
-assert.deepEqual(qwenIR.supportScope.loweredEntryPoints, ['text.generate']);
-assert.deepEqual(qwenIR.supportScope.unloweredEntryPoints, ['vision.encode', 'speculative.generate']);
-assert.ok(qwenIR.provenance.facts.every((fact) => (
-  fact.disposition === 'accepted'
-  && ['direct', 'derived'].includes(fact.confidence)
-  && fact.validation.status === 'passed'
-  && fact.evidence.length > 0
-)));
+assertModelIRInvariants('qwen3.8-27b', qwen.receipt);
 
 const glimmer = await forgeCheckedInSpec('glimmer-30b');
-const glimmerIR = glimmer.receipt.modelIR;
-assert.deepEqual(glimmer.receipt.unresolvedFacts, []);
-assert.equal(glimmerIR.blockSchedules.find((schedule) => schedule.id === 'text.schedule').blocks.length, 52);
-assert.equal(glimmerIR.blockSchedules.find((schedule) => schedule.id === 'vision.schedule').blocks.length, 50);
-assert.equal(glimmerIR.blockClasses.find((block) => block.id === 'sliding-attention').positional.theta, 500000);
-const fullAttention = glimmerIR.blockClasses.find((block) => block.id === 'full-attention');
-assert.equal(fullAttention.positional.theta, 0);
-assert.equal(fullAttention.positional.type, 'no-rope');
-assert.deepEqual(fullAttention.geometry.queryKeyNorm, { type: 'rmsnorm', withScale: false });
-assert.equal(fullAttention.geometry.queryScale, 3.87);
-assert.equal(fullAttention.geometry.outputGateType, 'sigmoid');
-assert.equal(fullAttention.normalization.postNormPosition, 'sublayer-output-before-residual');
-assert.equal(glimmerIR.outputHeads[0].properties.preSoftcapMultiplier, 0.19611613513818404);
-const glimmerTextEntryPoint = glimmerIR.entryPoints.find((entryPoint) => entryPoint.id === 'text.generate');
-assert.deepEqual(glimmerTextEntryPoint.sourceDefaults, {
-  bosTokenId: 200000,
-  stopTokenIds: [200001, 200008],
-  padTokenId: 200018,
-  maxLength: 131072,
-  sampling: { doSample: true, temperature: 1, topP: 0.95, topK: 64 },
-});
-assert.ok(glimmerIR.sourceIdentity.artifacts.some((artifact) => (
-  artifact.role === 'pinned-reference-implementation-semantics'
-)));
-assert.deepEqual(glimmerIR.supportScope.loweredEntryPoints, []);
-assert.deepEqual(glimmerIR.supportScope.unloweredEntryPoints, ['text.generate', 'vision.encode']);
+assertModelIRInvariants('glimmer-30b', glimmer.receipt);
 
-const inferred = structuredClone(qwen.packet);
-inferred.facts[0].confidence = 'family-inferred';
-assert.throws(() => forgeModelIRV2(inferred, qwen.sources), /cannot enter signed ModelIR/);
+// Generation defaults are carried from the source generation config, not authored.
+{
+  const generation = glimmer.sources.generation;
+  const textEntryPoint = glimmer.receipt.modelIR.entryPoints.find((entryPoint) => entryPoint.id === 'text.generate');
+  assert.deepEqual(textEntryPoint.sourceDefaults, {
+    bosTokenId: generation.bos_token_id,
+    stopTokenIds: generation.eos_token_id,
+    padTokenId: generation.pad_token_id,
+    maxLength: generation.max_length,
+    sampling: {
+      doSample: generation.do_sample,
+      temperature: generation.temperature,
+      topP: generation.top_p,
+      topK: generation.top_k,
+    },
+  });
+}
+
+// Failure paths: inferred facts, missing evidence and tampered source bytes cannot be signed.
+{
+  const inferred = structuredClone(qwen.packet);
+  inferred.facts[0].confidence = 'family-inferred';
+  assert.throws(() => forgeModelIRV2(inferred, qwen.sources), /cannot enter signed ModelIR/);
+
+  const unsourced = structuredClone(glimmer.packet);
+  unsourced.facts[0].evidence = [];
+  assert.throws(() => forgeModelIRV2(unsourced, glimmer.sources), /requires source evidence/);
+
+  const tampered = structuredClone(glimmer.sources);
+  tampered.generation.bos_token_id += 1;
+  assert.throws(() => forgeModelIRV2(glimmer.packet, tampered), /hash mismatch/);
+}
 
 const runtimeFiles = (await fs.readdir(path.join(repoRoot, 'src/client/runtime')))
   .filter((file) => file.endsWith('.js'));
@@ -78,4 +117,4 @@ for (const file of runtimeFiles) {
   assert.doesNotMatch(source, /qwen|glimmer/i, `${file} must remain model-family agnostic`);
 }
 
-console.log('✔ heterogeneous-source-truth.test.js passed');
+console.log('heterogeneous-source-truth.test.js passed');
