@@ -227,3 +227,7 @@ playwright-report/
 
 # Packaged Doppler demo
 .demo-hosting/
+
+# Local package tarballs and machine-local runtime caches
+/*.tgz
+/cache/
