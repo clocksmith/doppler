@@ -281,4 +281,22 @@ function createFakeDevice(label) {
   assert.equal(target.storageContext, undefined);
 }
 
+{
+  // A host binding carries the probed capability snapshot with its device.
+  // Binding it must not re-derive f16 support from the advertised features.
+  const device = { ...createFakeDevice('probed-binding'), features: new Set(['shader-f16']) };
+  setDevice(device);
+  assert.equal(getKernelCapabilities().hasF16, true, 'feature-derived capabilities report f16');
+  const probed = { ...getKernelCapabilities(), hasF16: false, hasSubgroupsF16: false, submitProbeMs: 1.5 };
+  const target = {};
+  applyPipelineContexts(target, { gpu: { device, capabilities: probed } }, { assignGpuContext: true });
+  assert.equal(target.gpuContext.device, device);
+  assert.equal(getKernelCapabilities().hasF16, false, 'bound snapshot preserves the failed f16 probe');
+  assert.equal(getKernelCapabilities().submitProbeMs, 1.5);
+  restorePipelineContexts(target);
+  assert.throws(() => applyPipelineContexts({}, { gpu: { device, capabilities: { hasF16: 'yes' } } }),
+    /capability snapshot/);
+  setDevice(null);
+}
+
 console.log('pipeline-context-restoration.test: ok');

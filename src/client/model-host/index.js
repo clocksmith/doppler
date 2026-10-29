@@ -29,7 +29,7 @@ import {
 import { isNodeRuntime } from '../../storage/runtime-env.js';
 import { resolveManifestGpuResidentEmbeddingLimitError } from '../../loader/embedding-limit-preflight.js';
 import { createDopplerLoader } from '../../loader/doppler-loader.js';
-import { getKernelCapabilities, initDevice } from '../../gpu/device.js';
+import { getKernelCapabilities, getPlatformConfig, initDevice } from '../../gpu/device.js';
 import { runWithShaderSourceScope } from '../../gpu/kernels/shader-source-scope.js';
 import { createDopplerRun } from '../runtime/composition-root.js';
 import { createCapsuleArtifactBacking } from '../runtime/verified-capsule-artifact-store.js';
@@ -166,6 +166,16 @@ async function resolveNodeArtifactStorageContext(loadSource) {
   );
 }
 
+// The host owns device acquisition. A binding is the selected device plus the
+// capability snapshot taken with it, so the pipeline executes on that device
+// with the same probed capabilities rather than whichever device is ambient.
+async function acquireHostDeviceBinding() {
+  return runWithShaderSourceScope(null, async () => {
+    const device = await initDevice();
+    return Object.freeze({ device, capabilities: getKernelCapabilities(), platformConfig: getPlatformConfig() });
+  });
+}
+
 function resolveArtifactStorageContext(loadSource) {
   const providedStorageContext = loadSource?.storageContext ?? loadSource?.storage;
   if (providedStorageContext && typeof providedStorageContext === 'object') {
@@ -210,7 +220,7 @@ export function createDopplerRuntimeService({
     return (await loadProgram(model, options)).modelHandle;
   }
 
-  async function loadProgram(model, options = {}, partition = null) {
+  async function loadProgram(model, options = {}, partition = null, deviceBinding = null) {
     assertPersistentCacheMode(options.cache);
     const resolutionPolicy = resolveResolutionPolicy(options.resolutionPolicy);
     const { userProgress, pipelineProgress } = resolveLoadProgressHandlers(options, defaultLoadProgressLogger);
@@ -269,7 +279,7 @@ export function createDopplerRuntimeService({
         },
       }
       : await resolveManifestArtifactSource(resolved, manifestPayload);
-    await runWithShaderSourceScope(null, () => initDevice());
+    const gpu = deviceBinding ?? await acquireHostDeviceBinding();
     const embeddingLimitError = resolveManifestGpuResidentEmbeddingLimitError(
       resolvedArtifactSource.manifest,
       {
@@ -312,6 +322,7 @@ export function createDopplerRuntimeService({
     try {
       pipeline = await createPipeline(loadSource.manifest, {
         partition,
+        gpu,
         ruleRegistry, kernelRegistry, observer,
         baseUrl: effectiveBaseUrl ?? undefined,
         storage: storageContext ?? undefined,
@@ -395,18 +406,21 @@ export function createDopplerRuntimeService({
       if (!resolvedCapsule?.capsule || !resolvedCapsule?.artifactStore) {
         throw new Error('Capsule source resolver must return capsule and artifactStore.');
       }
-      let gpuDevice;
+      let deviceBinding = null;
+      const selectedDeviceBinding = () => {
+        if (!deviceBinding) throw new Error('Capsule device must be selected before resource binding.');
+        return deviceBinding;
+      };
       const device = {
         getDevice() {
-          if (!gpuDevice) throw new Error('Capsule device must be selected before resource binding.');
-          return gpuDevice;
+          return selectedDeviceBinding().device;
         },
         async getProfile() {
           await ensureWebGPUAvailable();
           assertCapsuleLoadActive(options.signal);
-          gpuDevice = await runWithShaderSourceScope(null, () => initDevice());
+          deviceBinding = await acquireHostDeviceBinding();
           assertCapsuleLoadActive(options.signal);
-          const capabilities = getKernelCapabilities();
+          const { device: gpuDevice, capabilities } = deviceBinding;
           return {
             surface: isNodeRuntime() ? 'node-webgpu' : 'browser-webgpu',
             hasF16: capabilities.hasF16 === true,
@@ -432,7 +446,7 @@ export function createDopplerRuntimeService({
           const allocation = programOptions.residentPartition;
           const { pipeline, modelHandle } = await loadProgram(source,
             { ...resolveCapsuleProgramLoadOptions(targetPlan), isolatedLoader: true },
-            allocation ? { plan: allocation.plan, index: allocation.index } : null);
+            allocation ? { plan: allocation.plan, index: allocation.index } : null, selectedDeviceBinding());
           try {
             assertCapsuleLoadActive(programOptions.signal);
             await artifactStore.releaseBacking();

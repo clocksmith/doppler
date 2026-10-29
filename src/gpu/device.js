@@ -533,6 +533,31 @@ export async function initDevice() {
   }
 }
 
+function copyBoundCapabilities(capabilities, adapterInfo) {
+  if (!capabilities || typeof capabilities !== 'object'
+    || typeof capabilities.hasF16 !== 'boolean' || typeof capabilities.hasSubgroups !== 'boolean') {
+    throw new Error('setDevice capabilities must be a kernel capability snapshot from getKernelCapabilities().');
+  }
+  return { ...capabilities, adapterInfo: capabilities.adapterInfo ?? adapterInfo };
+}
+
+function deriveFeatureCapabilities(device, adapterInfo, submitProbeMs) {
+  const hasF16 = device.features.has(FEATURES.SHADER_F16);
+  const hasSubgroups = device.features.has(FEATURES.SUBGROUPS);
+  return {
+    hasSubgroups,
+    wgslLanguageFeatures: [...(globalThis.navigator?.gpu?.wgslLanguageFeatures ?? [])],
+    hasSubgroupsF16: hasSubgroups && hasF16,
+    hasF16,
+    hasTimestampQuery: device.features.has(FEATURES.TIMESTAMP_QUERY),
+    maxBufferSize: device.limits.maxStorageBufferBindingSize,
+    maxWorkgroupSize: device.limits.maxComputeInvocationsPerWorkgroup,
+    maxWorkgroupStorageSize: device.limits.maxComputeWorkgroupStorageSize,
+    adapterInfo,
+    submitProbeMs,
+  };
+}
+
 export function setDevice(device, options = {}) {
   hydrateDeviceState();
   if (isDeviceLost(device)) throw new Error('Cannot bind a lost GPU device. Explicitly initialize a replacement device.');
@@ -562,23 +587,14 @@ export function setDevice(device, options = {}) {
     description: '',
   };
 
-  const setDeviceHasF16 = gpuDevice.features.has(FEATURES.SHADER_F16);
-  const setDeviceHasSubgroups = gpuDevice.features.has(FEATURES.SUBGROUPS);
-
-  const previousSubmitProbeMs = kernelCapabilities?.submitProbeMs ?? null;
-
-  kernelCapabilities = {
-    hasSubgroups: setDeviceHasSubgroups,
-    wgslLanguageFeatures: [...(globalThis.navigator?.gpu?.wgslLanguageFeatures ?? [])],
-    hasSubgroupsF16: setDeviceHasSubgroups && setDeviceHasF16,
-    hasF16: setDeviceHasF16,
-    hasTimestampQuery: gpuDevice.features.has(FEATURES.TIMESTAMP_QUERY),
-    maxBufferSize: gpuDevice.limits.maxStorageBufferBindingSize,
-    maxWorkgroupSize: gpuDevice.limits.maxComputeInvocationsPerWorkgroup,
-    maxWorkgroupStorageSize: gpuDevice.limits.maxComputeWorkgroupStorageSize,
-    adapterInfo,
-    submitProbeMs: previousSubmitProbeMs,
-  };
+  if (options.capabilities !== undefined) {
+    // A device binding captured after initDevice() carries its probed
+    // capabilities (for example a failed shader-f16 compile probe). Re-deriving
+    // them from device.features here would silently re-enable f16.
+    kernelCapabilities = copyBoundCapabilities(options.capabilities, adapterInfo);
+  } else {
+    kernelCapabilities = deriveFeatureCapabilities(gpuDevice, adapterInfo, kernelCapabilities?.submitProbeMs ?? null);
+  }
 
   if (options.platformConfig !== undefined) {
     resolvedPlatformConfig = options.platformConfig;
