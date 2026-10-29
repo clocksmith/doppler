@@ -1,30 +1,10 @@
-// Static metadata for the Gemma 3 family of RDRR artifacts.
-// See qwen3.js for the contract.
+// Pointer module for the Gemma 3 family of RDRR artifacts. Entries derive
+// from models/catalog.json through family.js; importing this module does not
+// load manifests or shards.
 
 import { createFamily } from './family.js';
 
-const family = createFamily({
-  familyId: 'gemma3',
-  hfRepoId: 'clocksmith/rdrr',
-  knownModels: [
-    {
-      modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
-      label: 'Gemma 3 270M Instruct (Q4K/F32a)',
-      sourceModel: 'google/gemma-3-270m-it',
-      hfPath: 'models/gemma-3-270m-it-q4k-ehf16-af32',
-      defaultRuntimeProfile: 'profiles/throughput',
-      modes: ['text', 'vision'],
-    },
-    {
-      modelId: 'gemma-3-1b-it-q4k-ehf16-af32',
-      label: 'Gemma 3 1B Instruct (Q4K/F32a)',
-      sourceModel: 'google/gemma-3-1b-it',
-      hfPath: 'models/gemma-3-1b-it-q4k-ehf16-af32',
-      defaultRuntimeProfile: 'profiles/throughput',
-      modes: ['text', 'vision'],
-    },
-  ],
-});
+const family = createFamily({ familyId: 'gemma3' });
 
 export const FAMILY_ID = family.FAMILY_ID;
 export const HF_REPO_ID = family.HF_REPO_ID;

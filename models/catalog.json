@@ -46,6 +46,11 @@
       "demoRole": "Stable F32 browser lane",
       "demoSortOrder": 10,
       "sizeBytes": 418518521,
+      "quickstartRequirements": {
+        "vramRequiredBytes": 1073741824,
+        "paramCount": "270M",
+        "quantization": "Q4K"
+      },
       "recommended": false,
       "sortOrder": 10,
       "lifecycle": {
@@ -204,6 +209,11 @@
       "baseUrl": null,
       "quickstart": true,
       "sizeBytes": 480563695,
+      "quickstartRequirements": {
+        "vramRequiredBytes": 1073741824,
+        "paramCount": "300M",
+        "quantization": "Q4K"
+      },
       "recommended": true,
       "sortOrder": 11,
       "lifecycle": {
@@ -284,6 +294,11 @@
       "demoLabel": "Gemma 3 1B",
       "demoRole": "Larger Gemma text model",
       "sizeBytes": 1044786820,
+      "quickstartRequirements": {
+        "vramRequiredBytes": 1610612736,
+        "paramCount": "1B",
+        "quantization": "Q4_K_M"
+      },
       "recommended": false,
       "sortOrder": 12,
       "lifecycle": {
@@ -365,6 +380,11 @@
       "quickstart": true,
       "demoVisible": false,
       "sizeBytes": 7094076955,
+      "quickstartRequirements": {
+        "vramRequiredBytes": 12884901888,
+        "paramCount": "E2B",
+        "quantization": "Q4K"
+      },
       "recommended": false,
       "sortOrder": 13,
       "lifecycle": {
@@ -449,6 +469,11 @@
       "demoSortOrder": 14,
       "demoPreferredVariantId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
       "sizeBytes": 4009916310,
+      "quickstartRequirements": {
+        "vramRequiredBytes": 12884901888,
+        "paramCount": "E2B",
+        "quantization": "Q4K_INT4PLE"
+      },
       "recommended": false,
       "sortOrder": 14,
       "lifecycle": {
@@ -1546,6 +1571,11 @@
       "demoRole": "Compact general text",
       "demoSortOrder": 20,
       "sizeBytes": 1155348912,
+      "quickstartRequirements": {
+        "vramRequiredBytes": 1610612736,
+        "paramCount": "0.8B",
+        "quantization": "Q4K"
+      },
       "recommended": false,
       "sortOrder": 20,
       "lifecycle": {
@@ -1648,6 +1678,11 @@
       "demoRole": "Higher-capacity text",
       "demoSortOrder": 30,
       "sizeBytes": 2496068973,
+      "quickstartRequirements": {
+        "vramRequiredBytes": 2684354560,
+        "paramCount": "2B",
+        "quantization": "Q4K"
+      },
       "recommended": false,
       "sortOrder": 21,
       "lifecycle": {

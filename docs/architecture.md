@@ -1194,11 +1194,11 @@ cache failure.
 
 ### quickstart-downloader.js - Curated Downloads
 
-Provides a curated model list and helpers for quickstart downloads.
+Downloads quickstart models listed in the generated quickstart registry (source: `models/catalog.json`).
 
 ### preflight.js - Requirements Check
 
-Validates GPU and storage requirements before loading a model.
+Validates GPU and storage requirements before loading a model. Per-model size and VRAM requirements come from `models/catalog.json` through the generated quickstart registry.
 
 ### quota.js - Storage Detection
 

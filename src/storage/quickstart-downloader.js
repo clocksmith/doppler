@@ -28,16 +28,6 @@ export function getCDNBaseUrl() {
 }
 
 
-const QUICKSTART_DISPLAY_NAMES = {
-  'gemma-3-270m-it-q4k-ehf16-af32': 'Gemma 3 270M IT (Q4K)',
-  'google-embeddinggemma-300m-q4k-ehf16-af32': 'EmbeddingGemma 300M (Q4K)',
-  'gemma-3-1b-it-q4k-ehf16-af32': 'Gemma 3 1B IT (Q4K)',
-  'gemma-4-e2b-it-q4k-ehf16-af32': 'Gemma 4 E2B IT (Q4K)',
-  'gemma-4-e2b-it-q4k-ehf16-af32-int4ple': 'Gemma 4 E2B IT (Q4K + INT4 PLE)',
-  'qwen-3-5-0-8b-q4k-ehaf16': 'Qwen 3.5 0.8B (Q4K)',
-  'qwen-3-5-2b-q4k-ehaf16': 'Qwen 3.5 2B (Q4K)',
-};
-
 function normalizeRegistryText(value) {
   return typeof value === 'string' ? value.trim() : '';
 }
@@ -47,7 +37,7 @@ function buildQuickStartModelsFromRegistry(registry) {
   const models = {};
   for (const row of rows) {
     const modelId = normalizeRegistryText(row?.modelId);
-    const displayName = QUICKSTART_DISPLAY_NAMES[modelId];
+    const displayName = normalizeRegistryText(row?.label);
     const requirements = MODEL_REQUIREMENTS[modelId];
     const hf = row?.hf && typeof row.hf === 'object' ? row.hf : null;
     const repoId = normalizeRegistryText(hf?.repoId);

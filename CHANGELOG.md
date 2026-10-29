@@ -24,6 +24,11 @@ and `createDopplerRuntime` remains an alias of `createDopplerRun`.
 
 ### Changed
 
+- The deprecated `doppler-gpu/models/*` family modules derive `KNOWN_MODELS`
+  from `models/catalog.json`: entries list every catalog model of the family,
+  carry the catalog's label, source checkpoint, modes and `hfRepoId`, report
+  `hfPath: null` when the catalog has no hosted artifact, and no longer carry
+  `defaultRuntimeProfile` (runtime profiles name their model in `model`).
 - `doppler-gpu/loaders` no longer re-exports text-pipeline internals
   (`inference/pipelines/text/config.js`, `init.js`, `model-load.js`). No
   consumer imported them through this subpath.

@@ -26,6 +26,9 @@
     "weightsRefAllowed",
     "aliases",
     "modes",
-    "hf"
+    "hf",
+    "label",
+    "sizeBytes",
+    "quickstartRequirements"
   ]
 }
