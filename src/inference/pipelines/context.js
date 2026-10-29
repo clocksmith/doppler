@@ -156,13 +156,8 @@ export function applyPipelineContexts(target, contexts = {}, options = {}) {
       // the per-step NaN/Inf anomaly detector without a bespoke CLI flag.
       const kernelTraceCfg = sharedDebug.kernelTrace;
       if (kernelTraceCfg && (kernelTraceCfg.enabled === true || kernelTraceCfg.breakOnAnomaly === true)) {
-        kernelTrace.enable({
-          layers: kernelTraceCfg.layers ?? [],
-          breakOnAnomaly: kernelTraceCfg.breakOnAnomaly ?? true,
-          explosionThreshold: kernelTraceCfg.explosionThreshold ?? 10,
-          collapseThreshold: kernelTraceCfg.collapseThreshold ?? 1e-6,
-          maxSteps: kernelTraceCfg.maxSteps ?? 100,
-        });
+        // Resolved runtime config carries every field (schema: DEFAULT_KERNEL_TRACE_CONFIG).
+        kernelTrace.enable(kernelTraceCfg);
       } else if (kernelTrace.enabled && kernelTraceCfg?.enabled === false) {
         kernelTrace.disable();
       }

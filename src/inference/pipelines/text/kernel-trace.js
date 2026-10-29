@@ -5,6 +5,22 @@ import { log, trace } from '../../../debug/index.js';
 // KernelTrace Class
 // ============================================================================
 
+function resolveKernelTraceOptions(options) {
+  const { layers, breakOnAnomaly, explosionThreshold, collapseThreshold, maxSteps } = options ?? {};
+  const invalid = [];
+  if (!Array.isArray(layers) || !layers.every(Number.isInteger)) invalid.push('layers (integer array)');
+  if (typeof breakOnAnomaly !== 'boolean') invalid.push('breakOnAnomaly (boolean)');
+  if (!Number.isFinite(explosionThreshold)) invalid.push('explosionThreshold (number)');
+  if (!Number.isFinite(collapseThreshold)) invalid.push('collapseThreshold (number)');
+  if (!Number.isInteger(maxSteps) || maxSteps < 1) invalid.push('maxSteps (positive integer)');
+  if (invalid.length > 0) {
+    throw new Error(
+      `[KernelTrace] enable() requires resolved runtime.shared.debug.kernelTrace fields: ${invalid.join(', ')}.`
+    );
+  }
+  return { layers: [...layers], breakOnAnomaly, explosionThreshold, collapseThreshold, maxSteps };
+}
+
 
 class KernelTrace {
   constructor() {
@@ -35,16 +51,11 @@ class KernelTrace {
   }
 
   
-  enable(options = {}) {
+  // options: resolved runtime.shared.debug.kernelTrace (schema defaults live in
+  // DEFAULT_KERNEL_TRACE_CONFIG); every field is required.
+  enable(options) {
+    this._options = resolveKernelTraceOptions(options);
     this._enabled = true;
-    // Caller should pass resolved runtime config values; inline defaults match schema
-    this._options = {
-      layers: options.layers ?? [],
-      breakOnAnomaly: options.breakOnAnomaly ?? true,
-      explosionThreshold: options.explosionThreshold ?? 10,
-      collapseThreshold: options.collapseThreshold ?? 1e-6,
-      maxSteps: options.maxSteps ?? 100,
-    };
     this._steps = [];
     this._anomalies = [];
     log.info('Trace', 'Kernel tracing enabled', this._options);

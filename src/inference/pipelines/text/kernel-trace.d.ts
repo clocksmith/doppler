@@ -57,12 +57,13 @@ export interface Anomaly {
 /**
  * Options for enabling tracing.
  */
+/** Resolved runtime.shared.debug.kernelTrace; defaults live in DEFAULT_KERNEL_TRACE_CONFIG. */
 export interface TraceOptions {
-  layers?: number[];
-  breakOnAnomaly?: boolean;
-  explosionThreshold?: number;
-  collapseThreshold?: number;
-  maxSteps?: number;
+  layers: number[];
+  breakOnAnomaly: boolean;
+  explosionThreshold: number;
+  collapseThreshold: number;
+  maxSteps: number;
 }
 
 // ============================================================================
@@ -80,7 +81,7 @@ declare class KernelTrace {
   get enabled(): boolean;
   captureState(): { enabled: boolean; options: TraceOptions; steps: KernelStep[]; anomalies: Anomaly[] };
   restoreState(state: ReturnType<KernelTrace['captureState']>): void;
-  enable(options?: TraceOptions): void;
+  enable(options: TraceOptions): void;
   disable(): void;
   clear(): void;
   shouldTraceLayer(layerIdx: number): boolean;

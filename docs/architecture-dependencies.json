@@ -4588,6 +4588,7 @@
         "tests/inference/image-transcription-node-url.test.js",
         "tests/inference/image-transcription-resource-scope.test.js",
         "tests/inference/json-grammar-mask.test.js",
+        "tests/inference/kernel-trace-options.test.js",
         "tests/inference/kv-cache-direct-write.test.js",
         "tests/inference/kv-cache-sync.test.js",
         "tests/inference/kvcache-layout-policy.test.js",
