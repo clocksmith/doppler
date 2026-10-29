@@ -6,7 +6,9 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { pathToFileURL } from 'node:url';
 import { encodeSharedPrompt } from './shared-input.js';
+import { preparePooledRounding } from './prepare-pooled.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -85,16 +87,96 @@ test('diagnostic snapshots exclude local model caches and never alter the source
   }
   await fs.mkdir(path.join(source, 'src/inference/pipelines/text'), { recursive: true });
   await fs.writeFile(path.join(source, 'src/inference/pipelines/text/probes.js'), 'export async function runProbes(stage, buffer, options) {}');
+  await fs.writeFile(path.join(source, 'src/inference/pipelines/text/generator-steps.js'), '        logitsBuffer = logits.logitsBuffer;');
   const original = '  const loadTimings = resolvePipelineLoadTimings(harness.pipeline);';
   await fs.writeFile(path.join(source, owner), original);
   await fs.writeFile(path.join(source, 'models/local/cache.bin'), 'must-not-copy');
   await fs.writeFile(path.join(source, 'models/catalog.json'), '{}');
   await fs.writeFile(path.join(source, 'package.json'), '{"type":"module"}');
   const config = path.join(f.root, 'snapshot.json');
-  await fs.writeFile(config, JSON.stringify({ sourceRoot: source, snapshotDir: output }));
+  await fs.writeFile(config, JSON.stringify({ sourceRoot: source, snapshotDir: output, harnessRelativeDir: 'src/tooling/browser-harness' }));
   const result = run('prepare-doppler-probe.js', config); assert.equal(result.status, 0, result.stderr);
   await assert.rejects(fs.stat(path.join(output, 'models/local')), { code: 'ENOENT' });
   assert.equal(await fs.readFile(path.join(source, owner), 'utf8'), original);
   assert.match(await fs.readFile(path.join(output, owner), 'utf8'), /metrics.canonicalFirstLogits/);
   assert.equal(await fs.readlink(path.join(output, 'node_modules')), path.join(source, 'node_modules'));
+});
+
+test('vendor rounding control requires pinned source bytes and records every changed file', async t => {
+  const f = await fixture(t), vendor = path.join(f.root, 'vendor');
+  await fs.mkdir(path.join(vendor, 'engine/wgsl'), { recursive: true });
+  const originals = { 'engine/wgsl/qwen35.js': 'export const WGSL2 = /* wgsl */ `pack2x16float(a); pack2x16float(b); unpack2x16float(c);`;',
+    'engine/wgsl/layer_fuse.js': 'pack2x16float(c); pack2x16float(d);' };
+  for (const [name, text] of Object.entries(originals)) await fs.writeFile(path.join(vendor, name), text);
+  const policy = { mode: 'explicit-nearest-even', originalSha256: Object.fromEntries(Object.entries(originals).map(([name, text]) => [name, sha(text)])) };
+  await assert.rejects(preparePooledRounding(vendor, { ...policy, originalSha256: {} }), /source identity mismatch/);
+  const changes = await preparePooledRounding(vendor, policy); assert.equal(changes.length, 2);
+  assert.equal(changes.every(x => x.originalSha256 !== x.preparedSha256), true);
+  assert.match(await fs.readFile(path.join(vendor, 'engine/wgsl/qwen35.js'), 'utf8'), /\$\{F16_WGSL\}/);
+  assert.match(await fs.readFile(path.join(vendor, 'engine/wgsl/qwen35.js'), 'utf8'), /unpack2x16float\(c\)/);
+  await assert.rejects(preparePooledRounding(vendor, policy), /source identity mismatch/);
+});
+
+test('numerical observations capture raw finite logits before sampling masks', async t => {
+  const f = await fixture(t), source = path.join(f.root, 'runtime'), output = path.join(f.root, 'snapshot');
+  for (const dir of ['src/tooling/browser-harness', 'src/inference/pipelines/text', 'demo', 'tests', 'tools', 'benchmarks', 'models', 'node_modules']) {
+    await fs.mkdir(path.join(source, dir), { recursive: true });
+  }
+  await fs.writeFile(path.join(source, 'package.json'), '{"type":"module"}');
+  await fs.writeFile(path.join(source, 'src/tooling/browser-harness/benchmark-execution.js'),
+    '    for (let i = 0; i < warmupRuns + timedRuns; i++) {}\n'
+    + '    for (let i = 0; i < warmupRuns + timedRuns; i++) {\n'
+    + '      const run = await withHarnessPhase(\n        `bench.runTextInference[${i}]`, options, callback);\n}\n'
+    + '  const loadTimings = resolvePipelineLoadTimings(harness.pipeline);');
+  await fs.writeFile(path.join(source, 'src/inference/pipelines/text/probes.js'), 'export async function runProbes(stage, buffer, options) {}');
+  await fs.writeFile(path.join(source, 'src/inference/pipelines/text/generator.js'), `export class Probe {
+  _sampleNextTokenFromLogits(logits, generatedIds, opts) {
+    const sampled = Float32Array.from(logits); sampled[1] = -Infinity; return sampled;
+  }
+}`);
+  await fs.writeFile(path.join(source, 'src/inference/pipelines/text/generator-steps.js'), '        logitsBuffer = logits.logitsBuffer;');
+  await fs.mkdir(path.join(source, 'src/inference/pipelines/text/generator'), { recursive: true });
+  await fs.writeFile(path.join(source, 'src/inference/pipelines/text/generator/decode.js'), `
+export function recorded(resources, logitsBuffer) {
+      resources.register(logitsBuffer, 'decode logits');
+}
+function extractLastPositionLogits(rawLogits) { return rawLogits; }
+export function immediate(rawLogits, numTokens, config, currentIds) {
+        const sampledLogits = extractLastPositionLogits(rawLogits, numTokens, config.vocabSize);
+        sampledLogits[1] = -Infinity;
+        return sampledLogits;
+}
+`);
+  const config = path.join(f.root, 'snapshot.json');
+  await fs.writeFile(config, JSON.stringify({ sourceRoot: source, snapshotDir: output,
+    harnessRelativeDir: 'src/tooling/browser-harness', captureLogitPositions: [0, 1] }));
+  const result = run('prepare-doppler-probe.js', config); assert.equal(result.status, 0, result.stderr);
+  const syntax = spawnSync(process.execPath, ['--check', path.join(output, 'src/tooling/browser-harness/benchmark-execution.js')], { encoding: 'utf8' });
+  assert.equal(syntax.status, 0, syntax.stderr);
+  delete globalThis.__canonicalPromptLength; delete globalThis.__canonicalFullLogitRows;
+  try {
+    const { Probe } = await import(pathToFileURL(path.join(output, 'src/inference/pipelines/text/generator.js')));
+    const sampled = new Probe()._sampleNextTokenFromLogits(new Float32Array([1, 42]), [], {});
+    assert.equal(sampled[1], -Infinity);
+    assert.deepEqual(globalThis.__canonicalFullLogitRows, [{ index: 0, stage: 'pre-sampling', values: [1, 42] }]);
+    globalThis.__canonicalLogitCaptureActive = true;
+    const { immediate } = await import(pathToFileURL(path.join(output, 'src/inference/pipelines/text/generator/decode.js')));
+    const next = immediate(new Float32Array([2, 43]), 1, { vocabSize: 2 }, [5]);
+    assert.equal(next[1], -Infinity);
+    assert.deepEqual(globalThis.__canonicalFullLogitRows[1], { index: 1, stage: 'pre-sampling', values: [2, 43] });
+  } finally { delete globalThis.__canonicalPromptLength; delete globalThis.__canonicalFullLogitRows; delete globalThis.__canonicalLogitCaptureActive; }
+});
+
+test('failed preparation retains its failure without publishing a runnable snapshot', async t => {
+  const f = await fixture(t), source = path.join(f.root, 'runtime'), output = path.join(f.root, 'snapshot');
+  for (const dir of ['src', 'demo', 'tests', 'tools', 'benchmarks', 'models', 'node_modules']) await fs.mkdir(path.join(source, dir), { recursive: true });
+  await fs.writeFile(path.join(source, 'package.json'), '{"type":"module"}');
+  const config = path.join(f.root, 'broken-snapshot.json');
+  await fs.writeFile(config, JSON.stringify({ sourceRoot: source, snapshotDir: output, harnessRelativeDir: 'src/tooling/browser-harness' }));
+  const result = run('prepare-doppler-probe.js', config); assert.notEqual(result.status, 0);
+  await assert.rejects(fs.stat(output), { code: 'ENOENT' });
+  const incomplete = (await fs.readdir(f.root)).filter(name => name.startsWith('snapshot.preparing-'));
+  assert.equal(incomplete.length, 1);
+  const failure = JSON.parse(await fs.readFile(path.join(f.root, incomplete[0], 'preparation-failure.json')));
+  assert.equal(failure.completed, false); assert.match(failure.error, /ENOENT/);
 });

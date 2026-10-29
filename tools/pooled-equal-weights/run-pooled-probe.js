@@ -5,6 +5,7 @@ import http from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { chromium } from 'playwright';
+import { preparePooledRounding } from './prepare-pooled.js';
 
 const configBytes = await fs.readFile(process.argv[2], 'utf8');
 const config = JSON.parse(configBytes);
@@ -14,6 +15,7 @@ const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const here = path.dirname(fileURLToPath(import.meta.url));
 await fs.mkdir(config.outputDir, { recursive: false });
 await fs.cp(path.join(config.pooledRoot, 'engine'), path.join(config.outputDir, 'vendor', 'engine'), { recursive: true, dereference: true });
+const vendorChanges = await preparePooledRounding(path.join(config.outputDir, 'vendor'), config.pooledRoundingPreparation);
 const identity = [];
 async function inventory(dir) {
   for (const entry of await fs.readdir(dir, { withFileTypes: true })) {
@@ -24,11 +26,11 @@ async function inventory(dir) {
 }
 await inventory(path.join(config.outputDir, 'vendor'));
 const contractBytes = await fs.readFile(config.contractPath, 'utf8'), contract = JSON.parse(contractBytes);
-await fs.writeFile(path.join(config.outputDir, 'source-identity.json'), JSON.stringify({ configSha256: sha(configBytes), contractSha256: sha(contractBytes), engineFiles: identity,
+await fs.writeFile(path.join(config.outputDir, 'source-identity.json'), JSON.stringify({ configSha256: sha(configBytes), contractSha256: sha(contractBytes), vendorChanges, engineFiles: identity,
   nativeKvShaderSha256: config.nativeKvShader ? sha(await fs.readFile(config.nativeKvShader)) : null,
   adapterFiles: await Promise.all(
   ['run-pooled-probe.js', 'probe-browser.js', 'pooled-canonical.js', 'verify-pooled-gpu.js', 'shared-input.js', 'capture-pooled-boundaries.js',
-    'rne-probe-browser.js', 'kv-cache-rne-prototype.wgsl'].map(async name => ({ name, sha256: sha(await fs.readFile(path.join(here, name))) }))) }, null, 2));
+    'rne-probe-browser.js', 'kv-cache-rne-prototype.wgsl', 'prepare-pooled.js'].map(async name => ({ name, sha256: sha(await fs.readFile(path.join(here, name))) }))) }, null, 2));
 const logs = [], errors = [];
 const server = http.createServer(async (request, response) => {
   try {

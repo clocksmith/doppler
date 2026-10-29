@@ -15,18 +15,31 @@ It does not establish a speed win or equivalent native quantized products.
    fused views. Pooled's CPU embedding table is identified separately. Declared
    norm-offset and decay-coefficient preparation is recorded, never implicit.
 4. `prepare-doppler-probe.js <config.json>` creates a separate untimed observation
-   snapshot. It captures full first-step logits and optional single-token
-   boundaries after the benchmark request. Timings from this snapshot are
-   inadmissible. Local model caches are excluded and dependencies are linked.
+   snapshot. Explicit `harnessRelativeDir` identifies the pinned source layout.
+   With `captureLogitPositions`, it copies raw logits before sampling modifies
+   them and requires complete, finite vocabulary rows at every requested
+   position reached by the transcript. Optional single-token boundaries are
+   captured after the request. Timings from this snapshot are inadmissible.
+   Preparation publishes the final directory atomically only after every
+   observation hook succeeds; failed preparations retain their own error record.
+   Local model caches are excluded and dependencies are linked.
 5. Compare prompt IDs, generated IDs, full numerical outputs, backend identities,
    and effective weight materializations before starting the timing contract.
 
-The shared contract is
-`benchmarks/vendors/pooled-equal-weights/contract.json`. Machine paths, browser
+The original F16-KV contract is
+`benchmarks/vendors/pooled-equal-weights/contract.json`. The separate
+`contract-f32kv.json` selects native Pooled F32 KV storage with
+`attnFlash: false`, preserving the original numerical and performance thresholds.
+Neither lane qualifies the other. Machine paths, browser
 arguments, deadlines, and output directories are explicit run JSON fields;
 retained examples are in the report archive. Never reuse an existing output.
 The supplied vendor tree is read only, and its actual bytes—not an enclosing
 repository's Git revision—are the source identity.
+
+`prepare-pooled.js` can prepare an explicitly requested nearest-even control in
+the copied vendor source. It checks pinned input hashes and records every
+changed file; it never modifies the original engine. This control is distinct
+from the native Pooled path and cannot silently replace it in timing evidence.
 
 `rne-probe-browser.js` and `kv-cache-rne-prototype.wgsl` are an independent
 rounding experiment. The prototype is not registered or shipped as a runtime

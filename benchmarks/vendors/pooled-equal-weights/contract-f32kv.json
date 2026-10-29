@@ -1,0 +1,102 @@
+{
+  "schema": "doppler.equal-weight-engine-contract.v1",
+  "model": "Qwen3.5-0.8B text transformer, canonical F32 reconstruction of the pinned RDRR tensors",
+  "status": "preparation",
+  "sourceManifestSha256": "b322d7ee4f68387102fde5f7c5049604600101d87c999d9e22ddf19f438af9bc",
+  "tensorPrefix": "model.language_model.",
+  "materializationObservation": {
+    "chunkBytes": 16777216,
+    "workgroupSize": 256
+  },
+  "promptFormat": {
+    "before": "<|im_start|>user\n",
+    "after": "<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+    "specialTokens": [
+      "<|im_start|>",
+      "<|im_end|>",
+      "<think>",
+      "</think>"
+    ]
+  },
+  "weights": {
+    "canonicalDtype": "F32",
+    "requantization": "forbidden",
+    "sameInputBytes": true,
+    "completeTensorHashInventoryRequired": true,
+    "engineMaterializationReadbackRequired": true,
+    "declaredPreparationTransforms": [
+      "zero-centered RMSNorm weight plus one where required",
+      "A_log to negative exponential coefficient where the engine stores the prepared coefficient"
+    ]
+  },
+  "platforms": [
+    {
+      "os": "macos",
+      "backend": "metal",
+      "host": "mars"
+    },
+    {
+      "os": "linux",
+      "backend": "vulkan",
+      "host": "jupiter"
+    },
+    {
+      "os": "windows",
+      "backend": "d3d12",
+      "host": "miles"
+    }
+  ],
+  "shared": {
+    "maxNewTokens": 64,
+    "maxSeqLen": 2048,
+    "temperature": 0,
+    "topK": 1,
+    "topP": 1,
+    "seed": 0,
+    "eosTokenIds": [
+      248046,
+      248044
+    ],
+    "speculation": "none",
+    "activationDtype": "f32",
+    "accumulationDtype": "f32",
+    "kvDtype": "f32",
+    "warmupRuns": 1,
+    "pairsPerPrompt": 5,
+    "promptSource": "reports/jupiter-tuning-20261029/product-repeat-contract.json#shared/prompts"
+  },
+  "gates": {
+    "identicalPromptTokenIds": true,
+    "identicalGeneratedTokenIds": true,
+    "completeSameBudgetWithoutForcedContinuation": true,
+    "logitAbsoluteTolerance": 0.001,
+    "logitRelativeTolerance": 0,
+    "logitPositions": [
+      0,
+      1,
+      2,
+      4,
+      8,
+      16,
+      32,
+      63
+    ],
+    "minimumCompleteRequestGain": 0.02,
+    "upper95RatioBelow": 1,
+    "perPromptMaximumCompleteRegression": 0.03,
+    "perPromptMaximumFirstTokenRegression": 0.05,
+    "retainAllAttempts": true,
+    "outliersRemoved": 0,
+    "perPlatformIndependentEvidence": true,
+    "fallbackForbidden": true
+  },
+  "claimBoundary": "All-F32 common-parameter comparison only; does not establish a native quantized-format or F16-KV win. Same numerical and performance thresholds as the original lane.",
+  "id": "qwen35-canonical-f32-f32kv",
+  "scope": "Additional native all-F32 engine lane; the original F16-KV lane remains separate with its failures retained.",
+  "pooledOverlay": {
+    "nativeOptions": {
+      "attnFlash": false
+    },
+    "reason": "Native Pooled F32 KV implementation, without vendor source changes."
+  }
+}
