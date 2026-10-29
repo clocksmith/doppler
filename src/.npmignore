@@ -271,6 +271,7 @@ converter/tokenizer-contract.d.ts
 converter/tokenizer-manifest.d.ts
 converter/tokenizer-special-tokens.d.ts
 converter/w8a8-quantizer.d.ts
+debug/perf-guards.d.ts
 errors/doppler-error.d.ts
 experimental/adapters/adapter-manager.d.ts
 experimental/adapters/adapter-manager.js
@@ -643,7 +644,6 @@ gpu/kernels/vision-spatial-merge.d.ts
 gpu/kernels/w8a8.d.ts
 gpu/partitioned-buffer-pool.d.ts
 gpu/partitioned-buffer-pool.js
-gpu/perf-guards.d.ts
 gpu/readback-buffer.d.ts
 gpu/readback-utils.d.ts
 gpu/readback-utils.js
@@ -746,6 +746,7 @@ inference/pipelines/text/bdpa-steamroller.js
 inference/pipelines/text/buffer-types.js
 inference/pipelines/text/config-components.d.ts
 inference/pipelines/text/config/normalization.d.ts
+inference/pipelines/text/config/vision-normalizers.d.ts
 inference/pipelines/text/debug-utils/config.d.ts
 inference/pipelines/text/debug-utils/health-metrics.d.ts
 inference/pipelines/text/debug-utils/logging.d.ts
@@ -913,6 +914,7 @@ loader/tensors/tensor-role.d.ts
 loader/tensors/w8a8-loader.d.ts
 loader/weight-downcast.d.ts
 memory/address-table.d.ts
+memory/device-residency.d.ts
 rules/converter/execution.rules.json
 rules/converter/tensor-roles.rules.json
 rules/converter/tokenizer.rules.json
