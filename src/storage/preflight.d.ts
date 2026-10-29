@@ -102,19 +102,11 @@ export interface ModelRequirements {
   paramCount: string;
   /** Quantization type (e.g., "Q4_K_M", "BF16") */
   quantization: string;
-  /** Model architecture (e.g., "gemma3", "llama") */
-  architecture?: string;
 }
 
 /**
- * Gemma 1B requirements (Q4_K_M quantization)
- */
-export declare const GEMMA_1B_REQUIREMENTS: ModelRequirements;
-
-/**
- * All available model requirements
- * Naming convention: {family}-{version}-{size}-{weights}[-{override-groups}]
- * Examples: gemma-3-1b-it-q4k-ehf16-af32, llama-3.2-1b-q4, mistral-7b-v0.3-q4
+ * Quickstart model requirements keyed by model ID, derived from the generated
+ * quickstart registry (source: models/catalog.json).
  */
 export declare const MODEL_REQUIREMENTS: Record<string, ModelRequirements>;
 
@@ -128,7 +120,7 @@ export declare const MODEL_REQUIREMENTS: Record<string, ModelRequirements>;
  * ```typescript
  * import { log } from '../debug/index.js';
  *
- * const result = await runPreflightChecks(GEMMA_1B_REQUIREMENTS);
+ * const result = await runPreflightChecks(MODEL_REQUIREMENTS['gemma-3-1b-it-q4k-ehf16-af32']);
  * if (!result.canProceed) {
  *   log.error('Preflight', 'Cannot download', result.blockers);
  * }

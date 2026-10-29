@@ -14,6 +14,13 @@ function quickstartModel(overrides = {}) {
   return {
     modelId: 'verified-text-model',
     family: 'gemma3',
+    label: 'Verified Text Model',
+    sizeBytes: 1024,
+    quickstartRequirements: {
+      vramRequiredBytes: 2048,
+      paramCount: '1B',
+      quantization: 'Q4K',
+    },
     classification: {
       domain: 'language',
       tasks: ['generation'],
@@ -153,6 +160,13 @@ assert.throws(
     ],
   }),
   /text or embedding mode/
+);
+
+assert.throws(
+  () => buildQuickstartRegistryPayload({
+    models: [quickstartModel({ quickstartRequirements: { paramCount: '1B', quantization: 'Q4K' } })],
+  }),
+  /quickstartRequirements/
 );
 
 console.log('quickstart-registry-sync-contract.test: ok');

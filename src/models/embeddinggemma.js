@@ -1,21 +1,10 @@
-// Static metadata for the EmbeddingGemma family of RDRR artifacts.
+// Pointer module for the EmbeddingGemma family of RDRR artifacts. Entries derive
+// from models/catalog.json through family.js; importing this module does not
+// load manifests or shards.
 
 import { createFamily } from './family.js';
 
-const family = createFamily({
-  familyId: 'embeddinggemma',
-  hfRepoId: 'clocksmith/rdrr',
-  knownModels: [
-    {
-      modelId: 'google-embeddinggemma-300m-q4k-ehf16-af32',
-      label: 'EmbeddingGemma 300M (Q4K)',
-      sourceModel: 'google/embeddinggemma-300m',
-      hfPath: 'models/google-embeddinggemma-300m-q4k-ehf16-af32',
-      defaultRuntimeProfile: 'profiles/throughput',
-      modes: ['embedding'],
-    },
-  ],
-});
+const family = createFamily({ familyId: 'embeddinggemma' });
 
 export const FAMILY_ID = family.FAMILY_ID;
 export const HF_REPO_ID = family.HF_REPO_ID;

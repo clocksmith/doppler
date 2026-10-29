@@ -125,6 +125,32 @@ function compareCatalogEntries(left, right) {
   return normalizeText(left?.modelId).localeCompare(normalizeText(right?.modelId));
 }
 
+function toQuickstartRequirements(entry, modelId) {
+  const label = normalizeText(entry?.label);
+  const sizeBytes = entry?.sizeBytes;
+  const requirements = isPlainObject(entry?.quickstartRequirements) ? entry.quickstartRequirements : null;
+  const vramRequiredBytes = requirements?.vramRequiredBytes;
+  const paramCount = normalizeText(requirements?.paramCount);
+  const quantization = normalizeText(requirements?.quantization);
+  if (
+    !label
+    || !Number.isSafeInteger(sizeBytes) || sizeBytes < 1
+    || !Number.isSafeInteger(vramRequiredBytes) || vramRequiredBytes < 1
+    || !paramCount
+    || !quantization
+  ) {
+    throw new Error(
+      `${modelId}: quickstart catalog entries require label, positive integer sizeBytes, and ` +
+      'quickstartRequirements { vramRequiredBytes, paramCount, quantization }'
+    );
+  }
+  return {
+    label,
+    sizeBytes,
+    quickstartRequirements: { vramRequiredBytes, paramCount, quantization },
+  };
+}
+
 function toQuickstartEntry(entry) {
   const modelId = normalizeText(entry?.modelId);
   if (!modelId) {
@@ -169,9 +195,11 @@ function toQuickstartEntry(entry) {
   }
   const classification = structuredClone(entry.classification);
   const typeCluster = resolveModelTypeCluster(classification);
+  const { label, sizeBytes, quickstartRequirements } = toQuickstartRequirements(entry, modelId);
 
   return {
     modelId,
+    label,
     sourceCheckpointId,
     weightCapsuleId,
     manifestVariantId,
@@ -190,6 +218,8 @@ function toQuickstartEntry(entry) {
       revision,
       path: repoPath,
     },
+    sizeBytes,
+    quickstartRequirements,
     ...(vendorBenchmark ? { vendorBenchmark } : {}),
     ...(benchmarkEvidence ? { benchmarkEvidence } : {}),
   };
