@@ -1,7 +1,7 @@
 
 
 import { getDevice, getDeviceEpoch } from '../device.js';
-import { isDeviceLost, observeDeviceLoss } from '../device-state.js';
+import { isDeviceLost, observeDeviceLoss } from '../../memory/device-residency.js';
 import { getKernelConfig, getKernelRegistry } from './kernel-configs.js';
 import { getShaderModule, getShaderSourceIdentity, getShaderModuleIdentity } from './shader-cache.js';
 import { canonicalizeJson } from '../../formats/canonical-hash.js';

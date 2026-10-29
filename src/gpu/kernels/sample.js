@@ -9,7 +9,7 @@ import {
 } from './pipeline-cache.js';
 import { getKernelConfig } from './kernel-configs.js';
 import { createKernelUniformBuffer } from './uniform-utils.js';
-import { allowReadback } from '../perf-guards.js';
+import { allowReadback } from '../../debug/perf-guards.js';
 import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
 import { selectRuleValue as selectSharedRuleValue } from '../../rules/rule-registry.js';
 import { getKernelThresholdSnapshot } from '../../config/schema/index.js';

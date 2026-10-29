@@ -191,7 +191,7 @@
     "gpu": ["config", "debug", "errors", "formats", "gpu", "memory", "rules"],
     "inference": ["client", "config", "converter", "debug", "errors", "experimental", "formats", "gpu", "inference", "loader", "memory", "rules", "storage", "tooling"],
     "loader": ["config", "converter", "debug", "experimental", "formats", "gpu", "inference", "loader", "memory", "rules", "storage"],
-    "memory": ["config", "debug", "gpu", "memory"],
+    "memory": ["config", "debug", "memory"],
     "rules": ["config", "formats", "rules"],
     "storage": ["config", "debug", "errors", "formats", "memory", "storage"],
     "tooling": ["config", "converter", "debug", "experimental", "formats", "gpu", "inference", "memory", "rules", "storage", "tooling"],
@@ -726,7 +726,7 @@
       ]
     },
     "memory/buffer-pool.js": {
-      "reviewedLines": 852,
+      "reviewedLines": 848,
       "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
       "extractTo": [
         "memory/buffer-pool-components.js"

@@ -1,5 +1,5 @@
 import { getOrCreateBindGroupLayout } from './pipeline-cache.js';
-import { isDeviceLost } from '../device-state.js';
+import { isDeviceLost } from '../../memory/device-residency.js';
 
 const preparedLayouts = new WeakMap();
 

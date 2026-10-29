@@ -1,6 +1,6 @@
 import { ERROR_CODES, createDopplerError } from '../../../errors/doppler-error.js';
 import { runPipelineOperation } from '../shader-scoped-pipeline.js';
-import { isDeviceLost } from '../../../gpu/device-state.js';
+import { isDeviceLost } from '../../../memory/device-residency.js';
 import { readBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { computeCanonicalSha256 } from '../../../formats/canonical-hash.js';
 import { resolveGenerationOptions } from '../../../config/generation-contract.js';

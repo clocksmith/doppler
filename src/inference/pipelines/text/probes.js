@@ -6,7 +6,7 @@ import { snapshotTensor, snapshotFromArray, decodeSnapshotData, snapshotElementB
 import { sha256BytesHex } from '../../../formats/sha256.js';
 import { computeArrayStats } from '../../../debug/stats.js';
 import { getDevice } from '../../../gpu/device.js';
-import { allowReadback } from '../../../gpu/perf-guards.js';
+import { allowReadback } from '../../../debug/perf-guards.js';
 import { f16ToF32 } from '../../../loader/dtype-utils.js';
 import { readBufferSlice } from '../../../memory/buffer-pool.js';
 import { PROBE_TO_CANONICAL } from './stage-names.js';

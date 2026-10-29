@@ -1,4 +1,4 @@
-import { isDeviceLost, observeDeviceLoss } from './device-state.js';
+import { isDeviceLost, observeDeviceLoss } from '../memory/device-residency.js';
 
 // Session-owned decode storage. Queue order serializes writers and all consumers
 // before the next token reuses a slot. The session, never a recorder, owns it.

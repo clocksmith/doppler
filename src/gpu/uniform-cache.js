@@ -1,7 +1,7 @@
 
 
 import { getDevice } from './device.js';
-import { isDeviceLost, observeDeviceLoss, registerBufferDevice } from './device-state.js';
+import { isDeviceLost, observeDeviceLoss, registerBufferDevice } from '../memory/device-residency.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 
 const uniformOwners = new WeakMap();

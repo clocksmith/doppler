@@ -1,6 +1,6 @@
 import { getDevice, setTrackSubmits } from '../../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer, readBufferSlice, uploadData } from '../../../../memory/buffer-pool.js';
-import { allowReadback } from '../../../../gpu/perf-guards.js';
+import { allowReadback } from '../../../../debug/perf-guards.js';
 import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
 import {
   CAPTURE_LEVELS,

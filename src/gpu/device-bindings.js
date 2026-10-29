@@ -1,6 +1,4 @@
-import { getSharedDeviceState } from './device-state.js';
-
-const sharedDeviceState = getSharedDeviceState();
+import { getBufferDevice } from '../memory/device-residency.js';
 
 /** @param {unknown} value */
 function isValidGPUBuffer(value) {
@@ -51,7 +49,7 @@ function validateBindGroupDescriptor(descriptor, device) {
         `got ${describeBindGroupBufferValue(resource.buffer)}.`
       );
     }
-    const owner = sharedDeviceState.bufferOwners.get(resource.buffer);
+    const owner = getBufferDevice(resource.buffer);
     if (owner && owner !== device) {
       throw new Error(
         `[${label}] binding ${entry.binding} uses a GPUBuffer created by a different GPUDevice.`
@@ -82,7 +80,7 @@ export function wrapDeviceCreateBindGroup(device) {
       for (const entry of entries) {
         const resource = entry?.resource;
         const buffer = resource && typeof resource === 'object' && 'buffer' in resource ? resource.buffer : null;
-        if (buffer && sharedDeviceState.bufferOwners.get(buffer) !== undefined) {
+        if (buffer && getBufferDevice(buffer) !== null) {
           validateBindGroupDescriptor(descriptor, device);
           break;
         }

@@ -21,7 +21,7 @@ globalThis.GPUMapMode = {
 const { CommandRecorder } = await import('../../src/gpu/command-recorder.js');
 const { beginImmediateDispatchProfile, dispatch } = await import('../../src/gpu/kernels/dispatch.js');
 const { FEATURES, setDevice } = await import('../../src/gpu/device.js');
-const { configurePerfGuards } = await import('../../src/gpu/perf-guards.js');
+const { configurePerfGuards } = await import('../../src/debug/perf-guards.js');
 const { resetUniformCache } = await import('../../src/gpu/uniform-cache.js');
 const { setRuntimeConfig, resetRuntimeConfig } = await import('../../src/config/runtime.js');
 const {

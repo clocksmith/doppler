@@ -647,8 +647,9 @@ Runtime Config (runtime.shared.tooling, runtime.shared.debug, runtime.shared.ben
         |
   debug/            gpu/                   inference/pipelines/
   - log.js          - profiler.js           - kernel-trace.js
-  - trace.js        - perf-guards.js
+  - trace.js
   - tensor.js
+  - perf-guards.js
         |
 Shared: debug/stats.js (median, p95, IQR, outliers)
 ```

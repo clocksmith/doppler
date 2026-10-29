@@ -1,7 +1,7 @@
 import { log, trace } from '../../../debug/index.js';
 import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
 import { releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
-import { allowReadback } from '../../../gpu/perf-guards.js';
+import { allowReadback } from '../../../debug/perf-guards.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { recordScale, runScale } from '../../../gpu/kernels/scale.js';
 import {

@@ -4,7 +4,7 @@ import {
   getPlatformConfig,
   setDevice,
 } from '../../gpu/device.js';
-import { isDeviceLost } from '../../gpu/device-state.js';
+import { isDeviceLost } from '../../memory/device-residency.js';
 import { applyDebugConfig, setGPUDevice } from '../../debug/index.js';
 import { getRuntimeConfig, resolveRuntimeConfig, enterRuntimeConfig } from '../../config/runtime.js';
 import { kernelTrace } from './text/kernel-trace.js';
