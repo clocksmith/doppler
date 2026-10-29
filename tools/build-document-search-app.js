@@ -2,7 +2,9 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { migrateCapsuleV2, getCapsuleIdentity, signCapsuleReleaseEvent, verifyCapsuleReleaseEvents, verifyCapsule } from '../src/capsule.js';
+import { migrateCapsuleV2 } from '../src/config/capsule-v3.js';
+import { getCapsuleIdentity, verifyCapsule } from '../src/config/capsule.js';
+import { signCapsuleReleaseEvent, verifyCapsuleReleaseEvents } from '../src/config/capsule-release-events.js';
 import { computeCanonicalSha256, hashBytesSha256 } from '../src/formats/canonical-hash.js';
 import { normalizeCapsuleLoadingPolicy } from '../src/config/capsule-loading.js';
 import { prepareRequirements } from '../examples/document-search/prepare.js';

@@ -30,11 +30,10 @@ try {
   await page.route('**/requirements.json', route => respond(route, JSON.stringify(requirements), 'application/json'));
   for (const role of roles) await page.route('**/capsules/' + role + '/capsule-v3.json', route => respond(route,
     JSON.stringify({ ...identity(role), artifacts: [] }), 'application/json'));
-  await page.route('**/runtime/src/capsule.js', route => respond(route,
-    'export const getCapsuleIdentity = ({schema,semanticRoot,envelopeDigest}) => ({schema,semanticRoot,envelopeDigest});'));
   await page.route('**/runtime/src/capsule-runtime.js', route => respond(route,
     'export const createFetchCapsuleArtifactStore = () => ({ readArtifact: async () => new Uint8Array() });'));
   await page.route('**/runtime/src/client/capsule-host.browser.js', route => respond(route, `
+    export const getCapsuleIdentity = ({schema,semanticRoot,envelopeDigest}) => ({schema,semanticRoot,envelopeDigest});
     const delay = signal => new Promise((resolve, reject) => {
       signal?.throwIfAborted();
       const timer = setTimeout(() => { signal?.removeEventListener('abort', abort); resolve(); }, 200);

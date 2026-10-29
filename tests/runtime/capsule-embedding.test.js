@@ -5,7 +5,9 @@ import { createCapsuleProgramAdapter } from '../../src/client/runtime/capsule-pr
 import { createModelHandle } from '../../src/client/runtime/model-session.js';
 import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
 import { createSignedCapsuleFixture, TEST_CAPSULE_AUTHORITY, TEST_CAPSULE_PUBLIC_KEY } from '../helpers/capsule-v2-fixture.js';
-import { migrateCapsuleV2, getCapsuleIdentity, signCapsuleReleaseEvent } from '../../src/capsule.js';
+import { migrateCapsuleV2 } from '../../src/config/capsule-v3.js';
+import { getCapsuleIdentity } from '../../src/config/capsule.js';
+import { signCapsuleReleaseEvent } from '../../src/config/capsule-release-events.js';
 import { CAPSULE_OPERATION_REQUEST_SCHEMA, hashCapsuleObservation } from '../../src/config/capsule-operation.js';
 
 // Connected public Capsule session -> actual program adapter -> actual evidence handle.

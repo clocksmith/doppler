@@ -52,7 +52,7 @@ export function compileElectronReleasePreload(source, channel) {
   const transformed = ts.transform(parsed, [context => node => ts.visitEachChild(node, function visit(child) {
       if (!ts.isImportDeclaration(child)) return ts.visitEachChild(child, visit, context);
       const bindings = child.importClause?.namedBindings;
-      if (child.moduleSpecifier.text !== 'doppler-gpu/electron' || !bindings || !ts.isNamedImports(bindings)
+      if (child.moduleSpecifier.text !== 'doppler-gpu/host/electron' || !bindings || !ts.isNamedImports(bindings)
         || bindings.elements.length !== 1 || bindings.elements[0].name.text !== 'ELECTRON_RELEASE_IPC_CHANNEL'
         || bindings.elements[0].propertyName || child.importClause.name) {
         throw new Error('Unsupported installed Electron preload import; update the explicit compilation boundary.');
@@ -230,7 +230,7 @@ export async function qualifyRerankerElectron(config) {
         }
       }
       const packageJson = JSON.parse(await fs.readFile(path.join(config.packageRoot, 'package.json'), 'utf8'));
-      const electronEntry = path.resolve(config.packageRoot, packageJson.exports['./electron'].import);
+      const electronEntry = path.resolve(config.packageRoot, packageJson.exports['./host/electron'].import);
       const exported = await import(pathToFileURL(electronEntry).href);
       const preload = compileElectronReleasePreload(await fs.readFile(path.join(consumerDir, 'preload.js'), 'utf8'), exported.ELECTRON_RELEASE_IPC_CHANNEL);
       const preloadPath = path.resolve(config.outputDir, 'preload.js');

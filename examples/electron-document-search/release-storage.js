@@ -2,8 +2,8 @@ import fs from 'node:fs/promises';
 import { constants } from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { validateElectronReleaseState } from 'doppler-gpu/electron';
-import { verifyCapsuleReleaseEvents, CapsuleReleaseStateError } from 'doppler-gpu/capsule';
+import { validateElectronReleaseState } from 'doppler-gpu/host/electron';
+import { verifyCapsuleReleaseEvents, CapsuleReleaseStateError } from 'doppler-gpu/host';
 
 function checkpoint(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)

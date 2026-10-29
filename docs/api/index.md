@@ -10,7 +10,7 @@ The generated export inventory lives under [reference/exports.md](reference/expo
 ### Primary app-facing surface
 
 - [Doppler Run API](root.md) - start with `doppler-gpu/host`; use `doppler-gpu`
-  or `doppler-gpu/run` when supplying explicit execution ports
+  when supplying explicit execution ports
 - [Compatibility API](compat.md) - `doppler-gpu/compat`
 - [Choice scoring](choice-scoring.md) - typed, contextual answer scores and operation qualification
 
@@ -60,7 +60,6 @@ Deprecated subpaths are listed with their removal release in the
 
 - `doppler-gpu/host` composes existing host ports; model/host qualification is separate
 - `doppler-gpu`
-- `doppler-gpu/run` (alias of `doppler-gpu`)
 - `doppler-gpu/runtime` (compatibility alias of `doppler-gpu`; `createDopplerRuntime` aliases `createDopplerRun`)
 
 ### Tier1 advanced

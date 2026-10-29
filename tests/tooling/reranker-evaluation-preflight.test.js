@@ -23,7 +23,7 @@ await bridge.rollback('application-reference');
 assert.equal(requests[0].channel, ELECTRON_RELEASE_IPC_CHANNEL);
 assert.equal(requests[0].action, 'resolve-current');
 assert.equal(requests[1].customerAuthorizationDigest, 'application-reference');
-assert.throws(() => compileElectronReleasePreload(preloadSource.replace('doppler-gpu/electron', 'unknown-module'), ELECTRON_RELEASE_IPC_CHANNEL), /Unsupported installed/);
+assert.throws(() => compileElectronReleasePreload(preloadSource.replace('doppler-gpu/host/electron', 'unknown-module'), ELECTRON_RELEASE_IPC_CHANNEL), /Unsupported installed/);
 assert.throws(() => compileElectronReleasePreload('export function other() {}', ELECTRON_RELEASE_IPC_CHANNEL), /installed channel/);
 assert.throws(() => compileElectronReleasePreload(preloadSource, undefined), /installed channel/);
 const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-capsule-distribution-'));

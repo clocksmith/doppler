@@ -33,8 +33,8 @@ Make local AI an ordinary JavaScript dependency. Advance generation and search i
 - Standalone execution is independent; redistribution and delegation require authority.
 - Free adoption counts; payment, Doe, Poolday, and Reploid are not gates.
 - Network artifact, execution, and history-improvement proof remains separate.
-- Component names are Doppler Rig and Doppler Run; existing serialized identities
-  and public compatibility aliases remain stable.
+- Component names are Doppler Rig and Doppler Run; serialized identities stay
+  stable; removed subpaths name changelog replacements.
 - Rig prepares; Capsules bind signed implementations; Run executes without silent changes.
 
 ## Acceptance

@@ -1,5 +1,5 @@
 import { createDopplerRuntime } from 'doppler-gpu';
-import { createElectronRendererRuntime } from 'doppler-gpu/electron';
+import { createElectronRendererRuntime } from 'doppler-gpu/host/electron';
 import { openCapsule } from 'doppler-gpu/host';
 
 export function createDocumentSearchHostRenderer(releaseState, trustOptions) {

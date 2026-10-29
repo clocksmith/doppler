@@ -21,7 +21,6 @@
     "demo/ui/xray/index.js",
     "src/bootstrap.js",
     "src/capsule-runtime.js",
-    "src/capsule.js",
     "src/cli/argument-contract.js",
     "src/cli/browser-report-output.js",
     "src/cli/cli-model-resolution.js",

@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { generateKeyPairSync } from 'node:crypto';
-import { migrateCapsuleV2, getCapsuleIdentity, signCapsuleReleaseEvent, verifyCapsule, verifyCapsuleReleaseEvents } from '../../src/capsule.js';
+import { migrateCapsuleV2 } from '../../src/config/capsule-v3.js';
+import { getCapsuleIdentity, verifyCapsule } from '../../src/config/capsule.js';
+import { signCapsuleReleaseEvent, verifyCapsuleReleaseEvents } from '../../src/config/capsule-release-events.js';
 import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
 import { createDopplerRuntime } from '../../src/capsule-runtime.js';
 import { createSignedCapsuleFixture, TEST_CAPSULE_AUTHORITY, TEST_CAPSULE_PUBLIC_KEY } from '../helpers/capsule-v2-fixture.js';

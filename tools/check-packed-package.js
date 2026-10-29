@@ -50,17 +50,15 @@ async function writeImportSmoke(consumerDir, packageJson) {
     '  await import(specifier);',
     '}',
     `const runtime = await import('${packageJson.name}');`,
-    `const run = await import('${packageJson.name}/run');`,
     `const legacy = await import('${packageJson.name}/runtime');`,
-    "assert.equal(run, runtime);",
     "assert.equal(legacy, runtime);",
-    "assert.equal(run.createDopplerRun, legacy.createDopplerRuntime);",
-    "assert.equal(run.RUN_CORE_VERSION, legacy.RUNTIME_CORE_VERSION);",
-    "assert.throws(() => run.createDopplerRun({}), /device port/);",
+    "assert.equal(runtime.createDopplerRun, legacy.createDopplerRuntime);",
+    "assert.equal(runtime.RUN_CORE_VERSION, legacy.RUNTIME_CORE_VERSION);",
+    "assert.throws(() => runtime.createDopplerRun({}), /device port/);",
     "assert.equal(typeof runtime.openCapsule, 'function');",
     "assert.equal('openPack' in runtime, false);",
     "assert.equal('createFetchPackArtifactStore' in runtime, false);",
-    `await assert.rejects(import('${packageJson.name}/pack'), { code: 'ERR_PACKAGE_PATH_NOT_EXPORTED' });`,
+    `for (const removed of ['pack', 'run', 'capsule', 'electron', 'choice-scoring-contract']) await assert.rejects(import('${packageJson.name}/' + removed), { code: 'ERR_PACKAGE_PATH_NOT_EXPORTED' });`,
     `await import(${JSON.stringify(browserToolingPath)});`,
     "assert.equal(Object.hasOwn(globalThis, 'DOPPLER'), false, 'package imports must not install diagnostics');",
     `const { createRuleRegistry, createKernelRegistry } = await import('${packageJson.name}/tooling/runtime');`,
@@ -117,10 +115,8 @@ async function writeTypeSmoke(consumerDir, packageJson) {
 import { createLayerPartitionPlan } from '${packageJson.name}';
 // @ts-expect-error runtime alias must expose the same declared minimal contract
 import { serializeActivationFrame } from '${packageJson.name}/runtime';
-// @ts-expect-error Run must keep the same public boundary
-import { serializeActivationFrame as leakedRunHelper } from '${packageJson.name}/run';
-import { createDopplerRun, RUN_CORE_VERSION, resolveEmbeddingBatchSemantics } from '${packageJson.name}/run';
-import type { RunPorts, DopplerRun, DopplerRunSession, EmbeddingBatchSemantics } from '${packageJson.name}/run';
+import { createDopplerRun, RUN_CORE_VERSION, resolveEmbeddingBatchSemantics } from '${packageJson.name}';
+import type { RunPorts, DopplerRun, DopplerRunSession, EmbeddingBatchSemantics } from '${packageJson.name}';
 declare const embeddingManifest: Record<string, unknown>;
 const embeddingBatchSemantics: EmbeddingBatchSemantics = resolveEmbeddingBatchSemantics(embeddingManifest);
 // @ts-expect-error Embedding semantics cannot authorize generation subdivision.
@@ -201,7 +197,7 @@ const legacyRunSession: Promise<DopplerRuntimeSession> = runSession;
 import { createDocumentSearchRenderer, createDocumentSearchHostRenderer } from './renderer.js';
 import { openCapsule } from '${packageJson.name}/host';
 import type { DopplerCapsuleOpenOptions } from '${packageJson.name}/host';
-import type { CapsuleRetainedLocalUse, CapsuleReleasePolicy } from '${packageJson.name}/capsule';
+import type { CapsuleRetainedLocalUse, CapsuleReleasePolicy } from '${packageJson.name}/host';
 declare const retainedDecision: CapsuleRetainedLocalUse;
 declare const releasePolicy: CapsuleReleasePolicy;
 const retainedHostSession = openCapsule('/retained/capsule.json', {
@@ -211,7 +207,7 @@ retainedHostSession.then(value => value.verification.lifecycle?.authorization.mo
 import { registerDocumentSearchReleaseMain } from './main.js';
 import { createDocumentSearchReleaseStore, createDocumentSearchCheckpointStore, prepareDocumentSearchReleaseOptions } from './release-storage.js';
 import type { RuntimePorts, CapsuleRerankRequest, CapsuleEmbeddingRequest, CapsuleEmbeddingResult, DopplerRuntimeSession } from '${packageJson.name}';
-import type { ElectronReleaseStateCoordinator } from '${packageJson.name}/electron';
+import type { ElectronReleaseStateCoordinator } from '${packageJson.name}/host/electron';
 import { createCapsuleServeHandler } from '${packageJson.name}/serve';
 import type { CapsuleServePolicy } from '${packageJson.name}/serve';
 declare const servingPolicy: CapsuleServePolicy;

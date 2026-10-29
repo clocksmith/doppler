@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import http from 'node:http';
 import { once } from 'node:events';
-import { createDopplerRun, createCapsuleStreamAccumulator, resolveEmbeddingBatchSemantics } from 'doppler-gpu/run';
+import { createDopplerRun, createCapsuleStreamAccumulator, resolveEmbeddingBatchSemantics } from 'doppler-gpu';
 import { createCapsuleServeHandler } from 'doppler-gpu/serve';
 import { computeCanonicalSha256 } from './consumer-evidence.js';
 

@@ -1090,7 +1090,6 @@
       ],
       "eager": [
         "src/capsule-runtime.js",
-        "src/capsule.js",
         "src/client/doppler-api.js",
         "src/client/doppler-registry.js",
         "src/client/failure-taxonomy.js",
@@ -3036,8 +3035,6 @@
       "roots": [
         "src/capsule-runtime.js",
         "src/capsule-runtime.js",
-        "src/capsule-runtime.js",
-        "src/capsule.js",
         "src/cli/doppler-cli.js",
         "src/cli/doppler-quickstart.js",
         "src/cli/doppler-serve.js",
@@ -3047,7 +3044,6 @@
         "src/client/electron/index.js",
         "src/client/provider.js",
         "src/client/runtime/model-manager.js",
-        "src/config/choice-scoring.js",
         "src/config/generation-contract.js",
         "src/experimental/diffusion/index.js",
         "src/experimental/energy/index.js",
@@ -3076,7 +3072,6 @@
       ],
       "eager": [
         "src/capsule-runtime.js",
-        "src/capsule.js",
         "src/cli/argument-contract.js",
         "src/cli/browser-report-output.js",
         "src/cli/cli-model-resolution.js",
@@ -5262,7 +5257,6 @@
       ],
       "eager": [
         "src/capsule-runtime.js",
-        "src/capsule.js",
         "src/cli/argument-contract.js",
         "src/cli/browser-report-output.js",
         "src/cli/cli-model-resolution.js",
@@ -6915,7 +6909,7 @@
       "file": "tests/integration/choice-scoring-physical.js",
       "kind": "dynamic",
       "line": 59,
-      "expression": "import(pathToFileURL(resolve(packageRoot, metadata.exports['./choice-scoring-contract'].import)))"
+      "expression": "import(pathToFileURL(resolve(packageRoot, metadata.exports['.'].import)))"
     },
     {
       "file": "tests/integration/consumer-entry-points.test.js",
@@ -7084,6 +7078,12 @@
       "kind": "dynamic",
       "line": 3,
       "expression": "import(new URL(path, moduleBase))"
+    },
+    {
+      "file": "tests/runtime/capsule-runtime-entrypoint.test.js",
+      "kind": "dynamic",
+      "line": 43,
+      "expression": "import(`doppler-gpu/${removed.slice(2)}`)"
     },
     {
       "file": "tests/tooling/kernel-uniform-generation.test.js",

@@ -6,11 +6,10 @@ import { createModelInstallation } from './installation.js';
 // Doppler: a signed Capsule installed into private browser storage, so later
 // openings verify retained bytes and work offline.
 export async function openDopplerEngine({ descriptor, baseUrl, mode = 'install-or-open', signal, onProgress }) {
-  const [host, runtime, storage, contract] = await Promise.all([
+  const [host, runtime, storage] = await Promise.all([
     import('doppler-gpu/host'),
     import('doppler-gpu'),
     import('doppler-gpu/tooling/storage'),
-    import('doppler-gpu/choice-scoring-contract'),
   ]);
   const capsuleUrl = new URL(descriptor.capsuleUrl, baseUrl).href;
   const capsule = mode === 'open-retained' ? null : await (await fetch(capsuleUrl, { signal })).json();
@@ -45,7 +44,7 @@ export async function openDopplerEngine({ descriptor, baseUrl, mode = 'install-o
     name: 'doppler',
     observations,
     async scoreChoices(request, options = {}) {
-      return contract.validateChoiceScoringResult(request, await session.scoreChoices(request, options));
+      return host.validateChoiceScoringResult(request, await session.scoreChoices(request, options));
     },
     close: () => session.close(),
   };

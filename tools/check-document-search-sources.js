@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
-import { verifyCapsule } from '../src/capsule.js';
+import { verifyCapsule } from '../src/config/capsule.js';
 
 const hash = bytes => 'sha256:' + createHash('sha256').update(bytes).digest('hex');
 const read = async filename => JSON.parse(await fs.readFile(filename, 'utf8'));

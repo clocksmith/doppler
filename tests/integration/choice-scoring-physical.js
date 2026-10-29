@@ -56,7 +56,7 @@ gpu.requestAdapter = async options => {
 };
 try {
   const api = await import(pathToFileURL(resolve(packageRoot, metadata.exports['./compat'].import)));
-  const validation = await import(pathToFileURL(resolve(packageRoot, metadata.exports['./choice-scoring-contract'].import)));
+  const validation = await import(pathToFileURL(resolve(packageRoot, metadata.exports['.'].import)));
   model = await api.load({ url: pathToFileURL(resolve(modelPath) + '/').href }, { cache: false, isolatedLoader: true });
   report.deviceInfo = model.deviceInfo;
   assert(!/swiftshader|llvmpipe|software/i.test(JSON.stringify(report.deviceInfo)), 'Physical GPU required');

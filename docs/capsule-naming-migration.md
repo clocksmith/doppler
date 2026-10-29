@@ -9,7 +9,7 @@ The version in this checkout does not imply an npm publication.
 | Previous contract | Current contract |
 | --- | --- |
 | `openPack()` | `openCapsule()` |
-| `doppler-gpu/pack` | `doppler-gpu/capsule` |
+| `doppler-gpu/pack` | `doppler-gpu/host` (the 0.6 `doppler-gpu/capsule` subpath was folded into it in 0.7.0) |
 | `Pack*` declarations | `Capsule*` declarations |
 | `createFetchPackArtifactStore()` | `createFetchCapsuleArtifactStore()` |
 | `pack`, `packId`, `packIdentity`, `packSemanticRoot` | `capsule`, `capsuleId`, `capsuleIdentity`, `capsuleSemanticRoot` |

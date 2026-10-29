@@ -16,13 +16,13 @@ then verifies every artifact and reachable WGSL module, binds resources, and
 executes the declared commands. It does not load unsigned manifests, infer a
 model family, choose kernels, or supply a development signing key.
 
-`doppler-gpu/run` is the named Doppler Run entrypoint, with the same exports as
-`doppler-gpu`. `doppler-gpu/runtime` remains a compatibility alias.
+`doppler-gpu` is the Doppler Run entrypoint. `doppler-gpu/runtime` remains a
+compatibility alias; the former `doppler-gpu/run` alias was removed.
 `createDopplerRuntime` and `RUNTIME_CORE_VERSION` remain aliases of
 `createDopplerRun` and `RUN_CORE_VERSION`; types have corresponding
 `DopplerRun`, `DopplerRunSession`, and `RunPorts` names.
 
-Capsule v2 remains readable. The new `doppler-gpu/capsule` facade supplies v3 migration,
+Capsule v2 remains readable. `doppler-gpu/host` also supplies v3 migration,
 identity, and signed release-event APIs. See [Capsule identity migration](../capsule-identity-migration.md)
 for explicit trust/checkpoint policy, artifact-source ownership, and sequence
 execution receipts. New source APIs do not imply a published or qualified release.
@@ -96,9 +96,8 @@ the existing device, artifact-store, and program ports; trust and upgrades remai
 explicit. See the [Electron integration](../../examples/electron-document-search/README.md)
 and [retained evaluation](../integration/reranker-evaluation.md).
 
-Advanced applications can still inject every port through `doppler-gpu` or
-`doppler-gpu/run`. Both routes verify the same Capsule and initial execution
-identity. The host facade does not add model operations or broaden qualification.
+Advanced applications can still inject every port through `doppler-gpu`. Both
+routes verify the same Capsule and initial execution identity. The host facade does not add model operations or broaden qualification.
 
 ## Minimal example
 
