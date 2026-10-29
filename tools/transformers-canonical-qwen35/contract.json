@@ -21,6 +21,30 @@
     "relativeTolerance": 0.0001,
     "seed": 734561
   },
+  "teacher": {
+    "tokenizersVersion": "0.22.2",
+    "maxNewTokens": 64,
+    "snapshotSteps": [0, 1, 2, 4, 8, 16, 32, 63],
+    "eosTokenIds": [248046, 248044],
+    "kvPhysicalDtype": "float16",
+    "attentionMathDtype": "float32"
+  },
+  "textExport": {
+    "batchSize": 1,
+    "prefillBound": 704,
+    "maxSequenceLength": 2048,
+    "cpuPrefillLengths": [1, 2, 28],
+    "cpuDecodeSteps": 4,
+    "logitAbsoluteTolerance": 0.001,
+    "stateAbsoluteTolerance": 0.00001,
+    "stateRelativeTolerance": 0.0001,
+    "kvStateMaxRepresentableSteps": 1,
+    "kvPhysicalDtype": "float16",
+    "linearStateDtype": "float32",
+    "attentionMathDtype": "float32",
+    "scope": "Four frozen prompts, maximum prompt length 655; prefill bound 704 is explicit. Total context remains 2048.",
+    "sessionRouting": "Explicit prefill/decode adapter supplied through the public TJS model constructor; no token-at-a-time prefill"
+  },
   "sourceSchema": "doppler.equal-weight-canonical.v1",
   "sourcePrefix": "model.language_model.",
   "targetPrefix": "model.",

@@ -1,0 +1,16 @@
+{
+  "batchSize": 1,
+  "prefillBound": 704,
+  "maxSequenceLength": 2048,
+  "cpuPrefillLengths": [1, 2, 28],
+  "cpuDecodeSteps": 4,
+  "logitAbsoluteTolerance": 0.001,
+  "stateAbsoluteTolerance": 0.00001,
+  "stateRelativeTolerance": 0.0001,
+  "kvStateMaxRepresentableSteps": 1,
+  "kvPhysicalDtype": "float32",
+  "linearStateDtype": "float32",
+  "attentionMathDtype": "float32",
+  "scope": "Separate all-F32-KV lane for the four frozen prompts; prefill bound704 and total context2048 remain explicit. No F16 or quantized-format claim.",
+  "sessionRouting": "Explicit prefill/decode adapter supplied through the public TJS model constructor; no token-at-a-time prefill"
+}

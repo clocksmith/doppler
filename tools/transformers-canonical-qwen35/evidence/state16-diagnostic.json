@@ -1,0 +1,287 @@
+{
+  "schema": "doppler.canonical-state16-diagnostic.v1",
+  "inputs": {
+    "canonicalManifestSha256": "77e74f2b0ddf51d0e01edd5888f531e8dda57e8257e2f7ace94916da306cfe95",
+    "configSha256": "c4e4b5cc6a38e43168e7b08e6e991f0c74e7b07d2ca1fe4432f36e2d4e66d2f3",
+    "safetensorsHeaderSha256": "434d00a9998ff2254673ab03669904341dba0d2029a6fc7eeef22c70fa7342ac"
+  },
+  "parameterCount": 321,
+  "firstFailure": {
+    "case": "prefill-1-prefill-0",
+    "name": "present_conv.16",
+    "dtype": "float32",
+    "shape": [
+      1,
+      6144,
+      4
+    ],
+    "maxAbsoluteError": 2.3365020751953125e-05,
+    "meanAbsoluteError": 7.102430004124471e-07,
+    "pass": false
+  },
+  "comparisons": [
+    {
+      "name": "upstream-hidden",
+      "maxAbsoluteError": 4.857778549194336e-06,
+      "meanAbsoluteError": 3.229142748750746e-07,
+      "differentElements": 1017,
+      "elements": 1024
+    },
+    {
+      "name": "total-normalized",
+      "maxAbsoluteError": 5.054473876953125e-05,
+      "meanAbsoluteError": 3.4420409065205604e-06,
+      "differentElements": 1013,
+      "elements": 1024
+    },
+    {
+      "name": "same-input-native-normalization",
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "differentElements": 0,
+      "elements": 1024
+    },
+    {
+      "name": "same-input-native-reduce-mean",
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "differentElements": 0,
+      "elements": 1
+    },
+    {
+      "name": "same-variance-native-rsqrt",
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "differentElements": 0,
+      "elements": 1
+    },
+    {
+      "name": "same-input-native-qkv-matmul",
+      "maxAbsoluteError": 4.0531158447265625e-06,
+      "meanAbsoluteError": 3.5956449551122205e-07,
+      "differentElements": 5607,
+      "elements": 6144
+    },
+    {
+      "name": "total-projection",
+      "maxAbsoluteError": 2.3365020751953125e-05,
+      "meanAbsoluteError": 2.8409720016497886e-06,
+      "differentElements": 6069,
+      "elements": 6144
+    },
+    {
+      "name": "state-binding-reconstruction",
+      "maxAbsoluteError": 0.0,
+      "meanAbsoluteError": 0.0,
+      "differentElements": 0,
+      "elements": 24576
+    }
+  ],
+  "operatorChain": [
+    {
+      "name": "node_slice_2453",
+      "op": "Slice",
+      "input": [
+        "cat_1625",
+        "val_27",
+        "val_31",
+        "val_34",
+        "val_200"
+      ],
+      "output": [
+        "present_conv.16"
+      ]
+    },
+    {
+      "name": "node_cat_1625",
+      "op": "Concat",
+      "input": [
+        "linear.16.zero_conv",
+        "transpose_395"
+      ],
+      "output": [
+        "cat_1625"
+      ]
+    },
+    {
+      "name": "node_transpose_395",
+      "op": "Transpose",
+      "input": [
+        "linear_124"
+      ],
+      "output": [
+        "transpose_395"
+      ]
+    },
+    {
+      "name": "node_linear_124",
+      "op": "MatMul",
+      "input": [
+        "type_as_40",
+        "val_28442"
+      ],
+      "output": [
+        "linear_124"
+      ]
+    },
+    {
+      "name": "node_type_as_40",
+      "op": "Mul",
+      "input": [
+        "mul_7623",
+        "add_7257"
+      ],
+      "output": [
+        "type_as_40"
+      ]
+    },
+    {
+      "name": "node_mul_7623",
+      "op": "Mul",
+      "input": [
+        "add_7237",
+        "rsqrt_76"
+      ],
+      "output": [
+        "mul_7623"
+      ]
+    },
+    {
+      "name": "node_rsqrt_76",
+      "op": "Reciprocal",
+      "input": [
+        "val_28441"
+      ],
+      "output": [
+        "rsqrt_76"
+      ]
+    },
+    {
+      "name": "node_Sqrt_28441",
+      "op": "Sqrt",
+      "input": [
+        "add_7247"
+      ],
+      "output": [
+        "val_28441"
+      ]
+    },
+    {
+      "name": "node_add_7247",
+      "op": "Add",
+      "input": [
+        "mean_52",
+        "val_11"
+      ],
+      "output": [
+        "add_7247"
+      ]
+    },
+    {
+      "name": "node_mean_52",
+      "op": "ReduceMean",
+      "input": [
+        "pow_53",
+        "val_10"
+      ],
+      "output": [
+        "mean_52"
+      ]
+    }
+  ],
+  "sourceGraph": {
+    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_prefill.full-onnx-f32kv-02.onnx",
+    "sha256": "4d2d099b5f01e85d1238f058ce7b4de83461daa52ee3a02df77506af55509c0d"
+  },
+  "diagnosticGraph": {
+    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_prefill.full-onnx-f32kv-02.state16-diagnostic.onnx",
+    "sha256": "2cd6dffd032fcb359e5d1c460e0b3532abea6754c9de5a65f90c0997d5f6aa38"
+  },
+  "cpuGate": {
+    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-cpu-01/receipt.json",
+    "sha256": "6e7d558480f3801702a1a1ccdddd4d9a35345e1b10220cebf2a2de66cff2217a"
+  },
+  "artifacts": [
+    {
+      "file": "same-input-native-normalization-actual.f32",
+      "bytes": 4096,
+      "sha256": "209a01e829def6f0ffe9a19a7e97bc7023225e90a8be1902e21ef940a6f88abf"
+    },
+    {
+      "file": "same-input-native-normalization-reference.f32",
+      "bytes": 4096,
+      "sha256": "209a01e829def6f0ffe9a19a7e97bc7023225e90a8be1902e21ef940a6f88abf"
+    },
+    {
+      "file": "same-input-native-qkv-matmul-actual.f32",
+      "bytes": 24576,
+      "sha256": "b602a6917ff7e8317c974a3751751ec31de7b2c34840d05b7a5e94670fac910f"
+    },
+    {
+      "file": "same-input-native-qkv-matmul-reference.f32",
+      "bytes": 24576,
+      "sha256": "23eda7ecc8274cab29203b563e9baf630aa9bc5c6957536042532fb191cfb5c3"
+    },
+    {
+      "file": "same-input-native-reduce-mean-actual.f32",
+      "bytes": 4,
+      "sha256": "82ea3cc847d5f7383de02b1a7f5416c938a202c661231ce402ca1679d35b07e1"
+    },
+    {
+      "file": "same-input-native-reduce-mean-reference.f32",
+      "bytes": 4,
+      "sha256": "82ea3cc847d5f7383de02b1a7f5416c938a202c661231ce402ca1679d35b07e1"
+    },
+    {
+      "file": "same-variance-native-rsqrt-actual.f32",
+      "bytes": 4,
+      "sha256": "d535e3751cd32752943d3ac2bc4bd7070f52f76be7916ebd3c38cadd7db6c105"
+    },
+    {
+      "file": "same-variance-native-rsqrt-reference.f32",
+      "bytes": 4,
+      "sha256": "d535e3751cd32752943d3ac2bc4bd7070f52f76be7916ebd3c38cadd7db6c105"
+    },
+    {
+      "file": "state-binding-reconstruction-actual.f32",
+      "bytes": 98304,
+      "sha256": "4e39ceff324a41c2b03899c0eeac156deef7f6d43bc9e477be5a4e9961a52bd2"
+    },
+    {
+      "file": "state-binding-reconstruction-reference.f32",
+      "bytes": 98304,
+      "sha256": "4e39ceff324a41c2b03899c0eeac156deef7f6d43bc9e477be5a4e9961a52bd2"
+    },
+    {
+      "file": "total-normalized-actual.f32",
+      "bytes": 4096,
+      "sha256": "209a01e829def6f0ffe9a19a7e97bc7023225e90a8be1902e21ef940a6f88abf"
+    },
+    {
+      "file": "total-normalized-reference.f32",
+      "bytes": 4096,
+      "sha256": "bbc1232548fd14260d9d5720cf8190453e99b15ab206ef3baa1d3c31bf1eb4e5"
+    },
+    {
+      "file": "total-projection-actual.f32",
+      "bytes": 24576,
+      "sha256": "b602a6917ff7e8317c974a3751751ec31de7b2c34840d05b7a5e94670fac910f"
+    },
+    {
+      "file": "total-projection-reference.f32",
+      "bytes": 24576,
+      "sha256": "ad255d2034f2b0bf177c5483cd7901002fc3887fe6158be997dec30732dc518b"
+    },
+    {
+      "file": "upstream-hidden-actual.f32",
+      "bytes": 4096,
+      "sha256": "25f0b9c3b673af698bee2d7b518e9ba0ac9db6e7d05a6f780c6d2d08bf43e6cf"
+    },
+    {
+      "file": "upstream-hidden-reference.f32",
+      "bytes": 4096,
+      "sha256": "13f1da5677c89f5e36ac9afdbf9cf531b51ae7c99ffc53d8af5fe07a37581995"
+    }
+  ],
+  "scope": "Same-input native F32 operator replay and exact state binding; original strict gate remains unchanged"
+}

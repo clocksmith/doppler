@@ -1,0 +1,8 @@
+{
+  "tokenizersVersion": "0.22.2",
+  "maxNewTokens": 64,
+  "snapshotSteps": [0, 1, 2, 4, 8, 16, 32, 63],
+  "eosTokenIds": [248046, 248044],
+  "kvPhysicalDtype": "float32",
+  "attentionMathDtype": "float32"
+}

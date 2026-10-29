@@ -1,0 +1,82 @@
+{
+  "schema": "doppler.canonical-export-softplus-diagnostic.v1",
+  "attempts": [
+    {
+      "run": "full-text-cpu-01",
+      "receipt": {
+        "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-text-cpu-01/receipt.json",
+        "sha256": "4f21d2f9d3870797352d22a7a8caa40ab8138631747c3a994e5578510417343b"
+      },
+      "error": {
+        "exception": "ValueError",
+        "message": "full decoder native CPU parity failed: {\"case\": \"prefill-1-decode-3\", \"name\": \"present.7.key\", \"dtype\": \"torch.float16\", \"shape\": [1, 2, 4, 256], \"maxAbsoluteError\": 6.103515625e-05, \"meanAbsoluteError\": 3.0442606657743454e-08, \"pass\": false, \"maxRepresentableSteps\": 6}"
+      },
+      "completed": false
+    },
+    {
+      "run": "full-text-cpu-softplus-01",
+      "receipt": {
+        "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-text-cpu-softplus-01/receipt.json",
+        "sha256": "367e0a5a769a6ef19ba02a0bc363da0cb7ff384b283dbc7c9403a12026c7e03c"
+      },
+      "error": {
+        "exception": "ValueError",
+        "message": "full decoder native CPU parity failed: {\"case\": \"prefill-1-decode-3\", \"name\": \"present.7.key\", \"dtype\": \"torch.float16\", \"shape\": [1, 2, 4, 256], \"maxAbsoluteError\": 6.103515625e-05, \"meanAbsoluteError\": 3.0442606657743454e-08, \"pass\": false, \"maxRepresentableSteps\": 6}"
+      },
+      "completed": false
+    }
+  ],
+  "diagnostic": {
+    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-text-cpu-softplus-01/softplus-diagnostic.json",
+    "sha256": "b1b323c8eb4f4db7b32111ee952bbd594f85b7e354fa65aa15a3557d13752a13",
+    "calls": [
+      {
+        "call": 0,
+        "maxAbsoluteError": 0.0,
+        "differentElements": 0
+      },
+      {
+        "call": 1,
+        "maxAbsoluteError": 0.0,
+        "differentElements": 0
+      },
+      {
+        "call": 2,
+        "maxAbsoluteError": 0.0,
+        "differentElements": 0
+      },
+      {
+        "call": 3,
+        "maxAbsoluteError": 0.0,
+        "differentElements": 0
+      },
+      {
+        "call": 4,
+        "maxAbsoluteError": 2.9802322387695312e-08,
+        "differentElements": 2
+      },
+      {
+        "call": 5,
+        "maxAbsoluteError": 2.9802322387695312e-08,
+        "differentElements": 2
+      },
+      {
+        "call": 6,
+        "maxAbsoluteError": 0.0,
+        "differentElements": 0
+      },
+      {
+        "call": 7,
+        "maxAbsoluteError": 0.0,
+        "differentElements": 0
+      }
+    ]
+  },
+  "fix": "Retain native F.softplus in CPU adapter; lower unsupported Softplus only in ONNX graph",
+  "validation": {
+    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-text-cpu-02/receipt.json",
+    "sha256": "7024db9037d6c4aba1c2482632389f9cb994bce384ba3b982a779c47ffcaa796",
+    "checks": 735,
+    "allLogitsAndStateBitExact": true
+  }
+}
