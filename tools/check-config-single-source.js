@@ -291,6 +291,26 @@ const CODE_RULES = Object.freeze([
     pattern: /modelId\.includes\s*\(|selectByRules|\.value\s*!==|value:\s*-?\d|['"](gemma|qwen)-[\w.-]+['"]/g,
   },
   {
+    file: 'src/inference/pipelines/context.js',
+    label: 'Kernel trace runtime fallback',
+    pattern: /kernelTraceCfg\.\w+\s*\?\?/g,
+  },
+  {
+    file: 'src/inference/pipelines/text/kernel-trace.js',
+    label: 'Kernel trace option runtime fallback',
+    pattern: /options\.(layers|breakOnAnomaly|explosionThreshold|collapseThreshold|maxSteps)\s*\?\?/g,
+  },
+  {
+    file: 'src/loader/tensors/load-executor.js',
+    label: 'Q4K dequant parity sample runtime fallback',
+    pattern: /q4kDequantParitySamples[^;\n]*\?\?\s*\d|:\s*256,/g,
+  },
+  {
+    file: 'src/gpu/kernels/linear-attention-core.js',
+    label: 'Linear attention epsilon runtime fallback',
+    pattern: /Eps\)\s*\|\|\s*\d/g,
+  },
+  {
     file: 'src/rules/layer-pattern-contract-check.js',
     label: 'Layer pattern rule values pinned in JS (structure-only contract)',
     pattern: /selectByRules|\.value\s*!==|['"](full|sliding)_attention['"]|['"]alternating_(even|odd)['"]/g,
