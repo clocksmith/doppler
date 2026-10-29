@@ -6,7 +6,8 @@ try {
   const device = await adapter.requestDevice({ requiredFeatures: ['shader-f16'] });
   const errors = [], checks = [];
   device.addEventListener('uncapturederror', event => errors.push(event.error.message));
-  const sources = { native: '/native-kv.wgsl', prototype: '/adapter/kv-cache-rne-prototype.wgsl' };
+  const sources = config.roundingShaders;
+  if (!sources?.native || !sources?.prototype) throw new Error('Explicit rounding comparison shader paths are required');
   for (const [name, url] of Object.entries(sources)) {
     const shader = await (await fetch(url)).text();
     const digest = [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(shader)))].map(x => x.toString(16).padStart(2, '0')).join('');
