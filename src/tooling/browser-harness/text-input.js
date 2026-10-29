@@ -10,13 +10,13 @@ export const DEFAULT_IMAGE_TRANSCRIPTION_PROMPT = 'Describe the image in one sho
 export const DEFAULT_IMAGE_TRANSCRIPTION_SOFT_TOKEN_BUDGET = 70;
 
 const embeddingSemanticFixtureAsset = await loadJson(
-  '../fixtures/embedding-semantic-fixtures.json',
+  '../../inference/fixtures/embedding-semantic-fixtures.json',
   import.meta.url,
   'Failed to load embedding semantic fixtures'
 );
 
 const rerankSemanticFixtureAsset = await loadJson(
-  '../fixtures/rerank-semantic-fixtures.json',
+  '../../inference/fixtures/rerank-semantic-fixtures.json',
   import.meta.url,
   'Failed to load rerank semantic fixtures'
 );

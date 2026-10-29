@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 
-const { runBrowserSuite } = await import('../../src/inference/browser-harness.js');
+const { runBrowserSuite } = await import('../../src/tooling/browser-harness.js');
 const {
   buildDecodeRecordTopOpGroups,
   runGeneration,
-} = await import('../../src/inference/browser-harness-text-helpers.js');
+} = await import('../../src/tooling/browser-harness-text-helpers.js');
 const { createDopplerConfig } = await import('../../src/config/schema/doppler.schema.js');
 const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/runtime.js');
 

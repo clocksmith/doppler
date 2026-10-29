@@ -2,7 +2,7 @@ import {
   loadRuntimeConfigFromRef,
   loadRuntimeConfigFromUrl,
   loadRuntimeProfile,
-} from '../inference/browser-harness/runtime-config.js';
+} from './browser-harness/runtime-config.js';
 import {
   getRuntimeConfig,
   setRuntimeConfig,
@@ -33,7 +33,7 @@ import { validateProgramBundle } from '../config/schema/program-bundle.schema.js
 let browserHarnessModulePromise = null;
 
 async function loadBrowserHarnessModule() {
-  browserHarnessModulePromise ??= import('../inference/browser-harness.js');
+  browserHarnessModulePromise ??= import('./browser-harness.js');
   return browserHarnessModulePromise;
 }
 

@@ -947,7 +947,7 @@ tests/training/browser/
 |-----------|---------|----------|
 | **Kernel harness** | GPU output matches CPU reference | `tests/kernels/browser/test-page.js` |
 | **Training harness** | Training kernel validation | `tests/training/browser/test-page.js` |
-| **Benchmark** | Performance regression detection | `src/inference/browser-harness.js` |
+| **Benchmark** | Performance regression detection | `src/tooling/browser-harness.js` |
 
 ### Reference Implementations
 

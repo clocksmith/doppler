@@ -276,7 +276,7 @@ const CODE_RULES = Object.freeze([
     pattern: /options\.modelType\s*\?\?|expertFormat\s*===\s*['"]gpt-oss['"][\s\S]{0,120}expertFormat\s*===\s*['"]gemma4['"]/g,
   },
   {
-    file: 'src/inference/browser-harness-text-helpers.js',
+    file: 'src/tooling/browser-harness-text-helpers.js',
     label: 'Browser harness generation defaults',
     pattern: /DEFAULT_HARNESS_PROMPT|DEFAULT_HARNESS_MAX_TOKENS|DEFAULT_SAMPLING_DEFAULTS|Running with default inference parameters|warnIfUsingDefaults|buildDefaultGenerationPrompt|shouldPreferModelDefaultPrompt/g,
   },

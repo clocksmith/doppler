@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 
 import { DEFAULT_KVCACHE_CONFIG } from '../../src/config/schema/index.js';
 
-const { runBrowserSuite } = await import('../../src/inference/browser-harness.js');
+const { runBrowserSuite } = await import('../../src/tooling/browser-harness.js');
 const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/runtime.js');
 
 const EXPECTED_TRANSLATEGEMMA_PROMPT = {

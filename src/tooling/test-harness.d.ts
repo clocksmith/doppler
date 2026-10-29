@@ -9,7 +9,7 @@
  *
  * Used by tests/harness.html (explicit mode/workload/modelId page context) and other test harnesses.
  *
- * @module inference/test-harness
+ * @module tooling/test-harness
  */
 
 import { type KernelCapabilities } from '../gpu/device.js';

@@ -1,4 +1,4 @@
-// Regression test for `buildFirstLoadComposition` (browser-harness-suite-helpers.js).
+// Regression test for `buildFirstLoadComposition` (tooling/browser-harness/timing-diagnostics.js).
 //
 // The Doppler harness emits a `firstLoad` block shaped identically to the
 // transformers.js bench harness (benchmarks/runners/transformersjs-bench.js
@@ -8,7 +8,7 @@
 // and the sum/residual semantics.
 
 import assert from 'node:assert/strict';
-import { buildFirstLoadComposition } from '../../src/inference/browser-harness/timing-diagnostics.js';
+import { buildFirstLoadComposition } from '../../src/tooling/browser-harness/timing-diagnostics.js';
 
 // Case 1: all six components present — sums and residuals resolve.
 {

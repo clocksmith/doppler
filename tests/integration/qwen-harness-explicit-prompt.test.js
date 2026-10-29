@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-const { runBrowserSuite } = await import('../../src/inference/browser-harness.js');
+const { runBrowserSuite } = await import('../../src/tooling/browser-harness.js');
 
 const QWEN_PROMPT = {
   messages: [

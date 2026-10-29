@@ -1,7 +1,7 @@
 import { readBuffer } from '../../memory/buffer-pool.js';
 import { isPlainObject } from '../../formats/plain-object.js';
 import { sha256BytesHex } from '../../formats/sha256.js';
-import { resolvePromptInput } from '../pipelines/text/generator/prompt-input.js';
+import { resolvePromptInput } from '../../inference/pipelines/text/generator/prompt-input.js';
 import { isStructuredPromptInput } from './text-input.js';
 
 const EMBEDDING_PREVIEW_LENGTH = 16;

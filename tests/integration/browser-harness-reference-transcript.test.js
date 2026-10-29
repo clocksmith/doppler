@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { buildReferenceTranscriptSeed } from '../../src/inference/browser-harness/report.js';
+import { buildReferenceTranscriptSeed } from '../../src/tooling/browser-harness/report.js';
 
 function createRun(overrides = {}) {
   return {

@@ -45,12 +45,12 @@ export { captureMemorySnapshot } from './loader/memory-monitor.js';
 export { destroyBufferPool } from './memory/buffer-pool.js';
 
 // Browser-safe runtime profile helpers
-export { loadRuntimeConfigFromUrl, applyRuntimeConfigFromUrl, loadRuntimeProfile, applyRuntimeProfile } from './inference/browser-harness/runtime-config.js';
+export { loadRuntimeConfigFromUrl, applyRuntimeConfigFromUrl, loadRuntimeProfile, applyRuntimeProfile } from './tooling/browser-harness/runtime-config.js';
 export {
   captureKvCacheByteProof,
   digestLogitsForTranscript,
   runRerank,
-} from './inference/browser-harness-text-helpers.js';
+} from './tooling/browser-harness-text-helpers.js';
 
 export {
   MODEL_CHECKPOINT_EVIDENCE_SCHEMA,

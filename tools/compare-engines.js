@@ -11,7 +11,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { buildExecutionContractArtifact } from '../src/config/execution-contract-check.js';
 import { buildManifestRequiredInferenceFieldsArtifact } from '../src/config/required-inference-fields-contract-check.js';
 import { mergeKernelPathPolicy } from '../src/config/merge/kernel-path-policy.js';
-import { buildDecodeBottleneckDiagnostics } from '../src/inference/browser-harness/decode-diagnostics.js';
+import { buildDecodeBottleneckDiagnostics } from '../src/tooling/browser-harness/decode-diagnostics.js';
 import { mergeRuntimeValues } from '../src/config/runtime-merge.js';
 import { DEFAULT_EXTERNAL_MODELS_ROOT } from '../src/tooling/hf-registry/catalog-io.js';
 import { buildEntryRemoteBaseUrl } from '../src/tooling/hf-registry/registry-urls.js';

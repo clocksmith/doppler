@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { runEmbeddingSemanticChecks } from '../../src/inference/browser-harness-text-helpers.js';
+import { runEmbeddingSemanticChecks } from '../../src/tooling/browser-harness-text-helpers.js';
 
 const vectors = new Map([
   ['task: search result | query: Find a quiet place to borrow books.', Float32Array.from([1, 0])],

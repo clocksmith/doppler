@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { buildDecodeBottleneckDiagnostics } from '../../src/inference/browser-harness/decode-diagnostics.js';
+import { buildDecodeBottleneckDiagnostics } from '../../src/tooling/browser-harness/decode-diagnostics.js';
 
 // A CPU recorder active for 80 ms can overlap 88 ms of GPU work in a 100 ms
 // window. These counters cannot partition that window or establish saved time.

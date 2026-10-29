@@ -85,11 +85,11 @@ import {
 import { collectTrainingArtifactsFromSuiteResult } from './browser-harness-report-helpers.js';
 import { sha256Hex } from '../formats/sha256.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
-import { assertCommandContextMatchesOptions } from '../tooling/command-context.js';
+import { assertCommandContextMatchesOptions } from './command-context.js';
 import {
   buildTokenCostLedger,
   isExecutionObservationRequested,
-} from '../tooling/execution-cost-ledger.js';
+} from './execution-cost-ledger.js';
 import { createUnsupportedWorkloadError, hashStableJson, resolveDecodeCadence, resolveDispatchSuite, resolveExecutionGraphHash, resolveHarnessContext, resolveHarnessMode, resolveWorkload } from './browser-harness/request.js';
 import { attachExecutionCostLedger, buildReferenceTranscriptSeed, resolvePipelineLoadTimings, serializeSequenceProbeRows, summarizePrefillRecordOps, summarizeTimingPhaseSamples } from './browser-harness/report.js';
 import { runInferenceSuite, runKernelSuite, withHarnessPhase } from './browser-harness/inference-execution.js';

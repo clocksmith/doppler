@@ -557,7 +557,7 @@ export async function loadNativeQwenTrainingPipeline(modelUrl, options = {}) {
   if (typeof modelUrl !== 'string' || modelUrl.trim().length === 0) {
     throw new Error('loadNativeQwenTrainingPipeline requires an RDRR model URL.');
   }
-  const { initializeInference } = await import('../../inference/test-harness.js');
+  const { initializeInference } = await import('../../tooling/test-harness.js');
   const loaded = await initializeInference(modelUrl.replace(/\/$/, ''), options);
   if (loaded.manifest?.modelId !== 'qwen-3-5-0-8b-q4k-ehaf16') {
     await loaded.pipeline.unload();

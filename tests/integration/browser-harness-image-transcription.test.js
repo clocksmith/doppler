@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import { runBrowserSuite } from '../../src/inference/browser-harness.js';
+import { runBrowserSuite } from '../../src/tooling/browser-harness.js';
 import { sha256BytesHex } from '../../src/formats/sha256.js';
-import { hashStableJson } from '../../src/inference/browser-harness/request.js';
+import { hashStableJson } from '../../src/tooling/browser-harness/request.js';
 
 function createHarnessOverride(calls) {
   return {
