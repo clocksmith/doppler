@@ -40,7 +40,7 @@ try {
   const tensor = { buffer: new GPUBuffer(), dtype: 'f32' };
   const state = { headVDim: 1, headKDim: 1, normMode: 'shared', convDim: 3,
     valueDim: 1, convKernelSize: 1, numVHeads: 1, numKHeads: 1,
-    qSize: 1, kSize: 1, vSize: 1, qRep: 1 };
+    qSize: 1, kSize: 1, vSize: 1, qRep: 1, rmsNormEps: 1e-6 };
   for (const key of ['convWeightGPU', 'dtBiasGPU', 'aLogGPU', 'normWeightGPU', 'convStateGPU', 'recurrentStateGPU']) {
     state[key] = new GPUBuffer();
   }
@@ -67,7 +67,7 @@ try {
       for (failure of fused ? ['uniform'] : ['convolution', 'uniform']) {
         const recorder = recorded ? { getEncoder() {}, trackTemporaryBuffer() {} } : null;
         await assert.rejects(() => runLinearAttentionCoreGPU(tensor, tensor, tensor, tensor, state,
-          { numTokens: fused ? 1 : 2, abPacked: true, bProjOffsetElements: 1, outputDtype: 'f32', recorder, normGateActivation }),
+          { numTokens: fused ? 1 : 2, abPacked: true, bProjOffsetElements: 1, outputDtype: 'f32', recorder, normGateActivation, qkL2NormEps: 1e-6 }),
         /allocation rejected/);
         assert.equal(active.size, 0, `${failure}, fused=${fused}, recorded=${recorded}: no retained output`);
       }
@@ -104,7 +104,7 @@ try {
   state.recurrentStateComponents = 1;
   const recorder = { getEncoder() {}, trackTemporaryBuffer() {}, decodeWorkspace: owner };
   await assert.rejects(() => runLinearAttentionCoreGPU(tensor, tensor, tensor, tensor, state,
-    { numTokens: 1, layerIdx: 0, abPacked: true, bProjOffsetElements: 1, outputDtype: 'f32', recorder, normGateActivation: 'silu' }),
+    { numTokens: 1, layerIdx: 0, abPacked: true, bProjOffsetElements: 1, outputDtype: 'f32', recorder, normGateActivation: 'silu', qkL2NormEps: 1e-6 }),
   /allocation rejected/);
   assert.equal(active.size, 0);
   assert.equal(owner.getStats().buffers, 1);

@@ -211,6 +211,15 @@ function buildParamsData(params) {
   return data;
 }
 
+// Epsilons come from the manifest (rmsNormEps) and the caller (qkL2NormEps);
+// a missing or non-positive value is a contract error, not a default.
+function requirePositiveEpsilon(value, label) {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
+    throw new Error(`[LinearAttention] ${label} must be a positive finite number; got ${JSON.stringify(value)}.`);
+  }
+  return value;
+}
+
 function requireGpuBuffer(buffer, label) {
   if (!(buffer instanceof GPUBuffer)) {
     throw new Error(`linear_attention kernel requires GPUBuffer for ${label}.`);
@@ -360,8 +369,8 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
     valueDim: layerState.valueDim,
     qRep: layerState.qRep,
     normMode: layerState.normMode === 'per_head' ? 1 : 0,
-    rmsNormEps: Number(layerState.rmsNormEps) || 1e-6,
-    qkL2NormEps: Number(options.qkL2NormEps) || 1e-6,
+    rmsNormEps: requirePositiveEpsilon(layerState.rmsNormEps, 'layerState.rmsNormEps'),
+    qkL2NormEps: requirePositiveEpsilon(options.qkL2NormEps, 'options.qkL2NormEps'),
     abPacked: options.abPacked === true,
     qkvzPacked: options.qkvzPacked === true,
     bProjOffsetElements: options.bProjOffsetElements,
@@ -527,8 +536,8 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
           valueDim: layerState.valueDim,
           qRep: layerState.qRep,
           normMode: layerState.normMode === 'per_head' ? 1 : 0,
-          rmsNormEps: Number(layerState.rmsNormEps) || 1e-6,
-          qkL2NormEps: Number(options.qkL2NormEps) || 1e-6,
+          rmsNormEps: requirePositiveEpsilon(layerState.rmsNormEps, 'layerState.rmsNormEps'),
+          qkL2NormEps: requirePositiveEpsilon(options.qkL2NormEps, 'options.qkL2NormEps'),
           abPacked: options.abPacked === true,
           qkvzPacked: options.qkvzPacked === true,
           bProjOffsetElements: options.bProjOffsetElements,
@@ -629,8 +638,8 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
         valueDim: layerState.valueDim,
         qRep: layerState.qRep,
         normMode: layerState.normMode === 'per_head' ? 1 : 0,
-        rmsNormEps: Number(layerState.rmsNormEps) || 1e-6,
-        qkL2NormEps: Number(options.qkL2NormEps) || 1e-6,
+        rmsNormEps: requirePositiveEpsilon(layerState.rmsNormEps, 'layerState.rmsNormEps'),
+        qkL2NormEps: requirePositiveEpsilon(options.qkL2NormEps, 'options.qkL2NormEps'),
         abPacked: options.abPacked === true,
         qkvzPacked: options.qkvzPacked === true,
         bProjOffsetElements: options.bProjOffsetElements,
