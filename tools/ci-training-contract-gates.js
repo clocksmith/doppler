@@ -89,27 +89,6 @@ const LANE_MAP = Object.freeze({
         'tests/config/training-workload-capsules.test.js',
         'tests/config/training-report-id-publication.test.js',
         'tests/training/agent-heldout-eval.test.js',
-        'tests/training/host-teacher-qualification.test.js',
-        'tests/training/student-code-experiment.test.js',
-        'tests/tooling/wgsl-author-package.test.js',
-        'tests/tooling/wgsl-author-execution-plan.test.js',
-        'tests/tooling/wgsl-author-browser-executor.test.js',
-        'tests/tooling/wgsl-author-reference.test.js',
-        'tests/training/wgsl-writer-v3-contract.test.js',
-      ],
-    },
-    {
-      label: 'verify host teacher qualification contracts',
-      cmd: 'node',
-      args: [
-        'tools/verify-host-teacher-contracts.js',
-      ],
-    },
-    {
-      label: 'verify student code experiment contracts',
-      cmd: 'node',
-      args: [
-        'tools/verify-student-code-experiment.js',
       ],
     },
     {

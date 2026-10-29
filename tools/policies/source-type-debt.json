@@ -1009,7 +1009,6 @@
     "src/tooling/test-harness.js",
     "src/tooling/trainer-artifact-handoff.js",
     "src/tooling/translation-artifact-competition.js",
-    "src/tooling/wgsl-repair-semantic-gate.js",
     "src/training-browser.js",
     "src/training.js",
     "src/types/chrome.js",

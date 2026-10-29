@@ -80,27 +80,9 @@ Primary documentation index.
 - [Training Handbook](training-handbook.md) - canonical operator workflow, gates, and artifact contract.
 - [Training Artifact Policy](training-artifact-policy.md)
 - [Verifier-Guided and RLVR Training Contract](rlvr-training-contract.md) - method names, rollout and reward receipts, verifier separation, and promotion gates.
-- [WGSL Student Replay v8 Receipt](status/wgsl-student-replay-v8-2026-07-11.md) - terminal rejected result, preserved mechanics evidence, and held-out failure boundary.
-- [WGSL Repair v9 Status](status/wgsl-repair-v9-2026-07-11.md) - historical Radeon-verified corpus and optimizer-harness receipt.
-- [WGSL Repair v10 Result](status/wgsl-repair-v10-2026-07-12.md) - Qwen 3.5 9B seed-11 SFT improves family-disjoint compiler-repair pass@1 from 8.36% to 88.29%, with semantic and promotion limits retained.
-- [WGSL Repair v12 Controlled-Lane Design](status/wgsl-repair-v12-design-2026-07-12.md) - full seed-ordered anchor/external/random controls plus short/long repair strata; harness-ready with no V12 outcome.
-- [WGSL Repair v12 Adapter Portability](status/wgsl-repair-v12-adapter-portability-2026-07-13.md) - preserved external20 artifacts plus exact prompt, completion, and aligned-logit parity for all three adapters after the split-SwiGLU correction; no seed-selection authority.
-- [WGSL Repair v13 Seed Selection](status/wgsl-repair-v13-seed-selection-2026-07-14.md) - frozen semantic ranking selects external20 seed 29 at 4/6 tasks; confirmation, promotion, and WGSL Doctor remain blocked.
-- [WGSL Repair v13 Blind Seed-Confirmation Freeze](status/wgsl-repair-v13-seed-confirmation-freeze-2026-07-14.md) - commit-derived eight-of-twelve semantic population protocol frozen before seed-29 confirmation inference.
-- [WGSL Repair v13 Seed-Confirmation Readiness](status/wgsl-repair-v13-seed-confirmation-readiness-2026-07-14.md) - balanced commit-derived population and strict seed-29-only gate frozen before reference qualification or candidate inference.
-- [WGSL Repair v13 Seed-Confirmation Result](status/wgsl-repair-v13-seed-confirmation-result-2026-07-14.md) - seed 29 passes 8/8 semantic tasks and 24/24 dispatch variants; promotion, WGSL Doctor, and full-shader writing remain separate.
-- [WGSL Writer v1 Mechanics Freeze](status/wgsl-writer-v1-mechanics-freeze-2026-07-14.md) - separate complete-shader specification/interface contract and executable semantic harness frozen before reference or model execution.
-- [WGSL Writer v1 Reference Mechanics](status/wgsl-writer-v1-reference-mechanics-2026-07-14.md) - reference shaders pass 3/3 tasks and 9/9 primary variants; model capability and candidate execution remain unclaimed.
-- [WGSL Writer v1 Zero-Shot Diagnostic Freeze](status/wgsl-writer-v1-diagnostic-freeze-2026-07-14.md) - one matched visible-mechanics submission each for Qwen 9B base and V13 seed-29 initialization, with no selection authority.
-- [WGSL Writer v1 Zero-Shot Diagnostic Result](status/wgsl-writer-v1-diagnostic-result-2026-07-14.md) - both frozen initializations score 0/3 response, compile, and semantic pass; no current writer capability or repair-to-writer transfer is established.
+- [WGSL Repair and Writer Campaign](https://github.com/clocksmith/gamma/blob/main/projects/distillation/wgsl/campaign/README.md) - moved to Gamma: V8 student replay, V9-V13 repair, writer v1-v3, and source catalog v2 receipts, tools, and policies.
 - [WGSL Writer v2 Result](status/wgsl-writer-v2-result-2026-07-14.md) - Qwen 3.5 9B seed 47 is selected, three-seed semantic confirmation passes at 95.83% mean, and the selected LoRA has exact Transformers-to-Doppler completion parity; external promotion and general writing remain blocked.
-- [WGSL Writer v3 Mechanics Freeze](status/wgsl-writer-v3-mechanics-freeze-2026-07-16.md) - Freezes an executable compute/render/multi-pass package contract and family-disjoint general-authoring plan; browser execution, reference oracles, corpus materialization, training, and every capability claim remain blocked.
-- [WGSL Writer v3 Reference Qualification](status/wgsl-writer-v3-reference-qualification-2026-07-18.md) - Qualifies the four frozen compute/render/multi-pass reference packages with deterministic replay, semantic oracles, cleanup evidence, and an identity-bound AMD/Vulkan Chromium receipt; corpus, training, and capability claims remain blocked.
-- [WGSL Writer v3 Campaign Reconciliation](status/wgsl-writer-v3-campaign-reconciliation-2026-07-19.md) - Preserves the original frozen gate, classifies later policies as development evidence, and requires a prospective family-disjoint materialization transition.
-- [WGSL Repair v13 Semantic Readiness (pre-selection)](status/wgsl-repair-v13-semantic-readiness-2026-07-14.md) - passing adapter portability and reference dispatch mechanics admit frozen calibration/checkpoint selection.
-- [WGSL Repair v13 Semantic Contract (historical)](status/wgsl-repair-v13-semantic-design-2026-07-13.md) - original frozen requirements and immutable V1 blocked receipt before portability recovery.
 - [Qwen 3.5 9B Doppler-Native Training Parity Design](status/qwen35-9b-doppler-native-training-parity-design-2026-07-12.md) - SAME-R backend-parity gates, implemented F16 frozen-weight mechanics, and explicit Qwen hybrid-graph blockers.
-- [WGSL ML Kernel Source Catalog v2](status/wgsl-kernel-source-catalog-v2-2026-07-12.md) - Pinned training, reference-only, and quarantined WebGPU ML sources, including MLC WebLLM.
 - [Training Migrations](training-migrations.md)
 
 ## Style Guides
