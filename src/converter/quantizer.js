@@ -1,4 +1,5 @@
 import { classifyTensorRole } from '../formats/rdrr/index.js';
+import { float32ToFloat16, float16ToFloat32 } from '../formats/float16.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import {
   QK_K,
@@ -8,75 +9,9 @@ import {
 
 // Re-export for backward compatibility
 export { QK_K, K_SCALE_SIZE, QK4_K_BLOCK_SIZE };
-
-const f32ToF16ScratchF32 = new Float32Array(1);
-const f32ToF16ScratchU32 = new Uint32Array(f32ToF16ScratchF32.buffer);
-
-export function float32ToFloat16(value) {
-  f32ToF16ScratchF32[0] = value;
-  const f = f32ToF16ScratchU32[0];
-
-  const sign = (f >> 31) & 0x1;
-  let exp = (f >> 23) & 0xff;
-  const frac = f & 0x7fffff;
-
-  if (exp === 0xff) {
-    return (sign << 15) | 0x7c00 | (frac ? 0x200 : 0);
-  }
-
-  if (exp === 0) {
-    return sign << 15;
-  }
-
-  exp = exp - 127 + 15;
-
-  if (exp >= 31) {
-    return (sign << 15) | 0x7c00;
-  }
-
-  if (exp <= 0) {
-    if (exp < -10) {
-      return sign << 15;
-    }
-    const significand = frac | 0x800000;
-    const shift = 14 - exp;
-    let rounded = significand >>> shift;
-    const remainder = significand & ((1 << shift) - 1);
-    const halfway = 1 << (shift - 1);
-    if (remainder > halfway || (remainder === halfway && (rounded & 1))) {
-      rounded += 1;
-    }
-    return (sign << 15) | rounded;
-  }
-
-  // Round to nearest, ties to even. Carry may advance the exponent or overflow
-  // the largest finite half to infinity; truncation biases converted weights.
-  let rounded = (exp << 10) | (frac >>> 13);
-  const remainder = frac & 0x1fff;
-  if (remainder > 0x1000 || (remainder === 0x1000 && (rounded & 1))) {
-    rounded += 1;
-  }
-  return (sign << 15) | rounded;
-}
-
-export function float16ToFloat32(h) {
-  const sign = (h >> 15) & 0x1;
-  const exp = (h >> 10) & 0x1f;
-  const frac = h & 0x3ff;
-
-  if (exp === 0) {
-    if (frac === 0) {
-      return sign ? -0 : 0;
-    }
-    return (sign ? -1 : 1) * Math.pow(2, -14) * (frac / 1024);
-  }
-
-  if (exp === 31) {
-    return frac ? NaN : (sign ? -Infinity : Infinity);
-  }
-
-  return (sign ? -1 : 1) * Math.pow(2, exp - 15) * (1 + frac / 1024);
-}
+// Format codecs are owned by formats/; the converter re-exports its former API.
+export { float32ToFloat16, float16ToFloat32 } from '../formats/float16.js';
+export { dequantizeQ4KM, dequantizeQ4KMRowWise } from '../formats/q4k-dequant.js';
 
 function findMinMax(data, offset, length) {
   let min = Infinity;
@@ -231,58 +166,6 @@ function quantizeQ4KBlockWithValidLength(data, offset, validLength = QK_K) {
 export function quantizeQ4KBlock(data, offset) {
   return quantizeQ4KBlockWithValidLength(data, offset, QK_K);
 }
-
-function dequantizeQ4KBlock(block) {
-  const blockView = new DataView(block.buffer, block.byteOffset);
-  const result = new Float32Array(256);
-
-  const d = float16ToFloat32(blockView.getUint16(0, true));
-  const dmin = float16ToFloat32(blockView.getUint16(2, true));
-
-  const scaleBits = new Uint8Array(8);
-  const minBits = new Uint8Array(8);
-
-  for (let i = 0; i < 4; i++) {
-    scaleBits[i] = block[4 + i] & 0x3f;
-    scaleBits[i + 4] = ((block[4 + i] >> 6) & 0x03) << 4;
-  }
-
-  for (let i = 0; i < 4; i++) {
-    minBits[i] = block[4 + 4 + i] & 0x3f;
-    minBits[i + 4] = ((block[4 + 4 + i] >> 6) & 0x03) << 4;
-  }
-
-  for (let i = 0; i < 4; i++) {
-    scaleBits[i + 4] |= block[4 + 8 + i] & 0x0f;
-    minBits[i + 4] |= (block[4 + 8 + i] >> 4) & 0x0f;
-  }
-
-  const scales = new Float32Array(8);
-  const minOffsets = new Float32Array(8);
-  for (let i = 0; i < 8; i++) {
-    scales[i] = d * scaleBits[i];
-    minOffsets[i] = dmin * minBits[i];
-  }
-
-  for (let chunk = 0; chunk < 4; chunk++) {
-    const chunkBase = chunk * 64;
-    const byteBase = 16 + chunk * 32;
-    for (let i = 0; i < 32; i++) {
-      const byte = block[byteBase + i];
-      const lo = byte & 0x0f;
-      const hi = (byte >> 4) & 0x0f;
-
-      const sb0 = Math.floor((chunkBase + i) / 32);
-      const sb1 = Math.floor((chunkBase + 32 + i) / 32);
-
-      result[chunkBase + i] = scales[sb0] * lo - minOffsets[sb0];
-      result[chunkBase + 32 + i] = scales[sb1] * hi - minOffsets[sb1];
-    }
-  }
-
-  return result;
-}
-
 
 export function quantizeToQ4KM(data, shape) {
   const numElements = shape.reduce((a, b) => a * b, 1);
@@ -484,44 +367,6 @@ export function getQ4KSize(shape, layout = 'flat') {
   }
 
   return Math.ceil(numElements / QK_K) * QK4_K_BLOCK_SIZE;
-}
-
-export function dequantizeQ4KM(quantized, numBlocks, shape) {
-  const numElements = shape.reduce((a, b) => a * b, 1);
-  const result = new Float32Array(numElements);
-
-  for (let b = 0; b < numBlocks; b++) {
-    const blockOffset = b * QK4_K_BLOCK_SIZE;
-    const block = quantized.slice(blockOffset, blockOffset + QK4_K_BLOCK_SIZE);
-    const dequantized = dequantizeQ4KBlock(block);
-
-    const startIdx = b * QK_K;
-    const copyLen = Math.min(QK_K, numElements - startIdx);
-    for (let i = 0; i < copyLen; i++) {
-      result[startIdx + i] = dequantized[i];
-    }
-  }
-
-  return result;
-}
-
-export function dequantizeQ4KMRowWise(quantized, shape) {
-  if (!Array.isArray(shape) || shape.length < 2) {
-    throw new Error(`Row-wise Q4K dequantization requires a matrix-like shape, got ${shape}`);
-  }
-  const cols = shape[shape.length - 1];
-  const rows = shape.slice(0, -1).reduce((a, b) => a * b, 1);
-  const blocksPerRow = Math.ceil(cols / QK_K);
-  const result = new Float32Array(rows * cols);
-
-  for (let row = 0; row < rows; row++) {
-    const rowOffset = row * blocksPerRow * QK4_K_BLOCK_SIZE;
-    const rowBytes = quantized.slice(rowOffset, rowOffset + (blocksPerRow * QK4_K_BLOCK_SIZE));
-    const rowDequantized = dequantizeQ4KM(rowBytes, blocksPerRow, [1, cols]);
-    result.set(rowDequantized, row * cols);
-  }
-
-  return result;
 }
 
 export function calculateQuantizationError(original, reconstructed) {

@@ -7,7 +7,7 @@ import { log } from '../debug/index.js';
 import { validateManifestInference } from '../config/schema/index.js';
 import { detectMoE } from './model-load-validation.js';
 import { createLoadTiming, finishLoadPhase, finishLoadTiming, nowMs, roundLoadTimingMs } from './load-timing.js';
-import { resolveLayerPartition } from '../inference/pipelines/text/layer-partition-contract.js';
+import { resolveLayerPartition } from '../config/layer-partition-plan.js';
 import { requiresTiedEmbeddingLoad } from './final-weights-loader.js';
 
 /** @type {import('./model-load.js').load} */

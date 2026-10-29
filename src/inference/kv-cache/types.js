@@ -1,4 +1,4 @@
-
+import { float16ToFloat32 } from '../../formats/float16.js';
 
 // ============================================================================
 // Type Guards
@@ -42,25 +42,7 @@ export function f32ToF16Bits(value) {
   return sign | (exp << 10) | ((mant + 0x1000) >> 13);
 }
 
-
-export function f16ToF32Bits(h) {
-  const sign = (h >> 15) & 0x1;
-  const exp = (h >> 10) & 0x1f;
-  const mant = h & 0x3ff;
-
-  if (exp === 0) {
-    if (mant === 0) return sign ? -0 : 0;
-    const f = mant / 1024 * Math.pow(2, -14);
-    return sign ? -f : f;
-  }
-  if (exp === 31) {
-    return mant ? NaN : (sign ? -Infinity : Infinity);
-  }
-
-  const f = (1 + mant / 1024) * Math.pow(2, exp - 15);
-  return sign ? -f : f;
-}
-
+export { float16ToFloat32 as f16ToF32Bits } from '../../formats/float16.js';
 
 export function f32ToF16Array(input) {
   const out = new Uint16Array(input.length);
@@ -74,7 +56,7 @@ export function f32ToF16Array(input) {
 export function f16ToF32Array(input) {
   const out = new Float32Array(input.length);
   for (let i = 0; i < input.length; i++) {
-    out[i] = f16ToF32Bits(input[i]);
+    out[i] = float16ToFloat32(input[i]);
   }
   return out;
 }

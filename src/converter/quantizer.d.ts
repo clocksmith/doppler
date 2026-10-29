@@ -29,9 +29,7 @@ export interface QuantizationError {
 }
 
 /** Encode F32 as IEEE binary16 with round-to-nearest, ties-to-even. */
-export declare function float32ToFloat16(value: number): number;
-
-export declare function float16ToFloat32(h: number): number;
+export { float32ToFloat16, float16ToFloat32 } from '../formats/float16.js';
 
 export declare function quantizeQ4KBlock(data: Float32Array, offset: number): Uint8Array;
 
@@ -69,16 +67,7 @@ export type Q4KLayout = 'row' | 'col' | null;
  */
 export declare function getQ4KSize(shape: number[], layout?: Q4KLayout): number;
 
-export declare function dequantizeQ4KM(
-  quantized: Uint8Array,
-  numBlocks: number,
-  shape: number[]
-): Float32Array;
-
-export declare function dequantizeQ4KMRowWise(
-  quantized: Uint8Array,
-  shape: number[]
-): Float32Array;
+export { dequantizeQ4KM, dequantizeQ4KMRowWise } from '../formats/q4k-dequant.js';
 
 export declare function calculateQuantizationError(
   original: Float32Array,

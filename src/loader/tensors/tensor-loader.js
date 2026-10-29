@@ -11,7 +11,8 @@ import { f16ToF32, shouldDequantizeToF16, applyBufferLayout } from '../dtype-uti
 import { QK_K, Q4K_BLOCK_BYTES, Q6K_BLOCK_BYTES } from '../../config/schema/quantization.schema.js';
 import { log, trace as debugTrace } from '../../debug/index.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
-import { dequantizeQ4KM, dequantizeQ4KMRowWise, float32ToFloat16 } from '../../converter/quantizer.js';
+import { dequantizeQ4KM, dequantizeQ4KMRowWise } from '../../formats/q4k-dequant.js';
+import { float32ToFloat16 } from '../../formats/float16.js';
 import { hasSourceTransform } from './source-transform.js';
 import { loadFunctionalDescriptor } from './functional-descriptor-loader.js';
 import { loadBF16 } from './bf16-loader.js';

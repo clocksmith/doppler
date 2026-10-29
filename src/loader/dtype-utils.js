@@ -2,25 +2,7 @@
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { tagBufferDtype } from '../gpu/weight-buffer.js';
 
-
-export function f16ToF32(h) {
-  const sign = (h >> 15) & 0x1;
-  const exp = (h >> 10) & 0x1f;
-  const mant = h & 0x3ff;
-
-  if (exp === 0) {
-    if (mant === 0) return sign ? -0 : 0;
-    const f = mant / 1024 * Math.pow(2, -14);
-    return sign ? -f : f;
-  }
-  if (exp === 31) {
-    return mant ? NaN : (sign ? -Infinity : Infinity);
-  }
-
-  const f = (1 + mant / 1024) * Math.pow(2, exp - 15);
-  return sign ? -f : f;
-}
-
+export { float16ToFloat32 as f16ToF32 } from '../formats/float16.js';
 
 export async function convertBF16ToF32GPU(srcBuffer, numElements, name) {
   const { runBF16ToF32 } = await import('../gpu/kernels/cast.js');
