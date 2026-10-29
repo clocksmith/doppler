@@ -475,16 +475,16 @@ const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/ru
   assert.equal(result.metrics.gpu?.decodeRecordOpsPerExecutedBatchToken?.median, 1.5);
   assert.equal(result.metrics.gpu?.decodeRecordPassesPerExecutedBatchToken?.median, 0.125);
   assert.equal(result.metrics.gpu?.decodeOrchestrationMs?.median, 5);
-  assert.equal(result.metrics.decodeBottleneck?.schemaVersion, 1);
+  assert.equal(result.metrics.decodeBottleneck?.schemaVersion, 2);
   assert.equal(result.metrics.decodeBottleneck?.dominant?.id, 'orchestration');
   assert.equal(result.metrics.decodeBottleneck?.dominant?.ms, 5);
   assert.equal(result.metrics.decodeBottleneck?.dominant?.shareOfDecode, 0.5);
-  assert.equal(result.metrics.decodeBottleneck?.bottleneckClass, 'orchestration');
+  assert.equal(result.metrics.decodeBottleneck?.bottleneckClass, null);
   assert.equal(result.metrics.decodeBottleneck?.decodeWallMs, 10);
   assert.equal(result.metrics.decodeBottleneck?.componentsMs?.commandRecordMs, 3);
   assert.equal(result.metrics.decodeBottleneck?.componentsMs?.effectiveSubmitReadbackWaitMs, 2);
   assert.equal(result.metrics.decodeBottleneck?.componentsMs?.readbackMapWaitMs, 0.8);
-  assert.equal(result.metrics.decodeBottleneck?.componentsMs?.readbackUnattributedMs, 0.6);
+  assert.equal(result.metrics.decodeBottleneck?.componentsMs?.readbackUnattributedMs, null);
   assert.equal(result.metrics.decodeBottleneck?.componentsMs?.gpuTimestampMs, null);
   assert.equal(result.metrics.decodeBottleneck?.componentsMs?.orchestrationMs, 5);
   assert.equal(result.metrics.decodeBottleneck?.shares?.commandRecord, 0.3);
@@ -537,7 +537,7 @@ const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/ru
 {
   // decodeSubmitWaitMs and decodeReadbackWaitMs observe the same submitted GPU work
   // from different points in the command lifecycle, so only the larger wait belongs
-  // in the residual.
+  // as causal or exclusive decode time.
   const pipeline = {
     async *generate(_promptInput, options = {}) {
       options.onToken?.(1, 'Blue');
@@ -660,9 +660,9 @@ const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/ru
   }
 
   assert.equal(result.results[0]?.passed, true);
-  assert.equal(result.metrics.decodeBottleneck?.schemaVersion, 1);
+  assert.equal(result.metrics.decodeBottleneck?.schemaVersion, 2);
   assert.equal(result.metrics.decodeBottleneck?.componentsMs?.gpuTimestampMs, 1);
-  assert.equal(result.metrics.decodeBottleneck?.componentsMs?.submitReadbackSlackMs, 2);
+  assert.equal(result.metrics.decodeBottleneck?.componentsMs?.submitReadbackSlackMs, null);
   assert.equal(result.metrics.decodeBottleneck?.shares?.gpuTimestamp, 0.1);
   assert.equal(result.timingDiagnostics.decodeBottleneck?.componentsMs?.gpuTimestampMs, 1);
 }

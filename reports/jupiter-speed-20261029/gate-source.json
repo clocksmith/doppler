@@ -1,0 +1,6 @@
+{
+  "modifiedPath": "src/inference/browser-harness/benchmark-execution.js",
+  "baselineSha256": "7b3e5930ca67a81977730c58dda3634b8cde998f3e172b94bc57f1ad1c4fcd2a",
+  "gateSha256": "00f63f8564adc4fde385325c5185b0b48167922b461a72f0e0cb93b92b36b6bf",
+  "scope": "Diagnostic-only clone; no timing or production-source claim"
+}

@@ -465,14 +465,14 @@ function assertCommandOutputMatches(result, pattern) {
       readbackMapWaitMs: 42,
       readbackCleanupMs: 2,
       readbackCopyMs: 1,
-      readbackUnattributedMs: 10,
+      readbackUnattributedMs: null,
       gpuTimestampMs: 10,
-      submitReadbackSlackMs: 45,
+      submitReadbackSlackMs: null,
       orchestrationMs: 5,
-      residualMs: 5,
+      residualMs: null,
     });
     assert.equal(bottleneckSection.dopplerBottleneck.dominant.id, 'readback_map_wait');
-    assert.equal(bottleneckSection.dopplerBottleneck.bottleneckClass, 'submit-readback-wait');
+    assert.equal(bottleneckSection.dopplerBottleneck.bottleneckClass, null);
     assert.equal(bottleneckSection.dopplerBottleneck.dominant.shareOfDecode, 0.42);
     assert.equal(bottleneckSection.dopplerBottleneck.shares.commandRecord, 0.35);
     assert.equal(bottleneckSection.dopplerBottleneck.shares.effectiveSubmitReadbackWait, 0.55);
@@ -491,18 +491,8 @@ function assertCommandOutputMatches(result, pattern) {
         { label: 'matmul', count: 100, shareOfOps: 0.714 },
         { label: 'sample', count: 40, shareOfOps: 0.286 },
       ],
-      semantics: {
-        opCount: 'Logical compute dispatches recorded into batch-decode command buffers.',
-        passCount: 'Actual WebGPU compute passes opened while recording batch-decode command buffers.',
-        uniqueOpLabels: 'Number of distinct exact compute-pass labels recorded in batch-decode command buffers.',
-        msPerOp: 'decodeRecordMs divided by logical recorded compute dispatches.',
-        msPerPass: 'decodeRecordMs divided by actual WebGPU compute passes.',
-        passesPerOp: 'Actual WebGPU compute passes divided by logical recorded compute dispatches.',
-        msPerExecutedBatchToken: 'decodeRecordMs divided by batch-path tokens submitted for execution.',
-        opsPerExecutedBatchToken: 'Logical recorded compute dispatches divided by batch-path tokens submitted for execution.',
-        passesPerExecutedBatchToken: 'Actual WebGPU compute passes divided by batch-path tokens submitted for execution.',
-        topOps: 'Highest-count exact compute-pass labels observed during command recording.',
-      },
+      topOpGroups: [],
+      uniformCache: null,
     });
     assert.deepEqual(bottleneckSection.dopplerBatchAccounting, {
       schemaVersion: 1,
@@ -1030,7 +1020,7 @@ function assertCommandOutputMatches(result, pattern) {
     assert.equal(diagnostic.firstTokenMs, 20);
     assert.equal(diagnostic.modelLoadMs, 50);
     assert.equal(diagnostic.dopplerBottleneck.componentsMs.gpuTimestampMs, 28);
-    assert.equal(diagnostic.dopplerBottleneck.componentsMs.submitReadbackSlackMs, 27);
+    assert.equal(diagnostic.dopplerBottleneck.componentsMs.submitReadbackSlackMs, null);
     assert.equal(diagnostic.dopplerBottleneck.recording.msPerOp, 0.25);
     assert.equal(diagnostic.dopplerBottleneck.recording.passCount, 7);
     assert.equal(diagnostic.dopplerBottleneck.recording.topOps[0].label, 'matmul');

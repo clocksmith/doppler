@@ -11,6 +11,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { buildExecutionContractArtifact } from '../src/config/execution-contract-check.js';
 import { buildManifestRequiredInferenceFieldsArtifact } from '../src/config/required-inference-fields-contract-check.js';
 import { mergeKernelPathPolicy } from '../src/config/merge/kernel-path-policy.js';
+import { buildDecodeBottleneckDiagnostics } from '../src/inference/browser-harness/decode-diagnostics.js';
 import { mergeRuntimeValues } from '../src/config/runtime-merge.js';
 import { DEFAULT_EXTERNAL_MODELS_ROOT } from '../src/tooling/hf-registry/catalog-io.js';
 import { buildEntryRemoteBaseUrl } from '../src/tooling/hf-registry/registry-urls.js';
@@ -1946,12 +1947,6 @@ function normalizeCommandRecordTopOps(value) {
   return normalized;
 }
 
-function shareOfDecode(value, decodeMs) {
-  if (!Number.isFinite(value) || !Number.isFinite(decodeMs) || decodeMs <= 0) {
-    return null;
-  }
-  return roundBottleneckNumber(value / decodeMs);
-}
 
 function clipTail(text, maxChars = 3000) {
   if (text == null) return '';
@@ -3707,32 +3702,6 @@ function buildResourceTelemetryAccounting(doppler, transformersjs) {
   };
 }
 
-function resolveDopplerBottleneckClass(componentId) {
-  if (
-    componentId === 'submit_readback_wait'
-    || componentId === 'submit_readback_slack'
-    || componentId === 'submit_readback_unattributed'
-    || componentId === 'readback_map_wait'
-    || componentId === 'readback_cleanup'
-    || componentId === 'readback_copy'
-  ) {
-    return 'submit-readback-wait';
-  }
-  if (componentId === 'command_record') {
-    return 'command-recording';
-  }
-  if (componentId === 'gpu_compute') {
-    return 'gpu-compute';
-  }
-  if (componentId === 'orchestration') {
-    return 'orchestration';
-  }
-  if (componentId === 'unattributed') {
-    return 'unattributed';
-  }
-  return null;
-}
-
 function resolveDopplerBottleneckFromResult(result) {
   if (result?.failed) {
     return null;
@@ -3853,157 +3822,30 @@ function resolveDopplerBottleneckFromResult(result) {
     'result.result.metrics.gpu.decodeMs',
   ]);
 
-  const waitCandidates = [submitWaitMs, readbackWaitMs].filter(Number.isFinite);
-  const effectiveSubmitReadbackWaitMs = waitCandidates.length > 0
-    ? Math.max(...waitCandidates)
-    : null;
-  const submitReadbackSlackMs = Number.isFinite(effectiveSubmitReadbackWaitMs) && Number.isFinite(gpuTimestampMs)
-    ? Math.max(0, effectiveSubmitReadbackWaitMs - gpuTimestampMs)
-    : null;
-  const readbackSubcomponentMs = [
-    readbackMapWaitMs,
-    readbackCleanupMs,
-    readbackCopyMs,
-  ]
-    .filter(Number.isFinite)
-    .reduce((sum, value) => sum + value, 0);
-  const hasReadbackSubcomponents = readbackSubcomponentMs > 0;
-  const readbackUnattributedMs = hasReadbackSubcomponents && Number.isFinite(effectiveSubmitReadbackWaitMs)
-    ? Math.max(0, effectiveSubmitReadbackWaitMs - readbackSubcomponentMs)
-    : null;
-  const accountedMs = [
-    commandRecordMs,
-    effectiveSubmitReadbackWaitMs,
-    orchestrationMs,
-  ]
-    .filter(Number.isFinite)
-    .reduce((sum, value) => sum + value, 0);
-  const residualMs = Math.max(0, decodeWallMs - accountedMs);
-  const components = [
-    {
-      id: 'command_record',
-      label: 'command recording',
-      ms: commandRecordMs,
+  const diagnostic = buildDecodeBottleneckDiagnostics({
+    decodeMs: decodeWallMs,
+    gpu: {
+      decodeRecordMs: commandRecordMs,
+      decodeRecordOps: commandRecordOps,
+      decodeRecordPasses: commandRecordPasses,
+      decodeRecordMsPerOp: commandRecordMsPerOp,
+      decodeRecordMsPerPass: commandRecordMsPerPass,
+      decodeRecordPassesPerOp: commandRecordPassesPerOp,
+      decodeRecordMsPerExecutedBatchToken: commandRecordMsPerExecutedBatchToken,
+      decodeRecordOpsPerExecutedBatchToken: commandRecordOpsPerExecutedBatchToken,
+      decodeRecordPassesPerExecutedBatchToken: commandRecordPassesPerExecutedBatchToken,
+      decodeRecordUniqueOpLabels: commandRecordUniqueOpLabels,
+      decodeRecordTopOps: commandRecordTopOps,
+      decodeSubmitWaitMs: submitWaitMs,
+      decodeReadbackWaitMs: readbackWaitMs,
+      decodeReadbackMapWaitMs: readbackMapWaitMs,
+      decodeReadbackCleanupMs: readbackCleanupMs,
+      decodeReadbackCopyMs: readbackCopyMs,
+      decodeOrchestrationMs: orchestrationMs,
+      decodeMs: gpuTimestampMs,
     },
-    {
-      id: Number.isFinite(gpuTimestampMs) ? 'submit_readback_slack' : 'submit_readback_wait',
-      label: Number.isFinite(gpuTimestampMs) ? 'submit/readback slack' : 'submit/readback wait',
-      ms: hasReadbackSubcomponents
-        ? null
-        : (Number.isFinite(gpuTimestampMs) ? submitReadbackSlackMs : effectiveSubmitReadbackWaitMs),
-    },
-    {
-      id: 'readback_map_wait',
-      label: 'readback map wait',
-      ms: readbackMapWaitMs,
-    },
-    {
-      id: 'readback_cleanup',
-      label: 'readback cleanup',
-      ms: readbackCleanupMs,
-    },
-    {
-      id: 'readback_copy',
-      label: 'readback CPU copy',
-      ms: readbackCopyMs,
-    },
-    {
-      id: 'submit_readback_unattributed',
-      label: 'submit/readback unattributed',
-      ms: readbackUnattributedMs,
-    },
-    {
-      id: 'gpu_compute',
-      label: 'GPU timestamp work',
-      ms: gpuTimestampMs,
-    },
-    {
-      id: 'orchestration',
-      label: 'decode orchestration',
-      ms: orchestrationMs,
-    },
-    {
-      id: 'unattributed',
-      label: 'unattributed decode wall',
-      ms: residualMs,
-    },
-  ]
-    .filter((component) => Number.isFinite(component.ms) && component.ms > 0);
-  const dominant = components.length > 0
-    ? components.reduce((best, component) => component.ms > best.ms ? component : best, components[0])
-    : null;
-  const dominantRecord = dominant
-    ? {
-        id: dominant.id,
-        label: dominant.label,
-        ms: roundBottleneckNumber(dominant.ms),
-        shareOfDecode: shareOfDecode(dominant.ms, decodeWallMs),
-      }
-    : null;
-
-  return {
-    schemaVersion: 1,
-    dominant: dominantRecord,
-    bottleneckClass: dominantRecord ? resolveDopplerBottleneckClass(dominantRecord.id) : null,
-    decodeWallMs: roundBottleneckNumber(decodeWallMs),
-    componentsMs: {
-      commandRecordMs: roundBottleneckNumber(commandRecordMs),
-      submitWaitMs: roundBottleneckNumber(submitWaitMs),
-      readbackWaitMs: roundBottleneckNumber(readbackWaitMs),
-      effectiveSubmitReadbackWaitMs: roundBottleneckNumber(effectiveSubmitReadbackWaitMs),
-      readbackMapWaitMs: roundBottleneckNumber(readbackMapWaitMs),
-      readbackCleanupMs: roundBottleneckNumber(readbackCleanupMs),
-      readbackCopyMs: roundBottleneckNumber(readbackCopyMs),
-      readbackUnattributedMs: roundBottleneckNumber(readbackUnattributedMs),
-      gpuTimestampMs: roundBottleneckNumber(gpuTimestampMs),
-      submitReadbackSlackMs: roundBottleneckNumber(submitReadbackSlackMs),
-      orchestrationMs: roundBottleneckNumber(orchestrationMs),
-      residualMs: roundBottleneckNumber(residualMs),
-    },
-    recording: {
-      opCount: roundBottleneckNumber(commandRecordOps),
-      passCount: roundBottleneckNumber(commandRecordPasses),
-      uniqueOpLabels: roundBottleneckNumber(commandRecordUniqueOpLabels),
-      msPerOp: roundBottleneckNumber(commandRecordMsPerOp),
-      msPerPass: roundBottleneckNumber(commandRecordMsPerPass),
-      passesPerOp: roundBottleneckNumber(commandRecordPassesPerOp),
-      msPerExecutedBatchToken: roundBottleneckNumber(commandRecordMsPerExecutedBatchToken),
-      opsPerExecutedBatchToken: roundBottleneckNumber(commandRecordOpsPerExecutedBatchToken),
-      passesPerExecutedBatchToken: roundBottleneckNumber(commandRecordPassesPerExecutedBatchToken),
-      topOps: commandRecordTopOps,
-      semantics: {
-        opCount: 'Logical compute dispatches recorded into batch-decode command buffers.',
-        passCount: 'Actual WebGPU compute passes opened while recording batch-decode command buffers.',
-        uniqueOpLabels: 'Number of distinct exact compute-pass labels recorded in batch-decode command buffers.',
-        msPerOp: 'decodeRecordMs divided by logical recorded compute dispatches.',
-        msPerPass: 'decodeRecordMs divided by actual WebGPU compute passes.',
-        passesPerOp: 'Actual WebGPU compute passes divided by logical recorded compute dispatches.',
-        msPerExecutedBatchToken: 'decodeRecordMs divided by batch-path tokens submitted for execution.',
-        opsPerExecutedBatchToken: 'Logical recorded compute dispatches divided by batch-path tokens submitted for execution.',
-        passesPerExecutedBatchToken: 'Actual WebGPU compute passes divided by batch-path tokens submitted for execution.',
-        topOps: 'Highest-count exact compute-pass labels observed during command recording.',
-      },
-    },
-    shares: {
-      commandRecord: shareOfDecode(commandRecordMs, decodeWallMs),
-      submitWait: shareOfDecode(submitWaitMs, decodeWallMs),
-      readbackWait: shareOfDecode(readbackWaitMs, decodeWallMs),
-      effectiveSubmitReadbackWait: shareOfDecode(effectiveSubmitReadbackWaitMs, decodeWallMs),
-      readbackMapWait: shareOfDecode(readbackMapWaitMs, decodeWallMs),
-      readbackCleanup: shareOfDecode(readbackCleanupMs, decodeWallMs),
-      readbackCopy: shareOfDecode(readbackCopyMs, decodeWallMs),
-      readbackUnattributed: shareOfDecode(readbackUnattributedMs, decodeWallMs),
-      gpuTimestamp: shareOfDecode(gpuTimestampMs, decodeWallMs),
-      submitReadbackSlack: shareOfDecode(submitReadbackSlackMs, decodeWallMs),
-      orchestration: shareOfDecode(orchestrationMs, decodeWallMs),
-      residual: shareOfDecode(residualMs, decodeWallMs),
-    },
-    semantics: {
-      effectiveSubmitReadbackWaitMs: 'max(decodeSubmitWaitMs, decodeReadbackWaitMs); submit and readback waits overlap.',
-      readbackMapWaitMs: 'Wall time awaiting staging-buffer mapAsync; usually includes GPU completion behind the readback.',
-      gpuTimestampMs: 'Timestamp-query GPU work when available; null means it was not captured.',
-    },
-  };
+  });
+  return diagnostic;
 }
 
 function divideOrNull(numerator, denominator) {
@@ -5576,8 +5418,8 @@ function printSection(title, section, rows) {
   if (section?.dopplerBottleneck?.dominant) {
     const dominant = section.dopplerBottleneck.dominant;
     console.log(
-      `  Doppler bottleneck: ${dominant.label} `
-      + `${formatVal(dominant.ms, 'ms')} (${formatBottleneckShare(dominant.shareOfDecode)} of decode wall)`
+      `  Doppler largest observed interval: ${dominant.label} `
+      + `${formatVal(dominant.ms, 'ms')} (${formatBottleneckShare(dominant.shareOfDecode)} of decode wall; overlapping intervals, causal bottleneck unknown)`
     );
   }
   if (section?.dopplerBottleneck?.recording?.opCount != null) {

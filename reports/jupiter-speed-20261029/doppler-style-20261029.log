@@ -1,0 +1,6 @@
+
+> doppler-gpu@0.6.32 source:style:check
+> node tools/check-unused-locals.js && node tools/check-source-style.js
+
+[unused-locals] 103 JavaScript roots; no unused declarations
+[source:style:check] 1116 governed JavaScript modules have sibling declarations, 230 reviewed numeric candidate(s), no runtime tensor compute, implementation annotations limited to checked strict roots, no undeclared raw console calls, and no banned geometry inference

@@ -1,0 +1,37 @@
+{
+  "schema": "doppler.jupiter-speed-experiment.v1",
+  "sourceRevision": "229cbf05e0d72595d0d4c1edf029d6077964c082",
+  "hardware": "Jupiter Radeon 8060S, Chrome 146.0.7680.177, RADV Mesa 26.0.3",
+  "candidate": "profiles/qwen-3-5-0-8b-vulkan-throughput",
+  "hypothesis": "Existing Vulkan features with original sequential 4x8 cadence reduce complete-request latency across representative Qwen3.5 0.8B prompts versus manifest defaults.",
+  "pairsPerPrompt": 5,
+  "warmupRunsPerOpening": 1,
+  "timedRunsPerOpening": 1,
+  "maxNewTokens": 64,
+  "contextCapacity": 2048,
+  "sampling": "greedy temperature 0 topK 1 seed 0; no speculation",
+  "prompts": [
+    {"id": "code", "text": "Write a detailed Python implementation of two sum, followed by tests and an explanation."},
+    {"id": "explanation", "text": "Explain how a hash map handles collisions and resizing. Include a concrete example and discuss complexity."},
+    {"id": "arithmetic", "text": "Calculate 37 times 24, then explain a second way to check the answer step by step."},
+    {"id": "long-context", "text": "Explain the tradeoffs between LRU and LFU caching using the supplied repeated workload notes.", "prefixRepeats": 24, "prefix": "The cache serves repeated reads with occasional scans, a fixed memory budget, and changing popularity. Measure miss ratio and update overhead.\n"}
+  ],
+  "performanceGate": {
+    "primary": "equally weighted per-prompt mean paired log complete-request latency ratio",
+    "minimumGainPercent": 2,
+    "bootstrap": "10000 resamples within prompt pairs, deterministic seed 20261029; upper 95% ratio bound below 1",
+    "perPromptMedianCompleteRegressionLimitPercent": 3,
+    "perPromptMedianFirstTokenRegressionLimitPercent": 5,
+    "retainAllAttempts": true,
+    "noOptionalExtraSampling": true
+  },
+  "correctnessGate": {
+    "identicalPromptAndGeneratedTokenIds": true,
+    "fullMaterializedLogits": "untimed sampled positions 0,1,2,4,8,16,32,63 on fixed teacher tokens per prompt",
+    "absoluteTolerance": 0.001,
+    "relativeTolerance": 0,
+    "unchangedWeights": true,
+    "scopeLimit": "Materialized-head reference does not expose fused argmax intermediate logits. Greedy token equality additionally checks the scored fused route."
+  },
+  "limits": ["No other engine comparison", "Warm OPFS; setup measured separately; no OS disk-cache flush", "No larger-model or MoE inference claim", "CPU recording overlaps GPU execution; timings are not additive", "No allocation counter is physical resident memory", "No default, signed artifact or catalog promotion"]
+}

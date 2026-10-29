@@ -1,0 +1,5 @@
+{
+  "sameUncompressedTar": true,
+  "sha256": "f02c684ae88c740b9aeead23b4d309177023d21e0a1592524a1d74aca9cb2f51",
+  "note": "Lossless recompression of complete original receipt archive; no data dropped"
+}

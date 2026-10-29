@@ -1,0 +1,23 @@
+{
+  "schema": "doppler.jupiter-focused-checks.v1",
+  "passed": [
+    "node tests/integration/decode-diagnostics-overlap.test.js",
+    "node tests/integration/browser-harness-batching-metrics.test.js",
+    "node tests/config/compare-engines-cli-contract.test.js",
+    "node tests/integration/cli-runtime-profiles.test.js",
+    "npm run onboarding:check",
+    "npm run source:style:check",
+    "npm run typecheck:source",
+    "physical patched-main smoke: same64Tokens, diagnostic schema2"
+  ],
+  "failed": [
+    {
+      "command": "npm run source:architecture:check",
+      "reason": "Unchanged gpu/command-recorder.js: 776 lines exceeds soft limit750; no budget change"
+    }
+  ],
+  "physicalPerformance": "40 uninstrumented scored requests; fixed gates passed",
+  "physicalNumerics": "32 full-vocabulary vector pairs, atol0.001 rtol0; all passed",
+  "releaseQualification": false,
+  "scope": "Qwen3.5 0.8B/Radeon8060S/Chrome146; exact saved workload only"
+}

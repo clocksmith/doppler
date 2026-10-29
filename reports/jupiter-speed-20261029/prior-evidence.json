@@ -1,0 +1,61 @@
+{
+  "scope": "Reconciled historical receipts, retained in Hatch; immutable hashes checked before selecting candidate",
+  "files": [
+    {
+      "path": "/home/x/deco/hatch/pooled-doppler-components-20261029/deep-profile/prepared/performance/receipt.json",
+      "sha256": "ec1b9ad59e20e2787e0e3563e8db94a4a8814e3c80b4436bee34253cc835bc31",
+      "matches": true
+    },
+    {
+      "path": "/home/x/deco/hatch/pooled-doppler-components-20261029/deep-profile/prepared/gates-v3/manifest.json",
+      "sha256": "57e81afab8640e85413b0f5812297ed7ddc986c06bdff482a6e9cc56a9e837bb",
+      "matches": true
+    },
+    {
+      "path": "/home/x/deco/hatch/pooled-doppler-components-20261029/deep-profile/prepared/gates-v3/features.json",
+      "sha256": "36979085c0716cfef5f13b00ebfac785828b8887dba789c6524518dce220d035",
+      "matches": true
+    },
+    {
+      "path": "/home/x/deco/hatch/pooled-doppler-components-20261029/deep-profile/prepared/gates-v3/prepared.json",
+      "sha256": "10e6b30c182411b3f992f105c1c6c986052d10ec05d6062c6fc20c1095a9b48f",
+      "matches": true
+    },
+    {
+      "path": "/home/x/deco/hatch/pooled-doppler-components-20261029/deep-profile/pass-timestamps/receipts/receipt.json",
+      "sha256": "5da513ce9d094098fc2bd8db2552691829e7d6f11d06027403bf63d52d6699dd",
+      "matches": true
+    },
+    {
+      "path": "/home/x/deco/hatch/pooled-doppler-components-20261029/deep-profile/prepared/measured-linear-attention-core.js",
+      "sha256": "c79055d43b11204a1011c6c2ecc17539704a26850a34e56d460920319a896940",
+      "matches": true
+    },
+    {
+      "path": "/home/x/deco/hatch/pooled-doppler-components-20261029/deep-profile/prepared/doppler-prepared/src/gpu/kernels/linear-attention-core.js",
+      "sha256": "d1c89fd8f0c2605f8107315663155d06e08fdb8f44f9ffe6406b75092f287d43",
+      "matches": true
+    },
+    {
+      "path": "/home/x/deco/hatch/pooled-doppler-components-20261029/deep-profile/causal-summary.json",
+      "sha256": "0f3077467f2e36953bf21208d703198ff0ea5dcc973b5be6c990ce6be665bb66",
+      "bytes": 12003
+    },
+    {
+      "path": "/home/x/deco/hatch/pooled-doppler-components-20261029/deep-profile/causal-verification.json",
+      "sha256": "7a085e2109d09167e1881e74118f6c525e759e1e58d39f5553b4815e1e13b223",
+      "bytes": 1779
+    },
+    {
+      "path": "/home/x/deco/hatch/pooled-doppler-components-20261029/deep-profile/profiling-summary.json",
+      "sha256": "07e5205b07d656ca87de6bd60e720515b7cd8812245eedfff30b990cd6ef3ee6",
+      "bytes": 42567
+    },
+    {
+      "path": "/home/x/deco/hatch/pooled-doppler-components-20261029/deep-profile/profiling-verification.json",
+      "sha256": "0570bff204ef4359976ccf96b3d66addda74370ebcfd67fc45689b9bfe53db81",
+      "bytes": 961
+    }
+  ],
+  "allBoundHashesMatch": true
+}

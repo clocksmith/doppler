@@ -1,0 +1,1782 @@
+[
+  {
+    "prompt": "code",
+    "lane": "baseline",
+    "scope": "Untimed diagnostic including warmup/scored-route execution and teacher-logit replay; no timestamp probes or pass splits",
+    "pipelines": [
+      {
+        "label": null,
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "submit_probe",
+        "dispatches": 1
+      },
+      {
+        "label": "rope_precompute_f32_pipeline_",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "rope_precompute_f32",
+        "dispatches": 1
+      },
+      {
+        "label": "gather_f16_vec4_pipeline",
+        "entryPoint": "gather_vec4",
+        "constants": {},
+        "moduleLabel": "gather_f16_vec4",
+        "dispatches": 192
+      },
+      {
+        "label": "rmsnorm_default_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "WEIGHT_IS_F16": 1,
+          "PRE_RESIDUAL": 0,
+          "OUTPUT_PRENORM": 0
+        },
+        "moduleLabel": "rmsnorm_default",
+        "dispatches": 4800
+      },
+      {
+        "label": "matmul_q4_fused_widetile_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_q4_fused_widetile",
+        "dispatches": 450
+      },
+      {
+        "label": "matmul_f16w_f32a_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_f16w_f32a",
+        "dispatches": 108
+      },
+      {
+        "label": "linear_attention_conv_pipeline_f32",
+        "entryPoint": "main",
+        "constants": {
+          "WORKGROUP_SIZE": 256
+        },
+        "moduleLabel": "gated_delta_conv_f32",
+        "dispatches": 3456
+      },
+      {
+        "label": "linear_attention_recurrent_pipeline_f32",
+        "entryPoint": "main",
+        "constants": {
+          "WORKGROUP_SIZE": 128,
+          "RECURRENT_STATE_COMPONENTS": 1
+        },
+        "moduleLabel": "gated_delta_recurrent_f32",
+        "dispatches": 3456
+      },
+      {
+        "label": "rmsnorm_default_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "WEIGHT_IS_F16": 1,
+          "PRE_RESIDUAL": 1,
+          "OUTPUT_PRENORM": 1
+        },
+        "moduleLabel": "rmsnorm_default",
+        "dispatches": 4608
+      },
+      {
+        "label": "silu_default_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+        "entryPoint": "main",
+        "constants": {
+          "HAS_GATE": 1,
+          "INPUT_USE_IDENTITY": 1
+        },
+        "moduleLabel": "silu_default",
+        "dispatches": 72
+      },
+      {
+        "label": "residual_vec4_pipeline",
+        "entryPoint": "add_vec4",
+        "constants": {},
+        "moduleLabel": "residual_vec4",
+        "dispatches": 4608
+      },
+      {
+        "label": "split_qg_default_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "split_qg_default",
+        "dispatches": 1152
+      },
+      {
+        "label": "rmsnorm_qk_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "Q_WEIGHT_IS_F16": 1,
+          "K_WEIGHT_IS_F16": 1
+        },
+        "moduleLabel": "rmsnorm_qk_default",
+        "dispatches": 1152
+      },
+      {
+        "label": "rope_qk_default_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "rope_qk_default",
+        "dispatches": 1152
+      },
+      {
+        "label": "kv_cache_write_f32_to_f16_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "kv_cache_write_f32_to_f16",
+        "dispatches": 1152
+      },
+      {
+        "label": "attention_prefill_head256_f16kv_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "attention_prefill_head256_f16kv",
+        "dispatches": 18
+      },
+      {
+        "label": "silu_default_pipeline_GATE_USE_SIGMOID=1|HAS_GATE=1|INPUT_USE_IDENTITY=1",
+        "entryPoint": "main",
+        "constants": {
+          "HAS_GATE": 1,
+          "GATE_USE_SIGMOID": 1,
+          "INPUT_USE_IDENTITY": 1
+        },
+        "moduleLabel": "silu_default",
+        "dispatches": 1152
+      },
+      {
+        "label": "matmul_q4_fused_batched_multicol_shared_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_q4_fused_batched_multicol_shared",
+        "dispatches": 3
+      },
+      {
+        "label": "logit_finalize_f32_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "logit_finalize_f32",
+        "dispatches": 192
+      },
+      {
+        "label": "matmul_q4_fused_gemv_pipeline_COLS_PER_WG=64|THREADS_PER_COL_GEMV=4",
+        "entryPoint": "main_gemv",
+        "constants": {
+          "COLS_PER_WG": 64,
+          "THREADS_PER_COL_GEMV": 4
+        },
+        "moduleLabel": "matmul_q4_fused_gemv",
+        "dispatches": 19467
+      },
+      {
+        "label": "matmul_gemv_subgroup_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_gemv_subgroup",
+        "dispatches": 6804
+      },
+      {
+        "label": "fused_ffn_q4k_pipeline_COLS_PER_WG=64|THREADS_PER_COL=4",
+        "entryPoint": "main",
+        "constants": {
+          "COLS_PER_WG": 64,
+          "THREADS_PER_COL": 4
+        },
+        "moduleLabel": "fused_ffn_q4k",
+        "dispatches": 4536
+      },
+      {
+        "label": "attention_decode_online_f16kv_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "attention_decode_online_f16kv",
+        "dispatches": 1134
+      },
+      {
+        "label": "sample_argmax_pipeline",
+        "entryPoint": "argmax",
+        "constants": {},
+        "moduleLabel": "sample_argmax",
+        "dispatches": 126
+      },
+      {
+        "label": "sample_argmax_reduce_pipeline",
+        "entryPoint": "argmax_reduce",
+        "constants": {},
+        "moduleLabel": "sample_argmax",
+        "dispatches": 126
+      }
+    ]
+  },
+  {
+    "prompt": "code",
+    "lane": "candidate",
+    "scope": "Untimed diagnostic including warmup/scored-route execution and teacher-logit replay; no timestamp probes or pass splits",
+    "pipelines": [
+      {
+        "label": null,
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "submit_probe",
+        "dispatches": 1
+      },
+      {
+        "label": "rope_precompute_f32_pipeline_",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "rope_precompute_f32",
+        "dispatches": 1
+      },
+      {
+        "label": "gather_f16_vec4_pipeline",
+        "entryPoint": "gather_vec4",
+        "constants": {},
+        "moduleLabel": "gather_f16_vec4",
+        "dispatches": 192
+      },
+      {
+        "label": "rmsnorm_default_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "WEIGHT_IS_F16": 1,
+          "PRE_RESIDUAL": 0,
+          "OUTPUT_PRENORM": 0
+        },
+        "moduleLabel": "rmsnorm_default",
+        "dispatches": 453
+      },
+      {
+        "label": "matmul_q4_fused_widetile_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_q4_fused_widetile",
+        "dispatches": 432
+      },
+      {
+        "label": "matmul_f16w_f32a_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_f16w_f32a",
+        "dispatches": 108
+      },
+      {
+        "label": "linear_attention_conv_pipeline_f32",
+        "entryPoint": "main",
+        "constants": {
+          "WORKGROUP_SIZE": 256
+        },
+        "moduleLabel": "gated_delta_conv_f32",
+        "dispatches": 54
+      },
+      {
+        "label": "linear_attention_recurrent_pipeline_f32",
+        "entryPoint": "main",
+        "constants": {
+          "WORKGROUP_SIZE": 128,
+          "RECURRENT_STATE_COMPONENTS": 1
+        },
+        "moduleLabel": "gated_delta_recurrent_f32",
+        "dispatches": 54
+      },
+      {
+        "label": "rmsnorm_default_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "WEIGHT_IS_F16": 1,
+          "PRE_RESIDUAL": 1,
+          "OUTPUT_PRENORM": 1
+        },
+        "moduleLabel": "rmsnorm_default",
+        "dispatches": 4608
+      },
+      {
+        "label": "silu_default_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+        "entryPoint": "main",
+        "constants": {
+          "HAS_GATE": 1,
+          "INPUT_USE_IDENTITY": 1
+        },
+        "moduleLabel": "silu_default",
+        "dispatches": 72
+      },
+      {
+        "label": "residual_vec4_pipeline",
+        "entryPoint": "add_vec4",
+        "constants": {},
+        "moduleLabel": "residual_vec4",
+        "dispatches": 261
+      },
+      {
+        "label": "split_qkv_rmsnorm_rope_qk_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "Q_WEIGHT_IS_F16": 1,
+          "K_WEIGHT_IS_F16": 1
+        },
+        "moduleLabel": "split_qkv_rmsnorm_rope_qk_default",
+        "dispatches": 18
+      },
+      {
+        "label": "kv_cache_write_f32_to_f16_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "kv_cache_write_f32_to_f16",
+        "dispatches": 18
+      },
+      {
+        "label": "attention_prefill_head256_f16kv_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "attention_prefill_head256_f16kv",
+        "dispatches": 18
+      },
+      {
+        "label": "silu_default_pipeline_GATE_USE_SIGMOID=1|HAS_GATE=1|INPUT_USE_IDENTITY=1",
+        "entryPoint": "main",
+        "constants": {
+          "HAS_GATE": 1,
+          "GATE_USE_SIGMOID": 1,
+          "INPUT_USE_IDENTITY": 1
+        },
+        "moduleLabel": "silu_default",
+        "dispatches": 18
+      },
+      {
+        "label": "matmul_q4_fused_batched_multicol_shared_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_q4_fused_batched_multicol_shared",
+        "dispatches": 3
+      },
+      {
+        "label": "logit_finalize_f32_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "logit_finalize_f32",
+        "dispatches": 192
+      },
+      {
+        "label": "matmul_q4_fused_gemv_pipeline_COLS_PER_WG=64|THREADS_PER_COL_GEMV=4",
+        "entryPoint": "main_gemv",
+        "constants": {
+          "COLS_PER_WG": 64,
+          "THREADS_PER_COL_GEMV": 4
+        },
+        "moduleLabel": "matmul_q4_fused_gemv",
+        "dispatches": 18333
+      },
+      {
+        "label": "matmul_gemv_subgroup_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_gemv_subgroup",
+        "dispatches": 3402
+      },
+      {
+        "label": "linear_attention_fused_decode_pipeline_f32",
+        "entryPoint": "main",
+        "constants": {
+          "WORKGROUP_SIZE": 128,
+          "RECURRENT_STATE_COMPONENTS": 1
+        },
+        "moduleLabel": "gated_delta_fused_decode_f32",
+        "dispatches": 3402
+      },
+      {
+        "label": "fused_ffn_q4k_pipeline_COLS_PER_WG=64|THREADS_PER_COL=4",
+        "entryPoint": "main",
+        "constants": {
+          "COLS_PER_WG": 64,
+          "THREADS_PER_COL": 4
+        },
+        "moduleLabel": "fused_ffn_q4k",
+        "dispatches": 4536
+      },
+      {
+        "label": "residual_rmsnorm_pair_subgroup_pipeline_NORM_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "NORM_WEIGHT_IS_F16": 1
+        },
+        "moduleLabel": "residual_rmsnorm_pair_subgroup",
+        "dispatches": 4347
+      },
+      {
+        "label": "split_qkv_rmsnorm_rope_qk_f16kv_cache_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "Q_WEIGHT_IS_F16": 1,
+          "K_WEIGHT_IS_F16": 1
+        },
+        "moduleLabel": "split_qkv_rmsnorm_rope_qk_f16kv_cache_default",
+        "dispatches": 1134
+      },
+      {
+        "label": "attention_decode_online_head256_f16kv_output_gate_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "attention_decode_online_head256_f16kv_output_gate",
+        "dispatches": 1134
+      },
+      {
+        "label": "sample_argmax_pipeline",
+        "entryPoint": "argmax",
+        "constants": {},
+        "moduleLabel": "sample_argmax",
+        "dispatches": 126
+      },
+      {
+        "label": "sample_argmax_reduce_pipeline",
+        "entryPoint": "argmax_reduce",
+        "constants": {},
+        "moduleLabel": "sample_argmax",
+        "dispatches": 126
+      }
+    ]
+  },
+  {
+    "prompt": "explanation",
+    "lane": "baseline",
+    "scope": "Untimed diagnostic including warmup/scored-route execution and teacher-logit replay; no timestamp probes or pass splits",
+    "pipelines": [
+      {
+        "label": null,
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "submit_probe",
+        "dispatches": 1
+      },
+      {
+        "label": "rope_precompute_f32_pipeline_",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "rope_precompute_f32",
+        "dispatches": 1
+      },
+      {
+        "label": "gather_f16_vec4_pipeline",
+        "entryPoint": "gather_vec4",
+        "constants": {},
+        "moduleLabel": "gather_f16_vec4",
+        "dispatches": 192
+      },
+      {
+        "label": "rmsnorm_default_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "WEIGHT_IS_F16": 1,
+          "PRE_RESIDUAL": 0,
+          "OUTPUT_PRENORM": 0
+        },
+        "moduleLabel": "rmsnorm_default",
+        "dispatches": 4800
+      },
+      {
+        "label": "matmul_q4_fused_widetile_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_q4_fused_widetile",
+        "dispatches": 450
+      },
+      {
+        "label": "matmul_f16w_f32a_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_f16w_f32a",
+        "dispatches": 108
+      },
+      {
+        "label": "linear_attention_conv_pipeline_f32",
+        "entryPoint": "main",
+        "constants": {
+          "WORKGROUP_SIZE": 256
+        },
+        "moduleLabel": "gated_delta_conv_f32",
+        "dispatches": 3456
+      },
+      {
+        "label": "linear_attention_recurrent_pipeline_f32",
+        "entryPoint": "main",
+        "constants": {
+          "WORKGROUP_SIZE": 128,
+          "RECURRENT_STATE_COMPONENTS": 1
+        },
+        "moduleLabel": "gated_delta_recurrent_f32",
+        "dispatches": 3456
+      },
+      {
+        "label": "rmsnorm_default_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "WEIGHT_IS_F16": 1,
+          "PRE_RESIDUAL": 1,
+          "OUTPUT_PRENORM": 1
+        },
+        "moduleLabel": "rmsnorm_default",
+        "dispatches": 4608
+      },
+      {
+        "label": "silu_default_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+        "entryPoint": "main",
+        "constants": {
+          "HAS_GATE": 1,
+          "INPUT_USE_IDENTITY": 1
+        },
+        "moduleLabel": "silu_default",
+        "dispatches": 72
+      },
+      {
+        "label": "residual_vec4_pipeline",
+        "entryPoint": "add_vec4",
+        "constants": {},
+        "moduleLabel": "residual_vec4",
+        "dispatches": 4608
+      },
+      {
+        "label": "split_qg_default_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "split_qg_default",
+        "dispatches": 1152
+      },
+      {
+        "label": "rmsnorm_qk_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "Q_WEIGHT_IS_F16": 1,
+          "K_WEIGHT_IS_F16": 1
+        },
+        "moduleLabel": "rmsnorm_qk_default",
+        "dispatches": 1152
+      },
+      {
+        "label": "rope_qk_default_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "rope_qk_default",
+        "dispatches": 1152
+      },
+      {
+        "label": "kv_cache_write_f32_to_f16_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "kv_cache_write_f32_to_f16",
+        "dispatches": 1152
+      },
+      {
+        "label": "attention_prefill_head256_f16kv_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "attention_prefill_head256_f16kv",
+        "dispatches": 18
+      },
+      {
+        "label": "silu_default_pipeline_GATE_USE_SIGMOID=1|HAS_GATE=1|INPUT_USE_IDENTITY=1",
+        "entryPoint": "main",
+        "constants": {
+          "HAS_GATE": 1,
+          "GATE_USE_SIGMOID": 1,
+          "INPUT_USE_IDENTITY": 1
+        },
+        "moduleLabel": "silu_default",
+        "dispatches": 1152
+      },
+      {
+        "label": "matmul_q4_fused_batched_multicol_shared_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_q4_fused_batched_multicol_shared",
+        "dispatches": 3
+      },
+      {
+        "label": "logit_finalize_f32_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "logit_finalize_f32",
+        "dispatches": 192
+      },
+      {
+        "label": "matmul_q4_fused_gemv_pipeline_COLS_PER_WG=64|THREADS_PER_COL_GEMV=4",
+        "entryPoint": "main_gemv",
+        "constants": {
+          "COLS_PER_WG": 64,
+          "THREADS_PER_COL_GEMV": 4
+        },
+        "moduleLabel": "matmul_q4_fused_gemv",
+        "dispatches": 19467
+      },
+      {
+        "label": "matmul_gemv_subgroup_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_gemv_subgroup",
+        "dispatches": 6804
+      },
+      {
+        "label": "fused_ffn_q4k_pipeline_COLS_PER_WG=64|THREADS_PER_COL=4",
+        "entryPoint": "main",
+        "constants": {
+          "COLS_PER_WG": 64,
+          "THREADS_PER_COL": 4
+        },
+        "moduleLabel": "fused_ffn_q4k",
+        "dispatches": 4536
+      },
+      {
+        "label": "attention_decode_online_f16kv_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "attention_decode_online_f16kv",
+        "dispatches": 1134
+      },
+      {
+        "label": "sample_argmax_pipeline",
+        "entryPoint": "argmax",
+        "constants": {},
+        "moduleLabel": "sample_argmax",
+        "dispatches": 126
+      },
+      {
+        "label": "sample_argmax_reduce_pipeline",
+        "entryPoint": "argmax_reduce",
+        "constants": {},
+        "moduleLabel": "sample_argmax",
+        "dispatches": 126
+      }
+    ]
+  },
+  {
+    "prompt": "explanation",
+    "lane": "candidate",
+    "scope": "Untimed diagnostic including warmup/scored-route execution and teacher-logit replay; no timestamp probes or pass splits",
+    "pipelines": [
+      {
+        "label": null,
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "submit_probe",
+        "dispatches": 1
+      },
+      {
+        "label": "rope_precompute_f32_pipeline_",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "rope_precompute_f32",
+        "dispatches": 1
+      },
+      {
+        "label": "gather_f16_vec4_pipeline",
+        "entryPoint": "gather_vec4",
+        "constants": {},
+        "moduleLabel": "gather_f16_vec4",
+        "dispatches": 192
+      },
+      {
+        "label": "rmsnorm_default_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "WEIGHT_IS_F16": 1,
+          "PRE_RESIDUAL": 0,
+          "OUTPUT_PRENORM": 0
+        },
+        "moduleLabel": "rmsnorm_default",
+        "dispatches": 453
+      },
+      {
+        "label": "matmul_q4_fused_widetile_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_q4_fused_widetile",
+        "dispatches": 432
+      },
+      {
+        "label": "matmul_f16w_f32a_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_f16w_f32a",
+        "dispatches": 108
+      },
+      {
+        "label": "linear_attention_conv_pipeline_f32",
+        "entryPoint": "main",
+        "constants": {
+          "WORKGROUP_SIZE": 256
+        },
+        "moduleLabel": "gated_delta_conv_f32",
+        "dispatches": 54
+      },
+      {
+        "label": "linear_attention_recurrent_pipeline_f32",
+        "entryPoint": "main",
+        "constants": {
+          "WORKGROUP_SIZE": 128,
+          "RECURRENT_STATE_COMPONENTS": 1
+        },
+        "moduleLabel": "gated_delta_recurrent_f32",
+        "dispatches": 54
+      },
+      {
+        "label": "rmsnorm_default_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "WEIGHT_IS_F16": 1,
+          "PRE_RESIDUAL": 1,
+          "OUTPUT_PRENORM": 1
+        },
+        "moduleLabel": "rmsnorm_default",
+        "dispatches": 4608
+      },
+      {
+        "label": "silu_default_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+        "entryPoint": "main",
+        "constants": {
+          "HAS_GATE": 1,
+          "INPUT_USE_IDENTITY": 1
+        },
+        "moduleLabel": "silu_default",
+        "dispatches": 72
+      },
+      {
+        "label": "residual_vec4_pipeline",
+        "entryPoint": "add_vec4",
+        "constants": {},
+        "moduleLabel": "residual_vec4",
+        "dispatches": 261
+      },
+      {
+        "label": "split_qkv_rmsnorm_rope_qk_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "Q_WEIGHT_IS_F16": 1,
+          "K_WEIGHT_IS_F16": 1
+        },
+        "moduleLabel": "split_qkv_rmsnorm_rope_qk_default",
+        "dispatches": 18
+      },
+      {
+        "label": "kv_cache_write_f32_to_f16_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "kv_cache_write_f32_to_f16",
+        "dispatches": 18
+      },
+      {
+        "label": "attention_prefill_head256_f16kv_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "attention_prefill_head256_f16kv",
+        "dispatches": 18
+      },
+      {
+        "label": "silu_default_pipeline_GATE_USE_SIGMOID=1|HAS_GATE=1|INPUT_USE_IDENTITY=1",
+        "entryPoint": "main",
+        "constants": {
+          "HAS_GATE": 1,
+          "GATE_USE_SIGMOID": 1,
+          "INPUT_USE_IDENTITY": 1
+        },
+        "moduleLabel": "silu_default",
+        "dispatches": 18
+      },
+      {
+        "label": "matmul_q4_fused_batched_multicol_shared_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_q4_fused_batched_multicol_shared",
+        "dispatches": 3
+      },
+      {
+        "label": "logit_finalize_f32_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "logit_finalize_f32",
+        "dispatches": 192
+      },
+      {
+        "label": "matmul_q4_fused_gemv_pipeline_COLS_PER_WG=64|THREADS_PER_COL_GEMV=4",
+        "entryPoint": "main_gemv",
+        "constants": {
+          "COLS_PER_WG": 64,
+          "THREADS_PER_COL_GEMV": 4
+        },
+        "moduleLabel": "matmul_q4_fused_gemv",
+        "dispatches": 18333
+      },
+      {
+        "label": "matmul_gemv_subgroup_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_gemv_subgroup",
+        "dispatches": 3402
+      },
+      {
+        "label": "linear_attention_fused_decode_pipeline_f32",
+        "entryPoint": "main",
+        "constants": {
+          "WORKGROUP_SIZE": 128,
+          "RECURRENT_STATE_COMPONENTS": 1
+        },
+        "moduleLabel": "gated_delta_fused_decode_f32",
+        "dispatches": 3402
+      },
+      {
+        "label": "fused_ffn_q4k_pipeline_COLS_PER_WG=64|THREADS_PER_COL=4",
+        "entryPoint": "main",
+        "constants": {
+          "COLS_PER_WG": 64,
+          "THREADS_PER_COL": 4
+        },
+        "moduleLabel": "fused_ffn_q4k",
+        "dispatches": 4536
+      },
+      {
+        "label": "residual_rmsnorm_pair_subgroup_pipeline_NORM_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "NORM_WEIGHT_IS_F16": 1
+        },
+        "moduleLabel": "residual_rmsnorm_pair_subgroup",
+        "dispatches": 4347
+      },
+      {
+        "label": "split_qkv_rmsnorm_rope_qk_f16kv_cache_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "Q_WEIGHT_IS_F16": 1,
+          "K_WEIGHT_IS_F16": 1
+        },
+        "moduleLabel": "split_qkv_rmsnorm_rope_qk_f16kv_cache_default",
+        "dispatches": 1134
+      },
+      {
+        "label": "attention_decode_online_head256_f16kv_output_gate_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "attention_decode_online_head256_f16kv_output_gate",
+        "dispatches": 1134
+      },
+      {
+        "label": "sample_argmax_pipeline",
+        "entryPoint": "argmax",
+        "constants": {},
+        "moduleLabel": "sample_argmax",
+        "dispatches": 126
+      },
+      {
+        "label": "sample_argmax_reduce_pipeline",
+        "entryPoint": "argmax_reduce",
+        "constants": {},
+        "moduleLabel": "sample_argmax",
+        "dispatches": 126
+      }
+    ]
+  },
+  {
+    "prompt": "arithmetic",
+    "lane": "baseline",
+    "scope": "Untimed diagnostic including warmup/scored-route execution and teacher-logit replay; no timestamp probes or pass splits",
+    "pipelines": [
+      {
+        "label": null,
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "submit_probe",
+        "dispatches": 1
+      },
+      {
+        "label": "rope_precompute_f32_pipeline_",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "rope_precompute_f32",
+        "dispatches": 1
+      },
+      {
+        "label": "gather_f16_vec4_pipeline",
+        "entryPoint": "gather_vec4",
+        "constants": {},
+        "moduleLabel": "gather_f16_vec4",
+        "dispatches": 192
+      },
+      {
+        "label": "rmsnorm_default_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "WEIGHT_IS_F16": 1,
+          "PRE_RESIDUAL": 0,
+          "OUTPUT_PRENORM": 0
+        },
+        "moduleLabel": "rmsnorm_default",
+        "dispatches": 4800
+      },
+      {
+        "label": "matmul_q4_fused_widetile_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_q4_fused_widetile",
+        "dispatches": 450
+      },
+      {
+        "label": "matmul_f16w_f32a_tiled_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_f16w_f32a_tiled",
+        "dispatches": 108
+      },
+      {
+        "label": "linear_attention_conv_pipeline_f32",
+        "entryPoint": "main",
+        "constants": {
+          "WORKGROUP_SIZE": 256
+        },
+        "moduleLabel": "gated_delta_conv_f32",
+        "dispatches": 3456
+      },
+      {
+        "label": "linear_attention_recurrent_pipeline_f32",
+        "entryPoint": "main",
+        "constants": {
+          "WORKGROUP_SIZE": 128,
+          "RECURRENT_STATE_COMPONENTS": 1
+        },
+        "moduleLabel": "gated_delta_recurrent_f32",
+        "dispatches": 3456
+      },
+      {
+        "label": "rmsnorm_default_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "WEIGHT_IS_F16": 1,
+          "PRE_RESIDUAL": 1,
+          "OUTPUT_PRENORM": 1
+        },
+        "moduleLabel": "rmsnorm_default",
+        "dispatches": 4608
+      },
+      {
+        "label": "silu_default_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+        "entryPoint": "main",
+        "constants": {
+          "HAS_GATE": 1,
+          "INPUT_USE_IDENTITY": 1
+        },
+        "moduleLabel": "silu_default",
+        "dispatches": 72
+      },
+      {
+        "label": "residual_vec4_pipeline",
+        "entryPoint": "add_vec4",
+        "constants": {},
+        "moduleLabel": "residual_vec4",
+        "dispatches": 4608
+      },
+      {
+        "label": "split_qg_default_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "split_qg_default",
+        "dispatches": 1152
+      },
+      {
+        "label": "rmsnorm_qk_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "Q_WEIGHT_IS_F16": 1,
+          "K_WEIGHT_IS_F16": 1
+        },
+        "moduleLabel": "rmsnorm_qk_default",
+        "dispatches": 1152
+      },
+      {
+        "label": "rope_qk_default_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "rope_qk_default",
+        "dispatches": 1152
+      },
+      {
+        "label": "kv_cache_write_f32_to_f16_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "kv_cache_write_f32_to_f16",
+        "dispatches": 1152
+      },
+      {
+        "label": "attention_prefill_head256_f16kv_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "attention_prefill_head256_f16kv",
+        "dispatches": 18
+      },
+      {
+        "label": "silu_default_pipeline_GATE_USE_SIGMOID=1|HAS_GATE=1|INPUT_USE_IDENTITY=1",
+        "entryPoint": "main",
+        "constants": {
+          "HAS_GATE": 1,
+          "GATE_USE_SIGMOID": 1,
+          "INPUT_USE_IDENTITY": 1
+        },
+        "moduleLabel": "silu_default",
+        "dispatches": 1152
+      },
+      {
+        "label": "matmul_q4_fused_batched_multicol_shared_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_q4_fused_batched_multicol_shared",
+        "dispatches": 3
+      },
+      {
+        "label": "logit_finalize_f32_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "logit_finalize_f32",
+        "dispatches": 192
+      },
+      {
+        "label": "matmul_q4_fused_gemv_pipeline_COLS_PER_WG=64|THREADS_PER_COL_GEMV=4",
+        "entryPoint": "main_gemv",
+        "constants": {
+          "COLS_PER_WG": 64,
+          "THREADS_PER_COL_GEMV": 4
+        },
+        "moduleLabel": "matmul_q4_fused_gemv",
+        "dispatches": 19467
+      },
+      {
+        "label": "matmul_gemv_subgroup_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_gemv_subgroup",
+        "dispatches": 6804
+      },
+      {
+        "label": "fused_ffn_q4k_pipeline_COLS_PER_WG=64|THREADS_PER_COL=4",
+        "entryPoint": "main",
+        "constants": {
+          "COLS_PER_WG": 64,
+          "THREADS_PER_COL": 4
+        },
+        "moduleLabel": "fused_ffn_q4k",
+        "dispatches": 4536
+      },
+      {
+        "label": "attention_decode_online_f16kv_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "attention_decode_online_f16kv",
+        "dispatches": 1134
+      },
+      {
+        "label": "sample_argmax_pipeline",
+        "entryPoint": "argmax",
+        "constants": {},
+        "moduleLabel": "sample_argmax",
+        "dispatches": 126
+      },
+      {
+        "label": "sample_argmax_reduce_pipeline",
+        "entryPoint": "argmax_reduce",
+        "constants": {},
+        "moduleLabel": "sample_argmax",
+        "dispatches": 126
+      }
+    ]
+  },
+  {
+    "prompt": "arithmetic",
+    "lane": "candidate",
+    "scope": "Untimed diagnostic including warmup/scored-route execution and teacher-logit replay; no timestamp probes or pass splits",
+    "pipelines": [
+      {
+        "label": null,
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "submit_probe",
+        "dispatches": 1
+      },
+      {
+        "label": "rope_precompute_f32_pipeline_",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "rope_precompute_f32",
+        "dispatches": 1
+      },
+      {
+        "label": "gather_f16_vec4_pipeline",
+        "entryPoint": "gather_vec4",
+        "constants": {},
+        "moduleLabel": "gather_f16_vec4",
+        "dispatches": 192
+      },
+      {
+        "label": "rmsnorm_default_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "WEIGHT_IS_F16": 1,
+          "PRE_RESIDUAL": 0,
+          "OUTPUT_PRENORM": 0
+        },
+        "moduleLabel": "rmsnorm_default",
+        "dispatches": 453
+      },
+      {
+        "label": "matmul_q4_fused_widetile_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_q4_fused_widetile",
+        "dispatches": 432
+      },
+      {
+        "label": "matmul_f16w_f32a_tiled_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_f16w_f32a_tiled",
+        "dispatches": 108
+      },
+      {
+        "label": "linear_attention_conv_pipeline_f32",
+        "entryPoint": "main",
+        "constants": {
+          "WORKGROUP_SIZE": 256
+        },
+        "moduleLabel": "gated_delta_conv_f32",
+        "dispatches": 54
+      },
+      {
+        "label": "linear_attention_recurrent_pipeline_f32",
+        "entryPoint": "main",
+        "constants": {
+          "WORKGROUP_SIZE": 128,
+          "RECURRENT_STATE_COMPONENTS": 1
+        },
+        "moduleLabel": "gated_delta_recurrent_f32",
+        "dispatches": 54
+      },
+      {
+        "label": "rmsnorm_default_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "WEIGHT_IS_F16": 1,
+          "PRE_RESIDUAL": 1,
+          "OUTPUT_PRENORM": 1
+        },
+        "moduleLabel": "rmsnorm_default",
+        "dispatches": 4608
+      },
+      {
+        "label": "silu_default_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+        "entryPoint": "main",
+        "constants": {
+          "HAS_GATE": 1,
+          "INPUT_USE_IDENTITY": 1
+        },
+        "moduleLabel": "silu_default",
+        "dispatches": 72
+      },
+      {
+        "label": "residual_vec4_pipeline",
+        "entryPoint": "add_vec4",
+        "constants": {},
+        "moduleLabel": "residual_vec4",
+        "dispatches": 261
+      },
+      {
+        "label": "split_qkv_rmsnorm_rope_qk_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "Q_WEIGHT_IS_F16": 1,
+          "K_WEIGHT_IS_F16": 1
+        },
+        "moduleLabel": "split_qkv_rmsnorm_rope_qk_default",
+        "dispatches": 18
+      },
+      {
+        "label": "kv_cache_write_f32_to_f16_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "kv_cache_write_f32_to_f16",
+        "dispatches": 18
+      },
+      {
+        "label": "attention_prefill_head256_f16kv_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "attention_prefill_head256_f16kv",
+        "dispatches": 18
+      },
+      {
+        "label": "silu_default_pipeline_GATE_USE_SIGMOID=1|HAS_GATE=1|INPUT_USE_IDENTITY=1",
+        "entryPoint": "main",
+        "constants": {
+          "HAS_GATE": 1,
+          "GATE_USE_SIGMOID": 1,
+          "INPUT_USE_IDENTITY": 1
+        },
+        "moduleLabel": "silu_default",
+        "dispatches": 18
+      },
+      {
+        "label": "matmul_q4_fused_batched_multicol_shared_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_q4_fused_batched_multicol_shared",
+        "dispatches": 3
+      },
+      {
+        "label": "logit_finalize_f32_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "logit_finalize_f32",
+        "dispatches": 192
+      },
+      {
+        "label": "matmul_q4_fused_gemv_pipeline_COLS_PER_WG=64|THREADS_PER_COL_GEMV=4",
+        "entryPoint": "main_gemv",
+        "constants": {
+          "COLS_PER_WG": 64,
+          "THREADS_PER_COL_GEMV": 4
+        },
+        "moduleLabel": "matmul_q4_fused_gemv",
+        "dispatches": 18333
+      },
+      {
+        "label": "matmul_gemv_subgroup_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_gemv_subgroup",
+        "dispatches": 3402
+      },
+      {
+        "label": "linear_attention_fused_decode_pipeline_f32",
+        "entryPoint": "main",
+        "constants": {
+          "WORKGROUP_SIZE": 128,
+          "RECURRENT_STATE_COMPONENTS": 1
+        },
+        "moduleLabel": "gated_delta_fused_decode_f32",
+        "dispatches": 3402
+      },
+      {
+        "label": "fused_ffn_q4k_pipeline_COLS_PER_WG=64|THREADS_PER_COL=4",
+        "entryPoint": "main",
+        "constants": {
+          "COLS_PER_WG": 64,
+          "THREADS_PER_COL": 4
+        },
+        "moduleLabel": "fused_ffn_q4k",
+        "dispatches": 4536
+      },
+      {
+        "label": "residual_rmsnorm_pair_subgroup_pipeline_NORM_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "NORM_WEIGHT_IS_F16": 1
+        },
+        "moduleLabel": "residual_rmsnorm_pair_subgroup",
+        "dispatches": 4347
+      },
+      {
+        "label": "split_qkv_rmsnorm_rope_qk_f16kv_cache_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "Q_WEIGHT_IS_F16": 1,
+          "K_WEIGHT_IS_F16": 1
+        },
+        "moduleLabel": "split_qkv_rmsnorm_rope_qk_f16kv_cache_default",
+        "dispatches": 1134
+      },
+      {
+        "label": "attention_decode_online_head256_f16kv_output_gate_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "attention_decode_online_head256_f16kv_output_gate",
+        "dispatches": 1134
+      },
+      {
+        "label": "sample_argmax_pipeline",
+        "entryPoint": "argmax",
+        "constants": {},
+        "moduleLabel": "sample_argmax",
+        "dispatches": 126
+      },
+      {
+        "label": "sample_argmax_reduce_pipeline",
+        "entryPoint": "argmax_reduce",
+        "constants": {},
+        "moduleLabel": "sample_argmax",
+        "dispatches": 126
+      }
+    ]
+  },
+  {
+    "prompt": "long-context",
+    "lane": "baseline",
+    "scope": "Untimed diagnostic including warmup/scored-route execution and teacher-logit replay; no timestamp probes or pass splits",
+    "pipelines": [
+      {
+        "label": null,
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "submit_probe",
+        "dispatches": 1
+      },
+      {
+        "label": "rope_precompute_f32_pipeline_",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "rope_precompute_f32",
+        "dispatches": 1
+      },
+      {
+        "label": "gather_f16_vec4_pipeline",
+        "entryPoint": "gather_vec4",
+        "constants": {},
+        "moduleLabel": "gather_f16_vec4",
+        "dispatches": 192
+      },
+      {
+        "label": "rmsnorm_default_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "WEIGHT_IS_F16": 1,
+          "PRE_RESIDUAL": 0,
+          "OUTPUT_PRENORM": 0
+        },
+        "moduleLabel": "rmsnorm_default",
+        "dispatches": 4800
+      },
+      {
+        "label": "matmul_q4_fused_widetile_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_q4_fused_widetile",
+        "dispatches": 450
+      },
+      {
+        "label": "matmul_f16w_f32a_tiled_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_f16w_f32a_tiled",
+        "dispatches": 108
+      },
+      {
+        "label": "linear_attention_conv_pipeline_f32",
+        "entryPoint": "main",
+        "constants": {
+          "WORKGROUP_SIZE": 256
+        },
+        "moduleLabel": "gated_delta_conv_f32",
+        "dispatches": 3456
+      },
+      {
+        "label": "linear_attention_recurrent_pipeline_f32",
+        "entryPoint": "main",
+        "constants": {
+          "WORKGROUP_SIZE": 128,
+          "RECURRENT_STATE_COMPONENTS": 1
+        },
+        "moduleLabel": "gated_delta_recurrent_f32",
+        "dispatches": 3456
+      },
+      {
+        "label": "rmsnorm_default_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "WEIGHT_IS_F16": 1,
+          "PRE_RESIDUAL": 1,
+          "OUTPUT_PRENORM": 1
+        },
+        "moduleLabel": "rmsnorm_default",
+        "dispatches": 4608
+      },
+      {
+        "label": "silu_default_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+        "entryPoint": "main",
+        "constants": {
+          "HAS_GATE": 1,
+          "INPUT_USE_IDENTITY": 1
+        },
+        "moduleLabel": "silu_default",
+        "dispatches": 72
+      },
+      {
+        "label": "residual_vec4_pipeline",
+        "entryPoint": "add_vec4",
+        "constants": {},
+        "moduleLabel": "residual_vec4",
+        "dispatches": 4608
+      },
+      {
+        "label": "split_qg_default_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "split_qg_default",
+        "dispatches": 1152
+      },
+      {
+        "label": "rmsnorm_qk_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "Q_WEIGHT_IS_F16": 1,
+          "K_WEIGHT_IS_F16": 1
+        },
+        "moduleLabel": "rmsnorm_qk_default",
+        "dispatches": 1152
+      },
+      {
+        "label": "rope_qk_default_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "rope_qk_default",
+        "dispatches": 1152
+      },
+      {
+        "label": "kv_cache_write_f32_to_f16_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "kv_cache_write_f32_to_f16",
+        "dispatches": 1152
+      },
+      {
+        "label": "attention_prefill_head256_f16kv_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "attention_prefill_head256_f16kv",
+        "dispatches": 18
+      },
+      {
+        "label": "silu_default_pipeline_GATE_USE_SIGMOID=1|HAS_GATE=1|INPUT_USE_IDENTITY=1",
+        "entryPoint": "main",
+        "constants": {
+          "HAS_GATE": 1,
+          "GATE_USE_SIGMOID": 1,
+          "INPUT_USE_IDENTITY": 1
+        },
+        "moduleLabel": "silu_default",
+        "dispatches": 1152
+      },
+      {
+        "label": "matmul_q4_fused_batched_multicol_shared_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_q4_fused_batched_multicol_shared",
+        "dispatches": 3
+      },
+      {
+        "label": "logit_finalize_f32_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "logit_finalize_f32",
+        "dispatches": 192
+      },
+      {
+        "label": "matmul_q4_fused_gemv_pipeline_COLS_PER_WG=64|THREADS_PER_COL_GEMV=4",
+        "entryPoint": "main_gemv",
+        "constants": {
+          "COLS_PER_WG": 64,
+          "THREADS_PER_COL_GEMV": 4
+        },
+        "moduleLabel": "matmul_q4_fused_gemv",
+        "dispatches": 19467
+      },
+      {
+        "label": "matmul_gemv_subgroup_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_gemv_subgroup",
+        "dispatches": 6804
+      },
+      {
+        "label": "fused_ffn_q4k_pipeline_COLS_PER_WG=64|THREADS_PER_COL=4",
+        "entryPoint": "main",
+        "constants": {
+          "COLS_PER_WG": 64,
+          "THREADS_PER_COL": 4
+        },
+        "moduleLabel": "fused_ffn_q4k",
+        "dispatches": 4536
+      },
+      {
+        "label": "attention_decode_online_f16kv_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "attention_decode_online_f16kv",
+        "dispatches": 1134
+      },
+      {
+        "label": "sample_argmax_pipeline",
+        "entryPoint": "argmax",
+        "constants": {},
+        "moduleLabel": "sample_argmax",
+        "dispatches": 126
+      },
+      {
+        "label": "sample_argmax_reduce_pipeline",
+        "entryPoint": "argmax_reduce",
+        "constants": {},
+        "moduleLabel": "sample_argmax",
+        "dispatches": 126
+      }
+    ]
+  },
+  {
+    "prompt": "long-context",
+    "lane": "candidate",
+    "scope": "Untimed diagnostic including warmup/scored-route execution and teacher-logit replay; no timestamp probes or pass splits",
+    "pipelines": [
+      {
+        "label": null,
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "submit_probe",
+        "dispatches": 1
+      },
+      {
+        "label": "rope_precompute_f32_pipeline_",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "rope_precompute_f32",
+        "dispatches": 1
+      },
+      {
+        "label": "gather_f16_vec4_pipeline",
+        "entryPoint": "gather_vec4",
+        "constants": {},
+        "moduleLabel": "gather_f16_vec4",
+        "dispatches": 192
+      },
+      {
+        "label": "rmsnorm_default_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "WEIGHT_IS_F16": 1,
+          "PRE_RESIDUAL": 0,
+          "OUTPUT_PRENORM": 0
+        },
+        "moduleLabel": "rmsnorm_default",
+        "dispatches": 453
+      },
+      {
+        "label": "matmul_q4_fused_widetile_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_q4_fused_widetile",
+        "dispatches": 432
+      },
+      {
+        "label": "matmul_f16w_f32a_tiled_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_f16w_f32a_tiled",
+        "dispatches": 108
+      },
+      {
+        "label": "linear_attention_conv_pipeline_f32",
+        "entryPoint": "main",
+        "constants": {
+          "WORKGROUP_SIZE": 256
+        },
+        "moduleLabel": "gated_delta_conv_f32",
+        "dispatches": 54
+      },
+      {
+        "label": "linear_attention_recurrent_pipeline_f32",
+        "entryPoint": "main",
+        "constants": {
+          "WORKGROUP_SIZE": 128,
+          "RECURRENT_STATE_COMPONENTS": 1
+        },
+        "moduleLabel": "gated_delta_recurrent_f32",
+        "dispatches": 54
+      },
+      {
+        "label": "rmsnorm_default_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "WEIGHT_IS_F16": 1,
+          "PRE_RESIDUAL": 1,
+          "OUTPUT_PRENORM": 1
+        },
+        "moduleLabel": "rmsnorm_default",
+        "dispatches": 4608
+      },
+      {
+        "label": "silu_default_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+        "entryPoint": "main",
+        "constants": {
+          "HAS_GATE": 1,
+          "INPUT_USE_IDENTITY": 1
+        },
+        "moduleLabel": "silu_default",
+        "dispatches": 72
+      },
+      {
+        "label": "residual_vec4_pipeline",
+        "entryPoint": "add_vec4",
+        "constants": {},
+        "moduleLabel": "residual_vec4",
+        "dispatches": 261
+      },
+      {
+        "label": "split_qkv_rmsnorm_rope_qk_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "Q_WEIGHT_IS_F16": 1,
+          "K_WEIGHT_IS_F16": 1
+        },
+        "moduleLabel": "split_qkv_rmsnorm_rope_qk_default",
+        "dispatches": 18
+      },
+      {
+        "label": "kv_cache_write_f32_to_f16_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "kv_cache_write_f32_to_f16",
+        "dispatches": 18
+      },
+      {
+        "label": "attention_prefill_head256_f16kv_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "attention_prefill_head256_f16kv",
+        "dispatches": 18
+      },
+      {
+        "label": "silu_default_pipeline_GATE_USE_SIGMOID=1|HAS_GATE=1|INPUT_USE_IDENTITY=1",
+        "entryPoint": "main",
+        "constants": {
+          "HAS_GATE": 1,
+          "GATE_USE_SIGMOID": 1,
+          "INPUT_USE_IDENTITY": 1
+        },
+        "moduleLabel": "silu_default",
+        "dispatches": 18
+      },
+      {
+        "label": "matmul_q4_fused_batched_multicol_shared_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_q4_fused_batched_multicol_shared",
+        "dispatches": 3
+      },
+      {
+        "label": "logit_finalize_f32_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "logit_finalize_f32",
+        "dispatches": 192
+      },
+      {
+        "label": "matmul_q4_fused_gemv_pipeline_COLS_PER_WG=64|THREADS_PER_COL_GEMV=4",
+        "entryPoint": "main_gemv",
+        "constants": {
+          "COLS_PER_WG": 64,
+          "THREADS_PER_COL_GEMV": 4
+        },
+        "moduleLabel": "matmul_q4_fused_gemv",
+        "dispatches": 18333
+      },
+      {
+        "label": "matmul_gemv_subgroup_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "matmul_gemv_subgroup",
+        "dispatches": 3402
+      },
+      {
+        "label": "linear_attention_fused_decode_pipeline_f32",
+        "entryPoint": "main",
+        "constants": {
+          "WORKGROUP_SIZE": 128,
+          "RECURRENT_STATE_COMPONENTS": 1
+        },
+        "moduleLabel": "gated_delta_fused_decode_f32",
+        "dispatches": 3402
+      },
+      {
+        "label": "fused_ffn_q4k_pipeline_COLS_PER_WG=64|THREADS_PER_COL=4",
+        "entryPoint": "main",
+        "constants": {
+          "COLS_PER_WG": 64,
+          "THREADS_PER_COL": 4
+        },
+        "moduleLabel": "fused_ffn_q4k",
+        "dispatches": 4536
+      },
+      {
+        "label": "residual_rmsnorm_pair_subgroup_pipeline_NORM_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "NORM_WEIGHT_IS_F16": 1
+        },
+        "moduleLabel": "residual_rmsnorm_pair_subgroup",
+        "dispatches": 4347
+      },
+      {
+        "label": "split_qkv_rmsnorm_rope_qk_f16kv_cache_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+        "entryPoint": "main",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "Q_WEIGHT_IS_F16": 1,
+          "K_WEIGHT_IS_F16": 1
+        },
+        "moduleLabel": "split_qkv_rmsnorm_rope_qk_f16kv_cache_default",
+        "dispatches": 1134
+      },
+      {
+        "label": "attention_decode_online_head256_f16kv_output_gate_pipeline",
+        "entryPoint": "main",
+        "constants": {},
+        "moduleLabel": "attention_decode_online_head256_f16kv_output_gate",
+        "dispatches": 1134
+      },
+      {
+        "label": "sample_argmax_pipeline",
+        "entryPoint": "argmax",
+        "constants": {},
+        "moduleLabel": "sample_argmax",
+        "dispatches": 126
+      },
+      {
+        "label": "sample_argmax_reduce_pipeline",
+        "entryPoint": "argmax_reduce",
+        "constants": {},
+        "moduleLabel": "sample_argmax",
+        "dispatches": 126
+      }
+    ]
+  }
+]
