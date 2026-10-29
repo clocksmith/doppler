@@ -20,7 +20,7 @@ globalThis.GPUMapMode = {
 
 const { KVCache } = await import('../../src/inference/kv-cache/base.js');
 const { setDevice } = await import('../../src/gpu/device.js');
-const { configurePerfGuards } = await import('../../src/gpu/perf-guards.js');
+const { configurePerfGuards } = await import('../../src/debug/perf-guards.js');
 const { destroyBufferPool } = await import('../../src/memory/buffer-pool.js');
 
 class FakeBuffer {

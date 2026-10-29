@@ -11,7 +11,7 @@ import { recordHistoryPenalties } from '../../../../gpu/kernels/rep-penalty.js';
 
 import { resetSubmitStats, logSubmitStats } from '../../../../gpu/submit-tracker.js';
 import { createCommandRecorder, createProfilingRecorder, CommandRecorder } from '../../../../gpu/command-recorder.js';
-import { allowReadback } from '../../../../gpu/perf-guards.js';
+import { allowReadback } from '../../../../debug/perf-guards.js';
 
 import { log } from '../../../../debug/index.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';

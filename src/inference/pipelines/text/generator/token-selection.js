@@ -5,7 +5,7 @@ import { recordSuppressLogits } from '../../../../gpu/kernels/logit-suppress.js'
 import { releaseBuffer } from '../../../../memory/buffer-pool.js';
 import { GenerationError } from '../../../../config/generation-contract.js';
 import { getDevice } from '../../../../gpu/device.js';
-import { isDeviceLost } from '../../../../gpu/device-state.js';
+import { isDeviceLost } from '../../../../memory/device-residency.js';
 
 export function assertTokenSelectionActive(signal, device) {
   if (signal?.aborted) throw new GenerationError('aborted', 'Generation aborted during GPU token selection.', { cause: signal.reason });

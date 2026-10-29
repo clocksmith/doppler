@@ -1,5 +1,5 @@
 import { getDevice, hasFeature, FEATURES } from './device.js';
-import { allowReadback, trackAllocation } from './perf-guards.js';
+import { allowReadback, trackAllocation } from '../debug/perf-guards.js';
 import { getUniformCache, toUniformArrayBuffer } from './uniform-cache.js';
 import { isBufferActive, isPersistentBuffer, releaseBuffer, discardBuffer } from '../memory/buffer-pool.js';
 import { log } from '../debug/index.js';

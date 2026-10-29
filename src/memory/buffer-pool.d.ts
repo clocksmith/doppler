@@ -181,6 +181,13 @@ export declare class BufferPool {
  * Get the global buffer pool for the current device epoch.
  * If the active device has changed or was lost, a fresh global pool is created.
  */
+/**
+ * Installs the GPU device owner's current-device resolver used by the ambient
+ * convenience API (acquireBuffer, getBufferPool() without a device, ...).
+ * gpu/device.js installs it when loaded; explicit-device pools never use it.
+ */
+export function installBufferPoolDeviceRuntime(getCurrentDevice: () => GPUDevice | null): void;
+
 export function getBufferPool(device?: GPUDevice | null): BufferPool;
 
 /**

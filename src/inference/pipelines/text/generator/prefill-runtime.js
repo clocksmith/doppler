@@ -2,7 +2,7 @@ import { getDevice, setTrackSubmits } from '../../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer, readBufferSlice, uploadData, getBufferPool } from '../../../../memory/buffer-pool.js';
 import { resetSubmitStats, logSubmitStats } from '../../../../gpu/submit-tracker.js';
 import { createCommandRecorder, createProfilingRecorder, CommandRecorder } from '../../../../gpu/command-recorder.js';
-import { allowReadback } from '../../../../gpu/perf-guards.js';
+import { allowReadback } from '../../../../debug/perf-guards.js';
 import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { sample, logitsSanity } from '../sampling.js';

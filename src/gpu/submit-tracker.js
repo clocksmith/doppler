@@ -1,4 +1,4 @@
-import { trackSubmit } from './perf-guards.js';
+import { trackSubmit } from '../debug/perf-guards.js';
 import { log, trace } from '../debug/index.js';
 
 

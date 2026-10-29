@@ -5,7 +5,7 @@ import {
   assertKnownResolutionNotRevoked,
 } from '../../../../config/revocation-policy.js';
 import { log } from '../../../../debug/index.js';
-import { allowReadback } from '../../../../gpu/perf-guards.js';
+import { allowReadback } from '../../../../debug/perf-guards.js';
 import { readBuffer } from '../../../../memory/buffer-pool.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { isPlainObject } from '../../../../formats/plain-object.js';

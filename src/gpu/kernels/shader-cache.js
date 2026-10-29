@@ -1,7 +1,7 @@
 
 
 import { log } from '../../debug/index.js';
-import { isDeviceLost, observeDeviceLoss } from '../device-state.js';
+import { isDeviceLost, observeDeviceLoss } from '../../memory/device-residency.js';
 import { getScopedShaderSource } from './shader-source-scope.js';
 import { hashBytesSha256 } from '../../formats/canonical-hash.js';
 

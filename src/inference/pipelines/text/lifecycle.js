@@ -3,7 +3,7 @@ import { getDevice, initDevice, getKernelCapabilities } from '../../../gpu/devic
 import { getUniformCacheStats } from '../../../gpu/uniform-cache.js';
 import { getBufferPool as getGlobalBufferPool, readBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { log } from '../../../debug/index.js';
-import { configurePerfGuards } from '../../../gpu/perf-guards.js';
+import { configurePerfGuards } from '../../../debug/perf-guards.js';
 import { MoERouter } from '../../moe-router.js';
 import { DecodeBufferManager } from '../../decode-buffers.js';
 import { DecodeRing } from '../../decode-ring.js';

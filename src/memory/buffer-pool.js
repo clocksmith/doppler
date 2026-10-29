@@ -1,8 +1,17 @@
-import { getDevice } from '../gpu/device.js';
-import { getSharedDeviceState, isDeviceLost, registerBufferDevice, observeDeviceLoss } from '../gpu/device-state.js';
-import { allowReadback, trackAllocation } from '../gpu/perf-guards.js';
 import { log, trace, isTraceEnabled } from '../debug/index.js';
 import { getRuntimeConfig } from '../config/runtime.js';
+import { getBufferDevice, isDeviceLost, observeDeviceLoss, registerBufferDevice } from './device-residency.js';
+import { allowReadback, trackAllocation } from '../debug/perf-guards.js';
+
+// Pools take devices as arguments. Only the ambient convenience API needs the
+// current device; gpu/device.js installs that resolver when loaded (before it
+// no Doppler device exists). Device module instances share one state holder.
+let resolveCurrentDevice = () => null;
+export function installBufferPoolDeviceRuntime(getCurrentDevice) {
+  if (typeof getCurrentDevice !== 'function') throw new Error('Buffer pool device runtime requires a current-device resolver.');
+  resolveCurrentDevice = getCurrentDevice;
+}
+const currentDevice = () => resolveCurrentDevice() ?? null;
 
 const bufferPools = new WeakMap();
 
@@ -103,42 +112,32 @@ export class BufferPool {
   // Pools organized by usage and size bucket
   #pools;
   #totalPooledBuffers;
-
   // Active buffers (currently in use)
   #activeBuffers;
-
   // Buffer metadata for leak detection (debug mode)
   #bufferMetadata;
-
   // Requested sizes per buffer (unbucketed intent)
   #requestedSizes;
-
   // Buffer ID tracking (for trace)
   #bufferIds;
   #bufferLabels;
   #nextBufferId;
-
   // Deferred destruction queue (buffers destroyed after GPU work completes)
   #pendingDestruction;
   #destructionScheduled;
-
   // Statistics
   #stats;
-
   // Configuration
   #config;
-
   // Schema-based configuration
   #schemaConfig;
-
   // Debug mode flag
   #debugMode;
-
   // Device-scoped ownership for pooled buffers
   #device;
   #destroyed = false;
 
-  constructor(debugMode = false, schemaConfig, device = getDevice()) {
+  constructor(debugMode = false, schemaConfig, device = currentDevice()) {
     if (!schemaConfig) {
       throw new Error('BufferPool requires schemaConfig from runtime.shared.bufferPool.');
     }
@@ -757,7 +756,7 @@ export class BufferPool {
 const devicePools = new WeakMap();
 const persistentBuffers = new WeakSet();
 
-export function getBufferPool(device = getDevice()) {
+export function getBufferPool(device = currentDevice()) {
   observeDeviceLoss(device);
   if (!device || isDeviceLost(device)) throw new Error('BufferPool requires a live GPU device.');
   let pool = devicePools.get(device);
@@ -768,7 +767,7 @@ export function getBufferPool(device = getDevice()) {
   return pool;
 }
 
-export function destroyBufferPool(device = getDevice()) {
+export function destroyBufferPool(device = currentDevice()) {
   if (!device) return;
   devicePools.get(device)?.destroy();
   devicePools.delete(device);
@@ -777,7 +776,7 @@ export function destroyBufferPool(device = getDevice()) {
 function poolForBuffer(buffer) {
   const pool = bufferPools.get(buffer);
   if (pool) return pool;
-  const device = getSharedDeviceState().bufferOwners.get(buffer);
+  const device = getBufferDevice(buffer);
   if (!device) throw new Error('Buffer has no known GPU resource owner.');
   return getBufferPool(device);
 }
@@ -846,4 +845,4 @@ export const readBufferSlice = (buffer, offset, size) =>
   poolForBuffer(buffer).readBufferSlice(buffer, offset, size);
 
 export const forceBufferPoolReclaim = (targetRatio) =>
-  devicePools.get(getDevice())?.forceReclaim(targetRatio);
+  devicePools.get(currentDevice())?.forceReclaim(targetRatio);

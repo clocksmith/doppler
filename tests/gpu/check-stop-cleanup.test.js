@@ -24,7 +24,7 @@ globalThis.GPUShaderStage = {
 
 const { checkStop } = await import('../../src/gpu/kernels/check-stop.js');
 const { setDevice } = await import('../../src/gpu/device.js');
-const { configurePerfGuards } = await import('../../src/gpu/perf-guards.js');
+const { configurePerfGuards } = await import('../../src/debug/perf-guards.js');
 
 class FakeBuffer {
   constructor({ size, usage, mapReject = false, data = null }) {

@@ -19,7 +19,7 @@ const modules = {
   '../../../../memory/buffer-pool.js': `export const releaseBuffer = buffer => globalThis.tokenSelectionLifecycle.released.push(buffer);
 `,
   '../../../../gpu/device.js': 'export const getDevice = () => globalThis.tokenSelectionLifecycle.device;',
-  '../../../../gpu/device-state.js': 'export const isDeviceLost = () => globalThis.tokenSelectionLifecycle.lost === true;',
+  '../../../../memory/device-residency.js': 'export const isDeviceLost = () => globalThis.tokenSelectionLifecycle.lost === true;',
 };
 const hooks = registerHooks({ resolve(specifier, context, next) {
   if (context.parentURL === target && modules[specifier]) return { url: `data:text/javascript,${encodeURIComponent(modules[specifier])}`, shortCircuit: true };

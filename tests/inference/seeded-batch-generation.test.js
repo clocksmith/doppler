@@ -51,7 +51,7 @@ const overrides = {
     export const isCpuWeightBuffer = () => false; export const isWeightBuffer = () => false;
     export const isSplitWeightBuffer = () => false; export const getWeightDtype = () => 'f32';
     export const getWeightMetadata = () => null;`,
-  '../../../gpu/perf-guards.js': 'export const allowReadback = () => true;',
+  '../../../debug/perf-guards.js': 'export const allowReadback = () => true;',
   '../../../gpu/uniform-cache.js': 'export const getUniformCache = () => ({flushPendingDestruction(){}});',
   './embed.js': 'export const embed = async () => ({buffer:f.device.createBuffer({size:4})});',
   './logits/index.js': 'export const recordLogitsGPU = async () => ({logitsBuffer:{},vocabSize:10,logitsDtype:"f32"});',

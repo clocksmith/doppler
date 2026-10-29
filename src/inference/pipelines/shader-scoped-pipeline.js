@@ -10,7 +10,7 @@ import {
   getStorageShaderSourceScope,
 } from '../../gpu/kernels/shader-source-scope.js';
 import { applyPipelineContexts } from './context.js';
-import { isDeviceLost } from '../../gpu/device-state.js';
+import { isDeviceLost } from '../../memory/device-residency.js';
 
 export function resolvePipelineRegistries({ ruleRegistry = getDefaultRuleRegistry(), kernelRegistry = getDefaultKernelRegistry() } = {}) {
   if (!isRuleRegistry(ruleRegistry)) throw new Error('Pipeline requires a constructed rule registry.');

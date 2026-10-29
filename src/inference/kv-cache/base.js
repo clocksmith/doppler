@@ -2,7 +2,7 @@ import { copyKVCacheState } from './copy-state.js';
 import { getDevice } from '../../gpu/device.js';
 import { castF16ToF32 } from '../../gpu/kernels/cast.js';
 import { createTensor } from '../../gpu/tensor.js';
-import { allowReadback } from '../../gpu/perf-guards.js';
+import { allowReadback } from '../../debug/perf-guards.js';
 import { log } from '../../debug/index.js';
 import { readBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import {

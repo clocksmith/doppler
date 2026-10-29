@@ -30,7 +30,7 @@ const {
 } = await import('../../src/gpu/kernels/sample.js');
 const { CommandRecorder } = await import('../../src/gpu/command-recorder.js');
 const { setDevice } = await import('../../src/gpu/device.js');
-const { configurePerfGuards } = await import('../../src/gpu/perf-guards.js');
+const { configurePerfGuards } = await import('../../src/debug/perf-guards.js');
 const { destroyBufferPool, getBufferPool } = await import('../../src/memory/buffer-pool.js');
 const { resetKernelThresholds, setKernelThresholds } = await import('../../src/config/schema/index.js');
 const { resetUniformCache } = await import('../../src/gpu/uniform-cache.js');

@@ -9,7 +9,7 @@ import {
   getOrCreateBindGroupLayout,
   getOrCreatePipelineLayout,
 } from './pipeline-cache.js';
-import { allowReadback } from '../perf-guards.js';
+import { allowReadback } from '../../debug/perf-guards.js';
 import { getShaderModule } from './shader-cache.js';
 
 

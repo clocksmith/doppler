@@ -3,14 +3,20 @@ import { probeSubmitLatency } from './submit-probe.js';
 import { log } from '../debug/index.js';
 import { createDopplerError, ERROR_CODES } from '../errors/doppler-error.js';
 import { GB } from '../config/schema/index.js';
-import { getSharedDeviceState, isDeviceLost } from './device-state.js';
+import { getSharedDeviceState } from './device-state.js';
+import { isDeviceLost, markDeviceLost, recordCreatedBuffer } from '../memory/device-residency.js';
 import { installDeviceMemoryAccounting } from '../memory/device-budget.js';
+import { installBufferPoolDeviceRuntime } from '../memory/buffer-pool.js';
 import { wrapDeviceCreateBindGroup } from './device-bindings.js';
 
 // Re-export submit tracker for convenience
 export { setTrackSubmits };
 
 const sharedDeviceState = getSharedDeviceState();
+
+// The pool's ambient convenience API resolves the current device through
+// this owner; pools constructed with an explicit device never consult it.
+installBufferPoolDeviceRuntime(getDevice);
 
 let gpuDevice = sharedDeviceState.gpuDevice ?? null;
 
@@ -147,7 +153,7 @@ function wrapDeviceCreateBuffer(device) {
   device.createBuffer = (descriptor) => {
     const buffer = originalCreateBuffer(descriptor);
     if (buffer && (typeof buffer === 'object' || typeof buffer === 'function')) {
-      sharedDeviceState.bufferOwners.set(buffer, device);
+      recordCreatedBuffer(buffer, device);
     }
     return buffer;
   };
@@ -169,7 +175,7 @@ function registerDeviceLostHandler(device) {
   if (device.lost && typeof device.lost.then === 'function') {
     const trackedDevice = device;
     device.lost.then((info) => {
-      sharedDeviceState.lostDevices.add(trackedDevice);
+      markDeviceLost(trackedDevice);
       if (sharedDeviceState.gpuDevice !== trackedDevice) {
         return;
       }
@@ -185,7 +191,7 @@ function registerDeviceLostHandler(device) {
       clearActiveDeviceState();
       advanceDeviceEpoch();
     }).catch((error) => {
-      sharedDeviceState.lostDevices.add(trackedDevice);
+      markDeviceLost(trackedDevice);
       if (sharedDeviceState.gpuDevice !== trackedDevice) {
         return;
       }
@@ -654,7 +660,7 @@ export function destroyDevice() {
   hydrateDeviceState();
   invalidateDeviceInitialization();
   if (gpuDevice) {
-    sharedDeviceState.lostDevices.add(gpuDevice);
+    markDeviceLost(gpuDevice);
     gpuDevice.destroy();
     clearActiveDeviceState();
     advanceDeviceEpoch();

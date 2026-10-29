@@ -8,7 +8,7 @@ import { recordCheckStop } from '../../../gpu/kernels/check-stop.js';
 import { recordCheckHotVocabStop } from '../../../gpu/kernels/check-hot-vocab-stop.js';
 import { resetSubmitStats, logSubmitStats } from '../../../gpu/submit-tracker.js';
 import { createCommandRecorder, createProfilingRecorder, CommandRecorder } from '../../../gpu/command-recorder.js';
-import { allowReadback } from '../../../gpu/perf-guards.js';
+import { allowReadback } from '../../../debug/perf-guards.js';
 import { getUniformCache } from '../../../gpu/uniform-cache.js';
 import { log } from '../../../debug/index.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';

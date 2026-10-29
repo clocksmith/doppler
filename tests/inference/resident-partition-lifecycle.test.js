@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createResidentPartitionSession } from '../../src/inference/pipelines/text/resident-partition.js';
 import { scopePipelineShaders } from '../../src/inference/pipelines/shader-scoped-pipeline.js';
-import { getSharedDeviceState } from '../../src/gpu/device-state.js';
+import { markDeviceLost } from '../../src/memory/device-residency.js';
 import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
 import { resolveGenerationOptions } from '../../src/config/generation-contract.js';
 
@@ -69,7 +69,7 @@ assert.equal(failed.closes, 1);
 
 const lost = await sessionWith(() => [1]);
 lost.pipeline.gpuContext = { device: lost.device };
-getSharedDeviceState().lostDevices.add(lost.device);
+markDeviceLost(lost.device);
 assert.equal(lost.session.getDescriptor().ready, false);
 assert.equal(lost.session.getRecoveryCapabilities().checkpointImport, false);
 await assert.rejects(lost.session.tokenize({ identity: identity('lost'), messages: 'prompt', signal }), /device was lost/);
