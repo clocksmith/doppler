@@ -16,6 +16,8 @@ export { trainStep } from './experimental/training/trainer.js';
 export { crossEntropyLoss } from './experimental/training/loss.js';
 export { clipGradients } from './experimental/training/clip.js';
 export { exportLoRAAdapter, serializeLoRASafetensors } from './experimental/training/export.js';
+export { loadLoRAFromManifest } from './experimental/adapters/lora-loader.js';
+export type { LoRAManifest, LoRALoadOptions } from './experimental/adapters/lora-loader.js';
 export { DynamicLossScaler, detectOverflow } from './experimental/training/loss-scaling.js';
 export { TrainingRunner, runTraining } from './experimental/training/runner.js';
 export { DataLoader } from './experimental/training/dataloader.js';

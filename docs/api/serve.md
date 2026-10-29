@@ -1,5 +1,8 @@
 # Capsule HTTP adapter
 
+> **Deprecated.** `doppler-gpu/serve` is deprecated in 0.7.0 and will be removed in
+> 0.8.0. There is no replacement export; the `doppler serve` CLI command is unaffected. See the [changelog](../../CHANGELOG.md).
+
 ## Purpose
 
 Serve an application-opened Capsule session without another model loader or inference

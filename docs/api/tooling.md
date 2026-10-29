@@ -231,17 +231,26 @@ CLI notes:
 
 - `getRuntimeConfig()`
 - `setRuntimeConfig(...)`
+- `initializeInference(modelUrl, options)` (`doppler-gpu/tooling/runtime`)
+
+### Harness helpers
+
+- `runRerank(...)` (`doppler-gpu/tooling`)
 
 ### Storage and manifest helpers
 
-- shard-manager exports
+- shard-manager exports, including `modelExists()` and `verifyIntegrity()`
+- `loadPersistentModelSource()`, `verifyStoredSourceArtifact()`, and
+  `createBlake3Hasher()` (`doppler-gpu/tooling/storage`)
 - storage-registry exports
-- manifest parsing helpers
+- manifest parsing helpers and `DEFAULT_MANIFEST_INFERENCE` /
+  `DEFAULT_KVCACHE_CONFIG` (`doppler-gpu/tooling/manifest`)
 
 ### Device and diagnostics helpers
 
 - `initDevice(...)`
 - `getDevice()`
+- `destroyDevice()`
 - `isWebGPUAvailable()`
 - browser workload helpers
 

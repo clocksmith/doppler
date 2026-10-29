@@ -15,9 +15,9 @@ Exports:
 - `"./runtime"` — `src/capsule-runtime.js` (stable alias)
 - `"./compat"` — `src/index.js` (legacy manifest-loading facade)
 - `"./tooling"` — `src/tooling-exports.js` (command runners, harness API)
-- `"./loaders"` — `src/loaders/index.js`
-- `"./orchestration"` — `src/experimental/orchestration/index.js`
-- `"./generation"`, `"./diffusion"`, `"./energy"` — pipeline-specific exports
+- `"./tooling/storage"`, `"./tooling/device"`, `"./tooling/manifest"`, `"./tooling/runtime"`, `"./tooling/evidence"` — narrow tooling slices
+- `"./generation"` — text pipeline construction
+- Deprecated in 0.7.0, removed in 0.8.0: `"./loaders"`, `"./orchestration"`, `"./diffusion"`, `"./energy"`, `"./serve"`, `"./tooling-experimental"`, `"./models/*"` (see `CHANGELOG.md`)
 
 Binary: `doppler` → `src/cli/doppler-cli.js`
 

@@ -55,6 +55,7 @@ export {
 export {
   captureKvCacheByteProof,
   digestLogitsForTranscript,
+  runRerank,
 } from './inference/browser-harness-text-helpers.js';
 export {
   MODEL_CHECKPOINT_EVIDENCE_SCHEMA,

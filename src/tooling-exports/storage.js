@@ -23,7 +23,12 @@ export {
   computeHash,
   deleteModel,
   listModels,
+  modelExists,
+  verifyIntegrity,
 } from '../storage/shard-manager.js';
+export { loadPersistentModelSource } from '../storage/model-cache.js';
+export { verifyStoredSourceArtifact } from '../storage/source-artifact-store.js';
+export { createHasher as createBlake3Hasher } from '../storage/blake3.js';
 export { listRegisteredModels, registerModel, removeRegisteredModel } from '../storage/registry.js';
 export { listStorageInventory, deleteStorageEntry } from '../storage/inventory.js';
 export { formatBytes, getQuotaInfo } from '../storage/quota.js';

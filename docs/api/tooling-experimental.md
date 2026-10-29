@@ -1,5 +1,8 @@
 # Experimental Tooling API
 
+> **Deprecated.** `doppler-gpu/tooling-experimental` is deprecated in 0.7.0 and will be removed in
+> 0.8.0. There is no replacement export. See the [changelog](../../CHANGELOG.md).
+
 ## Purpose
 
 Experimental browser-conversion and P2P helper surface kept separate from the tier1 tooling core.

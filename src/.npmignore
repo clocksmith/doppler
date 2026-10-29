@@ -527,7 +527,6 @@ inference/browser-harness-model-helpers.js
 inference/browser-harness-report-helpers.d.ts
 inference/browser-harness-suite-helpers.d.ts
 inference/browser-harness-suite-helpers.js
-inference/browser-harness-text-helpers.d.ts
 inference/browser-harness/benchmark-execution.d.ts
 inference/browser-harness/benchmark-rerank.d.ts
 inference/browser-harness/decode-diagnostics.d.ts
@@ -539,9 +538,6 @@ inference/browser-harness/report.d.ts
 inference/browser-harness/request-timing.d.ts
 inference/browser-harness/request.d.ts
 inference/browser-harness/suite-summary.d.ts
-inference/browser-harness/text-evidence.d.ts
-inference/browser-harness/text-execution.d.ts
-inference/browser-harness/text-input.d.ts
 inference/browser-harness/timing-diagnostics.d.ts
 inference/choice-scoring.d.ts
 inference/generation-output.d.ts
@@ -651,6 +647,7 @@ inference/pipelines/text/generator-runtime.d.ts
 inference/pipelines/text/generator-steps.d.ts
 inference/pipelines/text/generator/activation-storage.d.ts
 inference/pipelines/text/generator/attention-lifecycle.d.ts
+inference/pipelines/text/generator/batch-retry-policy.d.ts
 inference/pipelines/text/generator/capsule-generation.d.ts
 inference/pipelines/text/generator/decode-components.d.ts
 inference/pipelines/text/generator/decode-runtime.d.ts
@@ -695,6 +692,7 @@ inference/pipelines/text/logits/utils.d.ts
 inference/pipelines/text/logits/utils.js
 inference/pipelines/text/lora-apply.d.ts
 inference/pipelines/text/modality-token-contract.d.ts
+inference/pipelines/text/model-load.d.ts
 inference/pipelines/text/moe-cache.d.ts
 inference/pipelines/text/moe-cpu.d.ts
 inference/pipelines/text/moe-gpu.d.ts
@@ -738,7 +736,6 @@ inference/pipelines/vision/ops.d.ts
 inference/pipelines/vision/patch-embed.d.ts
 inference/pipelines/vision/spatial-merge.d.ts
 inference/pipelines/vision/weight-loading.d.ts
-inference/rerank.d.ts
 inference/sampling-rng.d.ts
 inference/token-sampling.d.ts
 inference/tokenizers/base.d.ts
@@ -831,7 +828,6 @@ rules/loader/tensor-loader.rules.json
 rules/loader/weights.rules.json
 rules/tooling/command-runtime.rules.json
 storage/backend-selection.d.ts
-storage/blake3.d.ts
 storage/download-types.d.ts
 storage/download/http-contract.d.ts
 storage/download/http-transport.d.ts
@@ -849,7 +845,6 @@ storage/runtime-env.d.ts
 storage/shards/index.d.ts
 storage/shards/integrity.d.ts
 storage/shards/lifecycle.d.ts
-storage/source-artifact-store.d.ts
 sw.d.ts
 sw.js
 tooling-exports.browser.d.ts

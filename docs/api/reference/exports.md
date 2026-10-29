@@ -10,7 +10,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Manual guide: [docs/api/root.md](../root.md)
 - Types: [src/capsule-runtime.d.ts](../../../src/capsule-runtime.d.ts)
 - Implementation: [src/capsule-runtime.js](../../../src/capsule-runtime.js)
-- Notes: Doppler Run: the same verified Capsule execution API as the root surface.
+- Notes: Alias of the root surface (Doppler Run naming); same verified Capsule execution API.
 - Exported symbols:
   - `CapsuleEmbeddingRequest`
   - `CapsuleEmbeddingResult`
@@ -216,6 +216,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Types: [src/cli/serve/capsule-handler.d.ts](../../../src/cli/serve/capsule-handler.d.ts)
 - Implementation: [src/cli/serve/capsule-handler.js](../../../src/cli/serve/capsule-handler.js)
 - Notes: Optional bounded HTTP adapter over an already-open Capsule session. No model loading or release selection.
+- Deprecated: removed in 0.8.0. No replacement export.
 - Support tier source: `src/config/support-tiers/subsystems.json` (api.capsule-http-adapter)
 - Exported symbols:
   - `CapsuleHttpEvents`
@@ -385,6 +386,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Exported symbols:
   - `buildManifestVersionSet`
   - `computeHash`
+  - `createBlake3Hasher`
   - `createOpfsStore`
   - `deleteModel`
   - `deleteStorageEntry`
@@ -401,11 +403,13 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `listStorageInventory`
   - `loadFileFromStore`
   - `loadManifestFromStore`
+  - `loadPersistentModelSource`
   - `loadShard`
   - `loadTensorsFromStore`
   - `loadTokenizerFromStore`
   - `loadTokenizerModelFromStore`
   - `ModelDownloadResumeInspection`
+  - `modelExists`
   - `openModelReadSession`
   - `openModelStore`
   - `openModelStoreSession`
@@ -419,6 +423,8 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `saveTokenizer`
   - `saveTokenizerModel`
   - `streamFileFromStore`
+  - `verifyIntegrity`
+  - `verifyStoredSourceArtifact`
   - `writeShard`
 
 ## `doppler-gpu/tooling/device`
@@ -429,6 +435,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Implementation: [src/tooling-exports/device.js](../../../src/tooling-exports/device.js)
 - Notes: No manual classification recorded for this export path.
 - Exported symbols:
+  - `destroyDevice`
   - `getDevice`
   - `getKernelCapabilities`
   - `getPlatformConfig`
@@ -447,6 +454,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Exported symbols:
   - `classifyTensorRole`
   - `clearManifest`
+  - `DEFAULT_KVCACHE_CONFIG`
   - `DEFAULT_MANIFEST_INFERENCE`
   - `getManifest`
   - `parseManifest`
@@ -465,6 +473,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `createKernelRegistry`
   - `createRuleRegistry`
   - `getRuntimeConfig`
+  - `initializeInference`
   - `installDebugGlobal`
   - `loadRuntimeConfigFromUrl`
   - `loadRuntimeProfile`
@@ -557,6 +566,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Types: [src/models/qwen3.d.ts](../../../src/models/qwen3.d.ts)
 - Implementation: [src/models/qwen3.js](../../../src/models/qwen3.js)
 - Notes: No manual classification recorded for this export path.
+- Deprecated: removed in 0.8.0. No replacement export.
 - Exported symbols:
   - `FAMILY_ID`
   - `HF_REPO_ID`
@@ -571,6 +581,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Types: [src/models/gemma3.d.ts](../../../src/models/gemma3.d.ts)
 - Implementation: [src/models/gemma3.js](../../../src/models/gemma3.js)
 - Notes: No manual classification recorded for this export path.
+- Deprecated: removed in 0.8.0. No replacement export.
 - Exported symbols:
   - `FAMILY_ID`
   - `HF_REPO_ID`
@@ -585,6 +596,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Types: [src/models/gemma4.d.ts](../../../src/models/gemma4.d.ts)
 - Implementation: [src/models/gemma4.js](../../../src/models/gemma4.js)
 - Notes: No manual classification recorded for this export path.
+- Deprecated: removed in 0.8.0. No replacement export.
 - Exported symbols:
   - `FAMILY_ID`
   - `HF_REPO_ID`
@@ -599,6 +611,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Types: [src/models/diffusiongemma.d.ts](../../../src/models/diffusiongemma.d.ts)
 - Implementation: [src/models/diffusiongemma.js](../../../src/models/diffusiongemma.js)
 - Notes: No manual classification recorded for this export path.
+- Deprecated: removed in 0.8.0. No replacement export.
 - Exported symbols:
   - `FAMILY_ID`
   - `HF_REPO_ID`
@@ -613,6 +626,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Types: [src/models/embeddinggemma.d.ts](../../../src/models/embeddinggemma.d.ts)
 - Implementation: [src/models/embeddinggemma.js](../../../src/models/embeddinggemma.js)
 - Notes: No manual classification recorded for this export path.
+- Deprecated: removed in 0.8.0. No replacement export.
 - Exported symbols:
   - `FAMILY_ID`
   - `HF_REPO_ID`
@@ -627,9 +641,55 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Types: [src/tooling-experimental-exports.d.ts](../../../src/tooling-experimental-exports.d.ts)
 - Implementation: [src/tooling-experimental-exports.js](../../../src/tooling-experimental-exports.js)
 - Notes: No manual classification recorded for this export path.
+- Deprecated: removed in 0.8.0. No replacement export.
 - Support tier source: `src/config/support-tiers/subsystems.json` (api.tooling-p2p-helpers)
 - Exported symbols:
-  - `*`
+  - `aggregateP2PDeliveryObservability`
+  - `assertPeerSupportsDescriptor`
+  - `assertTrainerArtifactCandidateEntry`
+  - `buildP2PAlertsFromSummary`
+  - `buildP2PDashboardSnapshot`
+  - `buildTrainerArtifactImportPlan`
+  - `buildTrainerArtifactParityTemplate`
+  - `COLUMBO_QWEN_ADAPTER_PARITY_CHECKS`
+  - `convertModel`
+  - `createBrowserWebRTCDataPlaneTransport`
+  - `createDescriptorPeerAssignment`
+  - `createP2PDeliveryObservabilityRecord`
+  - `createRemoteModelSources`
+  - `DESCRIPTOR_TRANSPORT_CONTRACT_VERSION`
+  - `evaluateP2PPolicyDecision`
+  - `getDescriptorRequiredGenerators`
+  - `getDescriptorRequiredShards`
+  - `isBrowserWebRTCAvailable`
+  - `isConversionSupported`
+  - `negotiateDescriptorShardCache`
+  - `normalizeGammaTrainerArtifactHandoff`
+  - `normalizeP2PControlPlaneConfig`
+  - `normalizePeerCapabilityProfile`
+  - `P2P_CONTROL_PLANE_CONTRACT_VERSION`
+  - `P2P_OBSERVABILITY_SCHEMA_VERSION`
+  - `P2P_WEBRTC_DATA_PLANE_CONTRACT_VERSION`
+  - `pickModelDirectory`
+  - `pickModelFiles`
+  - `resolveP2PSessionToken`
+  - `TRAINER_ARTIFACT_BRIDGE_SCHEMA_ID`
+  - `TRAINER_ARTIFACT_IMPORT_PLAN_SCHEMA_ID`
+  - `TRAINER_ARTIFACT_KIND_FULL_CHECKPOINT`
+  - `TRAINER_ARTIFACT_KIND_PEFT_ADAPTER`
+  - `TRAINER_ARTIFACT_PARITY_EVIDENCE_SCHEMA_ID`
+  - `TRAINER_ARTIFACT_PARITY_RECEIPT_SCHEMA_ID`
+  - `TrainerArtifactArchitecture`
+  - `TrainerArtifactBridgeDescriptor`
+  - `TrainerArtifactFileIdentity`
+  - `TrainerArtifactImportPlan`
+  - `TrainerArtifactParityEvidence`
+  - `TrainerArtifactParityEvidenceCheck`
+  - `TrainerArtifactVerificationReceipt`
+  - `TRANSLATION_FULL_CHECKPOINT_PARITY_CHECKS`
+  - `validateActivationTransportPayload`
+  - `validateTrainerArtifactBridgeDescriptor`
+  - `verifyTrainerArtifactParityEvidence`
 
 ## `doppler-gpu/loaders`
 
@@ -639,6 +699,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Types: [src/loaders/index.d.ts](../../../src/loaders/index.d.ts)
 - Implementation: [src/loaders/index.js](../../../src/loaders/index.js)
 - Notes: Explicit loader and manifest/bootstrap helpers.
+- Deprecated: removed in 0.8.0. Load through `doppler-gpu` or `doppler-gpu/compat`; manifest and storage helpers are in `doppler-gpu/tooling/manifest` and `doppler-gpu/tooling/storage`.
 - Support tier source: `src/config/support-tiers/subsystems.json` (api.loaders-subpath)
 - Exported symbols:
   - `*`
@@ -651,6 +712,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Types: [src/experimental/orchestration/index.d.ts](../../../src/experimental/orchestration/index.d.ts)
 - Implementation: [src/experimental/orchestration/index.js](../../../src/experimental/orchestration/index.js)
 - Notes: Tokenizer, KV cache, router, adapter, and logit-merge orchestration helpers.
+- Deprecated: removed in 0.8.0. No replacement export; Node LoRA loading is `loadLoRAFromManifest` in `doppler-gpu/training`.
 - Support tier source: `src/config/support-tiers/subsystems.json` (api.orchestration-subpath)
 - Exported symbols:
   - `*`
@@ -674,6 +736,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Notes: Lower-level text pipeline construction and pipeline types.
 - Support tier source: `src/config/support-tiers/subsystems.json` (api.generation-subpath)
 - Exported symbols:
+  - `AbortError`
   - `AdvanceEmbeddingResult`
   - `BatchingStats`
   - `createPipeline`
@@ -682,6 +745,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `GenerateOptions`
   - `GenerationResult`
   - `InferencePipeline`
+  - `isAbortError`
   - `KVCacheSnapshot`
   - `LayerWeights`
   - `LogitsStepResult`
@@ -729,6 +793,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `getTrainingCapabilities`
   - `loadCheckpoint`
   - `LoadedTrainingWorkload`
+  - `loadLoRAFromManifest`
   - `loadNativeQwenTrainingPipeline`
   - `loadTrainingWorkloadCapsule`
   - `LORA_RUNNER_BASE_MODEL_REGISTRY`
@@ -736,6 +801,8 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `LORA_RUNNER_SUPPORT_CONTRACT`
   - `LoraAdapter`
   - `LoRAGradientContribution`
+  - `LoRALoadOptions`
+  - `LoRAManifest`
   - `LoRATrainingAssignment`
   - `LoRATrainingRound`
   - `LoRATrainingSample`
@@ -775,6 +842,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Types: [src/experimental/diffusion/index.d.ts](../../../src/experimental/diffusion/index.d.ts)
 - Implementation: [src/experimental/diffusion/index.js](../../../src/experimental/diffusion/index.js)
 - Notes: Diffusion/image pipeline surface.
+- Deprecated: removed in 0.8.0. No replacement export.
 - Support tier source: `src/config/support-tiers/subsystems.json` (api.diffusion-subpath)
 - Exported symbols:
   - `applyEntropyBoundStep`
@@ -812,6 +880,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Types: [src/experimental/energy/index.d.ts](../../../src/experimental/energy/index.d.ts)
 - Implementation: [src/experimental/energy/index.js](../../../src/experimental/energy/index.js)
 - Notes: Energy pipeline surface.
+- Deprecated: removed in 0.8.0. No replacement export.
 - Support tier source: `src/config/support-tiers/subsystems.json` (api.energy-subpath)
 - Exported symbols:
   - `computeQuintelEnergy`

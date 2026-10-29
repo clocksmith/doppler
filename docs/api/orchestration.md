@@ -1,5 +1,9 @@
 # Orchestration API
 
+> **Deprecated.** `doppler-gpu/orchestration` is deprecated in 0.7.0 and will be removed in
+> 0.8.0. There is no replacement export. Node LoRA loading is
+> `loadLoRAFromManifest` in `doppler-gpu/training`. See the [changelog](../../CHANGELOG.md).
+
 ## Purpose
 
 Advanced orchestration helpers that sit above loading but below the root `doppler` facade.

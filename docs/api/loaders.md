@@ -1,5 +1,10 @@
 # Loaders API
 
+> **Deprecated.** `doppler-gpu/loaders` is deprecated in 0.7.0 and will be removed in
+> 0.8.0. Load through `doppler-gpu` or `doppler-gpu/compat`; manifest helpers are in
+> `doppler-gpu/tooling/manifest` and OPFS storage in `doppler-gpu/tooling/storage`.
+> The explicit loader classes have no replacement. See the [changelog](../../CHANGELOG.md).
+
 ## Purpose
 
 Explicit loader and manifest/bootstrap helpers for advanced consumers who want more control than `dr.load(...)`.
@@ -25,7 +30,8 @@ Current support tier: `tier1` advanced surface. See [Subsystem Support Matrix](.
 - `getDopplerLoader()`
 - `createDopplerLoader()`
 - `MultiModelLoader`
-- manifest/config bootstrap helpers re-exported from loader-facing modules
+- loader-module helpers from `src/loader/index.js` (text-pipeline config and init
+  helpers are no longer re-exported here as of 0.7.0)
 
 ## Related Surfaces
 
