@@ -1,4 +1,10 @@
-export { InferencePipeline, EmbeddingPipeline, createPipeline } from '../inference/pipelines/text.js';
+export {
+  InferencePipeline,
+  EmbeddingPipeline,
+  createPipeline,
+  AbortError,
+  isAbortError,
+} from '../inference/pipelines/text.js';
 export type {
   GenerateOptions,
   GenerationResult,

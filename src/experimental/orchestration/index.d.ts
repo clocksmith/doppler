@@ -1,3 +1,4 @@
+/** @deprecated Since 0.7.0. Removed in 0.8.0; no replacement export. Node LoRA loading: `doppler-gpu/training`. */
 export * from '../../inference/tokenizer.js';
 export * from '../../inference/kv-cache.js';
 export { SpeculativeDecoder } from '../../inference/speculative.js';

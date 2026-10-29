@@ -1,6 +1,7 @@
 export {
   initDevice,
   getDevice,
+  destroyDevice,
   getKernelCapabilities,
   getPlatformConfig,
   isWebGPUAvailable,

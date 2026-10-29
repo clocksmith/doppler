@@ -1026,6 +1026,7 @@
         "tools/run-adamw-optimizer-oracle.js",
         "tools/run-agent-heldout-eval.js",
         "tools/run-capsule-retention-experiment.js",
+        "tools/run-check-gate.js",
         "tools/run-distill-bench.js",
         "tools/run-f16-matmul-backward-oracle.js",
         "tools/run-node-coverage.js",
@@ -4730,6 +4731,7 @@
         "tests/integration/command-api.test.js",
         "tests/integration/command-envelope.test.js",
         "tests/integration/command-runner-shared.test.js",
+        "tests/integration/consumer-entry-points.test.js",
         "tests/integration/debug-config-contract.test.js",
         "tests/integration/debug-signals-contract.test.js",
         "tests/integration/debug-tensor-contract.test.js",
@@ -5136,6 +5138,7 @@
         "tests/tooling/reranker-reference-schedule.test.js",
         "tests/tooling/restore-capsule-baseline.test.js",
         "tests/tooling/retained-release-checkpoint.test.js",
+        "tests/tooling/run-check-gate.test.js",
         "tests/tooling/run-node-tests-isolation.test.js",
         "tests/tooling/runtime-closure-graph.test.js",
         "tests/tooling/runtime-optimization-index.test.js",
@@ -5353,7 +5356,6 @@
         "src/config/rope-frequencies.js",
         "src/config/runtime-merge.js",
         "src/config/runtime.js",
-        "src/config/runtime/profiles/gemma4-31b-f16-activations-probe.json",
         "src/config/runtime/profiles/qwen-3-reranker-0-6b-metal-stability.json",
         "src/config/runtime/profiles/qwen-3-reranker-0-6b-metal-throughput.json",
         "src/config/schema/adapter.schema.js",
@@ -6311,7 +6313,6 @@
     "src/config/merge-helpers.js",
     "src/config/quickstart-registry.json",
     "src/config/revocation-registry.json",
-    "src/config/runtime/profiles/gemma4-31b-f16-activations-probe.json",
     "src/config/runtime/profiles/qwen-3-reranker-0-6b-metal-stability.json",
     "src/config/runtime/profiles/qwen-3-reranker-0-6b-metal-throughput.json",
     "src/converter/tokenizer-utils.js",
@@ -6454,7 +6455,7 @@
     {
       "file": "tests/config/embedding-compare-contract.test.js",
       "kind": "asset",
-      "line": 59,
+      "line": 67,
       "expression": "new URL(`../../src/config/runtime/${runtimeProfileId}.json`, import.meta.url)"
     },
     {
@@ -6800,33 +6801,9 @@
       "expression": "import(target)"
     },
     {
-      "file": "tests/inference/qwen-manifest-completeness.test.js",
-      "kind": "asset",
-      "line": 11,
-      "expression": "new URL(path, import.meta.url)"
-    },
-    {
       "file": "tests/inference/qwen-output-gate-recorder-contract.test.js",
       "kind": "asset",
       "line": 10,
-      "expression": "new URL(relativePath, import.meta.url)"
-    },
-    {
-      "file": "tests/inference/qwen-rmsnorm-offset-contract.test.js",
-      "kind": "asset",
-      "line": 6,
-      "expression": "new URL(path, import.meta.url)"
-    },
-    {
-      "file": "tests/inference/qwen-rmsnorm-offset-contract.test.js",
-      "kind": "asset",
-      "line": 51,
-      "expression": "new URL(relativePath, import.meta.url)"
-    },
-    {
-      "file": "tests/inference/qwen-rmsnorm-offset-contract.test.js",
-      "kind": "asset",
-      "line": 64,
       "expression": "new URL(relativePath, import.meta.url)"
     },
     {
@@ -6884,6 +6861,36 @@
       "expression": "import(pathToFileURL(resolve(packageRoot, metadata.exports['./choice-scoring-contract'].import)))"
     },
     {
+      "file": "tests/integration/consumer-entry-points.test.js",
+      "kind": "dynamic",
+      "line": 12,
+      "expression": "import(pathToFileURL(target.import).href)"
+    },
+    {
+      "file": "tests/integration/consumer-entry-points.test.js",
+      "kind": "dynamic",
+      "line": 33,
+      "expression": "import(pathToFileURL(implementationPath).href)"
+    },
+    {
+      "file": "tests/integration/consumer-entry-points.test.js",
+      "kind": "dynamic",
+      "line": 43,
+      "expression": "import(pathToFileURL('src/storage/blake3.js').href)"
+    },
+    {
+      "file": "tests/integration/consumer-entry-points.test.js",
+      "kind": "dynamic",
+      "line": 53,
+      "expression": "import(pathToFileURL('src/tooling-exports.browser.js').href)"
+    },
+    {
+      "file": "tests/integration/consumer-entry-points.test.js",
+      "kind": "dynamic",
+      "line": 63,
+      "expression": "import(pathToFileURL('src/loader/index.js').href)"
+    },
+    {
       "file": "tests/integration/frozen-reference-producer-replay.js",
       "kind": "outside-repository",
       "line": 12,
@@ -6916,26 +6923,14 @@
     {
       "file": "tests/integration/gemma4-12b-f16-activations.test.js",
       "kind": "asset",
-      "line": 12,
-      "expression": "new URL(`../../src/config/conversion/gemma4/${AF32_MODEL_ID}.json`, import.meta.url)"
-    },
-    {
-      "file": "tests/integration/gemma4-12b-f16-activations.test.js",
-      "kind": "asset",
-      "line": 19,
-      "expression": "new URL(`../../src/config/conversion/gemma4/${AF16_MODEL_ID}.json`, import.meta.url)"
+      "line": 20,
+      "expression": "new URL(relativePath, import.meta.url)"
     },
     {
       "file": "tests/integration/gemma4-31b-f16-activations.test.js",
       "kind": "asset",
-      "line": 12,
-      "expression": "new URL(`../../src/config/conversion/gemma4/${AF32_MODEL_ID}.json`, import.meta.url)"
-    },
-    {
-      "file": "tests/integration/gemma4-31b-f16-activations.test.js",
-      "kind": "asset",
-      "line": 19,
-      "expression": "new URL(`../../src/config/conversion/gemma4/${AF16_MODEL_ID}.json`, import.meta.url)"
+      "line": 17,
+      "expression": "new URL(relativePath, import.meta.url)"
     },
     {
       "file": "tests/integration/node-provider-standalone.test.js",
@@ -6958,7 +6953,7 @@
     {
       "file": "tests/integration/qwen-execution-v1-linear-decode-f16.test.js",
       "kind": "asset",
-      "line": 10,
+      "line": 16,
       "expression": "new URL(relativePath, import.meta.url)"
     },
     {

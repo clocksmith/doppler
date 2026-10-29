@@ -17,7 +17,7 @@
       "command": null,
       "docs": ["docs/api/serve.md"],
       "entrypoints": ["src/cli/serve/capsule-handler.js"],
-      "notes": "Optional Node HTTP transport over an application-owned Capsule session; no separate inference engine or remote-delegation authority. Synthetic connected tests are not model or physical qualification."
+      "notes": "Optional Node HTTP transport over an application-owned Capsule session; no separate inference engine or remote-delegation authority. Synthetic connected tests are not model or physical qualification. Deprecated in 0.7.0; removed in 0.8.0 (CHANGELOG.md)."
     },
     {
       "id": "api.root-facade",
@@ -237,7 +237,7 @@
       "entrypoints": [
         "src/loaders/index.js"
       ],
-      "notes": "Supported advanced surface for explicit loading flows beyond the root facade."
+      "notes": "Supported advanced surface for explicit loading flows beyond the root facade. Deprecated in 0.7.0; removed in 0.8.0 (CHANGELOG.md)."
     },
     {
       "id": "api.tooling-subpath",
@@ -281,7 +281,7 @@
         "src/tooling-exports.shared.js",
         "src/experimental/browser/browser-converter.js"
       ],
-      "notes": "Browser conversion and file-picker helpers ship on the dedicated tooling-experimental subpath for advanced workflows, but they are not part of the tier1 quickstart or demo-default contract."
+      "notes": "Browser conversion and file-picker helpers ship on the dedicated tooling-experimental subpath for advanced workflows, but they are not part of the tier1 quickstart or demo-default contract. Deprecated in 0.7.0; removed in 0.8.0 (CHANGELOG.md)."
     },
     {
       "id": "api.tooling-p2p-helpers",
@@ -303,7 +303,7 @@
         "src/tooling-exports.shared.js",
         "src/experimental/distribution/p2p-control-plane.js"
       ],
-      "notes": "P2P and distribution helpers are exported on the dedicated tooling-experimental subpath for advanced tooling flows, but they remain outside the current tier1 local text inference story."
+      "notes": "P2P and distribution helpers are exported on the dedicated tooling-experimental subpath for advanced tooling flows, but they remain outside the current tier1 local text inference story. Deprecated in 0.7.0; removed in 0.8.0 (CHANGELOG.md)."
     },
     {
       "id": "api.tooling-operator-commands",
@@ -367,7 +367,7 @@
       "entrypoints": [
         "src/experimental/orchestration/index.js"
       ],
-      "notes": "Mixed advanced surface for adapters, routers, heads, and multi-model helpers; available, but not part of the mainline proof story."
+      "notes": "Mixed advanced surface for adapters, routers, heads, and multi-model helpers; available, but not part of the mainline proof story. Deprecated in 0.7.0; removed in 0.8.0 (CHANGELOG.md)."
     },
     {
       "id": "runtime.lora-hot-swap",
@@ -473,7 +473,7 @@
       "entrypoints": [
         "src/experimental/diffusion/index.js"
       ],
-      "notes": "Shipped advanced surface for diffusion/image workflows, outside the main tier1 local text inference story."
+      "notes": "Shipped advanced surface for diffusion/image workflows, outside the main tier1 local text inference story. Deprecated in 0.7.0; removed in 0.8.0 (CHANGELOG.md)."
     },
     {
       "id": "api.energy-subpath",
@@ -493,7 +493,7 @@
       "entrypoints": [
         "src/experimental/energy/index.js"
       ],
-      "notes": "Shipped specialized surface, but not part of the mainline README or demo-default claim set."
+      "notes": "Shipped specialized surface, but not part of the mainline README or demo-default claim set. Deprecated in 0.7.0; removed in 0.8.0 (CHANGELOG.md)."
     },
     {
       "id": "api.training-subpath",

@@ -157,9 +157,6 @@
       "formats/quantization-constants.js"
     ],
     "loaders/index.js": [
-      "inference/pipelines/text/config.js",
-      "inference/pipelines/text/init.js",
-      "inference/pipelines/text/model-load.js",
       "loader/index.js"
     ],
     "tooling-exports.js": [

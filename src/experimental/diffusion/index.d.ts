@@ -1,3 +1,4 @@
+/** @deprecated Since 0.7.0. Removed in 0.8.0; no replacement export. See CHANGELOG.md. */
 export { DiffusionPipeline, createDiffusionPipeline } from './pipeline.js';
 export { DiffusionGemmaPipeline } from '../../inference/pipelines/diffusion-gemma/pipeline.js';
 export type {

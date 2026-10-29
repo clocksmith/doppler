@@ -1,5 +1,8 @@
 # Energy API
 
+> **Deprecated.** `doppler-gpu/energy` is deprecated in 0.7.0 and will be removed in
+> 0.8.0. There is no replacement export. See the [changelog](../../CHANGELOG.md).
+
 ## Purpose
 
 Experimental energy-pipeline surface for energy-specific pipeline creation and Quintel helpers.

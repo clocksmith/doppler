@@ -8,8 +8,6 @@ Map the older broad root surface to the current dedicated advanced subpaths.
 
 ```js
 import { dr } from 'doppler-gpu';
-import { DopplerLoader } from 'doppler-gpu/loaders';
-import { KVCache } from 'doppler-gpu/orchestration';
 import { createPipeline } from 'doppler-gpu/generation';
 import { getTrainingCapabilities, trainSftLoRA } from 'doppler-gpu/training';
 ```
@@ -30,22 +28,21 @@ The API pages explain each supported entrypoint:
 
 | Subpath | API contract |
 | --- | --- |
-| `doppler-gpu/loaders` | [Loader setup](loaders.md) |
-| `doppler-gpu/orchestration` | [Caches, routers, adapters and orchestration](orchestration.md) |
+| `doppler-gpu/loaders` (deprecated) | [Loader setup](loaders.md) |
+| `doppler-gpu/orchestration` (deprecated) | [Caches, routers, adapters and orchestration](orchestration.md) |
 | `doppler-gpu/generation` | [Pipeline construction and generation](generation.md) |
 | `doppler-gpu/training` | [Training and backend capabilities](training.md) |
 | `doppler-gpu/tooling` | [Generated tooling exports](reference/exports.md) |
-| `doppler-gpu/tooling-experimental` | [Generated experimental exports](reference/exports.md) |
+| `doppler-gpu/tooling-experimental` (deprecated) | [Generated experimental exports](reference/exports.md) |
 
 ## Migration Rule
 
 - Application code should import `dr` from `doppler-gpu`.
-- Explicit loader work should import from `doppler-gpu/loaders`.
-- KV cache, routers, adapters, and logit-merge helpers should import from `doppler-gpu/orchestration`.
+- `doppler-gpu/loaders`, `doppler-gpu/orchestration`, and `doppler-gpu/tooling-experimental` are deprecated in 0.7.0 and removed in 0.8.0; see the [changelog](../../CHANGELOG.md) for replacements.
+- Manifest and OPFS storage helpers should import from `doppler-gpu/tooling/manifest` and `doppler-gpu/tooling/storage`.
 - Direct pipeline construction should import from `doppler-gpu/generation`.
 - SFT/LoRA orchestration and backward primitives should import from `doppler-gpu/training`.
 - Tooling and command helpers should import from `doppler-gpu/tooling`.
-- Browser conversion/file-picker and P2P helpers should import from `doppler-gpu/tooling-experimental`.
 - Treat `doppler-gpu/tooling` as a mixed-tier export mainly because operator command flows remain experimental.
 - Check the subsystem support matrix before treating every exported subpath as equally promoted.
 

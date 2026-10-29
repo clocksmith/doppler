@@ -1,5 +1,8 @@
 # Diffusion API
 
+> **Deprecated.** `doppler-gpu/diffusion` is deprecated in 0.7.0 and will be removed in
+> 0.8.0. There is no replacement export. See the [changelog](../../CHANGELOG.md).
+
 ## Purpose
 
 Experimental diffusion/image pipeline surface for consumers working with diffusion manifests and image regression helpers.

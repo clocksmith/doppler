@@ -8,4 +8,4 @@ export {
   clearManifest,
   classifyTensorRole,
 } from '../formats/rdrr/index.js';
-export { DEFAULT_MANIFEST_INFERENCE } from '../config/schema/index.js';
+export { DEFAULT_MANIFEST_INFERENCE, DEFAULT_KVCACHE_CONFIG } from '../config/schema/index.js';

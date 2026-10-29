@@ -12,6 +12,24 @@ const PACKAGE_PATH = path.join(REPO_ROOT, 'package.json');
 const OUTPUT_PATH = path.join(REPO_ROOT, 'docs', 'api', 'reference', 'exports.md');
 const SUPPORT_TIER_REGISTRY_PATH = path.join(REPO_ROOT, 'src', 'config', 'support-tiers', 'subsystems.json');
 
+// Deprecated subpaths stay exported until the named removal release; CHANGELOG.md
+// carries the same list for package readers.
+const REMOVAL_RELEASE = '0.8.0';
+const NO_REPLACEMENT = 'No replacement export.';
+const DEPRECATED_EXPORTS = {
+  './serve': NO_REPLACEMENT,
+  './models/qwen3': NO_REPLACEMENT,
+  './models/gemma3': NO_REPLACEMENT,
+  './models/gemma4': NO_REPLACEMENT,
+  './models/diffusiongemma': NO_REPLACEMENT,
+  './models/embeddinggemma': NO_REPLACEMENT,
+  './tooling-experimental': NO_REPLACEMENT,
+  './loaders': 'Load through `doppler-gpu` or `doppler-gpu/compat`; manifest and storage helpers are in `doppler-gpu/tooling/manifest` and `doppler-gpu/tooling/storage`.',
+  './orchestration': 'No replacement export; Node LoRA loading is `loadLoRAFromManifest` in `doppler-gpu/training`.',
+  './diffusion': NO_REPLACEMENT,
+  './energy': NO_REPLACEMENT,
+};
+
 const EXPORT_META = {
   './serve': {
     audience: 'Node application authors',
@@ -29,7 +47,7 @@ const EXPORT_META = {
     audience: 'app authors',
     stability: 'preferred public',
     docPath: 'docs/api/root.md',
-    notes: 'Doppler Run: the same verified Capsule execution API as the root surface.',
+    notes: 'Alias of the root surface (Doppler Run naming); same verified Capsule execution API.',
   },
   './runtime': {
     audience: 'app authors',
@@ -189,6 +207,11 @@ async function buildReferenceMarkdown() {
       .map((entry) => [entry.packageExport, entry])
   );
   const exportsList = normalizeExportMap(packageJson.exports);
+  const unknownDeprecations = Object.keys(DEPRECATED_EXPORTS)
+    .filter((exportPath) => !exportsList.some((entry) => entry.exportPath === exportPath));
+  if (unknownDeprecations.length) {
+    throw new Error(`Deprecated exports missing from package.json: ${unknownDeprecations.join(', ')}`);
+  }
   const lines = [];
   lines.push('# Public Export Inventory');
   lines.push('');
@@ -228,6 +251,9 @@ async function buildReferenceMarkdown() {
       lines.push(`- Implementation: [${relativeFromRepo(entry.importFile)}](${toDocLink(entry.importFile)})`);
     }
     lines.push(`- Notes: ${meta.notes}`);
+    if (Object.hasOwn(DEPRECATED_EXPORTS, entry.exportPath)) {
+      lines.push(`- Deprecated: removed in ${REMOVAL_RELEASE}. ${DEPRECATED_EXPORTS[entry.exportPath]}`);
+    }
     if (supportEntry) {
       lines.push(`- Support tier source: \`src/config/support-tiers/subsystems.json\` (${supportEntry.id})`);
     }

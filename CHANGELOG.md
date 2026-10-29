@@ -4,6 +4,44 @@ Historical package notes are preserved outside the runtime archive in
 `docs/status/archive/package-changelog-through-0.6.1.md` and the earlier
 `package-changelog-through-0.4.15.md` snapshot in that directory.
 
+## [0.7.0 candidate]
+
+### Deprecated
+
+No workspace application or reference example imports these subpaths. They
+remain available in 0.7.x and will be removed in 0.8.0:
+
+- `doppler-gpu/loaders`: load through `doppler-gpu` or `doppler-gpu/compat`;
+  manifest helpers are in `doppler-gpu/tooling/manifest` and OPFS storage in
+  `doppler-gpu/tooling/storage`. The explicit loader classes have no replacement.
+- `doppler-gpu/serve`, `doppler-gpu/tooling-experimental`, `doppler-gpu/orchestration`,
+  `doppler-gpu/diffusion`, `doppler-gpu/energy`, and `doppler-gpu/models/qwen3`,
+  `models/gemma3`, `models/gemma4`, `models/diffusiongemma` and
+  `models/embeddinggemma`: no replacement export.
+
+`doppler-gpu/run` and `doppler-gpu/runtime` remain aliases of `doppler-gpu`,
+and `createDopplerRuntime` remains an alias of `createDopplerRun`.
+
+### Changed
+
+- `doppler-gpu/loaders` no longer re-exports text-pipeline internals
+  (`inference/pipelines/text/config.js`, `init.js`, `model-load.js`). No
+  consumer imported them through this subpath.
+
+### Added
+
+Supported entry points for modules that applications imported by internal path:
+
+- `doppler-gpu/tooling/storage`: `modelExists`, `verifyIntegrity`,
+  `loadPersistentModelSource`, `verifyStoredSourceArtifact`, and
+  `createBlake3Hasher` (BLAKE3 `createHasher`).
+- `doppler-gpu/tooling/device`: `destroyDevice`.
+- `doppler-gpu/tooling/manifest`: `DEFAULT_KVCACHE_CONFIG`.
+- `doppler-gpu/tooling/runtime`: `initializeInference`.
+- `doppler-gpu/tooling`: `runRerank`.
+- `doppler-gpu/generation`: `AbortError`, `isAbortError`.
+- `doppler-gpu/training` (Node): `loadLoRAFromManifest`.
+
 ## [0.6.27 candidate]
 
 - Export resident request/result, tokenization and observation types through

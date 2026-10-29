@@ -1,3 +1,4 @@
+/** @deprecated Since 0.7.0. Removed in 0.8.0; no replacement export. See CHANGELOG.md. */
 /**
  * Experimental Tooling Surface Exports
  *
