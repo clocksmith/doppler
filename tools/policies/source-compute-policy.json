@@ -1110,11 +1110,6 @@
       "reason": "The CPU logits reference is isolated under src/experimental and excluded from Capsule Runtime execution."
     },
     {
-      "id": "src/experimental/logits/cpu.js#f16BufferToF32",
-      "category": "quarantined-experimental",
-      "reason": "The CPU logits reference is isolated under src/experimental and excluded from Capsule Runtime execution."
-    },
-    {
       "id": "src/experimental/training/attention-backward.js#computeAttentionSoftmaxData",
       "category": "quarantined-experimental",
       "reason": "This numerical training reference is isolated under src/experimental and excluded from Capsule Runtime execution."
@@ -1158,11 +1153,6 @@
       "id": "src/inference/kv-cache/types.js#f32ToF16Array",
       "category": "artifact-codec-materialization",
       "reason": "This compatibility codec is used by tests, experimental owners, and declared host-input materialization; canonical runtime tensor paths do not call it."
-    },
-    {
-      "id": "src/inference/kv-cache/types.js#f16ToF32Array",
-      "category": "artifact-codec-materialization",
-      "reason": "This compatibility codec is used by tests and experimental owners; canonical runtime tensor paths do not call it."
     },
     {
       "id": "src/inference/pipelines/text/embedding-extraction.js#buildSequencePoolControl",

@@ -1,5 +1,3 @@
-import { float16ToFloat32 } from '../../formats/float16.js';
-
 // ============================================================================
 // Type Guards
 // ============================================================================
@@ -53,10 +51,4 @@ export function f32ToF16Array(input) {
 }
 
 
-export function f16ToF32Array(input) {
-  const out = new Float32Array(input.length);
-  for (let i = 0; i < input.length; i++) {
-    out[i] = float16ToFloat32(input[i]);
-  }
-  return out;
-}
+export { decodeFloat16Array as f16ToF32Array } from '../../formats/float16.js';
