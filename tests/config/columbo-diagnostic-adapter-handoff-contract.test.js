@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import {
+  assertTrainerArtifactCandidateEntry,
   buildTrainerArtifactImportPlan,
   validateTrainerArtifactBridgeDescriptor,
 } from '../../src/experimental/bridge/trainer-artifact-bridge.js';
@@ -20,32 +21,47 @@ function hashStableJson(value) {
   return sha256Hex(JSON.stringify(stableSortObject(value)));
 }
 
+// The recorded descriptor is valid under the bridge's own validator.
 const descriptorValidation = validateTrainerArtifactBridgeDescriptor(receipt.descriptor);
 assert.equal(descriptorValidation.valid, true, descriptorValidation.errors.join(', '));
-assert.equal(receipt.descriptor.artifact.kind, 'peft_adapter');
-assert.equal(receipt.descriptor.artifact.role, 'diagnostic_candidate');
-assert.equal(receipt.descriptor.selection.authority, 'clocksmith/columbo');
-assert.equal(receipt.descriptor.selection.status, 'not_selected');
-assert.equal(receipt.descriptor.selection.receipt, null);
+const descriptor = descriptorValidation.descriptor;
 
+// Verification receipt hash is self-consistent and binds to this descriptor.
 const { receiptHash: verificationHash, ...verificationCore } = receipt.verification;
 assert.equal(hashStableJson(verificationCore), verificationHash);
 assert.equal(receipt.verification.ok, true);
-assert.equal(receipt.verification.artifactRole, 'diagnostic_candidate');
-assert.equal(receipt.verification.admission.candidateCompetitionAllowed, false);
-assert.equal(receipt.verification.admission.promotionAllowed, false);
+assert.equal(receipt.verification.bridgeId, descriptor.bridgeId);
+assert.equal(receipt.verification.artifactRole, descriptor.artifact.role);
 
+// The recorded plan is exactly what the bridge rebuilds from descriptor + verification.
 const rebuiltPlan = buildTrainerArtifactImportPlan(receipt.descriptor, receipt.verification);
-assert.equal(rebuiltPlan.planHash, receipt.plan.planHash);
-assert.equal(receipt.plan.entrypoint, 'loadLoRAWeights');
-assert.equal(receipt.plan.admission.candidateCompetitionAllowed, false);
-assert.equal(receipt.plan.admission.promotionAllowed, false);
+assert.deepEqual(receipt.plan, rebuiltPlan);
 
+// The import receipt chains to the plan and verification, and repeats the derived admission.
 const { receiptHash: importHash, ...importCore } = receipt.importReceipt;
 assert.equal(hashStableJson(importCore), importHash);
-assert.equal(receipt.importReceipt.importedIdentity.adapterId,
-  'columbo-qwen-peft-r8-attn4-clean943-r04w40-noeval-cpu');
-assert.equal(receipt.importReceipt.candidateCompetitionAllowed, false);
-assert.equal(receipt.importReceipt.promotionAllowed, false);
+assert.equal(receipt.importReceipt.importPlanHash, rebuiltPlan.planHash);
+assert.equal(receipt.importReceipt.identityReceiptHash, verificationHash);
+assert.equal(receipt.importReceipt.importedIdentity.adapterId, path.posix.basename(descriptor.artifact.rootPath));
+assert.equal(receipt.importReceipt.importedIdentity.baseModel, descriptor.baseModel.modelId);
+for (const admission of [receipt.verification.admission, receipt.importReceipt]) {
+  assert.equal(admission.candidateCompetitionAllowed, rebuiltPlan.admission.candidateCompetitionAllowed);
+  assert.equal(admission.promotionAllowed, rebuiltPlan.admission.promotionAllowed);
+}
+
+// An unselected diagnostic adapter cannot enter candidate competition.
+if (descriptor.selection.status !== 'selected') {
+  assert.equal(rebuiltPlan.admission.candidateCompetitionAllowed, false);
+  assert.throws(() => assertTrainerArtifactCandidateEntry(receipt.descriptor), /candidate entry denied/);
+}
+
+// Failure paths: a failing verification cannot produce a plan; a broken descriptor is rejected.
+assert.throws(
+  () => buildTrainerArtifactImportPlan(receipt.descriptor, { ...receipt.verification, ok: false }),
+  /requires a passing verification receipt/
+);
+const broken = structuredClone(receipt.descriptor);
+delete broken.artifact.kind;
+assert.equal(validateTrainerArtifactBridgeDescriptor(broken).valid, false);
 
 console.log('columbo-diagnostic-adapter-handoff-contract.test: ok');

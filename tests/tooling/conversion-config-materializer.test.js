@@ -1,8 +1,14 @@
+// The materializer refreshes a manifest's inference block from a conversion
+// config. Its contract: config-owned fields (execution graph, session decode
+// loop, compute/kv defaults, inference sections) flow through unchanged, model
+// identity comes from the manifest, and the result is a resolvable execution-v1
+// graph. Assertions compare against the config the output is derived from, not
+// against copied tuning literals.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { DEFAULT_KVCACHE_CONFIG } from '../../src/config/schema/index.js';
 
+import { expandExecutionV1 } from '../../src/config/schema/execution-v1.schema.js';
 import {
   inferConversionConfigModelId,
   resolveMaterializedManifestFromConversionConfig,
@@ -12,264 +18,95 @@ function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
-const gemmaManifestPath = path.join('models/local/gemma-3-270m-it-q4k-ehf16-af32', 'manifest.json');
-if (!fs.existsSync(gemmaManifestPath)) {
-  console.log('conversion-config-materializer.test: skipped gemma fixture (local model missing)');
-} else {
-  const conversionConfig = readJson('src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json');
-  const manifest = readJson(gemmaManifestPath);
+// inferConversionConfigModelId: explicit modelBaseId wins, file stem otherwise.
+assert.equal(
+  inferConversionConfigModelId('src/config/conversion/x/file-stem.json', { output: { modelBaseId: '  declared-id ' } }),
+  'declared-id'
+);
+assert.equal(inferConversionConfigModelId('src/config/conversion/x/file-stem.json', { output: {} }), 'file-stem');
+assert.equal(inferConversionConfigModelId('src/config/conversion/x/file-stem.json', { output: { modelBaseId: '   ' } }), 'file-stem');
 
-  assert.equal(
-    inferConversionConfigModelId(
-      'src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json',
-      conversionConfig
-    ),
-    'gemma-3-270m-it-q4k-ehf16-af32'
-  );
+const FIXTURES = [
+  'gemma3/gemma-3-270m-it-q4k-ehf16-af32',
+  'gemma3/gemma-3-1b-it-q4k-ehf16-af32',
+  'gemma4/gemma-4-e2b-it-q4k-ehf16-af32',
+  'qwen3/qwen-3-5-0-8b-q4k-ehaf16',
+  'qwen3/qwen-3-5-2b-q4k-ehaf16',
+  'embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32',
+];
 
-  const materialized = resolveMaterializedManifestFromConversionConfig(conversionConfig, manifest);
-  assert.equal(materialized.modelId, manifest.modelId);
-  assert.equal(materialized.modelType, 'transformer');
-  assert.equal(materialized.inference?.schema, 'doppler.execution/v1');
-  assert.equal(materialized.inference?.defaultKernelPath, undefined);
-  assert.equal(materialized.inference?.attention?.slidingWindow, 512);
-  assert.equal(materialized.inference?.rope?.ropeLocalTheta, 10000);
-  assert.equal(materialized.inference?.layerPattern?.type, 'every_n');
-  assert.equal(materialized.inference?.layerPattern?.period, 6);
-  assert.deepEqual(materialized.inference?.session?.decodeLoop, {
-    batchSize: 1,
-    stopCheckMode: 'batch',
-    readbackInterval: 1,
-    readbackMode: 'sequential',
-    ringTokens: 1,
-    ringStop: 1,
-    ringStaging: 1,
-    disableCommandBatching: false,
-  });
-  assert.ok(Array.isArray(materialized.inference?.execution?.decode));
-  assert.ok(materialized.inference.execution.decode.length > 0);
+function assertMaterializedFromConfig(conversionConfig, manifest, materialized, label) {
+  assert.equal(materialized.modelId, manifest.modelId, `${label}: modelId comes from the manifest`);
+  assert.equal(materialized.modelType, manifest.modelType, `${label}: modelType comes from the manifest`);
+  assert.equal(materialized.architecture, manifest.architecture, `${label}: architecture is passed through`);
+
+  const inference = materialized.inference;
+  assert.equal(inference?.schema, 'doppler.execution/v1', `${label}: materialized inference is execution-v1`);
+  assert.equal(inference.defaultKernelPath, undefined, `${label}: execution-v1 output omits defaultKernelPath`);
+
+  const execution = inference.execution;
+  for (const field of ['inlineKernelPath', 'kernels', 'preLayer', 'decode', 'prefill', 'postLayer']) {
+    assert.deepEqual(execution?.[field], conversionConfig.execution[field], `${label}: execution.${field} is config-owned`);
+  }
+  assert.ok(expandExecutionV1(execution).length > 0, `${label}: materialized graph must expand`);
+
+  for (const field of ['decodeLoop', 'kvcache']) {
+    if (conversionConfig.session?.[field] !== undefined) {
+      assert.deepEqual(inference.session?.[field], conversionConfig.session[field], `${label}: session.${field} is config-owned`);
+    }
+  }
+  assert.deepEqual(inference.session?.compute?.defaults, conversionConfig.session?.compute?.defaults, `${label}: compute defaults`);
+
+  for (const [section, value] of Object.entries(conversionConfig.inference ?? {})) {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) continue;
+    for (const [field, fieldValue] of Object.entries(value)) {
+      assert.deepEqual(inference[section]?.[field], fieldValue, `${label}: inference.${section}.${field} is config-owned`);
+    }
+  }
 }
 
-const qwenManifestPath = path.join('models/local/qwen-3-5-0-8b-q4k-ehaf16', 'manifest.json');
-if (!fs.existsSync(qwenManifestPath)) {
-  console.log('conversion-config-materializer.test: skipped qwen fixture (local model missing)');
-} else {
-  const conversionConfig = readJson('src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json');
-  const manifest = readJson(qwenManifestPath);
+let exercised = 0;
+for (const fixture of FIXTURES) {
+  const modelId = path.basename(fixture);
+  const manifestPath = path.join('models/local', modelId, 'manifest.json');
+  if (!fs.existsSync(manifestPath)) {
+    console.log(`conversion-config-materializer.test: skipped ${modelId} (local model missing)`);
+    continue;
+  }
+  const configPath = `src/config/conversion/${fixture}.json`;
+  const conversionConfig = readJson(configPath);
+  const manifest = readJson(manifestPath);
+  assert.equal(inferConversionConfigModelId(configPath, conversionConfig), manifest.modelId, `${modelId}: config id matches manifest`);
   const materialized = resolveMaterializedManifestFromConversionConfig(conversionConfig, manifest);
+  assertMaterializedFromConfig(conversionConfig, manifest, materialized, modelId);
+  exercised += 1;
 
-  assert.equal(
-    inferConversionConfigModelId(
-      'src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json',
-      conversionConfig
-    ),
-    'qwen-3-5-0-8b-q4k-ehaf16'
-  );
-  assert.equal(materialized.modelId, manifest.modelId);
-  assert.equal(materialized.modelType, 'transformer');
-  assert.equal(materialized.inference?.schema, 'doppler.execution/v1');
-  assert.equal(materialized.inference?.execution?.inlineKernelPath, true);
-  // Qwen 3.5 0.8B decodeLoop values are conversion-config-owned: bs=4/rbi=8
-  // with sequential readback. Runtime profiles must not be the source of truth.
-  assert.deepEqual(materialized.inference?.session?.decodeLoop, {
-    batchSize: 4,
-    stopCheckMode: 'batch',
-    readbackInterval: 8,
-    readbackMode: 'sequential',
-    submitLatencyThresholdMs: null,
-    ringTokens: 1,
-    ringStop: 1,
-    ringStaging: 1,
-    disableCommandBatching: false,
-  });
-  assert.equal(materialized.inference?.session?.compute?.defaults?.activationDtype, 'f32');
-  assert.equal(materialized.inference?.execution?.kernels?.rmsnorm?.kernel, 'rmsnorm.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.q4_decode?.kernel, 'fused_matmul_q4.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.q4_decode?.entry, 'main_multicol');
-  assert.equal(materialized.inference?.execution?.kernels?.q4_decode_gemv?.kernel, 'fused_matmul_q4.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.q4_decode_gemv?.entry, 'main_gemv');
-  assert.equal(materialized.inference?.execution?.kernels?.rope?.kernel, 'rope.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.residual?.kernel, 'residual.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.silu?.kernel, 'silu.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.tiled?.kernel, 'matmul_f16w_f32a.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.q4_prefill?.kernel, 'fused_matmul_q4_batched_multicol_shared.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.q4_widetile?.kernel, 'fused_matmul_q4_widetile.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.attn_decode?.kernel, 'attention_decode_online_f16kv.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.attn_stream?.kernel, 'attention_streaming_f16kv.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.lm_head_gemv?.kernel, 'matmul_gemv_subgroup_f16a.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.lm_head_q4?.kernel, 'fused_matmul_q4.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.lm_head_q4?.entry, 'main_gemv');
-  assert.deepEqual(materialized.inference?.execution?.kernels?.lm_head_q4?.constants, {
-    COLS_PER_WG: 64,
-    THREADS_PER_COL_GEMV: 4,
-  });
-  assert.equal(materialized.inference?.execution?.kernels?.sample?.kernel, 'sample.wgsl');
-  const decodeHead = materialized.inference?.execution?.postLayer?.find((step) => step[0] === 'lm_head');
-  assert.equal(decodeHead?.[1], 'lm_head_q4');
-  const decodeGateProj = materialized.inference?.execution?.decode?.find((step) => step[0] === 'gate_proj');
-  assert.equal(decodeGateProj?.[1], 'q4_decode_gemv');
-  const prefillGateProj = materialized.inference?.execution?.prefill?.find((step) => step[0] === 'gate_proj');
-  assert.equal(prefillGateProj?.[1], 'q4_widetile');
+  // Changing the config changes the output: the config, not a runtime default
+  // or the stale manifest, is the source of these values.
+  const edited = structuredClone(conversionConfig);
+  edited.session.decodeLoop.batchSize += 3;
+  const firstKernelKey = Object.keys(edited.execution.kernels)[0];
+  edited.execution.kernels[firstKernelKey].constants = { MATERIALIZER_PROBE: 1 };
+  const rematerialized = resolveMaterializedManifestFromConversionConfig(edited, manifest);
+  assert.equal(rematerialized.inference.session.decodeLoop.batchSize, conversionConfig.session.decodeLoop.batchSize + 3);
+  assert.deepEqual(rematerialized.inference.execution.kernels[firstKernelKey].constants, { MATERIALIZER_PROBE: 1 });
 }
 
-const qwen2ManifestPath = path.join('models/local/qwen-3-5-2b-q4k-ehaf16', 'manifest.json');
-if (!fs.existsSync(qwen2ManifestPath)) {
-  console.log('conversion-config-materializer.test: skipped qwen 2b fixture (local model missing)');
-} else {
-  const conversionConfig = readJson('src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json');
-  const manifest = readJson(qwen2ManifestPath);
+// Synthetic manifest: the contract holds without local artifacts, using a
+// checked-in config and the minimal manifest fields the materializer reads.
+{
+  const configPath = 'src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json';
+  const conversionConfig = readJson(configPath);
+  const manifest = {
+    modelId: 'synthetic-materializer-fixture',
+    modelType: 'transformer',
+    quantizationInfo: { weights: 'q4k' },
+    architecture: { numLayers: 18, headDim: 256 },
+    config: { model_type: 'gemma3_text' },
+    tensors: {},
+  };
   const materialized = resolveMaterializedManifestFromConversionConfig(conversionConfig, manifest);
-
-  assert.equal(materialized.modelId, manifest.modelId);
-  assert.equal(materialized.modelType, 'transformer');
-  assert.equal(materialized.inference?.schema, 'doppler.execution/v1');
-  assert.equal(materialized.inference?.execution?.inlineKernelPath, true);
-  assert.deepEqual(materialized.inference?.session?.decodeLoop, {
-    batchSize: 12,
-    stopCheckMode: 'batch',
-    readbackInterval: 32,
-    readbackMode: 'sequential',
-    submitLatencyThresholdMs: null,
-    ringTokens: 1,
-    ringStop: 1,
-    ringStaging: 1,
-    disableCommandBatching: false,
-  });
-  assert.equal(materialized.inference?.session?.compute?.defaults?.activationDtype, 'f32');
-  assert.equal(materialized.inference?.execution?.kernels?.q4_decode?.kernel, 'fused_matmul_q4.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.q4_decode?.entry, 'main_multicol');
-  assert.equal(materialized.inference?.execution?.kernels?.q4_decode_gemv?.kernel, 'fused_matmul_q4.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.q4_decode_gemv?.entry, 'main_gemv');
-  assert.equal(materialized.inference?.execution?.kernels?.q4_widetile?.kernel, 'fused_matmul_q4_widetile.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.attn_head256?.kernel, 'attention_head256_f16kv.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.lm_head_gemv?.kernel, 'matmul_gemv_subgroup.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.lm_head_q4?.kernel, 'fused_matmul_q4.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.lm_head_q4?.entry, 'main_gemv');
-  assert.deepEqual(materialized.inference?.execution?.kernels?.lm_head_q4?.constants, {
-    COLS_PER_WG: 64,
-    THREADS_PER_COL_GEMV: 4,
-  });
-  const decodeHead = materialized.inference?.execution?.postLayer?.find((step) => step[0] === 'lm_head');
-  assert.equal(decodeHead?.[1], 'lm_head_q4');
-  const decodeGateProj = materialized.inference?.execution?.decode?.find((step) => step[0] === 'gate_proj');
-  assert.equal(decodeGateProj?.[1], 'q4_decode_gemv');
-  const prefillGateProj = materialized.inference?.execution?.prefill?.find((step) => step[0] === 'gate_proj');
-  assert.equal(prefillGateProj?.[1], 'q4_widetile');
+  assertMaterializedFromConfig(conversionConfig, manifest, materialized, 'synthetic');
 }
 
-const gemma1bManifestPath = path.join('models/local/gemma-3-1b-it-q4k-ehf16-af32', 'manifest.json');
-if (!fs.existsSync(gemma1bManifestPath)) {
-  console.log('conversion-config-materializer.test: skipped gemma 1b fixture (local model missing)');
-} else {
-  const conversionConfig = readJson('src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json');
-  const manifest = readJson(gemma1bManifestPath);
-  const materialized = resolveMaterializedManifestFromConversionConfig(conversionConfig, manifest);
-
-  assert.equal(materialized.modelId, manifest.modelId);
-  assert.equal(materialized.inference?.execution?.kernels?.q4_decode, undefined);
-  assert.equal(materialized.inference?.attention?.slidingWindow, 512);
-  assert.equal(materialized.inference?.rope?.ropeLocalTheta, 10000);
-  assert.equal(materialized.inference?.layerPattern?.type, 'every_n');
-  assert.equal(materialized.inference?.layerPattern?.period, 6);
-  assert.equal(materialized.inference?.execution?.kernels?.gemv?.kernel, 'matmul_gemv_subgroup.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.q4_prefill, undefined);
-  assert.equal(materialized.inference?.execution?.kernels?.tiled?.kernel, 'matmul_f16w_f32a_tiled.wgsl');
-  const qProjDecode = materialized.inference?.execution?.decode?.find((step) => step[0] === 'q_proj');
-  assert.ok(qProjDecode, 'gemma 1b materialized decode q_proj step missing');
-  assert.equal(qProjDecode[1], 'gemv');
-  const qProjPrefill = materialized.inference?.execution?.prefill?.find((step) => step[0] === 'q_proj');
-  assert.ok(qProjPrefill, 'gemma 1b materialized prefill q_proj step missing');
-  assert.equal(qProjPrefill[1], 'tiled');
-  const attnPrefill = materialized.inference?.execution?.prefill?.find((step) => step[0] === 'attention');
-  assert.ok(attnPrefill, 'gemma 1b materialized prefill attention step missing');
-  assert.equal(attnPrefill[1], 'attn_head256');
-}
-
-const gemma4ManifestPath = path.join('models/local/gemma-4-e2b-it-q4k-ehf16-af32', 'manifest.json');
-if (!fs.existsSync(gemma4ManifestPath)) {
-  console.log('conversion-config-materializer.test: skipped gemma 4 fixture (local model missing)');
-} else {
-  const conversionConfig = readJson('src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32.json');
-  const manifest = readJson(gemma4ManifestPath);
-  const materialized = resolveMaterializedManifestFromConversionConfig(conversionConfig, manifest);
-
-  assert.equal(materialized.modelId, manifest.modelId);
-  assert.equal(materialized.inference?.execution?.kernels?.attn_head256?.kernel, 'attention_head256_f16kv.wgsl');
-  assert.equal(materialized.inference?.execution?.kernels?.attn_head256?.precision?.kvDtype, 'f16');
-  const groupedSmallPrefill = materialized.inference?.execution?.prefill?.[0]?.steps?.find((step) => step[0] === 'attention');
-  assert.ok(groupedSmallPrefill, 'gemma 4 materialized grouped small prefill attention step missing');
-  assert.equal(groupedSmallPrefill[1], 'attn_head256');
-  const groupedHead512Prefill = materialized.inference?.execution?.prefill?.[1]?.steps?.find((step) => step[0] === 'attention');
-  assert.ok(groupedHead512Prefill, 'gemma 4 materialized grouped head512 prefill attention step missing');
-  assert.equal(groupedHead512Prefill[1], 'attn_head512');
-  assert.equal(manifest.inference?.execution?.kernels?.attn_head256?.kernel, 'attention_head256_f16kv.wgsl');
-  const manifestGroupedSmallPrefill = manifest.inference?.execution?.prefill?.[0]?.steps?.find((step) => step[0] === 'attention');
-  assert.ok(manifestGroupedSmallPrefill, 'gemma 4 manifest grouped small prefill attention step missing');
-  assert.equal(manifestGroupedSmallPrefill[1], 'attn_head256');
-}
-
-const embeddingManifestPath = path.join('models/local/google-embeddinggemma-300m-q4k-ehf16-af32', 'manifest.json');
-if (!fs.existsSync(embeddingManifestPath)) {
-  console.log('conversion-config-materializer.test: skipped embedding fixture (local model missing)');
-} else {
-  const conversionConfig = readJson('src/config/conversion/embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32.json');
-  const manifest = readJson(embeddingManifestPath);
-  const materialized = resolveMaterializedManifestFromConversionConfig(conversionConfig, manifest);
-
-  assert.equal(
-    inferConversionConfigModelId(
-      'src/config/conversion/embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32.json',
-      conversionConfig
-    ),
-    'google-embeddinggemma-300m-q4k-ehf16-af32'
-  );
-  assert.equal(materialized.modelId, manifest.modelId);
-  assert.equal(materialized.modelType, 'embedding');
-  assert.equal(materialized.inference?.schema, 'doppler.execution/v1');
-  assert.deepEqual(materialized.inference?.session?.compute?.defaults, {
-    activationDtype: 'f32',
-    mathDtype: 'f32',
-    accumDtype: 'f32',
-    outputDtype: 'f32',
-  });
-  assert.deepEqual(materialized.inference?.session?.kvcache, {
-    kvDtype: 'f32',
-    layout: 'contiguous',
-    pageSize: 256,
-    tiering: { ...structuredClone(DEFAULT_KVCACHE_CONFIG.tiering), mode: 'off' },
-    quantization: { ...structuredClone(DEFAULT_KVCACHE_CONFIG.quantization), mode: 'none' },
-  });
-  assert.deepEqual(materialized.inference?.session?.decodeLoop, {
-    batchSize: 4,
-    stopCheckMode: 'batch',
-    readbackInterval: 1,
-    readbackMode: 'sequential',
-    ringTokens: 1,
-    ringStop: 1,
-    ringStaging: 1,
-    disableCommandBatching: false,
-  });
-  assert.deepEqual(materialized.inference?.output?.embeddingPostprocessor, {
-    poolingMode: 'mean',
-    includePrompt: true,
-    projections: [
-      {
-        weightTensor: 'embedding_postprocessor.projections.0.weight',
-        biasTensor: null,
-        inputSize: 768,
-        outputSize: 3072,
-        activation: 'identity',
-      },
-      {
-        weightTensor: 'embedding_postprocessor.projections.1.weight',
-        biasTensor: null,
-        inputSize: 3072,
-        outputSize: 768,
-        activation: 'identity',
-      },
-    ],
-    normalize: 'l2',
-  });
-}
-
-console.log('conversion-config-materializer.test: ok');
+console.log(`conversion-config-materializer.test: ok (${exercised} local fixtures)`);

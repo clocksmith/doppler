@@ -27,7 +27,10 @@ for (const profile of config.modelProfiles) {
     true,
     `${modelId}: embedding compare profiles must target embedding catalog entries`
   );
-  assert.equal(profile.compareLane, 'performance_comparable', `${modelId}: embedding compare lane`);
+  assert.ok(
+    ['performance_comparable', 'capability_only'].includes(profile.compareLane),
+    `${modelId}: embedding compare lane must be a lane the compare tool accepts`
+  );
   assert.equal(typeof profile.releaseClaimable, 'boolean', `${modelId}: releaseClaimable must be explicit`);
   assert.equal(
     typeof catalogEntry.vendorBenchmark?.transformersjs?.repoId,
@@ -41,6 +44,11 @@ for (const profile of config.modelProfiles) {
   );
 
   if (profile.releaseClaimable === true) {
+    assert.equal(
+      profile.compareLane,
+      'performance_comparable',
+      `${modelId}: release-claimable embedding compares must be performance comparable`
+    );
     assert.equal(
       profile.defaultDopplerSource,
       'quickstart-registry',

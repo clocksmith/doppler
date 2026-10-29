@@ -56,7 +56,7 @@ and rewriting plans do not impose a competing priority or adoption prerequisite.
 
 ## Evidence
 
-- Clean test execution via declared package verification suites (`npm test` and `npm run check:green`).
+- Clean test execution via declared package verification suites (`npm test` and `npm run check:green`, the behavior gate plus input-triggered checks).
 - Objective parity passing against reference model output oracles within declared tolerances.
 - Goal completion matrix recorded in `src/config/goal-completion-matrix.json`.
 - Clean-environment installed local-search acceptance with both real models resident,

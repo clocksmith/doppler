@@ -1,503 +1,200 @@
+// Qwen 3.5 hybrid (linear + full attention) conversion configs and their
+// converted manifests. Assertions check structure and cross-file derivation:
+// the execution graph resolves through the real execution-v1 expander, kernel
+// identities resolve to shipped WGSL entry points, dtype declarations agree,
+// and local manifests carry what the conversion config and tensors imply.
+// Tuning values (decode loop sizes, kernel choices) stay owned by the configs.
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
-import { readFile } from 'node:fs/promises';
+import { existsSync, readFileSync } from 'node:fs';
+
 import { validateRequiredInferenceFields } from '../../src/inference/pipelines/text/config.js';
+import { inferLinearNormMode } from '../../src/inference/pipelines/text/linear-attention.js';
+import { expandExecutionV1 } from '../../src/config/schema/execution-v1.schema.js';
+import { resolveMaterializedManifestFromConversionConfig } from '../../src/tooling/conversion-config-materializer.js';
 
-const { inferLinearNormMode } = await import(
-  '../../src/inference/pipelines/text/linear-attention.js'
-);
+const QWEN_MODEL_IDS = ['qwen-3-5-0-8b-q4k-ehaf16', 'qwen-3-5-2b-q4k-ehaf16'];
+const QWEN_LAYER_TYPES = new Set(['linear_attention', 'full_attention']);
 
-async function loadJson(path) {
-  return JSON.parse(await readFile(new URL(path, import.meta.url), 'utf8'));
+function readJson(path) {
+  return JSON.parse(readFileSync(path, 'utf8'));
 }
 
-const q4kManifestPath = new URL('../../models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json', import.meta.url);
-const q4k2bManifestPath = new URL('../../models/local/qwen-3-5-2b-q4k-ehaf16/manifest.json', import.meta.url);
-const f16ManifestPath = new URL('../../models/local/qwen-3-5-0-8b-f16/manifest.json', import.meta.url);
-const hasLocalQ4KManifest = existsSync(q4kManifestPath);
-const hasOptionalLocalQ4K2BManifest = existsSync(q4k2bManifestPath);
-const hasOptionalLocalF16Manifest = existsSync(f16ManifestPath);
-const q4kManifest = hasLocalQ4KManifest
-  ? JSON.parse(await readFile(q4kManifestPath, 'utf8'))
-  : null;
-const q4k2bManifest = hasOptionalLocalQ4K2BManifest
-  ? JSON.parse(await readFile(q4k2bManifestPath, 'utf8'))
-  : null;
-const f16Manifest = hasOptionalLocalF16Manifest
-  ? JSON.parse(await readFile(f16ManifestPath, 'utf8'))
-  : null;
-const convConfigs = await Promise.all([
-  loadJson('../../src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json'),
-  loadJson('../../src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json'),
-]);
-const availableLocalManifests = [q4kManifest, q4k2bManifest, f16Manifest].filter(Boolean);
-
-const EXPECTED_QWEN_LAYER_TYPES = Array.from(
-  { length: 24 },
-  (_, index) => ((index + 1) % 4 === 0 ? 'full_attention' : 'linear_attention')
-);
-const EXPECTED_QWEN_COMPUTE_DEFAULTS = Object.freeze({
-  'qwen-3-5-0-8b-q4k-ehaf16': {
-    activationDtype: 'f32',
-    mathDtype: 'f32',
-    accumDtype: 'f32',
-    outputDtype: 'f32',
-  },
-  'qwen-3-5-2b-q4k-ehaf16': {
-    activationDtype: 'f32',
-    mathDtype: 'f32',
-    accumDtype: 'f32',
-    outputDtype: 'f32',
-  },
-});
-const EXPECTED_QWEN_PER_LAYER_INPUTS = Object.freeze({
-  materialization: 'auto',
-  rowCache: {
-    mode: 'lru',
-    maxRows: 256,
-    maxBytes: 134217728,
-    decodedDtype: 'f32',
-  },
-  prefetch: {
-    mode: 'next_token',
-    rowsAhead: 1,
-  },
-  gpuUpload: {
-    mode: 'per_step_slices',
-    stagingRows: 2,
-  },
-  hotCache: {
-    mode: 'prepared_tokens',
-    maxTokens: 1024,
-    maxBytes: 134217728,
-    outputDtype: 'f32',
-  },
-});
-const EXPECTED_QWEN_EOS_TOKEN_ID = Object.freeze([248046, 248044]);
-const EXPECTED_QWEN_CONVERSION_DECODE_LOOPS = Object.freeze({
-  'qwen-3-5-0-8b-q4k-ehaf16': {
-    batchSize: 4,
-    stopCheckMode: 'batch',
-    readbackInterval: 8,
-    readbackMode: 'sequential',
-    submitLatencyThresholdMs: null,
-    ringTokens: 1,
-    ringStop: 1,
-    ringStaging: 1,
-    disableCommandBatching: false,
-  },
-  'qwen-3-5-2b-q4k-ehaf16': {
-    batchSize: 12,
-    stopCheckMode: 'batch',
-    readbackInterval: 32,
-    readbackMode: 'sequential',
-    submitLatencyThresholdMs: null,
-    ringTokens: 1,
-    ringStop: 1,
-    ringStaging: 1,
-    disableCommandBatching: false,
-  },
-});
-const EXPECTED_QWEN_MANIFEST_DECODE_LOOPS = Object.freeze({
-  ...EXPECTED_QWEN_CONVERSION_DECODE_LOOPS,
-});
-
-function getExpectedQwenDecodeLoop(label, source = 'conversion') {
-  const expectedLoops = source === 'manifest'
-    ? EXPECTED_QWEN_MANIFEST_DECODE_LOOPS
-    : EXPECTED_QWEN_CONVERSION_DECODE_LOOPS;
-  const modelLabel = String(label ?? '');
-  const matchedKey = Object.keys(expectedLoops).find((key) => modelLabel.includes(key));
-  assert.ok(matchedKey, `missing expected qwen decode loop for ${modelLabel}`);
-  return expectedLoops[matchedKey];
+const kernelSourceCache = new Map();
+function readKernelSource(kernelFile) {
+  if (!kernelSourceCache.has(kernelFile)) {
+    const path = `src/gpu/kernels/${kernelFile}`;
+    assert.ok(existsSync(path), `kernel file ${kernelFile} must exist under src/gpu/kernels`);
+    kernelSourceCache.set(kernelFile, readFileSync(path, 'utf8'));
+  }
+  return kernelSourceCache.get(kernelFile);
 }
 
-function assertQwenDecodeLoop(decodeLoop, label, source = 'conversion') {
-  assert.ok(decodeLoop && typeof decodeLoop === 'object', `${label} decodeLoop must be present`);
-  assert.deepEqual(decodeLoop, getExpectedQwenDecodeLoop(label, source), `${label} decodeLoop`);
+function assertExecutionGraphResolves(execution, label) {
+  assert.equal(execution?.inlineKernelPath, true, `${label}: execution-v1 must inline the kernel path`);
+  const steps = expandExecutionV1(execution);
+  assert.ok(steps.some((step) => step.phase === 'decode'), `${label}: decode steps must be declared`);
+  assert.ok(steps.some((step) => step.phase === 'prefill'), `${label}: prefill steps must be declared`);
+  for (const step of steps) {
+    const source = readKernelSource(step.kernel);
+    assert.match(
+      source,
+      new RegExp(`@compute[^;{]*\\bfn\\s+${step.entry}\\s*\\(`),
+      `${label}: ${step.kernel} must declare compute entry ${step.entry}`
+    );
+  }
+  for (const [key, decl] of Object.entries(execution.kernels)) {
+    if (decl.kernel.startsWith('attention_') && decl.kernel.includes('f16kv')) {
+      assert.equal(decl.precision?.kvDtype, 'f16', `${label}: ${key} uses an f16kv kernel and must declare kvDtype f16`);
+    }
+  }
+  return steps;
 }
 
-function assertQwenComputeDefaults(computeDefaults, label) {
-  const modelLabel = String(label ?? '');
-  const matchedKey = Object.keys(EXPECTED_QWEN_COMPUTE_DEFAULTS).find((key) => modelLabel.includes(key));
-  assert.ok(matchedKey, `missing expected qwen compute defaults for ${modelLabel}`);
-  assert.ok(computeDefaults && typeof computeDefaults === 'object', `${label} compute defaults must be present`);
-  assert.deepEqual(computeDefaults, EXPECTED_QWEN_COMPUTE_DEFAULTS[matchedKey], `${label} compute defaults`);
-}
-
-function assertQwenPerLayerInputs(perLayerInputs, label) {
-  assert.ok(perLayerInputs && typeof perLayerInputs === 'object', `${label} perLayerInputs must be present`);
-  assert.deepEqual(perLayerInputs, EXPECTED_QWEN_PER_LAYER_INPUTS, `${label} perLayerInputs`);
+function kernelIdentity(kernels) {
+  return Object.fromEntries(Object.entries(kernels).map(([key, decl]) => [
+    key,
+    { kernel: decl.kernel, entry: decl.entry, constants: decl.constants ?? null, precision: decl.precision ?? null },
+  ]));
 }
 
 function assertQwenConversionConfig(config) {
-  const modelId = config.output?.modelBaseId ?? 'qwen';
-  assert.equal(config.inference.normalization.rmsNormWeightOffset, true);
-  assert.equal(config.inference.attention.valueNorm, false);
-  assert.equal(config.inference.rope.mropeInterleaved, true);
-  assert.equal(config.inference.ffn.useDoubleWideMlp, false);
-  assert.equal(config.inference.rope.ropeLocalPartialRotaryFactor, null);
-  assert.equal(config.inference.rope.ropeFrequencyBaseDim, null);
-  assert.equal(config.inference.rope.ropeLocalFrequencyBaseDim, null);
-  assert.equal(config.inference.output.tieWordEmbeddings, true);
-  assert.equal(config.inference.layerPattern.type, 'custom');
-  assert.equal(config.inference.layerPattern.globalPattern, null);
-  assert.equal(config.inference.layerPattern.period, null);
-  assert.equal(config.inference.layerPattern.offset, null);
-  assert.deepEqual(config.inference.layerPattern.layerTypes, EXPECTED_QWEN_LAYER_TYPES);
-  assert.equal(config.quantization?.lmHead, 'q4k');
-  assertQwenDecodeLoop(config.session?.decodeLoop, modelId);
-  assertQwenComputeDefaults(
-    config.session?.compute?.defaults,
-    modelId
-  );
-  assert.ok(config.execution && typeof config.execution === 'object', 'qwen execution config must be present');
-  assert.equal(config.execution.inlineKernelPath, true, 'qwen execution.inlineKernelPath');
+  const label = config.output?.modelBaseId;
+  assert.ok(QWEN_MODEL_IDS.includes(label), `unexpected qwen config ${label}`);
   assert.doesNotThrow(
-    () => validateRequiredInferenceFields(config.inference, config.output?.modelBaseId ?? 'qwen'),
-    `${config.output?.modelBaseId ?? 'qwen'} conversion config must satisfy required inference-field validation`
+    () => validateRequiredInferenceFields(config.inference, label),
+    `${label}: conversion config must satisfy required inference-field validation`
   );
-}
+  assert.equal(config.inference.defaultKernelPath, undefined, `${label}: execution-v1 configs must not author defaultKernelPath`);
 
-function hasTensor(manifest, tensorName) {
-  return Object.prototype.hasOwnProperty.call(manifest.tensors ?? {}, tensorName);
-}
+  const layerPattern = config.inference.layerPattern;
+  assert.equal(layerPattern.type, 'custom', `${label}: hybrid attention requires an explicit layer list`);
+  assert.ok(layerPattern.layerTypes.length > 0);
+  for (const type of layerPattern.layerTypes) {
+    assert.ok(QWEN_LAYER_TYPES.has(type), `${label}: unknown layer type ${type}`);
+  }
+  assert.ok(layerPattern.layerTypes.includes('linear_attention'), `${label}: hybrid model must contain linear-attention layers`);
+  assert.ok(layerPattern.layerTypes.includes('full_attention'), `${label}: hybrid model must contain full-attention layers`);
 
-function getLinearProjectionLayout(manifest) {
-  return {
-    headVDim: manifest.architecture.linearValueHeadDim,
-    valueDim: manifest.architecture.linearNumValueHeads * manifest.architecture.linearValueHeadDim,
-  };
-}
+  const steps = assertExecutionGraphResolves(config.execution, label);
 
-function assertF16KvAttentionPrecision(execution, label) {
-  const kernels = execution?.kernels ?? {};
-  for (const [kernelKey, decl] of Object.entries(kernels)) {
-    if (
-      typeof decl?.kernel === 'string'
-      && decl.kernel.startsWith('attention_')
-      && decl.kernel.includes('f16kv')
-    ) {
-      assert.equal(
-        decl.precision?.kvDtype,
-        'f16',
-        `${label} execution.kernels.${kernelKey} must declare precision.kvDtype="f16"`
-      );
-    }
+  // The KV cache dtype must agree with the attention kernels the graph selects.
+  const attentionKernels = steps.filter((step) => step.op === 'attention').map((step) => step.kernel);
+  assert.ok(attentionKernels.length > 0, `${label}: graph must contain attention steps`);
+  if (attentionKernels.every((kernel) => kernel.includes('f16kv'))) {
+    assert.equal(config.session?.kvcache?.kvDtype, 'f16', `${label}: f16kv attention requires an f16 KV cache`);
+  }
+
+  // A quantized LM head must be executed by a quantized-weight kernel.
+  const lmHead = steps.find((step) => step.op === 'lm_head');
+  assert.ok(lmHead, `${label}: postLayer must contain lm_head`);
+  if (config.quantization?.lmHead === 'q4k') {
+    assert.match(lmHead.kernel, /q4/, `${label}: q4k lm_head must use a q4 kernel, got ${lmHead.kernel}`);
   }
 }
 
-function assertQwenUtilityKernels(execution, label) {
-  const modelLabel = String(label ?? '');
-  if (modelLabel.includes('qwen-3-5-0-8b-q4k-ehaf16')) {
-    assert.equal(execution?.kernels?.rmsnorm?.kernel, 'rmsnorm.wgsl', `${label} rmsnorm kernel`);
-    assert.equal(execution?.kernels?.q4_decode?.kernel, 'fused_matmul_q4.wgsl', `${label} q4_decode kernel`);
-    assert.equal(execution?.kernels?.q4_decode?.entry, 'main_multicol', `${label} q4_decode entry`);
-    assert.equal(execution?.kernels?.q4_decode_gemv?.kernel, 'fused_matmul_q4.wgsl', `${label} q4_decode_gemv kernel`);
-    assert.equal(execution?.kernels?.q4_decode_gemv?.entry, 'main_gemv', `${label} q4_decode_gemv entry`);
-    assert.equal(execution?.kernels?.rope?.kernel, 'rope.wgsl', `${label} rope kernel`);
-    assert.equal(execution?.kernels?.residual?.kernel, 'residual.wgsl', `${label} residual kernel`);
-    assert.equal(execution?.kernels?.silu?.kernel, 'silu.wgsl', `${label} silu kernel`);
-    assert.equal(execution?.kernels?.tiled?.kernel, 'matmul_f16w_f32a.wgsl', `${label} tiled kernel`);
-    assert.equal(execution?.kernels?.q4_prefill?.kernel, 'fused_matmul_q4_batched_multicol_shared.wgsl', `${label} q4_prefill kernel`);
-    assert.equal(execution?.kernels?.q4_widetile?.kernel, 'fused_matmul_q4_widetile.wgsl', `${label} q4_widetile kernel`);
-    assert.equal(execution?.kernels?.attn_decode?.kernel, 'attention_decode_online_f16kv.wgsl', `${label} attn_decode kernel`);
-    assert.equal(execution?.kernels?.attn_stream?.kernel, 'attention_streaming_f16kv.wgsl', `${label} attn_stream kernel`);
-    assert.equal(execution?.kernels?.attn_head256?.kernel, 'attention_head256_f16kv.wgsl', `${label} attn_head256 kernel`);
-    assert.equal(execution?.kernels?.lm_head_gemv?.kernel, 'matmul_gemv_subgroup_f16a.wgsl', `${label} lm_head_gemv kernel`);
-    assert.equal(execution?.kernels?.lm_head_q4?.kernel, 'fused_matmul_q4.wgsl', `${label} lm_head_q4 kernel`);
-    assert.equal(execution?.kernels?.lm_head_q4?.entry, 'main_gemv', `${label} lm_head_q4 entry`);
-    assert.deepEqual(execution?.kernels?.lm_head_q4?.constants, {
-      COLS_PER_WG: 64,
-      THREADS_PER_COL_GEMV: 4,
-    }, `${label} lm_head_q4 constants`);
-    assert.equal(execution?.kernels?.sample?.kernel, 'sample.wgsl', `${label} sample kernel`);
-    const decodeHead = execution?.postLayer?.find((step) => step[0] === 'lm_head');
-    assert.equal(decodeHead?.[1], 'lm_head_q4', `${label} lm_head postLayer kernel`);
-    return;
-  }
-  if (modelLabel.includes('qwen-3-5-2b-q4k-ehaf16')) {
-    assert.equal(execution?.kernels?.rmsnorm?.kernel, 'rmsnorm.wgsl', `${label} rmsnorm kernel`);
-    assert.equal(execution?.kernels?.q4_decode?.kernel, 'fused_matmul_q4.wgsl', `${label} q4_decode kernel`);
-    assert.equal(execution?.kernels?.q4_decode?.entry, 'main_multicol', `${label} q4_decode entry`);
-    assert.equal(execution?.kernels?.q4_decode_gemv?.kernel, 'fused_matmul_q4.wgsl', `${label} q4_decode_gemv kernel`);
-    assert.equal(execution?.kernels?.q4_decode_gemv?.entry, 'main_gemv', `${label} q4_decode_gemv entry`);
-    assert.equal(execution?.kernels?.rope?.kernel, 'rope.wgsl', `${label} rope kernel`);
-    assert.equal(execution?.kernels?.residual?.kernel, 'residual.wgsl', `${label} residual kernel`);
-    assert.equal(execution?.kernels?.silu?.kernel, 'silu.wgsl', `${label} silu kernel`);
-    assert.equal(execution?.kernels?.tiled?.kernel, 'matmul_f16w_f32a.wgsl', `${label} tiled kernel`);
-    assert.equal(execution?.kernels?.q4_prefill?.kernel, 'fused_matmul_q4_batched_multicol_shared.wgsl', `${label} q4_prefill kernel`);
-    assert.equal(execution?.kernels?.q4_widetile?.kernel, 'fused_matmul_q4_widetile.wgsl', `${label} q4_widetile kernel`);
-    assert.equal(execution?.kernels?.attn_decode?.kernel, 'attention_decode_online_f16kv.wgsl', `${label} attn_decode kernel`);
-    assert.equal(execution?.kernels?.attn_stream?.kernel, 'attention_streaming_f16kv.wgsl', `${label} attn_stream kernel`);
-    assert.equal(execution?.kernels?.attn_head256?.kernel, 'attention_head256_f16kv.wgsl', `${label} attn_head256 kernel`);
-    assert.equal(execution?.kernels?.lm_head_gemv?.kernel, 'matmul_gemv_subgroup.wgsl', `${label} lm_head_gemv kernel`);
-    assert.equal(execution?.kernels?.lm_head_q4?.kernel, 'fused_matmul_q4.wgsl', `${label} lm_head_q4 kernel`);
-    assert.equal(execution?.kernels?.lm_head_q4?.entry, 'main_gemv', `${label} lm_head_q4 entry`);
-    assert.deepEqual(execution?.kernels?.lm_head_q4?.constants, {
-      COLS_PER_WG: 64,
-      THREADS_PER_COL_GEMV: 4,
-    }, `${label} lm_head_q4 constants`);
-    assert.equal(execution?.kernels?.sample?.kernel, 'sample.wgsl', `${label} sample kernel`);
-    const decodeHead = execution?.postLayer?.find((step) => step[0] === 'lm_head');
-    assert.equal(decodeHead?.[1], 'lm_head_q4', `${label} lm_head postLayer kernel`);
-    return;
-  }
-  assert.equal(execution?.kernels?.rmsnorm?.kernel, 'rmsnorm.wgsl', `${label} rmsnorm kernel`);
-  assert.equal(execution?.kernels?.q4_decode?.kernel, 'fused_matmul_q4.wgsl', `${label} q4_decode kernel`);
-  assert.equal(execution?.kernels?.q4_decode?.entry, 'main_multicol', `${label} q4_decode entry`);
-  assert.equal(execution?.kernels?.rope?.kernel, 'rope.wgsl', `${label} rope kernel`);
-  assert.equal(execution?.kernels?.residual?.kernel, 'residual.wgsl', `${label} residual kernel`);
-  assert.equal(execution?.kernels?.silu?.kernel, 'silu.wgsl', `${label} silu kernel`);
-  assert.equal(execution?.kernels?.tiled?.kernel, 'matmul_f16w_f32a.wgsl', `${label} tiled kernel`);
-  assert.equal(execution?.kernels?.q4_prefill?.kernel, 'fused_matmul_q4_batched.wgsl', `${label} q4_prefill kernel`);
-  assert.equal(execution?.kernels?.attn_decode?.kernel, 'attention_decode_online_f16kv.wgsl', `${label} attn_decode kernel`);
-  assert.equal(execution?.kernels?.attn_stream?.kernel, 'attention_streaming_f16kv.wgsl', `${label} attn_stream kernel`);
-  assert.equal(execution?.kernels?.lm_head_gemv?.kernel, 'matmul_gemv_subgroup.wgsl', `${label} lm_head_gemv kernel`);
-  assert.equal(execution?.kernels?.sample?.kernel, 'sample.wgsl', `${label} sample kernel`);
-}
-
+const convConfigs = QWEN_MODEL_IDS.map((modelId) => readJson(`src/config/conversion/qwen3/${modelId}.json`));
 for (const config of convConfigs) {
-  // V1 configs have explicit inference and no legacy family-indirection field
-  assert.ok(config.inference?.attention, 'v1 config must have explicit inference.attention');
   assertQwenConversionConfig(config);
 }
 
-if (!hasLocalQ4KManifest) {
-  console.log('qwen-manifest-completeness.test: ok (conversion-config contract only; local q4k manifest unavailable)');
+// Malformed graphs are rejected by the same expander, so the checks above are meaningful.
+{
+  const broken = structuredClone(convConfigs[0].execution);
+  broken.decode = [...broken.decode, ['extra', 'not_a_declared_kernel']];
+  assert.throws(() => expandExecutionV1(broken), /not_a_declared_kernel" not found in execution\.kernels/);
+}
+
+const localManifests = QWEN_MODEL_IDS
+  .map((modelId, index) => ({ path: `models/local/${modelId}/manifest.json`, config: convConfigs[index] }))
+  .filter(({ path }) => existsSync(path))
+  .map(({ path, config }) => ({ manifest: readJson(path), config }));
+
+if (localManifests.length === 0) {
+  console.log('qwen-manifest-completeness.test: ok (conversion-config contract only; local qwen manifests unavailable)');
   process.exit(0);
 }
 
-// --- Manifest: intentional null fields ---
+for (const { manifest, config } of localManifests) {
+  const label = manifest.modelId;
+  const inference = manifest.inference;
+  const arch = manifest.architecture;
 
-{
-  for (const manifest of availableLocalManifests) {
-    assert.equal(manifest.inference.defaultKernelPath, undefined);
+  assert.equal(inference.schema, 'doppler.execution/v1');
+  assert.equal(inference.defaultKernelPath, undefined, `${label}: manifests must not carry defaultKernelPath`);
+  assert.doesNotThrow(() => validateRequiredInferenceFields(inference, label));
+  assertExecutionGraphResolves(inference.execution, `${label} manifest`);
+
+  // Manifest content is derived from the conversion config. Kernel digests are
+  // checked by kernels:conversion-digests:check, not here.
+  const materialized = resolveMaterializedManifestFromConversionConfig(config, manifest).inference;
+  assert.deepEqual(kernelIdentity(inference.execution.kernels), kernelIdentity(materialized.execution.kernels), `${label}: kernel identities`);
+  for (const section of ['preLayer', 'decode', 'prefill', 'postLayer']) {
+    assert.deepEqual(inference.execution[section], materialized.execution[section], `${label}: execution.${section}`);
   }
-}
+  for (const field of ['layerPattern', 'rope', 'normalization', 'attention', 'ffn', 'output']) {
+    assert.deepEqual(inference[field], materialized[field], `${label}: inference.${field}`);
+  }
+  for (const field of ['decodeLoop', 'perLayerInputs']) {
+    assert.deepEqual(inference.session?.[field], config.session?.[field], `${label}: session.${field}`);
+  }
+  assert.deepEqual(inference.session?.compute?.defaults, config.session?.compute?.defaults, `${label}: compute defaults`);
+  assert.equal(inference.session?.kvcache?.kvDtype, config.session?.kvcache?.kvDtype, `${label}: kv dtype`);
+  assert.equal(inference.session?.execution, undefined, `${label}: session must not duplicate the execution graph`);
+  if (config.quantization?.lmHead) {
+    assert.equal(manifest.quantizationInfo?.lmHead, config.quantization.lmHead, `${label}: lm_head quantization`);
+  }
 
-{
-  assert.equal(q4kManifest.inference.attention.valueNorm, false);
-  assert.equal(q4kManifest.inference.ffn.useDoubleWideMlp, false);
-  assert.equal(q4kManifest.inference.rope.ropeLocalPartialRotaryFactor, null);
-  assert.equal(q4kManifest.inference.rope.ropeFrequencyBaseDim, null);
-  assert.equal(q4kManifest.inference.rope.ropeLocalFrequencyBaseDim, null);
-  assert.doesNotThrow(
-    () => validateRequiredInferenceFields(q4kManifest.inference, q4kManifest.modelId),
-    `${q4kManifest.modelId} manifest must satisfy required inference-field validation`
+  // Layer pattern covers every layer.
+  const layerTypes = inference.layerPattern.layerTypes;
+  assert.equal(layerTypes.length, arch.numLayers, `${label}: layerTypes must cover numLayers`);
+
+  // mRoPE sections cover exactly the rotary half-dimension.
+  const rope = inference.rope;
+  if (Array.isArray(rope.mropeSection)) {
+    const sectionSum = rope.mropeSection.reduce((sum, value) => sum + value, 0);
+    assert.equal(sectionSum * 2, arch.headDim * rope.partialRotaryFactor, `${label}: mRoPE sections must span the rotary dim`);
+  }
+
+  // EOS ids are valid vocabulary ids.
+  const eosIds = [].concat(manifest.eos_token_id);
+  assert.ok(eosIds.length > 0, `${label}: eos_token_id must be declared`);
+  for (const id of eosIds) {
+    assert.ok(Number.isInteger(id) && id >= 0 && id < arch.vocabSize, `${label}: eos id ${id} outside vocab`);
+  }
+
+  // Tensors match each layer's attention type, and the declared linear norm
+  // mode is what the runtime infers from the stored norm tensor.
+  for (const field of ['linearNumKeyHeads', 'linearNumValueHeads', 'linearKeyHeadDim', 'linearValueHeadDim', 'linearConvKernelDim']) {
+    assert.ok(Number.isInteger(arch[field]) && arch[field] > 0, `${label}: architecture.${field} must be a positive integer`);
+  }
+  const projectionLayout = {
+    headVDim: arch.linearValueHeadDim,
+    valueDim: arch.linearNumValueHeads * arch.linearValueHeadDim,
+  };
+  const has = (name) => Object.hasOwn(manifest.tensors ?? {}, name);
+  assert.ok(
+    has('model.language_model.lm_head.weight') || has('lm_head.weight') || inference.output?.tieWordEmbeddings === true,
+    `${label}: lm_head must be materialized or tied`
   );
-}
-
-// --- Manifest: execution v1 is present with inline kernel-path lowering enabled ---
-
-{
-  for (const manifest of availableLocalManifests) {
-    assert.equal(manifest.inference.schema, 'doppler.execution/v1');
-    assert.ok(manifest.inference.execution && typeof manifest.inference.execution === 'object');
-    assert.equal(manifest.inference.execution.inlineKernelPath, true);
-    if (manifest.modelId === 'qwen-3-5-0-8b-q4k-ehaf16' || manifest.modelId === 'qwen-3-5-2b-q4k-ehaf16') {
-      assert.equal(manifest.quantizationInfo?.lmHead, 'q4k');
-      assert.ok(
-        hasTensor(manifest, 'model.language_model.lm_head.weight') || hasTensor(manifest, 'lm_head.weight'),
-        `${manifest.modelId} must materialize a quantized tied lm_head tensor`
-      );
-    }
-    assertF16KvAttentionPrecision(manifest.inference.execution, manifest.modelId);
-    assertQwenUtilityKernels(manifest.inference.execution, manifest.modelId);
-  }
-}
-
-// --- Manifest: session keep explicit compute/kvcache + Qwen decode loop ---
-
-{
-  for (const manifest of availableLocalManifests) {
-    const sd = manifest.inference.session;
-    assert.ok(sd != null);
-    assertQwenDecodeLoop(sd.decodeLoop, `${manifest.modelId}.inference.session`, 'manifest');
-    assert.equal(sd.kvcache?.kvDtype, 'f16');
-    assertQwenComputeDefaults(sd.compute?.defaults, `${manifest.modelId}.inference.session`);
-    assert.equal(sd.execution, undefined);
-  }
-  assertQwenPerLayerInputs(q4kManifest.inference.session?.perLayerInputs, `${q4kManifest.modelId}.inference.session`);
-}
-
-// --- Manifest: Qwen hybrid layer pattern ---
-
-{
-  for (const manifest of availableLocalManifests) {
-    const lp = manifest.inference.layerPattern;
-    assert.equal(lp.type, 'custom');
-    assert.equal(lp.layerTypes.length, manifest.architecture.numLayers);
-
-    const linearCount = lp.layerTypes.filter((t) => t === 'linear_attention').length;
-    const fullCount = lp.layerTypes.filter((t) => t === 'full_attention').length;
-    assert.equal(linearCount, 18);
-    assert.equal(fullCount, 6);
-
-    for (let i = 0; i < lp.layerTypes.length; i++) {
-      const expected = (i + 1) % 4 === 0 ? 'full_attention' : 'linear_attention';
-      assert.equal(lp.layerTypes[i], expected, `${manifest.modelId} layer ${i}`);
-    }
-  }
-}
-
-// --- Manifest: linear attention architecture fields present ---
-
-{
-  for (const manifest of availableLocalManifests) {
-    const arch = manifest.architecture;
-    assert.equal(arch.linearNumKeyHeads, 16);
-    assert.equal(arch.linearNumValueHeads, 16);
-    assert.equal(arch.linearKeyHeadDim, 128);
-    assert.equal(arch.linearValueHeadDim, 128);
-    assert.equal(arch.linearConvKernelDim, 4);
-  }
-}
-
-// --- Manifest: Qwen EOS resolves to <|im_end|>, not pad/endoftext ---
-
-{
-  assert.deepEqual(
-    q4kManifest.eos_token_id,
-    EXPECTED_QWEN_EOS_TOKEN_ID,
-    `${q4kManifest.modelId} eos_token_id`
-  );
-}
-
-// --- Qwen linear-attention layers use linear-attn norm weights, not self-attn q/k norm ---
-
-{
-  assert.equal(q4kManifest.architecture.linearNormMode, 'shared');
-  if (f16Manifest != null) {
-    assert.equal(f16Manifest.architecture.linearNormMode, undefined);
-  }
-
-  for (const manifest of availableLocalManifests) {
-    const projectionLayout = getLinearProjectionLayout(manifest);
-    for (let layerIdx = 0; layerIdx < manifest.inference.layerPattern.layerTypes.length; layerIdx++) {
-      const layerType = manifest.inference.layerPattern.layerTypes[layerIdx];
-      const prefix = `model.language_model.layers.${layerIdx}`;
-      if (layerType === 'linear_attention') {
-        assert.equal(hasTensor(manifest, `${prefix}.linear_attn.in_proj_z.weight`), true);
-        assert.equal(hasTensor(manifest, `${prefix}.linear_attn.in_proj_a.weight`), true);
-        assert.equal(hasTensor(manifest, `${prefix}.linear_attn.in_proj_b.weight`), true);
-        assert.equal(hasTensor(manifest, `${prefix}.linear_attn.norm.weight`), true);
-        assert.equal(hasTensor(manifest, `${prefix}.self_attn.q_norm.weight`), false);
-        assert.equal(hasTensor(manifest, `${prefix}.self_attn.k_norm.weight`), false);
+  for (const [layerIdx, layerType] of layerTypes.entries()) {
+    const prefix = `model.language_model.layers.${layerIdx}`;
+    if (layerType === 'linear_attention') {
+      for (const name of ['in_proj_z', 'in_proj_a', 'in_proj_b', 'norm']) {
+        assert.ok(has(`${prefix}.linear_attn.${name}.weight`), `${label}: layer ${layerIdx} missing linear_attn.${name}`);
+      }
+      assert.equal(has(`${prefix}.self_attn.q_norm.weight`), false, `${label}: layer ${layerIdx} linear layer has q_norm`);
+      if (arch.linearNormMode != null) {
         assert.equal(
           inferLinearNormMode(manifest.tensors[`${prefix}.linear_attn.norm.weight`], projectionLayout),
-          'shared',
-          `${manifest.modelId} layer ${layerIdx} linear-attention norm should resolve to shared`
+          arch.linearNormMode,
+          `${label}: layer ${layerIdx} norm tensor disagrees with architecture.linearNormMode`
         );
-        continue;
       }
-
-      if (layerType === 'full_attention') {
-        assert.equal(hasTensor(manifest, `${prefix}.self_attn.q_norm.weight`), true);
-        assert.equal(hasTensor(manifest, `${prefix}.self_attn.k_norm.weight`), true);
-      }
+    } else {
+      assert.ok(has(`${prefix}.self_attn.q_norm.weight`), `${label}: layer ${layerIdx} missing q_norm`);
+      assert.ok(has(`${prefix}.self_attn.k_norm.weight`), `${label}: layer ${layerIdx} missing k_norm`);
     }
   }
-}
-
-// --- Manifest: rmsNormWeightOffset = true (from the explicit conversion config) ---
-
-{
-  for (const manifest of availableLocalManifests) {
-    assert.equal(manifest.inference.normalization.rmsNormWeightOffset, true);
-  }
-}
-
-// --- Manifest: mRoPE fields ---
-
-{
-  for (const manifest of availableLocalManifests) {
-    const rope = manifest.inference.rope;
-    assert.deepEqual(rope.mropeSection, [11, 11, 10]);
-    assert.equal(rope.mropeInterleaved, true);
-    assert.equal(rope.partialRotaryFactor, 0.25);
-
-    const sectionSum = rope.mropeSection.reduce((a, b) => a + b, 0);
-    const resolvedRotaryDim = manifest.architecture.headDim * rope.partialRotaryFactor;
-    assert.equal(sectionSum * 2, resolvedRotaryDim);
-  }
-}
-
-// --- Conversion configs: execution-v1 omits legacy defaultKernelPath ---
-
-for (const config of convConfigs) {
-  assert.equal(config.inference.defaultKernelPath, undefined);
-}
-
-// --- Conversion configs: Qwen keeps an explicit execution graph with fused Q4 decode/prefill as primary path ---
-
-for (const config of convConfigs) {
-  assert.ok(config.execution && typeof config.execution === 'object');
-  assert.equal(config.execution.inlineKernelPath, true);
-  if ((config.output?.modelBaseId ?? '') === 'qwen-3-5-0-8b-q4k-ehaf16') {
-    assert.equal(config.execution.kernels.rmsnorm.kernel, 'rmsnorm.wgsl');
-    assert.equal(config.execution.kernels.q4_decode.kernel, 'fused_matmul_q4.wgsl');
-    assert.equal(config.execution.kernels.q4_decode.entry, 'main_multicol');
-    assert.equal(config.execution.kernels.q4_decode_gemv.kernel, 'fused_matmul_q4.wgsl');
-    assert.equal(config.execution.kernels.q4_decode_gemv.entry, 'main_gemv');
-    assert.equal(config.execution.kernels.rope.kernel, 'rope.wgsl');
-    assert.equal(config.execution.kernels.residual.kernel, 'residual.wgsl');
-    assert.equal(config.execution.kernels.silu.kernel, 'silu.wgsl');
-    assert.equal(config.execution.kernels.tiled.kernel, 'matmul_f16w_f32a.wgsl');
-    assert.equal(config.execution.kernels.q4_prefill.kernel, 'fused_matmul_q4_batched_multicol_shared.wgsl');
-    assert.equal(config.execution.kernels.q4_widetile.kernel, 'fused_matmul_q4_widetile.wgsl');
-    assert.equal(config.execution.kernels.attn_decode.kernel, 'attention_decode_online_f16kv.wgsl');
-    assert.equal(config.execution.kernels.attn_stream.kernel, 'attention_streaming_f16kv.wgsl');
-    assert.equal(config.execution.kernels.attn_head256.kernel, 'attention_head256_f16kv.wgsl');
-    assert.equal(config.execution.kernels.lm_head_gemv.kernel, 'matmul_gemv_subgroup_f16a.wgsl');
-    assert.equal(config.execution.kernels.lm_head_q4.kernel, 'fused_matmul_q4.wgsl');
-    assert.equal(config.execution.kernels.lm_head_q4.entry, 'main_gemv');
-    assert.deepEqual(config.execution.kernels.lm_head_q4.constants, {
-      COLS_PER_WG: 64,
-      THREADS_PER_COL_GEMV: 4,
-    });
-    assert.equal(config.execution.kernels.sample.kernel, 'sample.wgsl');
-    const decodeHead = config.execution.postLayer.find((step) => step[0] === 'lm_head');
-    assert.equal(decodeHead?.[1], 'lm_head_q4');
-  } else if ((config.output?.modelBaseId ?? '') === 'qwen-3-5-2b-q4k-ehaf16') {
-    assert.equal(config.execution.kernels.rmsnorm.kernel, 'rmsnorm.wgsl');
-    assert.equal(config.execution.kernels.q4_decode.kernel, 'fused_matmul_q4.wgsl');
-    assert.equal(config.execution.kernels.q4_decode.entry, 'main_multicol');
-    assert.equal(config.execution.kernels.q4_decode_gemv.kernel, 'fused_matmul_q4.wgsl');
-    assert.equal(config.execution.kernels.q4_decode_gemv.entry, 'main_gemv');
-    assert.equal(config.execution.kernels.rope.kernel, 'rope.wgsl');
-    assert.equal(config.execution.kernels.residual.kernel, 'residual.wgsl');
-    assert.equal(config.execution.kernels.silu.kernel, 'silu.wgsl');
-    assert.equal(config.execution.kernels.tiled.kernel, 'matmul_f16w_f32a.wgsl');
-    assert.equal(config.execution.kernels.q4_prefill.kernel, 'fused_matmul_q4_batched_multicol_shared.wgsl');
-    assert.equal(config.execution.kernels.q4_widetile.kernel, 'fused_matmul_q4_widetile.wgsl');
-    assert.equal(config.execution.kernels.attn_decode.kernel, 'attention_decode_online_f16kv.wgsl');
-    assert.equal(config.execution.kernels.attn_stream.kernel, 'attention_streaming_f16kv.wgsl');
-    assert.equal(config.execution.kernels.attn_head256.kernel, 'attention_head256_f16kv.wgsl');
-    assert.equal(config.execution.kernels.lm_head_gemv.kernel, 'matmul_gemv_subgroup.wgsl');
-    assert.equal(config.execution.kernels.lm_head_q4.kernel, 'fused_matmul_q4.wgsl');
-    assert.equal(config.execution.kernels.lm_head_q4.entry, 'main_gemv');
-    assert.deepEqual(config.execution.kernels.lm_head_q4.constants, {
-      COLS_PER_WG: 64,
-      THREADS_PER_COL_GEMV: 4,
-    });
-    assert.equal(config.execution.kernels.sample.kernel, 'sample.wgsl');
-    const decodeHead = config.execution.postLayer.find((step) => step[0] === 'lm_head');
-    assert.equal(decodeHead?.[1], 'lm_head_q4');
-  }
-}
-
-// --- Conversion configs: explicit qwen3 family config fields are authored directly ---
-
-for (const config of convConfigs) {
-  assertQwenConversionConfig(config);
-}
-
-// --- Conversion configs: top-level session keep the Qwen decode loop contract ---
-
-for (const config of convConfigs) {
-  assertQwenDecodeLoop(config.session?.decodeLoop, config.output?.modelBaseId ?? 'qwen');
-  assertQwenPerLayerInputs(config.session?.perLayerInputs, config.output?.modelBaseId ?? 'qwen');
 }
 
 console.log('qwen-manifest-completeness.test: ok');

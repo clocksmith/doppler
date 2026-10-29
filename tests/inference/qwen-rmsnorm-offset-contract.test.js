@@ -1,76 +1,53 @@
+// RMSNorm weight semantics for the Qwen family. Hybrid linear-attention
+// checkpoints (Qwen 3.5 and later) store RMSNorm weights as offsets from one
+// and need (1 + w) scaling; dense Qwen3 checkpoints (base, embedding,
+// reranker) store w directly. Every Qwen conversion config must state the flag
+// explicitly, agree with its layer structure, and converted local manifests
+// must carry the config's value.
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
-import { readFile } from 'node:fs/promises';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import path from 'node:path';
 
-async function loadJson(path) {
-  return JSON.parse(await readFile(new URL(path, import.meta.url), 'utf8'));
+const CONFIG_DIR = 'src/config/conversion/qwen3';
+
+function readJson(filePath) {
+  return JSON.parse(readFileSync(filePath, 'utf8'));
 }
 
-// V1 configs must have explicit rmsNormWeightOffset
-const conversionConfigs = await Promise.all([
-  loadJson('../../src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json'),
-  loadJson('../../src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json'),
-]);
+const configs = readdirSync(CONFIG_DIR)
+  .filter((name) => name.endsWith('.json'))
+  .map((name) => ({ name, config: readJson(path.join(CONFIG_DIR, name)) }));
+assert.ok(configs.length > 0, `${CONFIG_DIR} must contain conversion configs`);
 
-for (const config of conversionConfigs) {
+let hybrid = 0;
+let dense = 0;
+let manifestsChecked = 0;
+for (const { name, config } of configs) {
+  const offset = config.inference?.normalization?.rmsNormWeightOffset;
+  assert.equal(typeof offset, 'boolean', `${name}: rmsNormWeightOffset must be an explicit boolean`);
+
+  const layerTypes = config.inference?.layerPattern?.layerTypes ?? [];
+  const isHybrid = Array.isArray(layerTypes) && layerTypes.includes('linear_attention');
   assert.equal(
-    config.inference?.normalization?.rmsNormWeightOffset,
-    true,
-    `${config.output?.modelBaseId ?? 'unknown'} v1 config must keep offset RMSNorm weight semantics`
+    offset,
+    isHybrid,
+    `${name}: ${isHybrid ? 'hybrid linear-attention' : 'dense'} Qwen checkpoints use ${isHybrid ? 'offset' : 'direct'} RMSNorm weights`
   );
+  if (isHybrid) hybrid += 1;
+  else dense += 1;
+
+  const modelId = config.output?.modelBaseId;
+  const manifestPath = modelId ? path.join('models/local', modelId, 'manifest.json') : null;
+  if (manifestPath && existsSync(manifestPath)) {
+    const manifest = readJson(manifestPath);
+    assert.equal(
+      manifest.inference?.normalization?.rmsNormWeightOffset,
+      offset,
+      `${modelId}: converted manifest must carry the conversion config's RMSNorm weight semantics`
+    );
+    manifestsChecked += 1;
+  }
 }
+assert.ok(hybrid > 0 && dense > 0, 'both Qwen RMSNorm conventions must be represented');
 
-const nonOffsetConversionConfigs = await Promise.all([
-  loadJson('../../src/config/conversion/qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32.json'),
-  loadJson('../../src/config/conversion/qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32.json'),
-  loadJson('../../src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-af32.json'),
-]);
-
-for (const config of nonOffsetConversionConfigs) {
-  assert.equal(
-    config.inference?.normalization?.rmsNormWeightOffset,
-    false,
-    `${config.output?.modelBaseId ?? 'unknown'} v1 config must keep source-declared non-offset RMSNorm weight semantics`
-  );
-}
-
-const localManifestPaths = [
-  '../../models/local/qwen-3-5-0-8b-q4k-ehaf16-af32/manifest.json',
-  '../../models/local/qwen-3-5-0-8b-wf16-ef16-hf16-f16/manifest.json',
-  '../../models/local/qwen-3-5-0-8b-wq4k-ef16-hf16-f16/manifest.json',
-  '../../models/local/qwen-3-5-2b-wq4k-ef16-hf16-f16/manifest.json',
-];
-
-const localNonOffsetManifestPaths = [
-  '../../models/local/qwen-3-embedding-0-6b-q4k-ehf16-af32/manifest.json',
-  '../../models/local/qwen-3-reranker-0-6b-q4k-ehf16-af32/manifest.json',
-  '../../models/local/qwen-3-reranker-0-6b-f16-af32/manifest.json',
-];
-
-const existingManifestPaths = localManifestPaths.filter((relativePath) => (
-  existsSync(new URL(relativePath, import.meta.url))
-));
-
-for (const manifestPath of existingManifestPaths) {
-  const manifest = await loadJson(manifestPath);
-  assert.equal(
-    manifest.inference?.normalization?.rmsNormWeightOffset,
-    true,
-    `${manifest.modelId} must use offset RMSNorm weight semantics`
-  );
-}
-
-const existingNonOffsetManifestPaths = localNonOffsetManifestPaths.filter((relativePath) => (
-  existsSync(new URL(relativePath, import.meta.url))
-));
-
-for (const manifestPath of existingNonOffsetManifestPaths) {
-  const manifest = await loadJson(manifestPath);
-  assert.equal(
-    manifest.inference?.normalization?.rmsNormWeightOffset,
-    false,
-    `${manifest.modelId} must use source-declared non-offset RMSNorm weight semantics`
-  );
-}
-
-console.log('qwen-rmsnorm-offset-contract.test: ok');
+console.log(`qwen-rmsnorm-offset-contract.test: ok (${configs.length} configs, ${manifestsChecked} local manifests)`);

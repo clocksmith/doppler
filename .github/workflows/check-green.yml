@@ -1,8 +1,8 @@
 name: Smoke
 
 # Hosted CI is a smoke test: behavior suites, the packed package, and the demo.
-# Config, policy, mirror, and freshness checks (npm run check:green,
-# kernels:check) and GPU kernel contracts run on demand, not on every push.
+# The repository gate (npm run check:green: behavior checks plus the checks
+# whose inputs changed), kernels:check and GPU kernel contracts run on demand.
 on:
   pull_request:
   push:

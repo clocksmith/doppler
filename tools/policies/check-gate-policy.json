@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "description": "Repository check gate. behavior checks run on every change. Each triggered check runs only when a changed file matches its inputs: the listed globs, repository paths named inside its referencedBy JSON files, or the local import closure of the tools and tests its npm script runs. Changes to this policy or the gate tool select every check.",
+  "behavior": [
+    "commands:surface:check",
+    "exports:parity:check",
+    "imports:check:browser",
+    "typecheck:source",
+    "test:unit"
+  ],
+  "triggered": {
+    "agents:verify": {
+      "inputs": ["AGENTS.md", "CLAUDE.md", "GEMINI.md", "skills/**", ".agents/**", ".claude/**", ".gemini/**", ".codex/**", "tools/policies/agent-parity-policy.json"]
+    },
+    "catscan:check": {
+      "inputs": ["**/CATSCAN.md", "docs/component-index.md", "tools/policies/catscan-policy.json", "src/config/schema/catscan-policy.schema.json"]
+    },
+    "goals:check": {
+      "inputs": ["package.json", "src/config/goal-completion-matrix.json", "src/config/support-tiers/**"],
+      "referencedBy": ["src/config/goal-completion-matrix.json"]
+    },
+    "model-family:intake:check": {
+      "inputs": ["src/config/conversion/**", "tools/policies/model-family-authorizations/**", "tools/policies/model-family-authorization.schema.json"]
+    },
+    "model-release:check": {
+      "inputs": ["tools/policies/model-release-platform.json", "src/config/schema/model-release-platform.schema.json", "src/config/goal-completion-matrix.json", ".github/workflows/doppler-release.yml", "package.json"],
+      "referencedBy": ["tools/policies/model-release-platform.json"]
+    },
+    "product:portfolio:check": {
+      "inputs": ["tools/policies/product-portfolio-coherence.json", "tools/policies/bun-product-qualification.json", "tools/policies/product-integration-qualification.json", "tools/policies/provider-conformance.json", "benchmarks/vendors/runtime-ownership-decisions.json", "models/catalog.json", "src/config/schema/product-portfolio-coherence.schema.json"],
+      "referencedBy": ["tools/policies/product-portfolio-coherence.json"]
+    },
+    "revocations:check": {
+      "inputs": ["src/config/revocation-registry.json", "src/config/quickstart-registry.json", "models/catalog.json", "models/adapters/catalog.json", "benchmarks/vendors/local-inference-claim-matrix.json", "benchmarks/vendors/release-matrix.json", "benchmarks/vendors/runtime-ownership-decisions.json", "tools/policies/product-integration-qualification.json", "tools/policies/provider-conformance.json"]
+    },
+    "revocations:authority:check": {
+      "inputs": ["tools/policies/signed-revocation-authority-qualification.json", "src/config/schema/signed-revocation-authority-qualification.schema.json"],
+      "referencedBy": ["tools/policies/signed-revocation-authority-qualification.json"]
+    },
+    "product:integrations:check": {
+      "inputs": ["tools/policies/product-integration-qualification.json", "src/config/schema/product-integration-qualification.schema.json"],
+      "referencedBy": ["tools/policies/product-integration-qualification.json"]
+    },
+    "provider:conformance:check": {
+      "inputs": ["tools/policies/provider-conformance.json", "src/config/schema/provider-conformance-policy.schema.json"],
+      "referencedBy": ["tools/policies/provider-conformance.json"]
+    },
+    "runtime:ownership:check": {
+      "inputs": ["benchmarks/vendors/runtime-ownership-decisions.json", "src/config/schema/runtime-ownership-decisions.schema.json"],
+      "referencedBy": ["benchmarks/vendors/runtime-ownership-decisions.json"]
+    },
+    "runtime:closure:check": {
+      "inputs": ["src/**", "reports/capsule-runtime/runtime-closure.json", "tools/policies/runtime-closure-policy.json"]
+    },
+    "public:boundaries:check": {
+      "inputs": ["package.json", "CHANGELOG.md", "models/catalog.json", "src/index.js", "src/index.d.ts", "src/capsule-runtime.js", "src/capsule-runtime.d.ts", "src/client/provider.js", "src/client/provider.d.ts", "src/*.js", "src/*.d.ts"]
+    },
+    "kernels:package-digests:check": {
+      "inputs": ["src/gpu/kernels/**", "src/config/kernels/**", "src/config/conversion/**", "src/config/source-packages/**"]
+    },
+    "package:smoke": {
+      "inputs": ["package.json", "package-lock.json", "src/**", "tools/convert-safetensors-node.js", "tests/helpers/**"]
+    },
+    "api:docs:check": {
+      "inputs": ["package.json", "src/config/support-tiers/subsystems.json", "docs/api/**", "src/*.d.ts", "src/*.js"]
+    },
+    "config:single-source:check": {
+      "inputs": ["docs/**", "models/GUIDE.md", "src/config/**"]
+    },
+    "rules:bundle:check": {
+      "inputs": ["src/rules/**"]
+    },
+    "routing:audit:check": {
+      "inputs": ["src/config/kernels/**", "src/gpu/kernels/**", "src/config/conversion/**", "src/rules/**", "benchmarks/kernels/execution-routing-audit.json", "models/catalog.json"]
+    },
+    "negative-results:check": {
+      "inputs": ["benchmarks/kernels/negative-results.json", "src/gpu/kernels/**", "src/config/kernels/**"],
+      "referencedBy": ["benchmarks/kernels/negative-results.json"]
+    },
+    "evidence:workflows:check": {
+      "inputs": ["package.json", "src/**", "tools/**", "tests/**"]
+    },
+    "promotion:monitoring:check": {
+      "inputs": ["tools/policies/runtime-promotion-monitoring.json", "src/config/revocation-registry.json", "src/config/schema/runtime-promotion-monitoring.schema.json"],
+      "referencedBy": ["tools/policies/runtime-promotion-monitoring.json"]
+    },
+    "inference:boundaries:check": {
+      "inputs": ["src/inference/**"]
+    },
+    "source:style:check": {
+      "inputs": ["src/**", "demo/**", "tsconfig.source-strict.json", "tsconfig.source-unused.json", "tools/policies/source-compute-policy.json"]
+    },
+    "source:architecture:check": {
+      "inputs": ["src/**", "package.json", "tools/policies/source-architecture-policy.json", "tools/policies/module-dependencies.json"]
+    },
+    "source:dependencies:check": {
+      "inputs": ["src/**", "package.json", "docs/architecture-dependencies.json", "tools/policies/module-dependencies.json"]
+    },
+    "capability-policy:check": {
+      "inputs": ["src/rules/inference/capability-transforms.rules.json", "src/config/transforms/**", "tests/**"]
+    },
+    "pending:check": {
+      "inputs": ["tests/**", "tools/policies/pending-tests-policy.json"]
+    },
+    "artifact:contract:check": {
+      "inputs": ["models/catalog.json", "tools/policies/model-artifact-contract.json"],
+      "referencedBy": ["tools/policies/model-artifact-contract.json"]
+    },
+    "adapter-artifacts:check": {
+      "inputs": ["models/adapters/**", "src/experimental/adapters/**"],
+      "referencedBy": ["models/adapters/catalog.json"]
+    },
+    "claims:evidence:check": {
+      "inputs": ["package.json", "tools/policies/claim-evidence-contract.json"],
+      "referencedBy": ["tools/policies/claim-evidence-contract.json"]
+    },
+    "release-claims:check": {
+      "inputs": ["models/**", "src/config/quickstart-registry.json", "src/config/support-tiers/**", "tools/policies/release-claim-policy.json", "README.md", "docs/**", "benchmarks/vendors/**"],
+      "referencedBy": ["tools/policies/release-claim-policy.json"]
+    },
+    "support:matrix:check": {
+      "inputs": ["models/catalog.json", "models/gemma4-targets.json", "models/model-type-taxonomy.json", "src/config/conversion/**", "docs/model-support-matrix.md", "README.md"]
+    },
+    "support:subsystems:check": {
+      "inputs": ["package.json", "demo/**", "src/config/support-tiers/**", "tools/policies/subsystem-support-contract.json", "docs/**"],
+      "referencedBy": ["tools/policies/subsystem-support-contract.json"]
+    },
+    "policy:schemas:check": {
+      "inputs": ["src/config/schema/**", "tools/policies/**"],
+      "referencedBy": ["src/config/schema/policy-schema-registry.json"]
+    },
+    "program-bundle:schema:check": {
+      "inputs": ["src/config/schema/program-bundle.schema.json", "src/config/schema/program-bundle-json-schema.js"]
+    },
+    "program-bundle:check": {
+      "inputs": ["examples/program-bundles/**", "src/tooling/program-bundle*", "src/config/schema/program-bundle*"]
+    },
+    "product:readiness:check": {
+      "inputs": ["models/catalog.json", "src/config/**", "benchmarks/vendors/**", "tools/policies/**", "reports/**"]
+    },
+    "optimization:control:check": {
+      "inputs": ["src/config/runtime/**", "src/config/kernels/**", "benchmarks/**", "reports/**"]
+    }
+  }
+}
