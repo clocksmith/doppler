@@ -1,0 +1,9 @@
+{
+  "schema": "doppler.canonical-onnx-compiler.v1",
+  "genericPatternRewriter": false,
+  "constantFoldIterations": 2,
+  "constantInputLimitBytes": 2147483647,
+  "constantOutputLimitBytes": 2147483647,
+  "skipConstantOperators": ["Exp"],
+  "reason": "The generic ONNXScript pattern matcher rescans the complete large graph for each match. Use explicit folding/deduplication passes. Retain raw canonical A_log initialization rather than introduce a NumPy-exp preparation variant."
+}

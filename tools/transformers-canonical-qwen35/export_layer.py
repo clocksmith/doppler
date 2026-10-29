@@ -35,10 +35,8 @@ class LinearAttentionExport(torch.nn.Module):
 
     @staticmethod
     def softplus(value):
-        # Match native beta=1 / threshold=20 without an unsupported Softplus node.
-        # Clamp the unselected exp branch to keep every graph intermediate finite.
-        limited = torch.where(value > 20.0, 20.0, value)
-        return torch.where(value > 20.0, value, torch.log1p(torch.exp(limited)))
+        # Preserve the unchanged native CPU reference. ONNX lowering is separate.
+        return F.softplus(value)
 
     def fixed_pad(self, value, zeros):
         return torch.cat((value, zeros), dim=2)[:, :, :self.bound]
@@ -56,30 +54,34 @@ class LinearAttentionExport(torch.nn.Module):
         query = query * (self.native.head_k_dim ** -0.5)
         key_beta = key * beta.unsqueeze(-1)
         value_beta = value * beta.unsqueeze(-1)
+        chunks = self.bound // 64
+        batch, heads = query.shape[:2]
+        query, key, key_beta = [x.reshape(batch, heads, chunks, 64, self.native.head_k_dim)
+                               for x in (query, key, key_beta)]
+        value_beta = value_beta.reshape(batch, heads, chunks, 64, self.native.head_v_dim)
+        decay = g.reshape(batch, heads, chunks, 64).cumsum(-1)
+        difference = decay.unsqueeze(-1) - decay.unsqueeze(-2)
+        decay_mask = torch.where(self.lower.bool(), difference, 0.0).exp() * self.lower
+        original = -(key_beta @ key.transpose(-1, -2)) * decay_mask
+        original = torch.where(self.strict_lower, original, 0.0)
+        rows = [original[..., :1, :]]
+        for i in range(1, 64):
+            row = original[..., i, :i]
+            sub = torch.cat(rows, dim=-2)[..., :i]
+            updated = row + (row.unsqueeze(-1) * sub).sum(-2)
+            rows.append(torch.cat((updated, torch.zeros_like(original[..., i, i:])), -1).unsqueeze(-2))
+        solved = torch.cat(rows, dim=-2) + self.identity
+        solved_value = solved @ value_beta
+        key_cumulative = solved @ (key_beta * decay.exp().unsqueeze(-1))
         outputs = []
-        for chunk_index in range(self.bound // 64):
-            start, end = chunk_index * 64, (chunk_index + 1) * 64
-            q, k = query[:, :, start:end], key[:, :, start:end]
-            kb, vb = key_beta[:, :, start:end], value_beta[:, :, start:end]
-            decay = g[:, :, start:end].cumsum(-1)
-            difference = decay.unsqueeze(-1) - decay.unsqueeze(-2)
-            decay_mask = torch.where(self.lower.bool(), difference, 0.0).exp() * self.lower
-            original = -(kb @ k.transpose(-1, -2)) * decay_mask
-            original = torch.where(self.strict_lower, original, 0.0)
-            rows = [original[..., :1, :]]
-            for i in range(1, 64):
-                row = original[..., i, :i]
-                sub = torch.cat(rows, dim=-2)[..., :i]
-                updated = row + (row.unsqueeze(-1) * sub).sum(-2)
-                rows.append(torch.cat((updated, torch.zeros_like(original[..., i, i:])), -1).unsqueeze(-2))
-            solved = torch.cat(rows, dim=-2) + self.identity
-            solved_value = solved @ vb
-            key_cumulative = solved @ (kb * decay.exp().unsqueeze(-1))
-            attention = (q @ k.transpose(-1, -2)) * decay_mask
-            new_value = solved_value - key_cumulative @ state
-            outputs.append((q * decay.exp().unsqueeze(-1)) @ state + attention @ new_value)
-            state = (state * decay[..., -1, None, None].exp() +
-                     (k * (decay[..., -1, None] - decay).exp().unsqueeze(-1)).transpose(-1, -2) @ new_value)
+        for chunk_index in range(chunks):
+            q, k = query[:, :, chunk_index], key[:, :, chunk_index]
+            d = decay[:, :, chunk_index]
+            attention = (q @ k.transpose(-1, -2)) * decay_mask[:, :, chunk_index]
+            new_value = solved_value[:, :, chunk_index] - key_cumulative[:, :, chunk_index] @ state
+            outputs.append((q * d.exp().unsqueeze(-1)) @ state + attention @ new_value)
+            state = (state * d[..., -1, None, None].exp() +
+                     (k * (d[..., -1, None] - d).exp().unsqueeze(-1)).transpose(-1, -2) @ new_value)
         output = torch.cat(outputs, dim=2)[:, :, :sequence_length].transpose(1, 2)
         return output, state
 

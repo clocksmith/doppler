@@ -1,0 +1,1140 @@
+{
+  "schema": "doppler.canonical-text-onnx-export.v1",
+  "completed": true,
+  "inputs": {
+    "canonicalManifestSha256": "77e74f2b0ddf51d0e01edd5888f531e8dda57e8257e2f7ace94916da306cfe95",
+    "configSha256": "c4e4b5cc6a38e43168e7b08e6e991f0c74e7b07d2ca1fe4432f36e2d4e66d2f3",
+    "safetensorsHeaderSha256": "434d00a9998ff2254673ab03669904341dba0d2029a6fc7eeef22c70fa7342ac"
+  },
+  "scope": "Canonical ONNX construction and initializer binding; no ONNX inference, TJS, GPU or speed proof",
+  "frameworks": {
+    "torch": "2.11.0",
+    "transformers": "5.6.2",
+    "safetensors": "0.7.0",
+    "onnx": "1.23.2",
+    "onnxscript": "0.7.2",
+    "onnxruntime": "1.26.0"
+  },
+  "parameterCount": 321,
+  "policySha256": "a74fee3c20a63a1466874c1b4fac93f9126a47fb49372fd3a41714f19ba18638",
+  "cpuGate": {
+    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-text-cpu-02/receipt.json",
+    "sha256": "7024db9037d6c4aba1c2482632389f9cb994bce384ba3b982a779c47ffcaa796"
+  },
+  "contract": {
+    "batchSize": 1,
+    "prefillBound": 704,
+    "maxSequenceLength": 2048,
+    "cpuPrefillLengths": [
+      1,
+      2,
+      28
+    ],
+    "cpuDecodeSteps": 4,
+    "logitAbsoluteTolerance": 0.001,
+    "stateAbsoluteTolerance": 1e-05,
+    "stateRelativeTolerance": 0.0001,
+    "kvStateMaxRepresentableSteps": 1,
+    "kvPhysicalDtype": "float16",
+    "linearStateDtype": "float32",
+    "attentionMathDtype": "float32",
+    "scope": "Four frozen prompts, maximum prompt length 655; prefill bound 704 is explicit. Total context remains 2048.",
+    "sessionRouting": "Explicit prefill/decode adapter supplied through the public TJS model constructor; no token-at-a-time prefill"
+  },
+  "graphs": [
+    {
+      "mode": "prefill",
+      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_prefill.onnx",
+      "sha256": "fb6bf79f694dc0ab7ad5f1dfc1713e536147b26dce0a21e8b88f774f20bc7761",
+      "lowerings": [
+        {
+          "node": "n3",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_2",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_3",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "node_le_1",
+          "from": "LessOrEqual",
+          "to": [
+            "Greater",
+            "Not"
+          ],
+          "reason": "Pinned ORT-WebGPU exposes strict comparison and Not operators"
+        },
+        {
+          "node": "n3_4",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_5",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_6",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_7",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_8",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_9",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_10",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_11",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_12",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_13",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_14",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_15",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_16",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_17",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_18",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        }
+      ],
+      "operators": {
+        "Abs": 18,
+        "Add": 1778,
+        "Cast": 27,
+        "Concat": 2426,
+        "Conv": 18,
+        "Cos": 1,
+        "CumSum": 18,
+        "Div": 18,
+        "Exp": 666,
+        "Expand": 12,
+        "Gather": 2523,
+        "Greater": 38,
+        "Log": 18,
+        "MatMul": 1246,
+        "Mul": 2439,
+        "Neg": 66,
+        "Not": 1,
+        "Pow": 79,
+        "Range": 1,
+        "Reciprocal": 115,
+        "ReduceMean": 79,
+        "ReduceSum": 1170,
+        "Reshape": 260,
+        "Shape": 1,
+        "Sigmoid": 84,
+        "Sin": 1,
+        "Slice": 2545,
+        "Softmax": 6,
+        "Sqrt": 115,
+        "Squeeze": 1,
+        "Sub": 414,
+        "Transpose": 591,
+        "Unsqueeze": 3155,
+        "Where": 86
+      },
+      "inputs": [
+        "inputs_embeds",
+        "position_ids",
+        "attention_mask",
+        "past_conv.0",
+        "past_recurrent.0",
+        "past_conv.1",
+        "past_recurrent.1",
+        "past_conv.2",
+        "past_recurrent.2",
+        "past_key_values.3.key",
+        "past_key_values.3.value",
+        "past_conv.4",
+        "past_recurrent.4",
+        "past_conv.5",
+        "past_recurrent.5",
+        "past_conv.6",
+        "past_recurrent.6",
+        "past_key_values.7.key",
+        "past_key_values.7.value",
+        "past_conv.8",
+        "past_recurrent.8",
+        "past_conv.9",
+        "past_recurrent.9",
+        "past_conv.10",
+        "past_recurrent.10",
+        "past_key_values.11.key",
+        "past_key_values.11.value",
+        "past_conv.12",
+        "past_recurrent.12",
+        "past_conv.13",
+        "past_recurrent.13",
+        "past_conv.14",
+        "past_recurrent.14",
+        "past_key_values.15.key",
+        "past_key_values.15.value",
+        "past_conv.16",
+        "past_recurrent.16",
+        "past_conv.17",
+        "past_recurrent.17",
+        "past_conv.18",
+        "past_recurrent.18",
+        "past_key_values.19.key",
+        "past_key_values.19.value",
+        "past_conv.20",
+        "past_recurrent.20",
+        "past_conv.21",
+        "past_recurrent.21",
+        "past_conv.22",
+        "past_recurrent.22",
+        "past_key_values.23.key",
+        "past_key_values.23.value"
+      ],
+      "outputs": [
+        "logits",
+        "present_conv.0",
+        "present_recurrent.0",
+        "present_conv.1",
+        "present_recurrent.1",
+        "present_conv.2",
+        "present_recurrent.2",
+        "present.3.key",
+        "present.3.value",
+        "present_conv.4",
+        "present_recurrent.4",
+        "present_conv.5",
+        "present_recurrent.5",
+        "present_conv.6",
+        "present_recurrent.6",
+        "present.7.key",
+        "present.7.value",
+        "present_conv.8",
+        "present_recurrent.8",
+        "present_conv.9",
+        "present_recurrent.9",
+        "present_conv.10",
+        "present_recurrent.10",
+        "present.11.key",
+        "present.11.value",
+        "present_conv.12",
+        "present_recurrent.12",
+        "present_conv.13",
+        "present_recurrent.13",
+        "present_conv.14",
+        "present_recurrent.14",
+        "present.15.key",
+        "present.15.value",
+        "present_conv.16",
+        "present_recurrent.16",
+        "present_conv.17",
+        "present_recurrent.17",
+        "present_conv.18",
+        "present_recurrent.18",
+        "present.19.key",
+        "present.19.value",
+        "present_conv.20",
+        "present_recurrent.20",
+        "present_conv.21",
+        "present_recurrent.21",
+        "present_conv.22",
+        "present_recurrent.22",
+        "present.23.key",
+        "present.23.value"
+      ]
+    },
+    {
+      "mode": "decode",
+      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_decode.onnx",
+      "sha256": "584cb20b5c96ba40a0f6d13fb12953a9ce60c358d1a75c05ffc5835f9875a9af",
+      "lowerings": [
+        {
+          "node": "n3",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_2",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_3",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "node_le_2",
+          "from": "LessOrEqual",
+          "to": [
+            "Greater",
+            "Not"
+          ],
+          "reason": "Pinned ORT-WebGPU exposes strict comparison and Not operators"
+        },
+        {
+          "node": "n3_4",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_5",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_6",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_7",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_8",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_9",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_10",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_11",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_12",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_13",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_14",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_15",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_16",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_17",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        },
+        {
+          "node": "n3_18",
+          "from": "Softplus",
+          "to": [
+            "Abs",
+            "Neg",
+            "Exp",
+            "Add",
+            "Log",
+            "Greater",
+            "Where",
+            "Add"
+          ],
+          "reason": "Stable F32 softplus decomposition; pinned ORT-WebGPU has no Softplus shader"
+        }
+      ],
+      "operators": {
+        "Abs": 18,
+        "Add": 249,
+        "Cast": 27,
+        "Concat": 57,
+        "Conv": 18,
+        "Cos": 1,
+        "Div": 18,
+        "Exp": 54,
+        "Expand": 12,
+        "Gather": 93,
+        "Greater": 38,
+        "Log": 18,
+        "MatMul": 202,
+        "Mul": 512,
+        "Neg": 48,
+        "Not": 1,
+        "Pow": 79,
+        "Range": 1,
+        "Reciprocal": 115,
+        "ReduceMean": 79,
+        "ReduceSum": 72,
+        "Reshape": 169,
+        "Shape": 1,
+        "Sigmoid": 84,
+        "Sin": 1,
+        "Slice": 151,
+        "Softmax": 6,
+        "Sqrt": 115,
+        "Squeeze": 1,
+        "Sub": 18,
+        "Transpose": 69,
+        "Unsqueeze": 149,
+        "Where": 50
+      },
+      "inputs": [
+        "inputs_embeds",
+        "position_ids",
+        "attention_mask",
+        "past_conv.0",
+        "past_recurrent.0",
+        "past_conv.1",
+        "past_recurrent.1",
+        "past_conv.2",
+        "past_recurrent.2",
+        "past_key_values.3.key",
+        "past_key_values.3.value",
+        "past_conv.4",
+        "past_recurrent.4",
+        "past_conv.5",
+        "past_recurrent.5",
+        "past_conv.6",
+        "past_recurrent.6",
+        "past_key_values.7.key",
+        "past_key_values.7.value",
+        "past_conv.8",
+        "past_recurrent.8",
+        "past_conv.9",
+        "past_recurrent.9",
+        "past_conv.10",
+        "past_recurrent.10",
+        "past_key_values.11.key",
+        "past_key_values.11.value",
+        "past_conv.12",
+        "past_recurrent.12",
+        "past_conv.13",
+        "past_recurrent.13",
+        "past_conv.14",
+        "past_recurrent.14",
+        "past_key_values.15.key",
+        "past_key_values.15.value",
+        "past_conv.16",
+        "past_recurrent.16",
+        "past_conv.17",
+        "past_recurrent.17",
+        "past_conv.18",
+        "past_recurrent.18",
+        "past_key_values.19.key",
+        "past_key_values.19.value",
+        "past_conv.20",
+        "past_recurrent.20",
+        "past_conv.21",
+        "past_recurrent.21",
+        "past_conv.22",
+        "past_recurrent.22",
+        "past_key_values.23.key",
+        "past_key_values.23.value"
+      ],
+      "outputs": [
+        "logits",
+        "present_conv.0",
+        "present_recurrent.0",
+        "present_conv.1",
+        "present_recurrent.1",
+        "present_conv.2",
+        "present_recurrent.2",
+        "present.3.key",
+        "present.3.value",
+        "present_conv.4",
+        "present_recurrent.4",
+        "present_conv.5",
+        "present_recurrent.5",
+        "present_conv.6",
+        "present_recurrent.6",
+        "present.7.key",
+        "present.7.value",
+        "present_conv.8",
+        "present_recurrent.8",
+        "present_conv.9",
+        "present_recurrent.9",
+        "present_conv.10",
+        "present_recurrent.10",
+        "present.11.key",
+        "present.11.value",
+        "present_conv.12",
+        "present_recurrent.12",
+        "present_conv.13",
+        "present_recurrent.13",
+        "present_conv.14",
+        "present_recurrent.14",
+        "present.15.key",
+        "present.15.value",
+        "present_conv.16",
+        "present_recurrent.16",
+        "present_conv.17",
+        "present_recurrent.17",
+        "present_conv.18",
+        "present_recurrent.18",
+        "present.19.key",
+        "present.19.value",
+        "present_conv.20",
+        "present_recurrent.20",
+        "present_conv.21",
+        "present_recurrent.21",
+        "present_conv.22",
+        "present_recurrent.22",
+        "present.23.key",
+        "present.23.value"
+      ]
+    }
+  ],
+  "cacheBindings": [
+    {
+      "input": "past_conv.0",
+      "output": "present_conv.0"
+    },
+    {
+      "input": "past_recurrent.0",
+      "output": "present_recurrent.0"
+    },
+    {
+      "input": "past_conv.1",
+      "output": "present_conv.1"
+    },
+    {
+      "input": "past_recurrent.1",
+      "output": "present_recurrent.1"
+    },
+    {
+      "input": "past_conv.2",
+      "output": "present_conv.2"
+    },
+    {
+      "input": "past_recurrent.2",
+      "output": "present_recurrent.2"
+    },
+    {
+      "input": "past_key_values.3.key",
+      "output": "present.3.key"
+    },
+    {
+      "input": "past_key_values.3.value",
+      "output": "present.3.value"
+    },
+    {
+      "input": "past_conv.4",
+      "output": "present_conv.4"
+    },
+    {
+      "input": "past_recurrent.4",
+      "output": "present_recurrent.4"
+    },
+    {
+      "input": "past_conv.5",
+      "output": "present_conv.5"
+    },
+    {
+      "input": "past_recurrent.5",
+      "output": "present_recurrent.5"
+    },
+    {
+      "input": "past_conv.6",
+      "output": "present_conv.6"
+    },
+    {
+      "input": "past_recurrent.6",
+      "output": "present_recurrent.6"
+    },
+    {
+      "input": "past_key_values.7.key",
+      "output": "present.7.key"
+    },
+    {
+      "input": "past_key_values.7.value",
+      "output": "present.7.value"
+    },
+    {
+      "input": "past_conv.8",
+      "output": "present_conv.8"
+    },
+    {
+      "input": "past_recurrent.8",
+      "output": "present_recurrent.8"
+    },
+    {
+      "input": "past_conv.9",
+      "output": "present_conv.9"
+    },
+    {
+      "input": "past_recurrent.9",
+      "output": "present_recurrent.9"
+    },
+    {
+      "input": "past_conv.10",
+      "output": "present_conv.10"
+    },
+    {
+      "input": "past_recurrent.10",
+      "output": "present_recurrent.10"
+    },
+    {
+      "input": "past_key_values.11.key",
+      "output": "present.11.key"
+    },
+    {
+      "input": "past_key_values.11.value",
+      "output": "present.11.value"
+    },
+    {
+      "input": "past_conv.12",
+      "output": "present_conv.12"
+    },
+    {
+      "input": "past_recurrent.12",
+      "output": "present_recurrent.12"
+    },
+    {
+      "input": "past_conv.13",
+      "output": "present_conv.13"
+    },
+    {
+      "input": "past_recurrent.13",
+      "output": "present_recurrent.13"
+    },
+    {
+      "input": "past_conv.14",
+      "output": "present_conv.14"
+    },
+    {
+      "input": "past_recurrent.14",
+      "output": "present_recurrent.14"
+    },
+    {
+      "input": "past_key_values.15.key",
+      "output": "present.15.key"
+    },
+    {
+      "input": "past_key_values.15.value",
+      "output": "present.15.value"
+    },
+    {
+      "input": "past_conv.16",
+      "output": "present_conv.16"
+    },
+    {
+      "input": "past_recurrent.16",
+      "output": "present_recurrent.16"
+    },
+    {
+      "input": "past_conv.17",
+      "output": "present_conv.17"
+    },
+    {
+      "input": "past_recurrent.17",
+      "output": "present_recurrent.17"
+    },
+    {
+      "input": "past_conv.18",
+      "output": "present_conv.18"
+    },
+    {
+      "input": "past_recurrent.18",
+      "output": "present_recurrent.18"
+    },
+    {
+      "input": "past_key_values.19.key",
+      "output": "present.19.key"
+    },
+    {
+      "input": "past_key_values.19.value",
+      "output": "present.19.value"
+    },
+    {
+      "input": "past_conv.20",
+      "output": "present_conv.20"
+    },
+    {
+      "input": "past_recurrent.20",
+      "output": "present_recurrent.20"
+    },
+    {
+      "input": "past_conv.21",
+      "output": "present_conv.21"
+    },
+    {
+      "input": "past_recurrent.21",
+      "output": "present_recurrent.21"
+    },
+    {
+      "input": "past_conv.22",
+      "output": "present_conv.22"
+    },
+    {
+      "input": "past_recurrent.22",
+      "output": "present_recurrent.22"
+    },
+    {
+      "input": "past_key_values.23.key",
+      "output": "present.23.key"
+    },
+    {
+      "input": "past_key_values.23.value",
+      "output": "present.23.value"
+    }
+  ],
+  "sourceFiles": {
+    "export_onnx.py": "4012b33d920da505d754650f4952baa302ed9ebbeee771488387ad80d51176da",
+    "export_text.py": "ba6ca19ed9af5dff1c8fa5016c1dbc838d882d5999c077d04568b45eae866bcc",
+    "export_layer.py": "49b38ffd09f1a41a33beb56bb2f953961b537c010d8cea021069454b7850dc12",
+    "onnx_lower.py": "5422e0499c67d17c59901d2afb7a9b980e15048df23760f368998536d18387b4",
+    "initializer_binding.py": "14728eed05d217783c39b912e083ae8e627b1ace9524b2e97b9ad91be62fb0f1",
+    "native_model.py": "d06227124c68fea5bc4e6ba6b6b0f59ca0c1e26bc86717fceb5fffad6b83ff63",
+    "binding.py": "ad47eddfbd4bf2162d3579d7a0a22004aa621f132df0e827f1f6d9f4a5bbfb70",
+    "contract.json": "a74fee3c20a63a1466874c1b4fac93f9126a47fb49372fd3a41714f19ba18638",
+    "compile_optimizer.py": "1ce4976cfd0a6b9f4b16d8e6612b894066108a865404cffe2092ca889e82559d",
+    "export-compiler.json": "cca3f2a6c5c401c7dd0979a04ad25eb8d80aef268b8ac0d395d94ca277df8bba"
+  },
+  "initializerBinding": {
+    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/initializer-binding.json",
+    "sha256": "9d7cd0179d4c3a6f3cf39388c96bb3c9922c08c160c93a659641439187c38a26",
+    "pass": true
+  },
+  "artifacts": [
+    {
+      "path": "onnx/decoder_decode.onnx",
+      "bytes": 3233182,
+      "sha256": "584cb20b5c96ba40a0f6d13fb12953a9ce60c358d1a75c05ffc5835f9875a9af"
+    },
+    {
+      "path": "onnx/decoder_decode.onnx.data",
+      "bytes": 3010012160,
+      "sha256": "d30bd4e8482e9c74389bcdcec538122e6aa8d7c953cec7b046c1388b525b6423"
+    },
+    {
+      "path": "onnx/decoder_prefill.onnx",
+      "bytes": 27864571,
+      "sha256": "fb6bf79f694dc0ab7ad5f1dfc1713e536147b26dce0a21e8b88f774f20bc7761"
+    },
+    {
+      "path": "onnx/decoder_prefill.onnx.data",
+      "bytes": 3265189568,
+      "sha256": "874f92500e82bdeb0d35153205a446afdade9c0424b44a07f6499b5204e4ba55"
+    },
+    {
+      "path": "onnx/embed_tokens.onnx",
+      "bytes": 1881,
+      "sha256": "a17e8d8930997f5062f5b6df35f94b8c23039b396a53590ec05fc7e1c69232d8"
+    },
+    {
+      "path": "onnx/embed_tokens.onnx.data",
+      "bytes": 1017118720,
+      "sha256": "ef1267726fe5c2ef69fbf3fbf4fcfc08287b6e6d1148ec38a5714ea1899cbbf6"
+    }
+  ]
+}

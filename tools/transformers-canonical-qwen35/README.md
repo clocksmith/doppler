@@ -1,7 +1,7 @@
 # Canonical Qwen3.5 export investigation
 
 Internal, untimed tools for the exact 321-tensor canonical F32 text checkpoint.
-This directory does not currently provide a full-model Transformers.js runner.
+The full-model Transformers.js runner is diagnostic tooling under validation.
 It never downloads model weights or substitutes a published ONNX checkpoint.
 
 ## Established scope
@@ -28,6 +28,42 @@ It never downloads model weights or substitutes a published ONNX checkpoint.
   explicit F16 lane physically stores K/V as F16 and widens the stored values
   for unchanged eager F32 attention; convolution/recurrent state stays F32.
   Its F32 option is a separately labeled diagnostic lane.
+- `teacher_native.py` generated 64 greedy tokens for each of the four frozen
+  prompts (28, 31, 34, and 655 input tokens). It retains all 248320 logits at
+  steps 0, 1, 2, 4, 8, 16, 32, and 63, exact token IDs/text, EOS handling, and
+  physical cache checks at every step. None of these runs encountered EOS.
+- `export_text.py` and `validate_text.py` compose all 24 layers with the 48
+  explicit cache ports and F16 physical full-attention K/V. The CPU adapter is
+  bit-exact against unchanged native HF across 735 logits/state comparisons:
+  prefill lengths 1, 2, and 28, each followed by four stateful decode steps.
+  `export_onnx.py` constructed embedding, prefill and decode ONNX sessions and
+  bound all 321 learned parameters to reachable initializer bytes/shapes.
+- F16-KV ONNX CPU execution failed the frozen gate: four of 15 logit vectors
+  exceeded 0.001, and strict internal state checks failed. The separate F32-KV
+  variant passed all 15 logit checks (maximum error 0.0000537), while 53 internal
+  state checks still failed their unchanged tighter tolerances. Both failures
+  remain retained; neither artifact is qualified for timing.
+- `diagnose_state.py` replayed the first F32 state failure at layer 16. State
+  binding reconstructed exactly; native normalization on the same ONNX input
+  was bit-exact. An inherited hidden difference and a local F32 matrix multiply
+  difference account for the failed state comparison. This does not waive it.
+- `teacher-f32kv.json` selects the separately named all-F32-KV teacher and binds
+  the parent's separate lane contract. All four prompts reached 64 tokens and
+  all eight full-logit snapshots. The original F16 teacher bytes are unchanged.
+- `variant_f32kv.py` changes only cache casts/IO metadata, verifies learned
+  initializer protobufs remain byte-identical, and shares single-linked external
+  payloads through sibling graph files. Session GPU weight residency can still
+  be duplicated and must be reported separately from on-disk payload sharing.
+- `tjs_model.js` supplies explicit session routing through the public TJS model
+  constructor. `run_text_gpu.js` uses public TJS embedding, forward and cache
+  APIs. Its only supported mode is an untimed diagnostic that discloses the
+  failed strict CPU state gate; it has no timing-admission path.
+
+The full-text frontend declares a 704-token prefill bound: its graph computes
+11 padded chunks even for a 28-token prompt. This is extra work and a current
+scheduler limitation. Decode uses the separate recurrent graph. Any eventual
+comparison must identify the custom TJS adapter, padding work, source graph,
+and scheduler; these tools do not establish stock TJS performance.
 
 `evidence/` retains exact binding, layer CPU/ONNX/GPU receipts, provider/source
 identity, and a full-model native reference summary. Large ONNX graphs, binary
@@ -51,5 +87,5 @@ python tools/transformers-canonical-qwen35/validate_layer.py --canonical PATH --
 node tools/transformers-canonical-qwen35/run_layer_gpu.js CONFIG_JSON
 ```
 
-The full-model graph, 48 cache bindings, TJS public API integration, initializer
-ledger, full-model parity and performance comparison remain required work.
+Strict full-model numerical qualification, physical TJS GPU materialization
+evidence, scheduler improvements and performance comparison remain required work.
