@@ -1,9 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
-import http from 'node:http';
-import { once } from 'node:events';
 import { createDopplerRun, createCapsuleStreamAccumulator, resolveEmbeddingBatchSemantics } from 'doppler-gpu';
-import { createCapsuleServeHandler } from 'doppler-gpu/serve';
 import { computeCanonicalSha256 } from './consumer-evidence.js';
 
 // Installed public API contract, with synthetic device and execution components.
@@ -73,42 +70,20 @@ try {
   const localJob = { ...job, assignment: null };
   const direct = [];
   for await (const event of session.executeOperation(localJob)) direct.push(event);
-  const handler = createCapsuleServeHandler({ session, token: 'installed-contract-test-token', policy: {
-    schema: 'doppler.capsule-serve/v1', maxRequestBytes: 10000, maxOutputBytes: 100000,
-    maxResponseBytes: 200000, maxDurationMs: 120000, allowedOrigins: [],
-  } });
-  const server = http.createServer(handler);
-  try {
-    server.listen(0, '127.0.0.1');
-    await once(server, 'listening');
-    const response = await fetch(`http://127.0.0.1:${server.address().port}/v1/operations`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer installed-contract-test-token' },
-      body: JSON.stringify(localJob),
-    });
-    assert.equal(response.status, 200);
-    const served = (await response.text()).trim().split('\n').map(line => JSON.parse(line));
-    assert.deepEqual(served, direct, 'installed HTTP and direct Capsule execution retain identical events');
-    assert.equal(executions, 4);
-    const incrementalJob = { ...localJob, schema: 'doppler.capsule-operation-request/v2',
-      input: { ...localJob.input, texts: ['First incremental item.', 'Second incremental item.'] } };
-    const incremental = await fetch(`http://127.0.0.1:${server.address().port}/v1/operations`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer installed-contract-test-token' },
-      body: JSON.stringify(incrementalJob),
-    });
-    assert.equal(incremental.status, 200);
-    const accumulator = createCapsuleStreamAccumulator(incrementalJob);
-    const deltas = (await incremental.text()).trim().split('\n').map(JSON.parse);
-    deltas.forEach(event => accumulator.accept(event));
-    assert.equal(accumulator.finish().output.embeddings.length, 2);
-    assert.deepEqual(deltas.slice(0, -1).map(event => event.delta.itemIndex), [0, 1]);
-    assert(deltas.slice(0, -1).every(event => !Object.hasOwn(event, 'output')));
-    assert.equal(executions, 6);
-  } finally {
-    await handler.close();
-    await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
-  }
+  assert.equal(direct.at(-1).status, 'completed');
+  assert.equal(executions, 3);
+  const incrementalJob = { ...localJob, schema: 'doppler.capsule-operation-request/v2',
+    input: { ...localJob.input, texts: ['First incremental item.', 'Second incremental item.'] } };
+  const accumulator = createCapsuleStreamAccumulator(incrementalJob);
+  const deltas = [];
+  for await (const event of session.executeOperation(incrementalJob)) deltas.push(event);
+  deltas.forEach(event => accumulator.accept(event));
+  assert.equal(accumulator.finish().output.embeddings.length, 2);
+  assert.deepEqual(deltas.slice(0, -1).map(event => event.delta.itemIndex), [0, 1]);
+  assert(deltas.slice(0, -1).every(event => !Object.hasOwn(event, 'output')));
+  assert.equal(executions, 5);
   assert.equal(session.closed, false);
-  console.log('Installed Capsule HTTP/direct parity passed (synthetic).');
+  console.log('Installed Capsule direct and incremental operations passed (synthetic).');
 } finally { await session.close(); }
 assert.equal(closes, 1);
 console.log('Installed Capsule embedding smoke passed (synthetic; no physical qualification).');

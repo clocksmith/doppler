@@ -173,9 +173,9 @@ The environment-neutral bridge descriptor is
 helpers live in
 `src/experimental/bridge/trainer-artifact-bridge.js`, and the Node byte verifier
 and importer live in `src/tooling/trainer-artifact-handoff.js`. The
-environment-neutral descriptor and plan helpers are exposed through
-`doppler-gpu/tooling-experimental`; file-system verification remains a
-repository tool. The bridge supports two explicit profiles:
+environment-neutral descriptor and plan helpers are repository modules (the
+`doppler-gpu/tooling-experimental` export was removed in 0.7.0); file-system
+verification remains a repository tool. The bridge supports two explicit profiles:
 
 - `translation_full_checkpoint`, which enters through
   `resolveNodeSourceRuntimeBundle`; and

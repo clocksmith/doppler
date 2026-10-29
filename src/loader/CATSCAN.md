@@ -20,7 +20,7 @@ Materialize validated artifact tensors into runtime-owned CPU and GPU representa
 ## Contracts
 
 - Input: Validated [RDRR contracts](../formats/rdrr/CATSCAN.md), storage contexts, and resolved loading policy.
-- Output: Loaded weights and explicit load timing through [loader exports](index.js).
+- Output: Loaded weights and explicit load timing through the [Doppler loader](doppler-loader.js).
 
 ## Invariants
 

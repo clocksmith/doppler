@@ -29,9 +29,6 @@ import {
   ensureModelCached,
 } from "doppler-gpu/tooling/storage";
 import { parseManifest } from "doppler-gpu/tooling/manifest";
-
-// Per-family static metadata (no runtime weight — kilobyte-scale)
-import { KNOWN_MODELS, resolveHfBaseUrl } from "doppler-gpu/models/gemma3";
 ```
 
 Available narrow entry points:
@@ -42,7 +39,9 @@ Available narrow entry points:
 - `doppler-gpu/tooling/storage` — OPFS shard manager, registry, inventory, quota, cache.
 - `doppler-gpu/tooling/manifest` — RDRR manifest parsing + schema defaults.
 - `doppler-gpu/tooling` — mega barrel (back-compat; pulls the union of the narrow entry points).
-- `doppler-gpu/models/{qwen3,gemma3,gemma4,embeddinggemma}` — family pointers.
+
+Model metadata comes from the shipped `models/catalog.json`; the former
+`doppler-gpu/models/*` family pointers were removed in 0.7.0.
 
 ## Program Bundles
 

@@ -1,9 +1,6 @@
 // Installed API acceptance with injected logits; not physical model qualification.
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
-import http from 'node:http';
-import { once } from 'node:events';
-import { createCapsuleServeHandler } from 'doppler-gpu/serve';
 import { openCapsule, DOPPLER_VERSION, createCapsuleStreamAccumulator } from 'doppler-gpu';
 import { computeCanonicalSha256 } from './consumer-evidence.js';
 
@@ -49,27 +46,6 @@ try {
     incrementalEvents.push(event);
   }
   assert.deepEqual(accumulator.finish().output, output);
-  const handler = createCapsuleServeHandler({ session, token: 'installed-generation-contract', policy: {
-    schema: 'doppler.capsule-serve/v1', maxRequestBytes: 10000, maxOutputBytes: 100000,
-    maxResponseBytes: 200000, maxDurationMs: 120000, allowedOrigins: [],
-  } });
-  const server = http.createServer(handler);
-  try {
-    server.listen(0, '127.0.0.1'); await once(server, 'listening');
-    const response = await fetch(`http://127.0.0.1:${server.address().port}/v1/operations`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer installed-generation-contract' },
-      body: JSON.stringify(incrementalRequest),
-    });
-    assert.equal(response.status, 200);
-    const served = (await response.text()).trim().split('\n').map(JSON.parse);
-    assert.deepEqual(served, incrementalEvents);
-    const reconstructed = createCapsuleStreamAccumulator(incrementalRequest);
-    served.forEach(event => reconstructed.accept(event));
-    assert.deepEqual(reconstructed.finish().output, output);
-  } finally {
-    await handler.close();
-    await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
-  }
   const controller = new AbortController();
   await assert.rejects(async () => {
     for await (const event of session.executeOperation(request, { signal: controller.signal })) {
@@ -77,7 +53,7 @@ try {
       controller.abort(new Error('consumer cancelled'));
     }
   }, /consumer cancelled/);
-  assert.equal(executions, 10);
+  assert.equal(executions, 7);
   assert.equal(releases, executions);
 } finally { await session.close(); }
 assert.equal(closes, 1);

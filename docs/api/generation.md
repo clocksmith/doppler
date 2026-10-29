@@ -128,8 +128,6 @@ console.log(text);
 ## Related Surfaces
 
 - [Root API](root.md)
-- [Loaders API](loaders.md)
-- [Orchestration API](orchestration.md)
 - [Generated export inventory](reference/exports.md)
 
 ## Generation evidence migration

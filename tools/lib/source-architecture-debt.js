@@ -153,6 +153,9 @@ export function findArchitecturePolicyRelaxations(currentPolicy, baselinePolicy)
     currentPolicy?.compatibilityOnlyOwners,
     baselinePolicy?.compatibilityOnlyOwners
   )) {
+    // Deleting the owner itself (its source directory and top-level entry) is a
+    // removal, not a relaxation: nothing remains that could import through it.
+    if (currentPolicy?.topLevelOwners && !Object.hasOwn(currentPolicy.topLevelOwners, owner)) continue;
     relaxations.push(`compatibility-only restriction removed ${owner}`);
   }
 

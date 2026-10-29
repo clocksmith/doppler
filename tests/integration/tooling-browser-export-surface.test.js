@@ -58,17 +58,4 @@ function runInline(args, source) {
   assert.equal(result.status, 0, result.stderr);
 }
 
-{
-  const result = runInline(['--conditions=browser'], `
-    const mod = await import('doppler-gpu/tooling-experimental');
-    if (typeof mod.convertModel !== 'function') {
-      throw new Error('expected convertModel on tooling-experimental import');
-    }
-    if (typeof mod.pickModelFiles !== 'function') {
-      throw new Error('expected pickModelFiles on tooling-experimental import');
-    }
-  `);
-  assert.equal(result.status, 0, result.stderr);
-}
-
 console.log('tooling-browser-export-surface.test: ok');

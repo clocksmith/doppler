@@ -17,8 +17,9 @@ metadata, and distillation export hooks.
   - [`peer identity`](peer-identity-contract.md)
   - [`p2p control plane`](p2p-control-plane-extensions.md)
   - [`RDRR P2P execution plan`](execution-contract.md)
-  - `doppler-gpu/orchestration` experimental exports for routers, pipeline pools,
-    KV cache helpers, and logit merge helpers
+  - repository-internal routers, pipeline pools, KV cache helpers, and logit
+    merge helpers under `src/inference/` (the `doppler-gpu/orchestration`
+    subpath was removed in 0.7.0)
 
 ## Non-goals
 
@@ -648,8 +649,6 @@ Doppler's MoM layer cannot be called shipped until these gates exist:
 
 - `MoERouter` remains the internal router for one MoE model.
 - CFR lives above `MoERouter`.
-- `MultiModelNetwork` and `MultiPipelinePool` are useful substrate execution
-  primitives but do not define the MoM contract.
 - distributed `plans[]` and `transcriptRoot` remain lower-layer contracts.
 - signed peer envelopes belong to the peer identity layer; MoM records their
   roots and participant identities.

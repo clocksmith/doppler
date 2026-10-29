@@ -201,10 +201,6 @@
       "types": "./src/client/electron/index.d.ts",
       "import": "./src/client/electron/index.js"
     },
-    "./serve": {
-      "types": "./src/cli/serve/capsule-handler.d.ts",
-      "import": "./src/cli/serve/capsule-handler.js"
-    },
     "./compat": {
       "types": "./src/index.d.ts",
       "import": "./src/index.js"
@@ -246,38 +242,6 @@
       "types": "./src/client/runtime/model-manager.d.ts",
       "import": "./src/client/runtime/model-manager.js"
     },
-    "./models/qwen3": {
-      "types": "./src/models/qwen3.d.ts",
-      "import": "./src/models/qwen3.js"
-    },
-    "./models/gemma3": {
-      "types": "./src/models/gemma3.d.ts",
-      "import": "./src/models/gemma3.js"
-    },
-    "./models/gemma4": {
-      "types": "./src/models/gemma4.d.ts",
-      "import": "./src/models/gemma4.js"
-    },
-    "./models/diffusiongemma": {
-      "types": "./src/models/diffusiongemma.d.ts",
-      "import": "./src/models/diffusiongemma.js"
-    },
-    "./models/embeddinggemma": {
-      "types": "./src/models/embeddinggemma.d.ts",
-      "import": "./src/models/embeddinggemma.js"
-    },
-    "./tooling-experimental": {
-      "types": "./src/tooling-experimental-exports.d.ts",
-      "import": "./src/tooling-experimental-exports.js"
-    },
-    "./loaders": {
-      "types": "./src/loaders/index.d.ts",
-      "import": "./src/loaders/index.js"
-    },
-    "./orchestration": {
-      "types": "./src/experimental/orchestration/index.d.ts",
-      "import": "./src/experimental/orchestration/index.js"
-    },
     "./generation": {
       "types": "./src/generation/index.d.ts",
       "import": "./src/generation/index.js"
@@ -289,14 +253,6 @@
       },
       "types": "./src/training.d.ts",
       "import": "./src/training.js"
-    },
-    "./diffusion": {
-      "types": "./src/experimental/diffusion/index.d.ts",
-      "import": "./src/experimental/diffusion/index.js"
-    },
-    "./energy": {
-      "types": "./src/experimental/energy/index.d.ts",
-      "import": "./src/experimental/energy/index.js"
     },
     "./partitions": {
       "types": "./src/partitions.d.ts",

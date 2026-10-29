@@ -517,9 +517,8 @@ When multiple models are loaded, these operations are exposed as DOPPLER primiti
 
 ### Migration Note
 
-DOPPLER keeps orchestration separate from runtime inference. Use an external
-policy layer (for example Reploid) with
-`src/inference/multi-model-network.js` for cross-model coordination.
+DOPPLER keeps orchestration separate from runtime inference. Cross-model
+coordination belongs to an external policy layer (for example Reploid).
 
 ---
 
@@ -844,18 +843,6 @@ Example (skip FFN on layer 0):
 ```
 
 **Runtime profiles:** See `src/config/runtime/profiles/` for complete runtime overlay examples.
-
-### multi-pipeline-pool.js - Concurrent Pipelines
-
-Manages a pool of inference pipelines to run multiple requests in parallel.
-
-### multi-model-network.js - Expert Network Orchestration
-
-Schedules a network of experts and routes tasks across multiple models.
-
-### expert-router.js - Expert Profiles
-
-Defines expert profiles and routing hints used by multi-model orchestration.
 
 ### network-evolution.js - Topology Search
 

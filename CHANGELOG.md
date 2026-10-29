@@ -18,32 +18,22 @@ Each removed subpath duplicated another export. Import from the replacement:
   `snapshotChoiceScoringRequest` and `validateChoiceScoringResult` from
   `doppler-gpu/host` or `doppler-gpu`.
 
-### Deprecated
-
-No workspace application or reference example imports these subpaths. They
-remain available in 0.7.x and will be removed in 0.8.0:
+No workspace application or reference example imported these subpaths:
 
 - `doppler-gpu/loaders`: load through `doppler-gpu` or `doppler-gpu/compat`;
   manifest helpers are in `doppler-gpu/tooling/manifest` and OPFS storage in
   `doppler-gpu/tooling/storage`. The explicit loader classes have no replacement.
-- `doppler-gpu/serve`, `doppler-gpu/tooling-experimental`, `doppler-gpu/orchestration`,
-  `doppler-gpu/diffusion`, `doppler-gpu/energy`, and `doppler-gpu/models/qwen3`,
-  `models/gemma3`, `models/gemma4`, `models/diffusiongemma` and
-  `models/embeddinggemma`: no replacement export.
+- `doppler-gpu/orchestration`: no replacement export; Node LoRA loading is
+  `loadLoRAFromManifest` in `doppler-gpu/training`.
+- `doppler-gpu/serve` (Capsule HTTP adapter), `doppler-gpu/tooling-experimental`,
+  `doppler-gpu/diffusion`, `doppler-gpu/energy`: no replacement export.
+- `doppler-gpu/models/qwen3`, `models/gemma3`, `models/gemma4`,
+  `models/diffusiongemma` and `models/embeddinggemma`: removed with their
+  hand-maintained family lists; read model metadata from the shipped
+  `models/catalog.json`.
 
 `doppler-gpu/runtime` remains an alias of `doppler-gpu`, and
 `createDopplerRuntime` remains an alias of `createDopplerRun`.
-
-### Changed
-
-- The deprecated `doppler-gpu/models/*` family modules derive `KNOWN_MODELS`
-  from `models/catalog.json`: entries list every catalog model of the family,
-  carry the catalog's label, source checkpoint, modes and `hfRepoId`, report
-  `hfPath: null` when the catalog has no hosted artifact, and no longer carry
-  `defaultRuntimeProfile` (runtime profiles name their model in `model`).
-- `doppler-gpu/loaders` no longer re-exports text-pipeline internals
-  (`inference/pipelines/text/config.js`, `init.js`, `model-load.js`). No
-  consumer imported them through this subpath.
 
 ### Added
 

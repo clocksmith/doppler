@@ -3,7 +3,7 @@
 Generated from the repository's `CATSCAN.md` files.
 Run `npm run catscan:sync` after adding, removing, or changing a component charter.
 
-Components: 30
+Components: 29
 
 | Component | Target | Charter | Parent |
 | --- | --- | --- | --- |
@@ -27,7 +27,6 @@ Components: 30
 | `doppler.runtime-source.inference` | Turn validated model and runtime contracts into deterministic semantic plans, execution, and model outputs. | [src/inference/CATSCAN.md](../src/inference/CATSCAN.md) | `doppler.runtime-source` |
 | `doppler.runtime-source.loader` | Materialize validated artifact tensors into runtime-owned CPU and GPU representations with bounded memory behavior. | [src/loader/CATSCAN.md](../src/loader/CATSCAN.md) | `doppler.runtime-source` |
 | `doppler.runtime-source.memory` | Provide explicit, reusable GPU and host-memory ownership mechanisms with measurable limits and cleanup. | [src/memory/CATSCAN.md](../src/memory/CATSCAN.md) | `doppler.runtime-source` |
-| `doppler.runtime-source.model-contracts` | Expose narrow model-family source contracts without reintroducing runtime family detection or catalog authority. | [src/models/CATSCAN.md](../src/models/CATSCAN.md) | `doppler.runtime-source` |
 | `doppler.runtime-source.rules` | Resolve explicit data-only rule maps deterministically and fail when no permitted selection exists. | [src/rules/CATSCAN.md](../src/rules/CATSCAN.md) | `doppler.runtime-source` |
 | `doppler.runtime-source.storage` | Persist, retrieve, verify, and transport artifact bytes through explicit storage contexts and integrity contracts. | [src/storage/CATSCAN.md](../src/storage/CATSCAN.md) | `doppler.runtime-source` |
 | `doppler.runtime-source.tooling` | Give browser, Node, and CLI adapters one normalized command contract and one evidence-aware execution vocabulary. | [src/tooling/CATSCAN.md](../src/tooling/CATSCAN.md) | `doppler.runtime-source` |

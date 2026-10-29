@@ -123,7 +123,7 @@ Doppler authoring remains in normal project-owned locations:
 
 - `src/config/conversion/` for conversion-time artifact and execution-v1 policy
 - `src/config/runtime/` for runtime profiles
-- `src/models/` for model registration
+- `models/catalog.json` for model registration
 - `src/inference/` for JS orchestration
 - `src/gpu/` for WGSL kernels and WebGPU dispatch
 - `src/rules/` for rule-map policy

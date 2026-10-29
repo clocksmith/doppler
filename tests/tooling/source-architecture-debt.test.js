@@ -113,6 +113,17 @@ const widenedFacade = structuredClone(inlinedFacade);
 widenedFacade.facadeDependencies['outer.js'].push('a/z.js');
 assert.deepEqual(findArchitecturePolicyRelaxations(widenedFacade, facadeBaseline), ['facade dependency added outer.js->a/z.js']);
 
+const compatBaseline = {
+  ...baselinePolicy,
+  topLevelOwners: { inference: 'x', loaders: 'x', utils: 'x' },
+  compatibilityOnlyOwners: ['loaders', 'utils'],
+};
+const liftedCompat = { ...compatBaseline, compatibilityOnlyOwners: ['utils'] };
+assert.deepEqual(findArchitecturePolicyRelaxations(liftedCompat, compatBaseline),
+  ['compatibility-only restriction removed loaders']);
+const deletedCompatOwner = { ...liftedCompat, topLevelOwners: { inference: 'x', utils: 'x' } };
+assert.deepEqual(findArchitecturePolicyRelaxations(deletedCompatOwner, compatBaseline), []);
+
 assert.equal(resolvePolicyBaseRef([], {}), 'HEAD');
 assert.equal(resolvePolicyBaseRef([], { DOPPLER_POLICY_BASE_REF: '' }), 'HEAD');
 assert.equal(resolvePolicyBaseRef([], { DOPPLER_POLICY_BASE_REF: '000000' }), 'HEAD');

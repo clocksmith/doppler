@@ -59,5 +59,4 @@ Add a new weight quantization format from conversion through runtime execution.
 - `src/config/schema/converter.schema.js`
 - `src/config/schema/manifest.schema.d.ts`
 - `src/converter/quantization-info.js`
-- `src/loader/index.js`
 - `tests/converter/quantizer.test.js`

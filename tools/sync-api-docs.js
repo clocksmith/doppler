@@ -12,31 +12,7 @@ const PACKAGE_PATH = path.join(REPO_ROOT, 'package.json');
 const OUTPUT_PATH = path.join(REPO_ROOT, 'docs', 'api', 'reference', 'exports.md');
 const SUPPORT_TIER_REGISTRY_PATH = path.join(REPO_ROOT, 'src', 'config', 'support-tiers', 'subsystems.json');
 
-// Deprecated subpaths stay exported until the named removal release; CHANGELOG.md
-// carries the same list for package readers.
-const REMOVAL_RELEASE = '0.8.0';
-const NO_REPLACEMENT = 'No replacement export.';
-const DEPRECATED_EXPORTS = {
-  './serve': NO_REPLACEMENT,
-  './models/qwen3': NO_REPLACEMENT,
-  './models/gemma3': NO_REPLACEMENT,
-  './models/gemma4': NO_REPLACEMENT,
-  './models/diffusiongemma': NO_REPLACEMENT,
-  './models/embeddinggemma': NO_REPLACEMENT,
-  './tooling-experimental': NO_REPLACEMENT,
-  './loaders': 'Load through `doppler-gpu` or `doppler-gpu/compat`; manifest and storage helpers are in `doppler-gpu/tooling/manifest` and `doppler-gpu/tooling/storage`.',
-  './orchestration': 'No replacement export; Node LoRA loading is `loadLoRAFromManifest` in `doppler-gpu/training`.',
-  './diffusion': NO_REPLACEMENT,
-  './energy': NO_REPLACEMENT,
-};
-
 const EXPORT_META = {
-  './serve': {
-    audience: 'Node application authors',
-    stability: 'experimental transport',
-    docPath: 'docs/api/serve.md',
-    notes: 'Optional bounded HTTP adapter over an already-open Capsule session. No model loading or release selection.',
-  },
   '.': {
     audience: 'app authors',
     stability: 'preferred public',
@@ -61,18 +37,8 @@ const EXPORT_META = {
     docPath: 'docs/api/tooling.md',
     notes: 'Tooling and command-runner surface, not the main app-facing API.',
   },
-  './loaders': {
-    audience: 'advanced loader consumers',
-    stability: 'public advanced',
-    docPath: 'docs/api/loaders.md',
-    notes: 'Explicit loader and manifest/bootstrap helpers.',
-  },
-  './orchestration': {
-    audience: 'advanced runtime consumers',
-    stability: 'public advanced',
-    docPath: 'docs/api/orchestration.md',
-    notes: 'Tokenizer, KV cache, router, adapter, and logit-merge orchestration helpers.',
-  },
+
+
   './generation': {
     audience: 'advanced runtime consumers',
     stability: 'public advanced',
@@ -85,18 +51,8 @@ const EXPORT_META = {
     docPath: 'docs/api/training.md',
     notes: 'Capability-gated SFT/LoRA orchestration, WebGPU training primitives, and adapter export.',
   },
-  './diffusion': {
-    audience: 'advanced diffusion consumers',
-    stability: 'public advanced',
-    docPath: 'docs/api/diffusion.md',
-    notes: 'Diffusion/image pipeline surface.',
-  },
-  './energy': {
-    audience: 'advanced energy consumers',
-    stability: 'public advanced',
-    docPath: 'docs/api/energy.md',
-    notes: 'Energy pipeline surface.',
-  },
+
+
 };
 
 function normalizeExportMap(exportsField) {
@@ -201,11 +157,6 @@ async function buildReferenceMarkdown() {
       .map((entry) => [entry.packageExport, entry])
   );
   const exportsList = normalizeExportMap(packageJson.exports);
-  const unknownDeprecations = Object.keys(DEPRECATED_EXPORTS)
-    .filter((exportPath) => !exportsList.some((entry) => entry.exportPath === exportPath));
-  if (unknownDeprecations.length) {
-    throw new Error(`Deprecated exports missing from package.json: ${unknownDeprecations.join(', ')}`);
-  }
   const lines = [];
   lines.push('# Public Export Inventory');
   lines.push('');
@@ -245,9 +196,6 @@ async function buildReferenceMarkdown() {
       lines.push(`- Implementation: [${relativeFromRepo(entry.importFile)}](${toDocLink(entry.importFile)})`);
     }
     lines.push(`- Notes: ${meta.notes}`);
-    if (Object.hasOwn(DEPRECATED_EXPORTS, entry.exportPath)) {
-      lines.push(`- Deprecated: removed in ${REMOVAL_RELEASE}. ${DEPRECATED_EXPORTS[entry.exportPath]}`);
-    }
     if (supportEntry) {
       lines.push(`- Support tier source: \`src/config/support-tiers/subsystems.json\` (${supportEntry.id})`);
     }
