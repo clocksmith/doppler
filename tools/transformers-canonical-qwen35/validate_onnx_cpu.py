@@ -121,13 +121,22 @@ def main():
                 for step in range(lane["cpuDecodeSteps"] + 1):
                     mode = "prefill" if step == 0 else "decode"
                     offset = 0 if step == 0 else length + step - 1
-                    positions = np.broadcast_to(np.arange(offset, offset + ids.shape[1], dtype=np.int64), (3, 1, ids.shape[1])).copy()
-                    mask = np.ones((1, offset + ids.shape[1]), dtype=np.int64)
+                    metadata = {value.name: value.type for value in sessions["decoder_" + mode].get_inputs()}
+                    integer_types = {"tensor(int64)": np.int64, "tensor(int32)": np.int32}
+                    positions = np.broadcast_to(np.arange(offset, offset + ids.shape[1], dtype=integer_types[metadata["position_ids"]]),
+                                                (3, 1, ids.shape[1])).copy()
+                    mask = np.ones((1, offset + ids.shape[1]), dtype=integer_types[metadata["attention_mask"]])
                     embedded = sessions["embed_tokens"].run(None, {"input_ids": ids.numpy()})[0]
                     if not np.array_equal(embedded, native.model.embed_tokens(ids).numpy()):
                         raise ValueError("ONNX embedding output is not byte-exact canonical lookup")
                     feeds = {"inputs_embeds": embedded, "position_ids": positions, "attention_mask": mask,
                              **{pair[0]: value for pair, value in zip(state_names, onnx_cache)}}
+                    for control in lane.get("hostGeometryInputs", {}).get(mode, []):
+                        recipes = control["values"] if "values" in control else [control]
+                        values = [expression["constant"] if "constant" in expression else
+                                  feeds[expression["sourceTensor"]].shape[expression["axis"]] * expression["multiplier"] + expression["addend"]
+                                  for expression in recipes]
+                        feeds[control["name"]] = np.array(values, dtype={"int32": np.int32, "int64": np.int64}[control["type"]]).reshape(control["shape"])
                     actual = sessions["decoder_" + mode].run(None, feeds)
                     reference_output = native(input_ids=ids, past_key_values=native_cache, use_cache=True, logits_to_keep=1)
                     inspect_cache(native_cache, config)

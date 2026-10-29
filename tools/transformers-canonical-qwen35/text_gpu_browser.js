@@ -26,6 +26,7 @@ async function main() {
   const requiredLimits = Object.fromEntries(config.requiredLimitNames.map(name => [name, adapter.limits[name]]));
   if (Object.values(requiredLimits).some(value => !Number.isSafeInteger(value))) throw new Error('Requested adapter limit is unavailable');
   const device = await adapter.requestDevice({ requiredLimits, requiredFeatures: config.requiredFeatures });
+  try {
   device.addEventListener('uncapturederror', event => state.gpuErrors.push(String(event.error)));
   device.lost.then(info => { if (info.reason !== 'destroyed') state.gpuErrors.push(`Device lost: ${info.message}`); });
   state.adapter = { vendor: adapter.info.vendor, architecture: adapter.info.architecture,
@@ -37,9 +38,8 @@ async function main() {
   ort.env.wasm.wasmPaths = '/ort/';
   ort.env.wasm.numThreads = 1;
   ort.env.logLevel = 'verbose';
-  // Supported TJS backend hook: both public tensor/session APIs use this same
-  // installed ORT instance. No per-node CPU fallback or tensor-compute shim.
-  globalThis[Symbol.for('onnxruntime')] = ort;
+  // The browser import map resolves TJS's public ORT dependency to this same
+  // installed module. The library selects its ordinary browser backend.
   const tjs = await import('/tjs/transformers.web.min.js');
   const raw = {};
   let model, decoder, cache;
@@ -68,10 +68,12 @@ async function main() {
       }
       const count = test.inputIds.length;
       const input = new tjs.Tensor('int64', BigInt64Array.from(test.inputIds, BigInt), [1, count]);
-      const mask = new tjs.Tensor('int64', new BigInt64Array(test.positionOffset + count).fill(1n),
+      const indices = (type, values, shape) => new tjs.Tensor(type,
+        type === 'int32' ? Int32Array.from(values) : BigInt64Array.from(values, BigInt), shape);
+      const mask = indices(decoder.integerInputTypes.attention_mask, new Array(test.positionOffset + count).fill(1),
         [1, test.positionOffset + count]);
-      const positions = new tjs.Tensor('int64', BigInt64Array.from({ length: 3 * count },
-        (_, index) => BigInt(test.positionOffset + index % count)), [3, 1, count]);
+      const positions = indices(decoder.integerInputTypes.position_ids, Array.from({ length: 3 * count },
+        (_, index) => test.positionOffset + index % count), [3, 1, count]);
       let output, embedding, adopted = false;
       try {
         embedding = await model.encode_text({ input_ids: input });
@@ -123,8 +125,8 @@ async function main() {
     await cache?.dispose();
     if (model) await model.dispose();
     else for (const session of Object.values(raw)) await session.release();
-    device.destroy();
   }
+  } finally { device.destroy(); }
 }
 
 try { await main(); }

@@ -1,0 +1,47 @@
+[
+  {
+    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/tjs-full-gpu-diagnostic-03/result.json",
+    "sha256": "177cd918daba732cddac3b161ee8dd497ee64f1a2780dda0a1b37a0e7fa8a5fb",
+    "phase": "create-session-prefill",
+    "executionCompleted": false,
+    "error": "Error: Can't create a session. ERROR_CODE: 1, ERROR_MESSAGE: This session contains graph nodes that are assigned to the default CPU EP, but fallback to CPU EP has been explicitly disabled by the user.",
+    "gpuErrors": [],
+    "cpuGate": {
+      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-cpu-01/receipt.json",
+      "sha256": "6e7d558480f3801702a1a1ccdddd4d9a35345e1b10220cebf2a2de66cff2217a",
+      "pass": false,
+      "failedChecks": 53,
+      "qualification": false
+    }
+  },
+  {
+    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/tjs-full-gpu-diagnostic-04/result.json",
+    "sha256": "7e0904c7fc8d389635ddc3b9d10964a3d8cfe243c3e799e90f6b68f3559d423d",
+    "phase": "create-session-prefill",
+    "executionCompleted": false,
+    "error": "Error: Can't create a session. ERROR_CODE: 1, ERROR_MESSAGE: This session contains graph nodes that are assigned to the default CPU EP, but fallback to CPU EP has been explicitly disabled by the user.",
+    "gpuErrors": [],
+    "cpuGate": {
+      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-i32-cpu-01/receipt.json",
+      "sha256": "4aec544c5f812d1463a823bad02f334739ba43f415d0078238a93cc9d3df2daf",
+      "pass": false,
+      "failedChecks": 53,
+      "qualification": false
+    }
+  },
+  {
+    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/tjs-full-gpu-diagnostic-05/result.json",
+    "sha256": "2d002f47d6916a453362b14168db05b70b4abbf88569294fc465b51910ff4acc",
+    "phase": "create-session-prefill",
+    "executionCompleted": false,
+    "error": "Error: Can't create a session. ERROR_CODE: 1, ERROR_MESSAGE: This session contains graph nodes that are assigned to the default CPU EP, but fallback to CPU EP has been explicitly disabled by the user.",
+    "gpuErrors": [],
+    "cpuGate": {
+      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-host-cpu-01/receipt.json",
+      "sha256": "264b98244af1272fb0060cc75806518a2ea27ef8acffed66c44afccd15946473",
+      "pass": false,
+      "failedChecks": 53,
+      "qualification": false
+    }
+  }
+]
