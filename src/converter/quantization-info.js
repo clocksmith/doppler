@@ -1,6 +1,6 @@
 import { validateW8A8Policy } from '../config/schema/w8a8.schema.js';
 
-import { DEFAULT_QUANTIZATION_DEFAULTS, DEFAULT_Q4K_LAYOUT } from '../config/index.js';
+import { DEFAULT_QUANTIZATION_DEFAULTS, DEFAULT_Q4K_LAYOUT } from '../config/schema/index.js';
 import { classifyTensorRole } from '../formats/rdrr/index.js';
 
 // Default quantization tag when no explicit dtype is provided.

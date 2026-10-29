@@ -17,7 +17,8 @@ import {
   getLogitsWeights,
 } from './logits-config.js';
 import { releaseSharedAttentionState } from './attention-lifecycle.js';
-import { decodeReadback, getLogitsHealth } from '../debug-utils/index.js';
+import { decodeReadback } from '../debug-utils/readback-decoding.js';
+import { getLogitsHealth } from '../debug-utils/health-metrics.js';
 import { parseFinitenessStatusWords } from '../finiteness-guard-status.js';
 import { drainPendingTsirReads } from '../tsir-fixture-writer.js';
 import { resolvePrefillRecorderChunkLayers } from '../execution-plan.js';

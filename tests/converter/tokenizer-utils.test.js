@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-const { resolveEosTokenId } = await import('../../src/converter/tokenizer-utils.js');
+const { resolveEosTokenId } = await import('../../src/converter/tokenizer-special-tokens.js');
 
 {
   const resolved = resolveEosTokenId({

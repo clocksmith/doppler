@@ -21,7 +21,7 @@ Parse and validate external and native artifact formats into explicit data contr
 ## Contracts
 
 - Input: Artifact bytes and their published or repository-owned format specifications.
-- Output: Validated format facts through [format exports](index.js).
+- Output: Validated format facts through format modules such as [RDRR](rdrr/index.js).
 
 ## Invariants
 

@@ -10,7 +10,8 @@ import {
   getWeightDtype,
   getLayout,
 } from '../../../../gpu/weight-buffer.js';
-import { decodeReadback, getLogitsHealth } from '../debug-utils/index.js';
+import { decodeReadback } from '../debug-utils/readback-decoding.js';
+import { getLogitsHealth } from '../debug-utils/health-metrics.js';
 import { tensorElementBytes } from '../../../../gpu/tensor.js';
 import {
   getWeightBuffer as getPipelineWeightBuffer,

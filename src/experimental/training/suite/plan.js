@@ -1,7 +1,7 @@
 import { hasNodeVersion as isNodeRuntime } from '../../../storage/runtime-env.js';
 import { getDevice } from '../../../gpu/device.js';
 import { createTrainingConfig } from '../../../config/training-defaults.js';
-import { runMatmul } from '../../../gpu/kernels/index.js';
+import { runMatmul } from '../../../gpu/kernels/matmul.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { acquireBuffer, uploadData, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { OpType } from '../autograd.js';

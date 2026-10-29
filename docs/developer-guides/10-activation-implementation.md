@@ -17,7 +17,7 @@ Add a new FFN activation implementation across WGSL, runtime wiring, and config.
 
 - `src/gpu/kernels/<activation>.wgsl`
 - `src/gpu/kernels/<activation>.js` and `.d.ts`
-- `src/gpu/kernels/index.js` and `.d.ts`
+- `src/gpu/kernel-selector.js` and `.d.ts` when the browser kernel suite exercises the wrapper
 - `src/rules/inference/ffn.rules.json` if FFN activation selection needs a new rule outcome
 - `src/inference/pipelines/text/ffn/dense.js`
 - If manifest values need a new enum:
@@ -30,7 +30,7 @@ Add a new FFN activation implementation across WGSL, runtime wiring, and config.
 ## Recommended Order
 
 1. Implement the WGSL kernel and JS wrapper with matching run and record paths.
-2. Export the wrapper through `src/gpu/kernels/index.js` and `.d.ts`.
+2. Import the wrapper from its own module at call sites; add it to `src/gpu/kernel-selector.js` and `.d.ts` only for the browser kernel suite.
 3. Update `src/rules/inference/ffn.rules.json` or the FFN call site so the new activation can be selected explicitly.
 4. Add schema and conversion-config changes if the activation name must be authored into manifests.
 5. Add tests for the kernel and at least one FFN path that uses it.

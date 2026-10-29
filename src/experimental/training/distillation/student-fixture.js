@@ -1,17 +1,14 @@
 import { getDevice } from '../../../gpu/device.js';
 import { createTrainingConfig } from '../../../config/training-defaults.js';
-import {
-  runAttention,
-  castF16ToF32,
-  runGather,
-  runMatmul,
-  runResidualAdd,
-  runRMSNorm,
-  runRoPE,
-  runScale,
-  runSiLU,
-  runSiLURowSplit,
-} from '../../../gpu/kernels/index.js';
+import { runAttention } from '../../../gpu/kernels/attention.js';
+import { castF16ToF32 } from '../../../gpu/kernels/cast.js';
+import { runGather } from '../../../gpu/kernels/gather.js';
+import { runMatmul } from '../../../gpu/kernels/matmul.js';
+import { runResidualAdd } from '../../../gpu/kernels/residual.js';
+import { runRMSNorm } from '../../../gpu/kernels/rmsnorm.js';
+import { runRoPE } from '../../../gpu/kernels/rope.js';
+import { runScale } from '../../../gpu/kernels/scale.js';
+import { runSiLU, runSiLURowSplit } from '../../../gpu/kernels/silu.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { acquireBuffer, uploadData, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { getBufferDtype, getWeightDtype, isCpuWeightBuffer, isWeightBuffer } from '../../../gpu/weight-buffer.js';

@@ -23,7 +23,7 @@ import { resolvePerLayerInputsSession } from './session-context.js';
 import { processLayer } from '../layer.js';
 import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits } from '../logits/index.js';
 import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype, getWeightMetadata } from '../../../../gpu/weight-buffer.js';
-import { decodeReadback } from '../debug-utils/index.js';
+import { decodeReadback } from '../debug-utils/readback-decoding.js';
 import { captureObservedFusedDecodeLogits, emitObservedLogits } from '../generator-logits-observation.js';
 
 import { parseFinitenessStatusWords } from '../finiteness-guard-status.js';

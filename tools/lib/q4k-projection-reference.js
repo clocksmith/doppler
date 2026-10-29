@@ -1,4 +1,4 @@
-import { QK_K, Q4K_BLOCK_BYTES } from '../../src/loader/quantization-constants.js';
+import { QK_K, Q4K_BLOCK_BYTES } from '../../src/config/schema/quantization.schema.js';
 import { float16ToFloat32 } from '../../src/converter/quantizer.js';
 
 function assertFloatArray(value, label) {

@@ -2,7 +2,7 @@ import { readBuffer } from '../../../memory/buffer-pool.js';
 import { resolveSamplingConfig } from './sampling-config.js';
 import { resolveTextGenerationRequest, resolveChatTemplateSetting } from './generation-request.js';
 import { isGpuBufferInstance, isWeightBuffer, isCpuWeightBuffer, getBufferDtype } from '../../../gpu/weight-buffer.js';
-import { decodeReadback } from './debug-utils/index.js';
+import { decodeReadback } from './debug-utils/readback-decoding.js';
 import { resolveExecutionSessionPlan } from './execution-plan.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { assertSpeculativeCapability } from './generator/speculative-runtime.js';

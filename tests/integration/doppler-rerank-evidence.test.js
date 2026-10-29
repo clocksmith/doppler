@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 
 import { createModelHandle } from '../../src/client/runtime/model-session.js';
-import { computeCanonicalSha256 } from '../../src/utils/canonical-hash.js';
+import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
 import { normalizeCapsuleObservation } from '../../src/config/capsule-operation.js';
 import { snapshotModelEvidenceStats } from '../../src/client/model-host/model-evidence.js';
 

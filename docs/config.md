@@ -62,7 +62,7 @@ CLI flag inputs:
 - `--runtime-profile` and `--runtime-config` are mutually exclusive, and neither
   may be combined with runtime inputs already present inside `--config`.
 
-See `src/tooling/command-runner-shared.js:applyRuntimeInputs()` for the
+See `src/tooling/command-runtime-execution.js:applyRuntimeInputs()` for the
 merge implementation.
 
 Behavior-changing execution choices must be present in the manifest or explicit

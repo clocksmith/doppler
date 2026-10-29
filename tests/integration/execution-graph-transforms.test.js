@@ -28,10 +28,7 @@ import {
   composeTransforms,
 } from '../../src/config/transforms/execution-graph-transforms.js';
 
-import {
-  resolveCapabilityTransforms,
-  resolveFinitenessFallbackTransform,
-} from '../../src/config/transforms/capability-transform-resolver.js';
+import { resolveCapabilityTransforms, resolveFinitenessFallbackTransform } from '../../src/converter/capability-transform-resolver.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

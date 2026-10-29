@@ -6,7 +6,7 @@ import {
   buildLiteRTLmFixture,
 } from '../helpers/litert-package-fixture.js';
 
-const { resolveBridgeSourceRuntimeBundle } = await import('../../src/client/runtime/source-runtime.js');
+const { resolveBridgeSourceRuntimeBundle } = await import('../../src/client/model-host/source-loading.js');
 
 function encodeJson(value) {
   return new TextEncoder().encode(JSON.stringify(value));

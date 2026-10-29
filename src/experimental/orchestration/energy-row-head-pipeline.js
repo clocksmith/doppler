@@ -1,7 +1,7 @@
 import { getDevice, getKernelCapabilities } from '../../gpu/device.js';
 import { createTensor, dtypeBytes } from '../../gpu/tensor.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../memory/buffer-pool.js';
-import { runEnergyEval, runEnergyUpdate } from '../../gpu/kernels/index.js';
+import { runEnergyEval, runEnergyUpdate } from '../../gpu/kernels/energy.js';
 import { log } from '../../debug/index.js';
 import { f16ToF32Array, f32ToF16Array } from '../../inference/kv-cache/types.js';
 import { registerPipeline } from '../../inference/pipelines/registry.js';

@@ -23,7 +23,7 @@ import { resolveActiveExecutionPlan } from './execution-plan.js';
 import { detectSandwichNorm } from './layer.js';
 import { resolveLayerScalarValue } from './layer-execution-contract.js';
 import { resolveAttentionQKNormState } from './attention/projections.js';
-import { isRoPEDisabledForLayer, resolveQueryScale } from './attention/heterogeneous-contract.js';
+import { isRoPEDisabledForLayer, resolveQueryScale } from '../../../config/heterogeneous-attention-contract.js';
 import { ATTENTION_OUTPUT_GATE_ACTIVATION } from './attention/plan.js';
 import { getLogitsConfig, getLogitsWeights } from './generator/logits-config.js';
 import { resolveLmHeadMatmulRole } from './logits/gpu-executor.js';

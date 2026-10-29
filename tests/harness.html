@@ -221,7 +221,7 @@
 
     async function loadRuntimeConfig() {
       const { parseRuntimeOverridesFromURL } = await import('../src/inference/test-harness.js');
-      const { getRuntimeConfig } = await import('../src/config/index.js');
+      const { getRuntimeConfig } = await import('../src/config/runtime.js');
       const { applyRuntimeForRun } = await import('../src/inference/browser-harness.js');
       const runtimeOverrides = parseRuntimeOverridesFromURL(params);
       const runtimeProfile = params.get('runtimeProfile') || null;
@@ -353,7 +353,7 @@
         initializeDevice,
         createTestState,
       } = await import('../src/inference/test-harness.js');
-      const { getRuntimeConfig } = await import('../src/config/index.js');
+      const { getRuntimeConfig } = await import('../src/config/runtime.js');
       const { createPipeline } = await import('../src/inference/pipelines/text.js');
       const { getDevice } = await import('../src/gpu/device.js');
       const { SIGNALS } = await import('../src/debug/index.js');
@@ -535,7 +535,7 @@
         initializeDevice,
         createTestState,
       } = await import('../src/inference/test-harness.js');
-      const { getRuntimeConfig } = await import('../src/config/index.js');
+      const { getRuntimeConfig } = await import('../src/config/runtime.js');
       const { createPipeline } = await import('../src/inference/pipelines/text.js');
       const { getDevice } = await import('../src/gpu/device.js');
       const { SIGNALS } = await import('../src/debug/index.js');

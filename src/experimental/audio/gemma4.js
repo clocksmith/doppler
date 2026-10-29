@@ -2,12 +2,10 @@
 import { log } from '../../debug/index.js';
 import { getDevice } from '../../gpu/device.js';
 import { createTensor } from '../../gpu/tensor.js';
-import {
-  runMatmul,
-  runRMSNorm,
-  runResidualAdd,
-  runSiLU,
-} from '../../gpu/kernel-selector.js';
+import { runMatmul } from '../../gpu/kernels/matmul.js';
+import { runRMSNorm } from '../../gpu/kernels/rmsnorm.js';
+import { runResidualAdd } from '../../gpu/kernels/residual.js';
+import { runSiLU } from '../../gpu/kernels/silu.js';
 import { runConv2D } from '../../gpu/kernels/conv2d.js';
 import { runDepthwiseConv1D } from '../../gpu/kernels/depthwise_conv1d.js';
 import { acquireBuffer, readBuffer, releaseBuffer, uploadData } from '../../memory/buffer-pool.js';

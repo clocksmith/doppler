@@ -1,5 +1,5 @@
 import { acquireBuffer, releaseBuffer } from '../../../../memory/buffer-pool.js';
-import { recordScale } from '../../../../gpu/kernel-selector.js';
+import { recordScale } from '../../../../gpu/kernels/scale.js';
 import { recordMatmul } from '../../../../gpu/kernels/matmul.js';
 import { recordRMSNorm } from '../../../../gpu/kernels/rmsnorm.js';
 import { recordLmHeadArgmax } from '../../../../gpu/kernels/lm-head-argmax.js';

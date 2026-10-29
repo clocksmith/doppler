@@ -11,9 +11,7 @@
 export { log, installDebugGlobal } from './debug/index.js';
 
 // Config
-export {
-  createConverterConfig,
-} from './config/index.js';
+export { createConverterConfig } from './config/schema/index.js';
 export { getRuntimeConfig, setRuntimeConfig } from './config/runtime.js';
 export { TOOLING_INTENTS } from './config/schema/tooling.schema.js';
 export {
@@ -39,12 +37,7 @@ export { captureMemorySnapshot } from './loader/memory-monitor.js';
 export { destroyBufferPool } from './memory/buffer-pool.js';
 
 // Browser-safe runtime profile helpers
-export {
-  loadRuntimeConfigFromUrl,
-  applyRuntimeConfigFromUrl,
-  loadRuntimeProfile,
-  applyRuntimeProfile,
-} from './inference/browser-harness-runtime-helpers.js';
+export { loadRuntimeConfigFromUrl, applyRuntimeConfigFromUrl, loadRuntimeProfile, applyRuntimeProfile } from './inference/browser-harness/runtime-config.js';
 
 // Reference-transcript capture helpers — used by demo and verify flows to emit
 // doppler.reference-transcript/v1 seeds without depending on the full harness.

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { sha256BytesHex, sha256Hex } from '../../src/utils/sha256.js';
+import { sha256BytesHex, sha256Hex } from '../../src/formats/sha256.js';
 
 const vectors = [
   '',

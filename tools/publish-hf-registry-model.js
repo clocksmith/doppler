@@ -8,24 +8,10 @@ import path from 'node:path';
 import process from 'node:process';
 import { spawn } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import {
-  buildHostedRegistryPayload,
-  DEFAULT_HF_REGISTRY_PATH,
-  DEFAULT_HF_REGISTRY_URL,
-  DEFAULT_EXTERNAL_MODELS_ROOT,
-  buildHfResolveUrl,
-  buildManifestUrl,
-  extractCommitShaFromUrl,
-  fetchRepoHeadSha,
-  fetchJson,
-  findCatalogEntry,
-  getEntryHfSpec,
-  isHostedRegistryApprovedEntry,
-  loadJsonFile,
-  normalizeText,
-  probeUrl,
-  writeJsonFile,
-} from '../src/tooling/hf-registry-utils.js';
+import { buildHostedRegistryPayload, isHostedRegistryApprovedEntry } from '../src/tooling/hf-registry/publish-shaping.js';
+import { DEFAULT_HF_REGISTRY_PATH, DEFAULT_HF_REGISTRY_URL, buildHfResolveUrl, buildManifestUrl, extractCommitShaFromUrl, getEntryHfSpec } from '../src/tooling/hf-registry/registry-urls.js';
+import { DEFAULT_EXTERNAL_MODELS_ROOT, findCatalogEntry, loadJsonFile, normalizeText, writeJsonFile } from '../src/tooling/hf-registry/catalog-io.js';
+import { fetchRepoHeadSha, fetchJson, probeUrl } from '../src/tooling/hf-registry/network-probes.js';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_CATALOG_FILE = path.join(REPO_ROOT, 'models', 'catalog.json');

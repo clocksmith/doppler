@@ -5,7 +5,6 @@
  * These operations are expensive (require GPU sync) - use sparingly.
  *
  * Enable with setDebugCategories({ kernel: true }, { bufferStats: true })
- * or use DEBUG_PROFILES.kernelStep
  *
  * @example
  * // Enable kernel step debugging for layer 0 only
@@ -19,7 +18,8 @@
  * @module inference/pipelines/text/debug-utils/tensor
  */
 
-import type { KVCache, SlidingWindowKVCache } from '../../../kv-cache/index.js';
+import type { KVCache } from '../../../kv-cache/base.js';
+import type { SlidingWindowKVCache } from '../../../kv-cache/sliding-window.js';
 
 // ============================================================================
 // Types

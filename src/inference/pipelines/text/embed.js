@@ -3,9 +3,10 @@ import { expandF32ToPaired, recordExpandF32ToPaired } from '../../../gpu/kernels
 
 import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
-import { runGather, recordGather, runGatherSplit, recordGatherSplit, runScale, recordScale } from '../../../gpu/kernel-selector.js';
+import { runGather, recordGather, runGatherSplit, recordGatherSplit } from '../../../gpu/kernels/gather.js';
+import { runScale, recordScale } from '../../../gpu/kernels/scale.js';
 import { trace } from '../../../debug/index.js';
-import { decodeReadback } from './debug-utils/index.js';
+import { decodeReadback } from './debug-utils/readback-decoding.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { f16ToF32 } from '../../../loader/dtype-utils.js';

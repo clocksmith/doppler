@@ -1,14 +1,10 @@
 import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
 import { createTensor } from '../../../gpu/tensor.js';
-import {
-  runRMSNorm,
-  runScale,
-  runSoftmaxTopK,
-  runMoEGather,
-  runMoEBuildTokenOffsets,
-  runScatterAddDynamic,
-} from '../../../gpu/kernel-selector.js';
+import { runRMSNorm } from '../../../gpu/kernels/rmsnorm.js';
+import { runScale } from '../../../gpu/kernels/scale.js';
+import { runSoftmaxTopK } from '../../../gpu/kernels/softmax.js';
+import { runMoEGather, runMoEBuildTokenOffsets, runScatterAddDynamic } from '../../../gpu/kernels/moe.js';
 import { trace, isTraceEnabled } from '../../../debug/index.js';
 import { f16ToF32Array } from '../../kv-cache/types.js';
 import { resolveMaxTokensPerExpert, getDequantCacheStats } from './moe-cache.js';

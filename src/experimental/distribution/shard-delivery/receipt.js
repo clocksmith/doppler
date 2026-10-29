@@ -28,7 +28,7 @@ import {
 } from '../p2p-control-plane.js';
 import { createBrowserWebRTCDataPlaneTransport } from '../p2p-webrtc-browser.js';
 import { DEFAULT_P2P_MAX_CONSECUTIVE_FAILURES, DEFAULT_P2P_QUARANTINE_MS, DISTRIBUTION_SOURCES, DISTRIBUTION_SOURCE_CACHE, DISTRIBUTION_SOURCE_HTTP, DISTRIBUTION_SOURCE_P2P, assertP2PPayloadBoundary, createDeliveryMetrics, createP2PPolicyDeniedError, createShardSizeMismatchError, enforceP2PSecurityAndAbusePolicy, normalizeOptionalTimestamp, normalizeOptionalToken, normalizeP2PConfig, normalizeRequiredInteger } from './retry.js';
-import { appendHttpTransferChunk, clearPersistedShardState, createHttpTransferState, downloadShardFromHttp, finalizeHttpTransferState, persistHttpTransferState, resetHttpTransferState, resolvePersistedResumeOffset } from './transport.js';
+import { appendHttpTransferChunk, clearPersistedShardState, createHttpTransferState, downloadShardFromHttp, finalizeHttpTransferState, persistHttpTransferState, resetHttpTransferState, resolvePersistedResumeOffset } from '../../../storage/download/http-transport.js';
 
 export const p2pTransportPolicyState = new WeakMap();
 

@@ -1,10 +1,8 @@
-import {
-  runCausalConv1dSilu,
-  runGatedRmsNorm,
-  runMatmul,
-  runResidualAdd,
-  runQwenLinearAttentionPrepare,
-} from '../../gpu/kernels/index.js';
+import { runCausalConv1dSilu } from '../../gpu/kernels/causal_conv1d_silu.js';
+import { runGatedRmsNorm } from '../../gpu/kernels/gated_rmsnorm.js';
+import { runMatmul } from '../../gpu/kernels/matmul.js';
+import { runResidualAdd } from '../../gpu/kernels/residual.js';
+import { runQwenLinearAttentionPrepare } from '../../gpu/kernels/qwen_linear_attention_prepare.js';
 import {
   runCausalConv1dSiluBackward,
   runGatedDeltaRecurrentCheckpointForward,
@@ -13,7 +11,7 @@ import {
   runQwenLinearAttentionPrepareBackward,
 } from '../../gpu/kernels/backward/index.js';
 import { releaseBuffer } from '../../memory/buffer-pool.js';
-import { runMatmulBackwardDx } from '../../gpu/kernels/backward/utils.js';
+import { runMatmulBackwardDx } from '../../gpu/kernels/backward/matmul.js';
 
 function positiveInteger(value, label) {
   const parsed = Math.floor(Number(value));

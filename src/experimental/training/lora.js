@@ -1,6 +1,7 @@
 import { acquireBuffer, releaseBuffer, uploadData, BufferUsage } from '../../memory/buffer-pool.js';
 import { createTensor, tensorBytes } from '../../gpu/tensor.js';
-import { runMatmul, runScale } from '../../gpu/kernels/index.js';
+import { runMatmul } from '../../gpu/kernels/matmul.js';
+import { runScale } from '../../gpu/kernels/scale.js';
 import { OpType } from './autograd.js';
 import { f32ToF16Array } from '../../inference/kv-cache/types.js';
 

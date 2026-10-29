@@ -6,7 +6,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
-import { buildEntryRemoteBaseUrl } from '../src/tooling/hf-registry-utils.js';
+import { buildEntryRemoteBaseUrl } from '../src/tooling/hf-registry/registry-urls.js';
 
 const execFileAsync = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

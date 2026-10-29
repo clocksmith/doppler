@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { sha256BytesHex } from '../../src/utils/sha256.js';
+import { sha256BytesHex } from '../../src/formats/sha256.js';
 import { createSourceAcquisitionReceipt } from '../../src/converter/source-acquisition.js';
 
 const files = new Map([

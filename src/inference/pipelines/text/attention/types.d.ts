@@ -6,7 +6,7 @@
  * @module inference/pipelines/text/attention/types
  */
 
-import type { CommandRecorder } from '../../../../gpu/kernel-selector.js';
+import type { CommandRecorder } from '../../../../gpu/command-recorder.js';
 import type { KVCacheInterface } from '../types.js';
 import type { Tensor } from '../../../../gpu/tensor.js';
 import type { LinearAttentionRuntime } from '../linear-attention.js';

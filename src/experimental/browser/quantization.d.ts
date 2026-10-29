@@ -4,7 +4,7 @@
  * @module browser/quantization
  */
 
-import type { QuantizationInfoSchema, ConverterConfigSchema } from '../../config/index.js';
+import type { QuantizationInfoSchema, ConverterConfigSchema } from '../../config/schema/index.js';
 import type { ConvertOptions } from '../../converter/core.js';
 import type { QuantizeResult } from '../../converter/quantizer.js';
 

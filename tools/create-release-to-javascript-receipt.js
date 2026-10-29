@@ -8,7 +8,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { createReleaseToJavaScriptReceipt } from '../src/converter/release-to-javascript-receipt.js';
-import { stableSortObject } from '../src/utils/stable-sort-object.js';
+import { stableSortObject } from '../src/formats/stable-sort-object.js';
 
 export function usage() {
   return [

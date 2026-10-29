@@ -31,16 +31,12 @@ export {
   compareLoraRun,
   qualityGateLoraRun,
 } from './lora-pipeline.js';
-export {
-  createTrainingObjective,
-  isTrainingObjective,
-  createCrossEntropyObjective,
-  CROSS_ENTROPY_OBJECTIVE,
-  createDistillKdObjective,
-  createDistillTripletObjective,
-  createUlStage1JointObjective,
-  createUlStage2BaseObjective,
-} from './objectives/index.js';
+export { createTrainingObjective, isTrainingObjective } from './objectives/base.js';
+export { createCrossEntropyObjective, CROSS_ENTROPY_OBJECTIVE } from './objectives/cross_entropy.js';
+export { createDistillKdObjective } from './objectives/distill_kd.js';
+export { createDistillTripletObjective } from './objectives/distill_triplet.js';
+export { createUlStage1JointObjective } from './objectives/ul_stage1_joint.js';
+export { createUlStage2BaseObjective } from './objectives/ul_stage2_base.js';
 export {
   createDistillArtifactSession,
   resolveDistillTrainingContract,

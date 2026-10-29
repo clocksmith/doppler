@@ -39,7 +39,7 @@ export class QuantizedKVCache {
   }): void;
   updateFromGPU(layerIdx: number, keysBuffer: GPUBuffer, valuesBuffer: GPUBuffer, startPos: number, numTokens: number): Promise<void>;
   recordUpdateFromGPU(
-    recorder: import('../../gpu/kernel-selector.js').CommandRecorder,
+    recorder: import('../../gpu/command-recorder.js').CommandRecorder,
     layerIdx: number,
     keysBuffer: GPUBuffer,
     valuesBuffer: GPUBuffer,

@@ -375,7 +375,6 @@ async function runPartitionApiSmoke(consumerDir, packageJson) {
     const source = (await fs.readFile(path.join(ROOT_DIR, 'tests', relative), 'utf8'))
       .replaceAll("'../../src/capsule-runtime.js'", "'doppler-gpu'")
       .replaceAll("'../../src/partitions.js'", "'doppler-gpu/partitions'")
-      .replaceAll("'../../src/utils/sha256.js'", "'../../src/formats/sha256.js'")
       .replaceAll("'../../src/", "'../../node_modules/doppler-gpu/src/");
     await fs.writeFile(target, source);
   }

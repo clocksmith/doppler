@@ -1,15 +1,13 @@
-import {
-  runCrossEntropyLoss,
-  runGather,
-  runMatmul,
-  runRMSNorm,
-  runSoftmax,
-} from '../../gpu/kernels/index.js';
+import { runCrossEntropyLoss } from '../../gpu/kernels/cross_entropy_loss.js';
+import { runGather } from '../../gpu/kernels/gather.js';
+import { runMatmul } from '../../gpu/kernels/matmul.js';
+import { runRMSNorm } from '../../gpu/kernels/rmsnorm.js';
+import { runSoftmax } from '../../gpu/kernels/softmax.js';
 import {
   runCrossEntropyBackward,
   runRmsNormBackward,
 } from '../../gpu/kernels/backward/index.js';
-import { runMatmulBackwardDx } from '../../gpu/kernels/backward/utils.js';
+import { runMatmulBackwardDx } from '../../gpu/kernels/backward/matmul.js';
 import { createTensor } from '../../gpu/tensor.js';
 import {
   acquireBuffer,

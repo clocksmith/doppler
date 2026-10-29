@@ -7,26 +7,15 @@
  * @module inference/pipelines/text/ops
  */
 
-import type {
-  SiLURowSplitOptions,
-  CommandRecorder,
-  SandwichRMSNormPairOptions,
-  SandwichRMSNormPairResult,
-  ResidualNextRMSNormPairOptions,
-  ResidualNextRMSNormPairResult,
-  RMSNormStatsOptions,
-  RMSNormStatsResult,
-} from '../../../gpu/kernel-selector.js';
+import type { SiLURowSplitOptions } from '../../../gpu/kernels/silu.js';
+import type { CommandRecorder } from '../../../gpu/command-recorder.js';
+import type { SandwichRMSNormPairOptions, SandwichRMSNormPairResult, ResidualNextRMSNormPairOptions, ResidualNextRMSNormPairResult } from '../../../gpu/kernels/rmsnorm-pair.js';
+import type { RMSNormStatsOptions, RMSNormStatsResult } from '../../../gpu/kernels/rmsnorm-stats.js';
 import type { Tensor } from '../../../gpu/tensor.js';
 import type { WeightBuffer, CpuWeightBuffer } from '../../../gpu/weight-buffer.js';
 import type { DecodeBufferManager } from '../../decode-buffers.js';
 import type { ExecutionV1PoliciesSchema } from '../../../config/schema/execution-v1.schema.js';
-import type {
-  AttentionConfig,
-  AttentionState,
-  AttentionDebugFlags,
-  AttentionResult
-} from './attention/index.js';
+import type { AttentionConfig, AttentionState, AttentionDebugFlags, AttentionResult } from './attention/types.js';
 import type { LayerWeights } from './types.js';
 import type { LoRAAdapter } from './lora.js';
 import type { MatmulOptions } from '../../../gpu/kernels/matmul.js';

@@ -1,7 +1,9 @@
 import { isTraceEnabled, trace } from '../../../../debug/index.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { readBuffer } from '../../../../memory/buffer-pool.js';
-import { getLogitsHealth, decodeReadback, shouldDebugLayerOutput } from '../debug-utils.js';
+import { getLogitsHealth } from '../debug-utils/health-metrics.js';
+import { decodeReadback } from '../debug-utils/readback-decoding.js';
+import { shouldDebugLayerOutput } from '../debug-utils/config.js';
 
 /** @type {import('./activation-observation.js').captureTrainingActivation} */
 export async function captureTrainingActivation(context, layerIdx, tensor, numTokens, hiddenSize) {

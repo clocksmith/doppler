@@ -4,7 +4,7 @@ import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve } from 'node:path';
 
 import { loadTrainingWorkloadCapsule } from '../src/experimental/training/workloads.js';
-import { sha256Hex } from '../src/utils/sha256.js';
+import { sha256Hex } from '../src/formats/sha256.js';
 
 function normalizeString(value) {
   if (value === undefined || value === null) return null;

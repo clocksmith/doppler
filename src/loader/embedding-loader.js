@@ -17,7 +17,7 @@ import { log } from '../debug/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { DTYPE_SIZES } from '../config/schema/index.js';
 import { createTensor } from '../gpu/tensor.js';
-import { castF16ToF32 } from '../gpu/kernel-selector.js';
+import { castF16ToF32 } from '../gpu/kernels/cast.js';
 import { releaseBuffer } from '../memory/buffer-pool.js';
 import { assembleShardData, loadTensorRange } from './tensors/tensor-reader.js';
 import { hasSourceTransform } from './tensors/source-transform.js';

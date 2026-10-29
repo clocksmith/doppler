@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 
 import { selectRuleValue } from '../../src/gpu/kernels/rule-registry.js';
 import { setDevice } from '../../src/gpu/device.js';
-import { runReLU, recordReLU, runRepeatChannels, recordRepeatChannels } from '../../src/gpu/kernels/index.js';
+import { runReLU, recordReLU } from '../../src/gpu/kernels/relu.js';
+import { runRepeatChannels, recordRepeatChannels } from '../../src/gpu/kernels/repeat_channels.js';
 import { registerRuleGroup } from '../../src/rules/rule-registry.js';
 
 function createFakeDevice(features = []) {

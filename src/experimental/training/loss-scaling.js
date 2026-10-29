@@ -1,6 +1,6 @@
 
 import { readBuffer } from '../../memory/buffer-pool.js';
-import { runScale } from '../../gpu/kernels/index.js';
+import { runScale } from '../../gpu/kernels/scale.js';
 import { f16ToF32Array } from '../../inference/kv-cache/types.js';
 
 function toFloat32(buffer, dtype) {

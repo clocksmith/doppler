@@ -3,7 +3,7 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
-import { sha256Hex } from '../../src/utils/sha256.js';
+import { sha256Hex } from '../../src/formats/sha256.js';
 import { createTrainingConfig } from '../../src/config/training-defaults.js';
 import { createUlArtifactSession, resolveStage1ArtifactContext } from '../../src/experimental/training/artifacts.js';
 

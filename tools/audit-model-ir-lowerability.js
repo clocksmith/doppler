@@ -7,8 +7,8 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { auditEntryPointLowerability } from '../src/converter/execution-candidate-forge.js';
-import { sha256Hex } from '../src/utils/sha256.js';
-import { stableSortObject } from '../src/utils/stable-sort-object.js';
+import { sha256Hex } from '../src/formats/sha256.js';
+import { stableSortObject } from '../src/formats/stable-sort-object.js';
 
 function parseArgs(argv) {
   const options = { check: false };

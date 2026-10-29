@@ -1,15 +1,9 @@
 import { getDevice, getKernelCapabilities } from '../../gpu/device.js';
 import { createTensor, tensorBytes } from '../../gpu/tensor.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../memory/buffer-pool.js';
-import {
-  runEnergyEval,
-  runEnergyUpdate,
-  runEnergyQuintelUpdate,
-  runEnergyQuintelReduce,
-  runEnergyQuintelGrad,
-  runClamp,
-  runAdam,
-} from '../../gpu/kernels/index.js';
+import { runEnergyEval, runEnergyUpdate, runEnergyQuintelUpdate, runEnergyQuintelReduce, runEnergyQuintelGrad } from '../../gpu/kernels/energy.js';
+import { runClamp } from '../../gpu/kernels/clamp.js';
+import { runAdam } from '../../gpu/kernels/backward/index.js';
 import { WORKGROUP_SIZES } from '../../gpu/kernels/constants.js';
 import { computeArrayStats } from '../../debug/stats.js';
 import { log, trace } from '../../debug/index.js';

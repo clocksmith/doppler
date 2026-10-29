@@ -2,7 +2,7 @@
 
 import { releaseBuffer } from '../../../memory/buffer-pool.js';
 import { isGpuBufferInstance, isWeightBuffer } from '../../../gpu/weight-buffer.js';
-import { runMatmul, recordMatmul } from '../../../gpu/kernel-selector.js';
+import { runMatmul, recordMatmul } from '../../../gpu/kernels/matmul.js';
 import { runResidualAdd, recordResidualAdd } from '../../../gpu/kernels/residual.js';
 import { runScale, recordScale } from '../../../gpu/kernels/scale.js';
 import { resolveLoRAWeightLayout } from '../../../config/lora-layouts.js';

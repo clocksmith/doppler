@@ -1,7 +1,7 @@
 import { isTensorLike, resolveModelParamGroups, selectTrainableParamGroups } from './parameter-groups.js';
 import { AutogradTape } from './autograd.js';
 import { loadBackwardRegistry } from '../../config/backward-registry-loader.js';
-import { runScale } from '../../gpu/kernels/index.js';
+import { runScale } from '../../gpu/kernels/scale.js';
 import { releaseBuffer } from '../../memory/buffer-pool.js';
 import { createCrossEntropyObjective } from './objectives/cross_entropy.js';
 import { createUploadedTensor } from './tensor-factory.js';

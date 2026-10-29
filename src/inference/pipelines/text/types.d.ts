@@ -15,20 +15,18 @@ import type { ProbeConfigSchema, KernelPathSchema } from '../../../config/schema
 import type { ExpertLoader } from './moe-impl.js';
 import type { MoERouter } from '../../moe-router.js';
 import type { DecodeBufferManager } from '../../decode-buffers.js';
-import type { CommandRecorder } from '../../../gpu/kernel-selector.js';
+import type { CommandRecorder } from '../../../gpu/command-recorder.js';
 import type { CompiledLayerPipeline } from './layer-plan.js';
 import type { WeightBufferConfig, WeightDebugFlags, LayerWeights, ExpertWeights, RouterWeights } from './weights.js';
 import type {
   ExecutionV1PerLayerInputsSessionSchema,
   ExecutionV1PoliciesSchema,
 } from '../../../config/schema/execution-v1.schema.js';
-import type {
-  KVCache,
-  SlidingWindowKVCache,
-  TieredKVCache,
-  BasisDecomposedPagedCache,
-  MixedGeometryKVCache,
-} from '../../kv-cache/index.js';
+import type { KVCache } from '../../kv-cache/base.js';
+import type { SlidingWindowKVCache } from '../../kv-cache/sliding-window.js';
+import type { TieredKVCache } from '../../kv-cache/tiered.js';
+import type { BasisDecomposedPagedCache } from '../../kv-cache/basis-decomposed-paged.js';
+import type { MixedGeometryKVCache } from '../../kv-cache/mixed-geometry.js';
 import type { DecodeRingStats } from '../../decode-ring.js';
 import type { LinearAttentionRuntime } from './linear-attention.js';
 import type { TokenizerLoadTiming } from '../../tokenizer.js';

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 
 import { DEFAULT_MANIFEST_INFERENCE } from '../../src/config/schema/manifest.schema.js';
 import { validateRequiredInferenceFields } from '../../src/inference/pipelines/text/config.js';
-import { isRoPEDisabledForLayer } from '../../src/inference/pipelines/text/attention/heterogeneous-contract.js';
+import { isRoPEDisabledForLayer } from '../../src/config/heterogeneous-attention-contract.js';
 import { projectSeparateAttentionGate } from '../../src/inference/pipelines/text/attention/gate-projection.js';
 import { resolveAttentionQKNormState } from '../../src/inference/pipelines/text/attention/projections.js';
 

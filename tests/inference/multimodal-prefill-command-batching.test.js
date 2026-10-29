@@ -1,9 +1,6 @@
 import assert from 'node:assert/strict';
 
-import {
-  resolveEffectivePrefillTokenChunkSize,
-  shouldDisablePrefillCommandBatching,
-} from '../../src/inference/pipelines/text/generator-prefill-helpers.js';
+import { resolveEffectivePrefillTokenChunkSize, shouldDisablePrefillCommandBatching } from '../../src/inference/pipelines/text/generator/prefill-policy.js';
 
 {
   const state = {

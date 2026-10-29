@@ -34,7 +34,7 @@ import {
 } from './model-load.js';
 import { resolvePerLayerInputsSession } from './generator/session-context.js';
 import { getKernelPathActivationDtype } from '../../../config/kernel-path-loader.js';
-import { applyPipelineDebugConfig } from './debug-utils.js';
+import { applyPipelineDebugConfig } from './debug-utils/config.js';
 import { resolveLayerPipeline } from './layer-plan.js';
 import { compileExecutionPlanState, resolveActiveExecutionPlan } from './execution-plan.js';
 import { assertDtypeConsistency } from './dtype-contract.js';

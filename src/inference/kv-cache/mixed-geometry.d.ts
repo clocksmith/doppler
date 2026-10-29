@@ -63,7 +63,7 @@ export declare class MixedGeometryKVCache {
     tokenIds?: number[] | null
   ): void;
   recordUpdateFromGPU(
-    recorder: import('../../gpu/kernel-selector.js').CommandRecorder,
+    recorder: import('../../gpu/command-recorder.js').CommandRecorder,
     layerIdx: number,
     keysBuffer: GPUBuffer,
     valuesBuffer: GPUBuffer,
@@ -72,7 +72,7 @@ export declare class MixedGeometryKVCache {
     tokenIds?: number[] | null
   ): void;
   recordUpdateF32ToF16FromGPU(
-    recorder: import('../../gpu/kernel-selector.js').CommandRecorder,
+    recorder: import('../../gpu/command-recorder.js').CommandRecorder,
     layerIdx: number,
     keysBuffer: GPUBuffer,
     valuesBuffer: GPUBuffer,

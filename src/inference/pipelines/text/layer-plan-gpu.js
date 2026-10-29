@@ -10,7 +10,7 @@ import { getLayerPlanSteps, filterLayerPlanStepsByPhase } from './layer-plan.js'
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { recordCheckFiniteness } from '../../../gpu/kernels/check-finiteness.js';
 import { shouldRunFinitenessGuard } from './finiteness-policy.js';
-import { isRoPEDisabledForLayer } from './attention/heterogeneous-contract.js';
+import { isRoPEDisabledForLayer } from '../../../config/heterogeneous-attention-contract.js';
 import { isGpuBufferInstance, isWeightBuffer, requireWeightDtype } from '../../../gpu/weight-buffer.js';
 import {
   isSlidingLayerType,
@@ -489,7 +489,8 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
             : context;
 
           let outputTensor;
-          const { runMoEFFNGPU, runDenseFFNGPU } = await import('./ffn/index.js');
+          const { runMoEFFNGPU } = await import('./ffn/moe.js');
+const { runDenseFFNGPU } = await import('./ffn/dense.js');
 
           if (config.ffnBranchMode === 'dense_plus_moe') {
             throw new Error(

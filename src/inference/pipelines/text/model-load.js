@@ -9,7 +9,7 @@ import {
   getKernelPathKVDtype,
   setActiveKernelPath,
 } from '../../../config/kernel-path-loader.js';
-import { prewarmKernels } from '../../../gpu/kernels/index.js';
+import { prewarmKernels } from '../../../gpu/kernels/kernel-prewarm.js';
 import { getKernelRegistry } from '../../../gpu/kernels/kernel-configs.js';
 import { initTokenizer } from './init.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';

@@ -1,4 +1,4 @@
-import { recordScale, runScale } from '../../../gpu/kernel-selector.js';
+import { recordScale, runScale } from '../../../gpu/kernels/scale.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { normalizeLayerType } from './layer-input-execution.js';
 

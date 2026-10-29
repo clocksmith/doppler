@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-const { readBufferWithCleanup } = await import('../../src/inference/pipelines/text/logits/utils.js');
+const { readBufferWithCleanup } = await import('../../src/inference/pipelines/text/logits/readback.js');
 
 {
   let cleanupCount = 0;

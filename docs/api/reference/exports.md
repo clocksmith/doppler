@@ -452,7 +452,13 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Implementation: [src/tooling-exports/structured.js](../../../src/tooling-exports/structured.js)
 - Notes: No manual classification recorded for this export path.
 - Exported symbols:
-  - `*`
+  - `createDreamStructuredPipeline`
+  - `createJsonGrammarMask`
+  - `createStructuredJsonHeadPipeline`
+  - `DreamStructuredPipeline`
+  - `isDreamStructuredModelType`
+  - `isStructuredJsonHeadModelType`
+  - `StructuredJsonHeadPipeline`
 
 ## `doppler-gpu/client/model-manager`
 

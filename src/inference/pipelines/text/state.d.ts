@@ -10,13 +10,11 @@
  */
 
 import { Tokenizer } from '../../tokenizer.js';
-import {
-  KVCache,
-  SlidingWindowKVCache,
-  TieredKVCache,
-  BasisDecomposedPagedCache,
-  MixedGeometryKVCache,
-} from '../../kv-cache/index.js';
+import { KVCache } from '../../kv-cache/base.js';
+import { SlidingWindowKVCache } from '../../kv-cache/sliding-window.js';
+import { TieredKVCache } from '../../kv-cache/tiered.js';
+import { BasisDecomposedPagedCache } from '../../kv-cache/basis-decomposed-paged.js';
+import { MixedGeometryKVCache } from '../../kv-cache/mixed-geometry.js';
 import { MoERouter } from '../../moe-router.js';
 import { SpeculativeDecoder } from '../../speculative.js';
 import { DecodeBufferManager } from '../../decode-buffers.js';

@@ -24,7 +24,7 @@ const { createWeightBuffer } = await import('../../src/gpu/weight-buffer.js');
 const { recordLmHeadArgmax, recordLmHeadArgmaxF16 } = await import('../../src/gpu/kernels/lm-head-argmax.js');
 const { configurePerfGuards } = await import('../../src/gpu/perf-guards.js');
 const { destroyBufferPool, getBufferPool } = await import('../../src/memory/buffer-pool.js');
-const { clearPipelineCaches } = await import('../../src/gpu/kernels/utils.js');
+const { clearPipelineCaches } = await import('../../src/gpu/kernels/pipeline-cache.js');
 const { Q4K_BLOCK_BYTES, q4kBlockCount } = await import('../../src/config/schema/index.js');
 const { resetRuntimeConfig, setRuntimeConfig } = await import('../../src/config/runtime.js');
 

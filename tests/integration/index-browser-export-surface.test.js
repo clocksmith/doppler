@@ -20,14 +20,14 @@ for (const name of [
   assert.equal(typeof structured[name], 'function', `${name} should be exported by doppler-gpu/structured`);
 }
 
-const energy = await import('../../src/inference/pipelines/energy-head/index.js');
+const energy = await import('../../src/inference/pipelines/energy-head/row-head-pipeline.js');
 for (const name of [
   'EnergyRowHeadPipeline',
   'createEnergyRowHeadPipeline',
   'DreamEnergyHeadPipeline',
   'createDreamEnergyHeadPipeline',
 ]) {
-  assert.equal(typeof energy[name], 'function', `${name} should be exported by energy-head barrel`);
+  assert.equal(typeof energy[name], 'function', `${name} should be exported by the energy row-head pipeline`);
 }
 
 console.log('index-browser-export-surface.test: ok');

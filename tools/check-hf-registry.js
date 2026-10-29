@@ -6,23 +6,10 @@ import path from 'node:path';
 import process from 'node:process';
 import { isDeepStrictEqual } from 'node:util';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import {
-  DEFAULT_HF_REGISTRY_URL,
-  buildHostedRegistryPayload,
-  buildManifestUrl,
-  buildEntryRemoteBaseUrl,
-  collectDuplicateModelIds,
-  ensureCatalogPayload,
-  fetchJson,
-  findCatalogEntry,
-  getEntryHfSpec,
-  loadJsonFile,
-  normalizeText,
-  probeUrl,
-  resolveDemoRegistryEntryBaseUrl,
-  shouldDemoSurfaceRemoteRegistryEntry,
-  validateLocalHfEntryShape,
-} from '../src/tooling/hf-registry-utils.js';
+import { DEFAULT_HF_REGISTRY_URL, buildManifestUrl, buildEntryRemoteBaseUrl, getEntryHfSpec, resolveDemoRegistryEntryBaseUrl, shouldDemoSurfaceRemoteRegistryEntry } from '../src/tooling/hf-registry/registry-urls.js';
+import { buildHostedRegistryPayload, validateLocalHfEntryShape } from '../src/tooling/hf-registry/publish-shaping.js';
+import { collectDuplicateModelIds, ensureCatalogPayload, findCatalogEntry, loadJsonFile, normalizeText } from '../src/tooling/hf-registry/catalog-io.js';
+import { fetchJson, probeUrl } from '../src/tooling/hf-registry/network-probes.js';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_CATALOG_FILE = path.join(REPO_ROOT, 'models', 'catalog.json');

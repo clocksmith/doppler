@@ -3,7 +3,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { sha256Hex } from '../src/utils/sha256.js';
+import { sha256Hex } from '../src/formats/sha256.js';
 import { createJavaScriptDependencyGraph } from './lib/javascript-dependency-graph.js';
 
 export async function buildRuntimeClosure(repoRoot, policy) {

@@ -10,19 +10,14 @@ import {
 import { getDevice, getKernelCapabilities } from '../../../../gpu/device.js';
 import { getRuntimeConfig } from '../../../../config/runtime.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../../../memory/buffer-pool.js';
-import {
-  runFusedFFN,
-  recordFusedFFN,
-  runFusedFFNFromRMSNormStats,
-  recordFusedFFNFromRMSNormStats,
-  castF16ToF32,
-  castF32ToF16,
-  recordCastF16ToF32,
-  recordCastF32ToF16,
-  isFusedQ4KDisabled
-} from '../../../../gpu/kernel-selector.js';
+import { runFusedFFN, recordFusedFFN, runFusedFFNFromRMSNormStats, recordFusedFFNFromRMSNormStats } from '../../../../gpu/kernels/fused_ffn.js';
+import { castF16ToF32, castF32ToF16, recordCastF16ToF32, recordCastF32ToF16 } from '../../../../gpu/kernels/cast.js';
+import { isFusedQ4KDisabled } from '../../../../gpu/kernels/matmul.js';
 import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
-import { isKernelDebugEnabled, dumpTokenVector, decodeReadback, getLogitsHealth, shouldDebugLayerOutput } from '../debug-utils.js';
+import { isKernelDebugEnabled, dumpTokenVector } from '../debug-utils/tensor.js';
+import { decodeReadback } from '../debug-utils/readback-decoding.js';
+import { getLogitsHealth } from '../debug-utils/health-metrics.js';
+import { shouldDebugLayerOutput } from '../debug-utils/config.js';
 import { applyLoRA } from '../lora-apply.js';
 import { getLoRAModule } from '../lora.js';
 import { getWeightBuffer, getNormWeightBuffer, getVectorTensor } from '../weights.js';

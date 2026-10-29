@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
 import { buildRuntimeClosure } from '../../tools/check-capsule-runtime-closure.js';
-import { sha256Hex } from '../../src/utils/sha256.js';
+import { sha256Hex } from '../../src/formats/sha256.js';
 
 const root = await fs.mkdtemp(path.join(tmpdir(), 'doppler-runtime-graph-'));
 const policy = { schema: 'doppler.runtime-closure-policy/v1', entrypoint: 'entry.js',

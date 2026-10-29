@@ -19,7 +19,6 @@ Add a new attention mechanism within the existing transformer text pipeline.
 - `src/inference/pipelines/text/attention/interpreter.js` for the one concrete operation path
 - `src/inference/pipelines/text/attention/executor-immediate.js` and
   `executor-recorded.js` only as submission adapters
-- `src/inference/pipelines/text/attention/run.js` and `record.js` only as public facades
 - `src/inference/pipelines/text/attention/projections.js` when QKV setup changes
 - `src/gpu/kernels/attention*.wgsl` and `src/gpu/kernels/attention.js`
 - `src/inference/kv-cache/*` if layout interactions change

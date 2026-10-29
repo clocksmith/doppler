@@ -3,8 +3,10 @@
 import { doRMSNorm, doResidualAdd, doSandwichRMSNormPair, releaseOrTrack } from '../ops.js';
 import { getLayout, getWeightDtype, isCpuWeightBuffer, isGpuBufferInstance, isWeightBuffer } from '../../../../gpu/weight-buffer.js';
 import { trace } from '../../../../debug/index.js';
-import { isKernelDebugEnabled, dumpTokenVector, logFFN, getBufferStats } from '../debug-utils.js';
-import { shouldDebugLayerOutput } from '../debug-utils/index.js';
+import { isKernelDebugEnabled, dumpTokenVector } from '../debug-utils/tensor.js';
+import { logFFN } from '../debug-utils/logging.js';
+import { getBufferStats } from '../debug-utils/health-metrics.js';
+import { shouldDebugLayerOutput } from '../debug-utils/config.js';
 import { getNormWeightBuffer } from '../weights.js';
 import { runProbes } from '../probes.js';
 import { isMoELayerLocal, hasLoggedFusedDownNorm, setLoggedFusedDownNorm } from './types.js';
@@ -235,7 +237,7 @@ export async function processFFNWithSandwichNorm(
     && dtypesMatchForFusion;
 
   if (canUseFusedDownNorm) {
-    canUseFusedDownNorm = (await import('../../../../gpu/kernel-selector.js')).shouldUseFusedMatmulRMSNorm(
+    canUseFusedDownNorm = (await import('../../../../gpu/kernels/fused_matmul_rmsnorm.js')).shouldUseFusedMatmulRMSNorm(
       numTokens,
       hiddenSize,
       resolveLayerIntermediateSize(config, layerIdx)

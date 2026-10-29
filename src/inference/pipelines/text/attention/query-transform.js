@@ -1,5 +1,5 @@
-import { recordScale } from '../../../../gpu/kernel-selector.js';
-import { resolveQueryScale } from './heterogeneous-contract.js';
+import { recordScale } from '../../../../gpu/kernels/scale.js';
+import { resolveQueryScale } from '../../../../config/heterogeneous-attention-contract.js';
 
 export async function applyAttentionQueryScale({ recorder, tensor, scale, count, release, observe }) {
   const resolvedScale = resolveQueryScale(scale);

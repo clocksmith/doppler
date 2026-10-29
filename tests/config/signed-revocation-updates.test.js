@@ -12,7 +12,7 @@ import {
   refreshSignedRevocations,
   serializeSignedRevocationEnvelope,
 } from '../../src/config/revocation-updates.js';
-import { buildLayerContext } from '../../src/inference/pipelines/text/generator-helpers.js';
+import { buildLayerContext } from '../../src/inference/pipelines/text/generator/session-context.js';
 import { doppler } from '../../src/client/doppler-api.js';
 
 globalThis.crypto ??= webcrypto;

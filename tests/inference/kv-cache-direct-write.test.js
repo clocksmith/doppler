@@ -23,7 +23,7 @@ const { KVCache } = await import('../../src/inference/kv-cache/base.js');
 const { SlidingWindowKVCache } = await import('../../src/inference/kv-cache/sliding-window.js');
 const { destroyBufferPool, getBufferPool } = await import('../../src/memory/buffer-pool.js');
 const { resetUniformCache } = await import('../../src/gpu/uniform-cache.js');
-const { clearKernelCaches } = await import('../../src/gpu/kernels/index.js');
+const { clearKernelCaches } = await import('../../src/gpu/kernels/kernel-cache-lifecycle.js');
 
 class FakeBuffer {
   constructor({ label = null, size, usage }) {

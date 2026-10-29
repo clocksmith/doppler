@@ -1,7 +1,7 @@
 
 
 import { getDevice } from '../../gpu/device.js';
-import { recordKVCacheWriteF32ToF16 } from '../../gpu/kernel-selector.js';
+import { recordKVCacheWriteF32ToF16 } from '../../gpu/kernels/kv-cache-write.js';
 import { KVCache } from './base.js';
 
 // ============================================================================

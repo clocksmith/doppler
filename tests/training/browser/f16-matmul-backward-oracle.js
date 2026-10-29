@@ -2,7 +2,7 @@ import { setPlatformsBaseUrl } from '../../../src/config/platforms/loader.js';
 import { setRegistryUrl } from '../../../src/config/kernels/registry.js';
 import { getKernelCapabilities, initDevice } from '../../../src/gpu/device.js';
 import { createTensor } from '../../../src/gpu/tensor.js';
-import { runMatmulBackwardDx } from '../../../src/gpu/kernels/backward/utils.js';
+import { runMatmulBackwardDx } from '../../../src/gpu/kernels/backward/matmul.js';
 import { f16ToF32Array, f32ToF16Array } from '../../../src/inference/kv-cache/types.js';
 import { acquireBuffer, readBuffer, releaseBuffer, uploadData } from '../../../src/memory/buffer-pool.js';
 

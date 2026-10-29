@@ -3,7 +3,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { dirname, extname, resolve, sep } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
-import { sha256BytesHex } from '../../src/utils/sha256.js';
+import { sha256BytesHex } from '../../src/formats/sha256.js';
 
 const BROWSER_ARGS = Object.freeze([
   '--enable-unsafe-webgpu',

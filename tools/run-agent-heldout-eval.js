@@ -9,7 +9,7 @@ import { parseJsonl } from '../src/experimental/training/datasets/jsonl.js';
 import { loadEvalDataset } from '../src/experimental/training/operator-eval.js';
 import { evaluateAgentHeldoutRows } from '../src/experimental/training/operator-agent-eval.js';
 import { loadTrainingWorkloadCapsule } from '../src/experimental/training/workloads.js';
-import { sha256Hex } from '../src/utils/sha256.js';
+import { sha256Hex } from '../src/formats/sha256.js';
 
 function parseArgs(argv) {
   const args = {

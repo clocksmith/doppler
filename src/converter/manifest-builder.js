@@ -18,9 +18,7 @@ import {
   getInferenceLayerPatternContractArtifact,
   selectRuleValue,
 } from '../rules/rule-registry.js';
-import {
-  createConverterConfig,
-} from '../config/index.js';
+import { createConverterConfig } from '../config/schema/index.js';
 import { buildExecutionContractArtifact } from '../config/execution-contract-check.js';
 import { buildManifestRequiredInferenceFieldsArtifact } from '../config/required-inference-fields-contract-check.js';
 import { resolveEosTokenId } from './tokenizer-special-tokens.js';

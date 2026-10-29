@@ -5,10 +5,7 @@ import {
   normalizeToolingCommandRequest,
 } from '../../src/tooling/command-api.js';
 import { runBrowserCommand } from '../../src/tooling/browser-command-runner.js';
-import {
-  applyRuntimeInputs,
-  buildSuiteOptions,
-} from '../../src/tooling/command-runner-shared.js';
+import { applyRuntimeInputs, buildSuiteOptions } from '../../src/tooling/command-runtime-execution.js';
 
 const convertRequest = {
   command: 'convert',

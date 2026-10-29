@@ -1,17 +1,10 @@
 import { getBufferDtype, isGpuBufferInstance, isWeightBuffer } from '../../../../gpu/weight-buffer.js';
-import {
-  recordMatmul,
-  recordRMSNorm,
-  runMatmul,
-  runRMSNorm,
-  castF32ToF16,
-  castF16ToF32,
-  recordCastF32ToF16,
-  recordCastF16ToF32,
-} from '../../../../gpu/kernel-selector.js';
+import { recordMatmul, runMatmul } from '../../../../gpu/kernels/matmul.js';
+import { recordRMSNorm, runRMSNorm } from '../../../../gpu/kernels/rmsnorm.js';
+import { castF32ToF16, castF16ToF32, recordCastF32ToF16, recordCastF16ToF32 } from '../../../../gpu/kernels/cast.js';
 import { readBuffer, releaseBuffer, uploadData, acquireBuffer } from '../../../../memory/buffer-pool.js';
 import { log } from '../../../../debug/index.js';
-import { decodeReadback, f16ToF32 } from '../debug-utils/index.js';
+import { decodeReadback, f16ToF32 } from '../debug-utils/readback-decoding.js';
 import { runLinearAttentionCoreGPU } from '../../../../gpu/kernels/linear-attention-core.js';
 import {
   resolveLinearAttentionABProjection,

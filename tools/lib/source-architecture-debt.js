@@ -74,7 +74,10 @@ function constitutionalRenameMaps(currentPolicy, baselinePolicy, errors) {
   return { domains, files };
 }
 
-function baselineFacadeReach(baselinePolicy, facade) {
+// removedForwarders maps a baseline pure re-export module that no longer
+// exists to the modules it forwarded to. Inlining such a module into a facade
+// moves edges without widening what the facade reaches.
+function baselineFacadeReach(baselinePolicy, facade, removedForwarders = {}) {
   const edges = baselinePolicy.facadeDependencies ?? {};
   const reach = new Set();
   const pending = [...(edges[facade] ?? [])];
@@ -82,12 +85,13 @@ function baselineFacadeReach(baselinePolicy, facade) {
     const dependency = pending.pop();
     if (reach.has(dependency)) continue;
     reach.add(dependency);
-    if (edges[dependency]) pending.push(...edges[dependency]);
+    const next = edges[dependency] ?? removedForwarders[dependency];
+    if (next) pending.push(...next);
   }
   return [...reach];
 }
 
-export function findArchitecturePolicyRelaxations(currentPolicy, baselinePolicy) {
+export function findArchitecturePolicyRelaxations(currentPolicy, baselinePolicy, removedForwarders = {}) {
   const relaxations = [];
   for (const key of ['softLineLimit', 'lineLimit']) {
     if (Number(currentPolicy?.[key]) > Number(baselinePolicy?.[key])) {
@@ -144,7 +148,7 @@ export function findArchitecturePolicyRelaxations(currentPolicy, baselinePolicy)
     if (!baselinePolicy?.facadeDependencies?.[facade]) continue;
     // Inlining a baseline facade that this facade already re-exported moves
     // edges without widening what the facade reaches.
-    const reachable = baselineFacadeReach(baselinePolicy, facade);
+    const reachable = baselineFacadeReach(baselinePolicy, facade, removedForwarders);
     for (const dependency of addedValues(dependencies, reachable)) {
       relaxations.push(`facade dependency added ${facade}->${dependency}`);
     }
@@ -194,14 +198,15 @@ export function findArchitecturePolicyRelaxations(currentPolicy, baselinePolicy)
 export function validateArchitecturePolicyDelta(
   currentPolicy,
   baselinePolicy,
-  authorizationDigest = null
+  authorizationDigest = null,
+  removedForwarders = {}
 ) {
   const errors = validateSoftLimitReviewDelta(
     currentPolicy,
     baselinePolicy,
     authorizationDigest
   );
-  const relaxations = findArchitecturePolicyRelaxations(currentPolicy, baselinePolicy);
+  const relaxations = findArchitecturePolicyRelaxations(currentPolicy, baselinePolicy, removedForwarders);
   if (relaxations.length === 0) return errors;
   if (hasFreshPolicyAuthorization(currentPolicy, baselinePolicy, authorizationDigest)) return errors;
   for (const relaxation of relaxations) {

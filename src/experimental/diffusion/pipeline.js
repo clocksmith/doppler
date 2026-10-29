@@ -23,7 +23,8 @@ import { createTensor, dtypeBytes } from '../../gpu/tensor.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../memory/buffer-pool.js';
 import { CommandRecorder } from '../../gpu/command-recorder.js';
 import { castF32ToF16 } from '../../gpu/kernels/cast.js';
-import { runResidualAdd, runScale, recordResidualAdd, recordScale } from '../../gpu/kernels/index.js';
+import { runResidualAdd, recordResidualAdd } from '../../gpu/kernels/residual.js';
+import { runScale, recordScale } from '../../gpu/kernels/scale.js';
 import { f16ToF32Bits as f16ToF32 } from '../../inference/kv-cache/types.js';
 
 const SUPPORTED_DIFFUSION_BACKEND_PIPELINES = new Set(['gpu']);

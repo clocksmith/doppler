@@ -1,6 +1,6 @@
 import * as backwardKernels from '../../gpu/kernels/backward/index.js';
 import { runResidualAdd } from '../../gpu/kernels/residual.js';
-import { runScale } from '../../gpu/kernels/index.js';
+import { runScale } from '../../gpu/kernels/scale.js';
 import { getDevice } from '../../gpu/device.js';
 import { acquireBuffer, readBuffer, releaseBuffer, uploadData } from '../../memory/buffer-pool.js';
 import { createTensor } from '../../gpu/tensor.js';

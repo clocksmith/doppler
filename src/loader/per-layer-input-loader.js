@@ -10,7 +10,7 @@ import {
 import { log } from '../debug/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { acquireBuffer, releaseBuffer, uploadData } from '../memory/buffer-pool.js';
-import { QK_K, Q4K_BLOCK_BYTES } from './quantization-constants.js';
+import { QK_K, Q4K_BLOCK_BYTES } from '../config/schema/quantization.schema.js';
 import { dequantizeQ4KM, dequantizeQ4KMRowWise } from '../converter/quantizer.js';
 
 const EMBED_TENSOR_CANDIDATES = [

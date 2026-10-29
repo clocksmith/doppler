@@ -1,4 +1,5 @@
-import { runResidualAdd, runScale } from '../../gpu/kernels/index.js';
+import { runResidualAdd } from '../../gpu/kernels/residual.js';
+import { runScale } from '../../gpu/kernels/scale.js';
 import { releaseBuffer } from '../../memory/buffer-pool.js';
 
 function positiveInteger(value, label) {

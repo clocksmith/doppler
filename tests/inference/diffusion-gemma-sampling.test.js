@@ -1,14 +1,7 @@
 import assert from 'node:assert/strict';
 import { DEFAULT_MANIFEST_INFERENCE } from '../../src/config/schema/index.js';
 import { createPipeline } from '../../src/inference/pipelines/text.js';
-import {
-  applyEntropyBoundStep,
-  applyEntropyBoundStatsStep,
-  createSeededRandom,
-  denoiseCanvas,
-  denoiseCanvasWithStatsProvider,
-  resolveDenoisingTemperature,
-} from '../../src/inference/pipelines/diffusion-gemma/index.js';
+import { applyEntropyBoundStep, applyEntropyBoundStatsStep, createSeededRandom, denoiseCanvas, denoiseCanvasWithStatsProvider, resolveDenoisingTemperature } from '../../src/inference/pipelines/diffusion-gemma/sampling.js';
 
 const diffusionGemma = {
   canvasLength: 3,

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-const { matchesRule, selectByRules } = await import('../../src/gpu/kernels/rule-matcher.js');
+const { matchesRule, selectByRules } = await import('../../src/rules/rule-matcher.js');
 
 // Exact match
 assert.equal(matchesRule({ isDecode: true }, { isDecode: true }), true);

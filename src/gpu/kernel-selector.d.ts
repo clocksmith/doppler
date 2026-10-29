@@ -1,11 +1,77 @@
 /**
- * Kernel Selector - Backward Compatibility Wrapper
- *
- * This file has been refactored into separate kernel modules in gpu/kernels/.
- * It now serves as a thin re-export wrapper for backward compatibility.
- *
- * For new code, prefer importing from gpu/kernels/index.js directly.
+ * Kernel namespace for the browser kernel suite (tests/kernels/browser), which
+ * reads optional kernels from one module namespace. Source modules import the
+ * owning module under gpu/kernels/ directly.
  */
 
-// Re-export everything from the new kernel modules for backward compatibility
-export * from './kernels/index.js';
+export { KERNEL_CONFIGS, getKernelConfig, type KernelConfig } from './kernels/kernel-configs.js';
+export { validateAttentionLimits, hasRequiredFeatures } from './kernels/feature-check.js';
+export { loadShaderSource, compileShader } from './kernels/shader-cache.js';
+export { getOrCreateBindGroupLayout, getOrCreatePipelineLayout, createPipeline } from './kernels/pipeline-cache.js';
+export { clearKernelCaches, clearPipelineCache, getCacheStats } from './kernels/kernel-cache-lifecycle.js';
+export { prewarmKernels } from './kernels/kernel-prewarm.js';
+export { type OutputBufferOptions, type OutputOffsetOptions, type OutputDtypeOptions, type Vec4Options } from './kernels/types.js';
+export { selectMatmulKernel, createMatmulBindGroupLayout, runMatmul, recordMatmul, isFusedQ4KDisabled, type MatmulOptions } from './kernels/matmul.js';
+export { recordLmHeadArgmax, recordLmHeadArgmaxF16, type LmHeadArgmaxOptions, type LmHeadArgmaxF16Options } from './kernels/lm-head-argmax.js';
+export { runLmHeadSelectLogitsF16, type LmHeadSelectLogitsF16Options, type LmHeadSelectLogitsF16Result } from './kernels/lm-head-select-logits.js';
+export { selectDequantKernel, createDequantBindGroupLayout, dequantize, dequantizeRowwise, dequantizeQ6K, dequantizeMXFP4, dequantizeMXFP4Expert, recordDequantize, type DequantOptions } from './kernels/dequant.js';
+export { runAttention, recordAttention, runAttentionTiered, recordAttentionTiered, runAttentionTieredQuant, recordAttentionTieredQuant, runAttentionBDPA, recordAttentionBDPA, runAttentionContiguousQuant, recordAttentionContiguousQuant, type AttentionOptions, type TieredAttentionOptions, type TieredQuantAttentionOptions, type BDPAAttentionOptions } from './kernels/attention.js';
+export { selectRMSNormKernel, runRMSNorm, recordRMSNorm, type RMSNormOptions } from './kernels/rmsnorm.js';
+export { canUseRMSNormQK, runRMSNormQK, recordRMSNormQK, type RMSNormQKOptions, type RMSNormQKResult } from './kernels/rmsnorm-qk.js';
+export { canUseSplitQKVRMSNormQK, runSplitQKVRMSNormQK, recordSplitQKVRMSNormQK, type SplitQKVRMSNormQKOptions, type SplitQKVRMSNormQKResult } from './kernels/split-qkv-rmsnorm-qk.js';
+export { canUseSplitQKVRMSNormRoPEQK, runSplitQKVRMSNormRoPEQK, recordSplitQKVRMSNormRoPEQK, type SplitQKVRMSNormRoPEQKOptions, type SplitQKVRMSNormRoPEQKResult } from './kernels/split-qkv-rmsnorm-rope-qk.js';
+export { RMSNORM_PAIR_CACHE_LIMIT, runSandwichRMSNormPair, recordSandwichRMSNormPair, runResidualNextRMSNormPair, recordResidualNextRMSNormPair, type SandwichRMSNormPairOptions, type SandwichRMSNormPairResult, type ResidualNextRMSNormPairOptions, type ResidualNextRMSNormPairResult } from './kernels/rmsnorm-pair.js';
+export { selectLayerNormKernel, runLayerNorm, recordLayerNorm, type LayerNormOptions } from './kernels/layernorm.js';
+export { runSoftmax, runSoftmaxTopK, recordSoftmax, type SoftmaxOptions } from './kernels/softmax.js';
+export { runSoftEmbeddingSplitF16, runSoftEmbeddingLogitsF16, type SoftEmbeddingSplitOptions, type SoftEmbeddingLogitsOptions } from './kernels/soft-embedding.js';
+export { runDiffusionGemmaCanvasStats, type DiffusionGemmaCanvasStatsOptions, type DiffusionGemmaCanvasStatsResult } from './kernels/diffusion-gemma-sampling.js';
+export { runGemma4RouteQ4MatmulF16A, runScatterAddRoutesF16ExpertScale, type Gemma4RouteQ4MatmulOptions, type ScatterAddRoutesF16ExpertScaleOptions } from './kernels/gemma4-route-expert.js';
+export { runKVQuantize, recordKVQuantize, type KVQuantizeOptions } from './kernels/kv-quantize.js';
+export { runKVCacheWriteF32ToF16, recordKVCacheWriteF32ToF16, type KVCacheWriteF32ToF16Options } from './kernels/kv-cache-write.js';
+export { runCrossEntropyLoss, recordCrossEntropyLoss, type CrossEntropyLossOptions } from './kernels/cross_entropy_loss.js';
+export { runRoPE, recordRoPE, type RoPEOptions } from './kernels/rope.js';
+export { canUseRoPEQK, runRoPEQK, recordRoPEQK, type RoPEQKOptions, type RoPEQKResult } from './kernels/rope-qk.js';
+export { runSiLU, runSwiGLURowsplitBias, runSiLURowSplit, recordSiLU, recordSiLURowSplit, type SiLUOptions, type SiLURowSplitOptions } from './kernels/silu.js';
+export { runGeLU, recordGeLU, type GeLUOptions } from './kernels/gelu.js';
+export { selectScaleKernel, runScale, recordScale, type ScaleOptions } from './kernels/scale.js';
+export { runClamp, recordClamp, type ClampOptions } from './kernels/clamp.js';
+export { runActivationStaticQdq, recordActivationStaticQdq, type ActivationStaticQdqOptions } from './kernels/activation-static-qdq.js';
+export { runEnergyEval, recordEnergyEval, runEnergyUpdate, recordEnergyUpdate, runEnergyQuintelUpdate, recordEnergyQuintelUpdate, runEnergyQuintelReduce, recordEnergyQuintelReduce, runEnergyQuintelGrad, recordEnergyQuintelGrad, type EnergyEvalOptions, type EnergyUpdateOptions, type EnergyQuintelUpdateOptions, type EnergyQuintelReduceOptions, type EnergyQuintelGradOptions } from './kernels/energy.js';
+export { runConv2D, recordConv2D, type Conv2DOptions } from './kernels/conv2d.js';
+export { runDepthwiseConv2D, recordDepthwiseConv2D, type DepthwiseConv2DOptions } from './kernels/depthwise_conv2d.js';
+export { runDepthwiseConv1D, recordDepthwiseConv1D, type DepthwiseConv1DOptions } from './kernels/depthwise_conv1d.js';
+export { runGroupedPointwiseConv2D, recordGroupedPointwiseConv2D, type GroupedPointwiseConv2DOptions } from './kernels/grouped_pointwise_conv2d.js';
+export { runGather, recordGather, runGatherSplit4, recordGatherSplit4, runGatherSplit8, recordGatherSplit8, runGatherSplit, recordGatherSplit, type GatherOptions } from './kernels/gather.js';
+export { runGroupNorm, recordGroupNorm, type GroupNormOptions } from './kernels/groupnorm.js';
+export { runModulate, recordModulate, type ModulateOptions } from './kernels/modulate.js';
+export { runResidualAdd, runBiasAdd, recordResidualAdd, recordBiasAdd, type ResidualOptions } from './kernels/residual.js';
+export { runPixelShuffle, recordPixelShuffle, type PixelShuffleOptions } from './kernels/pixel_shuffle.js';
+export { runUpsample2D, recordUpsample2D, type Upsample2DOptions } from './kernels/upsample2d.js';
+export { runTopK, runMoEGather, runMoEBuildTokenOffsets, recordMoEBuildTokenOffsets, runScatterAdd, runScatterAddDynamic, type MoEOptions } from './kernels/moe.js';
+export { castF32ToF16, recordCastF32ToF16, castF16ToF32, recordCastF16ToF32, runBF16ToF32, runBF16ToF16, type CastOptions } from './kernels/cast.js';
+export { runArgmax, runGPUSample, recordArgmax, isGPUSamplingAvailable, type SampleOptions, type SampleResult } from './kernels/sample.js';
+export { runLinearAttention, recordLinearAttention, type LinearAttentionOptions } from './kernels/linear_attention.js';
+export { runRepeatChannels, recordRepeatChannels, type RepeatChannelsOptions } from './kernels/repeat_channels.js';
+export { runReLU, recordReLU, type ReLUOptions } from './kernels/relu.js';
+export { runFusedFFN, recordFusedFFN, runFusedFFNFromRMSNormStats, recordFusedFFNFromRMSNormStats, calculateFusedFFNSavings, type FusedFFNOptions, type FusedNormedFFNOptions, type FFNActivation } from './kernels/fused_ffn.js';
+export { runRMSNormStats, recordRMSNormStats, type RMSNormStatsOptions, type RMSNormStatsResult } from './kernels/rmsnorm-stats.js';
+export { selectMatmulRMSNormFusedVariant, runMatmulRMSNormFused, recordMatmulRMSNormFused, shouldUseFusedMatmulRMSNorm, type MatmulRMSNormFusedOptions, recordMatmulRMSNormFused as doRecordMatmulRMSNormFused } from './kernels/fused_matmul_rmsnorm.js';
+export { runMatmulResidualFused, recordMatmulResidualFused, shouldUseFusedMatmulResidual, type MatmulResidualFusedOptions } from './kernels/fused_matmul_residual.js';
+export { CommandRecorder, createCommandRecorder, createProfilingRecorder, type RecorderOptions, type ProfileTimings } from './command-recorder.js';
+export { runSplitQKV, recordSplitQKV, type SplitQKVOptions, type SplitQKVResult } from './kernels/split_qkv.js';
+export { runVisionPatchEmbed, type VisionPatchGeometry } from './kernels/vision-patch-embed.js';
+export { runVisionSpatialMerge, type VisionSpatialMergeGeometry } from './kernels/vision-spatial-merge.js';
+export { runVisionRope2D, type VisionRope2DGeometry } from './kernels/vision-rope-2d.js';
+export { runVisionAveragePool, type VisionAveragePoolGeometry } from './kernels/vision-average-pool.js';
+export { runVisionPositionEmbedding, type VisionPositionEmbeddingGeometry } from './kernels/vision-position-embedding.js';
+export { runSplitQG, recordSplitQG, type SplitQGOptions, type SplitQGResult } from './kernels/split_qg.js';
+export { runTranspose, recordTranspose, type TransposeOptions } from './kernels/transpose.js';
+export { runCausalConv1dSilu, recordCausalConv1dSilu } from './kernels/causal_conv1d_silu.js';
+export { runGatedRmsNorm, recordGatedRmsNorm } from './kernels/gated_rmsnorm.js';
+export { runQwenLinearAttentionPrepare } from './kernels/qwen_linear_attention_prepare.js';
+export { runQwenAttentionSplitQGate } from './kernels/qwen_attention_split_q_gate.js';
+export { runEmbedBackward, recordEmbedBackward, runBiasAddBackward, runUpsample2DBackward, runGroupNormBackward, runConv2DBackward, runMatmulBackward, recordMatmulBackward, runSoftmaxBackward, recordSoftmaxBackward, runRmsNormBackward, recordRmsNormBackward, runGatedRmsNormBackward, recordGatedRmsNormBackward, runCausalConv1dSiluBackward, recordCausalConv1dSiluBackward, runGatedDeltaRecurrentBackward, runGatedDeltaRecurrentCheckpointForward, runGatedDeltaRecurrentCheckpointedBackward, runLayerNormBackward, recordLayerNormBackward, runAttentionBackward, recordAttentionBackward, runRoPEBackward, recordRoPEBackward, runSiluBackward, recordSiluBackward, runGeluBackward, recordGeluBackward, runScaleBackward, recordScaleBackward, runCrossEntropyBackward, recordCrossEntropyBackward, runAdam, recordAdam } from './kernels/backward/index.js';
+export { recordSuppressLogits } from './kernels/logit-suppress.js';
+export { runW8A8Matmul, recordW8A8Matmul } from './kernels/w8a8.js';
+export { expandF32ToPaired, recordExpandF32ToPaired, castPairedToF16, recordCastPairedToF16 } from './kernels/paired-cast.js';
+export { executePairedAdd, executePairedScale, executePairedMultiply, executePairedSiLU } from './kernels/paired-activation.js';

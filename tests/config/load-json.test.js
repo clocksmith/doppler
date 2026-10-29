@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-import { loadJson } from '../../src/utils/load-json.js';
+import { loadJson } from '../../src/formats/load-json.js';
 
 {
   const fixtureDir = mkdtempSync(path.join(tmpdir(), 'doppler-load-json-'));

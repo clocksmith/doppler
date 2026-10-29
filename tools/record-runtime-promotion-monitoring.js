@@ -8,7 +8,7 @@ import { normalizeText, requireText } from './lib/evidence-fields.js';
 import { isRepoRelativePath, readJson, writeJsonAtomically } from './lib/evidence-io.js';
 import { isPlainObject } from '../src/formats/plain-object.js';
 
-import { computeCanonicalSha256 } from '../src/utils/canonical-hash.js';
+import { computeCanonicalSha256 } from '../src/formats/canonical-hash.js';
 import {
   validateRuntimePromotionMonitoringPolicy,
 } from './check-runtime-promotion-monitoring.js';

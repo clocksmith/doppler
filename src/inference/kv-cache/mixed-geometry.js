@@ -1,5 +1,5 @@
 import { getDevice } from '../../gpu/device.js';
-import { recordKVCacheWriteF32ToF16 } from '../../gpu/kernel-selector.js';
+import { recordKVCacheWriteF32ToF16 } from '../../gpu/kernels/kv-cache-write.js';
 
 function normalizeLayerType(layerType) {
   return typeof layerType === 'string' ? layerType.trim().toLowerCase() : '';

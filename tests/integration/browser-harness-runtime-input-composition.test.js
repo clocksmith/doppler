@@ -4,7 +4,7 @@ import {
   applyRuntimeForRun,
   runBrowserManifest,
 } from '../../src/inference/browser-harness.js';
-import { resolveRuntime } from '../../src/inference/browser-harness-runtime-helpers.js';
+import { resolveRuntime } from '../../src/inference/browser-harness/runtime-config.js';
 import { parseRuntimeOverridesFromURL } from '../../src/inference/test-harness.js';
 import {
   getRuntimeConfig,

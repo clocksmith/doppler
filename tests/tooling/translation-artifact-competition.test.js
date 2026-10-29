@@ -4,8 +4,8 @@ import { readFileSync } from 'node:fs';
 
 import { normalizeGammaTrainerArtifactHandoff } from '../../src/experimental/bridge/trainer-artifact-bridge.js';
 import { evaluateTranslationArtifactCompetition } from '../../src/tooling/translation-artifact-competition.js';
-import { sha256Hex } from '../../src/utils/sha256.js';
-import { stableSortObject } from '../../src/utils/stable-sort-object.js';
+import { sha256Hex } from '../../src/formats/sha256.js';
+import { stableSortObject } from '../../src/formats/stable-sort-object.js';
 
 const policy = JSON.parse(readFileSync('tools/policies/translation-artifact-competition.json', 'utf8'));
 const baseline = JSON.parse(readFileSync('tools/policies/nativekd2-bf16-baseline-handoff.json', 'utf8'));
