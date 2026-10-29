@@ -60,11 +60,7 @@ import {
   roundPipelineTimingMs,
   timedPipelineLoadPhase,
 } from './pipeline-load-timing.js';
-import {
-  loadGlmOcrVisionWeights,
-  loadRequiredVisionGpuTensor,
-  loadVisionClipRange,
-} from '../vision/weight-loading.js';
+import { resolveVisionWeightLoader } from '../vision/weight-loading.js';
 
 export async function initialize(contexts = {}) {
     this.modelPartition = contexts.partition == null ? null : structuredClone(contexts.partition);
@@ -588,108 +584,9 @@ export async function _loadVisionWeights() {
     if (!loader) throw new Error('Vision weights require the model-owned loader.');
     const vc = this.visionConfig;
     const depth = vc.depth;
-
-    const loadRequiredTensor = async (name, toGPU = true) => {
-      const tensor = await loader.loadTensor(name, toGPU, true);
-      if (!tensor) {
-        throw new Error(`Vision tensor "${name}" is missing from the converted artifact.`);
-      }
-      return tensor;
-    };
-    const loadClipRange = (prefix) => loadVisionClipRange(loadRequiredTensor, prefix);
-
-    if (vc.visionArchitecture === 'glmocr') {
-      this.visionWeights = await loadGlmOcrVisionWeights(loader, {
-        textHiddenSize: this.modelConfig.hiddenSize,
-        depth,
-      });
-      log.info('Pipeline', `Vision weights loaded (${depth} GLM-OCR encoder layers)`);
-      return;
-    }
-
-    if (vc.visionArchitecture === 'gemma4') {
-      const isEncoderFree = (depth === 0);
-      const visionWeights = {
-        textHiddenSize: this.modelConfig.hiddenSize,
-        patchInputProj: await loadRequiredTensor('model.vision_tower.patch_embedder.input_proj.weight'),
-        patchPositionEmbeddingTable: await loadRequiredVisionGpuTensor(loader,
-          'model.vision_tower.patch_embedder.position_embedding_table'
-        ),
-        projector: isEncoderFree
-          ? await loader.loadTensor('model.embed_vision.embedding_projection.weight', true, true)
-          : await loadRequiredTensor('model.embed_vision.embedding_projection.weight'),
-        layers: [],
-      };
-
-      for (let i = 0; i < depth; i++) {
-        const prefix = `model.vision_tower.encoder.layers.${i}`;
-        const attnPrefix = `${prefix}.self_attn`;
-        const mlpPrefix = `${prefix}.mlp`;
-        visionWeights.layers.push({
-          inputLayerNorm: await loadRequiredTensor(`${prefix}.input_layernorm.weight`),
-          postAttentionLayerNorm: await loadRequiredTensor(`${prefix}.post_attention_layernorm.weight`),
-          preFeedforwardLayerNorm: await loadRequiredTensor(`${prefix}.pre_feedforward_layernorm.weight`),
-          postFeedforwardLayerNorm: await loadRequiredTensor(`${prefix}.post_feedforward_layernorm.weight`),
-          qNorm: await loadRequiredTensor(`${attnPrefix}.q_norm.weight`),
-          kNorm: await loadRequiredTensor(`${attnPrefix}.k_norm.weight`),
-          qProj: await loadRequiredTensor(`${attnPrefix}.q_proj.linear.weight`),
-          kProj: await loadRequiredTensor(`${attnPrefix}.k_proj.linear.weight`),
-          vProj: await loadRequiredTensor(`${attnPrefix}.v_proj.linear.weight`),
-          oProj: await loadRequiredTensor(`${attnPrefix}.o_proj.linear.weight`),
-          qProjClip: await loadClipRange(`${attnPrefix}.q_proj`),
-          kProjClip: await loadClipRange(`${attnPrefix}.k_proj`),
-          vProjClip: await loadClipRange(`${attnPrefix}.v_proj`),
-          oProjClip: await loadClipRange(`${attnPrefix}.o_proj`),
-          gateProj: await loadRequiredTensor(`${mlpPrefix}.gate_proj.linear.weight`),
-          upProj: await loadRequiredTensor(`${mlpPrefix}.up_proj.linear.weight`),
-          downProj: await loadRequiredTensor(`${mlpPrefix}.down_proj.linear.weight`),
-          gateProjClip: await loadClipRange(`${mlpPrefix}.gate_proj`),
-          upProjClip: await loadClipRange(`${mlpPrefix}.up_proj`),
-          downProjClip: await loadClipRange(`${mlpPrefix}.down_proj`),
-        });
-      }
-
-      this.visionWeights = visionWeights;
-      log.info('Pipeline', `Vision weights loaded (${depth} Gemma 4 encoder layers)`);
-      return;
-    }
-
-    const visionWeights = {};
-
-    // Patch embedding weights
-    const patchProjName = 'visual.patch_embed.proj.weight';
-    const patchProjBiasName = 'visual.patch_embed.proj.bias';
-    visionWeights.patchProjWeight = await loader.loadTensor(patchProjName, true, true);
-    visionWeights.patchProjBias = await loader.loadTensor(patchProjBiasName, true, true);
-
-    // Vision encoder layer weights
-    visionWeights.layers = [];
-    for (let i = 0; i < depth; i++) {
-      const prefix = `visual.blocks.${i}`;
-      const layerW = {
-        norm1Weight: await loader.loadTensor(`${prefix}.norm1.weight`, true, true),
-        norm2Weight: await loader.loadTensor(`${prefix}.norm2.weight`, true, true),
-        qkvWeight: await loader.loadTensor(`${prefix}.attn.qkv.weight`, true, true),
-        qkvBias: await loader.loadTensor(`${prefix}.attn.qkv.bias`, true, true),
-        projWeight: await loader.loadTensor(`${prefix}.attn.proj.weight`, true, true),
-        projBias: await loader.loadTensor(`${prefix}.attn.proj.bias`, true, true),
-        fc1Weight: await loader.loadTensor(`${prefix}.mlp.fc1.weight`, true, true),
-        fc1Bias: await loader.loadTensor(`${prefix}.mlp.fc1.bias`, true, true),
-        fc2Weight: await loader.loadTensor(`${prefix}.mlp.fc2.weight`, true, true),
-        fc2Bias: await loader.loadTensor(`${prefix}.mlp.fc2.bias`, true, true),
-      };
-      visionWeights.layers.push(layerW);
-    }
-
-    // Spatial merge projection
-    visionWeights.mergerLnWeight = await loader.loadTensor('visual.merger.ln_q.weight', true, true);
-    visionWeights.mergerMlp0Weight = await loader.loadTensor('visual.merger.mlp.0.weight', true, true);
-    visionWeights.mergerMlp0Bias = await loader.loadTensor('visual.merger.mlp.0.bias', true, true);
-    visionWeights.mergerMlp2Weight = await loader.loadTensor('visual.merger.mlp.2.weight', true, true);
-    visionWeights.mergerMlp2Bias = await loader.loadTensor('visual.merger.mlp.2.bias', true, true);
-
-    this.visionWeights = visionWeights;
-    log.info('Pipeline', `Vision weights loaded (${depth} encoder layers)`);
+    const { load, layerLabel } = resolveVisionWeightLoader(vc.visionArchitecture);
+    this.visionWeights = await load(loader, { textHiddenSize: this.modelConfig.hiddenSize, depth });
+    log.info('Pipeline', `Vision weights loaded (${depth} ${layerLabel})`);
   }
 
 export async function _ensureVisionWeightsLoaded() {

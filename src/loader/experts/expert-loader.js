@@ -116,26 +116,18 @@ export async function loadExpert(ctx, layerIdx, expertIdx) {
     debugTrace.loader(`Expert ${layerIdx}_${expertIdx} tensors: ${tensorNames.length}`);
   }
 
-  let weights;
-  if (expertFormat === 'gpt-oss') {
-    weights = await loadGptOssStyleExpert(ctx, layerIdx, expertIdx);
-    assertGptOssWeights(weights, layerIdx, expertIdx);
-  } else if (expertFormat === 'gemma4') {
-    weights = await loadGemma4StyleExpert(ctx, layerIdx, expertIdx);
-    assertGemma4Weights(weights, layerIdx, expertIdx);
-  } else {
-    weights = await loadMixtralStyleExpert(ctx, layerIdx, expertIdx);
-    assertMixtralWeights(weights, layerIdx, expertIdx);
-  }
+  const format = EXPERT_FORMATS[expertFormat];
+  const weights = await format.load(ctx, layerIdx, expertIdx);
+  format.assertWeights(weights, layerIdx, expertIdx);
 
-  // Downcast Mixtral-style F32 weights to F16
+  // Per-expert F32 formats are downcast to F16
   weights.expertFormat = expertFormat;
-  if (expertFormat === 'mixtral') {
+  if (format.downcastToF16) {
     await downcastExpertWeights(ctx, weights);
   }
 
   // Calculate expert size and store in LRU cache
-  if (expertFormat === 'mixtral' && ctx.expertCache) {
+  if (format.lruCached && ctx.expertCache) {
     const sizeBytes = calculateExpertSize(weights);
     ctx.expertCache.put(layerIdx, expertIdx, weights, sizeBytes);
   } else {
@@ -165,8 +157,25 @@ async function loadMixtralStyleExpert(ctx, layerIdx, expertIdx) {
   };
 }
 
+// Manifest moeConfig.expertFormat -> loading contract. Packed formats store all
+// experts of a layer in shared tensors; per-expert formats are LRU-cached.
+const EXPERT_FORMATS = Object.freeze({
+  'gpt-oss': Object.freeze({ packed: true, downcastToF16: false, lruCached: false,
+    load: loadGptOssStyleExpert, assertWeights: assertGptOssWeights, packedTensorCandidates: getGptOssExpertTensorCandidates }),
+  gemma4: Object.freeze({ packed: true, downcastToF16: false, lruCached: false,
+    load: loadGemma4StyleExpert, assertWeights: assertGemma4Weights, packedTensorCandidates: getGemma4ExpertTensorCandidates }),
+  mixtral: Object.freeze({ packed: false, downcastToF16: true, lruCached: true,
+    load: loadMixtralStyleExpert, assertWeights: assertMixtralWeights, packedTensorCandidates: null }),
+});
+
+function getExpertFormat(expertFormat) {
+  return typeof expertFormat === 'string' && Object.hasOwn(EXPERT_FORMATS, expertFormat)
+    ? EXPERT_FORMATS[expertFormat]
+    : null;
+}
+
 function isPackedExpertFormat(expertFormat) {
-  return expertFormat === 'gpt-oss' || expertFormat === 'gemma4';
+  return getExpertFormat(expertFormat)?.packed === true;
 }
 
 function resolveExpertFormat(ctx) {
@@ -181,7 +190,7 @@ function resolveExpertFormat(ctx) {
   }
 
   const expertFormat = moeConfig.expertFormat;
-  if (expertFormat === 'gpt-oss' || expertFormat === 'mixtral' || expertFormat === 'gemma4') {
+  if (getExpertFormat(expertFormat)) {
     return expertFormat;
   }
   if (expertFormat == null) {
@@ -244,13 +253,8 @@ function getGptOssExpertTensorCandidates(layerIdx) {
 }
 
 function getPackedExpertTensorNames(ctx, layerIdx, expertFormat = ctx.manifest?.moeConfig?.expertFormat) {
-  if (expertFormat === 'gemma4') {
-    return getExistingTensorNames(ctx, getGemma4ExpertTensorCandidates(layerIdx));
-  }
-  if (expertFormat === 'gpt-oss') {
-    return getExistingTensorNames(ctx, getGptOssExpertTensorCandidates(layerIdx));
-  }
-  return [];
+  const candidates = getExpertFormat(expertFormat)?.packedTensorCandidates;
+  return candidates ? getExistingTensorNames(ctx, candidates(layerIdx)) : [];
 }
 
 function getPackedExpertShardIndices(ctx, layerIdx) {
