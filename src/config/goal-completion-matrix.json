@@ -587,7 +587,7 @@
           "supportSubsystemId": null,
           "packageBin": null,
           "packageExport": null,
-          "smokeCommand": "npm run capsule-v2:check",
+          "smokeCommand": "npm run capsule:check",
           "evidencePaths": [
             "docs/model-release-platform.md",
             "docs/architecture.md",

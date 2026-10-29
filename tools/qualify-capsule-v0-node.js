@@ -10,12 +10,9 @@ import { releaseNodeWebGPU } from '../src/tooling/node-webgpu.js';
 import { CAPSULE_V0_TRUSTED_SIGNERS } from '../src/config/capsule-v0-trusted-signers.js';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const DEFAULT_CAPSULE = 'reports/capsule-v0/gemma-3-270m-it-q4k-ehf16-af32/model.capsule.json';
-const DEFAULT_REFERENCE = 'reports/gemma-3-270m-it-q4k-ehf16-af32/2026-08-22T18-14-30.244Z.json';
-const DEFAULT_OUT = 'reports/capsule-v0/gemma-3-270m-it-q4k-ehf16-af32/node-qualification.json';
 
 function parseArgs(argv) {
-  const options = { capsule: DEFAULT_CAPSULE, reference: DEFAULT_REFERENCE, out: DEFAULT_OUT };
+  const options = { capsule: null, reference: null, out: null };
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
     if (!['--capsule', '--reference', '--out'].includes(token)) throw new Error(`Unknown argument "${token}".`);
@@ -23,6 +20,9 @@ function parseArgs(argv) {
     if (!value || value.startsWith('--')) throw new Error(`Missing value for ${token}.`);
     options[token.slice(2)] = value;
     index += 1;
+  }
+  for (const key of ['capsule', 'reference', 'out']) {
+    if (!options[key]) throw new Error(`--${key} is required.`);
   }
   return options;
 }

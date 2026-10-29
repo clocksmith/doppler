@@ -17,7 +17,8 @@ The version in this checkout does not imply an npm publication.
 | `weightPackId`, `weightPackHash` | `weightCapsuleId`, `weightCapsuleHash` |
 | `doppler.pack/v2`, `doppler.pack/v3` | `doppler.capsule/v2`, `doppler.capsule/v3` |
 | `--pack-trusted-signers`, `--source-pack` | `--capsule-trusted-signers`, `--source-capsule` |
-| `forge:pack`, `pack-v2:check` | `forge:capsule`, `capsule-v2:check` |
+| `forge:pack`, `pack-v2:check` | `rig:capsule`, `capsule:check` |
+| `forge:*` script aliases, `capsule-v2:*` | `rig:*`, `capsule:*` (aliases removed 2026-10-29) |
 
 The root, `/runtime`, and `/host` exports retain their locations but expose
 Capsule names. Former product-name modules, methods, and package subpaths are
