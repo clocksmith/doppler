@@ -23,3 +23,22 @@ export declare function loadGlmOcrVisionWeights(
   loader: VisionGpuTensorLoader,
   options: { textHiddenSize: number; depth: number }
 ): Promise<Record<string, unknown>>;
+
+export interface VisionWeightSource extends VisionGpuTensorLoader {
+  loadTensor(name: string, toGPU?: boolean, silent?: boolean): Promise<unknown>;
+}
+
+export declare function loadGemma4VisionWeights(
+  loader: VisionWeightSource,
+  options: { textHiddenSize: number; depth: number }
+): Promise<Record<string, unknown>>;
+
+export declare function loadQwen3VlVisionWeights(
+  loader: VisionWeightSource,
+  options: { depth: number }
+): Promise<Record<string, unknown>>;
+
+export declare function resolveVisionWeightLoader(visionArchitecture: string): {
+  load(loader: VisionWeightSource, options: { textHiddenSize: number; depth: number }): Promise<Record<string, unknown>>;
+  layerLabel: string;
+};

@@ -682,14 +682,6 @@
         "inference/pipelines/text/layer-components.js"
       ]
     },
-    "inference/pipelines/text/lifecycle.js": {
-      "reviewedLines": 841,
-      "debtAuthorization": "sha256:66797cdee28d91342930af4179ca9cc290da31cdd7634bce1786aaabe1a6fc4f",
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
-      "extractTo": [
-        "inference/pipelines/text/lifecycle-components.js"
-      ]
-    },
     "inference/pipelines/text/model-load.js": {
       "reviewedLines": 843,
       "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
