@@ -1,7 +1,7 @@
 // Doppler-side TSIR boundary-point fixture writer.
 //
 // Builds frozen-Doppler-reference fixtures for the Doe Cerebras lane
-// (see /home/x/deco/doe/config/doe-frozen-doppler-reference.schema.json).
+// (see doe/config/doe-frozen-doppler-reference.schema.json in the Doe repository).
 // Captures handoff and TSIR boundary activation snapshots during a
 // reference inference, writes them as `.npy` files keyed by layer
 // index and probe-point name, and emits a manifest the Doe validator

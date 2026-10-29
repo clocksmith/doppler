@@ -299,4 +299,18 @@ function createFakeDevice(label) {
   setDevice(null);
 }
 
+{
+  // The device advertises shader-f16, but the compile probe failed at init.
+  const device = { ...createFakeDevice('f16-probe-failed'), features: new Set(['shader-f16']) };
+  setDevice(device);
+  const probed = { ...getKernelCapabilities(), hasF16: false };
+  setDevice(device, { capabilities: probed });
+  const target = {};
+  applyPipelineContexts(target, { gpu: { device } });
+  assert.equal(getKernelCapabilities().hasF16, false, 'rebinding the current device keeps the failed f16 probe');
+  restorePipelineContexts(target);
+  assert.equal(getKernelCapabilities().hasF16, false, 'restoring the previous device keeps the failed f16 probe');
+  setDevice(null);
+}
+
 console.log('pipeline-context-restoration.test: ok');

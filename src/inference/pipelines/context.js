@@ -106,9 +106,10 @@ export function applyPipelineContexts(target, contexts = {}, options = {}) {
 
   const previousDevice = getDevice();
   const previousPlatformConfig = getPlatformConfig();
-  const previousAdapterInfo = previousDevice
-    ? (getKernelCapabilities().adapterInfo ?? null)
-    : null;
+  // Probed capabilities (e.g. a failed shader-f16 compile probe) must survive
+  // a scoped rebind; setDevice() without them re-derives f16 from features.
+  const previousCapabilities = previousDevice ? getKernelCapabilities() : null;
+  const previousAdapterInfo = previousCapabilities?.adapterInfo ?? null;
   const previousDebugState = captureDebugState();
   const targetSnapshot = {
     gpuContext: captureTargetField(target, 'gpuContext'),
@@ -134,6 +135,7 @@ export function applyPipelineContexts(target, contexts = {}, options = {}) {
       setDevice(previousDevice, {
         platformConfig: previousPlatformConfig,
         adapterInfo: previousAdapterInfo,
+        capabilities: previousCapabilities,
       });
     } else {
       setDevice(null);
@@ -173,7 +175,9 @@ export function applyPipelineContexts(target, contexts = {}, options = {}) {
       setDevice(device, {
         ...(nextAdapterInfo ? { adapterInfo: nextAdapterInfo } : {}),
         ...(nextPlatformConfig !== undefined ? { platformConfig: nextPlatformConfig } : {}),
-        ...(contexts.gpu.capabilities !== undefined ? { capabilities: contexts.gpu.capabilities } : {}),
+        ...(contexts.gpu.capabilities !== undefined
+          ? { capabilities: contexts.gpu.capabilities }
+          : (isRebindingCurrentDevice ? { capabilities: previousCapabilities } : {})),
       });
       setGPUDevice(device);
       if (options.assignGpuContext) {
