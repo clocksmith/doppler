@@ -1,0 +1,92 @@
+{
+  "schema": "pooled-doppler-product-format-comparison/v1",
+  "scope": "Balanced repeated four-prompt product-format measurements. Different reconstructed weights; no equal-weight engine attribution or quality-equivalence claim.",
+  "createdBeforeTimedRuns": true,
+  "source": {
+    "dopplerRevision": "efd9549a plus source-final-delta.tar.gz",
+    "pooledRevision": "6b4a24f73cce7ef9a9e3ab35b9a0d4c09b51dfff",
+    "dopplerFormat": "RDRR Q4_K_M weights/head, F16 embeddings, F32 activations/accumulation, F16 KV",
+    "pooledFormat": "GGUF Q4_0, engine native repacking; F32 activations, F16 KV",
+    "ggufRevision": "6ab461498e2023f6e3c1baea90a8f0fe38ab64d0",
+    "ggufSha256": "444406ddd926550c724ec18d5120a9d40ded44908a063b0e66e9a7e5464c652c",
+    "dopplerManifestSha256": "b322d7ee4f68387102fde5f7c5049604600101d87c999d9e22ddf19f438af9bc",
+    "sourceIdentity": "source-final-identity.json"
+  },
+  "shared": {
+    "browserExecutable": "/opt/google/chrome/chrome",
+    "browserArgs": [
+      "--no-sandbox",
+      "--headless=new",
+      "--enable-unsafe-webgpu",
+      "--ignore-gpu-blocklist",
+      "--use-gl=angle",
+      "--use-angle=gl-egl",
+      "--enable-features=Vulkan"
+    ],
+    "requiredVendor": "amd",
+    "maxNewTokens": 64,
+    "maxSeqLen": 2048,
+    "warmupRuns": 1,
+    "timedRunsPerSession": 1,
+    "pairsPerPrompt": 5,
+    "sampling": {
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1,
+      "repetitionPenalty": 1
+    },
+    "speculation": "disabled",
+    "cacheMode": "model resident after one same-prompt warmup; separate persistent browser profiles",
+    "prompts": [
+      {
+        "id": "code",
+        "text": "Write a detailed Python implementation of two sum, followed by tests and an explanation."
+      },
+      {
+        "id": "explanation",
+        "text": "Explain how a hash map handles collisions and resizing. Include a concrete example and discuss complexity."
+      },
+      {
+        "id": "arithmetic",
+        "text": "Calculate 37 times 24, then explain a second way to check the answer step by step."
+      },
+      {
+        "id": "long-context",
+        "text": "The cache serves repeated reads with occasional scans, a fixed memory budget, and changing popularity. Measure miss ratio and update overhead.\nThe cache serves repeated reads with occasional scans, a fixed memory budget, and changing popularity. Measure miss ratio and update overhead.\nThe cache serves repeated reads with occasional scans, a fixed memory budget, and changing popularity. Measure miss ratio and update overhead.\nThe cache serves repeated reads with occasional scans, a fixed memory budget, and changing popularity. Measure miss ratio and update overhead.\nThe cache serves repeated reads with occasional scans, a fixed memory budget, and changing popularity. Measure miss ratio and update overhead.\nThe cache serves repeated reads with occasional scans, a fixed memory budget, and changing popularity. Measure miss ratio and update overhead.\nThe cache serves repeated reads with occasional scans, a fixed memory budget, and changing popularity. Measure miss ratio and update overhead.\nThe cache serves repeated reads with occasional scans, a fixed memory budget, and changing popularity. Measure miss ratio and update overhead.\nThe cache serves repeated reads with occasional scans, a fixed memory budget, and changing popularity. Measure miss ratio and update overhead.\nThe cache serves repeated reads with occasional scans, a fixed memory budget, and changing popularity. Measure miss ratio and update overhead.\nThe cache serves repeated reads with occasional scans, a fixed memory budget, and changing popularity. Measure miss ratio and update overhead.\nThe cache serves repeated reads with occasional scans, a fixed memory budget, and changing popularity. Measure miss ratio and update overhead.\nThe cache serves repeated reads with occasional scans, a fixed memory budget, and changing popularity. Measure miss ratio and update overhead.\nThe cache serves repeated reads with occasional scans, a fixed memory budget, and changing popularity. Measure miss ratio and update overhead.\nThe cache serves repeated reads with occasional scans, a fixed memory budget, and changing popularity. Measure miss ratio and update overhead.\nThe cache serves repeated reads with occasional scans, a fixed memory budget, and changing popularity. Measure miss ratio and update overhead.\nThe cache serves repeated reads with occasional scans, a fixed memory budget, and changing popularity. Measure miss ratio and update overhead.\nThe cache serves repeated reads with occasional scans, a fixed memory budget, and changing popularity. Measure miss ratio and update overhead.\nThe cache serves repeated reads with occasional scans, a fixed memory budget, and changing popularity. Measure miss ratio and update overhead.\nThe cache serves repeated reads with occasional scans, a fixed memory budget, and changing popularity. Measure miss ratio and update overhead.\nThe cache serves repeated reads with occasional scans, a fixed memory budget, and changing popularity. Measure miss ratio and update overhead.\nThe cache serves repeated reads with occasional scans, a fixed memory budget, and changing popularity. Measure miss ratio and update overhead.\nThe cache serves repeated reads with occasional scans, a fixed memory budget, and changing popularity. Measure miss ratio and update overhead.\nThe cache serves repeated reads with occasional scans, a fixed memory budget, and changing popularity. Measure miss ratio and update overhead.\nExplain the tradeoffs between LRU and LFU caching using the supplied repeated workload notes."
+      }
+    ]
+  },
+  "acceptance": {
+    "promptTokenIdsMustMatch": true,
+    "decodeCountsMustMatch": true,
+    "maxTokensRequiredForTiming": 64,
+    "outputParity": "exact generated token IDs required before any parity speed claim; mismatches retained as diagnostics",
+    "taskQuality": "retain full generated text; this is not an independently scored application-quality test",
+    "outliers": "none removed",
+    "allowedConclusion": "scoped measurements or capability/parity gap; no universal engine winner",
+    "outputParityPolicy": {
+      "requireMatch": false,
+      "matchMode": "decode-valid",
+      "scope": "diagnostic product-format throughput only; no correctness-parity or quality-equivalence claim"
+    },
+    "statistics": {
+      "pairs": 20,
+      "resampling": "paired log-ratio mean bootstrap, seeded 0, 10000 replicates",
+      "minimumCompleteRequestImprovement": 0.02,
+      "upper95RatioMustBeBelow": 1,
+      "perPromptMaximumCompleteRegression": 0.03,
+      "perPromptMaximumTTFTRegression": 0.05,
+      "outliers": "none removed"
+    }
+  },
+  "dopplerOverlay": {
+    "primary": "explicit opt-in profiles/qwen-3-5-0-8b-vulkan-subgroup8; sequential batchSize2 readbackInterval32; 64-token delivery cadence",
+    "control": "single-token, batchSize 1/readback 1, retained as separate smoke diagnostic",
+    "speculationMode": "none"
+  },
+  "pooledOverlay": {
+    "nativeRoomPreset": true,
+    "specStepUsed": false,
+    "gpuSampling": true
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "objective": "Make Doppler faster than Pooled on Jupiter using explicit JSON configuration and necessary kernels.",
+  "project": "doppler",
+  "sourceCommit": "1975191b",
+  "scope": "Qwen3.5 0.8B, Radeon 8060S, Chrome 146 Vulkan, warm OPFS, four prompts, 64 tokens. Different reconstructed weights across products.",
+  "complete": false,
+  "numericalGate": "pass; full-logit-delivery-checks.json",
+  "performanceGate": "not met; product-register-summary.json",
+  "remaining": [
+    "Measure short-prompt first-token overhead. Ordinary generation reads full first-token logits to CPU; existing GPU token-selection path is an inspection hypothesis, not a measured diagnosis.",
+    "Preserve finite-logit, suppression, penalty, cancellation, diagnostics and token-tie semantics in any first-token optimization.",
+    "Freeze a new final-source comparison after a concrete implementation change; retain all prompts and attempts.",
+    "Do not promote the current profile or claim a general engine win."
+  ],
+  "unrelatedWork": "Gamma migration remains paused. No Doe changes."
+}

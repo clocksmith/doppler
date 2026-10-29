@@ -1,0 +1,88 @@
+{
+  "request": {
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelUrl": "file:///home/x/deco/hatch/pooled-doppler-bench/_work/doppler-successor",
+    "cacheMode": "warm",
+    "loadMode": "opfs",
+    "runtimeConfig": {
+      "shared": {
+        "benchmark": {
+          "run": {
+            "customPrompt": "<|im_start|>user\nWrite a detailed Python implementation of two sum, followed by tests and an explanation.<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+            "maxNewTokens": 64,
+            "warmupRuns": 1,
+            "timedRuns": 1,
+            "useChatTemplate": false,
+            "sampling": {
+              "temperature": 0,
+              "topK": 1,
+              "topP": 1,
+              "repetitionPenalty": 1,
+              "seed": 0,
+              "greedyThreshold": 0
+            },
+            "seed": 0
+          },
+          "baselines": {
+            "enabled": false
+          }
+        }
+      },
+      "inference": {
+        "prompt": "<|im_start|>user\nWrite a detailed Python implementation of two sum, followed by tests and an explanation.<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+        "chatTemplate": {
+          "enabled": false
+        },
+        "sampling": {
+          "temperature": 0,
+          "topK": 1,
+          "topP": 1,
+          "repetitionPenalty": 1,
+          "seed": 0,
+          "greedyThreshold": 0
+        },
+        "generation": {
+          "maxTokens": 64,
+          "disableMultiTokenDecode": false
+        },
+        "session": {
+          "speculation": {
+            "mode": "none",
+            "tokens": 1,
+            "verify": "greedy",
+            "threshold": null,
+            "rollbackOnReject": true
+          },
+          "kvcache": {
+            "maxSeqLen": 2048
+          }
+        },
+        "kvcache": {
+          "maxSeqLen": 2048
+        }
+      }
+    },
+    "runtimeProfile": "profiles/qwen-3-5-0-8b-vulkan-subgroup8"
+  },
+  "run": {
+    "surface": "browser",
+    "browser": {
+      "executablePath": "/opt/google/chrome/chrome",
+      "userDataDir": "/home/x/.local/state/doppler/jupiter-tuning-20261029/warm-candidate",
+      "port": 19932,
+      "timeoutMs": 360000,
+      "browserArgs": [
+        "--no-sandbox",
+        "--headless=new",
+        "--enable-unsafe-webgpu",
+        "--ignore-gpu-blocklist",
+        "--use-gl=angle",
+        "--use-angle=gl-egl",
+        "--enable-features=Vulkan"
+      ]
+    },
+    "bench": {
+      "save": false
+    }
+  }
+}

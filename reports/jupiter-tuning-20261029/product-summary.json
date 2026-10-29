@@ -1,0 +1,752 @@
+{
+  "schema": "doppler.jupiter-product-comparison-summary.v1",
+  "scope": "Balanced repeated four-prompt product-format measurements. Different reconstructed weights; no equal-weight engine attribution or quality-equivalence claim.",
+  "pairs": 20,
+  "attempts": 40,
+  "outliersRemoved": 0,
+  "completeRequestRatio": 1.0072874578411666,
+  "completeRequestGainPercent": -0.7287457841166578,
+  "ratio95Interval": [
+    0.9946985718369776,
+    1.0195948517503848
+  ],
+  "gates": {
+    "minimum2PercentGain": false,
+    "upper95RatioBelow1": false,
+    "perPromptMedianCompleteRegressionAtMost3Percent": false,
+    "perPromptMedianTTFTRegressionAtMost5Percent": false,
+    "allComparableWorkChecks": true
+  },
+  "targetMet": false,
+  "prompts": [
+    {
+      "prompt": "code",
+      "pairs": 5,
+      "median": {
+        "doppler": {
+          "totalRunMs": 350.4000000357628,
+          "firstTokenMs": 39.60000002384186,
+          "decodeMs": 310.9000000357628,
+          "decodeTokensPerSec": 202.63750399727604
+        },
+        "pooled": {
+          "totalRunMs": 343.0999999642372,
+          "firstTokenMs": 38.799999952316284,
+          "decodeMs": 304.30000001192093,
+          "decodeTokensPerSec": 207.03253367575414
+        }
+      },
+      "completeMedianRatio": 1.0212765959553671,
+      "ttftMedianRatio": 1.0206185585698129
+    },
+    {
+      "prompt": "explanation",
+      "pairs": 5,
+      "median": {
+        "doppler": {
+          "totalRunMs": 341.7000000476837,
+          "firstTokenMs": 40.09999996423721,
+          "decodeMs": 302.4000000357628,
+          "decodeTokensPerSec": 208.33333330869516
+        },
+        "pooled": {
+          "totalRunMs": 355.89999997615814,
+          "firstTokenMs": 43,
+          "decodeMs": 313.30000001192093,
+          "decodeTokensPerSec": 201.08522182445859
+        }
+      },
+      "completeMedianRatio": 0.9601011522072894,
+      "ttftMedianRatio": 0.932558138703191
+    },
+    {
+      "prompt": "arithmetic",
+      "pairs": 5,
+      "median": {
+        "doppler": {
+          "totalRunMs": 343.5,
+          "firstTokenMs": 42.19999998807907,
+          "decodeMs": 301.10000002384186,
+          "decodeTokensPerSec": 209.232813002363
+        },
+        "pooled": {
+          "totalRunMs": 347.69999998807907,
+          "firstTokenMs": 37,
+          "decodeMs": 309.89999997615814,
+          "decodeTokensPerSec": 203.2913843331618
+        }
+      },
+      "completeMedianRatio": 0.9879206212590651,
+      "ttftMedianRatio": 1.1405405402183533
+    },
+    {
+      "prompt": "long-context",
+      "pairs": 5,
+      "median": {
+        "doppler": {
+          "totalRunMs": 592.4000000357628,
+          "firstTokenMs": 259.10000002384186,
+          "decodeMs": 330.30000001192093,
+          "decodeTokensPerSec": 190.73569481600438
+        },
+        "pooled": {
+          "totalRunMs": 569.4000000357628,
+          "firstTokenMs": 258.19999998807907,
+          "decodeMs": 310.2999999523163,
+          "decodeTokensPerSec": 203.02932648946566
+        }
+      },
+      "completeMedianRatio": 1.040393396555243,
+      "ttftMedianRatio": 1.0034856701619068
+    }
+  ],
+  "rows": [
+    {
+      "prompt": "code",
+      "pair": 0,
+      "doppler": {
+        "totalRunMs": 352.30000001192093,
+        "firstTokenMs": 39.60000002384186,
+        "decodeMs": 312.69999998807907,
+        "decodeTokensPerSec": 201.47105853022617
+      },
+      "pooled": {
+        "totalRunMs": 357.89999997615814,
+        "firstTokenMs": 40.89999997615814,
+        "decodeMs": 317,
+        "decodeTokensPerSec": 198.73817034700315
+      },
+      "checks": {
+        "promptIdsMatch": true,
+        "dopplerTeacherMatch": true,
+        "generated64Each": true,
+        "noForcedContinuationPastEOS": true,
+        "browserMatches": true,
+        "physicalAMD": true,
+        "noBrowserErrors": true,
+        "requestTimingScope": true
+      },
+      "sha256": {
+        "doppler": "b1d8c2e8cebe0787873989ff6a678cc003071091e1a287721bd2f5e97ceff143",
+        "pooled": "43d932d4cbfc1acfcb50f4a5ebb64e614e72ec1c60a1bafcf37fc85494cbb2ea"
+      },
+      "completeRatio": 0.9843531713757746,
+      "logRatio": -0.015770532324334775
+    },
+    {
+      "prompt": "code",
+      "pair": 1,
+      "doppler": {
+        "totalRunMs": 353.30000001192093,
+        "firstTokenMs": 39.80000001192093,
+        "decodeMs": 313.5,
+        "decodeTokensPerSec": 200.95693779904306
+      },
+      "pooled": {
+        "totalRunMs": 349.60000002384186,
+        "firstTokenMs": 40.10000002384186,
+        "decodeMs": 309.5,
+        "decodeTokensPerSec": 203.5541195476575
+      },
+      "checks": {
+        "promptIdsMatch": true,
+        "dopplerTeacherMatch": true,
+        "generated64Each": true,
+        "noForcedContinuationPastEOS": true,
+        "browserMatches": true,
+        "physicalAMD": true,
+        "noBrowserErrors": true,
+        "requestTimingScope": true
+      },
+      "sha256": {
+        "doppler": "6855ed2b6c724c44d66094b54bf3dd0bcac211c16652f35f01e6e3f1f0221c32",
+        "pooled": "93af76371c2d3383e9dbb346b18265f6ed2b278a8f6b150b0bcfa75cf7289782"
+      },
+      "completeRatio": 1.0105835239926395,
+      "logRatio": 0.010527910549263358
+    },
+    {
+      "prompt": "code",
+      "pair": 2,
+      "doppler": {
+        "totalRunMs": 342.10000002384186,
+        "firstTokenMs": 42.69999998807907,
+        "decodeMs": 299.4000000357628,
+        "decodeTokensPerSec": 210.42084165823235
+      },
+      "pooled": {
+        "totalRunMs": 333.19999998807907,
+        "firstTokenMs": 36.60000002384186,
+        "decodeMs": 296.5999999642372,
+        "decodeTokensPerSec": 212.4072825610124
+      },
+      "checks": {
+        "promptIdsMatch": true,
+        "dopplerTeacherMatch": true,
+        "generated64Each": true,
+        "noForcedContinuationPastEOS": true,
+        "browserMatches": true,
+        "physicalAMD": true,
+        "noBrowserErrors": true,
+        "requestTimingScope": true
+      },
+      "sha256": {
+        "doppler": "f49346f521e0c9094e8d5a5a7e050cd90c73075b656a781956729f1821f07dac",
+        "pooled": "d87dc6f86de033019d13c5dcdb484daa6ec7e40368e4a4d39cc631b2c3c8f570"
+      },
+      "completeRatio": 1.0267106843819964,
+      "logRatio": 0.026360181796341135
+    },
+    {
+      "prompt": "code",
+      "pair": 3,
+      "doppler": {
+        "totalRunMs": 336,
+        "firstTokenMs": 39,
+        "decodeMs": 297,
+        "decodeTokensPerSec": 212.12121212121212
+      },
+      "pooled": {
+        "totalRunMs": 342.9000000357628,
+        "firstTokenMs": 38.69999998807907,
+        "decodeMs": 304.2000000476837,
+        "decodeTokensPerSec": 207.10059168351307
+      },
+      "checks": {
+        "promptIdsMatch": true,
+        "dopplerTeacherMatch": true,
+        "generated64Each": true,
+        "noForcedContinuationPastEOS": true,
+        "browserMatches": true,
+        "physicalAMD": true,
+        "noBrowserErrors": true,
+        "requestTimingScope": true
+      },
+      "sha256": {
+        "doppler": "da85e7201545c824f93bcb2b1d88537785a78df439728a13746f206a959dd5ca",
+        "pooled": "0a7849d536c2d4f2a5f4f6289cd30172b4d7398fac7f3f7771fce4b18f585dc7"
+      },
+      "completeRatio": 0.9798775152083897,
+      "logRatio": -0.020327699609965555
+    },
+    {
+      "prompt": "code",
+      "pair": 4,
+      "doppler": {
+        "totalRunMs": 350.4000000357628,
+        "firstTokenMs": 39.5,
+        "decodeMs": 310.9000000357628,
+        "decodeTokensPerSec": 202.63750399727604
+      },
+      "pooled": {
+        "totalRunMs": 343.0999999642372,
+        "firstTokenMs": 38.799999952316284,
+        "decodeMs": 304.30000001192093,
+        "decodeTokensPerSec": 207.03253367575414
+      },
+      "checks": {
+        "promptIdsMatch": true,
+        "dopplerTeacherMatch": true,
+        "generated64Each": true,
+        "noForcedContinuationPastEOS": true,
+        "browserMatches": true,
+        "physicalAMD": true,
+        "noBrowserErrors": true,
+        "requestTimingScope": true
+      },
+      "sha256": {
+        "doppler": "df66728247c4694d77f0c8b414da071f755ca86cf2d31c248e48fb33b0df1a01",
+        "pooled": "c59ee3432e63a63e57d04f5a2932c7212ca59cc658ac61f78b34f36cbb5395ed"
+      },
+      "completeRatio": 1.0212765959553671,
+      "logRatio": 0.021053409404129322
+    },
+    {
+      "prompt": "explanation",
+      "pair": 0,
+      "doppler": {
+        "totalRunMs": 340.39999997615814,
+        "firstTokenMs": 41.39999997615814,
+        "decodeMs": 299,
+        "decodeTokensPerSec": 210.70234113712374
+      },
+      "pooled": {
+        "totalRunMs": 347.80000001192093,
+        "firstTokenMs": 45.80000001192093,
+        "decodeMs": 302,
+        "decodeTokensPerSec": 208.60927152317882
+      },
+      "checks": {
+        "promptIdsMatch": true,
+        "dopplerTeacherMatch": true,
+        "generated64Each": true,
+        "noForcedContinuationPastEOS": true,
+        "browserMatches": true,
+        "physicalAMD": true,
+        "noBrowserErrors": true,
+        "requestTimingScope": true
+      },
+      "sha256": {
+        "doppler": "d18b5ac2ea02b6a969f465d6b5984ad6e9c5c8120aae1df6e65db726d18421a5",
+        "pooled": "763b910f076c2b86d9fc6276d913c886a90cc3e2da6b2e6bd0da42b63d885a3f"
+      },
+      "completeRatio": 0.9787234041532227,
+      "logRatio": -0.021506205325279547
+    },
+    {
+      "prompt": "explanation",
+      "pair": 1,
+      "doppler": {
+        "totalRunMs": 353.69999998807907,
+        "firstTokenMs": 40.09999996423721,
+        "decodeMs": 313.60000002384186,
+        "decodeTokensPerSec": 200.892857127584
+      },
+      "pooled": {
+        "totalRunMs": 358.39999997615814,
+        "firstTokenMs": 44.89999997615814,
+        "decodeMs": 313.5,
+        "decodeTokensPerSec": 200.95693779904306
+      },
+      "checks": {
+        "promptIdsMatch": true,
+        "dopplerTeacherMatch": true,
+        "generated64Each": true,
+        "noForcedContinuationPastEOS": true,
+        "browserMatches": true,
+        "physicalAMD": true,
+        "noBrowserErrors": true,
+        "requestTimingScope": true
+      },
+      "sha256": {
+        "doppler": "abf5b275c3cdfeb9519f15a7328b6f11f0eb73e2854080b29fba17b9f9a9470b",
+        "pooled": "6c75dc52926b140a6918c94e9bbc3a387a40f6d4f21d50c48f14e4f11c992dd2"
+      },
+      "completeRatio": 0.9868861607466749,
+      "logRatio": -0.013200584856520894
+    },
+    {
+      "prompt": "explanation",
+      "pair": 2,
+      "doppler": {
+        "totalRunMs": 340.80000001192093,
+        "firstTokenMs": 38.39999997615814,
+        "decodeMs": 302.4000000357628,
+        "decodeTokensPerSec": 208.33333330869516
+      },
+      "pooled": {
+        "totalRunMs": 356.10000002384186,
+        "firstTokenMs": 42.80000001192093,
+        "decodeMs": 313.30000001192093,
+        "decodeTokensPerSec": 201.08522182445859
+      },
+      "checks": {
+        "promptIdsMatch": true,
+        "dopplerTeacherMatch": true,
+        "generated64Each": true,
+        "noForcedContinuationPastEOS": true,
+        "browserMatches": true,
+        "physicalAMD": true,
+        "noBrowserErrors": true,
+        "requestTimingScope": true
+      },
+      "sha256": {
+        "doppler": "21a68ad4e1e74808202eb4b6c670c15b56f0db66c5d2e8bcd73f6ef2bf35f1c2",
+        "pooled": "0dc56ffee0562f5fb9b769109aa36b0ff4694ad89cf0466afabff63f27f74156"
+      },
+      "completeRatio": 0.9570345408287095,
+      "logRatio": -0.043915795360544775
+    },
+    {
+      "prompt": "explanation",
+      "pair": 3,
+      "doppler": {
+        "totalRunMs": 357.5999999642372,
+        "firstTokenMs": 40.5,
+        "decodeMs": 317.0999999642372,
+        "decodeTokensPerSec": 198.6754967111485
+      },
+      "pooled": {
+        "totalRunMs": 346.80000001192093,
+        "firstTokenMs": 43,
+        "decodeMs": 303.80000001192093,
+        "decodeTokensPerSec": 207.37327188126372
+      },
+      "checks": {
+        "promptIdsMatch": true,
+        "dopplerTeacherMatch": true,
+        "generated64Each": true,
+        "noForcedContinuationPastEOS": true,
+        "browserMatches": true,
+        "physicalAMD": true,
+        "noBrowserErrors": true,
+        "requestTimingScope": true
+      },
+      "sha256": {
+        "doppler": "39451612fef1f643fd2a7e940034492e1311ef34b092b4bf60afd326aa4512df",
+        "pooled": "2fce656ee77981b1b123adfa38533709a82d8ba1d9e1d5baae2be5f485a7be02"
+      },
+      "completeRatio": 1.031141868373544,
+      "logRatio": 0.03066679825859051
+    },
+    {
+      "prompt": "explanation",
+      "pair": 4,
+      "doppler": {
+        "totalRunMs": 341.7000000476837,
+        "firstTokenMs": 39.30000001192093,
+        "decodeMs": 302.4000000357628,
+        "decodeTokensPerSec": 208.33333330869516
+      },
+      "pooled": {
+        "totalRunMs": 355.89999997615814,
+        "firstTokenMs": 42.09999996423721,
+        "decodeMs": 313.80000001192093,
+        "decodeTokensPerSec": 200.7648183480137
+      },
+      "checks": {
+        "promptIdsMatch": true,
+        "dopplerTeacherMatch": true,
+        "generated64Each": true,
+        "noForcedContinuationPastEOS": true,
+        "browserMatches": true,
+        "physicalAMD": true,
+        "noBrowserErrors": true,
+        "requestTimingScope": true
+      },
+      "sha256": {
+        "doppler": "3512124fe5ba342e255b06d6fdcdb5a35515ad824287ccdea07c520f44215cd9",
+        "pooled": "be38fa5a61d3921ea73a2ec1e3fec59aa06003eaea58d3b1e777b3ad06ee268e"
+      },
+      "completeRatio": 0.9601011522072894,
+      "logRatio": -0.04071663318836205
+    },
+    {
+      "prompt": "arithmetic",
+      "pair": 0,
+      "doppler": {
+        "totalRunMs": 359.10000002384186,
+        "firstTokenMs": 42.19999998807907,
+        "decodeMs": 316.9000000357628,
+        "decodeTokensPerSec": 198.8008835370474
+      },
+      "pooled": {
+        "totalRunMs": 347.69999998807907,
+        "firstTokenMs": 35.30000001192093,
+        "decodeMs": 312.39999997615814,
+        "decodeTokensPerSec": 201.66453266583886
+      },
+      "checks": {
+        "promptIdsMatch": true,
+        "dopplerTeacherMatch": true,
+        "generated64Each": true,
+        "noForcedContinuationPastEOS": true,
+        "browserMatches": true,
+        "physicalAMD": true,
+        "noBrowserErrors": true,
+        "requestTimingScope": true
+      },
+      "sha256": {
+        "doppler": "828cafadf1de31d45e7653a7b71f40e1c3d635e23958179673850d4559902d47",
+        "pooled": "6f957f41ebe534682dff224420f3630be2a6c843a34f2c05c02a1158d80466b5"
+      },
+      "completeRatio": 1.032786885349881,
+      "logRatio": 0.03226086231889982
+    },
+    {
+      "prompt": "arithmetic",
+      "pair": 1,
+      "doppler": {
+        "totalRunMs": 341.30000001192093,
+        "firstTokenMs": 40.19999998807907,
+        "decodeMs": 301.10000002384186,
+        "decodeTokensPerSec": 209.232813002363
+      },
+      "pooled": {
+        "totalRunMs": 340.69999998807907,
+        "firstTokenMs": 35.39999997615814,
+        "decodeMs": 305.30000001192093,
+        "decodeTokensPerSec": 206.3544054947267
+      },
+      "checks": {
+        "promptIdsMatch": true,
+        "dopplerTeacherMatch": true,
+        "generated64Each": true,
+        "noForcedContinuationPastEOS": true,
+        "browserMatches": true,
+        "physicalAMD": true,
+        "noBrowserErrors": true,
+        "requestTimingScope": true
+      },
+      "sha256": {
+        "doppler": "407a3a9f0470c68deb20fd7f1587bc3b2eb03574edc5d9e1a34cec02f109e359",
+        "pooled": "c08b7cf3535c1c5f83bc2741311764c3f138f74af7d306951fbf15ab34671911"
+      },
+      "completeRatio": 1.0017610801991865,
+      "logRatio": 0.001759531315657996
+    },
+    {
+      "prompt": "arithmetic",
+      "pair": 2,
+      "doppler": {
+        "totalRunMs": 334.10000002384186,
+        "firstTokenMs": 41.10000002384186,
+        "decodeMs": 293,
+        "decodeTokensPerSec": 215.0170648464164
+      },
+      "pooled": {
+        "totalRunMs": 360,
+        "firstTokenMs": 39,
+        "decodeMs": 321,
+        "decodeTokensPerSec": 196.26168224299064
+      },
+      "checks": {
+        "promptIdsMatch": true,
+        "dopplerTeacherMatch": true,
+        "generated64Each": true,
+        "noForcedContinuationPastEOS": true,
+        "browserMatches": true,
+        "physicalAMD": true,
+        "noBrowserErrors": true,
+        "requestTimingScope": true
+      },
+      "sha256": {
+        "doppler": "aa1119ea8d06392651c4078825ca0e94c92425f291218072cb21382ba046b4fd",
+        "pooled": "2c0e98725f5d4bd18768232082aa3ee36efa673b1fc47d9e16dfefdf0168d605"
+      },
+      "completeRatio": 0.928055555621783,
+      "logRatio": -0.07466368201608334
+    },
+    {
+      "prompt": "arithmetic",
+      "pair": 3,
+      "doppler": {
+        "totalRunMs": 343.5,
+        "firstTokenMs": 44.90000003576279,
+        "decodeMs": 298.5999999642372,
+        "decodeTokensPerSec": 210.9845948008888
+      },
+      "pooled": {
+        "totalRunMs": 349.0999999642372,
+        "firstTokenMs": 39.19999998807907,
+        "decodeMs": 309.89999997615814,
+        "decodeTokensPerSec": 203.2913843331618
+      },
+      "checks": {
+        "promptIdsMatch": true,
+        "dopplerTeacherMatch": true,
+        "generated64Each": true,
+        "noForcedContinuationPastEOS": true,
+        "browserMatches": true,
+        "physicalAMD": true,
+        "noBrowserErrors": true,
+        "requestTimingScope": true
+      },
+      "sha256": {
+        "doppler": "ae2ccc8fdf98d2d573322aa8ae30820112e7e86b6c9d6df39232c19783bcd44b",
+        "pooled": "b31a0a0291f8249502bf72c9ac02b8e7810aecdc862bd7b09ba5948fb12a532c"
+      },
+      "completeRatio": 0.9839587511749903,
+      "logRatio": -0.016171302346143463
+    },
+    {
+      "prompt": "arithmetic",
+      "pair": 4,
+      "doppler": {
+        "totalRunMs": 355.5,
+        "firstTokenMs": 43.80000001192093,
+        "decodeMs": 311.69999998807907,
+        "decodeTokensPerSec": 202.11742060445758
+      },
+      "pooled": {
+        "totalRunMs": 338.80000001192093,
+        "firstTokenMs": 37,
+        "decodeMs": 301.80000001192093,
+        "decodeTokensPerSec": 208.74751490229136
+      },
+      "checks": {
+        "promptIdsMatch": true,
+        "dopplerTeacherMatch": true,
+        "generated64Each": true,
+        "noForcedContinuationPastEOS": true,
+        "browserMatches": true,
+        "physicalAMD": true,
+        "noBrowserErrors": true,
+        "requestTimingScope": true
+      },
+      "sha256": {
+        "doppler": "b376382d9c6005fae4873e313b97744850f4b0dc1f429abe24b926b0cffa924c",
+        "pooled": "d82e48727415a71431f2707ebc28223f8631b3a12b8958e39a102aa84d57ac39"
+      },
+      "completeRatio": 1.0492916174365154,
+      "logRatio": 0.048115286430210395
+    },
+    {
+      "prompt": "long-context",
+      "pair": 0,
+      "doppler": {
+        "totalRunMs": 592.6999999880791,
+        "firstTokenMs": 263.19999998807907,
+        "decodeMs": 329.5,
+        "decodeTokensPerSec": 191.19878603945372
+      },
+      "pooled": {
+        "totalRunMs": 560.5,
+        "firstTokenMs": 252.0999999642372,
+        "decodeMs": 308.4000000357628,
+        "decodeTokensPerSec": 204.28015561833453
+      },
+      "checks": {
+        "promptIdsMatch": true,
+        "dopplerTeacherMatch": true,
+        "generated64Each": true,
+        "noForcedContinuationPastEOS": true,
+        "browserMatches": true,
+        "physicalAMD": true,
+        "noBrowserErrors": true,
+        "requestTimingScope": true
+      },
+      "sha256": {
+        "doppler": "a8a8919bfb560dcbd28c8f88d742e0801753386b4d3acb6201cb04bb543d9569",
+        "pooled": "8baa03286f8c8b77f11ffba263cce2b259df251baf8cf2c5a6131f0067dbd04f"
+      },
+      "completeRatio": 1.0574487064907745,
+      "logRatio": 0.05585912626146501
+    },
+    {
+      "prompt": "long-context",
+      "pair": 1,
+      "doppler": {
+        "totalRunMs": 610.7999999523163,
+        "firstTokenMs": 272.5999999642372,
+        "decodeMs": 338.19999998807907,
+        "decodeTokensPerSec": 186.28030751691495
+      },
+      "pooled": {
+        "totalRunMs": 569.4000000357628,
+        "firstTokenMs": 258.19999998807907,
+        "decodeMs": 311.2000000476837,
+        "decodeTokensPerSec": 202.44215935201416
+      },
+      "checks": {
+        "promptIdsMatch": true,
+        "dopplerTeacherMatch": true,
+        "generated64Each": true,
+        "noForcedContinuationPastEOS": true,
+        "browserMatches": true,
+        "physicalAMD": true,
+        "noBrowserErrors": true,
+        "requestTimingScope": true
+      },
+      "sha256": {
+        "doppler": "8af7aeeb08d217197802905a3998c1bfc042627ff87e12ba7dcd864174cbb42e",
+        "pooled": "34c4d08d9d21e32eb91437cb50fde3132c4c0c74eee46867ecdd917e14a8bbe5"
+      },
+      "completeRatio": 1.072708113652886,
+      "logRatio": 0.07018639835966474
+    },
+    {
+      "prompt": "long-context",
+      "pair": 2,
+      "doppler": {
+        "totalRunMs": 582.8999999761581,
+        "firstTokenMs": 256.5,
+        "decodeMs": 326.39999997615814,
+        "decodeTokensPerSec": 193.01470589645166
+      },
+      "pooled": {
+        "totalRunMs": 570.5,
+        "firstTokenMs": 261.60000002384186,
+        "decodeMs": 308.89999997615814,
+        "decodeTokensPerSec": 203.94949823522995
+      },
+      "checks": {
+        "promptIdsMatch": true,
+        "dopplerTeacherMatch": true,
+        "generated64Each": true,
+        "noForcedContinuationPastEOS": true,
+        "browserMatches": true,
+        "physicalAMD": true,
+        "noBrowserErrors": true,
+        "requestTimingScope": true
+      },
+      "sha256": {
+        "doppler": "923fa37519f6db97f21fbab4942b1ed0412d7f13eebca278a35e1b8cab73b825",
+        "pooled": "526fee4cedba2344603bd01443f9ddb7885048f81d352368d77cfa0c75b69470"
+      },
+      "completeRatio": 1.021735319853038,
+      "logRatio": 0.021502475708471584
+    },
+    {
+      "prompt": "long-context",
+      "pair": 3,
+      "doppler": {
+        "totalRunMs": 585.3000000119209,
+        "firstTokenMs": 255,
+        "decodeMs": 330.30000001192093,
+        "decodeTokensPerSec": 190.73569481600438
+      },
+      "pooled": {
+        "totalRunMs": 562.5999999642372,
+        "firstTokenMs": 252.30000001192093,
+        "decodeMs": 310.2999999523163,
+        "decodeTokensPerSec": 203.02932648946566
+      },
+      "checks": {
+        "promptIdsMatch": true,
+        "dopplerTeacherMatch": true,
+        "generated64Each": true,
+        "noForcedContinuationPastEOS": true,
+        "browserMatches": true,
+        "physicalAMD": true,
+        "noBrowserErrors": true,
+        "requestTimingScope": true
+      },
+      "sha256": {
+        "doppler": "d40ccb55188d85a0d033046787986f554f4d513db897ebf7ecaf3234d733b908",
+        "pooled": "7f0059623ace0fb6eeab321980764ab99b9e75e409b8ed2a7fad4df30f9a09b6"
+      },
+      "completeRatio": 1.040348382597097,
+      "logRatio": 0.03955564032535303
+    },
+    {
+      "prompt": "long-context",
+      "pair": 4,
+      "doppler": {
+        "totalRunMs": 592.4000000357628,
+        "firstTokenMs": 259.10000002384186,
+        "decodeMs": 333.30000001192093,
+        "decodeTokensPerSec": 189.01890188342853
+      },
+      "pooled": {
+        "totalRunMs": 572.8000000119209,
+        "firstTokenMs": 261.19999998807907,
+        "decodeMs": 311.60000002384186,
+        "decodeTokensPerSec": 202.1822849652747
+      },
+      "checks": {
+        "promptIdsMatch": true,
+        "dopplerTeacherMatch": true,
+        "generated64Each": true,
+        "noForcedContinuationPastEOS": true,
+        "browserMatches": true,
+        "physicalAMD": true,
+        "noBrowserErrors": true,
+        "requestTimingScope": true
+      },
+      "sha256": {
+        "doppler": "841dac8ad4d91c0743d1ac73c864077bc8f0cb677b14e81403ac377149a0ab34",
+        "pooled": "be3d0decad5fb7ea2b3f800bfe883ba1bbd02a262bdc28af459310d0fd9653e4"
+      },
+      "completeRatio": 1.0342178771358832,
+      "logRatio": 0.033645466786765416
+    }
+  ],
+  "limitations": [
+    "Different reconstructed weights and generated outputs; product-format measurements only, not equal-weight engine attribution or application quality.",
+    "Doppler returns its remaining 63 tokens in one burst in this 64-token workload; Pooled delivers one at a time. Delivery latency is retained in raw samples.",
+    "Warm resident inference after one same-prompt warmup per fresh browser; load and compile excluded from request timing.",
+    "Existing desktop Chrome GPU process remained open; no other tuning process was intentionally run concurrently.",
+    "One model, one AMD GPU, one browser; no broader default or artifact promotion."
+  ]
+}

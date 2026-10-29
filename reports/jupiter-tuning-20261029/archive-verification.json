@@ -1,0 +1,27 @@
+{
+  "all804EntriesVerified": true,
+  "entries": 804,
+  "unexpectedCredentialPatternMatches": [],
+  "archives": {
+    "raw-logits-00.tar.xz": {
+      "bytes": 51853700,
+      "sha256": "10c442083839da079d073e1a33597eb637ff129bc062d922b51ee340f241e588"
+    },
+    "raw-logits-01.tar.xz": {
+      "bytes": 59537860,
+      "sha256": "b9c4a2f970ec1a155036838d319fa2ffe53ccd98550b37b7444e5ccfba2e623b"
+    },
+    "raw-logits-02.tar.xz": {
+      "bytes": 59262824,
+      "sha256": "9888f761d6929aba654e6bcddeb9ceb3c362bb8b9b05b62a967da6bd4d2fd172"
+    },
+    "raw-logits-03.tar.xz": {
+      "bytes": 59366880,
+      "sha256": "57c520f5455b4f6775772b949f2922a0df9e8bbd3f9e79a50274d1668eaf21df"
+    },
+    "raw-runs.tar.xz": {
+      "bytes": 3484204,
+      "sha256": "d940ba24264c87703a0c5067379fa556ece9a5b1b460ab6a5ad7a036a462a9e5"
+    }
+  }
+}

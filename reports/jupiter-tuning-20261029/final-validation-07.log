@@ -1,0 +1,5 @@
+
+> doppler-gpu@0.6.32 kernels:digests:check
+> node tools/sync-kernel-ref-digests.js --check
+
+[kernels:digests:check] kernel-ref-digests.js is up to date

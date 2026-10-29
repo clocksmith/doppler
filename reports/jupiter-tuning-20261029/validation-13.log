@@ -1,0 +1,7 @@
+
+> doppler-gpu@0.6.32 onboarding:check
+> node tools/onboarding-tooling.js check
+
+status: pass
+
+errors=0 warnings=0

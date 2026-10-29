@@ -1,0 +1,109 @@
+{
+  "initialFailures": "development-checks-initial.json",
+  "fixes": [
+    "Scalar register kernel no longer contains unused compensated arithmetic.",
+    "Manifest validator shares identical optional-boolean validation.",
+    "Gate closure follows its explicit companion normalization pass and recognizes direct F32 gate reads."
+  ],
+  "productionDriftFromDeliverySnapshot": [],
+  "checks": [
+    {
+      "command": [
+        "node",
+        "tests/config/session-flags-merge.test.js"
+      ],
+      "exitCode": 0,
+      "log": "final-validation-00.log"
+    },
+    {
+      "command": [
+        "node",
+        "tests/gpu/linear-attention-allocation-cleanup.test.js"
+      ],
+      "exitCode": 0,
+      "log": "final-validation-01.log"
+    },
+    {
+      "command": [
+        "node",
+        "tests/kernels/gated-delta-norm-gate.test.js"
+      ],
+      "exitCode": 0,
+      "log": "final-validation-02.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "source:architecture:check"
+      ],
+      "exitCode": 0,
+      "log": "final-validation-03.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "source:style:check"
+      ],
+      "exitCode": 0,
+      "log": "final-validation-04.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "typecheck:source"
+      ],
+      "exitCode": 0,
+      "log": "final-validation-05.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "kernels:codegen:check"
+      ],
+      "exitCode": 0,
+      "log": "final-validation-06.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "kernels:digests:check"
+      ],
+      "exitCode": 0,
+      "log": "final-validation-07.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "kernels:registry:check"
+      ],
+      "exitCode": 0,
+      "log": "final-validation-08.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "rules:bundle:check"
+      ],
+      "exitCode": 0,
+      "log": "final-validation-09.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "routing:audit:check"
+      ],
+      "exitCode": 0,
+      "log": "final-validation-10.log"
+    }
+  ],
+  "complete": true,
+  "pass": true
+}

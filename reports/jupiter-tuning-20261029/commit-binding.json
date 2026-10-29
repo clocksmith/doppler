@@ -1,0 +1,38 @@
+{
+  "sourceCommit": "1975191bb8e0a8fdbfb90ee7e490478b6c4790cd",
+  "deliverySnapshot": "source-delivery-identity.json",
+  "postSnapshotChanges": [
+    {
+      "path": "src/.npmignore",
+      "snapshotSha256": "1e3630820c24f339380ef5d7a99d9d650b15e0eb14f46dc63fc850715ac741f2",
+      "committedSha256": "9adb3caa487dbebf2636d313c1a9defbbeb9f5c640a55dda88a83c7d8835f225",
+      "owner": "concurrent upstream work",
+      "reason": "Separate package-surface change in upstream commit 905008fa; not substituted into the frozen benchmark snapshot."
+    },
+    {
+      "path": "src/gpu/device-bindings.js",
+      "snapshotSha256": "cdc40631a346f5a35f430241da50f4d99109fe618a9aff31cf8b1742eceb7c08",
+      "committedSha256": "f6bccd700efde9df71defb0535e3798a3e6a50fd6417a757824d53facc1d2c5a",
+      "owner": "this task",
+      "reason": "Removed one trailing blank line, no expressions or control flow changed."
+    },
+    {
+      "path": "src/inference/pipelines/text/precomputed-input-norm.js",
+      "snapshotSha256": "0c4598432157be9d17e7feeb0677d0d99975b6104296d42b1ef7b81052e7519a",
+      "committedSha256": "95e1161cfc17669053c47fe6e8a0902b83944f7d4b593d96f11638461b57492d",
+      "owner": "this task",
+      "reason": "Removed one trailing blank line, no expressions or control flow changed."
+    },
+    {
+      "path": "src/tooling-experimental-exports.d.ts",
+      "snapshotSha256": "a838f9c0b40775a4d4ad6178b480bd35cf916fa99b1fd7f877caa38a8c92e65a",
+      "committedSha256": "964d04f3596c957dab8585e35fabb5f8b7ec038cc33a58f03a85ef38cc2f21b9",
+      "owner": "concurrent upstream work",
+      "reason": "Separate package-surface change in upstream commit 905008fa; not substituted into the frozen benchmark snapshot."
+    }
+  ],
+  "timingCandidate": "source-register-identity.json",
+  "performanceGateMet": false,
+  "reason": "Short-prompt first-token regressions; cleaned delivery source only received untimed numerical verification.",
+  "concurrentUpstreamChanges": "905008fa changes package surfaces separately; the archived snapshot remains the reproduction authority."
+}
