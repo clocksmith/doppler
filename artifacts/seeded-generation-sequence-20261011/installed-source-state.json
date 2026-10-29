@@ -1,5 +1,0 @@
-{
-  "commit": "dd17c76dabe2474098467a0d777e24204b97ae66",
-  "status": " M docs/api/generation.md\n M reports/capsule-runtime/runtime-closure.json\n M src/client/runtime/session-controller.js\n M src/inference/pipelines/text/generator.js\n M src/inference/pipelines/text/generator/decode-runtime.js\n M src/inference/pipelines/text/generator/training.js\n M src/inference/pipelines/text/resident-partition.js\n M src/inference/token-sampling.d.ts\n M src/inference/token-sampling.js\n M tests/integration/frozen-reference-producer-replay.js\n M tools/lib/source_task_quality.py\n M tools/source-model-task-quality.py\n?? artifacts/qwen3-17b-application-policy-20261011/\n?? tests/inference/seeded-generation-sequence.test.js\n",
-  "runnerSha256": "266f9b9af44cbad8bbefa04e120226c7fb9faea891f7dc9b419f5ed015ca4f61"
-}

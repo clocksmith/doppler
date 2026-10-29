@@ -1,3 +1,0 @@
-[GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.6ms
-[186.8ms][KernelSelect] matmul variant=f32 reason=default
-lfm2-layer-plan-conv-state.test: ok

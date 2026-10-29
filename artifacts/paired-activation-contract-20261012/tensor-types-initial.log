@@ -1,5 +1,0 @@
-
-> doppler-gpu@0.6.27 typecheck:source
-> tsc -p tsconfig.declarations.json --noEmit && node tools/check-source-types.js
-
-New unchecked implementation: src/gpu/kernels/paired-cast.js. Add it to tsconfig.source-strict.json.

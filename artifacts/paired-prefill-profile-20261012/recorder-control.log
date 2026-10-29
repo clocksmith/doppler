@@ -1,4 +1,0 @@
-[70.6ms][CommandRecorder] Completion task failed: Optional diagnostic unavailable
-[70.9ms][CommandRecorder] Completion task failed: Optional diagnostic unavailable
-[76.6ms][CommandRecorder] Failed to initialize profiling: Error: createBuffer failed at 2
-command-recorder-cleanup.test: ok

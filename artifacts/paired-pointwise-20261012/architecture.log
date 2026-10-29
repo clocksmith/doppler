@@ -1,6 +1,0 @@
-
-> doppler-gpu@0.6.27 source:architecture:check
-> node tools/check-source-architecture.js
-
-source architecture check failed:
-- inference/pipelines/text/ffn/paired.js: unreachable production module

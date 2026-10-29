@@ -1,2 +1,0 @@
-[GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.4ms
-layer-plan-layernorm.test: physical immediate/recorded parity and failure cleanup passed
