@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { runBrowserSuite } from '../../src/inference/browser-harness.js';
+import { runBrowserSuite } from '../../src/tooling/browser-harness.js';
 import { resetRuntimeConfig, setRuntimeConfig } from '../../src/config/runtime.js';
 import { DEFAULT_MANIFEST_INFERENCE } from '../../src/config/schema/index.js';
 import { normalizeToolingCommandRequest } from '../../src/tooling/command-api.js';

@@ -49,7 +49,7 @@ import {
 import { buildSuiteContractMetrics } from '../browser-harness-contract-helpers.js';
 import { createUnsupportedWorkloadError, hashStableJson, resolveDecodeCadence, resolveDispatchSuite, resolveExecutionGraphHash, resolveHarnessContext, resolveHarnessMode, resolveWorkload } from './request.js';
 import { attachExecutionCostLedger, buildReferenceTranscriptSeed, resolvePipelineLoadTimings, serializeSequenceProbeRows, summarizePrefillRecordOps, summarizeTimingPhaseSamples } from './report.js';
-import { buildModelCheckpointEvidence } from '../model-checkpoint-evidence.js';
+import { buildModelCheckpointEvidence } from '../../inference/model-checkpoint-evidence.js';
 
 export function allFinite(values) {
   if (!ArrayBuffer.isView(values)) {

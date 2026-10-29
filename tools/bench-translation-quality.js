@@ -18,7 +18,7 @@ import {
   computeExactMatch,
 } from '../src/experimental/training/operator-eval.js';
 import { parseJsonl } from '../src/experimental/training/datasets/jsonl.js';
-import { applyRuntimeProfile } from '../src/inference/browser-harness/runtime-config.js';
+import { applyRuntimeProfile } from '../src/tooling/browser-harness/runtime-config.js';
 import { applyRuntimeInputs } from '../src/tooling/command-runtime-execution.js';
 import { runNodeCommand } from '../src/tooling/node-command-runner.js';
 

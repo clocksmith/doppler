@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import {
   applyRuntimeForRun,
   runBrowserManifest,
-} from '../../src/inference/browser-harness.js';
-import { resolveRuntime } from '../../src/inference/browser-harness/runtime-config.js';
-import { parseRuntimeOverridesFromURL } from '../../src/inference/test-harness.js';
+} from '../../src/tooling/browser-harness.js';
+import { resolveRuntime } from '../../src/tooling/browser-harness/runtime-config.js';
+import { parseRuntimeOverridesFromURL } from '../../src/tooling/test-harness.js';
 import {
   getRuntimeConfig,
   setRuntimeConfig,

@@ -2,15 +2,15 @@ export { installDebugGlobal } from '../../debug/index.js';
 import { mergeRuntimeValues } from '../../config/runtime-merge.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../../config/runtime.js';
 import { validateRuntimeProfileMetadata } from '../../config/schema/runtime-profile.schema.js';
-import { resolveCommandRuntimeContract } from '../../tooling/command-request-normalization.js';
+import { resolveCommandRuntimeContract } from '../command-request-normalization.js';
 import {
   resolveOrderedRuntimeInputs,
   resolveRuntimeFromConfig,
-} from '../../tooling/runtime-input-composition.js';
+} from '../runtime-input-composition.js';
 import {
   assertRuntimeInputIntentCompatibility,
   stripLegacyRuntimeIntent,
-} from '../../tooling/runtime-intent.js';
+} from '../runtime-intent.js';
 import { parseRuntimeOverridesFromURL } from '../test-harness.js';
 import { cloneRuntimeConfig } from './runtime-isolation.js';
 

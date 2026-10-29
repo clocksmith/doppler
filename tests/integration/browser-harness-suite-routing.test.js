@@ -41,11 +41,11 @@ if (typeof globalThis.GPUTextureUsage === 'undefined') {
   };
 }
 
-const { runBrowserSuite, buildSuiteSummary } = await import('../../src/inference/browser-harness.js');
+const { runBrowserSuite, buildSuiteSummary } = await import('../../src/tooling/browser-harness.js');
 const { trainingHarness } = await import('../../src/experimental/training/suite.js');
 
 {
-  const source = readFileSync(new URL('../../src/inference/browser-harness.js', import.meta.url), 'utf8');
+  const source = readFileSync(new URL('../../src/tooling/browser-harness.js', import.meta.url), 'utf8');
   const dispatchStart = source.indexOf('async function dispatchBrowserSuite');
   const dispatchEnd = source.indexOf('export async function runBrowserSuite', dispatchStart);
   const dispatchSource = source.slice(dispatchStart, dispatchEnd);

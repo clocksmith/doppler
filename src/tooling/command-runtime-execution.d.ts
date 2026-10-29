@@ -1,4 +1,4 @@
-import type { RuntimeConfigLoadOptions } from '../inference/browser-harness.js';
+import type { RuntimeConfigLoadOptions } from './browser-harness.js';
 import type { ToolingCommandRequest } from './command-api.js';
 import type { CommandContext } from './command-context.js';
 

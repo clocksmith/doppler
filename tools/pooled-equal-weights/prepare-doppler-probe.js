@@ -12,7 +12,7 @@ for (const name of ['src', 'demo', 'tests', 'tools', 'benchmarks', 'models']) {
 }
 await fs.copyFile(path.join(root, 'package.json'), path.join(output, 'package.json'));
 await fs.symlink(path.join(root, 'node_modules'), path.join(output, 'node_modules'));
-const file = path.join(output, 'src/inference/browser-harness/benchmark-execution.js');
+const file = path.join(output, 'src/tooling/browser-harness/benchmark-execution.js');
 const original = await fs.readFile(file, 'utf8');
 const anchor = '  const loadTimings = resolvePipelineLoadTimings(harness.pipeline);';
 if (original.split(anchor).length !== 2) throw new Error('Doppler untimed observation boundary changed');
@@ -72,7 +72,7 @@ if (config.kvRoundingPrototypeShader) {
 }
 await fs.writeFile(path.join(output, 'observation-identity.json'), JSON.stringify({
   schema: 'doppler.untimed-observation-snapshot.v1', sourceRoot: root,
-  file: 'src/inference/browser-harness/benchmark-execution.js',
+  file: 'src/tooling/browser-harness/benchmark-execution.js',
   originalSha256: sha(original), instrumentedSha256: sha(instrumented),
   probeOriginalSha256: sha(probes), probeInstrumentedSha256: sha(capturedProbes), captureStages: config.captureStages ?? [],
   numericPrototype,

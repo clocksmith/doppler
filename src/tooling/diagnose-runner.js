@@ -3,7 +3,7 @@ import {
   buildSuiteOptions,
   runWithRuntimeIsolation,
 } from './command-runtime-execution.js';
-import { loadRuntimeConfigFromRef } from '../inference/browser-harness/runtime-config.js';
+import { loadRuntimeConfigFromRef } from './browser-harness/runtime-config.js';
 import { bootstrapNodeWebGPUProvider } from './node-webgpu.js';
 import { installNodeFileFetchShim } from './node-file-fetch.js';
 import { findFirstDivergence } from '../inference/pipelines/text/operator-events.js';
@@ -52,7 +52,7 @@ async function loadRuntimeModules() {
 
   installNodeFileFetchShim();
   runtimeModulesPromise = Promise.all([
-    import('../inference/browser-harness.js'),
+    import('./browser-harness.js'),
     import('../config/runtime.js'),
   ]).then(([harness, runtime]) => ({ harness, runtime }));
 

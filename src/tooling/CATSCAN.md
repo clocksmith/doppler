@@ -16,7 +16,7 @@ Give browser, Node, and CLI adapters one normalized command contract and one evi
 ## Scope
 
 - Shipped tooling APIs and shared browser/Node command infrastructure.
-- [Test harness](test-harness.js): catalog discovery, browser options, experimental diagnostics.
+- [Test](test-harness.js) and [browser](browser-harness.js) harnesses: catalog discovery, browser options, suites, experimental diagnostics.
 - [Capsule Rig command](model-capsule-rig.js): files and signing around the [compiler](../converter/CATSCAN.md).
 - [Model onboarding](model-onboarding.js) coordinates pinned source assessment,
   lineage, conversion, independent comparison, physical qualification, and signed

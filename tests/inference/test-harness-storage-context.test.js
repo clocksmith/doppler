@@ -6,7 +6,7 @@ import { pathToFileURL } from 'node:url';
 
 import {
   createHarnessShardStorageContext,
-} from '../../src/inference/test-harness.js';
+} from '../../src/tooling/test-harness.js';
 
 const manifest = {
   modelId: 'test-harness-storage-context',

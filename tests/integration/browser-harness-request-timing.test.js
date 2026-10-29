@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { runBrowserSuite } from '../../src/inference/browser-harness.js';
+import { runBrowserSuite } from '../../src/tooling/browser-harness.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../../src/config/runtime.js';
 import { assertComparableTiming } from '../../tools/compare-engines.js';
 

@@ -65,7 +65,7 @@ http://localhost:8080/tests/harness.html?mode=verify&workload=inference&modelId=
 
 ## Shared Utilities
 
-`src/inference/test-harness.js` exposes shared helpers:
+`src/tooling/test-harness.js` exposes shared helpers:
 
 - `discoverModels`
 - `parseRuntimeOverridesFromURL`

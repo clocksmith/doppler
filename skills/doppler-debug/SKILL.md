@@ -218,7 +218,7 @@ npm run debug -- --config '{"request":{"modelId":"MODEL_ID","cacheMode":"warm"},
 - `src/tooling/command-api.js`
 - `src/tooling/node-command-runner.js`
 - `src/tooling/node-browser-command-runner.js`
-- `src/inference/browser-harness.js`
+- `src/tooling/browser-harness.js`
 - `src/config/runtime/profiles/verbose-trace.json`
 - `docs/developer-guides/README.md`
 

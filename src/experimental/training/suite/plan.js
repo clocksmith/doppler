@@ -15,7 +15,7 @@ import {
   resolveDistillDataScope,
   summarizeDirectionCounts,
 } from '../distillation/suite-data.js';
-import { initializeInference } from '../../../inference/test-harness.js';
+import { initializeInference } from '../../../tooling/test-harness.js';
 import { createPipeline } from '../../../inference/pipelines/text.js';
 import { parseManifest } from '../../../formats/rdrr/index.js';
 import { openModelStore, loadManifestFromStore } from '../../../storage/shard-manager.js';

@@ -7,7 +7,7 @@ import { extname, dirname, relative, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { execFileSync } from 'node:child_process';
 
-import { initializeInference } from '../src/inference/test-harness.js';
+import { initializeInference } from '../src/tooling/test-harness.js';
 import {
   bootstrapNodeWebGPU,
   releaseNodeWebGPU,
