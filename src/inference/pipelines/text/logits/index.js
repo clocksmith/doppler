@@ -26,7 +26,7 @@ import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBu
 import { kernelTrace, traceStep } from '../kernel-trace.js';
 import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
 import { runProbes } from '../probes.js';
-import { f16BufferToF32 } from './cpu.js';
+import { decodeFloat16Array } from '../../../../formats/float16.js';
 import {
   resolveCpuWeightDims,
   computeChunkedLogitsTensorGPU,
@@ -122,7 +122,7 @@ async function traceTensorHealth(label, tensor, elementCount) {
   }
   const bytesPerElement = tensorElementBytes(dtype, tensor);
   const data = await readBuffer(buffer, elementCount * bytesPerElement);
-  let values = dtype === 'f16' ? f16BufferToF32(data) : new Float32Array(data);
+  let values = dtype === 'f16' ? decodeFloat16Array(new Uint16Array(data)) : new Float32Array(data);
   if (tensor.precision === 'two-f32') {
     // Observation only: reconstruction never feeds values back into execution.
     const components = values;

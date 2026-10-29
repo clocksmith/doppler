@@ -1,4 +1,4 @@
-import { f16ToF32Bits as f16ToF32 } from '../../inference/kv-cache/types.js';
+import { decodeFloat16Array, float16ToFloat32 as f16ToF32 } from '../../formats/float16.js';
 
 export { f16ToF32 };
 
@@ -49,12 +49,7 @@ export function layerNormCPU(x, weight, bias, eps = 1e-5) {
 
 
 export function f16BufferToF32(data) {
-  const u16 = new Uint16Array(data);
-  const out = new Float32Array(u16.length);
-  for (let i = 0; i < u16.length; i++) {
-    out[i] = f16ToF32(u16[i]);
-  }
-  return out;
+  return decodeFloat16Array(new Uint16Array(data));
 }
 
 

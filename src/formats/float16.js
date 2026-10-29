@@ -70,3 +70,12 @@ export function float16ToFloat32(h) {
 
   return (sign ? -1 : 1) * Math.pow(2, exp - 15) * (1 + frac / 1024);
 }
+
+/** @type {import('./float16.js').decodeFloat16Array} */
+export function decodeFloat16Array(values) {
+  const out = new Float32Array(values.length);
+  for (let i = 0; i < values.length; i++) {
+    out[i] = float16ToFloat32(values[i]);
+  }
+  return out;
+}
