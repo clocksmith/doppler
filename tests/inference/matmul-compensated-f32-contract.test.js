@@ -5,6 +5,7 @@ import { selectMatmulVariantAndFlags } from '../../src/gpu/kernels/matmul-select
 setDevice({
   features: new Set(),
   limits: { maxStorageBufferBindingSize: 1 << 24, maxComputeInvocationsPerWorkgroup: 256,
+    maxComputeWorkgroupSizeX: 256, maxComputeWorkgroupSizeY: 256, maxComputeWorkgroupSizeZ: 64,
     maxComputeWorkgroupStorageSize: 16384 },
   queue: { submit() {} },
   createBindGroup() { return {}; },
