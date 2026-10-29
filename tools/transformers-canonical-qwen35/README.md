@@ -58,6 +58,30 @@ It never downloads model weights or substitutes a published ONNX checkpoint.
   constructor. `run_text_gpu.js` uses public TJS embedding, forward and cache
   APIs. Its only supported mode is an untimed diagnostic that discloses the
   failed strict CPU state gate; it has no timing-admission path.
+- The retained full-model AMD WebGPU diagnostic completed all 15 cases through
+  those public TJS APIs, with CPU fallback explicitly disabled. Every full
+  vocabulary row passed the frozen 0.001 logit tolerance (maximum 0.000126362),
+  with 15 exact argmax matches. All 48 cache outputs in every case were actual
+  F32 GPU buffers. GPU and browser error lists were empty. This establishes
+  execution and output-logit accuracy for this custom F32-KV adapter, not strict
+  internal-state qualification, four-prompt/64-token qualification, platform
+  performance, or GPU readback of all learned weights.
+- `audit_graph_ops.py` and `probe_ops.js` isolate exact operator/type/rank
+  admission under the pinned runtime. Of 788 signatures in the host-geometry
+  candidate, 786 admitted; runtime registry logs rejected F32 `Cos` and `Sin`.
+  The package's TypeScript sources listing these operators did not establish
+  registration in its shipped WASM runtime.
+- The executable candidate uses three explicit export transformations:
+  `variant_gpu_indices.py` keeps bounded application indices I32 and replaces
+  exact squares with multiplication; `variant_host_shapes.py` declares integer
+  allocation geometry from input dimensions; `variant_rotary_lookup.py` builds
+  bounded rotary tables at export time using the source ONNX CPU subgraph.
+  Runtime rotary evaluation uses WebGPU Gather/Where operations. It accepts
+  positions 0 through 2047 and rejects out-of-bound application positions.
+  These transformations preserve all 735 CPU comparison metrics and all saved
+  ONNX/native logit bytes exactly, including the original 53 strict failures.
+  Learned initializer protobufs remain unchanged. No model tensor arithmetic
+  moves to CPU at runtime.
 
 The full-text frontend declares a 704-token prefill bound: its graph computes
 11 padded chunks even for a 28-token prompt. This is extra work and a current
@@ -88,4 +112,8 @@ node tools/transformers-canonical-qwen35/run_layer_gpu.js CONFIG_JSON
 ```
 
 Strict full-model numerical qualification, physical TJS GPU materialization
-evidence, scheduler improvements and performance comparison remain required work.
+readback for all learned weights, four-prompt/64-token checks, scheduler
+improvements and performance comparison remain required work. Full-model
+diagnostic configuration is retained on Jupiter at
+`/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/tjs-full-gpu-diagnostic-06-config.json`;
+its model and CPU receipt paths are frozen by `evidence/full-tjs-gpu-identity.json`.

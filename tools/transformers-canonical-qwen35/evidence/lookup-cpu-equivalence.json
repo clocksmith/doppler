@@ -1,0 +1,18 @@
+{
+  "scope": "CPU equivalence of explicit bounded-index, host-geometry and export-time rotary lookup lowerings; strict numerical gate remains FAIL",
+  "original": {
+    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-cpu-01/receipt.json",
+    "sha256": "6e7d558480f3801702a1a1ccdddd4d9a35345e1b10220cebf2a2de66cff2217a"
+  },
+  "candidate": {
+    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-lookup-cpu-01/receipt.json",
+    "sha256": "32393bf7637c5c3435c0a7175db3c0ab03a4fc3cc6f4d639aa713c346d17e669"
+  },
+  "completed": true,
+  "all735CheckMetricsIdentical": true,
+  "allNativeAndOnnxLogitFilesIdentical": true,
+  "strictStateFailures": 53,
+  "strictPass": false,
+  "logitRows": 15,
+  "maxLogitError": 5.370378494262695e-05
+}

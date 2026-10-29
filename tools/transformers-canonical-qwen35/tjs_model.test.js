@@ -17,7 +17,10 @@ function feeds(past, length) {
 
 function session() {
   return { inputNames: ['inputs_embeds', 'position_ids', 'attention_mask', ...ports.map(p => p.input)],
-    outputNames: ['logits', ...ports.map(p => p.output)], inputMetadata: [], outputMetadata: [], calls: [],
+    outputNames: ['logits', ...ports.map(p => p.output)], inputMetadata: [
+      { name: 'inputs_embeds', type: 'float32' }, { name: 'position_ids', type: 'int64' },
+      { name: 'attention_mask', type: 'int64' }, ...ports.map(port => ({ name: port.input, type: port.type, shape: port.shape }))],
+    outputMetadata: [], calls: [],
     async run(input) {
       this.calls.push(input);
       const length = input.inputs_embeds.dims[1] + input['past_key_values.1.key'].dims[2];
@@ -74,6 +77,31 @@ test('router rejects an incomplete exported cache contract', () => {
   assert.throws(() => new RoutedDecoder(incomplete, session(), config, policy), /complete explicit text\/cache contract/);
 });
 
+test('declared geometry ports use only tensor dimensions and release their scalar inputs', async () => {
+  const prefill = session(), decode = session();
+  const descriptor = { name: 'host_length', type: 'int32', shape: [], sourceTensor: 'attention_mask',
+    axis: 1, multiplier: 1, addend: 0 };
+  const vector = { name: 'host_target', type: 'int64', shape: [4], values: [{ constant: 1 },
+    { sourceTensor: 'attention_mask', axis: 1, multiplier: 1, addend: 0 }, { constant: 2 }, { constant: 4 }] };
+  for (const target of [prefill, decode]) {
+    for (const control of [descriptor, vector]) {
+      target.inputNames.push(control.name);
+      target.inputMetadata.push({ name: control.name, type: control.type, shape: control.shape });
+    }
+  }
+  let disposed = 0;
+  const factory = (type, values, shape) => ({ type, dims: shape, data: Int32Array.from(values), dispose() { disposed++; } });
+  const routed = new RoutedDecoder(prefill, decode, config, { ...policy,
+    hostGeometryInputs: { prefill: [descriptor, vector], decode: [descriptor, vector] } }, factory);
+  await routed.run(feeds(0, 28));
+  assert.equal(prefill.calls[0].host_length.data[0], 28);
+  assert.deepEqual([...prefill.calls[0].host_target.data], [1, 28, 2, 4]);
+  assert.equal(disposed, 2);
+  assert.equal(routed.inputNames.includes('host_length'), false);
+  assert.equal(routed.inputMetadata.some(meta => meta.name === 'host_length'), false);
+  assert.deepEqual(routed.work[0].hostGeometry[0].values, [28]);
+});
+
 test('router fails closed on concurrent execution and nonresident state', async () => {
   const prefill = session(), decode = session();
   let finish;
@@ -89,4 +117,19 @@ test('router fails closed on concurrent execution and nonresident state', async 
   await assert.rejects(routed.run(feeds(0, 2)), /already executing/);
   finish();
   await assert.rejects(pending, /GPU resident/);
+});
+
+test('bounded rotary lookup rejects unsupported application positions before GPU dispatch', async () => {
+  const prefill = session(), decode = session();
+  const routed = new RoutedDecoder(prefill, decode, config, { ...policy,
+    rotaryLookup: { minimumPosition: 0, maximumPositionExclusive: 2048 } });
+  const input = feeds(0, 2);
+  input.position_ids.location = 'cpu';
+  input.position_ids.data = BigInt64Array.from([0n, 1n, 2047n, 17n, 12n, 13n]);
+  await routed.run(input);
+  input.position_ids.data[0] = 2048n;
+  await assert.rejects(routed.run(input), /declared bounds/);
+  input.position_ids.data[0] = -1n;
+  await assert.rejects(routed.run(input), /declared bounds/);
+  assert.equal(prefill.calls.length, 1);
 });

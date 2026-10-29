@@ -1,0 +1,104 @@
+{
+  "scope": "Exact node-signature no-fallback session admission only; no model inference",
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3"
+  },
+  "signatures": 788,
+  "admitted": 786,
+  "failed": [
+    {
+      "name": "9-Cos",
+      "admitted": false,
+      "sourceNodes": [
+        "node_cos"
+      ],
+      "error": "Error: Can't create a session. ERROR_CODE: 1, ERROR_MESSAGE: This session contains graph nodes that are assigned to the default CPU EP, but fallback to CPU EP has been explicitly disabled by the user.",
+      "signature": {
+        "op": "Cos",
+        "domain": "",
+        "attributes": [],
+        "inputs": [
+          {
+            "type": 1,
+            "shape": [
+              1,
+              "?",
+              64
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "type": 1,
+            "shape": [
+              1,
+              "?",
+              64
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "11-Sin",
+      "admitted": false,
+      "sourceNodes": [
+        "node_sin"
+      ],
+      "error": "Error: Can't create a session. ERROR_CODE: 1, ERROR_MESSAGE: This session contains graph nodes that are assigned to the default CPU EP, but fallback to CPU EP has been explicitly disabled by the user.",
+      "signature": {
+        "op": "Sin",
+        "domain": "",
+        "attributes": [],
+        "inputs": [
+          {
+            "type": 1,
+            "shape": [
+              1,
+              "?",
+              64
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "type": 1,
+            "shape": [
+              1,
+              "?",
+              64
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "sources": [
+    {
+      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/node-op-admission-02/result.json",
+      "sha256": "fa1f6b66978d90cedc0cbdce3b3d7b919d8d08868ce4fb2adbe9d8438a9e3181"
+    },
+    {
+      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/node-op-admission-02/browser.log",
+      "sha256": "761465ba36eef95cdb04341adb7824e2ff619d62a5761b210f3a6ef230675544"
+    },
+    {
+      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/node-op-probes-03/probes.json",
+      "sha256": "0fd9e7da306f145a2f3cdee0da3b386eb4483f010079c865c3c61c7087ca40cf"
+    },
+    {
+      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/node-op-probes-03/source.json",
+      "sha256": "e8d8e63a0013c0ac1c2b07624b7726493874b7a68897f0213dd20e017b846d0c"
+    }
+  ],
+  "runtimeMessages": [
+    "2026-10-29 18:16:04.765599 [I:onnxruntime:, webgpu_execution_provider.cc:633 GetCapability] webgpu kernel not found in registries for Op type: Cos node name: node_cos",
+    "2026-10-29 18:16:04.779499 [I:onnxruntime:, webgpu_execution_provider.cc:633 GetCapability] webgpu kernel not found in registries for Op type: Sin node name: node_sin"
+  ],
+  "pinnedOrtIdentity": {
+    "script": "2c0a5cb6ac7136a0a38cb500e37e8d14dd2292ddcdf2bbce7af884d935b023de",
+    "ortWebGpu": "25e7e706b8165f2096b5e29853dda64e9b1f09bdf29b4384f8d0afa9fb6db22d",
+    "ortWasm": "ae61141f8fbf0a4e43fd7b4f4d40a1a115627f6facc4f33ddf84074a655e33ea"
+  }
+}

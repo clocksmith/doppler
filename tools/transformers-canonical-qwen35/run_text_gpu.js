@@ -82,7 +82,9 @@ const server = http.createServer(async (request, response) => {
     }
     if (pathname === '/') {
       response.writeHead(200, { 'Content-Type': 'text/html' });
-      response.end('<script type="module" src="/adapter/text_gpu_browser.js"></script>'); return;
+      response.end('<script type="importmap">{"imports":{"onnxruntime-web/webgpu":"/ort/ort.webgpu.min.mjs",' +
+        '"onnxruntime-common":"/ort/ort.webgpu.min.mjs"}}</script>' +
+        '<script type="module" src="/adapter/text_gpu_browser.js"></script>'); return;
     }
     if (pathname === '/probe.json') {
       response.writeHead(200, { 'Content-Type': 'application/json' }); response.end(JSON.stringify(descriptor)); return;
