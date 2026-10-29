@@ -301,7 +301,6 @@
     },
     "./tooling-experimental": {
       "types": "./src/tooling-experimental-exports.d.ts",
-      "browser": "./src/tooling-experimental-exports.browser.js",
       "import": "./src/tooling-experimental-exports.js"
     },
     "./loaders": {

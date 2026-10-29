@@ -200,12 +200,6 @@
       "tooling/runtime-optimization.js"
     ],
     "tooling-experimental-exports.js": [
-      "tooling-experimental-exports.shared.js"
-    ],
-    "tooling-experimental-exports.browser.js": [
-      "tooling-experimental-exports.shared.js"
-    ],
-    "tooling-experimental-exports.shared.js": [
       "experimental/bridge/trainer-artifact-bridge.js",
       "experimental/browser/browser-converter.js",
       "experimental/browser/file-picker.js",
@@ -277,7 +271,7 @@
     },
     "experimental/distribution": {
       "decision": "retain",
-      "consumerEvidence": ["tooling-experimental-exports.shared.js exposes optional injected transports", "tooling/distribution-shard-transport.js and tooling/test-harness.js load shard delivery"],
+      "consumerEvidence": ["tooling-experimental-exports.js exposes optional injected transports", "tooling/distribution-shard-transport.js and tooling/test-harness.js load shard delivery"],
       "migration": "Keep optional transport outside storage and inference. Reploid supplies transport policy; no core peer-discovery dependency is introduced."
     },
     "experimental/energy": {
@@ -329,9 +323,7 @@
     "capsule-runtime": "client",
     "capsule": "config",
     "sw": "storage",
-    "tooling-experimental-exports.browser": "experimental",
     "tooling-experimental-exports": "experimental",
-    "tooling-experimental-exports.shared": "experimental",
     "tooling-exports.browser": "tooling",
     "tooling-exports": "tooling",
     "tooling-exports.shared": "tooling",
@@ -599,10 +591,6 @@
       "classification": "semantic-owner",
       "semanticOwner": "loader dtype conversion and buffer layout"
     },
-    "tooling-experimental-exports.shared.js": {
-      "classification": "compatibility-facade",
-      "semanticOwner": "shared experimental tooling export surface"
-    },
     "tooling-exports.shared.js": {
       "classification": "compatibility-facade",
       "semanticOwner": "shared stable tooling export surface"
@@ -668,8 +656,6 @@
     "tooling-exports.browser.js",
     "tooling-exports.shared.js",
     "tooling-experimental-exports.js",
-    "tooling-experimental-exports.browser.js",
-    "tooling-experimental-exports.shared.js",
     "tooling/command-api-helpers.js",
     "tooling/command-runner-shared.js",
     "tooling/hf-registry-utils.js",

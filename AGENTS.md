@@ -113,7 +113,7 @@ doppler/
 ### Before Starting
 
 - Read `docs/architecture.md` (system overview) and `docs/rdrr-format.md` (RDRR format constraints).
-- Review `src/inference/pipelines/text.js` (inference flow) and `src/tooling/command-api.js` (command parity contract).
+- Review the text inference flow and `src/tooling/command-api.js` (command parity contract). `src/inference/pipelines/text.js` only registers pipeline factories by `modelType`; the flow lives under `src/inference/pipelines/text/`: `pipeline.js` (class), `init.js` and `lifecycle.js` (load), `generator.js` (prefill/decode loop) and `layer.js` (per-layer execution).
 
 ### Component Intent
 

@@ -39,7 +39,6 @@ if (isConversionSupported()) {
 ## Code Pointers
 
 - experimental tooling export surface: [src/tooling-experimental-exports.js](../../src/tooling-experimental-exports.js)
-- shared experimental tooling exports: [src/tooling-experimental-exports.shared.js](../../src/tooling-experimental-exports.shared.js)
 - browser conversion helpers: [src/experimental/browser/browser-converter.js](../../src/experimental/browser/browser-converter.js)
 - P2P helpers: [src/experimental/distribution/p2p-control-plane.js](../../src/experimental/distribution/p2p-control-plane.js)
 
