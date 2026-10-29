@@ -105,6 +105,23 @@ submission and settlement lifecycle. The policy changes neither shader math
 nor reference tolerances; changed packages require their own physical
 qualification. A single oversized dispatch still requires its own bound.
 
+## Matmul workgroup geometry
+
+Opt-in matmul variants may declare `variantMetadata.workgroupConstants` as
+three constant names or `null` axes. A named axis uses the final resolved
+pipeline constant; `null` retains that static registry workgroup axis. For
+example, `["TILE_SIZE", "TILE_SIZE", null]` derives both tiled dimensions from
+the same shader constant. Registry `wgslOverrides` retain precedence over
+conflicting caller or kernel-path constants. Changing a registry override
+therefore changes both the compiled workgroup and its dispatch calculation.
+
+These variants also declare `workgroupStorageBytesPerInvocation`. Capacity
+checks add that dynamic storage to the resolved static `sharedMemory` bytes.
+Missing or invalid geometry/storage declarations reject before dispatch.
+Current device axis, invocation and workgroup-storage limits are checked even
+when the immutable geometry plan is cached. Variants without this metadata
+retain their existing specialization behavior.
+
 ## Kernel path contract
 
 Kernel paths are explicit execution plans materialized as inline objects from

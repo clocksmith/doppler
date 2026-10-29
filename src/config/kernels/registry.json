@@ -6207,6 +6207,8 @@
       "COLS_PER_WG": 4
      },
      "variantMetadata": {
+      "workgroupConstants": ["THREADS_PER_COL","COLS_PER_WG",null],
+      "workgroupStorageBytesPerInvocation": 4,
       "colsPerWg": 4,
       "dispatchGeometry": "linear-column-block"
      },
@@ -6379,6 +6381,8 @@
       }
      ],
      "variantMetadata": {
+      "workgroupConstants": ["TILE_SIZE","TILE_SIZE",null],
+      "workgroupStorageBytesPerInvocation": 8,
       "dispatchGeometry": "matrix-workgroup",
       "colsPerThread": 1,
       "numericContract": {
@@ -6410,6 +6414,8 @@
       "COMPENSATED_F32": true
      },
      "variantMetadata": {
+      "workgroupConstants": ["THREADS_PER_COL","COLS_PER_WG",null],
+      "workgroupStorageBytesPerInvocation": 8,
       "colsPerWg": 4,
       "dispatchGeometry": "linear-column-block",
       "numericContract": {

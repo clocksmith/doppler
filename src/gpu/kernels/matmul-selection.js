@@ -1,5 +1,5 @@
 
-import { getKernelCapabilities } from '../device.js';
+import { getDeviceLimits, getKernelCapabilities } from '../device.js';
 import { getBuffer, getLayout } from '../weight-buffer.js';
 import { log, trace, isTraceEnabled } from '../../debug/index.js';
 import { acquireBuffer } from '../../memory/buffer-pool.js';
@@ -79,37 +79,85 @@ export function resolveMatmulConstants(options, phase) {
 
 
 function applyMatmulConstants(config, constants) {
-  if (!constants) return config;
+  if (!constants && config.variantMetadata?.workgroupConstants === undefined) return config;
 
   let workgroupSize = config.workgroupSize;
   let variantMetadata = config.variantMetadata;
   let updated = false;
 
-  if (Number.isFinite(constants.WORKGROUP_SIZE)) {
+  if (Number.isFinite(constants?.WORKGROUP_SIZE)) {
     workgroupSize = [constants.WORKGROUP_SIZE, workgroupSize[1], workgroupSize[2]];
     updated = true;
   }
-  if (Number.isFinite(constants.TILE_M)) {
+  if (Number.isFinite(constants?.TILE_M)) {
     variantMetadata = { ...(variantMetadata ?? {}), tileM: constants.TILE_M };
     updated = true;
   }
-  if (Number.isFinite(constants.TILE_N)) {
+  if (Number.isFinite(constants?.TILE_N)) {
     workgroupSize = [constants.TILE_N, workgroupSize[1], workgroupSize[2]];
     variantMetadata = { ...(variantMetadata ?? {}), colsPerWg: constants.TILE_N };
     updated = true;
   }
-  if (Number.isFinite(constants.COLS_PER_WG)) {
+  if (Number.isFinite(constants?.COLS_PER_WG)) {
     variantMetadata = { ...(variantMetadata ?? {}), colsPerWg: constants.COLS_PER_WG };
     updated = true;
   }
-  if (Number.isFinite(constants.MULTICOL_COLS_PER_WG)) {
+  if (Number.isFinite(constants?.MULTICOL_COLS_PER_WG)) {
     variantMetadata = { ...(variantMetadata ?? {}), colsPerWg: constants.MULTICOL_COLS_PER_WG };
+    updated = true;
+  }
+
+  const bindings = variantMetadata?.workgroupConstants;
+  if (bindings !== undefined) {
+    if (!Array.isArray(bindings) || bindings.length !== 3
+      || bindings.some(name => name !== null && (typeof name !== 'string' || name.length === 0))) {
+      throw new Error(`Matmul kernel "${config.variant}" requires three workgroupConstants names or null axes.`);
+    }
+    workgroupSize = bindings.map((name, axis) => name === null ? workgroupSize[axis] : constants?.[name]);
+    if (workgroupSize.some(value => !Number.isSafeInteger(value) || value <= 0 || value > 0xffffffff)) {
+      throw new Error(`Matmul kernel "${config.variant}" requires positive u32 resolved workgroup dimensions.`);
+    }
+    if (!Number.isSafeInteger(workgroupSize.reduce((product, value) => product * value, 1))) {
+      throw new Error(`Matmul kernel "${config.variant}" workgroup invocation count is not a safe integer.`);
+    }
     updated = true;
   }
 
   if (!updated) return config;
   return Object.freeze({ ...config, workgroupSize: Object.freeze(workgroupSize),
     variantMetadata: variantMetadata === null ? null : Object.freeze(variantMetadata) });
+}
+
+function validateMatmulWorkgroupCapacity(config) {
+  if (config.variantMetadata?.workgroupConstants === undefined) return;
+  const bytesPerInvocation = config.variantMetadata.workgroupStorageBytesPerInvocation;
+  if (!Number.isSafeInteger(bytesPerInvocation) || bytesPerInvocation <= 0
+    || !Number.isSafeInteger(config.sharedMemory) || config.sharedMemory < 0) {
+    throw new Error(`Matmul kernel "${config.variant}" requires resolved nonnegative static and positive per-invocation workgroup storage bytes.`);
+  }
+  const invocations = config.workgroupSize.reduce((product, value) => product * value, 1);
+  const storageBytes = config.sharedMemory + invocations * bytesPerInvocation;
+  if (!Number.isSafeInteger(storageBytes)) {
+    throw new Error(`Matmul kernel "${config.variant}" workgroup storage byte count is not a safe integer.`);
+  }
+  const limits = getDeviceLimits();
+  if (!limits) return;
+  const requirements = [
+    ['maxComputeWorkgroupSizeX', config.workgroupSize[0]],
+    ['maxComputeWorkgroupSizeY', config.workgroupSize[1]],
+    ['maxComputeWorkgroupSizeZ', config.workgroupSize[2]],
+    ['maxComputeInvocationsPerWorkgroup', invocations],
+    ['maxComputeWorkgroupStorageSize', storageBytes],
+  ];
+  for (const [name, required] of requirements) {
+    const limit = limits[name];
+    if (!Number.isSafeInteger(limit) || limit <= 0) {
+      throw new Error(`Matmul kernel "${config.variant}" requires a positive device limit ${name}.`);
+    }
+    if (required > limit) {
+      throw new Error(`Matmul kernel "${config.variant}" requires ${required} ${name}, exceeding device limit ${limit}.`);
+    }
+  }
 }
 
 
@@ -120,16 +168,19 @@ export function getMatmulConfig(variant, constants) {
     plans = { empty: null, inputs: new WeakMap() };
     preparedMatmulConfigs.set(config, plans);
   }
-  if (constants == null && plans.empty) return plans.empty;
-  const prepared = constants && plans.inputs.get(constants);
-  if (prepared) return prepared;
-  const resolved = applyMatmulConstants(config,
-    resolvePipelineIdentity({ operation: 'matmul', variant, constants }).constants);
-  if (constants == null) plans.empty = resolved;
-  else if (Object.isFrozen(constants)
+  let resolved = constants == null ? plans.empty : plans.inputs.get(constants);
+  if (!resolved) {
+    resolved = applyMatmulConstants(config,
+      resolvePipelineIdentity({ operation: 'matmul', variant, constants }).constants);
+    if (constants == null) plans.empty = resolved;
+    else if (Object.isFrozen(constants)
       && Object.values(Object.getOwnPropertyDescriptors(constants)).every(descriptor => 'value' in descriptor)) {
-    plans.inputs.set(constants, resolved);
+      plans.inputs.set(constants, resolved);
+    }
   }
+  // Geometry is program-owned; capacity belongs to the current device, including
+  // when the immutable geometry plan came from a previous device's cache hit.
+  validateMatmulWorkgroupCapacity(resolved);
   return resolved;
 }
 
