@@ -1,4 +1,4 @@
-import { float32ToFloat16 } from '../../converter/quantizer.js';
+import { float32ToFloat16 } from '../../formats/float16.js';
 import { normalizeTensorSourceTransform } from '../../formats/rdrr/source-transform-contract.js';
 import {
   computeElementCount,

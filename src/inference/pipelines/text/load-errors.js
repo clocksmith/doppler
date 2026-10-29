@@ -1,6 +1,8 @@
 import { getLastDeviceLossInfo } from '../../../gpu/device.js';
 import { createDopplerError, ERROR_CODES } from '../../../errors/doppler-error.js';
 
+export { annotateWeightLoadError } from '../../../loader/tensor-load-error.js';
+
 const DEVICE_LIFECYCLE_PATTERNS = [
   /device not initialized/i,
   /gpu device not initialized/i,
@@ -9,25 +11,6 @@ const DEVICE_LIFECYCLE_PATTERNS = [
 
 function matchesDeviceLifecycleFailure(message) {
   return DEVICE_LIFECYCLE_PATTERNS.some((pattern) => pattern.test(message));
-}
-
-export function annotateWeightLoadError(error, details = {}) {
-  if (!error || typeof error !== 'object') {
-    return error;
-  }
-  const existingDetails = error.details && typeof error.details === 'object'
-    ? error.details
-    : {};
-  error.details = {
-    ...existingDetails,
-    weightLoadFailure: {
-      ...(existingDetails.weightLoadFailure && typeof existingDetails.weightLoadFailure === 'object'
-        ? existingDetails.weightLoadFailure
-        : {}),
-      ...details,
-    },
-  };
-  return error;
 }
 
 export function rewriteWeightLoadError(error, context = {}) {

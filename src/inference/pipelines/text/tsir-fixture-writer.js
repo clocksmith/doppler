@@ -29,6 +29,7 @@
 // module loads cleanly in the browser bundle too (where Node builtins
 // are unavailable). The fixture writer is a no-op in browser context;
 // it only emits files when invoked from the Node-side harness.
+import { float16ToFloat32 } from '../../../formats/float16.js';
 import { readBufferSlice, acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { getDevice } from '../../../gpu/device.js';
 
@@ -225,21 +226,11 @@ export async function writeNpyF32(filePath, shape, data) {
   return { byteLength: out.length, payloadByteLength: payload.length };
 }
 
-// f16 -> f32 conversion for buffer readback.
-function f16ToF32(h) {
-  const sign = (h >> 15) & 0x1;
-  const exp = (h >> 10) & 0x1f;
-  const mant = h & 0x3ff;
-  if (exp === 0) return (sign ? -1 : 1) * Math.pow(2, -14) * (mant / 1024);
-  if (exp === 31) return mant === 0 ? (sign ? -Infinity : Infinity) : NaN;
-  return (sign ? -1 : 1) * Math.pow(2, exp - 15) * (1 + mant / 1024);
-}
-
 function decodeBuffer(arrayBuffer, dtype) {
   if (dtype === 'f16') {
     const u16 = new Uint16Array(arrayBuffer);
     const out = new Float32Array(u16.length);
-    for (let i = 0; i < u16.length; i++) out[i] = f16ToF32(u16[i]);
+    for (let i = 0; i < u16.length; i++) out[i] = float16ToFloat32(u16[i]);
     return out;
   }
   return new Float32Array(arrayBuffer);

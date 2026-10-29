@@ -1,5 +1,24 @@
-import { annotateWeightLoadError } from '../inference/pipelines/text/load-errors.js';
 import { getTensorShardIndices } from './tensor-shard-indices.js';
+
+export function annotateWeightLoadError(error, details = {}) {
+  if (!error || typeof error !== 'object') {
+    return error;
+  }
+  const existingDetails = error.details && typeof error.details === 'object'
+    ? error.details
+    : {};
+  error.details = {
+    ...existingDetails,
+    weightLoadFailure: {
+      ...(existingDetails.weightLoadFailure && typeof existingDetails.weightLoadFailure === 'object'
+        ? existingDetails.weightLoadFailure
+        : {}),
+      ...details,
+    },
+  };
+  return error;
+}
+
 
 export function annotateTensorLoadError(error, name, location, details = {}) {
   return annotateWeightLoadError(error, {

@@ -476,10 +476,12 @@ formats/clone-json.d.ts
 formats/contract-validation.d.ts
 formats/encode-utf8.d.ts
 formats/flatbuffer-tables.d.ts
+formats/float16.d.ts
 formats/gguf/types.d.ts
 formats/litert/types.d.ts
 formats/load-json.d.ts
 formats/plain-object.d.ts
+formats/q4k-dequant.d.ts
 formats/rdrr/distributed/parsing.d.ts
 formats/rdrr/distributed/validation.d.ts
 formats/rdrr/source-transform-contract.d.ts

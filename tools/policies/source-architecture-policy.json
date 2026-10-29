@@ -190,7 +190,7 @@
     "generation": ["generation", "inference"],
     "gpu": ["config", "debug", "errors", "formats", "gpu", "memory", "rules"],
     "inference": ["client", "config", "converter", "debug", "errors", "experimental", "formats", "gpu", "inference", "loader", "memory", "rules", "storage", "tooling"],
-    "loader": ["config", "converter", "debug", "experimental", "formats", "gpu", "inference", "loader", "memory", "rules", "storage"],
+    "loader": ["config", "debug", "experimental", "formats", "gpu", "inference", "loader", "memory", "rules", "storage"],
     "memory": ["config", "debug", "memory"],
     "rules": ["config", "formats", "rules"],
     "storage": ["config", "debug", "errors", "formats", "memory", "storage"],

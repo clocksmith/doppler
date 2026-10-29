@@ -230,9 +230,9 @@
       "reason": "Forge constructs deterministic converted tensor artifacts before Capsule signing; this symbol is not callable by Capsule Runtime execution."
     },
     {
-      "id": "src/converter/quantizer.js#dequantizeQ4KMRowWise",
-      "category": "artifact-construction",
-      "reason": "Forge constructs deterministic converted tensor artifacts before Capsule signing; this symbol is not callable by Capsule Runtime execution."
+      "id": "src/formats/q4k-dequant.js#dequantizeQ4KMRowWise",
+      "category": "artifact-codec-materialization",
+      "reason": "Q4_K_M artifact byte decoding. The converter validates converted weights with it and the loader uses it for declared load-time materialization before the runtime execution plan begins."
     },
     {
       "id": "src/converter/safetensors-header-evidence.js#parseSafetensorsHeaderEvidence",
@@ -985,9 +985,9 @@
       "reason": "Forge quantizes source weights before Capsule signing; this symbol is unavailable to Capsule Runtime execution."
     },
     {
-      "id": "src/converter/quantizer.js#dequantizeQ4KBlock",
-      "category": "artifact-construction",
-      "reason": "Forge validates or reconstructs converted weights before Capsule signing; this symbol is unavailable to Capsule Runtime execution."
+      "id": "src/formats/q4k-dequant.js#dequantizeQ4KBlock",
+      "category": "artifact-codec-materialization",
+      "reason": "Q4_K_M artifact byte decoding. The converter validates converted weights with it and the loader uses it for declared load-time materialization before the runtime execution plan begins."
     },
     {
       "id": "src/converter/quantizer.js#quantizeToQ4KM",
@@ -1005,9 +1005,9 @@
       "reason": "Forge validates or reconstructs converted weights before Capsule signing; this symbol is unavailable to Capsule Runtime execution."
     },
     {
-      "id": "src/converter/quantizer.js#dequantizeQ4KM",
-      "category": "artifact-construction",
-      "reason": "Forge validates or reconstructs converted weights before Capsule signing; this symbol is unavailable to Capsule Runtime execution."
+      "id": "src/formats/q4k-dequant.js#dequantizeQ4KM",
+      "category": "artifact-codec-materialization",
+      "reason": "Q4_K_M artifact byte decoding. The converter validates converted weights with it and the loader uses it for declared load-time materialization before the runtime execution plan begins."
     },
     {
       "id": "src/converter/quantizer.js#quantizeF16ToQ4KM",

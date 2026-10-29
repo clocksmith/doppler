@@ -1,5 +1,4 @@
-
-
+import { float16ToFloat32 } from '../formats/float16.js';
 import { gpuDevice } from './config.js';
 import { log } from './log.js';
 import { computeArrayStats } from './stats.js';
@@ -8,21 +7,6 @@ import { sha256BytesHex } from '../formats/sha256.js';
 // ============================================================================
 // Internal Helpers
 // ============================================================================
-
-
-function f16ToF32(h) {
-  const sign = (h >> 15) & 0x1;
-  const exp = (h >> 10) & 0x1f;
-  const mant = h & 0x3ff;
-
-  if (exp === 0) {
-    return (sign ? -1 : 1) * Math.pow(2, -14) * (mant / 1024);
-  } else if (exp === 31) {
-    return mant === 0 ? (sign ? -Infinity : Infinity) : NaN;
-  }
-
-  return (sign ? -1 : 1) * Math.pow(2, exp - 15) * (1 + mant / 1024);
-}
 
 export function snapshotElementBytes(dtype, options = {}) {
   const { precision, components, elementStrideBytes } = options;
@@ -47,7 +31,7 @@ export function decodeSnapshotData(data, dtype, options = {}) {
     const src = new Uint16Array(data);
     const decoded = new Float32Array(src.length);
     for (let i = 0; i < src.length; i++) {
-      decoded[i] = f16ToF32(src[i]);
+      decoded[i] = float16ToFloat32(src[i]);
     }
     return decoded;
   }
@@ -100,7 +84,7 @@ export const tensor = {
     } else if (buffer instanceof Uint16Array) {
       data = new Float32Array(buffer.length);
       for (let i = 0; i < buffer.length; i++) {
-        data[i] = f16ToF32(buffer[i]);
+        data[i] = float16ToFloat32(buffer[i]);
       }
     } else {
       log.warn('Debug', `Cannot inspect tensor "${label}": unknown type`);
