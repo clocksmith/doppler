@@ -21,9 +21,12 @@ or signing authority to the browser execution package.
 ## Compatibility
 
 `doppler-gpu/runtime`, `createDopplerRuntime`, `RUNTIME_CORE_VERSION`, and their
-existing types remain aliases of the same implementation. The `forge:*` npm
-scripts, `tools/forge-model-capsule.js`, and old preparation exports continue to
-forward to Rig. The old and new entrypoints have identical execution semantics.
+existing types remain aliases of the same implementation.
+`tools/forge-model-capsule.js` and old preparation exports continue to forward
+to Rig. The `forge:*` npm script aliases were removed on 2026-10-29; use
+`rig:capsule` and `rig:release-receipt`. Per-model Rig recipes (for example
+`src/config/forge/semantic-lowering/glimmer-30b-text.json`) run by passing
+`--recipe` or `--policy` to the matching tool in `tools/`. The old and new entrypoints have identical execution semantics.
 These aliases do not restore the former Pack APIs or schemas.
 
 Serialized schema IDs, `forgeVersion`, `runtimeConfig`, execution identities,

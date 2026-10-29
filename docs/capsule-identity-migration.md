@@ -152,6 +152,6 @@ Generation and reranking retain their existing contracts. This migration does
 not claim new host support, throughput, ESM qualification, origin-independent
 delivery, or completion of generic embedding/API convergence. Tests with injected
 programs prove contracts; real application and device qualification remain
-separate. Run `npm run capsule-v2:check` for v2/v3 regression coverage and
+separate. Run `npm run capsule:check` for v2/v3 regression coverage and
 `node tools/run-node-tests.js tests/capsule/capsule-retained-local-use.test.js` for
 retained-use, denied-assignment, and durable-denial regressions.
