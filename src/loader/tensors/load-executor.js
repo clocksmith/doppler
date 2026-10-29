@@ -32,15 +32,23 @@ export function normalizeLoaderDebugConfig(config) {
     return null;
   }
 
+  const runQ4KDequantParity = debug.runQ4KDequantParity === true;
+  // Sample count is read only when parity runs; its default lives in
+  // DEFAULT_LOADER_DEBUG_CONFIG (runtime.shared.debug.loader).
+  const samples = debug.q4kDequantParitySamples;
+  if (runQ4KDequantParity && (!Number.isInteger(samples) || samples < 1)) {
+    throw new Error(
+      '[Loader] runtime.shared.debug.loader.q4kDequantParitySamples must be a positive integer ' +
+      `when runQ4KDequantParity is enabled; got ${JSON.stringify(samples)}.`
+    );
+  }
   return {
     enabled: debug.enabled === true,
     forceGpuDequant: debug.forceGpuDequant === true,
     preferCpuDequant: debug.preferCpuDequant === true,
     failOnCpuDequantPath: debug.failOnCpuDequantPath === true,
-    runQ4KDequantParity: debug.runQ4KDequantParity === true,
-    q4kDequantParitySamples: Number.isFinite(debug.q4kDequantParitySamples)
-      ? Math.min(4096, Math.max(1, Math.trunc(debug.q4kDequantParitySamples)))
-      : 256,
+    runQ4KDequantParity,
+    q4kDequantParitySamples: runQ4KDequantParity ? Math.min(4096, samples) : null,
   };
 }
 
@@ -155,7 +163,7 @@ export async function materializeQ4KDenseBuffer(quantBuffer, shardData, location
   const forceGpuDequant = loaderDebug?.forceGpuDequant === true;
   const failOnCpuDequantPath = loaderDebug?.failOnCpuDequantPath === true;
   const runQ4KDequantParity = loaderDebug?.runQ4KDequantParity === true;
-  const paritySamples = loaderDebug?.q4kDequantParitySamples ?? 256;
+  const paritySamples = loaderDebug?.q4kDequantParitySamples ?? null;
 
   const q4kCpuReferenceContext = getQ4KCpuReferenceContext(shardData, location, config, outputDtype);
   const { needsRowwise, layout, K } = q4kCpuReferenceContext;
