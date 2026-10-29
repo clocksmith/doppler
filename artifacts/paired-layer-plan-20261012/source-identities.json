@@ -1,7 +1,0 @@
-{
-  "src/inference/pipelines/text/layer-plan-gpu.js": "7ece20f3f506c8a81f95a086c92e7bd9afe8addf81a224d4e31071c13dacfc60",
-  "tests/inference/paired-ffn-physical.test.js": "f8b2f6abce2245563f4b0db6f88892141a69ec61c4e3441f2454800c239bea21",
-  "tests/inference/layer-plan-paired-physical.test.js": "03b11756af336273c8c5fc3a98e48c5735fc7c03b7ea2470b07e094aca94f24b",
-  "tests/inference/layer-plan-paired-contract.test.js": "b015762d9e9547610264595aa5445d3b99a95c65a3ee0086a07b311dbf5cf3d4",
-  "src/inference/pipelines/text/ffn/paired.js": "7b846b309b51f7d36babc8ee9e5eae2820e9e67b1ba0e139b8df6bcdc3c7edc6"
-}

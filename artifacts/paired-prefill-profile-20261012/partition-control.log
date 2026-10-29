@@ -1,5 +1,0 @@
-[146.7ms][Profile] {"scope":"resident-immediate","layerEnd":3,"numTokens":2,"position":0,"encodeWallMs":0.11558299999998667,"submitWaitMs":0.0019169999999917309,"kernels":{"paired":8},"dispatches":[]}
-[147.0ms][Profile] {"scope":"resident-immediate","layerEnd":7,"numTokens":2,"position":0,"encodeWallMs":0.06312499999998522,"submitWaitMs":0.0008339999999975589,"kernels":{"paired":8},"dispatches":[]}
-[147.2ms][Profile] {"scope":"resident-immediate","layerEnd":11,"numTokens":2,"position":0,"encodeWallMs":0.09112500000000523,"submitWaitMs":0.000916999999986956,"kernels":{"paired":8},"dispatches":[]}
-[147.3ms][Profile] {"scope":"resident-immediate","layerEnd":3,"numTokens":2,"position":0,"encodeWallMs":0.012917000000015832,"submitWaitMs":0.0006249999999852207,"kernels":{"paired":8},"dispatches":[]}
-partition-prefill-lifetime: bounded chunks, carry, failures and cancellation passed
