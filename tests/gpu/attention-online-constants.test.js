@@ -23,7 +23,7 @@ const { resetUniformCache } = await import('../../src/gpu/uniform-cache.js');
 const { recordAttention } = await import('../../src/gpu/kernels/attention.js');
 const { configurePerfGuards } = await import('../../src/gpu/perf-guards.js');
 const { destroyBufferPool, getBufferPool } = await import('../../src/memory/buffer-pool.js');
-const { clearPipelineCaches } = await import('../../src/gpu/kernels/utils.js');
+const { clearPipelineCaches } = await import('../../src/gpu/kernels/pipeline-cache.js');
 const { resetRuntimeConfig, setRuntimeConfig } = await import('../../src/config/runtime.js');
 
 class FakeBuffer {

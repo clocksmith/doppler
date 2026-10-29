@@ -1,7 +1,8 @@
 import { readBuffer } from '../../../../memory/buffer-pool.js';
 import { trace, isTraceEnabled } from '../../../../debug/index.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
-import { decodeReadback, getLogitsHealth } from '../debug-utils/index.js';
+import { decodeReadback } from '../debug-utils/readback-decoding.js';
+import { getLogitsHealth } from '../debug-utils/health-metrics.js';
 import { shouldDebugLayer } from './types.js';
 
 export function shouldTraceRecordedHealth(layerIdx, debugFlags) {

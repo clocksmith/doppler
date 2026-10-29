@@ -1,15 +1,12 @@
 import { getDevice, setTrackSubmits } from '../../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer, readBufferSlice, uploadData } from '../../../../memory/buffer-pool.js';
-import {
-  runMatmul,
-  runRMSNorm,
-  runGeLU,
-  runResidualAdd,
-  runScale,
-  runSoftmax,
-  runSoftEmbeddingSplitF16,
-  runSoftEmbeddingLogitsF16,
-} from '../../../../gpu/kernel-selector.js';
+import { runMatmul } from '../../../../gpu/kernels/matmul.js';
+import { runRMSNorm } from '../../../../gpu/kernels/rmsnorm.js';
+import { runGeLU } from '../../../../gpu/kernels/gelu.js';
+import { runResidualAdd } from '../../../../gpu/kernels/residual.js';
+import { runScale } from '../../../../gpu/kernels/scale.js';
+import { runSoftmax } from '../../../../gpu/kernels/softmax.js';
+import { runSoftEmbeddingSplitF16, runSoftEmbeddingLogitsF16 } from '../../../../gpu/kernels/soft-embedding.js';
 import { runDiffusionGemmaCanvasStats } from '../../../../gpu/kernels/diffusion-gemma-sampling.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { embed } from '../embed.js';

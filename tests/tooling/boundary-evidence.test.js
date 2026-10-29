@@ -9,7 +9,7 @@ import {
   buildDeterministicTokenEvidenceFromReferenceTranscript,
   compareBoundaryEvidence,
 } from '../../src/tooling/boundary-evidence.js';
-import { computeCanonicalSha256 } from '../../src/utils/canonical-hash.js';
+import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
 
 const repoRoot = path.resolve(new URL('../..', import.meta.url).pathname);
 const policy = JSON.parse(

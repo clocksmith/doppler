@@ -2,17 +2,12 @@ import { getDevice } from '../../../../gpu/device.js';
 import { acquireBuffer, BufferUsage, releaseBuffer } from '../../../../memory/buffer-pool.js';
 import { createTensor } from '../../../../gpu/tensor.js';
 import { castF16ToF32, castF32ToF16 } from '../../../../gpu/kernels/cast.js';
-import {
-  runMatmul,
-  runSiLU,
-  runSiLURowSplit,
-  runGeLU,
-  dequantizeMXFP4Expert,
-  runBiasAdd,
-  runSwiGLURowsplitBias,
-  runGemma4RouteQ4MatmulF16A,
-  runScatterAddRoutesF16ExpertScale,
-} from '../../../../gpu/kernel-selector.js';
+import { runMatmul } from '../../../../gpu/kernels/matmul.js';
+import { runSiLU, runSiLURowSplit, runSwiGLURowsplitBias } from '../../../../gpu/kernels/silu.js';
+import { runGeLU } from '../../../../gpu/kernels/gelu.js';
+import { dequantizeMXFP4Expert } from '../../../../gpu/kernels/dequant.js';
+import { runBiasAdd } from '../../../../gpu/kernels/residual.js';
+import { runGemma4RouteQ4MatmulF16A, runScatterAddRoutesF16ExpertScale } from '../../../../gpu/kernels/gemma4-route-expert.js';
 import {
   getBuffer,
   getWeightDtype,

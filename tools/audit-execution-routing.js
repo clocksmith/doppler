@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import kernelRegistry from '../src/config/kernels/registry.json' with { type: 'json' };
 import { KERNEL_REF_CONTENT_DIGESTS } from '../src/config/kernels/kernel-ref-digests.js';
 import { auditManifestExecutionRouting } from '../src/tooling/execution-routing-audit.js';
-import { computeCanonicalSha256 } from '../src/utils/canonical-hash.js';
+import { computeCanonicalSha256 } from '../src/formats/canonical-hash.js';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const modelsRoot = resolve(repoRoot, 'models/local');

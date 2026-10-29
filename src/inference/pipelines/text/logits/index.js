@@ -14,7 +14,12 @@ export { readBufferWithCleanup } from './readback.js';
 // Imports for computeLogits orchestrator
 import { getDevice } from '../../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../../../memory/buffer-pool.js';
-import { runLayerNorm, runMatmul, runRMSNorm, runScale, castF16ToF32, castF32ToF16, runLmHeadSelectLogitsF16 } from '../../../../gpu/kernel-selector.js';
+import { runLayerNorm } from '../../../../gpu/kernels/layernorm.js';
+import { runMatmul } from '../../../../gpu/kernels/matmul.js';
+import { runRMSNorm } from '../../../../gpu/kernels/rmsnorm.js';
+import { runScale } from '../../../../gpu/kernels/scale.js';
+import { castF16ToF32, castF32ToF16 } from '../../../../gpu/kernels/cast.js';
+import { runLmHeadSelectLogitsF16 } from '../../../../gpu/kernels/lm-head-select-logits.js';
 import { createTensor, tensorElementBytes } from '../../../../gpu/tensor.js';
 import { createLogitsInputTensor, resolveLogitsNormWeight } from './gpu-executor.js';
 import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype, requireWeightDtype } from '../../../../gpu/weight-buffer.js';
@@ -30,7 +35,7 @@ import {
 import { finalizeLogits } from './cpu-output.js';
 import { readBufferWithCleanup } from './readback.js';
 import { resolveLogitInputScale, resolveLogitOutputScale } from './scale-policy.js';
-import { getLogitsHealth } from '../debug-utils/index.js';
+import { getLogitsHealth } from '../debug-utils/health-metrics.js';
 import { getRuntimeConfig } from '../../../../config/runtime.js';
 import { getKernelPathMatmulPrecision, getKernelPathStepPrecision } from '../../../../config/kernel-path-loader.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';

@@ -1,19 +1,9 @@
 import assert from 'node:assert/strict';
 
-import {
-  buildHostedRegistryPayload,
-  buildHfResolveUrl,
-  buildManifestUrl,
-  buildPublishedRegistryEntry,
-  buildShardUrl,
-  collectDuplicateModelIds,
-  extractCommitShaFromUrl,
-  fetchRepoHeadSha,
-  isHostedRegistryApprovedEntry,
-  resolveDemoRegistryEntryBaseUrl,
-  shouldDemoSurfaceRemoteRegistryEntry,
-  validateLocalHfEntryShape,
-} from '../../src/tooling/hf-registry-utils.js';
+import { buildHostedRegistryPayload, buildPublishedRegistryEntry, isHostedRegistryApprovedEntry, validateLocalHfEntryShape } from '../../src/tooling/hf-registry/publish-shaping.js';
+import { buildHfResolveUrl, buildManifestUrl, buildShardUrl, extractCommitShaFromUrl, resolveDemoRegistryEntryBaseUrl, shouldDemoSurfaceRemoteRegistryEntry } from '../../src/tooling/hf-registry/registry-urls.js';
+import { collectDuplicateModelIds } from '../../src/tooling/hf-registry/catalog-io.js';
+import { fetchRepoHeadSha } from '../../src/tooling/hf-registry/network-probes.js';
 
 {
   assert.equal(

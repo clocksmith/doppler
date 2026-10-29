@@ -1,4 +1,4 @@
-import { sha256BytesHex } from '../../src/utils/sha256.js';
+import { sha256BytesHex } from '../../src/formats/sha256.js';
 
 function requireObject(value, label) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {

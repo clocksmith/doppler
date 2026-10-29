@@ -6,7 +6,7 @@ import { dirname, extname, resolve, sep } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-import { sha256BytesHex } from '../src/utils/sha256.js';
+import { sha256BytesHex } from '../src/formats/sha256.js';
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const DEFAULT_OUTPUT = 'reports/training/native-parity/f16-matmul-backward-oracle.json';
@@ -96,7 +96,7 @@ async function main(argv = process.argv.slice(2)) {
       }).trim().length > 0,
       sourceHashes: {
         shader: await fileHash('src/gpu/kernels/backward/matmul_backward_f16w.wgsl'),
-        wrapper: await fileHash('src/gpu/kernels/backward/utils.js'),
+        wrapper: await fileHash('src/gpu/kernels/backward/matmul.js'),
         autograd: await fileHash('src/experimental/training/autograd.js'),
         oracle: await fileHash('tests/training/browser/f16-matmul-backward-oracle.js'),
       },

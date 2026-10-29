@@ -10,17 +10,15 @@ import { createTensor } from '../../../src/gpu/tensor.js';
 // Ensure platform/registry lookups resolve to the main config paths when bundled
 import { setPlatformsBaseUrl } from '../../../src/config/platforms/loader.js';
 import { setRegistryUrl } from '../../../src/config/kernels/registry.js';
-import { createPipeline, createUniformBufferWithView } from '../../../src/gpu/kernels/utils.js';
+import { createPipeline } from '../../../src/gpu/kernels/pipeline-cache.js';
+import { createUniformBufferWithView } from '../../../src/gpu/kernels/uniform-utils.js';
 import { dispatch } from '../../../src/gpu/kernels/dispatch.js';
 
 // Kernel path can be injected via URL param for targeted tests
 import { resolveKernelPath, setActiveKernelPath } from '../../../src/config/kernel-path-loader.js';
 
-import {
-  runBackwardKernel,
-  recordBackwardKernel,
-  runMatmulTransposeA,
-} from '../../../src/gpu/kernels/backward/utils.js';
+import { runBackwardKernel, recordBackwardKernel } from '../../../src/gpu/kernels/backward/executor.js';
+import { runMatmulTransposeA } from '../../../src/gpu/kernels/backward/matmul.js';
 import * as kernelSelector from '../../../src/gpu/kernel-selector.js';
 
 // Destructure available functions with defaults

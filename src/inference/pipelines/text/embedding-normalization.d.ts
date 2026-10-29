@@ -1,4 +1,4 @@
-import type { CommandRecorder } from '../../../gpu/kernel-selector.js';
+import type { CommandRecorder } from '../../../gpu/command-recorder.js';
 import type { Tensor } from '../../../gpu/tensor.js';
 import type { WeightlessEmbeddingNormalization } from './embedding-contract.js';
 

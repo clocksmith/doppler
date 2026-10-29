@@ -11,10 +11,7 @@ import { mergeKernelPathPolicy } from '../../../config/merge/kernel-path-policy.
 import { mergeRuntimeValues } from '../../../config/runtime-merge.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { buildOpIdFromExecutionStep } from './operator-identity.js';
-import {
-  resolveCapabilityTransforms,
-  resolveFinitenessFallbackTransform,
-} from '../../../config/transforms/capability-transform-resolver.js';
+import { resolveCapabilityTransforms, resolveFinitenessFallbackTransform } from '../../../converter/capability-transform-resolver.js';
 import { composeTransforms } from '../../../converter/execution-graph-transforms.js';
 import { log } from '../../../debug/index.js';
 import { kernelPathRequiresWeightDtype } from '../../../config/kernel-path-loader.js';

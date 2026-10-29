@@ -3,7 +3,7 @@ import { isNativeGpuBuffer as isGpuBufferInstance } from '../gpu/buffer-identity
 
 import { getDevice } from '../gpu/device.js';
 import { getWeightDtype, isWeightBuffer } from '../gpu/weight-buffer.js';
-import { runMatmul } from '../gpu/kernel-selector.js';
+import { runMatmul } from '../gpu/kernels/matmul.js';
 import { createTensor } from '../gpu/tensor.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { getShaderModule } from '../gpu/kernels/shader-cache.js';

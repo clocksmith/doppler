@@ -9,7 +9,7 @@ import { allowReadback } from '../../../../gpu/perf-guards.js';
 import { readBuffer } from '../../../../memory/buffer-pool.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { isPlainObject } from '../../../../formats/plain-object.js';
-import { decodeReadback } from '../debug-utils/index.js';
+import { decodeReadback } from '../debug-utils/readback-decoding.js';
 import { resolveActiveExecutionPlan } from '../execution-plan.js';
 import { resolveRangeAwareSelectiveWideningConfig } from '../finiteness-policy.js';
 

@@ -3,7 +3,7 @@ import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { loadBackwardRegistry } from '../../../config/backward-registry-loader.js';
 import { acquireBuffer, readBuffer, releaseBuffer, uploadData } from '../../../memory/buffer-pool.js';
-import { runMatmul } from '../../../gpu/kernels/index.js';
+import { runMatmul } from '../../../gpu/kernels/matmul.js';
 import { runResidualAdd } from '../../../gpu/kernels/residual.js';
 import { parseJsonl } from '../datasets/jsonl.js';
 import { loadTextPairsDataset, tokenizeTextPairs } from '../datasets/text-pairs.js';

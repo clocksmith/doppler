@@ -8,7 +8,7 @@
 // and the sum/residual semantics.
 
 import assert from 'node:assert/strict';
-import { buildFirstLoadComposition } from '../../src/inference/browser-harness-suite-helpers.js';
+import { buildFirstLoadComposition } from '../../src/inference/browser-harness/timing-diagnostics.js';
 
 // Case 1: all six components present — sums and residuals resolve.
 {

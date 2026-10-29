@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import { runForgePipeline, stageAnalyze, stageInspect, stageNormalize, stageLower, stageSpecialize } from '../../src/converter/forge-stages.js';
 import { buildQualificationRecords } from '../../src/converter/forge-qualification.js';
 import { createInitialExecutionIdentityV2 } from '../../src/config/initial-execution-identity.js';
-import { sha256Hex } from '../../src/utils/sha256.js';
+import { sha256Hex } from '../../src/formats/sha256.js';
 import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
 import { createRerankReferenceFixture } from '../helpers/rerank-reference-fixture.js';
 import { createEmbeddingReferenceFixture } from '../helpers/embedding-reference-fixture.js';

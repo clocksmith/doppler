@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { getRuntimeConfig, setRuntimeConfig } from '../src/config/runtime.js';
 import { initializeInference } from '../src/inference/test-harness.js';
-import { applyRuntimeProfile } from '../src/inference/browser-harness-runtime-helpers.js';
+import { applyRuntimeProfile } from '../src/inference/browser-harness/runtime-config.js';
 import { getTopK } from '../src/inference/pipelines/text/sampling.js';
 import { decodeFloatWeights } from '../src/inference/pipelines/text/generator-runtime.js';
 import { readBufferSlice } from '../src/memory/buffer-pool.js';

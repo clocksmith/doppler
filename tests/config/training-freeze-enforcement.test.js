@@ -6,7 +6,7 @@ import { AdamOptimizer } from '../../src/experimental/training/optimizer.js';
 import { crossEntropyLoss } from '../../src/experimental/training/loss.js';
 import { clipGradients } from '../../src/experimental/training/clip.js';
 import { OpType } from '../../src/experimental/training/autograd.js';
-import { runMatmul } from '../../src/gpu/kernels/index.js';
+import { runMatmul } from '../../src/gpu/kernels/matmul.js';
 import { createTensor } from '../../src/gpu/tensor.js';
 import { acquireBuffer, uploadData, readBuffer, releaseBuffer } from '../../src/memory/buffer-pool.js';
 import { probeNodeGPU } from '../helpers/gpu-probe.js';

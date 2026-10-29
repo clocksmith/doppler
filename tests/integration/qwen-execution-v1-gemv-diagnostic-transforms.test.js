@@ -1,9 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const { resolveCapabilityTransforms } = await import(
-  '../../src/config/transforms/capability-transform-resolver.js'
-);
+const { resolveCapabilityTransforms } = await import('../../src/converter/capability-transform-resolver.js');
 const { composeTransforms, remapQ4KDecodeToGemv, remapQ4KDecodeFFNToGemv, remapQ4KDecodeAttentionToGemv, remapQ4KDecodeAttentionToFusedQ4KGemv, remapQ4KPrefillToDense } = await import(
   '../../src/config/transforms/execution-graph-transforms.js'
 );

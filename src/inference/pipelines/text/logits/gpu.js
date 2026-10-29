@@ -1,6 +1,8 @@
 import { getDevice, getKernelCapabilities } from '../../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../../../../memory/buffer-pool.js';
-import { runMatmul, runRMSNorm, runScale } from '../../../../gpu/kernel-selector.js';
+import { runMatmul } from '../../../../gpu/kernels/matmul.js';
+import { runRMSNorm } from '../../../../gpu/kernels/rmsnorm.js';
+import { runScale } from '../../../../gpu/kernels/scale.js';
 import { createTensor } from '../../../../gpu/tensor.js';
 import { castF16ToF32, castF32ToF16 } from '../../../../gpu/kernels/cast.js';
 import {

@@ -2,11 +2,13 @@ import { getDevice } from '../../../gpu/device.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { createWeightBuffer, requireWeightDtype } from '../../../gpu/weight-buffer.js';
 import { acquireBuffer, readBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
-import { runLayerNorm, runMatmul, runRMSNorm } from '../../../gpu/kernel-selector.js';
+import { runLayerNorm } from '../../../gpu/kernels/layernorm.js';
+import { runMatmul } from '../../../gpu/kernels/matmul.js';
+import { runRMSNorm } from '../../../gpu/kernels/rmsnorm.js';
 import { runBiasAdd } from '../../../gpu/kernels/residual.js';
 import { runEmbeddingPool } from '../../../gpu/kernels/embedding-pool.js';
 import { runL2Normalize } from '../../../gpu/kernels/l2-normalize.js';
-import { decodeReadback } from './debug-utils/index.js';
+import { decodeReadback } from './debug-utils/readback-decoding.js';
 import { resolveFinalNormGpuBuffer } from './logits/gpu-executor.js';
 
 function buildSequencePoolControl(tokenIds, pooling) {

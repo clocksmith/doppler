@@ -3,30 +3,15 @@ import { createTensor } from '../../gpu/tensor.js';
 import { getBuffer, requireWeightDtype } from '../../gpu/weight-buffer.js';
 import { acquireBuffer, readBuffer } from '../../memory/buffer-pool.js';
 import { CommandRecorder } from '../../gpu/command-recorder.js';
-import {
-  runGather,
-  runLayerNorm,
-  runRMSNorm,
-  runMatmul,
-  runAttention,
-  runGeLU,
-  runSiLU,
-  runSiLURowSplit,
-  runScale,
-  runResidualAdd,
-  runBiasAdd,
-  recordGather,
-  recordLayerNorm,
-  recordRMSNorm,
-  recordMatmul,
-  recordAttention,
-  recordGeLU,
-  recordSiLU,
-  recordSiLURowSplit,
-  recordScale,
-  recordResidualAdd,
-  recordBiasAdd,
-} from '../../gpu/kernels/index.js';
+import { runGather, recordGather } from '../../gpu/kernels/gather.js';
+import { runLayerNorm, recordLayerNorm } from '../../gpu/kernels/layernorm.js';
+import { runRMSNorm, recordRMSNorm } from '../../gpu/kernels/rmsnorm.js';
+import { runMatmul, recordMatmul } from '../../gpu/kernels/matmul.js';
+import { runAttention, recordAttention } from '../../gpu/kernels/attention.js';
+import { runGeLU, recordGeLU } from '../../gpu/kernels/gelu.js';
+import { runSiLU, runSiLURowSplit, recordSiLU, recordSiLURowSplit } from '../../gpu/kernels/silu.js';
+import { runScale, recordScale } from '../../gpu/kernels/scale.js';
+import { runResidualAdd, runBiasAdd, recordResidualAdd, recordBiasAdd } from '../../gpu/kernels/residual.js';
 import { createSD3WeightResolver } from '../../inference/pipelines/diffusion/sd3-weights.js';
 import { f32ToF16Array } from '../../inference/kv-cache/types.js';
 import { sumDiffusionProfileTimings } from '../../inference/pipelines/diffusion/profile-timing.js';

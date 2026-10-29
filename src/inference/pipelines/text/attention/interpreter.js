@@ -3,19 +3,15 @@ import { recordAttentionCacheCast } from './cache-cast.js';
 import { isGpuBufferInstance, isWeightBuffer, getWeightDtype, requireWeightDtype } from '../../../../gpu/weight-buffer.js';
 import { getKernelCapabilities } from '../../../../gpu/device.js';
 import { acquireBuffer } from '../../../../memory/buffer-pool.js';
-import {
-  recordMatmul,
-  recordRMSNorm,
-  recordLayerNorm,
-  recordBiasAdd,
-  recordRoPE,
-  canUseRoPEQK,
-  recordRoPEQK,
-  recordSiLU,
-  recordCastF16ToF32,
-  recordCastF32ToF16,
-  recordMatmulResidualFused,
-} from '../../../../gpu/kernel-selector.js';
+import { recordMatmul } from '../../../../gpu/kernels/matmul.js';
+import { recordRMSNorm } from '../../../../gpu/kernels/rmsnorm.js';
+import { recordLayerNorm } from '../../../../gpu/kernels/layernorm.js';
+import { recordBiasAdd } from '../../../../gpu/kernels/residual.js';
+import { recordRoPE } from '../../../../gpu/kernels/rope.js';
+import { canUseRoPEQK, recordRoPEQK } from '../../../../gpu/kernels/rope-qk.js';
+import { recordSiLU } from '../../../../gpu/kernels/silu.js';
+import { recordCastF16ToF32, recordCastF32ToF16 } from '../../../../gpu/kernels/cast.js';
+import { recordMatmulResidualFused } from '../../../../gpu/kernels/fused_matmul_residual.js';
 import { createTensor } from '../../../../gpu/tensor.js';
 import { applyLoRA } from '../lora-apply.js';
 import { getLoRAModule } from '../lora.js';
@@ -67,7 +63,7 @@ import { createRecordedResourceScope } from '../../../resource-scope.js';
 import { captureAttentionRefactorReceipt } from './receipt.js';
 import { observeAttentionRoPE } from './rope-observation.js';
 import { applyAttentionQueryScale } from './query-transform.js';
-import { resolveQueryScale } from './heterogeneous-contract.js';
+import { resolveQueryScale } from '../../../../config/heterogeneous-attention-contract.js';
 import { enqueueRecordedTensorHealth, shouldTraceRecordedHealth } from './recorded-health.js';
 import { finalizeRecordedAttentionSuccess, resolveDirectF16KVCacheWrite, runRecordedAttentionCore } from './interpreter/recorded.js';
 import { assertAttentionDtypeTransitionAllowed, resolveRecordedAttentionDispatch } from './interpreter/immediate.js';

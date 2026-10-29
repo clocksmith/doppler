@@ -1,18 +1,15 @@
 import { log } from '../../../debug/index.js';
 import { createTensor } from '../../../gpu/tensor.js';
-import {
-  runAttention,
-  runBiasAdd,
-  runGeLU,
-  runLayerNorm,
-  runMatmul,
-  runResidualAdd,
-  runRMSNorm,
-  runSiLU,
-  runSplitQKV,
-  runVisionRope2D,
-  runVisionSpatialMerge,
-} from '../../../gpu/kernel-selector.js';
+import { runAttention } from '../../../gpu/kernels/attention.js';
+import { runBiasAdd, runResidualAdd } from '../../../gpu/kernels/residual.js';
+import { runGeLU } from '../../../gpu/kernels/gelu.js';
+import { runLayerNorm } from '../../../gpu/kernels/layernorm.js';
+import { runMatmul } from '../../../gpu/kernels/matmul.js';
+import { runRMSNorm } from '../../../gpu/kernels/rmsnorm.js';
+import { runSiLU } from '../../../gpu/kernels/silu.js';
+import { runSplitQKV } from '../../../gpu/kernels/split_qkv.js';
+import { runVisionRope2D } from '../../../gpu/kernels/vision-rope-2d.js';
+import { runVisionSpatialMerge } from '../../../gpu/kernels/vision-spatial-merge.js';
 import { acquireBuffer, releaseBuffer, uploadData } from '../../../memory/buffer-pool.js';
 import { getBuffer, getWeightDtype, requireWeightDtype } from '../../../gpu/weight-buffer.js';
 import { createImmediateResourceScope } from '../../resource-scope.js';

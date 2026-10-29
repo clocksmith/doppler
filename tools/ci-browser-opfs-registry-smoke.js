@@ -9,11 +9,8 @@ import { createHash } from 'node:crypto';
 import { runBrowserCommandInNode } from '../src/tooling/node-browser-command-runner.js';
 import { parseManifest } from '../src/formats/rdrr/index.js';
 import { getSourceRuntimeMetadata } from '../src/tooling/source-runtime-bundle.js';
-import {
-  buildEntryRemoteBaseUrl,
-  findCatalogEntry,
-  loadJsonFile,
-} from '../src/tooling/hf-registry-utils.js';
+import { buildEntryRemoteBaseUrl } from '../src/tooling/hf-registry/registry-urls.js';
+import { findCatalogEntry, loadJsonFile } from '../src/tooling/hf-registry/catalog-io.js';
 import { validateSequenceReference } from './lib/sequence-model-qualification.js';
 
 const DEFAULT_MODEL_ID = 'gemma-3-270m-it-q4k-ehf16-af32';

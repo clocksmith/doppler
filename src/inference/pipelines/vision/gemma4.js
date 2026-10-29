@@ -3,13 +3,11 @@ import { createTensor } from '../../../gpu/tensor.js';
 import { runVisionAveragePool } from '../../../gpu/kernels/vision-average-pool.js';
 import { runVisionPositionEmbedding } from '../../../gpu/kernels/vision-position-embedding.js';
 import { runVisionRope2D } from '../../../gpu/kernels/vision-rope-2d.js';
-import {
-  runAttention,
-  runGeLU,
-  runMatmul,
-  runResidualAdd,
-  runRMSNorm,
-} from '../../../gpu/kernel-selector.js';
+import { runAttention } from '../../../gpu/kernels/attention.js';
+import { runGeLU } from '../../../gpu/kernels/gelu.js';
+import { runMatmul } from '../../../gpu/kernels/matmul.js';
+import { runResidualAdd } from '../../../gpu/kernels/residual.js';
+import { runRMSNorm } from '../../../gpu/kernels/rmsnorm.js';
 import { acquireBuffer, releaseBuffer, uploadData } from '../../../memory/buffer-pool.js';
 import { createImmediateResourceScope } from '../../resource-scope.js';
 import { getQKNormOnesBuffer } from '../text/attention/types.js';

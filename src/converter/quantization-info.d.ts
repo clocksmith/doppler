@@ -5,7 +5,7 @@
  */
 
 import type { ConvertOptions } from './core.js';
-import type { ConverterConfigSchema, QuantizationInfoSchema } from '../config/index.js';
+import type { ConverterConfigSchema, QuantizationInfoSchema } from '../config/schema/index.js';
 
 export declare function normalizeQuantTag(value: string | null | undefined): string;
 

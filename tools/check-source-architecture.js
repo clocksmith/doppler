@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
-import { readJsonAtGitRef, resolvePolicyBaseRef } from './lib/policy-base.js';
+import { readJsonAtGitRef, readTextAtGitRef, resolvePolicyBaseRef } from './lib/policy-base.js';
 import { validateArchitecturePolicyDelta } from './lib/source-architecture-debt.js';
 import { collectModuleSpecifiers, collectStronglyConnectedComponents, buildDependencyGraph } from './lib/module-dependencies.js';
 
@@ -255,6 +255,29 @@ async function validateConstitutionalDomains(policy, sourceRoot, files, errors) 
   }
 }
 
+// Baseline facade dependencies that were pure re-export modules and have since
+// been deleted, mapped to the modules they forwarded to at the base revision.
+async function collectRemovedForwarders(baselinePolicy, baseRef, sourceRoot) {
+  const removed = {};
+  const candidates = new Set(Object.values(baselinePolicy.facadeDependencies ?? {}).flat());
+  for (const relative of candidates) {
+    const current = path.join(sourceRoot, relative);
+    if (await fs.access(current).then(() => true, () => false)) continue;
+    let source;
+    try {
+      source = readTextAtGitRef(repoRoot, baseRef, toPosix(path.join(baselinePolicy.sourceRoot, relative)));
+    } catch {
+      continue;
+    }
+    const stripped = source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+    const statement = /export\s+(?:\*(?:\s+as\s+\w+)?|\{[^}]*\})\s+from\s+['"]([^'"]+)['"]\s*;?/g;
+    if (stripped.replace(statement, '').trim() !== '') continue;
+    removed[relative] = [...stripped.matchAll(statement)]
+      .map((match) => toPosix(path.normalize(path.join(path.dirname(relative), match[1]))));
+  }
+  return removed;
+}
+
 async function main() {
   const policy = JSON.parse(await fs.readFile(policyPath, 'utf8'));
   const baseRef = resolvePolicyBaseRef(process.argv.slice(2));
@@ -267,7 +290,8 @@ async function main() {
   const errors = validateArchitecturePolicyDelta(
     policy,
     baselinePolicy,
-    process.env.DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION ?? null
+    process.env.DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION ?? null,
+    await collectRemovedForwarders(baselinePolicy, baseRef, sourceRoot)
   );
   const actualOwners = (await fs.readdir(sourceRoot, { withFileTypes: true }))
     .filter((entry) => entry.isDirectory())

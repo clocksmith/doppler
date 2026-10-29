@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 import { createTensor } from '../../src/gpu/tensor.js';
-import { decodeReadback } from '../../src/inference/pipelines/text/debug-utils/index.js';
+import { decodeReadback } from '../../src/inference/pipelines/text/debug-utils/readback-decoding.js';
 
 // Import-only executor substitutions exercise the real generation orchestrators.
 // No GPU computation, shader accuracy or whole-model acceptance is claimed.

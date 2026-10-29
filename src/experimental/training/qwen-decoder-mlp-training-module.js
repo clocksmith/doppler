@@ -1,4 +1,5 @@
-import { runResidualAdd, runSiLU } from '../../gpu/kernels/index.js';
+import { runResidualAdd } from '../../gpu/kernels/residual.js';
+import { runSiLU } from '../../gpu/kernels/silu.js';
 import { runSiluGatedBackward } from '../../gpu/kernels/backward/index.js';
 import { releaseBuffer } from '../../memory/buffer-pool.js';
 import {

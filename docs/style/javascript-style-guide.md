@@ -640,7 +640,7 @@ This pattern applies to: `gather.js`, `residual.js`, and any kernel using `vec4<
 Quantization block sizes are **invariants** derived from the format spec, defined once in a single module and never redefined.
 
 ```javascript
-// loader/quantization-constants.js
+// config/schema/quantization.schema.js
 export { QK_K, K_SCALE_SIZE } from '../converter/quantizer.js';
 
 // Block byte sizes - derived from format spec, never hardcode elsewhere

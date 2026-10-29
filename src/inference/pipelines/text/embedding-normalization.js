@@ -1,4 +1,4 @@
-import { runRMSNorm, recordRMSNorm } from '../../../gpu/kernel-selector.js';
+import { runRMSNorm, recordRMSNorm } from '../../../gpu/kernels/rmsnorm.js';
 import { getConstantVectorBuffer } from '../../../gpu/constant-buffer.js';
 import { releaseBuffer } from '../../../memory/buffer-pool.js';
 import { runProbes } from './probes.js';

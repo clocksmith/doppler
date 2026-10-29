@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-import { resolveMatmulBackwardDxVariant } from '../../src/gpu/kernels/backward/utils.js';
+import { resolveMatmulBackwardDxVariant } from '../../src/gpu/kernels/backward/matmul.js';
 import { resolveMatmulBackwardOptions } from '../../src/experimental/training/autograd.js';
 
 const [wrapper, shader, f16Shader, q4kShader] = await Promise.all([

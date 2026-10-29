@@ -7,8 +7,8 @@ import {
   buildTrainerArtifactImportPlan,
   validateTrainerArtifactBridgeDescriptor,
 } from '../../src/experimental/bridge/trainer-artifact-bridge.js';
-import { sha256Hex } from '../../src/utils/sha256.js';
-import { stableSortObject } from '../../src/utils/stable-sort-object.js';
+import { sha256Hex } from '../../src/formats/sha256.js';
+import { stableSortObject } from '../../src/formats/stable-sort-object.js';
 
 const repoRoot = process.cwd();
 const receiptPath = path.join(

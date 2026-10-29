@@ -8,7 +8,7 @@ import { runBrowserCommandInNode } from '../src/tooling/node-browser-command-run
 import { writeProgramBundle } from '../src/tooling/program-bundle.js';
 import { destroyDevice } from '../src/gpu/device.js';
 import { releaseNodeWebGPU } from '../src/tooling/node-webgpu.js';
-import { sha256Hex } from '../src/utils/sha256.js';
+import { sha256Hex } from '../src/formats/sha256.js';
 
 const DEFAULT_PROMPT = 'The color of the sky is';
 const DEFAULT_MAX_TOKENS = 8;

@@ -8,16 +8,9 @@ import {
   isWeightBuffer,
 } from '../../../../gpu/weight-buffer.js';
 import { createTensor } from '../../../../gpu/tensor.js';
-import {
-  castF16ToF32,
-  castF32ToF16,
-  recordActivationStaticQdq,
-  recordCastF16ToF32,
-  recordCastF32ToF16,
-  recordScale,
-  runActivationStaticQdq,
-  runScale,
-} from '../../../../gpu/kernel-selector.js';
+import { castF16ToF32, castF32ToF16, recordCastF16ToF32, recordCastF32ToF16 } from '../../../../gpu/kernels/cast.js';
+import { recordActivationStaticQdq, runActivationStaticQdq } from '../../../../gpu/kernels/activation-static-qdq.js';
+import { recordScale, runScale } from '../../../../gpu/kernels/scale.js';
 import { getNormWeightBuffer, getWeightBuffer } from '../weights.js';
 import { doCast, doMatmul, doRMSNorm, releaseOrTrack } from '../ops.js';
 import { runProbes } from '../probes.js';

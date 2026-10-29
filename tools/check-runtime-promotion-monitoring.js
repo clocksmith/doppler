@@ -7,7 +7,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { isPlainObject } from '../src/formats/plain-object.js';
 import { validateRevocationRegistry, findResolutionRevocation } from '../src/config/revocation-policy.js';
-import { computeCanonicalSha256 } from '../src/utils/canonical-hash.js';
+import { computeCanonicalSha256 } from '../src/formats/canonical-hash.js';
 import {
   validateRuntimePromotionActivationEvidence,
   validateRuntimePromotionDecisionEvidence,

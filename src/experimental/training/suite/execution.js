@@ -2,10 +2,8 @@ import { initDevice, getKernelCapabilities, getDevice } from '../../../gpu/devic
 import { setPlatformsBaseUrl } from '../../../config/platforms/loader.js';
 import { setRegistryUrl } from '../../../config/kernels/registry.js';
 import { createTrainingConfig } from '../../../config/training-defaults.js';
-import {
-  runMatmul,
-  runResidualAdd,
-} from '../../../gpu/kernels/index.js';
+import { runMatmul } from '../../../gpu/kernels/matmul.js';
+import { runResidualAdd } from '../../../gpu/kernels/residual.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { acquireBuffer, uploadData, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { OpType } from '../autograd.js';

@@ -1,15 +1,8 @@
 import assert from 'node:assert/strict';
 
-const {
-  chooseNullish,
-  chooseDefined,
-  chooseDefinedWithSource,
-  mergeShallowObject,
-  mergeLayeredShallowObjects,
-  replaceSubtree,
-  mergeKernelPathPolicy,
-  mergeExecutionPatchLists,
-} = await import('../../src/config/merge-helpers.js');
+const { chooseNullish, chooseDefined, chooseDefinedWithSource, mergeShallowObject, mergeLayeredShallowObjects, replaceSubtree } = await import('../../src/config/merge/value-selection.js');
+const { mergeKernelPathPolicy } = await import('../../src/config/merge/kernel-path-policy.js');
+const { mergeExecutionPatchLists } = await import('../../src/config/merge/execution-patches.js');
 
 // === chooseNullish ===
 

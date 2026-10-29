@@ -1,4 +1,5 @@
-import { runRMSNorm, runResidualAdd } from '../../gpu/kernels/index.js';
+import { runRMSNorm } from '../../gpu/kernels/rmsnorm.js';
+import { runResidualAdd } from '../../gpu/kernels/residual.js';
 import { runRmsNormBackward } from '../../gpu/kernels/backward/index.js';
 import { releaseBuffer } from '../../memory/buffer-pool.js';
 import {

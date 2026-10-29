@@ -2,7 +2,7 @@ import { collectRequiredImprovementEvalIds, sortTrainingReports, summarizeQualit
 import { readFile, readdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { uploadData } from '../../memory/buffer-pool.js';
-import { runMatmul } from '../../gpu/kernels/index.js';
+import { runMatmul } from '../../gpu/kernels/matmul.js';
 import { runResidualAdd } from '../../gpu/kernels/residual.js';
 import { LoraAdapter } from './lora.js';
 import { TrainingRunner, restoreTrainingCheckpointState } from './runner.js';

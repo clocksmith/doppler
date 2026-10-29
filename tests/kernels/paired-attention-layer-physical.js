@@ -37,8 +37,8 @@ try {
     const { CommandRecorder } = await import('/src/gpu/command-recorder.js');
     const { getNormWeightBuffer } = await import('/src/inference/pipelines/text/weights.js');
     const { KVCache } = await import('/src/inference/kv-cache/base.js');
-    const { runLayerAttentionGPU } = await import('/src/inference/pipelines/text/attention/run.js');
-    const { recordLayerAttentionGPU } = await import('/src/inference/pipelines/text/attention/record.js');
+    const { runLayerAttentionGPU } = await import('/src/inference/pipelines/text/attention/executor-immediate.js');
+    const { recordLayerAttentionGPU } = await import('/src/inference/pipelines/text/attention/executor-recorded.js');
     const { runRoPEPrecompute } = await import('/src/gpu/kernels/rope-precompute.js');
     const { readBufferSlice, releaseBuffer, destroyBufferPool, getBufferPool } = await import('/src/memory/buffer-pool.js');
     const adapter = await navigator.gpu.requestAdapter();

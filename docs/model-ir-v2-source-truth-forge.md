@@ -173,7 +173,7 @@ or `candidateEvaluationPath` in its JSON config. That JSON contains `contract`,
 `searchReceipt` and the input-file identity with its ordinary build receipt.
 Keep the input and receipt together; neither is automatic public promotion.
 
-Repository/host I/O remains in `src/tooling/model-capsule-forge.js`; compilation,
+Repository/host I/O remains in `src/tooling/model-capsule-rig.js`; compilation,
 semantic decisions, and this selection algorithm remain under `src/converter/`.
 The architecture gate prevents the Rig algorithm from importing model-host
 composition or Capsule execution. This split is intentional, not two Rig engines.

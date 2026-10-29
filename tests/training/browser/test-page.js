@@ -4,28 +4,14 @@ import { setPlatformsBaseUrl } from '../../../src/config/platforms/loader.js';
 import { setRegistryUrl } from '../../../src/config/kernels/registry.js';
 import { createTensor } from '../../../src/gpu/tensor.js';
 import { acquireBuffer, uploadData, readBuffer, getBufferPool } from '../../../src/memory/buffer-pool.js';
-import {
-  runSoftmax,
-  runCrossEntropyLoss,
-  runCrossEntropyBackward,
-  runSoftmaxBackward,
-  recordSoftmax,
-  recordSoftmaxBackward,
-  runRmsNormBackward,
-  runEmbedBackward,
-  runMatmul,
-  runMatmulBackward,
-  runGeLU,
-  runScale,
-  recordMatmul,
-  recordGeLU,
-  recordScale,
-  recordResidualAdd,
-  recordMatmulBackward,
-  recordGeluBackward,
-  recordAdam,
-  createCommandRecorder,
-} from '../../../src/gpu/kernels/index.js';
+import { runSoftmax, recordSoftmax } from '../../../src/gpu/kernels/softmax.js';
+import { runCrossEntropyLoss } from '../../../src/gpu/kernels/cross_entropy_loss.js';
+import { runCrossEntropyBackward, runSoftmaxBackward, recordSoftmaxBackward, runRmsNormBackward, runEmbedBackward, runMatmulBackward, recordMatmulBackward, recordGeluBackward, recordAdam } from '../../../src/gpu/kernels/backward/index.js';
+import { runMatmul, recordMatmul } from '../../../src/gpu/kernels/matmul.js';
+import { runGeLU, recordGeLU } from '../../../src/gpu/kernels/gelu.js';
+import { runScale, recordScale } from '../../../src/gpu/kernels/scale.js';
+import { recordResidualAdd } from '../../../src/gpu/kernels/residual.js';
+import { createCommandRecorder } from '../../../src/gpu/command-recorder.js';
 import { AutogradTape, OpType } from '../../../src/experimental/training/autograd.js';
 import { trainStep } from '../../../src/experimental/training/trainer.js';
 import { createTrainingConfig } from '../../../src/config/training-defaults.js';

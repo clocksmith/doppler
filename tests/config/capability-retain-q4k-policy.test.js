@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 
 import { disableRetainQ4KMaterialization } from '../../src/config/transforms/execution-graph-transforms.js';
-import { resolveCapabilityTransforms } from '../../src/config/transforms/capability-transform-resolver.js';
+import { resolveCapabilityTransforms } from '../../src/converter/capability-transform-resolver.js';
 
 {
   const r = resolveCapabilityTransforms(

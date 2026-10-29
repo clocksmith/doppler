@@ -197,7 +197,7 @@
       ],
       "entrypoints": [
         "src/tooling/source-artifact-adapter.js",
-        "src/client/runtime/source-runtime.js",
+        "src/client/model-host/source-loading.js",
         "src/tooling/litert-package-runtime.js"
       ],
       "notes": "Available direct-source path for safetensors, gguf, .tflite, .task, and .litertlm inputs, but not part of the quickstart or canonical demo proof."

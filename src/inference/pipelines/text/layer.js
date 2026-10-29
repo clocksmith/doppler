@@ -4,22 +4,23 @@ import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
 import { releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
 import { allowReadback } from '../../../gpu/perf-guards.js';
 import { createTensor } from '../../../gpu/tensor.js';
-import { recordScale, runScale } from '../../../gpu/kernel-selector.js';
+import { recordScale, runScale } from '../../../gpu/kernels/scale.js';
 import {
   doAttention, doRMSNorm, doSandwichRMSNormPair, doResidualAdd, doMatmul, doGeLU,
   doConv,
   doCast,
   releaseOrTrack
 } from './ops.js';
-import {
-  processFFNWithSandwichNorm,
-  processFFNStandard
-} from './ffn/index.js';
+import { processFFNWithSandwichNorm } from './ffn/sandwich.js';
+import { processFFNStandard } from './ffn/standard.js';
 import { getWeightBuffer, getNormWeightBuffer } from './weights.js';
-import { logLayer, logAttn, getBufferStats, isKernelDebugEnabled, dumpTokenVector, logKernelStep, shouldDebugLayerOutput } from './debug-utils/index.js';
+import { logLayer, logAttn } from './debug-utils/logging.js';
+import { getBufferStats } from './debug-utils/health-metrics.js';
+import { isKernelDebugEnabled, dumpTokenVector, logKernelStep } from './debug-utils/tensor.js';
+import { shouldDebugLayerOutput } from './debug-utils/config.js';
 import { runProbes } from './probes.js';
 import { recordCheckFiniteness } from '../../../gpu/kernels/check-finiteness.js';
-import { RMSNORM_PAIR_CACHE_LIMIT } from '../../../gpu/kernel-selector.js';
+import { RMSNORM_PAIR_CACHE_LIMIT } from '../../../gpu/kernels/rmsnorm-pair.js';
 import { shouldRunFinitenessGuard } from './finiteness-policy.js';
 import { releasePrecomputedInputNorm, takePrecomputedInputNorm } from './precomputed-input-norm.js';
 import { runLinearAttentionLayer } from './linear-attention.js';
@@ -27,7 +28,7 @@ import { validateAttnConfig } from './attention/attn-config.js';
 import { createPerLayerInputTensor, resolveDensePleProjectionWeight } from './per-layer-inputs.js';
 import { isGpuBufferInstance, isWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { processLayerPlanGPU } from './layer-plan-gpu.js';
-import { isRoPEDisabledForLayer } from './attention/heterogeneous-contract.js';
+import { isRoPEDisabledForLayer } from '../../../config/heterogeneous-attention-contract.js';
 import { postNormContractMatchesBase } from './normalization-contract.js';
 import {
   applyPerLayerInputBlock,

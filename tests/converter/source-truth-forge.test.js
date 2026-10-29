@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { forgeModelIRV2 } from '../../src/converter/source-truth-forge.js';
-import { sha256Hex } from '../../src/utils/sha256.js';
-import { stableSortObject } from '../../src/utils/stable-sort-object.js';
+import { sha256Hex } from '../../src/formats/sha256.js';
+import { stableSortObject } from '../../src/formats/stable-sort-object.js';
 
 const digest = (value) => `sha256:${sha256Hex(JSON.stringify(stableSortObject(value)))}`;
 const config = { model_type: 'fixture', layer_types: ['linear_attention', 'full_attention'], hidden_size: 8 };

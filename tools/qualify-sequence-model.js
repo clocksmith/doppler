@@ -18,7 +18,7 @@ import {
   resetDeviceState,
 } from '../src/gpu/device.js';
 import { destroyBufferPool } from '../src/memory/buffer-pool.js';
-import { sha256BytesHex } from '../src/utils/sha256.js';
+import { sha256BytesHex } from '../src/formats/sha256.js';
 import { hashStableJson } from '../src/tooling/program-bundle/materialize.js';
 import { observeInitialExecutionIdentity } from '../src/config/initial-execution-identity.js';
 import { parseManifest } from '../src/formats/rdrr/parsing.js';

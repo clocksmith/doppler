@@ -1,6 +1,6 @@
 
 import { getDevice } from '../../gpu/device.js';
-import { runKVQuantize, recordKVQuantize } from '../../gpu/kernel-selector.js';
+import { runKVQuantize, recordKVQuantize } from '../../gpu/kernels/kv-quantize.js';
 import { KVCache } from './base.js';
 import { SlidingWindowKVCache } from './sliding-window.js';
 import {

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { finalizeLogits } from '../../src/inference/pipelines/text/logits/utils.js';
+import { finalizeLogits } from '../../src/inference/pipelines/text/logits/cpu-output.js';
 
 const config = {
   logitOutputScale: 0.5,

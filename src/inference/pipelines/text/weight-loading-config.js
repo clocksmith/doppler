@@ -7,7 +7,7 @@ import {
   kernelPathRequiresBF16Weights,
   kernelPathRequiresF32MatmulWeights,
 } from '../../../config/kernel-path-loader.js';
-import { resolveCapabilityTransforms } from '../../../config/transforms/capability-transform-resolver.js';
+import { resolveCapabilityTransforms } from '../../../converter/capability-transform-resolver.js';
 
 const Q4K_LAYOUT_ALLOWLIST = new Set(['row', 'col']);
 const Q4K_PROJECTION_OPS = new Set([

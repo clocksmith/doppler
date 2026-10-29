@@ -4,7 +4,7 @@ import { mergeConfig, dumpConfigSources } from '../../../config/merge.js';
 import { validateModelOverrides } from '../../../config/param-validator.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { resolveLinearAttentionConfig } from './config-components.js';
-import { appendHeterogeneousAttentionValidation, resolveHeterogeneousAttentionContract } from './attention/heterogeneous-contract.js';
+import { appendHeterogeneousAttentionValidation, resolveHeterogeneousAttentionContract } from '../../../config/heterogeneous-attention-contract.js';
 import { resolvePostNormContract } from './normalization-contract.js';
 import { resolveEmbeddingNormalization } from './embedding-contract.js';
 import { CHAT_FORMATTER_TYPES } from './chat-format.js';
@@ -16,9 +16,9 @@ import {
   PER_LAYER_INPUT_HOT_CACHE_MODES,
   PREFILL_CHUNK_SUBMIT_MODES,
 } from '../../../config/schema/execution-v1.schema.js';
-import { assertSupportedManifestInference, validateLayerIntermediateSizesAgainstManifest, validateRequiredInferenceFields } from './config/validation.js';
+import { assertSupportedManifestInference, validateLayerIntermediateSizesAgainstManifest, validateRequiredInferenceFields } from '../../../config/manifest-inference-validation.js';
 import { resolveAudioConfig, resolvePerLayerInputsSession, resolveSessionSettings, resolveVisionConfig } from './config/normalization.js';
-export { assertSupportedManifestInference, validateRequiredInferenceFields } from './config/validation.js';
+export { assertSupportedManifestInference, validateRequiredInferenceFields } from '../../../config/manifest-inference-validation.js';
 
 const UNSUPPORTED_RUNTIME_MODEL_TYPES = new Set(['mamba', 'rwkv']);
 

@@ -1,7 +1,7 @@
 import { createModelIR, hashModelIR } from '../../src/config/model-ir.js';
 import { createTargetPlan, createTargetPlanV2 } from '../../src/config/target-plan.js';
 import { buildCapsuleV2, signCapsuleV2 } from '../../src/config/capsule-v2.js';
-import { sha256BytesHex } from '../../src/utils/sha256.js';
+import { sha256BytesHex } from '../../src/formats/sha256.js';
 
 export const TEST_CAPSULE_AUTHORITY = 'doppler-capsule-test';
 export const TEST_CAPSULE_PUBLIC_KEY = Object.freeze({

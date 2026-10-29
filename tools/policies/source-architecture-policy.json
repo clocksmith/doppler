@@ -5,9 +5,6 @@
     "config/transforms/execution-graph-transforms.js": [
       "converter/execution-graph-transforms.js"
     ],
-    "client/runtime/source-runtime.js": [
-      "client/model-host/source-loading.js"
-    ],
     "inference/test-harness.js": [
       "tooling/test-harness.js"
     ],
@@ -25,69 +22,9 @@
     "config/execution-contract-check.js": [
       "rules/execution-contract.js"
     ],
-    "config/transforms/capability-transform-resolver.js": [
-      "converter/capability-transform-resolver.js"
-    ],
-    "config/merge-helpers.js": [
-      "config/merge/execution-patches.js",
-      "config/merge/kernel-path-policy.js",
-      "config/merge/value-selection.js"
-    ],
-    "converter/parsers/index.js": [
-      "converter/parsers/diffusion.js",
-      "converter/parsers/gguf.js",
-      "converter/parsers/transformer.js"
-    ],
-    "converter/tokenizer-utils.js": [
-      "converter/tokenizer-special-tokens.js"
-    ],
-    "formats/index.js": [
-      "formats/gguf/types.js",
-      "formats/litert/types.js",
-      "formats/rdrr/index.js",
-      "formats/safetensors/types.js",
-      "formats/tflite/types.js",
-      "formats/tokenizer/index.js"
-    ],
-    "formats/tokenizer/index.js": [
-      "formats/tokenizer/types.js"
-    ],
-    "gpu/kernels/backward/utils.js": [
-      "gpu/kernels/backward/executor.js",
-      "gpu/kernels/backward/matmul.js"
-    ],
-    "gpu/kernels/rule-matcher.js": [
-      "rules/rule-matcher.js"
-    ],
     "gpu/kernels/types.js": [],
     "gpu/kernels/turboquant-codebook.js": [
       "experimental/turboquant/codebook.js"
-    ],
-    "gpu/kernels/utils.js": [
-      "gpu/kernels/bind-group-validation.js",
-      "gpu/kernels/feature-check.js",
-      "gpu/kernels/kernel-cache-lifecycle.js",
-      "gpu/kernels/kernel-configs.js",
-      "gpu/kernels/kernel-execution.js",
-      "gpu/kernels/kernel-prewarm.js",
-      "gpu/kernels/pipeline-cache.js",
-      "gpu/kernels/shader-cache.js",
-      "gpu/kernels/uniform-utils.js"
-    ],
-    "inference/browser-harness-model-helpers.js": [
-      "inference/browser-harness/model-initialization.js",
-      "inference/browser-harness/model-resolution.js"
-    ],
-    "inference/browser-harness-runtime-helpers.js": [
-      "inference/browser-harness/runtime-config.js",
-      "inference/browser-harness/runtime-isolation.js",
-      "inference/browser-harness/runtime-report.js"
-    ],
-    "inference/browser-harness-suite-helpers.js": [
-      "inference/browser-harness/decode-diagnostics.js",
-      "inference/browser-harness/diffusion-performance.js",
-      "inference/browser-harness/suite-summary.js",
-      "inference/browser-harness/timing-diagnostics.js"
     ],
     "inference/browser-harness-text-helpers.js": [
       "inference/browser-harness/text-evidence.js",
@@ -97,11 +34,6 @@
     ],
     "inference/kv-cache/basis-decomposed-paged.js": [
       "experimental/bdpa/basis-decomposed-paged.js"
-    ],
-    "inference/pipelines/diffusion/helpers.js": [
-      "inference/pipelines/diffusion/profile-timing.js",
-      "inference/pipelines/diffusion/runtime-resources.js",
-      "inference/pipelines/diffusion/weight-contract.js"
     ],
     "inference/pipelines/diffusion/index.js": [
       "experimental/diffusion/pipeline.js",
@@ -120,30 +52,6 @@
     "inference/pipelines/text/bdpa-steamroller.js": [
       "experimental/bdpa/steamroller.js"
     ],
-    "inference/pipelines/text/debug-utils.js": [
-      "inference/pipelines/text/debug-utils/index.js"
-    ],
-    "inference/pipelines/text/attention/heterogeneous-contract.js": [
-      "config/heterogeneous-attention-contract.js"
-    ],
-    "inference/pipelines/text/config/validation.js": [
-      "config/manifest-inference-validation.js"
-    ],
-    "inference/pipelines/text/generator-helpers.js": [
-      "inference/pipelines/text/generator/attention-lifecycle.js",
-      "inference/pipelines/text/generator/logits-config.js",
-      "inference/pipelines/text/generator/session-context.js"
-    ],
-    "inference/pipelines/text/generator-prefill-helpers.js": [
-      "inference/pipelines/text/generator/prefill-policy.js",
-      "inference/pipelines/text/generator/prefix-embedding.js",
-      "inference/pipelines/text/generator/prompt-input.js"
-    ],
-    "inference/pipelines/text/logits/utils.js": [
-      "inference/pipelines/text/logits/cpu-output.js",
-      "inference/pipelines/text/logits/readback.js",
-      "inference/pipelines/text/logits/scale-policy.js"
-    ],
     "inference/pipelines/text/logits/types.js": [],
     "inference/pipelines/text/logits/cpu.js": [
       "experimental/logits/cpu.js"
@@ -153,9 +61,6 @@
     ],
     "inference/pipelines/text/types.js": [],
     "inference/tokenizers/types.js": [],
-    "loader/quantization-constants.js": [
-      "formats/quantization-constants.js"
-    ],
     "tooling-exports.js": [
       "tooling-exports.shared.js",
       "tooling/node-browser-command-runner.js",
@@ -170,15 +75,15 @@
       "tooling-exports.shared.js"
     ],
     "tooling-exports.shared.js": [
-      "config/index.js",
       "config/runtime.js",
+      "config/schema/index.js",
       "config/schema/program-bundle.schema.js",
       "config/schema/tooling.schema.js",
       "converter/core.js",
       "debug/index.js",
-      "inference/browser-harness-runtime-helpers.js",
       "inference/browser-harness-text-helpers.js",
       "inference/browser-harness.js",
+      "inference/browser-harness/runtime-config.js",
       "inference/model-checkpoint-evidence.js",
       "loader/memory-monitor.js",
       "memory/buffer-pool.js",
@@ -192,18 +97,6 @@
       "tooling/registered-variant-calibration.js",
       "tooling/runtime-optimization-index.js",
       "tooling/runtime-optimization.js"
-    ],
-    "tooling/command-api-helpers.js": [
-      "tooling/command-request-normalization.js"
-    ],
-    "tooling/command-runner-shared.js": [
-      "tooling/command-runtime-execution.js"
-    ],
-    "tooling/hf-registry-utils.js": [
-      "tooling/hf-registry/catalog-io.js",
-      "tooling/hf-registry/network-probes.js",
-      "tooling/hf-registry/publish-shaping.js",
-      "tooling/hf-registry/registry-urls.js"
     ],
     "tooling/node-browser-command-runner.js": [
       "tooling/node-browser/execution.js",
@@ -219,28 +112,7 @@
       "experimental/training/optimizer.js",
       "experimental/training/trainer.js"
     ],
-    "types/chrome.js": [],
-    "utils/array-buffer.js": [
-      "formats/array-buffer.js"
-    ],
-    "utils/canonical-hash.js": [
-      "formats/canonical-hash.js"
-    ],
-    "utils/clone-json.js": [
-      "formats/clone-json.js"
-    ],
-    "utils/load-json.js": [
-      "formats/load-json.js"
-    ],
-    "utils/plain-object.js": [
-      "formats/plain-object.js"
-    ],
-    "utils/sha256.js": [
-      "formats/sha256.js"
-    ],
-    "utils/stable-sort-object.js": [
-      "formats/stable-sort-object.js"
-    ]
+    "types/chrome.js": []
   },
   "sourceRoot": "src",
   "cleanupDecisions": {
@@ -268,11 +140,6 @@
       "decision": "retain",
       "consumerEvidence": ["inference/pipelines/text/generator/text.js lazily loads intent-bundle", "tooling/test-harness.js loads manifest, runtime and intent-bundle"],
       "migration": "Retain until these consumers migrate; do not classify the implementation as unused or silently promote it to stable inference."
-    },
-    "client/runtime/source-runtime.js": {
-      "decision": "retain",
-      "consumerEvidence": ["facadeDependencies declares forwarding to client/model-host/source-loading.js", "tests import the compatibility source-runtime path"],
-      "migration": "Implementation already relocated to model-host; retain forwarding until a versioned retirement. No duplicate implementation remains to delete."
     }
   },
   "softLineLimit": 750,
@@ -295,8 +162,7 @@
     "storage": "artifact persistence and transport",
     "tooling": "shared command implementations and repository tooling APIs",
     "tooling-exports": "narrow public tooling export slices",
-    "types": "shared declarations owned by no narrower subsystem",
-    "utils": "compatibility surfaces for relocated neutral contracts"
+    "types": "shared declarations owned by no narrower subsystem"
   },
   "rootFileOwners": {
     "partitions": "client",
@@ -330,10 +196,9 @@
     "storage": ["config", "debug", "errors", "formats", "memory", "storage"],
     "tooling": ["config", "converter", "debug", "experimental", "formats", "gpu", "inference", "memory", "rules", "storage", "tooling"],
     "tooling-exports": ["client", "config", "formats", "gpu", "inference", "storage", "tooling", "tooling-exports"],
-    "types": ["types"],
-    "utils": ["formats", "storage"]
+    "types": ["types"]
   },
-  "compatibilityOnlyOwners": ["utils"],
+  "compatibilityOnlyOwners": [],
   "experimentalBridges": {
     "client/runtime/lora.js": {
       "reason": "Explicit LoRA compatibility surface delegates to the quarantined adapter implementation."
@@ -494,29 +359,13 @@
     "extractTo": "client/runtime/model-source.js"
   }],
   "genericModuleReviews": {
-    "config/merge-helpers.js": {
-      "classification": "compatibility-facade",
-      "semanticOwner": "config/merge/{value-selection,kernel-path-policy,execution-patches}.js"
-    },
     "config/schema/shared-runtime.schema.js": {
       "classification": "semantic-owner",
       "semanticOwner": "shared runtime schema defaults"
     },
-    "converter/tokenizer-utils.js": {
-      "classification": "compatibility-facade",
-      "semanticOwner": "converter/tokenizer-special-tokens.js"
-    },
-    "gpu/kernels/backward/utils.js": {
-      "classification": "compatibility-facade",
-      "semanticOwner": "gpu/kernels/backward/{executor,matmul}.js"
-    },
     "gpu/kernels/uniform-utils.js": {
       "classification": "semantic-owner",
       "semanticOwner": "GPU uniform serialization and buffer construction"
-    },
-    "gpu/kernels/utils.js": {
-      "classification": "compatibility-facade",
-      "semanticOwner": "gpu/kernels/{kernel-execution,bind-group-validation,kernel-cache-lifecycle}.js"
     },
     "gpu/readback-utils.js": {
       "classification": "semantic-owner",
@@ -526,45 +375,13 @@
       "classification": "semantic-owner",
       "semanticOwner": "browser harness contract metric projection"
     },
-    "inference/browser-harness-model-helpers.js": {
-      "classification": "compatibility-facade",
-      "semanticOwner": "inference/browser-harness/{model-resolution,model-initialization}.js"
-    },
     "inference/browser-harness-report-helpers.js": {
       "classification": "semantic-owner",
       "semanticOwner": "browser harness training artifact reporting"
     },
-    "inference/browser-harness-runtime-helpers.js": {
-      "classification": "compatibility-facade",
-      "semanticOwner": "inference/browser-harness/{runtime-config,runtime-isolation,runtime-report}.js"
-    },
-    "inference/browser-harness-suite-helpers.js": {
-      "classification": "compatibility-facade",
-      "semanticOwner": "inference/browser-harness/{suite-summary,diffusion-performance,timing-diagnostics,decode-diagnostics}.js"
-    },
     "inference/browser-harness-text-helpers.js": {
       "classification": "compatibility-facade",
       "semanticOwner": "inference/browser-harness/{text-input,text-evidence,text-execution}.js"
-    },
-    "inference/pipelines/diffusion/helpers.js": {
-      "classification": "compatibility-facade",
-      "semanticOwner": "inference/pipelines/diffusion/{runtime-resources,weight-contract,profile-timing}.js"
-    },
-    "inference/pipelines/text/debug-utils.js": {
-      "classification": "compatibility-facade",
-      "semanticOwner": "inference/pipelines/text/debug-utils/index.js"
-    },
-    "inference/pipelines/text/generator-helpers.js": {
-      "classification": "compatibility-facade",
-      "semanticOwner": "inference/pipelines/text/generator/{session-context,attention-lifecycle,logits-config}.js"
-    },
-    "inference/pipelines/text/generator-prefill-helpers.js": {
-      "classification": "compatibility-facade",
-      "semanticOwner": "inference/pipelines/text/generator/{prompt-input,prefix-embedding,prefill-policy}.js"
-    },
-    "inference/pipelines/text/logits/utils.js": {
-      "classification": "compatibility-facade",
-      "semanticOwner": "inference/pipelines/text/logits/{scale-policy,readback,cpu-output}.js"
     },
     "loader/dtype-utils.js": {
       "classification": "semantic-owner",
@@ -573,79 +390,36 @@
     "tooling-exports.shared.js": {
       "classification": "compatibility-facade",
       "semanticOwner": "shared stable tooling export surface"
-    },
-    "tooling/command-api-helpers.js": {
-      "classification": "compatibility-facade",
-      "semanticOwner": "tooling/command-request-normalization.js"
-    },
-    "tooling/command-runner-shared.js": {
-      "classification": "compatibility-facade",
-      "semanticOwner": "tooling/command-runtime-execution.js"
-    },
-    "tooling/hf-registry-utils.js": {
-      "classification": "compatibility-facade",
-      "semanticOwner": "tooling/hf-registry/{catalog-io,registry-urls,publish-shaping,network-probes}.js"
     }
   },
   "facades": [
     "config/transforms/execution-graph-transforms.js",
-    "client/runtime/source-runtime.js",
     "inference/test-harness.js",
     "index.js",
     "index-browser.js",
     "config/schema/platform.schema.js",
     "config/execution-contract-check.js",
-    "config/transforms/capability-transform-resolver.js",
-    "config/merge-helpers.js",
-    "converter/parsers/index.js",
-    "converter/tokenizer-utils.js",
-    "formats/index.js",
-    "formats/tokenizer/index.js",
-    "gpu/kernels/backward/utils.js",
-    "gpu/kernels/rule-matcher.js",
     "gpu/kernels/types.js",
     "gpu/kernels/turboquant-codebook.js",
-    "gpu/kernels/utils.js",
-    "inference/browser-harness-model-helpers.js",
-    "inference/browser-harness-runtime-helpers.js",
-    "inference/browser-harness-suite-helpers.js",
     "inference/browser-harness-text-helpers.js",
     "inference/kv-cache/basis-decomposed-paged.js",
-    "inference/pipelines/diffusion/helpers.js",
     "inference/pipelines/diffusion/index.js",
     "inference/pipelines/diffusion/types.js",
     "inference/pipelines/energy/index.js",
     "inference/pipelines/energy-head/row-head-pipeline.js",
     "inference/pipelines/text/buffer-types.js",
     "inference/pipelines/text/bdpa-steamroller.js",
-    "inference/pipelines/text/debug-utils.js",
-    "inference/pipelines/text/attention/heterogeneous-contract.js",
-    "inference/pipelines/text/config/validation.js",
-    "inference/pipelines/text/generator-helpers.js",
-    "inference/pipelines/text/generator-prefill-helpers.js",
-    "inference/pipelines/text/logits/utils.js",
     "inference/pipelines/text/logits/types.js",
     "inference/pipelines/text/logits/cpu.js",
     "inference/pipelines/text/logits/cpu-output.js",
     "inference/pipelines/text/types.js",
     "inference/tokenizers/types.js",
-    "loader/quantization-constants.js",
     "tooling-exports.js",
     "tooling-exports.browser.js",
     "tooling-exports.shared.js",
-    "tooling/command-api-helpers.js",
-    "tooling/command-runner-shared.js",
-    "tooling/hf-registry-utils.js",
     "tooling/node-browser-command-runner.js",
     "training-browser.js",
-    "types/chrome.js",
-    "utils/array-buffer.js",
-    "utils/canonical-hash.js",
-    "utils/clone-json.js",
-    "utils/load-json.js",
-    "utils/plain-object.js",
-    "utils/sha256.js",
-    "utils/stable-sort-object.js"
+    "types/chrome.js"
   ],
   "softLimitReviews": {
     "storage/downloader.js": {

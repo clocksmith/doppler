@@ -3,7 +3,7 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
-import { sha256Hex } from '../../src/utils/sha256.js';
+import { sha256Hex } from '../../src/formats/sha256.js';
 import { createTrainingConfig } from '../../src/config/training-defaults.js';
 import {
   createDistillArtifactSession,

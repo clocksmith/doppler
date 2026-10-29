@@ -3,10 +3,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import {
-  computeCanonicalSha256,
-  hashBytesSha256,
-} from '../src/utils/canonical-hash.js';
+import { computeCanonicalSha256, hashBytesSha256 } from '../src/formats/canonical-hash.js';
 
 function parseOptions(args) {
   const options = {

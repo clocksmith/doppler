@@ -21,14 +21,12 @@ import type {
   LoaderLoadTiming,
   PerLayerInputWeights,
 } from '../../../loader/loader-types.js';
-import {
-  KVCache,
-  SlidingWindowKVCache,
-  TieredKVCache,
-  BasisDecomposedPagedCache,
-  QuantizedKVCache,
-  MixedGeometryKVCache,
-} from '../../kv-cache/index.js';
+import { KVCache } from '../../kv-cache/base.js';
+import { SlidingWindowKVCache } from '../../kv-cache/sliding-window.js';
+import { TieredKVCache } from '../../kv-cache/tiered.js';
+import { BasisDecomposedPagedCache } from '../../kv-cache/basis-decomposed-paged.js';
+import { QuantizedKVCache } from '../../kv-cache/quantized.js';
+import { MixedGeometryKVCache } from '../../kv-cache/mixed-geometry.js';
 import { Tokenizer, type ModelManifest as TokenizerManifest } from '../../tokenizer.js';
 import { MoERouter } from '../../moe-router.js';
 import { SpeculativeDecoder } from '../../speculative.js';

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { chooseDefined } from '../../src/config/merge-helpers.js';
+import { chooseDefined } from '../../src/config/merge/value-selection.js';
 import { createDopplerConfig } from '../../src/config/schema/doppler.schema.js';
 
 assert.equal(

@@ -1,14 +1,12 @@
 import { isPlainObject } from '../../../formats/plain-object.js';
 import { getDevice, getDeviceLimits, getKernelCapabilities } from '../../../gpu/device.js';
 import { scopeKVCacheLayerRange, scopeKVCacheLayerIndices, resolveKVCacheLayerCount } from '../../kv-cache/layer-range.js';
-import {
-  KVCache,
-  SlidingWindowKVCache,
-  TieredKVCache,
-  BasisDecomposedPagedCache,
-  QuantizedKVCache,
-  MixedGeometryKVCache,
-} from '../../kv-cache/index.js';
+import { KVCache } from '../../kv-cache/base.js';
+import { SlidingWindowKVCache } from '../../kv-cache/sliding-window.js';
+import { TieredKVCache } from '../../kv-cache/tiered.js';
+import { BasisDecomposedPagedCache } from '../../kv-cache/basis-decomposed-paged.js';
+import { QuantizedKVCache } from '../../kv-cache/quantized.js';
+import { MixedGeometryKVCache } from '../../kv-cache/mixed-geometry.js';
 import {
   retainTurboQuantSharedBuffers,
 } from '../../../gpu/kernels/turboquant-codebook.js';

@@ -26,8 +26,8 @@ const {
   getBufferPool,
   releaseBuffer,
 } = await import('../../src/memory/buffer-pool.js');
-const { runLayerAttentionGPU } = await import('../../src/inference/pipelines/text/attention/run.js');
-const { recordLayerAttentionGPU } = await import('../../src/inference/pipelines/text/attention/record.js');
+const { runLayerAttentionGPU } = await import('../../src/inference/pipelines/text/attention/executor-immediate.js');
+const { recordLayerAttentionGPU } = await import('../../src/inference/pipelines/text/attention/executor-recorded.js');
 
 class FakeBuffer {
   constructor({ size, usage }) {

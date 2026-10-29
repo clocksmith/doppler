@@ -27,11 +27,9 @@ import {
   gatedDeltaRecurrentForward,
 } from '../../../src/experimental/training/qwen-gated-delta-reference.js';
 import { getKernelCapabilities, initDevice } from '../../../src/gpu/device.js';
-import {
-  runCausalConv1dSilu,
-  runGatedRmsNorm,
-  runQwenLinearAttentionPrepare,
-} from '../../../src/gpu/kernels/index.js';
+import { runCausalConv1dSilu } from '../../../src/gpu/kernels/causal_conv1d_silu.js';
+import { runGatedRmsNorm } from '../../../src/gpu/kernels/gated_rmsnorm.js';
+import { runQwenLinearAttentionPrepare } from '../../../src/gpu/kernels/qwen_linear_attention_prepare.js';
 import {
   runCausalConv1dSiluBackward,
   runGatedDeltaRecurrentBackward,

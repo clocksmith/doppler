@@ -1,13 +1,11 @@
-import {
-  runAttention,
-  runMatmul,
-  runQwenAttentionSplitQGate,
-  runRMSNorm,
-  runResidualAdd,
-  runRoPE,
-  runScale,
-  runSiLU,
-} from '../../gpu/kernels/index.js';
+import { runAttention } from '../../gpu/kernels/attention.js';
+import { runMatmul } from '../../gpu/kernels/matmul.js';
+import { runQwenAttentionSplitQGate } from '../../gpu/kernels/qwen_attention_split_q_gate.js';
+import { runRMSNorm } from '../../gpu/kernels/rmsnorm.js';
+import { runResidualAdd } from '../../gpu/kernels/residual.js';
+import { runRoPE } from '../../gpu/kernels/rope.js';
+import { runScale } from '../../gpu/kernels/scale.js';
+import { runSiLU } from '../../gpu/kernels/silu.js';
 import {
   runMatmulBackward,
   runQwenAttentionSplitQGateBackward,
@@ -16,7 +14,7 @@ import {
   runRoPEBackward,
   runSigmoidGatedBackward,
 } from '../../gpu/kernels/backward/index.js';
-import { runMatmulBackwardDx } from '../../gpu/kernels/backward/utils.js';
+import { runMatmulBackwardDx } from '../../gpu/kernels/backward/matmul.js';
 import { releaseBuffer } from '../../memory/buffer-pool.js';
 
 function positiveInteger(value, label) {

@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-const { resolveLocalSourceRuntimePathFromModelUrl } = await import('../../src/inference/browser-harness-model-helpers.js');
+const { resolveLocalSourceRuntimePathFromModelUrl } = await import('../../src/inference/browser-harness/model-resolution.js');
 
 const fixtureDir = mkdtempSync(path.join(tmpdir(), 'doppler-source-model-url-'));
 

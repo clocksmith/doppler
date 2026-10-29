@@ -1,6 +1,6 @@
 
 import { getDevice } from '../../gpu/device.js';
-import { runKVQuantize, recordKVQuantize } from '../../gpu/kernel-selector.js';
+import { runKVQuantize, recordKVQuantize } from '../../gpu/kernels/kv-quantize.js';
 
 // =============================================================================
 // QuantizedKVCache — Contiguous quantized KV cache for full-attention models

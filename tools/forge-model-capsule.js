@@ -3,7 +3,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { main } from './rig-model-capsule.js';
-export { FORGE_VERSION, forgeModelCapsule } from '../src/tooling/model-capsule-forge.js';
+export { RIG_VERSION as FORGE_VERSION, rigModelCapsule as forgeModelCapsule } from '../src/tooling/model-capsule-rig.js';
 export {
   buildRigOptions as buildForgeOptions,
   parseArgs, readJsonInput, usage, main,

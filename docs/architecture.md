@@ -864,7 +864,7 @@ Evolution helpers for mutating and scoring expert network topologies.
 | `src/inference/pipelines/text/state.js` | Runtime state container |
 | `src/inference/pipelines/text/generator.js` | Main generation loop |
 | `src/inference/pipelines/text/generator-steps.js` | Step orchestration for prefill and decode |
-| `src/inference/pipelines/text/generator-helpers.js` | Shared generation helpers |
+| `src/inference/pipelines/text/generator/` | Shared generation helpers (attention lifecycle, logits config, session context) |
 | `src/inference/pipelines/text/layer.js` | Per-layer processing |
 | `src/inference/pipelines/text/embed.js` | Token embedding |
 | `src/inference/pipelines/text/sampling.js` | Token sampling (top-k, top-p, temperature) |
@@ -1480,12 +1480,12 @@ See `config.md` for kernel selection rules and runtime overrides.
 | `src/client/doppler-api.d.ts` | Root facade types |
 | `src/inference/pipelines/text.js` | Main inference orchestration |
 | `src/inference/pipelines/text/generator.js` | Generation loop |
-| `src/inference/kv-cache/index.js` | KV cache management |
+| `src/inference/kv-cache/` | KV cache management |
 | `src/inference/tokenizer.js` | Tokenizer selection and initialization |
 | `src/inference/moe-router.js` | MoE expert routing |
 | `src/loader/doppler-loader.js` | Weight loading and dequant |
 | `src/gpu/device.js` | WebGPU initialization |
-| `src/gpu/kernels/index.js` | Kernel selection and dispatch exports |
+| `src/gpu/kernels/` | Kernel selection and dispatch modules |
 | `src/tooling/registered-variant-calibration.js` | Evidence-gated registered kernel calibration |
 | `src/memory/buffer-pool.js` | Buffer pooling |
 | `src/formats/rdrr/manifest.js` | RDRR manifest parsing |

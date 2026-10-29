@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { computeCanonicalSha256 } from '../../src/utils/canonical-hash.js';
+import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
 import {
   digestRegisteredVariantDescriptor,
 } from '../../src/tooling/registered-variant-calibration.js';

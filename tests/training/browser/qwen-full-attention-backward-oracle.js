@@ -20,11 +20,9 @@ import {
   computeAttentionSoftmaxData,
 } from '../../../src/experimental/training/attention-backward.js';
 import { getKernelCapabilities, initDevice } from '../../../src/gpu/device.js';
-import {
-  runQwenAttentionSplitQGate,
-  runRoPE,
-  runSiLU,
-} from '../../../src/gpu/kernels/index.js';
+import { runQwenAttentionSplitQGate } from '../../../src/gpu/kernels/qwen_attention_split_q_gate.js';
+import { runRoPE } from '../../../src/gpu/kernels/rope.js';
+import { runSiLU } from '../../../src/gpu/kernels/silu.js';
 import {
   runQwenAttentionSplitQGateBackward,
   runQwenGqaAttentionBackward,

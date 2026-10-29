@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { sha256Hex } from '../../src/utils/sha256.js';
+import { sha256Hex } from '../../src/formats/sha256.js';
 import { KERNEL_REF_CONTENT_DIGESTS } from '../../src/config/kernels/kernel-ref-digests.js';
 
 const testDir = path.dirname(fileURLToPath(import.meta.url));

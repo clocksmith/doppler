@@ -7,7 +7,7 @@ import {
   validateRuntimeOptimizationContract,
   validateRuntimeOptimizationCandidateRegistry,
 } from '../../src/tooling/runtime-optimization.js';
-import { computeCanonicalSha256 } from '../../src/utils/canonical-hash.js';
+import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
 
 function createContract(overrides = {}) {
   const contract = {

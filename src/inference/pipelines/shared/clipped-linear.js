@@ -1,7 +1,7 @@
 import { getDevice } from '../../../gpu/device.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { runClamp } from '../../../gpu/kernels/clamp.js';
-import { runMatmul } from '../../../gpu/kernel-selector.js';
+import { runMatmul } from '../../../gpu/kernels/matmul.js';
 import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 
 export function shouldClamp(minValue, maxValue) {

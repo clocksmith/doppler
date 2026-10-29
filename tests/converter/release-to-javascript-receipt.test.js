@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
-import { sha256Hex } from '../../src/utils/sha256.js';
-import { stableSortObject } from '../../src/utils/stable-sort-object.js';
+import { sha256Hex } from '../../src/formats/sha256.js';
+import { stableSortObject } from '../../src/formats/stable-sort-object.js';
 import {
   createReleaseToJavaScriptReceipt,
   validateReleaseToJavaScriptReceipt,

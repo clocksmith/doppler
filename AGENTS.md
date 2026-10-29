@@ -97,8 +97,7 @@ doppler/
 │   ├── rules/            # Validation rules (kernel path, etc.)
 │   ├── storage/          # OPFS shard manager, model loading
 │   ├── tooling/          # Shared command contract + runners
-│   ├── types/            # Shared type definitions
-│   └── utils/            # General utilities
+│   └── types/            # Shared type definitions
 ├── benchmarks/           # Vendor benchmark registry + harnesses
 ├── models/               # Catalog metadata and external model pointers
 ├── skills/               # Agent skill definitions

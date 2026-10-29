@@ -6,7 +6,7 @@
 
 import type { KVCacheConfig, BDPAGPUBuffersResult, MemoryStats } from '../../inference/kv-cache/types.js';
 import { KVCache } from '../../inference/kv-cache/base.js';
-import type { CommandRecorder } from '../../gpu/kernel-selector.js';
+import type { CommandRecorder } from '../../gpu/command-recorder.js';
 
 export interface BasisDecomposedPagedCacheConfig extends KVCacheConfig {
   bdpaVocabSize?: number;

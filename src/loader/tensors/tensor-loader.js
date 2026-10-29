@@ -3,11 +3,12 @@ import { loadW8A8Packed } from './w8a8-loader.js';
 
 import { getDevice, getKernelCapabilities, getPlatformConfig } from '../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../memory/buffer-pool.js';
-import { dequantize, dequantizeRowwise, dequantizeQ6K, castF16ToF32 } from '../../gpu/kernel-selector.js';
+import { dequantize, dequantizeRowwise, dequantizeQ6K } from '../../gpu/kernels/dequant.js';
+import { castF16ToF32 } from '../../gpu/kernels/cast.js';
 import { createTensor } from '../../gpu/tensor.js';
 import { createWeightBuffer } from '../../gpu/weight-buffer.js';
 import { f16ToF32, shouldDequantizeToF16, applyBufferLayout } from '../dtype-utils.js';
-import { QK_K, Q4K_BLOCK_BYTES, Q6K_BLOCK_BYTES } from '../quantization-constants.js';
+import { QK_K, Q4K_BLOCK_BYTES, Q6K_BLOCK_BYTES } from '../../config/schema/quantization.schema.js';
 import { log, trace as debugTrace } from '../../debug/index.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
 import { dequantizeQ4KM, dequantizeQ4KMRowWise, float32ToFloat16 } from '../../converter/quantizer.js';

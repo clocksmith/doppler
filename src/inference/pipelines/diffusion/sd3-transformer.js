@@ -2,34 +2,18 @@ import { getDevice } from '../../../gpu/device.js';
 import { createTensor, dtypeBytes } from '../../../gpu/tensor.js';
 import { getBuffer } from '../../../gpu/weight-buffer.js';
 import { acquireBuffer } from '../../../memory/buffer-pool.js';
-import {
-  runConv2D,
-  runTranspose,
-  runGather,
-  runLayerNorm,
-  runRMSNorm,
-  runMatmul,
-  runAttention,
-  runGeLU,
-  runSiLURowSplit,
-  runResidualAdd,
-  runBiasAdd,
-  runModulate,
-  runPixelShuffle,
-  recordConv2D,
-  recordTranspose,
-  recordGather,
-  recordLayerNorm,
-  recordRMSNorm,
-  recordMatmul,
-  recordAttention,
-  recordGeLU,
-  recordSiLURowSplit,
-  recordResidualAdd,
-  recordBiasAdd,
-  recordModulate,
-  recordPixelShuffle,
-} from '../../../gpu/kernels/index.js';
+import { runConv2D, recordConv2D } from '../../../gpu/kernels/conv2d.js';
+import { runTranspose, recordTranspose } from '../../../gpu/kernels/transpose.js';
+import { runGather, recordGather } from '../../../gpu/kernels/gather.js';
+import { runLayerNorm, recordLayerNorm } from '../../../gpu/kernels/layernorm.js';
+import { runRMSNorm, recordRMSNorm } from '../../../gpu/kernels/rmsnorm.js';
+import { runMatmul, recordMatmul } from '../../../gpu/kernels/matmul.js';
+import { runAttention, recordAttention } from '../../../gpu/kernels/attention.js';
+import { runGeLU, recordGeLU } from '../../../gpu/kernels/gelu.js';
+import { runSiLURowSplit, recordSiLURowSplit } from '../../../gpu/kernels/silu.js';
+import { runResidualAdd, runBiasAdd, recordResidualAdd, recordBiasAdd } from '../../../gpu/kernels/residual.js';
+import { runModulate, recordModulate } from '../../../gpu/kernels/modulate.js';
+import { runPixelShuffle, recordPixelShuffle } from '../../../gpu/kernels/pixel_shuffle.js';
 import {
   expectDiffusionWeight,
   inferDiffusionMatmulDtypeFromBuffer,

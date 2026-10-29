@@ -1,32 +1,15 @@
 import { releaseBuffer } from '../../../../memory/buffer-pool.js';
 import { isGpuBufferInstance, isWeightBuffer, getLayout, getWeightDtype } from '../../../../gpu/weight-buffer.js';
-import {
-  runMatmul,
-  recordMatmul,
-  runSplitQKV,
-  recordSplitQKV,
-  runSplitQG,
-  recordSplitQG,
-  runRMSNorm,
-  recordRMSNorm,
-  runLayerNorm,
-  recordLayerNorm,
-  canUseRMSNormQK,
-  runRMSNormQK,
-  recordRMSNormQK,
-  canUseSplitQKVRMSNormQK,
-  runSplitQKVRMSNormQK,
-  recordSplitQKVRMSNormQK,
-  canUseSplitQKVRMSNormRoPEQK,
-  runSplitQKVRMSNormRoPEQK,
-  recordSplitQKVRMSNormRoPEQK,
-  castF16ToF32,
-  castF32ToF16,
-  recordCastF16ToF32,
-  recordCastF32ToF16,
-  runBiasAdd,
-  recordBiasAdd,
-} from '../../../../gpu/kernel-selector.js';
+import { runMatmul, recordMatmul } from '../../../../gpu/kernels/matmul.js';
+import { runSplitQKV, recordSplitQKV } from '../../../../gpu/kernels/split_qkv.js';
+import { runSplitQG, recordSplitQG } from '../../../../gpu/kernels/split_qg.js';
+import { runRMSNorm, recordRMSNorm } from '../../../../gpu/kernels/rmsnorm.js';
+import { runLayerNorm, recordLayerNorm } from '../../../../gpu/kernels/layernorm.js';
+import { canUseRMSNormQK, runRMSNormQK, recordRMSNormQK } from '../../../../gpu/kernels/rmsnorm-qk.js';
+import { canUseSplitQKVRMSNormQK, runSplitQKVRMSNormQK, recordSplitQKVRMSNormQK } from '../../../../gpu/kernels/split-qkv-rmsnorm-qk.js';
+import { canUseSplitQKVRMSNormRoPEQK, runSplitQKVRMSNormRoPEQK, recordSplitQKVRMSNormRoPEQK } from '../../../../gpu/kernels/split-qkv-rmsnorm-rope-qk.js';
+import { castF16ToF32, castF32ToF16, recordCastF16ToF32, recordCastF32ToF16 } from '../../../../gpu/kernels/cast.js';
+import { runBiasAdd, recordBiasAdd } from '../../../../gpu/kernels/residual.js';
 import { createTensor } from '../../../../gpu/tensor.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { QK_K, Q4K_BLOCK_BYTES } from '../../../../config/schema/index.js';

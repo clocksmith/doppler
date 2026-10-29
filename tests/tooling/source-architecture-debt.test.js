@@ -113,6 +113,22 @@ const widenedFacade = structuredClone(inlinedFacade);
 widenedFacade.facadeDependencies['outer.js'].push('a/z.js');
 assert.deepEqual(findArchitecturePolicyRelaxations(widenedFacade, facadeBaseline), ['facade dependency added outer.js->a/z.js']);
 
+const forwarderBaseline = {
+  ...baselinePolicy,
+  facades: ['outer.js'],
+  facadeDependencies: { 'outer.js': ['config/index.js'] },
+};
+const inlinedForwarder = {
+  ...forwarderBaseline,
+  facadeDependencies: { 'outer.js': ['config/schema/index.js'] },
+};
+assert.deepEqual(findArchitecturePolicyRelaxations(inlinedForwarder, forwarderBaseline),
+  ['facade dependency added outer.js->config/schema/index.js']);
+assert.deepEqual(findArchitecturePolicyRelaxations(inlinedForwarder, forwarderBaseline,
+  { 'config/index.js': ['config/schema/index.js'] }), []);
+assert.equal(validateArchitecturePolicyDelta(inlinedForwarder, forwarderBaseline, null,
+  { 'config/index.js': ['config/runtime.js'] }).length, 1);
+
 const compatBaseline = {
   ...baselinePolicy,
   topLevelOwners: { inference: 'x', loaders: 'x', utils: 'x' },

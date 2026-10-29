@@ -17,7 +17,7 @@ const { setDevice } = await import('../../src/gpu/device.js');
 const { destroyBufferPool, getBufferPool } = await import('../../src/memory/buffer-pool.js');
 const { EnergyRowHeadPipeline } = await import('../../src/inference/pipelines/energy-head/row-head-pipeline.js');
 const { EnergyPipeline } = await import('../../src/experimental/energy/pipeline.js');
-const { createDiffusionIndexBuffer } = await import('../../src/inference/pipelines/diffusion/helpers.js');
+const { createDiffusionIndexBuffer } = await import('../../src/inference/pipelines/diffusion/runtime-resources.js');
 const { getWeightBuffer, getNormWeightBuffer } = await import('../../src/inference/pipelines/text/weights.js');
 const { initRoPEFrequencies } = await import('../../src/inference/pipelines/text/init.js');
 

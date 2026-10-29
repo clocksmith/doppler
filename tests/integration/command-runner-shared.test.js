@@ -1,9 +1,5 @@
 import assert from 'node:assert/strict';
-import {
-  applyRuntimeInputs,
-  buildSuiteOptions,
-  runWithRuntimeIsolation,
-} from '../../src/tooling/command-runner-shared.js';
+import { applyRuntimeInputs, buildSuiteOptions, runWithRuntimeIsolation } from '../../src/tooling/command-runtime-execution.js';
 
 function createRuntimeBridge(initialRuntime = {}, overlays = {}) {
   let runtime = initialRuntime;

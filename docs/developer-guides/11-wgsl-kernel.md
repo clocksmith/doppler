@@ -18,7 +18,7 @@ Add a new GPU kernel implementation or a new variant of an existing kernel.
 - `src/gpu/kernels/<name>.wgsl`
 - Reuse or generate an adapter where supported; add `src/gpu/kernels/<name>.js`
   and `.d.ts` only when operator behavior requires JavaScript.
-- `src/gpu/kernels/index.js` and `.d.ts`
+- `src/gpu/kernel-selector.js` and `.d.ts` when the browser kernel suite exercises the kernel
 - `src/config/kernels/registry.json` for operation ID, variant ID, WGSL file,
   entry point, feature requirements, bindings, uniforms, and metadata
 - Optional selection logic in `src/rules/**/*.json`
@@ -34,7 +34,7 @@ Add a new GPU kernel implementation or a new variant of an existing kernel.
    asynchronous behavior, or ownership require it.
 4. Register the kernel identity in `src/config/kernels/registry.json`; do not
    create a parallel filename map.
-5. Re-export it through `src/gpu/kernels/index.js` and `.d.ts`.
+5. Import it from its own module at call sites; add it to `src/gpu/kernel-selector.js` and `.d.ts` only for the browser kernel suite.
 6. Update rule maps, conversion execution graphs, or graph transforms only if the new kernel must be selected or named as a new execution identity.
 7. Add correctness tests and browser harness coverage.
 8. Run kernel generation or checks if the kernel participates in generated variants.
@@ -99,7 +99,7 @@ or `tools/policies/kernel-usage-allowlist.json`.
 
 ## Canonical References
 
-- `src/gpu/kernels/index.js`
+- `src/gpu/kernel-selector.js`
 - `src/gpu/kernels/gelu.js`
 - `src/gpu/kernels/attention.js`
 - [../style/javascript-style-guide.md](../style/javascript-style-guide.md)

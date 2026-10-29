@@ -85,7 +85,7 @@ async function loadNodeGpuCastRuntime() {
         { acquireBuffer, releaseBuffer, getBufferPool, destroyBufferPool },
       ] = await Promise.all([
         import('../gpu/device.js'),
-        import('../gpu/kernel-selector.js'),
+        import('../gpu/kernels/cast.js'),
         import('../gpu/tensor.js'),
         import('../memory/buffer-pool.js'),
       ]);

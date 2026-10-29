@@ -1,4 +1,4 @@
-import { runAttention } from '../../gpu/kernels/index.js';
+import { runAttention } from '../../gpu/kernels/attention.js';
 import { buildAttentionSoftmaxCache } from './attention-backward.js';
 import { OpType } from './autograd.js';
 

@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { computeCanonicalSha256 } from '../../src/utils/canonical-hash.js';
+import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
 import {
   parseArgs,
   recordRuntimePromotionMonitoring,

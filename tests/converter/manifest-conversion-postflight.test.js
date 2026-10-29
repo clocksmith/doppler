@@ -7,8 +7,8 @@ import {
   createManifestConversionPostflightReceipt,
   validateManifestConversionPostflightReceipt,
 } from '../../src/converter/manifest-conversion-postflight.js';
-import { sha256Hex } from '../../src/utils/sha256.js';
-import { stableSortObject } from '../../src/utils/stable-sort-object.js';
+import { sha256Hex } from '../../src/formats/sha256.js';
+import { stableSortObject } from '../../src/formats/stable-sort-object.js';
 
 const stableDigest = (value) => `sha256:${sha256Hex(JSON.stringify(stableSortObject(value)))}`;
 const shardHash = 'a'.repeat(64);

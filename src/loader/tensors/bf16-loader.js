@@ -2,7 +2,7 @@ import { isNativeGpuBuffer as isGpuBufferInstance } from '../../gpu/buffer-ident
 import { alignTo4, writeBufferAligned } from './buffer-write.js';
 import { getDevice, getKernelCapabilities } from '../../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
-import { runBF16ToF16 } from '../../gpu/kernel-selector.js';
+import { runBF16ToF16 } from '../../gpu/kernels/cast.js';
 import { createWeightBuffer } from '../../gpu/weight-buffer.js';
 import {
   applyBufferLayout,

@@ -2,7 +2,7 @@ import { log } from '../../../../debug/index.js';
 import { mergeConfig, dumpConfigSources } from '../../../../config/merge.js';
 import { validateModelOverrides } from '../../../../config/param-validator.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
-import { appendHeterogeneousAttentionValidation, resolveHeterogeneousAttentionContract } from '../attention/heterogeneous-contract.js';
+import { appendHeterogeneousAttentionValidation, resolveHeterogeneousAttentionContract } from '../../../../config/heterogeneous-attention-contract.js';
 import { resolvePostNormContract } from '../normalization-contract.js';
 import { resolveEmbeddingNormalization } from '../embedding-contract.js';
 import {
@@ -13,11 +13,7 @@ import {
   PER_LAYER_INPUT_HOT_CACHE_MODES,
   PREFILL_CHUNK_SUBMIT_MODES,
 } from '../../../../config/schema/execution-v1.schema.js';
-import {
-  assertSupportedManifestInference,
-  validateLayerIntermediateSizesAgainstManifest,
-  validateRequiredInferenceFields,
-} from './validation.js';
+import { assertSupportedManifestInference, validateLayerIntermediateSizesAgainstManifest, validateRequiredInferenceFields } from '../../../../config/manifest-inference-validation.js';
 
 export function resolvePerLayerInputsSession(inferenceConfig, modelId) {
   const sessionConfig = inferenceConfig?.session?.perLayerInputs;

@@ -11,7 +11,7 @@ import { getRuntimeConfig, setRuntimeConfig } from '../src/config/runtime.js';
 import { activateLoRAFromTrainingOutputForPipeline } from '../src/client/runtime/lora.js';
 import { destroyDevice, resetDeviceState } from '../src/gpu/device.js';
 import { initializeInference } from '../src/inference/test-harness.js';
-import { applyRuntimeProfile } from '../src/inference/browser-harness-runtime-helpers.js';
+import { applyRuntimeProfile } from '../src/inference/browser-harness/runtime-config.js';
 import { getTopK } from '../src/inference/pipelines/text/sampling.js';
 import { destroyBufferPool } from '../src/memory/buffer-pool.js';
 import { installNodeFileFetchShim } from '../src/tooling/node-file-fetch.js';

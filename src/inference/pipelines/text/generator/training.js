@@ -22,12 +22,12 @@ import {
   resolveStepOptions,
   resolveGenerateOptions,
   settleGenerationStats,
-  resolvePrefillOptions,
-  resolvePrefillEmbeddingOptions,
+  resolvePrefillOptions, resolvePrefillEmbeddingOptions,
   resolveAdvanceEmbeddingMode,
 } from '../generator-runtime.js';
 import { extractEmbeddingFromHiddenGPU } from '../embedding-extraction.js';
-import { decodeReadback, getLogitsHealth } from '../debug-utils/index.js';
+import { decodeReadback } from '../debug-utils/readback-decoding.js';
+import { getLogitsHealth } from '../debug-utils/health-metrics.js';
 import {
   advanceDecodeStepCount,
   createTsirFixtureState,

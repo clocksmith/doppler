@@ -1,17 +1,15 @@
 
 
-import {
-  runRMSNorm, runResidualAdd, runMatmul, runSiLU, runGeLU,
-  runLayerNorm, runBiasAdd,
-  recordRMSNorm, recordResidualAdd, recordMatmul, recordSiLU, recordGeLU,
-  recordLayerNorm, recordBiasAdd,
-  runSiLURowSplit, recordSiLURowSplit,
-  runMatmulRMSNormFused, recordMatmulRMSNormFused,
-  runRMSNormStats, recordRMSNormStats,
-  runSandwichRMSNormPair, recordSandwichRMSNormPair,
-  runResidualNextRMSNormPair, recordResidualNextRMSNormPair,
-  runConv2D, recordConv2D,
-} from '../../../gpu/kernel-selector.js';
+import { runRMSNorm, recordRMSNorm } from '../../../gpu/kernels/rmsnorm.js';
+import { runResidualAdd, runBiasAdd, recordResidualAdd, recordBiasAdd } from '../../../gpu/kernels/residual.js';
+import { runMatmul, recordMatmul } from '../../../gpu/kernels/matmul.js';
+import { runSiLU, recordSiLU, runSiLURowSplit, recordSiLURowSplit } from '../../../gpu/kernels/silu.js';
+import { runGeLU, recordGeLU } from '../../../gpu/kernels/gelu.js';
+import { runLayerNorm, recordLayerNorm } from '../../../gpu/kernels/layernorm.js';
+import { runMatmulRMSNormFused, recordMatmulRMSNormFused } from '../../../gpu/kernels/fused_matmul_rmsnorm.js';
+import { runRMSNormStats, recordRMSNormStats } from '../../../gpu/kernels/rmsnorm-stats.js';
+import { runSandwichRMSNormPair, recordSandwichRMSNormPair, runResidualNextRMSNormPair, recordResidualNextRMSNormPair } from '../../../gpu/kernels/rmsnorm-pair.js';
+import { runConv2D, recordConv2D } from '../../../gpu/kernels/conv2d.js';
 import {
   castF16ToF32,
   castF32ToF16,
@@ -22,10 +20,8 @@ import { createTensor } from '../../../gpu/tensor.js';
 import { releaseBuffer, readBuffer, acquireBuffer, uploadData } from '../../../memory/buffer-pool.js';
 import { getWeightDtype, isGpuBufferInstance, isWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { kernelTrace, traceStep } from './kernel-trace.js';
-import {
-  runLayerAttentionGPU,
-  recordLayerAttentionGPU,
-} from './attention/index.js';
+import { runLayerAttentionGPU } from './attention/executor-immediate.js';
+import { recordLayerAttentionGPU } from './attention/executor-recorded.js';
 import { runLinearAttentionLayer } from './linear-attention.js';
 import { padToQ4KBlock } from '../../../config/schema/index.js';
 import { runGatedShortConvGPU } from '../../../gpu/kernels/gated-short-conv.js';
@@ -414,7 +410,7 @@ export async function initConvLayerState(convState, convKernel, convInProj, hidd
   } else if (kernelDtype === 'f16' || kernelDtype === 'bf16') {
     if (device) await device.queue.onSubmittedWorkDone();
     const raw = await readBuffer(kernelBuf, totalElements * 2);
-    const { decodeReadback } = await import('./debug-utils/index.js');
+    const { decodeReadback } = await import('./debug-utils/readback-decoding.js');
     weightF32 = decodeReadback(raw, 'f16');
   } else {
     if (device) await device.queue.onSubmittedWorkDone();
