@@ -1,5 +1,6 @@
-import { openCapsule, getCapsuleIdentity } from 'doppler-gpu/host';
+import { openCapsule } from 'doppler-gpu/host';
 import { createFetchCapsuleArtifactStore } from 'doppler-gpu';
+import { getCapsuleIdentity } from 'doppler-gpu/capsule';
 import { createOpfsStore } from 'doppler-gpu/tooling/storage';
 import { createDocumentSearchController } from './controller.js';
 import { importDocuments } from './document-import.js';
