@@ -102,6 +102,12 @@ export function setDevice(
   options?: {
     adapterInfo?: AdapterInfo;
     platformConfig?: ResolvedPlatformConfig | null;
+    /**
+     * Capability snapshot captured with this device (getKernelCapabilities()).
+     * When present it is installed verbatim, preserving probe results such as
+     * a failed shader-f16 compile; otherwise capabilities derive from features.
+     */
+    capabilities?: KernelCapabilities;
   }
 ): void;
 

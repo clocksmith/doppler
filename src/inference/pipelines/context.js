@@ -173,6 +173,7 @@ export function applyPipelineContexts(target, contexts = {}, options = {}) {
       setDevice(device, {
         ...(nextAdapterInfo ? { adapterInfo: nextAdapterInfo } : {}),
         ...(nextPlatformConfig !== undefined ? { platformConfig: nextPlatformConfig } : {}),
+        ...(contexts.gpu.capabilities !== undefined ? { capabilities: contexts.gpu.capabilities } : {}),
       });
       setGPUDevice(device);
       if (options.assignGpuContext) {
