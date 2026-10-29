@@ -1,4 +1,4 @@
-import type { Rule } from './rule-matcher.js';
+import type { Rule, RuleFileStructureArtifact } from './rule-matcher.js';
 
 type RuleSet = Array<Rule<unknown>>;
 type DeepReadonly<T> = T extends readonly unknown[] ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
@@ -52,33 +52,9 @@ export declare function registerRuleGroup(
   rules: Record<string, RuleSet>
 ): void;
 
-export declare function getInferenceExecutionRulesContractArtifact(): {
-  schemaVersion: 1;
-  source: 'doppler';
-  ok: boolean;
-  checks: Array<{ id: string; ok: boolean }>;
-  errors: string[];
-  stats: {
-    decodeRecorderRules: number;
-    batchDecodeRules: number;
-    decodeRecorderContexts: number;
-    batchDecodeContexts: number;
-  };
-};
+export declare function getInferenceExecutionRulesContractArtifact(): RuleFileStructureArtifact;
 
-export declare function getInferenceLayerPatternContractArtifact(): {
-  schemaVersion: 1;
-  source: 'doppler';
-  ok: boolean;
-  checks: Array<{ id: string; ok: boolean }>;
-  errors: string[];
-  stats: {
-    patternKindRules: number;
-    layerTypeRules: number;
-    patternKindContexts: number;
-    layerTypeContexts: number;
-  };
-};
+export declare function getInferenceLayerPatternContractArtifact(): RuleFileStructureArtifact;
 
 export interface RuleRegistry {
   readonly identity: string;

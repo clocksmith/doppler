@@ -1,16 +1,6 @@
-export interface LayerPatternContractArtifact {
-  schemaVersion: 1;
-  source: 'doppler';
-  ok: boolean;
-  checks: Array<{ id: string; ok: boolean }>;
-  errors: string[];
-  stats: {
-    patternKindRules: number;
-    layerTypeRules: number;
-    patternKindContexts: number;
-    layerTypeContexts: number;
-  };
-}
+import type { RuleFileStructureArtifact } from './rule-matcher.js';
+
+export type LayerPatternContractArtifact = RuleFileStructureArtifact;
 
 export declare function buildLayerPatternContractArtifact(
   ruleGroup: Record<string, unknown> | null | undefined

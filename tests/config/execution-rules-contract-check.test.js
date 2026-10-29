@@ -3,222 +3,91 @@ import assert from 'node:assert/strict';
 import {
   buildInferenceExecutionRulesContractArtifact,
 } from '../../src/rules/execution-rules-contract-check.js';
-import {
-  getInferenceExecutionRulesContractArtifact,
-  selectRuleValue,
-} from '../../src/rules/rule-registry.js';
+import { getInferenceExecutionRulesContractArtifact } from '../../src/rules/rule-registry.js';
+import ruleBundle from '../../src/rules/generated/rule-bundle.json' with { type: 'json' };
+
+const checkedIn = ruleBundle.files['inference/execution.rules.json'];
+
+function withGroup(name, rules) {
+  return { ...structuredClone(checkedIn), [name]: rules };
+}
+
+function assertRejected(ruleFile, fragment) {
+  const artifact = buildInferenceExecutionRulesContractArtifact(ruleFile);
+  assert.equal(artifact.ok, false, `expected rejection containing "${fragment}"`);
+  assert.ok(
+    artifact.errors.some((message) => message.includes(fragment)),
+    `expected an error containing "${fragment}"; got ${JSON.stringify(artifact.errors)}`
+  );
+}
 
 {
   const artifact = getInferenceExecutionRulesContractArtifact();
-  assert.equal(artifact.ok, true);
-  for (const [name, sampledContexts] of Object.entries(artifact.stats)) {
-    if (!name.endsWith('Contexts')) continue;
-    assert.ok(sampledContexts > 0, `${name}: semantic check must sample at least one context`);
-  }
-  assert.ok(
-    artifact.checks.some((entry) => entry.id === 'inference.execution.decodeRecorderEnabled.semantics' && entry.ok)
-  );
-  assert.ok(
-    artifact.checks.some((entry) => entry.id === 'inference.execution.profileDecodeRecorderEnabled.semantics' && entry.ok)
-  );
-  assert.ok(
-    artifact.checks.some((entry) => entry.id === 'inference.execution.batchDecodeEnabled.semantics' && entry.ok)
-  );
-  assert.ok(
-    artifact.checks.some((entry) => entry.id === 'inference.execution.maxBatchDecodeTokens.semantics' && entry.ok)
-  );
-  assert.ok(
-    artifact.checks.some((entry) => entry.id === 'inference.execution.prefillRecorderChunkLayers.semantics' && entry.ok)
-  );
-  assert.equal(
-    selectRuleValue('inference', 'execution', 'maxBatchDecodeTokens', {
-      hasHotVocabularyBatchDecode: false,
-      hasGpuSplitPerLayerInputs: false,
-      hasLinearAttentionLayers: false,
-      modelId: 'gemma-4-12b-it-text-q4k-ehf16-hq4k-af16',
-      activationDtype: 'f16',
-      currentSeqLen: 612,
-      maxDecodeTokens: 64,
-      numLayers: 48,
-      hiddenSize: 3840,
-    }),
-    8
-  );
+  assert.equal(artifact.ok, true, artifact.errors.join(' | '));
+  assert.ok(artifact.checks.every((entry) => entry.ok));
+  assert.deepEqual(artifact, buildInferenceExecutionRulesContractArtifact(checkedIn));
 }
 
+// Rule values are policy: changing a value of the right type stays valid.
 {
-  const artifact = buildInferenceExecutionRulesContractArtifact({
-    decodeRecorderEnabled: [
-      {
-        match: {
-          hasDevice: true,
-          debug: false,
-          disableCommandBatching: false,
-          kvLayout: { neq: 'paged' },
-        },
-        value: true,
-      },
-      { match: {}, value: false },
-    ],
-    profileDecodeRecorderEnabled: [
-      {
-        match: {
-          hasDevice: true,
-          debug: false,
-          kvLayout: { neq: 'bdpa_paged' },
-        },
-        value: true,
-      },
-      { match: {}, value: false },
-    ],
-    batchDecodeEnabled: [
-      {
-        match: {
-          batchSize: { gt: 1 },
-          useGPU: true,
-          gpuSamplingAvailable: true,
-          disableMultiTokenDecode: { neq: true },
-          disableCommandBatching: false,
-          isBdpaPagedLayout: false,
-          finitenessFallbackWindowOpen: false,
-          hasLinearAttentionLayers: false,
-          hasRangeBackedPerLayerInputs: false,
-        },
-        value: true,
-      },
-      {
-        match: {
-          batchSize: { gt: 1 },
-          useGPU: true,
-          gpuSamplingAvailable: true,
-          disableMultiTokenDecode: { neq: true },
-          disableCommandBatching: false,
-          isBdpaPagedLayout: false,
-          finitenessFallbackWindowOpen: false,
-          hasLinearAttentionLayers: false,
-          hasRangeBackedPerLayerInputs: true,
-          selfSpeculationEnabled: false,
-        },
-        value: true,
-      },
-      { match: {}, value: false },
-    ],
-    maxBatchDecodeTokens: [
-      { match: { hasHotVocabularyBatchDecode: true }, value: 2 },
-      { match: { hasLinearAttentionLayers: true }, value: 64 },
-      { match: { hasGpuSplitPerLayerInputs: true, maxDecodeTokens: { gt: 16 } }, value: 16 },
-      { match: { hasGpuSplitPerLayerInputs: true, currentSeqLen: { gte: 192 } }, value: 16 },
-      { match: { hasGpuSplitPerLayerInputs: true }, value: 8 },
-      { match: {}, value: null },
-    ],
-    prefillRecorderChunkLayers: [
-      {
-        match: {
-          hasGpuSplitPerLayerInputs: true,
-          numTokens: { lte: 32 },
-        },
-        value: 8,
-      },
-      { match: {}, value: 4 },
-    ],
-  });
-
-  assert.equal(artifact.ok, false);
-  assert.ok(
-    artifact.errors.some((message) =>
-      message.includes('decodeRecorderEnabled rule 1 drifted')
-    )
+  const retuned = withGroup(
+    'prefillRecorderChunkLayers',
+    checkedIn.prefillRecorderChunkLayers.map((rule) => ({ ...rule, value: rule.value + 1 }))
   );
+  assert.equal(buildInferenceExecutionRulesContractArtifact(retuned).ok, true);
 }
 
-{
-  const artifact = buildInferenceExecutionRulesContractArtifact({
-    decodeRecorderEnabled: [
-      {
-        match: {
-          hasDevice: true,
-          debug: false,
-          disableCommandBatching: false,
-          kvLayout: { neq: 'bdpa_paged' },
-        },
-        value: true,
-      },
-      { match: {}, value: false },
-    ],
-    profileDecodeRecorderEnabled: [
-      {
-        match: {
-          hasDevice: true,
-          debug: false,
-          kvLayout: { neq: 'paged' },
-        },
-        value: true,
-      },
-      { match: {}, value: false },
-    ],
-    batchDecodeEnabled: [
-      {
-        match: {
-          batchSize: { gt: 1 },
-          useGPU: true,
-          gpuSamplingAvailable: true,
-          disableMultiTokenDecode: { neq: true },
-          disableCommandBatching: false,
-          isBdpaPagedLayout: false,
-          finitenessFallbackWindowOpen: true,
-          hasLinearAttentionLayers: false,
-          hasRangeBackedPerLayerInputs: false,
-        },
-        value: true,
-      },
-      {
-        match: {
-          batchSize: { gt: 1 },
-          useGPU: true,
-          gpuSamplingAvailable: true,
-          disableMultiTokenDecode: { neq: true },
-          disableCommandBatching: false,
-          isBdpaPagedLayout: false,
-          finitenessFallbackWindowOpen: false,
-          hasLinearAttentionLayers: false,
-          hasRangeBackedPerLayerInputs: true,
-          selfSpeculationEnabled: false,
-        },
-        value: true,
-      },
-      { match: {}, value: false },
-    ],
-    maxBatchDecodeTokens: [
-      { match: { hasHotVocabularyBatchDecode: true }, value: 1 },
-      { match: { hasLinearAttentionLayers: true }, value: 64 },
-      { match: { hasGpuSplitPerLayerInputs: true, maxDecodeTokens: { gt: 16 } }, value: 16 },
-      { match: { hasGpuSplitPerLayerInputs: true, currentSeqLen: { gte: 192 } }, value: 16 },
-      { match: { hasGpuSplitPerLayerInputs: true }, value: 8 },
-      { match: {}, value: 8 },
-    ],
-    prefillRecorderChunkLayers: [
-      {
-        match: {
-          hasGpuSplitPerLayerInputs: true,
-          numTokens: { lte: 32 },
-        },
-        value: 8,
-      },
-      { match: {}, value: 4 },
-    ],
-  });
-
-  assert.equal(artifact.ok, false);
-  assert.ok(
-    artifact.errors.some((message) =>
-      message.includes('profileDecodeRecorderEnabled rule 1 drifted')
-    )
-  );
-  assert.ok(
-    artifact.errors.some((message) =>
-      message.includes('maxBatchDecodeTokens must contain exactly 8 rules.')
-    )
-  );
-}
+assertRejected(null, 'rule file must be an object');
+assertRejected({ ...checkedIn, unknownGroup: [] }, 'unknown rule groups: unknownGroup');
+assertRejected(withGroup('decodeRecorderEnabled', undefined), 'decodeRecorderEnabled must be a non-empty rule array');
+assertRejected(withGroup('decodeRecorderEnabled', []), 'decodeRecorderEnabled must be a non-empty rule array');
+assertRejected(
+  withGroup('decodeRecorderEnabled', [{ match: { hasDevice: true }, value: true }]),
+  'decodeRecorderEnabled must end with a catch-all rule'
+);
+assertRejected(
+  withGroup('decodeRecorderEnabled', [{ match: {}, value: false }, { match: { hasDevice: true }, value: true }]),
+  'decodeRecorderEnabled[0] is a catch-all before the last rule'
+);
+assertRejected(
+  withGroup('decodeRecorderEnabled', [{ match: {}, value: 'yes' }]),
+  'decodeRecorderEnabled[0].value must be a boolean'
+);
+assertRejected(
+  withGroup('batchDecodeEnabled', [{ match: { batchSzie: { gt: 1 } }, value: true }, { match: {}, value: false }]),
+  'batchDecodeEnabled[0].match.batchSzie is not a context field'
+);
+assertRejected(
+  withGroup('batchDecodeEnabled', [{ match: { batchSize: { gt: '1' } }, value: true }, { match: {}, value: false }]),
+  'batchDecodeEnabled[0].match.batchSize.gt must be a finite number'
+);
+assertRejected(
+  withGroup('batchDecodeEnabled', [{ match: { batchSize: { above: 1 } }, value: true }, { match: {}, value: false }]),
+  'uses unknown operator "above"'
+);
+assertRejected(
+  withGroup('maxBatchDecodeTokens', [{ match: { modelId: { startsWith: 'gemma-4' } }, value: 8 }, { match: {}, value: null }]),
+  'model identity must use exact values or explicit lists'
+);
+assertRejected(
+  withGroup('maxBatchDecodeTokens', [{ match: { modelId: { in: [] } }, value: 8 }, { match: {}, value: null }]),
+  'maxBatchDecodeTokens[0].match.modelId.in must be a non-empty array of scalars'
+);
+assertRejected(
+  withGroup('maxBatchDecodeTokens', [{ match: {}, value: 0 }]),
+  'maxBatchDecodeTokens[0].value must be null or a positive integer'
+);
+assertRejected(
+  withGroup('prefillRecorderChunkLayers', [{ match: {}, value: null }]),
+  'prefillRecorderChunkLayers[0].value must be a positive integer'
+);
+assertRejected(
+  withGroup('finitenessFallbackActivationDtype', [{ match: {}, value: 'bf16' }]),
+  'finitenessFallbackActivationDtype[0].value must be "f16" or "f32"'
+);
+assertRejected(
+  withGroup('prefillRecorderChunkLayers', [{ match: {}, value: 4, note: 'x' }]),
+  'prefillRecorderChunkLayers[0] has unknown keys: note'
+);
 
 console.log('execution-rules-contract-check.test: ok');

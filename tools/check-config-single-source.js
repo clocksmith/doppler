@@ -287,8 +287,13 @@ const CODE_RULES = Object.freeze([
   },
   {
     file: 'src/rules/execution-rules-contract-check.js',
-    label: 'Execution rule semantic model ID substring detection',
-    pattern: /modelId\.includes\s*\(/g,
+    label: 'Execution rule values pinned in JS (structure-only contract)',
+    pattern: /modelId\.includes\s*\(|selectByRules|\.value\s*!==|value:\s*-?\d|['"](gemma|qwen)-[\w.-]+['"]/g,
+  },
+  {
+    file: 'src/rules/layer-pattern-contract-check.js',
+    label: 'Layer pattern rule values pinned in JS (structure-only contract)',
+    pattern: /selectByRules|\.value\s*!==|['"](full|sliding)_attention['"]|['"]alternating_(even|odd)['"]/g,
   },
   {
     file: 'src/experimental/diffusion/text-encoder-gpu.js',
