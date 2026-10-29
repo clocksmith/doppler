@@ -15,6 +15,10 @@ import {
 import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
 import { selectRuleValue as selectSharedRuleValue } from '../../rules/rule-registry.js';
 import { logKernelSelectionOnce } from '../kernel-selection-log.js';
+import { resolvePipelineIdentity } from './pipeline-cache.js';
+import { assertSubgroupPartition } from './subgroup-partition.js';
+
+const preparedMatmulConfigs = new WeakMap();
 
 // =============================================================================
 // Q4K Variant Lookup Tables
@@ -110,7 +114,23 @@ function applyMatmulConstants(config, constants) {
 
 
 export function getMatmulConfig(variant, constants) {
-  return applyMatmulConstants(getKernelConfig('matmul', variant), constants);
+  const config = getKernelConfig('matmul', variant);
+  let plans = preparedMatmulConfigs.get(config);
+  if (!plans) {
+    plans = { empty: null, inputs: new WeakMap() };
+    preparedMatmulConfigs.set(config, plans);
+  }
+  if (constants == null && plans.empty) return plans.empty;
+  const prepared = constants && plans.inputs.get(constants);
+  if (prepared) return prepared;
+  const resolved = applyMatmulConstants(config,
+    resolvePipelineIdentity({ operation: 'matmul', variant, constants }).constants);
+  if (constants == null) plans.empty = resolved;
+  else if (Object.isFrozen(constants)
+      && Object.values(Object.getOwnPropertyDescriptors(constants)).every(descriptor => 'value' in descriptor)) {
+    plans.inputs.set(constants, resolved);
+  }
+  return resolved;
 }
 
 
@@ -333,6 +353,9 @@ function resolveMatmulOverride(
   }
 
   const outputDtype = config.outputDtype;
+  if (config.variantMetadata?.subgroupPartitionLanes !== undefined) {
+    assertSubgroupPartition(config.variantMetadata.subgroupPartitionLanes, capabilities.adapterInfo);
+  }
   if (!outputDtype) {
     return failOrWarn(`Matmul kernel "${variantOverride}" is missing outputDtype.`);
   }

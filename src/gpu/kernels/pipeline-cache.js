@@ -17,6 +17,9 @@ let deviceCaches = new WeakMap();
 
 let pipelineBindGroupLayoutCache = new WeakMap();
 const pipelineProvenance = new WeakMap();
+const normalizedConstantPlans = new WeakMap();
+const constantKeys = new WeakMap();
+const staticConstantMaps = new WeakMap();
 
 // Observation only. Pipelines created outside this owner have unknown provenance.
 export function getPipelineProvenance(pipeline) {
@@ -159,8 +162,13 @@ function buildPipelineCacheKey(operation, variant, constants, bindGroupLayout, d
   const config = getKernelConfig(operation, variant);
   const source = sourceIdentity ?? getShaderSourceIdentity(config.shaderFile);
   if (source === null) return null;
-  return canonicalizeJson([
-    getDeviceId(device), getKernelRegistry().identity, source, config.entryPoint, constants ?? {},
+  let constantsKey = constants && Object.isFrozen(constants) ? constantKeys.get(constants) : null;
+  if (constantsKey == null) {
+    constantsKey = JSON.stringify(Object.entries(constants ?? {}).sort(([a], [b]) => a.localeCompare(b)));
+    if (constants && Object.isFrozen(constants)) constantKeys.set(constants, constantsKey);
+  }
+  return JSON.stringify([
+    getDeviceId(device), getKernelRegistry().identity, source, config.entryPoint, constantsKey,
     bindGroupLayout ? getLayoutId(bindGroupLayout) : 'auto',
   ]);
 }
@@ -195,6 +203,33 @@ function normalizePipelineConstants(constants) {
   return normalized;
 }
 
+function resolveNormalizedConstants(operation, variant, constants) {
+  const config = getKernelConfig(operation, variant);
+  let cacheable = constants == null;
+  if (constants && Object.isFrozen(constants)) {
+    let staticValues = staticConstantMaps.get(constants);
+    if (staticValues === undefined) {
+      staticValues = Object.values(Object.getOwnPropertyDescriptors(constants)).every(descriptor => 'value' in descriptor);
+      staticConstantMaps.set(constants, staticValues);
+    }
+    cacheable = staticValues;
+  }
+  let plans = cacheable ? normalizedConstantPlans.get(config) : null;
+  if (!plans && cacheable) {
+    plans = { empty: undefined, values: new WeakMap() };
+    normalizedConstantPlans.set(config, plans);
+  }
+  const prepared = constants == null ? plans?.empty : plans?.values.get(constants);
+  if (prepared !== undefined) return prepared;
+  const resolved = normalizePipelineConstants(resolveConstants(operation, variant, constants));
+  if (plans) {
+    if (resolved) Object.freeze(resolved);
+    if (constants == null) plans.empty = resolved;
+    else plans.values.set(constants, resolved);
+  }
+  return resolved;
+}
+
 function isPowerOfTwo(value) {
   return Number.isInteger(value) && value > 0 && (value & (value - 1)) === 0;
 }
@@ -227,9 +262,10 @@ function assertWorkgroupPowerOfTwo(operation, variant, workgroupSize, constants)
 export function resolvePipelineIdentity(request) {
   const { operation, variant, constants } = request;
   const config = getKernelConfig(operation, variant);
+  const constantsPlan = resolveNormalizedConstants(operation, variant, constants);
   return {
     operation, variant, shaderFile: config.shaderFile, entryPoint: config.entryPoint,
-    constants: normalizePipelineConstants(resolveConstants(operation, variant, constants)),
+    constants: constantsPlan === null ? null : { ...constantsPlan },
   };
 }
 
@@ -242,9 +278,7 @@ export function getCachedPipeline(
   if (!device) {
     return null;
   }
-  const resolvedConstants = normalizePipelineConstants(
-    resolveConstants(operation, variant, constants)
-  );
+  const resolvedConstants = resolveNormalizedConstants(operation, variant, constants);
   const cacheKey = buildPipelineCacheKey(operation, variant, resolvedConstants, null, device);
   const pipelineCache = getDeviceCaches(device).pipelines;
   return pipelineCache.get(cacheKey) || null;
@@ -261,9 +295,7 @@ export async function getPipelineFast(
   if (!device) {
     throw new Error('Device not initialized');
   }
-  const resolvedConstants = normalizePipelineConstants(
-    resolveConstants(operation, variant, constants)
-  );
+  const resolvedConstants = resolveNormalizedConstants(operation, variant, constants);
   const pipelineCache = getDeviceCaches(device).pipelines;
   if (bindGroupLayout) {
     const layoutKey = buildPipelineCacheKey(operation, variant, resolvedConstants, bindGroupLayout, device);
@@ -296,9 +328,7 @@ export async function createPipeline(
   const epoch = getDeviceEpoch();
   const generation = cacheGeneration;
   assertDeviceValid(device, epoch, requireCurrentDevice);
-  const resolvedConstants = normalizePipelineConstants(
-    resolveConstants(operation, variant, constants)
-  );
+  const resolvedConstants = resolveNormalizedConstants(operation, variant, constants);
   const constantsKey = resolvedConstants
     ? Object.entries(resolvedConstants).sort().map(([k, v]) => `${k}=${v}`).join('|')
     : '';

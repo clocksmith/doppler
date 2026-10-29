@@ -168,6 +168,8 @@ export const DEFAULT_RUNTIME_CONFIG = {
       // conv1d state update and recurrent scan when qRep=1 and head dims fit
       // one workgroup, eliminating the conv_out intermediate dispatch.
       useLinearAttentionFusedDecodeCore: false,
+      useLinearAttentionRegisterPrefill: false,
+      useLinearAttentionRegisterDecode: false,
       linearRecurrentStatePrecision: 'f32',
       intermediatePrecision: 'f32',
       // Opt into the single-pass flash attention prefill kernel adapted from
@@ -200,6 +202,7 @@ export const DEFAULT_RUNTIME_CONFIG = {
       // diagnostics do not need intermediate Q/K stage readbacks.
       useFusedQKVSplitQKNormRoPE: false,
       useGreedyLmHeadArgmaxFusion: false,
+      usePreparedDecodeWorkspace: false,
     },
     executionPatch: {},
   },

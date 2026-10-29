@@ -21,6 +21,8 @@ export { setTrackSubmits } from './submit-tracker.js';
  * GPU adapter information
  */
 export interface AdapterInfo {
+  subgroupMinSize?: number | null;
+  subgroupMaxSize?: number | null;
   vendor: string;
   architecture: string;
   device: string;

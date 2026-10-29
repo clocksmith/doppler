@@ -1,3 +1,4 @@
+import { assertSubgroupPartition } from '../subgroup-partition.js';
 import { TILE_SIZES } from '../constants.js';
 import { getKernelThresholdSnapshot } from '../../../config/schema/index.js';
 import { getKernelConfig } from '../kernel-configs.js';
@@ -242,6 +243,10 @@ export function validateAttentionVariant(
 
   if (!hasRequiredFeatures(config.requires, caps, getKernelWgslRequirements(config))) {
     throw new Error(`Attention kernel "${variant}" requires unsupported GPU features.`);
+  }
+
+  if (config.variantMetadata?.subgroupPartitionLanes != null) {
+    assertSubgroupPartition(config.variantMetadata.subgroupPartitionLanes, caps.adapterInfo);
   }
 
   const expectsF16KV = normalized.includes('_f16kv');

@@ -1,4 +1,5 @@
 import { releasePerLayerInputBuffer } from './per-layer-buffer.js';
+import { isGreedySampling } from '../../../../rules/greedy-sampling.js';
 export { releasePerLayerInputBuffer } from './per-layer-buffer.js';
 import { tensorElementBytes } from '../../../../gpu/tensor.js';
 import { getActivationRepresentation } from './activation-storage.js';
@@ -543,7 +544,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
       resources.register(logitsBuffer, 'decode logits');
       const ringTokensBuffer = ringSlot?.tokens ?? null;
       await recordHistoryPenalties(recorder, logitsBuffer, currentIds, { ...opts, vocabSize, logitsDtype });
-      const sampleOutputBuffer = opts.temperature < samplingDefaults.greedyThreshold
+      const sampleOutputBuffer = isGreedySampling(opts.temperature, opts.topK, samplingDefaults.greedyThreshold)
         ? await recordArgmax(recorder, logitsBuffer, vocabSize, {
           padTokenId,
           logitSoftcap,

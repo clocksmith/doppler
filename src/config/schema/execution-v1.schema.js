@@ -85,6 +85,8 @@ export const DEFAULT_EXECUTION_V1_SESSION = {
   useLinearAttentionABProjectionFusion: false,
   useLinearAttentionQKVZProjectionFusion: false,
   useLinearAttentionFusedDecodeCore: false,
+  useLinearAttentionRegisterPrefill: false,
+  useLinearAttentionRegisterDecode: false,
   linearRecurrentStatePrecision: 'f32',
   intermediatePrecision: 'f32',
   useWideTileResidualFusion: false,
@@ -94,6 +96,7 @@ export const DEFAULT_EXECUTION_V1_SESSION = {
   retainQ4KMaterialization: false,
   useF32AccumF16ioMatmul: false,
   useGreedyLmHeadArgmaxFusion: false,
+  usePreparedDecodeWorkspace: false,
 };
 
 export const DEFAULT_EXECUTION_V1_POLICIES = {

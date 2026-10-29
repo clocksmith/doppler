@@ -55,11 +55,18 @@ assert.throws(() => assertKernelNormGateActivation(getKernelConfig('gated_delta_
 
 // Every gate-declaring kernel applies exactly its declared activation, and each
 // sigmoid kernel equals its silu source apart from comments and that one call.
-const gateCall = { silu: ['silu(f32(z_proj[z_index]))', 'pair_silu(z[z_index])'],
+const gateCall = { silu: ['silu(f32(z_proj[z_index]))', 'pair_silu(z[z_index])', 'silu(z_proj[z_index])'],
   sigmoid: ['sigmoid_refined(f32(z_proj[z_index]))', 'pair_sigmoid(z[z_index])'] };
 const stripComments = text => text.split('\n').filter(line => !line.trimStart().startsWith('//')).join('\n');
 for (const config of Object.values(KERNEL_CONFIGS).flatMap(variants => Object.values(variants))) {
-  const source = await kernelSource(config.shaderFile);
+  let source = await kernelSource(config.shaderFile);
+  // Split mechanisms apply the gate in their explicitly registered final pass.
+  const companion = config.variantMetadata?.normGateVariant;
+  if (companion) {
+    const gate = getKernelConfig(config.operation, companion);
+    assertKernelNormGateActivation(gate, config.variantMetadata.normGateActivation);
+    source += await kernelSource(gate.shaderFile);
+  }
   const applied = Object.keys(gateCall).filter(activation => gateCall[activation].some(call => source.includes(call)));
   // An undeclared gate-applying kernel would bypass the guard.
   assert.deepEqual(applied, config.variantMetadata?.normGateActivation === undefined ? []

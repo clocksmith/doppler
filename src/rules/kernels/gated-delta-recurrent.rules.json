@@ -3,6 +3,14 @@
     {
       "match": {
         "inputDtype": "f32",
+        "normGateActivation": "silu",
+        "useRegisterPrefill": true
+      },
+      "value": "register_prefill"
+    },
+    {
+      "match": {
+        "inputDtype": "f32",
         "normGateActivation": "silu"
       },
       "value": "default"

@@ -1,6 +1,19 @@
+const frozenMatchEntries = new WeakMap();
+
+function matchEntries(match) {
+  if (!Object.isFrozen(match)) return Object.entries(match);
+  let entries = frozenMatchEntries.get(match);
+  if (entries === undefined) {
+    const descriptors = Object.values(Object.getOwnPropertyDescriptors(match));
+    entries = descriptors.every(descriptor => 'value' in descriptor) ? Object.entries(match) : null;
+    frozenMatchEntries.set(match, entries);
+  }
+  return entries ?? Object.entries(match);
+}
+
 export function matchesRule(match, context) {
   if (!match) return true;
-  for (const [key, expected] of Object.entries(match)) {
+  for (const [key, expected] of matchEntries(match)) {
     const actual = context[key];
     if (expected && typeof expected === 'object' && !Array.isArray(expected)) {
       if ('eq' in expected && actual !== expected.eq) return false;

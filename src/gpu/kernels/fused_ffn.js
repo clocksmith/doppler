@@ -5,7 +5,7 @@ import { createTensor } from '../tensor.js';
 import { KernelBase } from './kernel-base.js';
 import { FFN_DISPATCH } from './constants.js';
 import { createUniformBufferWithView } from './uniform-utils.js';
-import { getPipelineBindGroupLayout } from './pipeline-cache.js';
+import { getCachedPipeline, getPipelineBindGroupLayout } from './pipeline-cache.js';
 import { recordDispatch } from './dispatch.js';
 import { trace } from '../../debug/index.js';
 import { getBuffer, getWeightDtype } from '../weight-buffer.js';
@@ -14,6 +14,8 @@ import { getKernelThresholdSnapshot, QK_K } from '../../config/schema/index.js';
 import { selectRuleValue } from './rule-registry.js';
 import { resolveNormWeightDtype } from './rmsnorm.js';
 import { getShaderModule } from './shader-cache.js';
+import { getKernelConfig } from './kernel-configs.js';
+import { assertSubgroupPartition } from './subgroup-partition.js';
 
 class FusedFFNKernel extends KernelBase {
 
@@ -57,6 +59,7 @@ const F16_OUTPUT_VARIANTS = new Set([
 const Q4K_VARIANTS = new Set([
   'q4k',
   'q4k_metal_simd16',
+  'q4k_subgroup8',
   'q4k_batched',
   'q4k_f16a',
   'q4k_batched_f16a',
@@ -89,7 +92,7 @@ function selectFFNVariant(batchSize, weightDtype, intermediateSize, hiddenSize, 
   if (variantOverride == null) {
     return selected;
   }
-  if (variantOverride !== 'q4k_metal_simd16') {
+  if (variantOverride !== 'q4k_metal_simd16' && variantOverride !== 'q4k_subgroup8') {
     throw new Error(`Fused FFN does not support explicit variant "${String(variantOverride)}".`);
   }
   if (selected !== 'q4k') {
@@ -262,7 +265,20 @@ function calculateFFNDispatch(variant, batchSize, intermediateSize, constants = 
 
 function resolveFusedFFNPipelineConstants(variant, hiddenSize, pipelineConstants = null) {
   if (Q4K_VARIANTS.has(variant)) {
-    return normalizeQ4KPipelineConstants(pipelineConstants, 'FusedFFN Q4K');
+    const defaults = getKernelConfig('fused_ffn', variant).variantMetadata?.fusedFfnDefaults;
+    const constants = normalizeQ4KPipelineConstants(defaults ? { ...defaults, ...pipelineConstants } : pipelineConstants, 'FusedFFN Q4K');
+    if (variant === 'q4k_metal_simd16' && constants?.THREADS_PER_COL !== undefined
+        && constants.THREADS_PER_COL !== 16) {
+      throw new Error('FusedFFN q4k_metal_simd16 requires THREADS_PER_COL=16; inherited projection constants are incompatible.');
+    }
+    const partition = getKernelConfig('fused_ffn', variant).variantMetadata?.subgroupPartitionLanes;
+    if (partition != null) {
+      assertSubgroupPartition(partition, getKernelCapabilities().adapterInfo);
+      if (constants?.THREADS_PER_COL !== partition) {
+        throw new Error(`FusedFFN ${variant} requires explicit THREADS_PER_COL=${partition}.`);
+      }
+    }
+    return constants;
   }
   if (!SHARED_INPUT_SIZE_VARIANTS.has(variant)) {
     return null;
@@ -343,7 +359,8 @@ async function executeFusedFFN(
 
   const kernel = new FusedFFNKernel(device);
   const constants = resolveFusedFFNPipelineConstants(variant, hiddenSize, pipelineConstants);
-  const pipeline = await kernel.getPipeline(variant, constants);
+  const pipeline = getCachedPipeline('fused_ffn', variant, constants, device)
+    ?? await kernel.getPipeline(variant, constants);
 
   // Native f16 weight kernels narrow back to f16 output. Q4K f16-activation
   // variants keep the existing f32 output contract so downstream precision is
@@ -366,7 +383,7 @@ async function executeFusedFFN(
   });
 
   try {
-    const bindGroup = device.createBindGroup({
+    const bindingDescriptor = {
       label: 'fused_ffn_bind_group',
       layout: getPipelineBindGroupLayout(pipeline, 0),
       entries: [
@@ -376,7 +393,10 @@ async function executeFusedFFN(
         { binding: 3, resource: { buffer: getBuffer(W_up) } },
         { binding: 4, resource: { buffer: output } },
       ],
-    });
+    };
+    const bindGroup = recorder?.decodeWorkspace && Number.isInteger(options.layerIdx)
+      ? recorder.decodeWorkspace.getBindGroup(`ffn:${options.layerIdx}:gate_up`, bindingDescriptor)
+      : device.createBindGroup(bindingDescriptor);
 
     const { workgroupsX, workgroupsY } = calculateFFNDispatch(variant, batchSize, intermediateSize, constants);
     if (recorder) kernel.record(recorder, pipeline, bindGroup, workgroupsX, workgroupsY);

@@ -40,35 +40,10 @@ import { assertImplicitDtypeTransitionAllowed } from '../dtype-contract.js';
 import { canFuseSplitPrefillF16GateUpPath, hasQ4KMaterialization, resolveDenseFFNFusedPathDtypes, resolveDenseFFNMatmulStepDtype, resolveFusedGateUpPipelineConstants, resolveFusedGateUpVariant, resolveFusedGateUpWeights, resolveGateUpPathMode } from './dense-plan.js';
 import { coerceTensorDtype, dispatchActivation, dispatchFusedGateUp, requireFusedWeightDtype, resolveActivationOp, resolveMatmulStepDtype, runDenseUngatedFFNGPU } from './dense-executor.js';
 import { runPairedFFNGPU } from './paired.js';
+import { captureTrainingActivation, enqueueRecordedDenseHealth } from './activation-observation.js';
+import { borrowDecodeFfnIntermediate } from './decode-intermediate.js';
 export { canUseNativeF16FusedGateUp, runDenseFFNWithFusedPostNormGPU } from './dense-executor.js';
 export { canFuseSplitPrefillF16GateUpPath, resolveDenseFFNFusedPathDtypes, resolveDenseFFNMatmulStepDtype, resolveFusedGateUpPipelineConstants, resolveFusedGateUpVariant, resolveFusedGateUpWeights, resolveGateUpPathMode } from './dense-plan.js';
-async function captureTrainingActivation(context, layerIdx, tensor, numTokens, hiddenSize) {
-  const capture = context.trainingCapture;
-  if (!capture || capture.layerIdx !== layerIdx || capture.stage !== 'ffn_act') return;
-  await capture.capture({
-    layerIdx,
-    stage: 'ffn_act',
-    tensor,
-    numTokens,
-    hiddenSize,
-    recorder: context.recorder ?? null,
-  });
-}
-function enqueueRecordedDenseHealth(context, layerIdx, label, tensor, elementCount) {
-  const recorder = context.recorder ?? null;
-  if (!recorder || !isTraceEnabled('logits') || !shouldDebugLayerOutput(layerIdx, context.debugLayers)) {
-    return;
-  }
-  if (!tensor?.buffer || !Number.isFinite(elementCount) || elementCount <= 0) {
-    return;
-  }
-  const dtype = tensor.dtype;
-  const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype });
-  recorder.enqueueCompletionTask(async () => {
-    const data = await readBuffer(tensor.buffer, elementCount * bytesPerElement);
-    trace.logits(`L${layerIdx}.${label}_HEALTH`, getLogitsHealth(decodeReadback(data, dtype)));
-  });
-}
 function isWideTileQ4KPhaseEnabled(session, phase) {
   return phase === 'decode'
     ? session?.useWideTileQ4KDecode === true
@@ -386,12 +361,14 @@ export async function runDenseFFNGPU(
     const gateWeight = getWeightBuffer(fusedGateUpWeights.gate ?? layerWeights.gate, 'ffn_gate');
     const upWeight = getWeightBuffer(fusedGateUpWeights.up ?? layerWeights.up, 'ffn_up');
     const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
+    const fusedRuntimeSession = context.resolvedRuntimeSession?.runtime?.session;
     const fusedGateUpPipelineConstants = resolveFusedGateUpPipelineConstants({
+      runtimeSession: fusedRuntimeSession,
       kernelPath,
       phase,
       layerIdx,
     });
-    const fusedGateUpVariant = resolveFusedGateUpVariant({ phase });
+    const fusedGateUpVariant = resolveFusedGateUpVariant({ phase, runtimeSession: fusedRuntimeSession });
     const fusedDownOutputDtype = resolveMatmulStepDtype(
       'ffn_down',
       phase,
@@ -414,11 +391,12 @@ export async function runDenseFFNGPU(
     const fusedOutput = await dispatchFusedGateUp({
       inputTensor: fusedInput, gateWeight, upWeight, gateDtype,
       hiddenSize, intermediateSize, numTokens,
-      hiddenActivation, swigluLimit, recorder,
+      hiddenActivation, swigluLimit, recorder, layerIdx,
       executionPolicies: context.executionPolicies ?? null,
       normStats: context.__pendingFfnInputNormStats ?? null,
       pipelineConstants: fusedGateUpPipelineConstants,
       variant: fusedGateUpVariant,
+      outputBuffer: borrowDecodeFfnIntermediate(context, numTokens, intermediateSize, fusedInput.dtype),
     });
     await runProbes('ffn_act', fusedOutput.buffer, {
       layerIdx,
@@ -519,7 +497,7 @@ export async function runDenseFFNGPU(
       if (fusedInputOwned) {
         recorder.trackTemporaryBuffer(fusedInput.buffer);
       }
-      recorder.trackTemporaryBuffer(fusedOutput.buffer);
+      releaseOrTrack(recorder, fusedOutput.buffer, context.decodeBuffers);
     } else {
       if (downInput !== fusedOutput) {
         releaseBuffer(downInput.buffer);
@@ -527,7 +505,7 @@ export async function runDenseFFNGPU(
       if (fusedInputOwned) {
         releaseBuffer(fusedInput.buffer);
       }
-      releaseBuffer(fusedOutput.buffer);
+      releaseOrTrack(null, fusedOutput.buffer, context.decodeBuffers);
     }
 
     return output;

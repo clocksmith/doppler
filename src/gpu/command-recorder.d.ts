@@ -51,6 +51,7 @@ export interface RecorderProfile {
 export declare class CommandRecorder {
   readonly device: GPUDevice;
   readonly label: string;
+  decodeWorkspace: import('./prepared-decode-workspace.js').PreparedDecodeWorkspace | null;
 
   /**
    */

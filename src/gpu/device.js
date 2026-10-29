@@ -5,6 +5,7 @@ import { createDopplerError, ERROR_CODES } from '../errors/doppler-error.js';
 import { GB } from '../config/schema/index.js';
 import { getSharedDeviceState, isDeviceLost } from './device-state.js';
 import { installDeviceMemoryAccounting } from '../memory/device-budget.js';
+import { wrapDeviceCreateBindGroup } from './device-bindings.js';
 
 // Re-export submit tracker for convenience
 export { setTrackSubmits };
@@ -121,28 +122,6 @@ function ensureGpuBufferConstructor(device) {
 //    correct constructor name and GPUBuffer-like interface but lack the Doppler tag.
 // 3. Native GPUBuffer instanceof: the standard runtime check. Skipped when GPUBuffer
 //    is not defined (e.g. Node without WebGPU), in which case we trust the object.
-function isValidGPUBuffer(value) {
-  if (!value) {
-    return false;
-  }
-  if (value.__dopplerFakeGPUBuffer === true) {
-    return true;
-  }
-  if (
-    typeof value === 'object'
-    && value.constructor?.name === 'FakeBuffer'
-    && typeof value.size === 'number'
-    && typeof value.usage === 'number'
-    && typeof value.destroy === 'function'
-  ) {
-    return true;
-  }
-  if (typeof GPUBuffer === 'undefined') {
-    return true;
-  }
-  return value instanceof GPUBuffer;
-}
-
 function isUsableGPUDevice(device) {
   return !!(
     device
@@ -154,47 +133,6 @@ function isUsableGPUDevice(device) {
     && device.queue
     && typeof device.queue.submit === 'function'
   );
-}
-
-function describeBindGroupBufferValue(value) {
-  if (value === null) return 'null (explicitly set to null)';
-  if (value === undefined) return 'undefined (missing or never assigned)';
-  if (typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer) return 'GPUBuffer';
-  if (typeof value === 'object') {
-    return value.constructor?.name || 'object';
-  }
-  return typeof value;
-}
-
-function validateBindGroupDescriptor(descriptor, device) {
-  const label = descriptor?.label || 'unlabeled_bind_group';
-  const entries = Array.isArray(descriptor?.entries) ? descriptor.entries : [];
-  for (const entry of entries) {
-    const resource = entry?.resource;
-    if (!resource || typeof resource !== 'object' || !('buffer' in resource)) {
-      continue;
-    }
-    if (!isValidGPUBuffer(resource.buffer)) {
-      throw new Error(
-        `[${label}] binding ${entry.binding} requires a GPUBuffer; ` +
-        `got ${describeBindGroupBufferValue(resource.buffer)}.`
-      );
-    }
-    const owner = sharedDeviceState.bufferOwners.get(resource.buffer);
-    if (owner && owner !== device) {
-      throw new Error(
-        `[${label}] binding ${entry.binding} uses a GPUBuffer created by a different GPUDevice.`
-      );
-    }
-  }
-}
-
-function shouldValidateBindGroupDescriptors() {
-  const env = typeof process !== 'undefined' ? process?.env?.DOPPLER_VALIDATE_BIND_GROUPS : null;
-  if (env === '1' || env === 'true') {
-    return true;
-  }
-  return false;
 }
 
 function wrapDeviceCreateBuffer(device) {
@@ -220,35 +158,6 @@ function wrapDeviceCreateBuffer(device) {
     writable: false,
   });
   installDeviceMemoryAccounting(device);
-  return device;
-}
-
-function wrapDeviceCreateBindGroup(device) {
-  if (!device || device.__dopplerBindGroupValidationWrapped) {
-    return device;
-  }
-  const originalCreateBindGroup = device.createBindGroup.bind(device);
-  device.createBindGroup = (descriptor) => {
-    if (shouldValidateBindGroupDescriptors()) {
-      validateBindGroupDescriptor(descriptor, device);
-    } else {
-      const entries = Array.isArray(descriptor?.entries) ? descriptor.entries : [];
-      for (const entry of entries) {
-        const buffer = entry?.resource?.buffer;
-        if (buffer && sharedDeviceState.bufferOwners.get(buffer) !== undefined) {
-          validateBindGroupDescriptor(descriptor, device);
-          break;
-        }
-      }
-    }
-    return originalCreateBindGroup(descriptor);
-  };
-  Object.defineProperty(device, '__dopplerBindGroupValidationWrapped', {
-    value: true,
-    configurable: true,
-    enumerable: false,
-    writable: false,
-  });
   return device;
 }
 
@@ -557,6 +466,8 @@ async function initializeDevice(initializationEpoch) {
       architecture: adapterInfo.architecture || 'unknown',
       device: adapterInfo.device || 'unknown',
       description: adapterInfo.description || '',
+      subgroupMinSize: adapterInfo.subgroupMinSize ?? null,
+      subgroupMaxSize: adapterInfo.subgroupMaxSize ?? null,
     },
     submitProbeMs: null,
   };

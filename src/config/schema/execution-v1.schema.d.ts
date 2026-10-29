@@ -200,7 +200,7 @@ export interface ExecutionV1SessionSchema {
   /** Optional Q4_K fused gate/up variant and pipeline constants keyed by phase. */
   fusedFfnQ4K: {
     decode?: {
-      variant?: 'q4k_metal_simd16' | null;
+      variant?: 'q4k_metal_simd16' | 'q4k_subgroup8' | null;
       pipelineConstants?: Record<string, number | boolean> | null;
     };
     prefill?: {
@@ -226,6 +226,9 @@ export interface ExecutionV1SessionSchema {
   useLinearAttentionQKVZProjectionFusion: boolean;
   /** Opt into linear-attention decode core fusion. Requires qRep=1 and head dims fitting one workgroup. */
   useLinearAttentionFusedDecodeCore: boolean;
+  /** F32 head-K-128 prefill retaining recurrent rows between tokens. */
+  useLinearAttentionRegisterPrefill: boolean;
+  useLinearAttentionRegisterDecode: boolean;
   linearRecurrentStatePrecision: 'f32' | 'two-f32';
   intermediatePrecision: 'f32' | 'two-f32' | null;
   /** Opt into WideTile Q4_K matmul + residual epilogue fusion. */
@@ -242,6 +245,8 @@ export interface ExecutionV1SessionSchema {
   useF32AccumF16ioMatmul: boolean;
   /** Fuse greedy decode LM-head f16-weight GEMV with top-1 selection. Requires greedy sampling with no repetition penalty. */
   useGreedyLmHeadArgmaxFusion: boolean;
+  /** Session-owned F32 single-token scratch and exact-resource prepared bindings. */
+  usePreparedDecodeWorkspace: boolean;
 }
 
 // === Policies ===

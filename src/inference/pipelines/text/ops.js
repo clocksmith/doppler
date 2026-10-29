@@ -27,6 +27,7 @@ import {
   recordLayerAttentionGPU,
 } from './attention/index.js';
 import { runLinearAttentionLayer } from './linear-attention.js';
+import { padToQ4KBlock } from '../../../config/schema/index.js';
 import { runGatedShortConvGPU } from '../../../gpu/kernels/gated-short-conv.js';
 
 
@@ -48,6 +49,12 @@ export function releaseOrTrack(recorder, buffer, decodeBuffers) {
 
 
 export async function doRMSNorm(input, weight, eps, options, recorder) {
+  if (recorder?.decodeWorkspace && input.dtype === 'f32' && !input.precision
+      && options.batchSize === 1 && Number.isInteger(options.layerIdx) && options.role
+      && options.outputBuffer == null) {
+    const bytes = padToQ4KBlock(options.hiddenSize) * Float32Array.BYTES_PER_ELEMENT;
+    options = { ...options, outputBuffer: recorder.decodeWorkspace.getBuffer(`norm:${options.layerIdx}:${options.role}`, bytes) };
+  }
   const result = recorder
     ? await recordRMSNorm(recorder, input, weight, eps, options)
     : await runRMSNorm(input, weight, eps, options);
@@ -114,6 +121,12 @@ export async function doSandwichRMSNormPair(input, residual, postWeight, preWeig
 }
 
 export async function doResidualNextRMSNormPair(input, residual, normWeight, eps, options = {}, recorder) {
+  if (recorder?.decodeWorkspace && options.batchSize === 1 && Number.isInteger(options.layerIdx)) {
+    const bytes = padToQ4KBlock(options.hiddenSize) * Float32Array.BYTES_PER_ELEMENT;
+    options = { ...options,
+      residualOutputBuffer: options.residualOutputBuffer ?? recorder.decodeWorkspace.getBuffer(`pair:${options.layerIdx}:residual`, bytes),
+      normOutputBuffer: options.normOutputBuffer ?? recorder.decodeWorkspace.getBuffer(`pair:${options.layerIdx}:norm`, bytes) };
+  }
   const result = recorder
     ? await recordResidualNextRMSNormPair(recorder, input, residual, normWeight, eps, options)
     : await runResidualNextRMSNormPair(input, residual, normWeight, eps, options);
@@ -501,6 +514,7 @@ export async function doAttention(
         activationDtype: config.activationDtype,
         kernelPath: config.kernelPath ?? null,
         linearRuntime: state?.linearRuntime ?? null,
+        runtimeSession: config.resolvedRuntimeSession?.runtime?.session,
         getWeightBuffer: getWeightBufferFn,
         getNormWeightBuffer: getNormWeightBufferFn,
         recorder: recorder ?? null,

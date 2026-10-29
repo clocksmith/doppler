@@ -4,6 +4,15 @@
       "match": {
         "inputDtype": "f32",
         "normGateActivation": "silu",
+        "stateComponents": 1,
+        "useRegisterDecode": true
+      },
+      "value": "register_decode"
+    },
+    {
+      "match": {
+        "inputDtype": "f32",
+        "normGateActivation": "silu",
         "stateComponents": 2
       },
       "value": "paired_default"

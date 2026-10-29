@@ -31,6 +31,8 @@ export interface LinearAttentionCoreLayerState {
 
 export interface RunLinearAttentionCoreGPUOptions {
   numTokens: number;
+  /** Resolved session; standalone calls use the current runtime session. */
+  runtimeSession?: Pick<import('../../config/schema/execution-v1.schema.js').ExecutionV1SessionSchema, 'useLinearAttentionRegisterPrefill' | 'useLinearAttentionRegisterDecode' | 'useLinearAttentionFusedDecodeCore'>;
   /** Resolved model-config gated-RMSNorm activation; selects and guards the gate kernel. */
   normGateActivation: LinearNormGateActivation;
   /**

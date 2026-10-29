@@ -185,6 +185,8 @@ export declare class InferencePipeline extends PipelineState {
       kvDtype?: string | null;
       counters?: Record<string, unknown> | null;
     };
+    /** Session-owned storage, including cumulative prepared binding counters. */
+    decodeBuffers?: NonNullable<ReturnType<import('../../decode-buffers.js').DecodeBufferManager['getStats']>>;
     emulation?: EmulationStats;
   };
 

@@ -41,7 +41,7 @@ import {
   createMatmulBindGroupLayout,
   getMatmulPipeline,
 } from './matmul-dispatch.js';
-import { getPipelineBindGroupLayout } from './pipeline-cache.js';
+import { getCachedPipeline, getPipelineBindGroupLayout } from './pipeline-cache.js';
 import { runW8A8Matmul, recordW8A8Matmul } from './w8a8.js';
 
 export { isFusedQ4KDisabled, selectMatmulKernel };
@@ -498,19 +498,26 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   try {
     config = getMatmulConfig(variant, constants);
     kernel = new MatmulKernel(device);
-    pipeline = await getMatmulPipeline(variant, constants);
+    pipeline = getCachedPipeline('matmul', variant, constants, device)
+      ?? await getMatmulPipeline(variant, constants);
 
+    const workspaceSlot = M === 1 && aDtype === 'f32' && options.outputDtype === 'f32'
+      && Number.isInteger(options.layerIdx) && options.layerIdx >= 0 && options.role
+      && aOffset === 0 && bOffset === 0 && cOffset === 0
+      ? `matmul:${options.layerIdx}:${options.role}` : null;
+    const suppliedOutput = outputBuffer ?? (workspaceSlot && recorder?.decodeWorkspace
+      ? recorder.decodeWorkspace.getBuffer(workspaceSlot, N * 4) : null);
     const outputInfo = resolveMatmulOutput(
       variant,
       M,
       N,
-      outputBuffer
+      suppliedOutput
     );
     C = outputInfo.output;
     outputSize = outputInfo.outputSize;
     cBindingSize = outputInfo.cBindingSize;
     actualOutputDtype = outputInfo.actualOutputDtype;
-    ownsOutput = outputBuffer == null;
+    ownsOutput = suppliedOutput == null;
 
     if (isAttnProj && shouldLogAttentionWeightBuffer) {
       log.warn('MatmulVariantDiag',
@@ -578,11 +585,14 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
       w4a16ScaleBuffer
     );
 
-    const bindGroup = device.createBindGroup({
+    const bindingDescriptor = {
       label: 'matmul_bind_group',
       layout: getPipelineBindGroupLayout(pipeline, 0),
       entries,
-    });
+    };
+    const bindGroup = recorder?.decodeWorkspace && Number.isInteger(options.layerIdx) && options.role
+      ? recorder.decodeWorkspace.getBindGroup(`matmul:${options.layerIdx}:${options.role}`, bindingDescriptor)
+      : device.createBindGroup(bindingDescriptor);
 
     if (isRecord) {
       kernel.record(recorder, pipeline, bindGroup, dispatchPlan.workgroups, buildProfileLabel(options));

@@ -21,6 +21,7 @@ import { runProbes } from './probes.js';
 import { recordCheckFiniteness } from '../../../gpu/kernels/check-finiteness.js';
 import { RMSNORM_PAIR_CACHE_LIMIT } from '../../../gpu/kernel-selector.js';
 import { shouldRunFinitenessGuard } from './finiteness-policy.js';
+import { releasePrecomputedInputNorm, takePrecomputedInputNorm } from './precomputed-input-norm.js';
 import { runLinearAttentionLayer } from './linear-attention.js';
 import { validateAttnConfig } from './attention/attn-config.js';
 import { createPerLayerInputTensor, resolveDensePleProjectionWeight } from './per-layer-inputs.js';
@@ -114,31 +115,6 @@ function shouldUseSandwichRMSNormPairFusion({
     );
   }
   return true;
-}
-function releasePrecomputedInputNorm(context, recorder) {
-  const precomputed = context.__precomputedInputNorm ?? null;
-  context.__precomputedInputNorm = null;
-  const buffer = precomputed?.tensor?.buffer ?? null;
-  if (buffer) {
-    releaseOrTrack(recorder, buffer, context.decodeBuffers);
-  }
-}
-function takePrecomputedInputNorm(context, layerIdx, recorder) {
-  const precomputed = context.__precomputedInputNorm ?? null;
-  if (!precomputed) {
-    return null;
-  }
-  context.__precomputedInputNorm = null;
-  if (precomputed.layerIdx !== layerIdx) {
-    const buffer = precomputed?.tensor?.buffer ?? null;
-    if (buffer) {
-      releaseOrTrack(recorder, buffer, context.decodeBuffers);
-    }
-    throw new Error(
-      `Layer ${layerIdx} received stale precomputed input norm for layer ${String(precomputed.layerIdx)}.`
-    );
-  }
-  return precomputed.tensor;
 }
 
 const UNSUPPORTED_LAYER_RUNTIME_SET = new Set(['mamba', 'rwkv']);
@@ -345,6 +321,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
       activationDtype,
       kernelPath: context.kernelPath ?? null,
       linearRuntime: context.linearAttentionRuntime ?? null,
+      runtimeSession: context.resolvedRuntimeSession?.runtime?.session,
       getWeightBuffer: (weight, label) => getWeightBuffer(weight, label),
       getNormWeightBuffer: (weight, label) => getNormWeightBuffer(weight, label, weightConfig, debugFlags),
       precomputedInputNorm: takePrecomputedInputNorm(context, layerIdx, recorder),

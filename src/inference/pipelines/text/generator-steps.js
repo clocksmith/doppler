@@ -19,6 +19,8 @@ import {
 } from './execution-plan.js';
 import { sample, applyRepetitionPenalty, logitsSanity, getTopK } from './sampling.js';
 import { samplingSeedForToken } from '../../token-sampling.js';
+import { isGreedySampling } from '../../../rules/greedy-sampling.js';
+import { shouldUseGreedyLmHeadArgmaxFusion } from './generator/greedy-head-policy.js';
 import { isStopToken } from './init.js';
 import { embed } from './embed.js';
 import { resolvePerLayerInputsSession } from './generator/session-context.js';
@@ -47,16 +49,6 @@ const FINITENESS_STATUS_BYTES = FINITENESS_RESET_WORDS.byteLength;
 
 export function shouldUseBatchDecode(config) {
   return isBatchDecodeEnabled(config);
-}
-
-function shouldUseGreedyLmHeadArgmaxFusion(state, opts, samplingDefaults, repetitionPenalty) {
-  const probes = state.runtimeConfig?.shared?.debug?.probes;
-  return state.runtimeConfig?.inference?.session?.useGreedyLmHeadArgmaxFusion === true && (state.modelConfig?.logitOutputScale ?? 1) === 1
-    && opts.temperature < samplingDefaults.greedyThreshold
-    && repetitionPenalty === 1.0
-    && opts.presencePenalty === 0
-    && state.operatorDiagnostics == null
-    && !(Array.isArray(probes) && probes.length > 0);
 }
 
 export function createStopTokenLookup(stopTokenIds, eosTokenId) {
@@ -543,6 +535,18 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     }
 
     const context = helpers.buildLayerContext(recorder, true, opts.debugLayers, executionPlan);
+    const preparedWorkspace = (state.resolvedRuntimeSession?.runtime?.session
+      ?? state.runtimeConfig.inference.session).usePreparedDecodeWorkspace;
+    if (typeof preparedWorkspace !== 'boolean') {
+      throw new Error('Decode session requires boolean usePreparedDecodeWorkspace.');
+    }
+    if (preparedWorkspace) {
+      if (!context.decodeBuffers || context.activationDtype !== 'f32' || context.activationPrecision === 'two-f32' || context.config.useMoE || context.lora
+          || context.operatorDiagnostics || context.trainingCapture || context.debugProbes?.length) {
+        throw new Error('Prepared decode workspace requires dense F32 decode buffers without training, LoRA or diagnostics.');
+      }
+      recorder.decodeWorkspace = context.decodeBuffers.getWorkspace(device);
+    }
     const embedBufferRaw = state.weights.get('embed');
     if (isCpuWeightBuffer(embedBufferRaw)) {
       throw new Error('[Pipeline] GPU-only decode not supported with CPU-resident embeddings.');
@@ -704,7 +708,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
           });
         }
 
-        if (opts.temperature < samplingDefaults.greedyThreshold) {
+        if (isGreedySampling(opts.temperature, opts.topK, samplingDefaults.greedyThreshold)) {
           await recordArgmax(recorder, logitsBuffer, vocabSize, {
             padTokenId,
             logitSoftcap,

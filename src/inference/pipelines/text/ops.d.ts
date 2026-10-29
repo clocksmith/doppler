@@ -33,7 +33,7 @@ import type { MatmulOptions } from '../../../gpu/kernels/matmul.js';
 import type { SiLUOptions } from '../../../gpu/kernels/silu.js';
 
 export function releaseOrTrack(
-  recorder: CommandRecorder | undefined,
+  recorder: CommandRecorder | null | undefined,
   buffer: GPUBuffer,
   decodeBuffers?: DecodeBufferManager | null
 ): void;

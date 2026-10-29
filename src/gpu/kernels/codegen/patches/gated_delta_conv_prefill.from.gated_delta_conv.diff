@@ -1,0 +1,53 @@
+--- src/gpu/kernels/gated_delta_conv.wgsl
++++ src/gpu/kernels/gated_delta_conv_prefill.wgsl
+@@ -1,3 +1,5 @@
++// AUTO-GENERATED from src/gpu/kernels/gated_delta_conv.wgsl.
++// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:codegen:sync`.
+ override WORKGROUP_SIZE: u32 = 256u;
+ 
+ struct LinearAttentionParams {
+@@ -86,7 +88,7 @@
+ }
+ 
+ @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+-fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
++fn main_prefix(@builtin(global_invocation_id) gid: vec3<u32>) {
+   let channel = gid.x;
+   if (channel >= params.conv_dim) {
+     return;
+@@ -97,7 +99,7 @@
+   let kernel_size = params.conv_kernel_size;
+   let state_base = channel * kernel_size;
+ 
+-  for (var token_idx: u32 = 0u; token_idx < params.num_tokens; token_idx = token_idx + 1u) {
++  for (var token_idx: u32 = 0u; token_idx < min(params.num_tokens, kernel_size - 1u); token_idx = token_idx + 1u) {
+     let qkv_idx = token_idx * qkv_stride + channel;
+     let newest = f32(qkv[qkv_idx]);
+ 
+@@ -115,3 +117,26 @@
+   }
+ }
+ 
++
++// The prefix dispatch finishes every read of historical state before this grid
++// starts. Remaining windows contain only this call's input and are independent.
++@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
++fn main_parallel(@builtin(global_invocation_id) gid: vec3<u32>) {
++  let channel = gid.x % params.conv_dim;
++  let token = gid.x / params.conv_dim;
++  let kernel_size = params.conv_kernel_size;
++  if (token >= params.num_tokens || token + 1u < kernel_size) { return; }
++  let stride = select(params.conv_dim, params.conv_dim + params.value_dim, (params.packed_flags & 2u) != 0u);
++  let base = channel * kernel_size;
++  var mixed = 0.0;
++  for (var k = 0u; k < kernel_size; k++) {
++    let sample = qkv[(token + 1u - kernel_size + k) * stride + channel];
++    mixed = mixed + sample * conv_weight[base + k];
++  }
++  conv_out[token * params.conv_dim + channel] = silu(mixed);
++  if (token + 1u == params.num_tokens) {
++    for (var k = 0u; k < kernel_size; k++) {
++      conv_state[base + k] = qkv[(params.num_tokens - kernel_size + k) * stride + channel];
++    }
++  }
++}

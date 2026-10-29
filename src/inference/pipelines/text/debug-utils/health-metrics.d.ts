@@ -1,4 +1,4 @@
-export declare function getLogitsHealth(logits: Float32Array): {
+export declare function getLogitsHealth(logits: Float32Array | Float64Array): {
   nanCount: number;
   infCount: number;
   nonZeroCount: number;
