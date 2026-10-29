@@ -1,0 +1,136 @@
+{
+  "schema": "doppler.jupiter-delivery-inventory.v1",
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "0ca0729b98d9cfc8acf9e9c7cd552c0ccda181263902112baf9083ba4441f539",
+      "bytes": 14189
+    },
+    {
+      "path": "attempts.json",
+      "sha256": "209f20bf007efd6714993f08b903a20de7e7103141d027a314aaa73c3dc4dfbd",
+      "bytes": 1247
+    },
+    {
+      "path": "baseline-identity.json",
+      "sha256": "086a472f32e30aad3830d49a11cdb6f051b1d8be651f05d47b8199d9d2270f9e",
+      "bytes": 369061
+    },
+    {
+      "path": "capture-baseline.py",
+      "sha256": "fba1c27d68e12da12e55cc35a9cfd6357dae436099a14d86ed50020d2861fb24",
+      "bytes": 2402
+    },
+    {
+      "path": "checks.json",
+      "sha256": "83b2fc70f9cd206b6d8137972a4007ba824235575ba87fcb91eb721aaebab27e",
+      "bytes": 959
+    },
+    {
+      "path": "compression-verification.json",
+      "sha256": "fa024208106fa5557afdf31485bc0afd0c31e6ecb2f672d27e026364fda9de47",
+      "bytes": 204
+    },
+    {
+      "path": "config-audit.json",
+      "sha256": "9e8e0e72a8db29c81e90d24c452025a96747c2c76eb5532d34d5c94d77169c87",
+      "bytes": 297131
+    },
+    {
+      "path": "contract.json",
+      "sha256": "1c4447a74f9879d61f25ab1b27e6e022fa7cf3259d63c1af5d6ca0fbe576a0e5",
+      "bytes": 2563
+    },
+    {
+      "path": "dispatch-audit.json",
+      "sha256": "608c9a9750028dbbe4a05e356c6b81fcac4157768ef1543d54e6b054f119d778",
+      "bytes": 52573
+    },
+    {
+      "path": "doppler-architecture-20261029.log",
+      "sha256": "fc3432aa1c818f9b948dc0c0fa7c1d10eb20015d0c69938a4a1a6d2b8242cb59",
+      "bytes": 200
+    },
+    {
+      "path": "doppler-compare-contract-20261029.log",
+      "sha256": "b3ec584194fe2aefa353bdab51c647ad5015832dc669a2b5d09604b6f25c9505",
+      "bytes": 38
+    },
+    {
+      "path": "doppler-onboarding-20261029.log",
+      "sha256": "efce6826f102e0f2341b91c2526194adee375715d130e1ced277f47b8f0afc4e",
+      "bytes": 115
+    },
+    {
+      "path": "doppler-style-20261029.log",
+      "sha256": "f00b256db5924a975007097bf640901cc60ebaefe833ed40b05638c884a23a37",
+      "bytes": 444
+    },
+    {
+      "path": "doppler-types-20261029.log",
+      "sha256": "7b54133f424656475aea65839b37ca882e494dc33bd734b733da76f91593db61",
+      "bytes": 223
+    },
+    {
+      "path": "gate-source.json",
+      "sha256": "cfddc47c92e4f542546ad9f97ef4e38fcc6853a9c913701e94231549412cdf70",
+      "bytes": 323
+    },
+    {
+      "path": "main-smoke-verification.json",
+      "sha256": "85fccee8348e85249c8a3eebc85661fb3d09f1844b7b760deb9156087abe07e2",
+      "bytes": 571
+    },
+    {
+      "path": "prepare-gates.py",
+      "sha256": "6c70ab13f068824b3b52841b085571b8df6593c3f253ffe9c83ac2989aec4e70",
+      "bytes": 4632
+    },
+    {
+      "path": "prior-evidence.json",
+      "sha256": "aef409c3e8c7bd4aafe8cf5cdb4d23b254953a20b8dd1ace62594938b1eb01d9",
+      "bytes": 2768
+    },
+    {
+      "path": "raw-evidence.tar.xz",
+      "sha256": "6fcdfb31c34337c36abd94ec7be30ba8359890064a22451caf46ecb8463bd096",
+      "bytes": 54046720
+    },
+    {
+      "path": "run-gates.js",
+      "sha256": "868178c30d07dd9e3a6eb92d39106a4d36b0fee351ade16c3146b1e53420e0e2",
+      "bytes": 1861
+    },
+    {
+      "path": "run-profile.js",
+      "sha256": "332d83d0608047ad3c213f88e171b4c7f3dc629d633a53d74f39bfe7506c07ef",
+      "bytes": 3442
+    },
+    {
+      "path": "runtime-snapshot.tar.gz",
+      "sha256": "11c16515e840bdf364701e0d657a156a3329450cc48703f1c1caa63a734f31bd",
+      "bytes": 6100610
+    },
+    {
+      "path": "summarize.py",
+      "sha256": "80bb513fa543ef1fe01fe18f7070c18ee827664a933b080331ec142d9c2a7834",
+      "bytes": 6507
+    },
+    {
+      "path": "summary.json",
+      "sha256": "cef842128519d4905087cf09f4a3ea3ecb09045821c4f046eb89fd9f625ac6b8",
+      "bytes": 17192
+    },
+    {
+      "path": "teachers.json",
+      "sha256": "a3c696caadbdbdc6e5e0de85f3efc34ff450a5bfc16f41262ee5eb8efe74e62f",
+      "bytes": 12144
+    },
+    {
+      "path": "verify-smoke.py",
+      "sha256": "b03eff39dff414b4bcc355b1d2fb581fad7716fdd2b52643a334f2037189e978",
+      "bytes": 1051
+    }
+  ],
+  "scope": "Raw evidence includes all scored requests and untimed full-logit vectors; no model weights or installed dependencies."
+}

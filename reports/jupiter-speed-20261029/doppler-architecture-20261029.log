@@ -1,0 +1,6 @@
+
+> doppler-gpu@0.6.32 source:architecture:check
+> node tools/check-source-architecture.js
+
+source architecture check failed:
+- gpu/command-recorder.js: 776 lines exceeds soft limit 750 without review

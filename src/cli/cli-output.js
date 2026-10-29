@@ -231,7 +231,7 @@ function printGpuPhases(metrics) {
     const share = Number.isFinite(bottleneck.shareOfDecode)
       ? ` share=${formatNumber(bottleneck.shareOfDecode * 100)}%`
       : '';
-    console.log(`[gpu] bottleneck=${bottleneck.label || bottleneck.id || 'unknown'} ms=${formatMs(bottleneck.ms)}${share}`);
+    console.log(`[gpu] largest_observed_interval=${bottleneck.label || bottleneck.id || 'unknown'} ms=${formatMs(bottleneck.ms)}${share} (overlapping intervals; causal bottleneck unknown)`);
   }
   const rm = gpu.decodeRecordMs?.median;
   const sw = gpu.decodeSubmitWaitMs?.median;

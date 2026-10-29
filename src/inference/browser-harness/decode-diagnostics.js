@@ -1,5 +1,3 @@
-import { toTimingNumber } from './timing-diagnostics.js';
-
 function metricNumber(value) {
   if (Number.isFinite(value)) {
     return Number(value);
@@ -28,33 +26,7 @@ function shareOfDecode(value, decodeWallMs) {
 }
 
 function nullableTimingNumber(value) {
-  return Number.isFinite(value) ? toTimingNumber(value, null) : null;
-}
-
-function bottleneckClass(componentId) {
-  if (componentId === 'command_record') {
-    return 'command-record';
-  }
-  if (
-    componentId === 'submit_readback_wait'
-    || componentId === 'submit_readback_slack'
-    || componentId === 'readback_map_wait'
-    || componentId === 'readback_cleanup'
-    || componentId === 'readback_copy'
-    || componentId === 'submit_readback_unattributed'
-  ) {
-    return 'submit-readback-wait';
-  }
-  if (componentId === 'gpu_compute') {
-    return 'gpu-compute';
-  }
-  if (componentId === 'orchestration') {
-    return 'orchestration';
-  }
-  if (componentId === 'unattributed') {
-    return 'unattributed';
-  }
-  return null;
+  return Number.isFinite(value) ? Math.round(value * 1000) / 1000 : null;
 }
 
 function normalizeTopOps(entries) {
@@ -124,42 +96,21 @@ export function buildDecodeBottleneckDiagnostics(metrics = {}, timing = {}) {
   const uniformCache = normalizeUniformCacheForDiagnostics(gpu.uniformCache);
   const waitCandidates = [submitWaitMs, readbackWaitMs].filter(Number.isFinite);
   const effectiveSubmitReadbackWaitMs = waitCandidates.length > 0 ? Math.max(...waitCandidates) : null;
-  const submitReadbackSlackMs = (
-    Number.isFinite(effectiveSubmitReadbackWaitMs)
-    && Number.isFinite(gpuTimestampMs)
-  )
-    ? Math.max(0, effectiveSubmitReadbackWaitMs - gpuTimestampMs)
-    : null;
-  const readbackSubcomponentMs = [
-    readbackMapWaitMs,
-    readbackCleanupMs,
-    readbackCopyMs,
-  ]
-    .filter(Number.isFinite)
-    .reduce((sum, value) => sum + value, 0);
-  const hasReadbackSubcomponents = readbackSubcomponentMs > 0;
-  const readbackUnattributedMs = (
-    hasReadbackSubcomponents
-    && Number.isFinite(effectiveSubmitReadbackWaitMs)
-  )
-    ? Math.max(0, effectiveSubmitReadbackWaitMs - readbackSubcomponentMs)
-    : null;
-  const accountedMs = [
-    commandRecordMs,
-    effectiveSubmitReadbackWaitMs,
-    orchestrationMs,
-  ]
-    .filter(Number.isFinite)
-    .reduce((sum, value) => sum + value, 0);
-  const residualMs = Math.max(0, decodeWallMs - accountedMs);
+  // Aggregate durations do not carry aligned intervals or timestamp coverage.
+  // Subtracting GPU work from a completion wait cannot recover host-only time.
+  const submitReadbackSlackMs = null;
+  const readbackUnattributedMs = null;
+  const residualMs = null;
+  const hasReadbackSubcomponents = [readbackMapWaitMs, readbackCleanupMs, readbackCopyMs]
+    .some((value) => Number.isFinite(value) && value > 0);
   const components = [
     { id: 'command_record', label: 'command recording', ms: commandRecordMs },
     {
-      id: Number.isFinite(gpuTimestampMs) ? 'submit_readback_slack' : 'submit_readback_wait',
-      label: Number.isFinite(gpuTimestampMs) ? 'submit/readback slack' : 'submit/readback wait',
+      id: 'submit_readback_wait',
+      label: 'submit/readback wait',
       ms: hasReadbackSubcomponents
         ? null
-        : (Number.isFinite(gpuTimestampMs) ? submitReadbackSlackMs : effectiveSubmitReadbackWaitMs),
+        : effectiveSubmitReadbackWaitMs,
     },
     { id: 'readback_map_wait', label: 'readback map wait', ms: readbackMapWaitMs },
     { id: 'readback_cleanup', label: 'readback cleanup', ms: readbackCleanupMs },
@@ -182,10 +133,14 @@ export function buildDecodeBottleneckDiagnostics(metrics = {}, timing = {}) {
     : null;
 
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     source: 'doppler',
     dominant: dominantRecord,
-    bottleneckClass: dominantRecord ? bottleneckClass(dominantRecord.id) : null,
+    bottleneckClass: null,
+    attribution: {
+      status: 'unresolved',
+      reason: 'Aggregate intervals may overlap and do not establish a critical path or causal bottleneck.',
+    },
     decodeWallMs: nullableTimingNumber(decodeWallMs),
     componentsMs: {
       commandRecordMs: nullableTimingNumber(commandRecordMs),
@@ -230,9 +185,14 @@ export function buildDecodeBottleneckDiagnostics(metrics = {}, timing = {}) {
       residual: shareOfDecode(residualMs, decodeWallMs),
     },
     semantics: {
-      effectiveSubmitReadbackWaitMs: 'max(decodeSubmitWaitMs, decodeReadbackWaitMs); submit and readback waits overlap.',
+      dominant: 'Largest observed aggregate interval, not a causal bottleneck or recoverable fraction of decode time.',
+      shares: 'Each interval divided by decode wall; intervals overlap and shares are not additive.',
+      effectiveSubmitReadbackWaitMs: 'Maximum aggregate submit/readback wait, not a measured union of intervals.',
+      submitReadbackSlackMs: 'Unknown without aligned GPU/host intervals and complete timestamp coverage.',
+      readbackUnattributedMs: 'Unknown: independently aggregated subcomponent medians are not subtractable.',
+      residualMs: 'Unknown: overlapping aggregate intervals cannot partition decode wall.',
       readbackMapWaitMs: 'Wall time awaiting staging-buffer mapAsync; usually includes GPU completion behind the readback.',
-      gpuTimestampMs: 'Timestamp-query GPU work when available; null means it was not captured.',
+      gpuTimestampMs: 'Elapsed timestamped GPU intervals when available; may include scheduling/preemption, omit unmeasured passes, and overlap host recording. Null means not captured.',
       topOps: 'Highest-count exact compute-pass labels observed during command recording.',
       topOpGroups: 'Highest-count compute-pass labels after grouping repeated per-layer labels.',
       uniformCache: 'Current uniform-buffer cache counters at the end of the measured suite.',

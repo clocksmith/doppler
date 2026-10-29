@@ -1,0 +1,33 @@
+{
+  "id": "profiles/qwen-3-5-0-8b-vulkan-throughput",
+  "name": "qwen-3-5-0-8b-vulkan-throughput",
+  "description": "Experimental Qwen3.5 0.8B Radeon 8060S candidate: existing Vulkan fusions with explicit sequential 4x8 decode cadence. Opt-in only; see reports/jupiter-speed-20261029 for correctness, complete-request performance and delivery limitations.",
+  "intent": "calibrate",
+  "compatibleIntents": ["calibrate"],
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-10-29T00:00:00Z",
+  "extends": "profiles/qwen-3-5-0-8b-vulkan-parity",
+  "model": "qwen-3-5-0-8b-q4k-ehaf16",
+  "runtime": {
+    "inference": {
+      "batching": {
+        "batchSize": 4,
+        "readbackInterval": 8,
+        "stopCheckMode": "batch",
+        "readbackMode": "sequential",
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1
+      },
+      "session": {
+        "decodeLoop": {
+          "batchSize": 4,
+          "readbackInterval": 8,
+          "readbackMode": "sequential",
+          "ringStaging": 1
+        }
+      }
+    }
+  }
+}

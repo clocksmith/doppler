@@ -32,6 +32,24 @@ Compare-artifact note:
 - Raw engine payloads may still include `prefillMs` and `prefillTokensPerSec`, but those stay engine-local unless the semantics are proven identical.
 - Capability matrices and release-matrix compare summaries must be updated when the compare metric contract changes.
 
+## Decode diagnostic intervals
+
+`decodeBottleneck.schemaVersion: 2` reports observed aggregate intervals, not a
+critical-path decomposition. Its compatibility field `dominant` identifies the
+largest observed interval; `bottleneckClass` is null and `attribution.status` is
+`unresolved`. Host recording can overlap GPU execution from earlier submissions.
+Submit and readback waits also overlap, and timestamp coverage can be partial or
+perturb the measured path. GPU timestamp intervals can include scheduling and
+preemption; they are not isolated active-cycle measurements.
+
+Do not add the reported shares or infer recoverable time from them. The maximum
+of aggregate submit/readback waits is a summary proxy, not their measured union.
+`submitReadbackSlackMs`, `readbackUnattributedMs` and `residualMs` remain null:
+independently aggregated durations lack aligned intervals needed for subtraction.
+Version 1 artifacts retain their historical values but cannot support those
+causal interpretations. Benchmark and comparison adapters use the same version 2
+calculation. Promotion still requires uninstrumented paired complete requests.
+
 ## Fair comparison rules
 
 - same model identity and quantization class, or explicit equivalence map

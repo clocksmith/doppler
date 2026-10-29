@@ -1,0 +1,752 @@
+{
+  "schema": "doppler.jupiter-speed-result.v1",
+  "scope": "Qwen3.5 0.8B/Radeon8060S/Chrome146; opt-in experimental configuration, no release or cross-engine claim",
+  "timedSessions": 40,
+  "failedTimedAttempts": [],
+  "failedGateAttempts": [],
+  "prompts": [
+    {
+      "id": "code",
+      "promptTokens": 28,
+      "generatedTokens": 64,
+      "sameInputsAndOutputs": true,
+      "baseline": {
+        "totalRunMs": {
+          "samples": [
+            729.6,
+            769.1,
+            732.5,
+            794.5,
+            707.3
+          ],
+          "median": 732.5,
+          "min": 707.3,
+          "max": 794.5
+        },
+        "decodeTokensPerSec": {
+          "samples": [
+            99.83,
+            93.67,
+            98.38,
+            93.86,
+            104.27
+          ],
+          "median": 98.38,
+          "min": 93.67,
+          "max": 104.27
+        },
+        "firstTokenMs": {
+          "samples": [
+            103.7,
+            101.5,
+            96.7,
+            128.7,
+            107.3
+          ],
+          "median": 103.7,
+          "min": 96.7,
+          "max": 128.7
+        },
+        "modelLoadMs": {
+          "samples": [
+            1637,
+            1603.3,
+            1660.5,
+            1549.3,
+            1627.5
+          ],
+          "median": 1627.5,
+          "min": 1549.3,
+          "max": 1660.5
+        }
+      },
+      "candidate": {
+        "totalRunMs": {
+          "samples": [
+            640.1,
+            643,
+            658.6,
+            642.5,
+            690.7
+          ],
+          "median": 643,
+          "min": 640.1,
+          "max": 690.7
+        },
+        "decodeTokensPerSec": {
+          "samples": [
+            113.39,
+            112.58,
+            114.59,
+            112.44,
+            111.6
+          ],
+          "median": 112.58,
+          "min": 111.6,
+          "max": 114.59
+        },
+        "firstTokenMs": {
+          "samples": [
+            90.2,
+            88,
+            113.3,
+            86.4,
+            132.4
+          ],
+          "median": 90.2,
+          "min": 86.4,
+          "max": 132.4
+        },
+        "modelLoadMs": {
+          "samples": [
+            1512.8,
+            1599.8,
+            1605.1,
+            1793,
+            1672.4
+          ],
+          "median": 1605.1,
+          "min": 1512.8,
+          "max": 1793
+        }
+      },
+      "pairedCompleteGainPct": [
+        12.266995614035093,
+        16.39578728383826,
+        10.088737201365184,
+        19.131529263687852,
+        2.346953202318669
+      ],
+      "perPromptCompleteRatio": 0.8778156996587031,
+      "perPromptFirstTokenRatio": 0.8698167791706847
+    },
+    {
+      "id": "explanation",
+      "promptTokens": 31,
+      "generatedTokens": 64,
+      "sameInputsAndOutputs": true,
+      "baseline": {
+        "totalRunMs": {
+          "samples": [
+            783.8,
+            804.3,
+            820.8,
+            699.8,
+            743.3
+          ],
+          "median": 783.8,
+          "min": 699.8,
+          "max": 820.8
+        },
+        "decodeTokensPerSec": {
+          "samples": [
+            90.94,
+            89.94,
+            87.78,
+            103.75,
+            103.06
+          ],
+          "median": 90.94,
+          "min": 87.78,
+          "max": 103.75
+        },
+        "firstTokenMs": {
+          "samples": [
+            96.2,
+            108.1,
+            108.4,
+            96,
+            136.4
+          ],
+          "median": 108.1,
+          "min": 96,
+          "max": 136.4
+        },
+        "modelLoadMs": {
+          "samples": [
+            1669.3,
+            1676.6,
+            1651.3,
+            1508.7,
+            1639.2
+          ],
+          "median": 1651.3,
+          "min": 1508.7,
+          "max": 1676.6
+        }
+      },
+      "candidate": {
+        "totalRunMs": {
+          "samples": [
+            648.7,
+            685.8,
+            637.6,
+            676.6,
+            680.5
+          ],
+          "median": 676.6,
+          "min": 637.6,
+          "max": 685.8
+        },
+        "decodeTokensPerSec": {
+          "samples": [
+            113.02,
+            113.82,
+            115.3,
+            113,
+            105.56
+          ],
+          "median": 113.02,
+          "min": 105.56,
+          "max": 115.3
+        },
+        "firstTokenMs": {
+          "samples": [
+            96,
+            137.3,
+            95.8,
+            125.6,
+            88.1
+          ],
+          "median": 96,
+          "min": 88.1,
+          "max": 137.3
+        },
+        "modelLoadMs": {
+          "samples": [
+            1640.4,
+            1543.4,
+            1644.7,
+            1615.1,
+            1383.3
+          ],
+          "median": 1615.1,
+          "min": 1383.3,
+          "max": 1644.7
+        }
+      },
+      "pairedCompleteGainPct": [
+        17.236539933656537,
+        14.733308466989925,
+        22.319688109161785,
+        3.3152329236924793,
+        8.448809363648591
+      ],
+      "perPromptCompleteRatio": 0.8632304159224292,
+      "perPromptFirstTokenRatio": 0.8880666049953747
+    },
+    {
+      "id": "arithmetic",
+      "promptTokens": 34,
+      "generatedTokens": 64,
+      "sameInputsAndOutputs": true,
+      "baseline": {
+        "totalRunMs": {
+          "samples": [
+            688.7,
+            845.8,
+            820.1,
+            662.6,
+            665.8
+          ],
+          "median": 688.7,
+          "min": 662.6,
+          "max": 845.8
+        },
+        "decodeTokensPerSec": {
+          "samples": [
+            104.58,
+            90.37,
+            87.38,
+            109.57,
+            109.51
+          ],
+          "median": 104.58,
+          "min": 87.38,
+          "max": 109.57
+        },
+        "firstTokenMs": {
+          "samples": [
+            90.7,
+            153.9,
+            104.2,
+            90.8,
+            94.8
+          ],
+          "median": 94.8,
+          "min": 90.7,
+          "max": 153.9
+        },
+        "modelLoadMs": {
+          "samples": [
+            1612.6,
+            1355.2,
+            1736.2,
+            1317.6,
+            1764.1
+          ],
+          "median": 1612.6,
+          "min": 1317.6,
+          "max": 1764.1
+        }
+      },
+      "candidate": {
+        "totalRunMs": {
+          "samples": [
+            639.2,
+            694.5,
+            662.1,
+            639.6,
+            658
+          ],
+          "median": 658,
+          "min": 639.2,
+          "max": 694.5
+        },
+        "decodeTokensPerSec": {
+          "samples": [
+            114.36,
+            113.23,
+            110.58,
+            113.49,
+            115.64
+          ],
+          "median": 113.49,
+          "min": 110.58,
+          "max": 115.64
+        },
+        "firstTokenMs": {
+          "samples": [
+            93.5,
+            143.4,
+            96.6,
+            88,
+            119.6
+          ],
+          "median": 96.6,
+          "min": 88,
+          "max": 143.4
+        },
+        "modelLoadMs": {
+          "samples": [
+            1527.4,
+            1563,
+            1520.4,
+            1648,
+            1380.4
+          ],
+          "median": 1527.4,
+          "min": 1380.4,
+          "max": 1648
+        }
+      },
+      "pairedCompleteGainPct": [
+        7.1874546246551425,
+        17.888389690234096,
+        19.26594317766126,
+        3.471174162390578,
+        1.1715229798738291
+      ],
+      "perPromptCompleteRatio": 0.9554232612167852,
+      "perPromptFirstTokenRatio": 1.0189873417721518
+    },
+    {
+      "id": "long-context",
+      "promptTokens": 655,
+      "generatedTokens": 64,
+      "sameInputsAndOutputs": true,
+      "baseline": {
+        "totalRunMs": {
+          "samples": [
+            1393.4,
+            1375.1,
+            1377.4,
+            1381,
+            1389.4
+          ],
+          "median": 1381,
+          "min": 1375.1,
+          "max": 1393.4
+        },
+        "decodeTokensPerSec": {
+          "samples": [
+            92.08,
+            92.99,
+            92.13,
+            93.1,
+            92.08
+          ],
+          "median": 92.13,
+          "min": 92.08,
+          "max": 93.1
+        },
+        "firstTokenMs": {
+          "samples": [
+            714.2,
+            702.2,
+            697.4,
+            709.4,
+            708.2
+          ],
+          "median": 708.2,
+          "min": 697.4,
+          "max": 714.2
+        },
+        "modelLoadMs": {
+          "samples": [
+            1410.2,
+            1524.2,
+            1619.5,
+            1328.3,
+            1301.2
+          ],
+          "median": 1410.2,
+          "min": 1301.2,
+          "max": 1619.5
+        }
+      },
+      "candidate": {
+        "totalRunMs": {
+          "samples": [
+            1281.1,
+            1245.5,
+            1271.2,
+            1263.2,
+            1245.1
+          ],
+          "median": 1263.2,
+          "min": 1245.1,
+          "max": 1281.1
+        },
+        "decodeTokensPerSec": {
+          "samples": [
+            110.43,
+            114.23,
+            111.7,
+            114.44,
+            114.13
+          ],
+          "median": 114.13,
+          "min": 110.43,
+          "max": 114.44
+        },
+        "firstTokenMs": {
+          "samples": [
+            714.5,
+            698.8,
+            712.1,
+            715.7,
+            697.1
+          ],
+          "median": 712.1,
+          "min": 697.1,
+          "max": 715.7
+        },
+        "modelLoadMs": {
+          "samples": [
+            1318.3,
+            1632.4,
+            1525.1,
+            1340.2,
+            1324.6
+          ],
+          "median": 1340.2,
+          "min": 1318.3,
+          "max": 1632.4
+        }
+      },
+      "pairedCompleteGainPct": [
+        8.059422994115128,
+        9.424769107701248,
+        7.710178597357342,
+        8.530050687907309,
+        10.385778033683613
+      ],
+      "perPromptCompleteRatio": 0.9146994931209269,
+      "perPromptFirstTokenRatio": 1.0055069189494492
+    }
+  ],
+  "performanceGate": {
+    "estimator": "equal-weight per-prompt mean paired log complete-request latency ratio, exponentiated",
+    "candidateToBaselineRatio": 0.8882346648643852,
+    "gainPct": 11.176533513561482,
+    "bootstrap95RatioInterval": [
+      0.8638124850866437,
+      0.9139662885507946
+    ],
+    "minimumGainPassed": true,
+    "positiveBoundPassed": true,
+    "perPromptCompleteRegressionPassed": true,
+    "perPromptFirstTokenRegressionPassed": true,
+    "passed": true
+  },
+  "fullLogitGate": [
+    {
+      "prompt": "code",
+      "rows": [
+        {
+          "position": 0,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.00043976306915283203,
+          "failures": 0
+        },
+        {
+          "position": 1,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.0003681182861328125,
+          "failures": 0
+        },
+        {
+          "position": 2,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.0005645751953125,
+          "failures": 0
+        },
+        {
+          "position": 4,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.0006957054138183594,
+          "failures": 0
+        },
+        {
+          "position": 8,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.0003600120544433594,
+          "failures": 0
+        },
+        {
+          "position": 16,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.00028824806213378906,
+          "failures": 0
+        },
+        {
+          "position": 32,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.0005505084991455078,
+          "failures": 0
+        },
+        {
+          "position": 63,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.0008349418640136719,
+          "failures": 0
+        }
+      ],
+      "sameGreedyTokens": true,
+      "passed": true
+    },
+    {
+      "prompt": "explanation",
+      "rows": [
+        {
+          "position": 0,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.0005943775177001953,
+          "failures": 0
+        },
+        {
+          "position": 1,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.0004515647888183594,
+          "failures": 0
+        },
+        {
+          "position": 2,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.00017499923706054688,
+          "failures": 0
+        },
+        {
+          "position": 4,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.00034296512603759766,
+          "failures": 0
+        },
+        {
+          "position": 8,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.00040531158447265625,
+          "failures": 0
+        },
+        {
+          "position": 16,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.00022459030151367188,
+          "failures": 0
+        },
+        {
+          "position": 32,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.0002532005310058594,
+          "failures": 0
+        },
+        {
+          "position": 63,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.0003662109375,
+          "failures": 0
+        }
+      ],
+      "sameGreedyTokens": true,
+      "passed": true
+    },
+    {
+      "prompt": "arithmetic",
+      "rows": [
+        {
+          "position": 0,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.00023365020751953125,
+          "failures": 0
+        },
+        {
+          "position": 1,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.00037550926208496094,
+          "failures": 0
+        },
+        {
+          "position": 2,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.0004425048828125,
+          "failures": 0
+        },
+        {
+          "position": 4,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.00034737586975097656,
+          "failures": 0
+        },
+        {
+          "position": 8,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.0005545616149902344,
+          "failures": 0
+        },
+        {
+          "position": 16,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.000530242919921875,
+          "failures": 0
+        },
+        {
+          "position": 32,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.00041103363037109375,
+          "failures": 0
+        },
+        {
+          "position": 63,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.00042438507080078125,
+          "failures": 0
+        }
+      ],
+      "sameGreedyTokens": true,
+      "passed": true
+    },
+    {
+      "prompt": "long-context",
+      "rows": [
+        {
+          "position": 0,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.00030672550201416016,
+          "failures": 0
+        },
+        {
+          "position": 1,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.00027179718017578125,
+          "failures": 0
+        },
+        {
+          "position": 2,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.00036156177520751953,
+          "failures": 0
+        },
+        {
+          "position": 4,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.0004935264587402344,
+          "failures": 0
+        },
+        {
+          "position": 8,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.0004599541425704956,
+          "failures": 0
+        },
+        {
+          "position": 16,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.0004171133041381836,
+          "failures": 0
+        },
+        {
+          "position": 32,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.0004323720932006836,
+          "failures": 0
+        },
+        {
+          "position": 63,
+          "elements": 248320,
+          "finite": true,
+          "maxAbs": 0.0004467964172363281,
+          "failures": 0
+        }
+      ],
+      "sameGreedyTokens": true,
+      "passed": true
+    }
+  ],
+  "atol": 0.001,
+  "rtol": 0,
+  "accepted": true,
+  "limits": [
+    "No other engine comparison",
+    "Warm OPFS; setup measured separately; no OS disk-cache flush",
+    "No larger-model or MoE inference claim",
+    "CPU recording overlaps GPU execution; timings are not additive",
+    "No allocation counter is physical resident memory",
+    "No default, signed artifact or catalog promotion",
+    "Four prompts, 64 generated tokens each, five pairs/prompt; no general quality, long-decode, cold-disk or tail guarantee.",
+    "Logit gate materializes the full head; fused argmax intermediate logits are not exposed.",
+    "Full-logit and dispatch audit runs are untimed and excluded from the speed population.",
+    "Shared host; no other service stopped. Initial source-identity capture ran during timing; every timing sample retained."
+  ]
+}
