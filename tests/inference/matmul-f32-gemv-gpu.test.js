@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { destroyDevice, getDevice, getKernelCapabilities } from '../../src/gpu/device.js';
+import { destroyDevice, getKernelCapabilities } from '../../src/gpu/device.js';
 import { CommandRecorder } from '../../src/gpu/command-recorder.js';
 import { runMatmul, recordMatmul } from '../../src/gpu/kernels/matmul.js';
-import { getPipelineProvenance } from '../../src/gpu/kernels/pipeline-cache.js';
 import { createTensor } from '../../src/gpu/tensor.js';
 import { createWeightBuffer } from '../../src/gpu/weight-buffer.js';
 import { acquireBuffer, releaseBuffer, readBuffer, uploadData } from '../../src/memory/buffer-pool.js';
 import { releaseNodeWebGPU } from '../../src/tooling/node-webgpu.js';
 import { probeNodeGPU } from '../helpers/gpu-probe.js';
+import { observeKernelDispatches } from '../helpers/kernel-dispatch-observer.js';
 
 const probe = await probeNodeGPU({ installFileFetchShim: true });
 if (!probe.ready) {
@@ -22,56 +22,15 @@ const baselineStep = { op: 'q_proj', kernel: 'matmul_f32.wgsl', entry: 'main' };
 const pathFor = step => ({ activationDtype: 'f32', decode: { steps: [step] } });
 const report = { provider: probe.providerReceipt, capabilities: getKernelCapabilities(), cases: [] };
 
-// Observe the pipeline bound at the actual dispatch boundary, rather than a
-// cache entry that could exist without being submitted. Native methods retain
-// their original receivers; the observation changes no dispatch parameters.
 async function observeDispatches(operation) {
-  const device = getDevice();
-  const descriptor = Object.getOwnPropertyDescriptor(device, 'createCommandEncoder');
-  const createCommandEncoder = device.createCommandEncoder;
-  const dispatches = [];
-  device.createCommandEncoder = (...args) => {
-    const encoder = createCommandEncoder.apply(device, args);
-    return new Proxy(encoder, {
-      get(target, key) {
-        if (key === 'beginComputePass') {
-          return (...passArgs) => {
-            const pass = target.beginComputePass(...passArgs);
-            let pipeline = null;
-            return new Proxy(pass, {
-              get(passTarget, passKey) {
-                if (passKey === 'setPipeline') return value => {
-                  pipeline = value;
-                  return passTarget.setPipeline(value);
-                };
-                if (passKey === 'dispatchWorkgroups') return (...workgroups) => {
-                  dispatches.push({ workgroups, pipeline: getPipelineProvenance(pipeline) });
-                  return passTarget.dispatchWorkgroups(...workgroups);
-                };
-                const value = Reflect.get(passTarget, passKey, passTarget);
-                return typeof value === 'function' ? value.bind(passTarget) : value;
-              },
-            });
-          };
-        }
-        const value = Reflect.get(target, key, target);
-        return typeof value === 'function' ? value.bind(target) : value;
-      },
-    });
-  };
-  try {
-    const result = await operation();
-    assert.equal(dispatches.length, 1, 'expected exactly one GEMV dispatch');
-    const provenance = dispatches[0].pipeline;
-    assert.equal(provenance?.shaderFile, candidateStep.kernel, 'requested GEMV shader did not dispatch');
-    assert.equal(provenance.entryPoint, candidateStep.entry);
-    assert.equal(provenance.variant, 'gemv_f32');
-    assert.match(provenance.shaderHash, /^sha256:[a-f0-9]{64}$/);
-    return { result, dispatches };
-  } finally {
-    if (descriptor) Object.defineProperty(device, 'createCommandEncoder', descriptor);
-    else delete device.createCommandEncoder;
-  }
+  const observation = await observeKernelDispatches(operation);
+  assert.equal(observation.dispatches.length, 1, 'expected exactly one GEMV dispatch');
+  const provenance = observation.dispatches[0].pipeline;
+  assert.equal(provenance?.shaderFile, candidateStep.kernel, 'requested GEMV shader did not dispatch');
+  assert.equal(provenance.entryPoint, candidateStep.entry);
+  assert.equal(provenance.variant, 'gemv_f32');
+  assert.match(provenance.shaderHash, /^sha256:[a-f0-9]{64}$/);
+  return observation;
 }
 
 function independentReference(input, weights, N, K, transpose, alpha) {
