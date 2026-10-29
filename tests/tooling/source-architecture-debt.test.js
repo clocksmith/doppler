@@ -140,6 +140,87 @@ assert.deepEqual(findArchitecturePolicyRelaxations(liftedCompat, compatBaseline)
 const deletedCompatOwner = { ...liftedCompat, topLevelOwners: { inference: 'x', utils: 'x' } };
 assert.deepEqual(findArchitecturePolicyRelaxations(deletedCompatOwner, compatBaseline), []);
 
+// Cross-directory moves re-register existing entries at their new paths.
+const moveBaseline = {
+  ...baselinePolicy,
+  facades: ['inference/harness.js', 'tooling-exports.js'],
+  facadeDependencies: {
+    'inference/harness.js': ['inference/harness/a.js'],
+    'tooling-exports.js': ['inference/harness.js', 'tooling/command.js'],
+  },
+  dependencyExceptions: [{ from: 'inference/harness/a.js', toOwner: 'client' }],
+  softLimitReviews: { 'inference/harness/a.js': { reviewedLines: 870 } },
+  genericModuleReviews: { 'inference/harness.js': { classification: 'compatibility-facade' } },
+};
+const moves = {
+  'inference/harness.js': 'tooling/harness.js',
+  'inference/harness/a.js': 'tooling/harness/a.js',
+};
+const movedPolicy = {
+  ...moveBaseline,
+  movedPaths: moves,
+  facades: ['tooling/harness.js', 'tooling-exports.js'],
+  facadeDependencies: {
+    'tooling/harness.js': ['tooling/harness/a.js'],
+    'tooling-exports.js': ['tooling/command.js', 'tooling/harness.js'],
+  },
+  dependencyExceptions: [{ from: 'tooling/harness/a.js', toOwner: 'client' }],
+  softLimitReviews: { 'tooling/harness/a.js': { reviewedLines: 870 } },
+  genericModuleReviews: { 'tooling/harness.js': { classification: 'compatibility-facade' } },
+};
+const unmappedMove = structuredClone(movedPolicy);
+delete unmappedMove.movedPaths;
+assert.deepEqual(findArchitecturePolicyRelaxations(unmappedMove, moveBaseline), [
+  'dependency exception added tooling/harness/a.js->client',
+  'facade exception added tooling/harness.js',
+  'facade dependency added tooling-exports.js->tooling/harness.js',
+]);
+assert.match(validateArchitecturePolicyDelta(unmappedMove, moveBaseline).join('; '), /adds a soft-limit review/);
+assert.deepEqual(validateArchitecturePolicyDelta(movedPolicy, moveBaseline), []);
+const moveFiles = new Map([
+  ['inference/harness.js', { current: false, baseline: true }],
+  ['inference/harness/a.js', { current: false, baseline: true }],
+  ['tooling/harness.js', { current: true, baseline: false }],
+  ['tooling/harness/a.js', { current: true, baseline: false }],
+]);
+const fileState = (relativePath) => moveFiles.get(relativePath) ?? { current: false, baseline: false };
+assert.deepEqual(validateArchitecturePolicyDelta(movedPolicy, moveBaseline, null, {}, fileState), []);
+// Once the move is in the baseline the entries are inert, not new debt.
+const inertState = (relativePath) => ({ current: relativePath.startsWith('tooling/'), baseline: relativePath.startsWith('tooling/') });
+assert.deepEqual(validateArchitecturePolicyDelta(movedPolicy, { ...movedPolicy, movedPaths: undefined }, null, {}, inertState), []);
+const stillPresent = (relativePath) => ({ ...fileState(relativePath), current: true });
+assert.match(validateArchitecturePolicyDelta(movedPolicy, moveBaseline, null, {}, stillPresent).join('; '),
+  /inference\/harness\.js still exists/);
+const intoExisting = (relativePath) => ({ ...fileState(relativePath), baseline: true });
+assert.match(validateArchitecturePolicyDelta(movedPolicy, moveBaseline, null, {}, intoExisting).join('; '),
+  /already existed at the base revision/);
+const widenedReview = structuredClone(movedPolicy);
+widenedReview.softLimitReviews['tooling/harness/a.js'].reviewedLines = 900;
+assert.match(validateArchitecturePolicyDelta(widenedReview, moveBaseline).join('; '),
+  /tooling\/harness\/a\.js: raises reviewedLines from 870 to 900/);
+const widenedEdges = structuredClone(movedPolicy);
+widenedEdges.facadeDependencies['tooling/harness.js'].push('inference/rerank.js');
+assert.match(validateArchitecturePolicyDelta(widenedEdges, moveBaseline).join('; '),
+  /facade dependency added tooling\/harness\.js->inference\/rerank\.js/);
+const widenedException = structuredClone(movedPolicy);
+widenedException.dependencyExceptions.push({ from: 'tooling/harness/a.js', toOwner: 'cli' });
+assert.match(validateArchitecturePolicyDelta(widenedException, moveBaseline).join('; '),
+  /dependency exception added tooling\/harness\/a\.js->cli/);
+const reclassified = structuredClone(movedPolicy);
+reclassified.genericModuleReviews['tooling/harness.js'].classification = 'semantic-owner';
+assert.match(validateArchitecturePolicyDelta(reclassified, moveBaseline).join('; '),
+  /changes classification from compatibility-facade to semantic-owner/);
+const mergedMove = { ...movedPolicy, movedPaths: { ...moves, 'inference/other.js': 'tooling/harness.js' } };
+assert.match(validateArchitecturePolicyDelta(mergedMove, moveBaseline).join('; '), /one-to-one/);
+const chainedMove = { ...movedPolicy, movedPaths: { ...moves, 'tooling/harness.js': 'tooling/other.js' } };
+assert.match(validateArchitecturePolicyDelta(chainedMove, moveBaseline).join('; '), /without chains/);
+const ontoExistingEntry = {
+  ...movedPolicy,
+  movedPaths: { 'inference/harness/a.js': 'tooling-exports.js' },
+};
+assert.match(validateArchitecturePolicyDelta(ontoExistingEntry, moveBaseline).join('; '),
+  /merges into an existing policy entry/);
+
 assert.equal(resolvePolicyBaseRef([], {}), 'HEAD');
 assert.equal(resolvePolicyBaseRef([], { DOPPLER_POLICY_BASE_REF: '' }), 'HEAD');
 assert.equal(resolvePolicyBaseRef([], { DOPPLER_POLICY_BASE_REF: '000000' }), 'HEAD');
