@@ -6195,6 +6195,102 @@
       }
      ]
     },
+    "gemv_f32": {
+     "wgsl": "matmul_gemv_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [32,4,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "weightDtype": "f32",
+     "wgslOverrides": {
+      "THREADS_PER_COL": 32,
+      "COLS_PER_WG": 4
+     },
+     "variantMetadata": {
+      "colsPerWg": 4,
+      "dispatchGeometry": "linear-column-block"
+     },
+     "description": "Opt-in full-F32 single-row GEMV with workgroup reductions, scalar K tails and explicit matrix layout.",
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "workgroups_x",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
+    },
     "f32": {
      "wgsl": "matmul_f32.wgsl",
      "entryPoint": "main",
@@ -6208,7 +6304,8 @@
        "esm/esm2-t12-35m-ur50d-f32-af32",
        "esmc/esmc-300m-f32-af32",
        "gemma3/translategemma-4b-it-q4k-ehf16-af32",
-       "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32"
+       "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32",
+       "qwen3/qwen-3-5-0-8b-canonical-f32"
       ],
       "ruleChains": ["matmul.rules.json#gemvVariant","matmul.rules.json#matmulKernel"],
       "wgslOnDisk": true
@@ -9877,6 +9974,7 @@
        "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
        "muse-glimmer/muse-glimmer-30b-text-bf16-af32",
        "muse-glimmer/muse-glimmer-30b-text-f16-af32",
+       "qwen3/qwen-3-5-0-8b-canonical-f32",
        "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
        "qwen3/qwen-3-5-2b-q4k-ehaf16",
        "qwen3/qwen-3-5-9b-f16-af32",
@@ -10209,6 +10307,7 @@
        "muse-glimmer/muse-glimmer-30b-text-bf16-af32",
        "muse-glimmer/muse-glimmer-30b-text-f16-af32",
        "qwen3/qwen-3-4b-instruct-2507-q4k-ehf16-af32",
+       "qwen3/qwen-3-5-0-8b-canonical-f32",
        "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
        "qwen3/qwen-3-5-2b-q4k-ehaf16",
        "qwen3/qwen-3-5-9b-f16-af32",
@@ -10360,6 +10459,7 @@
        "muse-glimmer/muse-glimmer-30b-text-bf16-af32",
        "muse-glimmer/muse-glimmer-30b-text-f16-af32",
        "qwen3/qwen-3-4b-instruct-2507-q4k-ehf16-af32",
+       "qwen3/qwen-3-5-0-8b-canonical-f32",
        "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
        "qwen3/qwen-3-5-2b-q4k-ehaf16",
        "qwen3/qwen-3-5-9b-f16-af32",
@@ -10617,6 +10717,7 @@
        "muse-glimmer/muse-glimmer-30b-text-bf16-af32",
        "muse-glimmer/muse-glimmer-30b-text-f16-af32",
        "qwen3/qwen-3-4b-instruct-2507-q4k-ehf16-af32",
+       "qwen3/qwen-3-5-0-8b-canonical-f32",
        "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
        "qwen3/qwen-3-5-2b-q4k-ehaf16",
        "qwen3/qwen-3-5-9b-f16-af32",
@@ -13009,6 +13110,7 @@
        "muse-glimmer/muse-glimmer-30b-text-bf16-af32",
        "muse-glimmer/muse-glimmer-30b-text-f16-af32",
        "qwen3/qwen-3-4b-instruct-2507-q4k-ehf16-af32",
+       "qwen3/qwen-3-5-0-8b-canonical-f32",
        "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
        "qwen3/qwen-3-5-2b-q4k-ehaf16",
        "qwen3/qwen-3-5-9b-f16-af32",
@@ -14470,6 +14572,7 @@
        "muse-glimmer/muse-glimmer-30b-text-f16-af32",
        "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32",
        "qwen3/qwen-3-4b-instruct-2507-q4k-ehf16-af32",
+       "qwen3/qwen-3-5-0-8b-canonical-f32",
        "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
        "qwen3/qwen-3-5-2b-q4k-ehaf16",
        "qwen3/qwen-3-5-9b-f16-af32",
@@ -14784,6 +14887,7 @@
        "muse-glimmer/muse-glimmer-30b-text-f16-af32",
        "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32",
        "qwen3/qwen-3-4b-instruct-2507-q4k-ehf16-af32",
+       "qwen3/qwen-3-5-0-8b-canonical-f32",
        "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
        "qwen3/qwen-3-5-2b-q4k-ehaf16",
        "qwen3/qwen-3-5-9b-f16-af32",
@@ -15858,7 +15962,8 @@
        "gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
        "gemma4/gemma-4-31b-it-text-q4k-ehf16-af16",
        "gemma4/gemma-4-31b-it-text-q4k-ehf16-af32",
-       "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32"
+       "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32",
+       "qwen3/qwen-3-5-0-8b-canonical-f32"
       ],
       "ruleChains": ["gather.rules.json#variant"],
       "wgslOnDisk": true
@@ -16688,6 +16793,7 @@
        "muse-glimmer/muse-glimmer-30b-text-f16-af32",
        "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32",
        "qwen3/qwen-3-4b-instruct-2507-q4k-ehf16-af32",
+       "qwen3/qwen-3-5-0-8b-canonical-f32",
        "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
        "qwen3/qwen-3-5-2b-q4k-ehaf16",
        "qwen3/qwen-3-5-9b-f16-af32",
@@ -19430,6 +19536,7 @@
        "muse-glimmer/muse-glimmer-30b-text-bf16-af32",
        "muse-glimmer/muse-glimmer-30b-text-f16-af32",
        "qwen3/qwen-3-4b-instruct-2507-q4k-ehf16-af32",
+       "qwen3/qwen-3-5-0-8b-canonical-f32",
        "qwen3/qwen-3-5-0-8b-q4k-ehaf16",
        "qwen3/qwen-3-5-2b-q4k-ehaf16",
        "qwen3/qwen-3-5-9b-f16-af32",
