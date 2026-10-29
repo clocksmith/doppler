@@ -4,7 +4,8 @@ import path from 'node:path';
 import { tmpdir } from 'node:os';
 import { generateKeyPairSync } from 'node:crypto';
 import { buildDocumentSearchApplication } from '../../tools/build-document-search-app.js';
-import { signCapsuleV2, signCapsuleReleaseEvent } from '../../src/capsule.js';
+import { signCapsuleV2 } from '../../src/config/capsule-v2.js';
+import { signCapsuleReleaseEvent } from '../../src/config/capsule-release-events.js';
 import { hashBytesSha256 } from '../../src/formats/canonical-hash.js';
 import { createSignedCapsuleFixture } from '../helpers/capsule-v2-fixture.js';
 

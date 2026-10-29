@@ -5,7 +5,7 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { verifyInstalledSearchBuild } from '../../tools/document-search-installed-build.js';
 import { createSignedCapsuleFixture } from '../helpers/capsule-v2-fixture.js';
-import { getCapsuleIdentity } from '../../src/capsule.js';
+import { getCapsuleIdentity } from '../../src/config/capsule.js';
 
 // Synthetic archive tests identity rejection; only the installed browser runner
 // establishes that npm installed an executable package and actual models ran.

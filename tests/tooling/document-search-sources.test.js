@@ -3,7 +3,8 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { checkDocumentSearchSources } from '../../tools/check-document-search-sources.js';
-import { getCapsuleIdentity, buildCapsuleV2, signCapsuleV2 } from '../../src/capsule.js';
+import { getCapsuleIdentity } from '../../src/config/capsule.js';
+import { buildCapsuleV2, signCapsuleV2 } from '../../src/config/capsule-v2.js';
 import { createSignedCapsuleFixture, TEST_CAPSULE_AUTHORITY, TEST_CAPSULE_PUBLIC_KEY, TEST_CAPSULE_PRIVATE_KEY } from '../helpers/capsule-v2-fixture.js';
 
 const root = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-search-sources-'));

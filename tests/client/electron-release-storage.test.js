@@ -10,8 +10,8 @@ import {
   prepareDocumentSearchReleaseOptions,
 } from '../../examples/electron-document-search/release-storage.js';
 import { createSignedCapsuleFixture } from '../helpers/capsule-v2-fixture.js';
-import { buildCapsuleV3, signCapsuleV3, getCapsuleIdentity, signCapsuleReleaseEvent } from 'doppler-gpu/capsule';
-import { createElectronReleaseStateCoordinator } from 'doppler-gpu/electron';
+import { buildCapsuleV3, signCapsuleV3, getCapsuleIdentity, signCapsuleReleaseEvent } from 'doppler-gpu/host';
+import { createElectronReleaseStateCoordinator } from 'doppler-gpu/host/electron';
 import { createDopplerRuntime } from 'doppler-gpu';
 import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
 

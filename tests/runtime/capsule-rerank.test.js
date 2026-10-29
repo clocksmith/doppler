@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createDopplerRuntime } from 'doppler-gpu';
-import { createElectronRendererRuntime } from 'doppler-gpu/electron';
+import { createElectronRendererRuntime } from 'doppler-gpu/host/electron';
 import { hashTargetPlan } from '../../src/config/target-plan.js';
 import {
   TEST_CAPSULE_AUTHORITY,

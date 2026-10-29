@@ -652,12 +652,6 @@ async function validatePackageExports() {
     'package.json root export must point to src/capsule-runtime.js and src/capsule-runtime.d.ts.'
   );
 
-  const runExport = exportsField['./run'];
-  assert(
-    runExport?.import === rootExport.import && runExport?.types === rootExport.types,
-    'package.json ./run export must alias the Capsule-native root export.'
-  );
-
   const runtimeExport = exportsField['./runtime'];
   assert(
     runtimeExport?.import === rootExport.import && runtimeExport?.types === rootExport.types,

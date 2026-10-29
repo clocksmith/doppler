@@ -3,7 +3,9 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { generateKeyPairSync } from 'node:crypto';
-import { buildCapsuleV3, signCapsuleV3, getCapsuleIdentity, signCapsuleReleaseEvent } from '../src/capsule.js';
+import { buildCapsuleV3, signCapsuleV3 } from '../src/config/capsule-v3.js';
+import { getCapsuleIdentity } from '../src/config/capsule.js';
+import { signCapsuleReleaseEvent } from '../src/config/capsule-release-events.js';
 import { hashTargetPlan } from '../src/config/target-plan.js';
 import { computeCanonicalSha256, hashBytesSha256 } from '../src/formats/canonical-hash.js';
 

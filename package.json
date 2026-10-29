@@ -180,10 +180,6 @@
     "demo:hosting:deploy": "npm --prefix ../d4da run deploy:world"
   },
   "exports": {
-    "./run": {
-      "types": "./src/capsule-runtime.d.ts",
-      "import": "./src/capsule-runtime.js"
-    },
     ".": {
       "types": "./src/capsule-runtime.d.ts",
       "import": "./src/capsule-runtime.js"
@@ -196,22 +192,18 @@
       "types": "./src/config/generation-contract.d.ts",
       "import": "./src/config/generation-contract.js"
     },
-    "./choice-scoring-contract": {
-      "types": "./src/config/choice-scoring.d.ts",
-      "import": "./src/config/choice-scoring.js"
-    },
     "./host": {
       "types": "./src/client/capsule-host.d.ts",
       "browser": "./src/client/capsule-host.browser.js",
       "import": "./src/client/capsule-host.js"
     },
+    "./host/electron": {
+      "types": "./src/client/electron/index.d.ts",
+      "import": "./src/client/electron/index.js"
+    },
     "./serve": {
       "types": "./src/cli/serve/capsule-handler.d.ts",
       "import": "./src/cli/serve/capsule-handler.js"
-    },
-    "./capsule": {
-      "types": "./src/capsule.d.ts",
-      "import": "./src/capsule.js"
     },
     "./compat": {
       "types": "./src/index.d.ts",
@@ -253,10 +245,6 @@
     "./client/model-manager": {
       "types": "./src/client/runtime/model-manager.d.ts",
       "import": "./src/client/runtime/model-manager.js"
-    },
-    "./electron": {
-      "types": "./src/client/electron/index.d.ts",
-      "import": "./src/client/electron/index.js"
     },
     "./models/qwen3": {
       "types": "./src/models/qwen3.d.ts",

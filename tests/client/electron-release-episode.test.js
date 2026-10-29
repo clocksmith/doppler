@@ -10,7 +10,7 @@ import { createSignedCapsuleFixture, TEST_CAPSULE_AUTHORITY, TEST_CAPSULE_PUBLIC
 import {
   RELEASE_DECISION_SCHEMA, signProductionReleaseEvidence, verifyProductionReleaseEvidenceSignature,
 } from '../../src/config/production-release-evidence.js';
-import { ELECTRON_REVOCATION_SNAPSHOT_SCHEMA } from 'doppler-gpu/electron';
+import { ELECTRON_REVOCATION_SNAPSHOT_SCHEMA } from 'doppler-gpu/host/electron';
 
 const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-durable-episode-'));
 try {

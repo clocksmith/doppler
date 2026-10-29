@@ -6,6 +6,18 @@ Historical package notes are preserved outside the runtime archive in
 
 ## [0.7.0 candidate]
 
+### Removed
+
+Each removed subpath duplicated another export. Import from the replacement:
+
+- `doppler-gpu/run`: import from `doppler-gpu` (same module).
+- `doppler-gpu/capsule`: import from `doppler-gpu/host`, which now also exports
+  the Capsule identity, migration, signing and release-event helpers and types.
+- `doppler-gpu/electron`: import from `doppler-gpu/host/electron` (same module).
+- `doppler-gpu/choice-scoring-contract`: import `CHOICE_SCORING_CONTRACT`,
+  `snapshotChoiceScoringRequest` and `validateChoiceScoringResult` from
+  `doppler-gpu/host` or `doppler-gpu`.
+
 ### Deprecated
 
 No workspace application or reference example imports these subpaths. They
@@ -19,8 +31,8 @@ remain available in 0.7.x and will be removed in 0.8.0:
   `models/gemma3`, `models/gemma4`, `models/diffusiongemma` and
   `models/embeddinggemma`: no replacement export.
 
-`doppler-gpu/run` and `doppler-gpu/runtime` remain aliases of `doppler-gpu`,
-and `createDopplerRuntime` remains an alias of `createDopplerRun`.
+`doppler-gpu/runtime` remains an alias of `doppler-gpu`, and
+`createDopplerRuntime` remains an alias of `createDopplerRun`.
 
 ### Changed
 

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createDopplerRuntime } from 'doppler-gpu';
-import { createElectronRendererRuntime } from 'doppler-gpu/electron';
+import { createElectronRendererRuntime } from 'doppler-gpu/host/electron';
 
 // Signed fixture execution with a synthetic program/device, never hardware evidence.
 export async function runElectronCapsuleContract({ fixture, trustedSigners, createRenderer }) {

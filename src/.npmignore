@@ -464,6 +464,7 @@ formats/tokenizer/index.js
 formats/tokenizer/types.d.ts
 gpu/buffer-identity.d.ts
 gpu/constant-buffer.d.ts
+gpu/device-bindings.d.ts
 gpu/device-state.d.ts
 gpu/kernel-runtime.d.ts
 gpu/kernel-selection-cache.d.ts
@@ -508,6 +509,7 @@ gpu/kernels/rule-matcher.d.ts
 gpu/kernels/rule-matcher.js
 gpu/kernels/rule-registry.d.ts
 gpu/kernels/split-dispatch.d.ts
+gpu/kernels/subgroup-partition.d.ts
 gpu/kernels/turboquant-codebook.d.ts
 gpu/kernels/types.js
 gpu/kernels/uniform-encoding.d.ts
@@ -517,6 +519,7 @@ gpu/perf-guards.d.ts
 gpu/readback-buffer.d.ts
 gpu/readback-utils.d.ts
 gpu/readback-utils.js
+gpu/recorder-timestamps.d.ts
 gpu/submit-probe.d.ts
 index-browser.d.ts
 index-browser.js
@@ -626,6 +629,8 @@ inference/pipelines/text/execution-v1/validation.d.ts
 inference/pipelines/text/execution.d.ts
 inference/pipelines/text/failure-reduction.d.ts
 inference/pipelines/text/failure-reduction.js
+inference/pipelines/text/ffn/activation-observation.d.ts
+inference/pipelines/text/ffn/decode-intermediate.d.ts
 inference/pipelines/text/ffn/dense-executor.d.ts
 inference/pipelines/text/ffn/dense-plan.d.ts
 inference/pipelines/text/ffn/dense.d.ts
@@ -653,6 +658,7 @@ inference/pipelines/text/generator/decode-components.d.ts
 inference/pipelines/text/generator/decode-runtime.d.ts
 inference/pipelines/text/generator/decode.d.ts
 inference/pipelines/text/generator/diffusion.d.ts
+inference/pipelines/text/generator/greedy-head-policy.d.ts
 inference/pipelines/text/generator/logits-config.d.ts
 inference/pipelines/text/generator/per-layer-buffer.d.ts
 inference/pipelines/text/generator/prefill-observation.d.ts
@@ -713,6 +719,7 @@ inference/pipelines/text/per-layer-inputs.d.ts
 inference/pipelines/text/per-layer/materialize.d.ts
 inference/pipelines/text/per-layer/plan.d.ts
 inference/pipelines/text/pipeline-load-timing.d.ts
+inference/pipelines/text/precomputed-input-norm.d.ts
 inference/pipelines/text/probes.d.ts
 inference/pipelines/text/resident-partition.d.ts
 inference/pipelines/text/resident-pipeline-preparation.d.ts
@@ -771,6 +778,7 @@ rules/converter/execution.rules.json
 rules/converter/tensor-roles.rules.json
 rules/converter/tokenizer.rules.json
 rules/execution-rules-contract-check.d.ts
+rules/greedy-sampling.d.ts
 rules/inference/attention.rules.json
 rules/inference/config.rules.json
 rules/inference/dtype.rules.json

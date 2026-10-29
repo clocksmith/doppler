@@ -8,11 +8,11 @@ does not change that executable root; re-signing changes the envelope digest.
 
 ## Migration and public API
 
-The new source API is exported as `doppler-gpu/capsule`. It is not a claim that a
+The source API is exported from `doppler-gpu/host`. It is not a claim that a
 published package, customer release, or peer network already consumes v3.
 
 ```js
-import { migrateCapsuleV2, getCapsuleIdentity, signCapsuleReleaseEvent } from 'doppler-gpu/capsule';
+import { migrateCapsuleV2, getCapsuleIdentity, signCapsuleReleaseEvent } from 'doppler-gpu/host';
 
 const migrated = await migrateCapsuleV2(oldCapsule, { trustedSigners, signer });
 const { schema, semanticRoot, envelopeDigest } = getCapsuleIdentity(migrated.capsule);

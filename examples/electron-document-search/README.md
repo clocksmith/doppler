@@ -1,6 +1,6 @@
 # Electron Capsule integration
 
-This example composes the shipped `doppler-gpu/host` and `doppler-gpu/electron`
+This example composes the shipped `doppler-gpu/host` and `doppler-gpu/host/electron`
 exports. It is integration code, not a customer application, model-quality
 qualification, or evidence that a production release was adopted.
 

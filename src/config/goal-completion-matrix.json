@@ -201,7 +201,7 @@
           "claimAllowed": true,
           "supportSubsystemId": null,
           "packageBin": "doppler",
-          "packageExport": "./electron",
+          "packageExport": "./host/electron",
           "smokeCommand": "npm run production-release:check",
           "evidencePaths": [
             "docs/model-release-platform.md",

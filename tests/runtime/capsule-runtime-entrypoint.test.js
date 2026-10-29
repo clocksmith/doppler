@@ -18,7 +18,6 @@ const activation = partitions.serializeActivationFrame({ shape: [1, 1, 2], dtype
 assert.deepEqual([...partitions.deserializeActivationFrame(activation).tensorData], [1, 2]);
 assert.equal(runtime.createDopplerRun, runtime.createDopplerRuntime);
 assert.equal(runtime.RUN_CORE_VERSION, runtime.RUNTIME_CORE_VERSION);
-assert.equal(await import('doppler-gpu/run'), runtime);
 assert.equal(await import('doppler-gpu/runtime'), runtime);
 assert.equal('openPack' in runtime, false);
 assert.equal('createFetchPackArtifactStore' in runtime, false);
@@ -38,10 +37,12 @@ assert.equal(packageJson.types, 'src/capsule-runtime.d.ts');
 assert.equal(packageJson.exports['.'].import, './src/capsule-runtime.js');
 assert.equal(packageJson.exports['.'].types, './src/capsule-runtime.d.ts');
 assert.equal(packageJson.exports['./runtime'].import, './src/capsule-runtime.js');
-assert.equal(packageJson.exports['./capsule'].import, './src/capsule.js');
-assert.equal(Object.hasOwn(packageJson.exports, './pack'), false);
-await assert.rejects(import('doppler-gpu/pack'), { code: 'ERR_PACKAGE_PATH_NOT_EXPORTED' });
-for (const file of ['src/pack-runtime.js', 'src/pack.js', 'src/client/pack-host.js']) {
+assert.equal(packageJson.exports['./host/electron'].import, './src/client/electron/index.js');
+for (const removed of ['./pack', './run', './capsule', './electron', './choice-scoring-contract']) {
+  assert.equal(Object.hasOwn(packageJson.exports, removed), false, `${removed} must not be exported`);
+  await assert.rejects(import(`doppler-gpu/${removed.slice(2)}`), { code: 'ERR_PACKAGE_PATH_NOT_EXPORTED' });
+}
+for (const file of ['src/pack-runtime.js', 'src/pack.js', 'src/client/pack-host.js', 'src/capsule.js']) {
   await assert.rejects(fs.access(file), { code: 'ENOENT' });
 }
 assert.equal(packageJson.exports['./compat'].import, './src/index.js');

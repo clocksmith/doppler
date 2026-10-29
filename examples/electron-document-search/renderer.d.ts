@@ -1,4 +1,4 @@
-import type { ElectronReleaseStateCoordinator, ElectronRendererRuntime } from 'doppler-gpu/electron';
+import type { ElectronReleaseStateCoordinator, ElectronRendererRuntime } from 'doppler-gpu/host/electron';
 import type { RuntimePorts } from 'doppler-gpu';
 import type { DopplerCapsuleOpenOptions } from 'doppler-gpu/host';
 

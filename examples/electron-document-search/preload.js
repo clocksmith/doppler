@@ -1,4 +1,4 @@
-import { ELECTRON_RELEASE_IPC_CHANNEL } from 'doppler-gpu/electron';
+import { ELECTRON_RELEASE_IPC_CHANNEL } from 'doppler-gpu/host/electron';
 
 export function exposeDocumentSearchReleaseBridge(contextBridge, ipcRenderer) {
   contextBridge.exposeInMainWorld('dopplerRelease', Object.freeze({

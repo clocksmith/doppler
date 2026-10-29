@@ -3,55 +3,6 @@
 Auto-generated from `package.json` exports and shipped `.d.ts` entrypoints.
 This is a reference inventory, not the behavior guide. Manual API guides live one level up in `docs/api/`.
 
-## `doppler-gpu/run`
-
-- Audience: app authors
-- Stability: preferred public
-- Manual guide: [docs/api/root.md](../root.md)
-- Types: [src/capsule-runtime.d.ts](../../../src/capsule-runtime.d.ts)
-- Implementation: [src/capsule-runtime.js](../../../src/capsule-runtime.js)
-- Notes: Alias of the root surface (Doppler Run naming); same verified Capsule execution API.
-- Exported symbols:
-  - `CapsuleEmbeddingRequest`
-  - `CapsuleEmbeddingResult`
-  - `CapsuleOperationEvent`
-  - `CapsuleOperationRequest`
-  - `capsuleOperationSnapshots`
-  - `CapsuleRerankApplicationBinding`
-  - `CapsuleRerankReceipt`
-  - `CapsuleRerankRequest`
-  - `CHOICE_SCORING_CONTRACT`
-  - `ChoiceScoringRequest`
-  - `ChoiceScoringResult`
-  - `createCapsuleStreamAccumulator`
-  - `createDopplerRun`
-  - `createDopplerRuntime`
-  - `createFetchCapsuleArtifactStore`
-  - `createForecastProgramFactory`
-  - `DOPPLER_VERSION`
-  - `DopplerRun`
-  - `DopplerRunSession`
-  - `DopplerRuntime`
-  - `DopplerRuntimeSession`
-  - `EmbeddingBatchSemantics`
-  - `GENERATION_CONTRACT`
-  - `GenerationCompletion`
-  - `GenerationError`
-  - `GenerationInput`
-  - `GenerationOptions`
-  - `GenerationOutput`
-  - `openCapsule`
-  - `ResolvedGenerationOptions`
-  - `resolveEmbeddingBatchSemantics`
-  - `resolveGenerationOptions`
-  - `RUN_CORE_VERSION`
-  - `RunPorts`
-  - `RUNTIME_CORE_VERSION`
-  - `RuntimePorts`
-  - `snapshotChoiceScoringRequest`
-  - `validateChoiceScoringResult`
-  - `validateGenerationInput`
-
 ## `doppler-gpu`
 
 - Audience: app authors
@@ -169,17 +120,6 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `ResolvedGenerationOptions`
   - `RuntimeSamplingOptions`
 
-## `doppler-gpu/choice-scoring-contract`
-
-- Audience: unspecified
-- Stability: unspecified
-- Types: [src/config/choice-scoring.d.ts](../../../src/config/choice-scoring.d.ts)
-- Implementation: [src/config/choice-scoring.js](../../../src/config/choice-scoring.js)
-- Notes: No manual classification recorded for this export path.
-- Exported symbols:
-  - `ChoiceScoringRequest`
-  - `ChoiceScoringResult`
-
 ## `doppler-gpu/host`
 
 - Audience: unspecified
@@ -188,12 +128,23 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Implementation: [src/client/capsule-host.js](../../../src/client/capsule-host.js)
 - Notes: No manual classification recorded for this export path.
 - Exported symbols:
+  - `buildCapsuleV2`
+  - `buildCapsuleV3`
+  - `CapsuleIdentity`
   - `capsuleOperationSnapshots`
+  - `CapsuleReleaseAuthorization`
+  - `CapsuleReleaseEvent`
+  - `CapsuleReleasePolicy`
+  - `CapsuleReleaseStateError`
+  - `CapsuleRetainedLocalUse`
+  - `CapsuleSigner`
   - `CHOICE_SCORING_CONTRACT`
   - `ChoiceScoringRequest`
   - `ChoiceScoringResult`
   - `createCapsuleStreamAccumulator`
+  - `DopplerCapsule`
   - `DopplerCapsuleOpenOptions`
+  - `DopplerCapsuleV3`
   - `DopplerRuntimeSession`
   - `GENERATION_CONTRACT`
   - `GenerationCompletion`
@@ -201,12 +152,38 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `GenerationInput`
   - `GenerationOptions`
   - `GenerationOutput`
+  - `getCapsuleIdentity`
+  - `hashCapsuleReleaseEvent`
+  - `hashCapsuleV2`
+  - `hashCapsuleV3`
+  - `migrateCapsuleV2`
   - `openCapsule`
+  - `ReleaseCheckpoint`
   - `ResolvedGenerationOptions`
   - `resolveGenerationOptions`
+  - `signCapsuleReleaseEvent`
+  - `signCapsuleV2`
+  - `signCapsuleV3`
   - `snapshotChoiceScoringRequest`
+  - `validateCapsule`
+  - `validateCapsuleReleaseEvent`
+  - `validateCapsuleV2`
+  - `validateCapsuleV3`
   - `validateChoiceScoringResult`
   - `validateGenerationInput`
+  - `verifyCapsule`
+  - `verifyCapsuleReleaseEvents`
+
+## `doppler-gpu/host/electron`
+
+- Audience: unspecified
+- Stability: unspecified
+- Types: [src/client/electron/index.d.ts](../../../src/client/electron/index.d.ts)
+- Implementation: [src/client/electron/index.js](../../../src/client/electron/index.js)
+- Notes: No manual classification recorded for this export path.
+- Exported symbols:
+  - `*`
+  - `verifyProductionReleaseEvidenceSignature`
 
 ## `doppler-gpu/serve`
 
@@ -224,41 +201,6 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `CapsuleHttpResponse`
   - `CapsuleServeHandler`
   - `CapsuleServePolicy`
-
-## `doppler-gpu/capsule`
-
-- Audience: unspecified
-- Stability: unspecified
-- Types: [src/capsule.d.ts](../../../src/capsule.d.ts)
-- Implementation: [src/capsule.js](../../../src/capsule.js)
-- Notes: No manual classification recorded for this export path.
-- Exported symbols:
-  - `buildCapsuleV2`
-  - `buildCapsuleV3`
-  - `CapsuleIdentity`
-  - `CapsuleReleaseAuthorization`
-  - `CapsuleReleaseEvent`
-  - `CapsuleReleasePolicy`
-  - `CapsuleReleaseStateError`
-  - `CapsuleRetainedLocalUse`
-  - `CapsuleSigner`
-  - `DopplerCapsule`
-  - `DopplerCapsuleV3`
-  - `getCapsuleIdentity`
-  - `hashCapsuleReleaseEvent`
-  - `hashCapsuleV2`
-  - `hashCapsuleV3`
-  - `migrateCapsuleV2`
-  - `ReleaseCheckpoint`
-  - `signCapsuleReleaseEvent`
-  - `signCapsuleV2`
-  - `signCapsuleV3`
-  - `validateCapsule`
-  - `validateCapsuleReleaseEvent`
-  - `validateCapsuleV2`
-  - `validateCapsuleV3`
-  - `verifyCapsule`
-  - `verifyCapsuleReleaseEvents`
 
 ## `doppler-gpu/compat`
 
@@ -547,17 +489,6 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `readOPFSFile`
   - `verifyExplicitModelUrlMatch`
   - `writeOPFSFile`
-
-## `doppler-gpu/electron`
-
-- Audience: unspecified
-- Stability: unspecified
-- Types: [src/client/electron/index.d.ts](../../../src/client/electron/index.d.ts)
-- Implementation: [src/client/electron/index.js](../../../src/client/electron/index.js)
-- Notes: No manual classification recorded for this export path.
-- Exported symbols:
-  - `*`
-  - `verifyProductionReleaseEvidenceSignature`
 
 ## `doppler-gpu/models/qwen3`
 

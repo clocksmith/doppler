@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
-import { getCapsuleIdentity } from '../src/capsule.js';
+import { getCapsuleIdentity } from '../src/config/capsule.js';
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 export async function verifyInstalledSearchBuild(root, build) {

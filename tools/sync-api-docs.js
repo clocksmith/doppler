@@ -43,12 +43,6 @@ const EXPORT_META = {
     docPath: 'docs/api/root.md',
     notes: 'Primary Capsule-native surface. Capsule identity, trust, and execution ports are explicit.',
   },
-  './run': {
-    audience: 'app authors',
-    stability: 'preferred public',
-    docPath: 'docs/api/root.md',
-    notes: 'Alias of the root surface (Doppler Run naming); same verified Capsule execution API.',
-  },
   './runtime': {
     audience: 'app authors',
     stability: 'preferred public',
