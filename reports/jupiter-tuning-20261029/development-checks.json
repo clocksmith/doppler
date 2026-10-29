@@ -1,0 +1,192 @@
+{
+  "scope": "Focused development checks; not a full repository or release qualification. Physical GPU and model parity receipts are separate.",
+  "checks": [
+    {
+      "command": [
+        "node",
+        "tests/inference/greedy-policy.test.js"
+      ],
+      "exitCode": 0,
+      "log": "validation-00.log"
+    },
+    {
+      "command": [
+        "node",
+        "tests/config/rule-matcher-immutable.test.js"
+      ],
+      "exitCode": 0,
+      "log": "validation-01.log"
+    },
+    {
+      "command": [
+        "node",
+        "tests/config/subgroup-partition.test.js"
+      ],
+      "exitCode": 0,
+      "log": "validation-02.log"
+    },
+    {
+      "command": [
+        "node",
+        "tests/config/session-flags-merge.test.js"
+      ],
+      "exitCode": 0,
+      "log": "validation-03.log"
+    },
+    {
+      "command": [
+        "node",
+        "tests/inference/ffn-execution-v1-precision-contract.test.js"
+      ],
+      "exitCode": 0,
+      "log": "validation-04.log"
+    },
+    {
+      "command": [
+        "node",
+        "tests/inference/fused-ffn-geometry-rejection.test.js"
+      ],
+      "exitCode": 0,
+      "log": "validation-05.log"
+    },
+    {
+      "command": [
+        "node",
+        "tests/inference/decode-ffn-intermediate.test.js"
+      ],
+      "exitCode": 0,
+      "log": "validation-06.log"
+    },
+    {
+      "command": [
+        "node",
+        "tests/gpu/prepared-decode-workspace.test.js"
+      ],
+      "exitCode": 0,
+      "log": "validation-07.log"
+    },
+    {
+      "command": [
+        "node",
+        "tests/gpu/linear-attention-allocation-cleanup.test.js"
+      ],
+      "exitCode": 0,
+      "log": "validation-08.log"
+    },
+    {
+      "command": [
+        "node",
+        "tests/gpu/command-recorder-cleanup.test.js"
+      ],
+      "exitCode": 0,
+      "log": "validation-09.log"
+    },
+    {
+      "command": [
+        "node",
+        "tests/gpu/pipeline-cache-identity.test.js"
+      ],
+      "exitCode": 0,
+      "log": "validation-10.log"
+    },
+    {
+      "command": [
+        "node",
+        "tests/inference/rmsnorm-fusion-gate.test.js"
+      ],
+      "exitCode": 0,
+      "log": "validation-11.log"
+    },
+    {
+      "command": [
+        "node",
+        "tests/kernels/gated-delta-norm-gate.test.js"
+      ],
+      "exitCode": 1,
+      "log": "validation-12.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "onboarding:check"
+      ],
+      "exitCode": 0,
+      "log": "validation-13.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "source:architecture:check"
+      ],
+      "exitCode": 1,
+      "log": "validation-14.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "source:style:check"
+      ],
+      "exitCode": 0,
+      "log": "validation-15.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "typecheck:source"
+      ],
+      "exitCode": 0,
+      "log": "validation-16.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "kernels:codegen:check"
+      ],
+      "exitCode": 0,
+      "log": "validation-17.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "kernels:digests:check"
+      ],
+      "exitCode": 0,
+      "log": "validation-18.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "kernels:registry:check"
+      ],
+      "exitCode": 0,
+      "log": "validation-19.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "rules:bundle:check"
+      ],
+      "exitCode": 0,
+      "log": "validation-20.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "routing:audit:check"
+      ],
+      "exitCode": 0,
+      "log": "validation-21.log"
+    }
+  ],
+  "complete": true,
+  "pass": false
+}

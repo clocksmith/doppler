@@ -1,0 +1,21 @@
+{
+  "reason": "screen7 was started before screen6 finished; stop screen7 and exclude any temporal overlap from performance conclusions",
+  "stoppedPids": [
+    1441105,
+    1445393,
+    1445508,
+    1445517,
+    1445518,
+    1445551,
+    1445553,
+    1445555,
+    1445597,
+    1445599,
+    1445671
+  ],
+  "receiptsRetained": [
+    "screen6",
+    "screen7"
+  ],
+  "screenOnly": true
+}

@@ -1,0 +1,7 @@
+
+> doppler-gpu@0.6.32 source:architecture:check
+> node tools/check-source-architecture.js
+
+source architecture check failed:
+- gpu/kernels/gated_delta_fused_decode_register.wgsl: 917 lines exceeds soft limit 750 without review
+- inference/pipelines/text/config/normalization.js: 753 lines exceeds soft limit 750 without review

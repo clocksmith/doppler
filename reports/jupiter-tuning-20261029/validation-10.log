@@ -1,0 +1,59 @@
+TAP version 13
+# Subtest: explicit devices retain provider WGSL requirements and reject missing features
+ok 1 - explicit devices retain provider WGSL requirements and reject missing features
+  ---
+  duration_ms: 1.872959
+  type: 'test'
+  ...
+# Subtest: layout identity uses descriptors, including WebGPU defaults, and ordered layout objects
+ok 2 - layout identity uses descriptors, including WebGPU defaults, and ordered layout objects
+  ---
+  duration_ms: 0.5485
+  type: 'test'
+  ...
+# Subtest: compute cache distinguishes actual layouts and shader bytes
+ok 3 - compute cache distinguishes actual layouts and shader bytes
+  ---
+  duration_ms: 0.63225
+  type: 'test'
+  ...
+[102.0ms][GPU] Device lost: injected loss, Reason: unknown
+# Subtest: concurrent compilation is shared, failures retry, and sync lookup never returns a promise
+ok 4 - concurrent compilation is shared, failures retry, and sync lookup never returns a promise
+  ---
+  duration_ms: 4.176084
+  type: 'test'
+  ...
+# Subtest: device loss during compilation rejects the result and cannot populate the cache
+ok 5 - device loss during compilation rejects the result and cannot populate the cache
+  ---
+  duration_ms: 0.951125
+  type: 'test'
+  ...
+# Subtest: device replacement while shader diagnostics are pending cannot compile a pipeline
+ok 6 - device replacement while shader diagnostics are pending cannot compile a pipeline
+  ---
+  duration_ms: 0.252666
+  type: 'test'
+  ...
+# Subtest: clearing caches during compilation prevents late cache publication
+ok 7 - clearing caches during compilation prevents late cache publication
+  ---
+  duration_ms: 0.269042
+  type: 'test'
+  ...
+# Subtest: explicit device preparation survives unrelated default-device replacement
+ok 8 - explicit device preparation survives unrelated default-device replacement
+  ---
+  duration_ms: 0.201125
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 11.916791

@@ -1,0 +1,5 @@
+
+> doppler-gpu@0.6.32 kernels:codegen:check
+> node tools/generate-wgsl.js --check
+
+[wgsl:check] variants=55 changed=0 unchanged=55

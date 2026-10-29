@@ -1,0 +1,5 @@
+
+> doppler-gpu@0.6.32 typecheck:source
+> tsc -p tsconfig.declarations.json --noEmit && node tools/check-source-types.js
+
+[source-types] 107 strict roots; 1020 explicitly inventoried unchecked implementations; no debt growth

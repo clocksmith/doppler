@@ -1,0 +1,5 @@
+
+> doppler-gpu@0.6.32 routing:audit:check
+> node tools/audit-execution-routing.js --check
+
+execution routing audit: current (31 manifests, 144 calibration opportunities, 245 surfaced integrity failures)
