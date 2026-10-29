@@ -1,4 +1,10 @@
 {
+  "greedy": [
+    { "match": { "temperature": 0 }, "value": true },
+    { "match": { "topK": 1 }, "value": true },
+    { "match": { "belowThreshold": true }, "value": true },
+    { "match": {}, "value": false }
+  ],
   "suffix": [
     { "match": { "useF16": true }, "value": "_f16" },
     { "match": {}, "value": "" }

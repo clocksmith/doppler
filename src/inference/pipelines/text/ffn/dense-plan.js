@@ -89,13 +89,23 @@ export function resolveFusedGateUpPipelineConstants(options = {}) {
   if (!phase) {
     return null;
   }
-  if (kernelPath) {
-    const fusedConstants = normalizeFusedGateUpPipelineConstants(
-      getKernelPathMatmulConstants('ffn_gate_up', phase, layerIdx, kernelPath)
-    );
-    if (fusedConstants) {
-      return fusedConstants;
+  const fusedPolicy = (options.runtimeSession ?? getRuntimeConfig().inference.session).fusedFfnQ4K?.[phase];
+  const sessionConstants = fusedPolicy?.pipelineConstants;
+  const explicitConstants = normalizeFusedGateUpPipelineConstants(sessionConstants);
+  const fusedConstants = kernelPath ? normalizeFusedGateUpPipelineConstants(
+    getKernelPathMatmulConstants('ffn_gate_up', phase, layerIdx, kernelPath)
+  ) : null;
+  if (fusedConstants) {
+    for (const [key, value] of Object.entries(explicitConstants ?? {})) {
+      if (fusedConstants[key] !== undefined && fusedConstants[key] !== value) {
+        throw new Error(`[FFN] Explicit fused gate/up constant ${key} contradicts its declared fused step.`);
+      }
     }
+    return { ...fusedConstants, ...explicitConstants };
+  }
+  // Separate gate/up matmul geometry is not the explicit fused kernel's geometry.
+  if (sessionConstants !== undefined || fusedPolicy?.variant != null) return explicitConstants;
+  if (kernelPath) {
     const gateConstants = normalizeFusedGateUpPipelineConstants(
       getKernelPathMatmulConstants('ffn_gate', phase, layerIdx, kernelPath)
     );
@@ -104,17 +114,13 @@ export function resolveFusedGateUpPipelineConstants(options = {}) {
     );
     if (gateConstants || upConstants) {
       if (!gateConstants || !upConstants || !constantsEqual(gateConstants, upConstants)) {
-        throw new Error(
-          `[FFN] Fused gate/up requires matching gate and up kernel constants; ` +
-          `got gate=${JSON.stringify(gateConstants)} up=${JSON.stringify(upConstants)}.`
-        );
+        throw new Error(`[FFN] Fused gate/up requires matching gate and up kernel constants; ` +
+          `got gate=${JSON.stringify(gateConstants)} up=${JSON.stringify(upConstants)}.`);
       }
       return gateConstants;
     }
   }
-  const sessionConstants = getRuntimeConfig()
-    .inference?.session?.fusedFfnQ4K?.[phase]?.pipelineConstants;
-  return normalizeFusedGateUpPipelineConstants(sessionConstants);
+  return null;
 }
 
 export function resolveFusedGateUpVariant(options = {}) {
@@ -122,8 +128,8 @@ export function resolveFusedGateUpVariant(options = {}) {
   if (!phase) {
     return null;
   }
-  const variant = getRuntimeConfig()
-    .inference?.session?.fusedFfnQ4K?.[phase]?.variant;
+  const variant = (options.runtimeSession ?? getRuntimeConfig().inference.session)
+    .fusedFfnQ4K?.[phase]?.variant;
   if (variant == null) {
     return null;
   }

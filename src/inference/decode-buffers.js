@@ -1,5 +1,6 @@
 
 
+import { PreparedDecodeWorkspace } from '../gpu/prepared-decode-workspace.js';
 import { getDevice } from '../gpu/device.js';
 import { tensorElementBytes } from '../gpu/tensor.js';
 import { padToQ4KBlock } from '../config/schema/index.js';
@@ -11,6 +12,10 @@ export class DecodeBufferManager {
   config = null;
 
   pingPongIndex = 0;
+
+  workspace = null;
+
+  workspaceDevice = null;
 
   ensureBuffers(config) {
     if (config.enablePingPong == null) {
@@ -109,6 +114,15 @@ export class DecodeBufferManager {
     }
   }
 
+  getWorkspace(device) {
+    if (this.workspace && this.workspaceDevice !== device) {
+      throw new Error('Prepared decode workspace belongs to another GPUDevice; release the session first.');
+    }
+    this.workspace ??= new PreparedDecodeWorkspace(device);
+    this.workspaceDevice = device;
+    return this.workspace;
+  }
+
   getHiddenBuffer() {
     if (!this.buffers) return null;
     if (this.buffers.hiddenAlt && this.pingPongIndex === 1) {
@@ -153,8 +167,9 @@ export class DecodeBufferManager {
     const hiddenBytes = this.buffers.hidden.size;
     const intermediateBytes = this.buffers.ffnIntermediate.size;
     const bufferCount = this.buffers?.hiddenAlt ? 4 : 3;
-    const totalBytes = hiddenBytes * (bufferCount - 1) + intermediateBytes;
-    return { hiddenBytes, intermediateBytes, totalBytes, activationDtype: this.config.activationDtype };
+    const workspace = this.workspace?.getStats() ?? null;
+    const totalBytes = hiddenBytes * (bufferCount - 1) + intermediateBytes + (workspace?.bytes ?? 0);
+    return { hiddenBytes, intermediateBytes, totalBytes, activationDtype: this.config.activationDtype, workspace };
   }
 
   ownsBuffer(buffer) {
@@ -162,10 +177,14 @@ export class DecodeBufferManager {
     return buffer === this.buffers.hidden
       || buffer === this.buffers.hiddenAlt
       || buffer === this.buffers.attnOutput
-      || buffer === this.buffers.ffnIntermediate;
+      || buffer === this.buffers.ffnIntermediate
+      || this.workspace?.ownsBuffer(buffer) === true;
   }
 
   release() {
+    this.workspace?.release();
+    this.workspace = null;
+    this.workspaceDevice = null;
     if (this.buffers) {
       this.buffers.hidden.destroy();
       this.buffers.attnOutput.destroy();

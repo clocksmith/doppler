@@ -50,6 +50,9 @@ export declare class DecodeBufferManager {
   private buffers;
   private config;
   private pingPongIndex;
+  private workspace;
+  private workspaceDevice;
+  getWorkspace(device: GPUDevice): import('../gpu/prepared-decode-workspace.js').PreparedDecodeWorkspace;
 
   /**
    * Ensure buffers are allocated for the given config.
@@ -97,7 +100,7 @@ export declare class DecodeBufferManager {
   /**
    * Get actual padded allocation sizes for debugging.
    */
-  getStats(): { hiddenBytes: number; intermediateBytes: number; totalBytes: number; activationDtype: 'f16' | 'f32' } | null;
+  getStats(): { hiddenBytes: number; intermediateBytes: number; totalBytes: number; activationDtype: 'f16' | 'f32'; workspace: ReturnType<import('../gpu/prepared-decode-workspace.js').PreparedDecodeWorkspace['getStats']> | null } | null;
 
   /**
    * Check whether a buffer is managed by this decode buffer manager.

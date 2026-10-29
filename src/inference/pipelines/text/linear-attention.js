@@ -656,6 +656,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
       layerState,
       {
         numTokens,
+        runtimeSession: options.runtimeSession,
         outputDtype: outProjInputDtype,
         layerIdx,
         normGateActivation: config.linearNormGateActivation,

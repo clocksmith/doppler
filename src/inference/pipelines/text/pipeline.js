@@ -454,6 +454,12 @@ export class InferencePipeline extends PipelineState {
       stats.used += kvStats.allocated || 0;
     }
 
+    const decodeStats = this.decodeBuffers?.getStats();
+    if (decodeStats) {
+      stats.decodeBuffers = decodeStats;
+      stats.used += decodeStats.totalBytes;
+    }
+
     if (this.emulation?.config?.statsEnabled) {
       stats.emulation = this.emulation.getStats();
     }

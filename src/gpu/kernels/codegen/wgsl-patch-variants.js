@@ -1,5 +1,11 @@
 export const WGSL_PATCH_VARIANTS = Object.freeze([
   {
+    id: 'gated-delta-fused-register-decode',
+    source: 'src/gpu/kernels/gated_delta_fused_decode.wgsl',
+    target: 'src/gpu/kernels/gated_delta_fused_decode_register.wgsl',
+    patch: 'src/gpu/kernels/codegen/patches/gated_delta_fused_decode_register.from.gated_delta_fused_decode.diff',
+  },
+  {
     id: 'fused-matmul-q4-widetile-direct',
     source: 'src/gpu/kernels/fused_matmul_q4_widetile.wgsl',
     target: 'src/gpu/kernels/fused_matmul_q4_widetile_direct.wgsl',
@@ -154,5 +160,41 @@ export const WGSL_PATCH_VARIANTS = Object.freeze([
     source: 'src/gpu/kernels/attention_streaming.wgsl',
     target: 'src/gpu/kernels/attention_streaming_f16kv.wgsl',
     patch: 'src/gpu/kernels/codegen/patches/attention_streaming_f16kv.from.attention_streaming.diff',
+  },
+  {
+    id: 'gated-delta-recurrent-register-prefill',
+    source: 'src/gpu/kernels/gated_delta_recurrent.wgsl',
+    target: 'src/gpu/kernels/gated_delta_recurrent_register_prefill.wgsl',
+    patch: 'src/gpu/kernels/codegen/patches/gated_delta_recurrent_register_prefill.from.gated_delta_recurrent.diff',
+  },
+  {
+    id: 'fused-ffn-q4k-subgroup8',
+    source: 'src/gpu/kernels/fused_ffn_q4k.wgsl',
+    target: 'src/gpu/kernels/fused_ffn_q4k_subgroup8.wgsl',
+    patch: 'src/gpu/kernels/codegen/patches/fused_ffn_q4k_subgroup8.from.fused_ffn_q4k.diff',
+  },
+  {
+    id: 'fused-matmul-q4-subgroup',
+    source: 'src/gpu/kernels/fused_matmul_q4_metal_simd16.wgsl',
+    target: 'src/gpu/kernels/fused_matmul_q4_subgroup.wgsl',
+    patch: 'src/gpu/kernels/codegen/patches/fused_matmul_q4_subgroup.from.fused_matmul_q4_metal_simd16.diff',
+  },
+  {
+    id: 'gated-delta-prefill-norm-gate',
+    source: 'src/gpu/kernels/gated_delta_recurrent.wgsl',
+    target: 'src/gpu/kernels/gated_delta_prefill_norm_gate.wgsl',
+    patch: 'src/gpu/kernels/codegen/patches/gated_delta_prefill_norm_gate.from.gated_delta_recurrent.diff',
+  },
+  {
+    id: 'gated-delta-conv-prefill',
+    source: 'src/gpu/kernels/gated_delta_conv.wgsl',
+    target: 'src/gpu/kernels/gated_delta_conv_prefill.wgsl',
+    patch: 'src/gpu/kernels/codegen/patches/gated_delta_conv_prefill.from.gated_delta_conv.diff',
+  },
+  {
+    id: 'attention-prefill-partitioned-head256-f16kv',
+    source: 'src/gpu/kernels/attention_head256_f16kv.wgsl',
+    target: 'src/gpu/kernels/attention_prefill_partitioned_head256_f16kv.wgsl',
+    patch: 'src/gpu/kernels/codegen/patches/attention_prefill_partitioned_head256_f16kv.from.attention_head256_f16kv.diff',
   },
 ]);

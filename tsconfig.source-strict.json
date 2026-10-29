@@ -113,6 +113,15 @@
     "src/config/schema/speculation-self.schema.js",
     "src/experimental/training/lora-training-round.js",
     "src/inference/browser-harness/request-timing.js",
-    "src/loader/weight-representation-plan.js"
+    "src/loader/weight-representation-plan.js",
+    "src/rules/greedy-sampling.js",
+    "src/inference/pipelines/text/generator/greedy-head-policy.js",
+    "src/gpu/recorder-timestamps.js",
+    "src/gpu/prepared-decode-workspace.js",
+    "src/inference/pipelines/text/precomputed-input-norm.js",
+    "src/inference/pipelines/text/ffn/activation-observation.js",
+    "src/inference/pipelines/text/ffn/decode-intermediate.js",
+    "src/gpu/device-bindings.js",
+    "src/gpu/kernels/subgroup-partition.js"
   ]
 }

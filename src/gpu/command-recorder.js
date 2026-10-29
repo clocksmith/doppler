@@ -3,15 +3,14 @@ import { allowReadback, trackAllocation } from './perf-guards.js';
 import { getUniformCache, toUniformArrayBuffer } from './uniform-cache.js';
 import { isBufferActive, isPersistentBuffer, releaseBuffer, discardBuffer } from '../memory/buffer-pool.js';
 import { log } from '../debug/index.js';
-import { getRuntimeConfig } from '../config/runtime.js';
+import { createRecorderTimestampResources } from './recorder-timestamps.js';
 import { getPipelineProvenance } from './kernels/pipeline-cache.js';
 
-let didLogQueryClamp = false;
-let didLogQueryFallback = false;
 
 export class CommandRecorder {
   device;
   label;
+  decodeWorkspace = null;
   #encoder;
   #tempBuffers;
   // Pooled buffers to release (not destroy) after submit
@@ -87,61 +86,14 @@ export class CommandRecorder {
   }
 
   #initProfiling() {
-    let querySet = null;
-    let queryBuffer = null;
-    let readbackBuffer = null;
     try {
-      const runtimeProfiler = getRuntimeConfig().shared?.debug?.profiler;
-      if (!runtimeProfiler) {
-        throw new Error('runtime.shared.debug.profiler is required.');
-      }
-      const { maxQueries, defaultQueryLimit } = runtimeProfiler;
-      const deviceLimit = this.device.limits?.maxQuerySetSize;
-      const hasDeviceLimit = Number.isFinite(deviceLimit) && deviceLimit > 0;
-      const limit = hasDeviceLimit
-        ? deviceLimit
-        : defaultQueryLimit;
-      this.#queryCapacity = Math.min(maxQueries, limit);
-      if (hasDeviceLimit && this.#queryCapacity < maxQueries && !didLogQueryClamp) {
-        log.warn(
-          'CommandRecorder',
-          `Clamping MAX_QUERIES to device limit: ${this.#queryCapacity}/${maxQueries}`
-        );
-        didLogQueryClamp = true;
-      } else if (!hasDeviceLimit && !didLogQueryFallback) {
-        log.warn(
-          'CommandRecorder',
-          `maxQuerySetSize unavailable; using fallback ${defaultQueryLimit}`
-        );
-        didLogQueryFallback = true;
-      }
-
-      querySet = this.device.createQuerySet({
-        type: 'timestamp',
-        count: this.#queryCapacity,
-      });
-
-      // Buffer to hold query results (8 bytes per timestamp = BigUint64)
-      queryBuffer = this.device.createBuffer({
-        label: `${this.label}_query_buffer`,
-        size: this.#queryCapacity * 8,
-        usage: GPUBufferUsage.QUERY_RESOLVE | GPUBufferUsage.COPY_SRC,
-      });
-
-      // Readback buffer
-      readbackBuffer = this.device.createBuffer({
-        label: `${this.label}_readback_buffer`,
-        size: this.#queryCapacity * 8,
-        usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
-      });
-      this.#querySet = querySet;
-      this.#queryBuffer = queryBuffer;
-      this.#readbackBuffer = readbackBuffer;
-    } catch (e) {
-      readbackBuffer?.destroy();
-      queryBuffer?.destroy();
-      querySet?.destroy();
-      log.warn('CommandRecorder', `Failed to initialize profiling: ${e}`);
+      const resources = createRecorderTimestampResources(this.device, this.label);
+      this.#querySet = resources.querySet;
+      this.#queryBuffer = resources.queryBuffer;
+      this.#readbackBuffer = resources.readbackBuffer;
+      this.#queryCapacity = resources.capacity;
+    } catch (error) {
+      log.warn('CommandRecorder', `Failed to initialize profiling: ${error}`);
       this.#profilingEnabled = false;
     }
   }

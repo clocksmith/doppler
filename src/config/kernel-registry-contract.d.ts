@@ -5,6 +5,15 @@ export interface VariantMetadata {
   tileM?: number;
   outputBinding?: number;
   maxKVLen?: number;
+  subgroupPartitionLanes?: number;
+  headKDim?: number;
+  maxHeadVDim?: number;
+  stateComponents?: number;
+  valueSliceWidth?: number;
+  normGateVariant?: string;
+  convVariant?: string;
+  parallelConvVariant?: string;
+  fusedFfnDefaults?: Readonly<Record<string, number | boolean>>;
   /** Gate activation applied by a gated-delta kernel's gated RMSNorm; guarded against the manifest. */
   normGateActivation?: 'silu' | 'sigmoid';
   [key: string]: unknown;

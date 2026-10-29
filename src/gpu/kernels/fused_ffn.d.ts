@@ -26,7 +26,9 @@ export interface FusedFFNOptions extends OutputBufferOptions {
   /** WGSL override constants resolved from the active kernel path. */
   pipelineConstants?: Record<string, number | boolean> | null;
   /** Explicit config-owned Q4_K decode kernel variant. */
-  variant?: 'q4k_metal_simd16' | null;
+  /** Logical layer identity for session-owned prepared resources. */
+  layerIdx?: number | null;
+  variant?: 'q4k_metal_simd16' | 'q4k_subgroup8' | null;
 }
 
 export interface FusedNormedFFNOptions extends FusedFFNOptions {

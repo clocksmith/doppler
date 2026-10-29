@@ -179,6 +179,11 @@ export function resolveSessionSettings(inferenceConfig, modelId) {
   // The merge layer in src/config/merge.js already applies that precedence — this
   // resolver just validates the manifest-supplied values and normalizes them.
   const session = inferenceConfig?.session;
+  for (const field of ['usePreparedDecodeWorkspace', 'useLinearAttentionRegisterPrefill', 'useLinearAttentionRegisterDecode']) {
+    if (session?.[field] !== undefined && typeof session[field] !== 'boolean') {
+      throw new Error(`Manifest "${modelId}" requires boolean inference.session.${field}.`);
+    }
+  }
   const submit = session?.prefillChunkSubmitMode;
   if (submit !== undefined && submit !== null && !PREFILL_CHUNK_SUBMIT_MODES.includes(submit)) {
     throw new Error(
@@ -241,6 +246,8 @@ export function resolveSessionSettings(inferenceConfig, modelId) {
   if (linearAttentionQKVZProjectionFusion !== undefined && linearAttentionQKVZProjectionFusion !== null && typeof linearAttentionQKVZProjectionFusion !== 'boolean') {
     throw new Error(`Manifest "${modelId}" has invalid inference.session.useLinearAttentionQKVZProjectionFusion "${String(linearAttentionQKVZProjectionFusion)}"; expected boolean.`);
   }
+  const registerPrefill = session?.useLinearAttentionRegisterPrefill;
+  const registerDecode = session?.useLinearAttentionRegisterDecode;
   const linearAttentionFusedDecodeCore = session?.useLinearAttentionFusedDecodeCore;
   if (linearAttentionFusedDecodeCore !== undefined && linearAttentionFusedDecodeCore !== null && typeof linearAttentionFusedDecodeCore !== 'boolean') {
     throw new Error(`Manifest "${modelId}" has invalid inference.session.useLinearAttentionFusedDecodeCore "${String(linearAttentionFusedDecodeCore)}"; expected boolean.`);
@@ -328,6 +335,7 @@ export function resolveSessionSettings(inferenceConfig, modelId) {
     }
   }
   return {
+    usePreparedDecodeWorkspace: session?.usePreparedDecodeWorkspace ?? null,
     prefillChunkSubmitMode: submit ?? null,
     prefillTokenChunkSize: tokenChunk ?? null,
     skipEmbeddingKVCacheWrites: skipEmbeddingKVCacheWrites ?? null,
@@ -341,6 +349,8 @@ export function resolveSessionSettings(inferenceConfig, modelId) {
     useLinearAttentionABProjectionFusion: linearAttentionABProjectionFusion ?? null,
     useLinearAttentionQKVZProjectionFusion: linearAttentionQKVZProjectionFusion ?? null,
     useLinearAttentionFusedDecodeCore: linearAttentionFusedDecodeCore ?? null,
+    useLinearAttentionRegisterPrefill: registerPrefill ?? null,
+    useLinearAttentionRegisterDecode: registerDecode ?? null,
     linearRecurrentStatePrecision: linearRecurrentStatePrecision ?? null,
     intermediatePrecision: intermediatePrecision ?? null,
     useWideTileResidualFusion: wideTileResidualFusion ?? null,

@@ -1,3 +1,4 @@
+import { resolveSessionSettings } from '../../src/inference/pipelines/text/config/normalization.js';
 import assert from 'node:assert/strict';
 import { mergeConfig } from '../../src/config/merge.js';
 
@@ -223,4 +224,37 @@ for (const [manifestPrecision, overridePrecision, expected] of [
     overridePrecision ? { session: { intermediatePrecision: overridePrecision } } : {});
   assert.equal(merged.inference.session.intermediatePrecision, expected);
   assert.equal(merged._sources.get('inference.session.intermediatePrecision'), overridePrecision ? 'runtime' : 'manifest');
+}
+
+for (const [manifestFlag, runtimeFlag, expected, source] of [
+  [true, undefined, true, 'manifest'], [true, false, false, 'runtime'], [false, true, true, 'runtime'],
+]) {
+  const merged = mergeConfig(buildManifest({ usePreparedDecodeWorkspace: manifestFlag }),
+    runtimeFlag === undefined ? {} : { session: { usePreparedDecodeWorkspace: runtimeFlag } });
+  assert.equal(merged.inference.session.usePreparedDecodeWorkspace, expected);
+  assert.equal(merged._sources.get('inference.session.usePreparedDecodeWorkspace'), source);
+}
+
+for (const [manifestFlag, runtimeFlag, expected, source] of [
+  [true, undefined, true, 'manifest'], [true, false, false, 'runtime'], [false, true, true, 'runtime'],
+]) {
+  const merged = mergeConfig(buildManifest({ useLinearAttentionRegisterPrefill: manifestFlag }),
+    runtimeFlag === undefined ? {} : { session: { useLinearAttentionRegisterPrefill: runtimeFlag } });
+  assert.equal(merged.inference.session.useLinearAttentionRegisterPrefill, expected);
+  assert.equal(merged._sources.get('inference.session.useLinearAttentionRegisterPrefill'), source);
+}
+
+for (const [manifestFlag, runtimeFlag, expected, source] of [
+  [true, undefined, true, 'manifest'], [true, false, false, 'runtime'], [false, true, true, 'runtime'],
+]) {
+  const merged = mergeConfig(buildManifest({ useLinearAttentionRegisterDecode: manifestFlag }),
+    runtimeFlag === undefined ? {} : { session: { useLinearAttentionRegisterDecode: runtimeFlag } });
+  assert.equal(merged.inference.session.useLinearAttentionRegisterDecode, expected);
+  assert.equal(merged._sources.get('inference.session.useLinearAttentionRegisterDecode'), source);
+}
+
+for (const field of ['usePreparedDecodeWorkspace', 'useLinearAttentionRegisterPrefill', 'useLinearAttentionRegisterDecode']) {
+  for (const value of [true, false]) assert.equal(resolveSessionSettings({ session: { [field]: value } }, 'unit')[field], value);
+  for (const value of [null, 0, 'false']) assert.throws(() => resolveSessionSettings({ session: { [field]: value } }, 'unit'), /requires boolean/);
+  assert.equal(resolveSessionSettings({ session: {} }, 'unit')[field], null, 'missing legacy manifest fields stay unset for normal merge');
 }

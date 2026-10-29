@@ -15,6 +15,7 @@ import {
 import { recordDispatch } from './dispatch.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
 import { assertImplicitDtypeTransitionAllowed } from '../../config/dtype-transition-contract.js';
+import { getKernelConfig } from './kernel-configs.js';
 import { requireNormGateActivation, resolveGatedDeltaNormGateKernel } from './gated-delta-norm-gate.js';
 
 const CONV_WORKGROUP_SIZE = WORKGROUP_SIZES.DEFAULT;
@@ -73,21 +74,23 @@ function createBindGroupLayouts(device) {
   );
 }
 
-async function createPipelines(device, inputDtype, stateComponents, normGateActivation) {
+async function createPipelines(device, inputDtype, stateComponents, normGateActivation, useRegisterPrefill, useRegisterDecode) {
   createBindGroupLayouts(device);
   const variant = inputDtype === 'f16' ? 'f16' : 'f32';
   const suffix = variant === 'f16' ? '_f16' : '';
   // The gate-applying kernels come from their rule maps and must declare the
   // model's norm-gate activation; silu resolves to the original shader files.
-  const gateContext = { inputDtype: variant, normGateActivation };
+  const gateContext = { inputDtype: variant, normGateActivation, useRegisterPrefill, useRegisterDecode };
   const recurrentConfig = resolveGatedDeltaNormGateKernel(
     'gated_delta_recurrent', 'gatedDeltaRecurrent', 'scalarVariant', gateContext
   );
   const fusedDecodeConfig = resolveGatedDeltaNormGateKernel(
     'gated_delta_fused_decode', 'gatedDeltaFusedDecode', 'scalarVariant', { ...gateContext, stateComponents }
   );
+  const convConfig = recurrentConfig.variantMetadata?.convVariant
+    ? getKernelConfig('gated_delta_conv', recurrentConfig.variantMetadata.convVariant) : null;
   const [convModule, recurrentModule, fusedDecodeModule] = await Promise.all([
-    getShaderModule(device, `gated_delta_conv${suffix}.wgsl`, `gated_delta_conv_${variant}`),
+    getShaderModule(device, convConfig?.shaderFile ?? `gated_delta_conv${suffix}.wgsl`, `gated_delta_conv_${variant}`),
     getShaderModule(device, recurrentConfig.shaderFile, `gated_delta_recurrent_${variant}`),
     getShaderModule(device, fusedDecodeConfig.shaderFile, `gated_delta_fused_decode_${variant}`),
   ]);
@@ -97,12 +100,21 @@ async function createPipelines(device, inputDtype, stateComponents, normGateActi
     layout: getOrCreatePipelineLayout('linear_attention_conv_pipeline_layout', [convBindGroupLayout], device),
     compute: {
       module: convModule,
-      entryPoint: 'main',
+      entryPoint: convConfig?.entryPoint ?? 'main',
       constants: {
         WORKGROUP_SIZE: CONV_WORKGROUP_SIZE,
       },
     },
   });
+  let parallelConvPipeline = null;
+  if (recurrentConfig.variantMetadata?.parallelConvVariant) {
+    const parallel = getKernelConfig('gated_delta_conv', recurrentConfig.variantMetadata.parallelConvVariant);
+    parallelConvPipeline = device.createComputePipeline({
+      label: 'linear_attention_parallel_conv',
+      layout: getOrCreatePipelineLayout('linear_attention_conv_pipeline_layout', [convBindGroupLayout], device),
+      compute: { module: convModule, entryPoint: parallel.entryPoint, constants: { WORKGROUP_SIZE: CONV_WORKGROUP_SIZE } },
+    });
+  }
   const recurrentPipeline = device.createComputePipeline({
     label: `linear_attention_recurrent_pipeline_${variant}`,
     layout: getOrCreatePipelineLayout('linear_attention_recurrent_pipeline_layout', [recurrentBindGroupLayout], device),
@@ -110,11 +122,23 @@ async function createPipelines(device, inputDtype, stateComponents, normGateActi
       module: recurrentModule,
       entryPoint: 'main',
       constants: {
-        WORKGROUP_SIZE: HEAD_WORKGROUP_SIZE,
+        WORKGROUP_SIZE: recurrentConfig.workgroupSize[0],
         RECURRENT_STATE_COMPONENTS: stateComponents,
       },
     },
   });
+  const normGateVariant = recurrentConfig.variantMetadata?.normGateVariant;
+  let normGatePipeline = null;
+  if (normGateVariant) {
+    const normConfig = getKernelConfig('gated_delta_recurrent', normGateVariant);
+    const normModule = await getShaderModule(device, normConfig.shaderFile, 'linear_prefill_norm_gate');
+    normGatePipeline = device.createComputePipeline({
+      label: 'linear_prefill_norm_gate',
+      layout: getOrCreatePipelineLayout('linear_attention_recurrent_pipeline_layout', [recurrentBindGroupLayout], device),
+      compute: { module: normModule, entryPoint: normConfig.entryPoint,
+        constants: { WORKGROUP_SIZE: normConfig.workgroupSize[0], RECURRENT_STATE_COMPONENTS: stateComponents } },
+    });
+  }
   const fusedDecodePipeline = device.createComputePipeline({
     label: `linear_attention_fused_decode_pipeline_${variant}`,
     layout: getOrCreatePipelineLayout(
@@ -132,14 +156,15 @@ async function createPipelines(device, inputDtype, stateComponents, normGateActi
     },
   });
 
-  return { convPipeline, recurrentPipeline, fusedDecodePipeline };
+  return { convPipeline, parallelConvPipeline, recurrentPipeline, fusedDecodePipeline, normGatePipeline,
+    valueSliceWidth: recurrentConfig.variantMetadata?.valueSliceWidth ?? null };
 }
 
 function normalizeInputDtype(dtype) {
   return selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype });
 }
 
-async function ensurePipelines(device, inputDtype, stateComponents, normGateActivation) {
+function ensurePipelines(device, inputDtype, stateComponents, normGateActivation, useRegisterPrefill, useRegisterDecode) {
   const epoch = getShaderScopeCacheKey();
   if (epoch !== cachedEpoch) {
       pipelineCache.clear();
@@ -149,17 +174,18 @@ async function ensurePipelines(device, inputDtype, stateComponents, normGateActi
       cachedEpoch = epoch;
   }
   const dtype = normalizeInputDtype(inputDtype);
-  const variant = `${dtype}:${stateComponents}:${normGateActivation}`;
-  if (!pipelineCache.has(variant)) {
-    pipelineCache.set(variant, createPipelines(device, dtype, stateComponents, normGateActivation));
-    cachedEpoch = epoch;
-  }
-  try {
-    return await pipelineCache.get(variant);
-  } catch (error) {
-    pipelineCache.delete(variant);
+  const variant = `${dtype}:${stateComponents}:${normGateActivation}:${useRegisterPrefill}:${useRegisterDecode}`;
+  const cached = pipelineCache.get(variant);
+  if (cached) return cached;
+  const task = createPipelines(device, dtype, stateComponents, normGateActivation, useRegisterPrefill, useRegisterDecode).then(value => {
+    if (cachedEpoch === epoch && pipelineCache.get(variant) === task) pipelineCache.set(variant, value);
+    return value;
+  }, error => {
+    if (pipelineCache.get(variant) === task) pipelineCache.delete(variant);
     throw error;
-  }
+  });
+  pipelineCache.set(variant, task);
+  return task;
 }
 
 function buildParamsData(params) {
@@ -200,7 +226,7 @@ function resolveOutputDtype(outputDtype) {
 }
 
 function canUseFusedDecodeCore(layerState, numTokens, options, aTensor, bTensor) {
-  const session = getRuntimeConfig()?.inference?.session;
+  const session = options.runtimeSession ?? getRuntimeConfig().inference.session;
   return session?.useLinearAttentionFusedDecodeCore === true
     && numTokens === 1
     && options?.abPacked === true
@@ -218,7 +244,14 @@ function canUseFusedDecodeCore(layerState, numTokens, options, aTensor, bTensor)
 }
 
 export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTensor, layerState, options = {}) {
-  if (qkvTensor?.precision === 'two-f32') return executePairedLinearAttention(qkvTensor, zTensor, aTensor, bTensor, layerState, options);
+  if (qkvTensor?.precision === 'two-f32') {
+    const session = options.runtimeSession ?? getRuntimeConfig().inference.session;
+    if ((options.numTokens === 1 && session.useLinearAttentionRegisterDecode === true)
+        || (options.numTokens > 1 && session.useLinearAttentionRegisterPrefill === true)) {
+      throw new Error('Register linear attention requires scalar F32 inputs and state.');
+    }
+    return executePairedLinearAttention(qkvTensor, zTensor, aTensor, bTensor, layerState, options);
+  }
   const device = getDevice();
   if (!device) {
     throw new Error('No GPU device available for linear_attention core.');
@@ -275,7 +308,36 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
       || layerState.recurrentStateGPU.size < stateBytes) {
     throw new Error('linear_attention recurrent state binding does not match declared storage layout.');
   }
-  const pipelines = await ensurePipelines(device, inputDtype, stateComponents, normGateActivation);
+  const prefillSession = options.runtimeSession ?? getRuntimeConfig().inference.session;
+  if (numTokens > 1 && typeof prefillSession.useLinearAttentionRegisterPrefill !== 'boolean') {
+    throw new Error('Linear attention prefill requires boolean useLinearAttentionRegisterPrefill.');
+  }
+  const useRegisterPrefill = numTokens > 1 && prefillSession.useLinearAttentionRegisterPrefill;
+  if (useRegisterPrefill) {
+    const selected = resolveGatedDeltaNormGateKernel('gated_delta_recurrent', 'gatedDeltaRecurrent', 'scalarVariant',
+      { inputDtype, normGateActivation, useRegisterPrefill });
+    const shape = selected.variantMetadata;
+    if (!Number.isSafeInteger(shape?.headKDim) || layerState.headKDim !== shape.headKDim
+        || stateComponents !== shape.stateComponents || layerState.headVDim > shape.maxHeadVDim) {
+      throw new Error('Register prefill requires its registered head width, F32 state/inputs and silu norm gating.');
+    }
+  }
+  if (numTokens === 1 && typeof prefillSession.useLinearAttentionRegisterDecode !== 'boolean') {
+    throw new Error('Linear attention decode requires boolean useLinearAttentionRegisterDecode.');
+  }
+  const useRegisterDecode = numTokens === 1 && prefillSession.useLinearAttentionRegisterDecode;
+  const useFusedDecodeCore = canUseFusedDecodeCore(layerState, numTokens, options, aTensor, bTensor);
+  if (useRegisterDecode) {
+    const selected = resolveGatedDeltaNormGateKernel('gated_delta_fused_decode', 'gatedDeltaFusedDecode', 'scalarVariant',
+      { inputDtype, normGateActivation, stateComponents, useRegisterDecode });
+    const shape = selected.variantMetadata;
+    if (!useFusedDecodeCore || layerState.headKDim !== shape?.headKDim || stateComponents !== shape.stateComponents
+        || layerState.headVDim > shape.maxHeadVDim) {
+      throw new Error('Register decode requires its declared F32 fused-core geometry and packed AB input.');
+    }
+  }
+  const prepared = ensurePipelines(device, inputDtype, stateComponents, normGateActivation, useRegisterPrefill, useRegisterDecode);
+  const pipelines = prepared instanceof Promise ? await prepared : prepared;
   if (!pipelines) {
     throw new Error(`linear_attention core failed to resolve pipelines for dtype "${inputDtype}".`);
   }
@@ -304,8 +366,11 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
     qkvzPacked: options.qkvzPacked === true,
     bProjOffsetElements: options.bProjOffsetElements,
   };
-  const useFusedDecodeCore = canUseFusedDecodeCore(layerState, numTokens, options, aTensor, bTensor);
-  const outputBuffer = acquireBuffer(outputSize, undefined, `L${options.layerIdx ?? 0}.linear_attention_core_out`);
+  const workspace = useFusedDecodeCore && numTokens === 1 && outputDtype === 'f32'
+    && Number.isInteger(options.layerIdx) && options.layerIdx >= 0 ? recorder?.decodeWorkspace : null;
+  const outputBuffer = workspace
+    ? workspace.getBuffer(`linear_core:${options.layerIdx}`, outputSize)
+    : acquireBuffer(outputSize, undefined, `L${options.layerIdx ?? 0}.linear_attention_core_out`);
   if (useFusedDecodeCore) {
     if (useRecorder) {
       try {
@@ -314,7 +379,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
           buildParamsData(paramsPayload),
           recorder
         );
-        const fusedBindGroup = device.createBindGroup({
+        const descriptor = {
           label: 'linear_attention_fused_decode_bind_group',
           layout: fusedDecodeBindGroupLayout,
           entries: [
@@ -330,7 +395,10 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
             { binding: 9, resource: { buffer: layerState.recurrentStateGPU } },
             { binding: 10, resource: { buffer: outputBuffer } },
           ],
-        });
+        };
+        const fusedBindGroup = workspace
+          ? workspace.getBindGroup(`linear_core:${options.layerIdx}`, descriptor)
+          : device.createBindGroup(descriptor);
         recordDispatch(
           recorder,
           pipelines.fusedDecodePipeline,
@@ -358,7 +426,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
         }
         return output;
       } catch (error) {
-        releaseBuffer(outputBuffer);
+        if (!workspace) releaseBuffer(outputBuffer);
         throw error;
       }
     }
@@ -414,12 +482,12 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
           detail: 'Linear attention core would narrow activations implicitly.',
         });
         const casted = await castF32ToF16(output);
-        releaseBuffer(outputBuffer);
+        if (!workspace) releaseBuffer(outputBuffer);
         return casted;
       }
       return output;
     } catch (error) {
-      releaseBuffer(outputBuffer);
+      if (!workspace) releaseBuffer(outputBuffer);
       throw error;
     } finally {
       if (submitted) {
@@ -439,7 +507,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
   try {
     convOutBuffer = acquireBuffer(convOutSize, undefined, `L${options.layerIdx ?? 0}.linear_conv_out`);
   } catch (error) {
-    releaseBuffer(outputBuffer);
+    if (!workspace) releaseBuffer(outputBuffer);
     throw error;
   }
   if (useRecorder) {
@@ -503,13 +571,17 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
         [Math.ceil(layerState.convDim / CONV_WORKGROUP_SIZE), 1, 1],
         'linear_attention_conv'
       );
+      if (pipelines.parallelConvPipeline) recordDispatch(recorder, pipelines.parallelConvPipeline,
+        convBindGroup, [Math.ceil(numTokens * layerState.convDim / CONV_WORKGROUP_SIZE), 1, 1], 'linear_attention_parallel_conv');
       recordDispatch(
         recorder,
         pipelines.recurrentPipeline,
         recurrentBindGroup,
-        [layerState.numVHeads, 1, 1],
+        [layerState.numVHeads, pipelines.valueSliceWidth ? Math.ceil(layerState.headVDim / pipelines.valueSliceWidth) : 1, 1],
         'linear_attention_recurrent'
       );
+      if (pipelines.normGatePipeline) recordDispatch(recorder, pipelines.normGatePipeline,
+        recurrentBindGroup, [layerState.numVHeads, numTokens, 1], 'linear_prefill_norm_gate');
 
       recorder.trackTemporaryBuffer(convOutBuffer);
 
@@ -534,7 +606,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
       return output;
     } catch (error) {
       releaseBuffer(convOutBuffer);
-      releaseBuffer(outputBuffer);
+      if (!workspace) releaseBuffer(outputBuffer);
       throw error;
     }
   }
@@ -603,6 +675,11 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
       pass.setPipeline(pipelines.convPipeline);
       pass.setBindGroup(0, convBindGroup);
       pass.dispatchWorkgroups(Math.ceil(layerState.convDim / CONV_WORKGROUP_SIZE), 1, 1);
+      if (pipelines.parallelConvPipeline) {
+        pass.setPipeline(pipelines.parallelConvPipeline);
+        pass.setBindGroup(0, convBindGroup);
+        pass.dispatchWorkgroups(Math.ceil(numTokens * layerState.convDim / CONV_WORKGROUP_SIZE), 1, 1);
+      }
       pass.end();
     }
 
@@ -610,7 +687,13 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
       const pass = encoder.beginComputePass({ label: 'linear_attention_recurrent_pass' });
       pass.setPipeline(pipelines.recurrentPipeline);
       pass.setBindGroup(0, recurrentBindGroup);
-      pass.dispatchWorkgroups(layerState.numVHeads, 1, 1);
+      pass.dispatchWorkgroups(layerState.numVHeads,
+        pipelines.valueSliceWidth ? Math.ceil(layerState.headVDim / pipelines.valueSliceWidth) : 1, 1);
+      if (pipelines.normGatePipeline) {
+        pass.setPipeline(pipelines.normGatePipeline);
+        pass.setBindGroup(0, recurrentBindGroup);
+        pass.dispatchWorkgroups(layerState.numVHeads, numTokens, 1);
+      }
       pass.end();
     }
 
@@ -632,12 +715,12 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
         detail: 'Linear attention core would narrow activations implicitly.',
       });
       const casted = await castF32ToF16(output);
-      releaseBuffer(outputBuffer);
+      if (!workspace) releaseBuffer(outputBuffer);
       return casted;
     }
     return output;
   } catch (error) {
-    releaseBuffer(outputBuffer);
+    if (!workspace) releaseBuffer(outputBuffer);
     throw error;
   } finally {
     if (submitted) {

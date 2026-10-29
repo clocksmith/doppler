@@ -15,6 +15,7 @@ import { selectRuleValue as selectSharedRuleValue } from '../../rules/rule-regis
 import { getKernelThresholdSnapshot } from '../../config/schema/index.js';
 import { recordDispatch } from './dispatch.js';
 import { validateGenerationField } from '../../config/generation-contract.js';
+import { isGreedySampling } from '../../rules/greedy-sampling.js';
 
 
 function getSampleBindGroupLayout(device, variant) {
@@ -327,7 +328,7 @@ async function executeGPUSample(
   const logitsDtype = resolveLogitsDtype(options.logitsDtype);
 
   const { topK, numWorkgroups, scratchBytes } = resolveSampleGeometry(vocabSize, requestedTopK);
-  if (temperature < greedyThreshold || topK === 1) {
+  if (isGreedySampling(temperature, topK, greedyThreshold)) {
     return executeArgmax(recorder, logits, vocabSize, {
       padTokenId,
       logitSoftcap,

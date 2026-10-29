@@ -1,0 +1,466 @@
+--- src/gpu/kernels/fused_ffn_q4k.wgsl
++++ src/gpu/kernels/fused_ffn_q4k_subgroup8.wgsl
+@@ -1,54 +1,31 @@
+-// Fused FFN Q4_K Kernel - Multi-Column Optimized
+-//
+-// Fuses gate + up weight projections for Q4_K quantized weights.
+-// Dequantizes on-the-fly and applies activation (SiLU/GeGLU).
+-//
+-// Key optimizations:
+-// 1. Multi-column: 32 output columns per workgroup (32x fewer dispatches)
+-// 2. 8 threads per column share reduction work
+-// 3. Processes BOTH gate and up weights simultaneously
+-// 4. Input loaded once from global, used for both projections
+-//
+-// Memory savings vs separate kernels:
+-// - Single input read instead of 2 separate matmuls
+-// - No intermediate gate/up buffers
+-// - Fused activation eliminates memory round-trip
+-//
+-// Based on research from:
+-// - llama.cpp Metal: N_R0_Q4_K=2 rows/simdgroup, simdgroup-based reduction
+-// - WebLLM/MLC-LLM: Uses TVM for kernel generation with tiling optimizations
++// Fused Q4_K gate/up GEMV with eight contiguous subgroup lanes per output row.
+ 
+ enable subgroups;
+ 
+-// Q4_K constants
+-const QK_K: u32 = 256u;           // Elements per super-block
+-const BLOCK_SIZE: u32 = 144u;     // Bytes per Q4_K block
+-const SUBBLOCK_SIZE: u32 = 32u;   // Elements per sub-block
+-
+-// Multi-column layout: 256 threads = 8 threads/col × 32 columns
+-// These can be overridden via pipeline constants from config
+-const MAX_WORKGROUP_SIZE: u32 = 256u;
++const QK_K: u32 = 256u;
++const CHUNK_SIZE: u32 = 32u;
++const LANES_PER_ROW: u32 = QK_K / CHUNK_SIZE;
++
+ override WORKGROUP_SIZE: u32 = 256u;
+ override COLS_PER_WG: u32 = 32u;
+-override THREADS_PER_COL: u32 = 8u;  // 256 / 32 = 8
++override THREADS_PER_COL: u32 = 8u;
+ override USE_FULL_BLOCK_FAST_PATH: bool = false;
+ 
+ struct Uniforms {
+-    M: u32,                   // Batch size (usually 1 for decode)
+-    hidden_size: u32,         // Input dimension (K)
+-    intermediate_size: u32,   // Output dimension (N)
+-    alpha: f32,               // Scale factor
+-    activation: u32,          // 0=silu, 1=gelu
+-    num_blocks_per_row: u32,  // ceil(hidden_size / 256)
+-    clamp_max: f32,           // SwiGLU clamp (0 = disabled)
++    M: u32,
++    hidden_size: u32,
++    intermediate_size: u32,
++    alpha: f32,
++    activation: u32,
++    num_blocks_per_row: u32,
++    clamp_max: f32,
+     _pad0: u32,
+ }
+ 
+-// Q4_K block structure (144 bytes)
+ struct Q4KBlock {
+-    d_dmin: u32,          // d (f16) and dmin (f16) packed
+-    scales: array<u32, 3>, // 12 bytes of packed 6-bit scales
+-    qs: array<u32, 32>,   // 128 bytes of 4-bit quantized values
++    d_dmin: u32,
++    scales: array<u32, 3>,
++    qs: array<u32, 32>,
+ }
+ 
+ @group(0) @binding(0) var<uniform> u: Uniforms;
+@@ -57,11 +34,6 @@
+ @group(0) @binding(3) var<storage, read> W_up_q4k: array<Q4KBlock>;
+ @group(0) @binding(4) var<storage, read_write> output: array<f32>;
+ 
+-// Shared memory for reduction: 32 columns × 8 threads × 2 (gate+up)
+-var<workgroup> multicol_gate: array<f32, MAX_WORKGROUP_SIZE>;
+-var<workgroup> multicol_up: array<f32, MAX_WORKGROUP_SIZE>;
+-
+-// Extract f16 from packed u32
+ fn unpack_f16_lo(packed: u32) -> f32 {
+     return unpack2x16float(packed).x;
+ }
+@@ -70,18 +42,15 @@
+     return unpack2x16float(packed).y;
+ }
+ 
+-// Get byte from scales array
+ fn get_scale_byte(scales: array<u32, 3>, byte_idx: u32) -> u32 {
+     let word_idx = byte_idx / 4u;
+     let byte_in_word = byte_idx % 4u;
+     return (scales[word_idx] >> (byte_in_word * 8u)) & 0xFFu;
+ }
+ 
+-// llama.cpp Q4_K scale/min extraction
+ fn get_scale_min_k4(scales: array<u32, 3>, j: u32) -> vec2<u32> {
+     var sc: u32;
+     var mn: u32;
+-
+     if (j < 4u) {
+         sc = get_scale_byte(scales, j) & 63u;
+         mn = get_scale_byte(scales, j + 4u) & 63u;
+@@ -95,23 +64,27 @@
+     return vec2<u32>(sc, mn);
+ }
+ 
+-fn clamp_swiglu(x: f32) -> f32 {
+-    if (u.clamp_max <= 0.0 || u.activation != 0u) {
+-        return x;
+-    }
+-    return clamp(x, -u.clamp_max, u.clamp_max);
+-}
+-
+-fn unpack_q4_word(word: u32, nibble_shift: u32) -> vec4<u32> {
+-    return vec4<u32>(
+-        (word >> nibble_shift) & 0xFu,
+-        (word >> (8u + nibble_shift)) & 0xFu,
+-        (word >> (16u + nibble_shift)) & 0xFu,
+-        (word >> (24u + nibble_shift)) & 0xFu
++fn unpack_q4_word(word: u32, nibble_shift: u32) -> vec4<f32> {
++    return vec4<f32>(
++        f32((word >> nibble_shift) & 0xFu),
++        f32((word >> (nibble_shift + 8u)) & 0xFu),
++        f32((word >> (nibble_shift + 16u)) & 0xFu),
++        f32((word >> (nibble_shift + 24u)) & 0xFu)
+     );
+ }
+ 
+-// SiLU activation: x * sigmoid(x)
++fn load_activations(base: u32) -> vec4<f32> {
++    if (USE_FULL_BLOCK_FAST_PATH || base + 3u < u.hidden_size) {
++        return vec4<f32>(input[base], input[base + 1u], input[base + 2u], input[base + 3u]);
++    }
++    var result = vec4<f32>(0.0);
++    if (base < u.hidden_size) { result.x = input[base]; }
++    if (base + 1u < u.hidden_size) { result.y = input[base + 1u]; }
++    if (base + 2u < u.hidden_size) { result.z = input[base + 2u]; }
++    if (base + 3u < u.hidden_size) { result.w = input[base + 3u]; }
++    return result;
++}
++
+ fn silu(x: f32) -> f32 {
+     let z = exp_refined(-abs(x));
+  let numerator = select(x * z, x, x >= 0.0);
+@@ -122,251 +95,99 @@
+  return fma(fma(-q, den, numerator) + error, inverse, q);
+ }
+ 
+-// GELU activation (approximate)
+ fn gelu(x: f32) -> f32 {
+-    let c = 0.7978845608; // sqrt(2/pi)
++    let c = 0.7978845608;
+     let inner = c * (x + 0.044715 * x * x * x);
+     return 0.5 * x * (1.0 + tanh(clamp(inner, -15.0, 15.0)));
+ }
+ 
+-// Main entry point: multi-column decode (M=1)
+-// Each workgroup computes 32 output columns
++fn clamp_swiglu(x: f32) -> f32 {
++    if (u.clamp_max <= 0.0 || u.activation != 0u) {
++        return x;
++    }
++    return clamp(x, -u.clamp_max, u.clamp_max);
++}
++
+ @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+ fn main(
+-    @builtin(local_invocation_id) lid: vec3<u32>,
+     @builtin(workgroup_id) wg_id: vec3<u32>,
+-    @builtin(subgroup_invocation_id) sg_id: u32,
+-    @builtin(subgroup_size) sg_size: u32
++    @builtin(local_invocation_id) local_id: vec3<u32>,
++    @builtin(subgroup_invocation_id) lane_id: u32,
++    @builtin(subgroup_size) subgroup_size: u32
+ ) {
+-    if (WORKGROUP_SIZE > MAX_WORKGROUP_SIZE || COLS_PER_WG * THREADS_PER_COL != WORKGROUP_SIZE) {
++    if (
++        COLS_PER_WG * THREADS_PER_COL != WORKGROUP_SIZE ||
++        THREADS_PER_COL != LANES_PER_ROW ||
++        subgroup_size < LANES_PER_ROW ||
++        subgroup_size % LANES_PER_ROW != 0u
++    ) {
+         return;
+     }
+ 
+-    let local_id = lid.x;
+-
+-    // Which column within this workgroup (0..31)
+-    let col_in_wg = local_id / THREADS_PER_COL;
+-    // Which thread within the column (0..7)
+-    let tid_in_col = local_id % THREADS_PER_COL;
+-
+-    // Global column index
+-    let col = wg_id.x * COLS_PER_WG + col_in_wg;
+-
+-    // Track validity
++    let rows_per_subgroup = subgroup_size / LANES_PER_ROW;
++    let subgroup_id = local_id.x / subgroup_size;
++    let row_in_subgroup = lane_id / LANES_PER_ROW;
++    let lane_in_row = lane_id % LANES_PER_ROW;
++    let col = wg_id.x * COLS_PER_WG + subgroup_id * rows_per_subgroup + row_in_subgroup;
+     let is_valid = col < u.intermediate_size;
+-
+     var partial_gate: f32 = 0.0;
+     var partial_up: f32 = 0.0;
+ 
+     if (is_valid) {
+-        let num_blocks = u.num_blocks_per_row;
+-
+-        // Each of the 8 threads processes every 8th block
+-        for (var b: u32 = tid_in_col; b < num_blocks; b = b + THREADS_PER_COL) {
+-            let gate_block = W_gate_q4k[col * num_blocks + b];
+-            let up_block = W_up_q4k[col * num_blocks + b];
+-
+-            let gate_d = unpack_f16_lo(gate_block.d_dmin);
+-            let gate_dmin = unpack_f16_hi(gate_block.d_dmin);
+-            let up_d = unpack_f16_lo(up_block.d_dmin);
+-            let up_dmin = unpack_f16_hi(up_block.d_dmin);
+-
+-            let k_base = b * QK_K;
+-
+-            // Process all 8 sub-blocks (skip sub-blocks beyond hidden_size)
+-            for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
+-                let sb_base = sb * SUBBLOCK_SIZE;
+-                if (!USE_FULL_BLOCK_FAST_PATH && k_base + sb_base >= u.hidden_size) { break; }
+-
+-                let gate_sm = get_scale_min_k4(gate_block.scales, sb);
+-                let gate_scale = gate_d * f32(gate_sm.x);
+-                let gate_min = gate_dmin * f32(gate_sm.y);
+-
+-                let up_sm = get_scale_min_k4(up_block.scales, sb);
+-                let up_scale = up_d * f32(up_sm.x);
+-                let up_min = up_dmin * f32(up_sm.y);
+-
+-                let chunk = sb >> 1u;
+-                let nibble_shift = (sb & 1u) * 4u;
+-                let word_base = chunk * 8u;
+-
+-                // Unroll by 4 for better ILP
+-                for (var i: u32 = 0u; i < SUBBLOCK_SIZE; i = i + 4u) {
+-                    let k0 = k_base + sb_base + i;
+-                    let k1 = k0 + 1u;
+-                    let k2 = k0 + 2u;
+-                    let k3 = k0 + 3u;
+-
+-                    // Load activations (shared across gate and up)
+-                    let a0 = input[k0];
+-                    let a1 = input[k1];
+-                    let a2 = input[k2];
+-                    let a3 = input[k3];
+-
+-                    let word_idx = word_base + (i >> 2u);
+-                    let gate_q = unpack_q4_word(gate_block.qs[word_idx], nibble_shift);
+-                    let up_q = unpack_q4_word(up_block.qs[word_idx], nibble_shift);
+-
+-                    let gw0 = gate_scale * f32(gate_q.x) - gate_min;
+-                    let gw1 = gate_scale * f32(gate_q.y) - gate_min;
+-                    let gw2 = gate_scale * f32(gate_q.z) - gate_min;
+-                    let gw3 = gate_scale * f32(gate_q.w) - gate_min;
+-
+-                    let uw0 = up_scale * f32(up_q.x) - up_min;
+-                    let uw1 = up_scale * f32(up_q.y) - up_min;
+-                    let uw2 = up_scale * f32(up_q.z) - up_min;
+-                    let uw3 = up_scale * f32(up_q.w) - up_min;
+-
+-                    // Accumulate both projections
+-                    partial_gate = partial_gate + a0 * gw0 + a1 * gw1 + a2 * gw2 + a3 * gw3;
+-                    partial_up = partial_up + a0 * uw0 + a1 * uw1 + a2 * uw2 + a3 * uw3;
+-                }
++        let subblock = lane_in_row;
++        let half_chunk = 0u;
++        let nibble_shift = (subblock & 1u) * 4u;
++        let byte_offset = (subblock >> 1u) * 32u + half_chunk * CHUNK_SIZE;
++        let word_offset = byte_offset >> 2u;
++
++        for (var block_idx: u32 = 0u; block_idx < u.num_blocks_per_row; block_idx = block_idx + 1u) {
++            let block_offset = col * u.num_blocks_per_row + block_idx;
++            let gate_scales = W_gate_q4k[block_offset].scales;
++            let up_scales = W_up_q4k[block_offset].scales;
++            let gate_d_dmin = W_gate_q4k[block_offset].d_dmin;
++            let up_d_dmin = W_up_q4k[block_offset].d_dmin;
++            let gate_scale_min = get_scale_min_k4(gate_scales, subblock);
++            let up_scale_min = get_scale_min_k4(up_scales, subblock);
++            let gate_scale = unpack_f16_lo(gate_d_dmin) * f32(gate_scale_min.x);
++            let gate_min = unpack_f16_hi(gate_d_dmin) * f32(gate_scale_min.y);
++            let up_scale = unpack_f16_lo(up_d_dmin) * f32(up_scale_min.x);
++            let up_min = unpack_f16_hi(up_d_dmin) * f32(up_scale_min.y);
++            let activation_base = block_idx * QK_K + lane_in_row * CHUNK_SIZE;
++
++            for (var word_idx: u32 = 0u; word_idx < 8u; word_idx = word_idx + 1u) {
++                let activations = load_activations(activation_base + word_idx * 4u);
++                let gate_q = unpack_q4_word(W_gate_q4k[block_offset].qs[word_offset + word_idx], nibble_shift);
++                let up_q = unpack_q4_word(W_up_q4k[block_offset].qs[word_offset + word_idx], nibble_shift);
++                partial_gate = partial_gate + dot(
++                    activations,
++                    gate_scale * gate_q - vec4<f32>(gate_min)
++                );
++                partial_up = partial_up + dot(
++                    activations,
++                    up_scale * up_q - vec4<f32>(up_min)
++                );
+             }
+         }
+     }
+ 
+-    // Reduction within each column's 8 threads via shared memory
+-    // (threads for one column may span multiple subgroups on some GPUs)
+-    multicol_gate[local_id] = partial_gate;
+-    multicol_up[local_id] = partial_up;
+-    workgroupBarrier();
+-
+-    // Thread 0 of each column reduces its 8 values
+-    if (tid_in_col == 0u && is_valid) {
+-        var final_gate: f32 = 0.0;
+-        var final_up: f32 = 0.0;
+-        let base = col_in_wg * THREADS_PER_COL;
+-        for (var i: u32 = 0u; i < THREADS_PER_COL; i = i + 1u) {
+-            final_gate = final_gate + multicol_gate[base + i];
+-            final_up = final_up + multicol_up[base + i];
+-        }
+-
+-        // Apply activation and multiply
++    partial_gate = partial_gate + subgroupShuffleDown(partial_gate, 4u);
++    partial_up = partial_up + subgroupShuffleDown(partial_up, 4u);
++    partial_gate = partial_gate + subgroupShuffleDown(partial_gate, 2u);
++    partial_up = partial_up + subgroupShuffleDown(partial_up, 2u);
++    partial_gate = partial_gate + subgroupShuffleDown(partial_gate, 1u);
++    partial_up = partial_up + subgroupShuffleDown(partial_up, 1u);
++
++    if (lane_in_row == 0u && is_valid) {
+         var activated: f32;
+         if (u.activation == 0u) {
+-            activated = silu(final_gate);
++            activated = silu(partial_gate);
+         } else {
+-            activated = gelu(final_gate);
++            activated = gelu(partial_gate);
+         }
+-
+-        output[col] = clamp_swiglu(activated * final_up * u.alpha);
+-    }
+-}
+-
+-// Batched variant for prefill (M > 1)
+-// 2D dispatch: workgroup (x,y) computes 32 columns for batch row y
+-@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+-fn main_batched(
+-    @builtin(local_invocation_id) lid: vec3<u32>,
+-    @builtin(workgroup_id) wg_id: vec3<u32>,
+-    @builtin(subgroup_invocation_id) sg_id: u32,
+-    @builtin(subgroup_size) sg_size: u32
+-) {
+-    if (WORKGROUP_SIZE > MAX_WORKGROUP_SIZE || COLS_PER_WG * THREADS_PER_COL != WORKGROUP_SIZE) {
+-        return;
+-    }
+-
+-    let local_id = lid.x;
+-    let batch_idx = wg_id.y;
+-
+-    // Which column within this workgroup (0..31)
+-    let col_in_wg = local_id / THREADS_PER_COL;
+-    // Which thread within the column (0..7)
+-    let tid_in_col = local_id % THREADS_PER_COL;
+-
+-    // Global column index
+-    let col = wg_id.x * COLS_PER_WG + col_in_wg;
+-
+-    let is_valid = col < u.intermediate_size && batch_idx < u.M;
+-
+-    var partial_gate: f32 = 0.0;
+-    var partial_up: f32 = 0.0;
+-
+-    if (is_valid) {
+-        let num_blocks = u.num_blocks_per_row;
+-        let input_base = batch_idx * u.hidden_size;
+-
+-        for (var b: u32 = tid_in_col; b < num_blocks; b = b + THREADS_PER_COL) {
+-            let gate_block = W_gate_q4k[col * num_blocks + b];
+-            let up_block = W_up_q4k[col * num_blocks + b];
+-
+-            let gate_d = unpack_f16_lo(gate_block.d_dmin);
+-            let gate_dmin = unpack_f16_hi(gate_block.d_dmin);
+-            let up_d = unpack_f16_lo(up_block.d_dmin);
+-            let up_dmin = unpack_f16_hi(up_block.d_dmin);
+-
+-            let k_base = b * QK_K;
+-
+-            for (var sb: u32 = 0u; sb < 8u; sb = sb + 1u) {
+-                let sb_base = sb * SUBBLOCK_SIZE;
+-                if (!USE_FULL_BLOCK_FAST_PATH && k_base + sb_base >= u.hidden_size) { break; }
+-
+-                let gate_sm = get_scale_min_k4(gate_block.scales, sb);
+-                let gate_scale = gate_d * f32(gate_sm.x);
+-                let gate_min = gate_dmin * f32(gate_sm.y);
+-
+-                let up_sm = get_scale_min_k4(up_block.scales, sb);
+-                let up_scale = up_d * f32(up_sm.x);
+-                let up_min = up_dmin * f32(up_sm.y);
+-
+-                let chunk = sb >> 1u;
+-                let nibble_shift = (sb & 1u) * 4u;
+-                let word_base = chunk * 8u;
+-
+-                for (var i: u32 = 0u; i < SUBBLOCK_SIZE; i = i + 4u) {
+-                    let k0 = k_base + sb_base + i;
+-
+-                    let a0 = input[input_base + k0];
+-                    let a1 = input[input_base + k0 + 1u];
+-                    let a2 = input[input_base + k0 + 2u];
+-                    let a3 = input[input_base + k0 + 3u];
+-
+-                    let word_idx = word_base + (i >> 2u);
+-                    let gate_q = unpack_q4_word(gate_block.qs[word_idx], nibble_shift);
+-                    let up_q = unpack_q4_word(up_block.qs[word_idx], nibble_shift);
+-
+-                    let gw0 = gate_scale * f32(gate_q.x) - gate_min;
+-                    let gw1 = gate_scale * f32(gate_q.y) - gate_min;
+-                    let gw2 = gate_scale * f32(gate_q.z) - gate_min;
+-                    let gw3 = gate_scale * f32(gate_q.w) - gate_min;
+-
+-                    let uw0 = up_scale * f32(up_q.x) - up_min;
+-                    let uw1 = up_scale * f32(up_q.y) - up_min;
+-                    let uw2 = up_scale * f32(up_q.z) - up_min;
+-                    let uw3 = up_scale * f32(up_q.w) - up_min;
+-
+-                    partial_gate = partial_gate + a0 * gw0 + a1 * gw1 + a2 * gw2 + a3 * gw3;
+-                    partial_up = partial_up + a0 * uw0 + a1 * uw1 + a2 * uw2 + a3 * uw3;
+-                }
+-            }
+-        }
+-    }
+-
+-    // Reduction via shared memory
+-    multicol_gate[local_id] = partial_gate;
+-    multicol_up[local_id] = partial_up;
+-    workgroupBarrier();
+-
+-    if (tid_in_col == 0u && is_valid) {
+-        var final_gate: f32 = 0.0;
+-        var final_up: f32 = 0.0;
+-        let base = col_in_wg * THREADS_PER_COL;
+-        for (var i: u32 = 0u; i < THREADS_PER_COL; i = i + 1u) {
+-            final_gate = final_gate + multicol_gate[base + i];
+-            final_up = final_up + multicol_up[base + i];
+-        }
+-
+-        var activated: f32;
+-        if (u.activation == 0u) {
+-            activated = silu(final_gate);
+-        } else {
+-            activated = gelu(final_gate);
+-        }
+-
+-        let out_offset = batch_idx * u.intermediate_size + col;
+-        output[out_offset] = clamp_swiglu(activated * final_up * u.alpha);
+-    }
+-}
++        output[col] = clamp_swiglu(activated * partial_up * u.alpha);
++    }
++}
++
+ fn exp_refined(x: f32) -> f32 {
+   if (abs(x) > 80.0) {
+     return exp(x);

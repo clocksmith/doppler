@@ -5305,6 +5305,312 @@
       }
      ]
     },
+    "q4_fused_subgroup1": {
+     "wgsl": "fused_matmul_q4_subgroup.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": ["subgroups"],
+     "outputDtype": "f32",
+     "weightDtype": "q4k",
+     "variantMetadata": {
+      "colsPerWg": 256,
+      "dispatchGeometry": "row-column-block",
+      "subgroupPartitionLanes": 1
+     },
+     "description": "Q4_K GEMV with 1 contiguous subgroup lanes per row.",
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["runtime/profiles/qwen-3-5-0-8b-vulkan-subgroup8"],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_q4k"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256,
+      "COLS_PER_WG": 256,
+      "THREADS_PER_COL_GEMV": 1
+     }
+    },
+    "q4_fused_subgroup2": {
+     "wgsl": "fused_matmul_q4_subgroup.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": ["subgroups"],
+     "outputDtype": "f32",
+     "weightDtype": "q4k",
+     "variantMetadata": {
+      "colsPerWg": 128,
+      "dispatchGeometry": "row-column-block",
+      "subgroupPartitionLanes": 2
+     },
+     "description": "Q4_K GEMV with 2 contiguous subgroup lanes per row.",
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["runtime/profiles/qwen-3-5-0-8b-vulkan-subgroup8"],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_q4k"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256,
+      "COLS_PER_WG": 128,
+      "THREADS_PER_COL_GEMV": 2
+     }
+    },
+    "q4_fused_subgroup4": {
+     "wgsl": "fused_matmul_q4_subgroup.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": ["subgroups"],
+     "outputDtype": "f32",
+     "weightDtype": "q4k",
+     "variantMetadata": {
+      "colsPerWg": 64,
+      "dispatchGeometry": "row-column-block",
+      "subgroupPartitionLanes": 4
+     },
+     "description": "Q4_K GEMV with 4 contiguous subgroup lanes per row.",
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["runtime/profiles/qwen-3-5-0-8b-vulkan-subgroup8"],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_q4k"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256,
+      "COLS_PER_WG": 64,
+      "THREADS_PER_COL_GEMV": 4
+     }
+    },
+    "q4_fused_subgroup8": {
+     "wgsl": "fused_matmul_q4_subgroup.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": ["subgroups"],
+     "outputDtype": "f32",
+     "weightDtype": "q4k",
+     "variantMetadata": {
+      "colsPerWg": 32,
+      "dispatchGeometry": "row-column-block",
+      "subgroupPartitionLanes": 8
+     },
+     "description": "Q4_K GEMV with 8 contiguous subgroup lanes per row.",
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["runtime/profiles/qwen-3-5-0-8b-vulkan-subgroup8"],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_q4k"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256,
+      "COLS_PER_WG": 32,
+      "THREADS_PER_COL_GEMV": 8
+     }
+    },
+    "q4_fused_subgroup16": {
+     "wgsl": "fused_matmul_q4_subgroup.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": ["subgroups"],
+     "outputDtype": "f32",
+     "weightDtype": "q4k",
+     "variantMetadata": {
+      "colsPerWg": 16,
+      "dispatchGeometry": "row-column-block",
+      "subgroupPartitionLanes": 16
+     },
+     "description": "Q4_K GEMV with 16 contiguous subgroup lanes per row.",
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["runtime/profiles/qwen-3-5-0-8b-vulkan-subgroup8"],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_q4k"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256,
+      "COLS_PER_WG": 16,
+      "THREADS_PER_COL_GEMV": 16
+     }
+    },
+    "q4_fused_subgroup32": {
+     "wgsl": "fused_matmul_q4_subgroup.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": ["subgroups"],
+     "outputDtype": "f32",
+     "weightDtype": "q4k",
+     "variantMetadata": {
+      "colsPerWg": 8,
+      "dispatchGeometry": "row-column-block",
+      "subgroupPartitionLanes": 32
+     },
+     "description": "Q4_K GEMV with 32 contiguous subgroup lanes per row.",
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["runtime/profiles/qwen-3-5-0-8b-vulkan-subgroup8"],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_q4k"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256,
+      "COLS_PER_WG": 8,
+      "THREADS_PER_COL_GEMV": 32
+     }
+    },
     "q4_fused_metal_simd16": {
      "wgsl": "fused_matmul_q4_metal_simd16.wgsl",
      "entryPoint": "main",
@@ -7461,6 +7767,13 @@
         "padding": true
        }
       ]
+     },
+     "variantMetadata": {
+      "fusedFfnDefaults": {
+       "WORKGROUP_SIZE": 256,
+       "COLS_PER_WG": 16,
+       "THREADS_PER_COL": 16
+      }
      }
     },
     "q4k_f16a": {
@@ -7817,6 +8130,73 @@
         "padding": true
        }
       ]
+     }
+    },
+    "q4k_subgroup8": {
+     "wgsl": "fused_ffn_q4k_subgroup8.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": ["subgroups"],
+     "description": "Q4_K fused gate/up GEMV with one eight-lane subgroup partition per output row.",
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["runtime/profiles/qwen-3-5-0-8b-vulkan-subgroup8"],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "hidden_size",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "intermediate_size",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "activation",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "num_blocks_per_row",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "clamp_max",
+        "type": "f32",
+        "offset": 24
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "variantMetadata": {
+      "subgroupPartitionLanes": 8,
+      "fusedFfnDefaults": {
+       "WORKGROUP_SIZE": 256,
+       "COLS_PER_WG": 32,
+       "THREADS_PER_COL": 8
+      }
      }
     }
    }
@@ -10459,6 +10839,7 @@
        "runtime/profiles/qwen-3-5-0-8b-metal-parity",
        "runtime/profiles/qwen-3-5-0-8b-metal-throughput",
        "runtime/profiles/qwen-3-5-0-8b-vulkan-parity",
+       "runtime/profiles/qwen-3-5-0-8b-vulkan-subgroup8",
        "runtime/profiles/qwen-3-5-2b-metal-throughput"
       ],
       "ruleChains": [],
@@ -11266,6 +11647,28 @@
       "ruleChains": [],
       "wgslOnDisk": true
      }
+    },
+    "prefill_partitioned_head256_f16kv": {
+     "wgsl": "attention_prefill_partitioned_head256_f16kv.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": ["shader-f16","subgroups"],
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "tier": "tiled_small",
+      "queryBlockSize": 16,
+      "exactHeadDim": 256,
+      "maxHeadDim": 256,
+      "requiredShared": 18688,
+      "subgroupPartitionLanes": 16
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["runtime/profiles/qwen-3-5-0-8b-vulkan-subgroup8"],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "description": "Head-256 F32-query/F16-KV prefill with compensated partitioned dot products and bounded per-lane accumulators."
     }
    }
   },
@@ -22156,6 +22559,34 @@
        }
       ]
      }
+    },
+    "prefill_prefix": {
+     "wgsl": "gated_delta_conv_prefill.wgsl",
+     "entryPoint": "main_prefix",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "description": "F32 prefill convolution with a sequential historical prefix followed by independent token/channel windows."
+    },
+    "prefill_parallel": {
+     "wgsl": "gated_delta_conv_prefill.wgsl",
+     "entryPoint": "main_parallel",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "description": "F32 prefill convolution with a sequential historical prefix followed by independent token/channel windows."
     }
    }
   },
@@ -23762,6 +24193,61 @@
        }
       ]
      }
+    },
+    "register_prefill": {
+     "wgsl": "gated_delta_recurrent_register_prefill.wgsl",
+     "entryPoint": "main",
+     "workgroup": [32,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "normGateActivation": "silu",
+      "headKDim": 128,
+      "stateComponents": 1,
+      "valueSliceWidth": 32,
+      "maxHeadVDim": 128,
+      "normGateVariant": "register_prefill_norm_gate",
+      "convVariant": "prefill_prefix",
+      "parallelConvVariant": "prefill_parallel",
+      "mechanismKernels": [
+       {
+        "operation": "gated_delta_recurrent",
+        "variant": "register_prefill_norm_gate"
+       },
+       {
+        "operation": "gated_delta_conv",
+        "variant": "prefill_prefix"
+       },
+       {
+        "operation": "gated_delta_conv",
+        "variant": "prefill_parallel"
+       }
+      ]
+     },
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["gated-delta-recurrent.rules.json#scalarVariant"],
+      "wgslOnDisk": true
+     },
+     "description": "F32 head-K-128 prefill retaining recurrent row state locally between tokens."
+    },
+    "register_prefill_norm_gate": {
+     "wgsl": "gated_delta_prefill_norm_gate.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "normGateActivation": "silu"
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "description": "Complete-head gated RMSNorm after sliced F32 recurrent prefill."
     }
    }
   },
@@ -24030,6 +24516,25 @@
      "outputDtype": "f32",
      "variantMetadata": {
       "normGateActivation": "sigmoid"
+     },
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["gated-delta-fused-decode.rules.json#scalarVariant"],
+      "wgslOnDisk": true
+     }
+    },
+    "register_decode": {
+     "wgsl": "gated_delta_fused_decode_register.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "normGateActivation": "silu",
+      "headKDim": 128,
+      "maxHeadVDim": 128,
+      "stateComponents": 1
      },
      "reachability": {
       "status": "model-selectable",

@@ -357,6 +357,20 @@ for (const packedDtype of ['w4a16', 'w8a8']) {
     },
     'fused gate/up should inherit equivalent Q4K tiling constants from matching split gate/up steps'
   );
+  const explicit = { WORKGROUP_SIZE: 256, COLS_PER_WG: 16, THREADS_PER_COL: 16 };
+  assert.deepEqual(resolveFusedGateUpPipelineConstants({ phase: 'decode', layerIdx: 0,
+    kernelPath: qwenDecodePath, runtimeSession: { fusedFfnQ4K: {
+      decode: { variant: 'q4k_metal_simd16', pipelineConstants: explicit } } } }), explicit,
+  'an explicit fused implementation owns its geometry independently of separate gate/up projections');
+  assert.equal(resolveFusedGateUpPipelineConstants({ phase: 'decode', layerIdx: 0,
+    kernelPath: qwenDecodePath, runtimeSession: { fusedFfnQ4K: {
+      decode: { variant: 'q4k_metal_simd16' } } } }), null,
+  'a selected fused variant uses its registered defaults rather than inheriting another shader geometry');
+  assert.throws(() => resolveFusedGateUpPipelineConstants({ phase: 'decode', layerIdx: 0,
+    kernelPath: { decode: { steps: [{ op: 'ffn_gate_up', kernel: 'fused_matmul_q4.wgsl',
+      entry: 'main_gemv', constants: { COLS_PER_WG: 64, THREADS_PER_COL_GEMV: 4 } }] } },
+    runtimeSession: { fusedFfnQ4K: { decode: { pipelineConstants: explicit } } } }), /contradicts/);
+
 }
 
 {

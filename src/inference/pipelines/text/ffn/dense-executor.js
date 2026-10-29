@@ -113,10 +113,12 @@ export async function dispatchFusedGateUp({
   hiddenActivation,
   swigluLimit,
   recorder,
+  layerIdx = null,
   executionPolicies = null,
   normStats = null,
   pipelineConstants = null,
   variant = null,
+  outputBuffer = null,
 }) {
   const useNativeF16Fused = canUseNativeF16FusedGateUp({
     inputDtype: inputTensor.dtype,
@@ -168,6 +170,7 @@ export async function dispatchFusedGateUp({
           swigluLimit,
           rmsNormWeightOffset: normStats.rmsNormWeightOffset === true,
           pipelineConstants,
+          outputBuffer,
         }
       )
       : await runFusedFFNFromRMSNormStats(
@@ -184,6 +187,7 @@ export async function dispatchFusedGateUp({
           swigluLimit,
           rmsNormWeightOffset: normStats.rmsNormWeightOffset === true,
           pipelineConstants,
+          outputBuffer,
         }
       );
     return fusedNormedOutput;
@@ -192,12 +196,12 @@ export async function dispatchFusedGateUp({
     ? await recordFusedFFN(
       recorder, fusedInput, gateWeight, upWeight,
       hiddenSize, intermediateSize,
-      { batchSize: numTokens, activation, swigluLimit, pipelineConstants, variant }
+      { batchSize: numTokens, activation, swigluLimit, pipelineConstants, variant, outputBuffer, layerIdx }
     )
     : await runFusedFFN(
       fusedInput, gateWeight, upWeight,
       hiddenSize, intermediateSize,
-      { batchSize: numTokens, activation, swigluLimit, pipelineConstants, variant }
+      { batchSize: numTokens, activation, swigluLimit, pipelineConstants, variant, outputBuffer, layerIdx }
     );
 
   if (!recorder && fusedInput !== inputTensor) {

@@ -63,6 +63,12 @@ export interface KernelUniformValues {
   "matmul/q4_fused_multicol_f16": Parameters<typeof writers0.write_matmul_q4_fused_f16a>[1];
   "matmul/q4_fused_multicol_f16a": Parameters<typeof writers0.write_matmul_q4_fused_f16a>[1];
   "matmul/q4_fused_multicol_f16a_f32acc": Parameters<typeof writers0.write_matmul_q4_fused_f16a>[1];
+  "matmul/q4_fused_subgroup1": Parameters<typeof writers0.write_matmul_q4_fused_f16a>[1];
+  "matmul/q4_fused_subgroup2": Parameters<typeof writers0.write_matmul_q4_fused_f16a>[1];
+  "matmul/q4_fused_subgroup4": Parameters<typeof writers0.write_matmul_q4_fused_f16a>[1];
+  "matmul/q4_fused_subgroup8": Parameters<typeof writers0.write_matmul_q4_fused_f16a>[1];
+  "matmul/q4_fused_subgroup16": Parameters<typeof writers0.write_matmul_q4_fused_f16a>[1];
+  "matmul/q4_fused_subgroup32": Parameters<typeof writers0.write_matmul_q4_fused_f16a>[1];
   "matmul/q4_fused_metal_simd16": Parameters<typeof writers0.write_matmul_q4_fused_f16a>[1];
   "matmul/q4_fused_batched_f16": Parameters<typeof writers0.write_matmul_q4_fused_f16a>[1];
   "matmul/q4_fused_batched_f16a": Parameters<typeof writers0.write_matmul_q4_fused_f16a>[1];
@@ -101,6 +107,7 @@ export interface KernelUniformValues {
   "fused_ffn/q4k_batched_f16a": Parameters<typeof writers0.write_fused_ffn_q4k>[1];
   "fused_ffn/gate_up_gelu_gated_tiled_f16": Parameters<typeof writers0.write_fused_ffn_gate_up_gelu_gated_tiled_f16>[1];
   "fused_ffn/q4k_normed": Parameters<typeof writers0.write_fused_ffn_q4k_normed>[1];
+  "fused_ffn/q4k_subgroup8": Parameters<typeof writers0.write_fused_ffn_q4k>[1];
   "dequant/subgroup": Parameters<typeof writers0.write_dequant_subgroup>[1];
   "dequant/subgroup_vec4": Parameters<typeof writers0.write_dequant_subgroup>[1];
   "dequant/subgroup_f16out": Parameters<typeof writers0.write_dequant_subgroup>[1];
@@ -148,6 +155,7 @@ export interface KernelUniformValues {
   "attention/decode_subgroup": Parameters<typeof writers0.write_attention_decode_subgroup>[1];
   "attention/paired": Parameters<typeof writers0.write_attention_paired>[1];
   "attention/paired_tiled": Parameters<typeof writers0.write_attention_paired>[1];
+  "attention/prefill_partitioned_head256_f16kv": Parameters<typeof writers0.write_attention_decode>[1];
   "attention_tiered/decode_tiered_f16": Parameters<typeof writers0.write_attention_tiered_decode_tiered_f16>[1];
   "attention_tiered/decode_tiered_f16kv": Parameters<typeof writers0.write_attention_tiered_decode_tiered_f16>[1];
   "attention_tiered_quant/decode_tiered_int8_f16kv": Parameters<typeof writers0.write_attention_tiered_quant_decode_tiered_int8_f16kv>[1];
@@ -355,6 +363,8 @@ export interface KernelUniformValues {
   "gated_delta_conv/default": Parameters<typeof writers2.write_gated_delta_conv_default>[1];
   "gated_delta_conv/default_f16": Parameters<typeof writers2.write_gated_delta_conv_default>[1];
   "gated_delta_conv/paired": Parameters<typeof writers0.write_qwen_linear_attention_prepare_paired_beta>[1];
+  "gated_delta_conv/prefill_prefix": Parameters<typeof writers2.write_gated_delta_conv_default>[1];
+  "gated_delta_conv/prefill_parallel": Parameters<typeof writers2.write_gated_delta_conv_default>[1];
   "gated_delta_recurrent/default": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_recurrent/default_f16": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_recurrent/sigmoid_gate": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
@@ -368,6 +378,8 @@ export interface KernelUniformValues {
   "gated_delta_recurrent/paired_norm": Parameters<typeof writers0.write_qwen_linear_attention_prepare_paired_beta>[1];
   "gated_delta_recurrent/paired_gate": Parameters<typeof writers0.write_qwen_linear_attention_prepare_paired_beta>[1];
   "gated_delta_recurrent/paired_gate_sigmoid": Parameters<typeof writers0.write_qwen_linear_attention_prepare_paired_beta>[1];
+  "gated_delta_recurrent/register_prefill": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
+  "gated_delta_recurrent/register_prefill_norm_gate": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_fused_decode/paired_default": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_fused_decode/paired_default_f16": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_fused_decode/paired_sigmoid_gate": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
@@ -376,6 +388,7 @@ export interface KernelUniformValues {
   "gated_delta_fused_decode/default_f16": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_fused_decode/sigmoid_gate": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_fused_decode/sigmoid_gate_f16": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
+  "gated_delta_fused_decode/register_decode": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "linear_attention_summary/default": Parameters<typeof writers2.write_linear_attention_summary_default>[1];
   "linear_attention_summary/default_f16": Parameters<typeof writers2.write_linear_attention_summary_default>[1];
   "linear_attention_apply/default": Parameters<typeof writers2.write_linear_attention_apply_default>[1];

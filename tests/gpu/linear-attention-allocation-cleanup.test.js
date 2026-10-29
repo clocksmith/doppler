@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
+import { PreparedDecodeWorkspace } from '../../src/gpu/prepared-decode-workspace.js';
 
 // Real wrapper, injected allocation failures. No claim of GPU numerical parity.
 const target = new URL('../../src/gpu/kernels/linear-attention-core.js', import.meta.url).href;
@@ -16,7 +17,7 @@ globalThis.linearAllocationProbe = {
   },
   release(buffer) { assert(active.delete(buffer), 'release exactly once'); },
   uniform() { throw Error('allocation rejected'); },
-  config: () => ({ inference: { session: { useLinearAttentionFusedDecodeCore: fused } } }),
+  config: () => ({ inference: { session: { useLinearAttentionFusedDecodeCore: fused, useLinearAttentionRegisterPrefill: false, useLinearAttentionRegisterDecode: false } } }),
 };
 const modules = {
   '../device.js': 'export const getDevice = () => linearAllocationProbe.device;',
@@ -73,5 +74,42 @@ try {
     }
   }
   }
+  state.recurrentStatePrecision = 'f32';
+  state.recurrentStateComponents = 1;
+  await assert.rejects(() => runLinearAttentionCoreGPU(tensor, tensor, tensor, tensor, state,
+    { numTokens: 2, normGateActivation: 'silu', outputDtype: 'f32',
+      runtimeSession: { useLinearAttentionRegisterPrefill: true } }), /registered head width/);
+  await assert.rejects(() => runLinearAttentionCoreGPU(tensor, tensor, tensor, tensor, state,
+    { numTokens: 2, normGateActivation: 'silu', outputDtype: 'f32', runtimeSession: {} }), /requires boolean/);
+  await assert.rejects(() => runLinearAttentionCoreGPU(tensor, tensor, tensor, tensor, state,
+    { numTokens: 1, normGateActivation: 'silu', runtimeSession: {
+      useLinearAttentionRegisterDecode: true, useLinearAttentionFusedDecodeCore: true,
+    } }), /Register decode requires/);
+  await assert.rejects(() => runLinearAttentionCoreGPU(tensor, tensor, tensor, tensor, state,
+    { numTokens: 1, normGateActivation: 'silu', runtimeSession: {} }), /requires boolean/);
+  for (const numTokens of [1, 2]) {
+    await assert.rejects(() => runLinearAttentionCoreGPU({ ...tensor, precision: 'two-f32' }, tensor, tensor, tensor, state,
+      { numTokens, normGateActivation: 'silu', runtimeSession: {
+        useLinearAttentionRegisterDecode: true, useLinearAttentionRegisterPrefill: true,
+      } }), /requires scalar F32/);
+  }
+  // A recorded failure must not return session-owned storage to the pool.
+  globalThis.GPUBufferUsage = { STORAGE: 1, COPY_SRC: 2, COPY_DST: 4 };
+  let destroyed = 0;
+  const owner = new PreparedDecodeWorkspace({
+    createBuffer({ size }) { const buffer = new GPUBuffer(); buffer.size = size; buffer.destroy = () => destroyed++; return buffer; },
+  });
+  fused = true;
+  state.recurrentStatePrecision = 'f32';
+  state.recurrentStateComponents = 1;
+  const recorder = { getEncoder() {}, trackTemporaryBuffer() {}, decodeWorkspace: owner };
+  await assert.rejects(() => runLinearAttentionCoreGPU(tensor, tensor, tensor, tensor, state,
+    { numTokens: 1, layerIdx: 0, abPacked: true, bProjOffsetElements: 1, outputDtype: 'f32', recorder, normGateActivation: 'silu' }),
+  /allocation rejected/);
+  assert.equal(active.size, 0);
+  assert.equal(owner.getStats().buffers, 1);
+  assert.equal(destroyed, 0, 'recorder failure cannot destroy borrowed session storage');
+  owner.release();
+  assert.equal(destroyed, 1, 'session release destroys it exactly once');
 } finally { hooks.deregister(); delete globalThis.linearAllocationProbe; }
 console.log('linear-attention-allocation-cleanup: passed');
