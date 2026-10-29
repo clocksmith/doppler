@@ -206,7 +206,7 @@
         throw new Error(`Failed to load manifest: ${resp.status}`);
       }
       const manifest = await resp.json();
-      const { runBrowserManifest } = await import('../src/inference/browser-harness.js');
+      const { runBrowserManifest } = await import('../src/tooling/browser-harness.js');
       const result = await runBrowserManifest(manifest, {
         onProgress: ({ index, total, label }) => {
           status.textContent = `Running ${index}/${total}: ${label}`;
@@ -220,9 +220,9 @@
     }
 
     async function loadRuntimeConfig() {
-      const { parseRuntimeOverridesFromURL } = await import('../src/inference/test-harness.js');
+      const { parseRuntimeOverridesFromURL } = await import('../src/tooling/test-harness.js');
       const { getRuntimeConfig } = await import('../src/config/runtime.js');
-      const { applyRuntimeForRun } = await import('../src/inference/browser-harness.js');
+      const { applyRuntimeForRun } = await import('../src/tooling/browser-harness.js');
       const runtimeOverrides = parseRuntimeOverridesFromURL(params);
       const runtimeProfile = params.get('runtimeProfile') || null;
       const runtimeConfigUrl = params.get('runtimeConfigUrl') || null;
@@ -247,7 +247,7 @@
     // ==========================================================================
 
     async function initGPU() {
-      const { initializeDevice } = await import('../src/inference/test-harness.js');
+      const { initializeDevice } = await import('../src/tooling/test-harness.js');
       const caps = await initializeDevice();
       console.log(`[GPU] ${caps.adapterInfo?.device || 'unknown'}, ${caps.hasF16 ? 'f16' : 'f32'}/${caps.hasSubgroups ? 'subgroups' : 'no-subgroups'}, ${(caps.adapterInfo?.memorySize / 1e9 || 0).toFixed(1)}GB`);
       return caps;
@@ -352,7 +352,7 @@
         fetchManifest,
         initializeDevice,
         createTestState,
-      } = await import('../src/inference/test-harness.js');
+      } = await import('../src/tooling/test-harness.js');
       const { getRuntimeConfig } = await import('../src/config/runtime.js');
       const { createPipeline } = await import('../src/inference/pipelines/text.js');
       const { getDevice } = await import('../src/gpu/device.js');
@@ -534,7 +534,7 @@
         fetchManifest,
         initializeDevice,
         createTestState,
-      } = await import('../src/inference/test-harness.js');
+      } = await import('../src/tooling/test-harness.js');
       const { getRuntimeConfig } = await import('../src/config/runtime.js');
       const { createPipeline } = await import('../src/inference/pipelines/text.js');
       const { getDevice } = await import('../src/gpu/device.js');
@@ -692,7 +692,7 @@
     // ==========================================================================
 
     async function initSimulationMode() {
-      const { createTestState } = await import('../src/inference/test-harness.js');
+      const { createTestState } = await import('../src/tooling/test-harness.js');
       const { createEmulationContext, isEmulationSupported, getEmulationCapabilities } = await import('/proto/simulator/index.js');
       const { formatBytes } = await import('../src/config/schema/emulation.schema.js');
 

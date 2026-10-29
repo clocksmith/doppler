@@ -20,8 +20,8 @@ const LOCAL_EXTENSIONS = Object.freeze(['.js', '.cjs']);
 const ALLOWED_NODE_GATED_MODULES = new Set([
   'src/client/runtime/node-quickstart-cache.js',
   'src/storage/artifact-storage-context.js',
-  'src/inference/browser-harness/model-initialization.js',
-  'src/inference/browser-harness/model-resolution.js',
+  'src/tooling/browser-harness/model-initialization.js',
+  'src/tooling/browser-harness/model-resolution.js',
   'src/client/runtime/lora.js',
   'src/tooling/node-webgpu.js',
   'src/experimental/adapters/litert-runtime-bundle-node.js',

@@ -2,7 +2,7 @@ export {
   formatRerankPrompt,
   resolveRerankScoringConfig,
   scoreRerankDocument,
-} from './rerank.js';
+} from '../inference/rerank.js';
 export {
   getDefaultEmbeddingSemanticFixtures,
   getDefaultRerankSemanticFixtures,

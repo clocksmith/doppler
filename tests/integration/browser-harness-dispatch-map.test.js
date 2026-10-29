@@ -4,7 +4,7 @@ import '../../tools/node-test-runtime-setup.js';
 const {
   getBrowserSupportedSuites,
   getBrowserSuiteDispatchMap,
-} = await import('../../src/inference/browser-harness.js');
+} = await import('../../src/tooling/browser-harness.js');
 const {
   TOOLING_WORKLOADS,
   TOOLING_VERIFY_WORKLOADS,

@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-const { runBrowserSuite } = await import('../../src/inference/browser-harness.js');
+const { runBrowserSuite } = await import('../../src/tooling/browser-harness.js');
 const { probeNodeGPU } = await import('../helpers/gpu-probe.js');
 
 function isShaderFetchFailure(value) {

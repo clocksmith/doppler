@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const { runTrainingBenchSuite } = await import('../../src/experimental/training/suite.js');
-const { runBrowserSuite } = await import('../../src/inference/browser-harness.js');
+const { runBrowserSuite } = await import('../../src/tooling/browser-harness.js');
 const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/runtime.js');
 const { destroyDevice } = await import('../../src/gpu/device.js');
 const { probeNodeGPU } = await import('../helpers/gpu-probe.js');

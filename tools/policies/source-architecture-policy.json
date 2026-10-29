@@ -26,10 +26,10 @@
     "gpu/kernels/turboquant-codebook.js": [
       "experimental/turboquant/codebook.js"
     ],
-    "inference/browser-harness-text-helpers.js": [
-      "inference/browser-harness/text-evidence.js",
-      "inference/browser-harness/text-execution.js",
-      "inference/browser-harness/text-input.js",
+    "tooling/browser-harness-text-helpers.js": [
+      "tooling/browser-harness/text-evidence.js",
+      "tooling/browser-harness/text-execution.js",
+      "tooling/browser-harness/text-input.js",
       "inference/rerank.js"
     ],
     "inference/kv-cache/basis-decomposed-paged.js": [
@@ -81,9 +81,9 @@
       "config/schema/tooling.schema.js",
       "converter/core.js",
       "debug/index.js",
-      "inference/browser-harness-text-helpers.js",
-      "inference/browser-harness.js",
-      "inference/browser-harness/runtime-config.js",
+      "tooling/browser-harness-text-helpers.js",
+      "tooling/browser-harness.js",
+      "tooling/browser-harness/runtime-config.js",
       "inference/model-checkpoint-evidence.js",
       "loader/memory-monitor.js",
       "memory/buffer-pool.js",
@@ -123,7 +123,7 @@
     },
     "experimental/training": {
       "decision": "retain",
-      "consumerEvidence": ["package.json exports ./training", "training.js and training-browser.js expose training APIs", "tooling/node-command-execution.js loads operator-command", "inference/browser-harness/benchmark-execution.js imports TRAINING_SUITE_MODULE_PATH pointing to experimental/training/suite.js; this remains an explicit graph diagnostic"],
+      "consumerEvidence": ["package.json exports ./training", "training.js and training-browser.js expose training APIs", "tooling/node-command-execution.js loads operator-command", "tooling/browser-harness/benchmark-execution.js imports TRAINING_SUITE_MODULE_PATH pointing to experimental/training/suite.js; this remains an explicit graph diagnostic"],
       "migration": "Retain. The inspected computed edge reveals an undeclared quarantine bridge; routing it through tooling/test-harness creates a cycle because suite/plan needs initializeInference. Separate training acquisition from harness assembly before admitting that edge. This inventory is not a complete production graph or evidence that training is dead. Public retirement requires versioned export and command migration."
     },
     "experimental/distribution": {
@@ -263,6 +263,31 @@
       "client/runtime/fetch-pack-artifact-store.js": "client/runtime/fetch-capsule-artifact-store.js"
     }
   },
+  "movedPaths": {
+    "inference/browser-harness-contract-helpers.js": "tooling/browser-harness-contract-helpers.js",
+    "inference/browser-harness-diffusion-energy-suites.js": "tooling/browser-harness-diffusion-energy-suites.js",
+    "inference/browser-harness-report-helpers.js": "tooling/browser-harness-report-helpers.js",
+    "inference/browser-harness-text-helpers.js": "tooling/browser-harness-text-helpers.js",
+    "inference/browser-harness.js": "tooling/browser-harness.js",
+    "inference/browser-harness/benchmark-execution.js": "tooling/browser-harness/benchmark-execution.js",
+    "inference/browser-harness/benchmark-rerank.js": "tooling/browser-harness/benchmark-rerank.js",
+    "inference/browser-harness/decode-diagnostics.js": "tooling/browser-harness/decode-diagnostics.js",
+    "inference/browser-harness/diffusion-performance.js": "tooling/browser-harness/diffusion-performance.js",
+    "inference/browser-harness/inference-execution.js": "tooling/browser-harness/inference-execution.js",
+    "inference/browser-harness/model-initialization.js": "tooling/browser-harness/model-initialization.js",
+    "inference/browser-harness/model-resolution.js": "tooling/browser-harness/model-resolution.js",
+    "inference/browser-harness/report.js": "tooling/browser-harness/report.js",
+    "inference/browser-harness/request-timing.js": "tooling/browser-harness/request-timing.js",
+    "inference/browser-harness/request.js": "tooling/browser-harness/request.js",
+    "inference/browser-harness/runtime-config.js": "tooling/browser-harness/runtime-config.js",
+    "inference/browser-harness/runtime-isolation.js": "tooling/browser-harness/runtime-isolation.js",
+    "inference/browser-harness/runtime-report.js": "tooling/browser-harness/runtime-report.js",
+    "inference/browser-harness/suite-summary.js": "tooling/browser-harness/suite-summary.js",
+    "inference/browser-harness/text-evidence.js": "tooling/browser-harness/text-evidence.js",
+    "inference/browser-harness/text-execution.js": "tooling/browser-harness/text-execution.js",
+    "inference/browser-harness/text-input.js": "tooling/browser-harness/text-input.js",
+    "inference/browser-harness/timing-diagnostics.js": "tooling/browser-harness/timing-diagnostics.js"
+  },
   "constitutionalDomains": {
     "registry-contracts": ["rules/rule-registry.js", "config/kernel-registry-contract.js", "config/execution-registry-contract.js"],
     "capsule-http": ["cli/serve/capsule-handler.js", "cli/serve/capsule-http.js"],
@@ -371,17 +396,17 @@
       "classification": "semantic-owner",
       "semanticOwner": "mapped GPU readback lifecycle"
     },
-    "inference/browser-harness-contract-helpers.js": {
+    "tooling/browser-harness-contract-helpers.js": {
       "classification": "semantic-owner",
       "semanticOwner": "browser harness contract metric projection"
     },
-    "inference/browser-harness-report-helpers.js": {
+    "tooling/browser-harness-report-helpers.js": {
       "classification": "semantic-owner",
       "semanticOwner": "browser harness training artifact reporting"
     },
-    "inference/browser-harness-text-helpers.js": {
+    "tooling/browser-harness-text-helpers.js": {
       "classification": "compatibility-facade",
-      "semanticOwner": "inference/browser-harness/{text-input,text-evidence,text-execution}.js"
+      "semanticOwner": "tooling/browser-harness/{text-input,text-evidence,text-execution}.js"
     },
     "loader/dtype-utils.js": {
       "classification": "semantic-owner",
@@ -401,7 +426,7 @@
     "config/execution-contract-check.js",
     "gpu/kernels/types.js",
     "gpu/kernels/turboquant-codebook.js",
-    "inference/browser-harness-text-helpers.js",
+    "tooling/browser-harness-text-helpers.js",
     "inference/kv-cache/basis-decomposed-paged.js",
     "inference/pipelines/diffusion/index.js",
     "inference/pipelines/diffusion/types.js",
@@ -556,11 +581,11 @@
         "gpu/kernels/attention-components.js"
       ]
     },
-    "inference/browser-harness/benchmark-execution.js": {
+    "tooling/browser-harness/benchmark-execution.js": {
       "reviewedLines": 872,
       "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
       "extractTo": [
-        "inference/browser-harness/benchmark-execution-components.js"
+        "tooling/browser-harness/benchmark-execution-components.js"
       ]
     },
     "inference/kv-cache/base.js": {

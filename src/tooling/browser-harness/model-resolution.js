@@ -1,6 +1,6 @@
 import { hasNodeVersion as isNodeRuntime } from '../../storage/runtime-env.js';
-import { parseModelConfigFromManifest } from '../pipelines/text/config.js';
-import { activateKernelPathState, resolveKernelPathState } from '../pipelines/text/model-load.js';
+import { parseModelConfigFromManifest } from '../../inference/pipelines/text/config.js';
+import { activateKernelPathState, resolveKernelPathState } from '../../inference/pipelines/text/model-load.js';
 import { parseManifest } from '../../formats/rdrr/index.js';
 import { getKernelCapabilities } from '../../gpu/device.js';
 import { loadManifestFromStore, openModelStore } from '../../storage/shard-manager.js';
