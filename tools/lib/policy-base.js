@@ -31,6 +31,19 @@ export function readTextAtGitRef(repoRoot, ref, relativePath) {
   }
 }
 
+export function pathExistsAtGitRef(repoRoot, ref, relativePath) {
+  try {
+    execFileSync(
+      'git',
+      ['cat-file', '-e', `${ref}:${relativePath}`],
+      { cwd: repoRoot, stdio: ['ignore', 'ignore', 'ignore'] }
+    );
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function readJsonAtGitRef(repoRoot, ref, relativePath) {
   const source = readTextAtGitRef(repoRoot, ref, relativePath);
   try {

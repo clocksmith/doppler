@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
 import fs from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
-import { readJsonAtGitRef, readTextAtGitRef, resolvePolicyBaseRef } from './lib/policy-base.js';
+import { pathExistsAtGitRef, readJsonAtGitRef, readTextAtGitRef, resolvePolicyBaseRef } from './lib/policy-base.js';
 import { validateArchitecturePolicyDelta } from './lib/source-architecture-debt.js';
 import { collectModuleSpecifiers, collectStronglyConnectedComponents, buildDependencyGraph } from './lib/module-dependencies.js';
 
@@ -291,7 +292,11 @@ async function main() {
     policy,
     baselinePolicy,
     process.env.DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION ?? null,
-    await collectRemovedForwarders(baselinePolicy, baseRef, sourceRoot)
+    await collectRemovedForwarders(baselinePolicy, baseRef, sourceRoot),
+    (relative) => ({
+      current: existsSync(path.join(sourceRoot, relative)),
+      baseline: pathExistsAtGitRef(repoRoot, baseRef, toPosix(path.join(baselinePolicy.sourceRoot, relative))),
+    })
   );
   const actualOwners = (await fs.readdir(sourceRoot, { withFileTypes: true }))
     .filter((entry) => entry.isDirectory())
