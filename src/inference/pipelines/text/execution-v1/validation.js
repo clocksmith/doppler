@@ -1,3 +1,5 @@
+import { assertExecutionPatchShape } from '../../../../config/merge/execution-patches.js';
+
 function hasOwnProperty(value, key) {
   return value != null && Object.prototype.hasOwnProperty.call(value, key);
 }
@@ -210,9 +212,7 @@ export function applyExecutionPatch(execution, executionPatch) {
   if (executionPatch == null) {
     return execution;
   }
-  if (typeof executionPatch !== 'object' || Array.isArray(executionPatch)) {
-    throw new Error('[ExecutionV1] runtime.inference.executionPatch must be an object.');
-  }
+  assertExecutionPatchShape(executionPatch);
   assertUnsupportedPatchLists(executionPatch);
   const hasKernelAdditions = hasPatchEntries(
     executionPatch.addKernels,
