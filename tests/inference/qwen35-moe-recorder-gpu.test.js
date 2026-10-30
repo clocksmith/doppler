@@ -1,0 +1,128 @@
+import assert from 'node:assert/strict';
+import { probeNodeGPU } from '../helpers/gpu-probe.js';
+import { getDevice, destroyDevice } from '../../src/gpu/device.js';
+import { createTensor } from '../../src/gpu/tensor.js';
+import { createWeightBuffer } from '../../src/gpu/weight-buffer.js';
+import { createCommandRecorder } from '../../src/gpu/command-recorder.js';
+import { acquireBuffer, uploadData, readBuffer, releaseBuffer, getBufferPool, isBufferActive } from '../../src/memory/buffer-pool.js';
+import { createKernelRegistry, enterKernelRegistry } from '../../src/gpu/kernels/kernel-configs.js';
+import { quantizeToQ4KMRowWise } from '../../src/converter/quantizer.js';
+import { MoERouter } from '../../src/inference/moe-router.js';
+import { runMoEFFNGPU } from '../../src/inference/pipelines/text/ffn/moe.js';
+import { getRuntimeConfig, setRuntimeConfig } from '../../src/config/runtime.js';
+import { float32ToFloat16, float16ToFloat32 } from '../../src/formats/float16.js';
+
+const probe = await probeNodeGPU({ installFileFetchShim: true });
+if (!probe.ready) throw new Error(`Physical MoE ordering verification unavailable: ${probe.reason}`);
+const allocated = [], errors = [], device = getDevice(), previous = getRuntimeConfig();
+device.addEventListener('uncapturederror', event => errors.push(event.error.message));
+const buffer = values => { const b = acquireBuffer(values.byteLength); allocated.push(b); uploadData(b, values); return b; };
+const matrix = (values, shape) => createWeightBuffer(buffer(values), 'f32', 'row', shape);
+const bank = (values, shape) => createWeightBuffer(buffer(quantizeToQ4KMRowWise(values, shape).quantized), 'q4k', 'row', shape);
+const T = 2, H = 256, I = 256, E = 3, S = 3;
+const values = (n, f) => Float32Array.from({ length: n }, (_, i) => Math.sin(i * f) * 0.1);
+let control, recordedOutput, recorder, rawRecorder;
+const rawOutputs = [];
+try {
+  setRuntimeConfig({ inference: { moe: { routing: { activeExpertSelection: 'topk-route' } } } });
+  const source = buffer(values(T * H, 0.13)), pending = buffer(new Float32Array(T * H));
+  const router = new MoERouter({ numExperts: E, topK: 2, hiddenSize: H, normalizeWeights: true });
+  router.loadWeights(matrix(values(E * H, 0.07), [E, H]));
+  const expertWeights = new Map([['layer_0_expert_0', { numExperts: E, expertFormat: 'qwen3_5',
+    gateUp: bank(values(E * 2 * I * H, 0.03), [E, 2 * I, H]), down: bank(values(E * H * I, 0.09), [E, H, I]) }]]);
+  const packed = expertWeights.get('layer_0_expert_0');
+  for (let expertIdx = 0; expertIdx < E; expertIdx++) {
+    expertWeights.set(`layer_0_expert_${expertIdx}`, { ...packed, expertIdx });
+  }
+  const shared = { sharedExpertGate: matrix(values(S * H, 0.11), [S, H]),
+    sharedExpertUp: matrix(values(S * H, 0.05), [S, H]), sharedExpertDown: matrix(values(H * S, 0.17), [H, S]),
+    sharedExpertRouter: matrix(values(H, 0.19), [1, H]) };
+  const context = { config: { modelType: 'transformer', hiddenSize: H, intermediateSize: I,
+    moeExpertIntermediateSize: I, moeSharedExpertIntermediateSize: S, numExperts: E, moeTopK: 2,
+    expertFormat: 'qwen3_5', hiddenActivation: 'silu', swigluLimit: null, rmsNormEps: 1e-6 },
+    moeRouter: router, expertWeights, expertLoader: { loadExpert() { throw Error('Resident banks must not reload'); } },
+    weights: new Map([['layer_0', shared]]), kernelPath: null, executionPolicies: null };
+  control = await runMoEFFNGPU(0, createTensor(source, 'f32', [T, H]), T, context);
+  const expected = new Float32Array(await readBuffer(control.buffer, T * H * 4));
+  assert.ok(expected.some(value => Math.abs(value) > 0.0001), 'Fixture must expose a stale zero input');
+  recorder = createCommandRecorder('moe-ordering-verification');
+  recorder.getEncoder().copyBufferToBuffer(source, 0, pending, 0, T * H * 4);
+  recordedOutput = await runMoEFFNGPU(0, createTensor(pending, 'f32', [T, H]), T, { ...context, recorder });
+  await recorder.submitAndWait();
+  const observed = new Float32Array(await readBuffer(recordedOutput.buffer, T * H * 4));
+  let maxAbs = 0;
+  for (let i = 0; i < expected.length; i++) {
+    maxAbs = Math.max(maxAbs, Math.abs(observed[i] - expected[i]));
+    assert.ok(Number.isFinite(observed[i]) && Math.abs(observed[i] - expected[i]) <= 0.00001,
+      `Recorded MoE output[${i}] read stale upstream data: ${observed[i]} versus ${expected[i]}`);
+  }
+  const baselineActive = getBufferPool().getStats().activeBuffers;
+  const failedRecorder = createCommandRecorder('moe-failure-verification');
+  const leave = enterKernelRegistry(createKernelRegistry({ validators: { moe_route_matmul: { q4k_f32: {
+    id: 'moe-recorder-output-rollback', validate() { throw Error('Injected recorded expert failure'); },
+  } } } }));
+  try {
+    await assert.rejects(runMoEFFNGPU(0, createTensor(source, 'f32', [T, H]), T,
+      { ...context, recorder: failedRecorder }), /Injected recorded expert failure/);
+    assert.ok(getBufferPool().getStats().activeBuffers > baselineActive,
+      'Pending recorded inputs must stay owned until abort');
+  } finally { leave(); await failedRecorder.abort(); }
+  assert.equal(getBufferPool().getStats().activeBuffers, baselineActive, 'Aborted MoE releases every owned temporary');
+  assert.ok(isBufferActive(source), 'Aborting MoE must preserve caller input');
+
+  // An adapter with a CPU route readback explicitly submits the producer prefix
+  // before immediate work and leaves the parent recorder open for shared/residual work.
+  setRuntimeConfig({ inference: { moe: { routing: { activeExpertSelection: 'topk-readback' } } } });
+  const fallbackRecorder = createCommandRecorder('moe-immediate-boundary-verification');
+  let fallback;
+  try {
+    device.queue.writeBuffer(pending, 0, new Float32Array(T * H));
+    fallbackRecorder.getEncoder().copyBufferToBuffer(source, 0, pending, 0, T * H * 4);
+    fallback = await runMoEFFNGPU(0, createTensor(pending, 'f32', [T, H]), T, { ...context, recorder: fallbackRecorder });
+    await fallbackRecorder.submitAndWait();
+    const observed = new Float32Array(await readBuffer(fallback.buffer, T * H * 4));
+    for (let i = 0; i < expected.length; i++) assert.ok(Number.isFinite(observed[i]) && Math.abs(observed[i] - expected[i]) <= 0.00001);
+  } finally { await fallbackRecorder.abort(); if (fallback) releaseBuffer(fallback.buffer); }
+  setRuntimeConfig({ inference: { moe: { routing: { activeExpertSelection: 'topk-route' } } } });
+  // One shared router is rebound across layers before submission. Uploaded
+  // raw weights and biases must stay owned by that recording, not be destroyed
+  // by the next loadWeights call.
+  rawRecorder = createCommandRecorder('router-rebinding-verification');
+  const rawRouter = new MoERouter({ numExperts: E, topK: 2, hiddenSize: H, normalizeWeights: true });
+  const rawCases = [];
+  const inputValues = values(T * H, 0.13);
+  for (const [index, dtype] of ['f32', 'f16', 'f32'].entries()) {
+    const original = values(E * H, 0.07 + index * 0.04);
+    const weights = dtype === 'f16' ? Uint16Array.from(original, float32ToFloat16) : original;
+    const decoded = dtype === 'f16' ? Float32Array.from(weights, float16ToFloat32) : weights;
+    const bias = new Float32Array([0.1 + index, -0.2, 0.3]);
+    rawRouter.loadWeights(weights, bias);
+    const output = await rawRouter.computeRouterLogitsGPU(source, T, null,
+      { inputDtype: 'f32', outputDtype: 'f32', recorder: rawRecorder });
+    rawOutputs.push(output);
+    rawCases.push({ output, decoded, bias, dtype });
+  }
+  await rawRecorder.submitAndWait();
+  let rawMaxAbs = 0;
+  for (const { output, decoded, bias } of rawCases) {
+    const result = new Float32Array(await readBuffer(output, T * E * 4));
+    for (let t = 0; t < T; t++) for (let e = 0; e < E; e++) {
+      let expected = bias[e];
+      for (let k = 0; k < H; k++) expected += inputValues[t * H + k] * decoded[e * H + k];
+      rawMaxAbs = Math.max(rawMaxAbs, Math.abs(result[t * E + e] - expected));
+      assert.ok(Number.isFinite(result[t * E + e]) && Math.abs(result[t * E + e] - expected) <= 0.00001);
+    }
+  }
+  assert.deepEqual(errors, []);
+  console.log(JSON.stringify({ status: 'passed', maxAbs, rawMaxAbs, rawCases: rawCases.length,
+    provider: probe.providerReceipt, recorder: recorder.getStats() }));
+} finally {
+  await recorder?.abort();
+  await rawRecorder?.abort();
+  for (const output of rawOutputs) releaseBuffer(output);
+  if (control) releaseBuffer(control.buffer);
+  if (recordedOutput) releaseBuffer(recordedOutput.buffer);
+  for (const b of allocated) releaseBuffer(b);
+  setRuntimeConfig(previous);
+  destroyDevice();
+}

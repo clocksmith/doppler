@@ -1,0 +1,232 @@
+{
+  "status": "passed",
+  "maxAbs": 0,
+  "rawMaxAbs": 1.571732174132645e-07,
+  "rawCases": 3,
+  "provider": {
+    "schema": "doe.webgpu-provider-receipt/v1",
+    "contract": "doe.webgpu-provider/v1",
+    "implementation": "doppler",
+    "providers": [
+      {
+        "id": "pre-installed",
+        "kind": "global"
+      },
+      {
+        "id": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "gpu": {
+          "kind": "factory",
+          "path": "create",
+          "args": [
+            [
+              "enable-dawn-features=allow_unsafe_apis"
+            ]
+          ]
+        },
+        "globals": {
+          "GPUBufferUsage": "globals.GPUBufferUsage",
+          "GPUShaderStage": "globals.GPUShaderStage",
+          "GPUMapMode": "globals.GPUMapMode",
+          "GPUTextureUsage": "globals.GPUTextureUsage"
+        }
+      }
+    ],
+    "providerOrder": [
+      "pre-installed",
+      "webgpu"
+    ],
+    "adapterOptions": null,
+    "globals": {
+      "mode": "replace",
+      "installed": [
+        "GPUBufferUsage",
+        "GPUShaderStage",
+        "GPUMapMode",
+        "GPUTextureUsage",
+        "navigator.gpu"
+      ],
+      "restored": false
+    },
+    "attempts": [
+      {
+        "providerId": "pre-installed",
+        "kind": "global",
+        "module": null,
+        "ok": false,
+        "stage": "gpu.validate",
+        "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+        "detail": "Selected provider does not expose GPU.requestAdapter()."
+      },
+      {
+        "providerId": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "ok": true,
+        "stage": "complete",
+        "code": null,
+        "detail": null
+      }
+    ],
+    "selectedProviderId": "webgpu",
+    "ok": true
+  },
+  "recorder": {
+    "opCount": 14,
+    "opLabelCounts": {
+      "moe_route_matmul": 2,
+      "silu": 2,
+      "matmul:ffn_down": 1,
+      "matmul:ffn_gate": 1,
+      "matmul:ffn_up": 1,
+      "matmul:moe_router": 1,
+      "matmul:moe_shared_router": 1,
+      "repeat_channels": 1,
+      "residual": 1,
+      "scatter_add_routes": 1,
+      "silu_rowsplit": 1,
+      "softmax_topk": 1
+    },
+    "dispatches": [
+      {
+        "label": "matmul:moe_router",
+        "kind": "direct",
+        "workgroups": [
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "label": "softmax_topk",
+        "kind": "direct",
+        "workgroups": [
+          2,
+          1,
+          1
+        ]
+      },
+      {
+        "label": "moe_route_matmul",
+        "kind": "direct",
+        "workgroups": [
+          16,
+          4,
+          1
+        ]
+      },
+      {
+        "label": "silu_rowsplit",
+        "kind": "direct",
+        "workgroups": [
+          1,
+          4,
+          1
+        ]
+      },
+      {
+        "label": "moe_route_matmul",
+        "kind": "direct",
+        "workgroups": [
+          8,
+          4,
+          1
+        ]
+      },
+      {
+        "label": "scatter_add_routes",
+        "kind": "direct",
+        "workgroups": [
+          2,
+          1,
+          1
+        ]
+      },
+      {
+        "label": "matmul:ffn_gate",
+        "kind": "direct",
+        "workgroups": [
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "label": "matmul:ffn_up",
+        "kind": "direct",
+        "workgroups": [
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "label": "silu",
+        "kind": "direct",
+        "workgroups": [
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "label": "matmul:ffn_down",
+        "kind": "direct",
+        "workgroups": [
+          1,
+          16,
+          1
+        ]
+      },
+      {
+        "label": "matmul:moe_shared_router",
+        "kind": "direct",
+        "workgroups": [
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "label": "repeat_channels",
+        "kind": "direct",
+        "workgroups": [
+          2,
+          1,
+          1
+        ]
+      },
+      {
+        "label": "silu",
+        "kind": "direct",
+        "workgroups": [
+          2,
+          1,
+          1
+        ]
+      },
+      {
+        "label": "residual",
+        "kind": "direct",
+        "workgroups": [
+          2,
+          1,
+          1
+        ]
+      }
+    ],
+    "computePassCount": 1,
+    "profiling": {
+      "timingClass": "ordinary-request",
+      "enabled": false,
+      "phase": null,
+      "timestampedPassCount": 0,
+      "untimestampedPassCount": 1
+    },
+    "tempBufferCount": 0,
+    "pooledBufferCount": 0,
+    "submitted": true,
+    "submissionCount": 1
+  }
+}

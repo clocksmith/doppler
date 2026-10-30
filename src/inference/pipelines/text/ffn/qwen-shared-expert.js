@@ -1,10 +1,10 @@
 import { isWeightBuffer } from '../../../../gpu/weight-buffer.js';
 import { isNativeGpuBuffer } from '../../../../gpu/buffer-identity.js';
-import { runMatmul } from '../../../../gpu/kernels/matmul.js';
-import { runSiLU } from '../../../../gpu/kernels/silu.js';
-import { runRepeatChannels } from '../../../../gpu/kernels/repeat_channels.js';
-import { runResidualAdd } from '../../../../gpu/kernels/residual.js';
-import { releaseBuffer } from '../../../../memory/buffer-pool.js';
+import { runMatmul, recordMatmul } from '../../../../gpu/kernels/matmul.js';
+import { runSiLU, recordSiLU } from '../../../../gpu/kernels/silu.js';
+import { runRepeatChannels, recordRepeatChannels } from '../../../../gpu/kernels/repeat_channels.js';
+import { runResidualAdd, recordResidualAdd } from '../../../../gpu/kernels/residual.js';
+import { releaseOrTrack } from '../ops.js';
 
 /** @type {typeof import('./qwen-shared-expert.js').validateQwenSharedExpert} */
 export function validateQwenSharedExpert(input, routed, weights, options) {
@@ -35,6 +35,11 @@ export function validateQwenSharedExpert(input, routed, weights, options) {
 export async function runQwenSharedExpert(input, routed, weights, options) {
   validateQwenSharedExpert(input, routed, weights, options);
   const { numTokens, hiddenSize, intermediateSize, kernelPath, swigluLimit } = options;
+  const recorder = options.recorder ?? null;
+  const matmul = recorder ? recordMatmul.bind(null, recorder) : runMatmul;
+  const activate = recorder ? recordSiLU.bind(null, recorder) : runSiLU;
+  const repeat = recorder ? recordRepeatChannels.bind(null, recorder) : runRepeatChannels;
+  const add = recorder ? recordResidualAdd.bind(null, recorder) : runResidualAdd;
   /** @type {GPUBuffer[]} */
   const owned = [];
   /** @param {import('../../../../gpu/tensor.js').Tensor} tensor */
@@ -42,22 +47,22 @@ export async function runQwenSharedExpert(input, routed, weights, options) {
   try {
     /** @type {import('../../../../gpu/kernels/matmul.js').MatmulOptions} */
     const projectionOptions = { transposeB: true, outputDtype: input.dtype, kernelPath };
-    const gate = keep(await runMatmul(input, weights.sharedExpertGate,
+    const gate = keep(await matmul(input, weights.sharedExpertGate,
       numTokens, intermediateSize, hiddenSize, { ...projectionOptions, role: 'ffn_gate' }));
-    const up = keep(await runMatmul(input, weights.sharedExpertUp,
+    const up = keep(await matmul(input, weights.sharedExpertUp,
       numTokens, intermediateSize, hiddenSize, { ...projectionOptions, role: 'ffn_up' }));
-    const activated = keep(await runSiLU(up, { size: numTokens * intermediateSize,
+    const activated = keep(await activate(up, { size: numTokens * intermediateSize,
       gate, inputActivation: 'identity', gateActivation: 'silu', swigluLimit }));
-    const down = keep(await runMatmul(activated, weights.sharedExpertDown,
+    const down = keep(await matmul(activated, weights.sharedExpertDown,
       numTokens, hiddenSize, intermediateSize, { ...projectionOptions, role: 'ffn_down' }));
-    const scalarGate = keep(await runMatmul(input, weights.sharedExpertRouter,
+    const scalarGate = keep(await matmul(input, weights.sharedExpertRouter,
       numTokens, 1, hiddenSize, { ...projectionOptions, role: 'moe_shared_router' }));
-    const expandedGate = keep(await runRepeatChannels(scalarGate,
+    const expandedGate = keep(await repeat(scalarGate,
       { inChannels: numTokens, height: 1, width: 1, repeats: hiddenSize }));
-    const gated = keep(await runSiLU(down, { size: numTokens * hiddenSize,
+    const gated = keep(await activate(down, { size: numTokens * hiddenSize,
       gate: expandedGate, inputActivation: 'identity', gateActivation: 'sigmoid', swigluLimit }));
-    return await runResidualAdd(routed, gated, numTokens * hiddenSize);
+    return await add(routed, gated, numTokens * hiddenSize);
   } finally {
-    for (const buffer of owned) releaseBuffer(buffer);
+    for (const buffer of owned) releaseOrTrack(recorder, buffer);
   }
 }

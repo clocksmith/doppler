@@ -120,7 +120,8 @@ export function moeFeedForwardGPU(
   expertWeights: Map<string, MoEExpertWeights>,
   expertLoader: ExpertLoader,
   layerIdx: number,
-  layerRouterWeights?: Map<number, LayerRouterWeights>
+  layerRouterWeights?: Map<number, LayerRouterWeights>,
+  recorder?: import('../../../gpu/command-recorder.js').CommandRecorder | null
 ): Promise<GPUBuffer>;
 
 /**

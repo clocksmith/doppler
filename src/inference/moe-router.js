@@ -3,7 +3,9 @@ import { isNativeGpuBuffer as isGpuBufferInstance } from '../gpu/buffer-identity
 
 import { getDevice } from '../gpu/device.js';
 import { getWeightDtype, isWeightBuffer } from '../gpu/weight-buffer.js';
-import { runMatmul } from '../gpu/kernels/matmul.js';
+import { runMatmul, recordMatmul } from '../gpu/kernels/matmul.js';
+import { dispatchKernel } from '../gpu/kernels/dispatch.js';
+import { releaseBuffer } from '../memory/buffer-pool.js';
 import { createTensor } from '../gpu/tensor.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { getShaderModule } from '../gpu/kernels/shader-cache.js';
@@ -180,7 +182,9 @@ export class MoERouter {
 
   
   async computeRouterLogitsGPU(hiddenStates, numTokens, gpuContext = null, options = {}) {
-    const device = gpuContext?.device || getDevice();
+    const recorder = options.recorder ?? null;
+    const device = gpuContext?.device || recorder?.device || getDevice();
+    if (recorder && recorder.device !== device) throw new Error('MoE router recorder device mismatch.');
     if (!device) {
       throw new Error('GPU device not available');
     }
@@ -198,7 +202,9 @@ export class MoERouter {
     if (!isWeightBuffer(gateWeightBuffer) && !isGpuBufferInstance(gateWeightBuffer)) {
       const sourceWeightDtype = this._gateWeightDtype
         ?? inferRouterBufferDtypeFromElementCount(gateWeightBuffer, this.numExperts * this.hiddenSize, 'gate weight');
-      const uploaded = device.createBuffer({
+      const uploaded = !recorder && this._gateWeightGPU ? this._gateWeightGPU : recorder
+        ? recorder.createTempBuffer(gateWeightBuffer.byteLength, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST, 'moe_gate_weight')
+        : device.createBuffer({
         label: 'moe_gate_weight',
         size: gateWeightBuffer.byteLength,
         usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
@@ -206,12 +212,14 @@ export class MoERouter {
       try {
         device.queue.writeBuffer(uploaded, 0, gateWeightBuffer);
       } catch (error) {
-        uploaded.destroy();
+        if (!recorder) {
+          uploaded.destroy();
+          if (this._gateWeightGPU === uploaded) this._gateWeightGPU = null;
+        }
         throw error;
       }
-      this._gateWeightGPU = uploaded;
+      if (!recorder) this._gateWeightGPU = uploaded;
       this._gateWeightDtype = sourceWeightDtype;
-      this.gateWeight = uploaded;
       gateWeightBuffer = uploaded;
     }
 
@@ -224,7 +232,8 @@ export class MoERouter {
     // Matrix multiply: hidden_states [numTokens, hiddenSize] @ gate_weight [hiddenSize, numExperts]
     // Result: [numTokens, numExperts]
     const hiddenStatesTensor = createTensor(hiddenStates, inputDtype, [numTokens, this.hiddenSize], 'moe_hidden_states');
-    const logitsTensor = await runMatmul(
+    const matmul = recorder ? recordMatmul.bind(null, recorder) : runMatmul;
+    const logitsTensor = await matmul(
       hiddenStatesTensor,
       gateWeightBuffer,
       numTokens,           // M
@@ -240,10 +249,16 @@ export class MoERouter {
     );
 
     // Add bias on GPU if present (GPT-OSS style)
-    if (this.gateBias) {
-      const biasBuffer = await this._getGateBiasBuffer(device);
-      const biasDtype = this._inferBiasDtype(biasBuffer);
-      await this._addBiasInPlace(logitsTensor.buffer, biasBuffer, numTokens, device, logitsTensor.dtype, biasDtype);
+    try {
+      if (this.gateBias) {
+        const biasBuffer = await this._getGateBiasBuffer(device, recorder);
+        const biasDtype = this._inferBiasDtype(biasBuffer);
+        await this._addBiasInPlace(logitsTensor.buffer, biasBuffer, numTokens, device, logitsTensor.dtype, biasDtype, recorder);
+      }
+    } catch (error) {
+      if (recorder) recorder.trackTemporaryBuffer(logitsTensor.buffer);
+      else releaseBuffer(logitsTensor.buffer);
+      throw error;
     }
 
     this.lastLogitsDtype = logitsTensor.dtype;
@@ -251,15 +266,16 @@ export class MoERouter {
   }
 
   
-  async _getGateBiasBuffer(device) {
+  async _getGateBiasBuffer(device, recorder = null) {
     if (isGpuBufferInstance(this.gateBias)) return this.gateBias;
-    if (this._gateBiasGPU) return this._gateBiasGPU;
+    if (!recorder && this._gateBiasGPU) return this._gateBiasGPU;
 
     if (!(this.gateBias instanceof Float32Array)) {
       throw new Error('Unsupported gateBias type');
     }
 
-    const buf = device.createBuffer({
+    const buf = recorder ? recorder.createTempBuffer(this.gateBias.byteLength,
+      GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST, 'moe_gate_bias') : device.createBuffer({
       label: 'moe_gate_bias',
       size: this.gateBias.byteLength,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
@@ -267,10 +283,10 @@ export class MoERouter {
     try {
       device.queue.writeBuffer(buf, 0, this.gateBias);
     } catch (error) {
-      buf.destroy();
+      if (!recorder) buf.destroy();
       throw error;
     }
-    this._gateBiasGPU = buf;
+    if (!recorder) this._gateBiasGPU = buf;
     return buf;
   }
 
@@ -303,7 +319,7 @@ export class MoERouter {
     return pipeline;
   }
 
-  async _addBiasInPlace(logits, bias, numTokens, device, logitsDtype, biasDtype) {
+  async _addBiasInPlace(logits, bias, numTokens, device, logitsDtype, biasDtype, recorder = null) {
     const pipeline = await this._getBiasAddPipeline(logitsDtype, biasDtype, device);
 
     const uniformData = new ArrayBuffer(16);
@@ -311,13 +327,13 @@ export class MoERouter {
     uniformView.setUint32(0, numTokens, true);
     uniformView.setUint32(4, this.numExperts, true);
 
-    const uniformBuffer = device.createBuffer({
+    const uniformBuffer = recorder ? recorder.createUniformBuffer(uniformData, 'moe_router_bias_uniforms') : device.createBuffer({
       label: 'moe_router_bias_uniforms',
       size: 16,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
     try {
-      device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+      if (!recorder) device.queue.writeBuffer(uniformBuffer, 0, uniformData);
 
       const bindGroup = device.createBindGroup({
         layout: pipeline.getBindGroupLayout(0),
@@ -328,16 +344,10 @@ export class MoERouter {
         ],
       });
 
-      const encoder = device.createCommandEncoder({ label: 'moe_router_bias_add_encoder' });
-      const pass = encoder.beginComputePass({ label: 'moe_router_bias_add_pass' });
-      pass.setPipeline(pipeline);
-      pass.setBindGroup(0, bindGroup);
       const total = numTokens * this.numExperts;
-      pass.dispatchWorkgroups(Math.ceil(total / 256));
-      pass.end();
-      device.queue.submit([encoder.finish()]);
+      dispatchKernel(recorder ?? device, pipeline, bindGroup, Math.ceil(total / 256), 'moe_router_bias_add');
     } finally {
-      uniformBuffer.destroy();
+      if (!recorder) uniformBuffer.destroy();
     }
   }
 
