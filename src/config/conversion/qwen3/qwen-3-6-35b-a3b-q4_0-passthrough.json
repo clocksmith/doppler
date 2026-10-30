@@ -237,7 +237,7 @@
       "embed": {
         "kernel": "gather_q4_0.wgsl",
         "entry": "main",
-        "digest": "sha256:aca4b9248159e9d4e77296d0969e27bc1acaa54f23e0dfc602700b8b3f9626f4",
+        "digest": "sha256:5385c421ac8423132406168faeac5e2ede51ea1b3df6f6f19baa567e0dc9d0b5",
         "constants": {
           "QUANT_FORMAT": 0,
           "BLOCK_VALUES": 32,
@@ -252,7 +252,7 @@
       "q4_decode": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "gemv",
-        "digest": "sha256:dd301c1e5925b4cf2bf5ffdae554312bb46afe72177e38dad24736bc296b3d55",
+        "digest": "sha256:ddf446aad68571e70b6af151c394475b274cae9d8d30d966628b0be89e2942ce",
         "constants": {
           "QUANT_FORMAT": 0,
           "BLOCK_VALUES": 32,
@@ -262,7 +262,7 @@
       "q4_decode_gemv": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "gemv",
-        "digest": "sha256:dd301c1e5925b4cf2bf5ffdae554312bb46afe72177e38dad24736bc296b3d55",
+        "digest": "sha256:ddf446aad68571e70b6af151c394475b274cae9d8d30d966628b0be89e2942ce",
         "constants": {
           "QUANT_FORMAT": 0,
           "BLOCK_VALUES": 32,
@@ -298,7 +298,7 @@
       "q4_prefill": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "prefill",
-        "digest": "sha256:3a25b0cbd056b345834a46f594197427c738dc9a241e4c138f6061f6af309993",
+        "digest": "sha256:3e496b406ca040e4dd43b43f52d3f6818198b8461338675abd81891f2e665dde",
         "constants": {
           "QUANT_FORMAT": 0,
           "BLOCK_VALUES": 32,
@@ -308,7 +308,7 @@
       "q4_widetile": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "prefill",
-        "digest": "sha256:3a25b0cbd056b345834a46f594197427c738dc9a241e4c138f6061f6af309993",
+        "digest": "sha256:3e496b406ca040e4dd43b43f52d3f6818198b8461338675abd81891f2e665dde",
         "constants": {
           "QUANT_FORMAT": 0,
           "BLOCK_VALUES": 32,
@@ -318,7 +318,7 @@
       "tiled": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "gemv",
-        "digest": "sha256:dd301c1e5925b4cf2bf5ffdae554312bb46afe72177e38dad24736bc296b3d55",
+        "digest": "sha256:ddf446aad68571e70b6af151c394475b274cae9d8d30d966628b0be89e2942ce",
         "constants": {
           "QUANT_FORMAT": 3,
           "BLOCK_VALUES": 256,
@@ -344,7 +344,7 @@
       "lm_head_gemv": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "gemv",
-        "digest": "sha256:dd301c1e5925b4cf2bf5ffdae554312bb46afe72177e38dad24736bc296b3d55",
+        "digest": "sha256:ddf446aad68571e70b6af151c394475b274cae9d8d30d966628b0be89e2942ce",
         "constants": {
           "QUANT_FORMAT": 3,
           "BLOCK_VALUES": 256,
@@ -354,7 +354,7 @@
       "lm_head_q4": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "gemv",
-        "digest": "sha256:dd301c1e5925b4cf2bf5ffdae554312bb46afe72177e38dad24736bc296b3d55",
+        "digest": "sha256:ddf446aad68571e70b6af151c394475b274cae9d8d30d966628b0be89e2942ce",
         "constants": {
           "QUANT_FORMAT": 0,
           "BLOCK_VALUES": 32,
@@ -389,7 +389,7 @@
       "q8_0_decode": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "gemv",
-        "digest": "sha256:dd301c1e5925b4cf2bf5ffdae554312bb46afe72177e38dad24736bc296b3d55",
+        "digest": "sha256:ddf446aad68571e70b6af151c394475b274cae9d8d30d966628b0be89e2942ce",
         "constants": {
           "QUANT_FORMAT": 2,
           "BLOCK_VALUES": 32,
@@ -399,7 +399,7 @@
       "q8_0_prefill": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "prefill",
-        "digest": "sha256:3a25b0cbd056b345834a46f594197427c738dc9a241e4c138f6061f6af309993",
+        "digest": "sha256:3e496b406ca040e4dd43b43f52d3f6818198b8461338675abd81891f2e665dde",
         "constants": {
           "QUANT_FORMAT": 2,
           "BLOCK_VALUES": 32,
@@ -409,7 +409,7 @@
       "q6k_decode": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "gemv",
-        "digest": "sha256:dd301c1e5925b4cf2bf5ffdae554312bb46afe72177e38dad24736bc296b3d55",
+        "digest": "sha256:ddf446aad68571e70b6af151c394475b274cae9d8d30d966628b0be89e2942ce",
         "constants": {
           "QUANT_FORMAT": 3,
           "BLOCK_VALUES": 256,
@@ -419,7 +419,7 @@
       "q6k_prefill": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "prefill",
-        "digest": "sha256:3a25b0cbd056b345834a46f594197427c738dc9a241e4c138f6061f6af309993",
+        "digest": "sha256:3e496b406ca040e4dd43b43f52d3f6818198b8461338675abd81891f2e665dde",
         "constants": {
           "QUANT_FORMAT": 3,
           "BLOCK_VALUES": 256,
