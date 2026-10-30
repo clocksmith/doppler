@@ -1,0 +1,115 @@
+{
+  "schema": "doppler.moe-source-review.v1",
+  "baselineCommit": "fea9ffc09aa943c223dd838f9d31eea676eefd34",
+  "scope": "Production source review and bounded Metal correctness checks; no claimable full-model timing",
+  "dopplerSourceHashes": {
+    "src/gpu/kernels/repeat_channels.js": "ef22515200eb90094e06369ae16b6e6d8480ec67418775686ca6b30907c2bfae",
+    "src/gpu/kernels/repeat_channels.wgsl": "69d7b8199afcba837cf279cf751ac8945eb3684c11e43e2188f446714da05b48",
+    "src/gpu/kernels/repeat_channels_f16.wgsl": "d7f9aed930d98768922102f99a1379c4649061159f723f21dafca75c2508c3c4",
+    "src/inference/pipelines/text/moe-gpu.js": "5204e95c5ab6c635f6212c286693089431fb71e720a5f3ce2730aa38bbaa21cf",
+    "src/inference/pipelines/text/moe/qwen-route-executor.js": "8604450bb0af6424f4e1e73714f6cc81beaae5ebc80cc6103c8446c42a48b957",
+    "src/inference/pipelines/text/ffn/qwen-shared-expert.js": "0555e0d37a77c5401396e36c1452dce90ba2b6bd3d750110d2567273ec0fffeb",
+    "src/gpu/kernels/dispatch.js": "54d566c6e0184b555756965a96b06121173e34cbf8f05dfd63e9258f4e6917b6"
+  },
+  "pooled": {
+    "root": "/home/x/deco/hatch/qwen-economics-20261030/pooled-baseline",
+    "readOnly": true,
+    "files": {
+      "engine/qwen35.js": {
+        "sha256": "2e126c9c401e02f1ee1ab13a522228ef02e663f5973bea17bc7fa2d62bd0da0d278",
+        "boundary": "_encMoeFfn, _encodeLayerBatch, prepared layer bindings, grouped prefill, conditional encode-ahead"
+      },
+      "engine/wgsl/moe.js": {
+        "sha256": "37b2cf395f540f5b3f24aed3c79af1bd1b91fc292e9e58207d019837f77e5ce9",
+        "boundary": "routeKernel, gusKernel, dncKernel, normRouterKernel"
+      },
+      "engine/expert_store.js": {
+        "sha256": "9234069058890f19d3427c59ba7c0442ef359a9ee8cb51cf54067c09dcf9dadc",
+        "boundary": "expert residency/offload and route remapping"
+      }
+    }
+  },
+  "confirmedFix": {
+    "boundary": "Qwen shared-expert scalar gate -> repeat_channels output",
+    "before": "53 tokens * 2048 repeats dispatched [1,108544,1], violating the 65535 per-dimension limit. The same failure was reproduced locally before editing.",
+    "after": "One invocation per logical output element; two-dimensional linear workgroup tiling using explicit device limits and registry geometry.",
+    "failingShapeWorkgroupsBefore": [
+      1,
+      108544,
+      1
+    ],
+    "failingShapeWorkgroupsAfter": [
+      424,
+      1,
+      1
+    ],
+    "nodePhysicalCases": 16,
+    "chromiumPhysicalCases": 12,
+    "result": "bit-exact F32 and F16 copies; immediate/recorded paths, tails and a forced real two-dimensional grid",
+    "consumer": {
+      "function": "runQwenSharedExpert",
+      "numTokens": 53,
+      "hiddenSize": 2048,
+      "expertIntermediateSize": 3,
+      "maxAbs": 4.65647007064085e-10,
+      "limit": "Synthetic bounded consumer fixture, not the complete 35B model or its full shared-expert dimensions"
+    }
+  },
+  "findings": [
+    {
+      "status": "source-confirmed",
+      "owner": "src/inference/pipelines/text/moe-gpu.js",
+      "finding": "topk-readback waits for CPU route indices at each selected MoE layer. Opt-in topk-route bypasses that production scheduling readback; trace-only observation can still read back.",
+      "next": "Measure the selected route path on a fresh full-model correctness receipt before timing."
+    },
+    {
+      "status": "source-confirmed",
+      "owner": "src/inference/pipelines/text/moe/qwen-route-executor.js",
+      "finding": "Routed experts still use four separate immediate kernel calls: gate/up projection, activation, down projection, weighted combine. Immediate dispatch builds and submits a command buffer per call.",
+      "next": "Provide a recorded route plan, then fuse gate/up with activation and down with combine; preserve storage interpretation, accumulation and deterministic route order."
+    },
+    {
+      "status": "source-confirmed",
+      "owner": "src/inference/pipelines/text/ffn/qwen-shared-expert.js",
+      "finding": "The shared expert is separate from routed execution: gate, up, activation, down, scalar router, repeat, sigmoid multiplication and add. Pooled can place the shared expert in slot K of fused gate/up and down/combine kernels.",
+      "next": "Integrate explicit shared-expert bindings into a prepared MoE execution plan; avoid the expanded gate tensor. Preserve the independent shared sigmoid and router weight representation."
+    },
+    {
+      "status": "source-confirmed",
+      "owner": "engine/wgsl/moe.js (Pooled)",
+      "finding": "routeKernel ranks logits directly when renormalization is requested; gusKernel computes gate/up plus activation for routed and shared slots; dncKernel combines all routes plus shared output and residual.",
+      "next": "Use as a capability comparator; do not copy numerical changes or quantization assumptions into the Q4_K contract without independent evidence."
+    },
+    {
+      "status": "source-confirmed",
+      "owner": "engine/qwen35.js (Pooled) / Doppler route executor",
+      "finding": "Pooled has expert-grouped prefill, whereas the new Doppler route projection executes each token/expert route independently.",
+      "next": "Measure repeated-expert weight traffic on prefill; add GPU grouping and a qualified grouped projection path if that traffic dominates."
+    },
+    {
+      "status": "source-confirmed",
+      "owner": "src/gpu/command-recorder.js and src/gpu/kernels/kernel-execution.js",
+      "finding": "Doppler has recorded adapters and coalesced compute passes, but the current Qwen routed/shared expert orchestration calls immediate adapters. Prepared bindings and persistent scratch need explicit lifetime ownership.",
+      "next": "Connect the existing recorders to the MoE plan; test cancellation, submission failure, reset, device loss and concurrent sessions before changing defaults."
+    },
+    {
+      "status": "source-confirmed",
+      "owner": "Reploid self/config/doppler-package.json and self/infrastructure/doppler-runtime-service.js",
+      "finding": "Poolday consumes a pinned Doppler package (0.6.32), not live source changes in this checkout.",
+      "next": "After qualification, rebuild and install the exact package/artifact and verify runtime identity before claiming Poolday inherited these fixes."
+    }
+  ],
+  "comparisonLimits": [
+    "The active 35B product comparison uses Pooled Q4_0 GGUF and Doppler Q4_K RDRR. It is not an equal-reconstructed-weight engine comparison.",
+    "The observed product run contained a repeat_channels failure and an unsuccessful arithmetic result; its timings cannot establish a successful service or engine win.",
+    "No Jupiter GPU work was launched or stopped by this review; another session owned the full-model paired run.",
+    "Fused Pooled paths are capability- and layout-gated. Expert offload disables its ordinary encode-ahead; no unconditional 100 percent overlap claim is supported.",
+    "A 0.8B geometry or numerical result does not qualify the larger hybrid/MoE models."
+  ],
+  "acceptance": [
+    "Fresh 35B correctness against pinned source weights and independent prefixes, including routed/shared outputs and later recurrent states",
+    "Trace actual selected shaders, submissions, host readbacks, allocations and phase-level CPU/GPU time",
+    "Separate prefill and decode experiments with fixed model, context, generation, weights and sampling",
+    "Complete-request distribution and first-token/delivery-gap results after correctness passes; no threshold changes after observing results"
+  ]
+}

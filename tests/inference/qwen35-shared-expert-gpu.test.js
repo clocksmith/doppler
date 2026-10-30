@@ -39,6 +39,38 @@ try {
   }
   for(let i=0;i<expected.length;i++) assert.ok(Number.isFinite(actual[i]) && Math.abs(actual[i]-expected[i])<0.0001,
     `shared expert[${i}]: ${actual[i]} versus ${expected[i]}`);
+  // The 35B shared expert broadcasts 53 scalar gates across 2048 hidden values.
+  // The old channel-axis dispatch exceeded the device's 65535-workgroup limit.
+  const largeT = 53, largeH = 2048;
+  const largeInput = Float32Array.from({length:largeT*largeH}, (_,i)=>Math.sin(i*0.13)*0.01);
+  const largeRouted = Float32Array.from({length:largeT*largeH}, (_,i)=>Math.cos(i*0.17)*0.01);
+  const largeGate = Float32Array.from({length:I*largeH}, (_,i)=>Math.cos(i*0.07)*0.01);
+  const largeUp = Float32Array.from({length:I*largeH}, (_,i)=>Math.sin(i*0.11)*0.01);
+  const largeDown = Float32Array.from({length:largeH*I}, (_,i)=>Math.cos(i*0.03)*0.01);
+  const largeRouter = Float32Array.from({length:largeH}, (_,i)=>Math.sin(i*0.09)*0.01);
+  const largeWeights = { sharedExpertGate:matrix(largeGate,[I,largeH]), sharedExpertUp:matrix(largeUp,[I,largeH]),
+    sharedExpertDown:matrix(largeDown,[largeH,I]), sharedExpertRouter:matrix(largeRouter,[1,largeH]) };
+  const largeOutput = await runQwenSharedExpert(createTensor(buffer(largeInput),'f32',[largeT,largeH]),
+    createTensor(buffer(largeRouted),'f32',[largeT,largeH]),largeWeights,
+    {numTokens:largeT,hiddenSize:largeH,intermediateSize:I,kernelPath:null,swigluLimit:null});
+  let largeMaxAbs = 0;
+  try {
+    const observed = new Float32Array(await readBuffer(largeOutput.buffer,largeT*largeH*4));
+    for(let t=0;t<largeT;t++) {
+      const x=largeInput.subarray(t*largeH,(t+1)*largeH);
+      const activation=Array.from({length:I},(_,i)=> {
+        const g=dot(x,largeGate.subarray(i*largeH,(i+1)*largeH));
+        return g/(1+Math.exp(-g))*dot(x,largeUp.subarray(i*largeH,(i+1)*largeH));
+      });
+      const scale=1/(1+Math.exp(-dot(x,largeRouter)));
+      for(let h=0;h<largeH;h++) {
+        const value=largeRouted[t*largeH+h]+scale*dot(activation,largeDown.subarray(h*I,(h+1)*I));
+        const error=Math.abs(observed[t*largeH+h]-value);
+        assert.ok(Number.isFinite(observed[t*largeH+h]) && error<0.0001,`shared 53x2048[${t},${h}]`);
+        largeMaxAbs=Math.max(largeMaxAbs,error);
+      }
+    }
+  } finally { releaseBuffer(largeOutput.buffer); }
   // Packed Qwen experts share buffers; nonzero expert and gathered-token
   // offsets must select the right bank and token, not expert zero's row.
   const packedHidden = 64;
@@ -71,7 +103,8 @@ try {
     Number.isFinite(expertValues[packedHidden + h]) &&
     Math.abs(expertValues[packedHidden + h] - dot(act, packedDown.slice(h * I, (h + 1) * I))) < 0.0001,
     `packed expert nonzero-offset mismatch at ${h}`);
-  console.log(JSON.stringify({test:'qwen35-shared-expert',passed:true,maxAbs:Math.max(...actual.map((v,i)=>Math.abs(v-expected[i]))),provider:probe.providerReceipt}));
+  console.log(JSON.stringify({test:'qwen35-shared-expert',passed:true,maxAbs:Math.max(...actual.map((v,i)=>Math.abs(v-expected[i]))),
+    large:{numTokens:largeT,hiddenSize:largeH,maxAbs:largeMaxAbs},provider:probe.providerReceipt}));
 } finally {
   if(output) releaseBuffer(output.buffer);
   for(const b of allocated) releaseBuffer(b);

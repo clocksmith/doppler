@@ -15,16 +15,23 @@ struct Uniforms {
 @group(0) @binding(2) var<storage, read_write> output: array<f16>;
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
-fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+fn main(@builtin(workgroup_id) wid: vec3<u32>,
+        @builtin(local_invocation_id) lid: vec3<u32>,
+        @builtin(num_workgroups) grid: vec3<u32>) {
     let spatial = u.height * u.width;
     let out_channels = u.in_channels * u.repeats;
-    let spatial_idx = gid.x;
-    let out_channel = gid.y;
-    if (out_channel >= out_channels || spatial_idx >= spatial) {
+    let count = out_channels * spatial;
+    let group = wid.x + wid.y * grid.x;
+    if (group >= (count - 1u) / WORKGROUP_SIZE + 1u) {
+        return;
+    }
+    let idx = group * WORKGROUP_SIZE + lid.x;
+    if (idx >= count) {
         return;
     }
 
+    let out_channel = idx / spatial;
+    let spatial_idx = idx % spatial;
     let channel = out_channel / u.repeats;
-    let idx = out_channel * spatial + spatial_idx;
     output[idx] = input[channel * spatial + spatial_idx];
 }
