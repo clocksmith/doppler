@@ -27,3 +27,16 @@ export function getWeightShape(value) {
   return [dim0, dim1];
 }
 
+
+export function getVectorElementCount(shape, label) {
+  if (!Array.isArray(shape) || shape.length === 0) {
+    throw new Error(`[LayerLoader] ${label} requires a non-empty shape.`);
+  }
+  return shape.reduce((product, dim) => {
+    if (!Number.isInteger(dim) || dim <= 0) {
+      throw new Error(`[LayerLoader] ${label} has invalid shape dimension: ${String(dim)}.`);
+    }
+    return product * dim;
+  }, 1);
+}
+
