@@ -1,3 +1,4 @@
+import { isGgufBlockDtype } from '../../../formats/gguf/block-storage.js';
 import { expandExecutionV1, EXECUTION_V1_SCHEMA_ID } from '../../../config/schema/index.js';
 import {
   buildInlineKernelPath,
@@ -195,9 +196,11 @@ function isFullAttentionExecutionLayerType(layerType) {
     || normalized === 'standard';
 }
 
-function isQ4ProjectionKernel(kernelEntry) {
+// Linear-attention layers alias the q_proj/o_proj roles, so a global projection program
+// must match the model's packed weight storage: Q4_K, or the declared GGUF block format.
+function isPackedProjectionKernel(kernelEntry, packedDtype) {
   return kernelEntry != null && kernelPathRequiresWeightDtype(
-    { decode: { steps: [kernelEntry] } }, 'q4k', 'matmul'
+    { decode: { steps: [kernelEntry] } }, packedDtype, 'matmul'
   );
 }
 
@@ -261,6 +264,7 @@ function assertHybridLinearProjectionIsolation(execution, layerTypes, modelId, w
   if (normalizedWeightDtype === 'f16' || normalizedWeightDtype === 'f32') {
     return;
   }
+  const packedDtype = isGgufBlockDtype(normalizedWeightDtype) ? normalizedWeightDtype : 'q4k';
 
   const linearLayers = layerTypes
     .map((layerType, layerIdx) => ({ layerType, layerIdx }))
@@ -305,7 +309,7 @@ function assertHybridLinearProjectionIsolation(execution, layerTypes, modelId, w
     }
 
     const hasUnsafeGlobalEntry = entries.some(
-      (entry) => entry.layers === 'all' && !isQ4ProjectionKernel(entry.kernelEntry)
+      (entry) => entry.layers === 'all' && !isPackedProjectionKernel(entry.kernelEntry, packedDtype)
     );
     if (!hasUnsafeGlobalEntry) {
       continue;
@@ -314,7 +318,7 @@ function assertHybridLinearProjectionIsolation(execution, layerTypes, modelId, w
     const coveredLinearLayers = collectCoveredLayers(
       entries,
       linearLayers,
-      (kernelEntry) => isQ4ProjectionKernel(kernelEntry)
+      (kernelEntry) => isPackedProjectionKernel(kernelEntry, packedDtype)
     );
     const missingLinearLayers = linearLayers.filter((layerIdx) => !coveredLinearLayers.has(layerIdx));
     if (missingLinearLayers.length === 0) {
