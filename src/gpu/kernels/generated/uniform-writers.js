@@ -82,6 +82,7 @@ export const UNIFORM_WRITERS = Object.freeze({
   "matmul/q4_fused_widetile": { size: 32, write: writers0.write_matmul_q4_fused_f16a },
   "matmul/q4_fused_rmsnorm_widetile": { size: 32, write: writers0.write_matmul_q4_fused_rmsnorm_widetile },
   "matmul/q4_fused_widetile_residual": { size: 32, write: writers0.write_matmul_q4_fused_f16a },
+  "matmul/gemv_f32_subgroup": { size: 32, write: writers0.write_matmul_gemv_subgroup },
   "matmul/gemv_f32": { size: 32, write: writers0.write_matmul_gemv_subgroup },
   "matmul/f32_compensated": { size: 32, write: writers0.write_matmul_f16 },
   "matmul/gemv_f32_compensated": { size: 32, write: writers0.write_matmul_gemv_subgroup },

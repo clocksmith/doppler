@@ -6383,6 +6383,107 @@
       }
      ]
     },
+    "gemv_f32_subgroup": {
+     "wgsl": "matmul_gemv_f32_subgroup.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": ["subgroups"],
+     "outputDtype": "f32",
+     "weightDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 4
+     },
+     "variantMetadata": {
+      "workgroupPowerOfTwo": false,
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null],
+      "workgroupStorageBytesPerInvocation": 0,
+      "colsPerWg": 4,
+      "dispatchGeometry": "linear-column-block"
+     },
+     "description": "Opt-in full-F32 subgroup GEMV, compact active ranks, four-component arithmetic, exact scalar buffer tails and zero workgroup scratch.",
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "workgroups_x",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ],
+     "requiredWgslFeatures": ["subgroup_id"],
+     "sharedMemory": 0
+    },
     "gemv_f32": {
      "wgsl": "matmul_gemv_f32.wgsl",
      "entryPoint": "main",

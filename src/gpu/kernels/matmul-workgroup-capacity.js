@@ -5,9 +5,9 @@ import { getDeviceLimits } from '../device.js';
 export function validateMatmulWorkgroupCapacity(config) {
   if (config.variantMetadata?.workgroupConstants === undefined) return;
   const bytesPerInvocation = config.variantMetadata.workgroupStorageBytesPerInvocation;
-  if (typeof bytesPerInvocation !== 'number' || !Number.isSafeInteger(bytesPerInvocation) || bytesPerInvocation <= 0
+  if (typeof bytesPerInvocation !== 'number' || !Number.isSafeInteger(bytesPerInvocation) || bytesPerInvocation < 0
     || typeof config.sharedMemory !== 'number' || !Number.isSafeInteger(config.sharedMemory) || config.sharedMemory < 0) {
-    throw new Error(`Matmul kernel "${config.variant}" requires resolved nonnegative static and positive per-invocation workgroup storage bytes.`);
+    throw new Error(`Matmul kernel "${config.variant}" requires resolved nonnegative static and per-invocation workgroup storage bytes.`);
   }
   const invocations = config.workgroupSize.reduce((product, value) => product * value, 1);
   const storageBytes = config.sharedMemory + invocations * bytesPerInvocation;
@@ -26,8 +26,9 @@ export function validateMatmulWorkgroupCapacity(config) {
   ];
   for (const [name, required] of requirements) {
     const limit = limits[name];
-    if (!Number.isSafeInteger(limit) || limit <= 0) {
-      throw new Error(`Matmul kernel "${config.variant}" requires a positive device limit ${name}.`);
+    const minimum = name === 'maxComputeWorkgroupStorageSize' ? 0 : 1;
+    if (!Number.isSafeInteger(limit) || limit < minimum) {
+      throw new Error(`Matmul kernel "${config.variant}" requires a valid device limit ${name}.`);
     }
     if (required > limit) {
       throw new Error(`Matmul kernel "${config.variant}" requires ${required} ${name}, exceeding device limit ${limit}.`);

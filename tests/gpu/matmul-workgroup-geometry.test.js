@@ -27,6 +27,7 @@ try {
     ['f32_compensated', { TILE_SIZE: 8 }, [8, 8, 1], 17, [3, 5, 1]],
     ['gemv_f32_compensated', { THREADS_PER_COL: 7, COLS_PER_WG: 3 }, [7, 3, 1], 1, [12, 1, 1]],
     ['gemv_f32', { THREADS_PER_COL: 7, COLS_PER_WG: 3 }, [7, 3, 1], 1, [12, 1, 1]],
+    ['gemv_f32_subgroup', { WORKGROUP_SIZE: 96, COLS_PER_WG: 7 }, [96, 1, 1], 1, [5, 1, 1]],
   ]) {
     // Change only JSON override geometry; deliberately keep the old hand fields.
     withVariant(variant, schema => Object.assign(schema.wgslOverrides, constants), () => {
@@ -68,6 +69,30 @@ try {
   withVariant('f32_compensated', schema => { schema.sharedMemory = 64; schema.wgslOverrides.TILE_SIZE = 8; }, () => {
     device({ maxComputeWorkgroupStorageSize: 575 });
     assert.throws(() => getMatmulConfig('f32_compensated', null), /maxComputeWorkgroupStorageSize/);
+    device();
+  });
+  withVariant('gemv_f32_subgroup', () => {}, () => {
+    device({ maxComputeWorkgroupStorageSize: 0 });
+    const cached = getMatmulConfig('gemv_f32_subgroup', null);
+    assert.equal(cached.sharedMemory, 0);
+    assert.equal(cached.variantMetadata.workgroupStorageBytesPerInvocation, 0);
+    device({ maxComputeWorkgroupStorageSize: 0, maxComputeWorkgroupSizeX: 64 });
+    assert.throws(() => getMatmulConfig('gemv_f32_subgroup', null), /maxComputeWorkgroupSizeX/);
+    device({ maxComputeWorkgroupStorageSize: 0, maxComputeInvocationsPerWorkgroup: 64 });
+    assert.throws(() => getMatmulConfig('gemv_f32_subgroup', null), /maxComputeInvocationsPerWorkgroup/);
+    device({ maxComputeWorkgroupStorageSize: 0 });
+    assert.equal(getMatmulConfig('gemv_f32_subgroup', null), cached);
+    device();
+  });
+  for (const bytes of [-1, 0.5, NaN, undefined]) {
+    assert.throws(() => withVariant('gemv_f32_subgroup', schema => { schema.variantMetadata.workgroupStorageBytesPerInvocation = bytes; },
+      () => getMatmulConfig('gemv_f32_subgroup', null)), /storage bytes|JSON|json|finite/);
+  }
+  withVariant('gemv_f32_subgroup', schema => { schema.sharedMemory = 64; }, () => {
+    device({ maxComputeWorkgroupStorageSize: 63 });
+    assert.throws(() => getMatmulConfig('gemv_f32_subgroup', null), /maxComputeWorkgroupStorageSize/);
+    device({ maxComputeWorkgroupStorageSize: 64 });
+    assert.equal(getMatmulConfig('gemv_f32_subgroup', null).sharedMemory, 64);
     device();
   });
   const legacy = getMatmulConfig('f32', null);

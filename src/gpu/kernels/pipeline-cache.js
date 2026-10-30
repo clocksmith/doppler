@@ -234,25 +234,23 @@ function isPowerOfTwo(value) {
   return Number.isInteger(value) && value > 0 && (value & (value - 1)) === 0;
 }
 
-function assertWorkgroupPowerOfTwo(operation, variant, workgroupSize, constants) {
-  if (Array.isArray(workgroupSize)) {
-    for (const dim of workgroupSize) {
-      if (!isPowerOfTwo(dim)) {
-        throw new Error(
-          `Kernel ${operation}/${variant} requires power-of-two workgroup size, got [${workgroupSize.join(', ')}]`
-        );
-      }
-    }
+function assertWorkgroupDimensions(operation, variant, workgroupSize, constants, powerOfTwoPolicy) {
+  if (powerOfTwoPolicy !== undefined && typeof powerOfTwoPolicy !== 'boolean') {
+    throw new Error(`Kernel ${operation}/${variant} workgroupPowerOfTwo must be boolean when declared.`);
   }
-
+  const requirePowerOfTwo = powerOfTwoPolicy !== false;
+  const valid = requirePowerOfTwo ? isPowerOfTwo : value => Number.isSafeInteger(value) && value > 0;
+  const requirement = requirePowerOfTwo ? 'power-of-two' : 'positive integer';
+  if (Array.isArray(workgroupSize) && workgroupSize.some(dim => !valid(dim))) {
+    throw new Error(
+      `Kernel ${operation}/${variant} requires ${requirement} workgroup size, got [${workgroupSize.join(', ')}]`
+    );
+  }
   if (!constants) return;
   for (const [key, value] of Object.entries(constants)) {
-    if (!Number.isFinite(value)) continue;
     if (!key.includes('WORKGROUP_SIZE')) continue;
-    if (!isPowerOfTwo(value)) {
-      throw new Error(
-        `Kernel ${operation}/${variant} requires power-of-two ${key}, got ${value}`
-      );
+    if (!valid(value)) {
+      throw new Error(`Kernel ${operation}/${variant} requires ${requirement} ${key}, got ${value}`);
     }
   }
 }
@@ -352,7 +350,10 @@ export async function createPipeline(
     );
   }
 
-  assertWorkgroupPowerOfTwo(operation, variant, config.workgroupSize, resolvedConstants);
+  assertWorkgroupDimensions(
+    operation, variant, config.workgroupSize, resolvedConstants,
+    config.variantMetadata?.workgroupPowerOfTwo
+  );
 
   trace.kernels(
     `KernelLayout: ${operation}/${variant} file=${config.shaderFile} entry=${config.entryPoint} ` +

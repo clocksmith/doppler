@@ -260,6 +260,7 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "matmul_fp8.wgsl#main": "9146dc658057e5186319c46b789e7f56957cd5f4d5e1d6bb3c0d7924f9c157a7",
   "matmul_gemv_compensated_f32.wgsl#main": "272f76b4727e1b13acf7a097fa5bb467b91858cab05c4b4ab40af1a005e48e41",
   "matmul_gemv_f16a.wgsl#main": "7d369dc00658f771628ed52b690f2764e054216bce54e18d86e4d946c218baa8",
+  "matmul_gemv_f32_subgroup.wgsl#main": "c5920603ff819e8687cb423bfcf19e3082671162beba59516d7d22180e6b756f",
   "matmul_gemv_f32.wgsl#main": "57b9c49a2e92b3a119ff5cc1a13d7340cae2a79871ba6997c49d2af651c432d4",
   "matmul_gemv_residual_f16.wgsl#main": "3bcf48eecb4e2954ac4056ea2f184919f5ee5f22d07d81e68f8dfcfa429f91fd",
   "matmul_gemv_residual.wgsl#main": "20e600aba7dac1ece7f60fdae339c85f571584d1e305426702f3519851381b71",
