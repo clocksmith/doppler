@@ -2,7 +2,8 @@ import * as ort from '/ort/ort.webgpu.min.mjs';
 import { createTjsTextModel } from '/adapter/tjs_model.js';
 import { teacherCases } from '/adapter/teacher_cases.js';
 import { ObservedSession } from '/adapter/observed_session.js';
-import { uploadGpuTensor } from '/adapter/observe_gpu.js';
+import { uploadGpuTensor, readGpuTensor, observationDeadline } from '/adapter/observe_gpu.js';
+import { compareState } from '/adapter/compare_state.js';
 
 const state = { schema: 'doppler.canonical-tjs-gpu-diagnostic.v1', qualification: false,
   scope: 'Untimed TJS public-forward diagnostic; strict CPU state gate remains failed; no speed or qualification claim',
@@ -16,7 +17,7 @@ async function phase(name) {
 
 async function main() {
   const descriptor = await (await fetch('/probe.json')).json();
-  const { config, modelReceipt, cpuReceipt, teacher, modelConfig, policy, sessions: sessionDescriptions } = descriptor;
+  const { config, modelReceipt, cpuReceipt, teacher, teacherStates, modelConfig, policy, sessions: sessionDescriptions } = descriptor;
   if (config.diagnosticOnly !== true) throw new Error('This runner is authorized only for explicitly labeled diagnostic work');
   state.cpuGate = descriptor.cpuGate;
   state.canonicalInputs = modelReceipt.inputs;
@@ -85,8 +86,22 @@ async function main() {
       for (const [name, session] of Object.entries(sessionDescriptions)) {
         modelSessions[name] = new ObservedSession(raw[name], modelReceipt.readbackPorts[session.graphName], async (port, tensor) => {
             await phase(`observe-initializer-${name}-${port.output}`);
-            const receipt = await uploadGpuTensor(executionDevice, tensor, port.bytes, config.weightReadbackChunkBytes,
-              `/weight-readback/${encodeURIComponent(name + ':' + port.output)}`, config.observationStepTimeoutMs);
+            let receipt;
+            if (config.weightObservationTransport === 'browser-sha256') {
+              const bytes = await readGpuTensor(executionDevice, tensor, port.bytes, config.weightReadbackChunkBytes,
+                config.observationStepTimeoutMs, config.maxObservationTensorBytes);
+              const digest = await observationDeadline(crypto.subtle.digest('SHA-256', bytes),
+                config.observationStepTimeoutMs, 'browser-sha256');
+              const sha256 = Array.from(new Uint8Array(digest), value => value.toString(16).padStart(2, '0')).join('');
+              const response = await fetch(`/weight-digest/${encodeURIComponent(name + ':' + port.output)}`, { method: 'POST',
+                body: JSON.stringify({ bytes: port.bytes, sha256, sourceLocation: 'gpu-buffer', locationAfterRead: tensor.location }),
+                signal: AbortSignal.timeout(config.observationStepTimeoutMs) });
+              if (!response.ok) throw new Error('Initializer digest receipt rejected: ' + await response.text());
+              receipt = (await response.json()).receipt;
+            } else {
+              receipt = await uploadGpuTensor(executionDevice, tensor, port.bytes, config.weightReadbackChunkBytes,
+                `/weight-readback/${encodeURIComponent(name + ':' + port.output)}`, config.observationStepTimeoutMs);
+            }
             if (!receipt.pass) throw new Error(`Actual GPU initializer bytes differ: ${name} ${port.initializer}`);
             state.weightReadbacks.push({ session: name, output: port.output, source: port.source,
               location: tensor.location, type: tensor.type, bytes: port.bytes, pass: true });
@@ -96,6 +111,7 @@ async function main() {
     ({ model, decoder } = createTjsTextModel(tjs, modelConfig, modelSessions, policy));
     state.implementation = `Transformers.js 4.2 public Qwen3_5ForCausalLM.forward + explicit session routing; physical KV ${state.physicalKV}`;
     state.prompts = [];
+    state.stateValueChecks = [];
     const cases = teacher ? teacherCases(teacher, state.prompts) : cpuReceipt.cases.values();
     let nextCase = cases.next();
     while (!nextCase.done) {
@@ -161,6 +177,26 @@ async function main() {
               `/state-readback/${encodeURIComponent(test.promptId + ':' + test.step + ':' + port.output)}`, config.observationStepTimeoutMs);
           }
         }
+        if (teacherStates && teacher.contract.snapshotSteps.includes(test.step)) {
+          const snapshot = teacherStates.prompts.find(prompt => prompt.id === test.promptId).snapshots.find(row => row.step === test.step);
+          for (const port of decoder.ports) {
+            const tensor = output[port.output], target = snapshot.states.find(value => value.name === port.output);
+            if (!target || tensor.type !== target.dtype || JSON.stringify(tensor.dims) !== JSON.stringify(target.shape)) {
+              throw new Error('Actual GPU state geometry/dtype differs from independent native snapshot');
+            }
+            const actual = await readGpuTensor(executionDevice, tensor, target.bytes, config.weightReadbackChunkBytes,
+              config.observationStepTimeoutMs, config.maxObservationTensorBytes);
+            const binary = await (await fetch(`/native/${encodeURIComponent(target.file)}`)).arrayBuffer();
+            const digest = await observationDeadline(crypto.subtle.digest('SHA-256', binary), config.observationStepTimeoutMs, 'native-state-sha256');
+            const checksum = Array.from(new Uint8Array(digest), value => value.toString(16).padStart(2, '0')).join('');
+            if (checksum !== target.sha256) throw new Error('Independent native state snapshot hash differs');
+            const comparison = compareState(new Float32Array(actual.buffer), new Float32Array(binary), modelReceipt.contract);
+            state.stateValueChecks.push({ promptId: test.promptId, step: test.step, name: port.output, shape: tensor.dims,
+              sourceLocation: 'gpu-buffer', locationAfterRead: tensor.location, nativeSha256: target.sha256,
+              prefixAligned: test.teacherPrefixAligned, ...comparison,
+              pass: comparison.pass && test.teacherPrefixAligned && tensor.location === 'gpu-buffer' });
+          }
+        }
         cache.update(Object.fromEntries(decoder.ports.map(port => [port.input, output[port.output]])));
         adopted = true;
       } finally {
@@ -177,6 +213,10 @@ async function main() {
     state.logitsPass = state.checks.every(check => check.logitsPass !== false && check.exactArgmax);
     if (teacher) state.teacherOutputGate = state.logitsPass && state.prompts.length === 4 &&
       state.prompts.every(prompt => prompt.completedBudget && prompt.exactTokens && prompt.endedByEOS === prompt.expectedEndedByEOS);
+    if (teacherStates) state.stateValueGate = { checks: state.stateValueChecks.length,
+      requiredChecks: teacherStates.prompts.reduce((sum, prompt) => sum + prompt.snapshots.length * 48, 0),
+      pass: state.stateValueChecks.length === teacherStates.prompts.reduce((sum, prompt) => sum + prompt.snapshots.length * 48, 0) &&
+        state.stateValueChecks.every(check => check.pass) };
     state.executionCompleted = true;
     await phase('completed-diagnostic');
   } finally {

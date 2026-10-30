@@ -1,0 +1,1046 @@
+{
+  "scope": "Separate CPU hypotheses only; original53-failure and output-qualified source unchanged; none promoted",
+  "qualification": false,
+  "reports": [
+    {
+      "name": "softplus-compensated-cpu-01",
+      "scope": "ONNX CPU numerical execution only; no TJS, GPU or speed proof",
+      "receipt": {
+        "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/softplus-compensated-cpu-01/receipt.json",
+        "sha256": "8b56aa1eeafd0edabda73e2d1d1c6de66cdc8d7a28236268e39ae54f2451d739"
+      },
+      "completed": true,
+      "pass": false,
+      "checks": 735,
+      "failedChecks": 55,
+      "logitRows": 15,
+      "logitRowsPassing": 15,
+      "maxLogitError": 4.8160552978515625e-05,
+      "firstFailure": {
+        "case": "prefill-1-prefill-0",
+        "name": "present_conv.16",
+        "dtype": "float32",
+        "shape": [
+          1,
+          6144,
+          4
+        ],
+        "maxAbsoluteError": 2.3365020751953125e-05,
+        "meanAbsoluteError": 7.102430004124471e-07,
+        "pass": false
+      },
+      "contract": {
+        "batchSize": 1,
+        "prefillBound": 704,
+        "maxSequenceLength": 2048,
+        "cpuPrefillLengths": [
+          1,
+          2,
+          28
+        ],
+        "cpuDecodeSteps": 4,
+        "logitAbsoluteTolerance": 0.001,
+        "stateAbsoluteTolerance": 1e-05,
+        "stateRelativeTolerance": 0.0001,
+        "kvStateMaxRepresentableSteps": 1,
+        "kvPhysicalDtype": "float32",
+        "linearStateDtype": "float32",
+        "attentionMathDtype": "float32",
+        "scope": "Separate all-F32-KV lane for the four frozen prompts; prefill bound704 and total context2048 remain explicit. No F16 or quantized-format claim.",
+        "sessionRouting": "Explicit prefill/decode adapter supplied through the public TJS model constructor; no token-at-a-time prefill",
+        "integerInputs": {
+          "position_ids": "int32",
+          "attention_mask": "int32"
+        },
+        "hostGeometryInputs": {
+          "prefill": [
+            {
+              "name": "host_range_limit_i32",
+              "type": "int32",
+              "shape": [],
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "name": "host_shape_0",
+              "type": "int64",
+              "shape": [
+                4
+              ],
+              "values": [
+                {
+                  "constant": 1
+                },
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 1,
+                  "addend": 0
+                },
+                {
+                  "constant": 16
+                },
+                {
+                  "constant": 128
+                }
+              ],
+              "replaces": "val_21"
+            },
+            {
+              "name": "host_shape_1",
+              "type": "int64",
+              "shape": [
+                1
+              ],
+              "values": [
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 1,
+                  "addend": 0
+                }
+              ],
+              "replaces": "val_18"
+            },
+            {
+              "name": "host_shape_2",
+              "type": "int64",
+              "shape": [
+                2
+              ],
+              "values": [
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 16,
+                  "addend": 0
+                },
+                {
+                  "constant": 128
+                }
+              ],
+              "replaces": "val_2360"
+            },
+            {
+              "name": "host_shape_3",
+              "type": "int64",
+              "shape": [
+                3
+              ],
+              "values": [
+                {
+                  "constant": 1
+                },
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 1,
+                  "addend": 0
+                },
+                {
+                  "constant": 2048
+                }
+              ],
+              "replaces": "val_2374"
+            },
+            {
+              "name": "host_shape_4",
+              "type": "int64",
+              "shape": [
+                4
+              ],
+              "values": [
+                {
+                  "constant": 1
+                },
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 1,
+                  "addend": 0
+                },
+                {
+                  "constant": 8
+                },
+                {
+                  "constant": 512
+                }
+              ],
+              "replaces": "val_6998"
+            },
+            {
+              "name": "host_shape_5",
+              "type": "int64",
+              "shape": [
+                4
+              ],
+              "values": [
+                {
+                  "constant": 1
+                },
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 1,
+                  "addend": 0
+                },
+                {
+                  "constant": 2
+                },
+                {
+                  "constant": 256
+                }
+              ],
+              "replaces": "val_7035"
+            },
+            {
+              "name": "host_shape_6",
+              "type": "int64",
+              "shape": [
+                5
+              ],
+              "values": [
+                {
+                  "constant": 1
+                },
+                {
+                  "constant": 2
+                },
+                {
+                  "constant": 4
+                },
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 1,
+                  "addend": 0
+                },
+                {
+                  "constant": 256
+                }
+              ],
+              "replaces": "val_7134"
+            },
+            {
+              "name": "host_shape_7",
+              "type": "int64",
+              "shape": [
+                4
+              ],
+              "values": [
+                {
+                  "constant": 1
+                },
+                {
+                  "constant": 8
+                },
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 1,
+                  "addend": 0
+                },
+                {
+                  "constant": 256
+                }
+              ],
+              "replaces": "val_7140"
+            }
+          ],
+          "decode": [
+            {
+              "name": "host_query_position_i32",
+              "type": "int32",
+              "shape": [
+                1
+              ],
+              "sourceTensor": "past_key_values.11.value",
+              "axis": 2,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "name": "host_range_limit_i32",
+              "type": "int32",
+              "shape": [],
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "name": "host_shape_0",
+              "type": "int64",
+              "shape": [
+                5
+              ],
+              "values": [
+                {
+                  "constant": 1
+                },
+                {
+                  "constant": 2
+                },
+                {
+                  "constant": 4
+                },
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 1,
+                  "addend": 0
+                },
+                {
+                  "constant": 256
+                }
+              ],
+              "replaces": "val_529"
+            },
+            {
+              "name": "host_shape_1",
+              "type": "int64",
+              "shape": [
+                4
+              ],
+              "values": [
+                {
+                  "constant": 1
+                },
+                {
+                  "constant": 8
+                },
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 1,
+                  "addend": 0
+                },
+                {
+                  "constant": 256
+                }
+              ],
+              "replaces": "val_535"
+            }
+          ]
+        },
+        "rotaryLookup": {
+          "minimumPosition": 0,
+          "maximumPositionExclusive": 2048,
+          "construction": "Pinned source ONNX CPU rotary subgraph, export time only",
+          "runtime": "ONNX WebGPU Gather/Where/Concat"
+        },
+        "softplusLowering": {
+          "precision": "float32",
+          "formula": "p=exp(-abs(x)); u=1+p; correction=log(u)*p/(u-1) when u>1 else p; max(x,0)+correction",
+          "purpose": "Recover small-value precision lost by rounded 1+p; no threshold changes"
+        }
+      },
+      "artifact": {
+        "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/softplus-compensated-01/receipt.json",
+        "sha256": "1a737762a45c3e5b99f57fdb187cd619b21aefd43a7191e389ab2da08c77684b"
+      },
+      "sourceSha256": {
+        "validate_onnx_cpu.py": "0d88026b67bb9660018a65e840a769f3b15d9131ddcc93cc95d5aff7a5d06fde",
+        "native_model.py": "d06227124c68fea5bc4e6ba6b6b0f59ca0c1e26bc86717fceb5fffad6b83ff63",
+        "export_text.py": "ba6ca19ed9af5dff1c8fa5016c1dbc838d882d5999c077d04568b45eae866bcc"
+      }
+    },
+    {
+      "name": "silu-native-cpu-01",
+      "scope": "ONNX CPU numerical execution only; no TJS, GPU or speed proof",
+      "receipt": {
+        "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/silu-native-cpu-01/receipt.json",
+        "sha256": "01996c726ab483d66f8e65aefedeef926e662e0041e37e231fd285802ebf599b"
+      },
+      "completed": true,
+      "pass": false,
+      "checks": 735,
+      "failedChecks": 39,
+      "logitRows": 15,
+      "logitRowsPassing": 15,
+      "maxLogitError": 4.863739013671875e-05,
+      "firstFailure": {
+        "case": "prefill-1-prefill-0",
+        "name": "present_conv.16",
+        "dtype": "float32",
+        "shape": [
+          1,
+          6144,
+          4
+        ],
+        "maxAbsoluteError": 2.765655517578125e-05,
+        "meanAbsoluteError": 6.845059488114202e-07,
+        "pass": false
+      },
+      "contract": {
+        "batchSize": 1,
+        "prefillBound": 704,
+        "maxSequenceLength": 2048,
+        "cpuPrefillLengths": [
+          1,
+          2,
+          28
+        ],
+        "cpuDecodeSteps": 4,
+        "logitAbsoluteTolerance": 0.001,
+        "stateAbsoluteTolerance": 1e-05,
+        "stateRelativeTolerance": 0.0001,
+        "kvStateMaxRepresentableSteps": 1,
+        "kvPhysicalDtype": "float32",
+        "linearStateDtype": "float32",
+        "attentionMathDtype": "float32",
+        "scope": "Separate all-F32-KV lane for the four frozen prompts; prefill bound704 and total context2048 remain explicit. No F16 or quantized-format claim.",
+        "sessionRouting": "Explicit prefill/decode adapter supplied through the public TJS model constructor; no token-at-a-time prefill",
+        "integerInputs": {
+          "position_ids": "int32",
+          "attention_mask": "int32"
+        },
+        "hostGeometryInputs": {
+          "prefill": [
+            {
+              "name": "host_range_limit_i32",
+              "type": "int32",
+              "shape": [],
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "name": "host_shape_0",
+              "type": "int64",
+              "shape": [
+                4
+              ],
+              "values": [
+                {
+                  "constant": 1
+                },
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 1,
+                  "addend": 0
+                },
+                {
+                  "constant": 16
+                },
+                {
+                  "constant": 128
+                }
+              ],
+              "replaces": "val_21"
+            },
+            {
+              "name": "host_shape_1",
+              "type": "int64",
+              "shape": [
+                1
+              ],
+              "values": [
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 1,
+                  "addend": 0
+                }
+              ],
+              "replaces": "val_18"
+            },
+            {
+              "name": "host_shape_2",
+              "type": "int64",
+              "shape": [
+                2
+              ],
+              "values": [
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 16,
+                  "addend": 0
+                },
+                {
+                  "constant": 128
+                }
+              ],
+              "replaces": "val_2360"
+            },
+            {
+              "name": "host_shape_3",
+              "type": "int64",
+              "shape": [
+                3
+              ],
+              "values": [
+                {
+                  "constant": 1
+                },
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 1,
+                  "addend": 0
+                },
+                {
+                  "constant": 2048
+                }
+              ],
+              "replaces": "val_2374"
+            },
+            {
+              "name": "host_shape_4",
+              "type": "int64",
+              "shape": [
+                4
+              ],
+              "values": [
+                {
+                  "constant": 1
+                },
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 1,
+                  "addend": 0
+                },
+                {
+                  "constant": 8
+                },
+                {
+                  "constant": 512
+                }
+              ],
+              "replaces": "val_6998"
+            },
+            {
+              "name": "host_shape_5",
+              "type": "int64",
+              "shape": [
+                4
+              ],
+              "values": [
+                {
+                  "constant": 1
+                },
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 1,
+                  "addend": 0
+                },
+                {
+                  "constant": 2
+                },
+                {
+                  "constant": 256
+                }
+              ],
+              "replaces": "val_7035"
+            },
+            {
+              "name": "host_shape_6",
+              "type": "int64",
+              "shape": [
+                5
+              ],
+              "values": [
+                {
+                  "constant": 1
+                },
+                {
+                  "constant": 2
+                },
+                {
+                  "constant": 4
+                },
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 1,
+                  "addend": 0
+                },
+                {
+                  "constant": 256
+                }
+              ],
+              "replaces": "val_7134"
+            },
+            {
+              "name": "host_shape_7",
+              "type": "int64",
+              "shape": [
+                4
+              ],
+              "values": [
+                {
+                  "constant": 1
+                },
+                {
+                  "constant": 8
+                },
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 1,
+                  "addend": 0
+                },
+                {
+                  "constant": 256
+                }
+              ],
+              "replaces": "val_7140"
+            }
+          ],
+          "decode": [
+            {
+              "name": "host_query_position_i32",
+              "type": "int32",
+              "shape": [
+                1
+              ],
+              "sourceTensor": "past_key_values.11.value",
+              "axis": 2,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "name": "host_range_limit_i32",
+              "type": "int32",
+              "shape": [],
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "name": "host_shape_0",
+              "type": "int64",
+              "shape": [
+                5
+              ],
+              "values": [
+                {
+                  "constant": 1
+                },
+                {
+                  "constant": 2
+                },
+                {
+                  "constant": 4
+                },
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 1,
+                  "addend": 0
+                },
+                {
+                  "constant": 256
+                }
+              ],
+              "replaces": "val_529"
+            },
+            {
+              "name": "host_shape_1",
+              "type": "int64",
+              "shape": [
+                4
+              ],
+              "values": [
+                {
+                  "constant": 1
+                },
+                {
+                  "constant": 8
+                },
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 1,
+                  "addend": 0
+                },
+                {
+                  "constant": 256
+                }
+              ],
+              "replaces": "val_535"
+            }
+          ]
+        },
+        "rotaryLookup": {
+          "minimumPosition": 0,
+          "maximumPositionExclusive": 2048,
+          "construction": "Pinned source ONNX CPU rotary subgraph, export time only",
+          "runtime": "ONNX WebGPU Gather/Where/Concat"
+        },
+        "siluLowering": {
+          "precision": "float32",
+          "formula": "x / (1 + exp(-x))",
+          "source": "Pinned native SiLU CPU primitive comparison; replace only exact x*Sigmoid(x) graph patterns"
+        }
+      },
+      "artifact": {
+        "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/silu-native-01/receipt.json",
+        "sha256": "161445d59b6cff2747d24bcd292657e90e0730c4855e1c46fa74fd286f52d33a"
+      },
+      "sourceSha256": {
+        "validate_onnx_cpu.py": "0d88026b67bb9660018a65e840a769f3b15d9131ddcc93cc95d5aff7a5d06fde",
+        "native_model.py": "d06227124c68fea5bc4e6ba6b6b0f59ca0c1e26bc86717fceb5fffad6b83ff63",
+        "export_text.py": "ba6ca19ed9af5dff1c8fa5016c1dbc838d882d5999c077d04568b45eae866bcc"
+      }
+    },
+    {
+      "name": "activations-native-cpu-01",
+      "scope": "ONNX CPU numerical execution only; no TJS, GPU or speed proof",
+      "receipt": {
+        "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/activations-native-cpu-01/receipt.json",
+        "sha256": "a211f1ee70011731e1f4e0038620c6e7a444e10669369fed2f962489b626634e"
+      },
+      "completed": true,
+      "pass": false,
+      "checks": 735,
+      "failedChecks": 47,
+      "logitRows": 15,
+      "logitRowsPassing": 15,
+      "maxLogitError": 4.7206878662109375e-05,
+      "firstFailure": {
+        "case": "prefill-1-prefill-0",
+        "name": "present_conv.16",
+        "dtype": "float32",
+        "shape": [
+          1,
+          6144,
+          4
+        ],
+        "maxAbsoluteError": 2.7179718017578125e-05,
+        "meanAbsoluteError": 7.090011990840139e-07,
+        "pass": false
+      },
+      "contract": {
+        "batchSize": 1,
+        "prefillBound": 704,
+        "maxSequenceLength": 2048,
+        "cpuPrefillLengths": [
+          1,
+          2,
+          28
+        ],
+        "cpuDecodeSteps": 4,
+        "logitAbsoluteTolerance": 0.001,
+        "stateAbsoluteTolerance": 1e-05,
+        "stateRelativeTolerance": 0.0001,
+        "kvStateMaxRepresentableSteps": 1,
+        "kvPhysicalDtype": "float32",
+        "linearStateDtype": "float32",
+        "attentionMathDtype": "float32",
+        "scope": "Separate all-F32-KV lane for the four frozen prompts; prefill bound704 and total context2048 remain explicit. No F16 or quantized-format claim.",
+        "sessionRouting": "Explicit prefill/decode adapter supplied through the public TJS model constructor; no token-at-a-time prefill",
+        "integerInputs": {
+          "position_ids": "int32",
+          "attention_mask": "int32"
+        },
+        "hostGeometryInputs": {
+          "prefill": [
+            {
+              "name": "host_range_limit_i32",
+              "type": "int32",
+              "shape": [],
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "name": "host_shape_0",
+              "type": "int64",
+              "shape": [
+                4
+              ],
+              "values": [
+                {
+                  "constant": 1
+                },
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 1,
+                  "addend": 0
+                },
+                {
+                  "constant": 16
+                },
+                {
+                  "constant": 128
+                }
+              ],
+              "replaces": "val_21"
+            },
+            {
+              "name": "host_shape_1",
+              "type": "int64",
+              "shape": [
+                1
+              ],
+              "values": [
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 1,
+                  "addend": 0
+                }
+              ],
+              "replaces": "val_18"
+            },
+            {
+              "name": "host_shape_2",
+              "type": "int64",
+              "shape": [
+                2
+              ],
+              "values": [
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 16,
+                  "addend": 0
+                },
+                {
+                  "constant": 128
+                }
+              ],
+              "replaces": "val_2360"
+            },
+            {
+              "name": "host_shape_3",
+              "type": "int64",
+              "shape": [
+                3
+              ],
+              "values": [
+                {
+                  "constant": 1
+                },
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 1,
+                  "addend": 0
+                },
+                {
+                  "constant": 2048
+                }
+              ],
+              "replaces": "val_2374"
+            },
+            {
+              "name": "host_shape_4",
+              "type": "int64",
+              "shape": [
+                4
+              ],
+              "values": [
+                {
+                  "constant": 1
+                },
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 1,
+                  "addend": 0
+                },
+                {
+                  "constant": 8
+                },
+                {
+                  "constant": 512
+                }
+              ],
+              "replaces": "val_6998"
+            },
+            {
+              "name": "host_shape_5",
+              "type": "int64",
+              "shape": [
+                4
+              ],
+              "values": [
+                {
+                  "constant": 1
+                },
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 1,
+                  "addend": 0
+                },
+                {
+                  "constant": 2
+                },
+                {
+                  "constant": 256
+                }
+              ],
+              "replaces": "val_7035"
+            },
+            {
+              "name": "host_shape_6",
+              "type": "int64",
+              "shape": [
+                5
+              ],
+              "values": [
+                {
+                  "constant": 1
+                },
+                {
+                  "constant": 2
+                },
+                {
+                  "constant": 4
+                },
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 1,
+                  "addend": 0
+                },
+                {
+                  "constant": 256
+                }
+              ],
+              "replaces": "val_7134"
+            },
+            {
+              "name": "host_shape_7",
+              "type": "int64",
+              "shape": [
+                4
+              ],
+              "values": [
+                {
+                  "constant": 1
+                },
+                {
+                  "constant": 8
+                },
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 1,
+                  "addend": 0
+                },
+                {
+                  "constant": 256
+                }
+              ],
+              "replaces": "val_7140"
+            }
+          ],
+          "decode": [
+            {
+              "name": "host_query_position_i32",
+              "type": "int32",
+              "shape": [
+                1
+              ],
+              "sourceTensor": "past_key_values.11.value",
+              "axis": 2,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "name": "host_range_limit_i32",
+              "type": "int32",
+              "shape": [],
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "name": "host_shape_0",
+              "type": "int64",
+              "shape": [
+                5
+              ],
+              "values": [
+                {
+                  "constant": 1
+                },
+                {
+                  "constant": 2
+                },
+                {
+                  "constant": 4
+                },
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 1,
+                  "addend": 0
+                },
+                {
+                  "constant": 256
+                }
+              ],
+              "replaces": "val_529"
+            },
+            {
+              "name": "host_shape_1",
+              "type": "int64",
+              "shape": [
+                4
+              ],
+              "values": [
+                {
+                  "constant": 1
+                },
+                {
+                  "constant": 8
+                },
+                {
+                  "sourceTensor": "attention_mask",
+                  "axis": 1,
+                  "multiplier": 1,
+                  "addend": 0
+                },
+                {
+                  "constant": 256
+                }
+              ],
+              "replaces": "val_535"
+            }
+          ]
+        },
+        "rotaryLookup": {
+          "minimumPosition": 0,
+          "maximumPositionExclusive": 2048,
+          "construction": "Pinned source ONNX CPU rotary subgraph, export time only",
+          "runtime": "ONNX WebGPU Gather/Where/Concat"
+        },
+        "siluLowering": {
+          "precision": "float32",
+          "formula": "x / (1 + exp(-x))",
+          "source": "Pinned native SiLU CPU primitive comparison; replace only exact x*Sigmoid(x) graph patterns"
+        },
+        "sigmoidLowering": {
+          "precision": "float32",
+          "formula": "1 / (1 + exp(-x))",
+          "source": "Pinned native sigmoid primitive comparison; retain all gates and precision"
+        }
+      },
+      "artifact": {
+        "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/activations-native-01/receipt.json",
+        "sha256": "6674f89a0cc6fb0ff6990e8dc194d43e6ad09b9ce5cbc9533dc9c121bd05342d"
+      },
+      "sourceSha256": {
+        "validate_onnx_cpu.py": "0d88026b67bb9660018a65e840a769f3b15d9131ddcc93cc95d5aff7a5d06fde",
+        "native_model.py": "d06227124c68fea5bc4e6ba6b6b0f59ca0c1e26bc86717fceb5fffad6b83ff63",
+        "export_text.py": "ba6ca19ed9af5dff1c8fa5016c1dbc838d882d5999c077d04568b45eae866bcc"
+      }
+    }
+  ]
+}
