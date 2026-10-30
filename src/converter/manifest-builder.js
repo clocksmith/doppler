@@ -666,6 +666,7 @@ export function createManifest(
         options.convertedAt
         ?? options.conversionInfo?.convertedAt
       ),
+      ...(model.sourceExclusions?.length ? { sourceExclusions: model.sourceExclusions } : {}),
     },
   };
 
