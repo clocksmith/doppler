@@ -15,7 +15,7 @@ import { allowReadback } from '../../../../debug/perf-guards.js';
 
 import { log } from '../../../../debug/index.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
-import { isDecodeRecorderEnabled, isProfileDecodeRecorderEnabled } from '../execution-plan.js';
+import { attachPreparedDecodeWorkspace, isDecodeRecorderEnabled, isProfileDecodeRecorderEnabled } from '../execution-plan.js';
 import { sample, applyRepetitionPenalty, applyPresencePenalty, logitsSanity } from '../sampling.js';
 
 import { embed } from '../embed.js';
@@ -393,6 +393,8 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     }
     const context = helpers.buildLayerContext(recorder, true, opts.debugLayers, executionPlan);
     context.currentTokenIds = [lastToken];
+    attachPreparedDecodeWorkspace((state.resolvedRuntimeSession?.runtime?.session
+      ?? state.runtimeConfig.inference.session).usePreparedDecodeWorkspace, recorder, context, device);
     state.decodeBuffers.resetPingPong();
     const decodeHiddenBuffer = state.decodeBuffers.getHiddenBuffer();
     const decodeAltBuffer = state.decodeBuffers.getOutputHiddenBuffer();
@@ -873,8 +875,12 @@ export async function decodeStepLogits(state, currentIds, opts, helpers) {
       opts,
       {
         ...helpers,
-        buildLayerContext: (ignoredRecorder, isDecode, debugLayers, executionPlan) =>
-          helpers.buildLayerContext(recorder, isDecode, debugLayers, executionPlan),
+        buildLayerContext: (ignoredRecorder, isDecode, debugLayers, executionPlan) => {
+          const context = helpers.buildLayerContext(recorder, isDecode, debugLayers, executionPlan);
+          attachPreparedDecodeWorkspace((state.resolvedRuntimeSession?.runtime?.session
+            ?? state.runtimeConfig.inference.session).usePreparedDecodeWorkspace, recorder, context, getDevice());
+          return context;
+        },
       }
     ));
 
