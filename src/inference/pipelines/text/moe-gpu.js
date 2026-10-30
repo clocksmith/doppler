@@ -13,6 +13,7 @@ import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { getRuntimeConfig } from '../../../config/runtime.js';
 import {
   validateMoeShape,
+  assertMoeRoutingContract,
   resolveMoeExecutionProfile,
   resolveMoeIntermediateSize,
   resolveMoeVendorProfile,
@@ -181,6 +182,7 @@ export async function moeFeedForwardGPU(
   }
   const modelType = config.modelType;
   const moeProfile = resolveMoeExecutionProfile(config, { modelType });
+  assertMoeRoutingContract(moeProfile, moeRouter);
   const intermediateSize = resolveMoeIntermediateSize(config, moeProfile);
   validateMoeShape(
     { hiddenSize, intermediateSize, moeTopK: topK, numExperts, expertFormat },

@@ -139,7 +139,8 @@
         "matmulRoles": {
           "gateUp": "ffn_gate",
           "down": "ffn_down"
-        }
+        },
+        "requiresNormalizedTopK": true
       }
     }
   ],
