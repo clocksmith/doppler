@@ -38,6 +38,8 @@ export interface LayerLoaderContext {
   keepF32Weights: boolean;
   /** Whether model is MoE */
   isMoE: boolean;
+  /** Source manifest expert format; required when loading an MoE layer. */
+  expertFormat?: string | null;
   /** Check if layer is an expert layer */
   isExpertLayer: (layerIdx: number) => boolean;
   /** Load dense FFN weights even when a layer also has MoE experts. */

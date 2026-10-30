@@ -38,5 +38,5 @@ async function checkFailureSettlement(failingSuffix, lateSuffix, overrides = {})
 
 await checkFailureSettlement('linear_attn.in_proj_qkv.weight', 'linear_attn.in_proj_z.weight');
 await checkFailureSettlement('mlp.gate_proj.weight', 'mlp.down_proj.weight');
-await checkFailureSettlement('mlp.router.weight', 'mlp.router.bias', { isMoE: true, isExpertLayer: () => true });
+await checkFailureSettlement('mlp.router.weight', 'mlp.router.bias', { isMoE: true, expertFormat: 'mixtral', isExpertLayer: () => true });
 console.log('parallel-weight-load-cleanup.test: ok');

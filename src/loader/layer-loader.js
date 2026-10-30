@@ -667,6 +667,9 @@ async function materializeRouterPerExpertScale(ctx, weight, layerIdx) {
 }
 
 async function loadRouterWeights(ctx, weights, layerIdx, tryLoad) {
+  if (typeof ctx.expertFormat !== 'string' || ctx.expertFormat.length === 0) {
+    throw new Error(`[MoE] Layer ${layerIdx} requires expertFormat in its loader context.`);
+  }
   const [routerWeight, routerBias, routerScale, routerPerExpertScale] = await settleWeightLoads([
     tryLoad(ROUTER_SUFFIXES.routerWeight),
     tryLoad(ROUTER_SUFFIXES.routerBias),
@@ -678,7 +681,7 @@ async function loadRouterWeights(ctx, weights, layerIdx, tryLoad) {
   weights.routerBias =  (routerBias);
   weights.routerScale =  (routerScale);
   weights.routerPerExpertScale =  (await materializeRouterPerExpertScale(ctx, routerPerExpertScale, layerIdx));
-  if (ctx.manifest?.moeConfig?.expertFormat === 'qwen3_5') {
+  if (ctx.expertFormat === 'qwen3_5') {
     const [sharedExpertGate, sharedExpertUp, sharedExpertDown, sharedExpertRouter] = await settleWeightLoads([
       tryLoad(ROUTER_SUFFIXES.sharedExpertGate), tryLoad(ROUTER_SUFFIXES.sharedExpertUp),
       tryLoad(ROUTER_SUFFIXES.sharedExpertDown), tryLoad(ROUTER_SUFFIXES.sharedExpertRouter),
@@ -686,10 +689,7 @@ async function loadRouterWeights(ctx, weights, layerIdx, tryLoad) {
     if (!sharedExpertGate || !sharedExpertUp || !sharedExpertDown || !sharedExpertRouter) {
       throw new Error(`[MoE] Qwen layer ${layerIdx} missing shared expert projection or gate.`);
     }
-    weights.sharedExpertGate = sharedExpertGate;
-    weights.sharedExpertUp = sharedExpertUp;
-    weights.sharedExpertDown = sharedExpertDown;
-    weights.sharedExpertRouter = sharedExpertRouter;
+    Object.assign(weights, { sharedExpertGate, sharedExpertUp, sharedExpertDown, sharedExpertRouter });
   }
 }
 
