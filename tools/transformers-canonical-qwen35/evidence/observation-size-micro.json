@@ -1,0 +1,70 @@
+{
+  "schema": "doppler.ort-sized-initializer-readback-micro.v1",
+  "qualification": false,
+  "scope": "Synthetic initializer Identity outputs beside a dynamic Gather; transport only, no canonical model or timing qualification",
+  "attempts": [
+    {
+      "bytes": 4096,
+      "expectedSha256": "e7c7bdd5620ab409a91570e1c06d99d2cd206cdcf38708fbd4d41f33b5306b0e",
+      "phases": [
+        "create-session",
+        "run-gather-and-identity",
+        "read-exact-helper",
+        "browser-sha256",
+        "complete"
+      ],
+      "gpuErrors": [],
+      "adapter": {
+        "vendor": "amd",
+        "architecture": "rdna-3"
+      },
+      "sourceLocation": "gpu-buffer",
+      "observedSha256": "e7c7bdd5620ab409a91570e1c06d99d2cd206cdcf38708fbd4d41f33b5306b0e",
+      "locationAfterRead": "gpu-buffer",
+      "pass": true
+    },
+    {
+      "bytes": 16777216,
+      "expectedSha256": "b19f996932676fffa0b18f7e75cfcf31df144317ef6f0b9968cc378d36e38df2",
+      "phases": [
+        "create-session",
+        "run-gather-and-identity",
+        "read-exact-helper",
+        "browser-sha256",
+        "complete"
+      ],
+      "gpuErrors": [],
+      "adapter": {
+        "vendor": "amd",
+        "architecture": "rdna-3"
+      },
+      "sourceLocation": "gpu-buffer",
+      "observedSha256": "b19f996932676fffa0b18f7e75cfcf31df144317ef6f0b9968cc378d36e38df2",
+      "locationAfterRead": "gpu-buffer",
+      "pass": true
+    }
+  ],
+  "pass": true,
+  "identity": {
+    "configSha256": "13ef5b34186d90abd130b605d3d9b72954cb32f5dfb14bd575bb3ff613b29c68",
+    "fixturesSha256": "e867cb9fb7c2630890ab24de6a6abd00e2883de8ae884f51efc8377fb75ba07f",
+    "files": [
+      {
+        "path": "/home/x/deco/doppler/tools/transformers-canonical-qwen35/probe_readback_size.js",
+        "sha256": "e9450939e9627913dbceb2d9c5f703b5eda474ff83784974b05f5d3398aed4f6"
+      },
+      {
+        "path": "/home/x/deco/doppler/tools/transformers-canonical-qwen35/observe_gpu.js",
+        "sha256": "901f4f9cc03c929f5a26b37a835ae379d7e16d76330e4edd3632c62d04d95ece"
+      },
+      {
+        "path": "/home/x/deco/doe/bench/out/external-projects/doppler/upstream/node_modules/@huggingface/transformers/node_modules/onnxruntime-web/dist/ort.webgpu.min.mjs",
+        "sha256": "25e7e706b8165f2096b5e29853dda64e9b1f09bdf29b4384f8d0afa9fb6db22d"
+      },
+      {
+        "path": "/home/x/deco/doe/bench/out/external-projects/doppler/upstream/node_modules/@huggingface/transformers/node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.jsep.wasm",
+        "sha256": "ae61141f8fbf0a4e43fd7b4f4d40a1a115627f6facc4f33ddf84074a655e33ea"
+      }
+    ]
+  }
+}

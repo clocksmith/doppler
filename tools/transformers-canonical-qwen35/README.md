@@ -118,6 +118,20 @@ listeners to the actual public `await ort.env.webgpu.device` result. The
 earlier 15-row receipt listened on the requested device, so its empty GPU-error
 list has that narrower scope. Direct readback transport is still under repair.
 
+The repaired byte reader passed separate synthetic initializer tests at 4 KiB
+and 16 MiB using the exact shared `readGpuTensor` helper and browser SHA-256.
+Both complete-byte hashes matched, buffers stayed GPU resident, and actual
+device error lists were empty. Each operation was bounded by five seconds.
+This proves transport at those sizes; canonical initializer readback remains
+pending. New weight observation sends only digest receipts. State comparison
+fetches frozen native state files and compares locally, with NumPy F32
+threshold-boundary tests; it has not yet run against model GPU states.
+
+Separate CPU activation hypotheses retain failures: compensated Softplus
+failed 55/735 strict checks, division-form SiLU failed 39/735, and division-form
+SiLU plus sigmoid failed 47/735. All their logit rows passed, but none was
+promoted or substituted for the original 53-failure source.
+
 The original full-text frontend declares a 704-token prefill bound: its graph computes
 11 padded chunks even for a 28-token prompt. This is extra work and a current
 scheduler limitation. The prepared 64/704 bridge reports each selected bound

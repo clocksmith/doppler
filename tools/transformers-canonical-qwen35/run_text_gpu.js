@@ -25,6 +25,9 @@ const modelReceipt = JSON.parse(await fs.readFile(modelReceiptPath));
 const cpuReceipt = JSON.parse(await fs.readFile(cpuReceiptPath));
 const teacherPath = config.numericalMode === 'frozen-teacher' ? path.join(config.teacherDir, 'receipt.json') : null;
 const teacher = teacherPath ? JSON.parse(await fs.readFile(teacherPath)) : null;
+const stateTeacherPath = config.compareStateSnapshots === true ? path.join(config.teacherStateDir, 'receipt.json') : null;
+const teacherStates = stateTeacherPath ? JSON.parse(await fs.readFile(stateTeacherPath)) : null;
+if (config.compareStateSnapshots && config.captureStateSnapshots) throw new Error('Select state comparison or raw capture, not both');
 const modelConfig = JSON.parse(await fs.readFile(path.join(config.modelDir, 'config.json')));
 const basePolicy = JSON.parse(await fs.readFile(path.join(here, 'contract.json')));
 if (!modelReceipt.completed || !cpuReceipt.completed ||
@@ -43,6 +46,13 @@ if (teacher && (!teacher.completed || teacher.contract.maxNewTokens !== policy.t
     teacher.contract.kvPhysicalDtype !== modelReceipt.contract.kvPhysicalDtype ||
     JSON.stringify(teacher.inputs) !== JSON.stringify(modelReceipt.inputs) || teacher.prompts.length !== 4)) {
   throw new Error('Frozen four-prompt teacher identity, budget, EOS or physical-cache lane differs');
+}
+if (teacherStates && (!teacher || !teacherStates.completed ||
+    JSON.stringify(teacherStates.inputs) !== JSON.stringify(modelReceipt.inputs) ||
+    teacherStates.contract.kvPhysicalDtype !== 'float32' || teacherStates.prompts.length !== teacher.prompts.length || teacherStates.prompts.some((prompt, index) =>
+      prompt.id !== teacher.prompts[index].id || JSON.stringify(prompt.generatedTokenIds) !== JSON.stringify(teacher.prompts[index].generatedTokenIds) ||
+      JSON.stringify(prompt.promptIds) !== JSON.stringify(teacher.prompts[index].promptIds)))) {
+  throw new Error('Independent native state teacher identity, physical dtype or token trajectory differs');
 }
 const externalFiles = new Map();
 for (const artifact of modelReceipt.artifacts) {
@@ -72,20 +82,43 @@ if (teacher) for (const prompt of teacher.prompts) for (const row of prompt.snap
   if (await fileHash(file) !== row.sha256) throw new Error(`Frozen teacher snapshot differs: ${file}`);
   nativeFiles.set(row.file, file);
 }
+if (teacherStates) for (const prompt of teacherStates.prompts) for (const snapshot of prompt.snapshots) {
+  const sourcePrompt = teacher.prompts.find(value => value.id === prompt.id);
+  if (JSON.stringify(prompt.snapshots.map(row => row.step)) !== JSON.stringify(teacher.contract.snapshotSteps) ||
+      snapshot.sha256 !== sourcePrompt.snapshots.find(row => row.step === snapshot.step)?.sha256 ||
+      snapshot.states.length !== 48 || new Set(snapshot.states.map(state => state.name)).size !== 48) {
+    throw new Error('Native state snapshot inventory or source logit hashes differ');
+  }
+  const ports = cachePorts(modelConfig, modelReceipt.contract.kvPhysicalDtype);
+  for (const state of snapshot.states) {
+    const port = ports.find(value => value.output === state.name);
+    const shape = port?.shape.map(value => value ?? prompt.promptIds.length + snapshot.step);
+    if (!port || JSON.stringify(shape) !== JSON.stringify(state.shape) || state.bytes !== 4 * shape.reduce((a, b) => a * b, 1)) {
+      throw new Error('Independent state geometry differs from explicit model cache contract');
+    }
+    const file = path.join(config.teacherStateDir, state.file);
+    if (state.dtype !== 'float32' || (await fs.stat(file)).size !== state.bytes || await fileHash(file) !== state.sha256) {
+      throw new Error('Independent native state bytes or physical type changed: ' + file);
+    }
+    nativeFiles.set(state.file, file);
+  }
+}
 await fs.mkdir(config.outputDir, { recursive: false });
 const identities = { configSha256: sha(configBytes), modelReceipt: { path: modelReceiptPath, sha256: await fileHash(modelReceiptPath) },
   cpuReceipt: { path: cpuReceiptPath, sha256: await fileHash(cpuReceiptPath) }, files: {} };
-for (const file of ['run_text_gpu.js', 'text_gpu_browser.js', 'tjs_model.js', 'bucketed_prefill.js', 'teacher_cases.js', 'observed_session.js', 'observe_gpu.js']) identities.files[file] = await fileHash(path.join(here, file));
+for (const file of ['run_text_gpu.js', 'text_gpu_browser.js', 'tjs_model.js', 'bucketed_prefill.js', 'teacher_cases.js', 'observed_session.js', 'observe_gpu.js', 'compare_state.js']) identities.files[file] = await fileHash(path.join(here, file));
 if (teacher) identities.teacher = { path: teacherPath, sha256: await fileHash(teacherPath) };
+if (teacherStates) identities.teacherStates = { path: stateTeacherPath, sha256: await fileHash(stateTeacherPath) };
 for (const [name, file] of [['tjs', path.join(config.tjsDist, 'transformers.web.min.js')],
   ['ort', path.join(config.ortDist, 'ort.webgpu.min.mjs')],
   ['ortWasm', path.join(config.ortDist, 'ort-wasm-simd-threaded.jsep.wasm')]]) {
   identities.files[name] = { path: file, sha256: await fileHash(file) };
 }
 await fs.writeFile(path.join(config.outputDir, 'identity.json'), JSON.stringify(identities, null, 2));
-const descriptor = { config, modelReceipt, cpuReceipt, teacher, modelConfig, policy, sessions: sessionDescriptions,
+const descriptor = { config, modelReceipt, cpuReceipt, teacher, teacherStates, modelConfig, policy, sessions: sessionDescriptions,
   cpuGate: { path: cpuReceiptPath, sha256: await fileHash(cpuReceiptPath), pass: cpuReceipt.pass,
-    failedChecks: cpuReceipt.checks.filter(check => !check.pass).length, qualification: false },
+    failedChecks: cpuReceipt.checks.filter(check => !check.pass).length, qualification: false,
+    ...(modelReceipt.bucketSources ? { bucketGates: modelReceipt.bucketSources.map(source => ({ bound: source.bound, ...source.cpuGate })) } : {}) },
   sessionInitializerBytes: Object.fromEntries(Object.entries(initializer.graphs).map(([name, entries]) =>
     [name, entries.reduce((sum, entry) => sum + entry.bytes, 0)])) };
 const logs = [], errors = [], events = [];
@@ -93,13 +126,53 @@ const observationExpected = new Map(Object.entries(nameMap).flatMap(([session, g
   (modelReceipt.readbackPorts?.[graph] ?? []).map(port => [`${session}:${port.output}`, { ...port, session }])));
 const observations = new Map();
 const stateObservations = new Map();
-if ((observationExpected.size || config.captureStateSnapshots === true) && (!Number.isSafeInteger(config.weightReadbackChunkBytes) ||
+if (observationExpected.size && !['browser-sha256', 'stream-bytes'].includes(config.weightObservationTransport)) {
+  throw new Error('Select explicit weightObservationTransport: browser-sha256 or stream-bytes');
+}
+if (observationExpected.size && config.weightObservationTransport === 'browser-sha256' &&
+    (!Number.isSafeInteger(config.maxObservationTensorBytes) ||
+      config.maxObservationTensorBytes < Math.max(...[...observationExpected.values()].map(port => port.bytes)))) {
+  throw new Error('Explicit maxObservationTensorBytes must cover every initializer observation');
+}
+if ((observationExpected.size || config.captureStateSnapshots === true || config.compareStateSnapshots === true) &&
+    (!Number.isSafeInteger(config.observationStepTimeoutMs) || config.observationStepTimeoutMs <= 0)) {
+  throw new Error('Observation requires explicit positive observationStepTimeoutMs');
+}
+if (teacherStates && (!Number.isSafeInteger(config.maxObservationTensorBytes) ||
+    config.maxObservationTensorBytes < Math.max(...teacherStates.prompts.flatMap(prompt =>
+      prompt.snapshots.flatMap(snapshot => snapshot.states.map(state => state.bytes)))))) {
+  throw new Error('Explicit maxObservationTensorBytes must cover every independent state observation');
+}
+if ((observationExpected.size || config.captureStateSnapshots === true || config.compareStateSnapshots === true) && (!Number.isSafeInteger(config.weightReadbackChunkBytes) ||
     config.weightReadbackChunkBytes < 4 || config.weightReadbackChunkBytes % 4)) {
   throw new Error('GPU observation requires explicit positive, four-byte-aligned weightReadbackChunkBytes');
 }
 const server = http.createServer(async (request, response) => {
   try {
     const pathname = new URL(request.url, 'http://localhost').pathname;
+    if (pathname.startsWith('/weight-digest/') && request.method === 'POST') {
+      if (config.weightObservationTransport !== 'browser-sha256') throw new Error('Browser digest observation is not enabled');
+      const key = decodeURIComponent(pathname.slice('/weight-digest/'.length)), expected = observationExpected.get(key);
+      if (!expected || observations.has(key)) throw new Error('Unknown or duplicate initializer digest');
+      const chunks = [];
+      let bytes = 0;
+      for await (const chunk of request) {
+        bytes += chunk.length;
+        if (bytes > 4096) throw new Error('Digest receipt is not tensor data');
+        chunks.push(chunk);
+      }
+      const observed = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+      if (observed.bytes !== expected.bytes || !/^[0-9a-f]{64}$/.test(observed.sha256) ||
+          observed.sourceLocation !== 'gpu-buffer' || observed.locationAfterRead !== 'gpu-buffer') {
+        throw new Error('Initializer digest does not describe the declared unchanged GPU tensor');
+      }
+      const receipt = { ...expected, observedSha256: observed.sha256,
+        pass: observed.sha256 === expected.expectedSha256,
+        transport: 'Actual inference-session GPU Identity output, bounded GPU copy/map, browser SHA-256 over complete bytes' };
+      observations.set(key, { receipt });
+      response.writeHead(200, { 'Content-Type': 'application/json' });
+      response.end(JSON.stringify({ receipt })); return;
+    }
     if (pathname.startsWith('/state-readback/') && request.method === 'POST') {
       if (config.captureStateSnapshots !== true || !teacher) throw new Error('State capture is not enabled for a frozen teacher');
       const url = new URL(request.url, 'http://localhost');
@@ -141,6 +214,7 @@ const server = http.createServer(async (request, response) => {
       response.end(JSON.stringify({ bytes: progress.offset, receipt: progress.receipt })); return;
     }
     if (pathname.startsWith('/weight-readback/') && request.method === 'POST') {
+      if (config.weightObservationTransport !== 'stream-bytes') throw new Error('Raw initializer upload is not enabled');
       const url = new URL(request.url, 'http://localhost');
       const key = decodeURIComponent(pathname.slice('/weight-readback/'.length));
       const expected = observationExpected.get(key), offset = Number(url.searchParams.get('offset'));
@@ -220,6 +294,14 @@ try {
   result.stateObservations = [...stateObservations.values()].flatMap(value => value.receipt ? [value.receipt] : []);
   await fs.writeFile(path.join(config.outputDir, 'result.json'), JSON.stringify({ ...result, browserErrors: errors }, null, 2));
   if (result.error || errors.length) throw new Error(result.error || errors.join('\n'));
+} catch (error) {
+  await fs.writeFile(path.join(config.outputDir, 'runner-failure.json'), JSON.stringify({
+    schema: 'doppler.canonical-tjs-runner-failure.v1', qualification: false, executionCompleted: false,
+    error: String(error), identity: identities, lastEvent: events.at(-1),
+    completedInitializerObservations: [...observations.values()].flatMap(value => value.receipt ? [value.receipt] : []),
+    scope: 'Retained incomplete diagnostic; no model correctness or weight-mismatch attribution from timeout alone',
+  }, null, 2));
+  throw error;
 } finally {
   await context?.close(); await new Promise(resolve => server.close(resolve));
   for (const value of stateObservations.values()) await value.handle?.close();

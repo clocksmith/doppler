@@ -1,0 +1,153 @@
+{
+  "schema": "doppler.pinned-ort-gpu-op-admission.v1",
+  "scope": "Exact-dtype micrographs, no CPU fallback, no model qualification",
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3"
+  },
+  "attempts": [
+    {
+      "name": "reshape-direct-metadata",
+      "admitted": true,
+      "executed": true,
+      "output": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "expected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "inspection": {
+        "sourceLocation": "gpu-buffer",
+        "requestedDeviceHonored": false,
+        "actualAdapter": {
+          "vendor": "amd",
+          "architecture": "rdna-3"
+        },
+        "gpuErrors": [],
+        "phases": [
+          "direct-copy-submit",
+          "direct-copy-map",
+          "mapped-http-upload",
+          "direct-copy-complete",
+          "empty-error-scope",
+          "empty-error-scope-complete",
+          "public-tensor-getData",
+          "public-tensor-getData-complete"
+        ],
+        "directCopy": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "directCopyExact": true,
+        "mappedUpload": {
+          "bytes": 48,
+          "sha256": "29e1889124dc651e7bb488251123910767d042ae6dc47c280ec364655e24ab49",
+          "expectedSha256": "29e1889124dc651e7bb488251123910767d042ae6dc47c280ec364655e24ab49",
+          "exact": true
+        },
+        "emptyErrorScope": null,
+        "publicDownload": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "publicDownloadExact": true,
+        "locationAfterPublicDownload": "cpu"
+      },
+      "exact": true
+    }
+  ],
+  "identity": {
+    "configSha256": "ccc10f0bb3d2e6939c2366bde785c5a1beeb98c05072ed9498094e30e389cae9",
+    "script": "afcadd4c49d0d2eb3f1c40df6b955ce8614a99e243f292a5a0c7765504416e50",
+    "ortWebGpu": "25e7e706b8165f2096b5e29853dda64e9b1f09bdf29b4384f8d0afa9fb6db22d",
+    "ortWasm": "ae61141f8fbf0a4e43fd7b4f4d40a1a115627f6facc4f33ddf84074a655e33ea",
+    "graphs": [
+      {
+        "name": "reshape-direct-metadata",
+        "file": "reshape-direct-metadata.onnx",
+        "sha256": "5459a0dee5ab597bf164da4986192fd5910dece471e0ea78aeeeb744041345f8",
+        "inputs": [
+          {
+            "name": "data",
+            "type": "float32",
+            "onnxType": 1,
+            "shape": [
+              1,
+              3,
+              4
+            ],
+            "values": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11
+            ]
+          },
+          {
+            "name": "shape",
+            "type": "int64",
+            "onnxType": 7,
+            "shape": [
+              3
+            ],
+            "values": [
+              1,
+              3,
+              4
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

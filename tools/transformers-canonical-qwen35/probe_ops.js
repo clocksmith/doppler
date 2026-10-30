@@ -6,13 +6,14 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
-const config = JSON.parse(await fs.readFile(process.argv[2]));
+const configBytes = await fs.readFile(process.argv[2]);
+const config = JSON.parse(configBytes);
 await fs.mkdir(config.outputDir, { recursive: false });
 const allCases = JSON.parse(await fs.readFile(path.join(config.probeDir, 'probes.json')));
 const cases = config.probeNames ? allCases.filter(test => config.probeNames.includes(test.name)) : allCases;
 if (config.probeNames && cases.length !== config.probeNames.length) throw new Error('Requested probe names differ from generated graph inventory');
 const sha = data => createHash('sha256').update(data).digest('hex');
-const identity = { script: sha(await fs.readFile(fileURLToPath(import.meta.url))),
+const identity = { configSha256: sha(configBytes), script: sha(await fs.readFile(fileURLToPath(import.meta.url))),
   ortWebGpu: sha(await fs.readFile(path.join(config.ortDist, 'ort.webgpu.min.mjs'))),
   ortWasm: sha(await fs.readFile(path.join(config.ortDist, 'ort-wasm-simd-threaded.jsep.wasm'))),
   graphs: await Promise.all(cases.map(async test => ({ name: test.name, file: test.file,
@@ -20,6 +21,21 @@ const identity = { script: sha(await fs.readFile(fileURLToPath(import.meta.url))
 const server = http.createServer(async (request, response) => {
   try {
     const pathname = new URL(request.url, 'http://localhost').pathname;
+    if (pathname === '/micro-readback' && request.method === 'POST') {
+      const name = new URL(request.url, 'http://localhost').searchParams.get('name');
+      const test = cases.find(value => value.name === name);
+      if (!test || config.inspectGpuTensor !== true) throw new Error('Unknown micrograph observation');
+      const checksum = createHash('sha256');
+      let bytes = 0;
+      for await (const chunk of request) {
+        bytes += chunk.length;
+        if (bytes > test.expected.length * 4) throw new Error('Micrograph byte observation exceeds declared output');
+        checksum.update(chunk);
+      }
+      const observed = checksum.digest('hex'), expected = sha(Buffer.from(Float32Array.from(test.expected).buffer));
+      response.writeHead(200, { 'Content-Type': 'application/json' });
+      response.end(JSON.stringify({ bytes, sha256: observed, expectedSha256: expected, exact: observed === expected })); return;
+    }
     if (pathname === '/') { response.writeHead(200, { 'Content-Type': 'text/html' }); response.end('op admission'); return; }
     const prefix = pathname.startsWith('/ort/') ? '/ort/' : '/probes/';
     const root = prefix === '/ort/' ? config.ortDist : config.probeDir;
@@ -57,13 +73,14 @@ try {
     const attempts = [];
     try {
       for (const test of cases) {
-        let session, output, inspection;
+        let session, output, inspection, admitted = false, executed = false;
         const feeds = {};
         try {
           session = await ort.InferenceSession.create(`/probes/${test.file}`, { executionProviders: ['webgpu'],
             graphOptimizationLevel: 'disabled', logSeverityLevel: 0, logVerbosityLevel: 1,
             ...(config.inspectGpuTensor === true ? { preferredOutputLocation: { output: 'gpu-buffer' } } : {}),
             extra: { session: { disable_cpu_ep_fallback: '1' } } });
+          admitted = true;
           if (config.admissionOnly === true) {
             attempts.push({ name: test.name, admitted: true, executed: false, sourceNodes: test.sourceNodes });
             continue;
@@ -76,6 +93,7 @@ try {
             feeds[input.name] = new ort.Tensor(input.type, data, input.shape);
           }
           output = await session.run(feeds);
+          executed = true;
           if (config.inspectGpuTensor === true) {
             if (!Number.isSafeInteger(config.gpuInspectionTimeoutMs) || config.gpuInspectionTimeoutMs <= 0) throw new Error('Declare positive gpuInspectionTimeoutMs');
             const actual = await ort.env.webgpu.device;
@@ -96,7 +114,14 @@ try {
               actual.queue.submit([commands.finish()]);
               phase('direct-copy-map');
               await bounded(target.mapAsync(GPUMapMode.READ), 'direct-copy-map');
-              inspection.directCopy = Array.from(new Float32Array(target.getMappedRange()));
+              const mapped = target.getMappedRange();
+              inspection.directCopy = Array.from(new Float32Array(mapped));
+              inspection.directCopyExact = inspection.directCopy.every((value, index) => value === test.expected[index]);
+              phase('mapped-http-upload');
+              const response = await fetch('/micro-readback?name=' + encodeURIComponent(test.name), {
+                method: 'POST', body: mapped, signal: AbortSignal.timeout(config.gpuInspectionTimeoutMs) });
+              if (!response.ok) throw new Error('Mapped micrograph upload rejected: ' + await response.text());
+              inspection.mappedUpload = await response.json();
               target.unmap(); phase('direct-copy-complete');
             } catch (error) { inspection.directCopyError = String(error); }
             finally { target.destroy(); }
@@ -110,17 +135,23 @@ try {
             phase('public-tensor-getData');
             const downloaded = await bounded(tensor.getData(), 'public-tensor-getData');
             inspection.publicDownload = Array.from(downloaded);
+            inspection.publicDownloadExact = inspection.publicDownload.every((value, index) => value === test.expected[index]);
             inspection.locationAfterPublicDownload = tensor.location;
             phase('public-tensor-getData-complete');
           }
           const data = Array.from(await output.output.getData(), Number);
-          attempts.push({ name: test.name, admitted: true, output: data,
+          attempts.push({ name: test.name, admitted: true, executed: true, output: data,
             expected: test.expected, inspection, exact: data.length === test.expected.length && data.every((value, index) => value === test.expected[index]) });
-        } catch (error) { attempts.push({ name: test.name, admitted: false, inspection, sourceNodes: test.sourceNodes, error: String(error) }); }
+        } catch (error) { attempts.push({ name: test.name, admitted, executed, inspection, sourceNodes: test.sourceNodes, error: String(error) }); }
         finally {
-          for (const tensor of Object.values(output ?? {})) tensor.dispose();
-          for (const tensor of Object.values(feeds)) tensor.dispose();
-          await session?.release();
+          const cleanupErrors = [];
+          for (const tensor of [...Object.values(output ?? {}), ...Object.values(feeds)]) {
+            try { tensor.dispose(); } catch (error) { cleanupErrors.push(String(error)); }
+          }
+          try {
+            if (session) await (config.inspectGpuTensor === true ? bounded(session.release(), 'session-release') : session.release());
+          } catch (error) { cleanupErrors.push(String(error)); }
+          if (cleanupErrors.length) attempts.at(-1).cleanupErrors = cleanupErrors;
         }
       }
     } finally { for (const actual of actualDevices) if (actual !== device) actual.destroy(); device.destroy(); }

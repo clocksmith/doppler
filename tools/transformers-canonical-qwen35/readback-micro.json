@@ -1,0 +1,11 @@
+{
+  "schema": "doppler.ort-readback-size-micro.v1",
+  "fixtureBytes": [4096, 16777216],
+  "rowWidth": 1024,
+  "patternPeriod": 65521,
+  "chunkBytes": 1048576,
+  "maxAllocationBytes": 16777216,
+  "operationTimeoutMs": 5000,
+  "overallTimeoutMs": 30000,
+  "scope": "Synthetic initializer Identity outputs beside a dynamic Gather; transport only, no canonical model or timing qualification"
+}
