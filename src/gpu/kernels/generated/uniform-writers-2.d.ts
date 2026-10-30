@@ -33,3 +33,4 @@ export declare function write_rope_precompute_paired(view: DataView, values: { "
 export declare function write_forecast_output_f32(view: DataView, values: { "horizon": number }, kernel: string): void;
 export declare function write_logit_suppress_f32(view: DataView, values: { "vocab_size": number; "token_count": number }, kernel: string): void;
 export declare function write_paired_pointwise_add(view: DataView, values: { "size": number; "scale_hi": number; "scale_lo": number }, kernel: string): void;
+export declare function write_moe_route_matmul_q4k_f32(view: DataView, values: { "M": number; "N": number; "K": number; "alpha": number; "num_blocks_per_row": number; "num_experts": number; "top_k": number; "input_mode": number }, kernel: string): void;

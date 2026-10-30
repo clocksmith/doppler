@@ -1,0 +1,310 @@
+{
+  "test": "qwen35-route",
+  "passed": true,
+  "provider": {
+    "schema": "doe.webgpu-provider-receipt/v1",
+    "contract": "doe.webgpu-provider/v1",
+    "implementation": "doppler",
+    "providers": [
+      {
+        "id": "pre-installed",
+        "kind": "global"
+      },
+      {
+        "id": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "gpu": {
+          "kind": "factory",
+          "path": "create",
+          "args": [
+            [
+              "enable-dawn-features=allow_unsafe_apis"
+            ]
+          ]
+        },
+        "globals": {
+          "GPUBufferUsage": "globals.GPUBufferUsage",
+          "GPUShaderStage": "globals.GPUShaderStage",
+          "GPUMapMode": "globals.GPUMapMode",
+          "GPUTextureUsage": "globals.GPUTextureUsage"
+        }
+      }
+    ],
+    "providerOrder": [
+      "pre-installed",
+      "webgpu"
+    ],
+    "adapterOptions": null,
+    "globals": {
+      "mode": "replace",
+      "installed": [
+        "GPUBufferUsage",
+        "GPUShaderStage",
+        "GPUMapMode",
+        "GPUTextureUsage",
+        "navigator.gpu"
+      ],
+      "restored": false
+    },
+    "attempts": [
+      {
+        "providerId": "pre-installed",
+        "kind": "global",
+        "module": null,
+        "ok": false,
+        "stage": "gpu.validate",
+        "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+        "detail": "Selected provider does not expose GPU.requestAdapter()."
+      },
+      {
+        "providerId": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "ok": true,
+        "stage": "complete",
+        "code": null,
+        "detail": null
+      }
+    ],
+    "selectedProviderId": "webgpu",
+    "ok": true
+  },
+  "cases": [
+    {
+      "K": 1,
+      "N": 1,
+      "E": 3,
+      "mode": "token",
+      "recorded": false,
+      "maxAbs": 8.121503469737945e-12
+    },
+    {
+      "K": 1,
+      "N": 1,
+      "E": 3,
+      "mode": "token",
+      "recorded": true,
+      "maxAbs": 8.121503469737945e-12
+    },
+    {
+      "K": 1,
+      "N": 1,
+      "E": 3,
+      "mode": "route",
+      "recorded": false,
+      "maxAbs": 4.154676602752261e-11
+    },
+    {
+      "K": 1,
+      "N": 1,
+      "E": 3,
+      "mode": "route",
+      "recorded": true,
+      "maxAbs": 4.154676602752261e-11
+    },
+    {
+      "K": 255,
+      "N": 7,
+      "E": 3,
+      "mode": "token",
+      "recorded": false,
+      "maxAbs": 1.1103044122995342e-07
+    },
+    {
+      "K": 255,
+      "N": 7,
+      "E": 3,
+      "mode": "token",
+      "recorded": true,
+      "maxAbs": 1.1103044122995342e-07
+    },
+    {
+      "K": 255,
+      "N": 7,
+      "E": 3,
+      "mode": "route",
+      "recorded": false,
+      "maxAbs": 4.5438946805198555e-07
+    },
+    {
+      "K": 255,
+      "N": 7,
+      "E": 3,
+      "mode": "route",
+      "recorded": true,
+      "maxAbs": 4.5438946805198555e-07
+    },
+    {
+      "K": 256,
+      "N": 33,
+      "E": 3,
+      "mode": "token",
+      "recorded": false,
+      "maxAbs": 2.811136274316617e-07
+    },
+    {
+      "K": 256,
+      "N": 33,
+      "E": 3,
+      "mode": "token",
+      "recorded": true,
+      "maxAbs": 2.811136274316617e-07
+    },
+    {
+      "K": 256,
+      "N": 33,
+      "E": 3,
+      "mode": "route",
+      "recorded": false,
+      "maxAbs": 8.19093491921663e-07
+    },
+    {
+      "K": 256,
+      "N": 33,
+      "E": 3,
+      "mode": "route",
+      "recorded": true,
+      "maxAbs": 8.19093491921663e-07
+    },
+    {
+      "K": 257,
+      "N": 37,
+      "E": 3,
+      "mode": "token",
+      "recorded": false,
+      "maxAbs": 2.6783026518817366e-07
+    },
+    {
+      "K": 257,
+      "N": 37,
+      "E": 3,
+      "mode": "token",
+      "recorded": true,
+      "maxAbs": 2.6783026518817366e-07
+    },
+    {
+      "K": 257,
+      "N": 37,
+      "E": 3,
+      "mode": "route",
+      "recorded": false,
+      "maxAbs": 7.291703186806942e-07
+    },
+    {
+      "K": 257,
+      "N": 37,
+      "E": 3,
+      "mode": "route",
+      "recorded": true,
+      "maxAbs": 7.291703186806942e-07
+    },
+    {
+      "K": 512,
+      "N": 17,
+      "E": 3,
+      "mode": "token",
+      "recorded": false,
+      "maxAbs": 3.385396118438244e-07
+    },
+    {
+      "K": 512,
+      "N": 17,
+      "E": 3,
+      "mode": "token",
+      "recorded": true,
+      "maxAbs": 3.385396118438244e-07
+    },
+    {
+      "K": 512,
+      "N": 17,
+      "E": 3,
+      "mode": "route",
+      "recorded": false,
+      "maxAbs": 7.002836344138785e-07
+    },
+    {
+      "K": 512,
+      "N": 17,
+      "E": 3,
+      "mode": "route",
+      "recorded": true,
+      "maxAbs": 7.002836344138785e-07
+    },
+    {
+      "K": 2048,
+      "N": 33,
+      "E": 3,
+      "mode": "token",
+      "recorded": false,
+      "maxAbs": 6.23635704133374e-07
+    },
+    {
+      "K": 2048,
+      "N": 33,
+      "E": 3,
+      "mode": "token",
+      "recorded": true,
+      "maxAbs": 6.23635704133374e-07
+    },
+    {
+      "K": 2048,
+      "N": 33,
+      "E": 3,
+      "mode": "route",
+      "recorded": false,
+      "maxAbs": 1.9888285636149305e-06
+    },
+    {
+      "K": 2048,
+      "N": 33,
+      "E": 3,
+      "mode": "route",
+      "recorded": true,
+      "maxAbs": 1.9888285636149305e-06
+    },
+    {
+      "K": 256,
+      "N": 5,
+      "E": 257,
+      "mode": "token",
+      "recorded": false,
+      "maxAbs": 2.515816502901558e-07
+    },
+    {
+      "K": 256,
+      "N": 5,
+      "E": 257,
+      "mode": "token",
+      "recorded": true,
+      "maxAbs": 2.515816502901558e-07
+    },
+    {
+      "K": 256,
+      "N": 5,
+      "E": 257,
+      "mode": "route",
+      "recorded": false,
+      "maxAbs": 5.09120109404293e-07
+    },
+    {
+      "K": 256,
+      "N": 5,
+      "E": 257,
+      "mode": "route",
+      "recorded": true,
+      "maxAbs": 5.09120109404293e-07
+    },
+    {
+      "executor": true,
+      "maxAbs": 2.3988434623032837e-09
+    },
+    {
+      "coreWithFixtureRouter": true,
+      "maxAbs": 2.3988434623032837e-09
+    },
+    {
+      "outputFailureOwnership": true
+    }
+  ]
+}

@@ -278,6 +278,7 @@ export const UNIFORM_WRITERS = Object.freeze({
   "scatter_add/accumulate": { size: 16, write: writers1.write_scatter_add_default },
   "gemma4_route_q4_matmul/f16a": { size: 32, write: writers1.write_gemma4_route_q4_matmul_f16a },
   "scatter_add_routes/f16_w16_expert_scale": { size: 16, write: writers1.write_scatter_add_routes_f16_w16_expert_scale },
+  "scatter_add_routes/f32": { size: 16, write: writers1.write_scatter_add_routes_f16_w16_expert_scale },
   "moe_gather/count": { size: 32, write: writers1.write_moe_gather_count },
   "moe_gather/count_f16": { size: 32, write: writers1.write_moe_gather_count },
   "moe_gather/gather": { size: 32, write: writers1.write_moe_gather_count },
@@ -437,4 +438,5 @@ export const UNIFORM_WRITERS = Object.freeze({
   "paired_pointwise/sigmoid": { size: 16, write: writers2.write_paired_pointwise_add },
   "paired_pointwise/scale_inplace": { size: 16, write: writers2.write_paired_pointwise_add },
   "paired_pointwise/silu_unary": { size: 16, write: writers2.write_paired_pointwise_add },
+  "moe_route_matmul/q4k_f32": { size: 32, write: writers2.write_moe_route_matmul_q4k_f32 },
 });

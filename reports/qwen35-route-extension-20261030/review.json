@@ -1,0 +1,223 @@
+{
+  "schema": "doppler.feature-review.v1",
+  "baseCommit": "8faeb2d894d8ec3f836d051a663708d422905dfb",
+  "scope": "Explicit Qwen packed Q4_K expert route execution, F32 activations and accumulation",
+  "component": "doppler.runtime-source.inference.pipelines.text",
+  "intent": "preserved",
+  "benchmarkLaunched": false,
+  "defaultChanged": false,
+  "profile": "profiles/qwen3-6-35b-a3b-route-f32-candidate",
+  "findings": [
+    {
+      "id": "route-gap",
+      "status": "implemented",
+      "before": "Qwen profile rejected topk-route; all scheduled every padded expert slot, topk-readback required CPU route observation.",
+      "after": "Explicit topk-route resolves GPU expert IDs for packed gate/up and down projections, combines routes without gathered expert slots or CPU route readback."
+    },
+    {
+      "id": "shared-branch",
+      "status": "remaining",
+      "finding": "Shared expert branch still uses separate projections, scalar gate expansion and output combination; this extension does not fuse that branch."
+    },
+    {
+      "id": "prefill-reuse",
+      "status": "remaining",
+      "finding": "Route-wise projection rereads expert weights for repeated routes; grouped/tiled prefill may be preferable. No prefill or decode speed promotion without separate measurements."
+    },
+    {
+      "id": "decode-ahead",
+      "status": "scope-correction",
+      "finding": "Native Pooled GPU decode-ahead requires flash attention; it cannot explain the existing F32-KV comparison. CPU encode-ahead is a separate mechanism."
+    },
+    {
+      "id": "backend-coverage",
+      "status": "remaining",
+      "finding": "Physical proof covers Node/Dawn Metal and Chromium/Metal. Vulkan, D3D12 and full 35B continuation are not qualified."
+    },
+    {
+      "id": "external-report",
+      "status": "contradicted",
+      "evidence": "external-audit-validation.json",
+      "finding": "Several supplied audit source sizes, hashes, filenames and workload claims do not match the actual pinned snapshot. The proposed dispatch counts and guaranteed improvements are unverified."
+    }
+  ],
+  "acceptance": {
+    "cpuFocusedTests": 11,
+    "nodeMetalProjectionCases": 28,
+    "nodeMetalIntegrationCases": [
+      "Qwen route executor",
+      "MoE core with fixture router"
+    ],
+    "nodeMetalFailureOwnership": [
+      "immediate owned output",
+      "borrowed output",
+      "recorded output until abort"
+    ],
+    "chromiumMetalCases": 12,
+    "operatorTolerance": {
+      "absolute": 0.0001,
+      "relative": 1e-05
+    },
+    "maxNodeProjectionAbs": 1.9888285636149305e-06,
+    "checks": [
+      "strict source typecheck",
+      "declaration typecheck",
+      "source style and unused roots",
+      "source architecture",
+      "WGSL generation",
+      "uniform interfaces",
+      "kernel registry",
+      "kernel digests",
+      "kernel language contracts",
+      "full-block specialization tail rejection"
+    ],
+    "lintWarnings": "vec3 appears only in invocation/workgroup builtins, not stored uniform or storage data.",
+    "benchmarkHarnessCpuTests": 26
+  },
+  "commands": [
+    "node --test tests/inference/qwen35-route-contract.test.js tests/inference/qwen35-moe-contract.test.js tests/inference/moe-active-expert-schedule.test.js tests/inference/moe-routing-contract.test.js tests/inference/moe-router-cleanup.test.js tests/inference/moe-cache-cleanup.test.js tests/inference/moe-ops-cleanup.test.js",
+    "node tests/inference/qwen35-route-gpu.test.js",
+    "CHROME_PATH=\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" node tests/integration/qwen35-route-browser.test.js",
+    "node tests/inference/qwen35-shared-expert-gpu.test.js",
+    "npm run kernels:check",
+    "npx tsc --project tsconfig.source-strict.json --noEmit",
+    "npx tsc --project tsconfig.declarations.json --noEmit",
+    "npm run source:architecture:check",
+    "npm run source:style:check"
+  ],
+  "sources": [
+    {
+      "path": "src/gpu/kernels/moe-route.js",
+      "sha256": "8ff3d41bca7de0d93982c0caafa0da20a3b7d621deac2f03fe41d5302509be8f"
+    },
+    {
+      "path": "src/gpu/kernels/moe-route.d.ts",
+      "sha256": "31c8f98b667868d50d8feda2a49ee0593e633bb3beb0796d6f127a8fcc281c38"
+    },
+    {
+      "path": "src/gpu/kernels/moe_route_q4_f32.wgsl",
+      "sha256": "12e4d6cc5b7ffb9cd9e81c6ebfe0096d0952ddae69eaec18eaf49ece1605eaf5"
+    },
+    {
+      "path": "src/gpu/kernels/scatter_add_routes_f32.wgsl",
+      "sha256": "b0649ef1566ef3f69bbf93fbb9ab0547e3c84e26a1e94a8103ea8024126c15b6"
+    },
+    {
+      "path": "src/gpu/kernels/fused_matmul_q4.wgsl",
+      "sha256": "9c4d919d5ad5eadd225f34938c47b9c604e8a1fa05ec73c5eccfb882395bd935"
+    },
+    {
+      "path": "src/gpu/kernels/silu.js",
+      "sha256": "d678955a268ca598323aeaca95dacd2409c0fddf2f39c0f8ec8eb047c1db91c0"
+    },
+    {
+      "path": "src/gpu/kernels/silu.wgsl",
+      "sha256": "38f7209006ccacb8654f82fc5cf5b17a9c2f9647c9a2b07f933c2c2420d8ebe5"
+    },
+    {
+      "path": "src/gpu/kernels/codegen/wgsl-patch-variants.js",
+      "sha256": "23e7fceeb736646e9d597a1a90f09d25c74eb626415185e0eaf4e95c3edcc37f"
+    },
+    {
+      "path": "src/gpu/kernels/codegen/patches/moe_route_q4_f32.from.fused_matmul_q4.diff",
+      "sha256": "bb407aa405359362730b58c349dac5450ae4e5063db130ca72158247c261756e"
+    },
+    {
+      "path": "src/config/kernels/registry.json",
+      "sha256": "692906f9c18a89832ce0a65cf224b5b66bccd8afd29352f45271d5150f0e3f0b"
+    },
+    {
+      "path": "src/inference/pipelines/text/moe-gpu.js",
+      "sha256": "5204e95c5ab6c635f6212c286693089431fb71e720a5f3ce2730aa38bbaa21cf"
+    },
+    {
+      "path": "src/inference/pipelines/text/moe/qwen-route-executor.js",
+      "sha256": "8604450bb0af6424f4e1e73714f6cc81beaae5ebc80cc6103c8446c42a48b957"
+    },
+    {
+      "path": "src/inference/pipelines/text/moe/qwen-route-executor.d.ts",
+      "sha256": "c30e0f9200d97e84307fdc5599e69963448a63ea71f0f900e82ff9fea14ebd73"
+    },
+    {
+      "path": "src/rules/inference/moe.rules.json",
+      "sha256": "c86a81ac7128755b833b81d29f3276b8e7db0d4c6d3c80c93c114d0102a07496"
+    },
+    {
+      "path": "src/rules/generated/rule-bundle.json",
+      "sha256": "e9bb8436374f5c9e0e3aa28204b7a612d7c158fea4f3cc901eedc841ebfb49e3"
+    },
+    {
+      "path": "src/config/runtime/profiles/qwen3-6-35b-a3b-route-f32-candidate.json",
+      "sha256": "9fba530512b8135e1b545bf684c1058fd1323e48f9d0af8c930e99efb52a4cbe"
+    },
+    {
+      "path": "tests/inference/qwen35-route-contract.test.js",
+      "sha256": "9ff24cc527536cb6899b6661354e7b622cac191ecd45a8e719f8f2dccc403b9a"
+    },
+    {
+      "path": "tests/inference/qwen35-route-gpu.test.js",
+      "sha256": "29e32c2a00103ddc022ef09341d2c4c4482ac5116816817f1427080bde1d2739"
+    },
+    {
+      "path": "tests/integration/qwen35-route-browser.test.js",
+      "sha256": "b87991f014253fde2a7a100decb04ab77d721a4ffced9b0fe82ccde64de5b1af"
+    }
+  ],
+  "limitations": [
+    "Not a full repository review",
+    "Fixture router supplies logits in the MoE core check; model router projection and learned 35B tensors are not tested by that fixture",
+    "Only contiguous row-packed Q4_K expert banks with scalar F32 activations; unsupported formats fail, not fallback",
+    "No speed win, no model catalogue promotion, no default execution change"
+  ],
+  "pipelineReviewWorklist": [
+    {
+      "item": 1,
+      "status": "existing opt-in implementation; selection and performance still require evidence",
+      "source": "src/gpu/kernels/linear-attention-core.js",
+      "detail": "Register prefill/decode flags feed rule-driven variant resolution; there is no hardcoded recurrent_f32 choice at the reported lines."
+    },
+    {
+      "item": 2,
+      "status": "F32 extension still needed",
+      "source": "src/rules/inference/ffn.rules.json",
+      "detail": "Ordinary F32 weights have no gate/up admission row. Preserve explicit fused step/kernel compatibility rather than removing safety checks."
+    },
+    {
+      "item": 3,
+      "status": "performance hypothesis",
+      "source": "tools/pooled-equal-weights/resident-request.js",
+      "detail": "CPU encode-ahead and stable bindings need scoped trace evidence; 347 bind groups and 100 percent overlap are not proved by source inspection."
+    },
+    {
+      "item": 4,
+      "status": "phase and dtype coverage review pending",
+      "source": "src/inference/pipelines/text/attention/executor-recorded.js",
+      "detail": "Check existing fused preparation and gating paths before adding duplicates. New F32 coverage needs explicit geometry and cache ownership."
+    },
+    {
+      "item": 5,
+      "status": "existing fusion paths require selection review",
+      "source": "src/inference/pipelines/text/layer.js",
+      "detail": "Post-FFN/next-input normalization fusion mechanisms already exist. Do not assume all residual boundaries can move without changing observations or execution contracts."
+    },
+    {
+      "item": 6,
+      "status": "partly supported optimization gap; supplied rationale incorrect",
+      "source": "src/inference/pipelines/text/linear-attention-ab-fusion.js",
+      "detail": "AB and QKVZ helpers are called. Existing AB materialization accepts F16, QKVZ accepts Q4_K; F32 extensions remain. Variant-role aliases for A/B differ from precision aliases; an absent explicit variant is not by itself incorrect arithmetic."
+    },
+    {
+      "item": 7,
+      "status": "generation-only one-row candidate numerically checked; no isolated speed claim",
+      "source": "src/inference/pipelines/text/logits/index.js",
+      "detail": "Keep all-position scoring separate from generation last-position projection. Earlier pilots do not prove a causal 17 ms saving."
+    },
+    {
+      "item": 8,
+      "status": "staging and hybrid KV allegations contradicted at b850ed4c",
+      "source": "src/inference/pipelines/text/init.js:335; src/inference/pipelines/text/generator/decode.js:572",
+      "detail": "Hybrid KV allocation already filters recurrent layers; sampled token readback already uses a ring slot or retained staging buffer. Text decoding cost depends on the API workload."
+    }
+  ],
+  "baselineReviewCommit": "b850ed4c681efb4dc6a2fdd86a124762542d4af8"
+}

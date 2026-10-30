@@ -278,6 +278,7 @@ export interface KernelUniformValues {
   "scatter_add/accumulate": Parameters<typeof writers1.write_scatter_add_default>[1];
   "gemma4_route_q4_matmul/f16a": Parameters<typeof writers1.write_gemma4_route_q4_matmul_f16a>[1];
   "scatter_add_routes/f16_w16_expert_scale": Parameters<typeof writers1.write_scatter_add_routes_f16_w16_expert_scale>[1];
+  "scatter_add_routes/f32": Parameters<typeof writers1.write_scatter_add_routes_f16_w16_expert_scale>[1];
   "moe_gather/count": Parameters<typeof writers1.write_moe_gather_count>[1];
   "moe_gather/count_f16": Parameters<typeof writers1.write_moe_gather_count>[1];
   "moe_gather/gather": Parameters<typeof writers1.write_moe_gather_count>[1];
@@ -437,5 +438,6 @@ export interface KernelUniformValues {
   "paired_pointwise/sigmoid": Parameters<typeof writers2.write_paired_pointwise_add>[1];
   "paired_pointwise/scale_inplace": Parameters<typeof writers2.write_paired_pointwise_add>[1];
   "paired_pointwise/silu_unary": Parameters<typeof writers2.write_paired_pointwise_add>[1];
+  "moe_route_matmul/q4k_f32": Parameters<typeof writers2.write_moe_route_matmul_q4k_f32>[1];
 }
 export declare const UNIFORM_WRITERS: { readonly [K in keyof KernelUniformValues]: { readonly size: number; readonly write: (view: DataView, values: KernelUniformValues[K], kernel: string) => void } };

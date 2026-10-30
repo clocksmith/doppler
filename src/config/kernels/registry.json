@@ -2595,6 +2595,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
@@ -3967,6 +3968,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
@@ -5208,6 +5210,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
@@ -5262,6 +5265,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
@@ -5323,6 +5327,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
@@ -6197,6 +6202,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
@@ -10488,6 +10494,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
@@ -10821,6 +10828,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
@@ -10973,6 +10981,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
@@ -11231,6 +11240,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
@@ -13624,6 +13634,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
@@ -15086,6 +15097,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
@@ -15401,6 +15413,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
@@ -16597,6 +16610,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
@@ -17307,6 +17321,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
@@ -18046,6 +18061,44 @@
      "entryPoint": "scatter_add_routes",
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "f32": {
+     "wgsl": "scatter_add_routes_f32.wgsl",
+     "entryPoint": "scatter_add_routes",
+     "workgroup": [256,1,1],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256
+     },
+     "requires": [],
+     "outputDtype": "f32",
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "route_outputs",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "routing_weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 5,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
      "reachability": {
       "status": "unused",
       "inlineConfigs": [],
@@ -20050,6 +20103,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
@@ -23002,7 +23056,11 @@
      "outputDtype": "f32",
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["qwen3/qwen3.8-27b-text-f16-af32","qwen3/qwen3.8-27b-text-q4k-ehaf16"],
+      "inlineConfigs": [
+       "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-f16-af32",
+       "qwen3/qwen3.8-27b-text-q4k-ehaf16"
+      ],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -23355,7 +23413,11 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["qwen3/qwen3.8-27b-text-f16-af32","qwen3/qwen3.8-27b-text-q4k-ehaf16"],
+      "inlineConfigs": [
+       "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-f16-af32",
+       "qwen3/qwen3.8-27b-text-q4k-ehaf16"
+      ],
       "ruleChains": ["gated-delta-recurrent.rules.json#scalarVariant"],
       "wgslOnDisk": true
      }
@@ -25085,7 +25147,11 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["qwen3/qwen3.8-27b-text-f16-af32","qwen3/qwen3.8-27b-text-q4k-ehaf16"],
+      "inlineConfigs": [
+       "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-text-f16-af32",
+       "qwen3/qwen3.8-27b-text-q4k-ehaf16"
+      ],
       "ruleChains": ["gated-delta-fused-decode.rules.json#scalarVariant"],
       "wgslOnDisk": true
      }
@@ -27551,6 +27617,110 @@
        "type": "storage"
       }
      ]
+    }
+   }
+  },
+  "moe_route_matmul": {
+   "description": "GPU-selected row-packed expert projections with F32 activations and accumulation",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "wgslName": "A",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "weights",
+     "wgslName": "B_q4k",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "output",
+     "wgslName": "C",
+     "type": "storage"
+    },
+    {
+     "index": 4,
+     "name": "route_indices",
+     "type": "read-only-storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 32,
+    "fields": [
+     {
+      "name": "M",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "N",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "K",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "alpha",
+      "type": "f32",
+      "offset": 12
+     },
+     {
+      "name": "num_blocks_per_row",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "num_experts",
+      "type": "u32",
+      "offset": 20
+     },
+     {
+      "name": "top_k",
+      "type": "u32",
+      "offset": 24
+     },
+     {
+      "name": "input_mode",
+      "type": "u32",
+      "offset": 28
+     }
+    ]
+   },
+   "variants": {
+    "q4k_f32": {
+     "wgsl": "moe_route_q4_f32.wgsl",
+     "entryPoint": "main_multicol",
+     "workgroup": [256,1,1],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256,
+      "COLS_PER_WG": 32,
+      "THREADS_PER_COL_GEMV": 8,
+      "USE_FULL_BLOCK_FAST_PATH": false
+     },
+     "requires": [],
+     "weightDtype": "q4k",
+     "outputDtype": "f32",
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "sharedMemory": 1024,
+     "variantMetadata": {
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     }
     }
    }
   }
