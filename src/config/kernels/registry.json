@@ -1830,6 +1830,194 @@
     ]
    },
    "variants": {
+    "fp8_e4m3fn_f32": {
+     "wgsl": "matmul_fp8.wgsl",
+     "entryPoint": "main",
+     "workgroup": [64,1,1],
+     "requires": [],
+     "requiredWgslFeatures": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "block_n",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "block_k",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "blocks_k",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "block_words",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "_pad",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "weightDtype": "fp8e4",
+     "outputDtype": "f32",
+     "sharedMemory": 0,
+     "variantMetadata": {
+      "dispatchGeometry": "column-row-tile",
+      "tileM": 1,
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null],
+      "workgroupStorageBytesPerInvocation": 4
+     },
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 64,
+      "E4M3FN": true
+     },
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["matmul.rules.json#fp8Variant"],
+      "wgslOnDisk": true
+     }
+    },
+    "fp8_e5m2_f32": {
+     "wgsl": "matmul_fp8.wgsl",
+     "entryPoint": "main",
+     "workgroup": [64,1,1],
+     "requires": [],
+     "requiredWgslFeatures": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "block_n",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "block_k",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "blocks_k",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "block_words",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "_pad",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "weightDtype": "fp8e5",
+     "outputDtype": "f32",
+     "sharedMemory": 0,
+     "variantMetadata": {
+      "dispatchGeometry": "column-row-tile",
+      "tileM": 1,
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null],
+      "workgroupStorageBytesPerInvocation": 4
+     },
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 64,
+      "E4M3FN": false
+     },
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["matmul.rules.json#fp8Variant"],
+      "wgslOnDisk": true
+     }
+    },
     "w8a8_portable": {
      "wgsl": "matmul_w8a8.wgsl",
      "entryPoint": "main",

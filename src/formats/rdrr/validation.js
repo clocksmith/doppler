@@ -1,3 +1,4 @@
+import { validateFP8ManifestContract } from './fp8-contract.js';
 import { isPlainObject } from '../plain-object.js';
 import { validateW8A8Policy } from '../../config/schema/w8a8.schema.js';
 import { validateW8A8StorageDescriptor } from './w8a8-storage.js';
@@ -246,7 +247,7 @@ function validateArtifactIdentityContract(manifest, errors) {
 }
 
 export function validateManifest(manifest) {
-  const errors = [];
+  const errors = validateFP8ManifestContract(manifest);
   const warnings = [];
 
   if (manifest.quantizationInfo?.weights === 'w8a8' || manifest.quantizationInfo?.w8a8 != null) {

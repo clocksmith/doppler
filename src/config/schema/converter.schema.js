@@ -9,6 +9,7 @@ import { MB } from './units.schema.js';
 export const DEFAULT_CONVERTER_QUANTIZATION_CONFIG = {
   weights: null,
   w8a8: null,
+  fp8: null,
   embeddings: null,
   lmHead: null,
   sourceTrainingQuantization: null,

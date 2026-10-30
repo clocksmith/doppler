@@ -1,0 +1,26 @@
+{
+  "schema": "doppler.fp8-operator-proof/v1",
+  "policy": {
+    "schema": "doppler.fp8/v1",
+    "encoding": "e4m3fn",
+    "packing": "fp8-block-v1",
+    "blockShape": [3, 128],
+    "scaleMode": "companion",
+    "scaleSuffix": "_scale_inv",
+    "scaleSemantics": "multiply",
+    "scaleDtype": "f32",
+    "inputDtype": "f32",
+    "accumulatorDtype": "f32",
+    "outputDtype": "f32",
+    "dequantizedWeightPolicy": "finite-normal-or-zero",
+    "nonfinite": "preserve-storage-reject-gpu"
+  },
+  "numeric": { "absoluteTolerance": 0.00002, "sumAbsoluteTolerance": 0.000004 },
+  "cases": [
+    { "M": 1, "N": 7, "K": 35 },
+    { "M": 3, "N": 11, "K": 513 },
+    { "M": 1, "N": 13, "K": 1024 },
+    { "M": 2, "N": 5, "K": 3584 },
+    { "M": 1, "N": 8, "K": 1025 }
+  ]
+}

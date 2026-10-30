@@ -101,6 +101,17 @@ export function write_gated_delta_recurrent_checkpoint_forward_default(view, val
   writeU32(view, 44, values["_pad1"], kernel, "_pad1");
 }
 
+export function write_matmul_fp8_e4m3fn_f32(view, values, kernel) {
+  writeU32(view, 0, values["M"], kernel, "M");
+  writeU32(view, 4, values["N"], kernel, "N");
+  writeU32(view, 8, values["K"], kernel, "K");
+  writeU32(view, 12, values["block_n"], kernel, "block_n");
+  writeU32(view, 16, values["block_k"], kernel, "block_k");
+  writeU32(view, 20, values["blocks_k"], kernel, "blocks_k");
+  writeU32(view, 24, values["block_words"], kernel, "block_words");
+  view.setUint32(28, 0, true);
+}
+
 export function write_matmul_f16(view, values, kernel) {
   writeU32(view, 0, values["M"], kernel, "M");
   writeU32(view, 4, values["N"], kernel, "N");
@@ -583,11 +594,4 @@ export function write_rmsnorm_qk_default(view, values, kernel) {
   view.setUint32(20, 0, true);
   view.setUint32(24, 0, true);
   view.setUint32(28, 0, true);
-}
-
-export function write_layernorm_default(view, values, kernel) {
-  writeU32(view, 0, values["size"], kernel, "size");
-  writeU32(view, 4, values["num_tokens"], kernel, "num_tokens");
-  writeF32(view, 8, values["eps"], kernel, "eps");
-  view.setUint32(12, 0, true);
 }

@@ -1,3 +1,4 @@
+import type { FP8Policy } from './fp8.schema.js';
 import type { W8A8Policy } from './w8a8.schema.js';
 /**
  * Manifest Schema Definitions
@@ -111,6 +112,7 @@ export interface QuantizationInfoSchema {
   // Core text model components
   weights: QuantizationValue;
   w8a8?: W8A8Policy;
+  fp8?: FP8Policy;
   embeddings?: QuantizationValue;
   lmHead?: QuantizationValue;
   sourceTrainingQuantization?: SourceTrainingQuantization;

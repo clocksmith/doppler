@@ -1,4 +1,8 @@
 {
+  "fp8Variant": [
+    { "match": { "weightDtype": "fp8e4" }, "value": "fp8_e4m3fn_f32" },
+    { "match": { "weightDtype": "fp8e5" }, "value": "fp8_e5m2_f32" }
+  ],
   "litertInt4FusedVariant": [
     {
       "match": {

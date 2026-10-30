@@ -7,6 +7,8 @@ export type SafetensorsDtype =
   | 'F32'
   | 'F16'
   | 'BF16'
+  | 'F8_E4M3'
+  | 'F8_E5M2'
   | 'I64'
   | 'I32'
   | 'I16'

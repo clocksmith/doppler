@@ -10,6 +10,8 @@
     { "match": {}, "value": "f32" }
   ],
   "matmulWeightDtype": [
+    { "match": { "locationDtype": "FP8_E4M3FN" }, "value": "fp8e4" },
+    { "match": { "locationDtype": "FP8_E5M2" }, "value": "fp8e5" },
     { "match": { "locationDtype": "W8A8" }, "value": "w8a8" },
     { "match": { "locationDtype": "F16", "hasF16": false, "isMatmulWeight": true }, "value": "f32" },
     { "match": { "locationDtype": "F16" }, "value": "f16" },

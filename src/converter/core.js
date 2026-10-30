@@ -1,3 +1,4 @@
+import { prepareFP8SourceTensors, readFP8CompanionScales } from './fp8-source.js';
 
 
 import {
@@ -411,7 +412,7 @@ export async function convertModel(model, io, options = {}) {
   if (!modelId) {
     throw new Error('Missing modelId for conversion');
   }
-  const tensors = materializeTiedLmHeadTensor(
+  const sourceTensors = materializeTiedLmHeadTensor(
     normalizeCompressedTensorsW4A16(
       resolveConversionTensors(model, converterConfig),
       converterConfig
@@ -422,6 +423,8 @@ export async function convertModel(model, io, options = {}) {
       modelType: options.modelType ?? model.modelType ?? 'transformer',
     }
   );
+  const fp8Source = prepareFP8SourceTensors(sourceTensors, options.quantizationInfo?.fp8, model.config ?? null);
+  const tensors = fp8Source.tensors;
   if (!Array.isArray(tensors) || tensors.length === 0) {
     const textOnly = converterConfig?.output?.textOnly === true;
     if (textOnly) {
@@ -504,7 +507,6 @@ export async function convertModel(model, io, options = {}) {
     }
   };
 
-  // Process tensors
   for (let i = 0; i < tensors.length; i++) {
     if (signal?.aborted) {
       throw new DOMException('Conversion cancelled', 'AbortError');
@@ -649,6 +651,8 @@ export async function convertModel(model, io, options = {}) {
     } else {
       const data = await io.readTensorData(tensor);
       const tensorDataInput = new Uint8Array(data);
+      transformContext.fp8Scales = await readFP8CompanionScales(tensor, fp8Source.companions.get(tensor.name),
+        options.quantizationInfo?.fp8, source => io.readTensorData(source));
       const transformResult = (
         typeof options.tensorTransformer === 'function'
           ? await options.tensorTransformer({
@@ -702,7 +706,6 @@ export async function convertModel(model, io, options = {}) {
       }
     }
 
-    // Record tensor location
     const role = resolveTensorRole(tensor);
     const group = resolveTensorGroup(tensor, tensorGroupModelType);
     const pleSourceTransform = transformContext._pleSourceTransform ?? null;
@@ -737,7 +740,6 @@ export async function convertModel(model, io, options = {}) {
 
   }
 
-  // Flush final shard
   await flushShard();
 
   if (signal?.aborted) {

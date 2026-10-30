@@ -10,13 +10,17 @@
  * Use WeightBuffer for model weights (static, may be quantized).
  */
 
-export type WeightDtype = 'f16' | 'f32' | 'bf16' | 'q4k' | 'q8' | 'litert_int4' | 'w4a16' | 'w8a8';
+export type WeightDtype = 'f16' | 'f32' | 'bf16' | 'q4k' | 'q8' | 'litert_int4' | 'w4a16' | 'w8a8' | 'fp8e4' | 'fp8e5';
 export type WeightLayout = 'row' | 'column';
 export type WeightStorageEncoding = 'signed' | 'offset_binary';
 export type WeightScaleDtype = 'f16' | 'bf16' | 'f32';
 
 export interface WeightMetadata {
-  readonly packing?: 'w8a8-row-v1';
+  readonly packing?: 'w8a8-row-v1' | 'fp8-block-v1';
+  readonly encoding?: 'e4m3fn' | 'e5m2';
+  readonly blockShape?: [number, number];
+  readonly blockBytes?: number;
+  readonly scaleSemantics?: 'multiply';
   readonly paddedK?: number;
   readonly rowStrideBytes?: number;
   readonly scaleOffsetBytes?: number;

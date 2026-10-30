@@ -99,6 +99,16 @@ export function compileWeightRepresentationPlan(locations, manifest, paths, defa
   for (const [name, location] of locations) {
     const group = entries.get(name);
     if (!group) throw new Error(`Unknown tensor ${name}`);
+    if (location.dtype === 'FP8_E4M3FN' || location.dtype === 'FP8_E5M2') {
+      const expected = selectRuleValue('loader', 'weights', 'matmulWeightDtype', { locationDtype: location.dtype });
+      if (!group.consumers.length || group.unresolved || [...group.dtypes].some(dtype => dtype !== expected)) {
+        throw new Error(`FP8 tensor ${name} requires every selected consumer to declare its exact packed encoding.`);
+      }
+      result[name] = Object.freeze({ mode: 'packed-only', primaryDtype: null, complete: true,
+        dtypes: Object.freeze([...group.dtypes]), aliases: Object.freeze([...group.names].sort()),
+        consumers: Object.freeze([...group.consumers]), keepF32Weights: false });
+      continue;
+    }
     const q4 = ['Q4_K', 'Q4_K_M'].includes(location.dtype);
     const complete = group.consumers.length > 0 && !group.unresolved;
     const dtypes = [...group.dtypes].sort();
