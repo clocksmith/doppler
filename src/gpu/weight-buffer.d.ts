@@ -10,7 +10,7 @@
  * Use WeightBuffer for model weights (static, may be quantized).
  */
 
-export type WeightDtype = 'f16' | 'f32' | 'bf16' | 'q4k' | 'q8' | 'litert_int4' | 'w4a16' | 'w8a8' | 'fp8e4' | 'fp8e5';
+export type WeightDtype = 'f16' | 'f32' | 'bf16' | 'q4_1' | 'q8_0' | 'q6k' | 'q4_0' | 'q4k' | 'q8' | 'litert_int4' | 'w4a16' | 'w8a8' | 'fp8e4' | 'fp8e5';
 export type WeightLayout = 'row' | 'column';
 export type WeightStorageEncoding = 'signed' | 'offset_binary';
 export type WeightScaleDtype = 'f16' | 'bf16' | 'f32';

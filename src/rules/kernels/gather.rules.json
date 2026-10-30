@@ -86,15 +86,102 @@
       },
       "value": "bf16"
     },
-    { "match": { "useLiteRTInt4Input": true, "useF16Output": false, "useVec4": true }, "value": "litert_int4_vec4_f32_out" },
-    { "match": { "useLiteRTInt4Input": true, "useF16Output": true, "useVec4": true }, "value": "litert_int4_vec4_f16_out" },
-    { "match": { "useF16Input": true, "useF16Output": true, "useVec4": true }, "value": "f16_vec4_f16_out" },
-    { "match": { "useF16Input": true, "useF16Output": true }, "value": "f16_f16_out" },
-    { "match": { "useF16Input": true, "useVec4": true }, "value": "f16_vec4" },
-    { "match": { "useF16Input": true }, "value": "f16" },
-    { "match": { "useF16Output": true, "useVec4": true }, "value": "vec4_f16_out" },
-    { "match": { "useF16Output": true }, "value": "f16_out" },
-    { "match": { "useVec4": true }, "value": "vec4" },
-    { "match": {}, "value": "default" }
+    {
+      "match": {
+        "useLiteRTInt4Input": true,
+        "useF16Output": false,
+        "useVec4": true
+      },
+      "value": "litert_int4_vec4_f32_out"
+    },
+    {
+      "match": {
+        "useLiteRTInt4Input": true,
+        "useF16Output": true,
+        "useVec4": true
+      },
+      "value": "litert_int4_vec4_f16_out"
+    },
+    {
+      "match": {
+        "useF16Input": true,
+        "useF16Output": true,
+        "useVec4": true
+      },
+      "value": "f16_vec4_f16_out"
+    },
+    {
+      "match": {
+        "useF16Input": true,
+        "useF16Output": true
+      },
+      "value": "f16_f16_out"
+    },
+    {
+      "match": {
+        "useF16Input": true,
+        "useVec4": true
+      },
+      "value": "f16_vec4"
+    },
+    {
+      "match": {
+        "useF16Input": true
+      },
+      "value": "f16"
+    },
+    {
+      "match": {
+        "useF16Output": true,
+        "useVec4": true
+      },
+      "value": "vec4_f16_out"
+    },
+    {
+      "match": {
+        "useF16Output": true
+      },
+      "value": "f16_out"
+    },
+    {
+      "match": {
+        "useVec4": true
+      },
+      "value": "vec4"
+    },
+    {
+      "match": {},
+      "value": "default"
+    }
+  ],
+  "q40Variant": [
+    {
+      "match": {
+        "weightDtype": "q4_0",
+        "outputDtype": "f32"
+      },
+      "value": "q4_0"
+    },
+    {
+      "match": {
+        "weightDtype": "q4_1",
+        "outputDtype": "f32"
+      },
+      "value": "q4_1"
+    },
+    {
+      "match": {
+        "weightDtype": "q8_0",
+        "outputDtype": "f32"
+      },
+      "value": "q8_0"
+    },
+    {
+      "match": {
+        "weightDtype": "q6k",
+        "outputDtype": "f32"
+      },
+      "value": "q6k"
+    }
   ]
 }

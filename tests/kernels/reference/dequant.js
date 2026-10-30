@@ -113,7 +113,7 @@ export function dequantInt4Ref(quantized, scales, numElements, groupSize = 32) {
 export function dequantQ4_0Ref(quantized, numBlocks) {
   const blockSize = 32;
   const output = new Float32Array(numBlocks * blockSize);
-  const dataView = new DataView(quantized.buffer);
+  const dataView = new DataView(quantized.buffer, quantized.byteOffset, quantized.byteLength);
 
   for (let block = 0; block < numBlocks; block++) {
     // Q4_0 block: 2 bytes scale (fp16) + 16 bytes data (32 int4)
@@ -130,8 +130,8 @@ export function dequantQ4_0Ref(quantized, numBlocks) {
       const low = (byte & 0x0F) - 8;
       const high = ((byte >> 4) & 0x0F) - 8;
 
-      output[block * blockSize + i * 2] = low * scale;
-      output[block * blockSize + i * 2 + 1] = high * scale;
+      output[block * blockSize + i] = low * scale;
+      output[block * blockSize + 16 + i] = high * scale;
     }
   }
 

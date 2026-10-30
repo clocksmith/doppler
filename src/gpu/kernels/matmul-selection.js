@@ -278,7 +278,11 @@ export function getMatmulBindingSizes(label, A, B, M, N, K, aDtype, bDtype, tran
   let bBindingSize;
   let bRequired;
 
-  if (bDtype === 'q4k') {
+  if (bDtype === 'q4_0') {
+    if (K % 32) throw new Error('Q4_0 binding K must be divisible by 32.');
+    bBindingSize = Math.ceil(N * (K / 32) * 18 / 4) * 4;
+    bRequired = bOffset + bBindingSize;
+  } else if (bDtype === 'q4k') {
     const numBlocksPerRow = Math.ceil(K / QK_K);
     bBindingSize = Math.ceil((N * numBlocksPerRow * Q4K_BLOCK_BYTES) / 4) * 4;
     bRequired = bOffset + bBindingSize;

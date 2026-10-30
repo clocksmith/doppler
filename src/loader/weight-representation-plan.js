@@ -1,3 +1,4 @@
+import { ggufBlockFormat } from '../formats/gguf/block-storage.js';
 import { getKernelPathMatmulVariant } from '../config/kernel-path-loader.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { getKernelConfigs } from '../config/kernel-registry-contract.js';
@@ -40,8 +41,8 @@ export function compileWeightRepresentationPlan(locations, manifest, paths, defa
         const config = variant == null ? null : getKernelConfigs().matmul?.[variant];
         if (optional && variant == null) continue;
         const declaredWeightDtype = config?.weightDtype ?? null;
-        const storedDtype = locations.get(name)?.dtype.toLowerCase();
-        const floatFallback = storedDtype === 'f16' && declaredWeightDtype === 'q4k'
+        const storedDtype = locations.get(name)?.dtype.toLowerCase() ?? null;
+        const floatFallback = ((storedDtype === 'f16' && declaredWeightDtype === 'q4k') || (['f16','f32','bf16'].includes(storedDtype ?? '') && declaredWeightDtype === 'q4_0'))
           && selectRuleValue('kernels', 'matmul', 'weightDtypeMismatchPolicy', {
             actualWeightDtype: storedDtype, requiredWeightDtype: declaredWeightDtype,
           }) === 'fallthrough';
@@ -99,6 +100,15 @@ export function compileWeightRepresentationPlan(locations, manifest, paths, defa
   for (const [name, location] of locations) {
     const group = entries.get(name);
     if (!group) throw new Error(`Unknown tensor ${name}`);
+    if (['Q4_0','Q4_1','Q8_0'].includes(location.dtype) || (location.dtype === 'Q6_K' && manifest.quantizationInfo?.preserveSourceTensors === true)) {
+      const packedDtype=ggufBlockFormat(location.dtype).variant;
+      const incompatible = group.consumers.filter(consumer => consumer.weightDtype != null && consumer.weightDtype !== packedDtype);
+      if (incompatible.length) throw new Error(`Q4_0 tensor ${name} has consumers declaring another storage encoding.`);
+      result[name] = Object.freeze({ mode: 'packed-only', primaryDtype: null, complete: !group.unresolved,
+        dtypes: Object.freeze([packedDtype]), aliases: Object.freeze([...group.names]),
+        consumers: Object.freeze([...group.consumers]), keepF32Weights: false });
+      continue;
+    }
     if (location.dtype === 'FP8_E4M3FN' || location.dtype === 'FP8_E5M2') {
       const expected = selectRuleValue('loader', 'weights', 'matmulWeightDtype', { locationDtype: location.dtype });
       if (!group.consumers.length || group.unresolved || [...group.dtypes].some(dtype => dtype !== expected)) {
@@ -125,7 +135,8 @@ export function compileWeightRepresentationPlan(locations, manifest, paths, defa
       primaryDtype: group.consumers.some(c => c.declaredWeightDtype === 'q4k' && c.weightDtype === 'f16') ? 'f16' : null,
       complete, dtypes: Object.freeze(dtypes), aliases: Object.freeze([...group.names].sort()),
       consumers: Object.freeze([...group.consumers]),
-      keepF32Weights: q4 && complete && denseDtypes.length > 0 ? denseDtypes.includes('f32') : defaults.keepF32Weights });
+      keepF32Weights: manifest.quantizationInfo?.preserveSourceTensors === true && location.dtype === 'F32'
+        ? true : q4 && complete && denseDtypes.length > 0 ? denseDtypes.includes('f32') : defaults.keepF32Weights });
   }
   return Object.freeze(result);
 }

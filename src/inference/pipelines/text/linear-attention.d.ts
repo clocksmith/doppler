@@ -21,6 +21,7 @@ export interface LinearLayerRuntimeState {
   numVHeads: number;
   headKDim: number;
   headVDim: number;
+  sourceLayout?: 'hf' | 'gguf-v1';
   qSize: number;
   kSize: number;
   vSize: number;
@@ -58,6 +59,7 @@ export interface RunLinearAttentionLayerOptions {
   hiddenSize: number;
   config: {
     sessionSettings?: { intermediatePrecision?: 'f32' | 'two-f32'; linearRecurrentStatePrecision?: 'f32' | 'two-f32' | null } | null;
+    linearAttentionSourceLayout?: 'hf' | 'gguf-v1';
     linearNumKeyHeads: number | null;
     linearNumValueHeads: number | null;
     linearKeyHeadDim: number | null;

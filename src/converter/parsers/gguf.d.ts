@@ -19,6 +19,11 @@ export interface GGUFParserAdapter {
 
 export interface ParsedGGUFModel {
   format: 'gguf';
+  modelType?: 'transformer';
+  normalizedArchitecture: Record<string, unknown> | null;
+  excludedTensors: Array<{name: string; reason: string}>;
+  tokenizerJson: Record<string, unknown> | null;
+  tokenizerConfig: Record<string, unknown> | null;
   tensors: Array<Record<string, unknown>>;
   config: Record<string, unknown>;
   architecture: string;

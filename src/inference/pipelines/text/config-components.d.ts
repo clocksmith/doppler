@@ -3,7 +3,7 @@ import type { Manifest, ParsedModelConfig } from './config.js';
 
 /** Linear-attention fields of ParsedModelConfig. */
 export type LinearAttentionConfig = Pick<ParsedModelConfig,
-  'linearNumKeyHeads' | 'linearNumValueHeads' | 'linearKeyHeadDim' | 'linearValueHeadDim'
+  'linearAttentionSourceLayout' | 'linearNumKeyHeads' | 'linearNumValueHeads' | 'linearKeyHeadDim' | 'linearValueHeadDim'
   | 'linearConvKernelDim' | 'linearNormMode' | 'linearNormGateActivation' | 'pairedMechanismReplacements'>;
 
 /**

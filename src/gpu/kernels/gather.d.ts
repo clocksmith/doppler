@@ -13,7 +13,7 @@ import type { KernelPipelineRequest } from './pipeline-cache.js';
 /** Gather kernel options */
 export interface GatherOptions extends OutputBufferOptions {
   useVec4?: boolean;
-  embeddingDtype?: Extract<WeightDtype, 'f16' | 'bf16' | 'f32' | 'litert_int4'>;
+  embeddingDtype?: Extract<WeightDtype, 'f16' | 'bf16' | 'f32' | 'q4_1' | 'q8_0' | 'q6k' | 'q4_0' | 'litert_int4'>;
   /**
    * Output dtype. When 'f16', converts F32 embeddings to F16 output.
    * Default: 'f32'
@@ -43,7 +43,7 @@ export interface GatherOptions extends OutputBufferOptions {
 
 /** Inputs that select a plain gather program; the token count never does. */
 export interface GatherPipelineSelection {
-  embeddingDtype: Extract<WeightDtype, 'f16' | 'bf16' | 'f32' | 'litert_int4'>;
+  embeddingDtype: Extract<WeightDtype, 'f16' | 'bf16' | 'f32' | 'q4_1' | 'q8_0' | 'q6k' | 'q4_0' | 'litert_int4'>;
   outputDtype: 'f16' | 'f32';
   hiddenSize: number;
   inputHiddenSize: number;

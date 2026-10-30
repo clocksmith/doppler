@@ -134,6 +134,7 @@ export function extractArchitecture(config, ggufConfig) {
       vocabSize,
       maxSeqLen,
       ropeTheta,
+      linearAttentionSourceLayout: fromConfigValue('linear_attention_source_layout'),
       linearNumKeyHeads,
       linearNumValueHeads,
       linearKeyHeadDim,

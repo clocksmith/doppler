@@ -31,6 +31,7 @@ export interface ParsedSourceArtifact {
   sourceKind: SourceArtifactKind | string;
   config: Record<string, unknown>;
   tensors: SourceRuntimeTensor[];
+  excludedTensors?: Array<{name: string; reason: string}>;
   architectureHint?: string | null;
   embeddingPostprocessor?: ManifestEmbeddingPostprocessorSchema | null;
   modelType?: string | null;

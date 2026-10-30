@@ -220,6 +220,7 @@ export interface ParsedModelConfig {
   swigluLimit: number | null;
   stopTokenIds: number[];
   layerTypes: ParsedLayerType[] | null;
+  linearAttentionSourceLayout: 'hf' | 'gguf-v1';
   linearNumKeyHeads: number | null;
   linearNumValueHeads: number | null;
   linearKeyHeadDim: number | null;

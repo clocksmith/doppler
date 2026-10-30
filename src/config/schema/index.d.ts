@@ -679,7 +679,7 @@ export {
 // =============================================================================
 export {
   QK_K,
-  Q4K_BLOCK_BYTES,
+  Q4_0_BLOCK_SIZE, Q4_0_BLOCK_BYTES, Q4K_BLOCK_BYTES,
   Q6K_BLOCK_BYTES,
   Q8_0_BLOCK_BYTES,
   Q8_0_BLOCK_SIZE,

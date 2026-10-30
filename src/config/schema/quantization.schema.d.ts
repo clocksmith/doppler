@@ -1,3 +1,5 @@
+export declare const Q4_0_BLOCK_SIZE: 32;
+export declare const Q4_0_BLOCK_BYTES: 18;
 export declare const QK_K: number;
 export declare const Q4K_BLOCK_BYTES: number;
 export declare const Q6K_BLOCK_BYTES: number;

@@ -1,3 +1,4 @@
+import { DEFAULT_LINEAR_ATTENTION_SOURCE_LAYOUT } from '../../../config/schema/manifest.schema.js';
 import { resolveDeclaredMechanismReplacements } from '../../../config/execution-registry-contract.js';
 
 /** @param {unknown} value */
@@ -29,7 +30,10 @@ function parseLinearNormMode(value, sharedFlag = null, modelId = 'unknown') {
 
 /** @type {typeof import('./config-components.js').resolveLinearAttentionConfig} */
 export function resolveLinearAttentionConfig(arch, config, inf, manifest, modelId) {
+  const layout=arch.linearAttentionSourceLayout ?? config.linear_attention_source_layout ?? DEFAULT_LINEAR_ATTENTION_SOURCE_LAYOUT;
+  if (layout !== 'hf' && layout !== 'gguf-v1') throw new Error(`Unsupported linear-attention source layout: ${layout}`);
   return {
+    linearAttentionSourceLayout: layout,
     linearNumKeyHeads: parsePositiveInt(arch.linearNumKeyHeads ?? config.linear_num_key_heads),
     linearNumValueHeads: parsePositiveInt(arch.linearNumValueHeads ?? config.linear_num_value_heads),
     linearKeyHeadDim: parsePositiveInt(arch.linearKeyHeadDim ?? config.linear_key_head_dim),

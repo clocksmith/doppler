@@ -88,7 +88,7 @@ function requireMoeExecutor(registry, id, label) {
 }
 
 function assertMoeExpertWeights(moeProfile, weights, expertKey) {
-  if ((moeProfile.expertExecutor === 'gemma4-packed' || moeProfile.expertExecutor === 'qwen35-packed') && !weights.gateUp) {
+  if ((moeProfile.expertExecutor === 'gemma4-packed' || moeProfile.expertExecutor === 'qwen35-packed') && !weights.gateUp && !(moeProfile.expertExecutor === 'qwen35-packed' && weights.gate && weights.up)) {
     throw new Error(`[MoE] Missing Gemma-style packed weights for ${expertKey}`);
   }
   if ((moeProfile.expertExecutor === 'gemma4-packed' || moeProfile.expertExecutor === 'qwen35-packed') && !weights.down) {

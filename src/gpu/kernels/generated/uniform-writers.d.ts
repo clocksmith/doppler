@@ -99,6 +99,14 @@ export interface KernelUniformValues {
   "matmul/paired_f32_scalar_compensated": Parameters<typeof writers0.write_matmul_paired_f32>[1];
   "matmul/paired_f16_scalar_compensated": Parameters<typeof writers0.write_matmul_paired_f32>[1];
   "matmul/paired_q4k_scalar_compensated": Parameters<typeof writers0.write_matmul_paired_f32>[1];
+  "matmul/q4_0_gemv": Parameters<typeof writers0.write_matmul_q4_0_gemv>[1];
+  "matmul/q4_0_prefill": Parameters<typeof writers0.write_matmul_q4_0_gemv>[1];
+  "matmul/q4_1_gemv": Parameters<typeof writers0.write_matmul_q4_0_gemv>[1];
+  "matmul/q4_1_prefill": Parameters<typeof writers0.write_matmul_q4_0_gemv>[1];
+  "matmul/q8_0_gemv": Parameters<typeof writers0.write_matmul_q4_0_gemv>[1];
+  "matmul/q8_0_prefill": Parameters<typeof writers0.write_matmul_q4_0_gemv>[1];
+  "matmul/q6k_gemv": Parameters<typeof writers0.write_matmul_q4_0_gemv>[1];
+  "matmul/q6k_prefill": Parameters<typeof writers0.write_matmul_q4_0_gemv>[1];
   "fused_ffn/default": Parameters<typeof writers0.write_fused_ffn_default>[1];
   "fused_ffn/multi": Parameters<typeof writers0.write_fused_ffn_default>[1];
   "fused_ffn/f16": Parameters<typeof writers0.write_fused_ffn_default>[1];
@@ -191,8 +199,8 @@ export interface KernelUniformValues {
   "rmsnorm_pair/default": Parameters<typeof writers0.write_rmsnorm_pair_default>[1];
   "rmsnorm_pair/subgroup": Parameters<typeof writers0.write_rmsnorm_pair_default>[1];
   "residual_rmsnorm_pair/subgroup": Parameters<typeof writers0.write_residual_rmsnorm_pair_subgroup>[1];
-  "rmsnorm_qk/default": Parameters<typeof writers0.write_rmsnorm_qk_default>[1];
-  "rmsnorm_qk/default_f16": Parameters<typeof writers0.write_rmsnorm_qk_default>[1];
+  "rmsnorm_qk/default": Parameters<typeof writers1.write_rmsnorm_qk_default>[1];
+  "rmsnorm_qk/default_f16": Parameters<typeof writers1.write_rmsnorm_qk_default>[1];
   "layernorm/default": Parameters<typeof writers1.write_layernorm_default>[1];
   "layernorm/default_f16": Parameters<typeof writers1.write_layernorm_default>[1];
   "fused_matmul_rmsnorm/small": Parameters<typeof writers1.write_fused_matmul_rmsnorm_small>[1];
@@ -254,6 +262,10 @@ export interface KernelUniformValues {
   "gather/f16_vec4_f16_out": Parameters<typeof writers1.write_gather_vec4>[1];
   "gather/litert_int4_vec4_f16_out": Parameters<typeof writers1.write_gather_bf16>[1];
   "gather/litert_int4_vec4_f32_out": Parameters<typeof writers1.write_gather_bf16>[1];
+  "gather/q4_0": Parameters<typeof writers1.write_gather_q4_0>[1];
+  "gather/q4_1": Parameters<typeof writers1.write_gather_q4_0>[1];
+  "gather/q8_0": Parameters<typeof writers1.write_gather_q4_0>[1];
+  "gather/q6k": Parameters<typeof writers1.write_gather_q4_0>[1];
   "gather_split4/f16_vec4_f16_out": Parameters<typeof writers1.write_gather_split4_f16_vec4_f16_out>[1];
   "gather_split8/f16_vec4_f16_out": Parameters<typeof writers1.write_gather_split8_f16_vec4_f16_out>[1];
   "gather_split8/f16_vec4_f32_out": Parameters<typeof writers1.write_gather_split8_f16_vec4_f16_out>[1];
@@ -344,8 +356,8 @@ export interface KernelUniformValues {
   "layernorm_backward/default": Parameters<typeof writers1.write_layernorm_default>[1];
   "rope_backward/default": Parameters<typeof writers1.write_rope_backward_default>[1];
   "cross_entropy_loss/default": Parameters<typeof writers1.write_cross_entropy_loss_default>[1];
-  "conv2d/default": Parameters<typeof writers1.write_conv2d_default>[1];
-  "conv2d/default_f16": Parameters<typeof writers1.write_conv2d_default>[1];
+  "conv2d/default": Parameters<typeof writers2.write_conv2d_default>[1];
+  "conv2d/default_f16": Parameters<typeof writers2.write_conv2d_default>[1];
   "depthwise_conv2d/default": Parameters<typeof writers2.write_depthwise_conv2d_default>[1];
   "depthwise_conv2d/default_f16": Parameters<typeof writers2.write_depthwise_conv2d_default>[1];
   "depthwise_conv1d/depthwise_conv1d": Parameters<typeof writers2.write_depthwise_conv1d_depthwise_conv1d>[1];
@@ -387,6 +399,7 @@ export interface KernelUniformValues {
   "gated_delta_recurrent/paired_gate_sigmoid": Parameters<typeof writers0.write_qwen_linear_attention_prepare_paired_beta>[1];
   "gated_delta_recurrent/register_prefill": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_recurrent/register_prefill_norm_gate": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
+  "gated_delta_recurrent/gguf_f32": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_fused_decode/paired_default": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_fused_decode/paired_default_f16": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_fused_decode/paired_sigmoid_gate": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
@@ -404,8 +417,8 @@ export interface KernelUniformValues {
   "repeat_channels/default_f16": Parameters<typeof writers2.write_repeat_channels_default>[1];
   "relu/default": Parameters<typeof writers2.write_relu_default>[1];
   "relu/default_f16": Parameters<typeof writers2.write_relu_default>[1];
-  "conv2d_backward_input/default": Parameters<typeof writers1.write_conv2d_default>[1];
-  "conv2d_backward_weight/default": Parameters<typeof writers1.write_conv2d_default>[1];
+  "conv2d_backward_input/default": Parameters<typeof writers2.write_conv2d_default>[1];
+  "conv2d_backward_weight/default": Parameters<typeof writers2.write_conv2d_default>[1];
   "attention_bdpa/decode_bdpa_f16": Parameters<typeof writers2.write_attention_bdpa_decode_bdpa_f16>[1];
   "check_finiteness/f16": Parameters<typeof writers2.write_check_finiteness_f16>[1];
   "check_hot_vocab_stop/default": Parameters<typeof writers2.write_check_hot_vocab_stop_default>[1];
@@ -439,5 +452,13 @@ export interface KernelUniformValues {
   "paired_pointwise/scale_inplace": Parameters<typeof writers2.write_paired_pointwise_add>[1];
   "paired_pointwise/silu_unary": Parameters<typeof writers2.write_paired_pointwise_add>[1];
   "moe_route_matmul/q4k_f32": Parameters<typeof writers2.write_moe_route_matmul_q4k_f32>[1];
+  "moe_route_matmul/q4_0_f32": Parameters<typeof writers2.write_moe_route_matmul_q4_0_f32>[1];
+  "moe_route_matmul/q4_1_f32": Parameters<typeof writers2.write_moe_route_matmul_q4_0_f32>[1];
+  "moe_route_matmul/q8_0_f32": Parameters<typeof writers2.write_moe_route_matmul_q4_0_f32>[1];
+  "moe_route_matmul/q6k_f32": Parameters<typeof writers2.write_moe_route_matmul_q4_0_f32>[1];
+  "moe_route_matmul/q4_0_split_f32": Parameters<typeof writers2.write_moe_route_matmul_q4_0_f32>[1];
+  "moe_route_matmul/q4_1_split_f32": Parameters<typeof writers2.write_moe_route_matmul_q4_0_f32>[1];
+  "moe_route_matmul/q8_0_split_f32": Parameters<typeof writers2.write_moe_route_matmul_q4_0_f32>[1];
+  "moe_route_matmul/q6k_split_f32": Parameters<typeof writers2.write_moe_route_matmul_q4_0_f32>[1];
 }
 export declare const UNIFORM_WRITERS: { readonly [K in keyof KernelUniformValues]: { readonly size: number; readonly write: (view: DataView, values: KernelUniformValues[K], kernel: string) => void } };

@@ -3,6 +3,7 @@ import type { WeightBuffer } from '../weight-buffer.js';
 import type { CommandRecorder } from '../command-recorder.js';
 
 export interface RouteQ4MatmulOptions {
+  upWeights?: WeightBuffer | null;
   numRoutes: number;
   numExperts: number;
   topK: number;

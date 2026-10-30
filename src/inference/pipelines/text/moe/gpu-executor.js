@@ -1,3 +1,4 @@
+import { ggufBlockBytes } from '../../../../formats/gguf/block-storage.js';
 import { getDevice } from '../../../../gpu/device.js';
 import { acquireBuffer, BufferUsage, releaseBuffer } from '../../../../memory/buffer-pool.js';
 import { createTensor } from '../../../../gpu/tensor.js';
@@ -62,6 +63,7 @@ function alignTo4(value) {
 
 function resolveMatrixStorageStrideBytes(buffer, rows, cols, label) {
   const dtype = inferBufferDtype(buffer, rows * cols, label);
+  if (dtype === 'q4_0' || dtype === 'q4_1' || dtype === 'q8_0' || dtype === 'q6k') return ggufBlockBytes([rows,cols],dtype);
   if (dtype === 'q4k') {
     return alignTo4(rows * Math.ceil(cols / QK_K) * Q4K_BLOCK_BYTES);
   }
@@ -374,6 +376,20 @@ export async function runGemma4Expert(
     throw new Error(`[MoE] Gemma-style expert index ${expertIdx} out of range for ${numExperts} experts.`);
   }
 
+  if (weights.projectionLayout === 'separate') {
+    const owned=[];
+    try {
+      const options={transposeB:true,outputDtype:activationDtype,kernelPath,aOffset:inputOffset};
+      const gate=await runMatmul(gathered,weights.gate,count,intermediateSize,hiddenSize,
+        {...options,bOffset:expertIdx*ggufBlockBytes([intermediateSize,hiddenSize],weights.gate.dtype),role:matmulRoles.gateUp});owned.push(gate.buffer);
+      const up=await runMatmul(gathered,weights.up,count,intermediateSize,hiddenSize,
+        {...options,bOffset:expertIdx*ggufBlockBytes([intermediateSize,hiddenSize],weights.up.dtype),role:matmulRoles.gateUp});owned.push(up.buffer);
+      const active=await runSiLU(up,{size:count*intermediateSize,gate,inputActivation:'identity',gateActivation:hiddenActivation,swigluLimit});owned.push(active.buffer);
+      await runMatmul(active,weights.down,count,hiddenSize,intermediateSize,{transposeB:true,outputDtype:activationDtype,kernelPath,
+        bOffset:expertIdx*ggufBlockBytes([hiddenSize,intermediateSize],weights.down.dtype),outputBuffer:expertOutputs,cOffset:outputOffset,role:matmulRoles.down});
+      return;
+    } finally {for(const buffer of owned)releaseBuffer(buffer);}
+  }
   const gateUpOutDim = intermediateSize * 2;
   const gateUpStrideBytes = resolveMatrixStorageStrideBytes(
     weights.gateUp,

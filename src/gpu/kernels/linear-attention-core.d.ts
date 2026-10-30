@@ -4,6 +4,7 @@ import type { ExecutionV1PoliciesSchema } from '../../config/schema/execution-v1
 import type { LinearNormGateActivation } from '../../config/schema/inference.schema.js';
 
 export interface LinearAttentionCoreLayerState {
+  sourceLayout?: 'hf' | 'gguf-v1';
   convDim: number;
   convKernelSize: number;
   valueDim: number;

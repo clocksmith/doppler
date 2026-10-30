@@ -16,6 +16,7 @@ export declare function write_matmul_q4_fused_f16a(view: DataView, values: { "M"
 export declare function write_matmul_litert_int4_multicol_f16a(view: DataView, values: { "M": number; "N": number; "K": number; "alpha": number; "transpose_b": number; "workgroups_x": number }, kernel: string): void;
 export declare function write_matmul_q4_fused_rmsnorm_widetile(view: DataView, values: { "M": number; "N": number; "K": number; "alpha": number; "num_blocks_per_row": number; "eps": number }, kernel: string): void;
 export declare function write_matmul_paired_f32(view: DataView, values: { "M": number; "N": number; "K": number; "grid_width": number; "alpha_hi": number; "alpha_lo": number }, kernel: string): void;
+export declare function write_matmul_q4_0_gemv(view: DataView, values: { "M": number; "N": number; "K": number; "alpha": number; "blocks": number; "a_offset": number; "b_row": number; "c_offset": number }, kernel: string): void;
 export declare function write_fused_ffn_default(view: DataView, values: { "M": number; "hidden_size": number; "intermediate_size": number; "alpha": number; "activation": number; "clamp_max": number }, kernel: string): void;
 export declare function write_fused_ffn_q4k(view: DataView, values: { "M": number; "hidden_size": number; "intermediate_size": number; "alpha": number; "activation": number; "num_blocks_per_row": number; "clamp_max": number }, kernel: string): void;
 export declare function write_fused_ffn_gate_up_gelu_gated_tiled_f16(view: DataView, values: { "M": number; "hidden_size": number; "intermediate_size": number; "transpose_b": number }, kernel: string): void;
@@ -47,4 +48,3 @@ export declare function write_rmsnorm_default(view: DataView, values: { "size": 
 export declare function write_rmsnorm_paired(view: DataView, values: { "size": number; "num_tokens": number; "eps_hi": number; "eps_lo": number; "token_stride": number; "scale_hi": number; "scale_lo": number }, kernel: string): void;
 export declare function write_rmsnorm_pair_default(view: DataView, values: { "size": number; "num_tokens": number; "eps": number; "has_residual": number; "token_stride": number }, kernel: string): void;
 export declare function write_residual_rmsnorm_pair_subgroup(view: DataView, values: { "size": number; "num_tokens": number; "eps": number; "output_scale": number; "token_stride": number }, kernel: string): void;
-export declare function write_rmsnorm_qk_default(view: DataView, values: { "q_rows": number; "k_rows": number; "head_dim": number; "row_stride": number; "eps": number }, kernel: string): void;

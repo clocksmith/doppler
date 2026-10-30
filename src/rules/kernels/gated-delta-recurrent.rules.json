@@ -2,6 +2,14 @@
   "scalarVariant": [
     {
       "match": {
+        "sourceLayout": "gguf-v1",
+        "inputDtype": "f32",
+        "normGateActivation": "silu"
+      },
+      "value": "gguf_f32"
+    },
+    {
+      "match": {
         "inputDtype": "f32",
         "normGateActivation": "silu",
         "useRegisterPrefill": true

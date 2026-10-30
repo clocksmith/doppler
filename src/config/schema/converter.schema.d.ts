@@ -42,6 +42,7 @@ export interface ConverterQuantizationConfigSchema {
   lmHead: QuantizationValue | null;
   sourceTrainingQuantization: SourceTrainingQuantization | null;
   sourceQuantizationTarget: SourceQuantizationTarget | null;
+  preserveSourceTensors: boolean;
   sourceQuantizationFormat: SourceQuantizationFormat | null;
   vision: QuantizationValue | null;
   audio: QuantizationValue | null;
