@@ -1193,6 +1193,21 @@
       "id": "src/loader/tensors/load-executor.js#materializeFloatRequirements",
       "category": "gpu-orchestration",
       "reason": "Builds dtype-to-GPU-buffer metadata and owns allocation cleanup; GPU dequantization and cast kernels perform tensor arithmetic. No host tensor element loop."
+    },
+    {
+      "id": "src/converter/fp8-source.js#prepareFP8SourceTensors",
+      "category": "artifact-construction",
+      "reason": "Rig resolves explicitly declared source FP8 block-scale companions before artifact construction; the Map writes do not execute runtime tensors."
+    },
+    {
+      "id": "src/converter/fp8-source.js#readFP8CompanionScales",
+      "category": "artifact-construction",
+      "reason": "Rig decodes declared little-endian F32 source scale tensors before signing artifacts; never a model-execution fallback."
+    },
+    {
+      "id": "src/converter/fp8-source.js#packFP8Source",
+      "category": "artifact-construction",
+      "reason": "Rig constructs versioned packed FP8 blocks with explicit F32 scales and zero padding before Capsule signing; runtime consumes unchanged packed bytes."
     }
   ]
 }

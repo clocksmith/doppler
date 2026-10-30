@@ -126,6 +126,13 @@
     "src/inference/pipelines/text/ffn/activation-observation.js",
     "src/inference/pipelines/text/ffn/decode-intermediate.js",
     "src/gpu/device-bindings.js",
-    "src/gpu/kernels/subgroup-partition.js"
+    "src/gpu/kernels/subgroup-partition.js",
+    "src/config/schema/fp8.schema.js",
+    "src/formats/float8.js",
+    "src/formats/rdrr/fp8-storage.js",
+    "src/converter/fp8-source.js",
+    "src/loader/tensors/fp8-loader.js",
+    "src/gpu/kernels/fp8.js",
+    "src/formats/rdrr/fp8-contract.js"
   ]
 }

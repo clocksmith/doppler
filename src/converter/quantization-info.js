@@ -1,3 +1,4 @@
+import { validateFP8Policy } from '../config/schema/fp8.schema.js';
 import { validateW8A8Policy } from '../config/schema/w8a8.schema.js';
 
 import { DEFAULT_QUANTIZATION_DEFAULTS, DEFAULT_Q4K_LAYOUT } from '../config/schema/index.js';
@@ -53,10 +54,14 @@ const QUANT_TAG_ALIASES = {
   'float32': 'f32',
   // FP8 E4M3 variants
   'fp8e4': 'fp8e4',
+  'f8_e4m3': 'fp8e4',
+  'fp8_e4m3fn': 'fp8e4',
   'fp8e4m3': 'fp8e4',
   'e4m3': 'fp8e4',
   // FP8 E5M2 variants
   'fp8e5': 'fp8e5',
+  'f8_e5m2': 'fp8e5',
+  'fp8_e5m2': 'fp8e5',
   'fp8e5m2': 'fp8e5',
   'e5m2': 'fp8e5',
   // Integer variants
@@ -126,10 +131,10 @@ function validateQuantType(value, source) {
   if (!value) return;
   const normalized = normalizeQuantTag(value);
 
-  const supported = ['w8a8', 'q4k', 'q4_0', 'w4a16', 'wna8o8', 'f16', 'bf16', 'f32'];
+  const supported = ['w8a8', 'q4k', 'q4_0', 'w4a16', 'wna8o8', 'f16', 'bf16', 'f32', 'fp8e4', 'fp8e5'];
   if (supported.includes(normalized)) return;
 
-  const planned = ['q6k', 'q8_0', 'fp8e4', 'fp8e5', 'i4', 'i8'];
+  const planned = ['q6k', 'q8_0', 'i4', 'i8'];
   if (planned.includes(normalized)) {
     throw new Error(
       `Quantization type "${normalized}" is not yet implemented.\n` +
@@ -458,6 +463,15 @@ export function buildQuantizationInfo(
     embeddings,
     lmHead: lmHead !== embeddings ? lmHead : undefined,
   };
+
+  if (quantization.fp8 != null || weights === 'fp8e4' || weights === 'fp8e5') {
+    info.fp8 = { ...validateFP8Policy(quantization.fp8, 'converter.quantization.fp8') };
+    if ((weights === 'fp8e4' && info.fp8.encoding !== 'e4m3fn') || (weights === 'fp8e5' && info.fp8.encoding !== 'e5m2')
+      || !['fp8e4', 'fp8e5', 'f16', 'f32'].includes(weights) || computePrecision !== 'f32'
+      || !['f16', 'f32'].includes(embeddings) || !['f16', 'f32'].includes(lmHead)) {
+      throw new Error('FP8 requires matching encoding, explicit F32 compute and dense F16/F32 embedding/head storage.');
+    }
+  }
 
   if (weights === 'w8a8') {
     info.w8a8 = { ...validateW8A8Policy(quantization.w8a8, 'converter.quantization.w8a8') };

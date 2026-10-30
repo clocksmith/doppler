@@ -63,7 +63,7 @@ export async function _loadTensor(name, toGPU = true, silent = false, consumerRo
       debugTrace.loader(`Loading ${name}: shape=${JSON.stringify(location.shape)}, size=${location.size}, dtype=${location.dtype}, spans=${!!location.spans}`);
     }
 
-    const streamedUpload = toGPU && location.dtype !== 'W8A8' && this._shouldStreamUploadToGPU(location);
+    const streamedUpload = toGPU && !['W8A8', 'FP8_E4M3FN', 'FP8_E5M2'].includes(location.dtype) && this._shouldStreamUploadToGPU(location);
     let shardData;
     try {
       const preserveRawSourceBytes = toGPU && isLiteRTAffineInt4FusedEligible(location, {
@@ -103,6 +103,7 @@ export async function _loadTensor(name, toGPU = true, silent = false, consumerRo
       const requirement = this.weightRepresentationPlan?.[name] ?? null;
       const config = {
         representationRequirement: requirement,
+        fp8Policy: this.manifest?.quantizationInfo?.fp8,
         w8a8Policy: this.manifest?.quantizationInfo?.w8a8,
         useFusedQ4K: requirement ? requirement.mode !== 'dense-only' : this.useFusedQ4K,
         q4kMaterializationMode: this.q4kMaterializationMode,

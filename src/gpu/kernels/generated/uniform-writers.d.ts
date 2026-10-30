@@ -23,6 +23,8 @@ export interface KernelUniformValues {
   "gated_rmsnorm/default": Parameters<typeof writers0.write_gated_rmsnorm_default>[1];
   "causal_conv1d_silu/default": Parameters<typeof writers0.write_causal_conv1d_silu_default>[1];
   "gated_delta_recurrent_checkpoint_forward/default": Parameters<typeof writers0.write_gated_delta_recurrent_checkpoint_forward_default>[1];
+  "matmul/fp8_e4m3fn_f32": Parameters<typeof writers0.write_matmul_fp8_e4m3fn_f32>[1];
+  "matmul/fp8_e5m2_f32": Parameters<typeof writers0.write_matmul_fp8_e4m3fn_f32>[1];
   "matmul/w8a8_portable": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
   "matmul/w8a8_packed": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
   "matmul/w8a8_packed_cooperative": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
@@ -190,8 +192,8 @@ export interface KernelUniformValues {
   "residual_rmsnorm_pair/subgroup": Parameters<typeof writers0.write_residual_rmsnorm_pair_subgroup>[1];
   "rmsnorm_qk/default": Parameters<typeof writers0.write_rmsnorm_qk_default>[1];
   "rmsnorm_qk/default_f16": Parameters<typeof writers0.write_rmsnorm_qk_default>[1];
-  "layernorm/default": Parameters<typeof writers0.write_layernorm_default>[1];
-  "layernorm/default_f16": Parameters<typeof writers0.write_layernorm_default>[1];
+  "layernorm/default": Parameters<typeof writers1.write_layernorm_default>[1];
+  "layernorm/default_f16": Parameters<typeof writers1.write_layernorm_default>[1];
   "fused_matmul_rmsnorm/small": Parameters<typeof writers1.write_fused_matmul_rmsnorm_small>[1];
   "fused_matmul_rmsnorm/medium": Parameters<typeof writers1.write_fused_matmul_rmsnorm_small>[1];
   "fused_matmul_rmsnorm/phase1": Parameters<typeof writers1.write_fused_matmul_rmsnorm_small>[1];
@@ -337,13 +339,13 @@ export interface KernelUniformValues {
   "gated_rmsnorm_backward/default": Parameters<typeof writers1.write_gated_rmsnorm_backward_default>[1];
   "causal_conv1d_silu_backward/default": Parameters<typeof writers1.write_causal_conv1d_silu_backward_default>[1];
   "gated_delta_recurrent_backward/default": Parameters<typeof writers1.write_gated_delta_recurrent_backward_default>[1];
-  "layernorm_backward/default": Parameters<typeof writers0.write_layernorm_default>[1];
+  "layernorm_backward/default": Parameters<typeof writers1.write_layernorm_default>[1];
   "rope_backward/default": Parameters<typeof writers1.write_rope_backward_default>[1];
   "cross_entropy_loss/default": Parameters<typeof writers1.write_cross_entropy_loss_default>[1];
   "conv2d/default": Parameters<typeof writers1.write_conv2d_default>[1];
   "conv2d/default_f16": Parameters<typeof writers1.write_conv2d_default>[1];
-  "depthwise_conv2d/default": Parameters<typeof writers1.write_depthwise_conv2d_default>[1];
-  "depthwise_conv2d/default_f16": Parameters<typeof writers1.write_depthwise_conv2d_default>[1];
+  "depthwise_conv2d/default": Parameters<typeof writers2.write_depthwise_conv2d_default>[1];
+  "depthwise_conv2d/default_f16": Parameters<typeof writers2.write_depthwise_conv2d_default>[1];
   "depthwise_conv1d/depthwise_conv1d": Parameters<typeof writers2.write_depthwise_conv1d_depthwise_conv1d>[1];
   "grouped_pointwise_conv2d/default": Parameters<typeof writers2.write_grouped_pointwise_conv2d_default>[1];
   "grouped_pointwise_conv2d/default_f16": Parameters<typeof writers2.write_grouped_pointwise_conv2d_default>[1];

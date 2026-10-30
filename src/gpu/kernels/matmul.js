@@ -1,3 +1,4 @@
+import { runFP8Matmul, recordFP8Matmul } from './fp8.js';
 import { executePairedMatmul, resolvePairedMatmulPipeline } from './paired-matmul.js';
 import { createKernelBindingEntries } from './kernel-bindings.js';
 import { getDevice, getKernelCapabilities } from '../device.js';
@@ -242,6 +243,10 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   }
   if (pathVariant && getKernelConfig('matmul', pathVariant).variantMetadata?.inputPrecision === 'two-f32') {
     throw new Error('[Matmul] Declared paired kernel requires explicit paired Tensor metadata.');
+  }
+  if (['fp8e4', 'fp8e5'].includes(getWeightDtype(B))) {
+    const bound = { ...options, variant: pathVariant };
+    return recorder ? recordFP8Matmul(recorder, A, B, M, N, K, bound) : runFP8Matmul(A, B, M, N, K, bound);
   }
   if (getWeightDtype(B) === 'w8a8' || (pathVariant && getKernelConfig('matmul', pathVariant).weightDtype === 'w8a8')) {
     const bound = { ...options, variant: pathVariant };

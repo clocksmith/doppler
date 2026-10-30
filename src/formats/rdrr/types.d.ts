@@ -92,9 +92,11 @@ export interface TensorStorageShardSpan {
 }
 
 export interface TensorPhysicalStorageDescriptor {
-  packing: 'w8a8-row-v1' | 'dense' | 'q4k' | 'q4_0' | 'w4a16' | 'gguf-block-v2';
+  packing: 'fp8-block-v1' | 'w8a8-row-v1' | 'dense' | 'q4k' | 'q4_0' | 'w4a16' | 'gguf-block-v2';
   blockShape?: number[];
   blockBytes?: number;
+  encoding?: 'e4m3fn' | 'e5m2';
+  scaleSemantics?: 'multiply';
   paddedK?: number;
   rowStrideBytes?: number;
   scaleOffsetBytes?: number;

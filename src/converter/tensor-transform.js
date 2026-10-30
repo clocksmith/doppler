@@ -1,3 +1,4 @@
+import { fp8SourceEncoding, packFP8Source, materializeFP8Source } from './fp8-source.js';
 import { quantizeToW8A8Rows } from './w8a8-quantizer.js';
 import {
   // Constants
@@ -412,6 +413,26 @@ export function transformTensorBytes(tensor, rawData, options = {}) {
     targetQuant,
     quantizationInfo
   );
+  const sourceFP8 = fp8SourceEncoding(sourceDtype);
+  if (sourceFP8) {
+    const policy = quantizationInfo?.fp8;
+    if (!policy || policy.encoding !== sourceFP8 || tensor.shape?.length !== 2
+      || (tensor.layout != null && tensor.layout !== 'row')) throw new Error(`FP8 source ${tensor.name} requires its explicit matching row/block policy.`);
+    const scales = options.fp8Scales ?? null;
+    if (tensorTargetQuant === 'fp8e4' || tensorTargetQuant === 'fp8e5') {
+      if (resolveTensorRole(tensor) !== 'matmul'
+        || (tensorTargetQuant === 'fp8e4') !== (sourceFP8 === 'e4m3fn')) throw new Error('FP8 packed import requires a matching two-dimensional matmul weight.');
+      const result = packFP8Source(tensorDataInput, tensor.shape, policy, scales);
+      return { tensorData: result.quantized, storage: result.storage, outDtype: sourceFP8 === 'e4m3fn' ? 'FP8_E4M3FN' : 'FP8_E5M2',
+        outLayout: 'row', sourceDtype, tensorTargetQuant };
+    }
+    if (tensorTargetQuant !== 'f32' && tensorTargetQuant !== 'f16') throw new Error('FP8 source materialization requires explicit F32/F16 output or matching packed FP8 storage.');
+    const dense = materializeFP8Source(tensorDataInput, tensor.shape, policy, scales);
+    return { ...transformTensorBytes({ ...tensor, dtype: 'F32' }, new Uint8Array(dense.buffer), {
+      ...options, targetQuant: tensorTargetQuant,
+    }), sourceDtype };
+  }
+  if (tensorTargetQuant === 'fp8e4' || tensorTargetQuant === 'fp8e5') throw new Error(`FP8 import requires original FP8 source bytes for ${tensor.name}; re-quantization is not implemented.`);
   const q4kLayout = normalizeQ4KLayout(options.q4kLayout ?? quantizationInfo?.layout);
   const quantizeEmbeddings = resolveQuantizeEmbeddings(
     quantizationInfo,

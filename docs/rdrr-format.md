@@ -168,3 +168,51 @@ At minimum, manifests must include:
 ## Kernel override note
 
 For override and compatibility policy, use the canonical section in [operations.md#kernel-overrides--compatibility](operations.md#kernel-overrides--compatibility).
+
+
+## Packed FP8 weight blocks
+
+The explicit `doppler.fp8/v1` policy admits SafeTensors `F8_E4M3` (E4M3FN)
+and `F8_E5M2` sources. Conversion produces new RDRR tensors with dtype
+`FP8_E4M3FN` or `FP8_E5M2`, role `matmul`, layout `row`, and logical shape
+`[N,K]`. FNUZ encodings and quantization from dense weights are unsupported.
+Raw SafeTensors bytes are not this RDRR block layout and cannot be loaded as it.
+Encoding follows the [SafeTensors dtype mapping](https://github.com/safetensors/safetensors/blob/main/bindings/python/py_src/safetensors/torch.py) and [OFP8 specification](https://www.opencompute.org/documents/ocp-8-bit-floating-point-specification-ofp8-revision-1-0-2023-06-20-pdf).
+
+`quantizationInfo.fp8` must declare every field of the
+[FP8 policy](../src/config/schema/fp8.schema.d.ts); an executable example is the
+[operator contract](../tests/fixtures/fp8-operator-contract.json).
+`quantizationInfo.weights` is `fp8e4` or `fp8e5`, compute is explicitly `f32`,
+and embedding/head storage remains explicitly dense F16/F32. This weight-storage
+contract does not introduce FP8 activations or native FP8 arithmetic.
+
+The tensor's [storage descriptor](../src/formats/rdrr/fp8-storage.d.ts) declares
+`packing: "fp8-block-v1"`, `encoding`, `blockShape: [BN,BK]`, `blockBytes`,
+`scaleOffsetBytes: 0`, `dataOffsetBytes: 4`, and `scaleSemantics: "multiply"`.
+Blocks form a row-major `[ceil(N/BN),ceil(K/BK)]` grid. Each block contains one
+little-endian F32 scale followed by `BN*BK` row-major code bytes, padded to four
+bytes. Thus `blockBytes = 4 + 4*ceil(BN*BK/4)`. Out-of-matrix tail cells and word
+padding contain zero codes. GPU storage binds these unchanged packed bytes as
+`u32` words; the fused kernel decodes and scales them while accumulating in F32.
+
+Source scaling is explicit: `scaleMode: "identity"` requires `scaleSuffix: null`
+and cannot ignore a source `quantization_config`. `scaleMode: "companion"`
+requires an exact configured suffix appended to the primary tensor name and an
+F32 companion shaped `[ceil(N/BN),ceil(K/BK)]`. Those companion values multiply
+codes; names such as `_scale_inv` never select reciprocal semantics. Source block
+metadata must agree, and unsupported encoding/scaling metadata fails. Conversion
+consumes the companion and places its values in the new block payload.
+
+The artifact codec preserves every FP8 code, signed zero, and format-defined
+NaN/infinity interpretation. GPU admission explicitly rejects E4M3FN codes
+`0x7f/0xff` and E5M2 exponent-31 codes, without remapping them. E4M3FN exponent-15
+finite values, including 448, remain valid. Scales must be positive normal F32;
+scaled weights must be finite normal or zero. GPU execution claims are limited
+to finite inputs under [WGSL F32 arithmetic](https://gpuweb.github.io/gpuweb/wgsl/#floating-point-evaluation), not portable IEEE NaN/Inf behavior.
+The selected execution graph must pin an exact registered FP8 variant and encoding;
+a dense, unknown, CPU, or mismatched consumer cannot silently materialize it.
+Explicit conversion to dense F16/F32 creates a separate artifact; runtime does
+not widen the packed matmul weights. See the
+[converter contracts](../tests/converter/fp8-source.test.js),
+[loader controls](../tests/loader/fp8-loader.test.js), and
+[physical operator test](../tests/inference/fp8-gpu.test.js).
