@@ -1,3 +1,4 @@
+import { loadQ40Packed } from './q4_0-loader.js';
 import { loadFP8Packed } from './fp8-loader.js';
 import { loadW8A8Packed } from './w8a8-loader.js';
 
@@ -507,6 +508,7 @@ export async function loadW4A16Dequant(shardData, location, name, config) {
 // ============================================================================
 
 const GPU_LOADER_DISPATCH = {
+  q40_packed: loadQ40Packed,
   w8a8_packed: loadW8A8Packed,
   fp8_packed: loadFP8Packed,
   functional_descriptor: (shardData, location, name, config) => {
@@ -594,7 +596,7 @@ export async function loadTensorToGPU(shardData, location, name, config) {
   if (loaderPath === 'q4k_fused' && q4kLimitFallback.limitFallbackEligible) {
     logQ4KLimitFallbackOnce(name, q4kLimitFallback);
   }
-  if (config.representationRequirement?.mode === 'packed-only' && !useFusedQ4K && loaderPath !== 'fp8_packed') {
+  if (config.representationRequirement?.mode === 'packed-only' && !useFusedQ4K && loaderPath !== 'fp8_packed' && loaderPath !== 'q40_packed') {
     throw new Error(`Tensor "${name}" cannot supply required packed Q4 storage.`);
   }
   const result = await loader(shardData, location, name, config);

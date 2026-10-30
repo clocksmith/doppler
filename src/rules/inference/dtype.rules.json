@@ -19,6 +19,8 @@
     { "match": {}, "value": { "context": "fallback" } }
   ],
   "embeddingDtype": [
+    { "match": { "dtype": { "in": ["q4_1", "q8_0", "q6k"] } }, "value": { "context": "dtype" } },
+    { "match": { "dtype": "q4_0" }, "value": "q4_0" },
     { "match": { "dtype": "litert_int4" }, "value": "litert_int4" },
     { "match": { "dtype": "bf16" }, "value": "bf16" },
     { "match": { "dtype": "f16" }, "value": "f16" },

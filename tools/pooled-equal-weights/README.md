@@ -105,3 +105,26 @@ Their native streaming/buffered API costs and delivery cadence remain explicit.
 Output verification and flushed per-attempt files precede the next request.
 Failures, partial output, warmups and cleanup errors remain in the output;
 only a complete valid 20-pair cohort can produce a performance verdict.
+
+Native GGUF components now have a separate candidate contract,
+`benchmarks/vendors/pooled-equal-weights/contract-q4_0.json`. It admits mixed
+Q4_0/Q4_1/Q8_0/Q6_K/F32 source storage without requantization. To prepare a
+bounded-memory, CPU-only tensor inventory, run
+`node tools/pooled-equal-weights/prepare-q4_0-inventory.js config.json` with
+`{ "ggufPath", "chunkBytes", "inventoryPath" }`. The output includes omitted
+MTP tensors and hashes every consumed text tensor in chunks. This is preparation,
+not numerical or performance evidence.
+
+`prepare-doppler-probe.js` accepts `nativeWeightInventoryPath` instead of
+`canonicalInventoryPath` for untimed actual-resource observation.
+`verify-q4_0.js` requires full tensor coverage and reads the engine's actual
+bound storage; `q4_0-doppler-resources.js` resolves Doppler's GPU resources,
+including separate expert banks. A converted or repacked resource cannot pass
+by presenting source hashes. Native numerical comparison additionally requires
+all configured vocabulary logits and identical generated IDs.
+
+The F32 Pooled session initializer does not execute native GGUF weights. The
+resident browser rejects using that initializer for the native contract. Native
+Pooled repacking/requantization needs its own actual-resource bindings and
+numerical admission; do not reuse the F32 runner's proof packet. The new Doppler
+candidate is ready for functional model testing, not an equal-weight speed claim.

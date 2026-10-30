@@ -1,3 +1,5 @@
+import { selectRuleValue } from '../../../../rules/rule-registry.js';
+import { getWeightDtype } from '../../../../gpu/weight-buffer.js';
 import { runRouteQ4Matmul, recordRouteQ4Matmul, runRouteScatter, recordRouteScatter } from '../../../../gpu/kernels/moe-route.js';
 import { runSiLURowSplit, recordSiLURowSplit } from '../../../../gpu/kernels/silu.js';
 import { releaseOrTrack } from '../ops.js';
@@ -11,6 +13,11 @@ async function execute(recorder, options) {
       || weights?.expertFormat !== expectedExpertFormat || swigluLimit === undefined) {
     throw new Error('[MoE] Qwen topk-route requires explicit F32, SiLU, Qwen packed weights, and swigluLimit.');
   }
+  const gateUpWeight = weights.gateUp ?? weights.gate;
+  if (!gateUpWeight || (!weights.gateUp && !weights.up)) throw new Error('[MoE] Missing explicit fused or separate gate/up banks.');
+  for (const weight of [gateUpWeight,weights.down,...(weights.up ? [weights.up] : [])]) {
+    selectRuleValue('inference','moe','qwenRouteWeightDtype',{ dtype:getWeightDtype(weight) });
+  }
   const projection = { numRoutes: numTokens * topK, numExperts: weights.numExperts, topK, alpha: 1 };
   const workspace = recorder?.decodeWorkspace && numTokens === 1 ? recorder.decodeWorkspace : null;
   if (workspace && (typeof options.layerIdx !== 'number' || !Number.isInteger(options.layerIdx) || options.layerIdx < 0)) {
@@ -21,7 +28,8 @@ async function execute(recorder, options) {
   const scatter = recorder ? recordRouteScatter.bind(null, recorder) : runRouteScatter;
   let gateUp = null, activated = null, down = null;
   try {
-    gateUp = await matmul(inputTensor, indicesBuffer, weights.gateUp, {
+    gateUp = await matmul(inputTensor, indicesBuffer, gateUpWeight, {
+      upWeights: weights.gateUp ? null : weights.up,
       ...projection, N: intermediateSize * 2, K: hiddenSize, inputMode: 'token',
       outputBuffer: workspace?.getBuffer(`moe:${options.layerIdx}:gate-up`, topK * intermediateSize * 2 * 4),
     });

@@ -86,26 +86,16 @@ await assert.rejects(
 {
   const q40Artifact = structuredClone(parsedArtifact);
   q40Artifact.sourceQuantization = 'Q4_0';
-  q40Artifact.tensors = q40Artifact.tensors.map((tensor) => (
-    tensor.dtype === 'Q4_K_M'
-      ? { ...tensor, dtype: 'Q4_0' }
-      : tensor
-  ));
+  q40Artifact.config.eos_token_id=1;
+  q40Artifact.tensors = q40Artifact.tensors.map(tensor => tensor.dtype === 'Q4_K_M'
+    ? { ...tensor, dtype: 'Q4_0', shape:[2,32],size:36 } : tensor);
+  const options = { parsedArtifact:q40Artifact,runtimeLabel:'Q4_0 direct source test',
+    async hashFileEntries(entries,hashAlgorithm) { return entries.map(entry=>({...entry,hash:'0'.repeat(64),hashAlgorithm})); } };
+  const bundle = await resolveSourceRuntimeBundleFromParsedArtifact(options);
+  assert.equal(bundle.model.quantizationInfo.weights,'q4_0');
+  q40Artifact.tensors[1].size=35;
+  await assert.rejects(resolveSourceRuntimeBundleFromParsedArtifact(options),/byte length/);
 
-  await assert.rejects(
-    () => resolveSourceRuntimeBundleFromParsedArtifact({
-      parsedArtifact: q40Artifact,
-      runtimeLabel: 'source-artifact-adapter Q4_0 test',
-      async hashFileEntries(entries, hashAlgorithm) {
-        return (entries ?? []).map((entry) => ({
-          ...entry,
-          hash: '0'.repeat(64),
-          hashAlgorithm,
-        }));
-      },
-    }),
-    /Unsupported gguf tensor dtypes for direct-source runtime: Q4_0/
-  );
 }
 
 console.log('source-artifact-adapter.test: ok');

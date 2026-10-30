@@ -1,0 +1,26 @@
+--- a
++++ b
+@@ -1,3 +1,9 @@
++override WORKGROUP_SIZE: u32 = 256u;
++struct Uniforms { num_tokens: u32, hidden_size: u32, vocab_size: u32, index_offset: u32, }
++@group(0) @binding(0) var<uniform> u: Uniforms;
++@group(0) @binding(1) var<storage, read> indices: array<u32>;
++@group(0) @binding(2) var<storage, read> weights: array<u32>;
++@group(0) @binding(3) var<storage, read_write> output: array<f32>;
+ override BLOCK_VALUES: u32 = 32u;
+ override BLOCK_BYTES: u32 = 18u;
+ override QUANT_FORMAT: u32 = 0u;
+@@ -30,3 +36,13 @@
+     if (QUANT_FORMAT == 1u) { return scale * f32(value) + packed_half(offset + 2u); }
+     return scale * f32(i32(value) - 8);
+ }
++
++@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
++fn main(@builtin(workgroup_id) group: vec3<u32>, @builtin(num_workgroups) grid: vec3<u32>, @builtin(local_invocation_index) lane: u32) {
++    let index = (group.x + group.y * grid.x) * WORKGROUP_SIZE + lane;
++    if (index >= u.num_tokens * u.hidden_size) { return; }
++    let row = indices[u.index_offset + index / u.hidden_size];
++    var value = 0.0f;
++    if (row < u.vocab_size) { value = q40_value(row,index % u.hidden_size,u.hidden_size / BLOCK_VALUES); }
++    output[index] = value;
++}

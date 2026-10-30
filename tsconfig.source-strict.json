@@ -136,6 +136,12 @@
     "src/formats/rdrr/fp8-contract.js",
     "src/inference/pipelines/text/ffn/qwen-shared-expert.js",
     "src/gpu/kernels/moe-route.js",
-    "src/inference/pipelines/text/moe/qwen-route-executor.js"
+    "src/inference/pipelines/text/moe/qwen-route-executor.js",
+    "src/formats/rdrr/q4_0-storage.js",
+    "src/gpu/kernels/q4_0.js",
+    "src/loader/tensors/q4_0-loader.js",
+    "src/formats/gguf/block-storage.js",
+    "src/formats/gguf/qwen-source.js",
+    "src/formats/gguf/tokenizer.js"
   ]
 }

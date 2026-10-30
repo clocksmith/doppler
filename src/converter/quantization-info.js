@@ -131,10 +131,10 @@ function validateQuantType(value, source) {
   if (!value) return;
   const normalized = normalizeQuantTag(value);
 
-  const supported = ['w8a8', 'q4k', 'q4_0', 'w4a16', 'wna8o8', 'f16', 'bf16', 'f32', 'fp8e4', 'fp8e5'];
+  const supported = ['w8a8', 'q4k', 'q4_0', 'q4_1', 'q6k', 'q8_0', 'w4a16', 'wna8o8', 'f16', 'bf16', 'f32', 'fp8e4', 'fp8e5'];
   if (supported.includes(normalized)) return;
 
-  const planned = ['q6k', 'q8_0', 'i4', 'i8'];
+  const planned = ['i4', 'i8'];
   if (planned.includes(normalized)) {
     throw new Error(
       `Quantization type "${normalized}" is not yet implemented.\n` +
@@ -262,8 +262,9 @@ function applySourceQuantizationMetadata(info, sourceTrainingQuantization, sourc
 const MANIFEST_QUANT_NAMES = {
   'q4k': 'Q4_K_M',
   'q4_0': 'Q4_0',
-  'q6k': 'Q6_K',
+  'q4_1': 'Q4_1',
   'q8_0': 'Q8_0',
+  'q6k': 'Q6_K',
   'w4a16': 'W4A16',
   'wna8o8': 'WNA8O8',
 };
@@ -522,6 +523,10 @@ export function buildQuantizationInfo(
     }
   }
 
+  if (quantization.preserveSourceTensors !== undefined && typeof quantization.preserveSourceTensors !== 'boolean') {
+    throw new Error('converter.quantization.preserveSourceTensors must be boolean.');
+  }
+  if (quantization.preserveSourceTensors === true) info.preserveSourceTensors = true;
   if (computePrecision) {
     info.compute = computePrecision;
   }
@@ -562,6 +567,9 @@ export function resolveModelId(modelId, baseName, variantTag) {
 const WEBGPU_DTYPE_NAMES = {
   'q4k': 'Q4_K_M',
   'q4_0': 'Q4_0',
+  'q4_1': 'Q4_1',
+  'q8_0': 'Q8_0',
+  'q6k': 'Q6_K',
   'w4a16': 'W4A16',
   'wna8o8': 'WNA8O8',
   // Manifests describe stored artifact truth, not the materialized shader type.

@@ -1,0 +1,9 @@
+--- a
++++ b
+@@ -347,2 +347 @@
+-  let q_rep = max(params.q_rep, 1u);
+-  let src_head = head / q_rep;
++  let src_head = head % params.num_k_heads;
+@@ -395 +394 @@
+-    let g = -exp_refined(a_log[head]) * softplus(f32(a_proj[ab_row_base]) + dt_bias[head]);
++    let g = a_log[head] * softplus(f32(a_proj[ab_row_base]) + dt_bias[head]);

@@ -1,3 +1,4 @@
+import { ggufBlockBytes } from '../../formats/gguf/block-storage.js';
 import { isNativeGpuBuffer as isGpuBufferInstance } from '../../gpu/buffer-identity.js';
 
 
@@ -244,7 +245,7 @@ function getGemma4ExpertTensorCandidates(layerIdx) {
 
 function getQwen35ExpertTensorCandidates(layerIdx) {
   const prefixes = [`model.language_model.layers.${layerIdx}`, `model.layers.${layerIdx}`];
-  return ['gate_up_proj', 'down_proj'].map((suffix) => prefixes.map((prefix) => `${prefix}.mlp.experts.${suffix}`));
+  return ['gate_up_proj', 'down_proj'].map((suffix) => [...prefixes.map((prefix) => `${prefix}.mlp.experts.${suffix}`), ...(suffix === 'down_proj' ? [`blk.${layerIdx}.ffn_down_exps.weight`] : [])]);
 }
 
 function getGptOssExpertTensorCandidates(layerIdx) {
@@ -261,7 +262,13 @@ function getGptOssExpertTensorCandidates(layerIdx) {
 
 function getPackedExpertTensorNames(ctx, layerIdx, expertFormat = ctx.manifest?.moeConfig?.expertFormat) {
   const candidates = getExpertFormat(expertFormat)?.packedTensorCandidates;
-  return candidates ? getExistingTensorNames(ctx, candidates(layerIdx)) : [];
+  const names = candidates ? getExistingTensorNames(ctx, candidates(layerIdx)) : [];
+  if (expertFormat === 'qwen3_5') {
+    for (const name of [`blk.${layerIdx}.ffn_gate_exps.weight`, `blk.${layerIdx}.ffn_up_exps.weight`]) {
+      if (ctx.tensorLocations?.has(name)) names.push(name);
+    }
+  }
+  return names;
 }
 
 function getPackedExpertShardIndices(ctx, layerIdx) {
@@ -355,7 +362,7 @@ function assertGptOssWeights(weights, layerIdx, expertIdx) {
 
 function assertGemma4Weights(weights, layerIdx, expertIdx) {
   const missing = [];
-  if (!weights.gateUp) missing.push('experts.gate_up_proj');
+  if (!weights.gateUp && !(weights.gate && weights.up && weights.projectionLayout === 'separate')) missing.push('experts.gate_up_proj or separate gate/up');
   if (!weights.down) missing.push('experts.down_proj');
   if (!weights.expertIntermediateSize) missing.push('expertIntermediateSize');
   if (missing.length > 0) {
@@ -400,9 +407,25 @@ async function loadQwen35StyleExpert(ctx, layerIdx, expertIdx) {
   let packed = ctx.experts.get(packedKey);
   if (!packed) {
     const candidates = getQwen35ExpertTensorCandidates(layerIdx);
-    packed = { numExperts, expertIntermediateSize: resolveGemma4ExpertIntermediateSize(ctx),
-      gateUp: await loadFirstTensor(ctx, candidates[0]), down: await loadFirstTensor(ctx, candidates[1]) };
+    const gateUp = await loadFirstTensor(ctx,candidates[0]);
+    const down = await loadFirstTensor(ctx,candidates[1]);
+    packed = { numExperts, expertIntermediateSize: resolveGemma4ExpertIntermediateSize(ctx), down,
+      ...(gateUp ? { gateUp } : { projectionLayout: 'separate',
+        gate: await loadFirstTensor(ctx,[`blk.${layerIdx}.ffn_gate_exps.weight`]),
+        up: await loadFirstTensor(ctx,[`blk.${layerIdx}.ffn_up_exps.weight`]) }) };
     assertGemma4Weights(packed, layerIdx, expertIdx);
+    if (packed.projectionLayout === 'separate') {
+      const hiddenSize = ctx.manifest?.architecture?.hiddenSize;
+      if (!Number.isSafeInteger(hiddenSize) || hiddenSize < 1) throw new Error('[MoE] Native GGUF experts require explicit architecture.hiddenSize.');
+      for (const [weight, shape] of [[packed.gate, [numExperts, packed.expertIntermediateSize, hiddenSize]],
+        [packed.up, [numExperts, packed.expertIntermediateSize, hiddenSize]],
+        [packed.down, [numExperts, hiddenSize, packed.expertIntermediateSize]]]) {
+        if (!isWeightBuffer(weight) || weight.layout !== 'row' || JSON.stringify(weight.shape) !== JSON.stringify(shape)
+            || weight.buffer.size < ggufBlockBytes(shape, weight.dtype)) {
+          throw new Error('[MoE] Native GGUF expert bank storage disagrees with declared expert geometry.');
+        }
+      }
+    }
     ctx.experts.set(packedKey, packed);
   }
   return { ...packed, expertIdx, expertFormat: 'qwen3_5' };

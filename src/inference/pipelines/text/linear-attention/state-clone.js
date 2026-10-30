@@ -25,6 +25,7 @@ export function cloneLayerRuntimeState(layerState) {
     kSize: layerState.kSize,
     vSize: layerState.vSize,
     qRep: layerState.qRep,
+    sourceLayout: layerState.sourceLayout,
     normMode: layerState.normMode === 'per_head' ? 'per_head' : 'shared',
     rmsNormEps: layerState.rmsNormEps,
     convWeight: layerState.convWeight.slice(),

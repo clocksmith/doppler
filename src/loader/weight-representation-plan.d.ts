@@ -22,7 +22,7 @@ export interface WeightRepresentationRequirement {
 export type WeightRepresentationPlan = Readonly<Record<string, WeightRepresentationRequirement>>;
 export function compileWeightRepresentationPlan(
   locations: ReadonlyMap<string, TensorLocation>,
-  manifest: { architecture: unknown; inference?: { output?: { tieWordEmbeddings?: boolean } } },
+  manifest: { architecture: unknown; quantizationInfo?: { preserveSourceTensors?: boolean }; inference?: { output?: { tieWordEmbeddings?: boolean } } },
   paths: readonly KernelPathSchema[],
   defaults: { useFusedQ4K: boolean; keepF32Weights: boolean; q4kMaterializationMode: string; q4kLayout: string | null }
 ): WeightRepresentationPlan;

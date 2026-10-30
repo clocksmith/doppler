@@ -8,7 +8,7 @@ export interface QwenRouteExpertOptions {
   inputTensor: Tensor;
   indicesBuffer: GPUBuffer;
   weightsBuffer: GPUBuffer;
-  weights: { numExperts: number; expertFormat: string; gateUp: WeightBuffer; down: WeightBuffer };
+  weights: { numExperts: number; expertFormat: string; gateUp?: WeightBuffer; gate?: WeightBuffer; up?: WeightBuffer; down: WeightBuffer };
   expectedExpertFormat: string;
   numTokens: number;
   topK: number;

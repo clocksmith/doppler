@@ -74,13 +74,13 @@ function createBindGroupLayouts(device) {
   );
 }
 
-async function createPipelines(device, inputDtype, stateComponents, normGateActivation, useRegisterPrefill, useRegisterDecode) {
+async function createPipelines(device, inputDtype, stateComponents, normGateActivation, useRegisterPrefill, useRegisterDecode, sourceLayout) {
   createBindGroupLayouts(device);
   const variant = inputDtype === 'f16' ? 'f16' : 'f32';
   const suffix = variant === 'f16' ? '_f16' : '';
   // The gate-applying kernels come from their rule maps and must declare the
   // model's norm-gate activation; silu resolves to the original shader files.
-  const gateContext = { inputDtype: variant, normGateActivation, useRegisterPrefill, useRegisterDecode };
+  const gateContext = { inputDtype: variant, normGateActivation, useRegisterPrefill, useRegisterDecode, sourceLayout };
   const recurrentConfig = resolveGatedDeltaNormGateKernel(
     'gated_delta_recurrent', 'gatedDeltaRecurrent', 'scalarVariant', gateContext
   );
@@ -164,7 +164,7 @@ function normalizeInputDtype(dtype) {
   return selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype });
 }
 
-function ensurePipelines(device, inputDtype, stateComponents, normGateActivation, useRegisterPrefill, useRegisterDecode) {
+function ensurePipelines(device, inputDtype, stateComponents, normGateActivation, useRegisterPrefill, useRegisterDecode, sourceLayout) {
   const epoch = getShaderScopeCacheKey();
   if (epoch !== cachedEpoch) {
       pipelineCache.clear();
@@ -174,10 +174,10 @@ function ensurePipelines(device, inputDtype, stateComponents, normGateActivation
       cachedEpoch = epoch;
   }
   const dtype = normalizeInputDtype(inputDtype);
-  const variant = `${dtype}:${stateComponents}:${normGateActivation}:${useRegisterPrefill}:${useRegisterDecode}`;
+  const variant = `${dtype}:${stateComponents}:${normGateActivation}:${useRegisterPrefill}:${useRegisterDecode}:${sourceLayout}`;
   const cached = pipelineCache.get(variant);
   if (cached) return cached;
-  const task = createPipelines(device, dtype, stateComponents, normGateActivation, useRegisterPrefill, useRegisterDecode).then(value => {
+  const task = createPipelines(device, dtype, stateComponents, normGateActivation, useRegisterPrefill, useRegisterDecode, sourceLayout).then(value => {
     if (cachedEpoch === epoch && pipelineCache.get(variant) === task) pipelineCache.set(variant, value);
     return value;
   }, error => {
@@ -187,7 +187,6 @@ function ensurePipelines(device, inputDtype, stateComponents, normGateActivation
   pipelineCache.set(variant, task);
   return task;
 }
-
 function buildParamsData(params) {
   const data = new ArrayBuffer(64);
   const view = new DataView(data);
@@ -253,6 +252,11 @@ function canUseFusedDecodeCore(layerState, numTokens, options, aTensor, bTensor)
 }
 
 export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTensor, layerState, options = {}) {
+  if (layerState.sourceLayout === 'gguf-v1' && (qkvTensor?.precision === 'two-f32'
+      || qkvTensor?.dtype !== 'f32' || layerState.recurrentStatePrecision !== 'f32'
+      || options.normGateActivation !== 'silu')) {
+    throw new Error('Native GGUF GDN requires scalar F32 activations/state and SiLU norm gating.');
+  }
   if (qkvTensor?.precision === 'two-f32') {
     const session = options.runtimeSession ?? getRuntimeConfig().inference.session;
     if ((options.numTokens === 1 && session.useLinearAttentionRegisterDecode === true)
@@ -269,7 +273,6 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
   const useRecorder = recorder
     && typeof recorder.getEncoder === 'function'
     && typeof recorder.trackTemporaryBuffer === 'function';
-
   requireGpuBuffer(qkvTensor?.buffer, 'qkvTensor');
   requireGpuBuffer(zTensor?.buffer, 'zTensor');
   requireGpuBuffer(aTensor?.buffer, 'aTensor');
@@ -280,7 +283,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
   requireGpuBuffer(layerState?.normWeightGPU, 'normWeightGPU');
   requireGpuBuffer(layerState?.convStateGPU, 'convStateGPU');
   requireGpuBuffer(layerState?.recurrentStateGPU, 'recurrentStateGPU');
-
+  if (layerState.sourceLayout != null && layerState.sourceLayout !== 'hf' && layerState.sourceLayout !== 'gguf-v1') throw new Error('Unsupported linear-attention source layout.');
   const numTokens = Number(options.numTokens ?? 0);
   if (!Number.isFinite(numTokens) || numTokens <= 0) {
     throw new Error('runLinearAttentionCoreGPU requires numTokens > 0.');
@@ -292,7 +295,6 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
     throw new Error(`linear_attention requires supported normMode, got ${layerState.normMode}.`);
   }
   const normGateActivation = requireNormGateActivation(options.normGateActivation, 'linear_attention core');
-
   const inputDtype = normalizeInputDtype(qkvTensor?.dtype);
   if (normalizeInputDtype(zTensor?.dtype) !== inputDtype) {
     throw new Error(`linear_attention core requires matching qkv/z dtypes; got ${qkvTensor?.dtype} and ${zTensor?.dtype}.`);
@@ -303,7 +305,6 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
   if (normalizeInputDtype(bTensor?.dtype) !== inputDtype) {
     throw new Error(`linear_attention core requires matching qkv/b dtypes; got ${qkvTensor?.dtype} and ${bTensor?.dtype}.`);
   }
-
   const precision = layerState.recurrentStatePrecision;
   if (precision !== 'f32' && precision !== 'two-f32') {
     throw new Error('linear_attention core requires an explicit recurrent state precision.');
@@ -335,6 +336,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
     throw new Error('Linear attention decode requires boolean useLinearAttentionRegisterDecode.');
   }
   const useRegisterDecode = numTokens === 1 && prefillSession.useLinearAttentionRegisterDecode;
+  if (layerState.sourceLayout === 'gguf-v1' && (useRegisterDecode || useRegisterPrefill || prefillSession.useLinearAttentionFusedDecodeCore)) throw new Error('Native GGUF GDN currently requires its declared unfused F32 recurrent program.');
   const useFusedDecodeCore = canUseFusedDecodeCore(layerState, numTokens, options, aTensor, bTensor);
   if (useRegisterDecode) {
     const selected = resolveGatedDeltaNormGateKernel('gated_delta_fused_decode', 'gatedDeltaFusedDecode', 'scalarVariant',
@@ -345,7 +347,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
       throw new Error('Register decode requires its declared F32 fused-core geometry and packed AB input.');
     }
   }
-  const prepared = ensurePipelines(device, inputDtype, stateComponents, normGateActivation, useRegisterPrefill, useRegisterDecode);
+  const prepared = ensurePipelines(device, inputDtype, stateComponents, normGateActivation, useRegisterPrefill, useRegisterDecode, layerState.sourceLayout);
   const pipelines = prepared instanceof Promise ? await prepared : prepared;
   if (!pipelines) {
     throw new Error(`linear_attention core failed to resolve pipelines for dtype "${inputDtype}".`);

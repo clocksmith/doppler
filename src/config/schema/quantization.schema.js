@@ -1,3 +1,5 @@
+export const Q4_0_BLOCK_SIZE = 32;
+export const Q4_0_BLOCK_BYTES = 18;
 
 // Q4K super-block size (invariant - format spec constant)
 // WGSL kernels also define this as `const QK_K: u32 = 256u;`

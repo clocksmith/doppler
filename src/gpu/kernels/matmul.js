@@ -1,3 +1,4 @@
+import { runQ40Matmul, recordQ40Matmul } from './q4_0.js';
 import { runFP8Matmul, recordFP8Matmul } from './fp8.js';
 import { executePairedMatmul, resolvePairedMatmulPipeline } from './paired-matmul.js';
 import { createKernelBindingEntries } from './kernel-bindings.js';
@@ -243,6 +244,10 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   }
   if (pathVariant && getKernelConfig('matmul', pathVariant).variantMetadata?.inputPrecision === 'two-f32') {
     throw new Error('[Matmul] Declared paired kernel requires explicit paired Tensor metadata.');
+  }
+  if (['q4_0','q4_1','q8_0','q6k'].includes(getWeightDtype(B))) {
+    const bound = { ...options, variant: pathVariant };
+    return recorder ? recordQ40Matmul(recorder, A, B, M, N, K, bound) : runQ40Matmul(A, B, M, N, K, bound);
   }
   if (['fp8e4', 'fp8e5'].includes(getWeightDtype(B))) {
     const bound = { ...options, variant: pathVariant };

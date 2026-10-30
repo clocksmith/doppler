@@ -1,7 +1,17 @@
 {
   "fp8Variant": [
-    { "match": { "weightDtype": "fp8e4" }, "value": "fp8_e4m3fn_f32" },
-    { "match": { "weightDtype": "fp8e5" }, "value": "fp8_e5m2_f32" }
+    {
+      "match": {
+        "weightDtype": "fp8e4"
+      },
+      "value": "fp8_e4m3fn_f32"
+    },
+    {
+      "match": {
+        "weightDtype": "fp8e5"
+      },
+      "value": "fp8_e5m2_f32"
+    }
   ],
   "litertInt4FusedVariant": [
     {
@@ -362,6 +372,19 @@
   "weightDtypeMismatchPolicy": [
     {
       "match": {
+        "actualWeightDtype": {
+          "in": [
+            "f16",
+            "f32",
+            "bf16"
+          ]
+        },
+        "requiredWeightDtype": "q4_0"
+      },
+      "value": "fallthrough"
+    },
+    {
+      "match": {
         "actualWeightDtype": "f16",
         "requiredWeightDtype": "q4k"
       },
@@ -489,6 +512,120 @@
         "scalarOutput": true
       },
       "value": "paired_q4k_scalar"
+    }
+  ],
+  "q40Variant": [
+    {
+      "match": {
+        "weightDtype": "q4_0",
+        "M": 1
+      },
+      "value": "q4_0_gemv"
+    },
+    {
+      "match": {
+        "weightDtype": "q4_1",
+        "M": 1
+      },
+      "value": "q4_1_gemv"
+    },
+    {
+      "match": {
+        "weightDtype": "q8_0",
+        "M": 1
+      },
+      "value": "q8_0_gemv"
+    },
+    {
+      "match": {
+        "weightDtype": "q6k",
+        "M": 1
+      },
+      "value": "q6k_gemv"
+    },
+    {
+      "match": {
+        "weightDtype": "q4_0"
+      },
+      "value": "q4_0_prefill"
+    },
+    {
+      "match": {
+        "weightDtype": "q4_1"
+      },
+      "value": "q4_1_prefill"
+    },
+    {
+      "match": {
+        "weightDtype": "q8_0"
+      },
+      "value": "q8_0_prefill"
+    },
+    {
+      "match": {
+        "weightDtype": "q6k"
+      },
+      "value": "q6k_prefill"
+    }
+  ],
+  "routeQ4Variant": [
+    {
+      "match": {
+        "weightDtype": "q4_0",
+        "split": true
+      },
+      "value": "q4_0_split_f32"
+    },
+    {
+      "match": {
+        "weightDtype": "q4_1",
+        "split": true
+      },
+      "value": "q4_1_split_f32"
+    },
+    {
+      "match": {
+        "weightDtype": "q8_0",
+        "split": true
+      },
+      "value": "q8_0_split_f32"
+    },
+    {
+      "match": {
+        "weightDtype": "q6k",
+        "split": true
+      },
+      "value": "q6k_split_f32"
+    },
+    {
+      "match": {
+        "weightDtype": "q4_0"
+      },
+      "value": "q4_0_f32"
+    },
+    {
+      "match": {
+        "weightDtype": "q4_1"
+      },
+      "value": "q4_1_f32"
+    },
+    {
+      "match": {
+        "weightDtype": "q8_0"
+      },
+      "value": "q8_0_f32"
+    },
+    {
+      "match": {
+        "weightDtype": "q6k"
+      },
+      "value": "q6k_f32"
+    },
+    {
+      "match": {
+        "weightDtype": "q4k"
+      },
+      "value": "q4k_f32"
     }
   ]
 }

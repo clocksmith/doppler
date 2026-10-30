@@ -539,13 +539,15 @@ export async function convertSafetensorsDirectory(options) {
       signal: null,
     });
     config = parsedGGUF.config;
+    tokenizerJson = parsedGGUF.tokenizerJson;
+    tokenizerConfig = parsedGGUF.tokenizerConfig;
     tensors = parsedGGUF.tensors.map((tensor) => ({
       ...tensor,
       sourcePath: ggufPath,
     }));
     architectureHint = parsedGGUF.architecture;
     sourceQuantization = parsedGGUF.quantization ?? null;
-    architecture = extractArchitecture({}, parsedGGUF.config || {});
+    architecture = parsedGGUF.normalizedArchitecture ?? extractArchitecture({}, parsedGGUF.config || {});
   } else {
     if (!isInputDirectory) {
       throw new Error(

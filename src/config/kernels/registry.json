@@ -6818,7 +6818,8 @@
        "esmc/esmc-300m-f32-af32",
        "gemma3/translategemma-4b-it-q4k-ehf16-af32",
        "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32",
-       "qwen3/qwen-3-5-0-8b-canonical-f32"
+       "qwen3/qwen-3-5-0-8b-canonical-f32",
+       "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"
       ],
       "ruleChains": ["matmul.rules.json#gemvVariant","matmul.rules.json#matmulKernel"],
       "wgslOnDisk": true
@@ -8094,6 +8095,782 @@
       "WEIGHT_F16": false,
       "WEIGHT_Q4K": true,
       "SCALAR_OUTPUT": true
+     }
+    },
+    "q4_0_gemv": {
+     "wgsl": "matmul_q4_0.wgsl",
+     "entryPoint": "gemv",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "a_offset",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "b_row",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "c_offset",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q4_0",
+     "outputDtype": "f32",
+     "sharedMemory": 2560,
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 4,
+      "THREADS_PER_COL_GEMV": 32,
+      "TILE_SIZE": 16,
+      "BLOCK_VALUES": 32,
+      "BLOCK_BYTES": 18,
+      "QUANT_FORMAT": 0
+     },
+     "variantMetadata": {
+      "q40Geometry": "gemv",
+      "dispatchGeometry": "column-row-tile",
+      "tileM": 1,
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "ruleChains": ["matmul.rules.json#q40Variant"],
+      "wgslOnDisk": true
+     }
+    },
+    "q4_0_prefill": {
+     "wgsl": "matmul_q4_0.wgsl",
+     "entryPoint": "prefill",
+     "workgroup": [16,16,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "a_offset",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "b_row",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "c_offset",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q4_0",
+     "outputDtype": "f32",
+     "sharedMemory": 2560,
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 4,
+      "THREADS_PER_COL_GEMV": 32,
+      "TILE_SIZE": 16,
+      "BLOCK_VALUES": 32,
+      "BLOCK_BYTES": 18,
+      "QUANT_FORMAT": 0
+     },
+     "variantMetadata": {
+      "q40Geometry": "tiled",
+      "dispatchGeometry": "column-row-tile",
+      "tileM": 16,
+      "workgroupConstants": ["TILE_SIZE","TILE_SIZE",null]
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "ruleChains": ["matmul.rules.json#q40Variant"],
+      "wgslOnDisk": true
+     }
+    },
+    "q4_1_gemv": {
+     "wgsl": "matmul_q4_0.wgsl",
+     "entryPoint": "gemv",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "a_offset",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "b_row",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "c_offset",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q4_1",
+     "outputDtype": "f32",
+     "sharedMemory": 2560,
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 4,
+      "THREADS_PER_COL_GEMV": 32,
+      "TILE_SIZE": 16,
+      "BLOCK_VALUES": 32,
+      "BLOCK_BYTES": 20,
+      "QUANT_FORMAT": 1
+     },
+     "variantMetadata": {
+      "q40Geometry": "gemv",
+      "dispatchGeometry": "column-row-tile",
+      "tileM": 1,
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "ruleChains": ["matmul.rules.json#q40Variant"],
+      "wgslOnDisk": true
+     }
+    },
+    "q4_1_prefill": {
+     "wgsl": "matmul_q4_0.wgsl",
+     "entryPoint": "prefill",
+     "workgroup": [16,16,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "a_offset",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "b_row",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "c_offset",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q4_1",
+     "outputDtype": "f32",
+     "sharedMemory": 2560,
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 4,
+      "THREADS_PER_COL_GEMV": 32,
+      "TILE_SIZE": 16,
+      "BLOCK_VALUES": 32,
+      "BLOCK_BYTES": 20,
+      "QUANT_FORMAT": 1
+     },
+     "variantMetadata": {
+      "q40Geometry": "tiled",
+      "dispatchGeometry": "column-row-tile",
+      "tileM": 16,
+      "workgroupConstants": ["TILE_SIZE","TILE_SIZE",null]
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "ruleChains": ["matmul.rules.json#q40Variant"],
+      "wgslOnDisk": true
+     }
+    },
+    "q8_0_gemv": {
+     "wgsl": "matmul_q4_0.wgsl",
+     "entryPoint": "gemv",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "a_offset",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "b_row",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "c_offset",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q8_0",
+     "outputDtype": "f32",
+     "sharedMemory": 2560,
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 4,
+      "THREADS_PER_COL_GEMV": 32,
+      "TILE_SIZE": 16,
+      "BLOCK_VALUES": 32,
+      "BLOCK_BYTES": 34,
+      "QUANT_FORMAT": 2
+     },
+     "variantMetadata": {
+      "q40Geometry": "gemv",
+      "dispatchGeometry": "column-row-tile",
+      "tileM": 1,
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "ruleChains": ["matmul.rules.json#q40Variant"],
+      "wgslOnDisk": true
+     }
+    },
+    "q8_0_prefill": {
+     "wgsl": "matmul_q4_0.wgsl",
+     "entryPoint": "prefill",
+     "workgroup": [16,16,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "a_offset",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "b_row",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "c_offset",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q8_0",
+     "outputDtype": "f32",
+     "sharedMemory": 2560,
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 4,
+      "THREADS_PER_COL_GEMV": 32,
+      "TILE_SIZE": 16,
+      "BLOCK_VALUES": 32,
+      "BLOCK_BYTES": 34,
+      "QUANT_FORMAT": 2
+     },
+     "variantMetadata": {
+      "q40Geometry": "tiled",
+      "dispatchGeometry": "column-row-tile",
+      "tileM": 16,
+      "workgroupConstants": ["TILE_SIZE","TILE_SIZE",null]
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "ruleChains": ["matmul.rules.json#q40Variant"],
+      "wgslOnDisk": true
+     }
+    },
+    "q6k_gemv": {
+     "wgsl": "matmul_q4_0.wgsl",
+     "entryPoint": "gemv",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "a_offset",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "b_row",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "c_offset",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q6k",
+     "outputDtype": "f32",
+     "sharedMemory": 2560,
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 4,
+      "THREADS_PER_COL_GEMV": 32,
+      "TILE_SIZE": 16,
+      "BLOCK_VALUES": 256,
+      "BLOCK_BYTES": 210,
+      "QUANT_FORMAT": 3
+     },
+     "variantMetadata": {
+      "q40Geometry": "gemv",
+      "dispatchGeometry": "column-row-tile",
+      "tileM": 1,
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "ruleChains": ["matmul.rules.json#q40Variant"],
+      "wgslOnDisk": true
+     }
+    },
+    "q6k_prefill": {
+     "wgsl": "matmul_q4_0.wgsl",
+     "entryPoint": "prefill",
+     "workgroup": [16,16,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "a_offset",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "b_row",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "c_offset",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q6k",
+     "outputDtype": "f32",
+     "sharedMemory": 2560,
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 4,
+      "THREADS_PER_COL_GEMV": 32,
+      "TILE_SIZE": 16,
+      "BLOCK_VALUES": 256,
+      "BLOCK_BYTES": 210,
+      "QUANT_FORMAT": 3
+     },
+     "variantMetadata": {
+      "q40Geometry": "tiled",
+      "dispatchGeometry": "column-row-tile",
+      "tileM": 16,
+      "workgroupConstants": ["TILE_SIZE","TILE_SIZE",null]
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "ruleChains": ["matmul.rules.json#q40Variant"],
+      "wgslOnDisk": true
      }
     }
    }
@@ -10494,6 +11271,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
@@ -10828,6 +11606,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
@@ -10981,6 +11760,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
@@ -11240,6 +12020,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
@@ -13634,6 +14415,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
@@ -15097,6 +15879,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
@@ -15413,6 +16196,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
@@ -16918,6 +17702,290 @@
        }
       ]
      }
+    },
+    "q4_0": {
+     "wgsl": "gather_q4_0.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "indices",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 16,
+      "fields": [
+       {
+        "name": "num_tokens",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "hidden_size",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "vocab_size",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "index_offset",
+        "type": "u32",
+        "offset": 12
+       }
+      ]
+     },
+     "weightDtype": "q4_0",
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256,
+      "BLOCK_VALUES": 32,
+      "BLOCK_BYTES": 18,
+      "QUANT_FORMAT": 0
+     },
+     "sharedMemory": 0,
+     "variantMetadata": {
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "ruleChains": ["gather.rules.json#q40Variant"],
+      "wgslOnDisk": true
+     }
+    },
+    "q4_1": {
+     "wgsl": "gather_q4_0.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "indices",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 16,
+      "fields": [
+       {
+        "name": "num_tokens",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "hidden_size",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "vocab_size",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "index_offset",
+        "type": "u32",
+        "offset": 12
+       }
+      ]
+     },
+     "weightDtype": "q4_1",
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256,
+      "BLOCK_VALUES": 32,
+      "BLOCK_BYTES": 20,
+      "QUANT_FORMAT": 1
+     },
+     "sharedMemory": 0,
+     "variantMetadata": {
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "ruleChains": ["gather.rules.json#q40Variant"],
+      "wgslOnDisk": true
+     }
+    },
+    "q8_0": {
+     "wgsl": "gather_q4_0.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "indices",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 16,
+      "fields": [
+       {
+        "name": "num_tokens",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "hidden_size",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "vocab_size",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "index_offset",
+        "type": "u32",
+        "offset": 12
+       }
+      ]
+     },
+     "weightDtype": "q8_0",
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256,
+      "BLOCK_VALUES": 32,
+      "BLOCK_BYTES": 34,
+      "QUANT_FORMAT": 2
+     },
+     "sharedMemory": 0,
+     "variantMetadata": {
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "ruleChains": ["gather.rules.json#q40Variant"],
+      "wgslOnDisk": true
+     }
+    },
+    "q6k": {
+     "wgsl": "gather_q4_0.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "indices",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 16,
+      "fields": [
+       {
+        "name": "num_tokens",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "hidden_size",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "vocab_size",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "index_offset",
+        "type": "u32",
+        "offset": 12
+       }
+      ]
+     },
+     "weightDtype": "q6k",
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256,
+      "BLOCK_VALUES": 256,
+      "BLOCK_BYTES": 210,
+      "QUANT_FORMAT": 3
+     },
+     "sharedMemory": 0,
+     "variantMetadata": {
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "ruleChains": ["gather.rules.json#q40Variant"],
+      "wgslOnDisk": true
+     }
     }
    }
   },
@@ -17321,6 +18389,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
@@ -20103,6 +21172,7 @@
        "qwen3/qwen-3-5-9b-q4k-ehaf16",
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
+       "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
@@ -23057,6 +24127,7 @@
      "reachability": {
       "status": "pinned",
       "inlineConfigs": [
+       "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
@@ -24924,6 +25995,23 @@
       "wgslOnDisk": true
      },
      "description": "Complete-head gated RMSNorm after sliced F32 recurrent prefill."
+    },
+    "gguf_f32": {
+     "wgsl": "gated_delta_recurrent_gguf.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "normGateActivation": "silu",
+      "sourceLayout": "gguf-v1"
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "ruleChains": ["gated-delta-recurrent.rules.json#scalarVariant"],
+      "wgslOnDisk": true
+     }
     }
    }
   },
@@ -25148,6 +26236,7 @@
      "reachability": {
       "status": "pinned",
       "inlineConfigs": [
+       "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
@@ -27720,6 +28809,818 @@
      "sharedMemory": 1024,
      "variantMetadata": {
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     }
+    },
+    "q4_0_f32": {
+     "wgsl": "moe_route_q4_0_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      },
+      {
+       "index": 4,
+       "name": "route_indices",
+       "type": "read-only-storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "num_experts",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "top_k",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "input_mode",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q4_0",
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 4,
+      "THREADS_PER_COL_GEMV": 32,
+      "TILE_SIZE": 16,
+      "BLOCK_VALUES": 32,
+      "BLOCK_BYTES": 18,
+      "QUANT_FORMAT": 0
+     },
+     "sharedMemory": 512,
+     "variantMetadata": {
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "q4_1_f32": {
+     "wgsl": "moe_route_q4_0_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      },
+      {
+       "index": 4,
+       "name": "route_indices",
+       "type": "read-only-storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "num_experts",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "top_k",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "input_mode",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q4_1",
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 4,
+      "THREADS_PER_COL_GEMV": 32,
+      "TILE_SIZE": 16,
+      "BLOCK_VALUES": 32,
+      "BLOCK_BYTES": 20,
+      "QUANT_FORMAT": 1
+     },
+     "sharedMemory": 512,
+     "variantMetadata": {
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "q8_0_f32": {
+     "wgsl": "moe_route_q4_0_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      },
+      {
+       "index": 4,
+       "name": "route_indices",
+       "type": "read-only-storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "num_experts",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "top_k",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "input_mode",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q8_0",
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 4,
+      "THREADS_PER_COL_GEMV": 32,
+      "TILE_SIZE": 16,
+      "BLOCK_VALUES": 32,
+      "BLOCK_BYTES": 34,
+      "QUANT_FORMAT": 2
+     },
+     "sharedMemory": 512,
+     "variantMetadata": {
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "q6k_f32": {
+     "wgsl": "moe_route_q4_0_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      },
+      {
+       "index": 4,
+       "name": "route_indices",
+       "type": "read-only-storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "num_experts",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "top_k",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "input_mode",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q6k",
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 4,
+      "THREADS_PER_COL_GEMV": 32,
+      "TILE_SIZE": 16,
+      "BLOCK_VALUES": 256,
+      "BLOCK_BYTES": 210,
+      "QUANT_FORMAT": 3
+     },
+     "sharedMemory": 512,
+     "variantMetadata": {
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "q4_0_split_f32": {
+     "wgsl": "moe_route_gguf_split_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      },
+      {
+       "index": 4,
+       "name": "route_indices",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 5,
+       "name": "up_weights",
+       "type": "read-only-storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "num_experts",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "top_k",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "input_mode",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q4_0",
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 4,
+      "THREADS_PER_COL_GEMV": 32,
+      "TILE_SIZE": 16,
+      "BLOCK_VALUES": 32,
+      "BLOCK_BYTES": 18,
+      "QUANT_FORMAT": 0
+     },
+     "sharedMemory": 512,
+     "variantMetadata": {
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "q4_1_split_f32": {
+     "wgsl": "moe_route_gguf_split_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      },
+      {
+       "index": 4,
+       "name": "route_indices",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 5,
+       "name": "up_weights",
+       "type": "read-only-storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "num_experts",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "top_k",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "input_mode",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q4_1",
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 4,
+      "THREADS_PER_COL_GEMV": 32,
+      "TILE_SIZE": 16,
+      "BLOCK_VALUES": 32,
+      "BLOCK_BYTES": 20,
+      "QUANT_FORMAT": 1
+     },
+     "sharedMemory": 512,
+     "variantMetadata": {
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "q8_0_split_f32": {
+     "wgsl": "moe_route_gguf_split_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      },
+      {
+       "index": 4,
+       "name": "route_indices",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 5,
+       "name": "up_weights",
+       "type": "read-only-storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "num_experts",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "top_k",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "input_mode",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q8_0",
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 4,
+      "THREADS_PER_COL_GEMV": 32,
+      "TILE_SIZE": 16,
+      "BLOCK_VALUES": 32,
+      "BLOCK_BYTES": 34,
+      "QUANT_FORMAT": 2
+     },
+     "sharedMemory": 512,
+     "variantMetadata": {
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "q6k_split_f32": {
+     "wgsl": "moe_route_gguf_split_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      },
+      {
+       "index": 4,
+       "name": "route_indices",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 5,
+       "name": "up_weights",
+       "type": "read-only-storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "num_experts",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "top_k",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "input_mode",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q6k",
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 4,
+      "THREADS_PER_COL_GEMV": 32,
+      "TILE_SIZE": 16,
+      "BLOCK_VALUES": 256,
+      "BLOCK_BYTES": 210,
+      "QUANT_FORMAT": 3
+     },
+     "sharedMemory": 512,
+     "variantMetadata": {
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
      }
     }
    }

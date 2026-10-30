@@ -1,3 +1,5 @@
+import { ggufBlockBytes } from '../formats/gguf/block-storage.js';
+import { getKernelConfigs } from '../config/kernel-registry-contract.js';
 import {
   inferSourceWeightQuantization,
   resolveConvertedModelId,
@@ -27,6 +29,9 @@ const SUPPORTED_SOURCE_DTYPES = new Set([
   'F32',
   'F16',
   'BF16',
+  'Q4_0',
+  'Q4_1',
+  'Q8_0',
   'Q4_K',
   'Q4_K_M',
   'Q6_K',
@@ -36,6 +41,9 @@ const SOURCE_QUANT_COMPUTE_MAP = {
   F16: 'f16',
   BF16: 'f32',
   F32: 'f32',
+  Q4_0: 'f32',
+  Q4_1: 'f32',
+  Q8_0: 'f32',
   Q4_K: 'f32',
   Q4_K_M: 'f32',
   Q6_K: 'f32',
@@ -121,6 +129,7 @@ export function resolveDirectSourceRuntimePlan(options = {}) {
   const audioQuantization = inferRoleQuantization(parsedArtifact.tensors, 'audio');
   const projectorQuantization = inferRoleQuantization(parsedArtifact.tensors, 'projector');
   const baseQuantizationInfo = {
+    ...(parsedArtifact.sourceKind === 'gguf' ? { weights: normalizeQuantTag(sourceQuantization) } : {}),
     compute: computePrecision,
     ...(visionQuantization ? { vision: visionQuantization } : {}),
     ...(audioQuantization ? { audio: audioQuantization } : {}),
@@ -160,7 +169,7 @@ export function resolveDirectSourceRuntimePlan(options = {}) {
       : baseManifestConfig,
     manifestInference: explicitManifestInference ?? createSourceRuntimeManifestInference(parsedArtifact.config ?? null),
     sourceQuantization,
-    quantizationInfo,
+    quantizationInfo: { ...quantizationInfo, ...(parsedArtifact.sourceKind === 'gguf' ? { preserveSourceTensors:true } : {}) },
     manifestQuantization,
     executionVersion: 'v1',
   };
@@ -195,6 +204,15 @@ function assertSupportedSourceDtypes(tensors, sourceKind) {
     if (!dtype) {
       unsupported.add('(empty)');
       continue;
+    }
+    if (['Q4_0','Q4_1','Q8_0','Q6_K'].includes(dtype)) {
+      const kernels = getKernelConfigs().matmul;
+      if (kernels.q4_0_gemv?.weightDtype !== 'q4_0' || kernels.q4_0_prefill?.weightDtype !== 'q4_0') {
+        throw new Error('Q4_0 direct loading requires registered native projection programs.');
+      }
+      if (ggufBlockBytes(tensor.shape,dtype) !== tensor.size) {
+        throw new Error('Q4_0 source tensor byte length differs from declared storage.');
+      }
     }
     if (!SUPPORTED_SOURCE_DTYPES.has(dtype)) {
       unsupported.add(dtype);
@@ -355,6 +373,9 @@ export async function resolveSourceRuntimeBundleFromParsedArtifact(options = {})
     tokenizerModelPath: parsedArtifact.tokenizerModelPath,
   });
 
+  if (parsedArtifact.excludedTensors?.length) {
+    model.metadata.sourceExclusions = parsedArtifact.excludedTensors;
+  }
   return {
     model,
     manifest: model,

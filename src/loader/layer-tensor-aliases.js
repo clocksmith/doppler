@@ -47,15 +47,15 @@ export const ATTN_SUFFIXES = {
 };
 
 export const LINEAR_ATTN_SUFFIXES = {
-  qkvProj: ['linear_attn.in_proj_qkv.weight'],
-  outProj: ['linear_attn.out_proj.weight'],
-  inProjZ: ['linear_attn.in_proj_z.weight'],
-  inProjA: ['linear_attn.in_proj_a.weight'],
-  inProjB: ['linear_attn.in_proj_b.weight'],
-  conv1D: ['linear_attn.conv1d.weight'],
-  dtBias: ['linear_attn.dt_bias'],
-  aLog: ['linear_attn.A_log'],
-  norm: ['linear_attn.norm.weight'],
+  qkvProj: ['linear_attn.in_proj_qkv.weight', 'attn_qkv.weight'],
+  outProj: ['linear_attn.out_proj.weight', 'ssm_out.weight'],
+  inProjZ: ['linear_attn.in_proj_z.weight', 'attn_gate.weight'],
+  inProjA: ['linear_attn.in_proj_a.weight', 'ssm_alpha.weight'],
+  inProjB: ['linear_attn.in_proj_b.weight', 'ssm_beta.weight'],
+  conv1D: ['linear_attn.conv1d.weight', 'ssm_conv1d.weight'],
+  dtBias: ['linear_attn.dt_bias', 'ssm_dt.bias'],
+  aLog: ['linear_attn.A_log', 'ssm_a'],
+  norm: ['linear_attn.norm.weight', 'ssm_norm.weight'],
 };
 
 export const CONV_SUFFIXES = {
@@ -79,14 +79,14 @@ export const FFN_SUFFIXES = {
 
 
 export const ROUTER_SUFFIXES = {
-  routerWeight: ['mlp.gate.weight', 'mlp.router.weight', 'block_sparse_moe.gate.weight', 'router.proj.weight'],
+  routerWeight: ['mlp.gate.weight', 'mlp.router.weight', 'block_sparse_moe.gate.weight', 'router.proj.weight', 'ffn_gate_inp.weight'],
   routerBias: ['mlp.router.bias'],
   routerScale: ['router.scale'],
   routerPerExpertScale: ['router.per_expert_scale'],
-  sharedExpertGate: ['mlp.shared_expert.gate_proj.weight'],
-  sharedExpertUp: ['mlp.shared_expert.up_proj.weight'],
-  sharedExpertDown: ['mlp.shared_expert.down_proj.weight'],
-  sharedExpertRouter: ['mlp.shared_expert_gate.weight'],
+  sharedExpertGate: ['mlp.shared_expert.gate_proj.weight', 'ffn_gate_shexp.weight'],
+  sharedExpertUp: ['mlp.shared_expert.up_proj.weight', 'ffn_up_shexp.weight'],
+  sharedExpertDown: ['mlp.shared_expert.down_proj.weight', 'ffn_down_shexp.weight'],
+  sharedExpertRouter: ['mlp.shared_expert_gate.weight', 'ffn_gate_inp_shexp.weight'],
 };
 
 

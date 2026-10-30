@@ -1,0 +1,42 @@
+{
+  "id": "profiles/qwen3-6-35b-a3b-q4_0-candidate",
+  "name": "qwen3-6-35b-a3b-q4_0-candidate",
+  "description": "Experimental unchanged GGUF block execution. Independent full-model numerical and performance gates required.",
+  "intent": "investigate",
+  "compatibleIntents": [
+    "investigate",
+    "verify",
+    "calibrate"
+  ],
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-10-30T00:00:00Z",
+  "extends": "profiles/default",
+  "model": "qwen-3-6-35b-a3b-text-source-q4_0-af32",
+  "runtime": {
+    "inference": {
+      "session": {
+        "compute": {
+          "defaults": {
+            "activationDtype": "f32",
+            "mathDtype": "f32",
+            "accumDtype": "f32",
+            "outputDtype": "f32"
+          }
+        },
+        "usePreparedDecodeWorkspace": true,
+        "useLinearAttentionFusedDecodeCore": false,
+        "useLinearAttentionRegisterPrefill": false,
+        "useLinearAttentionRegisterDecode": false
+      },
+      "moe": {
+        "routing": {
+          "activeExpertSelection": "topk-route"
+        }
+      },
+      "generation": {
+        "disableMultiTokenDecode": true
+      }
+    }
+  }
+}

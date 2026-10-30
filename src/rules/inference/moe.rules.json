@@ -181,5 +181,37 @@
         "shaderFile": "moe_router_bias_add_f32_f32.wgsl"
       }
     }
+  ],
+  "qwenRouteWeightDtype": [
+    {
+      "match": {
+        "dtype": "q4k"
+      },
+      "value": "q4k"
+    },
+    {
+      "match": {
+        "dtype": "q4_0"
+      },
+      "value": "q4_0"
+    },
+    {
+      "match": {
+        "dtype": "q4_1"
+      },
+      "value": "q4_1"
+    },
+    {
+      "match": {
+        "dtype": "q8_0"
+      },
+      "value": "q8_0"
+    },
+    {
+      "match": {
+        "dtype": "q6k"
+      },
+      "value": "q6k"
+    }
   ]
 }

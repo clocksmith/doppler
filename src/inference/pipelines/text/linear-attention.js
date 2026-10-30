@@ -25,7 +25,7 @@ const freshSequenceLayers = new WeakSet();
 function preparationSources(layerWeights, config) {
   return [layerWeights.linearConv1D, layerWeights.linearDtBias, layerWeights.linearALog,
     layerWeights.linearNorm, config.linearConvKernelDim, config.linearNormMode,
-    config.rmsNormEps, config.rmsNormWeightOffset, config.sessionSettings?.intermediatePrecision,
+    config.linearAttentionSourceLayout, config.rmsNormEps, config.rmsNormWeightOffset, config.sessionSettings?.intermediatePrecision,
     resolveRecurrentStateLayout(config.sessionSettings).precision];
 }
 function cloneLayerMap(layers) {
@@ -83,6 +83,7 @@ function resolveProjectionLayout(config, layerWeights) {
     kSize,
     vSize,
     qRep: numVHeads / numKHeads,
+    sourceLayout: config.linearAttentionSourceLayout,
     convDim: qSize + kSize + vSize,
   };
 }
@@ -186,6 +187,7 @@ function isLayerRuntimeCompatible(layerState, projectionLayout, requestedNormMod
     && layerState.numVHeads === projectionLayout.numVHeads
     && layerState.headKDim === projectionLayout.headKDim
     && layerState.headVDim === projectionLayout.headVDim
+    && layerState.sourceLayout === projectionLayout.sourceLayout
     && layerState.qRep === projectionLayout.qRep
     && layerState.qSize === projectionLayout.qSize
     && layerState.kSize === projectionLayout.kSize

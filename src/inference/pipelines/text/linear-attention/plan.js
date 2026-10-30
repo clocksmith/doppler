@@ -411,6 +411,7 @@ export async function createLayerRuntimeState(
     kSize: projectionLayout.kSize,
     vSize: projectionLayout.vSize,
     qRep: projectionLayout.qRep,
+    sourceLayout: projectionLayout.sourceLayout,
     normMode,
     rmsNormEps,
     convWeight,

@@ -2,6 +2,21 @@
 // Do not edit; npm run kernels:uniforms:sync.
 import { writeU32, writeI32, writeF32 } from '../uniform-encoding.js';
 
+export function write_conv2d_default(view, values, kernel) {
+  writeU32(view, 0, values["in_channels"], kernel, "in_channels");
+  writeU32(view, 4, values["out_channels"], kernel, "out_channels");
+  writeU32(view, 8, values["height"], kernel, "height");
+  writeU32(view, 12, values["width"], kernel, "width");
+  writeU32(view, 16, values["out_height"], kernel, "out_height");
+  writeU32(view, 20, values["out_width"], kernel, "out_width");
+  writeU32(view, 24, values["kernel_h"], kernel, "kernel_h");
+  writeU32(view, 28, values["kernel_w"], kernel, "kernel_w");
+  writeU32(view, 32, values["stride"], kernel, "stride");
+  writeU32(view, 36, values["pad"], kernel, "pad");
+  view.setUint32(40, 0, true);
+  view.setUint32(44, 0, true);
+}
+
 export function write_depthwise_conv2d_default(view, values, kernel) {
   writeU32(view, 0, values["channels"], kernel, "channels");
   writeU32(view, 4, values["height"], kernel, "height");
@@ -344,6 +359,17 @@ export function write_moe_route_matmul_q4k_f32(view, values, kernel) {
   writeU32(view, 8, values["K"], kernel, "K");
   writeF32(view, 12, values["alpha"], kernel, "alpha");
   writeU32(view, 16, values["num_blocks_per_row"], kernel, "num_blocks_per_row");
+  writeU32(view, 20, values["num_experts"], kernel, "num_experts");
+  writeU32(view, 24, values["top_k"], kernel, "top_k");
+  writeU32(view, 28, values["input_mode"], kernel, "input_mode");
+}
+
+export function write_moe_route_matmul_q4_0_f32(view, values, kernel) {
+  writeU32(view, 0, values["M"], kernel, "M");
+  writeU32(view, 4, values["N"], kernel, "N");
+  writeU32(view, 8, values["K"], kernel, "K");
+  writeF32(view, 12, values["alpha"], kernel, "alpha");
+  writeU32(view, 16, values["blocks"], kernel, "blocks");
   writeU32(view, 20, values["num_experts"], kernel, "num_experts");
   writeU32(view, 24, values["top_k"], kernel, "top_k");
   writeU32(view, 28, values["input_mode"], kernel, "input_mode");

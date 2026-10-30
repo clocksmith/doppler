@@ -1,3 +1,7 @@
+import { ggufBlockFormat,ggufBlockBytes } from '../../formats/gguf/block-storage.js';
+import { q40Dispatch } from './q4_0.js';
+import { getDevice } from '../device.js';
+import { selectRuleValue } from '../../rules/rule-registry.js';
 import { QK_K, Q4K_BLOCK_BYTES } from '../../config/schema/index.js';
 import { createTensor } from '../tensor.js';
 import { getBuffer, getWeightDtype, isGpuBufferInstance } from '../weight-buffer.js';
@@ -43,7 +47,7 @@ function outputAlias(output, inputs) {
  * @param {import('./moe-route.js').RouteQ4MatmulOptions} options
  */
 async function matmul(target, input, indices, weights, options) {
-  const { numRoutes, numExperts, topK, N, K, inputMode, alpha, outputBuffer } = options;
+  const { numRoutes, numExperts, topK, N, K, inputMode, alpha, outputBuffer, upWeights } = options;
   for (const [key, value] of Object.entries({ numRoutes, numExperts, topK, N, K })) positive(value, key);
   if (numRoutes % topK || topK > numExperts) throw new Error('[MoE route] Invalid route/topK/expert geometry.');
   if (inputMode !== 'token' && inputMode !== 'route') throw new Error('[MoE route] Explicit token or route inputMode required.');
@@ -51,17 +55,27 @@ async function matmul(target, input, indices, weights, options) {
   tensor(input, inputMode === 'token' ? numRoutes / topK : numRoutes, K);
   const bank = getBuffer(weights);
   if (!isGpuBufferInstance(bank)) throw new Error('[MoE route] A resident GPU weight bank is required.');
-  if (getWeightDtype(weights) !== 'q4k' || weights.layout !== 'row'
+  const dtype = getWeightDtype(weights);
+  const split = upWeights != null;
+  if (split && (N%2 || getWeightDtype(upWeights) !== dtype || upWeights.layout !== 'row'
+    || JSON.stringify(upWeights.shape) !== JSON.stringify(weights.shape))) throw new Error('[MoE route] Separate gate/up banks must have identical packed storage geometry.');
+  if ((dtype !== 'q4k' && dtype !== 'q4_0' && dtype !== 'q4_1' && dtype !== 'q8_0' && dtype !== 'q6k') || weights.layout !== 'row'
       || weights.shape?.length !== 3 || weights.shape[0] !== numExperts
-      || weights.shape[1] !== N || weights.shape[2] !== K) {
+      || weights.shape[1] !== (split ? N/2 : N) || weights.shape[2] !== K) {
     throw new Error('[MoE route] Expected a row-packed Q4_K bank shaped [experts, N, K].');
   }
   const blocks = Math.ceil(K / QK_K);
-  extent(bank, numExperts * N * blocks * Q4K_BLOCK_BYTES, 'weight bank');
+  const bytes = dtype !== 'q4k' ? ggufBlockBytes(weights.shape,dtype) : numExperts * N * blocks * Q4K_BLOCK_BYTES;
+  extent(bank, bytes, 'weight bank');
+  const upBank = split ? getBuffer(upWeights) : null;
+  if (upBank !== null && !isGpuBufferInstance(upBank)) throw new Error('[MoE route] A resident GPU up weight bank is required.');
+  if (upBank) extent(upBank, bytes, 'up weight bank');
   extent(indices, numRoutes * 4, 'routing indices');
-  outputAlias(outputBuffer, [input.buffer, indices, bank]);
+  outputAlias(outputBuffer, [input.buffer, indices, bank, ...(upBank ? [upBank] : [])]);
   if (outputBuffer) extent(outputBuffer, numRoutes * N * 4, 'output');
-  const config = getKernelConfig('moe_route_matmul', 'q4k_f32');
+  const variant = selectRuleValue('kernels', 'matmul', 'routeQ4Variant', { weightDtype: dtype, split });
+  const config = getKernelConfig('moe_route_matmul', variant);
+  if (config.weightDtype !== dtype) throw new Error('[MoE route] Kernel storage disagrees with expert bank.');
   const constants = config.wgslOverrides;
   const columns = positive(constants?.COLS_PER_WG, 'COLS_PER_WG');
   const threads = positive(constants?.THREADS_PER_COL_GEMV, 'THREADS_PER_COL_GEMV');
@@ -71,11 +85,11 @@ async function matmul(target, input, indices, weights, options) {
     throw new Error('[MoE route] Full-block specialization cannot execute a partial Q4_K row.');
   }
   return withKernelOutput(target, outputBuffer ?? null, numRoutes * N * 4, 'moe_route_matmul', async output => {
-    await unifiedKernelWrapper('moe_route_matmul', target, 'q4k_f32',
-      [input.buffer, bank, output, indices], {
-        M: numRoutes, N, K, alpha, num_blocks_per_row: blocks,
+    await unifiedKernelWrapper('moe_route_matmul', target, variant,
+      [input.buffer, bank, output, indices, ...(upBank ? [upBank] : [])], {
+        M: numRoutes, N, K, alpha, num_blocks_per_row: blocks, blocks: dtype !== 'q4k' ? K/ggufBlockFormat(dtype).values : 0,
         num_experts: numExperts, top_k: topK, input_mode: inputMode === 'token' ? 0 : 1,
-      }, [Math.ceil(N / columns), numRoutes, 1]);
+      }, dtype !== 'q4k' ? q40Dispatch(target?.device ?? getDevice(), Math.ceil(N / columns)*numRoutes) : [Math.ceil(N / columns), numRoutes, 1]);
     return createTensor(output, 'f32', [numRoutes, N], 'moe_route_matmul');
   });
 }

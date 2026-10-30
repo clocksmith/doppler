@@ -2,6 +2,17 @@
 // Do not edit; npm run kernels:uniforms:sync.
 import { writeU32, writeI32, writeF32 } from '../uniform-encoding.js';
 
+export function write_rmsnorm_qk_default(view, values, kernel) {
+  writeU32(view, 0, values["q_rows"], kernel, "q_rows");
+  writeU32(view, 4, values["k_rows"], kernel, "k_rows");
+  writeU32(view, 8, values["head_dim"], kernel, "head_dim");
+  writeU32(view, 12, values["row_stride"], kernel, "row_stride");
+  writeF32(view, 16, values["eps"], kernel, "eps");
+  view.setUint32(20, 0, true);
+  view.setUint32(24, 0, true);
+  view.setUint32(28, 0, true);
+}
+
 export function write_layernorm_default(view, values, kernel) {
   writeU32(view, 0, values["size"], kernel, "size");
   writeU32(view, 4, values["num_tokens"], kernel, "num_tokens");
@@ -185,6 +196,13 @@ export function write_gather_vec4(view, values, kernel) {
   view.setUint32(20, 0, true);
   view.setUint32(24, 0, true);
   view.setUint32(28, 0, true);
+}
+
+export function write_gather_q4_0(view, values, kernel) {
+  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
+  writeU32(view, 4, values["hidden_size"], kernel, "hidden_size");
+  writeU32(view, 8, values["vocab_size"], kernel, "vocab_size");
+  writeU32(view, 12, values["index_offset"], kernel, "index_offset");
 }
 
 export function write_gather_split4_f16_vec4_f16_out(view, values, kernel) {
@@ -577,19 +595,4 @@ export function write_cross_entropy_loss_default(view, values, kernel) {
   writeU32(view, 4, values["vocab_size"], kernel, "vocab_size");
   view.setUint32(8, 0, true);
   view.setUint32(12, 0, true);
-}
-
-export function write_conv2d_default(view, values, kernel) {
-  writeU32(view, 0, values["in_channels"], kernel, "in_channels");
-  writeU32(view, 4, values["out_channels"], kernel, "out_channels");
-  writeU32(view, 8, values["height"], kernel, "height");
-  writeU32(view, 12, values["width"], kernel, "width");
-  writeU32(view, 16, values["out_height"], kernel, "out_height");
-  writeU32(view, 20, values["out_width"], kernel, "out_width");
-  writeU32(view, 24, values["kernel_h"], kernel, "kernel_h");
-  writeU32(view, 28, values["kernel_w"], kernel, "kernel_w");
-  writeU32(view, 32, values["stride"], kernel, "stride");
-  writeU32(view, 36, values["pad"], kernel, "pad");
-  view.setUint32(40, 0, true);
-  view.setUint32(44, 0, true);
 }

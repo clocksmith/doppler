@@ -138,6 +138,9 @@ function applyExplicitAttentionConfig(inference, rawConfig, outputGateTypeIsNorm
     inference.attention.queryPreAttnScalar = queryPreAttnScalar;
   }
 
+  const outputGate = asOptionalBoolean(readRawConfigField(rawConfig, 'attention_output_gate'));
+  if (outputGate != null) inference.attention.attentionOutputGate = outputGate;
+
   const queryKeyNorm = asOptionalBoolean(readRawConfigField(rawConfig, 'query_key_norm'));
   if (queryKeyNorm != null) {
     inference.attention.queryKeyNorm = queryKeyNorm;
@@ -254,6 +257,9 @@ export function createSourceRuntimeInference(rawConfig = null) {
   if (activation) {
     inference.ffn.activation = activation;
   }
+
+  const weightOffset = asOptionalBoolean(readRawConfigField(rawConfig, 'rms_norm_weight_offset'));
+  if (weightOffset != null) inference.normalization.rmsNormWeightOffset = weightOffset;
 
   const tieWordEmbeddings = asOptionalBoolean(readRawConfigField(rawConfig, 'tie_word_embeddings'));
   if (tieWordEmbeddings != null) {

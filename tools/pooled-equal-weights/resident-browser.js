@@ -4,6 +4,8 @@ import { measureDopplerRequest, measurePooledRequest } from './resident-request.
 try {
   const config = await (await fetch('/probe-config.json')).json();
   const { contract, kind } = config;
+  const nativeWeights = contract.schema === 'doppler.gguf-native-engine-contract.v1';
+  if (nativeWeights && kind === 'pooled') throw new Error('Native GGUF timing requires verified actual Pooled resource slices. The canonical-F32 Pooled initializer cannot admit this lane.');
   let session, pipeline, runtimeConfig, runTextInference, device, tokenizer, identity;
   const gpuErrors = [];
   if (kind === 'pooled') {
@@ -27,8 +29,18 @@ try {
     runtimeConfig = getRuntimeConfig();
     const { readBuffer } = await import('/runtime/src/memory/buffer-pool.js');
     const { verifyDopplerGpu } = await import('./verify-doppler-gpu.js');
-    const canonical = await (await fetch('/canonical/canonical.json')).json();
-    const materialization = await verifyDopplerGpu(pipeline, canonical, readBuffer);
+    let materialization;
+    if (nativeWeights) {
+      if (!config.nativeWeightInventoryUrl) throw new Error('Native GGUF inventory URL is required.');
+      const inventory = await (await fetch(config.nativeWeightInventoryUrl)).json();
+      const { verifyQ40Resources } = await import('./verify-q4_0.js');
+      const { resolveDopplerQ40Resources } = await import('./q4_0-doppler-resources.js');
+      const { readBufferSlice } = await import('/runtime/src/memory/buffer-pool.js');
+      materialization = await verifyQ40Resources(inventory, await resolveDopplerQ40Resources(pipeline, inventory, readBufferSlice));
+    } else {
+      const canonical = await (await fetch('/canonical/canonical.json')).json();
+      materialization = await verifyDopplerGpu(pipeline, canonical, readBuffer);
+    }
     const reference = runtimeConfig.shared?.harness?.referenceTranscript;
     if (runtimeConfig.shared?.debug?.probes?.length || runtimeConfig.shared?.debug?.profiler?.enabled
         || runtimeConfig.shared?.benchmark?.run?.executionObserver?.enabled

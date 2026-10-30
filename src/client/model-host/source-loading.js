@@ -480,10 +480,11 @@ async function parseBridgeGGUFModel(bridgeClient, fileIndex, ggufRelativePath) {
     ...tensor,
     sourcePath: ggufRelativePath,
   }));
-  const architecture = extractArchitecture({}, parsedGGUF.config || {});
+  const architecture = parsedGGUF.normalizedArchitecture ?? extractArchitecture({}, parsedGGUF.config || {});
 
   return {
     sourceKind: 'gguf',
+    modelType: parsedGGUF.modelType, excludedTensors: parsedGGUF.excludedTensors,
     config: parsedGGUF.config,
     tensors,
     architectureHint: parsedGGUF.architecture,
@@ -491,12 +492,11 @@ async function parseBridgeGGUFModel(bridgeClient, fileIndex, ggufRelativePath) {
     sourceQuantization: parsedGGUF.quantization ?? inferSourceQuantizationForSourceRuntime(tensors, 'gguf', {
       logCategory: 'DopplerProvider',
     }),
-    tokenizerJson: null,
-    tokenizerConfig: null,
+    tokenizerJson: parsedGGUF.tokenizerJson, tokenizerConfig: parsedGGUF.tokenizerConfig,
     tokenizerModelName: null,
     sourceFiles: [{ path: ggufRelativePath, size: ggufEntry.size }],
     auxiliaryFiles: [],
-    tokenizerJsonPath: null,
+    tokenizerJsonPath: parsedGGUF.tokenizerJson ? '@gguf/tokenizer.json' : null,
     tokenizerConfigPath: null,
     tokenizerModelPath: null,
   };
@@ -805,7 +805,7 @@ async function resolveBridgeStorageContext(options = {}) {
     return createSourceStorageContext({
       model,
       readRange: readers.readRange,
-      readText: readers.readText,
+      readText: async path => parsed.tokenizerJson && path === parsed.tokenizerJsonPath ? JSON.stringify(parsed.tokenizerJson) : readers.readText(path),
       readBinary: readers.readBinary,
       verifyHashes: options.verifyHashes !== false,
     });
@@ -816,7 +816,7 @@ async function resolveBridgeStorageContext(options = {}) {
   return createSourceStorageContext({
     model,
     readRange: readers.readRange,
-    readText: readers.readText,
+    readText: async path => parsed.tokenizerJson && path === parsed.tokenizerJsonPath ? JSON.stringify(parsed.tokenizerJson) : readers.readText(path),
     readBinary: readers.readBinary,
     verifyHashes: options.verifyHashes !== false,
   });
@@ -888,7 +888,7 @@ export async function resolveBridgeSourceRuntimeBundle(options = {}) {
     model,
     shardSources,
     readRange: readers.readRange,
-    readText: readers.readText,
+    readText: async path => parsed.tokenizerJson && path === parsed.tokenizerJsonPath ? JSON.stringify(parsed.tokenizerJson) : readers.readText(path),
     readBinary: readers.readBinary,
     tokenizerJsonPath: parsed.tokenizerJsonPath,
     tokenizerModelPath: parsed.tokenizerModelPath,

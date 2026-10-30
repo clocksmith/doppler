@@ -1,0 +1,96 @@
+{
+  "schema": "doppler.gguf-native-engine-contract.v1",
+  "model": "Qwen3.6-35B-A3B text decoder from a pinned GGUF, unchanged mixed native blocks",
+  "status": "preparation",
+  "materializationObservation": {
+    "chunkBytes": 16777216,
+    "workgroupSize": 256
+  },
+  "promptFormat": {
+    "before": "<|im_start|>user\n",
+    "after": "<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+    "specialTokens": [
+      "<|im_start|>",
+      "<|im_end|>",
+      "<think>",
+      "</think>"
+    ]
+  },
+  "weights": {
+    "sourceFormat": "gguf",
+    "storageFormats": [
+      "Q4_0",
+      "Q4_1",
+      "Q8_0",
+      "Q6_K",
+      "F32"
+    ],
+    "requantization": "forbidden",
+    "sameInputBytes": true,
+    "completeTensorHashInventoryRequired": true,
+    "engineMaterializationReadbackRequired": true,
+    "declaredPreparationTransforms": [],
+    "repackedResources": "must expose byte-exact original tensor slices; otherwise admission fails"
+  },
+  "platforms": [
+    {
+      "os": "linux",
+      "backend": "vulkan",
+      "host": "jupiter"
+    }
+  ],
+  "shared": {
+    "maxNewTokens": 128,
+    "maxSeqLen": 4096,
+    "temperature": 0,
+    "topK": 1,
+    "topP": 1,
+    "seed": 0,
+    "eosTokenIds": [
+      248046,
+      248044
+    ],
+    "speculation": "none",
+    "activationDtype": "f32",
+    "accumulationDtype": "f32",
+    "kvDtype": "f32",
+    "warmupRuns": 1,
+    "pairsPerPrompt": 10,
+    "promptSource": "run configuration must pin four prompt texts and exact token IDs"
+  },
+  "gates": {
+    "identicalPromptTokenIds": true,
+    "identicalGeneratedTokenIds": true,
+    "completeSameBudgetWithoutForcedContinuation": true,
+    "logitAbsoluteTolerance": 0.001,
+    "logitRelativeTolerance": 0,
+    "logitPositions": [
+      0,
+      1,
+      2,
+      4,
+      8,
+      16,
+      32,
+      63
+    ],
+    "minimumCompleteRequestGain": 0.02,
+    "upper95RatioBelow": 1,
+    "perPromptMaximumCompleteRegression": 0.03,
+    "perPromptMaximumFirstTokenRegression": 0.05,
+    "retainAllAttempts": true,
+    "outliersRemoved": 0,
+    "perPlatformIndependentEvidence": true,
+    "fallbackForbidden": true
+  },
+  "claimBoundary": "All-F32 common-parameter comparison only; does not establish a native quantized-format or F16-KV win. Same numerical and performance thresholds as the original lane.",
+  "id": "qwen35-canonical-f32-f32kv",
+  "scope": "Additional native all-F32 engine lane; the original F16-KV lane remains separate with its failures retained.",
+  "pooledOverlay": {
+    "nativeOptions": {
+      "attnFlash": false
+    },
+    "reason": "Native Pooled F32 KV implementation, without vendor source changes."
+  },
+  "vocabSize": 248320
+}

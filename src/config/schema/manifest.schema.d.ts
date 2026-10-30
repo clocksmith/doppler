@@ -1,3 +1,4 @@
+export declare const DEFAULT_LINEAR_ATTENTION_SOURCE_LAYOUT: 'hf';
 import type { FP8Policy } from './fp8.schema.js';
 import type { W8A8Policy } from './w8a8.schema.js';
 /**
@@ -76,6 +77,7 @@ export type WeightLayout = 'row' | 'column';
 /** Quantization value (string for forward compatibility) */
 export type QuantizationValue =
   | 'q4k'      // Q4_K_M block quantization (canonical short form)
+  | 'q4_1' | 'q8_0' | 'q6k'
   | 'q4_0'     // GGUF Q4_0 block quantization
   | 'q6k'      // Q6_K block quantization
   | 'q8_0'     // Q8_0 quantization
@@ -97,6 +99,7 @@ export type SourceTrainingQuantization =
   | 'ptq';
 
 export type SourceQuantizationTarget =
+  | 'q4_1' | 'q8_0' | 'q6k'
   | 'q4_0'
   | 'w4a16'
   | 'wNa8o8';
@@ -117,6 +120,7 @@ export interface QuantizationInfoSchema {
   lmHead?: QuantizationValue;
   sourceTrainingQuantization?: SourceTrainingQuantization;
   sourceQuantizationTarget?: SourceQuantizationTarget;
+  preserveSourceTensors?: boolean;
   sourceQuantizationFormat?: SourceQuantizationFormat;
   experts?: QuantizationValue;
   expertsFormat?: string;
@@ -251,6 +255,7 @@ export interface ArchitectureSchema {
   linearValueHeadDim?: number;
   linearConvKernelDim?: number;
   linearNormMode?: LinearNormMode;
+  linearAttentionSourceLayout?: 'hf' | 'gguf-v1';
 }
 
 /**

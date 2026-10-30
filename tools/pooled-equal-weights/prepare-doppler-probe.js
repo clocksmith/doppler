@@ -69,6 +69,21 @@ const hook = `
 `;
 let weightHook = '';
 let weightVerifierIdentity = null;
+if (config.canonicalInventoryPath && config.nativeWeightInventoryPath) throw new Error('Declare one weight observation lane.');
+if (config.nativeWeightInventoryPath) {
+  const inventory = JSON.parse(await fs.readFile(config.nativeWeightInventoryPath, 'utf8'));
+  const { validateQ40Inventory } = await import('./verify-q4_0.js');
+  validateQ40Inventory(inventory);
+  const verifier = await fs.readFile(new URL('./verify-q4_0.js', import.meta.url));
+  weightVerifierIdentity = { path: 'tools/pooled-equal-weights/verify-q4_0.js', sha256: createHash('sha256').update(verifier).digest('hex') };
+  weightHook = `
+  const { verifyQ40Resources } = await import('../../../tools/pooled-equal-weights/verify-q4_0.js');
+  const { resolveDopplerQ40Resources } = await import('../../../tools/pooled-equal-weights/q4_0-doppler-resources.js');
+  const { readBufferSlice } = await import('../../memory/buffer-pool.js');
+  const nativeInventory = ${JSON.stringify(inventory)};
+  metrics.nativeGgufWeights = await verifyQ40Resources(nativeInventory, await resolveDopplerQ40Resources(harness.pipeline, nativeInventory, readBufferSlice));
+`;
+}
 if (config.canonicalInventoryPath) {
   const inventory = JSON.parse(await fs.readFile(config.canonicalInventoryPath, 'utf8'));
   if (inventory.schema !== 'doppler.equal-weight-canonical.v1' || inventory.completed !== true) throw new Error('Incomplete canonical GPU proof inventory');

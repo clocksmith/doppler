@@ -14,6 +14,7 @@ export const DEFAULT_CONVERTER_QUANTIZATION_CONFIG = {
   lmHead: null,
   sourceTrainingQuantization: null,
   sourceQuantizationTarget: null,
+  preserveSourceTensors: false,
   sourceQuantizationFormat: null,
   vision: DEFAULT_QUANTIZATION_DEFAULTS.visionDtype,
   audio: DEFAULT_QUANTIZATION_DEFAULTS.audioDtype,

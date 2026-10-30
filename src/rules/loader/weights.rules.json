@@ -1,45 +1,201 @@
 {
   "normWeightDtype": [
-    { "match": { "normWeightDtype": "f16" }, "value": "f16" },
-    { "match": { "normWeightDtype": "f32" }, "value": "f32" },
-    { "match": {}, "value": "f32" }
+    {
+      "match": {
+        "normWeightDtype": "f16"
+      },
+      "value": "f16"
+    },
+    {
+      "match": {
+        "normWeightDtype": "f32"
+      },
+      "value": "f32"
+    },
+    {
+      "match": {},
+      "value": "f32"
+    }
   ],
   "normWeightDtypeFromSize": [
-    { "match": { "sizeMatchesF32": true }, "value": "f32" },
-    { "match": { "sizeMatchesF16": true }, "value": "f16" },
-    { "match": {}, "value": "f32" }
+    {
+      "match": {
+        "sizeMatchesF32": true
+      },
+      "value": "f32"
+    },
+    {
+      "match": {
+        "sizeMatchesF16": true
+      },
+      "value": "f16"
+    },
+    {
+      "match": {},
+      "value": "f32"
+    }
   ],
   "matmulWeightDtype": [
-    { "match": { "locationDtype": "FP8_E4M3FN" }, "value": "fp8e4" },
-    { "match": { "locationDtype": "FP8_E5M2" }, "value": "fp8e5" },
-    { "match": { "locationDtype": "W8A8" }, "value": "w8a8" },
-    { "match": { "locationDtype": "F16", "hasF16": false, "isMatmulWeight": true }, "value": "f32" },
-    { "match": { "locationDtype": "F16" }, "value": "f16" },
-    { "match": { "locationDtype": "BF16", "hasF16": true, "isMatmulWeight": true }, "value": "f16" },
-    { "match": { "locationDtype": "BF16" }, "value": "f32" },
-    { "match": { "locationDtype": { "in": ["Q4_K", "Q4_K_M"] }, "hasF16": true, "isMatmulWeight": true, "keepF32Weights": false }, "value": "f16" },
-    { "match": { "locationDtype": { "in": ["Q4_K", "Q4_K_M"] } }, "value": "f32" },
-    { "match": { "locationDtype": "Q6_K" }, "value": "f16" },
-    { "match": {}, "value": "f32" }
+    {
+      "match": {
+        "locationDtype": "FP8_E4M3FN"
+      },
+      "value": "fp8e4"
+    },
+    {
+      "match": {
+        "locationDtype": "FP8_E5M2"
+      },
+      "value": "fp8e5"
+    },
+    {
+      "match": {
+        "locationDtype": "W8A8"
+      },
+      "value": "w8a8"
+    },
+    {
+      "match": {
+        "locationDtype": "F16",
+        "hasF16": false,
+        "isMatmulWeight": true
+      },
+      "value": "f32"
+    },
+    {
+      "match": {
+        "locationDtype": "F16"
+      },
+      "value": "f16"
+    },
+    {
+      "match": {
+        "locationDtype": "BF16",
+        "hasF16": true,
+        "isMatmulWeight": true
+      },
+      "value": "f16"
+    },
+    {
+      "match": {
+        "locationDtype": "BF16"
+      },
+      "value": "f32"
+    },
+    {
+      "match": {
+        "locationDtype": {
+          "in": [
+            "Q4_K",
+            "Q4_K_M"
+          ]
+        },
+        "hasF16": true,
+        "isMatmulWeight": true,
+        "keepF32Weights": false
+      },
+      "value": "f16"
+    },
+    {
+      "match": {
+        "locationDtype": {
+          "in": [
+            "Q4_K",
+            "Q4_K_M"
+          ]
+        }
+      },
+      "value": "f32"
+    },
+    {
+      "match": {
+        "locationDtype": "Q6_K"
+      },
+      "value": "f16"
+    },
+    {
+      "match": {},
+      "value": "f32"
+    }
   ],
   "dequantizeToF16": [
-    { "match": { "role": { "in": ["matmul", "embedding", "lm_head", "router", "expert"] } }, "value": true },
-    { "match": {}, "value": false }
+    {
+      "match": {
+        "role": {
+          "in": [
+            "matmul",
+            "embedding",
+            "lm_head",
+            "router",
+            "expert"
+          ]
+        }
+      },
+      "value": true
+    },
+    {
+      "match": {},
+      "value": false
+    }
   ],
   "floatLocationDtype": [
-    { "match": { "locationDtype": "F16" }, "value": "f16" },
-    { "match": {}, "value": "f32" }
+    {
+      "match": {
+        "locationDtype": "F16"
+      },
+      "value": "f16"
+    },
+    {
+      "match": {},
+      "value": "f32"
+    }
   ],
   "weightLayout": [
-    { "match": { "layout": "column" }, "value": "column" },
-    { "match": { "layout": "row" }, "value": "row" },
-    { "match": { "useColumnWise": true }, "value": "column" },
-    { "match": {}, "value": "row" }
+    {
+      "match": {
+        "layout": "column"
+      },
+      "value": "column"
+    },
+    {
+      "match": {
+        "layout": "row"
+      },
+      "value": "row"
+    },
+    {
+      "match": {
+        "useColumnWise": true
+      },
+      "value": "column"
+    },
+    {
+      "match": {},
+      "value": "row"
+    }
   ],
   "q4kOutputDtype": [
-    { "match": { "isMatmulWeight": false }, "value": "f32" },
-    { "match": { "keepF32Weights": true }, "value": "f32" },
-    { "match": { "hasF16": true }, "value": "f16" },
-    { "match": {}, "value": "f32" }
+    {
+      "match": {
+        "isMatmulWeight": false
+      },
+      "value": "f32"
+    },
+    {
+      "match": {
+        "keepF32Weights": true
+      },
+      "value": "f32"
+    },
+    {
+      "match": {
+        "hasF16": true
+      },
+      "value": "f16"
+    },
+    {
+      "match": {},
+      "value": "f32"
+    }
   ]
 }

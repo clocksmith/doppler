@@ -178,6 +178,17 @@ export function write_matmul_paired_f32(view, values, kernel) {
   view.setUint32(28, 0, true);
 }
 
+export function write_matmul_q4_0_gemv(view, values, kernel) {
+  writeU32(view, 0, values["M"], kernel, "M");
+  writeU32(view, 4, values["N"], kernel, "N");
+  writeU32(view, 8, values["K"], kernel, "K");
+  writeF32(view, 12, values["alpha"], kernel, "alpha");
+  writeU32(view, 16, values["blocks"], kernel, "blocks");
+  writeU32(view, 20, values["a_offset"], kernel, "a_offset");
+  writeU32(view, 24, values["b_row"], kernel, "b_row");
+  writeU32(view, 28, values["c_offset"], kernel, "c_offset");
+}
+
 export function write_fused_ffn_default(view, values, kernel) {
   writeU32(view, 0, values["M"], kernel, "M");
   writeU32(view, 4, values["hidden_size"], kernel, "hidden_size");
@@ -580,17 +591,6 @@ export function write_residual_rmsnorm_pair_subgroup(view, values, kernel) {
   writeF32(view, 8, values["eps"], kernel, "eps");
   writeF32(view, 12, values["output_scale"], kernel, "output_scale");
   writeU32(view, 16, values["token_stride"], kernel, "token_stride");
-  view.setUint32(20, 0, true);
-  view.setUint32(24, 0, true);
-  view.setUint32(28, 0, true);
-}
-
-export function write_rmsnorm_qk_default(view, values, kernel) {
-  writeU32(view, 0, values["q_rows"], kernel, "q_rows");
-  writeU32(view, 4, values["k_rows"], kernel, "k_rows");
-  writeU32(view, 8, values["head_dim"], kernel, "head_dim");
-  writeU32(view, 12, values["row_stride"], kernel, "row_stride");
-  writeF32(view, 16, values["eps"], kernel, "eps");
   view.setUint32(20, 0, true);
   view.setUint32(24, 0, true);
   view.setUint32(28, 0, true);

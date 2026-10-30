@@ -1,3 +1,4 @@
+export const DEFAULT_LINEAR_ATTENTION_SOURCE_LAYOUT = 'hf';
 import { MB } from './units.schema.js';
 import {
   assertSupportedManifestInference,
