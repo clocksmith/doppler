@@ -417,6 +417,7 @@ export async function _loadLayer(layerIdx, _onProgress) {
       gpuBuffers: this.gpuBuffers,
       keepF32Weights: this.keepF32Weights,
       isMoE: this.isMoE,
+      expertFormat: this.manifest?.moeConfig?.expertFormat ?? null,
       isExpertLayer: (idx) => this._isExpertLayer(idx),
       loadDenseFfnForMoeLayers: this.manifest?.inference?.ffn?.branchMode === 'dense_plus_moe',
       numHeads: this.manifest?.architecture?.numAttentionHeads ?? null,
