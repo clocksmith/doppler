@@ -6,6 +6,7 @@ import { loadCanonicalWeights } from './pooled-canonical.js';
 import { observePooledUploads, verifyPooledGpu } from './verify-pooled-gpu.js';
 import { encodeSharedPrompt } from './shared-input.js';
 import { captureSingleTokenLayers } from './capture-pooled-boundaries.js';
+import { measurePooledRequests } from './timing.js';
 
 try {
   const config = await (await fetch('/probe-config.json')).json();
@@ -38,6 +39,15 @@ try {
   const materialization = await verifyPooledGpu(device, weights, observation.uploaded, config.contract.materializationObservation);
   const tokenizer = makeTokenizer(await (await fetch('/canonical/tokenizer.json')).json());
   const promptIds = encodeSharedPrompt(tokenizer, config.prompt, config.contract.promptFormat);
+  if (config.timing) {
+    const samples = await measurePooledRequests(engine, device, promptIds, config.contract, config.timing);
+    if (gpuErrors.length) throw new Error(gpuErrors.join('\n'));
+    globalThis.RESULT = { schema: 'pooled.equal-weight-timing-pilot.v1', diagnosticOnly: true,
+      samples, promptIds, materialization, input: weights.canonicalProof,
+      adapter: { vendor: adapter.info.vendor, architecture: adapter.info.architecture, device: adapter.info.device },
+      settings: { kvDtype, attnFlash: engine.flash, maxSeq: engine.maxSeq }, gpuErrors,
+      claim: 'Unpaired resident pilot only; not claim-grade performance evidence.' };
+  } else {
   engine.reset();
   await engine.prefillTokens(promptIds.slice(0, -1));
   const logits = Float32Array.from(await engine.forwardToken(promptIds.at(-1)));
@@ -70,4 +80,5 @@ try {
     text: tokenizer.decode(tokenIds), firstLogits: Array.from(logits), singleTokenLogits, singleTokenLayers: single.layers, sequentialPromptLogits, gpuErrors,
     adapter: { vendor: adapter.info.vendor, architecture: adapter.info.architecture, device: adapter.info.device },
     claim: 'Untimed canonical F32 probe. Cross-engine parity remains a separate gate.' };
-} catch (error) { globalThis.RESULT = { error: String(error.stack || error) }; console.error(error); }
+  }
+} catch (error) { globalThis.RESULT = { error: String(error.stack || error), completedSamples: error.completedSamples ?? [] }; console.error(error); }
