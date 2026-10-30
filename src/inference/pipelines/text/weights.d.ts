@@ -72,6 +72,10 @@ export interface LayerWeights {
 
   // MoE
   routerWeight?: GPUBuffer | import('../../../gpu/weight-buffer.js').WeightBuffer | Float32Array;
+  sharedExpertGate?: GPUBuffer | import('../../../gpu/weight-buffer.js').WeightBuffer | Float32Array | null;
+  sharedExpertUp?: GPUBuffer | import('../../../gpu/weight-buffer.js').WeightBuffer | Float32Array | null;
+  sharedExpertDown?: GPUBuffer | import('../../../gpu/weight-buffer.js').WeightBuffer | Float32Array | null;
+  sharedExpertRouter?: GPUBuffer | import('../../../gpu/weight-buffer.js').WeightBuffer | Float32Array | null;
   routerBias?: GPUBuffer | Float32Array | null;
   routerScale?: GPUBuffer | Float32Array | null;
   routerPerExpertScale?: GPUBuffer | Float32Array | null;
@@ -84,7 +88,7 @@ export interface LayerWeights {
  * Weights for a single MoE expert.
  */
 export interface ExpertWeights {
-  expertFormat?: 'mixtral' | 'gpt-oss' | 'gemma4';
+  expertFormat?: 'mixtral' | 'gpt-oss' | 'gemma4' | 'qwen3_5';
   gate?: LayerWeightBuffer;
   up?: LayerWeightBuffer;
   down?: LayerWeightBuffer;

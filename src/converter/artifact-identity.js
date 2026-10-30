@@ -74,7 +74,7 @@ export function extractArchitecture(config, ggufConfig) {
       'hidden_size'
     );
     const intermediateSize = requireNumber(
-      fromConfig('intermediate_size', 'n_inner', 'ffn_dim'),
+      fromConfig('intermediate_size', 'n_inner', 'ffn_dim', 'moe_intermediate_size'),
       'intermediate_size'
     );
     const numHeads = requireNumber(

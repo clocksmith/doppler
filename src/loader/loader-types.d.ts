@@ -97,6 +97,10 @@ export interface LayerWeights {
   /** Fused gate+up for pipeline compatibility */
   gateUp?: GPUBuffer | WeightBuffer | Float32Array | null;
   routerWeight?: GPUBuffer | import('../gpu/weight-buffer.js').WeightBuffer | Float32Array | null;
+  sharedExpertGate?: GPUBuffer | WeightBuffer | Float32Array | null;
+  sharedExpertUp?: GPUBuffer | WeightBuffer | Float32Array | null;
+  sharedExpertDown?: GPUBuffer | WeightBuffer | Float32Array | null;
+  sharedExpertRouter?: GPUBuffer | WeightBuffer | Float32Array | null;
   routerBias?: GPUBuffer | Float32Array | null;
   routerScale?: GPUBuffer | Float32Array | null;
   routerPerExpertScale?: GPUBuffer | Float32Array | null;

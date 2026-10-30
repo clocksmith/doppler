@@ -461,10 +461,15 @@ function toParsedConfigFromMerged(merged, manifest) {
     : resolvedIntermediateSize;
   if (
     useMoE
-    && expertFormat === 'gemma4'
+    && (expertFormat === 'gemma4' || expertFormat === 'qwen3_5')
     && (!Number.isFinite(moeExpertIntermediateSize) || moeExpertIntermediateSize <= 0)
   ) {
     throw new Error(`Manifest "${manifest.modelId}" has invalid moeConfig.expertIntermediateSize for Gemma-style experts.`);
+  }
+
+  if (expertFormat === 'qwen3_5' && (!Number.isSafeInteger(moeConfig.sharedExpertIntermediateSize)
+    || moeConfig.sharedExpertIntermediateSize < 1)) {
+    throw new Error(`Manifest "${manifest.modelId}" missing positive moeConfig.sharedExpertIntermediateSize.`);
   }
 
   // RoPE scaling - use manifest inference as source of truth (not raw config)
@@ -672,6 +677,7 @@ function toParsedConfigFromMerged(merged, manifest) {
     moeTopK,
     expertFormat,
     moeExpertIntermediateSize,
+    moeSharedExpertIntermediateSize: moeConfig?.sharedExpertIntermediateSize ?? null,
     slidingWindow: inf.attention.slidingWindow,
     ropeTheta: inf.rope.ropeTheta,
     ropeLocalTheta: inf.rope.ropeLocalTheta,

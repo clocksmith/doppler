@@ -67,6 +67,7 @@ const MOE_ROUTE_EXECUTORS = Object.freeze({
 const MOE_EXPERT_EXECUTORS = Object.freeze({
   'gpt-oss': runGptOssProfileExpert,
   'gemma4-packed': runGemma4ProfileExpert,
+  'qwen35-packed': runGemma4ProfileExpert,
   mixtral: runMixtralProfileExpert,
 });
 
@@ -79,10 +80,10 @@ function requireMoeExecutor(registry, id, label) {
 }
 
 function assertMoeExpertWeights(moeProfile, weights, expertKey) {
-  if (moeProfile.expertExecutor === 'gemma4-packed' && !weights.gateUp) {
+  if ((moeProfile.expertExecutor === 'gemma4-packed' || moeProfile.expertExecutor === 'qwen35-packed') && !weights.gateUp) {
     throw new Error(`[MoE] Missing Gemma-style packed weights for ${expertKey}`);
   }
-  if (moeProfile.expertExecutor === 'gemma4-packed' && !weights.down) {
+  if ((moeProfile.expertExecutor === 'gemma4-packed' || moeProfile.expertExecutor === 'qwen35-packed') && !weights.down) {
     throw new Error(`[MoE] Missing Gemma-style packed weights for ${expertKey}`);
   }
   if (moeProfile.expertExecutor === 'mixtral' && (!weights.gate || !weights.up || !weights.down)) {
@@ -125,7 +126,9 @@ async function runGemma4ProfileExpert(args) {
     args.intermediateSize,
     args.activationDtype,
     args.swigluLimit,
-    args.kernelPath
+    args.kernelPath,
+    args.hiddenActivation,
+    args.moeProfile.matmulRoles
   );
 }
 
@@ -522,6 +525,7 @@ export async function moeFeedForwardGPU(
         gathered,
         expertOutputs,
         weights,
+        moeProfile,
         layerIdx,
         expertIdx,
         count,

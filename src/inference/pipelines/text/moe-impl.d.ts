@@ -53,7 +53,7 @@ export interface MoEConfig {
   expertIntermediateSize?: number;
   numExperts: number;
   moeTopK: number;
-  expertFormat: 'mixtral' | 'gpt-oss' | 'gemma4';
+  expertFormat: 'mixtral' | 'gpt-oss' | 'gemma4' | 'qwen3_5';
   hiddenActivation: string;
   swigluLimit: number | null;
   activationDtype?: TensorDtype;
@@ -67,7 +67,7 @@ export interface MoEConfig {
  * Expert weights with optional GPT-OSS quantized format.
  */
 export interface MoEExpertWeights extends ExpertWeights {
-  expertFormat: 'mixtral' | 'gpt-oss' | 'gemma4';
+  expertFormat: 'mixtral' | 'gpt-oss' | 'gemma4' | 'qwen3_5';
   numExperts?: number;
   expertIntermediateSize?: number;
   gateUp?: GPUBuffer;

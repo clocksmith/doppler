@@ -358,7 +358,9 @@ export async function runGemma4Expert(
   intermediateSize,
   activationDtype,
   swigluLimit,
-  kernelPath
+  kernelPath,
+  hiddenActivation,
+  matmulRoles
 ) {
   const numExperts = weights.numExperts;
   const expertIdx = weights.expertIdx;
@@ -388,7 +390,10 @@ export async function runGemma4Expert(
   );
   const downOffset = expertIdx * downStrideBytes;
 
-  const gateUpOut = await runMatmul(
+  let gateUpOut = null;
+  let activated = null;
+  try {
+  gateUpOut = await runMatmul(
     gathered,
     weights.gateUp,
     count,
@@ -399,18 +404,19 @@ export async function runGemma4Expert(
       aOffset: inputOffset,
       bOffset: gateUpOffset,
       outputDtype: activationDtype,
-      role: 'moe_gate_up',
+      role: matmulRoles.gateUp,
       kernelPath,
     }
   );
 
-  const activated = await runSiLURowSplit(gateUpOut, {
+  activated = await runSiLURowSplit(gateUpOut, {
     numTokens: count,
     dim: intermediateSize,
-    activation: 'gelu',
+    activation: hiddenActivation,
     swigluLimit,
   });
   releaseBuffer(gateUpOut.buffer);
+  gateUpOut = null;
 
   await runMatmul(
     activated,
@@ -424,11 +430,16 @@ export async function runGemma4Expert(
       outputBuffer: expertOutputs,
       cOffset: outputOffset,
       outputDtype: activationDtype,
-      role: 'moe_down',
+      role: matmulRoles.down,
       kernelPath,
     }
   );
   releaseBuffer(activated.buffer);
+  activated = null;
+  } finally {
+    if (gateUpOut) releaseBuffer(gateUpOut.buffer);
+    if (activated) releaseBuffer(activated.buffer);
+  }
 }
 
 export async function runMixtralExpert(

@@ -8,7 +8,7 @@ import { LINEAR_NORM_GATE_ACTIVATIONS } from '../config/schema/manifest.schema.j
 //   and validate_architecture rejects anything but "sigmoid" or "silu".
 // In neither family does output_gate_type describe the full-attention output
 // gate, which is always sigmoid.
-const QWEN35_FAMILIES = new Set(['qwen3_5', 'qwen3_5_text']);
+const QWEN35_FAMILIES = new Set(['qwen3_5', 'qwen3_5_text', 'qwen3_5_moe', 'qwen3_5_moe_text']);
 const QWEN4_EXP_FAMILIES = new Set(['qwen4_exp', 'qwen4_exp_text']);
 /** @type {ReadonlySet<unknown>} */
 const QWEN35_CONSISTENT_GATE_TYPES = new Set(['silu', 'swish']);

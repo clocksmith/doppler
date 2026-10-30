@@ -24,6 +24,7 @@
         "tests/inference/logits-output-ownership.test.js",
         "tests/inference/logits-paired-physical.test.js",
         "tests/inference/paired-ffn-physical.test.js",
+        "tests/inference/qwen35-shared-expert-gpu.test.js",
         "tests/inference/rope-source-frequencies-gpu.test.js",
         "tests/integration/training-force-resume-lineage.test.js",
         "tests/integration/training-intent-split.test.js",

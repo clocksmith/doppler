@@ -164,6 +164,8 @@ const EXPERT_FORMATS = Object.freeze({
     load: loadGptOssStyleExpert, assertWeights: assertGptOssWeights, packedTensorCandidates: getGptOssExpertTensorCandidates }),
   gemma4: Object.freeze({ packed: true, downcastToF16: false, lruCached: false,
     load: loadGemma4StyleExpert, assertWeights: assertGemma4Weights, packedTensorCandidates: getGemma4ExpertTensorCandidates }),
+  qwen3_5: Object.freeze({ packed: true, downcastToF16: false, lruCached: false,
+    load: loadQwen35StyleExpert, assertWeights: assertGemma4Weights, packedTensorCandidates: getQwen35ExpertTensorCandidates }),
   mixtral: Object.freeze({ packed: false, downcastToF16: true, lruCached: true,
     load: loadMixtralStyleExpert, assertWeights: assertMixtralWeights, packedTensorCandidates: null }),
 });
@@ -238,6 +240,11 @@ function getGemma4ExpertTensorCandidates(layerIdx) {
       `model.layers.${layerIdx}.experts.down_proj`,
     ],
   ];
+}
+
+function getQwen35ExpertTensorCandidates(layerIdx) {
+  const prefixes = [`model.language_model.layers.${layerIdx}`, `model.layers.${layerIdx}`];
+  return ['gate_up_proj', 'down_proj'].map((suffix) => prefixes.map((prefix) => `${prefix}.mlp.experts.${suffix}`));
 }
 
 function getGptOssExpertTensorCandidates(layerIdx) {
@@ -383,6 +390,23 @@ async function loadGemma4StyleExpert(ctx, layerIdx, expertIdx) {
   };
 }
 
+
+async function loadQwen35StyleExpert(ctx, layerIdx, expertIdx) {
+  const numExperts = resolveGemma4NumExperts(ctx);
+  if (!Number.isSafeInteger(expertIdx) || expertIdx < 0 || expertIdx >= numExperts) {
+    throw new Error(`[MoE] Qwen expert index ${expertIdx} outside ${numExperts} experts.`);
+  }
+  const packedKey = `layer_${layerIdx}_qwen35_packed`;
+  let packed = ctx.experts.get(packedKey);
+  if (!packed) {
+    const candidates = getQwen35ExpertTensorCandidates(layerIdx);
+    packed = { numExperts, expertIntermediateSize: resolveGemma4ExpertIntermediateSize(ctx),
+      gateUp: await loadFirstTensor(ctx, candidates[0]), down: await loadFirstTensor(ctx, candidates[1]) };
+    assertGemma4Weights(packed, layerIdx, expertIdx);
+    ctx.experts.set(packedKey, packed);
+  }
+  return { ...packed, expertIdx, expertFormat: 'qwen3_5' };
+}
 
 async function loadGptOssStyleExpert(ctx, layerIdx, expertIdx) {
   const gptOssPrefix = `model.layers.${layerIdx}.mlp.experts`;

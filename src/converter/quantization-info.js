@@ -354,6 +354,7 @@ function resolveExpertFormat(modelConfig, expertQuant) {
   if (rawType.includes('gpt_oss') || rawType.includes('gpt-oss') || rawType.includes('gptoss')) {
     return 'gpt-oss';
   }
+  if (rawType === 'qwen3_5_moe' || rawType === 'qwen3_5_moe_text') return 'qwen3_5';
   const hasExperts = Boolean(
     modelConfig.num_local_experts ||
     modelConfig.num_experts ||
@@ -486,7 +487,7 @@ export function buildQuantizationInfo(
   const hasExperts = Boolean(
     modelConfig?.num_local_experts ||
     modelConfig?.num_experts ||
-    modelConfig?.expertCount
+    modelConfig?.expertCount || modelConfig?.text_config?.num_experts
   );
   if (hasExperts) {
     const expertQuant = resolveExpertQuantization(modelConfig) ?? weights;
