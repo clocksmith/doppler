@@ -1,0 +1,43 @@
+{
+  "schema": "doppler.moe-recorder-correctness.v1",
+  "baselineCommit": "e8d2f07e807e1a6449d2e84b1571a712b06e46e5",
+  "hypothesis": "Immediate MoE dispatches consume an input whose producer is still held in the parent recorder.",
+  "before": "Physical deferred copy -> actual runMoEFFNGPU -> parent submit returns output[0]=0 instead of the immediate control 0.0011515826918184757.",
+  "fix": [
+    "Thread parent recorder through MoE FFN, router logits, softmax/top-K, Qwen routed projections/activation/combine and shared expert operations",
+    "Track intermediates until parent submit/abort; retain caller inputs and persistent weights",
+    "Immediate-only adapters submit the recorded producer prefix before immediate work and leave the parent recorder open",
+    "Raw router weights and biases get recorder-owned uploads so rebinding a shared router across layers cannot destroy pending inputs"
+  ],
+  "sourceHashes": {
+    "src/inference/moe-router.js": "ef2a95bcaf0f90dfac10ef51cfbec66389e7efc3c90fabc27573be735204f504",
+    "src/gpu/kernels/softmax.js": "dd75f9da5adbf00aeb20ca10cb2916a71c702ab1b60c49229dc01d4eee99f092",
+    "src/inference/pipelines/text/moe-gpu.js": "5ee0a94d95fde0d5538cc42cc831f1df3a8a0a8ad847942777e217d1f682533b",
+    "src/inference/pipelines/text/moe/qwen-route-executor.js": "909cb273a5e2861da02b33bf7cc005be4b4e6cf10cf90ccf8056f059b9ee35c6",
+    "src/inference/pipelines/text/ffn/moe.js": "46c29e2d291bf32f2e7c58dc99d217d8fcf95a0ab28cdc3a81b7f94b70a8a6b8",
+    "src/inference/pipelines/text/ffn/qwen-shared-expert.js": "c8e10aa2be950194564df78ec784146e416536ba00b778c587e12ef65d241901"
+  },
+  "physicalEvidence": {
+    "nodeMetalMaxAbs": 0,
+    "chromiumMetalMaxAbs": 0,
+    "nodeSubmissionCount": 1,
+    "nodeComputePassCount": 1,
+    "nodeDispatchCount": 14,
+    "rawRouterRebindingCases": 3,
+    "rawRouterRebindingMaxAbs": 1.571732174132645e-07,
+    "failurePaths": "Injected recorded expert failure retains pending temporaries until abort, restores baseline active buffer count and preserves caller input",
+    "immediateOnlyPath": "topk-readback with a pending upstream producer and subsequent recorded shared expert matches the GPU-direct immediate control"
+  },
+  "limits": [
+    "Bounded synthetic MoE geometry (T=2,H=256,I=256,E=3,sharedI=3), not full Qwen3.6-35B numerical qualification",
+    "One pass/submission is a command-recording observation, not a throughput claim",
+    "Full Jupiter numerical and paired timing runs remain pending"
+  ],
+  "component": "doppler.runtime-source.inference.pipelines.text",
+  "intent": "preserved",
+  "boundaryEffects": [
+    "MoERouter optional recorder",
+    "recordSoftmaxTopK adapter",
+    "recordQwenRouteExperts adapter"
+  ]
+}

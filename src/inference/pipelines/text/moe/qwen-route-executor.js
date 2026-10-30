@@ -1,9 +1,10 @@
-import { runRouteQ4Matmul, runRouteScatter } from '../../../../gpu/kernels/moe-route.js';
-import { runSiLURowSplit } from '../../../../gpu/kernels/silu.js';
-import { releaseBuffer } from '../../../../memory/buffer-pool.js';
+import { runRouteQ4Matmul, recordRouteQ4Matmul, runRouteScatter, recordRouteScatter } from '../../../../gpu/kernels/moe-route.js';
+import { runSiLURowSplit, recordSiLURowSplit } from '../../../../gpu/kernels/silu.js';
+import { releaseOrTrack } from '../ops.js';
 
-/** @type {typeof import('./qwen-route-executor.js').runQwenRouteExperts} */
-export async function runQwenRouteExperts(options) {
+/** @param {import('../../../../gpu/command-recorder.js').CommandRecorder | null} recorder
+ * @param {import('./qwen-route-executor.js').QwenRouteExpertOptions} options */
+async function execute(recorder, options) {
   const { inputTensor, indicesBuffer, weightsBuffer, weights, expectedExpertFormat,
     numTokens, topK, hiddenSize, intermediateSize, activationDtype, hiddenActivation, swigluLimit } = options;
   if (activationDtype !== 'f32' || hiddenActivation !== 'silu' || expectedExpertFormat !== 'qwen3_5'
@@ -11,25 +12,34 @@ export async function runQwenRouteExperts(options) {
     throw new Error('[MoE] Qwen topk-route requires explicit F32, SiLU, Qwen packed weights, and swigluLimit.');
   }
   const projection = { numRoutes: numTokens * topK, numExperts: weights.numExperts, topK, alpha: 1 };
+  const matmul = recorder ? recordRouteQ4Matmul.bind(null, recorder) : runRouteQ4Matmul;
+  const activate = recorder ? recordSiLURowSplit.bind(null, recorder) : runSiLURowSplit;
+  const scatter = recorder ? recordRouteScatter.bind(null, recorder) : runRouteScatter;
   let gateUp = null, activated = null, down = null;
   try {
-    gateUp = await runRouteQ4Matmul(inputTensor, indicesBuffer, weights.gateUp, {
+    gateUp = await matmul(inputTensor, indicesBuffer, weights.gateUp, {
       ...projection, N: intermediateSize * 2, K: hiddenSize, inputMode: 'token',
     });
-    activated = await runSiLURowSplit(gateUp, {
+    activated = await activate(gateUp, {
       numTokens: projection.numRoutes, dim: intermediateSize, activation: hiddenActivation, swigluLimit,
     });
-    releaseBuffer(gateUp.buffer);
+    releaseOrTrack(recorder, gateUp.buffer);
     gateUp = null;
-    down = await runRouteQ4Matmul(activated, indicesBuffer, weights.down, {
+    down = await matmul(activated, indicesBuffer, weights.down, {
       ...projection, N: hiddenSize, K: intermediateSize, inputMode: 'route',
     });
-    releaseBuffer(activated.buffer);
+    releaseOrTrack(recorder, activated.buffer);
     activated = null;
-    return await runRouteScatter(down, weightsBuffer, { numTokens, hiddenSize, topK });
+    return await scatter(down, weightsBuffer, { numTokens, hiddenSize, topK });
   } finally {
-    if (gateUp) releaseBuffer(gateUp.buffer);
-    if (activated) releaseBuffer(activated.buffer);
-    if (down) releaseBuffer(down.buffer);
+    if (gateUp) releaseOrTrack(recorder, gateUp.buffer);
+    if (activated) releaseOrTrack(recorder, activated.buffer);
+    if (down) releaseOrTrack(recorder, down.buffer);
   }
 }
+
+/** @type {typeof import('./qwen-route-executor.js').runQwenRouteExperts} */
+export function runQwenRouteExperts(options) { return execute(null, options); }
+
+/** @type {typeof import('./qwen-route-executor.js').recordQwenRouteExperts} */
+export function recordQwenRouteExperts(recorder, options) { return execute(recorder, options); }

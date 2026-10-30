@@ -1,9 +1,9 @@
 import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
-import { acquireBuffer, releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
+import { acquireBuffer, readBuffer } from '../../../memory/buffer-pool.js';
 import { createTensor } from '../../../gpu/tensor.js';
-import { runRMSNorm } from '../../../gpu/kernels/rmsnorm.js';
-import { runScale } from '../../../gpu/kernels/scale.js';
-import { runSoftmaxTopK } from '../../../gpu/kernels/softmax.js';
+import { runRMSNorm, recordRMSNorm } from '../../../gpu/kernels/rmsnorm.js';
+import { runScale, recordScale } from '../../../gpu/kernels/scale.js';
+import { runSoftmaxTopK, recordSoftmaxTopK } from '../../../gpu/kernels/softmax.js';
 import { runMoEGather, runMoEBuildTokenOffsets, runScatterAddDynamic } from '../../../gpu/kernels/moe.js';
 import { trace, isTraceEnabled } from '../../../debug/index.js';
 import { f16ToF32Array } from '../../kv-cache/types.js';
@@ -30,7 +30,8 @@ import {
   buildActiveExpertScheduleFromIndices,
   resolveMoEActiveExpertSelection,
 } from './moe/plan.js';
-import { runQwenRouteExperts } from './moe/qwen-route-executor.js';
+import { runQwenRouteExperts, recordQwenRouteExperts } from './moe/qwen-route-executor.js';
+import { releaseOrTrack } from './ops.js';
 
 export { buildActiveExpertScheduleFromIndices } from './moe/plan.js';
 
@@ -65,6 +66,11 @@ async function resolveActiveExpertSchedule(indicesBuffer, numTokens, numExperts,
 const MOE_ROUTE_EXECUTORS = Object.freeze({
   'gemma4-route': runGemma4RouteExperts,
   'qwen35-route': runQwenRouteExperts,
+});
+
+// Adapter availability, not a different kernel/algorithm selection.
+const MOE_RECORDED_ROUTE_EXECUTORS = Object.freeze({
+  'qwen35-route': recordQwenRouteExperts,
 });
 
 const MOE_EXPERT_EXECUTORS = Object.freeze({
@@ -160,7 +166,8 @@ export async function moeFeedForwardGPU(
   expertWeights,
   expertLoader,
   layerIdx,
-  layerRouterWeights
+  layerRouterWeights,
+  requestedRecorder = null
 ) {
   const device = getDevice();
   if (!device) throw new Error('No GPU device for MoE');
@@ -184,6 +191,10 @@ export async function moeFeedForwardGPU(
   }
   const modelType = config.modelType;
   const moeProfile = resolveMoeExecutionProfile(config, { modelType });
+  const activeExpertSelection = resolveConfiguredMoEActiveExpertSelection();
+  const recordRouteExecutor = activeExpertSelection === 'topk-route'
+    ? MOE_RECORDED_ROUTE_EXECUTORS[moeProfile.topkRouteExecutor] : null;
+  const recorder = recordRouteExecutor ? requestedRecorder : null;
   assertMoeRoutingContract(moeProfile, moeRouter);
   const intermediateSize = resolveMoeIntermediateSize(config, moeProfile);
   validateMoeShape(
@@ -244,6 +255,10 @@ export async function moeFeedForwardGPU(
     );
   }
 
+  // Immediate-only adapters must execute after their recorded producers.
+  // Keep the parent recorder open for following residuals and layers.
+  if (requestedRecorder && !recorder) requestedRecorder.submitPartial();
+
   try {
     const needsRouterScale = moeProfile.routerScaleMode === 'required'
       || layerRouter?.scale != null
@@ -259,7 +274,8 @@ export async function moeFeedForwardGPU(
       if (!Number.isFinite(config.rmsNormEps) || config.rmsNormEps <= 0) {
         throw new Error(`[MoE] ${moeProfile.label} router RMSNorm eps is invalid: ${String(config.rmsNormEps)}.`);
       }
-      routerNormTensor = await runRMSNorm(
+      const normalize = recorder ? recordRMSNorm.bind(null, recorder) : runRMSNorm;
+      routerNormTensor = await normalize(
         inputTensor,
         layerRouter.scale,
         config.rmsNormEps,
@@ -269,12 +285,13 @@ export async function moeFeedForwardGPU(
           rmsNormWeightOffset: false,
         }
       );
-      routerScaledTensor = await runScale(
+      const scale = recorder ? recordScale.bind(null, recorder) : runScale;
+      routerScaledTensor = await scale(
         routerNormTensor,
         1 / Math.sqrt(hiddenSize),
         { count: numTokens * hiddenSize }
       );
-      releaseBuffer(routerNormTensor.buffer);
+      releaseOrTrack(recorder, routerNormTensor.buffer);
       routerNormTensor = null;
       routerInputTensor = routerScaledTensor;
     }
@@ -283,15 +300,17 @@ export async function moeFeedForwardGPU(
     logitsBuffer = await moeRouter.computeRouterLogitsGPU(routerInputTensor.buffer, numTokens, null, {
       inputDtype: routerInputTensor.dtype,
       outputDtype: activationDtype,
+      recorder,
     });
     if (routerScaledTensor) {
-      releaseBuffer(routerScaledTensor.buffer);
+      releaseOrTrack(recorder, routerScaledTensor.buffer);
       routerScaledTensor = null;
     }
   const logitsDtype = moeRouter.lastLogitsDtype ?? activationDtype;
   perfLog(`MoE L${layerIdx} router`, stepStart, { numTokens, logitsDtype });
 
   if (isTraceEnabled('buffers')) {
+    recorder?.submitPartial();
     const logitsBytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: logitsDtype });
     const logitsBytes = numTokens * numExperts * logitsBytesPerElement;
     const logitsData = await readBuffer(logitsBuffer, logitsBytes);
@@ -328,7 +347,8 @@ export async function moeFeedForwardGPU(
   });
 
   stepStart = perfMark();
-    ({ indices: indicesBuffer, weights: weightsBuffer } = await runSoftmaxTopK(
+    const topk = recorder ? recordSoftmaxTopK.bind(null, recorder) : runSoftmaxTopK;
+    ({ indices: indicesBuffer, weights: weightsBuffer } = await topk(
       logitsBuffer,
       numTokens,
       numExperts,
@@ -347,6 +367,7 @@ export async function moeFeedForwardGPU(
   });
 
   if (isTraceEnabled('buffers')) {
+    recorder?.submitPartial();
     const indicesData = await readBuffer(indicesBuffer, numTokens * topK * 4);
     const indices = new Uint32Array(indicesData);
     let minIdx = Number.MAX_SAFE_INTEGER;
@@ -389,10 +410,9 @@ export async function moeFeedForwardGPU(
     trace.buffers(`MoE L${layerIdx} topk_weights`, { minW, maxW, nanW, dtype: activationDtype });
   }
 
-    releaseBuffer(logitsBuffer);
+    releaseOrTrack(recorder, logitsBuffer);
     logitsBuffer = null;
 
-  const activeExpertSelection = resolveConfiguredMoEActiveExpertSelection();
   if (activeExpertSelection === 'topk-route') {
     if (moeProfile.topkRouteExecutor == null) {
       throw new Error(`[MoE] topk-route active expert selection is not supported by profile "${moeProfile.id}".`);
@@ -403,7 +423,7 @@ export async function moeFeedForwardGPU(
     const routeWeights = expertWeights.get(`layer_${layerIdx}_expert_0`);
     perfLog(`MoE L${layerIdx} route_weight_load`, stepStart, { expertFormat, topK });
     stepStart = perfMark();
-    outputTensor = await routeExecutor({
+    const routeOptions = {
       inputTensor,
       indicesBuffer,
       weightsBuffer,
@@ -419,7 +439,10 @@ export async function moeFeedForwardGPU(
       activationDtype,
       swigluLimit,
       hiddenActivation,
-    });
+    };
+    outputTensor = recorder
+      ? await recordRouteExecutor(recorder, routeOptions)
+      : await routeExecutor(routeOptions);
     perfLog(`MoE L${layerIdx} route_experts`, stepStart, {
       numTokens,
       topK,
@@ -487,7 +510,7 @@ export async function moeFeedForwardGPU(
     routingSlots: numTokens * topK,
   });
 
-    releaseBuffer(tokenCounts);
+    releaseOrTrack(recorder, tokenCounts);
     tokenCounts = null;
 
   const expertStrideBytes = maxTokensPerExpert * bytesPerToken;
@@ -575,17 +598,17 @@ export async function moeFeedForwardGPU(
     );
   perfLog(`MoE L${layerIdx} scatter`, stepStart, { numTokens, hiddenSize });
 
-    releaseBuffer(gathered.buffer);
+    releaseOrTrack(recorder, gathered.buffer);
     gathered = null;
-    releaseBuffer(tokenMap);
+    releaseOrTrack(recorder, tokenMap);
     tokenMap = null;
-    releaseBuffer(expertOutputs);
+    releaseOrTrack(recorder, expertOutputs);
     expertOutputs = null;
-    releaseBuffer(tokenOffsets);
+    releaseOrTrack(recorder, tokenOffsets);
     tokenOffsets = null;
-    releaseBuffer(indicesBuffer);
+    releaseOrTrack(recorder, indicesBuffer);
     indicesBuffer = null;
-    releaseBuffer(weightsBuffer);
+    releaseOrTrack(recorder, weightsBuffer);
     weightsBuffer = null;
 
     if (perfEnabled) {
@@ -608,16 +631,16 @@ export async function moeFeedForwardGPU(
 
     return outputTensor.buffer;
   } finally {
-    if (logitsBuffer) releaseBuffer(logitsBuffer);
-    if (routerNormTensor?.buffer) releaseBuffer(routerNormTensor.buffer);
-    if (routerScaledTensor?.buffer) releaseBuffer(routerScaledTensor.buffer);
-    if (tokenCounts) releaseBuffer(tokenCounts);
-    if (gathered?.buffer) releaseBuffer(gathered.buffer);
-    if (tokenMap) releaseBuffer(tokenMap);
-    if (expertOutputs) releaseBuffer(expertOutputs);
-    if (tokenOffsets) releaseBuffer(tokenOffsets);
-    if (indicesBuffer) releaseBuffer(indicesBuffer);
-    if (weightsBuffer) releaseBuffer(weightsBuffer);
-    if (ownedPerExpertScaleBuffer) releaseBuffer(ownedPerExpertScaleBuffer);
+    if (logitsBuffer) releaseOrTrack(recorder, logitsBuffer);
+    if (routerNormTensor?.buffer) releaseOrTrack(recorder, routerNormTensor.buffer);
+    if (routerScaledTensor?.buffer) releaseOrTrack(recorder, routerScaledTensor.buffer);
+    if (tokenCounts) releaseOrTrack(recorder, tokenCounts);
+    if (gathered?.buffer) releaseOrTrack(recorder, gathered.buffer);
+    if (tokenMap) releaseOrTrack(recorder, tokenMap);
+    if (expertOutputs) releaseOrTrack(recorder, expertOutputs);
+    if (tokenOffsets) releaseOrTrack(recorder, tokenOffsets);
+    if (indicesBuffer) releaseOrTrack(recorder, indicesBuffer);
+    if (weightsBuffer) releaseOrTrack(recorder, weightsBuffer);
+    if (ownedPerExpertScaleBuffer) releaseOrTrack(recorder, ownedPerExpertScaleBuffer);
   }
 }

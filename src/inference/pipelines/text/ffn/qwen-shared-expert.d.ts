@@ -2,6 +2,7 @@ import type { Tensor } from '../../../../gpu/tensor.js';
 import type { KernelPathSchema } from '../../../../config/schema/index.js';
 import type { LayerWeights } from '../weights.js';
 export interface QwenSharedExpertOptions {
+  recorder?: import('../../../../gpu/command-recorder.js').CommandRecorder | null;
   numTokens: number;
   hiddenSize: number;
   intermediateSize: number;

@@ -1,0 +1,172 @@
+{
+  "test": "qwen35-moe-recorder-browser",
+  "passed": true,
+  "browser": "156.0.8078.74",
+  "maxAbs": 0,
+  "gpuErrors": [],
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "unknown",
+    "description": "",
+    "subgroupMinSize": 32,
+    "subgroupMaxSize": 32
+  },
+  "recorder": {
+    "opCount": 14,
+    "opLabelCounts": {
+      "moe_route_matmul": 2,
+      "silu": 2,
+      "matmul:ffn_down": 1,
+      "matmul:ffn_gate": 1,
+      "matmul:ffn_up": 1,
+      "matmul:moe_router": 1,
+      "matmul:moe_shared_router": 1,
+      "repeat_channels": 1,
+      "residual": 1,
+      "scatter_add_routes": 1,
+      "silu_rowsplit": 1,
+      "softmax_topk": 1
+    },
+    "dispatches": [
+      {
+        "label": "matmul:moe_router",
+        "kind": "direct",
+        "workgroups": [
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "label": "softmax_topk",
+        "kind": "direct",
+        "workgroups": [
+          2,
+          1,
+          1
+        ]
+      },
+      {
+        "label": "moe_route_matmul",
+        "kind": "direct",
+        "workgroups": [
+          16,
+          4,
+          1
+        ]
+      },
+      {
+        "label": "silu_rowsplit",
+        "kind": "direct",
+        "workgroups": [
+          1,
+          4,
+          1
+        ]
+      },
+      {
+        "label": "moe_route_matmul",
+        "kind": "direct",
+        "workgroups": [
+          8,
+          4,
+          1
+        ]
+      },
+      {
+        "label": "scatter_add_routes",
+        "kind": "direct",
+        "workgroups": [
+          2,
+          1,
+          1
+        ]
+      },
+      {
+        "label": "matmul:ffn_gate",
+        "kind": "direct",
+        "workgroups": [
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "label": "matmul:ffn_up",
+        "kind": "direct",
+        "workgroups": [
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "label": "silu",
+        "kind": "direct",
+        "workgroups": [
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "label": "matmul:ffn_down",
+        "kind": "direct",
+        "workgroups": [
+          1,
+          16,
+          1
+        ]
+      },
+      {
+        "label": "matmul:moe_shared_router",
+        "kind": "direct",
+        "workgroups": [
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "label": "repeat_channels",
+        "kind": "direct",
+        "workgroups": [
+          2,
+          1,
+          1
+        ]
+      },
+      {
+        "label": "silu",
+        "kind": "direct",
+        "workgroups": [
+          2,
+          1,
+          1
+        ]
+      },
+      {
+        "label": "residual",
+        "kind": "direct",
+        "workgroups": [
+          2,
+          1,
+          1
+        ]
+      }
+    ],
+    "computePassCount": 1,
+    "profiling": {
+      "timingClass": "ordinary-request",
+      "enabled": false,
+      "phase": null,
+      "timestampedPassCount": 0,
+      "untimestampedPassCount": 1
+    },
+    "tempBufferCount": 0,
+    "pooledBufferCount": 0,
+    "submitted": true,
+    "submissionCount": 1
+  }
+}

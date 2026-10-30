@@ -41,6 +41,7 @@ interface GpuContext {
 }
 
 interface RouterLogitsOptions {
+  recorder?: import('../gpu/command-recorder.js').CommandRecorder | null;
   inputDtype?: 'f16' | 'f32';
   outputDtype?: 'f16' | 'f32';
 }

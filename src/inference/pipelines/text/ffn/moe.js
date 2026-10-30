@@ -1,6 +1,6 @@
 
 
-import { releaseBuffer } from '../../../../memory/buffer-pool.js';
+import { releaseOrTrack } from '../ops.js';
 import { runQwenSharedExpert } from './qwen-shared-expert.js';
 import { createTensor } from '../../../../gpu/tensor.js';
 
@@ -53,7 +53,8 @@ export async function runMoEFFNGPU(
     expertWeights,
     expertLoader,
     layerIdx,
-     (layerRouterWeights)
+     (layerRouterWeights),
+    context.recorder ?? null
   );
 
   const routed = createTensor(outputBuffer, inputTensor.dtype, [...inputTensor.shape], 'moe_ffn_output');
@@ -62,8 +63,9 @@ export async function runMoEFFNGPU(
     return await runQwenSharedExpert(inputTensor, routed, context.weights.get(`layer_${layerIdx}`), {
       numTokens, hiddenSize: config.hiddenSize, intermediateSize: config.moeSharedExpertIntermediateSize,
       kernelPath: context.kernelPath ?? null, swigluLimit: config.swigluLimit,
+      recorder: context.recorder ?? null,
     });
   } finally {
-    releaseBuffer(routed.buffer);
+    releaseOrTrack(context.recorder, routed.buffer);
   }
 }

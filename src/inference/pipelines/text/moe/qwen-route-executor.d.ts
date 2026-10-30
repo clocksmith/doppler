@@ -1,5 +1,6 @@
 import type { Tensor } from '../../../../gpu/tensor.js';
 import type { WeightBuffer } from '../../../../gpu/weight-buffer.js';
+import type { CommandRecorder } from '../../../../gpu/command-recorder.js';
 
 export interface QwenRouteExpertOptions {
   inputTensor: Tensor;
@@ -16,3 +17,4 @@ export interface QwenRouteExpertOptions {
   swigluLimit: number | null;
 }
 export declare function runQwenRouteExperts(options: QwenRouteExpertOptions): Promise<Tensor>;
+export declare function recordQwenRouteExperts(recorder: CommandRecorder, options: QwenRouteExpertOptions): Promise<Tensor>;

@@ -46,6 +46,15 @@ export declare function runSoftmaxTopK(
   options: SoftmaxTopKOptions
 ): Promise<{ indices: GPUBuffer; weights: GPUBuffer }>;
 
+export declare function recordSoftmaxTopK(
+  recorder: CommandRecorder,
+  logits: GPUBuffer,
+  numTokens: number,
+  numExperts: number,
+  topK: number,
+  options: SoftmaxTopKOptions
+): Promise<{ indices: GPUBuffer; weights: GPUBuffer }>;
+
 /**
  * Record softmax (batched, no submit)
  */
