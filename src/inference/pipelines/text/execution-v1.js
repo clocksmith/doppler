@@ -196,8 +196,7 @@ function isFullAttentionExecutionLayerType(layerType) {
     || normalized === 'standard';
 }
 
-// Linear-attention layers alias the q_proj/o_proj roles, so a global projection program
-// must match the model's packed weight storage: Q4_K, or the declared GGUF block format.
+// Linear-attention layers alias q_proj/o_proj: global programs must match packed storage.
 function isPackedProjectionKernel(kernelEntry, packedDtype) {
   return kernelEntry != null && kernelPathRequiresWeightDtype(
     { decode: { steps: [kernelEntry] } }, packedDtype, 'matmul'
