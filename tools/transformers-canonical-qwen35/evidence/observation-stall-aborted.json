@@ -1,0 +1,22 @@
+{
+  "schema": "doppler.tjs-observation-aborted.v1",
+  "executionCompleted": false,
+  "qualification": false,
+  "lastPhase": "forward-teacher-code-0",
+  "reason": "No completed initializer or state observation at first token; stopped isolated task browser to release sharedGPU for parent. No numerical failure attribution.",
+  "sourceFiles": [
+    {
+      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/tjs-four-teacher-observe-gpu-02/identity.json",
+      "sha256": "425df91e160f676a625b97e2e557572c4e028beb2a551c789bb8004f3fcccd58"
+    },
+    {
+      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/tjs-four-teacher-observe-gpu-02/progress.json",
+      "sha256": "a13cd327e3a909367c75e70892b637d495930c710c426c6a29f31077d1fd8223"
+    },
+    {
+      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/tjs-four-teacher-observe-gpu-02/browser.log",
+      "sha256": "e8498732da79b10850dbb798c0e0acf71762ba599e311384128b61127c378e35"
+    }
+  ],
+  "gpuStateFilesCompleted": 0
+}

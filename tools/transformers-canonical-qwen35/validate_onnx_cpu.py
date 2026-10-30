@@ -113,7 +113,8 @@ def main():
     try:
         with torch.inference_mode():
             for length in lane["cpuPrefillLengths"]:
-                ids = torch.tensor([code["promptIds"][:length]], dtype=torch.int64)
+                prompt = next(prompt for prompt in teacher["prompts"] if len(prompt["promptIds"]) >= length)
+                ids = torch.tensor([prompt["promptIds"][:length]], dtype=torch.int64)
                 physical_dtype = {"float16": torch.float16, "float32": torch.float32}[lane["kvPhysicalDtype"]]
                 native_cache = physical_cache(config, physical_dtype)
                 onnx_cache = tuple((t.to(physical_dtype) if config.layer_types[index // 2] == "full_attention" else t).numpy()
@@ -149,7 +150,7 @@ def main():
                         path = args.out / (label + "-" + engine + ".f32")
                         path.write_bytes(value.astype("<f4", copy=False).tobytes())
                         artifacts.append({"engine": engine, "file": path.name, "sha256": digest(path)})
-                    receipt["cases"].append({"name": label, "inputIds": ids.flatten().tolist(), "positionOffset": offset,
+                    receipt["cases"].append({"name": label, "promptId": prompt["id"], "inputIds": ids.flatten().tolist(), "positionOffset": offset,
                         "nativeArgmax": token, "onnxArgmax": int(actual[0].argmax()), "pass": passed, "logits": artifacts})
                     onnx_cache = actual[1:]
                     ids = torch.tensor([[token]], dtype=torch.int64)

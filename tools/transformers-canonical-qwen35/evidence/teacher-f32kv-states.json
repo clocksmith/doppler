@@ -1,0 +1,46 @@
+{
+  "scope": "Independent native F32-state observations; original teacher bytes unchanged",
+  "receipt": {
+    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/teacher-f32kv-states-01/receipt.json",
+    "sha256": "11a9b6e38db71ad769d1de3a4ac629c691cb2260f401ddfa4899ac1fb63c293d"
+  },
+  "completed": true,
+  "tokens256Identical": true,
+  "logit32HashesIdentical": true,
+  "stateFiles": 1536,
+  "stateBytes": 820051968,
+  "sources": {
+    "teacher": {
+      "path": "/home/x/deco/doppler/tools/transformers-canonical-qwen35/teacher_native.py",
+      "sha256": "83b548c1063ac7a47005bf8c5bc38078d7e758fc339e1dae193981d8ff99e50d"
+    },
+    "modelBoundary": {
+      "path": "/home/x/deco/doppler/tools/transformers-canonical-qwen35/native_model.py",
+      "sha256": "d06227124c68fea5bc4e6ba6b6b0f59ca0c1e26bc86717fceb5fffad6b83ff63"
+    },
+    "binding": {
+      "path": "/home/x/deco/doppler/tools/transformers-canonical-qwen35/binding.py",
+      "sha256": "ad47eddfbd4bf2162d3579d7a0a22004aa621f132df0e827f1f6d9f4a5bbfb70"
+    },
+    "policy": {
+      "path": "/home/x/deco/doppler/tools/transformers-canonical-qwen35/contract.json",
+      "sha256": "a74fee3c20a63a1466874c1b4fac93f9126a47fb49372fd3a41714f19ba18638"
+    },
+    "nativeHF": {
+      "path": "/home/x/.local/lib/python3.14/site-packages/transformers/models/qwen3_5/modeling_qwen3_5.py",
+      "sha256": "3e2b6239e4b2c3e512d4f9836a1dba12e975ae652407e84f2d3c2beebf0c9528"
+    },
+    "nativeCache": {
+      "path": "/home/x/.local/lib/python3.14/site-packages/transformers/cache_utils.py",
+      "sha256": "a51d2cd525f4458941a20cb5b3b8a8d989d8ca5bcd451855a27bb41743fed586"
+    },
+    "teacherLanePolicy": {
+      "path": "/home/x/deco/doppler/tools/transformers-canonical-qwen35/teacher-f32kv.json",
+      "sha256": "6bed6181e1597e1435dcfc4f389ca74d32f15dc5ddc86aaaf1ac28581de765db"
+    }
+  },
+  "observationHelper": {
+    "path": "/home/x/deco/doppler/tools/transformers-canonical-qwen35/export_text.py",
+    "sha256": "ba6ca19ed9af5dff1c8fa5016c1dbc838d882d5999c077d04568b45eae866bcc"
+  }
+}
