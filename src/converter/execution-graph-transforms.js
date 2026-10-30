@@ -1,6 +1,6 @@
 import { F16_TO_F32_ACTIVATION_MAP, F32_TO_F16_ACTIVATION_MAP, KERNEL_FILE_PRECISION_PATCHES, cloneGraph, deriveKernelEntry, deriveKernelKey, deriveLinearDecodeF16KernelEntry, narrowToF16Activations, useQwen36F16Activations, useQwenDecodeF16Matmuls, useQwenF16PrimaryMatmuls } from './execution-graph/dtype.js';
 import { LAYER_PROJECTION_OPS, useGemma4Int4PleAf16Activations, useGemma4Int4PleSelectiveF16Decode, useGemma4TextF16ActivationsForLane } from './execution-graph/fusion.js';
-import { deriveMappedKernelEntry, deriveQ4DecodeF32ActivationKernelEntry, deriveQ4PrefillF32ActivationKernelEntry, findKernelKeyByFileAndEntry, hasKernelFile, remapDenseQ4KPrefillToQ4Native, remapStepKeys, removeSubgroups, widenProjectionWeightsToF32, widenToF32Activations } from './execution-graph/validation.js';
+import { ATTENTION_F16KV_TO_F32_ENTRIES, deriveMappedKernelEntry, deriveQ4DecodeF32ActivationKernelEntry, deriveQ4PrefillF32ActivationKernelEntry, findKernelKeyByFileAndEntry, hasKernelFile, remapDenseQ4KPrefillToQ4Native, remapStepKeys, removeSubgroups, widenProjectionWeightsToF32, widenToF32Activations } from './execution-graph/validation.js';
 export { remapDenseQ4KPrefillToQ4Native, removeSubgroups, widenProjectionWeightsToF32, widenToF32Activations } from './execution-graph/validation.js';
 export { useGemma4Int4PleAf16Activations, useGemma4Int4PleSelectiveF16Decode } from './execution-graph/fusion.js';
 export { narrowToF16Activations, useQwen36F16Activations, useQwenDecodeF16Matmuls, useQwenF16PrimaryMatmuls } from './execution-graph/dtype.js';// =============================================================================
@@ -143,10 +143,7 @@ const F16_TO_F32_CORRECTNESS_FALLBACK_MAP = new Map([
   ['attention_decode_chunked_f16.wgsl', 'attention_streaming.wgsl'],
   ['attention_small_f16.wgsl', 'attention_small.wgsl'],
   ['attention_streaming_f16.wgsl', 'attention_streaming.wgsl'],
-  ['attention_decode_online_f16kv.wgsl', 'attention_streaming.wgsl'],
-  ['attention_decode_chunked_f16kv.wgsl', 'attention_streaming.wgsl'],
-  ['attention_small_f16kv.wgsl', 'attention_small.wgsl'],
-  ['attention_streaming_f16kv.wgsl', 'attention_streaming.wgsl'],
+  ...ATTENTION_F16KV_TO_F32_ENTRIES,
 ]);
 
 /*

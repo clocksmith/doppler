@@ -1,4 +1,5 @@
 export declare const DENSE_Q4_PREFILL_FILES: any;
+export declare const ATTENTION_F16KV_TO_F32_ENTRIES: ReadonlyArray<readonly [string, string]>;
 export declare const FULL_F32_SHADER_MAP: any;
 export declare const PROJECTION_MATMUL_FILES: any;
 export declare const SUBGROUP_REQUIRING_FILES: any;
