@@ -42,6 +42,11 @@ not the primary reason developers install Doppler.
    understandable through honest progress and observations. Preserve token-level
    inspection and kernel timing where supported, without changing computation.
 
+Doppler owns correct, efficient model execution and reproducible evidence for
+numerical accuracy, loading, memory, prefill and decode on each qualified platform.
+It supplies the execution engine and its measurements; Poolday owns placement,
+contributor lifecycle, delivered service performance and accounting.
+
 ## Current priorities
 
 This section states Doppler's public product priorities; the acceptance section
