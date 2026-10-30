@@ -5,6 +5,7 @@ const {
   resolveMatmulPhase,
   selectMatmulKernel,
   selectMatmulVariantAndFlags,
+  getMatmulBindingSizes,
 } = await import('../../src/gpu/kernels/matmul-selection.js');
 const { setDevice } = await import('../../src/gpu/device.js');
 
@@ -163,6 +164,23 @@ const lmHeadKernelPath = {
 setDevice(createFakeDevice(), { platformConfig: null });
 
 try {
+  setDevice(createFakeDevice({ hasF16: false }), { platformConfig: null });
+  assert.throws(() => selectMatmulKernel({ preferF16: false, aDtype: 'f32', bDtype: 'f16',
+    outputDtype: 'f32' }), /F16 weight storage requires shader-f16/,
+  'Missing shader-f16 must reject F16 storage instead of reinterpreting it');
+  setDevice(createFakeDevice(), { platformConfig: null });
+  for (const [rows, expected] of [[8, 'f16w_f32a'], [64, 'f16w_f32a_tiled']]) {
+    assert.equal(selectMatmulKernel({ preferF16: false, aDtype: 'f32', bDtype: 'f16',
+      outputDtype: 'f32', isPrefill: true, prefillRows: rows, transposeB: true }), expected,
+    'F32 output preference cannot reinterpret an existing F16 weight buffer as F32');
+  }
+  assert.equal(selectMatmulKernel({ preferF16: false, aDtype: 'f16', bDtype: 'f16',
+    outputDtype: 'f16' }), 'f16', 'A preference cannot override declared input and output storage');
+  assert.throws(() => getMatmulBindingSizes('router', { size: 64 }, { size: 64 },
+    1, 4, 4, 'f32', 'f16', true, 0, 0, 'f32'), /requires f32 weight storage/,
+  'Padding must not make an F16 buffer compatible with F32 shader storage');
+  assert.deepEqual(getMatmulBindingSizes('router', { size: 64 }, { size: 64 },
+    1, 4, 4, 'f32', 'f16', true, 0, 0, 'f16'), { aBindingSize: 16, bBindingSize: 32 });
   assert.throws(
     () => selectMatmulVariantAndFlags(
       'run',

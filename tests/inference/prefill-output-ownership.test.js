@@ -21,7 +21,7 @@ const modules = {
   './session-context.js': 'export const buildLayerContext = () => ({ useGPU: true }); export const debugCheckBuffer = () => {};',
   './logits-config.js': 'export const getLogitsWeights = () => ({}); export const getLogitsConfig = () => ({});',
   '../per-layer-inputs.js': 'export const preparePerLayerInputs = async () => null;',
-  './prefill-observation.js': 'export const probePrefillEmbedding = async () => {}; export const tracePrefillEmbeddingIds = () => {};',
+  './prefill-observation.js': 'export const probePrefillEmbedding = async () => {}; export const tracePrefillEmbeddingIds = () => {}; export const logPrefillCacheState = () => {};',
 };
 const hooks = registerHooks({ resolve(specifier, context, next) {
   if (context.parentURL === target && modules[specifier]) return { url: `data:text/javascript,${encodeURIComponent(modules[specifier])}`, shortCircuit: true };

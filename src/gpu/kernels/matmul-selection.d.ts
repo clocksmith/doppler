@@ -27,6 +27,7 @@ export declare function isFusedQ4KDisabled(options?: {
 export declare function toMatmulDtype(dtype: string | null | undefined): 'f16' | 'f32' | 'q4k' | 'litert_int4' | 'w4a16';
 
 export declare function selectMatmulKernel(options: {
+  /** Compatibility preference; actual storage dtype always controls binding compatibility. */
   preferF16?: boolean;
   useVec4?: boolean;
   outputDtype: TensorDtype | 'f16' | 'f32';
@@ -57,7 +58,8 @@ export declare function getMatmulBindingSizes(
   bDtype: 'f16' | 'f32' | 'q4k' | 'litert_int4' | 'w4a16',
   transposeB: boolean,
   aOffset: number,
-  bOffset: number
+  bOffset: number,
+  kernelWeightDtype?: string | null
 ): { aBindingSize: number; bBindingSize: number };
 
 export declare function requiresF32Input(variant: string): boolean;

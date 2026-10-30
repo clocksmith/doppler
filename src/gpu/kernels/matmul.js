@@ -407,7 +407,10 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   }
 
   let bindingSizes;
+  let config;
   try {
+    config = getMatmulConfig(variant, constants);
+    if (!config.weightDtype) throw new Error(`[${opLabel}] Selected matmul kernel lacks a weight storage contract.`);
     bindingSizes = getMatmulBindingSizes(
       opLabel,
       matmulInput.buffer,
@@ -419,7 +422,8 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
       bDtype,
       transposeB,
       aOffset,
-      bOffset
+      bOffset,
+      config.weightDtype
     );
   } catch (err) {
     const detailParts = [];
@@ -491,7 +495,6 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
     );
   }
 
-  let config;
   let kernel;
   let pipeline;
   let C = null;
@@ -501,7 +504,6 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   let ownsOutput = false;
   let dispatchPlan;
   try {
-    config = getMatmulConfig(variant, constants);
     kernel = new MatmulKernel(device);
     pipeline = getCachedPipeline('matmul', variant, constants, device)
       ?? await getMatmulPipeline(variant, constants);
