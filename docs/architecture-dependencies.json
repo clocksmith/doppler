@@ -4376,6 +4376,7 @@
         "tests/formats/rdrr-tensor-config-validator-aliases.test.js",
         "tests/formats/rdrr-validation.test.js",
         "tests/formats/rdrr/classification-gemma4-per-layer-embed.test.js",
+        "tests/formats/rdrr/classification-gguf-final-norm.test.js",
         "tests/formats/sha256-incremental.test.js",
         "tests/formats/tflite-types.test.js",
         "tests/gpu/adam-logical-shape-contract.test.js",
