@@ -21,6 +21,7 @@
     "storageFormats": [
       "Q4_0",
       "Q4_1",
+      "Q5_0",
       "Q8_0",
       "Q6_K",
       "F32"
@@ -30,13 +31,18 @@
     "completeTensorHashInventoryRequired": true,
     "engineMaterializationReadbackRequired": true,
     "declaredPreparationTransforms": [],
+    "excludedSourceTensors": {
+      "rule": "GGUF nextn_predict_layers (multi-token prediction) blocks are outside the text decoder",
+      "reason": "speculation is none for both engines, so neither consumes these tensors",
+      "inventoryMustListEveryExcludedTensor": true
+    },
     "repackedResources": "must expose byte-exact original tensor slices; otherwise admission fails"
   },
   "platforms": [
     {
       "os": "linux",
       "backend": "vulkan",
-      "host": "jupiter"
+      "host": "amd-host"
     }
   ],
   "shared": {

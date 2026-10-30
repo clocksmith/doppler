@@ -108,12 +108,14 @@ only a complete valid 20-pair cohort can produce a performance verdict.
 
 Native GGUF components now have a separate candidate contract,
 `benchmarks/vendors/pooled-equal-weights/contract-q4_0.json`. It admits mixed
-Q4_0/Q4_1/Q8_0/Q6_K/F32 source storage without requantization. To prepare a
+Q4_0/Q4_1/Q5_0/Q8_0/Q6_K/F32 source storage without requantization. To prepare a
 bounded-memory, CPU-only tensor inventory, run
 `node tools/pooled-equal-weights/prepare-q4_0-inventory.js config.json` with
 `{ "ggufPath", "chunkBytes", "inventoryPath" }`. The output includes omitted
 MTP tensors and hashes every consumed text tensor in chunks. This is preparation,
 not numerical or performance evidence.
+Every excluded source tensor (the GGUF next-token-prediction block, unused because
+speculation is off) must be listed with its reason; verification carries that list.
 
 `prepare-doppler-probe.js` accepts `nativeWeightInventoryPath` instead of
 `canonicalInventoryPath` for untimed actual-resource observation.

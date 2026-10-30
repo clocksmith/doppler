@@ -531,6 +531,13 @@
     },
     {
       "match": {
+        "weightDtype": "q5_0",
+        "M": 1
+      },
+      "value": "q5_0_gemv"
+    },
+    {
+      "match": {
         "weightDtype": "q8_0",
         "M": 1
       },
@@ -554,6 +561,12 @@
         "weightDtype": "q4_1"
       },
       "value": "q4_1_prefill"
+    },
+    {
+      "match": {
+        "weightDtype": "q5_0"
+      },
+      "value": "q5_0_prefill"
     },
     {
       "match": {

@@ -11,8 +11,13 @@ export function validateQ40Inventory(inventory) {
       || !inventory.tensors.length || new Set(inventory.tensors.map(tensor => tensor.name)).size !== inventory.tensors.length) {
     throw new Error('Incomplete native GGUF weight inventory.');
   }
+  if (!Array.isArray(inventory.excludedTensors) || inventory.excludedTensors.some(tensor => typeof tensor?.name !== 'string'
+      || !tensor.name || typeof tensor.reason !== 'string' || !tensor.reason
+      || inventory.tensors.some(consumed => consumed.name === tensor.name))) {
+    throw new Error('Native GGUF inventory must explicitly list every excluded source tensor with a reason.');
+  }
   for (const tensor of inventory.tensors) {
-    if (typeof tensor.name !== 'string' || !tensor.name || !['Q4_0', 'Q4_1', 'Q8_0', 'Q6_K', 'F32', 'F16', 'BF16'].includes(tensor.dtype)
+    if (typeof tensor.name !== 'string' || !tensor.name || !['Q4_0', 'Q4_1', 'Q5_0', 'Q8_0', 'Q6_K', 'F32', 'F16', 'BF16'].includes(tensor.dtype)
         || !Array.isArray(tensor.shape) || !tensor.shape.length || tensor.shape.some(value => !Number.isSafeInteger(value) || value < 1)
         || !Number.isSafeInteger(tensor.bytes) || tensor.bytes < 1 || !Array.isArray(tensor.chunks)
         || tensor.chunks.length !== Math.ceil(tensor.bytes / inventory.chunkBytes)) throw new Error('Invalid native GGUF tensor inventory.');
@@ -49,7 +54,7 @@ export async function verifyQ40Resources(inventory, resources) {
     }
   }
   return { schema: 'doppler.gguf-native-materialization.v1', pass: true, sourceSha256: inventory.sourceSha256,
-    tensorCount: inventory.tensors.length, byteCount: inventory.tensors.reduce((sum, tensor) => sum + tensor.bytes, 0), checks };
+    excludedTensors: inventory.excludedTensors, tensorCount: inventory.tensors.length, byteCount: inventory.tensors.reduce((sum, tensor) => sum + tensor.bytes, 0), checks };
 }
 
 export function verifyQ40Numerical(contract, prompts, doppler, pooled) {

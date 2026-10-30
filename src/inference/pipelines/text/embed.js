@@ -1,3 +1,4 @@
+import { isGgufBlockDtype } from '../../../formats/gguf/block-storage.js';
 import { expandF32ToPaired, recordExpandF32ToPaired } from '../../../gpu/kernels/paired-cast.js';
 
 
@@ -258,7 +259,7 @@ export async function embed(tokenIds, embedBuffer, config) {
     hiddenOffset,
   });
 
-  if (isGpuBufferInstance(embedBuffer) && transpose === false && !['q4_0', 'q4_1', 'q8_0', 'q6k'].includes(embeddingDtype)) {
+  if (isGpuBufferInstance(embedBuffer) && transpose === false && !isGgufBlockDtype(embeddingDtype)) {
     await runProbes('embed_weight_row', embedBuffer, {
       numTokens: vocabSize,
       hiddenSize: inputHiddenSize,

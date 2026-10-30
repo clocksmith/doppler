@@ -171,6 +171,13 @@
     },
     {
       "match": {
+        "weightDtype": "q5_0",
+        "outputDtype": "f32"
+      },
+      "value": "q5_0"
+    },
+    {
+      "match": {
         "weightDtype": "q8_0",
         "outputDtype": "f32"
       },

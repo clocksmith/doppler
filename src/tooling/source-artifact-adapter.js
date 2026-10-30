@@ -1,4 +1,4 @@
-import { ggufBlockBytes } from '../formats/gguf/block-storage.js';
+import { ggufBlockBytes, isGgufBlockSourceDtype } from '../formats/gguf/block-storage.js';
 import { getKernelConfigs } from '../config/kernel-registry-contract.js';
 import {
   inferSourceWeightQuantization,
@@ -31,6 +31,7 @@ const SUPPORTED_SOURCE_DTYPES = new Set([
   'BF16',
   'Q4_0',
   'Q4_1',
+  'Q5_0',
   'Q8_0',
   'Q4_K',
   'Q4_K_M',
@@ -43,6 +44,7 @@ const SOURCE_QUANT_COMPUTE_MAP = {
   F32: 'f32',
   Q4_0: 'f32',
   Q4_1: 'f32',
+  Q5_0: 'f32',
   Q8_0: 'f32',
   Q4_K: 'f32',
   Q4_K_M: 'f32',
@@ -205,7 +207,7 @@ function assertSupportedSourceDtypes(tensors, sourceKind) {
       unsupported.add('(empty)');
       continue;
     }
-    if (['Q4_0','Q4_1','Q8_0','Q6_K'].includes(dtype)) {
+    if (isGgufBlockSourceDtype(dtype)) {
       const kernels = getKernelConfigs().matmul;
       if (kernels.q4_0_gemv?.weightDtype !== 'q4_0' || kernels.q4_0_prefill?.weightDtype !== 'q4_0') {
         throw new Error('Q4_0 direct loading requires registered native projection programs.');

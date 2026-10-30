@@ -23,6 +23,13 @@ fn q40_value(row: u32, k: u32, blocks: u32) -> f32 {
     }
     let scale = packed_half(offset);
     if (QUANT_FORMAT == 2u) { return scale * f32(packed_signed_byte(offset + 2u + local)); }
+    if (QUANT_FORMAT == 4u) {
+        // Q5_0: f16 scale, 32 high bits (one per value), 16 bytes of low nibbles.
+        let high_bits = q40_byte(offset + 2u) | (q40_byte(offset + 3u) << 8u)
+            | (q40_byte(offset + 4u) << 16u) | (q40_byte(offset + 5u) << 24u);
+        let low = (q40_byte(offset + 6u + local % 16u) >> select(0u, 4u, local >= 16u)) & 15u;
+        return scale * f32(i32(low | (((high_bits >> local) & 1u) << 4u)) - 16);
+    }
     let data_offset = select(2u,4u,QUANT_FORMAT == 1u);
     let packed = q40_byte(offset + data_offset + local % 16u);
     let shift = select(0u,4u,local >= 16u);

@@ -24,7 +24,7 @@ export declare function isFusedQ4KDisabled(options?: {
   kernelPath?: KernelPathSchema | null;
 }): boolean;
 
-export declare function toMatmulDtype(dtype: string | null | undefined): 'f16' | 'f32' | 'q4_1' | 'q8_0' | 'q6k' | 'q4_0' | 'q4k' | 'litert_int4' | 'w4a16';
+export declare function toMatmulDtype(dtype: string | null | undefined): 'f16' | 'f32' | 'q4_1' | 'q5_0' | 'q8_0' | 'q6k' | 'q4_0' | 'q4k' | 'litert_int4' | 'w4a16';
 
 export declare function selectMatmulKernel(options: {
   /** Compatibility preference; actual storage dtype always controls binding compatibility. */
@@ -32,7 +32,7 @@ export declare function selectMatmulKernel(options: {
   useVec4?: boolean;
   outputDtype: TensorDtype | 'f16' | 'f32';
   aDtype?: 'f16' | 'f32' | null;
-  bDtype?: 'f16' | 'f32' | 'q4_1' | 'q8_0' | 'q6k' | 'q4_0' | 'q4k' | 'litert_int4' | 'w4a16' | null;
+  bDtype?: 'f16' | 'f32' | 'q4_1' | 'q5_0' | 'q8_0' | 'q6k' | 'q4_0' | 'q4k' | 'litert_int4' | 'w4a16' | null;
   isPrefill?: boolean;
   prefillRows?: number;
   transposeB?: boolean;
@@ -55,7 +55,7 @@ export declare function getMatmulBindingSizes(
   N: number,
   K: number,
   aDtype: 'f16' | 'f32',
-  bDtype: 'f16' | 'f32' | 'q4_1' | 'q8_0' | 'q6k' | 'q4_0' | 'q4k' | 'litert_int4' | 'w4a16',
+  bDtype: 'f16' | 'f32' | 'q4_1' | 'q5_0' | 'q8_0' | 'q6k' | 'q4_0' | 'q4k' | 'litert_int4' | 'w4a16',
   transposeB: boolean,
   aOffset: number,
   bOffset: number,
@@ -70,7 +70,7 @@ export declare function selectMatmulVariantAndFlags(
   N: number,
   K: number,
   aDtype: 'f16' | 'f32',
-  bDtype: 'f16' | 'f32' | 'q4_1' | 'q8_0' | 'q6k' | 'q4_0' | 'q4k' | 'litert_int4' | 'w4a16',
+  bDtype: 'f16' | 'f32' | 'q4_1' | 'q5_0' | 'q8_0' | 'q6k' | 'q4_0' | 'q4k' | 'litert_int4' | 'w4a16',
   transposeB: boolean,
   requestedOutputDtype: TensorDtype | 'f16' | 'f32',
   options: { role?: string; layerIdx?: number; kernelPath?: KernelPathSchema | null; [key: string]: unknown }

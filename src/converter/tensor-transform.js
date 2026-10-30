@@ -1,4 +1,4 @@
-import { ggufBlockBytes } from '../formats/gguf/block-storage.js';
+import { ggufBlockBytes, isGgufBlockSourceDtype } from '../formats/gguf/block-storage.js';
 import { validateQ40Storage } from '../formats/rdrr/q4_0-storage.js';
 import { fp8SourceEncoding, packFP8Source, materializeFP8Source } from './fp8-source.js';
 import { quantizeToW8A8Rows } from './w8a8-quantizer.js';
@@ -416,13 +416,13 @@ export function transformTensorBytes(tensor, rawData, options = {}) {
     quantizationInfo
   );
   if (quantizationInfo?.preserveSourceTensors === true) {
-    if (!['Q4_0','Q4_1','Q8_0','Q6_K','F16','BF16','F32'].includes(sourceDtype) || tensor.sourceTransform) {
+    if (!(isGgufBlockSourceDtype(sourceDtype) || ['F16','BF16','F32'].includes(sourceDtype)) || tensor.sourceTransform) {
       throw new Error(`Source passthrough does not support ${sourceDtype} or transformed tensors.`);
     }
     if (sourceDtype === 'Q4_0' && validateQ40Storage(tensor.shape,tensor.storage,tensor.layout ?? 'row') !== tensorData.byteLength) {
       throw new Error(`Q4_0 passthrough byte extent differs for ${tensor.name}.`);
     }
-    if (['Q4_1', 'Q8_0', 'Q6_K'].includes(sourceDtype) && ((tensor.layout != null && tensor.layout !== 'row')
+    if (sourceDtype !== 'Q4_0' && isGgufBlockSourceDtype(sourceDtype) && ((tensor.layout != null && tensor.layout !== 'row')
         || ggufBlockBytes(tensor.shape, sourceDtype) !== tensorData.byteLength)) throw new Error(`Native GGUF passthrough extent/layout differs for ${tensor.name}.`);
     return { tensorData, outDtype:sourceDtype, outLayout:tensor.layout ?? null,
       sourceDtype,tensorTargetQuant, ...(sourceDtype === 'Q4_0' ? { storage:cloneSourcePackedStorageDescriptor('q4_0') } : {}) };
