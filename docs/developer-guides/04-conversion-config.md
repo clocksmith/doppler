@@ -54,3 +54,16 @@ For command-shape examples, use [../getting-started.md](../getting-started.md) a
 - [../conversion-runtime-contract.md](../conversion-runtime-contract.md)
 - [../getting-started.md](../getting-started.md)
 - `src/converter/conversion-plan.js`
+
+## Packed expert preparation
+
+Node conversion can row-chunk a declared `[expert, row, column]` bank for
+row-major Q4K materialization. It uses the existing bounded worker pool and
+preserves expert/row order; each row retains independent block padding.
+`--workers`, `--max-in-flight-jobs` and `--row-chunk-rows` control preparation
+concurrency and memory. Unclassified rank-three tensors and column-major banks
+do not acquire this path. The packed-bank regression checks exact bytes against
+the unchunked converter, including partial blocks and streamed writes.
+
+This changes preparation scheduling, not artifact quantization or inference
+precision. Keep load, conversion and resident request timings separate.

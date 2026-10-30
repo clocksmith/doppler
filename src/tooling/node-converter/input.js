@@ -15,6 +15,7 @@ import {
   validateSourceTokenizerPolicy,
 } from '../../converter/source-tokenizer.js';
 import { isPlainObject } from '../../formats/plain-object.js';
+import { resolveTensorRole } from '../../formats/rdrr/classification.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
 import { log, trace } from '../../debug/index.js';
 import { saveReport } from '../../storage/reports.js';
@@ -75,16 +76,22 @@ export function resolveRowChunkTransformPlan(input) {
     transformContext.quantizationInfo ?? null
   );
   const is2D = Array.isArray(tensor.shape) && tensor.shape.length === 2;
-  const rows = is2D ? tensor.shape[0] : 0;
-  const cols = is2D ? tensor.shape[1] : 0;
   const sourceBytesPerElement = getDtypeBytes(sourceDtype);
   const q4kLayout = String(transformContext.q4kLayout || 'row').trim().toLowerCase() === 'col'
     ? 'col'
     : 'row';
+  // Declared expert banks are [expert, row, column]. Row packing is independent
+  // across both outer axes; ordered chunks preserve the original expert order.
+  const tensorRole = resolveTensorRole(tensor);
+  const isExpertBank = Array.isArray(tensor.shape) && tensor.shape.length === 3
+    && tensor.shape.every((dim) => Number.isSafeInteger(dim) && dim > 0)
+    && tensorRole === 'expert' && tensorTargetQuant === 'q4k' && q4kLayout === 'row';
+  const rows = is2D ? tensor.shape[0] : isExpertBank ? tensor.shape[0] * tensor.shape[1] : 0;
+  const cols = is2D || isExpertBank ? tensor.shape.at(-1) : 0;
   const canChunkRows = (
-    is2D
-    && rows > 0
-    && cols > 0
+    (is2D || isExpertBank)
+    && Number.isSafeInteger(rows) && rows > 0
+    && Number.isSafeInteger(cols) && cols > 0
     && sourceBytesPerElement != null
     && sourceQuant !== 'q4k'
     && tensorByteLength >= execution.rowChunkMinTensorBytes
@@ -116,6 +123,7 @@ export function resolveRowChunkTransformPlan(input) {
     ? shouldQuantize(tensor.name, tensor.shape, {
       quantizeEmbeddings: Boolean(transformContext.quantizeEmbeddings),
       modulesToNotConvert: transformContext.modulesToNotConvert ?? null,
+      role: tensorRole,
     })
     : null;
 

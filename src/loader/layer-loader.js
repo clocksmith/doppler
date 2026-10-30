@@ -1,5 +1,3 @@
-
-
 import { getKernelCapabilities } from '../gpu/device.js';
 import {
   isWeightBuffer,
@@ -26,7 +24,7 @@ import {
   ROUTER_SUFFIXES,
   SINK_SUFFIXES,
 } from './layer-tensor-aliases.js';
-import { getWeightShape, toPositiveInt } from './layer-weight-shape.js';
+import { getWeightShape, toPositiveInt, getVectorElementCount } from './layer-weight-shape.js';
 
 function inferLinearQKVSizes(ctx, linearQkvProj, linearOutProj) {
   const qkvShape = getWeightShape(linearQkvProj);
@@ -633,18 +631,6 @@ async function loadStablePerLayerInputGate(ctx, layerIdx, prefixes, tryLoad) {
     }
   }
   return tryLoad(FFN_SUFFIXES.perLayerInputGate);
-}
-
-function getVectorElementCount(shape, label) {
-  if (!Array.isArray(shape) || shape.length === 0) {
-    throw new Error(`[LayerLoader] ${label} requires a non-empty shape.`);
-  }
-  return shape.reduce((product, dim) => {
-    if (!Number.isInteger(dim) || dim <= 0) {
-      throw new Error(`[LayerLoader] ${label} has invalid shape dimension: ${String(dim)}.`);
-    }
-    return product * dim;
-  }, 1);
 }
 
 async function materializeRouterPerExpertScale(ctx, weight, layerIdx) {
