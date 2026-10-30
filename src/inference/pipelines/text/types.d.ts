@@ -351,7 +351,7 @@ export interface GenerateOptions {
   /** Synchronous constraint; errors abort, and generatedIds excludes prompt tokens. */
   logitMaskFn?: ((logits: Float32Array, context: { generatedIds: number[]; tokenizer: unknown; vocabSize: number }) => void) | null;
   logitMaskIdentity?: { id: string; contentDigest: string } | null;
-  /** @internal Callback with finalized per-step logits before sampling returns the token. */
+  /** @internal Observed finalized logits exclude in-place sampler pad/token suppression; tokenId is already selected. */
   onLogits?: ((logits: Float32Array, context: {
     tokenId: number;
     inputTokenCount: number | null;

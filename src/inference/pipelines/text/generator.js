@@ -272,6 +272,9 @@ export class PipelineGenerator {
       }
     }
     const padTokenId = this._state.tokenizer?.getSpecialTokens?.()?.pad;
+    // Sampling masks pad/suppressed entries in place. Observers retain the
+    // post-penalty/user-mask vector, matching the decode observation boundary.
+    const observedLogits = typeof opts.onLogits === 'function' ? sampledLogits.slice() : null;
     const tokenId = sample(sampledLogits, {
       temperature: opts.temperature,
       topP: opts.topP,
@@ -282,7 +285,7 @@ export class PipelineGenerator {
       suppressTokenIds: opts.suppressTokenIds,
     });
     if (typeof opts.onLogits === 'function') {
-      opts.onLogits(sampledLogits, {
+      opts.onLogits(observedLogits, {
         tokenId,
         inputTokenCount: Array.isArray(generatedIds) ? generatedIds.length : null,
       });
