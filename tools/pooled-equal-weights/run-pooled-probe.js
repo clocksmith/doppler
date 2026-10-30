@@ -30,7 +30,7 @@ await fs.writeFile(path.join(config.outputDir, 'source-identity.json'), JSON.str
   nativeKvShaderSha256: config.nativeKvShader ? sha(await fs.readFile(config.nativeKvShader)) : null,
   adapterFiles: await Promise.all(
   ['run-pooled-probe.js', 'probe-browser.js', 'pooled-canonical.js', 'verify-pooled-gpu.js', 'shared-input.js', 'capture-pooled-boundaries.js',
-    'rne-probe-browser.js', 'kv-cache-rne-prototype.wgsl', 'prepare-pooled.js'].map(async name => ({ name, sha256: sha(await fs.readFile(path.join(here, name))) }))) }, null, 2));
+    'rne-probe-browser.js', 'kv-cache-rne-prototype.wgsl', 'prepare-pooled.js', 'timing.js'].map(async name => ({ name, sha256: sha(await fs.readFile(path.join(here, name))) }))) }, null, 2));
 const logs = [], errors = [];
 const server = http.createServer(async (request, response) => {
   try {

@@ -26,6 +26,14 @@ It does not establish a speed win or equivalent native quantized products.
 5. Compare prompt IDs, generated IDs, full numerical outputs, backend identities,
    and effective weight materializations before starting the timing contract.
 
+An optional `timing` object on a Pooled probe config runs a resident timing pilot
+after weight readback, instead of instrumented logits capture. It requires
+`diagnosticOnly: true`, explicit `warmupRuns`/`timedRuns`, and pinned
+`expectedTokenIds`. Every warmup and measured attempt is retained. The interval
+includes prefill, greedy generation, and final queue completion; tokenization,
+reset/drain, weight verification, and output checking are outside it. These
+unpaired samples localize costs; they cannot establish the balanced-pair win.
+
 The original F16-KV contract is
 `benchmarks/vendors/pooled-equal-weights/contract.json`. The separate
 `contract-f32kv.json` selects native Pooled F32 KV storage with
@@ -48,6 +56,6 @@ binary16 oracle; this experiment did **not** establish the cause of the model
 mismatch. Optional prototype replacement is confined to an explicitly recorded
 diagnostic snapshot and cannot supply performance evidence.
 
-Focused checks: `node --test tools/pooled-equal-weights/canonical.test.js`.
+Focused checks: `node --test tools/pooled-equal-weights/*.test.js`.
 Physical receipts and unresolved gates:
 `reports/pooled-equal-weights-20261029/README.md`.
