@@ -425,6 +425,26 @@
           "BLOCK_VALUES": 256,
           "BLOCK_BYTES": 210
         }
+      },
+      "q5_0_decode": {
+        "kernel": "matmul_q4_0.wgsl",
+        "entry": "gemv",
+        "digest": "sha256:ddf446aad68571e70b6af151c394475b274cae9d8d30d966628b0be89e2942ce",
+        "constants": {
+          "QUANT_FORMAT": 4,
+          "BLOCK_VALUES": 32,
+          "BLOCK_BYTES": 22
+        }
+      },
+      "q5_0_prefill": {
+        "kernel": "matmul_q4_0.wgsl",
+        "entry": "prefill",
+        "digest": "sha256:3e496b406ca040e4dd43b43f52d3f6818198b8461338675abd81891f2e665dde",
+        "constants": {
+          "QUANT_FORMAT": 4,
+          "BLOCK_VALUES": 32,
+          "BLOCK_BYTES": 22
+        }
       }
     },
     "preLayer": [
@@ -439,11 +459,38 @@
         "input_norm",
         "rmsnorm"
       ],
-      [
-        "q_proj",
-        "q6k_decode",
-        "layer.{L}.self_attn.q_proj"
-      ],
+      {
+        "layers": [
+          3,
+          15,
+          27,
+          39
+        ],
+        "steps": [
+          [
+            "q_proj",
+            "q6k_decode",
+            "layer.{L}.self_attn.q_proj"
+          ]
+        ]
+      },
+      {
+        "layers": [
+          7,
+          11,
+          19,
+          23,
+          31,
+          35
+        ],
+        "steps": [
+          [
+            "q_proj",
+            "q4_decode_gemv",
+            "layer.{L}.self_attn.q_proj"
+          ]
+        ]
+      },
       [
         "k_proj",
         "q8_0_decode",
@@ -479,38 +526,199 @@
         "post_attn_norm",
         "rmsnorm"
       ],
-      [
-        "gate_proj",
-        "q8_0_decode",
-        "layer.{L}.mlp.gate_proj"
-      ],
-      [
-        "up_proj",
-        "q8_0_decode",
-        "layer.{L}.mlp.up_proj"
-      ],
+      {
+        "layers": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          7,
+          10,
+          13,
+          16,
+          19,
+          22,
+          25,
+          28,
+          31,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "steps": [
+          [
+            "gate_proj",
+            "q8_0_decode",
+            "layer.{L}.mlp.gate_proj"
+          ]
+        ]
+      },
+      {
+        "layers": [
+          5,
+          6,
+          8,
+          9,
+          11,
+          12,
+          14,
+          15,
+          17,
+          18,
+          20,
+          21,
+          23,
+          24,
+          26,
+          27,
+          29,
+          30,
+          32,
+          33
+        ],
+        "steps": [
+          [
+            "gate_proj",
+            "q5_0_decode",
+            "layer.{L}.mlp.gate_proj"
+          ]
+        ]
+      },
+      {
+        "layers": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          7,
+          10,
+          13,
+          16,
+          19,
+          22,
+          25,
+          28,
+          31,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "steps": [
+          [
+            "up_proj",
+            "q8_0_decode",
+            "layer.{L}.mlp.up_proj"
+          ]
+        ]
+      },
+      {
+        "layers": [
+          5,
+          6,
+          8,
+          9,
+          11,
+          12,
+          14,
+          15,
+          17,
+          18,
+          20,
+          21,
+          23,
+          24,
+          26,
+          27,
+          29,
+          30,
+          32,
+          33
+        ],
+        "steps": [
+          [
+            "up_proj",
+            "q5_0_decode",
+            "layer.{L}.mlp.up_proj"
+          ]
+        ]
+      },
       [
         "activation",
         "silu"
       ],
-      [
-        "down_proj",
-        "q8_0_decode",
-        "layer.{L}.mlp.down_proj"
-      ],
+      {
+        "layers": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          7,
+          10,
+          13,
+          16,
+          19,
+          22,
+          25,
+          28,
+          31,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "steps": [
+          [
+            "down_proj",
+            "q8_0_decode",
+            "layer.{L}.mlp.down_proj"
+          ]
+        ]
+      },
+      {
+        "layers": [
+          5,
+          6,
+          8,
+          9,
+          11,
+          12,
+          14,
+          15,
+          17,
+          18,
+          20,
+          21,
+          23,
+          24,
+          26,
+          27,
+          29,
+          30,
+          32,
+          33
+        ],
+        "steps": [
+          [
+            "down_proj",
+            "q5_0_decode",
+            "layer.{L}.mlp.down_proj"
+          ]
+        ]
+      },
       [
         "ffn_residual",
         "residual"
-      ],
-      [
-        "moe_router",
-        "source_control_f32",
-        "layer.{L}.mlp.gate"
-      ],
-      [
-        "moe_shared_router",
-        "source_control_f32",
-        "layer.{L}.mlp.shared_expert_gate"
       ],
       [
         "linear_a_proj",
@@ -532,22 +740,96 @@
         "q4_decode_gemv",
         "layer.{L}.linear_attn.in_proj_z"
       ],
-      [
-        "linear_out_proj",
-        "q8_0_decode",
-        "layer.{L}.linear_attn.out_proj"
-      ]
+      {
+        "layers": [
+          0,
+          1,
+          2,
+          6,
+          10,
+          14,
+          18,
+          22,
+          26,
+          30,
+          34,
+          36,
+          37,
+          38
+        ],
+        "steps": [
+          [
+            "linear_out_proj",
+            "q8_0_decode",
+            "layer.{L}.linear_attn.out_proj"
+          ]
+        ]
+      },
+      {
+        "layers": [
+          4,
+          5,
+          8,
+          9,
+          12,
+          13,
+          16,
+          17,
+          20,
+          21,
+          24,
+          25,
+          28,
+          29,
+          32,
+          33
+        ],
+        "steps": [
+          [
+            "linear_out_proj",
+            "q4_decode_gemv",
+            "layer.{L}.linear_attn.out_proj"
+          ]
+        ]
+      }
     ],
     "prefill": [
       [
         "input_norm",
         "rmsnorm"
       ],
-      [
-        "q_proj",
-        "q6k_prefill",
-        "layer.{L}.self_attn.q_proj"
-      ],
+      {
+        "layers": [
+          3,
+          15,
+          27,
+          39
+        ],
+        "steps": [
+          [
+            "q_proj",
+            "q6k_prefill",
+            "layer.{L}.self_attn.q_proj"
+          ]
+        ]
+      },
+      {
+        "layers": [
+          7,
+          11,
+          19,
+          23,
+          31,
+          35
+        ],
+        "steps": [
+          [
+            "q_proj",
+            "q4_prefill",
+            "layer.{L}.self_attn.q_proj"
+          ]
+        ]
+      },
       [
         "k_proj",
         "q8_0_prefill",
@@ -583,38 +865,199 @@
         "post_attn_norm",
         "rmsnorm"
       ],
-      [
-        "gate_proj",
-        "q8_0_prefill",
-        "layer.{L}.mlp.gate_proj"
-      ],
-      [
-        "up_proj",
-        "q8_0_prefill",
-        "layer.{L}.mlp.up_proj"
-      ],
+      {
+        "layers": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          7,
+          10,
+          13,
+          16,
+          19,
+          22,
+          25,
+          28,
+          31,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "steps": [
+          [
+            "gate_proj",
+            "q8_0_prefill",
+            "layer.{L}.mlp.gate_proj"
+          ]
+        ]
+      },
+      {
+        "layers": [
+          5,
+          6,
+          8,
+          9,
+          11,
+          12,
+          14,
+          15,
+          17,
+          18,
+          20,
+          21,
+          23,
+          24,
+          26,
+          27,
+          29,
+          30,
+          32,
+          33
+        ],
+        "steps": [
+          [
+            "gate_proj",
+            "q5_0_prefill",
+            "layer.{L}.mlp.gate_proj"
+          ]
+        ]
+      },
+      {
+        "layers": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          7,
+          10,
+          13,
+          16,
+          19,
+          22,
+          25,
+          28,
+          31,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "steps": [
+          [
+            "up_proj",
+            "q8_0_prefill",
+            "layer.{L}.mlp.up_proj"
+          ]
+        ]
+      },
+      {
+        "layers": [
+          5,
+          6,
+          8,
+          9,
+          11,
+          12,
+          14,
+          15,
+          17,
+          18,
+          20,
+          21,
+          23,
+          24,
+          26,
+          27,
+          29,
+          30,
+          32,
+          33
+        ],
+        "steps": [
+          [
+            "up_proj",
+            "q5_0_prefill",
+            "layer.{L}.mlp.up_proj"
+          ]
+        ]
+      },
       [
         "activation",
         "silu"
       ],
-      [
-        "down_proj",
-        "q8_0_prefill",
-        "layer.{L}.mlp.down_proj"
-      ],
+      {
+        "layers": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          7,
+          10,
+          13,
+          16,
+          19,
+          22,
+          25,
+          28,
+          31,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "steps": [
+          [
+            "down_proj",
+            "q8_0_prefill",
+            "layer.{L}.mlp.down_proj"
+          ]
+        ]
+      },
+      {
+        "layers": [
+          5,
+          6,
+          8,
+          9,
+          11,
+          12,
+          14,
+          15,
+          17,
+          18,
+          20,
+          21,
+          23,
+          24,
+          26,
+          27,
+          29,
+          30,
+          32,
+          33
+        ],
+        "steps": [
+          [
+            "down_proj",
+            "q5_0_prefill",
+            "layer.{L}.mlp.down_proj"
+          ]
+        ]
+      },
       [
         "ffn_residual",
         "residual"
-      ],
-      [
-        "moe_router",
-        "source_control_f32",
-        "layer.{L}.mlp.gate"
-      ],
-      [
-        "moe_shared_router",
-        "source_control_f32",
-        "layer.{L}.mlp.shared_expert_gate"
       ],
       [
         "linear_a_proj",
@@ -636,11 +1079,58 @@
         "q4_prefill",
         "layer.{L}.linear_attn.in_proj_z"
       ],
-      [
-        "linear_out_proj",
-        "q8_0_prefill",
-        "layer.{L}.linear_attn.out_proj"
-      ]
+      {
+        "layers": [
+          0,
+          1,
+          2,
+          6,
+          10,
+          14,
+          18,
+          22,
+          26,
+          30,
+          34,
+          36,
+          37,
+          38
+        ],
+        "steps": [
+          [
+            "linear_out_proj",
+            "q8_0_prefill",
+            "layer.{L}.linear_attn.out_proj"
+          ]
+        ]
+      },
+      {
+        "layers": [
+          4,
+          5,
+          8,
+          9,
+          12,
+          13,
+          16,
+          17,
+          20,
+          21,
+          24,
+          25,
+          28,
+          29,
+          32,
+          33
+        ],
+        "steps": [
+          [
+            "linear_out_proj",
+            "q4_prefill",
+            "layer.{L}.linear_attn.out_proj"
+          ]
+        ]
+      }
     ],
     "postLayer": [
       [
