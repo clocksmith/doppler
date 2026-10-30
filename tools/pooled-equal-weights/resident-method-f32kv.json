@@ -1,0 +1,45 @@
+{
+  "schema": "doppler.equal-weight-resident-method.v1",
+  "contract": "benchmarks/vendors/pooled-equal-weights/contract-f32kv.json",
+  "engines": [
+    "pooled",
+    "doppler"
+  ],
+  "promptCount": 4,
+  "warmupsPerEnginePerPrompt": 1,
+  "pairsPerPrompt": 5,
+  "totalPairs": 20,
+  "pairOrder": "alternate-global-pair-index-pooled-first-even",
+  "residency": "both-models-resident-separate-browser-realms",
+  "execution": "one-request-at-a-time-no-retries",
+  "scope": "generation-entry-through-last-token-and-final-queue-completion",
+  "excluded": [
+    "model-loading",
+    "tokenization",
+    "reset-and-initial-queue-drain",
+    "output-verification",
+    "receipt-persistence"
+  ],
+  "delivery": "native-token-callback-or-forwardTokenIds-result",
+  "estimator": "exp-mean-log-paired-doppler-over-pooled-complete-ms",
+  "perPromptEstimator": "exp-mean-log-paired-ratio",
+  "bootstrap": {
+    "strata": "fixed-prompt-id",
+    "resamplingUnit": "complete-pair",
+    "replacement": true,
+    "replicates": 10000,
+    "seed": 0,
+    "random": "mulberry32",
+    "confidence": 0.95,
+    "interval": "two-sided-percentile",
+    "quantile": "linear-index-n-minus-one"
+  },
+  "outliersRemoved": 0,
+  "gates": "unchanged-contract-gates",
+  "contractSha256": "4c6ebe13ee7d741505fbd0fae382cc657a26ccd5a7249103de9d1ebb764c1047",
+  "promptSourceSha256": "432bedc067bca02bf51081eadd50b2e0960d82424398151c1ebcc5e0760a011c",
+  "expectedTensorCount": 321,
+  "sampling": {
+    "repetitionPenalty": 1
+  }
+}

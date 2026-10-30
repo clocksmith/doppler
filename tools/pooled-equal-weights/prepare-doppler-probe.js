@@ -68,38 +68,19 @@ const hook = `
   }
 `;
 let weightHook = '';
+let weightVerifierIdentity = null;
 if (config.canonicalInventoryPath) {
   const inventory = JSON.parse(await fs.readFile(config.canonicalInventoryPath, 'utf8'));
   if (inventory.schema !== 'doppler.equal-weight-canonical.v1' || inventory.completed !== true) throw new Error('Incomplete canonical GPU proof inventory');
+  const verifier = await fs.readFile(new URL('./verify-doppler-gpu.js', import.meta.url));
+  await fs.mkdir(path.join(output, 'tools/pooled-equal-weights'), { recursive: true });
+  await fs.writeFile(path.join(output, 'tools/pooled-equal-weights/verify-doppler-gpu.js'), verifier);
+  weightVerifierIdentity = { path: 'tools/pooled-equal-weights/verify-doppler-gpu.js',
+    sha256: createHash('sha256').update(verifier).digest('hex') };
   weightHook = `
-  const canonicalLearnedTensors = ${JSON.stringify(inventory.tensors)};
-  const canonicalWeightSlots = harness.pipeline.generator._state.weights;
-  const canonicalLayerFields = {
-    'input_layernorm.weight': 'inputNorm', 'post_attention_layernorm.weight': 'postAttentionNorm',
-    'mlp.gate_proj.weight': 'gate', 'mlp.up_proj.weight': 'up', 'mlp.down_proj.weight': 'down',
-    'self_attn.q_proj.weight': 'qProj', 'self_attn.k_proj.weight': 'kProj', 'self_attn.v_proj.weight': 'vProj',
-    'self_attn.o_proj.weight': 'oProj', 'self_attn.q_norm.weight': 'qNorm', 'self_attn.k_norm.weight': 'kNorm',
-    'linear_attn.in_proj_qkv.weight': 'qkvProj', 'linear_attn.in_proj_z.weight': 'linearInProjZ',
-    'linear_attn.in_proj_a.weight': 'linearInProjA', 'linear_attn.in_proj_b.weight': 'linearInProjB',
-    'linear_attn.dt_bias': 'linearDtBias', 'linear_attn.A_log': 'linearALog', 'linear_attn.conv1d.weight': 'linearConv1D',
-    'linear_attn.norm.weight': 'linearNorm', 'linear_attn.out_proj.weight': 'oProj'
-  };
-  const canonicalGpuChecks = [];
-  for (const expected of canonicalLearnedTensors) {
-    const local = expected.name.replace(/^model\\.language_model\\./, '');
-    const layer = local.match(/^layers\\.(\\d+)\\.(.+)$/);
-    let slot, value;
-    if (layer) { slot = canonicalLayerFields[layer[2]]; value = canonicalWeightSlots.get('layer_' + layer[1])?.[slot]; }
-    else { slot = { 'embed_tokens.weight': 'embed', 'norm.weight': 'final_norm', 'lm_head.weight': 'lm_head' }[local]; value = canonicalWeightSlots.get(slot); }
-    const buffer = value?.buffer?.mapAsync ? value.buffer : value;
-    if (!slot || !buffer?.mapAsync || !Number.isFinite(buffer.size)) throw new Error('Missing actual canonical GPU resource: ' + expected.name);
-    const bytes = await readCanonicalGpuBuffer(buffer, expected.bytes);
-    const actual = [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(x => x.toString(16).padStart(2, '0')).join('');
-    canonicalGpuChecks.push({ name: expected.name, slot, resourceLabel: buffer.label, bytes: expected.bytes, expected: expected.canonicalBytesSha256,
-      actual, pass: actual === expected.canonicalBytesSha256 });
-    if (actual !== expected.canonicalBytesSha256) throw new Error('Actual GPU tensor mismatch: ' + expected.name);
-  }
-  metrics.canonicalGpuWeights = { checks: canonicalGpuChecks, pass: true };
+  const { verifyDopplerGpu } = await import('../../../tools/pooled-equal-weights/verify-doppler-gpu.js');
+  metrics.canonicalGpuWeights = await verifyDopplerGpu(harness.pipeline,
+    ${JSON.stringify(inventory)}, readCanonicalGpuBuffer);
 `;
 }
 let instrumented = original.replace(anchor, hook + weightHook + '\n' + anchor);
@@ -212,6 +193,7 @@ await fs.writeFile(path.join(output, 'observation-identity.json'), JSON.stringif
   originalSha256: sha(original), instrumentedSha256: sha(await fs.readFile(file)),
   probeOriginalSha256: sha(probes), probeInstrumentedSha256: sha(capturedProbes), captureStages: config.captureStages ?? [],
   numericPrototype,
+  weightVerifierIdentity,
   logitObservation,
   claim: 'Untimed pre-sampling and boundary observations. All timings are diagnostic and inadmissible for speed claims.' }, null, 2));
 await fs.rename(output, destination);

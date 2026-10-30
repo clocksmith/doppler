@@ -59,3 +59,49 @@ diagnostic snapshot and cannot supply performance evidence.
 Focused checks: `node --test tools/pooled-equal-weights/*.test.js`.
 Physical receipts and unresolved gates:
 `reports/pooled-equal-weights-20261029/README.md`.
+
+`run-resident-pairs.js prepare <config.json>` freezes committed sources and runs
+CPU admission only. `run-resident-pairs.js run <prepared-output>` launches the
+frozen committed runner; GPU execution requires a separately authorized slot.
+The method is fixed before execution in `resident-method-f32kv.json`: four frozen
+prompts, one warmup per engine/prompt, 20 alternating AB/BA pairs, no retries or
+outlier removal, paired log-ratio geometric mean and fixed-prompt stratified
+bootstrap (seed 0, 10,000 replicates, two-sided percentile 95% interval).
+All thresholds come from the unchanged `contract-f32kv.json`.
+
+The run config requires `outputDir` (new), `dopplerRoot`, full engine `dopplerCommit`, full current committed `harnessCommit`, `pooledRoot` (retained native byte snapshot), `pooledSourceIdentity` (`{ path, sha256 }`),
+`canonicalDir`, `rdrrDir`, `ggufPath`, `browserExecutable`, `browserArgs`,
+`requiredVendor`, `timeoutMs`, `dependencyPaths`, `referencesPath`, `proofBinding`,
+and `doppler: { modelId, loadMode: "http", runtimeConfig }`. Dependencies are copied,
+not linked; explicitly include `node_modules/playwright`, `node_modules/playwright-core`,
+and any browser-loaded package assets. Both models remain resident in isolated
+browser contexts of one frozen browser executable. Requests run serially.
+Fresh actual-resource verification on both resident instances happens during
+setup, outside both clocks. Source/dependency/model inventories are retained
+before loading and checked again after requests; the GGUF identity identifies
+the metadata input and does not imply that Pooled consumed its unused weights.
+
+`referencesPath` contains `{ "prompts": [{ "id", "text", "promptIds",
+"expectedTokenIds", "expectedText" }] }` for the exact four contract prompts.
+`proofBinding` is `{ "path", "sha256" }` pointing to a pinned
+`doppler.equal-weight-resident-numerical-binding.v1` packet. It contains
+`dopplerSource`, `dopplerObservation`, `numerical`, and `prompts` (plus `pooledNumerical` for the subgroup numerical schema), where each
+prompt ID maps to `doppler`, `pooled`, and `pooledSource` receipts; every reference
+is `{ "path", "sha256" }`. Admission checks all native-reference and cross-engine
+logit positions, exact tokens/text, inference configuration, complete original
+runtime source (including its Git tree), native Pooled bytes and observer-only
+deltas. It reuses numerical evidence, not historical resident materialization.
+Missing or mismatched evidence blocks preparation.
+
+Doppler delegates existing `initializeSuiteModel` and `runTextInference`;
+its facade passes supported `options.inputIds` to native public `generate`.
+Tokenization and reset/drain are outside timing. Native streaming text decoding
+remains inside. Actual native token-delivery timestamps are captured immediately;
+forwarding to the harness's fallback-text diagnostics is deferred until after
+the final fence/end timestamp. Pooled uses native `prefillTokens` and
+`forwardTokenIds`, then its native tokenizer decodes the buffered response once.
+Both intervals return decoded text plus IDs and include a final queue fence.
+Their native streaming/buffered API costs and delivery cadence remain explicit.
+Output verification and flushed per-attempt files precede the next request.
+Failures, partial output, warmups and cleanup errors remain in the output;
+only a complete valid 20-pair cohort can produce a performance verdict.

@@ -1,43 +1,15 @@
-import { Qwen35Engine, prefillMathFeatures } from '/vendor/engine/qwen35.js';
-import { roomQwen35Options } from '/vendor/engine/preset.js';
-import { makeTokenizer, argmax } from '/vendor/engine/engine.js';
-import { parseGGUFHeader } from '/vendor/engine/gguf.js';
-import { loadCanonicalWeights } from './pooled-canonical.js';
-import { observePooledUploads, verifyPooledGpu } from './verify-pooled-gpu.js';
+import { initializePooledSession } from './pooled-session.js';
+import { argmax } from '/vendor/engine/engine.js';
+import { verifyPooledGpu } from './verify-pooled-gpu.js';
 import { encodeSharedPrompt } from './shared-input.js';
 import { captureSingleTokenLayers } from './capture-pooled-boundaries.js';
 import { measurePooledRequests } from './timing.js';
 
 try {
   const config = await (await fetch('/probe-config.json')).json();
-  const adapter = await navigator.gpu.requestAdapter();
-  if (!adapter || adapter.info.vendor.toLowerCase() !== config.requiredVendor) throw new Error('Required physical adapter unavailable');
-  const device = await adapter.requestDevice({ requiredFeatures: prefillMathFeatures(adapter, 'f32'), requiredLimits: {
-    maxBufferSize: adapter.limits.maxBufferSize, maxStorageBufferBindingSize: adapter.limits.maxStorageBufferBindingSize,
-    maxComputeWorkgroupStorageSize: adapter.limits.maxComputeWorkgroupStorageSize } });
-  const gpuErrors = [];
-  device.addEventListener('uncapturederror', event => gpuErrors.push(event.error.message));
-  const headerResponse = await fetch('/model.gguf', { headers: { Range: 'bytes=0-67108863' } });
-  if (headerResponse.status !== 206) throw new Error('GGUF metadata range failed');
-  const meta = parseGGUFHeader(await headerResponse.arrayBuffer()).meta;
-  const hf = await (await fetch('/canonical/config.json')).json();
-  const text = hf.text_config;
-  const weights = await loadCanonicalWeights('/canonical', text.layer_types);
-  const nativeOptions = config.pooledNativeOptions ?? {};
-  if (Object.keys(nativeOptions).some(key => key !== 'attnFlash') ||
-      (nativeOptions.attnFlash !== undefined && typeof nativeOptions.attnFlash !== 'boolean')) throw new Error('Unsupported native Pooled options');
-  const observation = observePooledUploads(Qwen35Engine, weights);
-  let engine;
-  try {
-    engine = await Qwen35Engine.create({ device, meta, weights, layerRange: [0, text.num_hidden_layers],
-      hasEmbed: true, hasHead: true, maxSeq: config.contract.shared.maxSeqLen, vocab: text.vocab_size,
-      ...roomQwen35Options(new URLSearchParams()), ...nativeOptions, prefillMath: 'f32', adapterInfo: adapter.info });
-  } finally { observation.restore(); }
-  if (!engine.gpuSample || engine.kvQ8 || engine.mtp) throw new Error('Native execution settings differ from common contract');
-  const kvDtype = engine.kvQ8 ? 'q8' : engine.flash ? 'f16' : 'f32';
-  if (kvDtype !== config.contract.shared.kvDtype) throw new Error('Native Pooled KV dtype differs from common contract');
+  const { adapter, device, engine, weights, observation, tokenizer, gpuErrors, kvDtype } =
+    await initializePooledSession(config, { observeUploads: true });
   const materialization = await verifyPooledGpu(device, weights, observation.uploaded, config.contract.materializationObservation);
-  const tokenizer = makeTokenizer(await (await fetch('/canonical/tokenizer.json')).json());
   const promptIds = encodeSharedPrompt(tokenizer, config.prompt, config.contract.promptFormat);
   if (config.timing) {
     const samples = await measurePooledRequests(engine, device, promptIds, config.contract, config.timing);
