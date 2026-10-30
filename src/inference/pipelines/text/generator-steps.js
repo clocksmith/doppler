@@ -16,7 +16,7 @@ import {
   isBatchDecodeEnabled,
   isDecodeRecorderEnabled,
   isProfileDecodeRecorderEnabled,
-  assertPreparedDecodeWorkspaceCompatible,
+  attachPreparedDecodeWorkspace,
 } from './execution-plan.js';
 import { sample, applyRepetitionPenalty, logitsSanity, getTopK } from './sampling.js';
 import { samplingSeedForToken } from '../../token-sampling.js';
@@ -536,15 +536,8 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     }
 
     const context = helpers.buildLayerContext(recorder, true, opts.debugLayers, executionPlan);
-    const preparedWorkspace = (state.resolvedRuntimeSession?.runtime?.session
-      ?? state.runtimeConfig.inference.session).usePreparedDecodeWorkspace;
-    if (typeof preparedWorkspace !== 'boolean') {
-      throw new Error('Decode session requires boolean usePreparedDecodeWorkspace.');
-    }
-    if (preparedWorkspace) {
-      assertPreparedDecodeWorkspaceCompatible(context);
-      recorder.decodeWorkspace = context.decodeBuffers.getWorkspace(device);
-    }
+    attachPreparedDecodeWorkspace((state.resolvedRuntimeSession?.runtime?.session
+      ?? state.runtimeConfig.inference.session).usePreparedDecodeWorkspace, recorder, context, device);
     const embedBufferRaw = state.weights.get('embed');
     if (isCpuWeightBuffer(embedBufferRaw)) {
       throw new Error('[Pipeline] GPU-only decode not supported with CPU-resident embeddings.');
