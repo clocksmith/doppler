@@ -9,9 +9,21 @@ import { validatePairedExecution } from './paired-execution.js';
 import { kernelPathDeclaresQKNorm } from '../../../config/kernel-path-loader.js';
 import { assertLinearNormGateClosure } from '../../../config/execution-registry-contract.js';
 import { resolveLinearNormGateActivation } from '../../../config/schema/manifest.schema.js';
+import { resolveMoeExecutionProfile } from './moe-shape-validator.js';
 
 const PRIMARY_EXECUTION_PLAN_ID = 'primary';
 const FINITENESS_FALLBACK_EXECUTION_PLAN_ID = 'finiteness_fallback';
+
+export function assertPreparedDecodeWorkspaceCompatible(context) {
+  const preparedMoE = context.config.useMoE
+    && context.runtimeMoERoutingConfig?.activeExpertSelection === 'topk-route'
+    && resolveMoeExecutionProfile(context.config, { modelType: context.config.modelType }).supportsPreparedDecode === true;
+  if (!context.decodeBuffers || context.activationDtype !== 'f32' || context.activationPrecision === 'two-f32'
+      || (context.config.useMoE && !preparedMoE) || context.lora
+      || context.operatorDiagnostics || context.trainingCapture || context.debugProbes?.length) {
+    throw new Error('Prepared decode workspace requires dense or supported GPU-route MoE F32 buffers without training, LoRA or diagnostics.');
+  }
+}
 
 function assertOptionalBoolean(value, label) {
   if (value === undefined) {

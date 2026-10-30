@@ -6,7 +6,7 @@ import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { dispatch, recordDispatch } from './dispatch.js';
-import { getPipelineFast } from './pipeline-cache.js';
+import { getPipelineFast, getPipelineBindGroupLayout } from './pipeline-cache.js';
 import { createUniformBufferWithView } from './uniform-utils.js';
 import { selectRuleValue } from './rule-registry.js';
 
@@ -163,11 +163,14 @@ async function executeSiLU(
   const entries = createSiLUBindGroupEntries(uniformBuffer, input, output, gate);
 
   try {
-    const bindGroup = device.createBindGroup({
+    const descriptor = {
       label: 'silu_bind_group',
-      layout: pipeline.getBindGroupLayout(0),
+      layout: getPipelineBindGroupLayout(pipeline, 0),
       entries,
-    });
+    };
+    const bindGroup = recorder?.decodeWorkspace
+      ? recorder.decodeWorkspace.getBindGroupForOutputs(`silu:${variant}`, [output], descriptor)
+      : device.createBindGroup(descriptor);
 
     if (recorder) recordDispatch(recorder, pipeline, bindGroup, dispatchPlan.workgroups, 'silu');
     else dispatch(device, pipeline, bindGroup, dispatchPlan.workgroups, 'silu');
@@ -287,16 +290,19 @@ async function executeSiLURowSplit(
   // Bind group: provide a dummy gate buffer to satisfy the fixed layout
   try {
     const gateBuffer = input.buffer;
-    const bindGroup = device.createBindGroup({
+    const descriptor = {
       label: 'silu_rowsplit_bind_group',
-      layout: pipeline.getBindGroupLayout(0),
+      layout: getPipelineBindGroupLayout(pipeline, 0),
       entries: [
         { binding: 0, resource: { buffer: uniformBuffer } },
         { binding: 1, resource: { buffer: input.buffer } },
         { binding: 2, resource: { buffer: output } },
         { binding: 3, resource: { buffer: gateBuffer } },
       ],
-    });
+    };
+    const bindGroup = recorder?.decodeWorkspace
+      ? recorder.decodeWorkspace.getBindGroupForOutputs(`silu-rowsplit:${variant}`, [output], descriptor)
+      : device.createBindGroup(descriptor);
 
     const workgroups = [Math.ceil(dim / WORKGROUP_SIZES.DEFAULT), numTokens, 1];
     if (recorder) recordDispatch(recorder, pipeline, bindGroup, workgroups, 'silu_rowsplit');

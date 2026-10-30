@@ -3,11 +3,11 @@ import { getKernelCapabilities } from '../device.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { unifiedKernelWrapper } from './kernel-execution.js';
-import { createPipeline } from './pipeline-cache.js';
+import { createPipeline, getPipelineBindGroupLayout } from './pipeline-cache.js';
 import { createUniformBufferWithView } from './uniform-utils.js';
 import { createBindGroupWithValidation } from './bind-group-validation.js';
 import { dispatchKernel } from './dispatch.js';
-import { trace } from '../../debug/index.js';
+import { trace, isTraceEnabled } from '../../debug/index.js';
 import { getKernelThresholdSnapshot } from '../../config/schema/index.js';
 import { selectRuleValue } from './rule-registry.js';
 import { getDevice } from '../device.js';
@@ -98,8 +98,10 @@ async function softmaxTopK(target, logits, numTokens, numExperts, topK, options 
   let completed = false;
 
   try {
-    indices = acquireBuffer(indicesSize, undefined, 'softmax_topk_indices');
-    weights = acquireBuffer(weightsSize, undefined, 'softmax_topk_weights');
+    indices = options.indicesBuffer ?? acquireBuffer(indicesSize, undefined, 'softmax_topk_indices');
+    weights = options.weightsBuffer ?? acquireBuffer(weightsSize, undefined, 'softmax_topk_weights');
+    if (indices.size < indicesSize || weights.size < weightsSize) throw new Error('SoftmaxTopK supplied output is too small.');
+    if (indices === weights || indices === logits || weights === logits) throw new Error('SoftmaxTopK outputs must not alias each other or logits.');
     uniformBuffer = createUniformBufferWithView(
     'softmax_topk_uniforms', 16,
     (view) => {
@@ -111,16 +113,20 @@ async function softmaxTopK(target, logits, numTokens, numExperts, topK, options 
     target, device
   );
 
-    const bindGroup = await createBindGroupWithValidation(device, {
+    const descriptor = {
       label: 'softmax_topk_bind_group',
-      layout: pipeline.getBindGroupLayout(0),
+      layout: getPipelineBindGroupLayout(pipeline, 0),
       entries: [
         { binding: 0, resource: { buffer: uniformBuffer } },
         { binding: 1, resource: { buffer: logits } },
         { binding: 2, resource: { buffer: indices } },
         { binding: 3, resource: { buffer: weights } },
       ],
-    }, `topk:${variant}`);
+    };
+    const workspace = target?.decodeWorkspace;
+    const bindGroup = workspace && !isTraceEnabled('buffers')
+      ? workspace.getBindGroupForOutputs(`topk:${variant}`, [indices, weights], descriptor)
+      : await createBindGroupWithValidation(device, descriptor, `topk:${variant}`);
 
     dispatchKernel(target, pipeline, bindGroup, numTokens, 'softmax_topk');
     completed = true;
@@ -128,7 +134,8 @@ async function softmaxTopK(target, logits, numTokens, numExperts, topK, options 
   } finally {
     if (!target && uniformBuffer) uniformBuffer.destroy();
     if (!completed) {
-      for (const buffer of [indices, weights]) if (buffer) {
+      const owned = [options.indicesBuffer == null ? indices : null, options.weightsBuffer == null ? weights : null];
+      for (const buffer of owned) if (buffer) {
         if (target) target.trackTemporaryBuffer(buffer);
         else releaseBuffer(buffer);
       }

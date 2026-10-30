@@ -3,6 +3,8 @@ import type { WeightBuffer } from '../../../../gpu/weight-buffer.js';
 import type { CommandRecorder } from '../../../../gpu/command-recorder.js';
 
 export interface QwenRouteExpertOptions {
+  /** Required for a prepared single-token recorder. */
+  layerIdx?: number;
   inputTensor: Tensor;
   indicesBuffer: GPUBuffer;
   weightsBuffer: GPUBuffer;

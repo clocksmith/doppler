@@ -165,6 +165,7 @@ export function buildLayerContext(
     lora: state.lora,
     decodeBuffers: isDecodeMode && state.decodeBuffers?.hasBuffers() ? state.decodeBuffers : null,
     runtimeComputeConfig: effectiveComputeConfig,
+    runtimeMoERoutingConfig: config.useMoE ? { ...state.runtimeConfig.inference.moe?.routing } : undefined,
     activationDtype: effectiveActivationDtype,
     activationPrecision: activeExecutionPlan.activationPrecision,
     activationComponents: activeExecutionPlan.activationComponents,

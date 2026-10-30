@@ -12,6 +12,7 @@
         "requiresShaderF16": true,
         "routerScaleMode": "none",
         "topkRouteExecutor": null,
+        "supportsPreparedDecode": false,
         "vendorProfile": {
           "kind": "rule",
           "domain": "kernels",
@@ -40,6 +41,7 @@
         "requiresShaderF16": false,
         "routerScaleMode": "none",
         "topkRouteExecutor": null,
+        "supportsPreparedDecode": false,
         "vendorProfile": {
           "kind": "rule",
           "domain": "kernels",
@@ -64,6 +66,7 @@
         "requiresShaderF16": false,
         "routerScaleMode": "required",
         "topkRouteExecutor": "gemma4-route",
+        "supportsPreparedDecode": false,
         "vendorProfile": {
           "kind": "static",
           "value": {
@@ -94,6 +97,7 @@
         "requiresShaderF16": false,
         "routerScaleMode": "optional",
         "topkRouteExecutor": "gemma4-route",
+        "supportsPreparedDecode": false,
         "vendorProfile": {
           "kind": "static",
           "value": {
@@ -124,6 +128,7 @@
         "requiresShaderF16": false,
         "routerScaleMode": "none",
         "topkRouteExecutor": "qwen35-route",
+        "supportsPreparedDecode": true,
         "vendorProfile": {
           "kind": "static",
           "value": {

@@ -2,6 +2,8 @@ import type { KernelPathSchema } from '../../../config/schema/index.js';
 import type { RuntimeConfigSchema } from '../../../config/schema/index.js';
 import type { KernelPathSource } from '../../../config/kernel-path-loader.js';
 
+export function assertPreparedDecodeWorkspaceCompatible(context: import('./types.js').LayerContext): void;
+
 export interface StaticExecutionPlan {
   id: 'primary' | 'finiteness_fallback';
   source: string;

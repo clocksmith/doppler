@@ -41,8 +41,7 @@ function resolveConfiguredMoEActiveExpertSelection() {
   );
 }
 
-async function resolveActiveExpertSchedule(indicesBuffer, numTokens, numExperts, topK, maxTokensPerExpert) {
-  const selection = resolveConfiguredMoEActiveExpertSelection();
+async function resolveActiveExpertSchedule(indicesBuffer, numTokens, numExperts, topK, maxTokensPerExpert, selection) {
   if (selection === 'all') {
     return {
       selection,
@@ -191,7 +190,8 @@ export async function moeFeedForwardGPU(
   }
   const modelType = config.modelType;
   const moeProfile = resolveMoeExecutionProfile(config, { modelType });
-  const activeExpertSelection = resolveConfiguredMoEActiveExpertSelection();
+  const activeExpertSelection = config.activeExpertSelection === undefined
+    ? resolveConfiguredMoEActiveExpertSelection() : resolveMoEActiveExpertSelection(config.activeExpertSelection);
   const recordRouteExecutor = activeExpertSelection === 'topk-route'
     ? MOE_RECORDED_ROUTE_EXECUTORS[moeProfile.topkRouteExecutor] : null;
   const recorder = recordRouteExecutor ? requestedRecorder : null;
@@ -212,6 +212,8 @@ export async function moeFeedForwardGPU(
   const activationDtype = selectRuleValue('inference', 'dtype', 'f16OrF32FromDtype', {
     dtype: config.activationDtype,
   });
+  const workspace = recorder?.decodeWorkspace && numTokens === 1 && activationDtype === 'f32'
+    ? recorder.decodeWorkspace : null;
 
   if (!moeRouter || !moeRouter.gateWeight) {
     throw new Error('MoE router not initialized');
@@ -301,6 +303,8 @@ export async function moeFeedForwardGPU(
       inputDtype: routerInputTensor.dtype,
       outputDtype: activationDtype,
       recorder,
+      layerIdx,
+      outputBuffer: workspace?.getBuffer(`moe:${layerIdx}:router`, numExperts * 4),
     });
     if (routerScaledTensor) {
       releaseOrTrack(recorder, routerScaledTensor.buffer);
@@ -358,6 +362,8 @@ export async function moeFeedForwardGPU(
         inputDtype: logitsDtype,
         weightsDtype: activationDtype,
         modelType,
+        indicesBuffer: workspace?.getBuffer(`moe:${layerIdx}:indices`, topK * 4),
+        weightsBuffer: workspace?.getBuffer(`moe:${layerIdx}:weights`, topK * 4),
       }
     ));
   perfLog(`MoE L${layerIdx} topk`, stepStart, {
@@ -469,7 +475,8 @@ export async function moeFeedForwardGPU(
       numTokens,
       numExperts,
       topK,
-      maxTokensPerExpert
+      maxTokensPerExpert,
+      activeExpertSelection
     );
   perfLog(`MoE L${layerIdx} active_experts`, stepStart, {
     selection: activeExpertSchedule.selection,

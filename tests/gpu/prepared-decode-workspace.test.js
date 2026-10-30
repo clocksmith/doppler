@@ -14,6 +14,8 @@ const device = {
 const owner = new PreparedDecodeWorkspace(device);
 const a = owner.getBuffer('L0:q', 64), b = owner.getBuffer('L1:q', 64);
 assert.equal(owner.getBuffer('L0:q', 64), a);
+assert.equal(owner.getBufferSlot(a), 'L0:q');
+assert.equal(owner.getBufferSlot({}), null, 'borrowed buffers have no prepared slot identity');
 assert.notEqual(a, b, 'different layers cannot share live projection storage');
 assert.throws(() => owner.getBuffer('L0:q', 128), /changed size/);
 fail = true;
@@ -39,6 +41,7 @@ assert.equal(destroyed, 2);
 assert.equal(owner.getStats().bindings, 0);
 assert.throws(() => owner.getBuffer('q', 64), /released/);
 assert.throws(() => owner.getBindGroup('q', descriptor), /released/);
+assert.throws(() => owner.getBufferSlot(a), /released/);
 secondOwner.release();
 assert.equal(created, destroyed);
 let lose;

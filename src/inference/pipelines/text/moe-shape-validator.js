@@ -63,6 +63,9 @@ function validateMoeExecutionProfile(profile) {
   if (typeof profile.requiresShaderF16 !== 'boolean') {
     throw new Error('[MoE] execution profile is missing requiresShaderF16 boolean.');
   }
+  if (typeof profile.supportsPreparedDecode !== 'boolean') {
+    throw new Error('[MoE] execution profile is missing supportsPreparedDecode boolean.');
+  }
   if (profile.routerScaleMode !== 'none' && profile.routerScaleMode !== 'optional' && profile.routerScaleMode !== 'required') {
     throw new Error('[MoE] execution profile routerScaleMode must be none, optional, or required.');
   }
