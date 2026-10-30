@@ -1,0 +1,250 @@
+{
+  "status": "passed",
+  "provider": {
+    "schema": "doe.webgpu-provider-receipt/v1",
+    "contract": "doe.webgpu-provider/v1",
+    "implementation": "doppler",
+    "providers": [
+      {
+        "id": "pre-installed",
+        "kind": "global"
+      },
+      {
+        "id": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "gpu": {
+          "kind": "factory",
+          "path": "create",
+          "args": [
+            [
+              "enable-dawn-features=allow_unsafe_apis"
+            ]
+          ]
+        },
+        "globals": {
+          "GPUBufferUsage": "globals.GPUBufferUsage",
+          "GPUShaderStage": "globals.GPUShaderStage",
+          "GPUMapMode": "globals.GPUMapMode",
+          "GPUTextureUsage": "globals.GPUTextureUsage"
+        }
+      }
+    ],
+    "providerOrder": [
+      "pre-installed",
+      "webgpu"
+    ],
+    "adapterOptions": null,
+    "globals": {
+      "mode": "replace",
+      "installed": [
+        "GPUBufferUsage",
+        "GPUShaderStage",
+        "GPUMapMode",
+        "GPUTextureUsage",
+        "navigator.gpu"
+      ],
+      "restored": false
+    },
+    "attempts": [
+      {
+        "providerId": "pre-installed",
+        "kind": "global",
+        "module": null,
+        "ok": false,
+        "stage": "gpu.validate",
+        "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+        "detail": "Selected provider does not expose GPU.requestAdapter()."
+      },
+      {
+        "providerId": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "ok": true,
+        "stage": "complete",
+        "code": null,
+        "detail": null
+      }
+    ],
+    "selectedProviderId": "webgpu",
+    "ok": true
+  },
+  "receipts": [
+    {
+      "dtype": "f32",
+      "inChannels": 53,
+      "height": 1,
+      "width": 1,
+      "repeats": 2048,
+      "recorded": false,
+      "workgroups": null
+    },
+    {
+      "dtype": "f32",
+      "inChannels": 53,
+      "height": 1,
+      "width": 1,
+      "repeats": 2048,
+      "recorded": true,
+      "workgroups": [
+        424,
+        1,
+        1
+      ]
+    },
+    {
+      "dtype": "f32",
+      "inChannels": 3,
+      "height": 17,
+      "width": 19,
+      "repeats": 5,
+      "recorded": false,
+      "workgroups": null
+    },
+    {
+      "dtype": "f32",
+      "inChannels": 3,
+      "height": 17,
+      "width": 19,
+      "repeats": 5,
+      "recorded": true,
+      "workgroups": [
+        19,
+        1,
+        1
+      ]
+    },
+    {
+      "dtype": "f32",
+      "inChannels": 1,
+      "height": 1,
+      "width": 1,
+      "repeats": 1,
+      "recorded": false,
+      "workgroups": null
+    },
+    {
+      "dtype": "f32",
+      "inChannels": 1,
+      "height": 1,
+      "width": 1,
+      "repeats": 1,
+      "recorded": true,
+      "workgroups": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "dtype": "f32",
+      "inChannels": 129,
+      "height": 1,
+      "width": 1,
+      "repeats": 16385,
+      "recorded": false,
+      "workgroups": null
+    },
+    {
+      "dtype": "f32",
+      "inChannels": 129,
+      "height": 1,
+      "width": 1,
+      "repeats": 16385,
+      "recorded": true,
+      "workgroups": [
+        65535,
+        2,
+        1
+      ]
+    },
+    {
+      "dtype": "f16",
+      "inChannels": 53,
+      "height": 1,
+      "width": 1,
+      "repeats": 2048,
+      "recorded": false,
+      "workgroups": null
+    },
+    {
+      "dtype": "f16",
+      "inChannels": 53,
+      "height": 1,
+      "width": 1,
+      "repeats": 2048,
+      "recorded": true,
+      "workgroups": [
+        424,
+        1,
+        1
+      ]
+    },
+    {
+      "dtype": "f16",
+      "inChannels": 3,
+      "height": 17,
+      "width": 19,
+      "repeats": 5,
+      "recorded": false,
+      "workgroups": null
+    },
+    {
+      "dtype": "f16",
+      "inChannels": 3,
+      "height": 17,
+      "width": 19,
+      "repeats": 5,
+      "recorded": true,
+      "workgroups": [
+        19,
+        1,
+        1
+      ]
+    },
+    {
+      "dtype": "f16",
+      "inChannels": 1,
+      "height": 1,
+      "width": 1,
+      "repeats": 1,
+      "recorded": false,
+      "workgroups": null
+    },
+    {
+      "dtype": "f16",
+      "inChannels": 1,
+      "height": 1,
+      "width": 1,
+      "repeats": 1,
+      "recorded": true,
+      "workgroups": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "dtype": "f16",
+      "inChannels": 129,
+      "height": 1,
+      "width": 1,
+      "repeats": 16385,
+      "recorded": false,
+      "workgroups": null
+    },
+    {
+      "dtype": "f16",
+      "inChannels": 129,
+      "height": 1,
+      "width": 1,
+      "repeats": 16385,
+      "recorded": true,
+      "workgroups": [
+        65535,
+        2,
+        1
+      ]
+    }
+  ]
+}

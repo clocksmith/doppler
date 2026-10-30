@@ -1,0 +1,136 @@
+{
+  "test": "repeat-channels-browser",
+  "passed": true,
+  "browser": "156.0.8078.74",
+  "cases": [
+    {
+      "dtype": "f32",
+      "channels": 53,
+      "spatial": 1,
+      "repeats": 2048,
+      "recorded": false,
+      "workgroups": null
+    },
+    {
+      "dtype": "f32",
+      "channels": 53,
+      "spatial": 1,
+      "repeats": 2048,
+      "recorded": true,
+      "workgroups": [
+        424,
+        1,
+        1
+      ]
+    },
+    {
+      "dtype": "f32",
+      "channels": 3,
+      "spatial": 323,
+      "repeats": 5,
+      "recorded": false,
+      "workgroups": null
+    },
+    {
+      "dtype": "f32",
+      "channels": 3,
+      "spatial": 323,
+      "repeats": 5,
+      "recorded": true,
+      "workgroups": [
+        19,
+        1,
+        1
+      ]
+    },
+    {
+      "dtype": "f32",
+      "channels": 129,
+      "spatial": 1,
+      "repeats": 16385,
+      "recorded": false,
+      "workgroups": null
+    },
+    {
+      "dtype": "f32",
+      "channels": 129,
+      "spatial": 1,
+      "repeats": 16385,
+      "recorded": true,
+      "workgroups": [
+        65535,
+        2,
+        1
+      ]
+    },
+    {
+      "dtype": "f16",
+      "channels": 53,
+      "spatial": 1,
+      "repeats": 2048,
+      "recorded": false,
+      "workgroups": null
+    },
+    {
+      "dtype": "f16",
+      "channels": 53,
+      "spatial": 1,
+      "repeats": 2048,
+      "recorded": true,
+      "workgroups": [
+        424,
+        1,
+        1
+      ]
+    },
+    {
+      "dtype": "f16",
+      "channels": 3,
+      "spatial": 323,
+      "repeats": 5,
+      "recorded": false,
+      "workgroups": null
+    },
+    {
+      "dtype": "f16",
+      "channels": 3,
+      "spatial": 323,
+      "repeats": 5,
+      "recorded": true,
+      "workgroups": [
+        19,
+        1,
+        1
+      ]
+    },
+    {
+      "dtype": "f16",
+      "channels": 129,
+      "spatial": 1,
+      "repeats": 16385,
+      "recorded": false,
+      "workgroups": null
+    },
+    {
+      "dtype": "f16",
+      "channels": 129,
+      "spatial": 1,
+      "repeats": 16385,
+      "recorded": true,
+      "workgroups": [
+        65535,
+        2,
+        1
+      ]
+    }
+  ],
+  "gpuErrors": [],
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "unknown",
+    "description": "",
+    "subgroupMinSize": 32,
+    "subgroupMaxSize": 32
+  }
+}
