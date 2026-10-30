@@ -15,7 +15,8 @@ for(const [i,dtype] of ['Q4_0','Q4_1','Q8_0','Q6_K','Q5_0'].entries()) {
 const norm='model.layers.0.input_layernorm.weight',normBytes=new Uint8Array(Float32Array.from({length:256},(_,i)=>1+i*0.00001).buffer);
 data.set(norm,normBytes);tensors.push({name:norm,shape:[256],dtype:'F32',size:normBytes.length,offset:0});
 const shards=[];let manifest;
-await convertModel({name:'q4-0-passthrough',quantization:'Q4_0',tensors,config:{model_type:'llama',eos_token_id:1}}, {
+const sourceExclusions=[{name:'blk.1.nextn.eh_proj.weight',reason:'next-token-prediction layer outside text decoder'}];
+await convertModel({name:'q4-0-passthrough',quantization:'Q4_0',tensors,sourceExclusions,config:{model_type:'llama',eos_token_id:1}}, {
  async readTensorData(tensor){return data.get(tensor.name);},
  async writeShard(index,bytes){shards[index]=Uint8Array.from(bytes);return hash(bytes);},
  async writeManifest(value){manifest=value;}
@@ -28,4 +29,5 @@ for(const tensor of tensors) {
  const bytes=Buffer.concat(spans.map(span=>Buffer.from(shards[span.shardIndex].subarray(span.offset,span.offset+span.size))));
  assert.equal(location.dtype,tensor.dtype);assert.equal(hash(bytes),hash(data.get(tensor.name)));assert.deepEqual(bytes,Buffer.from(data.get(tensor.name)));
 }
+assert.deepEqual(manifest.metadata.sourceExclusions,sourceExclusions);
 console.log(JSON.stringify({status:'passed',tensors:tensors.length,scope:'Actual converter shards preserve original packed and floating source bytes'}));
