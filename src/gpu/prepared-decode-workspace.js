@@ -9,6 +9,8 @@ export class PreparedDecodeWorkspace {
   #buffers = new Map();
   /** @type {Set<GPUBuffer>} */
   #owned = new Set();
+  /** @type {WeakMap<GPUBuffer, string>} */
+  #slots = new WeakMap();
   /** @type {Map<string, { layout: GPUBindGroupLayout; bindGroup: GPUBindGroup; entries: Array<{ binding: number; buffer: GPUBuffer; offset?: number; size?: number }> }>} */
   #bindings = new Map();
   #hits = 0;
@@ -33,7 +35,22 @@ export class PreparedDecodeWorkspace {
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST });
     this.#buffers.set(slot, buffer);
     this.#owned.add(buffer);
+    this.#slots.set(buffer, slot);
     return buffer;
+  }
+
+  /** @param {GPUBuffer} buffer */
+  getBufferSlot(buffer) {
+    if (this.#released || isDeviceLost(this.#device)) throw new Error('Prepared decode workspace was released or its GPUDevice was lost.');
+    return this.#slots.get(buffer) ?? null;
+  }
+
+  /** @param {string} operation @param {GPUBuffer[]} outputs @param {GPUBindGroupDescriptor} descriptor */
+  getBindGroupForOutputs(operation, outputs, descriptor) {
+    if (this.#released || isDeviceLost(this.#device)) throw new Error('Prepared decode workspace was released or its GPUDevice was lost.');
+    const slots = outputs.map(buffer => this.#slots.get(buffer)).filter(slot => slot !== undefined);
+    return slots.length > 0 ? this.getBindGroup(JSON.stringify([operation, slots]), descriptor)
+      : this.#device.createBindGroup(descriptor);
   }
 
   /** @param {GPUBuffer} buffer */
@@ -82,5 +99,6 @@ export class PreparedDecodeWorkspace {
     for (const buffer of this.#owned) buffer.destroy();
     this.#buffers.clear();
     this.#owned.clear();
+    this.#slots = new WeakMap();
   }
 }

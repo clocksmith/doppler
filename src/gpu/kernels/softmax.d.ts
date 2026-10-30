@@ -20,6 +20,8 @@ export interface SoftmaxOptions extends OutputBufferOptions {
 }
 
 export interface SoftmaxTopKOptions {
+  indicesBuffer?: GPUBuffer | null;
+  weightsBuffer?: GPUBuffer | null;
   normalize?: boolean;
   inputDtype: 'f16' | 'f32';
   weightsDtype: 'f16' | 'f32';

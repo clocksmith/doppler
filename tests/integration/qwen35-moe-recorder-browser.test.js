@@ -28,6 +28,7 @@ try {
     const { createTensor } = await import('/src/gpu/tensor.js');
     const { createWeightBuffer } = await import('/src/gpu/weight-buffer.js');
     const { createCommandRecorder } = await import('/src/gpu/command-recorder.js');
+    const { PreparedDecodeWorkspace } = await import('/src/gpu/prepared-decode-workspace.js');
     const { MoERouter } = await import('/src/inference/moe-router.js');
     const { runMoEFFNGPU } = await import('/src/inference/pipelines/text/ffn/moe.js');
     const { getRuntimeConfig, setRuntimeConfig } = await import('/src/config/runtime.js');
@@ -36,7 +37,7 @@ try {
     device.addEventListener('uncapturederror', event => gpuErrors.push(event.error.message));
     const upload = values => { const buffer = acquireBuffer(values.byteLength); owned.push(buffer); uploadData(buffer, values); return buffer; };
     const matrix = (values, shape) => createWeightBuffer(upload(new Float32Array(values)), 'f32', 'row', shape);
-    let recorder;
+    let recorder, workspace;
     try {
       setRuntimeConfig({ inference: { moe: { routing: { activeExpertSelection: 'topk-route' } } } });
       const { T, H, I, E, S } = f;
@@ -67,10 +68,32 @@ try {
         maxAbs = Math.max(maxAbs, Math.abs(observed[i] - expected[i]));
         if (!Number.isFinite(observed[i]) || Math.abs(observed[i] - expected[i]) > 0.00001) throw Error(`Recorded MoE mismatch at ${i}`);
       }
-      return { maxAbs, gpuErrors, adapter: getKernelCapabilities().adapterInfo, recorder: recorder.getStats() };
+      workspace = new PreparedDecodeWorkspace(device);
+      const workspaceCases = [];
+      const createBuffer = device.createBuffer.bind(device), createBindGroup = device.createBindGroup.bind(device);
+      let createdBuffers = 0, createdBindings = 0;
+      device.createBuffer = descriptor => { createdBuffers++; return createBuffer(descriptor); };
+      device.createBindGroup = descriptor => { createdBindings++; return createBindGroup(descriptor); };
+      try {
+        for (let step = 0; step < 3; step++) {
+          const current = createCommandRecorder('browser-prepared-moe'); current.decodeWorkspace = workspace;
+          const beforeBuffers = createdBuffers, beforeBindings = createdBindings;
+          try {
+            const output = await runMoEFFNGPU(0, createTensor(source, 'f32', [1, H]), 1, { ...context, recorder: current });
+            await current.submitAndWait();
+            const buffers = createdBuffers - beforeBuffers, bindings = createdBindings - beforeBindings;
+            if (step && (buffers || bindings)) throw Error('Prepared MoE allocates buffers or bindings after warmup');
+            const observed = new Float32Array(await readBuffer(output.buffer, H * 4));
+            for (let i = 0; i < H; i++) if (!Number.isFinite(observed[i]) || Math.abs(observed[i] - expected[i]) > 0.00001) throw Error('Prepared MoE changed output');
+            workspaceCases.push({ step, gpuBufferCreations: buffers, bindGroupCreations: bindings, ...workspace.getStats() });
+          } finally { await current.abort(); }
+        }
+      } finally { device.createBuffer = createBuffer; device.createBindGroup = createBindGroup; }
+      return { maxAbs, workspaceCases, gpuErrors, adapter: getKernelCapabilities().adapterInfo, recorder: recorder.getStats() };
     } finally {
       await recorder?.abort();
       for (const buffer of owned) releaseBuffer(buffer);
+      workspace?.release();
       setRuntimeConfig(previous); destroyDevice();
     }
   }, fixture);

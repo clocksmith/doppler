@@ -27,6 +27,7 @@ export interface MoEExecutionProfile {
   routerScaleMode: 'none' | 'optional' | 'required';
   requiresNormalizedTopK?: boolean;
   topkRouteExecutor: 'gemma4-route' | string | null;
+  supportsPreparedDecode: boolean;
   vendorProfile: Record<string, unknown>;
   kernelPathProfileResolver: 'gpt-oss' | 'mixtral' | string | null;
   kernelRuleModelType: string | null;

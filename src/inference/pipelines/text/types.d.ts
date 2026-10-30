@@ -151,6 +151,8 @@ export interface LayerContext {
   lora?: LoRAAdapter | null;
   /** Pre-allocated decode buffers (for M=1 decode optimization) */
   decodeBuffers?: DecodeBufferManager | null;
+  /** Runtime MoE routing snapshot for layer execution. */
+  runtimeMoERoutingConfig?: import('../../../config/schema/moe.schema.js').MoERoutingConfigSchema;
   /** Runtime compute config snapshot for layer execution. */
   runtimeComputeConfig?: {
     activationDtype?: 'f16' | 'f32';

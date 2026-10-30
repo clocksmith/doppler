@@ -245,6 +245,8 @@ export class MoERouter {
         outputDtype,
         bDtype: gateWeightDtype ?? undefined,
         role: 'moe_router',
+        layerIdx: options.layerIdx,
+        outputBuffer: options.outputBuffer,
       }
     );
 

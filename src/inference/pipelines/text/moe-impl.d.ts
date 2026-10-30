@@ -46,6 +46,7 @@ export function setDequantCacheMaxEntries(maxEntries: number): void;
  * Configuration for MoE feed-forward.
  */
 export interface MoEConfig {
+  activeExpertSelection?: import('../../../config/schema/moe.schema.js').ActiveExpertSelection;
   modelType?: string | null;
   hiddenSize: number;
   intermediateSize: number;

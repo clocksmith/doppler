@@ -16,6 +16,7 @@ import {
   isBatchDecodeEnabled,
   isDecodeRecorderEnabled,
   isProfileDecodeRecorderEnabled,
+  assertPreparedDecodeWorkspaceCompatible,
 } from './execution-plan.js';
 import { sample, applyRepetitionPenalty, logitsSanity, getTopK } from './sampling.js';
 import { samplingSeedForToken } from '../../token-sampling.js';
@@ -541,10 +542,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
       throw new Error('Decode session requires boolean usePreparedDecodeWorkspace.');
     }
     if (preparedWorkspace) {
-      if (!context.decodeBuffers || context.activationDtype !== 'f32' || context.activationPrecision === 'two-f32' || context.config.useMoE || context.lora
-          || context.operatorDiagnostics || context.trainingCapture || context.debugProbes?.length) {
-        throw new Error('Prepared decode workspace requires dense F32 decode buffers without training, LoRA or diagnostics.');
-      }
+      assertPreparedDecodeWorkspaceCompatible(context);
       recorder.decodeWorkspace = context.decodeBuffers.getWorkspace(device);
     }
     const embedBufferRaw = state.weights.get('embed');

@@ -105,11 +105,18 @@ export async function unifiedKernelWrapper(
       if (!uniformBinding) throw new Error(`Kernel ${opName}/${variant} declares uniforms without a binding.`);
       bindGroupEntries.unshift({ binding: uniformBinding.index, resource: { buffer: uniformBuffer } });
     }
-    const bindGroup = device.createBindGroup({
+    const descriptor = {
       label: `${opName}_bind_group`,
       layout: getPipelineBindGroupLayout(pipeline, 0),
       entries: bindGroupEntries,
-    });
+    };
+    const workspace = recorder?.decodeWorkspace;
+    const outputs = workspace ? config.bindings.filter(binding => binding.type === 'storage')
+      .map(binding => bindGroupEntries.find(entry => entry.binding === binding.index)?.resource?.buffer)
+      .filter(Boolean) : [];
+    const bindGroup = workspace
+      ? workspace.getBindGroupForOutputs(`${opName}:${variant}`, outputs, descriptor)
+      : device.createBindGroup(descriptor);
 
     signal?.throwIfAborted();
     const label = typeof dispatchLabel === 'string' && dispatchLabel.length > 0

@@ -36,6 +36,12 @@ export async function runQwenSharedExpert(input, routed, weights, options) {
   validateQwenSharedExpert(input, routed, weights, options);
   const { numTokens, hiddenSize, intermediateSize, kernelPath, swigluLimit } = options;
   const recorder = options.recorder ?? null;
+  const workspace = recorder?.decodeWorkspace && numTokens === 1 ? recorder.decodeWorkspace : null;
+  if (workspace && (typeof options.layerIdx !== 'number' || !Number.isInteger(options.layerIdx) || options.layerIdx < 0)) {
+    throw new Error('[MoE] Prepared shared execution requires an explicit layerIdx.');
+  }
+  /** @param {string} role @param {number} count */
+  const output = (role, count) => workspace?.getBuffer(`moe:${options.layerIdx}:shared-${role}`, count * 4);
   const matmul = recorder ? recordMatmul.bind(null, recorder) : runMatmul;
   const activate = recorder ? recordSiLU.bind(null, recorder) : runSiLU;
   const repeat = recorder ? recordRepeatChannels.bind(null, recorder) : runRepeatChannels;
@@ -46,22 +52,22 @@ export async function runQwenSharedExpert(input, routed, weights, options) {
   const keep = (tensor) => { owned.push(tensor.buffer); return tensor; };
   try {
     /** @type {import('../../../../gpu/kernels/matmul.js').MatmulOptions} */
-    const projectionOptions = { transposeB: true, outputDtype: input.dtype, kernelPath };
+    const projectionOptions = { transposeB: true, outputDtype: input.dtype, kernelPath, layerIdx: options.layerIdx };
     const gate = keep(await matmul(input, weights.sharedExpertGate,
-      numTokens, intermediateSize, hiddenSize, { ...projectionOptions, role: 'ffn_gate' }));
+      numTokens, intermediateSize, hiddenSize, { ...projectionOptions, role: 'ffn_gate', outputBuffer: output('gate', intermediateSize) }));
     const up = keep(await matmul(input, weights.sharedExpertUp,
-      numTokens, intermediateSize, hiddenSize, { ...projectionOptions, role: 'ffn_up' }));
+      numTokens, intermediateSize, hiddenSize, { ...projectionOptions, role: 'ffn_up', outputBuffer: output('up', intermediateSize) }));
     const activated = keep(await activate(up, { size: numTokens * intermediateSize,
-      gate, inputActivation: 'identity', gateActivation: 'silu', swigluLimit }));
+      gate, inputActivation: 'identity', gateActivation: 'silu', swigluLimit, outputBuffer: output('activated', intermediateSize) }));
     const down = keep(await matmul(activated, weights.sharedExpertDown,
-      numTokens, hiddenSize, intermediateSize, { ...projectionOptions, role: 'ffn_down' }));
+      numTokens, hiddenSize, intermediateSize, { ...projectionOptions, role: 'ffn_down', outputBuffer: output('down', hiddenSize) }));
     const scalarGate = keep(await matmul(input, weights.sharedExpertRouter,
-      numTokens, 1, hiddenSize, { ...projectionOptions, role: 'moe_shared_router' }));
+      numTokens, 1, hiddenSize, { ...projectionOptions, role: 'moe_shared_router', outputBuffer: output('router', 1) }));
     const expandedGate = keep(await repeat(scalarGate,
-      { inChannels: numTokens, height: 1, width: 1, repeats: hiddenSize }));
+      { inChannels: numTokens, height: 1, width: 1, repeats: hiddenSize, outputBuffer: output('expanded', hiddenSize) }));
     const gated = keep(await activate(down, { size: numTokens * hiddenSize,
-      gate: expandedGate, inputActivation: 'identity', gateActivation: 'sigmoid', swigluLimit }));
-    return await add(routed, gated, numTokens * hiddenSize);
+      gate: expandedGate, inputActivation: 'identity', gateActivation: 'sigmoid', swigluLimit, outputBuffer: output('gated', hiddenSize) }));
+    return await add(routed, gated, numTokens * hiddenSize, { outputBuffer: output('output', hiddenSize) });
   } finally {
     for (const buffer of owned) releaseOrTrack(recorder, buffer);
   }

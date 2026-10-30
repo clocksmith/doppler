@@ -11,6 +11,7 @@ import { MoERouter } from '../../src/inference/moe-router.js';
 import { runMoEFFNGPU } from '../../src/inference/pipelines/text/ffn/moe.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../../src/config/runtime.js';
 import { float32ToFloat16, float16ToFloat32 } from '../../src/formats/float16.js';
+import { PreparedDecodeWorkspace } from '../../src/gpu/prepared-decode-workspace.js';
 
 const probe = await probeNodeGPU({ installFileFetchShim: true });
 if (!probe.ready) throw new Error(`Physical MoE ordering verification unavailable: ${probe.reason}`);
@@ -21,7 +22,7 @@ const matrix = (values, shape) => createWeightBuffer(buffer(values), 'f32', 'row
 const bank = (values, shape) => createWeightBuffer(buffer(quantizeToQ4KMRowWise(values, shape).quantized), 'q4k', 'row', shape);
 const T = 2, H = 256, I = 256, E = 3, S = 3;
 const values = (n, f) => Float32Array.from({ length: n }, (_, i) => Math.sin(i * f) * 0.1);
-let control, recordedOutput, recorder, rawRecorder;
+let control, recordedOutput, recorder, rawRecorder, workspace;
 const rawOutputs = [];
 try {
   setRuntimeConfig({ inference: { moe: { routing: { activeExpertSelection: 'topk-route' } } } });
@@ -42,6 +43,7 @@ try {
     expertFormat: 'qwen3_5', hiddenActivation: 'silu', swigluLimit: null, rmsNormEps: 1e-6 },
     moeRouter: router, expertWeights, expertLoader: { loadExpert() { throw Error('Resident banks must not reload'); } },
     weights: new Map([['layer_0', shared]]), kernelPath: null, executionPolicies: null };
+  context.runtimeMoERoutingConfig = { ...getRuntimeConfig().inference.moe.routing, activeExpertSelection: 'topk-route' };
   control = await runMoEFFNGPU(0, createTensor(source, 'f32', [T, H]), T, context);
   const expected = new Float32Array(await readBuffer(control.buffer, T * H * 4));
   assert.ok(expected.some(value => Math.abs(value) > 0.0001), 'Fixture must expose a stale zero input');
@@ -78,12 +80,76 @@ try {
   try {
     device.queue.writeBuffer(pending, 0, new Float32Array(T * H));
     fallbackRecorder.getEncoder().copyBufferToBuffer(source, 0, pending, 0, T * H * 4);
-    fallback = await runMoEFFNGPU(0, createTensor(pending, 'f32', [T, H]), T, { ...context, recorder: fallbackRecorder });
+    fallback = await runMoEFFNGPU(0, createTensor(pending, 'f32', [T, H]), T, { ...context, recorder: fallbackRecorder,
+      runtimeMoERoutingConfig: { ...context.runtimeMoERoutingConfig, activeExpertSelection: 'topk-readback' } });
     await fallbackRecorder.submitAndWait();
     const observed = new Float32Array(await readBuffer(fallback.buffer, T * H * 4));
     for (let i = 0; i < expected.length; i++) assert.ok(Number.isFinite(observed[i]) && Math.abs(observed[i] - expected[i]) <= 0.00001);
   } finally { await fallbackRecorder.abort(); if (fallback) releaseBuffer(fallback.buffer); }
   setRuntimeConfig({ inference: { moe: { routing: { activeExpertSelection: 'topk-route' } } } });
+  workspace = new PreparedDecodeWorkspace(device);
+  // Another run's global default cannot change this context's captured GPU route.
+  setRuntimeConfig({ inference: { moe: { routing: { activeExpertSelection: 'all' } } } });
+  const workspaceCases = [];
+  const createBuffer = device.createBuffer.bind(device), createBindGroup = device.createBindGroup.bind(device);
+  let createdBuffers = 0, createdBindings = 0;
+  device.createBuffer = descriptor => { createdBuffers++; return createBuffer(descriptor); };
+  device.createBindGroup = descriptor => { createdBindings++; return createBindGroup(descriptor); };
+  try {
+  for (let step = 0; step < 3; step++) {
+    const stepRecorder = createCommandRecorder('moe-workspace-verification');
+    stepRecorder.decodeWorkspace = workspace;
+    const before = getBufferPool().getStats();
+    const beforeBuffers = createdBuffers, beforeBindings = createdBindings;
+    let output;
+    try {
+      output = await runMoEFFNGPU(0, createTensor(source, 'f32', [1, H]), 1, { ...context, recorder: stepRecorder });
+      await stepRecorder.submitAndWait();
+      const after = getBufferPool().getStats();
+      const acquisitions = after.allocations + after.reuses - before.allocations - before.reuses;
+      const gpuBufferCreations = createdBuffers - beforeBuffers, bindGroupCreations = createdBindings - beforeBindings;
+      const observed = new Float32Array(await readBuffer(output.buffer, H * 4));
+      for (let i = 0; i < H; i++) assert.ok(Number.isFinite(observed[i]) && Math.abs(observed[i] - expected[i]) <= 0.00001);
+      if (step > 0) assert.equal(acquisitions, 0, 'Prepared MoE must reuse its scratch instead of acquiring pooled buffers per token');
+      if (step > 0) assert.equal(gpuBufferCreations, 0, 'Prepared MoE must also reuse uniforms and raw GPU buffers after warmup');
+      if (step > 0) assert.equal(bindGroupCreations, 0, 'Prepared MoE must reuse all operator bindings after warmup');
+      workspaceCases.push({ step, acquisitions, gpuBufferCreations, bindGroupCreations, ...workspace.getStats() });
+    } finally {
+      await stepRecorder.abort();
+      if (output && !workspace.ownsBuffer(output.buffer)) releaseBuffer(output.buffer);
+    }
+  }
+  } finally { device.createBuffer = createBuffer; device.createBindGroup = createBindGroup; }
+  const retained = workspace.getStats();
+  const rejected = createCommandRecorder('prepared-moe-abort-verification');
+  rejected.decodeWorkspace = workspace;
+  const leavePreparedFailure = enterKernelRegistry(createKernelRegistry({ validators: { moe_route_matmul: { q4k_f32: {
+    id: 'prepared-moe-output-rollback', validate() { throw Error('Injected prepared expert failure'); },
+  } } } }));
+  try {
+    await assert.rejects(runMoEFFNGPU(0, createTensor(source, 'f32', [1, H]), 1,
+      { ...context, recorder: rejected }), /Injected prepared expert failure/);
+  } finally { leavePreparedFailure(); await rejected.abort(); }
+  assert.equal(workspace.getStats().buffers, retained.buffers, 'Aborting one recorder retains session-owned scratch');
+  assert.equal(workspace.getStats().bytes, retained.bytes);
+  const secondWorkspace = new PreparedDecodeWorkspace(device);
+  const concurrent = [createCommandRecorder('prepared-session-a'), createCommandRecorder('prepared-session-b')];
+  concurrent[0].decodeWorkspace = workspace; concurrent[1].decodeWorkspace = secondWorkspace;
+  const zeroInput = buffer(new Float32Array(H));
+  const concurrentOutputs = [];
+  try {
+    concurrentOutputs.push(...await Promise.all(concurrent.map((recorder, index) => runMoEFFNGPU(0,
+      createTensor(index ? zeroInput : source, 'f32', [1, H]), 1, { ...context, recorder }))));
+    assert.notEqual(concurrentOutputs[0].buffer, concurrentOutputs[1].buffer, 'Sessions cannot share MoE output slots');
+    await concurrent[1].submitAndWait(); await concurrent[0].submitAndWait();
+    for (const [index, output] of concurrentOutputs.entries()) {
+      const values = new Float32Array(await readBuffer(output.buffer, H * 4));
+      for (let i = 0; i < H; i++) assert.ok(Number.isFinite(values[i]) && Math.abs(values[i] - (index ? 0 : expected[i])) <= 0.00001);
+    }
+  } finally {
+    for (const recorder of concurrent) await recorder.abort();
+    secondWorkspace.release();
+  }
   // One shared router is rebound across layers before submission. Uploaded
   // raw weights and biases must stay owned by that recording, not be destroyed
   // by the next loadWeights call.
@@ -114,7 +180,7 @@ try {
     }
   }
   assert.deepEqual(errors, []);
-  console.log(JSON.stringify({ status: 'passed', maxAbs, rawMaxAbs, rawCases: rawCases.length,
+  console.log(JSON.stringify({ status: 'passed', maxAbs, rawMaxAbs, rawCases: rawCases.length, workspaceCases,
     provider: probe.providerReceipt, recorder: recorder.getStats() }));
 } finally {
   await recorder?.abort();
@@ -123,6 +189,7 @@ try {
   if (control) releaseBuffer(control.buffer);
   if (recordedOutput) releaseBuffer(recordedOutput.buffer);
   for (const b of allocated) releaseBuffer(b);
+  workspace?.release();
   setRuntimeConfig(previous);
   destroyDevice();
 }

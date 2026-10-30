@@ -44,6 +44,7 @@ export async function runMoEFFNGPU(
       hiddenActivation: config.hiddenActivation,
       swigluLimit: config.swigluLimit,
       activationDtype: inputTensor.dtype,
+      activeExpertSelection: context.runtimeMoERoutingConfig?.activeExpertSelection,
       routerInputBuffer: options.routerInputTensor?.buffer ?? null,
       routerInputDtype: options.routerInputTensor?.dtype ?? null,
       kernelPath: context.kernelPath ?? null,
@@ -64,6 +65,7 @@ export async function runMoEFFNGPU(
       numTokens, hiddenSize: config.hiddenSize, intermediateSize: config.moeSharedExpertIntermediateSize,
       kernelPath: context.kernelPath ?? null, swigluLimit: config.swigluLimit,
       recorder: context.recorder ?? null,
+      layerIdx,
     });
   } finally {
     releaseOrTrack(context.recorder, routed.buffer);

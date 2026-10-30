@@ -1,0 +1,13 @@
+{
+  "id": "profiles/qwen3-6-35b-a3b-route-f32-workspace-candidate",
+  "name": "qwen3-6-35b-a3b-route-f32-workspace-candidate",
+  "description": "Opt-in Qwen GPU routes with session-owned decode scratch and binding reuse. Operator evidence only; full-model numerical and performance qualification pending.",
+  "intent": "investigate",
+  "compatibleIntents": ["investigate", "verify", "calibrate"],
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-10-30T00:00:00Z",
+  "extends": "profiles/qwen3-6-35b-a3b-route-f32-candidate",
+  "model": "qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+  "runtime": { "inference": { "session": { "usePreparedDecodeWorkspace": true } } }
+}
