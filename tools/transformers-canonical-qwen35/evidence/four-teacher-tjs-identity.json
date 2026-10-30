@@ -1,0 +1,36 @@
+{
+  "configSha256": "db51105c02b32cc8589ffe86d9e75da6916b8532b2482ab9724ce14b6eae558c",
+  "modelReceipt": {
+    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-lookup-03/receipt.json",
+    "sha256": "12ab1479a5e52409d8581766f81557f580ce8a7cc7c501dc902b16da4325ac92"
+  },
+  "cpuReceipt": {
+    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-lookup-cpu-01/receipt.json",
+    "sha256": "32393bf7637c5c3435c0a7175db3c0ab03a4fc3cc6f4d639aa713c346d17e669"
+  },
+  "files": {
+    "run_text_gpu.js": "6d1dd84340b443877cf78b8b7593764478447e4f9f3a6d3b0e7e7bc601478d10",
+    "text_gpu_browser.js": "12d2d513a5a29bf3099a1068ca70de6ab0259dbe64da4634a1d5654b85ed5ada",
+    "tjs_model.js": "03d8359d4274e6d3698314429c9fc12709ae551f96737d046b3ce75211ca52b5",
+    "bucketed_prefill.js": "46e4646703cf440a13e65413e9f1ff7665f95c674577609b7d9dacdd16fa286b",
+    "teacher_cases.js": "ccc48bd4cd7dd11b456dec118c0ef92aebe14e428263bb8dc988ccb1620e93b9",
+    "observed_session.js": "db670072092eaff07a2d41bb43bad43139d1d0126c11f47b554f55c223b11085",
+    "observe_gpu.js": "8214405a784563595b831e5cf92a1200cdd04c4bd89c2dd730c51e3f51d88da9",
+    "tjs": {
+      "path": "/home/x/deco/doe/bench/out/external-projects/doppler/upstream/node_modules/@huggingface/transformers/dist/transformers.web.min.js",
+      "sha256": "0a96dcf4c48981b7d05f53827e6975ec239132606ad0d526bbc2db0fcdbc4ded"
+    },
+    "ort": {
+      "path": "/home/x/deco/doe/bench/out/external-projects/doppler/upstream/node_modules/@huggingface/transformers/node_modules/onnxruntime-web/dist/ort.webgpu.min.mjs",
+      "sha256": "25e7e706b8165f2096b5e29853dda64e9b1f09bdf29b4384f8d0afa9fb6db22d"
+    },
+    "ortWasm": {
+      "path": "/home/x/deco/doe/bench/out/external-projects/doppler/upstream/node_modules/@huggingface/transformers/node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.jsep.wasm",
+      "sha256": "ae61141f8fbf0a4e43fd7b4f4d40a1a115627f6facc4f33ddf84074a655e33ea"
+    }
+  },
+  "teacher": {
+    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/teacher-f32kv-02/receipt.json",
+    "sha256": "a9713f5c028b0911b6a32235a34cc1e0e85009c776eda79f0e7a4a793468e1cd"
+  }
+}

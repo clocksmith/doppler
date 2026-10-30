@@ -94,8 +94,12 @@ It never downloads model weights or substitutes a published ONNX checkpoint.
   tests passed; the composed bucket bridge has not yet passed GPU execution.
 - `teacher_cases.js` prepares genuine four-prompt greedy checks using engine
   outputs as subsequent inputs, with both frozen EOS IDs. It does not feed
-  reference tokens into the model after divergence. The output-only GPU gate
-  remains pending.
+  reference tokens into the model after divergence. The retained output-only
+  AMD run passed all 256 tokens exactly and all 32 full-vocabulary snapshots
+  (maximum error 0.0000553131). All 12288 actual cache-output checks were F32
+  GPU buffers. The actual ORT device was verified and had no GPU/browser
+  errors. This used the original 704-bound graph, with its padding disclosed;
+  it does not qualify the bucket bridge, strict state values or weight readback.
 - `teacher_native.py --save-states` captured all 48 native F32 cache values at
   all 32 snapshot positions. Its 256 tokens and 32 logit hashes match the
   existing F32 teacher exactly. These new state files are bounded observations;
@@ -145,7 +149,7 @@ node tools/transformers-canonical-qwen35/run_layer_gpu.js CONFIG_JSON
 ```
 
 Strict full-model numerical qualification, actual GPU readback for all learned
-weights, four-prompt/64-token checks, GPU bucket checks and performance
+weights, strict GPU-state checks, GPU bucket checks and performance
 comparison remain required work. Full-model
 diagnostic configuration is retained on Jupiter at
 `/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/tjs-full-gpu-diagnostic-06-config.json`;

@@ -1,0 +1,2761 @@
+{
+  "schema": "doppler.canonical-tjs-gpu-diagnostic.v1",
+  "scope": "Untimed TJS public-forward diagnostic; strict CPU state gate remains failed; no speed or qualification claim",
+  "qualification": false,
+  "executionCompleted": true,
+  "teacherOutputGate": true,
+  "logitsPass": true,
+  "physicalKV": "float32",
+  "canonicalInputs": {
+    "canonicalManifestSha256": "77e74f2b0ddf51d0e01edd5888f531e8dda57e8257e2f7ace94916da306cfe95",
+    "configSha256": "c4e4b5cc6a38e43168e7b08e6e991f0c74e7b07d2ca1fe4432f36e2d4e66d2f3",
+    "safetensorsHeaderSha256": "434d00a9998ff2254673ab03669904341dba0d2029a6fc7eeef22c70fa7342ac"
+  },
+  "cpuGate": {
+    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-lookup-cpu-01/receipt.json",
+    "sha256": "32393bf7637c5c3435c0a7175db3c0ab03a4fc3cc6f4d639aa713c346d17e669",
+    "pass": false,
+    "failedChecks": 53,
+    "qualification": false
+  },
+  "weightDeviceReadback": "not-run; frozen ONNX initializer binding is separate evidence",
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "",
+    "description": ""
+  },
+  "requestedDeviceHonored": false,
+  "requestedLimits": {
+    "maxStorageBufferBindingSize": 4294967292,
+    "maxBufferSize": 4294967292
+  },
+  "deviceLimits": {
+    "maxBufferSize": 4294967292,
+    "maxStorageBufferBindingSize": 4294967292
+  },
+  "sessionOptions": {
+    "executionProviders": [
+      "webgpu"
+    ],
+    "graphOptimizationLevel": "disabled",
+    "extra": {
+      "session": {
+        "disable_cpu_ep_fallback": "1",
+        "use_ort_model_bytes_directly": "1"
+      }
+    }
+  },
+  "sessionResidency": {
+    "sessions": [
+      "embedding",
+      "prefill",
+      "decode"
+    ],
+    "scope": "Independent sessions; learned weights may be duplicated in GPU residency"
+  },
+  "sessionInitializerBytes": {
+    "embed_tokens": 1017118720,
+    "decoder_prefill": 3265193448,
+    "decoder_decode": 3010015108
+  },
+  "gpuErrors": [],
+  "browserErrors": [],
+  "implementation": "Transformers.js 4.2 public Qwen3_5ForCausalLM.forward + explicit session routing; physical KV float32",
+  "prompts": [
+    {
+      "id": "code",
+      "promptIds": [
+        248045,
+        846,
+        198,
+        7734,
+        264,
+        11346,
+        12654,
+        7873,
+        314,
+        1330,
+        2542,
+        11,
+        7854,
+        539,
+        6813,
+        321,
+        449,
+        15673,
+        13,
+        248046,
+        198,
+        248045,
+        74455,
+        198,
+        248068,
+        271,
+        248069,
+        271
+      ],
+      "expectedTokenIds": [
+        8160,
+        369,
+        264,
+        4434,
+        11,
+        11346,
+        7873,
+        314,
+        279,
+        8771,
+        7860,
+        3377,
+        303,
+        12654,
+        13,
+        1061,
+        6093,
+        14103,
+        279,
+        6007,
+        11767,
+        291,
+        11870,
+        11,
+        13081,
+        6607,
+        4886,
+        11,
+        321,
+        5469,
+        15352,
+        1228,
+        4886,
+        13,
+        271,
+        13962,
+        220,
+        16,
+        13,
+        29806,
+        271,
+        71093,
+        12305,
+        198,
+        1445,
+        18904,
+        1120,
+        1697,
+        271,
+        1005,
+        12121,
+        25,
+        198,
+        262,
+        687,
+        1330,
+        8917,
+        1153,
+        11,
+        10001,
+        25,
+        1697,
+        18078,
+        1089
+      ],
+      "generatedTokenIds": [
+        8160,
+        369,
+        264,
+        4434,
+        11,
+        11346,
+        7873,
+        314,
+        279,
+        8771,
+        7860,
+        3377,
+        303,
+        12654,
+        13,
+        1061,
+        6093,
+        14103,
+        279,
+        6007,
+        11767,
+        291,
+        11870,
+        11,
+        13081,
+        6607,
+        4886,
+        11,
+        321,
+        5469,
+        15352,
+        1228,
+        4886,
+        13,
+        271,
+        13962,
+        220,
+        16,
+        13,
+        29806,
+        271,
+        71093,
+        12305,
+        198,
+        1445,
+        18904,
+        1120,
+        1697,
+        271,
+        1005,
+        12121,
+        25,
+        198,
+        262,
+        687,
+        1330,
+        8917,
+        1153,
+        11,
+        10001,
+        25,
+        1697,
+        18078,
+        1089
+      ],
+      "endedByEOS": false,
+      "expectedEndedByEOS": false,
+      "completedBudget": true,
+      "exactTokens": true
+    },
+    {
+      "id": "explanation",
+      "promptIds": [
+        248045,
+        846,
+        198,
+        814,
+        20139,
+        1204,
+        264,
+        5010,
+        2336,
+        13081,
+        45776,
+        321,
+        83264,
+        13,
+        28763,
+        264,
+        13769,
+        3010,
+        321,
+        4123,
+        22373,
+        13,
+        248046,
+        198,
+        248045,
+        74455,
+        198,
+        248068,
+        271,
+        248069,
+        271
+      ],
+      "expectedTokenIds": [
+        32,
+        2972,
+        8038,
+        2336,
+        332,
+        369,
+        264,
+        795,
+        5759,
+        5995,
+        310,
+        3436,
+        1328,
+        18509,
+        13139,
+        28750,
+        13,
+        1049,
+        5533,
+        264,
+        2972,
+        8038,
+        709,
+        332,
+        310,
+        2336,
+        6679,
+        310,
+        14505,
+        303,
+        264,
+        2972,
+        1938,
+        332,
+        318,
+        58768,
+        11205,
+        430,
+        449,
+        1287,
+        466,
+        10278,
+        1103,
+        681,
+        321,
+        264,
+        2972,
+        16714,
+        6591,
+        11256,
+        16456,
+        332,
+        310,
+        9791,
+        279,
+        2029,
+        421,
+        5081,
+        6679,
+        2493,
+        2336,
+        310,
+        279,
+        1788
+      ],
+      "generatedTokenIds": [
+        32,
+        2972,
+        8038,
+        2336,
+        332,
+        369,
+        264,
+        795,
+        5759,
+        5995,
+        310,
+        3436,
+        1328,
+        18509,
+        13139,
+        28750,
+        13,
+        1049,
+        5533,
+        264,
+        2972,
+        8038,
+        709,
+        332,
+        310,
+        2336,
+        6679,
+        310,
+        14505,
+        303,
+        264,
+        2972,
+        1938,
+        332,
+        318,
+        58768,
+        11205,
+        430,
+        449,
+        1287,
+        466,
+        10278,
+        1103,
+        681,
+        321,
+        264,
+        2972,
+        16714,
+        6591,
+        11256,
+        16456,
+        332,
+        310,
+        9791,
+        279,
+        2029,
+        421,
+        5081,
+        6679,
+        2493,
+        2336,
+        310,
+        279,
+        1788
+      ],
+      "endedByEOS": false,
+      "expectedEndedByEOS": false,
+      "completedBudget": true,
+      "exactTokens": true
+    },
+    {
+      "id": "arithmetic",
+      "promptIds": [
+        248045,
+        846,
+        198,
+        46270,
+        220,
+        18,
+        22,
+        2942,
+        220,
+        17,
+        19,
+        11,
+        1179,
+        10033,
+        264,
+        2018,
+        1560,
+        310,
+        1716,
+        279,
+        4087,
+        2923,
+        539,
+        2923,
+        13,
+        248046,
+        198,
+        248045,
+        74455,
+        198,
+        248068,
+        271,
+        248069,
+        271
+      ],
+      "expectedTokenIds": [
+        13962,
+        14392,
+        220,
+        16,
+        25,
+        19892,
+        279,
+        1118,
+        1560,
+        318,
+        15555,
+        56727,
+        1633,
+        8,
+        271,
+        1206,
+        1423,
+        279,
+        1918,
+        314,
+        220,
+        18,
+        22,
+        321,
+        220,
+        17,
+        19,
+        11,
+        567,
+        628,
+        2649,
+        279,
+        44896,
+        5774,
+        25,
+        271,
+        13682,
+        18,
+        22,
+        1088,
+        14695,
+        220,
+        17,
+        19,
+        13682,
+        271,
+        1596,
+        628,
+        1387,
+        1441,
+        279,
+        4947,
+        364,
+        8397,
+        21261,
+        25,
+        198,
+        13682,
+        18,
+        22,
+        1088,
+        14695,
+        220,
+        17
+      ],
+      "generatedTokenIds": [
+        13962,
+        14392,
+        220,
+        16,
+        25,
+        19892,
+        279,
+        1118,
+        1560,
+        318,
+        15555,
+        56727,
+        1633,
+        8,
+        271,
+        1206,
+        1423,
+        279,
+        1918,
+        314,
+        220,
+        18,
+        22,
+        321,
+        220,
+        17,
+        19,
+        11,
+        567,
+        628,
+        2649,
+        279,
+        44896,
+        5774,
+        25,
+        271,
+        13682,
+        18,
+        22,
+        1088,
+        14695,
+        220,
+        17,
+        19,
+        13682,
+        271,
+        1596,
+        628,
+        1387,
+        1441,
+        279,
+        4947,
+        364,
+        8397,
+        21261,
+        25,
+        198,
+        13682,
+        18,
+        22,
+        1088,
+        14695,
+        220,
+        17
+      ],
+      "endedByEOS": false,
+      "expectedEndedByEOS": false,
+      "completedBudget": true,
+      "exactTokens": true
+    },
+    {
+      "id": "long-context",
+      "promptIds": [
+        248045,
+        846,
+        198,
+        760,
+        6297,
+        16545,
+        11173,
+        15339,
+        440,
+        26957,
+        41224,
+        11,
+        264,
+        8097,
+        4779,
+        7786,
+        11,
+        321,
+        9722,
+        21838,
+        13,
+        32975,
+        3016,
+        11013,
+        321,
+        2560,
+        29997,
+        13,
+        198,
+        760,
+        6297,
+        16545,
+        11173,
+        15339,
+        440,
+        26957,
+        41224,
+        11,
+        264,
+        8097,
+        4779,
+        7786,
+        11,
+        321,
+        9722,
+        21838,
+        13,
+        32975,
+        3016,
+        11013,
+        321,
+        2560,
+        29997,
+        13,
+        198,
+        760,
+        6297,
+        16545,
+        11173,
+        15339,
+        440,
+        26957,
+        41224,
+        11,
+        264,
+        8097,
+        4779,
+        7786,
+        11,
+        321,
+        9722,
+        21838,
+        13,
+        32975,
+        3016,
+        11013,
+        321,
+        2560,
+        29997,
+        13,
+        198,
+        760,
+        6297,
+        16545,
+        11173,
+        15339,
+        440,
+        26957,
+        41224,
+        11,
+        264,
+        8097,
+        4779,
+        7786,
+        11,
+        321,
+        9722,
+        21838,
+        13,
+        32975,
+        3016,
+        11013,
+        321,
+        2560,
+        29997,
+        13,
+        198,
+        760,
+        6297,
+        16545,
+        11173,
+        15339,
+        440,
+        26957,
+        41224,
+        11,
+        264,
+        8097,
+        4779,
+        7786,
+        11,
+        321,
+        9722,
+        21838,
+        13,
+        32975,
+        3016,
+        11013,
+        321,
+        2560,
+        29997,
+        13,
+        198,
+        760,
+        6297,
+        16545,
+        11173,
+        15339,
+        440,
+        26957,
+        41224,
+        11,
+        264,
+        8097,
+        4779,
+        7786,
+        11,
+        321,
+        9722,
+        21838,
+        13,
+        32975,
+        3016,
+        11013,
+        321,
+        2560,
+        29997,
+        13,
+        198,
+        760,
+        6297,
+        16545,
+        11173,
+        15339,
+        440,
+        26957,
+        41224,
+        11,
+        264,
+        8097,
+        4779,
+        7786,
+        11,
+        321,
+        9722,
+        21838,
+        13,
+        32975,
+        3016,
+        11013,
+        321,
+        2560,
+        29997,
+        13,
+        198,
+        760,
+        6297,
+        16545,
+        11173,
+        15339,
+        440,
+        26957,
+        41224,
+        11,
+        264,
+        8097,
+        4779,
+        7786,
+        11,
+        321,
+        9722,
+        21838,
+        13,
+        32975,
+        3016,
+        11013,
+        321,
+        2560,
+        29997,
+        13,
+        198,
+        760,
+        6297,
+        16545,
+        11173,
+        15339,
+        440,
+        26957,
+        41224,
+        11,
+        264,
+        8097,
+        4779,
+        7786,
+        11,
+        321,
+        9722,
+        21838,
+        13,
+        32975,
+        3016,
+        11013,
+        321,
+        2560,
+        29997,
+        13,
+        198,
+        760,
+        6297,
+        16545,
+        11173,
+        15339,
+        440,
+        26957,
+        41224,
+        11,
+        264,
+        8097,
+        4779,
+        7786,
+        11,
+        321,
+        9722,
+        21838,
+        13,
+        32975,
+        3016,
+        11013,
+        321,
+        2560,
+        29997,
+        13,
+        198,
+        760,
+        6297,
+        16545,
+        11173,
+        15339,
+        440,
+        26957,
+        41224,
+        11,
+        264,
+        8097,
+        4779,
+        7786,
+        11,
+        321,
+        9722,
+        21838,
+        13,
+        32975,
+        3016,
+        11013,
+        321,
+        2560,
+        29997,
+        13,
+        198,
+        760,
+        6297,
+        16545,
+        11173,
+        15339,
+        440,
+        26957,
+        41224,
+        11,
+        264,
+        8097,
+        4779,
+        7786,
+        11,
+        321,
+        9722,
+        21838,
+        13,
+        32975,
+        3016,
+        11013,
+        321,
+        2560,
+        29997,
+        13,
+        198,
+        760,
+        6297,
+        16545,
+        11173,
+        15339,
+        440,
+        26957,
+        41224,
+        11,
+        264,
+        8097,
+        4779,
+        7786,
+        11,
+        321,
+        9722,
+        21838,
+        13,
+        32975,
+        3016,
+        11013,
+        321,
+        2560,
+        29997,
+        13,
+        198,
+        760,
+        6297,
+        16545,
+        11173,
+        15339,
+        440,
+        26957,
+        41224,
+        11,
+        264,
+        8097,
+        4779,
+        7786,
+        11,
+        321,
+        9722,
+        21838,
+        13,
+        32975,
+        3016,
+        11013,
+        321,
+        2560,
+        29997,
+        13,
+        198,
+        760,
+        6297,
+        16545,
+        11173,
+        15339,
+        440,
+        26957,
+        41224,
+        11,
+        264,
+        8097,
+        4779,
+        7786,
+        11,
+        321,
+        9722,
+        21838,
+        13,
+        32975,
+        3016,
+        11013,
+        321,
+        2560,
+        29997,
+        13,
+        198,
+        760,
+        6297,
+        16545,
+        11173,
+        15339,
+        440,
+        26957,
+        41224,
+        11,
+        264,
+        8097,
+        4779,
+        7786,
+        11,
+        321,
+        9722,
+        21838,
+        13,
+        32975,
+        3016,
+        11013,
+        321,
+        2560,
+        29997,
+        13,
+        198,
+        760,
+        6297,
+        16545,
+        11173,
+        15339,
+        440,
+        26957,
+        41224,
+        11,
+        264,
+        8097,
+        4779,
+        7786,
+        11,
+        321,
+        9722,
+        21838,
+        13,
+        32975,
+        3016,
+        11013,
+        321,
+        2560,
+        29997,
+        13,
+        198,
+        760,
+        6297,
+        16545,
+        11173,
+        15339,
+        440,
+        26957,
+        41224,
+        11,
+        264,
+        8097,
+        4779,
+        7786,
+        11,
+        321,
+        9722,
+        21838,
+        13,
+        32975,
+        3016,
+        11013,
+        321,
+        2560,
+        29997,
+        13,
+        198,
+        760,
+        6297,
+        16545,
+        11173,
+        15339,
+        440,
+        26957,
+        41224,
+        11,
+        264,
+        8097,
+        4779,
+        7786,
+        11,
+        321,
+        9722,
+        21838,
+        13,
+        32975,
+        3016,
+        11013,
+        321,
+        2560,
+        29997,
+        13,
+        198,
+        760,
+        6297,
+        16545,
+        11173,
+        15339,
+        440,
+        26957,
+        41224,
+        11,
+        264,
+        8097,
+        4779,
+        7786,
+        11,
+        321,
+        9722,
+        21838,
+        13,
+        32975,
+        3016,
+        11013,
+        321,
+        2560,
+        29997,
+        13,
+        198,
+        760,
+        6297,
+        16545,
+        11173,
+        15339,
+        440,
+        26957,
+        41224,
+        11,
+        264,
+        8097,
+        4779,
+        7786,
+        11,
+        321,
+        9722,
+        21838,
+        13,
+        32975,
+        3016,
+        11013,
+        321,
+        2560,
+        29997,
+        13,
+        198,
+        760,
+        6297,
+        16545,
+        11173,
+        15339,
+        440,
+        26957,
+        41224,
+        11,
+        264,
+        8097,
+        4779,
+        7786,
+        11,
+        321,
+        9722,
+        21838,
+        13,
+        32975,
+        3016,
+        11013,
+        321,
+        2560,
+        29997,
+        13,
+        198,
+        760,
+        6297,
+        16545,
+        11173,
+        15339,
+        440,
+        26957,
+        41224,
+        11,
+        264,
+        8097,
+        4779,
+        7786,
+        11,
+        321,
+        9722,
+        21838,
+        13,
+        32975,
+        3016,
+        11013,
+        321,
+        2560,
+        29997,
+        13,
+        198,
+        760,
+        6297,
+        16545,
+        11173,
+        15339,
+        440,
+        26957,
+        41224,
+        11,
+        264,
+        8097,
+        4779,
+        7786,
+        11,
+        321,
+        9722,
+        21838,
+        13,
+        32975,
+        3016,
+        11013,
+        321,
+        2560,
+        29997,
+        13,
+        198,
+        814,
+        20139,
+        279,
+        6355,
+        31410,
+        1881,
+        436,
+        34810,
+        321,
+        55223,
+        52,
+        45850,
+        1608,
+        279,
+        16713,
+        11173,
+        51797,
+        8129,
+        13,
+        248046,
+        198,
+        248045,
+        74455,
+        198,
+        248068,
+        271,
+        248069,
+        271
+      ],
+      "expectedTokenIds": [
+        27775,
+        383,
+        279,
+        11173,
+        51797,
+        8129,
+        3766,
+        11,
+        1532,
+        369,
+        449,
+        15673,
+        314,
+        279,
+        6355,
+        31410,
+        1881,
+        2972,
+        19504,
+        52,
+        332,
+        318,
+        78994,
+        39642,
+        11851,
+        8,
+        321,
+        2972,
+        21907,
+        52,
+        332,
+        318,
+        78994,
+        89426,
+        11851,
+        8,
+        45850,
+        11,
+        11352,
+        39664,
+        279,
+        6355,
+        31410,
+        303,
+        279,
+        2193,
+        314,
+        279,
+        7246,
+        24481,
+        13,
+        271,
+        13962,
+        220,
+        16,
+        13,
+        561,
+        16706,
+        1783,
+        25,
+        4310,
+        5972,
+        13,
+        9357
+      ],
+      "generatedTokenIds": [
+        27775,
+        383,
+        279,
+        11173,
+        51797,
+        8129,
+        3766,
+        11,
+        1532,
+        369,
+        449,
+        15673,
+        314,
+        279,
+        6355,
+        31410,
+        1881,
+        2972,
+        19504,
+        52,
+        332,
+        318,
+        78994,
+        39642,
+        11851,
+        8,
+        321,
+        2972,
+        21907,
+        52,
+        332,
+        318,
+        78994,
+        89426,
+        11851,
+        8,
+        45850,
+        11,
+        11352,
+        39664,
+        279,
+        6355,
+        31410,
+        303,
+        279,
+        2193,
+        314,
+        279,
+        7246,
+        24481,
+        13,
+        271,
+        13962,
+        220,
+        16,
+        13,
+        561,
+        16706,
+        1783,
+        25,
+        4310,
+        5972,
+        13,
+        9357
+      ],
+      "endedByEOS": false,
+      "expectedEndedByEOS": false,
+      "completedBudget": true,
+      "exactTokens": true
+    }
+  ],
+  "receipt": {
+    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/tjs-four-teacher-output-01/result.json",
+    "sha256": "59c8a677fe0173e118540dc190f3109cb77f29870ffaed9472c2e683bd6e0e60"
+  },
+  "steps": 256,
+  "fullVocabularyRows": 32,
+  "maxLogitError": 5.53131103515625e-05,
+  "rows": [
+    {
+      "case": "teacher-code-0",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 4.863739013671875e-05,
+      "meanAbsoluteError": 7.280173725545405e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 8160,
+      "nativeArgmax": 8160,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-code-1",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 5.4836273193359375e-05,
+      "meanAbsoluteError": 9.868489149532495e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 369,
+      "nativeArgmax": 369,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-code-2",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 5.173683166503906e-05,
+      "meanAbsoluteError": 7.67067113451892e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 264,
+      "nativeArgmax": 264,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-code-4",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 3.790855407714844e-05,
+      "meanAbsoluteError": 6.158928055972715e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 11,
+      "nativeArgmax": 11,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-code-8",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 3.7670135498046875e-05,
+      "meanAbsoluteError": 6.031006010115815e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 279,
+      "nativeArgmax": 279,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-code-16",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 4.398822784423828e-05,
+      "meanAbsoluteError": 7.473489624886906e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 6093,
+      "nativeArgmax": 6093,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-code-32",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 4.2438507080078125e-05,
+      "meanAbsoluteError": 6.94037510917609e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 4886,
+      "nativeArgmax": 4886,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-code-63",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 4.6253204345703125e-05,
+      "meanAbsoluteError": 7.612603388379378e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 1089,
+      "nativeArgmax": 1089,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-explanation-0",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 3.9458274841308594e-05,
+      "meanAbsoluteError": 6.418144021540186e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 32,
+      "nativeArgmax": 32,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-explanation-1",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 3.528594970703125e-05,
+      "meanAbsoluteError": 6.167296856575053e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 2972,
+      "nativeArgmax": 2972,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-explanation-2",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 4.1961669921875e-05,
+      "meanAbsoluteError": 5.9593400549991055e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 8038,
+      "nativeArgmax": 8038,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-explanation-4",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 3.9577484130859375e-05,
+      "meanAbsoluteError": 6.349092213523868e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 332,
+      "nativeArgmax": 332,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-explanation-8",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 3.528594970703125e-05,
+      "meanAbsoluteError": 5.214847808325154e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 5759,
+      "nativeArgmax": 5759,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-explanation-16",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 4.57763671875e-05,
+      "meanAbsoluteError": 6.0127673484338486e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 13,
+      "nativeArgmax": 13,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-explanation-32",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 3.4332275390625e-05,
+      "meanAbsoluteError": 5.06714715637787e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 1938,
+      "nativeArgmax": 1938,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-explanation-63",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 3.337860107421875e-05,
+      "meanAbsoluteError": 5.1540362669666325e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 1788,
+      "nativeArgmax": 1788,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-arithmetic-0",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 3.4809112548828125e-05,
+      "meanAbsoluteError": 5.493733808602485e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 13962,
+      "nativeArgmax": 13962,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-arithmetic-1",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 5.53131103515625e-05,
+      "meanAbsoluteError": 7.201389133319818e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 14392,
+      "nativeArgmax": 14392,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-arithmetic-2",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 4.076957702636719e-05,
+      "meanAbsoluteError": 6.4580510597933e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 220,
+      "nativeArgmax": 220,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-arithmetic-4",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 3.886222839355469e-05,
+      "meanAbsoluteError": 6.546008458610158e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 25,
+      "nativeArgmax": 25,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-arithmetic-8",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 4.291534423828125e-05,
+      "meanAbsoluteError": 6.235320305189155e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 1560,
+      "nativeArgmax": 1560,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-arithmetic-16",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 3.814697265625e-05,
+      "meanAbsoluteError": 6.428742475963089e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 1423,
+      "nativeArgmax": 1423,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-arithmetic-32",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 4.00543212890625e-05,
+      "meanAbsoluteError": 5.3469828818215236e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 44896,
+      "nativeArgmax": 44896,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-arithmetic-63",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 4.458427429199219e-05,
+      "meanAbsoluteError": 8.080741320704022e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 17,
+      "nativeArgmax": 17,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-long-context-0",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 4.00543212890625e-05,
+      "meanAbsoluteError": 6.052159888306752e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 27775,
+      "nativeArgmax": 27775,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-long-context-1",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 4.589557647705078e-05,
+      "meanAbsoluteError": 7.297807971326766e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 383,
+      "nativeArgmax": 383,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-long-context-2",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 4.673004150390625e-05,
+      "meanAbsoluteError": 7.589989206486425e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 279,
+      "nativeArgmax": 279,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-long-context-4",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 4.458427429199219e-05,
+      "meanAbsoluteError": 6.510906381972347e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 51797,
+      "nativeArgmax": 51797,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-long-context-8",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 4.100799560546875e-05,
+      "meanAbsoluteError": 6.130023110195611e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 1532,
+      "nativeArgmax": 1532,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-long-context-16",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 4.315376281738281e-05,
+      "meanAbsoluteError": 6.84986246049919e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 1881,
+      "nativeArgmax": 1881,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-long-context-32",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 4.3392181396484375e-05,
+      "meanAbsoluteError": 7.1582387627817175e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 78994,
+      "nativeArgmax": 78994,
+      "exactArgmax": true
+    },
+    {
+      "case": "teacher-long-context-63",
+      "elements": 248320,
+      "referenceSnapshot": true,
+      "maxAbsoluteError": 3.0875205993652344e-05,
+      "meanAbsoluteError": 5.062365466022401e-06,
+      "failedLogits": 0,
+      "logitsPass": true,
+      "teacherPrefixAligned": true,
+      "argmax": 9357,
+      "nativeArgmax": 9357,
+      "exactArgmax": true
+    }
+  ],
+  "actualCacheOutputChecks": 12288,
+  "all48PerStep": true,
+  "allCachesF32GpuBuffers": true,
+  "prefillWork": [
+    {
+      "phase": "prefill",
+      "inputTokens": 28,
+      "pastTokens": 0,
+      "totalTokens": 28,
+      "nativeChunkSize": 64,
+      "requiredPromptChunks": 1,
+      "scheduledChunks": 11,
+      "scheduledPrefillTokens": 704,
+      "paddedPrefillTokens": 676,
+      "applicationIndexTypes": {
+        "position_ids": "int32",
+        "attention_mask": "int32"
+      },
+      "hostGeometry": [
+        {
+          "name": "host_range_limit_i32",
+          "recipes": [
+            {
+              "name": "host_range_limit_i32",
+              "type": "int32",
+              "shape": [],
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            }
+          ],
+          "values": [
+            28
+          ],
+          "type": "int32"
+        },
+        {
+          "name": "host_shape_0",
+          "recipes": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 16
+            },
+            {
+              "constant": 128
+            }
+          ],
+          "values": [
+            1,
+            28,
+            16,
+            128
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_1",
+          "recipes": [
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            }
+          ],
+          "values": [
+            28
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_2",
+          "recipes": [
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 16,
+              "addend": 0
+            },
+            {
+              "constant": 128
+            }
+          ],
+          "values": [
+            448,
+            128
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_3",
+          "recipes": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 2048
+            }
+          ],
+          "values": [
+            1,
+            28,
+            2048
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_4",
+          "recipes": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 8
+            },
+            {
+              "constant": 512
+            }
+          ],
+          "values": [
+            1,
+            28,
+            8,
+            512
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_5",
+          "recipes": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 2
+            },
+            {
+              "constant": 256
+            }
+          ],
+          "values": [
+            1,
+            28,
+            2,
+            256
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_6",
+          "recipes": [
+            {
+              "constant": 1
+            },
+            {
+              "constant": 2
+            },
+            {
+              "constant": 4
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 256
+            }
+          ],
+          "values": [
+            1,
+            2,
+            4,
+            28,
+            256
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_7",
+          "recipes": [
+            {
+              "constant": 1
+            },
+            {
+              "constant": 8
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 256
+            }
+          ],
+          "values": [
+            1,
+            8,
+            28,
+            256
+          ],
+          "type": "int64"
+        }
+      ],
+      "rotaryLookup": {
+        "minimumPosition": 0,
+        "maximumPositionExclusive": 2048,
+        "construction": "Pinned source ONNX CPU rotary subgraph, export time only",
+        "runtime": "ONNX WebGPU Gather/Where/Concat"
+      },
+      "decode": null
+    },
+    {
+      "phase": "prefill",
+      "inputTokens": 31,
+      "pastTokens": 0,
+      "totalTokens": 31,
+      "nativeChunkSize": 64,
+      "requiredPromptChunks": 1,
+      "scheduledChunks": 11,
+      "scheduledPrefillTokens": 704,
+      "paddedPrefillTokens": 673,
+      "applicationIndexTypes": {
+        "position_ids": "int32",
+        "attention_mask": "int32"
+      },
+      "hostGeometry": [
+        {
+          "name": "host_range_limit_i32",
+          "recipes": [
+            {
+              "name": "host_range_limit_i32",
+              "type": "int32",
+              "shape": [],
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            }
+          ],
+          "values": [
+            31
+          ],
+          "type": "int32"
+        },
+        {
+          "name": "host_shape_0",
+          "recipes": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 16
+            },
+            {
+              "constant": 128
+            }
+          ],
+          "values": [
+            1,
+            31,
+            16,
+            128
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_1",
+          "recipes": [
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            }
+          ],
+          "values": [
+            31
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_2",
+          "recipes": [
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 16,
+              "addend": 0
+            },
+            {
+              "constant": 128
+            }
+          ],
+          "values": [
+            496,
+            128
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_3",
+          "recipes": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 2048
+            }
+          ],
+          "values": [
+            1,
+            31,
+            2048
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_4",
+          "recipes": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 8
+            },
+            {
+              "constant": 512
+            }
+          ],
+          "values": [
+            1,
+            31,
+            8,
+            512
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_5",
+          "recipes": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 2
+            },
+            {
+              "constant": 256
+            }
+          ],
+          "values": [
+            1,
+            31,
+            2,
+            256
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_6",
+          "recipes": [
+            {
+              "constant": 1
+            },
+            {
+              "constant": 2
+            },
+            {
+              "constant": 4
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 256
+            }
+          ],
+          "values": [
+            1,
+            2,
+            4,
+            31,
+            256
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_7",
+          "recipes": [
+            {
+              "constant": 1
+            },
+            {
+              "constant": 8
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 256
+            }
+          ],
+          "values": [
+            1,
+            8,
+            31,
+            256
+          ],
+          "type": "int64"
+        }
+      ],
+      "rotaryLookup": {
+        "minimumPosition": 0,
+        "maximumPositionExclusive": 2048,
+        "construction": "Pinned source ONNX CPU rotary subgraph, export time only",
+        "runtime": "ONNX WebGPU Gather/Where/Concat"
+      },
+      "decode": null
+    },
+    {
+      "phase": "prefill",
+      "inputTokens": 34,
+      "pastTokens": 0,
+      "totalTokens": 34,
+      "nativeChunkSize": 64,
+      "requiredPromptChunks": 1,
+      "scheduledChunks": 11,
+      "scheduledPrefillTokens": 704,
+      "paddedPrefillTokens": 670,
+      "applicationIndexTypes": {
+        "position_ids": "int32",
+        "attention_mask": "int32"
+      },
+      "hostGeometry": [
+        {
+          "name": "host_range_limit_i32",
+          "recipes": [
+            {
+              "name": "host_range_limit_i32",
+              "type": "int32",
+              "shape": [],
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            }
+          ],
+          "values": [
+            34
+          ],
+          "type": "int32"
+        },
+        {
+          "name": "host_shape_0",
+          "recipes": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 16
+            },
+            {
+              "constant": 128
+            }
+          ],
+          "values": [
+            1,
+            34,
+            16,
+            128
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_1",
+          "recipes": [
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            }
+          ],
+          "values": [
+            34
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_2",
+          "recipes": [
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 16,
+              "addend": 0
+            },
+            {
+              "constant": 128
+            }
+          ],
+          "values": [
+            544,
+            128
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_3",
+          "recipes": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 2048
+            }
+          ],
+          "values": [
+            1,
+            34,
+            2048
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_4",
+          "recipes": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 8
+            },
+            {
+              "constant": 512
+            }
+          ],
+          "values": [
+            1,
+            34,
+            8,
+            512
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_5",
+          "recipes": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 2
+            },
+            {
+              "constant": 256
+            }
+          ],
+          "values": [
+            1,
+            34,
+            2,
+            256
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_6",
+          "recipes": [
+            {
+              "constant": 1
+            },
+            {
+              "constant": 2
+            },
+            {
+              "constant": 4
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 256
+            }
+          ],
+          "values": [
+            1,
+            2,
+            4,
+            34,
+            256
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_7",
+          "recipes": [
+            {
+              "constant": 1
+            },
+            {
+              "constant": 8
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 256
+            }
+          ],
+          "values": [
+            1,
+            8,
+            34,
+            256
+          ],
+          "type": "int64"
+        }
+      ],
+      "rotaryLookup": {
+        "minimumPosition": 0,
+        "maximumPositionExclusive": 2048,
+        "construction": "Pinned source ONNX CPU rotary subgraph, export time only",
+        "runtime": "ONNX WebGPU Gather/Where/Concat"
+      },
+      "decode": null
+    },
+    {
+      "phase": "prefill",
+      "inputTokens": 655,
+      "pastTokens": 0,
+      "totalTokens": 655,
+      "nativeChunkSize": 64,
+      "requiredPromptChunks": 11,
+      "scheduledChunks": 11,
+      "scheduledPrefillTokens": 704,
+      "paddedPrefillTokens": 49,
+      "applicationIndexTypes": {
+        "position_ids": "int32",
+        "attention_mask": "int32"
+      },
+      "hostGeometry": [
+        {
+          "name": "host_range_limit_i32",
+          "recipes": [
+            {
+              "name": "host_range_limit_i32",
+              "type": "int32",
+              "shape": [],
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            }
+          ],
+          "values": [
+            655
+          ],
+          "type": "int32"
+        },
+        {
+          "name": "host_shape_0",
+          "recipes": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 16
+            },
+            {
+              "constant": 128
+            }
+          ],
+          "values": [
+            1,
+            655,
+            16,
+            128
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_1",
+          "recipes": [
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            }
+          ],
+          "values": [
+            655
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_2",
+          "recipes": [
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 16,
+              "addend": 0
+            },
+            {
+              "constant": 128
+            }
+          ],
+          "values": [
+            10480,
+            128
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_3",
+          "recipes": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 2048
+            }
+          ],
+          "values": [
+            1,
+            655,
+            2048
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_4",
+          "recipes": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 8
+            },
+            {
+              "constant": 512
+            }
+          ],
+          "values": [
+            1,
+            655,
+            8,
+            512
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_5",
+          "recipes": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 2
+            },
+            {
+              "constant": 256
+            }
+          ],
+          "values": [
+            1,
+            655,
+            2,
+            256
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_6",
+          "recipes": [
+            {
+              "constant": 1
+            },
+            {
+              "constant": 2
+            },
+            {
+              "constant": 4
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 256
+            }
+          ],
+          "values": [
+            1,
+            2,
+            4,
+            655,
+            256
+          ],
+          "type": "int64"
+        },
+        {
+          "name": "host_shape_7",
+          "recipes": [
+            {
+              "constant": 1
+            },
+            {
+              "constant": 8
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 256
+            }
+          ],
+          "values": [
+            1,
+            8,
+            655,
+            256
+          ],
+          "type": "int64"
+        }
+      ],
+      "rotaryLookup": {
+        "minimumPosition": 0,
+        "maximumPositionExclusive": 2048,
+        "construction": "Pinned source ONNX CPU rotary subgraph, export time only",
+        "runtime": "ONNX WebGPU Gather/Where/Concat"
+      },
+      "decode": null
+    }
+  ]
+}
