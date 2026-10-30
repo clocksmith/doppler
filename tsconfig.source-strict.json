@@ -16,6 +16,7 @@
   },
   "include": [],
   "files": [
+    "src/gpu/kernels/matmul-workgroup-capacity.js",
     "tools/lib/evidence-io.js",
     "tools/lib/profile-comparison.js",
     "tools/lib/evidence-fields.js",
