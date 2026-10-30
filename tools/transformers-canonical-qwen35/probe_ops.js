@@ -47,14 +47,22 @@ try {
     if (!adapter?.info.vendor.toLowerCase().includes(config.requiredVendor)) throw new Error('wrong adapter');
     const device = await adapter.requestDevice();
     ort.env.webgpu.device = device;
+    const actualDevices = new Set();
+    const bounded = async (operation, phase) => {
+      let timer;
+      try { return await Promise.race([operation, new Promise((resolve, reject) => {
+        timer = setTimeout(() => reject(new Error('micro observation timeout: ' + phase)), config.gpuInspectionTimeoutMs);
+      })]); } finally { clearTimeout(timer); }
+    };
     const attempts = [];
     try {
       for (const test of cases) {
-        let session, output;
+        let session, output, inspection;
         const feeds = {};
         try {
           session = await ort.InferenceSession.create(`/probes/${test.file}`, { executionProviders: ['webgpu'],
             graphOptimizationLevel: 'disabled', logSeverityLevel: 0, logVerbosityLevel: 1,
+            ...(config.inspectGpuTensor === true ? { preferredOutputLocation: { output: 'gpu-buffer' } } : {}),
             extra: { session: { disable_cpu_ep_fallback: '1' } } });
           if (config.admissionOnly === true) {
             attempts.push({ name: test.name, admitted: true, executed: false, sourceNodes: test.sourceNodes });
@@ -68,17 +76,54 @@ try {
             feeds[input.name] = new ort.Tensor(input.type, data, input.shape);
           }
           output = await session.run(feeds);
+          if (config.inspectGpuTensor === true) {
+            if (!Number.isSafeInteger(config.gpuInspectionTimeoutMs) || config.gpuInspectionTimeoutMs <= 0) throw new Error('Declare positive gpuInspectionTimeoutMs');
+            const actual = await ort.env.webgpu.device;
+            actualDevices.add(actual);
+            const tensor = output.output;
+            if (tensor.location !== 'gpu-buffer' || tensor.type !== 'float32') throw new Error('Micro observer requires actual F32 GPU output');
+            inspection = { sourceLocation: tensor.location, requestedDeviceHonored: actual === device,
+              actualAdapter: { vendor: actual.adapterInfo.vendor, architecture: actual.adapterInfo.architecture },
+              gpuErrors: [], phases: [] };
+            actual.addEventListener('uncapturederror', event => inspection.gpuErrors.push(event.error.message));
+            const phase = name => { inspection.phases.push(name); console.log('observation-micro ' + name); };
+            const bytes = 4 * test.expected.length;
+            const target = actual.createBuffer({ size: bytes, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+            try {
+              phase('direct-copy-submit');
+              const commands = actual.createCommandEncoder();
+              commands.copyBufferToBuffer(tensor.gpuBuffer, 0, target, 0, bytes);
+              actual.queue.submit([commands.finish()]);
+              phase('direct-copy-map');
+              await bounded(target.mapAsync(GPUMapMode.READ), 'direct-copy-map');
+              inspection.directCopy = Array.from(new Float32Array(target.getMappedRange()));
+              target.unmap(); phase('direct-copy-complete');
+            } catch (error) { inspection.directCopyError = String(error); }
+            finally { target.destroy(); }
+            try {
+              phase('empty-error-scope');
+              actual.pushErrorScope('validation');
+              const error = await bounded(actual.popErrorScope(), 'empty-error-scope');
+              inspection.emptyErrorScope = error?.message ?? null;
+              phase('empty-error-scope-complete');
+            } catch (error) { inspection.emptyErrorScopeError = String(error); }
+            phase('public-tensor-getData');
+            const downloaded = await bounded(tensor.getData(), 'public-tensor-getData');
+            inspection.publicDownload = Array.from(downloaded);
+            inspection.locationAfterPublicDownload = tensor.location;
+            phase('public-tensor-getData-complete');
+          }
           const data = Array.from(await output.output.getData(), Number);
           attempts.push({ name: test.name, admitted: true, output: data,
-            expected: test.expected, exact: data.length === test.expected.length && data.every((value, index) => value === test.expected[index]) });
-        } catch (error) { attempts.push({ name: test.name, admitted: false, sourceNodes: test.sourceNodes, error: String(error) }); }
+            expected: test.expected, inspection, exact: data.length === test.expected.length && data.every((value, index) => value === test.expected[index]) });
+        } catch (error) { attempts.push({ name: test.name, admitted: false, inspection, sourceNodes: test.sourceNodes, error: String(error) }); }
         finally {
           for (const tensor of Object.values(output ?? {})) tensor.dispose();
           for (const tensor of Object.values(feeds)) tensor.dispose();
           await session?.release();
         }
       }
-    } finally { device.destroy(); }
+    } finally { for (const actual of actualDevices) if (actual !== device) actual.destroy(); device.destroy(); }
     return { schema: 'doppler.pinned-ort-gpu-op-admission.v1', scope: 'Exact-dtype micrographs, no CPU fallback, no model qualification',
       adapter: { vendor: adapter.info.vendor, architecture: adapter.info.architecture }, attempts };
   }, { config, cases });

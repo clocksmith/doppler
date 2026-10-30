@@ -21,6 +21,10 @@ def main():
                 artifact['inputs'] != large['inputs'] or artifact['contract']['kvPhysicalDtype'] != 'float32' or
                 not gates[bound].get('completed')):
             raise ValueError('bucket construction/native CPU proof is incomplete or different')
+        root = args.small if bound == 64 else args.large
+        if (gates[bound]['inputs'] != artifact['inputs'] or gates[bound]['contract'] != artifact['contract'] or
+                gates[bound]['onnxArtifact']['sha256'] != digest(root / 'receipt.json')):
+            raise ValueError('bucket CPU receipt is not bound to this exact source graph artifact')
         for key in ('stateAbsoluteTolerance', 'stateRelativeTolerance', 'logitAbsoluteTolerance', 'maxSequenceLength', 'kvPhysicalDtype'):
             if artifact['contract'][key] != large['contract'][key]:
                 raise ValueError('bucket precision or frozen numerical gate differs')
