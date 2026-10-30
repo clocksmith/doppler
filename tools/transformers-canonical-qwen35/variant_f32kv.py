@@ -47,10 +47,13 @@ def main():
     receipt["sourceFiles"]["variant_f32kv.py"] = digest(Path(__file__))
     receipt["sourceFiles"]["text-export-f32kv.json"] = digest(args.policy)
     receipt["variantChanges"] = []
-    receipt["sessionFiles"] = {"embed_tokens": str(args.source / "onnx" / "embed_tokens.onnx")}
+    receipt["sessionFiles"] = {"embed_tokens": source.get("sessionFiles", {}).get("embed_tokens", str(args.source / "onnx" / "embed_tokens.onnx"))}
     for graph in receipt["graphs"]:
         filename = Path(graph["path"]).name
-        original = onnx.load(args.source / "onnx" / filename, load_external_data=False)
+        graph_path = Path(graph["path"])
+        if not graph_path.is_absolute():
+            graph_path = args.source / graph_path
+        original = onnx.load(graph_path, load_external_data=False)
         model = deepcopy(original)
         cast_changes = []
         for node in model.graph.node:
@@ -78,7 +81,7 @@ def main():
             raise ValueError("variant changed computation graph connectivity")
         # ONNX forbids traversal references and hard-linked external payloads.
         # A sibling graph can safely reference the original single-linked data.
-        target = args.source / "onnx" / (Path(filename).stem + "." + args.out.name + ".onnx")
+        target = graph_path.with_name(Path(filename).stem + "." + args.out.name + ".onnx")
         if target.exists():
             raise ValueError("refusing to overwrite an existing variant graph")
         onnx.save(model, target)

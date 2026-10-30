@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { RoutedDecoder, cachePorts } from './tjs_model.js';
+import { BucketedPrefill } from './bucketed_prefill.js';
 
 const config = { text_config: { layer_types: ['linear_attention', 'full_attention'],
   linear_num_key_heads: 2, linear_key_head_dim: 4, linear_num_value_heads: 2,
@@ -132,4 +133,18 @@ test('bounded rotary lookup rejects unsupported application positions before GPU
   input.position_ids.data[0] = -1n;
   await assert.rejects(routed.run(input), /declared bounds/);
   assert.equal(prefill.calls.length, 1);
+});
+
+test('explicit prefill buckets report actual native chunks at routing boundaries', async () => {
+  const small = session(), large = session();
+  const buckets = new BucketedPrefill([{ bound: 64, session: small, controls: [] },
+    { bound: 704, session: large, controls: [] }], () => assert.fail('no geometry ports'));
+  const routed = new RoutedDecoder(buckets, session(), config, { ...policy, prefillBound: 704 });
+  for (const length of [28, 64, 65, 655]) await routed.run(feeds(0, length));
+  assert.equal(small.calls.length, 2);
+  assert.equal(large.calls.length, 2);
+  assert.deepEqual(routed.work.map(work => work.scheduledPrefillTokens), [64, 64, 704, 704]);
+  assert.deepEqual(routed.work.map(work => work.scheduledChunks), [1, 1, 11, 11]);
+  assert.deepEqual(routed.work.map(work => work.paddedPrefillTokens), [36, 0, 639, 49]);
+  await assert.rejects(routed.run(feeds(0, 705)), /Unsupported prefill shape/);
 });

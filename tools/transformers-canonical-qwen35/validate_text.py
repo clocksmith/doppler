@@ -17,11 +17,18 @@ def main():
     parser.add_argument("--teacher", required=True, type=Path)
     parser.add_argument("--out", required=True, type=Path)
     parser.add_argument("--diagnose-softplus", action="store_true")
+    parser.add_argument("--lane-policy", type=Path)
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=False)
     policy_path = Path(__file__).with_name("contract.json")
     policy = json.loads(policy_path.read_text())
-    lane = policy["textExport"]
+    lane = json.loads(args.lane_policy.read_text()) if args.lane_policy else policy["textExport"]
+    allowed = {"prefillBound", "cpuPrefillLengths", "scope"}
+    if any(lane.get(key) != value for key, value in policy["textExport"].items() if key not in allowed):
+        raise ValueError("bucket CPU policy may not change physical precision or numerical thresholds")
+    if lane["prefillBound"] % policy["linearExport"]["chunkSize"] or any(
+            length < 1 or length > lane["prefillBound"] for length in lane["cpuPrefillLengths"]):
+        raise ValueError("bucket CPU shapes must fit its declared native chunk bound")
     inputs = read_inputs(args.canonical, policy)
     verify_bytes(inputs, policy["hashChunkBytes"])
     expected = policy["frameworks"]
@@ -100,7 +107,8 @@ def main():
     try:
         with torch.inference_mode():
             for length in lane["cpuPrefillLengths"]:
-                ids = torch.tensor([code["promptIds"][:length]], dtype=torch.int64)
+                prompt = next(prompt for prompt in teacher["prompts"] if len(prompt["promptIds"]) >= length)
+                ids = torch.tensor([prompt["promptIds"][:length]], dtype=torch.int64)
                 native_cache = physical_cache(config, torch.float16)
                 exported_cache = empty_cache(config)
                 for step in range(lane["cpuDecodeSteps"] + 1):
@@ -115,7 +123,7 @@ def main():
                     label = f"prefill-{length}-{mode}-{step}"
                     compare(label, actual, reference)
                     token = int(expected_result.logits[0, -1].argmax())
-                    receipt["cases"].append({"name": label, "inputIds": ids.flatten().tolist(), "positionOffset": offset,
+                    receipt["cases"].append({"name": label, "promptId": prompt["id"], "inputIds": ids.flatten().tolist(), "positionOffset": offset,
                                              "nativeArgmax": token, "exportArgmax": int(actual[0][0, -1].argmax())})
                     exported_cache = actual[1:]
                     ids = torch.tensor([[token]], dtype=torch.int64)

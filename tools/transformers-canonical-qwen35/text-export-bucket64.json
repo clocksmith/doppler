@@ -1,0 +1,16 @@
+{
+  "batchSize": 1,
+  "prefillBound": 64,
+  "maxSequenceLength": 2048,
+  "cpuPrefillLengths": [1, 2, 28, 63, 64],
+  "cpuDecodeSteps": 4,
+  "logitAbsoluteTolerance": 0.001,
+  "stateAbsoluteTolerance": 0.00001,
+  "stateRelativeTolerance": 0.0001,
+  "kvStateMaxRepresentableSteps": 1,
+  "kvPhysicalDtype": "float16",
+  "linearStateDtype": "float32",
+  "attentionMathDtype": "float32",
+  "scope": "Explicit native chunk64 prefill bucket for input lengths1..64; frozen short prompts28/31/34 use this bucket.",
+  "sessionRouting": "Explicit prefill/decode adapter supplied through the public TJS model constructor; no token-at-a-time prefill"
+}

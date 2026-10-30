@@ -1,0 +1,557 @@
+{
+  "scope": "Explicit64/704 prefill bucket composition; strict CPU numerical failures remain retained",
+  "receipt": {
+    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/bucketed-text-01/receipt.json",
+    "sha256": "5363b2ccee5fb9427fecdde1cbd4729b31441819701268c674019ca32057f527"
+  },
+  "completed": true,
+  "contract": {
+    "batchSize": 1,
+    "prefillBound": 704,
+    "maxSequenceLength": 2048,
+    "cpuPrefillLengths": [
+      1,
+      2,
+      28
+    ],
+    "cpuDecodeSteps": 4,
+    "logitAbsoluteTolerance": 0.001,
+    "stateAbsoluteTolerance": 1e-05,
+    "stateRelativeTolerance": 0.0001,
+    "kvStateMaxRepresentableSteps": 1,
+    "kvPhysicalDtype": "float32",
+    "linearStateDtype": "float32",
+    "attentionMathDtype": "float32",
+    "scope": "Explicit64/704 prefill buckets; smallest admitted bucket, chunk64; context2048; no timing admission",
+    "sessionRouting": "Explicit prefill/decode adapter supplied through the public TJS model constructor; no token-at-a-time prefill",
+    "integerInputs": {
+      "position_ids": "int32",
+      "attention_mask": "int32"
+    },
+    "hostGeometryInputs": {
+      "prefill": [],
+      "decode": [
+        {
+          "name": "host_query_position_i32",
+          "type": "int32",
+          "shape": [
+            1
+          ],
+          "sourceTensor": "past_key_values.11.value",
+          "axis": 2,
+          "multiplier": 1,
+          "addend": 0
+        },
+        {
+          "name": "host_range_limit_i32",
+          "type": "int32",
+          "shape": [],
+          "sourceTensor": "attention_mask",
+          "axis": 1,
+          "multiplier": 1,
+          "addend": 0
+        },
+        {
+          "name": "host_shape_0",
+          "type": "int64",
+          "shape": [
+            5
+          ],
+          "values": [
+            {
+              "constant": 1
+            },
+            {
+              "constant": 2
+            },
+            {
+              "constant": 4
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 256
+            }
+          ],
+          "replaces": "val_529"
+        },
+        {
+          "name": "host_shape_1",
+          "type": "int64",
+          "shape": [
+            4
+          ],
+          "values": [
+            {
+              "constant": 1
+            },
+            {
+              "constant": 8
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 256
+            }
+          ],
+          "replaces": "val_535"
+        }
+      ]
+    },
+    "rotaryLookup": {
+      "minimumPosition": 0,
+      "maximumPositionExclusive": 2048,
+      "construction": "Pinned source ONNX CPU rotary subgraph, export time only",
+      "runtime": "ONNX WebGPU Gather/Where/Concat"
+    },
+    "prefillBuckets": [
+      64,
+      704
+    ],
+    "bucketGeometryInputs": {
+      "64": [
+        {
+          "name": "host_range_limit_i32",
+          "type": "int32",
+          "shape": [],
+          "sourceTensor": "attention_mask",
+          "axis": 1,
+          "multiplier": 1,
+          "addend": 0
+        },
+        {
+          "name": "host_shape_0",
+          "type": "int64",
+          "shape": [
+            4
+          ],
+          "values": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 16
+            },
+            {
+              "constant": 128
+            }
+          ],
+          "replaces": "val_21"
+        },
+        {
+          "name": "host_shape_1",
+          "type": "int64",
+          "shape": [
+            1
+          ],
+          "values": [
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            }
+          ],
+          "replaces": "val_18"
+        },
+        {
+          "name": "host_shape_2",
+          "type": "int64",
+          "shape": [
+            2
+          ],
+          "values": [
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 16,
+              "addend": 0
+            },
+            {
+              "constant": 128
+            }
+          ],
+          "replaces": "val_2360"
+        },
+        {
+          "name": "host_shape_3",
+          "type": "int64",
+          "shape": [
+            3
+          ],
+          "values": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 2048
+            }
+          ],
+          "replaces": "val_2374"
+        },
+        {
+          "name": "host_shape_4",
+          "type": "int64",
+          "shape": [
+            4
+          ],
+          "values": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 8
+            },
+            {
+              "constant": 512
+            }
+          ],
+          "replaces": "val_6998"
+        },
+        {
+          "name": "host_shape_5",
+          "type": "int64",
+          "shape": [
+            4
+          ],
+          "values": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 2
+            },
+            {
+              "constant": 256
+            }
+          ],
+          "replaces": "val_7035"
+        },
+        {
+          "name": "host_shape_6",
+          "type": "int64",
+          "shape": [
+            5
+          ],
+          "values": [
+            {
+              "constant": 1
+            },
+            {
+              "constant": 2
+            },
+            {
+              "constant": 4
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 256
+            }
+          ],
+          "replaces": "val_7133"
+        },
+        {
+          "name": "host_shape_7",
+          "type": "int64",
+          "shape": [
+            4
+          ],
+          "values": [
+            {
+              "constant": 1
+            },
+            {
+              "constant": 8
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 256
+            }
+          ],
+          "replaces": "val_7139"
+        }
+      ],
+      "704": [
+        {
+          "name": "host_range_limit_i32",
+          "type": "int32",
+          "shape": [],
+          "sourceTensor": "attention_mask",
+          "axis": 1,
+          "multiplier": 1,
+          "addend": 0
+        },
+        {
+          "name": "host_shape_0",
+          "type": "int64",
+          "shape": [
+            4
+          ],
+          "values": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 16
+            },
+            {
+              "constant": 128
+            }
+          ],
+          "replaces": "val_21"
+        },
+        {
+          "name": "host_shape_1",
+          "type": "int64",
+          "shape": [
+            1
+          ],
+          "values": [
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            }
+          ],
+          "replaces": "val_18"
+        },
+        {
+          "name": "host_shape_2",
+          "type": "int64",
+          "shape": [
+            2
+          ],
+          "values": [
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 16,
+              "addend": 0
+            },
+            {
+              "constant": 128
+            }
+          ],
+          "replaces": "val_2360"
+        },
+        {
+          "name": "host_shape_3",
+          "type": "int64",
+          "shape": [
+            3
+          ],
+          "values": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 2048
+            }
+          ],
+          "replaces": "val_2374"
+        },
+        {
+          "name": "host_shape_4",
+          "type": "int64",
+          "shape": [
+            4
+          ],
+          "values": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 8
+            },
+            {
+              "constant": 512
+            }
+          ],
+          "replaces": "val_6998"
+        },
+        {
+          "name": "host_shape_5",
+          "type": "int64",
+          "shape": [
+            4
+          ],
+          "values": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 2
+            },
+            {
+              "constant": 256
+            }
+          ],
+          "replaces": "val_7035"
+        },
+        {
+          "name": "host_shape_6",
+          "type": "int64",
+          "shape": [
+            5
+          ],
+          "values": [
+            {
+              "constant": 1
+            },
+            {
+              "constant": 2
+            },
+            {
+              "constant": 4
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 256
+            }
+          ],
+          "replaces": "val_7134"
+        },
+        {
+          "name": "host_shape_7",
+          "type": "int64",
+          "shape": [
+            4
+          ],
+          "values": [
+            {
+              "constant": 1
+            },
+            {
+              "constant": 8
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 256
+            }
+          ],
+          "replaces": "val_7140"
+        }
+      ]
+    }
+  },
+  "bucketSources": [
+    {
+      "bound": 64,
+      "artifact": {
+        "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/bucket64-onnx-lookup-01/receipt.json",
+        "sha256": "5f25b9a74b824ade67e241e5c29052f19a764a3a8a50b484e1334417d1a62f67"
+      },
+      "cpuGate": {
+        "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/bucket64-onnx-lookup-cpu-01/receipt.json",
+        "sha256": "e08d1e3271809a4be7061e0f63daffa948da3672007caade67fa423055edfdf3",
+        "pass": false,
+        "failedChecks": 61
+      }
+    },
+    {
+      "bound": 704,
+      "artifact": {
+        "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-lookup-03/receipt.json",
+        "sha256": "12ab1479a5e52409d8581766f81557f580ce8a7cc7c501dc902b16da4325ac92"
+      },
+      "cpuGate": {
+        "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-lookup-cpu-01/receipt.json",
+        "sha256": "32393bf7637c5c3435c0a7175db3c0ab03a4fc3cc6f4d639aa713c346d17e669",
+        "pass": false,
+        "failedChecks": 53
+      }
+    }
+  ],
+  "initializerBinding": {
+    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/bucketed-text-01/initializer-binding.json",
+    "sha256": "c75be47e2f5d7dd3bfd7003be15a327970d55a068a0d01ea7f1229ea7a48ee82",
+    "pass": true
+  },
+  "parameters": 321,
+  "sessionBindings": 961,
+  "sessionFiles": {
+    "embed_tokens": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/embed_tokens.onnx",
+    "decoder_decode": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_decode.full-onnx-f32kv-lookup-03.onnx",
+    "decoder_prefill_64": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_prefill.bucket64-onnx-lookup-01.onnx",
+    "decoder_prefill_704": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_prefill.full-onnx-f32kv-lookup-03.onnx"
+  },
+  "externalPayloadSharing": "Single-linked frozen source files; variant graph protobufs are siblings. Separate sessions may duplicate GPU residency.",
+  "sessionResidency": "Four independent sessions; embedding, two prefill buckets, decode. Initializers may be duplicated in GPU memory."
+}

@@ -82,10 +82,43 @@ It never downloads model weights or substitutes a published ONNX checkpoint.
   ONNX/native logit bytes exactly, including the original 53 strict failures.
   Learned initializer protobufs remain unchanged. No model tensor arithmetic
   moves to CPU at runtime.
+- `export_bucket.py` constructs a separate 64-token prefill graph and binds all
+  321 parameters while sharing the frozen external payloads. The native CPU
+  adapter passed 1225 checks bit-exactly at lengths 1, 2, 28, 63 and 64, each
+  followed by four decode steps. Its F32 ONNX variant passed all 25 logit rows
+  (maximum error 0.0000537); 61 strict state checks failed. The original
+  53-failure receipt remains separate and unchanged.
+- `combine_buckets.py` and `bucketed_prefill.js` prepare explicit 64/704 bucket
+  routing. The three short frozen prompts select one native chunk; the
+  655-token prompt selects 11 chunks. CPU construction and focused routing
+  tests passed; the composed bucket bridge has not yet passed GPU execution.
+- `teacher_cases.js` prepares genuine four-prompt greedy checks using engine
+  outputs as subsequent inputs, with both frozen EOS IDs. It does not feed
+  reference tokens into the model after divergence. The output-only GPU gate
+  remains pending.
+- `teacher_native.py --save-states` captured all 48 native F32 cache values at
+  all 32 snapshot positions. Its 256 tokens and 32 logit hashes match the
+  existing F32 teacher exactly. These new state files are bounded observations;
+  the earlier teacher bytes and source snapshots remain unchanged.
+- `materialization_graphs.py` and `observed_session.js` prepare initializer
+  observation outputs in the actual inference sessions. The original
+  inference nodes and initializer protobufs remain unchanged. This is
+  scaffolding: the first GPU observer used a different device from ORT and
+  failed validation; the corrected-device attempt stalled before token 0 and
+  was stopped. Neither attempt proves a model-weight mismatch or successful
+  weight readback. Both failures are retained.
 
-The full-text frontend declares a 704-token prefill bound: its graph computes
+The pinned native ORT EP creates its own device despite the requested device
+setting. The runner now verifies adapter identity and attaches error/loss
+listeners to the actual public `await ort.env.webgpu.device` result. The
+earlier 15-row receipt listened on the requested device, so its empty GPU-error
+list has that narrower scope. Direct readback transport is still under repair.
+
+The original full-text frontend declares a 704-token prefill bound: its graph computes
 11 padded chunks even for a 28-token prompt. This is extra work and a current
-scheduler limitation. Decode uses the separate recurrent graph. Any eventual
+scheduler limitation. The prepared 64/704 bridge reports each selected bound
+and padding explicitly, with four independent sessions and possible duplicate
+GPU weight residency. Decode uses the separate recurrent graph. Any eventual
 comparison must identify the custom TJS adapter, padding work, source graph,
 and scheduler; these tools do not establish stock TJS performance.
 
@@ -111,9 +144,9 @@ python tools/transformers-canonical-qwen35/validate_layer.py --canonical PATH --
 node tools/transformers-canonical-qwen35/run_layer_gpu.js CONFIG_JSON
 ```
 
-Strict full-model numerical qualification, physical TJS GPU materialization
-readback for all learned weights, four-prompt/64-token checks, scheduler
-improvements and performance comparison remain required work. Full-model
+Strict full-model numerical qualification, actual GPU readback for all learned
+weights, four-prompt/64-token checks, GPU bucket checks and performance
+comparison remain required work. Full-model
 diagnostic configuration is retained on Jupiter at
 `/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/tjs-full-gpu-diagnostic-06-config.json`;
 its model and CPU receipt paths are frozen by `evidence/full-tjs-gpu-identity.json`.

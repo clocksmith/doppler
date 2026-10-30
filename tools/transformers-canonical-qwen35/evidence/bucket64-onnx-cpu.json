@@ -1,0 +1,1134 @@
+{
+  "schema": "doppler.canonical-text-onnx-cpu.v1",
+  "scope": "ONNX CPU numerical execution only; no TJS, GPU or speed proof",
+  "completed": true,
+  "inputs": {
+    "canonicalManifestSha256": "77e74f2b0ddf51d0e01edd5888f531e8dda57e8257e2f7ace94916da306cfe95",
+    "configSha256": "c4e4b5cc6a38e43168e7b08e6e991f0c74e7b07d2ca1fe4432f36e2d4e66d2f3",
+    "safetensorsHeaderSha256": "434d00a9998ff2254673ab03669904341dba0d2029a6fc7eeef22c70fa7342ac"
+  },
+  "contract": {
+    "batchSize": 1,
+    "prefillBound": 64,
+    "maxSequenceLength": 2048,
+    "cpuPrefillLengths": [
+      1,
+      2,
+      28,
+      63,
+      64
+    ],
+    "cpuDecodeSteps": 4,
+    "logitAbsoluteTolerance": 0.001,
+    "stateAbsoluteTolerance": 1e-05,
+    "stateRelativeTolerance": 0.0001,
+    "kvStateMaxRepresentableSteps": 1,
+    "kvPhysicalDtype": "float32",
+    "linearStateDtype": "float32",
+    "attentionMathDtype": "float32",
+    "scope": "Separate F32-KV explicit64-token prefill bucket; frozen tolerances unchanged.",
+    "sessionRouting": "Explicit prefill/decode adapter supplied through the public TJS model constructor; no token-at-a-time prefill",
+    "integerInputs": {
+      "position_ids": "int32",
+      "attention_mask": "int32"
+    },
+    "hostGeometryInputs": {
+      "prefill": [
+        {
+          "name": "host_range_limit_i32",
+          "type": "int32",
+          "shape": [],
+          "sourceTensor": "attention_mask",
+          "axis": 1,
+          "multiplier": 1,
+          "addend": 0
+        },
+        {
+          "name": "host_shape_0",
+          "type": "int64",
+          "shape": [
+            4
+          ],
+          "values": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 16
+            },
+            {
+              "constant": 128
+            }
+          ],
+          "replaces": "val_21"
+        },
+        {
+          "name": "host_shape_1",
+          "type": "int64",
+          "shape": [
+            1
+          ],
+          "values": [
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            }
+          ],
+          "replaces": "val_18"
+        },
+        {
+          "name": "host_shape_2",
+          "type": "int64",
+          "shape": [
+            2
+          ],
+          "values": [
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 16,
+              "addend": 0
+            },
+            {
+              "constant": 128
+            }
+          ],
+          "replaces": "val_2360"
+        },
+        {
+          "name": "host_shape_3",
+          "type": "int64",
+          "shape": [
+            3
+          ],
+          "values": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 2048
+            }
+          ],
+          "replaces": "val_2374"
+        },
+        {
+          "name": "host_shape_4",
+          "type": "int64",
+          "shape": [
+            4
+          ],
+          "values": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 8
+            },
+            {
+              "constant": 512
+            }
+          ],
+          "replaces": "val_6998"
+        },
+        {
+          "name": "host_shape_5",
+          "type": "int64",
+          "shape": [
+            4
+          ],
+          "values": [
+            {
+              "constant": 1
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 2
+            },
+            {
+              "constant": 256
+            }
+          ],
+          "replaces": "val_7035"
+        },
+        {
+          "name": "host_shape_6",
+          "type": "int64",
+          "shape": [
+            5
+          ],
+          "values": [
+            {
+              "constant": 1
+            },
+            {
+              "constant": 2
+            },
+            {
+              "constant": 4
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 256
+            }
+          ],
+          "replaces": "val_7133"
+        },
+        {
+          "name": "host_shape_7",
+          "type": "int64",
+          "shape": [
+            4
+          ],
+          "values": [
+            {
+              "constant": 1
+            },
+            {
+              "constant": 8
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 256
+            }
+          ],
+          "replaces": "val_7139"
+        }
+      ],
+      "decode": [
+        {
+          "name": "host_query_position_i32",
+          "type": "int32",
+          "shape": [
+            1
+          ],
+          "sourceTensor": "past_key_values.11.value",
+          "axis": 2,
+          "multiplier": 1,
+          "addend": 0
+        },
+        {
+          "name": "host_range_limit_i32",
+          "type": "int32",
+          "shape": [],
+          "sourceTensor": "attention_mask",
+          "axis": 1,
+          "multiplier": 1,
+          "addend": 0
+        },
+        {
+          "name": "host_shape_0",
+          "type": "int64",
+          "shape": [
+            5
+          ],
+          "values": [
+            {
+              "constant": 1
+            },
+            {
+              "constant": 2
+            },
+            {
+              "constant": 4
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 256
+            }
+          ],
+          "replaces": "val_529"
+        },
+        {
+          "name": "host_shape_1",
+          "type": "int64",
+          "shape": [
+            4
+          ],
+          "values": [
+            {
+              "constant": 1
+            },
+            {
+              "constant": 8
+            },
+            {
+              "sourceTensor": "attention_mask",
+              "axis": 1,
+              "multiplier": 1,
+              "addend": 0
+            },
+            {
+              "constant": 256
+            }
+          ],
+          "replaces": "val_535"
+        }
+      ]
+    },
+    "rotaryLookup": {
+      "minimumPosition": 0,
+      "maximumPositionExclusive": 2048,
+      "construction": "Pinned source ONNX CPU rotary subgraph, export time only",
+      "runtime": "ONNX WebGPU Gather/Where/Concat"
+    }
+  },
+  "sourceSha256": {
+    "validate_onnx_cpu.py": "0d88026b67bb9660018a65e840a769f3b15d9131ddcc93cc95d5aff7a5d06fde",
+    "native_model.py": "d06227124c68fea5bc4e6ba6b6b0f59ca0c1e26bc86717fceb5fffad6b83ff63",
+    "export_text.py": "ba6ca19ed9af5dff1c8fa5016c1dbc838d882d5999c077d04568b45eae866bcc"
+  },
+  "receipt": {
+    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/bucket64-onnx-lookup-cpu-01/receipt.json",
+    "sha256": "e08d1e3271809a4be7061e0f63daffa948da3672007caade67fa423055edfdf3"
+  },
+  "checks": 1225,
+  "failedChecks": 61,
+  "strictPass": false,
+  "maxLogitError": 5.370378494262695e-05,
+  "maxStateError": 3.504753112792969e-05,
+  "failures": [
+    {
+      "case": "prefill-1-prefill-0",
+      "name": "present_conv.16",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.3365020751953125e-05,
+      "meanAbsoluteError": 7.102430004124471e-07,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-prefill-0",
+      "name": "present_conv.17",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.86102294921875e-05,
+      "meanAbsoluteError": 8.535888014193915e-07,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-prefill-0",
+      "name": "present_conv.18",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.574920654296875e-05,
+      "meanAbsoluteError": 8.774706543590582e-07,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-prefill-0",
+      "name": "present_conv.21",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 3.4332275390625e-05,
+      "meanAbsoluteError": 9.560477565173642e-07,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-prefill-0",
+      "name": "present_conv.22",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 3.0517578125e-05,
+      "meanAbsoluteError": 9.009386872094183e-07,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-prefill-0",
+      "name": "present.23.key",
+      "dtype": "float32",
+      "shape": [
+        1,
+        2,
+        1,
+        256
+      ],
+      "maxAbsoluteError": 1.621246337890625e-05,
+      "meanAbsoluteError": 3.3110366075561615e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-decode-1",
+      "name": "present_conv.16",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.3365020751953125e-05,
+      "meanAbsoluteError": 1.326597157458309e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-decode-1",
+      "name": "present_conv.17",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.86102294921875e-05,
+      "meanAbsoluteError": 1.6614907281109481e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-decode-1",
+      "name": "present_conv.18",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 3.24249267578125e-05,
+      "meanAbsoluteError": 1.8178556047132588e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-decode-1",
+      "name": "present_conv.20",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.5987625122070312e-05,
+      "meanAbsoluteError": 1.6235189832514152e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-decode-1",
+      "name": "present_conv.21",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 3.4332275390625e-05,
+      "meanAbsoluteError": 1.7909620737555088e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-decode-1",
+      "name": "present_conv.22",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 3.0517578125e-05,
+      "meanAbsoluteError": 1.5538774960077717e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-decode-1",
+      "name": "present.23.key",
+      "dtype": "float32",
+      "shape": [
+        1,
+        2,
+        2,
+        256
+      ],
+      "maxAbsoluteError": 1.621246337890625e-05,
+      "meanAbsoluteError": 2.858185553122894e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-decode-2",
+      "name": "present_conv.16",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.3365020751953125e-05,
+      "meanAbsoluteError": 1.640951268200297e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-decode-2",
+      "name": "present_conv.17",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.86102294921875e-05,
+      "meanAbsoluteError": 2.023214619839564e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-decode-2",
+      "name": "present_conv.18",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 3.24249267578125e-05,
+      "meanAbsoluteError": 2.2088572677603224e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-decode-2",
+      "name": "present_conv.20",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.5987625122070312e-05,
+      "meanAbsoluteError": 2.011233164012083e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-decode-2",
+      "name": "present_conv.21",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 3.4332275390625e-05,
+      "meanAbsoluteError": 2.1578455289272824e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-decode-2",
+      "name": "present_conv.22",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 3.0517578125e-05,
+      "meanAbsoluteError": 1.8368540395385935e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-decode-2",
+      "name": "present.23.key",
+      "dtype": "float32",
+      "shape": [
+        1,
+        2,
+        3,
+        256
+      ],
+      "maxAbsoluteError": 1.621246337890625e-05,
+      "meanAbsoluteError": 2.4530158952984493e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-decode-3",
+      "name": "present_conv.16",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.3365020751953125e-05,
+      "meanAbsoluteError": 1.9471026462269947e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-decode-3",
+      "name": "present_conv.17",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.86102294921875e-05,
+      "meanAbsoluteError": 2.367374690948054e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-decode-3",
+      "name": "present_conv.18",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 3.24249267578125e-05,
+      "meanAbsoluteError": 2.5889321477734484e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-decode-3",
+      "name": "present_conv.20",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.5987625122070312e-05,
+      "meanAbsoluteError": 2.35324228015088e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-decode-3",
+      "name": "present_conv.21",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 3.4332275390625e-05,
+      "meanAbsoluteError": 2.5154474769806257e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-decode-3",
+      "name": "present_conv.22",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 3.0517578125e-05,
+      "meanAbsoluteError": 2.1048419966973597e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-decode-3",
+      "name": "present.23.key",
+      "dtype": "float32",
+      "shape": [
+        1,
+        2,
+        4,
+        256
+      ],
+      "maxAbsoluteError": 1.621246337890625e-05,
+      "meanAbsoluteError": 2.1826353986398317e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-decode-4",
+      "name": "present_conv.16",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 1.9073486328125e-05,
+      "meanAbsoluteError": 1.5479278090424486e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-decode-4",
+      "name": "present_conv.18",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 3.24249267578125e-05,
+      "meanAbsoluteError": 2.0672680420830147e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-decode-4",
+      "name": "present_conv.20",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.47955322265625e-05,
+      "meanAbsoluteError": 1.8943561599371606e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-1-decode-4",
+      "name": "present.23.key",
+      "dtype": "float32",
+      "shape": [
+        1,
+        2,
+        5,
+        256
+      ],
+      "maxAbsoluteError": 1.621246337890625e-05,
+      "meanAbsoluteError": 2.0120087356190197e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-2-prefill-0",
+      "name": "present_conv.16",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.5272369384765625e-05,
+      "meanAbsoluteError": 1.0292168326486717e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-2-prefill-0",
+      "name": "present_conv.17",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 3.1948089599609375e-05,
+      "meanAbsoluteError": 1.3001990737393498e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-2-prefill-0",
+      "name": "present_conv.18",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 3.0517578125e-05,
+      "meanAbsoluteError": 1.3855361657988396e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-2-prefill-0",
+      "name": "present_conv.21",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.5272369384765625e-05,
+      "meanAbsoluteError": 1.490774252488336e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-2-prefill-0",
+      "name": "present_conv.22",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.765655517578125e-05,
+      "meanAbsoluteError": 1.3733812238569953e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-2-prefill-0",
+      "name": "present.23.key",
+      "dtype": "float32",
+      "shape": [
+        1,
+        2,
+        2,
+        256
+      ],
+      "maxAbsoluteError": 1.4573335647583008e-05,
+      "meanAbsoluteError": 2.7481551114760805e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-2-decode-1",
+      "name": "present_conv.16",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.5272369384765625e-05,
+      "meanAbsoluteError": 1.3727163832299993e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-2-decode-1",
+      "name": "present_conv.17",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 3.1948089599609375e-05,
+      "meanAbsoluteError": 1.682921379142499e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-2-decode-1",
+      "name": "present_conv.18",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 3.0517578125e-05,
+      "meanAbsoluteError": 1.8129029513147543e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-2-decode-1",
+      "name": "present_conv.21",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.5272369384765625e-05,
+      "meanAbsoluteError": 1.941686605277937e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-2-decode-1",
+      "name": "present_conv.22",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.765655517578125e-05,
+      "meanAbsoluteError": 1.7277060351261753e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-2-decode-1",
+      "name": "present.23.key",
+      "dtype": "float32",
+      "shape": [
+        1,
+        2,
+        3,
+        256
+      ],
+      "maxAbsoluteError": 1.4573335647583008e-05,
+      "meanAbsoluteError": 2.227433469670359e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-2-decode-2",
+      "name": "present_conv.16",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.5272369384765625e-05,
+      "meanAbsoluteError": 1.5926901824059314e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-2-decode-2",
+      "name": "present_conv.17",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 3.1948089599609375e-05,
+      "meanAbsoluteError": 1.918205043693888e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-2-decode-2",
+      "name": "present_conv.18",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 3.0517578125e-05,
+      "meanAbsoluteError": 2.0828940705541754e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-2-decode-2",
+      "name": "present_conv.21",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.5272369384765625e-05,
+      "meanAbsoluteError": 2.1909247607254656e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-2-decode-2",
+      "name": "present_conv.22",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.765655517578125e-05,
+      "meanAbsoluteError": 1.925686547110672e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-2-decode-2",
+      "name": "present.23.key",
+      "dtype": "float32",
+      "shape": [
+        1,
+        2,
+        4,
+        256
+      ],
+      "maxAbsoluteError": 1.4573335647583008e-05,
+      "meanAbsoluteError": 1.8791356524161529e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-2-decode-3",
+      "name": "present.23.key",
+      "dtype": "float32",
+      "shape": [
+        1,
+        2,
+        5,
+        256
+      ],
+      "maxAbsoluteError": 1.4573335647583008e-05,
+      "meanAbsoluteError": 1.6986111859296216e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-2-decode-4",
+      "name": "present.23.key",
+      "dtype": "float32",
+      "shape": [
+        1,
+        2,
+        6,
+        256
+      ],
+      "maxAbsoluteError": 1.4573335647583008e-05,
+      "meanAbsoluteError": 1.5599980542901903e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-28-prefill-0",
+      "name": "present_conv.17",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.86102294921875e-05,
+      "meanAbsoluteError": 1.8202475757789216e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-28-decode-1",
+      "name": "present_conv.17",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.86102294921875e-05,
+      "meanAbsoluteError": 1.8193950381828472e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-63-prefill-0",
+      "name": "present_conv.8",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.002716064453125e-05,
+      "meanAbsoluteError": 1.3530169553632732e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-63-decode-1",
+      "name": "present_conv.8",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.002716064453125e-05,
+      "meanAbsoluteError": 1.4011344546815963e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-63-decode-2",
+      "name": "present_conv.8",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.7179718017578125e-05,
+      "meanAbsoluteError": 1.383692165290995e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-63-decode-3",
+      "name": "present_conv.8",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.7179718017578125e-05,
+      "meanAbsoluteError": 1.4228190821086173e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-63-decode-4",
+      "name": "present_conv.8",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.7179718017578125e-05,
+      "meanAbsoluteError": 1.463395165046677e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-64-prefill-0",
+      "name": "present_conv.8",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.1666288375854492e-05,
+      "meanAbsoluteError": 1.3417966329143383e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-64-decode-1",
+      "name": "present_conv.8",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.1666288375854492e-05,
+      "meanAbsoluteError": 1.3045640798736713e-06,
+      "pass": false
+    },
+    {
+      "case": "prefill-64-decode-2",
+      "name": "present_conv.8",
+      "dtype": "float32",
+      "shape": [
+        1,
+        6144,
+        4
+      ],
+      "maxAbsoluteError": 2.1666288375854492e-05,
+      "meanAbsoluteError": 1.24148357372178e-06,
+      "pass": false
+    }
+  ]
+}

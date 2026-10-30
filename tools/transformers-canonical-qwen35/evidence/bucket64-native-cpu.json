@@ -1,0 +1,48 @@
+{
+  "schema": "doppler.canonical-text-export-cpu.v1",
+  "scope": "Full24-layer CPU adapter parity; not ONNX, TJS, GPU or performance proof",
+  "completed": true,
+  "inputs": {
+    "canonicalManifestSha256": "77e74f2b0ddf51d0e01edd5888f531e8dda57e8257e2f7ace94916da306cfe95",
+    "configSha256": "c4e4b5cc6a38e43168e7b08e6e991f0c74e7b07d2ca1fe4432f36e2d4e66d2f3",
+    "safetensorsHeaderSha256": "434d00a9998ff2254673ab03669904341dba0d2029a6fc7eeef22c70fa7342ac"
+  },
+  "contract": {
+    "batchSize": 1,
+    "prefillBound": 64,
+    "maxSequenceLength": 2048,
+    "cpuPrefillLengths": [
+      1,
+      2,
+      28,
+      63,
+      64
+    ],
+    "cpuDecodeSteps": 4,
+    "logitAbsoluteTolerance": 0.001,
+    "stateAbsoluteTolerance": 1e-05,
+    "stateRelativeTolerance": 0.0001,
+    "kvStateMaxRepresentableSteps": 1,
+    "kvPhysicalDtype": "float16",
+    "linearStateDtype": "float32",
+    "attentionMathDtype": "float32",
+    "scope": "Explicit native chunk64 prefill bucket for input lengths1..64; frozen short prompts28/31/34 use this bucket.",
+    "sessionRouting": "Explicit prefill/decode adapter supplied through the public TJS model constructor; no token-at-a-time prefill"
+  },
+  "sourceSha256": {
+    "validate_text.py": "ef7b57961f42d731443f8272b719283086d71a60225ad107e0c521255c598c25",
+    "export_text.py": "ba6ca19ed9af5dff1c8fa5016c1dbc838d882d5999c077d04568b45eae866bcc",
+    "export_layer.py": "49b38ffd09f1a41a33beb56bb2f953961b537c010d8cea021069454b7850dc12",
+    "native_model.py": "d06227124c68fea5bc4e6ba6b6b0f59ca0c1e26bc86717fceb5fffad6b83ff63"
+  },
+  "receipt": {
+    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/bucket64-adapter-cpu-01/receipt.json",
+    "sha256": "b1f7f84aecf44580cd05e8580aedc0346fcd307a7f2096f4f02ee56d344cf191"
+  },
+  "checks": 1225,
+  "failedChecks": 0,
+  "strictPass": true,
+  "maxLogitError": 0.0,
+  "maxStateError": 0.0,
+  "failures": []
+}

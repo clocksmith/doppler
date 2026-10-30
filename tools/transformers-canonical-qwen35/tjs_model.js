@@ -1,6 +1,7 @@
 // The public TJS model constructor accepts a named inference-session record.
 // This adapter owns only explicit phase routing and port validation; TJS owns
 // text embedding, decoder forward, tensor wrapping and its public cache API.
+import { BucketedPrefill } from './bucketed_prefill.js';
 
 export function cachePorts(config, kvPhysicalDtype) {
   if (!['float16', 'float32'].includes(kvPhysicalDtype)) throw new Error('Physical KV dtype must be explicit');
@@ -125,13 +126,14 @@ export class RoutedDecoder {
           throw new Error(`Actual state output is not ${port.type} GPU resident: ${port.output}`);
         }
       }
+      const prefillBound = this.prefill.selectedBound ?? this.policy.prefillBound;
       this.work.push({ phase, inputTokens: length, pastTokens: past, totalTokens: past + length,
         nativeChunkSize: this.policy.chunkSize,
         requiredPromptChunks: phase === 'prefill' ? Math.ceil(length / this.policy.chunkSize) : null,
-        scheduledChunks: phase === 'prefill' ? this.policy.prefillBound / this.policy.chunkSize : null,
-        scheduledPrefillTokens: phase === 'prefill' ? this.policy.prefillBound : null,
-        paddedPrefillTokens: phase === 'prefill' ? this.policy.prefillBound - length : null,
-        applicationIndexTypes: this.integerInputTypes, hostGeometry: geometry,
+        scheduledChunks: phase === 'prefill' ? prefillBound / this.policy.chunkSize : null,
+        scheduledPrefillTokens: phase === 'prefill' ? prefillBound : null,
+        paddedPrefillTokens: phase === 'prefill' ? prefillBound - length : null,
+        applicationIndexTypes: this.integerInputTypes, hostGeometry: [...geometry, ...(phase === 'prefill' ? this.prefill.geometry ?? [] : [])],
         rotaryLookup: this.policy.rotaryLookup ?? null,
         decode: phase === 'decode' ? 'one-token recurrent update' : null });
       return result;
@@ -150,12 +152,15 @@ export class RoutedDecoder {
 }
 
 export function createTjsTextModel(tjs, config, sessions, policy) {
-  const decoder = new RoutedDecoder(sessions.prefill, sessions.decode, config,
-    { ...policy.textExport, chunkSize: policy.linearExport.chunkSize }, (type, values, shape) => {
+  const controlFactory = (type, values, shape) => {
       if (!['int32', 'int64'].includes(type)) throw new Error('Host geometry may contain only declared scalar integer dimensions');
       const data = type === 'int32' ? Int32Array.from(values) : BigInt64Array.from(values, BigInt);
       return new tjs.Tensor(type, data, shape).ort_tensor;
-    });
+    };
+  const prefill = policy.textExport.prefillBuckets ? new BucketedPrefill(policy.textExport.prefillBuckets.map(bound => ({
+    bound, session: sessions['prefill_' + bound], controls: policy.textExport.bucketGeometryInputs[String(bound)] })), controlFactory) : sessions.prefill;
+  const decoder = new RoutedDecoder(prefill, sessions.decode, config,
+    { ...policy.textExport, chunkSize: policy.linearExport.chunkSize }, controlFactory);
   const model = new tjs.Qwen3_5ForCausalLM(new tjs.PretrainedConfig(config), {
     embed_tokens: sessions.embedding,
     decoder_model_merged: decoder,

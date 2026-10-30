@@ -22,6 +22,7 @@ def main():
     parser.add_argument("--prompt-identity", required=True, type=Path)
     parser.add_argument("--out", required=True, type=Path)
     parser.add_argument("--teacher-policy", type=Path)
+    parser.add_argument("--save-states", action="store_true")
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=False)
     policy_path = Path(__file__).with_name("contract.json")
@@ -120,6 +121,16 @@ def main():
                         entry["snapshots"].append({"step": step, "file": filename, "sha256": digest(args.out / filename),
                             "dtype": "float32", "shape": [config.vocab_size], "byteOrder": "little-endian",
                             "argmax": token, "top5TokenIds": top_ids.tolist(), "top5Logits": top_values.tolist()})
+                        if args.save_states:
+                            from export_text import cache_names, cache_tensors
+                            states = []
+                            for index, (names, value) in enumerate(zip(cache_names(config), cache_tensors(cache, config))):
+                                state_file = f"native-state-{prompt['id']}-{step}-{index}.bin"
+                                array = value.numpy()
+                                (args.out / state_file).write_bytes(array.tobytes())
+                                states.append({"name": names[1], "file": state_file, "dtype": str(array.dtype),
+                                    "shape": list(array.shape), "bytes": array.nbytes, "sha256": digest(args.out / state_file)})
+                            entry["snapshots"][-1]["states"] = states
                         print(json.dumps({"prompt": prompt["id"], "step": step, "token": token,
                                           "elapsedSeconds": time.perf_counter() - start}), flush=True)
                     entry["generatedTokenIds"].append(token)
