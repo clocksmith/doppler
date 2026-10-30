@@ -1,4 +1,6 @@
 export interface VariantMetadata {
+  /** False only when the algorithm supports arbitrary positive workgroup dimensions. Omission preserves legacy power-of-two validation. */
+  workgroupPowerOfTwo?: boolean;
   /** Resolved pipeline constants controlling workgroup X/Y/Z; null keeps the static registry axis. */
   workgroupConstants?: readonly [string | null, string | null, string | null];
   /** Dynamic workgroup arrays in bytes per invocation, added to resolved static sharedMemory bytes. */
