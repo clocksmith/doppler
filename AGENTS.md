@@ -76,6 +76,12 @@ kernel-path registries, manifest/runtime fields, chat template formatters,
 sampling knobs, activations, kernels, commands, attention variants,
 quantization formats, or KV-cache layouts, or onboarding a model or pipeline family.
 
+For model adoption, follow the [depth and reusable support checklist](docs/developer-guides/model-onboarding-playbook.md#depth-and-reusable-support).
+Keep component support, artifact preparation and full-model qualification
+distinct in status reports. Reuse semantic owners and declared capability
+contracts; a profile copied from a smaller model is a candidate, not evidence
+that its kernels admit the new model's geometry or precisions.
+
 ### Directory Structure
 
 ```

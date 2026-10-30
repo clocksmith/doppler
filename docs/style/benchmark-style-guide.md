@@ -64,6 +64,12 @@ boundary is
   paired samples, inputs, representative outputs, exact plans, and failures.
 - Report observed API counters separately from analytically estimated traffic.
 - Keep timestamp-instrumented passes separate from primary timing samples.
+- Separate container parsing/loading from resident request execution before
+  attributing a bottleneck to an artifact format. Record effective tensor
+  packing and precisions rather than treating a filename quantization label
+  as proof of identical weights or arithmetic across engines.
+- Report readback/map waits as observed completion waits. They may include GPU
+  execution; do not equate them to transfer time without independent evidence.
 
 ## Perf-validated kernel-path promotion
 
