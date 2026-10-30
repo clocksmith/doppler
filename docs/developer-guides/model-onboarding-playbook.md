@@ -1,5 +1,30 @@
 # Model Onboarding Playbook
 
+## Depth and reusable support
+
+Keep an active qualification campaign focused on a small set of source-pinned
+models. Extend the existing converter, operator, tensor-layout and execution-plan
+owners when a source requires new semantics. A recipe can compose supported
+operations; an unfamiliar architecture may require a new operation and its
+reference tests before a recipe can execute it.
+
+Track source assessment, conversion, physical materialization, numerical and
+task quality, performance, streaming, cancellation and recovery as separate
+acceptance results. A component test or a fast native-format run does not
+establish full-model qualification or equivalent weights across engines.
+
+Before borrowing a runtime profile from another model, inspect the resolved
+geometry, packed projections and storage/compute/state precisions required by
+every selected kernel. For example, a fused recurrent decode kernel requiring
+equal key/value head counts does not admit grouped-value recurrent attention.
+Retain an incompatible attempt and select another declared compatible path;
+never remove the guard to make a profile run.
+
+The benchmark promotion contract remains in
+[benchmark style](../style/benchmark-style-guide.md#perf-validated-kernel-path-promotion).
+Artifact-container changes, tensor repacking, kernel arithmetic and delivery
+cadence are distinct experiments; attribute a gain to the path actually timed.
+
 ## Repeatable source-to-candidate preparation
 
 Automatic upstream discovery feeds this same coordinator:
