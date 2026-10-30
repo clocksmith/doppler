@@ -30,6 +30,7 @@ import {
   buildActiveExpertScheduleFromIndices,
   resolveMoEActiveExpertSelection,
 } from './moe/plan.js';
+import { runQwenRouteExperts } from './moe/qwen-route-executor.js';
 
 export { buildActiveExpertScheduleFromIndices } from './moe/plan.js';
 
@@ -63,6 +64,7 @@ async function resolveActiveExpertSchedule(indicesBuffer, numTokens, numExperts,
 
 const MOE_ROUTE_EXECUTORS = Object.freeze({
   'gemma4-route': runGemma4RouteExperts,
+  'qwen35-route': runQwenRouteExperts,
 });
 
 const MOE_EXPERT_EXECUTORS = Object.freeze({
@@ -416,6 +418,7 @@ export async function moeFeedForwardGPU(
       intermediateSize,
       activationDtype,
       swigluLimit,
+      hiddenActivation,
     });
     perfLog(`MoE L${layerIdx} route_experts`, stepStart, {
       numTokens,

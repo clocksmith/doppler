@@ -24,7 +24,7 @@ assert.deepEqual(moe, { numExperts: 256, numExpertsPerToken: 8,
 const execution = resolveMoeExecutionProfile({ expertFormat: moe.expertFormat, modelType: 'transformer' });
 assert.equal(execution.expertExecutor, 'qwen35-packed');
 assert.equal(execution.routerScaleMode, 'none');
-assert.equal(execution.topkRouteExecutor, null, 'Gemma-specific per-expert scaling cannot leak into Qwen');
+assert.equal(execution.topkRouteExecutor, 'qwen35-route', 'Qwen route execution does not require Gemma per-expert scales');
 assert.equal(resolveMoeIntermediateSize({ intermediateSize: 1024, expertIntermediateSize: 512 }, execution), 512);
 assert.throws(() => resolveManifestMoEConfig({ tensors: [] }, {}, {
   ...source, text_config: { ...source.text_config, shared_expert_intermediate_size: undefined },

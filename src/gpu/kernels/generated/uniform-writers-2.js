@@ -337,3 +337,14 @@ export function write_paired_pointwise_add(view, values, kernel) {
   writeF32(view, 8, values["scale_lo"], kernel, "scale_lo");
   view.setUint32(12, 0, true);
 }
+
+export function write_moe_route_matmul_q4k_f32(view, values, kernel) {
+  writeU32(view, 0, values["M"], kernel, "M");
+  writeU32(view, 4, values["N"], kernel, "N");
+  writeU32(view, 8, values["K"], kernel, "K");
+  writeF32(view, 12, values["alpha"], kernel, "alpha");
+  writeU32(view, 16, values["num_blocks_per_row"], kernel, "num_blocks_per_row");
+  writeU32(view, 20, values["num_experts"], kernel, "num_experts");
+  writeU32(view, 24, values["top_k"], kernel, "top_k");
+  writeU32(view, 28, values["input_mode"], kernel, "input_mode");
+}

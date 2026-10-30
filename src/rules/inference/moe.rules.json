@@ -123,7 +123,7 @@
         "intermediateSizeSource": "expert",
         "requiresShaderF16": false,
         "routerScaleMode": "none",
-        "topkRouteExecutor": null,
+        "topkRouteExecutor": "qwen35-route",
         "vendorProfile": {
           "kind": "static",
           "value": {

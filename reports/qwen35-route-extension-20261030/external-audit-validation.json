@@ -1,0 +1,57 @@
+{
+  "schema": "doppler.external-audit-validation.v1",
+  "scope": "Checks of supplied audit claims against the actual frozen benchmark snapshot",
+  "files": [
+    {
+      "path": "vendor/engine/qwen35.js",
+      "claimed": {
+        "bytes": 56144,
+        "sha256": "32200bc72cf5d477639a7d2c280ab0a80376fb1d7e251340ebda219683938297"
+      },
+      "actual": {
+        "bytes": 279816,
+        "sha256": "2e126c9c401e02f1ee1ab13a522228ef02e663f5973bea17bc7fa2d62faaa064"
+      },
+      "matches": false
+    },
+    {
+      "path": "vendor/engine/preset.js",
+      "claimed": {
+        "bytes": 13805,
+        "sha256": "eb3eb5f077862091c8148d04a1b6424a62583882022923d13b4b53a6ab6767eb"
+      },
+      "actual": {
+        "bytes": 4921,
+        "sha256": "26f075ad8fe760e1a1dd21a91a7eb16cac45d8430aa4c1f071a229fef5e6222a"
+      },
+      "matches": false
+    },
+    {
+      "path": "vendor/engine/compile.js",
+      "claimed": {
+        "bytes": 1636,
+        "sha256": "91fb9dd41a13457b4a0011e8f8148a346e77de6a3dc8265fd47db4847e9ebce8"
+      },
+      "actual": {
+        "bytes": 865,
+        "sha256": "c23da9fec4bed2a7dba84928f4549785cc29f9a64cdfa70fb2eecf09c92d4040"
+      },
+      "matches": false
+    },
+    {
+      "path": "vendor/engine/map_kick.js",
+      "claimed": {
+        "bytes": 591,
+        "sha256": "124d5c6278042bb5622bb738a3bb9440faad93275a187447ff5309614a0c6d39"
+      },
+      "actual": {
+        "bytes": 2804,
+        "sha256": "dffe461ee5be381e12b1d18535683cd2630d89a46d825e29dfc80d5e93694f6e"
+      },
+      "matches": false
+    }
+  ],
+  "actualCodePrompt": "Write a detailed Python implementation of two sum, followed by tests and an explanation.",
+  "reportedFlashFileExists": false,
+  "conclusion": "Supplied source inventory and workload claims do not match the pinned snapshot; dispatch and causal claims require independent verification."
+}

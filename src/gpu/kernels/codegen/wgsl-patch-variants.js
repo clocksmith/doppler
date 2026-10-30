@@ -1,5 +1,11 @@
 export const WGSL_PATCH_VARIANTS = Object.freeze([
   {
+    id: 'moe-route-q4-f32',
+    source: 'src/gpu/kernels/fused_matmul_q4.wgsl',
+    target: 'src/gpu/kernels/moe_route_q4_f32.wgsl',
+    patch: 'src/gpu/kernels/codegen/patches/moe_route_q4_f32.from.fused_matmul_q4.diff',
+  },
+  {
     id: 'gated-delta-fused-register-decode',
     source: 'src/gpu/kernels/gated_delta_fused_decode.wgsl',
     target: 'src/gpu/kernels/gated_delta_fused_decode_register.wgsl',
