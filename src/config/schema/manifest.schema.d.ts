@@ -77,7 +77,7 @@ export type WeightLayout = 'row' | 'column';
 /** Quantization value (string for forward compatibility) */
 export type QuantizationValue =
   | 'q4k'      // Q4_K_M block quantization (canonical short form)
-  | 'q4_1' | 'q8_0' | 'q6k'
+  | 'q4_1' | 'q5_0' | 'q8_0' | 'q6k'
   | 'q4_0'     // GGUF Q4_0 block quantization
   | 'q6k'      // Q6_K block quantization
   | 'q8_0'     // Q8_0 quantization
@@ -99,7 +99,7 @@ export type SourceTrainingQuantization =
   | 'ptq';
 
 export type SourceQuantizationTarget =
-  | 'q4_1' | 'q8_0' | 'q6k'
+  | 'q4_1' | 'q5_0' | 'q8_0' | 'q6k'
   | 'q4_0'
   | 'w4a16'
   | 'wNa8o8';

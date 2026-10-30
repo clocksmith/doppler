@@ -7,9 +7,9 @@ import { packedFixture } from '../helpers/q4_0-fixture.js';
 installNodeFileFetchShim();
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const data=new Map(),tensors=[];
-for(const [i,dtype] of ['Q4_0','Q4_1','Q8_0','Q6_K'].entries()) {
- const name=`model.layers.0.self_attn.${['q_proj','k_proj','v_proj','o_proj'][i]}.weight`;
- const bytes=packedFixture(['q4_0','q4_1','q8_0','q6k'][i],3,256);data.set(name,bytes);
+for(const [i,dtype] of ['Q4_0','Q4_1','Q8_0','Q6_K','Q5_0'].entries()) {
+ const name=`model.layers.0.${['self_attn.q_proj','self_attn.k_proj','self_attn.v_proj','self_attn.o_proj','mlp.gate_proj'][i]}.weight`;
+ const bytes=packedFixture(['q4_0','q4_1','q8_0','q6k','q5_0'][i],3,256);data.set(name,bytes);
  tensors.push({name,shape:[3,256],dtype,size:bytes.length,offset:0,layout:'row'});
 }
 const norm='model.layers.0.input_layernorm.weight',normBytes=new Uint8Array(Float32Array.from({length:256},(_,i)=>1+i*0.00001).buffer);

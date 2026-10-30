@@ -9,7 +9,7 @@ const config={useFusedQ4K:false,keepF32Weights:false,allowF32UpcastNonMatmul:fal
  representationRequirement:{mode:'packed-only',dtypes:['q4_0'],complete:true}};
 const device=getDevice();let cases=0;
 try {
- for(const [dtype,stored] of [['q4_0','Q4_0'],['q4_1','Q4_1'],['q8_0','Q8_0'],['q6k','Q6_K']]) {
+ for(const [dtype,stored] of [['q4_0','Q4_0'],['q4_1','Q4_1'],['q5_0','Q5_0'],['q8_0','Q8_0'],['q6k','Q6_K']]) {
   const K=256,bytes=packedFixture(dtype,3,K),source=Uint8Array.from([9,9,...bytes,9,9]).subarray(2,bytes.length+2);
   const location={dtype:stored,shape:[3,K],layout:'row',size:bytes.length,role:'matmul'};
   const settings={...config,representationRequirement:{...config.representationRequirement,dtypes:[dtype]}};
