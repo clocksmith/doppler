@@ -168,7 +168,8 @@ export interface ParsedModelConfig {
   useMoE: boolean;
   numExperts: number;
   moeTopK: number;
-  expertFormat: 'mixtral' | 'gpt-oss' | 'gemma4' | null;
+  moeSharedExpertIntermediateSize: number | null;
+  expertFormat: 'mixtral' | 'gpt-oss' | 'gemma4' | 'qwen3_5' | null;
   moeExpertIntermediateSize: number;
   slidingWindow: number | null;
   ropeTheta: number;

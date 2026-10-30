@@ -79,10 +79,14 @@ export const FFN_SUFFIXES = {
 
 
 export const ROUTER_SUFFIXES = {
-  routerWeight: ['mlp.router.weight', 'block_sparse_moe.gate.weight', 'router.proj.weight'],
+  routerWeight: ['mlp.gate.weight', 'mlp.router.weight', 'block_sparse_moe.gate.weight', 'router.proj.weight'],
   routerBias: ['mlp.router.bias'],
   routerScale: ['router.scale'],
   routerPerExpertScale: ['router.per_expert_scale'],
+  sharedExpertGate: ['mlp.shared_expert.gate_proj.weight'],
+  sharedExpertUp: ['mlp.shared_expert.up_proj.weight'],
+  sharedExpertDown: ['mlp.shared_expert.down_proj.weight'],
+  sharedExpertRouter: ['mlp.shared_expert_gate.weight'],
 };
 
 
@@ -96,7 +100,7 @@ export const MATMUL_KEYS = [
   'ffnGate', 'ffnUp', 'ffnDown', 'ffnGateUp',
   'perLayerInputGate', 'perLayerProjection',
   'convInProj', 'convOutProj',
-  'routerWeight',
+  'routerWeight', 'sharedExpertGate', 'sharedExpertUp', 'sharedExpertDown', 'sharedExpertRouter',
 ];
 
 
@@ -107,5 +111,8 @@ export const LAYER_WEIGHT_CONSUMERS = Object.freeze([
   ['linear_qkv_proj', LINEAR_ATTN_SUFFIXES.qkvProj], ['linear_out_proj', LINEAR_ATTN_SUFFIXES.outProj],
   ['linear_z_proj', LINEAR_ATTN_SUFFIXES.inProjZ], ['linear_a_proj', LINEAR_ATTN_SUFFIXES.inProjA],
   ['linear_b_proj', LINEAR_ATTN_SUFFIXES.inProjB], ['ffn_gate_up', FFN_SUFFIXES.ffnGateUp],
+  ['ffn_gate', ['mlp.experts.gate_up_proj']], ['ffn_down', ['mlp.experts.down_proj']],
+  ['ffn_gate', ROUTER_SUFFIXES.sharedExpertGate], ['ffn_up', ROUTER_SUFFIXES.sharedExpertUp],
+  ['ffn_down', ROUTER_SUFFIXES.sharedExpertDown],
   ['ffn_gate', FFN_SUFFIXES.ffnGate, ['ffn_gate_up']], ['ffn_up', FFN_SUFFIXES.ffnUp, ['ffn_gate_up']], ['ffn_down', FFN_SUFFIXES.ffnDown],
 ].map(([role, suffixes, additionalRoles = []]) => Object.freeze({ role, suffixes, additionalRoles: Object.freeze(additionalRoles) })));

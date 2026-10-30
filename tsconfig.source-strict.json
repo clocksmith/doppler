@@ -133,6 +133,7 @@
     "src/converter/fp8-source.js",
     "src/loader/tensors/fp8-loader.js",
     "src/gpu/kernels/fp8.js",
-    "src/formats/rdrr/fp8-contract.js"
+    "src/formats/rdrr/fp8-contract.js",
+    "src/inference/pipelines/text/ffn/qwen-shared-expert.js"
   ]
 }

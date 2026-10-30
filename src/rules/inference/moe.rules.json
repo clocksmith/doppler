@@ -1,7 +1,9 @@
 {
   "executionProfile": [
     {
-      "match": { "expertFormat": "gpt-oss" },
+      "match": {
+        "expertFormat": "gpt-oss"
+      },
       "value": {
         "id": "gpt-oss-mxfp4",
         "label": "GPT-OSS MXFP4 experts",
@@ -27,7 +29,9 @@
       }
     },
     {
-      "match": { "expertFormat": "mixtral" },
+      "match": {
+        "expertFormat": "mixtral"
+      },
       "value": {
         "id": "mixtral-dense",
         "label": "Mixtral dense experts",
@@ -48,7 +52,10 @@
       }
     },
     {
-      "match": { "modelType": "diffusion_gemma", "expertFormat": "gemma4" },
+      "match": {
+        "modelType": "diffusion_gemma",
+        "expertFormat": "gemma4"
+      },
       "value": {
         "id": "diffusion-gemma-packed",
         "label": "DiffusionGemma packed experts",
@@ -68,11 +75,17 @@
         },
         "kernelPathProfileResolver": null,
         "kernelRuleModelType": null,
-        "shapePolicy": null
+        "shapePolicy": null,
+        "matmulRoles": {
+          "gateUp": "moe_gate_up",
+          "down": "moe_down"
+        }
       }
     },
     {
-      "match": { "expertFormat": "gemma4" },
+      "match": {
+        "expertFormat": "gemma4"
+      },
       "value": {
         "id": "gemma4-packed",
         "label": "Gemma packed experts",
@@ -92,26 +105,75 @@
         },
         "kernelPathProfileResolver": null,
         "kernelRuleModelType": null,
-        "shapePolicy": null
+        "shapePolicy": null,
+        "matmulRoles": {
+          "gateUp": "moe_gate_up",
+          "down": "moe_down"
+        }
+      }
+    },
+    {
+      "match": {
+        "expertFormat": "qwen3_5"
+      },
+      "value": {
+        "id": "qwen35-packed",
+        "label": "Qwen3.5 packed experts",
+        "expertExecutor": "qwen35-packed",
+        "intermediateSizeSource": "expert",
+        "requiresShaderF16": false,
+        "routerScaleMode": "none",
+        "topkRouteExecutor": null,
+        "vendorProfile": {
+          "kind": "static",
+          "value": {
+            "preferVec4Dequant": false,
+            "dequantTileShape": null,
+            "routerWorkgroupSize": 256,
+            "maxTokensPerExpertScale": 1.0
+          }
+        },
+        "kernelPathProfileResolver": null,
+        "kernelRuleModelType": null,
+        "shapePolicy": null,
+        "matmulRoles": {
+          "gateUp": "ffn_gate",
+          "down": "ffn_down"
+        }
       }
     }
   ],
   "biasAddCode": [
     {
-      "match": { "logitsDtype": "f16", "biasDtype": "f16" },
-      "value": { "shaderFile": "moe_router_bias_add_f16_f16.wgsl" }
+      "match": {
+        "logitsDtype": "f16",
+        "biasDtype": "f16"
+      },
+      "value": {
+        "shaderFile": "moe_router_bias_add_f16_f16.wgsl"
+      }
     },
     {
-      "match": { "logitsDtype": "f16" },
-      "value": { "shaderFile": "moe_router_bias_add_f16_f32.wgsl" }
+      "match": {
+        "logitsDtype": "f16"
+      },
+      "value": {
+        "shaderFile": "moe_router_bias_add_f16_f32.wgsl"
+      }
     },
     {
-      "match": { "biasDtype": "f16" },
-      "value": { "shaderFile": "moe_router_bias_add_f32_f16.wgsl" }
+      "match": {
+        "biasDtype": "f16"
+      },
+      "value": {
+        "shaderFile": "moe_router_bias_add_f32_f16.wgsl"
+      }
     },
     {
       "match": {},
-      "value": { "shaderFile": "moe_router_bias_add_f32_f32.wgsl" }
+      "value": {
+        "shaderFile": "moe_router_bias_add_f32_f32.wgsl"
+      }
     }
   ]
 }

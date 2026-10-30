@@ -428,8 +428,13 @@ export function validateManifest(manifest) {
     }
     if (typeof moe.expertFormat !== 'string') {
       errors.push('Invalid moeConfig.expertFormat');
-    } else if (moe.expertFormat !== 'mixtral' && moe.expertFormat !== 'gpt-oss' && moe.expertFormat !== 'gemma4') {
+    } else if (moe.expertFormat !== 'mixtral' && moe.expertFormat !== 'gpt-oss' && moe.expertFormat !== 'gemma4' && moe.expertFormat !== 'qwen3_5') {
       errors.push(`Invalid moeConfig.expertFormat: ${moe.expertFormat}`);
+    }
+    if (moe.expertFormat === 'qwen3_5') {
+      for (const key of ['expertIntermediateSize', 'sharedExpertIntermediateSize']) {
+        if (!Number.isSafeInteger(moe[key]) || moe[key] < 1) errors.push(`Invalid moeConfig.${key}`);
+      }
     }
     if (moe.numExpertsPerToken > moe.numExperts) {
       errors.push('numExpertsPerToken cannot exceed numExperts');

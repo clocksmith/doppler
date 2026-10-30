@@ -232,6 +232,8 @@ export function modelHasMoETensors(model) {
 
 export function resolveMoEExpertFormat(rawConfig, resolvedModelType, quantizationInfo, explicitFormat) {
   if (explicitFormat) return explicitFormat;
+  const sourceType = String(rawConfig?.model_type ?? getNestedTextConfig(rawConfig)?.model_type ?? '').toLowerCase();
+  if (sourceType === 'qwen3_5_moe' || sourceType === 'qwen3_5_moe_text') return 'qwen3_5';
   const fromQuant = quantizationInfo?.expertsFormat;
   if (typeof fromQuant === 'string' && fromQuant.length > 0) {
     return fromQuant;
@@ -248,7 +250,15 @@ export function resolveMoEExpertFormat(rawConfig, resolvedModelType, quantizatio
   if (modelType === 'diffusion_gemma' || modelType === 'diffusion_gemma_text') {
     return 'gemma4';
   }
+  if (modelType === 'qwen3_5_moe' || modelType === 'qwen3_5_moe_text') {
+    return 'qwen3_5';
+  }
   return 'mixtral';
+}
+
+function requirePositiveMoEInteger(value, label) {
+  if (!Number.isSafeInteger(value) || value < 1) throw new Error(`Invalid moeConfig.${label}`);
+  return value;
 }
 
 export function normalizeMoEConfig(config, contextLabel) {
@@ -259,7 +269,7 @@ export function normalizeMoEConfig(config, contextLabel) {
   const expertIntermediateSize = config.expertIntermediateSize == null
     ? null
     : Number(config.expertIntermediateSize);
-  const allowedExpertFormat = expertFormat === 'gpt-oss' || expertFormat === 'mixtral' || expertFormat === 'gemma4';
+  const allowedExpertFormat = expertFormat === 'gpt-oss' || expertFormat === 'mixtral' || expertFormat === 'gemma4' || expertFormat === 'qwen3_5';
   if (!Number.isFinite(numExperts) || numExperts <= 0) {
     throw new Error(`Invalid moeConfig.numExperts for ${contextLabel}`);
   }
@@ -278,13 +288,14 @@ export function normalizeMoEConfig(config, contextLabel) {
   ) {
     throw new Error(`Invalid moeConfig.expertIntermediateSize for ${contextLabel}`);
   }
-  if (expertFormat === 'gemma4' && expertIntermediateSize == null) {
+  if ((expertFormat === 'gemma4' || expertFormat === 'qwen3_5') && expertIntermediateSize == null) {
     throw new Error(`Invalid moeConfig for ${contextLabel}: gemma4 experts require expertIntermediateSize`);
   }
   return {
     numExperts,
     numExpertsPerToken,
     expertFormat,
+    ...(expertFormat === 'qwen3_5' ? { sharedExpertIntermediateSize: requirePositiveMoEInteger(config.sharedExpertIntermediateSize, `${contextLabel} sharedExpertIntermediateSize`) } : {}),
     ...(expertIntermediateSize == null ? {} : { expertIntermediateSize }),
   };
 }
@@ -330,7 +341,7 @@ export function resolveManifestMoEConfig(model, options, rawConfig, resolvedMode
     options?.quantizationInfo ?? null,
     null
   );
-  const expertIntermediateSize = expertFormat === 'gemma4'
+  const expertIntermediateSize = (expertFormat === 'gemma4' || expertFormat === 'qwen3_5')
     ? resolveMoEConfigNumber(rawConfig, 'moe_intermediate_size', 'expert_intermediate_size')
     : null;
 
@@ -339,6 +350,7 @@ export function resolveManifestMoEConfig(model, options, rawConfig, resolvedMode
       numExperts,
       numExpertsPerToken,
       expertFormat,
+      ...(expertFormat === 'qwen3_5' ? { sharedExpertIntermediateSize: resolveMoEConfigNumber(rawConfig, 'shared_expert_intermediate_size') } : {}),
       ...(expertIntermediateSize == null ? {} : { expertIntermediateSize }),
     },
     options?.modelId ?? 'model'

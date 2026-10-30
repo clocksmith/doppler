@@ -11,7 +11,7 @@ export interface ExpertWeights {
   up?: GPUBuffer | WeightBuffer | Float32Array | null;
   down?: GPUBuffer | WeightBuffer | Float32Array | null;
   gateUp?: GPUBuffer | WeightBuffer | Float32Array | null;
-  expertFormat?: 'mixtral' | 'gpt-oss' | 'gemma4';
+  expertFormat?: 'mixtral' | 'gpt-oss' | 'gemma4' | 'qwen3_5';
   expertIdx?: number;
   numExperts?: number;
   expertIntermediateSize?: number;

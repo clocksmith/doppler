@@ -671,9 +671,10 @@ export interface MoEConfigSchema {
   numExperts: number;
   numExpertsPerToken: number;
   /** Expert tensor format (required for MoE models) */
-  expertFormat: 'mixtral' | 'gpt-oss' | 'gemma4';
+  expertFormat: 'mixtral' | 'gpt-oss' | 'gemma4' | 'qwen3_5';
   /** Expert hidden width when it differs from architecture.intermediateSize. */
   expertIntermediateSize?: number;
+  sharedExpertIntermediateSize?: number;
   sharedExperts?: number[];
   expertShardMap?: Record<string, number[]>;
   expertTensors?: Record<string, string[]>;
