@@ -21,6 +21,7 @@ Rules and conventions for configuration ownership, merge order, and overrides.
 - batchSize, maxTokens, stopCheckMode
 - readbackInterval (null = read back each batch)
 - ringTokens / ringStop / ringStaging (null = disable ring allocation; used for batch decode and single-token GPU sampling readback reuse)
+- layerSubmitInterval (absent or null = one submission per single-token step; N = submit the recorded prefix after every N layers so the GPU executes it while later layers are encoded)
 
 Recorded decode submits at `batchSize` token boundaries; `readbackInterval`
 groups those batches before token readback but never merges them into one
