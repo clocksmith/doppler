@@ -27,7 +27,7 @@ import { preparePerLayerInputs } from '../per-layer-inputs.js';
 import { getActivationRepresentation } from './activation-storage.js';
 import { createTensor, tensorElementBytes } from '../../../../gpu/tensor.js';
 import { releasePerLayerInputBuffer, shouldDisablePrefillCommandBatching } from './prefill-policy.js';
-import { probePrefillEmbedding, tracePrefillEmbeddingIds } from './prefill-observation.js';
+import { logPrefillCacheState, probePrefillEmbedding, tracePrefillEmbeddingIds } from './prefill-observation.js';
 import {
   normalizePrefixEmbeddingOverride,
   resolvePrefillEmbeddingInputIds,
@@ -855,11 +855,7 @@ export async function _prefill(inputIds, opts) {
       }
 
       if (opts.debug) {
-        if (this._state.kvCache?.hasGPUCache?.()) {
-          log.debug('Pipeline', `KV cache active after prefill: seqLen=${this._state.kvCache.getKeyCache(0)?.constructor.name ?? '?'}`);
-        } else {
-          log.warn('Pipeline', `KV cache NOT active after prefill! hasGPUCache=${this._state.kvCache?.hasGPUCache?.()}`);
-        }
+        logPrefillCacheState(this._state);
       }
 
       if (tracePrefillEnabled) {

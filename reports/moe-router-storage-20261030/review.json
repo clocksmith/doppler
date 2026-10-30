@@ -1,0 +1,60 @@
+{
+  "schema": "doppler.correctness-review.v1",
+  "baselineCommit": "f364472681d4de266831c67b84af42ece864202a",
+  "scope": "F16 router storage selection and hybrid prefill cache observation; physical Node/WebGPU Metal operator evidence only",
+  "sourceHashes": {
+    "src/gpu/kernels/matmul-selection.js": "98316f3388d878e7f50015e62dc1831176ecf3b096bf46f552a42e81bd8c6b56",
+    "src/gpu/kernels/matmul.js": "5703057a99fc75581b23ab6314d7b03cfb248b473ab3a7f279f9c60026c7d35b",
+    "src/inference/pipelines/text/generator/prefill-observation.js": "cce5aea683af778b2f34844304cef8ffc1712793f0ff8594bd1c3c60dffa57ef",
+    "src/inference/pipelines/text/generator/prefill-runtime.js": "f6699a980b8c6d055cda52b93797190232d14f4fa6fd7ea858ef69cab89c8803",
+    "tests/inference/moe-router-storage-gpu.test.js": "50b313b2d9ca8209ba0bb386437b9fea435c869229bed1d7d23e1eebd80edaee",
+    "tests/inference/prefill-cache-observation.test.js": "d7f8bdff79d0a6ec24c2415f30b04b4a4317174bd10bc9866321e19a6761a582"
+  },
+  "before": {
+    "selection": "preferF16:false with F16 B and F32 A/output selects an F32-weight shader for prefill",
+    "physical": "Original HEAD matmul modules loaded through Node import hooks; same new physical test fails: router[0] = -1.5592413471487987e-10 versus reference 0.1756327582432322",
+    "cacheObservation": "Original HEAD debug block with a hybrid KV cache throws: Layer 0 has no allocated KV cache"
+  },
+  "after": {
+    "physicalCases": 12,
+    "maxAbsoluteError": 4.4895419792911895e-07,
+    "coverage": [
+      "M=1,28,64; K=2048; N=256 experts",
+      "N=1 shared-router geometry",
+      "immediate and recorded dispatch",
+      "actual MoERouter.computeRouterLogitsGPU caller",
+      "independent CPU dot products over decoded F16 storage"
+    ],
+    "guards": [
+      "Missing shader-f16 rejects F16 storage",
+      "Selected registry weightDtype must equal actual B dtype even with padded buffers",
+      "Debug logging uses logical sequence length, never a fixed KV layer index"
+    ]
+  },
+  "checks": {
+    "passed": [
+      "moe-router-storage-gpu.test.js (12 physical cases)",
+      "matmul-kernel-path-weight-dtype-contract.test.js",
+      "moe-router-cleanup.test.js",
+      "matmul-f32-subgroup-contract.test.js",
+      "matmul-f32-gemv-contract.test.js",
+      "matmul-f32-subgroup-gpu.test.js",
+      "prefill-cache-observation.test.js",
+      "prefill-output-ownership.test.js",
+      "prefill-chunk-cleanup.test.js",
+      "generator-prefill-logits-observation.test.js",
+      "generator-paired-storage.test.js",
+      "typecheck:source",
+      "source:style:check",
+      "source:architecture:check",
+      "exports:parity:check"
+    ],
+    "fixtureMaintenance": "Paired-storage tests now supply topK=1 in explicit greedy test requests; missing topK previously failed before their injected lifecycle errors."
+  },
+  "limits": [
+    "No fresh full-35B receipt produced by this patch",
+    "No equal-weight engine timing or speed win established",
+    "Jupiter GPU owned by a separate active 35B product-pairs run; no competing GPU run started",
+    "Loader and conversion-config changes in the shared checkout belong to another session and are excluded"
+  ]
+}

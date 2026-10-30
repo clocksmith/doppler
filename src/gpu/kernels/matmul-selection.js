@@ -173,7 +173,6 @@ export function toMatmulDtype(dtype) {
 export function selectMatmulKernel(options = {}) {
   const capabilities = getKernelCapabilities();
   const {
-    preferF16 = true,
     useVec4 = false,
     aDtype = null,
     bDtype = null,
@@ -188,11 +187,14 @@ export function selectMatmulKernel(options = {}) {
   const { tiledPrefillMinRows } = getKernelThresholdSnapshot().matmul;
 
   const inputsAreF16 = aDtype === 'f16' && bDtype === 'f16';
+  if (bDtype === 'f16' && !capabilities.hasF16) {
+    throw new Error('[Matmul] F16 weight storage requires shader-f16 or explicit materialization before selection.');
+  }
   // F16 weights needing F32a path: weights are F16 and either activation is already F32,
   // or both inputs are F16 but output is F32 (activation will be cast to F32 by executeMatmul)
   const weightsAreF16 = bDtype === 'f16' && (aDtype !== 'f16' || outputDtype !== 'f16');
-  const useF16Matmul = outputDtype === 'f16' && preferF16 && inputsAreF16 && capabilities.hasF16;
-  const useF16wF32a = preferF16 && weightsAreF16 && capabilities.hasF16;
+  const useF16Matmul = outputDtype === 'f16' && inputsAreF16 && capabilities.hasF16;
+  const useF16wF32a = weightsAreF16 && capabilities.hasF16;
   const useTiled = isPrefill
     && useF16Matmul
     && transposeB === true
@@ -259,7 +261,10 @@ export function validateMatmulOffsets(label, aOffset, bOffset, cOffset) {
 }
 
 
-export function getMatmulBindingSizes(label, A, B, M, N, K, aDtype, bDtype, transposeB, aOffset, bOffset) {
+export function getMatmulBindingSizes(label, A, B, M, N, K, aDtype, bDtype, transposeB, aOffset, bOffset, kernelWeightDtype = null) {
+  if (kernelWeightDtype !== null && kernelWeightDtype !== bDtype) {
+    throw new Error(`[${label}] Selected kernel requires ${kernelWeightDtype} weight storage, but B dtype is ${bDtype}.`);
+  }
   const aBytesPerElem = aDtype === 'f16' ? 2 : 4;
   const aBindingSize = Math.ceil((M * K * aBytesPerElem) / 4) * 4;
   const aRequired = aOffset + aBindingSize;

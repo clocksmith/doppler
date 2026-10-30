@@ -1,5 +1,14 @@
-import { isTraceEnabled, trace } from '../../../../debug/index.js';
+import { isTraceEnabled, log, trace } from '../../../../debug/index.js';
 import { runProbes } from '../probes.js';
+
+export function logPrefillCacheState(state) {
+  const hasGPUCache = state.kvCache?.hasGPUCache?.();
+  if (hasGPUCache) {
+    log.debug('Pipeline', `KV cache active after prefill: seqLen=${state.currentSeqLen}`);
+  } else {
+    log.warn('Pipeline', `KV cache NOT active after prefill! hasGPUCache=${hasGPUCache}`);
+  }
+}
 
 export function tracePrefillEmbeddingIds(embeddingInputIds, numTokens, embeddingOverride) {
   if (!isTraceEnabled('embed')) return;

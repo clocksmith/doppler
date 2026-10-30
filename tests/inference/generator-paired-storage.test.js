@@ -60,7 +60,7 @@ const shared = {
 };
 const onlyPrefill = {
   './session-context.js': 'export const buildLayerContext=()=>({useGPU:true}); export const debugCheckBuffer=()=>{};',
-  './prefill-observation.js': `export const tracePrefillEmbeddingIds=()=>{};
+  './prefill-observation.js': `export const logPrefillCacheState=()=>{}; export const tracePrefillEmbeddingIds=()=>{};
     export const probePrefillEmbedding=async name=>{if(generatorStorageProbe.failure===name)throw Error('injected '+name);};`,
 };
 const hooks = registerHooks({ resolve(specifier, context, next) {
@@ -161,7 +161,7 @@ try {
     for (const failure of ['ple','layer','logits','penalty','record-sample']) {
       await check(label+' recorded actual decodeStep '+failure,async()=>{
         const {state,plan,helpers}=reset(paired,true);probe.failure=failure;probe.gpuSampling=['penalty','record-sample'].includes(failure);
-        await assert.rejects(decodeStep(state,[1],{executionPlan:plan,suppressTokenIds:[],temperature:0},helpers),/injected/);
+        await assert.rejects(decodeStep(state,[1],{executionPlan:plan,suppressTokenIds:[],temperature:0,topK:1},helpers),/injected/);
         assert.equal(probe.live.size,0); assert.deepEqual(probe.cleanup,['abort','deferred']);
       });
     }
@@ -210,7 +210,7 @@ try {
           buffer.getMappedRange=()=>buffer.bytes.buffer;buffer.unmap=()=>{};buffer.destroy=()=>probe.release(buffer);return buffer;
         };
         const finiteness={bytes:new Uint8Array(16)};state.finitenessBuffer=finiteness;
-        const work=decodeStep(state,[1],{executionPlan:plan,suppressTokenIds:[],temperature:0},helpers);
+        const work=decodeStep(state,[1],{executionPlan:plan,suppressTokenIds:[],temperature:0,topK:1},helpers);
         if(failure)await assert.rejects(work,/injected map/);else assert.equal(await work,2);
         assert.deepEqual([...probe.live],[state.sampleReadbackBuffer],'only retained session staging remains');
         state.sampleReadbackBuffer.destroy();
