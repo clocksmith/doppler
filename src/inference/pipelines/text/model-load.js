@@ -151,6 +151,11 @@ function buildResolvedDecodeLoopRuntimePatch(
     'maxBatchDecodeTokens',
     modelId
   );
+  const layerSubmitInterval = parseSessionDecodeLoopOptionalPositiveInt(
+    decodeLoop.layerSubmitInterval,
+    'layerSubmitInterval',
+    modelId
+  );
 
   const batchingPatch = {
     batchSize,
@@ -193,6 +198,7 @@ function buildResolvedDecodeLoopRuntimePatch(
         readbackMode,
         submitLatencyThresholdMs,
         ...(maxBatchDecodeTokens !== undefined ? { maxBatchDecodeTokens } : {}),
+        ...(layerSubmitInterval !== undefined ? { layerSubmitInterval } : {}),
         ...(ringTokens !== undefined ? { ringTokens } : {}),
         ...(ringStop !== undefined ? { ringStop } : {}),
         ...(ringStaging !== undefined ? { ringStaging } : {}),

@@ -107,6 +107,12 @@ export interface ExecutionV1DecodeLoopSchema {
   submitLatencyThresholdMs: number | null;
   /** Explicit cap for one multi-token decode submission. Absent uses rule policy. */
   maxBatchDecodeTokens?: number | null;
+  /**
+   * Recorded single-token decode submits the work encoded so far after every N layers,
+   * so the GPU executes earlier layers while later ones are encoded. Absent or null
+   * keeps one submission per token.
+   */
+  layerSubmitInterval?: number | null;
   ringTokens: number | null;
   ringStop: number | null;
   ringStaging: number | null;
