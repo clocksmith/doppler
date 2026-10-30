@@ -66,6 +66,9 @@ function validateMoeExecutionProfile(profile) {
   if (profile.routerScaleMode !== 'none' && profile.routerScaleMode !== 'optional' && profile.routerScaleMode !== 'required') {
     throw new Error('[MoE] execution profile routerScaleMode must be none, optional, or required.');
   }
+  if (profile.requiresNormalizedTopK !== undefined && typeof profile.requiresNormalizedTopK !== 'boolean') {
+    throw new Error('[MoE] execution profile requiresNormalizedTopK must be a boolean when declared.');
+  }
   if (!profile.vendorProfile || typeof profile.vendorProfile !== 'object' || Array.isArray(profile.vendorProfile)) {
     throw new Error('[MoE] execution profile is missing vendorProfile selector.');
   }
@@ -85,6 +88,12 @@ export function resolveMoeExecutionProfile(config, options = {}) {
     expertFormat,
   });
   return validateMoeExecutionProfile(profile);
+}
+
+export function assertMoeRoutingContract(profile, router) {
+  if (profile.requiresNormalizedTopK === true && router?.normalizeWeights !== true) {
+    throw new Error(`[MoE] ${profile.label} requires normalizeWeights=true: source routing renormalizes the selected top-K probabilities.`);
+  }
 }
 
 export function resolveMoeIntermediateSize(config, moeProfile) {

@@ -25,6 +25,7 @@ export interface MoEExecutionProfile {
   intermediateSizeSource: 'architecture' | 'expert' | string;
   requiresShaderF16: boolean;
   routerScaleMode: 'none' | 'optional' | 'required';
+  requiresNormalizedTopK?: boolean;
   topkRouteExecutor: 'gemma4-route' | string | null;
   vendorProfile: Record<string, unknown>;
   kernelPathProfileResolver: 'gpt-oss' | 'mixtral' | string | null;
@@ -68,3 +69,7 @@ export declare function resolveMoeKernelPathProfile(
   moeProfile: MoEExecutionProfile,
   context: Record<string, unknown>
 ): Promise<GptOssKernelPathProfile | MixtralKernelPathProfile | null>;
+
+/** Reject routing settings that contradict the selected manifest expert-format contract. */
+export declare function assertMoeRoutingContract(profile: MoEExecutionProfile,
+  router: { normalizeWeights?: boolean } | null | undefined): void;

@@ -42,7 +42,6 @@ assert.throws(() => validateQwenSharedExpert(tensor, tensor, { ...weights, share
 assert.throws(() => validateQwenSharedExpert(tensor, { ...tensor, shape: [1, 8] }, weights, opts), /geometry/);
 assert.throws(() => validateQwenSharedExpert({ ...tensor, dtype: 'f16' }, tensor, weights, opts), /explicit f32/);
 assert.throws(() => validateQwenSharedExpert(tensor, tensor, weights, { ...opts, intermediateSize: 0 }), /positive intermediateSize/);
-console.log('qwen35-moe-contract.test: ok');
 
 // All packed expert and shared projections bind to the same declared Q4 kernels
 // used by execution, so loading cannot eagerly expand the whole expert bank.
@@ -78,3 +77,16 @@ const manifestErrors = m => validateManifest({ modelId: 'qwen-fixture', moeConfi
 assert.deepEqual(manifestErrors(moe), []);
 assert.deepEqual(manifestErrors({ ...moe, sharedExpertIntermediateSize: undefined }), ['Invalid moeConfig.sharedExpertIntermediateSize']);
 assert.deepEqual(manifestErrors({ ...moe, expertIntermediateSize: 0 }), ['Invalid moeConfig.expertIntermediateSize']);
+
+// Qwen's source router always normalizes its selected probabilities; the generic
+// runtime knob must not silently change that math. Other formats keep their
+// existing runtime-controlled normalization contract.
+const { assertMoeRoutingContract } = await import('../../src/inference/pipelines/text/moe-shape-validator.js');
+assert.doesNotThrow(() => assertMoeRoutingContract(execution, { normalizeWeights: true }));
+assert.throws(() => assertMoeRoutingContract(execution, { normalizeWeights: false }), /requires normalizeWeights=true/);
+assert.throws(() => assertMoeRoutingContract(execution, {}), /requires normalizeWeights=true/);
+const mixtral = resolveMoeExecutionProfile({ expertFormat: 'mixtral', modelType: 'transformer' });
+assert.doesNotThrow(() => assertMoeRoutingContract(mixtral, { normalizeWeights: false }));
+assert.doesNotThrow(() => assertMoeRoutingContract(mixtral, { normalizeWeights: true }));
+
+console.log('qwen35-moe-contract.test: ok');
