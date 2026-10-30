@@ -1871,6 +1871,21 @@ function buildF16WeightProjectionGraph() {
   }
 }
 
+// ---------------------------------------------------------------------------
+// F32 KV widening covers fixed-head F16-KV attention on every lane
+// ---------------------------------------------------------------------------
+{
+  const graph = buildNoSubgroupGraph();
+  graph.kernels.attn_head256 = { kernel: 'attention_head256_f16kv.wgsl', entry: 'main', digest: 'sha256:kkk' };
+  graph.kernels.attn_head128 = { kernel: 'attention_head128_f16kv.wgsl', entry: 'main', digest: 'sha256:mmm' };
+  graph.kernels.attn_gated = { kernel: 'attention_decode_online_head256_f16kv_output_gate.wgsl', entry: 'main', digest: 'sha256:lll' };
+  const widened = widenToF32CorrectnessFallback(graph, { activationDtype: 'f32', kvDtype: 'f32' });
+  equal(widened.kernels.attn_head256.kernel, 'attention_small.wgsl', 'F32 KV widens head-256 F16-KV attention');
+  equal(widened.kernels.attn_head128.kernel, 'attention_small.wgsl', 'F32 KV widens head-128 F16-KV attention');
+  equal(widened.kernels.attn_gated.kernel, 'attention_decode_online_head256_f16kv_output_gate.wgsl',
+    'output-gated F16-KV attention has no F32 equivalent and stays unmapped');
+}
+
 // ===========================================================================
 
 console.log(`execution-graph-transforms.test: ${assertions} assertions passed`);
