@@ -279,6 +279,23 @@ let context;
 try {
   context = await chromium.launchPersistentContext(path.join(config.outputDir, 'browser-profile'), {
     executablePath: config.browserExecutable, args: config.browserArgs, headless: true });
+  if (Number.isSafeInteger(config.browserIdentityTimeoutMs) && config.browserIdentityTimeoutMs > 0) {
+    let identityTimer;
+    try {
+      identities.chromium = await Promise.race([(async () => {
+        const cdp = await context.browser().newBrowserCDPSession();
+        try {
+          const metadata = await Promise.allSettled([cdp.send('Browser.getVersion'), cdp.send('SystemInfo.getInfo')]);
+          return Object.fromEntries(metadata.map((value, index) => [index ? 'systemInfo' : 'version',
+            value.status === 'fulfilled' ? value.value : { unavailable: String(value.reason) }]));
+        } finally { await cdp.detach(); }
+      })(), new Promise((resolve, reject) => {
+        identityTimer = setTimeout(() => reject(new Error('Browser identity observation timed out')), config.browserIdentityTimeoutMs);
+      })]);
+    } catch (error) { identities.chromium = { unavailable: String(error) }; }
+    finally { clearTimeout(identityTimer); }
+  } else identities.chromium = { unavailable: 'No explicit browserIdentityTimeoutMs declared' };
+  await fs.writeFile(path.join(config.outputDir, 'identity.json'), JSON.stringify(identities, null, 2));
   const page = await context.newPage();
   page.on('console', message => logs.push(`${message.type()}: ${message.text()}`));
   page.on('pageerror', error => errors.push(String(error)));
