@@ -87,6 +87,33 @@ Adapter IDs, source-weight SHA-256 identities, and resolved execution digests
 are checked against the bundled deny-only registry before activation. See
 [`revocation.md`](revocation.md).
 
+## Preparing host adapters without activation
+
+Manifest-backed model handles and scoped host sessions expose `prepareLoRA()` and
+`activatePreparedLoRA()`. Preparation uses the existing loader, base-model and
+target validation, and session ownership lock. It leaves the active adapter,
+sequence state, base weights and execution configuration unchanged.
+
+```js
+const prepared = await session.prepareLoRA(adapterManifest, { signal });
+session.resetGenerationState();
+await session.activatePreparedLoRA(prepared);
+prepared.release();
+```
+
+The opaque token binds the exact adapter identity to that model owner, manifest
+and resolved execution. Another owner, a forged or released token, a changed base
+execution, or a conflicting partition plan is rejected. Activation requires empty
+sequence state so it cannot reuse a cache from different adapter weights. It uses
+the already prepared adapter and does not reacquire adapter or base weights.
+Releasing a token drops its preparation reference; an active adapter remains owned
+by the model until the usual unload or replacement. Close and cancellation drain
+in-flight preparation before cleanup.
+
+This host API does not change Capsule request-bound adapter contracts, enable new
+partition adapter selections, train adapters, or qualify concurrent adapter
+execution. LoRA kernels and normal generation paths are unchanged.
+
 ## Interop note
 
 GGUF conversion is external to this repo flow.

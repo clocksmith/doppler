@@ -233,6 +233,16 @@ export function createScopedModelSession(handle) {
       requireCapability('lora');
       return handle.loadLoRA(adapter, options);
     },
+    async prepareLoRA(adapter, options = {}) {
+      requireCapability('lora');
+      if (typeof handle.prepareLoRA !== 'function') throw new Error('Loaded model does not expose LoRA preparation.');
+      return handle.prepareLoRA(adapter, options);
+    },
+    async activatePreparedLoRA(prepared) {
+      requireCapability('lora');
+      if (typeof handle.activatePreparedLoRA !== 'function') throw new Error('Loaded model does not expose prepared LoRA activation.');
+      return handle.activatePreparedLoRA(prepared);
+    },
     async unloadLoRA() {
       requireCapability('lora');
       return handle.unloadLoRA();

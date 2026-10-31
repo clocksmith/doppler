@@ -17,6 +17,8 @@ export declare function updatePipelineAdapter<T>(
   pipeline: { setLoRAAdapter(adapter: T): void },
   prepare: () => T | Promise<T>
 ): Promise<T>;
+/** Prepare exclusively without activation; closing drains preparation before cleanup. */
+export declare function preparePipelineAdapter<T>(pipeline: object, prepare: () => T | Promise<T>): Promise<T>;
 
 export declare function resolvePipelineRegistries(registries?: Partial<import('../../config/execution-registry-contract.js').ExecutionRegistries>):
   import('../../config/execution-registry-contract.js').ResolvedExecutionRegistries & { readonly isCanonical: boolean };
