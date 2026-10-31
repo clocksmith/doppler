@@ -30,6 +30,10 @@ import {
   resolveAttentionKVSharing,
 } from './layer-input-execution.js';
 
+// Lazily loaded once: each dynamic import() makes the browser re-walk the module graph.
+/** @type {Promise<typeof import('./ffn/moe.js')> | null} */
+let moeFfnModule = null;
+
 // ============================================================================
 // Configurable Layer Pipeline (JSON-Driven)
 // ============================================================================
@@ -489,7 +493,7 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
             : context;
 
           let outputTensor;
-          const { runMoEFFNGPU } = await import('./ffn/moe.js');
+          const { runMoEFFNGPU } = await (moeFfnModule ??= import('./ffn/moe.js'));
 const { runDenseFFNGPU } = await import('./ffn/dense.js');
 
           if (config.ffnBranchMode === 'dense_plus_moe') {

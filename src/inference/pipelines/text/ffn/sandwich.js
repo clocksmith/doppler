@@ -14,6 +14,10 @@ import { runDenseFFNGPU, runDenseFFNWithFusedPostNormGPU } from './dense.js';
 import { runMoEFFNGPU } from './moe.js';
 import { resolveLayerIntermediateSize } from '../config.js';
 
+// Lazily loaded once: each dynamic import() makes the browser re-walk the module graph.
+/** @type {Promise<typeof import('../../../../gpu/kernels/fused_matmul_rmsnorm.js')> | null} */
+let fusedMatmulRMSNormModule = null;
+
 async function debugFFNBuffer(context, layerIdx, label, tensor, numTokens, hiddenSize) {
   if (!context.debugCheckBuffer) return;
   if (!isGpuBufferInstance(tensor?.buffer)) return;
@@ -237,7 +241,7 @@ export async function processFFNWithSandwichNorm(
     && dtypesMatchForFusion;
 
   if (canUseFusedDownNorm) {
-    canUseFusedDownNorm = (await import('../../../../gpu/kernels/fused_matmul_rmsnorm.js')).shouldUseFusedMatmulRMSNorm(
+    canUseFusedDownNorm = (await (fusedMatmulRMSNormModule ??= import('../../../../gpu/kernels/fused_matmul_rmsnorm.js'))).shouldUseFusedMatmulRMSNorm(
       numTokens,
       hiddenSize,
       resolveLayerIntermediateSize(config, layerIdx)

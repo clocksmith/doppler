@@ -5,6 +5,10 @@ import { releaseOrTrack } from '../ops.js';
 import { runQwenSharedExpert, resolveQwenSharedSlot } from './qwen-shared-expert.js';
 import { createTensor } from '../../../../gpu/tensor.js';
 
+// Lazily loaded once: each dynamic import() makes the browser re-walk the module graph.
+/** @type {Promise<typeof import('../moe-impl.js')> | null} */
+let moeImplModule = null;
+
 
 export async function runMoEFFNGPU(
   layerIdx,
@@ -35,7 +39,7 @@ export async function runMoEFFNGPU(
     throw new Error('MoE config is missing moeTopK.');
   }
 
-  const { moeFeedForwardGPU } = await import('../moe-impl.js');
+  const { moeFeedForwardGPU } = await (moeImplModule ??= import('../moe-impl.js'));
   if (typeof config.modelType !== 'string' || config.modelType.length === 0) {
     throw new Error('MoE config.modelType is required; re-convert the model with an explicit manifest modelType.');
   }

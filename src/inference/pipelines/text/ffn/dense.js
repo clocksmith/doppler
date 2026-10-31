@@ -37,6 +37,10 @@ import { coerceTensorDtype, dispatchActivation, dispatchFusedGateUp, requireFuse
 import { runPairedFFNGPU } from './paired.js';
 import { captureTrainingActivation, enqueueRecordedDenseHealth } from './activation-observation.js';
 import { borrowDecodeFfnIntermediate } from './decode-intermediate.js';
+
+// Lazily loaded once: each dynamic import() makes the browser re-walk the module graph.
+/** @type {Promise<typeof import('../../../../gpu/kernels/fused-gate-up-gelu.js')> | null} */
+let fusedGateUpGeluModule = null;
 export { canUseNativeF16FusedGateUp, runDenseFFNWithFusedPostNormGPU } from './dense-executor.js';
 export { canFuseSplitPrefillF16GateUpPath, resolveDenseFFNFusedPathDtypes, resolveDenseFFNMatmulStepDtype, resolveFusedGateUpPipelineConstants, resolveFusedGateUpVariant, resolveFusedGateUpWeights, resolveGateUpPathMode } from './dense-plan.js';
 function isWideTileQ4KPhaseEnabled(session, phase) {
@@ -608,7 +612,7 @@ export async function runDenseFFNGPU(
     && upF16Dtype === 'f16';
   if (fusedGateUpGeluCandidate) {
     const { runFusedGateUpGelu, recordFusedGateUpGelu } =
-      await import('../../../../gpu/kernels/fused-gate-up-gelu.js');
+      await (fusedGateUpGeluModule ??= import('../../../../gpu/kernels/fused-gate-up-gelu.js'));
     const fused = recorder
       ? await recordFusedGateUpGelu(recorder, sharedInputTensor, gateF16, upF16, {
         M: numTokens,
