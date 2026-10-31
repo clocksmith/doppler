@@ -136,7 +136,7 @@ export function compileWeightRepresentationPlan(locations, manifest, paths, defa
       complete, dtypes: Object.freeze(dtypes), aliases: Object.freeze([...group.names].sort()),
       consumers: Object.freeze([...group.consumers]),
       keepF32Weights: manifest.quantizationInfo?.preserveSourceTensors === true && location.dtype === 'F32'
-        ? true : q4 && complete && denseDtypes.length > 0 ? denseDtypes.includes('f32') : defaults.keepF32Weights });
+        ? true : complete && denseDtypes.length > 0 ? denseDtypes.includes('f32') : defaults.keepF32Weights });
   }
   return Object.freeze(result);
 }
