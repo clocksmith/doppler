@@ -114,11 +114,13 @@ export interface ExecutionV1DecodeLoopSchema {
    */
   layerSubmitInterval?: number | null;
   /**
-   * Single-token decode observes three ordinary recorded steps, builds one
+   * Single-token decode observes four ordinary recorded steps, builds one
    * whole-token command program (prebuilt bind groups, packed uniforms, one
    * compute pass, 4-byte sampled-token readback) and replays it, encoding the
    * next token while the GPU runs the current one. Absent or false keeps the
-   * ordinary recorded step. Fails closed when the observed steps disagree.
+   * ordinary recorded step. The input token and context thresholds come from
+   * operation declarations; fails closed when the observed steps disagree, and
+   * re-observes when a step leaves the declared positions or its plan changes.
    */
   wholeTokenProgram?: boolean;
   ringTokens: number | null;

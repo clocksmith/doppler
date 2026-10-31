@@ -1,5 +1,6 @@
 export declare const AttentionBDPAKernel: any;
 export declare const AttentionKernel: any;
+export declare const DECODE_GQA_SPLITK_VARIANT: 'decode_gqa_splitk';
 export declare const F32_BYTES: any;
 export declare const FLASH_BLOCK_SIZE: any;
 export declare const FLASH_HEAD_DIM: any;

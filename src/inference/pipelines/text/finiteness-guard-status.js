@@ -19,3 +19,12 @@ export function parseFinitenessStatusWords(words, offset = 0) {
     metadata: ` (layer ${layer}, step ${step})`,
   };
 }
+
+export const FINITENESS_RESET_WORDS = new Uint32Array(4);
+
+export class FinitenessError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'FinitenessError';
+  }
+}

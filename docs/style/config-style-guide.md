@@ -22,7 +22,7 @@ Rules and conventions for configuration ownership, merge order, and overrides.
 - readbackInterval (null = read back each batch)
 - ringTokens / ringStop / ringStaging (null = disable ring allocation; used for batch decode and single-token GPU sampling readback reuse)
 - layerSubmitInterval (absent or null = one submission per single-token step; N = submit the recorded prefix after every N layers so the GPU executes it while later layers are encoded)
-- wholeTokenProgram (absent or false = ordinary recorded step; true = observe decode steps 2-5, build one whole-token command program and replay it with encode-ahead; position/token-dependent words are the only per-token inputs, and any other difference between the observed steps fails closed)
+- wholeTokenProgram (absent or false = ordinary recorded step; true = observe four consecutive decode steps from step 2, build one whole-token command program and replay it with encode-ahead. The token input and context thresholds are declared by their owning operations (`declareStepContract`); other per-step words must be affine in the position, and any other difference between the observed steps fails closed. A step outside the declared positions or affine bounds, or with a changed plan or bound resource, invalidates the program and is observed again. Repetition/presence penalties and stochastic sampling are rejected)
 
 Recorded decode submits at `batchSize` token boundaries; `readbackInterval`
 groups those batches before token readback but never merges them into one

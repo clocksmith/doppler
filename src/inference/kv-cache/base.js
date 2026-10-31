@@ -16,6 +16,7 @@ import {
   recordF16UpdateAlreadyWrittenFromGPU as recordF16UpdateAlreadyWrittenFromGPUImpl,
   _updateContiguous as _updateContiguousImpl,
   _updatePaged as _updatePagedImpl,
+  markAppended as markAppendedImpl,
 } from './update.js';
 
 // ============================================================================
@@ -645,24 +646,7 @@ export class KVCache {
     return cloned;
   }
 
-  // Sequence bookkeeping for tokens whose rows a replayed whole-token decode program
-  // already wrote on the GPU: the same fields update() advances, without data movement.
-  // Contiguous base caches only; layouts with other bookkeeping fail closed.
-  markAppended(layerIdx, startPos, numTokens) {
-    if (Object.getPrototypeOf(this) !== KVCache.prototype || this.layout === 'paged') {
-      throw new Error('KVCache.markAppended supports contiguous base caches only.');
-    }
-    const layer = this.layers[layerIdx];
-    if (!layer || !Number.isSafeInteger(startPos) || startPos < 0 || !Number.isSafeInteger(numTokens) || numTokens < 1) {
-      throw new Error('KVCache.markAppended requires an allocated layer and a positive token span.');
-    }
-    const end = startPos + numTokens;
-    layer.seqLen = Math.max(layer.seqLen, end);
-    this.totalTokensSeen = Math.max(this.totalTokensSeen, end);
-    this.currentSeqLen = Math.max(this.currentSeqLen, end);
-  }
-
-  
+  markAppended(layerIdx, startPos, numTokens) { return markAppendedImpl.call(this, layerIdx, startPos, numTokens); }
   truncate(length) {
     if (length >= this.currentSeqLen) return;
 

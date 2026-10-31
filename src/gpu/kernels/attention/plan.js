@@ -8,6 +8,7 @@ import { getKernelPathAttentionVariant, getKernelPathStrict } from '../../../con
 import { selectRuleValue as selectKernelRuleValue } from '../rule-registry.js';
 import { selectRuleValue as selectSharedRuleValue } from '../../../rules/rule-registry.js';
 import { logKernelSelectionOnce } from '../../kernel-selection-log.js';
+import { declareStepContract } from '../../step-contract.js';
 
 export function resolveOnlineDecodePipelineConstants(variant, headDim, policy, options = {}) {
   if (!variant?.startsWith('decode_online')) {
@@ -51,6 +52,24 @@ export function getRequiredVariantMaxKVLen(operation, variant, errorLabel) {
 
 export function getChunkedMaxKVLen() {
   return getRequiredVariantMaxKVLen('attention', 'decode_chunked_f16kv', 'attention.decode_chunked_f16kv');
+}
+
+// A recorded decode step stays valid while kvLen, which grows by at most one per decode
+// position, stays within every bound its selection read kvLen against: the chunked
+// KV-length cap of variant selection and validation, the selected variant's maxKVLen
+// and, for a windowed layer whose window is not yet full (kvStart 0), the window, past
+// which kvLen stops growing and kvStart starts to.
+export function declareDecodeAttentionLimit(recorder, variant, kvLen, kvStart, slidingWindow) {
+  const chunkedMax = getChunkedMaxKVLen();
+  const variantMax = getKernelConfig('attention', variant).variantMetadata?.maxKVLen;
+  const max = Math.min(
+    kvLen <= chunkedMax ? chunkedMax : Infinity,
+    Number.isFinite(variantMax) ? variantMax : Infinity,
+    slidingWindow > 0 && kvStart === 0 ? slidingWindow : Infinity,
+  );
+  if (Number.isFinite(max)) {
+    declareStepContract(recorder, { kind: 'context-limit', owner: `attention:${variant}`, value: kvLen, max });
+  }
 }
 
 export function selectAttentionTier(

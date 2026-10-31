@@ -3,6 +3,7 @@ import { expandF32ToPaired, recordExpandF32ToPaired } from '../../../gpu/kernels
 
 
 import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
+import { declareStepContract } from '../../../gpu/step-contract.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
 import { runGather, recordGather, runGatherSplit, recordGatherSplit } from '../../../gpu/kernels/gather.js';
 import { runScale, recordScale } from '../../../gpu/kernels/scale.js';
@@ -312,6 +313,8 @@ export async function embed(tokenIds, embedBuffer, config) {
       ? tokenIds
       : acquireBuffer(Math.max(numTokens * 4, 256), undefined, 'embed_tokens');
     if (!tokenBufferInput) {
+      // The write that carries the step's input tokens, named for a step observer.
+      declareStepContract(recorder, { kind: 'token-input', buffer: tokenIdBuffer, offset: 0, count: numTokens });
       device.queue.writeBuffer(tokenIdBuffer, 0, new Uint32Array( (tokenIdArray)));
     }
     try {

@@ -514,6 +514,7 @@ gpu/kernel-selection-log.d.ts
 gpu/kernel-selector.d.ts
 gpu/kernels/activation-static-qdq.d.ts
 gpu/kernels/attention.d.ts
+gpu/kernels/attention/executors-components.d.ts
 gpu/kernels/attention/executors.d.ts
 gpu/kernels/attention/plan.d.ts
 gpu/kernels/backward/adam.d.ts
@@ -801,6 +802,8 @@ inference/pipelines/text/generator/session-context.d.ts
 inference/pipelines/text/generator/speculative-runtime.d.ts
 inference/pipelines/text/generator/text.d.ts
 inference/pipelines/text/generator/training.d.ts
+inference/pipelines/text/generator/whole-token-lane.d.ts
+inference/pipelines/text/generator/whole-token-template.d.ts
 inference/pipelines/text/image-transcription.d.ts
 inference/pipelines/text/init-chat-templates.d.ts
 inference/pipelines/text/init-qkv-fusion.d.ts

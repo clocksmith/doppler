@@ -296,7 +296,6 @@ export class BufferPool {
       log.warn('BufferPool', 'Releasing buffer not tracked as active');
       return;
     }
-    notifyBufferRelease(buffer);
     this.#releaseTrackedBuffer(buffer, true);
   }
 
@@ -305,7 +304,6 @@ export class BufferPool {
       log.warn('BufferPool', 'Discarding buffer not tracked as active');
       return;
     }
-    notifyBufferRelease(buffer);
     this.#releaseTrackedBuffer(buffer, false);
   }
 
@@ -751,20 +749,6 @@ export class BufferPool {
     const target = Math.floor(budget.maxTotalBytes * ratio);
     this.#trimPooledBuffersTo(target);
   }
-}
-
-// Release observers (whole-token decode program observation); empty in ordinary runs.
-const releaseObservers = new Set();
-
-function notifyBufferRelease(buffer) {
-  if (releaseObservers.size === 0) return;
-  for (const observer of releaseObservers) observer(buffer);
-}
-
-export function observeBufferRelease(observer) {
-  if (typeof observer !== 'function') throw new Error('observeBufferRelease requires a function.');
-  releaseObservers.add(observer);
-  return () => { releaseObservers.delete(observer); };
 }
 
 // Global buffer pool instance

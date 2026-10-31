@@ -680,9 +680,14 @@
       "reason": "The method sequences declared layer dispatches and resource releases; indexed writes clear ownership slots rather than tensor values."
     },
     {
-      "id": "src/inference/pipelines/text/generator/decode.js#decodeStep",
+      "id": "src/inference/pipelines/text/generator/decode.js#decodeStepBody",
       "category": "gpu-orchestration",
       "reason": "The method sequences declared GPU operations and bounded debug observation; it does not compute tensor output values in JavaScript."
+    },
+    {
+      "id": "src/inference/pipelines/text/generator/whole-token-program.js#WholeTokenProgram.#materialize",
+      "category": "gpu-orchestration",
+      "reason": "The method copies observed uniform bytes into the program's packed uniform buffer and builds bind groups and staging; it computes no tensor values."
     },
     {
       "id": "src/inference/pipelines/text/generator/prefill-runtime.js#_prefill",

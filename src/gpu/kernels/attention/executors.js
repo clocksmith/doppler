@@ -1,5 +1,5 @@
 import { executePairedAttention } from '../paired-attention.js';
-import { getDevice, getDeviceEpoch, getDeviceLimits, getKernelCapabilities } from '../../device.js';
+import { getDeviceLimits, getKernelCapabilities } from '../../device.js';
 import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { createTensor } from '../../tensor.js';
 import { KernelBase } from '../kernel-base.js';
@@ -13,191 +13,39 @@ import { dispatchIndirect, recordDispatchIndirect } from '../dispatch.js';
 import { releaseUniformBuffer } from '../../uniform-cache.js';
 import { trace } from '../../../debug/index.js';
 import { getRuntimeConfig } from '../../../config/runtime.js';
-import { resolveAttentionPlan, resolveOnlineDecodePipelineConstants } from './plan.js';
+import { declareDecodeAttentionLimit, resolveAttentionPlan, resolveOnlineDecodePipelineConstants } from './plan.js';
+import {
+  F32_BYTES,
+  getKvLenFallbackBuffer,
+  getPageTableFallbackBuffer,
+  AttentionKernel,
+  AttentionBDPAKernel,
+  createAttentionUniformBuffer,
+  createBDPAAttentionUniformBuffer,
+  resolveAttentionExecution,
+  assertAttentionBindGroupBuffer,
+  releaseAttentionUniform,
+  dispatchAttentionKernel,
+} from './executors-components.js';
 
-export let kvLenFallbackBuffer = null;
-export let kvLenFallbackBufferEpoch = -1;
-export const U32_BYTES = Uint32Array.BYTES_PER_ELEMENT;
-export const F32_BYTES = Float32Array.BYTES_PER_ELEMENT;
-export function getKvLenFallbackBuffer(device) {
-  const epoch = getDeviceEpoch();
-  if (!kvLenFallbackBuffer || kvLenFallbackBufferEpoch !== epoch) {
-    kvLenFallbackBuffer = device.createBuffer({
-      label: 'attention_kv_len_fallback',
-      size: U32_BYTES,
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-    });
-    device.queue.writeBuffer(kvLenFallbackBuffer, 0, new Uint32Array([0]));
-    kvLenFallbackBufferEpoch = epoch;
-  }
-  return kvLenFallbackBuffer;
-}
-
-export let pageTableFallbackBuffer = null;
-export let pageTableFallbackBufferEpoch = -1;
-export function getPageTableFallbackBuffer(device) {
-  const epoch = getDeviceEpoch();
-  if (!pageTableFallbackBuffer || pageTableFallbackBufferEpoch !== epoch) {
-    pageTableFallbackBuffer = device.createBuffer({
-      label: 'attention_page_table_fallback',
-      size: U32_BYTES,
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-    });
-    device.queue.writeBuffer(pageTableFallbackBuffer, 0, new Uint32Array([0]));
-    pageTableFallbackBufferEpoch = epoch;
-  }
-  return pageTableFallbackBuffer;
-}
-
-export class AttentionKernel extends KernelBase {
-
-  async getPipeline(variant, constants = null) {
-    return this.getPipelineFor('attention', variant, null, constants);
-  }
-
-  dispatch(
-    pipeline,
-    bindGroup,
-    workgroups
-  ) {
-    this.dispatchKernel(pipeline, bindGroup, workgroups, 'attention');
-  }
-
-  record(
-    recorder,
-    pipeline,
-    bindGroup,
-    workgroups
-  ) {
-    this.recordKernel(recorder, pipeline, bindGroup, workgroups, 'attention');
-  }
-}
-
-export class AttentionBDPAKernel extends KernelBase {
-  async getPipeline(variant) {
-    return this.getPipelineFor('attention_bdpa', variant);
-  }
-
-  dispatch(
-    pipeline,
-    bindGroup,
-    workgroups
-  ) {
-    this.dispatchKernel(pipeline, bindGroup, workgroups, 'attention_bdpa');
-  }
-
-  record(
-    recorder,
-    pipeline,
-    bindGroup,
-    workgroups
-  ) {
-    this.recordKernel(recorder, pipeline, bindGroup, workgroups, 'attention_bdpa');
-  }
-}
-
-export function createAttentionUniformBuffer(
-  device,
-  recorder,
-  params
-) {
-  return createUniformBufferWithView(
-    'attention_uniforms',
-    80,
-    (view) => {
-      view.setUint32(0, params.numHeads, true);
-      view.setUint32(4, params.numKVHeads, true);
-      view.setUint32(8, params.headDim, true);
-      view.setUint32(12, params.kvLen, true);
-      view.setUint32(16, params.seqLen, true);
-      view.setFloat32(20, params.scale, true);
-      view.setUint32(24, params.causal ? 1 : 0, true);
-      view.setUint32(28, params.startPos, true);
-      view.setFloat32(32, params.attnSoftcap, true); // Gemma 2: 50.0, 0 = disabled
-      view.setUint32(36, params.slidingWindow, true); // Sliding window size, 0 = disabled
-      view.setUint32(40, params.kvLenSource, true); // 0 = uniform kvLen, 1 = buffer
-      view.setUint32(44, params.kvStart ?? 0, true);
-      view.setUint32(48, params.pageSize ?? 0, true);
-      view.setUint32(52, params.kvLayout ?? 0, true);
-      view.setUint32(56, params.bidirectionalSpanStart ?? 0, true);
-      view.setUint32(60, params.bidirectionalSpanLength ?? 0, true);
-      view.setUint32(64, 0, true);
-      view.setUint32(68, 0, true);
-      view.setUint32(72, 0, true);
-    },
-    recorder,
-    device
-  );
-}
-
-export function createBDPAAttentionUniformBuffer(
-  device,
-  recorder,
-  params
-) {
-  return createUniformBufferWithView(
-    'attention_bdpa_uniforms',
-    64,
-    (view) => {
-      view.setUint32(0, params.numHeads, true);
-      view.setUint32(4, params.numKVHeads, true);
-      view.setUint32(8, params.headDim, true);
-      view.setUint32(12, params.kvLen, true);
-      view.setUint32(16, params.seqLen, true);
-      view.setFloat32(20, params.scale, true);
-      view.setUint32(24, params.causal ? 1 : 0, true);
-      view.setUint32(28, params.startPos, true);
-      view.setFloat32(32, params.attnSoftcap, true);
-      view.setUint32(36, params.slidingWindow, true);
-      view.setUint32(40, 0, true); // padding
-      view.setUint32(44, 0, true); // padding
-      view.setUint32(48, 0, true); // padding
-      view.setUint32(52, 0, true); // padding
-      view.setUint32(56, 0, true); // padding
-      view.setUint32(60, 0, true); // padding
-    },
-    recorder,
-    device
-  );
-}
-
-export function resolveAttentionExecution(recorder) {
-  return {
-    recorder: recorder || null,
-    device: recorder?.device || getDevice(),
-  };
-}
-
-export function assertAttentionBindGroupBuffer(kernelName, variant, bindingIndex, bindingLabel, buffer, details = []) {
-  const isGpuBuffer = buffer && (
-    typeof GPUBuffer === 'undefined'
-      ? true
-      : buffer instanceof GPUBuffer
-  );
-  if (isGpuBuffer) {
-    return;
-  }
-  const detailText = details.filter(Boolean).join(', ');
-  throw new Error(
-    `[${kernelName}] variant="${variant}" binding ${bindingIndex} "${bindingLabel}" requires a GPUBuffer` +
-    (detailText ? ` (${detailText})` : '') +
-    '.'
-  );
-}
-
-export function releaseAttentionUniform(execution, uniformBuffer) {
-  if (!execution.recorder) {
-    releaseUniformBuffer(uniformBuffer);
-  }
-}
-
-export function dispatchAttentionKernel(execution, kernel, pipeline, bindGroup, workgroups) {
-  if (execution.recorder) {
-    kernel.record(execution.recorder, pipeline, bindGroup, workgroups);
-    return;
-  }
-  kernel.dispatch(pipeline, bindGroup, workgroups);
-}
+export {
+  kvLenFallbackBuffer,
+  kvLenFallbackBufferEpoch,
+  U32_BYTES,
+  F32_BYTES,
+  getKvLenFallbackBuffer,
+  pageTableFallbackBuffer,
+  pageTableFallbackBufferEpoch,
+  getPageTableFallbackBuffer,
+  AttentionKernel,
+  AttentionBDPAKernel,
+  createAttentionUniformBuffer,
+  createBDPAAttentionUniformBuffer,
+  resolveAttentionExecution,
+  assertAttentionBindGroupBuffer,
+  releaseAttentionUniform,
+  dispatchAttentionKernel,
+} from './executors-components.js';
 
 export async function executeAttentionBDPA(
   recorder,
@@ -449,6 +297,7 @@ export async function executeAttention(
     isPaged,
     kernelPath
   );
+  if (plan.isDecode) declareDecodeAttentionLimit(execution.recorder, plan.variant, kvLen, kvStart, slidingWindow);
 
   getKernelValidator('attention', plan.variant)?.({
     operation: 'attention', variant: plan.variant, bindings: [Q, K, V, outputBuffer],

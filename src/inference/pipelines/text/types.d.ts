@@ -584,6 +584,17 @@ export interface PipelineLoadTiming {
 }
 
 export interface PipelineStats {
+  /** Whole-token decode program counters (decodeLoop.wholeTokenProgram); dispatches is null until built. */
+  wholeTokenProgram?: {
+    observedSteps: number;
+    replayedTokens: number;
+    restarts: number;
+    invalidations: number;
+    lastInvalidation: string | null;
+    dispatches: number | null;
+  };
+  /** Wall time of replayed whole-token decode steps, in milliseconds. */
+  wholeTokenProgramWallMs?: number;
   /** Full raw decoding counts when a manifest declares final-answer output semantics. */
   outputUsage?: { rawCharacters: number; rawTokens: number; finalCharacters: number; state: string };
   /** Total prefill time in milliseconds */

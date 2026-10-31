@@ -16,3 +16,16 @@ export declare function resolveOnlineDecodePipelineConstants(
   policy: { workgroupSize?: number | null; useDirectContiguousKVLayout?: boolean } | null | undefined,
   options?: { kvLayout?: string; slidingWindow?: number },
 ): { WORKGROUP_SIZE?: number; USE_DIRECT_KV_LAYOUT?: boolean } | null;
+
+/**
+ * Declare to a step observer of `recorder` the kvLen bound within which this decode
+ * step's attention selection holds: the chunked cap, the variant's maxKVLen and an
+ * unfilled sliding window (kvStart 0).
+ */
+export declare function declareDecodeAttentionLimit(
+  recorder: import('../../command-recorder.js').CommandRecorder | null,
+  variant: string,
+  kvLen: number,
+  kvStart: number,
+  slidingWindow: number | null
+): void;

@@ -1,17 +1,27 @@
 import assert from 'node:assert/strict';
-import { classifyWord } from '../../src/inference/pipelines/text/generator/whole-token-program.js';
+import { affineLastPosition, classifyWord } from '../../src/inference/pipelines/text/generator/whole-token-template.js';
 
 const positions = [40, 41, 42, 43];
-const tokens = [7, 1234, 99, 5];
-assert.deepEqual(classifyWord([5, 5, 5, 5], positions, tokens), { kind: 'const', value: 5 });
-assert.deepEqual(classifyWord([7, 1234, 99, 5], positions, tokens), { kind: 'token' });
-assert.deepEqual(classifyWord([41, 42, 43, 44], positions, tokens), { kind: 'affine', base: 41, slope: 1, pos0: 40 });
-assert.deepEqual(classifyWord([1024, 1536, 2048, 2560], positions, tokens), { kind: 'affine', base: 1024, slope: 512, pos0: 40 });
+assert.deepEqual(classifyWord([5, 5, 5, 5], positions), { kind: 'const', value: 5 });
+assert.deepEqual(classifyWord([41, 42, 43, 44], positions), { kind: 'affine', base: 41, slope: 1, pos0: 40 });
+assert.deepEqual(classifyWord([1024, 1536, 2048, 2560], positions), { kind: 'affine', base: 1024, slope: 512, pos0: 40 });
+// The input token is declared by its owner, never inferred: four different token ids
+// are neither constant nor affine.
+assert.equal(classifyWord([7, 1234, 99, 5], positions), null);
 // A float field that changes with position is not affine in its u32 bits.
 const w = new Uint32Array(new Float32Array([1 / 41, 1 / 42, 1 / 43, 1 / 44]).buffer);
-assert.equal(classifyWord(Array.from(w), positions, tokens), null);
+assert.equal(classifyWord(Array.from(w), positions), null);
 // A word that breaks the affine prediction in a later step is rejected.
-assert.equal(classifyWord([41, 42, 43, 45], positions, tokens), null);
+assert.equal(classifyWord([41, 42, 43, 45], positions), null);
 // Non-consecutive positions never classify as affine.
-assert.equal(classifyWord([1, 2, 3, 4], [1, 3, 4, 5], tokens), null);
+assert.equal(classifyWord([1, 2, 3, 4], [1, 3, 4, 5]), null);
+
+// Affine words and copy offsets bound the positions a program may run.
+const kvOffset = { kind: 'affine', base: 40 * 1024, slope: 1024, pos0: 40 };
+// A 64-row buffer of 1024-byte rows takes a 1024-byte copy at rows 0..63.
+assert.equal(affineLastPosition(kvOffset, 0, 64 * 1024 - 1024), 63);
+assert.equal(affineLastPosition({ kind: 'affine', base: 0xfffffffd, slope: 1, pos0: 10 }, 0, 0xffffffff), 12);
+assert.equal(affineLastPosition({ kind: 'affine', base: 3, slope: -1, pos0: 10 }, 0, 0xffffffff), 13);
+assert.equal(affineLastPosition({ kind: 'const', value: 9 }, 0, 0xffffffff), Infinity);
+assert.equal(affineLastPosition({ kind: 'token' }, 0, 0xffffffff), Infinity);
 console.log('whole-token-program-classify.test: ok');

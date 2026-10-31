@@ -307,3 +307,24 @@ export function _updatePaged(layerIdx, layer, keys, values, startPos, numNewToke
       );
     }
   }
+
+// Sequence bookkeeping for tokens whose rows a replayed whole-token decode program
+// already wrote on the GPU: the same fields update() advances, without data movement.
+// Contiguous base caches only: a subclass that keeps other bookkeeping and does not
+// define markAppended itself fails closed, as does a paged layout.
+export function markAppended(layerIdx, startPos, numTokens) {
+    if (!Object.hasOwn(Object.getPrototypeOf(this), 'markAppended') || this.layout === 'paged') {
+      throw new Error('KVCache.markAppended supports contiguous base caches only.');
+    }
+    const layer = this.layers[layerIdx];
+    if (!layer || !Number.isSafeInteger(startPos) || startPos < 0 || !Number.isSafeInteger(numTokens) || numTokens < 1) {
+      throw new Error('KVCache.markAppended requires an allocated layer and a positive token span.');
+    }
+    const end = startPos + numTokens;
+    if (end > this.maxSeqLen) {
+      throw new Error(`Cache overflow: ${end} > ${this.maxSeqLen}`);
+    }
+    layer.seqLen = Math.max(layer.seqLen, end);
+    this.totalTokensSeen = Math.max(this.totalTokensSeen, end);
+    this.currentSeqLen = Math.max(this.currentSeqLen, end);
+  }
