@@ -7243,7 +7243,8 @@
        "gemma3/translategemma-4b-it-q4k-ehf16-af32",
        "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32",
        "qwen3/qwen-3-5-0-8b-canonical-f32",
-       "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"
+       "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
+       "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32"
       ],
       "ruleChains": ["matmul.rules.json#gemvVariant","matmul.rules.json#matmulKernel"],
       "wgslOnDisk": true
