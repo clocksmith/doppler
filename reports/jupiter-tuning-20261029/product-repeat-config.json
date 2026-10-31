@@ -1,7 +1,7 @@
 {
   "request": {
     "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
-    "modelUrl": "file:///home/x/deco/hatch/pooled-doppler-bench/_work/doppler-successor",
+    "modelUrl": "file://$HOME/deco/hatch/pooled-doppler-bench/_work/doppler-successor",
     "cacheMode": "warm",
     "loadMode": "opfs",
     "runtimeConfig": {
@@ -68,7 +68,7 @@
     "surface": "browser",
     "browser": {
       "executablePath": "/opt/google/chrome/chrome",
-      "userDataDir": "/home/x/.local/state/doppler/jupiter-tuning-20261029/warm-candidate",
+      "userDataDir": "$HOME/.local/state/doppler/amd-host-tuning-20261029/warm-candidate",
       "port": 19932,
       "timeoutMs": 360000,
       "browserArgs": [

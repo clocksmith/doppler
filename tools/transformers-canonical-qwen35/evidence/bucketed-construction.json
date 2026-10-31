@@ -1,7 +1,9 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "scope": "Explicit64/704 prefill bucket composition; strict CPU numerical failures remain retained",
   "receipt": {
-    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/bucketed-text-01/receipt.json",
+    "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/bucketed-text-01/receipt.json",
     "sha256": "5363b2ccee5fb9427fecdde1cbd4729b31441819701268c674019ca32057f527"
   },
   "completed": true,
@@ -515,11 +517,11 @@
     {
       "bound": 64,
       "artifact": {
-        "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/bucket64-onnx-lookup-01/receipt.json",
+        "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/bucket64-onnx-lookup-01/receipt.json",
         "sha256": "5f25b9a74b824ade67e241e5c29052f19a764a3a8a50b484e1334417d1a62f67"
       },
       "cpuGate": {
-        "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/bucket64-onnx-lookup-cpu-01/receipt.json",
+        "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/bucket64-onnx-lookup-cpu-01/receipt.json",
         "sha256": "e08d1e3271809a4be7061e0f63daffa948da3672007caade67fa423055edfdf3",
         "pass": false,
         "failedChecks": 61
@@ -528,11 +530,11 @@
     {
       "bound": 704,
       "artifact": {
-        "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-lookup-03/receipt.json",
-        "sha256": "12ab1479a5e52409d8581766f81557f580ce8a7cc7c501dc902b16da4325ac92"
+        "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-lookup-03/receipt.json",
+        "sha256": "871ef462170a3ec2b7147841c4ee1bfdf7e8f7b007c982e3a080df99cdce62a8"
       },
       "cpuGate": {
-        "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-lookup-cpu-01/receipt.json",
+        "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-lookup-cpu-01/receipt.json",
         "sha256": "32393bf7637c5c3435c0a7175db3c0ab03a4fc3cc6f4d639aa713c346d17e669",
         "pass": false,
         "failedChecks": 53
@@ -540,17 +542,17 @@
     }
   ],
   "initializerBinding": {
-    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/bucketed-text-01/initializer-binding.json",
+    "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/bucketed-text-01/initializer-binding.json",
     "sha256": "c75be47e2f5d7dd3bfd7003be15a327970d55a068a0d01ea7f1229ea7a48ee82",
     "pass": true
   },
   "parameters": 321,
   "sessionBindings": 961,
   "sessionFiles": {
-    "embed_tokens": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/embed_tokens.onnx",
-    "decoder_decode": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_decode.full-onnx-f32kv-lookup-03.onnx",
-    "decoder_prefill_64": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_prefill.bucket64-onnx-lookup-01.onnx",
-    "decoder_prefill_704": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_prefill.full-onnx-f32kv-lookup-03.onnx"
+    "embed_tokens": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/embed_tokens.onnx",
+    "decoder_decode": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_decode.full-onnx-f32kv-lookup-03.onnx",
+    "decoder_prefill_64": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_prefill.bucket64-onnx-lookup-01.onnx",
+    "decoder_prefill_704": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_prefill.full-onnx-f32kv-lookup-03.onnx"
   },
   "externalPayloadSharing": "Single-linked frozen source files; variant graph protobufs are siblings. Separate sessions may duplicate GPU residency.",
   "sessionResidency": "Four independent sessions; embedding, two prefill buckets, decode. Initializers may be duplicated in GPU memory."

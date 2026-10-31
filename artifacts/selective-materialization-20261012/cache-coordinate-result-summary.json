@@ -4442,7 +4442,7 @@
   },
   "raw": {
     "machine": "amd-host",
-    "path": "/home/x/deco/doppler/reports/local/selective-materialization-20261012/cache-coordinate-result.json",
+    "path": "$HOME/deco/doppler/reports/local/selective-materialization-20261012/cache-coordinate-result.json",
     "bytes": 422244038,
     "sha256": "16a96ec8bd7782a364dadadc3c4bd6240d3d78ca42e6f5258d587d596a522ee6"
   }

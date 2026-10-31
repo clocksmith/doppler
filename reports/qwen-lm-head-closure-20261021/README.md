@@ -5,11 +5,11 @@ under a pre-registered, balanced, independent-process comparison. **The AMD half
 exact parity and lifecycle pass in v2 and in the restated v3 gate (cancellation, reuse, device
 recreation), but there is no complete-request improvement. The kernel change is
 removed from the shared default and retained here as [candidate.patch](candidate.patch). The M3 half
-runs the same harness on Mars with [contract-v3-metal.json](contract-v3-metal.json).
+runs the same harness on mac-host with [contract-v3-metal.json](contract-v3-metal.json).
 
 ## Setup
 
-- Jupiter: AMD Ryzen AI MAX+ 395 / Radeon 8060S (RADV STRIX_HALO), Linux 7.0.0-38, Chrome
+- amd-host: AMD Ryzen AI MAX+ 395 / Radeon 8060S (RADV STRIX_HALO), Linux 7.0.0-38, Chrome
   146.0.7680.177, Playwright 1.58.2, Node 22.22.1.
 - Model: `qwen-3-5-2b-q4k-ehaf16` standard-BLAKE3 variant, local NVMe copy
   `.cache/qwen-2b-standard-blake3-20261018-v2` (same weight bytes as the Mac contract's variant).
@@ -100,7 +100,7 @@ unprofiled request selects 13 (`.`); the continuations then diverge
 changes submission shape and LM-head route. Which route matches a full-precision oracle is not
 established here.
 
-## M3 half (Mars)
+## M3 half (mac-host)
 
 The restated order puts M3 first. Because the AMD half was already measured, it ran first here,
 which does not change the AMD outcome. Use [contract-v3-metal.json](contract-v3-metal.json):

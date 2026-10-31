@@ -12,7 +12,7 @@ AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
 -   'q_proj'
 - ]
 
-    at file:///Users/xyz/deco/doppler/tests/inference/paired-weight-materialization.test.js:17:8 {
+    at file://$HOME/deco/doppler/tests/inference/paired-weight-materialization.test.js:17:8 {
   generatedMessage: true,
   code: 'ERR_ASSERTION',
   actual: undefined,

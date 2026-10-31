@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.wgsl-repair-seed-candidate-completions/v1",
   "experimentId": "doppler-wgsl-repair-v13",
   "policy": {
@@ -14,7 +16,7 @@
     "lane": "external20",
     "seed": 11,
     "adapterManifestPath": "reports/training/wgsl-repair/doppler-wgsl-repair-v12/seed11/external20/sft/exports/checkpoint-001200.adapter.manifest.json",
-    "adapterManifestSha256": "2bd26209ddcc77969759371a41ec6448dc561acb87e4f1a351df80a88de0c595",
+    "adapterManifestSha256": "3e12c3b35a68a5d07b9f2038f24b33546cc86fd30568a3a538ec9d8f24d66dff",
     "adapterWeightsPath": "reports/training/wgsl-repair/doppler-wgsl-repair-v12/seed11/external20/sft/exports/checkpoint-001200.adapters.safetensors",
     "adapterWeightsSha256": "8631f512fe8ce481ade2e29a476bb1ade4e2ab6fd8627c7e27c7c093b4824af6"
   },

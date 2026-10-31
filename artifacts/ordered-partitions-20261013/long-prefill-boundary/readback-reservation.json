@@ -1,7 +1,7 @@
 {
   "at": "2026-10-13T21:51:06.764684+00:00",
   "authority": "root, continuing user-authorized runtime repair",
-  "host": "Suby",
+  "host": "intel-host",
   "scope": "Eight direct canonical snapshots of original immutable activation bytes; no model computation",
   "publicProcessesPreserved": [
     297260,

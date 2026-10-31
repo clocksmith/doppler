@@ -6,12 +6,12 @@
   "modelIRReceiptPath": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/model-ir-receipt.json",
   "initialExecutionIdentityPath": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/initial-identity.json",
   "qualificationReportPaths": [
-    "/Users/xyz/deco/doppler/artifacts/paired-intermediates-20261012/release-0.6.28/browser-split/direction-0-qualification/partition-0.json",
-    "/Users/xyz/deco/doppler/artifacts/paired-intermediates-20261012/release-0.6.28/browser-split/direction-0-qualification/partition-1.json",
-    "/Users/xyz/deco/doppler/artifacts/paired-intermediates-20261012/release-0.6.28/browser-split/direction-1-qualification/partition-0.json",
-    "/Users/xyz/deco/doppler/artifacts/paired-intermediates-20261012/release-0.6.28/browser-split/direction-1-qualification/partition-1.json"
+    "$HOME/deco/doppler/artifacts/paired-intermediates-20261012/release-0.6.28/browser-split/direction-0-qualification/partition-0.json",
+    "$HOME/deco/doppler/artifacts/paired-intermediates-20261012/release-0.6.28/browser-split/direction-0-qualification/partition-1.json",
+    "$HOME/deco/doppler/artifacts/paired-intermediates-20261012/release-0.6.28/browser-split/direction-1-qualification/partition-0.json",
+    "$HOME/deco/doppler/artifacts/paired-intermediates-20261012/release-0.6.28/browser-split/direction-1-qualification/partition-1.json"
   ],
-  "residentQualificationContractPath": "/Users/xyz/deco/doppler/artifacts/paired-intermediates-20261012/release-0.6.28/browser-split/direction-0-qualification/contract.json",
+  "residentQualificationContractPath": "$HOME/deco/doppler/artifacts/paired-intermediates-20261012/release-0.6.28/browser-split/direction-0-qualification/contract.json",
   "pieceIndexPath": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/pieces.json",
   "releaseManifestPath": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/release.json",
   "signingPrivateKeyPath": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/signing-private.jwk.json",

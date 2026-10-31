@@ -150,7 +150,7 @@
       "files": 6853,
       "excluded": "Local experiment tree and the acceptance receipt; no Git history is included."
     },
-    "custodyDirectory": "/home/x/.local/share/doppler/capsule-baselines/20260906"
+    "custodyDirectory": "$HOME/.local/share/doppler/capsule-baselines/20260906"
   },
   "evidence": [
     {

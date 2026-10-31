@@ -190,7 +190,7 @@
   "browserVersion": "146.0.7680.177",
   "error": {
     "message": "page.evaluate: Error: Doppler advanced.tokenizePrompt requires text or chat messages.\n    at tokenizePrompt (http://127.0.0.1:34173/src/client/model-host/model-session.js:82:41)\n    at Object.tokenizePrompt (http://127.0.0.1:34173/src/client/model-host/model-session.js:441:16)\n    at eval (eval at evaluate (:290:30), <anonymous>:20:41)\n    at async <anonymous>:316:30",
-    "stack": "page.evaluate: Error: Doppler advanced.tokenizePrompt requires text or chat messages.\n    at tokenizePrompt (http://127.0.0.1:34173/src/client/model-host/model-session.js:82:41)\n    at Object.tokenizePrompt (http://127.0.0.1:34173/src/client/model-host/model-session.js:441:16)\n    at eval (eval at evaluate (:290:30), <anonymous>:20:41)\n    at async <anonymous>:316:30\n    at /home/x/deco/doppler/tools/probe-installed-token-selection.js:40:29"
+    "stack": "page.evaluate: Error: Doppler advanced.tokenizePrompt requires text or chat messages.\n    at tokenizePrompt (http://127.0.0.1:34173/src/client/model-host/model-session.js:82:41)\n    at Object.tokenizePrompt (http://127.0.0.1:34173/src/client/model-host/model-session.js:441:16)\n    at eval (eval at evaluate (:290:30), <anonymous>:20:41)\n    at async <anonymous>:316:30\n    at $HOME/deco/doppler/tools/probe-installed-token-selection.js:40:29"
   },
   "cleanupErrors": []
 }

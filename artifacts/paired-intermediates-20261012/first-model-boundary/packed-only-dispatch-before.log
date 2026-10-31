@@ -1,9 +1,9 @@
-file:///Users/xyz/deco/doppler/src/loader/tensors/tensor-loader.js:578
+file://$HOME/deco/doppler/src/loader/tensors/tensor-loader.js:578
     requiresPackedOnlyQ4KRole,
     ^
 
 ReferenceError: requiresPackedOnlyQ4KRole is not defined
-    at loadTensorToGPU (file:///Users/xyz/deco/doppler/src/loader/tensors/tensor-loader.js:578:5)
-    at file:///Users/xyz/deco/doppler/tests/loader/tensor-loader-cleanup.test.js:142:24
+    at loadTensorToGPU (file://$HOME/deco/doppler/src/loader/tensors/tensor-loader.js:578:5)
+    at file://$HOME/deco/doppler/tests/loader/tensor-loader-cleanup.test.js:142:24
 
 Node.js v22.20.0

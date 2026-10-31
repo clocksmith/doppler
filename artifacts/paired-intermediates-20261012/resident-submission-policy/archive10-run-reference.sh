@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 cd /var/tmp/reploid-paired-submission-fixed-20261012
-export DOPPLER_CHAT_MODEL_DIR=/Users/xyz/deco/doppler/reports/local/paired-intermediates-20261012/model-9/model
+export DOPPLER_CHAT_MODEL_DIR=$HOME/deco/doppler/reports/local/paired-intermediates-20261012/model-9/model
 export REPLOID_PAIRED_EXECUTION_BINDING=$PWD/binding.json
 export REPLOID_PAIRED_EXECUTION_GRAPH=$PWD/execution.json
 export REPLOID_DIAGNOSTIC_REQUESTS=$PWD/tests/fixtures/distributed-memory-requests.json

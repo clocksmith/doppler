@@ -4,17 +4,17 @@
   "identityScope": "Built native source plus retained patch; not a published package",
   "files": {
     "library": {
-      "path": "/Users/xyz/deco/doe/.cache/qwen08-native/lib/libwebgpu_doe.dylib",
+      "path": "$HOME/deco/doe/.cache/qwen08-native/lib/libwebgpu_doe.dylib",
       "sha256": "238a6fb6c7f10d38de6745842b65927d99ee6f26bb2a7c63b2c21f45ea88df72",
       "bytes": 2094496
     },
     "addon": {
-      "path": "/Users/xyz/deco/doe/packages/doe-gpu/build/Release/doe_napi.node",
+      "path": "$HOME/deco/doe/packages/doe-gpu/build/Release/doe_napi.node",
       "sha256": "541a4d122d34ca6d426fa492e82738df4e87fc32045b821ffeaec0d376ac8823",
       "bytes": 329872
     },
     "sourcePatch": {
-      "path": "/Users/xyz/deco/doppler/artifacts/qwen08-perf-20261015/doe-source.patch",
+      "path": "$HOME/deco/doppler/artifacts/qwen08-perf-20261015/doe-source.patch",
       "sha256": "eefc1c7f6682c38b6c4474cdb9b4820d7d75f087a7b0ca654de4baea57633512",
       "bytes": 11803
     }

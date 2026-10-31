@@ -6,7 +6,7 @@
       "name": "softplus-compensated-cpu-01",
       "scope": "ONNX CPU numerical execution only; no TJS, GPU or speed proof",
       "receipt": {
-        "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/softplus-compensated-cpu-01/receipt.json",
+        "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/softplus-compensated-cpu-01/receipt.json",
         "sha256": "8b56aa1eeafd0edabda73e2d1d1c6de66cdc8d7a28236268e39ae54f2451d739"
       },
       "completed": true,
@@ -338,7 +338,7 @@
         }
       },
       "artifact": {
-        "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/softplus-compensated-01/receipt.json",
+        "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/softplus-compensated-01/receipt.json",
         "sha256": "1a737762a45c3e5b99f57fdb187cd619b21aefd43a7191e389ab2da08c77684b"
       },
       "sourceSha256": {
@@ -351,7 +351,7 @@
       "name": "silu-native-cpu-01",
       "scope": "ONNX CPU numerical execution only; no TJS, GPU or speed proof",
       "receipt": {
-        "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/silu-native-cpu-01/receipt.json",
+        "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/silu-native-cpu-01/receipt.json",
         "sha256": "01996c726ab483d66f8e65aefedeef926e662e0041e37e231fd285802ebf599b"
       },
       "completed": true,
@@ -683,7 +683,7 @@
         }
       },
       "artifact": {
-        "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/silu-native-01/receipt.json",
+        "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/silu-native-01/receipt.json",
         "sha256": "161445d59b6cff2747d24bcd292657e90e0730c4855e1c46fa74fd286f52d33a"
       },
       "sourceSha256": {
@@ -696,7 +696,7 @@
       "name": "activations-native-cpu-01",
       "scope": "ONNX CPU numerical execution only; no TJS, GPU or speed proof",
       "receipt": {
-        "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/activations-native-cpu-01/receipt.json",
+        "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/activations-native-cpu-01/receipt.json",
         "sha256": "a211f1ee70011731e1f4e0038620c6e7a444e10669369fed2f962489b626634e"
       },
       "completed": true,
@@ -1033,7 +1033,7 @@
         }
       },
       "artifact": {
-        "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/activations-native-01/receipt.json",
+        "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/activations-native-01/receipt.json",
         "sha256": "6674f89a0cc6fb0ff6990e8dc194d43e6ad09b9ce5cbc9533dc9c121bd05342d"
       },
       "sourceSha256": {

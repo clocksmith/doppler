@@ -1,4 +1,4 @@
-# Jupiter Qwen3.5 0.8B tuning checkpoint
+# amd-host Qwen3.5 0.8B tuning checkpoint
 
 This is Doppler work, not Doe work. The requested target is not fully met:
 complete-request latency improved, but the retained comparison's short-prompt
@@ -87,7 +87,7 @@ The initial naive-SiLU FFN candidate failed at 0.0012708902. Matching the
 existing refined activation fixed that regression; failed arrays and
 ablations remain retained.
 
-Physical Jupiter reference checks cover 36 projection cases, 12 refined FFN
+Physical amd-host reference checks cover 36 projection cases, 12 refined FFN
 cases, six recurrent prefill/history cases, six attention prefill cases and
 12 immediate/recorded sequential register-decode cases. The final scalar-only
 decode shader was rerun against the old GPU path and independent CPU state,

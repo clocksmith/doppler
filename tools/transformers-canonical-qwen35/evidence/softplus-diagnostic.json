@@ -1,10 +1,12 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.canonical-export-softplus-diagnostic.v1",
   "attempts": [
     {
       "run": "full-text-cpu-01",
       "receipt": {
-        "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-text-cpu-01/receipt.json",
+        "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-text-cpu-01/receipt.json",
         "sha256": "4f21d2f9d3870797352d22a7a8caa40ab8138631747c3a994e5578510417343b"
       },
       "error": {
@@ -16,7 +18,7 @@
     {
       "run": "full-text-cpu-softplus-01",
       "receipt": {
-        "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-text-cpu-softplus-01/receipt.json",
+        "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-text-cpu-softplus-01/receipt.json",
         "sha256": "367e0a5a769a6ef19ba02a0bc363da0cb7ff384b283dbc7c9403a12026c7e03c"
       },
       "error": {
@@ -27,7 +29,7 @@
     }
   ],
   "diagnostic": {
-    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-text-cpu-softplus-01/softplus-diagnostic.json",
+    "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-text-cpu-softplus-01/softplus-diagnostic.json",
     "sha256": "b1b323c8eb4f4db7b32111ee952bbd594f85b7e354fa65aa15a3557d13752a13",
     "calls": [
       {
@@ -74,8 +76,8 @@
   },
   "fix": "Retain native F.softplus in CPU adapter; lower unsupported Softplus only in ONNX graph",
   "validation": {
-    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-text-cpu-02/receipt.json",
-    "sha256": "7024db9037d6c4aba1c2482632389f9cb994bce384ba3b982a779c47ffcaa796",
+    "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-text-cpu-02/receipt.json",
+    "sha256": "fbf2b1af22cce2b19d3a6f53a46ada058d7f6485c1b86b868b54bf66aa55b01a",
     "checks": 735,
     "allLogitsAndStateBitExact": true
   }

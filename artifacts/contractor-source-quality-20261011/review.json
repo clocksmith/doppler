@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.contractor-source-manual-review/v1",
   "qualified": false,
   "reviewer": "Codex; not independent human review",
@@ -108,7 +110,7 @@
     },
     {
       "file": "run.log.gz",
-      "sha256": "28501f2bc6e6131ddc7e4e0fa66616385003ad0861bbbf283618455d6f6c1526"
+      "sha256": "d22ac1481fe80a32c9449940da59a993aee532f2f8866b244b12cfbe8cda1a2b"
     },
     {
       "file": "controlled-stop.json",

@@ -3,9 +3,9 @@
   "surface": "browser",
   "packageBundlePath": "/var/tmp/doppler-w8-installed-completion-20261011",
   "modelDir": "/var/tmp/doppler-gemma270-w8a8-packed-diagnostic-20261011",
-  "outputDir": "/home/x/deco/doppler/reports/local/w8a8-qualification-20261011/w8a8-packed-portable-benchmark-03",
+  "outputDir": "$HOME/deco/doppler/reports/local/w8a8-qualification-20261011/w8a8-packed-portable-benchmark-03",
   "reference": {
-    "path": "/home/x/deco/doppler/reports/local/w8a8-qualification-20261011/installed-reference-v4.json",
+    "path": "$HOME/deco/doppler/reports/local/w8a8-qualification-20261011/installed-reference-v4.json",
     "digest": "sha256:3862c318a91cf46c252441cdf27a6a4631b2ddd481a5f497ef664845ed0b6de1"
   },
   "manifestDigest": "sha256:67eee682dea361346ca1ae16026e53f4162b4e43f45dc9c53e4b30919b79065e",

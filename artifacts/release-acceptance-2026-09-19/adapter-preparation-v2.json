@@ -3,7 +3,7 @@
     "parentCapsule": "/var/tmp/doppler-capsule-gpu-selection-20260915/qualified/distribution/capsule.json",
     "parentSha256": "sha256:c0a552b35ce83d73eefabc6535acf17feb6f94024d00115cb14910de0bc95280",
     "outputDir": "/var/tmp/doppler-release-acceptance.JTuaHr/adapter-source-v2",
-    "kernelRoot": "/home/x/deco/doppler/src/gpu/kernels",
+    "kernelRoot": "$HOME/deco/doppler/src/gpu/kernels",
     "kernels": [
       {
         "id": "adapter_matmul",

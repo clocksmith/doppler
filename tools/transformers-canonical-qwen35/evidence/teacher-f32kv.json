@@ -14,54 +14,54 @@
   },
   "sources": {
     "teacher": {
-      "path": "/home/x/deco/doppler/tools/transformers-canonical-qwen35/teacher_native.py",
+      "path": "$HOME/deco/doppler/tools/transformers-canonical-qwen35/teacher_native.py",
       "sha256": "c90dffa5df7343ed53885558f6c622c63e63e4842e5835adc23d58002f7bab1a"
     },
     "modelBoundary": {
-      "path": "/home/x/deco/doppler/tools/transformers-canonical-qwen35/native_model.py",
+      "path": "$HOME/deco/doppler/tools/transformers-canonical-qwen35/native_model.py",
       "sha256": "d06227124c68fea5bc4e6ba6b6b0f59ca0c1e26bc86717fceb5fffad6b83ff63"
     },
     "binding": {
-      "path": "/home/x/deco/doppler/tools/transformers-canonical-qwen35/binding.py",
+      "path": "$HOME/deco/doppler/tools/transformers-canonical-qwen35/binding.py",
       "sha256": "ad47eddfbd4bf2162d3579d7a0a22004aa621f132df0e827f1f6d9f4a5bbfb70"
     },
     "policy": {
-      "path": "/home/x/deco/doppler/tools/transformers-canonical-qwen35/contract.json",
+      "path": "$HOME/deco/doppler/tools/transformers-canonical-qwen35/contract.json",
       "sha256": "a74fee3c20a63a1466874c1b4fac93f9126a47fb49372fd3a41714f19ba18638"
     },
     "nativeHF": {
-      "path": "/home/x/.local/lib/python3.14/site-packages/transformers/models/qwen3_5/modeling_qwen3_5.py",
+      "path": "$HOME/.local/lib/python3.14/site-packages/transformers/models/qwen3_5/modeling_qwen3_5.py",
       "sha256": "3e2b6239e4b2c3e512d4f9836a1dba12e975ae652407e84f2d3c2beebf0c9528"
     },
     "nativeCache": {
-      "path": "/home/x/.local/lib/python3.14/site-packages/transformers/cache_utils.py",
+      "path": "$HOME/.local/lib/python3.14/site-packages/transformers/cache_utils.py",
       "sha256": "a51d2cd525f4458941a20cb5b3b8a8d989d8ca5bcd451855a27bb41743fed586"
     },
     "teacherLanePolicy": {
-      "path": "/home/x/deco/doppler/tools/transformers-canonical-qwen35/teacher-f32kv.json",
+      "path": "$HOME/deco/doppler/tools/transformers-canonical-qwen35/teacher-f32kv.json",
       "sha256": "6bed6181e1597e1435dcfc4f389ca74d32f15dc5ddc86aaaf1ac28581de765db"
     }
   },
   "contracts": {
     "prompts": {
-      "path": "/home/x/deco/doppler/reports/jupiter-tuning-20261029/product-repeat-contract.json",
+      "path": "$HOME/deco/doppler/reports/amd-host-tuning-20261029/product-repeat-contract.json",
       "sha256": "432bedc067bca02bf51081eadd50b2e0960d82424398151c1ebcc5e0760a011c"
     },
     "engine": {
-      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/contract-f32kv-parent.json",
+      "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/contract-f32kv-parent.json",
       "sha256": "4c6ebe13ee7d741505fbd0fae382cc657a26ccd5a7249103de9d1ebb764c1047"
     },
     "eosRuntimeManifest": {
-      "path": "/home/x/.local/state/doppler/pooled-equal-weights-20261029/rdrr-f32/manifest.json",
+      "path": "$HOME/.local/state/doppler/pooled-equal-weights-20261029/rdrr-f32/manifest.json",
       "sha256": "b7e6ddd056f047000c713dd6677ecb0f2f28af6de020f9c7c2aa1aa08110302d"
     },
     "verifiedCodePrompt": {
-      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/native-reference-f16-01/receipt.json",
+      "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/native-reference-f16-01/receipt.json",
       "sha256": "6d762e7e551aebb659ff14c7fa5038b9199d13d81ea2e82e0cf3bb438571099d"
     }
   },
   "tokenizer": {
-    "path": "/home/x/.local/state/doppler/pooled-equal-weights-20261029/canonical/tokenizer.json",
+    "path": "$HOME/.local/state/doppler/pooled-equal-weights-20261029/canonical/tokenizer.json",
     "sha256": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4"
   },
   "contract": {
@@ -95,7 +95,7 @@
   "elapsedSeconds": 49.69394630304305,
   "schema": "doppler.native-hf-canonical-teacher-summary.v1",
   "fullReceipt": {
-    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/teacher-f32kv-02/receipt.json",
+    "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/teacher-f32kv-02/receipt.json",
     "sha256": "a9713f5c028b0911b6a32235a34cc1e0e85009c776eda79f0e7a4a793468e1cd",
     "parameterCount": 321
   },

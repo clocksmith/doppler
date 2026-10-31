@@ -49,4 +49,4 @@
 [3322.3ms][KernelSelect] attention variant=decode_online_f16kv reason=path_override:subgroup
 [9764.9ms][ExpertCache] Cache cleared
 [9772.2ms][Pipeline] Unloaded
-{"passed":true,"recurrentBytes":10321920,"output":"/Users/xyz/deco/doppler/reports/qwen-optimization-20261017/mac-recurrent-clone-2b.json"}
+{"passed":true,"recurrentBytes":10321920,"output":"$HOME/deco/doppler/reports/qwen-optimization-20261017/mac-recurrent-clone-2b.json"}

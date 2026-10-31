@@ -8,7 +8,7 @@ AssertionError [ERR_ASSERTION]: final logits must retain the active plan represe
 + undefined
 - 'two-f32'
 
-    at file:///Users/xyz/deco/doppler/tests/inference/logits-paired-contract.test.js:11:8 {
+    at file://$HOME/deco/doppler/tests/inference/logits-paired-contract.test.js:11:8 {
   generatedMessage: false,
   code: 'ERR_ASSERTION',
   actual: undefined,

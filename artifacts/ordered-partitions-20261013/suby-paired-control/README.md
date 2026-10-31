@@ -1,4 +1,4 @@
-# Suby paired wrapper boundary
+# intel-host paired wrapper boundary
 
 Root authorized the same four retained paired-cast controls through installed archive `5e0d60bc`: immediate and recorded exact scalar-to-pair expansion, and immediate and recorded direct pair-to-half rounding at signed halfway points with minimum-subnormal residuals. Inputs, expected words and package arithmetic are unchanged. This exercises package-local wrapper functions, not a public package subpath or model API. Pool budget is 16 MiB plus 272 explicit input/output bytes; operation/cleanup deadlines are 300/10 seconds.
 
@@ -10,4 +10,4 @@ Source audit identifies a specific lifetime gap: both this test and production R
 
 Proposed owning correction is to retain the provider until the owned device.lost promise resolves following destroy, bounded by the existing cleanup deadline, and retain ownership on timeout. A deferred-lost CPU regression should reject early provider restoration. No arbitrary delay, runtime arithmetic change, third physical run or production fix is included in this checkpoint.
 
-Component: installed-wrapper diagnostics. Intent preserved. Acceptance: first failure/core plus one observation-only replay; full model, signed route and numerical qualification remain open. Boundary effects: isolated Suby test provider only, both owned processes gone; first run has no clean-settlement claim.
+Component: installed-wrapper diagnostics. Intent preserved. Acceptance: first failure/core plus one observation-only replay; full model, signed route and numerical qualification remain open. Boundary effects: isolated intel-host test provider only, both owned processes gone; first run has no clean-settlement claim.

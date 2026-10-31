@@ -217,7 +217,7 @@
       "expectedDimension": 1024,
       "cancellation": "after-partial",
       "reference": {
-        "path": "/home/x/deco/doppler/reports/capsule-baseline/20260906/embedding-reference.json",
+        "path": "$HOME/deco/doppler/reports/capsule-baseline/20260906/embedding-reference.json",
         "digest": "sha256:cbee2b44c44a564e3e4f84720ae7216ce6a54e48e39c1581ac94f6079de272ff"
       }
     },
@@ -406,7 +406,7 @@
       },
       "cancellation": "pre-aborted",
       "reference": {
-        "path": "/home/x/deco/doppler/reports/capsule-baseline/20260906/reranker-reference.json",
+        "path": "$HOME/deco/doppler/reports/capsule-baseline/20260906/reranker-reference.json",
         "digest": "sha256:81df00d625d7e8114f82fc4d67f487dde4946b684a809e63376e046a0bc88c4a"
       }
     }

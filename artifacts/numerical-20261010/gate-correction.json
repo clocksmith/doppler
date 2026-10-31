@@ -117,7 +117,7 @@
     "directions": [
       {
         "direction": "linux-mac",
-        "capture": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T04-10-04-628Z/reference-linux-mac.json",
+        "capture": "$HOME/deco/reploid/artifacts/distributed/2026-10-10T04-10-04-628Z/reference-linux-mac.json",
         "partitionHosts": [
           {
             "index": 1,
@@ -135,7 +135,7 @@
       },
       {
         "direction": "mac-linux",
-        "capture": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T04-10-04-628Z/reference-mac-linux.json",
+        "capture": "$HOME/deco/reploid/artifacts/distributed/2026-10-10T04-10-04-628Z/reference-mac-linux.json",
         "partitionHosts": [
           {
             "index": 0,

@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.unfamiliar-model-acceptance/v1",
   "passed": true,
   "implementationCommit": "94570b438002ea681b7114dfb5bb4594f1956e40",
@@ -56,8 +58,8 @@
   },
   "evidence": {
     "path": "evidence.tar.gz",
-    "sizeBytes": 14912692,
-    "sha256": "a7be9763d61806e543eea193454bc2c59057fec00c503fa057a9963305888a04"
+    "sizeBytes": 14912778,
+    "sha256": "57313612940e5744f61cac8b4721221294b03e277f1b523a89ce6da53c70ade7"
   },
   "reproduction": {
     "path": "reproduction.tar.gz",
@@ -122,8 +124,8 @@
     },
     {
       "path": "binding-probe.log",
-      "sizeBytes": 3520,
-      "sha256": "07041f2b2148c748746e777ed50081c5a292406173d498ada1212b6bf5d8593a"
+      "sizeBytes": 3514,
+      "sha256": "dc5c88194772a6fa3b9ff7ef4fe7fef077e53aaaa85a2968396bd39832f2ac0e"
     },
     {
       "path": "capture-reference-portable.py",
@@ -217,13 +219,13 @@
     },
     {
       "path": "node-01/qualification.json",
-      "sizeBytes": 301100,
-      "sha256": "e61aca36dc9996f8cf52126544ae04c7d3964d321da7db1d78fba0809574e02d"
+      "sizeBytes": 301094,
+      "sha256": "9c5ca779562b30d50cf6a7822f2149ef440aed00ca2aa882ac5449e90d01608c"
     },
     {
       "path": "node-01.log",
-      "sizeBytes": 3508,
-      "sha256": "1e8a2691f486ebfd5322fd40d000371795ecffb477f174aac33431f92fea06cc"
+      "sizeBytes": 3502,
+      "sha256": "6486e476a97ca5165a290589286354bcb4d928d471d761794194450dd028c7fc"
     },
     {
       "path": "node-config.json",
@@ -237,13 +239,13 @@
     },
     {
       "path": "node-erf-01/qualification.json",
-      "sizeBytes": 301185,
-      "sha256": "b5120859b5bc786b10fd47fad362042a68b81b535634a8f33efc4feef8adcd63"
+      "sizeBytes": 301179,
+      "sha256": "b12b6e5fa11172013e7d3908f9b3debfadceca3550681c375e63cee848487497"
     },
     {
       "path": "node-erf-01.log",
-      "sizeBytes": 3512,
-      "sha256": "21f3a1dae14f7128e804dfb9028d89c3a820caf7ac664c730f304949b7bd546d"
+      "sizeBytes": 3506,
+      "sha256": "55ed90ce406283b05b2cf02a49a79fa60f251a0dea6a06c610f86de54b040e62"
     },
     {
       "path": "node-erf-02/qualification.json",
@@ -287,8 +289,8 @@
     },
     {
       "path": "node-erf-binding-01/qualification.json",
-      "sizeBytes": 301194,
-      "sha256": "2bc7175e6d2f8729b9ed2afe3ea7fa329604ae0e2d67689619212c73ef5b0aac"
+      "sizeBytes": 301188,
+      "sha256": "e78028d8abf2da3d6e2b5ce7abff48099c52c01b4cd0d53f7acf4bdcaa38f4e5"
     },
     {
       "path": "node-erf-binding-config.json",

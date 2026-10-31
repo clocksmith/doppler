@@ -3296,7 +3296,7 @@
       ],
       "error": {
         "message": "Consumer exceeded 1200000ms: page.evaluate: Target page, context or browser has been closed",
-        "stack": "page.evaluate: Target page, context or browser has been closed\n    at /home/x/deco/doppler/tools/check-installed-capabilities.js:117:27"
+        "stack": "page.evaluate: Target page, context or browser has been closed\n    at $HOME/deco/doppler/tools/check-installed-capabilities.js:117:27"
       }
     }
   ],

@@ -12,7 +12,7 @@
   "startedAt": "2026-10-12T20:34:21.675509+00:00",
   "gitAdapter": "Snapshot-local .git pointer, no inherited GIT_*; private detached metadata and private index",
   "dependencyAdapter": "Owned actual node_modules directory with unchanged external entries linked individually",
-  "sourceDeps": "/home/x/deco/doppler/node_modules",
+  "sourceDeps": "$HOME/deco/doppler/node_modules",
   "exitCode": 0,
   "finishedAt": "2026-10-12T20:34:50.101347+00:00",
   "gitHead": "1cb70cf923822481ac170113be5a68cb4d01ab4e"

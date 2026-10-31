@@ -1,13 +1,13 @@
-file:///Users/xyz/deco/doppler/src/config/schema/program-bundle.schema.js:65
+file://$HOME/deco/doppler/src/config/schema/program-bundle.schema.js:65
     throw new Error(`program bundle: ${label} must be a non-negative finite number or null.`);
           ^
 
 Error: program bundle: referenceTranscript.generationConfig.seed must be a non-negative finite number or null.
-    at assertNullableFiniteNumber (file:///Users/xyz/deco/doppler/src/config/schema/program-bundle.schema.js:65:11)
-    at validateReferenceTranscript (file:///Users/xyz/deco/doppler/src/config/schema/program-bundle.schema.js:380:5)
-    at validateProgramBundle (file:///Users/xyz/deco/doppler/src/config/schema/program-bundle.schema.js:532:3)
-    at buildProgramBundle (file:///Users/xyz/deco/doppler/src/tooling/program-bundle.js:496:13)
-    at async writeProgramBundle (file:///Users/xyz/deco/doppler/src/tooling/program-bundle.js:510:36)
-    at async file:///Users/xyz/deco/doppler/artifacts/qwen35-08b-capsule-intake-20261012/signed-closure-candidate/build.js:77:1
+    at assertNullableFiniteNumber (file://$HOME/deco/doppler/src/config/schema/program-bundle.schema.js:65:11)
+    at validateReferenceTranscript (file://$HOME/deco/doppler/src/config/schema/program-bundle.schema.js:380:5)
+    at validateProgramBundle (file://$HOME/deco/doppler/src/config/schema/program-bundle.schema.js:532:3)
+    at buildProgramBundle (file://$HOME/deco/doppler/src/tooling/program-bundle.js:496:13)
+    at async writeProgramBundle (file://$HOME/deco/doppler/src/tooling/program-bundle.js:510:36)
+    at async file://$HOME/deco/doppler/artifacts/qwen35-08b-capsule-intake-20261012/signed-closure-candidate/build.js:77:1
 
 Node.js v22.20.0

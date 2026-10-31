@@ -10,9 +10,9 @@ locator.click: Timeout 30000ms exceeded.
 Call log:
 [2m  - waiting for locator('#sample-run-btn')[22m
 
-    at checkDemoControls (/home/x/deco/doppler/tests/demo/browser-controls.js:75:41)
-    at async main (/home/x/deco/doppler/tools/demo-contract-smoke.js:203:5)
-    at async file:///home/x/deco/doppler/tools/demo-contract-smoke.js:243:1 {
+    at checkDemoControls ($HOME/deco/doppler/tests/demo/browser-controls.js:75:41)
+    at async main ($HOME/deco/doppler/tools/demo-contract-smoke.js:203:5)
+    at async file://$HOME/deco/doppler/tools/demo-contract-smoke.js:243:1 {
   name: 'TimeoutError'
 }
 

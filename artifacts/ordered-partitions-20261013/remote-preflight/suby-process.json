@@ -11,8 +11,8 @@
   "sourceSha256": "b20c708f33ca465621800d3321f9e44558dfa19fb82fc6d6b72b3f51ade92eab",
   "reservation": {
     "schema": "doppler.ordered-provider-reservation/v1",
-    "id": "root-suby-tiny-allocation-20261013",
-    "authorizedBy": "root task: bounded Suby native provider adapter/features/limits plus tiny allocation/settlement; no model or MacGPU",
+    "id": "root-intel-host-tiny-allocation-20261013",
+    "authorizedBy": "root task: bounded intel-host native provider adapter/features/limits plus tiny allocation/settlement; no model or MacGPU",
     "frozenAt": "2026-10-13T15:04:06.235126+00:00",
     "host": "intel-host",
     "publicNativePid": 297260,

@@ -9,7 +9,7 @@
     "productionEdited": false,
     "admission": {
       "observedAt": "2026-10-13T20:17:01.374480+00:00",
-      "scope": "Isolated Suby operator, no model or public processes",
+      "scope": "Isolated intel-host operator, no model or public processes",
       "oldSubyGpuOwnership": "Prior attempt normal settlement unknown; no claim its allocations were released",
       "maxGpuBufferBytes": 1420000000,
       "memoryHighBytes": 6442450944,

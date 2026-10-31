@@ -38,6 +38,6 @@ page.evaluate: Error: BufferPool requires a live GPU device.
     at snapshotResources (eval at evaluate (:1:1), <anonymous>:229:54)
     at eval (eval at evaluate (:1:1), <anonymous>:231:13)
     at async <anonymous>:316:30
-    at /var/tmp/doppler-paired-suby-archive8-20261012/deco/doppler/tests/integration/frozen-reference-producer-replay.js:140:29
+    at /var/tmp/doppler-paired-intel-host-archive8-20261012/deco/doppler/tests/integration/frozen-reference-producer-replay.js:140:29
 
 Node.js v22.21.0

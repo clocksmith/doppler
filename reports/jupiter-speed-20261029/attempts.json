@@ -1,10 +1,10 @@
 {
-  "schema": "doppler.jupiter-evidence-attempts.v1",
+  "schema": "doppler.amd-host-evidence-attempts.v1",
   "timedRequestFailures": 0,
   "numericalRequestFailures": 0,
   "scriptFailures": [
     {"phase": "initial source identity capture", "error": "IsADirectoryError for runtime/src/inference/config", "cause": "Packaged compatibility directories expand tracked symlink aliases; initial verifier treated every git blob as a regular file.", "correction": "Compare tracked regular-file blobs against executed bytes; all match. No execution bytes or performance samples changed.", "rawLocation": "Codex tool transcript, capture-baseline.py first invocation"},
     {"phase": "smoke verification wrapper", "error": "IndexError accessing Path('.').parents[1]", "cause": "Relative path used before resolving the report root.", "correction": "verify-smoke.py resolves its own path; the same existing physical smoke passed without rerunning or changing execution.", "rawLocation": "Codex tool transcript, inline smoke verifier"}
   ],
-  "priorCampaignFailures": "Preserved unchanged under /home/x/deco/hatch/pooled-doppler-components-20261029, including initial generic attention, failed gates/preparation and rejected cache/integration attempts. See prior-evidence.json and original campaign inventories."
+  "priorCampaignFailures": "Preserved unchanged under $HOME/deco/hatch/pooled-doppler-components-20261029, including initial generic attention, failed gates/preparation and rejected cache/integration attempts. See prior-evidence.json and original campaign inventories."
 }

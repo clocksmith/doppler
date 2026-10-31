@@ -2,7 +2,7 @@
   "schema": "doppler-attention-residual-domain-review-v1",
   "checkerSha256": "f1bf4dd354d3de63e1d721577ef74d2c64ac916236b716b969d7dea04e9f2eda",
   "helperSha256": "a056cdd5a773d12d624a974d4c48bf57f9504bf4713496e44c5dfcf374fe9fc5",
-  "capturePath": "/home/x/deco/doppler/reports/local/source-prefix-correction-20261012/rope-frequency-decode7-capture.json",
+  "capturePath": "$HOME/deco/doppler/reports/local/source-prefix-correction-20261012/rope-frequency-decode7-capture.json",
   "captureSha256": "4d377a97fd0f1d4aa3f9a4e92900a35fa3b8b33bca0846e72c1e9e85dc731d18",
   "qBytesSha256": "4b881c241ef035c44792f4696e7ec4cd985628bdcd64fbad141041aee0d9e8ee",
   "kBytesSha256": "98dd87bbc3d8b83a9fb65425c6eab3ff674e0d431dbb69e6a934b80ee00a8131",

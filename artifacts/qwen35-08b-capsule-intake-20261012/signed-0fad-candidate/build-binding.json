@@ -7,19 +7,19 @@
   "previousCandidatePreserved": true,
   "qualificationReports": [
     {
-      "path": "/Users/xyz/deco/doppler/artifacts/resident-pipeline-preparation-20261012/native-qualification/direction-0/partition-0.json",
+      "path": "$HOME/deco/doppler/artifacts/resident-pipeline-preparation-20261012/native-qualification/direction-0/partition-0.json",
       "sha256": "e16597824bda94ec8a1720698a65ce0859b7ed97f543a92aa5b06b4b8121b35c"
     },
     {
-      "path": "/Users/xyz/deco/doppler/artifacts/resident-pipeline-preparation-20261012/native-qualification/direction-0/partition-1.json",
+      "path": "$HOME/deco/doppler/artifacts/resident-pipeline-preparation-20261012/native-qualification/direction-0/partition-1.json",
       "sha256": "4b8bcf0b8e53d0377d80cee24314e364661ac64e733908e152f5acbdc39e2326"
     },
     {
-      "path": "/Users/xyz/deco/doppler/artifacts/resident-pipeline-preparation-20261012/native-qualification/direction-1/partition-0.json",
+      "path": "$HOME/deco/doppler/artifacts/resident-pipeline-preparation-20261012/native-qualification/direction-1/partition-0.json",
       "sha256": "57d3e39a127f94c2dd24c95e811b033028835848214f837e5d1d246a6e30f0fe"
     },
     {
-      "path": "/Users/xyz/deco/doppler/artifacts/resident-pipeline-preparation-20261012/native-qualification/direction-1/partition-1.json",
+      "path": "$HOME/deco/doppler/artifacts/resident-pipeline-preparation-20261012/native-qualification/direction-1/partition-1.json",
       "sha256": "f474c738f63e5d10354c35809b7547a7bb7c17594e84997c057a7f0c5fd629d4"
     }
   ],

@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /home/x/deco/worktrees/reploid-consumer-streaming
+ RUN  v4.1.10 $HOME/deco/worktrees/reploid-consumer-streaming
 
  ✓ tests/unit/retained-document-search.test.js (1 test) 390ms
      ✓ binds source comparison, exact runtime, failed attempts, and bounded retrieval observations  389ms
@@ -1366,16 +1366,16 @@ stdout | tests/unit/trained-adapter-admission.test.js > trained adapter admissio
  ✓ tests/unit/self-bridge.test.js (10 tests) 77ms
 stderr | tests/unit/event-bus.test.js > EventBus > emit > should continue emitting to other listeners if one throws
 [ERROR] [EventBus] Error in test:event Error: Listener error
-    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/event-bus.test.js:100:15
-    at Mock (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/spy/dist/index.js:332:34)
-    at Object.emit (/home/x/deco/worktrees/reploid-consumer-streaming/self/infrastructure/event-bus.js:44:17)
-    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/event-bus.test.js:107:16
-    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
-    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
-    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at $HOME/deco/worktrees/reploid-consumer-streaming/tests/unit/event-bus.test.js:100:15
+    at Mock (file://$HOME/deco/reploid/node_modules/vitest/node_modules/@vitest/spy/dist/index.js:332:34)
+    at Object.emit ($HOME/deco/worktrees/reploid-consumer-streaming/self/infrastructure/event-bus.js:44:17)
+    at $HOME/deco/worktrees/reploid-consumer-streaming/tests/unit/event-bus.test.js:107:16
+    at file://$HOME/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file://$HOME/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file://$HOME/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
     at new Promise (<anonymous>)
-    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
-    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+    at runWithCancel (file://$HOME/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file://$HOME/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
 
 stdout | tests/unit/event-bus.test.js > EventBus > Subscription Tracking > should unsubscribe all listeners for a module
 [DEBUG] [EventBus] Unsubscribed module: TestModule

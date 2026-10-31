@@ -5,7 +5,7 @@ wrapper, layout, resource, precision, scalar operand or evaluation-order change.
 
 The mean and reciprocal share one division callsite outside the unchanged
 paired square-root refinement. The symbolic scalar operation trace is identical.
-Suby's actual native provider passes all six original seeded independent F64
+intel-host's actual native provider passes all six original seeded independent F64
 cases at unchanged 2e-12, maximum error 5.809e-15, including pre/post residual
 and offset paths. Both distinct F32 specializations compile within the fixed
 300-second diagnostic; queue, device, host and process settlement pass. Peak

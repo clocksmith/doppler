@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.wgsl-writer-training-status/v1",
   "experimentId": "doppler-wgsl-writer-v2",
   "seed": 29,
@@ -30,17 +32,17 @@
   "checkpoint": {
     "id": "checkpoint-000720",
     "step": 720,
-    "path": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/checkpoints/checkpoint-000720/trainer-output.json"
+    "path": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/checkpoints/checkpoint-000720/trainer-output.json"
   },
   "export": {
     "checkpointId": "checkpoint-000720",
-    "manifestPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/exports/checkpoint-000720.adapter.manifest.json",
-    "manifestSha256": "71d4d9aa115a985a61dc63669a6672cf447a5985ef9b969cbbc7d4efbe5e272a",
-    "weightsPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/exports/checkpoint-000720.adapters.safetensors",
+    "manifestPath": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/exports/checkpoint-000720.adapter.manifest.json",
+    "manifestSha256": "7b6a363f0e909536572c81403d6510db2491fe39a56a1b17447bd37b4e17396a",
+    "weightsPath": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/exports/checkpoint-000720.adapters.safetensors",
     "weightsSha256": "b7b653521e465e59c0cebb844a30aea5b1840a6502e13a0fc636306b28762827",
     "weightsSize": 232808939,
-    "runtimeManifestPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/exports/runtime-adapter-manifest.json",
-    "exportPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/exports/checkpoint-000720.export.json"
+    "runtimeManifestPath": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/exports/runtime-adapter-manifest.json",
+    "exportPath": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/exports/checkpoint-000720.export.json"
   },
   "gammaReceipt": {
     "protocol": "gamma_wgsl_trainer_json_v1",
@@ -56,12 +58,12 @@
     },
     "policyHash": "d40e7f2f85fb8ea88387e7beb6fd1ae2fb83245cafb5e9e303527b81e5fbcb9c",
     "modelPath": "/tmp/qwen3.5-9b-source",
-    "adapterPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/checkpoints/gamma/adapter",
-    "metricsPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/checkpoints/gamma/metrics.jsonl",
-    "requestPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/logs/gamma-request.json",
-    "responsePath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/logs/gamma-response.json",
-    "stdoutPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/logs/gamma-stdout.log",
-    "stderrPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/logs/gamma-stderr.log",
+    "adapterPath": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/checkpoints/gamma/adapter",
+    "metricsPath": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/checkpoints/gamma/metrics.jsonl",
+    "requestPath": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/logs/gamma-request.json",
+    "responsePath": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/logs/gamma-response.json",
+    "stdoutPath": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/logs/gamma-stdout.log",
+    "stderrPath": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/logs/gamma-stderr.log",
     "claimBoundary": "Training mechanics and artifacts only; Doppler owns capability promotion."
   },
   "decision": "training_complete",

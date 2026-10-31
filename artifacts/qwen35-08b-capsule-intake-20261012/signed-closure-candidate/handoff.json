@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.signed-closure-delivery-handoff/v1",
   "root": "/var/tmp/qwen35-capsule-closure-20261013",
   "archiveSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
@@ -14,8 +16,8 @@
   "files": [
     {
       "path": "build-binding.json",
-      "sha256": "49bd67b510da0fd828b5a257a6bf03b1bb054a967b911b7bdf5b34d631c13657",
-      "sizeBytes": 2672
+      "sha256": "c7a4e72c714da7ffd5040d632f76252505c0aedd58525476b20837e4b06fd628",
+      "sizeBytes": 2652
     },
     {
       "path": "exact-runtime-verification.json",
@@ -34,8 +36,8 @@
     },
     {
       "path": "rig-options.json",
-      "sha256": "0cfd35da73e8b803b1082a6fa60dd4dab2931bc3f7b9a2784b052fbc14d164dc",
-      "sizeBytes": 1864
+      "sha256": "9f2b53654b76ec8f3a643a457216a5c5257232b62b35ca4299e595a5be25622e",
+      "sizeBytes": 1839
     },
     {
       "path": "rig-result.json",

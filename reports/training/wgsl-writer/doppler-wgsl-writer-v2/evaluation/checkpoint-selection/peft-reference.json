@@ -9,7 +9,7 @@
     "transformers": "5.13.1",
     "transformersModulePath": "/tmp/doppler-wgsl-python/transformers/__init__.py",
     "peft": "0.19.1",
-    "peftModulePath": "/home/x/deco/gamma/.venv_rocm/lib/python3.14/site-packages/peft/__init__.py",
+    "peftModulePath": "$HOME/deco/gamma/.venv_rocm/lib/python3.14/site-packages/peft/__init__.py",
     "device": "Radeon 8060S Graphics",
     "deviceTotalMemory": 65945612288,
     "dtype": "bfloat16"
@@ -21,7 +21,7 @@
     "tokenizerSha256": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42"
   },
   "dataset": {
-    "path": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/checkpoint-selection.jsonl",
+    "path": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/checkpoint-selection.jsonl",
     "sha256": "fcda6b330323a7f0e43ec12a5740281c37e2490b99cbdc47f21fb8a37cf08f7f",
     "rows": 16
   },
@@ -33,7 +33,7 @@
   "candidates": [
     {
       "seed": 11,
-      "adapterPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed11/sft/checkpoints/gamma/adapter",
+      "adapterPath": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed11/sft/checkpoints/gamma/adapter",
       "adapterTreeSha256": "fc8ff4a3bb25773024f673d4729b242fd70ee78ac9f399b9403cafce3675b986",
       "adapterConfigSha256": "49ac053c5ecd223acaedd86ef1a8cc341de2c552e26559f28af78ff3b505df2a",
       "adapterWeightsSha256": "d3d71aa2e4291b4561b4a6ffe410e928f77672c1f4d1bf23cbc5c72568a5ee7e",
@@ -16040,7 +16040,7 @@
     },
     {
       "seed": 29,
-      "adapterPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/checkpoints/gamma/adapter",
+      "adapterPath": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/checkpoints/gamma/adapter",
       "adapterTreeSha256": "d40e7f2f85fb8ea88387e7beb6fd1ae2fb83245cafb5e9e303527b81e5fbcb9c",
       "adapterConfigSha256": "9209b4c103b851395d391ab81f863b485d4f457d02b403ba9a325530d72ab4b8",
       "adapterWeightsSha256": "5a9e58c6aa6efb07dca12d01af6969266eb30053d219f3cae9b2b410838489a2",
@@ -32049,7 +32049,7 @@
     },
     {
       "seed": 47,
-      "adapterPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed47/sft/checkpoints/gamma/adapter",
+      "adapterPath": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed47/sft/checkpoints/gamma/adapter",
       "adapterTreeSha256": "aa8ad92a5e57c04d359fa2a7095f40eda6f85728f4e1ef90f4a9e8e5633d200d",
       "adapterConfigSha256": "3e0f8cbe55289a65addb01bb4e150ec644d149b5a8ac46f70396fc4baa049b66",
       "adapterWeightsSha256": "64cb65bfd2f409278d666d874c4dc2179058cab8e75609f5fe1fdc8644794667",

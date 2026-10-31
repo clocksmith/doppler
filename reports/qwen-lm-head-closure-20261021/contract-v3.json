@@ -79,7 +79,7 @@
     "latency": "upper bound of the 95% bootstrap interval of mean warm complete-request percent change (B vs A) is below 0",
     "otherwise": "retain the kernel measurement as an operator-level result; make no release or complete-request claim on this platform"
   },
-  "crossPlatform": "Run on M3 (contract-v3-metal.json, Mars) and AMD (contract-v3.json, Jupiter). A shared default needs both to pass; a single-platform pass can only justify an explicitly selected platform variant.",
+  "crossPlatform": "Run on M3 (contract-v3-metal.json, mac-host) and AMD (contract-v3.json, amd-host). A shared default needs both to pass; a single-platform pass can only justify an explicitly selected platform variant.",
   "amends": {
     "contract": "contract-v2.json",
     "reason": "The owner restated the promotion gate on 2026-10-22 to require exact cancellation, reuse, unload and device recreation in addition to tokens and text; arms move to current main because 0428c15a is no longer the head."

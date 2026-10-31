@@ -318,7 +318,7 @@
     "export_text.py": "ba6ca19ed9af5dff1c8fa5016c1dbc838d882d5999c077d04568b45eae866bcc"
   },
   "receipt": {
-    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/bucket64-onnx-lookup-cpu-01/receipt.json",
+    "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/bucket64-onnx-lookup-cpu-01/receipt.json",
     "sha256": "e08d1e3271809a4be7061e0f63daffa948da3672007caade67fa423055edfdf3"
   },
   "checks": 1225,

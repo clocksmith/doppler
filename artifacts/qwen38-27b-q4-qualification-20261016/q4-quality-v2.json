@@ -76,7 +76,7 @@
         "generationConfigHash": "sha256:c24a128e2cf61abdcbf531074e6e7c05a8718e46a3e3b82d714c37400cb6904c",
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
-          "logicalModelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+          "logicalModelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
           "resolvedArtifactVariantId": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
           "resolvedExecutionId": "sha256:633d8cbbb0071befb7b9a343712f7006f69e624f0cb5242ef52b95503b5a0c9f"
         },
@@ -117,7 +117,7 @@
             "surface": "node"
           },
           "model": {
-            "modelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+            "modelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
             "manifestHash": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
             "activeAdapter": null,
             "activeAdapterId": null,
@@ -2440,7 +2440,7 @@
         "generationConfigHash": "sha256:c24a128e2cf61abdcbf531074e6e7c05a8718e46a3e3b82d714c37400cb6904c",
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
-          "logicalModelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+          "logicalModelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
           "resolvedArtifactVariantId": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
           "resolvedExecutionId": "sha256:633d8cbbb0071befb7b9a343712f7006f69e624f0cb5242ef52b95503b5a0c9f"
         },
@@ -2481,7 +2481,7 @@
             "surface": "node"
           },
           "model": {
-            "modelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+            "modelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
             "manifestHash": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
             "activeAdapter": null,
             "activeAdapterId": null,
@@ -4826,7 +4826,7 @@
         "generationConfigHash": "sha256:c24a128e2cf61abdcbf531074e6e7c05a8718e46a3e3b82d714c37400cb6904c",
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
-          "logicalModelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+          "logicalModelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
           "resolvedArtifactVariantId": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
           "resolvedExecutionId": "sha256:633d8cbbb0071befb7b9a343712f7006f69e624f0cb5242ef52b95503b5a0c9f"
         },
@@ -4867,7 +4867,7 @@
             "surface": "node"
           },
           "model": {
-            "modelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+            "modelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
             "manifestHash": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
             "activeAdapter": null,
             "activeAdapterId": null,
@@ -7177,7 +7177,7 @@
         "generationConfigHash": "sha256:c24a128e2cf61abdcbf531074e6e7c05a8718e46a3e3b82d714c37400cb6904c",
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
-          "logicalModelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+          "logicalModelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
           "resolvedArtifactVariantId": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
           "resolvedExecutionId": "sha256:633d8cbbb0071befb7b9a343712f7006f69e624f0cb5242ef52b95503b5a0c9f"
         },
@@ -7218,7 +7218,7 @@
             "surface": "node"
           },
           "model": {
-            "modelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+            "modelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
             "manifestHash": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
             "activeAdapter": null,
             "activeAdapterId": null,
@@ -9539,7 +9539,7 @@
         "generationConfigHash": "sha256:c24a128e2cf61abdcbf531074e6e7c05a8718e46a3e3b82d714c37400cb6904c",
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
-          "logicalModelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+          "logicalModelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
           "resolvedArtifactVariantId": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
           "resolvedExecutionId": "sha256:633d8cbbb0071befb7b9a343712f7006f69e624f0cb5242ef52b95503b5a0c9f"
         },
@@ -9580,7 +9580,7 @@
             "surface": "node"
           },
           "model": {
-            "modelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+            "modelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
             "manifestHash": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
             "activeAdapter": null,
             "activeAdapterId": null,
@@ -11896,7 +11896,7 @@
         "generationConfigHash": "sha256:c24a128e2cf61abdcbf531074e6e7c05a8718e46a3e3b82d714c37400cb6904c",
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
-          "logicalModelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+          "logicalModelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
           "resolvedArtifactVariantId": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
           "resolvedExecutionId": "sha256:633d8cbbb0071befb7b9a343712f7006f69e624f0cb5242ef52b95503b5a0c9f"
         },
@@ -11937,7 +11937,7 @@
             "surface": "node"
           },
           "model": {
-            "modelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+            "modelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
             "manifestHash": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
             "activeAdapter": null,
             "activeAdapterId": null,
@@ -14372,7 +14372,7 @@
         "generationConfigHash": "sha256:c24a128e2cf61abdcbf531074e6e7c05a8718e46a3e3b82d714c37400cb6904c",
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
-          "logicalModelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+          "logicalModelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
           "resolvedArtifactVariantId": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
           "resolvedExecutionId": "sha256:633d8cbbb0071befb7b9a343712f7006f69e624f0cb5242ef52b95503b5a0c9f"
         },
@@ -14413,7 +14413,7 @@
             "surface": "node"
           },
           "model": {
-            "modelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+            "modelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
             "manifestHash": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
             "activeAdapter": null,
             "activeAdapterId": null,
@@ -17845,7 +17845,7 @@
         "generationConfigHash": "sha256:c24a128e2cf61abdcbf531074e6e7c05a8718e46a3e3b82d714c37400cb6904c",
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
-          "logicalModelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+          "logicalModelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
           "resolvedArtifactVariantId": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
           "resolvedExecutionId": "sha256:cd25ea2aa8d0135a879f480f1369f63747789ba4274a50638c473f9dff0d75e2"
         },
@@ -17886,7 +17886,7 @@
             "surface": "node"
           },
           "model": {
-            "modelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+            "modelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
             "manifestHash": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
             "activeAdapter": null,
             "activeAdapterId": null,

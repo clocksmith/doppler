@@ -683,14 +683,14 @@ subsystem-support-contract: support tiers ok (27 subsystems, 6 primary)
 [node-tests] script: policy:schemas:check
 policy-schema-registry: schemas ok (40 policies)
 [node-tests] script: program-bundle:schema:check
-Program Bundle schema artifact is current: /home/x/deco/worktrees/doppler-release-digest-validation/src/config/schema/program-bundle.schema.json
+Program Bundle schema artifact is current: $HOME/deco/worktrees/doppler-release-digest-validation/src/config/schema/program-bundle.schema.json
 [node-tests] script: program-bundle:check
 {
   "ok": true,
   "results": [
     {
       "ok": true,
-      "path": "/home/x/deco/worktrees/doppler-release-digest-validation/examples/program-bundles/gemma-3-1b-it-q4k-ehf16-af32.program-bundle.json",
+      "path": "$HOME/deco/worktrees/doppler-release-digest-validation/examples/program-bundles/gemma-3-1b-it-q4k-ehf16-af32.program-bundle.json",
       "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
       "bundleId": "gemma-3-1b-it-q4k-ehf16-af32-7b8152f81712",
       "artifactCount": 32,
@@ -700,7 +700,7 @@ Program Bundle schema artifact is current: /home/x/deco/worktrees/doppler-releas
     },
     {
       "ok": true,
-      "path": "/home/x/deco/worktrees/doppler-release-digest-validation/examples/program-bundles/gemma-3-270m-it-q4k-ehf16-af32.program-bundle.json",
+      "path": "$HOME/deco/worktrees/doppler-release-digest-validation/examples/program-bundles/gemma-3-270m-it-q4k-ehf16-af32.program-bundle.json",
       "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
       "bundleId": "gemma-3-270m-it-q4k-ehf16-af32-b5daefb7cbce",
       "artifactCount": 22,
@@ -710,7 +710,7 @@ Program Bundle schema artifact is current: /home/x/deco/worktrees/doppler-releas
     },
     {
       "ok": true,
-      "path": "/home/x/deco/worktrees/doppler-release-digest-validation/examples/program-bundles/gemma-4-e2b-it-q4k-ehf16-af32-int4ple.program-bundle.json",
+      "path": "$HOME/deco/worktrees/doppler-release-digest-validation/examples/program-bundles/gemma-4-e2b-it-q4k-ehf16-af32-int4ple.program-bundle.json",
       "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
       "bundleId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-0894776e5a46",
       "artifactCount": 79,
@@ -4873,8 +4873,8 @@ ok 1 - test module initialization completed
 [node-tests] ok: tests/converter/manifest-conversion-postflight.test.js
 TAP version 13
 # manifest-conversion-preflight.test: skipped (source weight index unavailable at models/source/glimmer-30b/model.safetensors.index.json)
-# Subtest: /home/x/deco/worktrees/doppler-release-digest-validation/tests/converter/manifest-conversion-preflight.test.js
-ok 1 - /home/x/deco/worktrees/doppler-release-digest-validation/tests/converter/manifest-conversion-preflight.test.js
+# Subtest: $HOME/deco/worktrees/doppler-release-digest-validation/tests/converter/manifest-conversion-preflight.test.js
+ok 1 - $HOME/deco/worktrees/doppler-release-digest-validation/tests/converter/manifest-conversion-preflight.test.js
   ---
   duration_ms: 125.957678
   type: 'test'
@@ -6752,8 +6752,8 @@ TAP version 13
 # Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
 # [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.4ms
 # fused-ffn-q4-metal-simd16-gpu-regression.test: skipped (requires Apple Metal subgroups)
-# Subtest: /home/x/deco/worktrees/doppler-release-digest-validation/tests/inference/fused-ffn-q4-metal-simd16-gpu-regression.test.js
-ok 1 - /home/x/deco/worktrees/doppler-release-digest-validation/tests/inference/fused-ffn-q4-metal-simd16-gpu-regression.test.js
+# Subtest: $HOME/deco/worktrees/doppler-release-digest-validation/tests/inference/fused-ffn-q4-metal-simd16-gpu-regression.test.js
+ok 1 - $HOME/deco/worktrees/doppler-release-digest-validation/tests/inference/fused-ffn-q4-metal-simd16-gpu-regression.test.js
   ---
   duration_ms: 169.07814
   type: 'test'
@@ -6773,8 +6773,8 @@ TAP version 13
 # Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
 # [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.4ms
 # fused-matmul-q4-metal-simd16-gpu-regression.test: skipped (requires Apple Metal subgroups)
-# Subtest: /home/x/deco/worktrees/doppler-release-digest-validation/tests/inference/fused-matmul-q4-metal-simd16-gpu-regression.test.js
-ok 1 - /home/x/deco/worktrees/doppler-release-digest-validation/tests/inference/fused-matmul-q4-metal-simd16-gpu-regression.test.js
+# Subtest: $HOME/deco/worktrees/doppler-release-digest-validation/tests/inference/fused-matmul-q4-metal-simd16-gpu-regression.test.js
+ok 1 - $HOME/deco/worktrees/doppler-release-digest-validation/tests/inference/fused-matmul-q4-metal-simd16-gpu-regression.test.js
   ---
   duration_ms: 169.713304
   type: 'test'
@@ -6889,7 +6889,7 @@ ok 1 - test module initialization completed
 # duration_ms 128.806889
 [node-tests] ok: tests/inference/gemma3-270m-head256-decode-path.test.js
 TAP version 13
-# [NaN Regression] skipped: local fixture missing at /home/x/deco/worktrees/doppler-release-digest-validation/models/local/gemma-3-1b-it-f16-af32/manifest.json
+# [NaN Regression] skipped: local fixture missing at $HOME/deco/worktrees/doppler-release-digest-validation/models/local/gemma-3-1b-it-f16-af32/manifest.json
 # Subtest: test module initialization completed
 ok 1 - test module initialization completed
   ---
@@ -6966,8 +6966,8 @@ TAP version 13
 # Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
 # [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.4ms
 # gemma4-e2b-q4k-apple-retain-regression.test: skipped (vendor=amd not apple)
-# Subtest: /home/x/deco/worktrees/doppler-release-digest-validation/tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js
-ok 1 - /home/x/deco/worktrees/doppler-release-digest-validation/tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js
+# Subtest: $HOME/deco/worktrees/doppler-release-digest-validation/tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js
+ok 1 - $HOME/deco/worktrees/doppler-release-digest-validation/tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js
   ---
   duration_ms: 316.7491
   type: 'test'
@@ -11208,9 +11208,9 @@ ok 1 - test module initialization completed
 # duration_ms 262.986461
 [node-tests] ok: tests/integration/index-browser-export-surface.test.js
 TAP version 13
-# litert-gemma4-task-ple-scale.test: skipped (source artifact not available at /home/x/deco/worktrees/doppler-release-digest-validation/models/source/litert/gemma-4-e2b-it/gemma-4-E2B-it-web.task)
-# Subtest: /home/x/deco/worktrees/doppler-release-digest-validation/tests/integration/litert-gemma4-task-ple-scale.test.js
-ok 1 - /home/x/deco/worktrees/doppler-release-digest-validation/tests/integration/litert-gemma4-task-ple-scale.test.js
+# litert-gemma4-task-ple-scale.test: skipped (source artifact not available at $HOME/deco/worktrees/doppler-release-digest-validation/models/source/litert/gemma-4-e2b-it/gemma-4-E2B-it-web.task)
+# Subtest: $HOME/deco/worktrees/doppler-release-digest-validation/tests/integration/litert-gemma4-task-ple-scale.test.js
+ok 1 - $HOME/deco/worktrees/doppler-release-digest-validation/tests/integration/litert-gemma4-task-ple-scale.test.js
   ---
   duration_ms: 104.170021
   type: 'test'
@@ -14187,8 +14187,8 @@ ok 1 - test module initialization completed
 [node-tests] ok: tests/tooling/generation-qualification-scenario.test.js
 TAP version 13
 # glimmer-hf-reference-contract.test: skipped (boundary artifacts unavailable at reports/model-ir-v2/glimmer-30b.hf-boundaries)
-# Subtest: /home/x/deco/worktrees/doppler-release-digest-validation/tests/tooling/glimmer-hf-reference-contract.test.js
-ok 1 - /home/x/deco/worktrees/doppler-release-digest-validation/tests/tooling/glimmer-hf-reference-contract.test.js
+# Subtest: $HOME/deco/worktrees/doppler-release-digest-validation/tests/tooling/glimmer-hf-reference-contract.test.js
+ok 1 - $HOME/deco/worktrees/doppler-release-digest-validation/tests/tooling/glimmer-hf-reference-contract.test.js
   ---
   duration_ms: 88.916418
   type: 'test'

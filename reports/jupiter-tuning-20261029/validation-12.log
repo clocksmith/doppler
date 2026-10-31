@@ -10,7 +10,7 @@ AssertionError [ERR_ASSERTION]: gated_delta_recurrent/register_prefill gate decl
 -   'silu'
 - ]
 
-    at file:///Users/xyz/deco/doppler/tests/kernels/gated-delta-norm-gate.test.js:65:10 {
+    at file://$HOME/deco/doppler/tests/kernels/gated-delta-norm-gate.test.js:65:10 {
   generatedMessage: false,
   code: 'ERR_ASSERTION',
   actual: [],

@@ -1,9 +1,11 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "startedAt": "2026-10-13T16:59:00.095Z",
   "controllerPid": 1104003,
   "before": [
-    "4103868       1 Rsl     14:55:22 node server/native-participant.js --contribute --share-files --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory /home/x/.local/share/reploid/public-native/weights --cache-directory /home/x/.local/share/reploid/public-native/cache-budget-20261012 --identity-file /home/x/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo.id --signaling-url wss://reploid-swarm.reploid.workers.dev/swarm",
-    "4121371       1 Ssl     14:53:46 node scripts/run-mesh-contributor.js --url https://replo.id/ --model qwen-3-5-0-8b-q4k-ehaf16 --profile /home/x/.local/share/reploid/public-compute --contribute compute"
+    "4103868       1 Rsl     14:55:22 node server/native-participant.js --contribute --share-files --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory $HOME/.local/share/reploid/public-native/weights --cache-directory $HOME/.local/share/reploid/public-native/cache-budget-20261012 --identity-file $HOME/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo.id --signaling-url wss://reploid-swarm.reploid.workers.dev/swarm",
+    "4121371       1 Ssl     14:53:46 node scripts/run-mesh-contributor.js --url https://replo.id/ --model qwen-3-5-0-8b-q4k-ehaf16 --profile $HOME/.local/share/reploid/public-compute --contribute compute"
   ],
   "stdout": "",
   "stderr": "Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.\nWarning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.\n",
@@ -4004,7 +4006,7 @@
     "overlaySha256": "493eeac434895e82e70ca5feb90e94f492679703b1a88bc725ba02ddc3096535",
     "sourceCommit": "a1535f66",
     "controllerSha256": "dc48126af4d7c0444d8f23deb3706ae43cfef58c1adc26215496076276171658",
-    "inventorySha256": "83dd91d91537e01c73f5218f8e86d9b8ec4531b04eea0772cebbaa471bce5fb1"
+    "inventorySha256": "cef39f62957493e96365c1853bb88733a0125ca535aa119ca019a33aa9cc6469"
   },
   "pid": 1104058,
   "exit": {
@@ -4013,8 +4015,8 @@
     "at": "2026-10-13T17:04:10.340Z"
   },
   "after": [
-    "4103868       1 Rsl     15:00:32 node server/native-participant.js --contribute --share-files --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory /home/x/.local/share/reploid/public-native/weights --cache-directory /home/x/.local/share/reploid/public-native/cache-budget-20261012 --identity-file /home/x/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo.id --signaling-url wss://reploid-swarm.reploid.workers.dev/swarm",
-    "4121371       1 Ssl     14:58:56 node scripts/run-mesh-contributor.js --url https://replo.id/ --model qwen-3-5-0-8b-q4k-ehaf16 --profile /home/x/.local/share/reploid/public-compute --contribute compute"
+    "4103868       1 Rsl     15:00:32 node server/native-participant.js --contribute --share-files --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory $HOME/.local/share/reploid/public-native/weights --cache-directory $HOME/.local/share/reploid/public-native/cache-budget-20261012 --identity-file $HOME/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo.id --signaling-url wss://reploid-swarm.reploid.workers.dev/swarm",
+    "4121371       1 Ssl     14:58:56 node scripts/run-mesh-contributor.js --url https://replo.id/ --model qwen-3-5-0-8b-q4k-ehaf16 --profile $HOME/.local/share/reploid/public-compute --contribute compute"
   ],
   "naturalExit": false
 }

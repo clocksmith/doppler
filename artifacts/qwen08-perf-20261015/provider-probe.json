@@ -57,7 +57,7 @@
       "deviceCreated": true
     },
     {
-      "specifier": "file:///Users/xyz/deco/doe/packages/doe-gpu/src/index.js",
+      "specifier": "file://$HOME/deco/doe/packages/doe-gpu/src/index.js",
       "info": {
         "vendor": "Apple",
         "architecture": "M3",
@@ -100,7 +100,7 @@
     }
   ],
   "doeLibrary": {
-    "path": "/Users/xyz/deco/doe/.cache/qwen08-native/lib/libwebgpu_doe.dylib",
+    "path": "$HOME/deco/doe/.cache/qwen08-native/lib/libwebgpu_doe.dylib",
     "sha256": "64832c70affb9fac77c86e031672557592971f25164b8aa3ee9cb03833e84d77"
   }
 }

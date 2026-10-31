@@ -11,7 +11,7 @@
   "sourceSha256": "0b283b88105b06584d83199d497fd365524282306ef606e00746230aa6886180",
   "reservation": {
     "schema": "doppler.compile-control-reservation/v1",
-    "id": "root-suby-paired-compilation-20261013",
+    "id": "root-intel-host-paired-compilation-20261013",
     "frozenAt": "2026-10-13T16:15:16.795Z",
     "authorizedBy": "Root NEW_TASK compile-only functional window for proposal6aaf98d5",
     "runtimeArchiveSha256": "5e0d60bc433d332187d422721fd7afcaec780c202e3082adcab389b47fd27fc5",
@@ -24,7 +24,7 @@
       "scale",
       "silu_unary"
     ],
-    "scope": "Only Suby installed existing paired pipeline compilation; no buffers/dispatch/model, no numerical or speed qualification",
+    "scope": "Only intel-host installed existing paired pipeline compilation; no buffers/dispatch/model, no numerical or speed qualification",
     "coTenants": [
       297260,
       299769

@@ -9,7 +9,7 @@ and [tools/summarize-compare.js](../../examples/issue-triage/tools/summarize-com
 
 ## Setup
 
-- Jupiter: Radeon 8060S (RADV STRIX_HALO), Linux 7.0.0-38, Chrome 146.0.7680.177 headless,
+- amd-host: Radeon 8060S (RADV STRIX_HALO), Linux 7.0.0-38, Chrome 146.0.7680.177 headless,
   Node 22.22.1. Engines ran one at a time; order alternated per repetition (3 each).
   Two Reploid native participants stayed running and did no GPU work during the run; the Codex
   desktop app used 0.56 s of GPU over 7.8 minutes ([counters](other-gpu-clients.txt)).

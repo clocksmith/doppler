@@ -7874,7 +7874,7 @@
     "completed-diagnostic"
   ],
   "cpuGate": {
-    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-lookup-cpu-01/receipt.json",
+    "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-lookup-cpu-01/receipt.json",
     "sha256": "32393bf7637c5c3435c0a7175db3c0ab03a4fc3cc6f4d639aa713c346d17e669",
     "pass": false,
     "failedChecks": 53,

@@ -1,7 +1,7 @@
 {
   "timestamp": "2026-10-17T18:03:33.799Z",
   "benchmarkPolicy": {
-    "source": "/Users/xyz/deco/doppler/.tmp/warm-fairness-20261017/benchmarks/vendors/benchmark-policy.json",
+    "source": "$HOME/deco/doppler/.tmp/warm-fairness-20261017/benchmarks/vendors/benchmark-policy.json",
     "schemaVersion": 1,
     "sourceSha256": "6e0e81bc2571a0a1eb6451f0f9a6a3165b015bff9ba4537a4f5a6f2b1a9b93c8",
     "updated": "2026-03-29",
@@ -255,15 +255,15 @@
   "dopplerDtype": null,
   "dopplerModelSource": {
     "source": "explicit",
-    "locator": "file:///Users/xyz/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
-    "modelUrl": "file:///Users/xyz/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
+    "locator": "file://$HOME/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
+    "modelUrl": "file://$HOME/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
     "modelBaseDir": null,
-    "manifestSource": "/Users/xyz/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
+    "manifestSource": "$HOME/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
     "manifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
     "registrySource": null
   },
   "dopplerManifestPreflight": {
-    "manifestSource": "/Users/xyz/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
+    "manifestSource": "$HOME/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
     "manifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
     "artifactIdentity": {
       "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
@@ -333,7 +333,7 @@
       "enforced": false,
       "reason": "active-manifest-is-local",
       "active": {
-        "manifestSource": "/Users/xyz/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
+        "manifestSource": "$HOME/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
         "manifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
         "canonicalManifestSha256": "51bcdb65e4dead3992d65546bc3f2405146c7b7ab812181fe94e0ad0d34aef2c"
       },
@@ -394,7 +394,7 @@
     "prefillTokenTarget": 64,
     "prefillTokenSource": "tokenizer-accurate-synthetic",
     "prefillTokenSemantics": "model_input_tokens",
-    "promptTokenizerLocator": "/Users/xyz/deco/doppler/.cache/qwen-comparator-relay/onnx-community/Qwen3.5-0.8B-ONNX-OPT",
+    "promptTokenizerLocator": "$HOME/deco/doppler/.cache/qwen-comparator-relay/onnx-community/Qwen3.5-0.8B-ONNX-OPT",
     "promptTokenizerResolutionSource": "local-model-root",
     "decodeTokenTarget": 128
   },
@@ -13330,7 +13330,7 @@
           }
         },
         "benchmarkPolicy": {
-          "source": "/Users/xyz/deco/doppler/.tmp/warm-fairness-20261017/benchmarks/vendors/benchmark-policy.json",
+          "source": "$HOME/deco/doppler/.tmp/warm-fairness-20261017/benchmarks/vendors/benchmark-policy.json",
           "schemaVersion": 1,
           "updated": "2026-03-29"
         },

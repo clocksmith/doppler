@@ -36,7 +36,7 @@
       },
       "error": {
         "message": "page.evaluate: Error: Capsule response chunk exceeds its acquisition limit.\n    at Object.streamArtifact (http://127.0.0.1:38815/node_modules/doppler-gpu/src/client/runtime/fetch-capsule-artifact-store.js:43:96)\n    at async waitForCapsuleRead (http://127.0.0.1:38815/node_modules/doppler-gpu/src/client/runtime/capsule-acquisition.js:47:12)\n    at async http://127.0.0.1:38815/node_modules/doppler-gpu/src/client/runtime/verified-capsule-artifact-store.js:94:44",
-        "stack": "page.evaluate: Error: Capsule response chunk exceeds its acquisition limit.\n    at Object.streamArtifact (http://127.0.0.1:38815/node_modules/doppler-gpu/src/client/runtime/fetch-capsule-artifact-store.js:43:96)\n    at async waitForCapsuleRead (http://127.0.0.1:38815/node_modules/doppler-gpu/src/client/runtime/capsule-acquisition.js:47:12)\n    at async http://127.0.0.1:38815/node_modules/doppler-gpu/src/client/runtime/verified-capsule-artifact-store.js:94:44\n    at /home/x/deco/doppler/tools/check-installed-capabilities.js:126:27"
+        "stack": "page.evaluate: Error: Capsule response chunk exceeds its acquisition limit.\n    at Object.streamArtifact (http://127.0.0.1:38815/node_modules/doppler-gpu/src/client/runtime/fetch-capsule-artifact-store.js:43:96)\n    at async waitForCapsuleRead (http://127.0.0.1:38815/node_modules/doppler-gpu/src/client/runtime/capsule-acquisition.js:47:12)\n    at async http://127.0.0.1:38815/node_modules/doppler-gpu/src/client/runtime/verified-capsule-artifact-store.js:94:44\n    at $HOME/deco/doppler/tools/check-installed-capabilities.js:126:27"
       }
     }
   ],

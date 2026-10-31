@@ -1,6 +1,6 @@
 {
   "schema": "reploid.source-conversion-inspection/v1",
-  "sourceDirectory": "/home/x/models/hf/google/gemma-4-12B-it-qat-w4a16-ct",
+  "sourceDirectory": "$HOME/models/hf/google/gemma-4-12B-it-qat-w4a16-ct",
   "sourceRevision": "dcfe12254e8fb98c743f21efa05ff64937926c64",
   "sourceFiles": [
     {
@@ -45,7 +45,7 @@
     "BF16": 678
   },
   "tensorCount": 1334,
-  "recipePath": "/home/x/deco/worktrees/doppler-local-journeys/src/config/conversion/gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16.json",
+  "recipePath": "$HOME/deco/worktrees/doppler-local-journeys/src/config/conversion/gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16.json",
   "recipeDigest": "sha256:67ba1280262134d0d9fe5bd2f86cbda5906c4e635dd6042aefc9e9708c825915",
   "outputDirectory": "/var/tmp/reploid-gemma4-source-20260908/converted",
   "conversionPolicy": {

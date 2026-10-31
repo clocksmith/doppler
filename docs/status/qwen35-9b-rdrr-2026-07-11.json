@@ -32,7 +32,7 @@
   "artifact": {
     "modelId": "qwen-3-5-9b-f16-af32",
     "format": "rdrr",
-    "publishedPath": "/home/x/rdrr/qwen-3-5-9b-f16-af32",
+    "publishedPath": "$HOME/rdrr/qwen-3-5-9b-f16-af32",
     "directoryBytes": 17916995986,
     "shardBytes": 17907606528,
     "fileCount": 270,

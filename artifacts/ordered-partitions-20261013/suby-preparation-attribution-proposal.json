@@ -53,7 +53,7 @@
     "host": "Exact installed d730 createNativeGpuHost; preserve owned-device lost barrier and existing 10s close bound.",
     "operationDeadlineMilliseconds": 300000,
     "cleanupDeadlineMilliseconds": 10000,
-    "launchRequires": "Fresh root-reserved Suby window and live ownership/provider verification.",
+    "launchRequires": "Fresh root-reserved intel-host window and live ownership/provider verification.",
     "interpretation": "Completed scale with delayed unary SiLU would implicate reachable transcendental preparation, not prove a particular optimizer pass. Similar outcomes would not isolate the hypothesis. No cache reset or isolated timing claim."
   },
   "sourceFacts": {

@@ -36,6 +36,6 @@
 [1085.4ms][KernelSelect] attention variant=prefill_head256_f16kv reason=path_override:tiled_small
 [1253.9ms][KernelSelect] matmul variant=f32 reason=default
 [1278.4ms][KernelSelect] matmul variant=q4_fused_batched_multicol_shared reason=path_override
-Wrote /Users/xyz/deco/doppler/reports/community-lora-20261017/contribution-m3.json
+Wrote $HOME/deco/doppler/reports/community-lora-20261017/contribution-m3.json
 [1710.9ms][ExpertCache] Cache cleared
 [1715.7ms][Pipeline] Unloaded

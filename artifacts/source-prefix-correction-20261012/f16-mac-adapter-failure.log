@@ -5,6 +5,6 @@ node:internal/modules/run_main:123
 page.evaluate: Error: Physical F16 WebGPU adapter required
     at eval (eval at evaluate (:290:30), <anonymous>:3:64)
     at async <anonymous>:316:30
-    at /Users/xyz/deco/doppler/tests/integration/f16-projection-accumulation-replay.js:28:31
+    at $HOME/deco/doppler/tests/integration/f16-projection-accumulation-replay.js:28:31
 
 Node.js v22.20.0

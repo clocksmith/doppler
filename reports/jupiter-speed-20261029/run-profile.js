@@ -8,11 +8,11 @@ const root = path.dirname(fileURLToPath(import.meta.url));
 const execute = promisify(execFile);
 const contract = JSON.parse(await fs.readFile(path.join(root, 'contract.json')));
 const source = path.join(root, 'runtime');
-const prior = '/home/x/deco/hatch/pooled-doppler-components-20261029/deep-profile/receipts/0-manifest-default-config.json';
+const prior = '$HOME/deco/hatch/pooled-doppler-components-20261029/deep-profile/receipts/0-manifest-default-config.json';
 const baseline = JSON.parse(await fs.readFile(prior));
 const out = path.join(root, 'runs');
 await fs.mkdir(out); // Refuse overwriting an earlier campaign.
-const receipt = { schema: 'doppler.jupiter-profile-validation.v1', contractSha256: createHash('sha256').update(await fs.readFile(path.join(root, 'contract.json'))).digest('hex'), sessions: [], failures: [] };
+const receipt = { schema: 'doppler.amd-host-profile-validation.v1', contractSha256: createHash('sha256').update(await fs.readFile(path.join(root, 'contract.json'))).digest('hex'), sessions: [], failures: [] };
 const save = () => fs.writeFile(path.join(out, 'receipt.json'), JSON.stringify(receipt, null, 2));
 await save();
 for (const prompt of contract.prompts) {

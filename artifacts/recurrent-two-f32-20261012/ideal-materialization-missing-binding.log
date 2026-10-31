@@ -23,12 +23,12 @@
 {"layer": 22, "kind": "linear_attention", "hiddenSha256": "e76bd7ecbb0036bb86ca3a523b5b18194c08db4ba80392302776e633136eed22", "maxAbsHidden": 5.515903162286961}
 {"layer": 23, "kind": "full_attention", "hiddenSha256": "0a274c5ed831f94fc1c5822731ad6d0d3e78eddea8f40ba70123a40f6c64fd42", "maxAbsHidden": 7.908705590155191}
 Traceback (most recent call last):
-  File "/home/x/deco/doppler/tools/qwen35-short-prefix-audit.py", line 694, in <module>
+  File "$HOME/deco/doppler/tools/qwen35-short-prefix-audit.py", line 694, in <module>
     run(args)
     ~~~^^^^^^
-  File "/home/x/deco/doppler/tools/qwen35-short-prefix-audit.py", line 318, in run
+  File "$HOME/deco/doppler/tools/qwen35-short-prefix-audit.py", line 318, in run
     binding = ref.read_json(args.binding)
-  File "/home/x/deco/doppler/tools/qwen35-f64-reference.py", line 25, in read_json
+  File "$HOME/deco/doppler/tools/qwen35-f64-reference.py", line 25, in read_json
     data = Path(path).read_bytes()
   File "/usr/lib/python3.14/pathlib/__init__.py", line 778, in read_bytes
     with self.open(mode='rb', buffering=0) as f:

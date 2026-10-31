@@ -1,11 +1,13 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "README.md": {
-    "sha256": "f36a33eaed4cbe0ac89a5e2494246e52b4ad84c67ab61baaf422eeece88c9bc5",
-    "sizeBytes": 9413
+    "sha256": "1f4f50f3e009615a9182e590059814703fc2b8e41dbe6e55842a8aeb0b9fc117",
+    "sizeBytes": 9411
   },
   "acceptance.json": {
-    "sha256": "056f85bfd4b97f8049128e8f2802162b94d1067319afbf7e8cbb638f3e278b45",
-    "sizeBytes": 5153
+    "sha256": "b7c2c2038eeb84c212f66e25d57cfd255d30f628a606f4f4d9ffe11f974017bf",
+    "sizeBytes": 5151
   },
   "archive-reproduction.json": {
     "sha256": "27705f52c327c17eedd7f368c78e37c23a0431050bb44e7a1cf89b2c419ee511",
@@ -60,28 +62,28 @@
     "sizeBytes": 7942
   },
   "library-package-browser.json": {
-    "sha256": "f19536dd5e59a0eb7f321f999b22e2989c8263847be22be505fb921571219209",
-    "sizeBytes": 16612
+    "sha256": "6f8669e8e6b9f4714f133b32bf33d01e68bf6a6752ed40bd93af8b2a54ddd894",
+    "sizeBytes": 16608
   },
   "local-doppler-green.log": {
-    "sha256": "de0808c18bc1bad9aa5107b5c76b37fe8a6301ce51a83066d3983f36fccd342b",
-    "sizeBytes": 413008
+    "sha256": "87571fb120141206f6d702f70a5a4f32b0165af021e98a1507a97abd64420be1",
+    "sizeBytes": 412972
   },
   "local-exact-archives-reploid.json": {
     "sha256": "850b404f2da11983f3c6b966e8d9fe01421fe4d6d0c40fffde583ed6e42d80f6",
     "sizeBytes": 4039
   },
   "local-reploid-application.log": {
-    "sha256": "3b307971e129534dcf01d037f0182b4289e7d9ea8f4429be7aea37fcbd88a250",
-    "sizeBytes": 92924
+    "sha256": "a6130b4946ce2055a6467ac96a86a162c8c9f41fd8fcf8f314f5a915509987be",
+    "sizeBytes": 92904
   },
   "physical-reploid-library-config.json": {
-    "sha256": "da9b58fd4f0c7d92c0b070d5a97f03af96701d7091bf8659e9fadf1b363e61aa",
-    "sizeBytes": 8914
+    "sha256": "5bc11ffec7c50741def9d4b755c1c79785d44c7906c3c88cef75aa459409252e",
+    "sizeBytes": 8912
   },
   "physical-reploid-library.json": {
-    "sha256": "61a32fccaf9bc0113268c9a3ffb686ba82567776a2b3a36dc149a7616edd35ce",
-    "sizeBytes": 54725
+    "sha256": "551cf63baee58a04c687e23e43602f0bb483ace00cf44d4bd2bd8630103350b3",
+    "sizeBytes": 54723
   },
   "physical-reploid-library.log": {
     "sha256": "4eb43455c8ea9f83466f1782e9f5d064cbf6d7c94d8ee77ea12a12ac4c5941f6",
@@ -152,32 +154,32 @@
     "sizeBytes": 26647
   },
   "reconciliation/local-unit.log": {
-    "sha256": "a75f84c153e84656ae8fb7895630546880166de5ff323c1da1c5def9b509da4f",
-    "sizeBytes": 90051
+    "sha256": "67ea47702580c3110e6143c2b2c2b4a64a4dca667bd94528737845f774634869",
+    "sizeBytes": 90031
   },
   "reconciliation/sdk-tests.log": {
-    "sha256": "e5462172f2a798989a57d19547b2b908e172231bea4193b33b6e8f143e985bda",
-    "sizeBytes": 289
+    "sha256": "34a55bb18978092089a4fb2cc0ef3e2726a3f1236fc623e1a1a36968aeada2e3",
+    "sizeBytes": 287
   },
   "reploid-application-comparison.json": {
-    "sha256": "7bdd08235fec78c5b8a757c0934f404baf63e09a7357d36f76a5d1321d543cd1",
-    "sizeBytes": 129739
+    "sha256": "424cd71237789719afe490d87c6ecd2d1bfd12a544d2894ad513f73332069551",
+    "sizeBytes": 128113
   },
   "superseded/ci-runs.json": {
     "sha256": "6218cc1df4caca55eb52d269331ba8d59ffad747c63d28c19be22d1192a30529",
     "sizeBytes": 1165
   },
   "superseded/initial-provider-fixture-failure.log": {
-    "sha256": "8abd3e36f3a7ac6acd0c1751dd5b3be175ea0c023903710a41c9925bfd361c12",
-    "sizeBytes": 420
+    "sha256": "5252fd7f8cd2ffe6e57988327fb97ed0c4a96b9c55169681994f6d2a05ac0a04",
+    "sizeBytes": 418
   },
   "superseded/package-budget-failure.log": {
     "sha256": "3e2bad088e6ea9470db8aa7aa14d1e96af20e934d790fe987459cb295b00d6d7",
     "sizeBytes": 15565
   },
   "superseded/physical-initial-reploid-library.json": {
-    "sha256": "a118f2b437326e19cb090dd2a9ad3599efc8bb47ae42721ad6f9ad6822b0c712",
-    "sizeBytes": 54786
+    "sha256": "69e947fc02c5be5898762621177ff48740c754ad757452cf41347ed309dd8963",
+    "sizeBytes": 54784
   },
   "superseded/physical-initial-standalone.json": {
     "sha256": "8687440bd97ffdfe3062ded29bdffe90ffaa47dad3b6e65a53401534a434ce48",

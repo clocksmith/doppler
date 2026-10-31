@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.ordered-physical-producer-cpu-check/v1",
   "testCount": 86,
   "passCount": 86,
@@ -9,7 +11,7 @@
     "artifacts/signed-resident-producer-20261012/produce-physical-reports.js": "sha256:714cc204e61c6289f1e937bcf1b75e693bd5bf2ddf1529e1a9e3368e896b3c99",
     "artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js": "sha256:d20da7190bdfed2085a869510395fba2fee23d08e8bb25eb60e50ab846598729",
     "artifacts/signed-resident-producer-20261012/ordered-v2/producer-before.js": "sha256:d9855a94b1f4e5a30f67bfd85ab866f0f6a016f78a89be660f3a0addddc0e7c4",
-    "artifacts/ordered-partitions-20261013/freeze-three-stage-workload.js": "sha256:846f561cab32ab1d6ab30a5ab37bd90396ec733b9454c8f3e4c51454048f6578",
-    "artifacts/ordered-partitions-20261013/three-stage-qualification-workload.json": "sha256:dedd274742e1d7fda709d2e07ff4940cf6d777eafaf6379cd942e4360ae01b6f"
+    "artifacts/ordered-partitions-20261013/freeze-three-stage-workload.js": "sha256:f6fcf7af66d0117bea3e36c97b5f283c107799a0f60a214f784c05f324fa19f5",
+    "artifacts/ordered-partitions-20261013/three-stage-qualification-workload.json": "sha256:ea49672218e6e5c52767b04c32495856dc1468220cc6504188d265fe027e6792"
   }
 }

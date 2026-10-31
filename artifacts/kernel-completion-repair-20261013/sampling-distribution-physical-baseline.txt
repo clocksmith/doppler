@@ -8,7 +8,7 @@ AssertionError [ERR_ASSERTION]: {"vocabSize":4,"logitsDtype":"f32","topK":0,"top
 
 0 !== 1
 
-    at file:///Users/xyz/deco/doppler/tests/kernels/sampling-distribution-physical.test.js:34:22 {
+    at file://$HOME/deco/doppler/tests/kernels/sampling-distribution-physical.test.js:34:22 {
   generatedMessage: false,
   code: 'ERR_ASSERTION',
   actual: 0,

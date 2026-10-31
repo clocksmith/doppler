@@ -8,7 +8,7 @@ AssertionError [ERR_ASSERTION]: self_attn.q_proj
 + undefined
 - 'q_proj'
 
-    at file:///Users/xyz/deco/doppler/tests/loader/layer-consumer-materialization.test.js:20:13 {
+    at file://$HOME/deco/doppler/tests/loader/layer-consumer-materialization.test.js:20:13 {
   generatedMessage: false,
   code: 'ERR_ASSERTION',
   actual: undefined,

@@ -5,7 +5,7 @@
     "GIT_INDEX_FILE": "/var/tmp/doppler-unit-1cb70cf9-du9zn2-evidence/frozen.index"
   },
   "detachedHead": "1cb70cf923822481ac170113be5a68cb4d01ab4e",
-  "objectAlternate": "/home/x/deco/.git/modules/doppler/objects",
+  "objectAlternate": "$HOME/deco/.git/modules/doppler/objects",
   "privateIndexSha256": "c02e7adc00a8ded9efbf1246e512b87b1aee4bf9bf3ad59b8dd7f8097582634f",
   "scope": "Only isolated metadata; no branch/ref or worktree registered in source repository"
 }

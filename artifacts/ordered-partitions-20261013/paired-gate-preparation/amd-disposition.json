@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.paired-gate-operator-result/v1",
   "passed": true,
   "sourceCommit": "33bd652a",
@@ -106,9 +108,9 @@
   "nextGate": "Ordinary candidate package and declared mechanism graph; physical installed-wrapper/model preparation and55prefixes on exact candidate identities remain unqualified.",
   "files": {
     "amd-result.json": "3b800698aa899e842a4f9f664d03f6ff3a4817b9ec314c97ca68c66eb5ec1335",
-    "amd-process.json": "d9784e1b7b3695d88e6d324cdbd1933cfd95fdb49c7c8b119c5a13bda6d39adb",
-    "amd-before.json": "aeae3970ab1f09ca4bc39de11976f8af327340a0a1d617e0f0ef0809d23b90bf",
-    "amd-after.txt": "4210cbcde8a377507e1afd4457202dafa2d488a72fb72adf4375312e9649c8de",
+    "amd-process.json": "7be657cceede82507b21935150225ffddf66ac5e95b007d4e575ecf07c77dede",
+    "amd-before.json": "8e2329974c6166aa6c0c3c9389d23cc4da967d5e458ea57c61a1082d66f5c465",
+    "amd-after.txt": "b4ef55567f6f45fe1fafc4a14401e2e3587252cd24f57db785e14b3d54d66208",
     "reservation.json": "5a2c2204d83e5f4fc5a8e8bb8c8da89bcd6abd0f1d219ac223703664a4e6a219",
     "linear-control.js": "9648665800647689550ea3a0f5f1778287347dbc058fefcc399aad5672d929fa"
   }

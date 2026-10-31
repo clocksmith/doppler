@@ -1,9 +1,11 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.qwen-quantized-quality-comparison/v1",
   "scope": "Six frozen exact-answer checks and two short teacher-forced documents. No human preference or general quality claim.",
   "suiteSha256": "de4585a4c2994eeef52c6d93b54bea24afe10cd5eea581d3239b996e06604e6e",
-  "q4ReceiptSha256": "25213109f84fb05fb8151f7076fe21ebac717e555a88073d4cddce26a40b0cf3",
-  "f16ReceiptSha256": "e93b3dbb774f03caa4383ca3e9bf7da4b3d01b261d625353b369c451b5028a4e",
+  "q4ReceiptSha256": "4b8a6a511f5548a42ac97ea8e029331ee5a4143604e26da294f29e8b115dcdc9",
+  "f16ReceiptSha256": "5329daef3b2546cb14a233299b09e8ef74851f6e3e69b1a8546c877500db55be",
   "tasks": [
     {
       "id": "arithmetic",

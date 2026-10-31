@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.retention-experiment-acceptance/v1",
   "passed": true,
   "scope": "Internal hardware experiment on AMD Radeon 8060S. Node reranker tuning and held-out numerical references, followed by transfer to a distinct browser document-search application and excluded corpus.",
@@ -74,8 +76,8 @@
   },
   "evidence": {
     "path": "evidence.tar.gz",
-    "sha256": "49cf622e1f67b4f121f821e54e5321bc13f3619ab436d86fc55112ef61e5b683",
-    "bytes": 3307773,
+    "sha256": "7c06acfa1b858a492eae8df821cc6d2f0d0a6549f8aad16d60ac0bf533674296",
+    "bytes": 3307838,
     "files": [
       {
         "path": "browser-app-bounded/build-receipt.json",
@@ -179,8 +181,8 @@
       },
       {
         "path": "campaign/heldout-artifacts-policy.json",
-        "sha256": "27b5e16d6508c5f8674a617eca67c763866adca6d34156988b6f2c472c876acc",
-        "bytes": 1228
+        "sha256": "6eddde55a221f2b72abee4767618da0be3624d495ec92af6a4d6babb8ca53990",
+        "bytes": 1226
       },
       {
         "path": "campaign/heldout-artifacts-reference.json",
@@ -194,8 +196,8 @@
       },
       {
         "path": "campaign/heldout-recovery-policy.json",
-        "sha256": "4173791d682d00835a5cd448ac87d25ee5ab52d1306e3e38e7a583ca5ff762f0",
-        "bytes": 1199
+        "sha256": "d909904b013fdcc3de4e6dfbb534e5c36d83ab1ff69dfc22d38a311b99fb8623",
+        "bytes": 1197
       },
       {
         "path": "campaign/heldout-recovery-reference.json",
@@ -209,8 +211,8 @@
       },
       {
         "path": "campaign/node-campaign-02.json",
-        "sha256": "efe4a6082f792ce3c52540ab3ca47a24ddff3ef5121b53a38a6b418ed9b1f3ec",
-        "bytes": 2407
+        "sha256": "314c7d53a67077a279ae5e0d205e20de09bd1348e9ebba008c02cc1bece51fa6",
+        "bytes": 2403
       },
       {
         "path": "campaign/node-campaign-02.log",
@@ -219,8 +221,8 @@
       },
       {
         "path": "campaign/node-campaign-03.json",
-        "sha256": "bb7658b2e46f63e34f2b1cfe1f3a81730b236d6f7cc4e91a4c2c72d57274334b",
-        "bytes": 2581
+        "sha256": "45acdff8e2054889e4bfb51e5f1d27b2ea1674fd5997bddef527b8aa9a3e945a",
+        "bytes": 2575
       },
       {
         "path": "campaign/node-campaign-03.log",
@@ -229,8 +231,8 @@
       },
       {
         "path": "campaign/node-campaign.json",
-        "sha256": "410eb7b3bd47e118401a1d31c285980a6b9071ac5c2d2be1811c9fa7012bb342",
-        "bytes": 2199
+        "sha256": "6bd03fc35d25710526cb38cf1a71f9067fabb7eada011d5c9b939507d0c362a8",
+        "bytes": 2197
       },
       {
         "path": "campaign/node-campaign.log",
@@ -279,8 +281,8 @@
       },
       {
         "path": "node-experiment-01/frozen-campaign.json",
-        "sha256": "410eb7b3bd47e118401a1d31c285980a6b9071ac5c2d2be1811c9fa7012bb342",
-        "bytes": 2199
+        "sha256": "6bd03fc35d25710526cb38cf1a71f9067fabb7eada011d5c9b939507d0c362a8",
+        "bytes": 2197
       },
       {
         "path": "node-experiment-01/tuning-2155580d2806c4f578b2c4cf65e7e0a609b43f5e8b9947916a75bd5af663248e.json",
@@ -294,8 +296,8 @@
       },
       {
         "path": "node-experiment-01/tuning-2155580d2806c4f578b2c4cf65e7e0a609b43f5e8b9947916a75bd5af663248e/measurement.json",
-        "sha256": "2e5f3b8ae600287e8d566d794a4c02ab9c8205148734cc9f3f781d06f68e3a56",
-        "bytes": 3489
+        "sha256": "a4dc6af5abaa8e1c7d0bec1f7bc3cc50b6f20187b62487c4c5d92593c779cc13",
+        "bytes": 3487
       },
       {
         "path": "node-experiment-01/tuning-368808d3f06af68aeb70782eb084bab361b95faa04b62b02f5d8839f163a41c1.json",
@@ -309,8 +311,8 @@
       },
       {
         "path": "node-experiment-01/tuning-368808d3f06af68aeb70782eb084bab361b95faa04b62b02f5d8839f163a41c1/measurement.json",
-        "sha256": "f64457f590b0c165264b48fd6513d5e9b4905ce1ba7ab9bb0399b23db00b8a28",
-        "bytes": 3489
+        "sha256": "cef6b5ea897083d35b2e49b6aa71efbb1a4517ae51b93ced958cee5585ee551d",
+        "bytes": 3487
       },
       {
         "path": "node-experiment-01/tuning-723accb4e7fdbfbf3395f8e9d38aa7572e6f12914b70a73cd7e7121fca423246.json",
@@ -324,8 +326,8 @@
       },
       {
         "path": "node-experiment-01/tuning-723accb4e7fdbfbf3395f8e9d38aa7572e6f12914b70a73cd7e7121fca423246/measurement.json",
-        "sha256": "f9d4759dd801d50799e07f14a85acb789704fdf2080fb1f7bf609c1965b72e4b",
-        "bytes": 3489
+        "sha256": "b54f694a87ef76edf00e034152d6d4dd39bdd466b16167ff4c2a243a8b7d9488",
+        "bytes": 3487
       },
       {
         "path": "node-experiment-01/tuning-849c605708f7a1ae4b9168bd71104efe5d8abe054be3a92f756657eb80c74fc5.json",
@@ -339,8 +341,8 @@
       },
       {
         "path": "node-experiment-01/tuning-849c605708f7a1ae4b9168bd71104efe5d8abe054be3a92f756657eb80c74fc5/measurement.json",
-        "sha256": "4cc4c525e68155eb384678903cb9c406d3fcb25cc94b489527594e425934ac9b",
-        "bytes": 3489
+        "sha256": "fa236adecc27c080f9f5cfa43b7f1ebcdf72973019e0081f7cc5ba88f240b344",
+        "bytes": 3487
       },
       {
         "path": "node-experiment-01/tuning-8da7ae49d5326d085f16d7648011f5fec48cfe4ddec04a2ac132dbd6773f0c29.json",
@@ -354,8 +356,8 @@
       },
       {
         "path": "node-experiment-01/tuning-8da7ae49d5326d085f16d7648011f5fec48cfe4ddec04a2ac132dbd6773f0c29/measurement.json",
-        "sha256": "bb62e46d24c03baafad20972c2a5bad5ca2aab47af27382a2acd92eccfb32b84",
-        "bytes": 3489
+        "sha256": "1fa8a6efbf3c9058531a07ca8528e6827a5937d250c18b4ae679609dc3ea03d6",
+        "bytes": 3487
       },
       {
         "path": "node-experiment-01/tuning-9fa99bc50239ed7b34f1ba4322d2bb6e99a44e217b85618d5725758bf8c3bf2b.json",
@@ -369,8 +371,8 @@
       },
       {
         "path": "node-experiment-01/tuning-9fa99bc50239ed7b34f1ba4322d2bb6e99a44e217b85618d5725758bf8c3bf2b/measurement.json",
-        "sha256": "ff96b405044cce4990b2379bbbc4897defca7b0309a2325803a67779a760ca12",
-        "bytes": 3489
+        "sha256": "3bea9c47e3eaf9418aa1d2e499487873bd355a68949d7faf36a2253373f89b38",
+        "bytes": 3487
       },
       {
         "path": "node-experiment-01/tuning-contract.json",
@@ -389,8 +391,8 @@
       },
       {
         "path": "node-experiment-01/tuning-de195740b4df0343357e6b27b9eba7c8b2a40206879619d71e2d1cb2e93670cf/measurement.json",
-        "sha256": "91b658a970653c9523ce6aefa67213b8012731ddbf44160a688b7935aa2b4767",
-        "bytes": 3489
+        "sha256": "1d452276c0eec546a8074e70e6f9c05f8dec46abe519c682f2798aef9c8c29bc",
+        "bytes": 3487
       },
       {
         "path": "node-experiment-01/tuning-evaluation.json",
@@ -409,8 +411,8 @@
       },
       {
         "path": "node-experiment-01/tuning-fe6e6e624d6e88ba9d14ab928e6307fddde365732fc20d196573518079dfe7cc/measurement.json",
-        "sha256": "fd91e55bf026211f55a036efb1be4343fe1e19d521bc6c929217666630d8317b",
-        "bytes": 3489
+        "sha256": "42c21b8a7105f6d05b414e5e95d3073aac02051273813a3825960b1a08064a95",
+        "bytes": 3487
       },
       {
         "path": "node-experiment-01/tuning-observation-2155580d2806c4f578b2c4cf65e7e0a609b43f5e8b9947916a75bd5af663248e.json",
@@ -479,8 +481,8 @@
       },
       {
         "path": "node-experiment-02/frozen-campaign.json",
-        "sha256": "efe4a6082f792ce3c52540ab3ca47a24ddff3ef5121b53a38a6b418ed9b1f3ec",
-        "bytes": 2407
+        "sha256": "314c7d53a67077a279ae5e0d205e20de09bd1348e9ebba008c02cc1bece51fa6",
+        "bytes": 2403
       },
       {
         "path": "node-experiment-02/tuning-8da7ae49d5326d085f16d7648011f5fec48cfe4ddec04a2ac132dbd6773f0c29.json",
@@ -579,8 +581,8 @@
       },
       {
         "path": "node-experiment-03/frozen-campaign.json",
-        "sha256": "bb7658b2e46f63e34f2b1cfe1f3a81730b236d6f7cc4e91a4c2c72d57274334b",
-        "bytes": 2581
+        "sha256": "45acdff8e2054889e4bfb51e5f1d27b2ea1674fd5997bddef527b8aa9a3e945a",
+        "bytes": 2575
       },
       {
         "path": "node-experiment-03/frozen-selection.json",

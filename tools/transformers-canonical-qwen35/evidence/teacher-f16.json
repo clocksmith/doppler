@@ -14,50 +14,50 @@
   },
   "sources": {
     "teacher": {
-      "path": "/home/x/deco/doppler/tools/transformers-canonical-qwen35/teacher_native.py",
+      "path": "$HOME/deco/doppler/tools/transformers-canonical-qwen35/teacher_native.py",
       "sha256": "6138fff5d02f3b2e0daffd5f4162eb790845a721199566a9af4e6a4ac6f5c81e"
     },
     "modelBoundary": {
-      "path": "/home/x/deco/doppler/tools/transformers-canonical-qwen35/native_model.py",
+      "path": "$HOME/deco/doppler/tools/transformers-canonical-qwen35/native_model.py",
       "sha256": "d06227124c68fea5bc4e6ba6b6b0f59ca0c1e26bc86717fceb5fffad6b83ff63"
     },
     "binding": {
-      "path": "/home/x/deco/doppler/tools/transformers-canonical-qwen35/binding.py",
+      "path": "$HOME/deco/doppler/tools/transformers-canonical-qwen35/binding.py",
       "sha256": "ad47eddfbd4bf2162d3579d7a0a22004aa621f132df0e827f1f6d9f4a5bbfb70"
     },
     "policy": {
-      "path": "/home/x/deco/doppler/tools/transformers-canonical-qwen35/contract.json",
+      "path": "$HOME/deco/doppler/tools/transformers-canonical-qwen35/contract.json",
       "sha256": "54d99aae264cff77cca425027016541b44bdf83f8157f828c464b175bac2ff41"
     },
     "nativeHF": {
-      "path": "/home/x/.local/lib/python3.14/site-packages/transformers/models/qwen3_5/modeling_qwen3_5.py",
+      "path": "$HOME/.local/lib/python3.14/site-packages/transformers/models/qwen3_5/modeling_qwen3_5.py",
       "sha256": "3e2b6239e4b2c3e512d4f9836a1dba12e975ae652407e84f2d3c2beebf0c9528"
     },
     "nativeCache": {
-      "path": "/home/x/.local/lib/python3.14/site-packages/transformers/cache_utils.py",
+      "path": "$HOME/.local/lib/python3.14/site-packages/transformers/cache_utils.py",
       "sha256": "a51d2cd525f4458941a20cb5b3b8a8d989d8ca5bcd451855a27bb41743fed586"
     }
   },
   "contracts": {
     "prompts": {
-      "path": "/home/x/deco/doppler/reports/jupiter-tuning-20261029/product-repeat-contract.json",
+      "path": "$HOME/deco/doppler/reports/amd-host-tuning-20261029/product-repeat-contract.json",
       "sha256": "432bedc067bca02bf51081eadd50b2e0960d82424398151c1ebcc5e0760a011c"
     },
     "engine": {
-      "path": "/home/x/deco/doppler/benchmarks/vendors/pooled-equal-weights/contract.json",
+      "path": "$HOME/deco/doppler/benchmarks/vendors/pooled-equal-weights/contract.json",
       "sha256": "b3145847b1f4a4331fb8299d3b7d15e8b3f5acbb14ec80efe029c0089d61f71e"
     },
     "eosRuntimeManifest": {
-      "path": "/home/x/.local/state/doppler/pooled-equal-weights-20261029/rdrr-f32/manifest.json",
+      "path": "$HOME/.local/state/doppler/pooled-equal-weights-20261029/rdrr-f32/manifest.json",
       "sha256": "b7e6ddd056f047000c713dd6677ecb0f2f28af6de020f9c7c2aa1aa08110302d"
     },
     "verifiedCodePrompt": {
-      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/native-reference-f16-01/receipt.json",
+      "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/native-reference-f16-01/receipt.json",
       "sha256": "6d762e7e551aebb659ff14c7fa5038b9199d13d81ea2e82e0cf3bb438571099d"
     }
   },
   "tokenizer": {
-    "path": "/home/x/.local/state/doppler/pooled-equal-weights-20261029/canonical/tokenizer.json",
+    "path": "$HOME/.local/state/doppler/pooled-equal-weights-20261029/canonical/tokenizer.json",
     "sha256": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4"
   },
   "contract": {
@@ -91,7 +91,7 @@
   "elapsedSeconds": 49.6867494659964,
   "schema": "doppler.native-hf-canonical-teacher-summary.v1",
   "fullReceipt": {
-    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/teacher-f16-01/receipt.json",
+    "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/teacher-f16-01/receipt.json",
     "sha256": "b14207cd0aaa55bb6a428c203e5f3790003743c31257ba031cea994fe86455b7",
     "parameterCount": 321
   },

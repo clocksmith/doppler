@@ -19,12 +19,12 @@ Installed Capsule generation passed (injected logits; no physical qualification)
 Installed browser-conditioned host stream exports passed.
 {"passed":true,"consumer":"standalone","runtimeVersion":"0.6.3-dev.split.1","phases":6,"releases":6,"physicalExecution":false}
 Package evidence retained: /tmp/doppler-registry-installed-final-20260927
-Error: /usr/bin/node /home/x/deco/doppler/node_modules/typescript/bin/tsc -p tsconfig.json failed:
+Error: /usr/bin/node $HOME/deco/doppler/node_modules/typescript/bin/tsc -p tsconfig.json failed:
 node_modules/doppler-gpu/src/client/model-host/index.d.ts(88,25): error TS7016: Could not find a declaration file for module '../../rules/rule-registry.js'. '/tmp/doppler-registry-installed-final-20260927/consumer/node_modules/doppler-gpu/src/rules/rule-registry.js' implicitly has an 'any' type.
 node_modules/doppler-gpu/src/config/execution-registry-contract.d.ts(1,35): error TS7016: Could not find a declaration file for module '../rules/rule-registry.js'. '/tmp/doppler-registry-installed-final-20260927/consumer/node_modules/doppler-gpu/src/rules/rule-registry.js' implicitly has an 'any' type.
 node_modules/doppler-gpu/src/inference/pipelines/shader-scoped-pipeline.d.ts(1,36): error TS7016: Could not find a declaration file for module '../../rules/rule-registry.js'. '/tmp/doppler-registry-installed-final-20260927/consumer/node_modules/doppler-gpu/src/rules/rule-registry.js' implicitly has an 'any' type.
 node_modules/doppler-gpu/src/inference/pipelines/shader-scoped-pipeline.d.ts(10,26): error TS7016: Could not find a declaration file for module '../../rules/rule-registry.js'. '/tmp/doppler-registry-installed-final-20260927/consumer/node_modules/doppler-gpu/src/rules/rule-registry.js' implicitly has an 'any' type.
 
-    at run (file:///home/x/deco/doppler/tools/check-packed-package.js:27:11)
-    at writeTypeSmoke (file:///home/x/deco/doppler/tools/check-packed-package.js:193:3)
-    at async main (file:///home/x/deco/doppler/tools/check-packed-package.js:425:5)
+    at run (file://$HOME/deco/doppler/tools/check-packed-package.js:27:11)
+    at writeTypeSmoke (file://$HOME/deco/doppler/tools/check-packed-package.js:193:3)
+    at async main (file://$HOME/deco/doppler/tools/check-packed-package.js:425:5)

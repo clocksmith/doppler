@@ -24,7 +24,7 @@
         "path": "reports/local/short-prefix-f64-20261012/control.tgz",
         "sha256": "d6d007d2ab24274ea1751b6ccdbdee1fd2b039b4e2ddccbb376bb59eb5e61868"
       },
-      "remoteRoot": "amd-host:/home/x/deco/doppler",
+      "remoteRoot": "amd-host:$HOME/deco/doppler",
       "disposition": "unchanged-source control"
     },
     {
@@ -44,7 +44,7 @@
         "path": "reports/local/short-prefix-f64-20261012/candidate.tgz",
         "sha256": "a722d4e3f05f794d157d5b4f1cb7b72835e1fcbce151f22e231924ed4e4029ba"
       },
-      "remoteRoot": "amd-host:/home/x/deco/doppler",
+      "remoteRoot": "amd-host:$HOME/deco/doppler",
       "disposition": "rejected; runtime source restored"
     },
     {
@@ -64,7 +64,7 @@
         "path": "reports/local/short-prefix-f64-20261012/pair-tree.tgz",
         "sha256": "c7f749a608364ce717486308338507f2cea121fbba84b6a27a3fd6aeabd6dbbd"
       },
-      "remoteRoot": "amd-host:/home/x/deco/doppler",
+      "remoteRoot": "amd-host:$HOME/deco/doppler",
       "disposition": "rejected; runtime source restored"
     }
   ]

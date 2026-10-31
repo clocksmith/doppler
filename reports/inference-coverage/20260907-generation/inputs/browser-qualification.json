@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.installed-generation-qualification/v1",
   "surface": "browser",
   "packageBundlePath": "/var/tmp/doppler-release-20260907-public-node",
@@ -6,7 +8,7 @@
   "manifestDigest": "sha256:192ecf66a2410e61c990931ed2cd2a93f6141cb1434c0c8d57fe478c8f31493f",
   "reference": {
     "path": "/var/tmp/doppler-generation-20260907/reproduction-bundle/inputs/reference.json",
-    "digest": "sha256:f60b7696f8a5e030ee52eedc45ab2e0aa92f00ddd192ccbf7d216c832288cf47"
+    "digest": "sha256:d2f6458c2078c9b028540a11cf305e9f71f14c351bbdbf3d3175aefe36d3450b"
   },
   "outputDir": "/var/tmp/doppler-generation-20260907/browser-01",
   "requiredVendor": "amd",

@@ -1,6 +1,6 @@
 {
   "schema": "doppler.retained-quantized-inventory/v1",
-  "root": "/home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/recurrent-f16-q4-body-sha256-artifact",
+  "root": "$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/recurrent-f16-q4-body-sha256-artifact",
   "manifestSha256": "e9d463978e4aea04baefce32ce68c04498686c8085bd1a545f98a62a41d32846",
   "source": {
     "artifactCompleteness": "complete",

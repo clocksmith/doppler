@@ -1,8 +1,10 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.long-prefill-boundary/v1",
   "scope": "Offline first long-prefill stage-boundary attribution; no acceptance reference replacement or GPU execution",
   "evaluatorSha256": "90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7",
-  "proposalSha256": "8efe5e9c19a2bc2c5128ac566dc6a93474590f14625328b29e892781d4d5f9d0",
+  "proposalSha256": "516d8f5a32a3c193ffa8a50a1a7a510bf7096fa28cede5f45fef7e7fff689ae3",
   "numpyVersion": "2.4.4",
   "shards": [
     {

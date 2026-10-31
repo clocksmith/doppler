@@ -7,95 +7,95 @@
     "approved-reference.json": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
     "doppler-gpu-0.6.28.tgz": "sha256:5e0d60bc433d332187d422721fd7afcaec780c202e3082adcab389b47fd27fc5"
   },
-  "modelDirectory": "/var/tmp/doppler-paired-suby-archive8-20261012/model",
+  "modelDirectory": "/var/tmp/doppler-paired-intel-host-archive8-20261012/model",
   "shards": [
     {
-      "path": "/var/tmp/doppler-paired-suby-archive8-20261012/model/shard_00000.bin",
+      "path": "/var/tmp/doppler-paired-intel-host-archive8-20261012/model/shard_00000.bin",
       "bytes": 67108864,
       "blake3": "4dd461bea0d6cc891f78a7fe4dc744c0d269ea685b5a5a5de74c07d5422e4a3e"
     },
     {
-      "path": "/var/tmp/doppler-paired-suby-archive8-20261012/model/shard_00001.bin",
+      "path": "/var/tmp/doppler-paired-intel-host-archive8-20261012/model/shard_00001.bin",
       "bytes": 67108864,
       "blake3": "627234b5f84ede2314d044d0eb479068766b0cd5f936a29bd6373d9397ac7614"
     },
     {
-      "path": "/var/tmp/doppler-paired-suby-archive8-20261012/model/shard_00002.bin",
+      "path": "/var/tmp/doppler-paired-intel-host-archive8-20261012/model/shard_00002.bin",
       "bytes": 67108864,
       "blake3": "772a45a3111f9f0b826600a7950cc77991b65d6c3650df5ad6e882015522c600"
     },
     {
-      "path": "/var/tmp/doppler-paired-suby-archive8-20261012/model/shard_00003.bin",
+      "path": "/var/tmp/doppler-paired-intel-host-archive8-20261012/model/shard_00003.bin",
       "bytes": 67108864,
       "blake3": "a201dbf89e6ff7d6898e452bed94de20b02c9080aaa8efb6c52581069b6b80f9"
     },
     {
-      "path": "/var/tmp/doppler-paired-suby-archive8-20261012/model/shard_00004.bin",
+      "path": "/var/tmp/doppler-paired-intel-host-archive8-20261012/model/shard_00004.bin",
       "bytes": 67108864,
       "blake3": "1b7a6b6cb47286a640ac67692a160f3292e46bd496c7fe467ab932851bce054b"
     },
     {
-      "path": "/var/tmp/doppler-paired-suby-archive8-20261012/model/shard_00005.bin",
+      "path": "/var/tmp/doppler-paired-intel-host-archive8-20261012/model/shard_00005.bin",
       "bytes": 67108864,
       "blake3": "de1383a9cb1bf810079f0aefe923846d8e827257416b41b0740343d497ad4c36"
     },
     {
-      "path": "/var/tmp/doppler-paired-suby-archive8-20261012/model/shard_00006.bin",
+      "path": "/var/tmp/doppler-paired-intel-host-archive8-20261012/model/shard_00006.bin",
       "bytes": 67108864,
       "blake3": "d5143b6dea2e1d072041d933b174c6e3974ea5d434fa00149cc0ef9883bc8194"
     },
     {
-      "path": "/var/tmp/doppler-paired-suby-archive8-20261012/model/shard_00007.bin",
+      "path": "/var/tmp/doppler-paired-intel-host-archive8-20261012/model/shard_00007.bin",
       "bytes": 67108864,
       "blake3": "9c059d5f25fbf63dc3d43809b18864d23db3d737988783a1cc905568076e96ca"
     },
     {
-      "path": "/var/tmp/doppler-paired-suby-archive8-20261012/model/shard_00008.bin",
+      "path": "/var/tmp/doppler-paired-intel-host-archive8-20261012/model/shard_00008.bin",
       "bytes": 67108864,
       "blake3": "a58d96d7b4dd46f527c8cab0d3f88a8400f977ced510e047a246b64d0ea30d7e"
     },
     {
-      "path": "/var/tmp/doppler-paired-suby-archive8-20261012/model/shard_00009.bin",
+      "path": "/var/tmp/doppler-paired-intel-host-archive8-20261012/model/shard_00009.bin",
       "bytes": 67108864,
       "blake3": "9e3dfd8dafd142a7075d5596a3c14ce5fe450b7559915c4dfafcef5979ce7e7d"
     },
     {
-      "path": "/var/tmp/doppler-paired-suby-archive8-20261012/model/shard_00010.bin",
+      "path": "/var/tmp/doppler-paired-intel-host-archive8-20261012/model/shard_00010.bin",
       "bytes": 67108864,
       "blake3": "c53a446230d5fa3ea6f4291770484befb92ac3b8cf866c299a2375902f0141eb"
     },
     {
-      "path": "/var/tmp/doppler-paired-suby-archive8-20261012/model/shard_00011.bin",
+      "path": "/var/tmp/doppler-paired-intel-host-archive8-20261012/model/shard_00011.bin",
       "bytes": 67108864,
       "blake3": "21bd0db18c8da3b98ee7bc48427b6b7d0a4dedf314fb36f59b5d2979703d6070"
     },
     {
-      "path": "/var/tmp/doppler-paired-suby-archive8-20261012/model/shard_00012.bin",
+      "path": "/var/tmp/doppler-paired-intel-host-archive8-20261012/model/shard_00012.bin",
       "bytes": 67108864,
       "blake3": "b84051c7d492efe08a444e1bec385dd5ec181f74c94a415b8a62e4fa923143a4"
     },
     {
-      "path": "/var/tmp/doppler-paired-suby-archive8-20261012/model/shard_00013.bin",
+      "path": "/var/tmp/doppler-paired-intel-host-archive8-20261012/model/shard_00013.bin",
       "bytes": 67108864,
       "blake3": "e01ff5a0e6a93892a07ca34b4e5ee66c8cda8c39b21f5160d2170c3871acb0be"
     },
     {
-      "path": "/var/tmp/doppler-paired-suby-archive8-20261012/model/shard_00014.bin",
+      "path": "/var/tmp/doppler-paired-intel-host-archive8-20261012/model/shard_00014.bin",
       "bytes": 67108864,
       "blake3": "393c6068148c6225bc44a6271b9542e3992d8d6e7c59fe91adc28ff985650025"
     },
     {
-      "path": "/var/tmp/doppler-paired-suby-archive8-20261012/model/shard_00015.bin",
+      "path": "/var/tmp/doppler-paired-intel-host-archive8-20261012/model/shard_00015.bin",
       "bytes": 67108864,
       "blake3": "174b4177b49dbb8ac2bef25034d1c4ee8afa501e0b84f4e0b520485463864648"
     },
     {
-      "path": "/var/tmp/doppler-paired-suby-archive8-20261012/model/shard_00016.bin",
+      "path": "/var/tmp/doppler-paired-intel-host-archive8-20261012/model/shard_00016.bin",
       "bytes": 67108864,
       "blake3": "3e6de75e7637d3b238a7b82ef563eaf08a1a2a0d1f48b2525e2471df61fd0d71"
     },
     {
-      "path": "/var/tmp/doppler-paired-suby-archive8-20261012/model/shard_00017.bin",
+      "path": "/var/tmp/doppler-paired-intel-host-archive8-20261012/model/shard_00017.bin",
       "bytes": 5198016,
       "blake3": "327c92a0a817f9936880c6051f3f33d0f1fb7096ead14bcb06d5dc777550ca3f"
     }

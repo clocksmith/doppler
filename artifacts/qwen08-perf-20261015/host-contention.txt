@@ -5,7 +5,7 @@
 34509 100.0  0.8 /Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/155.0.8059.39/Helpers/Google Chrome Helper (Renderer).app/Contents/MacOS/Google Chrome Helper (Renderer)
   618   8.7  0.2 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
  1328   5.6  0.1 /System/Library/ExtensionKit/Extensions/WallpaperAerialsExtension.appex/Contents/MacOS/WallpaperAerialsExtension
-39228   4.1  0.8 /Users/xyz/.codex/packages/app-server-daemon/releases/0.163.0-aarch64-apple-darwin/bin/codex
+39228   4.1  0.8 $HOME/.codex/packages/app-server-daemon/releases/0.163.0-aarch64-apple-darwin/bin/codex
 88480   2.4  0.0 /bin/zsh
 86109   2.3  0.1 /System/Library/Frameworks/VideoToolbox.framework/Versions/A/XPCServices/VTDecoderXPCService.xpc/Contents/MacOS/VTDecoderXPCService
   617   2.3  0.2 /System/Library/CoreServices/loginwindow.app/Contents/MacOS/loginwindow

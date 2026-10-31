@@ -30,7 +30,7 @@ library, fixture generator, models, environment, and retained CI artifact.
 [Download the exact CI artifact](https://github.com/clocksmith/doppler/actions/runs/34897549251/artifacts/10369517086).
 Its ZIP SHA-256 is
 `dcb47264d0e8bd2a927209492b50d7dcfca7c85a474c32fddc12a5018442cb32`.
-Both tarballs also reside in `/home/x/deco/releases/doppler-0.6.2-candidate/`.
+Both tarballs also reside in `$HOME/deco/releases/doppler-0.6.2-candidate/`.
 The later Reploid runner accepts a supplied archive; it changes no package files.
 
 [Both tarballs reproduce byte for byte](archive-reproduction.json) using Node

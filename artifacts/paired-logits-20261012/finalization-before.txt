@@ -7,7 +7,7 @@ AssertionError [ERR_ASSERTION]: direct finalization failure settles raw logits
 
 4 !== 3
 
-    at file:///Users/xyz/deco/doppler/tests/inference/logits-paired-physical.test.js:83:12 {
+    at file://$HOME/deco/doppler/tests/inference/logits-paired-physical.test.js:83:12 {
   generatedMessage: false,
   code: 'ERR_ASSERTION',
   actual: 4,

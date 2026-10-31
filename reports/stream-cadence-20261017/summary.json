@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "component": "doppler.runtime-source.inference.pipelines.text",
   "intent": "preserved",
   "boundaryEffects": "none; evidence only, no runtime/profile changes adopted",
@@ -57,7 +59,7 @@
       "run": 0,
       "lane": "baseline",
       "receipt": "0-baseline.log",
-      "sha256": "fcb4fb88621d01ec0d7177c33461b999079388f311e29089c8b88b9bd3f39fe7",
+      "sha256": "4122f063692c40f54ee635f37734826875e4e0fa4f5de02119c74ebd8edde2bb",
       "timing": {
         "modelLoadMs": 1472.6,
         "firstTokenMs": 250,
@@ -93,7 +95,7 @@
       "run": 1,
       "lane": "candidate",
       "receipt": "1-candidate.log",
-      "sha256": "afd106c9d573eb2e53090cbbbb9ee5bcfbb24d9e3d9d87b36c9810cf9f7f8880",
+      "sha256": "7ce0daaf6533ad23a2f79af05814006fa2244f353ccfafb7da68a653519d4546",
       "timing": {
         "modelLoadMs": 1461.2,
         "firstTokenMs": 252.4,
@@ -129,7 +131,7 @@
       "run": 2,
       "lane": "candidate",
       "receipt": "2-candidate.log",
-      "sha256": "22e26e739c7c2c0abbafb5ae546ca238c0f013c79b2463c72e839abaa86385bd",
+      "sha256": "81a7eccb8d64c1c354342e6c564d59b11107989b135757ba066cb2cc443824f5",
       "timing": {
         "modelLoadMs": 1472.4,
         "firstTokenMs": 268.8,
@@ -165,7 +167,7 @@
       "run": 3,
       "lane": "baseline",
       "receipt": "3-baseline.log",
-      "sha256": "2a1c6ff3b69660f0f0a825d3f90ab2032d1b3e3d26119711f35ff44db0c922c5",
+      "sha256": "9a934082b40accc0668a2e2e9ef89868e2446a8d883e97d318b65d0e57099f88",
       "timing": {
         "modelLoadMs": 1449.7,
         "firstTokenMs": 337.5,

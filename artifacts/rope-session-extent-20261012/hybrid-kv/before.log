@@ -12,7 +12,7 @@ AssertionError [ERR_ASSERTION]: Linear recurrence layers own no attention KV all
 
 4 !== 2
 
-    at file:///Users/xyz/deco/doppler/tests/inference/partition-kv-cache.test.js:51:12 {
+    at file://$HOME/deco/doppler/tests/inference/partition-kv-cache.test.js:51:12 {
   generatedMessage: false,
   code: 'ERR_ASSERTION',
   actual: 4,

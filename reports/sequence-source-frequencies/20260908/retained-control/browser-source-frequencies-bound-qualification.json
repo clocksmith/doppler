@@ -198,7 +198,7 @@
     "sourceRevision": "13fc9077bf90f45adbaae386ac14cb231dad0e68",
     "sourceDirty": true,
     "executionGraphHash": "sha256:b19df07c5e716d119bfadf6ecd2419f563fd30c8a6ce6ea2a221e25dba39fed4",
-    "browserExecutablePath": "/home/x/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome",
+    "browserExecutablePath": "$HOME/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome",
     "browserArgs": [
       "--enable-unsafe-webgpu",
       "--enable-webgpu-developer-features",

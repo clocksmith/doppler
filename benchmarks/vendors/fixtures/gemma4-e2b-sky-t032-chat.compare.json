@@ -150,7 +150,7 @@
   "dopplerModelSource": {
     "source": "local",
     "locator": "gemma-4-e2b-it-q4k-ehf16-af32",
-    "modelUrl": "file:///home/x/deco/doppler/models/local/gemma-4-e2b-it-q4k-ehf16-af32",
+    "modelUrl": "file://$HOME/deco/doppler/models/local/gemma-4-e2b-it-q4k-ehf16-af32",
     "modelBaseDir": "local",
     "manifestSource": "models/local/gemma-4-e2b-it-q4k-ehf16-af32/manifest.json",
     "manifestSha256": "522524905444942470ec190747b7e050d2d6506b935dfbbb6a3e54f9669dd724",
@@ -363,7 +363,7 @@
             "trainingBenchSteps": null,
             "checkpointEvery": null,
             "workloadType": null,
-            "modelUrl": "file:///home/x/deco/doppler/models/local/gemma-4-e2b-it-q4k-ehf16-af32",
+            "modelUrl": "file://$HOME/deco/doppler/models/local/gemma-4-e2b-it-q4k-ehf16-af32",
             "cacheMode": "warm",
             "loadMode": "opfs",
             "runtimeProfile": null,
@@ -1303,7 +1303,7 @@
             }
           },
           "benchmarkPolicy": {
-            "source": "/home/x/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+            "source": "$HOME/deco/doppler/benchmarks/vendors/benchmark-policy.json",
             "schemaVersion": 1,
             "updated": "2026-03-29"
           },
@@ -1443,7 +1443,7 @@
             "trainingBenchSteps": null,
             "checkpointEvery": null,
             "workloadType": null,
-            "modelUrl": "file:///home/x/deco/doppler/models/local/gemma-4-e2b-it-q4k-ehf16-af32",
+            "modelUrl": "file://$HOME/deco/doppler/models/local/gemma-4-e2b-it-q4k-ehf16-af32",
             "cacheMode": "warm",
             "loadMode": "opfs",
             "runtimeProfile": null,
@@ -2383,7 +2383,7 @@
             }
           },
           "benchmarkPolicy": {
-            "source": "/home/x/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+            "source": "$HOME/deco/doppler/benchmarks/vendors/benchmark-policy.json",
             "schemaVersion": 1,
             "updated": "2026-03-29"
           },

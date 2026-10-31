@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "archiveSha256": "7c240dad4d1ae98e204e9727e687b9bc4379abd758b16af0fd857a99d7adac8d",
   "scoring": {
     "passed": true,
@@ -123,20 +125,20 @@
       "bytes": 33362
     },
     "scoring.log.gz": {
-      "uncompressedSha256": "d28bf8b7d47f7d83c4012862fd3bb9f5f6895c8e7c3fd6ca2154b94c0609ee3c",
-      "bytes": 4601
+      "uncompressedSha256": "db7e907b1271ae99e6823fe49d8947e1bd830d7e14cbb03ef6a28215d4a9f7e9",
+      "bytes": 4599
     },
     "embedding.json.gz": {
-      "uncompressedSha256": "d90cbde306285c57d2d7ee576c617ea59275afa7ab350723732537855f1bad77",
-      "bytes": 5145887
+      "uncompressedSha256": "a15a473de7e0a3dc6b9070dc11bd6603c50b734d51193a9ae30ecf909f83171b",
+      "bytes": 5145881
     },
     "embedding-config.json.gz": {
-      "uncompressedSha256": "d3d9f5f206d511f68e9d4d1586a223d4caed70962880d42de817aebe7dd9fb9e",
-      "bytes": 12165
+      "uncompressedSha256": "9070f6319340a8cea5b3a6cd84071a6d1808748f9cdbb2adea5ff21878fea5da",
+      "bytes": 12161
     },
     "embedding.log.gz": {
-      "uncompressedSha256": "2b1be369926c952392ce5faf83b9c9d211449addd94d35f2a5c0f4056ef7008a",
-      "bytes": 118
+      "uncompressedSha256": "1a9823eaacd593d2e79dc1362db4d87692c7949c52ffee77b0cabac13c0ff474",
+      "bytes": 116
     }
   },
   "scope": "Same exact diagnostic runtime archive; retained embedding and relevance-scoring models only. No W8 model quality, performance, public release or external adoption claim."

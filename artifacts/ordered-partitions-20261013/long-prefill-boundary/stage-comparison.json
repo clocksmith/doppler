@@ -1,7 +1,9 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.long-prefill-layer-comparison/v1",
   "scope": "Diagnostic attribution; no new acceptance tolerance or replacement reference",
-  "captureSha256": "4879bcedd2da7c02389785500a444ad046362ab5a2991af86477088b2be32854",
+  "captureSha256": "a38782874b689411da54a050f69255cf1e719f20654c0684376dfc08684cac9a",
   "referenceSha256": "4b701333ba9031dc03f0cee5650fa18839c2a274e31fa093d029ef62a90276ae",
   "unchangedObservedLogits": [
     false
@@ -3377,7 +3379,7 @@
   "failure": {
     "name": "AssertionError",
     "message": "Expected values to be strictly equal:\n\n17 !== 9\n",
-    "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n17 !== 9\n\n    at observeStage (file:///Users/xyz/deco/doppler/artifacts/ordered-partitions-20261013/long-prefill-boundary/canonical-observer.js:62:12)\n    at async file:///Users/xyz/deco/doppler/artifacts/ordered-partitions-20261013/long-prefill-boundary/stage-controller.js:56:2"
+    "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n17 !== 9\n\n    at observeStage (file://$HOME/deco/doppler/artifacts/ordered-partitions-20261013/long-prefill-boundary/canonical-observer.js:62:12)\n    at async file://$HOME/deco/doppler/artifacts/ordered-partitions-20261013/long-prefill-boundary/stage-controller.js:56:2"
   },
   "cleanupFailure": null,
   "providerSettlement": {

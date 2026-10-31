@@ -1,8 +1,8 @@
 {
   "config": {
     "schema": "doppler.fused-recurrent-profile/v1",
-    "baseline": "/Users/xyz/deco/doppler/.tmp/qwen-competition-20261017",
-    "candidate": "/Users/xyz/deco/doppler/.tmp/qwen-service-candidate-final-20261017/consumer/node_modules/doppler-gpu",
+    "baseline": "$HOME/deco/doppler/.tmp/qwen-competition-20261017",
+    "candidate": "$HOME/deco/doppler/.tmp/qwen-service-candidate-final-20261017/consumer/node_modules/doppler-gpu",
     "warmupPairs": 3,
     "measuredPairs": 12,
     "heads": 16,

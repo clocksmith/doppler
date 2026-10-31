@@ -4,7 +4,7 @@ Component: `doppler.runtime-source.gpu.kernels`. Intent: preserved.
 Boundary effects: diagnostic native-provider process only; public participants
 and accepted packages unchanged.
 
-This directory continues the retained `../paired-gate-phases/suby` failure.
+This directory continues the retained `../paired-gate-phases/intel-host` failure.
 That failure exhausted host RAM; it did not establish a GPU allocation peak or
 normal GPU settlement. Do not rerun its unchanged full workload.
 

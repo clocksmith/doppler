@@ -1,6 +1,8 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.qwen-quantized-deployment-summary/v1",
-  "receiptSha256": "1425c8cf48ac58b895ef4ddb65af8131c5e6cc712412d989532b8382eb0829e2",
+  "receiptSha256": "5fd9b99aada7ac0ce71b56751cdd3f8bcba5e043b17eea2477a90a363f6b81ef",
   "scope": "Native resident provider boundary; no WebRTC, browser persistence, public deployment or simultaneous GPU execution claim",
   "passed": true,
   "runtimeSourceFixCommit": "17dc3b3a",

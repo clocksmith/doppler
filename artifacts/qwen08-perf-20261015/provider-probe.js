@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 const result={createdAt:new Date().toISOString(),providers:[]};
-for(const specifier of ['webgpu','file:///Users/xyz/deco/doe/packages/doe-gpu/src/index.js']) {
+for(const specifier of ['webgpu','file://$HOME/deco/doe/packages/doe-gpu/src/index.js']) {
   let gpu,device;
   try {
     const module=await import(specifier);gpu=module.create(['enable-dawn-features=allow_unsafe_apis']);

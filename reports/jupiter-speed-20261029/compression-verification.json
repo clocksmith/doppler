@@ -1,5 +1,7 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "sameUncompressedTar": true,
-  "sha256": "f02c684ae88c740b9aeead23b4d309177023d21e0a1592524a1d74aca9cb2f51",
+  "sha256": "24fdbc153d6f507c085480eadc9979259871f8dfe752f03e304ffb96e2b92f79",
   "note": "Lossless recompression of complete original receipt archive; no data dropped"
 }

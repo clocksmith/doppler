@@ -1,43 +1,43 @@
-Oct 13 18:07:58 suby kernel: systemd-oomd invoked oom-killer: gfp_mask=0x140cca(GFP_HIGHUSER_MOVABLE|__GFP_COMP), order=0, oom_score_adj=-900
-Oct 13 18:07:59 suby kernel: CPU: 0 PID: 1148 Comm: systemd-oomd Tainted: G           O  K    6.8.0-90-generic #91-Ubuntu
-Oct 13 18:07:59 suby kernel: Hardware name: Intel(R) Client Systems NUC11TNHi3/NUC11TNBi3, BIOS TNTGL357.0064.2022.0217.1550 02/17/2022
-Oct 13 18:07:59 suby kernel: Call Trace:
-Oct 13 18:07:59 suby kernel:  <TASK>
-Oct 13 18:07:59 suby kernel:  dump_stack_lvl+0x76/0xa0
-Oct 13 18:07:59 suby kernel:  dump_stack+0x10/0x20
-Oct 13 18:07:59 suby kernel:  dump_header+0x49/0x210
-Oct 13 18:07:59 suby kernel:  oom_kill_process+0x118/0x280
-Oct 13 18:07:59 suby kernel:  ? oom_evaluate_task+0x143/0x1e0
-Oct 13 18:07:59 suby kernel:  out_of_memory+0x103/0x350
-Oct 13 18:07:59 suby kernel:  __alloc_pages_may_oom+0x10c/0x1d0
-Oct 13 18:07:59 suby kernel:  __alloc_pages_slowpath.constprop.0+0x420/0x9f0
-Oct 13 18:07:59 suby kernel:  __alloc_pages+0x31f/0x350
-Oct 13 18:07:59 suby kernel:  alloc_pages_mpol+0x91/0x210
-Oct 13 18:07:59 suby kernel:  alloc_pages+0x5b/0xd0
-Oct 13 18:07:59 suby kernel:  folio_alloc+0x15/0x40
-Oct 13 18:07:59 suby kernel:  filemap_alloc_folio+0xf4/0x100
-Oct 13 18:07:59 suby kernel:  __filemap_get_folio+0x199/0x2e0
-Oct 13 18:07:59 suby kernel:  filemap_fault+0x15c/0x8e0
-Oct 13 18:07:59 suby kernel:  __do_fault+0x3a/0x190
-Oct 13 18:07:59 suby kernel:  do_read_fault+0x133/0x200
-Oct 13 18:07:59 suby kernel:  do_fault+0xf0/0x260
-Oct 13 18:07:59 suby kernel:  handle_pte_fault+0x114/0x1d0
-Oct 13 18:07:59 suby kernel:  __handle_mm_fault+0x654/0x800
-Oct 13 18:07:59 suby kernel:  handle_mm_fault+0x18a/0x380
-Oct 13 18:07:59 suby kernel:  do_user_addr_fault+0x169/0x670
-Oct 13 18:07:59 suby kernel:  exc_page_fault+0x83/0x1b0
-Oct 13 18:07:59 suby kernel:  asm_exc_page_fault+0x27/0x30
-Oct 13 18:07:59 suby kernel: RIP: 0033:0x78e3e9e95e60
-Oct 13 18:07:59 suby kernel: Code: Unable to access opcode bytes at 0x78e3e9e95e36.
-Oct 13 18:07:59 suby kernel: RSP: 002b:00007ffd00ea0fb8 EFLAGS: 00010246
-Oct 13 18:07:59 suby kernel: RAX: 00005901eb7523b0 RBX: 00005901eb7522d0 RCX: 00005901eb7523c0
-Oct 13 18:07:59 suby kernel: RDX: 0000000000000000 RSI: 0000000000000000 RDI: 00005901eb7522d0
-Oct 13 18:07:59 suby kernel: RBP: 00007ffd00ea0fe0 R08: 000078e3ea002228 R09: 0000000000000000
-Oct 13 18:07:59 suby kernel: R10: 00005901eb759f80 R11: d37b8f3bb21b8637 R12: 00005901eb7522d0
-Oct 13 18:07:59 suby kernel: R13: 00005901eb75c710 R14: 000078e3ea4b417b R15: 00007ffd00ea10f0
-Oct 13 18:07:59 suby kernel:  </TASK>
-Oct 13 18:07:59 suby kernel: Mem-Info:
-Oct 13 18:07:59 suby kernel: active_anon:3936230 inactive_anon:3936205 isolated_anon:0
+Oct 13 18:07:58 intel-host kernel: systemd-oomd invoked oom-killer: gfp_mask=0x140cca(GFP_HIGHUSER_MOVABLE|__GFP_COMP), order=0, oom_score_adj=-900
+Oct 13 18:07:59 intel-host kernel: CPU: 0 PID: 1148 Comm: systemd-oomd Tainted: G           O  K    6.8.0-90-generic #91-Ubuntu
+Oct 13 18:07:59 intel-host kernel: Hardware name: Intel(R) Client Systems NUC11TNHi3/NUC11TNBi3, BIOS TNTGL357.0064.2022.0217.1550 02/17/2022
+Oct 13 18:07:59 intel-host kernel: Call Trace:
+Oct 13 18:07:59 intel-host kernel:  <TASK>
+Oct 13 18:07:59 intel-host kernel:  dump_stack_lvl+0x76/0xa0
+Oct 13 18:07:59 intel-host kernel:  dump_stack+0x10/0x20
+Oct 13 18:07:59 intel-host kernel:  dump_header+0x49/0x210
+Oct 13 18:07:59 intel-host kernel:  oom_kill_process+0x118/0x280
+Oct 13 18:07:59 intel-host kernel:  ? oom_evaluate_task+0x143/0x1e0
+Oct 13 18:07:59 intel-host kernel:  out_of_memory+0x103/0x350
+Oct 13 18:07:59 intel-host kernel:  __alloc_pages_may_oom+0x10c/0x1d0
+Oct 13 18:07:59 intel-host kernel:  __alloc_pages_slowpath.constprop.0+0x420/0x9f0
+Oct 13 18:07:59 intel-host kernel:  __alloc_pages+0x31f/0x350
+Oct 13 18:07:59 intel-host kernel:  alloc_pages_mpol+0x91/0x210
+Oct 13 18:07:59 intel-host kernel:  alloc_pages+0x5b/0xd0
+Oct 13 18:07:59 intel-host kernel:  folio_alloc+0x15/0x40
+Oct 13 18:07:59 intel-host kernel:  filemap_alloc_folio+0xf4/0x100
+Oct 13 18:07:59 intel-host kernel:  __filemap_get_folio+0x199/0x2e0
+Oct 13 18:07:59 intel-host kernel:  filemap_fault+0x15c/0x8e0
+Oct 13 18:07:59 intel-host kernel:  __do_fault+0x3a/0x190
+Oct 13 18:07:59 intel-host kernel:  do_read_fault+0x133/0x200
+Oct 13 18:07:59 intel-host kernel:  do_fault+0xf0/0x260
+Oct 13 18:07:59 intel-host kernel:  handle_pte_fault+0x114/0x1d0
+Oct 13 18:07:59 intel-host kernel:  __handle_mm_fault+0x654/0x800
+Oct 13 18:07:59 intel-host kernel:  handle_mm_fault+0x18a/0x380
+Oct 13 18:07:59 intel-host kernel:  do_user_addr_fault+0x169/0x670
+Oct 13 18:07:59 intel-host kernel:  exc_page_fault+0x83/0x1b0
+Oct 13 18:07:59 intel-host kernel:  asm_exc_page_fault+0x27/0x30
+Oct 13 18:07:59 intel-host kernel: RIP: 0033:0x78e3e9e95e60
+Oct 13 18:07:59 intel-host kernel: Code: Unable to access opcode bytes at 0x78e3e9e95e36.
+Oct 13 18:07:59 intel-host kernel: RSP: 002b:00007ffd00ea0fb8 EFLAGS: 00010246
+Oct 13 18:07:59 intel-host kernel: RAX: 00005901eb7523b0 RBX: 00005901eb7522d0 RCX: 00005901eb7523c0
+Oct 13 18:07:59 intel-host kernel: RDX: 0000000000000000 RSI: 0000000000000000 RDI: 00005901eb7522d0
+Oct 13 18:07:59 intel-host kernel: RBP: 00007ffd00ea0fe0 R08: 000078e3ea002228 R09: 0000000000000000
+Oct 13 18:07:59 intel-host kernel: R10: 00005901eb759f80 R11: d37b8f3bb21b8637 R12: 00005901eb7522d0
+Oct 13 18:07:59 intel-host kernel: R13: 00005901eb75c710 R14: 000078e3ea4b417b R15: 00007ffd00ea10f0
+Oct 13 18:07:59 intel-host kernel:  </TASK>
+Oct 13 18:07:59 intel-host kernel: Mem-Info:
+Oct 13 18:07:59 intel-host kernel: active_anon:3936230 inactive_anon:3936205 isolated_anon:0
                               active_file:17 inactive_file:278 isolated_file:0
                               unevictable:1130 dirty:0 writeback:0
                               slab_reclaimable:50890 slab_unreclaimable:78623
@@ -45,258 +45,258 @@ Oct 13 18:07:59 suby kernel: active_anon:3936230 inactive_anon:3936205 isolated_
                               sec_pagetables:0 bounce:0
                               kernel_misc_reclaimable:0
                               free:55378 free_pcp:177 free_cma:0
-Oct 13 18:07:59 suby kernel: Node 0 active_anon:15744920kB inactive_anon:15744820kB active_file:68kB inactive_file:1112kB unevictable:4520kB isolated(anon):0kB isolated(file):0kB mapped:4152kB dirty:0kB writeback:0kB shmem:637940kB shmem_thp:26624kB shmem_pmdmapped:0kB anon_thp:0kB writeback_tmp:0kB kernel_stack:16112kB pagetables:127636kB sec_pagetables:0kB all_unreclaimable? no
-Oct 13 18:07:59 suby kernel: Node 0 DMA free:11264kB boost:0kB min:32kB low:44kB high:56kB reserved_highatomic:0KB active_anon:0kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB writepending:0kB present:15992kB managed:15360kB mlocked:0kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB
-Oct 13 18:07:59 suby kernel: lowmem_reserve[]: 0 776 31658 31658 31658
-Oct 13 18:07:59 suby kernel: Node 0 DMA32 free:124936kB boost:0kB min:1656kB low:2448kB high:3240kB reserved_highatomic:0KB active_anon:119844kB inactive_anon:614488kB active_file:0kB inactive_file:0kB unevictable:0kB writepending:0kB present:932528kB managed:866984kB mlocked:0kB bounce:0kB free_pcp:700kB local_pcp:0kB free_cma:0kB
-Oct 13 18:07:59 suby kernel: lowmem_reserve[]: 0 0 30881 30881 30881
-Oct 13 18:07:59 suby kernel: Node 0 Normal free:85312kB boost:96256kB min:162148kB low:193768kB high:225388kB reserved_highatomic:2048KB active_anon:15625252kB inactive_anon:15130156kB active_file:120kB inactive_file:792kB unevictable:4520kB writepending:0kB present:32251904kB managed:31631720kB mlocked:16kB bounce:0kB free_pcp:8kB local_pcp:0kB free_cma:0kB
-Oct 13 18:07:59 suby kernel: lowmem_reserve[]: 0 0 0 0 0
-Oct 13 18:07:59 suby kernel: Node 0 DMA: 0*4kB 0*8kB 0*16kB 0*32kB 0*64kB 0*128kB 0*256kB 0*512kB 1*1024kB (U) 1*2048kB (M) 2*4096kB (M) = 11264kB
-Oct 13 18:07:59 suby kernel: Node 0 DMA32: 48*4kB (UME) 46*8kB (ME) 118*16kB (UME) 112*32kB (UME) 116*64kB (UME) 89*128kB (UE) 72*256kB (UME) 51*512kB (UE) 40*1024kB (UME) 3*2048kB (UE) 2*4096kB (E) = 124688kB
-Oct 13 18:07:59 suby kernel: Node 0 Normal: 114*4kB (UME) 1624*8kB (UME) 2166*16kB (UME) 1172*32kB (UE) 0*64kB 0*128kB 0*256kB 0*512kB 0*1024kB 0*2048kB 0*4096kB = 85608kB
-Oct 13 18:07:59 suby kernel: Node 0 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=1048576kB
-Oct 13 18:07:59 suby kernel: Node 0 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=2048kB
-Oct 13 18:07:59 suby kernel: 165425 total pagecache pages
-Oct 13 18:07:59 suby kernel: 4173 pages in swap cache
-Oct 13 18:07:59 suby kernel: Free swap  = 0kB
-Oct 13 18:07:59 suby kernel: Total swap = 2097148kB
-Oct 13 18:07:59 suby kernel: 8300106 pages RAM
-Oct 13 18:07:59 suby kernel: 0 pages HighMem/MovableOnly
-Oct 13 18:07:59 suby kernel: 171590 pages reserved
-Oct 13 18:07:59 suby kernel: 0 pages hwpoisoned
-Oct 13 18:07:59 suby kernel: Tasks state (memory values in pages):
-Oct 13 18:07:59 suby kernel: [  pid  ]   uid  tgid total_vm      rss rss_anon rss_file rss_shmem pgtables_bytes swapents oom_score_adj name
-Oct 13 18:07:59 suby kernel: [    251]     0   251     1257      737       65      672         0    53248       32             0 plymouthd
-Oct 13 18:07:59 suby kernel: [    338]     0   338   134167      290      224       66         0  1093632      224          -250 systemd-journal
-Oct 13 18:07:59 suby kernel: [    446]     0   446     7801      128       64       64         0    90112     1056         -1000 systemd-udevd
-Oct 13 18:07:59 suby kernel: [   1147]   131  1147     1992       32       32        0         0    53248       96             0 rpcbind
-Oct 13 18:07:59 suby kernel: [   1148]   108  1148     4423      128       64       64         0    81920      160          -900 systemd-oomd
-Oct 13 18:07:59 suby kernel: [   1149]   101  1149     5573      384      288       96         0    94208      416             0 systemd-resolve
-Oct 13 18:07:59 suby kernel: [   1150]   103  1150    22775       64       32       32         0    81920      192             0 systemd-timesyn
-Oct 13 18:07:59 suby kernel: [   1157]     0  1157     1285       64        0       64         0    49152       32             0 blkmapd
-Oct 13 18:07:59 suby kernel: [   1159]     0  1159     1408       64        0       64         0    53248      128             0 nfsdcld
-Oct 13 18:07:59 suby kernel: [   1166]     0  1166    78623      145       96       49         0   118784      480             0 accounts-daemon
-Oct 13 18:07:59 suby kernel: [   1169]   114  1169     2269      256      224       32         0    57344       64             0 avahi-daemon
-Oct 13 18:07:59 suby kernel: [   1170]     0  1170     3550      160       64       96         0    77824      224             0 bluetoothd
-Oct 13 18:07:59 suby kernel: [   1171]     0  1171     2356       96       32       64         0    57344       32             0 cron
-Oct 13 18:07:59 suby kernel: [   1172]   102  1172     3043      640      576       64         0    61440      128          -900 dbus-daemon
-Oct 13 18:07:59 suby kernel: [   1176]     0  1176     1357       64        0       64         0    53248       64             0 fsidd
-Oct 13 18:07:59 suby kernel: [   1177]   996  1177   128234      121       64       57         0   180224      576             0 gnome-remote-de
-Oct 13 18:07:59 suby kernel: [   1188]   999  1188    96946     1724     1724        0         0   126976      256             0 polkitd
-Oct 13 18:07:59 suby kernel: [   1194]     0  1194    78374       91       32       59         0   114688      160             0 power-profiles-
-Oct 13 18:07:59 suby kernel: [   1207]     0  1207    77474       96       32       64         0   106496      192             0 switcheroo-cont
-Oct 13 18:07:59 suby kernel: [   1208]     0  1208     4858      474      442       32         0    81920      192             0 systemd-logind
-Oct 13 18:07:59 suby kernel: [   1211]     0  1211   106218      160      128       32         0   143360      128             0 thermald
-Oct 13 18:07:59 suby kernel: [   1213]     0  1213   117401      475      448       27         0   143360      320             0 udisksd
-Oct 13 18:07:59 suby kernel: [   1230]   114  1230     2106       65       33       32         0    53248       32             0 avahi-daemon
-Oct 13 18:07:59 suby kernel: [   1231]     0  1231    84246      564      512       52         0   163840      416             0 NetworkManager
-Oct 13 18:07:59 suby kernel: [   1232]     0  1232     4570      128       96       32         0    73728      288             0 wpa_supplicant
-Oct 13 18:07:59 suby kernel: [   1283]   104  1283    55633      399      335       64         0    94208      224             0 rsyslogd
-Oct 13 18:07:59 suby kernel: [   1347]     0  1347    98024      140       64       76         0   139264      416             0 ModemManager
-Oct 13 18:07:59 suby kernel: [   1353]     0  1353    78399      141       64       77         0   118784      128             0 boltd
-Oct 13 18:07:59 suby kernel: [   1487]     0  1487   485140     2351     2319       32         0   307200     1408          -999 containerd
-Oct 13 18:07:59 suby kernel: [   1491]     0  1491     3005      160       96       64         0    65536      192         -1000 sshd
-Oct 13 18:07:59 suby kernel: [   1494]     0  1494      941       64        0       64         0    49152       32             0 plymouth
-Oct 13 18:07:59 suby kernel: [   1502]   123  1502    98550      452      345      107         0   139264      928             0 colord
-Oct 13 18:07:59 suby kernel: [   1523]     0  1523    78672       64        0       64         0   118784      224             0 gdm3
-Oct 13 18:07:59 suby kernel: [   1541]     0  1541    60490      160       64       96         0   102400      224             0 gdm-session-wor
-Oct 13 18:07:59 suby kernel: [   1564]   128  1564     5469      576      512       64         0    81920      352           100 systemd
-Oct 13 18:07:59 suby kernel: [   1569]   128  1569     5351      100       68       32         0    73728      384           100 (sd-pam)
-Oct 13 18:07:59 suby kernel: [   1648]   128  1648    22387       96       64       32         0   167936      384           200 appimagelaunche
-Oct 13 18:07:59 suby kernel: [   1649]   128  1649    28234       96       64       32         0   106496      832           200 pipewire
-Oct 13 18:07:59 suby kernel: [   1650]   128  1650    24434       96       32       64         0    86016      192           200 pipewire
-Oct 13 18:07:59 suby kernel: [   1653]   128  1653    58917       64        0       64         0    94208       96             0 gdm-wayland-ses
-Oct 13 18:07:59 suby kernel: [   1654]   128  1654   141518       96       64       32         0   311296     1696           200 wireplumber
-Oct 13 18:07:59 suby kernel: [   1657]   128  1657    27453      160       96       64         0   118784      416           200 pipewire-pulse
-Oct 13 18:07:59 suby kernel: [   1663]   128  1663     2429       96       32       64         0    65536      128           200 dbus-daemon
-Oct 13 18:07:59 suby kernel: [   1666]   128  1666     1625       64        0       64         0    53248       32             0 dbus-run-sessio
-Oct 13 18:07:59 suby kernel: [   1667]   128  1667     2461       64        0       64         0    65536      256             0 dbus-daemon
-Oct 13 18:07:59 suby kernel: [   1672]   116  1672     5735       64       32       32         0    61440       32             0 rtkit-daemon
-Oct 13 18:07:59 suby kernel: [   1682]   128  1682   167093      160       96       64         0   208896      608             0 gnome-session-b
-Oct 13 18:07:59 suby kernel: [   1721]   128  1721   152831       96       64       32         0   151552      128           200 xdg-document-po
-Oct 13 18:07:59 suby kernel: [   1731]   128  1731    77327       96       32       64         0   106496       96           200 xdg-permission-
-Oct 13 18:07:59 suby kernel: [   1737]   128  1737  1030787    16464    16400       32        32  5586944     9440             0 gnome-shell
-Oct 13 18:07:59 suby kernel: [   1739]   128  1739      676       64        0       64         0    49152        0           200 fusermount3
-Oct 13 18:07:59 suby kernel: [   1872]   128  1872    95800      128       32       96         0   114688      160             0 at-spi-bus-laun
-Oct 13 18:07:59 suby kernel: [   1884]   128  1884     2356       64        0       64         0    61440       64             0 dbus-daemon
-Oct 13 18:07:59 suby kernel: [   1896]   128  1896   135084      117       53       64         0   434176     5664             0 Xwayland
-Oct 13 18:07:59 suby kernel: [   1917]   128  1917    59017       64        0       64         0    94208      160             0 at-spi2-registr
-Oct 13 18:07:59 suby kernel: [   1974]   128  1974    77327      128       32       96         0   102400       96             0 xdg-permission-
-Oct 13 18:07:59 suby kernel: [   1983]   128  1983   649290       78       46       32         0   237568     1152             0 gjs
-Oct 13 18:07:59 suby kernel: [   1990]     0  1990    79153      224      160       64         0   114688      224             0 upowerd
-Oct 13 18:07:59 suby kernel: [   1991]   128  1991   135895      288      224       64         0   155648      224             0 gsd-sharing
-Oct 13 18:07:59 suby kernel: [   1994]   128  1994   121547      160       96       64         0   184320      800             0 gsd-wacom
-Oct 13 18:07:59 suby kernel: [   1996]   128  1996   103297      194       96       64        34   167936      640             0 gsd-color
-Oct 13 18:07:59 suby kernel: [   2013]   128  2013   121311       96       32       64         0   176128      672             0 gsd-keyboard
-Oct 13 18:07:59 suby kernel: [   2019]   128  2019    80946      192      128       64         0   143360      256             0 gsd-print-notif
-Oct 13 18:07:59 suby kernel: [   2023]   128  2023   132771      128       32       96         0   126976      160             0 gsd-rfkill
-Oct 13 18:07:59 suby kernel: [   2034]   128  2034   114953       96       32       64         0   131072      192             0 gsd-smartcard
-Oct 13 18:07:59 suby kernel: [   2046]   128  2046   107982      128       64       64         0   163840      288             0 gsd-datetime
-Oct 13 18:07:59 suby kernel: [   2063]   128  2063   148543      216      128       64        24   221184      800             0 gsd-media-keys
-Oct 13 18:07:59 suby kernel: [   2070]   128  2070    77390       96       32       64         0   102400       96             0 gsd-screensaver
-Oct 13 18:07:59 suby kernel: [   2076]   128  2076    98441       96       32       64         0   135168      256             0 gsd-sound
-Oct 13 18:07:59 suby kernel: [   2082]   128  2082    95945       96        0       96         0   118784      128             0 gsd-a11y-settin
-Oct 13 18:07:59 suby kernel: [   2091]   128  2091   114823      192      128       64         0   122880       64             0 gsd-housekeepin
-Oct 13 18:07:59 suby kernel: [   2104]   128  2104   112480      193      128       64         1   196608      800             0 gsd-power
-Oct 13 18:07:59 suby kernel: [   2198]   128  2198   250694      128       64       64         0   520192     3808             0 mutter-x11-fram
-Oct 13 18:07:59 suby kernel: [   2199]   128  2199   115608      132       68       64         0   135168     1248             0 ibus-daemon
-Oct 13 18:07:59 suby kernel: [   2218]   128  2218    77615      128       32       96         0   106496       96             0 ibus-dconf
-Oct 13 18:07:59 suby kernel: [   2221]   128  2221   154955      147       51       96         0   442368     2592             0 ibus-x11
-Oct 13 18:07:59 suby kernel: [   2229]   128  2229    77606       96       32       64         0   114688       96             0 ibus-portal
-Oct 13 18:07:59 suby kernel: [   2250]   128  2250    59159       96       32       64         0    94208      128             0 ibus-engine-sim
-Oct 13 18:07:59 suby kernel: [   2255]   128  2255   665671       95       31       64         0   237568     1248             0 gjs
-Oct 13 18:07:59 suby kernel: [   2280]   128  2280   104059      128       64       64         0   167936      448             0 gsd-printer
-Oct 13 18:07:59 suby kernel: [   2400]     0  2400   551078     3173     3141       32         0   438272     3040          -500 dockerd
-Oct 13 18:07:59 suby kernel: [   2405]     0  2405      762       64        0       64         0    45056       64             0 rpc.idmapd
-Oct 13 18:07:59 suby kernel: [   2406]   113  2406     3186       98       66       32         0    65536       64             0 kerneloops
-Oct 13 18:07:59 suby kernel: [   2409]   132  2409     1140       65        1       64         0    53248       64             0 rpc.statd
-Oct 13 18:07:59 suby kernel: [   2411]     0  2411    10803      108       12       96         0    77824      128             0 rpc.mountd
-Oct 13 18:07:59 suby kernel: [   2413]   113  2413     3186      130       66       64         0    65536       64             0 kerneloops
-Oct 13 18:07:59 suby kernel: [   3442]     0  3442   167774     1366     1300       66         0   626688      960             0 fwupd
-Oct 13 18:07:59 suby kernel: [   3613]  1000  3613     5437      640      576       64         0    81920      320           100 systemd
-Oct 13 18:07:59 suby kernel: [   3617]  1000  3617     5350      131       35       96         0    73728      416           100 (sd-pam)
-Oct 13 18:07:59 suby kernel: [   3631]  1000  3631    40827       96       96        0         0   172032      384           200 appimagelaunche
-Oct 13 18:07:59 suby kernel: [   3632]  1000  3632    27762      128       64       64         0   102400      736           200 pipewire
-Oct 13 18:07:59 suby kernel: [   3633]  1000  3633    24434       96       32       64         0    86016      192           200 pipewire
-Oct 13 18:07:59 suby kernel: [   3635]  1000  3635    41194      128       96       32         0    81920       64           200 user-session-he
-Oct 13 18:07:59 suby kernel: [   3639]  1000  3639   101298      162       96       66         0   151552      768           200 wireplumber
-Oct 13 18:07:59 suby kernel: [   3643]  1000  3643    28859      148       54       94         0   122880     1632           200 pipewire-pulse
-Oct 13 18:07:59 suby kernel: [   3665]  1000  3665     2509      254      190       64         0    61440       64           200 dbus-daemon
-Oct 13 18:07:59 suby kernel: [   3806]  1000  3806   208388      160       96       64         0   172032       96           200 xdg-document-po
-Oct 13 18:07:59 suby kernel: [   3810]  1000  3810    77327       96       32       64         0   110592       64           200 xdg-permission-
-Oct 13 18:07:59 suby kernel: [   3821]  1000  3821      676       64        0       64         0    49152        0           200 fusermount3
-Oct 13 18:07:59 suby kernel: [   4199]  1000  4199     2108       77       13       64         0    57344      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [  10476]  1000 10476     2108      109       45       64         0    61440      192             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [  87902]  1000 87902    95751       96       32       64         0   110592      160           200 at-spi-bus-laun
-Oct 13 18:07:59 suby kernel: [  96931]  1000 96931    79088      128       32       96         0   122880      160           200 gnome-keyring-d
-Oct 13 18:07:59 suby kernel: [  96932]  1000 96932    79857      160       96       64         0   122880     1056           200 gnome-keyring-d
-Oct 13 18:07:59 suby kernel: [ 715004]  1000 715004     2108      109       45       64         0    61440      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [ 818532]  1000 818532     2108      109       45       64         0    61440      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [1163213]   128 1163213    79121       64        0       64         0   122880      256           200 gnome-keyring-d
-Oct 13 18:07:59 suby kernel: [1163292]     0 1163292   356070     8544     8544        0         0   450560     2634             0 tailscaled
-Oct 13 18:07:59 suby kernel: [1480668]  1000 1480668     2108      109       45       64         0    69632      192             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [1481292]  1000 1481292     2108      109       45       64         0    57344      192             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [1735173]  1000 1735173     2108      109       45       64         0    65536      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [2140854]  1000 2140854    78540       96       32       64         0   114688      192           200 gvfsd
-Oct 13 18:07:59 suby kernel: [2140860]  1000 2140860   114927       96       32       64         0   131072      160           200 gvfsd-fuse
-Oct 13 18:07:59 suby kernel: [2140862]  1000 2140862    59067       96       32       64         0   102400       96           200 gvfsd-metadata
-Oct 13 18:07:59 suby kernel: [3505948]  1000 3505948     2108      109       45       64         0    65536      192             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [3506437]  1000 3506437     2108       77       13       64         0    57344      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [3663183]  1000 3663183     2108      141       77       64         0    61440      128             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [3664114]  1000 3664114     2108      109       45       64         0    61440      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [ 177664]  1000 177664     2108       77       13       64         0    65536      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [ 178839]  1000 178839     2108       77       13       64         0    65536      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [ 262222]  1000 262222     2108      109       45       64         0    61440      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [ 263014]  1000 263014     2108      141       77       64         0    61440      128             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [1077892]  1000 1077892     2108       77       13       64         0    61440      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [1077949]  1000 1077949    26201    17227    17195       32         0   249856      205             0 tmux: server
-Oct 13 18:07:59 suby kernel: [1077950]  1000 1077950     3882       96       32       64         0    77824     1440             0 bash
-Oct 13 18:07:59 suby kernel: [1078451]  1000 1078451     2108       77       13       64         0    65536      192             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [1095999]  1000 1095999     2108      141       77       64         0    65536      128             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [1096742]  1000 1096742     2108      141       77       64         0    65536      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [1131364]  1000 1131364     2108       77       13       64         0    65536      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [1131750]  1000 1131750     2108      109       45       64         0    61440      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [1185909]  1000 1185909     2108      109       45       64         0    65536      192             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [1186740]  1000 1186740     2108      109       45       64         0    61440      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [1202981]  1000 1202981     2108      141       77       64         0    61440      128             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [1209539]  1000 1209539     2108      141       45       96         0    61440      192             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [1770351]  1000 1770351     2108      109       45       64         0    69632      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [2012084]  1000 2012084     2108      109       13       96         0    65536      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [2108000]  1000 2108000     2108      109       45       64         0    57344      128             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [3718954]  1000 3718954     2108      109       45       64         0    65536      128             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [3719517]  1000 3719517     2108      109       45       64         0    61440      128             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [4150119]  1000 4150119     2108       77       13       64         0    57344      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [4150696]  1000 4150696     2108      141       77       64         0    57344      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [  53836]  1000 53836     2108       64        0       64         0    69632      192             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [ 428932]  1000 428932     2108      109       45       64         0    65536      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [ 430194]  1000 430194     2108      141       77       64         0    61440      128             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [1655383]     0 1655383   309078     1606     1574       32         0   143360      352             0 canonical-livep
-Oct 13 18:07:59 suby kernel: [2371771]  1000 2371771     2108       77       13       64         0    61440      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [2372176]  1000 2372176     2108      109       13       96         0    57344      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [3487640]  1000 3487640     2108      141       77       64         0    57344      128             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [3488190]  1000 3488190     2108      141       77       64         0    57344      128             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [4168338]  1000 4168338     2108       77       13       64         0    65536      192             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [4169241]  1000 4169241     2108       77       13       64         0    57344      192             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [  63861]  1000 63861     2108       64        0       64         0    69632      192             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [  64297]  1000 64297     2108       77       13       64         0    65536      192             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [  92219]  1000 92219     2108      141       77       64         0    57344      128             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [  92601]  1000 92601     2108      141       45       96         0    65536      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [ 102750]  1000 102750     2108      141       45       96         0    65536      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [ 103155]  1000 103155     2108      141       77       64         0    69632      128             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [ 116764]  1000 116764     2108       77       13       64         0    61440      192             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [ 117612]  1000 117612     2108      109       45       64         0    61440      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [ 139144]  1000 139144     2108      109       45       64         0    61440      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [ 139718]  1000 139718     2108       77       13       64         0    57344      192             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [ 162863]  1000 162863     2108      109       45       64         0    65536      128             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [ 174956]  1000 174956     2108      109       45       64         0    61440      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [ 175487]  1000 175487     2108      109       45       64         0    61440      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [ 214599]  1000 214599     2108      109       45       64         0    61440      192             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [ 215109]  1000 215109     2108      109       45       64         0    61440      128             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [ 611065]  1000 611065     2108      109       45       64         0    65536      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [ 611473]  1000 611473     2108       77       13       64         0    61440      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [ 817903]  1000 817903     2108      109       45       64         0    61440      128             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [ 819033]  1000 819033     2108       77       13       64         0    61440      192             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [ 869485]  1000 869485     2108      109       13       96         0    65536      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [ 870156]  1000 870156     2108      109       45       64         0    57344      128             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [ 913626]  1000 913626     2108      141       77       64         0    57344      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [ 914083]  1000 914083     2108      109       45       64         0    61440      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [1156870]  1000 1156870     2108      109       45       64         0    61440      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [1160285]  1000 1160285     2108      109       45       64         0    65536      160             0 ssh-agent
-Oct 13 18:07:59 suby kernel: [1965835]  1000 1965835     2108      192       96       96         0    57344       96           200 ssh-agent
-Oct 13 18:07:59 suby kernel: [1575843]     0 1575843   519434     3825     3825        0         0   331776     1696          -900 snapd
-Oct 13 18:07:59 suby kernel: [1737454]  1000 1737454   236698       96        0       96         0   536576     2048             0 node
-Oct 13 18:07:59 suby kernel: [1737461]  1000 1737461   390181     6672     6662       10         0  2756608    66012             0 codex
-Oct 13 18:07:59 suby kernel: [1737575]  1000 1737575   108369      832      800       32         0   544768     2107             0 codex
-Oct 13 18:07:59 suby kernel: [2125630]  1000 2125630   349237   184630   184618       12         0  1773568     6432           200 python
-Oct 13 18:07:59 suby kernel: [2284627]     0 2284627      720       96        0       96         0    49152        0             0 run-cupsd
-Oct 13 18:07:59 suby kernel: [2284635]     0 2284635      720       96        0       96         0    45056        0             0 run-cups-browse
-Oct 13 18:07:59 suby kernel: [2284888]     0 2284888     6508      128       64       64         0    94208      480             0 cupsd
-Oct 13 18:07:59 suby kernel: [2284889]     0 2284889    43816      224      160       64         0    98304      192             0 cups-proxyd
-Oct 13 18:07:59 suby kernel: [2284893]     0 2284893      720       64        0       64         0    45056        0             0 run-cups-browse
-Oct 13 18:07:59 suby kernel: [3219702]  1000 3219702   306021     7467     7467        0         0  2228224    31277             0 codex
-Oct 13 18:07:59 suby kernel: [3252836]  1000 3252836 362238232      124       60       64         0   241664     1280             0 codex-code-mode
-Oct 13 18:07:59 suby kernel: [3589955]  1000 3589955     3809      128       64       64         0    73728     1376             0 bash
-Oct 13 18:07:59 suby kernel: [3590110]  1000 3590110   220314       64        0       64         0   544768     2048             0 node
-Oct 13 18:07:59 suby kernel: [3590117]  1000 3590117   302199    11384    11384        0         0  2080768    39124             0 codex
-Oct 13 18:07:59 suby kernel: [3591489]  1000 3591489 362237607      164      132       32         0   221184      928             0 codex-code-mode
-Oct 13 18:07:59 suby kernel: [3621098]     0 3621098     3778      160       96       64         0    73728      320             0 sshd
-Oct 13 18:07:59 suby kernel: [3621223]  1000 3621223     3884      261      165       96         0    73728      448             0 sshd
-Oct 13 18:07:59 suby kernel: [3621224]  1000 3621224     3801       96       64       32         0    73728     1312             0 bash
-Oct 13 18:07:59 suby kernel: [3621497]  1000 3621497     2680      128       64       64         0    69632      224             0 bash
-Oct 13 18:07:59 suby kernel: [3621520]  1000 3621520     3623       96       64       32         0    69632       96             0 tmux: client
-Oct 13 18:07:59 suby kernel: [3621526]     0 3621526     3779      224      160       64         0    81920      224             0 sshd
-Oct 13 18:07:59 suby kernel: [3621610]  1000 3621610     3955      412      380       32         0    81920      256             0 sshd
-Oct 13 18:07:59 suby kernel: [3621611]  1000 3621611     3801      128       64       64         0    73728     1312             0 bash
-Oct 13 18:07:59 suby kernel: [3621884]  1000 3621884     2680       96       32       64         0    61440      192             0 bash
-Oct 13 18:07:59 suby kernel: [3621899]  1000 3621899     3623       96       32       64         0    73728      128             0 tmux: client
-Oct 13 18:07:59 suby kernel: [3989443]  1000 3989443   300129      175       79       96         0  1110016     6400             0 npm exec tsx sc
-Oct 13 18:07:59 suby kernel: [3989455]  1000 3989455      701       64        0       64         0    49152        0             0 sh
-Oct 13 18:07:59 suby kernel: [3989456]  1000 3989456   261932      118       22       96         0   671744     2848             0 node
-Oct 13 18:07:59 suby kernel: [3989481]  1000 3989481  8277345     1076     1044       32         0  1204224     6336             0 node
-Oct 13 18:07:59 suby kernel: [3989493]  1000 3989493   309527      864      864        0         0   122880      192             0 esbuild
-Oct 13 18:07:59 suby kernel: [3989507]  1000 3989507  2955370     6173     6141       32         0  1429504     4672             0 node
-Oct 13 18:07:59 suby kernel: [4032776]  1000 4032776   792696   522890   522854       36         0  6295552     5088           200 python
-Oct 13 18:07:59 suby kernel: [ 297260]  1000 297260  1221040   150945   150945        0         0 11874304     4640             0 node
-Oct 13 18:07:59 suby kernel: [ 299769]  1000 299769  2931458    18740    18708       32         0  2863104     1952             0 node
-Oct 13 18:07:59 suby kernel: [ 299780]  1000 299780 12791681    11614    11614        0         0  1261568        0             0 chrome
-Oct 13 18:07:59 suby kernel: [ 299782]  1000 299782 12586404       64        0       64         0    77824       64             0 chrome_crashpad
-Oct 13 18:07:59 suby kernel: [ 299784]  1000 299784 12584351       64        0       64         0    73728       64             0 chrome_crashpad
-Oct 13 18:07:59 suby kernel: [ 299787]  1000 299787 12800543      320      224       96         0   724992     5376             0 chrome
-Oct 13 18:07:59 suby kernel: [ 299788]  1000 299788 12800545      800      736       64         0   724992     4864             0 chrome
-Oct 13 18:07:59 suby kernel: [ 299808]  1000 299808 12778211     1817     1810        7         0  1228800     8448           200 chrome
-Oct 13 18:07:59 suby kernel: [ 299809]  1000 299809 12735881     1500     1485       15         0   966656     5280           200 chrome
-Oct 13 18:07:59 suby kernel: [ 299811]  1000 299811 12817072     1061     1029       32         0   581632     4896           200 chrome
-Oct 13 18:07:59 suby kernel: [ 299848]  1000 299848 365042754     1146     1114       32         0   811008     5728           300 chrome
-Oct 13 18:07:59 suby kernel: [ 299850]  1000 299850 365062433    31985    31948       37         0  1835008     8320           300 chrome
-Oct 13 18:07:59 suby kernel: [ 363748]     0 363748     9921      512      448       64         0   110592      256             0 cupsd
-Oct 13 18:07:59 suby kernel: [ 363752]     7 363752     4208       96       64       32         0    77824      160             0 dbus
-Oct 13 18:07:59 suby kernel: [ 363753]   130 363753    91877      667      603       64         0   184320      320             0 cups-browsed
-Oct 13 18:07:59 suby kernel: [ 848036]     0 848036     4026      352      288       64         0    73728        0             0 sleep
-Oct 13 18:07:59 suby kernel: [ 879529]     0 879529     3779      480      416       64         0    73728        0             0 sshd
-Oct 13 18:07:59 suby kernel: [ 879611]  1000 879611     3814      320      256       64         0    73728      224             0 sshd
-Oct 13 18:07:59 suby kernel: [ 879612]  1000 879612   253190      182      118       64         0   614400     2048             0 node
-Oct 13 18:07:59 suby kernel: [ 879623]  1000 879623  7131069  6682097  6682065       32         0 57331712     7104             0 node
-Oct 13 18:07:59 suby kernel: oom-kill:constraint=CONSTRAINT_NONE,nodemask=(null),cpuset=systemd-oomd.service,mems_allowed=0,global_oom,task_memcg=/user.slice/user-1000.slice/session-14341.scope,task=node,pid=879623,uid=1000
-Oct 13 18:07:59 suby kernel: Out of memory: Killed process 879623 (node) total-vm:28524276kB, anon-rss:26728260kB, file-rss:128kB, shmem-rss:0kB, UID:1000 pgtables:55988kB oom_score_adj:0
-Oct 13 18:08:01 suby kernel: oom_reaper: reaped process 879623 (node), now anon-rss:0kB, file-rss:128kB, shmem-rss:0kB
+Oct 13 18:07:59 intel-host kernel: Node 0 active_anon:15744920kB inactive_anon:15744820kB active_file:68kB inactive_file:1112kB unevictable:4520kB isolated(anon):0kB isolated(file):0kB mapped:4152kB dirty:0kB writeback:0kB shmem:637940kB shmem_thp:26624kB shmem_pmdmapped:0kB anon_thp:0kB writeback_tmp:0kB kernel_stack:16112kB pagetables:127636kB sec_pagetables:0kB all_unreclaimable? no
+Oct 13 18:07:59 intel-host kernel: Node 0 DMA free:11264kB boost:0kB min:32kB low:44kB high:56kB reserved_highatomic:0KB active_anon:0kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB writepending:0kB present:15992kB managed:15360kB mlocked:0kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB
+Oct 13 18:07:59 intel-host kernel: lowmem_reserve[]: 0 776 31658 31658 31658
+Oct 13 18:07:59 intel-host kernel: Node 0 DMA32 free:124936kB boost:0kB min:1656kB low:2448kB high:3240kB reserved_highatomic:0KB active_anon:119844kB inactive_anon:614488kB active_file:0kB inactive_file:0kB unevictable:0kB writepending:0kB present:932528kB managed:866984kB mlocked:0kB bounce:0kB free_pcp:700kB local_pcp:0kB free_cma:0kB
+Oct 13 18:07:59 intel-host kernel: lowmem_reserve[]: 0 0 30881 30881 30881
+Oct 13 18:07:59 intel-host kernel: Node 0 Normal free:85312kB boost:96256kB min:162148kB low:193768kB high:225388kB reserved_highatomic:2048KB active_anon:15625252kB inactive_anon:15130156kB active_file:120kB inactive_file:792kB unevictable:4520kB writepending:0kB present:32251904kB managed:31631720kB mlocked:16kB bounce:0kB free_pcp:8kB local_pcp:0kB free_cma:0kB
+Oct 13 18:07:59 intel-host kernel: lowmem_reserve[]: 0 0 0 0 0
+Oct 13 18:07:59 intel-host kernel: Node 0 DMA: 0*4kB 0*8kB 0*16kB 0*32kB 0*64kB 0*128kB 0*256kB 0*512kB 1*1024kB (U) 1*2048kB (M) 2*4096kB (M) = 11264kB
+Oct 13 18:07:59 intel-host kernel: Node 0 DMA32: 48*4kB (UME) 46*8kB (ME) 118*16kB (UME) 112*32kB (UME) 116*64kB (UME) 89*128kB (UE) 72*256kB (UME) 51*512kB (UE) 40*1024kB (UME) 3*2048kB (UE) 2*4096kB (E) = 124688kB
+Oct 13 18:07:59 intel-host kernel: Node 0 Normal: 114*4kB (UME) 1624*8kB (UME) 2166*16kB (UME) 1172*32kB (UE) 0*64kB 0*128kB 0*256kB 0*512kB 0*1024kB 0*2048kB 0*4096kB = 85608kB
+Oct 13 18:07:59 intel-host kernel: Node 0 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=1048576kB
+Oct 13 18:07:59 intel-host kernel: Node 0 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=2048kB
+Oct 13 18:07:59 intel-host kernel: 165425 total pagecache pages
+Oct 13 18:07:59 intel-host kernel: 4173 pages in swap cache
+Oct 13 18:07:59 intel-host kernel: Free swap  = 0kB
+Oct 13 18:07:59 intel-host kernel: Total swap = 2097148kB
+Oct 13 18:07:59 intel-host kernel: 8300106 pages RAM
+Oct 13 18:07:59 intel-host kernel: 0 pages HighMem/MovableOnly
+Oct 13 18:07:59 intel-host kernel: 171590 pages reserved
+Oct 13 18:07:59 intel-host kernel: 0 pages hwpoisoned
+Oct 13 18:07:59 intel-host kernel: Tasks state (memory values in pages):
+Oct 13 18:07:59 intel-host kernel: [  pid  ]   uid  tgid total_vm      rss rss_anon rss_file rss_shmem pgtables_bytes swapents oom_score_adj name
+Oct 13 18:07:59 intel-host kernel: [    251]     0   251     1257      737       65      672         0    53248       32             0 plymouthd
+Oct 13 18:07:59 intel-host kernel: [    338]     0   338   134167      290      224       66         0  1093632      224          -250 systemd-journal
+Oct 13 18:07:59 intel-host kernel: [    446]     0   446     7801      128       64       64         0    90112     1056         -1000 systemd-udevd
+Oct 13 18:07:59 intel-host kernel: [   1147]   131  1147     1992       32       32        0         0    53248       96             0 rpcbind
+Oct 13 18:07:59 intel-host kernel: [   1148]   108  1148     4423      128       64       64         0    81920      160          -900 systemd-oomd
+Oct 13 18:07:59 intel-host kernel: [   1149]   101  1149     5573      384      288       96         0    94208      416             0 systemd-resolve
+Oct 13 18:07:59 intel-host kernel: [   1150]   103  1150    22775       64       32       32         0    81920      192             0 systemd-timesyn
+Oct 13 18:07:59 intel-host kernel: [   1157]     0  1157     1285       64        0       64         0    49152       32             0 blkmapd
+Oct 13 18:07:59 intel-host kernel: [   1159]     0  1159     1408       64        0       64         0    53248      128             0 nfsdcld
+Oct 13 18:07:59 intel-host kernel: [   1166]     0  1166    78623      145       96       49         0   118784      480             0 accounts-daemon
+Oct 13 18:07:59 intel-host kernel: [   1169]   114  1169     2269      256      224       32         0    57344       64             0 avahi-daemon
+Oct 13 18:07:59 intel-host kernel: [   1170]     0  1170     3550      160       64       96         0    77824      224             0 bluetoothd
+Oct 13 18:07:59 intel-host kernel: [   1171]     0  1171     2356       96       32       64         0    57344       32             0 cron
+Oct 13 18:07:59 intel-host kernel: [   1172]   102  1172     3043      640      576       64         0    61440      128          -900 dbus-daemon
+Oct 13 18:07:59 intel-host kernel: [   1176]     0  1176     1357       64        0       64         0    53248       64             0 fsidd
+Oct 13 18:07:59 intel-host kernel: [   1177]   996  1177   128234      121       64       57         0   180224      576             0 gnome-remote-de
+Oct 13 18:07:59 intel-host kernel: [   1188]   999  1188    96946     1724     1724        0         0   126976      256             0 polkitd
+Oct 13 18:07:59 intel-host kernel: [   1194]     0  1194    78374       91       32       59         0   114688      160             0 power-profiles-
+Oct 13 18:07:59 intel-host kernel: [   1207]     0  1207    77474       96       32       64         0   106496      192             0 switcheroo-cont
+Oct 13 18:07:59 intel-host kernel: [   1208]     0  1208     4858      474      442       32         0    81920      192             0 systemd-logind
+Oct 13 18:07:59 intel-host kernel: [   1211]     0  1211   106218      160      128       32         0   143360      128             0 thermald
+Oct 13 18:07:59 intel-host kernel: [   1213]     0  1213   117401      475      448       27         0   143360      320             0 udisksd
+Oct 13 18:07:59 intel-host kernel: [   1230]   114  1230     2106       65       33       32         0    53248       32             0 avahi-daemon
+Oct 13 18:07:59 intel-host kernel: [   1231]     0  1231    84246      564      512       52         0   163840      416             0 NetworkManager
+Oct 13 18:07:59 intel-host kernel: [   1232]     0  1232     4570      128       96       32         0    73728      288             0 wpa_supplicant
+Oct 13 18:07:59 intel-host kernel: [   1283]   104  1283    55633      399      335       64         0    94208      224             0 rsyslogd
+Oct 13 18:07:59 intel-host kernel: [   1347]     0  1347    98024      140       64       76         0   139264      416             0 ModemManager
+Oct 13 18:07:59 intel-host kernel: [   1353]     0  1353    78399      141       64       77         0   118784      128             0 boltd
+Oct 13 18:07:59 intel-host kernel: [   1487]     0  1487   485140     2351     2319       32         0   307200     1408          -999 containerd
+Oct 13 18:07:59 intel-host kernel: [   1491]     0  1491     3005      160       96       64         0    65536      192         -1000 sshd
+Oct 13 18:07:59 intel-host kernel: [   1494]     0  1494      941       64        0       64         0    49152       32             0 plymouth
+Oct 13 18:07:59 intel-host kernel: [   1502]   123  1502    98550      452      345      107         0   139264      928             0 colord
+Oct 13 18:07:59 intel-host kernel: [   1523]     0  1523    78672       64        0       64         0   118784      224             0 gdm3
+Oct 13 18:07:59 intel-host kernel: [   1541]     0  1541    60490      160       64       96         0   102400      224             0 gdm-session-wor
+Oct 13 18:07:59 intel-host kernel: [   1564]   128  1564     5469      576      512       64         0    81920      352           100 systemd
+Oct 13 18:07:59 intel-host kernel: [   1569]   128  1569     5351      100       68       32         0    73728      384           100 (sd-pam)
+Oct 13 18:07:59 intel-host kernel: [   1648]   128  1648    22387       96       64       32         0   167936      384           200 appimagelaunche
+Oct 13 18:07:59 intel-host kernel: [   1649]   128  1649    28234       96       64       32         0   106496      832           200 pipewire
+Oct 13 18:07:59 intel-host kernel: [   1650]   128  1650    24434       96       32       64         0    86016      192           200 pipewire
+Oct 13 18:07:59 intel-host kernel: [   1653]   128  1653    58917       64        0       64         0    94208       96             0 gdm-wayland-ses
+Oct 13 18:07:59 intel-host kernel: [   1654]   128  1654   141518       96       64       32         0   311296     1696           200 wireplumber
+Oct 13 18:07:59 intel-host kernel: [   1657]   128  1657    27453      160       96       64         0   118784      416           200 pipewire-pulse
+Oct 13 18:07:59 intel-host kernel: [   1663]   128  1663     2429       96       32       64         0    65536      128           200 dbus-daemon
+Oct 13 18:07:59 intel-host kernel: [   1666]   128  1666     1625       64        0       64         0    53248       32             0 dbus-run-sessio
+Oct 13 18:07:59 intel-host kernel: [   1667]   128  1667     2461       64        0       64         0    65536      256             0 dbus-daemon
+Oct 13 18:07:59 intel-host kernel: [   1672]   116  1672     5735       64       32       32         0    61440       32             0 rtkit-daemon
+Oct 13 18:07:59 intel-host kernel: [   1682]   128  1682   167093      160       96       64         0   208896      608             0 gnome-session-b
+Oct 13 18:07:59 intel-host kernel: [   1721]   128  1721   152831       96       64       32         0   151552      128           200 xdg-document-po
+Oct 13 18:07:59 intel-host kernel: [   1731]   128  1731    77327       96       32       64         0   106496       96           200 xdg-permission-
+Oct 13 18:07:59 intel-host kernel: [   1737]   128  1737  1030787    16464    16400       32        32  5586944     9440             0 gnome-shell
+Oct 13 18:07:59 intel-host kernel: [   1739]   128  1739      676       64        0       64         0    49152        0           200 fusermount3
+Oct 13 18:07:59 intel-host kernel: [   1872]   128  1872    95800      128       32       96         0   114688      160             0 at-spi-bus-laun
+Oct 13 18:07:59 intel-host kernel: [   1884]   128  1884     2356       64        0       64         0    61440       64             0 dbus-daemon
+Oct 13 18:07:59 intel-host kernel: [   1896]   128  1896   135084      117       53       64         0   434176     5664             0 Xwayland
+Oct 13 18:07:59 intel-host kernel: [   1917]   128  1917    59017       64        0       64         0    94208      160             0 at-spi2-registr
+Oct 13 18:07:59 intel-host kernel: [   1974]   128  1974    77327      128       32       96         0   102400       96             0 xdg-permission-
+Oct 13 18:07:59 intel-host kernel: [   1983]   128  1983   649290       78       46       32         0   237568     1152             0 gjs
+Oct 13 18:07:59 intel-host kernel: [   1990]     0  1990    79153      224      160       64         0   114688      224             0 upowerd
+Oct 13 18:07:59 intel-host kernel: [   1991]   128  1991   135895      288      224       64         0   155648      224             0 gsd-sharing
+Oct 13 18:07:59 intel-host kernel: [   1994]   128  1994   121547      160       96       64         0   184320      800             0 gsd-wacom
+Oct 13 18:07:59 intel-host kernel: [   1996]   128  1996   103297      194       96       64        34   167936      640             0 gsd-color
+Oct 13 18:07:59 intel-host kernel: [   2013]   128  2013   121311       96       32       64         0   176128      672             0 gsd-keyboard
+Oct 13 18:07:59 intel-host kernel: [   2019]   128  2019    80946      192      128       64         0   143360      256             0 gsd-print-notif
+Oct 13 18:07:59 intel-host kernel: [   2023]   128  2023   132771      128       32       96         0   126976      160             0 gsd-rfkill
+Oct 13 18:07:59 intel-host kernel: [   2034]   128  2034   114953       96       32       64         0   131072      192             0 gsd-smartcard
+Oct 13 18:07:59 intel-host kernel: [   2046]   128  2046   107982      128       64       64         0   163840      288             0 gsd-datetime
+Oct 13 18:07:59 intel-host kernel: [   2063]   128  2063   148543      216      128       64        24   221184      800             0 gsd-media-keys
+Oct 13 18:07:59 intel-host kernel: [   2070]   128  2070    77390       96       32       64         0   102400       96             0 gsd-screensaver
+Oct 13 18:07:59 intel-host kernel: [   2076]   128  2076    98441       96       32       64         0   135168      256             0 gsd-sound
+Oct 13 18:07:59 intel-host kernel: [   2082]   128  2082    95945       96        0       96         0   118784      128             0 gsd-a11y-settin
+Oct 13 18:07:59 intel-host kernel: [   2091]   128  2091   114823      192      128       64         0   122880       64             0 gsd-housekeepin
+Oct 13 18:07:59 intel-host kernel: [   2104]   128  2104   112480      193      128       64         1   196608      800             0 gsd-power
+Oct 13 18:07:59 intel-host kernel: [   2198]   128  2198   250694      128       64       64         0   520192     3808             0 mutter-x11-fram
+Oct 13 18:07:59 intel-host kernel: [   2199]   128  2199   115608      132       68       64         0   135168     1248             0 ibus-daemon
+Oct 13 18:07:59 intel-host kernel: [   2218]   128  2218    77615      128       32       96         0   106496       96             0 ibus-dconf
+Oct 13 18:07:59 intel-host kernel: [   2221]   128  2221   154955      147       51       96         0   442368     2592             0 ibus-x11
+Oct 13 18:07:59 intel-host kernel: [   2229]   128  2229    77606       96       32       64         0   114688       96             0 ibus-portal
+Oct 13 18:07:59 intel-host kernel: [   2250]   128  2250    59159       96       32       64         0    94208      128             0 ibus-engine-sim
+Oct 13 18:07:59 intel-host kernel: [   2255]   128  2255   665671       95       31       64         0   237568     1248             0 gjs
+Oct 13 18:07:59 intel-host kernel: [   2280]   128  2280   104059      128       64       64         0   167936      448             0 gsd-printer
+Oct 13 18:07:59 intel-host kernel: [   2400]     0  2400   551078     3173     3141       32         0   438272     3040          -500 dockerd
+Oct 13 18:07:59 intel-host kernel: [   2405]     0  2405      762       64        0       64         0    45056       64             0 rpc.idmapd
+Oct 13 18:07:59 intel-host kernel: [   2406]   113  2406     3186       98       66       32         0    65536       64             0 kerneloops
+Oct 13 18:07:59 intel-host kernel: [   2409]   132  2409     1140       65        1       64         0    53248       64             0 rpc.statd
+Oct 13 18:07:59 intel-host kernel: [   2411]     0  2411    10803      108       12       96         0    77824      128             0 rpc.mountd
+Oct 13 18:07:59 intel-host kernel: [   2413]   113  2413     3186      130       66       64         0    65536       64             0 kerneloops
+Oct 13 18:07:59 intel-host kernel: [   3442]     0  3442   167774     1366     1300       66         0   626688      960             0 fwupd
+Oct 13 18:07:59 intel-host kernel: [   3613]  1000  3613     5437      640      576       64         0    81920      320           100 systemd
+Oct 13 18:07:59 intel-host kernel: [   3617]  1000  3617     5350      131       35       96         0    73728      416           100 (sd-pam)
+Oct 13 18:07:59 intel-host kernel: [   3631]  1000  3631    40827       96       96        0         0   172032      384           200 appimagelaunche
+Oct 13 18:07:59 intel-host kernel: [   3632]  1000  3632    27762      128       64       64         0   102400      736           200 pipewire
+Oct 13 18:07:59 intel-host kernel: [   3633]  1000  3633    24434       96       32       64         0    86016      192           200 pipewire
+Oct 13 18:07:59 intel-host kernel: [   3635]  1000  3635    41194      128       96       32         0    81920       64           200 user-session-he
+Oct 13 18:07:59 intel-host kernel: [   3639]  1000  3639   101298      162       96       66         0   151552      768           200 wireplumber
+Oct 13 18:07:59 intel-host kernel: [   3643]  1000  3643    28859      148       54       94         0   122880     1632           200 pipewire-pulse
+Oct 13 18:07:59 intel-host kernel: [   3665]  1000  3665     2509      254      190       64         0    61440       64           200 dbus-daemon
+Oct 13 18:07:59 intel-host kernel: [   3806]  1000  3806   208388      160       96       64         0   172032       96           200 xdg-document-po
+Oct 13 18:07:59 intel-host kernel: [   3810]  1000  3810    77327       96       32       64         0   110592       64           200 xdg-permission-
+Oct 13 18:07:59 intel-host kernel: [   3821]  1000  3821      676       64        0       64         0    49152        0           200 fusermount3
+Oct 13 18:07:59 intel-host kernel: [   4199]  1000  4199     2108       77       13       64         0    57344      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [  10476]  1000 10476     2108      109       45       64         0    61440      192             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [  87902]  1000 87902    95751       96       32       64         0   110592      160           200 at-spi-bus-laun
+Oct 13 18:07:59 intel-host kernel: [  96931]  1000 96931    79088      128       32       96         0   122880      160           200 gnome-keyring-d
+Oct 13 18:07:59 intel-host kernel: [  96932]  1000 96932    79857      160       96       64         0   122880     1056           200 gnome-keyring-d
+Oct 13 18:07:59 intel-host kernel: [ 715004]  1000 715004     2108      109       45       64         0    61440      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [ 818532]  1000 818532     2108      109       45       64         0    61440      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [1163213]   128 1163213    79121       64        0       64         0   122880      256           200 gnome-keyring-d
+Oct 13 18:07:59 intel-host kernel: [1163292]     0 1163292   356070     8544     8544        0         0   450560     2634             0 tailscaled
+Oct 13 18:07:59 intel-host kernel: [1480668]  1000 1480668     2108      109       45       64         0    69632      192             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [1481292]  1000 1481292     2108      109       45       64         0    57344      192             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [1735173]  1000 1735173     2108      109       45       64         0    65536      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [2140854]  1000 2140854    78540       96       32       64         0   114688      192           200 gvfsd
+Oct 13 18:07:59 intel-host kernel: [2140860]  1000 2140860   114927       96       32       64         0   131072      160           200 gvfsd-fuse
+Oct 13 18:07:59 intel-host kernel: [2140862]  1000 2140862    59067       96       32       64         0   102400       96           200 gvfsd-metadata
+Oct 13 18:07:59 intel-host kernel: [3505948]  1000 3505948     2108      109       45       64         0    65536      192             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [3506437]  1000 3506437     2108       77       13       64         0    57344      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [3663183]  1000 3663183     2108      141       77       64         0    61440      128             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [3664114]  1000 3664114     2108      109       45       64         0    61440      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [ 177664]  1000 177664     2108       77       13       64         0    65536      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [ 178839]  1000 178839     2108       77       13       64         0    65536      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [ 262222]  1000 262222     2108      109       45       64         0    61440      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [ 263014]  1000 263014     2108      141       77       64         0    61440      128             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [1077892]  1000 1077892     2108       77       13       64         0    61440      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [1077949]  1000 1077949    26201    17227    17195       32         0   249856      205             0 tmux: server
+Oct 13 18:07:59 intel-host kernel: [1077950]  1000 1077950     3882       96       32       64         0    77824     1440             0 bash
+Oct 13 18:07:59 intel-host kernel: [1078451]  1000 1078451     2108       77       13       64         0    65536      192             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [1095999]  1000 1095999     2108      141       77       64         0    65536      128             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [1096742]  1000 1096742     2108      141       77       64         0    65536      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [1131364]  1000 1131364     2108       77       13       64         0    65536      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [1131750]  1000 1131750     2108      109       45       64         0    61440      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [1185909]  1000 1185909     2108      109       45       64         0    65536      192             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [1186740]  1000 1186740     2108      109       45       64         0    61440      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [1202981]  1000 1202981     2108      141       77       64         0    61440      128             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [1209539]  1000 1209539     2108      141       45       96         0    61440      192             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [1770351]  1000 1770351     2108      109       45       64         0    69632      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [2012084]  1000 2012084     2108      109       13       96         0    65536      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [2108000]  1000 2108000     2108      109       45       64         0    57344      128             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [3718954]  1000 3718954     2108      109       45       64         0    65536      128             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [3719517]  1000 3719517     2108      109       45       64         0    61440      128             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [4150119]  1000 4150119     2108       77       13       64         0    57344      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [4150696]  1000 4150696     2108      141       77       64         0    57344      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [  53836]  1000 53836     2108       64        0       64         0    69632      192             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [ 428932]  1000 428932     2108      109       45       64         0    65536      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [ 430194]  1000 430194     2108      141       77       64         0    61440      128             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [1655383]     0 1655383   309078     1606     1574       32         0   143360      352             0 canonical-livep
+Oct 13 18:07:59 intel-host kernel: [2371771]  1000 2371771     2108       77       13       64         0    61440      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [2372176]  1000 2372176     2108      109       13       96         0    57344      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [3487640]  1000 3487640     2108      141       77       64         0    57344      128             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [3488190]  1000 3488190     2108      141       77       64         0    57344      128             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [4168338]  1000 4168338     2108       77       13       64         0    65536      192             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [4169241]  1000 4169241     2108       77       13       64         0    57344      192             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [  63861]  1000 63861     2108       64        0       64         0    69632      192             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [  64297]  1000 64297     2108       77       13       64         0    65536      192             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [  92219]  1000 92219     2108      141       77       64         0    57344      128             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [  92601]  1000 92601     2108      141       45       96         0    65536      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [ 102750]  1000 102750     2108      141       45       96         0    65536      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [ 103155]  1000 103155     2108      141       77       64         0    69632      128             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [ 116764]  1000 116764     2108       77       13       64         0    61440      192             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [ 117612]  1000 117612     2108      109       45       64         0    61440      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [ 139144]  1000 139144     2108      109       45       64         0    61440      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [ 139718]  1000 139718     2108       77       13       64         0    57344      192             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [ 162863]  1000 162863     2108      109       45       64         0    65536      128             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [ 174956]  1000 174956     2108      109       45       64         0    61440      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [ 175487]  1000 175487     2108      109       45       64         0    61440      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [ 214599]  1000 214599     2108      109       45       64         0    61440      192             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [ 215109]  1000 215109     2108      109       45       64         0    61440      128             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [ 611065]  1000 611065     2108      109       45       64         0    65536      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [ 611473]  1000 611473     2108       77       13       64         0    61440      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [ 817903]  1000 817903     2108      109       45       64         0    61440      128             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [ 819033]  1000 819033     2108       77       13       64         0    61440      192             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [ 869485]  1000 869485     2108      109       13       96         0    65536      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [ 870156]  1000 870156     2108      109       45       64         0    57344      128             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [ 913626]  1000 913626     2108      141       77       64         0    57344      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [ 914083]  1000 914083     2108      109       45       64         0    61440      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [1156870]  1000 1156870     2108      109       45       64         0    61440      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [1160285]  1000 1160285     2108      109       45       64         0    65536      160             0 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [1965835]  1000 1965835     2108      192       96       96         0    57344       96           200 ssh-agent
+Oct 13 18:07:59 intel-host kernel: [1575843]     0 1575843   519434     3825     3825        0         0   331776     1696          -900 snapd
+Oct 13 18:07:59 intel-host kernel: [1737454]  1000 1737454   236698       96        0       96         0   536576     2048             0 node
+Oct 13 18:07:59 intel-host kernel: [1737461]  1000 1737461   390181     6672     6662       10         0  2756608    66012             0 codex
+Oct 13 18:07:59 intel-host kernel: [1737575]  1000 1737575   108369      832      800       32         0   544768     2107             0 codex
+Oct 13 18:07:59 intel-host kernel: [2125630]  1000 2125630   349237   184630   184618       12         0  1773568     6432           200 python
+Oct 13 18:07:59 intel-host kernel: [2284627]     0 2284627      720       96        0       96         0    49152        0             0 run-cupsd
+Oct 13 18:07:59 intel-host kernel: [2284635]     0 2284635      720       96        0       96         0    45056        0             0 run-cups-browse
+Oct 13 18:07:59 intel-host kernel: [2284888]     0 2284888     6508      128       64       64         0    94208      480             0 cupsd
+Oct 13 18:07:59 intel-host kernel: [2284889]     0 2284889    43816      224      160       64         0    98304      192             0 cups-proxyd
+Oct 13 18:07:59 intel-host kernel: [2284893]     0 2284893      720       64        0       64         0    45056        0             0 run-cups-browse
+Oct 13 18:07:59 intel-host kernel: [3219702]  1000 3219702   306021     7467     7467        0         0  2228224    31277             0 codex
+Oct 13 18:07:59 intel-host kernel: [3252836]  1000 3252836 362238232      124       60       64         0   241664     1280             0 codex-code-mode
+Oct 13 18:07:59 intel-host kernel: [3589955]  1000 3589955     3809      128       64       64         0    73728     1376             0 bash
+Oct 13 18:07:59 intel-host kernel: [3590110]  1000 3590110   220314       64        0       64         0   544768     2048             0 node
+Oct 13 18:07:59 intel-host kernel: [3590117]  1000 3590117   302199    11384    11384        0         0  2080768    39124             0 codex
+Oct 13 18:07:59 intel-host kernel: [3591489]  1000 3591489 362237607      164      132       32         0   221184      928             0 codex-code-mode
+Oct 13 18:07:59 intel-host kernel: [3621098]     0 3621098     3778      160       96       64         0    73728      320             0 sshd
+Oct 13 18:07:59 intel-host kernel: [3621223]  1000 3621223     3884      261      165       96         0    73728      448             0 sshd
+Oct 13 18:07:59 intel-host kernel: [3621224]  1000 3621224     3801       96       64       32         0    73728     1312             0 bash
+Oct 13 18:07:59 intel-host kernel: [3621497]  1000 3621497     2680      128       64       64         0    69632      224             0 bash
+Oct 13 18:07:59 intel-host kernel: [3621520]  1000 3621520     3623       96       64       32         0    69632       96             0 tmux: client
+Oct 13 18:07:59 intel-host kernel: [3621526]     0 3621526     3779      224      160       64         0    81920      224             0 sshd
+Oct 13 18:07:59 intel-host kernel: [3621610]  1000 3621610     3955      412      380       32         0    81920      256             0 sshd
+Oct 13 18:07:59 intel-host kernel: [3621611]  1000 3621611     3801      128       64       64         0    73728     1312             0 bash
+Oct 13 18:07:59 intel-host kernel: [3621884]  1000 3621884     2680       96       32       64         0    61440      192             0 bash
+Oct 13 18:07:59 intel-host kernel: [3621899]  1000 3621899     3623       96       32       64         0    73728      128             0 tmux: client
+Oct 13 18:07:59 intel-host kernel: [3989443]  1000 3989443   300129      175       79       96         0  1110016     6400             0 npm exec tsx sc
+Oct 13 18:07:59 intel-host kernel: [3989455]  1000 3989455      701       64        0       64         0    49152        0             0 sh
+Oct 13 18:07:59 intel-host kernel: [3989456]  1000 3989456   261932      118       22       96         0   671744     2848             0 node
+Oct 13 18:07:59 intel-host kernel: [3989481]  1000 3989481  8277345     1076     1044       32         0  1204224     6336             0 node
+Oct 13 18:07:59 intel-host kernel: [3989493]  1000 3989493   309527      864      864        0         0   122880      192             0 esbuild
+Oct 13 18:07:59 intel-host kernel: [3989507]  1000 3989507  2955370     6173     6141       32         0  1429504     4672             0 node
+Oct 13 18:07:59 intel-host kernel: [4032776]  1000 4032776   792696   522890   522854       36         0  6295552     5088           200 python
+Oct 13 18:07:59 intel-host kernel: [ 297260]  1000 297260  1221040   150945   150945        0         0 11874304     4640             0 node
+Oct 13 18:07:59 intel-host kernel: [ 299769]  1000 299769  2931458    18740    18708       32         0  2863104     1952             0 node
+Oct 13 18:07:59 intel-host kernel: [ 299780]  1000 299780 12791681    11614    11614        0         0  1261568        0             0 chrome
+Oct 13 18:07:59 intel-host kernel: [ 299782]  1000 299782 12586404       64        0       64         0    77824       64             0 chrome_crashpad
+Oct 13 18:07:59 intel-host kernel: [ 299784]  1000 299784 12584351       64        0       64         0    73728       64             0 chrome_crashpad
+Oct 13 18:07:59 intel-host kernel: [ 299787]  1000 299787 12800543      320      224       96         0   724992     5376             0 chrome
+Oct 13 18:07:59 intel-host kernel: [ 299788]  1000 299788 12800545      800      736       64         0   724992     4864             0 chrome
+Oct 13 18:07:59 intel-host kernel: [ 299808]  1000 299808 12778211     1817     1810        7         0  1228800     8448           200 chrome
+Oct 13 18:07:59 intel-host kernel: [ 299809]  1000 299809 12735881     1500     1485       15         0   966656     5280           200 chrome
+Oct 13 18:07:59 intel-host kernel: [ 299811]  1000 299811 12817072     1061     1029       32         0   581632     4896           200 chrome
+Oct 13 18:07:59 intel-host kernel: [ 299848]  1000 299848 365042754     1146     1114       32         0   811008     5728           300 chrome
+Oct 13 18:07:59 intel-host kernel: [ 299850]  1000 299850 365062433    31985    31948       37         0  1835008     8320           300 chrome
+Oct 13 18:07:59 intel-host kernel: [ 363748]     0 363748     9921      512      448       64         0   110592      256             0 cupsd
+Oct 13 18:07:59 intel-host kernel: [ 363752]     7 363752     4208       96       64       32         0    77824      160             0 dbus
+Oct 13 18:07:59 intel-host kernel: [ 363753]   130 363753    91877      667      603       64         0   184320      320             0 cups-browsed
+Oct 13 18:07:59 intel-host kernel: [ 848036]     0 848036     4026      352      288       64         0    73728        0             0 sleep
+Oct 13 18:07:59 intel-host kernel: [ 879529]     0 879529     3779      480      416       64         0    73728        0             0 sshd
+Oct 13 18:07:59 intel-host kernel: [ 879611]  1000 879611     3814      320      256       64         0    73728      224             0 sshd
+Oct 13 18:07:59 intel-host kernel: [ 879612]  1000 879612   253190      182      118       64         0   614400     2048             0 node
+Oct 13 18:07:59 intel-host kernel: [ 879623]  1000 879623  7131069  6682097  6682065       32         0 57331712     7104             0 node
+Oct 13 18:07:59 intel-host kernel: oom-kill:constraint=CONSTRAINT_NONE,nodemask=(null),cpuset=systemd-oomd.service,mems_allowed=0,global_oom,task_memcg=/user.slice/user-1000.slice/session-14341.scope,task=node,pid=879623,uid=1000
+Oct 13 18:07:59 intel-host kernel: Out of memory: Killed process 879623 (node) total-vm:28524276kB, anon-rss:26728260kB, file-rss:128kB, shmem-rss:0kB, UID:1000 pgtables:55988kB oom_score_adj:0
+Oct 13 18:08:01 intel-host kernel: oom_reaper: reaped process 879623 (node), now anon-rss:0kB, file-rss:128kB, shmem-rss:0kB

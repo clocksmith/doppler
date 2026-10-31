@@ -12,7 +12,7 @@
     "safetensorsHeaderSha256": "434d00a9998ff2254673ab03669904341dba0d2029a6fc7eeef22c70fa7342ac"
   },
   "cpuGate": {
-    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-lookup-cpu-01/receipt.json",
+    "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-lookup-cpu-01/receipt.json",
     "sha256": "32393bf7637c5c3435c0a7175db3c0ab03a4fc3cc6f4d639aa713c346d17e669",
     "pass": false,
     "failedChecks": 53,
@@ -1377,7 +1377,7 @@
     }
   ],
   "receipt": {
-    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/tjs-four-teacher-output-01/result.json",
+    "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/tjs-four-teacher-output-01/result.json",
     "sha256": "59c8a677fe0173e118540dc190f3109cb77f29870ffaed9472c2e683bd6e0e60"
   },
   "steps": 256,

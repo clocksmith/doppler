@@ -101,6 +101,6 @@
     "trainingSchemaVersion": 1
   },
   "workloadId": "lora-doppler-wgsl-writer-qwen35-9b-v2-seed11",
-  "workloadPath": "/home/x/deco/doppler/src/experimental/training/workload-packs/lora-doppler-wgsl-writer-qwen35-9b-v2-seed11.json",
+  "workloadPath": "$HOME/deco/doppler/src/experimental/training/workload-packs/lora-doppler-wgsl-writer-qwen35-9b-v2-seed11.json",
   "workloadSha256": "7a3d52076053369a1347f32b9b0ecaf863c21faebf68456ecd5832fbe8cf3da8"
 }

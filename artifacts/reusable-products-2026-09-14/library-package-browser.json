@@ -3,7 +3,7 @@
   "node": "v22.22.1",
   "platform": "linux",
   "architecture": "x64",
-  "evidence": "/home/x/deco/worktrees/reploid-consumer-streaming/artifacts/library-acceptance/2026-09-14T21-13-12-675Z",
+  "evidence": "$HOME/deco/worktrees/reploid-consumer-streaming/artifacts/library-acceptance/2026-09-14T21-13-12-675Z",
   "consumer": "/dev/shm/reusable-products-20260914/reploid-installed-consumer-0nlT4J",
   "checks": [
     {
@@ -520,7 +520,7 @@
     "Deployment"
   ],
   "archive": {
-    "path": "/home/x/deco/worktrees/reploid-consumer-streaming/artifacts/library-acceptance/2026-09-14T21-13-12-675Z/reploid-0.1.0.tgz",
+    "path": "$HOME/deco/worktrees/reploid-consumer-streaming/artifacts/library-acceptance/2026-09-14T21-13-12-675Z/reploid-0.1.0.tgz",
     "sha256": "b92d6ac8a88740aebe82745d7b2e67afd9eb6c8f676efc9bed675f1cad35a250"
   },
   "dopplerConsumer": "/dev/shm/reusable-products-20260914/reploid-doppler-consumer-Gd7TAK",

@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.w8a8-fixed-work-plan/v1",
   "scope": "Unqualified performance observations only: the W8 model fails task and approximation gates",
   "sourceFixture": "tests/fixtures/w8a8-qualification.json",
@@ -7,15 +9,15 @@
   "scenarios": [
     {
       "config": "w8a8-packed-f16-benchmark-config-02.json",
-      "sha256": "c541359b8c907fb3f165f1fa0cc967af065e35f87297bab7f2c6ef17de6c27d0"
+      "sha256": "c9779d44c635022419a950e0365dd06d77147c310f5d68a1eb9dd8785cb0b816"
     },
     {
       "config": "w8a8-packed-q4-benchmark-config-02.json",
-      "sha256": "2a845dd1c36da311bcd412801bc4025a145fa19ae47c8dda991a8c9019e8e9aa"
+      "sha256": "affa1a19db7304cfe89f26cbfa7354f62915bb7a81553fba939da18d3f46750a"
     },
     {
       "config": "w8a8-packed-portable-benchmark-config-02.json",
-      "sha256": "bff3069fa40206d97c877d20d20da1a8753f91a0618a9d409e3e04062dab7c08"
+      "sha256": "dc18816d126f4530cd90929a102b7dc35011479be9efb5a39a80673181861934"
     }
   ],
   "runtimeCostIncluded": [

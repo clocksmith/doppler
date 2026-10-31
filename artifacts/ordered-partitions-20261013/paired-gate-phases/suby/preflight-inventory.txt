@@ -100,7 +100,7 @@ Tue Oct 13 18:01:51 UTC 2026
    1157       1 Ss   73-02:38:26 /usr/sbin/blkmapd
    1159       1 Ss   73-02:38:26 /usr/sbin/nfsdcld
    1166       1 Ssl  73-02:38:26 /usr/libexec/accounts-daemon
-   1169       1 Ss   73-02:38:26 avahi-daemon: running [suby.local]
+   1169       1 Ss   73-02:38:26 avahi-daemon: running [intel-host.local]
    1170       1 Ss   73-02:38:26 /usr/libexec/bluetooth/bluetoothd
    1171       1 Ss   73-02:38:26 /usr/sbin/cron -f -P
    1172       1 Ss   73-02:38:26 @dbus-daemon --system --address=systemd: --nofork --nopidfile --systemd-activation --syslog-only
@@ -273,7 +273,7 @@ Tue Oct 13 18:01:51 UTC 2026
  878411       2 I          00:22 [kworker/2:2-events]
  878648       2 I          00:10 [kworker/0:1]
  878775    1491 Ss         00:00 sshd: clocksmith [priv]
- 878860  878775 S          00:00 sshd: clocksmith@notty
+ 878860  878775 S          00:00 sshd: user@notty
  878861  878860 Ss         00:00 bash -c date -u; ps -eo pid,ppid,stat,etime,args; ss -ltnp
  878866  878861 R          00:00 ps -eo pid,ppid,stat,etime,args
  913626       1 Ss   38-21:51:27 ssh-agent -s
@@ -328,12 +328,12 @@ Tue Oct 13 18:01:51 UTC 2026
 3590117 3590110 Sl+   2-17:11:31 /home/clocksmith/.nvm/versions/node/v22.23.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-x64/vendor/x86_64-unknown-linux-musl/bin/codex
 3591489 3590117 Sl    2-17:10:20 /home/clocksmith/.nvm/versions/node/v22.23.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-x64/vendor/x86_64-unknown-linux-musl/bin/codex-code-mode-host
 3621098    1491 Ss    2-15:31:04 sshd: clocksmith [priv]
-3621223 3621098 S     2-15:31:04 sshd: clocksmith@pts/0
+3621223 3621098 S     2-15:31:04 sshd: user@pts/0
 3621224 3621223 Ss+   2-15:31:03 -bash
 3621497 3621224 S+    2-15:31:03 bash /home/clocksmith/.local/bin/ssh-session-menu
 3621520 3621497 S+    2-15:30:59 tmux attach-session -t 1
 3621526    1491 Ss    2-15:30:51 sshd: clocksmith [priv]
-3621610 3621526 S     2-15:30:51 sshd: clocksmith@pts/2
+3621610 3621526 S     2-15:30:51 sshd: user@pts/2
 3621611 3621610 Ss+   2-15:30:51 -bash
 3621884 3621611 S+    2-15:30:50 bash /home/clocksmith/.local/bin/ssh-session-menu
 3621899 3621884 S+    2-15:30:48 tmux attach-session -t 2
@@ -366,11 +366,11 @@ LISTEN 0      4096                                    0.0.0.0:111        0.0.0.0
 LISTEN 0      4096                                    0.0.0.0:22         0.0.0.0:*                                        
 LISTEN 0      4096                                 127.0.0.54:53         0.0.0.0:*                                        
 LISTEN 0      4096                                  127.0.0.1:631        0.0.0.0:*                                        
-LISTEN 0      4096                             100.117.180.33:34891      0.0.0.0:*                                        
+LISTEN 0      4096                             tailnet-redacted:34891      0.0.0.0:*                                        
 LISTEN 0      4096                                    0.0.0.0:44689      0.0.0.0:*                                        
 LISTEN 0      4096                              127.0.0.53%lo:53         0.0.0.0:*                                        
 LISTEN 0      64                                      0.0.0.0:41875      0.0.0.0:*                                        
-LISTEN 0      5                                100.117.180.33:56333      0.0.0.0:*    users:(("node",pid=297260,fd=118))  
+LISTEN 0      5                                tailnet-redacted:56333      0.0.0.0:*    users:(("node",pid=297260,fd=118))  
 LISTEN 0      5      [fd35:f347:6823:9900:dff:b3a7:6508:c83d]:59265         [::]:*    users:(("node",pid=297260,fd=114))  
 LISTEN 0      4096                                       [::]:40487         [::]:*                                        
 LISTEN 0      4096                                       [::]:54995         [::]:*                                        

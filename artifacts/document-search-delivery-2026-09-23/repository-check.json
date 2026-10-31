@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.document-search-repository-check/v1",
   "command": "npm run check:green",
   "passed": false,
@@ -11,5 +13,5 @@
     "typecheck:source"
   ],
   "scope": "Existing layer-partition export, declaration, and closure failures. No source-runtime fixes or new runtime archive in this application release. Physical installed acceptance is recorded separately.",
-  "logSha256": "8176a21638a678e7eb5ec4b905aa8a1494a69ed03c12de3f6ed4b764bc019f32"
+  "logSha256": "13e899aa33e7459965e1030bb4319c1c6bb12ee6bae3c9743ee5d3f7443467ee"
 }

@@ -1,5 +1,5 @@
 {
-  "objective": "Make Doppler faster than Pooled on Jupiter using explicit JSON configuration and necessary kernels.",
+  "objective": "Make Doppler faster than Pooled on amd-host using explicit JSON configuration and necessary kernels.",
   "project": "doppler",
   "sourceCommit": "1975191b",
   "scope": "Qwen3.5 0.8B, Radeon 8060S, Chrome 146 Vulkan, warm OPFS, four prompts, 64 tokens. Different reconstructed weights across products.",

@@ -19,7 +19,7 @@
   },
   "failure": {
     "message": "Installed runtime closure differs from checked receipt.",
-    "stack": "Error: Installed runtime closure differs from checked receipt.\n    at runPartitionApiSmoke (file:///Users/xyz/deco/doppler/tools/check-packed-package.js:378:67)\n    at async main (file:///Users/xyz/deco/doppler/tools/check-packed-package.js:529:5)"
+    "stack": "Error: Installed runtime closure differs from checked receipt.\n    at runPartitionApiSmoke (file://$HOME/deco/doppler/tools/check-packed-package.js:378:67)\n    at async main (file://$HOME/deco/doppler/tools/check-packed-package.js:529:5)"
   },
   "completedAtUtc": "2026-10-17T21:25:32.053Z"
 }

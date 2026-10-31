@@ -9,11 +9,11 @@
   "archiveDifferences": [],
   "trackedFileCount": 10395,
   "snapshotPackageLockSha256": "f0221e4847513cdc5f84227431957cbdcc4f93131db2ea7dcef3ff5cba29e266",
-  "dependencyDirectory": "/home/x/deco/doppler/node_modules",
+  "dependencyDirectory": "$HOME/deco/doppler/node_modules",
   "installedDependencyLockSha256": "d56962e52ddc6e9b3e90d4d29a941e0d7295d6c5b8e0a2d63458e3d9451ae2b3",
   "node": "v22.22.1",
   "privateGitDirectory": "/var/tmp/doppler-archive9-unit-4umv8z92/evidence/git-metadata",
-  "gitObjectAlternate": "/home/x/deco/.git/modules/doppler/objects",
+  "gitObjectAlternate": "$HOME/deco/.git/modules/doppler/objects",
   "noInheritedGitVariables": true,
   "affinity": [
     4,

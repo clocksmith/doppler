@@ -830,7 +830,7 @@
     "/runtime/src/gpu/kernels/attention_decode_online_f16kv.wgsl": "4feba111cc381d0a365909938e3f500175131f0e023d33d60e2b447f9b9f1035",
     "/runtime/src/gpu/kernels/matmul_f16w_f32a_tiled.wgsl": "569971d79c3ea3ae9e632a06befe43bc9d9a1a657ddd53357368fa24b073cd7d"
   },
-  "modelDirectory": "/Users/xyz/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
+  "modelDirectory": "$HOME/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
   "fullPrefixes": true,
   "package": {
     "name": "doppler-gpu",

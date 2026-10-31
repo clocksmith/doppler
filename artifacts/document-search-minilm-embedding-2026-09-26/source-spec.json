@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "modelId": "all-minilm-l6-v2-embedding-candidate",
   "sources": {
     "config": {
@@ -19,7 +21,7 @@
     "semantics": {
       "path": "artifacts/document-search-minilm-embedding-2026-09-26/source/semantics.json",
       "format": "json",
-      "hash": "sha256:92eb37808941b651ca53f09cd9f45c639051d73869b476169b67b4a7911224a2"
+      "hash": "sha256:a47080eb4d01956f1605d5fdcc7eadade292ab8ce07c87e58576e6d0818d531f"
     },
     "embedding": {
       "path": "artifacts/document-search-minilm-embedding-2026-09-26/source-policy.json",
@@ -59,7 +61,7 @@
         "artifactId": "semantics",
         "path": "semantics.json",
         "role": "pinned-source-evidence",
-        "hash": "sha256:92eb37808941b651ca53f09cd9f45c639051d73869b476169b67b4a7911224a2"
+        "hash": "sha256:a47080eb4d01956f1605d5fdcc7eadade292ab8ce07c87e58576e6d0818d531f"
       },
       {
         "artifactId": "embedding",

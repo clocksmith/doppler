@@ -2,7 +2,7 @@
   "mode": "model",
   "packageBundlePath": "/var/tmp/doppler-loading-package-20260926-04",
   "modelDir": "/dev/shm/doppler-compact-20260926/qwen-embedding",
-  "referencePath": "/home/x/deco/doppler/reports/capsule-baseline/20260906/embedding-related-frozen-reference.json",
+  "referencePath": "$HOME/deco/doppler/reports/capsule-baseline/20260906/embedding-related-frozen-reference.json",
   "outputDir": "/dev/shm/doppler-compact-20260926/qwen-qualification",
   "requiredVendor": "amd",
   "timeoutMs": 600000,

@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.wgsl-writer-semantic-dispatch-receipt/v1",
   "experimentId": "doppler-wgsl-writer-v1",
   "evaluationRole": "mechanics_qualification_only",
@@ -9,7 +11,7 @@
     "modelId": "qwen-3-5-9b-f16-af32",
     "modelManifestSha256": "2ff1f1eec0345bd379614b8b0bafd66957bbec1c22072132661a6e35300ad398",
     "adapterManifestPath": "reports/training/wgsl-repair/doppler-wgsl-repair-v12/seed29/external20/sft/exports/checkpoint-001200.adapter.manifest.json",
-    "adapterManifestSha256": "e5dec965a953aa746e592ae38045f445e7d9b1407feb609f448238427af4b042",
+    "adapterManifestSha256": "bbe062191afdb61202cf3273df83c26de641c170a206801d868647b6c1648852",
     "adapterWeightsPath": "reports/training/wgsl-repair/doppler-wgsl-repair-v12/seed29/external20/sft/exports/checkpoint-001200.adapters.safetensors",
     "adapterWeightsSha256": "0d9ab8e1348a3fcdd6ef2973b624cc1a3d962de90a571976a5a222df27b69394",
     "predecessorReceiptPath": "docs/status/wgsl-repair-v13-seed-confirmation-result-2026-07-14.json",
@@ -17,7 +19,7 @@
   },
   "candidateCompletions": {
     "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v1/diagnostic/seed29.completions.json",
-    "sha256": "34eab46140fb93c58006e5da95d4929c85e974b66699983a2443588df6c02d6e",
+    "sha256": "5e8ebd6d3a77fe59551b717f08e24456e4e5e94538a7fe576d92a052c7be2834",
     "receiptHash": "7fe46f701eed96f70936fc20b313d2af737f18f849b4cc8fa771e14937af21b4"
   },
   "policy": {

@@ -95,8 +95,8 @@
       "electronVersion": "43.4.0",
       "electronHost": {
         "version": "43.4.0",
-        "packagePath": "/home/x/deco/doppler/reports/electron-adoption/20260906-local-host-validation-01/node_modules/electron/package.json",
-        "executablePath": "/home/x/deco/doppler/reports/electron-adoption/20260906-local-host-validation-01/node_modules/electron/dist/electron",
+        "packagePath": "$HOME/deco/doppler/reports/electron-adoption/20260906-local-host-validation-01/node_modules/electron/package.json",
+        "executablePath": "$HOME/deco/doppler/reports/electron-adoption/20260906-local-host-validation-01/node_modules/electron/dist/electron",
         "executableSha256": "6853bb400e98582dcc104ca8b9e90f013cd2223575253731e0c429925981c733",
         "resolution": "qualification-checkout-local"
       },

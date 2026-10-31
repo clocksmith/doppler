@@ -1,6 +1,6 @@
 import json,pathlib,hashlib,torch,numpy as np
 from safetensors import safe_open
-root=pathlib.Path('/home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16');m=json.loads((root/'manifest.json').read_text());key='model.language_model.embed_tokens.weight';e=m['tensors'][key]
+root=pathlib.Path('$HOME/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16');m=json.loads((root/'manifest.json').read_text());key='model.language_model.embed_tokens.weight';e=m['tensors'][key]
 data=b''.join((root/m['shards'][s['shardIndex']]['filename']).read_bytes()[s['offset']:s['offset']+s['size']] for s in e['spans']);actual=np.frombuffer(data,dtype='<f2').reshape(e['shape']);assert len(data)==e['size']
 original=pathlib.Path('/var/tmp/doppler-qwen35-08b-source-20261012/model.safetensors-00001-of-00001.safetensors')
 with safe_open(original,framework='pt',device='cpu') as f:source=f.get_tensor(key)

@@ -87,25 +87,25 @@
         {
           "id": "baseline-27b-first",
           "engine": "baseline",
-          "modelDir": "/home/x/.local/share/reploid/models/qwen38-27b-q4k-19ecff3e",
+          "modelDir": "$HOME/.local/share/reploid/models/qwen38-27b-q4k-19ecff3e",
           "config": "vulkan-27b-config.json"
         },
         {
           "id": "candidate-27b-first",
           "engine": "candidate",
-          "modelDir": "/home/x/.local/share/reploid/models/qwen38-27b-q4k-19ecff3e",
+          "modelDir": "$HOME/.local/share/reploid/models/qwen38-27b-q4k-19ecff3e",
           "config": "vulkan-27b-config.json"
         },
         {
           "id": "candidate-27b-second",
           "engine": "candidate",
-          "modelDir": "/home/x/.local/share/reploid/models/qwen38-27b-q4k-19ecff3e",
+          "modelDir": "$HOME/.local/share/reploid/models/qwen38-27b-q4k-19ecff3e",
           "config": "vulkan-27b-config.json"
         },
         {
           "id": "baseline-27b-second",
           "engine": "baseline",
-          "modelDir": "/home/x/.local/share/reploid/models/qwen38-27b-q4k-19ecff3e",
+          "modelDir": "$HOME/.local/share/reploid/models/qwen38-27b-q4k-19ecff3e",
           "config": "vulkan-27b-config.json"
         }
       ],

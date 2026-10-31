@@ -175,4 +175,4 @@ Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500
 [59808.3ms][ExpertCache] Cache cleared
 [59808.3ms][Pipeline] Unloaded
 [59816.1ms][GPU] Device lost: device was destroyed, Reason: destroyed
-{"passed":false,"metrics":{"rankingTop1Rate":0.9444444444444444,"answerableTop1Rate":0.9444444444444444,"identifierTop1Rate":1,"longDocumentTop1Rate":1,"noAnswerFalsePositives":3},"outputPath":"/home/x/deco/doppler/artifacts/document-search-compact-2026-09-26/qwen-screen.json"}
+{"passed":false,"metrics":{"rankingTop1Rate":0.9444444444444444,"answerableTop1Rate":0.9444444444444444,"identifierTop1Rate":1,"longDocumentTop1Rate":1,"noAnswerFalsePositives":3},"outputPath":"$HOME/deco/doppler/artifacts/document-search-compact-2026-09-26/qwen-screen.json"}

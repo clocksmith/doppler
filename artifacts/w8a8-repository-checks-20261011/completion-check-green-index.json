@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "command": "npm run check:green",
   "passed": true,
   "unitFilesPassed": 917,
@@ -14,14 +16,14 @@
   "startStatus": "?? artifacts/w8a8-model-qualification-20261011/benchmark/\n",
   "files": {
     "completion-check-green.log.gz": {
-      "sourceSha256": "8588b0541b7acfedc5862a34f3490ee424c25f5a503d4acf2bc69595b63a43f1",
+      "sourceSha256": "583290af7199d55edb042bbf1f2cbc33e4e7749547ded85c220802b647abf6aa",
       "sourceBytes": 476662,
-      "compressedSha256": "344a0cd1bd3c9f64ab794cd35699d315f6243877a5cbd9b468be26067d5d0739"
+      "compressedSha256": "2a9a5403d34df8a99e91b2ff63e2d55833a42a728f88ef189814a5be1caa4dc6"
     },
     "completion-check-green-source.json.gz": {
-      "sourceSha256": "40bfb18fb08e76176d8783afd4d534f4d2411b3b925122641333c1636f7aeeb6",
+      "sourceSha256": "1e6db759de171834aa344bc59cf5d94f823273a7cdb7cda2a31915392ac91553",
       "sourceBytes": 820185,
-      "compressedSha256": "e1e9e808596455556a3016638e4d5473895e9e77d145b45f8af6a73dce879f4a"
+      "compressedSha256": "451ebaa07fcbb97ac5e5978ebba0936df04e197b6394512cec7282c1355f0aaa"
     },
     "completion-check-green-result.json.gz": {
       "sourceSha256": "cddaf65d31c701c0c3a76319964ae3789ce81dcbc4bfc47bec95cf9183b0e63f",

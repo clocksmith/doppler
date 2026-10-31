@@ -1,15 +1,17 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.model-onboarding-result/v1",
   "inputDigest": "sha256:2d6b2e8d3cbf732a7af728df39f98319ea7eb591d8b337c49a963472a4214c62",
   "status": "blocked",
   "outputs": {
     "modelIR": {
       "path": "model-ir-receipt.json",
-      "digest": "sha256:eca44b0ebf3dfa353484a77d1743b53e337cc5cf1a4747892a67e0a16bf82586"
+      "digest": "sha256:276ce0eed9115bae7de9c85f7be717f55a60ae65122e5efac0548583c4ede77a"
     },
     "assessment": {
       "path": "support-assessment.json",
-      "digest": "sha256:707977fd2d32ec5cb014220d5f4df0ba212e624887cfadd51bcf697d36d771d0"
+      "digest": "sha256:f588cf8879be5583920aab920c0e3b567ee60f3a8be564fd9497057cda037d19"
     }
   },
   "sourceIdentity": {
@@ -39,7 +41,7 @@
         "artifactId": "semantics",
         "path": "semantics.json",
         "role": "pinned-source-evidence",
-        "hash": "sha256:92eb37808941b651ca53f09cd9f45c639051d73869b476169b67b4a7911224a2"
+        "hash": "sha256:a47080eb4d01956f1605d5fdcc7eadade292ab8ce07c87e58576e6d0818d531f"
       },
       {
         "artifactId": "embedding",

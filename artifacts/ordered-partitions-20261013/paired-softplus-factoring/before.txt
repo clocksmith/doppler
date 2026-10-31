@@ -7,7 +7,7 @@ AssertionError [ERR_ASSERTION]: Softplus must have one static exp callsite to av
 
 2 !== 1
 
-    at file:///Users/xyz/deco/doppler/tests/gpu/paired-sigmoid-expression.test.js:81:10 {
+    at file://$HOME/deco/doppler/tests/gpu/paired-sigmoid-expression.test.js:81:10 {
   generatedMessage: false,
   code: 'ERR_ASSERTION',
   actual: 2,

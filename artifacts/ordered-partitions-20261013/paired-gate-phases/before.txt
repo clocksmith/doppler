@@ -1,10 +1,10 @@
-file:///Users/xyz/deco/doppler/src/config/kernel-registry-contract.js:89
+file://$HOME/deco/doppler/src/config/kernel-registry-contract.js:89
         throw new Error(`Unknown kernel: ${operation}/${variant}`);
               ^
 
 Error: Unknown kernel: qwen_linear_attention_prepare/paired_beta
-    at Object.getKernelConfig (file:///Users/xyz/deco/doppler/src/config/kernel-registry-contract.js:89:15)
-    at getKernelConfig (file:///Users/xyz/deco/doppler/src/config/kernel-registry-contract.js:113:54)
-    at file:///Users/xyz/deco/doppler/tests/gpu/paired-gate-phases.test.js:9:18
+    at Object.getKernelConfig (file://$HOME/deco/doppler/src/config/kernel-registry-contract.js:89:15)
+    at getKernelConfig (file://$HOME/deco/doppler/src/config/kernel-registry-contract.js:113:54)
+    at file://$HOME/deco/doppler/tests/gpu/paired-gate-phases.test.js:9:18
 
 Node.js v22.20.0

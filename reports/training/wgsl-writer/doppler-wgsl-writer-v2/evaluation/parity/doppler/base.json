@@ -21,9 +21,9 @@
       "384",
       "--no-chat-template",
       "--out",
-      "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/doppler/base.json",
+      "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/doppler/base.json",
       "--logits-out",
-      "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/doppler/base.first-token-logits.f32"
+      "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/doppler/base.first-token-logits.f32"
     ],
     "command": [
       "node",
@@ -42,9 +42,9 @@
       "384",
       "--no-chat-template",
       "--out",
-      "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/doppler/base.json",
+      "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/doppler/base.json",
       "--logits-out",
-      "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/doppler/base.first-token-logits.f32"
+      "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/doppler/base.first-token-logits.f32"
     ]
   },
   "dopplerCommit": "c84237bc52641286d3c07e46efd0f1bfeaf0f41e",
@@ -1856,7 +1856,7 @@
     "min": -9.268292427062988,
     "max": 19.77920913696289,
     "sha256": "9d3e6b6e8a5cadd18de0a2f3271dff3b331f54817c9180cb4348109e765166d2",
-    "path": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/doppler/base.first-token-logits.f32"
+    "path": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/doppler/base.first-token-logits.f32"
   },
   "topK": [
     {

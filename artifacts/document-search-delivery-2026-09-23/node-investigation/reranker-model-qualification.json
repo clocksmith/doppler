@@ -5,9 +5,9 @@
   "config": {
     "mode": "model",
     "packageBundlePath": "/var/tmp/doppler-search-node-20260923",
-    "modelDir": "/home/x/deco/doppler/reports/capsule-baseline/20260906/reranker-model",
-    "referencePath": "/home/x/deco/doppler/reports/capsule-baseline/20260906/reranker-reference.json",
-    "outputDir": "/home/x/deco/doppler/reports/capsule-baseline/20260906/browser-model",
+    "modelDir": "$HOME/deco/doppler/reports/capsule-baseline/20260906/reranker-model",
+    "referencePath": "$HOME/deco/doppler/reports/capsule-baseline/20260906/reranker-reference.json",
+    "outputDir": "$HOME/deco/doppler/reports/capsule-baseline/20260906/browser-model",
     "requiredVendor": "amd",
     "timeoutMs": 600000,
     "repeatRuns": 1,
@@ -2529,7 +2529,7 @@
         "outputHash": "sha256:cedfbcd3d72bb16158e52f372324396050a089d4477f3a4feb8b614c5fdde0c2",
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
-          "logicalModelId": "file:///home/x/deco/doppler/reports/capsule-baseline/20260906/reranker-model/",
+          "logicalModelId": "file://$HOME/deco/doppler/reports/capsule-baseline/20260906/reranker-model/",
           "resolvedArtifactVariantId": "sha256:456db917f1a9558537779e5dc0199c75751227d38f1fe0eeefdba5aaad78c715",
           "resolvedExecutionId": "sha256:7105d12549efec34e4adb6ea74d7bba4a8452e5d09260661d83e63a7c926da7e"
         },
@@ -4205,7 +4205,7 @@
         "outputHash": "sha256:cedfbcd3d72bb16158e52f372324396050a089d4477f3a4feb8b614c5fdde0c2",
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
-          "logicalModelId": "file:///home/x/deco/doppler/reports/capsule-baseline/20260906/reranker-model/",
+          "logicalModelId": "file://$HOME/deco/doppler/reports/capsule-baseline/20260906/reranker-model/",
           "resolvedArtifactVariantId": "sha256:456db917f1a9558537779e5dc0199c75751227d38f1fe0eeefdba5aaad78c715",
           "resolvedExecutionId": "sha256:7105d12549efec34e4adb6ea74d7bba4a8452e5d09260661d83e63a7c926da7e"
         },

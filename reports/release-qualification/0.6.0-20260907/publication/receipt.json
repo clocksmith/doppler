@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.npm-publication-observation/v1",
   "observedAtUtc": "2026-09-07T13:10:21.819039+00:00",
   "sourceRevision": "52f5961a41e9983c27cb8237569ba08a9c30a9ad",
@@ -14,7 +16,7 @@
   "independentAdoption": false,
   "amdStartupResolved": false,
   "artifacts": {
-    "registry-consumer-smokes.json": "ef818ed37029e60910e7446ee61c6c1f26d40ab902cd7f927149b98812fb828b",
+    "registry-consumer-smokes.json": "e13e089c997e53f28780319a35e6656a7e120de01bf4405857177239188345e5",
     "cdn-browser.json": "268843b30141aeec596c933346d226ab691f039d956d035aa4f3ab914d680837",
     "registry-smoke.js": "85665b6724fe6a76f9cabc916706a161f59bd761da426a503a0e37a4479630f4",
     "registry-byte-verification.json": "3410a7c25e7445769c011e780eb0527bc5b71430ea083e1414e4642c489b8209",

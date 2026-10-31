@@ -1,10 +1,12 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "scope": "Physical installed public API acceptance of a separately signed controlled zero-delta adapter candidate; not trained/nonzero adapter parity.",
   "passed": true,
   "releaseAccepted": false,
   "publication": false,
   "receipt": "adapter-public-lifecycle.json",
-  "receiptSha256": "8efb3353cf39c22fb1ceca2ce895c2cc4974de5907e287a74fb4dd4497c5afeb",
+  "receiptSha256": "2ebb62d9c32c3e88cf44b5c586bb0b0058f4dadcc6926ade172757d572c49f8c",
   "package": {
     "filename": "doppler-gpu-0.6.2.tgz",
     "version": "0.6.2",

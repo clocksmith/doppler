@@ -16,13 +16,13 @@
   "runs": [
     {
       "engine": "doppler",
-      "command": "/Users/xyz/.nvm/versions/node/v22.20.0/bin/node",
+      "command": "$HOME/.nvm/versions/node/v22.20.0/bin/node",
       "args": [
-        "/Users/xyz/deco/doppler/.cache/qwen08-runtime/artifacts/qwen08-m3-mlx-20261015/doppler.js",
-        "/Users/xyz/deco/doppler/.cache/qwen08-f16",
-        "/Users/xyz/deco/doppler/artifacts/qwen08-m3-mlx-20261015/inputs.json",
-        "/Users/xyz/deco/doppler/artifacts/qwen08-m3-mlx-20261015/doppler-batch4.json",
-        "/Users/xyz/deco/doppler/artifacts/qwen08-m3-mlx-20261015/batch4-policy.json"
+        "$HOME/deco/doppler/.cache/qwen08-runtime/artifacts/qwen08-m3-mlx-20261015/doppler.js",
+        "$HOME/deco/doppler/.cache/qwen08-f16",
+        "$HOME/deco/doppler/artifacts/qwen08-m3-mlx-20261015/inputs.json",
+        "$HOME/deco/doppler/artifacts/qwen08-m3-mlx-20261015/doppler-batch4.json",
+        "$HOME/deco/doppler/artifacts/qwen08-m3-mlx-20261015/batch4-policy.json"
       ],
       "startedAt": "2026-10-16T02:46:20.984Z",
       "endedAt": "2026-10-16T02:47:02.041Z",

@@ -1,8 +1,8 @@
 {
   "schema": "doppler.successor-byte-verification/v1",
   "passed": true,
-  "source": "/Users/xyz/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
-  "destination": "/Users/xyz/deco/doppler/.cache/qwen-2b-standard-blake3-20261017",
+  "source": "$HOME/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
+  "destination": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261017",
   "predecessorManifestSha256": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
   "trustedPieceIndexSha256": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
   "trustSource": {

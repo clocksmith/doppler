@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.canonical-text-onnx-export.v1",
   "completed": true,
   "inputs": {
@@ -18,8 +20,8 @@
   "parameterCount": 321,
   "policySha256": "a74fee3c20a63a1466874c1b4fac93f9126a47fb49372fd3a41714f19ba18638",
   "cpuGate": {
-    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-text-cpu-02/receipt.json",
-    "sha256": "7024db9037d6c4aba1c2482632389f9cb994bce384ba3b982a779c47ffcaa796"
+    "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-text-cpu-02/receipt.json",
+    "sha256": "fbf2b1af22cce2b19d3a6f53a46ada058d7f6485c1b86b868b54bf66aa55b01a"
   },
   "contract": {
     "batchSize": 1,
@@ -44,7 +46,7 @@
   "graphs": [
     {
       "mode": "prefill",
-      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_prefill.onnx",
+      "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_prefill.onnx",
       "sha256": "fb6bf79f694dc0ab7ad5f1dfc1713e536147b26dce0a21e8b88f774f20bc7761",
       "lowerings": [
         {
@@ -470,7 +472,7 @@
     },
     {
       "mode": "decode",
-      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_decode.onnx",
+      "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_decode.onnx",
       "sha256": "584cb20b5c96ba40a0f6d13fb12953a9ce60c358d1a75c05ffc5835f9875a9af",
       "lowerings": [
         {
@@ -1101,7 +1103,7 @@
     "export-compiler.json": "cca3f2a6c5c401c7dd0979a04ad25eb8d80aef268b8ac0d395d94ca277df8bba"
   },
   "initializerBinding": {
-    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/initializer-binding.json",
+    "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/initializer-binding.json",
     "sha256": "9d7cd0179d4c3a6f3cf39388c96bb3c9922c08c160c93a659641439187c38a26",
     "pass": true
   },

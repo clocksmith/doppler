@@ -557,12 +557,12 @@ Generation declarations match the public definition.
 [node-tests] script: rules:bundle:check
 rule bundle: current (56 source files)
 [node-tests] script: routing:audit:check
-file:///home/x/deco/doppler/tools/audit-execution-routing.js:60
+file://$HOME/deco/doppler/tools/audit-execution-routing.js:60
     throw new Error('Execution routing audit is stale. Run: npm run routing:audit');
           ^
 
 Error: Execution routing audit is stale. Run: npm run routing:audit
-    at file:///home/x/deco/doppler/tools/audit-execution-routing.js:60:11
+    at file://$HOME/deco/doppler/tools/audit-execution-routing.js:60:11
 
 Node.js v22.22.1
 [node-tests] routing:audit:check failed: exit 1
@@ -674,12 +674,12 @@ inference boundary check passed
 [node-tests] script: source:architecture:check
 source architecture check passed: 21 owners, 2831 files, 0 governed oversize files, 54 reviewed soft-limit files, 25 reviewed generic modules (6 semantic owners, 19 facades, 0 legacy debt)
 [node-tests] script: source:dependencies:check
-file:///home/x/deco/doppler/tools/report-source-dependencies.js:68
+file://$HOME/deco/doppler/tools/report-source-dependencies.js:68
     throw new Error('Dependency views are stale. Run node tools/report-source-dependencies.js --write.');
           ^
 
 Error: Dependency views are stale. Run node tools/report-source-dependencies.js --write.
-    at file:///home/x/deco/doppler/tools/report-source-dependencies.js:68:11
+    at file://$HOME/deco/doppler/tools/report-source-dependencies.js:68:11
 
 Node.js v22.22.1
 [node-tests] source:dependencies:check failed: exit 1
@@ -709,14 +709,14 @@ subsystem-support-contract: support tiers ok (27 subsystems, 6 primary)
 [node-tests] script: policy:schemas:check
 policy-schema-registry: schemas ok (40 policies)
 [node-tests] script: program-bundle:schema:check
-Program Bundle schema artifact is current: /home/x/deco/doppler/src/config/schema/program-bundle.schema.json
+Program Bundle schema artifact is current: $HOME/deco/doppler/src/config/schema/program-bundle.schema.json
 [node-tests] script: program-bundle:check
 {
   "ok": true,
   "results": [
     {
       "ok": true,
-      "path": "/home/x/deco/doppler/examples/program-bundles/gemma-3-1b-it-q4k-ehf16-af32.program-bundle.json",
+      "path": "$HOME/deco/doppler/examples/program-bundles/gemma-3-1b-it-q4k-ehf16-af32.program-bundle.json",
       "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
       "bundleId": "gemma-3-1b-it-q4k-ehf16-af32-7b8152f81712",
       "artifactCount": 32,
@@ -726,7 +726,7 @@ Program Bundle schema artifact is current: /home/x/deco/doppler/src/config/schem
     },
     {
       "ok": true,
-      "path": "/home/x/deco/doppler/examples/program-bundles/gemma-3-270m-it-q4k-ehf16-af32.program-bundle.json",
+      "path": "$HOME/deco/doppler/examples/program-bundles/gemma-3-270m-it-q4k-ehf16-af32.program-bundle.json",
       "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
       "bundleId": "gemma-3-270m-it-q4k-ehf16-af32-b5daefb7cbce",
       "artifactCount": 22,
@@ -736,7 +736,7 @@ Program Bundle schema artifact is current: /home/x/deco/doppler/src/config/schem
     },
     {
       "ok": true,
-      "path": "/home/x/deco/doppler/examples/program-bundles/gemma-4-e2b-it-q4k-ehf16-af32-int4ple.program-bundle.json",
+      "path": "$HOME/deco/doppler/examples/program-bundles/gemma-4-e2b-it-q4k-ehf16-af32-int4ple.program-bundle.json",
       "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
       "bundleId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-0894776e5a46",
       "artifactCount": 79,
@@ -7455,8 +7455,8 @@ TAP version 13
 # Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
 # [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.6ms
 # fused-ffn-q4-metal-simd16-gpu-regression.test: skipped (requires Apple Metal subgroups)
-# Subtest: /home/x/deco/doppler/tests/inference/fused-ffn-q4-metal-simd16-gpu-regression.test.js
-ok 1 - /home/x/deco/doppler/tests/inference/fused-ffn-q4-metal-simd16-gpu-regression.test.js
+# Subtest: $HOME/deco/doppler/tests/inference/fused-ffn-q4-metal-simd16-gpu-regression.test.js
+ok 1 - $HOME/deco/doppler/tests/inference/fused-ffn-q4-metal-simd16-gpu-regression.test.js
   ---
   duration_ms: 263.953413
   type: 'test'
@@ -7476,8 +7476,8 @@ TAP version 13
 # Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
 # [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.6ms
 # fused-matmul-q4-metal-simd16-gpu-regression.test: skipped (requires Apple Metal subgroups)
-# Subtest: /home/x/deco/doppler/tests/inference/fused-matmul-q4-metal-simd16-gpu-regression.test.js
-ok 1 - /home/x/deco/doppler/tests/inference/fused-matmul-q4-metal-simd16-gpu-regression.test.js
+# Subtest: $HOME/deco/doppler/tests/inference/fused-matmul-q4-metal-simd16-gpu-regression.test.js
+ok 1 - $HOME/deco/doppler/tests/inference/fused-matmul-q4-metal-simd16-gpu-regression.test.js
   ---
   duration_ms: 258.358722
   type: 'test'
@@ -7592,7 +7592,7 @@ ok 1 - test module initialization completed
 # duration_ms 219.402298
 [node-tests] ok: tests/inference/gemma3-270m-head256-decode-path.test.js
 TAP version 13
-# [NaN Regression] skipped: local fixture missing at /home/x/deco/doppler/models/local/gemma-3-1b-it-f16-af32/manifest.json
+# [NaN Regression] skipped: local fixture missing at $HOME/deco/doppler/models/local/gemma-3-1b-it-f16-af32/manifest.json
 # Subtest: test module initialization completed
 ok 1 - test module initialization completed
   ---
@@ -7669,8 +7669,8 @@ TAP version 13
 # Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
 # [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.5ms
 # gemma4-e2b-q4k-apple-retain-regression.test: skipped (vendor=amd not apple)
-# Subtest: /home/x/deco/doppler/tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js
-ok 1 - /home/x/deco/doppler/tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js
+# Subtest: $HOME/deco/doppler/tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js
+ok 1 - $HOME/deco/doppler/tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js
   ---
   duration_ms: 431.096946
   type: 'test'
@@ -12464,9 +12464,9 @@ ok 1 - test module initialization completed
 # duration_ms 111.533977
 [node-tests] ok: tests/integration/installed-capability-memory.test.js
 TAP version 13
-# litert-gemma4-task-ple-scale.test: skipped (source artifact not available at /home/x/deco/doppler/models/source/litert/gemma-4-e2b-it/gemma-4-E2B-it-web.task)
-# Subtest: /home/x/deco/doppler/tests/integration/litert-gemma4-task-ple-scale.test.js
-ok 1 - /home/x/deco/doppler/tests/integration/litert-gemma4-task-ple-scale.test.js
+# litert-gemma4-task-ple-scale.test: skipped (source artifact not available at $HOME/deco/doppler/models/source/litert/gemma-4-e2b-it/gemma-4-E2B-it-web.task)
+# Subtest: $HOME/deco/doppler/tests/integration/litert-gemma4-task-ple-scale.test.js
+ok 1 - $HOME/deco/doppler/tests/integration/litert-gemma4-task-ple-scale.test.js
   ---
   duration_ms: 101.74397
   type: 'test'

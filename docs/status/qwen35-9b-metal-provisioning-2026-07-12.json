@@ -53,7 +53,7 @@
   "pinnedArtifacts": {
     "f16Control": {
       "modelId": "qwen-3-5-9b-f16-af32",
-      "publishedPath": "/home/x/rdrr/qwen-3-5-9b-f16-af32",
+      "publishedPath": "$HOME/rdrr/qwen-3-5-9b-f16-af32",
       "shardCount": 267,
       "shardBytes": 17907606528,
       "manifestSha256": "2ff1f1eec0345bd379614b8b0bafd66957bbec1c22072132661a6e35300ad398",
@@ -155,7 +155,7 @@
     "f16Control": {
       "status": "blocked_on_exact_transfer",
       "sourceHost": "amd-host",
-      "sourcePath": "/home/x/rdrr/qwen-3-5-9b-f16-af32",
+      "sourcePath": "$HOME/rdrr/qwen-3-5-9b-f16-af32",
       "lastAttempt": "ssh -o BatchMode=yes -o ConnectTimeout=5 amd-host pwd",
       "lastError": "Permission denied (publickey,password)."
     },

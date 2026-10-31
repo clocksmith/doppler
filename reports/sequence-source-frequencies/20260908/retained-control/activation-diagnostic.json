@@ -46,7 +46,7 @@
           "valuesOverTolerance": 4
         }
       ],
-      "probePath": "/home/x/deco/worktrees/reploid-local-journeys/artifacts/local-journeys-2026-09-08/science-batches/retained-control/source-activation-probes.json",
+      "probePath": "$HOME/deco/worktrees/reploid-local-journeys/artifacts/local-journeys-2026-09-08/science-batches/retained-control/source-activation-probes.json",
       "probeDigest": "sha256:1241d49c094c1bbbb4eeaf25585afe193abb866281ef040186bd2b41e5e560a6"
     },
     {
@@ -63,7 +63,7 @@
           "valuesOverTolerance": 0
         }
       ],
-      "probePath": "/home/x/deco/worktrees/reploid-local-journeys/artifacts/local-journeys-2026-09-08/science-batches/retained-control/tanh-counterfactual-activation-probes.json",
+      "probePath": "$HOME/deco/worktrees/reploid-local-journeys/artifacts/local-journeys-2026-09-08/science-batches/retained-control/tanh-counterfactual-activation-probes.json",
       "probeDigest": "sha256:536d1b60ca96c6686fbad6d8818d1cd345905b1f3d560f73ec319ce6e2551bc0"
     }
   ]

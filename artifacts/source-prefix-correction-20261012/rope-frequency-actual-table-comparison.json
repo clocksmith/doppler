@@ -1,5 +1,7 @@
 {
-  "captureSha256": "b3cb07bbef5a41f2582b877babf315e499b44c0b3209dda9ea38b26b15ca6606",
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
+  "captureSha256": "80dac036bbcdf518777dbfc08519cce56019799df2571b89af5da5cf31f9b221",
   "archiveSha256": "c596ecab6d498b3bb6e4d070e65a640713e693020e77c897271481f197875aae",
   "tables": [
     {

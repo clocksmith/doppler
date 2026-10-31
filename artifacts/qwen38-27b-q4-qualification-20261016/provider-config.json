@@ -1,8 +1,8 @@
 {
-  "installedPackage": "/home/x/.local/share/reploid/releases/c368c807-public-qwen27b/reploid/node_modules/doppler-gpu",
-  "inventoryPath": "/home/x/deco/doppler/.tmp/qwen38-q4-qualification-20261016/q4-head-inventory.json",
-  "modelDirectory": "/home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact",
-  "referenceContract": "/home/x/deco/doppler/.tmp/qwen38-q4-qualification-20261016/q4-head-reference-input.json",
+  "installedPackage": "$HOME/.local/share/reploid/releases/c368c807-public-qwen27b/reploid/node_modules/doppler-gpu",
+  "inventoryPath": "$HOME/deco/doppler/.tmp/qwen38-q4-qualification-20261016/q4-head-inventory.json",
+  "modelDirectory": "$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact",
+  "referenceContract": "$HOME/deco/doppler/.tmp/qwen38-q4-qualification-20261016/q4-head-reference-input.json",
   "runtimeConfig": {
     "shared": {
       "harness": {
@@ -105,5 +105,5 @@
     "repetitionPenalty": 1
   },
   "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
-  "reploidDirectory": "/home/x/.local/share/reploid/releases/c368c807-public-qwen27b/reploid"
+  "reploidDirectory": "$HOME/.local/share/reploid/releases/c368c807-public-qwen27b/reploid"
 }

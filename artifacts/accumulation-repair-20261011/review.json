@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.f16-tiled-accumulation-repair/v1",
   "scope": "General F32 accumulation improvement with scoped AMD physical evidence; full numerical acceptance still fails",
   "shaderSha256": "31b2f8d9623d77df223f12da61eb5a178209fa1ce43199fe94357d7791c2b3b5",
@@ -501,11 +503,11 @@
     },
     {
       "path": "rejected-kahan-physical.log.gz",
-      "uncompressedSha256": "3848d1616e452174e5fcb2fd33fb2229ef40abe1620c79b89eb85b4d5c232bea"
+      "uncompressedSha256": "f9f48b65916705e3921365968d14612fd6f8147f7caf8e61dbb7cd4c29980534"
     },
     {
       "path": "rejected-unaligned-harness.log.gz",
-      "uncompressedSha256": "4e4a9cf73ff0a47aee5ee406e912ede91ecf671769ff38007bef7a1f1809c9e6"
+      "uncompressedSha256": "06bb34efed89685de5620fe739dee2afc5a6298ca3497a21b52d00a0218cbd9d"
     },
     {
       "path": "physical-pairwise.json.gz",
@@ -525,7 +527,7 @@
     },
     {
       "path": "candidate-prefixes.json.gz",
-      "uncompressedSha256": "947e914d26c785d4906e2754e69c57713767f11d6280136c0835a83397dec11b"
+      "uncompressedSha256": "c31b332e7b672be693996188aa85cefb79c2dc4f6f90076af1ff34c345fecd29"
     },
     {
       "path": "candidate-prefixes.log.gz",
@@ -561,7 +563,7 @@
     },
     {
       "path": "tiled-candidate-prefixes.json.gz",
-      "uncompressedSha256": "a358662f05f982e2dfb791a0505a5d73c18ed9c245dc81012beb7ce57e20bdb9"
+      "uncompressedSha256": "a77cf9b06b16240fd4cc49a69fc305cfedd8ccad6a7cf8721dccf0c7a1364ae5"
     },
     {
       "path": "tiled-candidate-prefixes.log.gz",

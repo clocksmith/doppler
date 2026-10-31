@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.signed-candidate-retained-files/v1",
   "scope": "Isolated preparation; URL unserved and physical opening pending. Private signing key remains outside retained directory.",
   "closureDirectory": "/var/tmp/qwen35-capsule-0fad-20261012",
@@ -11,9 +13,9 @@
     "release-events.json": "a53d137d82284f87d486343fca53c53d6bebf0463106cc58d3e21b4abcf25804",
     "trusted-signers.json": "c274076be85045c86c1cb716cd5ad52a8bd8755538a57226ff59621923a799c2",
     "program-options.json": "95acfa82c1ac8f36edd3a526f5d160e53f4b7acd4fee0baef4c40a99e5e03419",
-    "rig-options.json": "3c1b30809d272543f58c168bd7ae679a83a71527f8319b0b0da80f4534c9627f",
+    "rig-options.json": "90fd27299ee1a05320950a038a0a300bad49db92952106457b51facf5a2f5c66",
     "rig-result.json": "87239654685e05728f1a5fc51d8f555117893c10aa249bc687bf543c17b87d42",
-    "build-binding.json": "c25a917570c7fffcb42be95b6c02449a9dbe26f7e6a78daa26e4c5f55adef170",
+    "build-binding.json": "d55f20f4f42afddd80beb9cefe91c95bb4ce4c833cd440e3fcefd81ee9a0d049",
     "exact-runtime-verification.json": "973ae140994f68fd20d915ca98aff7016390cb400d467699f0d2ddf417d8f8ed",
     "runtime-archive-verification.json": "09801848b5da67a0985a4a0f13aa0c7f3ddbeb4a15ec2b51dd82d4b64988a26a",
     "catalog-preparation.json": "8a70fc31372154294944ad1df4e7753a585cd99829b0a17d41c2fc9fbeb3860c",

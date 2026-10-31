@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.wgsl-writer-semantic-evaluation/v1",
   "experimentId": "doppler-wgsl-writer-v2",
   "evaluationRole": "seed_confirmation",
@@ -15,14 +17,14 @@
   },
   "candidate": {
     "seed": 11,
-    "adapterPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed11/sft/checkpoints/gamma/adapter",
+    "adapterPath": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed11/sft/checkpoints/gamma/adapter",
     "adapterTreeSha256": "fc8ff4a3bb25773024f673d4729b242fd70ee78ac9f399b9403cafce3675b986",
     "statusPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed11/training-status.json",
-    "statusSha256": "a955d53de761983dc0cf33548444000b20a17707ee26bec632ad4d6a9cb9b281"
+    "statusSha256": "35cf84cdddd4ddab36d347997d69245348bf5779aada131a5da390132d43c2d8"
   },
   "reference": {
-    "path": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/seed-confirmation/peft-reference.json",
-    "sha256": "110ff43148ec77b7604a6ff19b46e6b02cf14952b205b2552cad296a73ff80e9"
+    "path": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/seed-confirmation/peft-reference.json",
+    "sha256": "43b0f70f448b433af8b969b50c2fe494c5a58a1f1675f8b2a8531d00c014cc0e"
   },
   "runtime": {
     "backend": "chromium_webgpu",

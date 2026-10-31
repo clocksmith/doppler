@@ -195,8 +195,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:40:01.853Z",
       "lifecycle": {
         "cancel": {
@@ -681,8 +681,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:40:20.228Z",
       "lifecycle": {
         "cancel": {
@@ -1165,8 +1165,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:40:39.011Z",
       "lifecycle": {
         "cancel": {
@@ -1650,8 +1650,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:40:57.468Z",
       "lifecycle": {
         "cancel": {
@@ -2136,8 +2136,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:41:15.993Z",
       "lifecycle": {
         "cancel": {
@@ -2620,8 +2620,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:41:34.669Z",
       "lifecycle": {
         "cancel": {
@@ -3104,8 +3104,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:41:53.108Z",
       "lifecycle": {
         "cancel": {
@@ -3588,8 +3588,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:42:11.644Z",
       "lifecycle": {
         "cancel": {
@@ -4073,8 +4073,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:42:30.154Z",
       "lifecycle": {
         "cancel": {
@@ -4557,8 +4557,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:42:48.731Z",
       "lifecycle": {
         "cancel": {
@@ -5041,8 +5041,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:43:07.260Z",
       "lifecycle": {
         "cancel": {
@@ -5528,8 +5528,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:43:25.734Z",
       "lifecycle": {
         "cancel": {
@@ -6017,8 +6017,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:43:44.540Z",
       "lifecycle": {
         "cancel": {
@@ -6502,8 +6502,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:44:03.555Z",
       "lifecycle": {
         "cancel": {
@@ -6987,8 +6987,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:44:22.110Z",
       "lifecycle": {
         "cancel": {
@@ -7473,8 +7473,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:44:40.736Z",
       "lifecycle": {
         "cancel": {
@@ -7960,8 +7960,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:44:59.446Z",
       "lifecycle": {
         "cancel": {
@@ -8442,8 +8442,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:45:18.184Z",
       "lifecycle": {
         "cancel": {
@@ -8926,8 +8926,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:45:36.486Z",
       "lifecycle": {
         "cancel": {
@@ -9412,8 +9412,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:45:55.024Z",
       "lifecycle": {
         "cancel": {
@@ -9898,8 +9898,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:46:13.628Z",
       "lifecycle": {
         "cancel": {
@@ -10387,8 +10387,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:46:32.349Z",
       "lifecycle": {
         "cancel": {
@@ -10873,8 +10873,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:46:51.382Z",
       "lifecycle": {
         "cancel": {
@@ -11359,8 +11359,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:47:10.063Z",
       "lifecycle": {
         "cancel": {
@@ -11849,8 +11849,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:47:28.781Z",
       "lifecycle": {
         "cancel": {
@@ -12337,8 +12337,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:47:47.902Z",
       "lifecycle": {
         "cancel": {
@@ -12822,8 +12822,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:48:06.723Z",
       "lifecycle": {
         "cancel": {
@@ -13307,8 +13307,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:48:25.336Z",
       "lifecycle": {
         "cancel": {
@@ -13793,8 +13793,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:48:43.970Z",
       "lifecycle": {
         "cancel": {
@@ -14281,8 +14281,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:49:02.701Z",
       "lifecycle": {
         "cancel": {
@@ -14768,8 +14768,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:49:21.523Z",
       "lifecycle": {
         "cancel": {
@@ -15255,8 +15255,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:49:40.321Z",
       "lifecycle": {
         "cancel": {
@@ -15740,8 +15740,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:49:59.107Z",
       "lifecycle": {
         "cancel": {
@@ -16227,8 +16227,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:50:17.692Z",
       "lifecycle": {
         "cancel": {
@@ -16712,8 +16712,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:50:36.420Z",
       "lifecycle": {
         "cancel": {
@@ -17194,8 +17194,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:50:55.037Z",
       "lifecycle": {
         "cancel": {
@@ -17681,8 +17681,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:51:13.416Z",
       "lifecycle": {
         "cancel": {
@@ -18166,8 +18166,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:51:32.178Z",
       "lifecycle": {
         "cancel": {
@@ -18652,8 +18652,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:51:50.743Z",
       "lifecycle": {
         "cancel": {
@@ -19137,8 +19137,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-B",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T18:52:09.454Z",
       "lifecycle": {
         "cancel": {

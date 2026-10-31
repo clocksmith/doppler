@@ -1,6 +1,6 @@
 {
-  "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
-  "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+  "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmv3-A",
+  "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
   "startedAt": "2026-10-22T18:50:55.037Z",
   "lifecycle": {
     "cancel": {

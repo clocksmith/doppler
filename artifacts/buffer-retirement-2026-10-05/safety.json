@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schemaVersion": 1,
   "passed": true,
   "physical": {
@@ -32,19 +34,19 @@
   },
   "installedChecks": [
     {
-      "path": "/home/x/deco/doe/bench/out/onnx-vulkan-campaign/20261005/safety/doppler-delivered/results/delivered-final-first-audit.json",
-      "sha256": "4dd7d4ae2d0ba405653bb48ce7cacdaf47a56e17f8d7172e7063246a40a4459f",
+      "path": "$HOME/deco/doe/bench/out/onnx-vulkan-campaign/20261005/safety/doppler-delivered/results/delivered-final-first-audit.json",
+      "sha256": "8c2c85ae688092fdbb19bb457b3bd6a9fe9151834c5d77e668ab322271dd375e",
       "passed": true,
       "warningAbsent": true
     },
     {
-      "path": "/home/x/deco/doe/bench/out/onnx-vulkan-campaign/20261005/safety/doppler-delivered/results/delivered-final-reopen-audit.json",
-      "sha256": "75a9731cd521ef66f1c047d099c770ce8ad581dcc13b8d55faf5a3af91fe6801",
+      "path": "$HOME/deco/doe/bench/out/onnx-vulkan-campaign/20261005/safety/doppler-delivered/results/delivered-final-reopen-audit.json",
+      "sha256": "e59c401a3033efbbbe2ed8bb80fdf2365b1307e9c3d7aa5917c68adcaf9a0d2a",
       "passed": true,
       "warningAbsent": true
     }
   ],
   "archiveSha256": "bc9298ef4bf4fc3b5bfdcff6d24104059af2cd643c16604ae1aab2ef9ecf29ae",
   "sourceSha256": "6dd5d04cd8f6d16c15753fa6c6152a5b4a9f48bb4dcdb670f536f889ae351b80",
-  "greenCheckLogSha256": "1933fcff1d486263e82c7c2bc37dd7d4099d0cf6965d12c054ceeb4a54709779"
+  "greenCheckLogSha256": "7e4b4dc04284da0fef40106408a9530a117eb4446bd331ee669ecb1264fe5b5f"
 }

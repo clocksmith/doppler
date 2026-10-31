@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.recurrent-compile-investigation/v1",
   "sourceCommit": "f2b5a2ef",
   "component": "doppler.runtime-source.gpu.kernels",
@@ -89,12 +91,12 @@
   ],
   "cachePolicy": "Existing provider caches retained; pipeline timings are not cold-start or performance qualification",
   "retainedEvidence": {
-    "operator/result.json": "cd9ba4aab2236b20149601e6fccfdf23c59077cc5e8abc0c46584e7ca4533dc1",
-    "gate-readback/result.json": "b23a4c0b2ece71b27366ad7d0e58facda052b9658824b311ffe45b1647d7d854",
+    "operator/result.json": "ed08e9a9f734f37bf8eca30bebd221ea52c49a8a67e688bf0a4d04bec657da83",
+    "gate-readback/result.json": "c64aac55d733ab3be5d69c8722fd859bfd079d6fd7604e7e46a11e47b604bc38",
     "log-boundary/events.jsonl": "f331110a7116665f4bc5cbb222450e470c8f72b4eaf7efbe3f4c861590299d35",
     "log-series/events.jsonl": "df6298c225cd0548b8f3e02b78d31c6915e9491bf373dc488764ec4856979400",
     "log-alone/events.jsonl": "5bc03eb941166ca627872e60b39c1b0929072428b6c7703ff46cedcde1a680d4",
-    "gate-separated/result.json": "e02b558c1d2c8f7d48f71d128117272e4d62cb9e4ae0fdf470f8fb02442a8bc7",
+    "gate-separated/result.json": "05222f774d4f8a1c18c18f4db03620c4fce12d3398a4b6681d74e4d00d742620",
     "gate-separated/memory.jsonl": "d2e85c318640459ffc17ef92acb57ea1ea1b08517567f6c8be8a985c92fb51b7"
   },
   "checks": [

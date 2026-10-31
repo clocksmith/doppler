@@ -22,12 +22,12 @@
         "executable": "node",
         "ownership": "known public contributor",
         "script": "scripts/run-mesh-contributor.js",
-        "profile": "/home/x/.local/share/reploid/public-compute"
+        "profile": "$HOME/.local/share/reploid/public-compute"
       }
     ],
     "scope": "Read-only selected process signatures; absence is not exclusive GPU availability"
   },
-  "Suby": {
+  "intel-host": {
     "observedAt": "2026-10-13T15:28:57.687005+00:00",
     "rows": [
       {

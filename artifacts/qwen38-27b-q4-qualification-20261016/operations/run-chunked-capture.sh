@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd /home/x/deco/doppler
+cd $HOME/deco/doppler
 systemctl --user is-active --quiet reploid-qwen-08b.service
 systemctl --user is-active --quiet reploid-qwen-2b.service
 systemctl --user is-active --quiet reploid-qwen-27b.service

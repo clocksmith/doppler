@@ -18,11 +18,11 @@
       "engine": "mlx",
       "command": ".cache/mlx-comparison/bin/python",
       "args": [
-        "/Users/xyz/deco/doppler/artifacts/qwen08-m3-mlx-20261015/mlx-reference.py",
-        "/Users/xyz/deco/doppler/.cache/qwen08-source",
-        "/Users/xyz/deco/doppler/artifacts/qwen08-m3-mlx-20261015/inputs.json",
-        "/Users/xyz/deco/doppler/artifacts/qwen08-m3-mlx-20261015/mlx.json",
-        "/Users/xyz/deco/doppler/artifacts/qwen08-m3-mlx-20261015/policy.json"
+        "$HOME/deco/doppler/artifacts/qwen08-m3-mlx-20261015/mlx-reference.py",
+        "$HOME/deco/doppler/.cache/qwen08-source",
+        "$HOME/deco/doppler/artifacts/qwen08-m3-mlx-20261015/inputs.json",
+        "$HOME/deco/doppler/artifacts/qwen08-m3-mlx-20261015/mlx.json",
+        "$HOME/deco/doppler/artifacts/qwen08-m3-mlx-20261015/policy.json"
       ],
       "startedAt": "2026-10-16T02:44:34.329Z",
       "endedAt": "2026-10-16T02:44:54.294Z",
@@ -32,13 +32,13 @@
     },
     {
       "engine": "doppler",
-      "command": "/Users/xyz/.nvm/versions/node/v22.20.0/bin/node",
+      "command": "$HOME/.nvm/versions/node/v22.20.0/bin/node",
       "args": [
-        "/Users/xyz/deco/doppler/.cache/qwen08-runtime/artifacts/qwen08-m3-mlx-20261015/doppler.js",
-        "/Users/xyz/deco/doppler/.cache/qwen08-f16",
-        "/Users/xyz/deco/doppler/artifacts/qwen08-m3-mlx-20261015/inputs.json",
-        "/Users/xyz/deco/doppler/artifacts/qwen08-m3-mlx-20261015/doppler.json",
-        "/Users/xyz/deco/doppler/artifacts/qwen08-m3-mlx-20261015/policy.json"
+        "$HOME/deco/doppler/.cache/qwen08-runtime/artifacts/qwen08-m3-mlx-20261015/doppler.js",
+        "$HOME/deco/doppler/.cache/qwen08-f16",
+        "$HOME/deco/doppler/artifacts/qwen08-m3-mlx-20261015/inputs.json",
+        "$HOME/deco/doppler/artifacts/qwen08-m3-mlx-20261015/doppler.json",
+        "$HOME/deco/doppler/artifacts/qwen08-m3-mlx-20261015/policy.json"
       ],
       "startedAt": "2026-10-16T02:44:54.295Z",
       "endedAt": "2026-10-16T02:45:35.868Z",

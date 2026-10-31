@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.wgsl-writer-adapter-parity-receipt/v1",
   "experimentId": "doppler-wgsl-writer-v2",
   "policy": {
@@ -7,27 +9,27 @@
   },
   "selection": {
     "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/selection/selected-seed.json",
-    "sha256": "09df9c7444025ef749718c75afc8fbad877608f88289a6999f3544621f649cee",
+    "sha256": "825cbb6c1729b65d72daf6aba098b831307f6b5e172cac940f7403e3500c27a4",
     "receiptHash": "179e799ce9a15875675a340a24443f0f2c8c91c3237ad939094f042228517e12",
     "selectedSeed": 47
   },
   "confirmation": {
     "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/confirmation.json",
-    "sha256": "91f2387db1535d6d75705749a659e2288619bba2236ce5d10054ff4249693e11",
+    "sha256": "7e0817998f42c929667f37af63fe19fda44aa3340232f428637a616a95848609",
     "receiptHash": "1ece6b82bb9f805724e40cae9a26043741a84a3bb55e1374ec554a69b3866c44"
   },
   "evidence": {
     "reference": {
-      "path": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/transformers/reference.json",
-      "sha256": "c749b67d3bb1acf29122fc9b379ad4e2afedbb3a1c6e703a5eaea62cb4d7a224"
+      "path": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/transformers/reference.json",
+      "sha256": "b532b207bf40833aae554bb3fb3812b9d211a3cb421b9d3c93b476268ac9c445"
     },
     "dopplerBase": {
-      "path": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/doppler/base.json",
-      "sha256": "649ebfbd05d0de4ba13ee113e65cabc058de2c6d0ced0add0845f5c3dd1497bf"
+      "path": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/doppler/base.json",
+      "sha256": "3da1faef8abfa07505c7da3da5dd8220f008b53f858ce974bbd11b33fdd7dbd3"
     },
     "dopplerAdapter": {
-      "path": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/doppler/seed47.json",
-      "sha256": "2e22f64db035b9c113788293d5f67e936e1b81a49211ef6e2e5f091a9f600dae"
+      "path": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/doppler/seed47.json",
+      "sha256": "1c2c122e381c2d9daf353a9f65f4bd069f706a2589c7fe05f3f9a1547cc16216"
     }
   },
   "identities": {

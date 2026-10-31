@@ -1,6 +1,6 @@
 {
   "complete": true,
-  "provider": "file:///Users/xyz/deco/doe/packages/doe-gpu/src/index.js",
+  "provider": "file://$HOME/deco/doe/packages/doe-gpu/src/index.js",
   "cancelled": {
     "tokenCount": 3,
     "stopReason": "aborted"

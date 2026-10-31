@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.independent-source-review/v1",
   "reviewer": "/root/document_quality",
   "recordedAt": "2026-10-13T17:19:50.735549+00:00",
@@ -19,6 +21,6 @@
     "src/gpu/kernels/qwen_linear_attention_prepare_paired.wgsl": "ad1af903862dc140b09f310b91083d92b23748fe80ac2927c876cde5efe3e3d5",
     "src/gpu/kernels/gated_delta_recurrent_paired.wgsl": "d057940ff5f1f181c5deaa7e0eb329c599e1889ba3a7aa35b73405002189a186",
     "artifacts/ordered-partitions-20261013/paired-gate-preparation/linear-control.js": "9648665800647689550ea3a0f5f1778287347dbc058fefcc399aad5672d929fa",
-    "artifacts/ordered-partitions-20261013/paired-gate-preparation/proposal.json": "4f4523dd0e5473dc0caa9b5956633e7f41d5e8439de2e4c2f63ffd2010828995"
+    "artifacts/ordered-partitions-20261013/paired-gate-preparation/proposal.json": "0770403d1fd8c0faef7f184ba31c79626089cd831951db3aa855ecce5e2f52ac"
   }
 }

@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "receipt.json": {
     "retained": "settled-installed-receipt.json.gz",
     "uncompressedSha256": "ddb760398918a0e22481d44632ab80b867d4a8f77e39c669d345a12ed6bb3f15"
@@ -9,6 +11,6 @@
   },
   "commands.json": {
     "retained": "settled-installed-commands.json.gz",
-    "uncompressedSha256": "a55985c9dbd45404a89c4709b4455e1545d4c63094d2422e0c9eafea223700bc"
+    "uncompressedSha256": "57dc020a587a6f9ee34b4be0e924212777489e1a5a1d922d12c1e7cc0c428ce7"
   }
 }

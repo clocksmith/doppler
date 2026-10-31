@@ -1,5 +1,7 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "source": "reports/local/w8a8-qualification-20261011/w8a8-packed-f16-benchmark-02/qualification.json",
-  "sha256": "25dfc5e9950ab6ed84fa02cf2ecf2e5deda9e901ed7787a43ed926752bc54bde",
+  "sha256": "f7d29ac68a81bb8637058d68a74eaec2fe056081de7dc2ba99267d43c457164d",
   "retained": "paired-resident-f16-budget-failure.json.gz"
 }

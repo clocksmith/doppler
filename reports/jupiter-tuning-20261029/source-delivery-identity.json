@@ -1,9 +1,11 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "baseRevision": "efd9549a",
   "checkoutHead": "5b23dd46d585151755b8ec152aaf64412d3c5c73",
   "files": {
     ".gitignore": "4f8d22428347f2d5203a71237a4c58954c6d12395924079d32e13ed3c3148d1e",
-    "AGENTS.md": "56e4ad307273e2d4123078ec63e585e91d984851cda441bc82eefd46c5867925",
+    "AGENTS.md": "6adec70c770afed5b70186724da3857eb56b9e299dd41816fea57ac7eaf7c839",
     "benchmarks/kernels/execution-routing-audit.json": "c3026a925e6a36701023e03729c9b7baf8ce477456e85c99cf7e6a2d944b6f56",
     "docs/api/tooling-experimental.md": "ba91807bb2bbf42f485950be6bf01e3008219701864f7e4971843913002a1b8d",
     "docs/architecture-dependencies.json": "7fcece293002a90e38a29f10f168b0f7a734431d8a2a8bdc055abd3564f62684",
@@ -121,6 +123,6 @@
     "tsconfig.source-strict.json": "68e6eef8ceb3386d8aeb088295ec8a5fb805b35388aa64012973d978229c346b",
     "tsconfig.source-unused.json": "8de5634b8cff95f52b19dc11806a9a2a1ae8f1e4a6879f63c1a88fa3deb07e41"
   },
-  "archiveSha256": "1fa6a268947e5369b3a3e4782971c88f7d98fdccf9eaaf08814abdfa60d2debe",
+  "archiveSha256": "a7214fd3acfe0ba3b58e219ab7434f77b4468931e1ca99975c5917f8192dad84",
   "deltaFromRegisterCandidate": "Removed dead compensated-state functions/branches from the scalar-only shader; retained the same F32 expressions. Added unsupported paired/MoE guards, deduplicated identical manifest boolean validation, and made gate-closure tests inspect registered companion passes. No weight, tolerance, sampling, or active F32 math changes."
 }

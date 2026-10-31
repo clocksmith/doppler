@@ -1,5 +1,5 @@
 {
-  "sourceRepository": "/home/x/deco/reploid",
+  "sourceRepository": "$HOME/deco/reploid",
   "sourceRevision": "99ca0456d01e8f08e070ec998de8834e4b6008f7",
   "ownedExport": "/var/tmp/reploid",
   "files": [

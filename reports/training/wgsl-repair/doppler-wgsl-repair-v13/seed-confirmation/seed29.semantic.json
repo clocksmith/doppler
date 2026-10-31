@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.wgsl-repair-semantic-dispatch-receipt/v1",
   "experimentId": "doppler-wgsl-repair-v13",
   "evaluationRole": "seed_confirmation",
@@ -7,13 +9,13 @@
     "lane": "external20",
     "seed": 29,
     "adapterManifestPath": "reports/training/wgsl-repair/doppler-wgsl-repair-v12/seed29/external20/sft/exports/checkpoint-001200.adapter.manifest.json",
-    "adapterManifestSha256": "e5dec965a953aa746e592ae38045f445e7d9b1407feb609f448238427af4b042",
+    "adapterManifestSha256": "bbe062191afdb61202cf3273df83c26de641c170a206801d868647b6c1648852",
     "adapterWeightsPath": "reports/training/wgsl-repair/doppler-wgsl-repair-v12/seed29/external20/sft/exports/checkpoint-001200.adapters.safetensors",
     "adapterWeightsSha256": "0d9ab8e1348a3fcdd6ef2973b624cc1a3d962de90a571976a5a222df27b69394"
   },
   "candidateCompletions": {
     "path": "reports/training/wgsl-repair/doppler-wgsl-repair-v13/seed-confirmation/seed29.completions.json",
-    "sha256": "a623a252a7d0914ce98d070ce2d456846e6ced8b0d0e59b36f3297aefeb2e242",
+    "sha256": "baa78fd52ff084c33ac04da8f71f7fbd416d1eea369be1d831d86a6bab684ef0",
     "receiptHash": "4612e80cfcb0dc0377fe7d034c17c89873c23877120fdebf03cc331c57ff241a"
   },
   "policy": {

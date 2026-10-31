@@ -2,7 +2,7 @@
   "mode": "model",
   "packageBundlePath": "/var/tmp/doppler-loading-package-20260926-04",
   "modelDir": "/dev/shm/doppler-compact-20260926/qwen-embedding",
-  "referencePath": "/home/x/deco/doppler/artifacts/document-search-diagnosis-2026-09-26/boundary-input.json",
+  "referencePath": "$HOME/deco/doppler/artifacts/document-search-diagnosis-2026-09-26/boundary-input.json",
   "outputDir": "/dev/shm/doppler-diagnosis-20260926/q4-browser-boundaries",
   "requiredVendor": "amd",
   "timeoutMs": 600000,

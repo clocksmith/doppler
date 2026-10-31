@@ -1,12 +1,14 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.quantized-generation-observation/v1",
   "qualified": false,
   "scope": "Installed runtime forced-token diagnostic; no cross-precision token acceptance gate",
-  "configSha256": "8e912bb5efc264b08da9d040eeae6ca7f6b8abc4a81a8529deddf47a4f2c5467",
+  "configSha256": "14489728d1b836fce43988272b15ed4c6d6622cc69014cf291683c63730c5987",
   "toolSha256": "8e5f033709c7c6ebc843f142fb9a19f58650e075f61020845ad2b83580688393",
   "packageVersion": "0.6.30",
   "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
-  "contractSha256": "bec293317d54d56f7e4fd7ee0d8419ee366bfa1b6fb2295a3164a505ec202dcc",
+  "contractSha256": "92ac7653810982d14cda3d3b980cde963beac0bb45c9624da451deb10adebab0",
   "inputCases": [
     {
       "id": "holdout-json",

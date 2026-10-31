@@ -31,6 +31,6 @@
 [898.3ms][Loader] [0.3s] Memory (complete): | RSS=1.31 GB (heap=63.74 MB/99.08 MB, external=1.04 GB, arrayBuffers=1.03 GB) | GPU=893.10 MB (345 active, 0 pooled, peak=893.10 MB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=345
 [908.5ms][Pipeline] Model loaded successfully (631ms)
 [909.8ms][TestHarness] Pipeline ready
-Wrote /Users/xyz/deco/doppler/reports/community-lora-20261017/applied.json
+Wrote $HOME/deco/doppler/reports/community-lora-20261017/applied.json
 [972.5ms][ExpertCache] Cache cleared
 [975.4ms][Pipeline] Unloaded

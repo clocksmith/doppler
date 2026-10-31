@@ -145,8 +145,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T02:59:11.233Z",
       "lifecycle": {
         "unload": true,
@@ -557,8 +557,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/home/x/deco/doppler",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "$HOME/deco/doppler",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T02:59:24.576Z",
       "lifecycle": {
         "unload": true,
@@ -979,8 +979,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/home/x/deco/doppler",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "$HOME/deco/doppler",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T02:59:37.631Z",
       "lifecycle": {
         "unload": true,
@@ -1397,8 +1397,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T02:59:51.754Z",
       "lifecycle": {
         "unload": true,
@@ -1817,8 +1817,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/home/x/deco/doppler",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "$HOME/deco/doppler",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:00:05.427Z",
       "lifecycle": {
         "unload": true,
@@ -2229,8 +2229,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:00:19.311Z",
       "lifecycle": {
         "unload": true,
@@ -2646,8 +2646,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:00:32.460Z",
       "lifecycle": {
         "unload": true,
@@ -3063,8 +3063,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/home/x/deco/doppler",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "$HOME/deco/doppler",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:00:46.021Z",
       "lifecycle": {
         "unload": true,
@@ -3481,8 +3481,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:00:59.613Z",
       "lifecycle": {
         "unload": true,
@@ -3899,8 +3899,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/home/x/deco/doppler",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "$HOME/deco/doppler",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:01:13.267Z",
       "lifecycle": {
         "unload": true,
@@ -4311,8 +4311,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/home/x/deco/doppler",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "$HOME/deco/doppler",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:01:26.973Z",
       "lifecycle": {
         "unload": true,
@@ -4725,8 +4725,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:01:40.076Z",
       "lifecycle": {
         "unload": true,
@@ -5143,8 +5143,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/home/x/deco/doppler",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "$HOME/deco/doppler",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:01:53.377Z",
       "lifecycle": {
         "unload": true,
@@ -5550,8 +5550,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:02:07.119Z",
       "lifecycle": {
         "unload": true,
@@ -5964,8 +5964,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:02:19.687Z",
       "lifecycle": {
         "unload": true,
@@ -6379,8 +6379,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/home/x/deco/doppler",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "$HOME/deco/doppler",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:02:33.031Z",
       "lifecycle": {
         "unload": true,
@@ -6783,8 +6783,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:02:46.389Z",
       "lifecycle": {
         "unload": true,
@@ -7178,8 +7178,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/home/x/deco/doppler",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "$HOME/deco/doppler",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:02:58.608Z",
       "lifecycle": {
         "unload": true,
@@ -7574,8 +7574,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/home/x/deco/doppler",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "$HOME/deco/doppler",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:03:09.992Z",
       "lifecycle": {
         "unload": true,
@@ -7968,8 +7968,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:03:21.443Z",
       "lifecycle": {
         "unload": true,
@@ -8363,8 +8363,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/home/x/deco/doppler",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "$HOME/deco/doppler",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:03:32.683Z",
       "lifecycle": {
         "unload": true,
@@ -8760,8 +8760,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:03:44.059Z",
       "lifecycle": {
         "unload": true,
@@ -9155,8 +9155,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:03:55.556Z",
       "lifecycle": {
         "unload": true,
@@ -9550,8 +9550,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/home/x/deco/doppler",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "$HOME/deco/doppler",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:04:06.970Z",
       "lifecycle": {
         "unload": true,
@@ -9951,8 +9951,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:04:18.380Z",
       "lifecycle": {
         "unload": true,
@@ -10348,8 +10348,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/home/x/deco/doppler",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "$HOME/deco/doppler",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:04:30.336Z",
       "lifecycle": {
         "unload": true,
@@ -10742,8 +10742,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/home/x/deco/doppler",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "$HOME/deco/doppler",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:04:41.902Z",
       "lifecycle": {
         "unload": true,
@@ -11137,8 +11137,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:04:53.214Z",
       "lifecycle": {
         "unload": true,
@@ -11533,8 +11533,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/home/x/deco/doppler",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "$HOME/deco/doppler",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:05:04.594Z",
       "lifecycle": {
         "unload": true,
@@ -11928,8 +11928,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:05:16.049Z",
       "lifecycle": {
         "unload": true,
@@ -12324,8 +12324,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:05:27.418Z",
       "lifecycle": {
         "unload": true,
@@ -12718,8 +12718,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/home/x/deco/doppler",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "$HOME/deco/doppler",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:05:38.933Z",
       "lifecycle": {
         "unload": true,
@@ -13112,8 +13112,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:05:50.283Z",
       "lifecycle": {
         "unload": true,
@@ -13508,8 +13508,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/home/x/deco/doppler",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "$HOME/deco/doppler",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:06:01.596Z",
       "lifecycle": {
         "unload": true,
@@ -13904,8 +13904,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/home/x/deco/doppler",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "$HOME/deco/doppler",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:06:13.079Z",
       "lifecycle": {
         "unload": true,
@@ -14298,8 +14298,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:06:24.522Z",
       "lifecycle": {
         "unload": true,
@@ -14694,8 +14694,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/home/x/deco/doppler",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "$HOME/deco/doppler",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:06:35.803Z",
       "lifecycle": {
         "unload": true,
@@ -15090,8 +15090,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:06:47.326Z",
       "lifecycle": {
         "unload": true,
@@ -15485,8 +15485,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/lmhead-baseline",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:06:58.818Z",
       "lifecycle": {
         "unload": true,
@@ -15881,8 +15881,8 @@
     ],
     "stderr": "",
     "probe": {
-      "sourceRoot": "/home/x/deco/doppler",
-      "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+      "sourceRoot": "$HOME/deco/doppler",
+      "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
       "startedAt": "2026-10-22T03:07:10.234Z",
       "lifecycle": {
         "unload": true,

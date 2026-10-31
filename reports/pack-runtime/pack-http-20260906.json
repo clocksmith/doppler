@@ -94,7 +94,7 @@
       "bytes": 6102,
       "sha256": "7875d77a272624665d040fed20888088883778ab2c22693ea2a01853eecf9b6c"
     },
-    "command": "node /tmp/doppler-pack-http-20260906-04/consumer/physical-http.js /home/x/deco/doppler/reports/electron-adoption/pack-http-20260906-02-config.json /home/x/deco/doppler/reports/electron-adoption/pack-http-20260906-physical-02.json",
+    "command": "node /tmp/doppler-pack-http-20260906-04/consumer/physical-http.js $HOME/deco/doppler/reports/electron-adoption/pack-http-20260906-02-config.json $HOME/deco/doppler/reports/electron-adoption/pack-http-20260906-physical-02.json",
     "hardware": {
       "vendor": "amd",
       "architecture": "rdna-3",

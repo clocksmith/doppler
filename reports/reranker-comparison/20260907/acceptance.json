@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.reranker-comparison-acceptance/v1",
   "passed": true,
   "scope": "Numerically qualified browser product paths; lifecycle differences reported separately; no overall superiority or identical artifact claim.",
@@ -187,8 +189,8 @@
   ],
   "evidence": {
     "path": "evidence.tar.gz",
-    "sizeBytes": 1012356,
-    "sha256": "861117a3559600c23c92520b1946e49a36da5f56a5e81258665536d3382cf070"
+    "sizeBytes": 1012480,
+    "sha256": "15402d317328d5f8fc5e657e7eeef1982478cdf266f6f5b9710d4ce70dc73a91"
   },
   "reproduction": {
     "path": "reproduction.tar.gz",
@@ -198,8 +200,8 @@
   "files": [
     {
       "path": "lifecycle/doppler/observation.json",
-      "sizeBytes": 97625,
-      "sha256": "5d6da5d5cf4f7605c404e6879e32ef4bb7f0c42df2ed301e6d214997259b14df"
+      "sizeBytes": 97623,
+      "sha256": "33d9526b39a31834f156b687074dfdebcdc3dfa3f2fd8219b2b7962df1be09a7"
     },
     {
       "path": "lifecycle/doppler/progress.json",
@@ -243,8 +245,8 @@
     },
     {
       "path": "lifecycle/doppler.log",
-      "sizeBytes": 555,
-      "sha256": "d11c18a96a3945a2d238963b894608177f00b58ce549f4dc6fd7f6164abb61a7"
+      "sizeBytes": 553,
+      "sha256": "e3e23b1a4ba4664cf0b45d3494b7bdfa154c5d36d87ef32fe16f3f510e7efd81"
     },
     {
       "path": "lifecycle/transformersjs/observation.json",
@@ -408,8 +410,8 @@
     },
     {
       "path": "paired/comparison.json",
-      "sizeBytes": 302498,
-      "sha256": "bba2f26c33f630fc2c011ca685fb241368be62d2d7d4ec3aab65fdf812d9200a"
+      "sizeBytes": 302486,
+      "sha256": "c2dea91fa8e1579b094d22384d71c8ba469c3eb194b0bd23e992b1a618b0cd6c"
     },
     {
       "path": "paired/plan.json",
@@ -418,13 +420,13 @@
     },
     {
       "path": "paired/progress.json",
-      "sizeBytes": 300364,
-      "sha256": "ba298c082560f6cb6f8806e3e629e29d8790d56426dc1d7a88441f76a32c703f"
+      "sizeBytes": 300352,
+      "sha256": "a901ef4a4bf9449f16e409f4272d1ea08899c5a11e56bfb9003e1d8190292142"
     },
     {
       "path": "paired/run.js",
-      "sizeBytes": 5077,
-      "sha256": "1ac33862a6f747608d5c21b03e4bd5f92ff7e1a83900a798947e09d3f58e4af2"
+      "sizeBytes": 5073,
+      "sha256": "976ef5ec5b2241d641292d79bdb85533baedc05f9b89394962d34841776aa6bb"
     },
     {
       "path": "paired/run.log",
@@ -523,8 +525,8 @@
     },
     {
       "path": "preparation/doppler-reranker-source-onnx-qualification-01.log",
-      "sizeBytes": 366,
-      "sha256": "f288b0e77bfd59672e82acf4e41ef207edf0317b9a6ffd463ba6508edbee7187"
+      "sizeBytes": 364,
+      "sha256": "e20c405bbe49da0b8cf288f84776b037eec0806728c38c1737baa285de007857"
     },
     {
       "path": "preparation/doppler-tjs-load-diagnostic.json",
@@ -553,13 +555,13 @@
     },
     {
       "path": "qualification/doppler-browser-reranker-reference-01/qualification.json",
-      "sizeBytes": 45328,
-      "sha256": "5ca29fcdd9bf4dbec62fe9eceb62e6760f6da28e30ae718848fb1823cefd06ae"
+      "sizeBytes": 45326,
+      "sha256": "3b33fa51e011bd3de4a8e30bf33dcbad1ed496ae4b1b3f94563b34e7462199f4"
     },
     {
       "path": "qualification/doppler-browser-reranker-reference-01.log",
-      "sizeBytes": 1545,
-      "sha256": "e94375caf342bb5da2fb3a476ea286933a85a2a8ce1b820c2f56d638896378f3"
+      "sizeBytes": 1543,
+      "sha256": "db9488fd425e7f23d483a8175747a33a2799bc5ca1922cae6d5cb399177173b4"
     },
     {
       "path": "qualification/doppler-browser-reranker-reference-02/progress.json",
@@ -588,23 +590,23 @@
     },
     {
       "path": "qualification/doppler-reranker-onnx-q8-qualification-01/qualification.json",
-      "sizeBytes": 121767,
-      "sha256": "bce0df10eb4d7bd8ad3597d9d510966c4e22776c145d055f2cc8c72fa5fa6698"
+      "sizeBytes": 121765,
+      "sha256": "7549de51c1a90de17e0d3a9e162a1540f0d246ead76602bab82e7ef49b50b33e"
     },
     {
       "path": "qualification/doppler-reranker-onnx-q8-qualification-01.log",
-      "sizeBytes": 653,
-      "sha256": "ea79d32b8aca137b20f8d37dccdd4bdb50f9d6506de8b91fb0fc82bd2039ff03"
+      "sizeBytes": 651,
+      "sha256": "055b751cc61261f462c8fa0bf47ba365e80c9cf3038f25a2841e9d0320a7d439"
     },
     {
       "path": "qualification/doppler-reranker-onnx-qualification-01/qualification.json",
-      "sizeBytes": 10270,
-      "sha256": "a5fa6a1cd290f58d34c829b5f1d197a0888eac39a8bb2a4e95f4b9fb989e49da"
+      "sizeBytes": 10268,
+      "sha256": "c53f830d660271e03b628d4cc90beb9d09cc3f7a09b0660c9cc6e80e4c889c3a"
     },
     {
       "path": "qualification/doppler-reranker-onnx-qualification-01.log",
-      "sizeBytes": 327,
-      "sha256": "d72c6d28be110a6d9f058773bbf8861c17bd8395ae6071154e947a4f3900dfed"
+      "sizeBytes": 325,
+      "sha256": "77d7c473e268051d48dd50742ef3bf51c7e2a9920a4207204062db725918631f"
     },
     {
       "path": "qualification/doppler-reranker-onnx-qualification-02/progress.json",
@@ -613,8 +615,8 @@
     },
     {
       "path": "qualification/doppler-reranker-onnx-qualification-02/qualification.json",
-      "sizeBytes": 84336,
-      "sha256": "c8c2ddd9c21ce7271439d14a2a9c9b79405685193c8c4ea75457318c5ef7da18"
+      "sizeBytes": 84334,
+      "sha256": "8c35976e293abb9d0039fbf9a4ba5c55ce789d543c9b45bd2dcc5d60310c1c0f"
     },
     {
       "path": "qualification/doppler-reranker-onnx-qualification-02-config.json",
@@ -623,8 +625,8 @@
     },
     {
       "path": "qualification/doppler-reranker-onnx-qualification-02.log",
-      "sizeBytes": 650,
-      "sha256": "b97735278cb4fa332073508e2c9eee74a3e520d592c9ddaffeddc5c39f9308ec"
+      "sizeBytes": 648,
+      "sha256": "701e5a640e6ed3d3a6cb4b7333857dbcc1714fe640d76945ea641742ad8ef28d"
     },
     {
       "path": "qualification/doppler-reranker-source-onnx-f16-qualification-01/progress.json",
@@ -643,8 +645,8 @@
     },
     {
       "path": "qualification/doppler-reranker-source-onnx-qualification-02/qualification.json",
-      "sizeBytes": 99511,
-      "sha256": "4685a90abd1dff7b0c944dc1e6489943ad6b95a4133e58749992e4ce27f7de48"
+      "sizeBytes": 99509,
+      "sha256": "286c1be9ee63a6d7ebc9c13cfb5ad3ae4cd3929c37547f15ff4ef583f6869e8c"
     },
     {
       "path": "qualification/doppler-reranker-source-onnx-qualification-02-config.json",
@@ -653,8 +655,8 @@
     },
     {
       "path": "qualification/doppler-reranker-source-onnx-qualification-02.log",
-      "sizeBytes": 771,
-      "sha256": "6c8721aea809cde61618589b541cf07a831dc4d04cd2ed4ab4c29baa8a594caf"
+      "sizeBytes": 769,
+      "sha256": "8c9f6ee13f1823890c1f6e021a90627eadf0eb3511691bcc1f3251c4d46dc8c6"
     },
     {
       "path": "timing-source/benchmarks/runners/transformersjs-contract.js",

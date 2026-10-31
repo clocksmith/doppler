@@ -7,19 +7,19 @@
   "previousCandidatePreserved": true,
   "qualificationReports": [
     {
-      "path": "/Users/xyz/deco/doppler/artifacts/paired-intermediates-20261012/signed-closure-correction/fresh-qualification/direction-0/partition-0.json",
+      "path": "$HOME/deco/doppler/artifacts/paired-intermediates-20261012/signed-closure-correction/fresh-qualification/direction-0/partition-0.json",
       "sha256": "e9493673be20f4062c818c3ba540589c9b8bcc3cc506fb8bb24fe1adaf37136d"
     },
     {
-      "path": "/Users/xyz/deco/doppler/artifacts/paired-intermediates-20261012/signed-closure-correction/fresh-qualification/direction-0/partition-1.json",
+      "path": "$HOME/deco/doppler/artifacts/paired-intermediates-20261012/signed-closure-correction/fresh-qualification/direction-0/partition-1.json",
       "sha256": "9c7c794662f067b1b82df9347ddeb9a9a8fc9af0e6814fff259cdaca85fb7bf4"
     },
     {
-      "path": "/Users/xyz/deco/doppler/artifacts/paired-intermediates-20261012/signed-closure-correction/fresh-qualification/direction-1/partition-0.json",
+      "path": "$HOME/deco/doppler/artifacts/paired-intermediates-20261012/signed-closure-correction/fresh-qualification/direction-1/partition-0.json",
       "sha256": "d752614bcd7331edc20c1775f5816e53a8fbc3c4fd33173efe70b840110e76cc"
     },
     {
-      "path": "/Users/xyz/deco/doppler/artifacts/paired-intermediates-20261012/signed-closure-correction/fresh-qualification/direction-1/partition-1.json",
+      "path": "$HOME/deco/doppler/artifacts/paired-intermediates-20261012/signed-closure-correction/fresh-qualification/direction-1/partition-1.json",
       "sha256": "dfc78b5808e70137cf70053e61064557f66200d3eb84cc3bd9faf90bdb140fae"
     }
   ],

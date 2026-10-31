@@ -1,6 +1,6 @@
 [
   {
-    "command": "/Users/xyz/.nvm/versions/node/v22.20.0/bin/node",
+    "command": "$HOME/.nvm/versions/node/v22.20.0/bin/node",
     "args": [
       "registry-smoke.js"
     ],
@@ -9,7 +9,7 @@
     "stderr": ""
   },
   {
-    "command": "/Users/xyz/.nvm/versions/node/v22.20.0/bin/node",
+    "command": "$HOME/.nvm/versions/node/v22.20.0/bin/node",
     "args": [
       "node-provider-smoke.js"
     ],
@@ -18,7 +18,7 @@
     "stderr": ""
   },
   {
-    "command": "/Users/xyz/.nvm/versions/node/v22.20.0/bin/node",
+    "command": "$HOME/.nvm/versions/node/v22.20.0/bin/node",
     "args": [
       "node_modules/doppler-gpu/src/cli/doppler-cli.js",
       "--help"

@@ -1032,14 +1032,14 @@
         }
       },
       {
-        "executorId": "suby-stage-2",
+        "executorId": "intel-host-stage-2",
         "kind": "native-inspector",
         "endpoint": null,
         "baseUrl": null,
         "runtimeBaseUrl": null,
         "modelSource": null,
         "preflight": {
-          "path": "/var/tmp/reploid-repaired-three-stage-v2-20261013/suby-preflight.json",
+          "path": "/var/tmp/reploid-repaired-three-stage-v2-20261013/intel-host-preflight.json",
           "hash": null
         }
       }

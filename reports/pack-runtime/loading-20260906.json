@@ -71,7 +71,7 @@
     },
     "config": "reports/electron-adoption/loading-handoff-v2jgxS/loading-20260906-config-02.json",
     "probe": "tests/fixtures/physical-pack-http-consumer.js",
-    "command": "node /tmp/doppler-loading-package-20260906-02/consumer/loading-observation.js /home/x/deco/doppler/reports/electron-adoption/loading-20260906-config-02.json /home/x/deco/doppler/reports/electron-adoption/loading-20260906-physical-02.json",
+    "command": "node /tmp/doppler-loading-package-20260906-02/consumer/loading-observation.js $HOME/deco/doppler/reports/electron-adoption/loading-20260906-config-02.json $HOME/deco/doppler/reports/electron-adoption/loading-20260906-physical-02.json",
     "hardware": "AMD Radeon 8060S, RDNA3, RADV Mesa 26.0.3-1ubuntu1",
     "host": "Node 22.22.1; webgpu 0.4.0 / Dawn Vulkan; no Doe; physical adapter",
     "model": "qwen-3-reranker-0-6b-q4k-ehf16-af32",

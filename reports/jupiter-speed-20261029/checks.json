@@ -1,5 +1,5 @@
 {
-  "schema": "doppler.jupiter-focused-checks.v1",
+  "schema": "doppler.amd-host-focused-checks.v1",
   "passed": [
     "node tests/integration/decode-diagnostics-overlap.test.js",
     "node tests/integration/browser-harness-batching-metrics.test.js",

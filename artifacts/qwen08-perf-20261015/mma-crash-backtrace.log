@@ -1,12 +1,12 @@
-(lldb) target create "/Users/xyz/.nvm/versions/node/v22.20.0/bin/node"
-Current executable set to '/Users/xyz/.nvm/versions/node/v22.20.0/bin/node' (arm64).
+(lldb) target create "$HOME/.nvm/versions/node/v22.20.0/bin/node"
+Current executable set to '$HOME/.nvm/versions/node/v22.20.0/bin/node' (arm64).
 (lldb) settings set -- target.run-args  "artifacts/qwen08-perf-20261015/mma-probe.js" "mma"
 (lldb) run
 provider imported
 device ready
 compile mma
 {"M":128,"N":1024,"K":1024,"name":"mma","compileMs":3.408333000000084,"sha256":"40c6af46a6242cc67982256620a5d0af0fafdbdf9d27e040eb38f3e8918a9224","times":[2.746417000000065,2.7796670000000177,2.709124999999858],"maxAbsVsScalar":0,"maxAbsVsReference":6.690530369724002e-7,"checkedOutputs":131072,"referenceSamples":64}
-Process 84496 launched: '/Users/xyz/.nvm/versions/node/v22.20.0/bin/node' (arm64)
+Process 84496 launched: '$HOME/.nvm/versions/node/v22.20.0/bin/node' (arm64)
 Process 84496 stopped
 * thread #1, queue = 'com.apple.main-thread', stop reason = EXC_BAD_ACCESS (code=1, address=0x455f628ec84a8524)
     frame #0: 0x0000000183ae6408 libsystem_pthread.dylib`pthread_mutex_lock + 12

@@ -1,7 +1,7 @@
 {
   "timestamp": "2026-06-27T20:06:47.349Z",
   "benchmarkPolicy": {
-    "source": "/home/x/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+    "source": "$HOME/deco/doppler/benchmarks/vendors/benchmark-policy.json",
     "schemaVersion": 1,
     "sourceSha256": "6e0e81bc2571a0a1eb6451f0f9a6a3165b015bff9ba4537a4f5a6f2b1a9b93c8",
     "updated": "2026-03-29",
@@ -224,8 +224,8 @@
   "dopplerDtype": null,
   "dopplerModelSource": {
     "source": "explicit",
-    "locator": "file:///home/x/deco/doppler/models/local/gemma-3-270m-it-q4k-ehf16-af32",
-    "modelUrl": "file:///home/x/deco/doppler/models/local/gemma-3-270m-it-q4k-ehf16-af32",
+    "locator": "file://$HOME/deco/doppler/models/local/gemma-3-270m-it-q4k-ehf16-af32",
+    "modelUrl": "file://$HOME/deco/doppler/models/local/gemma-3-270m-it-q4k-ehf16-af32",
     "modelBaseDir": null,
     "manifestSource": "models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json",
     "manifestSha256": "4bb1af0de9a0367a3d036e485622917209b54b4ed2f877048b9ce015ea8c1511",
@@ -855,7 +855,7 @@
             "trainingBenchSteps": null,
             "checkpointEvery": null,
             "workloadType": null,
-            "modelUrl": "file:///home/x/deco/doppler/models/local/gemma-3-270m-it-q4k-ehf16-af32",
+            "modelUrl": "file://$HOME/deco/doppler/models/local/gemma-3-270m-it-q4k-ehf16-af32",
             "cacheMode": "warm",
             "loadMode": "opfs",
             "configChain": null,
@@ -6096,7 +6096,7 @@
             }
           },
           "benchmarkPolicy": {
-            "source": "/home/x/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+            "source": "$HOME/deco/doppler/benchmarks/vendors/benchmark-policy.json",
             "schemaVersion": 1,
             "updated": "2026-03-29"
           },
@@ -6576,7 +6576,7 @@
             "trainingBenchSteps": null,
             "checkpointEvery": null,
             "workloadType": null,
-            "modelUrl": "file:///home/x/deco/doppler/models/local/gemma-3-270m-it-q4k-ehf16-af32",
+            "modelUrl": "file://$HOME/deco/doppler/models/local/gemma-3-270m-it-q4k-ehf16-af32",
             "cacheMode": "warm",
             "loadMode": "opfs",
             "configChain": null,
@@ -11808,7 +11808,7 @@
             }
           },
           "benchmarkPolicy": {
-            "source": "/home/x/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+            "source": "$HOME/deco/doppler/benchmarks/vendors/benchmark-policy.json",
             "schemaVersion": 1,
             "updated": "2026-03-29"
           },

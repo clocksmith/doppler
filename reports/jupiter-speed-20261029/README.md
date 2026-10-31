@@ -1,7 +1,7 @@
-# Jupiter speed reconciliation and scoped configuration improvement
+# amd-host speed reconciliation and scoped configuration improvement
 
 The opt-in Vulkan configuration passed the frozen complete-request gate on
-Jupiter: **11.18% lower latency**, bootstrap 95% interval **8.60–13.62% lower**.
+amd-host: **11.18% lower latency**, bootstrap 95% interval **8.60–13.62% lower**.
 Forty uninstrumented requests cover four prompts and five alternating pairs per
 prompt. Every scored request produced the same 64 token IDs as its counterpart.
 All 32 sampled full-vocabulary vector comparisons passed absolute tolerance
@@ -21,7 +21,7 @@ source files in the executed package match Doppler
 explicit profile. The packaged compatibility directories are expanded aliases;
 source verification compares their canonical tracked regular files.
 
-Hardware: Jupiter, Ryzen AI MAX+ 395, Radeon 8060S / RADV STRIX_HALO; Chrome
+Hardware: amd-host, Ryzen AI MAX+ 395, Radeon 8060S / RADV STRIX_HALO; Chrome
 146.0.7680.177, Node 22.22.1, Linux 7.0.0-38-generic, Mesa Vulkan 26.0.3-1ubuntu1.
 The raw requests bind browser arguments, physical adapter, features, prompt IDs,
 RDRR Q4_K_M model/tokenizer hashes, F16 embedding/KV and F32 activation paths,
@@ -32,11 +32,11 @@ shutdown was performed. Source identity capture ran during part of the timed
 population; all samples remain included.
 
 The newer evidence lives under
-`/home/x/deco/hatch/pooled-doppler-components-20261029/deep-profile/`, outside the
+`$HOME/deco/hatch/pooled-doppler-components-20261029/deep-profile/`, outside the
 Doppler reports searched in the earlier review. [prior-evidence.json](prior-evidence.json)
 verifies the original causal checkpoint's bound hashes, including its full-logit,
 prepared-core and topology-preserving timestamp receipts. The original
-`JUPITER-DECISION-REPORT.md` predates those later files and must not be used alone.
+`AMD-HOST-DECISION-REPORT.md` predates those later files and must not be used alone.
 
 Reconciled findings:
 
@@ -168,7 +168,7 @@ That smoke is excluded from the performance estimator.
 ## Broader model evidence: open gates
 
 The requested next dense overlap is **Qwen3.8 27B**: both repositories declare its
-execution family and Jupiter has a local Doppler artifact. A fresh matched-byte
+execution family and amd-host has a local Doppler artifact. A fresh matched-byte
 inventory, supported Pooled GGUF, numerical gate and resource budget are required
 before its short/long prefill, decode, cold opening and memory campaign. No 27B
 performance is inferred from the 0.8B result.
@@ -177,7 +177,7 @@ Pooled declares **Qwen3.6-35B-A3B MoE**. This Doppler revision has no correspond
 qualified conversion/runtime model lane or provisioned matching artifact. Doppler's
 Gemma MoE recipe is a different architecture and is not a supported overlap with
 this Pooled revision. The MoE comparison is blocked on a genuinely supported
-common workload, not just spare Jupiter RAM. No model was silently downloaded,
+common workload, not just spare amd-host RAM. No model was silently downloaded,
 new family onboarded, or MoE result manufactured. Larger-model and MoE measurements
 remain unfinished.
 
@@ -190,7 +190,7 @@ resident memory remain separate measurement gates.
 
 Passed focused overlap/CLI diagnostics, browser batching metrics, compare-engine
 contract, runtime-profile discovery and onboarding checks; source style/unused and
-source/declaration type checks. Jupiter also ran the focused diagnostics, batching
+source/declaration type checks. amd-host also ran the focused diagnostics, batching
 and comparison tests. The source architecture check fails on unchanged
 `src/gpu/command-recorder.js` (776 lines vs its 750-line limit); no budget was raised.
 No full suite or release/benchmark promotion campaign is claimed.
@@ -201,7 +201,7 @@ contains the exact baseline package plus candidate profile, excluding dependenci
 and model weights. Baseline hashes, source hashes and model hashes remain explicit.
 `SHA256SUMS` pins the delivered bundle.
 
-Reproduce in a fresh directory on Jupiter; never overwrite the retained runs:
+Reproduce in a fresh directory on amd-host; never overwrite the retained runs:
 
 1. Copy this report's scripts and `contract.json` to a new directory. Extract
    `runtime-snapshot.tar.gz` into its `runtime/` subdirectory and link the same

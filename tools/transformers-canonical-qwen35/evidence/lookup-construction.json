@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.canonical-text-onnx-export.v1",
   "completed": true,
   "inputs": {
@@ -323,7 +325,7 @@
   "graphs": [
     {
       "mode": "prefill",
-      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_prefill.full-onnx-f32kv-lookup-03.onnx",
+      "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_prefill.full-onnx-f32kv-lookup-03.onnx",
       "sha256": "2f22654022987ecd5bd8de3719063eb99d38bbf941c2dea9acbf252046bf9c59",
       "lowerings": [
         {
@@ -758,7 +760,7 @@
     },
     {
       "mode": "decode",
-      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_decode.full-onnx-f32kv-lookup-03.onnx",
+      "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_decode.full-onnx-f32kv-lookup-03.onnx",
       "sha256": "0cd0075caab4e62c120d74805f35c426a17c4524eba934fac8f094c275d4744a",
       "lowerings": [
         {
@@ -1398,50 +1400,50 @@
     "variant_rotary_lookup.py": "562a8bc98c57370c18eafd2c2279ebae1ad3664d3545005ac3d5c70310d2fdd5"
   },
   "initializerBinding": {
-    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-lookup-03/initializer-binding.json",
+    "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-lookup-03/initializer-binding.json",
     "sha256": "9d7cd0179d4c3a6f3cf39388c96bb3c9922c08c160c93a659641439187c38a26",
     "pass": true,
     "unchangedFromF16": "9d7cd0179d4c3a6f3cf39388c96bb3c9922c08c160c93a659641439187c38a26"
   },
   "artifacts": [
     {
-      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_decode.full-onnx-f32kv-lookup-03.onnx",
+      "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_decode.full-onnx-f32kv-lookup-03.onnx",
       "bytes": 4263549,
       "sha256": "0cd0075caab4e62c120d74805f35c426a17c4524eba934fac8f094c275d4744a"
     },
     {
-      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_decode.onnx.data",
+      "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_decode.onnx.data",
       "bytes": 3010012160,
       "sha256": "d30bd4e8482e9c74389bcdcec538122e6aa8d7c953cec7b046c1388b525b6423"
     },
     {
-      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_prefill.full-onnx-f32kv-lookup-03.onnx",
+      "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_prefill.full-onnx-f32kv-lookup-03.onnx",
       "bytes": 28890761,
       "sha256": "2f22654022987ecd5bd8de3719063eb99d38bbf941c2dea9acbf252046bf9c59"
     },
     {
-      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_prefill.onnx.data",
+      "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_prefill.onnx.data",
       "bytes": 3265189568,
       "sha256": "874f92500e82bdeb0d35153205a446afdade9c0424b44a07f6499b5204e4ba55"
     },
     {
-      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/embed_tokens.onnx",
+      "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/embed_tokens.onnx",
       "bytes": 1881,
       "sha256": "a17e8d8930997f5062f5b6df35f94b8c23039b396a53590ec05fc7e1c69232d8"
     },
     {
-      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/embed_tokens.onnx.data",
+      "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/embed_tokens.onnx.data",
       "bytes": 1017118720,
       "sha256": "ef1267726fe5c2ef69fbf3fbf4fcfc08287b6e6d1148ec38a5714ea1899cbbf6"
     }
   ],
   "sourceF16Artifact": {
-    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/receipt.json",
-    "sha256": "dfc32800533e905f1946d76825bd94513ea7e876ac68c10d3c3c8fdddb505443"
+    "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/receipt.json",
+    "sha256": "222a9a0eda5ef1810e1f51774fe889828b7ef9668b2335793cbe63f60aa2b484"
   },
   "sourceF16CpuAdapterGate": {
-    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-text-cpu-02/receipt.json",
-    "sha256": "7024db9037d6c4aba1c2482632389f9cb994bce384ba3b982a779c47ffcaa796"
+    "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-text-cpu-02/receipt.json",
+    "sha256": "fbf2b1af22cce2b19d3a6f53a46ada058d7f6485c1b86b868b54bf66aa55b01a"
   },
   "cpuGate": {
     "status": "not-run",
@@ -1712,14 +1714,14 @@
     }
   ],
   "sessionFiles": {
-    "embed_tokens": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/embed_tokens.onnx",
-    "decoder_prefill": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_prefill.full-onnx-f32kv-lookup-03.onnx",
-    "decoder_decode": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_decode.full-onnx-f32kv-lookup-03.onnx"
+    "embed_tokens": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/embed_tokens.onnx",
+    "decoder_prefill": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_prefill.full-onnx-f32kv-lookup-03.onnx",
+    "decoder_decode": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_decode.full-onnx-f32kv-lookup-03.onnx"
   },
   "externalPayloadSharing": "Single-linked frozen source files; variant graph protobufs are siblings. Separate sessions may duplicate GPU residency.",
   "sourceF32Artifact": {
-    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-02/receipt.json",
-    "sha256": "56c01d696ea375482309e1e29112a7b3f569cd80e2b512590e27cbe9d21d990c"
+    "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-02/receipt.json",
+    "sha256": "eb4e33d5127c87b9bc8084b4d1aaafd6f43b9b19481c0afecfe0cfe95e96c34d"
   },
   "indexLowerings": [
     {
@@ -2585,7 +2587,7 @@
     }
   ],
   "sourceBoundedIndexArtifact": {
-    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-i32-01/receipt.json",
+    "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-i32-01/receipt.json",
     "sha256": "589f54ca5cb8e2fcd62398d640d849042c07b59db5eb3ab9eb8df4007278bf3a"
   },
   "hostShapeLowerings": [
@@ -2872,7 +2874,7 @@
     }
   ],
   "sourceHostShapeArtifact": {
-    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-host-02/receipt.json",
+    "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-host-02/receipt.json",
     "sha256": "894ef683888dc69e9336bf1300bab4614d3fcaa92d97ea216106d118a3fc4be3"
   },
   "rotaryLookupLowerings": [

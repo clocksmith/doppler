@@ -1,5 +1,7 @@
 {
-  "schema": "doppler.suby-paired-cast-evidence/v1",
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
+  "schema": "doppler.intel-host-paired-cast-evidence/v1",
   "runtimeArchiveSha256": "5e0d60bc433d332187d422721fd7afcaec780c202e3082adcab389b47fd27fc5",
   "initialPid": 762771,
   "initialExit": "SIGSEGV",
@@ -9,18 +11,18 @@
   "raceFixed": false,
   "gpuProcessesRemaining": false,
   "files": {
-    "control.js": "7b4d57827ead1c94031018b26243f3645496760b989ad429c0ba0359d6f98ce6",
-    "result-incomplete.json": "25c6ba9f6cdd2f0c377eff358ee651ce0e7ee8ae99c07bc84fac47fbed0f67b5",
+    "control.js": "25a0a80bbe976d8deb26eda871f01019e34b202c63b989e87de7c24211789de3",
+    "result-incomplete.json": "0d01e8a8eacddffd3525653110d0262466f7b601e4c307134331772a327ba817",
     "provider-files.json": "5783ce6d93e9040905af06439f269005eed87de0c8cc83aab40e12f1934077f5",
     "controller.js": "108af1b0400b4f5b33e4298fe1a1a4d2f1dd45d7cb94464ae4ea1090675e9d48",
-    "README.md": "b9197ba86b9ce747416efc4c2d1bd5ac3cc0195451c9a07b92630cf8c6ceb23f",
-    "reservation.json": "c0265be759b60ddd5ea39c18f899780e5d2453545188e58b161e5875b38b48cb",
-    "process.json": "171a4a36f8096f515edc4211b1e3eec4d8e67155a17b02ec2264f87871f121f2",
+    "README.md": "572cdd9e870e6eadb5e4c4b24d661c3db693cc6976eeacd679139aa373663cff",
+    "reservation.json": "189d23897a90ab4fb162d4e65cd74e84988727e1d5088633a24dcf0bd5eacb1b",
+    "process.json": "3a7fbff4fa8dcb60b7c34ee9cb80b5f0fa57ca0a2a01597a4f39992266c5ee21",
     "core-inspection.json": "0819030d13ad3466de52f7793edd74bb4b4a9ce455822a97e94770a24e64a045",
-    "observed-replay/control.js": "e16eb8b3eea8dca8d2d897bc1ecdc8498fd8262c97003c829b8fa598a83366c3",
-    "observed-replay/result.json": "fe65ceb665ec67e1229f6864414a505121dd44a9243e37bacbd6e0ff6c00e85e",
+    "observed-replay/control.js": "0d7382ccf56d4884d2d4e11773d1940de84f710809110de8d729c95a0e965e6e",
+    "observed-replay/result.json": "65650187254657f6441e16235736fa996434c959f980f4d054b9d67461854204",
     "observed-replay/controller.js": "108af1b0400b4f5b33e4298fe1a1a4d2f1dd45d7cb94464ae4ea1090675e9d48",
-    "observed-replay/reservation.json": "203910421040194875b1a3f1099e173349b6af27f96e8597401e958352f8f768",
-    "observed-replay/process.json": "b774913bfbdf214ae0d8c1a24e9054de8d33753ae00e3a9aa7c1f5c809c55482"
+    "observed-replay/reservation.json": "309a736d82e1c98bed775e03834f30a6926b7951e4a196a02547dab248adfabd",
+    "observed-replay/process.json": "8f753a65cac27a1f80298dbbba2a96ffae07575bfa4de6c16b436817e42dcec6"
   }
 }

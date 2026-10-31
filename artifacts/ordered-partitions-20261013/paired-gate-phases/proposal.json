@@ -7,7 +7,7 @@
   "failureEvidence": {
     "repository": "reploid",
     "commit": "aae0149e",
-    "path": "artifacts/gate-three-stage-physical-20261013/suby-load-preflight.json",
+    "path": "artifacts/gate-three-stage-physical-20261013/intel-host-load-preflight.json",
     "boundary": "qwen_linear_attention_prepare_paired_gates createComputePipelineAsync pending through total300s",
     "processTermination": "SIGTERM of owned862617; absence does not prove GPU settlement"
   },
