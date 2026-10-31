@@ -20,6 +20,13 @@ export function write_moe_norm_router_f32(view, values, kernel) {
   writeU32(view, 12, values["workgroups_x"], kernel, "workgroups_x");
 }
 
+export function write_linear_norm_ab_f32(view, values, kernel) {
+  writeU32(view, 0, values["hidden_size"], kernel, "hidden_size");
+  writeU32(view, 4, values["rows"], kernel, "rows");
+  writeF32(view, 8, values["eps"], kernel, "eps");
+  writeU32(view, 12, values["workgroups_x"], kernel, "workgroups_x");
+}
+
 export function write_w8a8_quantize_f32(view, values, kernel) {
   writeU32(view, 0, values["rows"], kernel, "rows");
   writeU32(view, 4, values["columns"], kernel, "columns");

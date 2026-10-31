@@ -17,6 +17,7 @@ import { applyProjectionLoRA, createLayerRuntimeState, ensureLayerRuntimeGpuBuff
 export { applyLinearNormWeightOffset } from './linear-attention/plan.js';
 import { assertRecurrentStateLayout, assertConvolutionStateLayout, resolveRecurrentStateLayout } from './linear-attention/state-layout.js';
 import { LINEAR_RUNTIME_SCHEMA_VERSION, cloneLayerRuntimeState } from './linear-attention/state-clone.js';
+import { recordDeclaredLinearNormAB } from './linear-attention/norm-ab.js';
 const QK_L2NORM_EPS = 1e-6;
 // Prepared parameters belong to the loaded pipeline, never to a conversation.
 // Snapshots intentionally do not carry these source-identity associations.
@@ -426,7 +427,17 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
   let coreQkvTensor = null, coreZTensor = null, coreATensor = null, coreBTensor = null, coreTensor = null;
   try {
 
-  if (precomputedInputNorm) {
+  // A declared linear_norm_ab step runs the input norm with in_proj_a and in_proj_b.
+  const fusedAB = await recordDeclaredLinearNormAB(recorder, {
+    kernelPath, phase, layerIdx, numTokens, inputTensor, precomputedInputNorm, layerWeights, getNormWeightBuffer,
+    projectionDtype, rmsNormWeightOffset: config.rmsNormWeightOffset, eps: layerState.rmsNormEps,
+    hasABLoRA: !!(getLoRAModule(lora, layerIdx, 'in_proj_a') || getLoRAModule(lora, layerIdx, 'in_proj_b')),
+    hiddenSize, rows: projectionLayout.numVHeads,
+  });
+  if (fusedAB) {
+    normedTensor = fusedAB.normed;
+    normedCreated = true;
+  } else if (precomputedInputNorm) {
     if (
       phase !== 'decode'
       || numTokens !== 1
@@ -530,7 +541,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     executionPolicies,
     loraModule: zLoRA,
   });
-  const abProjection = aLoRA || bLoRA ? null : resolveLinearAttentionABProjection(layerWeights, {
+  const abProjection = fusedAB || aLoRA || bLoRA ? null : resolveLinearAttentionABProjection(layerWeights, {
     phase,
     numTokens,
     hiddenSize,
@@ -556,7 +567,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
       executionPolicies,
     })
     : null;
-  aTensor = abTensor ?? await projectLinearTensor({
+  aTensor = fusedAB?.a ?? abTensor ?? await projectLinearTensor({
     inputTensor: normedTensor,
     sourceWeight: layerWeights.linearInProjA,
     role: 'linear_a_proj',
@@ -572,7 +583,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     executionPolicies,
     loraModule: aLoRA,
   });
-  bTensor = abTensor ?? await projectLinearTensor({
+  bTensor = fusedAB?.b ?? abTensor ?? await projectLinearTensor({
     inputTensor: normedTensor,
     sourceWeight: layerWeights.linearInProjB,
     role: 'linear_b_proj',

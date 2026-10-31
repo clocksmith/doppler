@@ -2,6 +2,7 @@
 // Do not edit; npm run kernels:uniforms:sync.
 export declare function write_moe_shared_slot_gu_native_f32(view: DataView, values: { "num_tokens": number; "hidden_size": number; "intermediate_size": number; "shared_size": number; "num_experts": number; "slot_stride": number; "clamp_max": number }, kernel: string): void;
 export declare function write_moe_norm_router_f32(view: DataView, values: { "hidden_size": number; "num_experts": number; "eps": number; "workgroups_x": number }, kernel: string): void;
+export declare function write_linear_norm_ab_f32(view: DataView, values: { "hidden_size": number; "rows": number; "eps": number; "workgroups_x": number }, kernel: string): void;
 export declare function write_w8a8_quantize_f32(view: DataView, values: { "rows": number; "columns": number; "inner": number; "row_words": number }, kernel: string): void;
 export declare function write_qwen_attention_split_q_gate_default(view: DataView, values: { "num_tokens": number; "num_heads": number; "head_dim": number; "element_count": number }, kernel: string): void;
 export declare function write_qwen_gqa_softmax_recompute_default(view: DataView, values: { "seq_len": number; "num_heads": number; "num_kv_heads": number; "head_dim": number; "scale": number; "causal": number; "_pad0": number; "_pad1": number }, kernel: string): void;

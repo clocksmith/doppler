@@ -21,6 +21,8 @@
     "src/gpu/kernels/sigmoid-gated-add.js",
     "src/gpu/kernels/moe-shared-slot.js",
     "src/gpu/kernels/moe-norm-router.js",
+    "src/gpu/kernels/linear-norm-ab.js",
+    "src/inference/pipelines/text/linear-attention/norm-ab.js",
     "src/gpu/kernels/attention/executors-components.js",
     "src/gpu/step-contract.js",
     "src/inference/pipelines/text/generator/whole-token-observation.js",

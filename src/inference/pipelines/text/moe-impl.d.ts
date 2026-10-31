@@ -57,6 +57,8 @@ export interface MoEConfig {
     variant: 'f32' | 'f32_single_pass';
     sharedRouterWeight: GPUBuffer | import('../../../gpu/weight-buffer.js').WeightBuffer;
   }) | null;
+  /** The layer's declared moe_topk variant; null lets the softmax rules select one. */
+  topKVariant?: string | null;
   activeExpertSelection?: import('../../../config/schema/moe.schema.js').ActiveExpertSelection;
   modelType?: string | null;
   hiddenSize: number;

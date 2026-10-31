@@ -627,6 +627,123 @@
     }
    }
   },
+  "linear_norm_ab": {
+   "description": "Decode linear-attention input RMSNorm with the in_proj_a and in_proj_b GEMVs in one dispatch",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "norm_weight",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "a_weight",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "b_weight",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 5,
+     "name": "normed",
+     "type": "storage"
+    },
+    {
+     "index": 6,
+     "name": "a_out",
+     "type": "storage"
+    },
+    {
+     "index": 7,
+     "name": "b_out",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "hidden_size",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "rows",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "eps",
+      "type": "f32",
+      "offset": 8
+     },
+     {
+      "name": "workgroups_x",
+      "type": "u32",
+      "offset": 12
+     }
+    ]
+   },
+   "variants": {
+    "f32": {
+     "wgsl": "linear_norm_ab_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": ["subgroups"],
+     "requiredWgslFeatures": ["subgroup_id"],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 2,
+      "NORM_THREADS": 256
+     },
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "activationDtype": "f32",
+      "reproduces": ["rmsnorm/default","matmul/gemv_f32_subgroup"]
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "f32_single_pass": {
+     "wgsl": "linear_norm_ab_f32.wgsl",
+     "entryPoint": "single_pass",
+     "workgroup": [256,1,1],
+     "requires": ["subgroups"],
+     "requiredWgslFeatures": ["subgroup_id"],
+     "wgslOverrides": {
+      "NORM_THREADS": 256,
+      "ROWS": 1
+     },
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "activationDtype": "f32",
+      "reproduces": ["rmsnorm/default"]
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
   "w8a8_quantize": {
    "description": "Exact rational row-interleaved signed activation packing",
    "baseBindings": [
@@ -21163,6 +21280,20 @@
      "reachability": {
       "status": "unused",
       "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "fused_logit_rank": {
+     "wgsl": "softmax_topk_logit_rank.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": ["subgroups"],
+     "requiredWgslFeatures": ["subgroup_id"],
+     "description": "Renormalized top-k by logit rank: weights are the softmax over the picked logits (normalize only).",
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      }

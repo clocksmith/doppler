@@ -58,7 +58,8 @@ export async function recordMoENormRouter(recorder, options) {
     throw new Error('[MoE norm router] Registered geometry no longer matches the reproduced kernels.');
   }
   const device = recorder.device;
-  if (hiddenSize * 4 + normThreads * 4 > device.limits.maxComputeWorkgroupStorageSize) {
+  // The staged row, the norm partial sums and (single pass) four row dots per thread.
+  if (hiddenSize * 4 + normThreads * (singlePass ? 20 : 4) > device.limits.maxComputeWorkgroupStorageSize) {
     throw new Error('[MoE norm router] The normalized row exceeds workgroup storage.');
   }
   const outputs = [options.normedOutput, options.prenormOutput, options.logitsOutput, options.sharedGateOutput];

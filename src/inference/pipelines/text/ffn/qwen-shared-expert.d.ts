@@ -36,6 +36,16 @@ export declare function resolveQwenNormRouter(options: {
   layerIdx: number;
 }): 'f32' | 'f32_single_pass' | false;
 
+/**
+ * The registered topk variant of the layer's declared moe_topk step, or null when the
+ * layer declares none (the softmax rules then select one).
+ */
+export declare function resolveDeclaredTopK(options: {
+  kernelPath: KernelPathSchema | null;
+  phase: 'decode' | 'prefill';
+  layerIdx: number;
+}): string | null;
+
 /** Registered shared-slot variants declared by the layer's kernel-path steps. */
 export declare function resolveQwenSharedSlotVariants(options: {
   kernelPath: import('../../../../config/schema/kernel-path.schema.js').KernelPathSchema | null;

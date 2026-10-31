@@ -591,6 +591,7 @@ gpu/kernels/kv-quantize.d.ts
 gpu/kernels/l2-normalize.d.ts
 gpu/kernels/layernorm.d.ts
 gpu/kernels/linear-attention-core.d.ts
+gpu/kernels/linear-norm-ab.d.ts
 gpu/kernels/linear_attention.d.ts
 gpu/kernels/lm-head-argmax.d.ts
 gpu/kernels/lm-head-select-logits.d.ts
@@ -816,6 +817,7 @@ inference/pipelines/text/layer-plan-gpu.d.ts
 inference/pipelines/text/layer.d.ts
 inference/pipelines/text/lifecycle.d.ts
 inference/pipelines/text/linear-attention-ab-fusion.d.ts
+inference/pipelines/text/linear-attention/norm-ab.d.ts
 inference/pipelines/text/linear-attention/plan.d.ts
 inference/pipelines/text/linear-attention/state-checkpoint.d.ts
 inference/pipelines/text/linear-attention/state-clone.d.ts

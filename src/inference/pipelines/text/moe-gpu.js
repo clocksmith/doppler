@@ -388,6 +388,7 @@ export async function moeFeedForwardGPU(
         inputDtype: logitsDtype,
         weightsDtype: activationDtype,
         modelType,
+        variant: config.topKVariant ?? null,
         indicesBuffer: workspace?.getBuffer(`moe:${layerIdx}:indices`, topK * 4),
         weightsBuffer: workspace?.getBuffer(`moe:${layerIdx}:weights`, topK * 4),
       }

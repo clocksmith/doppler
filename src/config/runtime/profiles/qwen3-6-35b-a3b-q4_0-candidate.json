@@ -77,7 +77,7 @@
                 "BLOCK_BYTES": 34,
                 "QUANT_FORMAT": 2
               },
-              "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72"
+              "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f"
             },
             {
               "op": "v_proj",
@@ -91,7 +91,7 @@
                 "BLOCK_BYTES": 34,
                 "QUANT_FORMAT": 2
               },
-              "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72"
+              "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f"
             },
             {
               "op": "rope_q",
@@ -127,7 +127,7 @@
                 "BLOCK_BYTES": 18,
                 "QUANT_FORMAT": 0
               },
-              "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72"
+              "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f"
             },
             {
               "op": "attn_residual",
@@ -153,7 +153,7 @@
                 "BLOCK_BYTES": 34,
                 "QUANT_FORMAT": 2
               },
-              "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72"
+              "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f"
             },
             {
               "op": "up_proj",
@@ -167,7 +167,7 @@
                 "BLOCK_BYTES": 34,
                 "QUANT_FORMAT": 2
               },
-              "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72"
+              "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f"
             },
             {
               "op": "activation",
@@ -190,7 +190,7 @@
                 "BLOCK_BYTES": 34,
                 "QUANT_FORMAT": 2
               },
-              "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72"
+              "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f"
             },
             {
               "op": "ffn_residual",
@@ -222,7 +222,7 @@
                 "BLOCK_BYTES": 18,
                 "QUANT_FORMAT": 0
               },
-              "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72"
+              "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f"
             },
             {
               "op": "linear_z_proj",
@@ -236,7 +236,7 @@
                 "BLOCK_BYTES": 18,
                 "QUANT_FORMAT": 0
               },
-              "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72"
+              "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f"
             },
             {
               "op": "linear_out_proj",
@@ -250,13 +250,13 @@
                 "BLOCK_BYTES": 34,
                 "QUANT_FORMAT": 2
               },
-              "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72"
+              "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f"
             },
             {
               "op": "moe_norm_router",
               "kernel": "moe_norm_router_f32.wgsl",
               "entry": "single_pass",
-              "digest": "sha256:3e5c424ade7055f14ac658a9bf3aecd2a027305b7c3d09f9dcb0432b6a7d5120"
+              "digest": "sha256:87646d02b567b3c13f66245ac222392df92af863da920ce562caa77dd14f2e93"
             },
             {
               "op": "moe_router",
@@ -530,7 +530,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "k_proj",
@@ -544,7 +544,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "v_proj",
@@ -580,7 +580,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "o_proj",
@@ -606,7 +606,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "gate_proj",
@@ -620,7 +620,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "up_proj",
@@ -643,7 +643,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "down_proj",
@@ -654,6 +654,12 @@
                   "entry": "main",
                   "kernel": "residual.wgsl",
                   "op": "ffn_residual"
+                },
+                {
+                  "op": "linear_norm_ab",
+                  "kernel": "linear_norm_ab_f32.wgsl",
+                  "entry": "single_pass",
+                  "digest": "sha256:ac4aa1763865ade33bcb261b407e5466392b89a7e45c30514138ab4da919d554"
                 },
                 {
                   "digest": "sha256:c5920603ff819e8687cb423bfcf19e3082671162beba59516d7d22180e6b756f",
@@ -675,7 +681,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_qkv_proj",
@@ -689,7 +695,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_z_proj",
@@ -703,7 +709,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_out_proj",
@@ -722,7 +728,7 @@
                   "op": "moe_shared_slot_down"
                 },
                 {
-                  "digest": "sha256:3e5c424ade7055f14ac658a9bf3aecd2a027305b7c3d09f9dcb0432b6a7d5120",
+                  "digest": "sha256:87646d02b567b3c13f66245ac222392df92af863da920ce562caa77dd14f2e93",
                   "entry": "single_pass",
                   "kernel": "moe_norm_router_f32.wgsl",
                   "op": "moe_norm_router"
@@ -732,6 +738,12 @@
                   "entry": "main",
                   "kernel": "matmul_gemv_f32_subgroup.wgsl",
                   "op": "moe_router"
+                },
+                {
+                  "op": "moe_topk",
+                  "kernel": "softmax_topk_logit_rank.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:8b773fa89e891d94b85027980d257bdc667f80c422a01f8e4a311e4b6a1315a2"
                 },
                 {
                   "digest": "sha256:c5920603ff819e8687cb423bfcf19e3082671162beba59516d7d22180e6b756f",
@@ -1012,7 +1024,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "k_proj",
@@ -1026,7 +1038,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "v_proj",
@@ -1062,7 +1074,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "o_proj",
@@ -1088,7 +1100,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "gate_proj",
@@ -1102,7 +1114,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "up_proj",
@@ -1125,7 +1137,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "down_proj",
@@ -1157,7 +1169,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_qkv_proj",
@@ -1171,7 +1183,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_z_proj",
@@ -1190,7 +1202,7 @@
                   "op": "moe_shared_slot_down"
                 },
                 {
-                  "digest": "sha256:3e5c424ade7055f14ac658a9bf3aecd2a027305b7c3d09f9dcb0432b6a7d5120",
+                  "digest": "sha256:87646d02b567b3c13f66245ac222392df92af863da920ce562caa77dd14f2e93",
                   "entry": "single_pass",
                   "kernel": "moe_norm_router_f32.wgsl",
                   "op": "moe_norm_router"
@@ -1200,6 +1212,12 @@
                   "entry": "main",
                   "kernel": "matmul_gemv_f32_subgroup.wgsl",
                   "op": "moe_router"
+                },
+                {
+                  "op": "moe_topk",
+                  "kernel": "softmax_topk_logit_rank.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:8b773fa89e891d94b85027980d257bdc667f80c422a01f8e4a311e4b6a1315a2"
                 },
                 {
                   "digest": "sha256:c5920603ff819e8687cb423bfcf19e3082671162beba59516d7d22180e6b756f",
@@ -1469,7 +1487,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "k_proj",
@@ -1483,7 +1501,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "v_proj",
@@ -1519,7 +1537,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "o_proj",
@@ -1545,7 +1563,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "gate_proj",
@@ -1559,7 +1577,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "up_proj",
@@ -1582,7 +1600,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "down_proj",
@@ -1593,6 +1611,12 @@
                   "entry": "main",
                   "kernel": "residual.wgsl",
                   "op": "ffn_residual"
+                },
+                {
+                  "op": "linear_norm_ab",
+                  "kernel": "linear_norm_ab_f32.wgsl",
+                  "entry": "single_pass",
+                  "digest": "sha256:ac4aa1763865ade33bcb261b407e5466392b89a7e45c30514138ab4da919d554"
                 },
                 {
                   "digest": "sha256:c5920603ff819e8687cb423bfcf19e3082671162beba59516d7d22180e6b756f",
@@ -1614,7 +1638,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_qkv_proj",
@@ -1628,7 +1652,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_z_proj",
@@ -1642,7 +1666,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_out_proj",
@@ -1661,7 +1685,7 @@
                   "op": "moe_shared_slot_down"
                 },
                 {
-                  "digest": "sha256:3e5c424ade7055f14ac658a9bf3aecd2a027305b7c3d09f9dcb0432b6a7d5120",
+                  "digest": "sha256:87646d02b567b3c13f66245ac222392df92af863da920ce562caa77dd14f2e93",
                   "entry": "single_pass",
                   "kernel": "moe_norm_router_f32.wgsl",
                   "op": "moe_norm_router"
@@ -1671,6 +1695,12 @@
                   "entry": "main",
                   "kernel": "matmul_gemv_f32_subgroup.wgsl",
                   "op": "moe_router"
+                },
+                {
+                  "op": "moe_topk",
+                  "kernel": "softmax_topk_logit_rank.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:8b773fa89e891d94b85027980d257bdc667f80c422a01f8e4a311e4b6a1315a2"
                 },
                 {
                   "digest": "sha256:c5920603ff819e8687cb423bfcf19e3082671162beba59516d7d22180e6b756f",
@@ -1946,7 +1976,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "k_proj",
@@ -1960,7 +1990,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "v_proj",
@@ -1996,7 +2026,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "o_proj",
@@ -2078,6 +2108,12 @@
                   "op": "ffn_residual"
                 },
                 {
+                  "op": "linear_norm_ab",
+                  "kernel": "linear_norm_ab_f32.wgsl",
+                  "entry": "single_pass",
+                  "digest": "sha256:ac4aa1763865ade33bcb261b407e5466392b89a7e45c30514138ab4da919d554"
+                },
+                {
                   "digest": "sha256:c5920603ff819e8687cb423bfcf19e3082671162beba59516d7d22180e6b756f",
                   "entry": "main",
                   "kernel": "matmul_gemv_f32_subgroup.wgsl",
@@ -2097,7 +2133,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_qkv_proj",
@@ -2111,7 +2147,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_z_proj",
@@ -2125,7 +2161,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_out_proj",
@@ -2144,7 +2180,7 @@
                   "op": "moe_shared_slot_down"
                 },
                 {
-                  "digest": "sha256:3e5c424ade7055f14ac658a9bf3aecd2a027305b7c3d09f9dcb0432b6a7d5120",
+                  "digest": "sha256:87646d02b567b3c13f66245ac222392df92af863da920ce562caa77dd14f2e93",
                   "entry": "single_pass",
                   "kernel": "moe_norm_router_f32.wgsl",
                   "op": "moe_norm_router"
@@ -2154,6 +2190,12 @@
                   "entry": "main",
                   "kernel": "matmul_gemv_f32_subgroup.wgsl",
                   "op": "moe_router"
+                },
+                {
+                  "op": "moe_topk",
+                  "kernel": "softmax_topk_logit_rank.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:8b773fa89e891d94b85027980d257bdc667f80c422a01f8e4a311e4b6a1315a2"
                 },
                 {
                   "digest": "sha256:c5920603ff819e8687cb423bfcf19e3082671162beba59516d7d22180e6b756f",
@@ -2423,7 +2465,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "k_proj",
@@ -2437,7 +2479,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "v_proj",
@@ -2473,7 +2515,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "o_proj",
@@ -2555,6 +2597,12 @@
                   "op": "ffn_residual"
                 },
                 {
+                  "op": "linear_norm_ab",
+                  "kernel": "linear_norm_ab_f32.wgsl",
+                  "entry": "single_pass",
+                  "digest": "sha256:ac4aa1763865ade33bcb261b407e5466392b89a7e45c30514138ab4da919d554"
+                },
+                {
                   "digest": "sha256:c5920603ff819e8687cb423bfcf19e3082671162beba59516d7d22180e6b756f",
                   "entry": "main",
                   "kernel": "matmul_gemv_f32_subgroup.wgsl",
@@ -2574,7 +2622,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_qkv_proj",
@@ -2588,7 +2636,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_z_proj",
@@ -2602,7 +2650,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_out_proj",
@@ -2621,7 +2669,7 @@
                   "op": "moe_shared_slot_down"
                 },
                 {
-                  "digest": "sha256:3e5c424ade7055f14ac658a9bf3aecd2a027305b7c3d09f9dcb0432b6a7d5120",
+                  "digest": "sha256:87646d02b567b3c13f66245ac222392df92af863da920ce562caa77dd14f2e93",
                   "entry": "single_pass",
                   "kernel": "moe_norm_router_f32.wgsl",
                   "op": "moe_norm_router"
@@ -2631,6 +2679,12 @@
                   "entry": "main",
                   "kernel": "matmul_gemv_f32_subgroup.wgsl",
                   "op": "moe_router"
+                },
+                {
+                  "op": "moe_topk",
+                  "kernel": "softmax_topk_logit_rank.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:8b773fa89e891d94b85027980d257bdc667f80c422a01f8e4a311e4b6a1315a2"
                 },
                 {
                   "digest": "sha256:c5920603ff819e8687cb423bfcf19e3082671162beba59516d7d22180e6b756f",
@@ -2899,7 +2953,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "q_proj",
@@ -2913,7 +2967,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "k_proj",
@@ -2927,7 +2981,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "v_proj",
@@ -2963,7 +3017,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "o_proj",
@@ -2989,7 +3043,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "gate_proj",
@@ -3003,7 +3057,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "up_proj",
@@ -3026,7 +3080,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "down_proj",
@@ -3058,7 +3112,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_qkv_proj",
@@ -3072,7 +3126,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_z_proj",
@@ -3091,7 +3145,7 @@
                   "op": "moe_shared_slot_down"
                 },
                 {
-                  "digest": "sha256:3e5c424ade7055f14ac658a9bf3aecd2a027305b7c3d09f9dcb0432b6a7d5120",
+                  "digest": "sha256:87646d02b567b3c13f66245ac222392df92af863da920ce562caa77dd14f2e93",
                   "entry": "single_pass",
                   "kernel": "moe_norm_router_f32.wgsl",
                   "op": "moe_norm_router"
@@ -3101,6 +3155,12 @@
                   "entry": "main",
                   "kernel": "matmul_gemv_f32_subgroup.wgsl",
                   "op": "moe_router"
+                },
+                {
+                  "op": "moe_topk",
+                  "kernel": "softmax_topk_logit_rank.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:8b773fa89e891d94b85027980d257bdc667f80c422a01f8e4a311e4b6a1315a2"
                 },
                 {
                   "digest": "sha256:c5920603ff819e8687cb423bfcf19e3082671162beba59516d7d22180e6b756f",
@@ -3367,7 +3427,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "q_proj",
@@ -3381,7 +3441,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "k_proj",
@@ -3395,7 +3455,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "v_proj",
@@ -3431,7 +3491,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "o_proj",
@@ -3532,7 +3592,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_qkv_proj",
@@ -3546,7 +3606,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_z_proj",
@@ -3565,7 +3625,7 @@
                   "op": "moe_shared_slot_down"
                 },
                 {
-                  "digest": "sha256:3e5c424ade7055f14ac658a9bf3aecd2a027305b7c3d09f9dcb0432b6a7d5120",
+                  "digest": "sha256:87646d02b567b3c13f66245ac222392df92af863da920ce562caa77dd14f2e93",
                   "entry": "single_pass",
                   "kernel": "moe_norm_router_f32.wgsl",
                   "op": "moe_norm_router"
@@ -3575,6 +3635,12 @@
                   "entry": "main",
                   "kernel": "matmul_gemv_f32_subgroup.wgsl",
                   "op": "moe_router"
+                },
+                {
+                  "op": "moe_topk",
+                  "kernel": "softmax_topk_logit_rank.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:8b773fa89e891d94b85027980d257bdc667f80c422a01f8e4a311e4b6a1315a2"
                 },
                 {
                   "digest": "sha256:c5920603ff819e8687cb423bfcf19e3082671162beba59516d7d22180e6b756f",
@@ -3855,7 +3921,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "k_proj",
@@ -3869,7 +3935,7 @@
                     "BLOCK_BYTES": 34,
                     "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "v_proj",
@@ -3905,7 +3971,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "o_proj",
@@ -4006,7 +4072,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_qkv_proj",
@@ -4020,7 +4086,7 @@
                     "BLOCK_BYTES": 18,
                     "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "digest": "sha256:66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",
                   "entry": "main",
                   "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_z_proj",
@@ -4039,7 +4105,7 @@
                   "op": "moe_shared_slot_down"
                 },
                 {
-                  "digest": "sha256:3e5c424ade7055f14ac658a9bf3aecd2a027305b7c3d09f9dcb0432b6a7d5120",
+                  "digest": "sha256:87646d02b567b3c13f66245ac222392df92af863da920ce562caa77dd14f2e93",
                   "entry": "single_pass",
                   "kernel": "moe_norm_router_f32.wgsl",
                   "op": "moe_norm_router"
@@ -4049,6 +4115,12 @@
                   "entry": "main",
                   "kernel": "matmul_gemv_f32_subgroup.wgsl",
                   "op": "moe_router"
+                },
+                {
+                  "op": "moe_topk",
+                  "kernel": "softmax_topk_logit_rank.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:8b773fa89e891d94b85027980d257bdc667f80c422a01f8e4a311e4b6a1315a2"
                 },
                 {
                   "digest": "sha256:c5920603ff819e8687cb423bfcf19e3082671162beba59516d7d22180e6b756f",

@@ -26,6 +26,8 @@ export interface SoftmaxTopKOptions {
   inputDtype: 'f16' | 'f32';
   weightsDtype: 'f16' | 'f32';
   modelType?: string | null;
+  /** A declared registered topk variant; omitted, the softmax rules select one. */
+  variant?: string | null;
 }
 
 /**

@@ -52,6 +52,23 @@ export function resolveQwenNormRouter(options) {
   return config.variant;
 }
 
+/** @type {typeof import('./qwen-shared-expert.js').resolveDeclaredTopK} */
+export function resolveDeclaredTopK(options) {
+  if (options.kernelPath == null) return null;
+  if ((options.phase !== 'decode' && options.phase !== 'prefill')
+    || !Number.isSafeInteger(options.layerIdx) || options.layerIdx < 0) {
+    throw new Error('[MoE] Top-k lookup requires explicit phase and layer index.');
+  }
+  const steps = getLayerSteps(options.kernelPath, options.layerIdx, options.phase)
+    .filter(step => step.op === 'moe_topk');
+  if (steps.length === 0) return null;
+  const config = steps.length === 1 ? getKernelPathStepConfig('topk', steps[0], options.phase) : null;
+  if (!config || (steps[0].constants && Object.keys(steps[0].constants).length)) {
+    throw new Error('[MoE] Top-k requires one registered moe_topk step with model-bound geometry.');
+  }
+  return config.variant;
+}
+
 const slotVariantPlans = new WeakMap();
 
 /** @type {typeof import('./qwen-shared-expert.js').resolveQwenSharedSlotVariants} */

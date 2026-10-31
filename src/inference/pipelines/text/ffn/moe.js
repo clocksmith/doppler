@@ -2,7 +2,7 @@ import { resolveGroupedPrefill } from '../moe/grouped-prefill.js';
 
 
 import { releaseOrTrack } from '../ops.js';
-import { runQwenSharedExpert, resolveQwenNormRouter, resolveQwenSharedSlot, resolveQwenSharedSlotVariants } from './qwen-shared-expert.js';
+import { runQwenSharedExpert, resolveDeclaredTopK, resolveQwenNormRouter, resolveQwenSharedSlot, resolveQwenSharedSlotVariants } from './qwen-shared-expert.js';
 import { createTensor } from '../../../../gpu/tensor.js';
 
 // Lazily loaded once: each dynamic import() makes the browser re-walk the module graph.
@@ -90,6 +90,7 @@ export async function runMoEFFNGPU(
         residual: pendingResidual
           ? { tensor: pendingResidual, outputBuffer: context.__pendingFfnResidualOutputBuffer ?? null }
           : null } : null,
+      topKVariant: resolveDeclaredTopK({ kernelPath: context.kernelPath ?? null, phase: context.phase, layerIdx }),
       normRouter: pendingNorm
         ? { ...pendingNorm, variant: normRouter, sharedRouterWeight: context.weights.get(`layer_${layerIdx}`)?.sharedExpertRouter }
         : null,

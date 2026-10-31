@@ -81,16 +81,27 @@ async function softmaxTopK(target, logits, numTokens, numExperts, topK, options 
   }
 
   const caps = getKernelCapabilities();
-  const variant = selectRuleValue('softmax', 'topkVariant', {
+  // A declared kernel-path step names its variant; otherwise the rules select one.
+  const variant = options.variant ?? selectRuleValue('softmax', 'topkVariant', {
     modelType,
     inputDtype,
     weightsDtype,
     hasF16: caps?.hasF16 ?? false,
     hasSubgroups: caps?.hasSubgroups ?? false,
   });
+  if (variant === 'fused_logit_rank') {
+    if (normalize !== true || inputDtype !== 'f32' || weightsDtype !== 'f32') {
+      throw new Error('SoftmaxTopK fused_logit_rank covers renormalized F32 routing only.');
+    }
+    // Its second stage keeps one pick per lane of one subgroup.
+    const minSubgroup = caps?.hasSubgroups ? caps.adapterInfo?.subgroupMinSize : null;
+    if (typeof minSubgroup !== 'number' || minSubgroup < topK) {
+      throw new Error(`SoftmaxTopK fused_logit_rank needs subgroups of at least top-${topK} lanes; got ${minSubgroup}.`);
+    }
+  }
   const pipeline = await createPipeline('topk', variant);
-  if (variant === 'fused_ranked' && (numExperts > 256 || topK > 64 || topK > numExperts)) {
-    throw new Error(`SoftmaxTopK fused_ranked supports at most 256 experts and top-64; got experts=${numExperts} topK=${topK}.`);
+  if ((variant === 'fused_ranked' || variant === 'fused_logit_rank') && (numExperts > 256 || topK > 64 || topK > numExperts)) {
+    throw new Error(`SoftmaxTopK ${variant} supports at most 256 experts and top-64; got experts=${numExperts} topK=${topK}.`);
   }
 
   const indicesSize = numTokens * topK * 4;

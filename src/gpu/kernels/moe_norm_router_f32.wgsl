@@ -165,13 +165,13 @@ fn main(
     }
 }
 
-// Single pass (variant f32_single_pass): every workgroup streams input + residual and its
-// ROWS router rows once. NORM_THREADS (= WORKGROUP_SIZE) invocations take rmsnorm.wgsl
-// main's contiguous chunks, so the sum of squares, its tree and the refined inverse root,
-// and therefore the normalized row and pre-norm sum, are rmsnorm's bits. Each row's dot
-// is taken against input * weight in the same pass and scaled by the inverse root at the
-// end (Pooled engine/wgsl/moe.js normRouterKernel): the logits round differently from a
-// GEMV of the normalized row. Row num_experts is the shared-expert gate.
+// Single pass (variant f32_single_pass): every workgroup stages input + residual in
+// workgroup memory four-wide and streams its ROWS router rows four-wide across
+// invocations. The sum of squares is then taken from the staged row in rmsnorm.wgsl
+// main's contiguous NORM_THREADS order, so the normalized row and pre-norm sum are
+// rmsnorm's bits. Each row's dot is taken against input * weight and scaled by the
+// inverse root at the end (Pooled engine/wgsl/moe.js normRouterKernel): the logits round
+// differently from a GEMV of the normalized row. Row num_experts is the shared-expert gate.
 override ROWS: u32 = 4u;
 var<workgroup> row_sums: array<vec4<f32>, NORM_THREADS>;
 
@@ -186,21 +186,33 @@ fn row_weight(row: u32, idx: u32) -> f32 {
 fn single_pass(@builtin(workgroup_id) group: vec3<u32>, @builtin(local_invocation_index) thread_idx: u32) {
     let size = u.hidden_size;
     let row0 = (group.y * u.workgroups_x + group.x) * ROWS;
+    var dots = vec4<f32>(0.0);
+    for (var c = thread_idx; c < size / 4u; c += NORM_THREADS) {
+        let j = c * 4u;
+        let x = vec4<f32>(input[j], input[j + 1u], input[j + 2u], input[j + 3u])
+            + vec4<f32>(residual[j], residual[j + 1u], residual[j + 2u], residual[j + 3u]);
+        row[j] = x.x;
+        row[j + 1u] = x.y;
+        row[j + 2u] = x.z;
+        row[j + 3u] = x.w;
+        let xw = x * vec4<f32>(apply_weight(load_weight(j)), apply_weight(load_weight(j + 1u)),
+            apply_weight(load_weight(j + 2u)), apply_weight(load_weight(j + 3u)));
+        for (var r = 0u; r < ROWS; r++) {
+            let rr = row0 + r;
+            if (rr <= u.num_experts) {
+                dots[r] += dot(vec4<f32>(row_weight(rr, j), row_weight(rr, j + 1u),
+                    row_weight(rr, j + 2u), row_weight(rr, j + 3u)), xw);
+            }
+        }
+    }
+    workgroupBarrier();
     let elements_per_thread = (size + NORM_THREADS - 1u) / NORM_THREADS;
     var local_sum_sq: f32 = 0.0;
-    var dots = vec4<f32>(0.0);
     for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
         let idx = thread_idx * elements_per_thread + i;
         if (idx < size) {
-            let x = load_input(idx);
+            let x = row[idx];
             local_sum_sq = local_sum_sq + x * x;
-            let xw = x * apply_weight(load_weight(idx));
-            for (var r = 0u; r < ROWS; r++) {
-                let row = row0 + r;
-                if (row <= u.num_experts) {
-                    dots[r] = fma(row_weight(row, idx), xw, dots[r]);
-                }
-            }
         }
     }
     partial_sums[thread_idx] = local_sum_sq;
@@ -224,22 +236,19 @@ fn single_pass(@builtin(workgroup_id) group: vec3<u32>, @builtin(local_invocatio
     let inv_rms = fma(0.5 * estimate, reciprocal_residual, estimate);
 
     if (thread_idx < ROWS) {
-        let row = row0 + thread_idx;
+        let rr = row0 + thread_idx;
         let value = row_sums[0][thread_idx] * inv_rms;
-        if (row < u.num_experts) {
-            logits[row] = value;
-        } else if (row == u.num_experts) {
+        if (rr < u.num_experts) {
+            logits[rr] = value;
+        } else if (rr == u.num_experts) {
             shared_gate[0] = value;
         }
     }
     if (group.x == 0u && group.y == 0u) {
-        for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
-            let idx = thread_idx * elements_per_thread + i;
-            if (idx < size) {
-                let x = load_input(idx);
-                prenorm[idx] = x;
-                normed[idx] = x * inv_rms * apply_weight(load_weight(idx));
-            }
+        for (var idx = thread_idx; idx < size; idx += NORM_THREADS) {
+            let x = row[idx];
+            prenorm[idx] = x;
+            normed[idx] = x * inv_rms * apply_weight(load_weight(idx));
         }
     }
 }

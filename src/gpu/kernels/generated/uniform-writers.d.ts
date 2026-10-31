@@ -14,6 +14,8 @@ export interface KernelUniformValues {
   "moe_shared_slot_down/pair_combine_residual_f32": Parameters<typeof writers0.write_moe_shared_slot_gu_native_f32>[1];
   "moe_norm_router/f32": Parameters<typeof writers0.write_moe_norm_router_f32>[1];
   "moe_norm_router/f32_single_pass": Parameters<typeof writers0.write_moe_norm_router_f32>[1];
+  "linear_norm_ab/f32": Parameters<typeof writers0.write_linear_norm_ab_f32>[1];
+  "linear_norm_ab/f32_single_pass": Parameters<typeof writers0.write_linear_norm_ab_f32>[1];
   "w8a8_quantize/f32": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
   "w8a8_rescale/activation": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
   "w8a8_rescale/weight": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
@@ -306,6 +308,7 @@ export interface KernelUniformValues {
   "topk/small": Parameters<typeof writers1.write_topk_default>[1];
   "topk/fused": Parameters<typeof writers1.write_topk_default>[1];
   "topk/fused_ranked": Parameters<typeof writers1.write_topk_default>[1];
+  "topk/fused_logit_rank": Parameters<typeof writers1.write_topk_default>[1];
   "topk/fused_f16": Parameters<typeof writers1.write_topk_default>[1];
   "topk/fused_f16_w16": Parameters<typeof writers1.write_topk_default>[1];
   "topk/gptoss_router_topk": Parameters<typeof writers1.write_topk_default>[1];
