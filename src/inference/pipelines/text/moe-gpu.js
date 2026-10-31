@@ -430,6 +430,7 @@ export async function moeFeedForwardGPU(
     perfLog(`MoE L${layerIdx} route_weight_load`, stepStart, { expertFormat, topK });
     stepStart = perfMark();
     const routeOptions = {
+      groupedPrefill: config.groupedPrefill === true,
       sharedSlot: config.sharedSlot ?? null,
       inputTensor,
       indicesBuffer,

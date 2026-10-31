@@ -1,6 +1,12 @@
 export const WGSL_PATCH_VARIANTS = Object.freeze([
   { id: 'moe-shared-slot-down', source: 'src/gpu/kernels/codegen/q4_0_common.wgslinc', target: 'src/gpu/kernels/moe_shared_slot_down_f32.wgsl', patch: 'src/gpu/kernels/codegen/patches/moe_shared_slot_down_f32.from.q4_0_common.diff' },
   { id: 'moe-shared-slot-gu', source: 'src/gpu/kernels/codegen/q4_0_common.wgslinc', target: 'src/gpu/kernels/moe_shared_slot_gu_f32.wgsl', patch: 'src/gpu/kernels/codegen/patches/moe_shared_slot_gu_f32.from.q4_0_common.diff' },
+  {
+    id: 'gated-delta-recurrent-gguf-register-prefill',
+    source: 'src/gpu/kernels/gated_delta_recurrent.wgsl',
+    target: 'src/gpu/kernels/gated_delta_recurrent_gguf_register_prefill.wgsl',
+    patch: 'src/gpu/kernels/codegen/patches/gated_delta_recurrent_gguf_register_prefill.from.gated_delta_recurrent.diff',
+  },
   { id: 'gated-delta-recurrent-gguf', source: 'src/gpu/kernels/gated_delta_recurrent.wgsl', target: 'src/gpu/kernels/gated_delta_recurrent_gguf.wgsl', patch: 'src/gpu/kernels/codegen/patches/gated_delta_recurrent_gguf.from.gated_delta_recurrent.diff' },
   { id: 'moe-route-gguf-split', source: 'src/gpu/kernels/codegen/q4_0_common.wgslinc', target: 'src/gpu/kernels/moe_route_gguf_split_f32.wgsl', patch: 'src/gpu/kernels/codegen/patches/moe_route_gguf_split_f32.from.q4_0_common.diff' },
   { id: 'gather-q4-0', source: 'src/gpu/kernels/codegen/q4_0_common.wgslinc', target: 'src/gpu/kernels/gather_q4_0.wgsl', patch: 'src/gpu/kernels/codegen/patches/gather_q4_0.from.q4_0_common.diff' },

@@ -1,3 +1,4 @@
+import { resolveGroupedPrefill } from '../moe/grouped-prefill.js';
 
 
 import { releaseOrTrack } from '../ops.js';
@@ -13,6 +14,11 @@ export async function runMoEFFNGPU(
   options = {}
 ) {
   const { config, moeRouter, expertWeights, expertLoader, layerRouterWeights } = context;
+  const groupedPrefill = resolveGroupedPrefill({ kernelPath: context.kernelPath ?? null, phase: context.phase, layerIdx });
+  if (groupedPrefill && (config.expertFormat !== 'qwen3_5'
+    || context.runtimeMoERoutingConfig?.activeExpertSelection !== 'topk-route')) {
+    throw new Error('[MoE grouped prefill] Requires the declared GPU topk-route executor.');
+  }
   const sharedSlot = resolveQwenSharedSlot({ kernelPath: context.kernelPath ?? null, phase: context.phase, layerIdx });
   if (sharedSlot && (config.expertFormat !== 'qwen3_5'
     || context.runtimeMoERoutingConfig?.activeExpertSelection !== 'topk-route')) {
@@ -54,6 +60,7 @@ export async function runMoEFFNGPU(
       routerInputDtype: options.routerInputTensor?.dtype ?? null,
       kernelPath: context.kernelPath ?? null,
       executionPolicies: context.executionPolicies ?? null,
+      groupedPrefill,
       sharedSlot: sharedSlot ? { weights: context.weights.get(`layer_${layerIdx}`),
         intermediateSize: config.moeSharedExpertIntermediateSize, kernelPath: context.kernelPath,
         phase: context.phase } : null,

@@ -27076,6 +27076,27 @@
      },
      "description": "Complete-head gated RMSNorm after sliced F32 recurrent prefill."
     },
+    "gguf_register_prefill": {
+     "wgsl": "gated_delta_recurrent_gguf_register_prefill.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "normGateActivation": "silu",
+      "sourceLayout": "gguf-v1",
+      "headKDim": 128,
+      "maxHeadVDim": 128,
+      "stateComponents": 1
+     },
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["gated-delta-recurrent.rules.json#scalarVariant"],
+      "wgslOnDisk": true
+     },
+     "description": "Opt-in GGUF F32 K=128 retained-state prefill; preserves ordered two-sweep math. Physical qualification pending."
+    },
     "gguf_f32": {
      "wgsl": "gated_delta_recurrent_gguf.wgsl",
      "entryPoint": "main",
@@ -30769,6 +30790,325 @@
      "outputDtype": "f32",
      "wgslOverrides": {
       "WORKGROUP_SIZE": 256
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "moe_grouped_sort": {
+   "description": "Opt-in stable GPU routed-expert grouping; original router IDs are retained",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "indices",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "groups",
+     "type": "storage"
+    },
+    {
+     "index": 3,
+     "name": "indirect",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 32,
+    "fields": [
+     {
+      "name": "num_routes",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "num_experts",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "top_k",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "pair_offset",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "gu_groups",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "down_groups",
+      "type": "u32",
+      "offset": 20
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 24,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 28,
+      "padding": true
+     }
+    ]
+   },
+   "variants": {
+    "native_f32": {
+     "wgsl": "moe_grouped_sort.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256,
+      "GROUP_SIZE": 8,
+      "MAX_EXPERTS": 256
+     },
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "maxTopK": 16,
+      "phase": "prefill",
+      "requiresDistinctTopK": true
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "moe_grouped_gu": {
+   "description": "Opt-in grouped native GGUF F32 routed projection; no residual",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "weights",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "up_weights",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "groups",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 5,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 32,
+    "fields": [
+     {
+      "name": "num_routes",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "num_experts",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "top_k",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "pair_offset",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "N",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "K",
+      "type": "u32",
+      "offset": 20
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 24,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 28,
+      "padding": true
+     }
+    ]
+   },
+   "variants": {
+    "native_f32": {
+     "wgsl": "moe_grouped_matmul_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256,
+      "GROUP_SIZE": 8,
+      "ROWS_PER_THREAD": 2,
+      "INPUT_IS_TOKEN": true,
+      "SPLIT_GATE_UP": true
+     },
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "phase": "prefill",
+      "weightDtypes": ["q4_0","q4_1","q8_0"],
+      "weightLayout": "row",
+      "activationDtype": "f32",
+      "outerResidual": false
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "moe_grouped_down": {
+   "description": "Opt-in grouped native GGUF F32 routed projection; no residual",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "weights",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "up_weights",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "groups",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 5,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 32,
+    "fields": [
+     {
+      "name": "num_routes",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "num_experts",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "top_k",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "pair_offset",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "N",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "K",
+      "type": "u32",
+      "offset": 20
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 24,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 28,
+      "padding": true
+     }
+    ]
+   },
+   "variants": {
+    "native_f32": {
+     "wgsl": "moe_grouped_matmul_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256,
+      "GROUP_SIZE": 8,
+      "ROWS_PER_THREAD": 4,
+      "INPUT_IS_TOKEN": false,
+      "SPLIT_GATE_UP": false
+     },
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "phase": "prefill",
+      "weightDtypes": ["q4_0","q4_1","q8_0"],
+      "weightLayout": "row",
+      "activationDtype": "f32",
+      "outerResidual": false
      },
      "reachability": {
       "status": "unused",

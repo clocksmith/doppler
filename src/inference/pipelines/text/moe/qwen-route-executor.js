@@ -1,3 +1,4 @@
+import { executeGroupedPrefill } from './grouped-prefill.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { getWeightDtype, isWeightBuffer } from '../../../../gpu/weight-buffer.js';
 import { runMatmul, recordMatmul } from '../../../../gpu/kernels/matmul.js';
@@ -20,6 +21,10 @@ async function execute(recorder, options) {
   if (!gateUpWeight || (!weights.gateUp && !weights.up)) throw new Error('[MoE] Missing explicit fused or separate gate/up banks.');
   for (const weight of [gateUpWeight,weights.down,...(weights.up ? [weights.up] : [])]) {
     selectRuleValue('inference','moe','qwenRouteWeightDtype',{ dtype:getWeightDtype(weight) });
+  }
+  if (options.groupedPrefill === true) {
+    if (options.sharedSlot) throw new Error('[MoE grouped prefill] Shared-slot execution must remain separate.');
+    return executeGroupedPrefill(recorder, options);
   }
   if (options.sharedSlot) return executeSharedSlot(recorder, options);
   const projection = { numRoutes: numTokens * topK, numExperts: weights.numExperts, topK, alpha: 1 };
