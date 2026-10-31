@@ -1,7 +1,9 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "kind": "local-partition-numerical-diagnostic",
   "modelId": "gemma-3-270m-it-f16-af32",
-  "manifestHash": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+  "manifestHash": "sha256:1e69f52e8e4d2b88ceddb6feaa75e718373b3ba18c0c89f2c92173102ab32bbc",
   "plan": {
     "schema": "doppler.layer-partition-contract/v1",
     "modelId": "gemma-3-270m-it-f16-af32",
@@ -122,8 +124,8 @@
   "artifacts": [
     {
       "filename": "manifest.json",
-      "bytes": 100357,
-      "sha256": "8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05"
+      "bytes": 100320,
+      "sha256": "1e69f52e8e4d2b88ceddb6feaa75e718373b3ba18c0c89f2c92173102ab32bbc"
     },
     {
       "filename": "tokenizer.json",

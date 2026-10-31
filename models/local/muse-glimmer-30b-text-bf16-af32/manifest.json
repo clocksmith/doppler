@@ -22085,7 +22085,7 @@
     "tool": "doppler.semantic-manifest-lowering/v1"
   },
   "metadata": {
-    "source": "file:///home/x/deco/doppler/models/source/glimmer-30b",
+    "source": "meta-models/Muse-Glimmer-30B",
     "convertedAt": "2026-08-23T08:59:59.000Z",
     "hasTokenizer": true,
     "manifestRefresh": {

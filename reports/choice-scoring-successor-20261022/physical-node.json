@@ -1,11 +1,13 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.choice-scoring-physical/v1",
   "passed": true,
   "archiveSha256": "3f87f551a1a02ed1d9a8f71558d4519ddfcad7b88048d24f2dbf97ad675161bd",
   "runtimeVersion": "0.6.32",
-  "contractSha256": "39896f2d7e1be6e77f25d504c15a89279b7fd96a20d3d095395f82f99af758d2",
-  "referenceSha256": "99041c6c671537332ae4ca0c1f0fc2a9373529327de651c5ac4c2a96d291c024",
-  "manifestSha256": "6beadee33abc94eed49e54b95ed8f3f46c6eddcf40fffd97a084f3f4c936b861",
+  "contractSha256": "af130be5f91b3fa0571e6c83e6dd719aedc393d0174555088da9e83fd7b71729",
+  "referenceSha256": "cea6094f8955f0c6c0afdbd21a0d69357351b2f62cfb77cb480ab9e7c2eedeca",
+  "manifestSha256": "c1d2b6faf91ec5bed7310f768159ab87d493478907b30283a806d252656e3b04",
   "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
   "provider": {
     "name": "webgpu",

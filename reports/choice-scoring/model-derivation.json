@@ -1,6 +1,8 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.test-manifest-derivation/v1",
-  "originalManifestSha256": "03298342c5f91680864526c1ead2ecaf16ba59307843c84e09842bcb4b9cc7c5",
+  "originalManifestSha256": "2f900bf5af208079b8664faf796b6fb46f3718cd9a3b320f3f5d47680e97bb38",
   "candidateManifestSha256": "9714458853bf59a48e891e37155439f1a40abfc517714d6bf41a8874735bf562",
   "conversionContractSha256": "337f38aebbd77b32de248a554227974224b7b1115285122505069ec65a018ab8",
   "changes": [

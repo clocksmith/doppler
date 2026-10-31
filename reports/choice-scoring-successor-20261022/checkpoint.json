@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.choice-scoring-candidate-checkpoint/v1",
   "published": false,
   "supersedes": "reports/choice-scoring-successor-20261021/checkpoint.json (pinned the Metal-defective tiled kernel bed71e39)",
@@ -8,7 +10,7 @@
     "sourceCommit": "509eed3f"
   },
   "model": {
-    "manifestSha256": "6beadee33abc94eed49e54b95ed8f3f46c6eddcf40fffd97a084f3f4c936b861",
+    "manifestSha256": "c1d2b6faf91ec5bed7310f768159ab87d493478907b30283a806d252656e3b04",
     "location": ".cache/qwen-reranker-q4k-successor-20261022 (local NVMe; shards hard-linked from the 20261021 successor)"
   },
   "capsule": {

@@ -1,4 +1,5 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "command": "npm run check:green",
@@ -21,9 +22,9 @@
       "compressedSha256": "2a9a5403d34df8a99e91b2ff63e2d55833a42a728f88ef189814a5be1caa4dc6"
     },
     "completion-check-green-source.json.gz": {
-      "sourceSha256": "1e6db759de171834aa344bc59cf5d94f823273a7cdb7cda2a31915392ac91553",
+      "sourceSha256": "77a83f388586a116535ce37783968985caa33f381c55aaf33a1163b2a5f7f7c5",
       "sourceBytes": 820185,
-      "compressedSha256": "451ebaa07fcbb97ac5e5978ebba0936df04e197b6394512cec7282c1355f0aaa"
+      "compressedSha256": "bbf8514c77461811009f0b6309b1ad79f5de6c5ac573629f690aa44c81f45b33"
     },
     "completion-check-green-result.json.gz": {
       "sourceSha256": "cddaf65d31c701c0c3a76319964ae3789ce81dcbc4bfc47bec95cf9183b0e63f",

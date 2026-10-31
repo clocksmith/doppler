@@ -1,4 +1,5 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.quantized-generation-observation/v1",
@@ -7,8 +8,8 @@
   "configSha256": "14489728d1b836fce43988272b15ed4c6d6622cc69014cf291683c63730c5987",
   "toolSha256": "8e5f033709c7c6ebc843f142fb9a19f58650e075f61020845ad2b83580688393",
   "packageVersion": "0.6.30",
-  "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
-  "contractSha256": "92ac7653810982d14cda3d3b980cde963beac0bb45c9624da451deb10adebab0",
+  "manifestSha256": "2bc4c15504ec3b89c440d6c7009a9e320f8a7d927da5f37cc0e8c947f1075f59",
+  "contractSha256": "ea97136a57ef7c4f2655cf0dd287de6f5c92edc2138d88be4f0618a7ba674b9b",
   "inputCases": [
     {
       "id": "holdout-json",

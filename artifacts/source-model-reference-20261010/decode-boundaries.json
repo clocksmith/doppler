@@ -1,14 +1,16 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.source-model-reference-diagnostic/v1",
   "qualified": false,
   "scope": "Independent model-equation diagnostic, not reference activation or runtime fallback",
   "tolerance": 0.001,
   "tokenization": "Exact captured prompt IDs, followed by frozen reference tokens",
-  "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "modelIdentity": "sha256:27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281",
   "sourceConfigSha256": "b90b86f35c8e6925ef74ee04d0e758f0a845c83a42089ad82bbaa948de9b4204",
   "captureSha256": "28e10ce2535f2d05ecd31d4fdd5a05dc7527a47f6e054e34eccf6f62993a37de",
   "pieceIndexIdentity": "sha256:18adb1f08f4e694d357a27f7a5d67ea57a7d50c5e82aa7fda099084b445974b7",
-  "pieceIndexManifestIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "pieceIndexManifestIdentity": "sha256:27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281",
   "integrityScope": "Pinned SHA-256 pieces, separate from the retained legacy shard hash implementation",
   "toolSha256": "038d9b30e56e2f514632f66d8968ca558591a2c97a8e40588405dfbcbb23edd7",
   "tokenizerSha256": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
@@ -504,7 +506,7 @@
   ],
   "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
   "boundaryCaptureSha256": "32dc0c2ef64df65380fcffd634b1b2c9d6fdf4e898d7abbec6358831d532a6ba",
-  "boundaryCaptureManifestIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "boundaryCaptureManifestIdentity": "sha256:27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281",
   "boundaryComparisons": [
     {
       "boundary": "embed.out",

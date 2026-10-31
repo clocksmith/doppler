@@ -1,4 +1,5 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "status": "intentionally-interrupted",
@@ -12,8 +13,8 @@
       "sourceBytes": 228083
     },
     "cancel-settled-interrupted-source.json.gz": {
-      "sourceSha256": "eb2e413d6e1c75885bf2937316c7468b1fa8d6031039c12f899ff7c72875051a",
-      "compressedSha256": "30939b9cdc2681ff5cdcf64c91a05240d59156c8ec8b884865dbc7081cf013b5",
+      "sourceSha256": "48a6513220d775ac13cf70c576e67499823d88ad4709d924f29d8d74a6e70953",
+      "compressedSha256": "93658e9e5cb9e530d519f64d5a2468c501aac3fb35fa198a2a9134086f65f584",
       "sourceBytes": 820254
     },
     "cancel-settled-interruption.json.gz": {

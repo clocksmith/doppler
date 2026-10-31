@@ -1,11 +1,13 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.complete-f64-comparison/v1",
   "referenceActivated": false,
   "qualified": false,
   "tolerance": 0.001,
   "captureSha256": "59644632551fd84f1760f3ad00c6cdd74d82fa85e548f4df28d6ff63d0118468",
   "archiveSha256": "74cb03298e3fe4cdb1126c940553b91d64dc30dc93ea3b4a4bf252e78c028c63",
-  "manifestIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "manifestIdentity": "sha256:27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281",
   "comparatorSha256": "150df797b4a086efee37cbb93cbef0b5d9af6b4a712ad1aa391474eb70726870",
   "summary": {
     "doppler": {

@@ -35,7 +35,7 @@ const pack = await promisify(execFile)('npm', ['pack', '--ignore-scripts', '--pa
 await writeFile(join(output, 'pack.log'), pack.stdout + pack.stderr);
 const file = pack.stdout.trim().split('\n').at(-1);
 const binding = { archiveSha256: hash(await readFile(join(output, file))),
-  manifestSha256: hash(manifestBytes), sourceManifestSha256: '18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9',
+  manifestSha256: hash(manifestBytes), sourceManifestSha256: '27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281',
   parentArchiveSha256: parentHash, shaderSha256: hash(shader), updatedRefs, unchangedWeights: true,
   tolerance: 0.001, candidate: 'frequency-parent-plus-f16-tiled-residual', scope: 'Diagnostic only; no canonical arithmetic or reference change' };
 await writeFile(join(output, 'binding.json'), JSON.stringify(binding, null, 2) + '\n');

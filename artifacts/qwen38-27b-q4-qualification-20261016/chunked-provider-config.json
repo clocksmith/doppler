@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "installedPackage": "$HOME/deco/doppler/.tmp/qwen38-q4-qualification-20261016/patched-consumer/node_modules/doppler-gpu",
   "inventoryPath": "$HOME/deco/doppler/.tmp/qwen38-q4-qualification-20261016/q4-head-inventory.json",
   "modelDirectory": "$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact",
@@ -105,6 +107,6 @@
     "maxTokens": 128,
     "repetitionPenalty": 1
   },
-  "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+  "manifestSha256": "2bc4c15504ec3b89c440d6c7009a9e320f8a7d927da5f37cc0e8c947f1075f59",
   "reploidDirectory": "$HOME/deco/doppler/.tmp/qwen38-q4-qualification-20261016/patched-consumer"
 }

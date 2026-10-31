@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.qwen35-independent-f64-contract/v1",
   "scope": "Complete frozen-prefix independent diagnostic; proposed evaluation only, not acceptance activation or release qualification",
   "requestIndex": 2,
@@ -359,7 +361,7 @@
   "inputs": {
     "manifest": {
       "path": "models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
-      "sha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+      "sha256": "27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281"
     },
     "sourceConfig": {
       "path": "artifacts/source-model-reference-20261010/source-config.json",

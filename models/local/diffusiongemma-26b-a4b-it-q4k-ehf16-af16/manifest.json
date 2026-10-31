@@ -20,7 +20,7 @@
       "text"
     ],
     "shardSetHash": "sha256:ac56c34dae486b675a5638cb7198a5c7df40df2e2935180b7c06d774ec35c969",
-    "sourceCheckpointId": "file:///home/x/deco/doppler/models/local/hf/diffusiongemma-26B-A4B-it",
+    "sourceCheckpointId": "models/local/hf/diffusiongemma-26B-A4B-it",
     "sourceFormat": "safetensors",
     "weightPackHash": "sha256:34a45084026ae5e8b7bdf0d2f8d72288defb538472787c5c394f9750029f56d2",
     "weightPackId": "diffusiongemma-26b-a4b-it-q4k-ehf16-af16-wp-34a45084026a"
@@ -12140,7 +12140,7 @@
   "image_token_id": 258880,
   "conversion": null,
   "metadata": {
-    "source": "file:///home/x/deco/doppler/models/local/hf/diffusiongemma-26B-A4B-it",
+    "source": "models/local/hf/diffusiongemma-26B-A4B-it",
     "convertedAt": "2026-06-12T06:28:53.834Z",
     "hasTokenizer": true
   },

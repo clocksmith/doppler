@@ -1,7 +1,9 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "archiveSha256": "d881474b83ee18fc10ac306098796810b92e6378b0dbcc434eddfe550103d973",
   "manifestSha256": "544c22720bf46c1dae0056284d3bdd55a53d9e3bc20b5e37e365a098e4e601ca",
-  "sourceManifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "sourceManifestSha256": "27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281",
   "unchangedWeights": true,
   "tolerance": 0.001,
   "sourceBaseline": "d1b23716",

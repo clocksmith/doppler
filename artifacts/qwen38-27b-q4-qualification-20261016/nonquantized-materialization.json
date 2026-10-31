@@ -1,8 +1,9 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "scope": "Observed named allocations larger than or different from retained F16/F32 payloads; count includes separately materialized copies. Not a new dtype policy.",
-  "observationSha256": "5fd9b99aada7ac0ce71b56751cdd3f8bcba5e043b17eea2477a90a363f6b81ef",
+  "observationSha256": "0b9c152db0af4b3b196c91bb7491df82c26993a7b6c9190e3fbce417b24233a0",
   "rows": [
     {
       "tensor": "model.language_model.layers.0.linear_attn.A_log",

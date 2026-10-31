@@ -1,11 +1,13 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.attachment-layout-output-audit/v1",
   "exactWeightsAndPrecisionMatch": true,
   "rows": [
     {
       "lane": "question-before",
       "id": "attached-three",
-      "reportSha256": "80c0f7cf7e164c8201dac4e67114241035c692f2677913edc2a30b12816f34ed",
+      "reportSha256": "d39a9974e90c162136497ac5e2db1b0c54d69508be51da7bb0b73db410bc9d7b",
       "exactMessages": true,
       "exactOfficialTemplate": true,
       "exactInputTokens": true,
@@ -18,7 +20,7 @@
     {
       "lane": "question-before",
       "id": "attached-four-followup",
-      "reportSha256": "80c0f7cf7e164c8201dac4e67114241035c692f2677913edc2a30b12816f34ed",
+      "reportSha256": "d39a9974e90c162136497ac5e2db1b0c54d69508be51da7bb0b73db410bc9d7b",
       "exactMessages": true,
       "exactOfficialTemplate": true,
       "exactInputTokens": true,
@@ -31,7 +33,7 @@
     {
       "lane": "question-before",
       "id": "fresh-excluded-tax",
-      "reportSha256": "80c0f7cf7e164c8201dac4e67114241035c692f2677913edc2a30b12816f34ed",
+      "reportSha256": "d39a9974e90c162136497ac5e2db1b0c54d69508be51da7bb0b73db410bc9d7b",
       "exactMessages": true,
       "exactOfficialTemplate": true,
       "exactInputTokens": true,
@@ -44,7 +46,7 @@
     {
       "lane": "question-before",
       "id": "fresh-conditional-release",
-      "reportSha256": "80c0f7cf7e164c8201dac4e67114241035c692f2677913edc2a30b12816f34ed",
+      "reportSha256": "d39a9974e90c162136497ac5e2db1b0c54d69508be51da7bb0b73db410bc9d7b",
       "exactMessages": true,
       "exactOfficialTemplate": true,
       "exactInputTokens": true,
@@ -57,7 +59,7 @@
     {
       "lane": "question-before",
       "id": "fresh-deadline",
-      "reportSha256": "80c0f7cf7e164c8201dac4e67114241035c692f2677913edc2a30b12816f34ed",
+      "reportSha256": "d39a9974e90c162136497ac5e2db1b0c54d69508be51da7bb0b73db410bc9d7b",
       "exactMessages": true,
       "exactOfficialTemplate": true,
       "exactInputTokens": true,
@@ -70,7 +72,7 @@
     {
       "lane": "question-before",
       "id": "contractor-comparison",
-      "reportSha256": "80c0f7cf7e164c8201dac4e67114241035c692f2677913edc2a30b12816f34ed",
+      "reportSha256": "d39a9974e90c162136497ac5e2db1b0c54d69508be51da7bb0b73db410bc9d7b",
       "exactMessages": true,
       "exactOfficialTemplate": true,
       "exactInputTokens": true,
@@ -83,7 +85,7 @@
     {
       "lane": "question-before",
       "id": "contractor-retained-correction",
-      "reportSha256": "80c0f7cf7e164c8201dac4e67114241035c692f2677913edc2a30b12816f34ed",
+      "reportSha256": "d39a9974e90c162136497ac5e2db1b0c54d69508be51da7bb0b73db410bc9d7b",
       "exactMessages": true,
       "exactOfficialTemplate": true,
       "exactInputTokens": true,
@@ -96,7 +98,7 @@
     {
       "lane": "question-after",
       "id": "attached-three",
-      "reportSha256": "c4d16eff61dd828de4fd9c38bc13c2899bb148e6449155be5366cc8a31dab69f",
+      "reportSha256": "a8116856ae94739d103b52f1ffae6704144a46f6e382b119970a9ea69e42db13",
       "exactMessages": true,
       "exactOfficialTemplate": true,
       "exactInputTokens": true,
@@ -109,7 +111,7 @@
     {
       "lane": "question-after",
       "id": "attached-four-followup",
-      "reportSha256": "c4d16eff61dd828de4fd9c38bc13c2899bb148e6449155be5366cc8a31dab69f",
+      "reportSha256": "a8116856ae94739d103b52f1ffae6704144a46f6e382b119970a9ea69e42db13",
       "exactMessages": true,
       "exactOfficialTemplate": true,
       "exactInputTokens": true,
@@ -122,7 +124,7 @@
     {
       "lane": "question-after",
       "id": "fresh-excluded-tax",
-      "reportSha256": "c4d16eff61dd828de4fd9c38bc13c2899bb148e6449155be5366cc8a31dab69f",
+      "reportSha256": "a8116856ae94739d103b52f1ffae6704144a46f6e382b119970a9ea69e42db13",
       "exactMessages": true,
       "exactOfficialTemplate": true,
       "exactInputTokens": true,
@@ -135,7 +137,7 @@
     {
       "lane": "question-after",
       "id": "fresh-conditional-release",
-      "reportSha256": "c4d16eff61dd828de4fd9c38bc13c2899bb148e6449155be5366cc8a31dab69f",
+      "reportSha256": "a8116856ae94739d103b52f1ffae6704144a46f6e382b119970a9ea69e42db13",
       "exactMessages": true,
       "exactOfficialTemplate": true,
       "exactInputTokens": true,
@@ -148,7 +150,7 @@
     {
       "lane": "question-after",
       "id": "fresh-deadline",
-      "reportSha256": "c4d16eff61dd828de4fd9c38bc13c2899bb148e6449155be5366cc8a31dab69f",
+      "reportSha256": "a8116856ae94739d103b52f1ffae6704144a46f6e382b119970a9ea69e42db13",
       "exactMessages": true,
       "exactOfficialTemplate": true,
       "exactInputTokens": true,
@@ -161,7 +163,7 @@
     {
       "lane": "question-after",
       "id": "contractor-comparison",
-      "reportSha256": "c4d16eff61dd828de4fd9c38bc13c2899bb148e6449155be5366cc8a31dab69f",
+      "reportSha256": "a8116856ae94739d103b52f1ffae6704144a46f6e382b119970a9ea69e42db13",
       "exactMessages": true,
       "exactOfficialTemplate": true,
       "exactInputTokens": true,
@@ -174,7 +176,7 @@
     {
       "lane": "question-after",
       "id": "contractor-retained-correction",
-      "reportSha256": "c4d16eff61dd828de4fd9c38bc13c2899bb148e6449155be5366cc8a31dab69f",
+      "reportSha256": "a8116856ae94739d103b52f1ffae6704144a46f6e382b119970a9ea69e42db13",
       "exactMessages": true,
       "exactOfficialTemplate": true,
       "exactInputTokens": true,

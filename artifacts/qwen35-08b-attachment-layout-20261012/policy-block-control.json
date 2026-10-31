@@ -1,8 +1,10 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.deployed-layout-control/v1",
   "allowedSuiteHashes": [
-    "03801057edf3b6732d4156d874c366dc6b1578c95085b9e9cdc6f5f751e1df81",
-    "dc8fea752b705ae5e0e476c5ef6352652c5ecb6d153c4efe418326829819ae3b"
+    "1cdd2af36428843938028d3a0cb9aa79dfd3fddea651c31e1afeeeed48b664b8",
+    "e57545f7db48a285a35f8c0f74fb101e05fee7ba157d16db7e958702697954f7"
   ],
   "sourceTokenizer": "/var/tmp/doppler-qwen35-08b-source-20261012",
   "sourceTokenizerSha256": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",

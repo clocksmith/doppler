@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "scope": "Reviewable proposed numerical reference, inactive and unqualified; not an application correctness claim",
   "accepted": false,
   "activeFixtureChanged": false,
@@ -8,7 +10,7 @@
   "proposedReferenceLocalPath": "reports/local/frozen-reference-producer/proposed-declared-main-reference.json.gz",
   "archiveSha256": "e0f558cfd0980eabc6db42496d8fe250e66f3d125e67c9635333e80077f8f7b7",
   "runtimeVersion": "0.6.26",
-  "currentManifestIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "currentManifestIdentity": "sha256:27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281",
   "referenceInputIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
   "modelWeightsTokenizerPrecisionAndDeclaredEntriesUnchanged": true,
   "promptTokensIdenticalAcrossHosts": true,

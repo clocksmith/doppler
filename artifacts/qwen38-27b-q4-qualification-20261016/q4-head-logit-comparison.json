@@ -1,6 +1,8 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.qwen-quantized-forced-logit-comparison/v1",
-  "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+  "manifestSha256": "2bc4c15504ec3b89c440d6c7009a9e320f8a7d927da5f37cc0e8c947f1075f59",
   "scope": "Five shared prefixes of one fixed 104-token trajectory; independent F64 control with exact retained Q4 tensors, not quality or release qualification",
   "maxAbsoluteLogitError": 0.001,
   "rows": [

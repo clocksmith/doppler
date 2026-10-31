@@ -41,7 +41,8 @@ the `originalSha256` fields in the manifest.
 grouped by reason:
 
 - `model-manifest-identity`: RDRR model manifests. Their sha256 is the model
-  artifact identity that receipts cite.
+  artifact identity that receipts cite. Most were re-identified on 2026-10-31;
+  see below.
 - `npm-package`: package tarballs byte-identical to the copies published on the
   npm registry, and archives that contain them.
 - `signed` and `public-download-digest`: files whose digest is bound by an
@@ -54,3 +55,37 @@ grouped by reason:
 Archives whose only private detail was the tar owner name were not rewritten.
 Tokenizer vocabularies contain ordinary words that match host names; those are
 not machine references.
+
+## Model manifest re-identification (2026-10-31)
+
+With the owner's approval, 29 model manifests from the `model-manifest-identity`
+exceptions were re-identified: 16 under `models/local` and 13 archived copies in
+evidence. Only path fields changed. Hugging Face cache paths became
+`<org>/<name>@<revision>`, other source paths became the manifest's own
+`sourceCheckpointId`, and paths inside this repository became
+repository-relative.
+
+The new identities come from the runtime's own functions:
+`sha256ManifestText` gives the manifest sha256, and `hashStableJson` gives the
+stable digest cited as `resolvedArtifactVariantId`. Every digest citing a
+changed manifest, archive or receipt was rebound bottom-up until nothing
+changed. Stable-JSON digests stored inside a changed receipt were recomputed as
+well, and product-integration evidence was recomputed with
+`tools/lib/canonical-json.js`.
+
+[`model-manifest-reidentification-20261031.json`](model-manifest-reidentification-20261031.json)
+records old and new sha256 and stable digests for each manifest, the new path
+values, each changed file, each rebound and recomputed digest, and the
+manifests left unchanged with what binds them:
+
+- the two document-search capsule manifests and the frozen Qwen 3.5 reference
+  fixture, which signed capsules bind;
+- three manifests that are `weightsRef` targets, where the af16 variant's
+  conversion-config digest covers the manifest digest;
+- two manifests that are byte-identical to the copies hosted at the catalog's
+  pinned Hugging Face revision.
+
+Updated JSON evidence points to the record through `pathSanitization`, or
+through `modelManifestReidentification` if the 2026-10-30 pass had already
+marked it. Rebinding does not transfer qualification: receipts now name a
+manifest that differs from the executed one only in the listed path fields.

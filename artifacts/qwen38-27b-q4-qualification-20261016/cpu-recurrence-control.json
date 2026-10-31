@@ -1,9 +1,10 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "scope": "CPU Transformers native chunked versus sequential recurrence control; same input/weights/arithmetic/storage; diagnostic only",
-  "referenceSha256": "3f950d713a09572dc35fb956df666fc2461bcf2d53dcdb933701934cdca3118b",
-  "candidateSha256": "ac62bf6349d8a6856656ace51d5c0c70968a680736f25bd8cf1807215926f1a5",
+  "referenceSha256": "2e9a390835fc0e5756ba6f2a22fb7d99cdd23e1deadd6760b5037f4a7f363d8a",
+  "candidateSha256": "e7878833a704d6b00a4a58d3951d106c74378167e41381c749da72823431cb4d",
   "rows": [
     {
       "caseId": "arithmetic",

@@ -1,4 +1,5 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.quantized-generation-observation/v1",
@@ -7,8 +8,8 @@
   "configSha256": "64fd5600e21fda1d07e8003f55a05fb92f492ba1b0b278507fc69cd649d35944",
   "toolSha256": "686d8d6243dfa2ede2dd167ea4c368730dab26dc274bf459203f9ffe6dc10f4b",
   "packageVersion": "0.6.30",
-  "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
-  "contractSha256": "46f6bdb885867945831f8080f8793b54cfdb15241c77906a0f578e66490161d2",
+  "manifestSha256": "2bc4c15504ec3b89c440d6c7009a9e320f8a7d927da5f37cc0e8c947f1075f59",
+  "contractSha256": "6cd11e29940a0b476635bfb7c9f9299b4e11dc1ddfcc99917a69cc3b0f8514d8",
   "inputCases": [
     {
       "id": "arithmetic",

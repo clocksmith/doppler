@@ -1,11 +1,12 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.qwen-quantized-forced-logit-comparison/v1",
-  "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
-  "referenceSha256": "ac62bf6349d8a6856656ace51d5c0c70968a680736f25bd8cf1807215926f1a5",
-  "candidateSha256": "9693e30d5c4cad6d7eda3ec8b9d74aed41f2780fcc23524b71ff113a1e777df9",
-  "contractSha256": "46f6bdb885867945831f8080f8793b54cfdb15241c77906a0f578e66490161d2",
+  "manifestSha256": "2bc4c15504ec3b89c440d6c7009a9e320f8a7d927da5f37cc0e8c947f1075f59",
+  "referenceSha256": "e7878833a704d6b00a4a58d3951d106c74378167e41381c749da72823431cb4d",
+  "candidateSha256": "99cf044f617321da453bac5d1d5ad700a8d881a9b84c90c8512d0e45c6ebe97c",
+  "contractSha256": "6cd11e29940a0b476635bfb7c9f9299b4e11dc1ddfcc99917a69cc3b0f8514d8",
   "toolSha256": "5703e8a13dcaa502b7740870ae0706a28c186e217b85e50d108f7509d24d5aa3",
   "maxAbsoluteLogitError": 0.001,
   "rows": [

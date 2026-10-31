@@ -23830,7 +23830,7 @@
   },
   "conversion": null,
   "metadata": {
-    "source": "file:///home/x/models/hf/google/gemma-4-12B-it-qat-w4a16-ct",
+    "source": "google/gemma-4-12B-it-qat-w4a16-ct",
     "convertedAt": "2026-06-08T01:09:28.984Z",
     "hasTokenizer": true
   },

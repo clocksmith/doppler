@@ -3283,7 +3283,7 @@
   ],
   "conversion": null,
   "metadata": {
-    "source": "file:///home/x/.cache/doppler/source/google-gemma-3-270m-it",
+    "source": "google/gemma-3-270m-it",
     "convertedAt": "2026-07-11T13:56:57.071Z",
     "hasTokenizer": true
   },

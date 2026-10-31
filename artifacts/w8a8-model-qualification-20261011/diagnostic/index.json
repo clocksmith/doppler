@@ -14,19 +14,19 @@
   {
     "source": "reports/local/w8a8-qualification-20261011/w8a8-residual-config-01.json",
     "retained": "w8a8-residual-config-01.json.gz",
-    "sha256": "f0434e1723495b81c3e53adbac118e644ad77cac88da9bc0c5fe6d041b526c99",
+    "sha256": "b31e8134f7be3c12c53f4a27c566f3381570d5a40f88cac81c58e5cb2c405cb7",
     "bytes": 1589
   },
   {
     "source": "reports/local/w8a8-qualification-20261011/w8a8-residual-01/qualification.json",
     "retained": "w8a8-residual-01-qualification.json.gz",
-    "sha256": "173be04d717ecac3fd5a34d262967c099f5aa9f716a0ff976d6928dd05761c9b",
+    "sha256": "a1512ef5f746cfd8e9824fa0edfb2051f4010206e19fcb704f72fde0f0dc10e9",
     "bytes": 972820
   },
   {
     "source": "reports/local/w8a8-qualification-20261011/residual-comparison-duplicate-checked.json",
     "retained": "residual-comparison-duplicate-checked.json.gz",
-    "sha256": "537499978494f1146cf230efe1b0a303a39f5ca89f9d0b21a709ba25595ec5c2",
+    "sha256": "18ded27638e01a7a16d5465897b10ad210fe58376cdd08ba6eccccb2652cd6c4",
     "bytes": 2694
   },
   {
@@ -44,25 +44,25 @@
   {
     "source": "reports/local/w8a8-qualification-20261011/w8a8-layer10-config-01.json",
     "retained": "w8a8-layer10-config-01.json.gz",
-    "sha256": "854efd9261bac7b21b26dc856f54777120da9da19bfc04bb510e8a3083bc4ad1",
+    "sha256": "4e6e6ff57f0b7c505f37fd27e27f5935cb674fe0daf9bbe3ccdc8e0ad78e3fbf",
     "bytes": 1610
   },
   {
     "source": "reports/local/w8a8-qualification-20261011/w8a8-layer10-01/qualification.json",
     "retained": "w8a8-layer10-01-qualification.json.gz",
-    "sha256": "0e0990d7763692e77d129f434ab09c4b573324a09ee639dfa52ce4b677bdb55b",
+    "sha256": "29a662a0e6d4a34d4b0214fdb30d4dc2cd270e5c955ee8f58356817afb507721",
     "bytes": 537631
   },
   {
     "source": "reports/local/w8a8-qualification-20261011/layer10-comparison.json",
     "retained": "layer10-comparison.json.gz",
-    "sha256": "6674bcdeb85be9ee998116200636afc7d0227ac69b6f2dbe0feac5021a0dfe8c",
+    "sha256": "6199c6fd16bae92384f1b295cbde02d58d77e766da4cbf62089ca98aa07f4334",
     "bytes": 5456
   },
   {
     "source": "reports/local/w8a8-qualification-20261011/layer10-nonlinear-comparison.json",
     "retained": "layer10-nonlinear-comparison.json.gz",
-    "sha256": "de86991bb234c4c0fda2699c564bb8e0579d4d19c8b465d2da5eb765f81d3a8d",
+    "sha256": "e26daca83612d6f88104581123ec1bd951a8692f018df6084af90e501a08c29b",
     "bytes": 6785
   }
 ]

@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "scope": "Physical captured-operand correction, not model qualification",
   "observedBoundary": "Dot residual is present; scale-residual expression loses score low term on Linux. Guarding the zero scale residual preserves that term.",
   "capturedPasses": "22-key and 191-key independent Float64 checks pass on each platform; corresponding outputs are byte-identical.",
@@ -94,7 +96,7 @@
     },
     {
       "file": "doppler-025-rounded-guard-prototype22-linux.json.gz",
-      "sha256": "f036a8ac0c39eb529aeb27eba7c49b74d15c3790587a6357bfccc187830b9dbe",
+      "sha256": "4ab01855186f7d92a2e7941e999e3d6443310e3a3ec5ecea981dd57bf4e9c331",
       "passed": true,
       "comparison": {
         "maxError": 6.288871734483337e-08,
@@ -105,7 +107,7 @@
     },
     {
       "file": "doppler-025-rounded-guard-prototype22-mac.json.gz",
-      "sha256": "a008f1bcb575719b7d536b4c441a196b64a39984b0b25dcbb291d68e5df00755",
+      "sha256": "c61e4e861a51982e6a1c70d89fc9759e75ea67635740e617a3cbb46f7479aeb4",
       "passed": true,
       "comparison": {
         "maxError": 6.288871734483337e-08,

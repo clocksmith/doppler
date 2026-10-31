@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schemaVersion": 1,
   "kind": "rerank-engine-compare",
   "timestamp": "2026-07-10T01:44:50.047Z",
@@ -109,7 +111,7 @@
         "probability": "sigmoid"
       },
       "source": "models/local/qwen-3-reranker-0-6b-q4k-ehf16-af32/manifest.json",
-      "sourceSha256": "03298342c5f91680864526c1ead2ecaf16ba59307843c84e09842bcb4b9cc7c5"
+      "sourceSha256": "2f900bf5af208079b8664faf796b6fb46f3718cd9a3b320f3f5d47680e97bb38"
     }
   },
   "commands": {

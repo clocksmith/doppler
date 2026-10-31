@@ -1,4 +1,5 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.local-partition-diagnostic/v1",
@@ -188,11 +189,11 @@
     },
     {
       "path": "intermediate-allocation-warning.log",
-      "sha256": "a15b3b03ff2c02d7498de70f72534fe3994dceb50037838e17803ef5d318ebfd"
+      "sha256": "8d900426ba61c25ab078279008155b4bdbfb3d66b1f74a9e239d3599ca1f9027"
     },
     {
       "path": "physical.log",
-      "sha256": "728e0ceee81613904d3a3ef0ef6ab4bbc5aad287747a94f60cb23eb7b8816fca"
+      "sha256": "8eae19cb5a7830544f430a64a0fdaf0027514d0e4c73a1c5cad8918433931dc3"
     },
     {
       "path": "unit.log",
@@ -240,7 +241,7 @@
     },
     {
       "path": "physical-result.json",
-      "sha256": "3e9d5b2636ae9275d0d2648e4881dabb5880d4b55385133aca68a2d89b4fa0b6"
+      "sha256": "4043fa7d361aaddbd5697fb5c025b22705e1b87ee688ea102e6fb2beae686143"
     },
     {
       "path": "dependencies.log",

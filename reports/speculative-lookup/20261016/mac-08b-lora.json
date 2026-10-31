@@ -1,9 +1,11 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.prompt-lookup-observation/v1",
   "host": "mac-host",
   "identity": {
     "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
-    "manifestHash": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+    "manifestHash": "sha256:27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281",
     "sourceFiles": {
       "src/inference/pipelines/text/generator/speculative-runtime.js": "fb18b9c4768d036a54f1e4d3baf6e5a5642b108e944d2b4f7420daf30060aa72",
       "src/inference/pipelines/text/linear-attention/state-checkpoint.js": "e15dd647e22d7880946eedfc13cb3a440f0c0d143e7cb6ce05211e3846f3e6f7",

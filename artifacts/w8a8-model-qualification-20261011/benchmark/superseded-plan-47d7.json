@@ -1,4 +1,5 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.w8a8-fixed-work-plan/v1",
@@ -9,15 +10,15 @@
   "scenarios": [
     {
       "config": "w8a8-packed-f16-benchmark-config-01.json",
-      "sha256": "2fbe91048d19b36ce128c3eb3eeece479acd74df8efe1aa569154c5fd5172418"
+      "sha256": "91f2c16f041f2971b3ac87df90d81f08807cbed5a7d55ab28dfac0baa89f7170"
     },
     {
       "config": "w8a8-packed-q4-benchmark-config-01.json",
-      "sha256": "860681662b22c7dade4856a1e7c481c148eb62c0c8d4c483d6e3290430f1936f"
+      "sha256": "c568de2bb95d9aa41d31621642f396b82bdc97fde1ad00c18c5057100095b74a"
     },
     {
       "config": "w8a8-packed-portable-benchmark-config-01.json",
-      "sha256": "527729d80ea2f6208d27b4ef6a422e3272a4b70067b94d1858d3637c4df6dff6"
+      "sha256": "72b7bfdb83cb5d3d8d2b296b5e7b4fe3066f1e1355d36ae11d5264ce4a941ba8"
     }
   ],
   "runtimeCostIncluded": [

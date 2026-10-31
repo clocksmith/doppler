@@ -1,8 +1,10 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "scope": "Exact retained candidate distinction; manifest-declared source revision verified, without reconversion",
   "sourceRevision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
   "smaller": {
-    "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+    "manifestSha256": "2bc4c15504ec3b89c440d6c7009a9e320f8a7d927da5f37cc0e8c947f1075f59",
     "tensorBytes": 16994352128,
     "shardBytes": 16994352128,
     "precision": {
@@ -11,7 +13,7 @@
     }
   },
   "larger": {
-    "manifestSha256": "e9d463978e4aea04baefce32ce68c04498686c8085bd1a545f98a62a41d32846",
+    "manifestSha256": "4e8a6d04a2bb253ac2b2abd2bf8b125b525e7ca558a20dd4128eac883e782c9b",
     "tensorBytes": 26780679168,
     "shardBytes": 26780679168,
     "precision": {

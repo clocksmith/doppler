@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler-independent-two-f32-implementation-review-v1",
   "date": "2026-10-12",
   "reviewer": "native_participation",
@@ -22,7 +24,7 @@
     "artifacts/recurrent-two-f32-20261012/core-mac-complete.log": "9a7b03941fbd72c884305e444ed6492fba91256fb9557f1d57993fb30422c8c8",
     "artifacts/recurrent-two-f32-20261012/core-amd-complete.log": "6062c22075fdaa274af54136813ebe647c0893c612826101443accbfead99b17",
     "artifacts/recurrent-two-f32-20261012/layout-allocation.log": "32b1d662dd2b79101897e45cd330d196153a3c2d83747839b42ae9862b343789",
-    "artifacts/recurrent-two-f32-20261012/mac-distribution.json": "2a221174ea87ac964b9be88b2e4a5e730d1e99652b06e616839a27a5f6dbd76c",
+    "artifacts/recurrent-two-f32-20261012/mac-distribution.json": "cd8e3f67687156d739d772e26c073c8b94d9c1a6fabab36119af80dc5d3ca7c8",
     "artifacts/recurrent-two-f32-20261012/approval.json": "8a2b1712ffbb468808dbaeb16e00d5a5c76be1e77c6e14c6a1250b42bd546b89"
   },
   "math": {

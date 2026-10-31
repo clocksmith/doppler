@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "scope": "Read-only captured-operand observations and test-only arithmetic candidates; no runtime replacement or full-model qualification",
   "runtimeVersion": "0.6.25",
   "runtimeChanged": false,
@@ -125,7 +127,7 @@
     },
     {
       "file": "doppler-025-ordered-prototype22-linux.json.gz",
-      "sha256": "72b4f5222cdafb81486f2c868c07332ad7e5ac7dd0ce5f6e8ec6ca197a072c1e",
+      "sha256": "f6f4eca4f02f43cca95ce804ab2432ef114b7ff35d198221f0565f5266acd598",
       "host": "linux",
       "candidate": "compensated-attention-ordered",
       "passed": true,
@@ -153,7 +155,7 @@
     },
     {
       "file": "doppler-025-portable-prototype22-linux.json.gz",
-      "sha256": "d971c65c05ea050d8fa925a3135359541e8a9be4c28be299e66a6534c6812932",
+      "sha256": "b5aab54b6e58e73b3cf9694fc015899d85924e0341afb42544402cfe191d0495",
       "host": "linux",
       "candidate": "compensated-attention-portable",
       "passed": true,
@@ -265,7 +267,7 @@
     },
     {
       "file": "doppler-025-ratio-prototype22-linux.json.gz",
-      "sha256": "793dc7d1844fe768bdad7992b0a5746a10686f71726efa62c79bce246b3bfdf8",
+      "sha256": "8be1704fc6ec47bb6fe0bbf059265f8272d23bc901623715d8bc9bf4d9e29aa8",
       "host": "linux",
       "candidate": "compensated-attention-ratio",
       "passed": true,
@@ -279,7 +281,7 @@
     },
     {
       "file": "doppler-025-ratio-prototype22-mac.json.gz",
-      "sha256": "da1a3286a0437ac250874dc7730e6500f0e0c068371d02bc99bbc9c0a2032f39",
+      "sha256": "0478f9012978584126351b60ee105265401dcc6db11681041170dcf67a3c0002",
       "host": "mac",
       "candidate": "compensated-attention-ratio",
       "passed": true,
@@ -307,7 +309,7 @@
     },
     {
       "file": "doppler-025-score-prototype22-linux.json.gz",
-      "sha256": "a24c428e3073fc6c5dceb3ab3a02fd1b71f5484c4eba4461e3a9985c0928990e",
+      "sha256": "8d39ecd82ca1fbad3995d5b39c0e87528e866604182b482b55f0c5363ba7e40d",
       "host": "linux",
       "candidate": "compensated-attention-score",
       "passed": true,

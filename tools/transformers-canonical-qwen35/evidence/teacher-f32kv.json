@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "scope": "Independent CPU native-HF numerical teacher; no GPU or performance claim",
   "inputs": {
     "canonicalManifestSha256": "77e74f2b0ddf51d0e01edd5888f531e8dda57e8257e2f7ace94916da306cfe95",
@@ -53,7 +55,7 @@
     },
     "eosRuntimeManifest": {
       "path": "$HOME/.local/state/doppler/pooled-equal-weights-20261029/rdrr-f32/manifest.json",
-      "sha256": "b7e6ddd056f047000c713dd6677ecb0f2f28af6de020f9c7c2aa1aa08110302d"
+      "sha256": "23c60ef261bb5e90c07a985f3018ed509b214d0fc17dd4c9b7abbb81d7a5db6f"
     },
     "verifiedCodePrompt": {
       "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/native-reference-f16-01/receipt.json",

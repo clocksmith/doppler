@@ -1,4 +1,5 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "scope": "Only final decode7 layer0 independent same-input QKV replaced, real GPU downstream; not qualification",
@@ -7,7 +8,7 @@
   "parentSha256": "16783e8822736f8271a7ff734a1a4de65ff5e9d8cc9109a582dc597d8844260d",
   "controlSha256": "ec85c4b6fe0f256a032a2aad124a3f3e4716df0b63c8645346e4076116acbbcd",
   "interventionSha256": "fa250a537eca2755375edcf6570862d768c50a73ccccbf823aca71a66850e685",
-  "approvalSha256": "065a6f065e551995743d183151b500a68761b15f612497b7933551f6c4ae2fb5",
+  "approvalSha256": "0f9dde3084d4379ab3a0e86b681ab7926114d84f80fa6ad51e17d7cb96b8b748",
   "rows": [
     {
       "step": 0,

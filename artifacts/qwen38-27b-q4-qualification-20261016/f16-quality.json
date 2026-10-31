@@ -1,8 +1,10 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.quantized-chat-observation/v1",
   "qualified": false,
   "packageVersion": "0.6.30",
-  "modelIdentity": "f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+  "modelIdentity": "905f93524b1465fec6f47f0a23be50168a32d6abf58bc9880eb1336c6a3eddb2",
   "suiteSha256": "de4585a4c2994eeef52c6d93b54bea24afe10cd5eea581d3239b996e06604e6e",
   "toolSha256": "ea340d3a41581db03930caf605d23efca61cecfa385dab944936ac5ccd286295",
   "tasks": [
@@ -77,7 +79,7 @@
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
           "logicalModelId": "file://$HOME/deco/doppler/models/local/qwen3-8-27b-text-f16-af32/",
-          "resolvedArtifactVariantId": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+          "resolvedArtifactVariantId": "sha256:905f93524b1465fec6f47f0a23be50168a32d6abf58bc9880eb1336c6a3eddb2",
           "resolvedExecutionId": "sha256:63355458985c3f927579ea9934bb507150f57904b81c8c7cf120b6820318221f"
         },
         "executionIdentity": {
@@ -118,7 +120,7 @@
           },
           "model": {
             "modelId": "file://$HOME/deco/doppler/models/local/qwen3-8-27b-text-f16-af32/",
-            "manifestHash": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+            "manifestHash": "sha256:905f93524b1465fec6f47f0a23be50168a32d6abf58bc9880eb1336c6a3eddb2",
             "activeAdapter": null,
             "activeAdapterId": null,
             "activeAdapterDigest": null
@@ -2441,7 +2443,7 @@
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
           "logicalModelId": "file://$HOME/deco/doppler/models/local/qwen3-8-27b-text-f16-af32/",
-          "resolvedArtifactVariantId": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+          "resolvedArtifactVariantId": "sha256:905f93524b1465fec6f47f0a23be50168a32d6abf58bc9880eb1336c6a3eddb2",
           "resolvedExecutionId": "sha256:63355458985c3f927579ea9934bb507150f57904b81c8c7cf120b6820318221f"
         },
         "executionIdentity": {
@@ -2482,7 +2484,7 @@
           },
           "model": {
             "modelId": "file://$HOME/deco/doppler/models/local/qwen3-8-27b-text-f16-af32/",
-            "manifestHash": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+            "manifestHash": "sha256:905f93524b1465fec6f47f0a23be50168a32d6abf58bc9880eb1336c6a3eddb2",
             "activeAdapter": null,
             "activeAdapterId": null,
             "activeAdapterDigest": null
@@ -4827,7 +4829,7 @@
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
           "logicalModelId": "file://$HOME/deco/doppler/models/local/qwen3-8-27b-text-f16-af32/",
-          "resolvedArtifactVariantId": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+          "resolvedArtifactVariantId": "sha256:905f93524b1465fec6f47f0a23be50168a32d6abf58bc9880eb1336c6a3eddb2",
           "resolvedExecutionId": "sha256:63355458985c3f927579ea9934bb507150f57904b81c8c7cf120b6820318221f"
         },
         "executionIdentity": {
@@ -4868,7 +4870,7 @@
           },
           "model": {
             "modelId": "file://$HOME/deco/doppler/models/local/qwen3-8-27b-text-f16-af32/",
-            "manifestHash": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+            "manifestHash": "sha256:905f93524b1465fec6f47f0a23be50168a32d6abf58bc9880eb1336c6a3eddb2",
             "activeAdapter": null,
             "activeAdapterId": null,
             "activeAdapterDigest": null
@@ -7178,7 +7180,7 @@
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
           "logicalModelId": "file://$HOME/deco/doppler/models/local/qwen3-8-27b-text-f16-af32/",
-          "resolvedArtifactVariantId": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+          "resolvedArtifactVariantId": "sha256:905f93524b1465fec6f47f0a23be50168a32d6abf58bc9880eb1336c6a3eddb2",
           "resolvedExecutionId": "sha256:63355458985c3f927579ea9934bb507150f57904b81c8c7cf120b6820318221f"
         },
         "executionIdentity": {
@@ -7219,7 +7221,7 @@
           },
           "model": {
             "modelId": "file://$HOME/deco/doppler/models/local/qwen3-8-27b-text-f16-af32/",
-            "manifestHash": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+            "manifestHash": "sha256:905f93524b1465fec6f47f0a23be50168a32d6abf58bc9880eb1336c6a3eddb2",
             "activeAdapter": null,
             "activeAdapterId": null,
             "activeAdapterDigest": null
@@ -9540,7 +9542,7 @@
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
           "logicalModelId": "file://$HOME/deco/doppler/models/local/qwen3-8-27b-text-f16-af32/",
-          "resolvedArtifactVariantId": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+          "resolvedArtifactVariantId": "sha256:905f93524b1465fec6f47f0a23be50168a32d6abf58bc9880eb1336c6a3eddb2",
           "resolvedExecutionId": "sha256:63355458985c3f927579ea9934bb507150f57904b81c8c7cf120b6820318221f"
         },
         "executionIdentity": {
@@ -9581,7 +9583,7 @@
           },
           "model": {
             "modelId": "file://$HOME/deco/doppler/models/local/qwen3-8-27b-text-f16-af32/",
-            "manifestHash": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+            "manifestHash": "sha256:905f93524b1465fec6f47f0a23be50168a32d6abf58bc9880eb1336c6a3eddb2",
             "activeAdapter": null,
             "activeAdapterId": null,
             "activeAdapterDigest": null
@@ -11897,7 +11899,7 @@
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
           "logicalModelId": "file://$HOME/deco/doppler/models/local/qwen3-8-27b-text-f16-af32/",
-          "resolvedArtifactVariantId": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+          "resolvedArtifactVariantId": "sha256:905f93524b1465fec6f47f0a23be50168a32d6abf58bc9880eb1336c6a3eddb2",
           "resolvedExecutionId": "sha256:63355458985c3f927579ea9934bb507150f57904b81c8c7cf120b6820318221f"
         },
         "executionIdentity": {
@@ -11938,7 +11940,7 @@
           },
           "model": {
             "modelId": "file://$HOME/deco/doppler/models/local/qwen3-8-27b-text-f16-af32/",
-            "manifestHash": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+            "manifestHash": "sha256:905f93524b1465fec6f47f0a23be50168a32d6abf58bc9880eb1336c6a3eddb2",
             "activeAdapter": null,
             "activeAdapterId": null,
             "activeAdapterDigest": null
@@ -14373,7 +14375,7 @@
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
           "logicalModelId": "file://$HOME/deco/doppler/models/local/qwen3-8-27b-text-f16-af32/",
-          "resolvedArtifactVariantId": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+          "resolvedArtifactVariantId": "sha256:905f93524b1465fec6f47f0a23be50168a32d6abf58bc9880eb1336c6a3eddb2",
           "resolvedExecutionId": "sha256:63355458985c3f927579ea9934bb507150f57904b81c8c7cf120b6820318221f"
         },
         "executionIdentity": {
@@ -14414,7 +14416,7 @@
           },
           "model": {
             "modelId": "file://$HOME/deco/doppler/models/local/qwen3-8-27b-text-f16-af32/",
-            "manifestHash": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+            "manifestHash": "sha256:905f93524b1465fec6f47f0a23be50168a32d6abf58bc9880eb1336c6a3eddb2",
             "activeAdapter": null,
             "activeAdapterId": null,
             "activeAdapterDigest": null
@@ -17846,7 +17848,7 @@
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
           "logicalModelId": "file://$HOME/deco/doppler/models/local/qwen3-8-27b-text-f16-af32/",
-          "resolvedArtifactVariantId": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+          "resolvedArtifactVariantId": "sha256:905f93524b1465fec6f47f0a23be50168a32d6abf58bc9880eb1336c6a3eddb2",
           "resolvedExecutionId": "sha256:ee3b3b26ec071cf0d78212700857e38fb54b7b08344f3595fdc1354f63a20983"
         },
         "executionIdentity": {
@@ -17887,7 +17889,7 @@
           },
           "model": {
             "modelId": "file://$HOME/deco/doppler/models/local/qwen3-8-27b-text-f16-af32/",
-            "manifestHash": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+            "manifestHash": "sha256:905f93524b1465fec6f47f0a23be50168a32d6abf58bc9880eb1336c6a3eddb2",
             "activeAdapter": null,
             "activeAdapterId": null,
             "activeAdapterDigest": null

@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "status": "process-completed",
   "pid": 3197039,
   "command": [
@@ -19,6 +21,6 @@
     "4"
   ],
   "toolSha256": "439da1f2097967dbe07cb0235eeffe83612f51b102b234ffb2a78b5f09e63a25",
-  "suiteSha256": "da9d82c8dc25686c3c2af703d136c5fc6fbd96c6443796fea6148bb6e68d6083",
+  "suiteSha256": "32e1d64808036c5be945e34f2b9728ff4e79b3e5fb13377111906f44dfb81b0b",
   "exitCode": 0
 }

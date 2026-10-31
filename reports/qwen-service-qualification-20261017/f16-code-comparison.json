@@ -1,4 +1,5 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.qwen27-f16-code-control/v1",
@@ -12,7 +13,7 @@
   "observations": [
     {
       "format": "q4",
-      "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+      "manifestSha256": "2bc4c15504ec3b89c440d6c7009a9e320f8a7d927da5f37cc0e8c947f1075f59",
       "contractSha256": "a9de1baa662a03d2873940c3f4869b46c6b1f6a5d629a7d3a55876a15f837e1b",
       "referenceToolSha256": "044ed4b370203c07ebe73df4519a5180110272c23476b99f0fb57306de2ecc39",
       "greedyTokens": [
@@ -28,8 +29,8 @@
     },
     {
       "format": "f16",
-      "manifestSha256": "f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
-      "contractSha256": "75b6a9765f1cc89c7db3afc2a5d600c536b2602524d9de4e0477a5040a6d2ae1",
+      "manifestSha256": "905f93524b1465fec6f47f0a23be50168a32d6abf58bc9880eb1336c6a3eddb2",
+      "contractSha256": "52fa61caad88161417ad67e90baced848d774372ee8b227c300edc5ffc281b2b",
       "referenceToolSha256": "044ed4b370203c07ebe73df4519a5180110272c23476b99f0fb57306de2ecc39",
       "greedyTokens": [
         17,

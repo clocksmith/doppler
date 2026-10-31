@@ -1,4 +1,5 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.w8a8-model-qualification-disposition/v1",
@@ -7,8 +8,8 @@
   "sourceQualified": false,
   "models": {
     "f16": {
-      "reportSha256": "7f75a117ac15a25b5aa94ba16536018fcc3c814585022d49b91399a04e8ca806",
-      "manifestDigest": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+      "reportSha256": "71a4071d4ab2081dc7a7bea0622fe242537e5f8bea0c266dec24bd232023c022",
+      "manifestDigest": "sha256:1e69f52e8e4d2b88ceddb6feaa75e718373b3ba18c0c89f2c92173102ab32bbc",
       "packageSha256": "ba9919bf1cc18bbb48102a8aba4598b6125d3c14c5492d973724419a710284c8",
       "passed": false,
       "tasksPassed": [
@@ -49,7 +50,7 @@
       }
     },
     "q4": {
-      "reportSha256": "99455ea60c979a3cb8027713109649c95b39766558b2411f9bb697cb0894d748",
+      "reportSha256": "624efa7eb14384eff112c3e4f187b34a09366a16472e3e4e842d7e2088528a1e",
       "manifestDigest": "sha256:afecba81640288d0849838c8d4d8c763af80edc1fc22051853ce6700dda4b315",
       "packageSha256": "ba9919bf1cc18bbb48102a8aba4598b6125d3c14c5492d973724419a710284c8",
       "passed": false,
@@ -88,7 +89,7 @@
       }
     },
     "portable": {
-      "reportSha256": "e0e2c422cbd64d6fd5b68bb3d27d193cc39a4eb095598bbef6b7fb800e22c527",
+      "reportSha256": "662b255a33bc286fde837b0752fc8da50a070c33876fd1fb2d665bd9754c3d50",
       "manifestDigest": "sha256:6bd380101b72d79aa05c23d51783a9faab9505808d63c4bd86520e95d255c03c",
       "packageSha256": "47d7d18fb51a0852b6b0c35b0590e306b460c743eefe2d36b6615839c8651edc",
       "passed": true,
@@ -184,7 +185,7 @@
       "qualityAccepted": false
     },
     "packed": {
-      "reportSha256": "0cba3e748bb021541cb9d8a4eb5488945680153652a97db7508b72ed2629a43c",
+      "reportSha256": "6e1ba275d6ecef1ec40b82d477f67a7f262010e12be73096ff34d2ed5b5637f4",
       "manifestDigest": "sha256:67eee682dea361346ca1ae16026e53f4162b4e43f45dc9c53e4b30919b79065e",
       "packageSha256": "47d7d18fb51a0852b6b0c35b0590e306b460c743eefe2d36b6615839c8651edc",
       "passed": true,

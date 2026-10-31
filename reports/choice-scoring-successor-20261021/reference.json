@@ -1,7 +1,9 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.choice-scoring-cpu-reference/v1",
-  "contractSha256": "011d53c3c62b9323c57cdf89909ad62404e8c5c56de575bfbbfc1c12f9bcee3b",
-  "modelManifestSha256": "451c6a87d45f0ccac8718b41cc1b8682a3f0cf7c3f6803a3e14d5ac191900124",
+  "contractSha256": "4c9c7473077962cea94e2d6a789b445f18ef5004da114ec73b341fd57bb14f32",
+  "modelManifestSha256": "227fda02871b308e1f2c048778028698d09f011321b92696e76f80b055025e8f",
   "implementation": "Transformers Qwen3ForCausalLM eager Float32 CPU; GGUF Q4_K dequantization",
   "versions": {
     "torch": "2.11.0",

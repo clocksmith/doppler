@@ -2,7 +2,7 @@
   "schema": "doppler.choice-scoring-evaluation/v1",
   "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
   "task": "Query/document relevance; no truth-probability or general reasoning claim.",
-  "manifestSha256": "03298342c5f91680864526c1ead2ecaf16ba59307843c84e09842bcb4b9cc7c5",
+  "manifestSha256": "2f900bf5af208079b8664faf796b6fb46f3718cd9a3b320f3f5d47680e97bb38",
   "maxSeqLen": 512,
   "maximumAbsoluteLogitError": 0.05,
   "requireReferenceSelection": true,

@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.complete-numerical-disposition/v1",
   "status": "diagnostic-complete-acceptance-open",
   "referenceActivated": false,
@@ -8,7 +10,7 @@
   "matrix": {
     "baseline": {
       "archiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
-      "manifestIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+      "manifestIdentity": "sha256:27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281",
       "independentF64": {
         "prefixes": 55,
         "failedPrefixes": 22,
@@ -28,7 +30,7 @@
     },
     "f16-only": {
       "archiveSha256": "74cb03298e3fe4cdb1126c940553b91d64dc30dc93ea3b4a4bf252e78c028c63",
-      "manifestIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+      "manifestIdentity": "sha256:27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281",
       "independentF64": {
         "prefixes": 55,
         "failedPrefixes": 21,
@@ -48,7 +50,7 @@
     },
     "combined": {
       "archiveSha256": "cd50bcc0326a585ea1721f3403c4f6b8ce141d689140969acf7dbdb0a5f68878",
-      "manifestIdentity": "sha256:50923dd5f690153ca720fe80af0368e937cc3d3c8f96ade83c60e9c12bdad66a",
+      "manifestIdentity": "sha256:ca78c243ec9baebd223d702d272d60aa0f4b3ac81257a55347ed2bbd31f13aff",
       "independentF64": {
         "prefixes": 55,
         "failedPrefixes": 27,
@@ -68,7 +70,7 @@
     },
     "repaired": {
       "archiveSha256": "307104de5f55e120280cccb4ed84b53170339250c60c3ceee8682ffe3149ed25",
-      "manifestIdentity": "sha256:50923dd5f690153ca720fe80af0368e937cc3d3c8f96ade83c60e9c12bdad66a",
+      "manifestIdentity": "sha256:ca78c243ec9baebd223d702d272d60aa0f4b3ac81257a55347ed2bbd31f13aff",
       "independentF64": {
         "prefixes": 55,
         "failedPrefixes": 27,

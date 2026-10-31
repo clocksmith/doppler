@@ -1,8 +1,10 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.source-to-deployed-weight-generation-control/v1",
-  "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "modelIdentity": "sha256:27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281",
   "comparisonOrigin": "Original source-weight output, not captured GPU output. Legacy replay diagnostic dopplerToken field means original source baseline token in this control.",
-  "sourceReportSha256": "89a63b7781cf33398bb9ed2a2e9bb67f9dc3f14043678cf94cf96b4f6a49573e",
+  "sourceReportSha256": "d3035bbe7a4b1d1436e1c2082bdb1f73618cdbbaa7f46820615f5d108778d2bb",
   "caseId": "attached-three",
   "input": {
     "messages": [

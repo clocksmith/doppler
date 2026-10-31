@@ -13,7 +13,7 @@ const referenceBytes = readFileSync(referencePath);
 assert.equal(hash(referenceBytes), 'ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6');
 const reference = JSON.parse(referenceBytes);
 const contractBytes = readFileSync('artifacts/whole-model-f64-complete-20261011/request-0-contract.json');
-assert.equal(hash(contractBytes), 'ba2a4668d6affb85faf05221d6263a5b29b55d26c8f89a4f107cbacb717599a9');
+assert.equal(hash(contractBytes), '0510eb0aba9ebba1cfd92ec5b8fec0605bb49b03ff1f6a7dc3fc0bdae9e1130e');
 const contract = JSON.parse(contractBytes);
 assert.equal(capture.archiveSha256, '102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7');
 assert.equal(capture.manifestIdentity, 'sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e');

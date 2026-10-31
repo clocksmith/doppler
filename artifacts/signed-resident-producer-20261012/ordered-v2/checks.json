@@ -1,4 +1,5 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.ordered-physical-producer-cpu-check/v1",
@@ -12,6 +13,6 @@
     "artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js": "sha256:d20da7190bdfed2085a869510395fba2fee23d08e8bb25eb60e50ab846598729",
     "artifacts/signed-resident-producer-20261012/ordered-v2/producer-before.js": "sha256:d9855a94b1f4e5a30f67bfd85ab866f0f6a016f78a89be660f3a0addddc0e7c4",
     "artifacts/ordered-partitions-20261013/freeze-three-stage-workload.js": "sha256:f6fcf7af66d0117bea3e36c97b5f283c107799a0f60a214f784c05f324fa19f5",
-    "artifacts/ordered-partitions-20261013/three-stage-qualification-workload.json": "sha256:ea49672218e6e5c52767b04c32495856dc1468220cc6504188d265fe027e6792"
+    "artifacts/ordered-partitions-20261013/three-stage-qualification-workload.json": "sha256:8ce518fda9f578b31bf94a5dc2f8774391007d8b435c2c4e326950cbc091ad13"
   }
 }

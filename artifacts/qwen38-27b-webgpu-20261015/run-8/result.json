@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "policy": {
     "runtimeConfig": {
       "shared": {
@@ -7564,7 +7566,7 @@
       "resolution": {
         "schema": "doppler.resolution-identity/v1",
         "logicalModelId": "file://~/deco/doppler/models/local/qwen3-8-27b-text-f16-af32/",
-        "resolvedArtifactVariantId": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+        "resolvedArtifactVariantId": "sha256:905f93524b1465fec6f47f0a23be50168a32d6abf58bc9880eb1336c6a3eddb2",
         "resolvedExecutionId": "sha256:b4f1d2e7ad8dc856ae28274e715ed8508d62a10bd5aeec195fa95b591ca6fdf1"
       },
       "executionIdentity": {
@@ -7605,7 +7607,7 @@
         },
         "model": {
           "modelId": "file://~/deco/doppler/models/local/qwen3-8-27b-text-f16-af32/",
-          "manifestHash": "sha256:f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735",
+          "manifestHash": "sha256:905f93524b1465fec6f47f0a23be50168a32d6abf58bc9880eb1336c6a3eddb2",
           "activeAdapter": null,
           "activeAdapterId": null,
           "activeAdapterDigest": null

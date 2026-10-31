@@ -10680,7 +10680,7 @@
   },
   "conversion": null,
   "metadata": {
-    "source": "file:///home/x/deco/doppler/models/source/huggingface_cache/google--gemma-4-12B-it",
+    "source": "google/gemma-4-12B-it",
     "convertedAt": "2026-06-07T04:46:24.900Z",
     "hasTokenizer": true
   },

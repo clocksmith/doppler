@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "expectations": {
     "path": "$HOME/deco/reploid/artifacts/resident-readiness-qualification-20261012/native-direction-1-expectations.json",
     "hash": "sha256:889450443ea4b5f83d9f326a373314aea8da912b71ce5587afdc61e34f118ef2"
@@ -34,15 +36,15 @@
   "requestContracts": [
     {
       "path": "$HOME/deco/doppler/artifacts/whole-model-f64-complete-20261011/request-0-contract.json",
-      "hash": "sha256:ba2a4668d6affb85faf05221d6263a5b29b55d26c8f89a4f107cbacb717599a9"
+      "hash": "sha256:0510eb0aba9ebba1cfd92ec5b8fec0605bb49b03ff1f6a7dc3fc0bdae9e1130e"
     },
     {
       "path": "$HOME/deco/doppler/artifacts/whole-model-f64-complete-20261011/request-1-contract.json",
-      "hash": "sha256:3cc051de10f77e945c6a62b66cccb22f0c15e55bf11196c6f71aeda4174ba5a2"
+      "hash": "sha256:2b8658d3480d8300367f377bbb8d6cd7457e7e11e107186a30aad02d3bf94a43"
     },
     {
       "path": "$HOME/deco/doppler/artifacts/whole-model-f64-complete-20261011/request-2-contract.json",
-      "hash": "sha256:8b21b154357efa8c9d1c853ffe36c5ce9d9e32e684b496db9031bc59fa6fe836"
+      "hash": "sha256:ce2d69151ab94b6d5e85796b43f8f8e314b73cf9114fc31025fbfe7691e6a421"
     }
   ]
 }

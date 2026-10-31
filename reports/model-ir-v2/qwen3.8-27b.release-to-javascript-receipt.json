@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.release-to-javascript-receipt/v2",
   "campaignId": "heterogeneous-model-ir-v2:qwen3.8-27b-text-generate",
   "source": {
@@ -388,7 +390,7 @@
     {
       "kind": "lineage-lowering",
       "path": "reports/model-ir-v2/qwen3.8-27b.lineage-lowering-receipt.json",
-      "digest": "sha256:d9933c00532217f7d74b3081ae8ccfd8d863c14f913e6ef028f5e5aac432382b"
+      "digest": "sha256:fbd1cc91e9c1feeae114884ee8204ced1c37ba23566aba1edceb3a4b3a833fa4"
     },
     {
       "kind": "q4-head-negative",
@@ -421,5 +423,5 @@
       "digest": "sha256:88f0f659a7c69350629d470e1a0e612f5129445f08b739d73f5fb8496773d3a0"
     }
   ],
-  "receiptDigest": "sha256:c846bfdc17ad9422a1cf78d74dee68b517ab606f662019c669ff3bd83635e369"
+  "receiptDigest": "sha256:67596a915cfa2146b5ed9771dacd4acb7bd0491525ebbc95ca47aa30a6bcd74b"
 }

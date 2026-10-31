@@ -1,4 +1,5 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.qwen-quantized-reference-input/v1",
@@ -6,7 +7,7 @@
   "inputs": {
     "inventory": {
       "path": "$HOME/deco/doppler/.tmp/qwen38-q4-qualification-20261016/q4-head-inventory.json",
-      "sha256": "896d2d19c453d06da99dc30e1b974f4702e5ebfce928153eb62c43fe8d2d5a2c"
+      "sha256": "0d45b23f28be3a500fee53aff12dcc6a8ac151982084e36f8c76a1d4ce4d9fe7"
     },
     "sourceConfig": {
       "path": "$HOME/deco/doppler/models/source/qwen3.8-27b/config.json",
@@ -50,7 +51,7 @@
   ],
   "calibration": {
     "frozenAt": "2026-10-16T16:25:38.527341+00:00",
-    "controlSha256": "965b7f40b81280086c067c1e071a61c1098238cc3e34ba38501853079e31c69c",
+    "controlSha256": "4d89ab2df8aa381e2157b442758ca05500b433fde9c1a43fdc82d3bd085d2118",
     "method": "Four times the maximum independent CPU chunked-versus-sequential discrepancy, separately for logits/states and max/RMS. Empirical safety margin for this frozen holdout, not a universal error guarantee. No candidate holdout outputs observed.",
     "supersedes": "0.001 remains the original diagnostic bound; it rejects the independent reference algorithm control itself. Historical results remain unchanged."
   }

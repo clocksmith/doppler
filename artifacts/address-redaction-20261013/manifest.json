@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "address-redaction-manifest/v1",
   "aliases": [
     "amd-host",
@@ -204,7 +206,7 @@
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:e72b399f26e70119570e96c4cb5e48b95c2f579d63d926c9978b4bab9641dfca",
-      "redactedSha256": "sha256:939d10964e0ef43d4c8102cdcef9136e37bcf358091d40066e5bfb380fdcb9d0",
+      "redactedSha256": "sha256:2bc5ea742f4c926ee074cba46e453ea5ca51f68e49f0453cd80df6108092457f",
       "originalBytes": 3699,
       "redactedBytes": 3684
     },
@@ -330,7 +332,7 @@
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:ce27cd015da38ae2e60ee4a7aa1423a06d00d1da8aafa4f1188896bde7fe7d8c",
-      "redactedSha256": "sha256:dbaeaa5e847343abf74dec6290b5880e7e7d0b3511ba4c8437e90bd908cba79f",
+      "redactedSha256": "sha256:82e5e4b29482af8424503dedbef2118b0991b6640cc46ec9ef8c9247fecd156d",
       "originalBytes": 19317,
       "redactedBytes": 19302
     },
@@ -357,7 +359,7 @@
       "kind": "text",
       "replacements": 3,
       "originalSha256": "sha256:9ff9e46e013696825f078deffda468823b2909cfe46fd48ca61ffbd8fd168714",
-      "redactedSha256": "sha256:8c15d2ecc6a44351fe86cc112afe30dc1600b6eb0c0c4b714ecec8f6d0476344",
+      "redactedSha256": "sha256:72c701e86cd79e2b8fbec82332b7dcc975a8c750fbc821cb675e8bb7a00abe7e",
       "originalBytes": 4747,
       "redactedBytes": 4702
     },
@@ -366,7 +368,7 @@
       "kind": "text",
       "replacements": 3,
       "originalSha256": "sha256:bac98170792e3249b1a214c72975f7195a4a6f6a721e768f27a315096efac0dc",
-      "redactedSha256": "sha256:344289dde96db18ae77e5990208853277a41fe083e6320df50cf55e09858b2ab",
+      "redactedSha256": "sha256:ab93032a92161154a2bbdb6f1f53f6ef5075b3e8822bb21430b5c00cfcf8867f",
       "originalBytes": 4747,
       "redactedBytes": 4702
     },
@@ -384,7 +386,7 @@
       "kind": "text",
       "replacements": 3,
       "originalSha256": "sha256:adabd074f1a4fcc7d06ec6c385e8bab5bea2442c1571831e45969316472bcf75",
-      "redactedSha256": "sha256:8365a7928a2949f1d6dda8988bcd753a846090635d968944d884facaf835c1e1",
+      "redactedSha256": "sha256:e64edac3f02fc172be71775d337505c14cb6e100936a80376c94318a18b58b52",
       "originalBytes": 4747,
       "redactedBytes": 4702
     },
@@ -393,7 +395,7 @@
       "kind": "text",
       "replacements": 3,
       "originalSha256": "sha256:44b74e71a71b2d37c380321033ab153446b367efcdd4225b4624f40aa5bb0073",
-      "redactedSha256": "sha256:482f75702f5bb2cecaf6acaffa93f18f584ca4fde7c54c979bb6ffd46d1a56aa",
+      "redactedSha256": "sha256:e81d92260fdc8832d1791a6b97ecd53a1001f3584e291566cea1e8fffd1c369b",
       "originalBytes": 4747,
       "redactedBytes": 4702
     },

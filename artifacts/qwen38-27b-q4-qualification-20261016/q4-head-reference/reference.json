@@ -1,12 +1,13 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.qwen-quantized-independent-reference/v1",
   "qualified": false,
   "scope": "Independent F64 equations with exact decoded retained weights and F16 KV storage; diagnostic reference, not GPU qualification",
-  "contractSha256": "5b6bcd1895204ddef14fbd34e05e4753abb7d741b020b4f77a94aad6752fc1e7",
+  "contractSha256": "624f566d4db4585c0acdf4a8a40039f0c8340e0e4d218719c94955239255f441",
   "toolSha256": "29eb17db12d64a8977470bc5d5d7b6b90e1cafa35cea50939e296a876df808c6",
-  "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+  "manifestSha256": "2bc4c15504ec3b89c440d6c7009a9e320f8a7d927da5f37cc0e8c947f1075f59",
   "cases": [
     {
       "id": "capital-branch-forced",

@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.physical-resident-producer-preparation/v1",
   "status": "reference-and-archive-frozen-awaiting-pre-run-placement-binding",
   "physicalQualification": false,
@@ -9,12 +11,12 @@
     "graphHash": "sha256:36b7799edce21590e5846909ddaeea99be05cccaf87b65264d7281b2497fb0f3",
     "referenceHash": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
     "evaluatorHash": "sha256:90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7",
-    "proposalSha256": "138a76cff303746fe73e5307659c0aaca5a6b2c953ac44a8798c58f6ac297210",
+    "proposalSha256": "873317d57d218faf30483b8611b69f118c37f1ce1b139b8cb1548892b9ba8ad0",
     "outputIndexSha256": "2c95ecd599b5007b15872c7f3b1ddc5934f5319f983375a996dab536e1021979",
     "requestContractHashes": [
-      "sha256:ba2a4668d6affb85faf05221d6263a5b29b55d26c8f89a4f107cbacb717599a9",
-      "sha256:3cc051de10f77e945c6a62b66cccb22f0c15e55bf11196c6f71aeda4174ba5a2",
-      "sha256:8b21b154357efa8c9d1c853ffe36c5ce9d9e32e684b496db9031bc59fa6fe836"
+      "sha256:0510eb0aba9ebba1cfd92ec5b8fec0605bb49b03ff1f6a7dc3fc0bdae9e1130e",
+      "sha256:2b8658d3480d8300367f377bbb8d6cd7457e7e11e107186a30aad02d3bf94a43",
+      "sha256:ce2d69151ab94b6d5e85796b43f8f8e314b73cf9114fc31025fbfe7691e6a421"
     ],
     "requestFixtureSha256": "794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e",
     "factorySha256": "7ad99bc4b2f83dab0bde118a5f2c4207ee3ab88f0d8052435bc7ac60431c21bc",
@@ -39,7 +41,7 @@
   ],
   "referenceAuthority": {
     "approvalPath": "artifacts/whole-model-f64-complete-20261011/approval.json",
-    "approvalSha256": "065a6f065e551995743d183151b500a68761b15f612497b7933551f6c4ae2fb5",
+    "approvalSha256": "0f9dde3084d4379ab3a0e86b681ab7926114d84f80fa6ad51e17d7cb96b8b748",
     "evaluatorPath": "tools/qwen35-f64-reference.py"
   },
   "scope": "Archive9 preparation only. No split output inspected. This is not an executable expectations file; application/provider/plan/direction must be frozen before physical capture. Grants no qualification.",

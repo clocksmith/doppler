@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "installedPackage": "$HOME/.local/share/reploid/releases/c368c807-public-qwen27b/reploid/node_modules/doppler-gpu",
   "inventoryPath": "$HOME/deco/doppler/.tmp/qwen38-q4-qualification-20261016/q4-head-inventory.json",
   "modelDirectory": "$HOME/deco/doppler/models/local/qwen3-8-27b-text-f16-af32",
@@ -104,5 +106,5 @@
     "maxTokens": 128,
     "repetitionPenalty": 1
   },
-  "manifestSha256": "f4ad42e6706edb4c8b1b236230bff713fc0fbe70b22a3996ddc0a4cb7d777735"
+  "manifestSha256": "905f93524b1465fec6f47f0a23be50168a32d6abf58bc9880eb1336c6a3eddb2"
 }

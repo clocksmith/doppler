@@ -1,7 +1,9 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "delivery": {
     "schema": "reploid.numerical-test-delivery/v1",
-    "testDeliveryHash": "sha256:353627181a18225c0da81eb441a69a9fed99100905d8a9b7ce8903d5a7da61bd",
+    "testDeliveryHash": "sha256:f5a47a6fbf0eca79e9a5346b29409e5d01a2f119c27ab2ac27b3e6a94df3202e",
     "archiveSha256": "c643cd25b0d7a868c0e14e4d758983c78380456d923ed2b4a7b4f8b30065c705",
     "snapshotFiles": 2575,
     "installedFiles": 1976,
