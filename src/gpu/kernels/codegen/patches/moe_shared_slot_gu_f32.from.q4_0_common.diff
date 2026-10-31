@@ -1,32 +1,20 @@
 --- a
 +++ b
-@@ -1,8 +1,55 @@
+@@ -1,5 +1,5 @@
+-// Cooperative quarter-block GEMV adapted from Pooled engine/wgsl/coop.js (6b4a24f7).
+-// Native GGUF blocks remain interleaved; no Pooled split-scale repacking.
++// Shared-slot topology adapted from Pooled engine/wgsl/moe.js (6b4a24f7).
++// Native GGUF packing, Doppler refined SiLU, and no outer residual.
+ // MIT License
+ //
+ // Copyright (c) 2026 Nehanth Narendrula
+@@ -21,11 +21,35 @@
+ // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ // SOFTWARE.
 -override BLOCK_VALUES: u32 = 32u;
 -override BLOCK_BYTES: u32 = 18u;
 -override QUANT_FORMAT: u32 = 0u;
-+// Shared-slot topology adapted from Pooled engine/wgsl/moe.js (6b4a24f7).
-+// Native GGUF packing, Doppler refined SiLU, and no outer residual.
-+// MIT License
-+//
-+// Copyright (c) 2026 Nehanth Narendrula
-+//
-+// Permission is hereby granted, free of charge, to any person obtaining a copy
-+// of this software and associated documentation files (the "Software"), to deal
-+// in the Software without restriction, including without limitation the rights
-+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-+// copies of the Software, and to permit persons to whom the Software is
-+// furnished to do so, subject to the following conditions:
-+//
-+// The above copyright notice and this permission notice shall be included in all
-+// copies or substantial portions of the Software.
-+//
-+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+// SOFTWARE.
 +override WORKGROUP_SIZE: u32 = 64u;
 +override TOP_K: u32;
 +override ROUTED_FORMAT: u32;
@@ -60,7 +48,7 @@
  }
  fn packed_half(offset: u32) -> f32 {
      return unpack2x16float(q40_byte(offset) | (q40_byte(offset + 1u) << 8u)).x;
-@@ -10,10 +57,10 @@
+@@ -33,10 +57,10 @@
  fn packed_signed_byte(offset: u32) -> i32 {
      return bitcast<i32>(q40_byte(offset) << 24u) >> 24;
  }
@@ -75,7 +63,7 @@
          let section = (local % 128u) / 32u;
          let lane = local % 32u;
          let low = q40_byte(offset + (local / 128u) * 64u + (section % 2u) * 32u + lane);
-@@ -22,18 +69,162 @@
+@@ -45,19 +69,19 @@
          return packed_half(offset + 208u) * f32(packed_signed_byte(offset + 192u + local / 16u)) * f32(i32(value) - 32);
      }
      let scale = packed_half(offset);
@@ -98,45 +86,24 @@
 +    if (format == 1u) { return scale * f32(value) + packed_half(offset + 2u); }
      return scale * f32(i32(value) - 8);
  }
-+
-+fn packed_word(offset: u32) -> u32 {
-+    let shift = (offset % 4u) * 8u;
+
+@@ -65,9 +89,9 @@
+ // slice within its 256-value block; other formats have one such slice.
+ fn packed_word(offset: u32) -> u32 {
+     let shift = (offset % 4u) * 8u;
+-    let low = weights[offset / 4u];
 +    let low = bank_word(offset / 4u);
-+    if (shift == 0u) { return low; }
+     if (shift == 0u) { return low; }
+-    return (low >> shift) | (weights[offset / 4u + 1u] << (32u - shift));
 +    return (low >> shift) | (bank_word(offset / 4u + 1u) << (32u - shift));
-+}
-+fn signed_bytes(word: u32) -> vec4<f32> {
-+    let w = bitcast<i32>(word);
-+    return vec4<f32>(f32((w << 24u) >> 24u), f32((w << 16u) >> 24u),
-+        f32((w << 8u) >> 24u), f32(w >> 24u));
-+}
-+fn quarter_term(row: u32, b: u32, quarter: u32, blocks: u32, format: u32, bytes: u32,
-+                xbase: u32) -> f32 {
-+    let first = select(quarter * 4u, quarter * 8u, format == 2u);
-+    let second = select(first + 16u, first + 4u, format == 2u);
-+    let x = xbase + b * 32u;
-+    let xa = vec4<f32>(input[x+first], input[x+first+1u], input[x+first+2u], input[x+first+3u]);
-+    let xb = vec4<f32>(input[x+second], input[x+second+1u], input[x+second+2u], input[x+second+3u]);
-+    let base = (row * blocks + b) * bytes;
-+    let scale = packed_half(base);
-+    if (format == 2u) {
-+        return scale * (dot(signed_bytes(packed_word(base+2u+first)), xa)
-+            + dot(signed_bytes(packed_word(base+2u+second)), xb));
-+    }
-+    if (format == 0u) {
-+        let word = packed_word(base + 2u + quarter * 4u);
-+        let shifts = vec4<u32>(0u, 8u, 16u, 24u);
-+        let lo = vec4<f32>((vec4<u32>(word) >> shifts) & vec4<u32>(15u)) - vec4<f32>(8.0);
-+        let hi = vec4<f32>((vec4<u32>(word >> 4u) >> shifts) & vec4<u32>(15u)) - vec4<f32>(8.0);
-+        return scale * (dot(lo, xa) + dot(hi, xb));
-+    }
-+    var sum = 0.0;
-+    for (var j = 0u; j < 4u; j++) {
-+        sum = fma(xa[j], q40_value(row, b*32u+first+j, blocks, format, 32u, bytes), sum);
-+        sum = fma(xb[j], q40_value(row, b*32u+second+j, blocks, format, 32u, bytes), sum);
-+    }
-+    return sum;
-+}
+ }
+ fn packed_bytes(word: u32) -> vec4<u32> {
+     return (vec4<u32>(word) >> vec4<u32>(0u, 8u, 16u, 24u)) & vec4<u32>(255u);
+@@ -124,3 +148,115 @@
+     return scale * (dot(vec4<f32>(lo) - vec4<f32>(8.0), xa)
+         + dot(vec4<f32>(hi) - vec4<f32>(8.0), xb));
+ }
++
 +fn clamp_product(value: f32) -> f32 {
 +    if (u.clamp_max > 0.0) { return clamp(value, -u.clamp_max, u.clamp_max); }
 +    return value;
@@ -218,16 +185,22 @@
 +    if (!is_shared) { expert = indices[token * TOP_K + slot]; }
 +    var gs = vec4<f32>(0.0); var us = vec4<f32>(0.0);
 +    if (expert < u.num_experts) {
++        let format = select(ROUTED_FORMAT, SHARED_FORMAT, is_shared);
++        let bytes = select(ROUTED_BYTES, SHARED_BYTES, is_shared);
++        let first = select((lane % 4u) * 4u, (lane % 4u) * 8u, format == 2u);
++        let second = select(first + 16u, first + 4u, format == 2u);
 +        for (var b = lane / 4u; b < u.hidden_size / 32u; b += WORKGROUP_SIZE / 4u) {
++            let x = token * u.hidden_size + b * 32u;
++            let xa = vec4<f32>(input[x+first], input[x+first+1u], input[x+first+2u], input[x+first+3u]);
++            let xb = vec4<f32>(input[x+second], input[x+second+1u], input[x+second+2u], input[x+second+3u]);
 +            for (var r = 0u; r < 4u; r++) {
 +                if (row + r < rows) {
 +                    let er = expert * rows + row + r;
-+                    let format = select(ROUTED_FORMAT, SHARED_FORMAT, is_shared);
-+                    let bytes = select(ROUTED_BYTES, SHARED_BYTES, is_shared);
++                    let base = (er * (u.hidden_size / 32u) + b) * bytes;
 +                    bank = select(0u, 2u, is_shared);
-+                    gs[r] += quarter_term(er, b, lane % 4u, u.hidden_size / 32u, format, bytes, token*u.hidden_size);
++                    gs[r] += packed_quarter_term(base, format, 0u, lane % 4u, xa, xb);
 +                    bank += 1u;
-+                    us[r] += quarter_term(er, b, lane % 4u, u.hidden_size / 32u, format, bytes, token*u.hidden_size);
++                    us[r] += packed_quarter_term(base, format, 0u, lane % 4u, xa, xb);
 +                }
 +            }
 +        }
