@@ -605,6 +605,7 @@ gpu/kernels/matmul-workgroup-capacity.d.ts
 gpu/kernels/matmul.d.ts
 gpu/kernels/modulate.d.ts
 gpu/kernels/moe-grouped.d.ts
+gpu/kernels/moe-norm-router.d.ts
 gpu/kernels/moe-route.d.ts
 gpu/kernels/moe-shared-slot.d.ts
 gpu/kernels/moe.d.ts

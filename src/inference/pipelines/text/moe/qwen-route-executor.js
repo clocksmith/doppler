@@ -93,7 +93,8 @@ async function executeSharedSlot(recorder, options) {
   const matmul = recorder ? recordMatmul.bind(null, recorder) : runMatmul;
   let activated = null, gate = null;
   try {
-    gate = await matmul(inputTensor, sharedExpertRouter, numTokens, 1, hiddenSize, {
+    // A fused norm + router dispatch already produced the shared-expert gate.
+    gate = shared.gate ?? await matmul(inputTensor, sharedExpertRouter, numTokens, 1, hiddenSize, {
       transposeB: true, outputDtype: 'f32', kernelPath: shared.kernelPath,
       phaseOverride: shared.phase, layerIdx: options.layerIdx, role: 'moe_shared_router',
       outputBuffer: workspace?.getBuffer(`moe:${options.layerIdx}:shared-router`, 4),
@@ -113,7 +114,7 @@ async function executeSharedSlot(recorder, options) {
           : workspace?.getBuffer(`moe:${options.layerIdx}:shared-output`, hiddenSize * 4) });
   } finally {
     if (activated) releaseOrTrack(recorder, activated.buffer);
-    if (gate) releaseOrTrack(recorder, gate.buffer);
+    if (gate && gate !== shared.gate) releaseOrTrack(recorder, gate.buffer);
   }
 }
 

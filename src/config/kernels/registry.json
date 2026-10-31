@@ -500,6 +500,111 @@
     }
    }
   },
+  "moe_norm_router": {
+   "description": "Decode post-attention RMSNorm (folded attention residual) with the MoE expert-router and shared-expert router GEMVs in one dispatch",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "residual",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "norm_weight",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "router_weight",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 5,
+     "name": "shared_router_weight",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 6,
+     "name": "normed",
+     "type": "storage"
+    },
+    {
+     "index": 7,
+     "name": "prenorm",
+     "type": "storage"
+    },
+    {
+     "index": 8,
+     "name": "logits",
+     "type": "storage"
+    },
+    {
+     "index": 9,
+     "name": "shared_gate",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "hidden_size",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "num_experts",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "eps",
+      "type": "f32",
+      "offset": 8
+     },
+     {
+      "name": "workgroups_x",
+      "type": "u32",
+      "offset": 12
+     }
+    ]
+   },
+   "variants": {
+    "f32": {
+     "wgsl": "moe_norm_router_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": ["subgroups"],
+     "requiredWgslFeatures": ["subgroup_id"],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 4,
+      "NORM_THREADS": 256
+     },
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "activationDtype": "f32",
+      "reproduces": ["rmsnorm/default","matmul/gemv_f32_subgroup"]
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
   "w8a8_quantize": {
    "description": "Exact rational row-interleaved signed activation packing",
    "baseBindings": [

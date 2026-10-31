@@ -12,6 +12,7 @@ export interface KernelUniformValues {
   "moe_shared_slot_down/pair_f32": Parameters<typeof writers0.write_moe_shared_slot_gu_native_f32>[1];
   "moe_shared_slot_down/pair_combine_f32": Parameters<typeof writers0.write_moe_shared_slot_gu_native_f32>[1];
   "moe_shared_slot_down/pair_combine_residual_f32": Parameters<typeof writers0.write_moe_shared_slot_gu_native_f32>[1];
+  "moe_norm_router/f32": Parameters<typeof writers0.write_moe_norm_router_f32>[1];
   "w8a8_quantize/f32": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
   "w8a8_rescale/activation": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
   "w8a8_rescale/weight": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
@@ -219,8 +220,8 @@ export interface KernelUniformValues {
   "rmsnorm/small_f16": Parameters<typeof writers0.write_rmsnorm_default>[1];
   "rmsnorm/paired": Parameters<typeof writers0.write_rmsnorm_paired>[1];
   "rmsnorm/paired_sliced": Parameters<typeof writers0.write_rmsnorm_paired>[1];
-  "rmsnorm_pair/default": Parameters<typeof writers0.write_rmsnorm_pair_default>[1];
-  "rmsnorm_pair/subgroup": Parameters<typeof writers0.write_rmsnorm_pair_default>[1];
+  "rmsnorm_pair/default": Parameters<typeof writers1.write_rmsnorm_pair_default>[1];
+  "rmsnorm_pair/subgroup": Parameters<typeof writers1.write_rmsnorm_pair_default>[1];
   "residual_rmsnorm_pair/subgroup": Parameters<typeof writers1.write_residual_rmsnorm_pair_subgroup>[1];
   "rmsnorm_qk/default": Parameters<typeof writers1.write_rmsnorm_qk_default>[1];
   "rmsnorm_qk/default_f16": Parameters<typeof writers1.write_rmsnorm_qk_default>[1];
@@ -379,7 +380,7 @@ export interface KernelUniformValues {
   "causal_conv1d_silu_backward/default": Parameters<typeof writers1.write_causal_conv1d_silu_backward_default>[1];
   "gated_delta_recurrent_backward/default": Parameters<typeof writers1.write_gated_delta_recurrent_backward_default>[1];
   "layernorm_backward/default": Parameters<typeof writers1.write_layernorm_default>[1];
-  "rope_backward/default": Parameters<typeof writers1.write_rope_backward_default>[1];
+  "rope_backward/default": Parameters<typeof writers2.write_rope_backward_default>[1];
   "cross_entropy_loss/default": Parameters<typeof writers2.write_cross_entropy_loss_default>[1];
   "conv2d/default": Parameters<typeof writers2.write_conv2d_default>[1];
   "conv2d/default_f16": Parameters<typeof writers2.write_conv2d_default>[1];

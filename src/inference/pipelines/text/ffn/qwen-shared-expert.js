@@ -34,6 +34,23 @@ export function resolveQwenSharedSlot(options) {
   return true;
 }
 
+/** @type {typeof import('./qwen-shared-expert.js').resolveQwenNormRouter} */
+export function resolveQwenNormRouter(options) {
+  if (options.kernelPath == null) return false;
+  if ((options.phase !== 'decode' && options.phase !== 'prefill')
+    || !Number.isSafeInteger(options.layerIdx) || options.layerIdx < 0) {
+    throw new Error('[MoE] Norm + router lookup requires explicit phase and layer index.');
+  }
+  const steps = getLayerSteps(options.kernelPath, options.layerIdx, options.phase)
+    .filter(step => step.op === 'moe_norm_router');
+  if (steps.length === 0) return false;
+  if (steps.length !== 1 || !getKernelPathStepConfig('moe_norm_router', steps[0], options.phase)
+    || (steps[0].constants && Object.keys(steps[0].constants).length)) {
+    throw new Error('[MoE] Norm + router requires one registered step with model-bound geometry.');
+  }
+  return true;
+}
+
 const slotVariantPlans = new WeakMap();
 
 /** @type {typeof import('./qwen-shared-expert.js').resolveQwenSharedSlotVariants} */

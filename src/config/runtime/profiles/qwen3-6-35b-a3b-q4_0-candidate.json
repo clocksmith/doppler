@@ -54,7 +54,7 @@
       "kernelPath": {
         "id": "qwen-3-6-35b-a3b-text-source-q4_0-af32-native-decode-candidate",
         "name": "Execution inline kernel path",
-        "description": "Native GGUF Q4_0 candidate: subgroup F32 GEMV router/linear a-b/shared router, cooperative Q-family projections and lm_head, pair shared-slot MoE gate/up with the down projection, slot combine and layer residual in one dispatch, split-K GQA decode attention.",
+        "description": "Native GGUF Q4_0 candidate: post-attention norm with the expert and shared router GEMVs in one dispatch, subgroup F32 GEMV linear a-b, cooperative Q-family projections and lm_head, pair shared-slot MoE gate/up with the down projection, slot combine and layer residual in one dispatch, split-K GQA decode attention.",
         "activationDtype": "f32",
         "kvDtype": "f32",
         "decode": {
@@ -269,6 +269,12 @@
                 "QUANT_FORMAT": 2
               },
               "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d"
+            },
+            {
+              "op": "moe_norm_router",
+              "kernel": "moe_norm_router_f32.wgsl",
+              "entry": "main",
+              "digest": "sha256:5130f6f44c92fbe07b5306dfcbd3371778f7264a9eea7678db103e51d6d949cd"
             },
             {
               "op": "moe_router",
@@ -752,6 +758,12 @@
                   "op": "moe_shared_slot_down"
                 },
                 {
+                  "digest": "sha256:5130f6f44c92fbe07b5306dfcbd3371778f7264a9eea7678db103e51d6d949cd",
+                  "entry": "main",
+                  "kernel": "moe_norm_router_f32.wgsl",
+                  "op": "moe_norm_router"
+                },
+                {
                   "digest": "sha256:c5920603ff819e8687cb423bfcf19e3082671162beba59516d7d22180e6b756f",
                   "entry": "main",
                   "kernel": "matmul_gemv_f32_subgroup.wgsl",
@@ -1230,6 +1242,12 @@
                   "entry": "main",
                   "kernel": "moe_shared_slot_down_pair_combine_residual_f32.wgsl",
                   "op": "moe_shared_slot_down"
+                },
+                {
+                  "digest": "sha256:5130f6f44c92fbe07b5306dfcbd3371778f7264a9eea7678db103e51d6d949cd",
+                  "entry": "main",
+                  "kernel": "moe_norm_router_f32.wgsl",
+                  "op": "moe_norm_router"
                 },
                 {
                   "digest": "sha256:c5920603ff819e8687cb423bfcf19e3082671162beba59516d7d22180e6b756f",
@@ -1713,6 +1731,12 @@
                   "entry": "main",
                   "kernel": "moe_shared_slot_down_pair_combine_residual_f32.wgsl",
                   "op": "moe_shared_slot_down"
+                },
+                {
+                  "digest": "sha256:5130f6f44c92fbe07b5306dfcbd3371778f7264a9eea7678db103e51d6d949cd",
+                  "entry": "main",
+                  "kernel": "moe_norm_router_f32.wgsl",
+                  "op": "moe_norm_router"
                 },
                 {
                   "digest": "sha256:c5920603ff819e8687cb423bfcf19e3082671162beba59516d7d22180e6b756f",
@@ -2204,6 +2228,12 @@
                   "op": "moe_shared_slot_down"
                 },
                 {
+                  "digest": "sha256:5130f6f44c92fbe07b5306dfcbd3371778f7264a9eea7678db103e51d6d949cd",
+                  "entry": "main",
+                  "kernel": "moe_norm_router_f32.wgsl",
+                  "op": "moe_norm_router"
+                },
+                {
                   "digest": "sha256:c5920603ff819e8687cb423bfcf19e3082671162beba59516d7d22180e6b756f",
                   "entry": "main",
                   "kernel": "matmul_gemv_f32_subgroup.wgsl",
@@ -2685,6 +2715,12 @@
                   "entry": "main",
                   "kernel": "moe_shared_slot_down_pair_combine_residual_f32.wgsl",
                   "op": "moe_shared_slot_down"
+                },
+                {
+                  "digest": "sha256:5130f6f44c92fbe07b5306dfcbd3371778f7264a9eea7678db103e51d6d949cd",
+                  "entry": "main",
+                  "kernel": "moe_norm_router_f32.wgsl",
+                  "op": "moe_norm_router"
                 },
                 {
                   "digest": "sha256:c5920603ff819e8687cb423bfcf19e3082671162beba59516d7d22180e6b756f",
@@ -3169,6 +3205,12 @@
                   "op": "moe_shared_slot_down"
                 },
                 {
+                  "digest": "sha256:5130f6f44c92fbe07b5306dfcbd3371778f7264a9eea7678db103e51d6d949cd",
+                  "entry": "main",
+                  "kernel": "moe_norm_router_f32.wgsl",
+                  "op": "moe_norm_router"
+                },
+                {
                   "digest": "sha256:c5920603ff819e8687cb423bfcf19e3082671162beba59516d7d22180e6b756f",
                   "entry": "main",
                   "kernel": "matmul_gemv_f32_subgroup.wgsl",
@@ -3649,6 +3691,12 @@
                   "op": "moe_shared_slot_down"
                 },
                 {
+                  "digest": "sha256:5130f6f44c92fbe07b5306dfcbd3371778f7264a9eea7678db103e51d6d949cd",
+                  "entry": "main",
+                  "kernel": "moe_norm_router_f32.wgsl",
+                  "op": "moe_norm_router"
+                },
+                {
                   "digest": "sha256:c5920603ff819e8687cb423bfcf19e3082671162beba59516d7d22180e6b756f",
                   "entry": "main",
                   "kernel": "matmul_gemv_f32_subgroup.wgsl",
@@ -4127,6 +4175,12 @@
                   "entry": "main",
                   "kernel": "moe_shared_slot_down_pair_combine_residual_f32.wgsl",
                   "op": "moe_shared_slot_down"
+                },
+                {
+                  "digest": "sha256:5130f6f44c92fbe07b5306dfcbd3371778f7264a9eea7678db103e51d6d949cd",
+                  "entry": "main",
+                  "kernel": "moe_norm_router_f32.wgsl",
+                  "op": "moe_norm_router"
                 },
                 {
                   "digest": "sha256:c5920603ff819e8687cb423bfcf19e3082671162beba59516d7d22180e6b756f",

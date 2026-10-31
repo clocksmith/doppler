@@ -1,6 +1,7 @@
 import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
 import { acquireBuffer, readBuffer } from '../../../memory/buffer-pool.js';
 import { createTensor } from '../../../gpu/tensor.js';
+import { recordMoENormRouter } from '../../../gpu/kernels/moe-norm-router.js';
 import { runRMSNorm, recordRMSNorm } from '../../../gpu/kernels/rmsnorm.js';
 import { runScale, recordScale } from '../../../gpu/kernels/scale.js';
 import { runSoftmaxTopK, recordSoftmaxTopK } from '../../../gpu/kernels/softmax.js';
@@ -244,6 +245,7 @@ export async function moeFeedForwardGPU(
   let outputTensor = null;
   let routerNormTensor = null;
   let routerScaledTensor = null;
+  let sharedGateBuffer = null;
   let ownedPerExpertScaleBuffer = null;
   let activeExpertSchedule = null;
 
@@ -299,20 +301,42 @@ export async function moeFeedForwardGPU(
     }
 
     let stepStart = perfMark();
-    logitsBuffer = await moeRouter.computeRouterLogitsGPU(routerInputTensor.buffer, numTokens, null, {
-      kernelPath: config.kernelPath ?? null,
-      phase: config.phase,
-      inputDtype: routerInputTensor.dtype,
-      outputDtype: activationDtype,
-      recorder,
-      layerIdx,
-      outputBuffer: workspace?.getBuffer(`moe:${layerIdx}:router`, numExperts * 4),
-    });
+    const normRouter = config.normRouter ?? null;
+    if (normRouter) {
+      // One dispatch writes the post-attention norm into inputBuffer, the router logits
+      // and the shared-expert gate (moe_norm_router).
+      if (!recorder || numTokens !== 1 || activationDtype !== 'f32' || needsRouterScale || moeRouter.gateBias
+        || config.routerInputBuffer != null || !config.sharedSlot) {
+        throw new Error(`[MoE] Layer ${layerIdx} fused norm + router covers recorded single-token F32 shared-slot `
+          + 'routing on the normalized input, without router scale or bias.');
+      }
+      logitsBuffer = workspace?.getBuffer(`moe:${layerIdx}:router`, numExperts * 4)
+        ?? acquireBuffer(numExperts * 4, undefined, 'moe_router_logits');
+      sharedGateBuffer = workspace?.getBuffer(`moe:${layerIdx}:shared-router`, 4)
+        ?? acquireBuffer(4, undefined, 'moe_shared_gate');
+      await recordMoENormRouter(recorder, {
+        input: normRouter.input, residual: normRouter.residual, normWeight: normRouter.weight,
+        normWeightDtype: normRouter.weightDtype, rmsNormWeightOffset: normRouter.rmsNormWeightOffset,
+        eps: normRouter.eps, routerWeight: moeRouter.gateWeight, sharedRouterWeight: normRouter.sharedRouterWeight,
+        hiddenSize, numExperts, normedOutput: inputBuffer, prenormOutput: normRouter.prenorm,
+        logitsOutput: logitsBuffer, sharedGateOutput: sharedGateBuffer,
+      });
+    } else {
+      logitsBuffer = await moeRouter.computeRouterLogitsGPU(routerInputTensor.buffer, numTokens, null, {
+        kernelPath: config.kernelPath ?? null,
+        phase: config.phase,
+        inputDtype: routerInputTensor.dtype,
+        outputDtype: activationDtype,
+        recorder,
+        layerIdx,
+        outputBuffer: workspace?.getBuffer(`moe:${layerIdx}:router`, numExperts * 4),
+      });
+    }
     if (routerScaledTensor) {
       releaseOrTrack(recorder, routerScaledTensor.buffer);
       routerScaledTensor = null;
     }
-  const logitsDtype = moeRouter.lastLogitsDtype ?? activationDtype;
+  const logitsDtype = config.normRouter ? 'f32' : (moeRouter.lastLogitsDtype ?? activationDtype);
   perfLog(`MoE L${layerIdx} router`, stepStart, { numTokens, logitsDtype });
 
   if (isTraceEnabled('buffers')) {
@@ -435,7 +459,9 @@ export async function moeFeedForwardGPU(
       groupedPrefill: config.groupedPrefill === true,
       kernelPath: config.kernelPath,
       phase: config.phase,
-      sharedSlot: config.sharedSlot ?? null,
+      sharedSlot: config.sharedSlot
+        ? { ...config.sharedSlot, gate: sharedGateBuffer ? createTensor(sharedGateBuffer, 'f32', [numTokens, 1], 'moe_shared_gate') : null }
+        : null,
       inputTensor,
       indicesBuffer,
       weightsBuffer,
@@ -645,6 +671,7 @@ export async function moeFeedForwardGPU(
     return outputTensor.buffer;
   } finally {
     if (logitsBuffer) releaseOrTrack(recorder, logitsBuffer);
+    if (sharedGateBuffer) releaseOrTrack(recorder, sharedGateBuffer);
     if (routerNormTensor?.buffer) releaseOrTrack(recorder, routerNormTensor.buffer);
     if (routerScaledTensor?.buffer) releaseOrTrack(recorder, routerScaledTensor.buffer);
     if (tokenCounts) releaseOrTrack(recorder, tokenCounts);

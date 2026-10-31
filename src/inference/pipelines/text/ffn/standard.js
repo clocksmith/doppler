@@ -14,6 +14,7 @@ import { runProbes } from '../probes.js';
 import { isMoELayerLocal } from './types.js';
 import { runDenseFFNGPU } from './dense.js';
 import { runMoEFFNGPU } from './moe.js';
+import { resolveQwenNormRouter } from './qwen-shared-expert.js';
 import { acquireBuffer, readBuffer } from '../../../../memory/buffer-pool.js';
 import { runScale, recordScale } from '../../../../gpu/kernels/scale.js';
 import { isGpuBufferInstance, isWeightBuffer, requireWeightDtype } from '../../../../gpu/weight-buffer.js';
@@ -91,6 +92,15 @@ export async function processFFNStandard(
     ? decodeBuffers.getOutputHiddenBuffer()
     : null;
 
+  const useLegacyMoeOnlyFFN = config.ffnBranchMode !== 'dense'
+    && config.ffnBranchMode !== 'dense_plus_moe'
+    && config.useMoE
+    && isMoELayerLocal(layerIdx, config, layerWeights);
+  // A declared moe_norm_router step moves this norm into the MoE's router dispatch.
+  const normRouterDeclared = useLegacyMoeOnlyFFN
+    && resolveQwenNormRouter({ kernelPath: context.kernelPath ?? null, phase: context.phase, layerIdx });
+  let pendingNorm = null;
+
   // 1. Post-attention norm (optionally fuses upstream residual add via PRE_RESIDUAL)
   let normedTensor = postAttn;
   let prenormSumBuffer = null;
@@ -145,7 +155,21 @@ export async function processFFNStandard(
     } else if (fusedResidualInput) {
       const bytesPerElement = tensorElementBytes(postAttn.dtype, postAttn);
       prenormSumBuffer = acquireBuffer(size * bytesPerElement, undefined, 'fused_prenorm_sum');
-      if (shouldUsePostAttnNormFusedGateUpPrelude({ session, postAttn, fusedResidualInput, numTokens, context })) {
+      if (normRouterDeclared) {
+        if (numTokens !== 1 || postAttn.dtype !== 'f32' || postAttn.precision !== undefined
+          || fusedResidualInput.dtype !== 'f32' || fusedResidualInput.precision !== undefined
+          || shouldUsePostAttnNormFusedGateUpPrelude({ session, postAttn, fusedResidualInput, numTokens, context })) {
+          throw new Error(`Layer ${layerIdx} declares moe_norm_router, which covers single-token scalar F32 `
+            + 'post-attention norms without the fused gate/up prelude.');
+        }
+        // The MoE's norm + router dispatch writes the normalized row and pre-norm sum.
+        normedTensor = createTensor(acquireBuffer(size * 4, undefined, 'post_attn_norm_output'), 'f32',
+          postAttn.shape, 'post_attn_norm_output');
+        pendingNorm = {
+          input: postAttn, residual: fusedResidualInput, weight: normWeightBuf,
+          rmsNormWeightOffset: Boolean(weightConfig.rmsNormWeightOffset), eps: rmsNormEps, prenorm: prenormSumBuffer,
+        };
+      } else if (shouldUsePostAttnNormFusedGateUpPrelude({ session, postAttn, fusedResidualInput, numTokens, context })) {
         postAttnNormStats = await doRMSNormStats(postAttn, fusedResidualInput, rmsNormEps, {
           batchSize: numTokens,
           hiddenSize,
@@ -177,7 +201,11 @@ export async function processFFNStandard(
       }, recorder);
     }
   }
-  if (!usedPostAttnNormStatsPrelude) {
+  if (normRouterDeclared && !pendingNorm) {
+    throw new Error(`Layer ${layerIdx} declares moe_norm_router, which needs an RMS post-attention norm `
+      + 'with the folded attention residual.');
+  }
+  const probeFfnInput = async () => {
     await runProbes('ffn_in', normedTensor.buffer, {
       layerIdx,
       numTokens,
@@ -191,7 +219,9 @@ export async function processFFNStandard(
     });
     await debugFFNBuffer(context, layerIdx, 'FFN input', normedTensor, numTokens, hiddenSize);
     enqueueRecordedFFNHealth(context, layerIdx, 'ffn_in', normedTensor, numTokens * hiddenSize);
-  }
+  };
+  // A deferred norm is written inside the FFN; its probes follow the FFN in stream order.
+  if (!usedPostAttnNormStatsPrelude && !pendingNorm) await probeFfnInput();
 
   // 2. FFN
   // Stage the residual tensor so that runDenseFFNGPU's ffn_down matmul can
@@ -220,10 +250,8 @@ export async function processFFNStandard(
   context.__ffnResidualFusedFired = false;
 
   let ffnOutput;
-  const useLegacyMoeOnlyFFN = config.ffnBranchMode !== 'dense'
-    && config.ffnBranchMode !== 'dense_plus_moe'
-    && config.useMoE
-    && isMoELayerLocal(layerIdx, config, layerWeights);
+  context.__pendingFfnNorm = pendingNorm;
+  context.__ffnNormFusedFired = false;
   try {
     if (useLegacyMoeOnlyFFN) {
       ffnOutput = await runMoEFFNGPU(layerIdx, normedTensor, numTokens, context);
@@ -234,7 +262,13 @@ export async function processFFNStandard(
     context.__pendingFfnResidualTensor = null;
     context.__pendingFfnResidualOutputBuffer = null;
     context.__pendingFfnInputNormStats = null;
+    context.__pendingFfnNorm = null;
   }
+  if (pendingNorm && context.__ffnNormFusedFired !== true) {
+    throw new Error(`Layer ${layerIdx} handed its post-attention norm to the MoE router, which did not run it.`);
+  }
+  context.__ffnNormFusedFired = false;
+  if (pendingNorm) await probeFfnInput();
   const ffnResidualFused = context.__ffnResidualFusedFired === true;
   context.__ffnResidualFusedFired = false;
   await runProbes('ffn_out', ffnOutput.buffer, {

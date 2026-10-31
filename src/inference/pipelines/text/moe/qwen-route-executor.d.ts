@@ -34,6 +34,8 @@ export interface QwenSharedSlot {
    * written to `outputBuffer` when given.
    */
   residual?: { tensor: Tensor; outputBuffer: GPUBuffer | null } | null;
+  /** Shared-expert gate [numTokens, 1] already computed by a fused norm + router dispatch. */
+  gate?: Tensor | null;
 }
 export declare function runQwenRouteExperts(options: QwenRouteExpertOptions): Promise<Tensor>;
 export declare function recordQwenRouteExperts(recorder: CommandRecorder, options: QwenRouteExpertOptions): Promise<Tensor>;

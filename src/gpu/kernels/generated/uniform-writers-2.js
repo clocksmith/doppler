@@ -2,6 +2,17 @@
 // Do not edit; npm run kernels:uniforms:sync.
 import { writeU32, writeI32, writeF32 } from '../uniform-encoding.js';
 
+export function write_rope_backward_default(view, values, kernel) {
+  writeU32(view, 0, values["seq_len"], kernel, "seq_len");
+  writeU32(view, 4, values["num_heads"], kernel, "num_heads");
+  writeU32(view, 8, values["head_dim"], kernel, "head_dim");
+  writeU32(view, 12, values["start_pos"], kernel, "start_pos");
+  writeU32(view, 16, values["rotary_dim"], kernel, "rotary_dim");
+  writeU32(view, 20, values["pair_span_dim"], kernel, "pair_span_dim");
+  writeU32(view, 24, values["interleaved"], kernel, "interleaved");
+  view.setUint32(28, 0, true);
+}
+
 export function write_cross_entropy_loss_default(view, values, kernel) {
   writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
   writeU32(view, 4, values["vocab_size"], kernel, "vocab_size");

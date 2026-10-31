@@ -2,6 +2,17 @@
 // Do not edit; npm run kernels:uniforms:sync.
 import { writeU32, writeI32, writeF32 } from '../uniform-encoding.js';
 
+export function write_rmsnorm_pair_default(view, values, kernel) {
+  writeU32(view, 0, values["size"], kernel, "size");
+  writeU32(view, 4, values["num_tokens"], kernel, "num_tokens");
+  writeF32(view, 8, values["eps"], kernel, "eps");
+  writeU32(view, 12, values["has_residual"], kernel, "has_residual");
+  writeU32(view, 16, values["token_stride"], kernel, "token_stride");
+  view.setUint32(20, 0, true);
+  view.setUint32(24, 0, true);
+  view.setUint32(28, 0, true);
+}
+
 export function write_residual_rmsnorm_pair_subgroup(view, values, kernel) {
   writeU32(view, 0, values["size"], kernel, "size");
   writeU32(view, 4, values["num_tokens"], kernel, "num_tokens");
@@ -587,16 +598,5 @@ export function write_gated_delta_recurrent_backward_default(view, values, kerne
   writeU32(view, 16, values["key_dim"], kernel, "key_dim");
   writeU32(view, 20, values["value_dim"], kernel, "value_dim");
   writeF32(view, 24, values["query_scale"], kernel, "query_scale");
-  view.setUint32(28, 0, true);
-}
-
-export function write_rope_backward_default(view, values, kernel) {
-  writeU32(view, 0, values["seq_len"], kernel, "seq_len");
-  writeU32(view, 4, values["num_heads"], kernel, "num_heads");
-  writeU32(view, 8, values["head_dim"], kernel, "head_dim");
-  writeU32(view, 12, values["start_pos"], kernel, "start_pos");
-  writeU32(view, 16, values["rotary_dim"], kernel, "rotary_dim");
-  writeU32(view, 20, values["pair_span_dim"], kernel, "pair_span_dim");
-  writeU32(view, 24, values["interleaved"], kernel, "interleaved");
   view.setUint32(28, 0, true);
 }

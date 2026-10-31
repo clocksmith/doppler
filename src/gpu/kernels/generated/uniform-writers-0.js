@@ -13,6 +13,13 @@ export function write_moe_shared_slot_gu_native_f32(view, values, kernel) {
   view.setUint32(28, 0, true);
 }
 
+export function write_moe_norm_router_f32(view, values, kernel) {
+  writeU32(view, 0, values["hidden_size"], kernel, "hidden_size");
+  writeU32(view, 4, values["num_experts"], kernel, "num_experts");
+  writeF32(view, 8, values["eps"], kernel, "eps");
+  writeU32(view, 12, values["workgroups_x"], kernel, "workgroups_x");
+}
+
 export function write_w8a8_quantize_f32(view, values, kernel) {
   writeU32(view, 0, values["rows"], kernel, "rows");
   writeU32(view, 4, values["columns"], kernel, "columns");
@@ -582,16 +589,5 @@ export function write_rmsnorm_paired(view, values, kernel) {
   writeU32(view, 16, values["token_stride"], kernel, "token_stride");
   writeF32(view, 20, values["scale_hi"], kernel, "scale_hi");
   writeF32(view, 24, values["scale_lo"], kernel, "scale_lo");
-  view.setUint32(28, 0, true);
-}
-
-export function write_rmsnorm_pair_default(view, values, kernel) {
-  writeU32(view, 0, values["size"], kernel, "size");
-  writeU32(view, 4, values["num_tokens"], kernel, "num_tokens");
-  writeF32(view, 8, values["eps"], kernel, "eps");
-  writeU32(view, 12, values["has_residual"], kernel, "has_residual");
-  writeU32(view, 16, values["token_stride"], kernel, "token_stride");
-  view.setUint32(20, 0, true);
-  view.setUint32(24, 0, true);
   view.setUint32(28, 0, true);
 }

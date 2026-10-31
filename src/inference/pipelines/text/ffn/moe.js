@@ -2,7 +2,7 @@ import { resolveGroupedPrefill } from '../moe/grouped-prefill.js';
 
 
 import { releaseOrTrack } from '../ops.js';
-import { runQwenSharedExpert, resolveQwenSharedSlot, resolveQwenSharedSlotVariants } from './qwen-shared-expert.js';
+import { runQwenSharedExpert, resolveQwenNormRouter, resolveQwenSharedSlot, resolveQwenSharedSlotVariants } from './qwen-shared-expert.js';
 import { createTensor } from '../../../../gpu/tensor.js';
 
 // Lazily loaded once: each dynamic import() makes the browser re-walk the module graph.
@@ -34,6 +34,14 @@ export async function runMoEFFNGPU(
     kernelPath: context.kernelPath, phase: context.phase, layerIdx,
   }).down === 'pair_combine_residual_f32';
   const pendingResidual = residualFused ? (context.__pendingFfnResidualTensor ?? null) : null;
+  // A declared moe_norm_router runs the post-attention norm processFFNStandard handed over
+  // together with the router projections; it writes the normalized row into inputTensor.
+  const normRouter = resolveQwenNormRouter({ kernelPath: context.kernelPath ?? null, phase: context.phase, layerIdx });
+  const pendingNorm = normRouter ? (context.__pendingFfnNorm ?? null) : null;
+  if (normRouter && (!sharedSlot || !pendingNorm)) {
+    throw new Error(`[MoE] Layer ${layerIdx} declares moe_norm_router, which needs the shared-slot route and the `
+      + 'post-attention norm from processFFNStandard (sandwich norms and layer plans run their own norm).');
+  }
   if (residualFused && !pendingResidual) {
     throw new Error(`[MoE] Layer ${layerIdx} declares a residual-bearing shared-slot down, but its caller `
       + 'did not hand over the FFN residual (sandwich norms, layer plans and residual branch scales keep their own add).');
@@ -82,6 +90,9 @@ export async function runMoEFFNGPU(
         residual: pendingResidual
           ? { tensor: pendingResidual, outputBuffer: context.__pendingFfnResidualOutputBuffer ?? null }
           : null } : null,
+      normRouter: pendingNorm
+        ? { ...pendingNorm, sharedRouterWeight: context.weights.get(`layer_${layerIdx}`)?.sharedExpertRouter }
+        : null,
     },
     moeRouter,
     expertWeights,
@@ -92,6 +103,7 @@ export async function runMoEFFNGPU(
   );
 
   if (residualFused) context.__ffnResidualFusedFired = true;
+  if (pendingNorm) context.__ffnNormFusedFired = true;
   const routed = createTensor(outputBuffer, inputTensor.dtype, [...inputTensor.shape], 'moe_ffn_output');
   if (sharedSlot || config.expertFormat !== 'qwen3_5') return routed;
   try {

@@ -113,6 +113,9 @@ export interface LayerContext {
   /** Decode output buffer a residual-adding FFN consumer writes the layer output to. */
   __pendingFfnResidualOutputBuffer?: GPUBuffer | null;
   __ffnResidualFusedFired?: boolean;
+  /** Post-attention norm handed to a fused MoE norm + router dispatch (moe_norm_router). */
+  __pendingFfnNorm?: PendingFfnNorm | null;
+  __ffnNormFusedFired?: boolean;
   __layerScalarFusedFired?: boolean;
   __precomputedInputNorm?: {
     layerIdx: number;
@@ -583,6 +586,19 @@ export interface PipelineLoadTiming {
     tokenizer: TokenizerLoadTiming | null;
   };
   totalMs: number | null;
+}
+
+/**
+ * The decode post-attention RMSNorm processFFNStandard hands to a fused MoE norm + router
+ * dispatch: rmsnorm(input + residual) * weight, with input + residual written to prenorm.
+ */
+export interface PendingFfnNorm {
+  input: import('../../../gpu/tensor.js').Tensor;
+  residual: import('../../../gpu/tensor.js').Tensor;
+  weight: GPUBuffer | WeightBuffer;
+  rmsNormWeightOffset: boolean;
+  eps: number;
+  prenorm: GPUBuffer;
 }
 
 export interface PipelineStats {
