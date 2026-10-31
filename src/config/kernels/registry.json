@@ -12545,8 +12545,7 @@
        "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
        "esm/esm2-t12-35m-ur50d-f32-af32",
        "esmc/esmc-300m-f32-af32",
-       "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"
+       "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32"
       ],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -12567,8 +12566,7 @@
        "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
        "esm/esm2-t12-35m-ur50d-f32-af32",
        "esmc/esmc-300m-f32-af32",
-       "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"
+       "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32"
       ],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -15595,6 +15593,7 @@
       "WORKGROUP_SIZE": 256
      },
      "requires": ["subgroups"],
+     "requiredWgslFeatures": ["subgroup_id"],
      "outputDtype": "f32",
      "variantMetadata": {
       "tier": "tiled_small",
@@ -15607,8 +15606,8 @@
      },
      "description": "Opt-in F32 online prefill query tile; component and model qualification pending.",
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      },

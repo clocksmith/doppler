@@ -13,7 +13,7 @@ for (const constants of [null, { HEAD_DIM: 128, WORKGROUP_SIZE: 128 }]) {
 const path = { prefill: { steps: [{ op: 'attention', kernel: 'attention_prefill_query_tile_f32.wgsl', entry: 'main' }] } };
 assert.equal(getKernelPathAttentionVariant('prefill', 3, path), variant);
 for (const width of [32, 64]) {
-  const caps = { hasSubgroups: true, adapterInfo: { subgroupMinSize: width, subgroupMaxSize: width } };
+  const caps = { hasSubgroups: true, wgslLanguageFeatures: ['subgroup_id'], adapterInfo: { subgroupMinSize: width, subgroupMaxSize: width } };
   const validate = (overrides = {}) => {
     const p = { isDecode: false, f16KV: false, f16Q: false, caps, headDim: 256, kvLen: 2287, shared: 16384, ...overrides };
     return validateAttentionVariant(variant, p.isDecode, p.f16KV, p.f16Q, p.caps, p.headDim, p.kvLen, p.shared);
@@ -25,8 +25,9 @@ for (const width of [32, 64]) {
   assert.throws(() => validate({ f16KV: true }), /requires f32/);
   assert.throws(() => validate({ f16Q: true }), /requires f32/);
   assert.throws(() => validate({ caps: { hasSubgroups: false } }), /unsupported GPU features/);
-  assert.throws(() => validate({ caps: { hasSubgroups: true, adapterInfo: { subgroupMinSize: 16, subgroupMaxSize: 64 } } }), /partitions of 32/);
-  assert.throws(() => validate({ caps: { hasSubgroups: true } }), /unsupported or unavailable/);
+  assert.throws(() => validate({ caps: { ...caps, wgslLanguageFeatures: [] } }), /unsupported GPU features/);
+  assert.throws(() => validate({ caps: { ...caps, adapterInfo: { subgroupMinSize: 16, subgroupMaxSize: 64 } } }), /partitions of 32/);
+  assert.throws(() => validate({ caps: { hasSubgroups: true, wgslLanguageFeatures: ['subgroup_id'] } }), /unsupported or unavailable/);
 }
 assert.equal(calculateAttentionWorkgroups('tiled_small', 256, 16, variant), 512);
 assert.equal(calculateAttentionWorkgroups('tiled_small', 239, 16, variant), 480);

@@ -338,13 +338,13 @@
             },
             {
               "op": "attention",
-              "kernel": "attention_small.wgsl",
+              "kernel": "attention_prefill_query_tile_f32.wgsl",
               "entry": "main",
               "precision": {
                 "kvDtype": "f32",
                 "activationDtype": "f32"
               },
-              "digest": "sha256:6752ddd7ab53e6235c9b5b1a9515141c0d111df7fac9f4c0d7a38f9943490ed4"
+              "digest": "sha256:94b0189c663e6ed8475fda5487b93baec47f5d133208e3b4fe247c313e98e714"
             },
             {
               "op": "o_proj",
@@ -806,9 +806,9 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:6752ddd7ab53e6235c9b5b1a9515141c0d111df7fac9f4c0d7a38f9943490ed4",
+                  "digest": "sha256:94b0189c663e6ed8475fda5487b93baec47f5d133208e3b4fe247c313e98e714",
                   "entry": "main",
-                  "kernel": "attention_small.wgsl",
+                  "kernel": "attention_prefill_query_tile_f32.wgsl",
                   "op": "attention",
                   "precision": {
                     "activationDtype": "f32",
@@ -1296,9 +1296,9 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:6752ddd7ab53e6235c9b5b1a9515141c0d111df7fac9f4c0d7a38f9943490ed4",
+                  "digest": "sha256:94b0189c663e6ed8475fda5487b93baec47f5d133208e3b4fe247c313e98e714",
                   "entry": "main",
-                  "kernel": "attention_small.wgsl",
+                  "kernel": "attention_prefill_query_tile_f32.wgsl",
                   "op": "attention",
                   "precision": {
                     "activationDtype": "f32",
@@ -1763,9 +1763,9 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:6752ddd7ab53e6235c9b5b1a9515141c0d111df7fac9f4c0d7a38f9943490ed4",
+                  "digest": "sha256:94b0189c663e6ed8475fda5487b93baec47f5d133208e3b4fe247c313e98e714",
                   "entry": "main",
-                  "kernel": "attention_small.wgsl",
+                  "kernel": "attention_prefill_query_tile_f32.wgsl",
                   "op": "attention",
                   "precision": {
                     "activationDtype": "f32",
@@ -2258,9 +2258,9 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:6752ddd7ab53e6235c9b5b1a9515141c0d111df7fac9f4c0d7a38f9943490ed4",
+                  "digest": "sha256:94b0189c663e6ed8475fda5487b93baec47f5d133208e3b4fe247c313e98e714",
                   "entry": "main",
-                  "kernel": "attention_small.wgsl",
+                  "kernel": "attention_prefill_query_tile_f32.wgsl",
                   "op": "attention",
                   "precision": {
                     "activationDtype": "f32",
@@ -2747,9 +2747,9 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:6752ddd7ab53e6235c9b5b1a9515141c0d111df7fac9f4c0d7a38f9943490ed4",
+                  "digest": "sha256:94b0189c663e6ed8475fda5487b93baec47f5d133208e3b4fe247c313e98e714",
                   "entry": "main",
-                  "kernel": "attention_small.wgsl",
+                  "kernel": "attention_prefill_query_tile_f32.wgsl",
                   "op": "attention",
                   "precision": {
                     "activationDtype": "f32",
@@ -3239,9 +3239,9 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:6752ddd7ab53e6235c9b5b1a9515141c0d111df7fac9f4c0d7a38f9943490ed4",
+                  "digest": "sha256:94b0189c663e6ed8475fda5487b93baec47f5d133208e3b4fe247c313e98e714",
                   "entry": "main",
-                  "kernel": "attention_small.wgsl",
+                  "kernel": "attention_prefill_query_tile_f32.wgsl",
                   "op": "attention",
                   "precision": {
                     "activationDtype": "f32",
@@ -3719,9 +3719,9 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:6752ddd7ab53e6235c9b5b1a9515141c0d111df7fac9f4c0d7a38f9943490ed4",
+                  "digest": "sha256:94b0189c663e6ed8475fda5487b93baec47f5d133208e3b4fe247c313e98e714",
                   "entry": "main",
-                  "kernel": "attention_small.wgsl",
+                  "kernel": "attention_prefill_query_tile_f32.wgsl",
                   "op": "attention",
                   "precision": {
                     "activationDtype": "f32",
@@ -4199,9 +4199,9 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:6752ddd7ab53e6235c9b5b1a9515141c0d111df7fac9f4c0d7a38f9943490ed4",
+                  "digest": "sha256:94b0189c663e6ed8475fda5487b93baec47f5d133208e3b4fe247c313e98e714",
                   "entry": "main",
-                  "kernel": "attention_small.wgsl",
+                  "kernel": "attention_prefill_query_tile_f32.wgsl",
                   "op": "attention",
                   "precision": {
                     "activationDtype": "f32",
