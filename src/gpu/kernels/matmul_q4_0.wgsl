@@ -130,31 +130,75 @@ fn prefill(@builtin(workgroup_id) group: vec3<u32>, @builtin(num_workgroups) gri
     if (m < u.M && n < u.N) { output[u.c_offset + m * u.N + n] = sum * u.alpha; }
 }
 
+// Eight original values per invocation. Q6_K's segment is a logical 32-value
+// slice within its 256-value block; other formats have one such slice.
 fn packed_word(offset: u32) -> u32 {
     let shift = (offset % 4u) * 8u;
     let low = weights[offset / 4u];
     if (shift == 0u) { return low; }
     return (low >> shift) | (weights[offset / 4u + 1u] << (32u - shift));
 }
+fn packed_bytes(word: u32) -> vec4<u32> {
+    return (vec4<u32>(word) >> vec4<u32>(0u, 8u, 16u, 24u)) & vec4<u32>(255u);
+}
 fn signed_bytes(word: u32) -> vec4<f32> {
     let w = bitcast<i32>(word);
     return vec4<f32>(f32((w << 24u) >> 24u), f32((w << 16u) >> 24u),
         f32((w << 8u) >> 24u), f32(w >> 24u));
 }
-fn cooperative_term(row: u32, block: u32, quarter: u32, xa: vec4<f32>, xb: vec4<f32>) -> f32 {
-    if (row >= u.b_row + u.N) { return 0.0; }
-    let base = (row * u.blocks + block) * BLOCK_BYTES;
+fn packed_quarter_term(base: u32, format: u32, segment: u32, quarter: u32,
+                       xa: vec4<f32>, xb: vec4<f32>) -> f32 {
+    if (format == 3u) {
+        let section = segment % 4u;
+        let low_offset = base + (segment / 4u) * 64u + (section % 2u) * 32u + quarter * 4u;
+        let high_offset = base + 128u + (segment / 4u) * 32u + quarter * 4u;
+        let low_shift = vec4<u32>((section / 2u) * 4u);
+        let high_shift = vec4<u32>(section * 2u);
+        let qa = ((packed_bytes(packed_word(low_offset)) >> low_shift) & vec4<u32>(15u))
+            | (((packed_bytes(packed_word(high_offset)) >> high_shift) & vec4<u32>(3u)) << vec4<u32>(4u));
+        let qb = ((packed_bytes(packed_word(low_offset + 16u)) >> low_shift) & vec4<u32>(15u))
+            | (((packed_bytes(packed_word(high_offset + 16u)) >> high_shift) & vec4<u32>(3u)) << vec4<u32>(4u));
+        let d = packed_half(base + 208u);
+        let da = d * f32(packed_signed_byte(base + 192u + segment * 2u));
+        let db = d * f32(packed_signed_byte(base + 193u + segment * 2u));
+        return dot(da * (vec4<f32>(qa) - vec4<f32>(32.0)), xa)
+            + dot(db * (vec4<f32>(qb) - vec4<f32>(32.0)), xb);
+    }
     let scale = packed_half(base);
-    if (QUANT_FORMAT == 2u) {
+    if (format == 2u) {
         let first = base + 2u + quarter * 8u;
         return scale * (dot(signed_bytes(packed_word(first)), xa)
             + dot(signed_bytes(packed_word(first + 4u)), xb));
     }
-    let word = packed_word(base + 2u + quarter * 4u);
-    let shifts = vec4<u32>(0u, 8u, 16u, 24u);
-    let lo = vec4<f32>((vec4<u32>(word) >> shifts) & vec4<u32>(15u)) - vec4<f32>(8.0);
-    let hi = vec4<f32>((vec4<u32>(word >> 4u) >> shifts) & vec4<u32>(15u)) - vec4<f32>(8.0);
-    return scale * (dot(lo, xa) + dot(hi, xb));
+    var data_offset = 2u;
+    if (format == 1u) { data_offset = 4u; }
+    if (format == 4u) { data_offset = 6u; }
+    let bytes = packed_bytes(packed_word(base + data_offset + quarter * 4u));
+    var lo = bytes & vec4<u32>(15u);
+    var hi = bytes >> vec4<u32>(4u);
+    if (format == 4u) {
+        let high_bits = vec4<u32>(packed_word(base + 2u));
+        let bit = vec4<u32>(quarter * 4u) + vec4<u32>(0u, 1u, 2u, 3u);
+        lo |= ((high_bits >> bit) & vec4<u32>(1u)) << vec4<u32>(4u);
+        hi |= ((high_bits >> (bit + vec4<u32>(16u))) & vec4<u32>(1u)) << vec4<u32>(4u);
+        return scale * (dot(vec4<f32>(lo) - vec4<f32>(16.0), xa)
+            + dot(vec4<f32>(hi) - vec4<f32>(16.0), xb));
+    }
+    if (format == 1u) {
+        let minimum = vec4<f32>(packed_half(base + 2u));
+        // Keep the additive minimum per logical value, including negative minima.
+        return dot(scale * vec4<f32>(lo) + minimum, xa)
+            + dot(scale * vec4<f32>(hi) + minimum, xb);
+    }
+    return scale * (dot(vec4<f32>(lo) - vec4<f32>(8.0), xa)
+        + dot(vec4<f32>(hi) - vec4<f32>(8.0), xb));
+}
+
+fn cooperative_term(row: u32, slice: u32, quarter: u32, xa: vec4<f32>, xb: vec4<f32>) -> f32 {
+    if (row >= u.b_row + u.N) { return 0.0; }
+    let slices_per_block = BLOCK_VALUES / 32u;
+    let base = (row * u.blocks + slice / slices_per_block) * BLOCK_BYTES;
+    return packed_quarter_term(base, QUANT_FORMAT, slice % slices_per_block, quarter, xa, xb);
 }
 var<workgroup> cooperative_partial: array<vec4<f32>, WORKGROUP_SIZE>;
 
@@ -168,7 +212,7 @@ fn cooperative(@builtin(workgroup_id) group: vec3<u32>, @builtin(num_workgroups)
     let row = u.b_row + (tile % tiles_n) * COLS_PER_WG;
     let quarter = lane % 4u;
     var sums = vec4<f32>(0.0);
-    for (var b = lane / 4u; b < u.blocks; b += WORKGROUP_SIZE / 4u) {
+    for (var b = lane / 4u; b < u.K / 32u; b += WORKGROUP_SIZE / 4u) {
         let first = select(quarter * 4u, quarter * 8u, QUANT_FORMAT == 2u);
         let second = select(first + 16u, first + 4u, QUANT_FORMAT == 2u);
         let x = u.a_offset + m * u.K + b * 32u;

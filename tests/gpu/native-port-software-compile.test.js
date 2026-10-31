@@ -12,6 +12,7 @@ assert.match(JSON.stringify(adapter), /software|swiftshader|llvmpipe|lavapipe/i,
 try {
   for (const [operation, variant, constants] of [
     ['matmul', 'q4_0_cooperative', {}], ['matmul', 'q8_0_cooperative', {}],
+    ['matmul', 'q4_1_cooperative', {}], ['matmul', 'q5_0_cooperative', {}], ['matmul', 'q6k_cooperative', {}],
     ['moe_shared_slot_gu', 'native_f32', { TOP_K: 8, ROUTED_FORMAT: 0, ROUTED_BYTES: 18, SHARED_FORMAT: 4, SHARED_BYTES: 22 }],
     ['moe_shared_slot_down', 'native_f32', { TOP_K: 8, ROUTED_FORMAT: 1, ROUTED_BYTES: 20, SHARED_FORMAT: 4, SHARED_BYTES: 22 }],
   ]) {
