@@ -377,8 +377,10 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
     qkvzPacked: options.qkvzPacked === true,
     bProjOffsetElements: options.bProjOffsetElements,
   };
-  const workspace = useFusedDecodeCore && numTokens === 1 && outputDtype === 'f32'
+  const workspace = numTokens === 1 && inputDtype === 'f32' && outputDtype === 'f32' && stateComponents === 1
     && Number.isInteger(options.layerIdx) && options.layerIdx >= 0 ? recorder?.decodeWorkspace : null;
+  const bindGroupForSlot = (slot, descriptor) => workspace
+    ? workspace.getBindGroup(slot, descriptor) : device.createBindGroup(descriptor);
   const outputBuffer = workspace
     ? workspace.getBuffer(`linear_core:${options.layerIdx}`, outputSize)
     : acquireBuffer(outputSize, undefined, `L${options.layerIdx ?? 0}.linear_attention_core_out`);
@@ -407,9 +409,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
             { binding: 10, resource: { buffer: outputBuffer } },
           ],
         };
-        const fusedBindGroup = workspace
-          ? workspace.getBindGroup(`linear_core:${options.layerIdx}`, descriptor)
-          : device.createBindGroup(descriptor);
+        const fusedBindGroup = bindGroupForSlot(`linear_core:${options.layerIdx}`, descriptor);
         recordDispatch(
           recorder,
           pipelines.fusedDecodePipeline,
@@ -516,7 +516,9 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
   }
 
   try {
-    convOutBuffer = acquireBuffer(convOutSize, undefined, `L${options.layerIdx ?? 0}.linear_conv_out`);
+    convOutBuffer = workspace
+      ? workspace.getBuffer(`linear:${options.layerIdx}:conv-out`, convOutSize)
+      : acquireBuffer(convOutSize, undefined, `L${options.layerIdx ?? 0}.linear_conv_out`);
   } catch (error) {
     if (!workspace) releaseBuffer(outputBuffer);
     throw error;
@@ -525,28 +527,10 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
     try {
       const paramsBuffer = createUniformBufferFromData(
         'linear_attention_params',
-        buildParamsData({
-          numTokens,
-          convDim: layerState.convDim,
-          convKernelSize: layerState.convKernelSize,
-          numVHeads: layerState.numVHeads,
-          numKHeads: layerState.numKHeads,
-          headKDim: layerState.headKDim,
-          headVDim: layerState.headVDim,
-          qSize: layerState.qSize,
-          kSize: layerState.kSize,
-          valueDim: layerState.valueDim,
-          qRep: layerState.qRep,
-          normMode: layerState.normMode === 'per_head' ? 1 : 0,
-          rmsNormEps: requirePositiveEpsilon(layerState.rmsNormEps, 'layerState.rmsNormEps'),
-          qkL2NormEps: requirePositiveEpsilon(options.qkL2NormEps, 'options.qkL2NormEps'),
-          abPacked: options.abPacked === true,
-          qkvzPacked: options.qkvzPacked === true,
-          bProjOffsetElements: options.bProjOffsetElements,
-        }),
+        buildParamsData(paramsPayload),
         recorder
       );
-      const convBindGroup = device.createBindGroup({
+      const convBindGroup = bindGroupForSlot(`linear_core:${options.layerIdx}:conv`, {
         label: 'linear_attention_conv_bind_group',
         layout: convBindGroupLayout,
         entries: [
@@ -558,7 +542,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
         ],
       });
 
-      const recurrentBindGroup = device.createBindGroup({
+      const recurrentBindGroup = bindGroupForSlot(`linear_core:${options.layerIdx}:recurrent`, {
         label: 'linear_attention_recurrent_bind_group',
         layout: recurrentBindGroupLayout,
         entries: [
@@ -594,7 +578,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
       if (pipelines.normGatePipeline) recordDispatch(recorder, pipelines.normGatePipeline,
         recurrentBindGroup, [layerState.numVHeads, numTokens, 1], 'linear_prefill_norm_gate');
 
-      recorder.trackTemporaryBuffer(convOutBuffer);
+      if (!workspace) recorder.trackTemporaryBuffer(convOutBuffer);
 
       const output = createTensor(
         outputBuffer,
@@ -616,7 +600,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
       }
       return output;
     } catch (error) {
-      releaseBuffer(convOutBuffer);
+      if (!workspace) releaseBuffer(convOutBuffer);
       if (!workspace) releaseBuffer(outputBuffer);
       throw error;
     }
@@ -627,25 +611,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
   try {
     paramsBuffer = createUniformBufferFromData(
       'linear_attention_params',
-      buildParamsData({
-        numTokens,
-        convDim: layerState.convDim,
-        convKernelSize: layerState.convKernelSize,
-        numVHeads: layerState.numVHeads,
-        numKHeads: layerState.numKHeads,
-        headKDim: layerState.headKDim,
-        headVDim: layerState.headVDim,
-        qSize: layerState.qSize,
-        kSize: layerState.kSize,
-        valueDim: layerState.valueDim,
-        qRep: layerState.qRep,
-        normMode: layerState.normMode === 'per_head' ? 1 : 0,
-        rmsNormEps: requirePositiveEpsilon(layerState.rmsNormEps, 'layerState.rmsNormEps'),
-        qkL2NormEps: requirePositiveEpsilon(options.qkL2NormEps, 'options.qkL2NormEps'),
-        abPacked: options.abPacked === true,
-        qkvzPacked: options.qkvzPacked === true,
-        bProjOffsetElements: options.bProjOffsetElements,
-      }),
+      buildParamsData(paramsPayload),
       null,
       device,
       { useCache: false }
@@ -745,6 +711,6 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
     } else {
       paramsBuffer?.destroy();
     }
-    releaseBuffer(convOutBuffer);
+    if (!workspace) releaseBuffer(convOutBuffer);
   }
 }

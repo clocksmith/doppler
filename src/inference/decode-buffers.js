@@ -4,6 +4,7 @@ import { PreparedDecodeWorkspace } from '../gpu/prepared-decode-workspace.js';
 import { getDevice } from '../gpu/device.js';
 import { tensorElementBytes } from '../gpu/tensor.js';
 import { padToQ4KBlock } from '../config/schema/index.js';
+import { getBufferDevice, isDeviceLost, registerBufferDevice } from '../memory/device-residency.js';
 
 export class DecodeBufferManager {
   
@@ -30,6 +31,13 @@ export class DecodeBufferManager {
       components: normalizedConfig.activationComponents,
       elementStrideBytes: normalizedConfig.activationElementStrideBytes,
     });
+    const device = getDevice();
+    if (!device || isDeviceLost(device)) {
+      throw new Error('Decode buffers require a live GPU device.');
+    }
+    if (this.buffers && getBufferDevice(this.buffers.hidden) !== device) {
+      throw new Error('Decode buffers belong to another GPUDevice; release the session first.');
+    }
 
     // Check if we already have matching buffers
     if (this.buffers && this.config &&
@@ -46,11 +54,6 @@ export class DecodeBufferManager {
     // Release old buffers if config changed
     if (this.buffers) {
       this.release();
-    }
-
-    const device = getDevice();
-    if (!device) {
-      throw new Error('GPU device not initialized');
     }
 
     // Allocate buffers
@@ -71,6 +74,7 @@ export class DecodeBufferManager {
     const create = descriptor => {
       const buffer = device.createBuffer(descriptor);
       allocated.push(buffer);
+      registerBufferDevice(buffer, device);
       return buffer;
     };
     try {
@@ -115,6 +119,15 @@ export class DecodeBufferManager {
   }
 
   getWorkspace(device) {
+    if (!this.buffers) {
+      throw new Error('Prepared decode workspace requires initialized decode buffers.');
+    }
+    if (!device || isDeviceLost(device)) {
+      throw new Error('Prepared decode workspace requires a live GPU device.');
+    }
+    if (getBufferDevice(this.buffers.hidden) !== device) {
+      throw new Error('Decode buffers belong to another GPUDevice; release the session first.');
+    }
     if (this.workspace && this.workspaceDevice !== device) {
       throw new Error('Prepared decode workspace belongs to another GPUDevice; release the session first.');
     }

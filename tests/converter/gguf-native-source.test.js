@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { normalizeQwenGGUFSource } from '../../src/formats/gguf/qwen-source.js';
 import { buildGGUFTokenizer } from '../../src/formats/gguf/tokenizer.js';
 import { parseGGUFModel } from '../../src/converter/parsers/gguf.js';
+import { transformTensorBytes } from '../../src/converter/tensor-transform.js';
 const metadata = {
  'qwen35moe.block_count': 5, 'qwen35moe.nextn_predict_layers': 1,
  'qwen35moe.full_attention_interval': 4, 'qwen35moe.embedding_length': 32,
@@ -23,6 +24,7 @@ const native = normalizeQwenGGUFSource('qwen35moe', metadata);
 assert.equal(native.textLayers, 4);
 assert.equal(native.config.linear_attention_source_layout, 'gguf-v1');
 assert.equal(native.config.linear_num_value_heads, 4);
+assert.equal(native.config.rms_norm_weight_offset, false, 'GGUF importer declares already-folded direct norm weights');
 assert.deepEqual(native.config.layer_types, ['linear_attention', 'linear_attention', 'linear_attention', 'full_attention']);
 assert.throws(() => normalizeQwenGGUFSource('qwen35moe', { ...metadata, 'qwen35moe.ssm.inner_size': 33 }), /geometry/);
 const assets = buildGGUFTokenizer(metadata);
@@ -41,4 +43,12 @@ assert.deepEqual(parsed.tensors[0].shape, [1, 32]);
 assert.equal(parsed.tensors[0].offset, 0);
 assert.equal(parsed.excludedTensors[0].name, 'blk.4.ssm_a');
 assert.ok(parsed.tokenizerJson);
+assert.equal(parsed.config.rms_norm_weight_offset, false, 'Parser carries the source normalization convention');
+const normWeights = new Float32Array([1.25, 0.75, 2, 0.5]);
+const normBytes = new Uint8Array(normWeights.buffer);
+const preservedNorm = transformTensorBytes({
+  name: 'blk.0.attn_norm.weight', shape: [4], dtype: 'F32', size: normBytes.byteLength,
+}, normBytes, { targetQuant: 'q4_0', quantizationInfo: { preserveSourceTensors: true } });
+assert.equal(preservedNorm.outDtype, 'F32');
+assert.deepEqual(preservedNorm.tensorData, normBytes, 'Source preservation must not subtract one from GGUF norm weights');
 console.log('gguf-native-source.test: ok');

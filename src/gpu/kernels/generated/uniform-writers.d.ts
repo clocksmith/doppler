@@ -5,6 +5,8 @@ import * as writers1 from './uniform-writers-1.js';
 import * as writers2 from './uniform-writers-2.js';
 
 export interface KernelUniformValues {
+  "moe_shared_slot_gu/native_f32": Parameters<typeof writers0.write_moe_shared_slot_gu_native_f32>[1];
+  "moe_shared_slot_down/native_f32": Parameters<typeof writers0.write_moe_shared_slot_gu_native_f32>[1];
   "w8a8_quantize/f32": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
   "w8a8_rescale/activation": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
   "w8a8_rescale/weight": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
@@ -23,6 +25,8 @@ export interface KernelUniformValues {
   "gated_rmsnorm/default": Parameters<typeof writers0.write_gated_rmsnorm_default>[1];
   "causal_conv1d_silu/default": Parameters<typeof writers0.write_causal_conv1d_silu_default>[1];
   "gated_delta_recurrent_checkpoint_forward/default": Parameters<typeof writers0.write_gated_delta_recurrent_checkpoint_forward_default>[1];
+  "matmul/q4_0_cooperative": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q8_0_cooperative": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/fp8_e4m3fn_f32": Parameters<typeof writers0.write_matmul_fp8_e4m3fn_f32>[1];
   "matmul/fp8_e5m2_f32": Parameters<typeof writers0.write_matmul_fp8_e4m3fn_f32>[1];
   "matmul/w8a8_portable": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
@@ -99,16 +103,16 @@ export interface KernelUniformValues {
   "matmul/paired_f32_scalar_compensated": Parameters<typeof writers0.write_matmul_paired_f32>[1];
   "matmul/paired_f16_scalar_compensated": Parameters<typeof writers0.write_matmul_paired_f32>[1];
   "matmul/paired_q4k_scalar_compensated": Parameters<typeof writers0.write_matmul_paired_f32>[1];
-  "matmul/q4_0_gemv": Parameters<typeof writers0.write_matmul_q4_0_gemv>[1];
-  "matmul/q4_0_prefill": Parameters<typeof writers0.write_matmul_q4_0_gemv>[1];
-  "matmul/q4_1_gemv": Parameters<typeof writers0.write_matmul_q4_0_gemv>[1];
-  "matmul/q5_0_gemv": Parameters<typeof writers0.write_matmul_q4_0_gemv>[1];
-  "matmul/q4_1_prefill": Parameters<typeof writers0.write_matmul_q4_0_gemv>[1];
-  "matmul/q5_0_prefill": Parameters<typeof writers0.write_matmul_q4_0_gemv>[1];
-  "matmul/q8_0_gemv": Parameters<typeof writers0.write_matmul_q4_0_gemv>[1];
-  "matmul/q8_0_prefill": Parameters<typeof writers0.write_matmul_q4_0_gemv>[1];
-  "matmul/q6k_gemv": Parameters<typeof writers0.write_matmul_q4_0_gemv>[1];
-  "matmul/q6k_prefill": Parameters<typeof writers0.write_matmul_q4_0_gemv>[1];
+  "matmul/q4_0_gemv": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q4_0_prefill": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q4_1_gemv": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q5_0_gemv": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q4_1_prefill": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q5_0_prefill": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q8_0_gemv": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q8_0_prefill": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q6k_gemv": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q6k_prefill": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "fused_ffn/default": Parameters<typeof writers0.write_fused_ffn_default>[1];
   "fused_ffn/multi": Parameters<typeof writers0.write_fused_ffn_default>[1];
   "fused_ffn/f16": Parameters<typeof writers0.write_fused_ffn_default>[1];
@@ -172,6 +176,7 @@ export interface KernelUniformValues {
   "attention/paired": Parameters<typeof writers0.write_attention_paired>[1];
   "attention/paired_tiled": Parameters<typeof writers0.write_attention_paired>[1];
   "attention/prefill_partitioned_head256_f16kv": Parameters<typeof writers0.write_attention_decode>[1];
+  "attention/decode_online": Parameters<typeof writers0.write_attention_decode_online_f16>[1];
   "attention_tiered/decode_tiered_f16": Parameters<typeof writers0.write_attention_tiered_decode_tiered_f16>[1];
   "attention_tiered/decode_tiered_f16kv": Parameters<typeof writers0.write_attention_tiered_decode_tiered_f16>[1];
   "attention_tiered_quant/decode_tiered_int8_f16kv": Parameters<typeof writers0.write_attention_tiered_quant_decode_tiered_int8_f16kv>[1];
@@ -200,7 +205,7 @@ export interface KernelUniformValues {
   "rmsnorm/paired_sliced": Parameters<typeof writers0.write_rmsnorm_paired>[1];
   "rmsnorm_pair/default": Parameters<typeof writers0.write_rmsnorm_pair_default>[1];
   "rmsnorm_pair/subgroup": Parameters<typeof writers0.write_rmsnorm_pair_default>[1];
-  "residual_rmsnorm_pair/subgroup": Parameters<typeof writers0.write_residual_rmsnorm_pair_subgroup>[1];
+  "residual_rmsnorm_pair/subgroup": Parameters<typeof writers1.write_residual_rmsnorm_pair_subgroup>[1];
   "rmsnorm_qk/default": Parameters<typeof writers1.write_rmsnorm_qk_default>[1];
   "rmsnorm_qk/default_f16": Parameters<typeof writers1.write_rmsnorm_qk_default>[1];
   "layernorm/default": Parameters<typeof writers1.write_layernorm_default>[1];
@@ -358,7 +363,7 @@ export interface KernelUniformValues {
   "gated_delta_recurrent_backward/default": Parameters<typeof writers1.write_gated_delta_recurrent_backward_default>[1];
   "layernorm_backward/default": Parameters<typeof writers1.write_layernorm_default>[1];
   "rope_backward/default": Parameters<typeof writers1.write_rope_backward_default>[1];
-  "cross_entropy_loss/default": Parameters<typeof writers1.write_cross_entropy_loss_default>[1];
+  "cross_entropy_loss/default": Parameters<typeof writers2.write_cross_entropy_loss_default>[1];
   "conv2d/default": Parameters<typeof writers2.write_conv2d_default>[1];
   "conv2d/default_f16": Parameters<typeof writers2.write_conv2d_default>[1];
   "depthwise_conv2d/default": Parameters<typeof writers2.write_depthwise_conv2d_default>[1];
@@ -463,5 +468,6 @@ export interface KernelUniformValues {
   "moe_route_matmul/q4_1_split_f32": Parameters<typeof writers2.write_moe_route_matmul_q4_0_f32>[1];
   "moe_route_matmul/q8_0_split_f32": Parameters<typeof writers2.write_moe_route_matmul_q4_0_f32>[1];
   "moe_route_matmul/q6k_split_f32": Parameters<typeof writers2.write_moe_route_matmul_q4_0_f32>[1];
+  "sigmoid_gated_add/f32": Parameters<typeof writers2.write_sigmoid_gated_add_f32>[1];
 }
 export declare const UNIFORM_WRITERS: { readonly [K in keyof KernelUniformValues]: { readonly size: number; readonly write: (view: DataView, values: KernelUniformValues[K], kernel: string) => void } };

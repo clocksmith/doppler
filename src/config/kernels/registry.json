@@ -2,6 +2,232 @@
  "$schema": "./kernel-registry.schema.json",
  "version": "1.0",
  "operations": {
+  "moe_shared_slot_gu": {
+   "description": "Explicit native GGUF F32 shared-slot gu without outer residual",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "gate_weights",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "up_weights",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "shared_gate",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 5,
+     "name": "shared_up",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 6,
+     "name": "indices",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 7,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 32,
+    "fields": [
+     {
+      "name": "num_tokens",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "hidden_size",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "intermediate_size",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "shared_size",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "num_experts",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "slot_stride",
+      "type": "u32",
+      "offset": 20
+     },
+     {
+      "name": "clamp_max",
+      "type": "f32",
+      "offset": 24
+     },
+     {
+      "name": "_pad",
+      "type": "u32",
+      "offset": 28,
+      "padding": true
+     }
+    ]
+   },
+   "variants": {
+    "native_f32": {
+     "wgsl": "moe_shared_slot_gu_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [64,1,1],
+     "requires": [],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 64
+     },
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "activationDtype": "f32",
+      "outerResidual": false
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "moe_shared_slot_down": {
+   "description": "Explicit native GGUF F32 shared-slot down without outer residual",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "down_weights",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "shared_down",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "indices",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 5,
+     "name": "route_weights",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 6,
+     "name": "scalar_gate",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 7,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 32,
+    "fields": [
+     {
+      "name": "num_tokens",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "hidden_size",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "intermediate_size",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "shared_size",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "num_experts",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "slot_stride",
+      "type": "u32",
+      "offset": 20
+     },
+     {
+      "name": "clamp_max",
+      "type": "f32",
+      "offset": 24
+     },
+     {
+      "name": "_pad",
+      "type": "u32",
+      "offset": 28,
+      "padding": true
+     }
+    ]
+   },
+   "variants": {
+    "native_f32": {
+     "wgsl": "moe_shared_slot_down_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [64,1,1],
+     "requires": [],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 64
+     },
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "activationDtype": "f32",
+      "outerResidual": false
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
   "w8a8_quantize": {
    "description": "Exact rational row-interleaved signed activation packing",
    "baseBindings": [
@@ -1830,6 +2056,200 @@
     ]
    },
    "variants": {
+    "q4_0_cooperative": {
+     "wgsl": "matmul_q4_0.wgsl",
+     "entryPoint": "cooperative",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "a_offset",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "b_row",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "c_offset",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q4_0",
+     "outputDtype": "f32",
+     "sharedMemory": 2560,
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 4,
+      "THREADS_PER_COL_GEMV": 32,
+      "TILE_SIZE": 16,
+      "BLOCK_VALUES": 32,
+      "BLOCK_BYTES": 18,
+      "QUANT_FORMAT": 0
+     },
+     "variantMetadata": {
+      "q40Geometry": "cooperative",
+      "dispatchGeometry": "column-row-tile",
+      "tileM": 1,
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "q8_0_cooperative": {
+     "wgsl": "matmul_q4_0.wgsl",
+     "entryPoint": "cooperative",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "a_offset",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "b_row",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "c_offset",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q8_0",
+     "outputDtype": "f32",
+     "sharedMemory": 2560,
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 4,
+      "THREADS_PER_COL_GEMV": 32,
+      "TILE_SIZE": 16,
+      "BLOCK_VALUES": 32,
+      "BLOCK_BYTES": 34,
+      "QUANT_FORMAT": 2
+     },
+     "variantMetadata": {
+      "q40Geometry": "cooperative",
+      "dispatchGeometry": "column-row-tile",
+      "tileM": 1,
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
     "fp8_e4m3fn_f32": {
      "wgsl": "matmul_fp8.wgsl",
      "entryPoint": "main",
@@ -3976,7 +4396,11 @@
        "qwen3/qwen3.8-27b-text-q4k-ehaf16",
        "runtime/profiles/qwen-3-5-0-8b-f16-m3"
       ],
-      "ruleChains": ["matmul.rules.json#gemvPathVariant","matmul.rules.json#gemvVariant"],
+      "ruleChains": [
+       "matmul.rules.json#denseDecodeCandidate",
+       "matmul.rules.json#gemvPathVariant",
+       "matmul.rules.json#gemvVariant"
+      ],
       "wgslOnDisk": true
      },
      "uniformsOverride": {
@@ -6409,9 +6833,9 @@
      },
      "description": "Opt-in full-F32 subgroup GEMV, compact active ranks, four-component arithmetic, exact scalar buffer tails and zero workgroup scratch.",
      "reachability": {
-      "status": "unused",
+      "status": "model-selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["matmul.rules.json#denseDecodeCandidate"],
       "wgslOnDisk": true
      },
      "uniformsOverride": {
@@ -13262,6 +13686,105 @@
       "wgslOnDisk": true
      },
      "description": "Head-256 F32-query/F16-KV prefill with compensated partitioned dot products and bounded per-lane accumulators."
+    },
+    "decode_online": {
+     "wgsl": "attention_decode_online.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": ["subgroups"],
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "tier": "subgroup",
+      "maxHeadDim": 512
+     },
+     "description": "Online decode kernel with f32 Q/K/V, f32 compensated accumulation, and subgroup reductions",
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 60,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "kv_len",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "scale",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "is_causal",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "attn_softcap",
+        "type": "f32",
+        "offset": 32
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "kv_len_source",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "kv_start",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "page_size",
+        "type": "u32",
+        "offset": 48
+       },
+       {
+        "name": "kv_layout",
+        "type": "u32",
+        "offset": 52
+       },
+       {
+        "name": "_pad",
+        "type": "u32",
+        "offset": 56,
+        "padding": true
+       }
+      ]
+     }
     }
    }
   },
@@ -29880,6 +30403,80 @@
      "sharedMemory": 512,
      "variantMetadata": {
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "sigmoid_gated_add": {
+   "description": "F32 row-broadcast sigmoid gate and residual add; explicit candidate only",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "gate",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "residual",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "size",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "dispatch_stride",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "clamp_max",
+      "type": "f32",
+      "offset": 8
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 12,
+      "padding": true
+     }
+    ]
+   },
+   "variants": {
+    "f32": {
+     "wgsl": "sigmoid_gated_add_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256
      },
      "reachability": {
       "status": "unused",

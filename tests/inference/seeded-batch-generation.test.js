@@ -83,7 +83,7 @@ try {
         stopTokenIds: [9], finalLogitSoftcapping: null },
       runtimeConfig: { shared: { debug: { probes: [] } }, inference: {
         sampling: { greedyThreshold: 0.01, repetitionPenalty: 1, presencePenalty: 0, repetitionPenaltyWindow: 0 },
-        batching: { batchSize: 8, readbackInterval: 1, stopCheckMode: 'batch' }, session: {},
+        batching: { batchSize: 8, readbackInterval: 1, stopCheckMode: 'batch' }, session: { usePreparedDecodeWorkspace: false },
       } },
       tokenizer: { getSpecialTokens: () => ({ eos: 9, pad: 0 }) },
       weights: new Map([['embed', new Buffer({ size: 4 })]]),

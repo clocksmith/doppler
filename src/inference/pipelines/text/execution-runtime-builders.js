@@ -48,6 +48,26 @@ export function requireSessionActivationDtype(
   return normalizeDtype(activationDtype, label);
 }
 
+export function resolveRuntimeActivationDtype(inference) {
+  const session = inference?.session;
+  const canonical = session?.compute?.defaults?.activationDtype;
+  const legacy = inference?.compute?.activationDtype;
+  const canonicalDtype = canonical === undefined ? null : requireSessionActivationDtype(session);
+  const legacyDtype = legacy === undefined ? null : requireSessionActivationDtype(
+    { compute: { defaults: { activationDtype: selectRuleValue('inference', 'dtype', 'f16OrF32FromDtypeAlias', {
+      dtype: String(legacy ?? '').trim().toLowerCase(), fallback: null,
+    }) } } },
+    'runtime.inference.compute.activationDtype'
+  );
+  if (canonicalDtype && legacyDtype && canonicalDtype !== legacyDtype) {
+    throw new Error(
+      `runtime.inference.session.compute.defaults.activationDtype=${canonical} conflicts with ` +
+      `legacy runtime.inference.compute.activationDtype=${legacy}. Remove or align the legacy field.`
+    );
+  }
+  return canonicalDtype ?? legacyDtype;
+}
+
 export function requireSessionKVDtype(
   session,
   label = 'session.kvcache.kvDtype'

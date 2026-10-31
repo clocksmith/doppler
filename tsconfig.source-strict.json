@@ -16,6 +16,8 @@
   },
   "include": [],
   "files": [
+    "src/gpu/kernels/sigmoid-gated-add.js",
+    "src/gpu/kernels/moe-shared-slot.js",
     "src/gpu/kernels/matmul-workgroup-capacity.js",
     "tools/lib/evidence-io.js",
     "tools/lib/profile-comparison.js",
@@ -79,6 +81,7 @@
     "src/memory/device-residency.js",
     "src/inference/pipelines/text/config/vision-normalizers.js",
     "src/gpu/kernels/codegen/attention-decode-online-variant.js",
+    "src/gpu/kernels/codegen/attention-decode-online-f32-variant.js",
     "src/inference/pipelines/text/linear-attention/state-layout.js",
     "src/inference/pipelines/text/ffn/paired.js",
     "src/inference/pipelines/text/paired-execution.js",

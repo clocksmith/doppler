@@ -46,7 +46,7 @@ test('route combine requires matching scalar F32 geometry and route-weight exten
 test('explicit full-block specialization rejects tails instead of dropping the final block', async () => {
   const original = getKernelConfig('moe_route_matmul', 'q4k_f32');
   const leave = enterKernelRegistry(createKernelRegistry({ extensions: { moe_route_matmul: {
-    variants: { q4k_f32: { wgsl: original.shaderFile, entryPoint: original.entryPoint,
+    variants: { q4k_f32: { weightDtype: original.weightDtype, wgsl: original.shaderFile, entryPoint: original.entryPoint,
       wgslOverrides: { ...original.wgslOverrides, USE_FULL_BLOCK_FAST_PATH: true } } },
   } } }));
   try { await assert.rejects(runRouteQ4Matmul(input, indices, weight, options), /Full-block specialization/); }
