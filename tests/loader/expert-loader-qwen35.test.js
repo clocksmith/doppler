@@ -24,8 +24,11 @@ assert.equal(first.down, down);
 assert.equal(first.expertIntermediateSize, 512);
 assert.deepEqual(shards, [0, 2, 1]);
 const count = loads;
+cached.clear(); // Simulate bounded raw-shard eviction after bank preparation.
+const shardLoads = shards.length;
 assert.equal((await loadExpert(ctx, 3, 12)).gateUp, gateUp);
 assert.equal(loads, count, 'all selected experts share one packed tensor load');
+assert.equal(shards.length, shardLoads, 'resident packed banks do not reload evicted raw shards');
 await assert.rejects(loadExpert(ctx, 3, 256), /outside/);
 await assert.rejects(loadExpert(ctx, 3, -1), /outside/);
 const broken = { ...ctx, experts: new Map(), async loadTensor() { return null; } };
