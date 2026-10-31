@@ -14,7 +14,8 @@ const modules = {
     export const recordMatmul=async (_r,...args)=>runMatmul(...args);`,
   '../../../../gpu/kernels/moe-shared-slot.js': `export const executeSharedSlotGateUp=async()=>sharedSlotExecutionTest.gu();
     export const executeSharedSlotDown=async()=>sharedSlotExecutionTest.down();`,
-  '../ffn/qwen-shared-expert.js': 'export const validateQwenSharedExpert=()=>{};',
+  '../ffn/qwen-shared-expert.js': `export const validateQwenSharedExpert=()=>{};
+    export const resolveQwenSharedSlotVariants=()=>({ gu: 'native_f32', down: 'native_f32' });`,
   '../ops.js': 'export const releaseOrTrack=(r,b)=>sharedSlotExecutionTest.release(r,b);',
 };
 const hooks = registerHooks({ resolve(specifier, context, next) {

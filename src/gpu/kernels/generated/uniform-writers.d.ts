@@ -6,7 +6,10 @@ import * as writers2 from './uniform-writers-2.js';
 
 export interface KernelUniformValues {
   "moe_shared_slot_gu/native_f32": Parameters<typeof writers0.write_moe_shared_slot_gu_native_f32>[1];
+  "moe_shared_slot_gu/pair_f32": Parameters<typeof writers0.write_moe_shared_slot_gu_native_f32>[1];
+  "moe_shared_slot_combine/f32": Parameters<typeof writers0.write_moe_shared_slot_gu_native_f32>[1];
   "moe_shared_slot_down/native_f32": Parameters<typeof writers0.write_moe_shared_slot_gu_native_f32>[1];
+  "moe_shared_slot_down/pair_f32": Parameters<typeof writers0.write_moe_shared_slot_gu_native_f32>[1];
   "w8a8_quantize/f32": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
   "w8a8_rescale/activation": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
   "w8a8_rescale/weight": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
@@ -288,6 +291,7 @@ export interface KernelUniformValues {
   "topk/default": Parameters<typeof writers1.write_topk_default>[1];
   "topk/small": Parameters<typeof writers1.write_topk_default>[1];
   "topk/fused": Parameters<typeof writers1.write_topk_default>[1];
+  "topk/fused_ranked": Parameters<typeof writers1.write_topk_default>[1];
   "topk/fused_f16": Parameters<typeof writers1.write_topk_default>[1];
   "topk/fused_f16_w16": Parameters<typeof writers1.write_topk_default>[1];
   "topk/gptoss_router_topk": Parameters<typeof writers1.write_topk_default>[1];

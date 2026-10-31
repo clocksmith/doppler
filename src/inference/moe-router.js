@@ -245,6 +245,8 @@ export class MoERouter {
         outputDtype,
         bDtype: gateWeightDtype ?? undefined,
         role: 'moe_router',
+        kernelPath: options.kernelPath ?? null,
+        phaseOverride: options.phase ?? null,
         layerIdx: options.layerIdx,
         outputBuffer: options.outputBuffer,
       }

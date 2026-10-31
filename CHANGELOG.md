@@ -49,6 +49,20 @@ Supported entry points for modules that applications imported by internal path:
 - `doppler-gpu/generation`: `AbortError`, `isAbortError`.
 - `doppler-gpu/training` (Node): `loadLoRAFromManifest`.
 
+### Changed
+
+- MoE softmax top-k for F32 router logits now uses `softmax_topk_ranked.wgsl`:
+  one invocation per expert ranks the probabilities in parallel. The maximum,
+  exponent sum and top-k renormalization keep the scalar kernel's arithmetic
+  order, so indices and weights are bitwise identical (ties order by lower
+  expert index).
+- The MoE router projection honors the kernel path's `moe_router` step for the
+  active phase; it previously ignored the kernel path.
+- Native GGUF shared-slot MoE adds an opt-in `pair_f32` variant selected by the
+  kernel-path step: aligned two-block word loads, staged inputs, subgroup
+  reductions, a 2D (row group, route) dispatch and a fixed slot-order combine.
+  Stored GGUF bytes are unchanged.
+
 ## [0.6.27 candidate]
 
 - Export resident request/result, tokenization and observation types through

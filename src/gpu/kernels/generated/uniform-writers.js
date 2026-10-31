@@ -6,7 +6,10 @@ import * as writers2 from './uniform-writers-2.js';
 
 export const UNIFORM_WRITERS = Object.freeze({
   "moe_shared_slot_gu/native_f32": { size: 32, write: writers0.write_moe_shared_slot_gu_native_f32 },
+  "moe_shared_slot_gu/pair_f32": { size: 32, write: writers0.write_moe_shared_slot_gu_native_f32 },
+  "moe_shared_slot_combine/f32": { size: 32, write: writers0.write_moe_shared_slot_gu_native_f32 },
   "moe_shared_slot_down/native_f32": { size: 32, write: writers0.write_moe_shared_slot_gu_native_f32 },
+  "moe_shared_slot_down/pair_f32": { size: 32, write: writers0.write_moe_shared_slot_gu_native_f32 },
   "w8a8_quantize/f32": { size: 16, write: writers0.write_w8a8_quantize_f32 },
   "w8a8_rescale/activation": { size: 16, write: writers0.write_w8a8_quantize_f32 },
   "w8a8_rescale/weight": { size: 16, write: writers0.write_w8a8_quantize_f32 },
@@ -288,6 +291,7 @@ export const UNIFORM_WRITERS = Object.freeze({
   "topk/default": { size: 16, write: writers1.write_topk_default },
   "topk/small": { size: 16, write: writers1.write_topk_default },
   "topk/fused": { size: 16, write: writers1.write_topk_default },
+  "topk/fused_ranked": { size: 16, write: writers1.write_topk_default },
   "topk/fused_f16": { size: 16, write: writers1.write_topk_default },
   "topk/fused_f16_w16": { size: 16, write: writers1.write_topk_default },
   "topk/gptoss_router_topk": { size: 16, write: writers1.write_topk_default },

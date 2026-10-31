@@ -3,7 +3,7 @@ import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { getWeightDtype, isWeightBuffer } from '../../../../gpu/weight-buffer.js';
 import { runMatmul, recordMatmul } from '../../../../gpu/kernels/matmul.js';
 import { executeSharedSlotGateUp, executeSharedSlotDown } from '../../../../gpu/kernels/moe-shared-slot.js';
-import { validateQwenSharedExpert } from '../ffn/qwen-shared-expert.js';
+import { validateQwenSharedExpert, resolveQwenSharedSlotVariants } from '../ffn/qwen-shared-expert.js';
 import { runRouteQ4Matmul, recordRouteQ4Matmul, runRouteScatter, recordRouteScatter } from '../../../../gpu/kernels/moe-route.js';
 import { runSiLURowSplit, recordSiLURowSplit } from '../../../../gpu/kernels/silu.js';
 import { releaseOrTrack } from '../ops.js';
@@ -77,6 +77,9 @@ async function executeSharedSlot(recorder, options) {
     || !isWeightBuffer(sharedExpertUp) || !isWeightBuffer(sharedExpertDown)) {
     throw new Error('[MoE] Shared slot requires separate native packed gate/up and shared banks.');
   }
+  if (!Number.isSafeInteger(options.layerIdx)) throw new Error('[MoE] Shared slot requires an explicit layerIdx.');
+  const variants = resolveQwenSharedSlotVariants({ kernelPath: shared.kernelPath, phase: shared.phase,
+    layerIdx: /** @type {number} */ (options.layerIdx) });
   const geometry = { numTokens, numExperts: weights.numExperts, topK, hiddenSize, intermediateSize,
     sharedSize: shared.intermediateSize, swigluLimit, indices: options.indicesBuffer };
   const workspace = recorder?.decodeWorkspace && numTokens === 1 ? recorder.decodeWorkspace : null;
@@ -93,11 +96,13 @@ async function executeSharedSlot(recorder, options) {
     });
     activated = await executeSharedSlotGateUp(recorder, inputTensor,
       { gate: weights.gate, up: weights.up, sharedGate: sharedExpertGate, sharedUp: sharedExpertUp },
-      { ...geometry, outputBuffer: workspace?.getBuffer(`moe:${options.layerIdx}:shared-slots`,
+      { ...geometry, variant: variants.gu, outputBuffer: workspace?.getBuffer(`moe:${options.layerIdx}:shared-slots`,
         (topK + 1) * Math.max(intermediateSize, shared.intermediateSize) * 4) });
     return await executeSharedSlotDown(recorder, activated,
       { down: weights.down, sharedDown: sharedExpertDown }, gate,
-      { ...geometry, routeWeights: options.weightsBuffer,
+      { ...geometry, variant: variants.down, routeWeights: options.weightsBuffer,
+        slotsBuffer: variants.down === 'pair_f32'
+          ? workspace?.getBuffer(`moe:${options.layerIdx}:shared-down-slots`, (topK + 1) * hiddenSize * 4) : null,
         outputBuffer: workspace?.getBuffer(`moe:${options.layerIdx}:shared-output`, hiddenSize * 4) });
   } finally {
     if (activated) releaseOrTrack(recorder, activated.buffer);

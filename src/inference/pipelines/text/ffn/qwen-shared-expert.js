@@ -34,6 +34,35 @@ export function resolveQwenSharedSlot(options) {
   return true;
 }
 
+const slotVariantPlans = new WeakMap();
+
+/** @type {typeof import('./qwen-shared-expert.js').resolveQwenSharedSlotVariants} */
+export function resolveQwenSharedSlotVariants(options) {
+  if (options.kernelPath == null || (options.phase !== 'decode' && options.phase !== 'prefill')
+    || !Number.isSafeInteger(options.layerIdx) || options.layerIdx < 0) {
+    throw new Error('[MoE] Shared slot variants require a kernel path, explicit phase and layer index.');
+  }
+  let registries = slotVariantPlans.get(options.kernelPath);
+  if (!registries) { registries = new WeakMap(); slotVariantPlans.set(options.kernelPath, registries); }
+  const configs = getKernelConfigs();
+  let plans = registries.get(configs);
+  if (!plans) { plans = new Map(); registries.set(configs, plans); }
+  const key = `${options.phase}:${options.layerIdx}`;
+  const cached = plans.get(key);
+  if (cached) return cached;
+  const steps = getLayerSteps(options.kernelPath, options.layerIdx, options.phase);
+  /** @param {'moe_shared_slot_gu' | 'moe_shared_slot_down'} operation */
+  const variant = (operation) => {
+    const matches = steps.filter(step => step.op === operation);
+    const config = matches.length === 1 ? getKernelPathStepConfig(operation, matches[0], options.phase) : null;
+    if (!config) throw new Error(`[MoE] Shared slot requires one registered ${operation} step.`);
+    return config.variantMetadata?.sharedSlotGeometry === 'pair' ? 'pair_f32' : 'native_f32';
+  };
+  const plan = Object.freeze({ gu: variant('moe_shared_slot_gu'), down: variant('moe_shared_slot_down') });
+  plans.set(key, plan);
+  return plan;
+}
+
 /** @type {typeof import('./qwen-shared-expert.js').resolveQwenSharedExpertCombine} */
 export function resolveQwenSharedExpertCombine(options) {
   if (options.kernelPath == null) return false;

@@ -300,6 +300,8 @@ export async function moeFeedForwardGPU(
 
     let stepStart = perfMark();
     logitsBuffer = await moeRouter.computeRouterLogitsGPU(routerInputTensor.buffer, numTokens, null, {
+      kernelPath: config.kernelPath ?? null,
+      phase: config.phase,
       inputDtype: routerInputTensor.dtype,
       outputDtype: activationDtype,
       recorder,

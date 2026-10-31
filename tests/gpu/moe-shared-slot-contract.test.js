@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { validateSharedSlotGeometry, executeSharedSlotGateUp } from '../../src/gpu/kernels/moe-shared-slot.js';
-import { resolveQwenSharedSlot } from '../../src/inference/pipelines/text/ffn/qwen-shared-expert.js';
+import { resolveQwenSharedSlot, resolveQwenSharedSlotVariants } from '../../src/inference/pipelines/text/ffn/qwen-shared-expert.js';
 const geometry = { numTokens: 1, numExperts: 4, topK: 3, hiddenSize: 64, intermediateSize: 32, sharedSize: 96, swigluLimit: null };
 validateSharedSlotGeometry(geometry);
 for (const patch of [{ numTokens: 0 }, { topK: 5 }, { sharedSize: 33 }, { hiddenSize: 63 },
@@ -23,5 +23,20 @@ for (const steps of [[gu], [down], [gu, gu, down], [gu, { ...down, kernel: 'resi
 assert.throws(() => resolveQwenSharedSlot({ ...lookup, phase: undefined }));
 // Fail before resource allocation when the device cannot hold the declared reduction.
 const recorder = { device: { limits: { maxComputeInvocationsPerWorkgroup: 32, maxComputeWorkgroupStorageSize: 16384 } } };
-await assert.rejects(executeSharedSlotGateUp(recorder, {}, {}, geometry), /workgroup limits/);
+await assert.rejects(executeSharedSlotGateUp(recorder, {}, {}, { ...geometry, variant: 'native_f32' }), /workgroup limits/);
+// The kernel-path step names the variant; nothing defaults it.
+await assert.rejects(executeSharedSlotGateUp(recorder, {}, {}, geometry), /Explicit registered shared-slot variant/);
+assert.deepEqual(resolveQwenSharedSlotVariants(lookup), { gu: 'native_f32', down: 'native_f32' });
+const pairPath = { decode: { steps: [
+  { op: 'moe_shared_slot_gu', kernel: 'moe_shared_slot_gu_pair_f32.wgsl', entry: 'main' },
+  { op: 'moe_shared_slot_down', kernel: 'moe_shared_slot_down_pair_f32.wgsl', entry: 'main' },
+] }, prefill: { steps: [] } };
+assert.equal(resolveQwenSharedSlot({ ...lookup, kernelPath: pairPath }), true);
+assert.deepEqual(resolveQwenSharedSlotVariants({ ...lookup, kernelPath: pairPath }), { gu: 'pair_f32', down: 'pair_f32' });
+assert.throws(() => resolveQwenSharedSlotVariants({ ...lookup, kernelPath: { decode: { steps: [gu] } } }), /moe_shared_slot_down/);
+// Pair geometry fails closed without subgroups.
+const pairRecorder = { device: { features: new Set(), limits: { maxComputeInvocationsPerWorkgroup: 256,
+  maxComputeWorkgroupStorageSize: 16384, maxComputeWorkgroupsPerDimension: 65535 } } };
+await assert.rejects(executeSharedSlotGateUp(pairRecorder, {}, {}, { ...geometry, hiddenSize: 128, intermediateSize: 64,
+  sharedSize: 64, variant: 'pair_f32' }), /Pair geometry requires subgroups/);
 console.log('shared slot contract checks passed (CPU only)');

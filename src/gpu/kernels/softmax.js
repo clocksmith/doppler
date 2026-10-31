@@ -89,6 +89,9 @@ async function softmaxTopK(target, logits, numTokens, numExperts, topK, options 
     hasSubgroups: caps?.hasSubgroups ?? false,
   });
   const pipeline = await createPipeline('topk', variant);
+  if (variant === 'fused_ranked' && (numExperts > 256 || topK > 64 || topK > numExperts)) {
+    throw new Error(`SoftmaxTopK fused_ranked supports at most 256 experts and top-64; got experts=${numExperts} topK=${topK}.`);
+  }
 
   const indicesSize = numTokens * topK * 4;
   const weightsBytesPerElement = weightsDtype === 'f16' ? 2 : 4;

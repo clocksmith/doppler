@@ -112,6 +112,127 @@
       "ruleChains": [],
       "wgslOnDisk": true
      }
+    },
+    "pair_f32": {
+     "wgsl": "moe_shared_slot_gu_pair_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": ["subgroups"],
+     "requiredWgslFeatures": ["packed_4x8_integer_dot_product","subgroup_id"],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "THREADS_PER_ROW": 32
+     },
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "activationDtype": "f32",
+      "outerResidual": false,
+      "sharedSlotGeometry": "pair"
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "moe_shared_slot_combine": {
+   "description": "Fixed slot-order combine of per-slot native GGUF shared-slot down outputs",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "slots",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "route_weights",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "scalar_gate",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 32,
+    "fields": [
+     {
+      "name": "num_tokens",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "hidden_size",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "intermediate_size",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "shared_size",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "num_experts",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "slot_stride",
+      "type": "u32",
+      "offset": 20
+     },
+     {
+      "name": "clamp_max",
+      "type": "f32",
+      "offset": 24
+     },
+     {
+      "name": "_pad",
+      "type": "u32",
+      "offset": 28,
+      "padding": true
+     }
+    ]
+   },
+   "variants": {
+    "f32": {
+     "wgsl": "moe_shared_slot_combine_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256
+     },
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "activationDtype": "f32",
+      "outerResidual": false
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
     }
    }
   },
@@ -218,6 +339,62 @@
      "variantMetadata": {
       "activationDtype": "f32",
       "outerResidual": false
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "pair_f32": {
+     "wgsl": "moe_shared_slot_down_pair_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": ["subgroups"],
+     "requiredWgslFeatures": ["packed_4x8_integer_dot_product","subgroup_id"],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "down_weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "shared_down",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 4,
+       "name": "indices",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 5,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "THREADS_PER_ROW": 8
+     },
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "activationDtype": "f32",
+      "outerResidual": false,
+      "sharedSlotGeometry": "pair",
+      "perSlotOutput": true
      },
      "reachability": {
       "status": "unused",
@@ -19737,6 +19914,18 @@
      "wgsl": "topk.wgsl",
      "entryPoint": "softmax_topk",
      "workgroup": [32,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "fused_ranked": {
+     "wgsl": "softmax_topk_ranked.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
       "status": "unused",

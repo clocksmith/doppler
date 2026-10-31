@@ -25,3 +25,10 @@ export declare function resolveQwenSharedSlot(options: {
   phase: 'decode' | 'prefill';
   layerIdx: number;
 }): boolean;
+
+/** Registered shared-slot variants declared by the layer's kernel-path steps. */
+export declare function resolveQwenSharedSlotVariants(options: {
+  kernelPath: import('../../../../config/schema/kernel-path.schema.js').KernelPathSchema | null;
+  phase: 'prefill' | 'decode';
+  layerIdx: number;
+}): Readonly<{ gu: 'native_f32' | 'pair_f32'; down: 'native_f32' | 'pair_f32' }>;

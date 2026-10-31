@@ -1,9 +1,12 @@
 import { ggufBlockFormat, ggufBlockBytes } from '../../formats/gguf/block-storage.js';
-import { getDevice } from '../device.js';
+import { getDevice, getKernelCapabilities } from '../device.js';
 import { createTensor } from '../tensor.js';
 import { getKernelConfig } from './kernel-configs.js';
 import { assertQ40Buffer, q40Dispatch } from './q4_0.js';
 import { unifiedKernelWrapper, withKernelOutput } from './kernel-execution.js';
+import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
+
+const COMBINE_WORKGROUP = 256;
 
 /** @type {typeof import('./moe-shared-slot.js').validateSharedSlotGeometry} */
 export function validateSharedSlotGeometry(options) {
@@ -43,25 +46,58 @@ function validateInput(device, input, rows, columns) {
 
 /** @param {import('../command-recorder.js').CommandRecorder | null} recorder
  * @param {import('./moe-shared-slot.js').SharedSlotOptions} options
- * @param {string} operation @param {number} storageSlots */
-function prepare(recorder, options, operation, storageSlots) {
+ * @param {string} operation @param {number} storageSlots @param {number} inputWidth */
+function prepare(recorder, options, operation, storageSlots, inputWidth) {
   validateSharedSlotGeometry(options);
   const device = recorder?.device ?? getDevice();
   if (!device) throw new Error('[MoE shared slot] Active device required.');
-  const config = getKernelConfig(operation, 'native_f32');
+  const variant = resolveSharedSlotVariant(options.variant);
+  const config = getKernelConfig(operation, variant);
   const width = config.wgslOverrides?.WORKGROUP_SIZE;
-  if (typeof width !== 'number' || width < 4 || width % 4 || (width & (width - 1))
+  if (typeof width !== 'number') throw new Error('[MoE shared slot] Registered workgroup size required.');
+  let rowsPerWorkgroup = 0;
+  const slotStride = Math.max(options.intermediateSize, options.sharedSize);
+  /** @type {Record<string, number>} */
+  let constants = { WORKGROUP_SIZE: width };
+  if (variant === PAIR_VARIANT) {
+    const threadsPerRow = config.wgslOverrides?.THREADS_PER_ROW;
+    if (typeof threadsPerRow !== 'number') throw new Error('[MoE shared slot] Registered row group size required.');
+    rowsPerWorkgroup = width / threadsPerRow;
+    const pairs = inputWidth / 64;
+    const minSubgroup = device.features?.has('subgroups') ? getKernelCapabilities()?.adapterInfo?.subgroupMinSize : null;
+    if (typeof minSubgroup !== 'number' || typeof threadsPerRow !== 'number'
+      || threadsPerRow < 1 || (threadsPerRow & (threadsPerRow - 1)) || minSubgroup < threadsPerRow
+      || typeof width !== 'number' || width % minSubgroup || width % threadsPerRow
+      || width > device.limits.maxComputeInvocationsPerWorkgroup) {
+      throw new Error('[MoE shared slot] Pair geometry requires subgroups no narrower than one row group.');
+    }
+    if (options.hiddenSize % 64 || options.intermediateSize % 64 || options.sharedSize % 64
+      || pairs * 17 * 16 > device.limits.maxComputeWorkgroupStorageSize
+      || options.numTokens * (options.topK + 1) > device.limits.maxComputeWorkgroupsPerDimension) {
+      throw new Error('[MoE shared slot] Pair geometry requires even block counts and bounded staging.');
+    }
+    constants = { WORKGROUP_SIZE: width, THREADS_PER_ROW: threadsPerRow, MAX_INPUT_PAIRS: pairs };
+  } else if (typeof width !== 'number' || width < 4 || width % 4 || (width & (width - 1))
     || width > device.limits.maxComputeInvocationsPerWorkgroup
     || width * 16 * storageSlots > device.limits.maxComputeWorkgroupStorageSize) {
     throw new Error('[MoE shared slot] Registered reduction exceeds device workgroup limits.');
   }
-  const slotStride = Math.max(options.intermediateSize, options.sharedSize);
   const uniforms = { num_tokens: options.numTokens, hidden_size: options.hiddenSize,
     intermediate_size: options.intermediateSize, shared_size: options.sharedSize,
     num_experts: options.numExperts, slot_stride: slotStride, clamp_max: options.swigluLimit ?? 0, _pad: 0 };
   assertQ40Buffer(device, options.indices, options.numTokens * options.topK * 4, GPUBufferUsage.STORAGE, 'route indices');
-  return { device, width, slotStride, uniforms };
+  return { device, width, slotStride, uniforms, variant, rowsPerWorkgroup, constants };
 }
+
+const PAIR_VARIANT = 'pair_f32';
+/** @param {string | undefined} variant */
+function resolveSharedSlotVariant(variant) {
+  if (variant !== 'native_f32' && variant !== PAIR_VARIANT) {
+    throw new Error('[MoE shared slot] Explicit registered shared-slot variant required.');
+  }
+  return variant;
+}
+
 
 /** @param {GPUDevice} device @param {GPUBuffer | null | undefined} output
  * @param {number} bytes @param {GPUBuffer[]} inputs */
@@ -76,7 +112,8 @@ function validateOutput(device, output, bytes, inputs) {
 
 /** @type {typeof import('./moe-shared-slot.js').executeSharedSlotGateUp} */
 export async function executeSharedSlotGateUp(recorder, input, weights, options) {
-  const { device, width, slotStride, uniforms } = prepare(recorder, options, 'moe_shared_slot_gu', 2);
+  const { device, width, slotStride, uniforms, variant, rowsPerWorkgroup, constants } =
+    prepare(recorder, options, 'moe_shared_slot_gu', 2, options.hiddenSize);
   const { numTokens, numExperts, topK, hiddenSize, intermediateSize, sharedSize } = options;
   validateInput(device, input, numTokens, hiddenSize);
   const routed = validateWeight(device, weights.gate, [numExperts, intermediateSize, hiddenSize]);
@@ -91,9 +128,12 @@ export async function executeSharedSlotGateUp(recorder, input, weights, options)
   const rows = numTokens * (topK + 1), bytes = rows * slotStride * 4;
   validateOutput(device, options.outputBuffer, bytes, buffers);
   return withKernelOutput(recorder, options.outputBuffer ?? null, bytes, 'moe_shared_slot_gu', async output => {
-    await unifiedKernelWrapper('moe_shared_slot_gu', recorder, 'native_f32', [...buffers, output], uniforms,
-      q40Dispatch(device, Math.ceil(slotStride / 4) * rows),
-      { WORKGROUP_SIZE: width, TOP_K: topK, ROUTED_FORMAT: routed.code, ROUTED_BYTES: routed.bytes,
+    const workgroups = variant === PAIR_VARIANT
+      ? [Math.ceil(slotStride / rowsPerWorkgroup), rows, 1]
+      : q40Dispatch(device, Math.ceil(slotStride / 4) * rows);
+    await unifiedKernelWrapper('moe_shared_slot_gu', recorder, variant, [...buffers, output], uniforms,
+      workgroups,
+      { ...constants, TOP_K: topK, ROUTED_FORMAT: routed.code, ROUTED_BYTES: routed.bytes,
         SHARED_FORMAT: shared.code, SHARED_BYTES: shared.bytes });
     return createTensor(output, 'f32', [rows, slotStride], 'moe_shared_slot_gu');
   });
@@ -101,7 +141,8 @@ export async function executeSharedSlotGateUp(recorder, input, weights, options)
 
 /** @type {typeof import('./moe-shared-slot.js').executeSharedSlotDown} */
 export async function executeSharedSlotDown(recorder, input, weights, gate, options) {
-  const { device, width, slotStride, uniforms } = prepare(recorder, options, 'moe_shared_slot_down', options.topK + 1);
+  const { device, width, slotStride, uniforms, variant, rowsPerWorkgroup, constants } = prepare(recorder, options,
+    'moe_shared_slot_down', options.topK + 1, Math.max(options.intermediateSize, options.sharedSize));
   const { numTokens, numExperts, topK, hiddenSize, intermediateSize, sharedSize } = options;
   validateInput(device, input, numTokens * (topK + 1), slotStride);
   validateInput(device, gate, numTokens, 1);
@@ -112,6 +153,31 @@ export async function executeSharedSlotDown(recorder, input, weights, gate, opti
     options.indices, options.routeWeights, gate.buffer];
   const bytes = numTokens * hiddenSize * 4;
   validateOutput(device, options.outputBuffer, bytes, buffers);
+  const kernelConstants = { ...constants, TOP_K: topK, ROUTED_FORMAT: routed.code, ROUTED_BYTES: routed.bytes,
+    SHARED_FORMAT: shared.code, SHARED_BYTES: shared.bytes };
+  if (variant === PAIR_VARIANT) {
+    const slotsBytes = numTokens * (topK + 1) * hiddenSize * 4;
+    validateOutput(device, options.slotsBuffer, slotsBytes, buffers);
+    const slots = options.slotsBuffer ?? acquireBuffer(slotsBytes, undefined, 'moe_shared_slot_down_slots');
+    try {
+      return await withKernelOutput(recorder, options.outputBuffer ?? null, bytes, 'moe_shared_slot_down', async output => {
+        if (output === slots) throw new Error('[MoE shared slot] Output must not alias per-slot outputs.');
+        await unifiedKernelWrapper('moe_shared_slot_down', recorder, variant,
+          [input.buffer, weights.down.buffer, weights.sharedDown.buffer, options.indices, slots], uniforms,
+          [Math.ceil(hiddenSize / rowsPerWorkgroup), numTokens * (topK + 1), 1], kernelConstants);
+        await unifiedKernelWrapper('moe_shared_slot_combine', recorder, 'f32',
+          [slots, options.routeWeights, gate.buffer, output], uniforms,
+          q40Dispatch(device, Math.ceil(numTokens * hiddenSize / COMBINE_WORKGROUP)),
+          { WORKGROUP_SIZE: COMBINE_WORKGROUP, TOP_K: topK });
+        return createTensor(output, 'f32', [numTokens, hiddenSize], 'moe_shared_slot_down');
+      });
+    } finally {
+      if (!options.slotsBuffer) {
+        if (recorder) recorder.trackTemporaryBuffer(slots);
+        else releaseBuffer(slots);
+      }
+    }
+  }
   return withKernelOutput(recorder, options.outputBuffer ?? null, bytes, 'moe_shared_slot_down', async output => {
     await unifiedKernelWrapper('moe_shared_slot_down', recorder, 'native_f32', [...buffers, output], uniforms,
       q40Dispatch(device, Math.ceil(hiddenSize / 4) * numTokens),
