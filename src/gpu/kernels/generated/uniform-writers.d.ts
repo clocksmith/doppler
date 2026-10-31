@@ -26,6 +26,9 @@ export interface KernelUniformValues {
   "causal_conv1d_silu/default": Parameters<typeof writers0.write_causal_conv1d_silu_default>[1];
   "gated_delta_recurrent_checkpoint_forward/default": Parameters<typeof writers0.write_gated_delta_recurrent_checkpoint_forward_default>[1];
   "matmul/q4_0_cooperative": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q4_1_cooperative": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q5_0_cooperative": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q6k_cooperative": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q8_0_cooperative": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/fp8_e4m3fn_f32": Parameters<typeof writers0.write_matmul_fp8_e4m3fn_f32>[1];
   "matmul/fp8_e5m2_f32": Parameters<typeof writers0.write_matmul_fp8_e4m3fn_f32>[1];

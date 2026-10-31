@@ -23,12 +23,18 @@ export function buildNativeDecodeCandidate(kernelPath, numLayers, projections, s
     return replacement;
   };
   const seen = new Set();
-  for (const { layerIdx, op, variant } of projections) {
-    if (!Number.isSafeInteger(layerIdx) || !layers[layerIdx]) throw new Error('Projection layer is outside declared model.');
-    const key = `${layerIdx}:${op}`;
+  for (const { layerIdx, op, variant, scope } of projections) {
+    if (scope != null && scope !== 'postLayer') throw new Error('Unknown projection scope.');
+    const isHead = scope === 'postLayer';
+    if (isHead) {
+      if (op !== 'lm_head' || layerIdx != null || !candidate.postLayer?.some(step => step.op === 'lm_head_prefill')) {
+        throw new Error('Post-layer candidate requires lm_head and an explicit unchanged lm_head_prefill.');
+      }
+    } else if (!Number.isSafeInteger(layerIdx) || !layers[layerIdx]) throw new Error('Projection layer is outside declared model.');
+    const key = `${isHead ? 'postLayer' : layerIdx}:${op}`;
     if (seen.has(key)) throw new Error(`Duplicate projection ${key}.`);
     seen.add(key);
-    const steps = layers[layerIdx].decode.steps;
+    const steps = isHead ? candidate.postLayer : layers[layerIdx].decode.steps;
     const matches = steps.filter(step => step.op === op);
     if (matches.length !== 1) throw new Error(`${key} requires one declared projection.`);
     const source = getKernelPathStepConfig('matmul', matches[0], 'decode');
@@ -41,7 +47,10 @@ export function buildNativeDecodeCandidate(kernelPath, numLayers, projections, s
         throw new Error(`${key} conflicts with F32 precision.`);
       }
     }
-    steps[steps.indexOf(matches[0])] = bind(matches[0], target);
+    // Native formats share the shader entry; registry overrides identify
+    // their packing as well as geometry at the downstream resolver boundary.
+    steps[steps.indexOf(matches[0])] = { ...bind(matches[0], target),
+      constants: structuredClone(target.wgslOverrides) };
   }
   const sharedSeen = new Set();
   for (const layerIdx of sharedSlotLayers) {

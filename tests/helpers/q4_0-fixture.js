@@ -33,15 +33,15 @@ export function packedFixture(dtype,rows,K) {
     const base=b*size;
     if(dtype==='q6k') {
       for(let i=0;i<192;i++)bytes[base+i]=(i*17+b*31)%256;
-      for(let i=0;i<16;i++)view.setInt8(base+192+i,(i+b)%16-8);
-      view.setUint16(base+208,0x2400,true);
+      for(let i=0;i<16;i++)view.setInt8(base+192+i,[-128,127,-1,0,1,-17,63,-64][(i+b)%8]);
+      view.setUint16(base+208,[0x2400,0xa000,0x0010,0][b%4],true);
     } else if(dtype==='q5_0') {
       view.setUint16(base,[0x2800,0xa400,0x3000][b%3],true);
       view.setUint32(base+2,(Math.imul(b+1,0x9e3779b1)^0x5a5a0f0f)>>>0,true);
       for(let i=6;i<22;i++)bytes[base+i]=(i*37+b*11)%256;
     } else {
-      view.setUint16(base,0x2800,true);
-      if(dtype==='q4_1')view.setUint16(base+2,0xb000,true);
+      view.setUint16(base,[0x2800,0xa400,0x0010,0][b%4],true);
+      if(dtype==='q4_1')view.setUint16(base+2,[0xb000,0x3000,0x0001,0][b%4],true);
       for(let i=dtype==='q4_1'?4:2;i<size;i++)bytes[base+i]=(i*29+b*13)%256;
     }
   }
