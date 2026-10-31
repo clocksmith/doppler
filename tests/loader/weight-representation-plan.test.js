@@ -75,3 +75,42 @@ assert.equal(floatFallback.mode, 'dense-only');
 assert.equal(floatFallback.primaryDtype, 'f16');
 assert.equal(floatFallback.consumers[0].declaredWeightDtype, 'q4k');
 assert.equal(floatFallback.consumers[0].weightDtype, 'f16');
+
+// Router and shared-gate projections participate in the same prepared-plan
+// demand analysis as ordinary projections. Their declared F32 precision must
+// protect them from the legacy layer-wide F16 downcast.
+const controls = new Map([
+  [name(0, 'mlp.gate.weight'), { ...tensor(0), dtype: 'F32' }],
+  [name(0, 'mlp.shared_expert_gate.weight'), { ...tensor(144), dtype: 'F32' }],
+  [name(0, 'linear_attn.in_proj_a.weight'), { ...tensor(288), dtype: 'F32' }],
+  [name(0, 'linear_attn.in_proj_b.weight'), { ...tensor(432), dtype: 'F32' }],
+]);
+const controlPath = path();
+const controlRoles = ['moe_router', 'moe_shared_router', 'linear_a_proj', 'linear_b_proj'];
+for (const phase of ['prefill', 'decode']) controlPath[phase].steps.push(...controlRoles.map(role => step(role, 'f32')));
+const controlPlan = compile(controls, manifest, [controlPath], defaults);
+for (const requirement of Object.values(controlPlan)) {
+  assert.equal(requirement.complete, true);
+  assert.deepEqual(requirement.dtypes, ['f32']);
+  assert.equal(requirement.keepF32Weights, true);
+  assert.equal(requirement.consumers.length, 2);
+}
+// Binding a tensor is not proof when either phase lacks its declared consumer.
+const missingControlPath = structuredClone(controlPath);
+missingControlPath.decode.steps = missingControlPath.decode.steps.filter(s => s.op !== 'moe_shared_router');
+assert.equal(compile(controls, manifest, [missingControlPath], defaults)[name(0, 'mlp.shared_expert_gate.weight')].complete, false);
+
+// Exercise the actual conversion recipe through the execution compiler rather
+// than testing a hand-authored path alone.
+const { readFile } = await import('node:fs/promises');
+const { compileExecutionV1 } = await import('../../src/inference/pipelines/text/execution-v1.js');
+const recipe = JSON.parse(await readFile(new URL('../../src/config/conversion/qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32.json', import.meta.url), 'utf8'));
+const prepared = compileExecutionV1({ modelId: recipe.output.modelBaseId, numLayers: 40, headDim: 256,
+  weightDtype: 'q4k', manifestInference: { ...recipe.inference, schema: 'doppler.execution/v1',
+    execution: recipe.execution, session: recipe.session } });
+const recipePlan = compile(controls, manifest, [prepared.runtimeInferencePatch.kernelPath], defaults);
+for (const requirement of Object.values(recipePlan)) {
+  assert.equal(requirement.complete, true);
+  assert.deepEqual(requirement.dtypes, ['f32']);
+  assert.equal(requirement.keepF32Weights, true);
+}

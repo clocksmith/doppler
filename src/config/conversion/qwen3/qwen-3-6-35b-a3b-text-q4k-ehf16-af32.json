@@ -46,7 +46,7 @@
       "outputGateType": "swish"
     },
     "normalization": {
-      "rmsNormEps": 1e-06,
+      "rmsNormEps": 0.000001,
       "rmsNormWeightOffset": true,
       "postAttentionNorm": true,
       "preFeedforwardNorm": false,
@@ -355,6 +355,11 @@
         "kernel": "gated_delta_fused_decode.wgsl",
         "entry": "main",
         "digest": "sha256:87dbb137e1495ebb0821ef5a8a90e7a6460883e1bd4eafb1c13ae9b1a1052cfb"
+      },
+      "source_control_f32": {
+        "kernel": "matmul_f32.wgsl",
+        "entry": "main",
+        "digest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8"
       }
     },
     "preLayer": [
@@ -431,6 +436,26 @@
       [
         "ffn_residual",
         "residual"
+      ],
+      [
+        "moe_router",
+        "source_control_f32",
+        "layer.{L}.mlp.gate"
+      ],
+      [
+        "moe_shared_router",
+        "source_control_f32",
+        "layer.{L}.mlp.shared_expert_gate"
+      ],
+      [
+        "linear_a_proj",
+        "source_control_f32",
+        "layer.{L}.linear_attn.in_proj_a"
+      ],
+      [
+        "linear_b_proj",
+        "source_control_f32",
+        "layer.{L}.linear_attn.in_proj_b"
       ]
     ],
     "prefill": [
@@ -500,6 +525,26 @@
       [
         "ffn_residual",
         "residual"
+      ],
+      [
+        "moe_router",
+        "source_control_f32",
+        "layer.{L}.mlp.gate"
+      ],
+      [
+        "moe_shared_router",
+        "source_control_f32",
+        "layer.{L}.mlp.shared_expert_gate"
+      ],
+      [
+        "linear_a_proj",
+        "source_control_f32",
+        "layer.{L}.linear_attn.in_proj_a"
+      ],
+      [
+        "linear_b_proj",
+        "source_control_f32",
+        "layer.{L}.linear_attn.in_proj_b"
       ]
     ],
     "postLayer": [
