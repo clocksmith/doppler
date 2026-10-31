@@ -223,7 +223,11 @@ assert.equal(widenedFallback.session.compute.defaults.activationDtype, 'f32');
 assert.equal(widenedFallback.session.kvcache.kvDtype, 'f32');
 assert.equal(
   widenedFallback.runtimeInferencePatch?.kernelPath?.decode?.steps?.find((step) => step.op === 'attention')?.kernel,
-  'attention_streaming.wgsl'
+  'attention_decode_online.wgsl'
+);
+assert.equal(
+  widenedFallback.runtimeInferencePatch?.kernelPath?.decode?.steps?.find((step) => step.op === 'attention')?.precision?.kvDtype,
+  'f32'
 );
 
 console.log('gemma4-e2b-conversion-config-contract.test: ok');

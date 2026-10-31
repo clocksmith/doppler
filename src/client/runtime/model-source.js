@@ -282,7 +282,7 @@ export async function resolveModelSource(model) {
       sourceCheckpointId: manifest.artifactIdentity?.sourceCheckpointId,
       weightCapsuleId: manifest.artifactIdentity?.weightCapsuleId,
       manifestVariantId: manifest.artifactIdentity?.manifestVariantId,
-      artifactVariantId: actualManifestHash,
+      artifactVariantId: actualManifestHash === null ? null : `sha256:${actualManifestHash}`,
     });
     trace.push({ source: 'inline-manifest', id: modelId, outcome: 'resolved' });
     log.debug('doppler', `Model resolved via inline manifest: ${modelId}`, { trace });
