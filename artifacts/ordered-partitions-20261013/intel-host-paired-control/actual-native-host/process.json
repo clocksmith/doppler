@@ -4,8 +4,8 @@
   "startedAt": "2026-10-13T15:46:23.452Z",
   "controllerPid": 784212,
   "before": [
-    " 297260       1 Rsl     13:42:23 node server/native-participant.js --contribute --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory /home/clocksmith/.local/share/reploid/public-native/weights --cache-directory /home/clocksmith/.local/share/reploid/public-native/cache --identity-file /home/clocksmith/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo.id --signaling-url wss://reploid-swarm.reploid.workers.dev/swarm",
-    " 299769       1 Ssl     13:39:08 node scripts/run-mesh-contributor.js --url https://replo.id/ --profile /home/clocksmith/.local/share/reploid/public-compute --model qwen-3-5-0-8b-q4k-ehaf16 --contribute compute --browser chromium"
+    " 297260       1 Rsl     13:42:23 node server/native-participant.js --contribute --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory $HOME/.local/share/reploid/public-native/weights --cache-directory $HOME/.local/share/reploid/public-native/cache --identity-file $HOME/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo.id --signaling-url wss://reploid-swarm.reploid.workers.dev/swarm",
+    " 299769       1 Ssl     13:39:08 node scripts/run-mesh-contributor.js --url https://replo.id/ --profile $HOME/.local/share/reploid/public-compute --model qwen-3-5-0-8b-q4k-ehaf16 --contribute compute --browser chromium"
   ],
   "stdout": "",
   "stderr": "Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 1000000 to 16 to fit dynamic offset allocation limit.\nWarning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 1000000 to 16 to fit dynamic offset allocation limit.\n[851.8ms][GPU] Device lost: device was destroyed, Reason: destroyed\n",
@@ -48,8 +48,8 @@
     "at": "2026-10-13T15:46:24.412Z"
   },
   "after": [
-    " 297260       1 Rsl     13:42:24 node server/native-participant.js --contribute --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory /home/clocksmith/.local/share/reploid/public-native/weights --cache-directory /home/clocksmith/.local/share/reploid/public-native/cache --identity-file /home/clocksmith/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo.id --signaling-url wss://reploid-swarm.reploid.workers.dev/swarm",
-    " 299769       1 Ssl     13:39:09 node scripts/run-mesh-contributor.js --url https://replo.id/ --profile /home/clocksmith/.local/share/reploid/public-compute --model qwen-3-5-0-8b-q4k-ehaf16 --contribute compute --browser chromium"
+    " 297260       1 Rsl     13:42:24 node server/native-participant.js --contribute --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory $HOME/.local/share/reploid/public-native/weights --cache-directory $HOME/.local/share/reploid/public-native/cache --identity-file $HOME/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo.id --signaling-url wss://reploid-swarm.reploid.workers.dev/swarm",
+    " 299769       1 Ssl     13:39:09 node scripts/run-mesh-contributor.js --url https://replo.id/ --profile $HOME/.local/share/reploid/public-compute --model qwen-3-5-0-8b-q4k-ehaf16 --contribute compute --browser chromium"
   ],
   "naturalExit": true
 }

@@ -45,7 +45,7 @@
         "executable": "node",
         "ownership": "known public contributor",
         "script": "scripts/run-mesh-contributor.js",
-        "profile": "/home/clocksmith/.local/share/reploid/public-compute"
+        "profile": "$HOME/.local/share/reploid/public-compute"
       }
     ],
     "scope": "Read-only selected process signatures; absence is not exclusive GPU availability"

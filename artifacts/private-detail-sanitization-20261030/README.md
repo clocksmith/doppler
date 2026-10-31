@@ -47,7 +47,10 @@ grouped by reason:
 - `signed` and `public-download-digest`: files whose digest is bound by an
   Ed25519-signed capsule or release event, or by a recorded public download
   digest.
+- `signed-release-event-text`: two sentences inside signed capsule release
+  events still name the Intel host by its original name, and files that quote
+  those events repeat them. Changing them would invalidate the signatures.
 
-Two sentences inside signed capsule release events still name the Intel host by
-its original name; changing them would invalidate the signatures. Archives
-whose only private detail was the tar owner name were not rewritten.
+Archives whose only private detail was the tar owner name were not rewritten.
+Tokenizer vocabularies contain ordinary words that match host names; those are
+not machine references.

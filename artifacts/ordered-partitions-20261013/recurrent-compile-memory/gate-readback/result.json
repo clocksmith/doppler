@@ -2079,7 +2079,7 @@
     "approvedBy": "root explicit intel-host-only original independent operator control",
     "approvalRecordedAt": "2026-10-13T18:01:51.777Z",
     "reviewCommit": "480a2a4c",
-    "preflightInventorySha256": "7b303795960c02566973876006d59418936d9702f5c60327b6d66f556afa8c55",
+    "preflightInventorySha256": "85212212e35ac93e33fe4a5d61011f4cc72fec4e99c543fc72de0c24d3a6eecb",
     "coTenants": {
       "publicNativePid": 297260,
       "publicBrowserControllerPid": 299769,
