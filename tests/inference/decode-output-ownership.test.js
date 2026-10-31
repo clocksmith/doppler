@@ -24,7 +24,7 @@ try {
   const state = { modelConfig: { hiddenSize: 4, vocabSize: 4, numLayers: 1 },
     weights: new Map([['embed', new Float32Array(16)]]), stats: {}, currentSeqLen: 0,
     decodeBuffers: { resetPingPong() {}, swapPingPong() {}, getHiddenBuffer: () => null, getOutputHiddenBuffer: () => null },
-    useGPU: true, runtimeConfig: { inference: { compute: { activationDtype: 'f32' } }, shared: { debug: { probes: null } } } };
+    useGPU: true, runtimeConfig: { inference: { session: { usePreparedDecodeWorkspace: false }, compute: { activationDtype: 'f32' } }, shared: { debug: { probes: null } } } };
   const helpers = { buildLayerContext: () => ({}), getLogitsWeights: () => ({}), getLogitsConfig: () => ({}) };
   for (const failure of ['layer', 'readback']) {
     globalThis.decodeOwnershipProbe.fail = failure;

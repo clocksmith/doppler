@@ -3,6 +3,8 @@ import { LAYER_PROJECTION_OPS, useGemma4Int4PleAf16Activations, useGemma4Int4Ple
 
 export const SUBGROUP_REQUIRING_FILES = new Set([
   'attention_decode_online_f16kv.wgsl',
+  'attention_decode_online_head256_f16kv.wgsl',
+  'attention_decode_online.wgsl',
   'attention_decode_online_f16.wgsl',
 ]);
 
@@ -181,7 +183,11 @@ export function removeSubgroups(graph, ctx) {
       } else {
         newFile = isF16Activation ? 'matmul_f16.wgsl' : 'matmul_f16w_f32a_tiled.wgsl';
       }
-    } else if (entry.kernel === 'attention_decode_online_f16kv.wgsl') {
+    } else if (entry.kernel === 'attention_decode_online.wgsl') {
+      newFile = 'attention_streaming.wgsl';
+      newEntry = entry.entry;
+    } else if (entry.kernel === 'attention_decode_online_f16kv.wgsl'
+      || entry.kernel === 'attention_decode_online_head256_f16kv.wgsl') {
       // f16kv online uses f32 Q; if activations are f16, fall back to all-f16 chunked
       newFile = isF16Activation
         ? 'attention_decode_chunked_f16.wgsl'
@@ -216,12 +222,12 @@ export function removeSubgroups(graph, ctx) {
 }
 
 // F16-KV attention programs and their F32-KV equivalents, shared by every widening
-// lane. Fixed-head programs without a same-shape F32 twin use the generic F32
-// programs; output-gated and head-512 programs stay unmapped and fail closed.
+// lane. Online subgroup programs retain their topology with F32 KV storage;
+// tiled fixed-head programs use the generic F32 programs; output-gated and head-512 programs stay unmapped and fail closed.
 export const ATTENTION_F16KV_TO_F32_ENTRIES = Object.freeze([
-  ['attention_decode_online_f16kv.wgsl', 'attention_streaming.wgsl'],
+  ['attention_decode_online_f16kv.wgsl', 'attention_decode_online.wgsl'],
   ['attention_decode_chunked_f16kv.wgsl', 'attention_streaming.wgsl'],
-  ['attention_decode_online_head256_f16kv.wgsl', 'attention_streaming.wgsl'],
+  ['attention_decode_online_head256_f16kv.wgsl', 'attention_decode_online.wgsl'],
   ['attention_small_f16kv.wgsl', 'attention_small.wgsl'],
   ['attention_streaming_f16kv.wgsl', 'attention_streaming.wgsl'],
   ['attention_head128_f16kv.wgsl', 'attention_small.wgsl'],

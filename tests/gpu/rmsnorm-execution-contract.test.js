@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 import { setDevice } from '../../src/gpu/device.js';
+import { PreparedDecodeWorkspace } from '../../src/gpu/prepared-decode-workspace.js';
 
 // Replace allocation/submission ports; run the actual immediate and recorded wrappers.
 const target = new URL('../../src/gpu/kernels/rmsnorm.js', import.meta.url).href;
@@ -76,6 +77,41 @@ try {
       assert.equal(live.size, 0, `${failure} rejection releases every acquired buffer`);
       globalThis.rmsnormContract.fail = null;
     }
+  }
+  globalThis.GPUBufferUsage = { STORAGE: 128, COPY_SRC: 4, COPY_DST: 8 };
+  const preparedBuffers = [];
+  const workspace = new PreparedDecodeWorkspace({ createBuffer({ size }) {
+    const buffer = { size, destroyed: false, destroy() { this.destroyed = true; } };
+    preparedBuffers.push(buffer);
+    return buffer;
+  } });
+  const recorder = { device: { limits: { maxComputeWorkgroupsPerDimension: 65535 } },
+    decodeWorkspace: workspace,
+    trackTemporaryBuffer() { throw Error('Prepared storage cannot become recorder-owned'); } };
+  const input = { dtype: 'f32', shape: [1, 1024], buffer: { size: 4096 } };
+  const weight = { size: 4096 };
+  try {
+    const first = await recordRMSNorm(recorder, input, weight, 1e-6, options);
+    const placeholder = dispatches.at(-1)[7][0].buffer;
+    assert.equal(dispatches.at(-1)[6].OUTPUT_PRENORM, false);
+    const repeat = await recordRMSNorm(recorder, input, weight, 1e-6, options);
+    assert.equal(first.buffer, repeat.buffer, 'Decode steps reuse the same named output');
+    assert.equal(dispatches.at(-1)[7][0].buffer, placeholder, 'Disabled prenorm binding is session-owned');
+    const other = await recordRMSNorm(recorder, input, weight, 1e-6, { ...options, layerIdx: 1 });
+    assert.notEqual(first.buffer, other.buffer, 'Live layers cannot alias normalization outputs');
+    const borrowed = { size: 4096 };
+    const supplied = await recordRMSNorm(recorder, input, weight, 1e-6, { ...options, outputBuffer: borrowed });
+    assert.equal(supplied.buffer, borrowed, 'Caller output retains precedence');
+    globalThis.rmsnormContract.fail = 'dispatch';
+    await assert.rejects(recordRMSNorm(recorder, input, weight, 1e-6, options), /rejected/);
+    globalThis.rmsnormContract.fail = null;
+    assert(preparedBuffers.every(buffer => !buffer.destroyed), 'Failed recording preserves session ownership');
+    assert.equal(live.size, 0, 'Prepared normalization does not acquire transient pool storage');
+    await recordRMSNorm(recorder, input, weight, 1e-6, options);
+  } finally {
+    globalThis.rmsnormContract.fail = null;
+    workspace.release();
+    assert(preparedBuffers.every(buffer => buffer.destroyed), 'Session release owns final destruction');
   }
 } finally {
   setDevice(null, { platformConfig: null }); hooks.deregister(); delete globalThis.rmsnormContract;

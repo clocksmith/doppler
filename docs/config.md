@@ -145,11 +145,15 @@ must be an inline object or `null`. Do not use legacy `kernelPlan` or removed
 string registry IDs.
 
 Kernel-path dtype contract:
-- config-selected kernel paths must already match the resolved runtime
-  `activationDtype` and `kvcache.kvDtype`
-- manifest/model-selected kernel paths may seed those runtime dtypes only while
-  the runtime values are still at global defaults; conflicting runtime overrides
-  fail closed
+- inline paths must match the resolved canonical
+  `inference.session.compute.defaults.activationDtype`, output dtype, and
+  `inference.session.kvcache.kvDtype`; shader identity never selects runtime dtype
+- canonical activation declarations are validated and projected through the
+  session runtime builder into `inference.compute.activationDtype` for legacy
+  execution consumers; legacy-only declarations remain compatible
+- contradictory canonical/legacy declarations and explicit runtime overrides
+  fail closed, including when the resolved path would otherwise match; the
+  projection does not mutate the caller or rewrite dtype to fit a shader
 
 ## Runtime boundaries
 

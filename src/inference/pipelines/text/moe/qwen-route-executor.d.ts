@@ -3,6 +3,7 @@ import type { WeightBuffer } from '../../../../gpu/weight-buffer.js';
 import type { CommandRecorder } from '../../../../gpu/command-recorder.js';
 
 export interface QwenRouteExpertOptions {
+  sharedSlot?: QwenSharedSlot | null;
   /** Required for a prepared single-token recorder. */
   layerIdx?: number;
   inputTensor: Tensor;
@@ -17,6 +18,12 @@ export interface QwenRouteExpertOptions {
   activationDtype: string;
   hiddenActivation: string;
   swigluLimit: number | null;
+}
+export interface QwenSharedSlot {
+  weights: import('../weights.js').LayerWeights;
+  intermediateSize: number;
+  kernelPath: import('../../../../config/schema/index.js').KernelPathSchema;
+  phase: 'decode' | 'prefill';
 }
 export declare function runQwenRouteExperts(options: QwenRouteExpertOptions): Promise<Tensor>;
 export declare function recordQwenRouteExperts(recorder: CommandRecorder, options: QwenRouteExpertOptions): Promise<Tensor>;

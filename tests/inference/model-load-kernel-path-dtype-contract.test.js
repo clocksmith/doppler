@@ -85,6 +85,47 @@ function createManifest(compute = 'f32') {
 }
 
 const scopedShader = 'scoped-preflight.wgsl';
+// Inline-path admission must read the session contract without inferring it from the shader.
+for (const dtype of ['f16', 'f32']) {
+  const runtimeConfig = createRuntimeConfig(dtype);
+  runtimeConfig.inference.kernelPath = createKernelPath(dtype);
+  delete runtimeConfig.inference.compute;
+  const original = structuredClone(runtimeConfig);
+  const resolve = (config = runtimeConfig, runtimeOverrides = null) => resolveKernelPathState({
+    manifest: createManifest(dtype), runtimeConfig: config, runtimeOverrides,
+    modelConfig: { kernelPath: null },
+  });
+  const result = resolve();
+  assert.equal(result.runtimeConfig.inference.compute.activationDtype, dtype);
+  assert.deepEqual(runtimeConfig, original, 'compatibility projection must not mutate the caller');
+  assert.deepEqual(result.runtimeConfig.inference.session, original.inference.session);
+
+  const other = dtype === 'f32' ? 'f16' : 'f32';
+  const conflict = structuredClone(runtimeConfig);
+  conflict.inference.compute = { activationDtype: other };
+  assert.throws(() => resolve(conflict), /conflicts with legacy/);
+  assert.throws(() => resolve(runtimeConfig, conflict), /conflicts with legacy/);
+  assert.throws(() => resolve(runtimeConfig, { inference: { compute: { activationDtype: other } } }),
+    /requires explicit matching runtime dtypes/);
+
+  for (const invalid of [null, '', 'bf16']) {
+    const bad = structuredClone(runtimeConfig);
+    bad.inference.session.compute.defaults.activationDtype = invalid;
+    assert.throws(() => resolve(bad), /activationDtype.*(required|must be)/);
+  }
+  const missing = structuredClone(runtimeConfig);
+  delete missing.inference.session.compute.defaults.activationDtype;
+  assert.throws(() => resolve(missing), /requires explicit matching runtime dtypes/);
+  missing.inference.compute = { activationDtype: dtype };
+  assert.strictEqual(resolve(missing).runtimeConfig, missing, 'legacy-only compatibility remains');
+  missing.inference.compute.activationDtype = dtype === 'f32' ? 'float32' : 'fp16';
+  assert.strictEqual(resolve(missing).runtimeConfig, missing, 'legacy dtype aliases retain their existing rule contract');
+
+  const mismatch = structuredClone(runtimeConfig);
+  mismatch.inference.session.compute.defaults.activationDtype = other;
+  assert.throws(() => resolve(mismatch), /requires explicit matching runtime dtypes/);
+}
+
 function scopedRegistry(variant, requires) {
   return createKernelRegistry({ extensions: { gelu: { variants: {
     [variant]: { wgsl: scopedShader, entryPoint: 'main', workgroup: [256, 1, 1], requires },

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
+import { assertSubgroupPartition } from '../../src/gpu/kernels/subgroup-partition.js';
 import { probeNodeGPU } from '../helpers/gpu-probe.js';
-import { getDevice, destroyDevice } from '../../src/gpu/device.js';
+import { getDevice, getKernelCapabilities, destroyDevice } from '../../src/gpu/device.js';
 import { CommandRecorder } from '../../src/gpu/command-recorder.js';
 import { runAttention, recordAttention } from '../../src/gpu/kernels/attention.js';
 import { createTensor } from '../../src/gpu/tensor.js';
@@ -10,6 +11,16 @@ import { f32ToF16Array } from '../../src/inference/kv-cache/types.js';
 const probe = await probeNodeGPU();
 if (!probe.ready) {
   console.log(`attention-partitioned-prefill: skipped (${probe.reason})`);
+  process.exit(0);
+}
+const capabilities = getKernelCapabilities();
+try {
+  assert.equal(capabilities.hasF16, true, 'requires shader-f16');
+  assert.equal(capabilities.hasSubgroups, true, 'requires subgroups');
+  assertSubgroupPartition(16, capabilities.adapterInfo);
+} catch (error) {
+  console.log('attention-partitioned-prefill: skipped (' + error.message + ')');
+  await destroyDevice();
   process.exit(0);
 }
 const kernelPath = {

@@ -52,11 +52,13 @@ export declare class DecodeBufferManager {
   private pingPongIndex;
   private workspace;
   private workspaceDevice;
+  /** Borrow the workspace only after buffers are initialized on this live device. */
   getWorkspace(device: GPUDevice): import('../gpu/prepared-decode-workspace.js').PreparedDecodeWorkspace;
 
   /**
    * Ensure buffers are allocated for the given config.
-   * No-op if already allocated with matching config.
+   * No-op for matching config on the same live device.
+   * A device change requires explicit session release before allocation.
    */
   ensureBuffers(config: DecodeBufferConfig): DecodeBuffers;
 

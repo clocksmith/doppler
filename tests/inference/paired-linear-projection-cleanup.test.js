@@ -30,9 +30,9 @@ export const applyProjectionLoRA=({baseOutput})=>baseOutput;
 `;
 const modules = {
   './linear-attention/plan.js': plan,
-  '../../../gpu/kernel-selector.js': `export const runRMSNorm=()=>linearProjectionFailure.norm(); export const recordRMSNorm=runRMSNorm;
-    export const runMatmul=()=>linearProjectionFailure.output(); export const recordMatmul=runMatmul;
-    export const castF32ToF16=()=>{throw Error('unexpected cast');};export const castF16ToF32=castF32ToF16;
+  '../../../gpu/kernels/rmsnorm.js': 'export const runRMSNorm=()=>linearProjectionFailure.norm(); export const recordRMSNorm=runRMSNorm;',
+  '../../../gpu/kernels/matmul.js': 'export const runMatmul=()=>linearProjectionFailure.output(); export const recordMatmul=runMatmul;',
+  '../../../gpu/kernels/cast.js': `export const castF32ToF16=()=>{throw Error('unexpected cast');};export const castF16ToF32=castF32ToF16;
     export const recordCastF32ToF16=castF32ToF16;export const recordCastF16ToF32=castF32ToF16;`,
   './linear-attention-ab-fusion.js': 'export const resolveLinearAttentionABProjection=()=>null;export const resolveLinearAttentionQKVZProjection=()=>null;',
   '../../../gpu/kernels/linear-attention-core.js': 'export const runLinearAttentionCoreGPU=async()=>linearProjectionFailure.core();',

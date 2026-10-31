@@ -2,6 +2,17 @@
 // Do not edit; npm run kernels:uniforms:sync.
 import { writeU32, writeI32, writeF32 } from '../uniform-encoding.js';
 
+export function write_residual_rmsnorm_pair_subgroup(view, values, kernel) {
+  writeU32(view, 0, values["size"], kernel, "size");
+  writeU32(view, 4, values["num_tokens"], kernel, "num_tokens");
+  writeF32(view, 8, values["eps"], kernel, "eps");
+  writeF32(view, 12, values["output_scale"], kernel, "output_scale");
+  writeU32(view, 16, values["token_stride"], kernel, "token_stride");
+  view.setUint32(20, 0, true);
+  view.setUint32(24, 0, true);
+  view.setUint32(28, 0, true);
+}
+
 export function write_rmsnorm_qk_default(view, values, kernel) {
   writeU32(view, 0, values["q_rows"], kernel, "q_rows");
   writeU32(view, 4, values["k_rows"], kernel, "k_rows");
@@ -588,11 +599,4 @@ export function write_rope_backward_default(view, values, kernel) {
   writeU32(view, 20, values["pair_span_dim"], kernel, "pair_span_dim");
   writeU32(view, 24, values["interleaved"], kernel, "interleaved");
   view.setUint32(28, 0, true);
-}
-
-export function write_cross_entropy_loss_default(view, values, kernel) {
-  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
-  writeU32(view, 4, values["vocab_size"], kernel, "vocab_size");
-  view.setUint32(8, 0, true);
-  view.setUint32(12, 0, true);
 }

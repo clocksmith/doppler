@@ -5,6 +5,61 @@ import { runSiLU, recordSiLU } from '../../../../gpu/kernels/silu.js';
 import { runRepeatChannels, recordRepeatChannels } from '../../../../gpu/kernels/repeat_channels.js';
 import { runResidualAdd, recordResidualAdd } from '../../../../gpu/kernels/residual.js';
 import { releaseOrTrack } from '../ops.js';
+import { getKernelConfigs } from '../../../../config/kernel-registry-contract.js';
+import { getLayerSteps, getKernelPathStepConfig } from '../../../../config/kernel-path-loader.js';
+import { runSigmoidGatedAdd, recordSigmoidGatedAdd } from '../../../../gpu/kernels/sigmoid-gated-add.js';
+
+const combinePlans = new WeakMap();
+
+/** @type {typeof import('./qwen-shared-expert.js').resolveQwenSharedSlot} */
+export function resolveQwenSharedSlot(options) {
+  if (options.kernelPath == null) return false;
+  if ((options.phase !== 'decode' && options.phase !== 'prefill')
+    || !Number.isSafeInteger(options.layerIdx) || options.layerIdx < 0) {
+    throw new Error('[MoE] Shared slot lookup requires explicit phase and layer index.');
+  }
+  const steps = getLayerSteps(options.kernelPath, options.layerIdx, options.phase);
+  const declared = steps.filter(step => step.op === 'moe_shared_slot_gu' || step.op === 'moe_shared_slot_down');
+  if (declared.length === 0) return false;
+  for (const operation of ['moe_shared_slot_gu', 'moe_shared_slot_down']) {
+    const matches = declared.filter(step => step.op === operation);
+    if (matches.length !== 1 || !getKernelPathStepConfig(operation, matches[0], options.phase)
+      || (matches[0].constants && Object.keys(matches[0].constants).length)) {
+      throw new Error('[MoE] Shared slot requires one registered GU and down step with model-bound geometry.');
+    }
+  }
+  if (steps.some(step => step.op === 'moe_shared_combine')) {
+    throw new Error('[MoE] Shared slot already combines routed/shared output; a second combine is invalid.');
+  }
+  return true;
+}
+
+/** @type {typeof import('./qwen-shared-expert.js').resolveQwenSharedExpertCombine} */
+export function resolveQwenSharedExpertCombine(options) {
+  if (options.kernelPath == null) return false;
+  if ((options.phase !== 'decode' && options.phase !== 'prefill')
+    || typeof options.layerIdx !== 'number' || !Number.isSafeInteger(options.layerIdx) || options.layerIdx < 0) {
+    throw new Error('[MoE] Shared combine lookup requires an explicit phase and layer index.');
+  }
+  let registries = combinePlans.get(options.kernelPath);
+  if (!registries) { registries = new WeakMap(); combinePlans.set(options.kernelPath, registries); }
+  const configs = getKernelConfigs();
+  let plans = registries.get(configs);
+  if (!plans) { plans = new Map(); registries.set(configs, plans); }
+  const key = `${options.phase}:${options.layerIdx}`;
+  if (plans.has(key)) return plans.get(key);
+  const steps = getLayerSteps(options.kernelPath, options.layerIdx, options.phase)
+    .filter(step => step.op === 'moe_shared_combine');
+  if (steps.length === 0) { plans.set(key, false); return false; }
+  if (steps.length !== 1 || !getKernelPathStepConfig('sigmoid_gated_add', steps[0], options.phase)) {
+    throw new Error('[MoE] Shared combine requires exactly one registered sigmoid_gated_add kernel step.');
+  }
+  if (steps[0].constants && Object.keys(steps[0].constants).length !== 0) {
+    throw new Error('[MoE] Shared combine geometry comes from resolved model dimensions, not step overrides.');
+  }
+  plans.set(key, true);
+  return true;
+}
 
 /** @type {typeof import('./qwen-shared-expert.js').validateQwenSharedExpert} */
 export function validateQwenSharedExpert(input, routed, weights, options) {
@@ -34,6 +89,7 @@ export function validateQwenSharedExpert(input, routed, weights, options) {
 /** @type {typeof import('./qwen-shared-expert.js').runQwenSharedExpert} */
 export async function runQwenSharedExpert(input, routed, weights, options) {
   validateQwenSharedExpert(input, routed, weights, options);
+  const fusedCombine = resolveQwenSharedExpertCombine(options);
   const { numTokens, hiddenSize, intermediateSize, kernelPath, swigluLimit } = options;
   const recorder = options.recorder ?? null;
   const workspace = recorder?.decodeWorkspace && numTokens === 1 ? recorder.decodeWorkspace : null;
@@ -63,6 +119,11 @@ export async function runQwenSharedExpert(input, routed, weights, options) {
       numTokens, hiddenSize, intermediateSize, { ...projectionOptions, role: 'ffn_down', outputBuffer: output('down', hiddenSize) }));
     const scalarGate = keep(await matmul(input, weights.sharedExpertRouter,
       numTokens, 1, hiddenSize, { ...projectionOptions, role: 'moe_shared_router', outputBuffer: output('router', 1) }));
+    if (fusedCombine) {
+      const combine = recorder ? recordSigmoidGatedAdd.bind(null, recorder) : runSigmoidGatedAdd;
+      return await combine(down, scalarGate, routed, { numTokens, hiddenSize, swigluLimit,
+        outputBuffer: output('output', hiddenSize) });
+    }
     const expandedGate = keep(await repeat(scalarGate,
       { inChannels: numTokens, height: 1, width: 1, repeats: hiddenSize, outputBuffer: output('expanded', hiddenSize) }));
     const gated = keep(await activate(down, { size: numTokens * hiddenSize,

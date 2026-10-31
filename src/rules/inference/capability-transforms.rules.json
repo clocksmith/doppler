@@ -255,8 +255,10 @@
       "dtypeEffect": "full-f32",
       "match": { "kvDtype": "f32", "hasSubgroups": true, "hasF16": true },
       "transforms": ["widenToF32CorrectnessFallback"],
-      "reason": "Runtime KV cache resolved f32.",
+      "reason": "Runtime KV cache resolved f32; online subgroup attention retains its topology with f32 KV storage.",
       "evidence": [
+        "tests/integration/attention-f32kv-online-policy.test.js",
+        "tests/inference/attention-f32kv-online-gpu-regression.test.js",
         "tests/integration/execution-v1-capability-policy.test.js"
       ]
     },
