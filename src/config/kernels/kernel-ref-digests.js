@@ -189,7 +189,7 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "gated_delta_qk_paired_parallel.wgsl#main": "75b6c97cea545f81e384a8d5254b8c97c5063b02a9e827c877383401eed92daa",
   "gated_delta_qk_paired.wgsl#main": "1a9f0703fb32cb617645592387f2cc511db81b9dd6bc55204cf61e9c4080cbcc",
   "gated_delta_recurrent_f16.wgsl#main": "8864026089c2f279ac6621bed88a80416f081f3f075424704db382fbc58c7bfa",
-  "gated_delta_recurrent_gguf_register_prefill.wgsl#main": "04d3955abe8c653c72d9ba04aff8b47004f838bea41ad33acfb9f747f938b747",
+  "gated_delta_recurrent_gguf_register_prefill.wgsl#main": "00b798cdc86a6ebaed609a97edd388e23b9dcd1522f51e3e15b2c698f7d6fb7e",
   "gated_delta_recurrent_gguf.wgsl#main": "45868ff96095bf40ec4c76610aa40ded1d9f345743bc3c819669e2250b005ff5",
   "gated_delta_recurrent_paired.wgsl#main": "c9f946e7682d9356c97684fc8b4e45c0d89a2d94984373899d8c81db77e1528d",
   "gated_delta_recurrent_register_prefill.wgsl#main": "f69c5809237f69155ce96b68653ceae931640afe953dc5e2846af9d765d6b5e0",

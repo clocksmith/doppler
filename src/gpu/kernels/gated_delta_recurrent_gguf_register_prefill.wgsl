@@ -1,7 +1,7 @@
 // AUTO-GENERATED from src/gpu/kernels/gated_delta_recurrent.wgsl.
 // Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:codegen:sync`.
-// GGUF K=128 scalar-state prefill specialization. Generated literal scalar state
-// avoids dynamically indexed private arrays; actual register allocation is backend-dependent.
+// GGUF K=128 prefill specialization. Literal vec4 components retain scalar F32
+// state without dynamic private-array indexing; register allocation is backend-dependent.
 // Retention strategy informed by Pooled 6b4a24f73 engine/wgsl/qwen35.js dnDeltaRegsWGSL.
 // GGUF arithmetic remains Doppler's ordered two-sweep recurrence, not Pooled's expanded output.
 /*
@@ -219,134 +219,38 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>,
   let k_base = params.q_size + src_head * head_k_dim;
   let v_base = params.q_size + params.k_size + head * head_v_dim;
 
-  var s0 = 0.0; if (is_active) { s0 = recurrent_state[recurrent_head_base + 0u * head_v_dim + vd]; }
-  var s1 = 0.0; if (is_active) { s1 = recurrent_state[recurrent_head_base + 1u * head_v_dim + vd]; }
-  var s2 = 0.0; if (is_active) { s2 = recurrent_state[recurrent_head_base + 2u * head_v_dim + vd]; }
-  var s3 = 0.0; if (is_active) { s3 = recurrent_state[recurrent_head_base + 3u * head_v_dim + vd]; }
-  var s4 = 0.0; if (is_active) { s4 = recurrent_state[recurrent_head_base + 4u * head_v_dim + vd]; }
-  var s5 = 0.0; if (is_active) { s5 = recurrent_state[recurrent_head_base + 5u * head_v_dim + vd]; }
-  var s6 = 0.0; if (is_active) { s6 = recurrent_state[recurrent_head_base + 6u * head_v_dim + vd]; }
-  var s7 = 0.0; if (is_active) { s7 = recurrent_state[recurrent_head_base + 7u * head_v_dim + vd]; }
-  var s8 = 0.0; if (is_active) { s8 = recurrent_state[recurrent_head_base + 8u * head_v_dim + vd]; }
-  var s9 = 0.0; if (is_active) { s9 = recurrent_state[recurrent_head_base + 9u * head_v_dim + vd]; }
-  var s10 = 0.0; if (is_active) { s10 = recurrent_state[recurrent_head_base + 10u * head_v_dim + vd]; }
-  var s11 = 0.0; if (is_active) { s11 = recurrent_state[recurrent_head_base + 11u * head_v_dim + vd]; }
-  var s12 = 0.0; if (is_active) { s12 = recurrent_state[recurrent_head_base + 12u * head_v_dim + vd]; }
-  var s13 = 0.0; if (is_active) { s13 = recurrent_state[recurrent_head_base + 13u * head_v_dim + vd]; }
-  var s14 = 0.0; if (is_active) { s14 = recurrent_state[recurrent_head_base + 14u * head_v_dim + vd]; }
-  var s15 = 0.0; if (is_active) { s15 = recurrent_state[recurrent_head_base + 15u * head_v_dim + vd]; }
-  var s16 = 0.0; if (is_active) { s16 = recurrent_state[recurrent_head_base + 16u * head_v_dim + vd]; }
-  var s17 = 0.0; if (is_active) { s17 = recurrent_state[recurrent_head_base + 17u * head_v_dim + vd]; }
-  var s18 = 0.0; if (is_active) { s18 = recurrent_state[recurrent_head_base + 18u * head_v_dim + vd]; }
-  var s19 = 0.0; if (is_active) { s19 = recurrent_state[recurrent_head_base + 19u * head_v_dim + vd]; }
-  var s20 = 0.0; if (is_active) { s20 = recurrent_state[recurrent_head_base + 20u * head_v_dim + vd]; }
-  var s21 = 0.0; if (is_active) { s21 = recurrent_state[recurrent_head_base + 21u * head_v_dim + vd]; }
-  var s22 = 0.0; if (is_active) { s22 = recurrent_state[recurrent_head_base + 22u * head_v_dim + vd]; }
-  var s23 = 0.0; if (is_active) { s23 = recurrent_state[recurrent_head_base + 23u * head_v_dim + vd]; }
-  var s24 = 0.0; if (is_active) { s24 = recurrent_state[recurrent_head_base + 24u * head_v_dim + vd]; }
-  var s25 = 0.0; if (is_active) { s25 = recurrent_state[recurrent_head_base + 25u * head_v_dim + vd]; }
-  var s26 = 0.0; if (is_active) { s26 = recurrent_state[recurrent_head_base + 26u * head_v_dim + vd]; }
-  var s27 = 0.0; if (is_active) { s27 = recurrent_state[recurrent_head_base + 27u * head_v_dim + vd]; }
-  var s28 = 0.0; if (is_active) { s28 = recurrent_state[recurrent_head_base + 28u * head_v_dim + vd]; }
-  var s29 = 0.0; if (is_active) { s29 = recurrent_state[recurrent_head_base + 29u * head_v_dim + vd]; }
-  var s30 = 0.0; if (is_active) { s30 = recurrent_state[recurrent_head_base + 30u * head_v_dim + vd]; }
-  var s31 = 0.0; if (is_active) { s31 = recurrent_state[recurrent_head_base + 31u * head_v_dim + vd]; }
-  var s32 = 0.0; if (is_active) { s32 = recurrent_state[recurrent_head_base + 32u * head_v_dim + vd]; }
-  var s33 = 0.0; if (is_active) { s33 = recurrent_state[recurrent_head_base + 33u * head_v_dim + vd]; }
-  var s34 = 0.0; if (is_active) { s34 = recurrent_state[recurrent_head_base + 34u * head_v_dim + vd]; }
-  var s35 = 0.0; if (is_active) { s35 = recurrent_state[recurrent_head_base + 35u * head_v_dim + vd]; }
-  var s36 = 0.0; if (is_active) { s36 = recurrent_state[recurrent_head_base + 36u * head_v_dim + vd]; }
-  var s37 = 0.0; if (is_active) { s37 = recurrent_state[recurrent_head_base + 37u * head_v_dim + vd]; }
-  var s38 = 0.0; if (is_active) { s38 = recurrent_state[recurrent_head_base + 38u * head_v_dim + vd]; }
-  var s39 = 0.0; if (is_active) { s39 = recurrent_state[recurrent_head_base + 39u * head_v_dim + vd]; }
-  var s40 = 0.0; if (is_active) { s40 = recurrent_state[recurrent_head_base + 40u * head_v_dim + vd]; }
-  var s41 = 0.0; if (is_active) { s41 = recurrent_state[recurrent_head_base + 41u * head_v_dim + vd]; }
-  var s42 = 0.0; if (is_active) { s42 = recurrent_state[recurrent_head_base + 42u * head_v_dim + vd]; }
-  var s43 = 0.0; if (is_active) { s43 = recurrent_state[recurrent_head_base + 43u * head_v_dim + vd]; }
-  var s44 = 0.0; if (is_active) { s44 = recurrent_state[recurrent_head_base + 44u * head_v_dim + vd]; }
-  var s45 = 0.0; if (is_active) { s45 = recurrent_state[recurrent_head_base + 45u * head_v_dim + vd]; }
-  var s46 = 0.0; if (is_active) { s46 = recurrent_state[recurrent_head_base + 46u * head_v_dim + vd]; }
-  var s47 = 0.0; if (is_active) { s47 = recurrent_state[recurrent_head_base + 47u * head_v_dim + vd]; }
-  var s48 = 0.0; if (is_active) { s48 = recurrent_state[recurrent_head_base + 48u * head_v_dim + vd]; }
-  var s49 = 0.0; if (is_active) { s49 = recurrent_state[recurrent_head_base + 49u * head_v_dim + vd]; }
-  var s50 = 0.0; if (is_active) { s50 = recurrent_state[recurrent_head_base + 50u * head_v_dim + vd]; }
-  var s51 = 0.0; if (is_active) { s51 = recurrent_state[recurrent_head_base + 51u * head_v_dim + vd]; }
-  var s52 = 0.0; if (is_active) { s52 = recurrent_state[recurrent_head_base + 52u * head_v_dim + vd]; }
-  var s53 = 0.0; if (is_active) { s53 = recurrent_state[recurrent_head_base + 53u * head_v_dim + vd]; }
-  var s54 = 0.0; if (is_active) { s54 = recurrent_state[recurrent_head_base + 54u * head_v_dim + vd]; }
-  var s55 = 0.0; if (is_active) { s55 = recurrent_state[recurrent_head_base + 55u * head_v_dim + vd]; }
-  var s56 = 0.0; if (is_active) { s56 = recurrent_state[recurrent_head_base + 56u * head_v_dim + vd]; }
-  var s57 = 0.0; if (is_active) { s57 = recurrent_state[recurrent_head_base + 57u * head_v_dim + vd]; }
-  var s58 = 0.0; if (is_active) { s58 = recurrent_state[recurrent_head_base + 58u * head_v_dim + vd]; }
-  var s59 = 0.0; if (is_active) { s59 = recurrent_state[recurrent_head_base + 59u * head_v_dim + vd]; }
-  var s60 = 0.0; if (is_active) { s60 = recurrent_state[recurrent_head_base + 60u * head_v_dim + vd]; }
-  var s61 = 0.0; if (is_active) { s61 = recurrent_state[recurrent_head_base + 61u * head_v_dim + vd]; }
-  var s62 = 0.0; if (is_active) { s62 = recurrent_state[recurrent_head_base + 62u * head_v_dim + vd]; }
-  var s63 = 0.0; if (is_active) { s63 = recurrent_state[recurrent_head_base + 63u * head_v_dim + vd]; }
-  var s64 = 0.0; if (is_active) { s64 = recurrent_state[recurrent_head_base + 64u * head_v_dim + vd]; }
-  var s65 = 0.0; if (is_active) { s65 = recurrent_state[recurrent_head_base + 65u * head_v_dim + vd]; }
-  var s66 = 0.0; if (is_active) { s66 = recurrent_state[recurrent_head_base + 66u * head_v_dim + vd]; }
-  var s67 = 0.0; if (is_active) { s67 = recurrent_state[recurrent_head_base + 67u * head_v_dim + vd]; }
-  var s68 = 0.0; if (is_active) { s68 = recurrent_state[recurrent_head_base + 68u * head_v_dim + vd]; }
-  var s69 = 0.0; if (is_active) { s69 = recurrent_state[recurrent_head_base + 69u * head_v_dim + vd]; }
-  var s70 = 0.0; if (is_active) { s70 = recurrent_state[recurrent_head_base + 70u * head_v_dim + vd]; }
-  var s71 = 0.0; if (is_active) { s71 = recurrent_state[recurrent_head_base + 71u * head_v_dim + vd]; }
-  var s72 = 0.0; if (is_active) { s72 = recurrent_state[recurrent_head_base + 72u * head_v_dim + vd]; }
-  var s73 = 0.0; if (is_active) { s73 = recurrent_state[recurrent_head_base + 73u * head_v_dim + vd]; }
-  var s74 = 0.0; if (is_active) { s74 = recurrent_state[recurrent_head_base + 74u * head_v_dim + vd]; }
-  var s75 = 0.0; if (is_active) { s75 = recurrent_state[recurrent_head_base + 75u * head_v_dim + vd]; }
-  var s76 = 0.0; if (is_active) { s76 = recurrent_state[recurrent_head_base + 76u * head_v_dim + vd]; }
-  var s77 = 0.0; if (is_active) { s77 = recurrent_state[recurrent_head_base + 77u * head_v_dim + vd]; }
-  var s78 = 0.0; if (is_active) { s78 = recurrent_state[recurrent_head_base + 78u * head_v_dim + vd]; }
-  var s79 = 0.0; if (is_active) { s79 = recurrent_state[recurrent_head_base + 79u * head_v_dim + vd]; }
-  var s80 = 0.0; if (is_active) { s80 = recurrent_state[recurrent_head_base + 80u * head_v_dim + vd]; }
-  var s81 = 0.0; if (is_active) { s81 = recurrent_state[recurrent_head_base + 81u * head_v_dim + vd]; }
-  var s82 = 0.0; if (is_active) { s82 = recurrent_state[recurrent_head_base + 82u * head_v_dim + vd]; }
-  var s83 = 0.0; if (is_active) { s83 = recurrent_state[recurrent_head_base + 83u * head_v_dim + vd]; }
-  var s84 = 0.0; if (is_active) { s84 = recurrent_state[recurrent_head_base + 84u * head_v_dim + vd]; }
-  var s85 = 0.0; if (is_active) { s85 = recurrent_state[recurrent_head_base + 85u * head_v_dim + vd]; }
-  var s86 = 0.0; if (is_active) { s86 = recurrent_state[recurrent_head_base + 86u * head_v_dim + vd]; }
-  var s87 = 0.0; if (is_active) { s87 = recurrent_state[recurrent_head_base + 87u * head_v_dim + vd]; }
-  var s88 = 0.0; if (is_active) { s88 = recurrent_state[recurrent_head_base + 88u * head_v_dim + vd]; }
-  var s89 = 0.0; if (is_active) { s89 = recurrent_state[recurrent_head_base + 89u * head_v_dim + vd]; }
-  var s90 = 0.0; if (is_active) { s90 = recurrent_state[recurrent_head_base + 90u * head_v_dim + vd]; }
-  var s91 = 0.0; if (is_active) { s91 = recurrent_state[recurrent_head_base + 91u * head_v_dim + vd]; }
-  var s92 = 0.0; if (is_active) { s92 = recurrent_state[recurrent_head_base + 92u * head_v_dim + vd]; }
-  var s93 = 0.0; if (is_active) { s93 = recurrent_state[recurrent_head_base + 93u * head_v_dim + vd]; }
-  var s94 = 0.0; if (is_active) { s94 = recurrent_state[recurrent_head_base + 94u * head_v_dim + vd]; }
-  var s95 = 0.0; if (is_active) { s95 = recurrent_state[recurrent_head_base + 95u * head_v_dim + vd]; }
-  var s96 = 0.0; if (is_active) { s96 = recurrent_state[recurrent_head_base + 96u * head_v_dim + vd]; }
-  var s97 = 0.0; if (is_active) { s97 = recurrent_state[recurrent_head_base + 97u * head_v_dim + vd]; }
-  var s98 = 0.0; if (is_active) { s98 = recurrent_state[recurrent_head_base + 98u * head_v_dim + vd]; }
-  var s99 = 0.0; if (is_active) { s99 = recurrent_state[recurrent_head_base + 99u * head_v_dim + vd]; }
-  var s100 = 0.0; if (is_active) { s100 = recurrent_state[recurrent_head_base + 100u * head_v_dim + vd]; }
-  var s101 = 0.0; if (is_active) { s101 = recurrent_state[recurrent_head_base + 101u * head_v_dim + vd]; }
-  var s102 = 0.0; if (is_active) { s102 = recurrent_state[recurrent_head_base + 102u * head_v_dim + vd]; }
-  var s103 = 0.0; if (is_active) { s103 = recurrent_state[recurrent_head_base + 103u * head_v_dim + vd]; }
-  var s104 = 0.0; if (is_active) { s104 = recurrent_state[recurrent_head_base + 104u * head_v_dim + vd]; }
-  var s105 = 0.0; if (is_active) { s105 = recurrent_state[recurrent_head_base + 105u * head_v_dim + vd]; }
-  var s106 = 0.0; if (is_active) { s106 = recurrent_state[recurrent_head_base + 106u * head_v_dim + vd]; }
-  var s107 = 0.0; if (is_active) { s107 = recurrent_state[recurrent_head_base + 107u * head_v_dim + vd]; }
-  var s108 = 0.0; if (is_active) { s108 = recurrent_state[recurrent_head_base + 108u * head_v_dim + vd]; }
-  var s109 = 0.0; if (is_active) { s109 = recurrent_state[recurrent_head_base + 109u * head_v_dim + vd]; }
-  var s110 = 0.0; if (is_active) { s110 = recurrent_state[recurrent_head_base + 110u * head_v_dim + vd]; }
-  var s111 = 0.0; if (is_active) { s111 = recurrent_state[recurrent_head_base + 111u * head_v_dim + vd]; }
-  var s112 = 0.0; if (is_active) { s112 = recurrent_state[recurrent_head_base + 112u * head_v_dim + vd]; }
-  var s113 = 0.0; if (is_active) { s113 = recurrent_state[recurrent_head_base + 113u * head_v_dim + vd]; }
-  var s114 = 0.0; if (is_active) { s114 = recurrent_state[recurrent_head_base + 114u * head_v_dim + vd]; }
-  var s115 = 0.0; if (is_active) { s115 = recurrent_state[recurrent_head_base + 115u * head_v_dim + vd]; }
-  var s116 = 0.0; if (is_active) { s116 = recurrent_state[recurrent_head_base + 116u * head_v_dim + vd]; }
-  var s117 = 0.0; if (is_active) { s117 = recurrent_state[recurrent_head_base + 117u * head_v_dim + vd]; }
-  var s118 = 0.0; if (is_active) { s118 = recurrent_state[recurrent_head_base + 118u * head_v_dim + vd]; }
-  var s119 = 0.0; if (is_active) { s119 = recurrent_state[recurrent_head_base + 119u * head_v_dim + vd]; }
-  var s120 = 0.0; if (is_active) { s120 = recurrent_state[recurrent_head_base + 120u * head_v_dim + vd]; }
-  var s121 = 0.0; if (is_active) { s121 = recurrent_state[recurrent_head_base + 121u * head_v_dim + vd]; }
-  var s122 = 0.0; if (is_active) { s122 = recurrent_state[recurrent_head_base + 122u * head_v_dim + vd]; }
-  var s123 = 0.0; if (is_active) { s123 = recurrent_state[recurrent_head_base + 123u * head_v_dim + vd]; }
-  var s124 = 0.0; if (is_active) { s124 = recurrent_state[recurrent_head_base + 124u * head_v_dim + vd]; }
-  var s125 = 0.0; if (is_active) { s125 = recurrent_state[recurrent_head_base + 125u * head_v_dim + vd]; }
-  var s126 = 0.0; if (is_active) { s126 = recurrent_state[recurrent_head_base + 126u * head_v_dim + vd]; }
-  var s127 = 0.0; if (is_active) { s127 = recurrent_state[recurrent_head_base + 127u * head_v_dim + vd]; }
+  var r0 = vec4<f32>(0.0); if (is_active) { r0 = vec4<f32>(recurrent_state[recurrent_head_base + 0u * head_v_dim + vd], recurrent_state[recurrent_head_base + 1u * head_v_dim + vd], recurrent_state[recurrent_head_base + 2u * head_v_dim + vd], recurrent_state[recurrent_head_base + 3u * head_v_dim + vd]); }
+  var r1 = vec4<f32>(0.0); if (is_active) { r1 = vec4<f32>(recurrent_state[recurrent_head_base + 4u * head_v_dim + vd], recurrent_state[recurrent_head_base + 5u * head_v_dim + vd], recurrent_state[recurrent_head_base + 6u * head_v_dim + vd], recurrent_state[recurrent_head_base + 7u * head_v_dim + vd]); }
+  var r2 = vec4<f32>(0.0); if (is_active) { r2 = vec4<f32>(recurrent_state[recurrent_head_base + 8u * head_v_dim + vd], recurrent_state[recurrent_head_base + 9u * head_v_dim + vd], recurrent_state[recurrent_head_base + 10u * head_v_dim + vd], recurrent_state[recurrent_head_base + 11u * head_v_dim + vd]); }
+  var r3 = vec4<f32>(0.0); if (is_active) { r3 = vec4<f32>(recurrent_state[recurrent_head_base + 12u * head_v_dim + vd], recurrent_state[recurrent_head_base + 13u * head_v_dim + vd], recurrent_state[recurrent_head_base + 14u * head_v_dim + vd], recurrent_state[recurrent_head_base + 15u * head_v_dim + vd]); }
+  var r4 = vec4<f32>(0.0); if (is_active) { r4 = vec4<f32>(recurrent_state[recurrent_head_base + 16u * head_v_dim + vd], recurrent_state[recurrent_head_base + 17u * head_v_dim + vd], recurrent_state[recurrent_head_base + 18u * head_v_dim + vd], recurrent_state[recurrent_head_base + 19u * head_v_dim + vd]); }
+  var r5 = vec4<f32>(0.0); if (is_active) { r5 = vec4<f32>(recurrent_state[recurrent_head_base + 20u * head_v_dim + vd], recurrent_state[recurrent_head_base + 21u * head_v_dim + vd], recurrent_state[recurrent_head_base + 22u * head_v_dim + vd], recurrent_state[recurrent_head_base + 23u * head_v_dim + vd]); }
+  var r6 = vec4<f32>(0.0); if (is_active) { r6 = vec4<f32>(recurrent_state[recurrent_head_base + 24u * head_v_dim + vd], recurrent_state[recurrent_head_base + 25u * head_v_dim + vd], recurrent_state[recurrent_head_base + 26u * head_v_dim + vd], recurrent_state[recurrent_head_base + 27u * head_v_dim + vd]); }
+  var r7 = vec4<f32>(0.0); if (is_active) { r7 = vec4<f32>(recurrent_state[recurrent_head_base + 28u * head_v_dim + vd], recurrent_state[recurrent_head_base + 29u * head_v_dim + vd], recurrent_state[recurrent_head_base + 30u * head_v_dim + vd], recurrent_state[recurrent_head_base + 31u * head_v_dim + vd]); }
+  var r8 = vec4<f32>(0.0); if (is_active) { r8 = vec4<f32>(recurrent_state[recurrent_head_base + 32u * head_v_dim + vd], recurrent_state[recurrent_head_base + 33u * head_v_dim + vd], recurrent_state[recurrent_head_base + 34u * head_v_dim + vd], recurrent_state[recurrent_head_base + 35u * head_v_dim + vd]); }
+  var r9 = vec4<f32>(0.0); if (is_active) { r9 = vec4<f32>(recurrent_state[recurrent_head_base + 36u * head_v_dim + vd], recurrent_state[recurrent_head_base + 37u * head_v_dim + vd], recurrent_state[recurrent_head_base + 38u * head_v_dim + vd], recurrent_state[recurrent_head_base + 39u * head_v_dim + vd]); }
+  var r10 = vec4<f32>(0.0); if (is_active) { r10 = vec4<f32>(recurrent_state[recurrent_head_base + 40u * head_v_dim + vd], recurrent_state[recurrent_head_base + 41u * head_v_dim + vd], recurrent_state[recurrent_head_base + 42u * head_v_dim + vd], recurrent_state[recurrent_head_base + 43u * head_v_dim + vd]); }
+  var r11 = vec4<f32>(0.0); if (is_active) { r11 = vec4<f32>(recurrent_state[recurrent_head_base + 44u * head_v_dim + vd], recurrent_state[recurrent_head_base + 45u * head_v_dim + vd], recurrent_state[recurrent_head_base + 46u * head_v_dim + vd], recurrent_state[recurrent_head_base + 47u * head_v_dim + vd]); }
+  var r12 = vec4<f32>(0.0); if (is_active) { r12 = vec4<f32>(recurrent_state[recurrent_head_base + 48u * head_v_dim + vd], recurrent_state[recurrent_head_base + 49u * head_v_dim + vd], recurrent_state[recurrent_head_base + 50u * head_v_dim + vd], recurrent_state[recurrent_head_base + 51u * head_v_dim + vd]); }
+  var r13 = vec4<f32>(0.0); if (is_active) { r13 = vec4<f32>(recurrent_state[recurrent_head_base + 52u * head_v_dim + vd], recurrent_state[recurrent_head_base + 53u * head_v_dim + vd], recurrent_state[recurrent_head_base + 54u * head_v_dim + vd], recurrent_state[recurrent_head_base + 55u * head_v_dim + vd]); }
+  var r14 = vec4<f32>(0.0); if (is_active) { r14 = vec4<f32>(recurrent_state[recurrent_head_base + 56u * head_v_dim + vd], recurrent_state[recurrent_head_base + 57u * head_v_dim + vd], recurrent_state[recurrent_head_base + 58u * head_v_dim + vd], recurrent_state[recurrent_head_base + 59u * head_v_dim + vd]); }
+  var r15 = vec4<f32>(0.0); if (is_active) { r15 = vec4<f32>(recurrent_state[recurrent_head_base + 60u * head_v_dim + vd], recurrent_state[recurrent_head_base + 61u * head_v_dim + vd], recurrent_state[recurrent_head_base + 62u * head_v_dim + vd], recurrent_state[recurrent_head_base + 63u * head_v_dim + vd]); }
+  var r16 = vec4<f32>(0.0); if (is_active) { r16 = vec4<f32>(recurrent_state[recurrent_head_base + 64u * head_v_dim + vd], recurrent_state[recurrent_head_base + 65u * head_v_dim + vd], recurrent_state[recurrent_head_base + 66u * head_v_dim + vd], recurrent_state[recurrent_head_base + 67u * head_v_dim + vd]); }
+  var r17 = vec4<f32>(0.0); if (is_active) { r17 = vec4<f32>(recurrent_state[recurrent_head_base + 68u * head_v_dim + vd], recurrent_state[recurrent_head_base + 69u * head_v_dim + vd], recurrent_state[recurrent_head_base + 70u * head_v_dim + vd], recurrent_state[recurrent_head_base + 71u * head_v_dim + vd]); }
+  var r18 = vec4<f32>(0.0); if (is_active) { r18 = vec4<f32>(recurrent_state[recurrent_head_base + 72u * head_v_dim + vd], recurrent_state[recurrent_head_base + 73u * head_v_dim + vd], recurrent_state[recurrent_head_base + 74u * head_v_dim + vd], recurrent_state[recurrent_head_base + 75u * head_v_dim + vd]); }
+  var r19 = vec4<f32>(0.0); if (is_active) { r19 = vec4<f32>(recurrent_state[recurrent_head_base + 76u * head_v_dim + vd], recurrent_state[recurrent_head_base + 77u * head_v_dim + vd], recurrent_state[recurrent_head_base + 78u * head_v_dim + vd], recurrent_state[recurrent_head_base + 79u * head_v_dim + vd]); }
+  var r20 = vec4<f32>(0.0); if (is_active) { r20 = vec4<f32>(recurrent_state[recurrent_head_base + 80u * head_v_dim + vd], recurrent_state[recurrent_head_base + 81u * head_v_dim + vd], recurrent_state[recurrent_head_base + 82u * head_v_dim + vd], recurrent_state[recurrent_head_base + 83u * head_v_dim + vd]); }
+  var r21 = vec4<f32>(0.0); if (is_active) { r21 = vec4<f32>(recurrent_state[recurrent_head_base + 84u * head_v_dim + vd], recurrent_state[recurrent_head_base + 85u * head_v_dim + vd], recurrent_state[recurrent_head_base + 86u * head_v_dim + vd], recurrent_state[recurrent_head_base + 87u * head_v_dim + vd]); }
+  var r22 = vec4<f32>(0.0); if (is_active) { r22 = vec4<f32>(recurrent_state[recurrent_head_base + 88u * head_v_dim + vd], recurrent_state[recurrent_head_base + 89u * head_v_dim + vd], recurrent_state[recurrent_head_base + 90u * head_v_dim + vd], recurrent_state[recurrent_head_base + 91u * head_v_dim + vd]); }
+  var r23 = vec4<f32>(0.0); if (is_active) { r23 = vec4<f32>(recurrent_state[recurrent_head_base + 92u * head_v_dim + vd], recurrent_state[recurrent_head_base + 93u * head_v_dim + vd], recurrent_state[recurrent_head_base + 94u * head_v_dim + vd], recurrent_state[recurrent_head_base + 95u * head_v_dim + vd]); }
+  var r24 = vec4<f32>(0.0); if (is_active) { r24 = vec4<f32>(recurrent_state[recurrent_head_base + 96u * head_v_dim + vd], recurrent_state[recurrent_head_base + 97u * head_v_dim + vd], recurrent_state[recurrent_head_base + 98u * head_v_dim + vd], recurrent_state[recurrent_head_base + 99u * head_v_dim + vd]); }
+  var r25 = vec4<f32>(0.0); if (is_active) { r25 = vec4<f32>(recurrent_state[recurrent_head_base + 100u * head_v_dim + vd], recurrent_state[recurrent_head_base + 101u * head_v_dim + vd], recurrent_state[recurrent_head_base + 102u * head_v_dim + vd], recurrent_state[recurrent_head_base + 103u * head_v_dim + vd]); }
+  var r26 = vec4<f32>(0.0); if (is_active) { r26 = vec4<f32>(recurrent_state[recurrent_head_base + 104u * head_v_dim + vd], recurrent_state[recurrent_head_base + 105u * head_v_dim + vd], recurrent_state[recurrent_head_base + 106u * head_v_dim + vd], recurrent_state[recurrent_head_base + 107u * head_v_dim + vd]); }
+  var r27 = vec4<f32>(0.0); if (is_active) { r27 = vec4<f32>(recurrent_state[recurrent_head_base + 108u * head_v_dim + vd], recurrent_state[recurrent_head_base + 109u * head_v_dim + vd], recurrent_state[recurrent_head_base + 110u * head_v_dim + vd], recurrent_state[recurrent_head_base + 111u * head_v_dim + vd]); }
+  var r28 = vec4<f32>(0.0); if (is_active) { r28 = vec4<f32>(recurrent_state[recurrent_head_base + 112u * head_v_dim + vd], recurrent_state[recurrent_head_base + 113u * head_v_dim + vd], recurrent_state[recurrent_head_base + 114u * head_v_dim + vd], recurrent_state[recurrent_head_base + 115u * head_v_dim + vd]); }
+  var r29 = vec4<f32>(0.0); if (is_active) { r29 = vec4<f32>(recurrent_state[recurrent_head_base + 116u * head_v_dim + vd], recurrent_state[recurrent_head_base + 117u * head_v_dim + vd], recurrent_state[recurrent_head_base + 118u * head_v_dim + vd], recurrent_state[recurrent_head_base + 119u * head_v_dim + vd]); }
+  var r30 = vec4<f32>(0.0); if (is_active) { r30 = vec4<f32>(recurrent_state[recurrent_head_base + 120u * head_v_dim + vd], recurrent_state[recurrent_head_base + 121u * head_v_dim + vd], recurrent_state[recurrent_head_base + 122u * head_v_dim + vd], recurrent_state[recurrent_head_base + 123u * head_v_dim + vd]); }
+  var r31 = vec4<f32>(0.0); if (is_active) { r31 = vec4<f32>(recurrent_state[recurrent_head_base + 124u * head_v_dim + vd], recurrent_state[recurrent_head_base + 125u * head_v_dim + vd], recurrent_state[recurrent_head_base + 126u * head_v_dim + vd], recurrent_state[recurrent_head_base + 127u * head_v_dim + vd]); }
 
   for (var token_idx: u32 = 0u; token_idx < params.num_tokens; token_idx = token_idx + 1u) {
     let conv_row_base = token_idx * params.conv_dim;
@@ -396,263 +300,263 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>,
     var kv_mem = 0.0;
     var out_value = 0.0;
     if (is_active) {
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 0u], k_norm_scale); s0 = s0 * g_exp; kv_mem = fma(s0, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 1u], k_norm_scale); s1 = s1 * g_exp; kv_mem = fma(s1, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 2u], k_norm_scale); s2 = s2 * g_exp; kv_mem = fma(s2, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 3u], k_norm_scale); s3 = s3 * g_exp; kv_mem = fma(s3, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 4u], k_norm_scale); s4 = s4 * g_exp; kv_mem = fma(s4, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 5u], k_norm_scale); s5 = s5 * g_exp; kv_mem = fma(s5, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 6u], k_norm_scale); s6 = s6 * g_exp; kv_mem = fma(s6, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 7u], k_norm_scale); s7 = s7 * g_exp; kv_mem = fma(s7, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 8u], k_norm_scale); s8 = s8 * g_exp; kv_mem = fma(s8, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 9u], k_norm_scale); s9 = s9 * g_exp; kv_mem = fma(s9, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 10u], k_norm_scale); s10 = s10 * g_exp; kv_mem = fma(s10, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 11u], k_norm_scale); s11 = s11 * g_exp; kv_mem = fma(s11, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 12u], k_norm_scale); s12 = s12 * g_exp; kv_mem = fma(s12, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 13u], k_norm_scale); s13 = s13 * g_exp; kv_mem = fma(s13, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 14u], k_norm_scale); s14 = s14 * g_exp; kv_mem = fma(s14, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 15u], k_norm_scale); s15 = s15 * g_exp; kv_mem = fma(s15, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 16u], k_norm_scale); s16 = s16 * g_exp; kv_mem = fma(s16, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 17u], k_norm_scale); s17 = s17 * g_exp; kv_mem = fma(s17, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 18u], k_norm_scale); s18 = s18 * g_exp; kv_mem = fma(s18, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 19u], k_norm_scale); s19 = s19 * g_exp; kv_mem = fma(s19, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 20u], k_norm_scale); s20 = s20 * g_exp; kv_mem = fma(s20, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 21u], k_norm_scale); s21 = s21 * g_exp; kv_mem = fma(s21, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 22u], k_norm_scale); s22 = s22 * g_exp; kv_mem = fma(s22, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 23u], k_norm_scale); s23 = s23 * g_exp; kv_mem = fma(s23, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 24u], k_norm_scale); s24 = s24 * g_exp; kv_mem = fma(s24, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 25u], k_norm_scale); s25 = s25 * g_exp; kv_mem = fma(s25, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 26u], k_norm_scale); s26 = s26 * g_exp; kv_mem = fma(s26, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 27u], k_norm_scale); s27 = s27 * g_exp; kv_mem = fma(s27, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 28u], k_norm_scale); s28 = s28 * g_exp; kv_mem = fma(s28, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 29u], k_norm_scale); s29 = s29 * g_exp; kv_mem = fma(s29, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 30u], k_norm_scale); s30 = s30 * g_exp; kv_mem = fma(s30, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 31u], k_norm_scale); s31 = s31 * g_exp; kv_mem = fma(s31, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 32u], k_norm_scale); s32 = s32 * g_exp; kv_mem = fma(s32, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 33u], k_norm_scale); s33 = s33 * g_exp; kv_mem = fma(s33, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 34u], k_norm_scale); s34 = s34 * g_exp; kv_mem = fma(s34, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 35u], k_norm_scale); s35 = s35 * g_exp; kv_mem = fma(s35, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 36u], k_norm_scale); s36 = s36 * g_exp; kv_mem = fma(s36, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 37u], k_norm_scale); s37 = s37 * g_exp; kv_mem = fma(s37, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 38u], k_norm_scale); s38 = s38 * g_exp; kv_mem = fma(s38, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 39u], k_norm_scale); s39 = s39 * g_exp; kv_mem = fma(s39, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 40u], k_norm_scale); s40 = s40 * g_exp; kv_mem = fma(s40, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 41u], k_norm_scale); s41 = s41 * g_exp; kv_mem = fma(s41, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 42u], k_norm_scale); s42 = s42 * g_exp; kv_mem = fma(s42, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 43u], k_norm_scale); s43 = s43 * g_exp; kv_mem = fma(s43, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 44u], k_norm_scale); s44 = s44 * g_exp; kv_mem = fma(s44, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 45u], k_norm_scale); s45 = s45 * g_exp; kv_mem = fma(s45, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 46u], k_norm_scale); s46 = s46 * g_exp; kv_mem = fma(s46, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 47u], k_norm_scale); s47 = s47 * g_exp; kv_mem = fma(s47, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 48u], k_norm_scale); s48 = s48 * g_exp; kv_mem = fma(s48, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 49u], k_norm_scale); s49 = s49 * g_exp; kv_mem = fma(s49, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 50u], k_norm_scale); s50 = s50 * g_exp; kv_mem = fma(s50, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 51u], k_norm_scale); s51 = s51 * g_exp; kv_mem = fma(s51, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 52u], k_norm_scale); s52 = s52 * g_exp; kv_mem = fma(s52, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 53u], k_norm_scale); s53 = s53 * g_exp; kv_mem = fma(s53, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 54u], k_norm_scale); s54 = s54 * g_exp; kv_mem = fma(s54, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 55u], k_norm_scale); s55 = s55 * g_exp; kv_mem = fma(s55, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 56u], k_norm_scale); s56 = s56 * g_exp; kv_mem = fma(s56, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 57u], k_norm_scale); s57 = s57 * g_exp; kv_mem = fma(s57, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 58u], k_norm_scale); s58 = s58 * g_exp; kv_mem = fma(s58, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 59u], k_norm_scale); s59 = s59 * g_exp; kv_mem = fma(s59, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 60u], k_norm_scale); s60 = s60 * g_exp; kv_mem = fma(s60, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 61u], k_norm_scale); s61 = s61 * g_exp; kv_mem = fma(s61, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 62u], k_norm_scale); s62 = s62 * g_exp; kv_mem = fma(s62, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 63u], k_norm_scale); s63 = s63 * g_exp; kv_mem = fma(s63, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 64u], k_norm_scale); s64 = s64 * g_exp; kv_mem = fma(s64, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 65u], k_norm_scale); s65 = s65 * g_exp; kv_mem = fma(s65, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 66u], k_norm_scale); s66 = s66 * g_exp; kv_mem = fma(s66, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 67u], k_norm_scale); s67 = s67 * g_exp; kv_mem = fma(s67, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 68u], k_norm_scale); s68 = s68 * g_exp; kv_mem = fma(s68, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 69u], k_norm_scale); s69 = s69 * g_exp; kv_mem = fma(s69, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 70u], k_norm_scale); s70 = s70 * g_exp; kv_mem = fma(s70, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 71u], k_norm_scale); s71 = s71 * g_exp; kv_mem = fma(s71, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 72u], k_norm_scale); s72 = s72 * g_exp; kv_mem = fma(s72, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 73u], k_norm_scale); s73 = s73 * g_exp; kv_mem = fma(s73, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 74u], k_norm_scale); s74 = s74 * g_exp; kv_mem = fma(s74, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 75u], k_norm_scale); s75 = s75 * g_exp; kv_mem = fma(s75, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 76u], k_norm_scale); s76 = s76 * g_exp; kv_mem = fma(s76, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 77u], k_norm_scale); s77 = s77 * g_exp; kv_mem = fma(s77, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 78u], k_norm_scale); s78 = s78 * g_exp; kv_mem = fma(s78, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 79u], k_norm_scale); s79 = s79 * g_exp; kv_mem = fma(s79, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 80u], k_norm_scale); s80 = s80 * g_exp; kv_mem = fma(s80, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 81u], k_norm_scale); s81 = s81 * g_exp; kv_mem = fma(s81, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 82u], k_norm_scale); s82 = s82 * g_exp; kv_mem = fma(s82, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 83u], k_norm_scale); s83 = s83 * g_exp; kv_mem = fma(s83, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 84u], k_norm_scale); s84 = s84 * g_exp; kv_mem = fma(s84, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 85u], k_norm_scale); s85 = s85 * g_exp; kv_mem = fma(s85, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 86u], k_norm_scale); s86 = s86 * g_exp; kv_mem = fma(s86, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 87u], k_norm_scale); s87 = s87 * g_exp; kv_mem = fma(s87, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 88u], k_norm_scale); s88 = s88 * g_exp; kv_mem = fma(s88, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 89u], k_norm_scale); s89 = s89 * g_exp; kv_mem = fma(s89, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 90u], k_norm_scale); s90 = s90 * g_exp; kv_mem = fma(s90, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 91u], k_norm_scale); s91 = s91 * g_exp; kv_mem = fma(s91, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 92u], k_norm_scale); s92 = s92 * g_exp; kv_mem = fma(s92, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 93u], k_norm_scale); s93 = s93 * g_exp; kv_mem = fma(s93, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 94u], k_norm_scale); s94 = s94 * g_exp; kv_mem = fma(s94, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 95u], k_norm_scale); s95 = s95 * g_exp; kv_mem = fma(s95, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 96u], k_norm_scale); s96 = s96 * g_exp; kv_mem = fma(s96, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 97u], k_norm_scale); s97 = s97 * g_exp; kv_mem = fma(s97, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 98u], k_norm_scale); s98 = s98 * g_exp; kv_mem = fma(s98, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 99u], k_norm_scale); s99 = s99 * g_exp; kv_mem = fma(s99, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 100u], k_norm_scale); s100 = s100 * g_exp; kv_mem = fma(s100, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 101u], k_norm_scale); s101 = s101 * g_exp; kv_mem = fma(s101, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 102u], k_norm_scale); s102 = s102 * g_exp; kv_mem = fma(s102, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 103u], k_norm_scale); s103 = s103 * g_exp; kv_mem = fma(s103, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 104u], k_norm_scale); s104 = s104 * g_exp; kv_mem = fma(s104, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 105u], k_norm_scale); s105 = s105 * g_exp; kv_mem = fma(s105, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 106u], k_norm_scale); s106 = s106 * g_exp; kv_mem = fma(s106, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 107u], k_norm_scale); s107 = s107 * g_exp; kv_mem = fma(s107, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 108u], k_norm_scale); s108 = s108 * g_exp; kv_mem = fma(s108, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 109u], k_norm_scale); s109 = s109 * g_exp; kv_mem = fma(s109, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 110u], k_norm_scale); s110 = s110 * g_exp; kv_mem = fma(s110, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 111u], k_norm_scale); s111 = s111 * g_exp; kv_mem = fma(s111, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 112u], k_norm_scale); s112 = s112 * g_exp; kv_mem = fma(s112, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 113u], k_norm_scale); s113 = s113 * g_exp; kv_mem = fma(s113, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 114u], k_norm_scale); s114 = s114 * g_exp; kv_mem = fma(s114, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 115u], k_norm_scale); s115 = s115 * g_exp; kv_mem = fma(s115, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 116u], k_norm_scale); s116 = s116 * g_exp; kv_mem = fma(s116, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 117u], k_norm_scale); s117 = s117 * g_exp; kv_mem = fma(s117, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 118u], k_norm_scale); s118 = s118 * g_exp; kv_mem = fma(s118, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 119u], k_norm_scale); s119 = s119 * g_exp; kv_mem = fma(s119, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 120u], k_norm_scale); s120 = s120 * g_exp; kv_mem = fma(s120, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 121u], k_norm_scale); s121 = s121 * g_exp; kv_mem = fma(s121, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 122u], k_norm_scale); s122 = s122 * g_exp; kv_mem = fma(s122, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 123u], k_norm_scale); s123 = s123 * g_exp; kv_mem = fma(s123, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 124u], k_norm_scale); s124 = s124 * g_exp; kv_mem = fma(s124, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 125u], k_norm_scale); s125 = s125 * g_exp; kv_mem = fma(s125, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 126u], k_norm_scale); s126 = s126 * g_exp; kv_mem = fma(s126, k_normed, kv_mem); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 127u], k_norm_scale); s127 = s127 * g_exp; kv_mem = fma(s127, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 0u], k_norm_scale); r0.x = r0.x * g_exp; kv_mem = fma(r0.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 1u], k_norm_scale); r0.y = r0.y * g_exp; kv_mem = fma(r0.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 2u], k_norm_scale); r0.z = r0.z * g_exp; kv_mem = fma(r0.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 3u], k_norm_scale); r0.w = r0.w * g_exp; kv_mem = fma(r0.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 4u], k_norm_scale); r1.x = r1.x * g_exp; kv_mem = fma(r1.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 5u], k_norm_scale); r1.y = r1.y * g_exp; kv_mem = fma(r1.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 6u], k_norm_scale); r1.z = r1.z * g_exp; kv_mem = fma(r1.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 7u], k_norm_scale); r1.w = r1.w * g_exp; kv_mem = fma(r1.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 8u], k_norm_scale); r2.x = r2.x * g_exp; kv_mem = fma(r2.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 9u], k_norm_scale); r2.y = r2.y * g_exp; kv_mem = fma(r2.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 10u], k_norm_scale); r2.z = r2.z * g_exp; kv_mem = fma(r2.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 11u], k_norm_scale); r2.w = r2.w * g_exp; kv_mem = fma(r2.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 12u], k_norm_scale); r3.x = r3.x * g_exp; kv_mem = fma(r3.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 13u], k_norm_scale); r3.y = r3.y * g_exp; kv_mem = fma(r3.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 14u], k_norm_scale); r3.z = r3.z * g_exp; kv_mem = fma(r3.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 15u], k_norm_scale); r3.w = r3.w * g_exp; kv_mem = fma(r3.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 16u], k_norm_scale); r4.x = r4.x * g_exp; kv_mem = fma(r4.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 17u], k_norm_scale); r4.y = r4.y * g_exp; kv_mem = fma(r4.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 18u], k_norm_scale); r4.z = r4.z * g_exp; kv_mem = fma(r4.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 19u], k_norm_scale); r4.w = r4.w * g_exp; kv_mem = fma(r4.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 20u], k_norm_scale); r5.x = r5.x * g_exp; kv_mem = fma(r5.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 21u], k_norm_scale); r5.y = r5.y * g_exp; kv_mem = fma(r5.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 22u], k_norm_scale); r5.z = r5.z * g_exp; kv_mem = fma(r5.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 23u], k_norm_scale); r5.w = r5.w * g_exp; kv_mem = fma(r5.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 24u], k_norm_scale); r6.x = r6.x * g_exp; kv_mem = fma(r6.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 25u], k_norm_scale); r6.y = r6.y * g_exp; kv_mem = fma(r6.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 26u], k_norm_scale); r6.z = r6.z * g_exp; kv_mem = fma(r6.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 27u], k_norm_scale); r6.w = r6.w * g_exp; kv_mem = fma(r6.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 28u], k_norm_scale); r7.x = r7.x * g_exp; kv_mem = fma(r7.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 29u], k_norm_scale); r7.y = r7.y * g_exp; kv_mem = fma(r7.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 30u], k_norm_scale); r7.z = r7.z * g_exp; kv_mem = fma(r7.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 31u], k_norm_scale); r7.w = r7.w * g_exp; kv_mem = fma(r7.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 32u], k_norm_scale); r8.x = r8.x * g_exp; kv_mem = fma(r8.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 33u], k_norm_scale); r8.y = r8.y * g_exp; kv_mem = fma(r8.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 34u], k_norm_scale); r8.z = r8.z * g_exp; kv_mem = fma(r8.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 35u], k_norm_scale); r8.w = r8.w * g_exp; kv_mem = fma(r8.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 36u], k_norm_scale); r9.x = r9.x * g_exp; kv_mem = fma(r9.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 37u], k_norm_scale); r9.y = r9.y * g_exp; kv_mem = fma(r9.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 38u], k_norm_scale); r9.z = r9.z * g_exp; kv_mem = fma(r9.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 39u], k_norm_scale); r9.w = r9.w * g_exp; kv_mem = fma(r9.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 40u], k_norm_scale); r10.x = r10.x * g_exp; kv_mem = fma(r10.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 41u], k_norm_scale); r10.y = r10.y * g_exp; kv_mem = fma(r10.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 42u], k_norm_scale); r10.z = r10.z * g_exp; kv_mem = fma(r10.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 43u], k_norm_scale); r10.w = r10.w * g_exp; kv_mem = fma(r10.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 44u], k_norm_scale); r11.x = r11.x * g_exp; kv_mem = fma(r11.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 45u], k_norm_scale); r11.y = r11.y * g_exp; kv_mem = fma(r11.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 46u], k_norm_scale); r11.z = r11.z * g_exp; kv_mem = fma(r11.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 47u], k_norm_scale); r11.w = r11.w * g_exp; kv_mem = fma(r11.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 48u], k_norm_scale); r12.x = r12.x * g_exp; kv_mem = fma(r12.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 49u], k_norm_scale); r12.y = r12.y * g_exp; kv_mem = fma(r12.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 50u], k_norm_scale); r12.z = r12.z * g_exp; kv_mem = fma(r12.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 51u], k_norm_scale); r12.w = r12.w * g_exp; kv_mem = fma(r12.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 52u], k_norm_scale); r13.x = r13.x * g_exp; kv_mem = fma(r13.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 53u], k_norm_scale); r13.y = r13.y * g_exp; kv_mem = fma(r13.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 54u], k_norm_scale); r13.z = r13.z * g_exp; kv_mem = fma(r13.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 55u], k_norm_scale); r13.w = r13.w * g_exp; kv_mem = fma(r13.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 56u], k_norm_scale); r14.x = r14.x * g_exp; kv_mem = fma(r14.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 57u], k_norm_scale); r14.y = r14.y * g_exp; kv_mem = fma(r14.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 58u], k_norm_scale); r14.z = r14.z * g_exp; kv_mem = fma(r14.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 59u], k_norm_scale); r14.w = r14.w * g_exp; kv_mem = fma(r14.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 60u], k_norm_scale); r15.x = r15.x * g_exp; kv_mem = fma(r15.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 61u], k_norm_scale); r15.y = r15.y * g_exp; kv_mem = fma(r15.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 62u], k_norm_scale); r15.z = r15.z * g_exp; kv_mem = fma(r15.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 63u], k_norm_scale); r15.w = r15.w * g_exp; kv_mem = fma(r15.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 64u], k_norm_scale); r16.x = r16.x * g_exp; kv_mem = fma(r16.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 65u], k_norm_scale); r16.y = r16.y * g_exp; kv_mem = fma(r16.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 66u], k_norm_scale); r16.z = r16.z * g_exp; kv_mem = fma(r16.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 67u], k_norm_scale); r16.w = r16.w * g_exp; kv_mem = fma(r16.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 68u], k_norm_scale); r17.x = r17.x * g_exp; kv_mem = fma(r17.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 69u], k_norm_scale); r17.y = r17.y * g_exp; kv_mem = fma(r17.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 70u], k_norm_scale); r17.z = r17.z * g_exp; kv_mem = fma(r17.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 71u], k_norm_scale); r17.w = r17.w * g_exp; kv_mem = fma(r17.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 72u], k_norm_scale); r18.x = r18.x * g_exp; kv_mem = fma(r18.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 73u], k_norm_scale); r18.y = r18.y * g_exp; kv_mem = fma(r18.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 74u], k_norm_scale); r18.z = r18.z * g_exp; kv_mem = fma(r18.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 75u], k_norm_scale); r18.w = r18.w * g_exp; kv_mem = fma(r18.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 76u], k_norm_scale); r19.x = r19.x * g_exp; kv_mem = fma(r19.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 77u], k_norm_scale); r19.y = r19.y * g_exp; kv_mem = fma(r19.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 78u], k_norm_scale); r19.z = r19.z * g_exp; kv_mem = fma(r19.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 79u], k_norm_scale); r19.w = r19.w * g_exp; kv_mem = fma(r19.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 80u], k_norm_scale); r20.x = r20.x * g_exp; kv_mem = fma(r20.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 81u], k_norm_scale); r20.y = r20.y * g_exp; kv_mem = fma(r20.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 82u], k_norm_scale); r20.z = r20.z * g_exp; kv_mem = fma(r20.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 83u], k_norm_scale); r20.w = r20.w * g_exp; kv_mem = fma(r20.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 84u], k_norm_scale); r21.x = r21.x * g_exp; kv_mem = fma(r21.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 85u], k_norm_scale); r21.y = r21.y * g_exp; kv_mem = fma(r21.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 86u], k_norm_scale); r21.z = r21.z * g_exp; kv_mem = fma(r21.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 87u], k_norm_scale); r21.w = r21.w * g_exp; kv_mem = fma(r21.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 88u], k_norm_scale); r22.x = r22.x * g_exp; kv_mem = fma(r22.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 89u], k_norm_scale); r22.y = r22.y * g_exp; kv_mem = fma(r22.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 90u], k_norm_scale); r22.z = r22.z * g_exp; kv_mem = fma(r22.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 91u], k_norm_scale); r22.w = r22.w * g_exp; kv_mem = fma(r22.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 92u], k_norm_scale); r23.x = r23.x * g_exp; kv_mem = fma(r23.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 93u], k_norm_scale); r23.y = r23.y * g_exp; kv_mem = fma(r23.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 94u], k_norm_scale); r23.z = r23.z * g_exp; kv_mem = fma(r23.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 95u], k_norm_scale); r23.w = r23.w * g_exp; kv_mem = fma(r23.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 96u], k_norm_scale); r24.x = r24.x * g_exp; kv_mem = fma(r24.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 97u], k_norm_scale); r24.y = r24.y * g_exp; kv_mem = fma(r24.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 98u], k_norm_scale); r24.z = r24.z * g_exp; kv_mem = fma(r24.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 99u], k_norm_scale); r24.w = r24.w * g_exp; kv_mem = fma(r24.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 100u], k_norm_scale); r25.x = r25.x * g_exp; kv_mem = fma(r25.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 101u], k_norm_scale); r25.y = r25.y * g_exp; kv_mem = fma(r25.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 102u], k_norm_scale); r25.z = r25.z * g_exp; kv_mem = fma(r25.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 103u], k_norm_scale); r25.w = r25.w * g_exp; kv_mem = fma(r25.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 104u], k_norm_scale); r26.x = r26.x * g_exp; kv_mem = fma(r26.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 105u], k_norm_scale); r26.y = r26.y * g_exp; kv_mem = fma(r26.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 106u], k_norm_scale); r26.z = r26.z * g_exp; kv_mem = fma(r26.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 107u], k_norm_scale); r26.w = r26.w * g_exp; kv_mem = fma(r26.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 108u], k_norm_scale); r27.x = r27.x * g_exp; kv_mem = fma(r27.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 109u], k_norm_scale); r27.y = r27.y * g_exp; kv_mem = fma(r27.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 110u], k_norm_scale); r27.z = r27.z * g_exp; kv_mem = fma(r27.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 111u], k_norm_scale); r27.w = r27.w * g_exp; kv_mem = fma(r27.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 112u], k_norm_scale); r28.x = r28.x * g_exp; kv_mem = fma(r28.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 113u], k_norm_scale); r28.y = r28.y * g_exp; kv_mem = fma(r28.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 114u], k_norm_scale); r28.z = r28.z * g_exp; kv_mem = fma(r28.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 115u], k_norm_scale); r28.w = r28.w * g_exp; kv_mem = fma(r28.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 116u], k_norm_scale); r29.x = r29.x * g_exp; kv_mem = fma(r29.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 117u], k_norm_scale); r29.y = r29.y * g_exp; kv_mem = fma(r29.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 118u], k_norm_scale); r29.z = r29.z * g_exp; kv_mem = fma(r29.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 119u], k_norm_scale); r29.w = r29.w * g_exp; kv_mem = fma(r29.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 120u], k_norm_scale); r30.x = r30.x * g_exp; kv_mem = fma(r30.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 121u], k_norm_scale); r30.y = r30.y * g_exp; kv_mem = fma(r30.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 122u], k_norm_scale); r30.z = r30.z * g_exp; kv_mem = fma(r30.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 123u], k_norm_scale); r30.w = r30.w * g_exp; kv_mem = fma(r30.w, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 124u], k_norm_scale); r31.x = r31.x * g_exp; kv_mem = fma(r31.x, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 125u], k_norm_scale); r31.y = r31.y * g_exp; kv_mem = fma(r31.y, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 126u], k_norm_scale); r31.z = r31.z * g_exp; kv_mem = fma(r31.z, k_normed, kv_mem); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 127u], k_norm_scale); r31.w = r31.w * g_exp; kv_mem = fma(r31.w, k_normed, kv_mem); }
       let delta = multiply_ordered(conv_out[conv_row_base + v_base + vd] - kv_mem, beta);
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 0u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 0u], q_norm_scale, 0.0); s0 = fma(k_normed, delta, s0); out_value = fma(s0, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 1u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 1u], q_norm_scale, 0.0); s1 = fma(k_normed, delta, s1); out_value = fma(s1, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 2u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 2u], q_norm_scale, 0.0); s2 = fma(k_normed, delta, s2); out_value = fma(s2, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 3u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 3u], q_norm_scale, 0.0); s3 = fma(k_normed, delta, s3); out_value = fma(s3, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 4u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 4u], q_norm_scale, 0.0); s4 = fma(k_normed, delta, s4); out_value = fma(s4, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 5u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 5u], q_norm_scale, 0.0); s5 = fma(k_normed, delta, s5); out_value = fma(s5, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 6u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 6u], q_norm_scale, 0.0); s6 = fma(k_normed, delta, s6); out_value = fma(s6, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 7u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 7u], q_norm_scale, 0.0); s7 = fma(k_normed, delta, s7); out_value = fma(s7, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 8u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 8u], q_norm_scale, 0.0); s8 = fma(k_normed, delta, s8); out_value = fma(s8, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 9u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 9u], q_norm_scale, 0.0); s9 = fma(k_normed, delta, s9); out_value = fma(s9, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 10u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 10u], q_norm_scale, 0.0); s10 = fma(k_normed, delta, s10); out_value = fma(s10, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 11u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 11u], q_norm_scale, 0.0); s11 = fma(k_normed, delta, s11); out_value = fma(s11, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 12u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 12u], q_norm_scale, 0.0); s12 = fma(k_normed, delta, s12); out_value = fma(s12, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 13u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 13u], q_norm_scale, 0.0); s13 = fma(k_normed, delta, s13); out_value = fma(s13, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 14u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 14u], q_norm_scale, 0.0); s14 = fma(k_normed, delta, s14); out_value = fma(s14, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 15u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 15u], q_norm_scale, 0.0); s15 = fma(k_normed, delta, s15); out_value = fma(s15, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 16u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 16u], q_norm_scale, 0.0); s16 = fma(k_normed, delta, s16); out_value = fma(s16, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 17u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 17u], q_norm_scale, 0.0); s17 = fma(k_normed, delta, s17); out_value = fma(s17, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 18u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 18u], q_norm_scale, 0.0); s18 = fma(k_normed, delta, s18); out_value = fma(s18, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 19u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 19u], q_norm_scale, 0.0); s19 = fma(k_normed, delta, s19); out_value = fma(s19, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 20u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 20u], q_norm_scale, 0.0); s20 = fma(k_normed, delta, s20); out_value = fma(s20, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 21u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 21u], q_norm_scale, 0.0); s21 = fma(k_normed, delta, s21); out_value = fma(s21, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 22u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 22u], q_norm_scale, 0.0); s22 = fma(k_normed, delta, s22); out_value = fma(s22, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 23u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 23u], q_norm_scale, 0.0); s23 = fma(k_normed, delta, s23); out_value = fma(s23, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 24u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 24u], q_norm_scale, 0.0); s24 = fma(k_normed, delta, s24); out_value = fma(s24, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 25u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 25u], q_norm_scale, 0.0); s25 = fma(k_normed, delta, s25); out_value = fma(s25, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 26u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 26u], q_norm_scale, 0.0); s26 = fma(k_normed, delta, s26); out_value = fma(s26, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 27u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 27u], q_norm_scale, 0.0); s27 = fma(k_normed, delta, s27); out_value = fma(s27, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 28u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 28u], q_norm_scale, 0.0); s28 = fma(k_normed, delta, s28); out_value = fma(s28, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 29u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 29u], q_norm_scale, 0.0); s29 = fma(k_normed, delta, s29); out_value = fma(s29, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 30u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 30u], q_norm_scale, 0.0); s30 = fma(k_normed, delta, s30); out_value = fma(s30, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 31u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 31u], q_norm_scale, 0.0); s31 = fma(k_normed, delta, s31); out_value = fma(s31, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 32u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 32u], q_norm_scale, 0.0); s32 = fma(k_normed, delta, s32); out_value = fma(s32, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 33u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 33u], q_norm_scale, 0.0); s33 = fma(k_normed, delta, s33); out_value = fma(s33, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 34u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 34u], q_norm_scale, 0.0); s34 = fma(k_normed, delta, s34); out_value = fma(s34, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 35u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 35u], q_norm_scale, 0.0); s35 = fma(k_normed, delta, s35); out_value = fma(s35, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 36u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 36u], q_norm_scale, 0.0); s36 = fma(k_normed, delta, s36); out_value = fma(s36, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 37u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 37u], q_norm_scale, 0.0); s37 = fma(k_normed, delta, s37); out_value = fma(s37, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 38u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 38u], q_norm_scale, 0.0); s38 = fma(k_normed, delta, s38); out_value = fma(s38, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 39u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 39u], q_norm_scale, 0.0); s39 = fma(k_normed, delta, s39); out_value = fma(s39, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 40u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 40u], q_norm_scale, 0.0); s40 = fma(k_normed, delta, s40); out_value = fma(s40, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 41u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 41u], q_norm_scale, 0.0); s41 = fma(k_normed, delta, s41); out_value = fma(s41, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 42u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 42u], q_norm_scale, 0.0); s42 = fma(k_normed, delta, s42); out_value = fma(s42, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 43u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 43u], q_norm_scale, 0.0); s43 = fma(k_normed, delta, s43); out_value = fma(s43, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 44u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 44u], q_norm_scale, 0.0); s44 = fma(k_normed, delta, s44); out_value = fma(s44, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 45u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 45u], q_norm_scale, 0.0); s45 = fma(k_normed, delta, s45); out_value = fma(s45, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 46u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 46u], q_norm_scale, 0.0); s46 = fma(k_normed, delta, s46); out_value = fma(s46, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 47u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 47u], q_norm_scale, 0.0); s47 = fma(k_normed, delta, s47); out_value = fma(s47, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 48u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 48u], q_norm_scale, 0.0); s48 = fma(k_normed, delta, s48); out_value = fma(s48, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 49u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 49u], q_norm_scale, 0.0); s49 = fma(k_normed, delta, s49); out_value = fma(s49, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 50u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 50u], q_norm_scale, 0.0); s50 = fma(k_normed, delta, s50); out_value = fma(s50, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 51u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 51u], q_norm_scale, 0.0); s51 = fma(k_normed, delta, s51); out_value = fma(s51, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 52u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 52u], q_norm_scale, 0.0); s52 = fma(k_normed, delta, s52); out_value = fma(s52, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 53u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 53u], q_norm_scale, 0.0); s53 = fma(k_normed, delta, s53); out_value = fma(s53, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 54u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 54u], q_norm_scale, 0.0); s54 = fma(k_normed, delta, s54); out_value = fma(s54, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 55u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 55u], q_norm_scale, 0.0); s55 = fma(k_normed, delta, s55); out_value = fma(s55, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 56u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 56u], q_norm_scale, 0.0); s56 = fma(k_normed, delta, s56); out_value = fma(s56, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 57u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 57u], q_norm_scale, 0.0); s57 = fma(k_normed, delta, s57); out_value = fma(s57, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 58u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 58u], q_norm_scale, 0.0); s58 = fma(k_normed, delta, s58); out_value = fma(s58, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 59u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 59u], q_norm_scale, 0.0); s59 = fma(k_normed, delta, s59); out_value = fma(s59, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 60u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 60u], q_norm_scale, 0.0); s60 = fma(k_normed, delta, s60); out_value = fma(s60, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 61u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 61u], q_norm_scale, 0.0); s61 = fma(k_normed, delta, s61); out_value = fma(s61, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 62u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 62u], q_norm_scale, 0.0); s62 = fma(k_normed, delta, s62); out_value = fma(s62, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 63u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 63u], q_norm_scale, 0.0); s63 = fma(k_normed, delta, s63); out_value = fma(s63, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 64u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 64u], q_norm_scale, 0.0); s64 = fma(k_normed, delta, s64); out_value = fma(s64, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 65u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 65u], q_norm_scale, 0.0); s65 = fma(k_normed, delta, s65); out_value = fma(s65, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 66u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 66u], q_norm_scale, 0.0); s66 = fma(k_normed, delta, s66); out_value = fma(s66, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 67u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 67u], q_norm_scale, 0.0); s67 = fma(k_normed, delta, s67); out_value = fma(s67, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 68u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 68u], q_norm_scale, 0.0); s68 = fma(k_normed, delta, s68); out_value = fma(s68, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 69u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 69u], q_norm_scale, 0.0); s69 = fma(k_normed, delta, s69); out_value = fma(s69, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 70u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 70u], q_norm_scale, 0.0); s70 = fma(k_normed, delta, s70); out_value = fma(s70, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 71u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 71u], q_norm_scale, 0.0); s71 = fma(k_normed, delta, s71); out_value = fma(s71, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 72u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 72u], q_norm_scale, 0.0); s72 = fma(k_normed, delta, s72); out_value = fma(s72, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 73u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 73u], q_norm_scale, 0.0); s73 = fma(k_normed, delta, s73); out_value = fma(s73, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 74u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 74u], q_norm_scale, 0.0); s74 = fma(k_normed, delta, s74); out_value = fma(s74, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 75u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 75u], q_norm_scale, 0.0); s75 = fma(k_normed, delta, s75); out_value = fma(s75, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 76u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 76u], q_norm_scale, 0.0); s76 = fma(k_normed, delta, s76); out_value = fma(s76, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 77u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 77u], q_norm_scale, 0.0); s77 = fma(k_normed, delta, s77); out_value = fma(s77, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 78u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 78u], q_norm_scale, 0.0); s78 = fma(k_normed, delta, s78); out_value = fma(s78, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 79u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 79u], q_norm_scale, 0.0); s79 = fma(k_normed, delta, s79); out_value = fma(s79, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 80u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 80u], q_norm_scale, 0.0); s80 = fma(k_normed, delta, s80); out_value = fma(s80, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 81u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 81u], q_norm_scale, 0.0); s81 = fma(k_normed, delta, s81); out_value = fma(s81, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 82u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 82u], q_norm_scale, 0.0); s82 = fma(k_normed, delta, s82); out_value = fma(s82, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 83u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 83u], q_norm_scale, 0.0); s83 = fma(k_normed, delta, s83); out_value = fma(s83, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 84u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 84u], q_norm_scale, 0.0); s84 = fma(k_normed, delta, s84); out_value = fma(s84, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 85u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 85u], q_norm_scale, 0.0); s85 = fma(k_normed, delta, s85); out_value = fma(s85, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 86u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 86u], q_norm_scale, 0.0); s86 = fma(k_normed, delta, s86); out_value = fma(s86, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 87u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 87u], q_norm_scale, 0.0); s87 = fma(k_normed, delta, s87); out_value = fma(s87, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 88u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 88u], q_norm_scale, 0.0); s88 = fma(k_normed, delta, s88); out_value = fma(s88, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 89u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 89u], q_norm_scale, 0.0); s89 = fma(k_normed, delta, s89); out_value = fma(s89, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 90u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 90u], q_norm_scale, 0.0); s90 = fma(k_normed, delta, s90); out_value = fma(s90, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 91u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 91u], q_norm_scale, 0.0); s91 = fma(k_normed, delta, s91); out_value = fma(s91, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 92u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 92u], q_norm_scale, 0.0); s92 = fma(k_normed, delta, s92); out_value = fma(s92, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 93u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 93u], q_norm_scale, 0.0); s93 = fma(k_normed, delta, s93); out_value = fma(s93, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 94u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 94u], q_norm_scale, 0.0); s94 = fma(k_normed, delta, s94); out_value = fma(s94, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 95u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 95u], q_norm_scale, 0.0); s95 = fma(k_normed, delta, s95); out_value = fma(s95, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 96u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 96u], q_norm_scale, 0.0); s96 = fma(k_normed, delta, s96); out_value = fma(s96, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 97u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 97u], q_norm_scale, 0.0); s97 = fma(k_normed, delta, s97); out_value = fma(s97, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 98u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 98u], q_norm_scale, 0.0); s98 = fma(k_normed, delta, s98); out_value = fma(s98, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 99u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 99u], q_norm_scale, 0.0); s99 = fma(k_normed, delta, s99); out_value = fma(s99, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 100u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 100u], q_norm_scale, 0.0); s100 = fma(k_normed, delta, s100); out_value = fma(s100, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 101u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 101u], q_norm_scale, 0.0); s101 = fma(k_normed, delta, s101); out_value = fma(s101, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 102u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 102u], q_norm_scale, 0.0); s102 = fma(k_normed, delta, s102); out_value = fma(s102, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 103u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 103u], q_norm_scale, 0.0); s103 = fma(k_normed, delta, s103); out_value = fma(s103, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 104u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 104u], q_norm_scale, 0.0); s104 = fma(k_normed, delta, s104); out_value = fma(s104, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 105u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 105u], q_norm_scale, 0.0); s105 = fma(k_normed, delta, s105); out_value = fma(s105, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 106u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 106u], q_norm_scale, 0.0); s106 = fma(k_normed, delta, s106); out_value = fma(s106, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 107u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 107u], q_norm_scale, 0.0); s107 = fma(k_normed, delta, s107); out_value = fma(s107, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 108u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 108u], q_norm_scale, 0.0); s108 = fma(k_normed, delta, s108); out_value = fma(s108, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 109u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 109u], q_norm_scale, 0.0); s109 = fma(k_normed, delta, s109); out_value = fma(s109, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 110u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 110u], q_norm_scale, 0.0); s110 = fma(k_normed, delta, s110); out_value = fma(s110, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 111u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 111u], q_norm_scale, 0.0); s111 = fma(k_normed, delta, s111); out_value = fma(s111, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 112u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 112u], q_norm_scale, 0.0); s112 = fma(k_normed, delta, s112); out_value = fma(s112, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 113u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 113u], q_norm_scale, 0.0); s113 = fma(k_normed, delta, s113); out_value = fma(s113, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 114u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 114u], q_norm_scale, 0.0); s114 = fma(k_normed, delta, s114); out_value = fma(s114, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 115u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 115u], q_norm_scale, 0.0); s115 = fma(k_normed, delta, s115); out_value = fma(s115, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 116u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 116u], q_norm_scale, 0.0); s116 = fma(k_normed, delta, s116); out_value = fma(s116, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 117u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 117u], q_norm_scale, 0.0); s117 = fma(k_normed, delta, s117); out_value = fma(s117, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 118u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 118u], q_norm_scale, 0.0); s118 = fma(k_normed, delta, s118); out_value = fma(s118, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 119u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 119u], q_norm_scale, 0.0); s119 = fma(k_normed, delta, s119); out_value = fma(s119, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 120u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 120u], q_norm_scale, 0.0); s120 = fma(k_normed, delta, s120); out_value = fma(s120, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 121u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 121u], q_norm_scale, 0.0); s121 = fma(k_normed, delta, s121); out_value = fma(s121, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 122u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 122u], q_norm_scale, 0.0); s122 = fma(k_normed, delta, s122); out_value = fma(s122, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 123u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 123u], q_norm_scale, 0.0); s123 = fma(k_normed, delta, s123); out_value = fma(s123, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 124u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 124u], q_norm_scale, 0.0); s124 = fma(k_normed, delta, s124); out_value = fma(s124, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 125u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 125u], q_norm_scale, 0.0); s125 = fma(k_normed, delta, s125); out_value = fma(s125, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 126u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 126u], q_norm_scale, 0.0); s126 = fma(k_normed, delta, s126); out_value = fma(s126, q_normed, out_value); }
-      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 127u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 127u], q_norm_scale, 0.0); s127 = fma(k_normed, delta, s127); out_value = fma(s127, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 0u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 0u], q_norm_scale, 0.0); r0.x = fma(k_normed, delta, r0.x); out_value = fma(r0.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 1u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 1u], q_norm_scale, 0.0); r0.y = fma(k_normed, delta, r0.y); out_value = fma(r0.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 2u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 2u], q_norm_scale, 0.0); r0.z = fma(k_normed, delta, r0.z); out_value = fma(r0.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 3u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 3u], q_norm_scale, 0.0); r0.w = fma(k_normed, delta, r0.w); out_value = fma(r0.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 4u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 4u], q_norm_scale, 0.0); r1.x = fma(k_normed, delta, r1.x); out_value = fma(r1.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 5u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 5u], q_norm_scale, 0.0); r1.y = fma(k_normed, delta, r1.y); out_value = fma(r1.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 6u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 6u], q_norm_scale, 0.0); r1.z = fma(k_normed, delta, r1.z); out_value = fma(r1.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 7u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 7u], q_norm_scale, 0.0); r1.w = fma(k_normed, delta, r1.w); out_value = fma(r1.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 8u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 8u], q_norm_scale, 0.0); r2.x = fma(k_normed, delta, r2.x); out_value = fma(r2.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 9u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 9u], q_norm_scale, 0.0); r2.y = fma(k_normed, delta, r2.y); out_value = fma(r2.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 10u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 10u], q_norm_scale, 0.0); r2.z = fma(k_normed, delta, r2.z); out_value = fma(r2.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 11u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 11u], q_norm_scale, 0.0); r2.w = fma(k_normed, delta, r2.w); out_value = fma(r2.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 12u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 12u], q_norm_scale, 0.0); r3.x = fma(k_normed, delta, r3.x); out_value = fma(r3.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 13u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 13u], q_norm_scale, 0.0); r3.y = fma(k_normed, delta, r3.y); out_value = fma(r3.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 14u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 14u], q_norm_scale, 0.0); r3.z = fma(k_normed, delta, r3.z); out_value = fma(r3.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 15u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 15u], q_norm_scale, 0.0); r3.w = fma(k_normed, delta, r3.w); out_value = fma(r3.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 16u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 16u], q_norm_scale, 0.0); r4.x = fma(k_normed, delta, r4.x); out_value = fma(r4.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 17u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 17u], q_norm_scale, 0.0); r4.y = fma(k_normed, delta, r4.y); out_value = fma(r4.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 18u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 18u], q_norm_scale, 0.0); r4.z = fma(k_normed, delta, r4.z); out_value = fma(r4.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 19u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 19u], q_norm_scale, 0.0); r4.w = fma(k_normed, delta, r4.w); out_value = fma(r4.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 20u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 20u], q_norm_scale, 0.0); r5.x = fma(k_normed, delta, r5.x); out_value = fma(r5.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 21u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 21u], q_norm_scale, 0.0); r5.y = fma(k_normed, delta, r5.y); out_value = fma(r5.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 22u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 22u], q_norm_scale, 0.0); r5.z = fma(k_normed, delta, r5.z); out_value = fma(r5.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 23u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 23u], q_norm_scale, 0.0); r5.w = fma(k_normed, delta, r5.w); out_value = fma(r5.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 24u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 24u], q_norm_scale, 0.0); r6.x = fma(k_normed, delta, r6.x); out_value = fma(r6.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 25u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 25u], q_norm_scale, 0.0); r6.y = fma(k_normed, delta, r6.y); out_value = fma(r6.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 26u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 26u], q_norm_scale, 0.0); r6.z = fma(k_normed, delta, r6.z); out_value = fma(r6.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 27u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 27u], q_norm_scale, 0.0); r6.w = fma(k_normed, delta, r6.w); out_value = fma(r6.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 28u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 28u], q_norm_scale, 0.0); r7.x = fma(k_normed, delta, r7.x); out_value = fma(r7.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 29u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 29u], q_norm_scale, 0.0); r7.y = fma(k_normed, delta, r7.y); out_value = fma(r7.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 30u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 30u], q_norm_scale, 0.0); r7.z = fma(k_normed, delta, r7.z); out_value = fma(r7.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 31u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 31u], q_norm_scale, 0.0); r7.w = fma(k_normed, delta, r7.w); out_value = fma(r7.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 32u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 32u], q_norm_scale, 0.0); r8.x = fma(k_normed, delta, r8.x); out_value = fma(r8.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 33u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 33u], q_norm_scale, 0.0); r8.y = fma(k_normed, delta, r8.y); out_value = fma(r8.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 34u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 34u], q_norm_scale, 0.0); r8.z = fma(k_normed, delta, r8.z); out_value = fma(r8.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 35u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 35u], q_norm_scale, 0.0); r8.w = fma(k_normed, delta, r8.w); out_value = fma(r8.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 36u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 36u], q_norm_scale, 0.0); r9.x = fma(k_normed, delta, r9.x); out_value = fma(r9.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 37u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 37u], q_norm_scale, 0.0); r9.y = fma(k_normed, delta, r9.y); out_value = fma(r9.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 38u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 38u], q_norm_scale, 0.0); r9.z = fma(k_normed, delta, r9.z); out_value = fma(r9.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 39u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 39u], q_norm_scale, 0.0); r9.w = fma(k_normed, delta, r9.w); out_value = fma(r9.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 40u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 40u], q_norm_scale, 0.0); r10.x = fma(k_normed, delta, r10.x); out_value = fma(r10.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 41u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 41u], q_norm_scale, 0.0); r10.y = fma(k_normed, delta, r10.y); out_value = fma(r10.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 42u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 42u], q_norm_scale, 0.0); r10.z = fma(k_normed, delta, r10.z); out_value = fma(r10.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 43u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 43u], q_norm_scale, 0.0); r10.w = fma(k_normed, delta, r10.w); out_value = fma(r10.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 44u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 44u], q_norm_scale, 0.0); r11.x = fma(k_normed, delta, r11.x); out_value = fma(r11.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 45u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 45u], q_norm_scale, 0.0); r11.y = fma(k_normed, delta, r11.y); out_value = fma(r11.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 46u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 46u], q_norm_scale, 0.0); r11.z = fma(k_normed, delta, r11.z); out_value = fma(r11.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 47u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 47u], q_norm_scale, 0.0); r11.w = fma(k_normed, delta, r11.w); out_value = fma(r11.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 48u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 48u], q_norm_scale, 0.0); r12.x = fma(k_normed, delta, r12.x); out_value = fma(r12.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 49u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 49u], q_norm_scale, 0.0); r12.y = fma(k_normed, delta, r12.y); out_value = fma(r12.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 50u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 50u], q_norm_scale, 0.0); r12.z = fma(k_normed, delta, r12.z); out_value = fma(r12.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 51u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 51u], q_norm_scale, 0.0); r12.w = fma(k_normed, delta, r12.w); out_value = fma(r12.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 52u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 52u], q_norm_scale, 0.0); r13.x = fma(k_normed, delta, r13.x); out_value = fma(r13.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 53u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 53u], q_norm_scale, 0.0); r13.y = fma(k_normed, delta, r13.y); out_value = fma(r13.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 54u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 54u], q_norm_scale, 0.0); r13.z = fma(k_normed, delta, r13.z); out_value = fma(r13.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 55u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 55u], q_norm_scale, 0.0); r13.w = fma(k_normed, delta, r13.w); out_value = fma(r13.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 56u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 56u], q_norm_scale, 0.0); r14.x = fma(k_normed, delta, r14.x); out_value = fma(r14.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 57u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 57u], q_norm_scale, 0.0); r14.y = fma(k_normed, delta, r14.y); out_value = fma(r14.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 58u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 58u], q_norm_scale, 0.0); r14.z = fma(k_normed, delta, r14.z); out_value = fma(r14.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 59u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 59u], q_norm_scale, 0.0); r14.w = fma(k_normed, delta, r14.w); out_value = fma(r14.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 60u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 60u], q_norm_scale, 0.0); r15.x = fma(k_normed, delta, r15.x); out_value = fma(r15.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 61u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 61u], q_norm_scale, 0.0); r15.y = fma(k_normed, delta, r15.y); out_value = fma(r15.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 62u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 62u], q_norm_scale, 0.0); r15.z = fma(k_normed, delta, r15.z); out_value = fma(r15.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 63u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 63u], q_norm_scale, 0.0); r15.w = fma(k_normed, delta, r15.w); out_value = fma(r15.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 64u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 64u], q_norm_scale, 0.0); r16.x = fma(k_normed, delta, r16.x); out_value = fma(r16.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 65u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 65u], q_norm_scale, 0.0); r16.y = fma(k_normed, delta, r16.y); out_value = fma(r16.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 66u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 66u], q_norm_scale, 0.0); r16.z = fma(k_normed, delta, r16.z); out_value = fma(r16.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 67u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 67u], q_norm_scale, 0.0); r16.w = fma(k_normed, delta, r16.w); out_value = fma(r16.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 68u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 68u], q_norm_scale, 0.0); r17.x = fma(k_normed, delta, r17.x); out_value = fma(r17.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 69u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 69u], q_norm_scale, 0.0); r17.y = fma(k_normed, delta, r17.y); out_value = fma(r17.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 70u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 70u], q_norm_scale, 0.0); r17.z = fma(k_normed, delta, r17.z); out_value = fma(r17.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 71u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 71u], q_norm_scale, 0.0); r17.w = fma(k_normed, delta, r17.w); out_value = fma(r17.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 72u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 72u], q_norm_scale, 0.0); r18.x = fma(k_normed, delta, r18.x); out_value = fma(r18.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 73u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 73u], q_norm_scale, 0.0); r18.y = fma(k_normed, delta, r18.y); out_value = fma(r18.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 74u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 74u], q_norm_scale, 0.0); r18.z = fma(k_normed, delta, r18.z); out_value = fma(r18.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 75u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 75u], q_norm_scale, 0.0); r18.w = fma(k_normed, delta, r18.w); out_value = fma(r18.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 76u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 76u], q_norm_scale, 0.0); r19.x = fma(k_normed, delta, r19.x); out_value = fma(r19.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 77u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 77u], q_norm_scale, 0.0); r19.y = fma(k_normed, delta, r19.y); out_value = fma(r19.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 78u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 78u], q_norm_scale, 0.0); r19.z = fma(k_normed, delta, r19.z); out_value = fma(r19.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 79u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 79u], q_norm_scale, 0.0); r19.w = fma(k_normed, delta, r19.w); out_value = fma(r19.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 80u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 80u], q_norm_scale, 0.0); r20.x = fma(k_normed, delta, r20.x); out_value = fma(r20.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 81u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 81u], q_norm_scale, 0.0); r20.y = fma(k_normed, delta, r20.y); out_value = fma(r20.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 82u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 82u], q_norm_scale, 0.0); r20.z = fma(k_normed, delta, r20.z); out_value = fma(r20.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 83u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 83u], q_norm_scale, 0.0); r20.w = fma(k_normed, delta, r20.w); out_value = fma(r20.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 84u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 84u], q_norm_scale, 0.0); r21.x = fma(k_normed, delta, r21.x); out_value = fma(r21.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 85u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 85u], q_norm_scale, 0.0); r21.y = fma(k_normed, delta, r21.y); out_value = fma(r21.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 86u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 86u], q_norm_scale, 0.0); r21.z = fma(k_normed, delta, r21.z); out_value = fma(r21.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 87u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 87u], q_norm_scale, 0.0); r21.w = fma(k_normed, delta, r21.w); out_value = fma(r21.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 88u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 88u], q_norm_scale, 0.0); r22.x = fma(k_normed, delta, r22.x); out_value = fma(r22.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 89u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 89u], q_norm_scale, 0.0); r22.y = fma(k_normed, delta, r22.y); out_value = fma(r22.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 90u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 90u], q_norm_scale, 0.0); r22.z = fma(k_normed, delta, r22.z); out_value = fma(r22.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 91u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 91u], q_norm_scale, 0.0); r22.w = fma(k_normed, delta, r22.w); out_value = fma(r22.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 92u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 92u], q_norm_scale, 0.0); r23.x = fma(k_normed, delta, r23.x); out_value = fma(r23.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 93u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 93u], q_norm_scale, 0.0); r23.y = fma(k_normed, delta, r23.y); out_value = fma(r23.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 94u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 94u], q_norm_scale, 0.0); r23.z = fma(k_normed, delta, r23.z); out_value = fma(r23.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 95u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 95u], q_norm_scale, 0.0); r23.w = fma(k_normed, delta, r23.w); out_value = fma(r23.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 96u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 96u], q_norm_scale, 0.0); r24.x = fma(k_normed, delta, r24.x); out_value = fma(r24.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 97u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 97u], q_norm_scale, 0.0); r24.y = fma(k_normed, delta, r24.y); out_value = fma(r24.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 98u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 98u], q_norm_scale, 0.0); r24.z = fma(k_normed, delta, r24.z); out_value = fma(r24.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 99u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 99u], q_norm_scale, 0.0); r24.w = fma(k_normed, delta, r24.w); out_value = fma(r24.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 100u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 100u], q_norm_scale, 0.0); r25.x = fma(k_normed, delta, r25.x); out_value = fma(r25.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 101u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 101u], q_norm_scale, 0.0); r25.y = fma(k_normed, delta, r25.y); out_value = fma(r25.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 102u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 102u], q_norm_scale, 0.0); r25.z = fma(k_normed, delta, r25.z); out_value = fma(r25.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 103u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 103u], q_norm_scale, 0.0); r25.w = fma(k_normed, delta, r25.w); out_value = fma(r25.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 104u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 104u], q_norm_scale, 0.0); r26.x = fma(k_normed, delta, r26.x); out_value = fma(r26.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 105u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 105u], q_norm_scale, 0.0); r26.y = fma(k_normed, delta, r26.y); out_value = fma(r26.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 106u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 106u], q_norm_scale, 0.0); r26.z = fma(k_normed, delta, r26.z); out_value = fma(r26.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 107u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 107u], q_norm_scale, 0.0); r26.w = fma(k_normed, delta, r26.w); out_value = fma(r26.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 108u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 108u], q_norm_scale, 0.0); r27.x = fma(k_normed, delta, r27.x); out_value = fma(r27.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 109u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 109u], q_norm_scale, 0.0); r27.y = fma(k_normed, delta, r27.y); out_value = fma(r27.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 110u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 110u], q_norm_scale, 0.0); r27.z = fma(k_normed, delta, r27.z); out_value = fma(r27.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 111u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 111u], q_norm_scale, 0.0); r27.w = fma(k_normed, delta, r27.w); out_value = fma(r27.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 112u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 112u], q_norm_scale, 0.0); r28.x = fma(k_normed, delta, r28.x); out_value = fma(r28.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 113u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 113u], q_norm_scale, 0.0); r28.y = fma(k_normed, delta, r28.y); out_value = fma(r28.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 114u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 114u], q_norm_scale, 0.0); r28.z = fma(k_normed, delta, r28.z); out_value = fma(r28.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 115u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 115u], q_norm_scale, 0.0); r28.w = fma(k_normed, delta, r28.w); out_value = fma(r28.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 116u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 116u], q_norm_scale, 0.0); r29.x = fma(k_normed, delta, r29.x); out_value = fma(r29.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 117u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 117u], q_norm_scale, 0.0); r29.y = fma(k_normed, delta, r29.y); out_value = fma(r29.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 118u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 118u], q_norm_scale, 0.0); r29.z = fma(k_normed, delta, r29.z); out_value = fma(r29.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 119u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 119u], q_norm_scale, 0.0); r29.w = fma(k_normed, delta, r29.w); out_value = fma(r29.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 120u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 120u], q_norm_scale, 0.0); r30.x = fma(k_normed, delta, r30.x); out_value = fma(r30.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 121u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 121u], q_norm_scale, 0.0); r30.y = fma(k_normed, delta, r30.y); out_value = fma(r30.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 122u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 122u], q_norm_scale, 0.0); r30.z = fma(k_normed, delta, r30.z); out_value = fma(r30.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 123u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 123u], q_norm_scale, 0.0); r30.w = fma(k_normed, delta, r30.w); out_value = fma(r30.w, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 124u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 124u], q_norm_scale, 0.0); r31.x = fma(k_normed, delta, r31.x); out_value = fma(r31.x, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 125u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 125u], q_norm_scale, 0.0); r31.y = fma(k_normed, delta, r31.y); out_value = fma(r31.y, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 126u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 126u], q_norm_scale, 0.0); r31.z = fma(k_normed, delta, r31.z); out_value = fma(r31.z, q_normed, out_value); }
+      { let k_normed = multiply_ordered(conv_out[conv_row_base + k_base + 127u], k_norm_scale); let q_normed = fma(conv_out[conv_row_base + q_base + 127u], q_norm_scale, 0.0); r31.w = fma(k_normed, delta, r31.w); out_value = fma(r31.w, q_normed, out_value); }
     }
     if (is_active) {
       output[out_row_base + vd] = out_value;
@@ -683,133 +587,133 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>,
     }
   }
   if (is_active) {
-    recurrent_state[recurrent_head_base + 0u * head_v_dim + vd] = s0;
-    recurrent_state[recurrent_head_base + 1u * head_v_dim + vd] = s1;
-    recurrent_state[recurrent_head_base + 2u * head_v_dim + vd] = s2;
-    recurrent_state[recurrent_head_base + 3u * head_v_dim + vd] = s3;
-    recurrent_state[recurrent_head_base + 4u * head_v_dim + vd] = s4;
-    recurrent_state[recurrent_head_base + 5u * head_v_dim + vd] = s5;
-    recurrent_state[recurrent_head_base + 6u * head_v_dim + vd] = s6;
-    recurrent_state[recurrent_head_base + 7u * head_v_dim + vd] = s7;
-    recurrent_state[recurrent_head_base + 8u * head_v_dim + vd] = s8;
-    recurrent_state[recurrent_head_base + 9u * head_v_dim + vd] = s9;
-    recurrent_state[recurrent_head_base + 10u * head_v_dim + vd] = s10;
-    recurrent_state[recurrent_head_base + 11u * head_v_dim + vd] = s11;
-    recurrent_state[recurrent_head_base + 12u * head_v_dim + vd] = s12;
-    recurrent_state[recurrent_head_base + 13u * head_v_dim + vd] = s13;
-    recurrent_state[recurrent_head_base + 14u * head_v_dim + vd] = s14;
-    recurrent_state[recurrent_head_base + 15u * head_v_dim + vd] = s15;
-    recurrent_state[recurrent_head_base + 16u * head_v_dim + vd] = s16;
-    recurrent_state[recurrent_head_base + 17u * head_v_dim + vd] = s17;
-    recurrent_state[recurrent_head_base + 18u * head_v_dim + vd] = s18;
-    recurrent_state[recurrent_head_base + 19u * head_v_dim + vd] = s19;
-    recurrent_state[recurrent_head_base + 20u * head_v_dim + vd] = s20;
-    recurrent_state[recurrent_head_base + 21u * head_v_dim + vd] = s21;
-    recurrent_state[recurrent_head_base + 22u * head_v_dim + vd] = s22;
-    recurrent_state[recurrent_head_base + 23u * head_v_dim + vd] = s23;
-    recurrent_state[recurrent_head_base + 24u * head_v_dim + vd] = s24;
-    recurrent_state[recurrent_head_base + 25u * head_v_dim + vd] = s25;
-    recurrent_state[recurrent_head_base + 26u * head_v_dim + vd] = s26;
-    recurrent_state[recurrent_head_base + 27u * head_v_dim + vd] = s27;
-    recurrent_state[recurrent_head_base + 28u * head_v_dim + vd] = s28;
-    recurrent_state[recurrent_head_base + 29u * head_v_dim + vd] = s29;
-    recurrent_state[recurrent_head_base + 30u * head_v_dim + vd] = s30;
-    recurrent_state[recurrent_head_base + 31u * head_v_dim + vd] = s31;
-    recurrent_state[recurrent_head_base + 32u * head_v_dim + vd] = s32;
-    recurrent_state[recurrent_head_base + 33u * head_v_dim + vd] = s33;
-    recurrent_state[recurrent_head_base + 34u * head_v_dim + vd] = s34;
-    recurrent_state[recurrent_head_base + 35u * head_v_dim + vd] = s35;
-    recurrent_state[recurrent_head_base + 36u * head_v_dim + vd] = s36;
-    recurrent_state[recurrent_head_base + 37u * head_v_dim + vd] = s37;
-    recurrent_state[recurrent_head_base + 38u * head_v_dim + vd] = s38;
-    recurrent_state[recurrent_head_base + 39u * head_v_dim + vd] = s39;
-    recurrent_state[recurrent_head_base + 40u * head_v_dim + vd] = s40;
-    recurrent_state[recurrent_head_base + 41u * head_v_dim + vd] = s41;
-    recurrent_state[recurrent_head_base + 42u * head_v_dim + vd] = s42;
-    recurrent_state[recurrent_head_base + 43u * head_v_dim + vd] = s43;
-    recurrent_state[recurrent_head_base + 44u * head_v_dim + vd] = s44;
-    recurrent_state[recurrent_head_base + 45u * head_v_dim + vd] = s45;
-    recurrent_state[recurrent_head_base + 46u * head_v_dim + vd] = s46;
-    recurrent_state[recurrent_head_base + 47u * head_v_dim + vd] = s47;
-    recurrent_state[recurrent_head_base + 48u * head_v_dim + vd] = s48;
-    recurrent_state[recurrent_head_base + 49u * head_v_dim + vd] = s49;
-    recurrent_state[recurrent_head_base + 50u * head_v_dim + vd] = s50;
-    recurrent_state[recurrent_head_base + 51u * head_v_dim + vd] = s51;
-    recurrent_state[recurrent_head_base + 52u * head_v_dim + vd] = s52;
-    recurrent_state[recurrent_head_base + 53u * head_v_dim + vd] = s53;
-    recurrent_state[recurrent_head_base + 54u * head_v_dim + vd] = s54;
-    recurrent_state[recurrent_head_base + 55u * head_v_dim + vd] = s55;
-    recurrent_state[recurrent_head_base + 56u * head_v_dim + vd] = s56;
-    recurrent_state[recurrent_head_base + 57u * head_v_dim + vd] = s57;
-    recurrent_state[recurrent_head_base + 58u * head_v_dim + vd] = s58;
-    recurrent_state[recurrent_head_base + 59u * head_v_dim + vd] = s59;
-    recurrent_state[recurrent_head_base + 60u * head_v_dim + vd] = s60;
-    recurrent_state[recurrent_head_base + 61u * head_v_dim + vd] = s61;
-    recurrent_state[recurrent_head_base + 62u * head_v_dim + vd] = s62;
-    recurrent_state[recurrent_head_base + 63u * head_v_dim + vd] = s63;
-    recurrent_state[recurrent_head_base + 64u * head_v_dim + vd] = s64;
-    recurrent_state[recurrent_head_base + 65u * head_v_dim + vd] = s65;
-    recurrent_state[recurrent_head_base + 66u * head_v_dim + vd] = s66;
-    recurrent_state[recurrent_head_base + 67u * head_v_dim + vd] = s67;
-    recurrent_state[recurrent_head_base + 68u * head_v_dim + vd] = s68;
-    recurrent_state[recurrent_head_base + 69u * head_v_dim + vd] = s69;
-    recurrent_state[recurrent_head_base + 70u * head_v_dim + vd] = s70;
-    recurrent_state[recurrent_head_base + 71u * head_v_dim + vd] = s71;
-    recurrent_state[recurrent_head_base + 72u * head_v_dim + vd] = s72;
-    recurrent_state[recurrent_head_base + 73u * head_v_dim + vd] = s73;
-    recurrent_state[recurrent_head_base + 74u * head_v_dim + vd] = s74;
-    recurrent_state[recurrent_head_base + 75u * head_v_dim + vd] = s75;
-    recurrent_state[recurrent_head_base + 76u * head_v_dim + vd] = s76;
-    recurrent_state[recurrent_head_base + 77u * head_v_dim + vd] = s77;
-    recurrent_state[recurrent_head_base + 78u * head_v_dim + vd] = s78;
-    recurrent_state[recurrent_head_base + 79u * head_v_dim + vd] = s79;
-    recurrent_state[recurrent_head_base + 80u * head_v_dim + vd] = s80;
-    recurrent_state[recurrent_head_base + 81u * head_v_dim + vd] = s81;
-    recurrent_state[recurrent_head_base + 82u * head_v_dim + vd] = s82;
-    recurrent_state[recurrent_head_base + 83u * head_v_dim + vd] = s83;
-    recurrent_state[recurrent_head_base + 84u * head_v_dim + vd] = s84;
-    recurrent_state[recurrent_head_base + 85u * head_v_dim + vd] = s85;
-    recurrent_state[recurrent_head_base + 86u * head_v_dim + vd] = s86;
-    recurrent_state[recurrent_head_base + 87u * head_v_dim + vd] = s87;
-    recurrent_state[recurrent_head_base + 88u * head_v_dim + vd] = s88;
-    recurrent_state[recurrent_head_base + 89u * head_v_dim + vd] = s89;
-    recurrent_state[recurrent_head_base + 90u * head_v_dim + vd] = s90;
-    recurrent_state[recurrent_head_base + 91u * head_v_dim + vd] = s91;
-    recurrent_state[recurrent_head_base + 92u * head_v_dim + vd] = s92;
-    recurrent_state[recurrent_head_base + 93u * head_v_dim + vd] = s93;
-    recurrent_state[recurrent_head_base + 94u * head_v_dim + vd] = s94;
-    recurrent_state[recurrent_head_base + 95u * head_v_dim + vd] = s95;
-    recurrent_state[recurrent_head_base + 96u * head_v_dim + vd] = s96;
-    recurrent_state[recurrent_head_base + 97u * head_v_dim + vd] = s97;
-    recurrent_state[recurrent_head_base + 98u * head_v_dim + vd] = s98;
-    recurrent_state[recurrent_head_base + 99u * head_v_dim + vd] = s99;
-    recurrent_state[recurrent_head_base + 100u * head_v_dim + vd] = s100;
-    recurrent_state[recurrent_head_base + 101u * head_v_dim + vd] = s101;
-    recurrent_state[recurrent_head_base + 102u * head_v_dim + vd] = s102;
-    recurrent_state[recurrent_head_base + 103u * head_v_dim + vd] = s103;
-    recurrent_state[recurrent_head_base + 104u * head_v_dim + vd] = s104;
-    recurrent_state[recurrent_head_base + 105u * head_v_dim + vd] = s105;
-    recurrent_state[recurrent_head_base + 106u * head_v_dim + vd] = s106;
-    recurrent_state[recurrent_head_base + 107u * head_v_dim + vd] = s107;
-    recurrent_state[recurrent_head_base + 108u * head_v_dim + vd] = s108;
-    recurrent_state[recurrent_head_base + 109u * head_v_dim + vd] = s109;
-    recurrent_state[recurrent_head_base + 110u * head_v_dim + vd] = s110;
-    recurrent_state[recurrent_head_base + 111u * head_v_dim + vd] = s111;
-    recurrent_state[recurrent_head_base + 112u * head_v_dim + vd] = s112;
-    recurrent_state[recurrent_head_base + 113u * head_v_dim + vd] = s113;
-    recurrent_state[recurrent_head_base + 114u * head_v_dim + vd] = s114;
-    recurrent_state[recurrent_head_base + 115u * head_v_dim + vd] = s115;
-    recurrent_state[recurrent_head_base + 116u * head_v_dim + vd] = s116;
-    recurrent_state[recurrent_head_base + 117u * head_v_dim + vd] = s117;
-    recurrent_state[recurrent_head_base + 118u * head_v_dim + vd] = s118;
-    recurrent_state[recurrent_head_base + 119u * head_v_dim + vd] = s119;
-    recurrent_state[recurrent_head_base + 120u * head_v_dim + vd] = s120;
-    recurrent_state[recurrent_head_base + 121u * head_v_dim + vd] = s121;
-    recurrent_state[recurrent_head_base + 122u * head_v_dim + vd] = s122;
-    recurrent_state[recurrent_head_base + 123u * head_v_dim + vd] = s123;
-    recurrent_state[recurrent_head_base + 124u * head_v_dim + vd] = s124;
-    recurrent_state[recurrent_head_base + 125u * head_v_dim + vd] = s125;
-    recurrent_state[recurrent_head_base + 126u * head_v_dim + vd] = s126;
-    recurrent_state[recurrent_head_base + 127u * head_v_dim + vd] = s127;
+    recurrent_state[recurrent_head_base + 0u * head_v_dim + vd] = r0.x;
+    recurrent_state[recurrent_head_base + 1u * head_v_dim + vd] = r0.y;
+    recurrent_state[recurrent_head_base + 2u * head_v_dim + vd] = r0.z;
+    recurrent_state[recurrent_head_base + 3u * head_v_dim + vd] = r0.w;
+    recurrent_state[recurrent_head_base + 4u * head_v_dim + vd] = r1.x;
+    recurrent_state[recurrent_head_base + 5u * head_v_dim + vd] = r1.y;
+    recurrent_state[recurrent_head_base + 6u * head_v_dim + vd] = r1.z;
+    recurrent_state[recurrent_head_base + 7u * head_v_dim + vd] = r1.w;
+    recurrent_state[recurrent_head_base + 8u * head_v_dim + vd] = r2.x;
+    recurrent_state[recurrent_head_base + 9u * head_v_dim + vd] = r2.y;
+    recurrent_state[recurrent_head_base + 10u * head_v_dim + vd] = r2.z;
+    recurrent_state[recurrent_head_base + 11u * head_v_dim + vd] = r2.w;
+    recurrent_state[recurrent_head_base + 12u * head_v_dim + vd] = r3.x;
+    recurrent_state[recurrent_head_base + 13u * head_v_dim + vd] = r3.y;
+    recurrent_state[recurrent_head_base + 14u * head_v_dim + vd] = r3.z;
+    recurrent_state[recurrent_head_base + 15u * head_v_dim + vd] = r3.w;
+    recurrent_state[recurrent_head_base + 16u * head_v_dim + vd] = r4.x;
+    recurrent_state[recurrent_head_base + 17u * head_v_dim + vd] = r4.y;
+    recurrent_state[recurrent_head_base + 18u * head_v_dim + vd] = r4.z;
+    recurrent_state[recurrent_head_base + 19u * head_v_dim + vd] = r4.w;
+    recurrent_state[recurrent_head_base + 20u * head_v_dim + vd] = r5.x;
+    recurrent_state[recurrent_head_base + 21u * head_v_dim + vd] = r5.y;
+    recurrent_state[recurrent_head_base + 22u * head_v_dim + vd] = r5.z;
+    recurrent_state[recurrent_head_base + 23u * head_v_dim + vd] = r5.w;
+    recurrent_state[recurrent_head_base + 24u * head_v_dim + vd] = r6.x;
+    recurrent_state[recurrent_head_base + 25u * head_v_dim + vd] = r6.y;
+    recurrent_state[recurrent_head_base + 26u * head_v_dim + vd] = r6.z;
+    recurrent_state[recurrent_head_base + 27u * head_v_dim + vd] = r6.w;
+    recurrent_state[recurrent_head_base + 28u * head_v_dim + vd] = r7.x;
+    recurrent_state[recurrent_head_base + 29u * head_v_dim + vd] = r7.y;
+    recurrent_state[recurrent_head_base + 30u * head_v_dim + vd] = r7.z;
+    recurrent_state[recurrent_head_base + 31u * head_v_dim + vd] = r7.w;
+    recurrent_state[recurrent_head_base + 32u * head_v_dim + vd] = r8.x;
+    recurrent_state[recurrent_head_base + 33u * head_v_dim + vd] = r8.y;
+    recurrent_state[recurrent_head_base + 34u * head_v_dim + vd] = r8.z;
+    recurrent_state[recurrent_head_base + 35u * head_v_dim + vd] = r8.w;
+    recurrent_state[recurrent_head_base + 36u * head_v_dim + vd] = r9.x;
+    recurrent_state[recurrent_head_base + 37u * head_v_dim + vd] = r9.y;
+    recurrent_state[recurrent_head_base + 38u * head_v_dim + vd] = r9.z;
+    recurrent_state[recurrent_head_base + 39u * head_v_dim + vd] = r9.w;
+    recurrent_state[recurrent_head_base + 40u * head_v_dim + vd] = r10.x;
+    recurrent_state[recurrent_head_base + 41u * head_v_dim + vd] = r10.y;
+    recurrent_state[recurrent_head_base + 42u * head_v_dim + vd] = r10.z;
+    recurrent_state[recurrent_head_base + 43u * head_v_dim + vd] = r10.w;
+    recurrent_state[recurrent_head_base + 44u * head_v_dim + vd] = r11.x;
+    recurrent_state[recurrent_head_base + 45u * head_v_dim + vd] = r11.y;
+    recurrent_state[recurrent_head_base + 46u * head_v_dim + vd] = r11.z;
+    recurrent_state[recurrent_head_base + 47u * head_v_dim + vd] = r11.w;
+    recurrent_state[recurrent_head_base + 48u * head_v_dim + vd] = r12.x;
+    recurrent_state[recurrent_head_base + 49u * head_v_dim + vd] = r12.y;
+    recurrent_state[recurrent_head_base + 50u * head_v_dim + vd] = r12.z;
+    recurrent_state[recurrent_head_base + 51u * head_v_dim + vd] = r12.w;
+    recurrent_state[recurrent_head_base + 52u * head_v_dim + vd] = r13.x;
+    recurrent_state[recurrent_head_base + 53u * head_v_dim + vd] = r13.y;
+    recurrent_state[recurrent_head_base + 54u * head_v_dim + vd] = r13.z;
+    recurrent_state[recurrent_head_base + 55u * head_v_dim + vd] = r13.w;
+    recurrent_state[recurrent_head_base + 56u * head_v_dim + vd] = r14.x;
+    recurrent_state[recurrent_head_base + 57u * head_v_dim + vd] = r14.y;
+    recurrent_state[recurrent_head_base + 58u * head_v_dim + vd] = r14.z;
+    recurrent_state[recurrent_head_base + 59u * head_v_dim + vd] = r14.w;
+    recurrent_state[recurrent_head_base + 60u * head_v_dim + vd] = r15.x;
+    recurrent_state[recurrent_head_base + 61u * head_v_dim + vd] = r15.y;
+    recurrent_state[recurrent_head_base + 62u * head_v_dim + vd] = r15.z;
+    recurrent_state[recurrent_head_base + 63u * head_v_dim + vd] = r15.w;
+    recurrent_state[recurrent_head_base + 64u * head_v_dim + vd] = r16.x;
+    recurrent_state[recurrent_head_base + 65u * head_v_dim + vd] = r16.y;
+    recurrent_state[recurrent_head_base + 66u * head_v_dim + vd] = r16.z;
+    recurrent_state[recurrent_head_base + 67u * head_v_dim + vd] = r16.w;
+    recurrent_state[recurrent_head_base + 68u * head_v_dim + vd] = r17.x;
+    recurrent_state[recurrent_head_base + 69u * head_v_dim + vd] = r17.y;
+    recurrent_state[recurrent_head_base + 70u * head_v_dim + vd] = r17.z;
+    recurrent_state[recurrent_head_base + 71u * head_v_dim + vd] = r17.w;
+    recurrent_state[recurrent_head_base + 72u * head_v_dim + vd] = r18.x;
+    recurrent_state[recurrent_head_base + 73u * head_v_dim + vd] = r18.y;
+    recurrent_state[recurrent_head_base + 74u * head_v_dim + vd] = r18.z;
+    recurrent_state[recurrent_head_base + 75u * head_v_dim + vd] = r18.w;
+    recurrent_state[recurrent_head_base + 76u * head_v_dim + vd] = r19.x;
+    recurrent_state[recurrent_head_base + 77u * head_v_dim + vd] = r19.y;
+    recurrent_state[recurrent_head_base + 78u * head_v_dim + vd] = r19.z;
+    recurrent_state[recurrent_head_base + 79u * head_v_dim + vd] = r19.w;
+    recurrent_state[recurrent_head_base + 80u * head_v_dim + vd] = r20.x;
+    recurrent_state[recurrent_head_base + 81u * head_v_dim + vd] = r20.y;
+    recurrent_state[recurrent_head_base + 82u * head_v_dim + vd] = r20.z;
+    recurrent_state[recurrent_head_base + 83u * head_v_dim + vd] = r20.w;
+    recurrent_state[recurrent_head_base + 84u * head_v_dim + vd] = r21.x;
+    recurrent_state[recurrent_head_base + 85u * head_v_dim + vd] = r21.y;
+    recurrent_state[recurrent_head_base + 86u * head_v_dim + vd] = r21.z;
+    recurrent_state[recurrent_head_base + 87u * head_v_dim + vd] = r21.w;
+    recurrent_state[recurrent_head_base + 88u * head_v_dim + vd] = r22.x;
+    recurrent_state[recurrent_head_base + 89u * head_v_dim + vd] = r22.y;
+    recurrent_state[recurrent_head_base + 90u * head_v_dim + vd] = r22.z;
+    recurrent_state[recurrent_head_base + 91u * head_v_dim + vd] = r22.w;
+    recurrent_state[recurrent_head_base + 92u * head_v_dim + vd] = r23.x;
+    recurrent_state[recurrent_head_base + 93u * head_v_dim + vd] = r23.y;
+    recurrent_state[recurrent_head_base + 94u * head_v_dim + vd] = r23.z;
+    recurrent_state[recurrent_head_base + 95u * head_v_dim + vd] = r23.w;
+    recurrent_state[recurrent_head_base + 96u * head_v_dim + vd] = r24.x;
+    recurrent_state[recurrent_head_base + 97u * head_v_dim + vd] = r24.y;
+    recurrent_state[recurrent_head_base + 98u * head_v_dim + vd] = r24.z;
+    recurrent_state[recurrent_head_base + 99u * head_v_dim + vd] = r24.w;
+    recurrent_state[recurrent_head_base + 100u * head_v_dim + vd] = r25.x;
+    recurrent_state[recurrent_head_base + 101u * head_v_dim + vd] = r25.y;
+    recurrent_state[recurrent_head_base + 102u * head_v_dim + vd] = r25.z;
+    recurrent_state[recurrent_head_base + 103u * head_v_dim + vd] = r25.w;
+    recurrent_state[recurrent_head_base + 104u * head_v_dim + vd] = r26.x;
+    recurrent_state[recurrent_head_base + 105u * head_v_dim + vd] = r26.y;
+    recurrent_state[recurrent_head_base + 106u * head_v_dim + vd] = r26.z;
+    recurrent_state[recurrent_head_base + 107u * head_v_dim + vd] = r26.w;
+    recurrent_state[recurrent_head_base + 108u * head_v_dim + vd] = r27.x;
+    recurrent_state[recurrent_head_base + 109u * head_v_dim + vd] = r27.y;
+    recurrent_state[recurrent_head_base + 110u * head_v_dim + vd] = r27.z;
+    recurrent_state[recurrent_head_base + 111u * head_v_dim + vd] = r27.w;
+    recurrent_state[recurrent_head_base + 112u * head_v_dim + vd] = r28.x;
+    recurrent_state[recurrent_head_base + 113u * head_v_dim + vd] = r28.y;
+    recurrent_state[recurrent_head_base + 114u * head_v_dim + vd] = r28.z;
+    recurrent_state[recurrent_head_base + 115u * head_v_dim + vd] = r28.w;
+    recurrent_state[recurrent_head_base + 116u * head_v_dim + vd] = r29.x;
+    recurrent_state[recurrent_head_base + 117u * head_v_dim + vd] = r29.y;
+    recurrent_state[recurrent_head_base + 118u * head_v_dim + vd] = r29.z;
+    recurrent_state[recurrent_head_base + 119u * head_v_dim + vd] = r29.w;
+    recurrent_state[recurrent_head_base + 120u * head_v_dim + vd] = r30.x;
+    recurrent_state[recurrent_head_base + 121u * head_v_dim + vd] = r30.y;
+    recurrent_state[recurrent_head_base + 122u * head_v_dim + vd] = r30.z;
+    recurrent_state[recurrent_head_base + 123u * head_v_dim + vd] = r30.w;
+    recurrent_state[recurrent_head_base + 124u * head_v_dim + vd] = r31.x;
+    recurrent_state[recurrent_head_base + 125u * head_v_dim + vd] = r31.y;
+    recurrent_state[recurrent_head_base + 126u * head_v_dim + vd] = r31.z;
+    recurrent_state[recurrent_head_base + 127u * head_v_dim + vd] = r31.w;
   }
 }
