@@ -73,12 +73,19 @@ async function execute(recorder, input, weights, M, N, K, options) {
   const alpha = options.alpha ?? 1;
   if (!Number.isFinite(alpha) || !Number.isFinite(Math.fround(alpha))) throw new Error('Q4_0 alpha must be finite F32.');
   const geometry = config.variantMetadata?.q40Geometry;
-  const columns = positiveOverride(config.wgslOverrides,'COLS_PER_WG');
-  const threads = positiveOverride(config.wgslOverrides,'THREADS_PER_COL_GEMV');
   const width = positiveOverride(config.wgslOverrides,'WORKGROUP_SIZE');
-  const tile = positiveOverride(config.wgslOverrides,'TILE_SIZE');
   let count;
-  if (geometry === 'cooperative') {
+  if (geometry === 'pair') {
+    // Aligned block pairs need an even block count per row; vec4 activations need
+    // 16-byte activation offsets and K a multiple of 4.
+    const rows = positiveOverride(config.wgslOverrides,'ROWS');
+    if (![0, 2].includes(format.code) || (K / format.values) % 2 || rows > 4 || aOffset % 16 || K % 4
+      || width % 8 || (width & (width - 1)) !== 0 || !device.features?.has('subgroups')) {
+      throw new Error('Pair GEMV requires Q4_0/Q8_0 rows of whole block pairs, at most four rows, 16-byte activations and subgroups.');
+    }
+    count = Math.ceil(N / rows) * M;
+  } else if (geometry === 'cooperative') {
+    const columns = positiveOverride(config.wgslOverrides,'COLS_PER_WG');
     if (columns !== 4 || width % 4 || (width & (width - 1)) !== 0
       || ![32, 256].includes(format.values)
       || width * 16 > device.limits.maxComputeWorkgroupStorageSize) {
@@ -86,10 +93,13 @@ async function execute(recorder, input, weights, M, N, K, options) {
     }
     count = Math.ceil(N / columns) * M;
   } else if (geometry === 'gemv') {
+    const columns = positiveOverride(config.wgslOverrides,'COLS_PER_WG');
+    const threads = positiveOverride(config.wgslOverrides,'THREADS_PER_COL_GEMV');
     if (width !== columns*threads
       || (threads & (threads-1)) !== 0) throw new Error('Q4_0 invalid reduction geometry.');
     count = Math.ceil(N / columns)*M;
   } else if (geometry === 'tiled') {
+    const tile = positiveOverride(config.wgslOverrides,'TILE_SIZE');
     count = Math.ceil(N / tile)*Math.ceil(M / tile);
   } else if (geometry === 'tile64') {
     // 64 rows x 64 tokens per 256-invocation workgroup with 16 KiB of staged tiles.
@@ -108,9 +118,15 @@ async function execute(recorder, input, weights, M, N, K, options) {
   return withKernelOutput(recorder, supplied, cOffset+M*N*4, 'q4_0_output', async output => {
     await unifiedKernelWrapper('matmul', recorder, variant, [input.buffer, weights.buffer, output], {
       M, N, K, alpha, blocks: K/format.values, a_offset: aOffset/4, b_row: bOffset/rowBytes, c_offset: cOffset/4,
-    }, dispatch, null, null, null, options.signal ?? null);
+    }, dispatch, null, null, profileLabel(options), options.signal ?? null);
     return createTensor(output, 'f32', [M,N], 'q4_0_output');
   });
+}
+// Profile label of a GGUF block projection, in recordMatmul's matmul:<role>:L<layer> form.
+/** @param {{ role?: string, layerIdx?: number }} options */
+function profileLabel(options) {
+  if (!options.role) return null;
+  return `matmul:${options.role}${Number.isFinite(options.layerIdx) ? `:L${options.layerIdx}` : ''}`;
 }
 /** @type {typeof import('./q4_0.js').runQ40Matmul} */
 export function runQ40Matmul(input, weights, M, N, K, options) { return execute(null,input,weights,M,N,K,options); }

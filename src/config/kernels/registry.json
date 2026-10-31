@@ -2918,6 +2918,198 @@
       "wgslOnDisk": true
      }
     },
+    "q4_0_pair": {
+     "wgsl": "matmul_gguf_pair_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": ["subgroups"],
+     "requiredWgslFeatures": ["packed_4x8_integer_dot_product","subgroup_id"],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "a_offset",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "b_row",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "c_offset",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q4_0",
+     "outputDtype": "f32",
+     "sharedMemory": 2048,
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "ROWS": 1,
+      "BLOCK_VALUES": 32,
+      "BLOCK_BYTES": 18,
+      "QUANT_FORMAT": 0
+     },
+     "variantMetadata": {
+      "q40Geometry": "pair",
+      "dispatchGeometry": "column-row-tile",
+      "tileM": 1,
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "q8_0_pair": {
+     "wgsl": "matmul_gguf_pair_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": ["subgroups"],
+     "requiredWgslFeatures": ["packed_4x8_integer_dot_product","subgroup_id"],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "a_offset",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "b_row",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "c_offset",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q8_0",
+     "outputDtype": "f32",
+     "sharedMemory": 2048,
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "ROWS": 1,
+      "BLOCK_VALUES": 32,
+      "BLOCK_BYTES": 34,
+      "QUANT_FORMAT": 2
+     },
+     "variantMetadata": {
+      "q40Geometry": "pair",
+      "dispatchGeometry": "column-row-tile",
+      "tileM": 1,
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
     "fp8_e4m3fn_f32": {
      "wgsl": "matmul_fp8.wgsl",
      "entryPoint": "main",

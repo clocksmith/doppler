@@ -50,13 +50,15 @@ try {
   await assert.rejects(() => run(state, options, { ...tensor, dtype: 'f16' }), /scalar F32/);
   await assert.rejects(() => run(state, options, { ...tensor, precision: 'two-f32' }), /scalar F32/);
   await assert.rejects(() => run(state, { ...options, normGateActivation: 'sigmoid' }), /scalar F32/);
-  for (const flag of ['useLinearAttentionRegisterDecode', 'useLinearAttentionFusedDecodeCore']) {
-    await assert.rejects(() => run(state, { ...options, numTokens: 1, runtimeSession: { ...session, [flag]: true } }), /declared unfused F32 recurrent program/);
-  }
+  await assert.rejects(() => run(state, { ...options, numTokens: 1, runtimeSession: { ...session, useLinearAttentionFusedDecodeCore: true } }),
+    /no fused decode core/);
   assert.equal(modulesSeen.length, 0, 'all invalid requests rejected before shader preparation');
-  for (const [enabled, numTokens, expected] of [[true, 3, 'gguf_register_prefill'], [false, 3, 'gguf_f32'], [true, 1, 'gguf_f32']]) {
+  // Register decode runs the GGUF register program at one token; register prefill alone does not.
+  for (const [enabled, numTokens, decode, expected] of [[true, 3, false, 'gguf_register_prefill'], [false, 3, false, 'gguf_f32'],
+    [true, 1, false, 'gguf_f32'], [false, 1, true, 'gguf_register_prefill']]) {
     modulesSeen.length = 0;
-    await assert.rejects(() => run(state, { ...options, numTokens, runtimeSession: { ...session, useLinearAttentionRegisterPrefill: enabled } }), /selected recurrent pipeline/);
+    await assert.rejects(() => run(state, { ...options, numTokens, runtimeSession: { ...session,
+      useLinearAttentionRegisterPrefill: enabled, useLinearAttentionRegisterDecode: decode } }), /selected recurrent pipeline/);
     assert(modulesSeen.includes(select({ sourceLayout: 'gguf-v1', useRegisterPrefill: expected === 'gguf_register_prefill' }).shaderFile));
   }
 } finally {

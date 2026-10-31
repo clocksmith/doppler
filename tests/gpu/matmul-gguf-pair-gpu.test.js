@@ -1,0 +1,80 @@
+import assert from 'node:assert/strict';
+
+// Pair GEMV (matmul_gguf_pair_f32.wgsl) against the dequantized CPU reference: Q4_0 and
+// Q8_0, M = 1..3, an offset weight bank, offset output with guarded prefix and tail,
+// immediate and recorded execution. Odd block counts are refused.
+
+const { probeNodeGPU } = await import('../helpers/gpu-probe.js');
+const probe = await probeNodeGPU({ installFileFetchShim: true });
+if (!probe.ready) {
+  console.log(`matmul-gguf-pair-gpu.test: skipped (${probe.reason})`);
+  process.exit(0);
+}
+const { getDevice, getKernelCapabilities, destroyDevice } = await import('../../src/gpu/device.js');
+if (!getKernelCapabilities()?.hasSubgroups) {
+  console.log('matmul-gguf-pair-gpu.test: skipped (no subgroups)');
+  destroyDevice();
+  process.exit(0);
+}
+const { acquireBuffer, releaseBuffer, uploadData, readBuffer } = await import('../../src/memory/buffer-pool.js');
+const { createTensor } = await import('../../src/gpu/tensor.js');
+const { createWeightBuffer } = await import('../../src/gpu/weight-buffer.js');
+const { createCommandRecorder } = await import('../../src/gpu/command-recorder.js');
+const { runQ40Matmul, recordQ40Matmul } = await import('../../src/gpu/kernels/q4_0.js');
+const { packedFixture, decodePacked, projectReference } = await import('../helpers/q4_0-fixture.js');
+
+const device = getDevice();
+const allocated = [];
+const upload = (data) => {
+  const padded = new Uint8Array(Math.ceil(data.byteLength / 4) * 4);
+  padded.set(new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
+  const buffer = acquireBuffer(padded.byteLength);
+  uploadData(buffer, padded);
+  allocated.push(buffer);
+  return buffer;
+};
+const errors = [];
+device.addEventListener('uncapturederror', (event) => errors.push(event.error.message));
+
+try {
+  for (const [dtype, blockBytes] of [['q4_0', 18], ['q8_0', 34]]) {
+    for (const [M, N, K, bank] of [[1, 7, 64, 0], [3, 9, 256, 1], [1, 130, 2048, 0], [2, 33, 4096, 1]]) {
+      const bytes = packedFixture(dtype, (bank + 1) * N, K);
+      const decoded = decodePacked(dtype, bytes, (bank + 1) * N, K);
+      const weight = createWeightBuffer(upload(bytes), dtype, 'row', bank ? [2, N, K] : [N, K]);
+      const values = Float32Array.from({ length: (M + bank) * K }, (_, i) => Math.sin(i * 0.23) * 0.125);
+      const input = createTensor(upload(values), 'f32', [M + bank, K]);
+      const expected = projectReference(values.subarray(bank * K), decoded.subarray(bank * N * K), M, N, K);
+      for (const mode of ['immediate', 'recorded']) {
+        const recorder = mode === 'recorded' ? createCommandRecorder('matmul_gguf_pair') : null;
+        const prefix = bank * 4;
+        const output = upload(new Float32Array(M * N + 16).fill(-12345));
+        const options = { outputDtype: 'f32', variant: `${dtype}_pair`, outputBuffer: output,
+          aOffset: bank * K * 4, bOffset: bank * N * K / 32 * blockBytes, cOffset: prefix * 4 };
+        const result = recorder
+          ? await recordQ40Matmul(recorder, input, weight, M, N, K, options)
+          : await runQ40Matmul(input, weight, M, N, K, options);
+        if (recorder) await recorder.submitAndWait();
+        const actual = new Float32Array(await readBuffer(result.buffer, (M * N + 16) * 4));
+        let maxAbs = 0;
+        for (let i = 0; i < expected.length; i++) {
+          const error = Math.abs(actual[prefix + i] - expected[i]);
+          maxAbs = Math.max(maxAbs, error);
+          assert.ok(Number.isFinite(actual[prefix + i]) && error <= 2e-4 + 2e-5 * Math.abs(expected[i]),
+            `${dtype}/${mode} M=${M} N=${N} K=${K} [${i}] ${actual[prefix + i]} vs ${expected[i]}`);
+        }
+        assert.ok(actual.subarray(0, prefix).every((x) => x === -12345), 'prefix untouched');
+        assert.ok(actual.subarray(prefix + M * N).every((x) => x === -12345), 'tail untouched');
+        console.log(JSON.stringify({ dtype, M, N, K, bank, mode, maxAbs }));
+      }
+    }
+    const oddBlocks = createWeightBuffer(upload(packedFixture(dtype, 4, 96)), dtype, 'row', [4, 96]);
+    await assert.rejects(runQ40Matmul(createTensor(upload(new Float32Array(96)), 'f32', [1, 96]), oddBlocks, 1, 4, 96,
+      { outputDtype: 'f32', variant: `${dtype}_pair` }), /whole block pairs/);
+  }
+  assert.deepEqual(errors, []);
+  console.log('matmul-gguf-pair-gpu.test: ok');
+} finally {
+  for (const buffer of allocated) releaseBuffer(buffer);
+  destroyDevice();
+}

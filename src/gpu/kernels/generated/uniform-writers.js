@@ -36,6 +36,8 @@ export const UNIFORM_WRITERS = Object.freeze({
   "matmul/q5_0_cooperative": { size: 32, write: writers0.write_matmul_q4_0_cooperative },
   "matmul/q6k_cooperative": { size: 32, write: writers0.write_matmul_q4_0_cooperative },
   "matmul/q8_0_cooperative": { size: 32, write: writers0.write_matmul_q4_0_cooperative },
+  "matmul/q4_0_pair": { size: 32, write: writers0.write_matmul_q4_0_cooperative },
+  "matmul/q8_0_pair": { size: 32, write: writers0.write_matmul_q4_0_cooperative },
   "matmul/fp8_e4m3fn_f32": { size: 32, write: writers0.write_matmul_fp8_e4m3fn_f32 },
   "matmul/fp8_e5m2_f32": { size: 32, write: writers0.write_matmul_fp8_e4m3fn_f32 },
   "matmul/w8a8_portable": { size: 16, write: writers0.write_w8a8_quantize_f32 },

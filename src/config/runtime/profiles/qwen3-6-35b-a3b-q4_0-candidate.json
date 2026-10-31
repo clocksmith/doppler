@@ -27,7 +27,7 @@
         "usePreparedDecodeWorkspace": true,
         "useLinearAttentionFusedDecodeCore": false,
         "useLinearAttentionRegisterPrefill": true,
-        "useLinearAttentionRegisterDecode": false,
+        "useLinearAttentionRegisterDecode": true,
         "prefillTokenChunkSize": 256,
         "decodeLoop": {
           "batchSize": 1,
@@ -67,35 +67,31 @@
             },
             {
               "op": "k_proj",
-              "kernel": "matmul_q4_0.wgsl",
-              "entry": "cooperative",
+              "kernel": "matmul_gguf_pair_f32.wgsl",
+              "entry": "main",
               "weights": "layer.{L}.self_attn.k_proj",
               "constants": {
                 "WORKGROUP_SIZE": 128,
-                "COLS_PER_WG": 4,
-                "THREADS_PER_COL_GEMV": 32,
-                "TILE_SIZE": 16,
+                "ROWS": 1,
                 "BLOCK_VALUES": 32,
                 "BLOCK_BYTES": 34,
                 "QUANT_FORMAT": 2
               },
-              "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d"
+              "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72"
             },
             {
               "op": "v_proj",
-              "kernel": "matmul_q4_0.wgsl",
-              "entry": "cooperative",
+              "kernel": "matmul_gguf_pair_f32.wgsl",
+              "entry": "main",
               "weights": "layer.{L}.self_attn.v_proj",
               "constants": {
                 "WORKGROUP_SIZE": 128,
-                "COLS_PER_WG": 4,
-                "THREADS_PER_COL_GEMV": 32,
-                "TILE_SIZE": 16,
+                "ROWS": 1,
                 "BLOCK_VALUES": 32,
                 "BLOCK_BYTES": 34,
                 "QUANT_FORMAT": 2
               },
-              "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d"
+              "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72"
             },
             {
               "op": "rope_q",
@@ -121,19 +117,17 @@
             },
             {
               "op": "o_proj",
-              "kernel": "matmul_q4_0.wgsl",
-              "entry": "cooperative",
+              "kernel": "matmul_gguf_pair_f32.wgsl",
+              "entry": "main",
               "weights": "layer.{L}.self_attn.o_proj",
               "constants": {
                 "WORKGROUP_SIZE": 128,
-                "COLS_PER_WG": 4,
-                "THREADS_PER_COL_GEMV": 32,
-                "TILE_SIZE": 16,
+                "ROWS": 1,
                 "BLOCK_VALUES": 32,
                 "BLOCK_BYTES": 18,
                 "QUANT_FORMAT": 0
               },
-              "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d"
+              "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72"
             },
             {
               "op": "attn_residual",
@@ -149,35 +143,31 @@
             },
             {
               "op": "gate_proj",
-              "kernel": "matmul_q4_0.wgsl",
-              "entry": "cooperative",
+              "kernel": "matmul_gguf_pair_f32.wgsl",
+              "entry": "main",
               "weights": "layer.{L}.mlp.gate_proj",
               "constants": {
                 "WORKGROUP_SIZE": 128,
-                "COLS_PER_WG": 4,
-                "THREADS_PER_COL_GEMV": 32,
-                "TILE_SIZE": 16,
+                "ROWS": 1,
                 "BLOCK_VALUES": 32,
                 "BLOCK_BYTES": 34,
                 "QUANT_FORMAT": 2
               },
-              "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d"
+              "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72"
             },
             {
               "op": "up_proj",
-              "kernel": "matmul_q4_0.wgsl",
-              "entry": "cooperative",
+              "kernel": "matmul_gguf_pair_f32.wgsl",
+              "entry": "main",
               "weights": "layer.{L}.mlp.up_proj",
               "constants": {
                 "WORKGROUP_SIZE": 128,
-                "COLS_PER_WG": 4,
-                "THREADS_PER_COL_GEMV": 32,
-                "TILE_SIZE": 16,
+                "ROWS": 1,
                 "BLOCK_VALUES": 32,
                 "BLOCK_BYTES": 34,
                 "QUANT_FORMAT": 2
               },
-              "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d"
+              "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72"
             },
             {
               "op": "activation",
@@ -190,19 +180,17 @@
             },
             {
               "op": "down_proj",
-              "kernel": "matmul_q4_0.wgsl",
-              "entry": "cooperative",
+              "kernel": "matmul_gguf_pair_f32.wgsl",
+              "entry": "main",
               "weights": "layer.{L}.mlp.down_proj",
               "constants": {
                 "WORKGROUP_SIZE": 128,
-                "COLS_PER_WG": 4,
-                "THREADS_PER_COL_GEMV": 32,
-                "TILE_SIZE": 16,
+                "ROWS": 1,
                 "BLOCK_VALUES": 32,
                 "BLOCK_BYTES": 34,
                 "QUANT_FORMAT": 2
               },
-              "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d"
+              "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72"
             },
             {
               "op": "ffn_residual",
@@ -224,51 +212,45 @@
             },
             {
               "op": "linear_qkv_proj",
-              "kernel": "matmul_q4_0.wgsl",
-              "entry": "cooperative",
+              "kernel": "matmul_gguf_pair_f32.wgsl",
+              "entry": "main",
               "weights": "layer.{L}.linear_attn.in_proj_qkv",
               "constants": {
                 "WORKGROUP_SIZE": 128,
-                "COLS_PER_WG": 4,
-                "THREADS_PER_COL_GEMV": 32,
-                "TILE_SIZE": 16,
+                "ROWS": 1,
                 "BLOCK_VALUES": 32,
                 "BLOCK_BYTES": 18,
                 "QUANT_FORMAT": 0
               },
-              "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d"
+              "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72"
             },
             {
               "op": "linear_z_proj",
-              "kernel": "matmul_q4_0.wgsl",
-              "entry": "cooperative",
+              "kernel": "matmul_gguf_pair_f32.wgsl",
+              "entry": "main",
               "weights": "layer.{L}.linear_attn.in_proj_z",
               "constants": {
                 "WORKGROUP_SIZE": 128,
-                "COLS_PER_WG": 4,
-                "THREADS_PER_COL_GEMV": 32,
-                "TILE_SIZE": 16,
+                "ROWS": 1,
                 "BLOCK_VALUES": 32,
                 "BLOCK_BYTES": 18,
                 "QUANT_FORMAT": 0
               },
-              "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d"
+              "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72"
             },
             {
               "op": "linear_out_proj",
-              "kernel": "matmul_q4_0.wgsl",
-              "entry": "cooperative",
+              "kernel": "matmul_gguf_pair_f32.wgsl",
+              "entry": "main",
               "weights": "layer.{L}.linear_attn.out_proj",
               "constants": {
                 "WORKGROUP_SIZE": 128,
-                "COLS_PER_WG": 4,
-                "THREADS_PER_COL_GEMV": 32,
-                "TILE_SIZE": 16,
+                "ROWS": 1,
                 "BLOCK_VALUES": 32,
                 "BLOCK_BYTES": 34,
                 "QUANT_FORMAT": 2
               },
-              "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d"
+              "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72"
             },
             {
               "op": "moe_norm_router",
@@ -542,33 +524,29 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "k_proj",
                   "weights": "layer.{L}.self_attn.k_proj"
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "v_proj",
                   "weights": "layer.{L}.self_attn.v_proj"
                 },
@@ -596,17 +574,15 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "o_proj",
                   "weights": "layer.{L}.self_attn.o_proj"
                 },
@@ -624,33 +600,29 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "gate_proj",
                   "weights": "layer.{L}.mlp.gate_proj"
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "up_proj",
                   "weights": "layer.{L}.mlp.up_proj"
                 },
@@ -665,17 +637,15 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "down_proj",
                   "weights": "layer.{L}.mlp.down_proj"
                 },
@@ -699,49 +669,43 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_qkv_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_qkv"
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_z_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_z"
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_out_proj",
                   "weights": "layer.{L}.linear_attn.out_proj"
                 },
@@ -1044,33 +1008,29 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "k_proj",
                   "weights": "layer.{L}.self_attn.k_proj"
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "v_proj",
                   "weights": "layer.{L}.self_attn.v_proj"
                 },
@@ -1098,17 +1058,15 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "o_proj",
                   "weights": "layer.{L}.self_attn.o_proj"
                 },
@@ -1126,33 +1084,29 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "gate_proj",
                   "weights": "layer.{L}.mlp.gate_proj"
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "up_proj",
                   "weights": "layer.{L}.mlp.up_proj"
                 },
@@ -1167,17 +1121,15 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "down_proj",
                   "weights": "layer.{L}.mlp.down_proj"
                 },
@@ -1201,33 +1153,29 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_qkv_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_qkv"
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_z_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_z"
                 },
@@ -1517,33 +1465,29 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "k_proj",
                   "weights": "layer.{L}.self_attn.k_proj"
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "v_proj",
                   "weights": "layer.{L}.self_attn.v_proj"
                 },
@@ -1571,17 +1515,15 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "o_proj",
                   "weights": "layer.{L}.self_attn.o_proj"
                 },
@@ -1599,33 +1541,29 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "gate_proj",
                   "weights": "layer.{L}.mlp.gate_proj"
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "up_proj",
                   "weights": "layer.{L}.mlp.up_proj"
                 },
@@ -1640,17 +1578,15 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "down_proj",
                   "weights": "layer.{L}.mlp.down_proj"
                 },
@@ -1674,49 +1610,43 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_qkv_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_qkv"
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_z_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_z"
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_out_proj",
                   "weights": "layer.{L}.linear_attn.out_proj"
                 },
@@ -2012,33 +1942,29 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "k_proj",
                   "weights": "layer.{L}.self_attn.k_proj"
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "v_proj",
                   "weights": "layer.{L}.self_attn.v_proj"
                 },
@@ -2066,17 +1992,15 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "o_proj",
                   "weights": "layer.{L}.self_attn.o_proj"
                 },
@@ -2169,49 +2093,43 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_qkv_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_qkv"
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_z_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_z"
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_out_proj",
                   "weights": "layer.{L}.linear_attn.out_proj"
                 },
@@ -2501,33 +2419,29 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "k_proj",
                   "weights": "layer.{L}.self_attn.k_proj"
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "v_proj",
                   "weights": "layer.{L}.self_attn.v_proj"
                 },
@@ -2555,17 +2469,15 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "o_proj",
                   "weights": "layer.{L}.self_attn.o_proj"
                 },
@@ -2658,49 +2570,43 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_qkv_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_qkv"
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_z_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_z"
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_out_proj",
                   "weights": "layer.{L}.linear_attn.out_proj"
                 },
@@ -2989,49 +2895,43 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "q_proj",
                   "weights": "layer.{L}.self_attn.q_proj"
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "k_proj",
                   "weights": "layer.{L}.self_attn.k_proj"
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "v_proj",
                   "weights": "layer.{L}.self_attn.v_proj"
                 },
@@ -3059,17 +2959,15 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "o_proj",
                   "weights": "layer.{L}.self_attn.o_proj"
                 },
@@ -3087,33 +2985,29 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "gate_proj",
                   "weights": "layer.{L}.mlp.gate_proj"
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "up_proj",
                   "weights": "layer.{L}.mlp.up_proj"
                 },
@@ -3128,17 +3022,15 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "down_proj",
                   "weights": "layer.{L}.mlp.down_proj"
                 },
@@ -3162,33 +3054,29 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_qkv_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_qkv"
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_z_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_z"
                 },
@@ -3475,49 +3363,43 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "q_proj",
                   "weights": "layer.{L}.self_attn.q_proj"
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "k_proj",
                   "weights": "layer.{L}.self_attn.k_proj"
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "v_proj",
                   "weights": "layer.{L}.self_attn.v_proj"
                 },
@@ -3545,17 +3427,15 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "o_proj",
                   "weights": "layer.{L}.self_attn.o_proj"
                 },
@@ -3648,33 +3528,29 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_qkv_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_qkv"
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_z_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_z"
                 },
@@ -3977,33 +3853,29 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "k_proj",
                   "weights": "layer.{L}.self_attn.k_proj"
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 34,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 2,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 34,
+                    "QUANT_FORMAT": 2
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "v_proj",
                   "weights": "layer.{L}.self_attn.v_proj"
                 },
@@ -4031,17 +3903,15 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "o_proj",
                   "weights": "layer.{L}.self_attn.o_proj"
                 },
@@ -4134,33 +4004,29 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_qkv_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_qkv"
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 18,
+                    "WORKGROUP_SIZE": 128,
+                    "ROWS": 1,
                     "BLOCK_VALUES": 32,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 0,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 18,
+                    "QUANT_FORMAT": 0
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:7d673bf681479c855d7c6fde47a7e7899886835f93f1fdc7ee22993a7979fc72",
+                  "entry": "main",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "linear_z_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_z"
                 },

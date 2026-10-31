@@ -36,6 +36,8 @@ export interface KernelUniformValues {
   "matmul/q5_0_cooperative": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q6k_cooperative": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q8_0_cooperative": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q4_0_pair": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q8_0_pair": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/fp8_e4m3fn_f32": Parameters<typeof writers0.write_matmul_fp8_e4m3fn_f32>[1];
   "matmul/fp8_e5m2_f32": Parameters<typeof writers0.write_matmul_fp8_e4m3fn_f32>[1];
   "matmul/w8a8_portable": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
