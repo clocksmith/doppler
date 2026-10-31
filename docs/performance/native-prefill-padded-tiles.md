@@ -27,5 +27,5 @@ guard; there is no claimed kernel speedup or measured DRAM saving here.
 This source-proven waste is a plausible contributor to the native LONG failure,
 not an established watchdog cause. No last-submitted kernel receipt exists for
 that failed request. Full-model numerical/quality and performance qualification
-on Jupiter Chrome remain pending. The independent profile256 correction must
+on amd-host Chrome remain pending. The independent profile256 correction must
 remain separately attributable.

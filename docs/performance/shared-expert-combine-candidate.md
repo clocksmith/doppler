@@ -29,14 +29,14 @@ source/declaration types, style, architecture and export parity pass against
 5d2c13bf. The phase/layer selection cache is scoped by immutable kernel-path
 and kernel-registry identities; changing registry scope revalidates admission.
 
-Mars Node22.20.0 with existing webgpu0.4.0 selected observed Apple M3 Metal3.
+mac-host Node22.20.0 with existing webgpu0.4.0 selected observed Apple M3 Metal3.
 Twelve physical immediate/recorded cases (one token, 32/33/53 tokens, hidden
 widths1/7/2048, saturated scalar gates and null/positive/zero/negative clamp)
 match the existing three-dispatch composition element for element: maxAbs=0.
-These are component correctness receipts, not Jupiter Chrome qualification.
+These are component correctness receipts, not amd-host Chrome qualification.
 The default-sandbox adapter-unavailable attempt and a missing-helper shader
 compile failure are retained separately; neither ran numerical cases. The
 shader helper omission was corrected by retaining existing SiLU refined helpers.
 
 Pending: full-model multi-step logit/token gates and balanced production timing
-on Jupiter Chrome. Do not promote this candidate on dispatch count alone.
+on amd-host Chrome. Do not promote this candidate on dispatch count alone.

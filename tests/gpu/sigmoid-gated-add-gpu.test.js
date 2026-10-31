@@ -13,7 +13,7 @@ const probe = await probeNodeGPU({ installFileFetchShim: true });
 if (!probe.ready) throw new Error(`Physical sigmoid gated add qualification unavailable: ${probe.reason}`);
 const capabilities = getKernelCapabilities();
 const adapter = JSON.stringify(capabilities?.adapterInfo ?? {}).toLowerCase();
-assert.ok(/apple|m3/.test(adapter) && !/swiftshader|llvmpipe|lavapipe/.test(adapter), 'Mars physical qualification requires observed Apple hardware');
+assert.ok(/apple|m3/.test(adapter) && !/swiftshader|llvmpipe|lavapipe/.test(adapter), 'mac-host physical qualification requires observed Apple hardware');
 console.log(JSON.stringify({ timeUTC: new Date().toISOString(), providerReceipt: probe.providerReceipt, capabilities, scope: 'Physical operator correctness; no timing claim' }));
 const cases = [];
 try {
