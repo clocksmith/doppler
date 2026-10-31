@@ -8,13 +8,16 @@ with in-memory key remapping. All values are last-token [:8].
 No files on disk are modified.
 """
 
+import getpass
 import json
+import os
 import torch
 from safetensors import safe_open
 from transformers import AutoTokenizer, AutoConfig, Gemma3ForCausalLM
 
 SNAP = (
-    "/media/x/models/huggingface_cache/hub/models--google--translategemma-4b-it"
+    os.path.join("/media", getpass.getuser(), "models", "huggingface_cache")
+    + "/hub/models--google--translategemma-4b-it"
     "/snapshots/10042cb0e6e7fdce748996a71dc3dc432a4e0c89"
 )
 SHARDS = [

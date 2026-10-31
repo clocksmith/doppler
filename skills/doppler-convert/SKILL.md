@@ -107,7 +107,7 @@ ls /tmp/OUTPUT_ID-rebuild/shard_*.bin | wc -l
 
 # 4) After verification passes, copy to the external RDRR root (source of truth)
 # macOS: /Volumes/models/rdrr/OUTPUT_ID/
-# Linux: /media/x/models/rdrr/OUTPUT_ID/
+# Linux: /media/$USER/models/rdrr/OUTPUT_ID/
 cp -a /tmp/OUTPUT_ID-rebuild/. "$RDRR_ROOT/OUTPUT_ID/"
 
 # 5) Sanity-run inference

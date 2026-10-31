@@ -3,14 +3,15 @@
 Dump intermediate values from Qwen3.5 linear attention (GatedDeltaNet) for comparison with Doppler.
 
 Usage:
-    HF_HOME=/media/x/models/huggingface_cache python3 src/debug/reference/hf_qwen35_linear_attn_debug.py
+    HF_HOME=/media/$USER/models/huggingface_cache python3 src/debug/reference/hf_qwen35_linear_attn_debug.py
 """
 
+import getpass
 import os
 import torch
 import numpy as np
 
-os.environ.setdefault("HF_HOME", "/media/x/models/huggingface_cache")
+os.environ.setdefault("HF_HOME", os.path.join("/media", getpass.getuser(), "models", "huggingface_cache"))
 
 from transformers import AutoModelForCausalLM, AutoTokenizer
 

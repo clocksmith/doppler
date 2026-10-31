@@ -38,12 +38,12 @@
     {
       "os": "linux",
       "backend": "vulkan",
-      "host": "jupiter"
+      "host": "amd-host"
     },
     {
       "os": "windows",
       "backend": "d3d12",
-      "host": "miles"
+      "host": "windows-host"
     }
   ],
   "shared": {
@@ -63,7 +63,7 @@
     "kvDtype": "f32",
     "warmupRuns": 1,
     "pairsPerPrompt": 5,
-    "promptSource": "reports/jupiter-tuning-20261029/product-repeat-contract.json#shared/prompts"
+    "promptSource": "reports/amd-host-tuning-20261029/product-repeat-contract.json#shared/prompts"
   },
   "gates": {
     "identicalPromptTokenIds": true,

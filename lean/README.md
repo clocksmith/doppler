@@ -173,8 +173,8 @@ Strict CI usage:
 - `npm run ci:contracts:check` applies the same strict coverage rule when Lean sweeps are enabled
 
 The same execution-contract class is now also enforced in JS manifest validation:
-- [src/formats/rdrr/validation.js](/home/x/deco/doppler/src/formats/rdrr/validation.js)
-- [src/config/execution-contract-check.js](/home/x/deco/doppler/src/config/execution-contract-check.js)
+- [src/formats/rdrr/validation.js](../src/formats/rdrr/validation.js)
+- [src/config/execution-contract-check.js](../src/config/execution-contract-check.js)
 
 That means `parseManifest()` and manifest refresh flows fail fast on the same BDPA/prefill and session-default incompatibilities, even when Lean is not installed.
 
