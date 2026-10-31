@@ -93,7 +93,7 @@ function reset(paired, recorded = false) {
   const plan = { activationDtype: 'f32', ...(paired ? { activationPrecision: 'two-f32', activationComponents: 2, activationElementStrideBytes: 8 } : {}) };
   const state = { modelConfig: { hiddenSize: 4, vocabSize: 8, numLayers: 1 }, weights: new Map([['embed', new Float32Array(32)]]),
     convLayerStates: new Map(), stats: {}, currentSeqLen: 0, useGPU: true, decodeStepCount: 0,
-    runtimeConfig: { inference: { sampling: {greedyThreshold:0.01}, compute: { activationDtype: 'f32' }, session: { prefillChunkLayers: 1, prefillTokenChunkSize: null } },
+    runtimeConfig: { inference: { sampling: {greedyThreshold:0.01}, compute: { activationDtype: 'f32' }, session: { usePreparedDecodeWorkspace: false, prefillChunkLayers: 1, prefillTokenChunkSize: null } },
       shared: { debug: { probes: null, pipeline: { readbackSampleSize: 63 } } } },
     decodeBuffers: { resetPingPong() {}, swapPingPong() {}, getHiddenBuffer: () => null, getOutputHiddenBuffer: () => null, ownsBuffer: () => false },
   };

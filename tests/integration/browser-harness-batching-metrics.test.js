@@ -394,6 +394,7 @@ const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/ru
         ringTokens: 2,
         ringStop: 1,
         ringStaging: 2,
+        layerSubmitInterval: null,
       },
     },
     executionPlan: {

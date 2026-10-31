@@ -241,8 +241,8 @@ assert.equal(
 );
 assert.equal(
   mixedWeightSteps.find((step) => step.op === 'attention')?.kernel,
-  'attention_streaming.wgsl',
-  'f32 KV compatibility must replace the f16-KV attention kernel'
+  'attention_decode_online.wgsl',
+  'f32 KV compatibility preserves online subgroup execution with f32 storage'
 );
 assert.ok(mixedWeightF32Kv.appliedTransforms.includes('widenToF32CorrectnessFallback'));
 assert.equal(mixedWeightF32Kv.laneIntegrity.executed.kvDtype, 'f32');

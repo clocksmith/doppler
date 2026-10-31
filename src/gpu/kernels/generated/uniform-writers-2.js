@@ -2,6 +2,13 @@
 // Do not edit; npm run kernels:uniforms:sync.
 import { writeU32, writeI32, writeF32 } from '../uniform-encoding.js';
 
+export function write_cross_entropy_loss_default(view, values, kernel) {
+  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
+  writeU32(view, 4, values["vocab_size"], kernel, "vocab_size");
+  view.setUint32(8, 0, true);
+  view.setUint32(12, 0, true);
+}
+
 export function write_conv2d_default(view, values, kernel) {
   writeU32(view, 0, values["in_channels"], kernel, "in_channels");
   writeU32(view, 4, values["out_channels"], kernel, "out_channels");
@@ -373,4 +380,11 @@ export function write_moe_route_matmul_q4_0_f32(view, values, kernel) {
   writeU32(view, 20, values["num_experts"], kernel, "num_experts");
   writeU32(view, 24, values["top_k"], kernel, "top_k");
   writeU32(view, 28, values["input_mode"], kernel, "input_mode");
+}
+
+export function write_sigmoid_gated_add_f32(view, values, kernel) {
+  writeU32(view, 0, values["size"], kernel, "size");
+  writeU32(view, 4, values["dispatch_stride"], kernel, "dispatch_stride");
+  writeF32(view, 8, values["clamp_max"], kernel, "clamp_max");
+  view.setUint32(12, 0, true);
 }

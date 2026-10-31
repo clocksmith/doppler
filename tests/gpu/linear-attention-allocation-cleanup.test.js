@@ -96,10 +96,10 @@ try {
   // A recorded failure must not return session-owned storage to the pool.
   globalThis.GPUBufferUsage = { STORAGE: 1, COPY_SRC: 2, COPY_DST: 4 };
   let destroyed = 0;
+  for (fused of [true, false]) {
   const owner = new PreparedDecodeWorkspace({
     createBuffer({ size }) { const buffer = new GPUBuffer(); buffer.size = size; buffer.destroy = () => destroyed++; return buffer; },
   });
-  fused = true;
   state.recurrentStatePrecision = 'f32';
   state.recurrentStateComponents = 1;
   const recorder = { getEncoder() {}, trackTemporaryBuffer() {}, decodeWorkspace: owner };
@@ -107,9 +107,12 @@ try {
     { numTokens: 1, layerIdx: 0, abPacked: true, bProjOffsetElements: 1, outputDtype: 'f32', recorder, normGateActivation: 'silu', qkL2NormEps: 1e-6 }),
   /allocation rejected/);
   assert.equal(active.size, 0);
-  assert.equal(owner.getStats().buffers, 1);
+  const expectedBuffers = fused ? 1 : 2;
+  assert.equal(owner.getStats().buffers, expectedBuffers);
   assert.equal(destroyed, 0, 'recorder failure cannot destroy borrowed session storage');
   owner.release();
-  assert.equal(destroyed, 1, 'session release destroys it exactly once');
+  assert.equal(destroyed, expectedBuffers, 'session release destroys each slot exactly once');
+  destroyed = 0;
+  }
 } finally { hooks.deregister(); delete globalThis.linearAllocationProbe; }
 console.log('linear-attention-allocation-cleanup: passed');

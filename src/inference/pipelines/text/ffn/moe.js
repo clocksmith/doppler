@@ -1,7 +1,7 @@
 
 
 import { releaseOrTrack } from '../ops.js';
-import { runQwenSharedExpert } from './qwen-shared-expert.js';
+import { runQwenSharedExpert, resolveQwenSharedSlot } from './qwen-shared-expert.js';
 import { createTensor } from '../../../../gpu/tensor.js';
 
 
@@ -13,6 +13,11 @@ export async function runMoEFFNGPU(
   options = {}
 ) {
   const { config, moeRouter, expertWeights, expertLoader, layerRouterWeights } = context;
+  const sharedSlot = resolveQwenSharedSlot({ kernelPath: context.kernelPath ?? null, phase: context.phase, layerIdx });
+  if (sharedSlot && (config.expertFormat !== 'qwen3_5'
+    || context.runtimeMoERoutingConfig?.activeExpertSelection !== 'topk-route')) {
+    throw new Error('[MoE] Shared slot requires the declared Qwen topk-route executor.');
+  }
 
   if (!moeRouter || !expertWeights || !expertLoader) {
     throw new Error('MoE components not initialized');
@@ -49,6 +54,9 @@ export async function runMoEFFNGPU(
       routerInputDtype: options.routerInputTensor?.dtype ?? null,
       kernelPath: context.kernelPath ?? null,
       executionPolicies: context.executionPolicies ?? null,
+      sharedSlot: sharedSlot ? { weights: context.weights.get(`layer_${layerIdx}`),
+        intermediateSize: config.moeSharedExpertIntermediateSize, kernelPath: context.kernelPath,
+        phase: context.phase } : null,
     },
     moeRouter,
     expertWeights,
@@ -59,13 +67,14 @@ export async function runMoEFFNGPU(
   );
 
   const routed = createTensor(outputBuffer, inputTensor.dtype, [...inputTensor.shape], 'moe_ffn_output');
-  if (config.expertFormat !== 'qwen3_5') return routed;
+  if (sharedSlot || config.expertFormat !== 'qwen3_5') return routed;
   try {
     return await runQwenSharedExpert(inputTensor, routed, context.weights.get(`layer_${layerIdx}`), {
       numTokens, hiddenSize: config.hiddenSize, intermediateSize: config.moeSharedExpertIntermediateSize,
       kernelPath: context.kernelPath ?? null, swigluLimit: config.swigluLimit,
       recorder: context.recorder ?? null,
       layerIdx,
+      phase: context.phase,
     });
   } finally {
     releaseOrTrack(context.recorder, routed.buffer);

@@ -209,8 +209,13 @@ async function executeRMSNorm(
   const bytesPerElement = isF16 ? 2 : 4;
   const paddedHiddenSize = padToQ4KBlock(inferredHiddenSize);
   const outputSize = batchSize * paddedHiddenSize * bytesPerElement;
-  const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'rmsnorm_output');
-  const ownedOutput = outputBuffer ? null : outputBuf;
+  const workspace = batchSize === 1 && input.dtype === 'f32'
+    && Number.isInteger(options.layerIdx) && options.layerIdx >= 0 && options.role
+    ? recorder?.decodeWorkspace : null;
+  const suppliedOutput = outputBuffer ?? (workspace
+    ? workspace.getBuffer(`rmsnorm:${options.layerIdx}:${options.role}`, outputSize) : null);
+  const outputBuf = suppliedOutput ?? acquireBuffer(outputSize, undefined, 'rmsnorm_output');
+  const ownedOutput = suppliedOutput ? null : outputBuf;
   const dispatchPlan = planRMSNormDispatch(recorder, batchSize);
 
   const effectiveResidual = preResidual || residual;
@@ -219,10 +224,13 @@ async function executeRMSNorm(
   const kernelBindings = [input, normWeightBuffer, outputBuf, residualBuf];
   let ownedPrenormPlaceholder = null;
   try {
-    ownedPrenormPlaceholder = hasPrenormOutput ? null : acquireBuffer(4, undefined, 'rmsnorm_prenorm_placeholder');
+    const preparedPlaceholder = !hasPrenormOutput && workspace
+      ? workspace.getBuffer('rmsnorm:unused-prenorm', 4) : null;
+    ownedPrenormPlaceholder = hasPrenormOutput || preparedPlaceholder
+      ? null : acquireBuffer(4, undefined, 'rmsnorm_prenorm_placeholder');
     const prenormBuf = hasPrenormOutput
       ? (residualSumOutput?.buffer || residualSumOutput)
-      : ownedPrenormPlaceholder;
+      : preparedPlaceholder ?? ownedPrenormPlaceholder;
     const extraBindings = [{ binding: 5, buffer: prenormBuf }];
     if (recorder && ownedPrenormPlaceholder) {
       // Recorded bindings must survive idle-pool eviction before submission.
