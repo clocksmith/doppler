@@ -4,6 +4,15 @@
       "match": {
         "sourceLayout": "gguf-v1",
         "inputDtype": "f32",
+        "normGateActivation": "silu",
+        "useRegisterPrefill": true
+      },
+      "value": "gguf_register_prefill"
+    },
+    {
+      "match": {
+        "sourceLayout": "gguf-v1",
+        "inputDtype": "f32",
         "normGateActivation": "silu"
       },
       "value": "gguf_f32"

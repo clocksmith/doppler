@@ -410,6 +410,7 @@ export interface KernelUniformValues {
   "gated_delta_recurrent/paired_gate_sigmoid": Parameters<typeof writers0.write_qwen_linear_attention_prepare_paired_beta>[1];
   "gated_delta_recurrent/register_prefill": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_recurrent/register_prefill_norm_gate": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
+  "gated_delta_recurrent/gguf_register_prefill": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_recurrent/gguf_f32": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_fused_decode/paired_default": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_fused_decode/paired_default_f16": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
@@ -472,5 +473,8 @@ export interface KernelUniformValues {
   "moe_route_matmul/q8_0_split_f32": Parameters<typeof writers2.write_moe_route_matmul_q4_0_f32>[1];
   "moe_route_matmul/q6k_split_f32": Parameters<typeof writers2.write_moe_route_matmul_q4_0_f32>[1];
   "sigmoid_gated_add/f32": Parameters<typeof writers2.write_sigmoid_gated_add_f32>[1];
+  "moe_grouped_sort/native_f32": Parameters<typeof writers2.write_moe_grouped_sort_native_f32>[1];
+  "moe_grouped_gu/native_f32": Parameters<typeof writers2.write_moe_grouped_gu_native_f32>[1];
+  "moe_grouped_down/native_f32": Parameters<typeof writers2.write_moe_grouped_gu_native_f32>[1];
 }
 export declare const UNIFORM_WRITERS: { readonly [K in keyof KernelUniformValues]: { readonly size: number; readonly write: (view: DataView, values: KernelUniformValues[K], kernel: string) => void } };

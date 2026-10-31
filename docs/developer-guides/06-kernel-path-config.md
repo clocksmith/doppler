@@ -66,6 +66,28 @@ strict cleanup class.
 - Making decode and prefill inconsistent when the model needs both phases.
 - Hiding capability adaptation in JS instead of execution graph transforms.
 
+## Grouped routed-MoE prefill candidate
+
+Grouped prefill is an explicit complete-graph choice through
+`moe_grouped_sort`, `moe_grouped_gu` and `moe_grouped_down` steps.
+Keep decode declared separately: a builder's prefill-to-decode copy must not
+activate prefill-only kernels. Apply the steps to each relevant phase/layer
+program, including nonempty overrides, rather than assuming a default step
+reaches every layer.
+
+The candidate admits resident separate row-packed Q4_0/Q4_1/Q8_0 expert banks,
+scalar F32 activations and SiLU, subject to declared geometry and device limits.
+Stable GPU grouping retains original route slots; activation and ordered scatter
+remain with their existing owners. Shared-expert gating and the outer residual
+must each execute exactly once. Unsupported layouts require an explicit
+ungrouped graph, with an actionable admission error; no precision or algorithm
+fallback is implicit.
+
+Grouping changes floating-point reduction order. Require routing/normalization,
+empty/repeated experts, group/block tails, recording/cleanup and full-model
+logit/token gates before promotion. A successful small fixture does not admit
+all checkpoints, precisions, devices or production defaults.
+
 ## Related Guides
 
 - [03-model-family-config.md](03-model-family-config.md)

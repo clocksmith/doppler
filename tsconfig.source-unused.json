@@ -7,6 +7,8 @@
   },
   "include": [],
   "files": [
+    "src/gpu/kernels/moe-grouped.js",
+    "src/inference/pipelines/text/moe/grouped-prefill.js",
     "src/loader/experts/expert-preparation.js",
     "src/gpu/kernels/codegen/attention-decode-online-f32-variant.js",
     "src/gpu/kernels/sigmoid-gated-add.js",

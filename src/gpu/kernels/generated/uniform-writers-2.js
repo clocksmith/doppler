@@ -388,3 +388,25 @@ export function write_sigmoid_gated_add_f32(view, values, kernel) {
   writeF32(view, 8, values["clamp_max"], kernel, "clamp_max");
   view.setUint32(12, 0, true);
 }
+
+export function write_moe_grouped_sort_native_f32(view, values, kernel) {
+  writeU32(view, 0, values["num_routes"], kernel, "num_routes");
+  writeU32(view, 4, values["num_experts"], kernel, "num_experts");
+  writeU32(view, 8, values["top_k"], kernel, "top_k");
+  writeU32(view, 12, values["pair_offset"], kernel, "pair_offset");
+  writeU32(view, 16, values["gu_groups"], kernel, "gu_groups");
+  writeU32(view, 20, values["down_groups"], kernel, "down_groups");
+  view.setUint32(24, 0, true);
+  view.setUint32(28, 0, true);
+}
+
+export function write_moe_grouped_gu_native_f32(view, values, kernel) {
+  writeU32(view, 0, values["num_routes"], kernel, "num_routes");
+  writeU32(view, 4, values["num_experts"], kernel, "num_experts");
+  writeU32(view, 8, values["top_k"], kernel, "top_k");
+  writeU32(view, 12, values["pair_offset"], kernel, "pair_offset");
+  writeU32(view, 16, values["N"], kernel, "N");
+  writeU32(view, 20, values["K"], kernel, "K");
+  view.setUint32(24, 0, true);
+  view.setUint32(28, 0, true);
+}

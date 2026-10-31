@@ -325,18 +325,27 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
   const useRegisterPrefill = numTokens > 1 && prefillSession.useLinearAttentionRegisterPrefill;
   if (useRegisterPrefill) {
     const selected = resolveGatedDeltaNormGateKernel('gated_delta_recurrent', 'gatedDeltaRecurrent', 'scalarVariant',
-      { inputDtype, normGateActivation, useRegisterPrefill });
+      { inputDtype, normGateActivation, useRegisterPrefill, sourceLayout: layerState.sourceLayout });
     const shape = selected.variantMetadata;
     if (!Number.isSafeInteger(shape?.headKDim) || layerState.headKDim !== shape.headKDim
         || stateComponents !== shape.stateComponents || layerState.headVDim > shape.maxHeadVDim) {
       throw new Error('Register prefill requires its registered head width, F32 state/inputs and silu norm gating.');
+    }
+    if (shape.sourceLayout === 'gguf-v1'
+        && (!Number.isSafeInteger(numTokens) || !Number.isSafeInteger(layerState.numKHeads)
+          || layerState.numKHeads <= 0 || layerState.numVHeads % layerState.numKHeads !== 0
+          || layerState.qSize !== layerState.numKHeads * layerState.headKDim
+          || layerState.kSize !== layerState.qSize
+          || layerState.valueDim !== layerState.numVHeads * layerState.headVDim
+          || layerState.convDim !== layerState.qSize + layerState.kSize + layerState.valueDim)) {
+      throw new Error('GGUF register prefill requires integral token/head counts and declared Q/K/V geometry.');
     }
   }
   if (numTokens === 1 && typeof prefillSession.useLinearAttentionRegisterDecode !== 'boolean') {
     throw new Error('Linear attention decode requires boolean useLinearAttentionRegisterDecode.');
   }
   const useRegisterDecode = numTokens === 1 && prefillSession.useLinearAttentionRegisterDecode;
-  if (layerState.sourceLayout === 'gguf-v1' && (useRegisterDecode || useRegisterPrefill || prefillSession.useLinearAttentionFusedDecodeCore)) throw new Error('Native GGUF GDN currently requires its declared unfused F32 recurrent program.');
+  if (layerState.sourceLayout === 'gguf-v1' && (useRegisterDecode || prefillSession.useLinearAttentionFusedDecodeCore)) throw new Error('Native GGUF GDN currently requires its declared unfused F32 recurrent program.');
   const useFusedDecodeCore = canUseFusedDecodeCore(layerState, numTokens, options, aTensor, bTensor);
   if (useRegisterDecode) {
     const selected = resolveGatedDeltaNormGateKernel('gated_delta_fused_decode', 'gatedDeltaFusedDecode', 'scalarVariant',

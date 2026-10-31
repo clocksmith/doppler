@@ -53,6 +53,26 @@ Add a new attention mechanism within the existing transformer text pipeline.
 - Putting GPU buffers, recorder objects, closures, or cleanup callbacks in the
   semantic plan.
 
+## Recurrent source-layout admission
+
+The GGUF retained-state prefill candidate uses the existing
+`useLinearAttentionRegisterPrefill` opt-in and the registered
+`gated_delta_recurrent/gguf_register_prefill` variant. It admits scalar F32
+input/output/state, one state component, SiLU norm gating, K=128, V<=128 and
+explicit consistent head geometry. Single-token tails retain the GGUF baseline;
+GGUF register/fused decode and two-component state are not admitted.
+
+Preserve the source layout's arithmetic and head mapping when adding a variant:
+GGUF uses `head % NK` and epsilon inside the Q/K L2 root. HF register kernels
+use a different head mapping. Retain nonzero initial state, chunk/decode
+continuation, final state, packed-input addressing and norm/gate order in both
+submission adapters. A session flag cannot authorize a kernel outside the
+prepared program's pinned closure.
+
+Operator fixtures and a faster recurrent pass do not qualify a model or a
+platform. Require full-model numerical/quality and phase-specific performance
+receipts before selecting this candidate in a production artifact/profile.
+
 ## Related Guides
 
 - [07-manifest-runtime-field.md](07-manifest-runtime-field.md)

@@ -410,6 +410,7 @@ export const UNIFORM_WRITERS = Object.freeze({
   "gated_delta_recurrent/paired_gate_sigmoid": { size: 80, write: writers0.write_qwen_linear_attention_prepare_paired_beta },
   "gated_delta_recurrent/register_prefill": { size: 64, write: writers2.write_gated_delta_recurrent_default },
   "gated_delta_recurrent/register_prefill_norm_gate": { size: 64, write: writers2.write_gated_delta_recurrent_default },
+  "gated_delta_recurrent/gguf_register_prefill": { size: 64, write: writers2.write_gated_delta_recurrent_default },
   "gated_delta_recurrent/gguf_f32": { size: 64, write: writers2.write_gated_delta_recurrent_default },
   "gated_delta_fused_decode/paired_default": { size: 64, write: writers2.write_gated_delta_recurrent_default },
   "gated_delta_fused_decode/paired_default_f16": { size: 64, write: writers2.write_gated_delta_recurrent_default },
@@ -472,4 +473,7 @@ export const UNIFORM_WRITERS = Object.freeze({
   "moe_route_matmul/q8_0_split_f32": { size: 32, write: writers2.write_moe_route_matmul_q4_0_f32 },
   "moe_route_matmul/q6k_split_f32": { size: 32, write: writers2.write_moe_route_matmul_q4_0_f32 },
   "sigmoid_gated_add/f32": { size: 16, write: writers2.write_sigmoid_gated_add_f32 },
+  "moe_grouped_sort/native_f32": { size: 32, write: writers2.write_moe_grouped_sort_native_f32 },
+  "moe_grouped_gu/native_f32": { size: 32, write: writers2.write_moe_grouped_gu_native_f32 },
+  "moe_grouped_down/native_f32": { size: 32, write: writers2.write_moe_grouped_gu_native_f32 },
 });
