@@ -563,6 +563,8 @@ export class InferencePipeline extends PipelineState {
   }
 
   releaseGPUResources() {
+    this.wholeTokenProgram?.program.destroy();
+    this.wholeTokenProgram = null;
     this.decodeBuffers?.release();
     this.decodeRing?.release();
     destroyMoERouter(this.moeRouter);

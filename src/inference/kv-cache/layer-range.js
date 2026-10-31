@@ -1,7 +1,7 @@
 const INDEX_ARGUMENT = Object.freeze({
   update: 0, updateFromGPU: 0, recordUpdateFromGPU: 1,
   recordUpdateF32ToF16FromGPU: 1, recordF16UpdateAlreadyWrittenFromGPU: 0,
-  get: 0, getKeyCache: 0, getValueCache: 0, getGPUBuffers: 0,
+  get: 0, getKeyCache: 0, getValueCache: 0, getGPUBuffers: 0, markAppended: 0,
 });
 
 /** @type {import('./layer-range.js').resolveKVCacheLayerCount} */

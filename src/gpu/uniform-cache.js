@@ -5,6 +5,12 @@ import { isDeviceLost, observeDeviceLoss, registerBufferDevice } from '../memory
 import { getRuntimeConfig } from '../config/runtime.js';
 
 const uniformOwners = new WeakMap();
+const uniformContents = new WeakMap();
+
+/** Bytes a cached uniform buffer was created with, or null when it is not a cache entry. */
+export function peekUniformCacheBytes(buffer) {
+  return uniformContents.get(buffer) ?? null;
+}
 
 
 function hashUniformBytes(view) {
@@ -124,6 +130,7 @@ export class UniformBufferCache {
       throw error;
     }
     uniformOwners.set(buffer, this);
+    uniformContents.set(buffer, dataBytes);
 
     // Evict if at capacity
     if (this.#cache.size >= this.#maxEntries) {

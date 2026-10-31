@@ -30,6 +30,7 @@ import { parseFinitenessStatusWords } from '../finiteness-guard-status.js';
 
 import { hasConvLayers } from '../layer.js';
 import { advanceDecodeStepCount } from '../tsir-fixture-writer.js';
+import { WholeTokenProgram, WHOLE_TOKEN_CAPTURE_STEPS } from './whole-token-program.js';
 import { preparePerLayerInputs, prefetchPerLayerRow } from '../per-layer-inputs.js';
 
 export const UNKNOWN_TOKEN_TEXT = '<unknown>';
@@ -379,7 +380,111 @@ export function resolveDecodeLayerSubmitInterval(decodeLoop, recorder) {
   return interval;
 }
 
+// Sequence bookkeeping a decode step advances on the CPU: KV layers (through the
+// cache's own markAppended) and linear-attention layer states.
+function sequenceAdvancers(state) {
+  const fields = [];
+  const kv = state.kvCache;
+  if (Array.isArray(kv?.layers)) {
+    kv.layers.forEach((layer, local) => {
+      if (layer && typeof layer.seqLen === 'number') {
+        fields.push({ kind: 'kv', owner: layer, layerIdx: kv.layerIndices?.[local] ?? local });
+      }
+    });
+  }
+  const linear = state.linearAttentionRuntime?.layers;
+  if (linear instanceof Map) {
+    for (const layer of linear.values()) if (layer && typeof layer.seqLen === 'number') fields.push({ kind: 'linear', owner: layer });
+  }
+  return fields;
+}
+
+function applySequenceAdvance(state, advancers, pos) {
+  for (const advancer of advancers) {
+    if (advancer.kind === 'kv') state.kvCache.markAppended(advancer.layerIdx, pos, 1);
+    else advancer.owner.seqLen = Math.max(advancer.owner.seqLen, pos + 1);
+  }
+}
+
+function wholeTokenProgramRequested(state, opts) {
+  const session = state.resolvedRuntimeSession?.runtime?.session ?? state.runtimeConfig.inference.session;
+  const requested = session.decodeLoop?.wholeTokenProgram ?? false;
+  if (requested !== true && requested !== false) {
+    throw new Error('decodeLoop.wholeTokenProgram must be a boolean when set.');
+  }
+  if (!requested) return false;
+  const blockers = [];
+  if (opts.debug) blockers.push('debug');
+  if (opts.profile) blockers.push('profile');
+  if (opts.executionObserver) blockers.push('executionObserver');
+  if (typeof opts.onLogits === 'function') blockers.push('onLogits');
+  if (typeof opts.logitMaskFn === 'function' || opts.suppressTokenIds.length > 0) blockers.push('logit masking');
+  if (state.pleCache) blockers.push('per-layer inputs');
+  if (blockers.length > 0) {
+    throw new Error(`decodeLoop.wholeTokenProgram cannot run with ${blockers.join(', ')}; disable one of them.`);
+  }
+  return true;
+}
+
+// Whole-token program lane: steps 1-5 of a generation run the ordinary recorded
+// step (2-5 observed); later steps replay the built program. See whole-token-program.js.
 export async function decodeStep(state, currentIds, opts, helpers) {
+  if (!wholeTokenProgramRequested(state, opts)) return decodeStepRecorded(state, currentIds, opts, helpers, null);
+  const step = state.decodeStepCount + 1;
+  const pos = state.currentSeqLen;
+  const lastToken = currentIds[currentIds.length - 1];
+  if (step === 1) {
+    state.wholeTokenProgram?.program.destroy();
+    state.wholeTokenProgram = { program: new WholeTokenProgram(getDevice()), advancers: null };
+    return decodeStepRecorded(state, currentIds, opts, helpers, null);
+  }
+  const lane = state.wholeTokenProgram;
+  if (!lane) throw new Error('[WholeTokenProgram] Generation reached decode step > 1 without a program.');
+  const { program } = lane;
+  if (WHOLE_TOKEN_CAPTURE_STEPS.includes(step)) {
+    const fields = sequenceAdvancers(state);
+    const before = fields.map(({ owner }) => owner.seqLen);
+    const token = await decodeStepRecorded(state, currentIds, opts, helpers,
+      (run) => program.observe(pos, lastToken, run));
+    lane.advancers = fields.filter(({ owner }, i) => owner.seqLen !== before[i]);
+    if (lane.advancers.some(({ owner }) => owner.seqLen !== pos + 1)) {
+      throw new Error('[WholeTokenProgram] A decode step advanced sequence state by more than one position.');
+    }
+    return token;
+  }
+  if (!program.ready) throw new Error('[WholeTokenProgram] Program was not built after the observed steps.');
+  const wallStart = performance.now();
+  advanceDecodeStepCount(state);
+  if (state.finitenessBuffer) getDevice().queue.writeBuffer(state.finitenessBuffer, 0, FINITENESS_RESET_WORDS);
+  const words = await program.run(pos, lastToken);
+  const next = words[0];
+  if (state.finitenessBuffer) {
+    const finitenessStatus = parseFinitenessStatusWords(words, 1);
+    if (finitenessStatus.triggered) {
+      throw new FinitenessError(`F16 bounds exceeded during generation${finitenessStatus.metadata}`);
+    }
+  }
+  applySequenceAdvance(state, lane.advancers, pos);
+  state.currentSeqLen = pos + 1;
+  state.stats.wholeTokenProgram = { ...program.stats, dispatches: program.dispatchCount };
+  state.stats.wholeTokenProgramWallMs = (state.stats.wholeTokenProgramWallMs ?? 0) + (performance.now() - wallStart);
+  if (next >= state.modelConfig.vocabSize) {
+    throw new Error(`[WholeTokenProgram] Sampled token ${next} is outside the vocabulary.`);
+  }
+  return next;
+}
+
+async function decodeStepRecorded(state, currentIds, opts, helpers, observeRecorded) {
+  if (!observeRecorded) return decodeStepBody(state, currentIds, opts, helpers, createDecodeRecorder);
+  return observeRecorded((attach) => decodeStepBody(state, currentIds, opts, helpers, (s, o) => {
+    const recorder = createDecodeRecorder(s, o);
+    if (!recorder) throw new Error('[WholeTokenProgram] Requires a recorded decode step.');
+    attach(recorder);
+    return recorder;
+  }));
+}
+
+async function decodeStepBody(state, currentIds, opts, helpers, makeRecorder) {
   const stepWallStart = performance.now();
   const lastToken = currentIds[currentIds.length - 1];
   const numTokens = 1;
@@ -394,7 +499,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     log.debug('Decode', `[${state.decodeStepCount}] token="${tokenText}" pos=${state.currentSeqLen}`);
   }
   const device = getDevice();
-  const recorder = createDecodeRecorder(state, opts);
+  const recorder = makeRecorder(state, opts);
   const lifecycle = createDecodeStepResources(recorder, releaseBuffer, discardBuffer);
   const { resources } = lifecycle;
   let failed = false;

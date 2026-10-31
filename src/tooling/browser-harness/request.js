@@ -103,6 +103,7 @@ export function resolveDecodeCadence(runtimeConfig, executionPlan = null) {
         ringStop: decodeLoop.ringStop ?? null,
         ringStaging: decodeLoop.ringStaging ?? null,
         layerSubmitInterval: decodeLoop.layerSubmitInterval ?? null,
+        wholeTokenProgram: decodeLoop.wholeTokenProgram ?? false,
       },
     },
     executionPlan: executionPlanCadence

@@ -202,6 +202,8 @@ export declare const acquireBuffer: (size: number, usage?: GPUBufferUsageFlags, 
 export declare const releaseBuffer: (buffer: GPUBuffer) => void;
 export declare const discardBuffer: (buffer: GPUBuffer) => void;
 export declare const isBufferActive: (buffer: GPUBuffer) => boolean;
+/** Observe pool releases and discards; returns the unsubscribe function. */
+export declare function observeBufferRelease(observer: (buffer: GPUBuffer) => void): () => void;
 export declare function markPersistentBuffer(buffer: GPUBuffer): void;
 export declare function isPersistentBuffer(buffer: GPUBuffer): boolean;
 export declare class PersistentBufferSet extends Set<GPUBuffer> {}

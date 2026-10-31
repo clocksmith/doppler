@@ -160,6 +160,8 @@ export class KVCache {
   /**
    * Truncate cache to a specific length (for rollback)
    */
+  /** Advance sequence bookkeeping for rows a replayed decode program wrote on the GPU. */
+  markAppended(layerIdx: number, startPos: number, numTokens: number): void;
   truncate(length: number): void;
 
   /**

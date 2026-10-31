@@ -39,6 +39,9 @@ export class PipelineState {
 
     this.decodeStepCount = 0;
 
+    // Whole-token decode program lane (decodeLoop.wholeTokenProgram); null when unused.
+    this.wholeTokenProgram = null;
+
     this.resolvedKernelPath = null;
 
     this.kernelPathSource = 'none';

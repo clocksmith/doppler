@@ -82,6 +82,9 @@ export declare class UniformBufferCache {
   getStats(): UniformCacheStats & { hitRate: string; pendingDestruction: number };
 }
 
+/** Bytes a cached uniform buffer was created with, or null when it is not a cache entry. */
+export function peekUniformCacheBytes(buffer: GPUBuffer): Uint8Array | null;
+
 export function toUniformArrayBuffer(data: ArrayBuffer | ArrayBufferView): ArrayBuffer;
 
 /**

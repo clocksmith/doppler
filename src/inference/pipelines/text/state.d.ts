@@ -58,6 +58,7 @@ export class PipelineState {
   // Debug flags (combined for both layer and logits)
   debugFlags: WeightDebugFlags & LogitsDebugFlags;
   decodeStepCount: number;
+  wholeTokenProgram: { program: import('./generator/whole-token-program.js').WholeTokenProgram; advancers: Array<{ kind: 'kv' | 'linear'; owner: { seqLen: number }; layerIdx?: number }> | null } | null;
   resolvedKernelPath: KernelPathSchema | null;
   kernelPathSource: KernelPathSource;
   executionPlanState: ExecutionPlanState | null;
