@@ -44,11 +44,12 @@ export function resolveQwenNormRouter(options) {
   const steps = getLayerSteps(options.kernelPath, options.layerIdx, options.phase)
     .filter(step => step.op === 'moe_norm_router');
   if (steps.length === 0) return false;
-  if (steps.length !== 1 || !getKernelPathStepConfig('moe_norm_router', steps[0], options.phase)
-    || (steps[0].constants && Object.keys(steps[0].constants).length)) {
+  const config = steps.length === 1 ? getKernelPathStepConfig('moe_norm_router', steps[0], options.phase) : null;
+  if (!config || (steps[0].constants && Object.keys(steps[0].constants).length)
+    || (config.variant !== 'f32' && config.variant !== 'f32_single_pass')) {
     throw new Error('[MoE] Norm + router requires one registered step with model-bound geometry.');
   }
-  return true;
+  return config.variant;
 }
 
 const slotVariantPlans = new WeakMap();

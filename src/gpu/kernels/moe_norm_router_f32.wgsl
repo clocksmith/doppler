@@ -164,3 +164,82 @@ fn main(
         }
     }
 }
+
+// Single pass (variant f32_single_pass): every workgroup streams input + residual and its
+// ROWS router rows once. NORM_THREADS (= WORKGROUP_SIZE) invocations take rmsnorm.wgsl
+// main's contiguous chunks, so the sum of squares, its tree and the refined inverse root,
+// and therefore the normalized row and pre-norm sum, are rmsnorm's bits. Each row's dot
+// is taken against input * weight in the same pass and scaled by the inverse root at the
+// end (Pooled engine/wgsl/moe.js normRouterKernel): the logits round differently from a
+// GEMV of the normalized row. Row num_experts is the shared-expert gate.
+override ROWS: u32 = 4u;
+var<workgroup> row_sums: array<vec4<f32>, NORM_THREADS>;
+
+fn row_weight(row: u32, idx: u32) -> f32 {
+    if (row == u.num_experts) {
+        return shared_router_weight[idx];
+    }
+    return router_weight[row * u.hidden_size + idx];
+}
+
+@compute @workgroup_size(NORM_THREADS, 1, 1)
+fn single_pass(@builtin(workgroup_id) group: vec3<u32>, @builtin(local_invocation_index) thread_idx: u32) {
+    let size = u.hidden_size;
+    let row0 = (group.y * u.workgroups_x + group.x) * ROWS;
+    let elements_per_thread = (size + NORM_THREADS - 1u) / NORM_THREADS;
+    var local_sum_sq: f32 = 0.0;
+    var dots = vec4<f32>(0.0);
+    for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
+        let idx = thread_idx * elements_per_thread + i;
+        if (idx < size) {
+            let x = load_input(idx);
+            local_sum_sq = local_sum_sq + x * x;
+            let xw = x * apply_weight(load_weight(idx));
+            for (var r = 0u; r < ROWS; r++) {
+                let row = row0 + r;
+                if (row <= u.num_experts) {
+                    dots[r] = fma(row_weight(row, idx), xw, dots[r]);
+                }
+            }
+        }
+    }
+    partial_sums[thread_idx] = local_sum_sq;
+    row_sums[thread_idx] = dots;
+    workgroupBarrier();
+    for (var stride: u32 = NORM_THREADS / 2u; stride > 0u; stride = stride >> 1u) {
+        if (thread_idx < stride) {
+            partial_sums[thread_idx] = partial_sums[thread_idx] + partial_sums[thread_idx + stride];
+            row_sums[thread_idx] = row_sums[thread_idx] + row_sums[thread_idx + stride];
+        }
+        workgroupBarrier();
+    }
+
+    let mean_sq = partial_sums[0] / f32(size);
+    let epsilon_sum = mean_sq + u.eps;
+    let estimate = inverseSqrt(epsilon_sum);
+    let estimate_squared = estimate * estimate;
+    let square_error = fma(estimate, estimate, -estimate_squared);
+    let reciprocal_residual = fma(-epsilon_sum, estimate_squared, 1.0)
+        - epsilon_sum * square_error;
+    let inv_rms = fma(0.5 * estimate, reciprocal_residual, estimate);
+
+    if (thread_idx < ROWS) {
+        let row = row0 + thread_idx;
+        let value = row_sums[0][thread_idx] * inv_rms;
+        if (row < u.num_experts) {
+            logits[row] = value;
+        } else if (row == u.num_experts) {
+            shared_gate[0] = value;
+        }
+    }
+    if (group.x == 0u && group.y == 0u) {
+        for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
+            let idx = thread_idx * elements_per_thread + i;
+            if (idx < size) {
+                let x = load_input(idx);
+                prenorm[idx] = x;
+                normed[idx] = x * inv_rms * apply_weight(load_weight(idx));
+            }
+        }
+    }
+}

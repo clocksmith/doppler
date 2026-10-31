@@ -255,8 +255,8 @@
             {
               "op": "moe_norm_router",
               "kernel": "moe_norm_router_f32.wgsl",
-              "entry": "main",
-              "digest": "sha256:5130f6f44c92fbe07b5306dfcbd3371778f7264a9eea7678db103e51d6d949cd"
+              "entry": "single_pass",
+              "digest": "sha256:3e5c424ade7055f14ac658a9bf3aecd2a027305b7c3d09f9dcb0432b6a7d5120"
             },
             {
               "op": "moe_router",
@@ -722,8 +722,8 @@
                   "op": "moe_shared_slot_down"
                 },
                 {
-                  "digest": "sha256:5130f6f44c92fbe07b5306dfcbd3371778f7264a9eea7678db103e51d6d949cd",
-                  "entry": "main",
+                  "digest": "sha256:3e5c424ade7055f14ac658a9bf3aecd2a027305b7c3d09f9dcb0432b6a7d5120",
+                  "entry": "single_pass",
                   "kernel": "moe_norm_router_f32.wgsl",
                   "op": "moe_norm_router"
                 },
@@ -992,17 +992,15 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 210,
+                    "WORKGROUP_SIZE": 256,
+                    "ROWS": 4,
                     "BLOCK_VALUES": 256,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 3,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 210,
+                    "QUANT_FORMAT": 3
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:bd465ca37154cf9ac0b0d34f6a9c8f6f1014c8df3fe333d931cfd7eb39d4b7e9",
+                  "entry": "main_q6k",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "q_proj",
                   "weights": "layer.{L}.self_attn.q_proj"
                 },
@@ -1192,8 +1190,8 @@
                   "op": "moe_shared_slot_down"
                 },
                 {
-                  "digest": "sha256:5130f6f44c92fbe07b5306dfcbd3371778f7264a9eea7678db103e51d6d949cd",
-                  "entry": "main",
+                  "digest": "sha256:3e5c424ade7055f14ac658a9bf3aecd2a027305b7c3d09f9dcb0432b6a7d5120",
+                  "entry": "single_pass",
                   "kernel": "moe_norm_router_f32.wgsl",
                   "op": "moe_norm_router"
                 },
@@ -1663,8 +1661,8 @@
                   "op": "moe_shared_slot_down"
                 },
                 {
-                  "digest": "sha256:5130f6f44c92fbe07b5306dfcbd3371778f7264a9eea7678db103e51d6d949cd",
-                  "entry": "main",
+                  "digest": "sha256:3e5c424ade7055f14ac658a9bf3aecd2a027305b7c3d09f9dcb0432b6a7d5120",
+                  "entry": "single_pass",
                   "kernel": "moe_norm_router_f32.wgsl",
                   "op": "moe_norm_router"
                 },
@@ -2146,8 +2144,8 @@
                   "op": "moe_shared_slot_down"
                 },
                 {
-                  "digest": "sha256:5130f6f44c92fbe07b5306dfcbd3371778f7264a9eea7678db103e51d6d949cd",
-                  "entry": "main",
+                  "digest": "sha256:3e5c424ade7055f14ac658a9bf3aecd2a027305b7c3d09f9dcb0432b6a7d5120",
+                  "entry": "single_pass",
                   "kernel": "moe_norm_router_f32.wgsl",
                   "op": "moe_norm_router"
                 },
@@ -2623,8 +2621,8 @@
                   "op": "moe_shared_slot_down"
                 },
                 {
-                  "digest": "sha256:5130f6f44c92fbe07b5306dfcbd3371778f7264a9eea7678db103e51d6d949cd",
-                  "entry": "main",
+                  "digest": "sha256:3e5c424ade7055f14ac658a9bf3aecd2a027305b7c3d09f9dcb0432b6a7d5120",
+                  "entry": "single_pass",
                   "kernel": "moe_norm_router_f32.wgsl",
                   "op": "moe_norm_router"
                 },
@@ -3093,8 +3091,8 @@
                   "op": "moe_shared_slot_down"
                 },
                 {
-                  "digest": "sha256:5130f6f44c92fbe07b5306dfcbd3371778f7264a9eea7678db103e51d6d949cd",
-                  "entry": "main",
+                  "digest": "sha256:3e5c424ade7055f14ac658a9bf3aecd2a027305b7c3d09f9dcb0432b6a7d5120",
+                  "entry": "single_pass",
                   "kernel": "moe_norm_router_f32.wgsl",
                   "op": "moe_norm_router"
                 },
@@ -3567,8 +3565,8 @@
                   "op": "moe_shared_slot_down"
                 },
                 {
-                  "digest": "sha256:5130f6f44c92fbe07b5306dfcbd3371778f7264a9eea7678db103e51d6d949cd",
-                  "entry": "main",
+                  "digest": "sha256:3e5c424ade7055f14ac658a9bf3aecd2a027305b7c3d09f9dcb0432b6a7d5120",
+                  "entry": "single_pass",
                   "kernel": "moe_norm_router_f32.wgsl",
                   "op": "moe_norm_router"
                 },
@@ -3837,17 +3835,15 @@
                 },
                 {
                   "constants": {
-                    "BLOCK_BYTES": 210,
+                    "WORKGROUP_SIZE": 256,
+                    "ROWS": 4,
                     "BLOCK_VALUES": 256,
-                    "COLS_PER_WG": 4,
-                    "QUANT_FORMAT": 3,
-                    "THREADS_PER_COL_GEMV": 32,
-                    "TILE_SIZE": 16,
-                    "WORKGROUP_SIZE": 128
+                    "BLOCK_BYTES": 210,
+                    "QUANT_FORMAT": 3
                   },
-                  "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d",
-                  "entry": "cooperative",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:bd465ca37154cf9ac0b0d34f6a9c8f6f1014c8df3fe333d931cfd7eb39d4b7e9",
+                  "entry": "main_q6k",
+                  "kernel": "matmul_gguf_pair_f32.wgsl",
                   "op": "q_proj",
                   "weights": "layer.{L}.self_attn.q_proj"
                 },
@@ -4043,8 +4039,8 @@
                   "op": "moe_shared_slot_down"
                 },
                 {
-                  "digest": "sha256:5130f6f44c92fbe07b5306dfcbd3371778f7264a9eea7678db103e51d6d949cd",
-                  "entry": "main",
+                  "digest": "sha256:3e5c424ade7055f14ac658a9bf3aecd2a027305b7c3d09f9dcb0432b6a7d5120",
+                  "entry": "single_pass",
                   "kernel": "moe_norm_router_f32.wgsl",
                   "op": "moe_norm_router"
                 },
@@ -4323,19 +4319,17 @@
           },
           {
             "op": "lm_head",
-            "kernel": "matmul_q4_0.wgsl",
-            "entry": "cooperative",
+            "kernel": "matmul_gguf_pair_f32.wgsl",
+            "entry": "main_q6k",
             "weights": "lm_head",
             "constants": {
-              "WORKGROUP_SIZE": 128,
-              "COLS_PER_WG": 4,
-              "THREADS_PER_COL_GEMV": 32,
-              "TILE_SIZE": 16,
+              "WORKGROUP_SIZE": 256,
+              "ROWS": 4,
               "BLOCK_VALUES": 256,
               "BLOCK_BYTES": 210,
               "QUANT_FORMAT": 3
             },
-            "digest": "sha256:08a77ccd9083790e11d7acac5e08e4e042c6ad10cd6986ff551e5bb3dc83768d"
+            "digest": "sha256:bd465ca37154cf9ac0b0d34f6a9c8f6f1014c8df3fe333d931cfd7eb39d4b7e9"
           },
           {
             "op": "lm_head_prefill",

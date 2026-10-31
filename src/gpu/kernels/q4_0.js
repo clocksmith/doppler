@@ -79,9 +79,9 @@ async function execute(recorder, input, weights, M, N, K, options) {
     // Aligned block pairs need an even block count per row; vec4 activations need
     // 16-byte activation offsets and K a multiple of 4.
     const rows = positiveOverride(config.wgslOverrides,'ROWS');
-    if (![0, 2].includes(format.code) || (K / format.values) % 2 || rows > 4 || aOffset % 16 || K % 4
+    if (![0, 2, 3].includes(format.code) || (K / format.values) % 2 || rows > 4 || aOffset % 16 || K % 4
       || width % 8 || (width & (width - 1)) !== 0 || !device.features?.has('subgroups')) {
-      throw new Error('Pair GEMV requires Q4_0/Q8_0 rows of whole block pairs, at most four rows, 16-byte activations and subgroups.');
+      throw new Error('Pair GEMV requires Q4_0/Q8_0/Q6_K rows of whole block pairs, at most four rows, 16-byte activations and subgroups.');
     }
     count = Math.ceil(N / rows) * M;
   } else if (geometry === 'cooperative') {

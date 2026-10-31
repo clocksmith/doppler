@@ -91,7 +91,7 @@ export async function runMoEFFNGPU(
           ? { tensor: pendingResidual, outputBuffer: context.__pendingFfnResidualOutputBuffer ?? null }
           : null } : null,
       normRouter: pendingNorm
-        ? { ...pendingNorm, sharedRouterWeight: context.weights.get(`layer_${layerIdx}`)?.sharedExpertRouter }
+        ? { ...pendingNorm, variant: normRouter, sharedRouterWeight: context.weights.get(`layer_${layerIdx}`)?.sharedExpertRouter }
         : null,
     },
     moeRouter,

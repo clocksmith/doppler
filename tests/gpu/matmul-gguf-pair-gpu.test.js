@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 
-// Pair GEMV (matmul_gguf_pair_f32.wgsl) against the dequantized CPU reference: Q4_0 and
-// Q8_0, M = 1..3, an offset weight bank, offset output with guarded prefix and tail,
+// Pair GEMV (matmul_gguf_pair_f32.wgsl) against the dequantized CPU reference: Q4_0,
+// Q8_0 and Q6_K, M = 1..3, an offset weight bank, offset output with guarded prefix and tail,
 // immediate and recorded execution. Odd block counts are refused.
 
 const { probeNodeGPU } = await import('../helpers/gpu-probe.js');
@@ -37,8 +37,11 @@ const errors = [];
 device.addEventListener('uncapturederror', (event) => errors.push(event.error.message));
 
 try {
-  for (const [dtype, blockBytes] of [['q4_0', 18], ['q8_0', 34]]) {
-    for (const [M, N, K, bank] of [[1, 7, 64, 0], [3, 9, 256, 1], [1, 130, 2048, 0], [2, 33, 4096, 1]]) {
+  for (const [dtype, blockBytes, blockValues] of [['q4_0', 18, 32], ['q8_0', 34, 32], ['q6k', 210, 256]]) {
+    const shapes = blockValues === 32
+      ? [[1, 7, 64, 0], [3, 9, 256, 1], [1, 130, 2048, 0], [2, 33, 4096, 1]]
+      : [[1, 7, 512, 0], [3, 9, 512, 1], [1, 130, 2048, 0], [2, 33, 2048, 1]];
+    for (const [M, N, K, bank] of shapes) {
       const bytes = packedFixture(dtype, (bank + 1) * N, K);
       const decoded = decodePacked(dtype, bytes, (bank + 1) * N, K);
       const weight = createWeightBuffer(upload(bytes), dtype, 'row', bank ? [2, N, K] : [N, K]);
@@ -50,7 +53,7 @@ try {
         const prefix = bank * 4;
         const output = upload(new Float32Array(M * N + 16).fill(-12345));
         const options = { outputDtype: 'f32', variant: `${dtype}_pair`, outputBuffer: output,
-          aOffset: bank * K * 4, bOffset: bank * N * K / 32 * blockBytes, cOffset: prefix * 4 };
+          aOffset: bank * K * 4, bOffset: bank * N * K / blockValues * blockBytes, cOffset: prefix * 4 };
         const result = recorder
           ? await recordQ40Matmul(recorder, input, weight, M, N, K, options)
           : await runQ40Matmul(input, weight, M, N, K, options);
@@ -68,8 +71,9 @@ try {
         console.log(JSON.stringify({ dtype, M, N, K, bank, mode, maxAbs }));
       }
     }
-    const oddBlocks = createWeightBuffer(upload(packedFixture(dtype, 4, 96)), dtype, 'row', [4, 96]);
-    await assert.rejects(runQ40Matmul(createTensor(upload(new Float32Array(96)), 'f32', [1, 96]), oddBlocks, 1, 4, 96,
+    const oddK = blockValues * 3;
+    const oddBlocks = createWeightBuffer(upload(packedFixture(dtype, 4, oddK)), dtype, 'row', [4, oddK]);
+    await assert.rejects(runQ40Matmul(createTensor(upload(new Float32Array(oddK)), 'f32', [1, oddK]), oddBlocks, 1, 4, oddK,
       { outputDtype: 'f32', variant: `${dtype}_pair` }), /whole block pairs/);
   }
   assert.deepEqual(errors, []);

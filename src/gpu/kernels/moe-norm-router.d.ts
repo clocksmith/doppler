@@ -3,6 +3,11 @@ import type { Tensor } from '../tensor.js';
 import type { WeightBuffer } from '../weight-buffer.js';
 
 export interface MoENormRouterOptions {
+  /**
+   * f32 reproduces the unfused norm and both router GEMVs bit for bit; f32_single_pass
+   * reproduces the normalized row and scales single-pass row dots by the inverse root.
+   */
+  variant: 'f32' | 'f32_single_pass';
   /** Attention output [1, hiddenSize] F32. */
   input: Tensor;
   /** Layer input the attention output is added to before the norm [1, hiddenSize] F32. */

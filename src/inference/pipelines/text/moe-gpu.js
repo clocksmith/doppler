@@ -315,7 +315,7 @@ export async function moeFeedForwardGPU(
       sharedGateBuffer = workspace?.getBuffer(`moe:${layerIdx}:shared-router`, 4)
         ?? acquireBuffer(4, undefined, 'moe_shared_gate');
       await recordMoENormRouter(recorder, {
-        input: normRouter.input, residual: normRouter.residual, normWeight: normRouter.weight,
+        variant: normRouter.variant, input: normRouter.input, residual: normRouter.residual, normWeight: normRouter.weight,
         normWeightDtype: normRouter.weightDtype, rmsNormWeightOffset: normRouter.rmsNormWeightOffset,
         eps: normRouter.eps, routerWeight: moeRouter.gateWeight, sharedRouterWeight: normRouter.sharedRouterWeight,
         hiddenSize, numExperts, normedOutput: inputBuffer, prenormOutput: normRouter.prenorm,

@@ -53,7 +53,10 @@ export interface MoEConfig {
    * Fused decode post-attention norm: the MoE writes the normalized row into its input
    * buffer, and the router logits and shared-expert gate, in one dispatch.
    */
-  normRouter?: (import('./types.js').PendingFfnNorm & { sharedRouterWeight: GPUBuffer | import('../../../gpu/weight-buffer.js').WeightBuffer }) | null;
+  normRouter?: (import('./types.js').PendingFfnNorm & {
+    variant: 'f32' | 'f32_single_pass';
+    sharedRouterWeight: GPUBuffer | import('../../../gpu/weight-buffer.js').WeightBuffer;
+  }) | null;
   activeExpertSelection?: import('../../../config/schema/moe.schema.js').ActiveExpertSelection;
   modelType?: string | null;
   hiddenSize: number;

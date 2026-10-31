@@ -13,6 +13,7 @@ export interface KernelUniformValues {
   "moe_shared_slot_down/pair_combine_f32": Parameters<typeof writers0.write_moe_shared_slot_gu_native_f32>[1];
   "moe_shared_slot_down/pair_combine_residual_f32": Parameters<typeof writers0.write_moe_shared_slot_gu_native_f32>[1];
   "moe_norm_router/f32": Parameters<typeof writers0.write_moe_norm_router_f32>[1];
+  "moe_norm_router/f32_single_pass": Parameters<typeof writers0.write_moe_norm_router_f32>[1];
   "w8a8_quantize/f32": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
   "w8a8_rescale/activation": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
   "w8a8_rescale/weight": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
@@ -38,6 +39,7 @@ export interface KernelUniformValues {
   "matmul/q8_0_cooperative": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q4_0_pair": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q8_0_pair": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q6k_pair": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/fp8_e4m3fn_f32": Parameters<typeof writers0.write_matmul_fp8_e4m3fn_f32>[1];
   "matmul/fp8_e5m2_f32": Parameters<typeof writers0.write_matmul_fp8_e4m3fn_f32>[1];
   "matmul/w8a8_portable": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];

@@ -27,14 +27,14 @@ export declare function resolveQwenSharedSlot(options: {
 }): boolean;
 
 /**
- * Whether the layer's kernel path declares the fused decode post-attention norm with the
- * expert-router and shared-expert router projections (op moe_norm_router).
+ * The registered variant of the layer's declared fused decode post-attention norm with
+ * the expert-router and shared-expert router projections (op moe_norm_router), or false.
  */
 export declare function resolveQwenNormRouter(options: {
   kernelPath: KernelPathSchema | null;
   phase: 'decode' | 'prefill';
   layerIdx: number;
-}): boolean;
+}): 'f32' | 'f32_single_pass' | false;
 
 /** Registered shared-slot variants declared by the layer's kernel-path steps. */
 export declare function resolveQwenSharedSlotVariants(options: {

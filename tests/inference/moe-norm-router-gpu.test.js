@@ -55,7 +55,7 @@ function values(count, scale) {
   return Float32Array.from({ length: count }, () => random() * scale);
 }
 
-async function checkCase({ hiddenSize, numExperts, offset }) {
+async function checkCase({ hiddenSize, numExperts, offset, variant = 'f32' }) {
   const eps = 1e-6;
   const input = buffer(values(hiddenSize, 4), 'attn_out');
   const residual = buffer(values(hiddenSize, 8), 'layer_in');
@@ -87,7 +87,7 @@ async function checkCase({ hiddenSize, numExperts, offset }) {
   const gate = empty(4, 'gate');
   const recorder = new CommandRecorder(device, 'moe_norm_router_test');
   await recordMoENormRouter(recorder, {
-    input: createTensor(input, 'f32', [1, hiddenSize], 'attn_out'),
+    variant, input: createTensor(input, 'f32', [1, hiddenSize], 'attn_out'),
     residual: createTensor(residual, 'f32', [1, hiddenSize], 'layer_in'),
     normWeight, rmsNormWeightOffset: offset, eps,
     routerWeight, sharedRouterWeight: sharedWeight, hiddenSize, numExperts,
@@ -95,6 +95,9 @@ async function checkCase({ hiddenSize, numExperts, offset }) {
   });
   await recorder.submitAndWait();
 
+  // The single pass keeps rmsnorm's bits for the row and scales its own row dots.
+  const exact = variant === 'f32'
+    ? ['prenorm', 'normed', 'logits', 'shared gate'] : ['prenorm', 'normed'];
   for (const [label, actual, expected, count] of [
     ['prenorm', prenorm, refPrenorm, hiddenSize], ['normed', normed, refNormed, hiddenSize],
     ['logits', logits, refLogits, numExperts], ['shared gate', gate, refGate, 1],
@@ -102,6 +105,12 @@ async function checkCase({ hiddenSize, numExperts, offset }) {
     const a = await readWords(actual, count);
     const e = await readWords(expected, count);
     assert.ok(e.some((word) => word !== 0), `${label} reference was never written`);
+    if (!exact.includes(label)) {
+      const av = new Float32Array(a.buffer), ev = new Float32Array(e.buffer);
+      ev.forEach((value, i) => assert.ok(Math.abs(av[i] - value) <= 1e-5 + 1e-5 * Math.abs(value),
+        `${label}[${i}] ${av[i]} vs ${value} (${variant})`));
+      continue;
+    }
     const first = a.findIndex((word, i) => word !== e[i]);
     assert.equal(first, -1, `${label} differs at ${first} (hidden ${hiddenSize}, offset ${offset}): `
       + `${a[first]?.toString(16)} vs ${e[first]?.toString(16)}`);
@@ -111,5 +120,8 @@ async function checkCase({ hiddenSize, numExperts, offset }) {
 await checkCase({ hiddenSize: 2048, numExperts: 256, offset: false });
 await checkCase({ hiddenSize: 2048, numExperts: 256, offset: true });
 await checkCase({ hiddenSize: 1024, numExperts: 64, offset: false });
+await checkCase({ hiddenSize: 2048, numExperts: 256, offset: false, variant: 'f32_single_pass' });
+await checkCase({ hiddenSize: 2048, numExperts: 256, offset: true, variant: 'f32_single_pass' });
+await checkCase({ hiddenSize: 1024, numExperts: 63, offset: false, variant: 'f32_single_pass' });
 destroyDevice();
 console.log('moe-norm-router-gpu.test: ok');

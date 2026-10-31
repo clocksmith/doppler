@@ -39,16 +39,23 @@ export async function recordMoENormRouter(recorder, options) {
     || !Number.isSafeInteger(numExperts) || numExperts < 1 || !(options.eps > 0)) {
     throw new Error('[MoE norm router] Positive hiddenSize (a multiple of 4), numExperts and eps are required.');
   }
-  // The fused kernel reproduces rmsnorm/default and matmul/gemv_f32_subgroup only at
-  // their registered geometry; a registry change to either must change both.
-  const fused = getKernelConfig('moe_norm_router', 'f32');
+  // Both variants reproduce rmsnorm/default's normalized row at its registered thread
+  // count; f32 also reproduces matmul/gemv_f32_subgroup's logits at its geometry. A
+  // registry change to a reproduced kernel must change these too.
+  const variant = options.variant;
+  if (variant !== 'f32' && variant !== 'f32_single_pass') {
+    throw new Error('[MoE norm router] Explicit registered variant required (f32 or f32_single_pass).');
+  }
+  const fused = getKernelConfig('moe_norm_router', variant);
   const norm = getKernelConfig('rmsnorm', 'default');
   const gemv = getKernelConfig('matmul', 'gemv_f32_subgroup');
-  const { WORKGROUP_SIZE: workgroupSize, COLS_PER_WG: colsPerWorkgroup, NORM_THREADS: normThreads } = fused.wgslOverrides ?? {};
-  if (typeof workgroupSize !== 'number' || typeof colsPerWorkgroup !== 'number' || typeof normThreads !== 'number'
-    || normThreads !== norm.workgroupSize?.[0] || workgroupSize !== gemv.wgslOverrides?.WORKGROUP_SIZE
-    || colsPerWorkgroup !== gemv.wgslOverrides?.COLS_PER_WG) {
-    throw new Error('[MoE norm router] Registered geometry no longer matches rmsnorm/default and matmul/gemv_f32_subgroup.');
+  const { WORKGROUP_SIZE: workgroupSize, COLS_PER_WG: colsPerWorkgroup, NORM_THREADS: normThreads, ROWS: rows } = fused.wgslOverrides ?? {};
+  const singlePass = variant === 'f32_single_pass';
+  if (typeof normThreads !== 'number' || normThreads !== norm.workgroupSize?.[0] || (singlePass
+    ? typeof rows !== 'number' || rows < 1 || rows > 4
+    : typeof workgroupSize !== 'number' || typeof colsPerWorkgroup !== 'number'
+      || workgroupSize !== gemv.wgslOverrides?.WORKGROUP_SIZE || colsPerWorkgroup !== gemv.wgslOverrides?.COLS_PER_WG)) {
+    throw new Error('[MoE norm router] Registered geometry no longer matches the reproduced kernels.');
   }
   const device = recorder.device;
   if (hiddenSize * 4 + normThreads * 4 > device.limits.maxComputeWorkgroupStorageSize) {
@@ -61,8 +68,8 @@ export async function recordMoENormRouter(recorder, options) {
   }
   const normWeight = isWeightBuffer(options.normWeight) ? options.normWeight.buffer : options.normWeight;
   const columns = numExperts + 1;
-  const workgroupsX = Math.ceil(columns / colsPerWorkgroup);
-  await unifiedKernelWrapper('moe_norm_router', recorder, 'f32', [
+  const workgroupsX = Math.ceil(columns / (singlePass ? /** @type {number} */ (rows) : /** @type {number} */ (colsPerWorkgroup)));
+  await unifiedKernelWrapper('moe_norm_router', recorder, variant, [
     f32Row(options.input, hiddenSize, 'input'),
     f32Row(options.residual, hiddenSize, 'residual'),
     normWeight,
@@ -71,8 +78,9 @@ export async function recordMoENormRouter(recorder, options) {
     ...outputs,
   ], { hidden_size: hiddenSize, num_experts: numExperts, eps: options.eps, workgroups_x: workgroupsX },
   [workgroupsX, 1, 1], {
-    WORKGROUP_SIZE: workgroupSize,
-    COLS_PER_WG: colsPerWorkgroup,
+    ...(singlePass
+      ? { ROWS: /** @type {number} */ (rows) }
+      : { WORKGROUP_SIZE: /** @type {number} */ (workgroupSize), COLS_PER_WG: /** @type {number} */ (colsPerWorkgroup) }),
     NORM_THREADS: normThreads,
     HIDDEN_SIZE: hiddenSize,
     RMS_NORM_OFFSET: options.rmsNormWeightOffset,
