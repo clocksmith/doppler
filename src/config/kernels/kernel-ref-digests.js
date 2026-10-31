@@ -316,7 +316,7 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "moe_shared_slot_combine_f32.wgsl#main": "79858a4b10d84e2c81f1a08109e2b79d6fa686882456ab76edeb96071b421d24",
   "moe_shared_slot_down_f32.wgsl#main": "2c13f8debb9cbdbb09b5045ee70bb890812e6681458a3da5a89cc84c9e163c43",
   "moe_shared_slot_down_pair_combine_f32.wgsl#main": "d6bb2d208945fb18bb5489dfb31a75d9a17688ebd2d90a077e98bfbd7ada4421",
-  "moe_shared_slot_down_pair_combine_residual_f32.wgsl#main": "29bcc944b75748040626c2f657b2d1668a8f5585d2ba864ca826cbd84c48d806",
+  "moe_shared_slot_down_pair_combine_residual_f32.wgsl#main": "750bce8b9e6af48729fcb9dc27569590663dc0f85e6625d8de7e3bb3ba3041f2",
   "moe_shared_slot_down_pair_f32.wgsl#main": "048ca401c8871c17b88801354d02601834279e1326a6cfbe528bb1a10037d70b",
   "moe_shared_slot_gu_f32.wgsl#main": "9f7eef75b6eac856280e73f738ad3272da3b05ace1c4c0b84bc944b2ebfba638",
   "moe_shared_slot_gu_pair_f32.wgsl#main": "1a28e076e93486589a3eace88c3cb230ff1ef4aa982fdd91dcc918d00891649b",

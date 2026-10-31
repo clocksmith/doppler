@@ -292,7 +292,7 @@
               "op": "moe_shared_slot_down",
               "kernel": "moe_shared_slot_down_pair_combine_residual_f32.wgsl",
               "entry": "main",
-              "digest": "sha256:29bcc944b75748040626c2f657b2d1668a8f5585d2ba864ca826cbd84c48d806"
+              "digest": "sha256:750bce8b9e6af48729fcb9dc27569590663dc0f85e6625d8de7e3bb3ba3041f2"
             }
           ]
         },
@@ -746,7 +746,7 @@
                   "op": "moe_shared_slot_gu"
                 },
                 {
-                  "digest": "sha256:29bcc944b75748040626c2f657b2d1668a8f5585d2ba864ca826cbd84c48d806",
+                  "digest": "sha256:750bce8b9e6af48729fcb9dc27569590663dc0f85e6625d8de7e3bb3ba3041f2",
                   "entry": "main",
                   "kernel": "moe_shared_slot_down_pair_combine_residual_f32.wgsl",
                   "op": "moe_shared_slot_down"
@@ -1226,7 +1226,7 @@
                   "op": "moe_shared_slot_gu"
                 },
                 {
-                  "digest": "sha256:29bcc944b75748040626c2f657b2d1668a8f5585d2ba864ca826cbd84c48d806",
+                  "digest": "sha256:750bce8b9e6af48729fcb9dc27569590663dc0f85e6625d8de7e3bb3ba3041f2",
                   "entry": "main",
                   "kernel": "moe_shared_slot_down_pair_combine_residual_f32.wgsl",
                   "op": "moe_shared_slot_down"
@@ -1709,7 +1709,7 @@
                   "op": "moe_shared_slot_gu"
                 },
                 {
-                  "digest": "sha256:29bcc944b75748040626c2f657b2d1668a8f5585d2ba864ca826cbd84c48d806",
+                  "digest": "sha256:750bce8b9e6af48729fcb9dc27569590663dc0f85e6625d8de7e3bb3ba3041f2",
                   "entry": "main",
                   "kernel": "moe_shared_slot_down_pair_combine_residual_f32.wgsl",
                   "op": "moe_shared_slot_down"
@@ -2198,7 +2198,7 @@
                   "op": "moe_shared_slot_gu"
                 },
                 {
-                  "digest": "sha256:29bcc944b75748040626c2f657b2d1668a8f5585d2ba864ca826cbd84c48d806",
+                  "digest": "sha256:750bce8b9e6af48729fcb9dc27569590663dc0f85e6625d8de7e3bb3ba3041f2",
                   "entry": "main",
                   "kernel": "moe_shared_slot_down_pair_combine_residual_f32.wgsl",
                   "op": "moe_shared_slot_down"
@@ -2681,7 +2681,7 @@
                   "op": "moe_shared_slot_gu"
                 },
                 {
-                  "digest": "sha256:29bcc944b75748040626c2f657b2d1668a8f5585d2ba864ca826cbd84c48d806",
+                  "digest": "sha256:750bce8b9e6af48729fcb9dc27569590663dc0f85e6625d8de7e3bb3ba3041f2",
                   "entry": "main",
                   "kernel": "moe_shared_slot_down_pair_combine_residual_f32.wgsl",
                   "op": "moe_shared_slot_down"
@@ -3163,7 +3163,7 @@
                   "op": "moe_shared_slot_gu"
                 },
                 {
-                  "digest": "sha256:29bcc944b75748040626c2f657b2d1668a8f5585d2ba864ca826cbd84c48d806",
+                  "digest": "sha256:750bce8b9e6af48729fcb9dc27569590663dc0f85e6625d8de7e3bb3ba3041f2",
                   "entry": "main",
                   "kernel": "moe_shared_slot_down_pair_combine_residual_f32.wgsl",
                   "op": "moe_shared_slot_down"
@@ -3643,7 +3643,7 @@
                   "op": "moe_shared_slot_gu"
                 },
                 {
-                  "digest": "sha256:29bcc944b75748040626c2f657b2d1668a8f5585d2ba864ca826cbd84c48d806",
+                  "digest": "sha256:750bce8b9e6af48729fcb9dc27569590663dc0f85e6625d8de7e3bb3ba3041f2",
                   "entry": "main",
                   "kernel": "moe_shared_slot_down_pair_combine_residual_f32.wgsl",
                   "op": "moe_shared_slot_down"
@@ -4123,7 +4123,7 @@
                   "op": "moe_shared_slot_gu"
                 },
                 {
-                  "digest": "sha256:29bcc944b75748040626c2f657b2d1668a8f5585d2ba864ca826cbd84c48d806",
+                  "digest": "sha256:750bce8b9e6af48729fcb9dc27569590663dc0f85e6625d8de7e3bb3ba3041f2",
                   "entry": "main",
                   "kernel": "moe_shared_slot_down_pair_combine_residual_f32.wgsl",
                   "op": "moe_shared_slot_down"

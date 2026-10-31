@@ -1,3 +1,5 @@
+// AUTO-GENERATED from src/gpu/kernels/moe_shared_slot_down_pair_combine_f32.wgsl.
+// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:codegen:sync`.
 // Geometry follows Pooled engine/wgsl/moe.js MOE_DEFAULT (6b4a24f7): staged input,
 // row groups per workgroup, 2D (row group, route) dispatch and a separate fixed-order combine.
 // MIT License
