@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname -- "${BASH_SOURCE[0]}")/../.."
-exec 9< /run/media/x/models/doe-gpu-timing.lock
-[[ "$(stat -Lc '%d:%i' /proc/$$/fd/9)" == '2050:14593' ]] || { echo 'Wrong timing lock inode' >&2; exit 2; }
+: "${DOPPLER_GPU_TIMING_LOCK:?set DOPPLER_GPU_TIMING_LOCK to the host GPU timing lock file}"
+exec 9< "$DOPPLER_GPU_TIMING_LOCK"
+lock_id="$(stat -Lc '%d:%i' /proc/$$/fd/9)"
+if [[ -n "${DOPPLER_GPU_TIMING_LOCK_ID:-}" && "$lock_id" != "$DOPPLER_GPU_TIMING_LOCK_ID" ]]; then
+  echo 'Wrong timing lock inode' >&2; exit 2
+fi
 flock -x 9
-export DOPPLER_F32_PREFILL_LOCK_HELD=2050:14593
+export DOPPLER_F32_PREFILL_LOCK_HELD="$lock_id"
 case "${1:-}" in
   static)
     node --check tools/experiments/f32-prefill-attention-physical.js

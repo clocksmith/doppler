@@ -18,7 +18,7 @@ import { readBuffer } from '../../src/memory/buffer-pool.js';
 
 const { values: options } = parseArgs({ options: { 'adapter-match': { type: 'string' }, bench: { type: 'boolean', default: false } } });
 assert(options['adapter-match'], '--adapter-match is required');
-assert.equal(process.env.DOPPLER_F32_PREFILL_LOCK_HELD, '2050:14593', 'Use the locked runner');
+assert(process.env.DOPPLER_F32_PREFILL_LOCK_HELD, 'Use the locked runner');
 const variants = ['prefill_small', 'prefill_query_tile_f32'];
 const emit = value => console.log(JSON.stringify(value));
 const canary = 12345.5;
