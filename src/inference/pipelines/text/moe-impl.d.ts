@@ -46,6 +46,7 @@ export function setDequantCacheMaxEntries(maxEntries: number): void;
  * Configuration for MoE feed-forward.
  */
 export interface MoEConfig {
+  phase?: 'prefill' | 'decode';
   groupedPrefill?: boolean;
   sharedSlot?: import('./moe/qwen-route-executor.js').QwenSharedSlot | null;
   activeExpertSelection?: import('../../../config/schema/moe.schema.js').ActiveExpertSelection;

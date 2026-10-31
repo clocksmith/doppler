@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import { statSync } from 'node:fs';
 
+const args = process.argv.slice(2);
+const ordered = args[0] === '--ordered';
+assert.ok(args.length === 0 || (ordered && args[1] === '--output-dir' && args.length === 3),
+  'Usage: moe-grouped-physical.js [--ordered --output-dir <new-directory>]');
+
 // This fixture is deliberately not a software-provider or ordinary unit test.
 assert.equal(process.platform, 'linux', 'Physical fixture requires the authorized DRI host');
 assert.ok(statSync('/dev/dri').isDirectory(), 'Physical /dev/dri access is required');
@@ -32,6 +37,16 @@ const device = getDevice();
 const info = getKernelCapabilities().adapterInfo;
 assert.ok(info && /amd|nvidia|intel|apple/i.test(JSON.stringify(info))
   && !/swiftshader|llvmpipe|lavapipe|software/i.test(JSON.stringify(info)), 'Physical adapter identity required');
+if (ordered) {
+  try {
+    const { runOrderedGroupedPhysical } = await import('./moe-grouped-ordered-physical.js');
+    const report = await runOrderedGroupedPhysical({ device, info, probe, outputDirectory: args[2] });
+    console.log(JSON.stringify(report, null, 2));
+  } finally {
+    await device.queue.onSubmittedWorkDone();
+    destroyDevice();
+  }
+} else {
 const errors = [];
 device.addEventListener('uncapturederror', event => errors.push(event.error.message));
 const held = [];
@@ -240,4 +255,6 @@ try {
   await device.queue.onSubmittedWorkDone();
   for (const b of held) releaseBuffer(b);
   destroyDevice();
+}
+
 }

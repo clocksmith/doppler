@@ -88,6 +88,24 @@ empty/repeated experts, group/block tails, recording/cleanup and full-model
 logit/token gates before promotion. A successful small fixture does not admit
 all checkpoints, precisions, devices or production defaults.
 
+The separate `moe_grouped_matmul_ordered_f32.wgsl#main` candidate registers
+`native_f32_ordered` for GU and down. It retains eight-route weight reuse while
+using 32 scalar FMA lanes per output and a stride-16-to-1 shared tree. The sort,
+buffer ABI, native packed formats, activation and scatter owners are unchanged.
+Declared projection geometry supplies the sort's indirect dispatch counts:
+`WORKGROUP_SIZE / reductionLanes * ROWS_PER_THREAD` output rows per workgroup.
+Both projections must select the same reduction topology. The original
+`native_f32` variant and shader digest remain available unchanged.
+
+Use the offline [ordered program helper](../../tools/experiments/moe-grouped-ordered-program.js)
+to prepare an explicit complete program and cloned manifest mechanism closure.
+It preserves decode and every non-grouped step. The grouped execution wrapper
+consumes the declared phase/layer path; omitting the path in the original direct
+component API retains its original arithmetic. The helper does not qualify or
+promote its output. Require exact route GU/down bit comparisons against pinned
+baseline GPU operators on identical packed bytes and input tensors, with
+activation/scatter checked separately, before the unchanged full-model gate.
+
 ## Related Guides
 
 - [03-model-family-config.md](03-model-family-config.md)

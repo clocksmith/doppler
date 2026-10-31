@@ -10,4 +10,4 @@ exec 9<"$DOPPLER_GPU_TIMING_LOCK"
 flock -x 9
 [ "$(stat -Lc '%d:%i' "$DOPPLER_GPU_TIMING_LOCK")" = "$DOPPLER_GPU_TIMING_LOCK_ID" ]
 export DOPPLER_GROUPED_LOCK_FD=9
-node tools/experiments/moe-grouped-physical.js
+node tools/experiments/moe-grouped-physical.js "$@"
