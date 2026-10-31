@@ -94,6 +94,8 @@ Shape:
   "momVersion": 0,
   "requestId": "req_...",
   "inputHash": "sha256:...",
+  "mode": "escalated",
+  "distillationMode": "none",
   "receiptBudget": {
     "units": 8,
     "spent": 0,
@@ -103,6 +105,7 @@ Shape:
     "policyId": "cfr.default.v0",
     "policyHash": "sha256:...",
     "tiePolicy": "stable-choice",
+    "topK": 2,
     "candidateSetHash": "sha256:...",
     "selected": [
       {
@@ -152,6 +155,12 @@ Required invariants:
 - every selected substrate either declares a distributed plan or explicitly runs
   solo.
 - missing selected-substrate receipts fail closed.
+- `mode` is explicit: `"route_only"` is the CFR fast path (`cfr.topK = 1`, one
+  proposer, no critics) and carries no `debate` record; `"escalated"`
+  (`cfr.topK > 1`) requires `debate`.
+- `debate` is required when `mode = "escalated"` or
+  `distillationMode = "debate_adjudicated"`; a `route_only` plan with
+  `distillationMode = "debate_adjudicated"` is invalid.
 
 ## JavaScript route-plan sketch
 
@@ -220,6 +229,12 @@ export function buildMomRoutePlan({ request, candidates, policy, receiptBudget }
     }))
     .sort((a, b) => b.score - a.score || a.tieKey.localeCompare(b.tieKey));
 
+  const mode = policy.topK > 1 ? 'escalated' : 'route_only';
+  const distillationMode = policy.distillationMode ?? 'none';
+  if (mode === 'route_only' && distillationMode === 'debate_adjudicated') {
+    throw new Error('MoM debate-adjudicated distillation requires an escalated route');
+  }
+
   const selected = ranked.slice(0, policy.topK).map(({ candidate, score }, index) => ({
     substrateId: candidate.substrateId,
     role: index === 0 ? 'proposer' : 'critic',
@@ -234,11 +249,14 @@ export function buildMomRoutePlan({ request, candidates, policy, receiptBudget }
     momVersion: 0,
     requestId: request.requestId,
     inputHash: request.inputHash,
+    mode,
+    distillationMode,
     receiptBudget,
     cfr: {
       policyId: policy.policyId,
       policyHash: policy.policyHash,
       tiePolicy: 'stable-choice',
+      topK: policy.topK,
       candidateSetHash: request.candidateSetHash,
       selected,
     },
@@ -256,13 +274,15 @@ export function buildMomRoutePlan({ request, candidates, policy, receiptBudget }
         distributedPlanId: candidate.distributedPlanId ?? null,
       };
     }),
-    debate: {
-      rounds: [],
-      adjudicator: {
-        substrateId: policy.adjudicatorSubstrateId,
-        policyHash: policy.adjudicationPolicyHash,
+    ...(mode === 'escalated' ? {
+      debate: {
+        rounds: [],
+        adjudicator: {
+          substrateId: policy.adjudicatorSubstrateId,
+          policyHash: policy.adjudicationPolicyHash,
+        },
       },
-    },
+    } : {}),
     recursion: {
       parentMomTranscriptRoot: request.parentMomTranscriptRoot ?? null,
       childMomTranscriptRoots: [],
