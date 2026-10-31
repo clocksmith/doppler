@@ -131,7 +131,7 @@ function validateQuantType(value, source) {
   if (!value) return;
   const normalized = normalizeQuantTag(value);
 
-  const supported = ['w8a8', 'q4k', 'q4_0', 'q4_1', 'q6k', 'q8_0', 'w4a16', 'wna8o8', 'f16', 'bf16', 'f32', 'fp8e4', 'fp8e5'];
+  const supported = ['w8a8', 'q4k', 'q4_0', 'q4_1', 'q5_0', 'q6k', 'q8_0', 'w4a16', 'wna8o8', 'f16', 'bf16', 'f32', 'fp8e4', 'fp8e5'];
   if (supported.includes(normalized)) return;
 
   const planned = ['i4', 'i8'];
@@ -263,6 +263,7 @@ const MANIFEST_QUANT_NAMES = {
   'q4k': 'Q4_K_M',
   'q4_0': 'Q4_0',
   'q4_1': 'Q4_1',
+  'q5_0': 'Q5_0',
   'q8_0': 'Q8_0',
   'q6k': 'Q6_K',
   'w4a16': 'W4A16',
@@ -568,6 +569,7 @@ const WEBGPU_DTYPE_NAMES = {
   'q4k': 'Q4_K_M',
   'q4_0': 'Q4_0',
   'q4_1': 'Q4_1',
+  'q5_0': 'Q5_0',
   'q8_0': 'Q8_0',
   'q6k': 'Q6_K',
   'w4a16': 'W4A16',

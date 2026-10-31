@@ -157,6 +157,26 @@ function findMinMax(data, offset, length) {
 }
 
 
+// GGUF Q5_0 (ggml block_q5_0): f16 d, u32 qh, 16 bytes qs. Value j < 16 uses the low
+// nibble of qs[j]; value j + 16 uses the high nibble. Bit j of qh is the fifth bit of value j.
+export function dequantQ5_0Ref(quantized, numBlocks) {
+  const output = new Float32Array(numBlocks * 32);
+  const view = new DataView(quantized.buffer, quantized.byteOffset, quantized.byteLength);
+  for (let block = 0; block < numBlocks; block++) {
+    const base = block * 22;
+    const d = float16ToFloat32(view.getUint16(base, true));
+    const qh = view.getUint32(base + 2, true);
+    for (let j = 0; j < 16; j++) {
+      const q = quantized[base + 6 + j];
+      const x0 = ((q & 0x0F) | (((qh >>> j) & 1) << 4)) - 16;
+      const x1 = ((q >> 4) | (((qh >>> (j + 16)) & 1) << 4)) - 16;
+      output[block * 32 + j] = x0 * d;
+      output[block * 32 + 16 + j] = x1 * d;
+    }
+  }
+  return output;
+}
+
 export function quantizeQ4_KBlockRef(data, offset) {
   const block = new Uint8Array(Q4K_BLOCK_SIZE);
   const view = new DataView(block.buffer);

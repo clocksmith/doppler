@@ -8388,6 +8388,103 @@
       "wgslOnDisk": true
      }
     },
+    "q5_0_gemv": {
+     "wgsl": "matmul_q4_0.wgsl",
+     "entryPoint": "gemv",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "a_offset",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "b_row",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "c_offset",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q5_0",
+     "outputDtype": "f32",
+     "sharedMemory": 2560,
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 4,
+      "THREADS_PER_COL_GEMV": 32,
+      "TILE_SIZE": 16,
+      "BLOCK_VALUES": 32,
+      "BLOCK_BYTES": 22,
+      "QUANT_FORMAT": 4
+     },
+     "variantMetadata": {
+      "q40Geometry": "gemv",
+      "dispatchGeometry": "column-row-tile",
+      "tileM": 1,
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "ruleChains": ["matmul.rules.json#q40Variant"],
+      "wgslOnDisk": true
+     }
+    },
     "q4_1_prefill": {
      "wgsl": "matmul_q4_0.wgsl",
      "entryPoint": "prefill",
@@ -8471,6 +8568,103 @@
       "BLOCK_VALUES": 32,
       "BLOCK_BYTES": 20,
       "QUANT_FORMAT": 1
+     },
+     "variantMetadata": {
+      "q40Geometry": "tiled",
+      "dispatchGeometry": "column-row-tile",
+      "tileM": 16,
+      "workgroupConstants": ["TILE_SIZE","TILE_SIZE",null]
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "ruleChains": ["matmul.rules.json#q40Variant"],
+      "wgslOnDisk": true
+     }
+    },
+    "q5_0_prefill": {
+     "wgsl": "matmul_q4_0.wgsl",
+     "entryPoint": "prefill",
+     "workgroup": [16,16,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "a_offset",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "b_row",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "c_offset",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q5_0",
+     "outputDtype": "f32",
+     "sharedMemory": 2560,
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 4,
+      "THREADS_PER_COL_GEMV": 32,
+      "TILE_SIZE": 16,
+      "BLOCK_VALUES": 32,
+      "BLOCK_BYTES": 22,
+      "QUANT_FORMAT": 4
      },
      "variantMetadata": {
       "q40Geometry": "tiled",
@@ -17833,6 +18027,77 @@
       "BLOCK_VALUES": 32,
       "BLOCK_BYTES": 20,
       "QUANT_FORMAT": 1
+     },
+     "sharedMemory": 0,
+     "variantMetadata": {
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "ruleChains": ["gather.rules.json#q40Variant"],
+      "wgslOnDisk": true
+     }
+    },
+    "q5_0": {
+     "wgsl": "gather_q4_0.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "indices",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 16,
+      "fields": [
+       {
+        "name": "num_tokens",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "hidden_size",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "vocab_size",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "index_offset",
+        "type": "u32",
+        "offset": 12
+       }
+      ]
+     },
+     "weightDtype": "q5_0",
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256,
+      "BLOCK_VALUES": 32,
+      "BLOCK_BYTES": 22,
+      "QUANT_FORMAT": 4
      },
      "sharedMemory": 0,
      "variantMetadata": {

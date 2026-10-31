@@ -37,6 +37,11 @@
       "description": "Declared recurrent update-gate projection with its own weight encoding.",
       "kernelFamily": ["tiled", "gemv", "matmul_q4k"]
     },
+    "linear_out_proj": {
+      "section": ["prefill", "decode"],
+      "description": "Declared recurrent output projection, separate from attention o_proj when its weight encoding differs.",
+      "kernelFamily": ["tiled", "gemv", "matmul_q4k"]
+    },
     "q_proj": {
       "section": ["prefill", "decode"],
       "description": "Query projection. Tiled matmul in prefill, GEMV in decode.",

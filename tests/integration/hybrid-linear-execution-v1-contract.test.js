@@ -132,6 +132,23 @@ const isolatedHybridExecution = {
 
 assert.doesNotThrow(() => compileHybridExecution(isolatedHybridExecution));
 
+// Native GGUF: global projection programs are judged against the declared block format.
+const ggufProgram = (entry, format, bytes) => ({ kernel: 'matmul_q4_0.wgsl', entry, digest: DIGEST,
+  constants: { WORKGROUP_SIZE: 128, COLS_PER_WG: 4, THREADS_PER_COL_GEMV: 32, TILE_SIZE: 16,
+    BLOCK_VALUES: 32, BLOCK_BYTES: bytes, QUANT_FORMAT: format } });
+const nativeHybrid = (format, bytes) => ({
+  inlineKernelPath: true,
+  kernels: { native_decode: ggufProgram('gemv', format, bytes), native_prefill: ggufProgram('prefill', format, bytes) },
+  preLayer: [],
+  decode: [['q_proj', 'native_decode', 'layer.{L}.self_attn.q_proj'], ['o_proj', 'native_decode', 'layer.{L}.self_attn.o_proj']],
+  prefill: [['q_proj', 'native_prefill', 'layer.{L}.self_attn.q_proj'], ['o_proj', 'native_prefill', 'layer.{L}.self_attn.o_proj']],
+  postLayer: [],
+});
+assert.doesNotThrow(() => compileHybridExecution(nativeHybrid(0, 18), 'q4_0'),
+  'A global Q4_0 program matches Q4_0 linear-attention storage.');
+assert.throws(() => compileHybridExecution(nativeHybrid(2, 34), 'q4_0'),
+  /cannot apply a global non-Q4/, 'A global Q8_0 program would be bound to Q4_0 linear-attention weights.');
+
 const pairedHybrid = structuredClone(unsafeHybridExecution);
 for (const key of ['dense_decode', 'dense_prefill']) pairedHybrid.kernels[key] = {
   kernel: 'matmul_paired.wgsl', entry: 'main', digest: DIGEST,

@@ -9,6 +9,12 @@ export { FinitenessError, sumProfileTimings, decodeStep, decodeStepLogits,
 
 export declare const UNKNOWN_TOKEN_TEXT: '<unknown>';
 export declare const FINITENESS_RESET_WORDS: Uint32Array;
+/** Validated encode-ahead interval for recorded single-token decode, or null when disabled. */
+export declare function resolveDecodeLayerSubmitInterval(
+  decodeLoop: { layerSubmitInterval?: number | null } | null | undefined,
+  recorder: import('../../../../gpu/command-recorder.js').CommandRecorder | null | undefined
+): number | null;
+
 export declare function getTokenTextOrUnknown(
   tokenizer: { decode(ids: number[], skipSpecial?: boolean, cleanup?: boolean): string } | null,
   tokenId: number

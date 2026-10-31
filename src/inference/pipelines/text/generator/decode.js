@@ -15,7 +15,7 @@ import { allowReadback } from '../../../../debug/perf-guards.js';
 
 import { log } from '../../../../debug/index.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
-import { isDecodeRecorderEnabled, isProfileDecodeRecorderEnabled } from '../execution-plan.js';
+import { attachPreparedDecodeWorkspace, isDecodeRecorderEnabled, isProfileDecodeRecorderEnabled } from '../execution-plan.js';
 import { sample, applyRepetitionPenalty, applyPresencePenalty, logitsSanity } from '../sampling.js';
 
 import { embed } from '../embed.js';
@@ -367,6 +367,18 @@ export async function submitDecodeRecorderProfile(state, opts, recorder, profile
   }
 }
 
+export function resolveDecodeLayerSubmitInterval(decodeLoop, recorder) {
+  const interval = decodeLoop?.layerSubmitInterval ?? null;
+  if (interval === null) return null;
+  if (!Number.isSafeInteger(interval) || interval < 1) {
+    throw new Error('decodeLoop.layerSubmitInterval must be a positive integer or null.');
+  }
+  if (!recorder) {
+    throw new Error('decodeLoop.layerSubmitInterval requires a recorded decode step; the unrecorded decode path cannot use it.');
+  }
+  return interval;
+}
+
 export async function decodeStep(state, currentIds, opts, helpers) {
   const stepWallStart = performance.now();
   const lastToken = currentIds[currentIds.length - 1];
@@ -393,6 +405,9 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     }
     const context = helpers.buildLayerContext(recorder, true, opts.debugLayers, executionPlan);
     context.currentTokenIds = [lastToken];
+    const decodeSession = state.resolvedRuntimeSession?.runtime?.session ?? state.runtimeConfig.inference.session;
+    attachPreparedDecodeWorkspace(decodeSession.usePreparedDecodeWorkspace, recorder, context, device);
+    const layerSubmitInterval = resolveDecodeLayerSubmitInterval(decodeSession.decodeLoop, recorder);
     state.decodeBuffers.resetPingPong();
     const decodeHiddenBuffer = state.decodeBuffers.getHiddenBuffer();
     const decodeAltBuffer = state.decodeBuffers.getOutputHiddenBuffer();
@@ -476,6 +491,10 @@ export async function decodeStep(state, currentIds, opts, helpers) {
           perLayerInputs[l] = null;
         }
         context.perLayerInputBuffer = null;
+        // Encode-ahead: queue order keeps every later layer behind this prefix.
+        if (layerSubmitInterval && (l + 1) % layerSubmitInterval === 0 && l + 1 < config.numLayers) {
+          recorder.submitPartial();
+        }
 
         if (isGpuBufferInstance(prevStates) && prevStates !== hiddenStates) {
           const isPreAllocated = isOwnedDecodeBuffer(prevStates, decodeHiddenBuffer, decodeAltBuffer);
@@ -873,8 +892,12 @@ export async function decodeStepLogits(state, currentIds, opts, helpers) {
       opts,
       {
         ...helpers,
-        buildLayerContext: (ignoredRecorder, isDecode, debugLayers, executionPlan) =>
-          helpers.buildLayerContext(recorder, isDecode, debugLayers, executionPlan),
+        buildLayerContext: (ignoredRecorder, isDecode, debugLayers, executionPlan) => {
+          const context = helpers.buildLayerContext(recorder, isDecode, debugLayers, executionPlan);
+          attachPreparedDecodeWorkspace((state.resolvedRuntimeSession?.runtime?.session
+            ?? state.runtimeConfig.inference.session).usePreparedDecodeWorkspace, recorder, context, getDevice());
+          return context;
+        },
       }
     ));
 

@@ -41,7 +41,7 @@ try {
       cases.push({gather:true,recorded,indexOffset:1,maxAbs:0});
     }
   }
-  for(const dtype of ['q4_1','q8_0','q6k'])for(const M of [1,17]) {
+  for(const dtype of ['q4_1','q5_0','q8_0','q6k'])for(const M of [1,17]) {
     const N=7,K=256,input=Float32Array.from({length:M*K},(_,i)=>Math.sin(i*0.21)*0.1);
     const packed=packedFixture(dtype,N,K), decoded=decodePacked(dtype,packed,N,K), B=createWeightBuffer(upload(packed),dtype,'row',[N,K]);
     const A=createTensor(upload(input),'f32',[M,K]), expected=projectReference(input,decoded,M,N,K);

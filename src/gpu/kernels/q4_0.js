@@ -1,4 +1,4 @@
-import { ggufBlockFormat, ggufBlockBytes } from '../../formats/gguf/block-storage.js';
+import { ggufBlockFormat, ggufBlockBytes, isGgufBlockDtype } from '../../formats/gguf/block-storage.js';
 import { getDevice } from '../device.js';
 import { createTensor } from '../tensor.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
@@ -45,7 +45,7 @@ async function execute(recorder, input, weights, M, N, K, options) {
     || (options.bDtype != null && options.bDtype !== weights.dtype)) {
     throw new Error('Q4_0 requires declared scalar F32 activation/output and whole row-packed weights.');
   }
-  if (!['q4_0','q4_1','q8_0','q6k'].includes(weights.dtype) || ![1,2,3].includes(input.shape.length)
+  if (!isGgufBlockDtype(weights.dtype) || ![1,2,3].includes(input.shape.length)
     || (input.shape.length > 1 && input.shape.at(-1) !== K) || ![2,3].includes(weights.shape.length)
     || weights.shape.at(-2) !== N || weights.shape.at(-1) !== K) {
     throw new Error(`Q4_0 operand shapes ${input.shape}/${weights.shape} differ from explicit ${M}/${N}/${K}.`);
