@@ -112,11 +112,11 @@
   "remainingGate": "Unchanged recurrent pipeline compilation on Intel remains unresolved; no original operator outputs, ordinary candidate archive, three-host load acceptance or55-prefix qualification for four-phase source. Future investigation must address compiler host memory/lifetime before rerun; no deadline/precision/reference changes.",
   "windDown": "No further run/package/model launched. Owned child/controller absent; no owned servers/tunnels created by this operator control.",
   "rawFiles": {
-    "final-inventory.txt": "a01b0d82300cbe306edfff329af5c17a01dbaecc1f15a37005a1927ff9b19d6b",
+    "final-inventory.txt": "f14c1f1d694b988e362547c14cc03035776acc313f21c95fb9470fb80f42d111",
     "kernel-outcome.txt": "d8e35719fdd0daf637ab6dd3cb99873c54a580164133a176382605a2e6105fcb",
-    "preflight-inventory.txt": "7b303795960c02566973876006d59418936d9702f5c60327b6d66f556afa8c55",
-    "process.json": "f3088d009757f0083487f444dff3a6a9478c3e1cc77605de2326ad67f7f5ab80",
-    "reservation.json": "048b8a6f7b6a32db14a7319cce29b2a47730327ce7146ee2a26565139a3daa84",
-    "result.json": "64a9a26162103b7f4be297ff7c772e6031d6b372217e23ccbdb8f152345c5e5b"
+    "preflight-inventory.txt": "85212212e35ac93e33fe4a5d61011f4cc72fec4e99c543fc72de0c24d3a6eecb",
+    "process.json": "3fd09085036d239788454b1774e586b3741e65df6948a297d6181d498277e320",
+    "reservation.json": "afa3904c8f2aadbfa6893cedc6a43ea20289627f7f5796ddc367088f01a5f31f",
+    "result.json": "9f9825b7b7039104b63c03a2ac49ec322bbf1fbf624b7d137892f72976f47c39"
   }
 }

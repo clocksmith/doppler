@@ -1,7 +1,7 @@
 {
   "engine": "doppler",
   "rep": 0,
-  "profileDir": "/tmp/claude-1000/-home-x-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/compare-0632b/profiles/doppler-0",
+  "profileDir": "/tmp/claude-1000/-home-user-deco-doppler/52a7a8c5-70ad-4fc5-86c2-ce933efdea1f/scratchpad/compare-0632b/profiles/doppler-0",
   "cold": {
     "openMs": 9713.700000047684,
     "observations": 40,
