@@ -42,5 +42,5 @@ convDim×kernelSize state, including the newest slot. An earlier incorrectly
 sized fixture receipt is retained as invalid and excluded.
 
 Pending: native full-model numerical/quality and long-request qualification on
-Jupiter Chrome with actual READY admission. No unbounded2287-token GPU replay
+amd-host Chrome with actual READY admission. No unbounded2287-token GPU replay
 is required to establish the configuration mismatch.
