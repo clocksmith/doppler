@@ -31,4 +31,4 @@ export declare function resolveQwenSharedSlotVariants(options: {
   kernelPath: import('../../../../config/schema/kernel-path.schema.js').KernelPathSchema | null;
   phase: 'prefill' | 'decode';
   layerIdx: number;
-}): Readonly<{ gu: 'native_f32' | 'pair_f32'; down: 'native_f32' | 'pair_f32' | 'pair_combine_f32' }>;
+}): Readonly<{ gu: 'native_f32' | 'pair_f32'; down: 'native_f32' | 'pair_f32' | 'pair_combine_f32' | 'pair_combine_residual_f32' }>;

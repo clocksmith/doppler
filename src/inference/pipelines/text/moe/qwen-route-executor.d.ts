@@ -28,6 +28,12 @@ export interface QwenSharedSlot {
   intermediateSize: number;
   kernelPath: import('../../../../config/schema/index.js').KernelPathSchema;
   phase: 'decode' | 'prefill';
+  /**
+   * The layer's outer residual, present exactly when the declared down variant adds it
+   * (pair_combine_residual_f32); the result is then the post-residual hidden state,
+   * written to `outputBuffer` when given.
+   */
+  residual?: { tensor: Tensor; outputBuffer: GPUBuffer | null } | null;
 }
 export declare function runQwenRouteExperts(options: QwenRouteExpertOptions): Promise<Tensor>;
 export declare function recordQwenRouteExperts(recorder: CommandRecorder, options: QwenRouteExpertOptions): Promise<Tensor>;

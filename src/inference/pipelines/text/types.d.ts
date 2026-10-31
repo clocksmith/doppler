@@ -110,6 +110,8 @@ export interface LayerContext {
   /** Optional layer pipeline plan (JSON-configured) */
   pipelinePlan?: CompiledLayerPipeline | null;
   __pendingFfnResidualTensor?: unknown;
+  /** Decode output buffer a residual-adding FFN consumer writes the layer output to. */
+  __pendingFfnResidualOutputBuffer?: GPUBuffer | null;
   __ffnResidualFusedFired?: boolean;
   __layerScalarFusedFired?: boolean;
   __precomputedInputNorm?: {

@@ -11,6 +11,7 @@ export interface KernelUniformValues {
   "moe_shared_slot_down/native_f32": Parameters<typeof writers0.write_moe_shared_slot_gu_native_f32>[1];
   "moe_shared_slot_down/pair_f32": Parameters<typeof writers0.write_moe_shared_slot_gu_native_f32>[1];
   "moe_shared_slot_down/pair_combine_f32": Parameters<typeof writers0.write_moe_shared_slot_gu_native_f32>[1];
+  "moe_shared_slot_down/pair_combine_residual_f32": Parameters<typeof writers0.write_moe_shared_slot_gu_native_f32>[1];
   "w8a8_quantize/f32": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
   "w8a8_rescale/activation": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
   "w8a8_rescale/weight": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];

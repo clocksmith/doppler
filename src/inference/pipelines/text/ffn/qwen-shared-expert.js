@@ -57,11 +57,15 @@ export function resolveQwenSharedSlotVariants(options) {
     const config = matches.length === 1 ? getKernelPathStepConfig(operation, matches[0], options.phase) : null;
     if (!config) throw new Error(`[MoE] Shared slot requires one registered ${operation} step.`);
     const geometry = config.variantMetadata?.sharedSlotGeometry;
-    if (geometry === 'pair_combine') return 'pair_combine_f32';
+    if (geometry === 'pair_combine') {
+      return config.variantMetadata?.outerResidual === true ? 'pair_combine_residual_f32' : 'pair_combine_f32';
+    }
     return geometry === 'pair' ? 'pair_f32' : 'native_f32';
   };
   const gu = variant('moe_shared_slot_gu');
-  if (gu === 'pair_combine_f32') throw new Error('[MoE] pair_combine geometry is a down-only shared-slot variant.');
+  if (gu === 'pair_combine_f32' || gu === 'pair_combine_residual_f32') {
+    throw new Error('[MoE] pair_combine geometry is a down-only shared-slot variant.');
+  }
   const plan = Object.freeze({ gu, down: variant('moe_shared_slot_down') });
   plans.set(key, plan);
   return plan;

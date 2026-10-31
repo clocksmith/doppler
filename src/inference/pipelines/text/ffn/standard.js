@@ -207,6 +207,9 @@ export async function processFFNStandard(
   context.__pendingFfnResidualTensor = requestedResidualBranchScale === 1
     ? pendingResidualForFfn
     : null;
+  // Where a consumer that adds the residual writes the layer output: the same decode
+  // buffer the separate residual add below would write.
+  context.__pendingFfnResidualOutputBuffer = context.__pendingFfnResidualTensor ? decodeOutputBuffer : null;
   context.__pendingFfnInputNormStats = postAttnNormStats
     ? {
       invRmsBuffer: postAttnNormStats.invRmsBuffer,
@@ -229,6 +232,7 @@ export async function processFFNStandard(
     }
   } finally {
     context.__pendingFfnResidualTensor = null;
+    context.__pendingFfnResidualOutputBuffer = null;
     context.__pendingFfnInputNormStats = null;
   }
   const ffnResidualFused = context.__ffnResidualFusedFired === true;

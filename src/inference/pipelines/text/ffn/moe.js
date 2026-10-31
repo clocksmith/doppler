@@ -2,7 +2,7 @@ import { resolveGroupedPrefill } from '../moe/grouped-prefill.js';
 
 
 import { releaseOrTrack } from '../ops.js';
-import { runQwenSharedExpert, resolveQwenSharedSlot } from './qwen-shared-expert.js';
+import { runQwenSharedExpert, resolveQwenSharedSlot, resolveQwenSharedSlotVariants } from './qwen-shared-expert.js';
 import { createTensor } from '../../../../gpu/tensor.js';
 
 // Lazily loaded once: each dynamic import() makes the browser re-walk the module graph.
@@ -27,6 +27,16 @@ export async function runMoEFFNGPU(
   if (sharedSlot && (config.expertFormat !== 'qwen3_5'
     || context.runtimeMoERoutingConfig?.activeExpertSelection !== 'topk-route')) {
     throw new Error('[MoE] Shared slot requires the declared Qwen topk-route executor.');
+  }
+  // A residual-bearing shared-slot down adds the residual processFFNStandard staged;
+  // the layer then skips its own add, so the residual is added exactly once.
+  const residualFused = sharedSlot && resolveQwenSharedSlotVariants({
+    kernelPath: context.kernelPath, phase: context.phase, layerIdx,
+  }).down === 'pair_combine_residual_f32';
+  const pendingResidual = residualFused ? (context.__pendingFfnResidualTensor ?? null) : null;
+  if (residualFused && !pendingResidual) {
+    throw new Error(`[MoE] Layer ${layerIdx} declares a residual-bearing shared-slot down, but its caller `
+      + 'did not hand over the FFN residual (sandwich norms, layer plans and residual branch scales keep their own add).');
   }
 
   if (!moeRouter || !expertWeights || !expertLoader) {
@@ -68,7 +78,10 @@ export async function runMoEFFNGPU(
       phase: context.phase,
       sharedSlot: sharedSlot ? { weights: context.weights.get(`layer_${layerIdx}`),
         intermediateSize: config.moeSharedExpertIntermediateSize, kernelPath: context.kernelPath,
-        phase: context.phase } : null,
+        phase: context.phase,
+        residual: pendingResidual
+          ? { tensor: pendingResidual, outputBuffer: context.__pendingFfnResidualOutputBuffer ?? null }
+          : null } : null,
     },
     moeRouter,
     expertWeights,
@@ -78,6 +91,7 @@ export async function runMoEFFNGPU(
     context.recorder ?? null
   );
 
+  if (residualFused) context.__ffnResidualFusedFired = true;
   const routed = createTensor(outputBuffer, inputTensor.dtype, [...inputTensor.shape], 'moe_ffn_output');
   if (sharedSlot || config.expertFormat !== 'qwen3_5') return routed;
   try {

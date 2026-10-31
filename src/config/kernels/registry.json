@@ -237,7 +237,7 @@
    }
   },
   "moe_shared_slot_down": {
-   "description": "Explicit native GGUF F32 shared-slot down without outer residual",
+   "description": "Explicit native GGUF F32 shared-slot down; outerResidual variants also add the layer residual",
    "baseBindings": [
     {
      "index": 0,
@@ -417,6 +417,77 @@
      "variantMetadata": {
       "activationDtype": "f32",
       "outerResidual": false,
+      "sharedSlotGeometry": "pair_combine",
+      "perSlotOutput": false
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "pair_combine_residual_f32": {
+     "wgsl": "moe_shared_slot_down_pair_combine_residual_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": ["subgroups"],
+     "requiredWgslFeatures": ["packed_4x8_integer_dot_product","subgroup_id"],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "down_weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "shared_down",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 4,
+       "name": "indices",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 5,
+       "name": "route_weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 6,
+       "name": "scalar_gate",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 7,
+       "name": "output",
+       "type": "storage"
+      },
+      {
+       "index": 8,
+       "name": "residual",
+       "type": "read-only-storage"
+      }
+     ],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "THREADS_PER_ROW": 8
+     },
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "activationDtype": "f32",
+      "outerResidual": true,
       "sharedSlotGeometry": "pair_combine",
       "perSlotOutput": false
      },

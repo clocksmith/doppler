@@ -80,6 +80,10 @@ async function executeSharedSlot(recorder, options) {
   if (!Number.isSafeInteger(options.layerIdx)) throw new Error('[MoE] Shared slot requires an explicit layerIdx.');
   const variants = resolveQwenSharedSlotVariants({ kernelPath: shared.kernelPath, phase: shared.phase,
     layerIdx: /** @type {number} */ (options.layerIdx) });
+  const residual = shared.residual ?? null;
+  if ((variants.down === 'pair_combine_residual_f32') !== (residual !== null)) {
+    throw new Error(`[MoE] Shared-slot down ${variants.down} ${residual ? 'cannot take' : 'requires'} the layer residual.`);
+  }
   const geometry = { numTokens, numExperts: weights.numExperts, topK, hiddenSize, intermediateSize,
     sharedSize: shared.intermediateSize, swigluLimit, indices: options.indicesBuffer };
   const workspace = recorder?.decodeWorkspace && numTokens === 1 ? recorder.decodeWorkspace : null;
@@ -103,7 +107,10 @@ async function executeSharedSlot(recorder, options) {
       { ...geometry, variant: variants.down, routeWeights: options.weightsBuffer,
         slotsBuffer: variants.down === 'pair_f32'
           ? workspace?.getBuffer(`moe:${options.layerIdx}:shared-down-slots`, (topK + 1) * hiddenSize * 4) : null,
-        outputBuffer: workspace?.getBuffer(`moe:${options.layerIdx}:shared-output`, hiddenSize * 4) });
+        residual: residual?.tensor ?? null,
+        outputBuffer: residual
+          ? residual.outputBuffer
+          : workspace?.getBuffer(`moe:${options.layerIdx}:shared-output`, hiddenSize * 4) });
   } finally {
     if (activated) releaseOrTrack(recorder, activated.buffer);
     if (gate) releaseOrTrack(recorder, gate.buffer);
