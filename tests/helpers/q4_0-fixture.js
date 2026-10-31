@@ -1,4 +1,5 @@
 import { float16ToFloat32 } from '../../src/formats/float16.js';
+import { dequantQ5_0Ref } from '../kernels/reference/dequant.js';
 export function q40Fixture(rows, K) {
   const bytes = new Uint8Array(rows*K/32*18), view = new DataView(bytes.buffer);
   for (let b=0;b<rows*K/32;b++) {
@@ -26,7 +27,7 @@ export function projectReference(input, weights, M, N, K) {
 }
 export function packedFixture(dtype,rows,K) {
   if(dtype==='q4_0')return q40Fixture(rows,K);
-  const size={q4_1:20,q8_0:34,q6k:210}[dtype], values=dtype==='q6k'?256:32;
+  const size={q4_1:20,q5_0:22,q8_0:34,q6k:210}[dtype], values=dtype==='q6k'?256:32;
   const bytes=new Uint8Array(rows*K/values*size),view=new DataView(bytes.buffer);
   for(let b=0;b<rows*K/values;b++) {
     const base=b*size;
@@ -34,6 +35,10 @@ export function packedFixture(dtype,rows,K) {
       for(let i=0;i<192;i++)bytes[base+i]=(i*17+b*31)%256;
       for(let i=0;i<16;i++)view.setInt8(base+192+i,(i+b)%16-8);
       view.setUint16(base+208,0x2400,true);
+    } else if(dtype==='q5_0') {
+      view.setUint16(base,[0x2800,0xa400,0x3000][b%3],true);
+      view.setUint32(base+2,(Math.imul(b+1,0x9e3779b1)^0x5a5a0f0f)>>>0,true);
+      for(let i=6;i<22;i++)bytes[base+i]=(i*37+b*11)%256;
     } else {
       view.setUint16(base,0x2800,true);
       if(dtype==='q4_1')view.setUint16(base+2,0xb000,true);
@@ -44,6 +49,7 @@ export function packedFixture(dtype,rows,K) {
 }
 export function decodePacked(dtype,bytes,rows,K) {
   if(dtype==='q4_0')return decodeQ40(bytes,rows,K);
+  if(dtype==='q5_0')return dequantQ5_0Ref(bytes,rows*K/32);
   const values=dtype==='q6k'?256:32,size={q4_1:20,q8_0:34,q6k:210}[dtype];
   const out=new Float32Array(rows*K),v=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
   for(let b=0;b<out.length/values;b++) {

@@ -59,6 +59,10 @@ export function classifyTensor(name, modelType) {
   if (lower === 'norm.weight' || lower === 'norm.bias') {
     return 'head';
   }
+  // GGUF names the final norm output_norm (beside output.weight).
+  if (lower === 'output_norm.weight' || lower === 'output_norm.bias') {
+    return 'head';
+  }
 
   // Multimodal groups
   const role = classifyTensorRole(name);

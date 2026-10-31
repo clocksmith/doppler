@@ -1,7 +1,8 @@
 {
-  "q4_0": { "values": 32, "bytes": 18, "code": 0, "variant": "q4_0" },
-  "q4_1": { "values": 32, "bytes": 20, "code": 1, "variant": "q4_1" },
-  "q8_0": { "values": 32, "bytes": 34, "code": 2, "variant": "q8_0" },
-  "q6k": { "values": 256, "bytes": 210, "code": 3, "variant": "q6k" },
-  "q6_k": { "alias": "q6k" }
+  "q4_0": { "values": 32, "bytes": 18, "code": 0, "variant": "q4_0", "source": "Q4_0" },
+  "q4_1": { "values": 32, "bytes": 20, "code": 1, "variant": "q4_1", "source": "Q4_1" },
+  "q8_0": { "values": 32, "bytes": 34, "code": 2, "variant": "q8_0", "source": "Q8_0" },
+  "q6k": { "values": 256, "bytes": 210, "code": 3, "variant": "q6k", "source": "Q6_K" },
+  "q6_k": { "alias": "q6k" },
+  "q5_0": { "values": 32, "bytes": 22, "code": 4, "variant": "q5_0", "source": "Q5_0" }
 }

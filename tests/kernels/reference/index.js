@@ -45,6 +45,7 @@ export {
   dequantInt8Ref,
   dequantInt4Ref,
   dequantQ4_0Ref,
+  dequantQ5_0Ref,
   quantizeQ4_KRef,
   quantizeQ4_KBlockRef,
   dequantQ4_KRef,

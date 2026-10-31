@@ -60,6 +60,7 @@ export const PARAM_CATEGORIES = Object.freeze({
   ringTokens: ParamCategory.SESSION,
   ringStop: ParamCategory.SESSION,
   ringStaging: ParamCategory.SESSION,
+  layerSubmitInterval: ParamCategory.SESSION,
   logLevel: ParamCategory.SESSION,
 
   // Hybrid params

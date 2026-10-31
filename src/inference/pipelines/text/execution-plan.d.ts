@@ -3,6 +3,12 @@ import type { RuntimeConfigSchema } from '../../../config/schema/index.js';
 import type { KernelPathSource } from '../../../config/kernel-path-loader.js';
 
 export function assertPreparedDecodeWorkspaceCompatible(context: import('./types.js').LayerContext): void;
+export function attachPreparedDecodeWorkspace(
+  enabled: boolean,
+  recorder: import('../../../gpu/command-recorder.js').CommandRecorder | null | undefined,
+  context: import('./types.js').LayerContext,
+  device: GPUDevice
+): import('../../../gpu/prepared-decode-workspace.js').PreparedDecodeWorkspace | null;
 
 export interface StaticExecutionPlan {
   id: 'primary' | 'finiteness_fallback';

@@ -25,6 +25,21 @@ export function assertPreparedDecodeWorkspaceCompatible(context) {
   }
 }
 
+// Session-owned decode scratch is attached to the step recorder on every decode
+// path that requests it; an unrecorded path cannot honor the request.
+export function attachPreparedDecodeWorkspace(enabled, recorder, context, device) {
+  if (typeof enabled !== 'boolean') {
+    throw new Error('Decode session requires boolean usePreparedDecodeWorkspace.');
+  }
+  if (!enabled) return null;
+  if (!recorder) {
+    throw new Error('Prepared decode workspace requires a recorded decode step; the unrecorded decode path cannot use it.');
+  }
+  assertPreparedDecodeWorkspaceCompatible(context);
+  recorder.decodeWorkspace = context.decodeBuffers.getWorkspace(device);
+  return recorder.decodeWorkspace;
+}
+
 function assertOptionalBoolean(value, label) {
   if (value === undefined) {
     return undefined;

@@ -1,3 +1,4 @@
+import { isGgufBlockDtype } from '../../formats/gguf/block-storage.js';
 import { executeQ40Gather } from './q4_0.js';
 import { getDevice, getKernelCapabilities } from '../device.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
@@ -65,7 +66,7 @@ function selectGatherPipeline(flags, storageEncoding) {
 }
 
 export function resolveGatherPipeline(options) {
-  if (['q4_0','q4_1','q8_0','q6k'].includes(options.embeddingDtype)) return { operation: 'gather', variant: selectKernelRuleValue('gather','q40Variant',{ outputDtype: options.outputDtype, weightDtype: options.embeddingDtype }), constants: null };
+  if (isGgufBlockDtype(options.embeddingDtype)) return { operation: 'gather', variant: selectKernelRuleValue('gather','q40Variant',{ outputDtype: options.outputDtype, weightDtype: options.embeddingDtype }), constants: null };
   return selectGatherPipeline(resolveGatherFlags(options), options.storageEncoding);
 }
 
@@ -314,7 +315,7 @@ async function _gather(
     storageEncoding = null,
   } = options;
 
-  if (['q4_0','q4_1','q8_0','q6k'].includes(embeddingDtype)) return executeQ40Gather(target,indices,embeddings,numTokens,hiddenSize,vocabSize,options);
+  if (isGgufBlockDtype(embeddingDtype)) return executeQ40Gather(target,indices,embeddings,numTokens,hiddenSize,vocabSize,options);
   const caps = getKernelCapabilities();
   if (embeddingDtype == null) {
     throw new Error('[Gather] embeddingDtype is required.');

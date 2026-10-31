@@ -215,6 +215,19 @@ export function removeSubgroups(graph, ctx) {
   return result;
 }
 
+// F16-KV attention programs and their F32-KV equivalents, shared by every widening
+// lane. Fixed-head programs without a same-shape F32 twin use the generic F32
+// programs; output-gated and head-512 programs stay unmapped and fail closed.
+export const ATTENTION_F16KV_TO_F32_ENTRIES = Object.freeze([
+  ['attention_decode_online_f16kv.wgsl', 'attention_streaming.wgsl'],
+  ['attention_decode_chunked_f16kv.wgsl', 'attention_streaming.wgsl'],
+  ['attention_decode_online_head256_f16kv.wgsl', 'attention_streaming.wgsl'],
+  ['attention_small_f16kv.wgsl', 'attention_small.wgsl'],
+  ['attention_streaming_f16kv.wgsl', 'attention_streaming.wgsl'],
+  ['attention_head128_f16kv.wgsl', 'attention_small.wgsl'],
+  ['attention_head256_f16kv.wgsl', 'attention_small.wgsl'],
+]);
+
 export const FULL_F32_SHADER_MAP = new Map([
   // f16-activation utility kernels → f32
   ['rmsnorm_f16.wgsl', 'rmsnorm.wgsl'],
@@ -240,11 +253,7 @@ export const FULL_F32_SHADER_MAP = new Map([
   ['attention_small_f16.wgsl', 'attention_small.wgsl'],
   ['attention_streaming_f16.wgsl', 'attention_streaming.wgsl'],
   // f16kv attention (f32 Q, f16 KV) → f32
-  ['attention_decode_online_f16kv.wgsl', 'attention_streaming.wgsl'],
-  ['attention_decode_chunked_f16kv.wgsl', 'attention_streaming.wgsl'],
-  ['attention_small_f16kv.wgsl', 'attention_small.wgsl'],
-  ['attention_streaming_f16kv.wgsl', 'attention_streaming.wgsl'],
-  ['attention_head256_f16kv.wgsl', 'attention_small.wgsl'],
+  ...ATTENTION_F16KV_TO_F32_ENTRIES,
 ]);
 
 export function widenToF32Activations(graph, ctx) {

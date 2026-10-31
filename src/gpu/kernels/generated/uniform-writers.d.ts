@@ -102,7 +102,9 @@ export interface KernelUniformValues {
   "matmul/q4_0_gemv": Parameters<typeof writers0.write_matmul_q4_0_gemv>[1];
   "matmul/q4_0_prefill": Parameters<typeof writers0.write_matmul_q4_0_gemv>[1];
   "matmul/q4_1_gemv": Parameters<typeof writers0.write_matmul_q4_0_gemv>[1];
+  "matmul/q5_0_gemv": Parameters<typeof writers0.write_matmul_q4_0_gemv>[1];
   "matmul/q4_1_prefill": Parameters<typeof writers0.write_matmul_q4_0_gemv>[1];
+  "matmul/q5_0_prefill": Parameters<typeof writers0.write_matmul_q4_0_gemv>[1];
   "matmul/q8_0_gemv": Parameters<typeof writers0.write_matmul_q4_0_gemv>[1];
   "matmul/q8_0_prefill": Parameters<typeof writers0.write_matmul_q4_0_gemv>[1];
   "matmul/q6k_gemv": Parameters<typeof writers0.write_matmul_q4_0_gemv>[1];
@@ -264,6 +266,7 @@ export interface KernelUniformValues {
   "gather/litert_int4_vec4_f32_out": Parameters<typeof writers1.write_gather_bf16>[1];
   "gather/q4_0": Parameters<typeof writers1.write_gather_q4_0>[1];
   "gather/q4_1": Parameters<typeof writers1.write_gather_q4_0>[1];
+  "gather/q5_0": Parameters<typeof writers1.write_gather_q4_0>[1];
   "gather/q8_0": Parameters<typeof writers1.write_gather_q4_0>[1];
   "gather/q6k": Parameters<typeof writers1.write_gather_q4_0>[1];
   "gather_split4/f16_vec4_f16_out": Parameters<typeof writers1.write_gather_split4_f16_vec4_f16_out>[1];

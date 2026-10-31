@@ -8,7 +8,7 @@ const fields = {
  ffn_gate_inp_shexp: 'sharedExpertRouter', ffn_gate_shexp: 'sharedExpertGate',
  ffn_up_shexp: 'sharedExpertUp', ffn_down_shexp: 'sharedExpertDown',
 };
-const dtypeNames = { f32: 'F32', f16: 'F16', bf16: 'BF16', q4_0: 'Q4_0', q4_1: 'Q4_1', q8_0: 'Q8_0', q6k: 'Q6_K' };
+const dtypeNames = { f32: 'F32', f16: 'F16', bf16: 'BF16', q4_0: 'Q4_0', q4_1: 'Q4_1', q5_0: 'Q5_0', q8_0: 'Q8_0', q6k: 'Q6_K' };
 export async function resolveDopplerQ40Resources(pipeline, inventory, readBufferSlice) {
  const state = pipeline.generator._state, resources = new Map(), banks = new Map();
  for (const tensor of inventory.tensors) {

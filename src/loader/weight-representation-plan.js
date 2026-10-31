@@ -1,4 +1,4 @@
-import { ggufBlockFormat } from '../formats/gguf/block-storage.js';
+import { ggufBlockFormat, isGgufBlockSourceDtype } from '../formats/gguf/block-storage.js';
 import { getKernelPathMatmulVariant } from '../config/kernel-path-loader.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { getKernelConfigs } from '../config/kernel-registry-contract.js';
@@ -100,7 +100,7 @@ export function compileWeightRepresentationPlan(locations, manifest, paths, defa
   for (const [name, location] of locations) {
     const group = entries.get(name);
     if (!group) throw new Error(`Unknown tensor ${name}`);
-    if (['Q4_0','Q4_1','Q8_0'].includes(location.dtype) || (location.dtype === 'Q6_K' && manifest.quantizationInfo?.preserveSourceTensors === true)) {
+    if ((isGgufBlockSourceDtype(location.dtype) && location.dtype !== 'Q6_K') || (location.dtype === 'Q6_K' && manifest.quantizationInfo?.preserveSourceTensors === true)) {
       const packedDtype=ggufBlockFormat(location.dtype).variant;
       const incompatible = group.consumers.filter(consumer => consumer.weightDtype != null && consumer.weightDtype !== packedDtype);
       if (incompatible.length) throw new Error(`Q4_0 tensor ${name} has consumers declaring another storage encoding.`);

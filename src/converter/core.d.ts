@@ -173,6 +173,8 @@ export interface RDRRManifest {
     source: string;
     convertedAt: string;
     hasTokenizer?: boolean;
+    /** Source tensors deliberately left out of the artifact, with reasons. */
+    sourceExclusions?: Array<{ name: string; reason: string }>;
   };
 }
 

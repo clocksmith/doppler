@@ -383,6 +383,7 @@ export async function convertSafetensorsDirectory(options) {
   let embeddingPostprocessor = null;
   let modelKind = 'transformer';
   let sourceQuantization = null;
+  let sourceExclusions = null;
   let tokenizerJson = null;
   let tokenizerConfig = null;
   let generationConfig = null;
@@ -547,6 +548,7 @@ export async function convertSafetensorsDirectory(options) {
     }));
     architectureHint = parsedGGUF.architecture;
     sourceQuantization = parsedGGUF.quantization ?? null;
+    sourceExclusions = parsedGGUF.excludedTensors ?? null;
     architecture = parsedGGUF.normalizedArchitecture ?? extractArchitecture({}, parsedGGUF.config || {});
   } else {
     if (!isInputDirectory) {
@@ -747,6 +749,7 @@ export async function convertSafetensorsDirectory(options) {
     // inside config.tokenizer; lift it to model.tokenizer so resolveEosTokenId
     // and other manifest helpers find it without a GGUF-specific branch.
     tokenizer: tokenizerConfig ?? config?.tokenizer ?? null,
+    ...(sourceExclusions?.length ? { sourceExclusions } : {}),
     generationConfig,
     tokenizerModel: hasTokenizerModel ? 'tokenizer.model' : null,
     embeddingPostprocessor,
