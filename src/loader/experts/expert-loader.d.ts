@@ -109,3 +109,5 @@ export declare function loadExpert(
   layerIdx: number,
   expertIdx: number
 ): Promise<ExpertWeights>;
+
+export declare function supportsResidentExpertPreparation(expertFormat: unknown): boolean;

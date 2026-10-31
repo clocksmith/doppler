@@ -85,6 +85,18 @@ export const DEFAULT_EXPERT_CACHE_CONFIG = {
 // Complete Loading Config
 // =============================================================================
 
+export const DEFAULT_EXPERT_PREPARATION_CONFIG = {
+  mode: 'on-demand',
+};
+
+export function validateExpertPreparationConfig(config) {
+  if (!config || typeof config !== 'object' || Array.isArray(config)
+    || !['on-demand', 'eager-resident'].includes(config.mode)) {
+    throw new Error('runtime.loading.expertPreparation.mode must be "on-demand" or "eager-resident".');
+  }
+  return config;
+}
+
 export const DEFAULT_LOADING_CONFIG = {
   storage: DEFAULT_STORAGE_FULL_CONFIG,
   distribution: DEFAULT_DISTRIBUTION_CONFIG,
@@ -93,5 +105,6 @@ export const DEFAULT_LOADING_CONFIG = {
   prefetch: DEFAULT_PREFETCH_CONFIG,
   opfsPath: DEFAULT_OPFS_PATH_CONFIG,
   expertCache: DEFAULT_EXPERT_CACHE_CONFIG,
+  expertPreparation: DEFAULT_EXPERT_PREPARATION_CONFIG,
   allowF32UpcastNonMatmul: false,
 };

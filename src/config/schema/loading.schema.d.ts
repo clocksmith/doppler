@@ -170,6 +170,14 @@ export interface ExpertCacheConfigSchema {
 /** Default expert cache configuration */
 export declare const DEFAULT_EXPERT_CACHE_CONFIG: ExpertCacheConfigSchema;
 
+export interface ExpertPreparationConfigSchema {
+  /** On-demand preserves deferred loading; eager-resident prepares supported packed banks before readiness. */
+  mode: 'on-demand' | 'eager-resident';
+}
+
+export declare const DEFAULT_EXPERT_PREPARATION_CONFIG: ExpertPreparationConfigSchema;
+export declare function validateExpertPreparationConfig(config: unknown): ExpertPreparationConfigSchema;
+
 /**
  * Complete loading configuration schema.
  *
@@ -185,6 +193,7 @@ export interface LoadingConfigSchema {
   prefetch: PrefetchConfigSchema;
   opfsPath: OpfsPathConfigSchema;
   expertCache: ExpertCacheConfigSchema;
+  expertPreparation: ExpertPreparationConfigSchema;
   /** Allow F16->F32 upcast for non-matmul weights (norms, softcap) */
   allowF32UpcastNonMatmul: boolean;
 }

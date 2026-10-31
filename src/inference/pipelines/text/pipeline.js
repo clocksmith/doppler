@@ -110,12 +110,12 @@ export class InferencePipeline extends PipelineState {
     return initializeImpl.call(this, contexts);
   }
 
-  async loadModel(manifest) {
-    return loadModelImpl.call(this, manifest);
+  async loadModel(manifest, options = {}) {
+    return loadModelImpl.call(this, manifest, options);
   }
 
-  async _loadWeights() {
-    return _loadWeightsImpl.call(this);
+  async _loadWeights(options = {}) {
+    return _loadWeightsImpl.call(this, options);
   }
 
   setPreloadedWeights(weights) {

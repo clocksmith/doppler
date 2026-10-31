@@ -74,6 +74,35 @@ owning the model artifact and runtime contract. Manifest/config/schema/rule
 assets may provide defaults. Run code must not invent behavior from model
 names, missing fields, surface identity, or local cache state.
 
+## MoE expert preparation
+
+`runtime.loading.expertPreparation.mode` controls when expert banks are materialized:
+
+```json
+{ "loading": { "expertPreparation": { "mode": "eager-resident" } } }
+```
+
+The schema default, `on-demand`, preserves deferred loading. Its loader timing
+receipt reports `expertPreparation.status: "deferred"`; successful opening does
+not claim that every expert is resident. `eager-resident` prepares Qwen3.5-style
+and Gemma4 packed banks for every assigned decoder layer before the loader emits
+`complete` or the text pipeline becomes loaded. Each bank is acquired once,
+without selecting or changing any learned experts. Other expert formats reject
+this mode before materialization rather than silently degrading to lazy loading.
+
+`loader.getLoadTiming()` records the selected mode, status, assigned layer count,
+prepared bank count and `phasesMs.expertPreparation`. Dense models report no expert
+preparation. Pipeline construction accepts `contexts.signal`; direct loader calls
+accept `LoadOptions.signal`. Resident preparation waits for queued GPU uploads
+before readiness. Cancellation waits for the current awaited operation and queued
+uploads to settle before cleanup, prevents readiness, and preserves the failed timing
+receipt for inspection. It does not promise interruption of submitted GPU work.
+
+Eager preparation moves acquisition into opening; it does not establish faster
+compute, sub-second first-token latency, bounded packed-bank eviction or a physical
+GPU-memory limit. Those need separate policies and evidence. Loading configuration
+does not change model weights, quantization or kernel selection.
+
 ## Multimodal config contract
 
 Multimodal encoder behavior is config-owned, not runtime-inferred.

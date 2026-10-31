@@ -9,9 +9,11 @@ import { detectMoE } from './model-load-validation.js';
 import { createLoadTiming, finishLoadPhase, finishLoadTiming, nowMs, roundLoadTimingMs } from './load-timing.js';
 import { resolveLayerPartition } from '../config/layer-partition-plan.js';
 import { requiresTiedEmbeddingLoad } from './final-weights-loader.js';
+import { createExpertPreparation } from './experts/expert-preparation.js';
 
 /** @type {import('./model-load.js').load} */
 export async function load(modelId, options) {
+  options.signal?.throwIfAborted();
   const started = nowMs();
   const preservedManifest = this.shardCache.hasCustomLoader ? this.manifest : null;
   // Capture placement before the first asynchronous storage or device operation.
@@ -22,6 +24,7 @@ export async function load(modelId, options) {
     if (this.loadTiming?.status === 'running') {
       finishLoadTiming(this.loadTiming, 'failed', started, error);
     }
+    const failedTiming = this.loadTiming;
     try {
       if (this._memoryMonitor) this._stopMemoryLogging('failed');
       await this.unload();
@@ -29,6 +32,7 @@ export async function load(modelId, options) {
       throw new AggregateError([error, cleanupError], 'Model load and cleanup failed.', { cause: error });
     } finally {
       if (preservedManifest) this.manifest = preservedManifest;
+      this.loadTiming = failedTiming;
     }
     throw error;
   }
@@ -36,7 +40,8 @@ export async function load(modelId, options) {
 
 /** @type {import('./model-load.js').load} */
 async function loadModel(modelId, options) {
-    const { onProgress = null, verifyHashes } = options;
+    const { onProgress = null, verifyHashes, signal } = options;
+    signal?.throwIfAborted();
     if (verifyHashes == null) {
       throw new Error('Loader.load requires explicit verifyHashes (runtime.loading.shardCache.verifyHashes).');
     }
@@ -94,6 +99,8 @@ async function loadModel(modelId, options) {
     const partition = resolveLayerPartition(this.manifest, options.partition);
 
     this.isMoE = detectMoE(this.manifest);
+    const prepareExperts = this.isMoE
+      ? createExpertPreparation(this, this._loadingConfig.expertPreparation) : null;
 
     this.shardCache.configureForModel(this.manifest, this.shardCache.hasCustomLoader);
 
@@ -122,6 +129,7 @@ async function loadModel(modelId, options) {
     activeLoadPhase = 'tensorLocations';
     phaseStart = nowMs();
     await this._buildTensorLocations();
+    signal?.throwIfAborted();
     this.weightRepresentationPlan = this.representationPaths?.length
       ? compileWeightRepresentationPlan(this.tensorLocations, this.manifest, this.representationPaths, this)
       : null;
@@ -174,12 +182,14 @@ async function loadModel(modelId, options) {
 
     
     this._loadShardOverride = async (shardIndex, options) => {
+      signal?.throwIfAborted();
       const shardInfo = this.manifest?.shards?.[shardIndex];
       const shardSize = shardInfo?.size || 0;
       const shardName = shardInfo?.filename ?? `index=${shardIndex}`;
       let data;
       try {
         data = await originalLoadShard(shardIndex, options);
+        signal?.throwIfAborted();
       } catch (error) {
         const modelId = this.manifest?.modelId ?? 'unknown';
         const shardUrl = shardInfo && ('url' in shardInfo ? shardInfo.url
@@ -292,10 +302,12 @@ async function loadModel(modelId, options) {
       let maxLayer = null;
 
       for (let l = firstLayer; l <= lastLayer; l++) {
+        signal?.throwIfAborted();
         const layerStart = performance.now();
         const layerPromise = this._loadLayer(l, onProgress);
         if (!partition) this._prefetchLayerShards(l);
         await layerPromise;
+        signal?.throwIfAborted();
         const layerElapsedMs = performance.now() - layerStart;
         layerTotalMs += layerElapsedMs;
         if (layerElapsedMs > maxLayerMs) {
@@ -358,6 +370,13 @@ async function loadModel(modelId, options) {
       if (!partition || partition.hasLmHead) await this._loadFinalWeights(onProgress);
       finishLoadPhase(this.loadTiming, activeLoadPhase, phaseStart);
       this._assertResidentBudget('final weights');
+      signal?.throwIfAborted();
+      if (prepareExperts) {
+        activeLoadPhase = 'expertPreparation';
+        phaseStart = nowMs();
+        try { await prepareExperts([firstLayer, lastLayer], { signal, onProgress: onProgress ?? undefined }); }
+        finally { finishLoadPhase(this.loadTiming, activeLoadPhase, phaseStart); }
+      }
       syncCustomReadStats();
 
       if (onProgress) {
@@ -371,6 +390,7 @@ async function loadModel(modelId, options) {
         });
       }
 
+      signal?.throwIfAborted();
       this.isLoaded = true;
       const totalTime = ((Date.now() - loadStartTime) / 1000).toFixed(2);
       const avgSpeed = formatBytes(bytesLoaded / (Date.now() - loadStartTime) * 1000);
