@@ -321,6 +321,7 @@ export function createDopplerRuntimeService({
     let pipeline;
     try {
       pipeline = await createPipeline(loadSource.manifest, {
+        signal: options.signal,
         partition,
         gpu,
         ruleRegistry, kernelRegistry, observer,
@@ -445,7 +446,7 @@ export function createDopplerRuntimeService({
           assertCapsuleLoadActive(programOptions.signal);
           const allocation = programOptions.residentPartition;
           const { pipeline, modelHandle } = await loadProgram(source,
-            { ...resolveCapsuleProgramLoadOptions(targetPlan), isolatedLoader: true },
+            { ...resolveCapsuleProgramLoadOptions(targetPlan), isolatedLoader: true, signal: programOptions.signal },
             allocation ? { plan: allocation.plan, index: allocation.index } : null, selectedDeviceBinding());
           try {
             assertCapsuleLoadActive(programOptions.signal);

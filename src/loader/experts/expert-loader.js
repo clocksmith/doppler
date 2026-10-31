@@ -169,10 +169,10 @@ const EXPERT_FORMATS = Object.freeze({
   'gpt-oss': Object.freeze({ packed: true, downcastToF16: false, lruCached: false,
     packedCacheKey: layer => `layer_${layer}_gptoss_packed`,
     load: loadGptOssStyleExpert, assertWeights: assertGptOssWeights, packedTensorCandidates: getGptOssExpertTensorCandidates }),
-  gemma4: Object.freeze({ packed: true, downcastToF16: false, lruCached: false,
+  gemma4: Object.freeze({ packed: true, downcastToF16: false, lruCached: false, residentPreparation: true,
     packedCacheKey: layer => `layer_${layer}_gemma4_packed`,
     load: loadGemma4StyleExpert, assertWeights: assertGemma4Weights, packedTensorCandidates: getGemma4ExpertTensorCandidates }),
-  qwen3_5: Object.freeze({ packed: true, downcastToF16: false, lruCached: false,
+  qwen3_5: Object.freeze({ packed: true, downcastToF16: false, lruCached: false, residentPreparation: true,
     packedCacheKey: layer => `layer_${layer}_qwen35_packed`,
     load: loadQwen35StyleExpert, assertWeights: assertGemma4Weights, packedTensorCandidates: getQwen35ExpertTensorCandidates }),
   mixtral: Object.freeze({ packed: false, downcastToF16: true, lruCached: true,
@@ -183,6 +183,11 @@ function getExpertFormat(expertFormat) {
   return typeof expertFormat === 'string' && Object.hasOwn(EXPERT_FORMATS, expertFormat)
     ? EXPERT_FORMATS[expertFormat]
     : null;
+}
+
+// Resident preparation excludes per-expert LRU and layer-paged banks.
+export function supportsResidentExpertPreparation(expertFormat) {
+  return getExpertFormat(expertFormat)?.residentPreparation === true;
 }
 
 function isPackedExpertFormat(expertFormat) {

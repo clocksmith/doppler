@@ -66,9 +66,9 @@ export declare class InferencePipeline extends PipelineState {
 
   initialize(contexts?: PipelineContexts): Promise<void>;
 
-  loadModel(manifest: Manifest): Promise<void>;
+  loadModel(manifest: Manifest, options?: { signal?: AbortSignal }): Promise<void>;
 
-  private _loadWeights(): Promise<void>;
+  private _loadWeights(options?: { signal?: AbortSignal }): Promise<void>;
   private _ensureVisionWeightsLoaded(): Promise<void>;
   private _ensureAudioWeightsLoaded(): Promise<void>;
 

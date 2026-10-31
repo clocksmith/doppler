@@ -29,8 +29,10 @@ export function createLoadTiming(modelId, hasCustomLoader) {
       embeddings: null,
       layers: null,
       finalWeights: null,
+      expertPreparation: null,
       cleanup: null,
     },
+    expertPreparation: null,
     layers: {
       count: null,
       totalMs: null,

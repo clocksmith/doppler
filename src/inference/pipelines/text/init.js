@@ -750,7 +750,7 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
   }
   try {
     await dopplerLoader.load(modelId, {
-      verifyHashes, partition: options.partition,
+      verifyHashes, partition: options.partition, signal: options.signal,
       onProgress: onProgress || ((info) => {
         // Shard and layer progress are logged by loader with source info
         if (info.stage !== 'layers' && info.stage !== 'shards') {
@@ -786,7 +786,7 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
         });
       }
     }
-    log.debug('Pipeline', 'MoE model - experts will be loaded on demand');
+    log.debug('Pipeline', `MoE expert preparation: ${dopplerLoader.getLoadTiming()?.expertPreparation?.status}`);
   }
 
   return {

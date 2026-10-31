@@ -7,6 +7,8 @@ import { releasePipelineContextGlobals } from './context.js';
 import { snapshotRuntimeConfig } from '../../config/runtime.js';
 
 export async function createInitializedPipeline(PipelineClass, manifest, contexts = {}) {
+  const signal = contexts.signal;
+  signal?.throwIfAborted();
   const { ruleRegistry, kernelRegistry } = resolvePipelineRegistries(contexts);
   const observer = resolveDiagnosticObserver(contexts.observer);
   const pipeline = new PipelineClass();
@@ -19,7 +21,9 @@ export async function createInitializedPipeline(PipelineClass, manifest, context
       restoreRules = enterRuleRegistry(ruleRegistry);
       restoreKernels = enterKernelRegistry(kernelRegistry);
       await pipeline.initialize(contexts);
-      await pipeline.loadModel(manifest);
+      signal?.throwIfAborted();
+      await pipeline.loadModel(manifest, { signal });
+      signal?.throwIfAborted();
       pipeline.runtimeConfig = snapshotRuntimeConfig(pipeline.runtimeConfig);
     } catch (error) {
       try { await pipeline.unload?.(); } catch { /* Preserve the construction failure. */ }

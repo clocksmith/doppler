@@ -7,6 +7,7 @@
   },
   "include": [],
   "files": [
+    "src/loader/experts/expert-preparation.js",
     "src/gpu/kernels/matmul-workgroup-capacity.js",
     "tools/onboarding-tooling.js",
     "tools/resource-telemetry.js",

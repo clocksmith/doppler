@@ -21,6 +21,7 @@ export function validateRuntimeConfig(runtimeConfig?: {
     } | null;
   } | null;
   loading?: {
+    expertPreparation?: import('./schema/loading.schema.js').ExpertPreparationConfigSchema | null;
     allowF32UpcastNonMatmul?: boolean | null;
   } | null;
   inference?: {

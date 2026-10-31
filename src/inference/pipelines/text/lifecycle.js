@@ -104,7 +104,10 @@ export async function initialize(contexts = {}) {
     log.debug('Pipeline', 'Initialized', { useGPU: this.useGPU, debug: this.debug });
   }
 
-export async function loadModel(manifest) {
+export async function loadModel(manifest, options = {}) {
+    const { signal } = options;
+    signal?.throwIfAborted();
+    this.isLoaded = false;
     const loadStart = performance.now();
     const pipelineLoadTiming = createPipelineLoadTiming(manifest?.modelId ?? null);
     const resetStart = performance.now();
@@ -395,7 +398,7 @@ export async function loadModel(manifest) {
       pipelineLoadTiming,
       'loadWeights',
       { modelId: manifest.modelId ?? null },
-      () => this._loadWeights()
+      () => this._loadWeights({ signal })
     );
 
     // Initialize RoPE frequencies
@@ -414,6 +417,7 @@ export async function loadModel(manifest) {
       () => this._initConvLayerStates()
     );
 
+    signal?.throwIfAborted();
     this.isLoaded = true;
     const loadMs = performance.now() - loadStart;
     this.stats.modelLoadMs = loadMs;
@@ -422,11 +426,12 @@ export async function loadModel(manifest) {
     log.info('Pipeline', `Model loaded successfully (${loadMs.toFixed(0)}ms)`);
   }
 
-export async function _loadWeights() {
+export async function _loadWeights(options = {}) {
     const result = this._preloadedWeights || await loadWeights(
       (this.manifest),
       (this.modelConfig),
       {
+        signal: options.signal,
         partition: this.modelPartition,
         storageContext: this.storageContext ?? undefined,
         loadingConfig: this.runtimeConfig.loading,
@@ -459,6 +464,11 @@ export async function _loadWeights() {
       }
     );
 
+    if (this._preloadedWeights && this.modelConfig.useMoE
+      && this.runtimeConfig.loading.expertPreparation.mode === 'eager-resident'
+      && result.loader?.getLoadTiming()?.expertPreparation?.status !== 'complete') {
+      throw new Error('Preloaded MoE weights must complete eager-resident expert preparation before reuse.');
+    }
     result.layerWeights.forEach((w, k) => this.weights.set(k, w));
     this.weights.set('embed', result.embeddings);
     this.weights.set('lm_head', result.lmHead);

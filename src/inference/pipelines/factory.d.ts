@@ -1,6 +1,6 @@
 type InitializablePipeline = {
   initialize(contexts?: Record<string, unknown>): Promise<void>;
-  loadModel(manifest: unknown): Promise<void>;
+  loadModel(manifest: unknown, options?: { signal?: AbortSignal }): Promise<void>;
 };
 
 export declare function createInitializedPipeline<T extends InitializablePipeline>(

@@ -53,6 +53,7 @@
     "src/inference/pipelines/text/partition-execution.js",
     "src/config/execution-registry-contract.js",
     "src/loader/model-load.js",
+    "src/loader/experts/expert-preparation.js",
     "src/inference/pipelines/text.js",
     "src/inference/pipelines/text/embedding-batch.js",
     "src/client/runtime/fetch-capsule-artifact-store.js",

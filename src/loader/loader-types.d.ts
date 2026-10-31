@@ -132,7 +132,7 @@ export interface PerLayerInputWeights {
  * Loading progress information
  */
 export interface LoadProgress {
-  stage: 'manifest' | 'shards' | 'layers' | 'gpu_transfer' | 'complete';
+  stage: 'manifest' | 'shards' | 'layers' | 'gpu_transfer' | 'experts' | 'complete';
   progress: number;
   /** Current layer index */
   layer?: number;
@@ -156,6 +156,8 @@ export interface LoadProgress {
  * Loading options
  */
 export interface LoadOptions {
+  /** Cancellation is observed between awaited loading operations, before readiness. */
+  signal?: AbortSignal;
   onProgress?: (progress: LoadProgress) => void;
   verifyHashes: boolean;
   /** Materialize only these decoder layers and their declared endpoint weights.
@@ -169,6 +171,7 @@ export type LoaderLoadTimingPhase =
   | 'embeddings'
   | 'layers'
   | 'finalWeights'
+  | 'expertPreparation'
   | 'cleanup';
 
 export interface LoaderLayerLoadTiming {
@@ -192,6 +195,7 @@ export interface LoaderLoadTiming {
   shardsLoaded: number;
   bytesPerSecond: number | null;
   phasesMs: Record<LoaderLoadTimingPhase, number | null>;
+  expertPreparation: import('./experts/expert-preparation.js').ExpertPreparationReceipt | null;
   layers: LoaderLayerLoadTiming;
   totalMs: number | null;
   failedPhase: LoaderLoadTimingPhase | null;
