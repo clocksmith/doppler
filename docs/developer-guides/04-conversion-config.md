@@ -67,3 +67,17 @@ the unchunked converter, including partial blocks and streamed writes.
 
 This changes preparation scheduling, not artifact quantization or inference
 precision. Keep load, conversion and resident request timings separate.
+
+Declare routing and recurrent control projection consumers in the execution
+graph as well as preserving their source precision during conversion. The
+loader's representation plan binds named consumers before allocation; an
+unclassified control weight can otherwise retain the legacy materialization
+policy. Check the actual loaded dtype and first divergent operator against the
+reference. A debug-wide F32 retention flag is useful for diagnosis, but is not
+the model's production precision contract.
+
+A verified resident packed expert bank is independent of the bounded raw-shard
+cache. Selecting another expert row reuses that bank; evicting raw shards does
+not require downloading them again until the bank itself needs preparation.
+First preparation still verifies the required artifact shards. This residency
+optimization does not qualify numerical or performance behavior by itself.

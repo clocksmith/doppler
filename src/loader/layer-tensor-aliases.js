@@ -114,5 +114,6 @@ export const LAYER_WEIGHT_CONSUMERS = Object.freeze([
   ['ffn_gate', ['mlp.experts.gate_up_proj']], ['ffn_down', ['mlp.experts.down_proj']],
   ['ffn_gate', ROUTER_SUFFIXES.sharedExpertGate], ['ffn_up', ROUTER_SUFFIXES.sharedExpertUp],
   ['ffn_down', ROUTER_SUFFIXES.sharedExpertDown],
+  ['moe_router', ROUTER_SUFFIXES.routerWeight], ['moe_shared_router', ROUTER_SUFFIXES.sharedExpertRouter],
   ['ffn_gate', FFN_SUFFIXES.ffnGate, ['ffn_gate_up']], ['ffn_up', FFN_SUFFIXES.ffnUp, ['ffn_gate_up']], ['ffn_down', FFN_SUFFIXES.ffnDown],
 ].map(([role, suffixes, additionalRoles = []]) => Object.freeze({ role, suffixes, additionalRoles: Object.freeze(additionalRoles) })));

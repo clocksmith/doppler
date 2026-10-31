@@ -19,6 +19,11 @@ import { isBufferActive, releaseBuffer } from '../../memory/buffer-pool.js';
 
 
 export async function preloadShardsForExpert(ctx, layerIdx, expertIdx, options) {
+  // A prepared packed bank owns verified GPU tensors independently of the
+  // bounded raw-shard cache. Selecting another row must not reload evicted
+  // shards while that same bank remains resident.
+  const packedKey = getExpertFormat(ctx.manifest?.moeConfig?.expertFormat)?.packedCacheKey?.(layerIdx);
+  if (packedKey && ctx.experts.has(packedKey)) return;
   const packedShardIndices = getPackedExpertShardIndices(ctx, layerIdx);
   if (packedShardIndices.length > 0) {
     for (const shardIndex of packedShardIndices) {
@@ -162,10 +167,13 @@ async function loadMixtralStyleExpert(ctx, layerIdx, expertIdx) {
 // experts of a layer in shared tensors; per-expert formats are LRU-cached.
 const EXPERT_FORMATS = Object.freeze({
   'gpt-oss': Object.freeze({ packed: true, downcastToF16: false, lruCached: false,
+    packedCacheKey: layer => `layer_${layer}_gptoss_packed`,
     load: loadGptOssStyleExpert, assertWeights: assertGptOssWeights, packedTensorCandidates: getGptOssExpertTensorCandidates }),
   gemma4: Object.freeze({ packed: true, downcastToF16: false, lruCached: false,
+    packedCacheKey: layer => `layer_${layer}_gemma4_packed`,
     load: loadGemma4StyleExpert, assertWeights: assertGemma4Weights, packedTensorCandidates: getGemma4ExpertTensorCandidates }),
   qwen3_5: Object.freeze({ packed: true, downcastToF16: false, lruCached: false,
+    packedCacheKey: layer => `layer_${layer}_qwen35_packed`,
     load: loadQwen35StyleExpert, assertWeights: assertGemma4Weights, packedTensorCandidates: getQwen35ExpertTensorCandidates }),
   mixtral: Object.freeze({ packed: false, downcastToF16: true, lruCached: true,
     load: loadMixtralStyleExpert, assertWeights: assertMixtralWeights, packedTensorCandidates: null }),
@@ -373,7 +381,7 @@ function assertGemma4Weights(weights, layerIdx, expertIdx) {
 }
 
 async function loadGemma4StyleExpert(ctx, layerIdx, expertIdx) {
-  const packedKey = `layer_${layerIdx}_gemma4_packed`;
+  const packedKey = EXPERT_FORMATS.gemma4.packedCacheKey(layerIdx);
   let packed = ctx.experts.get(packedKey);
 
   if (!packed) {
@@ -403,7 +411,7 @@ async function loadQwen35StyleExpert(ctx, layerIdx, expertIdx) {
   if (!Number.isSafeInteger(expertIdx) || expertIdx < 0 || expertIdx >= numExperts) {
     throw new Error(`[MoE] Qwen expert index ${expertIdx} outside ${numExperts} experts.`);
   }
-  const packedKey = `layer_${layerIdx}_qwen35_packed`;
+  const packedKey = EXPERT_FORMATS.qwen3_5.packedCacheKey(layerIdx);
   let packed = ctx.experts.get(packedKey);
   if (!packed) {
     const candidates = getQwen35ExpertTensorCandidates(layerIdx);
@@ -433,7 +441,7 @@ async function loadQwen35StyleExpert(ctx, layerIdx, expertIdx) {
 
 async function loadGptOssStyleExpert(ctx, layerIdx, expertIdx) {
   const gptOssPrefix = `model.layers.${layerIdx}.mlp.experts`;
-  const packedKey = `layer_${layerIdx}_gptoss_packed`;
+  const packedKey = EXPERT_FORMATS['gpt-oss'].packedCacheKey(layerIdx);
   evictStaleGptOssLayers(ctx, layerIdx);
   let packed = ctx.experts.get(packedKey);
 
