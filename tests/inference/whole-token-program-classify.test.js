@@ -13,8 +13,13 @@ const w = new Uint32Array(new Float32Array([1 / 41, 1 / 42, 1 / 43, 1 / 44]).buf
 assert.equal(classifyWord(Array.from(w), positions), null);
 // A word that breaks the affine prediction in a later step is rejected.
 assert.equal(classifyWord([41, 42, 43, 45], positions), null);
-// Non-consecutive positions never classify as affine.
+// The slope comes from a consecutive first pair; a later, distant or earlier position
+// (a kept program verified in another generation) must lie on the same line.
 assert.equal(classifyWord([1, 2, 3, 4], [1, 3, 4, 5]), null);
+assert.deepEqual(classifyWord([41, 42, 43, 44, 71], [40, 41, 42, 43, 70]), { kind: 'affine', base: 41, slope: 1, pos0: 40 });
+assert.deepEqual(classifyWord([1024, 1536, 2048, 2560, 0], [40, 41, 42, 43, 38]), { kind: 'affine', base: 1024, slope: 512, pos0: 40 });
+assert.equal(classifyWord([41, 42, 43, 44, 72], [40, 41, 42, 43, 70]), null);
+assert.equal(classifyWord([10, 11, 12, 13, 1], [10, 11, 12, 13, 31]), null);
 
 // Affine words and copy offsets bound the positions a program may run.
 const kvOffset = { kind: 'affine', base: 40 * 1024, slope: 1024, pos0: 40 };

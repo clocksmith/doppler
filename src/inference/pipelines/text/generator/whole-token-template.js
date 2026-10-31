@@ -91,16 +91,21 @@ import { isMapRead, U32 } from './whole-token-observation.js';
 /** @typedef {{ size: number, usage: number }} TransientInfo */
 /**
  * Classify one undeclared u32 word across the observations: constant, or affine in
- * the position. The input token is never inferred from values; its owner declares it.
+ * the position. The slope comes from the first two observations, which must be
+ * consecutive positions; every observation, consecutive or not (a kept program's
+ * basis plus a later generation's step), must then lie on that line modulo 2^32.
+ * The input token is never inferred from values; its owner declares it.
  * @param {readonly number[]} values
  * @param {readonly number[]} positions
  * @returns {{ kind: 'const', value: number } | { kind: 'affine', base: number, slope: number, pos0: number } | null}
  */
 export function classifyWord(values, positions) {
   if (values.every((v) => v === values[0])) return { kind: 'const', value: values[0] };
-  for (let i = 1; i < positions.length; i++) if (positions[i] - positions[i - 1] !== 1) return null;
+  if (positions.length < 2 || positions[1] - positions[0] !== 1) return null;
   const slope = (values[1] - values[0]) | 0;
-  for (let i = 2; i < values.length; i++) if (((values[i] - values[i - 1]) | 0) !== slope) return null;
+  for (let i = 2; i < values.length; i++) {
+    if (((values[i] - values[0]) | 0) !== (Math.imul(slope, positions[i] - positions[0]) | 0)) return null;
+  }
   return { kind: 'affine', base: values[0], slope, pos0: positions[0] };
 }
 

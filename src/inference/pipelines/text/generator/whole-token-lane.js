@@ -8,7 +8,9 @@ import { WholeTokenProgram } from './whole-token-program.js';
 // step 1 of a generation runs the ordinary recorded step; later steps are observed
 // until the program is built, then replay it. A step the built program cannot run
 // (outside its declared positions, or with a changed plan or resource) invalidates
-// it and is observed again. See whole-token-program.js.
+// it and is observed again. A built program is kept for the next generation, whose
+// first observed step must match it (WholeTokenProgram.verify) before it replays.
+// See whole-token-program.js.
 
 /** @typedef {import('../state.js').PipelineState} PipelineState */
 /** @typedef {{ seqLen?: unknown, keysGPU?: GPUBuffer | null, valuesGPU?: GPUBuffer | null }} KVLayerView */
@@ -144,7 +146,12 @@ export async function decodeWholeTokenStep(state, currentIds, runRecorded) {
   const pos = state.currentSeqLen;
   const lastToken = currentIds[currentIds.length - 1];
   if (step === 1) {
-    state.wholeTokenProgram?.program.destroy();
+    const kept = state.wholeTokenProgram?.program;
+    if (kept?.ready) {
+      kept.beginGeneration();
+      return runRecorded(null);
+    }
+    kept?.destroy();
     const device = getDevice();
     if (!device) throw new Error('[WholeTokenProgram] Requires an active GPU device.');
     state.wholeTokenProgram = { program: new WholeTokenProgram(device), advancers: null };
@@ -153,14 +160,15 @@ export async function decodeWholeTokenStep(state, currentIds, runRecorded) {
   const lane = state.wholeTokenProgram;
   if (!lane) throw new Error('[WholeTokenProgram] Generation reached decode step > 1 without a program.');
   const { program } = lane;
-  if (program.ready) {
+  if (program.ready && !program.awaitingVerification) {
     const reason = program.rejects(pos, wholeTokenIdentity(state));
     if (reason !== null) program.invalidate(reason);
   }
-  if (!program.ready) {
+  if (!program.ready || program.awaitingVerification) {
     const fields = sequenceAdvancers(state);
     const before = fields.map(({ owner }) => owner.seqLen);
-    const token = await program.observe(pos, lastToken, (attach) => runRecorded(attach),
+    const step = program.awaitingVerification ? program.verify.bind(program) : program.observe.bind(program);
+    const token = await step(pos, lastToken, (attach) => runRecorded(attach),
       () => wholeTokenIdentity(state), kvCapacityLimits(state));
     const advancers = fields.filter(({ owner }, i) => owner.seqLen !== before[i]);
     lane.advancers = advancers;

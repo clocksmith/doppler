@@ -115,13 +115,16 @@ function makeModel(device, { kvRows = 64 } = {}) {
 
 function recordStep(device, recorder, res, pos, token, options) {
   const {
-    declareToken = true, kvMax = Infinity, regime = null, uniformBytes = 16, writeToken = true,
+    declareToken = true, kvMax = Infinity, regime = null, uniformBytes = 16, writeToken = true, stepBase = null,
   } = options;
   if (declareToken) declareStepContract(recorder, { kind: 'token-input', buffer: res.tokens, offset: 0, count: 1 });
   if (writeToken) device.queue.writeBuffer(res.tokens, 0, new Uint32Array([token]));
   declareStepContract(recorder, { kind: 'position-range', owner: 'kv-cache', min: 0, max: kvMax });
   if (regime) declareStepContract(recorder, { kind: 'position-range', owner: 'regime', ...regime(pos) });
-  device.queue.writeBuffer(res.uniform, 0, new Uint32Array([pos, 0, 0, 0]).subarray(0, uniformBytes / 4));
+  // Word 1 counts decode steps from stepBase when given: affine in the position inside
+  // one generation, but on a different line in a generation that starts elsewhere.
+  device.queue.writeBuffer(res.uniform, 0, new Uint32Array([pos, stepBase === null ? 0 : pos - stepBase, 0, 0])
+    .subarray(0, uniformBytes / 4));
   const group = device.createBindGroup({
     label: 'step', layout: res.layout, entries: [
       { binding: 0, resource: { buffer: res.uniform } },
@@ -135,9 +138,9 @@ function recordStep(device, recorder, res, pos, token, options) {
   recorder.submit();
 }
 
-async function observeStep(program, device, res, pos, token, options = {}) {
+async function observeStep(program, device, res, pos, token, options = {}, method = 'observe') {
   const identity = options.identity ?? ['plan-a'];
-  return program.observe(pos, token, async (attach) => {
+  return program[method](pos, token, async (attach) => {
     const recorder = makeRecorder(device);
     attach(recorder);
     recordStep(device, recorder, res, pos, token, options);
@@ -267,6 +270,54 @@ async function observeStep(program, device, res, pos, token, options = {}) {
   for (const pos of [10, 11, 12, 13]) await observeStep(program, device, res, pos, 42);
   device.dropNextSubmit = true;
   await assert.rejects(program.run(14, 99), /wrote no sampled token/);
+  program.destroy();
+}
+
+// A kept program replays a later generation after its first observed step matches it,
+// at a position far from the steps it was built from.
+{
+  const device = makeDevice();
+  const res = makeModel(device);
+  const program = new WholeTokenProgram(device);
+  for (const pos of [10, 11, 12, 13]) await observeStep(program, device, res, pos, 42);
+  await program.run(14, 1);
+  program.beginGeneration();
+  assert.equal(program.awaitingVerification, true);
+  assert.equal(await observeStep(program, device, res, 40, 7, {}, 'verify'), 7 + 40000);
+  assert.equal(program.ready, true);
+  assert.equal(program.awaitingVerification, false);
+  assert.deepEqual([program.stats.reused, program.stats.observedSteps, program.stats.invalidations], [true, 0, 0]);
+  assert.equal(program.rejects(41, ['plan-a']), null);
+  assert.equal((await program.run(41, 9))[0], 9 + 41000);
+  assert.equal(word(res.kv, 41 * 4), 9 + 41000);
+  // An earlier position than the build steps is checked the same way.
+  program.beginGeneration();
+  assert.equal(await observeStep(program, device, res, 3, 5, {}, 'verify'), 5 + 3000);
+  assert.equal((await program.run(4, 6))[0], 6 + 4000);
+  program.destroy();
+}
+
+// A word that counts decode steps is affine inside a generation; a generation that starts
+// at another offset puts it off the line, so the kept program is dropped and the steps
+// are observed again. A changed resource is refused the same way.
+{
+  const device = makeDevice();
+  const res = makeModel(device);
+  const program = new WholeTokenProgram(device);
+  for (const pos of [10, 11, 12, 13]) await observeStep(program, device, res, pos, 42, { stepBase: 9 });
+  program.beginGeneration();
+  assert.equal(await observeStep(program, device, res, 31, 7, { stepBase: 30 }, 'verify'), 7 + 31000);
+  assert.equal(program.ready, false);
+  assert.match(program.stats.lastInvalidation, /kept program does not match position 31: .*word 1/);
+  assert.equal(program.stats.observedSteps, 1);
+  for (const pos of [32, 33, 34]) await observeStep(program, device, res, pos, 7, { stepBase: 30 });
+  assert.equal(program.ready, true);
+  assert.equal((await program.run(35, 2))[0], 2 + 35000);
+  program.beginGeneration();
+  await observeStep(program, device, res, 50, 7, { stepBase: 30, identity: ['plan-b'] }, 'verify');
+  assert.equal(program.ready, false);
+  assert.match(program.stats.lastInvalidation, /execution plan or a bound resource changed/);
+  await assert.rejects(observeStep(program, device, res, 51, 7, {}, 'verify'), /No kept program awaits verification/);
   program.destroy();
 }
 

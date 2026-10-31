@@ -101,7 +101,12 @@ export class WholeTokenProgram {
     /** @type {EncodedToken | null} */
     this.pending = null;
     this.stagingIndex = 0;
-    this.stats = { observedSteps: 0, replayedTokens: 0, restarts: 0, invalidations: 0, lastInvalidation: /** @type {string | null} */ (null) };
+    this.stats = WholeTokenProgram.#freshStats();
+    // The observations a built program came from; a later generation's first observed
+    // step must agree with them (verify) before the kept program replays it.
+    /** @type {StepObservation[]} */
+    this.basis = [];
+    this.awaitingVerification = false;
     // Built by #build and #materialize once the observed steps are accepted (declarations only).
     /** Step positions the program may run, and the operation that bounds them. @type {PositionLimit} */ this.positionRange;
     /** Resources the program was observed with. @type {readonly unknown[]} */ this.identity;
@@ -118,6 +123,11 @@ export class WholeTokenProgram {
     /** @type {number} */ this.dynamicUniformBytes;
     /** @type {DynamicUniformWord[]} */ this.dynamicUniformWords;
     /** @type {number | undefined} */ this.positionDependentCopies;
+  }
+
+  static #freshStats() {
+    return { observedSteps: 0, replayedTokens: 0, restarts: 0, invalidations: 0, reused: false,
+      lastInvalidation: /** @type {string | null} */ (null) };
   }
 
   #watchBindGroups() {
@@ -147,6 +157,76 @@ export class WholeTokenProgram {
    */
   async observe(pos, token, run, identityOf, limits = []) {
     if (this.ready) throw new Error('[WholeTokenProgram] Program is already built.');
+    const { observation, result } = await this.#capture(pos, token, run, identityOf, limits);
+    this.#accept(observation);
+    return result;
+  }
+
+  /**
+   * Keep the built program for the next generation. Its first observed step (verify)
+   * must agree with the steps the program was built from before it replays again.
+   */
+  beginGeneration() {
+    if (!this.ready) throw new Error('[WholeTokenProgram] Only a built program can be kept.');
+    this.pending = null;
+    this.awaitingVerification = true;
+    this.stats = WholeTokenProgram.#freshStats();
+    this.#watchBindGroups();
+  }
+
+  /**
+   * The kept program's first step of a generation: observe the ordinary recorded step and
+   * accept the program only when that step builds the same template together with the
+   * steps the program was built from (same commands, resources and bindings; constant
+   * words equal, affine words on their lines at this position, the token declared), with
+   * the same resources and inside both position ranges. Otherwise the program is
+   * invalidated and this step starts a new observation window.
+   * @template T
+   * @param {number} pos
+   * @param {number} token
+   * @param {(attach: (recorder: CommandRecorder | null) => void) => Promise<T>} run
+   * @param {() => readonly unknown[]} identityOf
+   * @param {readonly PositionLimit[]} [limits]
+   * @returns {Promise<T>}
+   */
+  async verify(pos, token, run, identityOf, limits = []) {
+    if (!this.ready || !this.awaitingVerification) throw new Error('[WholeTokenProgram] No kept program awaits verification.');
+    const { observation, result } = await this.#capture(pos, token, run, identityOf, limits);
+    this.awaitingVerification = false;
+    this.#unwatch();
+    const range = /** @type {PositionLimit} */ (observation.rangeLimit);
+    const min = Math.max(this.positionRange.min, range.min);
+    const max = Math.min(this.positionRange.max, range.max);
+    /** @type {string | null} */
+    let reason = null;
+    if (!sameIdentity(observation.identity, this.identity)) reason = 'the execution plan or a bound resource changed';
+    else if (pos < min || pos > max) reason = `position ${pos} is outside [${min}, ${max}]`;
+    else if (this.pooledExternals.some((buffer) => !isBufferActive(buffer))) reason = 'a bound buffer returned to the buffer pool';
+    else {
+      try { buildTemplate([...this.basis, observation]); } catch (error) { reason = /** @type {Error} */ (error).message; }
+    }
+    if (reason !== null) {
+      this.invalidate(`kept program does not match position ${pos}: ${reason}`);
+      this.#accept(observation);
+      return result;
+    }
+    this.positionRange = { owner: max < this.positionRange.max ? range.owner : this.positionRange.owner, min, max };
+    this.nextPos = pos + 1;
+    this.stats.reused = true;
+    return result;
+  }
+
+  /**
+   * Run one ordinary recorded decode step under observation.
+   * @template T
+   * @param {number} pos
+   * @param {number} token
+   * @param {(attach: (recorder: CommandRecorder | null) => void) => Promise<T>} run
+   * @param {() => readonly unknown[]} identityOf
+   * @param {readonly PositionLimit[]} limits
+   * @returns {Promise<{ observation: StepObservation, result: T }>}
+   */
+  async #capture(pos, token, run, identityOf, limits) {
     const observation = new StepObservation(pos, token);
     /** @type {(() => void) | null} */
     let stop = null;
@@ -175,6 +255,11 @@ export class WholeTokenProgram {
       this.#unwatch();
       throw new Error(`[WholeTokenProgram] Decode step at position ${pos} cannot become a token program: ${observation.problems.join('; ')}.`);
     }
+    return { observation, result };
+  }
+
+  /** @param {StepObservation} observation */
+  #accept(observation) {
     this.observations.push(observation);
     this.stats.observedSteps++;
     const consistent = this.#consistentSuffix();
@@ -186,10 +271,10 @@ export class WholeTokenProgram {
     if (this.observations.length === WHOLE_TOKEN_OBSERVED_STEPS) {
       this.#unwatch();
       this.#build();
+      this.basis = this.observations;
       this.observations = [];
-      this.nextPos = pos + 1;
+      this.nextPos = observation.pos + 1;
     }
-    return result;
   }
 
   /**
@@ -488,6 +573,8 @@ export class WholeTokenProgram {
 
   #release() {
     this.pending = null;
+    this.basis = [];
+    this.awaitingVerification = false;
     for (const buffer of this.owned) buffer.destroy();
     this.owned = [];
     this.ready = false;
