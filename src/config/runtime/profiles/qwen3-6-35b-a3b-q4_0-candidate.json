@@ -1,7 +1,7 @@
 {
   "id": "profiles/qwen3-6-35b-a3b-q4_0-candidate",
   "name": "qwen3-6-35b-a3b-q4_0-candidate",
-  "description": "Experimental unchanged GGUF block execution with explicit 256-token prefill chunks and per-layer encode-ahead in single-token decode. Independent full-model numerical and performance gates required. Carries the measured native decode kernel path (inline execution-v1 object).",
+  "description": "Experimental unchanged GGUF block execution with explicit 256-token prefill chunks, a whole-token decode program (one command buffer per token, next token encoded ahead) built from per-layer encode-ahead observation steps. Independent full-model numerical and performance gates required. Carries the measured native decode kernel path (inline execution-v1 object).",
   "intent": "investigate",
   "compatibleIntents": [
     "investigate",
@@ -39,7 +39,8 @@
           "ringStop": 1,
           "ringStaging": 1,
           "disableCommandBatching": false,
-          "layerSubmitInterval": 1
+          "layerSubmitInterval": 1,
+          "wholeTokenProgram": true
         }
       },
       "moe": {
@@ -53,7 +54,7 @@
       "kernelPath": {
         "id": "qwen-3-6-35b-a3b-text-source-q4_0-af32-native-decode-candidate",
         "name": "Execution inline kernel path",
-        "description": "Native GGUF Q4_0 candidate: subgroup F32 GEMV router/linear a-b/shared router, cooperative Q-family projections and lm_head, pair shared-slot MoE.",
+        "description": "Native GGUF Q4_0 candidate: subgroup F32 GEMV router/linear a-b/shared router, cooperative Q-family projections and lm_head, pair shared-slot MoE gate/up with the down projection and slot combine in one dispatch, split-K GQA decode attention.",
         "activationDtype": "f32",
         "kvDtype": "f32",
         "decode": {
@@ -110,13 +111,13 @@
             },
             {
               "op": "attention",
-              "kernel": "attention_decode_online.wgsl",
+              "kernel": "attention_decode_gqa_splitk.wgsl",
               "entry": "main",
               "precision": {
                 "kvDtype": "f32",
                 "activationDtype": "f32"
               },
-              "digest": "sha256:acae941cba36c73f2ee8dc224d62a38b6fafa0c310029bad0effb366186529ce"
+              "digest": "sha256:79cff3ef0ce72c9eabfa0611814c7722f21c3d3e502c2884b5bc610e13595c00"
             },
             {
               "op": "o_proj",
@@ -285,13 +286,13 @@
               "op": "moe_shared_slot_gu",
               "kernel": "moe_shared_slot_gu_pair_f32.wgsl",
               "entry": "main",
-              "digest": "sha256:53b5467450404bcfc0ced3ddb6530b252e32ccf287ffc4ced78f5e8fdc78d3c4"
+              "digest": "sha256:1a28e076e93486589a3eace88c3cb230ff1ef4aa982fdd91dcc918d00891649b"
             },
             {
               "op": "moe_shared_slot_down",
-              "kernel": "moe_shared_slot_down_pair_f32.wgsl",
+              "kernel": "moe_shared_slot_down_pair_combine_f32.wgsl",
               "entry": "main",
-              "digest": "sha256:048ca401c8871c17b88801354d02601834279e1326a6cfbe528bb1a10037d70b"
+              "digest": "sha256:d6bb2d208945fb18bb5489dfb31a75d9a17688ebd2d90a077e98bfbd7ada4421"
             }
           ]
         },
@@ -578,9 +579,9 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:acae941cba36c73f2ee8dc224d62a38b6fafa0c310029bad0effb366186529ce",
+                  "digest": "sha256:79cff3ef0ce72c9eabfa0611814c7722f21c3d3e502c2884b5bc610e13595c00",
                   "entry": "main",
-                  "kernel": "attention_decode_online.wgsl",
+                  "kernel": "attention_decode_gqa_splitk.wgsl",
                   "op": "attention",
                   "precision": {
                     "activationDtype": "f32",
@@ -739,15 +740,15 @@
                   "weights": "layer.{L}.linear_attn.out_proj"
                 },
                 {
-                  "digest": "sha256:53b5467450404bcfc0ced3ddb6530b252e32ccf287ffc4ced78f5e8fdc78d3c4",
+                  "digest": "sha256:1a28e076e93486589a3eace88c3cb230ff1ef4aa982fdd91dcc918d00891649b",
                   "entry": "main",
                   "kernel": "moe_shared_slot_gu_pair_f32.wgsl",
                   "op": "moe_shared_slot_gu"
                 },
                 {
-                  "digest": "sha256:048ca401c8871c17b88801354d02601834279e1326a6cfbe528bb1a10037d70b",
+                  "digest": "sha256:d6bb2d208945fb18bb5489dfb31a75d9a17688ebd2d90a077e98bfbd7ada4421",
                   "entry": "main",
-                  "kernel": "moe_shared_slot_down_pair_f32.wgsl",
+                  "kernel": "moe_shared_slot_down_pair_combine_f32.wgsl",
                   "op": "moe_shared_slot_down"
                 },
                 {
@@ -1074,9 +1075,9 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:acae941cba36c73f2ee8dc224d62a38b6fafa0c310029bad0effb366186529ce",
+                  "digest": "sha256:79cff3ef0ce72c9eabfa0611814c7722f21c3d3e502c2884b5bc610e13595c00",
                   "entry": "main",
-                  "kernel": "attention_decode_online.wgsl",
+                  "kernel": "attention_decode_gqa_splitk.wgsl",
                   "op": "attention",
                   "precision": {
                     "activationDtype": "f32",
@@ -1219,15 +1220,15 @@
                   "weights": "layer.{L}.linear_attn.in_proj_z"
                 },
                 {
-                  "digest": "sha256:53b5467450404bcfc0ced3ddb6530b252e32ccf287ffc4ced78f5e8fdc78d3c4",
+                  "digest": "sha256:1a28e076e93486589a3eace88c3cb230ff1ef4aa982fdd91dcc918d00891649b",
                   "entry": "main",
                   "kernel": "moe_shared_slot_gu_pair_f32.wgsl",
                   "op": "moe_shared_slot_gu"
                 },
                 {
-                  "digest": "sha256:048ca401c8871c17b88801354d02601834279e1326a6cfbe528bb1a10037d70b",
+                  "digest": "sha256:d6bb2d208945fb18bb5489dfb31a75d9a17688ebd2d90a077e98bfbd7ada4421",
                   "entry": "main",
-                  "kernel": "moe_shared_slot_down_pair_f32.wgsl",
+                  "kernel": "moe_shared_slot_down_pair_combine_f32.wgsl",
                   "op": "moe_shared_slot_down"
                 },
                 {
@@ -1541,9 +1542,9 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:acae941cba36c73f2ee8dc224d62a38b6fafa0c310029bad0effb366186529ce",
+                  "digest": "sha256:79cff3ef0ce72c9eabfa0611814c7722f21c3d3e502c2884b5bc610e13595c00",
                   "entry": "main",
-                  "kernel": "attention_decode_online.wgsl",
+                  "kernel": "attention_decode_gqa_splitk.wgsl",
                   "op": "attention",
                   "precision": {
                     "activationDtype": "f32",
@@ -1702,15 +1703,15 @@
                   "weights": "layer.{L}.linear_attn.out_proj"
                 },
                 {
-                  "digest": "sha256:53b5467450404bcfc0ced3ddb6530b252e32ccf287ffc4ced78f5e8fdc78d3c4",
+                  "digest": "sha256:1a28e076e93486589a3eace88c3cb230ff1ef4aa982fdd91dcc918d00891649b",
                   "entry": "main",
                   "kernel": "moe_shared_slot_gu_pair_f32.wgsl",
                   "op": "moe_shared_slot_gu"
                 },
                 {
-                  "digest": "sha256:048ca401c8871c17b88801354d02601834279e1326a6cfbe528bb1a10037d70b",
+                  "digest": "sha256:d6bb2d208945fb18bb5489dfb31a75d9a17688ebd2d90a077e98bfbd7ada4421",
                   "entry": "main",
-                  "kernel": "moe_shared_slot_down_pair_f32.wgsl",
+                  "kernel": "moe_shared_slot_down_pair_combine_f32.wgsl",
                   "op": "moe_shared_slot_down"
                 },
                 {
@@ -2030,9 +2031,9 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:acae941cba36c73f2ee8dc224d62a38b6fafa0c310029bad0effb366186529ce",
+                  "digest": "sha256:79cff3ef0ce72c9eabfa0611814c7722f21c3d3e502c2884b5bc610e13595c00",
                   "entry": "main",
-                  "kernel": "attention_decode_online.wgsl",
+                  "kernel": "attention_decode_gqa_splitk.wgsl",
                   "op": "attention",
                   "precision": {
                     "activationDtype": "f32",
@@ -2191,15 +2192,15 @@
                   "weights": "layer.{L}.linear_attn.out_proj"
                 },
                 {
-                  "digest": "sha256:53b5467450404bcfc0ced3ddb6530b252e32ccf287ffc4ced78f5e8fdc78d3c4",
+                  "digest": "sha256:1a28e076e93486589a3eace88c3cb230ff1ef4aa982fdd91dcc918d00891649b",
                   "entry": "main",
                   "kernel": "moe_shared_slot_gu_pair_f32.wgsl",
                   "op": "moe_shared_slot_gu"
                 },
                 {
-                  "digest": "sha256:048ca401c8871c17b88801354d02601834279e1326a6cfbe528bb1a10037d70b",
+                  "digest": "sha256:d6bb2d208945fb18bb5489dfb31a75d9a17688ebd2d90a077e98bfbd7ada4421",
                   "entry": "main",
-                  "kernel": "moe_shared_slot_down_pair_f32.wgsl",
+                  "kernel": "moe_shared_slot_down_pair_combine_f32.wgsl",
                   "op": "moe_shared_slot_down"
                 },
                 {
@@ -2513,9 +2514,9 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:acae941cba36c73f2ee8dc224d62a38b6fafa0c310029bad0effb366186529ce",
+                  "digest": "sha256:79cff3ef0ce72c9eabfa0611814c7722f21c3d3e502c2884b5bc610e13595c00",
                   "entry": "main",
-                  "kernel": "attention_decode_online.wgsl",
+                  "kernel": "attention_decode_gqa_splitk.wgsl",
                   "op": "attention",
                   "precision": {
                     "activationDtype": "f32",
@@ -2674,15 +2675,15 @@
                   "weights": "layer.{L}.linear_attn.out_proj"
                 },
                 {
-                  "digest": "sha256:53b5467450404bcfc0ced3ddb6530b252e32ccf287ffc4ced78f5e8fdc78d3c4",
+                  "digest": "sha256:1a28e076e93486589a3eace88c3cb230ff1ef4aa982fdd91dcc918d00891649b",
                   "entry": "main",
                   "kernel": "moe_shared_slot_gu_pair_f32.wgsl",
                   "op": "moe_shared_slot_gu"
                 },
                 {
-                  "digest": "sha256:048ca401c8871c17b88801354d02601834279e1326a6cfbe528bb1a10037d70b",
+                  "digest": "sha256:d6bb2d208945fb18bb5489dfb31a75d9a17688ebd2d90a077e98bfbd7ada4421",
                   "entry": "main",
-                  "kernel": "moe_shared_slot_down_pair_f32.wgsl",
+                  "kernel": "moe_shared_slot_down_pair_combine_f32.wgsl",
                   "op": "moe_shared_slot_down"
                 },
                 {
@@ -3011,9 +3012,9 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:acae941cba36c73f2ee8dc224d62a38b6fafa0c310029bad0effb366186529ce",
+                  "digest": "sha256:79cff3ef0ce72c9eabfa0611814c7722f21c3d3e502c2884b5bc610e13595c00",
                   "entry": "main",
-                  "kernel": "attention_decode_online.wgsl",
+                  "kernel": "attention_decode_gqa_splitk.wgsl",
                   "op": "attention",
                   "precision": {
                     "activationDtype": "f32",
@@ -3156,15 +3157,15 @@
                   "weights": "layer.{L}.linear_attn.in_proj_z"
                 },
                 {
-                  "digest": "sha256:53b5467450404bcfc0ced3ddb6530b252e32ccf287ffc4ced78f5e8fdc78d3c4",
+                  "digest": "sha256:1a28e076e93486589a3eace88c3cb230ff1ef4aa982fdd91dcc918d00891649b",
                   "entry": "main",
                   "kernel": "moe_shared_slot_gu_pair_f32.wgsl",
                   "op": "moe_shared_slot_gu"
                 },
                 {
-                  "digest": "sha256:048ca401c8871c17b88801354d02601834279e1326a6cfbe528bb1a10037d70b",
+                  "digest": "sha256:d6bb2d208945fb18bb5489dfb31a75d9a17688ebd2d90a077e98bfbd7ada4421",
                   "entry": "main",
-                  "kernel": "moe_shared_slot_down_pair_f32.wgsl",
+                  "kernel": "moe_shared_slot_down_pair_combine_f32.wgsl",
                   "op": "moe_shared_slot_down"
                 },
                 {
@@ -3491,9 +3492,9 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:acae941cba36c73f2ee8dc224d62a38b6fafa0c310029bad0effb366186529ce",
+                  "digest": "sha256:79cff3ef0ce72c9eabfa0611814c7722f21c3d3e502c2884b5bc610e13595c00",
                   "entry": "main",
-                  "kernel": "attention_decode_online.wgsl",
+                  "kernel": "attention_decode_gqa_splitk.wgsl",
                   "op": "attention",
                   "precision": {
                     "activationDtype": "f32",
@@ -3636,15 +3637,15 @@
                   "weights": "layer.{L}.linear_attn.in_proj_z"
                 },
                 {
-                  "digest": "sha256:53b5467450404bcfc0ced3ddb6530b252e32ccf287ffc4ced78f5e8fdc78d3c4",
+                  "digest": "sha256:1a28e076e93486589a3eace88c3cb230ff1ef4aa982fdd91dcc918d00891649b",
                   "entry": "main",
                   "kernel": "moe_shared_slot_gu_pair_f32.wgsl",
                   "op": "moe_shared_slot_gu"
                 },
                 {
-                  "digest": "sha256:048ca401c8871c17b88801354d02601834279e1326a6cfbe528bb1a10037d70b",
+                  "digest": "sha256:d6bb2d208945fb18bb5489dfb31a75d9a17688ebd2d90a077e98bfbd7ada4421",
                   "entry": "main",
-                  "kernel": "moe_shared_slot_down_pair_f32.wgsl",
+                  "kernel": "moe_shared_slot_down_pair_combine_f32.wgsl",
                   "op": "moe_shared_slot_down"
                 },
                 {
@@ -3971,9 +3972,9 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:acae941cba36c73f2ee8dc224d62a38b6fafa0c310029bad0effb366186529ce",
+                  "digest": "sha256:79cff3ef0ce72c9eabfa0611814c7722f21c3d3e502c2884b5bc610e13595c00",
                   "entry": "main",
-                  "kernel": "attention_decode_online.wgsl",
+                  "kernel": "attention_decode_gqa_splitk.wgsl",
                   "op": "attention",
                   "precision": {
                     "activationDtype": "f32",
@@ -4116,15 +4117,15 @@
                   "weights": "layer.{L}.linear_attn.in_proj_z"
                 },
                 {
-                  "digest": "sha256:53b5467450404bcfc0ced3ddb6530b252e32ccf287ffc4ced78f5e8fdc78d3c4",
+                  "digest": "sha256:1a28e076e93486589a3eace88c3cb230ff1ef4aa982fdd91dcc918d00891649b",
                   "entry": "main",
                   "kernel": "moe_shared_slot_gu_pair_f32.wgsl",
                   "op": "moe_shared_slot_gu"
                 },
                 {
-                  "digest": "sha256:048ca401c8871c17b88801354d02601834279e1326a6cfbe528bb1a10037d70b",
+                  "digest": "sha256:d6bb2d208945fb18bb5489dfb31a75d9a17688ebd2d90a077e98bfbd7ada4421",
                   "entry": "main",
-                  "kernel": "moe_shared_slot_down_pair_f32.wgsl",
+                  "kernel": "moe_shared_slot_down_pair_combine_f32.wgsl",
                   "op": "moe_shared_slot_down"
                 },
                 {
