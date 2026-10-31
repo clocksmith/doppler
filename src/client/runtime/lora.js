@@ -2,9 +2,10 @@ import { authorizeBundledAdapter } from '../../config/revocation-policy.js';
 import { log } from '../../debug/index.js';
 import { getDopplerLoader } from '../../loader/doppler-loader.js';
 import { fetchArrayBuffer, readOPFSFile, writeOPFSFile } from './storage.js';
-import { updatePipelineAdapter } from '../../inference/pipelines/shader-scoped-pipeline.js';
+import { preparePipelineAdapter, scopePipelineShaders, updatePipelineAdapter } from '../../inference/pipelines/shader-scoped-pipeline.js';
 
 let loraModulePromise = null;
+const preparedAdapters = new WeakMap();
 
 const LORA_TARGET_WEIGHT_KEYS = Object.freeze({
   q_proj: 'qProj',
@@ -43,12 +44,15 @@ function getActiveLoRAName(pipeline) {
 
 function getActiveLoRAIdentity(pipeline) {
   const active = pipeline?.getActiveLoRA?.() || null;
-  if (!active) return null;
-  const identity = active.identity;
+  return active ? getLoRAIdentity(active) : null;
+}
+
+function getLoRAIdentity(adapter) {
+  const identity = adapter.identity;
   if (identity?.schema !== 'doppler.lora-execution-identity/v1'
     || !/^sha256:[a-f0-9]{64}$/.test(String(identity.digest || ''))) {
     throw new Error(
-      'Active LoRA adapter lacks exact tensor identity. Reload it through the Doppler adapter loader.'
+      'LoRA adapter lacks exact tensor identity. Reload it through the Doppler adapter loader.'
     );
   }
   return identity;
@@ -105,12 +109,8 @@ export function assertLoRATargetsForPipeline(pipeline, lora) {
   }
 }
 
-export async function loadLoRAAdapterForPipeline(pipeline, adapter, loadOptions = {}) {
-  if (!pipeline) {
-    throw new Error('No model loaded. Call load() first.');
-  }
-
-  const activated = await updatePipelineAdapter(pipeline, async () => {
+async function acquireLoRAAdapter(pipeline, adapter, loadOptions) {
+    loadOptions.signal?.throwIfAborted();
     const options = createLoRALoadOptions(loadOptions);
     let lora;
     if (typeof adapter === 'string') {
@@ -125,6 +125,7 @@ export async function loadLoRAAdapterForPipeline(pipeline, adapter, loadOptions 
       const { loadLoRAFromManifest } = await getExperimentalLoRAModule();
       lora = await loadLoRAFromManifest(adapter, options);
     }
+    loadOptions.signal?.throwIfAborted();
     assertLoRABaseModelForPipeline(pipeline, lora);
     if (pipeline.modelPartition) {
       const { plan, index } = pipeline.modelPartition;
@@ -143,9 +144,49 @@ export async function loadLoRAAdapterForPipeline(pipeline, adapter, loadOptions 
         layers: new Map([...lora.layers].filter(([layer]) => layer >= first && layer <= last)) });
     }
     assertLoRATargetsForPipeline(pipeline, lora);
+    loadOptions.signal?.throwIfAborted();
+    return lora;
+}
+
+export async function loadLoRAAdapterForPipeline(pipeline, adapter, loadOptions = {}) {
+  if (!pipeline) throw new Error('No model loaded. Call load() first.');
+  const activated = await updatePipelineAdapter(pipeline, () => acquireLoRAAdapter(pipeline, adapter, loadOptions));
+  log.info('doppler', `LoRA adapter loaded: ${activated.name}`);
+}
+
+export async function prepareLoRAAdapterForPipeline(pipeline, adapter, loadOptions = {}) {
+  if (!pipeline) throw new Error('No model loaded. Call load() first.');
+  const scoped = scopePipelineShaders(pipeline);
+  return preparePipelineAdapter(scoped, async () => {
+    const lora = await acquireLoRAAdapter(scoped, adapter, loadOptions);
+    const prepared = Object.freeze({ schema: 'doppler.prepared-lora/v1', name: lora.name,
+      baseModel: getPipelineModelId(scoped), identity: Object.freeze({ ...getLoRAIdentity(lora) }),
+      get released() { return !preparedAdapters.has(prepared); },
+      release() { preparedAdapters.delete(prepared); } });
+    preparedAdapters.set(prepared, { pipeline: scoped, adapter: lora,
+      manifest: scoped.manifest, execution: scoped.resolvedRuntimeSession });
+    return prepared;
+  });
+}
+
+export async function activatePreparedLoRAForPipeline(pipeline, prepared) {
+  if (!pipeline) throw new Error('No model loaded. Call load() first.');
+  const scoped = scopePipelineShaders(pipeline);
+  await updatePipelineAdapter(scoped, () => {
+    const entry = preparedAdapters.get(prepared);
+    if (!entry || entry.pipeline !== scoped) throw new Error('Prepared LoRA is released, unknown or belongs to another model owner.');
+    if (entry.manifest !== scoped.manifest || entry.execution !== scoped.resolvedRuntimeSession) {
+      throw new Error('Prepared LoRA base execution changed; prepare it again for this model.');
+    }
+    if (scoped.currentSeqLen !== 0) throw new Error('Reset generation state before activating a prepared LoRA adapter.');
+    const lora = entry.adapter;
+    if (getLoRAIdentity(lora).digest !== prepared.identity.digest) throw new Error('Prepared LoRA identity changed.');
+    assertLoRABaseModelForPipeline(scoped, lora);
+    assertLoRATargetsForPipeline(scoped, lora);
+    if (scoped.modelPartition && JSON.stringify(scoped.modelPartition.plan.adapterIdentities)
+      !== JSON.stringify([lora.identity.digest])) throw new Error('Prepared LoRA differs from the accepted partition plan.');
     return lora;
   });
-  log.info('doppler', `LoRA adapter loaded: ${activated.name}`);
 }
 
 async function readLocalJson(path) {

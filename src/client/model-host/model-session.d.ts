@@ -5,7 +5,7 @@ import type { GenerationRequestEvidence } from '../../inference/pipelines/text/g
 import type { RDRRManifest } from '../../formats/rdrr/index.js';
 import type { LogitsStepResult, PipelineStats, PrefillResult, SequenceEncodeOptions, SequenceEncodeResult } from '../../inference/pipelines/text/types.d.ts';
 import type { LoRAManifest } from '../runtime/types.js';
-import type { LoRALoadOptions } from '../runtime/lora.js';
+import type { LoRALoadOptions, DopplerPreparedLoRA } from '../runtime/lora.js';
 import type { DopplerPersistentCacheReceipt } from '../runtime/model-source.js';
 import type { DopplerResolutionPolicy, ResolvedDopplerResolutionPolicy } from '../runtime/resolution-policy.js';
 import type {
@@ -181,6 +181,9 @@ export interface DopplerModelHandle {
   resetGenerationState(): void;
   /** Exclusive with execution and resets; closing prevents late activation. */
   loadLoRA(adapter: LoRAManifest | RDRRManifest | string, loadOptions?: LoRALoadOptions): Promise<void>;
+  prepareLoRA(adapter: LoRAManifest | RDRRManifest | string, loadOptions?: LoRALoadOptions): Promise<DopplerPreparedLoRA>;
+  /** Requires empty sequence state; does not reacquire adapter tensors or base weights. */
+  activatePreparedLoRA(prepared: DopplerPreparedLoRA): Promise<void>;
   activateLoRAFromTrainingOutput(
     trainingOutput:
       | string

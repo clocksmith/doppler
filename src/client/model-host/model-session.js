@@ -23,9 +23,11 @@ import {
 } from '../inspection.js';
 import {
   activateLoRAFromTrainingOutputForPipeline,
+  activatePreparedLoRAForPipeline,
   getActiveLoRAForPipeline,
   getActiveLoRAIdentityForPipeline,
   loadLoRAAdapterForPipeline,
+  prepareLoRAAdapterForPipeline,
   unloadLoRAAdapterForPipeline,
 } from '../runtime/lora.js';
 import {
@@ -401,6 +403,12 @@ export function createModelHandle(pipeline, resolved) {
     },
     async loadLoRA(adapter, loadOptions = {}) {
       return loadLoRAAdapterForPipeline(pipeline, adapter, loadOptions);
+    },
+    async prepareLoRA(adapter, loadOptions = {}) {
+      return prepareLoRAAdapterForPipeline(pipeline, adapter, loadOptions);
+    },
+    async activatePreparedLoRA(prepared) {
+      return activatePreparedLoRAForPipeline(pipeline, prepared);
     },
     async activateLoRAFromTrainingOutput(trainingOutput) {
       return activateLoRAFromTrainingOutputForPipeline(pipeline, trainingOutput);

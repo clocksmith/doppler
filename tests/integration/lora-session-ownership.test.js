@@ -79,6 +79,110 @@ async function fixture() {
   return { raw, pipeline, handle, candidate, session: createScopedModelSession(handle), started, resume, events };
 }
 
+test('prepared adapters preserve the active model and activate without acquisition after an explicit reset', { timeout: 5000 }, async () => {
+  const { raw, pipeline, handle, session, candidate, started, resume, events } = await fixture();
+  const before = { lora: raw.lora, weights: raw.weights, execution: raw.resolvedRuntimeSession, generate: raw.generate };
+  const preparing = session.prepareLoRA({ adapterType: 'lora' });
+  await started.promise;
+  assert.equal(raw.lora, before.lora);
+  assert.equal(raw.currentSeqLen, 3);
+  resume.resolve();
+  const prepared = await preparing;
+  assert.equal(prepared.schema, 'doppler.prepared-lora/v1');
+  assert(Object.isFrozen(prepared));
+  assert(Object.isFrozen(prepared.identity));
+  assert.equal(prepared.identity.digest, candidate.identity.digest);
+  assert.equal(prepared.released, false);
+  assert.equal(raw.lora, before.lora);
+  assert.equal(raw.weights, before.weights);
+  assert.equal(raw.resolvedRuntimeSession, before.execution);
+  assert.equal(raw.generate, before.generate);
+  await assert.rejects(session.activatePreparedLoRA(prepared), /Reset generation state/);
+  session.resetGenerationState();
+  await session.activatePreparedLoRA(prepared);
+  assert.equal(raw.lora, candidate);
+  assert.equal(handle.activeLoRAIdentity.digest, prepared.identity.digest);
+  assert.deepEqual(events, ['load-start', 'load-end'], 'Activation does not reload adapter or base weights');
+  prepared.release(); prepared.release();
+  assert.equal(prepared.released, true);
+  assert.equal(raw.lora, candidate, 'Releasing a preparation token does not unload an active adapter');
+  await assert.rejects(handle.activatePreparedLoRA(prepared), /released|unknown/);
+  const stream = session.stream('prompt');
+  assert.equal((await stream.next()).value.text, 'b');
+  await stream.return();
+  assert.equal(pipeline.getActiveLoRA(), candidate);
+  await session.close();
+});
+
+test('preparation is exclusive and rejects before acquisition during an active stream', { timeout: 5000 }, async () => {
+  const { session, resume, events } = await fixture();
+  const stream = session.stream('prompt');
+  await stream.next();
+  await assert.rejects(session.prepareLoRA({ adapterType: 'lora' }), /in progress|busy|active/);
+  assert.deepEqual(events, []);
+  resume.resolve();
+  await stream.return();
+  await session.close();
+});
+
+test('prepared handles are bound to their model owner and cannot be forged', { timeout: 5000 }, async () => {
+  const a = await fixture(), b = await fixture();
+  a.resume.resolve();
+  const prepared = await a.session.prepareLoRA({ adapterType: 'lora' });
+  a.session.resetGenerationState(); b.session.resetGenerationState();
+  await assert.rejects(b.session.activatePreparedLoRA(prepared), /another model owner/);
+  await assert.rejects(a.session.activatePreparedLoRA({ ...prepared }), /unknown/);
+  assert.equal(a.raw.lora.name, 'a');
+  assert.equal(b.raw.lora.name, 'a');
+  prepared.release();
+  await a.session.close(); await b.session.close();
+});
+
+test('changed base execution and partition identity reject prepared activation', { timeout: 5000 }, async () => {
+  const { raw, session, resume } = await fixture();
+  resume.resolve();
+  const prepared = await session.prepareLoRA({ adapterType: 'lora' });
+  session.resetGenerationState();
+  const manifest = raw.manifest, execution = raw.resolvedRuntimeSession;
+  raw.manifest = { ...manifest };
+  await assert.rejects(session.activatePreparedLoRA(prepared), /base execution changed/);
+  raw.manifest = manifest; raw.resolvedRuntimeSession = { ...execution };
+  await assert.rejects(session.activatePreparedLoRA(prepared), /base execution changed/);
+  raw.resolvedRuntimeSession = execution;
+  raw.modelPartition = { plan: { adapterIdentities: [] } };
+  await assert.rejects(session.activatePreparedLoRA(prepared), /accepted partition plan/);
+  assert.equal(raw.lora.name, 'a');
+  prepared.release(); await session.close();
+});
+
+test('close drains preparation without returning a token or changing the active adapter', { timeout: 5000 }, async () => {
+  const { session, started, resume, events } = await fixture();
+  const preparing = session.prepareLoRA({ adapterType: 'lora' });
+  const rejected = assert.rejects(preparing, /clos(ed|ing)/);
+  await started.promise;
+  const closing = session.close();
+  assert.deepEqual(events, ['load-start']);
+  resume.resolve();
+  await Promise.all([rejected, closing]);
+  assert.deepEqual(events, ['load-start', 'load-end', 'unload']);
+});
+
+test('aborted preparation retains the original adapter and waits for acquisition to settle', { timeout: 5000 }, async () => {
+  const { raw, session, started, resume, events } = await fixture();
+  const controller = new AbortController(), reason = new Error('Cancel adapter preparation');
+  const preparing = session.prepareLoRA({ adapterType: 'lora' }, { signal: controller.signal });
+  const rejected = assert.rejects(preparing, error => error === reason);
+  await started.promise;
+  controller.abort(reason);
+  assert.deepEqual(events, ['load-start']);
+  resume.resolve(); await rejected;
+  assert.equal(raw.lora.name, 'a');
+  assert.equal(raw.currentSeqLen, 3);
+  const stream = session.stream('prompt');
+  assert.equal((await stream.next()).value.text, 'a');
+  await stream.return(); await session.close();
+});
+
 for (const operation of ['loadLoRA', 'unloadLoRA', 'setLoRAAdapter', 'resetGenerationState', 'resetToSeqLen']) {
   test(`${operation} cannot mutate an active stream`, { timeout: 5000 }, async () => {
     const { raw, pipeline, handle, candidate, session, events, resume } = await fixture();

@@ -114,6 +114,8 @@ export interface DopplerScopedModelSession {
   embed(input: string, options?: Record<string, unknown>): Promise<DopplerEmbeddingEvidence>;
   encodeSequence(sequence: string, options?: SequenceEncodeOptions): Promise<SequenceEncodeResult>;
   loadLoRA(adapter: unknown, options?: Record<string, unknown>): Promise<void>;
+  prepareLoRA(adapter: unknown, options?: Record<string, unknown>): Promise<import('./lora.js').DopplerPreparedLoRA>;
+  activatePreparedLoRA(prepared: import('./lora.js').DopplerPreparedLoRA): Promise<void>;
   unloadLoRA(): Promise<void>;
   resetGenerationState(): void;
   /** Blocks new work immediately; all calls await one unload and retain its failure. */

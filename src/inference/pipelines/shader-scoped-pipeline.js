@@ -110,7 +110,15 @@ function closeOwner(owner, action) {
   return owner.closeTask;
 }
 
-export async function updatePipelineAdapter(pipeline, prepare) {
+export function updatePipelineAdapter(pipeline, prepare) {
+  return mutatePipelineAdapter(pipeline, prepare, true);
+}
+
+export function preparePipelineAdapter(pipeline, prepare) {
+  return mutatePipelineAdapter(pipeline, prepare, false);
+}
+
+async function mutatePipelineAdapter(pipeline, prepare, activate) {
   const scoped = scopePipelineShaders(pipeline);
   const owner = owners.get(scoped);
   assertMutable(owner);
@@ -121,7 +129,7 @@ export async function updatePipelineAdapter(pipeline, prepare) {
       const adapter = await prepare();
       assertOpen(owner);
       assertDeviceAvailable(owner.pipeline, 'setLoRAAdapter');
-      owner.pipeline.setLoRAAdapter(adapter);
+      if (activate) owner.pipeline.setLoRAAdapter(adapter);
       return adapter;
     }));
   } finally { owner.mutating = false; notifyIdle(owner); }

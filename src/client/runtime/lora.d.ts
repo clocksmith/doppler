@@ -3,6 +3,7 @@ import type { InferencePipeline } from '../../inference/pipelines/text.js';
 import type { LoRAManifest } from './types.js';
 
 export interface LoRALoadOptions {
+  signal?: AbortSignal;
   /** PEFT stores A as [rank,input] and B as [output,rank]. */
   weightsLayout?: import('../../config/lora-layouts.js').LoRAWeightLayoutName;
   skipVerify?: boolean;
@@ -21,6 +22,27 @@ export interface DopplerActiveLoRAIdentity {
   tensorCount: number;
   digest: `sha256:${string}`;
 }
+
+/** Opaque, model-owner-bound preparation. Releasing this token does not unload an active adapter. */
+export interface DopplerPreparedLoRA {
+  readonly schema: 'doppler.prepared-lora/v1';
+  readonly name: string;
+  readonly baseModel: string;
+  readonly identity: Readonly<DopplerActiveLoRAIdentity>;
+  readonly released: boolean;
+  release(): void;
+}
+
+export declare function prepareLoRAAdapterForPipeline(
+  pipeline: InferencePipeline | null | undefined,
+  adapter: LoRAManifest | RDRRManifest | string,
+  loadOptions?: LoRALoadOptions
+): Promise<DopplerPreparedLoRA>;
+
+export declare function activatePreparedLoRAForPipeline(
+  pipeline: InferencePipeline | null | undefined,
+  prepared: DopplerPreparedLoRA
+): Promise<void>;
 
 export declare function assertLoRABaseModelForPipeline(
   pipeline: InferencePipeline | null | undefined,
