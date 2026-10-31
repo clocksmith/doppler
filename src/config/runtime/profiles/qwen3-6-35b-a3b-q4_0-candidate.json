@@ -26,7 +26,7 @@
         },
         "usePreparedDecodeWorkspace": true,
         "useLinearAttentionFusedDecodeCore": false,
-        "useLinearAttentionRegisterPrefill": false,
+        "useLinearAttentionRegisterPrefill": true,
         "useLinearAttentionRegisterDecode": false,
         "prefillTokenChunkSize": 256,
         "decodeLoop": {
@@ -305,8 +305,8 @@
             },
             {
               "op": "k_proj",
-              "kernel": "matmul_q4_0.wgsl",
-              "entry": "prefill",
+              "kernel": "matmul_q4_0_tile64.wgsl",
+              "entry": "main",
               "weights": "layer.{L}.self_attn.k_proj",
               "constants": {
                 "WORKGROUP_SIZE": 128,
@@ -317,12 +317,12 @@
                 "BLOCK_BYTES": 34,
                 "QUANT_FORMAT": 2
               },
-              "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc"
+              "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d"
             },
             {
               "op": "v_proj",
-              "kernel": "matmul_q4_0.wgsl",
-              "entry": "prefill",
+              "kernel": "matmul_q4_0_tile64.wgsl",
+              "entry": "main",
               "weights": "layer.{L}.self_attn.v_proj",
               "constants": {
                 "WORKGROUP_SIZE": 128,
@@ -333,7 +333,7 @@
                 "BLOCK_BYTES": 34,
                 "QUANT_FORMAT": 2
               },
-              "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc"
+              "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d"
             },
             {
               "op": "rope_q",
@@ -359,8 +359,8 @@
             },
             {
               "op": "o_proj",
-              "kernel": "matmul_q4_0.wgsl",
-              "entry": "prefill",
+              "kernel": "matmul_q4_0_tile64.wgsl",
+              "entry": "main",
               "weights": "layer.{L}.self_attn.o_proj",
               "constants": {
                 "WORKGROUP_SIZE": 128,
@@ -371,7 +371,7 @@
                 "BLOCK_BYTES": 18,
                 "QUANT_FORMAT": 0
               },
-              "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc"
+              "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d"
             },
             {
               "op": "attn_residual",
@@ -387,8 +387,8 @@
             },
             {
               "op": "gate_proj",
-              "kernel": "matmul_q4_0.wgsl",
-              "entry": "prefill",
+              "kernel": "matmul_q4_0_tile64.wgsl",
+              "entry": "main",
               "weights": "layer.{L}.mlp.gate_proj",
               "constants": {
                 "WORKGROUP_SIZE": 128,
@@ -399,12 +399,12 @@
                 "BLOCK_BYTES": 34,
                 "QUANT_FORMAT": 2
               },
-              "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc"
+              "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d"
             },
             {
               "op": "up_proj",
-              "kernel": "matmul_q4_0.wgsl",
-              "entry": "prefill",
+              "kernel": "matmul_q4_0_tile64.wgsl",
+              "entry": "main",
               "weights": "layer.{L}.mlp.up_proj",
               "constants": {
                 "WORKGROUP_SIZE": 128,
@@ -415,7 +415,7 @@
                 "BLOCK_BYTES": 34,
                 "QUANT_FORMAT": 2
               },
-              "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc"
+              "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d"
             },
             {
               "op": "activation",
@@ -428,8 +428,8 @@
             },
             {
               "op": "down_proj",
-              "kernel": "matmul_q4_0.wgsl",
-              "entry": "prefill",
+              "kernel": "matmul_q4_0_tile64.wgsl",
+              "entry": "main",
               "weights": "layer.{L}.mlp.down_proj",
               "constants": {
                 "WORKGROUP_SIZE": 128,
@@ -440,7 +440,7 @@
                 "BLOCK_BYTES": 34,
                 "QUANT_FORMAT": 2
               },
-              "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc"
+              "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d"
             },
             {
               "op": "ffn_residual",
@@ -464,8 +464,8 @@
             },
             {
               "op": "linear_qkv_proj",
-              "kernel": "matmul_q4_0.wgsl",
-              "entry": "prefill",
+              "kernel": "matmul_q4_0_tile64.wgsl",
+              "entry": "main",
               "weights": "layer.{L}.linear_attn.in_proj_qkv",
               "constants": {
                 "WORKGROUP_SIZE": 128,
@@ -476,12 +476,12 @@
                 "BLOCK_BYTES": 18,
                 "QUANT_FORMAT": 0
               },
-              "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc"
+              "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d"
             },
             {
               "op": "linear_z_proj",
-              "kernel": "matmul_q4_0.wgsl",
-              "entry": "prefill",
+              "kernel": "matmul_q4_0_tile64.wgsl",
+              "entry": "main",
               "weights": "layer.{L}.linear_attn.in_proj_z",
               "constants": {
                 "WORKGROUP_SIZE": 128,
@@ -492,12 +492,12 @@
                 "BLOCK_BYTES": 18,
                 "QUANT_FORMAT": 0
               },
-              "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc"
+              "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d"
             },
             {
               "op": "linear_out_proj",
-              "kernel": "matmul_q4_0.wgsl",
-              "entry": "prefill",
+              "kernel": "matmul_q4_0_tile64.wgsl",
+              "entry": "main",
               "weights": "layer.{L}.linear_attn.out_proj",
               "constants": {
                 "WORKGROUP_SIZE": 128,
@@ -508,7 +508,7 @@
                 "BLOCK_BYTES": 34,
                 "QUANT_FORMAT": 2
               },
-              "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc"
+              "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d"
             }
           ]
         },
@@ -782,9 +782,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "k_proj",
                   "weights": "layer.{L}.self_attn.k_proj"
                 },
@@ -798,9 +798,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "v_proj",
                   "weights": "layer.{L}.self_attn.v_proj"
                 },
@@ -836,9 +836,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "o_proj",
                   "weights": "layer.{L}.self_attn.o_proj"
                 },
@@ -864,9 +864,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "gate_proj",
                   "weights": "layer.{L}.mlp.gate_proj"
                 },
@@ -880,9 +880,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "up_proj",
                   "weights": "layer.{L}.mlp.up_proj"
                 },
@@ -905,9 +905,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "down_proj",
                   "weights": "layer.{L}.mlp.down_proj"
                 },
@@ -941,9 +941,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "linear_qkv_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_qkv"
                 },
@@ -957,9 +957,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "linear_z_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_z"
                 },
@@ -973,11 +973,29 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "linear_out_proj",
                   "weights": "layer.{L}.linear_attn.out_proj"
+                },
+                {
+                  "op": "moe_grouped_sort",
+                  "kernel": "moe_grouped_sort.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:a42d12d16424b759321bd40fc5f79646d9731dc851343a197c62a77dda4fdc0b"
+                },
+                {
+                  "op": "moe_grouped_gu",
+                  "kernel": "moe_grouped_matmul_f32.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:51ac03671324c4d75ff63c452c85213675c9755858899a744ecdf51e5f9a2aa2"
+                },
+                {
+                  "op": "moe_grouped_down",
+                  "kernel": "moe_grouped_matmul_f32.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:51ac03671324c4d75ff63c452c85213675c9755858899a744ecdf51e5f9a2aa2"
                 }
               ]
             }
@@ -1244,9 +1262,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "q_proj",
                   "weights": "layer.{L}.self_attn.q_proj"
                 },
@@ -1260,9 +1278,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "k_proj",
                   "weights": "layer.{L}.self_attn.k_proj"
                 },
@@ -1276,9 +1294,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "v_proj",
                   "weights": "layer.{L}.self_attn.v_proj"
                 },
@@ -1314,9 +1332,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "o_proj",
                   "weights": "layer.{L}.self_attn.o_proj"
                 },
@@ -1342,9 +1360,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "gate_proj",
                   "weights": "layer.{L}.mlp.gate_proj"
                 },
@@ -1358,9 +1376,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "up_proj",
                   "weights": "layer.{L}.mlp.up_proj"
                 },
@@ -1383,9 +1401,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "down_proj",
                   "weights": "layer.{L}.mlp.down_proj"
                 },
@@ -1419,9 +1437,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "linear_qkv_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_qkv"
                 },
@@ -1435,11 +1453,29 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "linear_z_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_z"
+                },
+                {
+                  "op": "moe_grouped_sort",
+                  "kernel": "moe_grouped_sort.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:a42d12d16424b759321bd40fc5f79646d9731dc851343a197c62a77dda4fdc0b"
+                },
+                {
+                  "op": "moe_grouped_gu",
+                  "kernel": "moe_grouped_matmul_f32.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:51ac03671324c4d75ff63c452c85213675c9755858899a744ecdf51e5f9a2aa2"
+                },
+                {
+                  "op": "moe_grouped_down",
+                  "kernel": "moe_grouped_matmul_f32.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:51ac03671324c4d75ff63c452c85213675c9755858899a744ecdf51e5f9a2aa2"
                 }
               ]
             }
@@ -1709,9 +1745,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "k_proj",
                   "weights": "layer.{L}.self_attn.k_proj"
                 },
@@ -1725,9 +1761,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "v_proj",
                   "weights": "layer.{L}.self_attn.v_proj"
                 },
@@ -1763,9 +1799,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "o_proj",
                   "weights": "layer.{L}.self_attn.o_proj"
                 },
@@ -1791,9 +1827,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "gate_proj",
                   "weights": "layer.{L}.mlp.gate_proj"
                 },
@@ -1807,9 +1843,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "up_proj",
                   "weights": "layer.{L}.mlp.up_proj"
                 },
@@ -1832,9 +1868,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "down_proj",
                   "weights": "layer.{L}.mlp.down_proj"
                 },
@@ -1868,9 +1904,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "linear_qkv_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_qkv"
                 },
@@ -1884,9 +1920,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "linear_z_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_z"
                 },
@@ -1900,11 +1936,29 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "linear_out_proj",
                   "weights": "layer.{L}.linear_attn.out_proj"
+                },
+                {
+                  "op": "moe_grouped_sort",
+                  "kernel": "moe_grouped_sort.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:a42d12d16424b759321bd40fc5f79646d9731dc851343a197c62a77dda4fdc0b"
+                },
+                {
+                  "op": "moe_grouped_gu",
+                  "kernel": "moe_grouped_matmul_f32.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:51ac03671324c4d75ff63c452c85213675c9755858899a744ecdf51e5f9a2aa2"
+                },
+                {
+                  "op": "moe_grouped_down",
+                  "kernel": "moe_grouped_matmul_f32.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:51ac03671324c4d75ff63c452c85213675c9755858899a744ecdf51e5f9a2aa2"
                 }
               ]
             }
@@ -2180,9 +2234,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "k_proj",
                   "weights": "layer.{L}.self_attn.k_proj"
                 },
@@ -2196,9 +2250,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "v_proj",
                   "weights": "layer.{L}.self_attn.v_proj"
                 },
@@ -2234,9 +2288,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "o_proj",
                   "weights": "layer.{L}.self_attn.o_proj"
                 },
@@ -2262,9 +2316,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "gate_proj",
                   "weights": "layer.{L}.mlp.gate_proj"
                 },
@@ -2278,9 +2332,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "up_proj",
                   "weights": "layer.{L}.mlp.up_proj"
                 },
@@ -2303,9 +2357,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "down_proj",
                   "weights": "layer.{L}.mlp.down_proj"
                 },
@@ -2339,9 +2393,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "linear_qkv_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_qkv"
                 },
@@ -2355,9 +2409,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "linear_z_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_z"
                 },
@@ -2371,11 +2425,29 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "linear_out_proj",
                   "weights": "layer.{L}.linear_attn.out_proj"
+                },
+                {
+                  "op": "moe_grouped_sort",
+                  "kernel": "moe_grouped_sort.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:a42d12d16424b759321bd40fc5f79646d9731dc851343a197c62a77dda4fdc0b"
+                },
+                {
+                  "op": "moe_grouped_gu",
+                  "kernel": "moe_grouped_matmul_f32.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:51ac03671324c4d75ff63c452c85213675c9755858899a744ecdf51e5f9a2aa2"
+                },
+                {
+                  "op": "moe_grouped_down",
+                  "kernel": "moe_grouped_matmul_f32.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:51ac03671324c4d75ff63c452c85213675c9755858899a744ecdf51e5f9a2aa2"
                 }
               ]
             }
@@ -2645,9 +2717,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "k_proj",
                   "weights": "layer.{L}.self_attn.k_proj"
                 },
@@ -2661,9 +2733,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "v_proj",
                   "weights": "layer.{L}.self_attn.v_proj"
                 },
@@ -2699,9 +2771,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "o_proj",
                   "weights": "layer.{L}.self_attn.o_proj"
                 },
@@ -2727,9 +2799,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "gate_proj",
                   "weights": "layer.{L}.mlp.gate_proj"
                 },
@@ -2743,9 +2815,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "up_proj",
                   "weights": "layer.{L}.mlp.up_proj"
                 },
@@ -2768,9 +2840,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "down_proj",
                   "weights": "layer.{L}.mlp.down_proj"
                 },
@@ -2804,9 +2876,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "linear_qkv_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_qkv"
                 },
@@ -2820,9 +2892,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "linear_z_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_z"
                 },
@@ -2836,11 +2908,29 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "linear_out_proj",
                   "weights": "layer.{L}.linear_attn.out_proj"
+                },
+                {
+                  "op": "moe_grouped_sort",
+                  "kernel": "moe_grouped_sort.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:a42d12d16424b759321bd40fc5f79646d9731dc851343a197c62a77dda4fdc0b"
+                },
+                {
+                  "op": "moe_grouped_gu",
+                  "kernel": "moe_grouped_matmul_f32.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:51ac03671324c4d75ff63c452c85213675c9755858899a744ecdf51e5f9a2aa2"
+                },
+                {
+                  "op": "moe_grouped_down",
+                  "kernel": "moe_grouped_matmul_f32.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:51ac03671324c4d75ff63c452c85213675c9755858899a744ecdf51e5f9a2aa2"
                 }
               ]
             }
@@ -3109,9 +3199,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "q_proj",
                   "weights": "layer.{L}.self_attn.q_proj"
                 },
@@ -3125,9 +3215,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "k_proj",
                   "weights": "layer.{L}.self_attn.k_proj"
                 },
@@ -3141,9 +3231,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "v_proj",
                   "weights": "layer.{L}.self_attn.v_proj"
                 },
@@ -3179,9 +3269,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "o_proj",
                   "weights": "layer.{L}.self_attn.o_proj"
                 },
@@ -3207,9 +3297,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "gate_proj",
                   "weights": "layer.{L}.mlp.gate_proj"
                 },
@@ -3223,9 +3313,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "up_proj",
                   "weights": "layer.{L}.mlp.up_proj"
                 },
@@ -3248,9 +3338,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "down_proj",
                   "weights": "layer.{L}.mlp.down_proj"
                 },
@@ -3284,9 +3374,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "linear_qkv_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_qkv"
                 },
@@ -3300,11 +3390,29 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "linear_z_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_z"
+                },
+                {
+                  "op": "moe_grouped_sort",
+                  "kernel": "moe_grouped_sort.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:a42d12d16424b759321bd40fc5f79646d9731dc851343a197c62a77dda4fdc0b"
+                },
+                {
+                  "op": "moe_grouped_gu",
+                  "kernel": "moe_grouped_matmul_f32.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:51ac03671324c4d75ff63c452c85213675c9755858899a744ecdf51e5f9a2aa2"
+                },
+                {
+                  "op": "moe_grouped_down",
+                  "kernel": "moe_grouped_matmul_f32.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:51ac03671324c4d75ff63c452c85213675c9755858899a744ecdf51e5f9a2aa2"
                 }
               ]
             }
@@ -3571,9 +3679,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "q_proj",
                   "weights": "layer.{L}.self_attn.q_proj"
                 },
@@ -3587,9 +3695,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "k_proj",
                   "weights": "layer.{L}.self_attn.k_proj"
                 },
@@ -3603,9 +3711,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "v_proj",
                   "weights": "layer.{L}.self_attn.v_proj"
                 },
@@ -3641,9 +3749,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "o_proj",
                   "weights": "layer.{L}.self_attn.o_proj"
                 },
@@ -3669,9 +3777,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "gate_proj",
                   "weights": "layer.{L}.mlp.gate_proj"
                 },
@@ -3685,9 +3793,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "up_proj",
                   "weights": "layer.{L}.mlp.up_proj"
                 },
@@ -3710,9 +3818,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "down_proj",
                   "weights": "layer.{L}.mlp.down_proj"
                 },
@@ -3746,9 +3854,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "linear_qkv_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_qkv"
                 },
@@ -3762,11 +3870,29 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "linear_z_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_z"
+                },
+                {
+                  "op": "moe_grouped_sort",
+                  "kernel": "moe_grouped_sort.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:a42d12d16424b759321bd40fc5f79646d9731dc851343a197c62a77dda4fdc0b"
+                },
+                {
+                  "op": "moe_grouped_gu",
+                  "kernel": "moe_grouped_matmul_f32.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:51ac03671324c4d75ff63c452c85213675c9755858899a744ecdf51e5f9a2aa2"
+                },
+                {
+                  "op": "moe_grouped_down",
+                  "kernel": "moe_grouped_matmul_f32.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:51ac03671324c4d75ff63c452c85213675c9755858899a744ecdf51e5f9a2aa2"
                 }
               ]
             }
@@ -4033,9 +4159,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "q_proj",
                   "weights": "layer.{L}.self_attn.q_proj"
                 },
@@ -4049,9 +4175,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "k_proj",
                   "weights": "layer.{L}.self_attn.k_proj"
                 },
@@ -4065,9 +4191,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "v_proj",
                   "weights": "layer.{L}.self_attn.v_proj"
                 },
@@ -4103,9 +4229,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "o_proj",
                   "weights": "layer.{L}.self_attn.o_proj"
                 },
@@ -4131,9 +4257,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "gate_proj",
                   "weights": "layer.{L}.mlp.gate_proj"
                 },
@@ -4147,9 +4273,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "up_proj",
                   "weights": "layer.{L}.mlp.up_proj"
                 },
@@ -4172,9 +4298,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "down_proj",
                   "weights": "layer.{L}.mlp.down_proj"
                 },
@@ -4208,9 +4334,9 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "linear_qkv_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_qkv"
                 },
@@ -4224,11 +4350,29 @@
                     "TILE_SIZE": 16,
                     "WORKGROUP_SIZE": 128
                   },
-                  "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
-                  "entry": "prefill",
-                  "kernel": "matmul_q4_0.wgsl",
+                  "digest": "sha256:cb043721dc89866eba3061a8cabac3a6b97ac2d6d9b6ffcee4a2d1cd5b415d3d",
+                  "entry": "main",
+                  "kernel": "matmul_q4_0_tile64.wgsl",
                   "op": "linear_z_proj",
                   "weights": "layer.{L}.linear_attn.in_proj_z"
+                },
+                {
+                  "op": "moe_grouped_sort",
+                  "kernel": "moe_grouped_sort.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:a42d12d16424b759321bd40fc5f79646d9731dc851343a197c62a77dda4fdc0b"
+                },
+                {
+                  "op": "moe_grouped_gu",
+                  "kernel": "moe_grouped_matmul_f32.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:51ac03671324c4d75ff63c452c85213675c9755858899a744ecdf51e5f9a2aa2"
+                },
+                {
+                  "op": "moe_grouped_down",
+                  "kernel": "moe_grouped_matmul_f32.wgsl",
+                  "entry": "main",
+                  "digest": "sha256:51ac03671324c4d75ff63c452c85213675c9755858899a744ecdf51e5f9a2aa2"
                 }
               ]
             }

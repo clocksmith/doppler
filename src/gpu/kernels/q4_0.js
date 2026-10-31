@@ -91,6 +91,12 @@ async function execute(recorder, input, weights, M, N, K, options) {
     count = Math.ceil(N / columns)*M;
   } else if (geometry === 'tiled') {
     count = Math.ceil(N / tile)*Math.ceil(M / tile);
+  } else if (geometry === 'tile64') {
+    // 64 rows x 64 tokens per 256-invocation workgroup with 16 KiB of staged tiles.
+    if (device.limits.maxComputeInvocationsPerWorkgroup < 256 || device.limits.maxComputeWorkgroupStorageSize < 16384) {
+      throw new Error('Q4_0 tile64 prefill requires 256 invocations and 16 KiB of workgroup storage.');
+    }
+    count = Math.ceil(N / 64)*Math.ceil(M / 64);
   } else { throw new Error('Q4_0 missing declared dispatch geometry.'); }
   const dispatch = q40Dispatch(device, count);
   const supplied = options.outputBuffer ?? null;
