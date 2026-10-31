@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.qwen-service-summary/v1",
   "timingScope": "Instrumented fresh-process/profile local-file model loading and first/warm requests; shared hosts, OS cache not evicted; not a new matched competitor benchmark.",
   "lanes": [
@@ -6,7 +8,7 @@
       "lane": "metal-node-08-final",
       "passed": true,
       "model": "qwen-3-5-0-8b-q4k-ehaf16",
-      "manifestDigest": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+      "manifestDigest": "sha256:27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281",
       "archiveSha256": "6b057b0e526a7a18afcefd655cb2fc4acb96e958962eee5a67b3caee231be1f9",
       "hardware": {
         "vendor": "apple",
@@ -162,7 +164,7 @@
       "lane": "metal-browser-08-ranges",
       "passed": true,
       "model": "qwen-3-5-0-8b-q4k-ehaf16",
-      "manifestDigest": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+      "manifestDigest": "sha256:27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281",
       "archiveSha256": "6b057b0e526a7a18afcefd655cb2fc4acb96e958962eee5a67b3caee231be1f9",
       "hardware": {
         "vendor": "apple",
@@ -342,7 +344,7 @@
       "lane": "vulkan-node-08-final",
       "passed": true,
       "model": "qwen-3-5-0-8b-q4k-ehaf16",
-      "manifestDigest": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+      "manifestDigest": "sha256:27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281",
       "archiveSha256": "6b057b0e526a7a18afcefd655cb2fc4acb96e958962eee5a67b3caee231be1f9",
       "hardware": {
         "vendor": "amd",
@@ -498,7 +500,7 @@
       "lane": "vulkan-browser-08-ranges",
       "passed": true,
       "model": "qwen-3-5-0-8b-q4k-ehaf16",
-      "manifestDigest": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+      "manifestDigest": "sha256:27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281",
       "archiveSha256": "6b057b0e526a7a18afcefd655cb2fc4acb96e958962eee5a67b3caee231be1f9",
       "hardware": {
         "vendor": "amd",

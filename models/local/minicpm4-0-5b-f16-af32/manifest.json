@@ -3300,7 +3300,7 @@
   "eos_token_id": 73440,
   "conversion": null,
   "metadata": {
-    "source": "file:///home/x/.cache/huggingface/hub/models--openbmb--MiniCPM4-0.5B/snapshots/5253c7fcc5e29e1cf3eacb59a58adf1ba4df8630",
+    "source": "openbmb/MiniCPM4-0.5B@5253c7fcc5e29e1cf3eacb59a58adf1ba4df8630",
     "convertedAt": "2026-07-03T20:16:50.814Z",
     "hasTokenizer": true,
     "manifestRefresh": {

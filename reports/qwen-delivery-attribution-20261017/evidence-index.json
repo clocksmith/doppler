@@ -36,8 +36,8 @@
   },
   {
     "path": "metal-0-8b-interval1.json",
-    "bytes": 628405,
-    "sha256": "5b6a4f123f5676878e1a44f7e105241e372584420edd5537828899567aeaf47c"
+    "bytes": 628548,
+    "sha256": "83d6c98793143d98e960ac059403748b423d0d063334b4594e44d99ce6162d06"
   },
   {
     "path": "metal-0-8b-interval1.log",
@@ -46,8 +46,8 @@
   },
   {
     "path": "metal-0-8b-null-seed.json",
-    "bytes": 84039,
-    "sha256": "cebec16e3c21647e4d3af70669efbf08e519b59df4dd1c9c74475c22d20321ae"
+    "bytes": 84182,
+    "sha256": "53e92ed1bbbf4416bd970a29327791d07cdba2e30589a8be1e006951ac37e5c8"
   },
   {
     "path": "metal-0-8b-null-seed.log",
@@ -56,8 +56,8 @@
   },
   {
     "path": "metal-0-8b-queue-observed.json",
-    "bytes": 590097,
-    "sha256": "23a9ccecf6be731bde8237ba54df5edeb92e16226e702561eb81fda6cfb2e9be"
+    "bytes": 590240,
+    "sha256": "2a5ff75f94f142c317fb74e96ca05229f6ff32ebef63956a2c32afc445906c10"
   },
   {
     "path": "metal-0-8b-queue-observed.log",
@@ -66,8 +66,8 @@
   },
   {
     "path": "metal-0-8b-stats-accessor.json",
-    "bytes": 85793,
-    "sha256": "e677f84cd3019aa25e41b4e0c4c8cc4b69d4b5136db48d86f0587039fd95ea38"
+    "bytes": 85936,
+    "sha256": "55e2a1473b647893eb71cb43c9fb9d4108f1cea5261705b7f497f99b0fa81eee"
   },
   {
     "path": "metal-0-8b-stats-accessor.log",
@@ -76,8 +76,8 @@
   },
   {
     "path": "metal-0-8b.json",
-    "bytes": 566978,
-    "sha256": "48484c400ec07081ce33cb244122147f0d1366bbf146e12e488b2cbb7d0e4135"
+    "bytes": 567121,
+    "sha256": "3e81bef074721ed9261518e4fa85713ad8a35c021148fd58237e98b0622a7a54"
   },
   {
     "path": "metal-0-8b.log",
@@ -91,8 +91,8 @@
   },
   {
     "path": "summary.json",
-    "bytes": 61344,
-    "sha256": "e8a88f2702d082b7d7bd44723b96d793b70d54d1ebd7516d2d15591dfc6db6a0"
+    "bytes": 61487,
+    "sha256": "fca9913b0e83ee136a689f680533ec421f7a9d39e9521c12f9aad8937acf1099"
   },
   {
     "path": "verification.log",
@@ -101,8 +101,8 @@
   },
   {
     "path": "vulkan-0-8b-interval1.json",
-    "bytes": 614457,
-    "sha256": "48726c71258d68bc22dd82be05353aa5b595c7decd7261e2de8585be2f6ac0c1"
+    "bytes": 614600,
+    "sha256": "4a538af0abc2e8dc07f68db3680fd8e9c618404acab3c29552842757a71c1e15"
   },
   {
     "path": "vulkan-0-8b-interval1.log",
@@ -111,8 +111,8 @@
   },
   {
     "path": "vulkan-0-8b-queue-observed.json",
-    "bytes": 585097,
-    "sha256": "15184407a9badc98240c2d4c5d941cfa532d99d47176e26b62a358c235b2819e"
+    "bytes": 585240,
+    "sha256": "37637aaf1a4bf2507655470b69310e756f42c725b819fc272643a7e8dd1e0977"
   },
   {
     "path": "vulkan-0-8b-queue-observed.log",
@@ -121,8 +121,8 @@
   },
   {
     "path": "vulkan-0-8b-stats-accessor.json",
-    "bytes": 90002,
-    "sha256": "80cdbf69ac0878f64fadcebd405ea1b1973dccbfa35904f9bf139b34352ec1c9"
+    "bytes": 90145,
+    "sha256": "00771aa4f621af39397fa208db6ea5e4d024cc4cc0515660c3eb33be07c86898"
   },
   {
     "path": "vulkan-0-8b-stats-accessor.log",
@@ -131,8 +131,8 @@
   },
   {
     "path": "vulkan-0-8b.json",
-    "bytes": 563550,
-    "sha256": "40030ef140a968a7eea6261eebfd88846a8b0d4a57cdfb9b55a27fd7467268d7"
+    "bytes": 563693,
+    "sha256": "0dc93c60e68273d1a93d0d6d8e0a2cef2c49a1e8dcf5f441693bcfd8a16784ee"
   },
   {
     "path": "vulkan-0-8b.log",

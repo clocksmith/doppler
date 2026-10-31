@@ -1,4 +1,5 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.w8a8-fixed-work-batch-disposition/v1",
@@ -35,15 +36,15 @@
       "file": "serialized-f16-packed.json.gz",
       "localSource": "reports/local/w8a8-qualification-20261011/w8a8-packed-f16-benchmark-03/qualification.json",
       "uncompressedBytes": 12416210,
-      "uncompressedSha256": "07ba0d5bfd262362a6fc131442c33b833ded05ee143f731966f01807850352cc",
-      "compressedSha256": "ee6f6e6419b385b5f074f3144cd4bc11c0a3144e1810cbad223d900d57a1e4f4"
+      "uncompressedSha256": "60c764293914e29f87cd51fcfae3ec1dffef0c8aac8ff1a6ec999c10e3cfc85f",
+      "compressedSha256": "505e0b44a47145e905ba862bf6a4e6c5538c7e154ce5553f958d0ec710f64fbc"
     },
     {
       "file": "serialized-q4-packed-partial.json.gz",
       "localSource": "reports/local/w8a8-qualification-20261011/w8a8-packed-q4-benchmark-03/qualification.json",
       "uncompressedBytes": 1351605,
-      "uncompressedSha256": "c9950948ae2be159a785144aa1e843075159e6948cb819e60d2ae918dce7c21d",
-      "compressedSha256": "d58670471b1daafe8f2e88be8e7757e74f8bc5a453c2d6c2406e9f3ab7a57a03"
+      "uncompressedSha256": "64a3dd21385eacba98dd3e60a2c20fd4c0a98d29c3c0864d5259d407379acff4",
+      "compressedSha256": "dc731859edbd59bdc2b224263affa02369103316402e013189a4794baa26177d"
     },
     {
       "file": "user-requested-boundary-stop.json.gz",

@@ -1,9 +1,11 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.fixed-prefix-diagnostic-binding/v1",
   "archivePath": "artifacts/signed-resident-pieces-20261011/doppler-gpu-0.6.27-diagnostic.tgz",
   "archiveSha256": "307104de5f55e120280cccb4ed84b53170339250c60c3ceee8682ffe3149ed25",
-  "manifestSha256": "50923dd5f690153ca720fe80af0368e937cc3d3c8f96ade83c60e9c12bdad66a",
-  "sourceManifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "manifestSha256": "ca78c243ec9baebd223d702d272d60aa0f4b3ac81257a55347ed2bbd31f13aff",
+  "sourceManifestSha256": "27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281",
   "modelDirectory": "reports/local/whole-model-f64-complete-20261011/diagnostic-model",
   "unchangedWeights": true,
   "prefixes": 55,

@@ -4349,7 +4349,7 @@
   "eos_token_id": 1,
   "conversion": null,
   "metadata": {
-    "source": "file:///home/x/.cache/huggingface/hub/models--google--embeddinggemma-300m/snapshots/57c266a740f537b4dc058e1b0cda161fd15afa75",
+    "source": "google/embeddinggemma-300m@57c266a740f537b4dc058e1b0cda161fd15afa75",
     "convertedAt": "2026-07-03T23:31:45.564Z",
     "hasTokenizer": true,
     "manifestRefresh": {

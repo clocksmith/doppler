@@ -6866,7 +6866,7 @@
   },
   "conversion": null,
   "metadata": {
-    "source": "file:///home/clocksmith/.cache/valera-models/glm-ocr/zai-org/GLM-OCR/ca5d8b3e287e52589e37c28385d9655ee4372f9d",
+    "source": "zai-org/GLM-OCR@ca5d8b3e287e52589e37c28385d9655ee4372f9d",
     "convertedAt": "2026-08-26T11:38:02.188Z",
     "hasTokenizer": true
   },

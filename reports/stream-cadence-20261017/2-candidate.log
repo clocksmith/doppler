@@ -4829,7 +4829,7 @@
         "schema": "doppler.token-cost-ledger/v1",
         "identity": {
           "artifactDigest": "sha256:498dfcae99ef2b502908beaefc09459a213819d5a132b7456c81ce53047fad10",
-          "manifestDigest": "sha256:51bcdb65e4dead3992d65546bc3f2405146c7b7ab812181fe94e0ad0d34aef2c",
+          "manifestDigest": "sha256:fa2db46e43a854ddf5c77cf2f64fc843b1af61c87bbe39eed1a12eab39c242de",
           "executionGraphDigest": "sha256:72a319349559eba467a0d3a11defa48821a61b0bdaa8a79d5c56158115a02847",
           "runtimeConfigDigest": "sha256:2dd41d103b8c3f73bdeb988dbd52d4d97608fa165928833e8a5f1d2ab1a6001f",
           "kernelSetDigest": "sha256:34b51b66ccb786efbe2b4c69b3a48422f3f4cf3729930ed3ae12f02daa888c50",

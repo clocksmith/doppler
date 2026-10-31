@@ -1,15 +1,17 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.attachment-layout-freeze/v1",
   "frozenBeforeExecution": true,
   "caseCountPerLane": 7,
   "lanes": [
     {
       "path": "question-before.json",
-      "sha256": "6806f062ea99f6fb4a6109ebbc7be74dc45f19f210732a8ac6169559c56f77d7"
+      "sha256": "8d26633dce60f2e651f31753c598146299cf4dd5cb0fdab368016ea19ed161f8"
     },
     {
       "path": "question-after.json",
-      "sha256": "4bf432357fdf5b65c0c6806e896095470c34c62b3396c4a9b5d16ee6f2d3bf93"
+      "sha256": "f07741ea37869d0a075ecb8bbf4d9263bf60771db113a9ed8c04697b9593f5a8"
     }
   ],
   "unchanged": [

@@ -1,4 +1,5 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "artifacts/qwen08-m3-mlx-20261015/batch4-comparison.json": {
@@ -58,8 +59,8 @@
     "bytes": 16145
   },
   "artifacts/qwen08-m3-mlx-20261015/manifest.json": {
-    "sha256": "0ca473e9f698afb9f0238ae587c19ca59ac5a3676f97961d70b830d9d7190749",
-    "bytes": 148419
+    "sha256": "dad84a3f08d8ddd73a87ed8f86592e8e873f08aae6bda0d445a6457aac11fbbb",
+    "bytes": 148361
   },
   "artifacts/qwen08-m3-mlx-20261015/mlx-reference.py": {
     "sha256": "888a7360b04cef07ee48f7a106f1d53bd16e3f8e97dfd4a5ca58c5b3cc6d75bc",

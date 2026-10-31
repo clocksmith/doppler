@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.choice-scoring-candidate-checkpoint/v1",
   "published": false,
   "archive": {
@@ -7,7 +9,7 @@
     "sourceCommit": "c704cc58"
   },
   "model": {
-    "manifestSha256": "451c6a87d45f0ccac8718b41cc1b8682a3f0cf7c3f6803a3e14d5ac191900124",
+    "manifestSha256": "227fda02871b308e1f2c048778028698d09f011321b92696e76f80b055025e8f",
     "location": ".cache/qwen-reranker-q4k-successor-20261021 (local NVMe)"
   },
   "capsule": {

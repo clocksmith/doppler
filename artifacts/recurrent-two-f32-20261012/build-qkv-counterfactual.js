@@ -52,7 +52,7 @@ await writeFile(join(output, 'pack.log'), pack.stdout + pack.stderr);
 const file = pack.stdout.trim().split('\n').at(-1);
 const binding = { archiveSha256: hash(await readFile(join(output, file))), parentArchiveSha256,
   manifestSha256: hash(await readFile(join(modelPath, 'manifest.json'))),
-  sourceManifestSha256: '18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9',
+  sourceManifestSha256: '27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281',
   fixtureSha256: hash(fixtureBytes), captureSha256: fixture.captureSha256,
   injectedOutputSha256: hash(values), mode, unchangedWeights: true, tolerance: 0.001,
   scope: 'Only layer0 prefill QKV overwritten; actual downstream GPU, never qualification' };

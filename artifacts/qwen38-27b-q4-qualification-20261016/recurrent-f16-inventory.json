@@ -1,7 +1,9 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.retained-quantized-inventory/v1",
   "root": "$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/recurrent-f16-q4-body-sha256-artifact",
-  "manifestSha256": "e9d463978e4aea04baefce32ce68c04498686c8085bd1a545f98a62a41d32846",
+  "manifestSha256": "4e8a6d04a2bb253ac2b2abd2bf8b125b525e7ca558a20dd4128eac883e782c9b",
   "source": {
     "artifactCompleteness": "complete",
     "conversionConfigDigest": "sha256:d3639ac5260efdc894afdb3cda739f75d3dcb540ce3a4ad9b34cd54c7d7dc486",
@@ -2425,8 +2427,8 @@
   "assets": [
     {
       "path": "manifest.json",
-      "bytes": 612038,
-      "sha256": "e9d463978e4aea04baefce32ce68c04498686c8085bd1a545f98a62a41d32846"
+      "bytes": 612001,
+      "sha256": "4e8a6d04a2bb253ac2b2abd2bf8b125b525e7ca558a20dd4128eac883e782c9b"
     },
     {
       "path": "tokenizer.json",

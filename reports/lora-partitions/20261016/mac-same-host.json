@@ -1,7 +1,9 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "kind": "local-partition-numerical-diagnostic",
   "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
-  "manifestHash": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "manifestHash": "sha256:27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281",
   "plan": {
     "schema": "doppler.layer-partition-contract/v1",
     "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
@@ -125,8 +127,8 @@
   "artifacts": [
     {
       "filename": "manifest.json",
-      "bytes": 214203,
-      "sha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+      "bytes": 214167,
+      "sha256": "27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281"
     },
     {
       "filename": "tokenizer.json",
@@ -309,7 +311,7 @@
       "hash": "sha256:dfed3509fdd54c04e80e362b6b14f98d9c326a8e732f539996a137086dc4f636",
       "url": "https://huggingface.co/Mike0021/qwen35-0.8b-ner-json-lora/resolve/6d4e4cf3ebe7d8df10897b9f44cbf1e647386bcb/adapter_model.safetensors"
     },
-    "baseModelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+    "baseModelIdentity": "sha256:27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281"
   },
   "prompt": "The color of the sky is",
   "promptTokenIds": [

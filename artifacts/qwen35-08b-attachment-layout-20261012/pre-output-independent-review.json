@@ -1,11 +1,13 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.pre-output-independent-review/v1",
   "reviewer": "native_participation",
   "candidateOutputsRead": false,
-  "scriptSha256": "a5efc78ccdfee1026c55e1170040991b64faf46f8f886b5c26878c04ed4466a6",
+  "scriptSha256": "f7f821deae34e8c10c89b7e7fa28f0aa6f3d03b5a456f4b159a8f46c4b9a19f6",
   "suites": {
-    "question-policy-after": "dc8fea752b705ae5e0e476c5ef6352652c5ecb6d153c4efe418326829819ae3b",
-    "holdout-before": "03801057edf3b6732d4156d874c366dc6b1578c95085b9e9cdc6f5f751e1df81"
+    "question-policy-after": "e57545f7db48a285a35f8c0f74fb101e05fee7ba157d16db7e958702697954f7",
+    "holdout-before": "1cdd2af36428843938028d3a0cb9aa79dfd3fddea651c31e1afeeeed48b664b8"
   },
   "evaluatorSha256": "37586f498f393570e499859deb0bcaba520e86bb85a03365c176a4981079127f",
   "checksPassed": true,

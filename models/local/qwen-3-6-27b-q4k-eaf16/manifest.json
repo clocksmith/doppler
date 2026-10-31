@@ -14992,7 +14992,7 @@
   "config": {},
   "conversion": null,
   "metadata": {
-    "source": "file:///home/x/deco/doppler/models/source/huggingface_cache/Qwen--Qwen3.6-27B",
+    "source": "Qwen/Qwen3.6-27B",
     "convertedAt": "2026-04-27T17:02:39.652Z",
     "hasTokenizer": true
   },

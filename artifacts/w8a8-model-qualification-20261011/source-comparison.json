@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.w8a8-source-comparison/v1",
   "passed": false,
   "modelQualified": false,
@@ -6,7 +8,7 @@
   "suiteSha256": "890a28e543ef614bcfb0fa60de195c189d30c1216f29804559a2b2de7b8edd5a",
   "lanes": {
     "f16": {
-      "modelIdentity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+      "modelIdentity": "sha256:1e69f52e8e4d2b88ceddb6feaa75e718373b3ba18c0c89f2c92173102ab32bbc",
       "correctTasks": 5,
       "taskCount": 12,
       "meanNll": 4.630961223030469,
@@ -45,7 +47,7 @@
     {
       "source": "reports/local/w8a8-qualification-20261011/f16-source-quality.json",
       "retained": "artifacts/w8a8-model-qualification-20261011/f16-source-quality.json.gz",
-      "sha256": "676c72b5f18025f3726873551918d72fca4cf73ba111321f0e7cf0a3e72e08dc"
+      "sha256": "af68ec8b7d343456f849b071c2041424362d3395b2260a0ab583e3af18740f32"
     },
     {
       "source": "reports/local/w8a8-qualification-20261011/q4-source-quality.json",
@@ -60,7 +62,7 @@
     {
       "source": "reports/local/w8a8-qualification-20261011/f16-af32-binding.json",
       "retained": "artifacts/w8a8-model-qualification-20261011/f16-af32-binding.json.gz",
-      "sha256": "280e1ee512003857092dfe869bcc2b5df3d5ebe47fc924d8aad349c23d42ecc6"
+      "sha256": "6318afe57884cb81c866362be5916e2cda5e28d894048294a695e381d94af6d4"
     },
     {
       "source": "reports/local/w8a8-qualification-20261011/q4k-ehf16-af32-binding.json",
@@ -75,7 +77,7 @@
     {
       "source": "reports/local/w8a8-qualification-20261011/source-lineage.json",
       "retained": "artifacts/w8a8-model-qualification-20261011/source-lineage.json.gz",
-      "sha256": "50fd7beb6c9351914aaf906a69e2329006f2a8623cbb0b6edd7a1b3e2bfea640"
+      "sha256": "c2e5b44757e0f145ecaebfb39efdb85fcf695fd909c9c5fc6b0c2b94109aab05"
     },
     {
       "source": "reports/local/w8a8-qualification-20261011/f16-rounding-audit.json",

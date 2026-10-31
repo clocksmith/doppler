@@ -1,4 +1,5 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.qwen-quantized-transformers-reference/v1",
@@ -10,9 +11,9 @@
     "gguf": "0.19.0",
     "numpy": "2.4.4"
   },
-  "contractSha256": "46f6bdb885867945831f8080f8793b54cfdb15241c77906a0f578e66490161d2",
+  "contractSha256": "6cd11e29940a0b476635bfb7c9f9299b4e11dc1ddfcc99917a69cc3b0f8514d8",
   "toolSha256": "4a7263a8db1d499e8a06cc0ca87bfb2eeb155151560fd7a150c9980f5c1cc01c",
-  "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+  "manifestSha256": "2bc4c15504ec3b89c440d6c7009a9e320f8a7d927da5f37cc0e8c947f1075f59",
   "cases": [
     {
       "id": "arithmetic",

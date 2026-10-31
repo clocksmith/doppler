@@ -4425,7 +4425,7 @@
   "eos_token_id": 151645,
   "conversion": null,
   "metadata": {
-    "source": "file:///home/x/.cache/huggingface/hub/models--Qwen--Qwen3-Reranker-0.6B/snapshots/e61197ed45024b0ed8a2d74b80b4d909f1255473",
+    "source": "Qwen/Qwen3-Reranker-0.6B@e61197ed45024b0ed8a2d74b80b4d909f1255473",
     "convertedAt": "2026-07-04T18:42:30.449Z",
     "hasTokenizer": true
   },

@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.manifest-conversion-postflight-receipt/v1",
   "modelId": "muse-glimmer-30b-text-f16-af32",
   "entryPointId": "text.generate",
@@ -22,7 +24,7 @@
     "totalBytes": 55709561856
   },
   "manifestEvidence": {
-    "digest": "sha256:b5061f2711bda95142f6f4930936c4978004c063e482687586d626f388421046",
+    "digest": "sha256:e586d6024122ee1471ef9c3b589af10af34a241619c03b40075f5b58c8a6b5e8",
     "inferenceDigest": "sha256:4e70eeeedf189dc2b8598a9401dfdc064511e3a695788043f11740cea50935fd",
     "executionDigest": "sha256:ca468a9626e5e5704f647cf8fa18c79aae803a71b3cdc30063e723cb7a5e0d76",
     "artifactIdentity": {
@@ -63,5 +65,5 @@
     "qualificationStarted": false,
     "packEligible": false
   },
-  "receiptDigest": "sha256:942fa36e989a19ba75c4c79d0d89cc81c183c6e3ab869e7750617c54e8f7f6ce"
+  "receiptDigest": "sha256:fea5261e8753f41d5e4c96a10e71804ceac2e623d2bd6328b79a4d2ad5b1f32a"
 }

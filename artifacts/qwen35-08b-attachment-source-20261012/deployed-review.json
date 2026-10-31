@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.actual-attachment-deployed-cpu-review/v1",
   "qualified": false,
   "cases": [
@@ -11,7 +13,7 @@
       "exactPhysicalAnswerMatch": true,
       "factualAmountPassed": false,
       "citationPassed": false,
-      "reportSha256": "4aac6229ca77d08fdb1153c22c2a966adb50726a985da502b16f951a276b06b3"
+      "reportSha256": "47482919e4dc5c19823faaf6576b5284898334cce401f5e3576edfff65a33c22"
     },
     {
       "id": "attached-four-followup",
@@ -22,7 +24,7 @@
       "exactPhysicalAnswerMatch": true,
       "factualAmountPassed": false,
       "citationPassed": false,
-      "reportSha256": "24d765c53738a69a689ad5a73991492f5f524fa0cabfbb2ce31c30cbbc7e6553"
+      "reportSha256": "f5bef429a78db89e5e956436351af1c4333b801ef2ff0453d4d8c7a0153689da"
     }
   ],
   "conclusion": "Exact deployed Q4 weights with independent source equations reproduce both distributed failures. Original weights produce correct36/48 under samepolicy/input. The failure exists in deployed representation; this does not establish which tensor transformation causes it."

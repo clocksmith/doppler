@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "scope": "First local prefill difference: sigmoid gating; whole-model qualification pending",
   "archiveVersion": "0.6.24",
   "placements": [
@@ -104,7 +106,7 @@
     "version": "0.6.25",
     "shaderSha256": "38f7209006ccacb8654f82fc5cf5b17a9c2f9647c9a2b07f933c2c2420d8ebe5",
     "archiveSha256": "cbec67e09fc7c443115558788d65a661e7e63d5907c7e7de3c07f3ecbba269c4",
-    "modelManifestSha256": "9d6d621650134275f017ae268c519e90c8b184b01a53d1495d0d43dfc410b206",
+    "modelManifestSha256": "00ffd8285e2198262ae7931f9f34b213a3caf1bdfc4dc1551ffcf7ef4e865485",
     "numericalAcceptance": "failed",
     "deployed": false
   },

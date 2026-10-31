@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.installed-generation-qualification/v1",
   "surface": "browser",
   "packageBundlePath": "/var/tmp/doppler-w8-installed-completion-20261011",
@@ -6,7 +8,7 @@
   "outputDir": "$HOME/deco/doppler/reports/local/w8a8-qualification-20261011/w8a8-packed-q4-benchmark-02",
   "reference": {
     "path": "$HOME/deco/doppler/reports/local/w8a8-qualification-20261011/installed-reference-v4.json",
-    "digest": "sha256:3862c318a91cf46c252441cdf27a6a4631b2ddd481a5f497ef664845ed0b6de1"
+    "digest": "sha256:6fd6abb19e3b2a376455bf5a0a3e2364589fdfaf20c608f5f794a76c6bd5ed0a"
   },
   "manifestDigest": "sha256:67eee682dea361346ca1ae16026e53f4162b4e43f45dc9c53e4b30919b79065e",
   "generation": {

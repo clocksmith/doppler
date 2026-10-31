@@ -1,9 +1,11 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.choiceScoringModelQualification.v1",
   "passed": true,
   "model": {
     "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
-    "manifestHash": "sha256:6beadee33abc94eed49e54b95ed8f3f46c6eddcf40fffd97a084f3f4c936b861"
+    "manifestHash": "sha256:c1d2b6faf91ec5bed7310f768159ab87d493478907b30283a806d252656e3b04"
   },
   "runtime": {
     "surface": "node-webgpu",
@@ -26,8 +28,8 @@
       "tokenizers": "0.22.2",
       "numpy": "2.4.4"
     },
-    "contractHash": "sha256:39896f2d7e1be6e77f25d504c15a89279b7fd96a20d3d095395f82f99af758d2",
-    "manifestHash": "sha256:6beadee33abc94eed49e54b95ed8f3f46c6eddcf40fffd97a084f3f4c936b861",
+    "contractHash": "sha256:af130be5f91b3fa0571e6c83e6dd719aedc393d0174555088da9e83fd7b71729",
+    "manifestHash": "sha256:c1d2b6faf91ec5bed7310f768159ab87d493478907b30283a806d252656e3b04",
     "maximumAbsoluteLogitError": 0.05,
     "minimumCorrectChoices": 12,
     "cases": [
@@ -1578,7 +1580,7 @@
       }
     ]
   },
-  "referenceDigest": "sha256:431374635a0dc4abb550a62091af90eeb50552d3e6e42b55416f35199769b7f6",
+  "referenceDigest": "sha256:a4f54292a33fa6037935959943c0df6b9ffd15572e1e2469689c8459b06faf08",
   "observation": {
     "cases": [
       {

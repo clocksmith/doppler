@@ -21936,7 +21936,7 @@
   "video_token_id": 248057,
   "conversion": null,
   "metadata": {
-    "source": "file:///home/x/deco/doppler/models/source/qwen3.8-27b",
+    "source": "Qwen/Qwen3.8-27B",
     "convertedAt": "2026-08-23T05:16:42.892Z",
     "hasTokenizer": true
   },

@@ -1,4 +1,5 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "complete": true,
@@ -10,7 +11,7 @@
       "promptTokens": 64,
       "order": "doppler-first",
       "receipt": "comparison-metal-selected/cold-p64-0-8b-doppler-first/compare_latest.json",
-      "sha256": "947576d7bde749fdb24bd3c1e5178adfdac958f72abb947105c8019aa5a50a03",
+      "sha256": "5baa94c04ac680f2bbf3bd4850ed50269732c80ff7e71a176c0b32826c67eb4e",
       "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
       "command": {
         "cwd": "$HOME/deco/doppler/.cache/qwen-qualified-bcb6c045",
@@ -71,7 +72,7 @@
         "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
         "verifiedArchiveFiles": 1959,
         "comparatorDriverSha256": "15d483fb2befea062a0c8080e2f8232d8ba6d9dea47aee35b213513f65d43c3f",
-        "modelManifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+        "modelManifestSha256": "27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281"
       },
       "fairness": {
         "schemaVersion": 1,
@@ -1704,7 +1705,7 @@
       "promptTokens": 64,
       "order": "transformersjs-first",
       "receipt": "comparison-metal-selected/cold-p64-0-8b-transformersjs-first/compare_latest.json",
-      "sha256": "d3207dcf5bd253f17e004f7695c97d6a04e73474a9eb632d9737ded7352ee9c0",
+      "sha256": "6377efdd0ee9a412296e6d3d164da5ec91841c72b02850123e62ab1a6feba468",
       "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
       "command": {
         "cwd": "$HOME/deco/doppler/.cache/qwen-qualified-bcb6c045",
@@ -1765,7 +1766,7 @@
         "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
         "verifiedArchiveFiles": 1959,
         "comparatorDriverSha256": "15d483fb2befea062a0c8080e2f8232d8ba6d9dea47aee35b213513f65d43c3f",
-        "modelManifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+        "modelManifestSha256": "27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281"
       },
       "fairness": {
         "schemaVersion": 1,
@@ -9495,7 +9496,7 @@
       "promptTokens": 1024,
       "order": "doppler-first",
       "receipt": "comparison-metal-selected/warm-p1024-0-8b-doppler-first/compare_latest.json",
-      "sha256": "0f80092e26ae159b7fd6fe12b648f8ae1b258cf38595b0e136496d9cd312e86a",
+      "sha256": "a8a4ba2ffb1eda14dcf35bc9bbbb76bc6544f3b970a563f9d6968caf20654e48",
       "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
       "command": {
         "cwd": "$HOME/deco/doppler/.cache/qwen-qualified-bcb6c045",
@@ -9556,7 +9557,7 @@
         "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
         "verifiedArchiveFiles": 1959,
         "comparatorDriverSha256": "15d483fb2befea062a0c8080e2f8232d8ba6d9dea47aee35b213513f65d43c3f",
-        "modelManifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+        "modelManifestSha256": "27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281"
       },
       "fairness": {
         "schemaVersion": 1,
@@ -13609,7 +13610,7 @@
       "promptTokens": 1024,
       "order": "transformersjs-first",
       "receipt": "comparison-metal-selected/warm-p1024-0-8b-transformersjs-first/compare_latest.json",
-      "sha256": "78fd1abfc54a5098651a01808b872930d4fda08a038a8608d9d65a3008f842cc",
+      "sha256": "dc542724fb68262742920a66ce9c308fc1e9059c03f3e9f43c8c63e2762312cf",
       "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
       "command": {
         "cwd": "$HOME/deco/doppler/.cache/qwen-qualified-bcb6c045",
@@ -13670,7 +13671,7 @@
         "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
         "verifiedArchiveFiles": 1959,
         "comparatorDriverSha256": "15d483fb2befea062a0c8080e2f8232d8ba6d9dea47aee35b213513f65d43c3f",
-        "modelManifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+        "modelManifestSha256": "27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281"
       },
       "fairness": {
         "schemaVersion": 1,
@@ -28471,7 +28472,7 @@
       "promptTokens": 64,
       "order": "doppler-first",
       "receipt": "comparison-metal-selected/warm-p64-0-8b-doppler-first/compare_latest.json",
-      "sha256": "46800d89c2a63e989a535b65bdf0fb73fa161065417d1dede723b4c4fff2a47d",
+      "sha256": "d54d3a6a655bd851b1d481c68242ddf466fd5b08ca82723ed829d41967ed253b",
       "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
       "command": {
         "cwd": "$HOME/deco/doppler/.cache/qwen-qualified-bcb6c045",
@@ -28532,7 +28533,7 @@
         "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
         "verifiedArchiveFiles": 1959,
         "comparatorDriverSha256": "15d483fb2befea062a0c8080e2f8232d8ba6d9dea47aee35b213513f65d43c3f",
-        "modelManifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+        "modelManifestSha256": "27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281"
       },
       "fairness": {
         "schemaVersion": 1,
@@ -30443,7 +30444,7 @@
       "promptTokens": 64,
       "order": "transformersjs-first",
       "receipt": "comparison-metal-selected/warm-p64-0-8b-transformersjs-first/compare_latest.json",
-      "sha256": "a4d5b75f9ee44068e88751d78ef60268bb30a66fb172adc394a0b7688d9dafdd",
+      "sha256": "7747ff3a516c2bada3c508a367466b4fe9f10fe4fef1be5a0b72aa3473fbf956",
       "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
       "command": {
         "cwd": "$HOME/deco/doppler/.cache/qwen-qualified-bcb6c045",
@@ -30504,7 +30505,7 @@
         "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
         "verifiedArchiveFiles": 1959,
         "comparatorDriverSha256": "15d483fb2befea062a0c8080e2f8232d8ba6d9dea47aee35b213513f65d43c3f",
-        "modelManifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+        "modelManifestSha256": "27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281"
       },
       "fairness": {
         "schemaVersion": 1,
@@ -40370,7 +40371,7 @@
       "promptTokens": 64,
       "order": "doppler-first",
       "receipt": "comparison-vulkan-preliminary/cold-p64-0-8b-doppler-first/compare_latest.json",
-      "sha256": "ccbd8617d317a0ae9e8d3858d867d3a325f8a5d29682c8690de5b2ad9a6c0191",
+      "sha256": "c2156b3680b3d1484631c1ccc0bb3953fea94cc467b7a880f58d6e8efbf17390",
       "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
       "command": {
         "cwd": "$HOME/deco/doppler/.cache/qwen-qualified-bcb6c045",
@@ -40431,7 +40432,7 @@
         "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
         "verifiedArchiveFiles": 1959,
         "comparatorDriverSha256": "5cd5a0b3678d0fde0129b3977d943e14d148d397c0f65122cc3190590ec073a5",
-        "modelManifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+        "modelManifestSha256": "27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281"
       },
       "fairness": {
         "schemaVersion": 1,
@@ -42863,7 +42864,7 @@
       "promptTokens": 64,
       "order": "transformersjs-first",
       "receipt": "comparison-vulkan-preliminary/cold-p64-0-8b-transformersjs-first/compare_latest.json",
-      "sha256": "6bbca4aaa49e9a158fc9ff931b4e1982f5dc5e8df3f0304c9cf99f68742e0c5b",
+      "sha256": "0c23981885869881d185440d2a473537b908c5d783a0f4d67d2b9ff9612feec8",
       "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
       "command": {
         "cwd": "$HOME/deco/doppler/.cache/qwen-qualified-bcb6c045",
@@ -42924,7 +42925,7 @@
         "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
         "verifiedArchiveFiles": 1959,
         "comparatorDriverSha256": "5cd5a0b3678d0fde0129b3977d943e14d148d397c0f65122cc3190590ec073a5",
-        "modelManifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+        "modelManifestSha256": "27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281"
       },
       "fairness": {
         "schemaVersion": 1,
@@ -51062,7 +51063,7 @@
       "promptTokens": 1024,
       "order": "doppler-first",
       "receipt": "comparison-vulkan-preliminary/warm-p1024-0-8b-doppler-first/compare_latest.json",
-      "sha256": "def4a13a43874f8b5667ab272646f299e6901e4f14ceaf030446d9331404550a",
+      "sha256": "73264a122e3e046e33ecf132079ac3c4a9f3fc656e79b53664c03a0ea2ac30be",
       "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
       "command": {
         "cwd": "$HOME/deco/doppler/.cache/qwen-qualified-bcb6c045",
@@ -51123,7 +51124,7 @@
         "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
         "verifiedArchiveFiles": 1959,
         "comparatorDriverSha256": "5cd5a0b3678d0fde0129b3977d943e14d148d397c0f65122cc3190590ec073a5",
-        "modelManifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+        "modelManifestSha256": "27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281"
       },
       "fairness": {
         "schemaVersion": 1,
@@ -54979,7 +54980,7 @@
       "promptTokens": 1024,
       "order": "transformersjs-first",
       "receipt": "comparison-vulkan-preliminary/warm-p1024-0-8b-transformersjs-first/compare_latest.json",
-      "sha256": "6ea2364f2c7b203b5894f8516429fceb858f289d9c889144c4cc007a28d56857",
+      "sha256": "d5d4e6e05ae2e5b7ac840aa7f98e16608d49b03c3139ee888d57bf87be96851a",
       "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
       "command": {
         "cwd": "$HOME/deco/doppler/.cache/qwen-qualified-bcb6c045",
@@ -55040,7 +55041,7 @@
         "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
         "verifiedArchiveFiles": 1959,
         "comparatorDriverSha256": "5cd5a0b3678d0fde0129b3977d943e14d148d397c0f65122cc3190590ec073a5",
-        "modelManifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+        "modelManifestSha256": "27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281"
       },
       "fairness": {
         "schemaVersion": 1,
@@ -68890,7 +68891,7 @@
       "promptTokens": 64,
       "order": "doppler-first",
       "receipt": "comparison-vulkan-preliminary/warm-p64-0-8b-doppler-first/compare_latest.json",
-      "sha256": "233865e7df31549838d62fdebb0c7f26de1e0650f9dcc8a9ccce2daa91ffc287",
+      "sha256": "6a5e0bf2173bfd16889a069edf3e29c76cc54e9eda87747a7b84573aa86e6127",
       "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
       "command": {
         "cwd": "$HOME/deco/doppler/.cache/qwen-qualified-bcb6c045",
@@ -68951,7 +68952,7 @@
         "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
         "verifiedArchiveFiles": 1959,
         "comparatorDriverSha256": "5cd5a0b3678d0fde0129b3977d943e14d148d397c0f65122cc3190590ec073a5",
-        "modelManifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+        "modelManifestSha256": "27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281"
       },
       "fairness": {
         "schemaVersion": 1,
@@ -72087,7 +72088,7 @@
       "promptTokens": 64,
       "order": "transformersjs-first",
       "receipt": "comparison-vulkan-preliminary/warm-p64-0-8b-transformersjs-first/compare_latest.json",
-      "sha256": "b3842a33dbe64211833209e7136be84fbd6295dc53de58d6b6daec2b0e990ac1",
+      "sha256": "0bb08a1c6501ff2990a08090f3558bc721a0e2a72863e5d6df758dc88ed70fc9",
       "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
       "command": {
         "cwd": "$HOME/deco/doppler/.cache/qwen-qualified-bcb6c045",
@@ -72148,7 +72149,7 @@
         "archiveSha256": "75f3a81f032e3a0f89102fb9a50e0b202657f69eab71569585d7ffe4ce232bb2",
         "verifiedArchiveFiles": 1959,
         "comparatorDriverSha256": "5cd5a0b3678d0fde0129b3977d943e14d148d397c0f65122cc3190590ec073a5",
-        "modelManifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+        "modelManifestSha256": "27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281"
       },
       "fairness": {
         "schemaVersion": 1,

@@ -1,14 +1,15 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.installed-reploid-provider-observation/v1",
   "qualified": false,
   "scope": "Native resident provider boundary; no WebRTC, browser persistence, public deployment or simultaneous GPU execution claim",
-  "configSha256": "5a4b472311cfb4b9cc3017ac6c75a4a94c116a4c35b2f048dd3b58f9ba0a2a17",
+  "configSha256": "2c0e9fecd563acb73b4dacc274e0720831fd5278739eb11d83d24fa0b2ef369f",
   "suiteSha256": "4e7562211a13415d1455f03e8ef43f6d601ab00b43e41705c6471f4ac9ce1053",
   "model": {
     "id": "qwen3-8-27b-text-q4k-ehaf16",
-    "identity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+    "identity": "sha256:2bc4c15504ec3b89c440d6c7009a9e320f8a7d927da5f37cc0e8c947f1075f59",
     "provider": "doppler",
     "contextLength": 4096,
     "generation": {
@@ -140,7 +141,7 @@
         "raw": "42",
         "requestedModel": "qwen3-8-27b-text-q4k-ehaf16",
         "model": "qwen3-8-27b-text-q4k-ehaf16",
-        "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+        "modelIdentity": "sha256:2bc4c15504ec3b89c440d6c7009a9e320f8a7d927da5f37cc0e8c947f1075f59",
         "adapterIdentities": [],
         "completion": {
           "schema": "doppler.generation-completion/v1",
@@ -171,7 +172,7 @@
         "raw": "40",
         "requestedModel": "qwen3-8-27b-text-q4k-ehaf16",
         "model": "qwen3-8-27b-text-q4k-ehaf16",
-        "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+        "modelIdentity": "sha256:2bc4c15504ec3b89c440d6c7009a9e320f8a7d927da5f37cc0e8c947f1075f59",
         "adapterIdentities": [],
         "completion": {
           "schema": "doppler.generation-completion/v1",
@@ -202,7 +203,7 @@
         "raw": "Cedar",
         "requestedModel": "qwen3-8-27b-text-q4k-ehaf16",
         "model": "qwen3-8-27b-text-q4k-ehaf16",
-        "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+        "modelIdentity": "sha256:2bc4c15504ec3b89c440d6c7009a9e320f8a7d927da5f37cc0e8c947f1075f59",
         "adapterIdentities": [],
         "completion": {
           "schema": "doppler.generation-completion/v1",
@@ -235,7 +236,7 @@
         "raw": "copper silver gold",
         "requestedModel": "qwen3-8-27b-text-q4k-ehaf16",
         "model": "qwen3-8-27b-text-q4k-ehaf16",
-        "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+        "modelIdentity": "sha256:2bc4c15504ec3b89c440d6c7009a9e320f8a7d927da5f37cc0e8c947f1075f59",
         "adapterIdentities": [],
         "completion": {
           "schema": "doppler.generation-completion/v1",
@@ -271,7 +272,7 @@
         },
         "completed": 0,
         "modelId": "qwen3-8-27b-text-q4k-ehaf16",
-        "modelIdentity": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+        "modelIdentity": "sha256:2bc4c15504ec3b89c440d6c7009a9e320f8a7d927da5f37cc0e8c947f1075f59",
         "adapterIdentities": [],
         "ready": true,
         "mode": "whole-model",

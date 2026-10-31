@@ -1,9 +1,11 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.actual-attachment-source-review/v1",
   "qualified": false,
   "factualAmountsPassed": 2,
   "citationContractsPassed": 0,
-  "sourceReportSha256": "89a63b7781cf33398bb9ed2a2e9bb67f9dc3f14043678cf94cf96b4f6a49573e",
+  "sourceReportSha256": "d3035bbe7a4b1d1436e1c2082bdb1f73618cdbbaa7f46820615f5d108778d2bb",
   "disposition": "Correct quantities with original weights; citation contract remains failed. Compare exact deployedQ4 CPU next before attributing distributed output failure.",
   "cases": [
     {

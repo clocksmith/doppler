@@ -1,4 +1,5 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.installed-generation-acceptance/v1",
@@ -13,7 +14,7 @@
     "sizeBytes": 2104958,
     "sha256": "61a23b9cafd17eb2b420c7bd8bb1f7e8cfae859048f581e42a5fb01ad767ed19"
   },
-  "manifestDigest": "sha256:192ecf66a2410e61c990931ed2cd2a93f6141cb1434c0c8d57fe478c8f31493f",
+  "manifestDigest": "sha256:e424889fa8b9395f6f23dac1318c2a2bc01136538f5892ea07d05c8bba54062f",
   "referenceDigest": "sha256:d2f6458c2078c9b028540a11cf305e9f71f14c351bbdbf3d3175aefe36d3450b",
   "source": {
     "model": "Qwen/Qwen3-0.6B",
@@ -59,7 +60,7 @@
     "node": {
       "passed": true,
       "receipt": "node/qualification.json",
-      "sha256": "cc2b354cd115e023ab4ea373653819bffdff2da150580edcd8193f7fb097949e",
+      "sha256": "474acc878c2578126493838bbf025bb47800e53ef76d344a125dffda5eee54eb",
       "runtime": {
         "name": "node",
         "version": "v22.22.1"
@@ -92,7 +93,7 @@
     "browser": {
       "passed": true,
       "receipt": "browser/qualification.json",
-      "sha256": "b6a004052fe8482d811e3f6184aab4d4ef085c811fd7fd2baf435e6fee118942",
+      "sha256": "29c5c8b7e8bab1704b9ab3472424bec80dc379a3410392600d56c8ceca8c3e9c",
       "runtime": null,
       "browserIdentity": {
         "protocolVersion": "1.3",
@@ -128,7 +129,7 @@
     "bun": {
       "passed": true,
       "receipt": "bun/qualification.json",
-      "sha256": "f4582f9f95c831deb7b22cf3ea5d8a4ea0e8aa6420fc83e976b696bb4190e33e",
+      "sha256": "779dd9b3a39f6c3694a84fcea4546bb8c1829df7efd85052c76be03a25fd7315",
       "runtime": {
         "name": "bun",
         "version": "1.3.10"
@@ -161,23 +162,23 @@
   },
   "publicReconstruction": {
     "receipt": "source-reconstruction/restoration.json",
-    "sha256": "eb0179f452f06b6e290451e7c87f6930144b4f62ceb627f84d100ae298e25386",
+    "sha256": "3e36000b34b2ffb72fa8aa62c1d1fc709e64952c46c56f300df075befb6abfc6",
     "reproduction": "reproduction.json"
   },
   "evidence": {
     "path": "evidence.tar.gz",
-    "sha256": "129a74169e4790696bf43e84fcd377cdf8cf872f18a1833fe79ea0ce992857bd",
-    "bytes": 392747,
+    "sha256": "63fce6578ea2c93e59e1fea9d1d2b18baa3a03774558581006d413f89d922837",
+    "bytes": 392917,
     "files": [
       {
         "path": "browser/config.json",
-        "sha256": "c837484d78a5a029604c0bb18a699dfbc28304ea5d46bff9e845bd3fa9c706b1",
-        "bytes": 2193
+        "sha256": "b61b60672a176511dd49780f8deb6c93fa2ec78515caf07faf3a83f5a4acb9b4",
+        "bytes": 2324
       },
       {
         "path": "browser/qualification.json",
-        "sha256": "b6a004052fe8482d811e3f6184aab4d4ef085c811fd7fd2baf435e6fee118942",
-        "bytes": 1359108
+        "sha256": "29c5c8b7e8bab1704b9ab3472424bec80dc379a3410392600d56c8ceca8c3e9c",
+        "bytes": 1359239
       },
       {
         "path": "browser/run.log",
@@ -186,13 +187,13 @@
       },
       {
         "path": "bun/config.json",
-        "sha256": "c9b66f5f7c6eb4aabf619e2395842994d77d18f2d3fb22f76c5096c79c5a7dc7",
-        "bytes": 2185
+        "sha256": "8236bf27da0849c4764e7116e2781122ea0278b8440f446ec84ee08527613783",
+        "bytes": 2316
       },
       {
         "path": "bun/qualification.json",
-        "sha256": "f4582f9f95c831deb7b22cf3ea5d8a4ea0e8aa6420fc83e976b696bb4190e33e",
-        "bytes": 987993
+        "sha256": "779dd9b3a39f6c3694a84fcea4546bb8c1829df7efd85052c76be03a25fd7315",
+        "bytes": 988124
       },
       {
         "path": "bun/run.log",
@@ -241,13 +242,13 @@
       },
       {
         "path": "node/config.json",
-        "sha256": "0aa711eaf079196517c6d5369858a4f497328f9556404ab9f827179d777293a8",
-        "bytes": 2187
+        "sha256": "1cd4018268a0f09159c1eb417d541c161684de85026b5bfffc708401e78e64ec",
+        "bytes": 2318
       },
       {
         "path": "node/qualification.json",
-        "sha256": "cc2b354cd115e023ab4ea373653819bffdff2da150580edcd8193f7fb097949e",
-        "bytes": 987988
+        "sha256": "474acc878c2578126493838bbf025bb47800e53ef76d344a125dffda5eee54eb",
+        "bytes": 988119
       },
       {
         "path": "node/run.log",
@@ -291,8 +292,8 @@
       },
       {
         "path": "source-reconstruction/restoration.json",
-        "sha256": "eb0179f452f06b6e290451e7c87f6930144b4f62ceb627f84d100ae298e25386",
-        "bytes": 9828
+        "sha256": "3e36000b34b2ffb72fa8aa62c1d1fc709e64952c46c56f300df075befb6abfc6",
+        "bytes": 9959
       },
       {
         "path": "source-reconstruction/source-recapture-comparison.json",

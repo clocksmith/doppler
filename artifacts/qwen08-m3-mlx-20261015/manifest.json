@@ -12,7 +12,7 @@
   "artifactIdentity": {
     "artifactCompleteness": "complete",
     "conversionConfigDigest": "sha256:1f2b9d1d741e8c6e98f63bc9a360a306e03db98504e6de2cdfdd95bdd255df62",
-    "conversionConfigPath": "/Users/xyz/deco/doppler/artifacts/qwen08-m3-mlx-20261015/conversion.json",
+    "conversionConfigPath": "artifacts/qwen08-m3-mlx-20261015/conversion.json",
     "manifestVariantId": "qwen3-5-0-8b-text-f16-matched-mv-b22b12030f02",
     "materializationProfile": "auto",
     "modalitySet": [
@@ -4602,7 +4602,7 @@
   "video_token_id": 248057,
   "conversion": null,
   "metadata": {
-    "source": "file:///Users/xyz/deco/doppler/.cache/qwen08-source",
+    "source": "Qwen/Qwen3.5-0.8B",
     "convertedAt": "2026-10-16T02:44:21.642Z",
     "hasTokenizer": true
   },

@@ -1,8 +1,10 @@
 {
+ "pathSanitized": true,
+ "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
  "schema": "doppler.choice-scoring-evaluation/v1",
  "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
  "task": "Query/document relevance; no truth-probability or general reasoning claim.",
- "manifestSha256": "6beadee33abc94eed49e54b95ed8f3f46c6eddcf40fffd97a084f3f4c936b861",
+ "manifestSha256": "c1d2b6faf91ec5bed7310f768159ab87d493478907b30283a806d252656e3b04",
  "maxSeqLen": 512,
  "maximumAbsoluteLogitError": 0.05,
  "requireReferenceSelection": true,
@@ -104,7 +106,7 @@
  },
  "derivedFrom": {
   "fixture": "tests/fixtures/choice-scoring-relevance-qwen.json",
-  "fixtureSha256": "491903441f50aa05726d4e65be5912d982f8cfeef041570696835be864422a8a",
+  "fixtureSha256": "0c49241e6fb4c7dc42232feae2c615071d22d76035e73c94a549b7fbccf97162",
   "change": "manifestSha256 only: standard-BLAKE3 tiled/head128 successor refreshed for the 7425fd58 tiled kernel (reports/choice-scoring-successor-20261022)"
  }
 }

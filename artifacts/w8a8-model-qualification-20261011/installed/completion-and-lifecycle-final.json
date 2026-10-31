@@ -1,4 +1,5 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.w8a8-completion-regression/v1",
@@ -8,7 +9,7 @@
     {
       "previous": "w8a8-installed-model-06",
       "current": "w8a8-installed-model-07",
-      "reportSha256": "c580d556605a8629fe456e0ea6bf26b156e023607265dde601ec9d0ec3e92c80",
+      "reportSha256": "dc30d64d251fae1b02d0a7b1c0b6846720c8b0882a94af5651836e9acf72b65b",
       "all12TaskTokensAndTextUnchanged": true,
       "all200TeacherForcedObservationsUnchanged": true,
       "all12StopReasonsValid": true,
@@ -91,7 +92,7 @@
     {
       "previous": "w8a8-packed-installed-model-03",
       "current": "w8a8-packed-installed-model-04",
-      "reportSha256": "3d3c0088c176c8ccc0162fbf05f9a4a2b3288615eea4bc04b38ecca86caa4738",
+      "reportSha256": "f162df85416fd2f2aa7ac3cbd1e95c09a1966540daccd802f29c43e3cd1d3dd5",
       "all12TaskTokensAndTextUnchanged": true,
       "all200TeacherForcedObservationsUnchanged": true,
       "all12StopReasonsValid": true,

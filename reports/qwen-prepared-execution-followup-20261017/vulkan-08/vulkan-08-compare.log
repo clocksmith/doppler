@@ -257,12 +257,12 @@
     "modelUrl": "file://$HOME/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
     "modelBaseDir": null,
     "manifestSource": "$HOME/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
-    "manifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+    "manifestSha256": "27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281",
     "registrySource": null
   },
   "dopplerManifestPreflight": {
     "manifestSource": "$HOME/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
-    "manifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+    "manifestSha256": "27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281",
     "artifactIdentity": {
       "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
       "weightCapsuleId": "qwen-3-5-0-8b-q4k-ehaf16-wp-catalog-v1",
@@ -332,8 +332,8 @@
       "reason": "active-manifest-is-local",
       "active": {
         "manifestSource": "$HOME/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
-        "manifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
-        "canonicalManifestSha256": "51bcdb65e4dead3992d65546bc3f2405146c7b7ab812181fe94e0ad0d34aef2c"
+        "manifestSha256": "27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281",
+        "canonicalManifestSha256": "fa2db46e43a854ddf5c77cf2f64fc843b1af61c87bbe39eed1a12eab39c242de"
       },
       "localCurrent": {
         "manifestSource": null,
@@ -11862,7 +11862,7 @@
               "schema": "doppler.token-cost-ledger/v1",
               "identity": {
                 "artifactDigest": "sha256:498dfcae99ef2b502908beaefc09459a213819d5a132b7456c81ce53047fad10",
-                "manifestDigest": "sha256:51bcdb65e4dead3992d65546bc3f2405146c7b7ab812181fe94e0ad0d34aef2c",
+                "manifestDigest": "sha256:fa2db46e43a854ddf5c77cf2f64fc843b1af61c87bbe39eed1a12eab39c242de",
                 "executionGraphDigest": "sha256:72a319349559eba467a0d3a11defa48821a61b0bdaa8a79d5c56158115a02847",
                 "runtimeConfigDigest": "sha256:97b2fcf0ca2c98cd33828906f3660ce6bd2b6b7356d2ae69b2618593f14b487a",
                 "kernelSetDigest": "sha256:34b51b66ccb786efbe2b4c69b3a48422f3f4cf3729930ed3ae12f02daa888c50",
@@ -16516,7 +16516,7 @@
                 "schema": "doppler.token-cost-ledger/v1",
                 "identity": {
                   "artifactDigest": "sha256:498dfcae99ef2b502908beaefc09459a213819d5a132b7456c81ce53047fad10",
-                  "manifestDigest": "sha256:51bcdb65e4dead3992d65546bc3f2405146c7b7ab812181fe94e0ad0d34aef2c",
+                  "manifestDigest": "sha256:fa2db46e43a854ddf5c77cf2f64fc843b1af61c87bbe39eed1a12eab39c242de",
                   "executionGraphDigest": "sha256:72a319349559eba467a0d3a11defa48821a61b0bdaa8a79d5c56158115a02847",
                   "runtimeConfigDigest": "sha256:97b2fcf0ca2c98cd33828906f3660ce6bd2b6b7356d2ae69b2618593f14b487a",
                   "kernelSetDigest": "sha256:34b51b66ccb786efbe2b4c69b3a48422f3f4cf3729930ed3ae12f02daa888c50",

@@ -1,8 +1,10 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.reranker-successor-behavior/v1",
   "task": "90 NLBSE train issues (seed issue-triage-20261021, 6 per repo x label), 3 scoreChoices calls each through the source compat API, Chrome 146 Vulkan, Radeon 8060S",
-  "predecessorManifestSha256": "03298342c5f91680864526c1ead2ecaf16ba59307843c84e09842bcb4b9cc7c5",
-  "successorManifestSha256": "451c6a87d45f0ccac8718b41cc1b8682a3f0cf7c3f6803a3e14d5ac191900124",
+  "predecessorManifestSha256": "2f900bf5af208079b8664faf796b6fb46f3718cd9a3b320f3f5d47680e97bb38",
+  "successorManifestSha256": "227fda02871b308e1f2c048778028698d09f011321b92696e76f80b055025e8f",
   "routeAgreementWithPredecessor": 90,
   "maxAbsLogitDifferenceVsPredecessor": 0.00855255126953125,
   "medianAbsLogitDifferenceVsPredecessor": 0.0012164115905761719,

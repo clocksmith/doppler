@@ -13,7 +13,7 @@ const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const json = path => readFile(path, 'utf8').then(JSON.parse);
 const save = (path, value) => writeFile(path, JSON.stringify(value, null, 2) + '\n');
 const parentBytes = await readFile(parent + '/snapshot-binding.json');
-assert.equal(hash(parentBytes), '6f69ef692a5916f1736ca356625df0bd81267a8b2e5ea6edf725e96e53220d2d');
+assert.equal(hash(parentBytes), 'cd7d71c431d5425ac0bc31a00087e662a2a08d95611c363a517204a44dd4657a');
 const prior = JSON.parse(parentBytes), inventory = await json(new URL('./inventory.json', import.meta.url));
 assert.equal(hash(await readFile(archive)), inventory.archiveSha256);
 await mkdir(root); // Refuse to overwrite an earlier candidate.

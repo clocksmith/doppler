@@ -6,7 +6,7 @@ The actual Qwen 3.5 0.8B Q4K model and pinned NER adapter ran on Apple M3 / nati
 
 Reproduce with `DOPPLER_PARTITION_MODEL_DIR`, `DOPPLER_PARTITION_ADAPTER` (Reploid catalog adapter JSON) and `DOPPLER_PARTITION_ADAPTER_WEIGHTS` set, then `node tests/integration/partition-layers-physical.test.js`.
 
-The earlier base manifest `sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9` and current `sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9` have identical tensor descriptors and shard identities. Only inference, metadata and artifactIdentity differ. This run qualifies the current manifest for this diagnostic; compatibility is not inferred from the model name.
+The earlier base manifest `sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9` and current `sha256:27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281` have identical tensor descriptors and shard identities. Only inference, metadata and artifactIdentity differ. This run qualifies the current manifest for this diagnostic; compatibility is not inferred from the model name.
 
 Scope: same-device scalar partitions with one adapter. Every stage verifies the full adapter before retaining its own layer pairs and the global identity. This does not establish cross-host performance, browser support, paired arithmetic, adapter stacking, or selective adapter-byte downloads. Signed Capsule qualification remains separately enforced.
 

@@ -1,11 +1,13 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.attachment-layout-output-audit/v1",
   "exactWeightsAndPrecisionMatch": true,
   "rows": [
     {
       "lane": "holdout-before",
       "id": "holdout-invoice-payment",
-      "reportSha256": "81c4f3758f3a7b4edae703bdde30d899b91a2267154079512ff820bc4b4aa5a2",
+      "reportSha256": "d4d428e652dddf977ac09a5020cb4e1fa84c5f26edd7828d55028b5b361aebd3",
       "exactMessages": true,
       "exactOfficialTemplate": true,
       "exactInputTokens": true,
@@ -18,7 +20,7 @@
     {
       "lane": "holdout-before",
       "id": "holdout-conditional-promise",
-      "reportSha256": "81c4f3758f3a7b4edae703bdde30d899b91a2267154079512ff820bc4b4aa5a2",
+      "reportSha256": "d4d428e652dddf977ac09a5020cb4e1fa84c5f26edd7828d55028b5b361aebd3",
       "exactMessages": true,
       "exactOfficialTemplate": true,
       "exactInputTokens": true,
@@ -31,7 +33,7 @@
     {
       "lane": "holdout-before",
       "id": "holdout-quantity-delivery",
-      "reportSha256": "81c4f3758f3a7b4edae703bdde30d899b91a2267154079512ff820bc4b4aa5a2",
+      "reportSha256": "d4d428e652dddf977ac09a5020cb4e1fa84c5f26edd7828d55028b5b361aebd3",
       "exactMessages": true,
       "exactOfficialTemplate": true,
       "exactInputTokens": true,
@@ -44,7 +46,7 @@
     {
       "lane": "question-policy-after",
       "id": "attached-three",
-      "reportSha256": "3a2f9d6017002b7f9aaad56b0256760eb6df39accf936bb81c58d1c55749485c",
+      "reportSha256": "eee4c6b87e16c8c51939f5d3ee5803d8b0ae32fae6a487de9d141101c65d36b1",
       "exactMessages": true,
       "exactOfficialTemplate": true,
       "exactInputTokens": true,
@@ -57,7 +59,7 @@
     {
       "lane": "question-policy-after",
       "id": "attached-four-followup",
-      "reportSha256": "3a2f9d6017002b7f9aaad56b0256760eb6df39accf936bb81c58d1c55749485c",
+      "reportSha256": "eee4c6b87e16c8c51939f5d3ee5803d8b0ae32fae6a487de9d141101c65d36b1",
       "exactMessages": true,
       "exactOfficialTemplate": true,
       "exactInputTokens": true,
@@ -70,7 +72,7 @@
     {
       "lane": "question-policy-after",
       "id": "fresh-excluded-tax",
-      "reportSha256": "3a2f9d6017002b7f9aaad56b0256760eb6df39accf936bb81c58d1c55749485c",
+      "reportSha256": "eee4c6b87e16c8c51939f5d3ee5803d8b0ae32fae6a487de9d141101c65d36b1",
       "exactMessages": true,
       "exactOfficialTemplate": true,
       "exactInputTokens": true,
@@ -83,7 +85,7 @@
     {
       "lane": "question-policy-after",
       "id": "fresh-conditional-release",
-      "reportSha256": "3a2f9d6017002b7f9aaad56b0256760eb6df39accf936bb81c58d1c55749485c",
+      "reportSha256": "eee4c6b87e16c8c51939f5d3ee5803d8b0ae32fae6a487de9d141101c65d36b1",
       "exactMessages": true,
       "exactOfficialTemplate": true,
       "exactInputTokens": true,
@@ -96,7 +98,7 @@
     {
       "lane": "question-policy-after",
       "id": "fresh-deadline",
-      "reportSha256": "3a2f9d6017002b7f9aaad56b0256760eb6df39accf936bb81c58d1c55749485c",
+      "reportSha256": "eee4c6b87e16c8c51939f5d3ee5803d8b0ae32fae6a487de9d141101c65d36b1",
       "exactMessages": true,
       "exactOfficialTemplate": true,
       "exactInputTokens": true,
@@ -109,7 +111,7 @@
     {
       "lane": "question-policy-after",
       "id": "contractor-comparison",
-      "reportSha256": "3a2f9d6017002b7f9aaad56b0256760eb6df39accf936bb81c58d1c55749485c",
+      "reportSha256": "eee4c6b87e16c8c51939f5d3ee5803d8b0ae32fae6a487de9d141101c65d36b1",
       "exactMessages": true,
       "exactOfficialTemplate": true,
       "exactInputTokens": true,
@@ -122,7 +124,7 @@
     {
       "lane": "question-policy-after",
       "id": "contractor-retained-correction",
-      "reportSha256": "3a2f9d6017002b7f9aaad56b0256760eb6df39accf936bb81c58d1c55749485c",
+      "reportSha256": "eee4c6b87e16c8c51939f5d3ee5803d8b0ae32fae6a487de9d141101c65d36b1",
       "exactMessages": true,
       "exactOfficialTemplate": true,
       "exactInputTokens": true,
@@ -135,7 +137,7 @@
     {
       "lane": "question-policy-after",
       "id": "holdout-invoice-payment",
-      "reportSha256": "3a2f9d6017002b7f9aaad56b0256760eb6df39accf936bb81c58d1c55749485c",
+      "reportSha256": "eee4c6b87e16c8c51939f5d3ee5803d8b0ae32fae6a487de9d141101c65d36b1",
       "exactMessages": true,
       "exactOfficialTemplate": true,
       "exactInputTokens": true,
@@ -148,7 +150,7 @@
     {
       "lane": "question-policy-after",
       "id": "holdout-conditional-promise",
-      "reportSha256": "3a2f9d6017002b7f9aaad56b0256760eb6df39accf936bb81c58d1c55749485c",
+      "reportSha256": "eee4c6b87e16c8c51939f5d3ee5803d8b0ae32fae6a487de9d141101c65d36b1",
       "exactMessages": true,
       "exactOfficialTemplate": true,
       "exactInputTokens": true,
@@ -161,7 +163,7 @@
     {
       "lane": "question-policy-after",
       "id": "holdout-quantity-delivery",
-      "reportSha256": "3a2f9d6017002b7f9aaad56b0256760eb6df39accf936bb81c58d1c55749485c",
+      "reportSha256": "eee4c6b87e16c8c51939f5d3ee5803d8b0ae32fae6a487de9d141101c65d36b1",
       "exactMessages": true,
       "exactOfficialTemplate": true,
       "exactInputTokens": true,

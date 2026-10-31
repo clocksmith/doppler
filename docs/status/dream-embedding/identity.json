@@ -4,7 +4,7 @@
   "source": "local",
   "model": {
     "id": "google-embeddinggemma-300m-q4k-ehf16-af32",
-    "hash": "sha256:18a4175e7ff511ec88b6c7a45406c31f71e747dd36e509ab8cc25a2263f85d7c"
+    "hash": "sha256:d97fea2e82eadb1bee5851e970cf4102f9118fff467592770d90f6160fa95c6a"
   },
   "device": {
     "vendor": "apple",
@@ -18,7 +18,7 @@
   "resolution": {
     "schema": "doppler.resolution-identity/v1",
     "logicalModelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
-    "resolvedArtifactVariantId": "sha256:18a4175e7ff511ec88b6c7a45406c31f71e747dd36e509ab8cc25a2263f85d7c",
+    "resolvedArtifactVariantId": "sha256:d97fea2e82eadb1bee5851e970cf4102f9118fff467592770d90f6160fa95c6a",
     "resolvedExecutionId": "sha256:c40bfd945a3b1b82da73200df8761e459d747f08ddc694415d7b2a8e4a48ee7d"
   }
 }

@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.lineage-lowering-receipt/v1",
   "modelId": "qwen3-8-27b-text-f16-af32",
   "requestedModelId": "qwen3.8-27b-text-f16-af32",
@@ -2416,7 +2418,7 @@
       "evidence": {
         "path": "reports/model-ir-v2/qwen3.8-27b.q4-head.node-webgpu-negative.json",
         "sha256": "bec28bbee6a3e90ad60cdf2234c249fa8d1249cbbd8cfdaf23d25e3f4290e0bd",
-        "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+        "manifestSha256": "2bc4c15504ec3b89c440d6c7009a9e320f8a7d927da5f37cc0e8c947f1075f59",
         "conversionConfigDigest": "sha256:6c8f0e935ce9da61a9bd7451381cee1d99dc1b154673b5c8391e5aa6207846f4"
       }
     },
@@ -2445,7 +2447,7 @@
       "evidence": {
         "path": "reports/model-ir-v2/qwen3.8-27b.recurrent-f16.node-webgpu-negative.json",
         "sha256": "5ea9b1dddffbe1632337cefe4b5f51d59a4feaf4a7403635acfc51e0deec43d1",
-        "manifestSha256": "e9d463978e4aea04baefce32ce68c04498686c8085bd1a545f98a62a41d32846",
+        "manifestSha256": "4e8a6d04a2bb253ac2b2abd2bf8b125b525e7ca558a20dd4128eac883e782c9b",
         "conversionConfigSha256": "5263a53a288d2e0d73f01190a7d92055086d66ab6e1a92fb30ed0e22e51fdd67",
         "conversionConfigDigest": "sha256:d3639ac5260efdc894afdb3cda739f75d3dcb540ce3a4ad9b34cd54c7d7dc486",
         "generatedTokenIdsHash": "sha256:17aa892a16ad59de93bdfa32c8b882f12d3dad54f6679d664f8c44fa2929784e",

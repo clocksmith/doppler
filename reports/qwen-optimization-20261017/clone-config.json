@@ -1,7 +1,9 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.recurrent-clone-profile/v1",
   "modelDirectory": "$HOME/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
-  "manifestHash": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "manifestHash": "27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281",
   "maxSeqLen": 256,
   "prompt": "Write a detailed explanation of how tides work.",
   "warmupPairs": 2,

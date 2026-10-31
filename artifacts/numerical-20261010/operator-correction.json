@@ -1,10 +1,12 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "component": "doppler.runtime-source.gpu.kernels",
   "intent": "preserved",
   "scope": "Identical actual F32 queries and stored F16 KV; layer 3 decode of frozen prompt 1 step 1. Operator evidence, not complete model qualification.",
   "contract": {
     "archiveSha256": "14f95c3492b4db049c3083059f1340d02918f835caf4237aad5994227a006ab9",
-    "modelManifestSha256": "43f35f03a92f94ef7113b9f20834620a8d55f5575cfb721d5687e158bf5ad7d0",
+    "modelManifestSha256": "592a00b4612f71fce1db2930fe1c6b246076c43b4d54d0fe0468b220086a1713",
     "shader": "attention_decode_online_f16kv.wgsl",
     "entryPoint": "main",
     "constants": {},
@@ -129,7 +131,7 @@
   "candidate": {
     "version": "0.6.24",
     "archiveSha256": "8906a473297aa298827875e273b26a05c58348debf9ef9cffa21e8f3887de87a",
-    "manifestSha256": "397dcc5fbf1a388a50fddd731cc42515ce1d0217afa3e0d7c50adcbff3c6f141",
+    "manifestSha256": "a9111a8341ec384a5055d0751a091c7b29cabdbada7125ed302d0681a4575a75",
     "qualified": false
   },
   "crossPlatformOutput": {

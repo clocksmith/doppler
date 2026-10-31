@@ -4497,12 +4497,12 @@
   "eos_token_id": 151645,
   "conversion": null,
   "metadata": {
-    "source": "file:///home/x/.cache/huggingface/hub/models--Qwen--Qwen3-Reranker-0.6B/snapshots/e61197ed45024b0ed8a2d74b80b4d909f1255473",
+    "source": "Qwen/Qwen3-Reranker-0.6B@e61197ed45024b0ed8a2d74b80b4d909f1255473",
     "convertedAt": "2026-07-04T18:42:30.449Z",
     "hasTokenizer": true,
     "integrityMigration": {
       "schema": "doppler.standard-blake3-successor/v1",
-      "predecessorManifestIdentity": "sha256:03298342c5f91680864526c1ead2ecaf16ba59307843c84e09842bcb4b9cc7c5",
+      "predecessorManifestIdentity": "sha256:2f900bf5af208079b8664faf796b6fb46f3718cd9a3b320f3f5d47680e97bb38",
       "trustedInventory": "reports/choice-scoring/model-derivation.json (SHA-256 of all shards and tokenizer)",
       "standardBlake3Implementations": [
         "doppler src/storage/blake3.js",

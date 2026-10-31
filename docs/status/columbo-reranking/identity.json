@@ -4,7 +4,7 @@
   "source": "local",
   "model": {
     "id": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
-    "hash": "sha256:c9da235a2ad1d59bff76230a08806c0d9f7dfc468864c22ea3dbfbb20185ba82"
+    "hash": "sha256:c4f8e48b43911307a576cc0bb34bb4c5df17d22f733fc448082daf955043a415"
   },
   "device": {
     "vendor": "apple",
@@ -18,7 +18,7 @@
   "resolution": {
     "schema": "doppler.resolution-identity/v1",
     "logicalModelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
-    "resolvedArtifactVariantId": "sha256:c9da235a2ad1d59bff76230a08806c0d9f7dfc468864c22ea3dbfbb20185ba82",
+    "resolvedArtifactVariantId": "sha256:c4f8e48b43911307a576cc0bb34bb4c5df17d22f733fc448082daf955043a415",
     "resolvedExecutionId": "sha256:dc34fae45fe604ee33bf83727fc9414dd350b87c2cb490fd2ba6d1f47841beb2"
   }
 }

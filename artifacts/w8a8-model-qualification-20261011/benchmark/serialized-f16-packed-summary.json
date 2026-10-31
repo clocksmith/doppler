@@ -1,11 +1,12 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.w8a8-fixed-work-observation/v1",
   "scope": "Unqualified resident fixed-prefix operations; failed model quality prevents promotion or performance-win claim.",
   "report": "serialized-f16-packed.json.gz",
-  "reportUncompressedSha256": "07ba0d5bfd262362a6fc131442c33b833ded05ee143f731966f01807850352cc",
-  "reportCompressedSha256": "ee6f6e6419b385b5f074f3144cd4bc11c0a3144e1810cbad223d900d57a1e4f4",
+  "reportUncompressedSha256": "60c764293914e29f87cd51fcfae3ec1dffef0c8aac8ff1a6ec999c10e3cfc85f",
+  "reportCompressedSha256": "505e0b44a47145e905ba862bf6a4e6c5538c7e154ce5553f958d0ec710f64fbc",
   "localSource": "reports/local/w8a8-qualification-20261011/w8a8-packed-f16-benchmark-03/qualification.json",
   "passedExecution": true,
   "hardware": {
@@ -114,7 +115,7 @@
     {
       "id": "f16",
       "modelDir": "$HOME/deco/doppler/models/local/gemma-3-270m-it-f16-af32",
-      "manifestDigest": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05"
+      "manifestDigest": "sha256:1e69f52e8e4d2b88ceddb6feaa75e718373b3ba18c0c89f2c92173102ab32bbc"
     },
     {
       "id": "w8a8-packed",

@@ -38,7 +38,7 @@ logit rows, layer captures, exact source inventories, configurations, source
 provenance, conversion output, and independent rounding fixtures. It excludes
 model weights, browser profiles, and dependency trees. Archive SHA-256:
 
-`0409071877480eee780cd45ff4f9a729a288ce954dce8334e4eef97854dd26b2`
+`42f1a1250090738927c25a1fcf5b4f28280925021a95988288128d7d58588e0a`
 
 `retained-files.json` records each uncompressed file's length and SHA-256.
 The full model remains in amd-host's task-local state directory. Measurements

@@ -1,6 +1,8 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "kind": "same-device-resident-partition-diagnostic",
-  "modelIdentity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+  "modelIdentity": "sha256:1e69f52e8e4d2b88ceddb6feaa75e718373b3ba18c0c89f2c92173102ab32bbc",
   "planId": "sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
   "generation": {
     "maxTokens": 3,
@@ -183,7 +185,7 @@
       "schema": "doppler.resident-partition/v1",
       "ready": true,
       "modelId": "gemma-3-270m-it-f16-af32",
-      "modelIdentity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+      "modelIdentity": "sha256:1e69f52e8e4d2b88ceddb6feaa75e718373b3ba18c0c89f2c92173102ab32bbc",
       "planId": "sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
       "index": 0,
       "layerRange": [
@@ -197,7 +199,7 @@
       "schema": "doppler.resident-partition/v1",
       "ready": true,
       "modelId": "gemma-3-270m-it-f16-af32",
-      "modelIdentity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+      "modelIdentity": "sha256:1e69f52e8e4d2b88ceddb6feaa75e718373b3ba18c0c89f2c92173102ab32bbc",
       "planId": "sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
       "index": 1,
       "layerRange": [

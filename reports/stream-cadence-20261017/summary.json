@@ -1,4 +1,5 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "component": "doppler.runtime-source.inference.pipelines.text",
@@ -59,7 +60,7 @@
       "run": 0,
       "lane": "baseline",
       "receipt": "0-baseline.log",
-      "sha256": "4122f063692c40f54ee635f37734826875e4e0fa4f5de02119c74ebd8edde2bb",
+      "sha256": "318f0da8e45aaf920ae8957719d5026d3737bbb08f1f93733bd9de820317089a",
       "timing": {
         "modelLoadMs": 1472.6,
         "firstTokenMs": 250,
@@ -82,7 +83,7 @@
       "tokenIdsHash": "sha256:abc60a9b7d433776812c6c71cd8d0fc7abfc92238d6498a55b9456b6ae1051d9",
       "tokenCostLedgerIdentity": {
         "artifactDigest": "sha256:498dfcae99ef2b502908beaefc09459a213819d5a132b7456c81ce53047fad10",
-        "manifestDigest": "sha256:51bcdb65e4dead3992d65546bc3f2405146c7b7ab812181fe94e0ad0d34aef2c",
+        "manifestDigest": "sha256:fa2db46e43a854ddf5c77cf2f64fc843b1af61c87bbe39eed1a12eab39c242de",
         "executionGraphDigest": "sha256:72a319349559eba467a0d3a11defa48821a61b0bdaa8a79d5c56158115a02847",
         "runtimeConfigDigest": "sha256:9868ba754e83bc2b18abdfc65e8cda0632e75bb7302de8bc705f02340f7114a6",
         "kernelSetDigest": "sha256:34b51b66ccb786efbe2b4c69b3a48422f3f4cf3729930ed3ae12f02daa888c50",
@@ -95,7 +96,7 @@
       "run": 1,
       "lane": "candidate",
       "receipt": "1-candidate.log",
-      "sha256": "7ce0daaf6533ad23a2f79af05814006fa2244f353ccfafb7da68a653519d4546",
+      "sha256": "ba0b3353d44fd0aff4a33032e1149e4b9ae7310b752dfa58c4a18b43d8fe54ed",
       "timing": {
         "modelLoadMs": 1461.2,
         "firstTokenMs": 252.4,
@@ -118,7 +119,7 @@
       "tokenIdsHash": "sha256:abc60a9b7d433776812c6c71cd8d0fc7abfc92238d6498a55b9456b6ae1051d9",
       "tokenCostLedgerIdentity": {
         "artifactDigest": "sha256:498dfcae99ef2b502908beaefc09459a213819d5a132b7456c81ce53047fad10",
-        "manifestDigest": "sha256:51bcdb65e4dead3992d65546bc3f2405146c7b7ab812181fe94e0ad0d34aef2c",
+        "manifestDigest": "sha256:fa2db46e43a854ddf5c77cf2f64fc843b1af61c87bbe39eed1a12eab39c242de",
         "executionGraphDigest": "sha256:72a319349559eba467a0d3a11defa48821a61b0bdaa8a79d5c56158115a02847",
         "runtimeConfigDigest": "sha256:2dd41d103b8c3f73bdeb988dbd52d4d97608fa165928833e8a5f1d2ab1a6001f",
         "kernelSetDigest": "sha256:34b51b66ccb786efbe2b4c69b3a48422f3f4cf3729930ed3ae12f02daa888c50",
@@ -131,7 +132,7 @@
       "run": 2,
       "lane": "candidate",
       "receipt": "2-candidate.log",
-      "sha256": "81a7eccb8d64c1c354342e6c564d59b11107989b135757ba066cb2cc443824f5",
+      "sha256": "22c384dd4e4d742155e9e0817bfe2eae627b7dc9cf97e7850f7a5863d7d01b09",
       "timing": {
         "modelLoadMs": 1472.4,
         "firstTokenMs": 268.8,
@@ -154,7 +155,7 @@
       "tokenIdsHash": "sha256:abc60a9b7d433776812c6c71cd8d0fc7abfc92238d6498a55b9456b6ae1051d9",
       "tokenCostLedgerIdentity": {
         "artifactDigest": "sha256:498dfcae99ef2b502908beaefc09459a213819d5a132b7456c81ce53047fad10",
-        "manifestDigest": "sha256:51bcdb65e4dead3992d65546bc3f2405146c7b7ab812181fe94e0ad0d34aef2c",
+        "manifestDigest": "sha256:fa2db46e43a854ddf5c77cf2f64fc843b1af61c87bbe39eed1a12eab39c242de",
         "executionGraphDigest": "sha256:72a319349559eba467a0d3a11defa48821a61b0bdaa8a79d5c56158115a02847",
         "runtimeConfigDigest": "sha256:2dd41d103b8c3f73bdeb988dbd52d4d97608fa165928833e8a5f1d2ab1a6001f",
         "kernelSetDigest": "sha256:34b51b66ccb786efbe2b4c69b3a48422f3f4cf3729930ed3ae12f02daa888c50",
@@ -167,7 +168,7 @@
       "run": 3,
       "lane": "baseline",
       "receipt": "3-baseline.log",
-      "sha256": "9a934082b40accc0668a2e2e9ef89868e2446a8d883e97d318b65d0e57099f88",
+      "sha256": "d806dec8cd30ab15fdd65f6e2b79c79954e4a8e1c25377774b1b62649f31ddb3",
       "timing": {
         "modelLoadMs": 1449.7,
         "firstTokenMs": 337.5,
@@ -190,7 +191,7 @@
       "tokenIdsHash": "sha256:abc60a9b7d433776812c6c71cd8d0fc7abfc92238d6498a55b9456b6ae1051d9",
       "tokenCostLedgerIdentity": {
         "artifactDigest": "sha256:498dfcae99ef2b502908beaefc09459a213819d5a132b7456c81ce53047fad10",
-        "manifestDigest": "sha256:51bcdb65e4dead3992d65546bc3f2405146c7b7ab812181fe94e0ad0d34aef2c",
+        "manifestDigest": "sha256:fa2db46e43a854ddf5c77cf2f64fc843b1af61c87bbe39eed1a12eab39c242de",
         "executionGraphDigest": "sha256:72a319349559eba467a0d3a11defa48821a61b0bdaa8a79d5c56158115a02847",
         "runtimeConfigDigest": "sha256:9868ba754e83bc2b18abdfc65e8cda0632e75bb7302de8bc705f02340f7114a6",
         "kernelSetDigest": "sha256:34b51b66ccb786efbe2b4c69b3a48422f3f4cf3729930ed3ae12f02daa888c50",

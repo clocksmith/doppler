@@ -1,4 +1,5 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "baseCommit": "43787cf7a22ff2b1bb1e666b6bdfa00f713dc8ba",
@@ -291,7 +292,7 @@
     "src/config/forge/conversion-postflight/glimmer-30b-text.json": "58acf2048a841b988128f5052685af0c841791282efea6c7fe255c558e349511",
     "src/config/forge/conversion-preflight/glimmer-30b-text.json": "1cde501f9fb90b1fe370e4c8161fe9ba1953c47a3aed9559364bda02f03cda1f",
     "src/config/forge/forecast/chronos-bolt-tiny.json": "3edd0bcfe90fc68845d91bfc45dc2c90ca5b1e6f061713d27703ba8c3274dc2a",
-    "src/config/forge/lineage/qwen3.8-27b.json": "c1e78a04e10c3ac1633f9c396279b9bee52d235f684cf8cde33e4a9027203c43",
+    "src/config/forge/lineage/qwen3.8-27b.json": "dff0911a96156f2c8b4a0f6c66ceb1ed1aac037c3476bb5863733728480e8937",
     "src/config/forge/lowering-vocabularies/heterogeneous-text-v2.json": "ce928016b336a47f3673ff77a4ab5f682545449ebfddfd09e634b7e4cff517f2",
     "src/config/forge/lowering-vocabularies/hybrid-text-v1.json": "b3d5c8b8fa8485425f8b95f48b6eb51d2c0c8f7c51cfc85b226d5d7c8d74f0e3",
     "src/config/forge/model-onboarding-execution.schema.json": "597cd28795d0ffef0dccb8c9bddc8efc9495d67356bb1e4604e72310ccf8d59c",

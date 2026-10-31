@@ -7,8 +7,8 @@ const root = new URL('./', import.meta.url);
 const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 const read = name => JSON.parse(fs.readFileSync(new URL(`${name}.json`, root)));
 const expected = {
-  'question-policy-after': 'dc8fea752b705ae5e0e476c5ef6352652c5ecb6d153c4efe418326829819ae3b',
-  'holdout-before': '03801057edf3b6732d4156d874c366dc6b1578c95085b9e9cdc6f5f751e1df81',
+  'question-policy-after': 'e57545f7db48a285a35f8c0f74fb101e05fee7ba157d16db7e958702697954f7',
+  'holdout-before': '1cdd2af36428843938028d3a0cb9aa79dfd3fddea651c31e1afeeeed48b664b8',
 };
 for (const [name, digest] of Object.entries(expected)) {
   assert.equal(hash(fs.readFileSync(new URL(`${name}.json`, root))), digest);

@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "archiveSha256": "7449618b1e3cf2b96ec18a2f30aa14ddf56c787ce9b871e535df7a9b107b367a",
   "parentArchiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
   "host": "amd-host",
@@ -12,7 +14,7 @@
   "partition": {
     "kind": "local-partition-numerical-diagnostic",
     "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
-    "manifestHash": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+    "manifestHash": "sha256:27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281",
     "plan": {
       "schema": "doppler.layer-partition-contract/v1",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
@@ -133,8 +135,8 @@
     "artifacts": [
       {
         "filename": "manifest.json",
-        "bytes": 214203,
-        "sha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+        "bytes": 214167,
+        "sha256": "27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281"
       },
       {
         "filename": "tokenizer.json",
@@ -425,7 +427,7 @@
   },
   "resident": {
     "kind": "same-device-resident-partition-diagnostic",
-    "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+    "modelIdentity": "sha256:27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281",
     "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
     "generation": {
       "maxTokens": 3,
@@ -600,7 +602,7 @@
         "schema": "doppler.resident-partition/v1",
         "ready": true,
         "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
-        "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+        "modelIdentity": "sha256:27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281",
         "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
         "index": 0,
         "layerRange": [
@@ -614,7 +616,7 @@
         "schema": "doppler.resident-partition/v1",
         "ready": true,
         "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
-        "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+        "modelIdentity": "sha256:27b7363a12c7448fe6f71d333ba9ee944dc7a789ce357c6b98a2a02c1b44a281",
         "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
         "index": 1,
         "layerRange": [
@@ -651,11 +653,11 @@
   },
   "scope": "Same-device partition mapping and resident lifecycle diagnostic; not independent numerical accuracy, separate-device acceptance, signed Capsule opening, capacity under per-executor budget, or task quality.",
   "logs": {
-    "partition-layers-final.log": "b26c34bdbce595c6ca64e3689115d80343b152891eb2e4f80df86d663dc14f76",
+    "partition-layers-final.log": "8be3c89b572ac8abd2d4ccdac100feb2ff89d183e916644a3c1759146cb79063",
     "partition-layers-fixed.log": "e32901f594a90f5b7bb19a487dd3f58249f812658664bdb25f626099f93b2766",
     "partition-layers-settled.log": "b5d4b61d9b022e1715da9d01b4fd84c26aea02458f7f78347269a81e0449509e",
     "partition-layers.log": "fbdfeb2fa459b44db06f7b047caa216ed202babd6fc8b71a2be93c6b8ef05ba9",
-    "resident-partition-accepted-api.log": "6261c600c3906ed6fefb75a4d8a76a7ff2e0f6c18ed9747607f3ebb2ae25608f",
+    "resident-partition-accepted-api.log": "1c1d74b7121ca5e40acc27996c1142674a18f7932298c547697f380d5ed4ef94",
     "resident-partition-archive-era.log": "0ac1453b2c1a0148e5d22934a42ca871f41f2aa87183b892d53c7efde1aa386c",
     "resident-partition.log": "4c04b5cc84f72551fccc2d9ec27ac625b00fd1904972ba2bc8fc5388624bfd75"
   }

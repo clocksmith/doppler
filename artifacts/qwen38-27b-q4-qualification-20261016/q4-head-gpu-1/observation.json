@@ -1,4 +1,5 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.quantized-generation-observation/v1",
@@ -7,7 +8,7 @@
   "configSha256": "8d24019c74f7a2e22adeb47adfbaf3d06f910288d0998c34f7a5f982910620ef",
   "toolSha256": "83ea5620a7364d3e49cf54873da6624e55bcf23394b8dd758a66a512ac05c1f4",
   "packageVersion": "0.6.30",
-  "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
+  "manifestSha256": "2bc4c15504ec3b89c440d6c7009a9e320f8a7d927da5f37cc0e8c947f1075f59",
   "rows": [
     {
       "position": 4,

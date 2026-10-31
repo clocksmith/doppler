@@ -1,4 +1,5 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.f16-tiled-accumulation-repair/v1",
@@ -563,7 +564,7 @@
     },
     {
       "path": "tiled-candidate-prefixes.json.gz",
-      "uncompressedSha256": "a77cf9b06b16240fd4cc49a69fc305cfedd8ccad6a7cf8721dccf0c7a1364ae5"
+      "uncompressedSha256": "738a335a5db7da801a41a438d91083c009dcda1e8918fcc56f7d9c87287488c9"
     },
     {
       "path": "tiled-candidate-prefixes.log.gz",

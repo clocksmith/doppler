@@ -1,25 +1,27 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "schema": "doppler.numerical-reference-approval/v1",
   "approvedAt": "2026-10-11",
   "decision": "approved-independent-f64-equations",
   "userReply": "Approve this independent numerical contract",
-  "proposalSha256": "138a76cff303746fe73e5307659c0aaca5a6b2c953ac44a8798c58f6ac297210",
+  "proposalSha256": "873317d57d218faf30483b8611b69f118c37f1ce1b139b8cb1548892b9ba8ad0",
   "contracts": [
     {
       "path": "artifacts/whole-model-f64-complete-20261011/request-0-contract.json",
-      "sha256": "ba2a4668d6affb85faf05221d6263a5b29b55d26c8f89a4f107cbacb717599a9",
+      "sha256": "0510eb0aba9ebba1cfd92ec5b8fec0605bb49b03ff1f6a7dc3fc0bdae9e1130e",
       "prefixes": 2,
       "sequenceLength": 20
     },
     {
       "path": "artifacts/whole-model-f64-complete-20261011/request-1-contract.json",
-      "sha256": "3cc051de10f77e945c6a62b66cccb22f0c15e55bf11196c6f71aeda4174ba5a2",
+      "sha256": "2b8658d3480d8300367f377bbb8d6cd7457e7e11e107186a30aad02d3bf94a43",
       "prefixes": 2,
       "sequenceLength": 22
     },
     {
       "path": "artifacts/whole-model-f64-complete-20261011/request-2-contract.json",
-      "sha256": "8b21b154357efa8c9d1c853ffe36c5ce9d9e32e684b496db9031bc59fa6fe836",
+      "sha256": "ce2d69151ab94b6d5e85796b43f8f8e314b73cf9114fc31025fbfe7691e6a421",
       "prefixes": 51,
       "sequenceLength": 234
     }

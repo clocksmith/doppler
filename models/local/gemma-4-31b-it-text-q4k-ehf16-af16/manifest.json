@@ -15708,7 +15708,7 @@
   },
   "conversion": null,
   "metadata": {
-    "source": "file:///home/x/deco/doppler/models/source/huggingface_cache/google--gemma-4-31B-it",
+    "source": "google/gemma-4-31B-it",
     "convertedAt": "2026-04-23T21:50:28.408Z",
     "hasTokenizer": true,
     "integrityRefresh": {

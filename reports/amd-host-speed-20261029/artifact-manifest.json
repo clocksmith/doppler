@@ -1,4 +1,5 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.amd-host-delivery-inventory.v1",
@@ -15,8 +16,8 @@
     },
     {
       "path": "baseline-identity.json",
-      "sha256": "b5f8995427cc27b44946ac0e0403e2338be969adcbe870c160ddcf178118689d",
-      "bytes": 369169
+      "sha256": "e0e29b6307cd9db3ebb6c0d33097ddd4a38a8cc4574f7ae8bcfb306d70a4f7b6",
+      "bytes": 369300
     },
     {
       "path": "capture-baseline.py",
@@ -110,8 +111,8 @@
     },
     {
       "path": "runtime-snapshot.tar.gz",
-      "sha256": "c73da986b70d5bf9af6bd69edf3f011245627fe50d213ea9735904a3cd2660e5",
-      "bytes": 6106305
+      "sha256": "d52ca0e9a1bd9c11107e2c6864cabe3501e2c514750d293b88462f07bc845b74",
+      "bytes": 6106312
     },
     {
       "path": "summarize.py",

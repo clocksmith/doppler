@@ -1,4 +1,5 @@
 {
+  "modelManifestReidentification": "artifacts/private-detail-sanitization-20261030/model-manifest-reidentification-20261031.json",
   "pathSanitized": true,
   "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler-prepared-execution-investigation-v1",
@@ -6,7 +7,7 @@
   "runs": [
     {
       "receipt": "reports/qwen-threshold-snapshot-20261017/3-baseline.log",
-      "sha256": "63eb0b9dd3ac1b40a1f95cddaf1834f0fdf3442ea7b0f4e0c7847ba0c96ae09d",
+      "sha256": "6170d74211327a7f95341ee79448d5111e9546b6533de217b5802c9c96fedb9a",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 2280.3,
@@ -166,7 +167,7 @@
     },
     {
       "receipt": "reports/qwen-threshold-snapshot-20261017/0-baseline.log",
-      "sha256": "b9e73e450b141527de497b01e0fc934dafdcfe5e21972ba92010286d3fb13bdd",
+      "sha256": "7678aa9a43e47d2d5df58039e2080a40220efbb14366be0f44b51fd8803d1af6",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1434.1,
@@ -326,7 +327,7 @@
     },
     {
       "receipt": "reports/qwen-threshold-snapshot-20261017/1-candidate.log",
-      "sha256": "3587ab67ae0fad1bc09360e47eeeba42bf6f2337356a3c6a0058ceb56211106b",
+      "sha256": "dcfe54ea285a451d01cc9436a1245dac0423cb943501d366df409baec3fa5ae1",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 2120.2,
@@ -486,7 +487,7 @@
     },
     {
       "receipt": "reports/qwen-threshold-snapshot-20261017/2-candidate.log",
-      "sha256": "a3df79b684534c1a6bff4806713cac28230fc1acfc2660b39a5e287bb6b67f7e",
+      "sha256": "4da386e899deb65b153d38c5951d166835eaaad8139394d748caf445142478a5",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 2465.8,
@@ -646,7 +647,7 @@
     },
     {
       "receipt": "reports/qwen-threshold-snapshot-20261017/vulkan/3-baseline.log",
-      "sha256": "d795f90b83cec02141ef3c24dfbf6eddc04ce35a7bf9fd606a40f2f1b9bec179",
+      "sha256": "6c96293984a5f0f68aae3448f9859c514afe35784fe98dc055119f945b78ee51",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1811,
@@ -801,7 +802,7 @@
     },
     {
       "receipt": "reports/qwen-threshold-snapshot-20261017/vulkan/0-baseline.log",
-      "sha256": "bf2de1a6c3a55f0fe547e0e8efc22c2d7706dc3a075ab65e49d0e8ee12fa6d3c",
+      "sha256": "ce2d7aa3f950d47b2076eca504b7fc5c896f92e717138e04edc49b02d778047c",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1736.5,
@@ -956,7 +957,7 @@
     },
     {
       "receipt": "reports/qwen-threshold-snapshot-20261017/vulkan/1-candidate.log",
-      "sha256": "48eb553f830b734119164e4bc3f064e3ecb1cfca4dd242d15e2a55c28fb82753",
+      "sha256": "d5e7d67658da0bf3468fe0baaf52ae5772f00ad4e8415fad6a8e5d76ea2982cd",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1864,
@@ -1111,7 +1112,7 @@
     },
     {
       "receipt": "reports/qwen-threshold-snapshot-20261017/vulkan/2-candidate.log",
-      "sha256": "a168a58024a06e67eebb9ea0c2369b319a2d3a8f99c324006b3edf244bc66b9b",
+      "sha256": "fe247404817fbf1ec3bc9a8f4f146b03d445552a938d5240010b8068818974ef",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1776.8,
@@ -1266,7 +1267,7 @@
     },
     {
       "receipt": "reports/qwen-static-rows-20261017/3-baseline.log",
-      "sha256": "2317a873ae9e0e211228d561ed987f365375cadf9cbd9eee649ab89c417d5980",
+      "sha256": "a549c4d87a7be9103fb4d1d96d239bbf4ccaf001acfb2605b31ef9eb9058a36a",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1405.1,
@@ -1426,7 +1427,7 @@
     },
     {
       "receipt": "reports/qwen-static-rows-20261017/candidate-profile.log",
-      "sha256": "ddbfafbbf40dec18e546cf58bc6c1c07c742e03c62f2e77aba5e37a521a88fc0",
+      "sha256": "88077af14de37c915cd4139dfe1466b314fc99d3804deab5ff09a1a5217b10df",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 2315.8,
@@ -1586,7 +1587,7 @@
     },
     {
       "receipt": "reports/qwen-static-rows-20261017/0-baseline.log",
-      "sha256": "4bd627cd8fd100a939efe57c39f5205bfb01679b318b956dfbd3a8e0a99dc1ef",
+      "sha256": "a1616c560f51c536c5d045af79515316e5ce5c33fd5e49bc39bc56af72c6ad4d",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 2104.4,
@@ -1746,7 +1747,7 @@
     },
     {
       "receipt": "reports/qwen-static-rows-20261017/1-candidate.log",
-      "sha256": "214468bc0e92c7ee55519f81e5e10dca1f39674d8509224b05d83586fca29d19",
+      "sha256": "1543a7046ef1c57e39ddb3dbe82fe6f5a30abdfc005c17a7b2407f58c753b9e0",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1349.2,
@@ -1906,7 +1907,7 @@
     },
     {
       "receipt": "reports/qwen-static-rows-20261017/baseline-profile.log",
-      "sha256": "e904cf8f16756d92ebea61619ef6e93813dd7d60f15cd9b54d3033ba484f39b8",
+      "sha256": "bd33cf4776ec293ea3f9be983ad7fec1a9e94264425a534a0596ef037ecd7d7f",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 2235.3,
@@ -2066,7 +2067,7 @@
     },
     {
       "receipt": "reports/qwen-static-rows-20261017/2-candidate.log",
-      "sha256": "1793d732cf837f424403f6f59a966a3006cfec6533e82415be469b419e79d923",
+      "sha256": "255a9200a4db8bf909fa5fece07cd2138908a49ec8599f9d3b8319d785549a3e",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1347.3,
@@ -2226,7 +2227,7 @@
     },
     {
       "receipt": "reports/qwen-direct-block-20261017/3-baseline.log",
-      "sha256": "d194464e690146a856070a5e1164442472203c7dc12fa215234a22fbef1e4be7",
+      "sha256": "b917e576f9dcbbf5fdf10b3d267fc3f54bef89562a39f1ef0be30996c8f84c36",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1957.6,
@@ -2386,7 +2387,7 @@
     },
     {
       "receipt": "reports/qwen-direct-block-20261017/0-baseline.log",
-      "sha256": "e8cb893de694ef248c94f326f9e2bcb430dda13f0e93f12a139a33ef2c2c3291",
+      "sha256": "29804920884c09e674a309558f0221de3695ebb86d98d29a2a4c489264572ab3",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1210.1,
@@ -2546,7 +2547,7 @@
     },
     {
       "receipt": "reports/qwen-direct-block-20261017/1-candidate.log",
-      "sha256": "1b0434a71e2057e94600e3abcd4c2f649872ab09d495da6f056afdccdc0267fb",
+      "sha256": "0f4a5160665580c8dc7f7d118bda6dd887495007000b800c73ede7783f5e0153",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1989.2,
@@ -2706,7 +2707,7 @@
     },
     {
       "receipt": "reports/qwen-direct-block-20261017/2-candidate.log",
-      "sha256": "852aad02756281d740b1d7dba860c61bf56af5f9fe304b0cb4d82beb2fd33e43",
+      "sha256": "717eab9d0828d0d3b5e474302884ef59686226d0bf79236883aa43ef1346d014",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1439.8,
@@ -3186,7 +3187,7 @@
     },
     {
       "receipt": "reports/qwen-final-prefill-20261017/metal-08-3-baseline.log",
-      "sha256": "7a8d188dc52691f72c788e48d08fda3efc5abdfe79b0f8214096fcb5dc20890a",
+      "sha256": "a7d5640805a43d404158cf7f85057c67768a35a7a15aa0c629e18ad2054fe992",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1369.5,
@@ -3506,7 +3507,7 @@
     },
     {
       "receipt": "reports/qwen-final-prefill-20261017/metal-08-1-candidate.log",
-      "sha256": "6e7fccefb385fecf9a3023611972a27487ea96ad618dd0fd72ecef8113ba8726",
+      "sha256": "75ad9c2c76742514b00e99876e7143aa709b1414c7ec2621a54413e8a82b7801",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 2736.4,
@@ -3666,7 +3667,7 @@
     },
     {
       "receipt": "reports/qwen-final-prefill-20261017/metal-08-2-candidate.log",
-      "sha256": "a21d2dcbf546660e8b6446ec137b4d2a3174f05273bb33ddeb298103fbdabdee",
+      "sha256": "26b695104030a4fe8be84dcee3983e20c1a5cc756b8470ee5648f6114a8bf80c",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1525,
@@ -3986,7 +3987,7 @@
     },
     {
       "receipt": "reports/qwen-final-prefill-20261017/metal-08-0-baseline.log",
-      "sha256": "9d3cc06f36c095b376d8d39e3e91e01210bec2ede90d00d7fb11f8aba9193f20",
+      "sha256": "abca19d9f170579d8be263e53767a016b135294442f23ca89710c49609b9cfb5",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 2381.2,
@@ -4301,7 +4302,7 @@
     },
     {
       "receipt": "reports/qwen-final-prefill-20261017/vulkan/final-08-3-baseline.log",
-      "sha256": "99a99084825d3eb9f647a5270b3ab8441b56a92f840b87344e968a5e4a97658f",
+      "sha256": "e2a0c8ad861ea51235dbea07cd2be69f8220c9975f96ed1b2c2b1316690b7b86",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1863.9,
@@ -4921,7 +4922,7 @@
     },
     {
       "receipt": "reports/qwen-final-prefill-20261017/vulkan/final-08-0-baseline.log",
-      "sha256": "0d70607e48805dbebedd491b0e5e86adf7b9b72521f27c21ac2a4a7ae484a6d7",
+      "sha256": "a4fa5cacacfa24ce4a0869ae1f95b1e007a98a8bb353741db9d32987a38377b9",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1783,
@@ -5076,7 +5077,7 @@
     },
     {
       "receipt": "reports/qwen-final-prefill-20261017/vulkan/final-08-1-candidate.log",
-      "sha256": "5555e7350d21a6e2569652f9133512a576febde3b62fc6f42c006053e4a0d3fc",
+      "sha256": "6fa575285865b05dbe735cc15323293ca0d5b18821035cb491242538c8ef77df",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1845.2,
@@ -5231,7 +5232,7 @@
     },
     {
       "receipt": "reports/qwen-final-prefill-20261017/vulkan/final-08-2-candidate.log",
-      "sha256": "6038fe904365a31def85f00131a2d937f59937f456fa8e115a3e40a2814e3a1d",
+      "sha256": "e4ec33b69fe09ac19bbe4d8491651348b4939e9b3e9df34a636266b355c17321",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1909,
@@ -5386,7 +5387,7 @@
     },
     {
       "receipt": "reports/qwen-vector-tile-20261017/3-baseline.log",
-      "sha256": "5bc526fd3dc5c9a3ccfbf517ab1fd9cbae4833fbf6db330f0ef31e102fe9257d",
+      "sha256": "c4506d53f52e2dedfcea9df3b40b6e536937503dab4b74ddb2aecb026cf3a975",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1203.6,
@@ -5546,7 +5547,7 @@
     },
     {
       "receipt": "reports/qwen-vector-tile-20261017/0-baseline.log",
-      "sha256": "33473fdb40b1ea66182ac0f1e27e170e6195a64fc13d4287fe587c04f8cf67a1",
+      "sha256": "7bddf933acf755f89676a7f1d983aa351ba37094d215b0243a15c4ce8a377b9a",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1194.3,
@@ -5706,7 +5707,7 @@
     },
     {
       "receipt": "reports/qwen-vector-tile-20261017/1-candidate.log",
-      "sha256": "176f4b43799754552bb9c86b653283b37f4c31bf2387e4e717f94e6a2389c686",
+      "sha256": "5b275d1afaff88d1ce4debcc00025dd71136ffb0a76866393204e3a96cee7d26",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1329.4,
@@ -5866,7 +5867,7 @@
     },
     {
       "receipt": "reports/qwen-vector-tile-20261017/2-candidate.log",
-      "sha256": "3af20b4f85ec947cb745c99b50bb40dcdb1fb0b0764f09e939752fa9ad058847",
+      "sha256": "96122737fd0e77ef04d0f8a0c84faac1d4183d6b248d4bcfd4fd3fc3dd42f81a",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1221.8,
@@ -6026,7 +6027,7 @@
     },
     {
       "receipt": "reports/qwen-direct-m8-20261017/3-baseline.log",
-      "sha256": "29707187b9f269422a7eb85af234966ba0da75b572f055aeeae0e6367d8ee98d",
+      "sha256": "d383e7de9ee6558601ceedd2bc483222b60bfc83bae755f6acd74e119220d807",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1637.6,
@@ -6186,7 +6187,7 @@
     },
     {
       "receipt": "reports/qwen-direct-m8-20261017/0-baseline.log",
-      "sha256": "41a1ba33b180ea7fcb94246221040e66c1ebc3bf5fd72457c81b95675c2150d6",
+      "sha256": "56bebbbcb48ef1004af83e8ca5278c177bdbaeb3d39cb4f1fa36908bd305f1de",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1399.3,
@@ -6346,7 +6347,7 @@
     },
     {
       "receipt": "reports/qwen-direct-m8-20261017/1-candidate.log",
-      "sha256": "d43ddaa2b5c8ee1a8b0d141ab3780e81dbeb62c8d15759d7df60faefc5aab6a4",
+      "sha256": "9d17ca985bd5eebff417236388450c709ee7c55dd8401cb3d03c6110bd1b09e0",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1804.7,
@@ -6506,7 +6507,7 @@
     },
     {
       "receipt": "reports/qwen-direct-m8-20261017/2-candidate.log",
-      "sha256": "d89e3129bd4a6336f23c971117ff54a6780a876df4c3faa2f1c3b7c90ffd1828",
+      "sha256": "b42f6d9c2d634e5aa0db5441b87220c46062b9bb5a5e41c92ac6a6b1478b4973",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1577.7,
@@ -6826,7 +6827,7 @@
     },
     {
       "receipt": "reports/qwen-registered-prefill-20261017/metal-08.log",
-      "sha256": "bac2fcc38163fbd8443dc628c39164c32661f4425cf6a11584b3d846b9ca94a2",
+      "sha256": "c03c1160ab20fe577d53f15474036c746d3f3d36fe7c845be47cf129ea1d8dd5",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1744.5,
@@ -6986,7 +6987,7 @@
     },
     {
       "receipt": "reports/qwen-prepared-state-20261017/metal-v2-3-baseline.log",
-      "sha256": "4467979d8c32962ea4a5a320c17728eafd919d4647af7c8e82d770c7c5b600f1",
+      "sha256": "2ad0d0ec56f8158b0ba3794750a1b5ed94cb42f52c2ca1eaddee7a7a87a5441f",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1680.2,
@@ -7146,7 +7147,7 @@
     },
     {
       "receipt": "reports/qwen-prepared-state-20261017/metal-3-baseline.log",
-      "sha256": "94128c56625cb783bbc48f576b9efe0e60c270490e059fc767f36d1f02c78e4b",
+      "sha256": "70e40468e51406feb39f1f4bd696ec5754d51e9618b8b7a95d821e9e75591b47",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1685.5,
@@ -7306,7 +7307,7 @@
     },
     {
       "receipt": "reports/qwen-prepared-state-20261017/metal-v2-1-candidate.log",
-      "sha256": "16e7332c1a9e0d33cb29b3e9bd5091a2af7527095bdada29bb7ecaa76af2d906",
+      "sha256": "fd41a6d90cf830f931351a2c35517c12ce16f9a45171776b9311d10181f4df8e",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1692.9,
@@ -7466,7 +7467,7 @@
     },
     {
       "receipt": "reports/qwen-prepared-state-20261017/metal-v2-2-candidate.log",
-      "sha256": "e2e774b64686bfc5261d12ca3f1a6456b4f5516ac4efcb62f3b2816b636a7365",
+      "sha256": "69f0a1c16ffe878889e63c6345728598535a7588ec8945cf6213d8087f44ab30",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1649.8,
@@ -7626,7 +7627,7 @@
     },
     {
       "receipt": "reports/qwen-prepared-state-20261017/metal-0-baseline.log",
-      "sha256": "b9a0d6efddd0971cc3692a4903aecd97a1acec200603899c179b92ac0d6b5767",
+      "sha256": "d792c1bf63678776f932b670c35872866d58f7b3b25d965bf2bc7e4c81fa958e",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1275.2,
@@ -7786,7 +7787,7 @@
     },
     {
       "receipt": "reports/qwen-prepared-state-20261017/metal-1-candidate.log",
-      "sha256": "a3f5b614e5267c76fced48dfdbe912929151359903d8c76c4d7c07e852ad2bfa",
+      "sha256": "a81ceec9003dd6e1a3a8779e3f7d023bb3607b049c7cc6fd08dc62b5dfa5a12c",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1431.8,
@@ -7946,7 +7947,7 @@
     },
     {
       "receipt": "reports/qwen-prepared-state-20261017/metal-2-candidate.log",
-      "sha256": "db2197580efa7ac6286d8813bc9565053c71ce6b6b891659ef95bfd73e905206",
+      "sha256": "262216677de8c500c4a1fbdcde37cd8f493bd3b4a347ff7a3b26d0dfcdcc87b5",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1847.4,
@@ -8106,7 +8107,7 @@
     },
     {
       "receipt": "reports/qwen-prepared-state-20261017/metal-v2-0-baseline.log",
-      "sha256": "4131b8dd7b3fb824c7e31be97e46db4a134a978e66b7e26bf1329f5acfeabc2e",
+      "sha256": "ee9440a0b8ace91bc98ce94b158b820a2483a1e432b2f25acd1082e8d7ccec28",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1794.9,
@@ -8266,7 +8267,7 @@
     },
     {
       "receipt": "reports/qwen-prepared-state-20261017/vulkan/prepared-v2-2-candidate.log",
-      "sha256": "2e0bdcb75e7f4df19f894637f1f5913b64021f080027ca57a631653fcfc6a696",
+      "sha256": "cfb99f7b3191456a1084f619c88252195062848f3fdfda1c12853d1cb63e0a9b",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1872.2,
@@ -8421,7 +8422,7 @@
     },
     {
       "receipt": "reports/qwen-prepared-state-20261017/vulkan/prepared-v3-0-baseline.log",
-      "sha256": "8e8670f1514b417ac82f3e3fafae5957ffb3cee978449ffb461e8676c6bdad63",
+      "sha256": "25569a2ed001ea45593aea30ab7af84232899a8a68abe7bca1a7f426b81c0655",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1765.1,
@@ -8576,7 +8577,7 @@
     },
     {
       "receipt": "reports/qwen-prepared-state-20261017/vulkan/prepared-v2-1-candidate.log",
-      "sha256": "d480886d21b1d3dcd492285f28438bc25c5eb43043a06f477e202e0a7857f03d",
+      "sha256": "608571dd52382408aef894027531fcbebcad8d8aeb7687fc2820c266efbfe951",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1788.9,
@@ -8731,7 +8732,7 @@
     },
     {
       "receipt": "reports/qwen-prepared-state-20261017/vulkan/prepared-v2-0-baseline.log",
-      "sha256": "43e5b3105e6c9b2e87933ff5002f8c25285faf324a021f59c2b98c238b92a5a9",
+      "sha256": "ac72bf3e0dda828199157553802753a0639d11e39b95094adf26c0a81c18fbeb",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1802.9,
@@ -8886,7 +8887,7 @@
     },
     {
       "receipt": "reports/qwen-prepared-state-20261017/vulkan/prepared-v3-1-candidate.log",
-      "sha256": "3dd620a48963e6a363ec31a4796a3ff44d0ad51c020dbd676f32c66170b82517",
+      "sha256": "8617e1a34235241e2493f4a9251489734e27af6c417963b6f0bb4c335455e3d5",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1888.1,
@@ -9041,7 +9042,7 @@
     },
     {
       "receipt": "reports/qwen-prepared-state-20261017/vulkan/prepared-v3-2-candidate.log",
-      "sha256": "0306310305ad66b46d02ce9f81c0a6fb81380dcc2068f32bd6608d1db4d1bcfc",
+      "sha256": "25fe73875ae474a6716a30625c477efa02ae64fea20421e1376bd55d93666b42",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1831.6,
@@ -9196,7 +9197,7 @@
     },
     {
       "receipt": "reports/qwen-prepared-state-20261017/vulkan/prepared-3-baseline.log",
-      "sha256": "a8a32edceac4c16854318928f0f6035c978266627b31491988bf2becc7d48b64",
+      "sha256": "86bbb14ba79b42dd2af3832f36a84df174f9c8c9d6e8b3cc48aec577f039801d",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1875.4,
@@ -9351,7 +9352,7 @@
     },
     {
       "receipt": "reports/qwen-prepared-state-20261017/vulkan/prepared-2-candidate.log",
-      "sha256": "71a7ff01edd691af5f2ec5200c94e06114acb37a12d6509803f349dfdf5eb7f0",
+      "sha256": "22b1c1a00c7f123526867c1927005a6996ce25c914e6e277ba110fd69b10ad45",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1824.2,
@@ -9506,7 +9507,7 @@
     },
     {
       "receipt": "reports/qwen-prepared-state-20261017/vulkan/prepared-1-candidate.log",
-      "sha256": "9bba8767c3aeb0fc9e0ac9655b44fed817c9f33f7092124a9e492a56e1c4cf39",
+      "sha256": "beb3472c1bac04e2bcc02303ef6d952a10f975190bfb05a7af3c87dc04ba7c70",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1796.2,
@@ -9661,7 +9662,7 @@
     },
     {
       "receipt": "reports/qwen-prepared-state-20261017/vulkan/prepared-0-baseline.log",
-      "sha256": "c15ac05b2441dfe5bcdcc4531bbad35d3ebef999f5701df5cf2c2c18f4769be6",
+      "sha256": "c833a1b24b37552a6fab84eb7b5dac48c3850a8cad0c25e0fa04d380a04f3b34",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1778.8,
@@ -9816,7 +9817,7 @@
     },
     {
       "receipt": "reports/qwen-prepared-state-20261017/vulkan/prepared-v3-3-baseline.log",
-      "sha256": "63aed23e9292a3a19de83a3051a0f72a0aa48edbd479fba4acefdf45d46a5940",
+      "sha256": "d17d00fd2a087afdca3efd2e4b68a9f8f755e25d1786caa090a7a978557a694f",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1862.4,
@@ -9971,7 +9972,7 @@
     },
     {
       "receipt": "reports/qwen-prepared-state-20261017/vulkan/prepared-v2-3-baseline.log",
-      "sha256": "40959f431f6f92e376eaeface82e6c96079b677240f4c8780717993d491a8bbf",
+      "sha256": "5336635adaa8d5c1cd9ac380982235359add2a21edd37e72c63562f7d5106125",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1854.5,
@@ -10126,7 +10127,7 @@
     },
     {
       "receipt": "reports/qwen-cpu-profile-20261017/baseline.log",
-      "sha256": "834d38ffb92b8de86f2e990b5995d4fd23c1f3a3a1c29597b348c76305aa1206",
+      "sha256": "a915bc54afbfbc71404892d774d42bf422c422f81506af1f192bb5676c574036",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 2217.7,
@@ -10286,7 +10287,7 @@
     },
     {
       "receipt": "reports/qwen-cpu-profile-20261017/vulkan-prefill.log",
-      "sha256": "0da8461e31ecc65504ec17910690fde067756dca28cc8ef5582b1cfb650d1cc6",
+      "sha256": "65cd77926e3da8fd9887374df4194175432729be52335a42cf9672b061c80aac",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "timing": {
         "modelLoadMs": 1820.7,
