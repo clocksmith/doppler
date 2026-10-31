@@ -17,7 +17,7 @@
     {
       "error": {
         "message": "page.evaluate: NotReadableError: The requested file could not be read, typically due to permission problems that have occurred after a reference to a file was acquired.",
-        "stack": "page.evaluate: NotReadableError: The requested file could not be read, typically due to permission problems that have occurred after a reference to a file was acquired.\n    at /home/x/deco/doppler/tools/check-installed-capabilities.js:126:27"
+        "stack": "page.evaluate: NotReadableError: The requested file could not be read, typically due to permission problems that have occurred after a reference to a file was acquired.\n    at $HOME/deco/doppler/tools/check-installed-capabilities.js:126:27"
       },
       "hardware": {
         "vendor": "amd",

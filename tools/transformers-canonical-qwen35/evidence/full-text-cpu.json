@@ -35,7 +35,7 @@
   },
   "policySha256": "a74fee3c20a63a1466874c1b4fac93f9126a47fb49372fd3a41714f19ba18638",
   "teacher": {
-    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/teacher-f16-01/receipt.json",
+    "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/teacher-f16-01/receipt.json",
     "sha256": "b14207cd0aaa55bb6a428c203e5f3790003743c31257ba031cea994fe86455b7"
   },
   "sourceSha256": {

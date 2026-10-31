@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.release-kernel-digest-audit/v1",
   "sourceCommit": "ded319f63c96b278dceb7090d620610fb759bd30",
   "sourceInitiallyClean": true,
@@ -7,7 +9,7 @@
     "exitCode": 0,
     "testFiles": 798,
     "log": "check-green.log",
-    "sha256": "f22460c8e3b5d39ca040eeec2b7f0e9db5bf82907877482175d7ccac0950e15f",
+    "sha256": "adde7f7bc30c17dae3b10b2aa6e45051680f5dadcc15edbeb8ca6894eae5739c",
     "temporaryDirectory": "/var/tmp/doppler-061-registry-20260912/checks-tmp"
   },
   "registryPackage": {

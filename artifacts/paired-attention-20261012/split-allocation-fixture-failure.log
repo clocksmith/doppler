@@ -7,7 +7,7 @@ AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
 
 0 !== 1
 
-    at file:///Users/xyz/deco/doppler/tests/gpu/paired-split-contract.test.js:34:12 {
+    at file://$HOME/deco/doppler/tests/gpu/paired-split-contract.test.js:34:12 {
   generatedMessage: true,
   code: 'ERR_ASSERTION',
   actual: 0,

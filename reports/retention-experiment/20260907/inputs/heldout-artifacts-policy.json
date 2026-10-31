@@ -4,7 +4,7 @@
   "repository": "Qwen/Qwen3-Reranker-0.6B",
   "revision": "e61197ed45024b0ed8a2d74b80b4d909f1255473",
   "manifestPath": "/var/tmp/doppler-release-20260907-restored-02/retained/node-capsule/distribution/artifacts/model/manifest.json",
-  "sourceDirectory": "/home/x/deco/doppler/reports/electron-adoption/qwen-source-e61197ed",
+  "sourceDirectory": "$HOME/deco/doppler/reports/electron-adoption/qwen-source-e61197ed",
   "input": {
     "query": "How do signed model artifacts help detect corruption during installation?",
     "documents": [

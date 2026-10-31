@@ -19,7 +19,7 @@
       "passed": false,
       "error": {
         "message": "page.evaluate: RangeError: Array buffer allocation failed\n    at new ArrayBuffer (<anonymous>)\n    at new Uint8Array (<anonymous>)\n    at Uint8Array.from (<anonymous>)\n    at http://127.0.0.1:46035/node_modules/doppler-gpu/src/client/runtime/verified-capsule-artifact-store.js:41:66",
-        "stack": "page.evaluate: RangeError: Array buffer allocation failed\n    at new ArrayBuffer (<anonymous>)\n    at new Uint8Array (<anonymous>)\n    at Uint8Array.from (<anonymous>)\n    at http://127.0.0.1:46035/node_modules/doppler-gpu/src/client/runtime/verified-capsule-artifact-store.js:41:66\n    at /home/x/deco/doppler/tools/check-installed-capabilities.js:124:27"
+        "stack": "page.evaluate: RangeError: Array buffer allocation failed\n    at new ArrayBuffer (<anonymous>)\n    at new Uint8Array (<anonymous>)\n    at Uint8Array.from (<anonymous>)\n    at http://127.0.0.1:46035/node_modules/doppler-gpu/src/client/runtime/verified-capsule-artifact-store.js:41:66\n    at $HOME/deco/doppler/tools/check-installed-capabilities.js:124:27"
       },
       "hardware": {
         "vendor": "amd",

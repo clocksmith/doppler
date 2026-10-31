@@ -1,8 +1,8 @@
 # Decision benchmark: issue triage, Linux half (2026-10-22)
 
 The owner asked for a head-to-head benchmark before more packaging work and will choose the
-workload from it. This is the Jupiter (Linux, AMD) half under the pre-registered
-[contract](contract.json); the Mars half (Safari, macOS Chrome and Firefox, Node on M3) uses the
+workload from it. This is the amd-host (Linux, AMD) half under the pre-registered
+[contract](contract.json); the mac-host half (Safari, macOS Chrome and Firefox, Node on M3) uses the
 same harness ([below](#mars-half)). Two comparisons stay separate: (a) runtime parity, the same
 model and weights on Doppler and Transformers.js; (b) product, Doppler with its chosen model
 against the best open alternative.
@@ -156,10 +156,10 @@ these models with these packages.
   binary). The explainer says it is not approved to ship.
 - Laya builds (kevala, @r4ai/laya-web, open-jev-laya) and MediaPipe DecisionMaker were not run.
 
-## Mars half
+## mac-host half
 
 Copy `dist/qual-0632-20261022/` (archive, Capsule, descriptor) and the F16 conversion from
-Jupiter, or rebuild them with the commands in the qualification report. Then:
+amd-host, or rebuild them with the commands in the qualification report. Then:
 
 ```sh
 cd examples/issue-triage/benchmark && npm ci

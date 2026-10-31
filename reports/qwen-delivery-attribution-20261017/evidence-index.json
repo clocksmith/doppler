@@ -46,13 +46,13 @@
   },
   {
     "path": "metal-0-8b-null-seed.json",
-    "bytes": 84044,
-    "sha256": "ee3498d82a90fd344235fa1b96026e2bfdaa9555ac8a8c6e4d21023435cecb19"
+    "bytes": 84039,
+    "sha256": "cebec16e3c21647e4d3af70669efbf08e519b59df4dd1c9c74475c22d20321ae"
   },
   {
     "path": "metal-0-8b-null-seed.log",
-    "bytes": 1108,
-    "sha256": "7433d574f75081a13acd9226c6b908fd201c40633f423d8bf70d49a0c4ccf172"
+    "bytes": 1103,
+    "sha256": "203c9420a41b7b87f96bac6f732bd456eecd885f83f948cb244f436a7c4a879d"
   },
   {
     "path": "metal-0-8b-queue-observed.json",
@@ -66,13 +66,13 @@
   },
   {
     "path": "metal-0-8b-stats-accessor.json",
-    "bytes": 85798,
-    "sha256": "0bea7d9b27c913a61a38f70530685206337f5058a1bc245be055650cfd24c858"
+    "bytes": 85793,
+    "sha256": "e677f84cd3019aa25e41b4e0c4c8cc4b69d4b5136db48d86f0587039fd95ea38"
   },
   {
     "path": "metal-0-8b-stats-accessor.log",
-    "bytes": 348,
-    "sha256": "e1d155eeb8b23d431733b0e76f0cba8e90b6aeeb8849fd952d206a2078dd286c"
+    "bytes": 343,
+    "sha256": "b050d9d9359288951fe8e672b04db02d9e0b38222222aa39c1401e1ba4204f90"
   },
   {
     "path": "metal-0-8b.json",
@@ -121,13 +121,13 @@
   },
   {
     "path": "vulkan-0-8b-stats-accessor.json",
-    "bytes": 90004,
-    "sha256": "1d7f49d9b5852a559d3fa8abef1984c9ffa6e75625a25776edec762da3a64a65"
+    "bytes": 90002,
+    "sha256": "80cdbf69ac0878f64fadcebd405ea1b1973dccbfa35904f9bf139b34352ec1c9"
   },
   {
     "path": "vulkan-0-8b-stats-accessor.log",
-    "bytes": 327,
-    "sha256": "7f0dec3ccbb26acac2cbec01f368ae87848a606731a44f707ffbb1228d04420c"
+    "bytes": 325,
+    "sha256": "e0ec9f047a95fe2c218d29e8b6abd8caa6e00287bb449c7b5911160d64a43e80"
   },
   {
     "path": "vulkan-0-8b.json",

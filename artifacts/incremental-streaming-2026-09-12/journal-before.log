@@ -27,7 +27,7 @@ Running 1 test using 1 worker
       495 |     expect(results[i].reads / results[i - 1].reads).toBeLessThan(2.3);
       496 |   }
       497 | });
-        at /home/x/deco/worktrees/reploid-consumer-streaming/tests/e2e/peer-pack-jobs.spec.js:494:55
+        at $HOME/deco/worktrees/reploid-consumer-streaming/tests/e2e/peer-pack-jobs.spec.js:494:55
 
     attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
     ../../../../../dev/shm/doppler-consumer-streaming-20260912/journal-baseline-test/peer-pack-jobs-journal-del-0c050--approximately-linear-bytes-chromium/test-failed-1.png

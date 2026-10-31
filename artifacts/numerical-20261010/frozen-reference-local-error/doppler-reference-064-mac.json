@@ -61,7 +61,7 @@
     "/runtime/src/gpu/kernels/logit_finalize_f32.wgsl": "b20df676b5813f258a5e32eb11cb34ce4e5c2aafc7e4b1e469c07bb861e7522f",
     "/runtime/src/gpu/kernels/matmul_f16w_f32a_tiled.wgsl": "569971d79c3ea3ae9e632a06befe43bc9d9a1a657ddd53357368fa24b073cd7d"
   },
-  "modelDirectory": "/Users/xyz/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
+  "modelDirectory": "$HOME/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
   "package": {
     "name": "doppler-gpu",
     "version": "0.6.4"

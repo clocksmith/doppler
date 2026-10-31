@@ -75,7 +75,7 @@ binds that local, unpublished renewal to the passing report.
 
 `physical/managed.json.gz` retains the subsequent passing managed-eligibility run.
 Its uncompressed SHA256 is
-`c0a8cb541ee6bd65ec6c2d0d66fb544889a097e3546c44fd62d307de396a75ce`.
+`96a3fb6430f4eed020cdabf0438a973d5c18b9ca99c4e06b648a183d51230e1a`.
 All singleton, whole and unit receipts, output vectors, source vectors, host
 identities and cleanup results are retained. Reploid's real signed-job durability
 acceptance remains a separate gate; this run alone does not qualify network

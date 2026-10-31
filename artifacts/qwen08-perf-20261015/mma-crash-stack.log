@@ -1,11 +1,11 @@
-(lldb) target create "/Users/xyz/.nvm/versions/node/v22.20.0/bin/node"
-Current executable set to '/Users/xyz/.nvm/versions/node/v22.20.0/bin/node' (arm64).
+(lldb) target create "$HOME/.nvm/versions/node/v22.20.0/bin/node"
+Current executable set to '$HOME/.nvm/versions/node/v22.20.0/bin/node' (arm64).
 (lldb) settings set -- target.run-args  "artifacts/qwen08-perf-20261015/mma-probe.js" "mma"
 (lldb) run
 provider imported
 device ready
 compile mma
-Process 84932 launched: '/Users/xyz/.nvm/versions/node/v22.20.0/bin/node' (arm64)
+Process 84932 launched: '$HOME/.nvm/versions/node/v22.20.0/bin/node' (arm64)
 Process 84932 stopped
 * thread #1, queue = 'com.apple.main-thread', stop reason = EXC_BAD_ACCESS (code=1, address=0x4e6f3454094c0a04)
     frame #0: 0x0000000183ae6408 libsystem_pthread.dylib`pthread_mutex_lock + 12

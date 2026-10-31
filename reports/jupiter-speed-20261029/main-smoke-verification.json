@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "ok": true,
   "same64Tokens": true,
   "diagnosticSchemaVersion": 2,
@@ -7,6 +9,6 @@
   "sourceSha256": {
     "src/cli/cli-output.js": "3aa2eda4ac0af5ecaa0ce111a1674fc95212feaa0900d33645ec4dca0b5d6020",
     "src/inference/browser-harness/decode-diagnostics.js": "e5651f0c7faaf6483545cf70681500503aed7aeb6a768b8fe1baad7f1d228303",
-    "src/config/runtime/profiles/qwen-3-5-0-8b-vulkan-throughput.json": "195bdba99d456f47d89be15610a52d11da5fa9b9d258652bac4e7dfeffc24e38"
+    "src/config/runtime/profiles/qwen-3-5-0-8b-vulkan-throughput.json": "7914279d362274a23d0fc00287dc7e5e442d5d4dc9b58dceefcbafd5c24351c1"
   }
 }

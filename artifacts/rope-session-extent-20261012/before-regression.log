@@ -6,7 +6,7 @@ AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
 
   assert.ok(state.ropeFreqsCos.size <= 8 * (ropeConfig.rotaryDim / 2) * 4)
 
-    at file:///Users/xyz/deco/doppler/tests/inference/rope-frequency-cache-contract.test.js:236:10 {
+    at file://$HOME/deco/doppler/tests/inference/rope-frequency-cache-contract.test.js:236:10 {
   generatedMessage: true,
   code: 'ERR_ASSERTION',
   actual: false,

@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /home/x/deco/reploid
+ RUN  v4.1.10 $HOME/deco/reploid
 
  ✓ tests/unit/surface-claim-index.test.js (3 tests) 15ms
  ✓ tests/unit/catscan.test.js (5 tests) 84ms

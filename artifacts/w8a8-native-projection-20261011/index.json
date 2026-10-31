@@ -1,12 +1,14 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "scope": "Offline independently referenced projection export; no new GPU/native/model/performance qualification",
   "packageSha256": "7c240dad4d1ae98e204e9727e687b9bc4379abd758b16af0fd857a99d7adac8d",
   "archive": {
     "path": "projection.tar.gz",
-    "sha256": "128bbc084593483c2f4e4c532f8b118e2c25b68d7f7f1b0dd3ee73adec8911af",
+    "sha256": "8de0cf5c594e3959e949c682b1cb6de308c8ff1811a7a3606d0d6d82d4ef5195",
     "sizeBytes": 51487
   },
-  "manifestSha256": "ec010299625dee594dac5617857e29a4afeee7041d05157f906f611b58843e37",
+  "manifestSha256": "cbaefa19e204c5cc1d02cdee7e4a6fe178e7ae5c95e61e517df3483904354ed1",
   "payloadCount": 17,
   "allPayloadDigestsVerified": true,
   "checks": {

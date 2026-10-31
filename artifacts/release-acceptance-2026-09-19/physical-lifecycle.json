@@ -706,7 +706,7 @@
         "expectedDimension": 1024,
         "cancellation": "after-partial",
         "reference": {
-          "path": "/home/x/deco/doppler/reports/capsule-baseline/20260906/embedding-reference.json",
+          "path": "$HOME/deco/doppler/reports/capsule-baseline/20260906/embedding-reference.json",
           "digest": "sha256:cbee2b44c44a564e3e4f84720ae7216ce6a54e48e39c1581ac94f6079de272ff"
         }
       },
@@ -895,7 +895,7 @@
         },
         "cancellation": "pre-aborted",
         "reference": {
-          "path": "/home/x/deco/doppler/reports/capsule-baseline/20260906/reranker-reference.json",
+          "path": "$HOME/deco/doppler/reports/capsule-baseline/20260906/reranker-reference.json",
           "digest": "sha256:81df00d625d7e8114f82fc4d67f487dde4946b684a809e63376e046a0bc88c4a"
         }
       }
@@ -3688,7 +3688,7 @@
       ],
       "error": {
         "message": "page.evaluate: RangeError: Array buffer allocation failed\n    at new ArrayBuffer (<anonymous>)\n    at new Uint8Array (<anonymous>)\n    at toSha256PaddedBytesFromData (http://127.0.0.1:37135/node_modules/doppler-gpu/src/formats/sha256.js:39:18)\n    at sha256BytesHex (http://127.0.0.1:37135/node_modules/doppler-gpu/src/formats/sha256.js:79:31)\n    at hashBytesSha256 (http://127.0.0.1:37135/node_modules/doppler-gpu/src/formats/canonical-hash.js:62:20)\n    at http://127.0.0.1:37135/node_modules/doppler-gpu/src/client/runtime/verified-capsule-artifact-store.js:48:22",
-        "stack": "page.evaluate: RangeError: Array buffer allocation failed\n    at new ArrayBuffer (<anonymous>)\n    at new Uint8Array (<anonymous>)\n    at toSha256PaddedBytesFromData (http://127.0.0.1:37135/node_modules/doppler-gpu/src/formats/sha256.js:39:18)\n    at sha256BytesHex (http://127.0.0.1:37135/node_modules/doppler-gpu/src/formats/sha256.js:79:31)\n    at hashBytesSha256 (http://127.0.0.1:37135/node_modules/doppler-gpu/src/formats/canonical-hash.js:62:20)\n    at http://127.0.0.1:37135/node_modules/doppler-gpu/src/client/runtime/verified-capsule-artifact-store.js:48:22\n    at /home/x/deco/doppler/tools/check-installed-capabilities.js:117:27"
+        "stack": "page.evaluate: RangeError: Array buffer allocation failed\n    at new ArrayBuffer (<anonymous>)\n    at new Uint8Array (<anonymous>)\n    at toSha256PaddedBytesFromData (http://127.0.0.1:37135/node_modules/doppler-gpu/src/formats/sha256.js:39:18)\n    at sha256BytesHex (http://127.0.0.1:37135/node_modules/doppler-gpu/src/formats/sha256.js:79:31)\n    at hashBytesSha256 (http://127.0.0.1:37135/node_modules/doppler-gpu/src/formats/canonical-hash.js:62:20)\n    at http://127.0.0.1:37135/node_modules/doppler-gpu/src/client/runtime/verified-capsule-artifact-store.js:48:22\n    at $HOME/deco/doppler/tools/check-installed-capabilities.js:117:27"
       }
     },
     {

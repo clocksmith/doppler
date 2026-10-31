@@ -3,7 +3,7 @@ node:internal/modules/run_main:123
     ^
 
 AssertionError [ERR_ASSERTION]: Recurrent state update must consume prepared paired gates.
-    at file:///Users/xyz/deco/doppler/tests/gpu/paired-gate-preparation.test.js:7:1 {
+    at file://$HOME/deco/doppler/tests/gpu/paired-gate-preparation.test.js:7:1 {
   generatedMessage: false,
   code: 'ERR_ASSERTION',
   actual: false,

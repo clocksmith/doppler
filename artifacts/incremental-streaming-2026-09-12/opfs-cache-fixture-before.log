@@ -12,7 +12,7 @@ AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
 
 false !== true
 
-    at file:///home/x/deco/worktrees/doppler-consumer-streaming/tests/integration/opfs-cache-contract.test.js:144:10 {
+    at file://$HOME/deco/worktrees/doppler-consumer-streaming/tests/integration/opfs-cache-contract.test.js:144:10 {
   generatedMessage: true,
   code: 'ERR_ASSERTION',
   actual: false,

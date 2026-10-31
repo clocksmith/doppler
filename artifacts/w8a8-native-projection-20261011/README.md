@@ -5,7 +5,7 @@ This handoff contains synthetic operands for the existing Gemma query shape
 does not establish model accuracy, native Doe execution, or performance.
 
 Download/extract [projection.tar.gz](projection.tar.gz). Its SHA-256 is
-`128bbc084593483c2f4e4c532f8b118e2c25b68d7f7f1b0dd3ee73adec8911af`.
+`8de0cf5c594e3959e949c682b1cb6de308c8ff1811a7a3606d0d6d82d4ef5195`.
 The [index](index.json) records all retained checks and binds the exact installed
 Doppler archive `7c240dad4d1ae98e204e9727e687b9bc4379abd758b16af0fd857a99d7adac8d`.
 All 17 payload hashes were independently rechecked after export. The focused

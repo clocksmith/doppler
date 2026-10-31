@@ -1,7 +1,9 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.quantized-residency-audit/v1",
   "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
-  "observationSha256": "36c854d580bdecd7af798c0866c525521d441fbb264831f8e02ed08f1c3770d8",
+  "observationSha256": "cbca458860bdb6c9c3df66b64538d4ec01b4ec8d802dd704d5e56cc66fc7052a",
   "stages": [
     {
       "stage": "loaded",

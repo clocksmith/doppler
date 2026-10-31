@@ -6,7 +6,7 @@ import { promisify } from 'node:util';
 const root=path.dirname(fileURLToPath(import.meta.url)), execute=promisify(execFile);
 const teachers=JSON.parse(await fs.readFile(path.join(root,'teachers.json'))), out=path.join(root,'gates');
 await fs.mkdir(out);
-const receipt={schema:'doppler.jupiter-untimed-gates.v1',sessions:[],failures:[]};
+const receipt={schema:'doppler.amd-host-untimed-gates.v1',sessions:[],failures:[]};
 for (const teacher of teachers) for (const lane of ['baseline','candidate']) {
   const id=teacher.id+'-'+lane, config=JSON.parse(await fs.readFile(path.join(root,'runs',teacher.id+'-0-'+lane+'-config.json')));
   config.run.browser.userDataDir=path.join(root,'gate-browser-'+lane);config.run.browser.port=19914;

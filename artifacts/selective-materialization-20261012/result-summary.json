@@ -2849,7 +2849,7 @@
   },
   "raw": {
     "machine": "amd-host",
-    "path": "/home/x/deco/doppler/reports/local/selective-materialization-20261012/result.json",
+    "path": "$HOME/deco/doppler/reports/local/selective-materialization-20261012/result.json",
     "bytes": 165270248,
     "sha256": "2bbc5cf5307b7a12dc6277b60ffdb76a06a2227490571c6e6ecf8f1d44d27fd4"
   }

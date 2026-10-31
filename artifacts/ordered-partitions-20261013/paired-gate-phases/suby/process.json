@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "startedAt": "2026-10-13T18:02:18.771Z",
   "controllerPid": 879612,
   "before": [
@@ -17,7 +19,7 @@
   "sourceSha256": "0135bcbcbfe614a9b1379f8e04a74c59ec30d43989ab48da3a82819a57865cbd",
   "reservation": {
     "schema": "doppler.paired-gate-phases-physical-preparation/v1",
-    "id": "suby-gate-phases-20261013",
+    "id": "intel-host-gate-phases-20261013",
     "scope": "Installed native host with exact owned runtime source overlay; independent original paired-linear fixtures, not ordinary package or model qualification",
     "sourceCommit": "eac99b97",
     "baseRuntimeArchiveSha256": "1cb2a5b8b7ebcefd6269b6a065fea0347c6471fe0c044479c78ef5b9f0c096eb",
@@ -2012,10 +2014,10 @@
     "controllerSha256": "d2be1b35267c926868c9ca91135d40c2fce854418c732b94ac70729bfd7b2d93",
     "approved": true,
     "sharedMachineNotes": "Public native297260/browser299769 remain; shared driver cache untouched; functional not timing-isolated benchmark",
-    "approvedBy": "root explicit Suby-only original independent operator control",
+    "approvedBy": "root explicit intel-host-only original independent operator control",
     "approvalRecordedAt": "2026-10-13T18:01:51.777Z",
     "reviewCommit": "480a2a4c",
-    "preflightInventorySha256": "05d7f81f3dd32ab681bfaa5e7107bef7eac373f9e79ec196e2173aa83b11cd30",
+    "preflightInventorySha256": "7b303795960c02566973876006d59418936d9702f5c60327b6d66f556afa8c55",
     "coTenants": {
       "publicNativePid": 297260,
       "publicBrowserControllerPid": 299769,

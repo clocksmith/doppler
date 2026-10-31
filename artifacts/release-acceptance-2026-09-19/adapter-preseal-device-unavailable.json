@@ -161,7 +161,7 @@
   "browserVersion": "146.0.7680.177",
   "error": {
     "message": "page.evaluate: TypeError: Cannot read properties of null (reading 'info')\n    at eval (eval at evaluate (:290:30), <anonymous>:3:17)\n    at async <anonymous>:316:30",
-    "stack": "page.evaluate: TypeError: Cannot read properties of null (reading 'info')\n    at eval (eval at evaluate (:290:30), <anonymous>:3:17)\n    at async <anonymous>:316:30\n    at /home/x/deco/doppler/tools/probe-installed-token-selection.js:40:29"
+    "stack": "page.evaluate: TypeError: Cannot read properties of null (reading 'info')\n    at eval (eval at evaluate (:290:30), <anonymous>:3:17)\n    at async <anonymous>:316:30\n    at $HOME/deco/doppler/tools/probe-installed-token-selection.js:40:29"
   },
   "cleanupErrors": []
 }

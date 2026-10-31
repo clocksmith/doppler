@@ -1,15 +1,17 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.tuning-delivery.v1",
   "files": [
     {
       "path": "README.md",
-      "bytes": 7061,
-      "sha256": "64027c45573fc039eeb06dca19fe528d98ef772f1cbf5b4f1b81836325a0d6c5"
+      "bytes": 7063,
+      "sha256": "c5194432bfafef268b548060ca3fa7eeb21186fb456644b191b070e5285c9c3f"
     },
     {
       "path": "archive-verification.json",
-      "bytes": 837,
-      "sha256": "60e68c0ed5b8ff2fa30e4434c60177f14d3d7f6389edf491b3b339aeb4e145cb"
+      "bytes": 948,
+      "sha256": "26df8cc45b013eedc9d8dc36e66279338b1344657f9c9d60aec6c912004150b1"
     },
     {
       "path": "commit-binding.json",
@@ -38,33 +40,33 @@
     },
     {
       "path": "evidence/raw-logits-00.tar.xz",
-      "bytes": 51853700,
-      "sha256": "10c442083839da079d073e1a33597eb637ff129bc062d922b51ee340f241e588"
+      "bytes": 51852484,
+      "sha256": "015f67c885bd1edc5f1d05c8b294f0a7b5d85f399ee4bba29c695363f0ec4115"
     },
     {
       "path": "evidence/raw-logits-01.tar.xz",
-      "bytes": 59537860,
-      "sha256": "b9c4a2f970ec1a155036838d319fa2ffe53ccd98550b37b7444e5ccfba2e623b"
+      "bytes": 59517820,
+      "sha256": "f56de6fdfccb867e98b7b3a828cf1d36489b0d968ae6b78d5b76258a03c211e1"
     },
     {
       "path": "evidence/raw-logits-02.tar.xz",
-      "bytes": 59262824,
-      "sha256": "9888f761d6929aba654e6bcddeb9ceb3c362bb8b9b05b62a967da6bd4d2fd172"
+      "bytes": 59231508,
+      "sha256": "2a9fe3ba035e355077116e5d771a57d0b41f36f6518b8526ff9de8345b4b2ef5"
     },
     {
       "path": "evidence/raw-logits-03.tar.xz",
-      "bytes": 59366880,
-      "sha256": "57c520f5455b4f6775772b949f2922a0df9e8bbd3f9e79a50274d1668eaf21df"
+      "bytes": 59444436,
+      "sha256": "6bac0a9419d5900472e03ada4fcc880df23ea0c118f4afb5baedb04700775838"
     },
     {
       "path": "evidence/raw-manifest.json",
-      "bytes": 164169,
-      "sha256": "c7fd255ca5025ae9dbd44a67a5fb0104b1f6fbd4ef09daaa43ad4506b33dd239"
+      "bytes": 164280,
+      "sha256": "f993fc64ebccc300fd8af30449edeeedd923409474b61017885d2bb54979b6a4"
     },
     {
       "path": "evidence/raw-runs.tar.xz",
-      "bytes": 3484204,
-      "sha256": "d940ba24264c87703a0c5067379fa556ece9a5b1b460ab6a5ad7a036a462a9e5"
+      "bytes": 3501768,
+      "sha256": "f216ae6ea4af806b3a559a2234049414d2fefe7d68e90f25583a0b708c7c0c8b"
     },
     {
       "path": "final-validation-00.log",
@@ -138,8 +140,8 @@
     },
     {
       "path": "handoff.json",
-      "bytes": 1078,
-      "sha256": "e8a134c10cd7baf1e2a08754eef052bb04f77ddf87e65814e8eefa7de2014524"
+      "bytes": 1079,
+      "sha256": "ead20956daf0d84e293b152762692ed2f7652eafb15cc1b6de81291fe577cb77"
     },
     {
       "path": "overlap-exclusion.json",
@@ -158,13 +160,13 @@
     },
     {
       "path": "product-register-summary.json",
-      "bytes": 24205,
-      "sha256": "786022c4c852dfa5ca449614c8fda81db27f1f067a0ab07568ac91b92368bf49"
+      "bytes": 24317,
+      "sha256": "1c44f82196270d0a488fbd48a7bc722017f39a52718b973fff33789e39bc555d"
     },
     {
       "path": "product-repeat-config.json",
-      "bytes": 2485,
-      "sha256": "3ff23df86631cc70ea1a0b9def84ba8ffb495824b6f56aa0e30540e9fd58c543"
+      "bytes": 2482,
+      "sha256": "e41c49b11cd80e1070fd4c2beb27bad187259cc3bde7a6a676ce906d71bdd43c"
     },
     {
       "path": "product-repeat-contract.json",
@@ -173,13 +175,13 @@
     },
     {
       "path": "product-repeat.js",
-      "bytes": 7718,
-      "sha256": "a1f49a34f7bfa08f443aa73f5c0b6c3bd553447df1dab5c90842ca9e384ce6f0"
+      "bytes": 7714,
+      "sha256": "5428c5c6a7036b7884c9474461df2723a38d9fdb336f4425e3e7b49a375a43cc"
     },
     {
       "path": "product-summary.json",
-      "bytes": 24359,
-      "sha256": "aab04dd6f98a76ed486630b9ad9280068c3021c7cce7e0bd624670776919480a"
+      "bytes": 24471,
+      "sha256": "65ca57f1daf5e8d47392fff4d8a73c022585d68c64e4594ed5cdd20b39f6e6ec"
     },
     {
       "path": "screen.js",
@@ -188,38 +190,38 @@
     },
     {
       "path": "source-delivery-delta.tar.gz",
-      "bytes": 451033,
-      "sha256": "1fa6a268947e5369b3a3e4782971c88f7d98fdccf9eaaf08814abdfa60d2debe"
+      "bytes": 451006,
+      "sha256": "a7214fd3acfe0ba3b58e219ab7434f77b4468931e1ca99975c5917f8192dad84"
     },
     {
       "path": "source-delivery-identity.json",
-      "bytes": 14600,
-      "sha256": "6bcfa94464fb8e7b2c55729a594aa9a1f0924b6d09f9658251f8ff1246c33b2c"
+      "bytes": 14711,
+      "sha256": "8ab99cc86675174ee28bf5b12031a79f70bc013e30ccfdc2af6ae22fd5843143"
     },
     {
       "path": "source-final-delta.tar.gz",
-      "bytes": 396686,
-      "sha256": "3b487678790c6592b58f30eb7e7785ad8931262be984c6b9f5f11ec49384f625"
+      "bytes": 396665,
+      "sha256": "c2433faaf82fb07e4db3e81bd0203fdf2f7bff77121b18b2f002601a4a99563d"
     },
     {
       "path": "source-final-identity.json",
-      "bytes": 13330,
-      "sha256": "4e388b32aa1804e4debd7a217c944611b7d37fb6c194a49e3262d2671e62b5db"
+      "bytes": 13441,
+      "sha256": "90a27cad6ef9a84d944be240f51d0fbc0249c332667fb0aebdec3f2aca45fd4b"
     },
     {
       "path": "source-register-delta.tar.gz",
-      "bytes": 412301,
-      "sha256": "2010f21db380ee829e6f3c3389038cfab651b63153b29475dfa153347149088c"
+      "bytes": 412278,
+      "sha256": "ecd8387dea1b7e08b1639a61b0747d9dd4ebd1759d1b68a2c1782fe9bb99d681"
     },
     {
       "path": "source-register-identity.json",
-      "bytes": 13901,
-      "sha256": "0138de177eb1f62c1aeda734d9b78475c1adeacd4e4cafe7fbc1a5b3841c1370"
+      "bytes": 14012,
+      "sha256": "ba170cfe13f680731e7691b082e4ea0c3db8086b320b053a39df29542e2fc6be"
     },
     {
       "path": "summarize-product.py",
-      "bytes": 4461,
-      "sha256": "04d6df3a458ffb6b29548be912107e6efeb0ed26c61d3a80c9fe0f5f28890a7f"
+      "bytes": 4462,
+      "sha256": "bfe78935c9be5012da905c829216a7d1408d27fe626ebacb31546f115515cb77"
     },
     {
       "path": "task-source-paths.json",
@@ -293,8 +295,8 @@
     },
     {
       "path": "validation-12.log",
-      "bytes": 454,
-      "sha256": "46b27d95490ff304c7b28d3ec08fa2f74074e49c0e35364583ac0ea2c7fc7d80"
+      "bytes": 449,
+      "sha256": "cb15a90a509a358c0d1a3d279c0a0b967d75d687ced3c4f100180eaf06f6a31a"
     },
     {
       "path": "validation-13.log",

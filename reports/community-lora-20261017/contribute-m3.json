@@ -1,5 +1,5 @@
 {
-  "modelUrl": "file:///Users/xyz/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
+  "modelUrl": "file://$HOME/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
   "trainer": {
     "rank": 2,
     "alpha": 4,
@@ -21,7 +21,7 @@
     }
   },
   "action": "contribute",
-  "roundPath": "/Users/xyz/deco/doppler/reports/community-lora-20261017/round.json",
+  "roundPath": "$HOME/deco/doppler/reports/community-lora-20261017/round.json",
   "participantId": "m3",
   "sample": {
     "inputIds": [
@@ -36,5 +36,5 @@
     ],
     "supervisedTokenCount": 3
   },
-  "outputPath": "/Users/xyz/deco/doppler/reports/community-lora-20261017/contribution-m3.json"
+  "outputPath": "$HOME/deco/doppler/reports/community-lora-20261017/contribution-m3.json"
 }

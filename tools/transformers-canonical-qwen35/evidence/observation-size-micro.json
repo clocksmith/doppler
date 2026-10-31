@@ -50,19 +50,19 @@
     "fixturesSha256": "e867cb9fb7c2630890ab24de6a6abd00e2883de8ae884f51efc8377fb75ba07f",
     "files": [
       {
-        "path": "/home/x/deco/doppler/tools/transformers-canonical-qwen35/probe_readback_size.js",
+        "path": "$HOME/deco/doppler/tools/transformers-canonical-qwen35/probe_readback_size.js",
         "sha256": "e9450939e9627913dbceb2d9c5f703b5eda474ff83784974b05f5d3398aed4f6"
       },
       {
-        "path": "/home/x/deco/doppler/tools/transformers-canonical-qwen35/observe_gpu.js",
+        "path": "$HOME/deco/doppler/tools/transformers-canonical-qwen35/observe_gpu.js",
         "sha256": "901f4f9cc03c929f5a26b37a835ae379d7e16d76330e4edd3632c62d04d95ece"
       },
       {
-        "path": "/home/x/deco/doe/bench/out/external-projects/doppler/upstream/node_modules/@huggingface/transformers/node_modules/onnxruntime-web/dist/ort.webgpu.min.mjs",
+        "path": "$HOME/deco/doe/bench/out/external-projects/doppler/upstream/node_modules/@huggingface/transformers/node_modules/onnxruntime-web/dist/ort.webgpu.min.mjs",
         "sha256": "25e7e706b8165f2096b5e29853dda64e9b1f09bdf29b4384f8d0afa9fb6db22d"
       },
       {
-        "path": "/home/x/deco/doe/bench/out/external-projects/doppler/upstream/node_modules/@huggingface/transformers/node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.jsep.wasm",
+        "path": "$HOME/deco/doe/bench/out/external-projects/doppler/upstream/node_modules/@huggingface/transformers/node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.jsep.wasm",
         "sha256": "ae61141f8fbf0a4e43fd7b4f4d40a1a115627f6facc4f33ddf84074a655e33ea"
       }
     ]

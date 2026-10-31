@@ -7,7 +7,7 @@ import {createHash} from 'node:crypto';
 const exec = promisify(execFile);
 const root=path.dirname(fileURLToPath(import.meta.url));
 const suite=JSON.parse(await fs.readFile(path.join(root,'product-repeat-contract.json')));
-const pooledRoot='/home/x/deco/hatch/pooled-doppler-components-20261029/_work/pooled-runtime',dopplerRoot=path.join(root,'runtime-accepted');
+const pooledRoot='$HOME/deco/hatch/pooled-doppler-components-20261029/_work/pooled-runtime',dopplerRoot=path.join(root,'runtime-accepted');
 const evidence=path.join(root,'product-repeat');await fs.mkdir(evidence);
 const {chromium}=await import(pathToFileURL(path.join(pooledRoot,'node_modules/playwright/index.mjs')));
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -16,7 +16,7 @@ const save=(name,value)=>fs.writeFile(path.join(evidence,name),typeof value==='s
 const rendered=prompt=>`<|im_start|>user\n${prompt}<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n`;
 async function pooled(prompt,id){
  const port=8796, logs=[],errors=[];
- const server=spawn(process.execPath,[path.join(pooledRoot,'tests/bench/serve.mjs'),pooledRoot,String(port)],{cwd:pooledRoot,env:{...process.env,WEIGHT_CACHE:'/home/x/deco/hatch/pooled-doppler-components-20261029/_work/pooled-weight-cache'},stdio:['ignore','pipe','pipe']});
+ const server=spawn(process.execPath,[path.join(pooledRoot,'tests/bench/serve.mjs'),pooledRoot,String(port)],{cwd:pooledRoot,env:{...process.env,WEIGHT_CACHE:'$HOME/deco/hatch/pooled-doppler-components-20261029/_work/pooled-weight-cache'},stdio:['ignore','pipe','pipe']});
  server.stdout.on('data',b=>logs.push(b.toString()));server.stderr.on('data',b=>logs.push(b.toString()));
  let context;
  try{

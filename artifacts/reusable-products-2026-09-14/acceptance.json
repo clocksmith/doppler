@@ -32,7 +32,7 @@
     "url": "https://github.com/clocksmith/doppler/actions/runs/34897549251/artifacts/10369517086",
     "zipSha256": "dcb47264d0e8bd2a927209492b50d7dcfca7c85a474c32fddc12a5018442cb32"
   },
-  "localDurableArchiveDirectory": "/home/x/deco/releases/doppler-0.6.2-candidate",
+  "localDurableArchiveDirectory": "$HOME/deco/releases/doppler-0.6.2-candidate",
   "publishedRuntime": {
     "version": "0.6.1",
     "sha256": "96d2699a3e677815890f804459c023bea4fb2e2a1a59d157b5b6a04c9e573d5f"

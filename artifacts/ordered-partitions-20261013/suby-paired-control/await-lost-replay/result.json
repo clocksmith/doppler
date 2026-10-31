@@ -1,5 +1,7 @@
 {
-  "schema": "doppler.suby-paired-cast-control/v1",
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
+  "schema": "doppler.intel-host-paired-cast-control/v1",
   "pid": 779692,
   "startedAt": "2026-10-13T15:41:26.879Z",
   "operationDeadlineMs": 300000,
@@ -278,7 +280,7 @@
     }
   ],
   "installedFilesVerified": 1976,
-  "sourceHash": "b6c0a7f6a190d10513627aa0bec45993218519aeea2a046289dbca6d0b3fe8d1",
+  "sourceHash": "f1508bf45966242ea04cc4d40225582232005e32b6ca2d7b32de45bdb418900a",
   "completedRows": [
     {
       "operation": "expand",

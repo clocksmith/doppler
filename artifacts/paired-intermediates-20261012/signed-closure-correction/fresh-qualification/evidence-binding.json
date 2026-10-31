@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.native-resident-qualification-evidence/v1",
   "archiveSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
   "producer": {
@@ -10,7 +12,7 @@
     {
       "direction": 0,
       "producerExitCode": 0,
-      "configSha256": "8485647aa917561e6f509431b7f39231a0322f9892f80289e8a7d57eeece0edb",
+      "configSha256": "a3ce02e5d51a00570d8fae30902e8443567e6f7b816c540f1a9257e9c17735a3",
       "rawCaptureSha256": "sha256:83c316d4cfc494bd704e9f7d0526d471f782d3d9d288321beb613a5fe9b61eff",
       "retainedCapture": {
         "repository": "reploid",
@@ -35,7 +37,7 @@
     {
       "direction": 1,
       "producerExitCode": 0,
-      "configSha256": "467a1c97c416790ce6aaf78beed7b72f8971ff2bfca628e240178904a091d5ea",
+      "configSha256": "21dafcdd140fc24a148fe7368b62b37f674d6d445ded3090dbcfb11fb06b9c31",
       "rawCaptureSha256": "sha256:f912134b03f2d57b22ce5f7947d7ec85d250d8bd5754938cf3990bd11fd84563",
       "retainedCapture": {
         "repository": "reploid",

@@ -54,7 +54,7 @@
   "limits": [
     "No fresh full-35B receipt produced by this patch",
     "No equal-weight engine timing or speed win established",
-    "Jupiter GPU owned by a separate active 35B product-pairs run; no competing GPU run started",
+    "amd-host GPU owned by a separate active 35B product-pairs run; no competing GPU run started",
     "Loader and conversion-config changes in the shared checkout belong to another session and are excluded"
   ]
 }

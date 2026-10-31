@@ -9,5 +9,5 @@ Installed standalone Node provider smoke passed (synthetic; Doe absent).
 package training API smoke passed
 installed public imports preserve minimal runtime authority
 Error: Installed runtime closure differs from checked receipt.
-    at runPartitionApiSmoke (file:///Users/xyz/deco/doppler/tools/check-packed-package.js:378:67)
-    at async main (file:///Users/xyz/deco/doppler/tools/check-packed-package.js:529:5)
+    at runPartitionApiSmoke (file://$HOME/deco/doppler/tools/check-packed-package.js:378:67)
+    at async main (file://$HOME/deco/doppler/tools/check-packed-package.js:529:5)

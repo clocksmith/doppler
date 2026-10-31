@@ -9656,7 +9656,7 @@
   "headAndEmbedding": "separate canonical byte identities, separate session initializers",
   "pass": true,
   "fullReceipt": {
-    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/initializer-binding.json",
+    "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/initializer-binding.json",
     "sha256": "9d7cd0179d4c3a6f3cf39388c96bb3c9922c08c160c93a659641439187c38a26"
   },
   "graphInventories": {

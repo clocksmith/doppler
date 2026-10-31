@@ -3,12 +3,12 @@ source architecture check passed: 21 owners, 2805 files, 0 governed oversize fil
 [node-tests] script: source:style:check
 [source:style:check] 1063 governed JavaScript modules have sibling declarations, 227 reviewed numeric candidate(s), no runtime tensor compute, implementation annotations limited to checked strict roots, no undeclared raw console calls, and no banned geometry inference
 [node-tests] script: source:dependencies:check
-file:///home/x/deco/doppler/tools/report-source-dependencies.js:68
+file://$HOME/deco/doppler/tools/report-source-dependencies.js:68
     throw new Error('Dependency views are stale. Run node tools/report-source-dependencies.js --write.');
           ^
 
 Error: Dependency views are stale. Run node tools/report-source-dependencies.js --write.
-    at file:///home/x/deco/doppler/tools/report-source-dependencies.js:68:11
+    at file://$HOME/deco/doppler/tools/report-source-dependencies.js:68:11
 
 Node.js v22.22.1
 [node-tests] source:dependencies:check failed: exit 1
@@ -34,13 +34,13 @@ package source closure check passed (931 runtime JS, 471 declarations, 464 resou
 [node-tests] script: api:docs:check
 [api-docs] up to date (docs/api/reference/exports.md)
 [node-tests] script: demo:shell:check
-file:///home/x/deco/doppler/tools/generate-demo-shell-manifest.js:212
+file://$HOME/deco/doppler/tools/generate-demo-shell-manifest.js:212
     throw new Error(`Demo shell module budget exceeded: ${moduleCount} > ${MAX_MODULES}`);
           ^
 
 Error: Demo shell module budget exceeded: 701 > 700
-    at main (file:///home/x/deco/doppler/tools/generate-demo-shell-manifest.js:212:11)
-    at async file:///home/x/deco/doppler/tools/generate-demo-shell-manifest.js:245:1
+    at main (file://$HOME/deco/doppler/tools/generate-demo-shell-manifest.js:212:11)
+    at async file://$HOME/deco/doppler/tools/generate-demo-shell-manifest.js:245:1
 
 Node.js v22.22.1
 [node-tests] demo:shell:check failed: exit 1

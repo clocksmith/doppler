@@ -8,15 +8,15 @@
   "previousCandidatePreserved": true,
   "qualificationReports": [
     {
-      "path": "/Users/xyz/deco/reploid/artifacts/completion-qualification-2-20261013/reports/partition-0.json",
+      "path": "$HOME/deco/reploid/artifacts/completion-qualification-2-20261013/reports/partition-0.json",
       "sha256": "d70789b8cd8cbefb59c529b1329515b9a94d0874c755908203f814bb8b935d2d"
     },
     {
-      "path": "/Users/xyz/deco/reploid/artifacts/completion-qualification-2-20261013/reports/partition-1.json",
+      "path": "$HOME/deco/reploid/artifacts/completion-qualification-2-20261013/reports/partition-1.json",
       "sha256": "a824db8febc94159a8812a089876770ff45395b06272fa1832ca9af09bdba3e4"
     },
     {
-      "path": "/Users/xyz/deco/reploid/artifacts/completion-qualification-2-20261013/reports/partition-2.json",
+      "path": "$HOME/deco/reploid/artifacts/completion-qualification-2-20261013/reports/partition-2.json",
       "sha256": "ced77381c7c81e8b611fe5805087d2c6e13d4841414449301eb7e0f60404edd1"
     }
   ],

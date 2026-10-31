@@ -1,6 +1,6 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { bootstrapNativeTrainingHost, releaseNativeTrainingHost, loadNativeQwenTrainingPipeline, createNativeQwenLoRATrainer } from 'doppler-gpu/training';
-const root='/Users/xyz/deco/doppler/reports/community-lora-20261017';
+const root='$HOME/deco/doppler/reports/community-lora-20261017';
 const read=async (name)=>JSON.parse(await readFile(root+'/'+name,'utf8'));
 const config=await read('apply.json'), round=(await read('round.json')).result;
 await bootstrapNativeTrainingHost(); let loaded, trainer;

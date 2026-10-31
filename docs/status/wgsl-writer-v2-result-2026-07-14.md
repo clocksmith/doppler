@@ -69,7 +69,7 @@ similarity passed. The selected adapter's full completion was exact.
 Canonical lightweight evidence:
 
 - Terminal result JSON: SHA-256
-  `8994172a5f725e9eb830573bafa9a03a2cb195922bbab6cd8e21ab2e913bd5fc`;
+  `3455906a879e5b4fec9e31f3f42185f3a0cd4df32d141380cd7a52880ef009a6`;
   internal receipt hash
   `63e39007971d75835bace7608fbe92079b2a696bec25bf4c5844f126714835bc`.
 - Seed-selection receipt: SHA-256

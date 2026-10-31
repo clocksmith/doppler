@@ -1,10 +1,12 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "scope": "Only prefill layer15 independent same-input attention replaced, real GPU downstream; not qualification",
   "qualified": false,
   "copyControlExact": true,
   "parentSha256": "4d5c8bfd8a442d5a7ba8a5113c86b2946f578819bfae84922a81842bd697d030",
-  "controlSha256": "640f6ba20a4b1b20a5e396738673ecffd04ee361a1632e450ca2f2035b374dfb",
-  "interventionSha256": "4ab75ad1303fdc4cb193f1bfa9cf56a17e2da900c939977e701616fa75b69b21",
+  "controlSha256": "7531dc3f788a7c912b7aac850d1f6cff6af75ea447cb6594e240e0013174d833",
+  "interventionSha256": "40a615cae377ce7d12bd39b81684e93503a7e19385560a37b43336850d2e3073",
   "approvalSha256": "065a6f065e551995743d183151b500a68761b15f612497b7933551f6c4ae2fb5",
   "rows": [
     {

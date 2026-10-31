@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "scope": "Installed synthetic package acceptance; no model, performance or standard release promotion.",
   "bundle": "/var/tmp/doppler-w8-installed-cancel-settled-20261011",
   "packageSha256": "47d7d18fb51a0852b6b0c35b0590e306b460c743eefe2d36b6615839c8651edc",
@@ -9,9 +11,9 @@
       "compressedSha256": "eab4236bdabac289e78969abc80fa7dbc5074048869ba6bcc66649fdd5458918"
     },
     "cancel-settled-installed-commands.json.gz": {
-      "uncompressedSha256": "5e13e664cee3371d2d4164cd31601675daf1725bf6d1ce7dcc854d80f4ad48db",
+      "uncompressedSha256": "40bd6520fdea72bf15e0564b8b35c4d274f6272a3e50306d659d926e8be2895f",
       "uncompressedBytes": 270787,
-      "compressedSha256": "91f7b54ea7af791339fa9b25f17924ab7b7b4d035bcac1c3b34842b3d03356a3"
+      "compressedSha256": "bf82b642c1f97d59b7564fea2bf1f5c1ae54040a76f85ed5b2e79490d05dd42d"
     },
     "cancel-settled-installed-source-state.json.gz": {
       "uncompressedSha256": "924c3bc7bcf86470c2e7870e2e9beca1ceb2c24e1555e89e3c48c2fc267a40e8",

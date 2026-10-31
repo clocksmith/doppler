@@ -33,7 +33,7 @@
     "budgetPerExecutor": 1420000000
   },
   "observedPolicy": {
-    "path": "/Users/xyz/deco/reploid/artifacts/sigmoid-three-stage-physical-20261013/mac-load-preflight.json",
+    "path": "$HOME/deco/reploid/artifacts/sigmoid-three-stage-physical-20261013/mac-load-preflight.json",
     "sha256": "cd8bd39a8f55bdef5fbdeb9f5c4260489d1a5259cefa669a7b24e6736dcdf7f5",
     "prefillTokenChunkSize": 256,
     "prefillChunkLayers": 1,

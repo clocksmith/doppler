@@ -16,8 +16,8 @@
   },
   {
     "path": "demo-contract.log",
-    "sha256": "fde392520ef9f25102621b650ee54163e631c25b02ea2cb9bca4031994be4acf",
-    "bytes": 556
+    "sha256": "582e912011e6fc33ebd10d3eb9ae62fac6f9a35fce2df6dbc75ab0cf8371ff58",
+    "bytes": 550
   },
   {
     "path": "demo-control-drift.json",
@@ -31,17 +31,17 @@
   },
   {
     "path": "gates-initial.log.gz",
-    "sha256": "1ebd2a64fb279d26059e27570b33d406231c7a9d3ba352bcfbcb403b416326ab",
-    "bytes": 1320
+    "sha256": "bc7811a77aa3e6356311b2a696006b63aa2b25fbaf1606d792e22da773a39b8f",
+    "bytes": 1321
   },
   {
     "path": "gpu-command-correction.log",
-    "sha256": "62d8ca7796ce0e3cfe66cefda1a9ea375e88b830347121287d7bba2617ddcf58",
-    "bytes": 73
+    "sha256": "9adf0e41662ef5a0e8560428930065d22f57d89dc5b68415b6a17bf0f343beb8",
+    "bytes": 71
   },
   {
     "path": "installed-package-commands.json.gz",
-    "sha256": "1a0be466c1ee56a8121573246073e2a6b77ea935ee3868f25acbab13642c4365",
+    "sha256": "7bcf9bca66fd9d411e48c3d46c2c85dd20225c2a715cf52e495801a6823387aa",
     "bytes": 22930
   },
   {
@@ -66,18 +66,18 @@
   },
   {
     "path": "package-closure-initial.log",
-    "sha256": "b98fd351819673a2aafd2b605a8a17ec73f9ee5fbda7c7726097824122a3f182",
-    "bytes": 857
+    "sha256": "e896381a4ddc4d4e876918aff5bea09f54733da90561d21f15787d4b518d9bc7",
+    "bytes": 853
   },
   {
     "path": "package-declarations-initial.log",
-    "sha256": "ce5eaeb9a52e7b1c007b7f75bcf4fc02e0202b567cf57e138be117b567881c14",
-    "bytes": 2898
+    "sha256": "d052a0f01b6bdea526e37341bfc80db2de763028aaf9d40a80668f019e19f0ef",
+    "bytes": 2890
   },
   {
     "path": "physical-activation-initial.log.gz",
-    "sha256": "2a96b91cbc7ace1a99805abb39661f0448077b65f7829322533bf2d5db282571",
-    "bytes": 724
+    "sha256": "9ad9a9115b10010fada591930f15a1763196c67cb55f6a8505347b430d5efe97",
+    "bytes": 726
   },
   {
     "path": "physical-activation.log",
@@ -96,12 +96,12 @@
   },
   {
     "path": "unit-final.log.gz",
-    "sha256": "fc6005ab155d956271ae2b3ad1fdbb2726bab4c7aa7f24eb022732d62e3398a6",
-    "bytes": 49521
+    "sha256": "1f74b991e1300359d5c480f9ac104e957690d281e2ea484eb610e42f32802faa",
+    "bytes": 49523
   },
   {
     "path": "unit-initial.log.gz",
-    "sha256": "9b72dbd14625103d57676bf0675f84f549e9b2c7ffe88c160130c4cc596fb7e4",
-    "bytes": 49967
+    "sha256": "ca55385d942d5439aeefbc1f04371173a569784b353f0bb7801a0225b3215bc8",
+    "bytes": 49970
   }
 ]

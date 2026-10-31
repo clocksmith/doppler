@@ -8,12 +8,12 @@ AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
 + 'sha256:1be75c19e08b6c9fe3fb94af624c070bdc940e7d32582c704d56b2775a387596'
 - 'sha256:ae98737d0a894848eaffd3a87c6cae412bedddb949a8117062631455a8311e14'
 
-    at same (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:13:52)
-    at file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:169:5
+    at same (file://$HOME/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:13:52)
+    at file://$HOME/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:169:5
     at Array.map (<anonymous>)
-    at producePhysicalReports (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:117:39)
-    at main (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:223:20)
-    at async file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:243:90 {
+    at producePhysicalReports (file://$HOME/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:117:39)
+    at main (file://$HOME/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:223:20)
+    at async file://$HOME/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:243:90 {
   generatedMessage: true,
   code: 'ERR_ASSERTION',
   actual: 'sha256:1be75c19e08b6c9fe3fb94af624c070bdc940e7d32582c704d56b2775a387596',

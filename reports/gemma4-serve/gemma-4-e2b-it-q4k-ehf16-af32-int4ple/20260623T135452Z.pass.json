@@ -8,7 +8,7 @@
   "runtimePath": "doppler-gpu.chatText",
   "runtimeModelSource": {
     "kind": "url",
-    "url": "file:///home/x/deco/doppler/models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
+    "url": "file://$HOME/deco/doppler/models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
   },
   "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
   "requestedModel": "gemma4-e2b-int4ple",

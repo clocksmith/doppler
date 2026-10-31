@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "decision": "retain explicit Linux parity profile selection; no runtime code or kernel correction",
   "scope": "Local Qwen3.5 Q4_K/f32-compute/f16-KV versus Transformers.js 4.2.0 ONNX q4f16; product formats differ. Browser performance and Node lifecycle are separate.",
   "rows": [
@@ -7,7 +9,7 @@
       "order": "doppler-first",
       "model": "qwen-3-5-0-8b-q4k-ehaf16",
       "receipt": "metal/0-8b-doppler-first/compare_latest.json",
-      "sha256": "4e45f9e44b71be90ae991e536406fd1d60539d23f3d9a4707258655b7627ad4c",
+      "sha256": "6650b3d49b52ad4165fc36c8ed4a347b7b920752002af7edece848c5896cde65",
       "fairness": {
         "schemaVersion": 1,
         "claimGrade": true,
@@ -425,7 +427,7 @@
       "order": "transformersjs-first",
       "model": "qwen-3-5-0-8b-q4k-ehaf16",
       "receipt": "metal/0-8b-transformersjs-first/compare_latest.json",
-      "sha256": "e41f88bd5429fef18b87d2da17d512a7bd2ebeca8d04223b6388ac41796ba95e",
+      "sha256": "5c63709d7e25e3516edd359a26a59b8e3c876d440004e38594f9afc8e5ffddc8",
       "fairness": {
         "schemaVersion": 1,
         "claimGrade": true,
@@ -843,7 +845,7 @@
       "order": "doppler-first",
       "model": "qwen-3-5-2b-q4k-ehaf16",
       "receipt": "metal/2b-doppler-first/compare_latest.json",
-      "sha256": "4b06ce235a5fa18d0c4035ee2db5af2e10c649cb8af85543f90005a857ef25b0",
+      "sha256": "b1d5b1d6d8c7112f90afa14ae51cc7b7caf121b6fce09f1ee058e6010e0a4539",
       "fairness": {
         "schemaVersion": 1,
         "claimGrade": true,
@@ -1261,7 +1263,7 @@
       "order": "transformersjs-first",
       "model": "qwen-3-5-2b-q4k-ehaf16",
       "receipt": "metal/2b-transformersjs-first/compare_latest.json",
-      "sha256": "3866581654d7eac5c5aa233fbaf34237d75c578f3483044e6111cb73d21ba276",
+      "sha256": "bec2daae1bd4da818a7cca39664585fd4a80aabe6d9156a6f6d3f9bdce04f714",
       "fairness": {
         "schemaVersion": 1,
         "claimGrade": true,
@@ -1679,7 +1681,7 @@
       "order": "doppler-first",
       "model": "qwen-3-5-0-8b-q4k-ehaf16",
       "receipt": "vulkan/0-8b-doppler-first/compare_latest.json",
-      "sha256": "b3b0c6daa4de7e095e1651e1a94a30f929cb078f1f9bd5ba5942d887fd16da62",
+      "sha256": "6fab9b7d4a6f7bae122a060cba86d8c2ec3e91abf942ecb9e9ccd76e7e1cb292",
       "fairness": {
         "schemaVersion": 1,
         "claimGrade": true,
@@ -2092,7 +2094,7 @@
       "order": "transformersjs-first",
       "model": "qwen-3-5-0-8b-q4k-ehaf16",
       "receipt": "vulkan/0-8b-transformersjs-first/compare_latest.json",
-      "sha256": "39f3262dd701a7d07db461a7f83ea9f8f4d357ebc6b55a15f3fb287fba807cc4",
+      "sha256": "0ad84b56f1a4985d57f401663400336ce2a94cafc89e6f9ae6f2edc60b78ca6d",
       "fairness": {
         "schemaVersion": 1,
         "claimGrade": true,
@@ -2505,7 +2507,7 @@
       "order": "doppler-first",
       "model": "qwen-3-5-2b-q4k-ehaf16",
       "receipt": "vulkan/2b-doppler-first/compare_latest.json",
-      "sha256": "a80b58c9e95d28877a4b5439e750ee7025943b5934d122f133a1f49643268048",
+      "sha256": "ae7034211ac37ead4c4504bdacee30c09ee08179b88b1406c9b745b4e45f2f87",
       "fairness": {
         "schemaVersion": 1,
         "claimGrade": true,
@@ -2918,7 +2920,7 @@
       "order": "transformersjs-first",
       "model": "qwen-3-5-2b-q4k-ehaf16",
       "receipt": "vulkan/2b-transformersjs-first/compare_latest.json",
-      "sha256": "03896c89eb8942ad78f82b4172daa1c3bda8c98d682bf6fa588cf36f6b2aa0f0",
+      "sha256": "608c91e563ec73f7d234e96edda28fdb2bad242c6830b9a47588742f23f0e80e",
       "fairness": {
         "schemaVersion": 1,
         "claimGrade": true,

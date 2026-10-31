@@ -4,7 +4,7 @@ not ok 1 - emits existing report schema only after all55 independently recompute
   ---
   duration_ms: 8.879667
   type: 'test'
-  location: '/Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js:52:1'
+  location: '$HOME/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js:52:1'
   failureType: 'testCodeFailure'
   error: |-
     Expected values to be strictly deep-equal:
@@ -19,11 +19,11 @@ not ok 1 - emits existing report schema only after all55 independently recompute
   actual: 'sha256:eafa5ac509c607e81ea57cb05106041983c57108f9b96c69195d566fd4a094c9'
   operator: 'deepStrictEqual'
   stack: |-
-    same (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:13:52)
-    file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:169:5
+    same (file://$HOME/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:13:52)
+    file://$HOME/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:169:5
     Array.map (<anonymous>)
-    producePhysicalReports (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:117:39)
-    TestContext.<anonymous> (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js:53:33)
+    producePhysicalReports (file://$HOME/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:117:39)
+    TestContext.<anonymous> (file://$HOME/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js:53:33)
     Test.runInAsyncScope (node:async_hooks:214:14)
     Test.run (node:internal/test_runner/test:1047:25)
     Test.start (node:internal/test_runner/test:944:17)
@@ -190,7 +190,7 @@ not ok 28 - direct fixture preserves test-delivery scope without inventing run.o
   ---
   duration_ms: 0.407208
   type: 'test'
-  location: '/Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js:107:1'
+  location: '$HOME/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js:107:1'
   failureType: 'testCodeFailure'
   error: |-
     Expected values to be strictly deep-equal:
@@ -205,11 +205,11 @@ not ok 28 - direct fixture preserves test-delivery scope without inventing run.o
   actual: 'sha256:eafa5ac509c607e81ea57cb05106041983c57108f9b96c69195d566fd4a094c9'
   operator: 'deepStrictEqual'
   stack: |-
-    same (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:13:52)
-    file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:169:5
+    same (file://$HOME/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:13:52)
+    file://$HOME/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:169:5
     Array.map (<anonymous>)
-    producePhysicalReports (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:117:39)
-    TestContext.<anonymous> (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js:108:39)
+    producePhysicalReports (file://$HOME/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:117:39)
+    TestContext.<anonymous> (file://$HOME/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js:108:39)
     Test.runInAsyncScope (node:async_hooks:214:14)
     Test.run (node:internal/test_runner/test:1047:25)
     Test.processPendingSubtests (node:internal/test_runner/test:744:18)
@@ -257,7 +257,7 @@ not ok 35 - native surface requires its independently declared installed host an
   ---
   duration_ms: 0.578875
   type: 'test'
-  location: '/Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js:137:1'
+  location: '$HOME/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js:137:1'
   failureType: 'testCodeFailure'
   error: |-
     Expected values to be strictly deep-equal:
@@ -272,11 +272,11 @@ not ok 35 - native surface requires its independently declared installed host an
   actual: 'sha256:eafa5ac509c607e81ea57cb05106041983c57108f9b96c69195d566fd4a094c9'
   operator: 'deepStrictEqual'
   stack: |-
-    same (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:13:52)
-    file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:169:5
+    same (file://$HOME/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:13:52)
+    file://$HOME/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:169:5
     Array.map (<anonymous>)
-    producePhysicalReports (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:117:39)
-    TestContext.<anonymous> (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js:138:44)
+    producePhysicalReports (file://$HOME/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:117:39)
+    TestContext.<anonymous> (file://$HOME/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.test.js:138:44)
     Test.runInAsyncScope (node:async_hooks:214:14)
     Test.run (node:internal/test_runner/test:1047:25)
     Test.processPendingSubtests (node:internal/test_runner/test:744:18)

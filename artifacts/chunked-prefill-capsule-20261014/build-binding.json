@@ -13,15 +13,15 @@
   ],
   "qualificationReports": [
     {
-      "path": "/Users/xyz/deco/reploid/artifacts/completion-qualification-3-20261014/b/reports/partition-0.json",
+      "path": "$HOME/deco/reploid/artifacts/completion-qualification-3-20261014/b/reports/partition-0.json",
       "sha256": "fd78dffe4dd22fce60257b7cdba4d8815a930978bb3245b05824f6a2d0a9816e"
     },
     {
-      "path": "/Users/xyz/deco/reploid/artifacts/completion-qualification-3-20261014/b/reports/partition-1.json",
+      "path": "$HOME/deco/reploid/artifacts/completion-qualification-3-20261014/b/reports/partition-1.json",
       "sha256": "12b9fc6a079eeffea88010d998ccc800c4073397b774aca13e2a5efd5dca9d02"
     },
     {
-      "path": "/Users/xyz/deco/reploid/artifacts/completion-qualification-3-20261014/b/reports/partition-2.json",
+      "path": "$HOME/deco/reploid/artifacts/completion-qualification-3-20261014/b/reports/partition-2.json",
       "sha256": "53e7a276c25b88b258c2614d9e4874bd4a37ab209f2fdbb9ae53912240b37406"
     }
   ],

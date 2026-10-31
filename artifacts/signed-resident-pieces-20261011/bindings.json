@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "scope": "synthetic signed selective resident opening, integrity, lifecycle and installed contract; no physical inference",
   "standardArchiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
   "diagnosticArchive": {
@@ -41,22 +43,22 @@
     "additionalBroadSweepScope": "Started before the final generic close correction; final affected rerun and exact installed snapshot separately bind that correction."
   },
   "artifactDigests": {
-    "fixture-failure-receipt.tar.gz": "df60ca258b6ebc8d62204ef0c33c47dac368b67e1f42094bdf3c802a4b093905",
-    "generic-close-before.log.gz": "9926d2e4452b13f7b49da259c86916d193f8284bacf37dc24a6dd47448f49b57",
+    "fixture-failure-receipt.tar.gz": "2b9b5af6cab9c962797c4039e6032f1e72ebca9b7b78e15c08f2777d766db12b",
+    "generic-close-before.log.gz": "9d215b59c3946a8ee433ad5944137dce9496c6c5f17013c3f1bf43572f9c08ce",
     "source-boundaries.log.gz": "42be6840bb99a1030e601b0d5ebbc9a702eea670df5dcfac4376add941a1161b",
-    "commands.json.gz": "869b0e003debec05ed80ac1e89ba779b17d5452e181f0437caa5e91c6ecdb9c4",
-    "pre-extraction-receipt.tar.gz": "04d9a9f38cf768b0ed9f907d761d223517e26b96ea472758367fcdfaa9aaccb3",
+    "commands.json.gz": "4e3ea115c4d0bc4d205298a0f31c211491a85c028daaa2022a63d1ed92719b96",
+    "pre-extraction-receipt.tar.gz": "d2aff5ce5a329eae9292b6181338b1a0947527bb6464a0e436fd2ab0acd8df69",
     "installed-fixtures.tar.gz": "1ba40536494e5f867c9af1cbd0768a7c3decf37c59ecc66dfbe247f6e636a57d",
-    "unit-baseline.log.gz": "430f084554c80dc74fc7bd6ce58c6e0b070ed3fc5a9ccb30e73d6035eeb5cdf2",
+    "unit-baseline.log.gz": "bfa71b55c3edc21d690fdfcb98fa1409c4deda49f2aaf304ab3e34b39218ab8e",
     "source-state.json.gz": "32ac69581cf3530a7f928d72bc0e2ec972103ed2bb40d79cf43a3dc0d290bc11",
-    "installed-fixture-failure.log.gz": "c5c728c3bf45a1592fe796b990df4482979c5cabc6a64f51e98d836802501667",
-    "unit-initial-failure.log.gz": "ba42e8692011cf8ed67e6504023fa1364a0ce63e94b8232235b6e69598fedea4",
+    "installed-fixture-failure.log.gz": "b4fe6a23f5866bcc0f47c854a209a89dc3783eafa143b1994612babba9dcec45",
+    "unit-initial-failure.log.gz": "0b5cb716a9fdd5646e1ac0e2a41f43448d325c7f6c8b6854975588aa5e10e8a9",
     "receipt.json.gz": "d0069a0b578723f1cc4ad3b0ec87eb25763254c128e72dc2c417c13662efe059",
     "affected-final.log.gz": "b15c79c809ad8c90533adb33554e6d1a6038b1ced0c052f327dd5f898e8b9bcc",
-    "pre-settled-close-receipt.tar.gz": "6e89e1ba4a1bf66d15b196e76fa7fdb4d34806ed3ac6598e39f0a4e3778936d8",
+    "pre-settled-close-receipt.tar.gz": "051acb4f5afe824cea42e0496b16536718ea24984023986a51d921617fac68f7",
     "installed-final.log.gz": "b7b8f4d6971fb7d9051188fdbe0c2601bf755ef6581b0670944f56b3d1a8236c",
     "doppler-gpu-0.6.27-diagnostic.tgz": "307104de5f55e120280cccb4ed84b53170339250c60c3ceee8682ffe3149ed25",
     "generic-close-after.log.gz": "38251e0e5e4fc01f23813b2f0d38908122e0f9d2c1b0d5a9b424c2f6bdfc38f5",
-    "unit-additional-sweep.log.gz": "e106ec187ebab4739a4fdcf30d22dc98deb4feba94d8faa3e9078c48dc3daf22"
+    "unit-additional-sweep.log.gz": "37a1f16a1e3578f9e57681e5f70253a011c6d684309cb222111d3ff565c1de62"
   }
 }

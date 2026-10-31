@@ -19,11 +19,11 @@
   },
   "engineReceipts": {
     "pooled": {
-      "path": "/home/x/.local/state/doppler/pooled-equal-weights-20261029/pooled-probe-04/result.json",
+      "path": "$HOME/.local/state/doppler/pooled-equal-weights-20261029/pooled-probe-04/result.json",
       "sha256": "317026383eb269728653edec5a95eb109bed733b2cbf2fe15dfb96b1245e7ca5"
     },
     "doppler": {
-      "path": "/home/x/.local/state/doppler/pooled-equal-weights-20261029/doppler-probe-04.json",
+      "path": "$HOME/.local/state/doppler/pooled-equal-weights-20261029/doppler-probe-04.json",
       "sha256": "61fe454bc82b06dc6eae5380a20cb67b3605c5eb1491b9aaaf978c4dbb112b5e"
     }
   },
@@ -678,7 +678,7 @@
   ],
   "completed": true,
   "fullReceipt": {
-    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/native-reference-f16-01/receipt.json",
+    "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/native-reference-f16-01/receipt.json",
     "sha256": "6d762e7e551aebb659ff14c7fa5038b9199d13d81ea2e82e0cf3bb438571099d",
     "parameterCount": 321
   },

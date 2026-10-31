@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /home/x/deco/reploid
+ RUN  v4.1.10 $HOME/deco/reploid
 
  ❯ tests/unit/partition-api.test.js (0 test)
  ✓ tests/unit/surface-claim-index.test.js (3 tests) 14ms
@@ -10,7 +10,7 @@
  FAIL  tests/unit/partition-api.test.js [ tests/unit/partition-api.test.js ]
 Error: Missing "./partitions" specifier in "doppler-gpu" package
   Plugin: vite:import-analysis
-  File: /home/x/deco/reploid/tests/unit/partition-api.test.js:2:26
+  File: $HOME/deco/reploid/tests/unit/partition-api.test.js:2:26
   1  |  import { describe, it, expect, vi, afterEach } from 'vitest';
   2  |  import * as runtime from 'doppler-gpu/partitions';
      |                            ^

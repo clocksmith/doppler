@@ -38,12 +38,12 @@
 [1166.7ms][Perf] Load: 619ms | TTFT: 263ms | Prefill: 257ms | Decode: 0ms (0 tokens @ 0.0 tok/s)
 [1169.8ms][ExpertCache] Cache cleared
 [1175.8ms][Pipeline] Unloaded
-file:///Users/xyz/deco/doppler/tools/qualify-community-lora.js:47
+file://$HOME/deco/doppler/tools/qualify-community-lora.js:47
       if (!logits || !logits.every(Number.isFinite)) throw new Error('Missing finite reference logits.');
                                                            ^
 
 Error: Missing finite reference logits.
-    at observe (file:///Users/xyz/deco/doppler/tools/qualify-community-lora.js:47:60)
-    at async file:///Users/xyz/deco/doppler/tools/qualify-community-lora.js:50:18
+    at observe (file://$HOME/deco/doppler/tools/qualify-community-lora.js:47:60)
+    at async file://$HOME/deco/doppler/tools/qualify-community-lora.js:50:18
 
 Node.js v22.20.0

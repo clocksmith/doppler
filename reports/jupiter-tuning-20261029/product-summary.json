@@ -1,5 +1,7 @@
 {
-  "schema": "doppler.jupiter-product-comparison-summary.v1",
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
+  "schema": "doppler.amd-host-product-comparison-summary.v1",
   "scope": "Balanced repeated four-prompt product-format measurements. Different reconstructed weights; no equal-weight engine attribution or quality-equivalence claim.",
   "pairs": 20,
   "attempts": 40,
@@ -127,7 +129,7 @@
         "requestTimingScope": true
       },
       "sha256": {
-        "doppler": "b1d8c2e8cebe0787873989ff6a678cc003071091e1a287721bd2f5e97ceff143",
+        "doppler": "c78e914704f78634527f5b1952daacf1b3fb5489abe01ed9ea6d18ea4d247ce5",
         "pooled": "43d932d4cbfc1acfcb50f4a5ebb64e614e72ec1c60a1bafcf37fc85494cbb2ea"
       },
       "completeRatio": 0.9843531713757746,
@@ -159,7 +161,7 @@
         "requestTimingScope": true
       },
       "sha256": {
-        "doppler": "6855ed2b6c724c44d66094b54bf3dd0bcac211c16652f35f01e6e3f1f0221c32",
+        "doppler": "131e69fdf3473ef3a79f1f63acee4fb048b29e25c1e88de28de46454781d11ac",
         "pooled": "93af76371c2d3383e9dbb346b18265f6ed2b278a8f6b150b0bcfa75cf7289782"
       },
       "completeRatio": 1.0105835239926395,
@@ -191,7 +193,7 @@
         "requestTimingScope": true
       },
       "sha256": {
-        "doppler": "f49346f521e0c9094e8d5a5a7e050cd90c73075b656a781956729f1821f07dac",
+        "doppler": "375cef637c88b09ec8af72d79c6060418110cee69d5ac6eefe9544a304c62a81",
         "pooled": "d87dc6f86de033019d13c5dcdb484daa6ec7e40368e4a4d39cc631b2c3c8f570"
       },
       "completeRatio": 1.0267106843819964,
@@ -223,7 +225,7 @@
         "requestTimingScope": true
       },
       "sha256": {
-        "doppler": "da85e7201545c824f93bcb2b1d88537785a78df439728a13746f206a959dd5ca",
+        "doppler": "75d9477657b230e19805a9e8cbfea6f58a806f6680dfa556914c67343ff5da96",
         "pooled": "0a7849d536c2d4f2a5f4f6289cd30172b4d7398fac7f3f7771fce4b18f585dc7"
       },
       "completeRatio": 0.9798775152083897,
@@ -255,7 +257,7 @@
         "requestTimingScope": true
       },
       "sha256": {
-        "doppler": "df66728247c4694d77f0c8b414da071f755ca86cf2d31c248e48fb33b0df1a01",
+        "doppler": "6c74687c3e196fd56efba3ab1f03708adf57ffbac601f6c89dc236b176856381",
         "pooled": "c59ee3432e63a63e57d04f5a2932c7212ca59cc658ac61f78b34f36cbb5395ed"
       },
       "completeRatio": 1.0212765959553671,
@@ -287,7 +289,7 @@
         "requestTimingScope": true
       },
       "sha256": {
-        "doppler": "d18b5ac2ea02b6a969f465d6b5984ad6e9c5c8120aae1df6e65db726d18421a5",
+        "doppler": "c6c619a318f593bab3b54f283d94c3820499469d296c14b9bd5ff8a995c8706e",
         "pooled": "763b910f076c2b86d9fc6276d913c886a90cc3e2da6b2e6bd0da42b63d885a3f"
       },
       "completeRatio": 0.9787234041532227,
@@ -319,7 +321,7 @@
         "requestTimingScope": true
       },
       "sha256": {
-        "doppler": "abf5b275c3cdfeb9519f15a7328b6f11f0eb73e2854080b29fba17b9f9a9470b",
+        "doppler": "91d9dc00c4132aabfaa2e49083e391b011ecad6e16ffdfd8532113542a85b51a",
         "pooled": "6c75dc52926b140a6918c94e9bbc3a387a40f6d4f21d50c48f14e4f11c992dd2"
       },
       "completeRatio": 0.9868861607466749,
@@ -351,7 +353,7 @@
         "requestTimingScope": true
       },
       "sha256": {
-        "doppler": "21a68ad4e1e74808202eb4b6c670c15b56f0db66c5d2e8bcd73f6ef2bf35f1c2",
+        "doppler": "e8c57a07f0415c9445660ca7447bd7a2c7cf085d569c9718d0406aee73349ad9",
         "pooled": "0dc56ffee0562f5fb9b769109aa36b0ff4694ad89cf0466afabff63f27f74156"
       },
       "completeRatio": 0.9570345408287095,
@@ -383,7 +385,7 @@
         "requestTimingScope": true
       },
       "sha256": {
-        "doppler": "39451612fef1f643fd2a7e940034492e1311ef34b092b4bf60afd326aa4512df",
+        "doppler": "36139f32330b9d1db14b4150228a52ee449da5cbd23bab483aff229236f50e30",
         "pooled": "2fce656ee77981b1b123adfa38533709a82d8ba1d9e1d5baae2be5f485a7be02"
       },
       "completeRatio": 1.031141868373544,
@@ -415,7 +417,7 @@
         "requestTimingScope": true
       },
       "sha256": {
-        "doppler": "3512124fe5ba342e255b06d6fdcdb5a35515ad824287ccdea07c520f44215cd9",
+        "doppler": "3f9dd41a241ddb63b0f225de2392a224bda9ced2b02e3bd17941f96542692d86",
         "pooled": "be38fa5a61d3921ea73a2ec1e3fec59aa06003eaea58d3b1e777b3ad06ee268e"
       },
       "completeRatio": 0.9601011522072894,
@@ -447,7 +449,7 @@
         "requestTimingScope": true
       },
       "sha256": {
-        "doppler": "828cafadf1de31d45e7653a7b71f40e1c3d635e23958179673850d4559902d47",
+        "doppler": "f7c6f47c23617a979afab613d734a8175b8cb912125ee87a92ab5b979e8a9c4c",
         "pooled": "6f957f41ebe534682dff224420f3630be2a6c843a34f2c05c02a1158d80466b5"
       },
       "completeRatio": 1.032786885349881,
@@ -479,7 +481,7 @@
         "requestTimingScope": true
       },
       "sha256": {
-        "doppler": "407a3a9f0470c68deb20fd7f1587bc3b2eb03574edc5d9e1a34cec02f109e359",
+        "doppler": "ade44b43b3f1f5c8e490a25de8610c00eb55faa67625d02095b9cce71313a8fc",
         "pooled": "c08b7cf3535c1c5f83bc2741311764c3f138f74af7d306951fbf15ab34671911"
       },
       "completeRatio": 1.0017610801991865,
@@ -511,7 +513,7 @@
         "requestTimingScope": true
       },
       "sha256": {
-        "doppler": "aa1119ea8d06392651c4078825ca0e94c92425f291218072cb21382ba046b4fd",
+        "doppler": "f645e1fe3ffadc6b825ed152c10f9099311b1c45b17b98e811024a745a1150da",
         "pooled": "2c0e98725f5d4bd18768232082aa3ee36efa673b1fc47d9e16dfefdf0168d605"
       },
       "completeRatio": 0.928055555621783,
@@ -543,7 +545,7 @@
         "requestTimingScope": true
       },
       "sha256": {
-        "doppler": "ae2ccc8fdf98d2d573322aa8ae30820112e7e86b6c9d6df39232c19783bcd44b",
+        "doppler": "fc930949015d10629fb5050848e25e193920638d6f8d5be5decf0480485074cb",
         "pooled": "b31a0a0291f8249502bf72c9ac02b8e7810aecdc862bd7b09ba5948fb12a532c"
       },
       "completeRatio": 0.9839587511749903,
@@ -575,7 +577,7 @@
         "requestTimingScope": true
       },
       "sha256": {
-        "doppler": "b376382d9c6005fae4873e313b97744850f4b0dc1f429abe24b926b0cffa924c",
+        "doppler": "3fd901a46ff492402f7cee6d21b119d075910dcc95d64a6eb24369688351d4c8",
         "pooled": "d82e48727415a71431f2707ebc28223f8631b3a12b8958e39a102aa84d57ac39"
       },
       "completeRatio": 1.0492916174365154,
@@ -607,7 +609,7 @@
         "requestTimingScope": true
       },
       "sha256": {
-        "doppler": "a8a8919bfb560dcbd28c8f88d742e0801753386b4d3acb6201cb04bb543d9569",
+        "doppler": "ed7f987dd979d0237f76697eba244a4ac48198802d3141e3a6e05271fab77a53",
         "pooled": "8baa03286f8c8b77f11ffba263cce2b259df251baf8cf2c5a6131f0067dbd04f"
       },
       "completeRatio": 1.0574487064907745,
@@ -639,7 +641,7 @@
         "requestTimingScope": true
       },
       "sha256": {
-        "doppler": "8af7aeeb08d217197802905a3998c1bfc042627ff87e12ba7dcd864174cbb42e",
+        "doppler": "f7ac05f35271573bc51d7ba1f55c7a5637b1e9a5138b4ef12e3cd4801e1b5ca3",
         "pooled": "34c4d08d9d21e32eb91437cb50fde3132c4c0c74eee46867ecdd917e14a8bbe5"
       },
       "completeRatio": 1.072708113652886,
@@ -671,7 +673,7 @@
         "requestTimingScope": true
       },
       "sha256": {
-        "doppler": "923fa37519f6db97f21fbab4942b1ed0412d7f13eebca278a35e1b8cab73b825",
+        "doppler": "b0b9d15daf2964825042e4fd97470c88a9cbc942ce4ebfc3924bf8909e403ff3",
         "pooled": "526fee4cedba2344603bd01443f9ddb7885048f81d352368d77cfa0c75b69470"
       },
       "completeRatio": 1.021735319853038,
@@ -703,7 +705,7 @@
         "requestTimingScope": true
       },
       "sha256": {
-        "doppler": "d40ccb55188d85a0d033046787986f554f4d513db897ebf7ecaf3234d733b908",
+        "doppler": "2557093020fc7e0afdb10986514631f5979c37ebde2fe00a84a7ac4548a121c4",
         "pooled": "7f0059623ace0fb6eeab321980764ab99b9e75e409b8ed2a7fad4df30f9a09b6"
       },
       "completeRatio": 1.040348382597097,
@@ -735,7 +737,7 @@
         "requestTimingScope": true
       },
       "sha256": {
-        "doppler": "841dac8ad4d91c0743d1ac73c864077bc8f0cb677b14e81403ac377149a0ab34",
+        "doppler": "6c17552f68067cee39380a123d7fadbea76cfc4e91d858c0c5a760d208e8b3a9",
         "pooled": "be3d0decad5fb7ea2b3f800bfe883ba1bbd02a262bdc28af459310d0fd9653e4"
       },
       "completeRatio": 1.0342178771358832,

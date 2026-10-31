@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.document-search-maintenance-validation/v1",
   "baseCommit": "8f4742bd8ad69824d0647d14e6708052f5ca306f",
   "testFilesPassed": 868,
@@ -109,8 +111,8 @@
   "logs": [
     {
       "path": "check-green-final.log.gz",
-      "uncompressedSha256": "41bed5b8681f9c252340e69e7b378deb5855b354f502bb6d100295814c66db76",
-      "sha256": "911a70cdc270dd5aa4f1d833db377d22124f3b4ad3e27c9f67255013a42104cd"
+      "uncompressedSha256": "a00679583f8ad5500d3caee2c4d03709cf4f4465d755d3fdd50782c8b20a085a",
+      "sha256": "ade4bc0b91ed3bfd7a838ad3206e157ca3be47e8857c1a194f13cf6d1dfa5617"
     },
     {
       "path": "closure-repaired.log.gz",

@@ -6,7 +6,7 @@ AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
 
 13 !== 18
 
-    at file:///home/x/deco/worktrees/reploid-consumer-streaming/tests/fixtures/doppler-installed-library-check.js:42:8 {
+    at file://$HOME/deco/worktrees/reploid-consumer-streaming/tests/fixtures/doppler-installed-library-check.js:42:8 {
   generatedMessage: true,
   code: 'ERR_ASSERTION',
   actual: 13,

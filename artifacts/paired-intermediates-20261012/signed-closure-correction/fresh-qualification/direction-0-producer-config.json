@@ -1,6 +1,6 @@
 {
   "expectations": {
-    "path": "/Users/xyz/deco/reploid/artifacts/signed-closure-qualification-20261013/fresh-preflight/direction-0-expectations.json",
+    "path": "$HOME/deco/reploid/artifacts/signed-closure-qualification-20261013/fresh-preflight/direction-0-expectations.json",
     "hash": "sha256:f48b8408a85d9900c3229f5b7ef10466e7bb1d1ba39a7766bb651afbfb67364d"
   },
   "capture": {
@@ -24,7 +24,7 @@
     "hash": "sha256:0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd"
   },
   "evaluator": {
-    "path": "/Users/xyz/deco/doppler/tools/qwen35-f64-reference.py",
+    "path": "$HOME/deco/doppler/tools/qwen35-f64-reference.py",
     "hash": "sha256:90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7"
   },
   "delivery": {
@@ -33,15 +33,15 @@
   },
   "requestContracts": [
     {
-      "path": "/Users/xyz/deco/doppler/artifacts/whole-model-f64-complete-20261011/request-0-contract.json",
+      "path": "$HOME/deco/doppler/artifacts/whole-model-f64-complete-20261011/request-0-contract.json",
       "hash": "sha256:ba2a4668d6affb85faf05221d6263a5b29b55d26c8f89a4f107cbacb717599a9"
     },
     {
-      "path": "/Users/xyz/deco/doppler/artifacts/whole-model-f64-complete-20261011/request-1-contract.json",
+      "path": "$HOME/deco/doppler/artifacts/whole-model-f64-complete-20261011/request-1-contract.json",
       "hash": "sha256:3cc051de10f77e945c6a62b66cccb22f0c15e55bf11196c6f71aeda4174ba5a2"
     },
     {
-      "path": "/Users/xyz/deco/doppler/artifacts/whole-model-f64-complete-20261011/request-2-contract.json",
+      "path": "$HOME/deco/doppler/artifacts/whole-model-f64-complete-20261011/request-2-contract.json",
       "hash": "sha256:8b21b154357efa8c9d1c853ffe36c5ce9d9e32e684b496db9031bc59fa6fe836"
     }
   ]

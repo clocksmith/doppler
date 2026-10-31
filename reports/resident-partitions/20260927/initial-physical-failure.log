@@ -87,20 +87,20 @@ Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500
 [1808.2ms][Pipeline] Unloaded
 [1809.1ms][ExpertCache] Cache cleared
 [1809.3ms][Pipeline] Unloaded
-file:///home/x/deco/doppler/src/gpu/kernels/uniform-utils.js:22
+file://$HOME/deco/doppler/src/gpu/kernels/uniform-utils.js:22
       throw new Error(`Kernel "${kernel}" must use its immutable registry uniform layout; generate layouts before packaging.`);
             ^
 
 Error: Kernel "matmul/gemv_subgroup_multicol" must use its immutable registry uniform layout; generate layouts before packaging.
-    at getUniformWriter (file:///home/x/deco/doppler/src/gpu/kernels/uniform-utils.js:22:13)
-    at getUniformByteLength (file:///home/x/deco/doppler/src/gpu/kernels/uniform-utils.js:40:10)
-    at createKernelUniformBuffer (file:///home/x/deco/doppler/src/gpu/kernels/uniform-utils.js:46:5)
-    at createMatmulUniformBuffer (file:///home/x/deco/doppler/src/gpu/kernels/matmul-dispatch.js:90:10)
-    at executeMatmul (file:///home/x/deco/doppler/src/gpu/kernels/matmul.js:513:21)
-    at async computeLogitsGPU (file:///home/x/deco/doppler/src/inference/pipelines/text/logits/gpu.js:687:24)
-    at async decodeStepLogits (file:///home/x/deco/doppler/src/inference/pipelines/text/generator/decode.js:908:28)
-    at async invoke (file:///home/x/deco/doppler/src/inference/pipelines/shader-scoped-pipeline.js:163:16)
-    at async runWithShaderSourceScope (file:///home/x/deco/doppler/src/gpu/kernels/shader-source-scope.js:70:16)
-    at async runOperation (file:///home/x/deco/doppler/src/inference/pipelines/shader-scoped-pipeline.js:84:12)
+    at getUniformWriter (file://$HOME/deco/doppler/src/gpu/kernels/uniform-utils.js:22:13)
+    at getUniformByteLength (file://$HOME/deco/doppler/src/gpu/kernels/uniform-utils.js:40:10)
+    at createKernelUniformBuffer (file://$HOME/deco/doppler/src/gpu/kernels/uniform-utils.js:46:5)
+    at createMatmulUniformBuffer (file://$HOME/deco/doppler/src/gpu/kernels/matmul-dispatch.js:90:10)
+    at executeMatmul (file://$HOME/deco/doppler/src/gpu/kernels/matmul.js:513:21)
+    at async computeLogitsGPU (file://$HOME/deco/doppler/src/inference/pipelines/text/logits/gpu.js:687:24)
+    at async decodeStepLogits (file://$HOME/deco/doppler/src/inference/pipelines/text/generator/decode.js:908:28)
+    at async invoke (file://$HOME/deco/doppler/src/inference/pipelines/shader-scoped-pipeline.js:163:16)
+    at async runWithShaderSourceScope (file://$HOME/deco/doppler/src/gpu/kernels/shader-source-scope.js:70:16)
+    at async runOperation (file://$HOME/deco/doppler/src/inference/pipelines/shader-scoped-pipeline.js:84:12)
 
 Node.js v22.22.1

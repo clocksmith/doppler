@@ -789,7 +789,7 @@
       "operation": "generate",
       "error": {
         "message": "page.evaluate: Error: Physical WebGPU adapter unavailable; no fallback is permitted.\n    at eval (eval at evaluate (:311:30), <anonymous>:3:29)\n    at async <anonymous>:337:30",
-        "stack": "page.evaluate: Error: Physical WebGPU adapter unavailable; no fallback is permitted.\n    at eval (eval at evaluate (:311:30), <anonymous>:3:29)\n    at async <anonymous>:337:30\n    at /home/x/deco/worktrees/doppler-consumer-streaming/tools/check-installed-capabilities.js:60:35"
+        "stack": "page.evaluate: Error: Physical WebGPU adapter unavailable; no fallback is permitted.\n    at eval (eval at evaluate (:311:30), <anonymous>:3:29)\n    at async <anonymous>:337:30\n    at $HOME/deco/worktrees/doppler-consumer-streaming/tools/check-installed-capabilities.js:60:35"
       }
     },
     {

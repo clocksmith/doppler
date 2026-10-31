@@ -11,9 +11,9 @@
         "--source",
         "/var/tmp/doppler-qwen3-17b-source-20261011",
         "--suite",
-        "/home/x/deco/doppler/reports/local/qwen3-nonthinking-documents-20261012/suites/suite-seed-17.json",
+        "$HOME/deco/doppler/reports/local/qwen3-nonthinking-documents-20261012/suites/suite-seed-17.json",
         "--out",
-        "/home/x/deco/doppler/reports/local/qwen3-nonthinking-documents-20261012/source-seed-17.json",
+        "$HOME/deco/doppler/reports/local/qwen3-nonthinking-documents-20261012/source-seed-17.json",
         "--threads",
         "4"
       ],
@@ -29,9 +29,9 @@
         "--source",
         "/var/tmp/doppler-qwen3-17b-source-20261011",
         "--suite",
-        "/home/x/deco/doppler/reports/local/qwen3-nonthinking-documents-20261012/suites/suite-seed-53.json",
+        "$HOME/deco/doppler/reports/local/qwen3-nonthinking-documents-20261012/suites/suite-seed-53.json",
         "--out",
-        "/home/x/deco/doppler/reports/local/qwen3-nonthinking-documents-20261012/source-seed-53.json",
+        "$HOME/deco/doppler/reports/local/qwen3-nonthinking-documents-20261012/source-seed-53.json",
         "--threads",
         "4"
       ],

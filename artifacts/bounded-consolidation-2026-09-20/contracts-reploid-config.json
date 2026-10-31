@@ -202,7 +202,7 @@
     }
   ],
   "consumer": "reploid",
-  "reploidRoot": "/home/x/deco/reploid",
+  "reploidRoot": "$HOME/deco/reploid",
   "sharedSessionOperation": "embed",
   "adapterProbe": {
     "attempts": 3,

@@ -122,7 +122,7 @@ examples, aggregate counts, and completed main-worktree green-check log.
 The corrected browser attempt 02 completes all eight unchanged development
 cases on Chrome 145.0.7632.6, physical Intel gen-12lp, fallback false, with no
 cleanup errors. Its execution report SHA-256 is
-`76b5422ed196b1c252c0639ccae34f380e4bc1ec78d3d67ecd64b3dc8878b411`.
+`4eecfb483987528af7d690e71d8fc8d2e152bcee8f8f966e3cafe065219755ac`.
 The fresh persistent profile starts at zero storage usage; load takes
 167,123.7 ms in this observation. Concurrent repository checks mean this is not
 a controlled performance comparison.

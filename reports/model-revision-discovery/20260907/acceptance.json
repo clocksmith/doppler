@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.model-revision-discovery-acceptance/v1",
   "sourceCommit": "b694d421b6ee6cbadb2c8ec81d76f4e9f0d116e4",
   "passed": true,
@@ -35,7 +37,7 @@
     "scope": "Hybrid linear-attention operation outputs and recurrent state against unchanged CPU references, including f32, f16 and packed QKVZ; not full 27B inference.",
     "log": "physical/reference.log",
     "testSha256": "848f433d9938261d88723c452ba88a5698ad872bc6d5f53213c39c9b8c3298be",
-    "preloadSha256": "f6bd22c2c8cbe8a3442e671678d71ccdfeac1ec7f2714ebb595fd96bd99749c5"
+    "preloadSha256": "e0a43d8cd3cdf6625a9817dc498c194f7111f2cb5a7872ef5bd6548d00059c27"
   },
   "remoteChecks": {
     "conclusion": "success",
@@ -45,8 +47,8 @@
   },
   "evidence": {
     "path": "evidence.tar.gz",
-    "sha256": "4c4c904d28f0172dbd2396054eb7e63be66909887d1f6357c0d4d2f203818456",
-    "bytes": 437834,
+    "sha256": "42bfaf5262e5d2f0ef705652b40f62a56fa25028e92fe6b7a6a3a442182413b0",
+    "bytes": 437856,
     "files": [
       {
         "path": "ci/check-green.log",
@@ -200,8 +202,8 @@
       },
       {
         "path": "physical/preload.js",
-        "sha256": "f6bd22c2c8cbe8a3442e671678d71ccdfeac1ec7f2714ebb595fd96bd99749c5",
-        "bytes": 848
+        "sha256": "e0a43d8cd3cdf6625a9817dc498c194f7111f2cb5a7872ef5bd6548d00059c27",
+        "bytes": 842
       },
       {
         "path": "physical/reference-test.js",

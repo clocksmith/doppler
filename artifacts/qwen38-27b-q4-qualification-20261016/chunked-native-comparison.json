@@ -1,9 +1,11 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.qwen-quantized-forced-logit-comparison/v1",
   "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
-  "referenceSha256": "7c3bfe1a12afb88a7f8009880515941dc23017f74ede5dad7ad9298a72085343",
-  "candidateSha256": "c4278f571abaccab0d07f1f559220cc50d9996db9118aeaac88614af522ef3aa",
-  "contractSha256": "6569deece204a463014ab3571401e3671dffe32db9bf378e4eda753b77ad5851",
+  "referenceSha256": "3f950d713a09572dc35fb956df666fc2461bcf2d53dcdb933701934cdca3118b",
+  "candidateSha256": "9693e30d5c4cad6d7eda3ec8b9d74aed41f2780fcc23524b71ff113a1e777df9",
+  "contractSha256": "46f6bdb885867945831f8080f8793b54cfdb15241c77906a0f578e66490161d2",
   "toolSha256": "5703e8a13dcaa502b7740870ae0706a28c186e217b85e50d108f7509d24d5aa3",
   "maxAbsoluteLogitError": 0.001,
   "rows": [

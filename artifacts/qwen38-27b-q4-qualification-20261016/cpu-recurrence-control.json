@@ -1,7 +1,9 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "scope": "CPU Transformers native chunked versus sequential recurrence control; same input/weights/arithmetic/storage; diagnostic only",
-  "referenceSha256": "7c3bfe1a12afb88a7f8009880515941dc23017f74ede5dad7ad9298a72085343",
-  "candidateSha256": "6f17d37b8894ce8519fb117aa5e9815004cd2cf815142d492211e0386bc6ae8d",
+  "referenceSha256": "3f950d713a09572dc35fb956df666fc2461bcf2d53dcdb933701934cdca3118b",
+  "candidateSha256": "ac62bf6349d8a6856656ace51d5c0c70968a680736f25bd8cf1807215926f1a5",
   "rows": [
     {
       "caseId": "arithmetic",

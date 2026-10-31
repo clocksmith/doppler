@@ -621,7 +621,7 @@
         "generationConfigHash": "sha256:1ef381c53e0530409fbd26cb7ad8d3360f0fb685cd5bf409a0fc444f26de8577",
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
-          "logicalModelId": "file:///Users/xyz/deco/doppler/.cache/qwen08-f16/",
+          "logicalModelId": "file://$HOME/deco/doppler/.cache/qwen08-f16/",
           "resolvedArtifactVariantId": "sha256:cb8e4d8bf7fbc8522d1222bbbf3cf9a46e297a899cf737d4738554a1d1d68062",
           "resolvedExecutionId": "sha256:2b236c91b4e6afe51fdd2563af2ad4cbfc1d23f47f74ea84dac7dd6ad12dfcd1"
         },
@@ -662,7 +662,7 @@
             "surface": "node"
           },
           "model": {
-            "modelId": "file:///Users/xyz/deco/doppler/.cache/qwen08-f16/",
+            "modelId": "file://$HOME/deco/doppler/.cache/qwen08-f16/",
             "manifestHash": "sha256:cb8e4d8bf7fbc8522d1222bbbf3cf9a46e297a899cf737d4738554a1d1d68062",
             "activeAdapter": null,
             "activeAdapterId": null,
@@ -1786,7 +1786,7 @@
         "generationConfigHash": "sha256:1ef381c53e0530409fbd26cb7ad8d3360f0fb685cd5bf409a0fc444f26de8577",
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
-          "logicalModelId": "file:///Users/xyz/deco/doppler/.cache/qwen08-f16/",
+          "logicalModelId": "file://$HOME/deco/doppler/.cache/qwen08-f16/",
           "resolvedArtifactVariantId": "sha256:cb8e4d8bf7fbc8522d1222bbbf3cf9a46e297a899cf737d4738554a1d1d68062",
           "resolvedExecutionId": "sha256:2b236c91b4e6afe51fdd2563af2ad4cbfc1d23f47f74ea84dac7dd6ad12dfcd1"
         },
@@ -1827,7 +1827,7 @@
             "surface": "node"
           },
           "model": {
-            "modelId": "file:///Users/xyz/deco/doppler/.cache/qwen08-f16/",
+            "modelId": "file://$HOME/deco/doppler/.cache/qwen08-f16/",
             "manifestHash": "sha256:cb8e4d8bf7fbc8522d1222bbbf3cf9a46e297a899cf737d4738554a1d1d68062",
             "activeAdapter": null,
             "activeAdapterId": null,
@@ -2951,7 +2951,7 @@
         "generationConfigHash": "sha256:1ef381c53e0530409fbd26cb7ad8d3360f0fb685cd5bf409a0fc444f26de8577",
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
-          "logicalModelId": "file:///Users/xyz/deco/doppler/.cache/qwen08-f16/",
+          "logicalModelId": "file://$HOME/deco/doppler/.cache/qwen08-f16/",
           "resolvedArtifactVariantId": "sha256:cb8e4d8bf7fbc8522d1222bbbf3cf9a46e297a899cf737d4738554a1d1d68062",
           "resolvedExecutionId": "sha256:2b236c91b4e6afe51fdd2563af2ad4cbfc1d23f47f74ea84dac7dd6ad12dfcd1"
         },
@@ -2992,7 +2992,7 @@
             "surface": "node"
           },
           "model": {
-            "modelId": "file:///Users/xyz/deco/doppler/.cache/qwen08-f16/",
+            "modelId": "file://$HOME/deco/doppler/.cache/qwen08-f16/",
             "manifestHash": "sha256:cb8e4d8bf7fbc8522d1222bbbf3cf9a46e297a899cf737d4738554a1d1d68062",
             "activeAdapter": null,
             "activeAdapterId": null,
@@ -5012,7 +5012,7 @@
         "generationConfigHash": "sha256:1ef381c53e0530409fbd26cb7ad8d3360f0fb685cd5bf409a0fc444f26de8577",
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
-          "logicalModelId": "file:///Users/xyz/deco/doppler/.cache/qwen08-f16/",
+          "logicalModelId": "file://$HOME/deco/doppler/.cache/qwen08-f16/",
           "resolvedArtifactVariantId": "sha256:cb8e4d8bf7fbc8522d1222bbbf3cf9a46e297a899cf737d4738554a1d1d68062",
           "resolvedExecutionId": "sha256:2b236c91b4e6afe51fdd2563af2ad4cbfc1d23f47f74ea84dac7dd6ad12dfcd1"
         },
@@ -5053,7 +5053,7 @@
             "surface": "node"
           },
           "model": {
-            "modelId": "file:///Users/xyz/deco/doppler/.cache/qwen08-f16/",
+            "modelId": "file://$HOME/deco/doppler/.cache/qwen08-f16/",
             "manifestHash": "sha256:cb8e4d8bf7fbc8522d1222bbbf3cf9a46e297a899cf737d4738554a1d1d68062",
             "activeAdapter": null,
             "activeAdapterId": null,
@@ -7073,7 +7073,7 @@
         "generationConfigHash": "sha256:1ef381c53e0530409fbd26cb7ad8d3360f0fb685cd5bf409a0fc444f26de8577",
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
-          "logicalModelId": "file:///Users/xyz/deco/doppler/.cache/qwen08-f16/",
+          "logicalModelId": "file://$HOME/deco/doppler/.cache/qwen08-f16/",
           "resolvedArtifactVariantId": "sha256:cb8e4d8bf7fbc8522d1222bbbf3cf9a46e297a899cf737d4738554a1d1d68062",
           "resolvedExecutionId": "sha256:2b236c91b4e6afe51fdd2563af2ad4cbfc1d23f47f74ea84dac7dd6ad12dfcd1"
         },
@@ -7114,7 +7114,7 @@
             "surface": "node"
           },
           "model": {
-            "modelId": "file:///Users/xyz/deco/doppler/.cache/qwen08-f16/",
+            "modelId": "file://$HOME/deco/doppler/.cache/qwen08-f16/",
             "manifestHash": "sha256:cb8e4d8bf7fbc8522d1222bbbf3cf9a46e297a899cf737d4738554a1d1d68062",
             "activeAdapter": null,
             "activeAdapterId": null,
@@ -9134,7 +9134,7 @@
         "generationConfigHash": "sha256:1ef381c53e0530409fbd26cb7ad8d3360f0fb685cd5bf409a0fc444f26de8577",
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
-          "logicalModelId": "file:///Users/xyz/deco/doppler/.cache/qwen08-f16/",
+          "logicalModelId": "file://$HOME/deco/doppler/.cache/qwen08-f16/",
           "resolvedArtifactVariantId": "sha256:cb8e4d8bf7fbc8522d1222bbbf3cf9a46e297a899cf737d4738554a1d1d68062",
           "resolvedExecutionId": "sha256:2b236c91b4e6afe51fdd2563af2ad4cbfc1d23f47f74ea84dac7dd6ad12dfcd1"
         },
@@ -9175,7 +9175,7 @@
             "surface": "node"
           },
           "model": {
-            "modelId": "file:///Users/xyz/deco/doppler/.cache/qwen08-f16/",
+            "modelId": "file://$HOME/deco/doppler/.cache/qwen08-f16/",
             "manifestHash": "sha256:cb8e4d8bf7fbc8522d1222bbbf3cf9a46e297a899cf737d4738554a1d1d68062",
             "activeAdapter": null,
             "activeAdapterId": null,

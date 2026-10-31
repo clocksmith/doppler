@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.canonical-state16-diagnostic.v1",
   "inputs": {
     "canonicalManifestSha256": "77e74f2b0ddf51d0e01edd5888f531e8dda57e8257e2f7ace94916da306cfe95",
@@ -190,16 +192,16 @@
     }
   ],
   "sourceGraph": {
-    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_prefill.full-onnx-f32kv-02.onnx",
+    "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_prefill.full-onnx-f32kv-02.onnx",
     "sha256": "4d2d099b5f01e85d1238f058ce7b4de83461daa52ee3a02df77506af55509c0d"
   },
   "diagnosticGraph": {
-    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_prefill.full-onnx-f32kv-02.state16-diagnostic.onnx",
+    "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-03/onnx/decoder_prefill.full-onnx-f32kv-02.state16-diagnostic.onnx",
     "sha256": "2cd6dffd032fcb359e5d1c460e0b3532abea6754c9de5a65f90c0997d5f6aa38"
   },
   "cpuGate": {
-    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-cpu-01/receipt.json",
-    "sha256": "6e7d558480f3801702a1a1ccdddd4d9a35345e1b10220cebf2a2de66cff2217a"
+    "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-cpu-01/receipt.json",
+    "sha256": "8d2ca79383b9aee5e5a6a8098ea7f936dc8e19955beccdb251dcedea06cca5e2"
   },
   "artifacts": [
     {

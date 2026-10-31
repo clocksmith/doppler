@@ -1,1 +1,1 @@
-{"passed":false,"failure":"page.evaluate: GPUPipelineError: A valid external Instance reference no longer exists.\n    at /var/tmp/doppler-paired-suby-archive8-20261012/deco/doppler/tests/integration/rope-compatibility.mjs:16:42"}
+{"passed":false,"failure":"page.evaluate: GPUPipelineError: A valid external Instance reference no longer exists.\n    at /var/tmp/doppler-paired-intel-host-archive8-20261012/deco/doppler/tests/integration/rope-compatibility.mjs:16:42"}

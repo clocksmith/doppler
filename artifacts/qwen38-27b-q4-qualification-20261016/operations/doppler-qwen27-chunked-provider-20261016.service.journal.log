@@ -1,2 +1,2 @@
-2026-10-16T12:12:07-04:00 128 systemd[10648]: Started doppler-qwen27-chunked-provider-20261016.service - [systemd-run] /home/x/deco/doppler/.tmp/qwen38-q4-qualification-20261016/run-chunked-provider.sh.
+2026-10-16T12:12:07-04:00 128 systemd[10648]: Started doppler-qwen27-chunked-provider-20261016.service - [systemd-run] $HOME/deco/doppler/.tmp/qwen38-q4-qualification-20261016/run-chunked-provider.sh.
 2026-10-16T12:13:45-04:00 128 systemd[10648]: doppler-qwen27-chunked-provider-20261016.service: Consumed 1min 294ms CPU time over 1min 37.728s wall clock time, 3.7G memory peak.

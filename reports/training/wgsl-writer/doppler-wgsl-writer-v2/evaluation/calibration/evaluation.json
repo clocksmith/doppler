@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.wgsl-writer-evaluation-batch/v1",
   "experimentId": "doppler-wgsl-writer-v2",
   "evaluationRole": "calibration",
@@ -21,14 +23,14 @@
     "referenceSha256": "8e7668dbeac042eec28f8f74a935f59a81ae60b5b5b06e01bc61c8ca511e1e39"
   },
   "reference": {
-    "path": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/calibration/peft-reference.json",
-    "sha256": "09dd720da44f1fd6e878c784646b5c08544b85c3a8c3872d4201b02106dba578"
+    "path": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/calibration/peft-reference.json",
+    "sha256": "aef28bf549fc6448c4369d413c897475755fa80efc8d9a1516973a974101f2a0"
   },
   "candidates": [
     {
       "seed": 11,
       "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/calibration/seed11.semantic.json",
-      "sha256": "f9b800265116afa8d9b1fc79494c0b0a6bcdf84618cbaf2bb9eb493d17e42ea3",
+      "sha256": "261aa324eab494684630f71fb91d970a02f97ec67f4f4db6f12180fcd917627f",
       "receiptHash": "14d701cce8c684c774cae3f7659751fbe2dbf4db93644dcce849cf4e42c2f9c1",
       "summary": {
         "taskCount": 16,
@@ -46,7 +48,7 @@
     {
       "seed": 29,
       "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/calibration/seed29.semantic.json",
-      "sha256": "4d1ed32743696cffd4364c7cf7a19cd615d3f3a0867dfcba4628ec9055aa58ef",
+      "sha256": "083428b20416aae1f0e0602b7a8154b5b92f86e7dfd247538dc3984b314996f4",
       "receiptHash": "6e8c43a0c7a369a30f22eb055c7296558da5b8364350f34b5cb164bf8280c857",
       "summary": {
         "taskCount": 16,
@@ -64,7 +66,7 @@
     {
       "seed": 47,
       "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/calibration/seed47.semantic.json",
-      "sha256": "1a6d5400a16a47a19e7e86a702fcc866ea99fe9ff30a74abf25d87ca3ee6f03b",
+      "sha256": "ef74173200266ff04e8162fe311d3a87a9ad83c5b99a0bddc45a852038595914",
       "receiptHash": "c3b836f3aee00db6db5d9c945b290af41a08f4294fb8bef5bc9377d27bf48f48",
       "summary": {
         "taskCount": 16,

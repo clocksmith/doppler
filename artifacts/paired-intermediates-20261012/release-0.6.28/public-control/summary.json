@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "scope": "Two fixed public-unsplit prefixes on each provider; not full55, signed opening or useful-answer acceptance",
   "archiveSha256": "102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7",
   "reference": "Approved independent F64 at unchanged0.001",
@@ -7,7 +9,7 @@
   "results": [
     {
       "host": "mac",
-      "captureSha256": "ac4d7fac06fea860e8b6b3411878bf149c9bced61871ceab8ceab0672ac1bb9d",
+      "captureSha256": "ca73358311e3607fffd81b8503e03b1a0e9d4f3a6f823c900c12bcc2d1344ac1",
       "adapter": {
         "vendor": "apple",
         "architecture": "metal-3",

@@ -1,4 +1,4 @@
-# Jupiter common-weight preparation and failed numerical gate
+# amd-host common-weight preparation and failed numerical gate
 
 Status: **no equal-weight engine win**. These are untimed preparation and
 diagnostic receipts, not a passing performance comparison.
@@ -38,17 +38,17 @@ logit rows, layer captures, exact source inventories, configurations, source
 provenance, conversion output, and independent rounding fixtures. It excludes
 model weights, browser profiles, and dependency trees. Archive SHA-256:
 
-`8bb0157581c5f5feef145174f57b58e0e91ffd588323467772c087788868bf53`
+`0409071877480eee780cd45ff4f9a729a288ce954dce8334e4eef97854dd26b2`
 
 `retained-files.json` records each uncompressed file's length and SHA-256.
-The full model remains in Jupiter's task-local state directory. Measurements
+The full model remains in amd-host's task-local state directory. Measurements
 belong to the frozen sources in the archive, not later checkout revisions.
 
 Next gates: isolate the first attention mismatch, prove Doppler's actual GPU
 materialization, validate complete generation and all prescribed logits, and only
 then run balanced timing pairs. Transformers.js additionally needs a canonical
 ONNX export with exact initializer/state bindings. Metal and D3D12 require
-independent measurements; Jupiter supplies no claim for either platform.
+independent measurements; amd-host supplies no claim for either platform.
 
 Component: `doppler.repository-tooling` and `doppler.benchmarks.vendors`.
 Intent: preserved. Acceptance evidence: five focused tool tests, conversion

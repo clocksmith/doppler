@@ -1,7 +1,9 @@
 {
-  "schema": "doppler.suby-paired-cast-reservation/v1",
-  "id": "root-suby-paired-cast-20261013",
-  "authorizedBy": "Root bounded installed-wrapper Suby control; no Mac/AMD/full model",
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
+  "schema": "doppler.intel-host-paired-cast-reservation/v1",
+  "id": "root-intel-host-paired-cast-20261013",
+  "authorizedBy": "Root bounded installed-wrapper intel-host control; no Mac/AMD/full model",
   "frozenAt": "2026-10-13T15:16:58.540840+00:00",
   "runtimeArchiveSha256": "5e0d60bc433d332187d422721fd7afcaec780c202e3082adcab389b47fd27fc5",
   "scope": "Package-local installed kernel wrappers, not public package API or model qualification",
@@ -12,7 +14,7 @@
   "explicitOwnedStorageBufferBytes": 272,
   "cases": 4,
   "sources": {
-    "control.js": "7b4d57827ead1c94031018b26243f3645496760b989ad429c0ba0359d6f98ce6",
+    "control.js": "25a0a80bbe976d8deb26eda871f01019e34b202c63b989e87de7c24211789de3",
     "controller.js": "108af1b0400b4f5b33e4298fe1a1a4d2f1dd45d7cb94464ae4ea1090675e9d48"
   },
   "runtimeClosure": {

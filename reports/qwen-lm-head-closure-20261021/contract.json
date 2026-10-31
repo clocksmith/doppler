@@ -39,5 +39,5 @@
     "latency": "upper bound of the 95% bootstrap interval of mean warm complete-request percent change (B vs A) is below 0",
     "otherwise": "retain the kernel measurement separately; do not claim a complete-request improvement on AMD"
   },
-  "crossPlatform": "The M3 Metal half runs on Mars with this same contract; AMD alone cannot promote the change for Metal."
+  "crossPlatform": "The M3 Metal half runs on mac-host with this same contract; AMD alone cannot promote the change for Metal."
 }

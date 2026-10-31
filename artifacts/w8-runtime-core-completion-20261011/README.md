@@ -31,10 +31,10 @@ Commands, from the Doppler checkout:
 ```sh
 node tests/integration/choice-scoring-physical.js \
   /var/tmp/doppler-w8-installed-completion-20261011/consumer/node_modules/doppler-gpu \
-  /home/x/deco/doppler/dist/decision-acceptance/model-qualified \
-  /home/x/deco/doppler/dist/decision-acceptance/model-qualified/choice-contract.json \
-  /home/x/deco/doppler/dist/decision-acceptance/qwen-qualified-reference.json \
-  /home/x/deco/doppler/reports/local/w8-runtime-scoring-completion-20261011/ordinary.json \
+  $HOME/deco/doppler/dist/decision-acceptance/model-qualified \
+  $HOME/deco/doppler/dist/decision-acceptance/model-qualified/choice-contract.json \
+  $HOME/deco/doppler/dist/decision-acceptance/qwen-qualified-reference.json \
+  $HOME/deco/doppler/reports/local/w8-runtime-scoring-completion-20261011/ordinary.json \
   /var/tmp/doppler-w8-installed-completion-20261011/doppler-gpu-0.6.27.tgz
 node tools/qualify-embedding-browser.js /tmp/doppler-w8-embedding-completion.json
 ```

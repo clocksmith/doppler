@@ -1,6 +1,8 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "scope": "Exact 0.6.28 public unsplit first request, prefill and one decode; not all55 or signed qualification",
-  "captureSha256": "ac4d7fac06fea860e8b6b3411878bf149c9bced61871ceab8ceab0672ac1bb9d",
+  "captureSha256": "ca73358311e3607fffd81b8503e03b1a0e9d4f3a6f823c900c12bcc2d1344ac1",
   "approvedReferenceSha256": "ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
   "comparatorSha256": "5ffa96e1523b630707e50584d6736a867391144588f202a35fe8abb898fad845",
   "archiveSha256": "102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7",

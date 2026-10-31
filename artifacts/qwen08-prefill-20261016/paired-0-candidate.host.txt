@@ -315,15 +315,15 @@
 34732   0.0 node
 35010   0.0 <defunct>
 35631   0.0 /usr/sbin/netbiosd
-39228   0.0 /Users/xyz/.codex/packages/app-server-daemon/releases/0.163.0-aarch64-apple-darwin/bin/codex
-41047   0.0 /Users/xyz/.codex/packages/app-server-daemon/releases/0.163.0-aarch64-apple-darwin/bin/codex-code-mode-host
+39228   0.0 $HOME/.codex/packages/app-server-daemon/releases/0.163.0-aarch64-apple-darwin/bin/codex
+41047   0.0 $HOME/.codex/packages/app-server-daemon/releases/0.163.0-aarch64-apple-darwin/bin/codex-code-mode-host
 42942   0.0 /usr/libexec/milod
 44095   0.0 /System/Library/PrivateFrameworks/DiskImages.framework/Resources/hdiejectd
 44112   0.0 /System/Library/PrivateFrameworks/KerberosHelper/Helpers/DiskUnmountWatcher
 51652   0.0 /usr/libexec/wifivelocityd
 51662   0.0 /System/Library/CoreServices/UserNotificationCenter.app/Contents/MacOS/UserNotificationCenter
 51965   0.0 /System/Library/PrivateFrameworks/IMDPersistence.framework/IMAutomaticHistoryDeletionAgent.app/Contents/MacOS/IMAutomaticHistoryDeletionAgent
-58689   0.0 /Users/xyz/.codex/packages/app-server-daemon/releases/0.163.0-aarch64-apple-darwin/bin/codex
+58689   0.0 $HOME/.codex/packages/app-server-daemon/releases/0.163.0-aarch64-apple-darwin/bin/codex
 65607   0.0 /System/Library/CoreServices/Setup Assistant.app/Contents/Resources/mbuseragent
 67875   0.0 /usr/libexec/taskgated
 69083   0.0 /System/Cryptexes/App/usr/libexec/PasswordBreachAgent
@@ -331,7 +331,7 @@
 70401   0.1 /System/Library/CoreServices/Dock.app/Contents/MacOS/Dock
 70414   0.0 /System/Library/CoreServices/Dock.app/Contents/XPCServices/com.apple.dock.extra.xpc/Contents/MacOS/com.apple.dock.extra
 71518   0.2 /System/Library/CoreServices/screencaptureui.app/Contents/MacOS/screencaptureui
-72640   0.0 /Users/xyz/Library/Application Support/Figma/FigmaAgent.app/Contents/MacOS/figma_agent
+72640   0.0 $HOME/Library/Application Support/Figma/FigmaAgent.app/Contents/MacOS/figma_agent
 74748   0.0 /System/Library/PrivateFrameworks/UsageTracking.framework/Versions/A/UsageTrackingAgent
 77043   0.0 /System/Library/PrivateFrameworks/PackageKit.framework/Resources/installd
 77044   0.0 /System/Library/PrivateFrameworks/PackageKit.framework/Resources/system_installd
@@ -641,7 +641,7 @@
 10024   0.0 login
 10025   0.0 -zsh
 29809   0.0 node
-29812   2.2 /Users/xyz/.nvm/versions/node/v22.20.0/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/bin/codex
+29812   2.2 $HOME/.nvm/versions/node/v22.20.0/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/bin/codex
 72841   0.0 login
 72843   0.0 -zsh
 76236   0.0 agy
@@ -651,12 +651,12 @@
 34585   0.0 login
 34586   0.0 -zsh
 35273   0.0 node
-35274   0.0 /Users/xyz/.nvm/versions/node/v22.20.0/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/bin/codex
+35274   0.0 $HOME/.nvm/versions/node/v22.20.0/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/bin/codex
 46362   0.0 login
 46363   0.0 -zsh
 46688   0.0 node
-46689   0.0 /Users/xyz/.nvm/versions/node/v22.20.0/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/bin/codex
-47186   0.0 /Users/xyz/.nvm/versions/node/v22.20.0/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/bin/codex-code-mode-host
+46689   0.0 $HOME/.nvm/versions/node/v22.20.0/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/bin/codex
+47186   0.0 $HOME/.nvm/versions/node/v22.20.0/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/bin/codex-code-mode-host
 77402   0.0 login
 77403   0.0 -zsh
 77755   0.0 ssh

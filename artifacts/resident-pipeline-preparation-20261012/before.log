@@ -6,7 +6,7 @@ AssertionError [ERR_ASSERTION]: resident must not advertise ready while its recu
 
 true !== false
 
-    at file:///Users/xyz/deco/doppler/tests/inference/resident-kernel-preparation.test.js:40:12 {
+    at file://$HOME/deco/doppler/tests/inference/resident-kernel-preparation.test.js:40:12 {
   generatedMessage: false,
   code: 'ERR_ASSERTION',
   actual: true,

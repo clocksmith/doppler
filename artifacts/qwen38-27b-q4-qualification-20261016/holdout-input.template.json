@@ -1,21 +1,23 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.qwen-quantized-reference-input/v1",
   "sourceRevision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
   "inputs": {
     "inventory": {
-      "path": "/home/x/deco/doppler/.tmp/qwen38-q4-qualification-20261016/q4-head-inventory.json",
-      "sha256": "3e9c48a6039df1db5c6fca96cbeeedd6314da9b0f0ee0d8a105d81d62ead5608"
+      "path": "$HOME/deco/doppler/.tmp/qwen38-q4-qualification-20261016/q4-head-inventory.json",
+      "sha256": "896d2d19c453d06da99dc30e1b974f4702e5ebfce928153eb62c43fe8d2d5a2c"
     },
     "sourceConfig": {
-      "path": "/home/x/deco/doppler/models/source/qwen3.8-27b/config.json",
+      "path": "$HOME/deco/doppler/models/source/qwen3.8-27b/config.json",
       "sha256": "191e0af232104ed8b65258cf3fb2b842e288008baca7633c11b82a1ac7203aab"
     },
     "equations": {
-      "path": "/home/x/deco/doppler/.tmp/qwen38-q4-qualification-20261016/qwen35-f64-reference.py",
+      "path": "$HOME/deco/doppler/.tmp/qwen38-q4-qualification-20261016/qwen35-f64-reference.py",
       "sha256": "90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7"
     },
     "transcript": {
-      "path": "/home/x/deco/doppler/reports/model-ir-v2/qwen3.8-27b.reference-transcript.json",
+      "path": "$HOME/deco/doppler/reports/model-ir-v2/qwen3.8-27b.reference-transcript.json",
       "sha256": "4d11b51fcdd7dc47ec276f807de48fb282b6eb6f40085af48f14a81d2277558c"
     }
   },
@@ -48,7 +50,7 @@
   ],
   "calibration": {
     "frozenAt": "2026-10-16T16:25:38.527341+00:00",
-    "controlSha256": "e94e21cc49404b6d18c110f214085bb76bc0d90f6b9b191ec30adaa6837a3951",
+    "controlSha256": "965b7f40b81280086c067c1e071a61c1098238cc3e34ba38501853079e31c69c",
     "method": "Four times the maximum independent CPU chunked-versus-sequential discrepancy, separately for logits/states and max/RMS. Empirical safety margin for this frozen holdout, not a universal error guarantee. No candidate holdout outputs observed.",
     "supersedes": "0.001 remains the original diagnostic bound; it rejects the independent reference algorithm control itself. Historical results remain unchanged."
   }

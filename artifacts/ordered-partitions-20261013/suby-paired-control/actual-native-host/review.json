@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.actual-native-host-control-review/v1",
   "passed": true,
   "nativeArchiveSha256": "d73081423fb00bfc64ecc56e8faf502048d86279c526189cf88a8382a6039cb6",
@@ -24,9 +26,9 @@
     "result.json": "aae6a1ed87cb3f8ffb519613a917d42527e67c509a096aef0cd5dab4fc05240e",
     "after.json": "0e06fe19063428c6ce422358062366607018d8c680f5a99d0932a852e6c596f5",
     "controller.js": "53d8df68c77494424d2b959c7ba6a05c5ee1153f8f8e49107795285929f5a821",
-    "reservation.json": "d8d07d83826b2eb6e1c6f7dc75cb64f308effcdcbdcfc8d8d2950fe5f9dbb081",
+    "reservation.json": "817ffad1344b362e255d7b1a15b2cab387dc8ec7a0a3d9a4c6d29c3d9aba7ea1",
     "verification.json": "106300d0ad7c9b5ad3fa9e65218f4bb263708e52a9884bff941c3da4e2b63d37",
-    "process.json": "6b1c07687ec67d5a605a376bd0b22c093beaf4a4f128a2557a1e6ec14aa205a8",
+    "process.json": "32485593b82d5990c1e68850b64513e6de824bac02c8d358caf82a692dc8ae27",
     "preflight.json": "baf4b1fd8c8a6faa4f24d2692500dedf2a5a852638f05aafaba1aac85244106c",
     "install.log": "db29fbbe2ff953521d8351ddfc14ff43c007b5987560120e135d1f8f7a04146e"
   }

@@ -1,9 +1,11 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "baseRevision": "efd9549a",
   "checkoutHead": "53a5a2121a9d9dda31240693309caf9f80d6898a",
   "files": {
     ".gitignore": "4f8d22428347f2d5203a71237a4c58954c6d12395924079d32e13ed3c3148d1e",
-    "AGENTS.md": "56e4ad307273e2d4123078ec63e585e91d984851cda441bc82eefd46c5867925",
+    "AGENTS.md": "6adec70c770afed5b70186724da3857eb56b9e299dd41816fea57ac7eaf7c839",
     "benchmarks/kernels/execution-routing-audit.json": "5c53c37083b08940231445c544d89f39663253c5f7ae506410a9e5721d52f336",
     "docs/api/tooling-experimental.md": "ba91807bb2bbf42f485950be6bf01e3008219701864f7e4971843913002a1b8d",
     "docs/architecture-dependencies.json": "7fcece293002a90e38a29f10f168b0f7a734431d8a2a8bdc055abd3564f62684",
@@ -114,5 +116,5 @@
     "tsconfig.source-strict.json": "68e6eef8ceb3386d8aeb088295ec8a5fb805b35388aa64012973d978229c346b",
     "tsconfig.source-unused.json": "8de5634b8cff95f52b19dc11806a9a2a1ae8f1e4a6879f63c1a88fa3deb07e41"
   },
-  "archiveSha256": "3b487678790c6592b58f30eb7e7785ad8931262be984c6b9f5f11ec49384f625"
+  "archiveSha256": "c2433faaf82fb07e4db3e81bd0203fdf2f7bff77121b18b2f002601a4a99563d"
 }

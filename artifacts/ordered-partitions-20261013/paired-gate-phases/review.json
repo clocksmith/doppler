@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "reviewer": "document_quality independent subagent",
   "sourceCommit": "eac99b97",
   "scope": "CPU source/adapter review; physical gate not run by reviewer",
@@ -16,7 +18,7 @@
     "tests/gpu/paired-linear-ownership.test.js": "df87b6ec8016bac0c362a99921445ad701ea91321889da80a0ef9bfd66b154be",
     "tests/gpu/paired-linear-preparation.test.js": "1f44f4388fa680d7ed666e6df3589d975834956e451cee8f5aa3a2ade87f1ed3",
     "tests/kernels/paired-linear-physical.js": "6cb7635644abe698fec710fe9667f8b1c6855531ce697c5b80ed808613a26cfc",
-    "artifacts/ordered-partitions-20261013/paired-gate-phases/proposal.json": "ef73f3ebad79f0e300f5b257a8622d597ebaacd6a280cabdc42c383be96418d5",
+    "artifacts/ordered-partitions-20261013/paired-gate-phases/proposal.json": "cfacf8e55157523050883c1977b8def00e7b909e93e9f8a20e3d33f99a9ea06c",
     "artifacts/ordered-partitions-20261013/paired-gate-phases/linear-control.js": "0135bcbcbfe614a9b1379f8e04a74c59ec30d43989ab48da3a82819a57865cbd",
     "artifacts/ordered-partitions-20261013/paired-gate-phases/lifetime-control.test.js": "1ee75b0f46cf0244f84b48e17b54a2cab707cc0b2a616031b74f6cffa6a4cc0b",
     "artifacts/ordered-partitions-20261013/paired-gate-phases/controller.js": "d2be1b35267c926868c9ca91135d40c2fce854418c732b94ac70729bfd7b2d93"

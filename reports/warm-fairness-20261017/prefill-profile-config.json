@@ -2,7 +2,7 @@
   "request": {
     "workload": "inference",
     "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
-    "modelUrl": "file:///Users/xyz/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
+    "modelUrl": "file://$HOME/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
     "runtimeConfig": {
       "shared": {
         "debug": {

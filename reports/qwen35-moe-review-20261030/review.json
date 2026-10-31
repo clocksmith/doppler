@@ -12,7 +12,7 @@
     "src/gpu/kernels/dispatch.js": "54d566c6e0184b555756965a96b06121173e34cbf8f05dfd63e9258f4e6917b6"
   },
   "pooled": {
-    "root": "/home/x/deco/hatch/qwen-economics-20261030/pooled-baseline",
+    "root": "$HOME/deco/hatch/qwen-economics-20261030/pooled-baseline",
     "readOnly": true,
     "files": {
       "engine/qwen35.js": {
@@ -102,7 +102,7 @@
   "comparisonLimits": [
     "The active 35B product comparison uses Pooled Q4_0 GGUF and Doppler Q4_K RDRR. It is not an equal-reconstructed-weight engine comparison.",
     "The observed product run contained a repeat_channels failure and an unsuccessful arithmetic result; its timings cannot establish a successful service or engine win.",
-    "No Jupiter GPU work was launched or stopped by this review; another session owned the full-model paired run.",
+    "No amd-host GPU work was launched or stopped by this review; another session owned the full-model paired run.",
     "Fused Pooled paths are capability- and layout-gated. Expert offload disables its ordinary encode-ahead; no unconditional 100 percent overlap claim is supported.",
     "A 0.8B geometry or numerical result does not qualify the larger hybrid/MoE models."
   ],

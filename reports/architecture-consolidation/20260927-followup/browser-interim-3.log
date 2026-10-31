@@ -10,9 +10,9 @@ AssertionError [ERR_ASSERTION]: X-Ray can inspect an existing receipt
 
 1 !== 5
 
-    at checkDemoControls (file:///home/x/deco/doppler/tests/demo/browser-controls.js:87:10)
-    at async main (file:///home/x/deco/doppler/tools/demo-contract-smoke.js:203:5)
-    at async file:///home/x/deco/doppler/tools/demo-contract-smoke.js:243:1 {
+    at checkDemoControls (file://$HOME/deco/doppler/tests/demo/browser-controls.js:87:10)
+    at async main (file://$HOME/deco/doppler/tools/demo-contract-smoke.js:203:5)
+    at async file://$HOME/deco/doppler/tools/demo-contract-smoke.js:243:1 {
   generatedMessage: false,
   code: 'ERR_ASSERTION',
   actual: 1,

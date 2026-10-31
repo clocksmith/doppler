@@ -1,10 +1,12 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.compact-evidence-index/v1",
   "compressedReports": [
     {
       "file": "f16-control.json.gz",
-      "sha256": "58f8fb97d59930f43f12ac846699cfdafa4632a4266630a9aebf13dacaf44c60",
-      "uncompressedSha256": "875ccb04de113df830bd4bd45dfdbb8fb21f3e1aa3893cca0b109a5833f7fe8a",
+      "sha256": "11964350ef849807269dc5411a1b32ec9055595161d508e709c082d3087e7ee4",
+      "uncompressedSha256": "fbd427edeb6f52d3aab27a8975a92e9e46c914f68b9a4feeda964f511d042539",
       "uncompressedBytes": 2104803
     },
     {
@@ -21,8 +23,8 @@
     },
     {
       "file": "qwen-qualification.json.gz",
-      "sha256": "60d6bee25c8ffa0aa034e2344dd2ebebcf125afac1686667ea67351b1df267cd",
-      "uncompressedSha256": "b9c37c3a56887c273e20d2c2a4d0dc0041ec2f18da7ee79e0214ca5bd3197d79",
+      "sha256": "f98203e8680299f59562f0bfb6b1af9fe279e463c3c48fd7d01027dee9d63cd9",
+      "uncompressedSha256": "c9d48e829e230a76fba88cb51a1f656ffca9ceeb53a1e6e557f01ffa40434db4",
       "uncompressedBytes": 2097326
     }
   ],

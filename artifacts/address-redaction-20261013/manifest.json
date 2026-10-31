@@ -119,7 +119,7 @@
       "redactedBytes": 865
     },
     {
-      "path": "artifacts/ordered-partitions-20261013/remote-preflight/suby-process.json",
+      "path": "artifacts/ordered-partitions-20261013/remote-preflight/intel-host-process.json",
       "kind": "text",
       "replacements": 1,
       "originalSha256": "sha256:b84992f8484f3820eaabdb7628cbeca9b0546fbf5ff42fd0fad844b3a5773227",

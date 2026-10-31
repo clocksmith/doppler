@@ -5,9 +5,9 @@
   "config": {
     "mode": "model",
     "packageBundlePath": "/var/tmp/doppler-search-node-20260923",
-    "modelDir": "/home/x/deco/doppler/reports/capsule-baseline/20260906/embedding-model",
-    "referencePath": "/home/x/deco/doppler/reports/capsule-baseline/20260906/embedding-reference.json",
-    "outputDir": "/home/x/deco/doppler/reports/capsule-baseline/20260906/embedding-browser",
+    "modelDir": "$HOME/deco/doppler/reports/capsule-baseline/20260906/embedding-model",
+    "referencePath": "$HOME/deco/doppler/reports/capsule-baseline/20260906/embedding-reference.json",
+    "outputDir": "$HOME/deco/doppler/reports/capsule-baseline/20260906/embedding-browser",
     "requiredVendor": "amd",
     "timeoutMs": 600000,
     "repeatRuns": 1,

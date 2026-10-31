@@ -17,11 +17,11 @@
       "sha256": "6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934"
     },
     "sourceConfig": {
-      "path": "/home/x/deco/doppler/artifacts/source-model-reference-20261010/source-config.json",
+      "path": "$HOME/deco/doppler/artifacts/source-model-reference-20261010/source-config.json",
       "sha256": "b90b86f35c8e6925ef74ee04d0e758f0a845c83a42089ad82bbaa948de9b4204"
     },
     "pieceIndex": {
-      "path": "/home/x/deco/reploid/self/config/model-pieces/qwen-0-8b-pieces.json",
+      "path": "$HOME/deco/reploid/self/config/model-pieces/qwen-0-8b-pieces.json",
       "sha256": "18adb1f08f4e694d357a27f7a5d67ea57a7d50c5e82aa7fda099084b445974b7"
     }
   },

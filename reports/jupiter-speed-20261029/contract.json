@@ -1,7 +1,7 @@
 {
-  "schema": "doppler.jupiter-speed-experiment.v1",
+  "schema": "doppler.amd-host-speed-experiment.v1",
   "sourceRevision": "229cbf05e0d72595d0d4c1edf029d6077964c082",
-  "hardware": "Jupiter Radeon 8060S, Chrome 146.0.7680.177, RADV Mesa 26.0.3",
+  "hardware": "amd-host Radeon 8060S, Chrome 146.0.7680.177, RADV Mesa 26.0.3",
   "candidate": "profiles/qwen-3-5-0-8b-vulkan-throughput",
   "hypothesis": "Existing Vulkan features with original sequential 4x8 cadence reduce complete-request latency across representative Qwen3.5 0.8B prompts versus manifest defaults.",
   "pairsPerPrompt": 5,

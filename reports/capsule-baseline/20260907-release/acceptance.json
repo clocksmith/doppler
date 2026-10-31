@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.capsule-release-acceptance/v1",
   "component": "doppler",
   "intent": "preserved",
@@ -121,29 +123,29 @@
   ],
   "evidenceArchive": {
     "path": "evidence.tar.gz",
-    "sha256": "4728693141c0646cfb210b728c16b84a43a5744c122f729fba9eec5b37108904",
-    "sizeBytes": 3041275
+    "sha256": "1722601ebe646e3e4d28161fc44c6b5dd18577e2b757182bf55eb78e5a47a85b",
+    "sizeBytes": 3041283
   },
   "evidenceInventory": [
     {
       "path": "application-build-config.json",
-      "sha256": "bd90fca99fbc50e2ca1cc37b57386d9d57545c2d097ed3cfda2db8483d776b15",
-      "sizeBytes": 873
+      "sha256": "1fd1d7e87277dcb7b108cbf8532954ab8ae45a54eed2e90f857e21f9e12433e6",
+      "sizeBytes": 865
     },
     {
       "path": "application-build.log",
-      "sha256": "4095f14707f3ffa1ba5d1cadb56eb4188257da37c07d005cd27ae5f731036c90",
-      "sizeBytes": 1135
+      "sha256": "7f89c01022e1bb701f9dfafe37e4d68ef411884858d43c9003757aa369d60506",
+      "sizeBytes": 1133
     },
     {
       "path": "browser-search-config.json",
-      "sha256": "5f92854ce71504714ce086f1051160cd2435ff070d92a373bddaf380926ef4db",
-      "sizeBytes": 690
+      "sha256": "6b7c194228f6c1470697c9a5513b6f311373bda20aee06da4e6f6756284f8ad2",
+      "sizeBytes": 684
     },
     {
       "path": "browser-search.log",
-      "sha256": "493635a1b0ae5d0739ab479cabd88459bd1e5c1f5e4ceca41587996d23ab7bd8",
-      "sizeBytes": 419
+      "sha256": "36ec14e6bdd3c1c7c9ec4ccba5e370951d3697ca3b8f4314d666847f5605dd81",
+      "sizeBytes": 417
     },
     {
       "path": "budget-fix-check-runs.json",
@@ -152,8 +154,8 @@
     },
     {
       "path": "check-green.log",
-      "sha256": "24f1a58bae35c8615ef82e9108bbe622087c9d5419523d55347305ef8be6087e",
-      "sizeBytes": 395711
+      "sha256": "2a3ef0a6d30f52d7fa88654c4582e5ff0dceb51fe0a67a8dd17b5f0499dfdd5b",
+      "sizeBytes": 395683
     },
     {
       "path": "committed-package.log",
@@ -182,8 +184,8 @@
     },
     {
       "path": "failed-restoration/restoration.json",
-      "sha256": "c478d912eddff7cefaef2a96405c577e2becd8d5cb97447bca4c0e34d03ec7c9",
-      "sizeBytes": 1328
+      "sha256": "246e2b9c09091983b8438bd859f034ff1996028039fd43a21b3086b402a9b568",
+      "sizeBytes": 1326
     },
     {
       "path": "final-isolated-check-green.log",
@@ -232,13 +234,13 @@
     },
     {
       "path": "initial-browser/qualification.json",
-      "sha256": "156271e5d19f42150e2f7350888332e6fe05ee2ff343cddd309568309f859ae8",
-      "sizeBytes": 5608807
+      "sha256": "89da7b508b70e18070a783bc2f06fbaed156ecbb2a54e7f9a330831ed82642d9",
+      "sizeBytes": 5608793
     },
     {
       "path": "initial-node/qualification.json",
-      "sha256": "585c6fc8bfb15ac9eff7463ae8429009f350ca038df5ef0cdd12e6ca9cd52a9b",
-      "sizeBytes": 177461
+      "sha256": "22dc0efb997991d8a8b1577a789d75a6244835fa28c15c9f562afaa10c4ff8a0",
+      "sizeBytes": 177451
     },
     {
       "path": "installed-archive-comparison.json",
@@ -257,8 +259,8 @@
     },
     {
       "path": "isolated-npm-ci.log",
-      "sha256": "49ad432bf251728cb0b87667bd9738732be9a0944ce7028e46eb8e7078679fd2",
-      "sizeBytes": 935
+      "sha256": "4aea78890962dc3929e383a9361c241d5e23c5b43d5386147c612ebdbcc33156",
+      "sizeBytes": 933
     },
     {
       "path": "isolated-source-state.json",
@@ -272,13 +274,13 @@
     },
     {
       "path": "node-reranker-config.json",
-      "sha256": "170ecfbc40fa5fb831cbc1b8949e929ad37550d2b8a266f035726996e8fe4915",
-      "sizeBytes": 596
+      "sha256": "794f1e4898671a5c8806b90cfc59d7ca43a4b8c50c3e8adab441b034587625d4",
+      "sizeBytes": 588
     },
     {
       "path": "node-reranker.log",
-      "sha256": "40d32781f40ca6508626bb755339a8e6f087090fa7ab2e5bf24b45fe2e7ce2aa",
-      "sizeBytes": 5948
+      "sha256": "bb95f614c30da4b71b8d7d7c1842744d983adc4e8e0109478e551c1fd13713f2",
+      "sizeBytes": 5946
     },
     {
       "path": "package-budget-check.log",
@@ -292,8 +294,8 @@
     },
     {
       "path": "package.log",
-      "sha256": "319e9d383c1c67364a1f10a1151956abf214973fae5ccb61f9223adf98597227",
-      "sizeBytes": 1020
+      "sha256": "3689c6b4fbc811db66b80a27d68a273e96383f6e143580bc7424868226b8594a",
+      "sizeBytes": 1012
     },
     {
       "path": "public-browser-config.json",
@@ -307,8 +309,8 @@
     },
     {
       "path": "public-browser/qualification.json",
-      "sha256": "fcd7e9ebfe1439b89bf52a61b58a1324ddd7b1687702e66de765436ee1cb5b3d",
-      "sizeBytes": 5610043
+      "sha256": "d40b1bcbaddd4b581e7f1699d92d29324bb16dd3f2276f09ca033e85bba3cdf1",
+      "sizeBytes": 5610035
     },
     {
       "path": "public-node-config.json",
@@ -412,8 +414,8 @@
     },
     {
       "path": "restore-contract.log",
-      "sha256": "c006c7c6647f73ca86b859a04d0ce0014430fef9521be69286cab223827738de",
-      "sizeBytes": 1069
+      "sha256": "1a1e80f0c0052cd3f4cff4ae12f8575fbc6c7db9ae1e52ae8e9c8b18c0183ab1",
+      "sizeBytes": 1061
     },
     {
       "path": "upstream-check-runs.json",

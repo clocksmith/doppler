@@ -200,7 +200,7 @@
     "provider-unchunked-device-loss.json"
   ],
   "reproduction": {
-    "location": "Existing AMD host, /home/x/deco/doppler; preserve byte-identical original artifacts and frozen contract paths. Model weights are not committed.",
+    "location": "Existing AMD host, $HOME/deco/doppler; preserve byte-identical original artifacts and frozen contract paths. Model weights are not committed.",
     "independentReference": "OPENBLAS_NUM_THREADS=4 OMP_NUM_THREADS=4 python3 tools/qwen-quantized-transformers-reference.py --contract .tmp/qwen38-q4-qualification-20261016/holdout-input.json --model .tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact --out <new-reference-directory> --linear-attention recurrent",
     "gpuCapture": "operations/run-holdout-capture.sh records the bounded, guarded execution. Choose new output/unit paths to preserve receipts; restore the F16 service afterward.",
     "comparison": "python3 tools/compare-quantized-logits.py --reference artifacts/qwen38-27b-q4-qualification-20261016/holdout-reference --candidate artifacts/qwen38-27b-q4-qualification-20261016/holdout-gpu --contract artifacts/qwen38-27b-q4-qualification-20261016/holdout-input.json --out <new-comparison.json>",

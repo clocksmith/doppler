@@ -2,35 +2,35 @@
   "configSha256": "560077dfabc8adc7bf0c5358bda19ce6678b98ff0332b80a51f681b9a498da31",
   "sources": {
     "runner": {
-      "path": "/home/x/deco/doppler/tools/transformers-canonical-qwen35/run_layer_gpu.js",
+      "path": "$HOME/deco/doppler/tools/transformers-canonical-qwen35/run_layer_gpu.js",
       "sha256": "276db88c0d1eda0d71bd88908818acad66b8c64760dfcf892ae124a32c816c3f"
     },
     "browser": {
-      "path": "/home/x/deco/doppler/tools/transformers-canonical-qwen35/layer_gpu_browser.js",
+      "path": "$HOME/deco/doppler/tools/transformers-canonical-qwen35/layer_gpu_browser.js",
       "sha256": "f20cea5650eb7393108e2c76e8d84824f7deed7eadaf7314f927b3a19876a9e6"
     },
     "ortWebGpu": {
-      "path": "/home/x/deco/doe/bench/out/external-projects/doppler/upstream/node_modules/@huggingface/transformers/node_modules/onnxruntime-web/dist/ort.webgpu.min.mjs",
+      "path": "$HOME/deco/doe/bench/out/external-projects/doppler/upstream/node_modules/@huggingface/transformers/node_modules/onnxruntime-web/dist/ort.webgpu.min.mjs",
       "sha256": "25e7e706b8165f2096b5e29853dda64e9b1f09bdf29b4384f8d0afa9fb6db22d"
     },
     "ortJsepWasm": {
-      "path": "/home/x/deco/doe/bench/out/external-projects/doppler/upstream/node_modules/@huggingface/transformers/node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.jsep.wasm",
+      "path": "$HOME/deco/doe/bench/out/external-projects/doppler/upstream/node_modules/@huggingface/transformers/node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.jsep.wasm",
       "sha256": "ae61141f8fbf0a4e43fd7b4f4d40a1a115627f6facc4f33ddf84074a655e33ea"
     },
     "prefill": {
-      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/custom-layer-03/prefill.onnx",
+      "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/custom-layer-03/prefill.onnx",
       "sha256": "f481e161ed513f096931534aa7d1ad354e8d80ff70faacab4ee410b59cc80046"
     },
     "decode": {
-      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/custom-layer-03/decode.onnx",
+      "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/custom-layer-03/decode.onnx",
       "sha256": "67e7fb24735c685cc8fabf0d198a32badabcba97b1cae1daedf666d558692586"
     },
     "fixtures": {
-      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/custom-layer-03/fixtures.json",
+      "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/custom-layer-03/fixtures.json",
       "sha256": "048472771cd00d5f592adeb27faa6e56aa8d03309c00723ec65804d0e0ed8bcf"
     },
     "cpuReceipt": {
-      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/custom-layer-03/receipt.json",
+      "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/custom-layer-03/receipt.json",
       "sha256": "50c62e5dfb605201351ed210f46b0f980bc3b5c22e2c6a2c485c35ecf16fd603"
     }
   }

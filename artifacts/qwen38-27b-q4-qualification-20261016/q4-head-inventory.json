@@ -1,6 +1,6 @@
 {
   "schema": "doppler.retained-quantized-inventory/v1",
-  "root": "/home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact",
+  "root": "$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact",
   "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
   "source": {
     "artifactCompleteness": "complete",

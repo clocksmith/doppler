@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "fixtureCommit": "49b64dcb",
   "archiveSha256": "5e0d60bc433d332187d422721fd7afcaec780c202e3082adcab389b47fd27fc5",
   "verifiedFiles": 2575,
@@ -10,9 +12,9 @@
   "files": {
     "delivery-server.js": "1ed00c0f0a7cf941d04c60a340fe7373630c5a48f0deb84b59c37270a2eee1eb",
     "snapshot-binding.json": "9d7b6eeedd1cc8641a759212c653605344c436bdaead2a054f828b4372687bd2",
-    "controller-observation.json": "eeb01756ff046408eb7ee5c53b7e6478d42587d1632d0cda5e3edb62a652780e",
+    "controller-observation.json": "eb988e5e68b38cc4c0fa1d1031e183227933ccde04114be53c4294ec69b48a3c",
     "config-preparation.json": "dc525169c576c9581d81cab735edb9b287d7897ae87434328b0a494c472c1ed5",
-    "README.md": "88d52afe7d953741ad9668b9e23837f5caf31bdb074f37c5ba480c3423f8e5ae",
+    "README.md": "dbf1849fa2528fb70215254de124e1e4a6db5e3a61761be1a66c9fbbd56714dc",
     "fixture-closure.json": "d344406fbb80e113617fbe966bb4dfc66335ddb223df988cb8bd1afcfe547f54"
   }
 }

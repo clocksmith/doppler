@@ -11,12 +11,12 @@ public boundary check passed (npm package: 1864 files, 2155610 bytes packed, 113
 [node-tests] script: source:architecture:check
 source architecture check passed: 21 owners, 2797 files, 0 governed oversize files, 55 reviewed soft-limit files, 25 reviewed generic modules (6 semantic owners, 19 facades, 0 legacy debt)
 [node-tests] script: source:dependencies:check
-file:///home/x/deco/doppler/tools/report-source-dependencies.js:68
+file://$HOME/deco/doppler/tools/report-source-dependencies.js:68
     throw new Error('Dependency views are stale. Run node tools/report-source-dependencies.js --write.');
           ^
 
 Error: Dependency views are stale. Run node tools/report-source-dependencies.js --write.
-    at file:///home/x/deco/doppler/tools/report-source-dependencies.js:68:11
+    at file://$HOME/deco/doppler/tools/report-source-dependencies.js:68:11
 
 Node.js v22.22.1
 [node-tests] source:dependencies:check failed: exit 1

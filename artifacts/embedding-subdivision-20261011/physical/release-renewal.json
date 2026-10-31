@@ -1,6 +1,8 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.embedding-local-evaluation-renewal/v1",
-  "qualificationSha256": "sha256:7e947c3462116c8c2a26a04ea3948dbdb146f6e89f336e487362dbb1f848153e",
+  "qualificationSha256": "sha256:4ac5a8901e7d8622af0e9b1f10b0d4b875cdabab0a4a530242897d6c6f536bbc",
   "capsuleFileSha256": "sha256:ab8ad165ef8c8b34428d8dc2bcfdd4b2d28ee11c5a4686dbba340df585344786",
   "application": {
     "applicationId": "doppler-offline-document-search",

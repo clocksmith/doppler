@@ -1,9 +1,11 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "public-node-fresh": {
     "passed": true,
     "receipt": "public-node-fresh.json.gz",
-    "sha256": "7585be7c800a142662ccc2dc1d488c9672d11fb7a6dfd88d53fa28aa95843a18",
-    "archiveSha256": "1a37f6a55726288216434cd459f3f538c60314ee88ed50f6f3f90b70cdae46a3",
+    "sha256": "95c4ae15651a71800376d7602293b3cb4081f8ce3e3d555c8384662513c58aed",
+    "archiveSha256": "a97876ef1296fe0fda746bc81feac7f60d850569eda5d91482d5fed10dea015d",
     "phases": {
       "install": 112809.66949,
       "index": 2170.577384999997,
@@ -60,8 +62,8 @@
   "public-node-offline": {
     "passed": true,
     "receipt": "public-node-offline.json.gz",
-    "sha256": "1d2a30ecc96974470bb073f84cfcf24407cae04eaf5f0af1f1f6f0a0a1e5b0d4",
-    "archiveSha256": "9e9ca9b55d33f758cd306263bd4ad67f18209d437d0b8d57ab5b6bf40edaabfc",
+    "sha256": "3e6079728ad51ad495f647cb02d6f039279f2266ec7e8969f8d604f16efd05ee",
+    "archiveSha256": "7230d430d61ba007127ecf1ad1a32f83a47f21558fa597829bc0429aa8b657fb",
     "phases": {
       "openRetained": 13443.016896000001,
       "index": 24.11533800000143,
@@ -113,8 +115,8 @@
   "prior-state-upgrade": {
     "passed": true,
     "receipt": "prior-state-upgrade.json.gz",
-    "sha256": "782268c03c901e0413fac1bbf8021da055a1e76c5b79efc556475c13cb4a13d2",
-    "archiveSha256": "ef20193356f1c691d646104bb9a7724f980be14b426702990844494bd420f117",
+    "sha256": "b207393e16e5d97076fb139b943db609f2f1d82ac36acaf126758240b7bd682f",
+    "archiveSha256": "0cb415b25720803fae422343bb6f796c70e596fc43910f1025fa568a91d96e87",
     "phases": {
       "openRetained": 12530.271089,
       "index": 16.82265400000142,

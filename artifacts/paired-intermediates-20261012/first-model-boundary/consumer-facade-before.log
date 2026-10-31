@@ -1,11 +1,11 @@
-file:///Users/xyz/deco/doppler/src/memory/buffer-pool.js:781
+file://$HOME/deco/doppler/src/memory/buffer-pool.js:781
   if (!device) throw new Error('Buffer has no known GPU resource owner.');
                      ^
 
 Error: Buffer has no known GPU resource owner.
-    at poolForBuffer (file:///Users/xyz/deco/doppler/src/memory/buffer-pool.js:781:22)
-    at releaseBuffer (file:///Users/xyz/deco/doppler/src/memory/buffer-pool.js:794:42)
-    at DopplerLoader._loadTensor (file:///Users/xyz/deco/doppler/src/loader/model-executor.js:123:11)
-    at async file:///Users/xyz/deco/doppler/tests/loader/tensor-loader-cleanup.test.js:161:25
+    at poolForBuffer (file://$HOME/deco/doppler/src/memory/buffer-pool.js:781:22)
+    at releaseBuffer (file://$HOME/deco/doppler/src/memory/buffer-pool.js:794:42)
+    at DopplerLoader._loadTensor (file://$HOME/deco/doppler/src/loader/model-executor.js:123:11)
+    at async file://$HOME/deco/doppler/tests/loader/tensor-loader-cleanup.test.js:161:25
 
 Node.js v22.20.0

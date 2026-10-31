@@ -6,7 +6,7 @@ AssertionError [ERR_ASSERTION]: restoring one session must not destroy another s
 
 true !== false
 
-    at file:///home/x/deco/worktrees/doppler-consumer-streaming/tests/gpu/device-buffer-pool-epoch.test.js:115:10 {
+    at file://$HOME/deco/worktrees/doppler-consumer-streaming/tests/gpu/device-buffer-pool-epoch.test.js:115:10 {
   generatedMessage: false,
   code: 'ERR_ASSERTION',
   actual: true,

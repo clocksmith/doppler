@@ -2104,7 +2104,7 @@ TAP version 13
 #       ^
 # AssertionError [ERR_ASSERTION]: kernel-ref digest registry size mismatch
 # 360 !== 378
-#     at file:///Users/xyz/deco/doppler/tests/config/kernel-ref-digests.test.js:34:8 {
+#     at file://$HOME/deco/doppler/tests/config/kernel-ref-digests.test.js:34:8 {
 #   generatedMessage: false,
 #   code: 'ERR_ASSERTION',
 #   actual: 360,
@@ -2113,12 +2113,12 @@ TAP version 13
 #   diff: 'simple'
 # }
 # Node.js v22.20.0
-# Subtest: /Users/xyz/deco/doppler/tests/config/kernel-ref-digests.test.js
-not ok 1 - /Users/xyz/deco/doppler/tests/config/kernel-ref-digests.test.js
+# Subtest: $HOME/deco/doppler/tests/config/kernel-ref-digests.test.js
+not ok 1 - $HOME/deco/doppler/tests/config/kernel-ref-digests.test.js
   ---
   duration_ms: 93.639416
   type: 'test'
-  location: '/Users/xyz/deco/doppler/tests/config/kernel-ref-digests.test.js:1:1'
+  location: '$HOME/deco/doppler/tests/config/kernel-ref-digests.test.js:1:1'
   failureType: 'testCodeFailure'
   exitCode: 7
   signal: ~
@@ -4578,8 +4578,8 @@ ok 1 - test module initialization completed
 [node-tests] ok: tests/converter/manifest-conversion-postflight.test.js
 TAP version 13
 # manifest-conversion-preflight.test: skipped (source weight index unavailable at models/source/glimmer-30b/model.safetensors.index.json)
-# Subtest: /Users/xyz/deco/doppler/tests/converter/manifest-conversion-preflight.test.js
-ok 1 - /Users/xyz/deco/doppler/tests/converter/manifest-conversion-preflight.test.js
+# Subtest: $HOME/deco/doppler/tests/converter/manifest-conversion-preflight.test.js
+ok 1 - $HOME/deco/doppler/tests/converter/manifest-conversion-preflight.test.js
   ---
   duration_ms: 113.409958
   type: 'test'
@@ -5702,15 +5702,15 @@ TAP version 13
 #       throw err;
 #       ^
 # Error: Matmul kernel "paired_f32" has unsupported dispatchGeometry "pairedReduction".
-#     at calculateMatmulDispatch (file:///Users/xyz/deco/doppler/src/gpu/kernels/matmul-dispatch.js:83:13)
-#     at file:///Users/xyz/deco/doppler/tests/gpu/matmul-dispatch-contract.test.js:18:20
+#     at calculateMatmulDispatch (file://$HOME/deco/doppler/src/gpu/kernels/matmul-dispatch.js:83:13)
+#     at file://$HOME/deco/doppler/tests/gpu/matmul-dispatch-contract.test.js:18:20
 # Node.js v22.20.0
-# Subtest: /Users/xyz/deco/doppler/tests/gpu/matmul-dispatch-contract.test.js
-not ok 1 - /Users/xyz/deco/doppler/tests/gpu/matmul-dispatch-contract.test.js
+# Subtest: $HOME/deco/doppler/tests/gpu/matmul-dispatch-contract.test.js
+not ok 1 - $HOME/deco/doppler/tests/gpu/matmul-dispatch-contract.test.js
   ---
   duration_ms: 123.931458
   type: 'test'
-  location: '/Users/xyz/deco/doppler/tests/gpu/matmul-dispatch-contract.test.js:1:1'
+  location: '$HOME/deco/doppler/tests/gpu/matmul-dispatch-contract.test.js:1:1'
   failureType: 'testCodeFailure'
   exitCode: 7
   signal: ~
@@ -7128,7 +7128,7 @@ ok 1 - test module initialization completed
 # duration_ms 153.524375
 [node-tests] ok: tests/inference/gemma3-270m-head256-decode-path.test.js
 TAP version 13
-# [NaN Regression] skipped: local fixture missing at /Users/xyz/deco/doppler/models/local/gemma-3-1b-it-f16-af32/manifest.json
+# [NaN Regression] skipped: local fixture missing at $HOME/deco/doppler/models/local/gemma-3-1b-it-f16-af32/manifest.json
 # Subtest: test module initialization completed
 ok 1 - test module initialization completed
   ---
@@ -10084,27 +10084,27 @@ TAP version 13
 #       ^
 # AssertionError [ERR_ASSERTION]: The input did not match the regular expression /requires a positive rmsNormEps/. Input:
 # 'Error: Linear convolution requires explicit intermediatePrecision.'
-#     at async file:///Users/xyz/deco/doppler/tests/inference/runtime-contract-regressions.test.js:992:5 {
+#     at async file://$HOME/deco/doppler/tests/inference/runtime-contract-regressions.test.js:992:5 {
 #   generatedMessage: true,
 #   code: 'ERR_ASSERTION',
 #   actual: Error: Linear convolution requires explicit intermediatePrecision.
-#       at createLayerRuntimeState (file:///Users/xyz/deco/doppler/src/inference/pipelines/text/linear-attention/plan.js:389:85)
-#       at async getLayerRuntimeState (file:///Users/xyz/deco/doppler/src/inference/pipelines/text/linear-attention.js:242:18)
-#       at async runLinearAttentionLayer (file:///Users/xyz/deco/doppler/src/inference/pipelines/text/linear-attention.js:407:22)
+#       at createLayerRuntimeState (file://$HOME/deco/doppler/src/inference/pipelines/text/linear-attention/plan.js:389:85)
+#       at async getLayerRuntimeState (file://$HOME/deco/doppler/src/inference/pipelines/text/linear-attention.js:242:18)
+#       at async runLinearAttentionLayer (file://$HOME/deco/doppler/src/inference/pipelines/text/linear-attention.js:407:22)
 #       at async waitForActual (node:assert:644:5)
 #       at async Function.rejects (node:assert:767:25)
-#       at async file:///Users/xyz/deco/doppler/tests/inference/runtime-contract-regressions.test.js:992:5,
+#       at async file://$HOME/deco/doppler/tests/inference/runtime-contract-regressions.test.js:992:5,
 #   expected: /requires a positive rmsNormEps/,
 #   operator: 'rejects',
 #   diff: 'simple'
 # }
 # Node.js v22.20.0
-# Subtest: /Users/xyz/deco/doppler/tests/inference/runtime-contract-regressions.test.js
-not ok 1 - /Users/xyz/deco/doppler/tests/inference/runtime-contract-regressions.test.js
+# Subtest: $HOME/deco/doppler/tests/inference/runtime-contract-regressions.test.js
+not ok 1 - $HOME/deco/doppler/tests/inference/runtime-contract-regressions.test.js
   ---
   duration_ms: 261.929833
   type: 'test'
-  location: '/Users/xyz/deco/doppler/tests/inference/runtime-contract-regressions.test.js:1:1'
+  location: '$HOME/deco/doppler/tests/inference/runtime-contract-regressions.test.js:1:1'
   failureType: 'testCodeFailure'
   exitCode: 7
   signal: ~
@@ -16469,8 +16469,8 @@ ok 1 - test module initialization completed
 [node-tests] ok: tests/tooling/generation-qualification-scenario.test.js
 TAP version 13
 # glimmer-hf-reference-contract.test: skipped (boundary artifacts unavailable at reports/model-ir-v2/glimmer-30b.hf-boundaries)
-# Subtest: /Users/xyz/deco/doppler/tests/tooling/glimmer-hf-reference-contract.test.js
-ok 1 - /Users/xyz/deco/doppler/tests/tooling/glimmer-hf-reference-contract.test.js
+# Subtest: $HOME/deco/doppler/tests/tooling/glimmer-hf-reference-contract.test.js
+ok 1 - $HOME/deco/doppler/tests/tooling/glimmer-hf-reference-contract.test.js
   ---
   duration_ms: 33.832667
   type: 'test'

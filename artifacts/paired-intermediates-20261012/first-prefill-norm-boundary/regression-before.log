@@ -6,7 +6,7 @@ AssertionError [ERR_ASSERTION]: surrounding RMSNorm offset must not alter linear
 
 true !== false
 
-    at file:///Users/xyz/deco/doppler/tests/inference/paired-linear-norm-contract.test.js:29:14 {
+    at file://$HOME/deco/doppler/tests/inference/paired-linear-norm-contract.test.js:29:14 {
   generatedMessage: false,
   code: 'ERR_ASSERTION',
   actual: true,

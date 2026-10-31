@@ -1,7 +1,7 @@
 {
   "scope": "One control, one profiled run, one repeat. No optimization candidate. No timing superiority claim. Shared Mac, Metal, already-provisioned successor.",
-  "sourceRoot": "/Users/xyz/deco/doppler/.cache/qwen-operator-attribution-20261018",
-  "modelDirectory": "/Users/xyz/deco/doppler/.cache/qwen-2b-standard-blake3-20261017",
+  "sourceRoot": "$HOME/deco/doppler/.cache/qwen-operator-attribution-20261018",
+  "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261017",
   "modelHash": "c3364f7fecc01b70ce63b4de3347d8305a1a6437ac63bb943edece7fa279fc0e",
   "probeHash": "2cc7070a54d1a74590b49562ecb96be3c5e7b15a673c7a7ff29079d4e55620ab",
   "sourceFiles": {

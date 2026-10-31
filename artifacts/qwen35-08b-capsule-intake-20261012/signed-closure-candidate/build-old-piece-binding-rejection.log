@@ -1,11 +1,11 @@
-file:///Users/xyz/deco/doppler/src/storage/verified-piece-reader.js:19
+file://$HOME/deco/doppler/src/storage/verified-piece-reader.js:19
     || !Array.isArray(index.files) || !Number.isSafeInteger(index.maxPieceBytes) || index.maxPieceBytes < 1) throw new Error('Piece index manifest binding mismatch.');
                                                                                                                    ^
 
 Error: Piece index manifest binding mismatch.
-    at createVerifiedPieceReader (file:///Users/xyz/deco/doppler/src/storage/verified-piece-reader.js:19:116)
-    at async loadCapsulePieceIndex (file:///Users/xyz/deco/doppler/src/tooling/model-capsule-pieces.js:20:18)
-    at async rigModelCapsule (file:///Users/xyz/deco/doppler/src/tooling/model-capsule-rig.js:462:22)
-    at async file:///Users/xyz/deco/doppler/artifacts/qwen35-08b-capsule-intake-20261012/signed-closure-candidate/build.js:82:11
+    at createVerifiedPieceReader (file://$HOME/deco/doppler/src/storage/verified-piece-reader.js:19:116)
+    at async loadCapsulePieceIndex (file://$HOME/deco/doppler/src/tooling/model-capsule-pieces.js:20:18)
+    at async rigModelCapsule (file://$HOME/deco/doppler/src/tooling/model-capsule-rig.js:462:22)
+    at async file://$HOME/deco/doppler/artifacts/qwen35-08b-capsule-intake-20261012/signed-closure-candidate/build.js:82:11
 
 Node.js v22.20.0

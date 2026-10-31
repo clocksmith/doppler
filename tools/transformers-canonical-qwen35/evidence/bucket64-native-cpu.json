@@ -36,7 +36,7 @@
     "native_model.py": "d06227124c68fea5bc4e6ba6b6b0f59ca0c1e26bc86717fceb5fffad6b83ff63"
   },
   "receipt": {
-    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/bucket64-adapter-cpu-01/receipt.json",
+    "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/bucket64-adapter-cpu-01/receipt.json",
     "sha256": "b1f7f84aecf44580cd05e8580aedc0346fcd307a7f2096f4f02ee56d344cf191"
   },
   "checks": 1225,

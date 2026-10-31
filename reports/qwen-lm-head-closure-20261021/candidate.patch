@@ -1,5 +1,5 @@
 commit 0e0c5276a379dcf9f1756852f10c09cf7f0b198f
-Author: X <x@simulatte.world>
+Author: X <maintainer@example.invalid>
 Date:   Mon Oct 19 20:52:05 2026 -0400
 
     Optimize Q4_K LM head argmax with cooperative shared-memory activation caching

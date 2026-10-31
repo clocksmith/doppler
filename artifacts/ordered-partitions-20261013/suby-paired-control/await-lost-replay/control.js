@@ -6,7 +6,7 @@ import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 const [root, providerPath, output] = process.argv.slice(2); assert(root && providerPath && output);
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
-const receipt = { schema: 'doppler.suby-paired-cast-control/v1', pid: process.pid, startedAt: new Date().toISOString(),
+const receipt = { schema: 'doppler.intel-host-paired-cast-control/v1', pid: process.pid, startedAt: new Date().toISOString(),
  operationDeadlineMs: 300000, cleanupDeadlineMs: 10000, poolBudgetBytes: 16777216, cases: 4,
  scope: 'Installed package-local wrapper compatibility; not public package API or model qualification', events: [] };
 const persist = () => writeFile(output, JSON.stringify(receipt, null, 2));

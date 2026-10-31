@@ -599,7 +599,7 @@
       }
     ],
     "consumer": "reploid",
-    "reploidRoot": "/home/x/deco/worktrees/reploid-consumer-streaming",
+    "reploidRoot": "$HOME/deco/worktrees/reploid-consumer-streaming",
     "adapterProbe": {
       "attempts": 3,
       "retryDelayMs": 100

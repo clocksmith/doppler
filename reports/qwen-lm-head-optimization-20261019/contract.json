@@ -1,8 +1,8 @@
 {
   "scope": "Qwen 3.5 2B Q4_K decode forward-pass LM head argmax shared-memory optimization verification on Apple M3 Metal in Chrome 155.",
-  "modelDirectory": "/Users/xyz/deco/doppler/.cache/qwen-2b-standard-blake3-20261017",
+  "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261017",
   "modelHash": "100224bf1cf03f5ce2be22627cbca9161a0ebfa10a30b42df5244589d997d4fb",
-  "sourceRoot": "/Users/xyz/deco/doppler",
+  "sourceRoot": "$HOME/deco/doppler",
   "prompt": "The capital of France is",
   "generation": {
     "useChatTemplate": false,

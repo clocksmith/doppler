@@ -8,15 +8,15 @@ AssertionError [ERR_ASSERTION]: The validation function is expected to return "t
 Caught error:
 
 Error: Resident partition requires explicit resolved intermediate precision.
-    at async file:///Users/xyz/deco/doppler/tests/inference/partition-load-session-order.test.js:65:7 {
+    at async file://$HOME/deco/doppler/tests/inference/partition-load-session-order.test.js:65:7 {
   generatedMessage: true,
   code: 'ERR_ASSERTION',
   actual: Error: Resident partition requires explicit resolved intermediate precision.
-      at assertPartitionExecutionSupported (file:///Users/xyz/deco/doppler/src/inference/pipelines/text/partition-execution.js:35:11)
-      at Object.loadModel (file:///Users/xyz/deco/doppler/src/inference/pipelines/text/lifecycle.js:344:30)
+      at assertPartitionExecutionSupported (file://$HOME/deco/doppler/src/inference/pipelines/text/partition-execution.js:35:11)
+      at Object.loadModel (file://$HOME/deco/doppler/src/inference/pipelines/text/lifecycle.js:344:30)
       at async waitForActual (node:assert:644:5)
       at async Function.rejects (node:assert:767:25)
-      at async file:///Users/xyz/deco/doppler/tests/inference/partition-load-session-order.test.js:65:7,
+      at async file://$HOME/deco/doppler/tests/inference/partition-load-session-order.test.js:65:7,
   expected: [Function (anonymous)],
   operator: 'rejects',
   diff: 'simple'

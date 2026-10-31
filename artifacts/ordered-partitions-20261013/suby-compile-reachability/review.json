@@ -1,7 +1,9 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.paired-compilation-review/v1",
-  "resultSha256": "8f00123c2d223efd8affe5fa02d5b3166e8225c8d20a487882f9d7f78aa77f84",
-  "processSha256": "66641417e04c1bc238e80ee6b0c40c65c049c3c11e86c3bc5b304e220e2bc915",
+  "resultSha256": "d86dec870843b93c1a9bb9477b4941cb505628b9b12c5a2c27060b7cfc66110f",
+  "processSha256": "49a2e4d24bf75cd2ca9673eb241c017b9737c31f03b4a9052719e62f5aea4689",
   "rows": [
     {
       "label": "paired_pointwise_scale_pipeline",

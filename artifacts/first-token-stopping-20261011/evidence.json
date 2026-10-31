@@ -1,6 +1,8 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "before": {
-    "sha256": "ba27c9345296f203670591220da1d51b916065ca19ae1a4cd0a04331ebf9a27d"
+    "sha256": "128930e1c633b50e35cb76c1e7fa47a7cf6c0441e2522cb3442eade8a0ea12e8"
   },
   "after": {
     "sha256": "4b886259c4a497c722d9b6374353e5c67a3ed73d6b38abdf7d7a4233398022d4"

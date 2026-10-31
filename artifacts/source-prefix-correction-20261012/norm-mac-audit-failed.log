@@ -23,10 +23,10 @@
 {"layer": 22, "kind": "linear_attention", "hiddenSha256": "dfe0e92025732288ab7dd7fb7af40a9f6539f3a7a58fb2d31977f5147b2a72f7", "maxAbsHidden": 5.515903162286964}
 {"layer": 23, "kind": "full_attention", "hiddenSha256": "de020b0e4746982aebaecdd6105829da0858843cbe2aae0f4d6064e441d60a65", "maxAbsHidden": 7.908705590155192}
 Traceback (most recent call last):
-  File "/Users/xyz/deco/doppler/tools/qwen35-short-prefix-audit.py", line 275, in <module>
+  File "$HOME/deco/doppler/tools/qwen35-short-prefix-audit.py", line 275, in <module>
     run(parser.parse_args())
     ~~~^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/xyz/deco/doppler/tools/qwen35-short-prefix-audit.py", line 133, in run
+  File "$HOME/deco/doppler/tools/qwen35-short-prefix-audit.py", line 133, in run
     assert np.array_equal(logits, expected), 'Observation must exactly reproduce approved vectors'
            ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
 AssertionError: Observation must exactly reproduce approved vectors

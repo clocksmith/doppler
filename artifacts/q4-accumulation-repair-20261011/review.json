@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "qualified": false,
   "runtimePrecisionChanged": false,
   "referenceActivated": false,
@@ -1216,11 +1218,11 @@
     },
     {
       "path": "candidate-prefixes.json.gz",
-      "sha256": "f420d8fcd4379c96b080a4f513da58df188b7ba1d3e83c24d0576a8f03482451"
+      "sha256": "ae2b3bca52703a1e2f8f58d0cac62cd388dedb405b1830341c77e891706b82f4"
     },
     {
       "path": "candidate-prefixes.log.gz",
-      "sha256": "2156909297c53a332b513465f78895c8b934a067e6bbaf7eb0071fed740bec61"
+      "sha256": "4a010a323b4874852d1c151ba3ec8ca99109499e39712fb90f6dc6f63ea2613f"
     },
     {
       "path": "candidate.wgsl",
@@ -1236,7 +1238,7 @@
     },
     {
       "path": "final-projection-audit.json.gz",
-      "sha256": "d5144721f42e0dea5b0735794c5ffbf123e30f629d8e2f1f25166bbfef6c262f"
+      "sha256": "b2541824d026619f9c25b2f628eecb6ea25880a0f04138243b22782b85fd7ab6"
     },
     {
       "path": "final-projection-audit.log.gz",
@@ -1244,11 +1246,11 @@
     },
     {
       "path": "final-projection-capture.json.gz",
-      "sha256": "b2a2bc90174e09a64a6f4dacf229fcc6f7f92c72da2a9228ffabe20d5fdcdfd2"
+      "sha256": "e5bb311c032597b43e2fc222bffa10f0029a3cb3b59c1799a58b239af0fe865f"
     },
     {
       "path": "final-projection-capture.log.gz",
-      "sha256": "ef704ea9879f5411b0f855fe8fcb7105e9cafd2d994453c09e236a49566a68c9"
+      "sha256": "0908c80b92abf4f6bb6fcb9f612fb2b04bbe7444f52f23a450e72696bb371631"
     },
     {
       "path": "final-projection-target.json.gz",
@@ -1308,7 +1310,7 @@
     },
     {
       "path": "pinned-candidate-prefixes.json.gz",
-      "sha256": "1940593ab7bc19cce4e99a95a223e39abd9a22998515ecb082d164fa53c3ca06"
+      "sha256": "7647f4ca6e814b0bf16f56e015a8e3af84f92118afeb20fd69fd0d56fa21ea26"
     },
     {
       "path": "pinned-candidate-prefixes.log.gz",
@@ -1316,11 +1318,11 @@
     },
     {
       "path": "rejected-unmasked-audit.log.gz",
-      "sha256": "5a472e58de7188ba53c58fd405656838538315fe7a2ed82267f1abc2a29dfcfa"
+      "sha256": "ba2398d340849171bc06e0821a9cc190d821f94bfe2d15fb2ef059d29b3a9eb8"
     },
     {
       "path": "selected-pipelines.json.gz",
-      "sha256": "5dc28ea02dc4af977ad8b04b3b7f387efb1fb60dd00f91c665c575daceacb513"
+      "sha256": "a6106a049a98f245eeae7f64f0da528bf3a4c0b8676d59ce92f0efb464220d24"
     },
     {
       "path": "selected-pipelines.log.gz",
@@ -1333,8 +1335,8 @@
     "scope": "Two failing logits, actual final normalization operands; F64 diagnostic, no reference activation",
     "identities": {
       "contract": "ff3766e12cbb22e9f3d15cf729f1943aa8821823daa788aabae62ad33f50b73b",
-      "capture": "ecd837f12769f85ff2d554360c012125f026eccc8bd89f83bc34f8e706757ae0",
-      "baseline": "82566a166eb37aec6f2f9dfdcba2ce577e7fef9ce347be8665643816af36081e",
+      "capture": "ef8737848074949a260ce0c0f5d1eac97ca6202528a0f731d64877be71ccd628",
+      "baseline": "ed10b14d8b42620e2efe70c0f780f17ca5b066fafe3903caa92bb47e1d594eda",
       "independent": "d4ae01fd6d58bb73088d9c675f8a8d0405fa236782d55dc18723875d9c0954a6"
     },
     "toolSha256": "9b6ecc59036206a5194297c93a4f7f617aab9c5f4421b0cfbb9a2b01f7b7afe6",

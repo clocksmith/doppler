@@ -99,8 +99,8 @@ TAP version 13
 #       ^
 # AssertionError [ERR_ASSERTION]: {"size":5,"history":[0,0,4,2],"options":{"temperature":0.001,"topK":0,"topP":0.8,"repetitionPenalty":2,"presencePenalty":0.5,"suppressTokenIds":[3,3,6]}}
 # 0 !== 4
-#     at compare (file:///Users/xyz/deco/doppler/tests/kernels/capsule-token-selection-physical.test.js:37:12)
-#     at async file:///Users/xyz/deco/doppler/tests/kernels/capsule-token-selection-physical.test.js:48:11 {
+#     at compare (file://$HOME/deco/doppler/tests/kernels/capsule-token-selection-physical.test.js:37:12)
+#     at async file://$HOME/deco/doppler/tests/kernels/capsule-token-selection-physical.test.js:48:11 {
 #   generatedMessage: false,
 #   code: 'ERR_ASSERTION',
 #   actual: 0,
@@ -109,12 +109,12 @@ TAP version 13
 #   diff: 'simple'
 # }
 # Node.js v22.20.0
-# Subtest: /Users/xyz/deco/doppler/tests/kernels/capsule-token-selection-physical.test.js
-not ok 1 - /Users/xyz/deco/doppler/tests/kernels/capsule-token-selection-physical.test.js
+# Subtest: $HOME/deco/doppler/tests/kernels/capsule-token-selection-physical.test.js
+not ok 1 - $HOME/deco/doppler/tests/kernels/capsule-token-selection-physical.test.js
   ---
   duration_ms: 516.411875
   type: 'test'
-  location: '/Users/xyz/deco/doppler/tests/kernels/capsule-token-selection-physical.test.js:1:1'
+  location: '$HOME/deco/doppler/tests/kernels/capsule-token-selection-physical.test.js:1:1'
   failureType: 'testCodeFailure'
   exitCode: 7
   signal: ~
@@ -346,7 +346,7 @@ TAP version 13
 #       ^
 # AssertionError [ERR_ASSERTION]: {"vocabSize":4,"logitsDtype":"f32","topK":0,"topP":0.75,"seed":7,"adapter":"immediate"}
 # 0 !== 1
-#     at file:///Users/xyz/deco/doppler/tests/kernels/sampling-distribution-physical.test.js:34:22 {
+#     at file://$HOME/deco/doppler/tests/kernels/sampling-distribution-physical.test.js:34:22 {
 #   generatedMessage: false,
 #   code: 'ERR_ASSERTION',
 #   actual: 0,
@@ -355,12 +355,12 @@ TAP version 13
 #   diff: 'simple'
 # }
 # Node.js v22.20.0
-# Subtest: /Users/xyz/deco/doppler/tests/kernels/sampling-distribution-physical.test.js
-not ok 1 - /Users/xyz/deco/doppler/tests/kernels/sampling-distribution-physical.test.js
+# Subtest: $HOME/deco/doppler/tests/kernels/sampling-distribution-physical.test.js
+not ok 1 - $HOME/deco/doppler/tests/kernels/sampling-distribution-physical.test.js
   ---
   duration_ms: 248.356916
   type: 'test'
-  location: '/Users/xyz/deco/doppler/tests/kernels/sampling-distribution-physical.test.js:1:1'
+  location: '$HOME/deco/doppler/tests/kernels/sampling-distribution-physical.test.js:1:1'
   failureType: 'testCodeFailure'
   exitCode: 7
   signal: ~

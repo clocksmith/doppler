@@ -47,8 +47,8 @@
     "cpuFallback": "the same page with navigator.gpu removed before any engine loads: record what each lane does (explicit failure, or the device and dtype it falls back to) and, where it runs, accuracy and warm latency on the first 30 test issues"
   },
   "platforms": {
-    "jupiter": "Linux 7.0.0-38, Radeon 8060S (RADV STRIX_HALO): Google Chrome stable 146.0.7680.177 (Vulkan); Firefox Nightly (WebGPU is Nightly-only on Linux), exact build recorded; Node 22.22.1 (Doppler via webgpu@0.4.0 Dawn, Transformers.js via onnxruntime-node)",
-    "mars": "Apple M3, macOS: Safari, Chrome stable, Firefox; Node. Run by the Mars owner with the same harness"
+    "amd-host": "Linux 7.0.0-38, Radeon 8060S (RADV STRIX_HALO): Google Chrome stable 146.0.7680.177 (Vulkan); Firefox Nightly (WebGPU is Nightly-only on Linux), exact build recorded; Node 22.22.1 (Doppler via webgpu@0.4.0 Dawn, Transformers.js via onnxruntime-node)",
+    "mars": "Apple M3, macOS: Safari, Chrome stable, Firefox; Node. Run by the mac-host owner with the same harness"
   },
   "fairness": {
     "sameState": "every lane sees the same issue text and truncation budget",

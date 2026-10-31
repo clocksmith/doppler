@@ -10,7 +10,7 @@ not ok 2 - device loss during readback prevents token delivery and invalidates b
   ---
   duration_ms: 9.061116
   type: 'test'
-  location: '/home/x/deco/worktrees/doppler-consumer-streaming/tests/runtime/capsule-shared-device.test.js:66:1'
+  location: '$HOME/deco/worktrees/doppler-consumer-streaming/tests/runtime/capsule-shared-device.test.js:66:1'
   failureType: 'testCodeFailure'
   error: 'Missing expected rejection.'
   code: 'ERR_ASSERTION'
@@ -19,7 +19,7 @@ not ok 2 - device loss during readback prevents token delivery and invalidates b
     code: 'DOPPLER_GPU_DEVICE_LOST'
   operator: 'rejects'
   stack: |-
-    async TestContext.<anonymous> (file:///home/x/deco/worktrees/doppler-consumer-streaming/tests/runtime/capsule-shared-device.test.js:74:5)
+    async TestContext.<anonymous> (file://$HOME/deco/worktrees/doppler-consumer-streaming/tests/runtime/capsule-shared-device.test.js:74:5)
     async Test.run (node:internal/test_runner/test:1054:7)
     async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
   ...
@@ -28,7 +28,7 @@ not ok 3 - device loss while a program is being constructed rejects opening and 
   ---
   duration_ms: 5.582704
   type: 'test'
-  location: '/home/x/deco/worktrees/doppler-consumer-streaming/tests/runtime/capsule-shared-device.test.js:80:1'
+  location: '$HOME/deco/worktrees/doppler-consumer-streaming/tests/runtime/capsule-shared-device.test.js:80:1'
   failureType: 'testCodeFailure'
   error: 'Missing expected rejection.'
   code: 'ERR_ASSERTION'
@@ -37,7 +37,7 @@ not ok 3 - device loss while a program is being constructed rejects opening and 
     code: 'DOPPLER_GPU_DEVICE_LOST'
   operator: 'rejects'
   stack: |-
-    async TestContext.<anonymous> (file:///home/x/deco/worktrees/doppler-consumer-streaming/tests/runtime/capsule-shared-device.test.js:86:9)
+    async TestContext.<anonymous> (file://$HOME/deco/worktrees/doppler-consumer-streaming/tests/runtime/capsule-shared-device.test.js:86:9)
     async Test.run (node:internal/test_runner/test:1054:7)
     async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
   ...
@@ -46,7 +46,7 @@ not ok 4 - failed buffer replacement cannot resurrect the released slot
   ---
   duration_ms: 0.595752
   type: 'test'
-  location: '/home/x/deco/worktrees/doppler-consumer-streaming/tests/runtime/capsule-shared-device.test.js:91:1'
+  location: '$HOME/deco/worktrees/doppler-consumer-streaming/tests/runtime/capsule-shared-device.test.js:91:1'
   failureType: 'testCodeFailure'
   error: |-
     cannot write a released buffer
@@ -59,9 +59,9 @@ not ok 4 - failed buffer replacement cannot resurrect the released slot
   actual: true
   operator: 'strictEqual'
   stack: |-
-    Object.writeBuffer (file:///home/x/deco/worktrees/doppler-consumer-streaming/tests/runtime/capsule-shared-device.test.js:20:46)
-    Object.writeSlot (file:///home/x/deco/worktrees/doppler-consumer-streaming/src/client/runtime/resource-binder.js:114:20)
-    TestContext.<anonymous> (file:///home/x/deco/worktrees/doppler-consumer-streaming/tests/runtime/capsule-shared-device.test.js:97:39)
+    Object.writeBuffer (file://$HOME/deco/worktrees/doppler-consumer-streaming/tests/runtime/capsule-shared-device.test.js:20:46)
+    Object.writeSlot (file://$HOME/deco/worktrees/doppler-consumer-streaming/src/client/runtime/resource-binder.js:114:20)
+    TestContext.<anonymous> (file://$HOME/deco/worktrees/doppler-consumer-streaming/tests/runtime/capsule-shared-device.test.js:97:39)
     Test.runInAsyncScope (node:async_hooks:214:14)
     Test.run (node:internal/test_runner/test:1047:25)
     Test.processPendingSubtests (node:internal/test_runner/test:744:18)
@@ -74,7 +74,7 @@ not ok 5 - a failed program-slot release still cleans other slots and closes the
   ---
   duration_ms: 0.278525
   type: 'test'
-  location: '/home/x/deco/worktrees/doppler-consumer-streaming/tests/runtime/capsule-shared-device.test.js:100:1'
+  location: '$HOME/deco/worktrees/doppler-consumer-streaming/tests/runtime/capsule-shared-device.test.js:100:1'
   failureType: 'testCodeFailure'
   error: |-
     Expected values to be strictly equal:
@@ -87,7 +87,7 @@ not ok 5 - a failed program-slot release still cleans other slots and closes the
   actual: 0
   operator: 'strictEqual'
   stack: |-
-    TestContext.<anonymous> (file:///home/x/deco/worktrees/doppler-consumer-streaming/tests/runtime/capsule-shared-device.test.js:109:10)
+    TestContext.<anonymous> (file://$HOME/deco/worktrees/doppler-consumer-streaming/tests/runtime/capsule-shared-device.test.js:109:10)
     async Test.run (node:internal/test_runner/test:1054:7)
     async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
   ...

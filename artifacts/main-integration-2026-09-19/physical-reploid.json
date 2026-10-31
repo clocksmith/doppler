@@ -512,7 +512,7 @@
       "retryDelayMs": 100
     },
     "libraryArchive": "/dev/shm/doppler-runtime-coherence/immutable-candidate/reploid-library/reploid-0.1.0.tgz",
-    "reploidRoot": "/home/x/deco/worktrees/reploid-consumer-streaming"
+    "reploidRoot": "$HOME/deco/worktrees/reploid-consumer-streaming"
   },
   "results": [
     {

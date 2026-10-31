@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "scope": "Retained archive forensic fixed-prefix replay; producing ownership is unproven, no reference replacement or release acceptance",
   "host": "darwin",
   "producerSha256": "246f4bd08f48460870591a8b4d3ba34abc242f278c1d100c8bd594b64c122260",
@@ -20,7 +22,7 @@
   "intermediatePrecision": "two-f32",
   "maxDeviceBytes": 1420000000,
   "pairedGraphSha256": "36b7799edce21590e5846909ddaeea99be05cccaf87b65264d7281b2497fb0f3",
-  "modelDirectory": "/Users/xyz/deco/doppler/reports/local/paired-intermediates-20261012/model-9/model",
+  "modelDirectory": "$HOME/deco/doppler/reports/local/paired-intermediates-20261012/model-9/model",
   "fullPrefixes": true,
   "prefixesOnly": false,
   "observationTarget": {
@@ -3330,7 +3332,7 @@
   "observation": null,
   "executionCompleted": true,
   "referenceProducingOwnershipEstablished": false,
-  "rawSha256": "93cc7dd2595360ad3fcd1ea5c38045cec17f7e6da928430e974fa1c965b6eda7",
+  "rawSha256": "e8b3f2f9253c5a817511038de856e67b9f0f96b6dc78cd811860ec0ad4f78d12",
   "sameProviderArchive8IdenticalOutputs": 57,
   "outputs": 57
 }

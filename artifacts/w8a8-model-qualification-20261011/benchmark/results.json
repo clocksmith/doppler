@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.w8a8-fixed-work-batch-disposition/v1",
   "status": "stopped-at-user-priority-change",
   "installedPackageSha256": "7c240dad4d1ae98e204e9727e687b9bc4379abd758b16af0fd857a99d7adac8d",
@@ -33,15 +35,15 @@
       "file": "serialized-f16-packed.json.gz",
       "localSource": "reports/local/w8a8-qualification-20261011/w8a8-packed-f16-benchmark-03/qualification.json",
       "uncompressedBytes": 12416210,
-      "uncompressedSha256": "b6e9ccc052e250bd5ce9434971cbe14dea50cdc976922847983e4cad7782d56b",
-      "compressedSha256": "376ce551f64e9fa79091b6c246ba0870de345cd00014021d94aef91241ed4fa4"
+      "uncompressedSha256": "07ba0d5bfd262362a6fc131442c33b833ded05ee143f731966f01807850352cc",
+      "compressedSha256": "ee6f6e6419b385b5f074f3144cd4bc11c0a3144e1810cbad223d900d57a1e4f4"
     },
     {
       "file": "serialized-q4-packed-partial.json.gz",
       "localSource": "reports/local/w8a8-qualification-20261011/w8a8-packed-q4-benchmark-03/qualification.json",
       "uncompressedBytes": 1351605,
-      "uncompressedSha256": "97375df5680cc3d9ef6066b90348e384a79b857b9fc3e469225f3a6e3f8cff03",
-      "compressedSha256": "8bba0c0afc8426e0313fa8769635838c635c896c1672d5492de289f7990ce368"
+      "uncompressedSha256": "c9950948ae2be159a785144aa1e843075159e6948cb819e60d2ae918dce7c21d",
+      "compressedSha256": "d58670471b1daafe8f2e88be8e7757e74f8bc5a453c2d6c2406e9f3ab7a57a03"
     },
     {
       "file": "user-requested-boundary-stop.json.gz",

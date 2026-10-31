@@ -76,19 +76,19 @@
   ],
   "sources": [
     {
-      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/node-op-admission-02/result.json",
+      "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/node-op-admission-02/result.json",
       "sha256": "fa1f6b66978d90cedc0cbdce3b3d7b919d8d08868ce4fb2adbe9d8438a9e3181"
     },
     {
-      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/node-op-admission-02/browser.log",
+      "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/node-op-admission-02/browser.log",
       "sha256": "761465ba36eef95cdb04341adb7824e2ff619d62a5761b210f3a6ef230675544"
     },
     {
-      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/node-op-probes-03/probes.json",
+      "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/node-op-probes-03/probes.json",
       "sha256": "0fd9e7da306f145a2f3cdee0da3b386eb4483f010079c865c3c61c7087ca40cf"
     },
     {
-      "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/node-op-probes-03/source.json",
+      "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/node-op-probes-03/source.json",
       "sha256": "e8d8e63a0013c0ac1c2b07624b7726493874b7a68897f0213dd20e017b846d0c"
     }
   ],

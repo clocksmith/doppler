@@ -43,7 +43,7 @@
     "trainingBenchSteps": null,
     "checkpointEvery": null,
     "workloadType": null,
-    "modelUrl": "file:///Users/xyz/deco/doppler/.cache/qwen08-f16/",
+    "modelUrl": "file://$HOME/deco/doppler/.cache/qwen08-f16/",
     "cacheMode": null,
     "loadMode": null,
     "configChain": null,

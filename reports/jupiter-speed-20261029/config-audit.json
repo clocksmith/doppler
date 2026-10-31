@@ -3,7 +3,7 @@
     "id": "code-0-baseline",
     "requested": {
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
-      "modelUrl": "file:///home/x/deco/hatch/pooled-doppler-bench/_work/doppler-successor",
+      "modelUrl": "file://$HOME/deco/hatch/pooled-doppler-bench/_work/doppler-successor",
       "cacheMode": "warm",
       "loadMode": "opfs",
       "runtimeConfig": {
@@ -1118,7 +1118,7 @@
     "id": "code-0-candidate",
     "requested": {
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
-      "modelUrl": "file:///home/x/deco/hatch/pooled-doppler-bench/_work/doppler-successor",
+      "modelUrl": "file://$HOME/deco/hatch/pooled-doppler-bench/_work/doppler-successor",
       "cacheMode": "warm",
       "loadMode": "opfs",
       "runtimeConfig": {
@@ -2316,7 +2316,7 @@
     "id": "explanation-0-baseline",
     "requested": {
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
-      "modelUrl": "file:///home/x/deco/hatch/pooled-doppler-bench/_work/doppler-successor",
+      "modelUrl": "file://$HOME/deco/hatch/pooled-doppler-bench/_work/doppler-successor",
       "cacheMode": "warm",
       "loadMode": "opfs",
       "runtimeConfig": {
@@ -3431,7 +3431,7 @@
     "id": "explanation-0-candidate",
     "requested": {
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
-      "modelUrl": "file:///home/x/deco/hatch/pooled-doppler-bench/_work/doppler-successor",
+      "modelUrl": "file://$HOME/deco/hatch/pooled-doppler-bench/_work/doppler-successor",
       "cacheMode": "warm",
       "loadMode": "opfs",
       "runtimeConfig": {
@@ -4629,7 +4629,7 @@
     "id": "arithmetic-0-baseline",
     "requested": {
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
-      "modelUrl": "file:///home/x/deco/hatch/pooled-doppler-bench/_work/doppler-successor",
+      "modelUrl": "file://$HOME/deco/hatch/pooled-doppler-bench/_work/doppler-successor",
       "cacheMode": "warm",
       "loadMode": "opfs",
       "runtimeConfig": {
@@ -5744,7 +5744,7 @@
     "id": "arithmetic-0-candidate",
     "requested": {
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
-      "modelUrl": "file:///home/x/deco/hatch/pooled-doppler-bench/_work/doppler-successor",
+      "modelUrl": "file://$HOME/deco/hatch/pooled-doppler-bench/_work/doppler-successor",
       "cacheMode": "warm",
       "loadMode": "opfs",
       "runtimeConfig": {
@@ -6942,7 +6942,7 @@
     "id": "long-context-0-baseline",
     "requested": {
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
-      "modelUrl": "file:///home/x/deco/hatch/pooled-doppler-bench/_work/doppler-successor",
+      "modelUrl": "file://$HOME/deco/hatch/pooled-doppler-bench/_work/doppler-successor",
       "cacheMode": "warm",
       "loadMode": "opfs",
       "runtimeConfig": {
@@ -8057,7 +8057,7 @@
     "id": "long-context-0-candidate",
     "requested": {
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
-      "modelUrl": "file:///home/x/deco/hatch/pooled-doppler-bench/_work/doppler-successor",
+      "modelUrl": "file://$HOME/deco/hatch/pooled-doppler-bench/_work/doppler-successor",
       "cacheMode": "warm",
       "loadMode": "opfs",
       "runtimeConfig": {

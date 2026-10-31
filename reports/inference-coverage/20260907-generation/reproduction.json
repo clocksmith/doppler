@@ -1,9 +1,11 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.generation-reproduction-distribution/v1",
   "archive": {
     "path": "reproduction.tar.gz",
-    "bytes": 3998013,
-    "sha256": "5b675a2c2b6afadfbca14259d46eb812dd1c7c1a175f968401277aee27663fb4"
+    "bytes": 3998086,
+    "sha256": "d07cca4ae32b1332d85ef5f732e5f651fbd46b138394275cb3f5af1111e2c61d"
   },
   "runtimeSha256": "61a23b9cafd17eb2b420c7bd8bb1f7e8cfae859048f581e42a5fb01ad767ed19",
   "manifestSha256": "192ecf66a2410e61c990931ed2cd2a93f6141cb1434c0c8d57fe478c8f31493f",

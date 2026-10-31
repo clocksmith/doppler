@@ -1,8 +1,10 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.approved-f64-error-distribution/v1",
   "qualified": false,
   "tolerance": 0.001,
-  "captureSha256": "93cc7dd2595360ad3fcd1ea5c38045cec17f7e6da928430e974fa1c965b6eda7",
+  "captureSha256": "e8b3f2f9253c5a817511038de856e67b9f0f96b6dc78cd811860ec0ad4f78d12",
   "archiveSha256": "8cae56b0748a5c66add985122d8bbf72b7492e2e0828f713f1b0d7425a59a4e5",
   "manifestIdentity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
   "approvalSha256": "065a6f065e551995743d183151b500a68761b15f612497b7933551f6c4ae2fb5",

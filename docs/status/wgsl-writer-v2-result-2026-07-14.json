@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.wgsl-writer-v2-result/v1",
   "experimentId": "doppler-wgsl-writer-v2",
   "resultDate": "2026-07-14",
@@ -67,7 +69,7 @@
         "seed": 11,
         "status": {
           "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed11/training-status.json",
-          "sha256": "a955d53de761983dc0cf33548444000b20a17707ee26bec632ad4d6a9cb9b281",
+          "sha256": "35cf84cdddd4ddab36d347997d69245348bf5779aada131a5da390132d43c2d8",
           "receiptHash": "17473c2223d093e2e15fc3f9e322d61d5150f08d129a3ea2a8babcfac1656d2d"
         },
         "steps": 720,
@@ -86,7 +88,7 @@
         "dopplerExport": {
           "manifest": {
             "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed11/sft/exports/checkpoint-000720.adapter.manifest.json",
-            "sha256": "abe2e5fb2d19c1bcbf66e31e998613db886f0f737d1ef49a5ce9b08bea689b8b"
+            "sha256": "e5c0fa84c9f0613acd313efacbb9a9046b18ddeb9c4cf8959be557e8ce151619"
           },
           "weights": {
             "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed11/sft/exports/checkpoint-000720.adapters.safetensors",
@@ -99,7 +101,7 @@
         "seed": 29,
         "status": {
           "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/training-status.json",
-          "sha256": "1c08dfeb03abb5e6cb1a1d7bd6f574105f8eac6cf50c046e8e453dda7f667cfe",
+          "sha256": "2409e4fa90af5be282f1bab7cb3747f446e4009b79000855f6624a611f43ea12",
           "receiptHash": "1daa052e42afbf4fe975ce58a3d7a219d12c1649e7cd3d4b5ba0966ba593b77f"
         },
         "steps": 720,
@@ -118,7 +120,7 @@
         "dopplerExport": {
           "manifest": {
             "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/exports/checkpoint-000720.adapter.manifest.json",
-            "sha256": "71d4d9aa115a985a61dc63669a6672cf447a5985ef9b969cbbc7d4efbe5e272a"
+            "sha256": "7b6a363f0e909536572c81403d6510db2491fe39a56a1b17447bd37b4e17396a"
           },
           "weights": {
             "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/exports/checkpoint-000720.adapters.safetensors",
@@ -131,7 +133,7 @@
         "seed": 47,
         "status": {
           "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed47/training-status.json",
-          "sha256": "54abb1f7dee477ceaa2a20127c04841bb8b777eb507617da64c924b49e13d51b",
+          "sha256": "7fa7c89fd42ffe9958247c4b0b70d3cb42567347f68fde930fb5dc3aaa7bc634",
           "receiptHash": "e7ed358ae6b3b776a9ea7922e737eacc5e7b18146a2ab2860b9e55abbe2b94a9"
         },
         "steps": 720,
@@ -150,7 +152,7 @@
         "dopplerExport": {
           "manifest": {
             "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed47/sft/exports/checkpoint-000720.adapter.manifest.json",
-            "sha256": "5edb218ed247707682b074949cd0a3e4f8b1b6d8f9d141a65c874949938cfbcd"
+            "sha256": "654fb62eb181322f494fc2ae2d06ccb6c7a0bc8609046777e250d870a941f491"
           },
           "weights": {
             "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed47/sft/exports/checkpoint-000720.adapters.safetensors",
@@ -165,8 +167,8 @@
     "calibration": {
       "receipt": {
         "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/calibration/evaluation.json",
-        "sha256": "c6542eb32eb8ce8abf4bab000edc51291bb746e7f8be7e6ddc9c1f502cb820e8",
-        "bytes": 3922
+        "sha256": "357a8c2e0edfaa882ace8c1126d29b75c798e5ad7396fbb751dab489fbb126d0",
+        "bytes": 4031
       },
       "selectionAuthority": false,
       "candidates": [
@@ -211,8 +213,8 @@
     "checkpointSelection": {
       "receipt": {
         "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/checkpoint-selection/evaluation.json",
-        "sha256": "db59b5c6b8513973ba3896d208db4a89a326c7b26b07ed783181fc0de1131d15",
-        "bytes": 4198
+        "sha256": "015c285762380ca7a51a2ed14d6f22eb319e0fee4410d5d0dd7cfca75ae33ba6",
+        "bytes": 4305
       },
       "metric": "semantic_complete_shader_pass_at_1",
       "tieBreakers": [
@@ -262,15 +264,15 @@
       "selectedSeed": 47,
       "selectionReceipt": {
         "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/selection/selected-seed.json",
-        "sha256": "09df9c7444025ef749718c75afc8fbad877608f88289a6999f3544621f649cee",
-        "bytes": 5412
+        "sha256": "825cbb6c1729b65d72daf6aba098b831307f6b5e172cac940f7403e3500c27a4",
+        "bytes": 5515
       }
     },
     "seedConfirmation": {
       "receipt": {
         "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/seed-confirmation/evaluation.json",
-        "sha256": "4fcc1bcaf0daddcb0d17dbafab4ac9a5b03c798f48a866393ddbd42101263ae9",
-        "bytes": 4172
+        "sha256": "e8448e0e53b9bafd74f849c9bfca69283cb7a2d51e03ab825f99de87ce7099fb",
+        "bytes": 4279
       },
       "candidates": [
         {
@@ -335,16 +337,16 @@
       },
       "confirmationReceipt": {
         "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/confirmation.json",
-        "sha256": "91f2387db1535d6d75705749a659e2288619bba2236ce5d10054ff4249693e11",
-        "bytes": 4142
+        "sha256": "7e0817998f42c929667f37af63fe19fda44aa3340232f428637a616a95848609",
+        "bytes": 4251
       }
     }
   },
   "parity": {
     "receipt": {
       "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/parity.json",
-      "sha256": "bb1c9e0463b86c21a11a71fd6cb5642a3f63691f2044f5bb5a76253c4e750cba",
-      "bytes": 5439
+      "sha256": "d69f60a163617c2d4c84b5e2bda55349e9d435f1cc5003204ed22f27a0bf0156",
+      "bytes": 5544
     },
     "selectedSeed": 47,
     "identities": {
@@ -478,29 +480,29 @@
     "semanticVerifierRerun": true,
     "candidateOutcomesChanged": false,
     "exactReference": {
-      "path": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/checkpoint-selection/peft-reference.json",
-      "sha256": "e89bc643746a6935793dd3b1a09f336a33a2a06e8ae6156c0f9f3110d12e1cd3"
+      "path": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/checkpoint-selection/peft-reference.json",
+      "sha256": "d3d3b6c03af45d772979767c2c0ee34dc75c95f68bc3da790882f5fe49c1bab1"
     },
     "archivedFiles": [
       {
         "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/attempts/checkpoint-selection-nonfinite-json-invalid/evaluation.json",
-        "sha256": "9db13d9da8cc2103daf90468773fb0d2d97e3a17c679024b888930e16ce3f0ee",
-        "bytes": 4198
+        "sha256": "c334d5b091243885a68384e60e04aba06dd437307dba867f2d949b9ae48402b3",
+        "bytes": 4305
       },
       {
         "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/attempts/checkpoint-selection-nonfinite-json-invalid/seed11.semantic.json",
-        "sha256": "85d09abda09a6a2ec18154d96e5f7161a79eb1ba286e916f7184ac083b2ef796",
-        "bytes": 440062
+        "sha256": "a2c26d5872f9df22b99af2cbfeacf825cd0ec4b0bf298ea1b9c802555d9317a4",
+        "bytes": 440169
       },
       {
         "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/attempts/checkpoint-selection-nonfinite-json-invalid/seed29.semantic.json",
-        "sha256": "b0d523ac92730744bd08a9ede6bde0f7b35008314a6c18be968b848a364d2421",
-        "bytes": 441808
+        "sha256": "3b6f2a943f7779902cddfb61dec3ec6a72f3da571be4ba41bbc71bc203574869",
+        "bytes": 441915
       },
       {
         "path": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/attempts/checkpoint-selection-nonfinite-json-invalid/seed47.semantic.json",
-        "sha256": "2b97f6836b71457681a12cbfcd8c6a6dfc5bd8da1a189927d5548fe4f27cdab7",
-        "bytes": 439669
+        "sha256": "95f4e1c77987c24a2c00a6ded75e11de75cd6f8bf9d1cbcc5b685b1d8d85176a",
+        "bytes": 439776
       }
     ]
   },

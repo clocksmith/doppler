@@ -1,6 +1,6 @@
 {
-  "sourceRoot": "/home/x/deco/doppler",
-  "modelDirectory": "/home/x/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
+  "sourceRoot": "$HOME/deco/doppler",
+  "modelDirectory": "$HOME/deco/doppler/.cache/qwen-2b-standard-blake3-20261018-v2",
   "startedAt": "2026-10-22T03:14:08.314Z",
   "lifecycle": {
     "unload": true,

@@ -18,3 +18,8 @@ On 2026-10-29, 39 unreferenced `artifacts/` folders (657 files, about 71 MB)
 moved to the store. The other 48 folders that an earlier review had counted as
 unreferenced are cited by receipts in `reports/` or by other workspace
 repositories, so they stay.
+
+On 2026-10-30 home-directory paths, host names and similar private details were
+removed from the current tree, including committed evidence. Digests that named
+changed files were recomputed; see the
+[sanitization record](../../artifacts/private-detail-sanitization-20261030/README.md).

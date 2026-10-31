@@ -2,7 +2,7 @@
   {
     "source": "reports/local/w8a8-qualification-20261011/f16-installed-model-01/qualification.json",
     "retained": "f16-installed-model-01.json.gz",
-    "sha256": "4bc3101df8c65e49a1d0f7b5e8c6d57ddc6559287795114b3c14a3871c259e36",
+    "sha256": "7f75a117ac15a25b5aa94ba16536018fcc3c814585022d49b91399a04e8ca806",
     "passed": false,
     "packageSha256": "ba9919bf1cc18bbb48102a8aba4598b6125d3c14c5492d973724419a710284c8",
     "manifestDigest": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
@@ -14,20 +14,20 @@
   {
     "source": "reports/local/w8a8-qualification-20261011/q4-installed-model-01/qualification.json",
     "retained": "q4-installed-model-01.json.gz",
-    "sha256": "1b20b1e2ee51c4cc95067c3141f5f55c1c81aff8e4ec6f71262da768a71d512b",
+    "sha256": "5b3093f8776dbd8748047da3d464319b2bbdbda31ac9a05c7d79780279d67a18",
     "passed": false,
     "packageSha256": "ba9919bf1cc18bbb48102a8aba4598b6125d3c14c5492d973724419a710284c8",
     "manifestDigest": "sha256:afecba81640288d0849838c8d4d8c763af80edc1fc22051853ce6700dda4b315",
     "error": {
       "message": "comparisonModels is not defined",
-      "stack": "ReferenceError: comparisonModels is not defined\n    at file:///home/x/deco/doppler/tools/qualify-installed-generation.js:107:68"
+      "stack": "ReferenceError: comparisonModels is not defined\n    at file://$HOME/deco/doppler/tools/qualify-installed-generation.js:107:68"
     },
     "cleanup": []
   },
   {
     "source": "reports/local/w8a8-qualification-20261011/q4-installed-model-02/qualification.json",
     "retained": "q4-installed-model-02.json.gz",
-    "sha256": "f534e683f0f64c0e0a256f75ae9c9d3bd9980af3a74edfa41cd2c4e8519379a2",
+    "sha256": "99455ea60c979a3cb8027713109649c95b39766558b2411f9bb697cb0894d748",
     "passed": false,
     "packageSha256": "ba9919bf1cc18bbb48102a8aba4598b6125d3c14c5492d973724419a710284c8",
     "manifestDigest": "sha256:afecba81640288d0849838c8d4d8c763af80edc1fc22051853ce6700dda4b315",
@@ -39,7 +39,7 @@
   {
     "source": "reports/local/w8a8-qualification-20261011/w8a8-boundary-01/qualification.json",
     "retained": "w8a8-boundary-01.json.gz",
-    "sha256": "ca882751457210eb26e89630bca55b13e67979d6134d30ac14a5b295737421c4",
+    "sha256": "c256d9eaa4d7670ef786d5c16976d4cb016f180fcb36505e7ab784f207283f83",
     "passed": true,
     "packageSha256": "79b7c68ceb23d3e156e5e6287d978bfbe218940b832c2460b80efe2472e9b44b",
     "manifestDigest": "sha256:6bd380101b72d79aa05c23d51783a9faab9505808d63c4bd86520e95d255c03c",
@@ -49,7 +49,7 @@
   {
     "source": "reports/local/w8a8-qualification-20261011/w8a8-installed-model-01/qualification.json",
     "retained": "w8a8-installed-model-01.json.gz",
-    "sha256": "122f2fac91baa70b337c6bf6bafc9a2c8419396d356545ae2b68d01c0a7b01a3",
+    "sha256": "59ec2296eba03b57e7253ad0c064c6095651d82fb59d0f60ceb77200740ba2bd",
     "passed": false,
     "packageSha256": "ba9919bf1cc18bbb48102a8aba4598b6125d3c14c5492d973724419a710284c8",
     "manifestDigest": "sha256:6bd380101b72d79aa05c23d51783a9faab9505808d63c4bd86520e95d255c03c",
@@ -65,7 +65,7 @@
   {
     "source": "reports/local/w8a8-qualification-20261011/w8a8-installed-model-02/qualification.json",
     "retained": "w8a8-installed-model-02.json.gz",
-    "sha256": "f0ab20d357b26d98f0919e37f09599b162aff90ee1b96cf3b18f1070e948a1ae",
+    "sha256": "596000abec5db0920cf448dd0ccb6e4f4557b470f39a5e50579780cfd47cf614",
     "passed": false,
     "packageSha256": "ba9919bf1cc18bbb48102a8aba4598b6125d3c14c5492d973724419a710284c8",
     "manifestDigest": "sha256:6bd380101b72d79aa05c23d51783a9faab9505808d63c4bd86520e95d255c03c",
@@ -81,7 +81,7 @@
   {
     "source": "reports/local/w8a8-qualification-20261011/w8a8-installed-model-03/qualification.json",
     "retained": "w8a8-installed-model-03.json.gz",
-    "sha256": "cae7ff838947595bebe31320bdae3abdff93e4cd9a613bafe39755e8524eeafe",
+    "sha256": "5f883c97ffcc05acced109905b9a335364ef1ce13b50b3bc6e64fb82e48d26e1",
     "passed": false,
     "packageSha256": "ba9919bf1cc18bbb48102a8aba4598b6125d3c14c5492d973724419a710284c8",
     "manifestDigest": "sha256:6bd380101b72d79aa05c23d51783a9faab9505808d63c4bd86520e95d255c03c",
@@ -97,7 +97,7 @@
   {
     "source": "reports/local/w8a8-qualification-20261011/w8a8-installed-model-04/qualification.json",
     "retained": "w8a8-installed-model-04.json.gz",
-    "sha256": "68a4d49df27f5f28f7648c5500194beb6fc5965fcf2fc4d3ba2ffb0a435437a1",
+    "sha256": "d81da9ec1fde30c21a4e87e60f4e42f8155c2d352bdb0b91e94eac4d49b0d4b7",
     "passed": false,
     "packageSha256": "975adf34cd6985b9420bbbf8c4a8736e44a84fc916465fd90158bf73fddef8c5",
     "manifestDigest": "sha256:6bd380101b72d79aa05c23d51783a9faab9505808d63c4bd86520e95d255c03c",
@@ -109,7 +109,7 @@
   {
     "source": "reports/local/w8a8-qualification-20261011/w8a8-installed-model-05/qualification.json",
     "retained": "w8a8-installed-model-05.json.gz",
-    "sha256": "90be940b3e2be9d90776224a79075c036f9f7abeff359d1d3867c238db483480",
+    "sha256": "04602bcc1c1c3a0dbe7bb78e08e23aeb5c3b685e1172b743e4d9fc9b5389bd14",
     "passed": true,
     "packageSha256": "79b7c68ceb23d3e156e5e6287d978bfbe218940b832c2460b80efe2472e9b44b",
     "manifestDigest": "sha256:6bd380101b72d79aa05c23d51783a9faab9505808d63c4bd86520e95d255c03c",
@@ -119,7 +119,7 @@
   {
     "source": "reports/local/w8a8-qualification-20261011/w8a8-packed-installed-model-01/qualification.json",
     "retained": "w8a8-packed-installed-model-01.json.gz",
-    "sha256": "f8153718693ff4fc78d14a391324f853482dab2931faafe72eec43c4b7873bfb",
+    "sha256": "6a041d016f7171b8e54e282922cccbe6eb977db10eda25b9e0fd1874c568649d",
     "passed": false,
     "packageSha256": "79b7c68ceb23d3e156e5e6287d978bfbe218940b832c2460b80efe2472e9b44b",
     "manifestDigest": "sha256:67eee682dea361346ca1ae16026e53f4162b4e43f45dc9c53e4b30919b79065e",
@@ -133,7 +133,7 @@
   {
     "source": "reports/local/w8a8-qualification-20261011/w8a8-packed-installed-model-02/qualification.json",
     "retained": "w8a8-packed-installed-model-02.json.gz",
-    "sha256": "229663bbd9d17cc6d9e3dc6de8479c9a0c180917e083d216301a66bea8dd404b",
+    "sha256": "06a0c630dc16e97185153075ec03887606178d85b0f6493a8e60467cbfa8910e",
     "passed": false,
     "packageSha256": "79b7c68ceb23d3e156e5e6287d978bfbe218940b832c2460b80efe2472e9b44b",
     "manifestDigest": "sha256:67eee682dea361346ca1ae16026e53f4162b4e43f45dc9c53e4b30919b79065e",
@@ -191,7 +191,7 @@
   {
     "source": "reports/local/w8a8-qualification-20261011/w8a8-packed-installed-model-03/qualification.json",
     "retained": "w8a8-packed-installed-model-03.json.gz",
-    "sha256": "b39117a3fe3cbeebf2873b120f59a2e34e9743490e73e8a37543ce6ad11937f1",
+    "sha256": "0cba3e748bb021541cb9d8a4eb5488945680153652a97db7508b72ed2629a43c",
     "passed": true,
     "packageSha256": "47d7d18fb51a0852b6b0c35b0590e306b460c743eefe2d36b6615839c8651edc",
     "manifestDigest": "sha256:67eee682dea361346ca1ae16026e53f4162b4e43f45dc9c53e4b30919b79065e",
@@ -201,7 +201,7 @@
   {
     "source": "reports/local/w8a8-qualification-20261011/w8a8-installed-model-06/qualification.json",
     "retained": "w8a8-installed-model-06.json.gz",
-    "sha256": "a7737d48a74495252bda957cbbcb4a3553a733b63010e75dc720145496878ecb",
+    "sha256": "e0e2c422cbd64d6fd5b68bb3d27d193cc39a4eb095598bbef6b7fb800e22c527",
     "passed": true,
     "packageSha256": "47d7d18fb51a0852b6b0c35b0590e306b460c743eefe2d36b6615839c8651edc",
     "manifestDigest": "sha256:6bd380101b72d79aa05c23d51783a9faab9505808d63c4bd86520e95d255c03c",
@@ -211,7 +211,7 @@
   {
     "source": "reports/local/w8a8-qualification-20261011/w8a8-installed-model-07/qualification.json",
     "retained": "w8a8-installed-model-07.json.gz",
-    "sha256": "53520c348a0c70a79f4c761651ef92d672af18ec93341c45c6cee8680be41161",
+    "sha256": "c580d556605a8629fe456e0ea6bf26b156e023607265dde601ec9d0ec3e92c80",
     "passed": true,
     "packageSha256": "7c240dad4d1ae98e204e9727e687b9bc4379abd758b16af0fd857a99d7adac8d",
     "manifestDigest": "sha256:6bd380101b72d79aa05c23d51783a9faab9505808d63c4bd86520e95d255c03c",
@@ -221,7 +221,7 @@
   {
     "source": "reports/local/w8a8-qualification-20261011/w8a8-packed-installed-model-04/qualification.json",
     "retained": "w8a8-packed-installed-model-04.json.gz",
-    "sha256": "f0298a36a11ae33be3b901689108372a5016482f4a0af4b763bf618baa77787e",
+    "sha256": "3d3c0088c176c8ccc0162fbf05f9a4a2b3288615eea4bc04b38ecca86caa4738",
     "passed": true,
     "packageSha256": "7c240dad4d1ae98e204e9727e687b9bc4379abd758b16af0fd857a99d7adac8d",
     "manifestDigest": "sha256:67eee682dea361346ca1ae16026e53f4162b4e43f45dc9c53e4b30919b79065e",

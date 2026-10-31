@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "scope": "Repository source checks; no GPU, application-quality, release, or performance qualification",
   "headAtEvidenceAssembly": "86e3761beeaf4dd702acf813a9adf7e0de7ac1ee",
   "sourceTiming": "The shared tree changed during the initial and final unit sweeps. This report combines retained runs and final affected checks; it is not an immutable-snapshot check:green pass.",
@@ -44,9 +46,9 @@
   "remainingLimit": "Physical diagnostics and model quality continue independently; neither this check report nor generated conversion-ready status promotes W8A8 or a standard archive.",
   "logs": {
     "initial-check-green.log.gz": {
-      "uncompressedSha256": "bbdde34a3adb502f69d7ed37be1300a24d838018802a9bd55c722220d397cf42",
+      "uncompressedSha256": "37bdbb9d9bc55fd911197106c30ee5bf87b772accf40951680c2ad2e61f58b62",
       "uncompressedBytes": 643020,
-      "compressedSha256": "15bcde78f1737a2136070eb25ae83fbd71a67033ae161dbae5d7c658710fc210"
+      "compressedSha256": "56a00c62e8cb00a81a558598058ee4372365884a0f7701bef39b5eff0684c144"
     },
     "generated-inventory-checks.log.gz": {
       "uncompressedSha256": "1a7470dbab07f36363628c9d7659e36f497911e08ca68fcff3fb34f208cb56b6",
@@ -54,14 +56,14 @@
       "compressedSha256": "cfb36e7e5ecdbdbe16464933bb4f39d9535ca0284e985345cb4acaa0c5460f99"
     },
     "final-unit.log.gz": {
-      "uncompressedSha256": "062af15c71bab9660f4a4aee0e840b784789fa1c3d527e4341d891da1d957bd0",
+      "uncompressedSha256": "36cb48750a7e2eb250acdba018806b30f0882f48e856e5b4dc490bb5de3f2528",
       "uncompressedBytes": 449364,
-      "compressedSha256": "182faff950748bac21667c162e40121dc5ee6ccd43395aa609e64bdb317f01a9"
+      "compressedSha256": "a8fdd21550e0fc556f430a112773e6b5f87b3c39c2c661bb92fcd4b21c6a5866"
     },
     "final-gates.log.gz": {
-      "uncompressedSha256": "0c41c03d048dee63194de49b9a44f345bb9a59140562c05185bd2cfeb223ce8b",
+      "uncompressedSha256": "be39f4e99b43448acf8fc4387937de41f77440915a0424efb05298ffc2de2a89",
       "uncompressedBytes": 39559,
-      "compressedSha256": "1995cb0f4ab97e7387196101840fbf04ec083d4a52b92aff77fd40c9b7622e8a"
+      "compressedSha256": "1dfaedcb853d67f2e80a7f69d2f5a8e24be4d7643646db23ec60fec0e2b0c119"
     },
     "final-cleanup.log.gz": {
       "uncompressedSha256": "f042ceb152d56dbb87d9e1d41364ad56e5a1f419ac76a2ca343133f86f84ec7e",

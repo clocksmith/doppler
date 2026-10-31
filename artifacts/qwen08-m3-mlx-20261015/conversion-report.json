@@ -10,7 +10,7 @@
   "source": "doppler",
   "result": {
     "modelType": "transformer",
-    "outputDir": "/Users/xyz/deco/doppler/.cache/qwen08-f16",
+    "outputDir": "$HOME/deco/doppler/.cache/qwen08-f16",
     "shardCount": 23,
     "tensorCount": 320,
     "totalSize": 1504786048

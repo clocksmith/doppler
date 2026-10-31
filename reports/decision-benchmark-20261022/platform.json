@@ -16,7 +16,7 @@
   {
    "name": "firefox-nightly",
    "kind": "firefox",
-   "executable": "/home/x/.local/opt/firefox-nightly/firefox",
+   "executable": "$HOME/.local/opt/firefox-nightly/firefox",
    "version": "Mozilla Firefox 160.0a1"
   }
  ]

@@ -1,7 +1,9 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.w8a8-actual-operand-comparison/v1",
   "modelIdentity": "sha256:6bd380101b72d79aa05c23d51783a9faab9505808d63c4bd86520e95d255c03c",
-  "gpuSha256": "ca882751457210eb26e89630bca55b13e67979d6134d30ac14a5b295737421c4",
+  "gpuSha256": "c256d9eaa4d7670ef786d5c16976d4cb016f180fcb36505e7ab784f207283f83",
   "sourceSha256": "2d705ec9b2591138f9d258a95fc6a96e4d4d94dd556398eddbb917d5177fe3cf",
   "bindingSha256": "13bbb9ac4e048673e8b7ff2d74d486a0a4bc85da826e884482ceaaa50db53450",
   "toolSha256": "a5096b75ab6f4ef6c7f738ae84d96301386b182ddb65ce937a3fa10ee3df06bc",

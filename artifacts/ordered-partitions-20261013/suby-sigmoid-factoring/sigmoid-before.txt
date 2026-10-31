@@ -6,7 +6,7 @@ AssertionError [ERR_ASSERTION]: Sigmoid must have one static exponential callsit
 
 2 !== 1
 
-    at file:///Users/xyz/deco/doppler/tests/gpu/paired-sigmoid-expression.test.js:57:8 {
+    at file://$HOME/deco/doppler/tests/gpu/paired-sigmoid-expression.test.js:57:8 {
   generatedMessage: false,
   code: 'ERR_ASSERTION',
   actual: 2,

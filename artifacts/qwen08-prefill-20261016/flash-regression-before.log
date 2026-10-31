@@ -14,8 +14,8 @@ Expected layout: [{ binding: 0, visibility: ShaderStage::Compute, buffer: {type:
 + GPUValidationError {}
 - null
 
-    at runCase (file:///Users/xyz/deco/doppler/tests/inference/attention-flash-prefill-gpu-regression.test.js:54:12)
-    at async file:///Users/xyz/deco/doppler/tests/inference/attention-flash-prefill-gpu-regression.test.js:94:5 {
+    at runCase (file://$HOME/deco/doppler/tests/inference/attention-flash-prefill-gpu-regression.test.js:54:12)
+    at async file://$HOME/deco/doppler/tests/inference/attention-flash-prefill-gpu-regression.test.js:94:5 {
   generatedMessage: false,
   code: 'ERR_ASSERTION',
   actual: GPUValidationError {},

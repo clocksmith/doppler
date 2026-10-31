@@ -6583,8 +6583,8 @@ TAP version 13
 # Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
 # [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.4ms
 # fused-ffn-q4-metal-simd16-gpu-regression.test: skipped (requires Apple Metal subgroups)
-# Subtest: /home/x/deco/doppler/tests/inference/fused-ffn-q4-metal-simd16-gpu-regression.test.js
-ok 1 - /home/x/deco/doppler/tests/inference/fused-ffn-q4-metal-simd16-gpu-regression.test.js
+# Subtest: $HOME/deco/doppler/tests/inference/fused-ffn-q4-metal-simd16-gpu-regression.test.js
+ok 1 - $HOME/deco/doppler/tests/inference/fused-ffn-q4-metal-simd16-gpu-regression.test.js
   ---
   duration_ms: 248.700033
   type: 'test'
@@ -6604,8 +6604,8 @@ TAP version 13
 # Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
 # [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.3ms
 # fused-matmul-q4-metal-simd16-gpu-regression.test: skipped (requires Apple Metal subgroups)
-# Subtest: /home/x/deco/doppler/tests/inference/fused-matmul-q4-metal-simd16-gpu-regression.test.js
-ok 1 - /home/x/deco/doppler/tests/inference/fused-matmul-q4-metal-simd16-gpu-regression.test.js
+# Subtest: $HOME/deco/doppler/tests/inference/fused-matmul-q4-metal-simd16-gpu-regression.test.js
+ok 1 - $HOME/deco/doppler/tests/inference/fused-matmul-q4-metal-simd16-gpu-regression.test.js
   ---
   duration_ms: 232.32659
   type: 'test'
@@ -6720,7 +6720,7 @@ ok 1 - test module initialization completed
 # duration_ms 191.525729
 [node-tests] ok: tests/inference/gemma3-270m-head256-decode-path.test.js
 TAP version 13
-# [NaN Regression] skipped: local fixture missing at /home/x/deco/doppler/models/local/gemma-3-1b-it-f16-af32/manifest.json
+# [NaN Regression] skipped: local fixture missing at $HOME/deco/doppler/models/local/gemma-3-1b-it-f16-af32/manifest.json
 # Subtest: test module initialization completed
 ok 1 - test module initialization completed
   ---
@@ -6797,8 +6797,8 @@ TAP version 13
 # Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
 # [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.3ms
 # gemma4-e2b-q4k-apple-retain-regression.test: skipped (vendor=amd not apple)
-# Subtest: /home/x/deco/doppler/tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js
-ok 1 - /home/x/deco/doppler/tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js
+# Subtest: $HOME/deco/doppler/tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js
+ok 1 - $HOME/deco/doppler/tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js
   ---
   duration_ms: 369.187332
   type: 'test'
@@ -11519,9 +11519,9 @@ ok 1 - test module initialization completed
 # duration_ms 101.505617
 [node-tests] ok: tests/integration/installed-capability-memory.test.js
 TAP version 13
-# litert-gemma4-task-ple-scale.test: skipped (source artifact not available at /home/x/deco/doppler/models/source/litert/gemma-4-e2b-it/gemma-4-E2B-it-web.task)
-# Subtest: /home/x/deco/doppler/tests/integration/litert-gemma4-task-ple-scale.test.js
-ok 1 - /home/x/deco/doppler/tests/integration/litert-gemma4-task-ple-scale.test.js
+# litert-gemma4-task-ple-scale.test: skipped (source artifact not available at $HOME/deco/doppler/models/source/litert/gemma-4-e2b-it/gemma-4-E2B-it-web.task)
+# Subtest: $HOME/deco/doppler/tests/integration/litert-gemma4-task-ple-scale.test.js
+ok 1 - $HOME/deco/doppler/tests/integration/litert-gemma4-task-ple-scale.test.js
   ---
   duration_ms: 85.153353
   type: 'test'

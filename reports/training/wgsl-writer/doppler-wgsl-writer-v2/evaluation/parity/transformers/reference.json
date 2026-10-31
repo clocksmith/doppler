@@ -8,7 +8,7 @@
     "transformers": "5.13.1",
     "transformersModulePath": "/tmp/doppler-wgsl-python/transformers/__init__.py",
     "peft": "0.19.1",
-    "peftModulePath": "/home/x/deco/gamma/.venv_rocm/lib/python3.14/site-packages/peft/__init__.py",
+    "peftModulePath": "$HOME/deco/gamma/.venv_rocm/lib/python3.14/site-packages/peft/__init__.py",
     "device": "Radeon 8060S Graphics",
     "deviceTotalMemory": 65945612288,
     "dtype": "bfloat16"
@@ -20,7 +20,7 @@
     "tokenizerSha256": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42"
   },
   "probe": {
-    "datasetPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/calibration.jsonl",
+    "datasetPath": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/calibration.jsonl",
     "datasetSha256": "3fa6dc28d89b81e029bcb9562d3e9bb23ccb0e85322574d0897b6d376ee5bae6",
     "rowIndex": 0,
     "rowId": "writer-v2-calibration-distance-pair-001",
@@ -682,7 +682,7 @@
   },
   "base": {
     "logits": {
-      "path": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/transformers/base.first-token-logits.f32",
+      "path": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/transformers/base.first-token-logits.f32",
       "dtype": "float32",
       "elementCount": 248320,
       "bytes": 993280,
@@ -1182,7 +1182,7 @@
   "adapters": [
     {
       "logits": {
-        "path": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/transformers/seed47.first-token-logits.f32",
+        "path": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/parity/transformers/seed47.first-token-logits.f32",
         "dtype": "float32",
         "elementCount": 248320,
         "bytes": 993280,
@@ -1542,7 +1542,7 @@
       ],
       "completionText": "override WORKGROUP_SIZE: u32 = 256u;\n\nstruct Params {\n    length: u32,\n    output_offset: u32,\n    first_reserved: f32,\n    second_reserved: f32,\n}\n\n@group(0) @binding(0) var<storage, read> left_values: array<f32>;\n@group(0) @binding(1) var<storage, read> right_values: array<f32>;\n@group(0) @binding(2) var<storage, read_write> output_values: array<f32>;\n@group(0) @binding(3) var<uniform> params: Params;\n\n@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)\nfn main(@builtin(global_invocation_id) global_id: vec3<u32>) {\n    let index = global_id.x;\n    if (index >= params.length) {\n        return;\n    }\n\n    let result = abs(left_values[index] - right_values[index]);\n    output_values[params.output_offset + index] = result;\n}",
       "seed": 47,
-      "adapterPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed47/sft/checkpoints/gamma/adapter",
+      "adapterPath": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed47/sft/checkpoints/gamma/adapter",
       "adapterConfigSha256": "3e0f8cbe55289a65addb01bb4e150ec644d149b5a8ac46f70396fc4baa049b66",
       "adapterWeightsSha256": "64cb65bfd2f409278d666d874c4dc2179058cab8e75609f5fe1fdc8644794667"
     }

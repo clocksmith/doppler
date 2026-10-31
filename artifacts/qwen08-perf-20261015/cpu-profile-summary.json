@@ -9,7 +9,7 @@
     },
     {
       "function": "device.createBindGroup",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/device.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/device.js",
       "line": 231,
       "sampledMs": 2068.385
     },
@@ -33,7 +33,7 @@
     },
     {
       "function": "device.createBuffer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/device.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/device.js",
       "line": 209,
       "sampledMs": 1095.804
     },
@@ -45,67 +45,67 @@
     },
     {
       "function": "buffer.destroy",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/memory/device-budget.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/memory/device-budget.js",
       "line": 37,
       "sampledMs": 375.922
     },
     {
       "function": "recordDispatch",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/command-recorder.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/command-recorder.js",
       "line": 320,
       "sampledMs": 364.827
     },
     {
       "function": "matchesRule",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/rules/rule-matcher.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/rules/rule-matcher.js",
       "line": 1,
       "sampledMs": 280.213
     },
     {
       "function": "submit",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/submit-tracker.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/submit-tracker.js",
       "line": 159,
       "sampledMs": 246.246
     },
     {
       "function": "acquire",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
       "line": 199,
       "sampledMs": 229.419
     },
     {
       "function": "getKernelPathMatmulStep",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/kernel-path-loader.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/kernel-path-loader.js",
       "line": 507,
       "sampledMs": 195.335
     },
     {
       "function": "canonicalizeValue",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/formats/canonical-hash.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/formats/canonical-hash.js",
       "line": 11,
       "sampledMs": 182.333
     },
     {
       "function": "executeMatmul",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul.js",
       "line": 220,
       "sampledMs": 181.21
     },
     {
       "function": "enrichKernelRuleContext",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rule-registry.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rule-registry.js",
       "line": 78,
       "sampledMs": 114.208
     },
     {
       "function": "findKernelVariant",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/kernel-path-loader.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/kernel-path-loader.js",
       "line": 340,
       "sampledMs": 106.249
     },
     {
       "function": "getCachedPipeline",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/pipeline-cache.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/pipeline-cache.js",
       "line": 229,
       "sampledMs": 98.795
     },
@@ -117,37 +117,37 @@
     },
     {
       "function": "writeBufferAligned",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/loader/tensors/load-executor.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/loader/tensors/load-executor.js",
       "line": 94,
       "sampledMs": 92.713
     },
     {
       "function": "f16ToF32",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/loader/dtype-utils.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/loader/dtype-utils.js",
       "line": 6,
       "sampledMs": 84.538
     },
     {
       "function": "getOrCreate",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/uniform-cache.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/uniform-cache.js",
       "line": 84,
       "sampledMs": 80.126
     },
     {
       "function": "compressBlock",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/formats/sha256.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/formats/sha256.js",
       "line": 122,
       "sampledMs": 76.503
     },
     {
       "function": "#releaseTrackedBuffer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
       "line": 329,
       "sampledMs": 71.793
     },
     {
       "function": "writeAlignedChunk",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/loader/model-executor.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/loader/model-executor.js",
       "line": 310,
       "sampledMs": 70.58
     },
@@ -159,85 +159,85 @@
     },
     {
       "function": "shouldValidateBindGroupDescriptors",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/device.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/device.js",
       "line": 192,
       "sampledMs": 68.083
     },
     {
       "function": "createUniformBufferWithView",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/uniform-utils.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/uniform-utils.js",
       "line": 95,
       "sampledMs": 66.292
     },
     {
       "function": "selectByRules",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/rules/rule-matcher.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/rules/rule-matcher.js",
       "line": 33,
       "sampledMs": 65.331
     },
     {
       "function": "runLinearAttentionLayer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention.js",
       "line": 370,
       "sampledMs": 61.543
     },
     {
       "function": "loadTokenizerJson",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/storage/artifact-storage-context.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/storage/artifact-storage-context.js",
       "line": 387,
       "sampledMs": 60.167
     },
     {
       "function": "interpretAttentionWithRecorder",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/interpreter.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/interpreter.js",
       "line": 75,
       "sampledMs": 57.83
     },
     {
       "function": "probeSegmentedLimits",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/memory/capability.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/memory/capability.js",
       "line": 48,
       "sampledMs": 57.25
     },
     {
       "function": "device.createBuffer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/memory/device-budget.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/memory/device-budget.js",
       "line": 18,
       "sampledMs": 52.75
     },
     {
       "function": "getRuleSet",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/rules/rule-registry.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/rules/rule-registry.js",
       "line": 205,
       "sampledMs": 52.625
     },
     {
       "function": "processLayerGPU",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/layer.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/layer.js",
       "line": 210,
       "sampledMs": 51.503
     },
     {
       "function": "decodeStep",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator/decode.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator/decode.js",
       "line": 388,
       "sampledMs": 51.375
     },
     {
       "function": "getKernelConfig",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/kernel-registry-contract.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/kernel-registry-contract.js",
       "line": 88,
       "sampledMs": 48.709
     },
     {
       "function": "getKernelPathRMSNormSpec",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/kernel-path-loader.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/kernel-path-loader.js",
       "line": 441,
       "sampledMs": 48.708
     },
     {
       "function": "processFFNStandard",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/standard.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/standard.js",
       "line": 61,
       "sampledMs": 44.916
     },
@@ -249,7 +249,7 @@
     },
     {
       "function": "getUniformWriter",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/uniform-utils.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/uniform-utils.js",
       "line": 15,
       "sampledMs": 40.039
     },
@@ -261,55 +261,55 @@
     },
     {
       "function": "unifiedKernelWrapper",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/kernel-execution.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/kernel-execution.js",
       "line": 23,
       "sampledMs": 38.999
     },
     {
       "function": "runDenseFFNGPU",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/dense.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/dense.js",
       "line": 84,
       "sampledMs": 38.292
     },
     {
       "function": "assertWorkgroupLimits",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/dispatch.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/dispatch.js",
       "line": 52,
       "sampledMs": 36.208
     },
     {
       "function": "recordRMSNorm",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rmsnorm.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rmsnorm.js",
       "line": 254,
       "sampledMs": 34.999
     },
     {
       "function": "hashUniformBytes",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/uniform-cache.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/uniform-cache.js",
       "line": 10,
       "sampledMs": 34.001
     },
     {
       "function": "selectMatmulVariantAndFlags",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-selection.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-selection.js",
       "line": 429,
       "sampledMs": 34.0
     },
     {
       "function": "readRange",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/storage/artifact-storage-context.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/storage/artifact-storage-context.js",
       "line": 582,
       "sampledMs": 33.335
     },
     {
       "function": "createTensor",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/tensor.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/tensor.js",
       "line": 18,
       "sampledMs": 31.206
     },
     {
       "function": "acquireBuffer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
       "line": 791,
       "sampledMs": 31.206
     },
@@ -321,49 +321,49 @@
     },
     {
       "function": "appendVocabEntry",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/tokenizers/bundled/registry.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/tokenizers/bundled/registry.js",
       "line": 64,
       "sampledMs": 30.501
     },
     {
       "function": "loadObjectVocab",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/tokenizers/bundled/registry.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/tokenizers/bundled/registry.js",
       "line": 75,
       "sampledMs": 28.874
     },
     {
       "function": "runLinearAttentionCoreGPU",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/linear-attention-core.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/linear-attention-core.js",
       "line": 220,
       "sampledMs": 28.75
     },
     {
       "function": "getMatmulBindingSizes",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-selection.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-selection.js",
       "line": 218,
       "sampledMs": 28.416
     },
     {
       "function": "#destroyPendingBuffers",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
       "line": 318,
       "sampledMs": 28.001
     },
     {
       "function": "recordMatmul",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul.js",
       "line": 615,
       "sampledMs": 27.54
     },
     {
       "function": "trackTemporaryBuffer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/command-recorder.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/command-recorder.js",
       "line": 376,
       "sampledMs": 26.375
     },
     {
       "function": "",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/formats/canonical-hash.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/formats/canonical-hash.js",
       "line": 44,
       "sampledMs": 24.958
     },
@@ -375,91 +375,91 @@
     },
     {
       "function": "#allocateSegment",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/memory/heap-manager.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/memory/heap-manager.js",
       "line": 93,
       "sampledMs": 21.584
     },
     {
       "function": "",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/formats/canonical-hash.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/formats/canonical-hash.js",
       "line": 45,
       "sampledMs": 21.5
     },
     {
       "function": "",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/formats/canonical-hash.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/formats/canonical-hash.js",
       "line": 30,
       "sampledMs": 20.334
     },
     {
       "function": "projectLinearTensor",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention/plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention/plan.js",
       "line": 446,
       "sampledMs": 18.71
     },
     {
       "function": "buildMergeRanks",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/tokenizers/bundled/registry.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/tokenizers/bundled/registry.js",
       "line": 97,
       "sampledMs": 18.584
     },
     {
       "function": "getPipelineFast",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/pipeline-cache.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/pipeline-cache.js",
       "line": 247,
       "sampledMs": 18.583
     },
     {
       "function": "runProbes",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/probes.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/probes.js",
       "line": 216,
       "sampledMs": 18.291
     },
     {
       "function": "stableSortObject",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/formats/stable-sort-object.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/formats/stable-sort-object.js",
       "line": 1,
       "sampledMs": 17.459
     },
     {
       "function": "validateBindGroupDescriptor",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/device.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/device.js",
       "line": 169,
       "sampledMs": 17.459
     },
     {
       "function": "buildPipelineCacheKey",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/pipeline-cache.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/pipeline-cache.js",
       "line": 151,
       "sampledMs": 16.334
     },
     {
       "function": "resolveMatmulOutput",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-selection.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-selection.js",
       "line": 672,
       "sampledMs": 16.333
     },
     {
       "function": "resolveAttentionPlan",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/plan.js",
       "line": 115,
       "sampledMs": 16.124
     },
     {
       "function": "_residualAdd",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/residual.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/residual.js",
       "line": 123,
       "sampledMs": 16.084
     },
     {
       "function": "buildParamsData",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/linear-attention-core.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/linear-attention-core.js",
       "line": 165,
       "sampledMs": 16.083
     },
     {
       "function": "assertJsonSafe",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/refactor-receipt.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/refactor-receipt.js",
       "line": 6,
       "sampledMs": 16.0
     },
@@ -471,139 +471,139 @@
     },
     {
       "function": "resolveBiasBuffer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/logit-finalize.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/logit-finalize.js",
       "line": 9,
       "sampledMs": 15.21
     },
     {
       "function": "resolveRMSNormDispatchLabel",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rmsnorm.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rmsnorm.js",
       "line": 122,
       "sampledMs": 15.167
     },
     {
       "function": "executeAttention",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/attention/executors.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/attention/executors.js",
       "line": 347,
       "sampledMs": 15.166
     },
     {
       "function": "compileShader",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/shader-cache.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/shader-cache.js",
       "line": 193,
       "sampledMs": 15.042
     },
     {
       "function": "resolveRuleValue",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/rules/rule-registry.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/rules/rule-registry.js",
       "line": 256,
       "sampledMs": 14.793
     },
     {
       "function": "decodeReadback",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/debug-utils/readback-decoding.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/debug-utils/readback-decoding.js",
       "line": 6,
       "sampledMs": 13.876
     },
     {
       "function": "update",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/formats/sha256.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/formats/sha256.js",
       "line": 67,
       "sampledMs": 13.873
     },
     {
       "function": "getSizeBucket",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
       "line": 55,
       "sampledMs": 13.873
     },
     {
       "function": "digestHex",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/formats/sha256.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/formats/sha256.js",
       "line": 108,
       "sampledMs": 13.792
     },
     {
       "function": "projectAttentionQKV",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/projections.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/projections.js",
       "line": 274,
       "sampledMs": 13.751
     },
     {
       "function": "selectRuleValue",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rule-registry.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rule-registry.js",
       "line": 92,
       "sampledMs": 13.749
     },
     {
       "function": "ensureLayerRuntimeGpuBuffers",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention/plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention/plan.js",
       "line": 314,
       "sampledMs": 12.626
     },
     {
       "function": "planRMSNormDispatch",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rmsnorm.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rmsnorm.js",
       "line": 99,
       "sampledMs": 12.626
     },
     {
       "function": "release",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
       "line": 295,
       "sampledMs": 12.625
     },
     {
       "function": "resolveAttentionPlanForDispatch",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/plan.js",
       "line": 258,
       "sampledMs": 12.542
     },
     {
       "function": "getDeviceLimits",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/device.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/device.js",
       "line": 747,
       "sampledMs": 12.542
     },
     {
       "function": "#evictLRU",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/uniform-cache.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/uniform-cache.js",
       "line": 158,
       "sampledMs": 12.542
     },
     {
       "function": "resolveMatmulOverride",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-selection.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-selection.js",
       "line": 297,
       "sampledMs": 12.418
     },
     {
       "function": "readSampledTokenFromStagingBuffer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator/decode.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator/decode.js",
       "line": 168,
       "sampledMs": 12.416
     },
     {
       "function": "getKernelConfig",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/kernel-configs.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/kernel-configs.js",
       "line": 35,
       "sampledMs": 12.25
     },
     {
       "function": "getKernelPathMatmulPrecision",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/kernel-path-loader.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/kernel-path-loader.js",
       "line": 405,
       "sampledMs": 11.376
     },
     {
       "function": "hashRefactorReceiptValue",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/refactor-receipt.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/refactor-receipt.js",
       "line": 57,
       "sampledMs": 11.291
     },
     {
       "function": "logKernelSelectionOnce",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernel-selection-log.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernel-selection-log.js",
       "line": 5,
       "sampledMs": 11.25
     },
@@ -615,31 +615,31 @@
     },
     {
       "function": "",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/formats/sha256.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/formats/sha256.js",
       "line": 109,
       "sampledMs": 11.208
     },
     {
       "function": "getKernelPathMatmulVariant",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/kernel-path-loader.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/kernel-path-loader.js",
       "line": 384,
       "sampledMs": 11.208
     },
     {
       "function": "resolveRecordedAttentionDispatch",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/interpreter/immediate.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/interpreter/immediate.js",
       "line": 87,
       "sampledMs": 11.083
     },
     {
       "function": "recordFusedFFN",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/fused_ffn.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/fused_ffn.js",
       "line": 395,
       "sampledMs": 11.042
     },
     {
       "function": "createMatmulBindGroupEntries",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul.js",
       "line": 120,
       "sampledMs": 10.625
     },
@@ -651,61 +651,61 @@
     },
     {
       "function": "embed",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/embed.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/embed.js",
       "line": 180,
       "sampledMs": 10.165
     },
     {
       "function": "getPathLookupCache",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/kernel-path-loader.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/kernel-path-loader.js",
       "line": 12,
       "sampledMs": 10.125
     },
     {
       "function": "register",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/resource-scope.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/resource-scope.js",
       "line": 46,
       "sampledMs": 10.083
     },
     {
       "function": "getKernelCapabilities",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/device.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/device.js",
       "line": 683,
       "sampledMs": 10.042
     },
     {
       "function": "toMatmulDtype",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-selection.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-selection.js",
       "line": 124,
       "sampledMs": 9.748
     },
     {
       "function": "summarizeLogitHealth",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/token-sampling.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/token-sampling.js",
       "line": 83,
       "sampledMs": 9.708
     },
     {
       "function": "#loadHuggingFaceFormat",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/tokenizers/bundled.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/tokenizers/bundled.js",
       "line": 236,
       "sampledMs": 9.666
     },
     {
       "function": "readBufferSlice",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
       "line": 593,
       "sampledMs": 9.542
     },
     {
       "function": "recordLogitsTailGPU",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/logits/gpu-executor.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/logits/gpu-executor.js",
       "line": 119,
       "sampledMs": 8.792
     },
     {
       "function": "#finalizeTrackedBuffers",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/command-recorder.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/command-recorder.js",
       "line": 435,
       "sampledMs": 8.792
     },
@@ -717,25 +717,25 @@
     },
     {
       "function": "openNodeWebGPU",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/tooling/provider-v1-contract.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/tooling/provider-v1-contract.js",
       "line": 124,
       "sampledMs": 8.75
     },
     {
       "function": "deepFreeze",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/plan.js",
       "line": 8,
       "sampledMs": 8.75
     },
     {
       "function": "recordSiLU",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/silu.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/silu.js",
       "line": 362,
       "sampledMs": 8.75
     },
     {
       "function": "isValidGPUBuffer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/device.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/device.js",
       "line": 124,
       "sampledMs": 8.709
     },
@@ -747,49 +747,49 @@
     },
     {
       "function": "getDevice",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/device.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/device.js",
       "line": 696,
       "sampledMs": 8.668
     },
     {
       "function": "#scheduleDestruction",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
       "line": 389,
       "sampledMs": 7.875
     },
     {
       "function": "writeUniformsFromObject",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/uniform-utils.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/uniform-utils.js",
       "line": 29,
       "sampledMs": 7.709
     },
     {
       "function": "",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
       "line": 410,
       "sampledMs": 7.667
     },
     {
       "function": "CommandRecorder",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/command-recorder.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/command-recorder.js",
       "line": 48,
       "sampledMs": 7.626
     },
     {
       "function": "runRecordedAttentionCore",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/interpreter/recorded.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/interpreter/recorded.js",
       "line": 124,
       "sampledMs": 7.584
     },
     {
       "function": "canonicalizeJson",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/formats/canonical-hash.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/formats/canonical-hash.js",
       "line": 54,
       "sampledMs": 7.583
     },
     {
       "function": "recordGather",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/gather.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/gather.js",
       "line": 426,
       "sampledMs": 7.583
     },
@@ -801,145 +801,145 @@
     },
     {
       "function": "recordDispatch",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/dispatch.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/dispatch.js",
       "line": 109,
       "sampledMs": 7.542
     },
     {
       "function": "getShaderSourceIdentity",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/shader-cache.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/shader-cache.js",
       "line": 32,
       "sampledMs": 7.542
     },
     {
       "function": "observeDeviceLoss",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/device-state.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/device-state.js",
       "line": 4,
       "sampledMs": 7.542
     },
     {
       "function": "poolForBuffer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
       "line": 777,
       "sampledMs": 7.542
     },
     {
       "function": "isPersistentBuffer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
       "line": 813,
       "sampledMs": 7.542
     },
     {
       "function": "calculateMatmulDispatch",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-dispatch.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-dispatch.js",
       "line": 30,
       "sampledMs": 7.541
     },
     {
       "function": "resolveMatmulPhase",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-selection.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-selection.js",
       "line": 49,
       "sampledMs": 7.541
     },
     {
       "function": "canonicalizeRefactorReceiptValue",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/refactor-receipt.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/refactor-receipt.js",
       "line": 52,
       "sampledMs": 7.5
     },
     {
       "function": "selectRuleValue",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/rules/rule-registry.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/rules/rule-registry.js",
       "line": 239,
       "sampledMs": 7.5
     },
     {
       "function": "selectRuleValue",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/rules/rule-registry.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/rules/rule-registry.js",
       "line": 212,
       "sampledMs": 7.5
     },
     {
       "function": "getMatmulConfig",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-selection.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-selection.js",
       "line": 107,
       "sampledMs": 7.5
     },
     {
       "function": "getLayerRuntimeState",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention.js",
       "line": 227,
       "sampledMs": 7.458
     },
     {
       "function": "emit",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/resource-scope.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/resource-scope.js",
       "line": 30,
       "sampledMs": 7.417
     },
     {
       "function": "resolveAttentionPlan",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/attention/plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/attention/plan.js",
       "line": 338,
       "sampledMs": 7.292
     },
     {
       "function": "",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/artifacts/qwen08-m3-mlx-20261015/doppler.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/artifacts/qwen08-m3-mlx-20261015/doppler.js",
       "line": 1,
       "sampledMs": 7.249
     },
     {
       "function": "uploadData",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
       "line": 581,
       "sampledMs": 7.125
     },
     {
       "function": "resolveRMSNormConstants",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rmsnorm.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rmsnorm.js",
       "line": 158,
       "sampledMs": 6.333
     },
     {
       "function": "getWeightDtype",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/weight-buffer.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/weight-buffer.js",
       "line": 245,
       "sampledMs": 6.332
     },
     {
       "function": "isWeightBuffer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/weight-buffer.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/weight-buffer.js",
       "line": 180,
       "sampledMs": 6.332
     },
     {
       "function": "doResidualAdd",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ops.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ops.js",
       "line": 131,
       "sampledMs": 6.292
     },
     {
       "function": "assertBufferCapacity",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/kv-cache-write.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/kv-cache-write.js",
       "line": 25,
       "sampledMs": 6.292
     },
     {
       "function": "_gather",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/gather.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/gather.js",
       "line": 281,
       "sampledMs": 6.292
     },
     {
       "function": "getMatmulPipeline",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-dispatch.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-dispatch.js",
       "line": 119,
       "sampledMs": 6.292
     },
     {
       "function": "",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/resource-scope.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/resource-scope.js",
       "line": 167,
       "sampledMs": 6.291
     },
@@ -951,103 +951,103 @@
     },
     {
       "function": "createMatmulUniformBuffer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-dispatch.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-dispatch.js",
       "line": 96,
       "sampledMs": 6.291
     },
     {
       "function": "validateAttentionVariant",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/attention/plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/attention/plan.js",
       "line": 204,
       "sampledMs": 6.291
     },
     {
       "function": "_splitQKV",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/split_qkv.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/split_qkv.js",
       "line": 11,
       "sampledMs": 6.25
     },
     {
       "function": "executeKVCacheWriteF32ToF16",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/kv-cache-write.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/kv-cache-write.js",
       "line": 35,
       "sampledMs": 6.25
     },
     {
       "function": "",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/kernel-path-loader.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/kernel-path-loader.js",
       "line": 449,
       "sampledMs": 6.249
     },
     {
       "function": "registerBufferDevice",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/device-state.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/device-state.js",
       "line": 11,
       "sampledMs": 6.167
     },
     {
       "function": "loadModel",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/loader/model-load.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/loader/model-load.js",
       "line": 37,
       "sampledMs": 5.291
     },
     {
       "function": "mergeRuntimeValues",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/runtime-merge.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/runtime-merge.js",
       "line": 10,
       "sampledMs": 5.082
     },
     {
       "function": "_ropeQK",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rope-qk.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rope-qk.js",
       "line": 72,
       "sampledMs": 5.042
     },
     {
       "function": "",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
       "line": 414,
       "sampledMs": 5.041
     },
     {
       "function": "normalizePipelineConstants",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/pipeline-cache.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/pipeline-cache.js",
       "line": 173,
       "sampledMs": 5.0
     },
     {
       "function": "hasRequiredFeatures",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/feature-check.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/feature-check.js",
       "line": 16,
       "sampledMs": 5.0
     },
     {
       "function": "resolveMatmulConstants",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-selection.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-selection.js",
       "line": 60,
       "sampledMs": 5.0
     },
     {
       "function": "recordMatmulResidualFused",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/fused_matmul_residual.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/fused_matmul_residual.js",
       "line": 106,
       "sampledMs": 5.0
     },
     {
       "function": "applyAttentionQKNorm",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/projection-plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/projection-plan.js",
       "line": 100,
       "sampledMs": 4.959
     },
     {
       "function": "inferOutputDtype",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/tensor.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/tensor.js",
       "line": 51,
       "sampledMs": 4.959
     },
     {
       "function": "selectMatmulKernel",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-selection.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-selection.js",
       "line": 129,
       "sampledMs": 4.959
     },
@@ -1059,7 +1059,7 @@
     },
     {
       "function": "submit",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/command-recorder.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/command-recorder.js",
       "line": 496,
       "sampledMs": 4.916
     },
@@ -1071,19 +1071,19 @@
     },
     {
       "function": "normalizeOptionalAttentionDtype",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/precision-contract.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/precision-contract.js",
       "line": 5,
       "sampledMs": 4.874
     },
     {
       "function": "createSha256Hasher",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/formats/sha256.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/formats/sha256.js",
       "line": 60,
       "sampledMs": 4.833
     },
     {
       "function": "doMatmul",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ops.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ops.js",
       "line": 155,
       "sampledMs": 4.792
     },
@@ -1095,181 +1095,181 @@
     },
     {
       "function": "sample",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/token-sampling.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/token-sampling.js",
       "line": 285,
       "sampledMs": 4.084
     },
     {
       "function": "planResidualDispatch",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/residual.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/residual.js",
       "line": 96,
       "sampledMs": 3.833
     },
     {
       "function": "createPipelines",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/linear-attention-core.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/linear-attention-core.js",
       "line": 76,
       "sampledMs": 3.792
     },
     {
       "function": "releaseOrTrack",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ops.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ops.js",
       "line": 38,
       "sampledMs": 3.792
     },
     {
       "function": "normalizeLabel",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/resource-scope.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/resource-scope.js",
       "line": 16,
       "sampledMs": 3.792
     },
     {
       "function": "",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/kv-cache/layer-range.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/kv-cache/layer-range.js",
       "line": 60,
       "sampledMs": 3.792
     },
     {
       "function": "getLayout",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/weight-buffer.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/weight-buffer.js",
       "line": 239,
       "sampledMs": 3.792
     },
     {
       "function": "recordKVCacheWriteF32ToF16",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/kv-cache-write.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/kv-cache-write.js",
       "line": 117,
       "sampledMs": 3.792
     },
     {
       "function": "resolveMatmulStepDtype",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention/plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention/plan.js",
       "line": 53,
       "sampledMs": 3.792
     },
     {
       "function": "resolveActivationDtype",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/layer-execution-contract.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/layer-execution-contract.js",
       "line": 5,
       "sampledMs": 3.792
     },
     {
       "function": "finalState",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/formats/sha256.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/formats/sha256.js",
       "line": 90,
       "sampledMs": 3.791
     },
     {
       "function": "rmsNormQK",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rmsnorm-qk.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rmsnorm-qk.js",
       "line": 40,
       "sampledMs": 3.791
     },
     {
       "function": "doRMSNorm",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ops.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ops.js",
       "line": 50,
       "sampledMs": 3.791
     },
     {
       "function": "isTraceEnabled",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/debug/config.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/debug/config.js",
       "line": 259,
       "sampledMs": 3.791
     },
     {
       "function": "write_matmul_gemv_subgroup",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/generated/uniform-writers-0.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/generated/uniform-writers-0.js",
       "line": 115,
       "sampledMs": 3.791
     },
     {
       "function": "isGpuBufferInstance",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/weight-buffer.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/weight-buffer.js",
       "line": 20,
       "sampledMs": 3.791
     },
     {
       "function": "_loadTensor",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/loader/model-executor.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/loader/model-executor.js",
       "line": 53,
       "sampledMs": 3.75
     },
     {
       "function": "isBufferActive",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
       "line": 798,
       "sampledMs": 3.75
     },
     {
       "function": "resolveNormWeightDtype",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rmsnorm.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rmsnorm.js",
       "line": 46,
       "sampledMs": 3.75
     },
     {
       "function": "assertBufferCapacity",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rope-qk.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rope-qk.js",
       "line": 48,
       "sampledMs": 3.75
     },
     {
       "function": "recordAttention",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/attention.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/attention.js",
       "line": 620,
       "sampledMs": 3.75
     },
     {
       "function": "processLayer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/layer.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/layer.js",
       "line": 184,
       "sampledMs": 3.75
     },
     {
       "function": "buildLayerContext",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator/session-context.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator/session-context.js",
       "line": 95,
       "sampledMs": 3.75
     },
     {
       "function": "recordRoPEQK",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rope-qk.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rope-qk.js",
       "line": 159,
       "sampledMs": 3.75
     },
     {
       "function": "recordLogitsGPU",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/logits/gpu-executor.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/logits/gpu-executor.js",
       "line": 311,
       "sampledMs": 3.75
     },
     {
       "function": "canUseLinearAttentionABProjectionFusion",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention-ab-fusion.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention-ab-fusion.js",
       "line": 13,
       "sampledMs": 3.75
     },
     {
       "function": "kernelPathSupportsOutputGateFusion",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/plan.js",
       "line": 103,
       "sampledMs": 3.75
     },
     {
       "function": "dispatchFusedGateUp",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/dense-executor.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/dense-executor.js",
       "line": 105,
       "sampledMs": 3.75
     },
     {
       "function": "attention",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/interpreter/recorded.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/interpreter/recorded.js",
       "line": 352,
       "sampledMs": 3.75
     },
     {
       "function": "getLayerSteps",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/kernel-path-loader.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/kernel-path-loader.js",
       "line": 99,
       "sampledMs": 3.75
     },
@@ -1281,7 +1281,7 @@
     },
     {
       "function": "write_rmsnorm_default",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/generated/uniform-writers-0.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/generated/uniform-writers-0.js",
       "line": 533,
       "sampledMs": 3.749
     },
@@ -1293,25 +1293,25 @@
     },
     {
       "function": "selectRMSNormKernel",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rmsnorm.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rmsnorm.js",
       "line": 130,
       "sampledMs": 3.709
     },
     {
       "function": "isContextDirective",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/rules/rule-registry.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/rules/rule-registry.js",
       "line": 286,
       "sampledMs": 3.708
     },
     {
       "function": "resolveFusedGateUpPipelineConstants",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/dense-plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/dense-plan.js",
       "line": 85,
       "sampledMs": 3.708
     },
     {
       "function": "_prefill",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator/prefill-runtime.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator/prefill-runtime.js",
       "line": 136,
       "sampledMs": 3.626
     },
@@ -1323,43 +1323,43 @@
     },
     {
       "function": "equalUniformBytes",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/uniform-cache.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/uniform-cache.js",
       "line": 39,
       "sampledMs": 3.584
     },
     {
       "function": "freezeConfig",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/kernel-registry-contract.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/kernel-registry-contract.js",
       "line": 7,
       "sampledMs": 3.375
     },
     {
       "function": "requireNormGateActivation",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/gated-delta-norm-gate.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/gated-delta-norm-gate.js",
       "line": 9,
       "sampledMs": 3.125
     },
     {
       "function": "probeSubmitLatency",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/submit-probe.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/submit-probe.js",
       "line": 2,
       "sampledMs": 2.875
     },
     {
       "function": "sample",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/sampling.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/sampling.js",
       "line": 19,
       "sampledMs": 2.833
     },
     {
       "function": "releaseBuffer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
       "line": 794,
       "sampledMs": 2.833
     },
     {
       "function": "",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/projections.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/projections.js",
       "line": 47,
       "sampledMs": 2.583
     },
@@ -1377,7 +1377,7 @@
     },
     {
       "function": "",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/pipeline-cache.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/pipeline-cache.js",
       "line": 350,
       "sampledMs": 2.542
     },
@@ -1389,97 +1389,97 @@
     },
     {
       "function": "hydrateDeviceState",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/device.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/device.js",
       "line": 36,
       "sampledMs": 2.542
     },
     {
       "function": "releaseTemporary",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/interpreter.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/interpreter.js",
       "line": 364,
       "sampledMs": 2.542
     },
     {
       "function": "getBufferDtype",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/weight-buffer.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/weight-buffer.js",
       "line": 72,
       "sampledMs": 2.542
     },
     {
       "function": "recordRMSNormQK",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rmsnorm-qk.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rmsnorm-qk.js",
       "line": 151,
       "sampledMs": 2.542
     },
     {
       "function": "validateAttnConfig",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/attn-config.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/attn-config.js",
       "line": 21,
       "sampledMs": 2.542
     },
     {
       "function": "",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/kernel-execution.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/kernel-execution.js",
       "line": 104,
       "sampledMs": 2.542
     },
     {
       "function": "resolveKVCacheState",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/dispatch-params.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/dispatch-params.js",
       "line": 29,
       "sampledMs": 2.542
     },
     {
       "function": "getLoRAModule",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/lora.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/lora.js",
       "line": 6,
       "sampledMs": 2.542
     },
     {
       "function": "shouldTraceRecordedHealth",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/recorded-health.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/recorded-health.js",
       "line": 7,
       "sampledMs": 2.542
     },
     {
       "function": "getKernelWgslRequirements",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/feature-check.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/feature-check.js",
       "line": 12,
       "sampledMs": 2.542
     },
     {
       "function": "parseFinitenessStatusWords",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/finiteness-guard-status.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/finiteness-guard-status.js",
       "line": 1,
       "sampledMs": 2.542
     },
     {
       "function": "trackSubmit",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/perf-guards.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/perf-guards.js",
       "line": 26,
       "sampledMs": 2.541
     },
     {
       "function": "getBufferPool",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
       "line": 760,
       "sampledMs": 2.541
     },
     {
       "function": "dtypeBytes",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/tensor.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/tensor.js",
       "line": 33,
       "sampledMs": 2.541
     },
     {
       "function": "createCommandRecorder",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/command-recorder.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/command-recorder.js",
       "line": 725,
       "sampledMs": 2.541
     },
     {
       "function": "requireMatmulWeightDtype",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul.js",
       "line": 190,
       "sampledMs": 2.541
     },
@@ -1497,7 +1497,7 @@
     },
     {
       "function": "rotateRight32",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/formats/sha256.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/formats/sha256.js",
       "line": 31,
       "sampledMs": 2.5
     },
@@ -1515,163 +1515,163 @@
     },
     {
       "function": "deepFreeze",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/kernels/registry.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/kernels/registry.js",
       "line": 9,
       "sampledMs": 2.5
     },
     {
       "function": "loadLayer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/loader/layer-loader.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/loader/layer-loader.js",
       "line": 230,
       "sampledMs": 2.5
     },
     {
       "function": "recordLayerAttentionGPU",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/executor-recorded.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/executor-recorded.js",
       "line": 3,
       "sampledMs": 2.5
     },
     {
       "function": "inferLinearNormModeFromWeight",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention/plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention/plan.js",
       "line": 126,
       "sampledMs": 2.5
     },
     {
       "function": "getKernelPathStepsForSection",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/kernel-path-loader.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/kernel-path-loader.js",
       "line": 217,
       "sampledMs": 2.5
     },
     {
       "function": "getKernelPathAttentionVariant",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/kernel-path-loader.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/kernel-path-loader.js",
       "line": 546,
       "sampledMs": 2.5
     },
     {
       "function": "getBuffer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/weight-buffer.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/weight-buffer.js",
       "line": 232,
       "sampledMs": 2.5
     },
     {
       "function": "observeAttentionRoPE",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/rope-observation.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/rope-observation.js",
       "line": 3,
       "sampledMs": 2.5
     },
     {
       "function": "get enabled",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/kernel-trace.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/kernel-trace.js",
       "line": 22,
       "sampledMs": 2.5
     },
     {
       "function": "isTemplateDirective",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/rules/rule-registry.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/rules/rule-registry.js",
       "line": 282,
       "sampledMs": 2.5
     },
     {
       "function": "enqueueRecordedDenseHealth",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/dense.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/dense.js",
       "line": 57,
       "sampledMs": 2.5
     },
     {
       "function": "contiguous",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/interpreter/recorded.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/interpreter/recorded.js",
       "line": 289,
       "sampledMs": 2.5
     },
     {
       "function": "isSlidingLayerType",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/layer-execution-contract.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/layer-execution-contract.js",
       "line": 14,
       "sampledMs": 2.5
     },
     {
       "function": "logLayer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/debug-utils/logging.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/debug-utils/logging.js",
       "line": 33,
       "sampledMs": 2.5
     },
     {
       "function": "getDeviceCaches",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/pipeline-cache.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/pipeline-cache.js",
       "line": 56,
       "sampledMs": 2.5
     },
     {
       "function": "captureTrainingActivation",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/dense.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/dense.js",
       "line": 45,
       "sampledMs": 2.5
     },
     {
       "function": "getKernelThresholds",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/schema/kernel-thresholds.schema.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/schema/kernel-thresholds.schema.js",
       "line": 156,
       "sampledMs": 2.5
     },
     {
       "function": "ownsNormBuffer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/projection-plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/projection-plan.js",
       "line": 88,
       "sampledMs": 2.5
     },
     {
       "function": "hasAttentionStageDiagnostics",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/projections.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/projections.js",
       "line": 92,
       "sampledMs": 2.5
     },
     {
       "function": "resolveDirectF16KVCacheWrite",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/interpreter/recorded.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/interpreter/recorded.js",
       "line": 75,
       "sampledMs": 2.5
     },
     {
       "function": "getWeightBuffer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/weights.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/weights.js",
       "line": 36,
       "sampledMs": 2.5
     },
     {
       "function": "requireFusedWeightDtype",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/dense-executor.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/dense-executor.js",
       "line": 89,
       "sampledMs": 2.5
     },
     {
       "function": "resolveLayerScalarValue",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/layer-execution-contract.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/layer-execution-contract.js",
       "line": 72,
       "sampledMs": 2.5
     },
     {
       "function": "normalizeInputDtype",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/linear-attention-core.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/linear-attention-core.js",
       "line": 138,
       "sampledMs": 2.5
     },
     {
       "function": "resolveFusedResidualVariant",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/fused_matmul_residual.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/fused_matmul_residual.js",
       "line": 18,
       "sampledMs": 2.5
     },
     {
       "function": "",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/uniform-utils.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/uniform-utils.js",
       "line": 47,
       "sampledMs": 2.5
     },
     {
       "function": "getKernelPathStepPrecision",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/kernel-path-loader.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/kernel-path-loader.js",
       "line": 486,
       "sampledMs": 2.5
     },
@@ -1683,67 +1683,67 @@
     },
     {
       "function": "resolveOutputResidualMode",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/plan.js",
       "line": 49,
       "sampledMs": 2.5
     },
     {
       "function": "tensorElementCount",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/plan.js",
       "line": 251,
       "sampledMs": 2.5
     },
     {
       "function": "normBufferMatchesSize",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/projection-plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/projection-plan.js",
       "line": 68,
       "sampledMs": 2.5
     },
     {
       "function": "doAttention",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ops.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ops.js",
       "line": 475,
       "sampledMs": 2.5
     },
     {
       "function": "buildLayerContext",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator.js",
       "line": 312,
       "sampledMs": 2.5
     },
     {
       "function": "release",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/resource-scope.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/resource-scope.js",
       "line": 99,
       "sampledMs": 2.5
     },
     {
       "function": "#beginRawComputePass",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/command-recorder.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/command-recorder.js",
       "line": 266,
       "sampledMs": 2.5
     },
     {
       "function": "planSplitQKVDispatch",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/split-dispatch.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/split-dispatch.js",
       "line": 4,
       "sampledMs": 2.5
     },
     {
       "function": "getNormWeightBuffer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/layer.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/layer.js",
       "line": 349,
       "sampledMs": 2.5
     },
     {
       "function": "resolvePreferredWeightDtype",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul.js",
       "line": 135,
       "sampledMs": 2.5
     },
     {
       "function": "pairedRepresentation",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/tensor.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/tensor.js",
       "line": 5,
       "sampledMs": 2.5
     },
@@ -1755,25 +1755,25 @@
     },
     {
       "function": "resolveQueryScale",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/heterogeneous-attention-contract.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/heterogeneous-attention-contract.js",
       "line": 8,
       "sampledMs": 2.458
     },
     {
       "function": "isEnabled",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/debug-utils/config.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/debug-utils/config.js",
       "line": 116,
       "sampledMs": 2.458
     },
     {
       "function": "requireMatmulOutputDtype",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul.js",
       "line": 183,
       "sampledMs": 2.458
     },
     {
       "function": "isDeviceLost",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/device-state.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/device-state.js",
       "line": 59,
       "sampledMs": 2.458
     },
@@ -1785,7 +1785,7 @@
     },
     {
       "function": "isTensorLike",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/weight-buffer.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/weight-buffer.js",
       "line": 221,
       "sampledMs": 2.416
     },
@@ -1803,19 +1803,19 @@
     },
     {
       "function": "loadJson",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/formats/load-json.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/formats/load-json.js",
       "line": 9,
       "sampledMs": 2.166
     },
     {
       "function": "resolveProjectionInputDtype",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/projections.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/projections.js",
       "line": 190,
       "sampledMs": 2.126
     },
     {
       "function": "#deferDestroy",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
       "line": 372,
       "sampledMs": 1.958
     },
@@ -1827,7 +1827,7 @@
     },
     {
       "function": "#enforceBudgetBeforeAllocate",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
       "line": 451,
       "sampledMs": 1.417
     },
@@ -1845,19 +1845,19 @@
     },
     {
       "function": "",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/generated/uniform-writers.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/generated/uniform-writers.js",
       "line": 1,
       "sampledMs": 1.292
     },
     {
       "function": "validateKernelMap",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/schema/execution-v1.schema.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/schema/execution-v1.schema.js",
       "line": 121,
       "sampledMs": 1.292
     },
     {
       "function": "initTokenizer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/init-tokenizer.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/init-tokenizer.js",
       "line": 5,
       "sampledMs": 1.292
     },
@@ -1875,7 +1875,7 @@
     },
     {
       "function": "loadTensorToGPU",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/loader/tensors/tensor-loader.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/loader/tensors/tensor-loader.js",
       "line": 556,
       "sampledMs": 1.292
     },
@@ -1887,19 +1887,19 @@
     },
     {
       "function": "_loadTensor",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/loader/doppler-loader.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/loader/doppler-loader.js",
       "line": 519,
       "sampledMs": 1.292
     },
     {
       "function": "normalizeSessionContracts",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/schema/doppler.schema.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/schema/doppler.schema.js",
       "line": 286,
       "sampledMs": 1.292
     },
     {
       "function": "assertArtifactVariantAllowed",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/client/runtime/resolution-policy.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/client/runtime/resolution-policy.js",
       "line": 53,
       "sampledMs": 1.292
     },
@@ -1911,73 +1911,73 @@
     },
     {
       "function": "resolveAttentionQueryBlockSize",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/attention/plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/attention/plan.js",
       "line": 168,
       "sampledMs": 1.292
     },
     {
       "function": "resolveDenseFFNMatmulStepDtype",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/dense-plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/dense-plan.js",
       "line": 136,
       "sampledMs": 1.292
     },
     {
       "function": "copyUniformBytes",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/uniform-cache.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/uniform-cache.js",
       "line": 22,
       "sampledMs": 1.292
     },
     {
       "function": "resolveProjectionLayout",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention.js",
       "line": 78,
       "sampledMs": 1.292
     },
     {
       "function": "_runDecodeLoop",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator.js",
       "line": 598,
       "sampledMs": 1.292
     },
     {
       "function": "assertPairedAttentionExecution",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/paired-contract.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/paired-contract.js",
       "line": 3,
       "sampledMs": 1.292
     },
     {
       "function": "finalizeRecordedAttentionSuccess",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/interpreter/recorded.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/interpreter/recorded.js",
       "line": 403,
       "sampledMs": 1.292
     },
     {
       "function": "sameConfig",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/decode-ring.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/decode-ring.js",
       "line": 73,
       "sampledMs": 1.292
     },
     {
       "function": "isNodeRuntime",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/storage/runtime-env.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/storage/runtime-env.js",
       "line": 1,
       "sampledMs": 1.292
     },
     {
       "function": "selectResidualVariant",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/residual.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/residual.js",
       "line": 12,
       "sampledMs": 1.292
     },
     {
       "function": "#finalizeDeferredCleanup",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/command-recorder.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/command-recorder.js",
       "line": 459,
       "sampledMs": 1.292
     },
     {
       "function": "swapPingPong",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/decode-buffers.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/decode-buffers.js",
       "line": 129,
       "sampledMs": 1.292
     },
@@ -1989,19 +1989,19 @@
     },
     {
       "function": "buildTensorLocations",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/loader/shard-resolver.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/loader/shard-resolver.js",
       "line": 48,
       "sampledMs": 1.291
     },
     {
       "function": "streamShardRange",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/storage/artifact-storage-context.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/storage/artifact-storage-context.js",
       "line": 339,
       "sampledMs": 1.291
     },
     {
       "function": "#setLastSource",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/loader/shard-cache.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/loader/shard-cache.js",
       "line": 214,
       "sampledMs": 1.291
     },
@@ -2013,25 +2013,25 @@
     },
     {
       "function": "generateTokenIds",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator/decode-runtime.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator/decode-runtime.js",
       "line": 327,
       "sampledMs": 1.291
     },
     {
       "function": "",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/projections.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/projections.js",
       "line": 242,
       "sampledMs": 1.291
     },
     {
       "function": "findResolutionRevocation",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/revocation-policy.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/revocation-policy.js",
       "line": 210,
       "sampledMs": 1.291
     },
     {
       "function": "ensurePipelines",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/linear-attention-core.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/linear-attention-core.js",
       "line": 142,
       "sampledMs": 1.291
     },
@@ -2097,7 +2097,7 @@
     },
     {
       "function": "deepFreeze",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/rules/rule-registry.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/rules/rule-registry.js",
       "line": 73,
       "sampledMs": 1.25
     },
@@ -2109,13 +2109,13 @@
     },
     {
       "function": "validateManifest",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/formats/rdrr/validation.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/formats/rdrr/validation.js",
       "line": 251,
       "sampledMs": 1.25
     },
     {
       "function": "requestDeviceWithFeatureFallback",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/device.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/device.js",
       "line": 427,
       "sampledMs": 1.25
     },
@@ -2127,31 +2127,31 @@
     },
     {
       "function": "InferencePipeline",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/pipeline.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/pipeline.js",
       "line": 96,
       "sampledMs": 1.25
     },
     {
       "function": "validateRuntimeConfig",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/param-validator.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/param-validator.js",
       "line": 93,
       "sampledMs": 1.25
     },
     {
       "function": "assertExecutionMechanismClosure",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/execution-registry-contract.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/execution-registry-contract.js",
       "line": 37,
       "sampledMs": 1.25
     },
     {
       "function": "withPipelineLoadPhase",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/pipeline-load-timing.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/pipeline-load-timing.js",
       "line": 25,
       "sampledMs": 1.25
     },
     {
       "function": "createByteLevelCodec",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/tokenizers/bundled/decoders.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/tokenizers/bundled/decoders.js",
       "line": 76,
       "sampledMs": 1.25
     },
@@ -2163,7 +2163,7 @@
     },
     {
       "function": "load",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/loader/model-load.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/loader/model-load.js",
       "line": 13,
       "sampledMs": 1.25
     },
@@ -2199,31 +2199,31 @@
     },
     {
       "function": "",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/loader/layer-loader.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/loader/layer-loader.js",
       "line": 316,
       "sampledMs": 1.25
     },
     {
       "function": "loadAttentionWeights",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/loader/layer-loader.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/loader/layer-loader.js",
       "line": 403,
       "sampledMs": 1.25
     },
     {
       "function": "loadRange",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/loader/shard-cache.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/loader/shard-cache.js",
       "line": 259,
       "sampledMs": 1.25
     },
     {
       "function": "getSharedDeviceState",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/device-state.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/device-state.js",
       "line": 20,
       "sampledMs": 1.25
     },
     {
       "function": "",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/loader/layer-loader.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/loader/layer-loader.js",
       "line": 370,
       "sampledMs": 1.25
     },
@@ -2235,13 +2235,13 @@
     },
     {
       "function": "loadFloat",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/loader/tensors/load-executor.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/loader/tensors/load-executor.js",
       "line": 468,
       "sampledMs": 1.25
     },
     {
       "function": "tagBufferDtype",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/weight-buffer.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/weight-buffer.js",
       "line": 65,
       "sampledMs": 1.25
     },
@@ -2253,133 +2253,133 @@
     },
     {
       "function": "#toArrayBuffer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/loader/shard-cache.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/loader/shard-cache.js",
       "line": 233,
       "sampledMs": 1.25
     },
     {
       "function": "initRoPEFrequencies",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/init-rope.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/init-rope.js",
       "line": 171,
       "sampledMs": 1.25
     },
     {
       "function": "_prefill",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator.js",
       "line": 606,
       "sampledMs": 1.25
     },
     {
       "function": "resolveLayerIntermediateSize",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/config.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/config.js",
       "line": 191,
       "sampledMs": 1.25
     },
     {
       "function": "loadShaderSourceFromFileUrl",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/shader-cache.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/shader-cache.js",
       "line": 111,
       "sampledMs": 1.25
     },
     {
       "function": "isQ4KFusedVariant",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-selection.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-selection.js",
       "line": 262,
       "sampledMs": 1.25
     },
     {
       "function": "resolveFusedGateUpWeights",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/dense-plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/dense-plan.js",
       "line": 303,
       "sampledMs": 1.25
     },
     {
       "function": "getUniformByteLength",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/uniform-utils.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/uniform-utils.js",
       "line": 38,
       "sampledMs": 1.25
     },
     {
       "function": "resolveLogitsNormWeight",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/logits/gpu-executor.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/logits/gpu-executor.js",
       "line": 69,
       "sampledMs": 1.25
     },
     {
       "function": "record",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/attention/executors.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/attention/executors.js",
       "line": 65,
       "sampledMs": 1.25
     },
     {
       "function": "getPipelineBindGroupLayout",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/pipeline-cache.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/pipeline-cache.js",
       "line": 127,
       "sampledMs": 1.25
     },
     {
       "function": "getKernelPathMatmulConstants",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/kernel-path-loader.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/kernel-path-loader.js",
       "line": 395,
       "sampledMs": 1.25
     },
     {
       "function": "createImmediateResourceScope",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/resource-scope.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/resource-scope.js",
       "line": 156,
       "sampledMs": 1.25
     },
     {
       "function": "isEnabled",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/debug/trace.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/debug/trace.js",
       "line": 11,
       "sampledMs": 1.25
     },
     {
       "function": "executeArgmaxRecord",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/sample.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/sample.js",
       "line": 270,
       "sampledMs": 1.25
     },
     {
       "function": "#getFromPool",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
       "line": 427,
       "sampledMs": 1.25
     },
     {
       "function": "assertOwnership",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/resource-scope.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/resource-scope.js",
       "line": 9,
       "sampledMs": 1.25
     },
     {
       "function": "sha256Hex",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/formats/sha256.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/formats/sha256.js",
       "line": 47,
       "sampledMs": 1.25
     },
     {
       "function": "requirePositiveInteger",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/plan.js",
       "line": 19,
       "sampledMs": 1.25
     },
     {
       "function": "",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/fused_matmul_residual.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/fused_matmul_residual.js",
       "line": 139,
       "sampledMs": 1.25
     },
     {
       "function": "_assertLayerIndex",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/kv-cache/base.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/kv-cache/base.js",
       "line": 272,
       "sampledMs": 1.25
     },
     {
       "function": "_assertStartPos",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/kv-cache/base.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/kv-cache/base.js",
       "line": 279,
       "sampledMs": 1.25
     },
@@ -2391,451 +2391,451 @@
     },
     {
       "function": "selectGemvVariant",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-selection.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-selection.js",
       "line": 419,
       "sampledMs": 1.25
     },
     {
       "function": "bufferOf",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rope-qk.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rope-qk.js",
       "line": 44,
       "sampledMs": 1.25
     },
     {
       "function": "shouldUsePostFfnNextInputRMSNormPairFusion",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/layer-input-execution.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/layer-input-execution.js",
       "line": 31,
       "sampledMs": 1.25
     },
     {
       "function": "ensure",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/decode-ring.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/decode-ring.js",
       "line": 91,
       "sampledMs": 1.25
     },
     {
       "function": "settleProjectionOutputDtype",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention/plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention/plan.js",
       "line": 493,
       "sampledMs": 1.25
     },
     {
       "function": "getKernelValidator",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/kernel-configs.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/kernel-configs.js",
       "line": 38,
       "sampledMs": 1.25
     },
     {
       "function": "recordAttentionInputs",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/projections.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/projections.js",
       "line": 236,
       "sampledMs": 1.25
     },
     {
       "function": "",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/client/model-host/model-session.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/client/model-host/model-session.js",
       "line": 199,
       "sampledMs": 1.25
     },
     {
       "function": "setDevice",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/device.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/device.js",
       "line": 625,
       "sampledMs": 1.25
     },
     {
       "function": "getKernelPathAttentionPrecision",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/kernel-path-loader.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/kernel-path-loader.js",
       "line": 569,
       "sampledMs": 1.25
     },
     {
       "function": "resolveAttentionExecution",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/attention/executors.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/attention/executors.js",
       "line": 193,
       "sampledMs": 1.25
     },
     {
       "function": "getOrCreateBindGroupLayout",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/pipeline-cache.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/pipeline-cache.js",
       "line": 73,
       "sampledMs": 1.25
     },
     {
       "function": "planSiLUDispatch",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/silu.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/silu.js",
       "line": 84,
       "sampledMs": 1.25
     },
     {
       "function": "executeStage",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/plan.js",
       "line": 341,
       "sampledMs": 1.25
     },
     {
       "function": "stopIfAborted",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator/decode-runtime.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator/decode-runtime.js",
       "line": 582,
       "sampledMs": 1.25
     },
     {
       "function": "assertBufferCapacity",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rmsnorm-qk.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rmsnorm-qk.js",
       "line": 20,
       "sampledMs": 1.25
     },
     {
       "function": "_getDecodeHelpers",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator.js",
       "line": 310,
       "sampledMs": 1.25
     },
     {
       "function": "record",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-dispatch.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-dispatch.js",
       "line": 24,
       "sampledMs": 1.25
     },
     {
       "function": "getLayerNormRunner",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/projection-plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/projection-plan.js",
       "line": 47,
       "sampledMs": 1.25
     },
     {
       "function": "alignResidualInputs",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/residual.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/residual.js",
       "line": 28,
       "sampledMs": 1.25
     },
     {
       "function": "",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/layer.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/layer.js",
       "line": 441,
       "sampledMs": 1.25
     },
     {
       "function": "hasBuffers",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/decode-buffers.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/decode-buffers.js",
       "line": 147,
       "sampledMs": 1.25
     },
     {
       "function": "resolveGateUpPathMode",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/dense-plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/dense-plan.js",
       "line": 233,
       "sampledMs": 1.25
     },
     {
       "function": "decodeByteLevelTokens",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/tokenizers/bundled/decoders.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/tokenizers/bundled/decoders.js",
       "line": 110,
       "sampledMs": 1.25
     },
     {
       "function": "isResolvedWeightShared",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention/plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention/plan.js",
       "line": 73,
       "sampledMs": 1.25
     },
     {
       "function": "createKernelBindingEntries",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/kernel-bindings.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/kernel-bindings.js",
       "line": 11,
       "sampledMs": 1.25
     },
     {
       "function": "isKernelDebugEnabled",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/debug-utils/tensor.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/debug-utils/tensor.js",
       "line": 266,
       "sampledMs": 1.25
     },
     {
       "function": "canUseRmsNormWideTileProjectionFusion",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/rmsnorm-fusion-gate.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/rmsnorm-fusion-gate.js",
       "line": 7,
       "sampledMs": 1.25
     },
     {
       "function": "MatmulKernel",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-dispatch.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-dispatch.js",
       "line": 12,
       "sampledMs": 1.25
     },
     {
       "function": "buildAttentionDispatchParams",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/dispatch-params.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/dispatch-params.js",
       "line": 320,
       "sampledMs": 1.25
     },
     {
       "function": "resolveFinalNormGpuBuffer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/logits/gpu-executor.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/logits/gpu-executor.js",
       "line": 99,
       "sampledMs": 1.25
     },
     {
       "function": "releaseAttentionUniform",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/attention/executors.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/attention/executors.js",
       "line": 217,
       "sampledMs": 1.25
     },
     {
       "function": "canUseF16",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/silu.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/silu.js",
       "line": 26,
       "sampledMs": 1.25
     },
     {
       "function": "calculateFFNDispatch",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/fused_ffn.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/fused_ffn.js",
       "line": 246,
       "sampledMs": 1.25
     },
     {
       "function": "createAttentionUniformBuffer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/attention/executors.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/attention/executors.js",
       "line": 128,
       "sampledMs": 1.25
     },
     {
       "function": "normalizeLayerType",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/layer-input-execution.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/layer-input-execution.js",
       "line": 147,
       "sampledMs": 1.25
     },
     {
       "function": "acquire",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/decode-ring.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/decode-ring.js",
       "line": 211,
       "sampledMs": 1.25
     },
     {
       "function": "get",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/kv-cache/layer-range.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/kv-cache/layer-range.js",
       "line": 54,
       "sampledMs": 1.25
     },
     {
       "function": "debugFFNBuffer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/standard.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/standard.js",
       "line": 37,
       "sampledMs": 1.25
     },
     {
       "function": "",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/command-recorder.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/command-recorder.js",
       "line": 537,
       "sampledMs": 1.25
     },
     {
       "function": "_sampleNextTokenFromLogits",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator.js",
       "line": 365,
       "sampledMs": 1.25
     },
     {
       "function": "resolveFusedGateUpVariant",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/dense-plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/dense-plan.js",
       "line": 120,
       "sampledMs": 1.25
     },
     {
       "function": "resolveAttentionNumKVHeads",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/layer-execution-contract.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/layer-execution-contract.js",
       "line": 61,
       "sampledMs": 1.25
     },
     {
       "function": "isGpuBuffer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention/plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention/plan.js",
       "line": 30,
       "sampledMs": 1.25
     },
     {
       "function": "sourceIdentity",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/shader-cache.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/shader-cache.js",
       "line": 23,
       "sampledMs": 1.25
     },
     {
       "function": "createRecordedResourceScope",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/resource-scope.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/resource-scope.js",
       "line": 163,
       "sampledMs": 1.25
     },
     {
       "function": "createDecodeRecorder",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator/decode.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator/decode.js",
       "line": 327,
       "sampledMs": 1.25
     },
     {
       "function": "applyProjectionLoRA",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention/plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention/plan.js",
       "line": 86,
       "sampledMs": 1.25
     },
     {
       "function": "finalizeEmbeddingOutput",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/embedding-normalization.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/embedding-normalization.js",
       "line": 6,
       "sampledMs": 1.25
     },
     {
       "function": "resolveProjectionMatmulDtype",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/projections.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/projections.js",
       "line": 162,
       "sampledMs": 1.25
     },
     {
       "function": "setKernelThresholds",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/schema/kernel-thresholds.schema.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/schema/kernel-thresholds.schema.js",
       "line": 160,
       "sampledMs": 1.25
     },
     {
       "function": "inferAttentionTierFromVariant",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/attention/plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/attention/plan.js",
       "line": 195,
       "sampledMs": 1.25
     },
     {
       "function": "releaseTemporary",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/interpreter.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/interpreter.js",
       "line": 478,
       "sampledMs": 1.25
     },
     {
       "function": "applyLayerScalar",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/layer-execution-contract.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/layer-execution-contract.js",
       "line": 89,
       "sampledMs": 1.25
     },
     {
       "function": "writeF32",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/uniform-encoding.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/uniform-encoding.js",
       "line": 15,
       "sampledMs": 1.25
     },
     {
       "function": "createUniformBufferFromData",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/uniform-utils.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/uniform-utils.js",
       "line": 54,
       "sampledMs": 1.25
     },
     {
       "function": "attn",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/debug/trace.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/debug/trace.js",
       "line": 96,
       "sampledMs": 1.25
     },
     {
       "function": "ensureOutputBufferSize",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/sample.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/sample.js",
       "line": 163,
       "sampledMs": 1.25
     },
     {
       "function": "completeDeferredCleanup",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/command-recorder.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/command-recorder.js",
       "line": 548,
       "sampledMs": 1.25
     },
     {
       "function": "normalizeLinearNormMode",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention/plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention/plan.js",
       "line": 40,
       "sampledMs": 1.25
     },
     {
       "function": "getPageTableFallbackBuffer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/attention/executors.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/attention/executors.js",
       "line": 37,
       "sampledMs": 1.25
     },
     {
       "function": "getPipelineFor",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/kernel-base.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/kernel-base.js",
       "line": 17,
       "sampledMs": 1.25
     },
     {
       "function": "getDeviceEpoch",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/device.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/device.js",
       "line": 701,
       "sampledMs": 1.25
     },
     {
       "function": "createFFNUniformBuffer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/fused_ffn.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/fused_ffn.js",
       "line": 107,
       "sampledMs": 1.25
     },
     {
       "function": "resolveDenseFFNFusedPathDtypes",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/dense-plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/dense-plan.js",
       "line": 152,
       "sampledMs": 1.25
     },
     {
       "function": "ResourceScope",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/resource-scope.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/resource-scope.js",
       "line": 22,
       "sampledMs": 1.25
     },
     {
       "function": "releaseSharedAttentionState",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator/attention-lifecycle.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator/attention-lifecycle.js",
       "line": 3,
       "sampledMs": 1.25
     },
     {
       "function": "resolveOnlineDecodePipelineConstants",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/attention/executors.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/attention/executors.js",
       "line": 75,
       "sampledMs": 1.25
     },
     {
       "function": "createAttentionExecutor",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/plan.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/plan.js",
       "line": 335,
       "sampledMs": 1.25
     },
     {
       "function": "writeU32",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/uniform-encoding.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/uniform-encoding.js",
       "line": 1,
       "sampledMs": 1.25
     },
     {
       "function": "close",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/resource-scope.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/resource-scope.js",
       "line": 130,
       "sampledMs": 1.25
     },
     {
       "function": "captureObservedFusedDecodeLogits",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator-logits-observation.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator-logits-observation.js",
       "line": 15,
       "sampledMs": 1.25
     },
     {
       "function": "buildProfileLabel",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul.js",
       "line": 84,
       "sampledMs": 1.25
     },
     {
       "function": "createUniformBuffer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/command-recorder.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/command-recorder.js",
       "line": 200,
       "sampledMs": 1.25
     },
     {
       "function": "decode",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/tokenizer.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/tokenizer.js",
       "line": 446,
       "sampledMs": 1.25
     },
@@ -2847,13 +2847,13 @@
     },
     {
       "function": "createEmulationConfig",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/schema/emulation.schema.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/schema/emulation.schema.js",
       "line": 195,
       "sampledMs": 1.25
     },
     {
       "function": "cleanup",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/pipeline.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/pipeline.js",
       "line": 490,
       "sampledMs": 1.25
     },
@@ -2865,61 +2865,61 @@
     },
     {
       "function": "buildLayerPatternContractArtifact",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/rules/layer-pattern-contract-check.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/rules/layer-pattern-contract-check.js",
       "line": 176,
       "sampledMs": 1.209
     },
     {
       "function": "loadEmbeddings",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/loader/embedding-loader.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/loader/embedding-loader.js",
       "line": 278,
       "sampledMs": 1.209
     },
     {
       "function": "streamRange",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/storage/artifact-storage-context.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/storage/artifact-storage-context.js",
       "line": 652,
       "sampledMs": 1.209
     },
     {
       "function": "runRoPEPrecompute",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rope-precompute.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/rope-precompute.js",
       "line": 94,
       "sampledMs": 1.209
     },
     {
       "function": "getShaderScopeCacheKey",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/shader-source-scope.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/shader-source-scope.js",
       "line": 51,
       "sampledMs": 1.209
     },
     {
       "function": "recordFinalizeLogitsTensor",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/logit-finalize.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/logit-finalize.js",
       "line": 107,
       "sampledMs": 1.209
     },
     {
       "function": "",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/schema/distill-training.schema.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/schema/distill-training.schema.js",
       "line": 1,
       "sampledMs": 1.208
     },
     {
       "function": "normalizeInstant",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/revocation-policy.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/revocation-policy.js",
       "line": 67,
       "sampledMs": 1.208
     },
     {
       "function": "mergeSession",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/merge.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/merge.js",
       "line": 490,
       "sampledMs": 1.208
     },
     {
       "function": "layout",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/execution-registry-contract.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/execution-registry-contract.js",
       "line": 83,
       "sampledMs": 1.208
     },
@@ -2931,19 +2931,19 @@
     },
     {
       "function": "isSplitWeightBuffer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/weight-buffer.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/weight-buffer.js",
       "line": 204,
       "sampledMs": 1.208
     },
     {
       "function": "resolveAttentionKVSharing",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/layer-input-execution.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/layer-input-execution.js",
       "line": 159,
       "sampledMs": 1.208
     },
     {
       "function": "isActiveBuffer",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
       "line": 311,
       "sampledMs": 1.208
     },
@@ -2955,19 +2955,19 @@
     },
     {
       "function": "isFileUrlBaseUrl",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/storage/artifact-storage-context.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/storage/artifact-storage-context.js",
       "line": 509,
       "sampledMs": 1.167
     },
     {
       "function": "close",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator/decode-components.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator/decode-components.js",
       "line": 9,
       "sampledMs": 1.167
     },
     {
       "function": "takePrecomputedInputNorm",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/layer.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/layer.js",
       "line": 126,
       "sampledMs": 1.166
     },
@@ -2979,37 +2979,37 @@
     },
     {
       "function": "init",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/loader/doppler-loader.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/loader/doppler-loader.js",
       "line": 326,
       "sampledMs": 1.125
     },
     {
       "function": "applyMatmulConstants",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-selection.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/gpu/kernels/matmul-selection.js",
       "line": 77,
       "sampledMs": 1.125
     },
     {
       "function": "normalizeLayerType",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/dispatch-params.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/dispatch-params.js",
       "line": 13,
       "sampledMs": 1.084
     },
     {
       "function": "shouldUsePostAttnNormFusedGateUpPrelude",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/standard.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/standard.js",
       "line": 25,
       "sampledMs": 1.083
     },
     {
       "function": "buildInlineKernelPath",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/execution-runtime-builders.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/execution-runtime-builders.js",
       "line": 192,
       "sampledMs": 1.042
     },
     {
       "function": "ensureRuntime",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention.js",
       "line": 69,
       "sampledMs": 1.041
     },
@@ -3033,13 +3033,13 @@
     },
     {
       "function": "canUseLinearAttentionQKVZProjectionFusion",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention-ab-fusion.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/linear-attention-ab-fusion.js",
       "line": 106,
       "sampledMs": 0.958
     },
     {
       "function": "",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/memory/buffer-pool.js",
       "line": 386,
       "sampledMs": 0.875
     },
@@ -3051,7 +3051,7 @@
     },
     {
       "function": "_decodeStep",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator/decode-runtime.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/generator/decode-runtime.js",
       "line": 914,
       "sampledMs": 0.375
     },
@@ -3063,7 +3063,7 @@
     },
     {
       "function": "resolveProjectionOutputDtype",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/projections.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/attention/projections.js",
       "line": 201,
       "sampledMs": 0.292
     },
@@ -3075,7 +3075,7 @@
     },
     {
       "function": "freezeCapsuleV2",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/config/capsule-v2.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/config/capsule-v2.js",
       "line": 328,
       "sampledMs": 0.167
     },
@@ -3087,19 +3087,19 @@
     },
     {
       "function": "resolveMatmulStepDtype",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/dense-executor.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/dense-executor.js",
       "line": 49,
       "sampledMs": 0.125
     },
     {
       "function": "debug",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/debug/log.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/debug/log.js",
       "line": 83,
       "sampledMs": 0.083
     },
     {
       "function": "enqueueRecordedFFNHealth",
-      "url": "file:///Users/xyz/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/standard.js",
+      "url": "file://$HOME/deco/doppler/.cache/qwen08-runtime/src/inference/pipelines/text/ffn/standard.js",
       "line": 44,
       "sampledMs": 0.041
     }

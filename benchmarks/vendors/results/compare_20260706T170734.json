@@ -1,7 +1,7 @@
 {
   "timestamp": "2026-07-06T17:00:30.806Z",
   "benchmarkPolicy": {
-    "source": "/home/x/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+    "source": "$HOME/deco/doppler/benchmarks/vendors/benchmark-policy.json",
     "schemaVersion": 1,
     "sourceSha256": "6e0e81bc2571a0a1eb6451f0f9a6a3165b015bff9ba4537a4f5a6f2b1a9b93c8",
     "updated": "2026-03-29",
@@ -246,7 +246,7 @@
   "dopplerModelSource": {
     "source": "local",
     "locator": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
-    "modelUrl": "file:///home/x/deco/doppler/models/local/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+    "modelUrl": "file://$HOME/deco/doppler/models/local/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
     "modelBaseDir": "local",
     "manifestSource": "models/local/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/manifest.json",
     "manifestSha256": "3b16ad3c5969ce16737f0c25b916f199757526cc59e2137f547d4dc7cdced6af",
@@ -783,7 +783,7 @@
             "trainingBenchSteps": null,
             "checkpointEvery": null,
             "workloadType": null,
-            "modelUrl": "file:///home/x/deco/doppler/models/local/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+            "modelUrl": "file://$HOME/deco/doppler/models/local/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
             "cacheMode": "warm",
             "loadMode": "http",
             "configChain": null,
@@ -4274,7 +4274,7 @@
             }
           },
           "benchmarkPolicy": {
-            "source": "/home/x/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+            "source": "$HOME/deco/doppler/benchmarks/vendors/benchmark-policy.json",
             "schemaVersion": 1,
             "updated": "2026-03-29"
           },
@@ -4658,7 +4658,7 @@
             "trainingBenchSteps": null,
             "checkpointEvery": null,
             "workloadType": null,
-            "modelUrl": "file:///home/x/deco/doppler/models/local/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+            "modelUrl": "file://$HOME/deco/doppler/models/local/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
             "cacheMode": "warm",
             "loadMode": "http",
             "configChain": null,
@@ -8164,7 +8164,7 @@
             }
           },
           "benchmarkPolicy": {
-            "source": "/home/x/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+            "source": "$HOME/deco/doppler/benchmarks/vendors/benchmark-policy.json",
             "schemaVersion": 1,
             "updated": "2026-03-29"
           },

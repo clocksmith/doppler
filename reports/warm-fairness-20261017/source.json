@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "baseCommit": "43787cf7a22ff2b1bb1e666b6bdfa00f713dc8ba",
   "sha256": {
     "benchmarks/runners/hf-transformers-reranker-bench.py": "f3a40340c496dee5922079635f7ab88b24f5d9261fbed4b8551e6341ad553669",
@@ -3108,7 +3110,7 @@
     "tools/data/gemma4-e2b-f16-replay-amd-radv-20260410T000000Z/slices/punc-slash-choice.json": "7b3dfe2c343dd8d48db40ade62c37ccdc83d1c76ee0b45ba88bd3d80f4da82e0",
     "tools/data/gemma4-e2b-f16-replay-amd-radv-20260410T000000Z/slices/punc-tilde-approx.json": "413eb83c9eab01280ca01f7e2ee410b9045dd80aa3fb2ee348f513e1f2ab9f7e",
     "tools/data/gemma4-e2b-f16-replay-amd-radv-20260410T000000Z/slices/val-normal-defined.json": "f22af139c8408ad5ff313a0546fd4e2b06d468ab66cf11d646d5b098d24c851a",
-    "tools/data/gemma4-e2b-f16-replay-amd-radv-20260410T000000Z/summary.json": "75a06594baf8c8c227bcb5544eead5b2195669a3c8feab1c4ea1a1bb311dc2d9",
+    "tools/data/gemma4-e2b-f16-replay-amd-radv-20260410T000000Z/summary.json": "4414dcce6ca9c543c7fb412df0aee6d8958573583f2f2d7e3a813b73fc31d8ae",
     "tools/data/gemma4-e2b-f16-replay-amd-radv-20260410T000000Z/summary.md": "cb7580e2488815385df2bd29878172838cb40fa49275e5f58d80e894123db7e1",
     "tools/data/gemma4-e2b-greedy-compare/interesting-10-8tok-summary.json": "a1727d8728e300b61daae81fd8350ffe41c9b8b6c291c2d1bef0be195cbeed1f",
     "tools/data/gemma4-e2b-greedy-compare/interesting-10-8tok-summary.md": "bbcb05c63609e7c322af9dae2576d7fcd6e3bd3c307d9c546f51ddef35fb3837",

@@ -1,7 +1,9 @@
 {
-  "schema": "doppler.jupiter-baseline-identity.v1",
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
+  "schema": "doppler.amd-host-baseline-identity.v1",
   "capturedAt": "2026-10-29T14:26:07.096902+00:00",
-  "host": "jupiter",
+  "host": "amd-host",
   "sourceRevision": "229cbf05e0d72595d0d4c1edf029d6077964c082",
   "executedFilesSha256": {
     "package.json": "d213928293b3f0d12a83692a39a1c4239bb6e7a678e5dc53eb8183b23cc9aacf",
@@ -2295,7 +2297,7 @@
     "src/inference/pipelines/text/operator-identity.js": "0daf32bfa1e2678d6902aaf1035dbdd6c409dcc3ac5b2f4b8b8e0b3a0983f547",
     "src/inference/pipelines/text/types.d.ts": "153c87cc8712fa1018c4f4ccf0e95886415713ea223c6ab58d40a184c77a46ad",
     "src/inference/pipelines/text/abort-contract.js": "06249ade71ca45f26685a147b930fb523a84cfce6079daf45de0f12ef72460a6",
-    "src/inference/pipelines/text/tsir-fixture-writer.js": "2853562093a94f2b938a0c4af8be25f0559f3467934c1b7b4e0608d9ae516e58",
+    "src/inference/pipelines/text/tsir-fixture-writer.js": "001414c44168a2d87fbf4e0b2fface440d62da6cc7703d1ba7b4f2e5340690ae",
     "src/inference/pipelines/text/debug-utils.js": "2aaaca3fc8ad8331f6db03b305e5a7903404d85d04e843b6f834fecda21a967c",
     "src/inference/pipelines/text/operator-events.d.ts": "43387763da50c10b50352c8bcbddb6963580ea086dd72388dd9e533ad97f0a37",
     "src/inference/pipelines/text/generator-steps.js": "b30bdf77b30133b1399d82b97f86f26c647bea865e0008c666eb07ba6077afc7",
@@ -2935,7 +2937,7 @@
     "src/config/runtime/profiles/qwen-3-5-2b-f16-primary-throughput.json": "057057be2f137bea628218ca72c73815498690c64e3c80b89bb0f1ed7b1f6686",
     "src/config/runtime/profiles/simulation.json": "22f9e9b40b6cb4e23a6d3aa9a91508c610e489f2de2b1c6fbacf70cf7c27490f",
     "src/config/runtime/profiles/qwen-3-5-0-8b-metal-maxbatch64-candidate.json": "c9827cbc9cf3dbfab7c7748cbd584a9e4787cc08e989fc3dfb0b4b49328163ba",
-    "src/config/runtime/profiles/qwen-3-5-0-8b-vulkan-throughput.json": "195bdba99d456f47d89be15610a52d11da5fa9b9d258652bac4e7dfeffc24e38",
+    "src/config/runtime/profiles/qwen-3-5-0-8b-vulkan-throughput.json": "7914279d362274a23d0fc00287dc7e5e442d5d4dc9b58dceefcbafd5c24351c1",
     "src/config/runtime/profiles/muse-glimmer-30b-source-parity-f32kv.json": "c89171323b341909de7a84679c5398e99519bd1ab4d16f2d7b9d029622a0691e",
     "src/config/runtime/profiles/turboquant-contiguous.json": "16054f28475585b196482d6915fe4bbb88d79ffd72b648fce5bd75b29331b0ef",
     "src/config/runtime/profiles/trace-layers.json": "fdd78531f962792a0a25fec90e48f6af8dfcab4b954f19bd6b576b8ea5f79049",
@@ -3020,7 +3022,7 @@
     "src/tooling/hf-registry/publish-shaping.js": "abca5cc5f52b54b8da4dfda139d923cbb9424e7343383d51d68e5a6ea24d0db2",
     "src/tooling/hf-registry/registry-urls.js": "58fcdc6d514af24f49ad50103c1b57533c0f0a69bd76c15b3b257ffca45da6dd",
     "src/tooling/hf-registry/network-probes.js": "a143860965ba7c06200b987b2fd42aeabac42ccee0cb0d7a762083a657addbf1",
-    "src/tooling/hf-registry/catalog-io.js": "466bd36294838898dc45a2a90a50b834a218618a2a79d68020c8ddb6ad159c8a",
+    "src/tooling/hf-registry/catalog-io.js": "2ec3cb2d5aac0c2b52ee8940f815d5e69dfc58e10bc15dd5593a0748db09da0e",
     "src/tooling/runtime-optimization/candidates.js": "f3166de0178c9bd88670d2e815287d06b51d088e84248a07133d2d8bdc5c30b3",
     "src/tooling/runtime-optimization/candidates.d.ts": "f877a29d27dcf87928df0d16e16d84af2edb9738d813b3356f1828a08b4fc437",
     "src/tooling/kernel-path-builder/index.js": "8111f873ec5c882211a0a2f22c8c01b62b8f08f30e3e7c8716bc70ccb2dd27d2",
@@ -3055,14 +3057,14 @@
     "src/tooling/node-browser/static-server.d.ts": "875b6734714c143d8296956418fb59ca55ebe722fb8f89c31ab5e0f775b4f6a2",
     "src/debug/reference/hf_embed_check.py": "456fd8f2661e5a45a60eb490c573378abb19e6b5d2fb85ea04fba9e8f1671b7b",
     "src/debug/reference/hf_layer_out.py": "b7cc334d4a7216bbd36bfb1b5501914903396a5d89a981e45108902218a3ea92",
-    "src/debug/reference/hf_qwen35_linear_attn_debug.py": "959e1c72e3dfb45535f528ac7952c70b418286a554095e1b49ad6aca20adba9d",
+    "src/debug/reference/hf_qwen35_linear_attn_debug.py": "2398a975ac5eb31a7d01454df3cfdf8888437c11578d1b54aed0e68f99485166",
     "src/debug/reference/hf_attn_debug.py": "fd8eeffed745d56958657017a7b6fd1747eb84c85969ffb087f018760ac5c4df",
     "src/debug/reference/hf_weights.py": "7ba9f79af3af7d7902f1be59c0b8e19be36bbd59dd3cad149eee18192bd6ef80",
     "src/debug/reference/hf_rope_check.py": "9fe80cac9df30ac603e98901b42f080f75383550ddcb811f9a30ff006d785dc9",
     "src/debug/reference/README.md": "34447dd3ff7003d58b1ce45d6ee0ffa7a3dcf9067688441b56287e1f18831d2f"
   },
   "sourceRevisionDifferences": [],
-  "modelPath": "/home/x/deco/hatch/pooled-doppler-bench/_work/doppler-successor",
+  "modelPath": "$HOME/deco/hatch/pooled-doppler-bench/_work/doppler-successor",
   "modelFiles": {
     "manifest.json": {
       "sha256": "b322d7ee4f68387102fde5f7c5049604600101d87c999d9e22ddf19f438af9bc",
@@ -3152,7 +3154,7 @@
         "-a"
       ],
       "exitCode": 0,
-      "stdout": "Linux jupiter 7.0.0-38-generic #38-Ubuntu SMP PREEMPT_DYNAMIC Fri Sep  4 09:10:14 UTC 2026 x86_64 GNU/Linux\n",
+      "stdout": "Linux amd-host 7.0.0-38-generic #38-Ubuntu SMP PREEMPT_DYNAMIC Fri Sep  4 09:10:14 UTC 2026 x86_64 GNU/Linux\n",
       "stderr": ""
     },
     {
@@ -3197,7 +3199,7 @@
       "argv": [
         "df",
         "-B1",
-        "/home/x/deco/doppler"
+        "$HOME/deco/doppler"
       ],
       "exitCode": 0,
       "stdout": "Filesystem                            1B-blocks          Used   Available Use% Mounted on\n/dev/mapper/ubuntu--vg-ubuntu--lv 1964601909248 1799657086976 65072992256  97% /\n",
@@ -3207,7 +3209,7 @@
       "argv": [
         "git",
         "-C",
-        "/home/x/deco/doppler",
+        "$HOME/deco/doppler",
         "status",
         "--short"
       ],

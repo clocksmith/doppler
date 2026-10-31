@@ -31,7 +31,7 @@
   "limits": [
     "Bounded synthetic MoE geometry (T=2,H=256,I=256,E=3,sharedI=3), not full Qwen3.6-35B numerical qualification",
     "One pass/submission is a command-recording observation, not a throughput claim",
-    "Full Jupiter numerical and paired timing runs remain pending"
+    "Full amd-host numerical and paired timing runs remain pending"
   ],
   "component": "doppler.runtime-source.inference.pipelines.text",
   "intent": "preserved",

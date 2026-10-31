@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "id": "root-paired-softplus-recurrent-amd-20261013",
   "frozenAt": "2026-10-13T16:58:33.382356+00:00",
   "scope": "Source-overlay diagnostic only; not ordinary archive qualification",
@@ -3987,5 +3989,5 @@
   "overlaySha256": "493eeac434895e82e70ca5feb90e94f492679703b1a88bc725ba02ddc3096535",
   "sourceCommit": "a1535f66",
   "controllerSha256": "dc48126af4d7c0444d8f23deb3706ae43cfef58c1adc26215496076276171658",
-  "inventorySha256": "83dd91d91537e01c73f5218f8e86d9b8ec4531b04eea0772cebbaa471bce5fb1"
+  "inventorySha256": "cef39f62957493e96365c1853bb88733a0125ca535aa119ca019a33aa9cc6469"
 }

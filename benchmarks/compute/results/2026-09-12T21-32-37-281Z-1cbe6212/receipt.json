@@ -40237,7 +40237,7 @@
       "src/tooling/node-browser/static-server.js": "sha256:33f1d8856ba7ba2f39ecc2a05118fd2cb16fbc8fd6706166837d40e7e5bc01fa",
       "benchmarks/compute/suite.json": "sha256:739f18cf01682710171bf931090fd60cffbad76cdf2a823669a4acf8139c1b20"
     },
-    "command": "node tools/bench-compute.js --config \"/Users/xyz/deco/doppler/benchmarks/compute/suite.json\" --out \"/Users/xyz/deco/doppler/benchmarks/compute/results/2026-09-12T21-32-37-281Z-1cbe6212\"",
+    "command": "node tools/bench-compute.js --config \"$HOME/deco/doppler/benchmarks/compute/suite.json\" --out \"$HOME/deco/doppler/benchmarks/compute/results/2026-09-12T21-32-37-281Z-1cbe6212\"",
     "replay": "From the source snapshot, run node tools/bench-compute.js with a new --out directory and the same browser installation. No model downloads or publication are performed.",
     "host": {
       "platform": "darwin",

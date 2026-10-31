@@ -1,7 +1,7 @@
 {
   "authorship": "AI-authored semantic index checked against the installed independent implementation, not upstream metadata",
   "implementation": {
-    "path": "/home/x/.local/lib/python3.14/site-packages/transformers/models/bert/modeling_bert.py",
+    "path": "$HOME/.local/lib/python3.14/site-packages/transformers/models/bert/modeling_bert.py",
     "sha256": "3c528728e605b420c3092bd243cac8f3431948229de054e3578f2e9882db8c89",
     "transformersVersion": "5.6.2"
   },

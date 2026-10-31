@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.paired-softplus-control-disposition/v1",
   "status": "failed",
   "sourceCommit": "a1535f66",
@@ -22,11 +24,11 @@
     "Co-tenancy and uncontrolled caches prevent isolated performance claims."
   ],
   "files": {
-    "amd-result.json": "1a3cc0aac7913c806a90475a582c51b18c75b73004604a0ab6e023dba32af710",
-    "amd-process.json": "56dc45aa7187055fcdce2df5e96468ce7c64d8876e777929f845c3ab4eb7e1d5",
-    "amd-before.txt": "83dd91d91537e01c73f5218f8e86d9b8ec4531b04eea0772cebbaa471bce5fb1",
-    "amd-after.txt": "7106417ddfc83b7a8c84d69cc24020c5e7a6c04915bc2e910763e59f29b04513",
-    "reservation.json": "544f3550c474022af125982bc15cc9e4d8d3fae3051998bcd001476bfaef6add",
+    "amd-result.json": "5bdc3153f5de1778b02caf60436391ca6820daa310365f348c4389f3d266fbfa",
+    "amd-process.json": "545d4c092a61573b0310d027315607818da4ceeb13fbb2d9727e774ca5ea99c5",
+    "amd-before.txt": "cef39f62957493e96365c1853bb88733a0125ca535aa119ca019a33aa9cc6469",
+    "amd-after.txt": "76e57d24878f33bd2e8aca9395f4e8cb9bf18bd68d42d0a3c37152935c32863f",
+    "reservation.json": "8df0908f8ac167600ecb4cb4e8353c4a98e68325bb5ef77d3e1b6cfe95d7a2e8",
     "linear-control.js": "aac5a3ae077ae867e6fa020aeaac793d6dbfd794972ec1c46e3e48e361b4ef5b",
     "controller.js": "dc48126af4d7c0444d8f23deb3706ae43cfef58c1adc26215496076276171658"
   }

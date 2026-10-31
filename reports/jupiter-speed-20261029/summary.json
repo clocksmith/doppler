@@ -1,5 +1,5 @@
 {
-  "schema": "doppler.jupiter-speed-result.v1",
+  "schema": "doppler.amd-host-speed-result.v1",
   "scope": "Qwen3.5 0.8B/Radeon8060S/Chrome146; opt-in experimental configuration, no release or cross-engine claim",
   "timedSessions": 40,
   "failedTimedAttempts": [],

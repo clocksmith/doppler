@@ -51,8 +51,8 @@ git show 4fba376633a570b27ba29cd2abc675219c082918:tests/integration/resident-par
 Run each test separately with:
 
 ```sh
-DOPPLER_NODE_WEBGPU_MODULE=webgpu DOPPLER_NODE_WEBGPU_PROVIDER_ARGS=backend=vulkan DOPPLER_PARTITION_MODEL_DIR=/home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16 node tests/integration/partition-layers-physical.test.js
-DOPPLER_NODE_WEBGPU_MODULE=webgpu DOPPLER_NODE_WEBGPU_PROVIDER_ARGS=backend=vulkan DOPPLER_PARTITION_MODEL_DIR=/home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16 node tests/integration/resident-partition-accepted-api.test.js
+DOPPLER_NODE_WEBGPU_MODULE=webgpu DOPPLER_NODE_WEBGPU_PROVIDER_ARGS=backend=vulkan DOPPLER_PARTITION_MODEL_DIR=$HOME/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16 node tests/integration/partition-layers-physical.test.js
+DOPPLER_NODE_WEBGPU_MODULE=webgpu DOPPLER_NODE_WEBGPU_PROVIDER_ARGS=backend=vulkan DOPPLER_PARTITION_MODEL_DIR=$HOME/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16 node tests/integration/resident-partition-accepted-api.test.js
 ```
 
 Focused CPU controls also passed: `partition-kv-cache.test.js` and

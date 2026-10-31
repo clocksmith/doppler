@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.capsule-baseline-integration/v1",
   "component": "doppler",
   "intent": "changed",
@@ -6,7 +8,7 @@
   "baseCommit": "b3004aa162ac5d4488a98af5a9f05234a4b68cd0",
   "originMain": "b3004aa162ac5d4488a98af5a9f05234a4b68cd0",
   "pull": {
-    "command": "DECO_ROOT=/home/x/deco TMPDIR=/var/tmp bash ../rdpull.sh doppler",
+    "command": "DECO_ROOT=$HOME/deco TMPDIR=/var/tmp bash ../rdpull.sh doppler",
     "exitCode": 0,
     "resolvedConflict": "tools/check-public-boundaries.js",
     "resolution": "Combined package measured at 1780 files and 10866108 unpacked bytes; compressed allowance unchanged.",
@@ -29,7 +31,7 @@
   "physicalQualification": {
     "rerun": false,
     "priorAcceptance": "reports/capsule-baseline/20260906/acceptance.json",
-    "priorAcceptanceSha256": "bb24d0ab9e294df91fa695b32b5162244958c91e9e85da600adb350221c49859",
+    "priorAcceptanceSha256": "2d28aa1bfd76af961000809e66bb564eeaf5826a190db97fa51d26cf504f7015",
     "runtimeSourceUnchanged": true,
     "changedArchiveSourceFiles": [
       "package/src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple.json",
@@ -48,7 +50,7 @@
   "adjacentRepositoriesChanged": false,
   "externalAdoptionEstablished": false,
   "custody": {
-    "directory": "/home/x/.local/share/doppler/capsule-baselines/20260907-rdpull-b3004aa1",
+    "directory": "$HOME/.local/share/doppler/capsule-baselines/20260907-rdpull-b3004aa1",
     "filesVerified": 7,
     "remoteBackup": false
   },

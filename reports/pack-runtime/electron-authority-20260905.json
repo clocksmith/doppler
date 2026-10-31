@@ -171,9 +171,9 @@
       "[node-tests] ok: tests/config/browser-opfs-smoke-capability-skip.test.js",
       "# fused-ffn-q4-metal-simd16-gpu-regression.test: skipped (requires Apple Metal subgroups)",
       "# fused-matmul-q4-metal-simd16-gpu-regression.test: skipped (requires Apple Metal subgroups)",
-      "# [NaN Regression] skipped: local fixture missing at /home/x/deco/doppler/models/local/gemma-3-1b-it-f16-af32/manifest.json",
+      "# [NaN Regression] skipped: local fixture missing at $HOME/deco/doppler/models/local/gemma-3-1b-it-f16-af32/manifest.json",
       "# gemma4-e2b-q4k-apple-retain-regression.test: skipped (vendor=amd not apple)",
-      "# litert-gemma4-task-ple-scale.test: skipped (source artifact not available at /home/x/deco/doppler/models/source/litert/gemma-4-e2b-it/gemma-4-E2B-it-web.task)",
+      "# litert-gemma4-task-ple-scale.test: skipped (source artifact not available at $HOME/deco/doppler/models/source/litert/gemma-4-e2b-it/gemma-4-E2B-it-web.task)",
       "# qwen-linear-attention-regression.test: skipped (set DOPPLER_QWEN35_LINEAR_MODEL_DIR)",
       "# translategemma-q4k-regression.test: skipped (legacy TranslateGemma Q4K is outside the current Gemma 4/Qwen 3.5 release focus)"
     ]

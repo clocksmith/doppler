@@ -202,7 +202,7 @@
     }
   ],
   "consumer": "reploid",
-  "reploidRoot": "/home/x/deco/worktrees/reploid-consumer-streaming",
+  "reploidRoot": "$HOME/deco/worktrees/reploid-consumer-streaming",
   "sharedSessionOperation": "embed",
   "adapterProbe": {
     "attempts": 3,

@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.canonical-text-onnx-cpu.v1",
   "completed": true,
   "scope": "ONNX CPU numerical execution only; no TJS, GPU or speed proof",
@@ -38,11 +40,11 @@
     "sessionRouting": "Explicit prefill/decode adapter supplied through the public TJS model constructor; no token-at-a-time prefill"
   },
   "onnxArtifact": {
-    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-02/receipt.json",
-    "sha256": "56c01d696ea375482309e1e29112a7b3f569cd80e2b512590e27cbe9d21d990c"
+    "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/full-onnx-f32kv-02/receipt.json",
+    "sha256": "eb4e33d5127c87b9bc8084b4d1aaafd6f43b9b19481c0afecfe0cfe95e96c34d"
   },
   "teacher": {
-    "path": "/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/teacher-f32kv-02/receipt.json",
+    "path": "$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/teacher-f32kv-02/receipt.json",
     "sha256": "a9713f5c028b0911b6a32235a34cc1e0e85009c776eda79f0e7a4a793468e1cd"
   },
   "provider": {

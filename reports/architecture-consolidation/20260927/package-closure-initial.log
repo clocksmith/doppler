@@ -10,5 +10,5 @@ package training API smoke passed
 installed public imports preserve minimal runtime authority
 Package evidence retained: /tmp/doppler-registry-installed-20260927
 Error: Installed runtime closure differs from checked receipt.
-    at runPartitionApiSmoke (file:///home/x/deco/doppler/tools/check-packed-package.js:297:67)
-    at async main (file:///home/x/deco/doppler/tools/check-packed-package.js:420:5)
+    at runPartitionApiSmoke (file://$HOME/deco/doppler/tools/check-packed-package.js:297:67)
+    at async main (file://$HOME/deco/doppler/tools/check-packed-package.js:420:5)

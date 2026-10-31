@@ -76,7 +76,7 @@
         "generationConfigHash": "sha256:c24a128e2cf61abdcbf531074e6e7c05a8718e46a3e3b82d714c37400cb6904c",
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
-          "logicalModelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+          "logicalModelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
           "resolvedArtifactVariantId": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
           "resolvedExecutionId": "sha256:633d8cbbb0071befb7b9a343712f7006f69e624f0cb5242ef52b95503b5a0c9f"
         },
@@ -117,7 +117,7 @@
             "surface": "node"
           },
           "model": {
-            "modelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+            "modelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
             "manifestHash": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
             "activeAdapter": null,
             "activeAdapterId": null,
@@ -2440,7 +2440,7 @@
         "generationConfigHash": "sha256:c24a128e2cf61abdcbf531074e6e7c05a8718e46a3e3b82d714c37400cb6904c",
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
-          "logicalModelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+          "logicalModelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
           "resolvedArtifactVariantId": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
           "resolvedExecutionId": "sha256:633d8cbbb0071befb7b9a343712f7006f69e624f0cb5242ef52b95503b5a0c9f"
         },
@@ -2481,7 +2481,7 @@
             "surface": "node"
           },
           "model": {
-            "modelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+            "modelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
             "manifestHash": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
             "activeAdapter": null,
             "activeAdapterId": null,
@@ -4826,7 +4826,7 @@
         "generationConfigHash": "sha256:c24a128e2cf61abdcbf531074e6e7c05a8718e46a3e3b82d714c37400cb6904c",
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
-          "logicalModelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+          "logicalModelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
           "resolvedArtifactVariantId": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
           "resolvedExecutionId": "sha256:633d8cbbb0071befb7b9a343712f7006f69e624f0cb5242ef52b95503b5a0c9f"
         },
@@ -4867,7 +4867,7 @@
             "surface": "node"
           },
           "model": {
-            "modelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+            "modelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
             "manifestHash": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
             "activeAdapter": null,
             "activeAdapterId": null,
@@ -7177,7 +7177,7 @@
         "generationConfigHash": "sha256:c24a128e2cf61abdcbf531074e6e7c05a8718e46a3e3b82d714c37400cb6904c",
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
-          "logicalModelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+          "logicalModelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
           "resolvedArtifactVariantId": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
           "resolvedExecutionId": "sha256:633d8cbbb0071befb7b9a343712f7006f69e624f0cb5242ef52b95503b5a0c9f"
         },
@@ -7218,7 +7218,7 @@
             "surface": "node"
           },
           "model": {
-            "modelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+            "modelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
             "manifestHash": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
             "activeAdapter": null,
             "activeAdapterId": null,
@@ -9539,7 +9539,7 @@
         "generationConfigHash": "sha256:c24a128e2cf61abdcbf531074e6e7c05a8718e46a3e3b82d714c37400cb6904c",
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
-          "logicalModelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+          "logicalModelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
           "resolvedArtifactVariantId": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
           "resolvedExecutionId": "sha256:633d8cbbb0071befb7b9a343712f7006f69e624f0cb5242ef52b95503b5a0c9f"
         },
@@ -9580,7 +9580,7 @@
             "surface": "node"
           },
           "model": {
-            "modelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+            "modelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
             "manifestHash": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
             "activeAdapter": null,
             "activeAdapterId": null,
@@ -11896,7 +11896,7 @@
         "generationConfigHash": "sha256:c24a128e2cf61abdcbf531074e6e7c05a8718e46a3e3b82d714c37400cb6904c",
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
-          "logicalModelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+          "logicalModelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
           "resolvedArtifactVariantId": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
           "resolvedExecutionId": "sha256:633d8cbbb0071befb7b9a343712f7006f69e624f0cb5242ef52b95503b5a0c9f"
         },
@@ -11937,7 +11937,7 @@
             "surface": "node"
           },
           "model": {
-            "modelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+            "modelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
             "manifestHash": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
             "activeAdapter": null,
             "activeAdapterId": null,
@@ -14372,7 +14372,7 @@
         "generationConfigHash": "sha256:c24a128e2cf61abdcbf531074e6e7c05a8718e46a3e3b82d714c37400cb6904c",
         "resolution": {
           "schema": "doppler.resolution-identity/v1",
-          "logicalModelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+          "logicalModelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
           "resolvedArtifactVariantId": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
           "resolvedExecutionId": "sha256:633d8cbbb0071befb7b9a343712f7006f69e624f0cb5242ef52b95503b5a0c9f"
         },
@@ -14413,7 +14413,7 @@
             "surface": "node"
           },
           "model": {
-            "modelId": "file:///home/x/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
+            "modelId": "file://$HOME/deco/doppler/.tmp/model-ir-v2/qwen3.8-27b/q4-head-artifact/",
             "manifestHash": "sha256:19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
             "activeAdapter": null,
             "activeAdapterId": null,
@@ -18961,7 +18961,7 @@
   "error": {
     "name": "AbortError",
     "message": "This operation was aborted",
-    "stack": "AbortError: This operation was aborted\n    at new DOMException (node:internal/per_context/domexception:76:18)\n    at AbortController.abort (node:internal/abort_controller:504:18)\n    at Object.onToken (file:///home/x/deco/doppler/.tmp/qwen38-q4-qualification-20261016/qualify-quantized-chat.js:90:68)\n    at decodeGenerationStream (file:///home/x/.local/share/reploid/releases/c368c807-public-qwen27b/reploid/node_modules/doppler-gpu/src/inference/generation-output.js:123:22)\n    at decodeGenerationStream.next (<anonymous>)\n    at PipelineGenerator.generate (file:///home/x/.local/share/reploid/releases/c368c807-public-qwen27b/reploid/node_modules/doppler-gpu/src/inference/pipelines/text/generator.js:529:14)\n    at generate.next (<anonymous>)\n    at stream (file:///home/x/.local/share/reploid/releases/c368c807-public-qwen27b/reploid/node_modules/doppler-gpu/src/inference/pipelines/shader-scoped-pipeline.js:168:16)\n    at stream.next (<anonymous>)\n    at streamWithShaderSourceScope (file:///home/x/.local/share/reploid/releases/c368c807-public-qwen27b/reploid/node_modules/doppler-gpu/src/gpu/kernels/shader-source-scope.js:75:16)"
+    "stack": "AbortError: This operation was aborted\n    at new DOMException (node:internal/per_context/domexception:76:18)\n    at AbortController.abort (node:internal/abort_controller:504:18)\n    at Object.onToken (file://$HOME/deco/doppler/.tmp/qwen38-q4-qualification-20261016/qualify-quantized-chat.js:90:68)\n    at decodeGenerationStream (file://$HOME/.local/share/reploid/releases/c368c807-public-qwen27b/reploid/node_modules/doppler-gpu/src/inference/generation-output.js:123:22)\n    at decodeGenerationStream.next (<anonymous>)\n    at PipelineGenerator.generate (file://$HOME/.local/share/reploid/releases/c368c807-public-qwen27b/reploid/node_modules/doppler-gpu/src/inference/pipelines/text/generator.js:529:14)\n    at generate.next (<anonymous>)\n    at stream (file://$HOME/.local/share/reploid/releases/c368c807-public-qwen27b/reploid/node_modules/doppler-gpu/src/inference/pipelines/shader-scoped-pipeline.js:168:16)\n    at stream.next (<anonymous>)\n    at streamWithShaderSourceScope (file://$HOME/.local/share/reploid/releases/c368c807-public-qwen27b/reploid/node_modules/doppler-gpu/src/gpu/kernels/shader-source-scope.js:75:16)"
   },
   "afterUnload": {
     "allocations": 70930,

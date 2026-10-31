@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.document-search-node-investigation/v1",
   "sourceReferenceChecksPassed": true,
   "signedNodeReleaseCreated": false,
@@ -6,7 +8,7 @@
   "modelsSimultaneouslyResident": false,
   "scope": "Individual installed-runtime model probes using explicit retained shader bytes; not Node application acceptance or portable model release qualification.",
   "consumer": "/var/tmp/doppler-search-node-20260923",
-  "probeSha256": "0cd760dba5dce4ecb23c5e0df5c9fd31d486550736104cd37db6d77329872c67",
+  "probeSha256": "b5ef46ce1ab30eabcf79b63ecae599e3e5c5b57d610cab3ea15985317899eb8b",
   "results": [
     {
       "role": "embedding",

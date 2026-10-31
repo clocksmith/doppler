@@ -13,15 +13,15 @@
   ],
   "qualificationReports": [
     {
-      "path": "/Users/xyz/deco/reploid/artifacts/faster-candidate-20261015/placement-c/c3/reports/partition-0.json",
+      "path": "$HOME/deco/reploid/artifacts/faster-candidate-20261015/placement-c/c3/reports/partition-0.json",
       "sha256": "ccd77d3aa9678479936f2e0468ec9e995bf9df79a6e59580ac1bbd92d466deba"
     },
     {
-      "path": "/Users/xyz/deco/reploid/artifacts/faster-candidate-20261015/placement-c/c3/reports/partition-1.json",
+      "path": "$HOME/deco/reploid/artifacts/faster-candidate-20261015/placement-c/c3/reports/partition-1.json",
       "sha256": "d8b8b90e9a946492e8d0d3f5a1b7a8d45afcbbe02712019bdd520dc886d57c64"
     },
     {
-      "path": "/Users/xyz/deco/reploid/artifacts/faster-candidate-20261015/placement-c/c3/reports/partition-2.json",
+      "path": "$HOME/deco/reploid/artifacts/faster-candidate-20261015/placement-c/c3/reports/partition-2.json",
       "sha256": "f47c82c5daf94b6e807540099c3fe09ce9fca4baeebca1b404e02b71500818b1"
     }
   ],

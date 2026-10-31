@@ -8,7 +8,7 @@ record.sourceSha256 = createHash('sha256').update(readFileSync('control.js')).di
 const expected = JSON.parse(readFileSync('reservation.json'));
 if (record.sourceSha256 !== expected.sources['control.js']) throw Error('Frozen provider control changed');
 record.reservation = expected;
-const child = spawn(process.execPath, ['control.js', '/var/tmp/doppler-suby-sigmoid-factoring-20261013/reploid', 'result.json'], { stdio: ['ignore', 'pipe', 'pipe'] });
+const child = spawn(process.execPath, ['control.js', '/var/tmp/doppler-intel-host-sigmoid-factoring-20261013/reploid', 'result.json'], { stdio: ['ignore', 'pipe', 'pipe'] });
 record.pid = child.pid;
 console.log(JSON.stringify({ ownedProviderPid: child.pid, rootReservation: expected.id, operationDeadlineMs: 300000, processDeadlineMs: 310000 }));
 writeFileSync('process.json', JSON.stringify(record, null, 2));

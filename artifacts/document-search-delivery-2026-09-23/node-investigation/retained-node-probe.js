@@ -4,7 +4,7 @@ import { syncBuiltinESMExports } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
-const root = '/home/x/deco/doppler';
+const root = '$HOME/deco/doppler';
 const role = process.argv[2];
 assert(['embedding', 'reranker'].includes(role));
 const source = JSON.parse(await fs.readFile(`${root}/examples/document-search/capsules/${role}/artifacts/evidence/qualification.json`));

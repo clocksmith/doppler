@@ -1,12 +1,14 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.quantized-generation-observation/v1",
   "qualified": false,
   "scope": "Installed runtime forced-token diagnostic; no cross-precision token acceptance gate",
-  "configSha256": "3a637a3168fa57f3a985b4a6ca1eb2f65f0ae90a613c8ca664949f2fc2d072ea",
+  "configSha256": "64fd5600e21fda1d07e8003f55a05fb92f492ba1b0b278507fc69cd649d35944",
   "toolSha256": "686d8d6243dfa2ede2dd167ea4c368730dab26dc274bf459203f9ffe6dc10f4b",
   "packageVersion": "0.6.30",
   "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
-  "contractSha256": "6569deece204a463014ab3571401e3671dffe32db9bf378e4eda753b77ad5851",
+  "contractSha256": "46f6bdb885867945831f8080f8793b54cfdb15241c77906a0f578e66490161d2",
   "inputCases": [
     {
       "id": "arithmetic",

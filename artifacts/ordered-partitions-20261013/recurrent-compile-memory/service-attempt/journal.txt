@@ -1,8 +1,8 @@
-Oct 13 14:42:34 suby systemd[3613]: Started reploid-recurrent-memory-20261013.service - /usr/bin/flock -n /var/tmp/reploid-recurrent-memory-20261013/owner.lock /usr/bin/node /var/tmp/reploid-recurrent-memory-20261013/probe.js /var/tmp/doppler-gate-phases-control-20261013/reploid /var/tmp/reploid-recurrent-memory-20261013/gated_delta_recurrent_paired.wgsl /var/tmp/reploid-recurrent-memory-20261013/events.jsonl.
-Oct 13 14:42:34 suby flock[914139]: Error: ../src/intel/vulkan/anv_device.c:2455: Unable to open device /dev/dri/renderD128: Permission denied (VK_ERROR_INCOMPATIBLE_DRIVER)
-Oct 13 14:42:34 suby flock[914139]: Error: ../src/intel/vulkan_hasvk/anv_device.c:1575: Unable to open device /dev/dri/renderD128: Permission denied (VK_ERROR_INCOMPATIBLE_DRIVER)
-Oct 13 14:42:34 suby flock[914139]: Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 1000000 to 16 to fit dynamic offset allocation limit.
-Oct 13 14:42:34 suby flock[914139]: Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 1000000 to 16 to fit dynamic offset allocation limit.
-Oct 13 14:42:35 suby systemd[3613]: reploid-recurrent-memory-20261013.service: Main process exited, code=exited, status=1/FAILURE
-Oct 13 14:42:35 suby systemd[3613]: reploid-recurrent-memory-20261013.service: Failed with result 'exit-code'.
-Oct 13 14:42:35 suby systemd[3613]: reploid-recurrent-memory-20261013.service: Consumed 1.272s CPU time.
+Oct 13 14:42:34 intel-host systemd[3613]: Started reploid-recurrent-memory-20261013.service - /usr/bin/flock -n /var/tmp/reploid-recurrent-memory-20261013/owner.lock /usr/bin/node /var/tmp/reploid-recurrent-memory-20261013/probe.js /var/tmp/doppler-gate-phases-control-20261013/reploid /var/tmp/reploid-recurrent-memory-20261013/gated_delta_recurrent_paired.wgsl /var/tmp/reploid-recurrent-memory-20261013/events.jsonl.
+Oct 13 14:42:34 intel-host flock[914139]: Error: ../src/intel/vulkan/anv_device.c:2455: Unable to open device /dev/dri/renderD128: Permission denied (VK_ERROR_INCOMPATIBLE_DRIVER)
+Oct 13 14:42:34 intel-host flock[914139]: Error: ../src/intel/vulkan_hasvk/anv_device.c:1575: Unable to open device /dev/dri/renderD128: Permission denied (VK_ERROR_INCOMPATIBLE_DRIVER)
+Oct 13 14:42:34 intel-host flock[914139]: Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 1000000 to 16 to fit dynamic offset allocation limit.
+Oct 13 14:42:34 intel-host flock[914139]: Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 1000000 to 16 to fit dynamic offset allocation limit.
+Oct 13 14:42:35 intel-host systemd[3613]: reploid-recurrent-memory-20261013.service: Main process exited, code=exited, status=1/FAILURE
+Oct 13 14:42:35 intel-host systemd[3613]: reploid-recurrent-memory-20261013.service: Failed with result 'exit-code'.
+Oct 13 14:42:35 intel-host systemd[3613]: reploid-recurrent-memory-20261013.service: Consumed 1.272s CPU time.

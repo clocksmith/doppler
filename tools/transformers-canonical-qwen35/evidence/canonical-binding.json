@@ -14,9 +14,9 @@
   },
   "byteVerification": "passed",
   "frameworkSources": {
-    "/home/x/.local/lib/python3.14/site-packages/torch/__init__.py": "0387d8b811b289287479c8bfdf4e1dac3a71b246f938d82da1331cf2dc8bf001",
-    "/home/x/.local/lib/python3.14/site-packages/transformers/models/qwen3_5/modeling_qwen3_5.py": "3e2b6239e4b2c3e512d4f9836a1dba12e975ae652407e84f2d3c2beebf0c9528",
-    "/home/x/.local/lib/python3.14/site-packages/transformers/models/qwen3_5/configuration_qwen3_5.py": "e2ca3e05c3f3e7ed2c4f452043bc33640c67a24799adb054ba24fab6badfbd8c"
+    "$HOME/.local/lib/python3.14/site-packages/torch/__init__.py": "0387d8b811b289287479c8bfdf4e1dac3a71b246f938d82da1331cf2dc8bf001",
+    "$HOME/.local/lib/python3.14/site-packages/transformers/models/qwen3_5/modeling_qwen3_5.py": "3e2b6239e4b2c3e512d4f9836a1dba12e975ae652407e84f2d3c2beebf0c9528",
+    "$HOME/.local/lib/python3.14/site-packages/transformers/models/qwen3_5/configuration_qwen3_5.py": "e2ca3e05c3f3e7ed2c4f452043bc33640c67a24799adb054ba24fab6badfbd8c"
   },
   "parameters": [
     {

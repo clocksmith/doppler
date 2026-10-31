@@ -31,7 +31,7 @@
     {
       "pair": 0,
       "name": "baseline",
-      "output": "/Users/xyz/deco/doppler/artifacts/qwen08-prefill-20261016/paired-0-baseline.json",
+      "output": "$HOME/deco/doppler/artifacts/qwen08-prefill-20261016/paired-0-baseline.json",
       "startedAt": "2026-10-16T13:14:03.309Z",
       "endedAt": "2026-10-16T13:14:31.237Z",
       "code": 0,
@@ -40,7 +40,7 @@
     {
       "pair": 0,
       "name": "candidate",
-      "output": "/Users/xyz/deco/doppler/artifacts/qwen08-prefill-20261016/paired-0-candidate.json",
+      "output": "$HOME/deco/doppler/artifacts/qwen08-prefill-20261016/paired-0-candidate.json",
       "startedAt": "2026-10-16T13:14:31.239Z",
       "endedAt": "2026-10-16T13:14:56.321Z",
       "code": 0,
@@ -49,7 +49,7 @@
     {
       "pair": 1,
       "name": "candidate",
-      "output": "/Users/xyz/deco/doppler/artifacts/qwen08-prefill-20261016/paired-1-candidate.json",
+      "output": "$HOME/deco/doppler/artifacts/qwen08-prefill-20261016/paired-1-candidate.json",
       "startedAt": "2026-10-16T13:14:56.322Z",
       "endedAt": "2026-10-16T13:15:21.159Z",
       "code": 0,
@@ -58,7 +58,7 @@
     {
       "pair": 1,
       "name": "baseline",
-      "output": "/Users/xyz/deco/doppler/artifacts/qwen08-prefill-20261016/paired-1-baseline.json",
+      "output": "$HOME/deco/doppler/artifacts/qwen08-prefill-20261016/paired-1-baseline.json",
       "startedAt": "2026-10-16T13:15:21.160Z",
       "endedAt": "2026-10-16T13:15:49.590Z",
       "code": 0,
@@ -67,7 +67,7 @@
     {
       "pair": 2,
       "name": "baseline",
-      "output": "/Users/xyz/deco/doppler/artifacts/qwen08-prefill-20261016/paired-2-baseline.json",
+      "output": "$HOME/deco/doppler/artifacts/qwen08-prefill-20261016/paired-2-baseline.json",
       "startedAt": "2026-10-16T13:15:49.591Z",
       "endedAt": "2026-10-16T13:16:17.456Z",
       "code": 0,
@@ -76,7 +76,7 @@
     {
       "pair": 2,
       "name": "candidate",
-      "output": "/Users/xyz/deco/doppler/artifacts/qwen08-prefill-20261016/paired-2-candidate.json",
+      "output": "$HOME/deco/doppler/artifacts/qwen08-prefill-20261016/paired-2-candidate.json",
       "startedAt": "2026-10-16T13:16:17.457Z",
       "endedAt": "2026-10-16T13:16:41.497Z",
       "code": 0,
@@ -85,7 +85,7 @@
     {
       "pair": 3,
       "name": "candidate",
-      "output": "/Users/xyz/deco/doppler/artifacts/qwen08-prefill-20261016/paired-3-candidate.json",
+      "output": "$HOME/deco/doppler/artifacts/qwen08-prefill-20261016/paired-3-candidate.json",
       "startedAt": "2026-10-16T13:16:41.498Z",
       "endedAt": "2026-10-16T13:17:06.546Z",
       "code": 0,
@@ -94,7 +94,7 @@
     {
       "pair": 3,
       "name": "baseline",
-      "output": "/Users/xyz/deco/doppler/artifacts/qwen08-prefill-20261016/paired-3-baseline.json",
+      "output": "$HOME/deco/doppler/artifacts/qwen08-prefill-20261016/paired-3-baseline.json",
       "startedAt": "2026-10-16T13:17:06.547Z",
       "endedAt": "2026-10-16T13:17:39.001Z",
       "code": 0,
@@ -105,6 +105,6 @@
     ".cache/qwen08-20261016/artifacts/qwen08-perf-20261015/doppler.js": "56813c7da2ec54d333c099e6da8616dc30c96e6f11e571d65658e62f39575091",
     ".cache/qwen08-20261016/src/gpu/kernels/attention/executors.js": "133116ff32062c4ef183b6a823d6da41c4ca41db49e1f9c9db3aed0502cd7762",
     ".cache/qwen08-20261016/src/config/kernels/registry.json": "cf3e3c6459054e956bd2c5d4cfc833cf2add6911a938f59e524fc84be019e055",
-    "/Users/xyz/deco/doppler/artifacts/qwen08-prefill-20261016/runtime.patch": "f6a4a783a948b759a23f2452c36e85fd8085a8f4e0881a7b3d666ca426baebef"
+    "$HOME/deco/doppler/artifacts/qwen08-prefill-20261016/runtime.patch": "f6a4a783a948b759a23f2452c36e85fd8085a8f4e0881a7b3d666ca426baebef"
   }
 }

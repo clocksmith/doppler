@@ -1,5 +1,5 @@
 
- RUN  v4.1.10 /home/x/deco/worktrees/reploid-consumer-streaming
+ RUN  v4.1.10 $HOME/deco/worktrees/reploid-consumer-streaming
 
  ✓ tests/unit/change-passport-sdk.test.js (3 tests) 8ms
 

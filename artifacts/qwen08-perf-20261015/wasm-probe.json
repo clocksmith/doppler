@@ -1,7 +1,9 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "scope": "CPU F16 artifact materialization only; not inference",
   "startupMs": 0.7494579999999971,
-  "wasmSha256": "deaad9fc18eb5d90c845d50fc5b4a9d5c3b32846c175ad3d5abe41cc206e8e59",
+  "wasmSha256": "9f90206181e6aaba94a7c2bbc252fc629686f27428ae32602df0de46ecb94ec6",
   "checkedHalfPatterns": 65536,
   "tailChecked": true,
   "wasmMemoryBytes": 134217728,

@@ -6,12 +6,12 @@
   "modelIRReceiptPath": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/model-ir-receipt.json",
   "initialExecutionIdentityPath": "/var/tmp/qwen35-capsule-closure-20261013/initial-identity.json",
   "qualificationReportPaths": [
-    "/Users/xyz/deco/doppler/artifacts/paired-intermediates-20261012/signed-closure-correction/fresh-qualification/direction-0/partition-0.json",
-    "/Users/xyz/deco/doppler/artifacts/paired-intermediates-20261012/signed-closure-correction/fresh-qualification/direction-0/partition-1.json",
-    "/Users/xyz/deco/doppler/artifacts/paired-intermediates-20261012/signed-closure-correction/fresh-qualification/direction-1/partition-0.json",
-    "/Users/xyz/deco/doppler/artifacts/paired-intermediates-20261012/signed-closure-correction/fresh-qualification/direction-1/partition-1.json"
+    "$HOME/deco/doppler/artifacts/paired-intermediates-20261012/signed-closure-correction/fresh-qualification/direction-0/partition-0.json",
+    "$HOME/deco/doppler/artifacts/paired-intermediates-20261012/signed-closure-correction/fresh-qualification/direction-0/partition-1.json",
+    "$HOME/deco/doppler/artifacts/paired-intermediates-20261012/signed-closure-correction/fresh-qualification/direction-1/partition-0.json",
+    "$HOME/deco/doppler/artifacts/paired-intermediates-20261012/signed-closure-correction/fresh-qualification/direction-1/partition-1.json"
   ],
-  "residentQualificationContractPath": "/Users/xyz/deco/doppler/artifacts/paired-intermediates-20261012/signed-closure-correction/fresh-qualification/direction-0/contract.json",
+  "residentQualificationContractPath": "$HOME/deco/doppler/artifacts/paired-intermediates-20261012/signed-closure-correction/fresh-qualification/direction-0/contract.json",
   "pieceIndexPath": "/var/tmp/qwen35-capsule-closure-20261013/pieces.json",
   "releaseManifestPath": "/var/tmp/qwen35-capsule-closure-20261013/release.json",
   "signingPrivateKeyPath": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/signing-private.jwk.json",

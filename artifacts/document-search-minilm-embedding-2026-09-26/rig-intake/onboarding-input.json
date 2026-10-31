@@ -1,8 +1,10 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.model-onboarding/v1",
   "sourceSpec": {
     "path": "artifacts/document-search-minilm-embedding-2026-09-26/source-spec.json",
-    "digest": "sha256:c787a783e10ff18305d99b33cb8fc68478397cea4f5addc37651874499cc815b"
+    "digest": "sha256:af654e3bd2a56cd3ee5783ca4920f67bcf5d94908c8619962ac410677f88ef88"
   },
   "vocabulary": {
     "path": "reports/model-revision-discovery/20260907/inputs/embedding-vocabulary.json",

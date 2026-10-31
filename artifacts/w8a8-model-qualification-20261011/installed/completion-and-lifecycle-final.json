@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.w8a8-completion-regression/v1",
   "packageSha256": "7c240dad4d1ae98e204e9727e687b9bc4379abd758b16af0fd857a99d7adac8d",
   "scope": "Both declared model variants, unchanged bytes/settings; output quality remains unqualified",
@@ -6,7 +8,7 @@
     {
       "previous": "w8a8-installed-model-06",
       "current": "w8a8-installed-model-07",
-      "reportSha256": "53520c348a0c70a79f4c761651ef92d672af18ec93341c45c6cee8680be41161",
+      "reportSha256": "c580d556605a8629fe456e0ea6bf26b156e023607265dde601ec9d0ec3e92c80",
       "all12TaskTokensAndTextUnchanged": true,
       "all200TeacherForcedObservationsUnchanged": true,
       "all12StopReasonsValid": true,
@@ -89,7 +91,7 @@
     {
       "previous": "w8a8-packed-installed-model-03",
       "current": "w8a8-packed-installed-model-04",
-      "reportSha256": "f0298a36a11ae33be3b901689108372a5016482f4a0af4b763bf618baa77787e",
+      "reportSha256": "3d3c0088c176c8ccc0162fbf05f9a4a2b3288615eea4bc04b38ecca86caa4738",
       "all12TaskTokensAndTextUnchanged": true,
       "all200TeacherForcedObservationsUnchanged": true,
       "all12StopReasonsValid": true,

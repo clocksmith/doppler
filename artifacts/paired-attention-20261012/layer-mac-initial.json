@@ -319,5 +319,5 @@
     "src/gpu/kernels/paired-rope.js": "76f1736bc70ae818d44a904b8ea6d3808ad7574ab6303e94ce260d1877c52964",
     "src/gpu/kernels/rope_precompute_paired.wgsl": "3342e61b52a62286e4e6b3edb60899b06556608dbc5030771a2b9db50e640523"
   },
-  "error": "page.evaluate: TypeError: Cannot read properties of undefined (reading 'attentionResourceEvents')\n    at interpretAttentionWithRecorder (http://127.0.0.1:63197/src/inference/pipelines/text/attention/interpreter.js:971:13)\n    at async runLayerAttentionGPU (http://127.0.0.1:63197/src/inference/pipelines/text/attention/executor-immediate.js:23:20)\n    at async eval (eval at evaluate (:290:30), <anonymous>:66:85)\n    at async <anonymous>:316:30\n    at /Users/xyz/deco/doppler/tests/kernels/paired-attention-layer-physical.js:33:31"
+  "error": "page.evaluate: TypeError: Cannot read properties of undefined (reading 'attentionResourceEvents')\n    at interpretAttentionWithRecorder (http://127.0.0.1:63197/src/inference/pipelines/text/attention/interpreter.js:971:13)\n    at async runLayerAttentionGPU (http://127.0.0.1:63197/src/inference/pipelines/text/attention/executor-immediate.js:23:20)\n    at async eval (eval at evaluate (:290:30), <anonymous>:66:85)\n    at async <anonymous>:316:30\n    at $HOME/deco/doppler/tests/kernels/paired-attention-layer-physical.js:33:31"
 }

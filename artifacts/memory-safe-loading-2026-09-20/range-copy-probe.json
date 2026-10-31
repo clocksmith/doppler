@@ -8,19 +8,19 @@
       "path": "weights.bin",
       "offset": 0,
       "length": 4194304,
-      "caller": "at file:///home/x/deco/doppler/src/storage/artifact-storage-context.js:237:35"
+      "caller": "at file://$HOME/deco/doppler/src/storage/artifact-storage-context.js:237:35"
     },
     {
       "path": "weights.bin",
       "offset": 4194304,
       "length": 4194304,
-      "caller": "at file:///home/x/deco/doppler/src/storage/artifact-storage-context.js:237:35"
+      "caller": "at file://$HOME/deco/doppler/src/storage/artifact-storage-context.js:237:35"
     },
     {
       "path": "weights.bin",
       "offset": 0,
       "length": 8388608,
-      "caller": "at loadShardRange (file:///home/x/deco/doppler/src/storage/artifact-storage-context.js:284:27)"
+      "caller": "at loadShardRange (file://$HOME/deco/doppler/src/storage/artifact-storage-context.js:284:27)"
     }
   ]
 }

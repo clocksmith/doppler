@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.paired-gate-phases-physical-disposition/v1",
   "component": "doppler.runtime-source.gpu.kernels",
   "intent": "preserved",
@@ -98,7 +100,7 @@
     "restarted": false,
     "healthInference": false
   },
-  "interference": "Public contributors and unrelated processes remained on shared Suby. No performance isolation or cache-cold claim. SSH briefly unreachable near OOM.",
+  "interference": "Public contributors and unrelated processes remained on shared intel-host. No performance isolation or cache-cold claim. SSH briefly unreachable near OOM.",
   "identity": {
     "baseRuntimeArchiveSha256": "1cb2a5b8b7ebcefd6269b6a065fea0347c6471fe0c044479c78ef5b9f0c096eb",
     "nativeArchiveSha256": "2a1f836bf29622d66c01cebd1fc71311b60f5c44f50530d6b67772ee39a0a590",
@@ -111,10 +113,10 @@
   "windDown": "No further run/package/model launched. Owned child/controller absent; no owned servers/tunnels created by this operator control.",
   "rawFiles": {
     "final-inventory.txt": "a01b0d82300cbe306edfff329af5c17a01dbaecc1f15a37005a1927ff9b19d6b",
-    "kernel-outcome.txt": "6d7f3ae86f40d771ab3a416525d8dc76d08fa8fce3ed07cdcbc011000a9e37a5",
-    "preflight-inventory.txt": "05d7f81f3dd32ab681bfaa5e7107bef7eac373f9e79ec196e2173aa83b11cd30",
-    "process.json": "15cf7f9a8088de5e189aeade17940dd0fd61f418cf7b3ea62c4549abc40e7058",
-    "reservation.json": "34012bf5bbc807f48974a0f2ecc815c5f379b44bcd1391975a2dbc5757b1acaf",
-    "result.json": "d8f81842ea67d7bff6c98a72dfea310e005fc15f834464db305628bd902b6923"
+    "kernel-outcome.txt": "d8e35719fdd0daf637ab6dd3cb99873c54a580164133a176382605a2e6105fcb",
+    "preflight-inventory.txt": "7b303795960c02566973876006d59418936d9702f5c60327b6d66f556afa8c55",
+    "process.json": "f3088d009757f0083487f444dff3a6a9478c3e1cc77605de2326ad67f7f5ab80",
+    "reservation.json": "048b8a6f7b6a32db14a7319cce29b2a47730327ce7146ee2a26565139a3daa84",
+    "result.json": "64a9a26162103b7f4be297ff7c772e6031d6b372217e23ccbdb8f152345c5e5b"
   }
 }

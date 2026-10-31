@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "startedAt": "2026-10-13T15:41:26.787Z",
   "controllerPid": 779681,
   "before": [
@@ -8,11 +10,11 @@
   "stdout": "",
   "stderr": "Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 1000000 to 16 to fit dynamic offset allocation limit.\nWarning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 1000000 to 16 to fit dynamic offset allocation limit.\n",
   "signals": [],
-  "sourceSha256": "b6c0a7f6a190d10513627aa0bec45993218519aeea2a046289dbca6d0b3fe8d1",
+  "sourceSha256": "f1508bf45966242ea04cc4d40225582232005e32b6ca2d7b32de45bdb418900a",
   "reservation": {
-    "schema": "doppler.suby-paired-cast-reservation/v1",
-    "id": "root-suby-paired-cast-owned-lost-barrier-20261013",
-    "authorizedBy": "Root authorized one replay with exact owned-device lost barrier, total cleanup 10s; Suby only",
+    "schema": "doppler.intel-host-paired-cast-reservation/v1",
+    "id": "root-intel-host-paired-cast-owned-lost-barrier-20261013",
+    "authorizedBy": "Root authorized one replay with exact owned-device lost barrier, total cleanup 10s; intel-host only",
     "frozenAt": "2026-10-13T15:41:19.481353+00:00",
     "runtimeArchiveSha256": "5e0d60bc433d332187d422721fd7afcaec780c202e3082adcab389b47fd27fc5",
     "scope": "Installed wrapper and harness lifetime compatibility only; not production host physical qualification or model qualification",
@@ -23,7 +25,7 @@
     "explicitOwnedStorageBufferBytes": 272,
     "cases": 4,
     "sources": {
-      "control.js": "b6c0a7f6a190d10513627aa0bec45993218519aeea2a046289dbca6d0b3fe8d1",
+      "control.js": "f1508bf45966242ea04cc4d40225582232005e32b6ca2d7b32de45bdb418900a",
       "controller.js": "108af1b0400b4f5b33e4298fe1a1a4d2f1dd45d7cb94464ae4ea1090675e9d48"
     },
     "runtimeClosure": {
@@ -35,7 +37,7 @@
       "src/config/kernels/registry.json": "78660305b92d9c1158222221beda5fec8f08d3e0d911b156681de92e849037e5",
       "tests/kernels/paired-cast-physical.js": "8f87d19bb6f8273d0ec92ed455da9711f8bf68e163da5b64f8db2466438b795f"
     },
-    "parentControlHash": "e16eb8b3eea8dca8d2d897bc1ecdc8498fd8262c97003c829b8fa598a83366c3"
+    "parentControlHash": "0d7382ccf56d4884d2d4e11773d1940de84f710809110de8d729c95a0e965e6e"
   },
   "pid": 779692,
   "exit": {

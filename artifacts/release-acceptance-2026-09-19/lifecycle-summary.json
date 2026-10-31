@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.release-lifecycle-summary/v1",
   "releaseAccepted": false,
   "package": {
@@ -10,7 +12,7 @@
     "sha256": "88f030627cdba99f9a81ffc5b5287d1ba9441f3cac638c506eded46d49cbeec7"
   },
   "browserVersion": "146.0.7680.177",
-  "receiptSha256": "7617808f84dcdb418d2ed1b0d5a5a7c189ee22d4bc444d6106fc160948b1f3a4",
+  "receiptSha256": "f131617721b46af130420feddebd7449f0ce775f3c23ea97af727981f2e57b27",
   "results": [
     {
       "operation": "generate",
@@ -34,7 +36,7 @@
       "comparisons": null,
       "error": {
         "message": "page.evaluate: RangeError: Array buffer allocation failed\n    at new ArrayBuffer (<anonymous>)\n    at new Uint8Array (<anonymous>)\n    at toSha256PaddedBytesFromData (http://127.0.0.1:37135/node_modules/doppler-gpu/src/formats/sha256.js:39:18)\n    at sha256BytesHex (http://127.0.0.1:37135/node_modules/doppler-gpu/src/formats/sha256.js:79:31)\n    at hashBytesSha256 (http://127.0.0.1:37135/node_modules/doppler-gpu/src/formats/canonical-hash.js:62:20)\n    at http://127.0.0.1:37135/node_modules/doppler-gpu/src/client/runtime/verified-capsule-artifact-store.js:48:22",
-        "stack": "page.evaluate: RangeError: Array buffer allocation failed\n    at new ArrayBuffer (<anonymous>)\n    at new Uint8Array (<anonymous>)\n    at toSha256PaddedBytesFromData (http://127.0.0.1:37135/node_modules/doppler-gpu/src/formats/sha256.js:39:18)\n    at sha256BytesHex (http://127.0.0.1:37135/node_modules/doppler-gpu/src/formats/sha256.js:79:31)\n    at hashBytesSha256 (http://127.0.0.1:37135/node_modules/doppler-gpu/src/formats/canonical-hash.js:62:20)\n    at http://127.0.0.1:37135/node_modules/doppler-gpu/src/client/runtime/verified-capsule-artifact-store.js:48:22\n    at /home/x/deco/doppler/tools/check-installed-capabilities.js:117:27"
+        "stack": "page.evaluate: RangeError: Array buffer allocation failed\n    at new ArrayBuffer (<anonymous>)\n    at new Uint8Array (<anonymous>)\n    at toSha256PaddedBytesFromData (http://127.0.0.1:37135/node_modules/doppler-gpu/src/formats/sha256.js:39:18)\n    at sha256BytesHex (http://127.0.0.1:37135/node_modules/doppler-gpu/src/formats/sha256.js:79:31)\n    at hashBytesSha256 (http://127.0.0.1:37135/node_modules/doppler-gpu/src/formats/canonical-hash.js:62:20)\n    at http://127.0.0.1:37135/node_modules/doppler-gpu/src/client/runtime/verified-capsule-artifact-store.js:48:22\n    at $HOME/deco/doppler/tools/check-installed-capabilities.js:117:27"
       }
     },
     {

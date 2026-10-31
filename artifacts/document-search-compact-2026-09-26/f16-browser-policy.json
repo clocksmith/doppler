@@ -1,8 +1,8 @@
 {
   "mode": "model",
   "packageBundlePath": "/var/tmp/doppler-loading-package-20260926-04",
-  "modelDir": "/home/x/deco/doppler/reports/capsule-baseline/20260906/embedding-model",
-  "referencePath": "/home/x/deco/doppler/reports/capsule-baseline/20260906/embedding-reference.json",
+  "modelDir": "$HOME/deco/doppler/reports/capsule-baseline/20260906/embedding-model",
+  "referencePath": "$HOME/deco/doppler/reports/capsule-baseline/20260906/embedding-reference.json",
   "outputDir": "/dev/shm/doppler-compact-20260926/f16-control",
   "requiredVendor": "amd",
   "timeoutMs": 600000,

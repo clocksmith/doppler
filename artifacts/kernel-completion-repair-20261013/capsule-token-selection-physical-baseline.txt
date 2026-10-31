@@ -8,8 +8,8 @@ AssertionError [ERR_ASSERTION]: {"size":5,"history":[0,0,4,2],"options":{"temper
 
 0 !== 4
 
-    at compare (file:///Users/xyz/deco/doppler/tests/kernels/capsule-token-selection-physical.test.js:37:12)
-    at async file:///Users/xyz/deco/doppler/tests/kernels/capsule-token-selection-physical.test.js:48:11 {
+    at compare (file://$HOME/deco/doppler/tests/kernels/capsule-token-selection-physical.test.js:37:12)
+    at async file://$HOME/deco/doppler/tests/kernels/capsule-token-selection-physical.test.js:48:11 {
   generatedMessage: false,
   code: 'ERR_ASSERTION',
   actual: 0,

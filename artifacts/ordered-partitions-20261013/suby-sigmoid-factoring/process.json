@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "startedAt": "2026-10-13T16:22:35.335Z",
   "controllerPid": 815125,
   "before": [
@@ -11,9 +13,9 @@
   "sourceSha256": "5f7a2d0a2e048a51a55e0bdb65b533b5d62a19c51621180a887425510d68d752",
   "reservation": {
     "schema": "doppler.compile-control-reservation/v1",
-    "id": "root-suby-sigmoid-factoring-20261013",
+    "id": "root-intel-host-sigmoid-factoring-20261013",
     "frozenAt": "2026-10-13T16:21:53.756Z",
-    "authorizedBy": "Root single sigmoid factoring compile and independent operator Suby window",
+    "authorizedBy": "Root single sigmoid factoring compile and independent operator intel-host window",
     "runtimeArchiveSha256": "5e0d60bc433d332187d422721fd7afcaec780c202e3082adcab389b47fd27fc5",
     "nativeArchiveSha256": "d73081423fb00bfc64ecc56e8faf502048d86279c526189cf88a8382a6039cb6",
     "nativeDescriptorSha256": "1b04241f1ad12defebc2f4e038d7a47b5b07843b6076a38d64ee4ec7b4ab9cd4",
@@ -32,7 +34,7 @@
     "cachePolicy": "Existing provider caches untouched; no cold-cache or isolated timing claim",
     "sources": {
       "control.js": "5f7a2d0a2e048a51a55e0bdb65b533b5d62a19c51621180a887425510d68d752",
-      "controller.js": "f67a6419c9e317ccccc045fa0bf5466174c6b618ffd5aa4dacb0c03a5f3ce0a8"
+      "controller.js": "e81a92e47afffd5d8da3323f7b6f83462a72c49f043f541ffd8d3e05dd2415d6"
     },
     "runtimeClosure": {
       "src/config/kernels/kernel-ref-digests.js": "62cc73f204ae80f25c1100b0b8c129b8959bec7c7f5ad57b033a058dff471558",

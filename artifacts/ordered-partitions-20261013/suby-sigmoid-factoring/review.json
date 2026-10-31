@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.sigmoid-factoring-control-review/v1",
   "sourceCommit": "e9de1568",
   "baselinePipelineMilliseconds": {
@@ -9,8 +11,8 @@
     "paired_pointwise_scale_pipeline": 6,
     "paired_pointwise_silu_unary_pipeline": 41483
   },
-  "resultSha256": "afcc5b47ce8b6521dc3b4138650e730278963003fbd381298cc89a86f85e38f3",
-  "processSha256": "ef1ba6da7991e0ca6e033db34defde803219d5baae176b1a47cb0b6e618b3721",
+  "resultSha256": "ca0efb07876ee9aab1899aa4ccc6cf98068185978418c2b8f8235f09f12c1269",
+  "processSha256": "eaf68a73cc8ce5c6871c69b6d3a3d6faa11f85eca0906eb033712cff73e721e7",
   "compilePhase": {
     "allocations": 0,
     "dispatches": 0

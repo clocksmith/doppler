@@ -15,5 +15,5 @@
     "src/rules/generated/rule-bundle.json": "5b7499b2a79163311fa5c84137f5b34ff240f0d946206b8001a54806b9927438"
   },
   "scope": "Actual split bit permutations, Q/K normalization, RoPE and causal GQA attention against independent F64 equations; no model qualification.",
-  "error": "page.evaluate: Error: {\"label\":\"paired attention\",\"index\":0,\"actual\":[0.06202484294772148,-0.07799863070249557],\"expected\":0.0456520924149993,\"error\":0.06162588016977339,\"tolerance\":2e-11,\"errors\":[]}\n    at compare (eval at evaluate (:290:30), <anonymous>:21:244)\n    at eval (eval at evaluate (:290:30), <anonymous>:89:24)\n    at async <anonymous>:316:30\n    at /Users/xyz/deco/doppler/tests/kernels/paired-attention-physical.js:33:31"
+  "error": "page.evaluate: Error: {\"label\":\"paired attention\",\"index\":0,\"actual\":[0.06202484294772148,-0.07799863070249557],\"expected\":0.0456520924149993,\"error\":0.06162588016977339,\"tolerance\":2e-11,\"errors\":[]}\n    at compare (eval at evaluate (:290:30), <anonymous>:21:244)\n    at eval (eval at evaluate (:290:30), <anonymous>:89:24)\n    at async <anonymous>:316:30\n    at $HOME/deco/doppler/tests/kernels/paired-attention-physical.js:33:31"
 }

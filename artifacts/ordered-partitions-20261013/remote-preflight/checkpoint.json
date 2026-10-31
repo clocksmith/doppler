@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.ordered-remote-preflight-checkpoint/v1",
   "archiveSha256": "5e0d60bc433d332187d422721fd7afcaec780c202e3082adcab389b47fd27fc5",
   "remoteDirectory": "/var/tmp/doppler-ordered-provider-20261013",
@@ -32,13 +34,13 @@
   },
   "receipts": {
     "tokenizer-expected.json": "aa93e270966e28e6e8fcc57d8653612984aeef008850805f3e3b2490297e9be5",
-    "suby-installation.json": "92ab4271aac8ff091e2d215f1e17f38e2e607c541ddf7fb6f234310c7de19914",
-    "suby-process.json": "b84992f8484f3820eaabdb7628cbeca9b0546fbf5ff42fd0fad844b3a5773227",
+    "intel-host-installation.json": "df921cf6b11be3b03aa77cf4906bba728df34d21f2f1c8d8f9413dde72f48cb1",
+    "intel-host-process.json": "b84992f8484f3820eaabdb7628cbeca9b0546fbf5ff42fd0fad844b3a5773227",
     "amd-installation.json": "a74fef0c1a43ced3b3b12c4f1d01f51a41f0a4039796e663bda448d77f143993",
     "reservation.json": "5d691e8cd2e5739170cdc590d1dd59823250c02fbc376be4981ef208a276b45a",
-    "suby-provider.json": "2a0ea38144ed1ad15a19e56d5c353599190008d08ec0e25cd5ba1536f26b6777",
+    "intel-host-provider.json": "2a0ea38144ed1ad15a19e56d5c353599190008d08ec0e25cd5ba1536f26b6777",
     "amd-model-layout.json": "75c74354900a7dc9a7db58a2190508b4288143abc4055a5d1c875e9bce026f21",
-    "suby-model-layout.json": "75c74354900a7dc9a7db58a2190508b4288143abc4055a5d1c875e9bce026f21"
+    "intel-host-model-layout.json": "75c74354900a7dc9a7db58a2190508b4288143abc4055a5d1c875e9bce026f21"
   },
   "preparedModelDirectoryEach": "/var/tmp/doppler-ordered-provider-20261013/model"
 }

@@ -1,8 +1,10 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.installed-reploid-provider-observation/v1",
   "qualified": false,
   "scope": "Native resident provider boundary; no WebRTC, browser persistence, public deployment or simultaneous GPU execution claim",
-  "configSha256": "5a40293f1364ffe752447427b066fd804cd38645b76573eb7f1cb368c85b2080",
+  "configSha256": "68d244cdfeb14e6f929fa30db72bb68e5ceed2a0415cfbddc4c454803c05f00c",
   "suiteSha256": "4e7562211a13415d1455f03e8ef43f6d601ab00b43e41705c6471f4ac9ce1053",
   "model": {
     "id": "qwen3-8-27b-text-q4k-ehaf16",

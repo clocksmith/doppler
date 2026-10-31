@@ -1,5 +1,7 @@
 {
-  "schema": "doppler.suby-owned-device-lifetime-control/v1",
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
+  "schema": "doppler.intel-host-owned-device-lifetime-control/v1",
   "runtimeArchiveSha256": "5e0d60bc433d332187d422721fd7afcaec780c202e3082adcab389b47fd27fc5",
   "passed": true,
   "pid": 779692,
@@ -23,11 +25,11 @@
   },
   "interpretation": "Single bounded positive replay; earlier SIGSEGV/core and observation-only positive replay retained. No claim probabilistic race eliminated or model/N-stage qualification.",
   "files": {
-    "control.js": "b6c0a7f6a190d10513627aa0bec45993218519aeea2a046289dbca6d0b3fe8d1",
-    "result.json": "86a6cc489709673e8ded7e64834b67cb3bacccb58ee8ab6ae7296de6e55d82b2",
+    "control.js": "f1508bf45966242ea04cc4d40225582232005e32b6ca2d7b32de45bdb418900a",
+    "result.json": "47ad421ecaa18585751c2ad896c91ff5691e630f4805ade8e1758ea6a5e0f147",
     "controller.js": "108af1b0400b4f5b33e4298fe1a1a4d2f1dd45d7cb94464ae4ea1090675e9d48",
     "provider-after.json": "1ebd6b43ca1820c79371bf4790888fd5e61169c1a36b51e11637d4de5e6640bf",
-    "reservation.json": "52672e63a9322018b1ac90ff38f3bd44bb526bf3f3d7b137020c388298c36e7c",
-    "process.json": "a659ab435266e030eade7bfdc019e8a035029054a3f5e43d0b50d0a99eeea75b"
+    "reservation.json": "264f6a3a609bee538d44a78fd43d16f190f15456b9f0f861f9b8376be867c23a",
+    "process.json": "a20cac5146c7df5139d35600159bd8de6b3249f70c89eb5855d48f9c742e5ff2"
   }
 }

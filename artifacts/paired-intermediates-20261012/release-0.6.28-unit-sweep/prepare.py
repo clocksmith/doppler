@@ -26,7 +26,7 @@ for k in list(env):
  if k.startswith('GIT_'):del env[k]
 gitdir=evidence/'git-metadata'
 subprocess.run(['git','init','--bare',str(gitdir)],check=True,env=env,stdout=subprocess.PIPE)
-objects=subprocess.check_output(['git','-C','/home/x/deco/doppler','rev-parse','--git-common-dir'],text=True).strip()+'/objects'
+objects=subprocess.check_output(['git','-C','$HOME/deco/doppler','rev-parse','--git-common-dir'],text=True).strip()+'/objects'
 (gitdir/'objects/info/alternates').write_text(objects+'\n/var/tmp/doppler-archive9-unit-4umv8z92/evidence/git-metadata/objects\n')
 git=['git','--git-dir='+str(gitdir)]
 if subprocess.run(git+['cat-file','-e',REV],env=env,stderr=subprocess.DEVNULL).returncode:
@@ -36,11 +36,11 @@ for key,value in [('core.bare','false'),('core.worktree',str(source)),('user.nam
 (gitdir/'HEAD').write_text(REV+'\n')
 (source/'.git').write_text('gitdir: '+str(gitdir)+'\n')
 subprocess.run(git+['read-tree',REV],check=True,env=env)
-deps=Path('/home/x/deco/doppler/node_modules');(source/'node_modules').mkdir()
+deps=Path('$HOME/deco/doppler/node_modules');(source/'node_modules').mkdir()
 for p in deps.iterdir():(source/'node_modules'/p.name).symlink_to(p,target_is_directory=p.is_dir())
 sibling=base/'workspace/reploid';siblingrev='99ca0456d01e8f08e070ec998de8834e4b6008f7';siblings=[]
 for name in ['tests/fixtures/distributed-reference-model.js','tests/fixtures/distributed-reference-manifest.json.gz']:
- b=subprocess.check_output(['git','-C','/home/x/deco/reploid','show',siblingrev+':'+name]);p=sibling/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(b);siblings.append({'path':name,'sha256':sha(b)})
+ b=subprocess.check_output(['git','-C','$HOME/deco/reploid','show',siblingrev+':'+name]);p=sibling/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(b);siblings.append({'path':name,'sha256':sha(b)})
 (evidence/'sibling-binding.json').write_text(json.dumps({'sourceRevision':siblingrev,'files':siblings},indent=2)+'\n')
 tracked=subprocess.check_output(['git','-C',str(source),'ls-files','-z'],env=env).decode().split('\0')
 allfiles={p:sha((source/p).read_bytes()) for p in tracked if p and (source/p).is_file()}

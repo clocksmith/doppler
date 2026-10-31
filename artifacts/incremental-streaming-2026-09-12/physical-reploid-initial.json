@@ -782,7 +782,7 @@
       }
     ],
     "consumer": "reploid",
-    "reploidRoot": "/home/x/deco/worktrees/reploid-consumer-streaming",
+    "reploidRoot": "$HOME/deco/worktrees/reploid-consumer-streaming",
     "sharedSessionOperation": "embed",
     "adapterProbe": {
       "attempts": 3,
@@ -795,7 +795,7 @@
       "operation": "embed",
       "error": {
         "message": "page.evaluate: Error: Shared physical device session isolation failed\n    at eval (eval at evaluate (:311:30), <anonymous>:39:23)\n    at async <anonymous>:337:30",
-        "stack": "page.evaluate: Error: Shared physical device session isolation failed\n    at eval (eval at evaluate (:311:30), <anonymous>:39:23)\n    at async <anonymous>:337:30\n    at /home/x/deco/worktrees/doppler-consumer-streaming/tools/check-installed-capabilities.js:87:33"
+        "stack": "page.evaluate: Error: Shared physical device session isolation failed\n    at eval (eval at evaluate (:311:30), <anonymous>:39:23)\n    at async <anonymous>:337:30\n    at $HOME/deco/worktrees/doppler-consumer-streaming/tools/check-installed-capabilities.js:87:33"
       }
     },
     {

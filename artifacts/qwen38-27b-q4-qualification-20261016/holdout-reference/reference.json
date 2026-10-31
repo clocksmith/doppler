@@ -1,4 +1,6 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.qwen-quantized-transformers-reference/v1",
   "qualified": false,
   "scope": "Independent Transformers equations and gguf decoder; F32 arithmetic, F16 KV storage",
@@ -8,7 +10,7 @@
     "gguf": "0.19.0",
     "numpy": "2.4.4"
   },
-  "contractSha256": "bec293317d54d56f7e4fd7ee0d8419ee366bfa1b6fb2295a3164a505ec202dcc",
+  "contractSha256": "92ac7653810982d14cda3d3b980cde963beac0bb45c9624da451deb10adebab0",
   "toolSha256": "044ed4b370203c07ebe73df4519a5180110272c23476b99f0fb57306de2ecc39",
   "manifestSha256": "19ecff3e4ab9e7c1191e271f4a6e94f10a8a102206dcda9413bed728c33c271d",
   "cases": [

@@ -1,7 +1,7 @@
 {
   "schema": "doppler.recurrent-compile-memory/v1",
   "controller": "root Codex on Mac; user instruction to finish runtime repair",
-  "host": "Suby Intel Vulkan",
+  "host": "intel-host Intel Vulkan",
   "scope": "One isolated recurrent pipeline compile, no model weights or dispatch",
   "sourceCommit": "e582a325",
   "coTenants": {

@@ -3,7 +3,7 @@
   "schemaVersion": 1,
   "reportId": "lora_export_lora-doppler-wgsl-writer-qwen35-9b-v2-seed29_checkpoint-000720",
   "workloadId": "lora-doppler-wgsl-writer-qwen35-9b-v2-seed29",
-  "workloadPath": "/home/x/deco/doppler/src/experimental/training/workload-packs/lora-doppler-wgsl-writer-qwen35-9b-v2-seed29.json",
+  "workloadPath": "$HOME/deco/doppler/src/experimental/training/workload-packs/lora-doppler-wgsl-writer-qwen35-9b-v2-seed29.json",
   "workloadSha256": "77b82009e21834fea3dc1974ea8a26b87e3495c207a9f10a3b915dfdcf794fdd",
   "configHash": "1dd571564ff79a8289508463f5d00c40ff85765f3fa514f11299fbd927aaa48c",
   "datasetPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/corpus-v1/train.jsonl",
@@ -20,15 +20,15 @@
   "claimBoundary": "This workload trains one base-initialized seed for the frozen complete 1-D elementwise f32 WGSL writer contract. Loss and export mechanics are non-capability evidence; disjoint semantic evaluation and Doppler parity remain required. This workload is replication seed 29.",
   "artifactHash": "cc16e4443c243314dd0ff074bc48a2dcbcc2772892ef1e14804a91bcdf177098",
   "checkpointId": "checkpoint-000720",
-  "manifestPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/exports/checkpoint-000720.adapter.manifest.json",
-  "runtimeManifestPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/exports/runtime-adapter-manifest.json",
-  "weightsPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/exports/checkpoint-000720.adapters.safetensors",
+  "manifestPath": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/exports/checkpoint-000720.adapter.manifest.json",
+  "runtimeManifestPath": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/exports/runtime-adapter-manifest.json",
+  "weightsPath": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/exports/checkpoint-000720.adapters.safetensors",
   "weightsSha256": "b7b653521e465e59c0cebb844a30aea5b1840a6502e13a0fc636306b28762827",
   "runnerKey": "qwen-3-5-9b-hf-bf16::text-pairs::text_generation",
   "trainer": {
     "runnerId": "gamma-wgsl-causal-lm-lora",
     "trainerId": "gamma-wgsl-rocm-v1",
-    "source": "/home/x/deco/doppler/tools/trainers/gamma-wgsl-trainer.js",
+    "source": "$HOME/deco/doppler/tools/trainers/gamma-wgsl-trainer.js",
     "exportName": "trainCausalLmLora"
   },
   "metrics": {
@@ -62,7 +62,7 @@
       "runnerKey": "qwen-3-5-9b-hf-bf16::text-pairs::text_generation",
       "runnerId": "gamma-wgsl-causal-lm-lora",
       "trainerId": "gamma-wgsl-rocm-v1",
-      "trainerSource": "/home/x/deco/doppler/tools/trainers/gamma-wgsl-trainer.js",
+      "trainerSource": "$HOME/deco/doppler/tools/trainers/gamma-wgsl-trainer.js",
       "datasetHash": "48e8e71406db48504632ce887177b7274ca01b2cc03e99dff3fe8efb81c21400",
       "workloadSha256": "77b82009e21834fea3dc1974ea8a26b87e3495c207a9f10a3b915dfdcf794fdd",
       "metrics": {
@@ -89,12 +89,12 @@
           },
           "policyHash": "d40e7f2f85fb8ea88387e7beb6fd1ae2fb83245cafb5e9e303527b81e5fbcb9c",
           "modelPath": "/tmp/qwen3.5-9b-source",
-          "adapterPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/checkpoints/gamma/adapter",
-          "metricsPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/checkpoints/gamma/metrics.jsonl",
-          "requestPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/logs/gamma-request.json",
-          "responsePath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/logs/gamma-response.json",
-          "stdoutPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/logs/gamma-stdout.log",
-          "stderrPath": "/home/x/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/logs/gamma-stderr.log",
+          "adapterPath": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/checkpoints/gamma/adapter",
+          "metricsPath": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/checkpoints/gamma/metrics.jsonl",
+          "requestPath": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/logs/gamma-request.json",
+          "responsePath": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/logs/gamma-response.json",
+          "stdoutPath": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/logs/gamma-stdout.log",
+          "stderrPath": "$HOME/deco/doppler/reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29/sft/logs/gamma-stderr.log",
           "claimBoundary": "Training mechanics and artifacts only; Doppler owns capability promotion."
         }
       ]

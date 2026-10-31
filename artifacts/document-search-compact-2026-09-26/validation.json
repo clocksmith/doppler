@@ -1,12 +1,14 @@
 {
+  "pathSanitized": true,
+  "pathSanitization": "artifacts/private-detail-sanitization-20261030/manifest.json",
   "schema": "doppler.compact-validation/v1",
   "command": "npm run check:green",
   "exitCode": 0,
   "unitFilesPassed": 866,
   "independentGatesPassed": true,
   "log": "check-green.txt.gz",
-  "logSha256": "9e64c726ac04576cf6dd01fa8d0e705d49671efbbbce0db36e7e4bbd83dabccf",
-  "compressedLogSha256": "b21959242dbe5302c04d37d64ffaf1386b72d7c660476d95e95101cbd1b94733",
+  "logSha256": "dfe6419b6678407b52b57f34e10429468c860fdf1bc3ea845a27056b5b85c8d6",
+  "compressedLogSha256": "0dfdea7d3d1255bcad10afede7fcf082a1bcf0aa30b0becf359278f931b7287d",
   "finalFollowups": [
     "node tools/report-source-dependencies.js",
     "npm run goals:check",

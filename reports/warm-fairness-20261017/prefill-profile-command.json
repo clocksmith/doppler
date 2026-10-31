@@ -6,7 +6,7 @@
     "--surface",
     "browser",
     "--config",
-    "/Users/xyz/deco/doppler/reports/warm-fairness-20261017/prefill-profile-config.json",
+    "$HOME/deco/doppler/reports/warm-fairness-20261017/prefill-profile-config.json",
     "--json"
   ],
   "timeoutSeconds": 240,
