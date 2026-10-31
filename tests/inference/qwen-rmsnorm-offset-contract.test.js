@@ -1,9 +1,8 @@
 // RMSNorm weight semantics for the Qwen family. Hybrid linear-attention
-// checkpoints (Qwen 3.5 and later) store RMSNorm weights as offsets from one
-// and need (1 + w) scaling; dense Qwen3 checkpoints (base, embedding,
-// reranker) store w directly. Every Qwen conversion config must state the flag
-// explicitly, agree with its layer structure, and converted local manifests
-// must carry the config's value.
+// HF checkpoints (Qwen 3.5 and later) store offsets and need (1 + w).
+// Native GGUF weights already fold that addition; source-preserving conversion
+// must use them directly. Dense Qwen3 checkpoints also store direct weights.
+// Configs must declare the source convention explicitly and stamp it unchanged.
 import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -21,6 +20,7 @@ assert.ok(configs.length > 0, `${CONFIG_DIR} must contain conversion configs`);
 
 let hybrid = 0;
 let dense = 0;
+let nativeGguf = 0;
 let manifestsChecked = 0;
 for (const { name, config } of configs) {
   const offset = config.inference?.normalization?.rmsNormWeightOffset;
@@ -28,11 +28,15 @@ for (const { name, config } of configs) {
 
   const layerTypes = config.inference?.layerPattern?.layerTypes ?? [];
   const isHybrid = Array.isArray(layerTypes) && layerTypes.includes('linear_attention');
+  const preservesNativeGguf = config.quantization?.preserveSourceTensors === true
+    && config.quantization?.sourceQuantizationFormat === 'gguf';
+  const expectsOffset = isHybrid && !preservesNativeGguf;
   assert.equal(
     offset,
-    isHybrid,
-    `${name}: ${isHybrid ? 'hybrid linear-attention' : 'dense'} Qwen checkpoints use ${isHybrid ? 'offset' : 'direct'} RMSNorm weights`
+    expectsOffset,
+    `${name}: ${preservesNativeGguf ? 'native GGUF' : isHybrid ? 'hybrid HF' : 'dense'} Qwen source uses ${expectsOffset ? 'offset' : 'direct'} RMSNorm weights`
   );
+  if (preservesNativeGguf) nativeGguf += 1;
   if (isHybrid) hybrid += 1;
   else dense += 1;
 
@@ -50,4 +54,4 @@ for (const { name, config } of configs) {
 }
 assert.ok(hybrid > 0 && dense > 0, 'both Qwen RMSNorm conventions must be represented');
 
-console.log(`qwen-rmsnorm-offset-contract.test: ok (${configs.length} configs, ${manifestsChecked} local manifests)`);
+console.log(`qwen-rmsnorm-offset-contract.test: ok (${configs.length} configs, ${nativeGguf} native GGUF, ${manifestsChecked} local manifests)`);

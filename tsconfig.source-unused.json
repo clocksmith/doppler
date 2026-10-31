@@ -7,6 +7,9 @@
   },
   "include": [],
   "files": [
+    "src/gpu/kernels/codegen/attention-decode-online-f32-variant.js",
+    "src/gpu/kernels/sigmoid-gated-add.js",
+    "src/gpu/kernels/moe-shared-slot.js",
     "src/gpu/kernels/matmul-workgroup-capacity.js",
     "tools/onboarding-tooling.js",
     "tools/resource-telemetry.js",

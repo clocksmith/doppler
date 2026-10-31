@@ -78,7 +78,14 @@ async function execute(recorder, input, weights, M, N, K, options) {
   const width = positiveOverride(config.wgslOverrides,'WORKGROUP_SIZE');
   const tile = positiveOverride(config.wgslOverrides,'TILE_SIZE');
   let count;
-  if (geometry === 'gemv') {
+  if (geometry === 'cooperative') {
+    if (columns !== 4 || width % 4 || (width & (width - 1)) !== 0
+      || !['q4_0', 'q8_0'].includes(weights.dtype)
+      || width * 16 > device.limits.maxComputeWorkgroupStorageSize) {
+      throw new Error('Q4_0 cooperative GEMV requires four rows, power-of-two quarters, and Q4_0/Q8_0 storage.');
+    }
+    count = Math.ceil(N / columns) * M;
+  } else if (geometry === 'gemv') {
     if (width !== columns*threads
       || (threads & (threads-1)) !== 0) throw new Error('Q4_0 invalid reduction geometry.');
     count = Math.ceil(N / columns)*M;

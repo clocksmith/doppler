@@ -15,6 +15,7 @@ import { initTokenizer } from './init.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { mergeRuntimeValues } from '../../../config/runtime-merge.js';
 import { READBACK_MODES } from '../../../config/schema/execution-v1.schema.js';
+import { resolveRuntimeActivationDtype, buildSessionRuntimePatch } from './execution-runtime-builders.js';
 
 function validateKernelWarmupMode(mode) {
   if (mode !== 'parallel' && mode !== 'sequential') {
@@ -151,6 +152,9 @@ function buildResolvedDecodeLoopRuntimePatch(
     'maxBatchDecodeTokens',
     modelId
   );
+  if (decodeLoop.layerSubmitInterval != null && !Number.isSafeInteger(decodeLoop.layerSubmitInterval)) {
+    throw new Error(`Manifest "${modelId}" inference.session.decodeLoop.layerSubmitInterval must be a positive integer or null.`);
+  }
   const layerSubmitInterval = parseSessionDecodeLoopOptionalPositiveInt(
     decodeLoop.layerSubmitInterval,
     'layerSubmitInterval',
@@ -501,7 +505,7 @@ function describeKernelPathDtypeMismatch(contract, current) {
   const mismatches = [];
   if (contract.activationDtype && current.activationDtype !== contract.activationDtype) {
     mismatches.push(
-      `runtime.inference.compute.activationDtype=${current.activationDtype ?? 'unset'} ` +
+      `runtime.inference.session.compute.defaults.activationDtype=${current.activationDtype ?? 'unset'} ` +
       `(expected ${contract.activationDtype})`
     );
   }
@@ -677,10 +681,7 @@ function resolveKernelPathPolicy(policy) {
 
 function getExplicitRuntimeDtypeOverrides(runtimeOverrides) {
   return {
-    activationDtype: normalizeKernelDtype(
-      runtimeOverrides?.inference?.session?.compute?.defaults?.activationDtype
-      ?? runtimeOverrides?.inference?.compute?.activationDtype
-    ),
+    activationDtype: resolveRuntimeActivationDtype(runtimeOverrides?.inference),
     kvDtype: normalizeKernelDtype(
       runtimeOverrides?.inference?.session?.kvcache?.kvDtype
     ),
@@ -702,24 +703,30 @@ function applyKernelPathRuntimeDtypeContract(
     return runtimeConfig;
   }
 
+  const explicitRuntime = getExplicitRuntimeDtypeOverrides(runtimeOverrides);
   const current = {
-    activationDtype: normalizeKernelDtype(runtimeConfig.inference?.compute?.activationDtype),
+    activationDtype: resolveRuntimeActivationDtype(runtimeConfig.inference),
     kvDtype: normalizeKernelDtype(runtimeConfig.inference?.session?.kvcache?.kvDtype),
     outputDtype: normalizeKernelDtype(runtimeConfig.inference?.session?.compute?.defaults?.outputDtype),
   };
   const mismatches = describeKernelPathDtypeMismatch(contract, current);
-  if (mismatches.length === 0) {
+  const explicitMismatches = describeExplicitRuntimeDtypeMismatch(contract, explicitRuntime);
+  if (mismatches.length === 0 && explicitMismatches.length === 0) {
+    if (runtimeConfig.inference?.session?.compute?.defaults?.activationDtype !== undefined
+      && runtimeConfig.inference?.compute?.activationDtype !== current.activationDtype) {
+      return mergeRuntimeValues(runtimeConfig, { inference: buildSessionRuntimePatch(
+        { compute: { defaults: { activationDtype: current.activationDtype } } },
+        { includeDecodeLoop: false }
+      ) });
+    }
     return runtimeConfig;
   }
-
-  const explicitRuntime = getExplicitRuntimeDtypeOverrides(runtimeOverrides);
-  const explicitMismatches = describeExplicitRuntimeDtypeMismatch(contract, explicitRuntime);
 
   if (kernelPathSource === 'config') {
     throw new Error(
       `KernelPath "${resolvedKernelPath?.id ?? 'unknown'}" selected from ${kernelPathSource} ` +
       `requires explicit matching runtime dtypes for "${modelId}". ` +
-      `Mismatches: ${mismatches.join('; ')}. ` +
+      `Mismatches: ${[...mismatches, ...explicitMismatches].join('; ')}. ` +
       'Set runtime.inference.session.compute.defaults.activationDtype, runtime.inference.session.kvcache.kvDtype, ' +
       'and runtime.inference.session.compute.defaults.outputDtype to match the kernel path.'
     );
@@ -758,10 +765,6 @@ export function resolveKernelPathState(options) {
     `kernelPath sources: config=${runtimeConfig.inference.kernelPath}, model=${modelConfig.kernelPath}`
   );
 
-  // In normal operation with execution-v1 manifests, modelConfig.kernelPath is null
-  // and capability adaptation is handled by execution graph transforms.
-  // The runtime override path (runtime.inference.kernelPath) is preserved for
-  // explicit user overrides with inline kernel path objects.
   const configuredKernelPathRef = runtimeConfig.inference.kernelPath
     ?? modelConfig.kernelPath
     ?? null;

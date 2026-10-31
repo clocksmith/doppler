@@ -640,5 +640,46 @@
       },
       "value": "q4k_f32"
     }
+  ],
+  "denseDecodeCandidate": [
+    {
+      "match": {
+        "M": 1,
+        "activationDtype": "f32",
+        "outputDtype": "f32",
+        "transposeB": true,
+        "hasSubgroups": true,
+        "sourceVariant": "f32",
+        "weightDtype": "f32",
+        "hasSubgroupId": true
+      },
+      "value": {
+        "variant": "gemv_f32_subgroup",
+        "reason": "explicit-candidate:single-row-F32-storage-subgroup-GEMV"
+      }
+    },
+    {
+      "match": {
+        "M": 1,
+        "activationDtype": "f32",
+        "outputDtype": "f32",
+        "transposeB": true,
+        "hasSubgroups": true,
+        "sourceVariant": "f16w_f32a",
+        "weightDtype": "f16",
+        "hasF16": true
+      },
+      "value": {
+        "variant": "gemv_subgroup_multicol",
+        "reason": "explicit-candidate:single-row-F16-storage-F32-activation-GEMV"
+      }
+    },
+    {
+      "match": {},
+      "value": {
+        "variant": null,
+        "reason": "retain-declared-kernel:shape-storage-or-capability-not-qualified"
+      }
+    }
   ]
 }

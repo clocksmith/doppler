@@ -17,7 +17,8 @@ const hooks = registerHooks({resolve(name, context, next) {
     const sources = {
       '../../../gpu/device.js': 'export const getDevice=()=>({});export const getKernelCapabilities=()=>({hasF16:true})',
       '../../../memory/buffer-pool.js': 'export const acquireBuffer=()=>{throw Error("unexpected allocation")};export const readBuffer=()=>{};export const releaseBuffer=b=>embeddingProbeState.released.push(b)',
-      '../../../gpu/kernel-selector.js': 'export const runGather=async()=>embeddingProbeState.gather;export const recordGather=runGather;export const runGatherSplit=runGather;export const recordGatherSplit=runGather;export const runScale=()=>{};export const recordScale=runScale',
+      '../../../gpu/kernels/gather.js': 'export const runGather=async()=>embeddingProbeState.gather;export const recordGather=runGather;export const runGatherSplit=runGather;export const recordGatherSplit=runGather',
+      '../../../gpu/kernels/scale.js': 'export const runScale=()=>{};export const recordScale=runScale',
       '../../../gpu/kernels/paired-cast.js': 'export const expandF32ToPaired=async()=>embeddingProbeState.paired;export const recordExpandF32ToPaired=expandF32ToPaired',
     };
     if(sources[name]) return {url:'data:text/javascript,'+encodeURIComponent(sources[name]),shortCircuit:true};

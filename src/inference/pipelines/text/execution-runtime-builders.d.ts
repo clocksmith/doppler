@@ -1,3 +1,8 @@
+export declare function resolveRuntimeActivationDtype(inference: {
+  session?: { compute?: { defaults?: { activationDtype?: unknown } } } | null;
+  compute?: { activationDtype?: unknown } | null;
+} | null | undefined): 'f16' | 'f32' | null;
+
 export declare const PIPELINE_COMPATIBLE_OPS: ReadonlySet<string>;
 
 export declare function normalizeDtype(value: unknown, label: string): 'f16' | 'f32';

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { assertSubgroupPartition } from '../../src/gpu/kernels/subgroup-partition.js';
 
 import {
   dequantizeQ4KMRowWise,
@@ -154,6 +155,8 @@ async function runCase(K, lanes, M = 1) {
 
 try {
   for (const lanes of [1, 2, 4, 8, 16, 32]) {
+    try { assertSubgroupPartition(lanes, capabilities.adapterInfo); }
+    catch (error) { console.log('q4-subgroup-gpu-regression.test: skipped lanes=' + lanes + ' (' + error.message + ')'); continue; }
     await runCase(512, lanes);
     await runCase(300, lanes);
     await runCase(1024, lanes);

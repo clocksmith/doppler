@@ -2,6 +2,17 @@
 // Do not edit; npm run kernels:uniforms:sync.
 import { writeU32, writeI32, writeF32 } from '../uniform-encoding.js';
 
+export function write_moe_shared_slot_gu_native_f32(view, values, kernel) {
+  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
+  writeU32(view, 4, values["hidden_size"], kernel, "hidden_size");
+  writeU32(view, 8, values["intermediate_size"], kernel, "intermediate_size");
+  writeU32(view, 12, values["shared_size"], kernel, "shared_size");
+  writeU32(view, 16, values["num_experts"], kernel, "num_experts");
+  writeU32(view, 20, values["slot_stride"], kernel, "slot_stride");
+  writeF32(view, 24, values["clamp_max"], kernel, "clamp_max");
+  view.setUint32(28, 0, true);
+}
+
 export function write_w8a8_quantize_f32(view, values, kernel) {
   writeU32(view, 0, values["rows"], kernel, "rows");
   writeU32(view, 4, values["columns"], kernel, "columns");
@@ -101,6 +112,17 @@ export function write_gated_delta_recurrent_checkpoint_forward_default(view, val
   writeU32(view, 44, values["_pad1"], kernel, "_pad1");
 }
 
+export function write_matmul_q4_0_cooperative(view, values, kernel) {
+  writeU32(view, 0, values["M"], kernel, "M");
+  writeU32(view, 4, values["N"], kernel, "N");
+  writeU32(view, 8, values["K"], kernel, "K");
+  writeF32(view, 12, values["alpha"], kernel, "alpha");
+  writeU32(view, 16, values["blocks"], kernel, "blocks");
+  writeU32(view, 20, values["a_offset"], kernel, "a_offset");
+  writeU32(view, 24, values["b_row"], kernel, "b_row");
+  writeU32(view, 28, values["c_offset"], kernel, "c_offset");
+}
+
 export function write_matmul_fp8_e4m3fn_f32(view, values, kernel) {
   writeU32(view, 0, values["M"], kernel, "M");
   writeU32(view, 4, values["N"], kernel, "N");
@@ -176,17 +198,6 @@ export function write_matmul_paired_f32(view, values, kernel) {
   writeF32(view, 20, values["alpha_lo"], kernel, "alpha_lo");
   view.setUint32(24, 0, true);
   view.setUint32(28, 0, true);
-}
-
-export function write_matmul_q4_0_gemv(view, values, kernel) {
-  writeU32(view, 0, values["M"], kernel, "M");
-  writeU32(view, 4, values["N"], kernel, "N");
-  writeU32(view, 8, values["K"], kernel, "K");
-  writeF32(view, 12, values["alpha"], kernel, "alpha");
-  writeU32(view, 16, values["blocks"], kernel, "blocks");
-  writeU32(view, 20, values["a_offset"], kernel, "a_offset");
-  writeU32(view, 24, values["b_row"], kernel, "b_row");
-  writeU32(view, 28, values["c_offset"], kernel, "c_offset");
 }
 
 export function write_fused_ffn_default(view, values, kernel) {
@@ -579,17 +590,6 @@ export function write_rmsnorm_pair_default(view, values, kernel) {
   writeU32(view, 4, values["num_tokens"], kernel, "num_tokens");
   writeF32(view, 8, values["eps"], kernel, "eps");
   writeU32(view, 12, values["has_residual"], kernel, "has_residual");
-  writeU32(view, 16, values["token_stride"], kernel, "token_stride");
-  view.setUint32(20, 0, true);
-  view.setUint32(24, 0, true);
-  view.setUint32(28, 0, true);
-}
-
-export function write_residual_rmsnorm_pair_subgroup(view, values, kernel) {
-  writeU32(view, 0, values["size"], kernel, "size");
-  writeU32(view, 4, values["num_tokens"], kernel, "num_tokens");
-  writeF32(view, 8, values["eps"], kernel, "eps");
-  writeF32(view, 12, values["output_scale"], kernel, "output_scale");
   writeU32(view, 16, values["token_stride"], kernel, "token_stride");
   view.setUint32(20, 0, true);
   view.setUint32(24, 0, true);
