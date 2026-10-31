@@ -44,15 +44,6 @@ fn bank_word(i: u32) -> u32 {
     if (use_up) { return up_weights[i]; }
     return weights[i];
 }
-fn packed_word(offset: u32) -> u32 {
-    let shift = (offset % 4u) * 8u;
-    let low = bank_word(offset / 4u);
-    if (shift == 0u) { return low; }
-    return (low >> shift) | (bank_word(offset / 4u + 1u) << (32u - shift));
-}
-fn packed_half(offset: u32) -> f32 {
-    return unpack2x16float(bank_word(offset / 4u) >> ((offset % 4u) * 8u)).x;
-}
 fn bytes4(word: u32) -> vec4<u32> {
     return (vec4<u32>(word) >> vec4<u32>(0u,8u,16u,24u)) & vec4<u32>(255u);
 }
@@ -61,19 +52,44 @@ fn signed4(word: u32) -> vec4<f32> {
     return vec4<f32>(f32((v << 24u) >> 24u), f32((v << 16u) >> 24u),
         f32((v << 8u) >> 24u), f32(v >> 24u));
 }
-// Original interleaved GGUF blocks. Q4_1's signed minimum is applied per
-// value; Q4_0's low/high nibbles describe the first/second sixteen values.
-fn weight4(base: u32, j: u32) -> vec4<f32> {
-    let scale = packed_half(base);
-    if (QUANT_FORMAT == 2u) { return scale * signed4(packed_word(base + 2u + j * 4u)); }
+// Original interleaved GGUF blocks, each read once: the word-aligned span holding
+// the block's scale (and Q4_1 minimum) and quants, 5 words for Q4_0 / Q4_1 and 9
+// for Q8_0. Q4_1's signed minimum is applied per value; Q4_0's low/high nibbles
+// describe the first/second sixteen values.
+var<private> block_words: array<u32, 9>;
+var<private> block_shift: u32;
+fn load_block(base: u32) {
+    let first = base / 4u;
+    let words = select(5u, 9u, QUANT_FORMAT == 2u);
+    for (var i = 0u; i < words; i++) { block_words[i] = bank_word(first + i); }
+    block_shift = (base % 4u) * 8u;
+}
+// The block word at byte `offset` from the block start (offset a multiple of 2).
+fn block_word(offset: u32) -> u32 {
+    let at = offset * 8u + block_shift;
+    let low = block_words[at / 32u];
+    if (at % 32u == 0u) { return low; }
+    return (low >> (at % 32u)) | (block_words[at / 32u + 1u] << (32u - at % 32u));
+}
+fn block_half(offset: u32) -> f32 {
+    let at = offset * 8u + block_shift;
+    return unpack2x16float(block_words[at / 32u] >> (at % 32u)).x;
+}
+// Values 4j .. 4j + 3 of the loaded block.
+fn weight4(j: u32) -> vec4<f32> {
+    let scale = block_half(0u);
+    if (QUANT_FORMAT == 2u) { return scale * signed4(block_word(2u + j * 4u)); }
     let data_offset = select(2u, 4u, QUANT_FORMAT == 1u);
-    let q = (bytes4(packed_word(base + data_offset + (j % 4u) * 4u))
+    let q = (bytes4(block_word(data_offset + (j % 4u) * 4u))
         >> vec4<u32>(select(0u,4u,j >= 4u))) & vec4<u32>(15u);
-    if (QUANT_FORMAT == 1u) { return scale * vec4<f32>(q) + vec4<f32>(packed_half(base + 2u)); }
+    if (QUANT_FORMAT == 1u) { return scale * vec4<f32>(q) + vec4<f32>(block_half(2u)); }
     return scale * (vec4<f32>(q) - vec4<f32>(8.0));
 }
-// Scalar stores avoid overlapping component writes on Metal.
-var<workgroup> tile: array<f32, 2048>;
+// Whole-vector stores only (overlapping component writes are unsafe on Metal). tile
+// holds, per pair, the 8 blocks x 8 four-value groups of the current K tile:
+// tile[pair * 64 + j * 8 + b] = input values 4j .. 4j + 3 of block b, the values
+// weight4(j) multiplies, so lane b reads one vec4 per j, conflict free.
+var<workgroup> tile: array<vec4<f32>, 512>;
 var<workgroup> partial: array<f32, 1024>;
 var<workgroup> route_ids: array<u32, 8>;
 var<workgroup> chunk_count: u32;
@@ -90,14 +106,15 @@ fn main(@builtin(workgroup_id) wg: vec3<u32>, @builtin(local_invocation_index) t
     var acc: array<f32, 32>;
     for (var kt = 0u; kt < blocks; kt += 8u) {
         workgroupBarrier();
-        for (var i = t; i < GROUP_SIZE * 256u; i += WORKGROUP_SIZE) {
-            let pair = i / 256u;
-            let value = i % 256u;
-            let k = kt * 32u + value;
-            if (pair < n && k < u.K) {
+        for (var i = t; i < GROUP_SIZE * 64u; i += WORKGROUP_SIZE) {
+            let pair = i / 64u;
+            let j = (i / 8u) % 8u;
+            let b = i % 8u;
+            if (pair < n && kt + b < blocks) {
                 var input_row = route_ids[pair];
                 if (INPUT_IS_TOKEN) { input_row /= u.top_k; }
-                tile[pair * 256u + (value % 32u) * 8u + value / 32u] = input[input_row * u.K + k];
+                let k = input_row * u.K + (kt + b) * 32u + j * 4u;
+                tile[i] = vec4<f32>(input[k], input[k + 1u], input[k + 2u], input[k + 3u]);
             }
         }
         workgroupBarrier();
@@ -114,16 +131,15 @@ fn main(@builtin(workgroup_id) wg: vec3<u32>, @builtin(local_invocation_index) t
                         use_up = row >= bank_rows;
                         bank_row = row % bank_rows;
                     }
+                    // This lane's block of the row, dequantized once and reused by every
+                    // pair: per (pair, row) the same sum in the same order.
                     let base = ((expert * bank_rows + bank_row) * blocks + block_idx) * BLOCK_BYTES;
+                    load_block(base);
                     var w: array<vec4<f32>, 8>;
-                    for (var j = 0u; j < 8u; j++) { w[j] = weight4(base, j); }
+                    for (var j = 0u; j < 8u; j++) { w[j] = weight4(j); }
                     for (var p = 0u; p < n; p++) {
                         var sum = 0.0;
-                        for (var j = 0u; j < 8u; j++) {
-                            let at = p * 256u + j * 32u + lane;
-                            let x = vec4<f32>(tile[at],tile[at+8u],tile[at+16u],tile[at+24u]);
-                            sum += dot(w[j], x);
-                        }
+                        for (var j = 0u; j < 8u; j++) { sum += dot(w[j], tile[p * 64u + j * 8u + lane]); }
                         acc[p * ROWS_PER_THREAD + r] += sum;
                     }
                 }
