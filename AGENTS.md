@@ -180,7 +180,7 @@ Workload/intent rules live in `src/rules/tooling/command-runtime.rules.json`. Do
 | `distill` | n/a | — | `node src/cli/doppler-cli.js distill --config <path|url|json>` |
 
 - `--config` accepts inline JSON, file path, or URL for all commands.
-- The CLI auto-resolves models from the external RDRR root (`/Volumes/models/rdrr` on macOS, `/media/x/models/rdrr` on Linux) by `modelId`.
+- The CLI auto-resolves models from the external RDRR root (`/Volumes/models/rdrr` on macOS, `/media/$USER/models/rdrr` on Linux) by `modelId`.
 - For a model outside that root, set the **request-level** `request.modelUrl` to a `file://` path.
 - `--surface node` forces Node/WebGPU, `--surface browser` forces headless Chromium; omit for `auto`.
 - Use `doppler profiles --json` to discover checked-in runtime profile IDs before choosing an investigation, verify, or calibration profile.

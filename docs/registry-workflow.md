@@ -88,8 +88,8 @@ Validation guarantees:
 After adding or removing models on the external volume:
 
 ```bash
-npm run artifact-identity:inventory -- --root /media/x/models/rdrr --json --pretty
-npm run artifact-identity:check -- --root /media/x/models/rdrr
+npm run artifact-identity:inventory -- --root /media/$USER/models/rdrr --json --pretty
+npm run artifact-identity:check -- --root /media/$USER/models/rdrr
 ```
 
 This scans manifests, shards, `weightsRef` links, catalog entries, and identity

@@ -15,7 +15,7 @@ Move a verified runtime artifact into catalog metadata, external-volume storage,
 
 ## Required Touch Points
 
-- External-volume artifact directory (`/media/x/models/rdrr/<model-id>/`)
+- External-volume artifact directory (`/media/$USER/models/rdrr/<model-id>/`)
 - `models/catalog.json` (repo model registry metadata — no weights)
 - `docs/model-support-matrix.md` via sync tooling
 - Artifact identity inventory via sync/check tooling
@@ -28,7 +28,7 @@ Move a verified runtime artifact into catalog metadata, external-volume storage,
 1. Finish local convert, verify, and debug work first.
 2. Get human review on deterministic output quality before touching catalog or hosted state.
 3. For raw SafeTensors/GGUF release candidates, materialize the persisted direct-source manifest with `node tools/materialize-source-manifest.js <source-path>`.
-4. Copy the verified artifact to the external volume (`/media/x/models/rdrr/<model-id>/`).
+4. Copy the verified artifact to the external volume (`/media/$USER/models/rdrr/<model-id>/`).
 5. Update `models/catalog.json` for repo-visible model metadata and HF
    coordinates. The external volume remains the source for artifact bytes.
 6. Run support-matrix, support-inventory, and artifact-identity checks if

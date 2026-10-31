@@ -20,7 +20,7 @@ function usage() {
     '  node benchmarks/runners/llamacpp-bench.js --model <model.gguf> --workload <id> --llama-bench <path> [--runs <n>] [--json]',
     '',
     'Examples:',
-    '  node benchmarks/runners/llamacpp-bench.js --model /models/qwen.gguf --workload p512-d128-t0-k1 --llama-bench /home/x/src/llama.cpp/build-vulkan/bin/llama-bench --runs 15 --json',
+    '  node benchmarks/runners/llamacpp-bench.js --model /models/qwen.gguf --workload p512-d128-t0-k1 --llama-bench $HOME/src/llama.cpp/build-vulkan/bin/llama-bench --runs 15 --json',
     '',
     'Options:',
     '  --model <path>            GGUF model path. Required.',

@@ -23,11 +23,11 @@ It does not replace:
 Treat these locations as separate roles, not interchangeable copies:
 
 1. Source checkpoint on external volume
-   Example: `/media/x/models/huggingface_cache/hub/.../snapshots/<revision>`
+   Example: `/media/$USER/models/huggingface_cache/hub/.../snapshots/<revision>`
 2. Temporary rebuild / repair directory
    Example: `/tmp/<model-id>-rebuild`
 3. External-volume canonical RDRR artifact (source of truth for weights)
-   Example: `/media/x/models/rdrr/<model-id>`
+   Example: `/media/$USER/models/rdrr/<model-id>`
 4. Hugging Face hosted artifact (verified subset)
    Example: `clocksmith/rdrr`
 5. Repo metadata (catalog only, no weights)
@@ -45,11 +45,11 @@ Rules:
 Before converting or promoting, settle the canonical model ID. The ID must agree across four places:
 
 1. `output.modelBaseId` in the conversion config (`src/config/conversion/<family>/<model>.json`)
-2. External-volume artifact directory: `/media/x/models/rdrr/<canonical-id>/`
+2. External-volume artifact directory: `/media/$USER/models/rdrr/<canonical-id>/`
 3. `models/catalog.json` entry `modelId`
 4. HF path: `models/<canonical-id>` under `clocksmith/rdrr`
 
-The publish tool (`tools/publish-hf-registry-model.js`) uploads from the external-volume artifact path by default. Always pass `--local-dir /media/x/models/rdrr/<model-id>` explicitly to ensure the correct artifact is uploaded.
+The publish tool (`tools/publish-hf-registry-model.js`) uploads from the external-volume artifact path by default. Always pass `--local-dir /media/$USER/models/rdrr/<model-id>` explicitly to ensure the correct artifact is uploaded.
 
 Naming schemes differ between old artifacts (e.g. `wq4k-ef16-hf16` suffix) and canonical conversion configs (e.g. `q4k-ehf16-af32` suffix). Do not promote a non-canonical artifact by renaming it. Re-convert with the canonical config so the artifact and the ID agree from the start.
 
@@ -94,7 +94,7 @@ Use the checkpoint stored on the external volume, not a random local copy.
 Example:
 
 ```bash
-SOURCE_DIR=/media/x/models/huggingface_cache/hub/models--google--gemma-3-270m-it/snapshots/<revision>
+SOURCE_DIR=/media/$USER/models/huggingface_cache/hub/models--google--gemma-3-270m-it/snapshots/<revision>
 ```
 
 ### 2. Rebuild into a temporary directory
@@ -168,7 +168,7 @@ Copy the verified rebuild into the canonical RDRR path on the external volume.
 Example:
 
 ```bash
-cp -a /tmp/<model-id>-rebuild/. /media/x/models/rdrr/<model-id>/
+cp -a /tmp/<model-id>-rebuild/. /media/$USER/models/rdrr/<model-id>/
 ```
 
 After copy:
@@ -218,7 +218,7 @@ Dry run first:
 ```bash
 node tools/publish-hf-registry-model.js \
   --model-id <model-id> \
-  --local-dir /media/x/models/rdrr/<model-id> \
+  --local-dir /media/$USER/models/rdrr/<model-id> \
   --dry-run
 ```
 
@@ -227,7 +227,7 @@ Then publish:
 ```bash
 node tools/publish-hf-registry-model.js \
   --model-id <model-id> \
-  --local-dir /media/x/models/rdrr/<model-id>
+  --local-dir /media/$USER/models/rdrr/<model-id>
 ```
 
 This guarantees the uploaded artifact is the same one stored as the external-volume source of truth.
@@ -260,8 +260,8 @@ Required fields in `origin.json`:
 After all `origin.json` files are present, audit the artifact identity inventory:
 
 ```bash
-npm run artifact-identity:inventory -- --root /media/x/models/rdrr --json --pretty
-npm run artifact-identity:check -- --root /media/x/models/rdrr
+npm run artifact-identity:inventory -- --root /media/$USER/models/rdrr --json --pretty
+npm run artifact-identity:check -- --root /media/$USER/models/rdrr
 ```
 
 This scans the external volume against the catalog without creating another
@@ -316,6 +316,6 @@ Do not leave ghost model IDs in place and route around them.
 - Update `models/catalog.json` with lifecycle metadata + HF pointers.
 - Publish from the external-volume artifact.
 - Re-pin `hf.revision` in `models/catalog.json` to the published commit SHA.
-- Run `npm run artifact-identity:check -- --root /media/x/models/rdrr` to
+- Run `npm run artifact-identity:check -- --root /media/$USER/models/rdrr` to
   verify external-volume identity.
 - Run `npm run ci:catalog:check` for hosted/catalog validation.

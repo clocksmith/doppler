@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { resolveBundledTokenizerVocabSize } from '../../src/converter/core.js';
 
 const RDRR_DIRS = [
   'models/local',
-  path.join(process.env.DOPPLER_EXTERNAL_MODELS_ROOT || '/media/x/models', 'rdrr'),
+  path.join(process.env.DOPPLER_EXTERNAL_MODELS_ROOT || path.join('/media', os.userInfo().username, 'models'), 'rdrr'),
 ];
 
 function discoverModels(roots) {

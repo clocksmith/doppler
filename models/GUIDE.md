@@ -45,7 +45,7 @@ directory.
 ### External volume (complete copies)
 
 Path: `$DOPPLER_EXTERNAL_MODELS_ROOT/rdrr/<model-id>/`
-Env: `DOPPLER_EXTERNAL_MODELS_ROOT` (auto-detected; `/Volumes/models` or `/Volumes/models2` on macOS, `/media/x/models` on Linux)
+Env: `DOPPLER_EXTERNAL_MODELS_ROOT` (auto-detected; `/Volumes/models` or `/Volumes/models2` on macOS, `/media/$USER/models` on Linux)
 
 The external volume owns complete artifact bytes: manifests, tokenizers, and
 shards. Sync manifests and sidecars intentionally; do not infer catalog state

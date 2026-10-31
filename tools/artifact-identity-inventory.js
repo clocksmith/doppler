@@ -2,13 +2,14 @@
 
 import fsSync from 'node:fs';
 import fs from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 
 const DEFAULT_ROOTS = [
   'models/local',
   '/Volumes/models/rdrr',
-  '/media/x/models/rdrr',
+  path.join('/media', os.userInfo().username, 'models', 'rdrr'),
 ];
 
 function parseArgs(argv) {

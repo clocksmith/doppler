@@ -4,7 +4,7 @@
 
 set -u
 
-REPO=/home/x/deco/doppler
+REPO="${REPO:-$(cd "$(dirname "$0")/../.." && pwd)}"
 MODEL_URL="file://$REPO/models/local/qwen-3-5-0-8b-q4k-ehaf16"
 MODEL_ID="qwen-3-5-0-8b-q4k-ehaf16"
 PROMPT="Write a short paragraph about the ocean."

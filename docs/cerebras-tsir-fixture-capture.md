@@ -28,7 +28,7 @@ node tools/run-program-bundle-reference.js \
   --out reports/program-bundles/gemma-4-31b-it-text-q4k-ehf16-af32/program-bundle.json \
   --report-out reports/program-bundles/gemma-4-31b-it-text-q4k-ehf16-af32/reference.json \
   --prompt "The color of the sky is" \
-  --tsir-fixture-dir /home/x/deco/doe/bench/fixtures/r3-1-31b-doppler-frozen \
+  --tsir-fixture-dir $HOME/deco/doe/bench/fixtures/r3-1-31b-doppler-frozen \
   --tsir-fixture-layers 0
 ```
 
@@ -47,7 +47,7 @@ node tools/run-program-bundle-reference.js \
   --out reports/program-bundles/gemma-4-31b-it-text-q4k-ehf16-af16/program-bundle.json \
   --report-out reports/program-bundles/gemma-4-31b-it-text-q4k-ehf16-af16/reference.json \
   --prompt "The color of the sky is" \
-  --tsir-fixture-dir /home/x/deco/doe/bench/fixtures/r3-1-31b-doppler-frozen-af16 \
+  --tsir-fixture-dir $HOME/deco/doe/bench/fixtures/r3-1-31b-doppler-frozen-af16 \
   --tsir-fixture-layers 0
 ```
 
@@ -64,7 +64,7 @@ node tools/run-program-bundle-reference.js \
   --out reports/program-bundles/qwen-3-6-27b-q4k-ehaf16/program-bundle.json \
   --report-out reports/program-bundles/qwen-3-6-27b-q4k-ehaf16/reference.json \
   --prompt "The color of the sky is" \
-  --tsir-fixture-dir /home/x/deco/doe/bench/fixtures/r3-2-27b-doppler-frozen \
+  --tsir-fixture-dir $HOME/deco/doe/bench/fixtures/r3-2-27b-doppler-frozen \
   --tsir-fixture-layers 3
 ```
 
@@ -85,7 +85,7 @@ node tools/run-program-bundle-reference.js \
   --out reports/program-bundles/qwen-3-6-27b-q4k-eaf16/program-bundle.json \
   --report-out reports/program-bundles/qwen-3-6-27b-q4k-eaf16/reference.json \
   --prompt "The color of the sky is" \
-  --tsir-fixture-dir /home/x/deco/doe/bench/fixtures/r3-2-27b-doppler-frozen-af16 \
+  --tsir-fixture-dir $HOME/deco/doe/bench/fixtures/r3-2-27b-doppler-frozen-af16 \
   --tsir-fixture-layers 3
 ```
 
@@ -117,8 +117,8 @@ Qwen 3.6 27B inference is a 27B-parameter run; capture requires a Doppler-runtim
 
 ## Cross-repo references
 
-- Doe Qwen evidence packet: `/home/x/deco/doe/docs/cerebras-27b-qwen-evidence.md`
-- Doe Gemma evidence packet: `/home/x/deco/doe/docs/cerebras-31b-evidence.md`
-- Doe fixture schema: `/home/x/deco/doe/config/doe-frozen-doppler-reference.schema.json`
-- Doe validator: `/home/x/deco/doe/bench/tools/validate_frozen_doppler_reference.py`
-- Doe Qwen validator-binding test: `/home/x/deco/doe/bench/tests/test_validate_frozen_qwen_3_6_doppler_reference.py`
+- Doe Qwen evidence packet: `$HOME/deco/doe/docs/cerebras-27b-qwen-evidence.md`
+- Doe Gemma evidence packet: `$HOME/deco/doe/docs/cerebras-31b-evidence.md`
+- Doe fixture schema: `$HOME/deco/doe/config/doe-frozen-doppler-reference.schema.json`
+- Doe validator: `$HOME/deco/doe/bench/tools/validate_frozen_doppler_reference.py`
+- Doe Qwen validator-binding test: `$HOME/deco/doe/bench/tests/test_validate_frozen_qwen_3_6_doppler_reference.py`

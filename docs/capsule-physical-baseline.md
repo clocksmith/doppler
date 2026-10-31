@@ -7,7 +7,7 @@ STRIX_HALO. Both execution surfaces rejected software fallback adapters.
 
 The machine-readable [acceptance receipt](../reports/capsule-baseline/20260906/acceptance.json)
 pins the reports, archive, source snapshot, and custody inventory. Detailed data
-lives under `/home/x/.local/share/doppler/capsule-baselines/20260906`; the working
+lives under `$HOME/.local/share/doppler/capsule-baselines/20260906`; the working
 experiment directory is `reports/capsule-baseline/20260906`. This is local custody,
 not a remote backup or publication. Private evaluation signing keys remain in
 custody directories and are excluded from the installed browser application.

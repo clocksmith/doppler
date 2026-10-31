@@ -1,6 +1,8 @@
 import { isPlainObject } from '../../formats/plain-object.js';
 import fs from 'node:fs/promises';
 import { existsSync } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 export function normalizeText(value) {
   return typeof value === 'string' ? value.trim() : '';
@@ -11,12 +13,13 @@ function detectDefaultExternalModelsRoot() {
   if (envRoot) {
     return envRoot;
   }
-  for (const candidate of ['/Volumes/models', '/Volumes/models2', '/media/x/models']) {
+  const linuxMediaRoot = path.join('/media', os.userInfo().username, 'models');
+  for (const candidate of ['/Volumes/models', '/Volumes/models2', linuxMediaRoot]) {
     if (existsSync(candidate)) {
       return candidate;
     }
   }
-  return '/media/x/models';
+  return linuxMediaRoot;
 }
 
 export const DEFAULT_EXTERNAL_MODELS_ROOT = detectDefaultExternalModelsRoot();

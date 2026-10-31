@@ -20,8 +20,8 @@
   },
   "platforms": [
     {"os": "macos", "backend": "metal", "host": "mars"},
-    {"os": "linux", "backend": "vulkan", "host": "jupiter"},
-    {"os": "windows", "backend": "d3d12", "host": "miles"}
+    {"os": "linux", "backend": "vulkan", "host": "amd-host"},
+    {"os": "windows", "backend": "d3d12", "host": "windows-host"}
   ],
   "shared": {
     "maxNewTokens": 64,
@@ -37,7 +37,7 @@
     "kvDtype": "f16",
     "warmupRuns": 1,
     "pairsPerPrompt": 5,
-    "promptSource": "reports/jupiter-tuning-20261029/product-repeat-contract.json#shared/prompts"
+    "promptSource": "reports/amd-host-tuning-20261029/product-repeat-contract.json#shared/prompts"
   },
   "gates": {
     "identicalPromptTokenIds": true,

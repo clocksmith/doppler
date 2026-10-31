@@ -142,14 +142,14 @@ and scheduler; these tools do not establish stock TJS performance.
 
 `evidence/` retains exact binding, layer CPU/ONNX/GPU receipts, provider/source
 identity, and a full-model native reference summary. Large ONNX graphs, binary
-fixtures, full logits and model weights remain in the Jupiter paths bound by
+fixtures, full logits and model weights remain in the amd-host paths bound by
 those receipts. Saved results establish only their recorded scope and bytes.
 
 ## Running
 
 Read `contract.json` for pinned dependencies. Use an isolated environment; the
-existing Jupiter task environment is
-`/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/export-venv`.
+existing amd-host task environment is
+`$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/export-venv`.
 All Python numerical tools are CPU-only. A browser GPU run requires the shared
 GPU slot. The runner takes one JSON config containing `modelDir`, `ortDist`,
 `outputDir`, `browserExecutable`, `browserArgs`, `requiredVendor`, and `timeoutMs`.
@@ -165,6 +165,6 @@ node tools/transformers-canonical-qwen35/run_layer_gpu.js CONFIG_JSON
 Strict full-model numerical qualification, actual GPU readback for all learned
 weights, strict GPU-state checks, GPU bucket checks and performance
 comparison remain required work. Full-model
-diagnostic configuration is retained on Jupiter at
-`/home/x/.local/state/doppler/transformers-canonical-qwen35-20261029/tjs-full-gpu-diagnostic-06-config.json`;
+diagnostic configuration is retained on amd-host at
+`$HOME/.local/state/doppler/transformers-canonical-qwen35-20261029/tjs-full-gpu-diagnostic-06-config.json`;
 its model and CPU receipt paths are frozen by `evidence/full-tjs-gpu-identity.json`.
