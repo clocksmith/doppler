@@ -37,24 +37,40 @@ const close = (actual, expected, label, abs = 2e-4, rel = 2e-5) => {
 };
 const sigmoid = x => 1/(1+Math.exp(-Math.max(-15, Math.min(15,x))));
 try {
-  for (const dtype of ['q4_0', 'q8_0']) for (const [M,N,K] of [[1,1,32],[1,7,96],[3,9,256]]) {
-    const w=packed(dtype,[N,K]); const values=Float32Array.from({length:M*K},(_,i)=>Math.sin(i*0.23)*0.125);
-    const input=tensor(values,[M,K]), expected=projectReference(values,w.decoded,M,N,K);
+  for (const dtype of ['q4_0', 'q4_1', 'q5_0', 'q8_0', 'q6k']) {
+    const blockValues = dtype === 'q6k' ? 256 : 32;
+    for (const [M,N,K,offsetBank,basis] of [
+      [1,1,blockValues,0,false], [1,7,blockValues*3,1,false], [3,9,blockValues*8,0,false],
+      [blockValues,3,blockValues,0,true],
+    ]) {
+    const w=packed(dtype,offsetBank ? [2,N,K] : [N,K]);
+    const values=Float32Array.from({length:(M+offsetBank)*K},(_,i)=>basis ? Number(Math.floor(i/K)===i%K) : Math.sin(i*0.23)*0.125);
+    const input=tensor(values,[M+offsetBank,K]);
+    const expected=projectReference(values.subarray(offsetBank*K),w.decoded.subarray(offsetBank*N*K),M,N,K);
     for (const mode of ['immediate','recorded']) {
       const recorder=mode==='recorded'?createCommandRecorder('native_cooperative'):null;
       if(recorder)recorders.push(recorder);
       const output=upload(new Float32Array(M*N+16).fill(-12345));
-      const options={outputDtype:'f32',variant:`${dtype}_cooperative`,outputBuffer:output};
+      const prefix=offsetBank*5;
+      const packedBytes=w.weight.buffer.size;
+      // Exact logical bank bytes, independent of pooled allocation capacity.
+      const strideBytes=N*K/blockValues*({q4_0:18,q4_1:20,q5_0:22,q8_0:34,q6k:210}[dtype]);
+      assert.ok(packedBytes >= strideBytes*(offsetBank+1));
+      const options={outputDtype:'f32',variant:`${dtype}_cooperative`,outputBuffer:output,
+        aOffset:offsetBank*K*4,bOffset:offsetBank*strideBytes,cOffset:prefix*4};
       const result=recorder?await recordQ40Matmul(recorder,input,w.weight,M,N,K,options):await runQ40Matmul(input,w.weight,M,N,K,options);
       if(recorder)await recorder.submitAndWait();
       const actual=new Float32Array(await readBuffer(result.buffer,(M*N+16)*4));
-      const maxAbs=close(actual,expected,`${dtype}/${mode}`);
-      assert.ok(actual.subarray(M*N).every(x=>x===-12345));
-      console.log(JSON.stringify({dtype,M,N,K,mode,maxAbs}));
+      const maxAbs=close(actual.subarray(prefix,prefix+M*N),expected,`${dtype}/${mode}`);
+      assert.ok(actual.subarray(0,prefix).every(x=>x===-12345));
+      assert.ok(actual.subarray(prefix+M*N).every(x=>x===-12345));
+      console.log(JSON.stringify({dtype,M,N,K,offsetBank,basis,mode,maxAbs}));
+    }
     }
   }
   for (const [routedDtype, downDtype, sharedDtype, T, sharedSize, limit] of [
     ['q4_0','q4_0','q8_0',1,32,null], ['q4_0','q4_1','q5_0',3,96,0.125], ['q8_0','q8_0','q4_0',2,64,null],
+    ['q5_0','q5_0','q4_1',3,96,null], ['q4_1','q4_1','q5_0',2,32,null],
   ]) {
     const H=64,I=32,E=4,topK=3,stride=Math.max(I,sharedSize);
     const g=packed(routedDtype,[E,I,H]),u=packed(routedDtype,[E,I,H]),d=packed(downDtype,[E,H,I]);
