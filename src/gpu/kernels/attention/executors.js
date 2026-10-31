@@ -456,6 +456,19 @@ export async function executeAttention(
     workgroups: plan.workgroups, constants: null, extraBindings: null,
   });
 
+  if (plan.variant === DECODE_GQA_SPLITK_VARIANT) {
+    if (bidirectionalSpanLength > 0 || mask != null || indirectBuffer != null || seqLen !== 1
+      || Q.dtype !== 'f32' || K.dtype !== 'f32' || V.dtype !== 'f32' || headDim !== 256
+      || numHeads !== numKVHeads * 8 || slidingWindow > 0 || attnSoftcap !== 0 || kvStart !== 0
+      || (kvLayout != null && kvLayout !== 'contiguous') || !causal || startPos + 1 !== kvLen) {
+      throw new Error('[Attention] decode_gqa_splitk requires single-query causal decode, f32 Q/K/V, '
+        + 'head_dim 256, eight query heads per KV head and contiguous unwindowed KV.');
+    }
+    return executeDecodeGqaSplitK(execution, Q, K, V, numHeads, headDim, {
+      kvLen, numKVHeads, scale, startPos, outputBuffer, kvLenBuffer,
+    });
+  }
+
   // The selected split-K kernel owns a nine-binding, two-pass contract.
   // It cannot use the ordinary seven-binding attention dispatcher.
   if (plan.tier === 'flash_prefill') {
@@ -595,6 +608,64 @@ export async function executeAttention(
   const outputTensor = createTensor(outputBuf, outputDtype, [seqLen, numHeads, headDim], 'attention_output');
   outputTensor.outputGateFused = usesOutputGateFusion;
   return outputTensor;
+}
+
+export const DECODE_GQA_SPLITK_VARIANT = 'decode_gqa_splitk';
+const DECODE_GQA_SPLITK_SPLITS = 64;
+
+// Two passes in queue order: per-(split, kv head) partials, then a per-head combine.
+// The dispatch grid depends only on the model geometry, never on the position.
+async function executeDecodeGqaSplitK(execution, Q, K, V, numHeads, headDim, options) {
+  const { kvLen, numKVHeads, scale, startPos, outputBuffer, kvLenBuffer } = options;
+  const device = execution.device;
+  const kernel = new AttentionKernel(device);
+  const constants = { SPLITS: DECODE_GQA_SPLITK_SPLITS };
+  const partialPipeline = await kernel.getPipeline(DECODE_GQA_SPLITK_VARIANT, constants);
+  const combinePipeline = await kernel.getPipeline(`${DECODE_GQA_SPLITK_VARIANT}_combine`, constants);
+  const outputBuf = outputBuffer || acquireBuffer(padToQ4KBlock(numHeads * headDim) * 4, undefined, 'attention_output');
+  const partialBytes = numHeads * DECODE_GQA_SPLITK_SPLITS * (headDim + 2) * 4;
+  const partials = acquireBuffer(partialBytes, undefined, 'attention_splitk_partials');
+  const uniformBuffer = createAttentionUniformBuffer(device, execution.recorder, {
+    numHeads, numKVHeads, headDim, kvLen, seqLen: 1, scale, causal: true, startPos,
+    attnSoftcap: 0, slidingWindow: 0, kvLenSource: kvLenBuffer ? 1 : 0, kvStart: 0, pageSize: 0, kvLayout: 0,
+    bidirectionalSpanStart: 0, bidirectionalSpanLength: 0,
+  });
+  const kvLenBinding = kvLenBuffer || getKvLenFallbackBuffer(device);
+  try {
+    const partialGroup = device.createBindGroup({
+      label: 'attention_splitk_partials_bg',
+      layout: getPipelineBindGroupLayout(partialPipeline, 0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: Q.buffer } },
+        { binding: 2, resource: { buffer: K.buffer } },
+        { binding: 3, resource: { buffer: V.buffer } },
+        { binding: 5, resource: { buffer: kvLenBinding } },
+        { binding: 7, resource: { buffer: partials } },
+      ],
+    });
+    const combineGroup = device.createBindGroup({
+      label: 'attention_splitk_combine_bg',
+      layout: getPipelineBindGroupLayout(combinePipeline, 0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 4, resource: { buffer: outputBuf } },
+        { binding: 5, resource: { buffer: kvLenBinding } },
+        { binding: 7, resource: { buffer: partials } },
+      ],
+    });
+    dispatchAttentionKernel(execution, kernel, partialPipeline, partialGroup, [DECODE_GQA_SPLITK_SPLITS, numKVHeads, 1]);
+    dispatchAttentionKernel(execution, kernel, combinePipeline, combineGroup, [numHeads, 1, 1]);
+  } finally {
+    if (execution.recorder) {
+      execution.recorder.trackTemporaryBuffer(partials);
+    } else {
+      await device.queue.onSubmittedWorkDone();
+      releaseBuffer(partials);
+    }
+    releaseAttentionUniform(execution, uniformBuffer);
+  }
+  return createTensor(outputBuf, 'f32', [1, numHeads, headDim], 'attention_output');
 }
 
 export const FLASH_BLOCK_SIZE = 32;

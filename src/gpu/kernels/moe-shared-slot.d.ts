@@ -13,7 +13,7 @@ export interface SharedSlotGeometry {
 export interface SharedSlotOptions extends SharedSlotGeometry {
   indices: GPUBuffer;
   /** Registered variant declared by the kernel-path step. */
-  variant: 'native_f32' | 'pair_f32';
+  variant: 'native_f32' | 'pair_f32' | 'pair_combine_f32';
   outputBuffer?: GPUBuffer | null;
   /** Pair down only: per-slot outputs [numTokens * (topK + 1), hiddenSize] before the fixed-order combine. */
   slotsBuffer?: GPUBuffer | null;

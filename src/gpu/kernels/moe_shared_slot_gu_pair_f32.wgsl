@@ -92,14 +92,14 @@ fn nib_hi(word: u32) -> vec4<f32> { return vec4<f32>(unpack4xU8((word >> 4u) & 0
 fn q5_bits(qh: u32, first: u32) -> vec4<f32> {
     return vec4<f32>(((vec4<u32>(qh) >> (vec4<u32>(first) + vec4<u32>(0u, 1u, 2u, 3u))) & vec4<u32>(1u)) << vec4<u32>(4u));
 }
-// Dot of one block (32 values) with x[0..7] (value v -> x[v / 4][v % 4]).
+// Dot of one block (32 values) with x_stage[xb + o .. xb + o + 7] (value v -> [v / 4][v % 4]).
 fn block_dot(format: u32, scale: vec2<f32>, qh: u32, q0: u32, q1: u32, q2: u32, q3: u32,
-             q4: u32, q5: u32, q6: u32, q7: u32, x: array<vec4<f32>, 16>, o: u32) -> f32 {
+             q4: u32, q5: u32, q6: u32, q7: u32, xb: u32, o: u32) -> f32 {
     if (format == 2u) {
-        let s = dot(vec4<f32>(unpack4xI8(q0)), x[o]) + dot(vec4<f32>(unpack4xI8(q1)), x[o + 1u])
-            + dot(vec4<f32>(unpack4xI8(q2)), x[o + 2u]) + dot(vec4<f32>(unpack4xI8(q3)), x[o + 3u])
-            + dot(vec4<f32>(unpack4xI8(q4)), x[o + 4u]) + dot(vec4<f32>(unpack4xI8(q5)), x[o + 5u])
-            + dot(vec4<f32>(unpack4xI8(q6)), x[o + 6u]) + dot(vec4<f32>(unpack4xI8(q7)), x[o + 7u]);
+        let s = dot(vec4<f32>(unpack4xI8(q0)), x_stage[xb + o]) + dot(vec4<f32>(unpack4xI8(q1)), x_stage[xb + o + 1u])
+            + dot(vec4<f32>(unpack4xI8(q2)), x_stage[xb + o + 2u]) + dot(vec4<f32>(unpack4xI8(q3)), x_stage[xb + o + 3u])
+            + dot(vec4<f32>(unpack4xI8(q4)), x_stage[xb + o + 4u]) + dot(vec4<f32>(unpack4xI8(q5)), x_stage[xb + o + 5u])
+            + dot(vec4<f32>(unpack4xI8(q6)), x_stage[xb + o + 6u]) + dot(vec4<f32>(unpack4xI8(q7)), x_stage[xb + o + 7u]);
         return scale.x * s;
     }
     var bias = 8.0;
@@ -111,44 +111,44 @@ fn block_dot(format: u32, scale: vec2<f32>, qh: u32, q0: u32, q1: u32, q2: u32, 
         hi0 += q5_bits(qh, 16u); hi1 += q5_bits(qh, 20u); hi2 += q5_bits(qh, 24u); hi3 += q5_bits(qh, 28u);
     }
     if (format == 1u) {
-        let s = dot(lo0, x[o]) + dot(lo1, x[o + 1u]) + dot(lo2, x[o + 2u]) + dot(lo3, x[o + 3u])
-            + dot(hi0, x[o + 4u]) + dot(hi1, x[o + 5u]) + dot(hi2, x[o + 6u]) + dot(hi3, x[o + 7u]);
-        let xs = (x[o] + x[o + 1u]) + (x[o + 2u] + x[o + 3u]) + (x[o + 4u] + x[o + 5u]) + (x[o + 6u] + x[o + 7u]);
+        let s = dot(lo0, x_stage[xb + o]) + dot(lo1, x_stage[xb + o + 1u]) + dot(lo2, x_stage[xb + o + 2u]) + dot(lo3, x_stage[xb + o + 3u])
+            + dot(hi0, x_stage[xb + o + 4u]) + dot(hi1, x_stage[xb + o + 5u]) + dot(hi2, x_stage[xb + o + 6u]) + dot(hi3, x_stage[xb + o + 7u]);
+        let xs = (x_stage[xb + o] + x_stage[xb + o + 1u]) + (x_stage[xb + o + 2u] + x_stage[xb + o + 3u]) + (x_stage[xb + o + 4u] + x_stage[xb + o + 5u]) + (x_stage[xb + o + 6u] + x_stage[xb + o + 7u]);
         return scale.x * s + scale.y * dot(xs, vec4<f32>(1.0));
     }
     let b = vec4<f32>(bias);
-    let s = dot(lo0 - b, x[o]) + dot(lo1 - b, x[o + 1u]) + dot(lo2 - b, x[o + 2u]) + dot(lo3 - b, x[o + 3u])
-        + dot(hi0 - b, x[o + 4u]) + dot(hi1 - b, x[o + 5u]) + dot(hi2 - b, x[o + 6u]) + dot(hi3 - b, x[o + 7u]);
+    let s = dot(lo0 - b, x_stage[xb + o]) + dot(lo1 - b, x_stage[xb + o + 1u]) + dot(lo2 - b, x_stage[xb + o + 2u]) + dot(lo3 - b, x_stage[xb + o + 3u])
+        + dot(hi0 - b, x_stage[xb + o + 4u]) + dot(hi1 - b, x_stage[xb + o + 5u]) + dot(hi2 - b, x_stage[xb + o + 6u]) + dot(hi3 - b, x_stage[xb + o + 7u]);
     return scale.x * s;
 }
-// Dot of one aligned block pair with x[0..15].
-fn pair_dot(format: u32, w: array<u32, 17>, x: array<vec4<f32>, 16>) -> f32 {
+// Dot of one aligned block pair with x_stage[xb .. xb + 15].
+fn pair_dot(format: u32, w: array<u32, 17>, xb: u32) -> f32 {
     switch format {
         case 0u: {
             let a = block_dot(0u, vec2<f32>(unpack2x16float(w[0]).x, 0.0), 0u,
-                mid_word(w, 0u), mid_word(w, 1u), mid_word(w, 2u), mid_word(w, 3u), 0u, 0u, 0u, 0u, x, 0u);
+                mid_word(w, 0u), mid_word(w, 1u), mid_word(w, 2u), mid_word(w, 3u), 0u, 0u, 0u, 0u, xb, 0u);
             let b = block_dot(0u, vec2<f32>(unpack2x16float(w[4]).y, 0.0), 0u,
-                w[5], w[6], w[7], w[8], 0u, 0u, 0u, 0u, x, 8u);
+                w[5], w[6], w[7], w[8], 0u, 0u, 0u, 0u, xb, 8u);
             return a + b;
         }
         case 1u: {
-            let a = block_dot(1u, unpack2x16float(w[0]), 0u, w[1], w[2], w[3], w[4], 0u, 0u, 0u, 0u, x, 0u);
-            let b = block_dot(1u, unpack2x16float(w[5]), 0u, w[6], w[7], w[8], w[9], 0u, 0u, 0u, 0u, x, 8u);
+            let a = block_dot(1u, unpack2x16float(w[0]), 0u, w[1], w[2], w[3], w[4], 0u, 0u, 0u, 0u, xb, 0u);
+            let b = block_dot(1u, unpack2x16float(w[5]), 0u, w[6], w[7], w[8], w[9], 0u, 0u, 0u, 0u, xb, 8u);
             return a + b;
         }
         case 2u: {
             let a = block_dot(2u, vec2<f32>(unpack2x16float(w[0]).x, 0.0), 0u,
                 mid_word(w, 0u), mid_word(w, 1u), mid_word(w, 2u), mid_word(w, 3u),
-                mid_word(w, 4u), mid_word(w, 5u), mid_word(w, 6u), mid_word(w, 7u), x, 0u);
+                mid_word(w, 4u), mid_word(w, 5u), mid_word(w, 6u), mid_word(w, 7u), xb, 0u);
             let b = block_dot(2u, vec2<f32>(unpack2x16float(w[8]).y, 0.0), 0u,
-                w[9], w[10], w[11], w[12], w[13], w[14], w[15], w[16], x, 8u);
+                w[9], w[10], w[11], w[12], w[13], w[14], w[15], w[16], xb, 8u);
             return a + b;
         }
         default: {
             let a = block_dot(4u, vec2<f32>(unpack2x16float(w[0]).x, 0.0), mid_word(w, 0u),
-                mid_word(w, 1u), mid_word(w, 2u), mid_word(w, 3u), mid_word(w, 4u), 0u, 0u, 0u, 0u, x, 0u);
+                mid_word(w, 1u), mid_word(w, 2u), mid_word(w, 3u), mid_word(w, 4u), 0u, 0u, 0u, 0u, xb, 0u);
             let b = block_dot(4u, vec2<f32>(unpack2x16float(w[5]).y, 0.0), w[6],
-                w[7], w[8], w[9], w[10], 0u, 0u, 0u, 0u, x, 8u);
+                w[7], w[8], w[9], w[10], 0u, 0u, 0u, 0u, xb, 8u);
             return a + b;
         }
     }
@@ -239,19 +239,22 @@ fn main(@builtin(workgroup_id) group: vec3<u32>, @builtin(local_invocation_index
     var expert = 0u;
     if (valid_route && !is_shared) { expert = indices[token * TOP_K + slot]; }
     let live = valid_route && row < rows && expert < u.num_experts;
-    let format = select(ROUTED_FORMAT, SHARED_FORMAT, is_shared);
-    let count = pair_words(format);
-    let first_bank = select(0u, 2u, is_shared);
     var g = 0.0;
     var v = 0.0;
-    if (live) {
-        let row_words = input_pairs * count;
-        let row_base = (expert * rows + row) * row_words;
+    // Each bank's format is a pipeline constant, so each branch compiles to one block layout.
+    if (live && is_shared) {
+        let count = pair_words(SHARED_FORMAT);
+        let row_base = (expert * rows + row) * input_pairs * count;
         for (var p = lane; p < input_pairs; p += THREADS_PER_ROW) {
-            var x: array<vec4<f32>, 16>;
-            for (var j = 0u; j < 16u; j++) { x[j] = x_stage[p * 17u + j]; }
-            g += pair_dot(format, load_words(first_bank, row_base + p * count, count), x);
-            v += pair_dot(format, load_words(first_bank + 1u, row_base + p * count, count), x);
+            g += pair_dot(SHARED_FORMAT, load_words(2u, row_base + p * count, count), p * 17u);
+            v += pair_dot(SHARED_FORMAT, load_words(3u, row_base + p * count, count), p * 17u);
+        }
+    } else if (live) {
+        let count = pair_words(ROUTED_FORMAT);
+        let row_base = (expert * rows + row) * input_pairs * count;
+        for (var p = lane; p < input_pairs; p += THREADS_PER_ROW) {
+            g += pair_dot(ROUTED_FORMAT, load_words(0u, row_base + p * count, count), p * 17u);
+            v += pair_dot(ROUTED_FORMAT, load_words(1u, row_base + p * count, count), p * 17u);
         }
     }
     for (var offset = THREADS_PER_ROW / 2u; offset > 0u; offset /= 2u) {

@@ -6,6 +6,7 @@ export const SUBGROUP_REQUIRING_FILES = new Set([
   'attention_decode_online_head256_f16kv.wgsl',
   'attention_decode_online.wgsl',
   'attention_decode_online_f16.wgsl',
+  'attention_decode_gqa_splitk.wgsl',
 ]);
 
 export function isSubgroupKernel(kernelEntry) {

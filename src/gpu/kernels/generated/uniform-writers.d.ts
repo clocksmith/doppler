@@ -10,6 +10,7 @@ export interface KernelUniformValues {
   "moe_shared_slot_combine/f32": Parameters<typeof writers0.write_moe_shared_slot_gu_native_f32>[1];
   "moe_shared_slot_down/native_f32": Parameters<typeof writers0.write_moe_shared_slot_gu_native_f32>[1];
   "moe_shared_slot_down/pair_f32": Parameters<typeof writers0.write_moe_shared_slot_gu_native_f32>[1];
+  "moe_shared_slot_down/pair_combine_f32": Parameters<typeof writers0.write_moe_shared_slot_gu_native_f32>[1];
   "w8a8_quantize/f32": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
   "w8a8_rescale/activation": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
   "w8a8_rescale/weight": Parameters<typeof writers0.write_w8a8_quantize_f32>[1];
@@ -188,6 +189,8 @@ export interface KernelUniformValues {
   "attention/paired_tiled": Parameters<typeof writers0.write_attention_paired>[1];
   "attention/prefill_partitioned_head256_f16kv": Parameters<typeof writers0.write_attention_decode>[1];
   "attention/decode_online": Parameters<typeof writers0.write_attention_decode_online_f16>[1];
+  "attention/decode_gqa_splitk": Parameters<typeof writers0.write_attention_decode_online_f16>[1];
+  "attention/decode_gqa_splitk_combine": Parameters<typeof writers0.write_attention_decode_online_f16>[1];
   "attention/prefill_query_tile_f32": Parameters<typeof writers0.write_attention_prefill>[1];
   "attention_tiered/decode_tiered_f16": Parameters<typeof writers0.write_attention_tiered_decode_tiered_f16>[1];
   "attention_tiered/decode_tiered_f16kv": Parameters<typeof writers0.write_attention_tiered_decode_tiered_f16>[1];

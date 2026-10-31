@@ -59,7 +59,7 @@ function prepare(recorder, options, operation, storageSlots, inputWidth) {
   const slotStride = Math.max(options.intermediateSize, options.sharedSize);
   /** @type {Record<string, number>} */
   let constants = { WORKGROUP_SIZE: width };
-  if (variant === PAIR_VARIANT) {
+  if (variant === PAIR_VARIANT || variant === PAIR_COMBINE_VARIANT) {
     const threadsPerRow = config.wgslOverrides?.THREADS_PER_ROW;
     if (typeof threadsPerRow !== 'number') throw new Error('[MoE shared slot] Registered row group size required.');
     rowsPerWorkgroup = width / threadsPerRow;
@@ -76,7 +76,9 @@ function prepare(recorder, options, operation, storageSlots, inputWidth) {
       || options.numTokens * (options.topK + 1) > device.limits.maxComputeWorkgroupsPerDimension) {
       throw new Error('[MoE shared slot] Pair geometry requires even block counts and bounded staging.');
     }
-    constants = { WORKGROUP_SIZE: width, THREADS_PER_ROW: threadsPerRow, MAX_INPUT_PAIRS: pairs };
+    constants = variant === PAIR_COMBINE_VARIANT
+      ? { WORKGROUP_SIZE: width, THREADS_PER_ROW: threadsPerRow }
+      : { WORKGROUP_SIZE: width, THREADS_PER_ROW: threadsPerRow, MAX_INPUT_PAIRS: pairs };
   } else if (typeof width !== 'number' || width < 4 || width % 4 || (width & (width - 1))
     || width > device.limits.maxComputeInvocationsPerWorkgroup
     || width * 16 * storageSlots > device.limits.maxComputeWorkgroupStorageSize) {
@@ -90,9 +92,11 @@ function prepare(recorder, options, operation, storageSlots, inputWidth) {
 }
 
 const PAIR_VARIANT = 'pair_f32';
+// Down only: the pair row geometry with the slot combine in the same dispatch.
+const PAIR_COMBINE_VARIANT = 'pair_combine_f32';
 /** @param {string | undefined} variant */
 function resolveSharedSlotVariant(variant) {
-  if (variant !== 'native_f32' && variant !== PAIR_VARIANT) {
+  if (variant !== 'native_f32' && variant !== PAIR_VARIANT && variant !== PAIR_COMBINE_VARIANT) {
     throw new Error('[MoE shared slot] Explicit registered shared-slot variant required.');
   }
   return variant;
@@ -114,6 +118,7 @@ function validateOutput(device, output, bytes, inputs) {
 export async function executeSharedSlotGateUp(recorder, input, weights, options) {
   const { device, width, slotStride, uniforms, variant, rowsPerWorkgroup, constants } =
     prepare(recorder, options, 'moe_shared_slot_gu', 2, options.hiddenSize);
+  if (variant === PAIR_COMBINE_VARIANT) throw new Error('[MoE shared slot] pair_combine_f32 is a down-only variant.');
   const { numTokens, numExperts, topK, hiddenSize, intermediateSize, sharedSize } = options;
   validateInput(device, input, numTokens, hiddenSize);
   const routed = validateWeight(device, weights.gate, [numExperts, intermediateSize, hiddenSize]);
@@ -155,6 +160,13 @@ export async function executeSharedSlotDown(recorder, input, weights, gate, opti
   validateOutput(device, options.outputBuffer, bytes, buffers);
   const kernelConstants = { ...constants, TOP_K: topK, ROUTED_FORMAT: routed.code, ROUTED_BYTES: routed.bytes,
     SHARED_FORMAT: shared.code, SHARED_BYTES: shared.bytes };
+  if (variant === PAIR_COMBINE_VARIANT) {
+    return withKernelOutput(recorder, options.outputBuffer ?? null, bytes, 'moe_shared_slot_down', async output => {
+      await unifiedKernelWrapper('moe_shared_slot_down', recorder, variant, [...buffers, output], uniforms,
+        [Math.ceil(hiddenSize / rowsPerWorkgroup), numTokens, 1], kernelConstants);
+      return createTensor(output, 'f32', [numTokens, hiddenSize], 'moe_shared_slot_down');
+    });
+  }
   if (variant === PAIR_VARIANT) {
     const slotsBytes = numTokens * (topK + 1) * hiddenSize * 4;
     validateOutput(device, options.slotsBuffer, slotsBytes, buffers);

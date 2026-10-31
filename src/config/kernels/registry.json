@@ -397,6 +397,30 @@
       "perSlotOutput": true
      },
      "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "pair_combine_f32": {
+     "wgsl": "moe_shared_slot_down_pair_combine_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": ["subgroups"],
+     "requiredWgslFeatures": ["packed_4x8_integer_dot_product","subgroup_id"],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "THREADS_PER_ROW": 8
+     },
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "activationDtype": "f32",
+      "outerResidual": false,
+      "sharedSlotGeometry": "pair_combine",
+      "perSlotOutput": false
+     },
+     "reachability": {
       "status": "pinned",
       "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
@@ -9183,10 +9207,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": [
-       "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"
-      ],
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
       "ruleChains": ["matmul.rules.json#q40Variant"],
       "wgslOnDisk": true
      }
@@ -9282,8 +9303,8 @@
       "workgroupConstants": ["TILE_SIZE","TILE_SIZE",null]
      },
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -9580,10 +9601,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": [
-       "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"
-      ],
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
       "ruleChains": ["matmul.rules.json#q40Variant"],
       "wgslOnDisk": true
      }
@@ -9679,8 +9697,8 @@
       "workgroupConstants": ["TILE_SIZE","TILE_SIZE",null]
      },
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -9777,10 +9795,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": [
-       "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"
-      ],
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
       "ruleChains": ["matmul.rules.json#q40Variant"],
       "wgslOnDisk": true
      }
@@ -9876,8 +9891,8 @@
       "workgroupConstants": ["TILE_SIZE","TILE_SIZE",null]
      },
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -10074,10 +10089,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": [
-       "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"
-      ],
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
       "ruleChains": ["matmul.rules.json#q40Variant"],
       "wgslOnDisk": true
      }
@@ -10173,8 +10185,8 @@
       "workgroupConstants": ["TILE_SIZE","TILE_SIZE",null]
      },
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -10371,10 +10383,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": [
-       "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"
-      ],
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
       "ruleChains": ["matmul.rules.json#q40Variant"],
       "wgslOnDisk": true
      }
@@ -10470,8 +10479,8 @@
       "workgroupConstants": ["TILE_SIZE","TILE_SIZE",null]
      },
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -14686,8 +14695,209 @@
      },
      "description": "Online decode kernel with f32 Q/K/V, f32 compensated accumulation, and subgroup reductions",
      "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 60,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "kv_len",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "scale",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "is_causal",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "attn_softcap",
+        "type": "f32",
+        "offset": 32
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "kv_len_source",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "kv_start",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "page_size",
+        "type": "u32",
+        "offset": 48
+       },
+       {
+        "name": "kv_layout",
+        "type": "u32",
+        "offset": 52
+       },
+       {
+        "name": "_pad",
+        "type": "u32",
+        "offset": 56,
+        "padding": true
+       }
+      ]
+     }
+    },
+    "decode_gqa_splitk": {
+     "wgsl": "attention_decode_gqa_splitk.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": ["subgroups"],
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "tier": "subgroup",
+      "exactHeadDim": 256,
+      "maxHeadDim": 256,
+      "requiredShared": 10304
+     },
+     "description": "Split-K single-query decode over f32 contiguous KV: one workgroup per (split, KV head) serving eight query heads; per-split partials merged by decode_gqa_splitk_combine",
+     "reachability": {
       "status": "pinned",
       "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 60,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "kv_len",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "scale",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "is_causal",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "attn_softcap",
+        "type": "f32",
+        "offset": 32
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "kv_len_source",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "kv_start",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "page_size",
+        "type": "u32",
+        "offset": 48
+       },
+       {
+        "name": "kv_layout",
+        "type": "u32",
+        "offset": 52
+       },
+       {
+        "name": "_pad",
+        "type": "u32",
+        "offset": 56,
+        "padding": true
+       }
+      ]
+     }
+    },
+    "decode_gqa_splitk_combine": {
+     "wgsl": "attention_decode_gqa_splitk.wgsl",
+     "entryPoint": "combine",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "tier": "splitk_combine",
+      "exactHeadDim": 256,
+      "maxHeadDim": 256
+     },
+     "description": "Per-head merge of decode_gqa_splitk partials in split order",
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
      },
@@ -31746,8 +31956,8 @@
       "requiresDistinctTopK": true
      },
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -31858,8 +32068,8 @@
       "reductionLanes": 8
      },
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -32000,8 +32210,8 @@
       "reductionLanes": 8
      },
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
