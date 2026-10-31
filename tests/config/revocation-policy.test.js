@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import fs from 'node:fs/promises';
+import { registerHooks } from 'node:module';
+import { createHash } from 'node:crypto';
 
 import {
   assertBundledAdapterAuthorized,
@@ -284,17 +285,78 @@ function registry() {
   assert.equal(withdrawnReport.ok, true);
 }
 
-const sourceText = await fs.readFile(
-  new URL('../../src/client/model-host/index.js', import.meta.url),
-  'utf8'
-);
-const revocationCheck = sourceText.indexOf('await assertBundledResolutionNotRevoked(revocationIdentity)');
-const deviceInitialization = sourceText.indexOf('await runWithShaderSourceScope(null, () => initDevice())');
-assert.ok(revocationCheck >= 0 && deviceInitialization >= 0,
-  'the root runtime must retain both revocation enforcement and scoped device initialization');
-assert.ok(
-  revocationCheck < deviceInitialization,
-  'the root runtime must enforce bundled revocation before device initialization'
-);
+// Exercise the real host and bundled-policy implementation with a controlled
+// registry. Device acquisition stops at a double; this never opens a GPU.
+const hostUrl = new URL('../../src/client/model-host/index.js?revocation-test', import.meta.url).href;
+const policyUrl = new URL('../../src/config/revocation-policy.js?host-fixture', import.meta.url).href;
+const sourceUrl = new URL('../../src/client/runtime/model-source.js', import.meta.url).href;
+const sourceFixtureUrl = `${sourceUrl}?revocation-test`;
+const scopeUrl = new URL('../../src/gpu/kernels/shader-source-scope.js', import.meta.url).href;
+const artifactManifest = {
+  version: 1, modelId: 'artifact-fixture', modelType: 'embedding', quantization: 'q4k',
+  hashAlgorithm: 'sha256', inference: {}, totalSize: 1,
+  tensors: { 'model.embed_tokens.weight': { role: 'embedding' } },
+  shards: [{ index: 0, filename: 'shard_00000.bin', size: 1, hash: 'a'.repeat(64), offset: 0 }],
+};
+const artifactText = JSON.stringify(artifactManifest);
+const artifactHash = createHash('sha256').update(artifactText).digest('hex');
+const hostRegistry = registry();
+hostRegistry.revocations[0].targets.artifactVariantIds = [`sha256:${artifactHash}`];
+globalThis.revocationHostFixture = { registry: hostRegistry, events: [] };
+const hostModules = {
+  '../runtime/model-source.js': `export * from ${JSON.stringify(sourceUrl)};
+    export const resolveModelSource = async model => model;`,
+  '../../gpu/device.js': `export const initDevice = async () => {
+    revocationHostFixture.events.push('device'); throw new Error('fixture device boundary');
+  }; export const getKernelCapabilities = () => ({}); export const getPlatformConfig = () => null;`,
+  '../../gpu/kernels/shader-source-scope.js': `import { runWithShaderSourceScope as run } from ${JSON.stringify(scopeUrl)};
+    export const runWithShaderSourceScope = (scope, action) => {
+      revocationHostFixture.events.push({ scope }); return run(scope, action);
+    };`,
+};
+const hooks = registerHooks({ resolve(specifier, context, next) {
+  if ([hostUrl, sourceFixtureUrl].includes(context.parentURL) && specifier === '../../config/revocation-policy.js') {
+    return { shortCircuit: true, url: policyUrl };
+  }
+  const source = context.parentURL === hostUrl ? hostModules[specifier]
+    : context.parentURL === policyUrl && specifier === '../formats/load-json.js'
+      ? 'export const loadJson = async () => structuredClone(revocationHostFixture.registry);'
+      : null;
+  return source ? { shortCircuit: true, url: `data:text/javascript,${encodeURIComponent(source)}` }
+    : next(specifier, context);
+} });
+try {
+  const { createDopplerRuntimeService } = await import(hostUrl);
+  const host = createDopplerRuntimeService({ ensureWebGPUAvailable: async () => {} });
+  const revoked = error => {
+    assert.equal(error.revocationId, 'unsafe-model-v1', error.message);
+    return true;
+  };
+  for (const [field, value] of [
+    ['modelId', 'resolved-model'],
+    ['sourceCheckpointId', 'source/model'],
+    ['weightCapsuleId', 'weight-capsule-v1'],
+    ['manifestVariantId', 'manifest-v1'],
+  ]) {
+    const manifest = field === 'modelId' ? { modelId: value }
+      : { modelId: 'allowed-fixture', artifactIdentity: { [field]: value } };
+    await assert.rejects(host.load({ manifest }), revoked);
+    assert.deepEqual(revocationHostFixture.events, [], 'revoked identities must fail before device acquisition');
+  }
+  await assert.rejects(host.load({ logicalModelId: 'logical-model', manifest: { modelId: 'allowed-fixture' } }), revoked);
+  await assert.rejects(host.load({ manifest: artifactManifest }), revoked);
+  assert.deepEqual(revocationHostFixture.events, [], 'logical and artifact denials must precede device acquisition');
+  const { resolveModelSource } = await import(sourceFixtureUrl);
+  await assert.rejects(resolveModelSource({ manifest: artifactManifest, manifestText: artifactText }), revoked);
+  const allowedManifest = { ...artifactManifest, modelId: 'allowed-fixture' };
+  const allowed = await resolveModelSource({ manifest: allowedManifest, manifestText: JSON.stringify(allowedManifest) });
+  assert.equal(allowed.manifest.modelId, 'allowed-fixture', 'an unrelated denial must not block a valid manifest');
+  await assert.rejects(host.load({ manifest: { modelId: 'allowed-fixture' } }), /fixture device boundary/);
+  assert.deepEqual(revocationHostFixture.events, [{ scope: null }, 'device'],
+    'allowed identities reach device acquisition in the host shader scope');
+} finally {
+  hooks.deregister();
+  delete globalThis.revocationHostFixture;
+}
 
 console.log('revocation-policy.test: ok');

@@ -260,7 +260,7 @@ export function createDopplerRuntimeService({
       sourceCheckpointId: manifestPayload.manifest?.artifactIdentity?.sourceCheckpointId,
       weightCapsuleId: manifestPayload.manifest?.artifactIdentity?.weightCapsuleId,
       manifestVariantId: manifestPayload.manifest?.artifactIdentity?.manifestVariantId,
-      artifactVariantId: manifestPayload.manifestHash,
+      artifactVariantId: `sha256:${manifestPayload.manifestHash}`,
     });
     await assertBundledResolutionNotRevoked(revocationIdentity);
     assertArtifactVariantAllowed(resolutionPolicy, manifestPayload.manifestHash);
