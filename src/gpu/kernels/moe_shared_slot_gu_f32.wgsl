@@ -87,44 +87,70 @@ fn q40_value(row: u32, k: u32, blocks: u32, format: u32, values: u32, bytes: u32
     return scale * f32(i32(value) - 8);
 }
 
+// Eight original values per invocation. Q6_K's segment is a logical 32-value
+// slice within its 256-value block; other formats have one such slice.
 fn packed_word(offset: u32) -> u32 {
     let shift = (offset % 4u) * 8u;
     let low = bank_word(offset / 4u);
     if (shift == 0u) { return low; }
     return (low >> shift) | (bank_word(offset / 4u + 1u) << (32u - shift));
 }
+fn packed_bytes(word: u32) -> vec4<u32> {
+    return (vec4<u32>(word) >> vec4<u32>(0u, 8u, 16u, 24u)) & vec4<u32>(255u);
+}
 fn signed_bytes(word: u32) -> vec4<f32> {
     let w = bitcast<i32>(word);
     return vec4<f32>(f32((w << 24u) >> 24u), f32((w << 16u) >> 24u),
         f32((w << 8u) >> 24u), f32(w >> 24u));
 }
-fn quarter_term(row: u32, b: u32, quarter: u32, blocks: u32, format: u32, bytes: u32,
-                xbase: u32) -> f32 {
-    let first = select(quarter * 4u, quarter * 8u, format == 2u);
-    let second = select(first + 16u, first + 4u, format == 2u);
-    let x = xbase + b * 32u;
-    let xa = vec4<f32>(input[x+first], input[x+first+1u], input[x+first+2u], input[x+first+3u]);
-    let xb = vec4<f32>(input[x+second], input[x+second+1u], input[x+second+2u], input[x+second+3u]);
-    let base = (row * blocks + b) * bytes;
+fn packed_quarter_term(base: u32, format: u32, segment: u32, quarter: u32,
+                       xa: vec4<f32>, xb: vec4<f32>) -> f32 {
+    if (format == 3u) {
+        let section = segment % 4u;
+        let low_offset = base + (segment / 4u) * 64u + (section % 2u) * 32u + quarter * 4u;
+        let high_offset = base + 128u + (segment / 4u) * 32u + quarter * 4u;
+        let low_shift = vec4<u32>((section / 2u) * 4u);
+        let high_shift = vec4<u32>(section * 2u);
+        let qa = ((packed_bytes(packed_word(low_offset)) >> low_shift) & vec4<u32>(15u))
+            | (((packed_bytes(packed_word(high_offset)) >> high_shift) & vec4<u32>(3u)) << vec4<u32>(4u));
+        let qb = ((packed_bytes(packed_word(low_offset + 16u)) >> low_shift) & vec4<u32>(15u))
+            | (((packed_bytes(packed_word(high_offset + 16u)) >> high_shift) & vec4<u32>(3u)) << vec4<u32>(4u));
+        let d = packed_half(base + 208u);
+        let da = d * f32(packed_signed_byte(base + 192u + segment * 2u));
+        let db = d * f32(packed_signed_byte(base + 193u + segment * 2u));
+        return dot(da * (vec4<f32>(qa) - vec4<f32>(32.0)), xa)
+            + dot(db * (vec4<f32>(qb) - vec4<f32>(32.0)), xb);
+    }
     let scale = packed_half(base);
     if (format == 2u) {
-        return scale * (dot(signed_bytes(packed_word(base+2u+first)), xa)
-            + dot(signed_bytes(packed_word(base+2u+second)), xb));
+        let first = base + 2u + quarter * 8u;
+        return scale * (dot(signed_bytes(packed_word(first)), xa)
+            + dot(signed_bytes(packed_word(first + 4u)), xb));
     }
-    if (format == 0u) {
-        let word = packed_word(base + 2u + quarter * 4u);
-        let shifts = vec4<u32>(0u, 8u, 16u, 24u);
-        let lo = vec4<f32>((vec4<u32>(word) >> shifts) & vec4<u32>(15u)) - vec4<f32>(8.0);
-        let hi = vec4<f32>((vec4<u32>(word >> 4u) >> shifts) & vec4<u32>(15u)) - vec4<f32>(8.0);
-        return scale * (dot(lo, xa) + dot(hi, xb));
+    var data_offset = 2u;
+    if (format == 1u) { data_offset = 4u; }
+    if (format == 4u) { data_offset = 6u; }
+    let bytes = packed_bytes(packed_word(base + data_offset + quarter * 4u));
+    var lo = bytes & vec4<u32>(15u);
+    var hi = bytes >> vec4<u32>(4u);
+    if (format == 4u) {
+        let high_bits = vec4<u32>(packed_word(base + 2u));
+        let bit = vec4<u32>(quarter * 4u) + vec4<u32>(0u, 1u, 2u, 3u);
+        lo |= ((high_bits >> bit) & vec4<u32>(1u)) << vec4<u32>(4u);
+        hi |= ((high_bits >> (bit + vec4<u32>(16u))) & vec4<u32>(1u)) << vec4<u32>(4u);
+        return scale * (dot(vec4<f32>(lo) - vec4<f32>(16.0), xa)
+            + dot(vec4<f32>(hi) - vec4<f32>(16.0), xb));
     }
-    var sum = 0.0;
-    for (var j = 0u; j < 4u; j++) {
-        sum = fma(xa[j], q40_value(row, b*32u+first+j, blocks, format, 32u, bytes), sum);
-        sum = fma(xb[j], q40_value(row, b*32u+second+j, blocks, format, 32u, bytes), sum);
+    if (format == 1u) {
+        let minimum = vec4<f32>(packed_half(base + 2u));
+        // Keep the additive minimum per logical value, including negative minima.
+        return dot(scale * vec4<f32>(lo) + minimum, xa)
+            + dot(scale * vec4<f32>(hi) + minimum, xb);
     }
-    return sum;
+    return scale * (dot(vec4<f32>(lo) - vec4<f32>(8.0), xa)
+        + dot(vec4<f32>(hi) - vec4<f32>(8.0), xb));
 }
+
 fn clamp_product(value: f32) -> f32 {
     if (u.clamp_max > 0.0) { return clamp(value, -u.clamp_max, u.clamp_max); }
     return value;
@@ -206,16 +232,22 @@ fn main(@builtin(workgroup_id) group: vec3<u32>, @builtin(num_workgroups) grid: 
     if (!is_shared) { expert = indices[token * TOP_K + slot]; }
     var gs = vec4<f32>(0.0); var us = vec4<f32>(0.0);
     if (expert < u.num_experts) {
+        let format = select(ROUTED_FORMAT, SHARED_FORMAT, is_shared);
+        let bytes = select(ROUTED_BYTES, SHARED_BYTES, is_shared);
+        let first = select((lane % 4u) * 4u, (lane % 4u) * 8u, format == 2u);
+        let second = select(first + 16u, first + 4u, format == 2u);
         for (var b = lane / 4u; b < u.hidden_size / 32u; b += WORKGROUP_SIZE / 4u) {
+            let x = token * u.hidden_size + b * 32u;
+            let xa = vec4<f32>(input[x+first], input[x+first+1u], input[x+first+2u], input[x+first+3u]);
+            let xb = vec4<f32>(input[x+second], input[x+second+1u], input[x+second+2u], input[x+second+3u]);
             for (var r = 0u; r < 4u; r++) {
                 if (row + r < rows) {
                     let er = expert * rows + row + r;
-                    let format = select(ROUTED_FORMAT, SHARED_FORMAT, is_shared);
-                    let bytes = select(ROUTED_BYTES, SHARED_BYTES, is_shared);
+                    let base = (er * (u.hidden_size / 32u) + b) * bytes;
                     bank = select(0u, 2u, is_shared);
-                    gs[r] += quarter_term(er, b, lane % 4u, u.hidden_size / 32u, format, bytes, token*u.hidden_size);
+                    gs[r] += packed_quarter_term(base, format, 0u, lane % 4u, xa, xb);
                     bank += 1u;
-                    us[r] += quarter_term(er, b, lane % 4u, u.hidden_size / 32u, format, bytes, token*u.hidden_size);
+                    us[r] += packed_quarter_term(base, format, 0u, lane % 4u, xa, xb);
                 }
             }
         }
