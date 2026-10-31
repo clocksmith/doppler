@@ -180,6 +180,7 @@ export interface KernelUniformValues {
   "attention/paired_tiled": Parameters<typeof writers0.write_attention_paired>[1];
   "attention/prefill_partitioned_head256_f16kv": Parameters<typeof writers0.write_attention_decode>[1];
   "attention/decode_online": Parameters<typeof writers0.write_attention_decode_online_f16>[1];
+  "attention/prefill_query_tile_f32": Parameters<typeof writers0.write_attention_prefill>[1];
   "attention_tiered/decode_tiered_f16": Parameters<typeof writers0.write_attention_tiered_decode_tiered_f16>[1];
   "attention_tiered/decode_tiered_f16kv": Parameters<typeof writers0.write_attention_tiered_decode_tiered_f16>[1];
   "attention_tiered_quant/decode_tiered_int8_f16kv": Parameters<typeof writers0.write_attention_tiered_quant_decode_tiered_int8_f16kv>[1];

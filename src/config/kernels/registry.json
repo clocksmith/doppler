@@ -14077,6 +14077,136 @@
        }
       ]
      }
+    },
+    "prefill_query_tile_f32": {
+     "wgsl": "attention_prefill_query_tile_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "wgslOverrides": {
+      "HEAD_DIM": 256,
+      "WORKGROUP_SIZE": 256
+     },
+     "requires": ["subgroups"],
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "tier": "tiled_small",
+      "queryBlockSize": 8,
+      "exactHeadDim": 256,
+      "maxHeadDim": 256,
+      "requiredShared": 16384,
+      "subgroupPartitionLanes": 32,
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "description": "Opt-in F32 online prefill query tile; component and model qualification pending.",
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 76,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "query_len",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "scale",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "is_causal",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "attn_softcap",
+        "type": "f32",
+        "offset": 32
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "kv_len_source",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "kv_start",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "page_size",
+        "type": "u32",
+        "offset": 48
+       },
+       {
+        "name": "kv_layout",
+        "type": "u32",
+        "offset": 52
+       },
+       {
+        "name": "bidirectional_span_start",
+        "type": "u32",
+        "offset": 56
+       },
+       {
+        "name": "bidirectional_span_length",
+        "type": "u32",
+        "offset": 60
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 64,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 68,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 72,
+        "padding": true
+       }
+      ]
+     }
     }
    }
   },
