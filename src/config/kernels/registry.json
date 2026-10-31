@@ -31127,7 +31127,38 @@
       "weightDtypes": ["q4_0","q4_1","q8_0"],
       "weightLayout": "row",
       "activationDtype": "f32",
-      "outerResidual": false
+      "outerResidual": false,
+      "reductionLanes": 8
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "native_f32_ordered": {
+     "wgsl": "moe_grouped_matmul_ordered_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256,
+      "GROUP_SIZE": 8,
+      "ROWS_PER_THREAD": 2,
+      "INPUT_IS_TOKEN": true,
+      "SPLIT_GATE_UP": true,
+      "REDUCTION_LANES": 32
+     },
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "phase": "prefill",
+      "weightDtypes": ["q4_0","q4_1","q8_0"],
+      "weightLayout": "row",
+      "activationDtype": "f32",
+      "outerResidual": false,
+      "reductionLanes": 32,
+      "arithmetic": "scalar-fma-tree32"
      },
      "reachability": {
       "status": "unused",
@@ -31238,7 +31269,38 @@
       "weightDtypes": ["q4_0","q4_1","q8_0"],
       "weightLayout": "row",
       "activationDtype": "f32",
-      "outerResidual": false
+      "outerResidual": false,
+      "reductionLanes": 8
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "native_f32_ordered": {
+     "wgsl": "moe_grouped_matmul_ordered_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256,
+      "GROUP_SIZE": 8,
+      "ROWS_PER_THREAD": 4,
+      "INPUT_IS_TOKEN": false,
+      "SPLIT_GATE_UP": false,
+      "REDUCTION_LANES": 32
+     },
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "phase": "prefill",
+      "weightDtypes": ["q4_0","q4_1","q8_0"],
+      "weightLayout": "row",
+      "activationDtype": "f32",
+      "outerResidual": false,
+      "reductionLanes": 32,
+      "arithmetic": "scalar-fma-tree32"
      },
      "reachability": {
       "status": "unused",

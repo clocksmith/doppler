@@ -300,6 +300,7 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "moe_gather.wgsl#gather_single_pass": "8dbd0c38a323ba6c73af3ecaad297d79d861b817152e6e2c12fcd9db6f767f1e",
   "moe_gather.wgsl#gather_tokens": "58e40a63a39c2f99c47c75dee71767f98482217afd74607cee1b7efc2c85738b",
   "moe_grouped_matmul_f32.wgsl#main": "51ac03671324c4d75ff63c452c85213675c9755858899a744ecdf51e5f9a2aa2",
+  "moe_grouped_matmul_ordered_f32.wgsl#main": "d27a330461fcc9a2285417aac33cb33f9d24183b68b5bd678560d3b13cf24b00",
   "moe_grouped_sort.wgsl#main": "a42d12d16424b759321bd40fc5f79646d9731dc851343a197c62a77dda4fdc0b",
   "moe_offsets.wgsl#build_offsets": "3ea004145fa234659408cdeb0d4d802adff1037c9c5c03af146b3734cc69dd27",
   "moe_route_gguf_split_f32.wgsl#main": "32a342a5b289797719ab6438f0e7d482ac16cb15a5f6315fbbf4758ac724cebd",

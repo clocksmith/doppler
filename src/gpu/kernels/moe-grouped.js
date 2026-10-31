@@ -4,15 +4,35 @@ import { createTensor } from '../tensor.js';
 import { getKernelConfig } from './kernel-configs.js';
 import { assertQ40Buffer } from './q4_0.js';
 import { unifiedKernelWrapper, withKernelOutput } from './kernel-execution.js';
+import { getLayerSteps, getKernelPathStepConfig } from '../../config/kernel-path-loader.js';
+
+/** @param {import('./moe-grouped.js').GroupedPrefillGeometry} options @param {string} operation */
+function groupedConfig(options, operation) {
+  // Preserve the original direct component API. Production calls pass the
+  // admitted phase/layer path so the selected entry also owns dispatch geometry.
+  if (options.kernelPath == null) return getKernelConfig(operation, 'native_f32');
+  if (options.phase !== 'prefill' || !Number.isSafeInteger(options.layerIdx) || Number(options.layerIdx) < 0) {
+    throw new Error('[MoE grouped prefill] Explicit prefill phase and layer required for declared projections.');
+  }
+  const steps = getLayerSteps(options.kernelPath, Number(options.layerIdx), options.phase)
+    .filter(step => step.op === operation);
+  const config = steps.length === 1 ? getKernelPathStepConfig(operation, steps[0], options.phase) : null;
+  if (!config || (steps[0].constants && Object.keys(steps[0].constants).length)) {
+    throw new Error(`[MoE grouped prefill] Declare one registered ${operation} entry without geometry overrides.`);
+  }
+  return config;
+}
 
 /** @type {typeof import('./moe-grouped.js').groupedPrefillGeometry} */
 export function groupedPrefillGeometry(options, limits) {
-  const sort = getKernelConfig('moe_grouped_sort', 'native_f32');
-  const gu = getKernelConfig('moe_grouped_gu', 'native_f32');
-  const down = getKernelConfig('moe_grouped_down', 'native_f32');
+  const sort = groupedConfig(options, 'moe_grouped_sort');
+  const gu = groupedConfig(options, 'moe_grouped_gu');
+  const down = groupedConfig(options, 'moe_grouped_down');
   const groupSize = Number(sort.wgslOverrides?.GROUP_SIZE);
   const maxExperts = Number(sort.wgslOverrides?.MAX_EXPERTS);
   const width = Number(sort.wgslOverrides?.WORKGROUP_SIZE);
+  const guLanes = Number(gu.variantMetadata?.reductionLanes);
+  const downLanes = Number(down.variantMetadata?.reductionLanes);
   const { numTokens, numExperts, topK, hiddenSize, intermediateSize } = options;
   const reject = (/** @type {string} */ reason) => {
     throw new Error(`[MoE grouped prefill] Unsupported candidate: ${reason}. Select the unchanged ungrouped execution graph explicitly; no automatic fallback.`);
@@ -25,7 +45,10 @@ export function groupedPrefillGeometry(options, limits) {
     || gu.wgslOverrides?.GROUP_SIZE !== groupSize || down.wgslOverrides?.GROUP_SIZE !== groupSize
     || gu.wgslOverrides?.WORKGROUP_SIZE !== width || down.wgslOverrides?.WORKGROUP_SIZE !== width
     || gu.wgslOverrides?.INPUT_IS_TOKEN !== true || gu.wgslOverrides?.SPLIT_GATE_UP !== true
-    || down.wgslOverrides?.INPUT_IS_TOKEN !== false || down.wgslOverrides?.SPLIT_GATE_UP !== false) {
+    || down.wgslOverrides?.INPUT_IS_TOKEN !== false || down.wgslOverrides?.SPLIT_GATE_UP !== false
+    || ![8, 32].includes(guLanes) || downLanes !== guLanes
+    || (gu.wgslOverrides?.REDUCTION_LANES != null && gu.wgslOverrides.REDUCTION_LANES !== guLanes)
+    || (down.wgslOverrides?.REDUCTION_LANES != null && down.wgslOverrides.REDUCTION_LANES !== downLanes)) {
     reject('registered tile geometry differs from this implementation');
   }
   if (![limits.maxComputeInvocationsPerWorkgroup, limits.maxComputeWorkgroupSizeX,
@@ -39,8 +62,8 @@ export function groupedPrefillGeometry(options, limits) {
   const numRoutes = numTokens * topK;
   const maxChunks = Math.ceil(numRoutes / groupSize) + numExperts;
   const pairOffset = 4 * maxChunks;
-  const guGroups = Math.ceil(intermediateSize * 2 / (32 * Number(gu.wgslOverrides?.ROWS_PER_THREAD)));
-  const downGroups = Math.ceil(hiddenSize / (32 * Number(down.wgslOverrides?.ROWS_PER_THREAD)));
+  const guGroups = Math.ceil(intermediateSize * 2 / (width / guLanes * Number(gu.wgslOverrides?.ROWS_PER_THREAD)));
+  const downGroups = Math.ceil(hiddenSize / (width / downLanes * Number(down.wgslOverrides?.ROWS_PER_THREAD)));
   if ([maxChunks, guGroups, downGroups].some(n => n > limits.maxComputeWorkgroupsPerDimension)) reject('dispatch exceeds device axis limit');
   const groupBytes = (pairOffset + numRoutes) * 4;
   for (const bytes of [groupBytes, numRoutes * intermediateSize * 8, numRoutes * hiddenSize * 4, numTokens * hiddenSize * 4]) {
@@ -61,7 +84,8 @@ export async function executeGroupedSort(recorder, indices, groups, indirect, op
   if (!(indirect.usage & GPUBufferUsage.INDIRECT) || new Set([indices, groups, indirect]).size !== 3) {
     throw new Error('[MoE grouped prefill] Distinct schedule/indices/indirect buffers with INDIRECT usage required.');
   }
-  await unifiedKernelWrapper('moe_grouped_sort', recorder, 'native_f32', [indices, groups, indirect], {
+  const config = groupedConfig(options, 'moe_grouped_sort');
+  await unifiedKernelWrapper('moe_grouped_sort', recorder, config.variant, [indices, groups, indirect], {
     num_routes: geometry.numRoutes, num_experts: options.numExperts, top_k: options.topK,
     pair_offset: geometry.pairOffset, gu_groups: geometry.guGroups, down_groups: geometry.downGroups,
   }, [1, 1, 1]);
@@ -73,7 +97,7 @@ export async function executeGroupedProjection(recorder, operation, input, weigh
   const device = recorder?.device ?? getDevice();
   if (!device) throw new Error('[MoE grouped prefill] Active device required.');
   const geometry = groupedPrefillGeometry(options, device.limits);
-  const config = getKernelConfig(operation, 'native_f32');
+  const config = groupedConfig(options, operation);
   const isGateUp = config.wgslOverrides?.INPUT_IS_TOKEN === true;
   const N = isGateUp ? options.intermediateSize * 2 : options.hiddenSize;
   const K = isGateUp ? options.hiddenSize : options.intermediateSize;
@@ -97,7 +121,7 @@ export async function executeGroupedProjection(recorder, operation, input, weigh
   assertQ40Buffer(device, indirect, 24, GPUBufferUsage.INDIRECT, 'grouped indirect');
   const format = ggufBlockFormat(weights.dtype);
   return withKernelOutput(recorder, null, geometry.numRoutes * N * 4, operation, async output => {
-    await unifiedKernelWrapper(operation, recorder, 'native_f32',
+    await unifiedKernelWrapper(operation, recorder, config.variant,
       [input.buffer, weights.buffer, upWeights?.buffer ?? weights.buffer, groups, output], {
         num_routes: geometry.numRoutes, num_experts: options.numExperts, top_k: options.topK,
         pair_offset: geometry.pairOffset, N, K,

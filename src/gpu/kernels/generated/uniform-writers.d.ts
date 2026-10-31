@@ -476,6 +476,8 @@ export interface KernelUniformValues {
   "sigmoid_gated_add/f32": Parameters<typeof writers2.write_sigmoid_gated_add_f32>[1];
   "moe_grouped_sort/native_f32": Parameters<typeof writers2.write_moe_grouped_sort_native_f32>[1];
   "moe_grouped_gu/native_f32": Parameters<typeof writers2.write_moe_grouped_gu_native_f32>[1];
+  "moe_grouped_gu/native_f32_ordered": Parameters<typeof writers2.write_moe_grouped_gu_native_f32>[1];
   "moe_grouped_down/native_f32": Parameters<typeof writers2.write_moe_grouped_gu_native_f32>[1];
+  "moe_grouped_down/native_f32_ordered": Parameters<typeof writers2.write_moe_grouped_gu_native_f32>[1];
 }
 export declare const UNIFORM_WRITERS: { readonly [K in keyof KernelUniformValues]: { readonly size: number; readonly write: (view: DataView, values: KernelUniformValues[K], kernel: string) => void } };

@@ -431,6 +431,8 @@ export async function moeFeedForwardGPU(
     stepStart = perfMark();
     const routeOptions = {
       groupedPrefill: config.groupedPrefill === true,
+      kernelPath: config.kernelPath,
+      phase: config.phase,
       sharedSlot: config.sharedSlot ?? null,
       inputTensor,
       indicesBuffer,

@@ -2,6 +2,10 @@ import type { Tensor } from '../tensor.js';
 import type { WeightBuffer } from '../weight-buffer.js';
 import type { CommandRecorder } from '../command-recorder.js';
 export interface GroupedPrefillGeometry {
+  /** Exact declared program; omission preserves the original direct component API. */
+  kernelPath?: import('../../config/schema/index.js').KernelPathSchema | null;
+  phase?: 'prefill' | 'decode';
+  layerIdx?: number;
   numTokens: number;
   numExperts: number;
   topK: number;

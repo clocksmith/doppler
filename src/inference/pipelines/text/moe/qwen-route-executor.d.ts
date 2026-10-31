@@ -3,6 +3,9 @@ import type { WeightBuffer } from '../../../../gpu/weight-buffer.js';
 import type { CommandRecorder } from '../../../../gpu/command-recorder.js';
 
 export interface QwenRouteExpertOptions {
+  /** Declared grouped projection identity, required with a production grouped path. */
+  kernelPath?: import('../../../../config/schema/index.js').KernelPathSchema | null;
+  phase?: 'prefill' | 'decode';
   groupedPrefill?: boolean;
   sharedSlot?: QwenSharedSlot | null;
   /** Required for a prepared single-token recorder. */

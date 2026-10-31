@@ -38,7 +38,8 @@ export async function executeGroupedPrefill(recorder, options) {
   }
   const device = recorder?.device ?? getDevice();
   if (!device) throw new Error('[MoE grouped prefill] Active device required.');
-  const geometry = { numTokens, numExperts: weights.numExperts, topK, hiddenSize, intermediateSize };
+  const geometry = { numTokens, numExperts: weights.numExperts, topK, hiddenSize, intermediateSize,
+    kernelPath: options.kernelPath, phase: options.phase, layerIdx: options.layerIdx };
   const sizes = groupedPrefillGeometry(geometry, device.limits);
   const activate = recorder ? recordSiLURowSplit.bind(null, recorder) : runSiLURowSplit;
   const scatter = recorder ? recordRouteScatter.bind(null, recorder) : runRouteScatter;
