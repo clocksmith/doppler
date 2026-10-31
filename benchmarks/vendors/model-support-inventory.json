@@ -110,7 +110,7 @@
   "summary": {
     "catalogModelCount": 31,
     "sourceCheckpointCount": 23,
-    "conversionOnlyConfigCount": 14,
+    "conversionOnlyConfigCount": 17,
     "hfPublishedModelCount": 19,
     "verifiedModelCount": 26,
     "benchmarkSelectedSourceCount": 1,
@@ -4022,6 +4022,24 @@
       "nextCommand": null
     },
     {
+      "modelBaseId": "qwen-3-5-0-8b-canonical-f32",
+      "family": "qwen3",
+      "conversionConfig": "src/config/conversion/qwen3/qwen-3-5-0-8b-canonical-f32.json",
+      "sourceCheckpointId": "qwen-3-5-0-8b-canonical-f32-b322d7ee",
+      "architecture": {
+        "artifactFormat": "rdrr",
+        "weights": "f32",
+        "embeddings": "f32",
+        "lmHead": "f32",
+        "computePrecision": "f32",
+        "q4kLayout": null,
+        "label": "RDRR, f32 weights, f32 embeddings, f32 LM head, f32 compute"
+      },
+      "status": "conversion-ready",
+      "nextAction": "Catalog, verify, and publish qwen-3-5-0-8b-canonical-f32 before claiming runtime support.",
+      "nextCommand": null
+    },
+    {
       "modelBaseId": "qwen-3-5-9b-f16-af32",
       "family": "qwen3",
       "conversionConfig": "src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json",
@@ -4055,6 +4073,42 @@
       },
       "status": "conversion-ready",
       "nextAction": "Catalog, verify, and publish qwen-3-5-9b-q4k-ehaf16 before claiming runtime support.",
+      "nextCommand": null
+    },
+    {
+      "modelBaseId": "qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+      "family": "qwen3",
+      "conversionConfig": "src/config/conversion/qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32.json",
+      "sourceCheckpointId": "Qwen/Qwen3.6-35B-A3B",
+      "architecture": {
+        "artifactFormat": "rdrr",
+        "weights": "q4k",
+        "embeddings": "f16",
+        "lmHead": "f16",
+        "computePrecision": "f32",
+        "q4kLayout": "row",
+        "label": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout"
+      },
+      "status": "conversion-ready",
+      "nextAction": "Catalog, verify, and publish qwen-3-6-35b-a3b-text-q4k-ehf16-af32 before claiming runtime support.",
+      "nextCommand": null
+    },
+    {
+      "modelBaseId": "qwen-3-6-35b-a3b-text-source-q4_0-af32",
+      "family": "qwen3",
+      "conversionConfig": "src/config/conversion/qwen3/qwen-3-6-35b-a3b-q4_0-passthrough.json",
+      "sourceCheckpointId": null,
+      "architecture": {
+        "artifactFormat": "rdrr",
+        "weights": "q4_0",
+        "embeddings": "q4_0",
+        "lmHead": "q6k",
+        "computePrecision": "f32",
+        "q4kLayout": "row",
+        "label": "RDRR, q4_0 weights, q4_0 embeddings, q6k LM head, f32 compute, row Q4K layout"
+      },
+      "status": "conversion-ready",
+      "nextAction": "Catalog, verify, and publish qwen-3-6-35b-a3b-text-source-q4_0-af32 before claiming runtime support.",
       "nextCommand": null
     },
     {

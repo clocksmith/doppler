@@ -20,7 +20,7 @@ Size tiers group recorded artifact bytes, not parameter classes or implementatio
 
 - Catalog models: 31
 - Source checkpoints: 23
-- Conversion-only configs: 14
+- Conversion-only configs: 17
 - HF-published catalog models: 19
 - Runtime-verified catalog models: 26
 - Benchmark-selected source architectures: 1
@@ -117,8 +117,11 @@ These entries have checked-in conversion configs but are not catalog-supported r
 | src/config/conversion/gpt-oss-20b-f16-xmxfp4.json | gpt-oss-20b-f16-xmxfp4 | root | RDRR, f16 weights, f16 embeddings, f16 LM head, f16 compute |
 | src/config/conversion/janus/janus-pro-1b-text-q4k-ehaf16.json | janus-pro-1b-text-q4k-ehaf16 | janus | RDRR, q4k weights, f16 embeddings, f16 LM head, f16 compute, row Q4K layout |
 | src/config/conversion/qwen3/qwen-3-4b-instruct-2507-q4k-ehf16-af32.json | qwen-3-4b-instruct-2507-q4k-ehf16-af32 | qwen3 | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout |
+| src/config/conversion/qwen3/qwen-3-5-0-8b-canonical-f32.json | qwen-3-5-0-8b-canonical-f32 | qwen3 | RDRR, f32 weights, f32 embeddings, f32 LM head, f32 compute |
 | src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json | qwen-3-5-9b-f16-af32 | qwen3 | RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute |
 | src/config/conversion/qwen3/qwen-3-5-9b-q4k-ehaf16.json | qwen-3-5-9b-q4k-ehaf16 | qwen3 | RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout |
+| src/config/conversion/qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32.json | qwen-3-6-35b-a3b-text-q4k-ehf16-af32 | qwen3 | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout |
+| src/config/conversion/qwen3/qwen-3-6-35b-a3b-q4_0-passthrough.json | qwen-3-6-35b-a3b-text-source-q4_0-af32 | qwen3 | RDRR, q4_0 weights, q4_0 embeddings, q6k LM head, f32 compute, row Q4K layout |
 | src/config/conversion/qwen3/qwen-3-embedding-0-6b-f16-af32.json | qwen-3-embedding-0-6b-f16-af32 | qwen3 | RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout |
 | src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32.json | qwen-3-reranker-0-6b-f16-true-logit-af32 | qwen3 | RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute |
 | src/config/conversion/qwen3/qwen3.8-27b-text-q4k-ehaf16.json | qwen3.8-27b-text-q4k-ehaf16 | qwen3 | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout |
