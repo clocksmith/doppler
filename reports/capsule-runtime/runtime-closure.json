@@ -2,8 +2,8 @@
   "schema": "doppler.capsule-runtime-closure/v1",
   "entrypoint": "src/capsule-runtime.js",
   "scope": "injected-capsule-core; excludes host-supplied program executors",
-  "fileCount": 87,
-  "sourceBytes": 989806,
+  "fileCount": 88,
+  "sourceBytes": 1114937,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -269,8 +269,8 @@
     },
     {
       "path": "src/config/kernels/registry.json",
-      "sizeBytes": 542021,
-      "hash": "sha256:1009cc0ebe898967889215c6a2b29cd661d29277c37eb975eb412dd4c4013e29"
+      "sizeBytes": 665571,
+      "hash": "sha256:d98d261c3288a505edbd632535de7848ea37681c43e15479fb7820a68db22189"
     },
     {
       "path": "src/config/layer-partition-plan.js",
@@ -374,8 +374,8 @@
     },
     {
       "path": "src/debug/tensor.js",
-      "sizeBytes": 10955,
-      "hash": "sha256:3099bb41fb3a5df975ca298a6e84d88a0d0bd852d4687de21dbe58039c0c35d3"
+      "sizeBytes": 10664,
+      "hash": "sha256:7e384215abd49c1ff035341d2e3d4f2ea9ca5d7a8655ce8e8f8f0d5a17e2b50d"
     },
     {
       "path": "src/debug/trace.js",
@@ -398,6 +398,11 @@
       "hash": "sha256:43057cb85a7191cac16067c4a884114aa0ac001079b37161196f649e68669154"
     },
     {
+      "path": "src/formats/float16.js",
+      "sizeBytes": 2225,
+      "hash": "sha256:b3faf423ee67d7ee592205cecbdeecaf1d028eb928a431d4eb1411b10c578c2d"
+    },
+    {
       "path": "src/formats/load-json.js",
       "sizeBytes": 1158,
       "hash": "sha256:71761a83b6d7a0e89962592f6d3181f9524eb6784bafb1879dcd4316b936ed5f"
@@ -409,8 +414,8 @@
     },
     {
       "path": "src/formats/sha256.js",
-      "sizeBytes": 5548,
-      "hash": "sha256:5a8e1d52e1e7349cbb4f990d854a420c45a65c1eaf83f4e1921b369f4512868b"
+      "sizeBytes": 5195,
+      "hash": "sha256:affb628ccb76ccef69fec0602779a2f19509030b60197750ead7ef7f6475eabe"
     },
     {
       "path": "src/formats/sorted-json.js",

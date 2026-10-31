@@ -35,16 +35,11 @@ the mirror, drift and policy checks whose inputs the change touches. The
 and then `check:all`, every gate check regardless of inputs.
 
 The `Smoke` GitHub Actions workflow (`.github/workflows/check-green.yml`) runs
-`test:smoke`, `test:unit:webgpu`, `test:unit:browser`, `package:smoke`, and
-`test:demo:contract`. It does not run `check:green`. Use `npm run` or
-`npm pkg get scripts` to discover the current commands rather than maintaining a
-second list here. Suite selection, pending tests, and isolated
-execution are documented in the [testing runbook](testing-runbook.md).
-
-Automatic CI also installs Chromium for its declared browser contracts. That
-software-rendered lane is distinct from physical GPU and actual-model evidence.
-Use the separately declared runtime validation lanes when a change needs those
-observations; local model availability never becomes an unconditional CI input.
+only `npm run package:smoke`: installed public imports, declarations, and synthetic
+consumer contracts, without a browser, GPU provider, or downloaded model. It does
+not run `check:green` or the full test suite. The
+[testing runbook](testing-runbook.md#ci-notes) records the reproduction command
+and separate on-demand browser, hardware, and model validation lanes.
 
 ## Repo touch policy reminder
 

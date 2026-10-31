@@ -235,6 +235,7 @@ converter/execution-graph/validation.d.ts
 converter/forge-candidate-evaluation.d.ts
 converter/forge-qualification.d.ts
 converter/forge-stages.d.ts
+converter/fp8-source.d.ts
 converter/lineage-lowering-forge.d.ts
 converter/lineage-lowering-forge.js
 converter/linear-norm-gate.d.ts
@@ -478,6 +479,10 @@ formats/contract-validation.d.ts
 formats/encode-utf8.d.ts
 formats/flatbuffer-tables.d.ts
 formats/float16.d.ts
+formats/float8.d.ts
+formats/gguf/block-storage.d.ts
+formats/gguf/qwen-source.d.ts
+formats/gguf/tokenizer.d.ts
 formats/gguf/types.d.ts
 formats/litert/types.d.ts
 formats/load-json.d.ts
@@ -485,6 +490,9 @@ formats/plain-object.d.ts
 formats/q4k-dequant.d.ts
 formats/rdrr/distributed/parsing.d.ts
 formats/rdrr/distributed/validation.d.ts
+formats/rdrr/fp8-contract.d.ts
+formats/rdrr/fp8-storage.d.ts
+formats/rdrr/q4_0-storage.d.ts
 formats/rdrr/source-transform-contract.d.ts
 formats/rdrr/storage-descriptor.d.ts
 formats/rdrr/tensor-config-validator.d.ts
@@ -555,6 +563,7 @@ gpu/kernels/dispatch.d.ts
 gpu/kernels/embedding-pool.d.ts
 gpu/kernels/energy.d.ts
 gpu/kernels/feature-check.d.ts
+gpu/kernels/fp8.d.ts
 gpu/kernels/fused-gate-up-gelu.d.ts
 gpu/kernels/fused_ffn.d.ts
 gpu/kernels/fused_matmul_residual.d.ts
@@ -591,8 +600,12 @@ gpu/kernels/logit-scatter.d.ts
 gpu/kernels/logit-suppress.d.ts
 gpu/kernels/matmul-dispatch.d.ts
 gpu/kernels/matmul-selection.d.ts
+gpu/kernels/matmul-workgroup-capacity.d.ts
 gpu/kernels/matmul.d.ts
 gpu/kernels/modulate.d.ts
+gpu/kernels/moe-grouped.d.ts
+gpu/kernels/moe-route.d.ts
+gpu/kernels/moe-shared-slot.d.ts
 gpu/kernels/moe.d.ts
 gpu/kernels/paired-activation.d.ts
 gpu/kernels/paired-attention.d.ts
@@ -603,6 +616,7 @@ gpu/kernels/paired-rmsnorm.d.ts
 gpu/kernels/paired-rope.d.ts
 gpu/kernels/paired-split.d.ts
 gpu/kernels/pixel_shuffle.d.ts
+gpu/kernels/q4_0.d.ts
 gpu/kernels/qwen_attention_split_q_gate.d.ts
 gpu/kernels/qwen_linear_attention_prepare.d.ts
 gpu/kernels/relu.d.ts
@@ -620,6 +634,7 @@ gpu/kernels/rope.d.ts
 gpu/kernels/rule-registry.d.ts
 gpu/kernels/sample.d.ts
 gpu/kernels/scale.d.ts
+gpu/kernels/sigmoid-gated-add.d.ts
 gpu/kernels/silu.d.ts
 gpu/kernels/soft-embedding.d.ts
 gpu/kernels/softmax.d.ts
@@ -754,6 +769,7 @@ inference/pipelines/text/ffn/dense-plan.d.ts
 inference/pipelines/text/ffn/dense.d.ts
 inference/pipelines/text/ffn/moe.d.ts
 inference/pipelines/text/ffn/paired.d.ts
+inference/pipelines/text/ffn/qwen-shared-expert.d.ts
 inference/pipelines/text/ffn/sandwich.d.ts
 inference/pipelines/text/ffn/standard.d.ts
 inference/pipelines/text/ffn/types.d.ts
@@ -816,6 +832,7 @@ inference/pipelines/text/moe-gpu.d.ts
 inference/pipelines/text/moe-shape-validator.d.ts
 inference/pipelines/text/moe/expert-loading.d.ts
 inference/pipelines/text/moe/gpu-executor.d.ts
+inference/pipelines/text/moe/grouped-prefill.d.ts
 inference/pipelines/text/moe/plan.d.ts
 inference/pipelines/text/normalization-contract.d.ts
 inference/pipelines/text/operator-events.d.ts
@@ -878,7 +895,6 @@ loader/load-timing.d.ts
 loader/manifest-config.d.ts
 loader/model-executor.d.ts
 loader/model-load-validation.d.ts
-loader/model-load.d.ts
 loader/multi-model-loader.d.ts
 loader/multi-model-loader.js
 loader/per-layer-input-loader.d.ts
@@ -887,8 +903,10 @@ loader/tensor-load-error.d.ts
 loader/tensor-shard-indices.d.ts
 loader/tensors/bf16-loader.d.ts
 loader/tensors/buffer-write.d.ts
+loader/tensors/fp8-loader.d.ts
 loader/tensors/functional-descriptor-loader.d.ts
 loader/tensors/load-executor.d.ts
+loader/tensors/q4_0-loader.d.ts
 loader/tensors/range-backed-weights.d.ts
 loader/tensors/source-transform.d.ts
 loader/tensors/source-transform/executor.d.ts

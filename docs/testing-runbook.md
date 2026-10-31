@@ -94,10 +94,18 @@ runtime configuration fields.
 
 ## CI notes
 
-- The [automatic CI workflow](../.github/workflows/check-green.yml) installs
-  Chromium and runs the browser kernel and demo/offline-PWA contracts after
-  the Node gates. Its SwiftShader kernel lane is not physical GPU qualification.
-- Physical GPU and model-artifact qualification remain separately scoped runs.
+- The [automatic CI workflow](../.github/workflows/check-green.yml) runs only
+  `npm run package:smoke` on Node 22. It packs and installs the library offline,
+  checks public imports and declarations, and exercises synthetic consumer
+  contracts. No browser, GPU provider, or model download is required.
+- Reproduce the job with `npm ci --ignore-scripts --omit=optional --no-audit --no-fund`
+  followed by `npm run package:smoke`. A failed assertion fails the job.
+- Broader behavior suites remain available through the commands above; a green
+  package smoke does not mean every test passed or qualify numerical correctness.
+- [Manual runtime validation](../.github/workflows/manual-runtime-validation.yml)
+  and [installed consumers](../.github/workflows/installed-consumers.yml) remain
+  on demand. Physical GPU and model-artifact qualification require their declared
+  hardware and inputs; hosted software rendering is not physical GPU evidence.
 - Node coverage policy is defined in `tools/policies/test-coverage-policy.json`.
 
 ## Related

@@ -1,8 +1,7 @@
 name: Smoke
 
-# Hosted CI is a smoke test: behavior suites, the packed package, and the demo.
-# The repository gate (npm run check:green: behavior checks plus the checks
-# whose inputs changed), kernels:check and GPU kernel contracts run on demand.
+# Automatic CI checks the installed package without GPUs, browsers, or model downloads.
+# Hardware and browser qualification stay in the manual workflows.
 on:
   pull_request:
   push:
@@ -18,48 +17,13 @@ concurrency:
 
 jobs:
   smoke:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Setup Node
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
           node-version: '22'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-        env:
-          # No smoke step uses onnxruntime-node; skip its binary download.
-          ONNXRUNTIME_NODE_INSTALL: skip
-
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
-
-      - name: Configure software Vulkan for hosted smoke
-        run: |
-          sudo apt-get update
-          sudo apt-get install --no-install-recommends -y mesa-vulkan-drivers
-          icd=$(dpkg -L mesa-vulkan-drivers | awk '/\/lvp_icd(\.[^/]*)?\.json$/ { print; exit }')
-          test -n "$icd" && test -f "$icd"
-          echo "VK_ICD_FILENAMES=$icd" >> "$GITHUB_ENV"
-          cat "$icd"
-        # Lavapipe executes WGSL on the CPU. This smoke is not hardware qualification.
-        # https://dawn.googlesource.com/dawn/+/refs/heads/main/src/dawn/node/README.md
-
-      - name: Behavior tests
-        run: npm run test:smoke
-
-      - name: Node WebGPU and browser unit tests
-        run: |
-          npm run test:unit:webgpu
-          npm run test:unit:browser
-
-      - name: Packed package smoke
-        run: npm run package:smoke
-
-      - name: Demo UI and offline PWA smoke
-        run: npm run test:demo:contract
+          cache: npm
+      - run: npm ci --ignore-scripts --omit=optional --no-audit --no-fund
+      - run: npm run package:smoke

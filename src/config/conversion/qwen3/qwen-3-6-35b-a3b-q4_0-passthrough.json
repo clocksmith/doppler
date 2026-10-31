@@ -253,7 +253,7 @@
       "q4_decode": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "gemv",
-        "digest": "sha256:ddf446aad68571e70b6af151c394475b274cae9d8d30d966628b0be89e2942ce",
+        "digest": "sha256:96a3c0229daa90ade6496b3403a294dfd5944af671719c7be19fde680a0af789",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,
@@ -267,7 +267,7 @@
       "q4_decode_gemv": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "gemv",
-        "digest": "sha256:ddf446aad68571e70b6af151c394475b274cae9d8d30d966628b0be89e2942ce",
+        "digest": "sha256:96a3c0229daa90ade6496b3403a294dfd5944af671719c7be19fde680a0af789",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,
@@ -307,7 +307,7 @@
       "q4_prefill": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "prefill",
-        "digest": "sha256:3e496b406ca040e4dd43b43f52d3f6818198b8461338675abd81891f2e665dde",
+        "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,
@@ -321,7 +321,7 @@
       "q4_widetile": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "prefill",
-        "digest": "sha256:3e496b406ca040e4dd43b43f52d3f6818198b8461338675abd81891f2e665dde",
+        "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,
@@ -335,7 +335,7 @@
       "tiled": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "gemv",
-        "digest": "sha256:ddf446aad68571e70b6af151c394475b274cae9d8d30d966628b0be89e2942ce",
+        "digest": "sha256:96a3c0229daa90ade6496b3403a294dfd5944af671719c7be19fde680a0af789",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,
@@ -365,7 +365,7 @@
       "lm_head_gemv": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "gemv",
-        "digest": "sha256:ddf446aad68571e70b6af151c394475b274cae9d8d30d966628b0be89e2942ce",
+        "digest": "sha256:96a3c0229daa90ade6496b3403a294dfd5944af671719c7be19fde680a0af789",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,
@@ -379,7 +379,7 @@
       "lm_head_q4": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "gemv",
-        "digest": "sha256:ddf446aad68571e70b6af151c394475b274cae9d8d30d966628b0be89e2942ce",
+        "digest": "sha256:96a3c0229daa90ade6496b3403a294dfd5944af671719c7be19fde680a0af789",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,
@@ -418,7 +418,7 @@
       "q8_0_decode": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "gemv",
-        "digest": "sha256:ddf446aad68571e70b6af151c394475b274cae9d8d30d966628b0be89e2942ce",
+        "digest": "sha256:96a3c0229daa90ade6496b3403a294dfd5944af671719c7be19fde680a0af789",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,
@@ -432,7 +432,7 @@
       "q8_0_prefill": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "prefill",
-        "digest": "sha256:3e496b406ca040e4dd43b43f52d3f6818198b8461338675abd81891f2e665dde",
+        "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,
@@ -446,7 +446,7 @@
       "q6k_decode": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "gemv",
-        "digest": "sha256:ddf446aad68571e70b6af151c394475b274cae9d8d30d966628b0be89e2942ce",
+        "digest": "sha256:96a3c0229daa90ade6496b3403a294dfd5944af671719c7be19fde680a0af789",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,
@@ -460,7 +460,7 @@
       "q6k_prefill": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "prefill",
-        "digest": "sha256:3e496b406ca040e4dd43b43f52d3f6818198b8461338675abd81891f2e665dde",
+        "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,
@@ -474,7 +474,7 @@
       "q5_0_decode": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "gemv",
-        "digest": "sha256:ddf446aad68571e70b6af151c394475b274cae9d8d30d966628b0be89e2942ce",
+        "digest": "sha256:96a3c0229daa90ade6496b3403a294dfd5944af671719c7be19fde680a0af789",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,
@@ -488,7 +488,7 @@
       "q5_0_prefill": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "prefill",
-        "digest": "sha256:3e496b406ca040e4dd43b43f52d3f6818198b8461338675abd81891f2e665dde",
+        "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,
