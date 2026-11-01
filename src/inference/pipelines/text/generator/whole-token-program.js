@@ -163,8 +163,8 @@ export class WholeTokenProgram {
   }
 
   /**
-   * Keep the built program for the next generation. Its first observed step (verify)
-   * must agree with the steps the program was built from before it replays again.
+   * Keep the built program for the next generation. Its first step (verify) must agree
+   * with the steps the program was built from before it replays again.
    */
   beginGeneration() {
     if (!this.ready) throw new Error('[WholeTokenProgram] Only a built program can be kept.');

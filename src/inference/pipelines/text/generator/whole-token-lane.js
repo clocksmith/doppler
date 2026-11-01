@@ -5,12 +5,12 @@ import { advanceDecodeStepCount } from '../tsir-fixture-writer.js';
 import { WholeTokenProgram } from './whole-token-program.js';
 
 // Whole-token program lane of single-token decode (decodeLoop.wholeTokenProgram):
-// step 1 of a generation runs the ordinary recorded step; later steps are observed
-// until the program is built, then replay it. A step the built program cannot run
-// (outside its declared positions, or with a changed plan or resource) invalidates
-// it and is observed again. A built program is kept for the next generation, whose
-// first observed step must match it (WholeTokenProgram.verify) before it replays.
-// See whole-token-program.js.
+// without a built program, step 1 of a generation runs the ordinary recorded step and
+// later steps are observed until the program is built, then replay it. A step the
+// built program cannot run (outside its declared positions, or with a changed plan or
+// resource) invalidates it and is observed again. A built program is kept for the next
+// generation, whose step 1 is observed and must match it (WholeTokenProgram.verify)
+// before step 2 replays. See whole-token-program.js.
 
 /** @typedef {import('../state.js').PipelineState} PipelineState */
 /** @typedef {{ seqLen?: unknown, keysGPU?: GPUBuffer | null, valuesGPU?: GPUBuffer | null }} KVLayerView */
@@ -148,14 +148,16 @@ export async function decodeWholeTokenStep(state, currentIds, runRecorded) {
   if (step === 1) {
     const kept = state.wholeTokenProgram?.program;
     if (kept?.ready) {
+      // Bind group descriptors from earlier generations are still known, so the kept
+      // program is verified on this step and replays from step 2.
       kept.beginGeneration();
+    } else {
+      kept?.destroy();
+      const device = getDevice();
+      if (!device) throw new Error('[WholeTokenProgram] Requires an active GPU device.');
+      state.wholeTokenProgram = { program: new WholeTokenProgram(device), advancers: null };
       return runRecorded(null);
     }
-    kept?.destroy();
-    const device = getDevice();
-    if (!device) throw new Error('[WholeTokenProgram] Requires an active GPU device.');
-    state.wholeTokenProgram = { program: new WholeTokenProgram(device), advancers: null };
-    return runRecorded(null);
   }
   const lane = state.wholeTokenProgram;
   if (!lane) throw new Error('[WholeTokenProgram] Generation reached decode step > 1 without a program.');
