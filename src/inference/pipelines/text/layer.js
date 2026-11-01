@@ -315,6 +315,9 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   } else if (isLinearLayer) {
     attnOutput = await runLinearAttentionLayer(inputTensor, layerWeights ?? null, {
       layerIdx,
+      // The fused decode input norm + a/b step resolves by the true phase: a one-token
+      // prefill (no recorder) is not a decode step.
+      executionPhase: context.phase,
       numTokens,
       hiddenSize,
       config,

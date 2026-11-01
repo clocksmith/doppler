@@ -87,6 +87,8 @@ export interface RunLinearAttentionLayerOptions {
     label: string
   ) => GPUBuffer;
   precomputedInputNorm?: Tensor | null;
+  /** The caller's execution phase; a declared linear_norm_ab (decode) step resolves by it, not by token count. */
+  executionPhase?: 'prefill' | 'decode';
   debugProbes?: ProbeConfigSchema[] | null;
   recorder?: CommandRecorder | null;
   lora?: LoRAAdapter | null;

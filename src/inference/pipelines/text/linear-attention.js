@@ -429,7 +429,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
 
   // A declared linear_norm_ab step runs the input norm with in_proj_a and in_proj_b.
   const fusedAB = await recordDeclaredLinearNormAB(recorder, {
-    kernelPath, phase, layerIdx, numTokens, inputTensor, precomputedInputNorm, layerWeights, getNormWeightBuffer,
+    kernelPath, phase: options.executionPhase ?? phase, layerIdx, numTokens, inputTensor, precomputedInputNorm, layerWeights, getNormWeightBuffer,
     projectionDtype, rmsNormWeightOffset: config.rmsNormWeightOffset, eps: layerState.rmsNormEps,
     hasABLoRA: !!(getLoRAModule(lora, layerIdx, 'in_proj_a') || getLoRAModule(lora, layerIdx, 'in_proj_b')),
     hiddenSize, rows: projectionLayout.numVHeads,
