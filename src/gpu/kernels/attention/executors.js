@@ -72,6 +72,9 @@ export async function executeAttentionBDPA(
     ropeCos = null,
     ropeSin = null,
   } = options;
+  if ((options.bidirectionalSpanLength ?? 0) > 0) {
+    throw new Error('[Attention] BDPA attention has no bidirectional-span mask.');
+  }
 
   if (seqLen !== 1) {
     throw new Error(`BDPA attention currently supports decode only (seqLen=1), got seqLen=${seqLen}.`);
@@ -237,6 +240,12 @@ export async function executeAttention(
   );
   if (options.useFlashPrefill === true && plan.tier !== 'flash_prefill') {
     throw new Error('[FlashAttention] useFlashPrefill requires an execution graph selecting the registered flash prefill kernel.');
+  }
+  // A span is honored only by kernels whose uniform contract declares it; any other
+  // kernel would apply plain causal masking to the span's later keys.
+  if (bidirectionalSpanLength > 0 && !getKernelConfig('attention', plan.variant).uniforms?.fields
+    ?.some((field) => field.name === 'bidirectional_span_length')) {
+    throw new Error(`[Attention] Variant "${plan.variant}" has no bidirectional-span mask; select a span-capable attention kernel.`);
   }
   if (plan.isDecode) declareDecodeAttentionLimit(execution.recorder, plan.variant, kvLen, kvStart, slidingWindow);
 
