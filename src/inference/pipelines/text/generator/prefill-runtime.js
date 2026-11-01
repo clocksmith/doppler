@@ -200,7 +200,8 @@ export async function _prefill(inputIds, opts) {
     const disableCommandBatching = shouldDisablePrefillCommandBatching(
       this._state,
       opts,
-      multimodalBidirectionalSpan
+      multimodalBidirectionalSpan,
+      { startPos, returnHidden }
     );
     const createRecorder = (label) => {
       if (!device || disableCommandBatching) return undefined;

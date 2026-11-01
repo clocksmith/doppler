@@ -7,7 +7,10 @@ const profile = JSON.parse(readFileSync(new URL('../../src/config/runtime/profil
 const state = { runtimeConfig: profile.runtime, modelConfig: { sessionSettings: { prefillTokenChunkSize: null } } };
 assert.equal(resolvePrefillTokenChunkSize(state, 2287), 256,
   'native candidate must declare its bounded token work policy rather than inherit disabled chunking');
-assert.equal(shouldDisablePrefillCommandBatching(state, {}, null), true);
+assert.equal(shouldDisablePrefillCommandBatching(state, {}, null, { startPos: 256, returnHidden: false }), true,
+  'a chunk continuing the sequence bypasses command batching');
+assert.equal(shouldDisablePrefillCommandBatching(state, {}, null, { startPos: 0, returnHidden: false }), false,
+  'a prompt within one 256-token chunk is one direct call and keeps command batching');
 const run = async (policy, count) => {
   const calls = [];
   let position = 0;

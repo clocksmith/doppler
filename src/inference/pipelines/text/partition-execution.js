@@ -166,7 +166,8 @@ async function executePartitionChunk(state, input, signal, prefill, finalChunk) 
     numTokens,
   });
   const recordLayers = !prefill || !shouldDisablePrefillCommandBatching({ runtimeConfig: state.runtimeConfig,
-    modelConfig: state.modelConfig, kvCache: state.kvCache }, {}, null);
+    modelConfig: state.modelConfig, kvCache: state.kvCache }, {}, null,
+  { startPos: state.currentSeqLen, returnHidden: !finalChunk });
   const createRecorder = () => createCommandRecorder('resident_partition_layers', {
     profile: state.runtimeConfig.shared.debug.profiler.enabled,
   });

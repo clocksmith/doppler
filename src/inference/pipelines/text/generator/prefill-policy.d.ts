@@ -18,8 +18,20 @@ export declare function releasePerLayerInputBuffer(
   pleCache?: { ownedBuffers?: Set<GPUBuffer> } | null
 ): void;
 
+/** One _prefill call: its first position and whether its hidden output feeds a later token chunk. */
+export interface PrefillCallShape {
+  startPos: number;
+  returnHidden: boolean;
+}
+
+/**
+ * Prefill command batching is bypassed for debug, paged, multimodal-bidirectional with a GPU
+ * cache, and token-chunked calls that share KV with another chunk call (startPos > 0 or a
+ * non-final chunk). A prompt that fits one token chunk is one direct call and keeps batching.
+ */
 export declare function shouldDisablePrefillCommandBatching(
   state: Record<string, unknown>,
   opts: Record<string, unknown>,
-  multimodalBidirectionalSpan: InputSpan | null
+  multimodalBidirectionalSpan: InputSpan | null,
+  call: PrefillCallShape
 ): boolean;

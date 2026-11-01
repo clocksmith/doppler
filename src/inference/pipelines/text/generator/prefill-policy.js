@@ -25,7 +25,14 @@ export function resolvePrefillTokenChunkSize(state, numTokens) {
   return chunkSize < numTokens ? chunkSize : null;
 }
 
-export function shouldDisablePrefillCommandBatching(state, opts, multimodalBidirectionalSpan) {
+// call: { startPos, returnHidden } of this _prefill call. Under a token-chunk policy only
+// calls that share KV with another chunk call bypass command batching: one continuing a
+// sequence (startPos > 0) or a non-final chunk whose hidden output feeds the next. A prompt
+// that fits one chunk runs as one direct call, the path chunked KV writes must match.
+export function shouldDisablePrefillCommandBatching(state, opts, multimodalBidirectionalSpan, call) {
+  if (!Number.isSafeInteger(call?.startPos) || call.startPos < 0 || typeof call.returnHidden !== 'boolean') {
+    throw new Error('shouldDisablePrefillCommandBatching requires the call { startPos, returnHidden }.');
+  }
   if (
     opts?.disableCommandBatching === true
     || opts?.debug === true
@@ -36,7 +43,7 @@ export function shouldDisablePrefillCommandBatching(state, opts, multimodalBidir
   if (state?.kvCache?.layout === 'bdpa_paged') {
     return true;
   }
-  if (resolveEffectivePrefillTokenChunkSize(state) != null) {
+  if (resolveEffectivePrefillTokenChunkSize(state) != null && (call.startPos > 0 || call.returnHidden)) {
     return true;
   }
   if (multimodalBidirectionalSpan == null) {
