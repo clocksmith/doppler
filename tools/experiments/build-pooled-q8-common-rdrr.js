@@ -6,7 +6,11 @@
 // requantQ8Streaming in the supplied, read-only vendor tree. Not a product artifact and not
 // native-weight evidence; the output directory must be new.
 //   node tools/experiments/build-pooled-q8-common-rdrr.js --source-rdrr <dir> --gguf <file> \
-//     --pooled-root <dir> --out <new dir>
+//     --gguf-sha256 <hex> --pooled-root <dir> --out <new dir>
+// Admission: the GGUF must hash to --gguf-sha256, the source RDRR must name that GGUF as its
+// source, and every source RDRR tensor (replaced or kept) must hold exactly that GGUF tensor's
+// bytes and element count, so the kept and replaced tensors come from one checkpoint. The
+// vendor files whose code produces the replacement values are hashed into the inventory.
 // Then: node tools/refresh-converted-manifest.js <out> --config <conversion config> --model-id <id>
 // (shard BLAKE3 hashes, block Merkle roots), and finally
 //   node tools/experiments/build-pooled-q8-common-rdrr.js --finalize <out>
@@ -23,8 +27,8 @@ const SHARD_BYTES = 64 * 1024 * 1024;
 const Q8_BLOCK_BYTES = 34;
 
 const { values: args } = parseArgs({ options: {
-  'source-rdrr': { type: 'string' }, gguf: { type: 'string' }, 'pooled-root': { type: 'string' }, out: { type: 'string' },
-  finalize: { type: 'string' },
+  'source-rdrr': { type: 'string' }, gguf: { type: 'string' }, 'gguf-sha256': { type: 'string' },
+  'pooled-root': { type: 'string' }, out: { type: 'string' }, finalize: { type: 'string' },
 } });
 if (args.finalize) {
   const { buildArtifactIdentity } = await import('../../src/converter/artifact-identity.js');
@@ -44,7 +48,7 @@ if (args.finalize) {
   console.log(`finalized ${manifest.modelId}: shardSetHash ${manifest.artifactIdentity.shardSetHash}, weightCapsuleId ${manifest.artifactIdentity.weightCapsuleId}`);
   process.exit(0);
 }
-for (const key of ['source-rdrr', 'gguf', 'pooled-root', 'out']) {
+for (const key of ['source-rdrr', 'gguf', 'gguf-sha256', 'pooled-root', 'out']) {
   if (!args[key]) throw new Error(`--${key} is required.`);
 }
 if (await stat(args.out).then(() => true, () => false)) throw new Error(`Output ${args.out} already exists.`);
@@ -60,9 +64,54 @@ const read = async (offset, length) => {
 };
 const header = gguf.parseGGUFHeader((await read(0, 64 << 20)).buffer);
 const typeName = { [gguf.GGML_Q4_1]: 'Q4_1', [gguf.GGML_Q5_0]: 'Q5_0', [gguf.GGML_Q5_K]: 'Q5_K', [gguf.GGML_Q6_K]: 'Q6_K' };
+const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
+
+// Admission: one checkpoint, one vendor tree.
+const ggufHash = createHash('sha256');
+for (let offset = 0, size = (await file.stat()).size; offset < size; offset += 64 << 20) {
+  ggufHash.update(await read(offset, Math.min(64 << 20, size - offset)));
+}
+const ggufSha256 = ggufHash.digest('hex');
+if (ggufSha256 !== args['gguf-sha256']) throw new Error(`GGUF sha256 ${ggufSha256} is not the expected ${args['gguf-sha256']}.`);
+if (source.metadata?.source !== pathToFileURL(path.resolve(args.gguf)).href) {
+  throw new Error(`Source RDRR names ${source.metadata?.source}, not ${args.gguf}, as its source.`);
+}
+/** @param {{ shard?: number, offset?: number, size: number, spans?: { shardIndex: number, offset: number, size: number }[] }} entry */
+const readSourceTensor = async (entry) => {
+  const spans = entry.spans ?? [{ shardIndex: entry.shard, offset: entry.offset, size: entry.size }];
+  const bytes = new Uint8Array(entry.size);
+  let at = 0;
+  for (const span of spans) {
+    const shard = await open(path.join(args['source-rdrr'], source.shards[span.shardIndex].filename), 'r');
+    await shard.read(bytes, at, span.size, span.offset);
+    await shard.close();
+    at += span.size;
+  }
+  return bytes;
+};
+for (const [name, entry] of Object.entries(source.tensors)) {
+  const info = header.tensors[name];
+  const elements = entry.shape.reduce((a, b) => a * b, 1);
+  if (!info || info.nElems !== elements || info.byteLength !== entry.size) throw new Error(`${name}: not the GGUF tensor of the same extent.`);
+  if (sha256(await readSourceTensor(entry)) !== sha256(await read(info.byteOffset, info.byteLength))) {
+    throw new Error(`${name}: source RDRR bytes differ from the GGUF tensor.`);
+  }
+}
+const vendorFiles = (await readdir(path.join(args['pooled-root'], 'engine'), { recursive: true }))
+  .filter((name) => name.endsWith('.js')).sort();
+const vendorTree = createHash('sha256');
+for (const name of vendorFiles) vendorTree.update(`${name}\0${sha256(await readFile(path.join(args['pooled-root'], 'engine', name)))}\n`);
+const admission = {
+  ggufSha256: `sha256:${ggufSha256}`,
+  sourceTensorsMatchingGguf: Object.keys(source.tensors).length,
+  pooledGgufJs: `sha256:${sha256(await readFile(path.join(args['pooled-root'], 'engine/gguf.js')))}`,
+  pooledEngineTree: `sha256:${vendorTree.digest('hex')}`,
+  pooledEngineFiles: vendorFiles.length,
+  builder: `sha256:${sha256(await readFile(new URL(import.meta.url)))}`,
+};
+console.log(`admission: ${JSON.stringify(admission)}`);
 
 await mkdir(args.out);
-const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 // Every source file but the manifest (shards, tokenizer, origin records) is copied as is.
 for (const name of await readdir(args['source-rdrr'])) {
   if (name !== 'manifest.json') await copyFile(path.join(args['source-rdrr'], name), path.join(args.out, name));
@@ -132,8 +181,8 @@ manifest.metadata = { ...manifest.metadata, diagnosticCommonWeights: {
   quantizationInfo: manifest.quantizationInfo,
   scope: 'Diagnostic common-weights lane only: Pooled-prepared Q8 values for the tensors Pooled requantizes; not a product artifact or native-weight result.',
   sourceRdrrModelId: source.modelId, sourceShardSetHash: source.artifactIdentity?.shardSetHash ?? null,
-  pooledRoot: path.resolve(args['pooled-root']), gguf: path.resolve(args.gguf), replaced,
+  pooledRoot: path.resolve(args['pooled-root']), gguf: path.resolve(args.gguf), admission, replaced,
 } };
 await writeFile(path.join(args.out, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
-await writeFile(path.join(args.out, 'pooled-q8-common.json'), `${JSON.stringify({ replaced }, null, 2)}\n`);
+await writeFile(path.join(args.out, 'pooled-q8-common.json'), `${JSON.stringify({ admission, replaced }, null, 2)}\n`);
 console.log(`${replaced.length} tensors replaced; ${shards.length - source.shards.length} shards appended; manifest written.`);
