@@ -134,6 +134,19 @@ submission and settlement lifecycle. The policy changes neither shader math
 nor reference tolerances; changed packages require their own physical
 qualification. A single oversized dispatch still requires its own bound.
 
+## Warm generation at load
+
+`runtime.shared.kernelWarmup.warmGeneration` (`null` by default) is
+`{ prompt, maxTokens }`: after a text pipeline loads its weights, it runs one
+greedy generation of the raw prompt (no chat template) and then resets sequence
+state. The first request then finds the pipelines of the model's own plan
+compiled and, with `decodeLoop.wholeTokenProgram`, a built program that its
+first decode step verifies before replaying. The time is load time (phase
+`warmGeneration`); `pipelineLoadTiming.details.warmGeneration` records the
+tokens generated, the stop reason and whether a program is ready. A stop token
+before `maxTokens` is reported, not an error; an invalid policy or a failed
+generation fails the load.
+
 ## Matmul workgroup geometry
 
 Opt-in matmul variants may declare `variantMetadata.workgroupConstants` as

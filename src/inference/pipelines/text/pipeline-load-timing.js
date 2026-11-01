@@ -52,8 +52,9 @@ export function createPipelineLoadTiming(modelId) {
       loadWeights: null,
       rope: null,
       convStates: null,
+      warmGeneration: null,
     },
-    details: { tokenizer: null },
+    details: { tokenizer: null, warmGeneration: null },
     totalMs: null,
   };
 }

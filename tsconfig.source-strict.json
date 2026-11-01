@@ -30,6 +30,7 @@
     "src/inference/pipelines/text/generator/whole-token-observation.js",
     "src/inference/pipelines/text/generator/whole-token-template.js",
     "src/inference/pipelines/text/generator/whole-token-lane.js",
+    "src/inference/pipelines/text/warm-generation.js",
     "src/gpu/kernels/matmul-workgroup-capacity.js",
     "tools/lib/evidence-io.js",
     "tools/lib/profile-comparison.js",

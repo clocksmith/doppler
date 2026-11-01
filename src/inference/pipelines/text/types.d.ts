@@ -574,7 +574,8 @@ export type PipelineLoadTimingPhase =
   | 'executionSetup'
   | 'loadWeights'
   | 'rope'
-  | 'convStates';
+  | 'convStates'
+  | 'warmGeneration';
 
 export interface PipelineLoadTiming {
   schemaVersion: 1;
@@ -584,6 +585,7 @@ export interface PipelineLoadTiming {
   phasesMs: Record<PipelineLoadTimingPhase, number | null>;
   details: {
     tokenizer: TokenizerLoadTiming | null;
+    warmGeneration: import('./warm-generation.js').WarmGenerationResult | null;
   };
   totalMs: number | null;
 }

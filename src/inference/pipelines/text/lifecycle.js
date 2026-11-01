@@ -61,6 +61,7 @@ import {
   timedPipelineLoadPhase,
 } from './pipeline-load-timing.js';
 import { resolveVisionWeightLoader } from '../vision/weight-loading.js';
+import { runWarmGeneration } from './warm-generation.js';
 
 export async function initialize(contexts = {}) {
     this.modelPartition = contexts.partition == null ? null : structuredClone(contexts.partition);
@@ -419,6 +420,20 @@ export async function loadModel(manifest, options = {}) {
 
     signal?.throwIfAborted();
     this.isLoaded = true;
+    const warmGeneration = this.runtimeConfig.shared?.kernelWarmup?.warmGeneration;
+    if (warmGeneration != null) {
+      try {
+        pipelineLoadTiming.details.warmGeneration = await timedPipelineLoadPhase(
+          pipelineLoadTiming,
+          'warmGeneration',
+          { modelId: manifest.modelId ?? null },
+          () => runWarmGeneration(this, warmGeneration)
+        );
+      } catch (error) {
+        this.isLoaded = false;
+        throw error;
+      }
+    }
     const loadMs = performance.now() - loadStart;
     this.stats.modelLoadMs = loadMs;
     pipelineLoadTiming.totalMs = roundPipelineTimingMs(loadMs);

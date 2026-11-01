@@ -176,6 +176,7 @@ function normalizePipelineLoadTiming(pipelineLoadTiming) {
     loadWeights: normalizeLoadTimingMs(rawPhasesMs.loadWeights),
     rope: normalizeLoadTimingMs(rawPhasesMs.rope),
     convStates: normalizeLoadTimingMs(rawPhasesMs.convStates),
+    warmGeneration: normalizeLoadTimingMs(rawPhasesMs.warmGeneration),
   };
   return {
     schemaVersion: Number.isInteger(pipelineLoadTiming.schemaVersion) ? pipelineLoadTiming.schemaVersion : 1,
@@ -189,6 +190,7 @@ function normalizePipelineLoadTiming(pipelineLoadTiming) {
     phasesMs,
     details: {
       tokenizer: normalizeTokenizerLoadTiming(pipelineLoadTiming.details?.tokenizer),
+      warmGeneration: pipelineLoadTiming.details?.warmGeneration ?? null,
     },
     totalMs: normalizeLoadTimingMs(pipelineLoadTiming.totalMs),
   };
