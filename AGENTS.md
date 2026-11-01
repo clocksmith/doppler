@@ -103,6 +103,7 @@ doppler/
 │   ├── rules/            # Validation rules (kernel path, etc.)
 │   ├── storage/          # OPFS shard manager, model loading
 │   ├── tooling/          # Shared command contract + runners
+│   ├── tooling-exports/  # Narrow public tooling facades
 │   └── types/            # Shared type definitions
 ├── benchmarks/           # Vendor benchmark registry + harnesses
 ├── models/               # Catalog metadata and external model pointers
@@ -114,6 +115,10 @@ doppler/
     ├── style/            # Style guides + invariant quick-refs
     └── agents/           # Task-specific protocol docs (loaded by skills)
 ```
+
+The diagram is an overview. The complete owner and root-facade inventory is
+`tools/policies/source-architecture-policy.json` (`topLevelOwners`, `rootFileOwners`);
+for example, `src/capsule-runtime.js` and `src/training.js` are root facades.
 
 ### Before Starting
 
@@ -258,7 +263,7 @@ When a code change (kernel swap, transform, dtype policy, materialization path) 
 
 ### Logging
 
-Use the debug module (`src/debug/index.js`), not raw `console.*`, in runtime code. Direct console output is allowed only in `tools/` entry points, `tests/` harnesses, `demo/` entry points, and one-time startup in `src/gpu/device.js`.
+Use the debug module (`src/debug/index.js`), not raw `console.*`, in runtime code. Direct console output is allowed in `src/cli/` for the requested command result or diagnostic output, and in `tools/` entry points, `tests/` harnesses, `demo/` entry points, and one-time startup in `src/gpu/device.js`.
 
 No throwaway log statements: use existing trace categories, config-driven probes, or permanent trace extensions.
 

@@ -14,6 +14,7 @@ import { getKernelRegistry } from '../../../gpu/kernels/kernel-configs.js';
 import { initTokenizer } from './init.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { mergeRuntimeValues } from '../../../config/runtime-merge.js';
+import { mergeKernelPathPolicy } from '../../../config/merge/kernel-path-policy.js';
 import { READBACK_MODES } from '../../../config/schema/execution-v1.schema.js';
 import { resolveRuntimeActivationDtype, buildSessionRuntimePatch } from './execution-runtime-builders.js';
 
@@ -616,69 +617,6 @@ function getKernelCapabilitiesSafe() {
   }
 }
 
-const DEFAULT_KERNEL_PATH_POLICY = Object.freeze({
-  mode: 'locked',
-  sourceScope: Object.freeze(['model', 'manifest']),
-  onIncompatible: 'error',
-});
-
-function normalizeKernelPathPolicyMode(value) {
-  const normalized = String(value ?? '').trim().toLowerCase();
-  if (normalized === 'capability-aware') {
-    return 'capability-aware';
-  }
-  return 'locked';
-}
-
-function normalizeKernelPathPolicySourceScope(value) {
-  if (!Array.isArray(value)) {
-    return [...DEFAULT_KERNEL_PATH_POLICY.sourceScope];
-  }
-  const normalized = new Set();
-  for (const source of value) {
-    const normalizedSource = String(source ?? '').trim().toLowerCase();
-    if (normalizedSource === 'runtime') {
-      normalized.add('config');
-    } else if (normalizedSource && normalizedSource !== 'none') {
-      normalized.add(normalizedSource);
-    }
-  }
-  if (normalized.size === 0) {
-    return [...DEFAULT_KERNEL_PATH_POLICY.sourceScope];
-  }
-  return [...normalized];
-}
-
-function normalizeKernelPathPolicyOnIncompatible(value) {
-  const normalized = String(value ?? '').trim().toLowerCase();
-  if (normalized === 'remap') {
-    return 'remap';
-  }
-  return 'error';
-}
-
-function resolveKernelPathPolicy(policy) {
-  if (!policy || typeof policy !== 'object' || Array.isArray(policy)) {
-    return {
-      mode: DEFAULT_KERNEL_PATH_POLICY.mode,
-      sourceScope: [...DEFAULT_KERNEL_PATH_POLICY.sourceScope],
-      allowSources: [...DEFAULT_KERNEL_PATH_POLICY.sourceScope],
-      onIncompatible: DEFAULT_KERNEL_PATH_POLICY.onIncompatible,
-    };
-  }
-
-  const sourceScope = normalizeKernelPathPolicySourceScope(
-    policy.sourceScope ?? policy.allowSources
-  );
-
-  return {
-    mode: normalizeKernelPathPolicyMode(policy.mode),
-    sourceScope,
-    allowSources: [...sourceScope],
-    onIncompatible: normalizeKernelPathPolicyOnIncompatible(policy.onIncompatible),
-  };
-}
-
 function getExplicitRuntimeDtypeOverrides(runtimeOverrides) {
   return {
     activationDtype: resolveRuntimeActivationDtype(runtimeOverrides?.inference),
@@ -770,7 +708,7 @@ export function resolveKernelPathState(options) {
     ?? null;
   let kernelPathSource = 'none';
   let resolvedKernelPath = null;
-  const kernelPathPolicy = resolveKernelPathPolicy(runtimeConfig?.inference?.kernelPathPolicy);
+  const kernelPathPolicy = mergeKernelPathPolicy(undefined, runtimeConfig?.inference?.kernelPathPolicy);
 
   if (configuredKernelPathRef) {
     kernelPathSource = resolveKernelPathSource(

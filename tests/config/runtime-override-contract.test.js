@@ -8,6 +8,10 @@ import { getRuntimeConfig, setRuntimeConfig } from '../../src/config/runtime.js'
 const originalRuntime = structuredClone(getRuntimeConfig());
 
 try {
+  assert.throws(() => setRuntimeConfig({ inference: { session: { useOrtFlashPrefillAttention: true } } }), /useOrtFlashPrefillAttention is unsupported/);
+  assert.throws(() => createDopplerConfig({ runtime: { inference: { session: { useOrtFlashPrefillAttention: true } } } }), /useOrtFlashPrefillAttention is unsupported/);
+  assert.throws(() => validateRuntimeConfig({ inference: { session: { useOrtFlashPrefillAttention: true } } }), /useOrtFlashPrefillAttention is unsupported/);
+
   assert.throws(
     () => setRuntimeConfig('invalid'),
     /runtime overrides must be an object when provided/

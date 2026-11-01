@@ -9,13 +9,14 @@ and claims of unused code describe those runs, not the current checkout.
 - Removed 283 TypeScript-confirmed unused import bindings from the CLI,
   artifact identity, text generator, and generator text helpers. Function
   bodies and exports are unchanged; declared device initialization is retained.
-- `npm run source:unused:check` checks the four implementations listed in
+- `npm run source:unused:check` checks the implementations listed in
   `tsconfig.source-unused.json`. Expand that list as modules are cleaned.
 - The kernel-path builder has no repository importer or package export, and
   the declared computed-dependency policy names no loader for it. However,
   `tools/policies/source-architecture-policy.json` explicitly retains
   `tooling/kernel-path-builder/index.js` as an operator-loaded standalone
-  entrypoint. It remains intact pending review of that retained capability.
+  entrypoint. That capability is now documented in `docs/agents/tooling-surface.md` and exercised by
+  `tests/tooling/kernel-path-builder-entry.test.js`; it remains repository-only.
   The sibling `custom-runtime-facts.js` has an active test consumer; the demo
   also retains generated builder JSON. A directory-wide deletion is unsafe.
 - The Gemma 4 E2B performance note now links to its exact post-fix receipt

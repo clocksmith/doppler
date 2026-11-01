@@ -2,7 +2,7 @@ import type { OpfsPathConfigSchema, StorageBackendConfigSchema } from '../config
 
 export interface SelectedStorageBackend {
   type: 'opfs' | 'indexeddb' | 'memory';
-  backend: Record<string, unknown> & { init(): Promise<void> };
+  backend: import('./model-read-session.js').StorageBackend;
 }
 
 export function selectStorageBackend(

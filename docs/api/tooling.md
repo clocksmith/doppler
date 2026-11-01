@@ -76,7 +76,7 @@ Browser import helpers and P2P helpers are not package exports (the former
 - Program Bundle validator plus Node-only exporter/checker/parity helpers
 - experimental Node operator flows for `diagnose`, `lora`, and `distill`
 
-The generated export inventory is the authoritative symbol list for this surface because the tooling subpath is broad and still mixes promoted helpers with experimental operator flows.
+The generated export inventory summarizes entrypoint declarations, with `*` marking forwarded surfaces. Follow the shipped declarations for the complete symbol list and signatures; the tooling subpath mixes promoted helpers with experimental operator flows.
 
 ## Core Behaviors
 
@@ -86,6 +86,20 @@ The generated export inventory is the authoritative symbol list for this surface
 - browser-conditioned shared exports for browser bundles, with Node-only helpers available on the default Node import path for the same subpath
 - intended for harnesses, diagnostics, demos, registry/storage workflows, and command runners
 - browser-conditioned imports expose Program Bundle validation only; Node imports also expose `exportProgramBundle(...)`, `writeProgramBundle(...)`, `loadProgramBundle(...)`, `verifyClosedProgramBundle(...)`, `checkProgramBundleFile(...)`, and `checkProgramBundleParity(...)`
+
+## Reference transcript helpers
+
+Both browser and Node `doppler-gpu/tooling` exports include:
+
+- `buildReferenceTranscriptSeed(run, context?)`: accepts `Record<string, unknown>`
+  inputs and returns a `Record<string, unknown>` seed for
+  `doppler.reference-transcript/v1`.
+- `resolveExecutionGraphHash(manifest)`: accepts a manifest record, `null`, or
+  `undefined`; returns the stable execution-graph hash, or `null` when the
+  manifest has no execution object.
+
+Signatures are re-exported from [the browser harness declarations](../../src/tooling/browser-harness.d.ts).
+A seed is capture input, not by itself a verified parity receipt.
 
 ## Command Families
 

@@ -853,9 +853,55 @@ function assertCreatedBufferDestroyed(device, label) {
   resetRuntimeState();
 }
 
-console.log('kernel-wrapper-cleanup.test: ok');
 if (ORIGINAL_GPU_BUFFER === undefined) {
   delete globalThis.GPUBuffer;
 } else {
   globalThis.GPUBuffer = ORIGINAL_GPU_BUFFER;
 }
+
+// Allocation and initial upload failures occur before dispatch enters its own scope.
+const { runEmbeddingPool } = await import('../../src/gpu/kernels/embedding-pool.js');
+const { runConv2D, recordConv2D } = await import('../../src/gpu/kernels/conv2d.js');
+for (const failure of ['allocation', 'upload']) {
+  for (const operation of ['embedding', 'conv2d', 'recorded-conv2d']) {
+    const device = createFakeDevice();
+    const createBuffer = device.createBuffer.bind(device);
+    let allocations = 0;
+    device.createBuffer = (descriptor) => {
+      if (failure === 'allocation' && ++allocations === 2) throw new Error('injected allocation failure');
+      return createBuffer(descriptor);
+    };
+    if (failure === 'upload') device.queue.writeBuffer = () => { throw new Error('injected upload failure'); };
+    resetRuntimeState(device);
+    getBufferPool().configure({ enablePooling: false });
+    const input = createExternalTensor([1, 2, 3, 4], [1, 2, 2], 'input');
+    const weight = createWeightLike(4);
+    const options = { inChannels: 1, outChannels: 1, height: 2, width: 2, kernelH: 1, kernelW: 1, stride: 1, pad: 0 };
+    const recorder = operation === 'recorded-conv2d' ? new CommandRecorder(device, 'allocation_failure') : null;
+    const execute = operation === 'embedding'
+      ? () => runEmbeddingPool(input, { rowCount: 2, hiddenSize: 2, mode: 'mean' })
+      : recorder
+        ? () => recordConv2D(recorder, input, weight, null, options)
+        : () => runConv2D(input, weight, null, options);
+    await assert.rejects(execute, new RegExp(`injected ${failure} failure`));
+    recorder?.abort();
+    assertPoolIsClean();
+    resetRuntimeState();
+  }
+}
+
+{
+  const device = createFakeDevice();
+  device.queue.writeBuffer = () => { throw new Error('injected upload failure'); };
+  resetRuntimeState(device);
+  const borrowedOutput = new FakeBuffer({ size: 16, usage: GPUBufferUsage.STORAGE });
+  await assert.rejects(() => runConv2D(
+    createExternalTensor([1, 2, 3, 4], [1, 2, 2], 'input'), createWeightLike(4), null,
+    { inChannels: 1, outChannels: 1, height: 2, width: 2, kernelH: 1, kernelW: 1,
+      stride: 1, pad: 0, outputBuffer: borrowedOutput }
+  ), /injected upload failure/);
+  assert.equal(borrowedOutput.destroyed, false);
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+console.log('kernel-wrapper-cleanup.test: ok');

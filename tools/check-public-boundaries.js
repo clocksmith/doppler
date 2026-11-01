@@ -159,7 +159,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // The compensated paired matmul programs: measured 3,493,137, plus that allowance.
   // The rolled sliced paired state program (77c5d9b2) and paired Q/K head normalization
   // graph steps (36b73ec8): measured 3,495,841 on Node 22.20.0/npm 10.9.3, plus that allowance.
-  maxPackedSize: 3_497_999,
+  // Reviewed baseline/candidate: docs/cleanup/package-audit-2026-11-01.json.
+  // Retain the existing 2,158-byte cross-npm compression allowance.
+  maxPackedSize: 3_526_780,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -220,7 +222,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // The compensated paired matmul programs add 29,698: measured 14,144,377.
   // The rolled sliced paired state program (77c5d9b2) and paired Q/K head normalization
   // graph steps (36b73ec8) add 28,520: measured 14,172,897.
-  maxUnpackedSize: 14_172_897,
+  // Exact reviewed payload: docs/cleanup/package-audit-2026-11-01.json.
+  maxUnpackedSize: 14_824_051,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

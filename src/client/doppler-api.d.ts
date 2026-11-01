@@ -94,6 +94,7 @@ export declare function resolveLoadProgressHandlers(options?: DopplerLoadOptions
 export declare function clearModelCache(): void;
 
 export declare const doppler: DopplerNamespace;
+export default doppler;
 
 export type {
   DopplerChatResponse,

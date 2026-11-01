@@ -7,6 +7,7 @@
   },
   "include": [],
   "files": [
+    "src/tooling/browser-harness/benchmark-comparison.js",
     "src/gpu/kernels/moe-grouped.js",
     "src/inference/pipelines/text/moe/grouped-prefill.js",
     "src/loader/experts/expert-preparation.js",
@@ -143,6 +144,7 @@
     "src/formats/rdrr/fp8-contract.js",
     "src/inference/pipelines/text/ffn/qwen-shared-expert.js",
     "src/gpu/kernels/moe-route.js",
-    "src/inference/pipelines/text/moe/qwen-route-executor.js"
+    "src/inference/pipelines/text/moe/qwen-route-executor.js",
+    "src/debug/pipeline-config.js"
   ]
 }

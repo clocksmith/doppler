@@ -1,30 +1,15 @@
+import { computeArrayStats } from '../../../../debug/stats.js';
 import { readBuffer } from '../../../../memory/buffer-pool.js';
 import { isBufferStatsEnabled } from './config.js';
 
 export function getLogitsHealth(logits) {
-  let nanCount = 0;
-  let infCount = 0;
-  let nonZeroCount = 0;
-  let maxAbs = 0;
-
-  for (let i = 0; i < logits.length; i++) {
-    const value = logits[i];
-    if (Number.isNaN(value)) {
-      nanCount++;
-      continue;
-    }
-    if (!Number.isFinite(value)) {
-      infCount++;
-      continue;
-    }
-    if (value !== 0) {
-      nonZeroCount++;
-      const abs = Math.abs(value);
-      if (abs > maxAbs) maxAbs = abs;
-    }
-  }
-
-  return { nanCount, infCount, nonZeroCount, maxAbs };
+  const stats = computeArrayStats(logits);
+  return {
+    nanCount: stats.nanCount,
+    infCount: stats.infCount,
+    nonZeroCount: stats.validCount - stats.zeroCount,
+    maxAbs: stats.maxAbs,
+  };
 }
 
 export async function getBufferStats(buffer) {

@@ -563,6 +563,7 @@ export function createIdbStore(config) {
   }
 
   async function cleanup() {
+    db?.close();
     db = null;
     currentModelId = null;
   }
@@ -571,8 +572,13 @@ export function createIdbStore(config) {
     init,
     async openModelSession(modelId, options = {}) {
       const session = createIdbStore(config);
-      await session.openModel(modelId, options);
-      return session;
+      try {
+        await session.openModel(modelId, options);
+        return session;
+      } catch (error) {
+        await session.cleanup();
+        throw error;
+      }
     },
     close: cleanup,
     openModel,

@@ -158,3 +158,24 @@ try {
 }
 
 console.log('device-feature-retry.test: ok');
+
+// Exhausted negotiation is a public coded failure; unsuccessful probes retain their cause.
+{
+  const denied = new Error('all device feature requests denied');
+  const restore = installNavigator({ ...adapter, requestDevice: async () => { throw denied; } });
+  try {
+    await assert.rejects(initDevice(), error => error.code === 'DOPPLER_GPU_DEVICE_FAILED' && error.cause === denied);
+  } finally { resetDeviceState(); restore(); }
+}
+{
+  const denied = new Error('adapter access denied');
+  const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { gpu: { requestAdapter: async () => { throw denied; } } } });
+  try {
+    await assert.rejects(initDevice(), error => error.code === 'DOPPLER_GPU_UNSUPPORTED_ADAPTER' && error.cause === denied);
+  } finally {
+    resetDeviceState();
+    if (descriptor) Object.defineProperty(globalThis, 'navigator', descriptor);
+    else delete globalThis.navigator;
+  }
+}

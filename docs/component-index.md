@@ -18,7 +18,7 @@ Components: 29
 | `doppler.benchmarks.vendors` | Compare Doppler and eligible incumbent runtimes under shared, identity-bound evidence contracts. | [benchmarks/vendors/CATSCAN.md](../benchmarks/vendors/CATSCAN.md) | `doppler.benchmarks` |
 | `doppler.runtime-source.cli` | Present the shared Doppler command contract as a clear, scriptable Node command-line interface. | [src/cli/CATSCAN.md](../src/cli/CATSCAN.md) | `doppler.runtime-source` |
 | `doppler.runtime-source.client` | Invoke qualified models while preserving execution identity. | [src/client/CATSCAN.md](../src/client/CATSCAN.md) | `doppler.runtime-source` |
-| `doppler.runtime-source.config` | Resolve all runtime-visible policy from validated, traceable, single-source configuration contracts. | [src/config/CATSCAN.md](../src/config/CATSCAN.md) | `doppler.runtime-source` |
+| `doppler.runtime-source.config` | Resolve runtime policy from validated, traceable configuration contracts. | [src/config/CATSCAN.md](../src/config/CATSCAN.md) | `doppler.runtime-source` |
 | `doppler.runtime-source.converter` | Compile source facts into ModelIR, qualified TargetPlans, and immutable Capsules; materialize reproducible artifacts without inventing runtime policy later. | [src/converter/CATSCAN.md](../src/converter/CATSCAN.md) | `doppler.runtime-source` |
 | `doppler.runtime-source.debug` | Expose structured runtime observation without silently changing execution or evidence meaning. | [src/debug/CATSCAN.md](../src/debug/CATSCAN.md) | `doppler.runtime-source` |
 | `doppler.runtime-source.experimental` | Contain non-core capabilities so they can evolve without being mistaken for product-supported runtime behavior. | [src/experimental/CATSCAN.md](../src/experimental/CATSCAN.md) | `doppler.runtime-source` |

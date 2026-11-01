@@ -1,5 +1,9 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { isDeepStrictEqual } from 'node:util';
+import { ToolingCommandError } from '../tooling/command-envelope.js';
+import { getRuntimeConfig } from '../config/runtime.js';
+import { assertComparableFingerprints, buildComparisonFingerprint } from '../client/inspection.js';
 
 export function toSummary(result) {
   if (!result || typeof result !== 'object') {
@@ -90,10 +94,18 @@ export async function loadBaseline(comparePath, saveDir) {
     : path.resolve(comparePath);
   try {
     const raw = await fs.readFile(resolved, 'utf-8');
-    return JSON.parse(raw);
+    const baseline = JSON.parse(raw);
+    if (!baseline || typeof baseline !== 'object' || Array.isArray(baseline)) {
+      throw new Error('Baseline must be a benchmark result object.');
+    }
+    return baseline;
   } catch (error) {
-    console.error(`[compare] failed to load baseline from ${resolved}: ${error.message}`);
-    return null;
+    throw new ToolingCommandError(`Comparison baseline could not be loaded from ${resolved}: ${error.message}`, {
+      code: 'benchmark_baseline_load_failed',
+      details: { baselinePath: resolved, causeCode: error.code ?? null },
+      retryable: false,
+      cause: error,
+    });
   }
 }
 
@@ -115,12 +127,72 @@ function normalizeBenchMetrics(result) {
   };
 }
 
+function requireComparisonFingerprint(result) {
+  const fingerprint = result?.comparisonFingerprint;
+  const identity = fingerprint?.identity;
+  if (!identity || result.modelId !== identity.artifact?.modelId) {
+    throw new Error('Benchmark comparison requires a comparisonFingerprint matching modelId; legacy results without identity are not comparable.');
+  }
+  // Rebuild from retained facts rather than trusting externally supplied digests.
+  const canonical = buildComparisonFingerprint({
+    artifact: identity.artifact,
+    tokenizer: identity.tokenizer?.contract,
+    promptTokenIds: identity.promptTokenIds,
+    sampling: identity.sampling,
+    observationPolicyId: identity.observationPolicy?.id,
+    execution: identity.execution,
+    browser: identity.browser,
+    adapter: identity.adapter,
+  });
+  if (!isDeepStrictEqual(fingerprint, canonical)) {
+    throw new Error('Benchmark comparison fingerprint does not match its retained identity.');
+  }
+  return canonical;
+}
+
 export function compareBenchResults(current, baseline) {
+  assertComparableFingerprints(
+    'performance', requireComparisonFingerprint(current), requireComparisonFingerprint(baseline)
+  );
+  for (const result of [current, baseline]) {
+    if (result.suite !== 'bench' || result.failed !== 0) {
+      throw new Error('Benchmark comparison requires successful bench results.');
+    }
+    if (!result.env || !['library', 'runtime', 'device'].every((key) =>
+      typeof result.env[key] === 'string' && result.env[key].trim())) {
+      throw new Error('Benchmark comparison requires explicit environment identity.');
+    }
+    if (!Number.isInteger(result.metrics?.warmupRuns) || result.metrics.warmupRuns < 0
+      || !Number.isInteger(result.metrics?.timedRuns) || result.metrics.timedRuns < 1
+      || !Number.isInteger(result.metrics?.maxTokens) || result.metrics.maxTokens < 1
+      || !(result.metrics?.seed === null || Number.isInteger(result.metrics?.seed))) {
+      throw new Error('Benchmark comparison requires valid run counts, maxTokens, and explicit seed.');
+    }
+    if (![result.workload, result.cacheMode, result.loadMode, result.metrics?.prompt]
+      .every((value) => typeof value === 'string' && value.trim())) {
+      throw new Error('Benchmark comparison requires explicit workload, cache/load policy, and prompt.');
+    }
+  }
+  for (const [label, left, right] of [
+    ['workload', current.workload, baseline.workload],
+    ['environment', current.env, baseline.env],
+    ['cacheMode', current.cacheMode, baseline.cacheMode],
+    ['loadMode', current.loadMode, baseline.loadMode],
+    ...['warmupRuns', 'timedRuns', 'seed', 'maxTokens', 'prompt'].map((key) =>
+      [key, current.metrics?.[key], baseline.metrics?.[key]]),
+  ]) {
+    if (left === undefined || right === undefined || !isDeepStrictEqual(left, right)) {
+      throw new Error(`Benchmark comparison rejected: missing or different ${label}.`);
+    }
+  }
+  const threshold = getRuntimeConfig().shared.benchmark.comparison.regressionThresholdPercent;
+  if (!Number.isFinite(threshold) || threshold < 0) {
+    throw new Error('benchmark.comparison.regressionThresholdPercent must be non-negative and finite.');
+  }
   const cm = normalizeBenchMetrics(current);
   const bm = normalizeBenchMetrics(baseline);
   if (!cm || !bm) {
-    console.error('[compare] missing metrics in current or baseline result');
-    return { regressions: [], improvements: [] };
+    throw new Error('Benchmark comparison requires metrics in both results.');
   }
 
   const isCrossEngine = (current?.env?.library) !== (baseline?.env?.library);
@@ -152,6 +224,10 @@ export function compareBenchResults(current, baseline) {
     );
   }
 
+  if (!metrics.some((metric) => Number.isFinite(metric.cur) && Number.isFinite(metric.base) && metric.base !== 0)) {
+    throw new Error('Benchmark comparison requires at least one finite comparable timing metric.');
+  }
+
   const curLabel = isCrossEngine ? (current?.env?.library || 'current') : 'current';
   const baseLabel = isCrossEngine ? (baseline?.env?.library || 'baseline') : 'baseline';
   const baseModelId = baseline.modelId || 'unknown';
@@ -163,8 +239,8 @@ export function compareBenchResults(current, baseline) {
     const deltaPct = ((m.cur - m.base) / Math.abs(m.base)) * 100;
     const sign = deltaPct >= 0 ? '+' : '';
     const deltaStr = `${sign}${deltaPct.toFixed(1)}%`;
-    const isRegression = m.higherBetter ? deltaPct < -10 : deltaPct > 10;
-    const isImprovement = m.higherBetter ? deltaPct > 10 : deltaPct < -10;
+    const isRegression = m.higherBetter ? deltaPct < -threshold : deltaPct > threshold;
+    const isImprovement = m.higherBetter ? deltaPct > threshold : deltaPct < -threshold;
     const flag = isRegression ? ' !!REGRESSION' : isImprovement ? ' *improved' : '';
     console.log(`[compare] ${m.label.padEnd(20)} ${formatNumber(m.base, 1).padStart(14)} ${formatNumber(m.cur, 1).padStart(14)} ${deltaStr.padStart(10)}${flag}`);
     if (isRegression) regressions.push(m.label);
@@ -172,7 +248,7 @@ export function compareBenchResults(current, baseline) {
   }
 
   if (regressions.length) {
-    console.log(`[compare] ${regressions.length} regression(s) detected (>10% threshold)`);
+    console.log(`[compare] ${regressions.length} regression(s) detected (>${threshold}% threshold)`);
   }
   return { regressions, improvements };
 }

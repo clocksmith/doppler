@@ -10,7 +10,6 @@ import { getKernelConfig, getKernelValidator } from '../kernel-configs.js';
 import { getPipelineBindGroupLayout } from '../pipeline-cache.js';
 import { hasRequiredFeatures } from '../feature-check.js';
 import { dispatchIndirect, recordDispatchIndirect } from '../dispatch.js';
-import { releaseUniformBuffer } from '../../uniform-cache.js';
 import { trace } from '../../../debug/index.js';
 import { getRuntimeConfig } from '../../../config/runtime.js';
 import { declareDecodeAttentionLimit, resolveAttentionPlan, resolveOnlineDecodePipelineConstants } from './plan.js';
@@ -173,6 +172,9 @@ export async function executeAttention(
   headDim,
   options = {}
 ) {
+  if (options.useOrtFlashPrefill === true) {
+    return executeOrtFlashAttentionPrefill();
+  }
   if (Q.precision !== undefined || Q.components !== undefined || Q.elementStrideBytes !== undefined) {
     return executePairedAttention(recorder, Q, K, V, mask, numHeads, headDim, options);
   }
@@ -213,70 +215,6 @@ export async function executeAttention(
     );
   }
 
-  // ORT-style single-pass flash attention (adapted from microsoft/onnxruntime
-  // flash_attention.wgsl.template). Single kernel, no reduce pass — each WG
-  // handles one (head, query-tile) and processes all K online. Gated by
-  // useOrtFlashPrefill; takes precedence over the split+reduce flash path.
-  if (
-    options.useOrtFlashPrefill === true
-    && headDim === FLASH_HEAD_DIM
-    && seqLen > 1
-    && kvLayout === 'contiguous'
-    && bidirectionalSpanLength === 0
-    && indirectBuffer == null
-    && K?.dtype === 'f16'
-    && V?.dtype === 'f16'
-  ) {
-    return executeOrtFlashAttentionPrefill(recorder, Q, K, V, numHeads, headDim, {
-      seqLen,
-      kvLen,
-      numKVHeads,
-      scale,
-      causal,
-      startPos,
-      outputBuffer,
-      attnSoftcap,
-      slidingWindow,
-      kvLenBuffer,
-      kvStart,
-      kvLayout,
-      kvPageTable,
-      kvPageSize,
-    });
-  }
-
-  // Flash-attention prefill path: raises RDNA3 occupancy via KV-axis workgroup
-  // splitting + online-softmax reduction. Gated by options.useFlashPrefill so
-  // callers opt in deliberately (runtime config flag). Conservative conditions:
-  // head_dim=256, prefill (seqLen>1), contiguous KV, no bidirectional span.
-  if (
-    options.useFlashPrefill === true
-    && headDim === FLASH_HEAD_DIM
-    && seqLen > 1
-    && kvLayout === 'contiguous'
-    && bidirectionalSpanLength === 0
-    && indirectBuffer == null
-    && K?.dtype === 'f16'
-    && V?.dtype === 'f16'
-  ) {
-    return executeFlashAttentionPrefill(recorder, Q, K, V, numHeads, headDim, {
-      seqLen,
-      kvLen,
-      numKVHeads,
-      scale,
-      causal,
-      startPos,
-      outputBuffer,
-      attnSoftcap,
-      slidingWindow,
-      kvLenBuffer,
-      kvStart,
-      kvLayout,
-      kvPageTable,
-      kvPageSize,
-    });
-  }
-
   const limits = getDeviceLimits();
   const sharedLimit = limits?.maxComputeWorkgroupStorageSize ?? Infinity;
   const caps = getKernelCapabilities();
@@ -297,6 +235,9 @@ export async function executeAttention(
     isPaged,
     kernelPath
   );
+  if (options.useFlashPrefill === true && plan.tier !== 'flash_prefill') {
+    throw new Error('[FlashAttention] useFlashPrefill requires an execution graph selecting the registered flash prefill kernel.');
+  }
   if (plan.isDecode) declareDecodeAttentionLimit(execution.recorder, plan.variant, kvLen, kvStart, slidingWindow);
 
   getKernelValidator('attention', plan.variant)?.({
@@ -782,82 +723,6 @@ export async function executeFlashAttentionPrefill(recorder, Q, K, V, numHeads, 
 
 export const ORT_FLASH_WG = 64;
 
-export async function executeOrtFlashAttentionPrefill(recorder, Q, K, V, numHeads, headDim, options = {}) {
-  if (headDim !== FLASH_HEAD_DIM) {
-    throw new Error(`[OrtFlashAttention] headDim must be ${FLASH_HEAD_DIM}, got ${headDim}.`);
-  }
-  const execution = resolveAttentionExecution(recorder);
-  const {
-    seqLen = 1,
-    kvLen = seqLen,
-    numKVHeads = numHeads,
-    scale = 1.0 / Math.sqrt(headDim),
-    causal = true,
-    startPos = 0,
-    outputBuffer = null,
-    attnSoftcap = 0,
-    slidingWindow = 0,
-    kvLenBuffer = null,
-    kvStart = 0,
-    kvLayout = 'contiguous',
-    kvPageTable = null,
-    kvPageSize = 0,
-  } = options;
-
-  if (kvLayout !== 'contiguous') {
-    throw new Error(`[OrtFlashAttention] kvLayout must be "contiguous", got "${kvLayout}".`);
-  }
-
-  const device = execution.device;
-  const paddedHiddenSize = padToQ4KBlock(numHeads * headDim);
-  const outputSize = seqLen * paddedHiddenSize * 4;
-  const outputBuf = outputBuffer || acquireBuffer(outputSize, undefined, 'attention_ort_flash_output');
-
-  const uniform = createAttentionUniformBuffer(device, execution.recorder, {
-    numHeads,
-    numKVHeads,
-    headDim,
-    kvLen,
-    seqLen,
-    scale,
-    causal,
-    startPos,
-    attnSoftcap,
-    slidingWindow,
-    kvLenSource: kvLenBuffer ? 1 : 0,
-    kvStart,
-    pageSize: kvPageSize,
-    kvLayout: 0, // contiguous only
-  });
-
-  const kernel = new AttentionKernel(device);
-  const pipeline = await kernel.getPipeline('prefill_flash_ort_head256_f16kv');
-  const kvLenBinding = kvLenBuffer || getKvLenFallbackBuffer(device);
-  const pageTableBinding = kvPageTable || getPageTableFallbackBuffer(device);
-
-  const bindGroup = execution.device.createBindGroup({
-    label: 'attention_ort_flash_prefill_bg',
-    layout: getPipelineBindGroupLayout(pipeline, 0),
-    entries: [
-      { binding: 0, resource: { buffer: uniform } },
-      { binding: 1, resource: { buffer: Q.buffer } },
-      { binding: 2, resource: { buffer: K.buffer } },
-      { binding: 3, resource: { buffer: V.buffer } },
-      { binding: 4, resource: { buffer: outputBuf } },
-      { binding: 5, resource: { buffer: kvLenBinding } },
-      { binding: 6, resource: { buffer: pageTableBinding } },
-    ],
-  });
-
-  const numSeqTiles = Math.max(1, Math.ceil(seqLen / ORT_FLASH_WG));
-  const workgroups = [numHeads, numSeqTiles, 1];
-
-  if (execution.recorder) {
-    kernel.record(execution.recorder, pipeline, bindGroup, workgroups);
-  } else {
-    kernel.dispatch(pipeline, bindGroup, workgroups);
-  }
-
-  if (uniform) releaseUniformBuffer(uniform);
-  return createTensor(outputBuf, 'f32', [seqLen, numHeads, headDim], 'attention_ort_flash_output');
+export async function executeOrtFlashAttentionPrefill() {
+  throw new Error('[OrtFlashAttention] unsupported: no registered ORT flash kernel. Select a registered attention kernel in the execution graph.');
 }

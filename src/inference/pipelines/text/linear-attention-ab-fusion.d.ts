@@ -1,6 +1,5 @@
 import type { WeightBuffer } from '../../../gpu/weight-buffer.js';
 import type { LayerWeights } from './types.js';
-import type { ProbeConfigSchema } from '../../../config/schema/index.js';
 
 export interface LinearAttentionABProjectionOptions {
   phase: 'decode' | 'prefill';
@@ -8,8 +7,7 @@ export interface LinearAttentionABProjectionOptions {
   hiddenSize: number;
   numVHeads: number;
   layerIdx: number;
-  debugProbes?: ProbeConfigSchema[] | null;
-  operatorDiagnostics?: { enabled?: boolean } | null;
+  runtimeSession: Readonly<Record<string, unknown>>;
 }
 
 export interface LinearAttentionQKVZProjectionOptions extends LinearAttentionABProjectionOptions {

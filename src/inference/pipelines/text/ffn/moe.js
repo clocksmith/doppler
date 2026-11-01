@@ -6,7 +6,6 @@ import { runQwenSharedExpert, resolveDeclaredTopK, resolveQwenNormRouter, resolv
 import { createTensor } from '../../../../gpu/tensor.js';
 
 // Lazily loaded once: each dynamic import() makes the browser re-walk the module graph.
-/** @type {Promise<typeof import('../moe-impl.js')> | null} */
 let moeImplModule = null;
 
 

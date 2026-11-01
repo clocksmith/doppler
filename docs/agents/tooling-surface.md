@@ -40,3 +40,17 @@ Everything in `tools/` except `convert-safetensors-node.js`:
 - Agents should run `node src/cli/doppler-cli.js profiles --json` before guessing runtime profile names.
 - Skills should invoke CLI commands (`npm run debug`, `npm run bench`) rather than importing `src/tooling/` internals.
 - New dev scripts go in `tools/`. New commands go in `src/tooling/command-api.js` + CLI.
+
+## Repository operator entrypoint: kernel-path builder
+
+`src/tooling/kernel-path-builder/index.js` is an intentionally retained, repository-only
+operator entrypoint. Import `buildKernelPathBuilderArtifacts` with explicit
+`configEntries`, `manifestEntries` and `registryEntries` to produce an execution
+index, proposals and a Markdown report. It does not install a runtime path or qualify
+a proposed kernel. It is not a package export; applications should not deep-import it.
+`tests/tooling/kernel-path-builder-entry.test.js` checks the entrypoint contract.
+
+The `reports/` ignore rules control admission of new files, not retention of existing
+tracked evidence. Tracked receipts may be referenced by contracts or historical claims.
+Review those references and supersession before archiving; never delete a receipt solely
+because an ignore pattern would exclude a new file at the same path.

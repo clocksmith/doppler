@@ -4,8 +4,8 @@
 // "runtime exports a symbol that types don't advertise" drift class.
 //
 // Scope: every src/**/*.js and demo/**/*.js. Every JavaScript module must have
-// a sibling .d.ts; paired modules without `export * from` are also checked for
-// named value-export parity (wildcard re-exports can't be checked by regex).
+// a sibling .d.ts; paired modules are checked for resolved value-export names,
+// including wildcard facades. This is not a general TypeScript correctness gate.
 //
 // Known-debt quarantine lives in tools/policies/exports-parity-allowlist.json.
 // Entries must carry an owner and either an expiry date or a tracking issue.
@@ -16,7 +16,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
-import { parseModuleDependencies } from './lib/module-dependencies.js';
+import { createValueExportResolver } from './lib/module-dependencies.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -88,6 +88,9 @@ for (const entry of allowlist.entries) {
 }
 
 const jsFiles = GOVERNED_ROOTS.flatMap((root) => walk(path.join(ROOT, root)));
+const pairedFiles = jsFiles.filter(file => fs.existsSync(file.replace(/\.js$/, '.d.ts')));
+const jsExports = createValueExportResolver(pairedFiles);
+const dtsExports = createValueExportResolver(pairedFiles.map(file => file.replace(/\.js$/, '.d.ts')), true);
 const drift = [];
 const missingDeclarations = [];
 
@@ -97,13 +100,8 @@ for (const jsFile of jsFiles) {
     missingDeclarations.push(path.relative(ROOT, jsFile));
     continue;
   }
-  const jsSrc = fs.readFileSync(jsFile, 'utf8');
-  const dtsSrc = fs.readFileSync(dtsFile, 'utf8');
-  const jsParsed = parseModuleDependencies(jsSrc, jsFile);
-  const dtsParsed = parseModuleDependencies(dtsSrc, dtsFile);
-  if (jsParsed.hasWildcardExport || dtsParsed.hasWildcardExport) continue;
-  const jsE = new Set(jsParsed.valueExports);
-  const dtsE = new Set(dtsParsed.valueExports);
+  const jsE = jsExports(jsFile);
+  const dtsE = dtsExports(dtsFile);
   const rel = path.relative(ROOT, jsFile);
   const raw = {
     onlyInJs: [...jsE].filter((n) => !dtsE.has(n)),
@@ -147,7 +145,7 @@ const hasFailure =
   unused.length > 0;
 
 if (!hasFailure) {
-  console.log(`[exports-parity:check] ${jsFiles.length} JavaScript modules have declarations; paired named exports agree`);
+  console.log(`[exports-parity:check] ${jsFiles.length} JavaScript modules have declarations; paired resolved value exports agree`);
   if (allowlist.entries.length > 0) {
     console.log(`[exports-parity:check] ${allowlist.entries.length} allowlist entr${allowlist.entries.length === 1 ? 'y' : 'ies'} active`);
   }

@@ -1,4 +1,3 @@
-import { getRuntimeConfig } from '../../../../config/runtime.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 
 /** @param {unknown} precision @returns {1 | 2} */
@@ -11,8 +10,10 @@ export function recurrentStateComponents(precision) {
 
 /** @param {{linearRecurrentStatePrecision?: 'f32' | 'two-f32' | null} | null} [sessionSettings] */
 export function resolveRecurrentStateLayout(sessionSettings = null) {
-  const precision = sessionSettings?.linearRecurrentStatePrecision
-    ?? getRuntimeConfig().inference.session.linearRecurrentStatePrecision;
+  const precision = sessionSettings?.linearRecurrentStatePrecision;
+  if (precision == null) {
+    throw new Error('Linear recurrent state requires explicit linearRecurrentStatePrecision in resolved session settings.');
+  }
   return { precision, components: recurrentStateComponents(precision) };
 }
 

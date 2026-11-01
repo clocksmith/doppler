@@ -79,3 +79,17 @@ assert.equal(cacheTiming?.phasesMs.assetLoad, null);
 assert.equal(cacheTiming?.phasesMs.backendLoad, null);
 
 console.log('tokenizer-load-timing.test: ok');
+
+const originalFetch = globalThis.fetch;
+try {
+  let bodyRead = false;
+  globalThis.fetch = async () => ({ ok: false, status: 404, arrayBuffer() { bodyRead = true; return new ArrayBuffer(0); } });
+  for (const sentencepieceModel of ['tokenizer.model', 'https://invalid.example/tokenizer.model']) {
+    const failed = new Tokenizer();
+    await assert.rejects(failed.initialize({ modelId: `missing-${sentencepieceModel}`, tokenizer: {
+      sentencepieceModel, vocabSize: 3, eosToken: 2, unkToken: 0, addBosToken: false, addEosToken: false,
+    } }, { baseUrl: 'https://invalid.example' }), /HTTP 404/);
+    assert.equal(failed.getLoadTiming().status, 'failed');
+    assert.equal(bodyRead, false, 'HTTP error body must not become tokenizer data');
+  }
+} finally { globalThis.fetch = originalFetch; }

@@ -170,3 +170,18 @@ assert.throws(() => checkScopedPreflight(registryA, f16Missing), /scoped-preflig
 assert.equal(prewarmVariants(registryB, f16Missing).includes('gelu/scoped_b'), true);
 
 console.log('model-load-kernel-path-dtype-contract.test: ok');
+
+// Direct runtime preparation must enforce the same policy contract as config merge.
+for (const kernelPathPolicy of [
+  { mode: 'typo' },
+  { onIncompatible: 'ignore' },
+  { sourceScope: ['runtime'] },
+  { sourceScope: [] },
+  { sourceScope: ['model'], allowSources: ['config'] },
+]) {
+  const runtimeConfig = createRuntimeConfig('f32');
+  runtimeConfig.inference.kernelPathPolicy = kernelPathPolicy;
+  assert.throws(() => resolveKernelPathState({
+    manifest: createManifest(), runtimeConfig, modelConfig: { kernelPath: null },
+  }), /DopplerConfigError/);
+}

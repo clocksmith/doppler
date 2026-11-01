@@ -1,9 +1,5 @@
 import { getRuntimeConfig } from '../config/runtime.js';
-import { isIndexedDBAvailable, isOPFSAvailable } from './quota.js';
-import { createOpfsStore } from './backends/opfs-store.js';
-import { createIdbStore } from './backends/idb-store.js';
-import { DEFAULT_OPFS_PATH_CONFIG } from '../config/schema/loading.schema.js';
-import { DEFAULT_STORAGE_BACKEND_CONFIG } from '../config/schema/storage.schema.js';
+import { selectStorageBackend } from './backend-selection.js';
 import { normalizeModelId } from './normalize-model-id.js';
 
 function requireDirectoryHandle(handle) {
@@ -17,61 +13,12 @@ function sanitizeFilename(name) {
   return String(name).replace(/[\\/:*?"<>|]/g, '_');
 }
 
-function resolveOpfsRootDir(runtime) {
-  return runtime?.loading?.opfsPath?.opfsRootDir ?? DEFAULT_OPFS_PATH_CONFIG.opfsRootDir;
-}
-
 function resolveChunkBytes(runtime, chunkBytesOverride) {
-  const runtimeDefault = runtime?.loading?.storage?.backend?.streaming?.readChunkBytes
-    ?? DEFAULT_STORAGE_BACKEND_CONFIG.streaming.readChunkBytes;
-  const val = chunkBytesOverride ?? runtimeDefault;
-  return Number.isFinite(val) && val > 0 ? Math.floor(val) : runtimeDefault;
-}
-
-function resolveExportStore(runtime) {
-  const mode = runtime?.loading?.storage?.backend?.backend
-    ?? DEFAULT_STORAGE_BACKEND_CONFIG.backend;
-  if (mode === 'opfs') {
-    if (!isOPFSAvailable()) {
-      throw new Error('OPFS requested but not available');
-    }
-    const opfsCfg = runtime?.loading?.storage?.backend?.opfs ?? {};
-    const rootCfg = resolveOpfsRootDir(runtime);
-    return {
-      backend: 'opfs',
-      store: createOpfsStore({
-        opfsRootDir: rootCfg,
-        useSyncAccessHandle: Boolean(opfsCfg.useSyncAccessHandle),
-        maxConcurrentHandles: opfsCfg.maxConcurrentHandles ?? 2,
-      }),
-    };
+  const value = chunkBytesOverride ?? runtime.loading.storage.backend.streaming.readChunkBytes;
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error('exportModelToDirectory requires a positive integer chunkBytes');
   }
-  if (mode === 'indexeddb') {
-    if (!isIndexedDBAvailable()) {
-      throw new Error('IndexedDB requested but not available');
-    }
-    const cfg = runtime?.loading?.storage?.backend?.indexeddb;
-    return { backend: 'indexeddb', store: createIdbStore(cfg) };
-  }
-
-  // auto: prefer OPFS then IDB
-  if (isOPFSAvailable()) {
-    const opfsCfg = runtime?.loading?.storage?.backend?.opfs ?? {};
-    const rootCfg = resolveOpfsRootDir(runtime);
-    return {
-      backend: 'opfs',
-      store: createOpfsStore({
-        opfsRootDir: rootCfg,
-        useSyncAccessHandle: Boolean(opfsCfg.useSyncAccessHandle),
-        maxConcurrentHandles: opfsCfg.maxConcurrentHandles ?? 2,
-      }),
-    };
-  }
-  if (isIndexedDBAvailable()) {
-    const cfg = runtime?.loading?.storage?.backend?.indexeddb;
-    return { backend: 'indexeddb', store: createIdbStore(cfg) };
-  }
-  throw new Error('No supported storage backend available for export (opfs, indexeddb).');
+  return value;
 }
 
 export async function exportModelToDirectory(modelId, destinationDir, options = {}) {
@@ -84,19 +31,25 @@ export async function exportModelToDirectory(modelId, destinationDir, options = 
   const chunkBytes = resolveChunkBytes(runtime, options.chunkBytes);
   const onProgress = typeof options.onProgress === 'function' ? options.onProgress : null;
 
-  const { backend, store } = resolveExportStore(runtime);
+  const { type: backend, backend: store } = selectStorageBackend(
+    runtime.loading.storage.backend,
+    runtime.loading.opfsPath
+  );
+  if (backend === 'memory') {
+    throw new Error('exportModelToDirectory cannot reopen in-memory storage; select the persistent backend containing the model.');
+  }
   const safeModelId = normalizeModelId(modelId);
 
-  await store.init();
-  await store.openModel(safeModelId, { create: false });
-  onProgress?.({ stage: 'open', modelId, backend });
-
-  const files = await store.listFiles();
-  files.sort((a, b) => a.localeCompare(b));
-  onProgress?.({ stage: 'list', modelId, backend, fileCount: files.length });
-
-  let exported = 0;
   try {
+    await store.init();
+    await store.openModel(safeModelId, { create: false });
+    onProgress?.({ stage: 'open', modelId, backend });
+
+    const files = await store.listFiles();
+    files.sort((a, b) => a.localeCompare(b));
+    onProgress?.({ stage: 'list', modelId, backend, fileCount: files.length });
+
+    let exported = 0;
     for (const srcNameRaw of files) {
       const srcName = String(srcNameRaw);
       const dstName = sanitizeFilename(srcName);
@@ -146,10 +99,9 @@ export async function exportModelToDirectory(modelId, destinationDir, options = 
         total: files.length,
       });
     }
+    onProgress?.({ stage: 'done', modelId, backend, fileCount: files.length });
+    return { modelId, fileCount: files.length };
   } finally {
     await store.cleanup();
   }
-
-  onProgress?.({ stage: 'done', modelId, backend, fileCount: files.length });
-  return { modelId, fileCount: files.length };
 }

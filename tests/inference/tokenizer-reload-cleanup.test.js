@@ -109,8 +109,11 @@ function encodeLiteRTPieceList(pieces) {
     0x1a,
   ]).buffer;
 
-  await tokenizer.load(partialThenInvalid);
-  assert.equal(tokenizer.getVocabSize(), 259);
+  await assert.rejects(tokenizer.load(partialThenInvalid), /Invalid SentencePiece model/);
+  assert.equal(tokenizer.getVocabSize(), 0);
+  assert.throws(() => tokenizer.encode('foo'), /not loaded/);
+  await assert.rejects(tokenizer.load(new Uint8Array([128]).buffer), /Unexpected end/);
+  await assert.rejects(tokenizer.load(new ArrayBuffer(0)), /no vocabulary pieces/);
 }
 
 {

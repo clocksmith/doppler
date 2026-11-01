@@ -3,7 +3,7 @@
   "entrypoint": "src/capsule-runtime.js",
   "scope": "injected-capsule-core; excludes host-supplied program executors",
   "fileCount": 88,
-  "sourceBytes": 1131157,
+  "sourceBytes": 1132739,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -339,8 +339,8 @@
     },
     {
       "path": "src/debug/capture-policy.js",
-      "sizeBytes": 6544,
-      "hash": "sha256:16d29daa8e287fcff652590f45e615ead424cce56374b00c0a62bd5896cdf30e"
+      "sizeBytes": 8064,
+      "hash": "sha256:b5e31d8d9e2055d147aa246e03964723347a59a880dbc8cc0ca248503f75cdce"
     },
     {
       "path": "src/debug/config.js",
@@ -384,8 +384,8 @@
     },
     {
       "path": "src/errors/doppler-error.js",
-      "sizeBytes": 3486,
-      "hash": "sha256:b309b75f1563c1e141a97d7c6f0b963fbb606fb2db8a4384a45e57924806fe8d"
+      "sizeBytes": 3548,
+      "hash": "sha256:6123116a41b6dd2d3f690521e46c2c50f0ae1bace0412777ceb87be257950975"
     },
     {
       "path": "src/formats/canonical-hash.js",

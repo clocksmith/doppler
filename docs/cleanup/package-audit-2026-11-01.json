@@ -1,0 +1,256 @@
+{
+  "schema": "doppler.package-audit/v1",
+  "baseCommit": "c23a855628e5567ad198abfb4c13d00593bc9ea1",
+  "toolchain": {
+    "node": "22.23.4",
+    "npm": "11.9.0"
+  },
+  "scope": "npm pack --dry-run --json --ignore-scripts; no GPU qualification",
+  "baseline": {
+    "entryCount": 1821,
+    "size": 3522395,
+    "unpackedSize": 14816174
+  },
+  "candidate": {
+    "entryCount": 1823,
+    "size": 3524622,
+    "unpackedSize": 14824051
+  },
+  "previousLimits": {
+    "maxPackedSize": 3497999,
+    "maxUnpackedSize": 14172897,
+    "maxEntryCount": 2004
+  },
+  "packedCompressionAllowanceBytes": 2158,
+  "addedFiles": [
+    {
+      "path": "src/debug/pipeline-config.js",
+      "size": 4517,
+      "mode": 420
+    },
+    {
+      "path": "src/tooling/browser-harness/benchmark-comparison.js",
+      "size": 5177,
+      "mode": 420
+    }
+  ],
+  "removedFiles": [],
+  "changedSizes": [
+    {
+      "path": "src/cli/cli-output.js",
+      "before": 21457,
+      "after": 25432
+    },
+    {
+      "path": "src/client/doppler-api.d.ts",
+      "before": 4677,
+      "after": 4701
+    },
+    {
+      "path": "src/client/inspection.d.ts",
+      "before": 4254,
+      "after": 4300
+    },
+    {
+      "path": "src/client/inspection.js",
+      "before": 13045,
+      "after": 13268
+    },
+    {
+      "path": "src/client/provider.js",
+      "before": 15603,
+      "after": 15788
+    },
+    {
+      "path": "src/config/merge.js",
+      "before": 22741,
+      "after": 22967
+    },
+    {
+      "path": "src/config/param-validator.js",
+      "before": 13372,
+      "after": 15473
+    },
+    {
+      "path": "src/config/runtime.d.ts",
+      "before": 1013,
+      "after": 1132
+    },
+    {
+      "path": "src/config/runtime.js",
+      "before": 3730,
+      "after": 4314
+    },
+    {
+      "path": "src/config/schema/doppler.schema.js",
+      "before": 15815,
+      "after": 15231
+    },
+    {
+      "path": "src/debug/capture-policy.d.ts",
+      "before": 2328,
+      "after": 2566
+    },
+    {
+      "path": "src/debug/capture-policy.js",
+      "before": 6544,
+      "after": 8064
+    },
+    {
+      "path": "src/errors/doppler-error.js",
+      "before": 3486,
+      "after": 3548
+    },
+    {
+      "path": "src/gpu/device.js",
+      "before": 22824,
+      "after": 23035
+    },
+    {
+      "path": "src/gpu/kernels/attention/executors.js",
+      "before": 32621,
+      "after": 28623
+    },
+    {
+      "path": "src/gpu/kernels/conv2d.js",
+      "before": 3199,
+      "after": 3135
+    },
+    {
+      "path": "src/gpu/kernels/embedding-pool.js",
+      "before": 2701,
+      "after": 2773
+    },
+    {
+      "path": "src/gpu/uniform-cache.d.ts",
+      "before": 3544,
+      "after": 3625
+    },
+    {
+      "path": "src/gpu/uniform-cache.js",
+      "before": 6775,
+      "after": 6682
+    },
+    {
+      "path": "src/inference/pipelines/text/config/normalization.js",
+      "before": 26132,
+      "after": 26271
+    },
+    {
+      "path": "src/inference/pipelines/text/debug-utils/config.js",
+      "before": 3815,
+      "after": 419
+    },
+    {
+      "path": "src/inference/pipelines/text/debug-utils/health-metrics.js",
+      "before": 1343,
+      "after": 1120
+    },
+    {
+      "path": "src/inference/pipelines/text/ffn/dense.js",
+      "before": 32726,
+      "after": 32632
+    },
+    {
+      "path": "src/inference/pipelines/text/ffn/moe.js",
+      "before": 5950,
+      "after": 5887
+    },
+    {
+      "path": "src/inference/pipelines/text/ffn/sandwich.js",
+      "before": 15740,
+      "after": 15644
+    },
+    {
+      "path": "src/inference/pipelines/text/layer-plan-gpu.js",
+      "before": 26659,
+      "after": 26598
+    },
+    {
+      "path": "src/inference/pipelines/text/linear-attention-ab-fusion.js",
+      "before": 5672,
+      "after": 5775
+    },
+    {
+      "path": "src/inference/pipelines/text/linear-attention.d.ts",
+      "before": 5037,
+      "after": 5121
+    },
+    {
+      "path": "src/inference/pipelines/text/linear-attention.js",
+      "before": 27906,
+      "after": 27810
+    },
+    {
+      "path": "src/inference/pipelines/text/linear-attention/state-layout.js",
+      "before": 2410,
+      "after": 2426
+    },
+    {
+      "path": "src/inference/pipelines/text/model-load.js",
+      "before": 29196,
+      "after": 27434
+    },
+    {
+      "path": "src/inference/tokenizer.js",
+      "before": 18139,
+      "after": 18418
+    },
+    {
+      "path": "src/inference/tokenizers/sentencepiece.js",
+      "before": 13461,
+      "after": 12770
+    },
+    {
+      "path": "src/loader/weight-downcast.js",
+      "before": 5748,
+      "after": 5820
+    },
+    {
+      "path": "src/storage/backend-selection.js",
+      "before": 1522,
+      "after": 1632
+    },
+    {
+      "path": "src/storage/backends/idb-store.js",
+      "before": 18797,
+      "after": 18916
+    },
+    {
+      "path": "src/storage/export.d.ts",
+      "before": 458,
+      "after": 561
+    },
+    {
+      "path": "src/storage/export.js",
+      "before": 5429,
+      "after": 3658
+    },
+    {
+      "path": "src/tooling-exports.shared.d.ts",
+      "before": 4816,
+      "after": 5008
+    },
+    {
+      "path": "src/tooling/browser-harness/benchmark-execution.js",
+      "before": 39351,
+      "after": 39296
+    },
+    {
+      "path": "src/tooling/browser-harness/model-initialization.js",
+      "before": 8090,
+      "after": 8307
+    },
+    {
+      "path": "src/tooling/test-harness.d.ts",
+      "before": 5402,
+      "after": 5426
+    },
+    {
+      "path": "src/tooling/test-harness.js",
+      "before": 16351,
+      "after": 16456
+    }
+  ],
+  "review": "Baseline already exceeds byte limits. This patch adds two reachable semantic owners, removes dead ORT code and duplicate configuration, and preserves the existing numerical/package closure gates. No model weights or additional test operands were introduced."
+}

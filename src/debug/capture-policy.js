@@ -33,13 +33,15 @@ const LEVEL_PRIORITY = { none: 0, metadata: 1, slice: 2, full: 3 };
 // operatorClass is the canonical class of the op's stage (stage-names.js getOperatorClass),
 // supplied by the caller; it is never inferred from the opId text.
 export function resolveCapturePolicy(opId, config, operatorClass = null) {
-  if (!config || !config.enabled) return CAPTURE_LEVELS.NONE;
+  if (config === null) return CAPTURE_LEVELS.NONE;
+  validateCaptureConfig(config);
+  if (!config.enabled) return CAPTURE_LEVELS.NONE;
 
-  const globalLevel = config.defaultLevel ?? CAPTURE_LEVELS.NONE;
+  const globalLevel = config.defaultLevel;
 
   if (config.targetOpIds && config.targetOpIds.length > 0) {
     if (config.targetOpIds.includes(opId)) {
-      return config.targetLevel ?? CAPTURE_LEVELS.FULL;
+      return config.targetLevel;
     }
   }
 
@@ -48,14 +50,14 @@ export function resolveCapturePolicy(opId, config, operatorClass = null) {
       throw new Error(`[CapturePolicy] Operator-class filtering for "${opId}" requires its canonical operator class.`);
     }
     if (config.targetOperatorClasses.includes(operatorClass)) {
-      return config.targetLevel ?? CAPTURE_LEVELS.SLICE;
+      return config.targetLevel;
     }
   }
 
   if (config.targetLayers && config.targetLayers.length > 0) {
     const layerIdx = extractLayerFromOpId(opId);
     if (layerIdx !== null && config.targetLayers.includes(layerIdx)) {
-      return config.targetLevel ?? CAPTURE_LEVELS.SLICE;
+      return config.targetLevel;
     }
   }
 
@@ -157,21 +159,51 @@ export function createDefaultCaptureConfig() {
 }
 
 export function validateCaptureConfig(config) {
-  if (!config || typeof config !== 'object') {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) {
     throw new Error('[CapturePolicy] config must be an object.');
   }
 
-  const level = config.defaultLevel;
-  if (level && !(level in LEVEL_PRIORITY)) {
-    throw new Error(`[CapturePolicy] Invalid defaultLevel: "${level}". Must be one of: ${Object.keys(LEVEL_PRIORITY).join(', ')}.`);
+  requireCaptureLevel(config.defaultLevel, 'defaultLevel');
+  requireCaptureLevel(config.targetLevel, 'targetLevel');
+  if (typeof config.enabled !== 'boolean') {
+    throw new Error('[CapturePolicy] enabled must be a boolean.');
   }
-
-  const targetLevel = config.targetLevel;
-  if (targetLevel && !(targetLevel in LEVEL_PRIORITY)) {
-    throw new Error(`[CapturePolicy] Invalid targetLevel: "${targetLevel}". Must be one of: ${Object.keys(LEVEL_PRIORITY).join(', ')}.`);
+  for (const key of ['targetOpIds', 'targetOperatorClasses', 'targetLayers']) {
+    const values = config[key];
+    const validEntry = key === 'targetLayers'
+      ? (entry) => Number.isSafeInteger(entry) && entry >= 0
+      : (entry) => typeof entry === 'string' && entry.trim().length > 0;
+    if (!Array.isArray(values) || !Array.from(values).every(validEntry)) {
+      throw new Error(`[CapturePolicy] ${key} must be an array of ${key === 'targetLayers' ? 'non-negative integers' : 'non-empty strings'}.`);
+    }
   }
-
+  requireCaptureCount(config.sampleCount, 'sampleCount');
+  if (config.escalation !== null) {
+    const escalation = config.escalation;
+    if (!escalation || typeof escalation !== 'object' || Array.isArray(escalation)) {
+      throw new Error('[CapturePolicy] escalation must be an escalation policy or null.');
+    }
+    requireCaptureCount(escalation.windowBefore, 'escalation.windowBefore');
+    requireCaptureCount(escalation.windowAfter, 'escalation.windowAfter');
+    requireCaptureLevel(escalation.baseLevel, 'escalation.baseLevel');
+    requireCaptureLevel(escalation.escalatedLevel, 'escalation.escalatedLevel');
+    if (typeof escalation.resolveForIndex !== 'function') {
+      throw new Error('[CapturePolicy] escalation.resolveForIndex must be a function.');
+    }
+  }
   return true;
+}
+
+function requireCaptureLevel(level, label) {
+  if (typeof level !== 'string' || !Object.hasOwn(LEVEL_PRIORITY, level)) {
+    throw new Error(`[CapturePolicy] Invalid ${label}: "${level}". Must be one of: ${Object.keys(LEVEL_PRIORITY).join(', ')}.`);
+  }
+}
+
+function requireCaptureCount(value, label) {
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new Error(`[CapturePolicy] ${label} must be a non-negative integer.`);
+  }
 }
 
 // ============================================================================

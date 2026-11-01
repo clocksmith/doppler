@@ -6,22 +6,24 @@ Parent: [Shipped Source](../CATSCAN.md)
 
 ## Target
 
-Resolve all runtime-visible policy from validated, traceable, single-source configuration contracts.
+Resolve runtime policy from validated, traceable configuration contracts.
 
 ## Authority
 
-- Owns schemas, config registries, merge rules, runtime profiles, support tiers, and pure configuration resolution.
+- Owns schemas, registries, merges, profiles, support tiers, and configuration resolution.
 - Executable graph transformations belong to Rig under `src/converter/`; historical transform imports are compatibility exports only.
 - Does not own numeric execution, request intent, or conversion facts after artifact materialization.
 
 ## Scope
 
-- Configuration code and assets under `src/config/`.
+- Code and assets under `src/config/`.
 
 ## Contracts
 
+- Invalid configuration uses shared `errors` envelopes; config retains policy authority.
+
 - Input: [Config contract](../../docs/config.md), manifests, runtime overlays, platform capabilities, and policy assets.
-- Output: Validated resolved configuration with source attribution and explicit errors.
+- Output: Validated configuration, sources, and errors.
 
 ## Invariants
 

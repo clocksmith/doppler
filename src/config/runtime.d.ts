@@ -18,6 +18,8 @@ export function enterRuntimeConfig(config: RuntimeConfigSchema): () => void;
 /**
  * Set the active runtime config.
  * Accepts partial overrides and merges with defaults.
+ * Invalid configuration rejects with DOPPLER_CONFIG_INVALID; nested validation
+ * failures retain the original cause.
  */
 export function setRuntimeConfig(
   overrides?: Partial<RuntimeConfigSchema> | RuntimeConfigSchema

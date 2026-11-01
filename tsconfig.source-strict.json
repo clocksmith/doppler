@@ -16,6 +16,7 @@
   },
   "include": [],
   "files": [
+    "src/tooling/browser-harness/benchmark-comparison.js",
     "src/gpu/kernels/moe-grouped.js",
     "src/inference/pipelines/text/moe/grouped-prefill.js",
     "src/gpu/kernels/sigmoid-gated-add.js",
@@ -159,6 +160,7 @@
     "src/loader/tensors/q4_0-loader.js",
     "src/formats/gguf/block-storage.js",
     "src/formats/gguf/qwen-source.js",
-    "src/formats/gguf/tokenizer.js"
+    "src/formats/gguf/tokenizer.js",
+    "src/debug/pipeline-config.js"
   ]
 }

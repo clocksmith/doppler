@@ -9,6 +9,7 @@ export interface ExportProgress {
   writtenBytes?: number;
 }
 
+/** Exports from the configured persistent backend; rejects memory storage and invalid chunk sizes. */
 export declare function exportModelToDirectory(
   modelId: string,
   destinationDir: FileSystemDirectoryHandle,

@@ -12,9 +12,14 @@ function state(precision) {
     aLog: new Float32Array([1]), normWeight: new Float32Array([1]) };
 }
 try {
-  assert.deepEqual(resolveRecurrentStateLayout(), { precision: 'f32', components: 1 });
+  assert.throws(() => resolveRecurrentStateLayout(), /requires explicit/);
+  assert.throws(() => resolveRecurrentStateLayout({ linearRecurrentStatePrecision: null }), /requires explicit/);
   for (const precision of ['f32', 'two-f32']) {
     setRuntimeConfig({ inference: { session: { linearRecurrentStatePrecision: precision } } });
+    const settings = Object.freeze({ linearRecurrentStatePrecision: precision });
+    assert.deepEqual(resolveRecurrentStateLayout(settings), { precision, components: precision === 'f32' ? 1 : 2 });
+    setRuntimeConfig({ inference: { session: { linearRecurrentStatePrecision: precision === 'f32' ? 'two-f32' : 'f32' } } });
+    assert.equal(resolveRecurrentStateLayout(settings).precision, precision, 'resolved state layout ignores global policy');
     const layer = state(precision);
     assert.equal(assertRecurrentStateLayout(layer), precision === 'f32' ? 1 : 2);
     const runtime = createLinearAttentionRuntime(); runtime.layers.set(3, layer);
@@ -48,6 +53,6 @@ try {
   assert.throws(() => assertRecurrentStateLayout({ ...state('two-f32'), recurrentState: new Float32Array(8) }), /storage/);
   assert.throws(() => assertRecurrentStateLayout({ ...state('f32'), recurrentStatePrecision: undefined }), /precision/);
   setRuntimeConfig({ inference: { session: { linearRecurrentStatePrecision: 'f64' } } });
-  assert.throws(resolveRecurrentStateLayout, /precision/);
+  assert.throws(() => resolveRecurrentStateLayout({ linearRecurrentStatePrecision: 'f64' }), /precision/);
 } finally { resetRuntimeConfig(); }
 console.log('linear-recurrent-layout: passed');

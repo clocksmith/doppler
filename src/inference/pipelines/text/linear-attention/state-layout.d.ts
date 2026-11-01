@@ -1,4 +1,5 @@
 export declare function recurrentStateComponents(precision: unknown): 1 | 2;
+/** Requires an explicit resolved precision; missing/null settings reject without reading global config. */
 export declare function resolveRecurrentStateLayout(sessionSettings?: { linearRecurrentStatePrecision?: 'f32' | 'two-f32' | null } | null): { precision: 'f32' | 'two-f32'; components: 1 | 2 };
 export declare function assertRecurrentStateLayout(state: {
   recurrentStatePrecision: unknown;

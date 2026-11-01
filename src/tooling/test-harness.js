@@ -5,7 +5,7 @@ import { parseManifest, getExpectedShardHash } from '../formats/rdrr/index.js';
 import { createPipeline } from '../inference/pipelines/text.js';
 import { createNodeFileShardStorageContext } from '../inference/pipelines/text/init.js';
 import { createHttpArtifactStorageContext } from '../storage/artifact-storage-context.js';
-import { resolveManifestArtifactSource } from '../client/runtime/model-source.js';
+import { resolveManifestArtifactSource, sha256ManifestText } from '../client/runtime/model-source.js';
 import { log as debugLog } from '../debug/index.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime.js';
 
@@ -375,6 +375,7 @@ export async function initializeInference(modelUrl, options = {}) {
     }, manifestPayload)
   );
   const manifest = artifactSource.manifest;
+  const manifestHash = await sha256ManifestText(manifestPayload.text);
   const storageManifest = artifactSource.storageManifest ?? manifest;
   const storageModelUrl = artifactSource.storageBaseUrl ?? modelUrl;
 
@@ -447,7 +448,7 @@ export async function initializeInference(modelUrl, options = {}) {
      // Detailed per-op view could be expanded here if needed
   };
 
-  return { pipeline, manifest, capabilities, configSnapshot };
+  return { pipeline, manifest, manifestHash, capabilities, configSnapshot };
 }
 
 // ============================================================================

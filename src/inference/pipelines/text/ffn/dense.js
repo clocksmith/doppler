@@ -39,7 +39,6 @@ import { captureTrainingActivation, enqueueRecordedDenseHealth } from './activat
 import { borrowDecodeFfnIntermediate } from './decode-intermediate.js';
 
 // Lazily loaded once: each dynamic import() makes the browser re-walk the module graph.
-/** @type {Promise<typeof import('../../../../gpu/kernels/fused-gate-up-gelu.js')> | null} */
 let fusedGateUpGeluModule = null;
 export { canUseNativeF16FusedGateUp, runDenseFFNWithFusedPostNormGPU } from './dense-executor.js';
 export { canFuseSplitPrefillF16GateUpPath, resolveDenseFFNFusedPathDtypes, resolveDenseFFNMatmulStepDtype, resolveFusedGateUpPipelineConstants, resolveFusedGateUpVariant, resolveFusedGateUpWeights, resolveGateUpPathMode } from './dense-plan.js';

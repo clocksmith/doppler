@@ -17,6 +17,10 @@ export function parseModuleDependencies(source, fileName = 'module.js') {
     else for (const element of name.elements) if (ts.isBindingElement(element)) bindingNames(element.name);
   }
   for (const statement of ast.statements) {
+    if (ts.isExportAssignment(statement) || statement.modifiers?.some(modifier => modifier.kind === ts.SyntaxKind.DefaultKeyword)) {
+      valueExports.add('default');
+      continue;
+    }
     if (ts.isExportDeclaration(statement) && !statement.isTypeOnly) {
       if (!statement.exportClause) hasWildcardExport = true;
       else if (ts.isNamedExports(statement.exportClause)) {
@@ -25,7 +29,7 @@ export function parseModuleDependencies(source, fileName = 'module.js') {
     }
     if (!statement.modifiers?.some(modifier => modifier.kind === ts.SyntaxKind.ExportKeyword)) continue;
     if (ts.isVariableStatement(statement)) for (const item of statement.declarationList.declarations) bindingNames(item.name);
-    else if ((ts.isFunctionDeclaration(statement) || ts.isClassDeclaration(statement) || ts.isEnumDeclaration(statement)) && statement.name) {
+    else if ((ts.isFunctionDeclaration(statement) || ts.isClassDeclaration(statement) || ts.isEnumDeclaration(statement) || ts.isModuleDeclaration(statement)) && statement.name) {
       valueExports.add(statement.name.text);
     }
   }
@@ -177,4 +181,69 @@ export function collectStronglyConnectedComponents(graph) {
   }
   for (const node of graph.keys()) if (!indices.has(node)) visit(node);
   return components;
+}
+
+// Resolve value-export names, not general type correctness. Keep runtime and
+// declaration programs separate: TypeScript normally substitutes .d.ts for .js,
+// which would hide precisely the implementation/declaration drift being checked.
+export function createValueExportResolver(files, declarations = false) {
+  const options = { allowJs: true, noLib: true, skipLibCheck: true,
+    module: ts.ModuleKind.ESNext, moduleResolution: ts.ModuleResolutionKind.Bundler };
+  const host = ts.createCompilerHost(options);
+  host.resolveModuleNames = (names, importer) => names.map(name => {
+    if (name.startsWith('.') && name.endsWith('.js')) {
+      const target = path.resolve(path.dirname(importer), name);
+      const declarationTarget = declarations || importer.endsWith('.d.ts');
+      const file = declarationTarget ? target.replace(/\.js$/, '.d.ts') : target;
+      if (host.fileExists(file)) return { resolvedFileName: file,
+        extension: declarationTarget ? ts.Extension.Dts : ts.Extension.Js };
+      return undefined;
+    }
+    return ts.resolveModuleName(name, importer, options, host).resolvedModule;
+  });
+  const program = ts.createProgram(files, options, host);
+  const checker = program.getTypeChecker();
+  function resolve(module, visiting = new Set()) {
+    if (!module || visiting.has(module)) return new Map();
+    const next = new Set(visiting).add(module);
+    const values = new Map();
+    // Only explicitly advertised declarations are API: private ambient helper
+    // classes and unique-symbol brands are not runtime exports.
+    const explicit = new Set((module.declarations ?? []).filter(ts.isSourceFile)
+      .flatMap(source => parseModuleDependencies(source.text, source.fileName).valueExports));
+    for (const symbol of module.exports?.values() ?? []) {
+      const name = symbol.name;
+      if (!explicit.has(name)) continue;
+      if (symbol.flags & ts.SymbolFlags.Alias && checker.getTypeOnlyAliasDeclaration(symbol)) continue;
+      const target = symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
+      if (symbol.flags & ts.SymbolFlags.Alias && !target.declarations?.length) {
+        throw new Error(`Cannot resolve exported binding: ${name}`);
+      }
+      if (target.flags & ts.SymbolFlags.Value) values.set(name, target);
+    }
+    for (const source of module.declarations ?? []) {
+      if (!ts.isSourceFile(source)) continue;
+      for (const statement of source.statements) {
+        if (!ts.isExportDeclaration(statement) || statement.isTypeOnly
+          || statement.exportClause || !statement.moduleSpecifier) continue;
+        const target = checker.getSymbolAtLocation(statement.moduleSpecifier);
+        if (!target) throw new Error(`Cannot resolve export in ${source.fileName}: ${statement.getText(source)}`);
+        for (const [name, symbol] of resolve(target, next)) {
+          if (name === 'default' || explicit.has(name)) continue;
+          // Conflicting star bindings are not exported. A diamond forwarding the
+          // same original binding is not a conflict. Explicit exports win.
+          if (values.has(name) && values.get(name) !== symbol) values.set(name, null);
+          else values.set(name, symbol);
+        }
+      }
+    }
+    return values;
+  }
+  return file => {
+    const source = program.getSourceFile(file);
+    if (!source) throw new Error(`Missing export source: ${file}`);
+    if (source.parseDiagnostics.length) throw new Error(`Invalid export source: ${file}`);
+    return new Set([...resolve(checker.getSymbolAtLocation(source))]
+      .filter(([, symbol]) => symbol !== null).map(([name]) => name));
+  };
 }

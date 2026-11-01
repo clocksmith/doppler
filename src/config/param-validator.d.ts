@@ -1,3 +1,4 @@
+/** Public validation failures carry DOPPLER_CONFIG_INVALID and actionable messages. */
 export function validateCallTimeOptions(options?: Record<string, unknown> | null): void;
 
 export function validateRuntimeOverrides(overrides?: {
@@ -32,3 +33,8 @@ export function validateRuntimeConfig(runtimeConfig?: {
     kernelPath?: Record<string, unknown> | null;
   } | null;
 } | null): void;
+
+export function validateUnsupportedSessionOptions(
+  session?: { useOrtFlashPrefillAttention?: unknown } | null,
+  label?: string
+): void;

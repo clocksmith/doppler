@@ -348,4 +348,47 @@ function head256KernelPath() {
   setDevice(null);
 }
 
+
+const { executeOrtFlashAttentionPrefill } = await import('../../src/gpu/kernels/attention/executors.js');
+const { runAttention } = await import('../../src/gpu/kernels/attention.js');
+for (const recorded of [false, true]) {
+  for (const testCase of ['mask', 'path-mismatch', 'unknown-path', 'ort', 'ort-direct', 'valid-flash']) {
+    const device = createFakeDevice();
+    resetRuntimeState(device);
+    const recorder = recorded ? new CommandRecorder(device, 'flash_contract') : null;
+    const executeAttention = recorder ? (...args) => recordAttention(recorder, ...args) : runAttention;
+    const q = { dtype: 'f32', buffer: device.createBuffer({ size: 2048, usage: GPUBufferUsage.STORAGE }) };
+    const k = { dtype: 'f16', buffer: device.createBuffer({ size: 1024, usage: GPUBufferUsage.STORAGE }) };
+    const v = { ...k };
+    const kernelPath = {
+      id: 'flash-contract',
+      prefill: { steps: [{ op: 'attention', kernel: testCase === 'path-mismatch'
+        ? 'attention_prefill_f16kv.wgsl' : testCase === 'unknown-path'
+          ? 'does_not_exist.wgsl' : 'attention_prefill_flash_head256_f16kv.wgsl', entry: 'main' }] },
+    };
+    const options = { seqLen: 2, kvLen: 2, numKVHeads: 1, useFlashPrefill: true, kernelPath };
+    const execute = testCase === 'ort-direct'
+      ? () => executeOrtFlashAttentionPrefill(recorder, q, k, v, 1, 256, options)
+      : () => executeAttention(q, k, v, testCase === 'mask' ? {} : null, 1, 256,
+        { ...options, useOrtFlashPrefill: testCase === 'ort' });
+    if (testCase === 'valid-flash') {
+      const output = await execute();
+      assert.equal(device.pipelineDescriptors[0].label, 'attention_prefill_flash_head256_f16kv_pipeline');
+      const { releaseBuffer } = await import('../../src/memory/buffer-pool.js');
+      recorder?.abort();
+      releaseBuffer(output.buffer);
+    } else {
+      await assert.rejects(execute, testCase === 'mask' ? /explicit masks are unsupported/
+        : (testCase === 'path-mismatch' || testCase === 'unknown-path') ? /execution graph selecting/ : /no registered ORT flash kernel/);
+      assert.equal(device.pipelineDescriptors.length, 0);
+      assert.equal(getBufferPool().getStats().activeBuffers, 0);
+      recorder?.abort();
+    }
+    destroyBufferPool();
+    resetUniformCache();
+    clearPipelineCaches();
+    setDevice(null);
+  }
+
+}
 console.log('attention-online-constants.test: ok');

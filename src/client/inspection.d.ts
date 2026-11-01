@@ -43,7 +43,7 @@ export interface DopplerComparisonFingerprint {
       allowedClaimTypes: DopplerClaimType[];
     };
     perplexity: DopplerObservationPolicy['perplexity'];
-    execution: Record<string, unknown>;
+    execution: Record<string, unknown> & { initialExecutionIdentityDigest?: string };
     browser: Record<string, string>;
     adapter: Record<string, string | null>;
   };

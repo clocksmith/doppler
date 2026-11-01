@@ -46,3 +46,11 @@ function checkArtifactReader(reader, artifact) {
   reader.streamArtifact = async function* () { yield 'untrusted text'; };
 }
 void checkArtifactReader;
+
+import { ERROR_CODES, createDopplerError } from '../../src/errors/doppler-error.js';
+// @ts-expect-error Public error factories require a registered machine-readable code.
+createDopplerError('DOPPLER_NOT_REGISTERED', 'unknown');
+const configFailure = createDopplerError(ERROR_CODES.CONFIG_INVALID, 'invalid');
+/** @type {'DOPPLER_CONFIG_INVALID'} */
+const requiredConfigCode = configFailure.code;
+void requiredConfigCode;

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 4,
-  "debtAuthorization": "sha256:66797cdee28d91342930af4179ca9cc290da31cdd7634bce1786aaabe1a6fc4f",
+  "debtAuthorization": "sha256:677e3e9fefec747a23a45c34400c35805ef0179a9bff1347fc33dffd6f8396f5",
   "facadeDependencies": {
     "config/transforms/execution-graph-transforms.js": [
       "converter/execution-graph-transforms.js"
@@ -181,7 +181,7 @@
   "allowedDependencies": {
     "cli": ["cli", "client", "config", "formats", "storage", "tooling"],
     "client": ["client", "config", "converter", "debug", "errors", "experimental", "formats", "generation", "gpu", "inference", "loader", "memory", "storage", "tooling"],
-    "config": ["config", "debug", "formats"],
+    "config": ["config", "debug", "formats", "errors"],
     "converter": ["config", "converter", "debug", "formats", "inference", "rules"],
     "debug": ["config", "debug", "formats"],
     "errors": ["errors"],
@@ -377,12 +377,20 @@
       "forbiddenPathPrefixes": ["gpu/", "loader/", "inference/", "converter/", "tooling/"]
     }
   ],
-  "dependencyExceptions": [{
-    "from": "tooling/test-harness.js",
-    "toOwner": "client",
-    "reason": "Host-level test assembly resolves artifact sources through the client source contract.",
-    "extractTo": "client/runtime/model-source.js"
-  }],
+  "dependencyExceptions": [
+    {
+      "from": "tooling/test-harness.js",
+      "toOwner": "client",
+      "reason": "Host-level test assembly resolves artifact sources through the client source contract.",
+      "extractTo": "client/runtime/model-source.js"
+    },
+    {
+      "from": "tooling/browser-harness/benchmark-comparison.js",
+      "toOwner": "client",
+      "reason": "Benchmark receipts reuse canonical comparison fingerprints and observed backend identity; tooling does not select or execute client policy.",
+      "extractTo": "client/inspection.js"
+    }
+  ],
   "genericModuleReviews": {
     "config/schema/shared-runtime.schema.js": {
       "classification": "semantic-owner",
@@ -565,13 +573,6 @@
       "reason": "Quarantined subsystem module remains below the hard ceiling; the named component boundary ratchets further growth.",
       "extractTo": [
         "experimental/training/wgsl-repair-components.js"
-      ]
-    },
-    "gpu/kernels/attention/executors.js": {
-      "reviewedLines": 960,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
-      "extractTo": [
-        "gpu/kernels/attention/executors-components.js"
       ]
     },
     "gpu/kernels/attention.js": {

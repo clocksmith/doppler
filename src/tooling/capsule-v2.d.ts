@@ -1,4 +1,22 @@
-export * from '../config/capsule-v2.js';
+export type * from '../config/capsule-v2.js';
+export {
+  CAPSULE_V2_PROGRAM_SCHEMA_ID,
+  CAPSULE_V2_SCHEMA_ID,
+  CAPSULE_V2_SCHEMA_VERSION,
+  CAPSULE_V2_SIGNATURE_ALGORITHM,
+  buildCapsuleV2,
+  freezeCapsuleV2,
+  getCapsuleV2SemanticPayload,
+  hashCapsuleV2,
+  hashCapsuleV2Envelope,
+  hashCapsuleV2PublicKey,
+  signCapsuleV2,
+  validateCapsuleV2,
+  verifyCapsuleV2,
+  verifyCapsuleV2Artifacts,
+  verifyCapsuleV2Signature,
+} from '../config/capsule-v2.js';
+
 import type { DopplerCapsuleV2 } from '../config/capsule-v2.js';
 
 export declare function writeCapsuleV2(outputPath: string, capsule: DopplerCapsuleV2): Promise<{

@@ -70,6 +70,7 @@ export interface InferenceHarnessOptions {
 export interface InitializeResult {
   pipeline: Pipeline;
   manifest: RDRRManifest;
+  manifestHash: string;
   capabilities: KernelCapabilities;
 }
 

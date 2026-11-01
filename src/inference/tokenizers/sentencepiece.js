@@ -54,10 +54,8 @@ export class SentencePieceTokenizer extends BaseTokenizer {
       log.info('Tokenizer', `Loaded ${this.#pieces.size} pieces (${this.#algorithm})`);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      log.warn('Tokenizer', `Failed to parse model, using byte fallback: ${message}`);
       this.#resetState();
-      this.#modelData = modelData;
-      this.#initByteFallback();
+      throw new Error(`[Tokenizer] Invalid SentencePiece model: ${message}`, { cause: err });
     }
   }
 
@@ -145,6 +143,9 @@ export class SentencePieceTokenizer extends BaseTokenizer {
 
     const isLiteRTPieceList = liteRTPieceCandidates.length > standardPieces.length;
     const selectedPieces = isLiteRTPieceList ? liteRTPieceCandidates : standardPieces;
+    if (selectedPieces.length === 0) {
+      throw new Error('SentencePiece model contains no vocabulary pieces.');
+    }
     for (const [id, piece] of selectedPieces.entries()) {
       this.#addPiece(piece, id);
     }
@@ -260,29 +261,6 @@ export class SentencePieceTokenizer extends BaseTokenizer {
     } while (byte & 0x80);
 
     return { value, newOffset: offset };
-  }
-
-  
-  #initByteFallback() {
-    // Create a basic byte-level vocabulary
-    // Special tokens
-    this.#pieces.set('<unk>', { id: 0, score: 0, type: 2 });
-    this.#pieces.set('<s>', { id: 1, score: 0, type: 3 });
-    this.#pieces.set('</s>', { id: 2, score: 0, type: 3 });
-    this.#reverseVocab.set(0, '<unk>');
-    this.#reverseVocab.set(1, '<s>');
-    this.#reverseVocab.set(2, '</s>');
-
-    // Byte tokens (3-258)
-    for (let i = 0; i < 256; i++) {
-      const token = `<0x${i.toString(16).padStart(2, '0').toUpperCase()}>`;
-      const id = i + 3;
-      this.#pieces.set(token, { id, score: 0, type: 6 }); // BYTE type
-      this.#reverseVocab.set(id, token);
-      this.#byteTokens.set(i, id);
-    }
-
-    this.vocabSize = this.#pieces.size;
   }
 
   

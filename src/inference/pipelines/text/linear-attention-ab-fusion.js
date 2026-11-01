@@ -1,4 +1,3 @@
-import { getRuntimeConfig } from '../../../config/runtime.js';
 import { getDevice } from '../../../gpu/device.js';
 import { createWeightBuffer, isWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { Q4K_BLOCK_BYTES, QK_K } from '../../../config/schema/index.js';
@@ -13,17 +12,16 @@ function shapeMatches(weight, rows, cols) {
 function canUseLinearAttentionABProjectionFusion({
   phase,
   numTokens,
-  debugProbes,
-  operatorDiagnostics,
+  runtimeSession,
 }) {
-  const session = getRuntimeConfig()?.inference?.session;
-  if (session?.useLinearAttentionABProjectionFusion !== true) {
+  const session = runtimeSession;
+  if (typeof session?.useLinearAttentionABProjectionFusion !== 'boolean') {
+    throw new Error('Linear attention requires resolved useLinearAttentionABProjectionFusion.');
+  }
+  if (!session.useLinearAttentionABProjectionFusion) {
     return false;
   }
   if (phase !== 'decode' || numTokens !== 1) {
-    return false;
-  }
-  if (debugProbes?.length || operatorDiagnostics?.enabled === true) {
     return false;
   }
   return true;
@@ -36,14 +34,12 @@ export function resolveLinearAttentionABProjection(layerWeights, options) {
     hiddenSize,
     numVHeads,
     layerIdx,
-    debugProbes,
-    operatorDiagnostics,
+    runtimeSession,
   } = options;
   if (!canUseLinearAttentionABProjectionFusion({
     phase,
     numTokens,
-    debugProbes,
-    operatorDiagnostics,
+    runtimeSession,
   })) {
     return null;
   }
@@ -84,18 +80,23 @@ export function resolveLinearAttentionABProjection(layerWeights, options) {
     size: bytesPerWeight * 2,
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
   });
-  const encoder = device.createCommandEncoder({ label: `L${layerIdx}.linear_ab_proj_weight_capsule` });
-  encoder.copyBufferToBuffer(aWeight.buffer, 0, buffer, 0, bytesPerWeight);
-  encoder.copyBufferToBuffer(bWeight.buffer, 0, buffer, bytesPerWeight, bytesPerWeight);
-  device.queue.submit([encoder.finish()]);
+  try {
+    const encoder = device.createCommandEncoder({ label: `L${layerIdx}.linear_ab_proj_weight_capsule` });
+    encoder.copyBufferToBuffer(aWeight.buffer, 0, buffer, 0, bytesPerWeight);
+    encoder.copyBufferToBuffer(bWeight.buffer, 0, buffer, bytesPerWeight, bytesPerWeight);
+    device.queue.submit([encoder.finish()]);
 
-  layerWeights.linearABProj = createWeightBuffer(
-    buffer,
-    'f16',
-    'row',
-    [numVHeads * 2, hiddenSize],
-    `L${layerIdx}.linear_ab_proj_weight`
-  );
+    layerWeights.linearABProj = createWeightBuffer(
+      buffer,
+      'f16',
+      'row',
+      [numVHeads * 2, hiddenSize],
+      `L${layerIdx}.linear_ab_proj_weight`
+    );
+  } catch (error) {
+    buffer.destroy();
+    throw error;
+  }
   return {
     weight: layerWeights.linearABProj,
     outDim: numVHeads * 2,
@@ -106,17 +107,16 @@ export function resolveLinearAttentionABProjection(layerWeights, options) {
 function canUseLinearAttentionQKVZProjectionFusion({
   phase,
   numTokens,
-  debugProbes,
-  operatorDiagnostics,
+  runtimeSession,
 }) {
-  const session = getRuntimeConfig()?.inference?.session;
-  if (session?.useLinearAttentionQKVZProjectionFusion !== true) {
+  const session = runtimeSession;
+  if (typeof session?.useLinearAttentionQKVZProjectionFusion !== 'boolean') {
+    throw new Error('Linear attention requires resolved useLinearAttentionQKVZProjectionFusion.');
+  }
+  if (!session.useLinearAttentionQKVZProjectionFusion) {
     return false;
   }
   if (phase !== 'decode' || numTokens !== 1) {
-    return false;
-  }
-  if (debugProbes?.length || operatorDiagnostics?.enabled === true) {
     return false;
   }
   return true;
@@ -137,14 +137,12 @@ export function resolveLinearAttentionQKVZProjection(layerWeights, options) {
     convDim,
     valueDim,
     layerIdx,
-    debugProbes,
-    operatorDiagnostics,
+    runtimeSession,
   } = options;
   if (!canUseLinearAttentionQKVZProjectionFusion({
     phase,
     numTokens,
-    debugProbes,
-    operatorDiagnostics,
+    runtimeSession,
   })) {
     return null;
   }
@@ -189,18 +187,23 @@ export function resolveLinearAttentionQKVZProjection(layerWeights, options) {
     size: qkvBytes + zBytes,
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
   });
-  const encoder = device.createCommandEncoder({ label: `L${layerIdx}.linear_qkvz_proj_weight_capsule` });
-  encoder.copyBufferToBuffer(qkvWeight.buffer, 0, buffer, 0, qkvBytes);
-  encoder.copyBufferToBuffer(zWeight.buffer, 0, buffer, qkvBytes, zBytes);
-  device.queue.submit([encoder.finish()]);
+  try {
+    const encoder = device.createCommandEncoder({ label: `L${layerIdx}.linear_qkvz_proj_weight_capsule` });
+    encoder.copyBufferToBuffer(qkvWeight.buffer, 0, buffer, 0, qkvBytes);
+    encoder.copyBufferToBuffer(zWeight.buffer, 0, buffer, qkvBytes, zBytes);
+    device.queue.submit([encoder.finish()]);
 
-  layerWeights.linearQKVZProj = createWeightBuffer(
-    buffer,
-    'q4k',
-    'row',
-    [convDim + valueDim, hiddenSize],
-    `L${layerIdx}.linear_qkvz_proj_weight`
-  );
+    layerWeights.linearQKVZProj = createWeightBuffer(
+      buffer,
+      'q4k',
+      'row',
+      [convDim + valueDim, hiddenSize],
+      `L${layerIdx}.linear_qkvz_proj_weight`
+    );
+  } catch (error) {
+    buffer.destroy();
+    throw error;
+  }
   return {
     weight: layerWeights.linearQKVZProj,
     outDim: convDim + valueDim,

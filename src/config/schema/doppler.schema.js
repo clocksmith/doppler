@@ -172,14 +172,7 @@ export const DEFAULT_RUNTIME_CONFIG = {
       useLinearAttentionRegisterDecode: false,
       linearRecurrentStatePrecision: 'f32',
       intermediatePrecision: 'f32',
-      // Opt into the single-pass flash attention prefill kernel adapted from
-      // ORT's flash_attention.wgsl.template. 64 threads = 64 queries per WG;
-      // private Q/O tiles, shared K/V tiles, online softmax, no reduce pass.
-      // At Gemma 4 E2B prefill=64 this dispatches 8 WGs total (vs ~32 for the
-      // split+reduce Doppler flash path). Requires head_dim=256, f16 KV,
-      // contiguous KV layout, seqLen > 1. Supersedes useFlashPrefillAttention
-      // when both flags are set (this path is picked first). Default false.
-      useOrtFlashPrefillAttention: false,
+
       // Opt into the WideTile Q4_K matmul + residual fusion at the ffn_down
       // + ffn_residual call site (dense.js). Eliminates one separate residual
       // dispatch per layer. Requires f32 activations + retained Q4_K weights

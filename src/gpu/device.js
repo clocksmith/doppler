@@ -259,6 +259,7 @@ async function requestAdapter(options = {}) {
     { ...options }, // Default
   ];
 
+  let lastError = null;
   for (const opts of adapterOptions) {
     try {
       const adapter = await navigator.gpu.requestAdapter(opts);
@@ -266,11 +267,11 @@ async function requestAdapter(options = {}) {
         return adapter;
       }
     } catch (e) {
-      // Continue to next option
+      lastError = e;
     }
   }
 
-  return null;
+  throw createDopplerError(ERROR_CODES.GPU_UNSUPPORTED_ADAPTER, 'Failed to get WebGPU adapter', { cause: lastError });
 }
 
 
@@ -357,7 +358,7 @@ async function requestDeviceWithFeatureFallback(adapter, requestedFeatures, limi
       log.warn('GPU', 'Failed to request device with features [' + label + ']: ' + error.message);
     }
   }
-  throw lastError || new Error('Failed to request WebGPU device');
+  throw createDopplerError(ERROR_CODES.GPU_DEVICE_FAILED, 'Failed to request WebGPU device', { cause: lastError });
 }
 
 
@@ -423,7 +424,7 @@ async function initializeDevice(initializationEpoch) {
 
   const adapter = await requestAdapter();
   if (!adapter) {
-    throw new Error('Failed to get WebGPU adapter');
+    throw createDopplerError(ERROR_CODES.GPU_UNSUPPORTED_ADAPTER, 'Failed to get WebGPU adapter');
   }
 
   // Initialize platform loader and kernel registry early (before device creation)

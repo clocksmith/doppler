@@ -1,4 +1,5 @@
 export const ERROR_CODES = {
+  CONFIG_INVALID: 'DOPPLER_CONFIG_INVALID',
   GPU_UNAVAILABLE: 'DOPPLER_GPU_UNAVAILABLE',
   GPU_DEVICE_FAILED: 'DOPPLER_GPU_DEVICE_FAILED',
   GPU_OOM: 'DOPPLER_GPU_OOM',
@@ -50,11 +51,11 @@ for (const [key, value] of Object.entries(ERROR_CODES)) {
   seenCodeValues.add(value);
 }
 
-export function createDopplerError(code, message) {
+export function createDopplerError(code, message, options) {
   if (!seenCodeValues.has(code)) {
     throw new Error(`DopplerError: unknown error code "${code}". Register it in ERROR_CODES first.`);
   }
-  const error = new Error(`[${code}] ${message}`);
+  const error = new Error(`[${code}] ${message}`, options);
   error.code = code;
   return error;
 }

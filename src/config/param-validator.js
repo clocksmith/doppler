@@ -1,3 +1,4 @@
+import { ERROR_CODES, createDopplerError } from '../errors/doppler-error.js';
 import { log } from '../debug/index.js';
 import { PARAM_CATEGORIES, CategoryRules } from './param-categories.js';
 import {
@@ -35,16 +36,26 @@ export function validateCallTimeOptions(options) {
     ? 'Set in the conversion config/manifest. Runtime modelOverrides are limited to an explicit allowlist.'
     : 'Set via setRuntimeConfig() before generation.';
 
-  throw new Error(
+  throw createDopplerError(ERROR_CODES.CONFIG_INVALID,
     `DopplerConfigError: "${violation.param}" is a ${violation.category} param. ` +
     'Cannot override at call-time.\n' +
     guidance
   );
 }
 
+export function validateUnsupportedSessionOptions(session, label = 'inference.session') {
+  const value = session?.useOrtFlashPrefillAttention;
+  if (value !== undefined && value !== null && value !== false) {
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID,
+      `DopplerConfigError: ${label}.useOrtFlashPrefillAttention is unsupported. ` +
+      'Declare a registered attention kernel in the execution plan instead.'
+    );
+  }
+}
+
 export function validateRuntimeOverrides(overrides) {
   if (!isPlainObject(overrides)) {
-    throw new Error('DopplerConfigError: runtime overrides must be an object when provided.');
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID, 'DopplerConfigError: runtime overrides must be an object when provided.');
   }
 
   for (const key of ['shared', 'loading', 'inference', 'emulation']) {
@@ -54,8 +65,9 @@ export function validateRuntimeOverrides(overrides) {
     assertRuntimeOverrideObject(overrides?.inference, key, 'runtime.inference');
   }
   validateRuntimeKernelPath('runtime.inference.kernelPath', overrides?.inference?.kernelPath);
+  validateUnsupportedSessionOptions(overrides?.inference?.session, 'runtime.inference.session');
   if (overrides?.shared?.tooling?.intent !== undefined) {
-    throw new Error(
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID,
       'DopplerConfigError: runtime.shared.tooling.intent is removed. ' +
       'Command intent is normalized from the command request.'
     );
@@ -67,7 +79,7 @@ export function validateRuntimeOverrides(overrides) {
 
 export function validateModelOverrides(modelOverrides, label = 'runtime.inference.modelOverrides') {
   if (modelOverrides !== undefined && modelOverrides !== null && !isPlainObject(modelOverrides)) {
-    throw new Error(`DopplerConfigError: ${label} must be an object when provided.`);
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID, `DopplerConfigError: ${label} must be an object when provided.`);
   }
   if (!modelOverrides) return;
 
@@ -76,7 +88,7 @@ export function validateModelOverrides(modelOverrides, label = 'runtime.inferenc
 
   const disallowed = params.filter((param) => !isAllowedModelOverridePath(param));
   if (disallowed.length > 0) {
-    throw new Error(
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID,
       `DopplerConfigError: ${label} may only override ` +
       `${MODEL_OVERRIDE_ALLOWED_PREFIXES.join(', ')}. ` +
       `Disallowed model param(s): ${disallowed.join(', ')}. ` +
@@ -92,6 +104,15 @@ export function validateModelOverrides(modelOverrides, label = 'runtime.inferenc
 }
 
 export function validateRuntimeConfig(runtimeConfig) {
+  try {
+    validateResolvedRuntimeConfig(runtimeConfig);
+  } catch (error) {
+    if (error?.code || !(error instanceof Error) || !error.message.startsWith('DopplerConfigError:')) throw error;
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID, error.message, { cause: error });
+  }
+}
+
+function validateResolvedRuntimeConfig(runtimeConfig) {
   if (!runtimeConfig) return;
 
   if (runtimeConfig.loading?.expertPreparation !== undefined) {
@@ -104,6 +125,7 @@ export function validateRuntimeConfig(runtimeConfig) {
   const kernelPath = runtimeConfig.inference?.kernelPath;
   const kernelPathPolicy = runtimeConfig.inference?.kernelPathPolicy;
   const session = runtimeConfig.inference?.session;
+  validateUnsupportedSessionOptions(session, 'runtime.inference.session');
 
   if (batching) {
     if (batching.readbackInterval !== undefined) {
@@ -163,7 +185,7 @@ export function validateRuntimeConfig(runtimeConfig) {
     assertEmbeddingMode('runtime.inference.generation.embeddingMode', generation.embeddingMode);
   }
   if (generation?.disableCommandBatching !== undefined) {
-    throw new Error(
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID,
       'DopplerConfigError: runtime.inference.generation.disableCommandBatching is removed. ' +
       'Use runtime.inference.session.decodeLoop.disableCommandBatching.'
     );
@@ -181,7 +203,7 @@ export function validateRuntimeConfig(runtimeConfig) {
     const flags = [];
     if (allowF32Upcast) flags.push('runtime.loading.allowF32UpcastNonMatmul');
     if (keepF32Weights) flags.push('runtime.inference.compute.keepF32Weights');
-    throw new Error(
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID,
       'DopplerConfigError: F32 weight upcast/retention is debug-only. ' +
       `Disable ${flags.join(', ')} or enable runtime.shared.debug.pipeline.enabled ` +
       'or runtime.shared.debug.trace.enabled (or set log level to debug/verbose).'
@@ -192,13 +214,13 @@ export function validateRuntimeConfig(runtimeConfig) {
 function validateRuntimeKernelPath(label, value) {
   if (value === undefined || value === null) return;
   if (typeof value === 'string') {
-    throw new Error(
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID,
       `DopplerConfigError: ${label} no longer accepts string registry IDs. ` +
       'Use an inline kernel path object generated from execution-v1, or leave kernelPath null.'
     );
   }
   if (!isPlainObject(value)) {
-    throw new Error(`DopplerConfigError: ${label} must be an inline kernel path object or null.`);
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID, `DopplerConfigError: ${label} must be an inline kernel path object or null.`);
   }
 }
 
@@ -207,7 +229,7 @@ function validateToolingDiagnostics(runtimeConfig) {
   const diagnostics = tooling?.diagnostics ?? null;
 
   if (diagnostics !== null && !TOOLING_DIAGNOSTICS.includes(diagnostics)) {
-    throw new Error(
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID,
       `DopplerConfigError: runtime.shared.tooling.diagnostics must be one of ` +
       `${TOOLING_DIAGNOSTICS.join(', ')}.`
     );
@@ -217,7 +239,7 @@ function validateToolingDiagnostics(runtimeConfig) {
     refactorReceipts !== null
     && !REFACTOR_RECEIPT_POLICIES.includes(refactorReceipts)
   ) {
-    throw new Error(
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID,
       'DopplerConfigError: runtime.shared.tooling.refactorReceipts must be one of ' +
       `${REFACTOR_RECEIPT_POLICIES.join(', ')}.`
     );
@@ -254,12 +276,12 @@ function isDebugMode(debug) {
 
 function assertPositiveInt(label, value, { nullable = false } = {}) {
   if (value === undefined) {
-    throw new Error(`DopplerConfigError: ${label} is required.`);
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID, `DopplerConfigError: ${label} is required.`);
   }
   if (nullable && value === null) return;
   if (!Number.isFinite(value) || value <= 0 || Math.floor(value) !== value) {
     const suffix = nullable ? ' or null' : '';
-    throw new Error(`DopplerConfigError: ${label} must be a positive integer${suffix}.`);
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID, `DopplerConfigError: ${label} must be a positive integer${suffix}.`);
   }
 }
 
@@ -270,66 +292,66 @@ function assertNullablePositiveInt(label, value) {
 function assertNullableBoolean(label, value) {
   if (value === null) return;
   if (typeof value !== 'boolean') {
-    throw new Error(`DopplerConfigError: ${label} must be boolean or null.`);
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID, `DopplerConfigError: ${label} must be boolean or null.`);
   }
 }
 
 function assertEmbeddingMode(label, value) {
   if (value === undefined) {
-    throw new Error(`DopplerConfigError: ${label} is required.`);
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID, `DopplerConfigError: ${label} is required.`);
   }
   if (value !== 'last' && value !== 'mean') {
-    throw new Error(`DopplerConfigError: ${label} must be "last" or "mean".`);
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID, `DopplerConfigError: ${label} must be "last" or "mean".`);
   }
 }
 
 function validateRangeAwareSelectiveWidening(label, value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new Error(`DopplerConfigError: ${label} is required.`);
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID, `DopplerConfigError: ${label} is required.`);
   }
   if (value.enabled !== true && value.enabled !== false) {
-    throw new Error(`DopplerConfigError: ${label}.enabled must be boolean.`);
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID, `DopplerConfigError: ${label}.enabled must be boolean.`);
   }
   if (value.includeNonFinite !== true && value.includeNonFinite !== false) {
-    throw new Error(`DopplerConfigError: ${label}.includeNonFinite must be boolean.`);
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID, `DopplerConfigError: ${label}.includeNonFinite must be boolean.`);
   }
   if (value.onTrigger !== undefined && value.onTrigger !== 'error' && value.onTrigger !== 'fallback-plan') {
-    throw new Error(
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID,
       `DopplerConfigError: ${label}.onTrigger must be "error" or "fallback-plan".`
     );
   }
   if (!Number.isFinite(value.absThreshold) || value.absThreshold <= 0) {
-    throw new Error(`DopplerConfigError: ${label}.absThreshold must be a positive number.`);
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID, `DopplerConfigError: ${label}.absThreshold must be a positive number.`);
   }
 }
 
 function validateKernelPathPolicy(label, value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new Error(`DopplerConfigError: ${label} must be an object.`);
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID, `DopplerConfigError: ${label} must be an object.`);
   }
   if (
     value.sourceScope !== undefined
     && value.allowSources !== undefined
     && !arraysEqual(value.sourceScope, value.allowSources)
   ) {
-    throw new Error(
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID,
       `DopplerConfigError: ${label}.sourceScope and ${label}.allowSources must match exactly when both are provided.`
     );
   }
   if (value.mode !== 'locked' && value.mode !== 'capability-aware') {
-    throw new Error(`DopplerConfigError: ${label}.mode must be "locked" or "capability-aware".`);
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID, `DopplerConfigError: ${label}.mode must be "locked" or "capability-aware".`);
   }
   const sourceScope = value.sourceScope ?? value.allowSources;
   if (!Array.isArray(sourceScope) || sourceScope.length === 0) {
-    throw new Error(`DopplerConfigError: ${label}.sourceScope must be a non-empty array.`);
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID, `DopplerConfigError: ${label}.sourceScope must be a non-empty array.`);
   }
   if (value.onIncompatible !== 'error' && value.onIncompatible !== 'remap') {
-    throw new Error(`DopplerConfigError: ${label}.onIncompatible must be "error" or "remap".`);
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID, `DopplerConfigError: ${label}.onIncompatible must be "error" or "remap".`);
   }
   const validSources = new Set(['model', 'manifest', 'config']);
   for (const source of sourceScope) {
     if (!validSources.has(source)) {
-      throw new Error(
+      throw createDopplerError(ERROR_CODES.CONFIG_INVALID,
         `DopplerConfigError: ${label}.sourceScope entries must be model|manifest|config.`
       );
     }
@@ -341,10 +363,10 @@ function assertRuntimeOverrideObject(container, key, prefix = 'runtime') {
     return;
   }
   if (container[key] === null) {
-    throw new Error(`DopplerConfigError: ${prefix}.${key} must not be null.`);
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID, `DopplerConfigError: ${prefix}.${key} must not be null.`);
   }
   if (!isPlainObject(container[key])) {
-    throw new Error(`DopplerConfigError: ${prefix}.${key} must be an object when provided.`);
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID, `DopplerConfigError: ${prefix}.${key} must be an object when provided.`);
   }
 }
 

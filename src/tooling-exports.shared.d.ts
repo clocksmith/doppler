@@ -46,6 +46,11 @@ export { destroyBufferPool } from './memory/buffer-pool.js';
 
 // Browser-safe runtime profile helpers
 export { loadRuntimeConfigFromUrl, applyRuntimeConfigFromUrl, loadRuntimeProfile, applyRuntimeProfile } from './tooling/browser-harness/runtime-config.js';
+// Reference-transcript capture helpers (canonical signatures in browser-harness).
+export {
+  buildReferenceTranscriptSeed,
+  resolveExecutionGraphHash,
+} from './tooling/browser-harness.js';
 export {
   captureKvCacheByteProof,
   digestLogitsForTranscript,

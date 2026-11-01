@@ -885,9 +885,12 @@ async function runKernel(...args) {
 
 Use the unified debug module (`src/debug/index.js`: `log.*` levels, `trace.*`
 categories), never raw `console.*`, in runtime code. Raw console output is
-allowed only in `tools/` entry points, `tests/` harnesses, demo entry points,
+allowed in `src/cli/` for command results and diagnostics, and in `tools/` entry points, `tests/` harnesses, demo entry points,
 benchmark result tables, and one-time startup messages in `src/gpu/device.js`.
 API details: [JavaScript Style Guide: Logging](./javascript-style-guide.md#logging).
+
+CLI output must honor its output mode and remain outside library execution.
+Do not replace machine-readable command output with log history entries.
 
 ### No Ad-Hoc Debug Logging
 
@@ -1054,3 +1057,19 @@ See [No Runtime Defaults in Code](#no-runtime-defaults-in-code) and
 - [WGSL Style Guide](./wgsl-style-guide.md) - Shader conventions
 - [JavaScript Style Guide](./javascript-style-guide.md) - Kernel wrapper conventions
 - [Config Style Guide](./config-style-guide.md) - Merge order and config category rules
+
+## Formatting and retained filenames
+
+The repository uses the existing source style checks and code review, not a
+mandatory formatter. Preserve surrounding indentation, quotes and semicolons;
+avoid unrelated format-only churn. The custom gates are not a claim of complete
+formatting or behavioral coverage.
+
+New JavaScript modules use kebab-case. Existing shader wrappers that mirror WGSL
+operation names, quantization-format names such as `q4_0`, and retained experimental
+training modules keep their current import identities. A rename must update callers,
+registries, generated manifests and declarations together; cosmetic renaming alone
+is not a runtime improvement. Existing oversized-module reviews remain bounded debt,
+not a declaration that the extraction targets already exist. Split by semantic owner
+when changing those responsibilities; do not add empty facade modules to satisfy a
+line count.

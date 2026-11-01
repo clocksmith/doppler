@@ -171,6 +171,20 @@ Commands are rejected when:
 - `convert` execution tuning belongs in `request.convertPayload.execution` and must not change command semantics.
 - `refresh-integrity` rebuilds manifest integrity metadata from local artifact bytes and must not consume runtime config inputs.
 
+### CLI benchmark comparison evidence
+
+`--compare` requires successful benchmark artifacts with a retained
+`comparisonFingerprint` built by the canonical inspection fingerprint owner.
+The CLI reconstructs that fingerprint from its identity before checking performance
+comparability; caller-supplied digest strings alone are not evidence. The artifact
+model, workload, environment, cache/load modes, warmup/timed run counts, prompt,
+max-token count, and explicit seed (including `null`) must agree. Missing baseline
+files, legacy artifacts without identity, failed runs, and mismatched contracts
+are errors, not empty successful comparisons. Cross-engine claim comparison remains
+in the fairness-managed vendor workflow; CLI comparison requires matching execution
+and environment identities. Thresholds come from resolved
+`shared.benchmark.comparison.regressionThresholdPercent`, not CLI literals.
+
 ## References
 
 - `src/tooling/command-api.js`

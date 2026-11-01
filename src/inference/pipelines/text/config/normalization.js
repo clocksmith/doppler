@@ -1,6 +1,6 @@
 import { log } from '../../../../debug/index.js';
 import { mergeConfig, dumpConfigSources } from '../../../../config/merge.js';
-import { validateModelOverrides } from '../../../../config/param-validator.js';
+import { validateModelOverrides, validateUnsupportedSessionOptions } from '../../../../config/param-validator.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { appendHeterogeneousAttentionValidation, resolveHeterogeneousAttentionContract } from '../../../../config/heterogeneous-attention-contract.js';
 import { resolvePostNormContract } from '../normalization-contract.js';
@@ -170,6 +170,7 @@ export function resolvePerLayerInputsSession(inferenceConfig, modelId) {
 }
 
 export function resolveSessionSettings(inferenceConfig, modelId) {
+  validateUnsupportedSessionOptions(inferenceConfig?.session, `Manifest ${modelId} inference.session`);
   // All four fields are optional on the manifest today for backwards compatibility;
   // when absent we fall through to the runtime config (getRuntimeConfig()). When
   // present on the manifest, manifest wins unless an explicit runtime profile overrides.

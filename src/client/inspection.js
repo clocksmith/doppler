@@ -69,6 +69,11 @@ function normalizeAdapterIdentity(value = {}) {
 
 function normalizeExecutionIdentity(value = {}) {
   return {
+    ...(value.initialExecutionIdentityDigest == null ? {} : {
+      initialExecutionIdentityDigest: normalizeSha256(
+        value.initialExecutionIdentityDigest, 'execution.initialExecutionIdentityDigest'
+      ),
+    }),
     backend: value.backend == null ? null : String(value.backend),
     executionPlanId: value.executionPlanId == null ? null : String(value.executionPlanId),
     kernelPathId: value.kernelPathId == null ? null : String(value.kernelPathId),

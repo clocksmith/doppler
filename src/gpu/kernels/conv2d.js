@@ -3,7 +3,7 @@ import { getDevice } from '../device.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
 import { getBuffer } from '../weight-buffer.js';
-import { unifiedKernelWrapper } from './kernel-execution.js';
+import { unifiedKernelWrapper, withKernelOutput } from './kernel-execution.js';
 import { selectRuleValue } from './rule-registry.js';
 import { WORKGROUP_SIZES } from './constants.js';
 
@@ -36,50 +36,38 @@ async function _conv2d(target, input, weight, bias, options = {}) {
   const variant = selectConv2DVariant(isF16);
   const bytesPerElement = dtypeBytes(input.dtype);
   const outputSize = outChannels * outHeight * outWidth * bytesPerElement;
-  const output = outputBuffer || acquireBuffer(outputSize, undefined, 'conv2d_output');
+  return withKernelOutput(target, outputBuffer, outputSize, 'conv2d_output', async (output) => {
+    let tempBias = null;
+    try {
+      const weightBuffer = getBuffer(weight);
+      let biasBuffer = getBuffer(bias);
+      if (!biasBuffer) {
+        const biasSize = outChannels * bytesPerElement;
+        tempBias = acquireBuffer(biasSize, undefined, 'conv2d_bias_zero');
+        biasBuffer = tempBias;
+        const paddedSize = Math.ceil(biasSize / 4) * 4;
+        device.queue.writeBuffer(biasBuffer, 0, new Uint8Array(paddedSize));
+      }
+      await unifiedKernelWrapper(
+        'conv2d', target, variant,
+        [input, weightBuffer, biasBuffer, output],
+        {
+          in_channels: inChannels, out_channels: outChannels,
+          height, width, out_height: outHeight, out_width: outWidth,
+          kernel_h: kernelH, kernel_w: kernelW,
+          stride, pad, _pad0: 0, _pad1: 0,
+        },
+        [Math.ceil((outHeight * outWidth) / WORKGROUP_SIZES.DEFAULT), outChannels, 1]
+      );
 
-  const weightBuffer = getBuffer(weight);
-  let biasBuffer = getBuffer(bias);
-  let tempBias = null;
-  if (!biasBuffer) {
-    const biasSize = outChannels * bytesPerElement;
-    tempBias = acquireBuffer(biasSize, undefined, 'conv2d_bias_zero');
-    biasBuffer = tempBias;
-    const paddedSize = Math.ceil(biasSize / 4) * 4;
-    device.queue.writeBuffer(biasBuffer, 0, new Uint8Array(paddedSize));
-  }
-
-  try {
-    await unifiedKernelWrapper(
-      'conv2d', target, variant,
-      [input, weightBuffer, biasBuffer, output],
-      {
-        in_channels: inChannels, out_channels: outChannels,
-        height, width, out_height: outHeight, out_width: outWidth,
-        kernel_h: kernelH, kernel_w: kernelW,
-        stride, pad, _pad0: 0, _pad1: 0,
-      },
-      [Math.ceil((outHeight * outWidth) / WORKGROUP_SIZES.DEFAULT), outChannels, 1]
-    );
-
-    if (tempBias) {
-      if (recorder) {
-        recorder.trackTemporaryBuffer(tempBias);
-      } else {
-        releaseBuffer(tempBias);
+      return createTensor(output, input.dtype, [outChannels, outHeight, outWidth], 'conv2d_output');
+    } finally {
+      if (tempBias) {
+        if (recorder) recorder.trackTemporaryBuffer(tempBias);
+        else releaseBuffer(tempBias);
       }
     }
-
-    return createTensor(output, input.dtype, [outChannels, outHeight, outWidth], 'conv2d_output');
-  } catch (error) {
-    if (tempBias) {
-      releaseBuffer(tempBias);
-    }
-    if (!outputBuffer) {
-      releaseBuffer(output);
-    }
-    throw error;
-  }
+  });
 }
 
 export async function runConv2D(input, weight, bias, options = {}) {

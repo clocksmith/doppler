@@ -31,7 +31,6 @@ import {
 } from './layer-input-execution.js';
 
 // Lazily loaded once: each dynamic import() makes the browser re-walk the module graph.
-/** @type {Promise<typeof import('./ffn/moe.js')> | null} */
 let moeFfnModule = null;
 
 // ============================================================================

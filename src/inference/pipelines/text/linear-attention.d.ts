@@ -53,7 +53,7 @@ export interface LinearAttentionRuntime {
 }
 
 export interface RunLinearAttentionLayerOptions {
-  runtimeSession?: Pick<import('../../../config/schema/execution-v1.schema.js').ExecutionV1SessionSchema, 'useLinearAttentionRegisterPrefill' | 'useLinearAttentionRegisterDecode' | 'useLinearAttentionFusedDecodeCore'>;
+  runtimeSession?: Pick<import('../../../config/schema/execution-v1.schema.js').ExecutionV1SessionSchema, 'useLinearAttentionRegisterPrefill' | 'useLinearAttentionRegisterDecode' | 'useLinearAttentionFusedDecodeCore' | 'useLinearAttentionABProjectionFusion' | 'useLinearAttentionQKVZProjectionFusion'>;
   layerIdx: number;
   numTokens: number;
   hiddenSize: number;

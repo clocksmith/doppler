@@ -35,7 +35,9 @@ export interface DowncastResult {
 }
 
 /**
- * Attempt to downcast a weight buffer from F32 to F16.
+ * Downcast a weight buffer from F32 to F16 when the resolved policy permits it.
+ * Conversion failures reject; the original buffer remains owned by the caller
+ * and any newly allocated conversion output is released.
  *
  * @param buf - Input buffer (GPUBuffer or WeightBuffer)
  * @param options - Downcast options

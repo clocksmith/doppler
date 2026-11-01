@@ -1,3 +1,4 @@
+import { createBenchmarkComparisonCapture, resolveBenchmarkEnvironment } from './benchmark-comparison.js';
 import { summarizeRequestTiming } from './request-timing.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
 import { computeSampleStats as computeStats } from '../../debug/stats.js';
@@ -116,18 +117,13 @@ export async function runBenchSuite(options = {}) {
     });
     return {
       ...trainingBench,
+      workload: 'training',
+      comparisonFingerprint: null,
+      comparisonFingerprintUnavailableReason: 'Comparison evidence is unavailable for training workloads.',
       modelId: trainingBench.modelId || options.modelId || options.modelUrl || 'training',
       cacheMode,
       loadMode,
-      env: {
-        library: 'doppler',
-        runtime: 'browser',
-        device: 'webgpu',
-        browserUserAgent: typeof navigator !== 'undefined' ? (navigator.userAgent || null) : null,
-        browserPlatform: typeof navigator !== 'undefined' ? (navigator.platform || null) : null,
-        browserLanguage: typeof navigator !== 'undefined' ? (navigator.language || null) : null,
-        browserVendor: typeof navigator !== 'undefined' ? (navigator.vendor || null) : null,
-      },
+      env: resolveBenchmarkEnvironment(),
       timing,
       timingDiagnostics,
       firstLoad,
@@ -162,6 +158,9 @@ export async function runBenchSuite(options = {}) {
       ...diffusionBench,
       ...summary,
       suite: 'bench',
+      workload: 'diffusion',
+      comparisonFingerprint: null,
+      comparisonFingerprintUnavailableReason: 'Comparison evidence is unavailable for diffusion workloads.',
       results: benchResults,
       metrics: {
         ...(diffusionBench.metrics || {}),
@@ -207,6 +206,10 @@ export async function runBenchSuite(options = {}) {
   let metrics;
   let output = null;
   let timing;
+  const deviceInfo = harness.capabilities ?? resolveDeviceInfo();
+  const comparison = createBenchmarkComparisonCapture(
+    harness, runtimeConfig, { ...benchRun, ...(options.inferenceInput ?? {}) }, deviceInfo
+  );
 
   if (options.workload === 'rerank' && supportsRerank) {
     ({ metrics, output, results, timing } = await runRerankBenchmark({
@@ -418,6 +421,7 @@ export async function runBenchSuite(options = {}) {
     let generatedReferenceTranscript = null;
     let lastPromptLabel = benchRun.promptLabel;
     let lastMaxTokens = benchRun.maxTokens;
+    let lastSeed = null;
     let lastDecodeMode = null;
     let lastBatchGuardReason = null;
     let lastExecutionPlan = null;
@@ -448,6 +452,7 @@ export async function runBenchSuite(options = {}) {
           executionGraphHash: resolveExecutionGraphHash(harness.manifest),
           kvCache: run?.phase?.kvCache ?? null,
         });
+        lastSeed = run?.generationConfig?.seed ?? null;
         lastPromptLabel = run?.prompt ?? benchRun.promptLabel;
         lastMaxTokens = Number.isFinite(run?.maxTokens) ? run.maxTokens : benchRun.maxTokens;
         lastDecodeMode = run?.phase?.decodeMode ?? null;
@@ -457,6 +462,7 @@ export async function runBenchSuite(options = {}) {
         lastDecodeProfileSteps = run?.phase?.decodeProfileSteps ?? null;
       }
       if (i >= warmupRuns) {
+        comparison.capture(run);
         if (run.requestTiming) requestTimingSamples.push(run.requestTiming);
         const phase = run?.phase ?? {};
         const phaseTokens = Array.isArray(run?.tokens) ? run.tokens : [];
@@ -721,7 +727,7 @@ export async function runBenchSuite(options = {}) {
       samplePolicy: { ...samplePolicy },
       warmupRuns,
       timedRuns,
-      ...(Number.isFinite(benchRun?.seed) ? { seed: benchRun.seed } : {}),
+      seed: lastSeed,
       prompt: lastPromptLabel,
       maxTokens: lastMaxTokens,
       decodeTokensPerSec: sampleTimingNumber(decodeTokensPerSecStats, 'median'),
@@ -841,25 +847,19 @@ export async function runBenchSuite(options = {}) {
   ), runtimeConfig, harness.manifest, { force: true });
   return {
     ...summary,
-    modelId: options.modelId || harness.manifest?.modelId || 'unknown',
+    modelId: harness.manifest?.modelId || options.modelId || 'unknown',
+    workload: options.workload || (modelType === 'embedding' ? 'embedding' : 'inference'),
+    ...comparison.result,
     cacheMode,
     loadMode,
-    env: {
-      library: 'doppler',
-      runtime: 'browser',
-      device: 'webgpu',
-      browserUserAgent: typeof navigator !== 'undefined' ? (navigator.userAgent || null) : null,
-      browserPlatform: typeof navigator !== 'undefined' ? (navigator.platform || null) : null,
-      browserLanguage: typeof navigator !== 'undefined' ? (navigator.language || null) : null,
-      browserVendor: typeof navigator !== 'undefined' ? (navigator.vendor || null) : null,
-    },
+    env: resolveBenchmarkEnvironment(),
     timing,
     timingDiagnostics,
     firstLoad,
     output,
     metrics: metricsWithContracts,
     memoryStats,
-    deviceInfo: resolveDeviceInfo(),
+    deviceInfo,
     pipeline: options.keepPipeline ? harness.pipeline : null,
   };
 }

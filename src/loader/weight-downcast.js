@@ -84,9 +84,11 @@ async function downcastWeightBuffer(buf, options) {
     `bufSize=${buf.buffer.size}, elems=${elems}, columnMajor=${wasColumnMajor}`
   );
 
+  let outputBuffer = null;
   try {
     const inputTensor = createTensor(buf.buffer, 'f32', [elems], `${options.label}_f32`);
     const f16Tensor = await castF32ToF16(inputTensor);
+    outputBuffer = f16Tensor.buffer;
 
     // Create new WeightBuffer with f16 dtype, preserving layout
     const layout = selectRuleValue('loader', 'weights', 'weightLayout', {
@@ -113,12 +115,8 @@ async function downcastWeightBuffer(buf, options) {
       newBuffer: f16Tensor.buffer,
     };
   } catch (e) {
-    debugTrace.loader(`Failed to downcast ${options.label} to f16: ${ (e).message}`);
-    return {
-      buffer: buf,
-      wasDowncast: false,
-      newBuffer: null,
-    };
+    if (outputBuffer) releaseBuffer(outputBuffer);
+    throw new Error(`Failed to downcast ${options.label} to f16: ${e.message}`, { cause: e });
   }
 }
 
@@ -150,9 +148,11 @@ async function downcastGPUBuffer(buf, options) {
     `bufSize=${buf.size}, elems=${elems}, expectedF16=${elems * 2}, columnMajor=${wasColumnMajor}`
   );
 
+  let outputBuffer = null;
   try {
     const inputTensor = createTensor(buf, 'f32', [elems], `${options.label}_f32`);
     const f16Tensor = await castF32ToF16(inputTensor);
+    outputBuffer = f16Tensor.buffer;
 
     // Create WeightBuffer with f16 dtype, preserving layout
     const layout = selectRuleValue('loader', 'weights', 'weightLayout', {
@@ -179,12 +179,8 @@ async function downcastGPUBuffer(buf, options) {
       newBuffer: f16Tensor.buffer,
     };
   } catch (e) {
-    debugTrace.loader(`Failed to downcast ${options.label} to f16: ${ (e).message}`);
-    return {
-      buffer: buf,
-      wasDowncast: false,
-      newBuffer: null,
-    };
+    if (outputBuffer) releaseBuffer(outputBuffer);
+    throw new Error(`Failed to downcast ${options.label} to f16: ${e.message}`, { cause: e });
   }
 }
 

@@ -19,7 +19,8 @@ export declare const dispatchAttentionKernel: any;
 export declare const executeAttention: any;
 export declare const executeAttentionBDPA: any;
 export declare const executeFlashAttentionPrefill: any;
-export declare const executeOrtFlashAttentionPrefill: any;
+/** Unsupported legacy entrypoint; rejects before acquiring GPU resources. */
+export declare function executeOrtFlashAttentionPrefill(...args: unknown[]): Promise<never>;
 export declare const flashPrefillKernel: any;
 export declare const flashReduceKernel: any;
 export declare const getFlashPrefillKernel: any;

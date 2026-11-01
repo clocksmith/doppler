@@ -489,8 +489,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     convDim: projectionLayout.convDim,
     valueDim: projectionLayout.valueDim,
     layerIdx,
-    debugProbes: options.debugProbes,
-    operatorDiagnostics: options.operatorDiagnostics,
+    runtimeSession: options.runtimeSession,
   });
   const qkvzTensor = qkvzProjection
     ? await projectLinearTensor({
@@ -547,8 +546,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     hiddenSize,
     numVHeads: projectionLayout.numVHeads,
     layerIdx,
-    debugProbes: options.debugProbes,
-    operatorDiagnostics: options.operatorDiagnostics,
+    runtimeSession: options.runtimeSession,
   });
   const abTensor = abProjection
     ? await projectLinearTensor({

@@ -38,25 +38,25 @@ function safeGetDeviceSnapshot() {
 
 function validateProviderConfig(config) {
   if (!config || typeof config !== 'object') {
-    throw new Error('createDopplerProvider requires a config object.');
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID, 'createDopplerProvider requires a config object.');
   }
 
   const policyMode = config.policy?.mode || 'prefer-local';
   if (!VALID_POLICY_MODES.has(policyMode)) {
-    throw new Error(`Invalid policy mode "${policyMode}". Must be one of: ${[...VALID_POLICY_MODES].join(', ')}.`);
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID, `Invalid policy mode "${policyMode}". Must be one of: ${[...VALID_POLICY_MODES].join(', ')}.`);
   }
 
   const cloudOnlyMode = policyMode === 'cloud-only';
   if (!cloudOnlyMode && (!config.local || (!config.local.model && !config.local.handle))) {
-    throw new Error('Provider config requires local.model or local.handle when policy mode is not "cloud-only".');
+    throw createDopplerError(ERROR_CODES.CONFIG_INVALID, 'Provider config requires local.model or local.handle when policy mode is not "cloud-only".');
   }
 
   if (policyMode !== 'local-only' && config.fallback) {
     if (!config.fallback.provider) {
-      throw new Error('Provider config fallback requires fallback.provider.');
+      throw createDopplerError(ERROR_CODES.CONFIG_INVALID, 'Provider config fallback requires fallback.provider.');
     }
     if (!config.fallback.model) {
-      throw new Error('Provider config fallback requires fallback.model.');
+      throw createDopplerError(ERROR_CODES.CONFIG_INVALID, 'Provider config fallback requires fallback.model.');
     }
   }
 }

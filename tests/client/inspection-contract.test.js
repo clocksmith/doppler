@@ -77,6 +77,21 @@ assert.throws(
   /not representative/
 );
 
+// Historical fingerprints remain readable without pretending to have a
+// resolved execution digest. Fresh benchmark comparisons require it separately.
+assert.equal(Object.hasOwn(first.identity.execution, 'initialExecutionIdentityDigest'), false);
+const withExecutionDigest = (digest) => buildComparisonFingerprint({
+  ...first.identity,
+  tokenizer: first.identity.tokenizer.contract,
+  observationPolicyId: first.identity.observationPolicy.id,
+  execution: { ...first.identity.execution, initialExecutionIdentityDigest: digest },
+});
+const resolved = withExecutionDigest('b'.repeat(64));
+assert.equal(resolved.identity.execution.initialExecutionIdentityDigest, `sha256:${'b'.repeat(64)}`);
+assert.throws(() => withExecutionDigest('not-a-digest'), /initialExecutionIdentityDigest/);
+assert.throws(() => assertComparableFingerprints('performance', resolved, withExecutionDigest('c'.repeat(64))), /fingerprints differ/);
+assert.throws(() => assertComparableFingerprints('performance', resolved, first), /fingerprints differ/);
+
 const quality = aggregateWordPerplexity([
   { index: 0, text: 'hello', surprisal: 0.2 },
   { index: 1, text: ' world', surprisal: 0.5 },

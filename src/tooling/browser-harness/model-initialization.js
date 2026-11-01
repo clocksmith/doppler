@@ -1,3 +1,4 @@
+import { sha256Hex } from '../../formats/sha256.js';
 import { setRuntimeConfig } from '../../config/runtime.js';
 import { log } from '../../debug/index.js';
 import { parseManifest } from '../../formats/rdrr/index.js';
@@ -89,7 +90,11 @@ async function initializeInferenceFromStorage(modelId, options = {}) {
     onProgress,
   });
 
-  return { pipeline, manifest, capabilities };
+  return {
+    pipeline, manifest, capabilities,
+    // Synthesized source manifests no longer have the stored byte identity.
+    manifestHash: synthesizedManifest.changed ? null : sha256Hex(manifestText),
+  };
 }
 
 async function initializeInferenceFromSourcePath(sourcePath, options = {}) {

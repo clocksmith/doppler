@@ -14,6 +14,9 @@ function resolveBackendType(config) {
     return 'indexeddb';
   }
   if (config.backend === 'memory') return 'memory';
+  if (config.backend !== 'auto') {
+    throw new Error(`Unsupported storage backend: ${config.backend}`);
+  }
   if (isOPFSAvailable()) return 'opfs';
   if (isIndexedDBAvailable()) return 'indexeddb';
   log.warn(

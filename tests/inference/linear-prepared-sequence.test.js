@@ -71,6 +71,7 @@ try {
       paired ? { precision: 'two-f32', components: 2, elementStrideBytes: 8 } : undefined);
     await assert.rejects(runLinearAttentionLayer(input, weights, { layerIdx: 0, numTokens: 1,
       hiddenSize: 6, currentSeqLen: 0, config, linearRuntime: runtime, activationDtype: 'f32',
+      runtimeSession: { useLinearAttentionABProjectionFusion: false, useLinearAttentionQKVZProjectionFusion: false },
       getWeightBuffer: w => w, getNormWeightBuffer: w => w }), /stop after preparation/);
   };
   await attempt();

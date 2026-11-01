@@ -2,6 +2,7 @@ import { DEFAULT_MANIFEST_INFERENCE, resolveLinearNormGateActivation } from './s
 import { chooseDefined, chooseDefinedWithSource } from './merge/value-selection.js';
 import { log } from '../debug/index.js';
 import { validateReasoningOutput } from './reasoning-output.js';
+import { validateUnsupportedSessionOptions } from './param-validator.js';
 
 // =============================================================================
 // Merge Implementation
@@ -495,6 +496,8 @@ function mergeSession(
   const prefix = 'inference.session';
   // If both are absent, the merged session stays null (legacy/no-session path).
   if (manifest === undefined && runtime === undefined) return null;
+  validateUnsupportedSessionOptions(manifest, 'manifest.inference.session');
+  validateUnsupportedSessionOptions(runtime, 'runtime.inference.session');
   const manifestSession = manifest ?? {};
   const runtimeSession = runtime ?? {};
   return {

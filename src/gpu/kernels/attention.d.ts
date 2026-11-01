@@ -47,9 +47,9 @@ export interface AttentionOptions extends OutputBufferOptions {
   indirectOffset?: number;
   /** Optional f32 attention output gate tensor for profile-enabled decode epilogue fusion. */
   outputGate?: Tensor | null;
-  /** Explicit opt-in for the split/reduce flash prefill implementation. */
+  /** Requires the resolved execution graph to select split/reduce flash prefill. */
   useFlashPrefill?: boolean;
-  /** Explicit opt-in for the ORT-style single-pass flash prefill implementation. */
+  /** Legacy option accepted for compatibility; true is rejected before allocation. */
   useOrtFlashPrefill?: boolean;
 }
 

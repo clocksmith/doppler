@@ -83,6 +83,7 @@ export declare class UniformBufferCache {
 }
 
 /** Bytes a cached uniform buffer was created with, or null when it is not a cache entry. */
+/** Original bytes of a cached uniform buffer, or null for a non-cache entry. */
 export function peekUniformCacheBytes(buffer: GPUBuffer): Uint8Array | null;
 
 export function toUniformArrayBuffer(data: ArrayBuffer | ArrayBufferView): ArrayBuffer;

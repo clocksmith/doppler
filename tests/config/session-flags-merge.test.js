@@ -258,3 +258,8 @@ for (const field of ['usePreparedDecodeWorkspace', 'useLinearAttentionRegisterPr
   for (const value of [null, 0, 'false']) assert.throws(() => resolveSessionSettings({ session: { [field]: value } }, 'unit'), /requires boolean/);
   assert.equal(resolveSessionSettings({ session: {} }, 'unit')[field], null, 'missing legacy manifest fields stay unset for normal merge');
 }
+
+assert.throws(() => mergeConfig(buildManifest({ useOrtFlashPrefillAttention: true }), {}), /useOrtFlashPrefillAttention is unsupported/);
+assert.throws(() => mergeConfig(buildManifest(), { session: { useOrtFlashPrefillAttention: true } }), /useOrtFlashPrefillAttention is unsupported/);
+assert.throws(() => resolveSessionSettings({ session: { useOrtFlashPrefillAttention: true } }, 'unit'), /useOrtFlashPrefillAttention is unsupported/);
+assert.doesNotThrow(() => mergeConfig(buildManifest({ useOrtFlashPrefillAttention: false }), {}));

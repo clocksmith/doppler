@@ -18,7 +18,8 @@ export declare class SentencePieceTokenizer extends BaseTokenizer {
   constructor(config?: TokenizerConfig);
 
   /**
-   * Load SentencePiece model from ArrayBuffer
+   * Load a SentencePiece model from ArrayBuffer. Rejects malformed or empty
+   * models and clears partially loaded state; no replacement vocabulary is synthesized.
    */
   load(modelData: ArrayBuffer): Promise<void>;
 

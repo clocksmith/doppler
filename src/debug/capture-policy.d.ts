@@ -58,6 +58,8 @@ export interface EscalationPolicy {
 /**
  * Capture level for one operator. `operatorClass` is the canonical class of the op's
  * stage (stage-names getOperatorClass); class filtering throws without it.
+ * Requires a fully resolved CaptureConfig (use createDefaultCaptureConfig and
+ * overlay explicit overrides); null disables capture. Malformed configs throw.
  */
 export declare function resolveCapturePolicy(
   opId: string,
@@ -90,4 +92,5 @@ export declare function createEscalationPolicy(options?: {
 
 export declare function createDefaultCaptureConfig(): CaptureConfig;
 
+/** Validate every resolved field; missing fields and invalid values throw. */
 export declare function validateCaptureConfig(config: unknown): boolean;

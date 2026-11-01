@@ -35,18 +35,20 @@ export async function runEmbeddingPool(input, options) {
   if (maskValues != null && maskValues.length !== rowCount) {
     throw new Error('[EmbeddingPool] mask length must equal rowCount.');
   }
-  const mask = acquireBuffer(
-    Math.max(4, rowCount * Uint32Array.BYTES_PER_ELEMENT),
-    undefined,
-    'embedding_pool_mask'
-  );
-  const output = acquireBuffer(
-    hiddenSize * Float32Array.BYTES_PER_ELEMENT,
-    undefined,
-    'embedding_pool_output'
-  );
-  device.queue.writeBuffer(mask, 0, maskValues ?? new Uint32Array(rowCount));
+  let mask = null;
+  let output = null;
   try {
+    mask = acquireBuffer(
+      Math.max(4, rowCount * Uint32Array.BYTES_PER_ELEMENT),
+      undefined,
+      'embedding_pool_mask'
+    );
+    output = acquireBuffer(
+      hiddenSize * Float32Array.BYTES_PER_ELEMENT,
+      undefined,
+      'embedding_pool_output'
+    );
+    device.queue.writeBuffer(mask, 0, maskValues ?? new Uint32Array(rowCount));
     await unifiedKernelWrapper(
       'embedding_pool',
       null,
@@ -64,9 +66,9 @@ export async function runEmbeddingPool(input, options) {
     );
     return createTensor(output, 'f32', [1, hiddenSize], 'embedding_pool_output');
   } catch (error) {
-    releaseBuffer(output);
+    if (output) releaseBuffer(output);
     throw error;
   } finally {
-    releaseBuffer(mask);
+    if (mask) releaseBuffer(mask);
   }
 }

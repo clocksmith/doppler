@@ -366,6 +366,7 @@ export class Tokenizer {
             spAttemptedPaths.push(url);
             modelData = await timedTokenizerLoadPhase(loadTiming, 'assetLoad', async () => {
               const response = await fetch(url);
+              if (!response.ok) throw new Error(`Failed to load SentencePiece model: HTTP ${response.status} from ${url}`);
               return response.arrayBuffer();
             });
             loadTiming.assetSource = url;
@@ -373,6 +374,7 @@ export class Tokenizer {
             spAttemptedPaths.push(tokenizerConfig.sentencepieceModel);
             modelData = await timedTokenizerLoadPhase(loadTiming, 'assetLoad', async () => {
               const response = await fetch(tokenizerConfig.sentencepieceModel);
+              if (!response.ok) throw new Error(`Failed to load SentencePiece model: HTTP ${response.status} from ${tokenizerConfig.sentencepieceModel}`);
               return response.arrayBuffer();
             });
             loadTiming.assetSource = tokenizerConfig.sentencepieceModel;

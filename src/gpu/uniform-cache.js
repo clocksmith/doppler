@@ -7,7 +7,6 @@ import { getRuntimeConfig } from '../config/runtime.js';
 const uniformOwners = new WeakMap();
 const uniformContents = new WeakMap();
 
-/** Bytes a cached uniform buffer was created with, or null when it is not a cache entry. */
 export function peekUniformCacheBytes(buffer) {
   return uniformContents.get(buffer) ?? null;
 }
