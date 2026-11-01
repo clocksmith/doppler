@@ -679,13 +679,6 @@
         "inference/pipelines/text/generator/prefill-runtime-components.js"
       ]
     },
-    "inference/pipelines/text/generator/training.js": {
-      "reviewedLines": 775,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
-      "extractTo": [
-        "inference/pipelines/text/generator/training-components.js"
-      ]
-    },
     "inference/pipelines/text/generator-steps.js": {
       "reviewedLines": 939,
       "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",

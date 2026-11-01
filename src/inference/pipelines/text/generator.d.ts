@@ -99,6 +99,8 @@ export declare class PipelineGenerator {
     phase?: WorkloadPhaseTiming | null;
   }>;
   decodeStepLogits(currentIds: number[], options?: GenerateOptions): Promise<LogitsStepResult>;
+  beginDiagnosticSequence(options?: { captureConfig?: Partial<import('../../../debug/capture-policy.js').CaptureConfig> }): void;
+  endDiagnosticSequence(): import('./generator/diagnostic-sequence.js').DiagnosticSequenceResult;
   prefillWithToken(prompt: PromptInput, options: GenerateOptions, tokenContract: { padTokenId: number | null }): Promise<import('./generator/token-selection.js').SelectedTokenResult>;
   decodeStepWithToken(currentIds: number[], options: GenerateOptions, tokenContract: { padTokenId: number | null }): Promise<import('./generator/token-selection.js').SelectedTokenResult>;
   advanceWithToken(tokenId: number, options?: GenerateOptions): Promise<void>;

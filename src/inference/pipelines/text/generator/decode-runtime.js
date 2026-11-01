@@ -1,4 +1,5 @@
 import { lookupDraft, verifySpeculativeTokens } from './speculative-runtime.js';
+import { markDiagnosticSequenceStep } from './diagnostic-sequence.js';
 import { isGPUSamplingAvailable } from '../../../../gpu/kernels/sample.js';
 import { samplingSeedForToken } from '../../../token-sampling.js';
 import { matchesStopSequence } from '../stopping.js';
@@ -848,6 +849,7 @@ export async function decodeStepLogits(currentIds, options = {}) {
     validateCallTimeOptions(options);
 
     const opts = this._resolveStepOptions(options);
+    markDiagnosticSequenceStep(this._state, 'decode', options);
     return this._decodeStepToLogits(currentIds, opts);
   }
 

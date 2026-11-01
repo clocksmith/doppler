@@ -263,7 +263,7 @@ export async function runProbes(stage, buffer, options) {
   if (diagnostics?.enabled && diagnostics.emitter && canonicalStage) {
     const opId = buildOpId(canonicalStage, layerIdx);
     const operatorClass = getOperatorClass(canonicalStage);
-    const captureLevel = resolveCapturePolicy(opId, diagnostics.captureConfig);
+    const captureLevel = resolveCapturePolicy(opId, diagnostics.captureConfig, operatorClass);
     const capture = await buildDiagnosticCapture(captureLevel, buffer, {
       isCpuBuffer,
       ...representation,

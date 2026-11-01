@@ -30,7 +30,9 @@ const LEVEL_PRIORITY = { none: 0, metadata: 1, slice: 2, full: 3 };
 // Capture Policy Resolution
 // ============================================================================
 
-export function resolveCapturePolicy(opId, config) {
+// operatorClass is the canonical class of the op's stage (stage-names.js getOperatorClass),
+// supplied by the caller; it is never inferred from the opId text.
+export function resolveCapturePolicy(opId, config, operatorClass = null) {
   if (!config || !config.enabled) return CAPTURE_LEVELS.NONE;
 
   const globalLevel = config.defaultLevel ?? CAPTURE_LEVELS.NONE;
@@ -42,8 +44,10 @@ export function resolveCapturePolicy(opId, config) {
   }
 
   if (config.targetOperatorClasses && config.targetOperatorClasses.length > 0) {
-    const opClass = extractOperatorClassFromOpId(opId);
-    if (opClass && config.targetOperatorClasses.includes(opClass)) {
+    if (typeof operatorClass !== 'string' || !operatorClass) {
+      throw new Error(`[CapturePolicy] Operator-class filtering for "${opId}" requires its canonical operator class.`);
+    }
+    if (config.targetOperatorClasses.includes(operatorClass)) {
       return config.targetLevel ?? CAPTURE_LEVELS.SLICE;
     }
   }
@@ -189,8 +193,3 @@ function extractLayerFromOpId(opId) {
   return match ? parseInt(match[1], 10) : null;
 }
 
-function extractOperatorClassFromOpId(opId) {
-  const withoutLayer = opId.replace(/^layer\.\d+\./, '');
-  const section = withoutLayer.split('.')[0];
-  return section || null;
-}

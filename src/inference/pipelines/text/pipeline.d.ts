@@ -137,6 +137,14 @@ export declare class InferencePipeline extends PipelineState {
   encodeSequence(sequence: string, options?: SequenceEncodeOptions): Promise<SequenceEncodeResult>;
 
   prefillWithLogits(prompt: PromptInput, options?: GenerateOptions): Promise<PrefillResult>;
+  /**
+   * Open one operator-diagnostics session for a forced-prefix sequence: the following
+   * prefillWithLogits and decodeStepLogits calls record into it, each labelled with its
+   * phase, absolute position (decode) and sequence step.
+   */
+  beginDiagnosticSequence(options?: { captureConfig?: Partial<import('../../../debug/capture-policy.js').CaptureConfig> }): void;
+  /** Close the open diagnostic sequence and return its timeline. */
+  endDiagnosticSequence(): import('./generator/diagnostic-sequence.js').DiagnosticSequenceResult;
 
   prefillWithTokenLogits(prompt: PromptInput, tokenIds: readonly number[], options?: GenerateOptions): Promise<{
     seqLen: number;

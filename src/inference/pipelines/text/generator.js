@@ -1,4 +1,5 @@
 import '../../../gpu/device.js'; // Preserve declared device initialization side effects.
+import { beginDiagnosticSequence, endDiagnosticSequence } from './generator/diagnostic-sequence.js';
 import { prefillWithToken, decodeStepWithToken } from './generator/capsule-generation.js';
 import { releaseBuffer } from '../../../memory/buffer-pool.js';
 
@@ -501,6 +502,14 @@ export class PipelineGenerator {
 
   async decodeStepLogits(currentIds, options = {}) {
     return decodeStepLogitsImpl.apply(this, arguments);
+  }
+
+  beginDiagnosticSequence(options = {}) {
+    return beginDiagnosticSequence(this._state, options);
+  }
+
+  endDiagnosticSequence() {
+    return endDiagnosticSequence(this._state);
   }
 
   async advanceWithToken(tokenId, options = {}) {

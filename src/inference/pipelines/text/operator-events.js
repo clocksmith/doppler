@@ -30,6 +30,7 @@ export function createOperatorExecutionRecord(options) {
     // Semantic context (Doppler-owned)
     phase: options.phase ?? null,
     tokenIndex: options.tokenIndex ?? null,
+    sequenceStep: options.sequenceStep ?? null,
     layerIndex: options.layerIdx ?? null,
     opId,
     opType: operatorClass,
@@ -73,6 +74,22 @@ export class OperatorEventEmitter {
     this._executionPlanHash = options.executionPlanHash ?? null;
     this._enabled = options.enabled !== false;
     this._activeOp = null;
+    this._context = { phase: null, tokenIndex: null, sequenceStep: null };
+  }
+
+  // Defaults for the following records' phase, tokenIndex and sequenceStep (a diagnostic
+  // sequence labels each call); a record's own non-null values take precedence.
+  setContext(context) {
+    this._context = { phase: context.phase ?? null, tokenIndex: context.tokenIndex ?? null, sequenceStep: context.sequenceStep ?? null };
+  }
+
+  #withContext(options) {
+    return {
+      ...options,
+      phase: options.phase ?? this._context.phase,
+      tokenIndex: options.tokenIndex ?? this._context.tokenIndex,
+      sequenceStep: options.sequenceStep ?? this._context.sequenceStep,
+    };
   }
 
   get enabled() {
@@ -91,7 +108,7 @@ export class OperatorEventEmitter {
     if (!this._enabled) return null;
 
     const record = createOperatorExecutionRecord({
-      ...options,
+      ...this.#withContext(options),
       stageName,
       modelHash: this._modelHash,
       adapterHash: this._adapterHash,
@@ -140,7 +157,7 @@ export class OperatorEventEmitter {
     if (!this._enabled) return null;
 
     const record = createOperatorExecutionRecord({
-      ...options,
+      ...this.#withContext(options),
       stageName,
       modelHash: this._modelHash,
       adapterHash: this._adapterHash,

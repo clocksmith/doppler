@@ -17,6 +17,8 @@ export interface OperatorExecutionRecord {
   // Semantic context (Doppler-owned)
   phase: InferencePhase | null;
   tokenIndex: number | null;
+  /** The call's index within an open diagnostic sequence, else null. */
+  sequenceStep: number | null;
   layerIndex: number | null;
   opId: string;
   opType: OperatorClass | null;
@@ -88,6 +90,8 @@ export declare class OperatorEventEmitter {
   get enabled(): boolean;
   enable(): void;
   disable(): void;
+  /** Defaults for later records' phase, tokenIndex and sequenceStep. */
+  setContext(context: { phase?: InferencePhase | null; tokenIndex?: number | null; sequenceStep?: number | null }): void;
 
   beginOp(
     stageName: StageName,

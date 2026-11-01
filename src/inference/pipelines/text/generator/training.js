@@ -1,17 +1,12 @@
 import { getDevice, setTrackSubmits } from '../../../../gpu/device.js';
+import { beginPrefillDiagnostics, closePrefillDiagnostics, markDiagnosticSequenceStep } from './diagnostic-sequence.js';
 import { acquireBuffer, releaseBuffer, readBuffer, readBufferSlice, uploadData } from '../../../../memory/buffer-pool.js';
 import { allowReadback } from '../../../../debug/perf-guards.js';
 import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
-import {
-  CAPTURE_LEVELS,
-  createDefaultCaptureConfig,
-  validateCaptureConfig,
-} from '../../../../debug/index.js';
 import { validateCallTimeOptions } from '../../../../config/param-validator.js';
 import { isStopToken } from '../init.js';
 import { sample, applyRepetitionPenalty, applyPresencePenalty, logitsSanity, getTopK } from '../sampling.js';
 import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits, applySoftcapping } from '../logits/index.js';
-import { OperatorEventEmitter } from '../operator-events.js';
 import {
   getLogitsConfig,
   getLogitsWeights,
@@ -30,7 +25,6 @@ import { decodeReadback } from '../debug-utils/readback-decoding.js';
 import { getLogitsHealth } from '../debug-utils/health-metrics.js';
 import {
   advanceDecodeStepCount,
-  createTsirFixtureState,
   drainPendingTsirReads,
 } from '../tsir-fixture-writer.js';
 import {
@@ -69,44 +63,6 @@ import {
   cloneRuntimeInferenceWithKVDtype,
 } from '../generator-decode-policy.js';
 import { FINITENESS_RESET_WORDS, borrowLinearWeight, borrowNormWeight, canUseChunkedSoftEmbeddingLogits, getExperimentalIntentBundleModule, normalizeCanvasTokenIds, normalizeSelectedLogitTokenIds, normalizeSelfConditioningLogits, normalizeSelfConditioningLogitsState, normalizeSelfConditioningSoftEmbeddingState, recordPrefillRecorderStats, releaseBorrowedWeight, resolveDiffusionGemmaSoftEmbeddingChunkRows, resolvePrefillChunkSubmitMode, resolveSuppressedSamplingTokenIds, traceActivationHealth } from './text.js';
-
-function beginPrefillDiagnostics(state, options, executionPlan, tsirFixtureCfg = null) {
-  state.operatorDiagnostics = null;
-  state.stats.operatorDiagnostics = null;
-  const enabled = options?.diagnostics?.enabled === true
-    || state.runtimeConfig?.shared?.harness?.mode === 'diagnose';
-  if (!enabled && !tsirFixtureCfg) return;
-  const captureConfig = {
-    ...createDefaultCaptureConfig(),
-    enabled: true,
-    defaultLevel: CAPTURE_LEVELS.SLICE,
-    ...(options?.diagnostics?.captureConfig ?? {}),
-  };
-  validateCaptureConfig(captureConfig);
-  state.operatorDiagnostics = {
-    enabled,
-    captureConfig,
-    emitter: enabled ? new OperatorEventEmitter({
-      modelHash: state.manifest?.modelId ?? null,
-      runtimeConfigHash: state.resolvedKernelPath?.id ?? null,
-      executionPlanHash: executionPlan?.planId ?? null,
-    }) : null,
-    tsirFixture: createTsirFixtureState(tsirFixtureCfg),
-  };
-}
-
-function closePrefillDiagnostics(pipeline, options) {
-  const state = pipeline._state;
-  try {
-    pipeline._closeFinitenessFallbackWindow(options);
-  } finally {
-    const emitter = state.operatorDiagnostics?.emitter;
-    state.stats.operatorDiagnostics = emitter
-      ? { enabled: true, timeline: emitter.getTimeline(), recordCount: emitter.length }
-      : null;
-    state.operatorDiagnostics = null;
-  }
-}
 
 export async function prefillKVOnly(prompt, options = {}) {
     if (!this._state.isLoaded) throw new Error('Model not loaded');
@@ -499,8 +455,10 @@ export async function prefillWithLogits(prompt, options = {}) {
     this._state.stats.gpuTimePrefillMs = undefined;
     this._state.stats.prefillProfileSteps = [];
     const opts = resolvePrefillOptions(this._state, options);
+    // Inside an open diagnostic sequence the prefill records into that session.
+    const inSequence = markDiagnosticSequenceStep(this._state, 'prefill', options);
     try {
-      beginPrefillDiagnostics(this._state, options, opts.executionPlan);
+      if (!inSequence) beginPrefillDiagnostics(this._state, options, opts.executionPlan);
       const { inputIds, logits, phase: prefillPhase } = await this._prefillPromptToLogits(prompt, opts, 'prefillWithLogits');
 
       const snapshot = this._state.kvCache?.clone();
@@ -520,7 +478,8 @@ export async function prefillWithLogits(prompt, options = {}) {
         linearAttention: await cloneLinearAttentionRuntime(this._state.linearAttentionRuntime),
       };
     } finally {
-      closePrefillDiagnostics(this, opts);
+      if (inSequence) this._closeFinitenessFallbackWindow(opts);
+      else closePrefillDiagnostics(this, opts);
     }
   }
 

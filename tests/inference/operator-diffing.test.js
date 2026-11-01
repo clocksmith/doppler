@@ -365,6 +365,16 @@ import assert from 'node:assert/strict';
   assert.equal(resolveCapturePolicy('layer.3.attn.out', config2), 'slice');
   assert.equal(resolveCapturePolicy('layer.5.attn.out', config2), 'none');
 
+  // Class filtering uses the canonical class the caller supplies: layer.0.attn.qkv_proj is a
+  // projection, not "attn"; without a class the policy refuses rather than guessing.
+  const config3 = createDefaultCaptureConfig();
+  config3.enabled = true;
+  config3.targetOperatorClasses = ['projection'];
+  config3.targetLevel = 'full';
+  assert.equal(resolveCapturePolicy('layer.0.attn.qkv_proj', config3, 'projection'), 'full');
+  assert.equal(resolveCapturePolicy('layer.0.attn.core_out', config3, 'attention'), 'none');
+  assert.throws(() => resolveCapturePolicy('layer.0.attn.qkv_proj', config3), /requires its canonical operator class/);
+
   assert.equal(escalateCaptureLevel('none', 'metadata'), 'metadata');
   assert.equal(escalateCaptureLevel('slice', 'metadata'), 'slice');
   assert.equal(escalateCaptureLevel('metadata', 'full'), 'full');

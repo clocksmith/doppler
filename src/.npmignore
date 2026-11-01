@@ -841,7 +841,6 @@ inference/pipelines/text/moe/gpu-executor.d.ts
 inference/pipelines/text/moe/grouped-prefill.d.ts
 inference/pipelines/text/moe/plan.d.ts
 inference/pipelines/text/normalization-contract.d.ts
-inference/pipelines/text/operator-events.d.ts
 inference/pipelines/text/operator-identity.d.ts
 inference/pipelines/text/ops.d.ts
 inference/pipelines/text/paired-execution.d.ts
@@ -858,9 +857,7 @@ inference/pipelines/text/probes.d.ts
 inference/pipelines/text/resident-partition.d.ts
 inference/pipelines/text/resident-pipeline-preparation.d.ts
 inference/pipelines/text/sequence-state.d.ts
-inference/pipelines/text/stage-names.d.ts
 inference/pipelines/text/stopping.d.ts
-inference/pipelines/text/tsir-fixture-writer.d.ts
 inference/pipelines/text/types.js
 inference/pipelines/text/weight-loading-config.d.ts
 inference/pipelines/video/frame-sampler.d.ts

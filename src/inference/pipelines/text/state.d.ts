@@ -81,6 +81,8 @@ export class PipelineState {
   runtimeConfig: RuntimeConfigSchema;
   commandContext: CommandContext | null;
   observationContext: ObservationContext | null;
+  /** An open forced-prefix diagnostic session (generator/diagnostic-sequence.js). */
+  diagnosticSequence: { steps: number } | null;
 
   // DopplerLoader instance
   dopplerLoader: DopplerLoader | null;

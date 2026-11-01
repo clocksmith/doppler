@@ -55,9 +55,14 @@ export interface EscalationPolicy {
   resolveForIndex(opIndex: number, suspectedDivergenceIndex: number | null): CaptureLevel;
 }
 
+/**
+ * Capture level for one operator. `operatorClass` is the canonical class of the op's
+ * stage (stage-names getOperatorClass); class filtering throws without it.
+ */
 export declare function resolveCapturePolicy(
   opId: string,
-  config: CaptureConfig | null
+  config: CaptureConfig | null,
+  operatorClass?: string | null
 ): CaptureLevel;
 
 export declare function escalateCaptureLevel(

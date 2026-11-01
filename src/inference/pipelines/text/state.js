@@ -77,6 +77,8 @@ export class PipelineState {
     this.commandContext = null;
     this.observationContext = null;
     this.operatorDiagnostics = null;
+    // An open forced-prefix diagnostic session (generator/diagnostic-sequence.js).
+    this.diagnosticSequence = null;
 
     // DopplerLoader instance
 
