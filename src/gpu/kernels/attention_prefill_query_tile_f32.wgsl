@@ -14,6 +14,7 @@ const PARTITION_LANES: u32 = 32u;
 override HEAD_DIM: u32;
 override WORKGROUP_SIZE: u32;
 const LANE_REGISTER_CAPACITY: u32 = 8u;
+const U32_MAX: u32 = 0xffffffffu;
 var<workgroup> kv_tile: array<f32, KEY_TILE * HEAD_DIM>;
 
 struct Uniforms {
@@ -99,6 +100,24 @@ fn get_kv_len() -> u32 {
     return kv_len_buffer[0];
 }
 
+// KV positions this workgroup's outer loop visits. A causal dispatch without a
+// bidirectional span masks every key after the workgroup's last valid query, so
+// the loop stops at that query's absolute position (inclusive); a query before
+// kv_start sees no key. A span can expose later keys, so it keeps the full loop,
+// as does a position that would overflow u32. Per-key masks still apply inside.
+fn causal_kv_end(query_block: u32, kv_len: u32) -> u32 {
+    if (u.is_causal == 0u || u.bidirectional_span_length != 0u) { return kv_len; }
+    let first = query_block * QUERY_TILE;
+    if (first >= u.query_len) { return 0u; }
+    let last = first + min(QUERY_TILE - 1u, u.query_len - 1u - first);
+    if (u.start_pos > U32_MAX - last) { return kv_len; }
+    let abs_last = last + u.start_pos;
+    if (abs_last < u.kv_start) { return 0u; }
+    let through = abs_last - u.kv_start;
+    if (through >= kv_len) { return kv_len; }
+    return through + 1u;
+}
+
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(
     @builtin(local_invocation_index) local_index: u32,
@@ -115,6 +134,7 @@ fn main(
     let valid = query < u.query_len;
     let kv_head = get_kv_head_idx(head);
     let kv_len = get_kv_len();
+    let kv_end = causal_kv_end(query_block, kv_len);
     var q: array<f32, LANE_REGISTER_CAPACITY>;
     var acc: array<f32, LANE_REGISTER_CAPACITY>;
     if (valid) {
@@ -127,7 +147,7 @@ fn main(
     var denominator = 0.0f;
     // Uniform loop bounds keep both shared-memory barriers and shuffles valid
     // for tail queries and completely masked rows.
-    for (var start = 0u; start < kv_len; start += KEY_TILE) {
+    for (var start = 0u; start < kv_end; start += KEY_TILE) {
         for (var i = local_index; i < KEY_TILE * HEAD_DIM; i += WORKGROUP_SIZE) {
             let key = start + i / HEAD_DIM;
             var value = 0.0f;
