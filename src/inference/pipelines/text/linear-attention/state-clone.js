@@ -42,6 +42,25 @@ export function cloneLayerRuntimeState(layerState) {
   };
 }
 
+/** @type {import('./state-clone.js').clearLayerRuntimeStates} */
+export function clearLayerRuntimeStates(layerStates) {
+  /** @type {{ buffer: GPUBuffer, size: number }[]} */
+  const regions = [];
+  for (const layerState of layerStates) {
+    for (const field of /** @type {const} */ (['convState', 'recurrentState'])) {
+      const buffer = layerState[`${field}GPU`];
+      if (isGpuBuffer(buffer)) regions.push({ buffer: /** @type {GPUBuffer} */ (buffer), size: layerState[field].byteLength });
+      else layerState[field].fill(0);
+    }
+  }
+  if (regions.length === 0) return;
+  const device = getDevice();
+  if (!device) throw new Error('Clearing resident recurrent state requires a live GPU device.');
+  const encoder = device.createCommandEncoder({ label: 'linear_state_clear' });
+  for (const { buffer, size } of regions) encoder.clearBuffer(buffer, 0, size);
+  device.queue.submit([encoder.finish()]);
+}
+
 /** @type {import('./state-clone.js').cloneLinearAttentionRuntimeOnGPU} */
 export async function cloneLinearAttentionRuntimeOnGPU(runtime) {
   if (runtime == null) return { schemaVersion: LINEAR_RUNTIME_SCHEMA_VERSION, layers: new Map() };

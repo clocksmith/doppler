@@ -3,15 +3,25 @@ import { registerHooks } from 'node:module';
 import { createTensor } from '../../src/gpu/tensor.js';
 
 const target = new URL('../../src/inference/pipelines/text/linear-attention.js', import.meta.url).href;
+const stateModule = new URL('../../src/inference/pipelines/text/linear-attention/state-clone.js', import.meta.url).href;
 const released = new Set();
 let creations = 0;
-let failUpload = false;
+let failClear = false;
+const clears = [];
 const makeBuffer = () => ({ gpu: true });
 const geometry = { convDim: 6, keyDim: 2, valueDim: 2, numKHeads: 1, numVHeads: 1,
   headKDim: 2, headVDim: 2, qSize: 2, kSize: 2, vSize: 2, qRep: 1 };
 globalThis.linearPreparedTest = {
   release(buffer) { assert(!released.has(buffer), 'buffer released once'); released.add(buffer); },
-  upload(buffer, data) { if (failUpload) throw Error('upload failed'); buffer.data = data.slice(); },
+  device: {
+    createCommandEncoder() {
+      if (failClear) throw Error('clear failed');
+      const cleared = [];
+      return { clearBuffer(buffer, offset, size) { assert.equal(offset, 0); buffer.data = new Float32Array(size / 4); cleared.push(buffer); },
+        finish: () => cleared };
+    },
+    queue: { submit([cleared]) { clears.push(cleared.length); } },
+  },
   create(layerIdx, weights, config, seqLen) {
     creations++;
     const components = config.sessionSettings.intermediatePrecision === 'two-f32' ? 2 : 1;
@@ -42,17 +52,20 @@ export const applyLinearNormWeightOffset=v=>v;
 export const applyProjectionLoRA=()=>{};
 export const projectLinearTensor=()=>{throw Error('stop after preparation');};
 `;
-const modules = {
-  './linear-attention/plan.js': plan,
-  '../../../memory/buffer-pool.js': `
+const pool = `
 export const releaseBuffer=b=>linearPreparedTest.release(b);
-export const uploadData=(b,d)=>linearPreparedTest.upload(b,d);
-export const readBuffer=()=>{throw Error('unexpected readback');};`,
+export const acquireBuffer=()=>{throw Error('unexpected allocation');};
+export const discardBuffer=b=>linearPreparedTest.release(b);
+export const uploadData=()=>{throw Error('unexpected upload');};
+export const readBuffer=()=>{throw Error('unexpected readback');};`;
+const modules = {
+  [target]: { './linear-attention/plan.js': plan, '../../../memory/buffer-pool.js': pool },
+  [stateModule]: { './plan.js': plan, '../../../../memory/buffer-pool.js': pool,
+    '../../../../gpu/device.js': 'export const getDevice=()=>linearPreparedTest.device;' },
 };
 const hooks = registerHooks({ resolve(specifier, context, next) {
-  if (context.parentURL === target && modules[specifier]) {
-    return { url: `data:text/javascript,${encodeURIComponent(modules[specifier])}`, shortCircuit: true };
-  }
+  const source = modules[context.parentURL]?.[specifier];
+  if (source) return { url: `data:text/javascript,${encodeURIComponent(source)}`, shortCircuit: true };
   return next(specifier, context);
 } });
 try {
@@ -83,10 +96,18 @@ try {
   assert.equal(runtime.layers.get(0), first);
   assert.equal(first.seqLen, 0);
   assert.equal(first.warnedSeqMismatch, false);
+  assert.deepEqual(clears, [2], 'GPU-resident state is zeroed by one submit of GPU clears');
   for (const field of ['convState', 'recurrentState']) {
-    assert(first[field].every(v => v === 0));
+    assert.equal(first[`${field}GPU`].data.length, first[field].length);
     assert(first[`${field}GPU`].data.every(v => v === 0));
   }
+  const residentConv = first.convStateGPU;
+  first.convStateGPU = null;
+  first.convState.fill(5);
+  resetLinearAttentionSequence(runtime);
+  assert(first.convState.every(v => v === 0), 'host-resident state is zeroed in place');
+  assert.deepEqual(clears, [2, 1]);
+  first.convStateGPU = residentConv;
   assert.equal(first.convWeightGPU, parameters);
   assert.deepEqual(first.normWeight, new Float32Array([4]));
   await attempt();
@@ -107,11 +128,11 @@ try {
   resetLinearAttentionSequence(runtime);
   await attempt();
   assert.equal(creations, 4, 'changed preparation settings rebuild state');
-  failUpload = true;
-  assert.throws(() => resetLinearAttentionSequence(runtime), /upload failed/);
+  failClear = true;
+  assert.throws(() => resetLinearAttentionSequence(runtime), /clear failed/);
   assert.equal(runtime.layers.size, 0, 'failed reset cannot leave stale conversation state reusable');
   assert.equal(released.size, 24);
-  failUpload = false;
+  failClear = false;
   await attempt();
   resetLinearAttentionRuntime(runtime);
   assert.equal(runtime.layers.size, 0, 'full reset still releases prepared capacity');

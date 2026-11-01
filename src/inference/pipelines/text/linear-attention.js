@@ -1,7 +1,7 @@
 import { recordMatmul, runMatmul } from '../../../gpu/kernels/matmul.js';
 import { recordRMSNorm, runRMSNorm } from '../../../gpu/kernels/rmsnorm.js';
 import { castF32ToF16, castF16ToF32, recordCastF32ToF16, recordCastF16ToF32 } from '../../../gpu/kernels/cast.js';
-import { readBuffer, releaseBuffer, uploadData } from '../../../memory/buffer-pool.js';
+import { readBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { log } from '../../../debug/index.js';
 import { decodeReadback } from './debug-utils/readback-decoding.js';
 import { runLinearAttentionCoreGPU } from '../../../gpu/kernels/linear-attention-core.js';
@@ -16,7 +16,7 @@ import { getLoRAModule } from './lora.js';
 import { applyProjectionLoRA, createLayerRuntimeState, ensureLayerRuntimeGpuBuffers, inferLinearNormModeFromWeight, isGpuBuffer, normalizeLinearNormMode, projectLinearTensor, releaseOrTrackBuffer, releaseResolvedWeightBuffer, resolveMatmulStepDtype, toPositiveInt } from './linear-attention/plan.js';
 export { applyLinearNormWeightOffset } from './linear-attention/plan.js';
 import { assertRecurrentStateLayout, assertConvolutionStateLayout, resolveRecurrentStateLayout } from './linear-attention/state-layout.js';
-import { LINEAR_RUNTIME_SCHEMA_VERSION, cloneLayerRuntimeState } from './linear-attention/state-clone.js';
+import { LINEAR_RUNTIME_SCHEMA_VERSION, clearLayerRuntimeStates, cloneLayerRuntimeState } from './linear-attention/state-clone.js';
 import { recordDeclaredLinearNormAB } from './linear-attention/norm-ab.js';
 const QK_L2NORM_EPS = 1e-6;
 // Prepared parameters belong to the loaded pipeline, never to a conversation.
@@ -90,16 +90,6 @@ function resolveProjectionLayout(config, layerWeights) {
 }
 export function inferLinearNormMode(weight, projectionLayout) {
   return inferLinearNormModeFromWeight(weight, projectionLayout);
-}
-function clearDynamicLayerState(layerState) {
-  layerState.convState.fill(0);
-  layerState.recurrentState.fill(0);
-  if (isGpuBuffer(layerState.convStateGPU)) {
-    uploadData(layerState.convStateGPU, layerState.convState);
-  }
-  if (isGpuBuffer(layerState.recurrentStateGPU)) {
-    uploadData(layerState.recurrentStateGPU, layerState.recurrentState);
-  }
 }
 async function observeLinearAttentionState(layerState, options) {
   for (const [name, field] of [
@@ -313,7 +303,9 @@ export function resetLinearAttentionSequence(runtime) {
     for (const layerState of target.layers.values()) {
       assertRecurrentStateLayout(layerState);
       assertConvolutionStateLayout(layerState);
-      clearDynamicLayerState(layerState);
+    }
+    clearLayerRuntimeStates(target.layers.values());
+    for (const layerState of target.layers.values()) {
       layerState.seqLen = 0;
       layerState.warnedSeqMismatch = false;
       freshSequenceLayers.add(layerState);
