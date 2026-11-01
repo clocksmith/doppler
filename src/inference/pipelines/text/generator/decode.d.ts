@@ -7,6 +7,16 @@ export { FinitenessError, sumProfileTimings, decodeStep, decodeStepLogits,
   readMappedBufferCopy, readSampledTokenFromStagingBuffer, shouldUseFusedDecodeSampling,
 } from '../generator-steps.js';
 
+/**
+ * Verify a kept whole-token program on decode step 1 before it runs: the ordinary step at
+ * `position` is recorded with a placeholder input token and stopped before its submit.
+ * True when step 1 will replay the program; false when the program was invalidated.
+ */
+export declare function verifyDecodeStepAhead(
+  state: PipelineState, position: number, placeholderToken: number, opts: GenerateOptions,
+  helpers: Record<string, unknown>
+): Promise<boolean>;
+
 export declare const UNKNOWN_TOKEN_TEXT: '<unknown>';
 export declare const FINITENESS_RESET_WORDS: Uint32Array;
 /** Validated encode-ahead interval for recorded single-token decode, or null when disabled. */

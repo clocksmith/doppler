@@ -126,7 +126,7 @@ export class WholeTokenProgram {
   }
 
   static #freshStats() {
-    return { observedSteps: 0, replayedTokens: 0, restarts: 0, invalidations: 0, reused: false,
+    return { observedSteps: 0, replayedTokens: 0, restarts: 0, invalidations: 0, reused: false, verifiedAhead: false,
       lastInvalidation: /** @type {string | null} */ (null) };
   }
 
@@ -194,26 +194,68 @@ export class WholeTokenProgram {
     const { observation, result } = await this.#capture(pos, token, run, identityOf, limits);
     this.awaitingVerification = false;
     this.#unwatch();
-    const range = /** @type {PositionLimit} */ (observation.rangeLimit);
-    const min = Math.max(this.positionRange.min, range.min);
-    const max = Math.min(this.positionRange.max, range.max);
-    /** @type {string | null} */
-    let reason = null;
-    if (!sameIdentity(observation.identity, this.identity)) reason = 'the execution plan or a bound resource changed';
-    else if (pos < min || pos > max) reason = `position ${pos} is outside [${min}, ${max}]`;
-    else if (this.pooledExternals.some((buffer) => !isBufferActive(buffer))) reason = 'a bound buffer returned to the buffer pool';
-    else {
-      try { buildTemplate([...this.basis, observation]); } catch (error) { reason = /** @type {Error} */ (error).message; }
-    }
+    const reason = this.#adoptVerified(pos, observation, pos + 1);
     if (reason !== null) {
       this.invalidate(`kept program does not match position ${pos}: ${reason}`);
       this.#accept(observation);
-      return result;
     }
-    this.positionRange = { owner: max < this.positionRange.max ? range.owner : this.positionRange.owner, min, max };
-    this.nextPos = pos + 1;
-    this.stats.reused = true;
     return result;
+  }
+
+  /**
+   * Verify the kept program on an ordinary step that is recorded but never submitted: the
+   * same check as verify, for the step at `pos` that has not run yet. `run` records the
+   * step and stops before its submit by throwing `stopSignal`; any other error propagates.
+   * A match replays from `pos`; a mismatch invalidates the program and discards the
+   * observation (a step that never ran observes nothing of the sequence).
+   * @param {number} pos
+   * @param {number} token
+   * @param {(attach: (recorder: CommandRecorder | null) => void) => Promise<unknown>} run
+   * @param {() => readonly unknown[]} identityOf
+   * @param {readonly PositionLimit[]} limits
+   * @param {unknown} stopSignal
+   * @returns {Promise<boolean>}
+   */
+  async verifyAhead(pos, token, run, identityOf, limits, stopSignal) {
+    if (!this.ready || !this.awaitingVerification) throw new Error('[WholeTokenProgram] No kept program awaits verification.');
+    const { observation } = await this.#capture(pos, token, async (attach) => {
+      try {
+        await run(attach);
+      } catch (error) {
+        if (error === stopSignal) return;
+        throw error;
+      }
+      throw new Error('[WholeTokenProgram] A step verified ahead must stop before its submit.');
+    }, identityOf, limits);
+    this.awaitingVerification = false;
+    this.#unwatch();
+    const reason = this.#adoptVerified(pos, observation, pos);
+    if (reason !== null) this.invalidate(`kept program does not match position ${pos} ahead of time: ${reason}`);
+    this.stats.verifiedAhead = reason === null;
+    return reason === null;
+  }
+
+  /**
+   * Accept the kept program for a generation whose observed step at `pos` builds the same
+   * template as its basis, with the same resources and inside both position ranges; the
+   * program then replays from `nextPos`. Returns why it does not, or null.
+   * @param {number} pos
+   * @param {StepObservation} observation
+   * @param {number} nextPos
+   * @returns {string | null}
+   */
+  #adoptVerified(pos, observation, nextPos) {
+    const range = /** @type {PositionLimit} */ (observation.rangeLimit);
+    const min = Math.max(this.positionRange.min, range.min);
+    const max = Math.min(this.positionRange.max, range.max);
+    if (!sameIdentity(observation.identity, this.identity)) return 'the execution plan or a bound resource changed';
+    if (pos < min || pos > max) return `position ${pos} is outside [${min}, ${max}]`;
+    if (this.pooledExternals.some((buffer) => !isBufferActive(buffer))) return 'a bound buffer returned to the buffer pool';
+    try { buildTemplate([...this.basis, observation]); } catch (error) { return /** @type {Error} */ (error).message; }
+    this.positionRange = { owner: max < this.positionRange.max ? range.owner : this.positionRange.owner, min, max };
+    this.nextPos = nextPos;
+    this.stats.reused = true;
+    return null;
   }
 
   /**

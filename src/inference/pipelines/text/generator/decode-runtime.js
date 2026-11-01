@@ -26,6 +26,8 @@ import { createPleBufferCache, prefetchPerLayerRow, getPleHotVocabularyRuntime, 
 import { shouldDisableBatchDecodeAfterShortBatch, resolveHotVocabularyBatchDecodeAvailability, primePleDecodeRuntimeCache, resolveTokenText, usesReplayPrefillDecode, assertIncrementalDecodeSupport, summarizeExecutionPlan } from '../generator-decode-policy.js';
 import { getExperimentalIntentBundleModule, resolveSuppressedSamplingTokenIds } from './text.js';
 import { assertBatchRetryInPlaceAllowed } from './batch-retry-policy.js';
+import { verifyDecodeStepAhead } from './decode.js';
+import { wholeTokenProgramRequested } from './whole-token-lane.js';
 
 function prepareGenerationRuntime(generator, opts, options) {
   generator._resetReplayPrefillRuntimeState();
@@ -104,6 +106,26 @@ function prepareGenerationRuntime(generator, opts, options) {
   return startTime;
 }
 
+// With a kept whole-token program, verify it on decode step 1 while the prefill's last
+// commands run, so step 1 replays it. A failure there invalidates the program; step 1 then
+// observes as it would without this.
+function wholeTokenAheadVerification(generator, opts) {
+  const state = generator._state;
+  if (!state.wholeTokenProgram?.program.ready || !wholeTokenProgramRequested(state, opts)) return undefined;
+  let used = false;
+  return async (position, placeholderToken) => {
+    if (used) return;
+    used = true;
+    try {
+      await verifyDecodeStepAhead(state, position, placeholderToken, opts, generator._getDecodeHelpers(undefined));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      state.wholeTokenProgram?.program.invalidate(`verification ahead of decode step 1 failed: ${message}`);
+      log.warn('Decode', `Whole-token verification ahead of step 1 failed (${message}); step 1 observes the program again.`);
+    }
+  };
+}
+
 async function samplePrefillToken(generator, prefillLogits, generatedIds, inputIds, opts, prefillStartSeqLen, warn) {
   try {
     return generator._sampleNextTokenFromLogits(prefillLogits, generatedIds, opts);
@@ -177,7 +199,9 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
     try {
       const prefillStartSeqLen = this._state.currentSeqLen;
       const prefillStart = performance.now();
+      opts._whileFinalPrefillRuns = wholeTokenAheadVerification(this, opts);
       const { inputIds, logits: initialPrefillLogits } = await this._prefillPromptToLogits(prompt, opts, 'generate');
+      opts._whileFinalPrefillRuns = undefined;
       const prefillLogits = initialPrefillLogits;
       this._state.stats.prefillTimeMs = performance.now() - prefillStart;
       this._assertTokenIdsInRange(inputIds, 'generate.prefillTokens');

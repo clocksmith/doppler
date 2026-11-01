@@ -116,6 +116,7 @@ function makeModel(device, { kvRows = 64 } = {}) {
 function recordStep(device, recorder, res, pos, token, options) {
   const {
     declareToken = true, kvMax = Infinity, regime = null, uniformBytes = 16, writeToken = true, stepBase = null,
+    dryStop = null,
   } = options;
   if (declareToken) declareStepContract(recorder, { kind: 'token-input', buffer: res.tokens, offset: 0, count: 1 });
   if (writeToken) device.queue.writeBuffer(res.tokens, 0, new Uint32Array([token]));
@@ -135,6 +136,7 @@ function recordStep(device, recorder, res, pos, token, options) {
   recorder.recordDispatch(res.pipeline, group, [1]);
   recorder.getEncoder().copyBufferToBuffer(res.out, 0, res.kv, pos * 4, 4);
   recorder.getEncoder().copyBufferToBuffer(res.out, 0, res.staging, 0, 4);
+  if (dryStop) throw dryStop;
   recorder.submit();
 }
 
@@ -318,6 +320,39 @@ async function observeStep(program, device, res, pos, token, options = {}, metho
   assert.equal(program.ready, false);
   assert.match(program.stats.lastInvalidation, /execution plan or a bound resource changed/);
   await assert.rejects(observeStep(program, device, res, 51, 7, {}, 'verify'), /No kept program awaits verification/);
+  program.destroy();
+}
+
+// A kept program verified ahead on a step that is recorded but never submitted replays
+// that same position; a mismatch drops it without counting the step as an observation;
+// a step that submits instead of stopping is refused.
+{
+  const device = makeDevice();
+  const res = makeModel(device);
+  const program = new WholeTokenProgram(device);
+  for (const pos of [10, 11, 12, 13]) await observeStep(program, device, res, pos, 42);
+  const stop = { stop: true };
+  const ahead = (pos, options = {}) => program.verifyAhead(pos, 0, async (attach) => {
+    const recorder = makeRecorder(device);
+    attach(recorder);
+    recordStep(device, recorder, res, pos, 0, { ...options, dryStop: options.submits ? null : stop });
+  }, () => ['plan-a'], [], stop);
+  program.beginGeneration();
+  assert.equal(await ahead(40), true);
+  assert.equal(word(res.kv, 40 * 4), 0, 'the verified step never ran');
+  assert.deepEqual([program.ready, program.awaitingVerification, program.stats.reused, program.stats.observedSteps],
+    [true, false, true, 0]);
+  assert.equal(program.rejects(40, ['plan-a']), null, 'replay starts at the verified position');
+  assert.equal((await program.run(40, 9))[0], 9 + 40000);
+  assert.equal(word(res.kv, 40 * 4), 9 + 40000);
+  program.beginGeneration();
+  assert.equal(await ahead(60, { stepBase: 50 }), false);
+  assert.equal(program.ready, false);
+  assert.equal(program.stats.observedSteps, 0, 'a step that never ran is not an observation');
+  assert.match(program.stats.lastInvalidation, /does not match position 60 ahead of time: .*word 1/);
+  for (const pos of [20, 21, 22, 23]) await observeStep(program, device, res, pos, 42);
+  program.beginGeneration();
+  await assert.rejects(ahead(30, { submits: true }), /must stop before its submit/);
   program.destroy();
 }
 

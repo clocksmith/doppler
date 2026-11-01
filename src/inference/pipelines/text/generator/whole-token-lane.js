@@ -10,7 +10,10 @@ import { WholeTokenProgram } from './whole-token-program.js';
 // built program cannot run (outside its declared positions, or with a changed plan or
 // resource) invalidates it and is observed again. A built program is kept for the next
 // generation, whose step 1 is observed and must match it (WholeTokenProgram.verify)
-// before step 2 replays. See whole-token-program.js.
+// before step 2 replays. While the prefill's last commands run on the GPU, the kept
+// program can instead be verified on a step 1 that is recorded and never submitted
+// (verifyWholeTokenProgramAhead); a match replays step 1 itself. See
+// whole-token-program.js.
 
 /** @typedef {import('../state.js').PipelineState} PipelineState */
 /** @typedef {{ seqLen?: unknown, keysGPU?: GPUBuffer | null, valuesGPU?: GPUBuffer | null }} KVLayerView */
@@ -95,6 +98,45 @@ function wholeTokenIdentity(state) {
   return parts;
 }
 
+/** Thrown by a decode step recorded for verification ahead, in place of its submit. */
+export const WHOLE_TOKEN_DRY_STEP_STOP = Object.freeze({ reason: 'whole-token step verified ahead' });
+
+/** @type {typeof import('./whole-token-lane.js').verifyWholeTokenProgramAhead} */
+export async function verifyWholeTokenProgramAhead(state, position, token, runRecordedDry) {
+  const lane = state.wholeTokenProgram;
+  if (!lane?.program.ready || lane.verifiedAhead != null) return false;
+  const { program } = lane;
+  program.beginGeneration();
+  // The dry step advances CPU sequence bookkeeping as an executed step would; all of it is
+  // restored, and the fields it advanced become the replay's advancers.
+  const fields = sequenceAdvancers(state);
+  const before = fields.map(({ owner }) => owner.seqLen);
+  const kvCache = /** @type {{ currentSeqLen?: number, truncate?(length: number): void } | null} */ (/** @type {unknown} */ (state.kvCache));
+  const saved = { seqLen: state.currentSeqLen, steps: state.decodeStepCount, kvSeqLen: kvCache?.currentSeqLen };
+  state.currentSeqLen = position;
+  let verified = false;
+  try {
+    verified = await program.verifyAhead(position, token, runRecordedDry, () => wholeTokenIdentity(state),
+      kvCapacityLimits(state), WHOLE_TOKEN_DRY_STEP_STOP);
+    if (verified) {
+      const advancers = fields.filter(({ owner }, i) => owner.seqLen !== before[i]);
+      if (advancers.some(({ owner }) => owner.seqLen !== position + 1)) {
+        throw new Error('[WholeTokenProgram] A decode step advanced sequence state by more than one position.');
+      }
+      lane.advancers = advancers;
+      lane.verifiedAhead = position;
+    }
+  } finally {
+    state.currentSeqLen = saved.seqLen;
+    state.decodeStepCount = saved.steps;
+    fields.forEach(({ owner }, i) => { owner.seqLen = before[i]; });
+    // The cache owns its sequence length (a resident cache refuses outside writes).
+    if (typeof saved.kvSeqLen === 'number') /** @type {{ truncate(length: number): void }} */ (kvCache).truncate(saved.kvSeqLen);
+  }
+  state.stats.wholeTokenProgram = { ...program.stats, dispatches: program.ready ? program.dispatchCount : null };
+  return verified;
+}
+
 /** @type {typeof import('./whole-token-lane.js').wholeTokenProgramRequested} */
 export function wholeTokenProgramRequested(state, opts) {
   const session = /** @type {{ decodeLoop?: { wholeTokenProgram?: unknown } }} */ (
@@ -145,7 +187,12 @@ export async function decodeWholeTokenStep(state, currentIds, runRecorded) {
   const step = state.decodeStepCount + 1;
   const pos = state.currentSeqLen;
   const lastToken = currentIds[currentIds.length - 1];
-  if (step === 1) {
+  if (step === 1 && state.wholeTokenProgram?.verifiedAhead != null) {
+    // Verified ahead at this position: step 1 replays (a different position was rejected below).
+    if (state.wholeTokenProgram.verifiedAhead !== pos) state.wholeTokenProgram.program.invalidate(
+      `verified ahead at position ${state.wholeTokenProgram.verifiedAhead}, not ${pos}`);
+    state.wholeTokenProgram.verifiedAhead = null;
+  } else if (step === 1) {
     const kept = state.wholeTokenProgram?.program;
     if (kept?.ready) {
       // Bind group descriptors from earlier generations are still known, so the kept

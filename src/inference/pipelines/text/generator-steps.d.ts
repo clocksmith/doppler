@@ -68,7 +68,7 @@ export declare function findInvalidGeneratedToken(
 
 export interface SampledTokenStagingBuffer {
   mapAsync(mode: number): Promise<void>;
-  getMappedRange(): ArrayBufferLike;
+  getMappedRange(): ArrayBuffer;
   unmap(): void;
   destroy(): void;
 }

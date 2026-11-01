@@ -30,7 +30,9 @@ import { FINITENESS_RESET_WORDS, FinitenessError, parseFinitenessStatusWords } f
 
 import { hasConvLayers } from '../layer.js';
 import { advanceDecodeStepCount } from '../tsir-fixture-writer.js';
-import { decodeWholeTokenStep, wholeTokenProgramRequested } from './whole-token-lane.js';
+import { WHOLE_TOKEN_DRY_STEP_STOP, decodeWholeTokenStep, verifyWholeTokenProgramAhead, wholeTokenProgramRequested } from './whole-token-lane.js';
+import { readMappedBufferCopy, readSampledTokenFromStagingBuffer } from './decode-readback.js';
+export { readMappedBufferCopy, readSampledTokenFromStagingBuffer };
 import { preparePerLayerInputs, prefetchPerLayerRow } from '../per-layer-inputs.js';
 
 export const UNKNOWN_TOKEN_TEXT = '<unknown>';
@@ -141,73 +143,6 @@ export function shouldUseFusedDecodeSampling(config) {
     && config.gpuSamplingEnabled === true
     && config.fusedDecodeDisabled !== true
     && !hasConvLayers(config.layerTypes ?? []);
-}
-
-export async function readSampledTokenFromStagingBuffer(stagingBuffer, options = {}) {
-  const ownsStagingBuffer = options.ownsStagingBuffer === true;
-  const hasFinitenessBuffer = options.hasFinitenessBuffer === true;
-  const ring = options.ring ?? null;
-  const cleanupRecorder = options.cleanupRecorder ?? null;
-  const timing = {
-    mapWaitMs: 0,
-    cleanupMs: 0,
-    copyMs: 0,
-  };
-  let mapped = false;
-  let cleanupCompleted = false;
-
-  try {
-    const mapStart = performance.now();
-    await stagingBuffer.mapAsync(GPUMapMode.READ);
-    timing.mapWaitMs = performance.now() - mapStart;
-    mapped = true;
-    const cleanupStart = performance.now();
-    await cleanupRecorder?.completeDeferredCleanup();
-    timing.cleanupMs = performance.now() - cleanupStart;
-    cleanupCompleted = true;
-    const copyStart = performance.now();
-    const mappedWords = new Uint32Array(stagingBuffer.getMappedRange());
-    if (mappedWords[0] === 0xFFFFFFFF) throw new Error('[Sampling] No finite candidate logits.');
-    const result = {
-      nextToken: mappedWords[0],
-      finitenessStatus: hasFinitenessBuffer
-        ? parseFinitenessStatusWords(mappedWords, 1)
-        : parseFinitenessStatusWords(FINITENESS_RESET_WORDS, 0),
-      timing,
-    };
-    timing.copyMs = performance.now() - copyStart;
-    return result;
-  } finally {
-    if (mapped) stagingBuffer.unmap();
-    try {
-      if (!cleanupCompleted) {
-        await cleanupRecorder?.completeDeferredCleanup({ discardPooled: true });
-      }
-    } finally {
-      if (ownsStagingBuffer) {
-        stagingBuffer.destroy();
-      }
-      ring?.advance();
-    }
-  }
-}
-
-export async function readMappedBufferCopy(stagingBuffer, options = {}) {
-  const ownsStagingBuffer = options.ownsStagingBuffer !== false;
-  let mapped = false;
-
-  try {
-    await stagingBuffer.mapAsync(GPUMapMode.READ);
-    mapped = true;
-    return stagingBuffer.getMappedRange().slice(0);
-  } finally {
-    if (mapped) {
-      stagingBuffer.unmap();
-    }
-    if (ownsStagingBuffer) {
-      stagingBuffer.destroy();
-    }
-  }
 }
 
 export async function runDecodeLayers(state, tokenId, opts, helpers) {
@@ -374,13 +309,20 @@ export function resolveDecodeLayerSubmitInterval(decodeLoop, recorder) {
 }
 
 // With `attach`, the whole-token lane observes the step through its recorder.
+const recordedStep = (state, currentIds, opts, helpers, dryRun) => (attach) => decodeStepBody(state, currentIds, opts, helpers,
+  (s, o) => { const recorder = createDecodeRecorder(s, o); attach?.(recorder); return recorder; }, dryRun);
 export async function decodeStep(state, currentIds, opts, helpers) {
-  const runRecorded = (attach) => decodeStepBody(state, currentIds, opts, helpers,
-    (s, o) => { const recorder = createDecodeRecorder(s, o); attach?.(recorder); return recorder; });
+  const runRecorded = recordedStep(state, currentIds, opts, helpers, false);
   return wholeTokenProgramRequested(state, opts) ? decodeWholeTokenStep(state, currentIds, runRecorded) : runRecorded(null);
 }
-
-async function decodeStepBody(state, currentIds, opts, helpers, makeRecorder) {
+// Verify a kept whole-token program on decode step 1 before it runs: the ordinary step at
+// `position`, with a placeholder input token, is recorded and stopped before its submit.
+export function verifyDecodeStepAhead(state, position, placeholderToken, opts, helpers) {
+  return verifyWholeTokenProgramAhead(state, position, placeholderToken,
+    recordedStep(state, new Array(position + 1).fill(placeholderToken), opts, helpers, true));
+}
+// dryRun: no partial submits; WHOLE_TOKEN_DRY_STEP_STOP is thrown in place of the submit.
+async function decodeStepBody(state, currentIds, opts, helpers, makeRecorder, dryRun = false) {
   const stepWallStart = performance.now();
   const lastToken = currentIds[currentIds.length - 1];
   const numTokens = 1;
@@ -408,7 +350,7 @@ async function decodeStepBody(state, currentIds, opts, helpers, makeRecorder) {
     context.currentTokenIds = [lastToken];
     const decodeSession = state.resolvedRuntimeSession?.runtime?.session ?? state.runtimeConfig.inference.session;
     attachPreparedDecodeWorkspace(decodeSession.usePreparedDecodeWorkspace, recorder, context, device);
-    const layerSubmitInterval = resolveDecodeLayerSubmitInterval(decodeSession.decodeLoop, recorder);
+    const layerSubmitInterval = dryRun ? null : resolveDecodeLayerSubmitInterval(decodeSession.decodeLoop, recorder);
     state.decodeBuffers.resetPingPong();
     const decodeHiddenBuffer = state.decodeBuffers.getHiddenBuffer();
     const decodeAltBuffer = state.decodeBuffers.getOutputHiddenBuffer();
@@ -600,6 +542,7 @@ async function decodeStepBody(state, currentIds, opts, helpers, makeRecorder) {
         encoder.copyBufferToBuffer(state.finitenessBuffer, 0, stagingBuffer, 4, 16);
       }
 
+      if (dryRun) throw WHOLE_TOKEN_DRY_STEP_STOP;
       const readbackMode = executionPlan?.readbackMode;
       const isOverlapped = readbackMode === 'overlapped';
 
@@ -821,6 +764,7 @@ async function decodeStepBody(state, currentIds, opts, helpers, makeRecorder) {
       }
     }
 
+    if (dryRun) throw new Error('A decode step verified ahead requires recorded fused GPU sampling.');
     if (state.finitenessBuffer) {
       const isInfiniteData = await readBuffer(state.finitenessBuffer, 16);
       const u32 = new Uint32Array(isInfiniteData.buffer, isInfiniteData.byteOffset, 4);

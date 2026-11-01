@@ -585,10 +585,7 @@ export async function _prefill(inputIds, opts) {
             // to observe completion failures before returning. Profile runs keep the
             // sync path because resolveProfileTimings requires the submitted
             // work to be done.
-            const chunkSubmitMode = resolvePrefillChunkSubmitMode(
-              this._state.runtimeConfig,
-              this._state.modelConfig
-            );
+            const chunkSubmitMode = resolvePrefillChunkSubmitMode(this._state.runtimeConfig, this._state.modelConfig);
             const chunkSubmitStart = performance.now();
             recordPrefillRecorderStats(this._state, currentRecorder);
             if (chunkSubmitMode === 'async' && !opts.profile) {
@@ -658,6 +655,12 @@ export async function _prefill(inputIds, opts) {
           await drainPendingTsirReads(tsirFixtureCfg);
         }
       }
+      // The prefill's last recorded commands: while the GPU runs them the caller may prepare
+      // the step after the prompt (opts._whileFinalPrefillRuns, internal, at most once).
+      const submitFinalRecorder = async (recorder) => {
+        const settled = recorder.submitAndWait();
+        try { await opts?._whileFinalPrefillRuns?.(startPos + numTokens, inputIds[numTokens - 1]); } finally { await settled; }
+      };
       if (this._state.finitenessBuffer) {
         if (currentRecorder) {
           currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
@@ -666,7 +669,7 @@ export async function _prefill(inputIds, opts) {
               'prefill_finiteness_carry'
             );
             recordPrefillRecorderStats(this._state, currentRecorder);
-            await currentRecorder.submitAndWait();
+            await submitFinalRecorder(currentRecorder);
             await recordProfile(currentRecorder);
             currentRecorder = undefined;
         }
@@ -810,7 +813,7 @@ export async function _prefill(inputIds, opts) {
             'prefill_logits_carry'
           );
           recordPrefillRecorderStats(this._state, currentRecorder);
-          await currentRecorder.submitAndWait();
+          await submitFinalRecorder(currentRecorder);
           await recordProfile(currentRecorder);
         }
         const logits = await computeLogits(

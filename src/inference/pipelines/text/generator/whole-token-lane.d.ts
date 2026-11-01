@@ -29,3 +29,19 @@ export declare function decodeWholeTokenStep(
   currentIds: number[],
   runRecorded: (attach: ((recorder: CommandRecorder | null) => void) | null) => Promise<number>
 ): Promise<number>;
+
+/** Thrown by a decode step recorded for verification ahead, in place of its submit. */
+export declare const WHOLE_TOKEN_DRY_STEP_STOP: Readonly<{ reason: string }>;
+
+/**
+ * Verify the kept program on decode step 1 before it runs (WholeTokenProgram.verifyAhead):
+ * `runRecordedDry` records the ordinary step at `position` and stops before its submit.
+ * CPU sequence bookkeeping the step advanced is restored. True when step 1 at `position`
+ * replays the program; false without a kept program or when it was invalidated.
+ */
+export declare function verifyWholeTokenProgramAhead(
+  state: PipelineState,
+  position: number,
+  token: number,
+  runRecordedDry: (attach: ((recorder: CommandRecorder | null) => void) | null) => Promise<unknown>
+): Promise<boolean>;

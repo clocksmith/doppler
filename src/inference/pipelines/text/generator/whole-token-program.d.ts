@@ -15,6 +15,8 @@ export declare class WholeTokenProgram {
     invalidations: number;
     /** This generation replays a program kept from an earlier one. */
     reused: boolean;
+    /** The kept program was verified before step 1 ran (verifyAhead), and step 1 replays it. */
+    verifiedAhead: boolean;
     lastInvalidation: string | null;
   };
   observe<T>(
@@ -38,6 +40,19 @@ export declare class WholeTokenProgram {
     identityOf: () => readonly unknown[],
     limits?: readonly import('./whole-token-observation.js').PositionLimit[]
   ): Promise<T>;
+  /**
+   * Verify the kept program on an ordinary step recorded at `pos` but never submitted: `run`
+   * stops before the submit by throwing `stopSignal`. True when the program matches and
+   * replays from `pos`; false when it was invalidated (the observation is discarded).
+   */
+  verifyAhead(
+    pos: number,
+    token: number,
+    run: (attach: (recorder: import('../../../../gpu/command-recorder.js').CommandRecorder | null) => void) => Promise<unknown>,
+    identityOf: () => readonly unknown[],
+    limits: readonly import('./whole-token-observation.js').PositionLimit[],
+    stopSignal: unknown
+  ): Promise<boolean>;
   /** Why the built program cannot run the step at `pos` with these resources, or null. */
   rejects(pos: number, identity: readonly unknown[]): string | null;
   /** Drop the built program so the following steps are observed again. */

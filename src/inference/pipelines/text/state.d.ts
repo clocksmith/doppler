@@ -58,7 +58,12 @@ export class PipelineState {
   // Debug flags (combined for both layer and logits)
   debugFlags: WeightDebugFlags & LogitsDebugFlags;
   decodeStepCount: number;
-  wholeTokenProgram: { program: import('./generator/whole-token-program.js').WholeTokenProgram; advancers: Array<{ kind: 'kv'; owner: { seqLen: number }; layerIdx: number } | { kind: 'linear'; owner: { seqLen: number } }> | null } | null;
+  wholeTokenProgram: {
+    program: import('./generator/whole-token-program.js').WholeTokenProgram;
+    advancers: Array<{ kind: 'kv'; owner: { seqLen: number }; layerIdx: number } | { kind: 'linear'; owner: { seqLen: number } }> | null;
+    /** Position of the step 1 its kept program was verified for ahead of time, if any. */
+    verifiedAhead?: number | null;
+  } | null;
   resolvedKernelPath: KernelPathSchema | null;
   kernelPathSource: KernelPathSource;
   executionPlanState: ExecutionPlanState | null;
