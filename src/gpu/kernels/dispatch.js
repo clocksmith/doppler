@@ -49,7 +49,7 @@ function normalizeWorkgroups(workgroups) {
   return [x, y, z];
 }
 
-function assertWorkgroupLimits(device, workgroups, label) {
+export function assertWorkgroupLimits(device, workgroups, label) {
   const maxPerDim = device?.limits?.maxComputeWorkgroupsPerDimension;
   const limit = Number.isFinite(maxPerDim) && maxPerDim > 0 ? maxPerDim : 65535;
   const [x, y, z] = normalizeWorkgroups(workgroups);

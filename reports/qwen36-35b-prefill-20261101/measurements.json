@@ -1,0 +1,201 @@
+{
+  "status": "diagnostic-only",
+  "claimGrade": false,
+  "runtimeSourceCommit": "4d65903d1",
+  "sourceIdentityReceipt": "../qwen36-35b-startup-20261101/measurements.json",
+  "scope": "Every compute pass begun from request start through first token callback; includes any decode-ahead encoding before delivery. No pass splitting.",
+  "phaseMs": {
+    "firstTokenMs": 4034,
+    "prefillMs": 4026.2999999821186,
+    "completeMs": 5781.5
+  },
+  "timestampSummary": {
+    "diagnosticOnly": true,
+    "scope": "Every compute pass begun from request start through first token callback; includes any decode-ahead encoding before delivery. No pass splitting.",
+    "options": {
+      "queriesPerBlock": 2048,
+      "maxPasses": 32768
+    },
+    "capturedPasses": 8472,
+    "queryBlocks": 9,
+    "sumPassMs": 3902.6869240000037,
+    "firstToLastPassSpanMs": 4023.196888
+  },
+  "groupsDescending": [
+    {
+      "pipelines": "moe_grouped_gu_native_f32_pipeline_BLOCK_BYTES=18|GROUP_SIZE=8|INPUT_IS_TOKEN=1|QUANT_FORMAT=0|ROWS_PER_THREAD=2|SPLIT_GATE_UP=1|WORKGROUP_SIZE=256",
+      "passes": 360,
+      "dispatches": 360,
+      "ms": 986.4189889999998
+    },
+    {
+      "pipelines": "matmul_q4_0_prefill_tile64_pipeline",
+      "passes": 684,
+      "dispatches": 684,
+      "ms": 795.7279089999997
+    },
+    {
+      "pipelines": "attention_prefill_query_tile_f32_pipeline -> silu_default_pipeline_GATE_USE_SIGMOID=1|HAS_GATE=1|INPUT_USE_IDENTITY=1 -> matmul_q4_0_prefill_tile64_pipeline",
+      "passes": 90,
+      "dispatches": 270,
+      "ms": 439.2354369999999
+    },
+    {
+      "pipelines": "moe_grouped_down_native_f32_pipeline_BLOCK_BYTES=18|GROUP_SIZE=8|INPUT_IS_TOKEN=0|QUANT_FORMAT=0|ROWS_PER_THREAD=4|SPLIT_GATE_UP=0|WORKGROUP_SIZE=256",
+      "passes": 315,
+      "dispatches": 315,
+      "ms": 426.8766900000001
+    },
+    {
+      "pipelines": "linear_attention_recurrent_pipeline_f32",
+      "passes": 270,
+      "dispatches": 270,
+      "ms": 271.35419599999994
+    },
+    {
+      "pipelines": "matmul_q8_0_prefill_tile64_pipeline",
+      "passes": 666,
+      "dispatches": 666,
+      "ms": 227.591403
+    },
+    {
+      "pipelines": "matmul_q5_0_prefill_tile64_pipeline",
+      "passes": 540,
+      "dispatches": 540,
+      "ms": 157.41717000000003
+    },
+    {
+      "pipelines": "matmul_f32_pipeline",
+      "passes": 1260,
+      "dispatches": 1260,
+      "ms": 123.37919100000013
+    },
+    {
+      "pipelines": "rmsnorm_default_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=0|WEIGHT_IS_F16=0 -> matmul_q6k_prefill_tile64_pipeline -> split_qg_default_pipeline -> matmul_q8_0_prefill_tile64_pipeline -> matmul_q8_0_prefill_tile64_pipeline -> rmsnorm_qk_default_pipeline_K_WEIGHT_IS_F16=0|Q_WEIGHT_IS_F16=0|RMS_NORM_OFFSET=0 -> rope_qk_default_pipeline",
+      "passes": 36,
+      "dispatches": 252,
+      "ms": 121.141987
+    },
+    {
+      "pipelines": "rmsnorm_default_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=0|WEIGHT_IS_F16=0 -> matmul_q4_0_prefill_tile64_pipeline -> split_qg_default_pipeline -> matmul_q8_0_prefill_tile64_pipeline -> matmul_q8_0_prefill_tile64_pipeline -> rmsnorm_qk_default_pipeline_K_WEIGHT_IS_F16=0|Q_WEIGHT_IS_F16=0|RMS_NORM_OFFSET=0 -> rope_qk_default_pipeline",
+      "passes": 54,
+      "dispatches": 378,
+      "ms": 118.45630199999998
+    },
+    {
+      "pipelines": "moe_grouped_down_native_f32_pipeline_BLOCK_BYTES=20|GROUP_SIZE=8|INPUT_IS_TOKEN=0|QUANT_FORMAT=1|ROWS_PER_THREAD=4|SPLIT_GATE_UP=0|WORKGROUP_SIZE=256",
+      "passes": 45,
+      "dispatches": 45,
+      "ms": 49.066624
+    },
+    {
+      "pipelines": "rmsnorm_default_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=0|WEIGHT_IS_F16=0",
+      "passes": 360,
+      "dispatches": 360,
+      "ms": 49.02826700000003
+    },
+    {
+      "pipelines": "linear_attention_conv_pipeline_f32 -> linear_attention_parallel_conv",
+      "passes": 270,
+      "dispatches": 540,
+      "ms": 32.335882
+    },
+    {
+      "pipelines": "scatter_add_routes_f32_pipeline",
+      "passes": 360,
+      "dispatches": 360,
+      "ms": 26.16729499999999
+    },
+    {
+      "pipelines": "silu_default_pipeline_USE_ROWSPLIT=1",
+      "passes": 360,
+      "dispatches": 360,
+      "ms": 24.466185000000003
+    },
+    {
+      "pipelines": "rmsnorm_default_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=0|WEIGHT_IS_F16=0",
+      "passes": 271,
+      "dispatches": 271,
+      "ms": 13.762827999999992
+    },
+    {
+      "pipelines": "residual_vec4_pipeline",
+      "passes": 720,
+      "dispatches": 720,
+      "ms": 11.761436000000002
+    },
+    {
+      "pipelines": "topk_fused_ranked_pipeline",
+      "passes": 360,
+      "dispatches": 360,
+      "ms": 8.129368000000003
+    },
+    {
+      "pipelines": "silu_default_pipeline_GATE_USE_SIGMOID=1|HAS_GATE=1|INPUT_USE_IDENTITY=1",
+      "passes": 360,
+      "dispatches": 360,
+      "ms": 5.437477999999998
+    },
+    {
+      "pipelines": "matmul_q6k_gemv_pipeline",
+      "passes": 1,
+      "dispatches": 1,
+      "ms": 5.162166
+    },
+    {
+      "pipelines": "repeat_channels_default_pipeline",
+      "passes": 360,
+      "dispatches": 360,
+      "ms": 4.600887000000003
+    },
+    {
+      "pipelines": "moe_grouped_sort_native_f32_pipeline",
+      "passes": 360,
+      "dispatches": 360,
+      "ms": 2.975065999999999
+    },
+    {
+      "pipelines": "silu_default_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+      "passes": 360,
+      "dispatches": 360,
+      "ms": 2.0153529999999993
+    },
+    {
+      "pipelines": "gather_q4_0_pipeline",
+      "passes": 9,
+      "dispatches": 9,
+      "ms": 0.16799499999999998
+    },
+    {
+      "pipelines": "logit_finalize_f32_pipeline",
+      "passes": 1,
+      "dispatches": 1,
+      "ms": 0.01082
+    }
+  ],
+  "apiDeltaThroughFirstDelivery": {
+    "t": 4034.199999988079,
+    "submit": 8125,
+    "commandBuffers": 8125,
+    "writeBuffer": 8041,
+    "writeBufferBytes": 229856,
+    "mapAsync": 10,
+    "mapAsyncWaitMs": 3639.300000011921,
+    "onSubmittedWorkDone": 6159,
+    "onSubmittedWorkDoneWaitMs": 1245219.9000007212,
+    "createBuffer": 13405,
+    "destroyBuffer": 13289,
+    "createBindGroup": 9192,
+    "createComputePipeline": 0,
+    "createComputePipelineAsync": 0,
+    "createShaderModule": 0,
+    "createCommandEncoder": 8125,
+    "beginComputePass": 8472,
+    "dispatchWorkgroups": 8742,
+    "dispatchWorkgroupsIndirect": 720,
+    "copyBufferToBuffer": 191,
+    "resolveQuerySet": 0
+  },
+  "outputIdenticalToFinalStartupRun": true,
+  "limitation": "Profiled latency is diagnostic, not throughput. Concurrent completion-wait observations overlap and must not be summed; GPU pass sums exclude copies and idle. No Pooled/common-weight/independent numerical gate."
+}

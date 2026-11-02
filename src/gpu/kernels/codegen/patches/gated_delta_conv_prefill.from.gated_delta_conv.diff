@@ -33,10 +33,10 @@
 +// starts. Remaining windows contain only this call's input and are independent.
 +@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 +fn main_parallel(@builtin(global_invocation_id) gid: vec3<u32>) {
-+  let channel = gid.x % params.conv_dim;
-+  let token = gid.x / params.conv_dim;
++  let channel = gid.x;
++  let token = gid.y;
 +  let kernel_size = params.conv_kernel_size;
-+  if (token >= params.num_tokens || token + 1u < kernel_size) { return; }
++  if (channel >= params.conv_dim || token >= params.num_tokens || token + 1u < kernel_size) { return; }
 +  let stride = select(params.conv_dim, params.conv_dim + params.value_dim, (params.packed_flags & 2u) != 0u);
 +  let base = channel * kernel_size;
 +  var mixed = 0.0;

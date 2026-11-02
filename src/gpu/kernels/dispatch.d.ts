@@ -17,6 +17,13 @@ export declare function beginImmediateDispatchProfile(
   getRecorder: () => CommandRecorder
 ): () => void;
 
+/** Validate a direct grid before allocating resources or recording into an existing pass. */
+export declare function assertWorkgroupLimits(
+  device: GPUDevice,
+  workgroups: number | [number, number, number],
+  label: string
+): [number, number, number];
+
 /**
  * Dispatch a single compute pass and submit immediately
  * Use for standalone kernels that don't participate in batching
