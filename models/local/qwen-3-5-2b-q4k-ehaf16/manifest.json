@@ -231,7 +231,7 @@
         "embed": {
           "kernel": "gather_f16.wgsl",
           "entry": "main",
-          "digest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9"
+          "digest": "sha256:a2c318bc362d676769d8cb751d61a4d7777e1068be0456eff634e0821d783c10"
         },
         "rmsnorm": {
           "kernel": "rmsnorm.wgsl",
@@ -251,12 +251,12 @@
         "rope": {
           "kernel": "rope.wgsl",
           "entry": "main",
-          "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
+          "digest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416"
         },
         "attn_decode": {
           "kernel": "attention_decode_online_f16kv.wgsl",
           "entry": "main",
-          "digest": "sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1",
+          "digest": "sha256:c6d9f8c614a2a088cb533958007896391efb3e348377dc8095c409944c562912",
           "precision": {
             "kvDtype": "f16"
           }
@@ -269,7 +269,7 @@
         "silu": {
           "kernel": "silu.wgsl",
           "entry": "main",
-          "digest": "sha256:0163fd40c31cc8ea97f8ef6ed9516ac5a9b9fc9eed609074ca7b8c69c08d2f24",
+          "digest": "sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0",
           "constants": {
             "HAS_GATE": true
           }
@@ -282,7 +282,7 @@
         "q4_widetile": {
           "kernel": "fused_matmul_q4_widetile.wgsl",
           "entry": "main",
-          "digest": "sha256:26e00e5a829ac064b85ed9b1c2565ec8d957ee468666903f1d47e07d93dfb3bc"
+          "digest": "sha256:c434473d64a163eddbb6fc349aec944e4bef6b067170acdf4d55daf92f1932bf"
         },
         "tiled": {
           "kernel": "matmul_f16w_f32a.wgsl",
@@ -300,7 +300,7 @@
         "attn_head256": {
           "kernel": "attention_head256_f16kv.wgsl",
           "entry": "main",
-          "digest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+          "digest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
           "precision": {
             "kvDtype": "f16"
           }
@@ -326,7 +326,7 @@
         "sample": {
           "kernel": "sample.wgsl",
           "entry": "sample_single_pass",
-          "digest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef"
+          "digest": "sha256:f2377b2a58c2eeb695a6f6f7ad877630bdba5e74d5dc1a8d919cd73b360d4870"
         }
       },
       "preLayer": [

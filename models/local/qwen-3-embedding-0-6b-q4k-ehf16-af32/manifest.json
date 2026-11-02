@@ -210,32 +210,32 @@
         "embed": {
           "kernel": "gather_f16.wgsl",
           "entry": "main",
-          "digest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9"
+          "digest": "sha256:a2c318bc362d676769d8cb751d61a4d7777e1068be0456eff634e0821d783c10"
         },
         "rmsnorm": {
           "kernel": "rmsnorm.wgsl",
           "entry": "main",
-          "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1"
+          "digest": "sha256:4f4d144735bdff86b8567346ba7ea7b82fe68a2ac9656ba1577106158af9bc7c"
         },
         "q4_decode_gemv": {
           "kernel": "fused_matmul_q4.wgsl",
           "entry": "main_gemv",
-          "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d"
+          "digest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7"
         },
         "q4_widetile": {
           "kernel": "fused_matmul_q4_widetile.wgsl",
           "entry": "main",
-          "digest": "sha256:5631ce6f19f805c7ac85722bac17365048bc7b9e2c422f3ef9477b63cb8dad62"
+          "digest": "sha256:c434473d64a163eddbb6fc349aec944e4bef6b067170acdf4d55daf92f1932bf"
         },
         "rope": {
           "kernel": "rope.wgsl",
           "entry": "main",
-          "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
+          "digest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416"
         },
         "attn_decode": {
           "kernel": "attention_decode_online_f16kv.wgsl",
           "entry": "main",
-          "digest": "sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1",
+          "digest": "sha256:c6d9f8c614a2a088cb533958007896391efb3e348377dc8095c409944c562912",
           "precision": {
             "kvDtype": "f16"
           }
@@ -256,7 +256,7 @@
         "silu": {
           "kernel": "silu.wgsl",
           "entry": "main",
-          "digest": "sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5",
+          "digest": "sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0",
           "constants": {
             "HAS_GATE": true
           }

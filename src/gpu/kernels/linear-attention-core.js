@@ -581,7 +581,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
         [Math.ceil(layerState.convDim / CONV_WORKGROUP_SIZE), 1, 1],
         'linear_attention_conv'
       );
-      if (pipelines.parallelConvPipeline) recordDispatch(recorder, pipelines.parallelConvPipeline,
+      if (pipelines.parallelConvPipeline && numTokens >= layerState.convKernelSize) recordDispatch(recorder, pipelines.parallelConvPipeline,
         convBindGroup, [Math.ceil(numTokens * layerState.convDim / CONV_WORKGROUP_SIZE), 1, 1], 'linear_attention_parallel_conv');
       recordDispatch(
         recorder,
@@ -667,7 +667,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
       pass.setPipeline(pipelines.convPipeline);
       pass.setBindGroup(0, convBindGroup);
       pass.dispatchWorkgroups(Math.ceil(layerState.convDim / CONV_WORKGROUP_SIZE), 1, 1);
-      if (pipelines.parallelConvPipeline) {
+      if (pipelines.parallelConvPipeline && numTokens >= layerState.convKernelSize) {
         pass.setPipeline(pipelines.parallelConvPipeline);
         pass.setBindGroup(0, convBindGroup);
         pass.dispatchWorkgroups(Math.ceil(numTokens * layerState.convDim / CONV_WORKGROUP_SIZE), 1, 1);

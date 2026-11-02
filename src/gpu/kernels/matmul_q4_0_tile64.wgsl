@@ -41,6 +41,10 @@ fn q40_byte(offset: u32) -> u32 {
     return (weights[offset / 4u] >> ((offset % 4u) * 8u)) & 255u;
 }
 fn packed_half(offset: u32) -> f32 {
+    if ((offset & 1u) == 0u) {
+        let bits = (weights[offset / 4u] >> ((offset & 2u) * 8u)) & 0xffffu;
+        return unpack2x16float(bits).x;
+    }
     return unpack2x16float(q40_byte(offset) | (q40_byte(offset + 1u) << 8u)).x;
 }
 fn packed_signed_byte(offset: u32) -> i32 {
@@ -93,34 +97,45 @@ fn tile_word(offset: u32) -> u32 {
     if (shift == 0u) { return low; }
     return (low >> shift) | (weights[offset / 4u + 1u] << (32u - shift));
 }
-// Eight consecutive values (k0 + quarter * 8 ...) of one row. Q4_0 and Q8_0 read
-// two packed words; other formats use the scalar decoder. Values are identical.
-fn tile_values(row: u32, k: u32, quarter: u32) -> array<f32, 8> {
-    var out: array<f32, 8>;
-    if (QUANT_FORMAT == 0u || QUANT_FORMAT == 2u) {
-        let base = (row * u.blocks + k / 32u) * BLOCK_BYTES;
-        let scale = packed_half(base);
-        if (QUANT_FORMAT == 2u) {
-            let a = tile_word(base + 2u + quarter * 8u);
-            let b = tile_word(base + 6u + quarter * 8u);
-            for (var i = 0u; i < 4u; i++) {
-                out[i] = scale * f32(bitcast<i32>(((a >> (i * 8u)) & 255u) << 24u) >> 24);
-                out[i + 4u] = scale * f32(bitcast<i32>(((b >> (i * 8u)) & 255u) << 24u) >> 24);
-            }
-        } else {
-            let first = base + 2u + (quarter % 2u) * 8u;
-            let shift = (quarter / 2u) * 4u;
-            let a = tile_word(first);
-            let b = tile_word(first + 4u);
-            for (var i = 0u; i < 4u; i++) {
-                out[i] = scale * f32(i32((a >> (i * 8u + shift)) & 15u) - 8);
-                out[i + 4u] = scale * f32(i32((b >> (i * 8u + shift)) & 15u) - 8);
-            }
-        }
-        return out;
-    }
-    for (var i = 0u; i < 8u; i++) { out[i] = q40_value(row, k + quarter * 8u + i, u.blocks); }
-    return out;
+fn unpack_q4_0_lo(word: u32, scale: f32) -> vec4<f32> {
+    return vec4<f32>(
+        scale * f32(i32((word >> 0u) & 15u) - 8),
+        scale * f32(i32((word >> 8u) & 15u) - 8),
+        scale * f32(i32((word >> 16u) & 15u) - 8),
+        scale * f32(i32((word >> 24u) & 15u) - 8)
+    );
+}
+fn unpack_q4_0_hi(word: u32, scale: f32) -> vec4<f32> {
+    return vec4<f32>(
+        scale * f32(i32((word >> 4u) & 15u) - 8),
+        scale * f32(i32((word >> 12u) & 15u) - 8),
+        scale * f32(i32((word >> 20u) & 15u) - 8),
+        scale * f32(i32((word >> 28u) & 15u) - 8)
+    );
+}
+fn unpack_q4_1_lo(word: u32, scale: f32, min_val: f32) -> vec4<f32> {
+    return vec4<f32>(
+        scale * f32((word >> 0u) & 15u) + min_val,
+        scale * f32((word >> 8u) & 15u) + min_val,
+        scale * f32((word >> 16u) & 15u) + min_val,
+        scale * f32((word >> 24u) & 15u) + min_val
+    );
+}
+fn unpack_q4_1_hi(word: u32, scale: f32, min_val: f32) -> vec4<f32> {
+    return vec4<f32>(
+        scale * f32((word >> 4u) & 15u) + min_val,
+        scale * f32((word >> 12u) & 15u) + min_val,
+        scale * f32((word >> 20u) & 15u) + min_val,
+        scale * f32((word >> 28u) & 15u) + min_val
+    );
+}
+fn unpack_q8_0_word(word: u32, scale: f32) -> vec4<f32> {
+    return vec4<f32>(
+        scale * f32(bitcast<i32>(((word >> 0u) & 255u) << 24u) >> 24),
+        scale * f32(bitcast<i32>(((word >> 8u) & 255u) << 24u) >> 24),
+        scale * f32(bitcast<i32>(((word >> 16u) & 255u) << 24u) >> 24),
+        scale * f32(bitcast<i32>(((word >> 24u) & 255u) << 24u) >> 24)
+    );
 }
 
 @compute @workgroup_size(256, 1, 1)
@@ -134,24 +149,114 @@ fn main(@builtin(workgroup_id) group: vec3<u32>, @builtin(num_workgroups) grid: 
     let m0 = (tile / tiles_n) * TILE_TOKENS;
     let row_group = lane % 16u;
     let token_group = lane / 16u;
-    // Loader roles: 64 rows (or tokens) x 4 quarters of 8 values.
-    let load_item = lane / 4u;
-    let load_quarter = lane % 4u;
     var acc0 = vec4<f32>(0.0);
     var acc1 = vec4<f32>(0.0);
     var acc2 = vec4<f32>(0.0);
     var acc3 = vec4<f32>(0.0);
     for (var k0 = 0u; k0 < u.K; k0 += STAGE) {
-        let w_row = n0 + load_item;
-        let x_token = m0 + load_item;
-        var wv: array<f32, 8>;
-        if (live_tile && w_row < u.N) { wv = tile_values(u.b_row + w_row, k0, load_quarter); }
-        for (var i = 0u; i < 8u; i++) {
-            let k = load_quarter * 8u + i;
-            w_tile[k * 16u + load_item / 4u][load_item % 4u] = wv[i];
-            var x = 0.0;
-            if (live_tile && x_token < u.M) { x = input[u.a_offset + x_token * u.K + k0 + k]; }
-            x_tile[k * 16u + load_item / 4u][load_item % 4u] = x;
+        if (lane >= 128u) {
+            let xl = lane - 128u;
+            let kq = xl % 8u;
+            let cq = xl / 8u;
+            var x0 = vec4<f32>(0.0);
+            var x1 = vec4<f32>(0.0);
+            var x2 = vec4<f32>(0.0);
+            var x3 = vec4<f32>(0.0);
+            if (live_tile) {
+                let k_col = k0 + kq * 4u;
+                let m_base = m0 + cq * 4u;
+                if (m_base + 0u < u.M) {
+                    let b0 = u.a_offset + (m_base + 0u) * u.K + k_col;
+                    x0 = vec4<f32>(input[b0], input[b0 + 1u], input[b0 + 2u], input[b0 + 3u]);
+                }
+                if (m_base + 1u < u.M) {
+                    let b1 = u.a_offset + (m_base + 1u) * u.K + k_col;
+                    x1 = vec4<f32>(input[b1], input[b1 + 1u], input[b1 + 2u], input[b1 + 3u]);
+                }
+                if (m_base + 2u < u.M) {
+                    let b2 = u.a_offset + (m_base + 2u) * u.K + k_col;
+                    x2 = vec4<f32>(input[b2], input[b2 + 1u], input[b2 + 2u], input[b2 + 3u]);
+                }
+                if (m_base + 3u < u.M) {
+                    let b3 = u.a_offset + (m_base + 3u) * u.K + k_col;
+                    x3 = vec4<f32>(input[b3], input[b3 + 1u], input[b3 + 2u], input[b3 + 3u]);
+                }
+            }
+            let k_base = kq * 4u;
+            x_tile[(k_base + 0u) * 16u + cq] = vec4<f32>(x0.x, x1.x, x2.x, x3.x);
+            x_tile[(k_base + 1u) * 16u + cq] = vec4<f32>(x0.y, x1.y, x2.y, x3.y);
+            x_tile[(k_base + 2u) * 16u + cq] = vec4<f32>(x0.z, x1.z, x2.z, x3.z);
+            x_tile[(k_base + 3u) * 16u + cq] = vec4<f32>(x0.w, x1.w, x2.w, x3.w);
+        } else if (QUANT_FORMAT == 0u || QUANT_FORMAT == 1u) {
+            if (lane < 64u) {
+                let rq = lane / 4u;
+                let jj = lane % 4u;
+                var lo: array<vec4<f32>, 4>;
+                var hi: array<vec4<f32>, 4>;
+                let block_idx = k0 / 32u;
+                let data_offset = select(2u, 4u, QUANT_FORMAT == 1u);
+                for (var r = 0u; r < 4u; r++) {
+                    let w_row = n0 + rq * 4u + r;
+                    if (live_tile && w_row < u.N) {
+                        let base = ((u.b_row + w_row) * u.blocks + block_idx) * BLOCK_BYTES;
+                        let scale = packed_half(base);
+                        let word = tile_word(base + data_offset + jj * 4u);
+                        if (QUANT_FORMAT == 1u) {
+                            let min_val = packed_half(base + 2u);
+                            lo[r] = unpack_q4_1_lo(word, scale, min_val);
+                            hi[r] = unpack_q4_1_hi(word, scale, min_val);
+                        } else {
+                            lo[r] = unpack_q4_0_lo(word, scale);
+                            hi[r] = unpack_q4_0_hi(word, scale);
+                        }
+                    } else {
+                        lo[r] = vec4<f32>(0.0);
+                        hi[r] = vec4<f32>(0.0);
+                    }
+                }
+                let k_lo = jj * 4u;
+                w_tile[(k_lo + 0u) * 16u + rq] = vec4<f32>(lo[0].x, lo[1].x, lo[2].x, lo[3].x);
+                w_tile[(k_lo + 1u) * 16u + rq] = vec4<f32>(lo[0].y, lo[1].y, lo[2].y, lo[3].y);
+                w_tile[(k_lo + 2u) * 16u + rq] = vec4<f32>(lo[0].z, lo[1].z, lo[2].z, lo[3].z);
+                w_tile[(k_lo + 3u) * 16u + rq] = vec4<f32>(lo[0].w, lo[1].w, lo[2].w, lo[3].w);
+                let k_hi = 16u + jj * 4u;
+                w_tile[(k_hi + 0u) * 16u + rq] = vec4<f32>(hi[0].x, hi[1].x, hi[2].x, hi[3].x);
+                w_tile[(k_hi + 1u) * 16u + rq] = vec4<f32>(hi[0].y, hi[1].y, hi[2].y, hi[3].y);
+                w_tile[(k_hi + 2u) * 16u + rq] = vec4<f32>(hi[0].z, hi[1].z, hi[2].z, hi[3].z);
+                w_tile[(k_hi + 3u) * 16u + rq] = vec4<f32>(hi[0].w, hi[1].w, hi[2].w, hi[3].w);
+            }
+        } else {
+            let rq = lane / 8u;
+            let jj = lane % 8u;
+            var vals: array<vec4<f32>, 4>;
+            let block_idx = k0 / 32u;
+            let k_col = k0 + jj * 4u;
+            for (var r = 0u; r < 4u; r++) {
+                let w_row = n0 + rq * 4u + r;
+                if (live_tile && w_row < u.N) {
+                    if (QUANT_FORMAT == 2u) {
+                        let base = ((u.b_row + w_row) * u.blocks + block_idx) * BLOCK_BYTES;
+                        let scale = packed_half(base);
+                        let word = tile_word(base + 2u + jj * 4u);
+                        vals[r] = unpack_q8_0_word(word, scale);
+                    } else {
+                        let full_row = u.b_row + w_row;
+                        vals[r] = vec4<f32>(
+                            q40_value(full_row, k_col + 0u, u.blocks),
+                            q40_value(full_row, k_col + 1u, u.blocks),
+                            q40_value(full_row, k_col + 2u, u.blocks),
+                            q40_value(full_row, k_col + 3u, u.blocks)
+                        );
+                    }
+                } else {
+                    vals[r] = vec4<f32>(0.0);
+                }
+            }
+            let k_base = jj * 4u;
+            w_tile[(k_base + 0u) * 16u + rq] = vec4<f32>(vals[0].x, vals[1].x, vals[2].x, vals[3].x);
+            w_tile[(k_base + 1u) * 16u + rq] = vec4<f32>(vals[0].y, vals[1].y, vals[2].y, vals[3].y);
+            w_tile[(k_base + 2u) * 16u + rq] = vec4<f32>(vals[0].z, vals[1].z, vals[2].z, vals[3].z);
+            w_tile[(k_base + 3u) * 16u + rq] = vec4<f32>(vals[0].w, vals[1].w, vals[2].w, vals[3].w);
         }
         workgroupBarrier();
         for (var k = 0u; k < STAGE; k++) {

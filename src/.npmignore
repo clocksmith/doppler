@@ -788,6 +788,7 @@ inference/pipelines/text/generator/attention-lifecycle.d.ts
 inference/pipelines/text/generator/batch-retry-policy.d.ts
 inference/pipelines/text/generator/capsule-generation.d.ts
 inference/pipelines/text/generator/decode-components.d.ts
+inference/pipelines/text/generator/decode-readback.d.ts
 inference/pipelines/text/generator/decode-runtime.d.ts
 inference/pipelines/text/generator/decode.d.ts
 inference/pipelines/text/generator/diffusion.d.ts

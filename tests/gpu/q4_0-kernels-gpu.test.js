@@ -56,5 +56,33 @@ try {
     const ids=upload(new Uint32Array([6,0]));const out=await runGather(ids,B.buffer,2,K,N,{embeddingDtype:dtype,outputDtype:'f32'});owned.push(out.buffer);
     assert.deepEqual(Array.from(new Float32Array(await readBuffer(out.buffer,2*K*4))),[...decoded.slice(6*K,7*K),...decoded.slice(0,K)]);
   }
+  for(const dtype of ['q4_0','q4_1','q5_0','q8_0','q6k'])for(const [M,N,K] of [[17,21,256],[67,69,256]]) {
+    const input=Float32Array.from({length:M*K},(_,i)=>Math.sin(i*0.17)*0.1);
+    const packed=dtype==='q4_0'?q40Fixture(N,K):packedFixture(dtype,N,K);
+    const B=createWeightBuffer(upload(packed),dtype,'row',[N,K]), A=createTensor(upload(input),'f32',[M,K]);
+    const refOut=await runMatmul(A,B,M,N,K,{outputDtype:'f32',variant:`${dtype}_prefill_tiled`});owned.push(refOut.buffer);
+    const tileOut=await runMatmul(A,B,M,N,K,{outputDtype:'f32',variant:`${dtype}_prefill_tile64`});owned.push(tileOut.buffer);
+    const ref=new Uint32Array(await readBuffer(refOut.buffer,M*N*4));
+    const actual=new Uint32Array(await readBuffer(tileOut.buffer,M*N*4));
+    assert.deepEqual(Array.from(actual),Array.from(ref),`${dtype}_prefill_tile64 (${M},${N},${K}) must be bitwise identical to ${dtype}_prefill_tiled`);
+    cases.push({dtype,variant:`${dtype}_prefill_tile64`,M,N,K,bitwiseIdentical:true});
+  }
+  for(const [M,N,K] of [[19,35,68],[65,1,2048]]) {
+    const input=Float32Array.from({length:M*K},(_,i)=>Math.sin(i*0.11)*0.25);
+    const wRow=Float32Array.from({length:N*K},(_,i)=>Math.cos(i*0.07)*0.25);
+    const wCol=new Float32Array(K*N);
+    for(let n=0;n<N;n++)for(let k=0;k<K;k++)wCol[k*N+n]=wRow[n*K+k];
+    const expected=projectReference(input,wRow,M,N,K), A=createTensor(upload(input),'f32',[M,K]);
+    const bRow=createWeightBuffer(upload(wRow),'f32','row',[N,K]);
+    const bCol=createWeightBuffer(upload(wCol),'f32','column',[K,N]);
+    const outRow=await runMatmul(A,bRow,M,N,K,{outputDtype:'f32',transposeB:true,variant:'f32'});owned.push(outRow.buffer);
+    const outCol=await runMatmul(A,bCol,M,N,K,{outputDtype:'f32',transposeB:false,variant:'f32'});owned.push(outCol.buffer);
+    const actualRow=new Float32Array(await readBuffer(outRow.buffer,M*N*4));
+    const actualCol=new Float32Array(await readBuffer(outCol.buffer,M*N*4));
+    assert.deepEqual(Array.from(new Uint32Array(actualRow.buffer)),Array.from(new Uint32Array(actualCol.buffer)),`matmul_f32 (${M},${N},${K}) transposeB=true vs false must be bitwise identical`);
+    let maxAbs=0;
+    for(let i=0;i<actualRow.length;i++){maxAbs=Math.max(maxAbs,Math.abs(actualRow[i]-expected[i]));assert.ok(Math.abs(actualRow[i]-expected[i])<1e-5,`matmul_f32 (${M},${N},${K}) at ${i}: ${actualRow[i]} vs ${expected[i]}`);}
+    cases.push({variant:'f32',M,N,K,maxAbs,transposeBitwiseIdentical:true});
+  }
   assert.deepEqual(errors,[]);console.log(JSON.stringify({provider:probe.providerReceipt,cases}));
 } finally {for(const b of owned)releaseBuffer(b);destroyDevice();}

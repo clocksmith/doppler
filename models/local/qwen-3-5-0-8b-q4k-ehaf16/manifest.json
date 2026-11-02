@@ -251,7 +251,7 @@
         "embed": {
           "kernel": "gather_f16.wgsl",
           "entry": "main",
-          "digest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9"
+          "digest": "sha256:a2c318bc362d676769d8cb751d61a4d7777e1068be0456eff634e0821d783c10"
         },
         "rmsnorm": {
           "kernel": "rmsnorm.wgsl",
@@ -297,7 +297,7 @@
         "q4_widetile": {
           "kernel": "fused_matmul_q4_widetile.wgsl",
           "entry": "main",
-          "digest": "sha256:26e00e5a829ac064b85ed9b1c2565ec8d957ee468666903f1d47e07d93dfb3bc"
+          "digest": "sha256:c434473d64a163eddbb6fc349aec944e4bef6b067170acdf4d55daf92f1932bf"
         },
         "tiled": {
           "kernel": "matmul_f16w_f32a.wgsl",
@@ -345,7 +345,7 @@
         "sample": {
           "kernel": "sample.wgsl",
           "entry": "sample_single_pass",
-          "digest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef"
+          "digest": "sha256:f2377b2a58c2eeb695a6f6f7ad877630bdba5e74d5dc1a8d919cd73b360d4870"
         },
         "q4_decode_gemv": {
           "kernel": "fused_matmul_q4.wgsl",

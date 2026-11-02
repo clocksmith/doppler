@@ -42,6 +42,28 @@ const makeState = () => ({
 
 try {
   const layers = { unfused: makeState(), register: makeState() };
+  {
+    const T = 7;
+    const qkv = values(T * C, 0.019, 0.2), z = values(T * D, 0.029, 0.8);
+    const a = values(T * NV, 0.11, 1.2), b = values(T * NV, 0.09, 2);
+    /** @type {Record<string, Uint32Array>} */
+    const prefillOutputs = {};
+    for (const [name, layer] of Object.entries(layers)) {
+      const tensor = (data, shape) => createTensor(upload(data), 'f32', shape);
+      const output = await runLinearAttentionCoreGPU(tensor(qkv, [T, C]), tensor(z, [T, D]), tensor(a, [T, NV]), tensor(b, [T, NV]), layer, {
+        numTokens: T, normGateActivation: 'silu', outputDtype: 'f32', qkL2NormEps: 1e-6,
+        runtimeSession: { useLinearAttentionRegisterPrefill: name === 'register', useLinearAttentionFusedDecodeCore: false,
+          useLinearAttentionRegisterDecode: name === 'register' },
+      });
+      owned.push(output.buffer);
+      prefillOutputs[name] = await words(output.buffer, T * D);
+    }
+    assert.deepEqual(prefillOutputs.register, prefillOutputs.unfused, 'prefill output differs');
+    assert.deepEqual(await words(layers.register.recurrentStateGPU, NV * K * V),
+      await words(layers.unfused.recurrentStateGPU, NV * K * V), 'recurrent state differs after prefill');
+    assert.deepEqual(await words(layers.register.convStateGPU, C * window),
+      await words(layers.unfused.convStateGPU, C * window), 'conv state differs after prefill');
+  }
   for (let step = 0; step < 3; step++) {
     const qkv = values(C, 0.037 + step * 0.01, 0.2), z = values(D, 0.023 + step * 0.01, 0.8);
     const a = values(NV, 0.17 + step, 1.2), b = values(NV, 0.13 + step, 2);

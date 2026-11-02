@@ -193,17 +193,17 @@
         "embed": {
           "kernel": "gather_split8_f16_vec4_f16_out.wgsl",
           "entry": "gather_vec4_f16_out",
-          "digest": "sha256:ce77263ace3099526665174b0fba1d93696bf782268d172d6b71b63a8021338d"
+          "digest": "sha256:5a6922136dad0cf05059533f24ea0989875c3659b464dfc7528518d57ce1e0c1"
         },
         "rmsnorm": {
           "kernel": "rmsnorm.wgsl",
           "entry": "main",
-          "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1"
+          "digest": "sha256:4f4d144735bdff86b8567346ba7ea7b82fe68a2ac9656ba1577106158af9bc7c"
         },
         "final_norm_stable": {
           "kernel": "rmsnorm.wgsl",
           "entry": "main",
-          "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1",
+          "digest": "sha256:4f4d144735bdff86b8567346ba7ea7b82fe68a2ac9656ba1577106158af9bc7c",
           "precision": {
             "inputDtype": "f32",
             "outputDtype": "f32"
@@ -217,7 +217,7 @@
         "q4_decode_gemv": {
           "kernel": "fused_matmul_q4.wgsl",
           "entry": "main_gemv",
-          "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d",
+          "digest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7",
           "precision": {
             "inputDtype": "f32",
             "outputDtype": "f32"
@@ -226,12 +226,12 @@
         "rope": {
           "kernel": "rope.wgsl",
           "entry": "main",
-          "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
+          "digest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416"
         },
         "attn_decode": {
           "kernel": "attention_decode_online_f16kv.wgsl",
           "entry": "main",
-          "digest": "sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1",
+          "digest": "sha256:c6d9f8c614a2a088cb533958007896391efb3e348377dc8095c409944c562912",
           "precision": {
             "kvDtype": "f16"
           }
@@ -244,7 +244,7 @@
         "gelu": {
           "kernel": "gelu.wgsl",
           "entry": "main",
-          "digest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
+          "digest": "sha256:db864455ec72070d7d8729c8744e2eac377a4939a9bc2ecb26eb086d866e16b0",
           "constants": {
             "HAS_GATE": true
           }
@@ -257,7 +257,7 @@
         "q4_widetile": {
           "kernel": "fused_matmul_q4_widetile.wgsl",
           "entry": "main",
-          "digest": "sha256:5631ce6f19f805c7ac85722bac17365048bc7b9e2c422f3ef9477b63cb8dad62",
+          "digest": "sha256:c434473d64a163eddbb6fc349aec944e4bef6b067170acdf4d55daf92f1932bf",
           "precision": {
             "inputDtype": "f32",
             "outputDtype": "f32"
@@ -287,7 +287,7 @@
         "attn_head256": {
           "kernel": "attention_head256_f16kv.wgsl",
           "entry": "main",
-          "digest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+          "digest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
           "precision": {
             "kvDtype": "f16"
           }
@@ -334,7 +334,7 @@
         "sample": {
           "kernel": "sample.wgsl",
           "entry": "sample_single_pass",
-          "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b"
+          "digest": "sha256:f2377b2a58c2eeb695a6f6f7ad877630bdba5e74d5dc1a8d919cd73b360d4870"
         }
       },
       "preLayer": [
