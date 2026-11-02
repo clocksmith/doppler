@@ -1,5 +1,9 @@
 # Qwen3.6 35B prefill attribution on Jupiter
 
+This report closes through s28. The later
+[native MoE rewrite](../qwen36-35b-native-moe-registers-20261101/README.md)
+records the accepted implementation and its separate evidence.
+
 The long-prompt deficit is primarily GPU execution in the measured Doppler
 path. A diagnostic observer captured **8472 compute passes**, totaling
 **3902.69 ms**, across a **4023.20 ms** GPU timestamp span. Host first-token
@@ -71,8 +75,8 @@ and F32 settings. These are small tuning screens, not Pooled comparisons.
 
 The first resident session also has a decode advantage in these own-engine
 screens, including when order reverses. Do not assign that difference to a
-prefill-only shader change. No MoE shader experiment is retained in the runtime.
-The larger private-array rewrite is an untested parked draft, not accepted code.
+prefill-only shader change. No MoE shader experiment was retained at s28.
+The larger private-array rewrite was then an untested parked draft.
 An intermediate named-accumulator edit failed compilation; its failure is kept,
 and the corrected version passed before the model screen.
 

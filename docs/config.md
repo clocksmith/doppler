@@ -134,6 +134,22 @@ submission and settlement lifecycle. The policy changes neither shader math
 nor reference tolerances; changed packages require their own physical
 qualification. A single oversized dispatch still requires its own bound.
 
+## Prefill submission bounds
+
+`runtime.inference.session.prefillChunkLayers` controls the layers recorded in
+one prefill chunk. In `prefillChunkSubmitMode: "async"`, the runtime-only
+`prefillMaxInFlightChunks` limits outstanding chunks, including the chunk being
+recorded. The schema default is `2`; a positive safe integer is required.
+Before recording beyond this limit, Run waits for the oldest submitted chunk
+and its deferred cleanup. A value of `1` waits at every boundary. Profiling and
+`"sync"` submission retain their existing per-chunk waits.
+
+This bounds queued intermediate-buffer lifetimes without changing shader math,
+token chunking, or model facts. It does not bound one chunk's allocation, resident
+weights, the buffer pool, or total device/process memory. Failure and cancellation
+still settle submitted work before releasing its resources. The resolved runtime
+config records the selected limit; manifests do not own this scheduling field.
+
 ## Warm generation at load
 
 `runtime.shared.kernelWarmup.warmGeneration` (`null` by default) is
