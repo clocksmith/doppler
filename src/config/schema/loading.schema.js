@@ -24,7 +24,16 @@ export const DEFAULT_SHARD_CACHE_CONFIG = {
   rangeCacheBlockBytes: 0,
   rangeCacheMaxBytes: 0,
   rangeCacheMinBytes: 0,
+  verificationBufferBytes: 0,
 };
+
+export function resolveShardVerificationBufferBytes(value) {
+  if (value === undefined) return DEFAULT_SHARD_CACHE_CONFIG.verificationBufferBytes;
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new Error('loading.shardCache.verificationBufferBytes must be a non-negative safe integer.');
+  }
+  return value;
+}
 
 // =============================================================================
 // Memory Management Config

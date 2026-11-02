@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
+import { createHash } from 'node:crypto';
 
 import {
   ARTIFACT_FORMAT_DIRECT_SOURCE,
@@ -11,6 +12,100 @@ import {
   createNodeFileArtifactStorageContext,
   getArtifactFormat,
 } from '../../src/storage/artifact-storage-context.js';
+
+// Whole-file consumers receive the exact bytes that passed verification, in
+// one read. Each full read remains verified even when its source later changes.
+{
+  const original = Uint8Array.from({ length: 73 }, (_, index) => index);
+  let stored = original;
+  const calls = [];
+  const context = createArtifactStorageContext({
+    manifest: { modelId: 'full-shard-verification', hashAlgorithm: 'sha256', shards: [
+      { filename: 'weights.bin', size: original.length,
+        hash: createHash('sha256').update(original).digest('hex') },
+    ] },
+    verifyHashes: true,
+    async readRange(path, offset, length) {
+      calls.push({ path, offset, length });
+      return stored.slice(offset, offset + length);
+    },
+    async *streamRange() { throw new Error('Full reads must not stream a second copy'); },
+  });
+  assert.deepEqual(new Uint8Array(await context.loadShard(0)), original);
+  assert.deepEqual(calls, [{ path: 'weights.bin', offset: 0, length: original.length }]);
+  stored = original.slice();
+  stored[5] ^= 1;
+  await assert.rejects(context.loadShard(0), /Artifact shard hash mismatch/);
+  stored = original.subarray(0, original.length - 1);
+  await assert.rejects(context.loadShard(0), /Artifact shard short read for verification/);
+  stored = original;
+  assert.deepEqual(new Uint8Array(await context.loadShard(0)), original);
+}
+
+// Partial consumers continue to verify incrementally before returning ranges.
+for (const verificationBufferBytes of [undefined, 0, 72]) {
+  const bytes = Uint8Array.from({ length: 73 }, (_, index) => index);
+  let streamed = 0;
+  const context = createArtifactStorageContext({
+    manifest: { modelId: 'range-shard-verification', hashAlgorithm: 'sha256', shards: [
+      { filename: 'weights.bin', size: bytes.length,
+        hash: createHash('sha256').update(bytes).digest('hex') },
+    ] },
+    verifyHashes: true,
+    verificationBufferBytes,
+    async readRange(_path, offset, length) { return bytes.slice(offset, offset + length); },
+    async *streamRange() {
+      streamed++;
+      yield bytes.subarray(0, 32);
+      yield bytes.subarray(32);
+    },
+  });
+  assert.deepEqual(new Uint8Array(await context.loadShardRange(0, 5, 3)), bytes.slice(5, 8));
+  assert.deepEqual(new Uint8Array(await context.loadShardRange(0, 8, 3)), bytes.slice(8, 11));
+  assert.equal(streamed, 1, 'Verified ranges share one bounded verification task');
+}
+
+// The optional whole-source verification workspace is shared across concurrent
+// range consumers, and a failed verification does not block another source.
+{
+  const bytes = Uint8Array.from({ length: 73 }, (_, index) => index);
+  const hash = createHash('sha256').update(bytes).digest('hex');
+  const manifest = { modelId: 'buffered-range-verification', hashAlgorithm: 'sha256', shards: [
+    { filename: 'first.bin', size: bytes.length, hash },
+    { filename: 'second.bin', size: bytes.length, hash },
+  ] };
+  let active = 0, maximumActive = 0, failures = 1, fullReads = 0;
+  const options = {
+    manifest, verifyHashes: true, verificationBufferBytes: bytes.length,
+    async readRange(path, offset, length) {
+      if (length === bytes.length) {
+        fullReads++;
+        active++;
+        maximumActive = Math.max(maximumActive, active);
+        await Promise.resolve();
+        active--;
+        if (path === 'first.bin' && failures-- > 0) return bytes.subarray(0, bytes.length - 1);
+      }
+      return bytes.slice(offset, offset + length);
+    },
+    async *streamRange() { throw new Error('The admitted buffer must be verified as a whole'); },
+  };
+  const context = createArtifactStorageContext(options);
+  const results = await Promise.allSettled([
+    context.loadShardRange(0, 5, 3), context.loadShardRange(1, 8, 3),
+  ]);
+  assert.equal(results[0].status, 'rejected');
+  assert.match(String(results[0].reason), /short read/);
+  assert.equal(results[1].status, 'fulfilled');
+  assert.deepEqual(new Uint8Array(results[1].value), bytes.slice(8, 11));
+  assert.deepEqual(new Uint8Array(await context.loadShardRange(0, 5, 3)), bytes.slice(5, 8));
+  assert.deepEqual(new Uint8Array(await context.loadShardRange(0, 8, 3)), bytes.slice(8, 11));
+  assert.equal(fullReads, 3, 'Failed source retries; successful verification is reused');
+  assert.equal(maximumActive, 1);
+  for (const value of [-1, 1.5, NaN, null, Number.MAX_SAFE_INTEGER + 1]) {
+    assert.throws(() => createArtifactStorageContext({ ...options, verificationBufferBytes: value }), /non-negative safe integer/);
+  }
+}
 
 // Independent official BLAKE3 digest, plus the retained pre-correction digest
 // for identical bytes. Verification must reject the latter without mutation.
@@ -57,6 +152,10 @@ import {
     },
   };
   assert.equal(getArtifactFormat(directSourceManifest), ARTIFACT_FORMAT_DIRECT_SOURCE);
+  assert.throws(() => createArtifactStorageContext({
+    manifest: directSourceManifest, verificationBufferBytes: 16,
+    async readRange() { throw new Error('Unsupported policy must fail before reading'); },
+  }), /supported only for RDRR/);
 }
 
 {

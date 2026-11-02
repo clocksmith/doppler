@@ -281,6 +281,25 @@ Load a request from a URL:
 node src/cli/doppler-cli.js verify --config https://example.org/doppler/verify-gemma.json --json
 ```
 
+## RDRR source verification buffers
+
+`loading.shardCache.verificationBufferBytes` defaults to `0`, retaining
+incremental source verification. A positive safe integer admits complete source
+buffers up to that size for RDRR HTTP range loading through the shared command
+harness. Larger shards still verify incrementally. Buffered verifications are
+serialized within each storage context; failed checks release the queue and
+remain retryable. Complete-byte SHA-256 uses WebCrypto where available, with
+the same declared hash algorithm and expected digest.
+
+The internal `createArtifactStorageContext` and
+`createHttpArtifactStorageContext` constructors accept the same
+`verificationBufferBytes` option explicitly. Direct-source containers reject a
+positive budget because their large-file verification remains incremental. This is loading policy,
+not a manifest inference field, precision change, or permission to skip checks.
+The budget bounds the verifier's source buffer; native crypto may copy its
+input. Full-shard consumers already require a full buffer and verify that exact
+returned buffer regardless of this optional range-verification budget.
+
 ## Change checklist
 
 When adding new runtime-visible behavior:
