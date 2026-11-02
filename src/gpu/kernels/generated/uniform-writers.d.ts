@@ -200,6 +200,7 @@ export interface KernelUniformValues {
   "attention/decode_gqa_splitk": Parameters<typeof writers0.write_attention_decode_online_f16>[1];
   "attention/decode_gqa_splitk_combine": Parameters<typeof writers0.write_attention_decode_online_f16>[1];
   "attention/prefill_query_tile_f32": Parameters<typeof writers0.write_attention_prefill>[1];
+  "attention/prefill_query_tile16_f32": Parameters<typeof writers0.write_attention_prefill>[1];
   "attention_tiered/decode_tiered_f16": Parameters<typeof writers0.write_attention_tiered_decode_tiered_f16>[1];
   "attention_tiered/decode_tiered_f16kv": Parameters<typeof writers0.write_attention_tiered_decode_tiered_f16>[1];
   "attention_tiered_quant/decode_tiered_int8_f16kv": Parameters<typeof writers0.write_attention_tiered_quant_decode_tiered_int8_f16kv>[1];

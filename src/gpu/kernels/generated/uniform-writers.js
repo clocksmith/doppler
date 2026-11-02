@@ -200,6 +200,7 @@ export const UNIFORM_WRITERS = Object.freeze({
   "attention/decode_gqa_splitk": { size: 60, write: writers0.write_attention_decode_online_f16 },
   "attention/decode_gqa_splitk_combine": { size: 60, write: writers0.write_attention_decode_online_f16 },
   "attention/prefill_query_tile_f32": { size: 76, write: writers0.write_attention_prefill },
+  "attention/prefill_query_tile16_f32": { size: 76, write: writers0.write_attention_prefill },
   "attention_tiered/decode_tiered_f16": { size: 68, write: writers0.write_attention_tiered_decode_tiered_f16 },
   "attention_tiered/decode_tiered_f16kv": { size: 68, write: writers0.write_attention_tiered_decode_tiered_f16 },
   "attention_tiered_quant/decode_tiered_int8_f16kv": { size: 60, write: writers0.write_attention_tiered_quant_decode_tiered_int8_f16kv },

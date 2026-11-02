@@ -1,0 +1,59 @@
+{
+  "baseCommit": "8210161b745bc306d183ebccec99d95cf27df927",
+  "frozenPrimarySource": "/run/media/x/deco-backup/doppler-perf-20261102/source-attention-tile16-complete",
+  "consumedRetainedSource": "/run/media/x/deco-backup/doppler-perf-20261102/source-retained-profile",
+  "effectiveRuntimeIdentical": true,
+  "runtimeTree": "ce71ba327d0042777fa9497444166fb8a295c21afaf0341a4878f256fcf674c9",
+  "changedFiles": [
+    {
+      "path": "reports/capsule-runtime/runtime-closure.json",
+      "bytes": 16460,
+      "sha256": "894f46357d9c0a30e2c5bf726007a1df216ebb19846feb6b7a38269009e931e5"
+    },
+    {
+      "path": "src/config/kernels/kernel-ref-digests.js",
+      "bytes": 48568,
+      "sha256": "76903fde2792c333976b3916bf5cbad737076dc40e31d16b1cc1afc8f501dd64"
+    },
+    {
+      "path": "src/config/kernels/registry.json",
+      "bytes": 684948,
+      "sha256": "1188bc0d060dd39557ec1b23619ca8c47f26ac70be677051ad8c02c24e308974"
+    },
+    {
+      "path": "src/config/runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate.json",
+      "bytes": 183119,
+      "sha256": "06756829cdd0dc5aa6645ea514ec590a9881decc19a8bb023a0465acab04a945"
+    },
+    {
+      "path": "src/config/runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic.json",
+      "bytes": 180113,
+      "sha256": "c7e90b7abb73528932da6ae01d1d39cdfab276e2971db5b38853bfe03672dea8"
+    },
+    {
+      "path": "src/gpu/kernels/attention_prefill_query_tile_f32.wgsl",
+      "bytes": 8754,
+      "sha256": "8160552f4f7976377d5b8ea186219e14cc2c6a21d09c4f8bc0b0395b8a65b242"
+    },
+    {
+      "path": "src/gpu/kernels/generated/uniform-writers.d.ts",
+      "bytes": 45983,
+      "sha256": "88e8a5f5f23d748544bdaed1fb943530077faffca719d3affedf566a25bd966b"
+    },
+    {
+      "path": "src/gpu/kernels/generated/uniform-writers.js",
+      "bytes": 45294,
+      "sha256": "69087604d839ec1304ff439364ad7aa6a58dca8a1c614e375fa6dbe168f81498"
+    },
+    {
+      "path": "tests/gpu/attention-online-constants.test.js",
+      "bytes": 14529,
+      "sha256": "1871b096094cf1499cd53c9f64010c0fad5494a27cc1e89273713728b938c11c"
+    },
+    {
+      "path": "tests/kernels/attention-f32-prefill-selection.test.js",
+      "bytes": 2959,
+      "sha256": "9e92bdb8524fa8ebb695da5b174e5a22f8b85ae37b749a1921397201e153f59d"
+    }
+  ]
+}

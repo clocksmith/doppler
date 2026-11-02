@@ -1,16 +1,16 @@
 // F32 prefill query tile. Existing attention uniform/cache/mask contract.
-// Eight queries share one 16-key tile; each query uses a logical 32-lane
+// Declared query tiles share one 16-key tile; each query uses a logical 32-lane
 // subgroup partition, with eight Q/output components per lane. XOR offsets
 // never cross partitions even when the physical subgroup is 64 lanes wide.
 // No split-K partials: online (maximum, denominator, accumulator) stays local.
 
 enable subgroups;
 
-const QUERY_TILE: u32 = 8u;
+override QUERY_TILE: u32;
 const KEY_TILE: u32 = 16u;
 const PARTITION_LANES: u32 = 32u;
-// Registry admission binds HEAD_DIM=256 and WORKGROUP_SIZE=256. The fixed
-// algorithm geometry above and private register capacity admit no other shape.
+// Registry admission binds HEAD_DIM=256 and WORKGROUP_SIZE=QUERY_TILE*32.
+// The key tile and per-lane register capacity remain fixed.
 override HEAD_DIM: u32;
 override WORKGROUP_SIZE: u32;
 const LANE_REGISTER_CAPACITY: u32 = 8u;
