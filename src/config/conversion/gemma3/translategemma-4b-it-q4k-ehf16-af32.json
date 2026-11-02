@@ -170,7 +170,7 @@
       "gemv": {
         "kernel": "matmul_f32.wgsl",
         "entry": "main",
-        "digest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8"
+        "digest": "sha256:b665cf1ef18ebf1d6fe490b84e9d1e962c130ccd34bdfac5616ba0e2ddb783b8"
       },
       "rope": {
         "kernel": "rope.wgsl",
@@ -201,7 +201,7 @@
       "tiled": {
         "kernel": "matmul_f32.wgsl",
         "entry": "main",
-        "digest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8"
+        "digest": "sha256:b665cf1ef18ebf1d6fe490b84e9d1e962c130ccd34bdfac5616ba0e2ddb783b8"
       },
       "attn_stream": {
         "kernel": "attention_streaming_f16kv.wgsl",

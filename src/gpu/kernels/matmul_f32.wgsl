@@ -8,7 +8,8 @@
 
 // Tile dimensions - optimized for 256 threads per workgroup
 const MAX_TILE_SIZE: u32 = 16u;
-const TILE_AREA: u32 = MAX_TILE_SIZE * MAX_TILE_SIZE;
+const TILE_STRIDE: u32 = MAX_TILE_SIZE + 1u;
+const TILE_AREA: u32 = MAX_TILE_SIZE * TILE_STRIDE;
 
 override TILE_SIZE: u32 = 16u;  // Must be <= MAX_TILE_SIZE
 
@@ -43,10 +44,10 @@ fn main(
         return;
     }
 
-    let row = global_id.x;
-    let col = global_id.y;
-    let local_row = local_id.x;
-    let local_col = local_id.y;
+    let local_col = local_id.x;
+    let local_row = local_id.y;
+    let row = workgroup_id.x * TILE_SIZE + local_row;
+    let col = workgroup_id.y * TILE_SIZE + local_col;
 
     // Accumulator for dot product
     var sum: f32 = 0.0;
@@ -56,29 +57,34 @@ fn main(
 
     // Iterate over tiles
     for (var t: u32 = 0u; t < num_tiles; t = t + 1u) {
-        // Global indices for loading tiles
+        // Global indices for loading tiles (local_col = local_id.x is contiguous across lanes)
         let a_col = t * TILE_SIZE + local_col;
-        let b_row = t * TILE_SIZE + local_row;
 
-        // Load tile from A into shared memory (with bounds check)
-        let tile_idx = local_row * TILE_SIZE + local_col;
+        // Load tile from A into shared memory (coalesced across local_col)
+        let tile_idx = local_row * TILE_STRIDE + local_col;
         if (row < u.M && a_col < u.K) {
             tileA[tile_idx] = A[row * u.K + a_col];
         } else {
             tileA[tile_idx] = 0.0;
         }
 
-        // Load tile from B into shared memory (with bounds check)
-        // When transpose_b=1, B is stored as [N,K] so we access B[col,b_row] instead of B[b_row,col]
-        if (b_row < u.K && col < u.N) {
-            if (u.transpose_b == 0u) {
+        // Load tile from B into shared memory (coalesced across local_col in both layouts)
+        if (u.transpose_b == 0u) {
+            let b_row = t * TILE_SIZE + local_row;
+            if (b_row < u.K && col < u.N) {
                 tileB[tile_idx] = B[b_row * u.N + col];
             } else {
-                // B is [N, K], access element [col, b_row]
-                tileB[tile_idx] = B[col * u.K + b_row];
+                tileB[tile_idx] = 0.0;
             }
         } else {
-            tileB[tile_idx] = 0.0;
+            // B is [N, K]; coalesce across K using local_col and transpose into padded tileB.
+            let b_col = workgroup_id.y * TILE_SIZE + local_row;
+            let b_k = a_col;
+            if (b_k < u.K && b_col < u.N) {
+                tileB[local_col * TILE_STRIDE + local_row] = B[b_col * u.K + b_k];
+            } else {
+                tileB[local_col * TILE_STRIDE + local_row] = 0.0;
+            }
         }
 
         // Synchronize to ensure tile is fully loaded
@@ -86,7 +92,7 @@ fn main(
 
         // Compute partial dot product for this tile
         for (var k: u32 = 0u; k < TILE_SIZE; k = k + 1u) {
-            sum = sum + tileA[local_row * TILE_SIZE + k] * tileB[k * TILE_SIZE + local_col];
+            sum = sum + tileA[local_row * TILE_STRIDE + k] * tileB[k * TILE_STRIDE + local_col];
         }
 
         // Synchronize before loading next tile

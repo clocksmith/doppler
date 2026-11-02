@@ -1,0 +1,766 @@
+{
+  "status": "retained-candidate-not-qualified",
+  "selection": "Lowest saved uninstrumented mean Doppler request time on both short and long throughput prompts; no paired significance claim.",
+  "selectedRun": "s18-prefill-kernels-candidate",
+  "baseCommit": "4df01e123fada17d03c8318a4b4f32d6350b9ba9",
+  "runtimeProfile": "profiles/qwen3-6-35b-a3b-q4_0-candidate",
+  "snapshot": "/home/x/deco/doppler-work/snap/s18-prefill-kernels-candidate",
+  "runtimeSourceTree": {
+    "files": 2975,
+    "sha256": "37eb9e4e9c121af0a453a1533c55ff53ba1094561bd430eec64978e9b861c9bf",
+    "excluded": [
+      "src/.npmignore"
+    ],
+    "algorithm": "SHA256 over sorted UTF-8 relative path, NUL, raw SHA256(file) for each source file"
+  },
+  "changedFiles": [
+    {
+      "path": "src/config/conversion/esm/esm2-t12-35m-ur50d-f32-af32.json",
+      "sha256": "a4f37f02a703dd8fa989c63ce4318e07c0363baa7cf31b51e93408af9b61ddb5"
+    },
+    {
+      "path": "src/config/conversion/esmc/esmc-300m-f32-af32.json",
+      "sha256": "c3dcde2a131c39cfc6ed62c5f196c67821ee9846fc149d546fc741c3e4215165"
+    },
+    {
+      "path": "src/config/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json",
+      "sha256": "455d464df8b4be738380128cb51351b1823e4300a08fbe96137dfd0e55f1a4a4"
+    },
+    {
+      "path": "src/config/conversion/nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32.json",
+      "sha256": "5e7029e555c97e437f974262788db62e39c5050651e698fd88b5e40af54d4a99"
+    },
+    {
+      "path": "src/config/conversion/qwen3/qwen-3-5-0-8b-canonical-f32.json",
+      "sha256": "1e931f8804fac3c8436e0160fc4c3e8f362f4aef8d59144a95129404a4f06fad"
+    },
+    {
+      "path": "src/config/conversion/qwen3/qwen-3-6-35b-a3b-q4_0-passthrough.json",
+      "sha256": "62dd6c649f2d4e87db13d0a1d08177e1d8f25d4334e33aecf9c09527773eff24"
+    },
+    {
+      "path": "src/config/conversion/qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32.json",
+      "sha256": "b20e9f21a34dcce5fdcddf67e0fcdb40ef042e5c1298bd8f2bd7c052471653dd"
+    },
+    {
+      "path": "src/config/kernels/kernel-ref-digests.js",
+      "sha256": "e6200af86e90a3e7147e51d6a0dd23d04418566d8dcd79c1639814cb4726b228"
+    },
+    {
+      "path": "src/config/kernels/registry.json",
+      "sha256": "04e16d0a517a74b697466e97339d85ab30e56c5b967085992ac6e45b65671881"
+    },
+    {
+      "path": "src/config/runtime/profiles/qwen-3-5-0-8b-f16-m3.json",
+      "sha256": "6f0b97c11256ebef2fb4f3b79951d9114ee2ea1e6a1f9ea56c37ef56146ee0a5"
+    },
+    {
+      "path": "src/config/runtime/profiles/qwen-3-5-0-8b-vulkan-subgroup8.json",
+      "sha256": "f1b3dc6c6addc2564b6464b631ac973e57a2621b2328e567688e3e48044b4c72"
+    },
+    {
+      "path": "src/config/runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate.json",
+      "sha256": "04565760fc9c8208727cb60ed967b03a789349162929aad519b94314ccfb4785"
+    },
+    {
+      "path": "src/config/runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic.json",
+      "sha256": "2acd2204607c8d76e53a5fb6344bfebbcad3290a575bc855bc00767ee06dd7d9"
+    },
+    {
+      "path": "src/gpu/kernels/codegen/patches/gated_delta_recurrent_gguf_register_prefill.from.gated_delta_recurrent.diff",
+      "sha256": "e2af72d64ef1af3865f98f464ab8cb10863d8551ca9c92e8afa1e06188fe4b94"
+    },
+    {
+      "path": "src/gpu/kernels/gated_delta_recurrent_gguf_register_prefill.wgsl",
+      "sha256": "62eabda71c19706e499b96821366b7ad6b19409f1c456d7df9fabb981175cd8e"
+    },
+    {
+      "path": "src/gpu/kernels/linear-attention-core.js",
+      "sha256": "9dfe84169b5db82885d4c7e804e1b0baeb11c9c21cf176b3c244d9638d6a6e0c"
+    },
+    {
+      "path": "src/gpu/kernels/matmul_f32.wgsl",
+      "sha256": "5996e7d704299f211bbebe1f69ae73b59c03c85b0ee17eddc04d92e44488423c"
+    },
+    {
+      "path": "src/gpu/kernels/matmul_q4_0_tile64.wgsl",
+      "sha256": "f319b23e3d5dd72f46d4e87c7764ee5b061f90ce846ffc61e99199f7e6573bf4"
+    },
+    {
+      "path": "tests/gpu/gguf-linear-attention-register-decode-gpu.test.js",
+      "sha256": "41d02a660be9f8a34458fdca0394ef27328dc0c35de5721c10d83b1634494e77"
+    },
+    {
+      "path": "tests/gpu/q4_0-kernels-gpu.test.js",
+      "sha256": "fba9064c0f9fb5174e6035bfcce9b003332042fcc57e0d52ec816e1c4e856198"
+    }
+  ],
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "unknown",
+    "description": "",
+    "subgroupMinSize": 32,
+    "subgroupMaxSize": 64
+  },
+  "features": [
+    "core-features-and-limits",
+    "subgroups",
+    "shader-f16",
+    "timestamp-query"
+  ],
+  "readyMs": 241670.79999998212,
+  "warmGenerationMs": 171696.1,
+  "claimGrade": false,
+  "speculation": "none",
+  "summary": [
+    {
+      "run": "s16-kvbound-baseline",
+      "kind": "doppler",
+      "task": "short",
+      "source": "229b5502 (unchanged shader, exported copy)",
+      "samples": [
+        {
+          "file": "short-0-doppler.json",
+          "warmup": true,
+          "promptTokens": 28,
+          "outputTokens": 128,
+          "firstTokenMs": 132.5,
+          "prefillMs": 130.40000000596046,
+          "completeMs": 1864.9000000059605,
+          "interTokenMs": 13.63464566947907,
+          "stopReason": "max-tokens"
+        },
+        {
+          "file": "short-1-doppler.json",
+          "warmup": false,
+          "promptTokens": 28,
+          "outputTokens": 128,
+          "firstTokenMs": 133.40000000596046,
+          "prefillMs": 130.2999999821186,
+          "completeMs": 1866.2000000178814,
+          "interTokenMs": 13.637795275590552,
+          "stopReason": "max-tokens"
+        },
+        {
+          "file": "short-2-doppler.json",
+          "warmup": false,
+          "promptTokens": 28,
+          "outputTokens": 128,
+          "firstTokenMs": 131,
+          "prefillMs": 127.69999998807907,
+          "completeMs": 1839,
+          "interTokenMs": 13.441732283417634,
+          "stopReason": "max-tokens"
+        }
+      ],
+      "mean": {
+        "firstTokenMs": 132.20000000298023,
+        "prefillMs": 128.99999998509884,
+        "completeMs": 1852.6000000089407,
+        "interTokenMs": 13.539763779504092
+      }
+    },
+    {
+      "run": "s16-kvbound-baseline",
+      "kind": "doppler",
+      "task": "long",
+      "source": "229b5502 (unchanged shader, exported copy)",
+      "samples": [
+        {
+          "file": "long-0-doppler.json",
+          "warmup": true,
+          "promptTokens": 2287,
+          "outputTokens": 128,
+          "firstTokenMs": 4203.5999999940395,
+          "prefillMs": 4200.5,
+          "completeMs": 6086,
+          "interTokenMs": 14.815748031683794,
+          "stopReason": "max-tokens"
+        },
+        {
+          "file": "long-1-doppler.json",
+          "warmup": false,
+          "promptTokens": 2287,
+          "outputTokens": 128,
+          "firstTokenMs": 4241.200000017881,
+          "prefillMs": 4224.0999999940395,
+          "completeMs": 6044.700000017881,
+          "interTokenMs": 14.195275590410382,
+          "stopReason": "max-tokens"
+        },
+        {
+          "file": "long-2-doppler.json",
+          "warmup": false,
+          "promptTokens": 2287,
+          "outputTokens": 128,
+          "firstTokenMs": 4313.0999999940395,
+          "prefillMs": 4296,
+          "completeMs": 6125.4000000059605,
+          "interTokenMs": 14.263779527559056,
+          "stopReason": "max-tokens"
+        }
+      ],
+      "mean": {
+        "firstTokenMs": 4277.1500000059605,
+        "prefillMs": 4260.04999999702,
+        "completeMs": 6085.050000011921,
+        "interTokenMs": 14.229527558984719
+      }
+    },
+    {
+      "run": "s17-kvbound-candidate",
+      "kind": "doppler",
+      "task": "short",
+      "source": "229b5502+causal KV-loop bound in attention_prefill_query_tile_f32 (uncommitted)",
+      "samples": [
+        {
+          "file": "short-0-doppler.json",
+          "warmup": true,
+          "promptTokens": 28,
+          "outputTokens": 128,
+          "firstTokenMs": 131.19999998807907,
+          "prefillMs": 128.90000000596046,
+          "completeMs": 1856.2999999821186,
+          "interTokenMs": 13.577165354424574,
+          "stopReason": "max-tokens"
+        },
+        {
+          "file": "short-1-doppler.json",
+          "warmup": false,
+          "promptTokens": 28,
+          "outputTokens": 128,
+          "firstTokenMs": 133.7999999821186,
+          "prefillMs": 130.40000000596046,
+          "completeMs": 1852.5,
+          "interTokenMs": 13.52677165359024,
+          "stopReason": "max-tokens"
+        },
+        {
+          "file": "short-2-doppler.json",
+          "warmup": false,
+          "promptTokens": 28,
+          "outputTokens": 128,
+          "firstTokenMs": 133.90000000596046,
+          "prefillMs": 130.5,
+          "completeMs": 1853.9000000059605,
+          "interTokenMs": 13.537795275449753,
+          "stopReason": "max-tokens"
+        }
+      ],
+      "mean": {
+        "firstTokenMs": 133.84999999403954,
+        "prefillMs": 130.45000000298023,
+        "completeMs": 1853.2000000029802,
+        "interTokenMs": 13.532283464519995
+      }
+    },
+    {
+      "run": "s17-kvbound-candidate",
+      "kind": "doppler",
+      "task": "long",
+      "source": "229b5502+causal KV-loop bound in attention_prefill_query_tile_f32 (uncommitted)",
+      "samples": [
+        {
+          "file": "long-0-doppler.json",
+          "warmup": true,
+          "promptTokens": 2287,
+          "outputTokens": 128,
+          "firstTokenMs": 4170.5,
+          "prefillMs": 4167.300000011921,
+          "completeMs": 5999,
+          "interTokenMs": 14.39291338563904,
+          "stopReason": "max-tokens"
+        },
+        {
+          "file": "long-1-doppler.json",
+          "warmup": false,
+          "promptTokens": 2287,
+          "outputTokens": 128,
+          "firstTokenMs": 4189.199999988079,
+          "prefillMs": 4183.9000000059605,
+          "completeMs": 5998.5999999940395,
+          "interTokenMs": 14.241732283605366,
+          "stopReason": "max-tokens"
+        },
+        {
+          "file": "long-2-doppler.json",
+          "warmup": false,
+          "promptTokens": 2287,
+          "outputTokens": 128,
+          "firstTokenMs": 4234.199999988079,
+          "prefillMs": 4229,
+          "completeMs": 6153.5,
+          "interTokenMs": 15.107086614126295,
+          "stopReason": "max-tokens"
+        }
+      ],
+      "mean": {
+        "firstTokenMs": 4211.699999988079,
+        "prefillMs": 4206.45000000298,
+        "completeMs": 6076.04999999702,
+        "interTokenMs": 14.67440944886583
+      }
+    },
+    {
+      "run": "s18-prefill-kernels-candidate",
+      "kind": "doppler",
+      "task": "short",
+      "source": "4df01e123+prefill-kernels(tile64-coalesced,gdn-shared-qk-parallel-conv,matmul-f32-coalesced)",
+      "samples": [
+        {
+          "file": "short-0-doppler.json",
+          "warmup": true,
+          "promptTokens": 28,
+          "outputTokens": 128,
+          "firstTokenMs": 132.2999999821186,
+          "prefillMs": 129.7000000178814,
+          "completeMs": 1842.9000000059605,
+          "interTokenMs": 13.465354330896393,
+          "stopReason": "max-tokens"
+        },
+        {
+          "file": "short-1-doppler.json",
+          "warmup": false,
+          "promptTokens": 28,
+          "outputTokens": 128,
+          "firstTokenMs": 134.69999998807907,
+          "prefillMs": 131.5,
+          "completeMs": 1815.3999999761581,
+          "interTokenMs": 13.229921259748654,
+          "stopReason": "max-tokens"
+        },
+        {
+          "file": "short-2-doppler.json",
+          "warmup": false,
+          "promptTokens": 28,
+          "outputTokens": 128,
+          "firstTokenMs": 139.40000000596046,
+          "prefillMs": 136.40000000596046,
+          "completeMs": 1822,
+          "interTokenMs": 13.241732283370702,
+          "stopReason": "max-tokens"
+        }
+      ],
+      "mean": {
+        "firstTokenMs": 137.04999999701977,
+        "prefillMs": 133.95000000298023,
+        "completeMs": 1818.699999988079,
+        "interTokenMs": 13.235826771559678
+      }
+    },
+    {
+      "run": "s18-prefill-kernels-candidate",
+      "kind": "doppler",
+      "task": "long",
+      "source": "4df01e123+prefill-kernels(tile64-coalesced,gdn-shared-qk-parallel-conv,matmul-f32-coalesced)",
+      "samples": [
+        {
+          "file": "long-0-doppler.json",
+          "warmup": true,
+          "promptTokens": 2287,
+          "outputTokens": 128,
+          "firstTokenMs": 4012.4000000059605,
+          "prefillMs": 4009.300000011921,
+          "completeMs": 5828.9000000059605,
+          "interTokenMs": 14.297637795134792,
+          "stopReason": "max-tokens"
+        },
+        {
+          "file": "long-1-doppler.json",
+          "warmup": false,
+          "promptTokens": 2287,
+          "outputTokens": 128,
+          "firstTokenMs": 4045.699999988079,
+          "prefillMs": 4040.4000000059605,
+          "completeMs": 5893.9000000059605,
+          "interTokenMs": 14.547244094488189,
+          "stopReason": "max-tokens"
+        },
+        {
+          "file": "long-2-doppler.json",
+          "warmup": false,
+          "promptTokens": 2287,
+          "outputTokens": 128,
+          "firstTokenMs": 4084.9000000059605,
+          "prefillMs": 4079.800000011921,
+          "completeMs": 5888.300000011921,
+          "interTokenMs": 14.195275590645046,
+          "stopReason": "max-tokens"
+        }
+      ],
+      "mean": {
+        "firstTokenMs": 4065.2999999970198,
+        "prefillMs": 4060.1000000089407,
+        "completeMs": 5891.100000008941,
+        "interTokenMs": 14.371259842566618
+      }
+    },
+    {
+      "run": "f5-paired-short",
+      "kind": "doppler",
+      "task": "short",
+      "source": "229b5502",
+      "samples": [
+        {
+          "file": "short-0-doppler.json",
+          "warmup": true,
+          "promptTokens": 28,
+          "outputTokens": 128,
+          "firstTokenMs": 128.80000001192093,
+          "prefillMs": 125.89999997615814,
+          "completeMs": 1826.9000000059605,
+          "interTokenMs": 13.367716535339206,
+          "stopReason": "max-tokens"
+        },
+        {
+          "file": "short-1-doppler.json",
+          "warmup": false,
+          "promptTokens": 28,
+          "outputTokens": 128,
+          "firstTokenMs": 147.59999999403954,
+          "prefillMs": 144.69999998807907,
+          "completeMs": 1869.4000000059605,
+          "interTokenMs": 13.551968503890075,
+          "stopReason": "max-tokens"
+        },
+        {
+          "file": "short-2-doppler.json",
+          "warmup": false,
+          "promptTokens": 28,
+          "outputTokens": 128,
+          "firstTokenMs": 134.90000000596046,
+          "prefillMs": 131.90000000596046,
+          "completeMs": 1835.699999988079,
+          "interTokenMs": 13.388188976237155,
+          "stopReason": "max-tokens"
+        },
+        {
+          "file": "short-3-doppler.json",
+          "warmup": false,
+          "promptTokens": 28,
+          "outputTokens": 128,
+          "firstTokenMs": 132.90000000596046,
+          "prefillMs": 130.2999999821186,
+          "completeMs": 1843.300000011921,
+          "interTokenMs": 13.462992125843453,
+          "stopReason": "max-tokens"
+        }
+      ],
+      "mean": {
+        "firstTokenMs": 138.4666666686535,
+        "prefillMs": 135.63333332538605,
+        "completeMs": 1849.4666666686535,
+        "interTokenMs": 13.46771653532356
+      }
+    },
+    {
+      "run": "f5-paired-short",
+      "kind": "pooled",
+      "task": "short",
+      "source": "229b5502",
+      "samples": [
+        {
+          "file": "short-0-pooled.json",
+          "warmup": true,
+          "promptTokens": 28,
+          "outputTokens": 128,
+          "firstTokenMs": 141.2999999821186,
+          "prefillMs": 125,
+          "completeMs": 1921.7999999821186,
+          "interTokenMs": 14.018110236314339,
+          "stopReason": "max-tokens"
+        },
+        {
+          "file": "short-1-pooled.json",
+          "warmup": false,
+          "promptTokens": 28,
+          "outputTokens": 128,
+          "firstTokenMs": 137,
+          "prefillMs": 122.69999998807907,
+          "completeMs": 1913.2999999821186,
+          "interTokenMs": 13.985039370031807,
+          "stopReason": "max-tokens"
+        },
+        {
+          "file": "short-2-pooled.json",
+          "warmup": false,
+          "promptTokens": 28,
+          "outputTokens": 128,
+          "firstTokenMs": 140.10000002384186,
+          "prefillMs": 125.40000000596046,
+          "completeMs": 1908.6000000238419,
+          "interTokenMs": 13.922834645575426,
+          "stopReason": "max-tokens"
+        },
+        {
+          "file": "short-3-pooled.json",
+          "warmup": false,
+          "promptTokens": 28,
+          "outputTokens": 128,
+          "firstTokenMs": 139.2999999821186,
+          "prefillMs": 123.69999998807907,
+          "completeMs": 1903.0999999940395,
+          "interTokenMs": 13.885826771653543,
+          "stopReason": "max-tokens"
+        }
+      ],
+      "mean": {
+        "firstTokenMs": 138.80000000198683,
+        "prefillMs": 123.93333332737286,
+        "completeMs": 1908.3333333333333,
+        "interTokenMs": 13.931233595753591
+      }
+    },
+    {
+      "run": "f5-paired-short",
+      "kind": "doppler",
+      "task": "long",
+      "source": "229b5502",
+      "samples": [
+        {
+          "file": "long-0-doppler.json",
+          "warmup": true,
+          "promptTokens": 2287,
+          "outputTokens": 128,
+          "firstTokenMs": 4270.800000011921,
+          "prefillMs": 4266.4000000059605,
+          "completeMs": 6135.800000011921,
+          "interTokenMs": 14.680314960676855,
+          "stopReason": "max-tokens"
+        },
+        {
+          "file": "long-1-doppler.json",
+          "warmup": false,
+          "promptTokens": 2287,
+          "outputTokens": 128,
+          "firstTokenMs": 4323.9000000059605,
+          "prefillMs": 4318.5999999940395,
+          "completeMs": 6130.4000000059605,
+          "interTokenMs": 14.218110236126607,
+          "stopReason": "max-tokens"
+        },
+        {
+          "file": "long-2-doppler.json",
+          "warmup": false,
+          "promptTokens": 2287,
+          "outputTokens": 128,
+          "firstTokenMs": 4353,
+          "prefillMs": 4347.9000000059605,
+          "completeMs": 6159.199999988079,
+          "interTokenMs": 14.216535433070867,
+          "stopReason": "max-tokens"
+        },
+        {
+          "file": "long-3-doppler.json",
+          "warmup": false,
+          "promptTokens": 2287,
+          "outputTokens": 128,
+          "firstTokenMs": 4364.700000017881,
+          "prefillMs": 4359.5999999940395,
+          "completeMs": 6146.5999999940395,
+          "interTokenMs": 14.027559055118111,
+          "stopReason": "max-tokens"
+        }
+      ],
+      "mean": {
+        "firstTokenMs": 4347.200000007947,
+        "prefillMs": 4342.0333333313465,
+        "completeMs": 6145.399999996026,
+        "interTokenMs": 14.154068241438528
+      }
+    },
+    {
+      "run": "f5-paired-short",
+      "kind": "pooled",
+      "task": "long",
+      "source": "229b5502",
+      "samples": [
+        {
+          "file": "long-0-pooled.json",
+          "warmup": true,
+          "promptTokens": 2287,
+          "outputTokens": 128,
+          "firstTokenMs": 3386.7999999821186,
+          "prefillMs": 3369.9000000059605,
+          "completeMs": 5231,
+          "interTokenMs": 14.518897637842208,
+          "stopReason": "max-tokens"
+        },
+        {
+          "file": "long-1-pooled.json",
+          "warmup": false,
+          "promptTokens": 2287,
+          "outputTokens": 128,
+          "firstTokenMs": 3369.5999999940395,
+          "prefillMs": 3353,
+          "completeMs": 5213.300000011921,
+          "interTokenMs": 14.515748031496063,
+          "stopReason": "max-tokens"
+        },
+        {
+          "file": "long-2-pooled.json",
+          "warmup": false,
+          "promptTokens": 2287,
+          "outputTokens": 128,
+          "firstTokenMs": 3432.5,
+          "prefillMs": 3415.0999999940395,
+          "completeMs": 5311.199999988079,
+          "interTokenMs": 14.791338582677165,
+          "stopReason": "max-tokens"
+        },
+        {
+          "file": "long-3-pooled.json",
+          "warmup": false,
+          "promptTokens": 2287,
+          "outputTokens": 128,
+          "firstTokenMs": 3399.399999976158,
+          "prefillMs": 3383,
+          "completeMs": 5243.0999999940395,
+          "interTokenMs": 14.514960629968193,
+          "stopReason": "max-tokens"
+        }
+      ],
+      "mean": {
+        "firstTokenMs": 3400.499999990066,
+        "prefillMs": 3383.699999998013,
+        "completeMs": 5255.8666666646795,
+        "interTokenMs": 14.607349081380473
+      }
+    }
+  ],
+  "savedContinuationChecks": [
+    {
+      "candidate": "records-0-doppler.json",
+      "baseline": "s17-kvbound-candidate/records-0-doppler.json",
+      "identical": {
+        "promptIds": true,
+        "tokenIds": true,
+        "text": true
+      },
+      "gpuErrors": [],
+      "qualityPass": true
+    },
+    {
+      "candidate": "records-1-doppler.json",
+      "baseline": "s17-kvbound-candidate/records-0-doppler.json",
+      "identical": {
+        "promptIds": true,
+        "tokenIds": true,
+        "text": true
+      },
+      "gpuErrors": [],
+      "qualityPass": true
+    },
+    {
+      "candidate": "records-2-doppler.json",
+      "baseline": "s17-kvbound-candidate/records-0-doppler.json",
+      "identical": {
+        "promptIds": true,
+        "tokenIds": true,
+        "text": true
+      },
+      "gpuErrors": [],
+      "qualityPass": true
+    },
+    {
+      "candidate": "missing-0-doppler.json",
+      "baseline": "s17-kvbound-candidate/missing-0-doppler.json",
+      "identical": {
+        "promptIds": true,
+        "tokenIds": true,
+        "text": true
+      },
+      "gpuErrors": [],
+      "qualityPass": true
+    },
+    {
+      "candidate": "missing-1-doppler.json",
+      "baseline": "s17-kvbound-candidate/missing-0-doppler.json",
+      "identical": {
+        "promptIds": true,
+        "tokenIds": true,
+        "text": true
+      },
+      "gpuErrors": [],
+      "qualityPass": true
+    },
+    {
+      "candidate": "missing-2-doppler.json",
+      "baseline": "s17-kvbound-candidate/missing-0-doppler.json",
+      "identical": {
+        "promptIds": true,
+        "tokenIds": true,
+        "text": true
+      },
+      "gpuErrors": [],
+      "qualityPass": true
+    },
+    {
+      "candidate": "short-0-doppler.json",
+      "baseline": "s17-kvbound-candidate/short-0-doppler.json",
+      "identical": {
+        "promptIds": true,
+        "tokenIds": true,
+        "text": true
+      },
+      "gpuErrors": [],
+      "qualityPass": null
+    },
+    {
+      "candidate": "short-1-doppler.json",
+      "baseline": "s17-kvbound-candidate/short-0-doppler.json",
+      "identical": {
+        "promptIds": true,
+        "tokenIds": true,
+        "text": true
+      },
+      "gpuErrors": [],
+      "qualityPass": null
+    },
+    {
+      "candidate": "short-2-doppler.json",
+      "baseline": "s17-kvbound-candidate/short-0-doppler.json",
+      "identical": {
+        "promptIds": true,
+        "tokenIds": true,
+        "text": true
+      },
+      "gpuErrors": [],
+      "qualityPass": null
+    },
+    {
+      "candidate": "long-0-doppler.json",
+      "baseline": "s17-kvbound-candidate/long-0-doppler.json",
+      "identical": {
+        "promptIds": true,
+        "tokenIds": true,
+        "text": true
+      },
+      "gpuErrors": [],
+      "qualityPass": null
+    },
+    {
+      "candidate": "long-1-doppler.json",
+      "baseline": "s17-kvbound-candidate/long-0-doppler.json",
+      "identical": {
+        "promptIds": true,
+        "tokenIds": true,
+        "text": true
+      },
+      "gpuErrors": [],
+      "qualityPass": null
+    },
+    {
+      "candidate": "long-2-doppler.json",
+      "baseline": "s17-kvbound-candidate/long-0-doppler.json",
+      "identical": {
+        "promptIds": true,
+        "tokenIds": true,
+        "text": true
+      },
+      "gpuErrors": [],
+      "qualityPass": null
+    }
+  ]
+}

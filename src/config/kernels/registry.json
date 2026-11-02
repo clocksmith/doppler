@@ -28831,7 +28831,19 @@
       "sourceLayout": "gguf-v1",
       "headKDim": 128,
       "maxHeadVDim": 128,
-      "stateComponents": 1
+      "stateComponents": 1,
+      "convVariant": "prefill_prefix",
+      "parallelConvVariant": "prefill_parallel",
+      "mechanismKernels": [
+       {
+        "operation": "gated_delta_conv",
+        "variant": "prefill_prefix"
+       },
+       {
+        "operation": "gated_delta_conv",
+        "variant": "prefill_parallel"
+       }
+      ]
      },
      "reachability": {
       "status": "model-selectable",
