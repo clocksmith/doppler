@@ -163,6 +163,26 @@ tokens generated, the stop reason and whether a program is ready. A stop token
 before `maxTokens` is reported, not an error; an invalid policy or a failed
 generation fails the load.
 
+## Whole-token replay windows
+
+With `session.decodeLoop.wholeTokenProgram: true`, `batchSize > 1` and
+`generation.disableMultiTokenDecode: false`, the prepared program can queue
+consecutive greedy steps using GPU token feedback. `batchSize` is a ceiling:
+ordinary token delivery starts the answer, then the window grows with completed
+decode steps, bounded by the configured cap and declared program positions.
+
+This transport requires contiguous whole-model state, no independent convolution
+or active finiteness fallback policy, `stopCheckMode: "batch"`,
+`readbackMode: "sequential"` and `readbackInterval: 1`. Each step starts its own
+readback after submission. Tokens stream in order while later queued steps run;
+the arithmetic and declared pipelines remain unchanged.
+
+The window retains a recurrent/convolution checkpoint. EOS, stop sequences,
+abort, consumer return and delivery errors drain queued work, then restore and
+replay the published prefix when needed. Extra tentative tokens are never
+published. Checkpoint, readback and recovery costs belong to request wall time.
+Cancellation waits for already queued GPU work; the configured window bounds it.
+
 ## Matmul workgroup geometry
 
 Opt-in matmul variants may declare `variantMetadata.workgroupConstants` as

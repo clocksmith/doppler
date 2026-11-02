@@ -1,3 +1,9 @@
+export interface WholeTokenBatchStream {
+  readonly rows: AsyncIterable<Uint32Array>;
+  /** Wait for every queued step and release all readback/feedback buffers. Always call in finally. */
+  settle(): Promise<void>;
+}
+
 /** Consecutive consistent decode steps observed before a program is built. */
 export declare const WHOLE_TOKEN_OBSERVED_STEPS: number;
 
@@ -11,6 +17,9 @@ export declare class WholeTokenProgram {
   readonly stats: {
     observedSteps: number;
     replayedTokens: number;
+    /** Submitted replay command buffers; ordinary observations have their own recorder counts. */
+    replaySubmissions: number;
+    batchReadbacks: number;
     restarts: number;
     invalidations: number;
     /** This generation replays a program kept from an earlier one. */
@@ -58,5 +67,10 @@ export declare class WholeTokenProgram {
   /** Drop the built program so the following steps are observed again. */
   invalidate(reason: string): void;
   run(pos: number, token: number): Promise<Uint32Array>;
+  startBatch(pos: number, token: number, count: number): Promise<WholeTokenBatchStream>;
+  /** Exact sequential GPU steps; caller must retain a state checkpoint through publication. */
+  runBatch(pos: number, token: number, count: number): Promise<Uint32Array[]>;
+  /** Called only after restoring the matching KV/recurrent checkpoint. */
+  resumeAfterRestore(pos: number): void;
   destroy(): void;
 }

@@ -24,13 +24,20 @@ Rules and conventions for configuration ownership, merge order, and overrides.
 - layerSubmitInterval (absent or null = one submission per single-token step; N = submit the recorded prefix after every N layers so the GPU executes it while later layers are encoded)
 - wholeTokenProgram (absent or false = ordinary recorded step; true = observe four consecutive decode steps from step 2, build one whole-token command program and replay it with encode-ahead. The token input and context thresholds are declared by their owning operations (`declareStepContract`); other per-step words must be affine in the position, and any other difference between the observed steps fails closed. A step outside the declared positions or affine bounds, or with a changed plan or bound resource, invalidates the program and is observed again. Repetition/presence penalties and stochastic sampling are rejected)
 
-Recorded decode submits at `batchSize` token boundaries; `readbackInterval`
+Ordinary recorded batch decode submits at `batchSize` token boundaries; `readbackInterval`
 groups those batches before token readback but never merges them into one
 unbounded command buffer. Resources stay owned until the grouped work completes,
 including aborts after a submitted prefix. Execution statistics count actual
 submissions; submit latency covers the final submission through completion.
 Earlier submissions may execute during host recording; full decode wall time
 includes both, without subtracting overlapped recording twice.
+
+Whole-token replay windows are a separate transport: `batchSize` bounds queued
+sequential greedy steps with GPU token feedback and per-token readbacks. They
+require batch stop checking, sequential readback with interval one, and
+checkpointable contiguous state. The window ramps with completed decode steps;
+early termination drains queued work and restores/replays the published prefix.
+See [the runtime contract](../config.md#whole-token-replay-windows).
 
 ## Category Rules
 

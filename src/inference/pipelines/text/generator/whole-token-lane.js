@@ -2,6 +2,8 @@ import { getDevice } from '../../../../gpu/device.js';
 import { isGreedySampling } from '../../../../rules/greedy-sampling.js';
 import { FINITENESS_RESET_WORDS, FinitenessError, parseFinitenessStatusWords } from '../finiteness-guard-status.js';
 import { advanceDecodeStepCount } from '../tsir-fixture-writer.js';
+import { checkpointLinearAttentionRuntime } from '../linear-attention/state-checkpoint.js';
+import { resolveActiveExecutionPlan } from '../execution-plan.js';
 import { WholeTokenProgram } from './whole-token-program.js';
 
 // Whole-token program lane of single-token decode (decodeLoop.wholeTokenProgram):
@@ -139,7 +141,7 @@ export async function verifyWholeTokenProgramAhead(state, position, token, runRe
 
 /** @type {typeof import('./whole-token-lane.js').wholeTokenProgramRequested} */
 export function wholeTokenProgramRequested(state, opts) {
-  const session = /** @type {{ decodeLoop?: { wholeTokenProgram?: unknown } }} */ (
+  const session = /** @type {{ decodeLoop?: { wholeTokenProgram?: unknown, batchSize?: number, stopCheckMode?: string, readbackInterval?: number, readbackMode?: string } }} */ (
     state.resolvedRuntimeSession?.runtime?.session ?? state.runtimeConfig.inference.session);
   const requested = session.decodeLoop?.wholeTokenProgram ?? false;
   if (requested !== true && requested !== false) {
@@ -147,6 +149,17 @@ export function wholeTokenProgramRequested(state, opts) {
   }
   if (!requested) return false;
   const blockers = [];
+  const batchSize = session.decodeLoop?.batchSize;
+  if (typeof batchSize === 'number' && batchSize > 1 && (state.kvCache?.layout !== 'contiguous' || state.convLayerStates.size || ('modelPartition' in state && state.modelPartition != null))) {
+    blockers.push('batch replay without contiguous whole-model checkpointable state');
+  }
+  if (typeof batchSize === 'number' && batchSize > 1 && session.decodeLoop?.stopCheckMode !== 'batch') blockers.push('batch replay without stopCheckMode=batch');
+  if (typeof batchSize === 'number' && batchSize > 1
+    && (session.decodeLoop?.readbackInterval !== 1 || session.decodeLoop?.readbackMode !== 'sequential')) {
+    blockers.push('batch replay without sequential per-token readback');
+  }
+  if (typeof batchSize === 'number' && batchSize > 1 && state.executionPlanState
+    && resolveActiveExecutionPlan(state.executionPlanState).finitenessGuardEnabled) blockers.push('batch replay with active finiteness fallback');
   if (opts.debug) blockers.push('debug');
   if (opts.profile) blockers.push('profile');
   if (opts.executionObserver) blockers.push('executionObserver');
@@ -231,19 +244,123 @@ export async function decodeWholeTokenStep(state, currentIds, runRecorded) {
   advanceDecodeStepCount(state);
   if (state.finitenessBuffer) getDevice()?.queue.writeBuffer(state.finitenessBuffer, 0, FINITENESS_RESET_WORDS);
   const words = await program.run(pos, lastToken);
-  const next = words[0];
-  if (state.finitenessBuffer) {
-    const finitenessStatus = parseFinitenessStatusWords(words, 1);
-    if (finitenessStatus.triggered) {
-      throw new FinitenessError(`F16 bounds exceeded during generation${finitenessStatus.metadata}`);
-    }
-  }
+  const next = validateWholeTokenResult(state, words);
   applySequenceAdvance(state, lane.advancers ?? [], pos);
   state.currentSeqLen = pos + 1;
   state.stats.wholeTokenProgram = { ...program.stats, dispatches: program.dispatchCount };
   state.stats.wholeTokenProgramWallMs = (state.stats.wholeTokenProgramWallMs ?? 0) + (performance.now() - wallStart);
-  if (next >= (state.modelConfig?.vocabSize ?? 0)) {
-    throw new Error(`[WholeTokenProgram] Sampled token ${next} is outside the vocabulary.`);
-  }
   return next;
+}
+
+/** @param {PipelineState} state @param {Uint32Array} words */
+function validateWholeTokenResult(state, words) {
+  if (state.finitenessBuffer) {
+    const status = parseFinitenessStatusWords(words, 1);
+    if (status.triggered) throw new FinitenessError(`F16 bounds exceeded during generation${status.metadata}`);
+  }
+  const token = words[0];
+  if (token >= (state.modelConfig?.vocabSize ?? 0)) throw new Error(`[WholeTokenProgram] Sampled token ${token} is outside the vocabulary.`);
+  return token;
+}
+
+/**
+ * Own tentative sequential GPU steps until the consumer publishes a prefix.
+ * Returning early (EOS, stop sequence, abort, generator.return or callback error)
+ * restores KV/recurrent state and replays exactly that prefix with the same program.
+ * @type {typeof import('./whole-token-lane.js').prepareWholeTokenBatch}
+ */
+export async function prepareWholeTokenBatch(state, currentIds, requestedCount) {
+  const lane = state.wholeTokenProgram, pos = state.currentSeqLen;
+  if (!lane?.program.ready || lane.program.awaitingVerification
+    || (state.decodeStepCount === 0 && lane.verifiedAhead !== pos)) return null;
+  const { program } = lane;
+  const reason = program.rejects(pos, wholeTokenIdentity(state));
+  if (reason !== null) { program.invalidate(reason); return null; }
+  // The configured size is a ceiling. Start with ordinary token delivery, then
+  // grow the readback window no faster than the tokens already decoded.
+  const count = Math.min(requestedCount, state.decodeStepCount, program.positionRange.max - pos + 1);
+  if (count < 2) return null;
+  const cache = state.kvCache;
+  if (!cache || cache.layout !== 'contiguous' || state.convLayerStates.size || ('modelPartition' in state && state.modelPartition != null)) {
+    throw new Error('[WholeTokenProgram] Batch requires contiguous whole-model checkpointable state.');
+  }
+  const device = getDevice();
+  if (!device) throw new Error('[WholeTokenProgram] Batch requires a live GPU device.');
+  const wallStart = performance.now(), initialToken = currentIds[currentIds.length - 1];
+  const advancers = lane.advancers ?? [], before = advancers.map(({ owner }) => owner.seqLen);
+  const initialSteps = state.decodeStepCount;
+  const initialSubmissions = program.stats.replaySubmissions;
+  const snapshot = state.linearAttentionRuntime
+    ? await checkpointLinearAttentionRuntime(state.linearAttentionRuntime) : null;
+  let published = 0, closed = false, checkpointSubmissions = snapshot ? 1 : 0;
+  /** @type {number[]} */
+  let tokens = [];
+  const restore = async () => {
+    if (snapshot) { await snapshot.restore(); checkpointSubmissions++; }
+    cache.truncate(pos);
+    for (let i = 0; i < advancers.length; i++) advancers[i].owner.seqLen = before[i];
+    state.currentSeqLen = pos; state.decodeStepCount = initialSteps; published = 0;
+    program.resumeAfterRestore(pos);
+    if (state.finitenessBuffer) device.queue.writeBuffer(state.finitenessBuffer, 0, FINITENESS_RESET_WORDS);
+  };
+  const advance = () => {
+    advanceDecodeStepCount(state);
+    applySequenceAdvance(state, advancers, pos + published);
+    state.currentSeqLen = pos + ++published;
+  };
+  const close = () => {
+    if (closed) return;
+    closed = true; snapshot?.close();
+    state.batchingStats.totalBatchedTimeMs += performance.now() - wallStart;
+    state.batchingStats.gpuSubmissions += program.stats.replaySubmissions - initialSubmissions + checkpointSubmissions;
+    state.batchingStats.resolvedBatchTokens = (state.batchingStats.resolvedBatchTokens ?? 0) + published;
+    state.stats.wholeTokenProgram = { ...program.stats, dispatches: program.dispatchCount };
+    state.stats.wholeTokenProgramWallMs = (state.stats.wholeTokenProgramWallMs ?? 0) + performance.now() - wallStart;
+  };
+  try {
+    const stream = await program.startBatch(pos, initialToken, count);
+    const tokensFromGPU = (async function* () {
+      for await (const words of stream.rows) {
+        const token = validateWholeTokenResult(state, words);
+        tokens.push(token); yield token;
+      }
+    })();
+    lane.verifiedAhead = null;
+    state.batchingStats.batchedForwardCalls += 1;
+    state.stats.decodeMode = 'batched_gpu'; state.stats.batchGuardReason = null;
+    state.batchingStats.requestedBatchTokens = Math.max(state.batchingStats.requestedBatchTokens ?? 0, requestedCount);
+    state.batchingStats.effectiveBatchTokens = Math.max(state.batchingStats.effectiveBatchTokens ?? 0, count);
+    return {
+      tokens: tokensFromGPU,
+      publish() {
+        if (closed || published >= tokens.length) throw new Error('[WholeTokenProgram] Invalid batch publication.');
+        advance();
+      },
+      async settle() {
+        if (closed) return;
+        try {
+          await stream.settle();
+          state.batchingStats.executedBatchTokens = (state.batchingStats.executedBatchTokens ?? 0) + count;
+          if (published !== count) {
+            const accepted = published;
+            await restore(); published = 0;
+            for (let index = 0; index < accepted; index++) {
+              const words = await program.run(pos + index, index ? tokens[index - 1] : initialToken);
+              if (validateWholeTokenResult(state, words) !== tokens[index]) throw new Error('[WholeTokenProgram] Restored prefix changed its sampled token.');
+              advance();
+            }
+          }
+        } catch (error) {
+          try { await restore(); }
+          catch (settlement) { throw new AggregateError([error, settlement], 'Whole-token prefix replay and state recovery failed.'); }
+          throw error;
+        } finally { close(); }
+      },
+    };
+  } catch (error) {
+    try { await restore(); }
+    catch (settlement) { throw new AggregateError([error, settlement], 'Whole-token batch and state recovery failed.'); }
+    finally { close(); }
+    throw error;
+  }
 }

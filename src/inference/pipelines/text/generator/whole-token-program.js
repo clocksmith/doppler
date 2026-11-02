@@ -126,7 +126,7 @@ export class WholeTokenProgram {
   }
 
   static #freshStats() {
-    return { observedSteps: 0, replayedTokens: 0, restarts: 0, invalidations: 0, reused: false, verifiedAhead: false,
+    return { observedSteps: 0, replayedTokens: 0, replaySubmissions: 0, batchReadbacks: 0, restarts: 0, invalidations: 0, reused: false, verifiedAhead: false,
       lastInvalidation: /** @type {string | null} */ (null) };
   }
 
@@ -529,14 +529,25 @@ export class WholeTokenProgram {
   /**
    * @param {number} pos
    * @param {number} stagingIndex
+   * @param {{ staging: GPUBuffer, offset: number, feedback: GPUBuffer | null, saveFeedback: GPUBuffer } | null} batch
    * @returns {EncodedToken}
    */
-  #encode(pos, stagingIndex) {
+  #encode(pos, stagingIndex, batch = null) {
     const encoder = this.device.createCommandEncoder({ label: `whole_token_${pos}` });
     /** @type {GPUComputePassEncoder | null} */
     let pass = null;
     /** @type {GPUComputePipeline | null} */
     let lastPipeline = null;
+    if (batch?.feedback) {
+      for (const field of this.dynamicUniformWords) {
+        if (field.model.kind === 'token') encoder.copyBufferToBuffer(batch.feedback, 0, this.uniformBuffer, field.index * U32, U32);
+      }
+      for (const write of this.writes) {
+        for (const field of write.dynamic) {
+          if (field.model.kind === 'token') encoder.copyBufferToBuffer(batch.feedback, 0, write.buffer, write.offset + field.word * U32, U32);
+        }
+      }
+    }
     for (const step of this.steps) {
       if (step.kind === 'copy' || step.kind === 'clear') {
         if (pass) { pass.end(); pass = null; lastPipeline = null; }
@@ -554,8 +565,13 @@ export class WholeTokenProgram {
       else pass.dispatchWorkgroupsIndirect(step.indirect, step.indirectOffset);
     }
     if (pass) pass.end();
-    const staging = this.staging[stagingIndex];
-    for (const c of this.readback) encoder.copyBufferToBuffer(c.src, c.srcOffset, staging, c.dstOffset, c.size);
+    const staging = batch?.staging ?? this.staging[stagingIndex];
+    if (batch?.saveFeedback) {
+      const sample = this.readback.find(copy => copy.dstOffset === 0);
+      if (!sample || sample.size < U32) throw new Error('[WholeTokenProgram] Missing declared sampled-token readback.');
+      encoder.copyBufferToBuffer(sample.src, sample.srcOffset, batch.saveFeedback, 0, U32);
+    }
+    for (const c of this.readback) encoder.copyBufferToBuffer(c.src, c.srcOffset, staging, (batch?.offset ?? 0) + c.dstOffset, c.size);
     return { pos, staging, commandBuffer: encoder.finish() };
   }
 
@@ -593,7 +609,7 @@ export class WholeTokenProgram {
     const job = pending ?? this.#encode(pos, this.stagingIndex);
     this.#writeInputs(pos, token);
     this.device.queue.writeBuffer(job.staging, 0, NO_TOKEN);
-    this.device.queue.submit([job.commandBuffer]);
+    this.device.queue.submit([job.commandBuffer]); this.stats.replaySubmissions++;
     const mapped = job.staging.mapAsync(GPUMapMode.READ, 0, this.staging[0].size);
     this.stagingIndex = this.staging.indexOf(job.staging) ^ 1;
     this.pending = this.#encode(pos + 1, this.stagingIndex);
@@ -606,6 +622,100 @@ export class WholeTokenProgram {
     this.nextPos = pos + 1;
     this.stats.replayedTokens++;
     return words;
+  }
+
+  /**
+   * Queue exact sequential steps with GPU token feedback. Each staging buffer is
+   * mapped immediately after its own submit, so tokens can stream while later
+   * steps execute. The owner must settle all queued work before restoring state.
+   * @param {number} pos
+   * @param {number} token
+   * @param {number} count
+   * @returns {Promise<import('./whole-token-program.js').WholeTokenBatchStream>}
+   */
+  async startBatch(pos, token, count) {
+    if (!this.ready || pos !== this.nextPos) throw new Error('[WholeTokenProgram] Batch cursor does not match a ready program.');
+    if (!Number.isSafeInteger(count) || count < 1 || !Number.isSafeInteger(pos + count - 1)
+      || pos < this.positionRange.min || pos + count - 1 > this.positionRange.max) {
+      throw new Error(`[WholeTokenProgram] Batch count ${count} at position ${pos} exceeds its declared position range [${this.positionRange.min}, ${this.positionRange.max}].`);
+    }
+    const tokenFields = this.dynamicUniformWords.filter(field => field.model.kind === 'token').length
+      + this.writes.reduce((n, write) => n + write.dynamic.filter(field => field.model.kind === 'token').length, 0);
+    if (!tokenFields) throw new Error('[WholeTokenProgram] Batch requires declared token input fields.');
+    const size = alignUp(this.readbackBytes, U32);
+    if (!Number.isSafeInteger(size * count) || size * count > this.device.limits.maxBufferSize) {
+      throw new Error('[WholeTokenProgram] Batch readback exceeds the device buffer limit.');
+    }
+    const feedback = this.device.createBuffer({ label: 'whole_token_batch_feedback', size: U32,
+      usage: GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST });
+    /** @type {GPUBuffer[]} */
+    const buffers = [];
+    /** @type {Promise<Uint32Array>[]} */
+    const reads = [];
+    let submitted = false;
+    const release = () => { for (const buffer of buffers) buffer.destroy(); feedback.destroy(); };
+    try {
+      this.pending = null;
+      for (let index = 0; index < count; index++) {
+        const staging = this.device.createBuffer({ label: `whole_token_batch_readback_${index}`, size,
+          usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+        buffers.push(staging);
+        this.device.queue.writeBuffer(staging, 0, NO_TOKEN);
+        const job = this.#encode(pos + index, 0, { staging, offset: 0,
+          feedback: index ? feedback : null, saveFeedback: feedback });
+        this.#writeInputs(pos + index, index ? 0 : token);
+        this.device.queue.submit([job.commandBuffer]); this.stats.replaySubmissions++; submitted = true;
+        reads.push(staging.mapAsync(GPUMapMode.READ, 0, size).then(() => {
+          this.stats.batchReadbacks++;
+          try {
+            const words = new Uint32Array(staging.getMappedRange(0, size)).slice(0, this.readbackBytes / U32);
+            if (words[0] === U32_MAX) throw new Error(`[WholeTokenProgram] Batch step ${index} wrote no sampled token.`);
+            this.stats.replayedTokens++;
+            return words;
+          } finally { staging.unmap(); }
+        }));
+      }
+    } catch (error) {
+      await Promise.allSettled(reads);
+      try { if (submitted) await this.device.queue.onSubmittedWorkDone(); }
+      finally { release(); }
+      throw error;
+    }
+    const completion = Promise.allSettled(reads);
+    /** @type {Promise<void> | null} */
+    let settlement = null;
+    return {
+      rows: (async function* () { for (const read of reads) yield await read; })(),
+      settle: () => settlement ??= (async () => {
+        const results = await completion;
+        try {
+          const failures = results.filter(result => result.status === 'rejected');
+          if (failures.length) {
+            await this.device.queue.onSubmittedWorkDone();
+            throw new AggregateError(failures.map(result => result.reason), '[WholeTokenProgram] Batched token readback failed.');
+          }
+          this.nextPos = pos + count;
+        } finally { release(); }
+      })(),
+    };
+  }
+
+  /** Collect a complete batch; streaming consumers use startBatch and settle in finally.
+   * @param {number} pos @param {number} token @param {number} count
+   * @returns {Promise<Uint32Array[]>} */
+  async runBatch(pos, token, count) {
+    const batch = await this.startBatch(pos, token, count);
+    try { const rows = []; for await (const row of batch.rows) rows.push(row); return rows; }
+    finally { await batch.settle(); }
+  }
+
+  /** Cursor change is legal only after the owning state checkpoint was restored.
+   * @param {number} pos */
+  resumeAfterRestore(pos) {
+    if (!this.ready || !Number.isSafeInteger(pos) || pos < this.positionRange.min || pos > this.positionRange.max) {
+      throw new Error('[WholeTokenProgram] Restored cursor is outside the prepared program.');
+    }
+    this.pending = null; this.nextPos = pos;
   }
 
   #unwatch() {

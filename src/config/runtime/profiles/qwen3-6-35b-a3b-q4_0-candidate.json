@@ -44,8 +44,8 @@
         "prefillTokenChunkSize": 2048,
         "prefillChunkSubmitMode": "async",
         "decodeLoop": {
-          "batchSize": 1,
-          "stopCheckMode": "per-token",
+          "batchSize": 32,
+          "stopCheckMode": "batch",
           "readbackInterval": 1,
           "readbackMode": "sequential",
           "submitLatencyThresholdMs": null,
@@ -63,7 +63,7 @@
         }
       },
       "generation": {
-        "disableMultiTokenDecode": true
+        "disableMultiTokenDecode": false
       },
       "kernelPath": {
         "id": "qwen-3-6-35b-a3b-text-source-q4_0-af32-native-decode-candidate-prefill-tile16",

@@ -28,7 +28,7 @@ function makeBuffer(label, size, usage) {
 function makeDevice() {
   const device = {
     dropNextSubmit: false,
-    limits: { minUniformBufferOffsetAlignment: 256 },
+    limits: { minUniformBufferOffsetAlignment: 256, maxBufferSize: 1 << 24 },
     createBuffer: ({ label, size, usage }) => makeBuffer(label, size, usage),
     createBindGroup: (desc) => ({ label: desc.label, entries: desc.entries }),
     createCommandEncoder() {
@@ -50,6 +50,7 @@ function makeDevice() {
       };
     },
     queue: {
+      async onSubmittedWorkDone() {},
       writeBuffer(buffer, offset, data, dataOffset = 0, size) {
         const elem = ArrayBuffer.isView(data) ? (data.BYTES_PER_ELEMENT ?? 1) : 1;
         const base = ArrayBuffer.isView(data) ? new Uint8Array(data.buffer, data.byteOffset, data.byteLength) : new Uint8Array(data);
@@ -353,6 +354,55 @@ async function observeStep(program, device, res, pos, token, options = {}, metho
   for (const pos of [20, 21, 22, 23]) await observeStep(program, device, res, pos, 42);
   program.beginGeneration();
   await assert.rejects(ahead(30, { submits: true }), /must stop before its submit/);
+  program.destroy();
+}
+
+
+// GPU feedback links each step to the preceding sampled token without CPU selection.
+{
+  const device = makeDevice(), res = makeModel(device), program = new WholeTokenProgram(device);
+  for (const pos of [10, 11, 12, 13]) await observeStep(program, device, res, pos, 42, { kvMax: 31 });
+  const result = await program.runBatch(14, 7, 4);
+  assert.deepEqual(result.map(row => row[0]), [14007, 29007, 45007, 62007]);
+  for (let i = 0; i < 4; i++) assert.equal(word(res.kv, (14 + i) * 4), result[i][0]);
+  assert.equal((await program.run(18, 3))[0], 18003);
+  await assert.rejects(program.runBatch(19, 1, 14), /declared position range/);
+  assert.equal((await program.run(19, 5))[0], 19005);
+  program.resumeAfterRestore(14);
+  device.dropNextSubmit = true;
+  await assert.rejects(program.runBatch(14, 7, 2), /Batched token readback failed/);
+  program.destroy();
+}
+
+// A readback for an early step can be delivered while later readbacks remain pending.
+// Settlement retains every GPU resource until all queued steps have completed.
+{
+  const device = makeDevice(), res = makeModel(device), program = new WholeTokenProgram(device);
+  for (const pos of [10,11,12,13]) await observeStep(program, device, res, pos, 42, { kvMax: 31 });
+  const create = device.createBuffer, resolve = [], resources = [];
+  device.createBuffer = descriptor => {
+    const buffer = create(descriptor);
+    if (descriptor.label.startsWith('whole_token_batch_')) {
+      resources.push(buffer); buffer.destroyCount = 0; buffer.destroy = () => buffer.destroyCount++;
+      if (descriptor.label.includes('readback')) buffer.mapAsync = () => new Promise(done => resolve.push(done));
+    }
+    return buffer;
+  };
+  const batch = await program.startBatch(14,7,4), stream = batch.rows[Symbol.asyncIterator]();
+  assert.equal(resolve.length,4);
+  const first = stream.next(); resolve[0]();
+  assert.equal((await first).value[0],14007);
+  await stream.return();
+  let finished = false;
+  const done = batch.settle().then(() => { finished = true; });
+  await Promise.resolve(); assert.equal(finished,false);
+  assert.ok(resources.every(resource => resource.destroyCount === 0));
+  for (const release of resolve.slice(1)) release();
+  await done; await batch.settle();
+  assert.ok(resources.every(resource => resource.destroyCount === 1));
+  assert.equal(program.stats.batchReadbacks,4);
+  assert.equal(program.stats.replayedTokens,4);
+  assert.equal((await program.run(18,3))[0],18003);
   program.destroy();
 }
 
