@@ -1,0 +1,73 @@
+{
+  "scope": "CPU-only independent interval09 harness qualification; no GPU/browser/model imports executed",
+  "timeUTC": "2026-10-31T00:09:32.898066+00:00",
+  "environment": {
+    "os": "Linux-6.8.0-90-generic-x86_64-with-glibc2.39",
+    "node": "v22.21.0"
+  },
+  "directory": "/home/clocksmith/deco/doppler/.codex-interval09-21dmejc8",
+  "files": {
+    "after/balanced-protocol.js": "9e5ddfe61301739c05e2b5cf1bb8dd5e795eeeb395f9ec1a65cfa4e071bbed4b",
+    "after/balanced-protocol.test.js": "d3028d429a2f26d13959f07aa2d06e5665d502d1a66f000ac9f2fdef16b68cea",
+    "after/balanced-run.js": "335633140938302675f458431eba8af7d3c6ac4976616b58eb04775953388b57",
+    "before/balanced-protocol.js": "ac6bdb240b2a1419a35f315ff38cefd528cee00d3a382188daf906b9adbbf758",
+    "before/interval-baseline-regression.test.js": "d3028d429a2f26d13959f07aa2d06e5665d502d1a66f000ac9f2fdef16b68cea"
+  },
+  "tests": [
+    {
+      "id": "baseline-regression",
+      "command": [
+        "/usr/bin/node",
+        "before/interval-baseline-regression.test.js"
+      ],
+      "startedUTC": "2026-10-31T00:09:32.787891+00:00",
+      "exitCode": 1,
+      "expectedPass": false,
+      "passed": true,
+      "stdout": "balanced protocol: both numerical gates, all quality before timing, sequential AB/BA, exact128 and distinct denominators passed\n",
+      "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Session precision/cache contract mismatch\n+ actual - expected\n\n  {\n    decodeLoop: {\n      batchSize: 1,\n+     layerSubmitInterval: 1\n-     layerSubmitInterval: null\n    }\n  }\n\n    at same (file:///home/clocksmith/deco/doppler/.codex-interval09-21dmejc8/before/balanced-protocol.js:5:52)\n    at validatePair (file:///home/clocksmith/deco/doppler/.codex-interval09-21dmejc8/before/balanced-protocol.js:78:5)\n    at file:///home/clocksmith/deco/doppler/.codex-interval09-21dmejc8/before/interval-baseline-regression.test.js:94:1 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: { decodeLoop: { layerSubmitInterval: 1, batchSize: 1 } },\n  expected: { decodeLoop: { layerSubmitInterval: null, batchSize: 1 } },\n  operator: 'deepStrictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.21.0\n"
+    },
+    {
+      "id": "protocol",
+      "command": [
+        "/usr/bin/node",
+        "after/balanced-protocol.test.js"
+      ],
+      "startedUTC": "2026-10-31T00:09:32.825130+00:00",
+      "exitCode": 0,
+      "expectedPass": true,
+      "passed": true,
+      "stdout": "balanced protocol: both numerical gates, all quality before timing, sequential AB/BA, exact128 and distinct denominators passed\ninterval isolation: explicit null/1, source equality, strict remaining config and READY semantics passed\n",
+      "stderr": ""
+    },
+    {
+      "id": "protocol-syntax",
+      "command": [
+        "/usr/bin/node",
+        "--check",
+        "after/balanced-protocol.js"
+      ],
+      "startedUTC": "2026-10-31T00:09:32.864726+00:00",
+      "exitCode": 0,
+      "expectedPass": true,
+      "passed": true,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "id": "runner-syntax",
+      "command": [
+        "/usr/bin/node",
+        "--check",
+        "after/balanced-run.js"
+      ],
+      "startedUTC": "2026-10-31T00:09:32.881343+00:00",
+      "exitCode": 0,
+      "expectedPass": true,
+      "passed": true,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "passed": true
+}
