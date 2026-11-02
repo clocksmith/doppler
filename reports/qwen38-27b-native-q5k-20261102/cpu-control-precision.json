@@ -1,0 +1,53 @@
+{
+  "scope": "Evidence-only independently implemented CPU full-logit reference, teacher-forced with retained Doppler tokens; no performance claim.",
+  "llamaSource": "f4884293809b5227d7307140a942f1bc4176a603",
+  "compiler": "g++ (Ubuntu 15.2.0-16ubuntu1) 15.2.0",
+  "cacheDtypes": {
+    "K": "f32",
+    "V": "f32"
+  },
+  "offload": false,
+  "threads": 8,
+  "batch": 256,
+  "context": 4096,
+  "observedOutputs": 124,
+  "files": [
+    {
+      "path": "llama27-native-logits-reference.cpp",
+      "sha256": "15e1825f3ceea9e6f7f55e5fc17306787abefaf51de554c99457b35775785899"
+    },
+    {
+      "path": "llama27-native-logits-reference",
+      "sha256": "6f0e391cc370bafbecd4cecf9b9210de6d24cead307e8dcfd5a5449bace4d319"
+    },
+    {
+      "path": "llama27-native-logits-reference-build.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "base-only-reference-byte-preservation.json",
+      "sha256": "4234e40b2b34650f501d096ee4d3374321240b4104dd0f9c02c4db5638a42cf8"
+    },
+    {
+      "path": "native-logit-fixtures/long-prompt.i32",
+      "sha256": "41417cc7386cdd36c9ba6170d2dbd00a87ba0eee7b7eab7dc6bba909094b7b5d"
+    },
+    {
+      "path": "native-logit-fixtures/long-forced.i32",
+      "sha256": "77a718780f5eedc4f1b263745f6da2521891b046601d27d1cf789357f1bf6909"
+    }
+  ],
+  "activationArithmetic": "GGML native Q4_0 dot Q8_0 and Q5_K/Q6_K dot Q8_K quantize activations; cache f32 does not make projections F32-activation arithmetic",
+  "eligibleForF32ActivationNumericalGate": false,
+  "sourceEvidence": {
+    "revision": "f4884293809b5227d7307140a942f1bc4176a603",
+    "file": "ggml/src/ggml-cpu/ggml-cpu.c",
+    "lines": [
+      220,
+      295,
+      1241,
+      1242,
+      1294
+    ]
+  }
+}

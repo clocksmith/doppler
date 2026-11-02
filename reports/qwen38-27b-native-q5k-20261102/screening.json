@@ -1,0 +1,213 @@
+{
+  "scope": "Exploratory isolated tuning screens only. One warmup and one measured request per task; not a statistical or matched-quality speed claim. Baseline had idle Pooled context resident; candidate runs held Doppler alone. Repeat controlled paired comparisons before promotion.",
+  "baselineCrossEngine": {
+    "scope": "Exploratory native-serving screen, one measured pair per prompt; not a statistical win or matched-materialization qualification.",
+    "sourceCommitLabelCorrection": "Input config inherited b964bd5 from earlier benchmark. Actual frozen source-q5k-capability-02 includes f252dde95 plus retained native-Q5_K and loader edits; capability-02-source-files.json records source identity.",
+    "rows": [
+      {
+        "task": "short",
+        "repeat": 0,
+        "warmup": true,
+        "inputTokens": 28,
+        "dopplerMs": 33846.5,
+        "pooledMs": 7018,
+        "dopplerPrefillMs": 1782.5999999977648,
+        "pooledPrefillMs": 675.9000000022352,
+        "sameTokens": true,
+        "firstDifferentToken": null
+      },
+      {
+        "task": "short",
+        "repeat": 1,
+        "warmup": false,
+        "inputTokens": 28,
+        "dopplerMs": 33862.10000000149,
+        "pooledMs": 7075.099999997765,
+        "dopplerPrefillMs": 1004.6999999992549,
+        "pooledPrefillMs": 600.0999999977648,
+        "sameTokens": true,
+        "firstDifferentToken": null
+      },
+      {
+        "task": "long",
+        "repeat": 0,
+        "warmup": true,
+        "inputTokens": 2287,
+        "dopplerMs": 107897.70000000298,
+        "pooledMs": 28777.400000002235,
+        "dopplerPrefillMs": 72297.5,
+        "pooledPrefillMs": 22230.10000000149,
+        "sameTokens": false,
+        "firstDifferentToken": 122
+      },
+      {
+        "task": "long",
+        "repeat": 1,
+        "warmup": false,
+        "inputTokens": 2287,
+        "dopplerMs": 108046.19999999925,
+        "pooledMs": 28677.79999999702,
+        "dopplerPrefillMs": 72387.90000000224,
+        "pooledPrefillMs": 22176.89999999851,
+        "sameTokens": false,
+        "firstDifferentToken": 122
+      }
+    ]
+  },
+  "rows": [
+    {
+      "run": "27b-native-serving-baseline-01",
+      "task": "short",
+      "repeat": 0,
+      "warmup": true,
+      "inputTokens": 28,
+      "outputTokens": 128,
+      "prefillMs": 1782.5999999977648,
+      "completeMs": 33846.5,
+      "exactBaselineTokenParity": true
+    },
+    {
+      "run": "27b-native-serving-baseline-01",
+      "task": "short",
+      "repeat": 1,
+      "warmup": false,
+      "inputTokens": 28,
+      "outputTokens": 128,
+      "prefillMs": 1004.6999999992549,
+      "completeMs": 33862.10000000149,
+      "exactBaselineTokenParity": true
+    },
+    {
+      "run": "27b-native-serving-baseline-01",
+      "task": "long",
+      "repeat": 0,
+      "warmup": true,
+      "inputTokens": 2287,
+      "outputTokens": 128,
+      "prefillMs": 72297.5,
+      "completeMs": 107897.70000000298,
+      "exactBaselineTokenParity": true
+    },
+    {
+      "run": "27b-native-serving-baseline-01",
+      "task": "long",
+      "repeat": 1,
+      "warmup": false,
+      "inputTokens": 2287,
+      "outputTokens": 128,
+      "prefillMs": 72387.90000000224,
+      "completeMs": 108046.19999999925,
+      "exactBaselineTokenParity": true
+    },
+    {
+      "run": "27b-pair-decode-screen-01",
+      "task": "short",
+      "repeat": 0,
+      "warmup": true,
+      "inputTokens": 28,
+      "outputTokens": 128,
+      "prefillMs": 1657.6000000014901,
+      "completeMs": 18889.89999999851,
+      "exactBaselineTokenParity": true
+    },
+    {
+      "run": "27b-pair-decode-screen-01",
+      "task": "short",
+      "repeat": 1,
+      "warmup": false,
+      "inputTokens": 28,
+      "outputTokens": 128,
+      "prefillMs": 997.8000000007451,
+      "completeMs": 17933,
+      "exactBaselineTokenParity": true
+    },
+    {
+      "run": "27b-pair-decode-screen-01",
+      "task": "long",
+      "repeat": 0,
+      "warmup": true,
+      "inputTokens": 2287,
+      "outputTokens": 128,
+      "prefillMs": 71980.80000000075,
+      "completeMs": 92290,
+      "exactBaselineTokenParity": true
+    },
+    {
+      "run": "27b-pair-decode-screen-01",
+      "task": "long",
+      "repeat": 1,
+      "warmup": false,
+      "inputTokens": 2287,
+      "outputTokens": 128,
+      "prefillMs": 72106.30000000075,
+      "completeMs": 92303.29999999702,
+      "exactBaselineTokenParity": true
+    },
+    {
+      "run": "27b-tile64-prefill-screen-01",
+      "task": "short",
+      "repeat": 0,
+      "warmup": true,
+      "inputTokens": 28,
+      "outputTokens": 128,
+      "prefillMs": 1607,
+      "completeMs": 33776.20000000298,
+      "exactBaselineTokenParity": true
+    },
+    {
+      "run": "27b-tile64-prefill-screen-01",
+      "task": "short",
+      "repeat": 1,
+      "warmup": false,
+      "inputTokens": 28,
+      "outputTokens": 128,
+      "prefillMs": 833.2999999970198,
+      "completeMs": 33661.20000000298,
+      "exactBaselineTokenParity": true
+    },
+    {
+      "run": "27b-tile64-prefill-screen-01",
+      "task": "long",
+      "repeat": 0,
+      "warmup": true,
+      "inputTokens": 2287,
+      "outputTokens": 128,
+      "prefillMs": 40496.300000000745,
+      "completeMs": 75878.5,
+      "exactBaselineTokenParity": true
+    },
+    {
+      "run": "27b-tile64-prefill-screen-01",
+      "task": "long",
+      "repeat": 1,
+      "warmup": false,
+      "inputTokens": 2287,
+      "outputTokens": 128,
+      "prefillMs": 40562.800000000745,
+      "completeMs": 75880.79999999702,
+      "exactBaselineTokenParity": true
+    },
+    {
+      "run": "27b-pair-whole-screen-01",
+      "task": "short",
+      "repeat": 0,
+      "warmup": true,
+      "inputTokens": 28,
+      "outputTokens": 128,
+      "prefillMs": 1730.0999999977648,
+      "completeMs": 15918.400000002235,
+      "exactBaselineTokenParity": true
+    },
+    {
+      "run": "27b-pair-whole-screen-01",
+      "task": "short",
+      "repeat": 1,
+      "warmup": false,
+      "inputTokens": 28,
+      "outputTokens": 128,
+      "prefillMs": 998.1000000014901,
+      "completeMs": 14976.699999999255,
+      "exactBaselineTokenParity": true
+    }
+  ]
+}

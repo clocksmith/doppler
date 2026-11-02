@@ -1,0 +1,14 @@
+{
+  "scope": "Separate immutable metadata derivative after removing one trailing empty WGSL line; no instructions or weight bytes changed. Original artifact and frozen timing source retained.",
+  "method": "tools/refresh-converted-manifest.js with current conversion recipe; full shard checks enabled",
+  "source": "/run/media/x/deco-backup/doppler-shared-platform-20261102/27b-native-01",
+  "target": "/run/media/x/deco-backup/doppler-shared-platform-20261102/27b-native-02",
+  "tensorsIdentical": true,
+  "shardExtentsAndSHA256Identical": true,
+  "dataFilesHardlinked": true,
+  "oldShaderSHA256": "5613bc5b48c8b76834ce08789ee98fb07aa13c00350bb1b6a95e37560525633e",
+  "currentShaderSHA256": "38fbaa222a482b00676901c50ae4058f87ce0b8762f7f9cf857180f181f71d19",
+  "oldManifestSHA256": "22f8a10568cf71c66ca065f68fcf6eebf535741e42dc0eaf9b651ba9b917e124",
+  "currentManifestSHA256": "ab85e1a5b63fe3d4294172fa6f05d49e11982c1bb3f206a25f6acf4854b922d7",
+  "currentSourceInventory": "current-03-source-files.json"
+}

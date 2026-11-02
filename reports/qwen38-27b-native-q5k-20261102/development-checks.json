@@ -1,0 +1,120 @@
+[
+  {
+    "command": [
+      "npm",
+      "run",
+      "typecheck:source"
+    ],
+    "exitCode": 0,
+    "seconds": 3.6071748409995052,
+    "log": "final-check-00.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "onboarding:check"
+    ],
+    "exitCode": 0,
+    "seconds": 0.4314813669989235,
+    "log": "final-check-01.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "source:style:check"
+    ],
+    "exitCode": 0,
+    "seconds": 3.328235285000119,
+    "log": "final-check-02.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "kernels:uniforms:check"
+    ],
+    "exitCode": 0,
+    "seconds": 0.8340700189983181,
+    "log": "final-check-03.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "kernels:digests:check"
+    ],
+    "exitCode": 0,
+    "seconds": 0.32742237899947213,
+    "log": "final-check-04.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "kernels:registry:check"
+    ],
+    "exitCode": 0,
+    "seconds": 0.6320746320016042,
+    "log": "final-check-05.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "config:single-source:check"
+    ],
+    "exitCode": 0,
+    "seconds": 0.4016139600025781,
+    "log": "final-check-06.log"
+  },
+  {
+    "command": [
+      "node",
+      "tests/config/native-decode-candidate.test.js"
+    ],
+    "exitCode": 0,
+    "seconds": 0.226962149998144,
+    "log": "final-check-07.log"
+  },
+  {
+    "command": [
+      "node",
+      "tests/loader/embedding-loader-limit.test.js"
+    ],
+    "exitCode": 0,
+    "seconds": 0.2191936099989107,
+    "log": "final-check-08.log"
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exitCode": 0,
+    "seconds": 0.0225720740018005,
+    "log": "final-check-09.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "kernels:digests:check"
+    ],
+    "exitCode": 0,
+    "scope": "After trailing empty line removal and canonical digest synchronization"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "kernels:conversion-digests:check",
+      "--",
+      "--file",
+      "src/config/conversion/qwen3/qwen3.8-27b-q4_0-passthrough.json"
+    ],
+    "exitCode": 0
+  }
+]

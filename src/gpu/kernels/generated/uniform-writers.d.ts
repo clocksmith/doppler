@@ -130,6 +130,8 @@ export interface KernelUniformValues {
   "matmul/q8_0_gemv": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q8_0_prefill": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q8_0_prefill_tile64": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q5k_gemv": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q5k_prefill": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q6k_gemv": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q6k_prefill": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q6k_prefill_tile64": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];

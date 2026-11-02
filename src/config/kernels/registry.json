@@ -8361,6 +8361,7 @@
        "qwen3/qwen-3-5-0-8b-canonical-f32",
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
       ],
@@ -9734,6 +9735,7 @@
       "status": "pinned",
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
       ],
@@ -9833,7 +9835,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough","qwen3/qwen3.8-27b-q4_0-passthrough"],
       "ruleChains": ["matmul.rules.json#q40Variant"],
       "wgslOnDisk": true
      }
@@ -10032,6 +10034,7 @@
       "status": "pinned",
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
       ],
@@ -10133,6 +10136,7 @@
       "status": "pinned",
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
       ],
@@ -10232,7 +10236,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough","qwen3/qwen3.8-27b-q4_0-passthrough"],
       "ruleChains": ["matmul.rules.json#q40Variant"],
       "wgslOnDisk": true
      }
@@ -10429,7 +10433,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough","qwen3/qwen3.8-27b-q4_0-passthrough"],
       "ruleChains": ["matmul.rules.json#q40Variant"],
       "wgslOnDisk": true
      }
@@ -10628,6 +10632,7 @@
       "status": "pinned",
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
       ],
@@ -10727,7 +10732,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough","qwen3/qwen3.8-27b-q4_0-passthrough"],
       "ruleChains": ["matmul.rules.json#q40Variant"],
       "wgslOnDisk": true
      }
@@ -10832,6 +10837,200 @@
       "wgslOnDisk": true
      }
     },
+    "q5k_gemv": {
+     "wgsl": "matmul_q5k.wgsl",
+     "entryPoint": "gemv",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "a_offset",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "b_row",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "c_offset",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q5k",
+     "outputDtype": "f32",
+     "sharedMemory": 2560,
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 4,
+      "THREADS_PER_COL_GEMV": 32,
+      "TILE_SIZE": 16,
+      "BLOCK_VALUES": 256,
+      "BLOCK_BYTES": 176,
+      "QUANT_FORMAT": 5
+     },
+     "variantMetadata": {
+      "q40Geometry": "gemv",
+      "dispatchGeometry": "column-row-tile",
+      "tileM": 1,
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen3.8-27b-q4_0-passthrough"],
+      "ruleChains": ["matmul.rules.json#q40Variant"],
+      "wgslOnDisk": true
+     }
+    },
+    "q5k_prefill": {
+     "wgsl": "matmul_q5k.wgsl",
+     "entryPoint": "prefill",
+     "workgroup": [16,16,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "a_offset",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "b_row",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "c_offset",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q5k",
+     "outputDtype": "f32",
+     "sharedMemory": 2560,
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 4,
+      "THREADS_PER_COL_GEMV": 32,
+      "TILE_SIZE": 16,
+      "BLOCK_VALUES": 256,
+      "BLOCK_BYTES": 176,
+      "QUANT_FORMAT": 5
+     },
+     "variantMetadata": {
+      "q40Geometry": "tiled",
+      "dispatchGeometry": "column-row-tile",
+      "tileM": 16,
+      "workgroupConstants": ["TILE_SIZE","TILE_SIZE",null]
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen3.8-27b-q4_0-passthrough"],
+      "ruleChains": ["matmul.rules.json#q40Variant"],
+      "wgslOnDisk": true
+     }
+    },
     "q6k_gemv": {
      "wgsl": "matmul_q4_0.wgsl",
      "entryPoint": "gemv",
@@ -10926,6 +11125,7 @@
       "status": "pinned",
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
       ],
@@ -11025,7 +11225,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough","qwen3/qwen3.8-27b-q4_0-passthrough"],
       "ruleChains": ["matmul.rules.json#q40Variant"],
       "wgslOnDisk": true
      }
@@ -13530,6 +13730,7 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
@@ -14284,6 +14485,7 @@
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
@@ -17252,6 +17454,7 @@
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
@@ -18718,6 +18921,7 @@
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
@@ -19037,6 +19241,7 @@
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
@@ -20607,6 +20812,7 @@
       "status": "pinned",
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
       ],
@@ -20682,6 +20888,7 @@
       "status": "pinned",
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
       ],
@@ -20757,6 +20964,7 @@
       "status": "pinned",
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
       ],
@@ -20832,6 +21040,7 @@
       "status": "pinned",
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
       ],
@@ -20907,6 +21116,7 @@
       "status": "pinned",
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
       ],
@@ -21323,6 +21533,7 @@
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
@@ -24135,6 +24346,7 @@
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
@@ -27089,6 +27301,7 @@
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
@@ -29001,7 +29214,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough","qwen3/qwen3.8-27b-q4_0-passthrough"],
       "ruleChains": ["gated-delta-recurrent.rules.json#scalarVariant"],
       "wgslOnDisk": true
      }

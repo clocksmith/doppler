@@ -55,4 +55,18 @@ assert.deepEqual(complete.postLayer[1], formats.postLayer[1]);
 assert.throws(() => buildNativeDecodeCandidate(formats, 40, [head, head], []), /Duplicate/);
 assert.throws(() => buildNativeDecodeCandidate(formats, 40, [{ ...head, variant: 'q8_0_cooperative' }], []), /storage/);
 assert.throws(() => buildNativeDecodeCandidate({ ...formats, postLayer: [formats.postLayer[0]] }, 40, [head], []), /lm_head_prefill/);
+const paired = buildNativeDecodeCandidate(path, 40,
+  [...selections.map(selection => ({ ...selection, variant: selection.variant.replace('_cooperative', '_pair') })),
+    { ...head, variant: 'q6k_pair' }], []).kernelPath;
+for (let i = 0; i < 40; i++) {
+  const step = getLayerSteps(paired, i, 'decode')[0];
+  const resolved = getKernelPathStepConfig('matmul', step, 'decode');
+  assert.equal(resolved.variantMetadata.q40Geometry, 'pair');
+  assert.equal(resolved.weightDtype, i % 2 ? 'q8_0' : 'q4_0');
+  assert.equal(step.weights, `layer.${i}.q`);
+  assert.deepEqual(getLayerSteps(paired, i, 'prefill'), getLayerSteps(path, i, 'prefill'));
+}
+assert.deepEqual(paired.postLayer[1], path.postLayer[1]);
+assert.throws(() => buildNativeDecodeCandidate(path, 40,
+  [{ ...selections[0], variant: 'q4_0_prefill_tile64' }], []), /storage/);
 console.log('native candidate preserves all effective layers, prefill, precision and residuals (CPU only)');

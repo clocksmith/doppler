@@ -21,6 +21,9 @@ const QUANT_TAG_ALIASES = {
   'q4-0': 'q4_0',
   'gguf-q4_0': 'q4_0',
   'gguf_q4_0': 'q4_0',
+  // Native Q5_K source storage (no new quantization encoder).
+  'q5_k': 'q5k',
+  'q5k': 'q5k',
   // Q6_K variants
   'q6_k': 'q6k',
   'q6k': 'q6k',
@@ -131,7 +134,7 @@ function validateQuantType(value, source) {
   if (!value) return;
   const normalized = normalizeQuantTag(value);
 
-  const supported = ['w8a8', 'q4k', 'q4_0', 'q4_1', 'q5_0', 'q6k', 'q8_0', 'w4a16', 'wna8o8', 'f16', 'bf16', 'f32', 'fp8e4', 'fp8e5'];
+  const supported = ['w8a8', 'q4k', 'q4_0', 'q4_1', 'q5_0', 'q5k', 'q6k', 'q8_0', 'w4a16', 'wna8o8', 'f16', 'bf16', 'f32', 'fp8e4', 'fp8e5'];
   if (supported.includes(normalized)) return;
 
   const planned = ['i4', 'i8'];
@@ -266,6 +269,7 @@ const MANIFEST_QUANT_NAMES = {
   'q5_0': 'Q5_0',
   'q8_0': 'Q8_0',
   'q6k': 'Q6_K',
+  'q5k': 'Q5_K',
   'w4a16': 'W4A16',
   'wna8o8': 'WNA8O8',
 };
@@ -572,6 +576,7 @@ const WEBGPU_DTYPE_NAMES = {
   'q5_0': 'Q5_0',
   'q8_0': 'Q8_0',
   'q6k': 'Q6_K',
+  'q5k': 'Q5_K',
   'w4a16': 'W4A16',
   'wna8o8': 'WNA8O8',
   // Manifests describe stored artifact truth, not the materialized shader type.
@@ -591,6 +596,7 @@ function normalizeStoredDtype(value) {
   if (upper === 'Q4_K' || upper === 'Q4_K_M') return 'q4k';
   if (upper === 'Q4_0') return 'q4_0';
   if (upper === 'Q6_K') return 'q6k';
+  if (upper === 'Q5_K') return 'q5k';
   if (upper === 'Q8_0') return 'q8_0';
   if (upper === 'W4A16') return 'w4a16';
   if (upper === 'WNA8O8') return 'wna8o8';

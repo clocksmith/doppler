@@ -39,7 +39,7 @@ export function buildNativeDecodeCandidate(kernelPath, numLayers, projections, s
     if (matches.length !== 1) throw new Error(`${key} requires one declared projection.`);
     const source = getKernelPathStepConfig('matmul', matches[0], 'decode');
     const target = getKernelConfig('matmul', variant);
-    if (!source || target.variantMetadata?.q40Geometry !== 'cooperative'
+    if (!source || !['cooperative', 'pair'].includes(target.variantMetadata?.q40Geometry)
       || source.weightDtype !== target.weightDtype || target.outputDtype !== 'f32'
       || source.outputDtype !== 'f32') throw new Error(`${key} must preserve actual native storage and F32 output.`);
     for (const field of ['activationDtype', 'inputDtype', 'outputDtype']) {

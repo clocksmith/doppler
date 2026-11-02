@@ -130,6 +130,8 @@ export const UNIFORM_WRITERS = Object.freeze({
   "matmul/q8_0_gemv": { size: 32, write: writers0.write_matmul_q4_0_cooperative },
   "matmul/q8_0_prefill": { size: 32, write: writers0.write_matmul_q4_0_cooperative },
   "matmul/q8_0_prefill_tile64": { size: 32, write: writers0.write_matmul_q4_0_cooperative },
+  "matmul/q5k_gemv": { size: 32, write: writers0.write_matmul_q4_0_cooperative },
+  "matmul/q5k_prefill": { size: 32, write: writers0.write_matmul_q4_0_cooperative },
   "matmul/q6k_gemv": { size: 32, write: writers0.write_matmul_q4_0_cooperative },
   "matmul/q6k_prefill": { size: 32, write: writers0.write_matmul_q4_0_cooperative },
   "matmul/q6k_prefill_tile64": { size: 32, write: writers0.write_matmul_q4_0_cooperative },

@@ -1,5 +1,6 @@
 {
   "gpuLoaderPath": [
+    { "match": { "dtype": "Q5_K" }, "value": "q40_packed" },
     { "match": { "dtype": "Q6_K", "representationMode": "packed-only" }, "value": "q40_packed" },
     { "match": { "dtype": { "in": ["Q4_0", "Q4_1", "Q5_0", "Q8_0"] } }, "value": "q40_packed" },
     { "match": { "dtype": { "in": ["FP8_E4M3FN", "FP8_E5M2"] } }, "value": "fp8_packed" },
@@ -39,6 +40,7 @@
     { "match": {}, "value": "float" }
   ],
   "cpuLoaderPath": [
+    { "match": { "dtype": "Q5_K" }, "value": "unsupported_packed_quantization" },
     { "match": { "dtype": { "in": ["FP8_E4M3FN", "FP8_E5M2"] } }, "value": "unsupported_packed_quantization" },
     { "match": { "dtype": "W8A8" }, "value": "unsupported_packed_quantization" },
     { "match": { "dtype": "FUNCTIONAL_DESCRIPTOR" }, "value": "unsupported_functional_descriptor" },

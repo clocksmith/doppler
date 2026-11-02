@@ -36,6 +36,7 @@ const SUPPORTED_SOURCE_DTYPES = new Set([
   'Q4_K',
   'Q4_K_M',
   'Q6_K',
+  'Q5_K',
 ]);
 
 const SOURCE_QUANT_COMPUTE_MAP = {
@@ -49,6 +50,7 @@ const SOURCE_QUANT_COMPUTE_MAP = {
   Q4_K: 'f32',
   Q4_K_M: 'f32',
   Q6_K: 'f32',
+  Q5_K: 'f32',
 };
 const SOURCE_COMPUTE_DEFAULT = 'f16';
 

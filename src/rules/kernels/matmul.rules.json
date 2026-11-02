@@ -517,6 +517,19 @@
   "q40Variant": [
     {
       "match": {
+        "weightDtype": "q5k",
+        "M": 1
+      },
+      "value": "q5k_gemv"
+    },
+    {
+      "match": {
+        "weightDtype": "q5k"
+      },
+      "value": "q5k_prefill"
+    },
+    {
+      "match": {
         "weightDtype": "q4_0",
         "M": 1
       },

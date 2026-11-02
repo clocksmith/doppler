@@ -1,0 +1,31 @@
+{
+  "passed": true,
+  "tensors": 851,
+  "checkedBytes": 15780284416,
+  "chunks": 2632,
+  "dtypes": {
+    "Q6_K": 1,
+    "F32": 449,
+    "Q4_0": 345,
+    "Q4_1": 8,
+    "Q5_K": 48
+  },
+  "excludedTensors": [
+    "blk.64.attn_k.weight",
+    "blk.64.attn_k_norm.weight",
+    "blk.64.attn_norm.weight",
+    "blk.64.attn_output.weight",
+    "blk.64.attn_q.weight",
+    "blk.64.attn_q_norm.weight",
+    "blk.64.attn_v.weight",
+    "blk.64.ffn_down.weight",
+    "blk.64.ffn_gate.weight",
+    "blk.64.ffn_up.weight",
+    "blk.64.nextn.eh_proj.weight",
+    "blk.64.nextn.enorm.weight",
+    "blk.64.nextn.hnorm.weight",
+    "blk.64.nextn.shared_head_norm.weight",
+    "blk.64.post_attention_norm.weight"
+  ],
+  "claimBoundary": "Direct GGUF-to-RDRR byte preservation only, not execution or model quality."
+}

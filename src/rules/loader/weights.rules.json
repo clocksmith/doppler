@@ -36,6 +36,16 @@
     }
   ],
   "matmulWeightDtype": [
+    { "match": { "locationDtype": "Q4_0" }, "value": "q4_0" },
+    { "match": { "locationDtype": "Q4_1" }, "value": "q4_1" },
+    { "match": { "locationDtype": "Q5_0" }, "value": "q5_0" },
+    { "match": { "locationDtype": "Q8_0" }, "value": "q8_0" },
+    {
+      "match": {
+        "locationDtype": "Q5_K"
+      },
+      "value": "q5k"
+    },
     {
       "match": {
         "locationDtype": "FP8_E4M3FN"

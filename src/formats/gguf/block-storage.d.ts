@@ -1,4 +1,4 @@
-export type GGUFBlockDtype = 'q4_0' | 'q4_1' | 'q5_0' | 'q8_0' | 'q6k';
+export type GGUFBlockDtype = 'q4_0' | 'q4_1' | 'q5_0' | 'q8_0' | 'q6k' | 'q5k';
 export interface GGUFBlockFormat { values: number; bytes: number; code: number; variant: GGUFBlockDtype; source: string }
 export declare const GGUF_BLOCK_SOURCE_DTYPES: readonly string[];
 export declare function isGgufBlockSourceDtype(dtype: unknown): boolean;
