@@ -2,3 +2,5 @@ export declare function onModelLoaded(model: unknown, modelId: string): void;
 export declare function runGeneration(): Promise<void>;
 export declare function stopGeneration(): void;
 export declare function loadSampleInspection(): Promise<void>;
+
+export declare function loadIllustrativeExample(): void;

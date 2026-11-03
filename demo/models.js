@@ -21,6 +21,16 @@ function modelLabel(entry) {
   return entry?.label || entry?.modelId || 'Unknown model';
 }
 
+function downloadSize(entry) {
+  const bytes = entry?.sizeBytes;
+  if (!Number.isFinite(bytes) || bytes < 0) return '';
+  return bytes >= 1e9 ? `${(bytes / 1e9).toFixed(1)} GB` : `${Math.ceil(bytes / 1e6)} MB`;
+}
+
+export function isChatModel(entry) {
+  return entry?.modes?.includes('text') === true && entry?.classification?.tasks?.includes('generation') === true;
+}
+
 function setStatus(text, busy = false) {
   const dot = $('status-dot');
   const label = $('status-text');
@@ -77,6 +87,12 @@ export function syncModelControls() {
   if (detail) {
     detail.textContent = entry ? buildModelCardDetail(entry) : '';
     detail.hidden = !detail.textContent;
+  }
+  const download = $('first-run-download');
+  if (download) {
+    const size = downloadSize(entry);
+    download.textContent = size ? `First run downloads about ${size}; cached in this browser when available.` : '';
+    download.hidden = Boolean(state.model) || !size;
   }
   const select = $('model-select');
   if (select) select.disabled = !catalog.length || busy;
@@ -222,7 +238,9 @@ export function canRemoveModelStatus(status) {
 
 export function buildModelCardDetail(entry) {
   const identity = entry?.modelId ?? '';
-  return modelLabel(entry) === identity ? '' : identity;
+  const size = downloadSize(entry);
+  return [modelLabel(entry) === identity ? '' : identity,
+    size ? `First run downloads about ${size}; cached in this browser when available.` : ''].filter(Boolean).join(' · ');
 }
 
 export function setModelCallbacks(callbacks = {}) {
@@ -232,7 +250,7 @@ export function setModelCallbacks(callbacks = {}) {
 
 export async function loadCatalog() {
   const entries = await dr.listModelDetails();
-  catalog = entries.map((entry) => ({ ...entry }));
+  catalog = entries.filter(isChatModel).map((entry) => ({ ...entry }));
   selectedModelId = catalog.find((entry) => entry.modelId === DEFAULT_DEMO_MODEL_ID)?.modelId ?? null;
   state.quickModelCatalog = catalog.map((entry) => ({ ...entry }));
   bindModelControls();
@@ -281,7 +299,7 @@ export function renderModelCards() {
     for (const entry of catalog) {
       const option = document.createElement('option');
       option.value = entry.modelId;
-      option.textContent = modelLabel(entry);
+      option.textContent = [modelLabel(entry), downloadSize(entry)].filter(Boolean).join(' · ');
       select.append(option);
     }
     select.disabled = catalog.length === 0;

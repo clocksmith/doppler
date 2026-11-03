@@ -5,7 +5,7 @@ import { syncModelControls } from './models.js';
 function $(id) { return document.getElementById(id); }
 
 const DEMO_DEFAULT_MAX_TOKENS = 256;
-const WORD_QUALITY_STORAGE_KEY = 'doppler.demo.word-quality-enabled';
+
 let onProfileChanged = null;
 
 const GENERATION_FIELDS = [
@@ -65,28 +65,6 @@ function writeField(el, value) {
     el.value = String(value);
   } else {
     el.value = '';
-  }
-}
-
-function readBooleanPreference(key) {
-  try {
-    if (typeof localStorage !== 'object') return null;
-    const value = localStorage.getItem(key);
-    if (value === 'true') return true;
-    if (value === 'false') return false;
-  } catch {
-    // UI preferences are optional.
-  }
-  return null;
-}
-
-function writeBooleanPreference(key, value) {
-  try {
-    if (typeof localStorage === 'object') {
-      localStorage.setItem(key, String(value === true));
-    }
-  } catch {
-    // UI preferences are optional.
   }
 }
 
@@ -159,7 +137,7 @@ function readGenerationSettings() {
 }
 
 export function getSettings() {
-  state.wordQualityEnabled = $('set-word-quality')?.checked ?? state.wordQualityEnabled;
+  state.wordQualityEnabled = false;
   for (const field of GENERATION_FIELDS) {
     const input = $(field.id);
     if (input && (!input.checkValidity() || field.parse(input.value) === undefined)) {
@@ -186,19 +164,6 @@ export function getSettings() {
 
 export async function initSettings({ requireDefaultProfile = false, onProfileChange = null } = {}) {
   onProfileChanged = onProfileChange;
-  const wordQualityToggle = $('set-word-quality');
-  if (wordQualityToggle) {
-    const savedWordQuality = readBooleanPreference(WORD_QUALITY_STORAGE_KEY);
-    if (savedWordQuality != null) {
-      wordQualityToggle.checked = savedWordQuality;
-    }
-    state.wordQualityEnabled = wordQualityToggle.checked;
-    wordQualityToggle.addEventListener('change', () => {
-      state.wordQualityEnabled = wordQualityToggle.checked;
-      writeBooleanPreference(WORD_QUALITY_STORAGE_KEY, wordQualityToggle.checked);
-    });
-  }
-
   $('set-profile')?.addEventListener('change', (e) => {
     void applyProfile(e.target.value);
   });

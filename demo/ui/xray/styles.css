@@ -531,3 +531,15 @@
   .xray-identity { grid-template-columns: 1fr; gap: 4px; }
   .xray-identity dd { margin-bottom: 8px; }
 }
+
+/* Timestamp rows share one zero-based duration scale; no minimum-width inflation. */
+.xray-waterfall-row{height:auto;min-height:24px}
+.xray-waterfall-segment{min-width:0;flex-shrink:0}
+.xray-waterfall-total{flex-basis:82px;font-size:11px}
+.xray-waterfall-step{flex-basis:36px}
+.xray-kernel-details{margin-top:20px;overflow:auto}
+.xray-kernel-table{width:100%;border-collapse:collapse;font-size:12px}
+.xray-kernel-table :is(th,td){text-align:left;padding:8px;border-bottom:1px solid var(--doppler-line);vertical-align:top}
+.xray-kernel-table th[scope=row]{overflow-wrap:anywhere;max-width:40ch}
+.xray-kernel-table td{white-space:nowrap;font-variant-numeric:tabular-nums}
+.xray-kernel-swatch{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:8px}

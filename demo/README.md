@@ -20,12 +20,16 @@ only the changed suffix; token updates never rebuild the conversation or reload
 the page. Auto-scroll follows the answer only while the reader stays at the bottom.
 Stop flushes pending text and retains the partial answer without publishing a
 completed receipt. Completion reconciles the text with the receipt, then displays
-word quality, X-Ray evidence, and final timing. Image attachment and live token-rate
+token probabilities, X-Ray evidence, and final timing. Image attachment and live token-rate
 controls are not offered.
-The current UI starts with Tokens enabled, X-Ray and Perplexity disabled (saved
-X-Ray/Perplexity preferences take precedence), and a 256-token output limit.
-Tokens selects guided-quality observation, not performance-representative timing.
-Disable Tokens, X-Ray, and Perplexity to use `demo/always-on`.
+The default is ordinary text with token inspection off and a 256-token output limit.
+Opt-in Token probability colors individual tokens from red (0%) to blue (100%)
+and opens alternatives on click. This measures model surprise, not factual accuracy.
+Token inspection changes execution; its timings are diagnostic. X-Ray is a separate
+GPU view with captured step durations and per-kernel totals. Missing measurements
+remain unavailable. Its accumulated-duration waterfall is not an absolute dispatch
+timeline or a GPU-utilization measurement. Disable both inspection controls for
+`demo/always-on`. Saved X-Ray preferences remain explicit choices.
 Completed assistant messages render inert Markdown;
 word-quality annotations stay attached to their source text. Clear conversation
 resets model state before removing the conversation and its evidence, and keeps
@@ -119,4 +123,4 @@ their m3t4.ai redirects. CanvasContext retires Doppler's old worker and shell
 caches without deleting model bytes or other user storage. Local storage and
 model caches remain on their original origin.
 
-The opening precomputed run was captured with `model.inspect.generate` in Chrome WebGPU. `data/sample-inspection.js` retains the real token probabilities, artifact fingerprint, timing, capture date, and raw receipt digest. It does not execute or download a model on first load. Prompt suggestions are editable; choosing a model is explicit before a new visitor runs their own prompt.
+The separately inspectable precomputed run was captured with `model.inspect.generate` in Chrome WebGPU. `data/sample-inspection.js` retains the real token probabilities, artifact fingerprint, timing, capture date, and raw receipt digest. The illustrative opening performs no inference or downloads and carries no measurements from the recorded run. Prompt suggestions are editable; choosing a model is explicit before a new visitor runs their own prompt.

@@ -25,7 +25,7 @@ export const state = {
   modelBusy: false,
   settingsBusy: false,
   xrayEnabled: false,
-  tokenInspectorActive: true,
+  tokenInspectorActive: false,
   lastInspection: null,
   lastInferenceStats: null,
   lastRun: null,

@@ -25,7 +25,8 @@ Give users one dependable browser surface for verified local model execution and
 ## Invariants
 
 - Live code uses public package boundaries.
-- Observation tiers disclose when measurement changes execution.
+- Ordinary prose is the default. One opt-in probability view owns token alternatives; X-Ray presents captured GPU work, not a second certainty view.
+- Observation tiers disclose when measurement changes execution. Recorded samples keep their text and measurements together; illustrative answers carry no measurements.
 - The demo never implies support beyond the support registry.
 
 ## Acceptance

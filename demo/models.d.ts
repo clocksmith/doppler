@@ -1,6 +1,9 @@
 export interface DemoCatalogEntry {
   modelId: string;
   label?: string;
+  sizeBytes?: number;
+  modes?: string[];
+  classification?: { tasks?: string[] };
   source?: string;
   urls?: string[];
   files?: Record<string, string>;
@@ -44,3 +47,5 @@ export declare function reloadActiveModel(runtimeProfile: string): Promise<void>
 
 export declare const DEFAULT_DEMO_MODEL_ID: string;
 export declare function ensurePromptModel(): Promise<unknown>;
+
+export declare function isChatModel(entry: DemoCatalogEntry | null | undefined): boolean;

@@ -87,15 +87,15 @@ const model = {
         generatedTokenIds: tokenIds,
         wallTimingMs: 1,
         performanceRepresentative: policy.performanceRepresentative,
-        tokens: [],
+        tokens: policy.id === 'demo/always-on' ? [] : tokenIds.map((tokenId,index) => ({index,tokenId,text:model.advanced.decodeTokenIds([tokenId]),probability:index ? .2 : .95,topCandidates:[{tokenId,text:model.advanced.decodeTokenIds([tokenId]),probability:index ? .2 : .95}]})),
         quality: policy.id === 'demo/guided-quality' ? { words: [{ text: 'Contract', rollingPerplexity: 2, summedSurprisal: 1, cumulativePerplexity: 2, tokenCount: 1, rollingWindow: { size: 1, unit: 'word' } }] } : null,
-        generationEvidence: { stats: { tokensGenerated: 3, decodeTimeMs: 1 } },
+        generationEvidence: { stats: { tokensGenerated: 3, prefillTimeMs: 10, decodeTimeMs: 20, decodeTokens: 2, prefillProfileSteps: [], decodeProfileSteps: policy.id === 'demo/deep-xray' ? [{step:1,timings:{rmsnorm:.1,fused_ffn:1.96},totalMs:2.06}] : [], gpuTimeDecodeMs: policy.id === 'demo/deep-xray' ? 2.06 : null } },
       };
     },
   },
 };
 export const dr = {
-  async listModelDetails() { return [{ modelId: 'contract-model', label: 'Contract model' }, { modelId: 'second-model', label: 'Second model' }]; },
+  async listModelDetails() { return [{ modelId: 'contract-model', label: 'Contract model', sizeBytes: 418518521, modes: ['text'], classification: { tasks: ['generation'] } }, { modelId: 'second-model', label: 'Second model', modes: ['text'], classification: { tasks: ['generation'] } }, { modelId: 'embedding-only', modes: ['embedding'], classification: { tasks: ['embedding'] } }]; },
   async listPersistentModels() { return []; },
   async load(modelId, options) {
     controls.loads.push({ modelId, ...options });
@@ -183,10 +183,21 @@ async function main() {
       return select && !select.disabled && select.options.length > 0;
     });
     journey.catalogRendered = true;
-    await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Precomputed run');
+    await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Illustrative example');
     assert.deepEqual(await page.evaluate(() => [__demoContract.loads.length, __demoContract.calls.length]), [0, 0], 'Opening the example does not download or execute a model');
     assert.equal(await page.locator('#model-select').isVisible(), false);
     assert.equal(await page.locator('#xray-shell').isVisible(), false);
+    assert.match(await page.locator('#recorded-run-note').textContent(), /Illustrative answer/);
+    assert.equal(await page.locator('#output-toks').textContent(), '');
+    assert.equal(await page.locator('.token-chip').count(), 0);
+    assert.equal(await page.locator('#model-select option[value="embedding-only"]').count(), 0);
+    await page.locator('#inspect-recorded-run').click();
+    await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Precomputed run');
+    assert.match(await page.locator('#recorded-run-note').textContent(), /unchanged model output with a factual error/);
+    assert.equal(await page.locator('#token-inspector-view').isVisible(), false);
+    await page.locator('#settings-toggle').click();
+    await page.locator('#token-inspector-toggle').check();
+    await page.locator('#settings-toggle').click();
     await page.locator('.token-chip').nth(3).click();
     assert.equal(await page.locator('.token-inspector-badge').textContent(), '" blue"');
     assert.equal(await page.locator('.token-candidates-list').isVisible(), true);
@@ -196,7 +207,10 @@ async function main() {
       await page.locator('#settings-toggle').click();
       await page.locator('#model-picker > summary').click();
     }
+    await page.locator('#token-inspector-toggle').uncheck();
     await page.selectOption('#model-select', 'contract-model');
+    assert.match(await page.locator('#first-run-download').textContent(), /419 MB; cached in this browser when available/);
+
     journey.modelSelected = await page.$eval(
       '#model-select',
       (element) => element.value === 'contract-model'

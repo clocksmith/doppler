@@ -1,0 +1,90 @@
+const measured = (value) => Number.isFinite(value) && value >= 0;
+
+// Read only timestamp measurements already in the receipt. Recorder operation
+// counts and phase wall clocks are not substitutes for missing GPU durations.
+export function readGpuTimings(receipt) {
+  const stats = receipt?.generationEvidence?.stats ?? {};
+  const totals = new Map();
+  const phases = ['prefill', 'decode'].map((phase) => {
+    const records = Array.isArray(stats[`${phase}ProfileSteps`]) ? stats[`${phase}ProfileSteps`] : [];
+    const steps = [];
+    let missingSteps = 0;
+    for (const [index, record] of records.entries()) {
+      const kernels = Object.entries(record?.timings ?? {})
+        .filter(([, value]) => measured(value)).map(([label, ms]) => ({ label, ms }));
+      if (!kernels.length) { missingSteps++; continue; }
+      const totalMs = kernels.reduce((sum, kernel) => sum + kernel.ms, 0);
+      steps.push({ step: record.step ?? index + 1, kernels, totalMs });
+      for (const kernel of kernels) {
+        const total = totals.get(kernel.label) ?? { label: kernel.label, prefill: null, decode: null };
+        total[phase] = (total[phase] ?? 0) + kernel.ms;
+        totals.set(kernel.label, total);
+      }
+    }
+    const reported = stats[phase === 'prefill' ? 'gpuTimePrefillMs' : 'gpuTimeDecodeMs'];
+    return { phase, steps, missingSteps, totalMs: steps.length ? steps.reduce((sum, step) => sum + step.totalMs, 0) : null,
+      reportedMs: measured(reported) ? reported : null };
+  });
+  return { phases, kernels: [...totals.values()].sort((a, b) => ((b.prefill ?? 0) + (b.decode ?? 0)) - ((a.prefill ?? 0) + (a.decode ?? 0))) };
+}
+
+const ms = (value) => value === null ? 'Not captured' : `${value.toLocaleString(undefined, { maximumFractionDigits: 3 })} ms`;
+function node(tag, className, text) {
+  const element = document.createElement(tag);
+  if (className) element.className = className;
+  if (text !== undefined) element.textContent = text;
+  return element;
+}
+
+export function renderGpuTimings(container, receipt) {
+  const data = readGpuTimings(receipt);
+  const section = node('section', 'xray-card demo-panel demo-panel--inset');
+  section.append(node('h3', '', 'GPU work by step'), node('p', 'xray-caption',
+    'Accumulated GPU time, not elapsed wall time or utilization. Each row groups measured kernel durations within one captured step; segment order is not a dispatch timeline.'));
+  const colors = new Map(data.kernels.map((kernel, index) => [kernel.label, `hsl(${index * 137.5 % 360} 55% 44%)`]));
+  if (!data.kernels.length) section.append(node('p', 'xray-empty', 'Run with X-Ray enabled to capture GPU timestamps.'));
+  for (const phase of data.phases) {
+    const label = phase.phase === 'prefill' ? 'Read prompt (prefill)' : 'Write answer (decode)';
+    section.append(node('h4', '', label), node('p', 'xray-caption', `Captured kernel sum: ${ms(phase.totalMs)} · Reported GPU phase total: ${ms(phase.reportedMs)}`));
+    if (!phase.steps.length) {
+      section.append(node('p', 'xray-empty', `${label}: per-kernel timings were not captured.`));
+      continue;
+    }
+    if (phase.missingSteps) section.append(node('p', 'xray-diagnostic', `${phase.missingSteps} profile steps have no usable kernel timestamps and are omitted.`));
+    const maximum = Math.max(...phase.steps.map((step) => step.totalMs));
+    const waterfall = node('div', 'xray-waterfall');
+    waterfall.setAttribute('aria-label', `${label} kernel waterfall`);
+    for (const step of phase.steps) {
+      const row = node('div', 'xray-waterfall-row');
+      const track = node('div', 'xray-waterfall-segments');
+      for (const kernel of step.kernels) {
+        const segment = node('span', 'xray-waterfall-segment');
+        segment.style.width = `${maximum > 0 ? kernel.ms / maximum * 100 : 0}%`;
+        segment.style.backgroundColor = colors.get(kernel.label);
+        segment.title = `${label} · step ${step.step} · ${kernel.label}: ${ms(kernel.ms)}`;
+        segment.setAttribute('aria-label', segment.title);
+        track.append(segment);
+      }
+      row.append(node('span', 'xray-waterfall-step', String(step.step)), track, node('span', 'xray-waterfall-total', ms(step.totalMs)));
+      waterfall.append(row);
+    }
+    section.append(waterfall, node('p', 'xray-caption', `All rows: 0–${ms(maximum)}. Hover a segment for its kernel and duration.`));
+  }
+  if (data.kernels.length) {
+    const details = node('details', 'xray-kernel-details');
+    details.open = true;
+    details.append(node('summary', '', 'Time by kernel'));
+    const table = node('table', 'xray-kernel-table'), head = node('thead'), header = node('tr');
+    for (const label of ['Kernel', 'Prefill', 'Decode', 'Measured sum']) { const cell = node('th', '', label); cell.scope = 'col'; header.append(cell); }
+    head.append(header);table.append(head);
+    const body = node('tbody');
+    for (const kernel of data.kernels) {
+      const row = node('tr'), label = node('th');label.scope = 'row';
+      const swatch = node('span', 'xray-kernel-swatch');swatch.style.backgroundColor = colors.get(kernel.label);
+      label.append(swatch, document.createTextNode(kernel.label));
+      row.append(label, node('td', '', ms(kernel.prefill)), node('td', '', ms(kernel.decode)), node('td', '', ms((kernel.prefill ?? 0) + (kernel.decode ?? 0))));body.append(row);
+    }
+    table.append(body);details.append(table);section.append(details);
+  }
+  container.append(section);
+}

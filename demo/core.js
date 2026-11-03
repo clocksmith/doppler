@@ -46,7 +46,7 @@ function setStatus(text, busy) {
 
 function resolvePolicyId() {
   if (isXrayEnabled()) return 'demo/deep-xray';
-  if (state.wordQualityEnabled || state.tokenInspectorActive) return 'demo/guided-quality';
+  if (state.tokenInspectorActive) return 'demo/guided-quality';
   return 'demo/always-on';
 }
 
@@ -130,17 +130,15 @@ export async function runGeneration() {
     }
     const stats = receipt.generationEvidence?.stats ?? {};
     const totalTokens = receipt.generatedTokenIds.length;
-    const totalMs = receipt.wallTimingMs;
     const prefillMs = Number.isFinite(stats.prefillTimeMs) ? stats.prefillTimeMs : null;
-    const decodeMs = Number.isFinite(stats.decodeTimeMs)
-      ? stats.decodeTimeMs
-      : (prefillMs == null ? totalMs : Math.max(0, totalMs - prefillMs));
-    const tokPerSec = decodeMs > 0 ? totalTokens / (decodeMs / 1000) : null;
+    const decodeMs = Number.isFinite(stats.decodeTimeMs) ? stats.decodeTimeMs : null;
+    const tokPerSec = Number.isFinite(stats.tokensPerSecond) ? stats.tokensPerSecond
+      : Number.isFinite(stats.decodeTokens) && decodeMs > 0 ? stats.decodeTokens / (decodeMs / 1000) : null;
     state.lastInspection = receipt;
     globalThis.__DOPPLER_DEMO_EVIDENCE__ = receipt;
     state.lastInferenceStats = stats;
     state.lastRun = {
-      mode: qualityEnabled ? 'guided-quality' : 'always-on',
+      mode: receipt.policy.id,
       output: receipt.outputText,
       tokens: receipt.tokens,
       totalTokens,
@@ -187,6 +185,22 @@ export function stopGeneration() {
   state.abortController?.abort();
 }
 
+export function loadIllustrativeExample() {
+  if (state.generating || state.modelBusy || state.settingsBusy) return;
+  beginChatTurn([{ role: 'user', content: 'Explain why the sky is blue in one sentence.' }]);
+  const output = $('output-text');
+  if (output) output.textContent = 'Air molecules scatter shorter blue wavelengths of sunlight more strongly than longer red wavelengths, so the sky looks blue.';
+  const message = $('live-assistant-message');
+  if (message) { message.hidden = false; message.dataset.example = 'illustrative'; }
+  const note = $('recorded-run-note');
+  if (note) { note.textContent = 'Illustrative answer · not a model run. No probabilities or timings.'; note.hidden = false; }
+  const recorded = $('inspect-recorded-run');
+  if (recorded) recorded.hidden = false;
+  state.lastInspection = null;state.lastRun = null;state.lastInferenceStats = null;
+  delete globalThis.__DOPPLER_DEMO_EVIDENCE__;
+  setExportEnabled(false);clearTokSec();setPhase('Illustrative example');
+}
+
 export function loadSampleInspection(receipt) {
   if (state.generating || state.modelBusy || state.settingsBusy) return;
   beginChatTurn([{ role: 'user', content: receipt.prompt }]);
@@ -195,6 +209,11 @@ export function loadSampleInspection(receipt) {
   const liveMessage = $('live-assistant-message');
   const outputText = $('output-text');
   if (outputText) outputText.textContent = receipt.outputText;
+  const note = $('recorded-run-note');
+  if (note) {
+    note.textContent = `Recorded ${receipt.recording?.recordedAt || 'previously'} · unchanged model output with a factual error (“Rayleigh-induced”). Correct term: Rayleigh scattering. Probabilities and timings belong to this recorded answer, not this browser.`;
+    note.hidden = false;
+  }
   if (liveMessage) {
     liveMessage.hidden = false;
     liveMessage.dataset.example = 'true';

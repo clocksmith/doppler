@@ -28,15 +28,13 @@ function tokenButton(token, index) {
   element.tabIndex = index === Math.max(0, selectedIndex) ? 0 : -1;
   element.setAttribute('aria-pressed', String(index === selectedIndex));
   element.textContent = String(token?.text ?? '') || '\u200b';
-  const surprise = Number.isFinite(token?.surprisal)
-    ? Math.min(1, Math.max(0, token.surprisal / 8))
-    : 0.5;
-  element.style.setProperty('--token-surprisal', String(surprise));
-  element.classList.toggle('token-chip--unavailable', !Number.isFinite(token?.probability));
+  const probability = Number.isFinite(token?.probability) && token.probability >= 0 && token.probability <= 1 ? token.probability : null;
+  element.style.setProperty('--token-surprisal', String(probability === null ? .5 : 1 - probability));
+  element.classList.toggle('token-chip--unavailable', probability === null);
   const description = [
     `Token ${index + 1} · ID ${token?.tokenId ?? 'unavailable'}`,
     `Probability ${pct(token?.probability)}`,
-    'Hover or select for probabilities',
+    'Click for alternative tokens; probability is not factual accuracy',
   ].join('\n');
   element.setAttribute('aria-label', `${description}: ${JSON.stringify(token?.text ?? '')}`);
   element.addEventListener('pointerenter', (event) => {

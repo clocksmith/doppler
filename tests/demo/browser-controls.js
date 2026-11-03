@@ -66,20 +66,14 @@ export async function checkDemoControls(page) {
   await page.locator('#settings-toggle').click();
   assert.equal(await page.locator('#settings-panel').isVisible(), true);
   assert.equal(await page.locator('#xray-toggle-all').isChecked(), false);
-  assert.equal(await page.locator('#set-word-quality').isChecked(), false);
-  assert.equal(await page.locator('#token-inspector-toggle').isChecked(), true);
-  assert.equal(await page.locator('#output-prefill-bar').isVisible(), false, 'Completed runs have no loading stripe');
+  assert.equal(await page.locator('#set-word-quality').count(), 0, 'Certainty has one opt-in control');
+  assert.equal(await page.locator('#token-inspector-toggle').isChecked(), false);
+  assert.equal(await page.locator('#output-prefill-bar').isVisible(), false);
   assert.equal(await page.inputValue('#set-max-tokens'), '256');
-  assert.equal(await page.evaluate(() => __demoContract.calls.at(-1).policyId), 'demo/guided-quality');
-  await page.locator('#xray-toggle-all').check();
-  await page.locator('#set-word-quality').check();
-  await page.locator('#xray-toggle-all').uncheck();
-  await page.locator('#set-word-quality').uncheck();
-  assert.match(await page.locator('#runtime-notice').textContent(), /Token inspection changes execution/);
-  assert.equal(await page.locator('#runtime-notice').isVisible(), true);
-  await page.locator('#token-inspector-toggle').click();
-  assert.equal(await page.locator('#runtime-notice').isVisible(), false);
+  assert.equal(await page.evaluate(() => __demoContract.calls.at(-1).policyId), 'demo/always-on');
+  assert.doesNotMatch(await page.locator('#output-toks').textContent(), /Diagnostic/);
   await page.locator('#token-inspector-toggle').check();
+  assert.match(await page.locator('#runtime-notice').textContent(), /Token inspection changes execution/);
   assert.equal(await page.locator('#runtime-notice').isVisible(), true);
   await page.locator('#xray-toggle-all').focus();
   await page.keyboard.press('Space');
@@ -87,35 +81,29 @@ export async function checkDemoControls(page) {
   await page.keyboard.press('Space');
   assert.equal(await page.locator('#xray-toggle-all').isChecked(), false);
   await page.locator('#xray-toggle-all').check();
-  assert.equal(await page.locator('#runtime-notice').isVisible(), true);
-  assert.equal(await page.locator('#settings-panel').isVisible(), true);
   assert.equal(await page.locator('#inspection-workspace').isVisible(), true);
   assert.equal(await page.locator('#xray-shell').isVisible(), true);
   assert.equal(await page.locator('#xray-container h3').first().textContent(), 'Where time went');
   await page.locator('#xray-container .xray-section > summary').click();
   await page.waitForFunction(() => document.querySelector('#xray-container pre').textContent.length > 0);
-  const inspectedReceipt = JSON.parse(await page.locator('#xray-container pre').textContent());
-  assert.equal(inspectedReceipt.outputText, 'Contract generation passed.', 'X-Ray inspects the existing receipt');
+  assert.equal(JSON.parse(await page.locator('#xray-container pre').textContent()).outputText, 'Contract generation passed.');
   await assertControlContrast(page);
-
-  await page.locator('#set-word-quality').uncheck();
-  await page.locator('#set-word-quality').check();
-  assert.deepEqual(await page.evaluate(() => [
-    localStorage.getItem('doppler.demo.xray-enabled'),
-    localStorage.getItem('doppler.demo.word-quality-enabled'),
-  ]), ['true', 'true']);
-  await completeRun(page, 'Inspect both options.');
+  await completeRun(page, 'Inspect GPU work.');
   assert.equal(await page.evaluate(() => __demoContract.calls.at(-1).policyId), 'demo/deep-xray');
+  assert.match(await page.locator('#output-toks').textContent(), /Diagnostic timing/);
+  assert.equal(await page.locator('.xray-waterfall-segment').count(), 2);
+  assert.match(await page.locator('.xray-kernel-table').textContent(), /fused_ffn/);
+  assert.match(await page.locator('.xray-kernel-table').textContent(), /1.96 ms/);
+  assert.match(await page.locator('#xray-container').textContent(), /prefill.*not captured/);
+  assert.equal(await page.locator('.xray-probability-chart').count(), 0);
   await page.locator('#xray-toggle-all').uncheck();
-  assert.equal(await page.locator('#xray-shell').isVisible(), false);
-  await completeRun(page, 'Inspect word quality.');
+  await completeRun(page, 'Inspect token probability.');
   assert.equal(await page.evaluate(() => __demoContract.calls.at(-1).policyId), 'demo/guided-quality');
-  assert.equal(await page.locator('#word-quality-output .word-quality').count(), 1);
-  await page.locator('#set-word-quality').uncheck();
-  // Tokens start enabled in the new UI and intentionally request guided evidence.
-  // Disable that observer too before asserting the standard, non-diagnostic lane.
-  await page.locator('#token-inspector-toggle').click();
-  assert.equal(await page.locator('#token-inspector-toggle').isChecked(), false);
+  assert.match(await page.locator('#output-toks').textContent(), /Diagnostic timing/);
+  assert.equal(await page.locator('#token-inspector-view').isVisible(), true);
+  const colors = await page.locator('.token-chip').evaluateAll(nodes => nodes.map(n => n.style.getPropertyValue('--token-surprisal')));
+  assert.ok(Number(colors[1]) > Number(colors[0]), 'A low-probability token is redder than a high-probability token');
+  await page.locator('#token-inspector-toggle').uncheck();
   assert.equal(await page.locator('#runtime-notice').isVisible(), false);
 
   assert.equal(await page.locator('#settings-panel').isVisible(), true);
@@ -183,7 +171,7 @@ export async function checkDemoControls(page) {
   await page.evaluate(() => { __demoContract.blockNext = true; });
   await page.fill('#prompt-input', 'Cancel this generation.');
   await page.click('#run-btn');
-  for (const id of ['model-select', 'model-select-action', 'model-select-remove', 'clear-history-btn', 'import-btn', 'set-profile', 'xray-toggle-all', 'set-word-quality']) {
+  for (const id of ['model-select', 'model-select-action', 'model-select-remove', 'clear-history-btn', 'import-btn', 'set-profile', 'xray-toggle-all', 'token-inspector-toggle']) {
     assert.equal(await page.locator(`#${id}`).isDisabled(), true, `${id} is locked during execution`);
   }
   await page.click('#stop-btn');

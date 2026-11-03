@@ -4,9 +4,9 @@ import { reloadActiveModel, setModelCallbacks } from './models.js';
 import { initInput, setRunHandler } from './input.js';
 import { initSettings } from './settings.js';
 import { initReport } from './report.js';
-import { onModelLoaded, runGeneration, stopGeneration, loadSampleInspection } from './core.js';
+import { onModelLoaded, runGeneration, stopGeneration, loadSampleInspection, loadIllustrativeExample } from './core.js';
 import { SAMPLE_INSPECTION_RECEIPT } from './data/sample-inspection.js';
-import { renderChatMessages, renderWordQuality, showTokenInspectorView, showWordQuality } from './output.js';
+import { showTokenInspectorView } from './output.js';
 import { state } from './ui/state.js';
 import { initPrecisionReplay } from './ui/precision-replay/index.js';
 import { initXray, getXrayRuntimeNoticeText, isXrayProfilingNeeded } from './ui/xray/index.js';
@@ -79,8 +79,8 @@ async function init() {
   $('stop-btn')?.addEventListener('click', stopGeneration);
 
   // Wire sample inspection
-  $('chat-thread')?.addEventListener('click', (event) => {
-    if (!event.target.closest('#sample-run-btn')) return;
+  $('output-area')?.addEventListener('click', (event) => {
+    if (!event.target.closest('#sample-run-btn, #inspect-recorded-run')) return;
     loadSampleInspection(SAMPLE_INSPECTION_RECEIPT);
     refreshRuntimeNotice();
   });
@@ -102,18 +102,6 @@ async function init() {
   } catch {
     // xray init is optional
   }
-  $('set-word-quality')?.addEventListener('change', () => {
-    const liveMessage = $('live-assistant-message');
-    if (liveMessage?.hidden) {
-      renderChatMessages(state.conversationHistory);
-    } else {
-      const receipt = state.lastInspection;
-      const quality = state.wordQualityEnabled && receipt?.quality != null;
-      if (quality) renderWordQuality(receipt.quality, receipt.outputText);
-      showWordQuality(quality);
-    }
-    refreshRuntimeNotice();
-  });
   $('set-trace')?.addEventListener('change', refreshRuntimeNotice);
   refreshRuntimeNotice();
 
@@ -126,7 +114,7 @@ async function init() {
   // Boot sequence
   await boot();
   if (state.phase === 'ready' && !state.model && !state.conversationHistory.length) {
-    loadSampleInspection(SAMPLE_INSPECTION_RECEIPT);
+    loadIllustrativeExample();
     refreshRuntimeNotice();
   }
 }

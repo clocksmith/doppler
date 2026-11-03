@@ -40,6 +40,9 @@ function normalizeEntry(entry) {
   }
   return {
     modelId,
+    ...(typeof entry.label === 'string' && entry.label.trim() ? { label: entry.label.trim() } : {}),
+    ...(Number.isSafeInteger(entry.sizeBytes) && entry.sizeBytes >= 0 ? { sizeBytes: entry.sizeBytes } : {}),
+    ...(cloneOptionalObject(entry.quickstartRequirements) ? { quickstartRequirements: cloneOptionalObject(entry.quickstartRequirements) } : {}),
     sourceCheckpointId,
     weightCapsuleId,
     manifestVariantId,
@@ -88,6 +91,9 @@ export async function listQuickstartModels() {
   const registry = await loadRegistry();
   return registry.models.map((entry) => ({
     modelId: entry.modelId,
+    ...(entry.label ? { label: entry.label } : {}),
+    ...(entry.sizeBytes !== undefined ? { sizeBytes: entry.sizeBytes } : {}),
+    ...(entry.quickstartRequirements ? { quickstartRequirements: cloneOptionalObject(entry.quickstartRequirements) } : {}),
     sourceCheckpointId: entry.sourceCheckpointId,
     weightCapsuleId: entry.weightCapsuleId,
     manifestVariantId: entry.manifestVariantId,

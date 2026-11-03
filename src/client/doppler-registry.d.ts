@@ -28,6 +28,9 @@ export interface QuickstartModelTypeCluster {
 
 export interface QuickstartRegistryEntry {
   modelId: string;
+  label?: string;
+  sizeBytes?: number;
+  quickstartRequirements?: { vramRequiredBytes?: number; paramCount?: string; quantization?: string };
   sourceCheckpointId: string;
   weightCapsuleId: string;
   manifestVariantId: string;
@@ -49,6 +52,9 @@ export interface QuickstartRegistryEntry {
 
 export declare function listQuickstartModels(): Promise<Array<{
   modelId: string;
+  label?: string;
+  sizeBytes?: number;
+  quickstartRequirements?: { vramRequiredBytes?: number; paramCount?: string; quantization?: string };
   sourceCheckpointId: string;
   weightCapsuleId: string;
   manifestVariantId: string;

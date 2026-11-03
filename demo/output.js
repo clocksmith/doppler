@@ -58,6 +58,9 @@ function resetLiveAssistant() {
     output.textContent = '';
     output.classList.remove('chat-markdown');
   }
+  $('recorded-run-note')?.setAttribute('hidden', '');
+  $('inspect-recorded-run')?.setAttribute('hidden', '');
+  $('token-inspection-hint')?.setAttribute('hidden', '');
   $('word-quality-output')?.replaceChildren();
   $('word-quality-legend')?.setAttribute('hidden', '');
   renderTokenInspection([]);
@@ -231,6 +234,8 @@ export function showTokenInspectorView(show) {
   const inspectorView = $('token-inspector-view');
   const hasTokens = Boolean($('token-stream-container')?.childElementCount);
   const visible = Boolean(show && hasTokens);
+  const hint = $('token-inspection-hint');
+  if (hint) hint.hidden = !show || hasTokens;
   if (inspectorView) inspectorView.hidden = !visible;
   setTokenInspectorActive(visible);
   // Inspection and formatted prose are alternate views of the same answer.

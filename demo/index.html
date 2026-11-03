@@ -235,6 +235,7 @@
           </div>
           <article id="live-assistant-message" class="chat-message chat-message--assistant" aria-live="polite" aria-atomic="false" hidden>
             <div class="chat-role">Doppler</div>
+            <p id="recorded-run-note" class="inspection-note" hidden></p>
             <div id="output-text" class="output-text"></div>
             <!-- Token logits container (optional) -->
             <div id="word-quality-output" hidden></div>
@@ -244,10 +245,13 @@
               <span>Model surprise, not accuracy</span>
             </div>
             <!-- Interactive Token Generation Inspector container -->
+            <p id="token-inspection-hint" class="inspection-note" hidden>Run a prompt with Token probability enabled to capture probabilities.</p>
             <div id="token-inspector-view" class="token-inspector-view" hidden>
+              <p class="inspection-note">Click underlined text for alternatives. Red: 0% → blue: 100% probability; not factual accuracy.</p>
               <div id="token-stream-container" class="token-stream-container"></div>
               <div id="token-inspector-card-container" class="token-inspector-card-container"></div>
             </div>
+            <button id="inspect-recorded-run" class="btn btn-ghost btn-small" type="button" hidden>Inspect a recorded run</button>
           </article>
         </div>
       </section>
@@ -255,6 +259,7 @@
         </div>
         <div class="try-pane">
       <!-- Chat composer -->
+      <p id="first-run-download" class="inspection-note" hidden></p>
       <section id="input-area" class="input-area">
         <div class="input-row">
           <textarea id="prompt-input" aria-label="Message Doppler" placeholder="Message Doppler…" rows="3"></textarea>
@@ -349,16 +354,12 @@
           <legend>Inspection</legend>
           <div class="settings-grid">
             <label class="inspection-setting" for="token-inspector-toggle">
-              <input id="token-inspector-toggle" type="checkbox" checked>
-              <span><strong>Tokens</strong><small>Show token probabilities.</small></span>
-            </label>
-            <label class="inspection-setting" for="set-word-quality">
-              <input id="set-word-quality" type="checkbox">
-              <span><strong>Perplexity</strong><small>Underline model surprise, not accuracy.</small></span>
+              <input id="token-inspector-toggle" type="checkbox">
+              <span><strong>Token probability</strong><small>Color text; click for alternatives. Changes execution.</small></span>
             </label>
             <label class="inspection-setting" for="xray-toggle-all">
               <input id="xray-toggle-all" type="checkbox">
-              <span><strong>X-Ray</strong><small>Show execution details and timings.</small></span>
+              <span><strong>X-Ray</strong><small>Show GPU kernels and diagnostic timings.</small></span>
             </label>
           </div>
         </fieldset>

@@ -443,3 +443,5 @@
   background-color: var(--doppler-inset-surface);
   box-shadow: var(--doppler-inset);
 }
+
+.inspection-note{font-size:13px;line-height:1.5;color:var(--doppler-muted);margin:8px 0}

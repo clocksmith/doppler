@@ -1,5 +1,6 @@
 import { state } from '../state.js';
 import { $ } from '../dom.js';
+import { renderGpuTimings } from './gpu-timings.js';
 
 const XRAY_STORAGE_KEY = 'doppler.demo.xray-enabled';
 let initialized = false;
@@ -71,18 +72,10 @@ function number(value) {
   return Number.isFinite(value) && value >= 0 ? value : null;
 }
 
-function probability(value) {
-  return number(value) !== null && value <= 1 ? value : null;
-}
-
 function milliseconds(value) {
   return number(value) === null ? 'Not captured' : value.toLocaleString(undefined, {
     maximumFractionDigits: 1,
   }) + ' ms';
-}
-
-function percent(value) {
-  return probability(value) === null ? 'Not captured' : (value * 100).toFixed(1) + '%';
 }
 
 function fact(value) {
@@ -126,8 +119,8 @@ function addTiming(container, receipt) {
   const metrics = element('dl', 'xray-overview');
   metric(metrics, 'Output tokens', Array.isArray(receipt.generatedTokenIds)
     ? String(receipt.generatedTokenIds.length) : 'Not captured');
-  metric(metrics, 'Reported decode rate', number(stats.tokensPerSecond) === null
-    ? 'Not captured' : stats.tokensPerSecond.toFixed(1) + ' tokens/s');
+  const rate = number(stats.tokensPerSecond) ?? (number(stats.decodeTokens) !== null && decode > 0 ? stats.decodeTokens / (decode / 1000) : null);
+  metric(metrics, 'Recorded decode rate', rate === null ? 'Not captured' : rate.toFixed(1) + ' tokens/s');
   section.append(metrics);
   const maximum = Math.max(total ?? 0, prefill ?? 0, decode ?? 0);
   section.append(
@@ -145,111 +138,10 @@ function addTiming(container, receipt) {
   container.append(section);
 }
 
-function svgElement(tag, attributes, text) {
-  const node = document.createElementNS('http://www.w3.org/2000/svg', tag);
-  for (const [key, value] of Object.entries(attributes)) node.setAttribute(key, String(value));
-  if (text != null) node.textContent = text;
-  return node;
-}
-
-function addTokenChart(container, receipt) {
-  const tokens = Array.isArray(receipt.tokens) ? receipt.tokens : [];
-  const section = panel('How likely was each token?',
-    'The model probability of the token it produced, before sampling filters. This measures surprise, not correctness.');
-  if (!tokens.length) {
-    section.append(element('p', 'xray-empty', 'Token probabilities were not captured for this run.'));
-    container.append(section);
-    return;
-  }
-  const chart = svgElement('svg', {
-    viewBox: '0 0 640 180', class: 'xray-probability-chart',
-    role: 'img', 'aria-label': 'Selected-token probability from 0 to 100 percent, by token position',
-    preserveAspectRatio: 'none',
-  });
-  for (const [value, y] of [[100, 14], [50, 78], [0, 142]]) {
-    chart.append(svgElement('line', { x1: 52, x2: 620, y1: y, y2: y, class: 'xray-chart-grid' }));
-    chart.append(svgElement('text', { x: 42, y: y + 4, 'text-anchor': 'end' }, value + '%'));
-  }
-  chart.append(svgElement('text', { x: 52, y: 170 }, 'Token 1'));
-  chart.append(svgElement('text', { x: 620, y: 170, 'text-anchor': 'end' }, 'Token ' + tokens.length));
-  const xAt = (index) => tokens.length === 1 ? 336 : 52 + index / (tokens.length - 1) * 568;
-  let path = '';
-  let connected = false;
-  let captured = 0;
-  for (const [index, token] of tokens.entries()) {
-    const value = probability(token?.probability);
-    if (value === null) {
-      connected = false;
-      continue;
-    }
-    captured++;
-    path += (connected ? ' L ' : ' M ') + xAt(index) + ' ' + (142 - value * 128);
-    connected = true;
-  }
-  chart.append(svgElement('path', { d: path, class: 'xray-chart-line' }));
-  const cursor = svgElement('line', { x1: 52, x2: 52, y1: 14, y2: 142, class: 'xray-chart-cursor' });
-  const point = svgElement('circle', { cx: 52, cy: 142, r: 4, class: 'xray-chart-point' });
-  chart.append(cursor, point);
-  const coverage = element('p', 'xray-caption',
-    captured + ' of ' + tokens.length + ' token probabilities captured. Gaps are missing measurements.');
-  const label = element('label', 'xray-token-label', 'Inspect token');
-  label.htmlFor = 'xray-token-position';
-  const slider = element('input', 'xray-token-slider');
-  slider.id = 'xray-token-position';
-  slider.type = 'range';
-  slider.min = '0';
-  slider.max = String(tokens.length - 1);
-  slider.step = '1';
-  slider.value = '0';
-  slider.disabled = tokens.length === 1;
-  const readout = element('p', 'xray-token-readout');
-  readout.setAttribute('aria-live', 'polite');
-  const candidates = element('div', 'xray-candidates');
-  const renderSelection = () => {
-    const index = Number(slider.value);
-    const token = tokens[index];
-    const value = probability(token?.probability);
-    const tokenText = typeof token?.text === 'string' ? JSON.stringify(token.text) : 'Unrecorded token';
-    const description = 'Token ' + (index + 1) + ': ' + tokenText + ' / ' + percent(value);
-    readout.textContent = description;
-    slider.setAttribute('aria-valuetext', description);
-    cursor.setAttribute('x1', xAt(index));
-    cursor.setAttribute('x2', xAt(index));
-    point.setAttribute('cx', xAt(index));
-    point.setAttribute('cy', value === null ? 142 : 142 - value * 128);
-    point.style.display = value === null ? 'none' : '';
-    candidates.replaceChildren(element('h4', '', 'Other candidates at this position'));
-    const choices = Array.isArray(token?.topCandidates) ? token.topCandidates : [];
-    if (!choices.length) {
-      candidates.append(element('p', 'xray-empty', 'Candidate scores were not captured.'));
-      return;
-    }
-    for (const candidate of choices) {
-      const chosen = Number.isInteger(token?.tokenId) && candidate?.tokenId === token.tokenId;
-      const name = (typeof candidate?.text === 'string' ? JSON.stringify(candidate.text) : 'Unrecorded token')
-        + (chosen ? ' (selected)' : '');
-      const p = probability(candidate?.probability);
-      candidates.append(barRow(name, p, 1, percent(p), chosen ? 'is-selected' : ''));
-    }
-    candidates.append(element('p', 'xray-caption',
-      'Each bar uses the full 0-100% scale. Only captured candidates are shown; they need not sum to 100%.'));
-  };
-  slider.addEventListener('input', renderSelection);
-  chart.addEventListener('click', (event) => {
-    const bounds = chart.getBoundingClientRect();
-    if (bounds.width <= 0) return;
-    const x = (event.clientX - bounds.left) / bounds.width * 640;
-    slider.value = String(Math.round(Math.max(0, Math.min(1, (x - 52) / 568)) * (tokens.length - 1)));
-    renderSelection();
-  });
-  renderSelection();
-  section.append(chart, coverage, label, slider, readout, candidates);
-  container.append(section);
-}
-
 function addIdentity(container, receipt) {
   const identity = receipt.fingerprint?.identity ?? {};
-  const execution = identity.execution ?? {};
+  const execution = identity.execution ?? receipt.generationEvidence?.backendIdentity ?? {};
+  const stats = receipt.generationEvidence?.stats ?? {};
   const adapter = identity.adapter ?? {};
   const section = panel('What ran', 'Identity recorded with this receipt, not the currently selected model.');
   const facts = element('dl', 'xray-identity');
@@ -258,11 +150,11 @@ function addIdentity(container, receipt) {
   metric(facts, 'GPU', [adapter.vendor, adapter.architecture, adapter.device]
     .filter((value) => typeof value === 'string' && value.trim()).join(' / ') || 'Not captured');
   metric(facts, 'Activation precision', fact(execution.activationDtype));
-  metric(facts, 'Kernel path', fact(execution.kernelPathId));
+  metric(facts, 'Kernel path', fact(execution.kernelPathId ?? stats.kernelPathId));
   metric(facts, 'Observation policy', fact(receipt.policy?.label ?? receipt.policy?.id));
   section.append(facts);
   const notes = element('ul', 'xray-diagnostics');
-  notes.append(element('li', '', 'Kernel-level bottlenecks and GPU utilization cannot be inferred from phase totals.'));
+  notes.append(element('li', '', 'Kernel durations below are GPU timestamp measurements where captured; phase totals do not establish utilization.'));
   notes.append(element('li', '', receipt.fingerprint?.qualityDigest
     ? 'A quality fingerprint is recorded. Comparison still requires a matching receipt.'
     : 'No quality fingerprint is recorded; comparability has not been established.'));
@@ -304,7 +196,7 @@ export function updateXrayPanels(receipt = state.lastInspection) {
   addTiming(grid, receipt);
   addIdentity(grid, receipt);
   container.append(grid);
-  addTokenChart(container, receipt);
+  renderGpuTimings(container, receipt);
   addRawReceipt(container, receipt);
 }
 
