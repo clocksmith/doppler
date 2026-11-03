@@ -3168,6 +3168,204 @@
       "wgslOnDisk": true
      }
     },
+    "q4_0_pair_rows2": {
+     "wgsl": "matmul_gguf_pair_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": ["subgroups"],
+     "requiredWgslFeatures": ["packed_4x8_integer_dot_product","subgroup_id"],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "a_offset",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "b_row",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "c_offset",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q4_0",
+     "outputDtype": "f32",
+     "sharedMemory": 2048,
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "ROWS": 2,
+      "BLOCK_VALUES": 32,
+      "BLOCK_BYTES": 18,
+      "QUANT_FORMAT": 0
+     },
+     "variantMetadata": {
+      "q40Geometry": "pair",
+      "dispatchGeometry": "column-row-tile",
+      "tileM": 1,
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": [
+       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
+       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
+      ],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "q4_0_pair_rows4": {
+     "wgsl": "matmul_gguf_pair_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": ["subgroups"],
+     "requiredWgslFeatures": ["packed_4x8_integer_dot_product","subgroup_id"],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "a_offset",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "b_row",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "c_offset",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q4_0",
+     "outputDtype": "f32",
+     "sharedMemory": 2048,
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "ROWS": 4,
+      "BLOCK_VALUES": 32,
+      "BLOCK_BYTES": 18,
+      "QUANT_FORMAT": 0
+     },
+     "variantMetadata": {
+      "q40Geometry": "pair",
+      "dispatchGeometry": "column-row-tile",
+      "tileM": 1,
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": [
+       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
+       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
+      ],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
     "q8_0_pair": {
      "wgsl": "matmul_gguf_pair_f32.wgsl",
      "entryPoint": "main",
@@ -10931,6 +11129,103 @@
       "status": "pinned",
       "inlineConfigs": ["qwen3/qwen3.8-27b-q4_0-passthrough"],
       "ruleChains": ["matmul.rules.json#q40Variant"],
+      "wgslOnDisk": true
+     }
+    },
+    "q5k_gemv_blockwise": {
+     "wgsl": "matmul_q5k.wgsl",
+     "entryPoint": "gemv_blockwise",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "a_offset",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "b_row",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "c_offset",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q5k",
+     "outputDtype": "f32",
+     "sharedMemory": 2560,
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 4,
+      "THREADS_PER_COL_GEMV": 32,
+      "TILE_SIZE": 16,
+      "BLOCK_VALUES": 256,
+      "BLOCK_BYTES": 176,
+      "QUANT_FORMAT": 5
+     },
+     "variantMetadata": {
+      "q40Geometry": "gemv",
+      "dispatchGeometry": "column-row-tile",
+      "tileM": 1,
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
       "wgslOnDisk": true
      }
     },

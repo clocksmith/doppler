@@ -320,7 +320,7 @@ export class WholeTokenProgram {
   }
 
   /**
-   * Number of newest observations that share the newest one's resources and all lie
+   * Number of newest consecutive observations that share resources and all lie
    * inside the intersection of their declared position ranges.
    */
   #consistentSuffix() {
@@ -330,6 +330,7 @@ export class WholeTokenProgram {
     let max = Infinity;
     let count = 0;
     for (let i = obs.length - 1; i >= 0; i--) {
+      if (i + 1 < obs.length && obs[i + 1].pos !== obs[i].pos + 1) break;
       const range = /** @type {PositionLimit} */ (obs[i].rangeLimit);
       if (!sameIdentity(obs[i].identity, newest.identity)) break;
       const nextMin = Math.max(min, range.min);

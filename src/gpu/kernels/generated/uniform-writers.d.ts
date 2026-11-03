@@ -40,6 +40,8 @@ export interface KernelUniformValues {
   "matmul/q6k_cooperative": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q8_0_cooperative": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q4_0_pair": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q4_0_pair_rows2": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q4_0_pair_rows4": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q8_0_pair": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q6k_pair": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/fp8_e4m3fn_f32": Parameters<typeof writers0.write_matmul_fp8_e4m3fn_f32>[1];
@@ -131,6 +133,7 @@ export interface KernelUniformValues {
   "matmul/q8_0_prefill": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q8_0_prefill_tile64": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q5k_gemv": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q5k_gemv_blockwise": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q5k_prefill": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q6k_gemv": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q6k_prefill": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];

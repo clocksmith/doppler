@@ -7,6 +7,7 @@ import { getDevice, destroyDevice } from '../../src/gpu/device.js';
 import { createTensor } from '../../src/gpu/tensor.js';
 import { createWeightBuffer } from '../../src/gpu/weight-buffer.js';
 import { acquireBuffer, releaseBuffer, uploadData, readBuffer } from '../../src/memory/buffer-pool.js';
+import { runQ40Matmul, recordQ40Matmul } from '../../src/gpu/kernels/q4_0.js';
 import { runMatmul, recordMatmul } from '../../src/gpu/kernels/matmul.js';
 import { createCommandRecorder } from '../../src/gpu/command-recorder.js';
 import { ggufBlockBytes } from '../../src/formats/gguf/block-storage.js';
@@ -95,6 +96,19 @@ try {
       }
       cases.push({ M, N, K, recorded, maxAbs });
     }
+    for (const recorded of [false, true]) {
+      const results = [];
+      for (const variant of ['q5k_gemv', 'q5k_gemv_blockwise']) {
+        const recorder = recorded ? createCommandRecorder('q5k-blockwise-parity') : null;
+        const options = { outputDtype: 'f32', alpha: 0.5, aOffset: 16, bOffset: K / 256 * 176, variant };
+        const out = recorder ? await recordQ40Matmul(recorder, A, B, M, N, K, options)
+          : await runQ40Matmul(A, B, M, N, K, options);
+        owned.push(out.buffer); if (recorder) await recorder.submitAndWait();
+        results.push(new Uint32Array(await readBuffer(out.buffer, M * N * 4)));
+      }
+      assert.deepEqual(results[1], results[0], `Blockwise Q5_K changed output bits at ${M}/${N}/${K}, recorded=${recorded}`);
+      cases.push({ M, N, K, recorded, blockwiseBitwiseParity: true });
+    }
     await assert.rejects(runMatmul(A, B, M, N, K, { outputDtype: 'f16' }), /F32/);
     await assert.rejects(runMatmul(A, B, M, N, K, { outputDtype: 'f32', outputBuffer: A.buffer }), /alias|undersized/);
   }
@@ -120,6 +134,10 @@ try {
       maxAbs = Math.max(maxAbs, Math.abs(actual[i] - expected[i]));
       assert.ok(Number.isFinite(actual[i]) && Math.abs(actual[i] - expected[i]) < 0.0002);
     }
+    const blockwise = await runQ40Matmul(A, B, M, N, K, { outputDtype: 'f32', variant: 'q5k_gemv_blockwise' });
+    owned.push(blockwise.buffer);
+    const blockwiseValues = new Float32Array(await readBuffer(blockwise.buffer, N * 4));
+    assert.deepEqual(new Uint32Array(blockwiseValues.buffer), new Uint32Array(actual.buffer), 'Blockwise real source projection differs from baseline');
     cases.push({ sourceTensor: fixture.sourceTensor, reference: fixture.reference, M, N, K, maxAbs });
   }
   await device.queue.onSubmittedWorkDone(); assert.deepEqual(errors, []);

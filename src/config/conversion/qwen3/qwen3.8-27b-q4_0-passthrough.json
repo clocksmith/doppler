@@ -407,7 +407,7 @@
       "q5k_gemv": {
         "kernel": "matmul_q5k.wgsl",
         "entry": "gemv",
-        "digest": "sha256:42529c7d60cc2893672a45be630ba1692fdc59d4cbada0206ff3055eb69673c9",
+        "digest": "sha256:cbffdb09bd95d355310bf39ea9de7268e7f77c102ae315424fc1c8d977224ef7",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,
@@ -421,7 +421,7 @@
       "q5k_prefill": {
         "kernel": "matmul_q5k.wgsl",
         "entry": "prefill",
-        "digest": "sha256:fc48fc675992c0ab565ace44e9ba4a6ca56cc0970f6f8300b21e66abd6b207d4",
+        "digest": "sha256:868ca7e096d8454b916d6b8a122ac7b32711d0a19d6bad2a336d8059024f22ef",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,

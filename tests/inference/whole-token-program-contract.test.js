@@ -151,6 +151,23 @@ async function observeStep(program, device, res, pos, token, options = {}, metho
   }, () => identity);
 }
 
+// A verified multi-token prefill can skip positions between recorded decode
+// observations. Only a consecutive suffix may become a new affine token program.
+{
+  const device = makeDevice();
+  const res = makeModel(device);
+  const program = new WholeTokenProgram(device);
+  for (const pos of [10, 12, 13, 14]) assert.equal(await observeStep(program, device, res, pos, 42), 42 + 1000 * pos);
+  assert.equal(program.ready, false, 'A position jump starts a fresh capture window');
+  assert.equal(program.stats.restarts, 1);
+  await observeStep(program, device, res, 15, 42);
+  assert.equal(program.ready, true);
+  assert.equal(program.rejects(16, ['plan-a']), null);
+  assert.equal((await program.run(16, 99))[0], 16099);
+  assert.equal(word(res.kv, 16 * 4), 16099);
+  program.destroy();
+}
+
 // The traced failure: four identical input tokens make the token write constant.
 // The declared token input still feeds each replayed token.
 {

@@ -142,4 +142,30 @@ const canonicalManifest = createRDRRManifestFixture();
   );
 }
 
+// A generic shard hash inherits its declared algorithm. Normalization and a
+// refresh/serialize round trip must never relabel a SHA-256 digest as BLAKE3.
+{
+  const sha = 'a'.repeat(64), blake = 'b'.repeat(64);
+  const source = clone(canonicalManifest);
+  source.hashAlgorithm = 'sha256';
+  source.shards[0].hash = sha;
+  delete source.shards[0].blake3;
+  const parsed = parseManifest(JSON.stringify(source));
+  assert.equal(parsed.shards[0].hash, sha);
+  assert.equal(parsed.shards[0].blake3, undefined);
+  assert.equal(Object.hasOwn(JSON.parse(JSON.stringify(parsed)).shards[0], 'blake3'), false);
+
+  source.shards[0].blake3 = blake;
+  const dualHash = parseManifest(JSON.stringify(source));
+  assert.equal(dualHash.shards[0].hash, sha);
+  assert.equal(dualHash.shards[0].blake3, blake, 'An explicitly supplied secondary digest is preserved');
+
+  source.hashAlgorithm = 'blake3';
+  source.shards[0].hash = blake;
+  delete source.shards[0].blake3;
+  const legacyBlake = parseManifest(JSON.stringify(source));
+  assert.equal(legacyBlake.shards[0].hash, blake);
+  assert.equal(legacyBlake.shards[0].blake3, blake, 'Legacy generic BLAKE3 hashes retain their correct alias');
+}
+
 console.log('rdrr-parsing-contract.test: ok');
