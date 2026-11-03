@@ -508,3 +508,48 @@ console.log('doppler-generation-evidence exact-prefix replay: ok');
   }
   assert.notEqual(zero.generationConfigHash, changed.generationConfigHash);
 }
+
+// Structured inspection carries the entire conversation into the pipeline and
+// fingerprints the exact templated prefix, including when a branch follows it.
+{
+  const messages = [{ role: 'user', content: 'Remember cobalt.' },
+    { role: 'assistant', content: 'Remembered.' }, { role: 'user', content: 'What color?' }];
+  const encoded = text => Array.from(new TextEncoder().encode(text));
+  const literal = '<start_of_turn>user\nRemember cobalt.<end_of_turn>\n'
+    + '<start_of_turn>model\nRemembered.<end_of_turn>\n'
+    + '<start_of_turn>user\nWhat color?<end_of_turn>\n<start_of_turn>model\n';
+  let executedPrompt, executedIds, calls = 0;
+  const chatPipeline = {
+    ...pipeline,
+    modelConfig: { ...pipeline.modelConfig, chatTemplateType: 'gemma' },
+    manifest: { ...pipeline.manifest, tokenizer: { type: 'fixture' }, inference: { chatTemplate: { enabled: true, type: 'gemma' } } },
+    tokenizer: { encode: encoded, decode: ids => ids.map(id => `[${id}]`).join('') },
+    async generateTokenIds(prompt, options) {
+      calls++;executedPrompt = structuredClone(prompt);
+      executedIds = options.inputIds ? [...options.inputIds] : encoded(literal);
+      return { tokenIds: [1], inputTokenIds: executedIds, stats };
+    },
+  };
+  const chat = createModelHandle(chatPipeline, { modelId: 'chat-inspection', manifestHash: 'a'.repeat(64) });
+  const first = await chat.inspect.generate({ messages }, { generation: { useChatTemplate: true } });
+  assert.deepEqual(executedPrompt, { messages });
+  assert.deepEqual(first.inputTokenIds, encoded(literal));
+  assert.deepEqual(first.fingerprint.identity.promptTokenIds, encoded(literal));
+  const branchPrefix = [...first.inputTokenIds, 1, 2];
+  const fork = await chat.inspect.generate({ messages }, { inputTokenIds: branchPrefix });
+  assert.deepEqual(executedIds, branchPrefix);
+  assert.deepEqual(fork.fingerprint.identity.promptTokenIds, branchPrefix);
+  for (const invalid of ['', '  ', 4, null, {}, { messages: [] }, { messages: 'bad' }, []]) {
+    await assert.rejects(chat.inspect.generate(invalid), /non-empty text or chat messages/);
+  }
+  await assert.rejects(chat.inspect.generate({ messages: [{ role: 'unknown', content: 'bad' }] }), /role/);
+  assert.equal(calls, 2, 'Malformed chat must fail before pipeline execution');
+  const legacy = createModelHandle({ ...chatPipeline, async generateTokenIds() { return { tokenIds: [1], stats }; } },
+    { modelId: 'legacy-chat-inspection', manifestHash: 'a'.repeat(64) });
+  const fallback = await legacy.inspect.generate({ messages }, { generation: { useChatTemplate: true } });
+  assert.equal(fallback.inputTokenIds, null);
+  assert.deepEqual(fallback.fingerprint.identity.promptTokenIds, encoded(literal), 'Legacy pipelines use the existing templating helper when input IDs are unavailable');
+  const changed = { messages: messages.map((m, i) => i === 0 ? { ...m, content: 'Remember crimson.' } : m) };
+  const other = await legacy.inspect.generate(changed, { generation: { useChatTemplate: true } });
+  assert.notEqual(other.fingerprint.fullDigest, fallback.fingerprint.fullDigest, 'Different earlier turns cannot share a comparison fingerprint');
+}

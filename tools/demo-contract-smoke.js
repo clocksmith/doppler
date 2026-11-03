@@ -49,7 +49,7 @@ const model = {
   },
   inspect: {
     async generate(prompt, options = {}) {
-      controls.calls.push({ prompt, policyId: options.policyId, generation: options.generation, inputTokenIds: options.inputTokenIds ?? null });
+      controls.calls.push({ prompt: structuredClone(prompt), policyId: options.policyId, generation: options.generation, inputTokenIds: options.inputTokenIds ?? null });
       let tokenIds = [];
       controls.emitTokens = (ids) => {
         for (const tokenId of ids) {

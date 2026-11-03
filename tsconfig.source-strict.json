@@ -16,6 +16,7 @@
   },
   "include": [],
   "files": [
+    "src/storage/node-file-access.js",
     "src/gpu/kernels/linear-attention-recovery.js",
     "src/gpu/kernels/speculative-accept.js",
     "src/gpu/kernels/codegen/attention-prefill-query-tile-f16kv-variant.js",

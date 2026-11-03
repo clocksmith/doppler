@@ -224,7 +224,7 @@ export interface DopplerModelHandle {
   readonly inspect: {
     listPolicies(): DopplerObservationPolicy[];
     generate(
-      prompt: string,
+      prompt: PromptInput,
       options?: {
         policyId?: string;
         generation?: DopplerGenerateOptions;

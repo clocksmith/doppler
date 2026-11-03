@@ -588,8 +588,15 @@ export function createModelHandle(pipeline, resolved) {
       return listObservationPolicies();
     },
     async generate(prompt, options = {}) {
-      if (typeof prompt !== 'string' || !prompt.trim()) {
-        throw new Error('Doppler model.inspect.generate requires a non-empty string prompt.');
+      const messages = Array.isArray(prompt) ? prompt : prompt?.messages;
+      if (typeof prompt === 'string' ? !prompt.trim() : !Array.isArray(messages) || messages.length === 0) {
+        throw new Error('Doppler model.inspect.generate requires non-empty text or chat messages.');
+      }
+      if (typeof prompt !== 'string') {
+        // Validate with the existing chat formatter and snapshot caller-owned
+        // history before awaiting the pipeline's execution slot.
+        formatChatMessages(messages, null);
+        prompt = structuredClone(prompt);
       }
       const policy = resolveObservationPolicy(options.policyId);
       const generationOptions = resolveInspectionGenerationOptions(options, policy);
@@ -645,7 +652,12 @@ export function createModelHandle(pipeline, resolved) {
       }
       // An explicit prefix is the exact model input; text prompts keep their
       // existing raw-prompt fingerprint so earlier receipts stay comparable.
-      const promptTokenIds = explicitInputTokenIds ?? tokenizeText(pipeline, prompt);
+      // Structured chat identifies the actual templated prefix, including history.
+      const promptTokenIds = explicitInputTokenIds ?? (typeof prompt === 'string'
+        ? tokenizeText(pipeline, prompt)
+        : inputTokenIds ?? tokenizePrompt(pipeline, prompt, {
+          useChatTemplate: evidence.generationConfig.useChatTemplate,
+        }));
       const tokenRecords = policy.perplexity
         ? buildInspectionTokenRecords(
           evidence.tokenIds,

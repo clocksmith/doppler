@@ -123,6 +123,9 @@ export async function checkDemoControls(page) {
   assert.equal(await page.locator('#output-prefill-bar').isVisible(), false);
   assert.equal(await page.inputValue('#set-max-tokens'), '256');
   assert.equal(await page.evaluate(() => __demoContract.calls.at(-1).policyId), 'demo/always-on');
+  const firstChat = await page.evaluate(() => __demoContract.calls.at(-1).prompt);
+  assert.deepEqual(firstChat, { messages: [{role:'user',content:'Run the demo contract.'}] });
+
   assert.doesNotMatch(await page.locator('#output-toks').textContent(), /Diagnostic/);
   await page.locator('#token-inspector-toggle').check();
   assert.match(await page.locator('#runtime-notice').textContent(), /Token inspection changes execution/);
@@ -141,6 +144,12 @@ export async function checkDemoControls(page) {
   assert.equal(JSON.parse(await page.locator('#xray-container pre').textContent()).outputText, 'Contract generation passed.');
   await assertControlContrast(page);
   await completeRun(page, 'Inspect GPU work.');
+  const nextChat = await page.evaluate(() => __demoContract.calls.at(-1).prompt);
+  assert.deepEqual(nextChat.messages.slice(0, 3), [
+    {role:'user',content:'Run the demo contract.'}, {role:'assistant',content:'Contract generation passed.'},
+    {role:'user',content:'Inspect GPU work.'},
+  ], 'The next generation receives the previous user and assistant turns');
+
   assert.equal(await page.evaluate(() => __demoContract.calls.at(-1).policyId), 'demo/deep-xray');
   assert.match(await page.locator('#output-toks').textContent(), /Diagnostic timing/);
   assert.equal(await page.locator('.xray-waterfall-segment').count(), 2);

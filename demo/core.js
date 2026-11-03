@@ -139,7 +139,7 @@ export async function runGeneration() {
   resetXray();
 
   try {
-    const receipt = await model.inspect.generate(conversationRequest.currentPrompt, {
+    const receipt = await model.inspect.generate(conversationRequest.promptInput, {
       policyId,
       topKSize: 8,
       onEvent(event) {

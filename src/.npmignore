@@ -996,6 +996,7 @@ storage/download/state.d.ts
 storage/download/transport.d.ts
 storage/downloader.d.ts
 storage/hf-resolve-url.d.ts
+storage/node-file-access.d.ts
 storage/normalize-model-id.d.ts
 storage/preflight.d.ts
 storage/preflight.js

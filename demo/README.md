@@ -60,6 +60,9 @@ the root `dr` API from `doppler-gpu`. Runtime-profile controls use
 `doppler-gpu/tooling/evidence` and the public `model.inspect` handle. Live demo
 code may not import the compatibility `doppler-gpu/tooling` barrel.
 
+The demo passes `{ messages }`, including retained prior turns, to inspection.
+Branch replay uses the exact templated prefix returned in `inputTokenIds`.
+
 `model.inspect.generate(prompt, { onEvent, generation, policyId })` emits ordered
 `{ type: 'token', tokenId, index, token? }` events during generation, including
 the first and stop tokens. Probability-capturing policies attach the matching

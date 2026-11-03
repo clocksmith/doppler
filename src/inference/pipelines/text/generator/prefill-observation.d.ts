@@ -1,5 +1,6 @@
 import type { Tensor } from '../../../../gpu/tensor.js';
 import type { CommandRecorder } from '../../../../gpu/command-recorder.js';
+import type { PipelineStats } from '../types.js';
 
 export interface PrefillCacheObservation {
   currentSeqLen: number;
@@ -7,6 +8,14 @@ export interface PrefillCacheObservation {
 }
 
 export declare function logPrefillCacheState(state: PrefillCacheObservation): void;
+
+export declare function snapshotPrefillPhase(
+  stats: Partial<PipelineStats>,
+  phase: { inputMs: number; prefillMs: number; tokens: number }
+): { inputMs: number; prefillMs: number; tokens: number } & Record<
+  'prefillRecordMs' | 'prefillRecordOps' | 'prefillRecordPasses' | 'prefillSubmitWaitMs' | 'gpuPrefillMs',
+  number | null
+> & { prefillRecordOpLabels: PipelineStats['prefillRecordOpLabels'] | null };
 
 export declare function tracePrefillEmbeddingIds(
   embeddingInputIds: ArrayLike<number>,

@@ -3,6 +3,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
+import { createNodeFileAccess } from '../../src/storage/node-file-access.js';
 
 import {
   ARTIFACT_FORMAT_DIRECT_SOURCE,
@@ -319,3 +320,17 @@ for (const verificationBufferBytes of [undefined, 0, 72]) {
 }
 
 console.log('artifact-storage-context.test: ok');
+
+// The extracted Node reader must recover from a failed open, retain exact ranges,
+// and close all owned handles without weakening the storage context's lifecycle.
+{
+  const root = mkdtempSync(path.join(tmpdir(), 'doppler-node-reader-'));
+  const file = path.join(root, 'late.bin'), access = createNodeFileAccess();
+  try {
+    await assert.rejects(access.getSize(file), { code: 'ENOENT' });
+    writeFileSync(file, new Uint8Array([7, 8, 9, 10]));
+    assert.equal(await access.getSize(new URL('file://' + file)), 4);
+    assert.deepEqual(new Uint8Array(await access.readRange(file, 1, 2)), new Uint8Array([8, 9]));
+    assert.equal((await access.readRange(file, 100, 2)).byteLength, 0);
+  } finally { await access.close();rmSync(root, {recursive:true,force:true}); }
+}

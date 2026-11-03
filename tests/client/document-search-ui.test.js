@@ -5,7 +5,7 @@ import { createServer } from '../../examples/document-search/server.js';
 // Actual UI/controller, synthetic model ports. Never counted as GPU acceptance.
 const server = createServer();
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, channel: process.env.DOPPLER_BROWSER_CHANNEL || 'chrome' });
 const context = await browser.newContext({ serviceWorkers: 'block' });
 const page = await context.newPage();
 const errors = [];
@@ -32,8 +32,9 @@ try {
     JSON.stringify({ ...identity(role), artifacts: [] }), 'application/json'));
   await page.route('**/runtime/src/capsule-runtime.js', route => respond(route,
     'export const createFetchCapsuleArtifactStore = () => ({ readArtifact: async () => new Uint8Array() });'));
+  await page.route('**/runtime/src/capsule.js', route => respond(route,
+    'export const getCapsuleIdentity = ({schema,semanticRoot,envelopeDigest}) => ({schema,semanticRoot,envelopeDigest});'));
   await page.route('**/runtime/src/client/capsule-host.browser.js', route => respond(route, `
-    export const getCapsuleIdentity = ({schema,semanticRoot,envelopeDigest}) => ({schema,semanticRoot,envelopeDigest});
     const delay = signal => new Promise((resolve, reject) => {
       signal?.throwIfAborted();
       const timer = setTimeout(() => { signal?.removeEventListener('abort', abort); resolve(); }, 200);
@@ -64,7 +65,9 @@ try {
       };
     }`));
   await page.goto('http://127.0.0.1:' + server.address().port + '/index.html');
-  await page.waitForFunction(() => globalThis.documentSearch?.ready);
+  await page.waitForFunction(() => globalThis.documentSearch?.ready, null, { timeout: 10000 }).catch(async error => {
+    console.error(JSON.stringify({errors, status: await page.locator('#status').textContent()}));throw error;
+  });
   assert.match(await page.locator('#requirements').textContent(), /shader-f16, subgroups/);
   assert.match(await page.locator('#requirements').textContent(), /Storage: at least/);
   await page.check('#retention');

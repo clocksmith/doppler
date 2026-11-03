@@ -27,7 +27,7 @@ import { preparePerLayerInputs } from '../per-layer-inputs.js';
 import { getActivationRepresentation } from './activation-storage.js';
 import { createTensor, tensorElementBytes } from '../../../../gpu/tensor.js';
 import { releasePerLayerInputBuffer, resolvePrefillMaxInFlightChunks, shouldDisablePrefillCommandBatching } from './prefill-policy.js';
-import { logPrefillCacheState, probePrefillEmbedding, tracePrefillEmbeddingIds } from './prefill-observation.js';
+import { logPrefillCacheState, probePrefillEmbedding, tracePrefillEmbeddingIds, snapshotPrefillPhase } from './prefill-observation.js';
 import {
   normalizePrefixEmbeddingOverride,
   resolvePrefillEmbeddingInputIds,
@@ -115,17 +115,11 @@ export async function _prefillPromptToLogits(prompt, opts, contextLabel) {
     return {
       inputIds,
       logits,
-      phase: {
+      phase: snapshotPrefillPhase(this._state.stats, {
         inputMs,
         prefillMs: performance.now() - prefillStart,
         tokens: inputIds.length,
-        prefillRecordMs: this._state.stats.prefillRecordMs ?? null,
-        prefillRecordOps: this._state.stats.prefillRecordOps ?? null,
-        prefillRecordPasses: this._state.stats.prefillRecordPasses ?? null,
-        prefillRecordOpLabels: this._state.stats.prefillRecordOpLabels ?? null,
-        prefillSubmitWaitMs: this._state.stats.prefillSubmitWaitMs ?? null,
-        gpuPrefillMs: this._state.stats.gpuTimePrefillMs ?? null,
-      },
+      }),
     };
   }
 

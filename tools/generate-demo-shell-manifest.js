@@ -45,9 +45,9 @@ const WORKER_SHELL_START = '// BEGIN GENERATED DEMO SHELL';
 const WORKER_SHELL_END = '// END GENERATED DEMO SHELL';
 // Audited public-host closure: FP8/GGUF loaders, recurrent/MoE and whole-token
 // execution owners already account for 789 modules. The demo GPU-timing
-// presenter adds one and the Branch tree (demo/branches.js) one more; keep the
-// exact ceiling rather than hiding shell growth.
-const MAX_MODULES = 791;
+// presenter and branch tree add two; extracting the existing Node file reader
+// into its own storage owner adds one module without new execution behavior.
+const MAX_MODULES = 792;
 const MAX_TOTAL_BYTES = 10_000_000;
 const MODULE_ROOTS = [
   'demo/demo.js',

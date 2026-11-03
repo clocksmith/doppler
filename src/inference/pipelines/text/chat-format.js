@@ -443,8 +443,9 @@ function formatTranslateGemma(messages) {
 function formatPlaintext(messages) {
   // Simple plaintext format for unknown templates
   return messages
-    .map((message) => {
+    .map((message, index) => {
       const role = normalizeChatRole(message?.role);
+      assertSupportedChatRole(role, 'Plaintext', index);
       const content = normalizeChatMessageContent(message?.content);
       if (role === 'system') return `System: ${content}`;
       if (role === 'user') return `User: ${content}`;

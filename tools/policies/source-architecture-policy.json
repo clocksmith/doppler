@@ -677,7 +677,7 @@
       "reviewedLines": 896,
       "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
       "extractTo": [
-        "inference/pipelines/text/generator/prefill-runtime-components.js"
+        "inference/pipelines/text/generator/prefill-observation.js"
       ]
     },
     "inference/pipelines/text/generator-steps.js": {
@@ -747,7 +747,7 @@
       "reviewedLines": 897,
       "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
       "extractTo": [
-        "storage/artifact-storage-context-components.js"
+        "storage/node-file-access.js"
       ]
     },
     "tooling/kernel-path-builder/index.js": {

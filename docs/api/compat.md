@@ -39,6 +39,14 @@ The promise returns the completed inspection receipt, also delivered as
 `receipt.inputTokenIds` holds the exact IDs prefilled before the first generated
 token, or `null` when a pipeline does not report them.
 
+Inspection accepts text, a chat-message array, or `{ messages: [...] }` using the
+same chat formatter as generation. Structured history is snapshotted before
+execution. Its fingerprint uses the actual prefilled IDs when reported, otherwise
+the existing tokenizer/template helper with the resolved chat-template setting.
+Plain-string fingerprints retain their earlier raw-text convention. A structured
+receipt's exact prefix can be replayed for a branch without re-tokenizing history.
+
+
 To continue from an exact token boundary, pass `inputTokenIds` instead of relying
 on `prompt` tokenization: `model.inspect.generate(prompt, { inputTokenIds })`.
 Every generation starts from cleared attention and recurrent state, so prefilling

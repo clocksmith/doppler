@@ -39,3 +39,15 @@ export async function probePrefillEmbedding(stage, tensor, options) {
     elementStrideBytes: tensor.elementStrideBytes,
   });
 }
+
+export function snapshotPrefillPhase(stats, phase) {
+  return {
+    ...phase,
+    prefillRecordMs: stats.prefillRecordMs ?? null,
+    prefillRecordOps: stats.prefillRecordOps ?? null,
+    prefillRecordPasses: stats.prefillRecordPasses ?? null,
+    prefillRecordOpLabels: stats.prefillRecordOpLabels ?? null,
+    prefillSubmitWaitMs: stats.prefillSubmitWaitMs ?? null,
+    gpuPrefillMs: stats.gpuTimePrefillMs ?? null,
+  };
+}
