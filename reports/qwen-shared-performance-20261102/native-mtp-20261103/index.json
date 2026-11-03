@@ -1,0 +1,370 @@
+{
+  "schema": "doppler.native-mtp-integration-diagnostic/v1",
+  "reportedAt": "2026-11-03T15:03:32.044489+00:00",
+  "executedAt": null,
+  "executionClockLimitation": "Scripts retained monotonic elapsed clocks; no UTC execution timestamp was recorded. Do not substitute filesystem timestamps.",
+  "component": "doppler.runtime-source.gpu.kernels",
+  "intent": "preserved",
+  "qualified": false,
+  "publishedGenerationUsesNativeMTP": false,
+  "genericMoEGuardRetained": true,
+  "baseSourceSha256": "52312daa5b2190c1f5723d33c3315c01c55af4206f6c6e6eb63f3d8dd52bb85e",
+  "hardware": "Jupiter AMD Ryzen AI MAX+ 395 / Radeon 8060S, Node 22.22.1, native WebGPU/Vulkan",
+  "precision": {
+    "baseActivations": "f32",
+    "baseKV": "f32",
+    "recurrent": "f32",
+    "auxiliaryKV": "f16"
+  },
+  "boundedSourceControls": {
+    "sourceInventory": "source-native-mtp-57-inventory.json.gz",
+    "baseCommit": "26c3fccfb52af6c4e239e6a07a675224692af146"
+  },
+  "recovery": {
+    "cases": 8,
+    "tokensMatched": true,
+    "maxAbsStateDiff": 5.14984130859375e-05,
+    "maxAbsLogitDiff": 1.7881393432617188e-05,
+    "frozenTolerance": 0.001,
+    "failureRestorationBitIdentical": true,
+    "exactRetainedProjectionRecovery": "14 physical core cases on AMD and M3; not the same comparison as full-model sequential versus batched arithmetic"
+  },
+  "consecutiveWindows": {
+    "tokens": 32,
+    "windows": 8,
+    "matchedSequentialTokens": true,
+    "feedbackBytesPerWindow": 36,
+    "commandBuffersPerWindow": 1,
+    "sumDiagnosticWindowMs": 2013.8887599999944,
+    "sumRecordMs": 706.6666709999918,
+    "limits": "One easy numerical-sequence prompt. Not complete-request paired timing, independent model quality, cold startup or resource qualification."
+  },
+  "profile": {
+    "baselinePhases": [
+      {
+        "name": "draft3",
+        "start": 0,
+        "end": 108,
+        "recordMs": 8.535717999999179,
+        "gpuComputeMs": 19.398655999999995
+      },
+      {
+        "name": "target_layers_and_batched_head",
+        "start": 108,
+        "end": 1162,
+        "recordMs": 64.62583599999925,
+        "gpuComputeMs": 107.61011200000002
+      },
+      {
+        "name": "target_argmax",
+        "start": 1162,
+        "end": 1170,
+        "recordMs": 1.533292000000074,
+        "gpuComputeMs": 0
+      },
+      {
+        "name": "greedy_accept",
+        "start": 1170,
+        "end": 1171,
+        "recordMs": 9.215942000002542,
+        "gpuComputeMs": 0
+      },
+      {
+        "name": "restore_and_recurrent_prefix",
+        "start": 1171,
+        "end": 1261,
+        "recordMs": 3.5819959999971616,
+        "gpuComputeMs": 1.6384000000000005
+      },
+      {
+        "name": "auxiliary_refill4",
+        "start": 1261,
+        "end": 1385,
+        "recordMs": 9.550091000000975,
+        "gpuComputeMs": 3.342335999999998
+      },
+      {
+        "name": "carry",
+        "start": 1385,
+        "end": 1386,
+        "recordMs": 3.0038359999998647,
+        "gpuComputeMs": 0
+      }
+    ],
+    "headOnlyCandidatePhases": [
+      {
+        "name": "draft3",
+        "start": 0,
+        "end": 108,
+        "recordMs": 9.085219999997207,
+        "gpuComputeMs": 18.808831999999995
+      },
+      {
+        "name": "target_layers_and_batched_head",
+        "start": 108,
+        "end": 1162,
+        "recordMs": 64.32559000000037,
+        "gpuComputeMs": 94.240768
+      },
+      {
+        "name": "target_argmax",
+        "start": 1162,
+        "end": 1170,
+        "recordMs": 1.1219290000008186,
+        "gpuComputeMs": 0
+      },
+      {
+        "name": "greedy_accept",
+        "start": 1170,
+        "end": 1171,
+        "recordMs": 16.841286999999284,
+        "gpuComputeMs": 0
+      },
+      {
+        "name": "restore_and_recurrent_prefix",
+        "start": 1171,
+        "end": 1261,
+        "recordMs": 4.542860000001383,
+        "gpuComputeMs": 1.5728640000000005
+      },
+      {
+        "name": "auxiliary_refill4",
+        "start": 1261,
+        "end": 1385,
+        "recordMs": 10.704487999999401,
+        "gpuComputeMs": 3.4078719999999985
+      },
+      {
+        "name": "carry",
+        "start": 1385,
+        "end": 1386,
+        "recordMs": 3.444896000000881,
+        "gpuComputeMs": 0
+      }
+    ],
+    "baselineTargetHeadComputeMs": 22.151168,
+    "candidateTargetHeadComputeMs": 8.585216,
+    "candidateMaxAbsLogitDiff": 1.7642974853515625e-05,
+    "candidateActivated": false,
+    "limits": "One instrumented baseline and one candidate; compute intervals only. Zero intervals do not prove free operations. Copies, gaps, readbacks and host time are not recovered-time estimates."
+  },
+  "remaining": [
+    "Manifest-bound native auxiliary weights and prepared MTP execution contract integrated with the public generator",
+    "Borrow shared embedding/head instead of duplicate auxiliary loading; bound retained resources across long sessions",
+    "Optimize measured target projections/head and repeated recording; retain failed candidates",
+    "Real generator cancellation/callback/continuation integration beyond lower-level restoration mechanics",
+    "Held-out task quality, strongest-Pooled alternating request campaign and declared host/surface coverage"
+  ],
+  "evidence": [
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/mtp-aux-forward-46.js",
+      "retained": "mtp-aux-forward-46.js.gz",
+      "uncompressedSha256": "13e17e0939987b362358ebb6a83ed61e06f4563291af3a46d94f514b9166fc80",
+      "compressedSha256": "1dc59062899d3b02d65a4a7268dcaef7db8292a5282483e2add9e02d2620dad9"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/mtp-aux-forward-46.json",
+      "retained": "mtp-aux-forward-46.json.gz",
+      "uncompressedSha256": "8de049ce247eded9ce440241ee7e9f14d7d89801654a3c2c3fe8262a19d1fbf4",
+      "compressedSha256": "251a0a0b438a9f84f8d0c3317944b59734252cb8001699c49888b6a7c898db86"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/mtp-conditioning-fixture-45/policy.json",
+      "retained": "mtp-conditioning-fixture-45--policy.json.gz",
+      "uncompressedSha256": "45c196bd4cd74fc1a675e67975391ec9dd005be13d6edba7a032b5d0c520e8e3",
+      "compressedSha256": "c5ac9f90ce4c2dbd019337397f2b44ba8be96061d0015f1159022ba91ddcc512"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/mtp-aux-layer-f64-reference-47.py",
+      "retained": "mtp-aux-layer-f64-reference-47.py.gz",
+      "uncompressedSha256": "25dccd33da25a5e53e03388ab1a558fbffafa0ed1f5f684a206beed69027356d",
+      "compressedSha256": "887398a5651be963b9cd5ebc355a61505cbffb35e8cc3de389f730c42a0a7cdb"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/mtp-aux-layer-f64-reference-47.json",
+      "retained": "mtp-aux-layer-f64-reference-47.json.gz",
+      "uncompressedSha256": "3133828edb6d7a8d4e91789d7220f7dc1cea8b72d56d2639a647c830059122e6",
+      "compressedSha256": "11f338363e438f811e5fce7ac64fdba56e1373aa13d9ad49af68d196bb4493be"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/mtp-draft-chain-51.js",
+      "retained": "mtp-draft-chain-51.js.gz",
+      "uncompressedSha256": "d6aeeee8be32a7897c3f265fb2c7d6546fba6d6847fbff5d363fe7f35b41151e",
+      "compressedSha256": "ee214668d42df7ebac8f0b5675d80061b22220dd10322944eb402d2e12d3e467"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/mtp-draft-chain-51.json",
+      "retained": "mtp-draft-chain-51.json.gz",
+      "uncompressedSha256": "05aa6697dce480b77fd8051bbe8c289cb7ea69ae67ac6c86d05956d490afa42a",
+      "compressedSha256": "f5841a58c1f7c313e5ac2824e952bb112938126eb21015d45b0a2ee529ac1a94"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/native-mtp-recovery-policy-54.json",
+      "retained": "native-mtp-recovery-policy-54.json.gz",
+      "uncompressedSha256": "0ae7d98c514109146d153648e6717c9c112afa35ecb13c98d6de19d7aa8ccb45",
+      "compressedSha256": "f8afecf163dc0fc8545fba04e4f1b9879d00498de7a99214e8b111ec94b6c934"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/native-mtp-consecutive-policy-58.json",
+      "retained": "native-mtp-consecutive-policy-58.json.gz",
+      "uncompressedSha256": "6e319ac6b1663f953e710d2e53ca91816bfa913ab6b88be0d6ec253d9226c25d",
+      "compressedSha256": "bec3f98fa8cb185ee2b6d86a9d87ef2428b61ec9e7864f3165ab3d525ccba095"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/native-mtp-consecutive-58.js",
+      "retained": "native-mtp-consecutive-58.js.gz",
+      "uncompressedSha256": "ba334141ab01b201269056d14f09457d0d4123abd71a3cae969489404205947e",
+      "compressedSha256": "0a1ea50538ee1def1b205786693bbba28c28494c0e76cc74850e2278bbd9c889"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/native-mtp-consecutive-58.json",
+      "retained": "native-mtp-consecutive-58.json.gz",
+      "uncompressedSha256": "30c0d67b9218381b74fcab157e7e141f8ef5c07b386d3a8b1b1ccb5064f74a85",
+      "compressedSha256": "f720a00350cb682ee9c6b11e641d8f21c9762f29058b83dad63025b86a52d6f9"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/native-mtp-profile-59.js",
+      "retained": "native-mtp-profile-59.js.gz",
+      "uncompressedSha256": "babcac5005d7124a74b4141964682d44ba62d4af74275bf69373c1820ad74b59",
+      "compressedSha256": "68aaa7c662d9e6a476c260f6cdf932f4783e340819ebe991b7628caece781836"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/native-mtp-profile-59.json",
+      "retained": "native-mtp-profile-59.json.gz",
+      "uncompressedSha256": "54b43141d185a88e95fa50bc5d356487a0a8263f5990447c82238fe1d133cce9",
+      "compressedSha256": "4b800432350f8e9c41e60c7e2be21555dfbc06b41ba59ee342a26ace91f99d36"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/native-mtp-head-policy-61.json",
+      "retained": "native-mtp-head-policy-61.json.gz",
+      "uncompressedSha256": "1d55b0d8c3db38d38d8bdccb64f7665c7a02ab18fc3b1a40273227f6cf594923",
+      "compressedSha256": "84fba5e1fc325aa4b1990822cd1a4245586bf7cc08a9eaf956b9f927d08f2001"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/mtp-verification-head-pair-path-61.json",
+      "retained": "mtp-verification-head-pair-path-61.json.gz",
+      "uncompressedSha256": "98c65837d3360c2f47896282ecd3031d7b24b840b0238c1ab8a835a8707178a6",
+      "compressedSha256": "506f9aa2df5fb4f22238698b44707f57d56a8c074258c2211371a939a3111c01"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/native-mtp-head-profile-61.js",
+      "retained": "native-mtp-head-profile-61.js.gz",
+      "uncompressedSha256": "35d51b36f6d075ce7a824b1b0241cdd9c0ae063746ee941a197b49e3071a8852",
+      "compressedSha256": "0d9a41b4cf46b8fd21e62c2b870672fb245db01eba35fbb4d2cd6af1f1def4fd"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/native-mtp-head-profile-61.json",
+      "retained": "native-mtp-head-profile-61.json.gz",
+      "uncompressedSha256": "f15266ead6ec38758d2cbf022beaea5b18d37ccdd7869448db9850fa06004ae2",
+      "compressedSha256": "d8d022381b0fd73f8f0171b727de88b0c3a5e7fd5fb07ffee1bb26fb56052557"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/native-mtp-recovery-62.js",
+      "retained": "native-mtp-recovery-62.js.gz",
+      "uncompressedSha256": "4d2fa42473918e05be0f9d2db550a4cbf8cf1a1a7c556d9a22fe3d12a330737a",
+      "compressedSha256": "fc5d4c32cdbdbc7e5d64709ac95d3cb5c8e0d6233ffc2462b0c43380b359e954"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/native-mtp-recovery-62.json",
+      "retained": "native-mtp-recovery-62.json.gz",
+      "uncompressedSha256": "13ce045c5810e43f593319d96307897c587bb3ea157a885da1e526d1394816b8",
+      "compressedSha256": "2aea925f395c12f63cbc2ac718e09e09a647b3525e0483f10a6e3003a55da3c5"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/source-native-mtp-57-inventory.json",
+      "retained": "source-native-mtp-57-inventory.json.gz",
+      "uncompressedSha256": "b6bd951a56081155c33f24d401868fdc6576203f194ace2b74bb16f94f4cdaf8",
+      "compressedSha256": "3d7a4a6ba132ef9557b161b728f80903fe80586d12fb795f08baaf597b2763f3"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/speculative-prefix-recovery-48.log",
+      "retained": "speculative-prefix-recovery-48.log.gz",
+      "uncompressedSha256": "8afdfc6f612b7c9809a5525b23b50fa29d17f7925b45b7fd6715025a2d43492c",
+      "compressedSha256": "70af07948834f907048a4360d7f07245837f69e0d2e4a1eb31dfc647c8872e36"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/speculative-prefix-recovery-56.log",
+      "retained": "speculative-prefix-recovery-56.log.gz",
+      "uncompressedSha256": "0da1c9c9e8baa15b9b673818e8a29dd6647ee7289072b8e7026a4925b5e80729",
+      "compressedSha256": "f74b90cf617b08aef42d7df432254231e0fe38d86aa5867655bf3d8f42e98035"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/mtp-prefix-carry-mars-60.log",
+      "retained": "mtp-prefix-carry-mars-60.log.gz",
+      "uncompressedSha256": "b63e0dc2147e7487275396447563de057acd4ba66367ea8c692d54d70007db96",
+      "compressedSha256": "1e1e5f33acff58ee44237327339b3bf49d5b5c9c9349dc11aefc7aab3677b3d5"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/prepare-mtp-aux-native-37.py",
+      "retained": "prepare-mtp-aux-native-37.py.gz",
+      "uncompressedSha256": "464c401182565a72a81a45ac5f3a7faeb092c7a033496b326e219224fb2f0dae",
+      "compressedSha256": "0d0ec0c6d5cd4d3cefc1849c29469266cdcfe784ef46f750f3de4c23fb497397"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/finalize-mtp-aux-native-38.js",
+      "retained": "finalize-mtp-aux-native-38.js.gz",
+      "uncompressedSha256": "73954c3885943b21f045eb51502afe3437e4466195147c70e3ad1242dc3a2fa3",
+      "compressedSha256": "70a67d0c5473f3af1a77270edebae772a0c4c7457d45a4ea40fee3a9a5ab4835"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/finalize-mtp-aux-native-39.js",
+      "retained": "finalize-mtp-aux-native-39.js.gz",
+      "uncompressedSha256": "cd41fda5833f2d01731e653069d03ef478d293da5e88605c7a7c36e04cca0054",
+      "compressedSha256": "a07ee40c51b50ad3c5a911b528f62cfff941fb20d56e68e5a692fc6d7f4cc6dc"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/finalize-mtp-aux-native-40.js",
+      "retained": "finalize-mtp-aux-native-40.js.gz",
+      "uncompressedSha256": "41def90dffafb569087eaef184509f080905b58199b3d424a313158fcc79d9ed",
+      "compressedSha256": "fbed6439e28050e760e77fd7c5f31ec535a9c71d4611ddfbcb8aa248c846d3c4"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/finalize-mtp-aux-native-43.js",
+      "retained": "finalize-mtp-aux-native-43.js.gz",
+      "uncompressedSha256": "1437bf5d4f3a86421e4e13bdea96410b3c291c75a1522b31817e3e4e991b2f7b",
+      "compressedSha256": "1ed71a86c5163c839ae64973e832ed340f2fdda109d160a9cb698708e89069af"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/mtp-aux-native-43/manifest.json",
+      "retained": "mtp-aux-native-43--manifest.json.gz",
+      "uncompressedSha256": "4b34bde799d8e5cd6cda9b9ef689b82694943016b82d7d70d2cbf96074b55d2b",
+      "compressedSha256": "cf2e4f87efaa8a1a0018adbab0f6cf655273099703458a9e2d38b3c278724936"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/mtp-aux-native-43/preparation.json",
+      "retained": "mtp-aux-native-43--preparation.json.gz",
+      "uncompressedSha256": "b178f100a38446b432a16b4e4373cc92d16af141bc13b7171c5128d717371592",
+      "compressedSha256": "0fe8157e539ba8a9b4cc2bd0d926e3688e7b445431d7c6890426f20b2a307a4d"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/mtp-conditioning-fixture-45/embedding.bin",
+      "retained": "mtp-conditioning-fixture-45--embedding.bin.gz",
+      "uncompressedSha256": "283e3de30a30e9629788d1bfda3f500d4d75906ba2ce11df48f24737f00b4b57",
+      "compressedSha256": "8f089e960e41875301b3ccd495f571b51545a5a78587f27a8cbe204962cd65bf"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/mtp-conditioning-fixture-45/hidden.bin",
+      "retained": "mtp-conditioning-fixture-45--hidden.bin.gz",
+      "uncompressedSha256": "c613e2f9e7e820ac524ee0f4a620f96b6554a62c6ce6bd9a3f408d916a080a38",
+      "compressedSha256": "de193a8742947042b13574fb1285fc043c7a2c40a5010c53a9947c1bfdb5fad9"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/mtp-conditioning-fixture-45/expected-conditioning-f64.bin",
+      "retained": "mtp-conditioning-fixture-45--expected-conditioning-f64.bin.gz",
+      "uncompressedSha256": "e4422e01c23f525f99595a1a67d680e3f0df6b6af0bb53cf4480d925c87cb3b5",
+      "compressedSha256": "ae43fa537b7c821fc626d38f4264ba4792f45801aa5f457a8cf010d7ec916eb4"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/mtp-conditioning-fixture-45/gpu-conditioned.bin",
+      "retained": "mtp-conditioning-fixture-45--gpu-conditioned.bin.gz",
+      "uncompressedSha256": "0da761729ca9489c30e36b79010f0031b4ef70846763dd3b9b7fb15e6a514d0e",
+      "compressedSha256": "1b44cead19c2551c569f590edb01d8532d684f4a974f8d726d8beaf303bbe827"
+    },
+    {
+      "externalPath": "/run/media/x/deco-backup/doppler-shared-platform-20261102/mtp-conditioning-fixture-45/gpu-aux-hidden.bin",
+      "retained": "mtp-conditioning-fixture-45--gpu-aux-hidden.bin.gz",
+      "uncompressedSha256": "d81bd97d6f2f86d64e9e7a18662deb131de90e0042cd3e7769fb052310524972",
+      "compressedSha256": "528dacf9a2d75b7c6828964e9067a6605a1bee26c3435f078d3e1a2a221baec8"
+    }
+  ]
+}

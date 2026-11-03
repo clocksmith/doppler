@@ -592,6 +592,7 @@ gpu/kernels/kv-quantize.d.ts
 gpu/kernels/l2-normalize.d.ts
 gpu/kernels/layernorm.d.ts
 gpu/kernels/linear-attention-core.d.ts
+gpu/kernels/linear-attention-recovery.d.ts
 gpu/kernels/linear-norm-ab.d.ts
 gpu/kernels/linear_attention.d.ts
 gpu/kernels/lm-head-argmax.d.ts
@@ -642,6 +643,7 @@ gpu/kernels/sigmoid-gated-add.d.ts
 gpu/kernels/silu.d.ts
 gpu/kernels/soft-embedding.d.ts
 gpu/kernels/softmax.d.ts
+gpu/kernels/speculative-accept.d.ts
 gpu/kernels/split-dispatch.d.ts
 gpu/kernels/split-qkv-rmsnorm-qk.d.ts
 gpu/kernels/split-qkv-rmsnorm-rope-qk.d.ts

@@ -108,6 +108,12 @@ benchmarks/.tjs-bench-profile/
 # Generated report artifacts
 bench/out/
 reports/**
+# Native MTP numerical/recovery gate and rejected performance candidates.
+!reports/qwen-shared-performance-20261102/
+!reports/qwen-shared-performance-20261102/native-mtp-20261103/
+!reports/qwen-shared-performance-20261102/native-mtp-20261103/README.md
+!reports/qwen-shared-performance-20261102/native-mtp-20261103/index.json
+!reports/qwen-shared-performance-20261102/native-mtp-20261103/*.gz
 !reports/
 !reports/sequence-source-frequencies/
 !reports/sequence-source-frequencies/**

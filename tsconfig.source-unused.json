@@ -7,6 +7,8 @@
   },
   "include": [],
   "files": [
+    "src/gpu/kernels/linear-attention-recovery.js",
+    "src/gpu/kernels/speculative-accept.js",
     "src/gpu/kernels/codegen/attention-prefill-query-tile-f16kv-variant.js",
     "src/tooling/browser-harness/benchmark-comparison.js",
     "src/gpu/kernels/moe-grouped.js",

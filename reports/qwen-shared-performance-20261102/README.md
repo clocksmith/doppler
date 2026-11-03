@@ -8,7 +8,7 @@ The [scoreboard](scoreboard.json) retains sixteen declared model/host/surface/pr
 | 27B / Jupiter / Chrome | Older paired loss: 33.862 vs 7.075 s; newer Doppler-only screen 11.154–11.250 s | Older paired loss: 108.046 vs 28.678 s; new combined candidate unmeasured |
 | 27B / Mars / Chrome | Retained Doppler 47.293/65.085 s; Pooled 18.375/19.148 s; large variance | Unmeasured |
 | 35B / Mars / Chrome | Unmeasured | Unmeasured |
-| Both models / both hosts / Node | Unmeasured full models | Unmeasured full models |
+| Both models / both hosts / Node | Declared campaign cell unmeasured | Declared campaign cell unmeasured |
 
 These are fixed-budget request controls, not accepted completed jobs. The 35B native formats differ in KV precision and materialization; its long outputs differ. The older 27B loss is retained separately from newer single-engine tuning. No percentages are added across experiments. Exact attribution and individual measurements remain in the linked receipts and [evidence index](evidence-index.json).
 
@@ -27,3 +27,5 @@ The [checkpoint experiment](checkpoint-experiment.json) removes only the initial
 [Actual MTP inputs](mtp-source-preparation.json) now preserve all 20 auxiliary source tensors (897,955,840 bytes), with SHA256 for the complete source and each tensor. This is preparation only: no native MoE MTP draft/verify implementation, GPU acceptance path or performance improvement is established by those files. GPU verification, recurrent/KV recovery and explicit sampling semantics remain required.
 
 The [November 3 continuation](diagnostic-20261103/README.md) retains a new current-source 27B/Pooled short screen on Jupiter and the incomplete Mars timeout investigation. It does not qualify either model or establish a broad performance lead.
+
+The [native MoE MTP integration diagnostic](native-mtp-20261103/README.md) now executes real GPU draft chains, batched target verification, retained-projection recurrent recovery and consecutive-window carry in a frozen experiment. Rejection/continuation checks pass within the frozen numerical policy. The manual path remains slow and is not connected to public generation; no coverage cell or performance claim is promoted.

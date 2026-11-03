@@ -33853,6 +33853,71 @@
      }
     }
    }
+  },
+  "speculative_accept": {
+   "description": "GPU greedy draft-prefix acceptance and bounded recurrent recovery count",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "drafts",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "targets",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "result",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "draft_count",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "output_limit",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "vocab_size",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "_pad",
+      "type": "u32",
+      "offset": 12
+     }
+    ]
+   },
+   "variants": {
+    "greedy": {
+     "wgsl": "speculative_accept.wgsl",
+     "entryPoint": "main",
+     "workgroup": [1,1,1],
+     "requires": [],
+     "outputDtype": "u32",
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
   }
  }
 }

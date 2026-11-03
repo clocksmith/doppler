@@ -421,3 +421,10 @@ export function write_moe_grouped_gu_native_f32(view, values, kernel) {
   view.setUint32(24, 0, true);
   view.setUint32(28, 0, true);
 }
+
+export function write_speculative_accept_greedy(view, values, kernel) {
+  writeU32(view, 0, values["draft_count"], kernel, "draft_count");
+  writeU32(view, 4, values["output_limit"], kernel, "output_limit");
+  writeU32(view, 8, values["vocab_size"], kernel, "vocab_size");
+  writeU32(view, 12, values["_pad"], kernel, "_pad");
+}

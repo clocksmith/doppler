@@ -32,6 +32,8 @@ export interface LinearAttentionCoreLayerState {
 
 export interface RunLinearAttentionCoreGPUOptions {
   numTokens: number;
+  /** Recovery only: restore initial states first, then rerun this bounded prefix from retained projections. */
+  recoveryAcceptance?: import('./speculative-accept.js').SpeculativeAcceptance | null;
   /** Resolved session; standalone calls use the current runtime session. */
   runtimeSession?: Pick<import('../../config/schema/execution-v1.schema.js').ExecutionV1SessionSchema, 'useLinearAttentionRegisterPrefill' | 'useLinearAttentionRegisterDecode' | 'useLinearAttentionFusedDecodeCore'>;
   /** Resolved model-config gated-RMSNorm activation; selects and guards the gate kernel. */

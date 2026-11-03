@@ -1,3 +1,5 @@
+import { captureLinearAttentionRecovery, isLinearAttentionRecoveryRecording } from './linear-attention-recovery.js';
+import { createSpeculativeRecoveryUniform } from './speculative-accept.js';
 import { executePairedLinearAttention } from './paired-linear-attention.js';
 import { getDevice } from '../device.js';
 import { getShaderScopeCacheKey } from './shader-source-scope.js';
@@ -17,16 +19,13 @@ import { selectRuleValue } from '../../rules/rule-registry.js';
 import { assertImplicitDtypeTransitionAllowed } from '../../config/dtype-transition-contract.js';
 import { getKernelConfig } from './kernel-configs.js';
 import { requireNormGateActivation, resolveGatedDeltaNormGateKernel } from './gated-delta-norm-gate.js';
-
 const CONV_WORKGROUP_SIZE = WORKGROUP_SIZES.DEFAULT;
 const HEAD_WORKGROUP_SIZE = 128;
-
 let cachedEpoch = -1;
 const pipelineCache = new Map();
 let convBindGroupLayout = null;
 let recurrentBindGroupLayout = null;
 let fusedDecodeBindGroupLayout = null;
-
 function createBindGroupLayouts(device) {
   convBindGroupLayout = getOrCreateBindGroupLayout(
     'linear_attention_conv_layout',
@@ -218,13 +217,11 @@ function requirePositiveEpsilon(value, label) {
   }
   return value;
 }
-
 function requireGpuBuffer(buffer, label) {
   if (!(buffer instanceof GPUBuffer)) {
     throw new Error(`linear_attention kernel requires GPUBuffer for ${label}.`);
   }
 }
-
 function resolveOutputDtype(outputDtype) {
   const normalized = selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype: outputDtype });
   if (normalized === 'f16' || normalized === 'f32') {
@@ -252,6 +249,11 @@ function canUseFusedDecodeCore(layerState, numTokens, options, aTensor, bTensor)
 }
 
 export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTensor, layerState, options = {}) {
+  if (options.recoveryAcceptance != null && (!options.recorder || layerState.sourceLayout !== 'gguf-v1'
+      || qkvTensor?.dtype !== 'f32' || qkvTensor?.precision != null
+      || layerState.recurrentStatePrecision !== 'f32' || options.outputDtype !== 'f32')) {
+    throw new Error('GPU prefix recovery requires recorded native GGUF F32 state and activations.');
+  }
   if (layerState.sourceLayout === 'gguf-v1' && (qkvTensor?.precision === 'two-f32'
       || qkvTensor?.dtype !== 'f32' || layerState.recurrentStatePrecision !== 'f32'
       || options.normGateActivation !== 'silu')) {
@@ -352,6 +354,9 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
   if (ggufSource && prefillSession.useLinearAttentionFusedDecodeCore) {
     throw new Error('Native GGUF GDN has no fused decode core; it runs the unfused or register recurrent program.');
   }
+  if (options.recoveryAcceptance != null && (useRegisterDecode || prefillSession.useLinearAttentionFusedDecodeCore)) {
+    throw new Error('GPU prefix recovery requires the declared unfused or register-prefill recurrent program.');
+  }
   const useFusedDecodeCore = canUseFusedDecodeCore(layerState, numTokens, options, aTensor, bTensor);
   if (useRegisterDecode) {
     const selected = resolveGatedDeltaNormGateKernel('gated_delta_fused_decode', 'gatedDeltaFusedDecode', 'scalarVariant',
@@ -366,6 +371,14 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
   const pipelines = prepared instanceof Promise ? await prepared : prepared;
   if (!pipelines) {
     throw new Error(`linear_attention core failed to resolve pipelines for dtype "${inputDtype}".`);
+  }
+
+  if (recorder && options.recoveryAcceptance == null && isLinearAttentionRecoveryRecording(recorder)) {
+    captureLinearAttentionRecovery(recorder, layerState, numTokens, async (recoveryRecorder, acceptance) => {
+      const output = await runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTensor, layerState,
+        { ...options, recorder: recoveryRecorder, recoveryAcceptance: acceptance });
+      recoveryRecorder.trackTemporaryBuffer(output.buffer);
+    });
   }
 
   const parallelConvWorkgroups = pipelines.parallelConvPipeline && numTokens >= layerState.convKernelSize
@@ -398,7 +411,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
     qkvzPacked: options.qkvzPacked === true,
     bProjOffsetElements: options.bProjOffsetElements,
   };
-  const workspace = numTokens === 1 && inputDtype === 'f32' && outputDtype === 'f32' && stateComponents === 1
+  const workspace = options.recoveryAcceptance == null && numTokens === 1 && inputDtype === 'f32' && outputDtype === 'f32' && stateComponents === 1
     && Number.isInteger(options.layerIdx) && options.layerIdx >= 0 ? recorder?.decodeWorkspace : null;
   const bindGroupForSlot = (slot, descriptor) => workspace
     ? workspace.getBindGroup(slot, descriptor) : device.createBindGroup(descriptor);
@@ -546,11 +559,10 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
   }
   if (useRecorder) {
     try {
-      const paramsBuffer = createUniformBufferFromData(
-        'linear_attention_params',
-        buildParamsData(paramsPayload),
-        recorder
-      );
+      const paramsData = buildParamsData(paramsPayload);
+      const paramsBuffer = options.recoveryAcceptance != null
+        ? createSpeculativeRecoveryUniform(recorder, options.recoveryAcceptance, paramsData, numTokens)
+        : createUniformBufferFromData('linear_attention_params', paramsData, recorder);
       const convBindGroup = bindGroupForSlot(`linear_core:${options.layerIdx}:conv`, {
         label: 'linear_attention_conv_bind_group',
         layout: convBindGroupLayout,
