@@ -1,0 +1,190 @@
+{
+  "scope": "F16 KV write layout integration repair, not F16 numerical/model promotion",
+  "firstBoundary": {
+    "pipeline": "kv_cache_write_f32_to_f16_pipeline",
+    "bindGroup": "kv_cache_write_bind_group",
+    "command": 40,
+    "mismatch": "Repeated pipeline.getBindGroupLayout(0) returned different layout wrapper identities across consecutive decode observations."
+  },
+  "repair": "Use the existing pipeline-scoped getPipelineBindGroupLayout cache. Keep layout equality validation and all arithmetic/precision settings unchanged.",
+  "beforeTest": "f16-kv-layout-before-20.log: focused regression fails on the parent",
+  "afterTest": "node tests/inference/kv-cache-direct-write.test.js passes",
+  "sourceInventory": "/run/media/x/deco-backup/doppler-shared-platform-20261102/source-f16-kv-layout-20-files.json",
+  "openingAndSingleStep": {
+    "freshSessionLoadMs": 87127.30000000447,
+    "arithmeticControlPassed": true,
+    "short128CompleteMs": 1758.2999999970198,
+    "decodeMode": "single_token"
+  },
+  "feedbackScreen": {
+    "receipt": "/run/media/x/deco-backup/doppler-shared-platform-20261102/35b-f16-feedback-screen-22/receipt.json",
+    "mode": "F16 KV, flash prefill, F32 activations, GPU feedback window32",
+    "toyControls": [
+      {
+        "task": "arithmetic",
+        "passes": 3,
+        "attempts": 3
+      },
+      {
+        "task": "code",
+        "passes": 3,
+        "attempts": 3
+      },
+      {
+        "task": "records",
+        "passes": 3,
+        "attempts": 3
+      },
+      {
+        "task": "missing",
+        "passes": 3,
+        "attempts": 3
+      }
+    ],
+    "timingObservations": {
+      "short": [
+        {
+          "repeat": 0,
+          "warmup": true,
+          "inputTokens": 28,
+          "outputTokens": 128,
+          "completeMs": 1641.8000000044703,
+          "prefillMs": 131.5,
+          "decodeMode": "batched_gpu",
+          "wholeTokenProgram": {
+            "observedSteps": 0,
+            "replayedTokens": 127,
+            "replaySubmissions": 127,
+            "batchReadbacks": 125,
+            "restarts": 0,
+            "invalidations": 0,
+            "reused": true,
+            "verifiedAhead": true,
+            "lastInvalidation": null,
+            "dispatches": 456
+          },
+          "error": null
+        },
+        {
+          "repeat": 1,
+          "warmup": false,
+          "inputTokens": 28,
+          "outputTokens": 128,
+          "completeMs": 1645,
+          "prefillMs": 132.70000000298023,
+          "decodeMode": "batched_gpu",
+          "wholeTokenProgram": {
+            "observedSteps": 0,
+            "replayedTokens": 127,
+            "replaySubmissions": 127,
+            "batchReadbacks": 125,
+            "restarts": 0,
+            "invalidations": 0,
+            "reused": true,
+            "verifiedAhead": true,
+            "lastInvalidation": null,
+            "dispatches": 456
+          },
+          "error": null
+        },
+        {
+          "repeat": 2,
+          "warmup": false,
+          "inputTokens": 28,
+          "outputTokens": 128,
+          "completeMs": 1642.2000000029802,
+          "prefillMs": 132.60000000149012,
+          "decodeMode": "batched_gpu",
+          "wholeTokenProgram": {
+            "observedSteps": 0,
+            "replayedTokens": 127,
+            "replaySubmissions": 127,
+            "batchReadbacks": 125,
+            "restarts": 0,
+            "invalidations": 0,
+            "reused": true,
+            "verifiedAhead": true,
+            "lastInvalidation": null,
+            "dispatches": 456
+          },
+          "error": null
+        }
+      ],
+      "long": [
+        {
+          "repeat": 0,
+          "warmup": true,
+          "inputTokens": 2287,
+          "outputTokens": 128,
+          "completeMs": 9008.39999999851,
+          "prefillMs": 7102.80000000447,
+          "decodeMode": "batched_gpu",
+          "wholeTokenProgram": {
+            "observedSteps": 4,
+            "replayedTokens": 123,
+            "replaySubmissions": 123,
+            "batchReadbacks": 123,
+            "restarts": 0,
+            "invalidations": 1,
+            "reused": false,
+            "verifiedAhead": false,
+            "lastInvalidation": "kept program does not match position 2287: position 2287 is outside [0, 2047]",
+            "dispatches": 456
+          },
+          "error": null
+        },
+        {
+          "repeat": 1,
+          "warmup": false,
+          "inputTokens": 2287,
+          "outputTokens": 128,
+          "completeMs": 8885.79999999702,
+          "prefillMs": 7031.79999999702,
+          "decodeMode": "batched_gpu",
+          "wholeTokenProgram": {
+            "observedSteps": 0,
+            "replayedTokens": 126,
+            "replaySubmissions": 126,
+            "batchReadbacks": 125,
+            "restarts": 0,
+            "invalidations": 0,
+            "reused": true,
+            "verifiedAhead": false,
+            "lastInvalidation": null,
+            "dispatches": 456
+          },
+          "error": null
+        },
+        {
+          "repeat": 2,
+          "warmup": false,
+          "inputTokens": 2287,
+          "outputTokens": 128,
+          "completeMs": 8893.39999999851,
+          "prefillMs": 7043.30000000447,
+          "decodeMode": "batched_gpu",
+          "wholeTokenProgram": {
+            "observedSteps": 0,
+            "replayedTokens": 126,
+            "replaySubmissions": 126,
+            "batchReadbacks": 125,
+            "restarts": 0,
+            "invalidations": 0,
+            "reused": true,
+            "verifiedAhead": false,
+            "lastInvalidation": null,
+            "dispatches": 456
+          },
+          "error": null
+        }
+      ]
+    },
+    "disposition": "Integration works; keep F32 as performance baseline. F16 flash long prefill is about 7.04 seconds in this screen, versus the retained F32 control around 3.35 seconds. Separate cohorts are not a paired precision-speed claim."
+  },
+  "qualification": {
+    "justifiedFrozenF16FullModelTolerances": false,
+    "heldOutTaskSuiteFrozen": false,
+    "matchedPooledPerformanceRun": false,
+    "promotedPerformanceDefault": false
+  }
+}

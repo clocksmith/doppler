@@ -1,0 +1,77 @@
+{
+  "passed": true,
+  "scope": "Exact within-Doppler regression only; no independent/cross-engine qualification",
+  "checks": [
+    {
+      "task": "warm",
+      "identicalTokens": 128,
+      "exactSamplerLogits": 248320,
+      "exactRecurrentConvolutionLayers": 30,
+      "exactLiveKvLayers": 10
+    },
+    {
+      "task": "cap6",
+      "identicalTokens": 6,
+      "exactSamplerLogits": 248320,
+      "exactRecurrentConvolutionLayers": 30,
+      "exactLiveKvLayers": 10
+    },
+    {
+      "task": "abort6",
+      "identicalTokens": 6,
+      "exactSamplerLogits": 248320,
+      "exactRecurrentConvolutionLayers": 30,
+      "exactLiveKvLayers": 10
+    },
+    {
+      "task": "callback6",
+      "identicalTokens": 6,
+      "exactSamplerLogits": 248320,
+      "exactRecurrentConvolutionLayers": 30,
+      "exactLiveKvLayers": 10
+    },
+    {
+      "task": "cap16",
+      "identicalTokens": 16,
+      "exactSamplerLogits": 248320,
+      "exactRecurrentConvolutionLayers": 30,
+      "exactLiveKvLayers": 10
+    },
+    {
+      "task": "cap32",
+      "identicalTokens": 32,
+      "exactSamplerLogits": 248320,
+      "exactRecurrentConvolutionLayers": 30,
+      "exactLiveKvLayers": 10
+    },
+    {
+      "task": "cap64",
+      "identicalTokens": 64,
+      "exactSamplerLogits": 248320,
+      "exactRecurrentConvolutionLayers": 30,
+      "exactLiveKvLayers": 10
+    },
+    {
+      "task": "cap96",
+      "identicalTokens": 96,
+      "exactSamplerLogits": 248320,
+      "exactRecurrentConvolutionLayers": 30,
+      "exactLiveKvLayers": 10
+    },
+    {
+      "task": "cap128",
+      "identicalTokens": 128,
+      "exactSamplerLogits": 248320,
+      "exactRecurrentConvolutionLayers": 30,
+      "exactLiveKvLayers": 10
+    },
+    {
+      "task": "long128",
+      "identicalTokens": 128,
+      "exactSamplerLogits": 248320,
+      "exactRecurrentConvolutionLayers": 30,
+      "exactLiveKvLayers": 10
+    }
+  ],
+  "comparedFullVocabularyLogits": 2483200
+}

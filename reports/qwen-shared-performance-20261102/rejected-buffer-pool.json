@@ -1,0 +1,94 @@
+{
+  "scope": "Within-Doppler buffer pooling only, exact-state gate passed; not a Pooled or independent model quality claim",
+  "warmupRuns": 1,
+  "pairsPerPrompt": 6,
+  "warmupIncludedInMeans": false,
+  "outlierRemoval": false,
+  "tasks": {
+    "short": {
+      "pairs": [
+        {
+          "repeat": 1,
+          "baselineMs": 1685.2999999970198,
+          "candidateMs": 1700.2000000029802
+        },
+        {
+          "repeat": 2,
+          "baselineMs": 1663.4000000059605,
+          "candidateMs": 1698
+        },
+        {
+          "repeat": 3,
+          "baselineMs": 1673.3999999985099,
+          "candidateMs": 1695.2999999970198
+        },
+        {
+          "repeat": 4,
+          "baselineMs": 1672,
+          "candidateMs": 1727
+        },
+        {
+          "repeat": 5,
+          "baselineMs": 1671.3000000044703,
+          "candidateMs": 1688.7000000029802
+        },
+        {
+          "repeat": 6,
+          "baselineMs": 1664.1000000014901,
+          "candidateMs": 1699.1999999955297
+        }
+      ],
+      "baselineMeanMs": 1671.5833333345752,
+      "candidateMeanMs": 1701.3999999997516,
+      "geometricPairedRatio": 1.0178215342978914,
+      "bootstrapInterval95": [
+        1.0117946412140042,
+        1.0249138863561504
+      ],
+      "bootstrapMethod": "Paired percentile bootstrap of mean log ratios, Python random seed18, 10000 replicates"
+    },
+    "long": {
+      "pairs": [
+        {
+          "repeat": 1,
+          "baselineMs": 4989.80000000447,
+          "candidateMs": 4999.60000000149
+        },
+        {
+          "repeat": 2,
+          "baselineMs": 5006.39999999851,
+          "candidateMs": 5004.10000000149
+        },
+        {
+          "repeat": 3,
+          "baselineMs": 4992.4000000059605,
+          "candidateMs": 5023.70000000298
+        },
+        {
+          "repeat": 4,
+          "baselineMs": 4996,
+          "candidateMs": 5014.69999999553
+        },
+        {
+          "repeat": 5,
+          "baselineMs": 4983.89999999851,
+          "candidateMs": 5000
+        },
+        {
+          "repeat": 6,
+          "baselineMs": 4980.5,
+          "candidateMs": 4980.79999999702
+        }
+      ],
+      "baselineMeanMs": 4991.5000000012415,
+      "candidateMeanMs": 5003.816666666418,
+      "geometricPairedRatio": 1.0024653600383342,
+      "bootstrapInterval95": [
+        1.000730227789027,
+        1.0043279233220213
+      ],
+      "bootstrapMethod": "Paired percentile bootstrap of mean log ratios, Python random seed18, 10000 replicates"
+    }
+  },
+  "disposition": "Reject pooled staging for promotion: measured short-request regression. Retain candidate source and every observation."
+}

@@ -1,0 +1,134 @@
+{
+  "schema": "doppler.shared-model-performance-working-gate/v1",
+  "status": "in-progress",
+  "ownerInstructionDate": "2026-11-02",
+  "purpose": "Measure and improve Doppler against the strongest supported Pooled settings for the two shared models, starting Jupiter then Mars. No universal or commercial claim.",
+  "requiredInitialCoverage": {
+    "models": [
+      "Qwen3.6-35B-A3B",
+      "Qwen3.8-27B"
+    ],
+    "hosts": [
+      "Jupiter AMD Linux",
+      "Mars Apple M3 macOS"
+    ],
+    "surfaces": [
+      "Chrome WebGPU",
+      "Node WebGPU"
+    ],
+    "workloads": [
+      {
+        "id": "short128",
+        "inputTokens": 28,
+        "maxOutputTokens": 128,
+        "completion": "fixed-budget request control"
+      },
+      {
+        "id": "long128",
+        "inputTokens": 2287,
+        "maxOutputTokens": 128,
+        "completion": "fixed-budget request control"
+      }
+    ],
+    "sampling": "greedy",
+    "pooledConfigurations": [
+      "native MTP depth 3 / lookup off",
+      "native MTP depth 3 / lookup on where supported"
+    ],
+    "comparability": "Native best configurations are separate from matched-numerics/reference lanes. Record actual materializations and settings."
+  },
+  "futureCoverage": {
+    "Windows": "planned; separate host/provider receipts required",
+    "Bun": "planned capability assessment; no support or speed claim",
+    "Deno": "planned capability assessment; no support or speed claim"
+  },
+  "completion": {
+    "coverageComplete": "Every declared cell has attributable measurements or an explicit unsupported exclusion with a concrete receipt. Known measured losses remain visible.",
+    "leadEstablished": "Only numerically and task-qualified measured cases can support a scoped performance lead. A measured loss prevents an across-coverage lead claim.",
+    "implementationStatuses": "Keep performance gaps planned/in-progress until their acceptance receipts exist. Available code, green CI and component speedups do not complete model/platform cells."
+  },
+  "numericalPolicies": {
+    "freezeBeforePromotion": true,
+    "unchangedF32Gate": {
+      "maxAbsDiff": 0.001,
+      "maxRelDiff": 0,
+      "scope": "Existing declared F32 reference lanes only. The independent 27B F64 prototype remains diagnostic and its observed exceedances remain retained."
+    },
+    "F16": {
+      "status": "pending-reference-and-tolerance-justification",
+      "tolerances": null,
+      "requirements": [
+        "reference matching declared F16 weight/cache arithmetic",
+        "justified frozen tolerances before qualification",
+        "held-out task-quality acceptance",
+        "not bit-identical to F32 by requirement"
+      ]
+    },
+    "speculation": {
+      "required": "Preserve intended target sampling semantics. Initial MTP qualification is greedy and requires exact target-token continuation controls, including acceptance and rejection.",
+      "stochasticSpeculation": "outside initial MTP coverage until probability-ratio acceptance and residual sampling are implemented and qualified"
+    }
+  },
+  "tradeoffs": {
+    "allowedIfExplicit": true,
+    "measureSeparately": [
+      "cold acquisition/preparation",
+      "cold opening",
+      "warm readiness",
+      "first token",
+      "complete warm request",
+      "sustained throughput",
+      "logical GPU allocations",
+      "host/process memory",
+      "wall energy only if measured"
+    ],
+    "amortization": "Report cold cost plus N warm requests for stated N; do not infer customer utilization. Retain individual startup/memory costs even when warm latency improves."
+  },
+  "attributionRequired": [
+    "model source and artifact hashes",
+    "runtime build/frozen source hashes",
+    "baseline build and actual settings",
+    "hardware/OS/provider versions",
+    "resolved execution plan and kernel identities",
+    "cache/readiness/precision/materialization settings",
+    "reference identity and frozen tolerances",
+    "correctness and task-quality result",
+    "complete-request timing boundary and per-attempt values",
+    "failed attempts and unsupported cases"
+  ],
+  "combinationPolicy": "Measure each lever against a matched baseline. Qualify combined configurations separately; do not add individual percentage gains.",
+  "workItems": [
+    {
+      "id": "token-overhead",
+      "status": "in-progress",
+      "currentReceipt": "rejected-buffer-pool.json",
+      "next": "Retain rejected pooling evidence; investigate command encoding/submission grouping with explicit streaming and recovery semantics."
+    },
+    {
+      "id": "f16-replay",
+      "status": "in-progress",
+      "next": "Layout integration repaired. Diagnose F16 flash prefill loss and freeze justified F16 numerical and held-out quality gates before promotion.",
+      "currentReceipt": "f16-replay-repair.json"
+    },
+    {
+      "id": "moe-mtp",
+      "status": "planned",
+      "next": "Declare draft computation and qualify MoE target verification and router/recurrent/KV recovery before measuring real MTP."
+    },
+    {
+      "id": "prefill",
+      "status": "in-progress",
+      "next": "Profile and optimize separately; retain 28/2287 input-token boundaries and combined request timings."
+    },
+    {
+      "id": "coverage-scoreboard",
+      "status": "in-progress",
+      "next": "Populate finite coverage cells with receipts, known losses, unsupported exclusions and per-precision qualification."
+    }
+  ],
+  "taskQuality": {
+    "status": "pending-held-out-suite-freeze",
+    "existingToyControls": "Diagnostic only; the 27B code control fails its expected result in all compared engines. These controls do not qualify a useful service.",
+    "promotion": "Freeze tasks, executable validators/expected results, sampling, output budgets and acceptance before the qualification run. Retain all failures; no changing tolerances or tasks to accept the measured candidate."
+  }
+}

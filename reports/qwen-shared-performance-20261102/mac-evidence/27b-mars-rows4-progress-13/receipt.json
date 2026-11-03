@@ -1,0 +1,7 @@
+{
+  "startedAt": "2026-11-03T01:02:24.245Z",
+  "scope": "Diagnostic only: locate the first stalled phase of the four-row Chrome model path, unchanged 4096 context and kernels, output cap 16. Per-token allocation logs and hardware samples are not performance evidence.",
+  "attempts": [],
+  "error": "Error: Request exceeded requestTimeoutMs 180000\n    at Timeout.<anonymous> (file:///private/tmp/doppler-shared-platform-mars-20261102/memory-observer-harness/tools/qwen-economics/run.js:27:291)\n    at listOnTimeout (node:internal/timers:588:17)\n    at process.processTimers (node:internal/timers:523:7)",
+  "complete": false
+}

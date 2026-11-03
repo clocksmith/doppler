@@ -1,0 +1,147 @@
+[
+  {
+    "path": "reports/qwen36-35b-gpu-feedback-20261102/measurements.json",
+    "bytes": 12790,
+    "sha256": "42bc1b470352827528a6755cd9d649689a820ad073ab42918c200d90e22999c3"
+  },
+  {
+    "path": "reports/qwen36-35b-gpu-feedback-20261102/source-files.json",
+    "bytes": 19970,
+    "sha256": "02776dd57e754140a330e58dbaa8b6bb9dbfee6c8b88545bbc99b04c0c7d40f5"
+  },
+  {
+    "path": "reports/qwen36-35b-gpu-feedback-20261102/numerical-state-gate.json",
+    "bytes": 219899,
+    "sha256": "1655792683a8af0421e689892a19b529610048a9dc109d6321d66fcf536266dd"
+  },
+  {
+    "path": "reports/qwen36-35b-gpu-feedback-20261102/retained-files.json",
+    "bytes": 207898,
+    "sha256": "8f6ff3b759775be8253b8c5acd9bfae5031de9acab18084d0ede8da5c85558c2"
+  },
+  {
+    "path": "reports/qwen38-native-decode-20261102/model-amd-screen.json",
+    "bytes": 6868,
+    "sha256": "7d582ed220e43d1487fca4901f9ca4449f6ef4796e678c5e37c6cbba16bd7121"
+  },
+  {
+    "path": "reports/qwen38-native-decode-20261102/model-metal-screen.json",
+    "bytes": 4853,
+    "sha256": "98f21965a4ff8608bbee939bb44480f83d3f0795135471982d485c68845c03df"
+  },
+  {
+    "path": "reports/qwen38-native-decode-20261102/native-metal-control.json",
+    "bytes": 16339,
+    "sha256": "ba69c8edef2ef31042546b9e97c8b78136468046a47b2f3ca1317e8f7e904154"
+  },
+  {
+    "path": "reports/qwen38-native-decode-20261102/source-identities.json",
+    "bytes": 592,
+    "sha256": "d0664bb233c38334061591a2a35d08ad51492eca77ecbd5c3274bbe55938c0aa"
+  },
+  {
+    "path": "reports/qwen38-native-decode-20261102/independent-reference-gap.json",
+    "bytes": 2627,
+    "sha256": "2ca1352c2c709c0dedb1ac1748b44c35b3c0534005cbacaca1db902c31959653"
+  },
+  {
+    "path": "reports/qwen38-native-decode-20261102/retained-files.json",
+    "bytes": 1321,
+    "sha256": "f55aa6f817d4fbea98af9795c57660a1823819428c6543678ea1ab85bf871d9a"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/source-35b-overhead-14-files.json",
+    "bytes": 360272,
+    "sha256": "aa7a568753f801bb53bfdcffd1a616ba85f00bc0b2a015360b319be1947d042f"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/source-35b-buffer-pool-18-files.json",
+    "bytes": 360685,
+    "sha256": "dd400aeeffaf8214f939e0743c891632e599e2643a0170582861660c85b666c2"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/35b-overhead-baseline-14/execution.json",
+    "bytes": 3744,
+    "sha256": "56dc1d7f4c531d484a86ef1915ce0f7dd72ed0e8e836a4e0454e346df8119af1"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/35b-overhead-baseline-14/receipt.json",
+    "bytes": 992,
+    "sha256": "1eb6acc7c61141d204f1d7a2dc5e21dfe8869f121a4919156885c42dccf68f42"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/35b-f16-reproduce-17/execution.json",
+    "bytes": 183055,
+    "sha256": "db3b987bdb458252e288a17d539e12d32091abc4748ed25575f0a7ff9ec63f7b"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/35b-f16-reproduce-17/receipt.json",
+    "bytes": 1260,
+    "sha256": "f962b49bf95a4cf6a4014391d582cf5ccdef1fa2d1930d1c577235eef5da84df"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/27b-native-serving-baseline-01/execution.json",
+    "bytes": 3057,
+    "sha256": "3426f4d6327e95e8a538d2918107e68148439d863b2f131ee5ec1d01993f7e85"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/27b-native-serving-baseline-01/receipt.json",
+    "bytes": 1624,
+    "sha256": "5db50b37f574ed81f64433022a9d5ab9347a2fcf58696041c938293fbc443026"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/35b-buffer-pool-paired-18/receipt.json",
+    "bytes": 5042,
+    "sha256": "7d8224db67c476f89a56b784cd2edee0577de4df2d840efb1f191626424271fa"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/35b-buffer-pool-paired-18/execution.json",
+    "bytes": 5527,
+    "sha256": "a2f32e25cdaf11ce0b80606cb2313d1aa5b75535be72eac9fb30337d52046af7"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/35b-buffer-pool-state-18/receipt.json",
+    "bytes": 3723,
+    "sha256": "dcc463c496d1ecbdb5ad5155e19ab0b1529f3f659384846d04d4e9a2b5d28ec0"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/35b-buffer-pool-state-18/execution.json",
+    "bytes": 5646,
+    "sha256": "a4c7d8b0ca45026a7817f0962c9799bcde9651e0855bc94fae85d2f0e41ebfe1"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/source-f16-kv-layout-20-files.json",
+    "bytes": 360430,
+    "sha256": "072aaab05bba766c600e98430dbc6f85f443664169b8b49c3bc5f323ec2208ad"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/35b-f16-layout-diagnostic-19/receipt.json",
+    "bytes": 1325,
+    "sha256": "7aa1285bf9fce00f0224287e73b7995b3e5edc314f86cd636cb45576c9a065d9"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/35b-f16-kv-layout-20/receipt.json",
+    "bytes": 778,
+    "sha256": "adebf4d417177177c100fea96c8bbb81a185e9648994c9545695b93e5bbc2f8c"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/35b-f16-kv-layout-20/execution.json",
+    "bytes": 183072,
+    "sha256": "45273f872841a1f0867234744d58aee9ae2c7aefd52c17c4951a6cd93fcb2804"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/35b-f16-feedback-screen-22/receipt.json",
+    "bytes": 3448,
+    "sha256": "9a18dcae0353206b536986e274edbe2c1b1469def26776f2f9379e292985fd06"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/35b-f16-feedback-screen-22/execution.json",
+    "bytes": 183546,
+    "sha256": "38778113e6143f74b6e323ebcc92e7e0ef0dce9f6b247d4a4d2cbb979fc6671d"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/f16-kv-layout-before-20.log",
+    "bytes": 413,
+    "sha256": "10b3e99d47b9a03f89698bfca28d403169ae7cdc421ed1fd72e6c84c2a8bb40f"
+  }
+]

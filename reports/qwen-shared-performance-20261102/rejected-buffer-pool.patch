@@ -1,0 +1,318 @@
+diff --git a/src/inference/pipelines/text/generator/whole-token-program.d.ts b/src/inference/pipelines/text/generator/whole-token-program.d.ts
+index 87b587929..bafcb286b 100644
+--- a/src/inference/pipelines/text/generator/whole-token-program.d.ts
++++ b/src/inference/pipelines/text/generator/whole-token-program.d.ts
+@@ -1,6 +1,6 @@
+ export interface WholeTokenBatchStream {
+   readonly rows: AsyncIterable<Uint32Array>;
+-  /** Wait for every queued step and release all readback/feedback buffers. Always call in finally. */
++  /** Wait for every queued step and return unmapped buffers to the program. Always call in finally. */
+   settle(): Promise<void>;
+ }
+ 
+diff --git a/src/inference/pipelines/text/generator/whole-token-program.js b/src/inference/pipelines/text/generator/whole-token-program.js
+index 83429256c..9e6c43b14 100644
+--- a/src/inference/pipelines/text/generator/whole-token-program.js
++++ b/src/inference/pipelines/text/generator/whole-token-program.js
+@@ -2,6 +2,7 @@ import { isBufferActive } from '../../../../memory/buffer-pool.js';
+ import { log } from '../../../../debug/index.js';
+ import { StepObservation, observeStep, patchMethod, restorePatches, U32 } from './whole-token-observation.js';
+ import { affineLastPosition, buildTemplate, evaluateWord } from './whole-token-template.js';
++import { WholeTokenReadbackPool } from './whole-token-readback-pool.js';
+ 
+ 
+ // Whole-token decode program (runtime.inference.session.decodeLoop.wholeTokenProgram).
+@@ -101,6 +102,7 @@ export class WholeTokenProgram {
+     /** @type {EncodedToken | null} */
+     this.pending = null;
+     this.stagingIndex = 0;
++    this.batchReadbacks = new WholeTokenReadbackPool(device);
+     this.stats = WholeTokenProgram.#freshStats();
+     // The observations a built program came from; a later generation's first observed
+     // step must agree with them (verify) before the kept program replays it.
+@@ -167,6 +169,7 @@ export class WholeTokenProgram {
+    * with the steps the program was built from before it replays again.
+    */
+   beginGeneration() {
++    this.batchReadbacks.assertSettled();
+     if (!this.ready) throw new Error('[WholeTokenProgram] Only a built program can be kept.');
+     this.pending = null;
+     this.awaitingVerification = true;
+@@ -603,6 +606,7 @@ export class WholeTokenProgram {
+    * @returns {Promise<Uint32Array>}
+    */
+   async run(pos, token) {
++    this.batchReadbacks.assertSettled();
+     if (!this.ready) throw new Error('[WholeTokenProgram] Program is not built.');
+     if (pos !== this.nextPos) throw new Error(`[WholeTokenProgram] Expected position ${this.nextPos}, got ${pos}.`);
+     const pending = this.pending && this.pending.pos === pos ? this.pending : null;
+@@ -635,6 +639,7 @@ export class WholeTokenProgram {
+    * @returns {Promise<import('./whole-token-program.js').WholeTokenBatchStream>}
+    */
+   async startBatch(pos, token, count) {
++    this.batchReadbacks.assertSettled();
+     if (!this.ready || pos !== this.nextPos) throw new Error('[WholeTokenProgram] Batch cursor does not match a ready program.');
+     if (!Number.isSafeInteger(count) || count < 1 || !Number.isSafeInteger(pos + count - 1)
+       || pos < this.positionRange.min || pos + count - 1 > this.positionRange.max) {
+@@ -647,20 +652,17 @@ export class WholeTokenProgram {
+     if (!Number.isSafeInteger(size * count) || size * count > this.device.limits.maxBufferSize) {
+       throw new Error('[WholeTokenProgram] Batch readback exceeds the device buffer limit.');
+     }
+-    const feedback = this.device.createBuffer({ label: 'whole_token_batch_feedback', size: U32,
+-      usage: GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST });
+-    /** @type {GPUBuffer[]} */
+-    const buffers = [];
++    // Retain unmapped slots with this program. A failed batch discards its entire
++    // pool only after outstanding maps/submissions settle; no failed slot is reused.
++    const lease = this.batchReadbacks.acquire(count, size);
+     /** @type {Promise<Uint32Array>[]} */
+     const reads = [];
+     let submitted = false;
+-    const release = () => { for (const buffer of buffers) buffer.destroy(); feedback.destroy(); };
+     try {
++      const feedback = lease.feedback;
+       this.pending = null;
+       for (let index = 0; index < count; index++) {
+-        const staging = this.device.createBuffer({ label: `whole_token_batch_readback_${index}`, size,
+-          usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+-        buffers.push(staging);
++        const staging = lease.buffers[index];
+         this.device.queue.writeBuffer(staging, 0, NO_TOKEN);
+         const job = this.#encode(pos + index, 0, { staging, offset: 0,
+           feedback: index ? feedback : null, saveFeedback: feedback });
+@@ -679,7 +681,7 @@ export class WholeTokenProgram {
+     } catch (error) {
+       await Promise.allSettled(reads);
+       try { if (submitted) await this.device.queue.onSubmittedWorkDone(); }
+-      finally { release(); }
++      finally { lease.release(false); }
+       throw error;
+     }
+     const completion = Promise.allSettled(reads);
+@@ -689,6 +691,7 @@ export class WholeTokenProgram {
+       rows: (async function* () { for (const read of reads) yield await read; })(),
+       settle: () => settlement ??= (async () => {
+         const results = await completion;
++        let reusable = false;
+         try {
+           const failures = results.filter(result => result.status === 'rejected');
+           if (failures.length) {
+@@ -696,7 +699,8 @@ export class WholeTokenProgram {
+             throw new AggregateError(failures.map(result => result.reason), '[WholeTokenProgram] Batched token readback failed.');
+           }
+           this.nextPos = pos + count;
+-        } finally { release(); }
++          reusable = true;
++        } finally { lease.release(reusable); }
+       })(),
+     };
+   }
+@@ -713,6 +717,7 @@ export class WholeTokenProgram {
+   /** Cursor change is legal only after the owning state checkpoint was restored.
+    * @param {number} pos */
+   resumeAfterRestore(pos) {
++    this.batchReadbacks.assertSettled();
+     if (!this.ready || !Number.isSafeInteger(pos) || pos < this.positionRange.min || pos > this.positionRange.max) {
+       throw new Error('[WholeTokenProgram] Restored cursor is outside the prepared program.');
+     }
+@@ -725,11 +730,13 @@ export class WholeTokenProgram {
+   }
+ 
+   #release() {
++    this.batchReadbacks.assertSettled();
+     this.pending = null;
+     this.basis = [];
+     this.awaitingVerification = false;
+     for (const buffer of this.owned) buffer.destroy();
+     this.owned = [];
++    this.batchReadbacks.destroy();
+     this.ready = false;
+     this.positionDependentCopies = undefined;
+   }
+diff --git a/tests/inference/whole-token-program-contract.test.js b/tests/inference/whole-token-program-contract.test.js
+index 79e8c48de..27c761189 100644
+--- a/tests/inference/whole-token-program-contract.test.js
++++ b/tests/inference/whole-token-program-contract.test.js
+@@ -416,11 +416,75 @@ async function observeStep(program, device, res, pos, token, options = {}, metho
+   assert.ok(resources.every(resource => resource.destroyCount === 0));
+   for (const release of resolve.slice(1)) release();
+   await done; await batch.settle();
+-  assert.ok(resources.every(resource => resource.destroyCount === 1));
++  assert.ok(resources.every(resource => resource.destroyCount === 0), 'settled slots remain reusable');
+   assert.equal(program.stats.batchReadbacks,4);
+   assert.equal(program.stats.replayedTokens,4);
+   assert.equal((await program.run(18,3))[0],18003);
+   program.destroy();
++  assert.ok(resources.every(resource => resource.destroyCount === 1));
++}
++
++// A program reuses settled slots, grows to the largest requested batch, and never
++// hands mapped/in-flight or failed resources to another batch or cursor owner.
++{
++  const device = makeDevice(), res = makeModel(device), program = new WholeTokenProgram(device);
++  for (const pos of [10,11,12,13]) await observeStep(program, device, res, pos, 42);
++  const create = device.createBuffer, resources = [];
++  device.createBuffer = descriptor => {
++    const buffer = create(descriptor);
++    if (descriptor.label.startsWith('whole_token_batch_')) {
++      resources.push(buffer); buffer.destroyCount = 0; buffer.destroy = () => buffer.destroyCount++;
++    }
++    return buffer;
++  };
++  const first = await program.startBatch(14,7,3);
++  await assert.rejects(program.startBatch(14,7,3), /Settle the active batch/);
++  await assert.rejects(program.run(14,7), /Settle the active batch/);
++  assert.throws(() => program.resumeAfterRestore(14), /Settle the active batch/);
++  assert.throws(() => program.beginGeneration(), /Settle the active batch/);
++  assert.throws(() => program.invalidate('in flight'), /Settle the active batch/);
++  assert.equal(resources.length,4);
++  await first.settle();
++  assert.deepEqual((await program.runBatch(17,9,3)).map(row => row[0]), [17009,35009,54009]);
++  assert.equal(resources.length,4, 'an equal-size batch allocates no new slots');
++  await program.runBatch(20,11,5);
++  assert.equal(resources.length,6, 'growing by two tokens acquires two slots');
++  device.dropNextSubmit = true;
++  await assert.rejects(program.runBatch(25,1,2), /Batched token readback failed/);
++  assert.ok(resources.every(buffer => buffer.destroyCount === 1), 'failed pool is discarded after settlement');
++  program.resumeAfterRestore(25);
++  assert.deepEqual((await program.runBatch(25,13,2)).map(row => row[0]), [25013,51013]);
++  assert.equal(resources.length,9, 'failure recovery acquires fresh feedback and staging slots');
++  program.destroy(); program.destroy();
++  assert.ok(resources.every(buffer => buffer.destroyCount === 1), 'every owned slot is destroyed once');
++}
++
++// Allocation and asynchronous map failures release the complete batch lease and
++// discard every partially acquired slot; a restored cursor can acquire clean slots.
++for (const failure of ['allocate', 'map']) {
++  const device = makeDevice(), res = makeModel(device), program = new WholeTokenProgram(device);
++  for (const pos of [10,11,12,13]) await observeStep(program, device, res, pos, 42);
++  const create = device.createBuffer, resources = [];
++  let armed = true;
++  device.createBuffer = descriptor => {
++    if (armed && descriptor.label === 'whole_token_batch_readback_1' && failure === 'allocate') {
++      armed = false; throw new Error('injected allocation failure');
++    }
++    const buffer = create(descriptor);
++    if (descriptor.label.startsWith('whole_token_batch_')) {
++      resources.push(buffer); buffer.destroyCount = 0; buffer.destroy = () => buffer.destroyCount++;
++      if (armed && descriptor.label === 'whole_token_batch_readback_1' && failure === 'map') {
++        armed = false; buffer.mapAsync = async () => { throw new Error('injected map failure'); };
++      }
++    }
++    return buffer;
++  };
++  await assert.rejects(program.runBatch(14,7,3), failure === 'allocate' ? /injected allocation failure/ : /Batched token readback failed/);
++  assert.ok(resources.every(buffer => buffer.destroyCount === 1));
++  program.resumeAfterRestore(14);
++  assert.deepEqual((await program.runBatch(14,7,2)).map(row => row[0]), [14007,29007]);
++  program.destroy();
++  assert.ok(resources.every(buffer => buffer.destroyCount === 1));
+ }
+ 
+ console.log('whole-token-program-contract.test: ok');
+diff --git a/tsconfig.source-strict.json b/tsconfig.source-strict.json
+index 58c03fa8d..14b316f55 100644
+--- a/tsconfig.source-strict.json
++++ b/tsconfig.source-strict.json
+@@ -39,6 +39,7 @@
+     "src/config/layer-partition-plan.js",
+     "src/config/ordered-resident-qualification.js",
+     "src/inference/pipelines/text/generator/whole-token-program.js",
++    "src/inference/pipelines/text/generator/whole-token-readback-pool.js",
+     "src/inference/pipelines/text/generator/activation-storage.js",
+     "src/inference/pipelines/text/generator/batch-retry-policy.js",
+     "src/inference/pipelines/text/generator/decode-components.js",
+diff --git a/tsconfig.source-unused.json b/tsconfig.source-unused.json
+index 5808b3b81..b0c30172d 100644
+--- a/tsconfig.source-unused.json
++++ b/tsconfig.source-unused.json
+@@ -20,6 +20,7 @@
+     "src/inference/pipelines/text/generator/decode-readback.js",
+     "src/inference/pipelines/text/linear-attention/norm-ab.js",
+     "src/inference/pipelines/text/generator/whole-token-program.js",
++    "src/inference/pipelines/text/generator/whole-token-readback-pool.js",
+     "src/gpu/step-contract.js",
+     "src/inference/pipelines/text/generator/whole-token-observation.js",
+     "src/inference/pipelines/text/generator/whole-token-template.js",
+diff --git a/src/inference/pipelines/text/generator/whole-token-readback-pool.js b/src/inference/pipelines/text/generator/whole-token-readback-pool.js
+new file mode 100644
+index 000000000..bf3fce2cd
+--- /dev/null
++++ b/src/inference/pipelines/text/generator/whole-token-readback-pool.js
+@@ -0,0 +1,57 @@
++// Retained readback slots belong to one prepared program and its injected device.
++// The global buffer pool cannot own these mapped slots or their in-flight lease.
++export class WholeTokenReadbackPool {
++  /** @param {GPUDevice} device */
++  constructor(device) {
++    this.device = device;
++    /** @type {GPUBuffer | null} */ this.feedback = null;
++    /** @type {GPUBuffer[]} */ this.buffers = [];
++    this.active = false;
++  }
++
++  assertSettled() {
++    if (this.active) throw new Error('[WholeTokenProgram] Settle the active batch before reusing or releasing its program.');
++  }
++
++  /** Caller returns the lease only after every map and submission has settled.
++   * @param {number} count @param {number} size
++   * @returns {import('./whole-token-readback-pool.js').WholeTokenReadbackLease} */
++  acquire(count, size) {
++    this.assertSettled();
++    this.active = true;
++    try {
++      this.feedback ??= this.device.createBuffer({ label: 'whole_token_batch_feedback', size: 4,
++        usage: GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST });
++      while (this.buffers.length < count) {
++        this.buffers.push(this.device.createBuffer({ label: `whole_token_batch_readback_${this.buffers.length}`, size,
++          usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST }));
++      }
++    } catch (error) {
++      try { this.#discard(); } finally { this.active = false; }
++      throw error;
++    }
++    let released = false;
++    return {
++      feedback: this.feedback,
++      buffers: this.buffers,
++      release: (reusable) => {
++        if (released) return;
++        released = true;
++        try { if (!reusable) this.#discard(); }
++        finally { this.active = false; }
++      },
++    };
++  }
++
++  #discard() {
++    for (const buffer of this.buffers) buffer.destroy();
++    this.feedback?.destroy();
++    this.feedback = null;
++    this.buffers = [];
++  }
++
++  destroy() {
++    this.assertSettled();
++    this.#discard();
++  }
++}
+diff --git a/src/inference/pipelines/text/generator/whole-token-readback-pool.d.ts b/src/inference/pipelines/text/generator/whole-token-readback-pool.d.ts
+new file mode 100644
+index 000000000..779a349b5
+--- /dev/null
++++ b/src/inference/pipelines/text/generator/whole-token-readback-pool.d.ts
+@@ -0,0 +1,13 @@
++export interface WholeTokenReadbackLease {
++  readonly feedback: GPUBuffer;
++  readonly buffers: readonly GPUBuffer[];
++  /** After all work settles, retain unmapped slots on success; discard them on failure. */
++  release(reusable: boolean): void;
++}
++
++export declare class WholeTokenReadbackPool {
++  constructor(device: GPUDevice);
++  assertSettled(): void;
++  acquire(count: number, size: number): WholeTokenReadbackLease;
++  destroy(): void;
++}

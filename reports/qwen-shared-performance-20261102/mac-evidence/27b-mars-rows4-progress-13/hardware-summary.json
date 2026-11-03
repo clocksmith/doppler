@@ -1,0 +1,9 @@
+{
+  "scope": "Diagnostic hardware samples from failed four-row Mac run, not performance evidence",
+  "source": "/private/tmp/doppler-shared-platform-mars-20261102/27b-mars-rows4-progress-13-hardware.json",
+  "sha256": "1ecc4a4bcd71c02d5e884d60f62971bf845cb8f3142c8656f97394e544a8381f",
+  "samples": 298,
+  "maxSwapUsedMiB": 18511.56,
+  "maxLogicalDriverAllocatedBytes": 20890976256,
+  "physicalVramOrPowerClaim": false
+}

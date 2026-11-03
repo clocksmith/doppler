@@ -77,8 +77,8 @@ function createFakeDevice() {
       createdBuffers.push(buffer);
       return buffer;
     },
-    createBindGroup() {
-      return {};
+    createBindGroup(descriptor) {
+      return descriptor;
     },
     createBindGroupLayout() {
       return {};
@@ -185,6 +185,19 @@ try {
     assert.equal(recorder.getStats().opLabelCounts['kv_cache_write:f32_to_f16'], 1);
     assert.equal(cache.currentSeqLen, 4);
     assert.equal(cache.layers[0].seqLen, 4);
+
+    // WebGPU may return distinct wrapper objects on repeated layout queries.
+    // Consecutive prepared decode steps must bind the same cached layout object.
+    const firstLayout = device.computePasses[0].bindGroup.bindGroup.layout;
+    await cache.recordUpdateF32ToF16FromGPU(
+      recorder, 0, createSourceBuffer(cache.kvSize), createSourceBuffer(cache.kvSize), 4, 1
+    );
+    await cache.recordUpdateF32ToF16FromGPU(
+      recorder, 0, createSourceBuffer(cache.kvSize), createSourceBuffer(cache.kvSize), 5, 1
+    );
+    assert.ok(device.computePasses.every(pass => pass.pipeline === device.computePasses[0].pipeline));
+    assert.ok(device.computePasses.every(pass => pass.bindGroup.bindGroup.layout === firstLayout),
+      'F16 KV writes must preserve bind-group layout identity across recorded steps');
 
     recorder.abort();
     cache.destroy();

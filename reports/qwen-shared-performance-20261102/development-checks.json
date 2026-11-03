@@ -1,0 +1,48 @@
+{
+  "component": [
+    "doppler.runtime-source.gpu.kernels",
+    "doppler.tests"
+  ],
+  "intent": "preserved",
+  "boundaryEffects": "F16 KV write binding object identity only; rejected pooling changes removed.",
+  "checks": [
+    {
+      "command": "node tests/inference/kv-cache-direct-write.test.js",
+      "result": "fails before repair; passes after repair"
+    },
+    {
+      "command": "node tests/gpu/pipeline-cache-identity.test.js",
+      "result": "8 passed"
+    },
+    {
+      "command": "node tests/gpu/pipeline-cache-hot-path.test.js",
+      "result": "passed"
+    },
+    {
+      "command": "npm run typecheck:source",
+      "result": "passed;149 strict roots"
+    },
+    {
+      "command": "npm run source:style:check",
+      "result": "passed"
+    },
+    {
+      "command": "npm run runtime:closure:sync && npm run runtime:closure:check",
+      "result": "passed;88 files,1147207 source bytes; no final generated-file delta"
+    },
+    {
+      "command": "npm run package:closure:check",
+      "result": "passed;963 runtime JS,351 declarations,509 resources"
+    }
+  ],
+  "unchangedArchitectureFailures": [
+    "prefill-runtime.js 898 lines exceeds reviewed ceiling896",
+    "artifact-storage-context.js 946 lines exceeds reviewed ceiling897"
+  ],
+  "physicalAcceptance": [
+    "F16 warm initialization and 128-token short request complete after one isolated cache-layout fix",
+    "Four retained toy controls pass in three repetitions each; not held-out task qualification",
+    "Pooled readback candidate exact-state/logit regression passes but timing regresses; candidate removed"
+  ],
+  "ciStatus": "not queried; no new green CI claim"
+}

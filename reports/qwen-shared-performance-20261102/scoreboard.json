@@ -1,0 +1,342 @@
+{
+  "schema": "doppler.shared-model-performance-scoreboard/v1",
+  "status": "in-progress",
+  "coverageGate": "coverage-gate.json",
+  "finiteCoverageCells": 16,
+  "measuredCells": 5,
+  "qualifiedCells": 0,
+  "coverageComplete": false,
+  "acrossCoverageLeadEstablished": false,
+  "timingBoundary": "Complete fixed-budget request clock. Capped output does not establish an accepted complete answer. Cold opening and preparation are separate.",
+  "resourcePolicy": "Logical GPU allocations, host/process memory and wall energy are distinct; resource increases may be explicit tradeoffs. No unmeasured efficiency or energy claim.",
+  "cells": [
+    {
+      "model": "Qwen3.6-35B-A3B",
+      "host": "Jupiter",
+      "surface": "Chrome WebGPU",
+      "workload": "short128",
+      "inputTokens": 28,
+      "maxOutputTokens": 128,
+      "coverageStatus": "retained-native-timing-only",
+      "qualificationStatus": "common-numerics-and-task-quality-pending",
+      "claimQualified": false,
+      "comparisons": [
+        {
+          "receipt": "../qwen36-35b-gpu-feedback-20261102/measurements.json",
+          "identityReceipt": "../qwen36-35b-gpu-feedback-20261102/source-files.json",
+          "configuration": "Doppler F32 KV GPU-feedback replay; Pooled F16 KV native MTP depth3, lookup off (faster of retained off/on settings)",
+          "scope": "Fixed output-budget requests, native formats; no matched-quality claim",
+          "measuredPairs": 10,
+          "dopplerCompleteMs": 1679.210000000149,
+          "pooledCompleteMs": 1719.2700000004843,
+          "pairedRatio": {
+            "ratio": 0.9766812226910289,
+            "interval95": [
+              0.9709398191557458,
+              0.9832752741206334
+            ],
+            "estimator": "equal-prompt mean log paired complete-request ratio",
+            "method": "fixed-prompt stratified percentile bootstrap; LCG seed0x12345678; no outlier removal",
+            "replicates": 10000
+          },
+          "identicalOutputTokens": true,
+          "retainedOutcome": "Doppler lower measured request time; qualification incomplete"
+        }
+      ],
+      "tuningObservations": [
+        {
+          "receipt": "rejected-buffer-pool.json",
+          "disposition": "Rejected after paired regressions; patch retained, no main runtime change."
+        },
+        {
+          "receipt": "f16-replay-repair.json",
+          "disposition": "F16 layout fixed; F16/flash timing screen retains long-prefill loss; unqualified precision path."
+        }
+      ]
+    },
+    {
+      "model": "Qwen3.6-35B-A3B",
+      "host": "Jupiter",
+      "surface": "Chrome WebGPU",
+      "workload": "long128",
+      "inputTokens": 2287,
+      "maxOutputTokens": 128,
+      "coverageStatus": "retained-native-timing-only",
+      "qualificationStatus": "common-numerics-and-task-quality-pending",
+      "claimQualified": false,
+      "comparisons": [
+        {
+          "receipt": "../qwen36-35b-gpu-feedback-20261102/measurements.json",
+          "identityReceipt": "../qwen36-35b-gpu-feedback-20261102/source-files.json",
+          "configuration": "Doppler F32 KV GPU-feedback replay; Pooled F16 KV native MTP depth3, lookup off (faster of retained off/on settings)",
+          "scope": "Fixed output-budget requests, native formats; no matched-quality claim",
+          "measuredPairs": 10,
+          "dopplerCompleteMs": 4978.549999999814,
+          "pooledCompleteMs": 5261.299999999627,
+          "pairedRatio": {
+            "ratio": 0.9462588867632965,
+            "interval95": [
+              0.9435144852687259,
+              0.9490239835401314
+            ],
+            "estimator": "equal-prompt mean log paired complete-request ratio",
+            "method": "fixed-prompt stratified percentile bootstrap; LCG seed0x12345678; no outlier removal",
+            "replicates": 10000
+          },
+          "identicalOutputTokens": false,
+          "retainedOutcome": "Doppler lower measured request time; qualification incomplete"
+        }
+      ],
+      "tuningObservations": [
+        {
+          "receipt": "rejected-buffer-pool.json",
+          "disposition": "Rejected after paired regressions; patch retained, no main runtime change."
+        },
+        {
+          "receipt": "f16-replay-repair.json",
+          "disposition": "F16 layout fixed; F16/flash timing screen retains long-prefill loss; unqualified precision path."
+        }
+      ]
+    },
+    {
+      "model": "Qwen3.6-35B-A3B",
+      "host": "Jupiter",
+      "surface": "Node WebGPU",
+      "workload": "short128",
+      "inputTokens": 28,
+      "maxOutputTokens": 128,
+      "coverageStatus": "not-measured",
+      "qualificationStatus": "pending",
+      "claimQualified": false,
+      "comparisons": [],
+      "tuningObservations": []
+    },
+    {
+      "model": "Qwen3.6-35B-A3B",
+      "host": "Jupiter",
+      "surface": "Node WebGPU",
+      "workload": "long128",
+      "inputTokens": 2287,
+      "maxOutputTokens": 128,
+      "coverageStatus": "not-measured",
+      "qualificationStatus": "pending",
+      "claimQualified": false,
+      "comparisons": [],
+      "tuningObservations": []
+    },
+    {
+      "model": "Qwen3.6-35B-A3B",
+      "host": "Mars",
+      "surface": "Chrome WebGPU",
+      "workload": "short128",
+      "inputTokens": 28,
+      "maxOutputTokens": 128,
+      "coverageStatus": "not-measured",
+      "qualificationStatus": "pending",
+      "claimQualified": false,
+      "comparisons": [],
+      "tuningObservations": []
+    },
+    {
+      "model": "Qwen3.6-35B-A3B",
+      "host": "Mars",
+      "surface": "Chrome WebGPU",
+      "workload": "long128",
+      "inputTokens": 2287,
+      "maxOutputTokens": 128,
+      "coverageStatus": "not-measured",
+      "qualificationStatus": "pending",
+      "claimQualified": false,
+      "comparisons": [],
+      "tuningObservations": []
+    },
+    {
+      "model": "Qwen3.6-35B-A3B",
+      "host": "Mars",
+      "surface": "Node WebGPU",
+      "workload": "short128",
+      "inputTokens": 28,
+      "maxOutputTokens": 128,
+      "coverageStatus": "not-measured",
+      "qualificationStatus": "pending",
+      "claimQualified": false,
+      "comparisons": [],
+      "tuningObservations": []
+    },
+    {
+      "model": "Qwen3.6-35B-A3B",
+      "host": "Mars",
+      "surface": "Node WebGPU",
+      "workload": "long128",
+      "inputTokens": 2287,
+      "maxOutputTokens": 128,
+      "coverageStatus": "not-measured",
+      "qualificationStatus": "pending",
+      "claimQualified": false,
+      "comparisons": [],
+      "tuningObservations": []
+    },
+    {
+      "model": "Qwen3.8-27B",
+      "host": "Jupiter",
+      "surface": "Chrome WebGPU",
+      "workload": "short128",
+      "inputTokens": 28,
+      "maxOutputTokens": 128,
+      "coverageStatus": "retained-native-loss-screen",
+      "qualificationStatus": "independent-numerics-and-task-quality-pending",
+      "claimQualified": false,
+      "comparisons": [
+        {
+          "receipt": "/run/media/x/deco-backup/doppler-shared-platform-20261102/27b-native-serving-baseline-01/receipt.json",
+          "executionReceipt": "/run/media/x/deco-backup/doppler-shared-platform-20261102/27b-native-serving-baseline-01/execution.json",
+          "measuredPairs": 1,
+          "scope": "Older configuration, exploratory paired native baseline; retained loss, not a current optimized paired result",
+          "dopplerCompleteMs": 33862.10000000149,
+          "pooledCompleteMs": 7075.099999997765,
+          "identicalOutputTokens": true,
+          "retainedOutcome": "Pooled lower measured request time"
+        }
+      ],
+      "tuningObservations": [
+        {
+          "receipt": "../qwen38-native-decode-20261102/model-amd-screen.json",
+          "configuration": "Native paired projections, whole-token feedback, F32 alpha/beta GEMV and Q5_K blockwise candidate",
+          "completeMs": [
+            11154.20000000298,
+            11249.79999999702
+          ],
+          "scope": "Two warm single-engine observations; not paired against Pooled. Combined long-input performance not measured. Exact within-Doppler long logits retained separately."
+        }
+      ]
+    },
+    {
+      "model": "Qwen3.8-27B",
+      "host": "Jupiter",
+      "surface": "Chrome WebGPU",
+      "workload": "long128",
+      "inputTokens": 2287,
+      "maxOutputTokens": 128,
+      "coverageStatus": "retained-native-loss-screen",
+      "qualificationStatus": "independent-numerics-and-task-quality-pending",
+      "claimQualified": false,
+      "comparisons": [
+        {
+          "receipt": "/run/media/x/deco-backup/doppler-shared-platform-20261102/27b-native-serving-baseline-01/receipt.json",
+          "executionReceipt": "/run/media/x/deco-backup/doppler-shared-platform-20261102/27b-native-serving-baseline-01/execution.json",
+          "measuredPairs": 1,
+          "scope": "Older configuration, exploratory paired native baseline; retained loss, not a current optimized paired result",
+          "dopplerCompleteMs": 108046.19999999925,
+          "pooledCompleteMs": 28677.79999999702,
+          "identicalOutputTokens": false,
+          "retainedOutcome": "Pooled lower measured request time"
+        }
+      ],
+      "tuningObservations": []
+    },
+    {
+      "model": "Qwen3.8-27B",
+      "host": "Jupiter",
+      "surface": "Node WebGPU",
+      "workload": "short128",
+      "inputTokens": 28,
+      "maxOutputTokens": 128,
+      "coverageStatus": "not-measured",
+      "qualificationStatus": "pending",
+      "claimQualified": false,
+      "comparisons": [],
+      "tuningObservations": []
+    },
+    {
+      "model": "Qwen3.8-27B",
+      "host": "Jupiter",
+      "surface": "Node WebGPU",
+      "workload": "long128",
+      "inputTokens": 2287,
+      "maxOutputTokens": 128,
+      "coverageStatus": "not-measured",
+      "qualificationStatus": "pending",
+      "claimQualified": false,
+      "comparisons": [],
+      "tuningObservations": []
+    },
+    {
+      "model": "Qwen3.8-27B",
+      "host": "Mars",
+      "surface": "Chrome WebGPU",
+      "workload": "short128",
+      "inputTokens": 28,
+      "maxOutputTokens": 128,
+      "coverageStatus": "retained-native-loss-screen",
+      "qualificationStatus": "high-variance-and-full-model-qualification-open",
+      "claimQualified": false,
+      "comparisons": [
+        {
+          "receipt": "../qwen38-native-decode-20261102/native-metal-control.json",
+          "scope": "Exploratory serial native configurations, two measured requests after one warmup. Timing variation is large and qualification remains open. Logical allocations are not physical VRAM or wall power.",
+          "warmCompleteMsByEngine": {
+            "doppler": [
+              47293,
+              65084.799999952316
+            ],
+            "pooled": [
+              18374.5,
+              19148.39999985695
+            ]
+          },
+          "identical128Tokens": true,
+          "retainedOutcome": "Pooled lower measured request time; serial exploratory control, high variance"
+        }
+      ],
+      "tuningObservations": [
+        {
+          "receipt": "../qwen38-native-decode-20261102/model-metal-screen.json",
+          "retainedOutcome": "No qualified whole-model gain from blockwise Q5_K; large variation"
+        },
+        {
+          "receipt": "mac-evidence/27b-mars-rows4-progress-13/receipt.json",
+          "retainedOutcome": "Four-row candidate times out after two output tokens with heavy swap activity; component gain is not model qualification"
+        }
+      ]
+    },
+    {
+      "model": "Qwen3.8-27B",
+      "host": "Mars",
+      "surface": "Chrome WebGPU",
+      "workload": "long128",
+      "inputTokens": 2287,
+      "maxOutputTokens": 128,
+      "coverageStatus": "not-measured",
+      "qualificationStatus": "pending",
+      "claimQualified": false,
+      "comparisons": [],
+      "tuningObservations": []
+    },
+    {
+      "model": "Qwen3.8-27B",
+      "host": "Mars",
+      "surface": "Node WebGPU",
+      "workload": "short128",
+      "inputTokens": 28,
+      "maxOutputTokens": 128,
+      "coverageStatus": "not-measured",
+      "qualificationStatus": "pending",
+      "claimQualified": false,
+      "comparisons": [],
+      "tuningObservations": []
+    },
+    {
+      "model": "Qwen3.8-27B",
+      "host": "Mars",
+      "surface": "Node WebGPU",
+      "workload": "long128",
+      "inputTokens": 2287,
+      "maxOutputTokens": 128,
+      "coverageStatus": "not-measured",
+      "qualificationStatus": "pending",
+      "claimQualified": false,
+      "comparisons": [],
+      "tuningObservations": []
+    }
+  ]
+}

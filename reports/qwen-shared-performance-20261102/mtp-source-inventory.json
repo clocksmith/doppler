@@ -1,0 +1,193 @@
+{
+  "scope": "Source MTP tensor inventory only; not a working Doppler MTP implementation or qualification",
+  "source": "/run/media/x/models/deco-evidence/qwen-economics-20261030/Qwen_Qwen3.6-35B-A3B-Q4_0.gguf",
+  "bytes": 20836243072,
+  "ggufVersion": 3,
+  "tensorCount": 753,
+  "architectureMetadata": {
+    "general.architecture": "qwen35moe",
+    "qwen35moe.block_count": 41,
+    "qwen35moe.embedding_length": 2048,
+    "qwen35moe.expert_count": 256,
+    "qwen35moe.expert_used_count": 8,
+    "qwen35moe.nextn_predict_layers": 1
+  },
+  "mtpTensors": [
+    {
+      "name": "blk.40.attn_k.weight",
+      "ggufDimensions": [
+        2048,
+        512
+      ],
+      "ggmlType": 8,
+      "dataOffset": 19927296512
+    },
+    {
+      "name": "blk.40.attn_k_norm.weight",
+      "ggufDimensions": [
+        256
+      ],
+      "ggmlType": 0,
+      "dataOffset": 19928410624
+    },
+    {
+      "name": "blk.40.attn_norm.weight",
+      "ggufDimensions": [
+        2048
+      ],
+      "ggmlType": 0,
+      "dataOffset": 19928411648
+    },
+    {
+      "name": "blk.40.attn_output.weight",
+      "ggufDimensions": [
+        4096,
+        2048
+      ],
+      "ggmlType": 8,
+      "dataOffset": 19928419840
+    },
+    {
+      "name": "blk.40.attn_q.weight",
+      "ggufDimensions": [
+        2048,
+        8192
+      ],
+      "ggmlType": 8,
+      "dataOffset": 19937332736
+    },
+    {
+      "name": "blk.40.attn_q_norm.weight",
+      "ggufDimensions": [
+        256
+      ],
+      "ggmlType": 0,
+      "dataOffset": 19955158528
+    },
+    {
+      "name": "blk.40.attn_v.weight",
+      "ggufDimensions": [
+        2048,
+        512
+      ],
+      "ggmlType": 8,
+      "dataOffset": 19955159552
+    },
+    {
+      "name": "blk.40.ffn_down_exps.weight",
+      "ggufDimensions": [
+        512,
+        2048,
+        256
+      ],
+      "ggmlType": 8,
+      "dataOffset": 19956273664
+    },
+    {
+      "name": "blk.40.ffn_down_shexp.weight",
+      "ggufDimensions": [
+        512,
+        2048
+      ],
+      "ggmlType": 8,
+      "dataOffset": 20241486336
+    },
+    {
+      "name": "blk.40.ffn_gate_exps.weight",
+      "ggufDimensions": [
+        2048,
+        512,
+        256
+      ],
+      "ggmlType": 8,
+      "dataOffset": 20242600448
+    },
+    {
+      "name": "blk.40.ffn_gate_inp.weight",
+      "ggufDimensions": [
+        2048,
+        256
+      ],
+      "ggmlType": 30,
+      "dataOffset": 20527813120
+    },
+    {
+      "name": "blk.40.ffn_gate_inp_shexp.weight",
+      "ggufDimensions": [
+        2048
+      ],
+      "ggmlType": 30,
+      "dataOffset": 20528861696
+    },
+    {
+      "name": "blk.40.ffn_gate_shexp.weight",
+      "ggufDimensions": [
+        2048,
+        512
+      ],
+      "ggmlType": 8,
+      "dataOffset": 20528865792
+    },
+    {
+      "name": "blk.40.ffn_up_exps.weight",
+      "ggufDimensions": [
+        2048,
+        512,
+        256
+      ],
+      "ggmlType": 8,
+      "dataOffset": 20529979904
+    },
+    {
+      "name": "blk.40.ffn_up_shexp.weight",
+      "ggufDimensions": [
+        2048,
+        512
+      ],
+      "ggmlType": 8,
+      "dataOffset": 20815192576
+    },
+    {
+      "name": "blk.40.nextn.eh_proj.weight",
+      "ggufDimensions": [
+        4096,
+        2048
+      ],
+      "ggmlType": 8,
+      "dataOffset": 20816306688
+    },
+    {
+      "name": "blk.40.nextn.enorm.weight",
+      "ggufDimensions": [
+        2048
+      ],
+      "ggmlType": 0,
+      "dataOffset": 20825219584
+    },
+    {
+      "name": "blk.40.nextn.hnorm.weight",
+      "ggufDimensions": [
+        2048
+      ],
+      "ggmlType": 0,
+      "dataOffset": 20825227776
+    },
+    {
+      "name": "blk.40.nextn.shared_head_norm.weight",
+      "ggufDimensions": [
+        2048
+      ],
+      "ggmlType": 0,
+      "dataOffset": 20825235968
+    },
+    {
+      "name": "blk.40.post_attention_norm.weight",
+      "ggufDimensions": [
+        2048
+      ],
+      "ggmlType": 0,
+      "dataOffset": 20825244160
+    }
+  ],
+  "dopplerStatus": "No production native MTP execution implemented; generic speculation still rejects MoE."
+}

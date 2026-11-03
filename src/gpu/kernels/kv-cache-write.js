@@ -4,6 +4,7 @@ import { GPU_LIMITS, WORKGROUP_SIZES } from './constants.js';
 import {
   createPipeline,
   getCachedPipeline,
+  getPipelineBindGroupLayout,
 } from './pipeline-cache.js';
 import { createUniformBufferWithView } from './uniform-utils.js';
 import { getKernelConfig } from './kernel-configs.js';
@@ -81,7 +82,7 @@ async function executeKVCacheWriteF32ToF16(
 
   const bindGroup = device.createBindGroup({
     label: 'kv_cache_write_bind_group',
-    layout: pipeline.getBindGroupLayout(0),
+    layout: getPipelineBindGroupLayout(pipeline, 0),
     entries: [
       { binding: 0, resource: { buffer: uniformBuffer } },
       { binding: 1, resource: { buffer: keys } },

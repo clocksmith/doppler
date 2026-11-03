@@ -1,0 +1,12 @@
+{
+  "hostname": "jupiter",
+  "os": "Linux-7.0.0-38-generic-x86_64-with-glibc2.43",
+  "cpu": {
+    "Architecture:": "x86_64",
+    "CPU(s):": "32",
+    "Model name:": "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S"
+  },
+  "nodeVersion": "v22.22.1",
+  "chromeVersion": "Google Chrome 146.0.7680.177",
+  "kernel": "7.0.0-38-generic"
+}
