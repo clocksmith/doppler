@@ -115,6 +115,30 @@ try {
       assert.deepEqual(results[2], results[0], `Four-row Q5_K changed output bits at ${M}/${N}/${K}, recorded=${recorded}`);
       cases.push({ M, N, K, recorded, blockwiseBitwiseParity: true, columnsBitwiseParity: true });
     }
+    const cooperative = new Map();
+    for (const recorded of [false, true]) for (const variant of ['q5k_cooperative', 'q5k_cooperative_columns']) {
+      const recorder = recorded ? createCommandRecorder('q5k-cooperative-reference') : null;
+      const guardedOutput = upload(new Float32Array(M * N + 8).fill(-12345));
+      const options = { outputDtype: 'f32', alpha: 0.5, aOffset: 16, bOffset: K / 256 * 176,
+        cOffset: 16, outputBuffer: guardedOutput, variant };
+      const out = recorder ? await recordQ40Matmul(recorder, A, B, M, N, K, options)
+        : await runQ40Matmul(A, B, M, N, K, options);
+      if (recorder) await recorder.submitAndWait();
+      const guarded = new Float32Array(await readBuffer(out.buffer, (M * N + 8) * 4));
+      assert.ok(guarded.subarray(0, 4).every(value => value === -12345), 'Cooperative Q5_K output prefix changed');
+      assert.ok(guarded.subarray(4 + M * N).every(value => value === -12345), 'Cooperative Q5_K output tail changed');
+      const actual = guarded.slice(4, 4 + M * N); let maxAbs = 0;
+      for (let i = 0; i < actual.length; i++) {
+        maxAbs = Math.max(maxAbs, Math.abs(actual[i] - expected[i]));
+        assert.ok(Number.isFinite(actual[i]) && Math.abs(actual[i] - expected[i]) < 0.0002,
+          `${variant}/${M}/${N}/${K}/${recorded} at ${i}`);
+      }
+      if (recorded) assert.deepEqual(actual, cooperative.get(variant), 'Cooperative immediate and recorded arithmetic differ');
+      else cooperative.set(variant, actual);
+      cases.push({ M, N, K, recorded, variant, maxAbs, independentReference: true });
+    }
+    await assert.rejects(runQ40Matmul(A, B, M, N, K,
+      { outputDtype: 'f32', variant: 'q5k_cooperative', aOffset: 4 }), /16-byte/);
     await assert.rejects(runMatmul(A, B, M, N, K, { outputDtype: 'f16' }), /F32/);
     await assert.rejects(runMatmul(A, B, M, N, K, { outputDtype: 'f32', outputBuffer: A.buffer }), /alias|undersized/);
   }

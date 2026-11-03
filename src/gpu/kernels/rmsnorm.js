@@ -209,11 +209,11 @@ async function executeRMSNorm(
   const bytesPerElement = isF16 ? 2 : 4;
   const paddedHiddenSize = padToQ4KBlock(inferredHiddenSize);
   const outputSize = batchSize * paddedHiddenSize * bytesPerElement;
-  const workspace = batchSize === 1 && input.dtype === 'f32'
+  const workspace = input.dtype === 'f32'
     && Number.isInteger(options.layerIdx) && options.layerIdx >= 0 && options.role
     ? recorder?.decodeWorkspace : null;
   const suppliedOutput = outputBuffer ?? (workspace
-    ? workspace.getBuffer(`rmsnorm:${options.layerIdx}:${options.role}`, outputSize) : null);
+    ? workspace.getBuffer(`rmsnorm:${options.layerIdx}:${options.role}${batchSize === 1 ? '' : `:rows${batchSize}`}`, outputSize) : null);
   const outputBuf = suppliedOutput ?? acquireBuffer(outputSize, undefined, 'rmsnorm_output');
   const ownedOutput = suppliedOutput ? null : outputBuf;
   const dispatchPlan = planRMSNormDispatch(recorder, batchSize);

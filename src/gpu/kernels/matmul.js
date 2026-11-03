@@ -514,12 +514,12 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
     pipeline = getCachedPipeline('matmul', variant, constants, device)
       ?? await getMatmulPipeline(variant, constants);
 
-    const workspaceSlot = M === 1 && aDtype === 'f32' && options.outputDtype === 'f32'
+    const workspaceSlot = aDtype === 'f32' && options.outputDtype === 'f32'
       && Number.isInteger(options.layerIdx) && options.layerIdx >= 0 && options.role
       && aOffset === 0 && bOffset === 0 && cOffset === 0
-      ? `matmul:${options.layerIdx}:${options.role}` : null;
+      ? `matmul:${options.layerIdx}:${options.role}${M === 1 ? '' : `:rows${M}`}` : null;
     const suppliedOutput = outputBuffer ?? (workspaceSlot && recorder?.decodeWorkspace
-      ? recorder.decodeWorkspace.getBuffer(workspaceSlot, N * 4) : null);
+      ? recorder.decodeWorkspace.getBuffer(workspaceSlot, M * N * 4) : null);
     const outputInfo = resolveMatmulOutput(
       variant,
       M,

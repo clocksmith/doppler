@@ -1,4 +1,5 @@
 export const WGSL_PATCH_VARIANTS = Object.freeze([
+  { id: 'matmul-f32-row-subgroup', source: 'src/gpu/kernels/matmul_gemv_f32_subgroup.wgsl', target: 'src/gpu/kernels/matmul_f32_row_subgroup.wgsl', patch: 'src/gpu/kernels/codegen/patches/matmul_f32_row_subgroup.from.matmul_gemv_f32_subgroup.diff' },
   { id: 'matmul-q5k-columns', source: 'src/gpu/kernels/matmul_q5k.wgsl', target: 'src/gpu/kernels/matmul_q5k_columns.wgsl', patch: 'src/gpu/kernels/codegen/patches/matmul_q5k_columns.from.matmul_q5k.diff' },
   { id: 'matmul-gguf-pair-columns', source: 'src/gpu/kernels/matmul_gguf_pair_f32.wgsl', target: 'src/gpu/kernels/matmul_gguf_pair_columns_f32.wgsl', patch: 'src/gpu/kernels/codegen/patches/matmul_gguf_pair_columns_f32.from.matmul_gguf_pair_f32.diff' },
   { id: 'moe-shared-slot-down', source: 'src/gpu/kernels/codegen/q4_0_common.wgslinc', target: 'src/gpu/kernels/moe_shared_slot_down_f32.wgsl', patch: 'src/gpu/kernels/codegen/patches/moe_shared_slot_down_f32.from.q4_0_common.diff' },
@@ -217,5 +218,23 @@ export const WGSL_PATCH_VARIANTS = Object.freeze([
     source: 'src/gpu/kernels/attention_head256_f16kv.wgsl',
     target: 'src/gpu/kernels/attention_prefill_partitioned_head256_f16kv.wgsl',
     patch: 'src/gpu/kernels/codegen/patches/attention_prefill_partitioned_head256_f16kv.from.attention_head256_f16kv.diff',
+  },
+  {
+    id: 'check-finiteness-f32',
+    source: 'src/gpu/kernels/check_finiteness.wgsl',
+    target: 'src/gpu/kernels/check_finiteness_f32.wgsl',
+    patch: 'src/gpu/kernels/codegen/patches/check_finiteness_f32.from.check_finiteness.diff',
+  },
+  {
+    id: 'matmul-q5k-cooperative',
+    source: 'src/gpu/kernels/matmul_q5k.wgsl',
+    target: 'src/gpu/kernels/matmul_q5k_cooperative.wgsl',
+    patch: 'src/gpu/kernels/codegen/patches/matmul_q5k_cooperative.from.matmul_q5k.diff',
+  },
+  {
+    id: 'matmul-q4-1-columns-f32',
+    source: 'src/gpu/kernels/matmul_gguf_pair_f32.wgsl',
+    target: 'src/gpu/kernels/matmul_q4_1_columns_f32.wgsl',
+    patch: 'src/gpu/kernels/codegen/patches/matmul_q4_1_columns_f32.from.matmul_gguf_pair_f32.diff',
   },
 ]);

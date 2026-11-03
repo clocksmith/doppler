@@ -509,6 +509,8 @@ gpu/buffer-identity.d.ts
 gpu/constant-buffer.d.ts
 gpu/device-bindings.d.ts
 gpu/device-state.d.ts
+gpu/greedy-speculative-frame.d.ts
+gpu/greedy-speculative-frame.js
 gpu/kernel-runtime.d.ts
 gpu/kernel-selection-cache.d.ts
 gpu/kernel-selection-log.d.ts
@@ -550,6 +552,8 @@ gpu/kernels/backward/upsample2d_backward.d.ts
 gpu/kernels/bind-group-validation.d.ts
 gpu/kernels/cast.d.ts
 gpu/kernels/causal_conv1d_silu.d.ts
+gpu/kernels/check-finiteness-f32.d.ts
+gpu/kernels/check-finiteness-f32.js
 gpu/kernels/check-finiteness.d.ts
 gpu/kernels/check-hot-vocab-stop.d.ts
 gpu/kernels/check-stop.d.ts

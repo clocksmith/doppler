@@ -8,6 +8,8 @@
   "include": [],
   "files": [
     "src/storage/node-file-access.js",
+    "src/gpu/greedy-speculative-frame.js",
+    "src/gpu/kernels/check-finiteness-f32.js",
     "src/gpu/kernels/linear-attention-recovery.js",
     "src/gpu/kernels/speculative-accept.js",
     "src/gpu/kernels/codegen/attention-prefill-query-tile-f16kv-variant.js",

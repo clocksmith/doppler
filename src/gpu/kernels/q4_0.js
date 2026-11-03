@@ -84,9 +84,17 @@ async function execute(recorder, input, weights, M, N, K, options) {
       throw new Error('Pair GEMV requires Q4_0/Q8_0/Q6_K rows of whole block pairs, at most four rows, 16-byte activations and subgroups.');
     }
     const columns = geometry === 'pair-columns' ? positiveOverride(config.wgslOverrides, 'COLS') : 1;
-    if (geometry === 'pair-columns' && (![0, 2].includes(format.code) || columns > 4
+    if (geometry === 'pair-columns' && (![0, 2, 3].includes(format.code) || columns > 4
       || width * columns * 16 > device.limits.maxComputeWorkgroupStorageSize)) {
-      throw new Error('Pair GEMV columns require Q4_0/Q8_0 and supported declared workgroup storage.');
+      throw new Error('Pair GEMV columns require Q4_0/Q8_0/Q6_K and supported declared workgroup storage.');
+    }
+    count = Math.ceil(N / rows) * Math.ceil(M / columns);
+  } else if (geometry === 'block-columns') {
+    const rows = positiveOverride(config.wgslOverrides, 'ROWS');
+    const columns = positiveOverride(config.wgslOverrides, 'COLS');
+    if (![1, 5].includes(format.code) || rows > 4 || columns > 4 || width % 32 || aOffset % 16 || K % 4
+      || !device.features?.has('subgroups') || width * columns * 16 > device.limits.maxComputeWorkgroupStorageSize) {
+      throw new Error('Native Q4_1/Q5_K block columns require subgroups, 16-byte activations and declared row/column storage.');
     }
     count = Math.ceil(N / rows) * Math.ceil(M / columns);
   } else if (geometry === 'cooperative') {
@@ -119,7 +127,10 @@ async function execute(recorder, input, weights, M, N, K, options) {
     count = Math.ceil(N / 64)*Math.ceil(M / 64);
   } else { throw new Error('Q4_0 missing declared dispatch geometry.'); }
   const dispatch = q40Dispatch(device, count);
-  const supplied = options.outputBuffer ?? null;
+  const workspace = M > 1 && typeof options.layerIdx === 'number' && Number.isSafeInteger(options.layerIdx) && options.layerIdx >= 0 && options.role
+    && aOffset === 0 && bOffset === 0 && cOffset === 0 ? recorder?.decodeWorkspace : null;
+  const supplied = options.outputBuffer ?? (workspace
+    ? workspace.getBuffer(`gguf:${M}:${options.layerIdx}:${options.role}`, M * N * 4) : null);
   if (supplied) {
     assertQ40Buffer(device, supplied, cOffset+M*N*4, GPUBufferUsage.STORAGE, 'output');
     if (supplied === input.buffer || supplied === weights.buffer) throw new Error('Q4_0 output must not alias input weights or activations.');

@@ -55,33 +55,26 @@ fn low_nibbles(w: u32) -> vec4<f32> { return vec4<f32>(unpack4xU8(w & 0x0F0F0F0F
 fn high_nibbles(w: u32) -> vec4<f32> { return vec4<f32>(unpack4xU8((w >> 4u) & 0x0F0F0F0Fu)) - vec4<f32>(8.0); }
 fn signed_bytes(w: u32) -> vec4<f32> { return vec4<f32>(unpack4xI8(w)); }
 
-// Quarter `q` of block `odd` of the pair starting at word `wp`, dotted with xa / xb.
-fn quarter_dot(wp: u32, odd: bool, q: u32, xa: vec4<f32>, xb: vec4<f32>) -> f32 {
+// Decode each weight quarter once before applying it to all activation columns.
+struct BlockQuarter { scale: f32, first: vec4<f32>, second: vec4<f32> }
+fn decode_quarter(wp: u32, odd: bool, q: u32) -> BlockQuarter {
     if (QUANT_FORMAT == 2u) {
-        // Q8_0 pair: even block scale = w0 low half, quants from byte 2; odd scale = w8
-        // high half, quants w9 .. w16.
         if (odd) {
-            let scale = unpack2x16float(weights[wp + 8u]).y;
-            return scale * (dot(signed_bytes(weights[wp + 9u + 2u * q]), xa)
-                + dot(signed_bytes(weights[wp + 10u + 2u * q]), xb));
+            return BlockQuarter(unpack2x16float(weights[wp + 8u]).y,
+                signed_bytes(weights[wp + 9u + 2u * q]), signed_bytes(weights[wp + 10u + 2u * q]));
         }
-        let scale = unpack2x16float(weights[wp]).x;
         let w0 = weights[wp + 2u * q];
         let w1 = weights[wp + 2u * q + 1u];
         let w2 = weights[wp + 2u * q + 2u];
-        return scale * (dot(signed_bytes((w0 >> 16u) | (w1 << 16u)), xa)
-            + dot(signed_bytes((w1 >> 16u) | (w2 << 16u)), xb));
+        return BlockQuarter(unpack2x16float(weights[wp]).x,
+            signed_bytes((w0 >> 16u) | (w1 << 16u)), signed_bytes((w1 >> 16u) | (w2 << 16u)));
     }
-    // Q4_0 pair: even block scale = w0 low half, quants from byte 2; odd scale = w4 high
-    // half, quants w5 .. w8. Word q holds values 4q .. 4q + 3 (low) and 16 + 4q .. (high).
     if (odd) {
-        let scale = unpack2x16float(weights[wp + 4u]).y;
         let w = weights[wp + 5u + q];
-        return scale * (dot(low_nibbles(w), xa) + dot(high_nibbles(w), xb));
+        return BlockQuarter(unpack2x16float(weights[wp + 4u]).y, low_nibbles(w), high_nibbles(w));
     }
-    let scale = unpack2x16float(weights[wp]).x;
     let w = (weights[wp + q] >> 16u) | (weights[wp + q + 1u] << 16u);
-    return scale * (dot(low_nibbles(w), xa) + dot(high_nibbles(w), xb));
+    return BlockQuarter(unpack2x16float(weights[wp]).x, low_nibbles(w), high_nibbles(w));
 }
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
@@ -109,6 +102,7 @@ fn main(@builtin(workgroup_id) group: vec3<u32>, @builtin(num_workgroups) grid: 
             let row = row0 + r;
             if (row < u.N) {
                 let wp = ((u.b_row + row) * pairs + p) * words;
+                let decoded = decode_quarter(wp, odd, q);
                 if (0u < COLS && first_m + 0u < u.M) {
                     let x_base = (u.a_offset + (first_m + 0u) * u.K) / 4u;
                     var xa: vec4<f32>;
@@ -120,7 +114,7 @@ fn main(@builtin(workgroup_id) group: vec3<u32>, @builtin(num_workgroups) grid: 
                         xa = input[x_base + block * 8u + q];
                         xb = input[x_base + block * 8u + q + 4u];
                     }
-                    acc0[r] += quarter_dot(wp, odd, q, xa, xb);
+                    acc0[r] += decoded.scale * (dot(decoded.first, xa) + dot(decoded.second, xb));
                 }
                 if (1u < COLS && first_m + 1u < u.M) {
                     let x_base = (u.a_offset + (first_m + 1u) * u.K) / 4u;
@@ -133,7 +127,7 @@ fn main(@builtin(workgroup_id) group: vec3<u32>, @builtin(num_workgroups) grid: 
                         xa = input[x_base + block * 8u + q];
                         xb = input[x_base + block * 8u + q + 4u];
                     }
-                    acc1[r] += quarter_dot(wp, odd, q, xa, xb);
+                    acc1[r] += decoded.scale * (dot(decoded.first, xa) + dot(decoded.second, xb));
                 }
                 if (2u < COLS && first_m + 2u < u.M) {
                     let x_base = (u.a_offset + (first_m + 2u) * u.K) / 4u;
@@ -146,7 +140,7 @@ fn main(@builtin(workgroup_id) group: vec3<u32>, @builtin(num_workgroups) grid: 
                         xa = input[x_base + block * 8u + q];
                         xb = input[x_base + block * 8u + q + 4u];
                     }
-                    acc2[r] += quarter_dot(wp, odd, q, xa, xb);
+                    acc2[r] += decoded.scale * (dot(decoded.first, xa) + dot(decoded.second, xb));
                 }
                 if (3u < COLS && first_m + 3u < u.M) {
                     let x_base = (u.a_offset + (first_m + 3u) * u.K) / 4u;
@@ -159,7 +153,7 @@ fn main(@builtin(workgroup_id) group: vec3<u32>, @builtin(num_workgroups) grid: 
                         xa = input[x_base + block * 8u + q];
                         xb = input[x_base + block * 8u + q + 4u];
                     }
-                    acc3[r] += quarter_dot(wp, odd, q, xa, xb);
+                    acc3[r] += decoded.scale * (dot(decoded.first, xa) + dot(decoded.second, xb));
                 }
             }
         }
@@ -197,7 +191,8 @@ fn signed_byte_at(byte: u32) -> f32 {
     return f32(bitcast<i32>(((weights[byte / 4u] >> ((byte % 4u) * 8u)) & 255u) << 24u) >> 24u);
 }
 
-fn q6k_dot(base: u32, s: u32, x_block: u32) -> f32 {
+struct Q6Quarter { scale: f32, firstScale: f32, secondScale: f32, first: vec4<f32>, second: vec4<f32>, value: u32 }
+fn decode_q6k_quarter(base: u32, s: u32) -> Q6Quarter {
     let n = s / 16u;
     let j = (s % 16u) * 4u;
     let ql = word_at(base + 64u * n + j);
@@ -207,10 +202,9 @@ fn q6k_dot(base: u32, s: u32, x_block: u32) -> f32 {
     let hi = vec4<u32>(unpack4xU8((ql >> 4u) & 0x0F0F0F0Fu)) | (((qh >> vec4<u32>(shift + 4u)) & vec4<u32>(3u)) << vec4<u32>(4u));
     let d = unpack2x16float(word_at(base + 208u)).x;
     let value = 128u * n + j;
-    let xa = input[x_block + value / 4u];
-    let xb = input[x_block + (value + 64u) / 4u];
-    return d * (signed_byte_at(base + 192u + value / 16u) * dot(vec4<f32>(lo) - vec4<f32>(32.0), xa)
-        + signed_byte_at(base + 192u + (value + 64u) / 16u) * dot(vec4<f32>(hi) - vec4<f32>(32.0), xb));
+    return Q6Quarter(d, signed_byte_at(base + 192u + value / 16u),
+        signed_byte_at(base + 192u + (value + 64u) / 16u),
+        vec4<f32>(lo) - vec4<f32>(32.0), vec4<f32>(hi) - vec4<f32>(32.0), value);
 }
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
@@ -219,32 +213,67 @@ fn main_q6k(@builtin(workgroup_id) group: vec3<u32>, @builtin(num_workgroups) gr
             @builtin(subgroup_id) wave: u32, @builtin(num_subgroups) waves: u32) {
     let tiles_n = (u.N + ROWS - 1u) / ROWS;
     let tile = group.x + group.y * grid.x;
-    let m = tile / tiles_n;
-    if (m >= u.M) { return; }
+    let first_m = (tile / tiles_n) * COLS;
+    if (first_m >= u.M) { return; }
     let row0 = (tile % tiles_n) * ROWS;
     let half = WORKGROUP_SIZE / 2u;
     let odd = t >= half;
     let lane = t % half;
     let s = lane % 32u;
     let pairs = u.blocks / 2u;
-    let x_base = (u.a_offset + m * u.K) / 4u;
-    var acc = vec4<f32>(0.0);
+    var acc0 = vec4<f32>(0.0);
+    var acc1 = vec4<f32>(0.0);
+    var acc2 = vec4<f32>(0.0);
+    var acc3 = vec4<f32>(0.0);
     for (var p = lane / 32u; p < pairs; p += half / 32u) {
         let block = 2u * p + select(0u, 1u, odd);
         for (var r = 0u; r < ROWS; r++) {
             let row = row0 + r;
             if (row < u.N) {
-                acc[r] += q6k_dot(((u.b_row + row) * u.blocks + block) * BLOCK_BYTES, s, x_base + block * 64u);
+                let decoded = decode_q6k_quarter(((u.b_row + row) * u.blocks + block) * BLOCK_BYTES, s);
+                if (0u < COLS && first_m + 0u < u.M) {
+                    let x_base = (u.a_offset + (first_m + 0u) * u.K) / 4u + block * 64u;
+                    let xa = input[x_base + decoded.value / 4u];
+                    let xb = input[x_base + (decoded.value + 64u) / 4u];
+                    acc0[r] += decoded.scale * (decoded.firstScale * dot(decoded.first, xa)
+                        + decoded.secondScale * dot(decoded.second, xb));
+                }
+                if (1u < COLS && first_m + 1u < u.M) {
+                    let x_base = (u.a_offset + (first_m + 1u) * u.K) / 4u + block * 64u;
+                    let xa = input[x_base + decoded.value / 4u];
+                    let xb = input[x_base + (decoded.value + 64u) / 4u];
+                    acc1[r] += decoded.scale * (decoded.firstScale * dot(decoded.first, xa)
+                        + decoded.secondScale * dot(decoded.second, xb));
+                }
+                if (2u < COLS && first_m + 2u < u.M) {
+                    let x_base = (u.a_offset + (first_m + 2u) * u.K) / 4u + block * 64u;
+                    let xa = input[x_base + decoded.value / 4u];
+                    let xb = input[x_base + (decoded.value + 64u) / 4u];
+                    acc2[r] += decoded.scale * (decoded.firstScale * dot(decoded.first, xa)
+                        + decoded.secondScale * dot(decoded.second, xb));
+                }
+                if (3u < COLS && first_m + 3u < u.M) {
+                    let x_base = (u.a_offset + (first_m + 3u) * u.K) / 4u + block * 64u;
+                    let xa = input[x_base + decoded.value / 4u];
+                    let xb = input[x_base + (decoded.value + 64u) / 4u];
+                    acc3[r] += decoded.scale * (decoded.firstScale * dot(decoded.first, xa)
+                        + decoded.secondScale * dot(decoded.second, xb));
+                }
             }
         }
     }
-    let total = subgroupAdd(acc);
-    if (subgroupElect()) { wave_sums[wave] = total; }
+    if (0u < COLS) { let total = subgroupAdd(acc0); if (subgroupElect()) { wave_sums[0u * WORKGROUP_SIZE + wave] = total; } }
+    if (1u < COLS) { let total = subgroupAdd(acc1); if (subgroupElect()) { wave_sums[1u * WORKGROUP_SIZE + wave] = total; } }
+    if (2u < COLS) { let total = subgroupAdd(acc2); if (subgroupElect()) { wave_sums[2u * WORKGROUP_SIZE + wave] = total; } }
+    if (3u < COLS) { let total = subgroupAdd(acc3); if (subgroupElect()) { wave_sums[3u * WORKGROUP_SIZE + wave] = total; } }
     workgroupBarrier();
     if (t < ROWS) {
         let row = row0 + t;
-        var sum = 0.0;
-        for (var w = 0u; w < waves; w++) { sum += wave_sums[w][t]; }
-        if (row < u.N) { output[u.c_offset + m * u.N + row] = sum * u.alpha; }
+        for (var c = 0u; c < COLS; c++) {
+            let m = first_m + c;
+            var sum = 0.0;
+            for (var w = 0u; w < waves; w++) { sum += wave_sums[c * WORKGROUP_SIZE + w][t]; }
+            if (m < u.M && row < u.N) { output[u.c_offset + m * u.N + row] = sum * u.alpha; }
+        }
     }
 }

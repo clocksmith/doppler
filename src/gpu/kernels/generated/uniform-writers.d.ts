@@ -141,6 +141,15 @@ export interface KernelUniformValues {
   "matmul/q4_0_pair_columns": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q8_0_pair_columns": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q5k_gemv_blockwise_columns": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/f32_row_subgroup": Parameters<typeof writers0.write_matmul_gemv_subgroup>[1];
+  "matmul/q6k_pair_columns": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q4_0_pair_columns_rows4": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q8_0_pair_columns_rows4": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q6k_pair_columns_wg128_rows1": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q4_1_block_columns_single": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q4_1_block_columns": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q5k_cooperative": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q5k_cooperative_columns": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "fused_ffn/default": Parameters<typeof writers0.write_fused_ffn_default>[1];
   "fused_ffn/multi": Parameters<typeof writers0.write_fused_ffn_default>[1];
   "fused_ffn/f16": Parameters<typeof writers0.write_fused_ffn_default>[1];
@@ -466,6 +475,7 @@ export interface KernelUniformValues {
   "conv2d_backward_weight/default": Parameters<typeof writers2.write_conv2d_default>[1];
   "attention_bdpa/decode_bdpa_f16": Parameters<typeof writers2.write_attention_bdpa_decode_bdpa_f16>[1];
   "check_finiteness/f16": Parameters<typeof writers2.write_check_finiteness_f16>[1];
+  "check_finiteness/f32": Parameters<typeof writers2.write_check_finiteness_f16>[1];
   "check_hot_vocab_stop/default": Parameters<typeof writers2.write_check_hot_vocab_stop_default>[1];
   "check_stop/default": Parameters<typeof writers2.write_check_stop_default>[1];
   "gated_short_conv/f32": Parameters<typeof writers2.write_gated_short_conv_f32>[1];
